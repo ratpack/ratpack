@@ -1,12 +1,12 @@
 package ratpack
 
 class Ratpack {
-	
-	static def app(closure) {
-		def theApp = new RatpackApp()
-		closure.delegate = theApp
-		closure.call()
-		return theApp
-	}
+    
+    static def app(closure) {
+        def theApp = new RatpackApp()
+        closure.delegate = theApp
+        closure.call()
+        return theApp
+    }
 
 }
