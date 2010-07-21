@@ -14,3 +14,8 @@ dependencies {
     
     testCompile group: 'junit', name: 'junit', version: '4.7'
 }
+
+task copyToLib(type: Copy) {
+    into "$buildDir/libs"
+    from configurations.runtime
+}

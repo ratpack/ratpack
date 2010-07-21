@@ -12,7 +12,13 @@ Ratpack is inspired by the excellent [Sinatra][] framework for Ruby, and aims to
 Getting Started
 ---------------
 
-Ratpack is still *very* beta. But, you can start using it right now. Here's a basic "Hello, World" app:
+Ratpack is still *very* beta. But, you can start using it right now.
+
+To easily run your app from the command line, copy the jars to your Groovy libs.
+
+    gradle build copyToLib && cp -v build/libs/* ~/.groovy/lib/
+
+Here's a basic "Hello, World" app:
 
     import ratpack.Ratpack
     import ratpack.RatpackServlet
