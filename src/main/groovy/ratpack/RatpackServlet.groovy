@@ -15,6 +15,25 @@ class RatpackServlet extends HttpServlet {
     
     def app = null
     
+    void init() {
+    	if(app == null) {
+	    	def appScriptName = getServletConfig().getInitParameter("app-script-filename")
+			def fullScriptPath = getServletContext().getRealPath("WEB-INF/lib/${appScriptName}")
+			
+	    	println "Loading app from script '${appScriptName}'"
+			loadAppFromScript(fullScriptPath)
+		}
+    }
+    
+    private void loadAppFromScript(filename) {
+		ClassLoader parent = getClass().getClassLoader()
+		GroovyClassLoader loader = new GroovyClassLoader(parent)
+		Class groovyClass = loader.parseClass(new File(filename))
+		
+		GroovyObject groovyObject = (GroovyObject) groovyClass.newInstance();
+		app = groovyObject.run()    
+    }
+    
     void service(HttpServletRequest req, HttpServletResponse res) {
     
         def verb = req.method
