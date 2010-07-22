@@ -20,8 +20,8 @@ To easily run your app from the command line, copy the jars to your Groovy libs.
 
 Here's a basic "Hello, World" app:
 
-    import ratpack.Ratpack
-    import ratpack.RatpackServlet
+    import com.bleedingwolf.ratpack.Ratpack
+    import com.bleedingwolf.ratpack.RatpackServlet
 
     def app = Ratpack.app {
 

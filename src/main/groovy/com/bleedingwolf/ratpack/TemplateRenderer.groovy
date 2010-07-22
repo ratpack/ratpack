@@ -1,4 +1,4 @@
-package ratpack
+package com.bleedingwolf.ratpack
 
 import groovy.text.SimpleTemplateEngine
 import javax.servlet.http.HttpServletRequest

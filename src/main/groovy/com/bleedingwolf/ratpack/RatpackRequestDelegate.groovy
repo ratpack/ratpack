@@ -1,4 +1,4 @@
-package ratpack
+package com.bleedingwolf.ratpack
 
 public class RatpackRequestDelegate {
 

@@ -1,4 +1,4 @@
-package ratpack.routing
+package com.bleedingwolf.ratpack.routing
 
 
 class RoutingTable {

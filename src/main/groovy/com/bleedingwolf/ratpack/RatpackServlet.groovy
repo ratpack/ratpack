@@ -1,5 +1,5 @@
 
-package ratpack
+package com.bleedingwolf.ratpack
 
 import java.io.File
 

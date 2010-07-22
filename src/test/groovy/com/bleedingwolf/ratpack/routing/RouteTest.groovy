@@ -1,8 +1,8 @@
-package ratpack.routing
+package com.bleedingwolf.ratpack.routing
 
 import org.junit.Test
 
-import ratpack.routing.Route
+import com.bleedingwolf.ratpack.routing.Route
 import static org.junit.Assert.*
 
 class RouteTest {
