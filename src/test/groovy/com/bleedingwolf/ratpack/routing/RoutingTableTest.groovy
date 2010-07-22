@@ -66,4 +66,13 @@ class RoutingTableTest {
         
         assertEquals table.route("/customer/fred/order/123").call(), "Order 123 for customer fred"
     }
+    
+    @Test
+    void routesAreMatchedInTheOrderTheyAreDefined() {
+        def table = new RoutingTable()
+        table.attachRoute new Route("/test"), { "Route 1" }
+        table.attachRoute new Route("/test"), { "Route 2" }
+        
+        assertEquals table.route("/test").call(), "Route 1"
+    }
 }
