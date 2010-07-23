@@ -1,4 +1,5 @@
 package com.bleedingwolf.ratpack
+import org.json.JSONObject
 
 public class RatpackRequestDelegate {
 
@@ -40,4 +41,16 @@ public class RatpackRequestDelegate {
         }
         renderer.render(templateName, context)
     }
+
+    void contentType(String contentType) {
+        setHeader("Content-Type",contentType)
+    }
+
+    String renderJson(o) {
+        if (!response.containsHeader("Content-Type")) {
+            contentType("application/json")
+        }
+	new JSONObject(o).toString()
+    }
+
 }
