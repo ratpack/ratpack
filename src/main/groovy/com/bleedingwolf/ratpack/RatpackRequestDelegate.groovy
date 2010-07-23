@@ -34,7 +34,10 @@ public class RatpackRequestDelegate {
         }
     }
     
-    String render(templateName, context) {
+    String render(templateName, context=[:]) {
+        if(!response.containsHeader('Content-Type')) {
+            setHeader('Content-Type', 'text/html')
+        }
         renderer.render(templateName, context)
     }
 }
