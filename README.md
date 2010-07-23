@@ -91,6 +91,10 @@ Templates
 ---------
 
 Render templates using the `render` method.
+To specifiy where to load template files from, set the `templateRoot` setting.
+If the file isn't found in the template root, the renderer will try to load it as a resource from the classpath.
+
+    set 'templateRoot', 'myapp/templates'
 
     get("/") {
         render "homepage.html"
