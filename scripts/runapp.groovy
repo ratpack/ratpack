@@ -8,8 +8,7 @@ public abstract class DirWatcher extends TimerTask {
     this.path = path;
     def files = new File(path).listFiles(fileFilter);
     
-    // transfer to the hashmap be used a reference and keep the
-    // lastModfied value
+    // transfer to the hashmap be used a reference and keep the lastModfied value
     for(File file : files) {
       dir.put(file, file.lastModified());
     }
@@ -70,22 +69,15 @@ class AppRunner extends DirWatcher {
   }
 
   void onChange(File file, String action) {
-    // here we code the action on a change
-    if (fileMatters(file)) {
-      println ("File "+ file.name +" action: " + action )
-      if (proc) {
-	println "KILLING"
-	killApp()
-	println "RELOADING"
-      } else {
-	println "STARTING" 
-      }
-      runApp()
+    println ("File "+ file.name +" action: " + action )
+    if (proc) {
+      println "KILLING"
+      killApp()
+      println "RELOADING"
+    } else {
+      println "STARTING" 
     }
-  }
-  
-  def fileMatters(File file) { 
-    true
+    runApp()
   }
 }
 
