@@ -34,6 +34,9 @@ Here's a basic "Hello, World" app:
 
 If you save the above code in `hello.groovy` and run it on the command line, it will start your app in Jetty on port 5000.
 
+You can also use the 'runapp.groovy' script to auto restart your app when there are changes in the directory.
+
+    groovy scripts/runapp.groovy appdir/hello.groovy appdir
 
 POST and Other Verbs
 --------------------
