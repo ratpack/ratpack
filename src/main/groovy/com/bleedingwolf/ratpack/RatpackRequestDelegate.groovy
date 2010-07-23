@@ -5,6 +5,7 @@ public class RatpackRequestDelegate {
     def renderer
 
     def params = [:]
+    def urlparams = [:]
     def headers = [:]
 
     def request = null

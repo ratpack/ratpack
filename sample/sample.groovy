@@ -1,6 +1,6 @@
  
-import ratpack.Ratpack
-import ratpack.RatpackServlet
+import com.bleedingwolf.ratpack.Ratpack
+import com.bleedingwolf.ratpack.RatpackServlet
 
 def app = Ratpack.app {
     
@@ -9,12 +9,12 @@ def app = Ratpack.app {
         "Your user-agent: ${ua}"
     }
     
-    get("/foo/:name") { params ->
-        "Hello, ${params.name}"
+    get("/foo/:name") {
+        "Hello, ${urlparams.name}"
     }
     
-    get("/person/:id") { params ->
-        "Person #${params.id}"
+    get("/person/:id") {
+        "Person #${urlparams.id}"
     }
 
 }

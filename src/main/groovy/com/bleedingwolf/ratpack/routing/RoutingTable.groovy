@@ -1,5 +1,7 @@
 package com.bleedingwolf.ratpack.routing
 
+import com.bleedingwolf.ratpack.RatpackRequestDelegate
+
 
 class RoutingTable {
 
@@ -12,11 +14,13 @@ class RoutingTable {
     def route(subject) {
         def found = routeHandlers.find { null != it.route.match(subject) }
         if (found) {
-            def params = found.route.match(subject)
-            def foundHandler = { ->
+            def urlparams = found.route.match(subject)
+            def foundHandler = { ->            
                 found.handler.delegate = delegate
-                found.handler(params)
+                found.handler()
             }
+            foundHandler.delegate = new RatpackRequestDelegate()
+            foundHandler.delegate.urlparams = urlparams
             return foundHandler
         }
         return null

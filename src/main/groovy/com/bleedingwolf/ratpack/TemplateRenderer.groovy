@@ -22,21 +22,19 @@ class TemplateRenderer {
         }
         catch(java.io.FileNotFoundException origEx) {
             try {
-                def resource = this.class.getResource(templateName)
+                def resource = this.class.getResourceAsStream(templateName)
                 if (!resource) {
                     throw new java.io.FileNotFoundException(templateName)
                 }
                 text += resource.text
             }
             catch(java.io.FileNotFoundException resEx) {
-                def resource = this.class.getResource('exception.html')
+                def resource = this.class.getResourceAsStream('exception.html')
                 text += resource.text
                 context = [
                     title: 'Template Not Found',
                     message: 'Template Not Found',
                     metadata: [
-                        'Request Method': req.method.toUpperCase(),
-                        'Request URL': req.requestURL,
                         'Template Name': templateName,
                     ],
                     stacktrace: ""

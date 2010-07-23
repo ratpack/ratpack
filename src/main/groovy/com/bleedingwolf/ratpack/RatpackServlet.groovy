@@ -40,18 +40,15 @@ class RatpackServlet extends HttpServlet {
         def path = req.pathInfo
     
         def renderer = new TemplateRenderer(app.config.templateRoot)
-    
-        def delegate = new RatpackRequestDelegate()
-        delegate.renderer = renderer
-        delegate.request = req
-        delegate.response = res
         
         def handler = app.getHandler(verb, path)
         def output = ''
         
         if(handler) {
                 
-            handler.delegate = delegate
+            handler.delegate.renderer = renderer
+            handler.delegate.request = req
+            handler.delegate.response = res
             
             try {
                 output = handler.call()
@@ -70,10 +67,10 @@ class RatpackServlet extends HttpServlet {
             output = serveStaticFile(path)
             
         } else {
-            
+
             res.status = HttpServletResponse.SC_NOT_FOUND
             
-            output = delegate.render('exception.html', [
+            output = renderer.render('exception.html', [
                 title: 'Page Not Found',
                 message: 'Page Not Found',
                 metadata: [
@@ -81,6 +78,7 @@ class RatpackServlet extends HttpServlet {
                     'Request URL': req.requestURL,
                 ]
             ])
+
         }
         
         output = convertOutputToByteArray(output)

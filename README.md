@@ -63,14 +63,15 @@ URL Parameters
 --------------
 
 You can capture parts of the URL to use in your handler code using the colon character.
+Any parameters that are captured are stored in the `urlparams` map.
 
-    get("/person/:personid") { urlparams ->
+    get("/person/:personid") {
         "This is the page for person ${urlparams.personid}"
     }
 
-    get("/company/:companyname/invoice/:invoiceid") { inputs ->
-        def company = CompanyDAO.getByName(inputs.companyname)
-        def invoice = company.getInvoice(inputs.invoiceid)
+    get("/company/:companyname/invoice/:invoiceid") {
+        def company = CompanyDAO.getByName(urlparams.companyname)
+        def invoice = company.getInvoice(urlparams.invoiceid)
         // you get the idea
     }
 
@@ -97,7 +98,7 @@ Render templates using the `render` method.
 
 You can also pass in a map to use in the template.
 
-    get("/page/:pagename") { urlparams ->
+    get("/page/:pagename") {
         render "page.html", [name: urlparams.pagename]
     }
 

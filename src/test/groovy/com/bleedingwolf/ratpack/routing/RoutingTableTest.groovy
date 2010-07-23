@@ -59,7 +59,7 @@ class RoutingTableTest {
     
     @Test
     void routingTableCurriesHandlerFunctions() {
-        def handler = { params -> return "Order ${params.order} for customer ${params.customer}".toString() }
+        def handler = { return "Order ${urlparams.order} for customer ${urlparams.customer}".toString() }
         
         def table = new RoutingTable()
         table.attachRoute new Route("/customer/:customer/order/:order"), handler
@@ -74,5 +74,15 @@ class RoutingTableTest {
         table.attachRoute new Route("/test"), { "Route 2" }
         
         assertEquals table.route("/test").call(), "Route 1"
+    }
+    
+    @Test
+    void urlparamsIsOnTheHandlersDelegate() {
+        def table = new RoutingTable()
+        table.attachRoute new Route("/page/:pagename"), { "Page: ${urlparams.pagename}".toString() }
+        table.attachRoute new Route("/otherpage"), { "Other Page" }
+        
+        assertEquals table.route("/page/mycoolpage").call(), "Page: mycoolpage"
+        assertEquals table.route("/otherpage").call(), "Other Page"
     }
 }
