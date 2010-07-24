@@ -98,7 +98,9 @@ class RatpackServlet extends HttpServlet {
     private boolean staticFileExists(url) {
         def publicDir = app.config.public
         def fullPath = [publicDir, url].join(File.separator)
-        return new File(fullPath).exists()
+        def file = new File(fullPath)
+	// For now, directory listings shall not be served.
+	return file.exists() && !file.isDirectory()
     }
     
     private def serveStaticFile(url) {
