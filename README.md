@@ -9,6 +9,11 @@ Ratpack is inspired by the excellent [Sinatra][] framework for Ruby, and aims to
   [Sinatra]: http://www.sinatrarb.com/
 
 
+Requirements
+------------
+
+Groovy 1.7.1+ and Gradle (to build and fetch other dependencies).
+
 Getting Started
 ---------------
 
