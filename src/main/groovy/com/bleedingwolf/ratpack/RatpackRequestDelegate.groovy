@@ -11,6 +11,7 @@ public class RatpackRequestDelegate {
 
     def request = null
     def response = null
+    def requestParamReader = new RatpackRequestParamReader()
 
     void setHeader(name, value) {
         response.setHeader(name.toString(), value.toString())
@@ -18,13 +19,7 @@ public class RatpackRequestDelegate {
     
     void setRequest(req) {
         request = req
-        
-        req.parameterNames.each { p ->
-            def values = req.getParameterValues(p)
-            if(values.length == 1)
-                values = values[0]
-            params[p] = values
-        }
+        requestParamReader.readRequestParams(req, params)
         
         req.headerNames.each { header ->
             def values = []
