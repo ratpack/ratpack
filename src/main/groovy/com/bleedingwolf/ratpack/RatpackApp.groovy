@@ -1,7 +1,5 @@
 package com.bleedingwolf.ratpack
 
-import java.util.regex.Pattern
-
 import com.bleedingwolf.ratpack.routing.Route
 import com.bleedingwolf.ratpack.routing.RoutingTable
 

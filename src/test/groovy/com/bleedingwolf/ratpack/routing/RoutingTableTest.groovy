@@ -2,8 +2,6 @@ package com.bleedingwolf.ratpack.routing
 
 import org.junit.Test
 
-import com.bleedingwolf.ratpack.routing.Route
-import com.bleedingwolf.ratpack.routing.RoutingTable
 import static org.junit.Assert.*
 
 class RoutingTableTest {

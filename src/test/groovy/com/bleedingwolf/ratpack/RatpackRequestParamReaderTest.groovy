@@ -3,7 +3,6 @@ package com.bleedingwolf.ratpack
 import org.junit.Test
 import org.junit.Before
 
-import com.bleedingwolf.ratpack.routing.Route
 import static org.junit.Assert.*
 
 class RatpackRequestParamReaderTest { 
