@@ -1,5 +1,6 @@
 package com.bleedingwolf.ratpack
 
+import javax.activation.MimetypesFileTypeMap;
 import javax.servlet.http.HttpServlet
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
@@ -8,9 +9,10 @@ import org.mortbay.jetty.Server
 import org.mortbay.jetty.servlet.Context
 import org.mortbay.jetty.servlet.ServletHolder
 
+
 class RatpackServlet extends HttpServlet {
-    
     def app = null
+	MimetypesFileTypeMap mimetypesFileTypeMap = new MimetypesFileTypeMap()
     
     void init() {
     	if(app == null) {
@@ -20,6 +22,7 @@ class RatpackServlet extends HttpServlet {
 	    	println "Loading app from script '${appScriptName}'"
 			loadAppFromScript(fullScriptPath)
 		}
+		mimetypesFileTypeMap.addMimeTypes(this.class.getResourceAsStream('mime.types').text)
     }
     
     private void loadAppFromScript(filename) {
@@ -28,7 +31,7 @@ class RatpackServlet extends HttpServlet {
 		Class groovyClass = loader.parseClass(new File(filename))
 		
 		GroovyObject groovyObject = (GroovyObject) groovyClass.newInstance();
-		app = groovyObject.run()    
+		app = groovyObject.run()
     }
     
     void service(HttpServletRequest req, HttpServletResponse res) {
@@ -61,7 +64,7 @@ class RatpackServlet extends HttpServlet {
             
         } else if(app.config.public && staticFileExists(path)){
         
-            output = serveStaticFile(path)
+            output = serveStaticFile(res, path)
             
         } else {
 
@@ -94,17 +97,18 @@ class RatpackServlet extends HttpServlet {
     
     private boolean staticFileExists(url) {
         def publicDir = app.config.public
+		
         def fullPath = [publicDir, url].join(File.separator)
-        def file = new File(fullPath)
-	// For now, directory listings shall not be served.
-	return file.exists() && !file.isDirectory()
+		def file = new File(fullPath)
+		// For now, directory listings shall not be served.
+		return file.exists() && !file.isDirectory()
     }
     
-    private def serveStaticFile(url) {
+    private def serveStaticFile(res, url) {
         def publicDir = app.config.public
         def fullPath = [publicDir, url].join(File.separator)
         def file = new File(fullPath)
-        
+		res.setHeader('Content-Type', mimetypesFileTypeMap.getContentType(file))
         file.getBytes()
     }
     
