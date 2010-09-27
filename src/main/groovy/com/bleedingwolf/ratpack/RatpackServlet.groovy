@@ -95,21 +95,21 @@ class RatpackServlet extends HttpServlet {
         println "[   ${res.status}] ${verb} ${path}"
     }
     
-    private boolean staticFileExists(url) {
-        def publicDir = app.config.public
-		
-        def fullPath = [publicDir, url].join(File.separator)
-		def file = new File(fullPath)
+    private boolean staticFileExists(url) {        
+		def file = staticFileFrom(url)
 		// For now, directory listings shall not be served.
 		return file.exists() && !file.isDirectory()
     }
     
-    private def serveStaticFile(res, url) {
+    private def serveStaticFile(res, url) {        
+		res.setHeader('Content-Type', mimetypesFileTypeMap.getContentType(staticFileFrom(url)))
+        file.getBytes()
+    }
+    
+    private def staticFileFrom(url) {
         def publicDir = app.config.public
         def fullPath = [publicDir, url].join(File.separator)
-        def file = new File(fullPath)
-		res.setHeader('Content-Type', mimetypesFileTypeMap.getContentType(file))
-        file.getBytes()
+        new File(fullPath)
     }
     
     private byte[] convertOutputToByteArray(output) {
