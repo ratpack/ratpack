@@ -102,7 +102,8 @@ class RatpackServlet extends HttpServlet {
     }
     
     private def serveStaticFile(res, url) {        
-		res.setHeader('Content-Type', mimetypesFileTypeMap.getContentType(staticFileFrom(url)))
+		def file = staticFileFrom(url)
+		res.setHeader('Content-Type', mimetypesFileTypeMap.getContentType(file))
         file.getBytes()
     }
     
