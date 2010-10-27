@@ -21,21 +21,13 @@ Ratpack is still *very* beta. But, you can start using it right now.
 
 To easily run your app from the command line, copy the jars to your Groovy libs.
 
-    gradle build copyToLib && cp -v build/libs/* ~/.groovy/lib/
+    gradle deployRatpack
 
 Here's a basic "Hello, World" app:
 
-    import com.bleedingwolf.ratpack.Ratpack
-    import com.bleedingwolf.ratpack.RatpackServlet
-
-    def app = Ratpack.app {
-
-        get("/") {
-            "Hello, World!"
-        }
+    get("/") {
+    	"Hello, World!"
     }
-
-    RatpackServlet.serve(app)
 
 If you save the above code in `hello.groovy` and run it on the command line, it will start your app in Jetty on port 5000.
 
@@ -122,11 +114,6 @@ The template syntax is the same as Groovy's [SimpleTemplateEngine][].
 The Development Server
 ----------------------
 
-Just give your RatpackApp to the RatpackServlet to start a Jetty container.
+The default port is 5000, but you can specify another if you wish by adding the following to your app:
 
-    RatpackServlet.serve(app)
-
-The default port is 5000, but you can specify another if you wish.
-
-    RatpackServlet.serve(app, 8080)
-
+    setPort 8080

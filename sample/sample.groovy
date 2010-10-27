@@ -1,22 +1,14 @@
- 
-import com.bleedingwolf.ratpack.Ratpack
-import com.bleedingwolf.ratpack.RatpackServlet
+setPort 4999
 
-def app = Ratpack.app {
-    
-    get("/") {
-        def ua = headers['user-agent']
-        "Your user-agent: ${ua}"
-    }
-    
-    get("/foo/:name") {
-        "Hello, ${urlparams.name}"
-    }
-    
-    get("/person/:id") {
-        "Person #${urlparams.id}"
-    }
-
+get("/") {
+	def ua = headers['user-agent']
+    "Your user-agent: ${ua}"
 }
-
-RatpackServlet.serve(app)
+    
+get("/foo/:name") {
+	"Hello, ${urlparams.name}"
+}
+    
+get("/person/:id") {
+	"Person #${urlparams.id}"
+}

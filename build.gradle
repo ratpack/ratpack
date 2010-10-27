@@ -22,3 +22,9 @@ task copyToLib(type: Copy) {
     into "$buildDir/libs"
     from configurations.runtime
 }
+
+task deployRatpack(dependsOn: [build,copyToLib], type: Copy) {
+    into "${System.properties['user.home']}/.groovy/lib"
+    from "$buildDir/libs"
+    include "*.jar"
+}
