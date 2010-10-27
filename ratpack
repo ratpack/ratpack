@@ -1,0 +1,11 @@
+#!/usr/bin/env groovy
+import com.bleedingwolf.ratpack.Ratpack
+import com.bleedingwolf.ratpack.RatpackServlet
+
+def appScript = new File(args[0]).text
+def appClosure = new GroovyShell().evaluate("def webapp = { ${appScript} }; return webapp ")
+
+def app = Ratpack.app(appClosure)
+
+RatpackServlet.serve(app)
+

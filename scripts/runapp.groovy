@@ -60,7 +60,7 @@ class AppRunner extends DirWatcher {
   }
 
   def runApp() {
-    proc = "groovy ${script}".execute()
+    proc = "${path}/ratpack ${script}".execute()
     proc.consumeProcessOutput(System.out, System.err)
   }
 

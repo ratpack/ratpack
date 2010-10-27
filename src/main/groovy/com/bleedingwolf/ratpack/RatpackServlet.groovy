@@ -121,16 +121,16 @@ class RatpackServlet extends HttpServlet {
         return output
     }
     
-    static void serve(theApp, port=5000) {
+    static void serve(theApp) {
         // Runs this RatpackApp in a Jetty container
-        
+        println 'inside this :)'
         def servlet = new RatpackServlet()
         servlet.app = theApp
         
         println "Starting Ratpack app with config:"
         println theApp.config
         
-        def server = new Server(port)
+        def server = new Server(theApp.port)
         def root = new Context(server, "/", Context.SESSIONS)
         root.addServlet(new ServletHolder(servlet), "/*")
         server.start()
