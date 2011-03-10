@@ -70,14 +70,14 @@ class RatpackServlet extends HttpServlet {
 
             res.status = HttpServletResponse.SC_NOT_FOUND
             
-            output = renderer.render('exception.html', [
+            output = renderer.renderError(
                 title: 'Page Not Found',
                 message: 'Page Not Found',
                 metadata: [
                     'Request Method': req.method.toUpperCase(),
                     'Request URL': req.requestURL,
                 ]
-            ])
+            )
 
         }
         
@@ -94,23 +94,29 @@ class RatpackServlet extends HttpServlet {
         // FIXME: use log4j or similar
         println "[   ${res.status}] ${verb} ${path}"
     }
-    
-    private boolean staticFileExists(url) {        
-		def file = staticFileFrom(url)
-		// For now, directory listings shall not be served.
-		return file.exists() && !file.isDirectory()
+
+    protected boolean staticFileExists(path) {
+		!path.endsWith('/') && staticFileFrom(path) != null
     }
     
-    private def serveStaticFile(res, url) {        
-		def file = staticFileFrom(url)
-		res.setHeader('Content-Type', mimetypesFileTypeMap.getContentType(file))
-        file.getBytes()
+    protected def serveStaticFile(response, path) {
+		URL url = staticFileFrom(path)
+		response.setHeader('Content-Type', mimetypesFileTypeMap.getContentType(url.toString()))
+        url.openStream().bytes
     }
     
-    private def staticFileFrom(url) {
+    protected URL staticFileFrom(path) {
         def publicDir = app.config.public
         def fullPath = [publicDir, url].join(File.separator)
-        new File(fullPath)
+        def file = new File(fullPath)
+
+        if(file.exists()) return file
+
+        try {
+            return Thread.currentThread().contextClassLoader.getResource([publicDir, path].join('/'))
+        } catch(Exception e) {
+            return null
+        }
     }
     
     private byte[] convertOutputToByteArray(output) {

@@ -12,61 +12,68 @@ class TemplateRenderer {
         templateRoot = tr
     }
 
-    String render(templateName, context=[:]) {
+     String render(templateName, context=[:]) {
+         String text = ''
 
+         try {
+             text += loadTemplateText(templateName)
+         } catch(java.io.IOException ex) {
+             text += loadResource('com/bleedingwolf/ratpack/exception.html').text
+             context = [
+                  title: 'Template Not Found',
+                  message: 'Template Not Found',
+                  metadata: [
+                      'Template Name': templateName,
+                  ],
+                  stacktrace: ""
+             ]
+         }
+
+         renderTemplate(text, context)
+     }
+
+     String renderError(Map context) {
+         String text = loadResource('com/bleedingwolf/ratpack/exception.html').text
+
+         renderTemplate(text, context)
+     }
+
+     String renderException(Throwable ex, HttpServletRequest req) {
+         def stackInfo = super.decodeStackTrace(ex)
+
+         String text = loadResource('com/bleedingwolf/ratpack/exception.html').text
+         Map context = [
+             title: ex.class.name,
+             message: ex.message,
+             metadata: [
+                'Request Method': req.method.toUpperCase(),
+                'Request URL': req.requestURL,
+                'Exception Type': ex.class.name,
+                'Exception Location': "${stackInfo.rootCause.fileName}, line ${stackInfo.rootCause.lineNumber}",
+             ],
+             stacktrace: stackInfo.html
+         ]
+
+         renderTemplate(text, context)
+     }
+
+     protected loadTemplateText(templateName) {
         String text = ''
         String fullTemplateFilename = [templateRoot, templateName].join(File.separator)
         
         try {
             new File(fullTemplateFilename).eachLine { text += it + '\n' }
-        }
-        catch(java.io.FileNotFoundException origEx) {
-            try {
-                def resource = this.class.getResourceAsStream(templateName)
-                if (!resource) {
-                    throw new java.io.FileNotFoundException(templateName)
-                }
-                text += resource.text
+        } catch(java.io.FileNotFoundException origEx) {
+            def resource = loadResource(templateName)
+            if (!resource) {
+                throw new java.io.FileNotFoundException(templateName)
             }
-            catch(java.io.FileNotFoundException resEx) {
-                def resource = this.class.getResourceAsStream('exception.html')
-                text += resource.text
-                context = [
-                    title: 'Template Not Found',
-                    message: 'Template Not Found',
-                    metadata: [
-                        'Template Name': templateName,
-                    ],
-                    stacktrace: ""
-                ]
-            }
+            text += resource.text
         }
-        
-        def engine = new SimpleTemplateEngine()
-        def template = engine.createTemplate(text).make(context)
-        
-        return template.toString()
-    }
+        return text
+     }
     
-    String renderException(Throwable ex, HttpServletRequest req) {
-    
-        def stackInfo = decodeStackTrace(ex)
-                  
-        return render('exception.html', [
-            title: ex.class.name,
-            message: ex.message,
-            metadata: [
-                'Request Method': req.method.toUpperCase(),
-                'Request URL': req.requestURL,
-                'Exception Type': ex.class.name,
-                'Exception Location': "${stackInfo.rootCause.fileName}, line ${stackInfo.rootCause.lineNumber}",
-            ],
-            stacktrace: stackInfo.html
-        ])
-    }
-    
-    private def decodeStackTrace(Throwable t) {
-    
+    protected Map decodeStackTrace(Throwable t) {
         // FIXME
         // this doesn't really make sense, but I'm not sure
         // how to create a `firstPartyPrefixes` list.
@@ -86,5 +93,15 @@ class TemplateRenderer {
         }
                 
         return [html: html, rootCause: rootCause]
+    }
+
+    protected String renderTemplate(String text, Map context) {
+         SimpleTemplateEngine engine = new SimpleTemplateEngine()
+         def template = engine.createTemplate(text).make(context)
+         return template.toString()
+    }
+
+    protected InputStream loadResource(String path) {
+        Thread.currentThread().contextClassLoader.getResourceAsStream(path)
     }
 }
