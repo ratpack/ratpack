@@ -8,7 +8,7 @@ repositories {
 }
 
 dependencies {
-    groovy group: 'org.codehaus.groovy', name: 'groovy', version: '1.7.6'
+    groovy group: 'org.codehaus.groovy', name: 'groovy', version: '1.7.9'
     
     compile group: 'javax.servlet', name: 'servlet-api', version: '2.5'
     compile group: 'org.json', name: 'json', version: '20090211'

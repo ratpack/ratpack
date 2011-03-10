@@ -1,11 +1,21 @@
 #!/usr/bin/env groovy
-import com.bleedingwolf.ratpack.Ratpack
+import groovy.lang.Binding
+import groovy.util.GroovyScriptEngine
 import com.bleedingwolf.ratpack.RatpackServlet
+import com.bleedingwolf.ratpack.RatpackApp
 
-def appScript = new File(args[0]).text
-def appClosure = new GroovyShell().evaluate("def webapp = { ${appScript} }; return webapp ")
+def scriptFile = new File(args[0])
 
-def app = Ratpack.app(appClosure)
+GroovyScriptEngine gse = new GroovyScriptEngine(scriptFile.parentFile.canonicalPath)
+Binding binding = new Binding()
 
-RatpackServlet.serve(app)
+RatpackApp ratpack = new RatpackApp()
+binding.setVariable('get', ratpack.get)
+binding.setVariable('post', ratpack.post)
+binding.setVariable('put', ratpack.put)
+binding.setVariable('delete', ratpack.delete)
+binding.setVariable('set', ratpack.set)
 
+gse.run scriptFile.name, binding
+
+RatpackServlet.serve(ratpack)

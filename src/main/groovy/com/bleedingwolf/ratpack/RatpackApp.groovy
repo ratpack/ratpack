@@ -13,7 +13,7 @@ class RatpackApp {
     
     def config = [:]
     
-    void set(setting, value) {
+    def set = { setting, value ->
         config[setting] = value
     }
        
@@ -42,19 +42,19 @@ class RatpackApp {
         return handlers[method.toUpperCase()].route(subject)
     }
     
-    void get(path, handler) {
+    def get = { path, handler ->
         register('GET', path, handler)
     }
     
-    void post(path, handler) {
+    def post = { path, handler ->
         register('POST', path, handler)
     }
     
-    void put(path, handler) {
+	def put = { path, handler ->
         register('PUT', path, handler)
     }
     
-    void delete(path, handler) {
+    def delete = { path, handler ->
         register('DELETE', path, handler)
     }
 
