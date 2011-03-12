@@ -129,7 +129,6 @@ class RatpackServlet extends HttpServlet {
     
     static void serve(theApp) {
         // Runs this RatpackApp in a Jetty container
-        println 'inside this :)'
         def servlet = new RatpackServlet()
         servlet.app = theApp
         
