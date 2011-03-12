@@ -116,4 +116,4 @@ The Development Server
 
 The default port is 5000, but you can specify another if you wish by adding the following to your app:
 
-    setPort 8080
+    set 'port', 8080
