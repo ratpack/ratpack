@@ -135,7 +135,7 @@ class RatpackServlet extends HttpServlet {
         println "Starting Ratpack app with config:"
         println theApp.config
         
-        def server = new Server(theApp.port)
+        def server = new Server(theApp.config.port)
         def root = new Context(server, "/", Context.SESSIONS)
         root.addServlet(new ServletHolder(servlet), "/*")
         server.start()

@@ -4,14 +4,15 @@ import com.bleedingwolf.ratpack.routing.Route
 import com.bleedingwolf.ratpack.routing.RoutingTable
 
 class RatpackApp {
-	int port = 5000
 	
     def handlers = [
         'GET': new RoutingTable(),
         'POST': new RoutingTable(),
     ]
     
-    def config = [:]
+    def config = [
+        port: 5000
+    ]
     
     def set = { setting, value ->
         config[setting] = value
