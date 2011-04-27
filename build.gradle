@@ -29,7 +29,7 @@ task deployRatpack(dependsOn: [build,copyToLib], type: Copy) {
     include "*.jar"
 }
 
-task buildDistro(dependsOn: assemble){
+task buildDistro(dependsOn: assemble) << {
     ant{
         mkdir(dir:"$buildDir/ratpack/lib")
         mkdir(dir:"$buildDir/ratpack/bin")
