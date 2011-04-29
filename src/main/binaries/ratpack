@@ -1,6 +1,6 @@
 #!/usr/bin/env groovy
 def loader = this.class.classLoader.rootLoader
-def jardir = new File( System.getenv( 'RATPACK_HOME' ), 'lib' )
+def jardir = new File(new File(getClass().protectionDomain.codeSource.location.path).parentFile.parentFile,'lib')
 def jars   = jardir.listFiles().findAll { it.name.endsWith('.jar') } 
 jars.each { loader.addURL(it.toURI().toURL()) }
 

@@ -38,6 +38,7 @@ task buildDistro(dependsOn: assemble) << {
         from("$projectDir/src/main/binaries")
         into "$buildDir/ratpack/bin"
     }
+    ant.chmod(file: "$buildDir/ratpack/bin/ratpack", perm: 'ugo+x')
     copy{
         from configurations.runtime
         into "$buildDir/ratpack/lib"
