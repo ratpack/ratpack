@@ -1,0 +1,9 @@
+#!/usr/bin/env groovy
+def loader = this.class.classLoader.rootLoader
+def jardir = new File(new File(getClass().protectionDomain.codeSource.location.path).parentFile.parentFile,'lib')
+def jars   = jardir.listFiles().findAll { it.name.endsWith('.jar') } 
+jars.each { loader.addURL(it.toURI().toURL()) }
+
+def scriptFile = new File(args[0])
+
+Class.forName('com.bleedingwolf.ratpack.RatpackRunner').newInstance().run(scriptFile)

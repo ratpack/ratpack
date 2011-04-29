@@ -28,3 +28,24 @@ task deployRatpack(dependsOn: [build,copyToLib], type: Copy) {
     from "$buildDir/libs"
     include "*.jar"
 }
+
+task buildDistro(dependsOn: assemble) << {
+    ant{
+        mkdir(dir:"$buildDir/ratpack/lib")
+        mkdir(dir:"$buildDir/ratpack/bin")
+    }
+    copy{
+        from("$projectDir/src/main/binaries")
+        into "$buildDir/ratpack/bin"
+    }
+    ant.chmod(file: "$buildDir/ratpack/bin/ratpack", perm: 'ugo+x')
+    copy{
+        from configurations.runtime
+        into "$buildDir/ratpack/lib"
+    }
+    copy{
+        from "$buildDir/libs" 
+        into "$buildDir/ratpack/lib"
+        include "Ratpack-*.jar"
+    }    
+}
