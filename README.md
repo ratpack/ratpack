@@ -19,9 +19,10 @@ Getting Started
 
 Ratpack is still *very* beta. But, you can start using it right now.
 
-To easily run your app from the command line, copy the jars to your Groovy libs.
+To easily run your app from the command line, build the Ratpack project and add the binary to your PATH:
 
-    gradle deployRatpack
+    gradle buildDistro
+    export PATH=$PATH:`pwd`/build/ratpack/bin
 
 Here's a basic "Hello, World" app:
 
@@ -31,7 +32,7 @@ Here's a basic "Hello, World" app:
 
 If you save the above code in `hello.groovy` and run it on the command line, it will start your app in Jetty on port 5000:
 
-    $ ./ratpack hello.groovy 
+    $ ratpack hello.groovy 
     Starting Ratpack app with config:
     [port:5000]
     2011-05-28 07:44:51.408:INFO::Logging to STDERR via org.mortbay.log.StdErrLog
