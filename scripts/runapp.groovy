@@ -85,5 +85,5 @@ if (args.length == 2) {
   new AppRunner(args[0], args[1]).manageApp()
 } else {
   println "Usage:"
-  println "groovy runner.groovy [script] [dir to watch]"
+  println "groovy runapp.groovy [script] [dir to watch]"
 }

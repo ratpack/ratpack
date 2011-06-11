@@ -1,6 +1,0 @@
-#!/usr/bin/env groovy
-import com.bleedingwolf.ratpack.RatpackRunner
-
-def scriptFile = new File(args[0])
-
-new RatpackRunner().run(scriptFile)
