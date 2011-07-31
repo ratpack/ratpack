@@ -63,10 +63,15 @@ class RatpackServlet extends HttpServlet {
             output = serveStaticFile(res, path)
 
         } else {
-
             res.status = HttpServletResponse.SC_NOT_FOUND
-
-            output = ''
+            output = renderer.renderError(
+               title: 'Page Not Found',
+               message: 'Page Not Found',
+               metadata: [
+                   'Request Method': req.method.toUpperCase(),
+                   'Request URL': req.requestURL,
+               ]
+            )
         }
 
         output = convertOutputToByteArray(output)
