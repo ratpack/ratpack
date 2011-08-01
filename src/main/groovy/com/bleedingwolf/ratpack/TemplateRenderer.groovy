@@ -5,7 +5,7 @@ import javax.servlet.http.HttpServletRequest
 
 
 class TemplateRenderer {
-    
+
     String templateRoot = null
 
     TemplateRenderer(tr) {
@@ -39,7 +39,7 @@ class TemplateRenderer {
      }
 
      String renderException(Throwable ex, HttpServletRequest req) {
-         def stackInfo = super.decodeStackTrace(ex)
+         def stackInfo = decodeStackTrace(ex)
 
          String text = loadResource('com/bleedingwolf/ratpack/exception.html').text
          Map context = [
@@ -60,7 +60,7 @@ class TemplateRenderer {
      protected loadTemplateText(templateName) {
         String text = ''
         String fullTemplateFilename = [templateRoot, templateName].join(File.separator)
-        
+
         try {
             new File(fullTemplateFilename).eachLine { text += it + '\n' }
         } catch(java.io.FileNotFoundException origEx) {
@@ -72,17 +72,17 @@ class TemplateRenderer {
         }
         return text
      }
-    
+
     protected Map decodeStackTrace(Throwable t) {
         // FIXME
         // this doesn't really make sense, but I'm not sure
         // how to create a `firstPartyPrefixes` list.
         def thirdPartyPrefixes = ['sun', 'java', 'groovy', 'org.codehaus', 'org.mortbay']
-    
+
         String html = '';
         html += t.toString() + '\n'
         StackTraceElement rootCause = null
-        
+
         for(StackTraceElement ste : t.getStackTrace()) {
             if(thirdPartyPrefixes.any { ste.className.startsWith(it) }) {
                 html += "<span class='stack-thirdparty'>        at ${ste}\n</span>"
@@ -91,7 +91,7 @@ class TemplateRenderer {
                 if(null == rootCause) rootCause = ste
             }
         }
-                
+
         return [html: html, rootCause: rootCause]
     }
 
