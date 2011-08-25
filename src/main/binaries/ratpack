@@ -1,8 +1,13 @@
 #!/usr/bin/env groovy
 def loader = this.class.classLoader.rootLoader
-def jardir = new File(new File(getClass().protectionDomain.codeSource.location.path).parentFile.parentFile,'lib')
-def jars   = jardir.listFiles().findAll { it.name.endsWith('.jar') } 
-jars.each { loader.addURL(it.toURI().toURL()) }
+def commandPath = getClass().protectionDomain.codeSource.location.path
+def buildPath = new File(commandPath).parentFile.parentFile.parentFile
+def jardir = new File("${buildPath}/ratpack",'lib')
+
+def jars      = jardir.listFiles().findAll { it.name.endsWith('.jar') } 
+def classes = [new File("${buildPath}/classes/main").toURI().toURL() ]
+
+[classes,jars]*.each { loader.addURL(it.toURI().toURL()) }
 
 def scriptFile = new File(args[0])
 
