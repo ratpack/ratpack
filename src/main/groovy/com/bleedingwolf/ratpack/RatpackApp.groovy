@@ -40,7 +40,7 @@ class RatpackApp {
     }
 
     Closure getHandler(method, subject) {
-        return handlers[method.toUpperCase()].route(subject)
+        return handlers[method.toUpperCase()]?.route(subject)
     }
 
     def get = { path, handler ->
