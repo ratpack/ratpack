@@ -100,10 +100,10 @@ class RatpackServlet extends HttpServlet {
 
     protected URL staticFileFrom(path) {
         def publicDir = app.config.public
-        def fullPath = [publicDir, url].join(File.separator)
+        def fullPath = [publicDir, path].join(File.separator)
         def file = new File(fullPath)
 
-        if(file.exists()) return file
+        if(file.exists()) return file.toURI().toURL()
 
         try {
             return Thread.currentThread().contextClassLoader.getResource([publicDir, path].join('/'))
