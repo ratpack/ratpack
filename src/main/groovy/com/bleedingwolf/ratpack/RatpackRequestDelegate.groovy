@@ -1,5 +1,6 @@
 package com.bleedingwolf.ratpack
 import org.json.JSONObject
+import org.slf4j.LoggerFactory
 
 public class RatpackRequestDelegate {
 
@@ -12,6 +13,7 @@ public class RatpackRequestDelegate {
     def request = null
     def response = null
     def requestParamReader = new RatpackRequestParamReader()
+	final org.slf4j.Logger logger = LoggerFactory.getLogger(getClass())
 
     void setHeader(name, value) {
         response.setHeader(name.toString(), value.toString())

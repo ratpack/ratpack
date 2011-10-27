@@ -2,8 +2,11 @@ package com.bleedingwolf.ratpack
 
 import com.bleedingwolf.ratpack.routing.Route
 import com.bleedingwolf.ratpack.routing.RoutingTable
+import org.slf4j.LoggerFactory
 
 class RatpackApp {
+
+	final logger = LoggerFactory.getLogger(getClass())
 
     def handlers = [
         'GET': new RoutingTable(),
