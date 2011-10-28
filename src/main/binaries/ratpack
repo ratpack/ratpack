@@ -1,5 +1,9 @@
 #!/usr/bin/env groovy
 def loader = this.class.classLoader.rootLoader
+@Grapes([
+	@Grab('org.slf4j:slf4j-simple:1.6.3'),
+	@GrabConfig(systemClassLoader=true)
+])
 def commandPath = getClass().protectionDomain.codeSource.location.path
 def buildPath = new File(commandPath).parentFile.parentFile.parentFile
 def jardir = new File("${buildPath}/ratpack",'lib')

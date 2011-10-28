@@ -8,9 +8,11 @@ import javax.servlet.http.HttpServletResponse
 import org.mortbay.jetty.Server
 import org.mortbay.jetty.servlet.Context
 import org.mortbay.jetty.servlet.ServletHolder
-
+import org.slf4j.LoggerFactory
 
 class RatpackServlet extends HttpServlet {
+	protected final org.slf4j.Logger logger = LoggerFactory.getLogger(getClass())
+
     def app = null
 	MimetypesFileTypeMap mimetypesFileTypeMap = new MimetypesFileTypeMap()
 
@@ -19,7 +21,7 @@ class RatpackServlet extends HttpServlet {
 	    	def appScriptName = getServletConfig().getInitParameter("app-script-filename")
 			  def fullScriptPath = getServletContext().getRealPath("WEB-INF/lib/${appScriptName}")
 
-	    	println "Loading app from script '${appScriptName}'"
+	    	logger.info('Loading app from script "{}"', appScriptName)
 			loadAppFromScript(fullScriptPath)
 		}
 		mimetypesFileTypeMap.addMimeTypes(this.class.getResourceAsStream('mime.types').text)
@@ -51,8 +53,7 @@ class RatpackServlet extends HttpServlet {
             }
             catch(RuntimeException ex) {
 
-                // FIXME: use log4j or similar
-                println "[ Error] Caught Exception: ${ex}"
+                logger.error('Handling {} {}', [ verb, path, ex] as Object[])
 
                 res.status = HttpServletResponse.SC_INTERNAL_SERVER_ERROR
                 output = renderer.renderException(ex, req)
@@ -84,8 +85,7 @@ class RatpackServlet extends HttpServlet {
         stream.flush()
         stream.close()
 
-        // FIXME: use log4j or similar
-        println "[   ${res.status}] ${verb} ${path}"
+        logger.info("[   ${res.status}] ${verb} ${path}")
     }
 
     protected boolean staticFileExists(path) {
@@ -125,8 +125,7 @@ class RatpackServlet extends HttpServlet {
         def servlet = new RatpackServlet()
         servlet.app = theApp
 
-        println "Starting Ratpack app with config:"
-        println theApp.config
+        theApp.logger.info('Starting Ratpack app with config:\n{}', theApp.config)
 
         def server = new Server(theApp.config.port)
         def root = new Context(server, "/", Context.SESSIONS)

@@ -10,14 +10,16 @@ repositories {
 }
 
 dependencies {
-    groovy group: 'org.codehaus.groovy', name: 'groovy', version: '1.7.9'
+    groovy group: 'org.codehaus.groovy', name: 'groovy', version: '1.8.3'
     
     compile group: 'javax.servlet', name: 'servlet-api', version: '2.5'
     compile group: 'org.json', name: 'json', version: '20090211'
     compile(group: 'org.mortbay.jetty', name: 'jetty', version: '6.1.26') { exclude module: 'servlet-api' }
     compile(group: 'org.mortbay.jetty', name: 'jetty-util', version: '6.1.26') { exclude module: 'servlet-api' }
+	compile 'org.slf4j:slf4j-api:1.6.3'
     
-    testCompile group: 'junit', name: 'junit', version: '4.8.2'
+    testCompile group: 'junit', name: 'junit', version: '4.10'
+	testRuntime 'org.slf4j:slf4j-simple:1.6.3'
 }
 
 task copyToLib(type: Copy) {
