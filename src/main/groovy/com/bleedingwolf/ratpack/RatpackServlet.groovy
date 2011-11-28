@@ -5,31 +5,28 @@ import javax.servlet.http.HttpServlet
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
-import org.mortbay.jetty.Server
-import org.mortbay.jetty.servlet.Context
-import org.mortbay.jetty.servlet.ServletHolder
 import org.slf4j.LoggerFactory
 
 class RatpackServlet extends HttpServlet {
-	protected final org.slf4j.Logger logger = LoggerFactory.getLogger(getClass())
+    protected final org.slf4j.Logger logger = LoggerFactory.getLogger(getClass())
 
     def app = null
-	MimetypesFileTypeMap mimetypesFileTypeMap = new MimetypesFileTypeMap()
+    MimetypesFileTypeMap mimetypesFileTypeMap = new MimetypesFileTypeMap()
 
     void init() {
-    	if(app == null) {
-	    	def appScriptName = getServletConfig().getInitParameter("app-script-filename")
-			  def fullScriptPath = getServletContext().getRealPath("WEB-INF/lib/${appScriptName}")
+        if(app == null) {
+            def appScriptName = getServletConfig().getInitParameter("app-script-filename")
+            def fullScriptPath = getServletContext().getRealPath("WEB-INF/${appScriptName}")
 
-	    	logger.info('Loading app from script "{}"', appScriptName)
-			loadAppFromScript(fullScriptPath)
-		}
-		mimetypesFileTypeMap.addMimeTypes(this.class.getResourceAsStream('mime.types').text)
+            logger.info('Loading app from script "{}"', appScriptName)
+            loadAppFromScript(fullScriptPath)
+        }
+        mimetypesFileTypeMap.addMimeTypes(this.class.getResourceAsStream('mime.types').text)
     }
 
     private void loadAppFromScript(filename) {
-		  app = new RatpackApp()
-      app.prepareScriptForExecutionOnApp(filename)
+        app = new RatpackApp()
+        app.prepareScriptForExecutionOnApp(filename)
     }
 
     void service(HttpServletRequest req, HttpServletResponse res) {
@@ -59,7 +56,7 @@ class RatpackServlet extends HttpServlet {
                 output = renderer.renderException(ex, req)
             }
 
-        } else if(app.config.public && staticFileExists(path)){
+        } else if(app.config.public && staticFileExists(path)) {
 
             output = serveStaticFile(res, path)
 
@@ -89,12 +86,12 @@ class RatpackServlet extends HttpServlet {
     }
 
     protected boolean staticFileExists(path) {
-		!path.endsWith('/') && staticFileFrom(path) != null
+        !path.endsWith('/') && staticFileFrom(path) != null
     }
 
     protected def serveStaticFile(response, path) {
-		URL url = staticFileFrom(path)
-		response.setHeader('Content-Type', mimetypesFileTypeMap.getContentType(url.toString()))
+        URL url = staticFileFrom(path)
+        response.setHeader('Content-Type', mimetypesFileTypeMap.getContentType(url.toString()))
         url.openStream().bytes
     }
 
@@ -120,16 +117,4 @@ class RatpackServlet extends HttpServlet {
         return output
     }
 
-    static void serve(theApp) {
-        // Runs this RatpackApp in a Jetty container
-        def servlet = new RatpackServlet()
-        servlet.app = theApp
-
-        theApp.logger.info('Starting Ratpack app with config:\n{}', theApp.config)
-
-        def server = new Server(theApp.config.port)
-        def root = new Context(server, "/", Context.SESSIONS)
-        root.addServlet(new ServletHolder(servlet), "/*")
-        server.start()
-    }
 }

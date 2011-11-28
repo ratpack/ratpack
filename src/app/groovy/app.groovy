@@ -1,0 +1,4 @@
+get('/') {
+    'Hello, World!'
+}
+
