@@ -1,5 +1,6 @@
 apply plugin: 'groovy'
 apply plugin: 'idea'
+apply plugin: 'eclipse'
 apply plugin: 'jetty'
 
 group = 'com.bleedingwolf.ratpack'
@@ -50,6 +51,12 @@ sourceSets {
 idea {
   module {
     scopes.PROVIDED.plus += configurations.provided
+  }
+}
+
+eclipse {
+  classpath {
+    plusConfigurations += configurations.provided
   }
 }
 
