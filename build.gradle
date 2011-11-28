@@ -11,7 +11,6 @@ repositories {
 
 configurations { 
   provided
-  jetty
 }
 
 dependencies {
@@ -42,6 +41,9 @@ sourceSets {
     groovy {
       srcDir 'src/app/groovy'
     }
+    resources {
+      srcDir 'src/app/templates'
+    }
   }
 }
 
@@ -54,6 +56,11 @@ idea {
 war {
   webInf {
     from sourceSets.app.groovy
+    into 'scripts'
+  }
+  webInf {
+    from sourceSets.app.resources
+    into 'classes'
   }
 }
 
@@ -71,32 +78,4 @@ task run(type: JavaExec) {
   main = 'com.bleedingwolf.ratpack.RatpackRunner'
   args = [ 'src/app/groovy/app.groovy' ]
   classpath(runtimeClasspath + configurations.provided)
-}
-
-task copyToLib(type: Copy) {
-  into "$buildDir/libs"
-  from configurations.runtime
-}
-
-task deployRatpack(dependsOn: [build,copyToLib], type: Copy) {
-  into "${System.properties['user.home']}/.groovy/lib"
-  from "$buildDir/libs"
-  include "*.jar"
-}
-
-task buildDistro(dependsOn: assemble) << {
-  copy {
-    from "$projectDir/src/main/binaries"
-    into "$buildDir/ratpack/bin"
-  }
-  ant.chmod(file: "$buildDir/ratpack/bin/ratpack", perm: 'ugo+x')
-  copy {
-    from configurations.runtime
-    into "$buildDir/ratpack/lib"
-  }
-  copy {
-    from "$buildDir/libs"
-    into "$buildDir/ratpack/lib"
-    include "Ratpack-*.jar"
-  }
 }

@@ -16,7 +16,7 @@ class RatpackServlet extends HttpServlet {
     void init() {
         if(app == null) {
             def appScriptName = getServletConfig().getInitParameter("app-script-filename")
-            def fullScriptPath = getServletContext().getRealPath("WEB-INF/${appScriptName}")
+            def fullScriptPath = getServletContext().getRealPath("WEB-INF/scripts/${appScriptName}")
 
             logger.info('Loading app from script "{}"', appScriptName)
             loadAppFromScript(fullScriptPath)
@@ -49,7 +49,6 @@ class RatpackServlet extends HttpServlet {
                 output = handler.call()
             }
             catch(RuntimeException ex) {
-
                 logger.error('Handling {} {}', [ verb, path, ex] as Object[])
 
                 res.status = HttpServletResponse.SC_INTERNAL_SERVER_ERROR
