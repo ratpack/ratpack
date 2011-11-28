@@ -13,7 +13,7 @@ public class RatpackRequestDelegate {
     def request = null
     def response = null
     def requestParamReader = new RatpackRequestParamReader()
-	final org.slf4j.Logger logger = LoggerFactory.getLogger(getClass())
+    final org.slf4j.Logger logger = LoggerFactory.getLogger(getClass())
 
     void setHeader(name, value) {
         response.setHeader(name.toString(), value.toString())
@@ -47,7 +47,7 @@ public class RatpackRequestDelegate {
         if (!response.containsHeader("Content-Type")) {
             contentType("application/json")
         }
-	new JSONObject(o).toString()
+        new JSONObject(o).toString()
     }
 
 }
