@@ -43,7 +43,7 @@ sourceSets {
       srcDir 'src/app/groovy'
     }
     resources {
-      srcDir 'src/app/templates'
+      srcDir 'src/app/resources'
     }
   }
 }
@@ -70,12 +70,19 @@ war {
     into 'classes'
   }
 }
-
 jettyRunWar {
   contextPath = '/'
   httpPort = 5000
 }
 
+jettyRun {
+	jettyRun.scanTargets = [file(sourceSets.app.groovy)]
+	webAppSourceDirectory = file("src/app/webapp")
+	classpath += sourceSets.app.groovy + sourceSets.app.resources
+	webXml = file("src/main/webapp/WEB-INF/web.xml")
+  contextPath = '/'
+  httpPort = 5000
+}
 
 task wrapper(type: Wrapper) {
   gradleVersion = '1.0-milestone-6'

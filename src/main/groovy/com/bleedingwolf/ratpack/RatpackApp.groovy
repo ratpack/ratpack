@@ -14,7 +14,8 @@ class RatpackApp {
     ]
 
     def config = [
-        port: 5000
+        port: 5000,
+        templateRoot: 'templates'
     ]
 
     def set = { setting, value ->

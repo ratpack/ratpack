@@ -61,8 +61,21 @@ class TemplateRenderer {
         String text = ''
         String fullTemplateFilename = [templateRoot, templateName].join(File.separator)
 
+        File templateFound
         try {
-            new File(fullTemplateFilename).eachLine { text += it + '\n' }
+            templateFound = new File(fullTemplateFilename)
+            if(templateFound.exists()) {
+              text = templateFound.lines.join("\n")
+            } else {
+              def templateResource = loadResource(templateName) ?: 
+                loadResource(fullTemplateFilename) ?:
+                this.class.classLoader.URLs.find{it.file.endsWith(fullTemplateFilename)}
+                
+              if(!templateResource) {
+                throw new java.io.FileNotFoundException(templateName)
+              }
+              text = templateResource.text
+            }
         } catch(java.io.FileNotFoundException origEx) {
             def resource = loadResource(templateName)
             if (!resource) {
@@ -71,7 +84,7 @@ class TemplateRenderer {
             text += resource.text
         }
         return text
-     }
+      }
 
     protected Map decodeStackTrace(Throwable t) {
         // FIXME

@@ -18,8 +18,13 @@ class RatpackServlet extends HttpServlet {
             def appScriptName = getServletConfig().getInitParameter("app-script-filename")
             def fullScriptPath = getServletContext().getRealPath("WEB-INF/scripts/${appScriptName}")
 
-            logger.info('Loading app from script "{}"', appScriptName)
-            loadAppFromScript(fullScriptPath)
+            if(!new File(fullScriptPath).exists()) {
+              fullScriptPath = loadResource("scripts/${appScriptName}") //this.class.classLoader.URLs.find { it.file.endsWith(appScriptName) }.getFile()
+              loadAppFromScript(new File(fullScriptPath.getFile()))
+            } else {
+              logger.info('Loading app from script "{}" from {}', appScriptName, fullScriptPath)
+              loadAppFromScript(fullScriptPath)	
+            }
         }
         mimetypesFileTypeMap.addMimeTypes(this.class.getResourceAsStream('mime.types').text)
     }
@@ -106,6 +111,11 @@ class RatpackServlet extends HttpServlet {
         } catch(Exception e) {
             return null
         }
+    }
+		
+    protected URL loadResource(String path) {
+        Thread.currentThread().contextClassLoader.getResource(path) ?:
+					this.class.classLoader.URLs.find { it.file.endsWith(path) }
     }
 
     private byte[] convertOutputToByteArray(output) {
