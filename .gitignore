@@ -8,3 +8,5 @@ bin/
 *.iml
 *.ipr
 *.iws
+db/
+starth2
