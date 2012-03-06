@@ -1,5 +1,6 @@
 apply plugin: 'groovy'
 apply plugin: 'maven'
+apply plugin: 'idea'
 
 group = 'com.augusttechgroup'
 artifact = 'ratpack-plugin'
@@ -9,9 +10,11 @@ repositories {
   mavenCentral()
 }
 
-configurations { 
+
+configurations {
   provided
 }
+
 
 dependencies {
   groovy 'org.codehaus.groovy:groovy:1.8.6'
@@ -31,8 +34,23 @@ dependencies {
 */
 }
 
+sourceSets {
+  plugin {
+    groovy {
+      srcDir 'src/plugin/groovy'
+      compileClasspath = configurations.provided + configurations.compile
+    }
+  }
+}
+
+
+
 jar {
+  doFirst {
+    println sourceSets.main.output.files
+  }
   baseName = artifact
+  from sourceSets.plugin.output
 }
 
 task sourceJar(type: Jar) {

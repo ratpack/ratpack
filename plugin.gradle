@@ -11,3 +11,5 @@ buildscript {
   }  
 }
 
+println sourceSets.plugin.files
+println sourceSets.main.files
