@@ -24,6 +24,7 @@ package com.augusttechgroup.ratpack.plugin
 import org.gradle.api.Project
 import org.gradle.api.Plugin
 import org.gradle.api.plugins.GroovyPlugin
+import org.gradle.api.plugins.jetty.JettyPlugin
 
 class RatpackPlugin
   implements Plugin<Project> {
@@ -31,7 +32,7 @@ class RatpackPlugin
 
   void apply(Project project) {
     project.plugins.apply(GroovyPlugin)
-    
+
     project.repositories {
       mavenCentral()
     }
@@ -60,7 +61,7 @@ class RatpackPlugin
         }
       }
     }
-    
+
     project.war {
       webInf {
         from project.sourceSets.app.groovy
@@ -70,8 +71,11 @@ class RatpackPlugin
         from project.sourceSets.app.resources
         into 'classes'
       }
+      webXml project.file('web.xml')
     }
-    
+
+    RatpackPlugin.classLoader.getResource()
+
   }
 }
 

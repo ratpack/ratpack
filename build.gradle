@@ -8,50 +8,15 @@ version = '0.5-SNAPSHOT'
 
 repositories {
   mavenCentral()
+  mavenLocal()
 }
-
-
-configurations {
-  provided
-}
-
 
 dependencies {
   groovy 'org.codehaus.groovy:groovy:1.8.6'
-  testCompile 'junit:junit:4.10'
-  compile 'org.json:json:20090211'
-  compile 'org.slf4j:slf4j-api:1.6.3'
-  runtime 'org.slf4j:slf4j-simple:1.6.3'
+  compile "com.augusttechgroup:ratpack-core:${version}"
   compile gradleApi()
-/*
-  compile(group: 'org.mortbay.jetty', name: 'jetty', version: '6.1.26') {
-    exclude module: 'servlet-api'
-  }
-
-  compile(group: 'org.mortbay.jetty', name: 'jetty-util', version: '6.1.26') {
-    exclude module: 'servlet-api'
-  }
-*/
 }
 
-sourceSets {
-  plugin {
-    groovy {
-      srcDir 'src/plugin/groovy'
-      compileClasspath = configurations.provided + configurations.compile
-    }
-  }
-}
-
-
-
-jar {
-  doFirst {
-    println sourceSets.main.output.files
-  }
-  baseName = artifact
-  from sourceSets.plugin.output
-}
 
 task sourceJar(type: Jar) {
   description = 'An archive of the source code for Maven Central'
@@ -67,52 +32,6 @@ task groovydocJar(type: Jar, dependsOn: groovydoc) {
   classifier = 'javadoc'
   from fileTree(groovydoc.destinationDir)
 }
-
-
-
-/*
-idea {
-  module {
-    scopes.PROVIDED.plus += configurations.provided
-  }
-}
-
-eclipse {
-  classpath {
-    plusConfigurations += configurations.provided
-  }
-}
-
-war {
-  webInf {
-    from sourceSets.app.groovy
-    into 'scripts'
-  }
-  webInf {
-    from sourceSets.app.resources
-    into 'classes'
-  }
-}
-jettyRunWar {
-  contextPath = '/'
-  httpPort = 5000
-}
-
-jettyRun {
-  jettyRun.scanTargets = [file(sourceSets.app.groovy)]
-  webAppSourceDirectory = file("src/app/webapp")
-  classpath += sourceSets.app.groovy + sourceSets.app.resources
-  webXml = file("src/main/webapp/WEB-INF/web.xml")
-  contextPath = '/'
-  httpPort = 5000
-}
-
-task run(type: JavaExec) {
-  main = 'com.bleedingwolf.ratpack.RatpackRunner'
-  args = [ 'src/app/groovy/app.groovy' ]
-  classpath(runtimeClasspath + configurations.provided)
-}
-*/
 
 task wrapper(type: Wrapper) {
   gradleVersion = '1.0-milestone-8a'
