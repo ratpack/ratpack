@@ -1,10 +1,17 @@
-apply plugin: 'groovy'
+apply plugin: 'jetty'
 apply plugin: 'idea'
 apply plugin: 'eclipse'
-apply plugin: 'jetty'
+apply plugin: 'ratpack'
 
-group = 'com.bleedingwolf.ratpack'
-version = '0.2-SNAPSHOT'
+buildscript {
+  repositories {
+    mavenCentral()
+    mavenLocal()
+  }
+  dependencies {
+    classpath 'com.augusttechgroup:ratpack-plugin:0.5-SNAPSHOT'
+  }
+}
 
 repositories {
   mavenCentral()
@@ -15,61 +22,9 @@ configurations {
 }
 
 dependencies {
-  groovy 'org.codehaus.groovy:groovy:1.8.3'
-  provided 'javax.servlet:servlet-api:2.5'
-  compile 'org.json:json:20090211'
-
-  compile(group: 'org.mortbay.jetty', name: 'jetty', version: '6.1.26') {
-    exclude module: 'servlet-api'
-  }
-
-  compile(group: 'org.mortbay.jetty', name: 'jetty-util', version: '6.1.26') {
-    exclude module: 'servlet-api'
-  }
-
-  compile 'org.slf4j:slf4j-api:1.6.3'
-  testCompile 'junit:junit:4.10'
-  runtime 'org.slf4j:slf4j-simple:1.6.3'
+  groovy 'org.codehaus.groovy:groovy:1.8.6'
 }
 
-sourceSets {
-  main {
-    groovy {
-      compileClasspath += configurations.provided
-    }
-  }
-  app {
-    groovy {
-      srcDir 'src/app/groovy'
-    }
-    resources {
-      srcDir 'src/app/resources'
-    }
-  }
-}
-
-idea {
-  module {
-    scopes.PROVIDED.plus += configurations.provided
-  }
-}
-
-eclipse {
-  classpath {
-    plusConfigurations += configurations.provided
-  }
-}
-
-war {
-  webInf {
-    from sourceSets.app.groovy
-    into 'scripts'
-  }
-  webInf {
-    from sourceSets.app.resources
-    into 'classes'
-  }
-}
 jettyRunWar {
   contextPath = '/'
   httpPort = 5000
@@ -85,7 +40,7 @@ jettyRun {
 }
 
 task wrapper(type: Wrapper) {
-  gradleVersion = '1.0-milestone-6'
+  gradleVersion = '1.0-milestone-8a'
 }
 
 task run(type: JavaExec) {
