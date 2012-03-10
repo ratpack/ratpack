@@ -1,3 +1,0 @@
-get('/') {
-    'Hello, World!'
-}

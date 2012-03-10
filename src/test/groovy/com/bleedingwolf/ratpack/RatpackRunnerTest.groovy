@@ -17,6 +17,7 @@ class RatpackRunnerTest {
 		testFile.metaClass.getCanonicalName = { '/a/path/to/name' }
 		RatpackServlet.metaClass.'static'.serve = { }
 	}
+  
 	@Test
 	void useFileNameWhenRunning() {
 		scriptEngine.demand.run(1) { filename, binding ->

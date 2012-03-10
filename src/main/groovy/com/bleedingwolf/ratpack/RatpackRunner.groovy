@@ -10,6 +10,7 @@ class RatpackRunner {
 
   void run(File scriptFile) {
     app.prepareScriptForExecutionOnApp(scriptFile)
+    app.config.templateRoot = 'src/app/resources/templates'
 
     // Runs this RatpackApp in a Jetty container
     def servlet = new RatpackServlet()
