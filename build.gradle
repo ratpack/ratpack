@@ -20,15 +20,7 @@ dependencies {
   groovy 'org.codehaus.groovy:groovy:1.8.6'
 }
 
-
-
-
 task wrapper(type: Wrapper) {
   gradleVersion = '1.0-milestone-8a'
 }
 
-task run(type: JavaExec) {
-  main = 'com.bleedingwolf.ratpack.RatpackRunner'
-  args = [ 'src/app/groovy/app.groovy' ]
-  classpath(runtimeClasspath + configurations.provided)
-}
