@@ -24,7 +24,8 @@ package com.augusttechgroup.ratpack.plugin
 import org.gradle.api.Project
 import org.gradle.api.Plugin
 import org.gradle.api.plugins.GroovyPlugin
-import org.gradle.api.plugins.jetty.JettyPlugin
+import org.gradle.api.plugins.WarPlugin
+import org.gradle.api.tasks.Copy
 
 class RatpackPlugin
   implements Plugin<Project> {
@@ -32,6 +33,11 @@ class RatpackPlugin
 
   void apply(Project project) {
     project.plugins.apply(GroovyPlugin)
+    project.plugins.apply(WarPlugin)
+
+//    if(!project.property('ratpackCoreVersion')) {
+//      project.setProperty('ratpackCoreVersion', project.version)
+//    }
 
     project.repositories {
       mavenCentral()
@@ -39,11 +45,14 @@ class RatpackPlugin
     
     project.configurations {
       provided
+      ratpack
     }
     
     project.dependencies {
       provided 'javax.servlet:servlet-api:2.5'
       runtime 'org.slf4j:slf4j-simple:1.6.3'
+      runtime "com.augusttechgroup:ratpack-core:0.5-SNAPSHOT"
+      ratpack "com.augusttechgroup:ratpack-core:0.5-SNAPSHOT"
     }
     
     project.sourceSets {
@@ -62,7 +71,23 @@ class RatpackPlugin
       }
     }
 
+
+    project.task('prepareWarResources') {
+      webXmlFilename = "${project.buildDir}/war/WEB-INF/web.xml"
+      def warSourceFilename = RatpackPlugin.classLoader.getResource('web.xml').file.split('!')[0]
+      inputs.file warSourceFilename
+      outputs.file webXmlFilename
+      doLast {
+        def warFile = project.file(webXmlFilename)
+        warFile.parentFile.mkdirs()
+        warFile.withPrintWriter { pw ->
+          pw.println(RatpackPlugin.classLoader.getResource('web.xml').text)
+        }
+      }
+    }
+
     project.war {
+      dependsOn('prepareWarResources')
       webInf {
         from project.sourceSets.app.groovy
         into 'scripts'
@@ -71,11 +96,8 @@ class RatpackPlugin
         from project.sourceSets.app.resources
         into 'classes'
       }
-      webXml project.file('web.xml')
+      webXml = project.file(project.prepareWarResources.webXmlFilename)
     }
-
-    RatpackPlugin.classLoader.getResource()
-
   }
 }
 
