@@ -1,3 +1,3 @@
 get('/') {
-    'Hello, World!'
+   render('index.html')
 }

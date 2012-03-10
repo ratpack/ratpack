@@ -1,7 +1,6 @@
-apply plugin: 'jetty'
+apply plugin: 'ratpack'
 apply plugin: 'idea'
 apply plugin: 'eclipse'
-apply plugin: 'ratpack'
 
 buildscript {
   repositories {
@@ -14,30 +13,15 @@ buildscript {
 }
 
 repositories {
-  mavenCentral()
-}
-
-configurations { 
-  provided
+  mavenLocal()
 }
 
 dependencies {
   groovy 'org.codehaus.groovy:groovy:1.8.6'
 }
 
-jettyRunWar {
-  contextPath = '/'
-  httpPort = 5000
-}
 
-jettyRun {
-	jettyRun.scanTargets = [file(sourceSets.app.groovy)]
-	webAppSourceDirectory = file("src/app/webapp")
-	classpath += sourceSets.app.groovy + sourceSets.app.resources
-	webXml = file("src/main/webapp/WEB-INF/web.xml")
-  contextPath = '/'
-  httpPort = 5000
-}
+
 
 task wrapper(type: Wrapper) {
   gradleVersion = '1.0-milestone-8a'
