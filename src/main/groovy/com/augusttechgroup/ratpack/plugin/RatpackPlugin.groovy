@@ -26,6 +26,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.plugins.GroovyPlugin
 import org.gradle.api.plugins.WarPlugin
 import org.gradle.api.plugins.jetty.JettyPlugin
+import org.gradle.api.tasks.JavaExec
 
 class RatpackPlugin
   implements Plugin<Project> {
@@ -101,12 +102,14 @@ class RatpackPlugin
     }
 
     project.jettyRunWar {
+      group = 'Ratpack'
       contextPath = '/'
       httpPort = 5000
     }
 
     // TODO jettyRun is broken for now. Will have to unpack parts of the core JAR for it to work
     project.jettyRun {
+      group = 'Ratpack'
       dependsOn << 'prepareWarResources'
       scanTargets = [project.file(project.sourceSets.app.groovy)]
       webAppSourceDirectory = project.file(project.prepareWarResources.webXmlFilename).parentFile
@@ -115,6 +118,14 @@ class RatpackPlugin
       contextPath = '/'
       httpPort = 5000
     }
+
+    project.task('runRatpack', type: JavaExec) {
+      group = 'Ratpack'
+      main = 'com.bleedingwolf.ratpack.RatpackRunner'
+      args = [ 'src/app/resources/scripts/app.groovy' ]
+      classpath(project.runtimeClasspath + project.configurations.provided)
+    }
+
 
   }
 }
