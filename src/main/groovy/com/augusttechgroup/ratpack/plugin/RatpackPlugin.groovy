@@ -25,7 +25,7 @@ import org.gradle.api.Project
 import org.gradle.api.Plugin
 import org.gradle.api.plugins.GroovyPlugin
 import org.gradle.api.plugins.WarPlugin
-import org.gradle.api.tasks.Copy
+import org.gradle.api.plugins.jetty.JettyPlugin
 
 class RatpackPlugin
   implements Plugin<Project> {
@@ -34,6 +34,7 @@ class RatpackPlugin
   void apply(Project project) {
     project.plugins.apply(GroovyPlugin)
     project.plugins.apply(WarPlugin)
+    project.plugins.apply(JettyPlugin)
 
 //    if(!project.property('ratpackCoreVersion')) {
 //      project.setProperty('ratpackCoreVersion', project.version)
@@ -98,6 +99,23 @@ class RatpackPlugin
       }
       webXml = project.file(project.prepareWarResources.webXmlFilename)
     }
+
+    project.jettyRunWar {
+      contextPath = '/'
+      httpPort = 5000
+    }
+
+    // TODO jettyRun is broken for now. Will have to unpack parts of the core JAR for it to work
+    project.jettyRun {
+      dependsOn << 'prepareWarResources'
+      scanTargets = [project.file(project.sourceSets.app.groovy)]
+      webAppSourceDirectory = project.file(project.prepareWarResources.webXmlFilename).parentFile
+      classpath += project.sourceSets.app.groovy + project.sourceSets.app.resources
+      webXml = project.file("${project.prepareWarResources.webXmlFilename}/web.xml")
+      contextPath = '/'
+      httpPort = 5000
+    }
+
   }
 }
 
