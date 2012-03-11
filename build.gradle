@@ -9,7 +9,6 @@ version = '0.5'
 
 repositories {
   mavenCentral()
-  mavenLocal()
 }
 
 configurations {
@@ -19,9 +18,9 @@ configurations {
 
 dependencies {
   groovy 'org.codehaus.groovy:groovy:1.8.6'
-  compile "com.augusttechgroup:ratpack-core:0.5"
+  compile 'com.augusttechgroup:ratpack-core:0.5'
   compile gradleApi()
-  deployment "org.apache.maven.wagon:wagon-webdav-jackrabbit:1.0-beta-7"
+  deployment 'org.apache.maven.wagon:wagon-webdav-jackrabbit:1.0-beta-7'
 }
 
 task wrapper(type: Wrapper) {
