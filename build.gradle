@@ -59,17 +59,21 @@ install {
   }
 }
 
-uploadPublished {
+uploadPublished { task ->
   dependsOn << [ signArchives ]
   repositories.mavenDeployer {
     beforeDeployment { deployment ->
       signPom(deployment)
     }
     name = 'mavenCentralReleaseDeployer'
-    repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
-      authentication(userName: mavenCentralUsername, password: mavenCentralPassword)
-      releases(updatePolicy: 'always')
-      snapshots(updatePolicy: 'never')
+    gradle.taskGraph.whenReady { taskGraph ->
+      if (taskGraph.hasTask(task)) {
+        repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
+          authentication(userName: mavenCentralUsername, password: mavenCentralPassword)
+          releases(updatePolicy: 'always')
+          snapshots(updatePolicy: 'never')
+        }
+      }
     }
     pom.project(pomConfiguration)
   }
