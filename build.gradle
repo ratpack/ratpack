@@ -15,7 +15,6 @@ repositories {
 configurations {
   provided
   deployment
-  published.extendsFrom archives, signatures
 }
 
 dependencies {
@@ -74,6 +73,7 @@ artifacts {
 
 signing {
   sign configurations.archives
+  required { gradle.taskGraph.hasTask(uploadArchives) }
 }
 
 install {
@@ -82,8 +82,7 @@ install {
   }
 }
 
-uploadPublished { task ->
-  dependsOn << [ signArchives ]
+uploadArchives { task ->
   repositories.mavenDeployer {
     beforeDeployment { deployment ->
       signPom(deployment)
