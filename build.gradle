@@ -7,7 +7,7 @@ subprojects {
   apply plugin: 'groovy'
   apply plugin: 'maven'
   apply plugin: 'signing'
-  
+
   repositories {
     mavenCentral()
   }
@@ -48,13 +48,13 @@ subprojects {
       poms.each { pom -> pomModifications.each { mod -> project.configure(pom, mod) } }
     }
   }
-  
+
   install {
     repositories.mavenInstaller {
       poms << pom
     }
   }
-  
+
   uploadArchives { task ->
     repositories.mavenDeployer {
       beforeDeployment { deployment ->
@@ -73,9 +73,9 @@ subprojects {
       poms << pom
     }
   }
-  
+
   poms*.whenConfigured { applyPomMods(it) }
-  
+
   modifyPom {
     project {
       licenses {
