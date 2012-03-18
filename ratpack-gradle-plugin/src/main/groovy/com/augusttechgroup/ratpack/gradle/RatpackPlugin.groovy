@@ -91,7 +91,7 @@ class RatpackPlugin implements Plugin<Project> {
       jettyRun {
         group = 'Ratpack'
         dependsOn << extractRatpackWebXml
-        scanTargets = [file(sourceSets.app.groovy)]
+        scanTargets = sourceSets.app.groovy.srcDirs
         webAppSourceDirectory = file(extractRatpackWebXml.destination).parentFile
         classpath += sourceSets.app.groovy + sourceSets.app.resources
         webXml = extractRatpackWebXml.destination
