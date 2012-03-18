@@ -21,16 +21,14 @@
 
 package com.augusttechgroup.ratpack.plugin
 
-import org.gradle.api.Project
 import org.gradle.api.Plugin
+import org.gradle.api.Project
 import org.gradle.api.plugins.GroovyPlugin
 import org.gradle.api.plugins.WarPlugin
 import org.gradle.api.plugins.jetty.JettyPlugin
 import org.gradle.api.tasks.JavaExec
 
-class RatpackPlugin
-  implements Plugin<Project> {
-
+class RatpackPlugin implements Plugin<Project> {
 
   void apply(Project project) {
     project.plugins.apply(GroovyPlugin)
@@ -44,19 +42,19 @@ class RatpackPlugin
     project.repositories {
       mavenCentral()
     }
-    
+
     project.configurations {
       provided
       ratpack
     }
-    
+
     project.dependencies {
       provided 'javax.servlet:servlet-api:2.5'
       runtime 'org.slf4j:slf4j-simple:1.6.3'
       runtime "com.augusttechgroup:ratpack-core:0.5-SNAPSHOT"
       ratpack "com.augusttechgroup:ratpack-core:0.5-SNAPSHOT"
     }
-    
+
     project.sourceSets {
       main {
         groovy {
@@ -122,11 +120,9 @@ class RatpackPlugin
     project.task('runRatpack', type: JavaExec) {
       group = 'Ratpack'
       main = 'com.bleedingwolf.ratpack.RatpackRunner'
-      args = [ 'src/app/resources/scripts/app.groovy' ]
+      args = ['src/app/resources/scripts/app.groovy']
       classpath(project.runtimeClasspath + project.configurations.provided)
     }
-
-
   }
 }
 
