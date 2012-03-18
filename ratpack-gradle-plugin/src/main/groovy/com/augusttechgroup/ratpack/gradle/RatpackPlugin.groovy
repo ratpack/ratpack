@@ -85,10 +85,9 @@ class RatpackPlugin implements Plugin<Project> {
         httpPort = 5000
       }
 
-      // TODO jettyRun is broken for now. Will have to unpack parts of the core JAR for it to work
       jettyRun {
         group = 'Ratpack'
-        dependsOn << 'prepareWarResources'
+        dependsOn << extractRatpackWebXml
         scanTargets = [file(sourceSets.app.groovy)]
         webAppSourceDirectory = file(extractRatpackWebXml.destination).parentFile
         classpath += sourceSets.app.groovy + sourceSets.app.resources
