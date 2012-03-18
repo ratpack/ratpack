@@ -1,0 +1,134 @@
+apply plugin: 'groovy'
+apply plugin: 'idea'
+apply plugin: 'eclipse'
+apply plugin: 'maven'
+apply plugin: 'signing'
+
+group = 'com.augusttechgroup'
+archivesBaseName = 'ratpack-core'
+version = '0.5'
+
+repositories {
+  mavenCentral()
+}
+
+configurations {
+  provided
+}
+
+dependencies {
+  groovy 'org.codehaus.groovy:groovy:1.8.3'
+  provided 'javax.servlet:servlet-api:2.5'
+  compile 'org.json:json:20090211'
+  compile(group: 'org.mortbay.jetty', name: 'jetty', version: '6.1.26') {
+    exclude module: 'servlet-api'
+  }
+  compile 'org.slf4j:slf4j-api:1.6.3'
+  runtime 'org.slf4j:slf4j-simple:1.6.3'
+  testCompile 'javax.servlet:servlet-api:2.5'
+  testCompile 'junit:junit:4.10'
+}
+
+sourceSets {
+  main {
+    groovy {
+      compileClasspath += configurations.provided
+    }
+  }
+}
+
+idea {
+  module {
+    scopes.PROVIDED.plus += configurations.provided
+  }
+}
+
+eclipse {
+  classpath {
+    plusConfigurations += configurations.provided
+  }
+}
+
+task wrapper(type: Wrapper) {
+  gradleVersion = '1.0-milestone-9'
+}
+
+task sourceJar(type: Jar) {
+  description = 'An archive of the source code for Maven Central'
+  classifier = 'sources'
+  from sourceSets.main.groovy
+}
+
+task groovydocJar(type: Jar, dependsOn: groovydoc) {
+  description = 'An archive of the GroovyDocs for Maven Central'
+  classifier = 'javadoc'
+  from fileTree(groovydoc.destinationDir)
+}
+
+artifacts {
+  archives groovydocJar, sourceJar
+}
+
+signing {
+  sign configurations.archives
+  required { gradle.taskGraph.hasTask(uploadArchives) }
+}
+
+install {
+  repositories.mavenInstaller {
+    pom.project(pomConfiguration)
+  }
+}
+
+uploadArchives { task ->
+  repositories.mavenDeployer {
+    beforeDeployment { deployment ->
+      signPom(deployment)
+    }
+    name = 'mavenCentralReleaseDeployer'
+    gradle.taskGraph.whenReady { taskGraph ->
+      if (taskGraph.hasTask(task)) {
+        repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
+          authentication(userName: mavenCentralUsername, password: mavenCentralPassword)
+          releases(updatePolicy: 'always')
+          snapshots(updatePolicy: 'never')
+        }
+      }
+    }
+    pom.project(pomConfiguration)
+  }
+}
+
+
+
+
+//
+// A single place to create the POM configuration, so it can be
+// applied from the install and the upload tasks.
+//
+def getPomConfiguration() {
+  return {
+    name('Ratpack Core')
+    description('The API code for the Ratpack micro-web-framework.')
+    url('https://github.com/tlberglund/ratpack-core')
+    licenses {
+      license {
+        name 'The Apache Software License, Version 2.0'
+        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+        distribution 'repo'
+      }
+    }
+    developers {
+      developer {
+        id('tlberglund')
+        name('Tim Berglund')
+        email('tlberglund@gmail.com')
+      }
+    }
+    scm {
+      connection('scm:https://tlberglund@github.com/tlberglund/ratpack-core')
+      developerConnection('scm:git@github.com:tlberglund/ratpack-core.git')
+      url('https://github.com/tlberglund/ratpack-core')
+    }
+  }
+}
