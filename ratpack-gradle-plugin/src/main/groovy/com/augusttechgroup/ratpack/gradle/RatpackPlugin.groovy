@@ -39,10 +39,6 @@ class RatpackPlugin implements Plugin<Project> {
       mavenCentral()
     }
 
-    project.configurations {
-      ratpack
-    }
-
     project.dependencies {
       provided 'javax.servlet:servlet-api:2.5'
       runtime 'org.slf4j:slf4j-simple:1.6.3'
