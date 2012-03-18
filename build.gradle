@@ -21,6 +21,7 @@ subprojects {
   }
 
   sourceSets.main.compileClasspath += configurations.provided
+  sourceSets.test.compileClasspath += configurations.provided
   idea.module.scopes.PROVIDED.plus += configurations.provided
   eclipse.classpath.plusConfigurations += configurations.provided
 
