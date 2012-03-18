@@ -20,6 +20,10 @@ subprojects {
     provided
   }
 
+  dependencies {
+    testCompile "org.spockframework:spock-core:0.6-groovy-1.8"
+  }
+
   sourceSets.main.compileClasspath += configurations.provided
   sourceSets.test.compileClasspath += configurations.provided
   idea.module.scopes.PROVIDED.plus += configurations.provided
