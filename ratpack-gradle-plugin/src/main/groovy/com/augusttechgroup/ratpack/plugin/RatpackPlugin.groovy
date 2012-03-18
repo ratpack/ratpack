@@ -44,7 +44,6 @@ class RatpackPlugin implements Plugin<Project> {
     }
 
     project.configurations {
-      provided
       ratpack
     }
 
@@ -56,11 +55,7 @@ class RatpackPlugin implements Plugin<Project> {
     }
 
     project.sourceSets {
-      main {
-        groovy {
-          compileClasspath += project.configurations.provided
-        }
-      }
+      compileClasspath += project.configurations.provided
       app {
         groovy {
           srcDir 'src/app/groovy'
