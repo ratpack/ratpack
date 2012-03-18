@@ -17,7 +17,12 @@
 package com.augusttechgroup.ratpack.gradle
 
 class RatpackPluginMeta {
-  
+
+  public static final String DEFAULT_RATPACK_VERSION = "0.5"
+  public static final String DEFAULT_SERVLET_API_VERSION = "1.0"
+
+  public static final String
+
   final String ratpackVersion
   final String servletApiVersion
 
@@ -36,8 +41,8 @@ class RatpackPluginMeta {
 
     if (properties["ratpack-version"].startsWith("\${")) {
       // means we loaded from the IDE and the file has not be tokenised.
-      ratpackVersion = "0.5"
-      servletApiVersion = "2.5"
+      ratpackVersion = DEFAULT_RATPACK_VERSION
+      servletApiVersion = DEFAULT_SERVLET_API_VERSION
     } else {
       ratpackVersion = properties["ratpack-version"]
       servletApiVersion = properties["servlet-api-version"]

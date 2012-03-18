@@ -22,6 +22,7 @@ subprojects {
 
   dependencies {
     testCompile "org.spockframework:spock-core:0.6-groovy-1.8"
+    testCompile "cglib:cglib-nodep:2.2"
   }
 
   sourceSets.main.compileClasspath += configurations.provided
