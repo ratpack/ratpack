@@ -19,7 +19,7 @@
  *
  */
 
-package com.augusttechgroup.ratpack.plugin
+package com.augusttechgroup.ratpack.gradle
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
