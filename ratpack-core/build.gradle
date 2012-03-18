@@ -49,10 +49,6 @@ eclipse {
   }
 }
 
-task wrapper(type: Wrapper) {
-  gradleVersion = '1.0-milestone-9'
-}
-
 task sourceJar(type: Jar) {
   description = 'An archive of the source code for Maven Central'
   classifier = 'sources'
