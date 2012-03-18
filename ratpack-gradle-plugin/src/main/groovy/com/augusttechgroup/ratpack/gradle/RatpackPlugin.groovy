@@ -27,6 +27,7 @@ import org.gradle.api.plugins.GroovyPlugin
 import org.gradle.api.plugins.WarPlugin
 import org.gradle.api.plugins.jetty.JettyPlugin
 import org.gradle.api.tasks.JavaExec
+import org.gradle.api.plugins.jetty.JettyPluginConvention
 
 class RatpackPlugin implements Plugin<Project> {
 
@@ -38,6 +39,9 @@ class RatpackPlugin implements Plugin<Project> {
       plugins.apply(WarPlugin)
       plugins.apply(JettyPlugin)
 
+      def extension = extensions.create("ratpack", RatpackExtension, convention.findPlugin(JettyPluginConvention))
+      extension.httpPort = 5000
+      
       repositories {
         mavenCentral()
       }
@@ -82,7 +86,6 @@ class RatpackPlugin implements Plugin<Project> {
       jettyRunWar {
         group = 'Ratpack'
         contextPath = '/'
-        httpPort = 5000
       }
 
       jettyRun {
@@ -93,7 +96,6 @@ class RatpackPlugin implements Plugin<Project> {
         classpath += sourceSets.app.groovy + sourceSets.app.resources
         webXml = extractRatpackWebXml.destination
         contextPath = '/'
-        httpPort = 5000
       }
 
       task('runRatpack', type: JavaExec) {
