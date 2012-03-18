@@ -51,7 +51,6 @@ class RatpackPlugin implements Plugin<Project> {
       provided 'javax.servlet:servlet-api:2.5'
       runtime 'org.slf4j:slf4j-simple:1.6.3'
       runtime "com.augusttechgroup:ratpack-core:0.5-SNAPSHOT"
-      ratpack "com.augusttechgroup:ratpack-core:0.5-SNAPSHOT"
     }
 
     project.sourceSets {
