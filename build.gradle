@@ -1,6 +1,8 @@
 group = 'com.augusttechgroup'
 version = '0.5'
 
+apply from: "idea/idea.gradle"
+
 subprojects {
   apply plugin: 'idea'
   apply plugin: 'eclipse'
