@@ -19,7 +19,7 @@ package com.augusttechgroup.ratpack.gradle
 class RatpackPluginMeta {
 
   public static final String DEFAULT_RATPACK_VERSION = "0.5"
-  public static final String DEFAULT_SERVLET_API_VERSION = "1.0"
+  public static final String DEFAULT_SERVLET_API_VERSION = "2.5"
 
   public static final String
 
