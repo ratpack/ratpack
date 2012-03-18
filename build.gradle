@@ -1,5 +1,121 @@
-apply plugin: 'idea'
-apply plugin: 'eclipse'
+group = 'com.augusttechgroup'
+version = '0.5'
+
+subprojects {
+  apply plugin: 'idea'
+  apply plugin: 'eclipse'
+  apply plugin: 'groovy'
+  apply plugin: 'maven'
+  apply plugin: 'signing'
+  
+  repositories {
+    mavenCentral()
+  }
+
+  configurations {
+    provided
+  }
+
+  sourceSets {
+    main {
+      groovy {
+        compileClasspath += configurations.provided
+      }
+    }
+  }
+
+  idea {
+    module {
+      scopes.PROVIDED.plus += configurations.provided
+    }
+  }
+
+  eclipse {
+    classpath {
+      plusConfigurations += configurations.provided
+    }
+  }
+
+  task sourceJar(type: Jar) {
+    description 'An archive of the source code for Maven Central'
+    classifier 'sources'
+    from sourceSets.main.groovy
+  }
+
+  task groovydocJar(type: Jar) {
+    description 'An archive of the GroovyDocs for Maven Central'
+    classifier 'javadoc'
+    from groovydoc
+  }
+
+  artifacts {
+    archives groovydocJar, sourceJar
+  }
+
+  signing {
+    sign configurations.archives
+  }
+
+  ext {
+    poms = []
+    pomModifications = []
+    modifyPom = { pomModifications << it }
+    applyPomMods = { poms ->
+      poms.each { pom -> pomModifications.each { mod -> project.configure(pom, mod) } }
+    }
+  }
+  
+  install {
+    repositories.mavenInstaller {
+      poms << pom
+    }
+  }
+  
+  uploadArchives { task ->
+    repositories.mavenDeployer {
+      beforeDeployment { deployment ->
+        signing.signPom(deployment)
+      }
+      name = 'mavenCentralReleaseDeployer'
+      gradle.taskGraph.whenReady { taskGraph ->
+        if (taskGraph.hasTask(task)) {
+          repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
+            authentication(userName: mavenCentralUsername, password: mavenCentralPassword)
+            releases(updatePolicy: 'always')
+            snapshots(updatePolicy: 'never')
+          }
+        }
+      }
+      poms << pom
+    }
+  }
+  
+  poms*.whenConfigured { applyPomMods(it) }
+  
+  modifyPom {
+    project {
+      licenses {
+        license {
+          name 'The Apache Software License, Version 2.0'
+          url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+          distribution 'repo'
+        }
+      }
+      developers {
+        developer {
+          id 'tlberglund'
+          name 'Tim Berglund'
+          email 'tlberglund@gmail.com'
+        }
+      }
+      scm {
+        connection 'scm:https://tlberglund@github.com/tlberglund/Ratpack'
+        developerConnection 'scm:git@github.com:tlberglund/Ratpack.git'
+        url 'https://github.com/tlberglund/Ratpack'
+      }
+    }
+  }
+}
 
 task wrapper(type: Wrapper) {
   gradleVersion = '1.0-milestone-9'

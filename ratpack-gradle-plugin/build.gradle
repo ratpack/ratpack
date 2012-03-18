@@ -1,103 +1,14 @@
-apply plugin: 'groovy'
-apply plugin: 'idea'
-apply plugin: 'maven'
-apply plugin: 'signing'
-
-group = 'com.augusttechgroup'
-version = '0.5'
-
-repositories {
-  mavenCentral()
-}
-
-configurations {
-  deployment
-  published.extendsFrom archives, signatures
-}
-
 dependencies {
-  groovy 'org.codehaus.groovy:groovy:1.8.6'
-  compile 'com.augusttechgroup:ratpack-core:0.5'
+  groovy localGroovy()
   compile gradleApi()
-  deployment 'org.apache.maven.wagon:wagon-webdav-jackrabbit:1.0-beta-7'
-}
-
-task sourceJar(type: Jar) {
-  description = 'An archive of the source code for Maven Central'
-  classifier = 'sources'
-  from sourceSets.main.groovy
-}
-
-task groovydocJar(type: Jar, dependsOn: groovydoc) {
-  description = 'An archive of the GroovyDocs for Maven Central'
-  classifier = 'javadoc'
-  from fileTree(groovydoc.destinationDir)
-}
-
-artifacts {
-  archives groovydocJar, sourceJar
-}
-
-signing {
-  sign configurations.archives
-}
-
-install {
-  repositories.mavenInstaller {
-    pom.project(pomConfiguration)
+  compile project(":ratpack-core"), {
+    exclude module: "groovy"
   }
 }
 
-uploadPublished { task ->
-  dependsOn << [ signArchives ]
-  repositories.mavenDeployer {
-    beforeDeployment { deployment ->
-      signPom(deployment)
-    }
-    name = 'mavenCentralReleaseDeployer'
-    gradle.taskGraph.whenReady { taskGraph ->
-      if (taskGraph.hasTask(task)) {
-        repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
-          authentication(userName: mavenCentralUsername, password: mavenCentralPassword)
-          releases(updatePolicy: 'always')
-          snapshots(updatePolicy: 'never')
-        }
-      }
-    }
-    pom.project(pomConfiguration)
-  }
-}
-
-
-
-
-//
-// A single place to create the POM configuration, so it can be
-// applied from the install and the upload tasks.
-//
-def getPomConfiguration() {
-  return {
-    name('Ratpack Core')
-    description('The Ratpack micro-web-framework Gradle plugin.')
-    url('https://github.com/tlberglund/ratpack-plugin')
-    licenses {
-      license {
-        name 'The Apache Software License, Version 2.0'
-        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-        distribution 'repo'
-      }
-    }
-    developers {
-      developer {
-        id('tlberglund')
-        name('Tim Berglund')
-        email('tlberglund@gmail.com')
-      }
-    }
-    scm {
-      connection('scm:https://tlberglund@github.com/tlberglund/ratpack-plugin')
-      developerConnection('scm:git@github.com:tlberglund/ratpack-plugin.git')
-      url('https://github.com/tlberglund/ratpack-plugin')
-    }
+pom {
+  project {
+    name "Ratpack Gradle Plugin"
+    description "The Ratpack micro-web-framework Gradle plugin."
   }
 }
