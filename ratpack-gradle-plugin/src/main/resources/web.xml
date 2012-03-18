@@ -10,10 +10,10 @@
   <servlet>
     <servlet-name>RatpackServlet</servlet-name>
     <servlet-class>com.bleedingwolf.ratpack.RatpackServlet</servlet-class>
-	 <init-param>
-		 <param-name>app-script-filename</param-name>
-		 <param-value>app.groovy</param-value>
-	 </init-param>
+     <init-param>
+         <param-name>app-script-filename</param-name>
+         <param-value>app.groovy</param-value>
+     </init-param>
   </servlet>
 
   <servlet-mapping>
@@ -21,5 +21,5 @@
     <url-pattern>/*</url-pattern>
   </servlet-mapping>
 
-	
+    
 </web-app>
