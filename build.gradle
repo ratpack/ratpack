@@ -1,5 +1,7 @@
-group = 'com.augusttechgroup'
-version = '0.5'
+allprojects {
+  group = 'com.augusttechgroup'
+  version = '0.5'
+}
 
 apply from: "idea/idea.gradle"
 
