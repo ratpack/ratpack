@@ -16,25 +16,9 @@ subprojects {
     provided
   }
 
-  sourceSets {
-    main {
-      groovy {
-        compileClasspath += configurations.provided
-      }
-    }
-  }
-
-  idea {
-    module {
-      scopes.PROVIDED.plus += configurations.provided
-    }
-  }
-
-  eclipse {
-    classpath {
-      plusConfigurations += configurations.provided
-    }
-  }
+  sourceSets.main.groovy.compileClasspath += configurations.provided
+  idea.module.scopes.PROVIDED.plus += configurations.provided
+  eclipse.classpath.plusConfigurations += configurations.provided
 
   task sourceJar(type: Jar) {
     description 'An archive of the source code for Maven Central'
