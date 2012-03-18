@@ -31,83 +31,85 @@ import org.gradle.api.tasks.JavaExec
 class RatpackPlugin implements Plugin<Project> {
 
   void apply(Project project) {
-    project.plugins.apply(GroovyPlugin)
-    project.plugins.apply(WarPlugin)
-    project.plugins.apply(JettyPlugin)
+    project.configure(project) {
+      plugins.apply(GroovyPlugin)
+      plugins.apply(WarPlugin)
+      plugins.apply(JettyPlugin)
 
-    project.repositories {
-      mavenCentral()
-    }
-
-    project.dependencies {
-      provided 'javax.servlet:servlet-api:2.5'
-      runtime 'org.slf4j:slf4j-simple:1.6.3'
-      runtime "com.augusttechgroup:ratpack-core:0.5-SNAPSHOT"
-    }
-
-    project.sourceSets {
-      compileClasspath += project.configurations.provided
-      app {
-        groovy {
-          srcDir 'src/app/groovy'
-        }
-        resources {
-          srcDir 'src/app/resources'
-        }
+      repositories {
+        mavenCentral()
       }
-    }
 
+      dependencies {
+        provided 'javax.servlet:servlet-api:2.5'
+        runtime 'org.slf4j:slf4j-simple:1.6.3'
+        runtime "com.augusttechgroup:ratpack-core:0.5-SNAPSHOT"
+      }
 
-    project.task('prepareWarResources') {
-      webXmlFilename = "${project.buildDir}/war/WEB-INF/web.xml"
-      def warSourceFilename = RatpackPlugin.classLoader.getResource('web.xml').file.split('!')[0]
-      inputs.file warSourceFilename
-      outputs.file webXmlFilename
-      doLast {
-        def warFile = project.file(webXmlFilename)
-        warFile.parentFile.mkdirs()
-        warFile.withPrintWriter { pw ->
-          pw.println(RatpackPlugin.classLoader.getResource('web.xml').text)
+      sourceSets {
+        compileClasspath += configurations.provided
+        app {
+          groovy {
+            srcDir 'src/app/groovy'
+          }
+          resources {
+            srcDir 'src/app/resources'
+          }
         }
       }
-    }
 
-    project.war {
-      dependsOn('prepareWarResources')
-      webInf {
-        from project.sourceSets.app.groovy
-        into 'scripts'
+
+      task('prepareWarResources') {
+        webXmlFilename = "${buildDir}/war/WEB-INF/web.xml"
+        def warSourceFilename = RatpackPlugin.classLoader.getResource('web.xml').file.split('!')[0]
+        inputs.file owner.warSourceFilename
+        outputs.file owner.webXmlFilename
+        doLast {
+          def warFile = file(owner.webXmlFilename)
+          owner.warFile.parentFile.mkdirs()
+          owner.warFile.withPrintWriter { pw ->
+            owner.pw.println(RatpackPlugin.classLoader.getResource('web.xml').text)
+          }
+        }
       }
-      webInf {
-        from project.sourceSets.app.resources
-        into 'classes'
+
+      war {
+        dependsOn('prepareWarResources')
+        webInf {
+          from sourceSets.app.groovy
+          into 'scripts'
+        }
+        webInf {
+          from sourceSets.app.resources
+          into 'classes'
+        }
+        webXml = file(prepareWarResources.webXmlFilename)
       }
-      webXml = project.file(project.prepareWarResources.webXmlFilename)
-    }
 
-    project.jettyRunWar {
-      group = 'Ratpack'
-      contextPath = '/'
-      httpPort = 5000
-    }
+      jettyRunWar {
+        group = 'Ratpack'
+        contextPath = '/'
+        httpPort = 5000
+      }
 
-    // TODO jettyRun is broken for now. Will have to unpack parts of the core JAR for it to work
-    project.jettyRun {
-      group = 'Ratpack'
-      dependsOn << 'prepareWarResources'
-      scanTargets = [project.file(project.sourceSets.app.groovy)]
-      webAppSourceDirectory = project.file(project.prepareWarResources.webXmlFilename).parentFile
-      classpath += project.sourceSets.app.groovy + project.sourceSets.app.resources
-      webXml = project.file("${project.prepareWarResources.webXmlFilename}/web.xml")
-      contextPath = '/'
-      httpPort = 5000
-    }
+      // TODO jettyRun is broken for now. Will have to unpack parts of the core JAR for it to work
+      jettyRun {
+        group = 'Ratpack'
+        dependsOn << 'prepareWarResources'
+        scanTargets = [file(sourceSets.app.groovy)]
+        webAppSourceDirectory = file(prepareWarResources.webXmlFilename).parentFile
+        classpath += sourceSets.app.groovy + sourceSets.app.resources
+        webXml = file("${prepareWarResources.webXmlFilename}/web.xml")
+        contextPath = '/'
+        httpPort = 5000
+      }
 
-    project.task('runRatpack', type: JavaExec) {
-      group = 'Ratpack'
-      main = 'com.bleedingwolf.ratpack.RatpackRunner'
-      args = ['src/app/resources/scripts/app.groovy']
-      classpath(project.runtimeClasspath + project.configurations.provided)
+      task('runRatpack', type: JavaExec) {
+        owner.group = 'Ratpack'
+        main = 'com.bleedingwolf.ratpack.RatpackRunner'
+        args = ['src/app/resources/scripts/app.groovy']
+        classpath(runtimeClasspath + configurations.provided)
+      }
     }
   }
 }
