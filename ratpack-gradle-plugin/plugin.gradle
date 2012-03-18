@@ -1,0 +1,15 @@
+apply plugin: 'ratpack'
+
+
+buildscript {
+  repositories {
+    mavenLocal()
+    mavenCentral()
+  }
+  dependencies {
+    classpath 'com.augusttechgroup:ratpack-plugin:0.5-SNAPSHOT'
+  }  
+}
+
+println sourceSets.plugin.files
+println sourceSets.main.files
