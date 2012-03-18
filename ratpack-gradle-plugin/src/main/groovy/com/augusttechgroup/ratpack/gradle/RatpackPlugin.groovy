@@ -58,23 +58,10 @@ class RatpackPlugin implements Plugin<Project> {
         }
       }
 
-
-      task('prepareWarResources') {
-        webXmlFilename = "${buildDir}/war/WEB-INF/web.xml"
-        def warSourceFilename = RatpackPlugin.classLoader.getResource('web.xml').file.split('!')[0]
-        inputs.file owner.warSourceFilename
-        outputs.file owner.webXmlFilename
-        doLast {
-          def warFile = file(owner.webXmlFilename)
-          owner.warFile.parentFile.mkdirs()
-          owner.warFile.withPrintWriter { pw ->
-            owner.pw.println(RatpackPlugin.classLoader.getResource('web.xml').text)
-          }
-        }
-      }
+      task('extractRatpackWebXml', type: ExtractRatpackWebXml)
 
       war {
-        dependsOn('prepareWarResources')
+        dependsOn extractRatpackWebXml
         webInf {
           from sourceSets.app.groovy
           into 'scripts'
@@ -83,7 +70,7 @@ class RatpackPlugin implements Plugin<Project> {
           from sourceSets.app.resources
           into 'classes'
         }
-        webXml = file(prepareWarResources.webXmlFilename)
+        webXml = extractRatpackWebXml.destination
       }
 
       jettyRunWar {
