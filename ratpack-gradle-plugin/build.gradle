@@ -1,9 +1,6 @@
 dependencies {
   groovy localGroovy()
   compile gradleApi()
-  compile project(":ratpack-core"), {
-    exclude module: "groovy"
-  }
 }
 
 evaluationDependsOn ":ratpack-core"

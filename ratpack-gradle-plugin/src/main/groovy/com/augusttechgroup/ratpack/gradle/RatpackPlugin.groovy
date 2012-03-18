@@ -42,6 +42,10 @@ class RatpackPlugin implements Plugin<Project> {
         mavenCentral()
       }
 
+      configurations {
+        provided
+      }
+
       dependencies {
         provided 'javax.servlet:servlet-api:' + meta.servletApiVersion
         runtime 'org.slf4j:slf4j-simple:1.6.3'
@@ -49,10 +53,10 @@ class RatpackPlugin implements Plugin<Project> {
       }
 
       sourceSets {
-        compileClasspath += configurations.provided
         app {
+          compileClasspath += configurations.provided
           groovy {
-            srcDir 'src/app/groovy'
+            srcDir 'src/app/scripts'
           }
           resources {
             srcDir 'src/app/resources'
@@ -86,9 +90,9 @@ class RatpackPlugin implements Plugin<Project> {
         group = 'Ratpack'
         dependsOn << 'prepareWarResources'
         scanTargets = [file(sourceSets.app.groovy)]
-        webAppSourceDirectory = file(prepareWarResources.webXmlFilename).parentFile
+        webAppSourceDirectory = file(extractRatpackWebXml.destination).parentFile
         classpath += sourceSets.app.groovy + sourceSets.app.resources
-        webXml = file("${prepareWarResources.webXmlFilename}/web.xml")
+        webXml = extractRatpackWebXml.destination
         contextPath = '/'
         httpPort = 5000
       }

@@ -28,7 +28,7 @@ class ExtractRatpackWebXml extends DefaultTask {
   private URL resource
 
   ExtractRatpackWebXml() {
-    resource = getClass().classLoader.getResource('web.xml').file
+    resource = getClass().classLoader.getResource('web.xml')
 
     def originJarPath = resource.file.split('!')[0]
     inputs.file originJarPath
@@ -36,6 +36,7 @@ class ExtractRatpackWebXml extends DefaultTask {
 
   @TaskAction
   void doExtractRatpackWebXml() {
+    def resource = this.resource
     destination.withOutputStream { out -> resource.withInputStream { out << it }}
   }
 }
