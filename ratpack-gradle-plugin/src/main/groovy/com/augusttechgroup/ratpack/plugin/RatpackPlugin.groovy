@@ -35,10 +35,6 @@ class RatpackPlugin implements Plugin<Project> {
     project.plugins.apply(WarPlugin)
     project.plugins.apply(JettyPlugin)
 
-//    if(!project.property('ratpackCoreVersion')) {
-//      project.setProperty('ratpackCoreVersion', project.version)
-//    }
-
     project.repositories {
       mavenCentral()
     }
