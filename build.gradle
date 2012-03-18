@@ -1,26 +1,6 @@
-apply plugin: 'ratpack'
 apply plugin: 'idea'
 apply plugin: 'eclipse'
 
-buildscript {
-  repositories {
-    mavenCentral()
-    mavenLocal()
-  }
-  dependencies {
-    classpath 'com.augusttechgroup:ratpack-plugin:0.5-SNAPSHOT'
-  }
-}
-
-repositories {
-  mavenLocal()
-}
-
-dependencies {
-  groovy 'org.codehaus.groovy:groovy:1.8.6'
-}
-
 task wrapper(type: Wrapper) {
-  gradleVersion = '1.0-milestone-8a'
+  gradleVersion = '1.0-milestone-9'
 }
-
