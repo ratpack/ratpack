@@ -38,6 +38,7 @@ subprojects {
 
   signing {
     sign configurations.archives
+    required { gradle.taskGraph.hasTask(uploadArchives) }
   }
 
   ext {
