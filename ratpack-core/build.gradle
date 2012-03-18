@@ -5,7 +5,6 @@ apply plugin: 'maven'
 apply plugin: 'signing'
 
 group = 'com.augusttechgroup'
-archivesBaseName = 'ratpack-core'
 version = '0.5'
 
 repositories {

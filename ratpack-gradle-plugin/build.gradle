@@ -4,7 +4,6 @@ apply plugin: 'maven'
 apply plugin: 'signing'
 
 group = 'com.augusttechgroup'
-artifact = 'ratpack-plugin'
 version = '0.5'
 
 repositories {
@@ -23,20 +22,14 @@ dependencies {
   deployment 'org.apache.maven.wagon:wagon-webdav-jackrabbit:1.0-beta-7'
 }
 
-jar {
-  baseName = artifact
-}
-
 task sourceJar(type: Jar) {
   description = 'An archive of the source code for Maven Central'
-  baseName = artifact
   classifier = 'sources'
   from sourceSets.main.groovy
 }
 
 task groovydocJar(type: Jar, dependsOn: groovydoc) {
   description = 'An archive of the GroovyDocs for Maven Central'
-  baseName = artifact
   classifier = 'javadoc'
   from fileTree(groovydoc.destinationDir)
 }
