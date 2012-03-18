@@ -31,6 +31,8 @@ import org.gradle.api.tasks.JavaExec
 class RatpackPlugin implements Plugin<Project> {
 
   void apply(Project project) {
+    def meta = RatpackPluginMeta.fromResource(getClass().classLoader)
+
     project.configure(project) {
       plugins.apply(GroovyPlugin)
       plugins.apply(WarPlugin)
@@ -41,9 +43,9 @@ class RatpackPlugin implements Plugin<Project> {
       }
 
       dependencies {
-        provided 'javax.servlet:servlet-api:2.5'
+        provided 'javax.servlet:servlet-api:' + meta.servletApiVersion
         runtime 'org.slf4j:slf4j-simple:1.6.3'
-        runtime "com.augusttechgroup:ratpack-core:0.5-SNAPSHOT"
+        runtime "com.augusttechgroup:ratpack-core:" + meta.ratpackVersion
       }
 
       sourceSets {
