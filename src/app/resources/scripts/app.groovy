@@ -1,3 +1,0 @@
-get('/') {
-   render('index.html')
-}
