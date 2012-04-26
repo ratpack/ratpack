@@ -1,0 +1,17 @@
+dependencies {
+  groovy localGroovy()
+  compile gradleApi()
+}
+
+evaluationDependsOn ":ratpack-core"
+
+processResources {
+  expand ratpackVersion: version, servletApiVersion: project(":ratpack-core").servletApiVersion
+}
+
+pom {
+  project {
+    name "Ratpack Gradle Plugin"
+    description "The Ratpack micro-web-framework Gradle plugin."
+  }
+}

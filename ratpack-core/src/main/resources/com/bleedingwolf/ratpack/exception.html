@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>${title}</title>
+    <style type="text/css">
+
+body, html, h1, h2 {
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background: #f6f6f6;
+    font-family: sans-serif;
+}
+
+#messages {
+    background: #ffc;
+    border-bottom: 1px solid #ddd;
+    padding: 15px;
+}
+
+h1 {
+    font-weight: normal;
+    margin-bottom: 10px;
+    font-size: 25px;
+}
+
+h2 {
+    color: #black;
+    font-size: 18px;
+    padding: 15px 15px 0 15px;
+}
+
+table.meta {
+    font-size: 13px;
+}
+
+table.meta th {
+    text-align: right;
+    color: #666;
+    padding-right: 0.5em;
+    width: 12em;
+}
+
+.info {
+    padding: 15px;
+    font-size: 13px;
+}
+
+pre {
+    margin-left: 15px;
+}
+        
+.stack-thirdparty {
+    color: #ccc;
+}    
+    </style>
+</head>
+<body>
+    <div id="messages">
+    <h1>${message}</h1>
+    <table class="meta">
+    <% if (binding.variables.containsKey('metadata') && metadata) {
+        for (meta in metadata) { %>
+        <tr> <th>${meta.key}:</th> <td>${meta.value}</td> </tr>
+        <% }
+    } %>
+    </table>
+    </div>
+    
+    <% if (binding.variables.containsKey('info') && info) { %>
+        <div class="info">
+        ${info}
+        </div>
+    <% } %>
+    
+    <% if (binding.variables.containsKey('stacktrace') && stacktrace) { %>
+        <h2>Stack Trace</h2>
+        <pre><code>${stacktrace}</code></pre>
+    <% } %>
+    
+</body>
+</html>
