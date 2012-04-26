@@ -10,6 +10,3 @@ buildscript {
     classpath 'com.augusttechgroup:ratpack-plugin:0.5-SNAPSHOT'
   }  
 }
-
-println sourceSets.plugin.files
-println sourceSets.main.files
