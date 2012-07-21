@@ -1,6 +1,6 @@
 allprojects {
   group = 'com.augusttechgroup'
-  version = '0.6-SNAPSHOT'
+  version = '0.5.2'
 }
 
 apply from: "idea/idea.gradle"
@@ -104,9 +104,9 @@ subprojects {
         }
       }
       scm {
-        connection 'scm:https://tlberglund@github.com/tlberglund/Ratpack'
-        developerConnection 'scm:git@github.com:tlberglund/Ratpack.git'
-        url 'https://github.com/tlberglund/Ratpack'
+        connection 'scm:https://tlberglund@github.com/tlberglund/ratpack'
+        developerConnection 'scm:git@github.com:tlberglund/ratpack.git'
+        url 'https://github.com/tlberglund/ratpack'
       }
     }
   }
