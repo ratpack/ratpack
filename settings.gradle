@@ -1,2 +1,2 @@
-include "core",
-        "gradle-plugin"
+include "ratpack-core",
+        "ratpack-gradle-plugin"

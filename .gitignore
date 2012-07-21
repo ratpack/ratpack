@@ -10,3 +10,4 @@ bin/
 *.iws
 db/
 starth2
+gradle.properties
