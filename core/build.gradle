@@ -3,9 +3,8 @@ ext {
 }
 
 dependencies {
-  groovy 'org.codehaus.groovy:groovy:1.8.3'
+  groovy 'org.codehaus.groovy:groovy-all:2.0.1'
   provided "javax.servlet:servlet-api:$servletApiVersion"
-  compile 'org.json:json:20090211'
   compile(group: 'org.mortbay.jetty', name: 'jetty', version: '6.1.26') {
     exclude module: 'servlet-api'
   }
