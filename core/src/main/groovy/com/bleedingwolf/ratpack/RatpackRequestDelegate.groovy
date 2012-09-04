@@ -4,6 +4,7 @@ import groovy.json.JsonBuilder
 import groovy.json.JsonSlurper
 import org.mortbay.jetty.HttpHeaders
 import org.slf4j.LoggerFactory
+import javax.servlet.http.HttpServletRequest
 
 public class RatpackRequestDelegate {
 
@@ -20,7 +21,7 @@ public class RatpackRequestDelegate {
     def requestParamReader = new RatpackRequestParamReader()
     final org.slf4j.Logger logger = LoggerFactory.getLogger(getClass())
 
-    // Being public API. Don't break this.
+    // Begin public API. Don't break this.
     void setHeader(name, value) {
         response.setHeader(name.toString(), value.toString())
     }
@@ -29,23 +30,21 @@ public class RatpackRequestDelegate {
         setHeader(HttpHeaders.CONTENT_TYPE, contentType)
     }
 
-    void setRequest(req) {
-        request = req
-        // Important we don't try and read both request params AND body
+    void setRequest(requestIn) {
+        request = requestIn
+
+        // Important we don't try and read both request params AND body. You only get one go at the InputStream on the request.
         if (request.getHeader(HttpHeaders.CONTENT_TYPE)?.contains(MimeTypes.APPLICATION_JSON)) {
             // :TODO: What if this fails? 500 is sub-optimal.
             json = new JsonSlurper().parseText(getRequestBody(request))
         } else {
-            params.putAll(requestParamReader.readRequestParams(req))
+            params.putAll(requestParamReader.readRequestParams(request))
         }
 
-        req.headerNames.each { header ->
+        request.headerNames.each { header ->
             def values = []
-            req.getHeaders(header).each { values << it }
-            if (values.size() == 1) {
-                values = values.get(0)
-            }
-            headers[header.toLowerCase()] = values
+            values.addAll(request.getHeaders(header))
+            headers[header.toLowerCase()] = (values.size() == 1 ? values[0] : values)
         }
     }
 
@@ -64,7 +63,7 @@ public class RatpackRequestDelegate {
     }
 
     // Everything below this is the private API.
-    protected String getRequestBody(request) {
+    protected final String getRequestBody(request) {
         def bufferedResult = new StringBuffer()
         try {
             request.getReader().eachLine {line -> bufferedResult << line}

@@ -6,9 +6,9 @@ import org.junit.Test
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
-import static org.junit.Assert.assertEquals
+import static org.junit.Assert.*
 
-class RackpatRequestDelegateTest {
+class RatpackRequestDelegateTest {
 
     // Minimally, let's test the public API so we are sure it doesn't break.
     @Test
@@ -91,7 +91,18 @@ class RackpatRequestDelegateTest {
 
     @Test
     void setRequest_headers() {
-      
+        def delegate = new RatpackRequestDelegate()
+        def headers = ["header1_key": ["header1_value1", "header1_value2"], "header2_key": ["header2_value"], "header3_key": []]
+        def testHeaderNames = headers.collect {it.key}
+        def mockRequest = [headerNames: testHeaderNames,
+                getHeaders: {valueName -> headers[valueName]},
+                getHeader: {null}]
+        delegate.setRequest(mockRequest)
+
+        // If there is only one header value, make sure it is NOT in a list
+        assertEquals headers["header1_key"], delegate.headers["header1_key"]
+        assertEquals headers["header2_key"][0], delegate.headers["header2_key"]
+        assertTrue headers["header3_key"].isEmpty()
     }
 
 }

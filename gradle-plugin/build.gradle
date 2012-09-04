@@ -1,17 +1,18 @@
 dependencies {
-  groovy localGroovy()
-  compile gradleApi()
+    groovy localGroovy()
+    compile gradleApi()
+    testCompile "org.spockframework:spock-core:0.6-groovy-1.8"
 }
 
 evaluationDependsOn ":core"
 
 processResources {
-  expand ratpackVersion: version, servletApiVersion: project(":core").servletApiVersion
+    expand ratpackVersion: version, servletApiVersion: project(":core").servletApiVersion
 }
 
 pom {
-  project {
-    name "Ratpack Gradle Plugin"
-    description "The Ratpack micro-web-framework Gradle plugin."
-  }
+    project {
+        name "Ratpack Gradle Plugin"
+        description "The Ratpack micro-web-framework Gradle plugin."
+    }
 }
