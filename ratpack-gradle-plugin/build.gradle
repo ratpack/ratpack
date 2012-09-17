@@ -3,10 +3,10 @@ dependencies {
   compile gradleApi()
 }
 
-evaluationDependsOn ":core"
+evaluationDependsOn ":ratpack-core"
 
 processResources {
-  expand ratpackVersion: version, servletApiVersion: project(":core").servletApiVersion
+  expand ratpackVersion: version, servletApiVersion: project(":ratpack-core").servletApiVersion
 }
 
 pom {
