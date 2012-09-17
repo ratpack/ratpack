@@ -1,81 +1,69 @@
-package com.bleedingwolf.ratpack;
-
-import org.junit.Test
-import org.junit.Before
-import org.junit.After
-import static org.junit.Assert.*
-import groovy.lang.Binding
+package com.bleedingwolf.ratpack
 
 import groovy.mock.interceptor.MockFor
+import org.junit.After
+import org.junit.Before
+import org.junit.Test
+
+import static org.junit.Assert.assertEquals
+import static org.junit.Assert.assertTrue
 
 class RatpackRunnerTest {
-  def scriptEngine = new MockFor(GroovyScriptEngine)
-  def testFile = new File('name')
-  def runner = new RatpackRunner()
-	
-  @Before
-  public void setup() {
-    testFile.metaClass.getCanonicalName = { '/a/path/to/name' }
-    RatpackServlet.metaClass.'static'.serve = { }
-  }
-  
-  @Test
-  void useFileNameWhenRunning() {
-    scriptEngine.demand.run(1) { filename, binding ->
-      assert 'name' == filename
-      assert binding instanceof Binding
+    def scriptEngine = new MockFor(GroovyScriptEngine)
+    def testFile = new File('name')
+    def runner
+
+    @Before
+    public void setup() {
+        testFile.metaClass.getCanonicalName = { '/a/path/to/name' }
+        RatpackServlet.metaClass.'static'.serve = { }
+        runner = new RatpackRunner()
     }
-		
-    scriptEngine.use {
-      runner.run(testFile)
+
+    @After
+    public void tearDown() {
+        runner.stop()
     }
-  }
-	
-  @Test
-  void bindRatpackAppHttpMethods() {
-    def bindingReceived = null
-    scriptEngine.demand.run(1) { filename, binding ->
-      bindingReceived = binding
+
+    @Test
+    void useFileNameWhenRunning() {
+        scriptEngine.demand.run(1) { filename, binding ->
+            assertEquals 'name', filename
+            assertTrue binding instanceof Binding
+        }
+
+        scriptEngine.use {
+            runner.run(testFile)
+        }
     }
-		
-    scriptEngine.use {
-      runner.run(testFile)
+
+    @Test
+    void bindRatpackAppHttpMethods() {
+        def bindingReceived = null
+        scriptEngine.demand.run(1) { filename, binding ->
+            bindingReceived = binding
+        }
+
+        scriptEngine.use {
+            runner.run(testFile)
+        }
+
+        assertEquals bindingReceived.getVariable('get'), runner.app.get
+        assertEquals bindingReceived.getVariable('post'), runner.app.post
+        assertEquals bindingReceived.getVariable('put'), runner.app.put
+        assertEquals bindingReceived.getVariable('delete'), runner.app.delete
     }
-		
-    assert runner.app.get == bindingReceived.getVariable('get')
-    assert runner.app.post == bindingReceived.getVariable('post')
-    assert runner.app.put == bindingReceived.getVariable('put')
-    assert runner.app.delete == bindingReceived.getVariable('delete')
-  }
-	
-  @Test
-  void bindRatpackAppSetMethod() {
-    def bindingReceived = null
-    scriptEngine.demand.run(1) { filename, binding ->
-      bindingReceived = binding
+
+    @Test
+    void bindRatpackAppSetMethod() {
+        def bindingReceived = null
+        scriptEngine.demand.run(1) { filename, binding ->
+            bindingReceived = binding
+        }
+
+        scriptEngine.use {
+            runner.run(testFile)
+        }
+        assertEquals bindingReceived.getVariable('set'), runner.app.set
     }
-		
-    scriptEngine.use {
-      runner.run(testFile)
-    }
-		
-    assert runner.app.set == bindingReceived.getVariable('set')
-  }
-	
-  @Test
-  void startRatpackApp() {
-    def appReceived = null
-    RatpackServlet.metaClass.'static'.serve = { it ->
-      appReceived = it
-    }
-		
-    scriptEngine.demand.run(1) { filename, binding -> 
-    }
-		
-    scriptEngine.use {
-      runner.run(testFile)
-    }
-		
-    assert runner.app == appReceived
-  }
 }

@@ -1,23 +1,23 @@
 ext {
-  servletApiVersion = "2.5"
+    servletApiVersion = "2.5"
 }
 
 dependencies {
-  groovy 'org.codehaus.groovy:groovy:1.8.3'
-  provided "javax.servlet:servlet-api:$servletApiVersion"
-  compile 'org.json:json:20090211'
-  compile(group: 'org.mortbay.jetty', name: 'jetty', version: '6.1.26') {
-    exclude module: 'servlet-api'
-  }
-  compile 'org.slf4j:slf4j-api:1.6.3'
-  runtime 'org.slf4j:slf4j-simple:1.6.3'
-  testCompile 'junit:junit:4.10'
-  testCompile "javax.servlet:servlet-api:$servletApiVersion"
+    groovy 'org.codehaus.groovy:groovy-all:2.0.1'
+    provided "javax.servlet:servlet-api:$servletApiVersion"
+    compile(group: 'org.mortbay.jetty', name: 'jetty', version: '6.1.26') {
+        exclude module: 'servlet-api'
+    }
+    compile 'org.slf4j:slf4j-api:1.6.3'
+    runtime 'org.slf4j:slf4j-simple:1.6.3'
+    testCompile 'junit:junit:4.10'
+    testCompile "javax.servlet:servlet-api:$servletApiVersion"
+    testCompile "org.spockframework:spock-core:0.7-groovy-2.0-SNAPSHOT"
 }
 
 modifyPom {
-  project {
-    name "Ratpack Core"
-    description "The API code for the Ratpack micro-web-framework."
-  }
+    project {
+        name "Ratpack Core"
+        description "The API code for the Ratpack micro-web-framework."
+    }
 }
