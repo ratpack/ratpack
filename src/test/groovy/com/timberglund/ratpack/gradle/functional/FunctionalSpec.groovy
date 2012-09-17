@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.augusttechgroup.ratpack.gradle.functional
+package com.timberglund.ratpack.gradle.functional
 
 import org.gradle.GradleLauncher
 import org.gradle.StartParameter

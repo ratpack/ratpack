@@ -14,12 +14,11 @@
  * limitations under the License.
  *
  * Tim Berglund
- * The August Technology Group
- * http://augusttechgroup.com/tim/about
+ * http://timberglund.com
  *
  */
 
-package com.augusttechgroup.ratpack.gradle
+package com.timberglund.ratpack.gradle
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project

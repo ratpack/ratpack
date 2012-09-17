@@ -14,20 +14,24 @@
  * limitations under the License.
  */
 
-package com.augusttechgroup.ratpack.gradle.functional
+package com.timberglund.ratpack.gradle
 
-class PackagingFunctionalSpec extends FunctionalSpec {
+import org.gradle.api.plugins.jetty.JettyPluginConvention
 
-  def "everything goes in the right place"() {
-    given:
-    makeFile("src/app/scripts/app.groovy") << "get('/') { render 'index.html' }"
-    makeFile("src/app/resources/templates/index.html") << "Hello World!"
+class RatpackExtension {
 
-    when:
-    run "war"
-    
-    then:
-    unpackedWarFile("WEB-INF/scripts/app.groovy").text == "get('/') { render 'index.html' }"
-    unpackedWarFile("WEB-INF/classes/templates/index.html").text == "Hello World!"
+  JettyPluginConvention jettyPluginConvention
+
+  RatpackExtension(JettyPluginConvention jettyPluginConvention) {
+    this.jettyPluginConvention = jettyPluginConvention
   }
+
+  int getHttpPort() {
+    jettyPluginConvention.httpPort
+  }
+
+  void setHttpPort(int port) {
+    jettyPluginConvention.httpPort = port
+  }
+
 }

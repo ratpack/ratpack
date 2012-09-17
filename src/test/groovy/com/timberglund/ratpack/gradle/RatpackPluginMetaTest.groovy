@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.augusttechgroup.ratpack.gradle
+package com.timberglund.ratpack.gradle
 
 import spock.lang.Specification
 import org.junit.rules.TemporaryFolder

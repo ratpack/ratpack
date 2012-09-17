@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.augusttechgroup.ratpack.gradle
+package com.timberglund.ratpack.gradle
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.OutputFile
