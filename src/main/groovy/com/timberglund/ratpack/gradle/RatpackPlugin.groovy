@@ -50,9 +50,9 @@ class RatpackPlugin implements Plugin<Project> {
       }
 
       dependencies {
-        provided 'javax.servlet:servlet-api:' + meta.servletApiVersion
+        provided "javax.servlet:servlet-api:${meta.servletApiVersion}"
         runtime 'org.slf4j:slf4j-simple:1.6.3'
-        runtime "com.augusttechgroup:ratpack-core:" + meta.ratpackVersion
+        compile "com.augusttechgroup:ratpack:${meta.ratpackVersion}"
       }
 
       sourceSets {

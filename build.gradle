@@ -1,5 +1,19 @@
 group = 'com.augusttechgroup'
-version = '0.7-SNAPSHOT'
+version = '0.6'
+
+ext {
+  poms = []
+  pomModifications = []
+  modifyPom = { pomModifications << it }
+  applyPomMods = { poms ->
+    poms.each { pom -> 
+      pomModifications.each { mod -> 
+        project.configure(pom, mod) 
+      }
+    }
+  }
+  servletApiVersion = "2.5"
+}
 
 apply from: "idea/idea.gradle"
 
@@ -21,9 +35,9 @@ configurations {
 }
 
 dependencies {
-  groovy 'org.codehaus.groovy:groovy-all:2.0.1'
+  groovy 'org.codehaus.groovy:groovy-all:1.8.8'
 
-  provided 'javax.servlet:servlet-api:$servletApiVersion'
+  provided "javax.servlet:servlet-api:${servletApiVersion}"
 
   compile 'org.slf4j:slf4j-api:1.6.3'
   compile gradleApi()
@@ -35,27 +49,14 @@ dependencies {
 
   testCompile 'junit:junit:4.10'
   testCompile 'cglib:cglib-nodep:2.2'
-  testCompile 'javax.servlet:servlet-api:$servletApiVersion'
-  testCompile 'org.spockframework:spock-core:0.7-groovy-2.0-SNAPSHOT'
+  testCompile "javax.servlet:servlet-api:${servletApiVersion}"
+  testCompile 'org.spockframework:spock-core:0.7-groovy-1.8'
 }
 
 sourceSets.main.compileClasspath += configurations.provided
 sourceSets.test.compileClasspath += configurations.provided
 idea.module.scopes.PROVIDED.plus += configurations.provided
 eclipse.classpath.plusConfigurations += configurations.provided
-
-
-ext {
-  poms = []
-  pomModifications = []
-  modifyPom = { pomModifications << it }
-  applyPomMods = { poms ->
-    poms.each { pom -> pomModifications.each { mod -> project.configure(pom, mod) } }
-  }
-  servletApiVersion = "2.5"
-}
-
-
 
 
 task sourceJar(type: Jar) {
@@ -80,7 +81,11 @@ signing {
 }
 
 processResources {
-  expand ratpackVersion: version, servletApiVersion: servletApiVersion
+  eachFile { 
+    if (it.file.name != "exception.html") {
+      it.expand ratpackVersion: version, servletApiVersion: servletApiVersion
+    }
+  }
 }
 
 install {
@@ -112,6 +117,9 @@ poms*.whenConfigured { applyPomMods(it) }
 
 modifyPom {
   project {
+    name 'Ratpack'
+    description 'A Micro Web Framework for Groovy'
+    url 'https://github.com/tlberglund/ratpack'
     licenses {
       license {
         name 'The Apache Software License, Version 2.0'
@@ -136,5 +144,5 @@ modifyPom {
 
 
 task wrapper(type: Wrapper) {
-  gradleVersion = '1.1'
+  gradleVersion = '1.2'
 }

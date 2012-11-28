@@ -24,7 +24,7 @@ import org.gradle.api.tasks.TaskState
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
-import com.augusttechgroup.ratpack.gradle.RatpackPlugin
+import com.timberglund.ratpack.gradle.RatpackPlugin
 import org.gradle.BuildResult
 import org.gradle.testfixtures.ProjectBuilder
 

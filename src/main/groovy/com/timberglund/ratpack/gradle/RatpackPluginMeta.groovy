@@ -40,7 +40,7 @@ class RatpackPluginMeta {
     String servletApiVersion
 
     if (properties["ratpack-version"].startsWith("\${")) {
-      // means we loaded from the IDE and the file has not be tokenised.
+      // means we loaded from the IDE and the file has not been tokenised.
       ratpackVersion = DEFAULT_RATPACK_VERSION
       servletApiVersion = DEFAULT_SERVLET_API_VERSION
     } else {
