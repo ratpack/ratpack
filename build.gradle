@@ -1,5 +1,5 @@
 group = 'com.augusttechgroup'
-version = '0.6'
+version = '0.6.1'
 
 ext {
   poms = []
@@ -72,7 +72,7 @@ task groovydocJar(type: Jar) {
 }
 
 artifacts {
-  archives groovydocJar, sourceJar
+  archives groovydocJar, sourceJar, jar
 }
 
 signing {
