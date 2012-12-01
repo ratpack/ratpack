@@ -98,6 +98,7 @@ class RatpackPlugin implements Plugin<Project> {
       }
 
       task('groovyCompileWatcher', type: GroovyCompileWatcherTask) {
+        dependsOn << project.tasks.compileGroovy
         compileGroovy = project.tasks.compileGroovy
         group = 'Ratpack'
       }

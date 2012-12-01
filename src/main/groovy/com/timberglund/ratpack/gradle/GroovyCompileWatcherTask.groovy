@@ -26,23 +26,24 @@ class GroovyCompileWatcherTask
   extends DefaultTask {
 
   GroovyCompile compileGroovy
-  def compiler
+
   def sourceFileTimestamp = [:]
+  def compiler
   def tempFileProvider
   def final compileOptions = new CompileOptions()
   def final groovyCompileOptions = new GroovyCompileOptions()
 
-  GroovyCompileWatcherTask() {
-    ProjectInternal projectInternal = project;
-    IsolatedAntBuilder antBuilder = services.get(IsolatedAntBuilder.class)
-    ClassPathRegistry classPathRegistry = services.get(ClassPathRegistry.class)
-    def antBuilderFactory = services.getFactory(AntBuilder.class)
+  def init() {
+    ProjectInternal projectInternal = compileGroovy.project
+    IsolatedAntBuilder antBuilder = compileGroovy.services.get(IsolatedAntBuilder.class)
+    ClassPathRegistry classPathRegistry = compileGroovy.services.get(ClassPathRegistry.class)
+    def antBuilderFactory = compileGroovy.services.getFactory(AntBuilder.class)
     JavaCompilerFactory inProcessCompilerFactory = new InProcessJavaCompilerFactory()
     tempFileProvider = projectInternal.services.get(TemporaryFileProvider.class)
     DefaultJavaCompilerFactory javaCompilerFactory = new DefaultJavaCompilerFactory(projectInternal, tempFileProvider, antBuilderFactory, inProcessCompilerFactory)
     GroovyCompilerFactory groovyCompilerFactory = new GroovyCompilerFactory(projectInternal, antBuilder, classPathRegistry, javaCompilerFactory)
     Compiler<GroovyJavaJointCompileSpec> delegatingCompiler = new DelegatingGroovyCompiler(groovyCompilerFactory)
-    compiler = new IncrementalGroovyCompiler(delegatingCompiler, outputs)
+    compiler = new IncrementalGroovyCompiler(delegatingCompiler, compileGroovy.outputs)
   }
 
   def fileTreeOutOfDate(fileTree) {
@@ -65,6 +66,7 @@ class GroovyCompileWatcherTask
   @TaskAction
   def spawnThread() {
     println "SPAWNING GroovyCompileWatcher THREAD"
+    init()
     Thread.start {
       while(true) {
         if(fileTreeOutOfDate(compileGroovy.source)) {
