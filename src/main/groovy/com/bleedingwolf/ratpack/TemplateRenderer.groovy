@@ -65,7 +65,7 @@ class TemplateRenderer {
         try {
             templateFound = new File(fullTemplateFilename)
             if(templateFound.exists()) {
-              text = templateFound.lines.join("\n")
+              text = templateFound.readLines().join("\n")
             } else {
               def templateResource = loadResource(templateName) ?: 
                 loadResource(fullTemplateFilename) ?:

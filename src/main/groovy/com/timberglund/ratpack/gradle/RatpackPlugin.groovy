@@ -62,7 +62,7 @@ class RatpackPlugin implements Plugin<Project> {
             srcDir 'src/app/scripts'
           }
           resources {
-            srcDir 'src/app/resources'
+            srcDir 'src/app/templates'
           }
         }
       }
@@ -97,11 +97,23 @@ class RatpackPlugin implements Plugin<Project> {
         contextPath = '/'
       }
 
+      task('groovyCompileWatcher', type: GroovyCompileWatcherTask) {
+        compileGroovy = project.tasks.compileGroovy
+        group = 'Ratpack'
+      }
+
       task('runRatpack', type: JavaExec) {
+        dependsOn << project.tasks.groovyCompileWatcher
         owner.group = 'Ratpack'
         main = 'com.bleedingwolf.ratpack.RatpackRunner'
-        args = ['src/app/resources/scripts/app.groovy']
+        args = ['src/app/scripts']
         classpath(runtimeClasspath + configurations.provided)
+        // Put SpringLoaded here
+        // JVM args to point to SpringLoaded JAR
+        //   -javaagent:[absolute path to JAR], -noverify
+        //   -Dspringloaded=profile=grails
+        // 'org.springsource.springloaded:springloaded-core:1.1.0'
+        //    in http://repo.grails.org/grails/repo
       }
     }
   }

@@ -22,7 +22,7 @@ class PackagingFunctionalSpec extends FunctionalSpec {
   def "everything goes in the right place"() {
     given:
     makeFile("src/app/scripts/app.groovy") << "get('/') { render 'index.html' }"
-    makeFile("src/app/resources/templates/index.html") << "Hello World!"
+    makeFile("src/app/templates/index.html") << "Hello World!"
 
     when:
     run "war"
