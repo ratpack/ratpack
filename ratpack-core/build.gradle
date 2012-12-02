@@ -1,0 +1,18 @@
+dependencies {
+  groovy 'org.codehaus.groovy:groovy-all:1.8.8'
+  compile 'org.slf4j:slf4j-api:1.6.3'
+  compile 'org.mortbay.jetty:jetty:6.1.26'
+
+  runtime 'org.slf4j:slf4j-simple:1.6.3'
+
+  testCompile 'cglib:cglib-nodep:2.2'
+  testCompile 'org.spockframework:spock-core:0.7-groovy-1.8'
+}
+
+processResources {
+  eachFile {
+    if (it.file.name != "exception.html") {
+      it.expand ratpackVersion: version, servletApiVersion: "2.5"
+    }
+  }
+}

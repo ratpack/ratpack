@@ -1,147 +1,110 @@
 group = 'com.augusttechgroup'
 version = '0.6.2-SNAPSHOT'
 
-ext {
-  poms = []
-  pomModifications = []
-  modifyPom = { pomModifications << it }
-  applyPomMods = { poms ->
-    poms.each { pom -> 
-      pomModifications.each { mod -> 
-        project.configure(pom, mod) 
-      }
-    }
-  }
-  servletApiVersion = "2.5"
+allprojects {
+  apply plugin: 'idea'
+  apply plugin: 'eclipse'
 }
 
 apply from: "idea/idea.gradle"
 
-apply plugin: 'idea'
-apply plugin: 'eclipse'
-apply plugin: 'groovy'
-apply plugin: 'maven'
-apply plugin: 'signing'
+subprojects {
+  apply plugin: 'groovy'
+  apply plugin: 'maven'
+  apply plugin: 'signing'
 
-repositories {
-  mavenCentral()
-
-  // For Spock and Groovy 2.0
-  mavenRepo url: 'http://oss.sonatype.org/content/repositories/snapshots/'
-}
-
-configurations {
-  provided
-}
-
-dependencies {
-  groovy 'org.codehaus.groovy:groovy-all:1.8.8'
-
-  provided "javax.servlet:servlet-api:${servletApiVersion}"
-
-  compile 'org.slf4j:slf4j-api:1.6.3'
-  compile gradleApi()
-  compile(group: 'org.mortbay.jetty', name: 'jetty', version: '6.1.26') {
-    exclude module: 'servlet-api'
+  repositories {
+    mavenCentral()
   }
 
-  runtime 'org.slf4j:slf4j-simple:1.6.3'
-
-  testCompile 'junit:junit:4.10'
-  testCompile 'cglib:cglib-nodep:2.2'
-  testCompile "javax.servlet:servlet-api:${servletApiVersion}"
-  testCompile 'org.spockframework:spock-core:0.7-groovy-1.8'
-}
-
-sourceSets.main.compileClasspath += configurations.provided
-sourceSets.test.compileClasspath += configurations.provided
-idea.module.scopes.PROVIDED.plus += configurations.provided
-eclipse.classpath.plusConfigurations += configurations.provided
-
-
-task sourceJar(type: Jar) {
-  description 'An archive of the source code for Maven Central'
-  classifier 'sources'
-  from sourceSets.main.groovy
-}
-
-task groovydocJar(type: Jar) {
-  description 'An archive of the GroovyDocs for Maven Central'
-  classifier 'javadoc'
-  from groovydoc
-}
-
-artifacts {
-  archives groovydocJar, sourceJar, jar
-}
-
-signing {
-  sign configurations.archives
-  required { gradle.taskGraph.hasTask(uploadArchives) }
-}
-
-processResources {
-  eachFile { 
-    if (it.file.name != "exception.html") {
-      it.expand ratpackVersion: version, servletApiVersion: servletApiVersion
-    }
+  task sourceJar(type: Jar) {
+    description 'An archive of the source code for Maven Central'
+    classifier 'sources'
+    from sourceSets.main.groovy
   }
-}
 
-install {
-  repositories.mavenInstaller {
-    poms << pom
+  task groovydocJar(type: Jar) {
+    description 'An archive of the GroovyDocs for Maven Central'
+    classifier 'javadoc'
+    from groovydoc
   }
-}
 
-uploadArchives { task ->
-  repositories.mavenDeployer {
-    beforeDeployment { deployment ->
-      signing.signPom(deployment)
-    }
-    name = 'mavenCentralReleaseDeployer'
-    gradle.taskGraph.whenReady { taskGraph ->
-      if (taskGraph.hasTask(task)) {
-        repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
-          authentication(userName: mavenCentralUsername, password: mavenCentralPassword)
-          releases(updatePolicy: 'always')
-          snapshots(updatePolicy: 'never')
+  artifacts {
+    archives groovydocJar, sourceJar
+  }
+
+  signing {
+    sign configurations.archives
+    required { gradle.taskGraph.hasTask(uploadArchives) }
+  }
+
+  ext {
+    poms = []
+    pomModifications = []
+    modifyPom = { pomModifications << it }
+    applyPomMods = { poms ->
+      poms.each { pom ->
+        pomModifications.each { mod ->
+          project.configure(pom, mod)
         }
       }
     }
-    poms << pom
   }
-}
 
-poms*.whenConfigured { applyPomMods(it) }
-
-modifyPom {
-  project {
-    name 'Ratpack'
-    description 'A Micro Web Framework for Groovy'
-    url 'https://github.com/tlberglund/ratpack'
-    licenses {
-      license {
-        name 'The Apache Software License, Version 2.0'
-        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-        distribution 'repo'
-      }
-    }
-    developers {
-      developer {
-        id 'tlberglund'
-        name 'Tim Berglund'
-        email 'tlberglund@gmail.com'
-      }
-    }
-    scm {
-      connection 'scm:https://tlberglund@github.com/tlberglund/Ratpack'
-      developerConnection 'scm:git@github.com:tlberglund/Ratpack.git'
-      url 'https://github.com/tlberglund/Ratpack'
+  install {
+    repositories.mavenInstaller {
+      poms << pom
     }
   }
-}
 
+  uploadArchives { task ->
+    repositories.mavenDeployer {
+      beforeDeployment { deployment ->
+        signing.signPom(deployment)
+      }
+      name = 'mavenCentralReleaseDeployer'
+      gradle.taskGraph.whenReady { taskGraph ->
+        if (taskGraph.hasTask(task)) {
+          repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
+            authentication(userName: mavenCentralUsername, password: mavenCentralPassword)
+            releases(updatePolicy: 'always')
+            snapshots(updatePolicy: 'never')
+          }
+        }
+      }
+      poms << pom
+    }
+  }
+
+  poms*.whenConfigured { applyPomMods(it) }
+
+  modifyPom {
+    project {
+      description 'A Micro Web Framework for Groovy'
+      url 'https://github.com/tlberglund/ratpack'
+      licenses {
+        license {
+          name 'The Apache Software License, Version 2.0'
+          url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+          distribution 'repo'
+        }
+      }
+      developers {
+        developer {
+          id 'tlberglund'
+          name 'Tim Berglund'
+          email 'tlberglund@gmail.com'
+        }
+      }
+      scm {
+        connection 'scm:https://tlberglund@github.com/tlberglund/Ratpack'
+        developerConnection 'scm:git@github.com:tlberglund/Ratpack.git'
+        url 'https://github.com/tlberglund/Ratpack'
+      }
+    }
+  }
+
+}
 
 task wrapper(type: Wrapper) {
   gradleVersion = '1.2'

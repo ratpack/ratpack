@@ -1,0 +1,4 @@
+dependencies {
+  groovy localGroovy()
+  compile gradleApi()
+}
