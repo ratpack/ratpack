@@ -14,24 +14,17 @@
  * limitations under the License.
  */
 
-package com.timberglund.ratpack.gradle
+package com.bleedingwolf.ratpack.request.internal
 
-import org.gradle.api.plugins.jetty.JettyPluginConvention
+import com.bleedingwolf.ratpack.request.Responder
+import com.bleedingwolf.ratpack.request.Request
 
-class RatpackExtension {
+abstract class AbstractResponder implements Responder {
 
-  JettyPluginConvention jettyPluginConvention
+  final Request request
 
-  RatpackExtension(JettyPluginConvention jettyPluginConvention) {
-    this.jettyPluginConvention = jettyPluginConvention
-  }
-
-  int getHttpPort() {
-    jettyPluginConvention.httpPort
-  }
-
-  void setHttpPort(int port) {
-    jettyPluginConvention.httpPort = port
+  AbstractResponder(Request request) {
+    this.request = request
   }
 
 }

@@ -30,7 +30,6 @@ public class RatpackPluginMetaTest extends Specification {
     given:
     def loader = createMockedClassLoader """
       ratpack-version=\${ratpackVersion}
-      servlet-api-version=\${servletApiVersion}
     """ 
     
     when:
@@ -38,14 +37,12 @@ public class RatpackPluginMetaTest extends Specification {
     
     then:
     meta.ratpackVersion == RatpackPluginMeta.DEFAULT_RATPACK_VERSION
-    meta.servletApiVersion == RatpackPluginMeta.DEFAULT_SERVLET_API_VERSION
   }
 
   def "can load when file has been parameterised"() {
     given:
     def loader = createMockedClassLoader """
       ratpack-version=1.3
-      servlet-api-version=8.7
     """
 
     when:
@@ -53,7 +50,6 @@ public class RatpackPluginMetaTest extends Specification {
 
     then:
     meta.ratpackVersion == "1.3"
-    meta.servletApiVersion == "8.7"
   }
   
   def ClassLoader createMockedClassLoader(String content) {

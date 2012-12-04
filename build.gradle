@@ -1,7 +1,7 @@
-group = 'com.augusttechgroup'
-version = '0.6.2-SNAPSHOT'
-
 allprojects {
+  group = 'com.augusttechgroup'
+  version = '0.7.0-SNAPSHOT'
+
   apply plugin: 'idea'
   apply plugin: 'eclipse'
 }
@@ -15,6 +15,11 @@ subprojects {
 
   repositories {
     mavenCentral()
+  }
+
+  dependencies {
+    testCompile 'cglib:cglib-nodep:2.2'
+    testCompile 'org.spockframework:spock-core:0.7-groovy-1.8'
   }
 
   task sourceJar(type: Jar) {
