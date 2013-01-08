@@ -41,9 +41,13 @@ class ResponderDsl {
     response.renderString(string)
   }
   
-  String sendRedirect(String path) {
+  /**
+   * Sends a temporary redirect response to the client using the specified redirect location URL.
+   * @param location the redirect location URL
+   */
+  void sendRedirect(String location) {
     response.status = HttpServletResponse.SC_MOVED_TEMPORARILY
-    response.headers[HttpHeaders.LOCATION] = new URL(new URL(request.servletRequest.requestURL.toString()), path).toString()
+    response.headers[HttpHeaders.LOCATION] = new URL(new URL(request.servletRequest.requestURL.toString()), location).toString()
   }
 
 }
