@@ -28,7 +28,7 @@ class Request {
 
   @Lazy byte[] input = servletRequest.inputStream.bytes
   @Lazy Map<String, ?> queryParams = new ParamParser().parse(servletRequest.queryString, servletRequest.getCharacterEncoding())
-  @Lazy String text = new String(input, servletRequest.getCharacterEncoding())
+  @Lazy String text = servletRequest.characterEncoding ? new String(input, servletRequest.characterEncoding) : new String(input, 'ISO-8859-1')
   @Lazy Object json = new JsonSlurper().parseText(getText())
   @Lazy Map<String, ?> params = new ParamParser().parse(getText(), servletRequest.getCharacterEncoding())
 
