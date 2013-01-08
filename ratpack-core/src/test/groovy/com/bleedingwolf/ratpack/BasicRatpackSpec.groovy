@@ -69,4 +69,22 @@ class BasicRatpackSpec extends RatpackSpec {
     urlText() == "bar"
   }
 
+  def "can redirect"() {
+    given:
+    ratpackFile << """
+      get("/") {
+        sendRedirect "/foo"
+      }
+      get("/foo") {
+        renderString "foo"
+      }
+    """
+
+    when:
+    app.start()
+
+    then:
+    urlText('') == "foo"
+  }
+
 }

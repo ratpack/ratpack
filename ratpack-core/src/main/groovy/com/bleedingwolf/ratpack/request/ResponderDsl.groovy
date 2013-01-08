@@ -16,6 +16,9 @@
 
 package com.bleedingwolf.ratpack.request
 
+import javax.servlet.http.HttpServletResponse
+import org.mortbay.jetty.HttpHeaders
+
 class ResponderDsl {
 
   final Request request
@@ -36,6 +39,11 @@ class ResponderDsl {
 
   String renderString(String string) {
     response.renderString(string)
+  }
+  
+  String sendRedirect(String path) {
+    response.status = HttpServletResponse.SC_MOVED_TEMPORARILY
+    response.headers[HttpHeaders.LOCATION] = new URL(new URL(request.servletRequest.requestURL.toString()), path).toString()
   }
 
 }
