@@ -25,10 +25,10 @@ class PathRouter implements Router {
     this.method = method.toLowerCase()
     this.responderFactory = responderFactory
 
-    parsePath()
+    regex = parsePath(this.path, names)
   }
 
-  private void parsePath() {
+  private static Pattern parsePath(String path, List<String> names) {
     String regexString = path
 
     def placeholderPattern = Pattern.compile("(:\\w+)")
@@ -38,7 +38,7 @@ class PathRouter implements Router {
       names << name
     }
 
-    regex = Pattern.compile(regexString)
+    Pattern.compile(regexString)
   }
 
   @Override
