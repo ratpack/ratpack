@@ -74,14 +74,14 @@ class RatpackHandler extends AbstractHandler {
     logger.info("[   ${status}] ${servletRequest.method} ${servletRequest.pathInfo}")
   }
 
-  int error(HttpServletRequest servletRequest, Exception error, Writer writer) {
+  private int error(HttpServletRequest servletRequest, Exception error, Writer writer) {
     StackTraceUtils.deepSanitize(error)
     error.printStackTrace()
     writer << renderer.renderException(error, servletRequest)
     HttpServletResponse.SC_INTERNAL_SERVER_ERROR
   }
 
-  int notFound(HttpServletRequest servletRequest, Writer writer) {
+  private int notFound(HttpServletRequest servletRequest, Writer writer) {
     writer << renderer.renderError(
         title: 'Page Not Found',
         message: 'Page Not Found',
