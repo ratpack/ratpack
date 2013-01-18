@@ -51,4 +51,10 @@ class ParamParserSpec extends Specification {
     params("a[]a=val1&a[]a=val2") == [a: [[a: "val1"], [a: "val2"]]]
   }
 
+  void emptyParams() {
+    expect:
+    params("") == [:]
+    params(null) == [:]
+  }
+
 }

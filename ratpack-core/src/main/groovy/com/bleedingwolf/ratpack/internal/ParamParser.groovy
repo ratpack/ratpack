@@ -23,6 +23,9 @@ public class ParamParser {
   }
 
   Map<String, ?> parse(String content, String encoding) {
+    if (!content) {
+      return Collections.emptyMap()
+    }
     Map<String, ?> params = [:]
     def multimap = new UrlEncoded(content, encoding)
     multimap.keySet().each { param ->
