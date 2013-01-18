@@ -16,29 +16,34 @@ class PathRouter implements Router {
   final String method
   final String path
 
-  private Pattern regex
-  private List<String> names = []
-  ResponderFactory responderFactory
+  private final TokenisedPath tokenisedPath
+  private final ResponderFactory responderFactory
 
   PathRouter(String path, String method, ResponderFactory responderFactory) {
     this.path = path
     this.method = method.toLowerCase()
     this.responderFactory = responderFactory
-
-    regex = parsePath(this.path, names)
+    this.tokenisedPath = new TokenisedPath(path)
   }
 
-  private static Pattern parsePath(String path, List<String> names) {
-    String regexString = path
+  private static class TokenisedPath {
+    final List<String> names
+    final Pattern regex
 
-    def placeholderPattern = Pattern.compile("(:\\w+)")
-    placeholderPattern.matcher(path).each { List<String> match ->
-      def name = match[1][1..-1]
-      regexString = regexString.replaceFirst(match[0], "([^/?&#]+)")
-      names << name
+    TokenisedPath(String path) {
+      List<String> names = new LinkedList<>()
+      String regexString = path
+
+      def placeholderPattern = Pattern.compile("(:\\w+)")
+      placeholderPattern.matcher(path).each { List<String> match ->
+        def name = match[1][1..-1]
+        regexString = regexString.replaceFirst(match[0], "([^/?&#]+)")
+        names << name
+      }
+
+      this.regex = Pattern.compile(regexString)
+      this.names = names.asImmutable()
     }
-
-    Pattern.compile(regexString)
   }
 
   @Override
@@ -47,7 +52,7 @@ class PathRouter implements Router {
       return null
     }
 
-    def matcher = regex.matcher(request.pathInfo)
+    def matcher = tokenisedPath.regex.matcher(request.pathInfo)
     if (matcher.matches()) {
       responderFactory.createResponder(new Request(request, toUrlParams(matcher)))
     } else {
@@ -57,7 +62,7 @@ class PathRouter implements Router {
 
   Map<String, String> toUrlParams(Matcher matcher) {
     def params = [:]
-    names.eachWithIndex { String it, Integer i ->
+    tokenisedPath.names.eachWithIndex { String it, Integer i ->
       params[it] = matcher.group(i + 1)
     }
     params
