@@ -16,27 +16,22 @@
 
 package com.bleedingwolf.ratpack.handler
 
-import groovy.json.JsonSlurper
-import groovy.transform.CompileStatic
-
 import javax.servlet.http.HttpServletRequest
-import com.bleedingwolf.ratpack.internal.ParamParser
 
-@CompileStatic
-class Request {
+interface Request {
 
-  final HttpServletRequest servletRequest
-  final Map<String, String> urlParams
+  byte[] getInput()
 
-  @Lazy byte[] input = servletRequest.inputStream.bytes
-  @Lazy Map<String, ?> queryParams = new ParamParser().parse(servletRequest.queryString, servletRequest.getCharacterEncoding())
-  @Lazy String text = servletRequest.characterEncoding ? new String(input, servletRequest.characterEncoding) : new String(input, 'ISO-8859-1')
-  @Lazy Object json = new JsonSlurper().parseText(getText())
-  @Lazy Map<String, ?> params = new ParamParser().parse(getText(), servletRequest.getCharacterEncoding())
+  Map<String, ?> getQueryParams()
 
-  Request(HttpServletRequest servletRequest, Map<String, String> urlParams) {
-    this.servletRequest = servletRequest
-    this.urlParams = urlParams
-  }
+  Map<String, ?> getParams()
+
+  Map<String, String> getUrlParams()
+
+  String getText()
+
+  Object getJson()
+
+  HttpServletRequest getServletRequest()
 
 }

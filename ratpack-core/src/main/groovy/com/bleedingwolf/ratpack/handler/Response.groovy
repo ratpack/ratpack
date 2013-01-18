@@ -16,63 +16,34 @@
 
 package com.bleedingwolf.ratpack.handler
 
-import com.bleedingwolf.ratpack.TemplateRenderer
-import com.bleedingwolf.ratpack.internal.HttpHeader
-import com.bleedingwolf.ratpack.internal.MimeType
-import groovy.json.JsonBuilder
-import groovy.transform.CompileStatic
+interface Response {
 
-import javax.servlet.http.HttpServletResponse
+  Map<String, ?> getHeaders()
 
-@CompileStatic
-class Response {
+  int getStatus()
 
-  final TemplateRenderer renderer
-  Map<String, Object> headers = [:]
-  int status = 200
+  void setStatus(int status)
 
-  final ByteArrayOutputStream output = new ByteArrayOutputStream()
+  ByteArrayOutputStream getOutput()
 
-  private final Request request
+  String getContentType()
 
-  Response(Request request, TemplateRenderer renderer) {
-    this.request = request
-    this.renderer = renderer
-  }
+  void setContentType(String contentType)
 
-  String getContentType() {
-    headers[HttpHeader.CONTENT_TYPE.string]
-  }
+  String render(Map context, String templateName)
 
-  void setContentType(String contentType) {
-    headers[HttpHeader.CONTENT_TYPE.string] = contentType
-  }
+  String render(String templateName)
 
-  String render(Map context = [:], String templateName) {
-    contentType = contentType ?: MimeType.TEXT_HTML
-    renderString(renderer.render(templateName, context))
-  }
+  String renderJson(Object o)
 
-  String renderJson(Object o) {
-    contentType = contentType ?: MimeType.APPLICATION_JSON
-    renderString(new JsonBuilder(o).toString())
-  }
-
-  String renderString(String str) {
-    contentType = contentType ?: MimeType.TEXT_PLAIN
-    output << str.bytes
-    str
-  }
+  String renderString(String str)
 
   /**
    * Sends a temporary redirect response to the client using the specified redirect location URL.
    *
    * @param location the redirect location URL
    */
-  void sendRedirect(String location) {
-    status = HttpServletResponse.SC_MOVED_TEMPORARILY
-    headers[HttpHeader.LOCATION.string] = new URL(new URL(request.servletRequest.requestURL.toString()), location).toString()
-  }
+  void sendRedirect(String location)
 
 
 }

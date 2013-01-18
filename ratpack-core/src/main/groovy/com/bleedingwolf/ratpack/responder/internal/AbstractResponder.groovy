@@ -17,10 +17,11 @@
 package com.bleedingwolf.ratpack.responder.internal
 
 import com.bleedingwolf.ratpack.TemplateRenderer
-import com.bleedingwolf.ratpack.responder.FinalizedResponse
-import com.bleedingwolf.ratpack.responder.Responder
 import com.bleedingwolf.ratpack.handler.Request
 import com.bleedingwolf.ratpack.handler.Response
+import com.bleedingwolf.ratpack.handler.internal.DefaultResponse
+import com.bleedingwolf.ratpack.responder.FinalizedResponse
+import com.bleedingwolf.ratpack.responder.Responder
 import groovy.transform.CompileStatic
 
 @CompileStatic
@@ -36,7 +37,7 @@ abstract class AbstractResponder implements Responder {
 
   @Override
   FinalizedResponse respond() {
-    def response = new Response(request, templateRenderer)
+    def response = new DefaultResponse(request, templateRenderer)
     doRespond(request, response)
     new FinalizedResponse(response.headers, response.status, response.output.toByteArray())
   }

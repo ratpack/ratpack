@@ -1,14 +1,14 @@
 package com.bleedingwolf.ratpack.routing.internal
 
-import com.bleedingwolf.ratpack.handler.Request
+import com.bleedingwolf.ratpack.handler.internal.DefaultRequest
 import com.bleedingwolf.ratpack.responder.Responder
 import com.bleedingwolf.ratpack.responder.internal.ResponderFactory
+import com.bleedingwolf.ratpack.routing.Router
 import groovy.transform.CompileStatic
 
+import javax.servlet.http.HttpServletRequest
 import java.util.regex.Matcher
 import java.util.regex.Pattern
-import javax.servlet.http.HttpServletRequest
-import com.bleedingwolf.ratpack.routing.Router
 
 @CompileStatic
 class PathRouter implements Router {
@@ -54,7 +54,7 @@ class PathRouter implements Router {
 
     def matcher = tokenisedPath.regex.matcher(request.pathInfo)
     if (matcher.matches()) {
-      responderFactory.createResponder(new Request(request, toUrlParams(matcher)))
+      responderFactory.createResponder(new DefaultRequest(request, toUrlParams(matcher)))
     } else {
       null
     }
