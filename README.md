@@ -1,6 +1,6 @@
 # Ratpack
 
-## A micro web framework for Groovy
+## A Micro Web Framework for Groovy
 
 This project is the core Ratpack code. It is of interest to developers wanting to extend the Ratpack framework itself—which hopefully means you!
 
