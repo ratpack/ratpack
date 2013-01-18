@@ -1,5 +1,6 @@
 package com.bleedingwolf.ratpack.internal
 
+import groovy.transform.CompileStatic
 import org.slf4j.LoggerFactory
 
 import javax.servlet.http.HttpServlet
@@ -10,6 +11,7 @@ import com.bleedingwolf.ratpack.request.Response
 import org.codehaus.groovy.runtime.StackTraceUtils
 import com.bleedingwolf.ratpack.TemplateRenderer
 
+@CompileStatic
 class RatpackServlet extends HttpServlet {
 
   protected final org.slf4j.Logger logger = LoggerFactory.getLogger(getClass())
@@ -29,11 +31,11 @@ class RatpackServlet extends HttpServlet {
     def status = 200
     def headers = [:]
 
-    def handler
+    Closure<?> handler
 
     if (responder == null) {
       handler = {
-        status = new OutputStreamWriter(bytes).withWriter { notFound(servletRequest, it) }
+        status = new OutputStreamWriter(bytes).withWriter { Writer writer -> this.notFound(servletRequest, writer) }
       }
     } else {
       try {
@@ -46,7 +48,7 @@ class RatpackServlet extends HttpServlet {
         }
       } catch (Exception e) {
         handler = {
-          status = new OutputStreamWriter(bytes).withWriter { error(servletRequest, e, it) }
+          status = new OutputStreamWriter(bytes).withWriter { Writer writer -> this.error(servletRequest, e, writer) }
         }
       }
     }
@@ -60,9 +62,7 @@ class RatpackServlet extends HttpServlet {
       }
     }
     servletResponse.setContentLength(bytes.size())
-    servletResponse.outputStream.withStream {
-      it << bytes
-    }
+    servletResponse.outputStream.withStream { OutputStream outputStream -> outputStream << bytes }
 
     logger.info("[   ${status}] ${servletRequest.method} ${servletRequest.pathInfo}")
   }
