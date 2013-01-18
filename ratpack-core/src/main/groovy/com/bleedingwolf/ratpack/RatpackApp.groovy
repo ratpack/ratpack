@@ -1,6 +1,7 @@
 package com.bleedingwolf.ratpack
 
 import com.bleedingwolf.ratpack.routing.Router
+import groovy.transform.CompileStatic
 import org.mortbay.jetty.Server
 import org.mortbay.jetty.servlet.Context
 import org.mortbay.jetty.servlet.ServletHolder
@@ -12,6 +13,7 @@ import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 import org.mortbay.resource.Resource
 
+@CompileStatic
 class RatpackApp {
 
   private Server server

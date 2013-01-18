@@ -19,13 +19,14 @@ package com.bleedingwolf.ratpack.request
 import com.bleedingwolf.ratpack.internal.MimeTypes
 import com.bleedingwolf.ratpack.TemplateRenderer
 import groovy.json.JsonBuilder
-
+import groovy.transform.CompileStatic
 import org.mortbay.jetty.HttpHeaders
 
+@CompileStatic
 class Response {
 
   final TemplateRenderer renderer
-  Map<String, ?> headers = [:]
+  Map<String, Object> headers = [:]
   int status = 200
 
   final ByteArrayOutputStream output = new ByteArrayOutputStream()
@@ -42,7 +43,7 @@ class Response {
     headers[HttpHeaders.CONTENT_TYPE] = contentType
   }
 
-  String render(Map context = [:], def templateName) {
+  String render(Map context = [:], String templateName) {
     contentType = contentType ?: MimeTypes.TEXT_HTML
     renderString(renderer.render(templateName, context))
   }

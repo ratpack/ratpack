@@ -18,7 +18,9 @@ package com.bleedingwolf.ratpack.routing
 
 import com.bleedingwolf.ratpack.request.internal.ClosureBackedResponderFactory
 import com.bleedingwolf.ratpack.routing.internal.PathRouter
+import groovy.transform.CompileStatic
 
+@CompileStatic
 class RouterBuilder {
 
   private final List<Router> routers = []

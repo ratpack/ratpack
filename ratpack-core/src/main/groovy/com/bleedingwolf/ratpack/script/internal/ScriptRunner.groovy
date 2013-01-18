@@ -16,8 +16,10 @@
 
 package com.bleedingwolf.ratpack.script.internal
 
+import groovy.transform.CompileStatic
 import org.codehaus.groovy.control.CompilerConfiguration
 
+@CompileStatic
 class ScriptRunner {
 
   void run(File scriptFile, GroovyObject delegate) {

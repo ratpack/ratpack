@@ -16,6 +16,9 @@
 
 package com.bleedingwolf.ratpack
 
+import groovy.transform.CompileStatic
+
+@CompileStatic
 class RatpackMain {
 
   static void main(String[] args) {

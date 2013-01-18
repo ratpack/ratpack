@@ -17,7 +17,9 @@
 package com.bleedingwolf.ratpack
 
 import com.bleedingwolf.ratpack.routing.internal.ScriptBackedRouter
+import groovy.transform.CompileStatic
 
+@CompileStatic
 public class RatpackAppFactory {
 
   RatpackApp create(File configFile) {

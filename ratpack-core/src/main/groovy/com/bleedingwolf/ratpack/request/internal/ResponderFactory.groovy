@@ -18,7 +18,9 @@ package com.bleedingwolf.ratpack.request.internal
 
 import com.bleedingwolf.ratpack.request.Responder
 import com.bleedingwolf.ratpack.request.Request
+import groovy.transform.CompileStatic
 
+@CompileStatic
 interface ResponderFactory {
 
   Responder createResponder(Request request)

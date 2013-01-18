@@ -20,7 +20,9 @@ import com.bleedingwolf.ratpack.request.Request
 import com.bleedingwolf.ratpack.request.Response
 
 import com.bleedingwolf.ratpack.request.ResponderDsl
+import groovy.transform.CompileStatic
 
+@CompileStatic
 class ClosureBackedResponder extends AbstractResponder {
 
   private final Closure<?> closure

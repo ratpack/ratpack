@@ -17,10 +17,12 @@
 package com.bleedingwolf.ratpack.request
 
 import groovy.json.JsonSlurper
+import groovy.transform.CompileStatic
 
 import javax.servlet.http.HttpServletRequest
 import com.bleedingwolf.ratpack.internal.ParamParser
 
+@CompileStatic
 class Request {
 
   final HttpServletRequest servletRequest

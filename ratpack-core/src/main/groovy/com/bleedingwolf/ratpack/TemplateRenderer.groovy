@@ -1,9 +1,11 @@
 package com.bleedingwolf.ratpack
 
 import groovy.text.SimpleTemplateEngine
+import groovy.transform.CompileStatic
 
 import javax.servlet.http.HttpServletRequest
 
+@CompileStatic
 class TemplateRenderer {
 
   File dir
@@ -12,7 +14,7 @@ class TemplateRenderer {
     this.dir = dir
   }
 
-  String render(String templateName, context = [:]) {
+  String render(String templateName, Map<String, Object> context = [:]) {
     String text = ''
 
     try {
@@ -60,7 +62,12 @@ class TemplateRenderer {
     new File(dir, templateName).text
   }
 
-  protected Map decodeStackTrace(Throwable t) {
+  private static class DecodedStackTrace {
+    final String html
+    final StackTraceElement rootCause
+  }
+
+  protected static DecodedStackTrace decodeStackTrace(Throwable t) {
     // FIXME
     // this doesn't really make sense, but I'm not sure
     // how to create a `firstPartyPrefixes` list.
@@ -71,7 +78,7 @@ class TemplateRenderer {
     StackTraceElement rootCause = null
 
     for (StackTraceElement ste : t.getStackTrace()) {
-      if (thirdPartyPrefixes.any { ste.className.startsWith(it) }) {
+      if (thirdPartyPrefixes.any { String it -> ste.className.startsWith(it) }) {
         html += "<span class='stack-thirdparty'>        at ${ste}\n</span>"
       } else {
         html += "        at ${ste}\n"
@@ -79,16 +86,16 @@ class TemplateRenderer {
       }
     }
 
-    return [html: html, rootCause: rootCause]
+    return new DecodedStackTrace(html: html, rootCause: rootCause)
   }
 
-  protected String renderTemplate(String text, Map context) {
+  protected static String renderTemplate(String text, Map context) {
     SimpleTemplateEngine engine = new SimpleTemplateEngine(new GroovyClassLoader())
     def template = engine.createTemplate(text).make(context)
     return template.toString()
   }
 
-  protected InputStream loadResource(String path) {
+  protected static InputStream loadResource(String path) {
     Thread.currentThread().contextClassLoader.getResourceAsStream(path)
   }
 }

@@ -16,6 +16,9 @@
 
 package com.bleedingwolf.ratpack.request
 
+import groovy.transform.CompileStatic
+
+@CompileStatic
 interface Responder {
 
   void respond(Response response)

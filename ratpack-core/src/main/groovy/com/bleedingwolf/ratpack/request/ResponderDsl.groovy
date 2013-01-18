@@ -16,9 +16,12 @@
 
 package com.bleedingwolf.ratpack.request
 
+import groovy.transform.CompileStatic
+
 import javax.servlet.http.HttpServletResponse
 import org.mortbay.jetty.HttpHeaders
 
+@CompileStatic
 class ResponderDsl {
 
   final Request request
@@ -29,7 +32,7 @@ class ResponderDsl {
     this.response = response
   }
 
-  String render(Map<String, ?> context = [:], String templateName) {
+  String render(Map<String, Object> context = [:], String templateName) {
     response.render(context, templateName)
   }
 

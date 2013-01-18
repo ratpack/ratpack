@@ -16,9 +16,11 @@
 
 package com.bleedingwolf.ratpack
 
+import groovy.transform.CompileStatic
 import groovy.transform.ToString
 
 @ToString
+@CompileStatic
 class Config {
 
   int port

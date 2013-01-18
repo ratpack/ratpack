@@ -16,6 +16,9 @@
 
 package com.bleedingwolf.ratpack.script.internal
 
+import groovy.transform.CompileStatic
+
+@CompileStatic
 public abstract class DelegatingScript extends Script {
   private volatile GroovyObject $delegate;
 
