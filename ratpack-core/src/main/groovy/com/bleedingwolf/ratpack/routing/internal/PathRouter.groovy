@@ -28,7 +28,7 @@ class PathRouter implements Router {
     parsePath()
   }
 
-  def parsePath() {
+  private void parsePath() {
     String regexString = path
 
     def placeholderPattern = Pattern.compile("(:\\w+)")
