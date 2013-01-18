@@ -1,4 +1,6 @@
 dependencies {
   groovy localGroovy()
   compile gradleApi()
+  testCompile 'cglib:cglib-nodep:2.2'
+  testCompile 'org.spockframework:spock-core:0.7-groovy-1.8'
 }

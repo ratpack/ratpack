@@ -17,11 +17,6 @@ subprojects {
     mavenCentral()
   }
 
-  dependencies {
-    testCompile 'cglib:cglib-nodep:2.2'
-    testCompile 'org.spockframework:spock-core:0.7-groovy-1.8'
-  }
-
   task sourceJar(type: Jar) {
     description 'An archive of the source code for Maven Central'
     classifier 'sources'
