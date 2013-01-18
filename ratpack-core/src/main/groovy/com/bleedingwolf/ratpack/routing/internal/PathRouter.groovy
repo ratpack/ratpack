@@ -3,12 +3,14 @@ package com.bleedingwolf.ratpack.routing.internal
 import com.bleedingwolf.ratpack.request.Request
 import com.bleedingwolf.ratpack.request.Responder
 import com.bleedingwolf.ratpack.request.internal.ResponderFactory
+import groovy.transform.CompileStatic
 
 import java.util.regex.Matcher
 import java.util.regex.Pattern
 import javax.servlet.http.HttpServletRequest
 import com.bleedingwolf.ratpack.routing.Router
 
+@CompileStatic
 class PathRouter implements Router {
 
   final String method
@@ -30,9 +32,9 @@ class PathRouter implements Router {
     String regexString = path
 
     def placeholderPattern = Pattern.compile("(:\\w+)")
-    placeholderPattern.matcher(path).each {
-      def name = it[1][1..-1]
-      regexString = regexString.replaceFirst(it[0], "([^/?&#]+)")
+    placeholderPattern.matcher(path).each { List<String> match ->
+      def name = match[1][1..-1]
+      regexString = regexString.replaceFirst(match[0], "([^/?&#]+)")
       names << name
     }
 
@@ -55,8 +57,8 @@ class PathRouter implements Router {
 
   Map<String, String> toUrlParams(Matcher matcher) {
     def params = [:]
-    names.eachWithIndex { it, i ->
-      params[it] = matcher[0][i + 1]
+    names.eachWithIndex { String it, Integer i ->
+      params[it] = matcher.group(i + 1)
     }
     params
   }
