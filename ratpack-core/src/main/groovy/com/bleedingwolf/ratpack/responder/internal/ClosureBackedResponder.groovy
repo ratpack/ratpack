@@ -19,8 +19,6 @@ package com.bleedingwolf.ratpack.responder.internal
 import com.bleedingwolf.ratpack.TemplateRenderer
 import com.bleedingwolf.ratpack.handler.Request
 import com.bleedingwolf.ratpack.handler.Response
-
-import com.bleedingwolf.ratpack.handler.HandlerDsl
 import groovy.transform.CompileStatic
 
 @CompileStatic
@@ -36,7 +34,7 @@ class ClosureBackedResponder extends AbstractResponder {
   @Override
   void doRespond(Request request, Response response) {
     Closure<?> clone = closure.clone() as Closure<?>
-    clone.delegate = new HandlerDsl(request, response)
+    clone.delegate = response
     clone.resolveStrategy = Closure.DELEGATE_FIRST
 
     switch (clone.maximumNumberOfParameters) {
