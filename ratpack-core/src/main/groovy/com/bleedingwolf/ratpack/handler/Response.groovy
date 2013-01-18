@@ -39,11 +39,12 @@ interface Response {
   String renderString(String str)
 
   /**
-   * Sends a temporary redirect response to the client using the specified redirect location URL.
+   * Sends a temporary redirect response (i.e. statusCode 301) to the client using the specified redirect location URL.
+   *
+   * To use a different status code, call {@link #setStatus(int)} after calling this method.
    *
    * @param location the redirect location URL
    */
   void sendRedirect(String location)
-
 
 }
