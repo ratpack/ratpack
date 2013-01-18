@@ -31,7 +31,6 @@ class RatpackHandler extends AbstractHandler {
 
   @Override
   void handle(String target, Request baseRequest, HttpServletRequest servletRequest, HttpServletResponse servletResponse) throws IOException, ServletException {
-    println "received request: $target"
     def responder = router.route(servletRequest)
 
     def bytes = new ByteArrayOutputStream()
@@ -49,12 +48,11 @@ class RatpackHandler extends AbstractHandler {
       }
     } else {
       try {
-        def response = new Response(renderer)
-        responder.respond(response)
+        def response = responder.respond()
         handler = {
           headers = response.headers
           status = response.status
-          bytes << response.output
+          bytes << response.bytes
         }
       } catch (Exception e) {
         handler = {

@@ -16,6 +16,7 @@
 
 package com.bleedingwolf.ratpack.routing.internal
 
+import com.bleedingwolf.ratpack.TemplateRenderer
 import com.bleedingwolf.ratpack.request.Responder
 import javax.servlet.http.HttpServletRequest
 import com.bleedingwolf.ratpack.script.internal.ScriptRunner
@@ -26,15 +27,17 @@ import com.bleedingwolf.ratpack.routing.RouterBuilder
 class ScriptBackedRouter implements Router {
 
   private final File scriptFile
+  private final TemplateRenderer templateRenderer
 
-  ScriptBackedRouter(File scriptFile) {
+  ScriptBackedRouter(File scriptFile, TemplateRenderer templateRenderer) {
     this.scriptFile = scriptFile
+    this.templateRenderer = templateRenderer
   }
 
   @Override
   Responder route(HttpServletRequest request) {
     List<Router> routers = []
-    def routerBuilder = new RouterBuilder(routers)
+    def routerBuilder = new RouterBuilder(routers, templateRenderer)
     new ScriptRunner().run(scriptFile, routerBuilder)
     def compositeRouter = new CompositeRouter(routers)
     compositeRouter.route(request)

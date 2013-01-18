@@ -22,6 +22,8 @@ import com.bleedingwolf.ratpack.internal.MimeType
 import groovy.json.JsonBuilder
 import groovy.transform.CompileStatic
 
+import javax.servlet.http.HttpServletResponse
+
 @CompileStatic
 class Response {
 
@@ -31,7 +33,10 @@ class Response {
 
   final ByteArrayOutputStream output = new ByteArrayOutputStream()
 
-  Response(TemplateRenderer renderer) {
+  private final Request request
+
+  Response(Request request, TemplateRenderer renderer) {
+    this.request = request
     this.renderer = renderer
   }
 
@@ -58,5 +63,16 @@ class Response {
     output << str.bytes
     str
   }
+
+  /**
+   * Sends a temporary redirect response to the client using the specified redirect location URL.
+   *
+   * @param location the redirect location URL
+   */
+  void sendRedirect(String location) {
+    status = HttpServletResponse.SC_MOVED_TEMPORARILY
+    headers[HttpHeader.LOCATION.string] = new URL(new URL(request.servletRequest.requestURL.toString()), location).toString()
+  }
+
 
 }

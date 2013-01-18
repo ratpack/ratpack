@@ -16,6 +16,7 @@
 
 package com.bleedingwolf.ratpack.request.internal
 
+import com.bleedingwolf.ratpack.TemplateRenderer
 import com.bleedingwolf.ratpack.request.Request
 import com.bleedingwolf.ratpack.request.Response
 
@@ -27,15 +28,15 @@ class ClosureBackedResponder extends AbstractResponder {
 
   private final Closure<?> closure
 
-  ClosureBackedResponder(Request request, Closure<?> closure) {
-    super(request)
+  ClosureBackedResponder(Request request, TemplateRenderer templateRenderer, Closure<?> closure) {
+    super(request, templateRenderer)
     this.closure = closure
   }
 
   @Override
-  void respond(Response response) {
+  void doRespond(Request request, Response response) {
     Closure<?> clone = closure.clone() as Closure<?>
-    clone.delegate = new ResponderDsl(getRequest(), response)
+    clone.delegate = new ResponderDsl(request, response)
     clone.resolveStrategy = Closure.DELEGATE_FIRST
 
     switch (clone.maximumNumberOfParameters) {
@@ -43,10 +44,10 @@ class ClosureBackedResponder extends AbstractResponder {
         clone.call()
         break
       case 1:
-        clone.call(getRequest())
+        clone.call(request)
         break
       default:
-        clone.call(getRequest(), response)
+        clone.call(request, response)
     }
 
     clone.delegate = null

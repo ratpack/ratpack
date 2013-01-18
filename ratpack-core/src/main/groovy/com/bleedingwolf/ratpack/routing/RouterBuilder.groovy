@@ -16,6 +16,7 @@
 
 package com.bleedingwolf.ratpack.routing
 
+import com.bleedingwolf.ratpack.TemplateRenderer
 import com.bleedingwolf.ratpack.request.internal.ClosureBackedResponderFactory
 import com.bleedingwolf.ratpack.routing.internal.PathRouter
 import groovy.transform.CompileStatic
@@ -25,12 +26,15 @@ class RouterBuilder {
 
   private final List<Router> routers = []
 
-  RouterBuilder(List<Router> routers) {
+  private final TemplateRenderer templateRenderer
+
+  RouterBuilder(List<Router> routers, TemplateRenderer templateRenderer) {
     this.routers = routers
+    this.templateRenderer = templateRenderer
   }
 
   void register(String method, String path, Closure handler) {
-    routers << new PathRouter(path, method, new ClosureBackedResponderFactory(handler))
+    routers << new PathRouter(path, method, new ClosureBackedResponderFactory(templateRenderer, handler))
   }
 
   void get(String path, Closure handler) {

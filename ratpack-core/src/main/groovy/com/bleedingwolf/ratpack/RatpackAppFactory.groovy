@@ -26,9 +26,9 @@ public class RatpackAppFactory {
     def baseDir = configFile.parentFile
     def config = new Config()
 
-    def router = new ScriptBackedRouter(new File(baseDir, config.routes))
-    def templateRenderer = new TemplateRenderer(new File(baseDir, config.templatesDir))
     def publicDir = new File(baseDir, config.publicDir)
+    def templateRenderer = new TemplateRenderer(new File(baseDir, config.templatesDir))
+    def router = new ScriptBackedRouter(new File(baseDir, config.routes), templateRenderer)
 
     new RatpackApp(config.port, "/", router, templateRenderer, publicDir)
   }

@@ -16,6 +16,7 @@
 
 package com.bleedingwolf.ratpack.request.internal
 
+import com.bleedingwolf.ratpack.TemplateRenderer
 import com.bleedingwolf.ratpack.request.Responder
 import com.bleedingwolf.ratpack.request.Request
 import groovy.transform.CompileStatic
@@ -25,13 +26,16 @@ class ClosureBackedResponderFactory implements ResponderFactory {
 
   private final Closure<?> closure
 
-  ClosureBackedResponderFactory(Closure<?> closure) {
+  private final TemplateRenderer templateRenderer
+
+  ClosureBackedResponderFactory(TemplateRenderer templateRenderer, Closure<?> closure) {
     this.closure = closure
+    this.templateRenderer = templateRenderer
   }
 
   @Override
   Responder createResponder(Request request) {
-    new ClosureBackedResponder(request, closure)
+    new ClosureBackedResponder(request, templateRenderer, closure)
   }
 
 }

@@ -16,17 +16,30 @@
 
 package com.bleedingwolf.ratpack.request.internal
 
+import com.bleedingwolf.ratpack.TemplateRenderer
+import com.bleedingwolf.ratpack.request.FinalizedResponse
 import com.bleedingwolf.ratpack.request.Responder
 import com.bleedingwolf.ratpack.request.Request
+import com.bleedingwolf.ratpack.request.Response
 import groovy.transform.CompileStatic
 
 @CompileStatic
 abstract class AbstractResponder implements Responder {
 
-  final Request request
+  private final Request request
+  private final TemplateRenderer templateRenderer
 
-  AbstractResponder(Request request) {
+  AbstractResponder(Request request, TemplateRenderer templateRenderer) {
     this.request = request
+    this.templateRenderer = templateRenderer
   }
 
+  @Override
+  FinalizedResponse respond() {
+    def response = new Response(request, templateRenderer)
+    doRespond(request, response)
+    new FinalizedResponse(response.headers, response.status, response.output.toByteArray())
+  }
+
+  abstract void doRespond(Request request, Response response)
 }

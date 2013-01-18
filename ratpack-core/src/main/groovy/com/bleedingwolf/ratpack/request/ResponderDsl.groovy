@@ -32,25 +32,32 @@ class ResponderDsl {
     this.response = response
   }
 
+  /**
+   * @see Response#render(java.util.Map, java.lang.String)
+   */
   String render(Map<String, Object> context = [:], String templateName) {
     response.render(context, templateName)
   }
 
+  /**
+   * @see Response#renderJson(java.lang.Object)
+   */
   String renderJson(Object obj) {
     response.renderJson(obj)
   }
 
+  /**
+   * @see Response#renderString(java.lang.String)
+   */
   String renderString(String string) {
     response.renderString(string)
   }
   
   /**
-   * Sends a temporary redirect response to the client using the specified redirect location URL.
-   * @param location the redirect location URL
+   * @see Response#sendRedirect(java.lang.String)
    */
   void sendRedirect(String location) {
-    response.status = HttpServletResponse.SC_MOVED_TEMPORARILY
-    response.headers[HttpHeader.LOCATION.string] = new URL(new URL(request.servletRequest.requestURL.toString()), location).toString()
+    response.sendRedirect(location)
   }
 
 }
