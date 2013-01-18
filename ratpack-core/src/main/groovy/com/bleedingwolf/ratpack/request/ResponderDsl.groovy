@@ -16,10 +16,10 @@
 
 package com.bleedingwolf.ratpack.request
 
+import com.bleedingwolf.ratpack.internal.HttpHeader
 import groovy.transform.CompileStatic
 
 import javax.servlet.http.HttpServletResponse
-import org.mortbay.jetty.HttpHeaders
 
 @CompileStatic
 class ResponderDsl {
@@ -50,7 +50,7 @@ class ResponderDsl {
    */
   void sendRedirect(String location) {
     response.status = HttpServletResponse.SC_MOVED_TEMPORARILY
-    response.headers[HttpHeaders.LOCATION] = new URL(new URL(request.servletRequest.requestURL.toString()), location).toString()
+    response.headers[HttpHeader.LOCATION.string] = new URL(new URL(request.servletRequest.requestURL.toString()), location).toString()
   }
 
 }

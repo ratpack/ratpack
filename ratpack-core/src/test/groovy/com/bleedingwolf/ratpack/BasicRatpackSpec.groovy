@@ -56,7 +56,9 @@ class BasicRatpackSpec extends RatpackSpec {
     app.start()
 
     then:
+    println "request 1 start"
     urlText() == "foo"
+    println "request 1 end"
 
     when:
     ratpackFile.text = """
@@ -66,7 +68,9 @@ class BasicRatpackSpec extends RatpackSpec {
     """
 
     then:
+    println "request 2 start"
     urlText() == "bar"
+    println "request 2 end"
   }
 
   def "can redirect"() {

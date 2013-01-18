@@ -18,6 +18,20 @@ package com.bleedingwolf.ratpack
 
 class StaticFileSpec extends RatpackSpec {
 
+  def "root listing disabled"() {
+    given:
+    publicFile("static.text") << "hello!"
+    publicFile("foo/static.text") << "hello!"
+
+    when:
+    app.start()
+
+    then:
+    url("").responseCode == 403
+    url("foo").responseCode == 403
+    url("foos").responseCode == 404
+  }
+
   def "can serve static file"() {
     given:
     publicFile("static.text") << "hello!"
@@ -29,7 +43,7 @@ class StaticFileSpec extends RatpackSpec {
     urlText("static.text") == "hello!"
   }
 
-  def "handlers work with static files"() {
+  def "handlers override static files"() {
     given:
     publicFile("static.text") << "hello!"
     ratpackFile << """
@@ -49,7 +63,7 @@ class StaticFileSpec extends RatpackSpec {
     """
 
     then:
-    urlText("static.text") == "hello!"
+    urlText("static.text") == "bar"
   }
 
 }

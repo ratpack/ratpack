@@ -16,11 +16,11 @@
 
 package com.bleedingwolf.ratpack.request
 
-import com.bleedingwolf.ratpack.internal.MimeTypes
 import com.bleedingwolf.ratpack.TemplateRenderer
+import com.bleedingwolf.ratpack.internal.HttpHeader
+import com.bleedingwolf.ratpack.internal.MimeType
 import groovy.json.JsonBuilder
 import groovy.transform.CompileStatic
-import org.mortbay.jetty.HttpHeaders
 
 @CompileStatic
 class Response {
@@ -36,25 +36,25 @@ class Response {
   }
 
   String getContentType() {
-    headers[HttpHeaders.CONTENT_TYPE]
+    headers[HttpHeader.CONTENT_TYPE.string]
   }
 
   void setContentType(String contentType) {
-    headers[HttpHeaders.CONTENT_TYPE] = contentType
+    headers[HttpHeader.CONTENT_TYPE.string] = contentType
   }
 
   String render(Map context = [:], String templateName) {
-    contentType = contentType ?: MimeTypes.TEXT_HTML
+    contentType = contentType ?: MimeType.TEXT_HTML
     renderString(renderer.render(templateName, context))
   }
 
   String renderJson(Object o) {
-    contentType = contentType ?: MimeTypes.APPLICATION_JSON
+    contentType = contentType ?: MimeType.APPLICATION_JSON
     renderString(new JsonBuilder(o).toString())
   }
 
   String renderString(String str) {
-    contentType = contentType ?: MimeTypes.TEXT_PLAIN
+    contentType = contentType ?: MimeType.TEXT_PLAIN
     output << str.bytes
     str
   }

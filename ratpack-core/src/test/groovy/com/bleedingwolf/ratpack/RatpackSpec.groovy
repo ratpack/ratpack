@@ -56,8 +56,8 @@ class RatpackSpec extends Specification {
     app.stop()
   }
 
-  URLConnection url(String path = "") {
-    new URL("http://localhost:$app.port/$path").openConnection()
+  HttpURLConnection url(String path = "") {
+    new URL("http://localhost:$app.port/$path").openConnection() as HttpURLConnection
   }
 
   String urlText(String path = "") {

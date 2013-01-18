@@ -1,7 +1,7 @@
 dependencies {
   groovy 'org.codehaus.groovy:groovy-all:2.0.6'
   compile 'org.slf4j:slf4j-api:1.6.3'
-  compile 'org.mortbay.jetty:jetty:6.1.26'
+  compile 'org.eclipse.jetty:jetty-server:8.1.8.v20121106'
 
   runtime 'org.slf4j:slf4j-simple:1.6.3'
 

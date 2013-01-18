@@ -1,17 +1,11 @@
 package com.bleedingwolf.ratpack
 
+import com.bleedingwolf.ratpack.internal.RatpackHandler
 import com.bleedingwolf.ratpack.routing.Router
 import groovy.transform.CompileStatic
-import org.mortbay.jetty.Server
-import org.mortbay.jetty.servlet.Context
-import org.mortbay.jetty.servlet.ServletHolder
-import com.bleedingwolf.ratpack.internal.RatpackServlet
-import org.mortbay.jetty.handler.ResourceHandler
-import org.mortbay.jetty.handler.HandlerList
-import org.mortbay.jetty.servlet.ServletHandler
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
-import org.mortbay.resource.Resource
+import org.eclipse.jetty.server.Server
+import org.eclipse.jetty.server.handler.HandlerCollection
+import org.eclipse.jetty.server.handler.ResourceHandler
 
 @CompileStatic
 class RatpackApp {
@@ -38,28 +32,17 @@ class RatpackApp {
     }
 
     server = new Server(port)
-    def context = new Context(server, "/", Context.SESSIONS)
-    def handlerList = new HandlerList()
+    def handlerList = new HandlerCollection()
 
-    def resourceHandler = new ResourceHandler() {
-      @Override
-      void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
-        Resource resource = getResource(request)
-        if (resource == null || !resource.equals(getBaseResource())) {
-          super.handle(target, request, response, dispatch)
-        }
-      }
-    }
+    def resourceHandler = new ResourceHandler()
     resourceHandler.resourceBase = staticFiles.absolutePath
     resourceHandler.welcomeFiles = []
-    handlerList.addHandler(resourceHandler)
 
-    def servlet = new RatpackServlet(router, renderer)
-    def servletHandler = new ServletHandler()
-    servletHandler.addServletWithMapping(new ServletHolder(servlet), "/*")
-    handlerList.addHandler(servletHandler)
+    def handler = new RatpackHandler(router, renderer, resourceHandler)
+    handlerList.addHandler(handler)
 
-    context.setHandler(handlerList)
+
+    server.setHandler(handlerList)
 
     server.start()
   }

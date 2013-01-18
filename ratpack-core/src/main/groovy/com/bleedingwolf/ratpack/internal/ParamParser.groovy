@@ -1,6 +1,7 @@
 package com.bleedingwolf.ratpack.internal
 
-import org.mortbay.util.UrlEncoded
+import org.eclipse.jetty.util.UrlEncoded
+
 import java.nio.charset.Charset
 
 public class ParamParser {

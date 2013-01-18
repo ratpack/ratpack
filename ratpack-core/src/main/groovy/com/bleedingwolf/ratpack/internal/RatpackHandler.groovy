@@ -1,30 +1,37 @@
 package com.bleedingwolf.ratpack.internal
 
+import com.bleedingwolf.ratpack.TemplateRenderer
+import com.bleedingwolf.ratpack.request.Response
+import com.bleedingwolf.ratpack.routing.Router
 import groovy.transform.CompileStatic
+import org.codehaus.groovy.runtime.StackTraceUtils
+import org.eclipse.jetty.server.Request
+import org.eclipse.jetty.server.handler.AbstractHandler
+import org.eclipse.jetty.server.handler.ResourceHandler
 import org.slf4j.LoggerFactory
 
-import javax.servlet.http.HttpServlet
+import javax.servlet.ServletException
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
-import com.bleedingwolf.ratpack.routing.Router
-import com.bleedingwolf.ratpack.request.Response
-import org.codehaus.groovy.runtime.StackTraceUtils
-import com.bleedingwolf.ratpack.TemplateRenderer
 
 @CompileStatic
-class RatpackServlet extends HttpServlet {
+class RatpackHandler extends AbstractHandler {
 
   protected final org.slf4j.Logger logger = LoggerFactory.getLogger(getClass())
 
   private final Router router
-  TemplateRenderer renderer
+  private final TemplateRenderer renderer
+  private ResourceHandler resourceHandler
 
-  RatpackServlet(Router router, TemplateRenderer renderer) {
+  RatpackHandler(Router router, TemplateRenderer renderer, ResourceHandler resourceHandler) {
     this.router = router
     this.renderer = renderer
+    this.resourceHandler = resourceHandler
   }
 
-  void service(HttpServletRequest servletRequest, HttpServletResponse servletResponse) {
+  @Override
+  void handle(String target, Request baseRequest, HttpServletRequest servletRequest, HttpServletResponse servletResponse) throws IOException, ServletException {
+    println "received request: $target"
     def responder = router.route(servletRequest)
 
     def bytes = new ByteArrayOutputStream()
@@ -35,7 +42,10 @@ class RatpackServlet extends HttpServlet {
 
     if (responder == null) {
       handler = {
-        status = new OutputStreamWriter(bytes).withWriter { Writer writer -> this.notFound(servletRequest, writer) }
+        resourceHandler.handle(target, baseRequest, servletRequest, servletResponse)
+        if (!baseRequest.isHandled()) {
+          status = new OutputStreamWriter(bytes).withWriter { Writer writer -> this.notFound(servletRequest, writer) }
+        }
       }
     } else {
       try {
@@ -62,8 +72,8 @@ class RatpackServlet extends HttpServlet {
       }
     }
     servletResponse.setContentLength(bytes.size())
-    servletResponse.outputStream.withStream { OutputStream outputStream -> outputStream << bytes }
-
+    servletResponse.outputStream << bytes
+    baseRequest.handled = true
     logger.info("[   ${status}] ${servletRequest.method} ${servletRequest.pathInfo}")
   }
 

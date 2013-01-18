@@ -1,9 +1,7 @@
 package com.bleedingwolf.ratpack
 
-import org.junit.Test
-
-import spock.lang.Specification
 import com.bleedingwolf.ratpack.internal.ParamParser
+import spock.lang.Specification
 
 class ParamParserSpec extends Specification {
 
