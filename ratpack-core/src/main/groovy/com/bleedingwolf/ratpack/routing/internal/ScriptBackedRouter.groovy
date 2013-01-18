@@ -18,16 +18,25 @@ package com.bleedingwolf.ratpack.routing.internal
 
 import com.bleedingwolf.ratpack.TemplateRenderer
 import com.bleedingwolf.ratpack.request.Responder
-import javax.servlet.http.HttpServletRequest
-import com.bleedingwolf.ratpack.script.internal.ScriptRunner
-import com.bleedingwolf.ratpack.routing.internal.CompositeRouter
 import com.bleedingwolf.ratpack.routing.Router
 import com.bleedingwolf.ratpack.routing.RouterBuilder
+import com.bleedingwolf.ratpack.script.internal.ScriptRunner
+
+import javax.servlet.http.HttpServletRequest
+import java.util.concurrent.atomic.AtomicLong
+import java.util.concurrent.atomic.AtomicReference
+import java.util.concurrent.locks.Lock
+import java.util.concurrent.locks.ReentrantLock
 
 class ScriptBackedRouter implements Router {
 
   private final File scriptFile
   private final TemplateRenderer templateRenderer
+
+  private final AtomicLong lastModified = new AtomicLong(-1)
+  private final AtomicReference<byte[]> content = new AtomicReference<byte[]>()
+  private final AtomicReference<Router> router = new AtomicReference<>(null)
+  private final Lock lock = new ReentrantLock()
 
   ScriptBackedRouter(File scriptFile, TemplateRenderer templateRenderer) {
     this.scriptFile = scriptFile
@@ -36,10 +45,49 @@ class ScriptBackedRouter implements Router {
 
   @Override
   Responder route(HttpServletRequest request) {
+    if (!scriptFile.exists()) {
+      return null
+    }
+
+    checkForChanges()
+    router.get().route(request)
+  }
+
+  private void checkForChanges() {
+    if (isNeedUpdate()) {
+      lock.lock()
+      try {
+        if (isNeedUpdate()) {
+          refresh()
+        }
+      } finally {
+        lock.unlock()
+      }
+    }
+  }
+
+  private void refresh() {
     List<Router> routers = []
     def routerBuilder = new RouterBuilder(routers, templateRenderer)
-    new ScriptRunner().run(scriptFile, routerBuilder)
-    def compositeRouter = new CompositeRouter(routers)
-    compositeRouter.route(request)
+    long lastModified = scriptFile.lastModified()
+    byte[] bytes = scriptFile.bytes
+    String string = new String(bytes)
+    new ScriptRunner().run(string, routerBuilder)
+    router.set(new CompositeRouter(routers))
+    this.lastModified.set(lastModified)
+    this.content.set(bytes)
   }
+
+  private boolean isNeedUpdate() {
+    router.get() == null || isTimestampMismatch() || isContentMismatch()
+  }
+
+  private boolean isTimestampMismatch() {
+    scriptFile.lastModified() != lastModified.get()
+  }
+
+  private boolean isContentMismatch() {
+    scriptFile.bytes != content.get()
+  }
+
 }

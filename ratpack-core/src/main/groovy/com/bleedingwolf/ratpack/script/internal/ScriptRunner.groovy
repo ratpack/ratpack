@@ -22,15 +22,13 @@ import org.codehaus.groovy.control.CompilerConfiguration
 @CompileStatic
 class ScriptRunner {
 
-  void run(File scriptFile, GroovyObject delegate) {
-    if (scriptFile.exists()) {
-      DelegatingScript script = parse(scriptFile)
-      script.$setDelegate(delegate)
-      script.run()
-    }
+  void run(String scriptText, GroovyObject delegate) {
+    DelegatingScript script = parse(scriptText)
+    script.$setDelegate(delegate)
+    script.run()
   }
 
-  private DelegatingScript parse(File script) {
+  private DelegatingScript parse(String script) {
     createShell().parse(script) as DelegatingScript
   }
 
