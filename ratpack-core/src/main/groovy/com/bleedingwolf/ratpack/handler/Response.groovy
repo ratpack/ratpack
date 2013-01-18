@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.bleedingwolf.ratpack.request
+package com.bleedingwolf.ratpack.handler
 
 import com.bleedingwolf.ratpack.TemplateRenderer
 import com.bleedingwolf.ratpack.internal.HttpHeader

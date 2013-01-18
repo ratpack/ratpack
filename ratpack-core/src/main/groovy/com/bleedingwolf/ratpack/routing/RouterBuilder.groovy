@@ -17,7 +17,7 @@
 package com.bleedingwolf.ratpack.routing
 
 import com.bleedingwolf.ratpack.TemplateRenderer
-import com.bleedingwolf.ratpack.request.internal.ClosureBackedResponderFactory
+import com.bleedingwolf.ratpack.responder.internal.ClosureBackedResponderFactory
 import com.bleedingwolf.ratpack.routing.internal.PathRouter
 import groovy.transform.CompileStatic
 

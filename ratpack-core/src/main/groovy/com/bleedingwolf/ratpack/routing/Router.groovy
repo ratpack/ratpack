@@ -19,7 +19,7 @@ package com.bleedingwolf.ratpack.routing
 import groovy.transform.CompileStatic
 
 import javax.servlet.http.HttpServletRequest
-import com.bleedingwolf.ratpack.request.Responder
+import com.bleedingwolf.ratpack.responder.Responder
 
 @CompileStatic
 interface Router {

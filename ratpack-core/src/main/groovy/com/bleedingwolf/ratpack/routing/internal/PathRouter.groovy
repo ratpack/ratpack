@@ -1,8 +1,8 @@
 package com.bleedingwolf.ratpack.routing.internal
 
-import com.bleedingwolf.ratpack.request.Request
-import com.bleedingwolf.ratpack.request.Responder
-import com.bleedingwolf.ratpack.request.internal.ResponderFactory
+import com.bleedingwolf.ratpack.handler.Request
+import com.bleedingwolf.ratpack.responder.Responder
+import com.bleedingwolf.ratpack.responder.internal.ResponderFactory
 import groovy.transform.CompileStatic
 
 import java.util.regex.Matcher

@@ -1,7 +1,6 @@
 package com.bleedingwolf.ratpack.internal
 
 import com.bleedingwolf.ratpack.TemplateRenderer
-import com.bleedingwolf.ratpack.request.Response
 import com.bleedingwolf.ratpack.routing.Router
 import groovy.transform.CompileStatic
 import org.codehaus.groovy.runtime.StackTraceUtils

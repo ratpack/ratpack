@@ -1,4 +1,4 @@
-package com.bleedingwolf.ratpack.request
+package com.bleedingwolf.ratpack.responder
 
 class FinalizedResponse {
 

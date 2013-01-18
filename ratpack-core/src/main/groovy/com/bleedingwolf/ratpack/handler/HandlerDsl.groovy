@@ -14,20 +14,17 @@
  * limitations under the License.
  */
 
-package com.bleedingwolf.ratpack.request
+package com.bleedingwolf.ratpack.handler
 
-import com.bleedingwolf.ratpack.internal.HttpHeader
 import groovy.transform.CompileStatic
 
-import javax.servlet.http.HttpServletResponse
-
 @CompileStatic
-class ResponderDsl {
+class HandlerDsl {
 
   final Request request
   final Response response
 
-  ResponderDsl(Request request, Response response) {
+  HandlerDsl(Request request, Response response) {
     this.request = request
     this.response = response
   }

@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package com.bleedingwolf.ratpack.request.internal
+package com.bleedingwolf.ratpack.responder.internal
 
 import com.bleedingwolf.ratpack.TemplateRenderer
-import com.bleedingwolf.ratpack.request.Responder
-import com.bleedingwolf.ratpack.request.Request
+import com.bleedingwolf.ratpack.responder.Responder
+import com.bleedingwolf.ratpack.handler.Request
 import groovy.transform.CompileStatic
 
 @CompileStatic

@@ -17,7 +17,7 @@
 package com.bleedingwolf.ratpack.routing.internal
 
 import com.bleedingwolf.ratpack.TemplateRenderer
-import com.bleedingwolf.ratpack.request.Responder
+import com.bleedingwolf.ratpack.responder.Responder
 import com.bleedingwolf.ratpack.routing.Router
 import com.bleedingwolf.ratpack.routing.RouterBuilder
 import com.bleedingwolf.ratpack.script.internal.ScriptRunner

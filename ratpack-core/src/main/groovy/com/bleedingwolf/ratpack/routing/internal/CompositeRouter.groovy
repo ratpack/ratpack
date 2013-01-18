@@ -17,7 +17,7 @@
 package com.bleedingwolf.ratpack.routing.internal
 
 import javax.servlet.http.HttpServletRequest
-import com.bleedingwolf.ratpack.request.Responder
+import com.bleedingwolf.ratpack.responder.Responder
 import com.bleedingwolf.ratpack.routing.Router
 
 class CompositeRouter implements Router {

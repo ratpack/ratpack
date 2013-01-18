@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package com.bleedingwolf.ratpack.request.internal
+package com.bleedingwolf.ratpack.responder.internal
 
 import com.bleedingwolf.ratpack.TemplateRenderer
-import com.bleedingwolf.ratpack.request.Request
-import com.bleedingwolf.ratpack.request.Response
+import com.bleedingwolf.ratpack.handler.Request
+import com.bleedingwolf.ratpack.handler.Response
 
-import com.bleedingwolf.ratpack.request.ResponderDsl
+import com.bleedingwolf.ratpack.handler.HandlerDsl
 import groovy.transform.CompileStatic
 
 @CompileStatic
@@ -36,7 +36,7 @@ class ClosureBackedResponder extends AbstractResponder {
   @Override
   void doRespond(Request request, Response response) {
     Closure<?> clone = closure.clone() as Closure<?>
-    clone.delegate = new ResponderDsl(request, response)
+    clone.delegate = new HandlerDsl(request, response)
     clone.resolveStrategy = Closure.DELEGATE_FIRST
 
     switch (clone.maximumNumberOfParameters) {
