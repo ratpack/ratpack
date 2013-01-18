@@ -1,0 +1,16 @@
+buildscript {
+  repositories {
+    mavenLocal()
+    mavenCentral()
+  }
+  dependencies {
+    classpath group: rootProject.group, name: "ratpack-gradle-plugin", version: version
+  }
+}
+
+apply plugin: 'ratpack'
+
+repositories {
+  mavenLocal()
+  mavenCentral()
+}

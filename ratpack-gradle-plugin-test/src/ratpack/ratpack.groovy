@@ -1,0 +1,3 @@
+get("/") {
+  response.renderString "foo"
+}

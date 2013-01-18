@@ -80,7 +80,9 @@ abstract class FunctionalSpec extends Specification {
   }
 
   File file(String path) {
-    new File(dir.root, path)  
+    def file = new File(dir.root, path)
+    assert file.parentFile.mkdirs() || file.parentFile.exists()
+    file
   }
   
   ExecutedTask task(String name) {
@@ -88,6 +90,7 @@ abstract class FunctionalSpec extends Specification {
   }
 
   def setup() {
+    file("settings.gradle") << "rootProject.name = 'test-app'"
     buildFile << """
       ext.RatpackPlugin = project.class.classLoader.loadClass('${RatpackPlugin.name}')
       apply plugin: RatpackPlugin

@@ -1,1 +1,5 @@
 include "ratpack-core", "ratpack-gradle-plugin"
+
+if (System.properties["incTestProject"] != null) {
+  include "ratpack-gradle-plugin-test"
+}

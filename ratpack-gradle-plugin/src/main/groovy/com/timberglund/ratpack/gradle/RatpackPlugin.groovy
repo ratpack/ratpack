@@ -29,7 +29,7 @@ import org.gradle.api.plugins.ApplicationPlugin
 class RatpackPlugin implements Plugin<Project> {
 
   void apply(Project project) {
-    def meta = RatpackPluginMeta.fromResource(getClass().classLoader)
+    def version = getClass().classLoader.getResource("com/bleedingwolf/ratpack/ratpack-version.txt").text.trim()
 
     project.plugins.apply(GroovyPlugin)
     project.plugins.apply(ApplicationPlugin)
@@ -42,7 +42,7 @@ class RatpackPlugin implements Plugin<Project> {
 
     project.dependencies {
       runtime 'org.slf4j:slf4j-simple:1.6.3'
-      compile "com.augusttechgroup:ratpack-core:${meta.ratpackVersion}"
+      compile "com.augusttechgroup:ratpack-core:${version}"
     }
 
     project.run {

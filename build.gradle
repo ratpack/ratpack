@@ -1,6 +1,6 @@
 allprojects {
   group = 'com.augusttechgroup'
-  version = '0.7.0-SNAPSHOT'
+  version = rootProject.file("shared-resources/com/bleedingwolf/ratpack/ratpack-version.txt").text.trim()
 
   apply plugin: 'idea'
   apply plugin: 'eclipse'
@@ -9,12 +9,22 @@ allprojects {
 apply from: "idea/idea.gradle"
 
 subprojects {
+  if (project.name.endsWith("-test")) {
+    return
+  }
+
   apply plugin: 'groovy'
   apply plugin: 'maven'
   apply plugin: 'signing'
 
   repositories {
     mavenCentral()
+  }
+
+  sourceSets.main {
+    resources {
+      srcDir rootProject.file("shared-resources")
+    }
   }
 
   task sourceJar(type: Jar) {
@@ -75,6 +85,7 @@ subprojects {
       poms << pom
     }
   }
+
 
   poms*.whenConfigured { applyPomMods(it) }
 
