@@ -18,17 +18,6 @@ package com.bleedingwolf.ratpack
 
 class BasicRatpackSpec extends RatpackSpec {
 
-  def "can start app"() {
-    when:
-    app.start()
-
-    and:
-    url().content
-
-    then:
-    thrown(FileNotFoundException)
-  }
-
   def "can register route"() {
     given:
     ratpackFile << """

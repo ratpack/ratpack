@@ -16,14 +16,11 @@
 
 package com.bleedingwolf.ratpack.routing
 
-import groovy.transform.CompileStatic
-
-import javax.servlet.http.HttpServletRequest
 import com.bleedingwolf.ratpack.responder.Responder
+import org.vertx.java.core.http.HttpServerRequest
 
-@CompileStatic
 interface Router {
 
-  Responder route(HttpServletRequest request)
+  Responder route(HttpServerRequest request)
 
 }

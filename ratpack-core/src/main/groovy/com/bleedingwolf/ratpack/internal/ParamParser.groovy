@@ -1,9 +1,5 @@
 package com.bleedingwolf.ratpack.internal
 
-import org.eclipse.jetty.util.UrlEncoded
-
-import java.nio.charset.Charset
-
 public class ParamParser {
 
   /**
@@ -20,20 +16,16 @@ public class ParamParser {
    */
 
   Map<String, ?> parse(String content) {
-    parse(content, Charset.defaultCharset().name())
-  }
-
-  Map<String, ?> parse(String content, String encoding) {
     if (!content) {
       return Collections.emptyMap()
     }
     Map<String, ?> params = [:]
-    def multimap = new UrlEncoded(content, encoding)
-    multimap.keySet().each { param ->
-      multimap.getValues(param).each { value ->
-        storeParam(subscripts(param), value, params)
-      }
+
+    for (part in content.split("&")) {
+      def (key, value) = part.split("=", 2)
+      storeParam(subscripts(key), value, params)
     }
+
     params
   }
 

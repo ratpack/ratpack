@@ -21,8 +21,8 @@ import com.bleedingwolf.ratpack.responder.Responder
 import com.bleedingwolf.ratpack.routing.Router
 import com.bleedingwolf.ratpack.routing.RouterBuilder
 import com.bleedingwolf.ratpack.script.internal.ScriptRunner
+import org.vertx.java.core.http.HttpServerRequest
 
-import javax.servlet.http.HttpServletRequest
 import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.atomic.AtomicReference
 import java.util.concurrent.locks.Lock
@@ -44,7 +44,7 @@ class ScriptBackedRouter implements Router {
   }
 
   @Override
-  Responder route(HttpServletRequest request) {
+  Responder route(HttpServerRequest request) {
     if (!scriptFile.exists()) {
       return null
     }

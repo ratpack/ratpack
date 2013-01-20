@@ -5,8 +5,8 @@ import com.bleedingwolf.ratpack.responder.Responder
 import com.bleedingwolf.ratpack.responder.internal.ResponderFactory
 import com.bleedingwolf.ratpack.routing.Router
 import groovy.transform.CompileStatic
+import org.vertx.java.core.http.HttpServerRequest
 
-import javax.servlet.http.HttpServletRequest
 import java.util.regex.Matcher
 import java.util.regex.Pattern
 
@@ -47,12 +47,12 @@ class PathRouter implements Router {
   }
 
   @Override
-  Responder route(HttpServletRequest request) {
+  Responder route(HttpServerRequest request) {
     if (request.method.toLowerCase() != method) {
       return null
     }
 
-    def matcher = tokenisedPath.regex.matcher(request.pathInfo)
+    def matcher = tokenisedPath.regex.matcher(request.path)
     if (matcher.matches()) {
       responderFactory.createResponder(new DefaultRequest(request, toUrlParams(matcher)))
     } else {

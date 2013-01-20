@@ -9,7 +9,7 @@ class ConcurrentRequestSpec extends RatpackSpec {
     given:
     ratpackFile << """
       def rand = new Random()
-      get("/:id") {
+      get("/:id") { request ->
         sleep (rand.nextInt(10) * 10)
         renderString "\$request.urlParams.id:\$request.queryParams.id"
       }

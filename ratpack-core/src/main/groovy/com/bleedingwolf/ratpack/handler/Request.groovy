@@ -16,22 +16,24 @@
 
 package com.bleedingwolf.ratpack.handler
 
-import javax.servlet.http.HttpServletRequest
-
 interface Request {
 
-  byte[] getInput()
+  String getUri()
+
+  String getQuery()
+
+  String getPath()
 
   Map<String, ?> getQueryParams()
 
-  Map<String, ?> getParams()
-
   Map<String, String> getUrlParams()
 
-  String getText()
+  void buffer(Closure<?> bufferReceiver)
 
-  Object getJson()
+  void text(Closure<?> textReceiver)
 
-  HttpServletRequest getServletRequest()
+  void json(Closure<?> jsonReceiver)
+
+  void form(Closure<?> formReceiver)
 
 }

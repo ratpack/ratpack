@@ -2,8 +2,7 @@ package com.bleedingwolf.ratpack
 
 import groovy.text.SimpleTemplateEngine
 import groovy.transform.CompileStatic
-
-import javax.servlet.http.HttpServletRequest
+import org.vertx.java.core.http.HttpServerRequest
 
 @CompileStatic
 class TemplateRenderer {
@@ -39,7 +38,7 @@ class TemplateRenderer {
     renderTemplate(text, context)
   }
 
-  String renderException(Throwable ex, HttpServletRequest req) {
+  String renderException(Throwable ex, HttpServerRequest req) {
     def stackInfo = decodeStackTrace(ex)
 
     String text = loadResource('com/bleedingwolf/ratpack/exception.html').text
@@ -48,7 +47,7 @@ class TemplateRenderer {
         message: ex.message,
         metadata: [
             'Request Method': req.method.toUpperCase(),
-            'Request URL': req.requestURL,
+            'Request URL': req.uri,
             'Exception Type': ex.class.name,
             'Exception Location': "${stackInfo.rootCause.fileName}, line ${stackInfo.rootCause.lineNumber}",
         ],
@@ -65,6 +64,11 @@ class TemplateRenderer {
   private static class DecodedStackTrace {
     final String html
     final StackTraceElement rootCause
+
+    DecodedStackTrace(String html, StackTraceElement rootCause) {
+      this.html = html
+      this.rootCause = rootCause
+    }
   }
 
   protected static DecodedStackTrace decodeStackTrace(Throwable t) {
@@ -86,7 +90,7 @@ class TemplateRenderer {
       }
     }
 
-    return new DecodedStackTrace(html: html, rootCause: rootCause)
+    return new DecodedStackTrace(html, rootCause)
   }
 
   protected static String renderTemplate(String text, Map context) {

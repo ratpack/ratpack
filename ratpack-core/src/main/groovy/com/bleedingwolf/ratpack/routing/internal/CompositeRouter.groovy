@@ -16,9 +16,9 @@
 
 package com.bleedingwolf.ratpack.routing.internal
 
-import javax.servlet.http.HttpServletRequest
 import com.bleedingwolf.ratpack.responder.Responder
 import com.bleedingwolf.ratpack.routing.Router
+import org.vertx.java.core.http.HttpServerRequest
 
 class CompositeRouter implements Router {
 
@@ -29,7 +29,7 @@ class CompositeRouter implements Router {
   }
 
   @Override
-  Responder route(HttpServletRequest request) {
+  Responder route(HttpServerRequest request) {
     Responder responder = null
     for (router in routers) {
       responder = router.route(request)

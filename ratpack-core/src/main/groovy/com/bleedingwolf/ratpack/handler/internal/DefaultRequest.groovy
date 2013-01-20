@@ -1,25 +1,81 @@
 package com.bleedingwolf.ratpack.handler.internal
 
 import com.bleedingwolf.ratpack.handler.Request
+import com.bleedingwolf.ratpack.internal.ClosureHandlerAdapter
 import com.bleedingwolf.ratpack.internal.ParamParser
 import groovy.json.JsonSlurper
-
-import javax.servlet.http.HttpServletRequest
+import org.vertx.java.core.Handler
+import org.vertx.java.core.buffer.Buffer
+import org.vertx.java.core.http.HttpServerRequest
 
 class DefaultRequest implements Request {
 
-  final HttpServletRequest servletRequest
+  private ContentType contentType
+
+  private final HttpServerRequest vertxRequest
+
   final Map<String, String> urlParams
+  @Lazy Map<String, ?> queryParams = new ParamParser().parse(vertxRequest.query)
 
-  @Lazy byte[] input = servletRequest.inputStream.bytes
-  @Lazy Map<String, ?> queryParams = new ParamParser().parse(servletRequest.queryString, servletRequest.getCharacterEncoding())
-  @Lazy String text = servletRequest.characterEncoding ? new String(input, servletRequest.characterEncoding) : new String(input, 'ISO-8859-1')
-  @Lazy Object json = new JsonSlurper().parseText(getText())
-  @Lazy Map<String, ?> params = new ParamParser().parse(getText(), servletRequest.getCharacterEncoding())
-
-  DefaultRequest(HttpServletRequest servletRequest, Map<String, String> urlParams) {
-    this.servletRequest = servletRequest
+  DefaultRequest(HttpServerRequest vertxRequest, Map<String, String> urlParams) {
+    this.vertxRequest = vertxRequest
     this.urlParams = urlParams
   }
 
+  @Override
+  void buffer(Closure<?> receiver) {
+    vertxRequest.bodyHandler(new ClosureHandlerAdapter<Buffer>(receiver))
+  }
+
+  @Override
+  void text(Closure<?> textReceiver) {
+    vertxRequest.bodyHandler(new Handler<Buffer>() {
+      @Override
+      void handle(Buffer event) {
+        textReceiver(event.toString(getContentType().charset))
+      }
+    })
+  }
+
+  @Override
+  void json(Closure<?> jsonReceiver) {
+    vertxRequest.bodyHandler(new Handler<Buffer>() {
+      @Override
+      void handle(Buffer event) {
+        jsonReceiver(new JsonSlurper().parseText(event.toString(getContentType().charset)))
+      }
+    })
+  }
+
+  @Override
+  void form(Closure<?> formReceiver) {
+    vertxRequest.bodyHandler(new Handler<Buffer>() {
+      @Override
+      void handle(Buffer event) {
+        formReceiver(new ParamParser().parse(event.toString(getContentType().charset)))
+      }
+    })
+  }
+
+  private ContentType getContentType() {
+    if (contentType == null) {
+      contentType = new ContentType(vertxRequest.headers().get("Content-Type"))
+    }
+    contentType
+  }
+
+  @Override
+  String getUri() {
+    vertxRequest.uri
+  }
+
+  @Override
+  String getQuery() {
+    vertxRequest.query
+  }
+
+  @Override
+  String getPath() {
+    vertxRequest.path
+  }
 }

@@ -1,16 +1,9 @@
 package com.bleedingwolf.ratpack.internal
 
-import org.eclipse.jetty.http.HttpHeaders
+abstract class HttpHeader {
 
-enum HttpHeader {
-
-  LOCATION(HttpHeaders.LOCATION),
-  CONTENT_TYPE(HttpHeaders.CONTENT_TYPE)
-
-  final String string
-
-  HttpHeader(String string) {
-    this.string = string
-  }
+  public static final LOCATION = "Location"
+  public static final CONTENT_TYPE = "Content-Type"
+  public static final CONTENT_LENGTH = "Content-Length"
 
 }

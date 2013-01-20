@@ -37,7 +37,7 @@ abstract class AbstractResponder implements Responder {
 
   @Override
   FinalizedResponse respond() {
-    def response = new DefaultResponse(request, templateRenderer)
+    def response = new DefaultResponse(request.uri, templateRenderer)
     doRespond(request, response)
     new FinalizedResponse(response.headers, response.status, response.output.toByteArray())
   }

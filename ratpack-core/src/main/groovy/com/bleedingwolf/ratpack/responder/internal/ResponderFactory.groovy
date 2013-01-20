@@ -16,8 +16,8 @@
 
 package com.bleedingwolf.ratpack.responder.internal
 
-import com.bleedingwolf.ratpack.responder.Responder
 import com.bleedingwolf.ratpack.handler.Request
+import com.bleedingwolf.ratpack.responder.Responder
 import groovy.transform.CompileStatic
 
 @CompileStatic

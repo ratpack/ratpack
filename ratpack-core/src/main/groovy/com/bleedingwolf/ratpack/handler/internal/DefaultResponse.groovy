@@ -1,13 +1,10 @@
 package com.bleedingwolf.ratpack.handler.internal
 
 import com.bleedingwolf.ratpack.TemplateRenderer
-import com.bleedingwolf.ratpack.handler.Request
 import com.bleedingwolf.ratpack.handler.Response
 import com.bleedingwolf.ratpack.internal.HttpHeader
 import com.bleedingwolf.ratpack.internal.MimeType
 import groovy.json.JsonBuilder
-
-import javax.servlet.http.HttpServletResponse
 
 class DefaultResponse implements Response {
 
@@ -18,19 +15,19 @@ class DefaultResponse implements Response {
 
   final ByteArrayOutputStream output = new ByteArrayOutputStream()
 
-  private final Request request
+  private final String requestUri
 
-  DefaultResponse(Request request, TemplateRenderer renderer) {
-    this.request = request
+  DefaultResponse(String requestUri, TemplateRenderer renderer) {
+    this.requestUri = requestUri
     this.renderer = renderer
   }
 
   String getContentType() {
-    headers[HttpHeader.CONTENT_TYPE.string]
+    headers[HttpHeader.CONTENT_TYPE]
   }
 
   void setContentType(String contentType) {
-    headers[HttpHeader.CONTENT_TYPE.string] = contentType
+    headers[HttpHeader.CONTENT_TYPE] = contentType
   }
 
   String render(Map context = [:], String templateName) {
@@ -50,8 +47,8 @@ class DefaultResponse implements Response {
   }
 
   void sendRedirect(String location) {
-    status = HttpServletResponse.SC_MOVED_TEMPORARILY
-    headers[HttpHeader.LOCATION.string] = new URL(new URL(request.servletRequest.requestURL.toString()), location).toString()
+    status = 301
+    headers[HttpHeader.LOCATION] = location
   }
 
 }
