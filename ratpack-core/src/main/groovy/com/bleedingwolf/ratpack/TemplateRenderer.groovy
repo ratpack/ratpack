@@ -65,6 +65,11 @@ class TemplateRenderer {
   private static class DecodedStackTrace {
     final String html
     final StackTraceElement rootCause
+
+    DecodedStackTrace(String html, StackTraceElement rootCause) {
+      this.html = html
+      this.rootCause = rootCause
+    }
   }
 
   protected static DecodedStackTrace decodeStackTrace(Throwable t) {
@@ -86,7 +91,7 @@ class TemplateRenderer {
       }
     }
 
-    return new DecodedStackTrace(html: html, rootCause: rootCause)
+    return new DecodedStackTrace(html, rootCause)
   }
 
   protected static String renderTemplate(String text, Map context) {
