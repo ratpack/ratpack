@@ -27,6 +27,9 @@ subprojects {
     }
   }
 
+  sourceCompatibility = "1.7"
+  targetCompatibility = "1.7"
+
   task sourceJar(type: Jar) {
     description 'An archive of the source code for Maven Central'
     classifier 'sources'
