@@ -23,7 +23,7 @@ class BasicRatpackSpec extends RatpackSpec {
     app.start()
 
     and:
-    url().content
+    urlConnection().content
 
     then:
     thrown(FileNotFoundException)

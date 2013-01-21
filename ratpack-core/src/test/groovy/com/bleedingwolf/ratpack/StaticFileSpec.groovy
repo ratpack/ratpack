@@ -27,9 +27,9 @@ class StaticFileSpec extends RatpackSpec {
     app.start()
 
     then:
-    url("").responseCode == 403
-    url("foo").responseCode == 403
-    url("foos").responseCode == 404
+    urlConnection("").responseCode == 403
+    urlConnection("foo").responseCode == 403
+    urlConnection("foos").responseCode == 404
   }
 
   def "can serve static file"() {

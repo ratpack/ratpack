@@ -19,12 +19,14 @@ package com.bleedingwolf.ratpack
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
+import com.bleedingwolf.ratpack.util.CookieManager
 
 class RatpackSpec extends Specification {
 
   @Rule TemporaryFolder temporaryFolder
 
   RatpackApp app
+  CookieManager cookieManager = new CookieManager()
 
   File getConfigFile() {
     file("config.groovy")
@@ -56,11 +58,15 @@ class RatpackSpec extends Specification {
     app.stop()
   }
 
-  HttpURLConnection url(String path = "") {
-    new URL("http://localhost:$app.port/$path").openConnection() as HttpURLConnection
+  HttpURLConnection urlConnection(String path = "") {
+    def connection = new URL("http://localhost:$app.port/$path").openConnection() as HttpURLConnection
+    cookieManager.setCookies(connection)
+    connection.connect()
+    cookieManager.storeCookies(connection)
+    connection
   }
 
   String urlText(String path = "") {
-    new URL("http://localhost:$app.port/$path").text
+    new String(urlConnection(path).inputStream.bytes)
   }
 }

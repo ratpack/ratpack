@@ -6,6 +6,7 @@ import groovy.transform.CompileStatic
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.handler.HandlerCollection
 import org.eclipse.jetty.server.handler.ResourceHandler
+import org.eclipse.jetty.server.session.SessionHandler
 
 @CompileStatic
 class RatpackApp {
@@ -41,9 +42,11 @@ class RatpackApp {
     def handler = new RatpackHandler(router, renderer, resourceHandler)
     handlerList.addHandler(handler)
 
+    def sessionHandler = new SessionHandler()
 
-    server.setHandler(handlerList)
+    sessionHandler.setHandler(handlerList)
 
+    server.setHandler(sessionHandler)
     server.start()
   }
 

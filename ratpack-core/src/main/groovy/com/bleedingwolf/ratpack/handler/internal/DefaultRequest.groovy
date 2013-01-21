@@ -1,10 +1,12 @@
 package com.bleedingwolf.ratpack.handler.internal
 
 import com.bleedingwolf.ratpack.handler.Request
+import com.bleedingwolf.ratpack.internal.GroovyHttpSession
 import com.bleedingwolf.ratpack.internal.ParamParser
 import groovy.json.JsonSlurper
 
 import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpSession
 
 class DefaultRequest implements Request {
 
@@ -17,9 +19,12 @@ class DefaultRequest implements Request {
   @Lazy Object json = new JsonSlurper().parseText(getText())
   @Lazy Map<String, ?> params = new ParamParser().parse(getText(), servletRequest.getCharacterEncoding())
 
+  final HttpSession session
+
   DefaultRequest(HttpServletRequest servletRequest, Map<String, String> urlParams) {
     this.servletRequest = servletRequest
     this.urlParams = urlParams
+    this.session = new GroovyHttpSession(servletRequest)
   }
 
 }

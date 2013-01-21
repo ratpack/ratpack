@@ -5,6 +5,7 @@ import com.bleedingwolf.ratpack.routing.Router
 import groovy.transform.CompileStatic
 import org.codehaus.groovy.runtime.StackTraceUtils
 import org.eclipse.jetty.server.Request
+import org.eclipse.jetty.server.SessionManager
 import org.eclipse.jetty.server.handler.AbstractHandler
 import org.eclipse.jetty.server.handler.ResourceHandler
 import org.slf4j.LoggerFactory

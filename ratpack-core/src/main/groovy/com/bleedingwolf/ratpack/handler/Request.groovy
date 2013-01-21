@@ -17,6 +17,7 @@
 package com.bleedingwolf.ratpack.handler
 
 import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpSession
 
 interface Request {
 
@@ -33,5 +34,7 @@ interface Request {
   Object getJson()
 
   HttpServletRequest getServletRequest()
+
+  HttpSession getSession()
 
 }
