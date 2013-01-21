@@ -34,17 +34,17 @@ class DefaultResponse implements Response {
   }
 
   String render(Map context = [:], String templateName) {
-    contentType = contentType ?: MimeType.TEXT_HTML
+    contentType = contentType ?: MimeType.TEXT_HTML.string
     renderString(renderer.render(templateName, context))
   }
 
   String renderJson(Object o) {
-    contentType = contentType ?: MimeType.APPLICATION_JSON
+    contentType = contentType ?: MimeType.APPLICATION_JSON.string
     renderString(new JsonBuilder(o).toString())
   }
 
   String renderString(String str) {
-    contentType = contentType ?: MimeType.TEXT_PLAIN
+    contentType = contentType ?: MimeType.TEXT_PLAIN.string
     output << str.bytes
     str
   }
