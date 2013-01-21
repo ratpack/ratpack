@@ -25,6 +25,7 @@ import org.gradle.api.Project
 import org.gradle.api.plugins.GroovyPlugin
 import org.gradle.api.tasks.JavaExec
 import org.gradle.api.plugins.ApplicationPlugin
+import org.gradle.plugins.ide.idea.IdeaPlugin
 
 class RatpackPlugin implements Plugin<Project> {
 
@@ -34,24 +35,52 @@ class RatpackPlugin implements Plugin<Project> {
     project.plugins.apply(GroovyPlugin)
     project.plugins.apply(ApplicationPlugin)
 
-    project.mainClassName = 'com.bleedingwolf.ratpack.RatpackMain'
+
+
 
     project.repositories {
       mavenCentral()
     }
+
+    project.configurations {
+      springloaded
+    }
+
+    def ratpackApp = new RatpackAppSpec(
+        project,
+        project.file("src/ratpack"),
+        project.configurations['compile'],
+        project.configurations['runtime'],
+        project.configurations['springloaded']
+    )
+
+    project.mainClassName = ratpackApp.mainClassName
 
     project.dependencies {
       runtime 'org.slf4j:slf4j-simple:1.6.3'
       compile "com.augusttechgroup:ratpack-core:${version}"
     }
 
+    def configureRun = project.task("configureRun")
+    configureRun.doFirst {
+      project.run {
+        classpath ratpackApp.springloadedClasspath
+        jvmArgs ratpackApp.springloadedJvmArgs
+      }
+    }
+
     project.run {
-      main = 'com.bleedingwolf.ratpack.RatpackMain'
+      dependsOn configureRun
+      main = ratpackApp.mainClassName
       workingDir = project.file("src/ratpack")
     }
 
     project.installApp {
-      from "src/ratpack"
+      from ratpackApp.appRoot
+    }
+
+    project.plugins.withType(IdeaPlugin) {
+      new IdeaConfigurer(ratpackApp).execute(project)
     }
   }
 
