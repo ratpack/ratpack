@@ -40,11 +40,11 @@ class RatpackHandler extends AbstractHandler {
     Closure<?> handler
 
     if (responder == null) {
-      handler = {
-        resourceHandler.handle(target, baseRequest, servletRequest, servletResponse)
-        if (!baseRequest.isHandled()) {
-          status = new OutputStreamWriter(bytes).withWriter { Writer writer -> this.notFound(servletRequest, writer) }
-        }
+      resourceHandler.handle(target, baseRequest, servletRequest, servletResponse)
+      if (baseRequest.isHandled()) {
+        return
+      } else {
+        handler = { status = new OutputStreamWriter(bytes).withWriter { Writer writer -> this.notFound(servletRequest, writer) } }
       }
     } else {
       try {
