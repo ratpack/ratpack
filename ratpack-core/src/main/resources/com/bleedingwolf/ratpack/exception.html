@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>${title}</title>
+    <title>${model.title}</title>
     <style type="text/css">
 
 body, html, h1, h2 {
@@ -59,25 +59,25 @@ pre {
 </head>
 <body>
     <div id="messages">
-    <h1>${message}</h1>
+    <h1>${model.message}</h1>
     <table class="meta">
-    <% if (binding.variables.containsKey('metadata') && metadata) {
-        for (meta in metadata) { %>
+    <% if (model.metadata) {
+        for (meta in model.metadata) { %>
         <tr> <th>${meta.key}:</th> <td>${meta.value}</td> </tr>
         <% }
     } %>
     </table>
     </div>
     
-    <% if (binding.variables.containsKey('info') && info) { %>
+    <% if (model.info) { %>
         <div class="info">
-        ${info}
+        ${model.info}
         </div>
     <% } %>
     
-    <% if (binding.variables.containsKey('stacktrace') && stacktrace) { %>
+    <% if (model.stacktrace) { %>
         <h2>Stack Trace</h2>
-        <pre><code>${stacktrace}</code></pre>
+        <pre><code>${model.stacktrace}</code></pre>
     <% } %>
     
 </body>

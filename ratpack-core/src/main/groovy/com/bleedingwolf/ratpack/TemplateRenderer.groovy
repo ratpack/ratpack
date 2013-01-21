@@ -22,13 +22,13 @@ class TemplateRenderer {
     innerRender(new GroovyClassLoader(), template, context)
   }
 
-  protected Writable innerRender(ClassLoader classLoader, String templateName, Map<String, Object> context) {
+  protected Writable innerRender(ClassLoader classLoader, String templateName, Map<String, Object> model) {
     Reader reader
     try {
       reader = loadTemplate(templateName)
     } catch (java.io.IOException ignore) {
-      reader = loadResource('com/bleedingwolf/ratpack/exception.html').newReader()
-      context = [
+      reader = loadResource('exception.html')
+      model = [
           title: 'Template Not Found',
           message: 'Template Not Found',
           metadata: [
@@ -38,32 +38,35 @@ class TemplateRenderer {
       ] as Map<String, Object>
     }
 
-    innerRender(classLoader, reader, context)
+    innerRender(classLoader, reader, model)
   }
 
-  protected Writable innerRender(ClassLoader classLoader, Reader template, Map<String, Object> context) {
+  protected Writable innerRender(ClassLoader classLoader, Reader template, final Map<String, Object> model) {
     SimpleTemplateEngine engine = new SimpleTemplateEngine(classLoader)
-    if (context.containsKey("render")) {
-      throw new IllegalStateException("The context for render operations cannot contain an item called 'render'")
+    def innerRenderFunction = { Map innerModel = null, String innerTemplate ->
+      if (innerModel == null) {
+        innerModel = new HashMap<String, Object>(model)
+      }
+      innerRender(classLoader, innerTemplate, innerModel)
     }
-    context.render = { Map innerContext = [:], String innerTemplate ->
-      innerRender(classLoader, innerTemplate, innerContext)
-    }
-
+    Map<String, Object> context = [
+        model: model,
+        render: innerRenderFunction
+    ]
     engine.createTemplate(template).make(context)
   }
 
   @SuppressWarnings("GrMethodMayBeStatic")
-  String renderError(Map context) {
-    render(loadResource('com/bleedingwolf/ratpack/exception.html').newReader(), context)
+  String renderError(Map model) {
+    render(loadResource('exception.html'), model)
   }
 
   @SuppressWarnings("GrMethodMayBeStatic")
   String renderException(Throwable ex, HttpServletRequest req) {
     def stackInfo = decodeStackTrace(ex)
 
-    def reader = loadResource('com/bleedingwolf/ratpack/exception.html').newReader()
-    Map context = [
+    def reader = loadResource('exception.html')
+    Map<String, Object> model = [
         title: ex.class.name,
         message: ex.message,
         metadata: [
@@ -75,7 +78,7 @@ class TemplateRenderer {
         stacktrace: stackInfo.html
     ]
 
-    render(reader, context)
+    render(reader, model)
   }
 
   protected Reader loadTemplate(String templateName) {
@@ -107,14 +110,16 @@ class TemplateRenderer {
         html += "<span class='stack-thirdparty'>        at ${ste}\n</span>"
       } else {
         html += "        at ${ste}\n"
-        if (null == rootCause) rootCause = ste
+        if (null == rootCause) {
+          rootCause = ste
+        }
       }
     }
 
     return new DecodedStackTrace(html, rootCause)
   }
 
-  protected static InputStream loadResource(String path) {
-    Thread.currentThread().contextClassLoader.getResourceAsStream(path)
+  protected Reader loadResource(String path) {
+    getClass().getResourceAsStream(path).newReader()
   }
 }

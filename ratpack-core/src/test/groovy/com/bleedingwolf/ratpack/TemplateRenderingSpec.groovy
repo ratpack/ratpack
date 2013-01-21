@@ -20,7 +20,7 @@ class TemplateRenderingSpec extends RatpackSpec {
 
   def "can render template"() {
     given:
-    templateFile("foo.html") << "\${value}"
+    templateFile("foo.html") << "\${model.value}"
 
     and:
     ratpackFile << """
@@ -39,8 +39,8 @@ class TemplateRenderingSpec extends RatpackSpec {
 
   def "can render inner template"() {
     given:
-    templateFile("outer.html") << "outer: \${value}, \${render 'inner.html', value: 'inner'}"
-    templateFile("inner.html") << "inner: \${value}"
+    templateFile("outer.html") << "outer: \${model.value}, \${render 'inner.html', value: 'inner'}"
+    templateFile("inner.html") << "inner: \${model.value}"
 
     and:
     ratpackFile << """
@@ -56,4 +56,23 @@ class TemplateRenderingSpec extends RatpackSpec {
     urlText() == "outer: outer, inner: inner"
   }
 
+  def "inner template inherits model unless overridden"() {
+    given:
+    templateFile("outerNoModel.html") << "\${render 'inner.html'}"
+    templateFile("outerWithModel.html") << "\${render 'inner.html', i: model.i + 1}"
+    templateFile("inner.html") << "\${model.i}"
+
+    and:
+    ratpackFile << """
+      get("/noModel") { render "outerNoModel.html", i: 1 }
+      get("/withModel") { render "outerWithModel.html", i: 1 }
+    """
+
+    when:
+    app.start()
+
+    then:
+    urlText("noModel") == "1"
+    urlText("withModel") == "2"
+  }
 }
