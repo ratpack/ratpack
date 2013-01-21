@@ -60,13 +60,22 @@ class RatpackSpec extends Specification {
 
   HttpURLConnection urlConnection(String path = "") {
     def connection = new URL("http://localhost:$app.port/$path").openConnection() as HttpURLConnection
+    connection.allowUserInteraction = true
     cookieManager.setCookies(connection)
-    connection.connect()
+    try {
+      connection.connect()
+    } catch (IOException ignore) {
+
+    }
     cookieManager.storeCookies(connection)
     connection
   }
 
   String urlText(String path = "") {
     new String(urlConnection(path).inputStream.bytes)
+  }
+
+  String errorText(String path = "") {
+    new String(urlConnection(path).errorStream.bytes)
   }
 }

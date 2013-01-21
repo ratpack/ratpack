@@ -37,4 +37,23 @@ class TemplateRenderingSpec extends RatpackSpec {
   }
 
 
+  def "can render inner template"() {
+    given:
+    templateFile("outer.html") << "outer: \${value}, \${render 'inner.html', value: 'inner'}"
+    templateFile("inner.html") << "inner: \${value}"
+
+    and:
+    ratpackFile << """
+      get("/") {
+        render "outer.html", value: "outer"
+      }
+    """
+
+    when:
+    app.start()
+
+    then:
+    urlText() == "outer: outer, inner: inner"
+  }
+
 }
