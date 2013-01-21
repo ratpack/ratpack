@@ -28,7 +28,7 @@ class InstallAppSpec extends FunctionalSpec {
        }
     """
     file("src/ratpack/ratpack.groovy") << """
-      get("/") { response.renderString "foo" }
+      get("/") { renderString "foo" }
     """
     when:
     run "installApp"
