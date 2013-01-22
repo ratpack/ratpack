@@ -14,21 +14,42 @@
  * limitations under the License.
  */
 
-package org.ratpackframework
+package org.ratpackframework.app
 
 import groovy.transform.CompileStatic
+import groovy.transform.ToString
 
+@ToString
 @CompileStatic
-class RatpackMain {
+class Config {
 
-  static void main(String[] args) {
-    File configFile = args.length == 0 ? new File("config.groovy") : new File(args[0])
-    if (!configFile.exists() && args.length > 0) {
-      System.err.println("Config file $configFile.absolutePath does not exist")
-      System.exit 1
-    }
+  int port
 
-    new RatpackAppFactory().create(configFile.canonicalFile).start()
+  String publicDir
+  String templatesDir
+  String routes
+
+  Config() {
+    publicDir = "public"
+    templatesDir = "templates"
+    routes = "ratpack.groovy"
+    port = 5050
+  }
+
+  void port(int port) {
+    setPort(port)
+  }
+
+  void publicDir(String publicDir) {
+    setPublicDir(publicDir)
+  }
+
+  void templatesDir(String templatesDir) {
+    setTemplatesDir(templatesDir)
+  }
+
+  void routes(String routes) {
+    setRoutes(routes)
   }
 
 }

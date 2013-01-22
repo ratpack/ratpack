@@ -1,4 +1,4 @@
-package org.ratpackframework.internal
+package org.ratpackframework.app.internal
 
 import org.ratpackframework.TemplateRenderer
 import org.ratpackframework.routing.Router

@@ -1,6 +1,7 @@
-package org.ratpackframework
+package org.ratpackframework.app
 
-import org.ratpackframework.internal.RatpackHandler
+import org.ratpackframework.TemplateRenderer
+import org.ratpackframework.app.internal.RatpackHandler
 import org.ratpackframework.routing.Router
 import groovy.transform.CompileStatic
 import org.eclipse.jetty.server.Server

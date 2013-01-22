@@ -14,42 +14,24 @@
  * limitations under the License.
  */
 
-package org.ratpackframework
+package org.ratpackframework.app
 
+import org.ratpackframework.TemplateRenderer
+import org.ratpackframework.routing.internal.ScriptBackedRouter
 import groovy.transform.CompileStatic
-import groovy.transform.ToString
 
-@ToString
 @CompileStatic
-class Config {
+public class RatpackAppFactory {
 
-  int port
+  RatpackApp create(File configFile) {
+    def baseDir = configFile.parentFile
+    def config = new Config()
 
-  String publicDir
-  String templatesDir
-  String routes
+    def publicDir = new File(baseDir, config.publicDir)
+    def templateRenderer = new TemplateRenderer(new File(baseDir, config.templatesDir))
+    def router = new ScriptBackedRouter(new File(baseDir, config.routes), templateRenderer)
 
-  Config() {
-    publicDir = "public"
-    templatesDir = "templates"
-    routes = "ratpack.groovy"
-    port = 5050
-  }
-
-  void port(int port) {
-    setPort(port)
-  }
-
-  void publicDir(String publicDir) {
-    setPublicDir(publicDir)
-  }
-
-  void templatesDir(String templatesDir) {
-    setTemplatesDir(templatesDir)
-  }
-
-  void routes(String routes) {
-    setRoutes(routes)
+    new RatpackApp(config.port, "/", router, templateRenderer, publicDir)
   }
 
 }

@@ -18,6 +18,8 @@ package org.ratpackframework
 
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
+import org.ratpackframework.app.RatpackApp
+import org.ratpackframework.app.RatpackAppFactory
 import spock.lang.Specification
 import org.ratpackframework.util.CookieManager
 

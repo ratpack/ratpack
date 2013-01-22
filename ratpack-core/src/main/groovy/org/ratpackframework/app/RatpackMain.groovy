@@ -14,23 +14,21 @@
  * limitations under the License.
  */
 
-package org.ratpackframework
+package org.ratpackframework.app
 
-import org.ratpackframework.routing.internal.ScriptBackedRouter
 import groovy.transform.CompileStatic
 
 @CompileStatic
-public class RatpackAppFactory {
+class RatpackMain {
 
-  RatpackApp create(File configFile) {
-    def baseDir = configFile.parentFile
-    def config = new Config()
+  static void main(String[] args) {
+    File configFile = args.length == 0 ? new File("config.groovy") : new File(args[0])
+    if (!configFile.exists() && args.length > 0) {
+      System.err.println("Config file $configFile.absolutePath does not exist")
+      System.exit 1
+    }
 
-    def publicDir = new File(baseDir, config.publicDir)
-    def templateRenderer = new TemplateRenderer(new File(baseDir, config.templatesDir))
-    def router = new ScriptBackedRouter(new File(baseDir, config.routes), templateRenderer)
-
-    new RatpackApp(config.port, "/", router, templateRenderer, publicDir)
+    new RatpackAppFactory().create(configFile.canonicalFile).start()
   }
 
 }
