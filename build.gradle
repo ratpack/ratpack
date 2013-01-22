@@ -1,6 +1,6 @@
 allprojects {
   group = 'com.augusttechgroup'
-  version = rootProject.file("shared-resources/com/bleedingwolf/ratpack/ratpack-version.txt").text.trim()
+  version = rootProject.file("shared-resources/org/ratpackframework/ratpack-version.txt").text.trim()
 
   apply plugin: 'idea'
   apply plugin: 'eclipse'
