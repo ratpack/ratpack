@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.handler
+package org.ratpackframework
 
 interface Response {
 

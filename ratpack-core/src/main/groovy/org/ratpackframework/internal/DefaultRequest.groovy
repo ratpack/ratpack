@@ -1,6 +1,6 @@
-package org.ratpackframework.handler.internal
+package org.ratpackframework.internal
 
-import org.ratpackframework.handler.Request
+import org.ratpackframework.Request
 import org.ratpackframework.internal.GroovyHttpSession
 import org.ratpackframework.internal.ParamParser
 import groovy.json.JsonSlurper

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.handler
+package org.ratpackframework
 
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpSession

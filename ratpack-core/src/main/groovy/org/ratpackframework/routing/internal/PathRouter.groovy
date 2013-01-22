@@ -1,6 +1,6 @@
 package org.ratpackframework.routing.internal
 
-import org.ratpackframework.handler.internal.DefaultRequest
+import org.ratpackframework.internal.DefaultRequest
 import org.ratpackframework.responder.Responder
 import org.ratpackframework.responder.internal.ResponderFactory
 import org.ratpackframework.routing.Router

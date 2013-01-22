@@ -1,8 +1,8 @@
-package org.ratpackframework.handler.internal
+package org.ratpackframework.internal
 
 import org.ratpackframework.TemplateRenderer
-import org.ratpackframework.handler.Request
-import org.ratpackframework.handler.Response
+import org.ratpackframework.Request
+import org.ratpackframework.Response
 import org.ratpackframework.internal.HttpHeader
 import org.ratpackframework.internal.MimeType
 import groovy.json.JsonBuilder

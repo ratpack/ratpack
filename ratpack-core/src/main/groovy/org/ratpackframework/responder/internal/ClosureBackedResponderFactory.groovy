@@ -18,7 +18,7 @@ package org.ratpackframework.responder.internal
 
 import org.ratpackframework.TemplateRenderer
 import org.ratpackframework.responder.Responder
-import org.ratpackframework.handler.Request
+import org.ratpackframework.Request
 import groovy.transform.CompileStatic
 
 @CompileStatic
