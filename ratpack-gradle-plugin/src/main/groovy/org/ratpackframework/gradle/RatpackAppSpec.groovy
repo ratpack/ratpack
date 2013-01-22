@@ -36,7 +36,7 @@ class RatpackAppSpec {
   List<String> getSpringloadedJvmArgs() {
     def jarFile = getSpringloadedJar()
     if (jarFile) {
-      ["-Dspringloaded=profile=grails", String.format("-javaagent:%s", jarFile.absolutePath), "-noverify"]
+      [String.format("-javaagent:%s", jarFile.absolutePath), "-noverify"]
     } else {
       Collections.emptyList()
     }

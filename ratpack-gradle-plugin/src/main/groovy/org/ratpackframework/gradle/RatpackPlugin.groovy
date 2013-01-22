@@ -24,6 +24,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.GroovyPlugin
 import org.gradle.api.plugins.ApplicationPlugin
+import org.gradle.api.tasks.JavaExec
 import org.gradle.plugins.ide.idea.IdeaPlugin
 
 class RatpackPlugin implements Plugin<Project> {
@@ -33,9 +34,6 @@ class RatpackPlugin implements Plugin<Project> {
 
     project.plugins.apply(GroovyPlugin)
     project.plugins.apply(ApplicationPlugin)
-
-
-
 
     project.repositories {
       mavenCentral()
@@ -68,7 +66,7 @@ class RatpackPlugin implements Plugin<Project> {
       }
     }
 
-    project.run {
+    JavaExec run = project.run {
       dependsOn configureRun
       main = ratpackApp.mainClassName
       workingDir = project.file("src/ratpack")
@@ -79,7 +77,7 @@ class RatpackPlugin implements Plugin<Project> {
     }
 
     project.plugins.withType(IdeaPlugin) {
-      new IdeaConfigurer(ratpackApp).execute(project)
+      new IdeaConfigurer(ratpackApp, run).execute(project)
     }
   }
 
