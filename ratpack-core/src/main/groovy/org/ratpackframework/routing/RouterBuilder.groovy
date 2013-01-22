@@ -16,12 +16,15 @@
 
 package org.ratpackframework.routing
 
-import org.ratpackframework.TemplateRenderer
+import org.ratpackframework.templating.TemplateRenderer
 import org.ratpackframework.responder.internal.ClosureBackedResponderFactory
 import org.ratpackframework.routing.internal.PathRouter
 import groovy.transform.CompileStatic
 
 @CompileStatic
+/**
+ * This is the API in the ratpack.groovy file.
+ */
 class RouterBuilder {
 
   private final List<Router> routers = []

@@ -1,6 +1,6 @@
 package org.ratpackframework.app
 
-import org.ratpackframework.TemplateRenderer
+import org.ratpackframework.templating.TemplateRenderer
 import org.ratpackframework.app.internal.RatpackHandler
 import org.ratpackframework.routing.Router
 import groovy.transform.CompileStatic

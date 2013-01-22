@@ -1,6 +1,6 @@
 package org.ratpackframework.internal
 
-import org.ratpackframework.TemplateRenderer
+import org.ratpackframework.templating.TemplateRenderer
 import org.ratpackframework.Request
 import org.ratpackframework.Response
 import org.ratpackframework.internal.HttpHeader

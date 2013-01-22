@@ -16,7 +16,7 @@
 
 package org.ratpackframework.routing.internal
 
-import org.ratpackframework.TemplateRenderer
+import org.ratpackframework.templating.TemplateRenderer
 import org.ratpackframework.responder.Responder
 import org.ratpackframework.routing.Router
 import org.ratpackframework.routing.RouterBuilder

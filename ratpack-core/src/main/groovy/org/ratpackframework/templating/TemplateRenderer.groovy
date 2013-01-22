@@ -1,4 +1,4 @@
-package org.ratpackframework
+package org.ratpackframework.templating
 
 import groovy.text.SimpleTemplateEngine
 import groovy.transform.CompileStatic
