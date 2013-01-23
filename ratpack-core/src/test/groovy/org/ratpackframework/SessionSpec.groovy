@@ -1,5 +1,8 @@
 package org.ratpackframework
 
+import spock.lang.Ignore
+
+@Ignore
 class SessionSpec extends RatpackSpec {
 
   def "can use session"() {

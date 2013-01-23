@@ -29,17 +29,17 @@ class DefaultResponse implements Response {
   }
 
   String render(Map context = [:], String templateName) {
-    contentType = contentType ?: MimeType.TEXT_HTML.string
+    contentType = contentType ?: MimeType.TEXT_HTML
     renderer.render(templateName, context).writeTo(new OutputStreamWriter(output))
   }
 
   String renderJson(Object o) {
-    contentType = contentType ?: MimeType.APPLICATION_JSON.string
+    contentType = contentType ?: MimeType.APPLICATION_JSON
     renderString(new JsonBuilder(o).toString())
   }
 
   String renderString(String str) {
-    contentType = contentType ?: MimeType.TEXT_PLAIN.string
+    contentType = contentType ?: MimeType.TEXT_PLAIN
     output << str.bytes
     str
   }

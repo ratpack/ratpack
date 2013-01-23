@@ -2,8 +2,7 @@ package org.ratpackframework.templating
 
 import groovy.text.SimpleTemplateEngine
 import groovy.transform.CompileStatic
-
-import javax.servlet.http.HttpServletRequest
+import org.vertx.java.core.http.HttpServerRequest
 
 @CompileStatic
 class TemplateRenderer {
@@ -62,7 +61,7 @@ class TemplateRenderer {
   }
 
   @SuppressWarnings("GrMethodMayBeStatic")
-  String renderException(Throwable ex, HttpServletRequest req) {
+  String renderException(Throwable ex, HttpServerRequest req) {
     def stackInfo = decodeStackTrace(ex)
 
     def reader = loadResource('exception.html')
@@ -71,7 +70,7 @@ class TemplateRenderer {
         message: ex.message,
         metadata: [
             'Request Method': req.method.toUpperCase(),
-            'Request URL': req.requestURL,
+            'Request URL': req.uri,
             'Exception Type': ex.class.name,
             'Exception Location': "${stackInfo.rootCause.fileName}, line ${stackInfo.rootCause.lineNumber}",
         ],

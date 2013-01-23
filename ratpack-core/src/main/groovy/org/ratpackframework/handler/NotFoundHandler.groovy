@@ -1,6 +1,6 @@
 package org.ratpackframework.handler
 
-
+import org.ratpackframework.templating.TemplateRenderer
 import org.vertx.java.core.http.HttpServerRequest
 
 class NotFoundHandler implements MaybeHandler<HttpServerRequest> {

@@ -1,9 +1,9 @@
 package org.ratpackframework.handler
 
-
-import com.bleedingwolf.ratpack.responder.FinalizedResponse
-import com.bleedingwolf.ratpack.responder.Responder
-import com.bleedingwolf.ratpack.routing.Router
+import org.ratpackframework.responder.FinalizedResponse
+import org.ratpackframework.responder.Responder
+import org.ratpackframework.routing.Router
+import org.ratpackframework.templating.TemplateRenderer
 import org.vertx.java.core.buffer.Buffer
 import org.vertx.java.core.http.HttpServerRequest
 

@@ -3,6 +3,7 @@ package org.ratpackframework.handler
 
 import groovy.transform.CompileStatic
 import org.codehaus.groovy.runtime.StackTraceUtils
+import org.ratpackframework.templating.TemplateRenderer
 import org.vertx.java.core.Handler
 import org.vertx.java.core.http.HttpServerRequest
 
