@@ -70,7 +70,7 @@ public class DefaultResponse implements Response {
 
   public void render(Map<Object, Object> model, String templateName) {
     maybeSetContentType(MimeType.TEXT_HTML);
-    templateCompiler.renderFile(templateName, model, asyncErrorHandler(new Handler<CompiledTemplate>() {
+    templateCompiler.compileFileTemplate(templateName, model, asyncErrorHandler(new Handler<CompiledTemplate>() {
       @Override
       public void handle(CompiledTemplate template) {
         template.render(asyncErrorHandler(renderer()));

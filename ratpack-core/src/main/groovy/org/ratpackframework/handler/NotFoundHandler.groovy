@@ -1,6 +1,5 @@
 package org.ratpackframework.handler
 
-import com.hazelcast.impl.monitor.MapOperationsCounter
 import groovy.transform.CompileStatic
 import org.ratpackframework.templating.TemplateCompiler
 import org.vertx.java.core.Handler
@@ -26,7 +25,7 @@ class NotFoundHandler implements Handler<HttpServerRequest> {
             'Request URL': request.uri,
         ]
     ] as Map<Object, Object>
-    templateCompiler.renderError(model, new FallbackErrorHandlingTemplateRenderer(request, "404 handling"))
+    templateCompiler.compileErrorTemplate(model, new FallbackErrorHandlingTemplateRenderer(request, "404 handling"))
     true
   }
 }

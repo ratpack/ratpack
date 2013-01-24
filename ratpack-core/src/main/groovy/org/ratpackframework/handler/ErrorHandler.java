@@ -71,7 +71,7 @@ public class ErrorHandler implements Handler<ErroredHttpServerRequest> {
     metadata.put("Exception Location", decodedStackTrace.rootCause.getFileName() + ", line " + decodedStackTrace.rootCause.getLineNumber());
     model.put("metadata", metadata);
 
-    templateCompiler.renderError(model, handler);
+    templateCompiler.compileErrorTemplate(model, handler);
   }
 
   private static class DecodedStackTrace {

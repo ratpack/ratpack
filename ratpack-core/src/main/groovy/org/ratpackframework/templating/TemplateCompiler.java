@@ -11,7 +11,6 @@ import org.vertx.java.core.buffer.Buffer;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -35,32 +34,28 @@ public class TemplateCompiler {
     }
   }
 
-  public void renderFile(String templateFileName, final AsyncResultHandler<CompiledTemplate> handler) {
-    renderFile(templateFileName, Collections.emptyMap(), handler);
-  }
-
-  public void renderFile(String templateFileName, final Map<Object, Object> model, final AsyncResultHandler<CompiledTemplate> handler) {
+  public void compileFileTemplate(String templateFileName, final Map<Object, Object> model, final AsyncResultHandler<CompiledTemplate> handler) {
     vertx.fileSystem().readFile(getTemplatePath(templateFileName), new AsyncResultHandler<Buffer>() {
       @Override
       public void handle(AsyncResult<Buffer> event) {
         if (event.failed()) {
           handler.handle(new AsyncResult<CompiledTemplate>(event.exception));
         } else {
-          render(event.result, model, handler);
+          compile(event.result, model, handler);
         }
       }
     });
   }
 
-  void render(String template, Map<Object, Object> model, AsyncResultHandler<CompiledTemplate> handler) {
-    render(new Buffer(template), model, handler);
+  void compile(String template, Map<Object, Object> model, AsyncResultHandler<CompiledTemplate> handler) {
+    compile(new Buffer(template), model, handler);
   }
 
-  void render(Buffer template, Map<Object, Object> model, AsyncResultHandler<CompiledTemplate> handler) {
-    innerRender(new GroovyClassLoader(), template, model, handler);
+  void compile(Buffer template, Map<Object, Object> model, AsyncResultHandler<CompiledTemplate> handler) {
+    innerCompiling(new GroovyClassLoader(), template, model, handler);
   }
 
-  protected void innerRender(ClassLoader classLoader, Buffer template, final Map<Object, Object> model, AsyncResultHandler<CompiledTemplate> handler) {
+  protected void innerCompiling(ClassLoader classLoader, Buffer template, final Map<Object, Object> model, AsyncResultHandler<CompiledTemplate> handler) {
     SimpleTemplateEngine engine = new SimpleTemplateEngine(classLoader);
     Map<Object, Object> binding = new LinkedHashMap<Object, Object>();
     binding.put("model", model);
@@ -76,8 +71,8 @@ public class TemplateCompiler {
     handler.handle(new AsyncResult<CompiledTemplate>(new CompiledTemplate(writable)));
   }
 
-  public void renderError(Map<Object, Object> model, AsyncResultHandler<CompiledTemplate> handler) {
-    render(errorPageTemplate, model, handler);
+  public void compileErrorTemplate(Map<Object, Object> model, AsyncResultHandler<CompiledTemplate> handler) {
+    compile(errorPageTemplate, model, handler);
   }
 
   protected String getTemplatePath(String templateName) {
