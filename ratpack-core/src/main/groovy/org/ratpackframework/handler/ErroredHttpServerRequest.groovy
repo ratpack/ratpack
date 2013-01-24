@@ -14,22 +14,17 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.app
+package org.ratpackframework.handler
 
-import groovy.transform.CompileStatic
-import org.vertx.java.core.Vertx
+import org.vertx.java.core.http.HttpServerRequest
 
-@CompileStatic
-class RatpackMain {
+class ErroredHttpServerRequest {
 
-  static void main(String[] args) {
-    File configFile = args.length == 0 ? new File("config.groovy") : new File(args[0])
-    if (!configFile.exists() && args.length > 0) {
-      System.err.println("Config file $configFile.absolutePath does not exist")
-      System.exit 1
-    }
+  final HttpServerRequest request
+  final Exception exception
 
-    new RatpackAppFactory().create(Vertx.newVertx(), configFile.canonicalFile).start()
+  ErroredHttpServerRequest(HttpServerRequest request, Exception exception) {
+    this.request = request
+    this.exception = exception
   }
-
 }

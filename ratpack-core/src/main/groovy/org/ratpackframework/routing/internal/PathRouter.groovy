@@ -1,11 +1,9 @@
 package org.ratpackframework.routing.internal
 
+import groovy.transform.CompileStatic
 import org.ratpackframework.internal.DefaultRequest
-import org.ratpackframework.responder.Responder
 import org.ratpackframework.responder.internal.ResponderFactory
 import org.ratpackframework.routing.Router
-import groovy.transform.CompileStatic
-import org.vertx.java.core.http.HttpServerRequest
 
 import java.util.regex.Matcher
 import java.util.regex.Pattern
@@ -47,16 +45,17 @@ class PathRouter implements Router {
   }
 
   @Override
-  Responder route(HttpServerRequest request) {
+  void handle(RoutedRequest routedRequest) {
+    final request = routedRequest.request
     if (request.method.toLowerCase() != method) {
-      return null
+      return
     }
 
     def matcher = tokenisedPath.regex.matcher(request.path)
     if (matcher.matches()) {
-      responderFactory.createResponder(new DefaultRequest(request, toUrlParams(matcher)))
+      responderFactory.createResponder(new DefaultRequest(request, toUrlParams(matcher))).respond(routedRequest.finalizedResponseHandler)
     } else {
-      null
+      routedRequest.notFoundHandler.handle(request)
     }
   }
 

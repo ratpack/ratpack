@@ -16,12 +16,15 @@
 
 package org.ratpackframework.routing.internal
 
-import org.ratpackframework.responder.Responder
 import org.ratpackframework.routing.Router
 import org.ratpackframework.routing.RouterBuilder
 import org.ratpackframework.script.internal.ScriptRunner
-import org.ratpackframework.templating.TemplateRenderer
-import org.vertx.java.core.http.HttpServerRequest
+import org.ratpackframework.templating.TemplateCompiler
+import org.vertx.java.core.Handler
+import org.vertx.java.core.Vertx
+import org.vertx.java.core.buffer.Buffer
+import org.vertx.java.core.file.FileProps
+import org.vertx.java.core.file.FileSystem
 
 import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.atomic.AtomicReference
@@ -30,64 +33,93 @@ import java.util.concurrent.locks.ReentrantLock
 
 class ScriptBackedRouter implements Router {
 
-  private final File scriptFile
-  private final TemplateRenderer templateRenderer
+  private final FileSystem fileSystem
+  private final String scriptFilePath
+  private final TemplateCompiler templateRenderer
 
-  private final AtomicLong lastModified = new AtomicLong(-1)
-  private final AtomicReference<byte[]> content = new AtomicReference<byte[]>()
-  private final AtomicReference<Router> router = new AtomicReference<>(null)
+  private final AtomicLong lastModifiedHolder = new AtomicLong(-1)
+  private final AtomicReference<byte[]> contentHolder = new AtomicReference<byte[]>()
+  private final AtomicReference<Router> routerHolder = new AtomicReference<>(null)
   private final Lock lock = new ReentrantLock()
 
-  ScriptBackedRouter(File scriptFile, TemplateRenderer templateRenderer) {
-    this.scriptFile = scriptFile
+  ScriptBackedRouter(Vertx vertx, File scriptFile, TemplateCompiler templateRenderer) {
+    this.fileSystem = vertx.fileSystem()
+    this.scriptFilePath = scriptFile.absolutePath
     this.templateRenderer = templateRenderer
   }
 
   @Override
-  Responder route(HttpServerRequest request) {
-    if (!scriptFile.exists()) {
-      return null
-    }
-
-    checkForChanges()
-    router.get().route(request)
-  }
-
-  private void checkForChanges() {
-    if (isNeedUpdate()) {
-      lock.lock()
-      try {
-        if (isNeedUpdate()) {
-          refresh()
+  void handle(RoutedRequest routedRequest) {
+    fileSystem.exists(scriptFilePath, routedRequest.errorHandler.wrap(routedRequest.request, new Handler<Boolean>() {
+      @Override
+      void handle(Boolean exists) {
+        if (!exists) {
+          routedRequest.notFoundHandler.handle(routedRequest.request)
+          return
         }
-      } finally {
-        lock.unlock()
+
+        def server = new Router() {
+          void handle(RoutedRequest requestToServe) {
+            ScriptBackedRouter.this.routerHolder.get().handle(requestToServe)
+          }
+        }
+
+        def refresher = new Router() {
+          void handle(RoutedRequest requestToServe) {
+            ScriptBackedRouter.this.lock.lock()
+            try {
+              refreshSync()
+            } finally {
+              ScriptBackedRouter.this.lock.unlock()
+            }
+            server.handle(requestToServe)
+          }
+        }
+
+        checkForChanges(routedRequest, server, refresher)
       }
-    }
+    }))
   }
 
-  private void refresh() {
+  void checkForChanges(RoutedRequest routedRequest, Router noChange, Router didChange) {
+    fileSystem.props(scriptFilePath, routedRequest.errorHandler.wrap(routedRequest.request, new Handler<FileProps>() {
+      void handle(FileProps fileProps) {
+        if (fileProps.lastModifiedTime.time != lastModifiedHolder.get()) {
+          didChange.handle(routedRequest)
+          return
+        }
+
+        fileSystem.readFile(scriptFilePath, routedRequest.errorHandler.wrap(routedRequest.request, new Handler<Buffer>() {
+          @Override
+          void handle(Buffer buffer) {
+            if (buffer.bytes == ScriptBackedRouter.this.contentHolder.get()) {
+              noChange.handle(routedRequest)
+            } else {
+              didChange.handle(routedRequest)
+            }
+          }
+        }))
+      }
+    }))
+
+  }
+
+  private void refreshSync() {
+    final lastModifiedTime = fileSystem.propsSync(scriptFilePath).lastModifiedTime.time
+    final bytes = fileSystem.readFileSync(scriptFilePath).bytes
+
+    if (lastModifiedTime == lastModifiedHolder.get() && bytes == contentHolder.get()) {
+      return
+    }
+
     List<Router> routers = []
     def routerBuilder = new RouterBuilder(routers, templateRenderer)
-    long lastModified = scriptFile.lastModified()
-    byte[] bytes = scriptFile.bytes
     String string = new String(bytes)
     new ScriptRunner().run(string, routerBuilder)
-    router.set(new CompositeRouter(routers))
-    this.lastModified.set(lastModified)
-    this.content.set(bytes)
-  }
+    routerHolder.set(new CompositeRouter(routers))
 
-  private boolean isNeedUpdate() {
-    router.get() == null || isTimestampMismatch() || isContentMismatch()
-  }
-
-  private boolean isTimestampMismatch() {
-    scriptFile.lastModified() != lastModified.get()
-  }
-
-  private boolean isContentMismatch() {
-    scriptFile.bytes != content.get()
+    lastModifiedHolder.set(lastModifiedTime)
+    contentHolder.set(bytes)
   }
 
 }

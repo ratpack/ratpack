@@ -1,28 +1,32 @@
 package org.ratpackframework.handler
 
-import org.ratpackframework.templating.TemplateRenderer
+import com.hazelcast.impl.monitor.MapOperationsCounter
+import groovy.transform.CompileStatic
+import org.ratpackframework.templating.TemplateCompiler
+import org.vertx.java.core.Handler
 import org.vertx.java.core.http.HttpServerRequest
 
-class NotFoundHandler implements MaybeHandler<HttpServerRequest> {
+@CompileStatic
+class NotFoundHandler implements Handler<HttpServerRequest> {
 
-  private final TemplateRenderer renderer
+  private final TemplateCompiler templateCompiler
 
-  NotFoundHandler(TemplateRenderer renderer) {
-    this.renderer = renderer
+  NotFoundHandler(TemplateCompiler templateCompiler) {
+    this.templateCompiler = templateCompiler
   }
 
   @Override
-  boolean maybeHandle(HttpServerRequest request) {
+  void handle(HttpServerRequest request) {
     request.response.statusCode = 404
-    def string = renderer.renderError(
+    def model = [
         title: 'Page Not Found',
         message: 'Page Not Found',
         metadata: [
             'Request Method': request.method.toUpperCase(),
             'Request URL': request.uri,
         ]
-    )
-    request.response.end(string)
+    ] as Map<Object, Object>
+    templateCompiler.renderError(model, new FallbackErrorHandlingTemplateRenderer(request, "404 handling"))
     true
   }
 }

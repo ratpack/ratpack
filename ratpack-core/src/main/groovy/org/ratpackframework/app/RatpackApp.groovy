@@ -3,7 +3,8 @@ package org.ratpackframework.app
 import groovy.transform.CompileStatic
 import org.ratpackframework.handler.*
 import org.ratpackframework.routing.Router
-import org.ratpackframework.templating.TemplateRenderer
+import org.ratpackframework.templating.TemplateCompiler
+import org.vertx.java.core.Handler
 import org.vertx.java.core.Vertx
 import org.vertx.java.core.http.HttpServer
 import org.vertx.java.core.http.HttpServerRequest
@@ -16,16 +17,17 @@ class RatpackApp {
   final int port
   final String appPath
   final Router router
-  final TemplateRenderer renderer
+  final TemplateCompiler templateCompiler
   final File staticFiles
 
-  private final Vertx vertx = Vertx.newVertx()
+  private final Vertx vertx
 
-  RatpackApp(int port, String appPath, Router router, TemplateRenderer renderer, File staticFiles) {
+  RatpackApp(Vertx vertx, int port, String appPath, Router router, TemplateCompiler templateCompiler, File staticFiles) {
+    this.vertx = vertx
     this.port = port
     this.appPath = appPath
     this.router = router
-    this.renderer = renderer
+    this.templateCompiler = templateCompiler
     this.staticFiles = staticFiles
   }
 
@@ -35,12 +37,13 @@ class RatpackApp {
     }
 
     server = vertx.createHttpServer()
-    server.setAcceptBacklog(10000)
-    List<MaybeHandler<HttpServerRequest>> handlers = new ArrayList<>()
-    handlers.add(new RoutingHandler(router, renderer))
-    handlers.add(new StaticFileHandler(staticFiles))
-    handlers.add(new NotFoundHandler(renderer))
-    server.requestHandler(new CompositeHandler(renderer, handlers))
+    ErrorHandler errorHandler = new ErrorHandler(templateCompiler)
+    def notFoundHandler = new NotFoundHandler(templateCompiler)
+
+    def staticHandler = new StaticFileHandler(vertx, staticFiles, errorHandler, notFoundHandler)
+    def routingHandler = new RoutingHandler(router, errorHandler, staticHandler)
+
+    server.requestHandler(routingHandler)
     server.listen(port)
   }
 

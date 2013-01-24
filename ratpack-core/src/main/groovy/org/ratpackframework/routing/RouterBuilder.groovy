@@ -16,7 +16,7 @@
 
 package org.ratpackframework.routing
 
-import org.ratpackframework.templating.TemplateRenderer
+import org.ratpackframework.templating.TemplateCompiler
 import org.ratpackframework.responder.internal.ClosureBackedResponderFactory
 import org.ratpackframework.routing.internal.PathRouter
 import groovy.transform.CompileStatic
@@ -29,9 +29,9 @@ class RouterBuilder {
 
   private final List<Router> routers = []
 
-  private final TemplateRenderer templateRenderer
+  private final TemplateCompiler templateRenderer
 
-  RouterBuilder(List<Router> routers, TemplateRenderer templateRenderer) {
+  RouterBuilder(List<Router> routers, TemplateCompiler templateRenderer) {
     this.routers = routers
     this.templateRenderer = templateRenderer
   }

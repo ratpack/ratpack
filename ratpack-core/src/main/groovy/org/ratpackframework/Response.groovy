@@ -16,6 +16,10 @@
 
 package org.ratpackframework
 
+import org.vertx.java.core.AsyncResultHandler
+import org.vertx.java.core.Handler
+import org.vertx.java.core.buffer.Buffer
+
 interface Response {
 
   Map<String, ?> getHeaders()
@@ -24,19 +28,17 @@ interface Response {
 
   void setStatus(int status)
 
-  ByteArrayOutputStream getOutput()
-
-  String getContentType()
-
   void setContentType(String contentType)
 
-  String render(Map context, String templateName)
+  Handler<Buffer> renderer()
 
-  String render(String templateName)
+  void render(Map<Object, Object> model, String templateName)
 
-  String renderJson(Object o)
+  void render(String templateName)
 
-  String renderString(String str)
+  void renderJson(Object o)
+
+  void renderString(String str)
 
   /**
    * Sends a temporary redirect response (i.e. statusCode 301) to the client using the specified redirect location URL.
@@ -46,5 +48,11 @@ interface Response {
    * @param location the redirect location URL
    */
   void sendRedirect(String location)
+
+  public <T> Handler<T> errorHandler(Handler<T> handler)
+
+  public <T> AsyncResultHandler<T> asyncErrorHandler(Handler<T> handler)
+
+  public void error(Exception e)
 
 }

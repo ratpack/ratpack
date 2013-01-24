@@ -20,6 +20,7 @@ import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import org.ratpackframework.app.RatpackApp
 import org.ratpackframework.app.RatpackAppFactory
+import org.vertx.java.core.Vertx
 import spock.lang.Specification
 import org.ratpackframework.util.CookieManager
 
@@ -53,7 +54,7 @@ class RatpackSpec extends Specification {
   }
 
   def setup() {
-    app = new RatpackAppFactory().create(configFile)
+    app = new RatpackAppFactory().create(Vertx.newVertx(), configFile)
   }
 
   def cleanup() {

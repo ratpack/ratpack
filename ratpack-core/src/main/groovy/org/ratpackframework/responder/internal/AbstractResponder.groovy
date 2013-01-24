@@ -16,30 +16,34 @@
 
 package org.ratpackframework.responder.internal
 
-import org.ratpackframework.templating.TemplateRenderer
+import org.ratpackframework.templating.TemplateCompiler
 import org.ratpackframework.Request
 import org.ratpackframework.Response
 import org.ratpackframework.internal.DefaultResponse
 import org.ratpackframework.responder.FinalizedResponse
 import org.ratpackframework.responder.Responder
 import groovy.transform.CompileStatic
+import org.vertx.java.core.AsyncResultHandler
 
 @CompileStatic
 abstract class AbstractResponder implements Responder {
 
   private final Request request
-  private final TemplateRenderer templateRenderer
+  private final TemplateCompiler templateCompiler
 
-  AbstractResponder(Request request, TemplateRenderer templateRenderer) {
+  AbstractResponder(Request request, TemplateCompiler templateCompiler) {
     this.request = request
-    this.templateRenderer = templateRenderer
+    this.templateCompiler = templateCompiler
   }
 
   @Override
-  FinalizedResponse respond() {
-    def response = new DefaultResponse(request.uri, templateRenderer)
-    doRespond(request, response)
-    new FinalizedResponse(response.headers, response.status, response.output.toByteArray())
+  void respond(AsyncResultHandler<FinalizedResponse> handler) {
+    def response = new DefaultResponse(templateCompiler, handler)
+    try {
+      doRespond(request, response)
+    } catch (Exception e) {
+      response.error(e)
+    }
   }
 
   abstract void doRespond(Request request, Response response)

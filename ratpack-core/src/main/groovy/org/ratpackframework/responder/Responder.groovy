@@ -17,10 +17,11 @@
 package org.ratpackframework.responder
 
 import groovy.transform.CompileStatic
+import org.vertx.java.core.AsyncResultHandler
 
 @CompileStatic
 interface Responder {
 
-  FinalizedResponse respond()
+  void respond(AsyncResultHandler<FinalizedResponse> handler)
 
 }

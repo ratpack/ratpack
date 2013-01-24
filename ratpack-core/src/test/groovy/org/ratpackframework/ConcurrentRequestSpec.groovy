@@ -8,9 +8,7 @@ class ConcurrentRequestSpec extends RatpackSpec {
   def "can serve requests concurrently without mixing up params"() {
     given:
     ratpackFile << """
-      def rand = new Random()
       get("/:id") { request ->
-        sleep (rand.nextInt(10) * 10)
         renderString "\$request.urlParams.id:\$request.queryParams.id"
       }
     """
@@ -24,6 +22,8 @@ class ConcurrentRequestSpec extends RatpackSpec {
     threads.times {
       results << null
     }
+
+    def rand = new Random()
 
     threads.times { i ->
       Thread.start {

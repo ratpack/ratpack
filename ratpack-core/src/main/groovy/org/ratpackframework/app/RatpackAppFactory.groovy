@@ -16,22 +16,23 @@
 
 package org.ratpackframework.app
 
-import org.ratpackframework.templating.TemplateRenderer
+import org.ratpackframework.templating.TemplateCompiler
 import org.ratpackframework.routing.internal.ScriptBackedRouter
 import groovy.transform.CompileStatic
+import org.vertx.java.core.Vertx
 
 @CompileStatic
 public class RatpackAppFactory {
 
-  RatpackApp create(File configFile) {
+  RatpackApp create(Vertx vertx, File configFile) {
     def baseDir = configFile.parentFile
     def config = new Config()
 
     def publicDir = new File(baseDir, config.publicDir)
-    def templateRenderer = new TemplateRenderer(new File(baseDir, config.templatesDir))
-    def router = new ScriptBackedRouter(new File(baseDir, config.routes), templateRenderer)
+    def templateRenderer = new TemplateCompiler(vertx, new File(baseDir, config.templatesDir))
+    def router = new ScriptBackedRouter(vertx, new File(baseDir, config.routes), templateRenderer)
 
-    new RatpackApp(config.port, "/", router, templateRenderer, publicDir)
+    new RatpackApp(vertx, config.port, "/", router, templateRenderer, publicDir)
   }
 
 }
