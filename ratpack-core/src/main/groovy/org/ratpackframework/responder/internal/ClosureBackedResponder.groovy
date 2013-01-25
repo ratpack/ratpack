@@ -16,17 +16,17 @@
 
 package org.ratpackframework.responder.internal
 
-import org.ratpackframework.templating.TemplateCompiler
 import org.ratpackframework.Request
 import org.ratpackframework.Response
 import groovy.transform.CompileStatic
+import org.ratpackframework.templating.TemplateRenderer
 
 @CompileStatic
 class ClosureBackedResponder extends AbstractResponder {
 
   private final Closure<?> closure
 
-  ClosureBackedResponder(Request request, TemplateCompiler templateRenderer, Closure<?> closure) {
+  ClosureBackedResponder(Request request, TemplateRenderer templateRenderer, Closure<?> closure) {
     super(request, templateRenderer)
     this.closure = closure
   }

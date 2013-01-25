@@ -1,16 +1,16 @@
 package org.ratpackframework.handler
 
 import groovy.transform.CompileStatic
-import org.ratpackframework.templating.TemplateCompiler
+import org.ratpackframework.templating.TemplateRenderer
 import org.vertx.java.core.Handler
 import org.vertx.java.core.http.HttpServerRequest
 
 @CompileStatic
 class NotFoundHandler implements Handler<HttpServerRequest> {
 
-  private final TemplateCompiler templateCompiler
+  private final TemplateRenderer templateCompiler
 
-  NotFoundHandler(TemplateCompiler templateCompiler) {
+  NotFoundHandler(TemplateRenderer templateCompiler) {
     this.templateCompiler = templateCompiler
   }
 
@@ -25,7 +25,7 @@ class NotFoundHandler implements Handler<HttpServerRequest> {
             'Request URL': request.uri,
         ]
     ] as Map<Object, Object>
-    templateCompiler.compileErrorTemplate(model, new FallbackErrorHandlingTemplateRenderer(request, "404 handling"))
+    templateCompiler.renderError(model, new FallbackErrorHandlingTemplateRenderer(request, "404 handling"))
     true
   }
 }

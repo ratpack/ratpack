@@ -16,7 +16,7 @@
 
 package org.ratpackframework.responder.internal
 
-import org.ratpackframework.templating.TemplateCompiler
+import org.ratpackframework.templating.TemplateRenderer
 import org.ratpackframework.Request
 import org.ratpackframework.Response
 import org.ratpackframework.internal.DefaultResponse
@@ -29,9 +29,9 @@ import org.vertx.java.core.AsyncResultHandler
 abstract class AbstractResponder implements Responder {
 
   private final Request request
-  private final TemplateCompiler templateCompiler
+  private final TemplateRenderer templateCompiler
 
-  AbstractResponder(Request request, TemplateCompiler templateCompiler) {
+  AbstractResponder(Request request, TemplateRenderer templateCompiler) {
     this.request = request
     this.templateCompiler = templateCompiler
   }

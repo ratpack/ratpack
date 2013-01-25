@@ -17,11 +17,11 @@
 package org.ratpackframework.handler;
 
 import org.codehaus.groovy.runtime.StackTraceUtils;
-import org.ratpackframework.templating.CompiledTemplate;
-import org.ratpackframework.templating.TemplateCompiler;
+import org.ratpackframework.templating.TemplateRenderer;
 import org.vertx.java.core.AsyncResult;
 import org.vertx.java.core.AsyncResultHandler;
 import org.vertx.java.core.Handler;
+import org.vertx.java.core.buffer.Buffer;
 import org.vertx.java.core.http.HttpServerRequest;
 
 import java.util.LinkedHashMap;
@@ -29,16 +29,17 @@ import java.util.Map;
 
 public class ErrorHandler implements Handler<ErroredHttpServerRequest> {
 
-  private final TemplateCompiler templateCompiler;
+  private final TemplateRenderer templateRenderer;
 
-  public ErrorHandler(TemplateCompiler templateCompiler) {
-    this.templateCompiler = templateCompiler;
+  public ErrorHandler(TemplateRenderer templateRenderer) {
+    this.templateRenderer = templateRenderer;
   }
 
   @Override
   public void handle(ErroredHttpServerRequest erroredRequest) {
     @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
     Exception error = (Exception) StackTraceUtils.deepSanitize(erroredRequest.getException());
+    error.printStackTrace(System.err);
     HttpServerRequest request = erroredRequest.getRequest();
     request.response.statusCode = 500;
     renderException(error, request, new FallbackErrorHandlingTemplateRenderer(request, "rendering error template"));
@@ -57,7 +58,7 @@ public class ErrorHandler implements Handler<ErroredHttpServerRequest> {
     };
   }
 
-  void renderException(Exception exception, HttpServerRequest request, AsyncResultHandler<CompiledTemplate> handler) {
+  void renderException(Exception exception, HttpServerRequest request, AsyncResultHandler<Buffer> handler) {
     DecodedStackTrace decodedStackTrace = decodeStackTrace(exception);
     Map<Object, Object> model = new LinkedHashMap<Object, Object>();
     model.put("title", exception.getClass().getName());
@@ -71,7 +72,7 @@ public class ErrorHandler implements Handler<ErroredHttpServerRequest> {
     metadata.put("Exception Location", decodedStackTrace.rootCause.getFileName() + ", line " + decodedStackTrace.rootCause.getLineNumber());
     model.put("metadata", metadata);
 
-    templateCompiler.compileErrorTemplate(model, handler);
+    templateRenderer.renderError(model, handler);
   }
 
   private static class DecodedStackTrace {

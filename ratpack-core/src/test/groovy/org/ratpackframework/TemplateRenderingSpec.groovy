@@ -38,7 +38,6 @@ class TemplateRenderingSpec extends RatpackSpec {
     urlText() == "bar"
   }
 
-  @Ignore
   def "can render inner template"() {
     given:
     templateFile("outer.html") << "outer: \${model.value}, \${render 'inner.html', value: 'inner'}"
@@ -58,24 +57,45 @@ class TemplateRenderingSpec extends RatpackSpec {
     urlText() == "outer: outer, inner: inner"
   }
 
-  @Ignore
-  def "inner template inherits model unless overridden"() {
+  def "can render inner, inner template"() {
     given:
-    templateFile("outerNoModel.html") << "\${render 'inner.html'}"
-    templateFile("outerWithModel.html") << "\${render 'inner.html', i: model.i + 1}"
-    templateFile("inner.html") << "\${model.i}"
+    templateFile("outer.html") << "outer: \${model.value}, \${render 'inner.html', value: 'inner'}"
+    templateFile("inner.html") << "inner: \${model.value}, \${render 'innerInner.html', value: 1}, \${render 'innerInner.html', value: 2}, \${render 'innerInner.html', value: 1}"
+    templateFile("innerInner.html") << "innerInner: \${model.value}"
 
     and:
     ratpackFile << """
-      get("/noModel") { render "outerNoModel.html", i: 1 }
-      get("/withModel") { render "outerWithModel.html", i: 1 }
+      get("/") {
+        render "outer.html", value: "outer"
+      }
     """
 
     when:
     app.start()
 
     then:
-    urlText("noModel") == "1"
-    urlText("withModel") == "2"
+    urlText() == "outer: outer, inner: inner, innerInner: 1, innerInner: 2, innerInner: 1"
   }
+
+  def "inner template exceptions"() {
+    given:
+    templateFile("outer.html") << "outer: \${model.value}, \${render 'inner.html', value: 'inner'}"
+    templateFile("inner.html") << "inner: \${model.value}, \${render 'innerInner.html', value: 1}, \${render 'innerInner.html', value: 2}, \${render 'innerInner.html', value: 1}"
+    templateFile("innerInner.html") << "\${throw new Exception(model.value.toString())}"
+
+    and:
+    ratpackFile << """
+      get("/") {
+        render "outer.html", value: "outer"
+      }
+    """
+
+    when:
+    app.start()
+
+    then:
+    errorText().contains('org.ratpackframework.templating.CompositeException: messages{"1", "2"}')
+  }
+
+
 }

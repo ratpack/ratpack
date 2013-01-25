@@ -16,19 +16,19 @@
 
 package org.ratpackframework.responder.internal
 
-import org.ratpackframework.templating.TemplateCompiler
 import org.ratpackframework.responder.Responder
 import org.ratpackframework.Request
 import groovy.transform.CompileStatic
+import org.ratpackframework.templating.TemplateRenderer
 
 @CompileStatic
 class ClosureBackedResponderFactory implements ResponderFactory {
 
   private final Closure<?> closure
 
-  private final TemplateCompiler templateRenderer
+  private final TemplateRenderer templateRenderer
 
-  ClosureBackedResponderFactory(TemplateCompiler templateRenderer, Closure<?> closure) {
+  ClosureBackedResponderFactory(TemplateRenderer templateRenderer, Closure<?> closure) {
     this.closure = closure
     this.templateRenderer = templateRenderer
   }

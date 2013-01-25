@@ -16,13 +16,12 @@
 
 package org.ratpackframework.handler
 
-import org.ratpackframework.templating.CompiledTemplate
 import org.vertx.java.core.AsyncResult
 import org.vertx.java.core.AsyncResultHandler
 import org.vertx.java.core.buffer.Buffer
 import org.vertx.java.core.http.HttpServerRequest
 
-class FallbackErrorHandlingTemplateRenderer implements AsyncResultHandler<CompiledTemplate> {
+class FallbackErrorHandlingTemplateRenderer implements AsyncResultHandler<Buffer> {
 
   private final HttpServerRequest request
   private final String operationDescription
@@ -33,29 +32,15 @@ class FallbackErrorHandlingTemplateRenderer implements AsyncResultHandler<Compil
   }
 
   @Override
-  void handle(AsyncResult<CompiledTemplate> compileEvent) {
+  void handle(AsyncResult<Buffer> event) {
     final response = request.response
-
-    if (compileEvent.failed()) {
-      compileEvent.exception.printStackTrace(System.err)
+    if (event.failed()) {
+      event.exception.printStackTrace(System.err)
       response.statusMessage = "Unhandled exception occurred during $operationDescription"
       response.statusCode = 500
       response.end()
     } else {
-      compileEvent.result.render(new AsyncResultHandler<Buffer>() {
-        @Override
-        void handle(AsyncResult<Buffer> renderEvent) {
-          if (renderEvent.failed()) {
-            renderEvent.exception.printStackTrace(System.err)
-            response.statusMessage = "Unhandled exception occurred during $operationDescription"
-            response.statusCode = 500
-            response.end()
-          } else {
-            response.end(renderEvent.result)
-          }
-        }
-      })
-
+      response.end(event.result)
     }
   }
 }

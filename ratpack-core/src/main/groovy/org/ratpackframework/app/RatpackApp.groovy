@@ -3,11 +3,9 @@ package org.ratpackframework.app
 import groovy.transform.CompileStatic
 import org.ratpackframework.handler.*
 import org.ratpackframework.routing.Router
-import org.ratpackframework.templating.TemplateCompiler
-import org.vertx.java.core.Handler
+import org.ratpackframework.templating.TemplateRenderer
 import org.vertx.java.core.Vertx
 import org.vertx.java.core.http.HttpServer
-import org.vertx.java.core.http.HttpServerRequest
 
 @CompileStatic
 class RatpackApp {
@@ -17,12 +15,12 @@ class RatpackApp {
   final int port
   final String appPath
   final Router router
-  final TemplateCompiler templateCompiler
+  final TemplateRenderer templateCompiler
   final File staticFiles
 
   private final Vertx vertx
 
-  RatpackApp(Vertx vertx, int port, String appPath, Router router, TemplateCompiler templateCompiler, File staticFiles) {
+  RatpackApp(Vertx vertx, int port, String appPath, Router router, TemplateRenderer templateCompiler, File staticFiles) {
     this.vertx = vertx
     this.port = port
     this.appPath = appPath

@@ -19,7 +19,7 @@ package org.ratpackframework.routing.internal
 import org.ratpackframework.routing.Router
 import org.ratpackframework.routing.RouterBuilder
 import org.ratpackframework.script.internal.ScriptRunner
-import org.ratpackframework.templating.TemplateCompiler
+import org.ratpackframework.templating.TemplateRenderer
 import org.vertx.java.core.Handler
 import org.vertx.java.core.Vertx
 import org.vertx.java.core.buffer.Buffer
@@ -35,14 +35,14 @@ class ScriptBackedRouter implements Router {
 
   private final FileSystem fileSystem
   private final String scriptFilePath
-  private final TemplateCompiler templateRenderer
+  private final TemplateRenderer templateRenderer
 
   private final AtomicLong lastModifiedHolder = new AtomicLong(-1)
   private final AtomicReference<byte[]> contentHolder = new AtomicReference<byte[]>()
   private final AtomicReference<Router> routerHolder = new AtomicReference<>(null)
   private final Lock lock = new ReentrantLock()
 
-  ScriptBackedRouter(Vertx vertx, File scriptFile, TemplateCompiler templateRenderer) {
+  ScriptBackedRouter(Vertx vertx, File scriptFile, TemplateRenderer templateRenderer) {
     this.fileSystem = vertx.fileSystem()
     this.scriptFilePath = scriptFile.absolutePath
     this.templateRenderer = templateRenderer

@@ -3,8 +3,7 @@ package org.ratpackframework.internal;
 import groovy.json.JsonBuilder;
 import org.ratpackframework.Response;
 import org.ratpackframework.responder.FinalizedResponse;
-import org.ratpackframework.templating.CompiledTemplate;
-import org.ratpackframework.templating.TemplateCompiler;
+import org.ratpackframework.templating.TemplateRenderer;
 import org.vertx.java.core.AsyncResult;
 import org.vertx.java.core.AsyncResultHandler;
 import org.vertx.java.core.Handler;
@@ -19,11 +18,11 @@ public class DefaultResponse implements Response {
   private final Map<String, Object> headers = new LinkedHashMap<String, Object>();
   private int status = 200;
 
-  private final TemplateCompiler templateCompiler;
+  private final TemplateRenderer templateRenderer;
   private final AsyncResultHandler<FinalizedResponse> finalHandler;
 
-  public DefaultResponse(TemplateCompiler templateCompiler, AsyncResultHandler<FinalizedResponse> finalHandler) {
-    this.templateCompiler = templateCompiler;
+  public DefaultResponse(TemplateRenderer templateRenderer, AsyncResultHandler<FinalizedResponse> finalHandler) {
+    this.templateRenderer = templateRenderer;
     this.finalHandler = finalHandler;
   }
 
@@ -70,12 +69,7 @@ public class DefaultResponse implements Response {
 
   public void render(Map<Object, Object> model, String templateName) {
     maybeSetContentType(MimeType.TEXT_HTML);
-    templateCompiler.compileFileTemplate(templateName, model, asyncErrorHandler(new Handler<CompiledTemplate>() {
-      @Override
-      public void handle(CompiledTemplate template) {
-        template.render(asyncErrorHandler(renderer()));
-      }
-    }));
+    templateRenderer.renderFileTemplate(templateName, model, asyncErrorHandler(renderer()));
   }
 
   public void renderJson(final Object jsonObject) {
