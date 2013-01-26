@@ -8,3 +8,17 @@ dependencies {
     exclude module: "groovy-all"
   }
 }
+
+// Workaround gradle bug with source and classifiers
+configurations {
+  groovySource
+}
+dependencies {
+  groovySource 'org.codehaus.groovy:groovy-all:2.1.0:sources', { transitive = false }
+}
+idea.module.iml.whenMerged {
+  def pathFactory = new org.gradle.plugins.ide.idea.model.PathFactory()
+  def groovyJarPath = pathFactory.path(configurations.groovy.singleFile)
+  def groovyLib = it.dependencies.find { it.classes.contains(groovyJarPath) }
+  groovyLib.sources << pathFactory.path(configurations.groovySource.singleFile)
+}
