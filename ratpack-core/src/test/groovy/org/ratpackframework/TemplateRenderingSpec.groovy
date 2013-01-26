@@ -16,8 +16,6 @@
 
 package org.ratpackframework
 
-import spock.lang.Ignore
-
 class TemplateRenderingSpec extends RatpackSpec {
 
   def "can render template"() {
