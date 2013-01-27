@@ -39,7 +39,7 @@ public class ErrorHandler implements Handler<ErroredHttpServerRequest> {
   public void handle(ErroredHttpServerRequest erroredRequest) {
     @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
     Exception error = (Exception) StackTraceUtils.deepSanitize(erroredRequest.getException());
-    //error.printStackTrace(System.err);
+    error.printStackTrace(System.err);
     HttpServerRequest request = erroredRequest.getRequest();
     request.response.statusCode = 500;
     renderException(error, request, new FallbackErrorHandlingTemplateRenderer(request, "rendering error template"));

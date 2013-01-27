@@ -13,10 +13,6 @@ public class NestedTemplate implements AsyncResultHandler<ExecutedTemplate> {
     this.event = result;
   }
 
-  public AsyncResult<ExecutedTemplate> getEvent() {
-    return event;
-  }
-
   void render(Buffer buffer) {
     if (event.succeeded()) {
       event.result.render(buffer);

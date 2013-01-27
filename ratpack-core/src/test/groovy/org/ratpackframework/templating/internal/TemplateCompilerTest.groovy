@@ -5,10 +5,10 @@ import spock.lang.Specification
 
 class TemplateCompilerTest extends Specification {
 
-  def compiler = new TemplateCompiler(true)
+  def compiler = new TemplateCompiler(getClass().classLoader, true)
 
   CompiledTemplate compile(String source) {
-    compiler.compile(getClass().classLoader, new Buffer(source), "test")
+    compiler.compile(new Buffer(source), "test")
   }
 
   class StubNestedRenderer implements NestedRenderer {

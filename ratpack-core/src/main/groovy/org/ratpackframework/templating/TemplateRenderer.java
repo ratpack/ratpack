@@ -1,8 +1,12 @@
 package org.ratpackframework.templating;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import groovy.lang.GroovyClassLoader;
 import org.codehaus.groovy.runtime.IOGroovyMethods;
+import org.ratpackframework.templating.internal.CompiledTemplate;
 import org.ratpackframework.templating.internal.Render;
+import org.ratpackframework.templating.internal.TemplateCompiler;
 import org.vertx.java.core.AsyncResult;
 import org.vertx.java.core.AsyncResultHandler;
 import org.vertx.java.core.Vertx;
@@ -18,23 +22,39 @@ public class TemplateRenderer {
   private final Vertx vertx;
   private final String errorPageTemplate;
 
+  private final Cache<String, CompiledTemplate> compiledTemplateCache;
+
   public TemplateRenderer(Vertx vertx, File dir) {
     this.vertx = vertx;
     this.templateDirPath = dir.getAbsolutePath();
     this.errorPageTemplate = getResourceText("exception.html");
+
+    this.compiledTemplateCache = CacheBuilder.newBuilder().maximumSize(100).build();
   }
 
   public void renderFileTemplate(final String templateFileName, final Map<String, Object> model, final AsyncResultHandler<Buffer> handler) {
-    vertx.fileSystem().readFile(getTemplatePath(templateFileName), new AsyncResultHandler<Buffer>() {
-      @Override
-      public void handle(AsyncResult<Buffer> event) {
-        if (event.failed()) {
-          handler.handle(new AsyncResult<Buffer>(event.exception));
-        } else {
-          render(event.result, templateFileName, model, handler);
+    final TemplateCompiler templateCompiler = createCompiler();
+    CompiledTemplate cachedTemplate = compiledTemplateCache.getIfPresent(templateFileName);
+    if (cachedTemplate != null) {
+      render(templateCompiler, cachedTemplate, model, handler);
+    } else {
+      vertx.fileSystem().readFile(getTemplatePath(templateFileName), new AsyncResultHandler<Buffer>() {
+        @Override
+        public void handle(AsyncResult<Buffer> event) {
+          if (event.failed()) {
+            handler.handle(new AsyncResult<Buffer>(event.exception));
+          } else {
+            try {
+              CompiledTemplate compiledTemplate = templateCompiler.compile(event.result, templateFileName);
+              compiledTemplateCache.put(templateFileName, compiledTemplate);
+              render(templateCompiler, compiledTemplate, model, handler);
+            } catch (Exception e) {
+              handler.handle(new AsyncResult<Buffer>(e));
+            }
+          }
         }
-      }
-    });
+      });
+    }
   }
 
   public void renderError(Map<String, Object> model, AsyncResultHandler<Buffer> handler) {
@@ -42,11 +62,21 @@ public class TemplateRenderer {
   }
 
   private void render(String template, String templateName, Map<String, Object> model, AsyncResultHandler<Buffer> handler) {
-    render(new Buffer(template), templateName, model, handler);
+    try {
+      TemplateCompiler templateCompiler = createCompiler();
+      CompiledTemplate compiledTemplate = templateCompiler.compile(new Buffer(template), templateName);
+      render(templateCompiler, compiledTemplate, model, handler);
+    } catch (Exception e) {
+      handler.handle(new AsyncResult<Buffer>(e));
+    }
   }
 
-  private void render(Buffer template, String templateName, Map<String, Object> model, AsyncResultHandler<Buffer> handler) {
-    new Render(new GroovyClassLoader(), vertx.fileSystem(), templateDirPath, template, templateName, model, handler);
+  private TemplateCompiler createCompiler() {
+    return new TemplateCompiler(new GroovyClassLoader());
+  }
+
+  private void render(TemplateCompiler templateCompiler, CompiledTemplate compiledTemplate, Map<String, Object> model, AsyncResultHandler<Buffer> handler) {
+    new Render(templateCompiler, vertx.fileSystem(), compiledTemplateCache, templateDirPath, compiledTemplate, model, handler);
   }
 
   private String getTemplatePath(String templateName) {

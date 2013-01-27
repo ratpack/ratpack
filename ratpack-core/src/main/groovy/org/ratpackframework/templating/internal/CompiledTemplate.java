@@ -37,7 +37,9 @@ public class CompiledTemplate {
     }
     List<Object> parts = new LinkedList<Object>();
     script.setParts(parts);
-    script.setModel(new MapBackedTemplateModel((Map<String, Object>) model));
+    @SuppressWarnings("unchecked")
+    Map<String, Object> modelTyped = (Map<String, Object>) model;
+    script.setModel(new MapBackedTemplateModel(modelTyped));
     script.setRenderer(nestedRenderer);
     script.run();
     return new ExecutedTemplate(parts);

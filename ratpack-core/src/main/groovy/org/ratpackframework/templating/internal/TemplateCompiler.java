@@ -40,12 +40,14 @@ public class TemplateCompiler {
   private boolean verbose;
   private final TemplateParser parser = new TemplateParser();
   private final CompilerConfiguration compilerConfiguration;
+  private ClassLoader parentLoader;
 
-  public TemplateCompiler() {
-    this(false);
+  public TemplateCompiler(ClassLoader parentLoader) {
+    this(parentLoader, false);
   }
 
-  public TemplateCompiler(boolean verbose) {
+  public TemplateCompiler(ClassLoader parentLoader, boolean verbose) {
+    this.parentLoader = parentLoader;
     this.verbose = verbose;
     compilerConfiguration = new CompilerConfiguration();
     compilerConfiguration.getOptimizationOptions().put("indy", true);
@@ -58,7 +60,7 @@ public class TemplateCompiler {
     });
   }
 
-  public CompiledTemplate compile(ClassLoader parentLoader, Buffer templateSource, String name) throws CompilationFailedException, IOException {
+  public CompiledTemplate compile(Buffer templateSource, String name) throws CompilationFailedException, IOException {
     GroovyClassLoader classLoader = new GroovyClassLoader(parentLoader, compilerConfiguration);
 
     Buffer scriptSource = new Buffer(templateSource.length());
@@ -72,15 +74,13 @@ public class TemplateCompiler {
       System.out.println("\n-- script end --\n");
     }
 
-    Class<? extends TemplateScript> scriptClass;
     try {
-      //noinspection unchecked
-      scriptClass = classLoader.parseClass(scriptSourceString, name);
+      @SuppressWarnings("unchecked")
+      Class<? extends TemplateScript> scriptClass = classLoader.parseClass(scriptSourceString, name);
+      return new CompiledTemplate(scriptClass);
     } catch (Exception e) {
       throw new GroovyRuntimeException("Failed to parse template script (your template may contain an error or be trying to use expressions not currently supported): " + e.getMessage());
     }
-
-    return new CompiledTemplate(scriptClass);
   }
 
 }

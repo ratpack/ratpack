@@ -2,13 +2,10 @@ package org.ratpackframework.templating.internal;
 
 import groovy.lang.Binding;
 import groovy.lang.Script;
-import org.codehaus.groovy.runtime.DefaultGroovyMethods;
-import org.ratpackframework.Request;
 import org.ratpackframework.templating.Template;
 import org.ratpackframework.templating.TemplateModel;
 
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -18,13 +15,16 @@ public abstract class TemplateScript extends Script implements Template {
   private List<Object> parts;
   private NestedRenderer renderer;
 
+  @SuppressWarnings("UnusedDeclaration")
   protected TemplateScript() {
   }
 
+  @SuppressWarnings("UnusedDeclaration")
   protected TemplateScript(Binding binding) {
     super(binding);
   }
 
+  @SuppressWarnings("UnusedDeclaration")
   public List<Object> getParts() {
     return parts;
   }

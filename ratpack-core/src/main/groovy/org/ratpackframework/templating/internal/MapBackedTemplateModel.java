@@ -49,6 +49,7 @@ public class MapBackedTemplateModel implements TemplateModel {
     return backing.remove(key);
   }
 
+  @SuppressWarnings("NullableProblems")
   @Override
   public void putAll(Map<? extends String, ?> m) {
     backing.putAll(m);
@@ -59,16 +60,19 @@ public class MapBackedTemplateModel implements TemplateModel {
     backing.clear();
   }
 
+  @SuppressWarnings("NullableProblems")
   @Override
   public Set<String> keySet() {
     return backing.keySet();
   }
 
+  @SuppressWarnings("NullableProblems")
   @Override
   public Collection<Object> values() {
     return backing.values();
   }
 
+  @SuppressWarnings("NullableProblems")
   @Override
   public Set<Entry<String, Object>> entrySet() {
     return backing.entrySet();
@@ -81,6 +85,7 @@ public class MapBackedTemplateModel implements TemplateModel {
       return null;
     }
 
+    @SuppressWarnings({"unchecked", "UnnecessaryLocalVariable"})
     Map<K, V> mapValue = (Map<K, V>) value;
     return mapValue;
   }
