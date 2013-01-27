@@ -62,7 +62,7 @@ pre {
     <h1>${model.message}</h1>
     <table class="meta">
     <% if (model.metadata) {
-        for (meta in model.metadata) { %>
+        for (meta in model.map('metadata').entrySet()) { %>
         <tr> <th>${meta.key}:</th> <td>${meta.value}</td> </tr>
         <% }
     } %>

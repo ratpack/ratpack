@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.templating;
+package org.ratpackframework.templating.internal;
 
 import java.util.Map;
 

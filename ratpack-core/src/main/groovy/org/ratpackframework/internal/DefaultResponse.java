@@ -64,10 +64,10 @@ public class DefaultResponse implements Response {
   }
 
   public void render(String templateName) {
-    render(Collections.emptyMap(), templateName);
+    render(Collections.<String, Object>emptyMap(), templateName);
   }
 
-  public void render(Map<Object, Object> model, String templateName) {
+  public void render(Map<String, Object> model, String templateName) {
     maybeSetContentType(MimeType.TEXT_HTML);
     templateRenderer.renderFileTemplate(templateName, model, asyncErrorHandler(renderer()));
   }

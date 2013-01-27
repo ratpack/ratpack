@@ -39,7 +39,7 @@ public class ErrorHandler implements Handler<ErroredHttpServerRequest> {
   public void handle(ErroredHttpServerRequest erroredRequest) {
     @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
     Exception error = (Exception) StackTraceUtils.deepSanitize(erroredRequest.getException());
-    error.printStackTrace(System.err);
+    //error.printStackTrace(System.err);
     HttpServerRequest request = erroredRequest.getRequest();
     request.response.statusCode = 500;
     renderException(error, request, new FallbackErrorHandlingTemplateRenderer(request, "rendering error template"));
@@ -60,12 +60,12 @@ public class ErrorHandler implements Handler<ErroredHttpServerRequest> {
 
   void renderException(Exception exception, HttpServerRequest request, AsyncResultHandler<Buffer> handler) {
     DecodedStackTrace decodedStackTrace = decodeStackTrace(exception);
-    Map<Object, Object> model = new LinkedHashMap<Object, Object>();
+    Map<String, Object> model = new LinkedHashMap<String, Object>();
     model.put("title", exception.getClass().getName());
     model.put("message", exception.getMessage());
     model.put("stacktrace", decodedStackTrace.html);
 
-    Map<Object, Object> metadata = new LinkedHashMap<Object, Object>();
+    Map<String, Object> metadata = new LinkedHashMap<String, Object>();
     metadata.put("Request Method", request.method.toUpperCase());
     metadata.put("Request URL", request.uri);
     metadata.put("Exception Type", exception.getClass().getName());

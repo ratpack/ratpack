@@ -32,7 +32,7 @@ interface Response {
 
   Handler<Buffer> renderer()
 
-  void render(Map<Object, Object> model, String templateName)
+  void render(Map<String, Object> model, String templateName)
 
   void render(String templateName)
 

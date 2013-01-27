@@ -24,7 +24,7 @@ class NotFoundHandler implements Handler<HttpServerRequest> {
             'Request Method': request.method.toUpperCase(),
             'Request URL': request.uri,
         ]
-    ] as Map<Object, Object>
+    ] as Map<String, Object>
     templateCompiler.renderError(model, new FallbackErrorHandlingTemplateRenderer(request, "404 handling"))
     true
   }

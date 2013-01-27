@@ -20,7 +20,7 @@ class TemplateRenderingSpec extends RatpackSpec {
 
   def "can render template"() {
     given:
-    templateFile("foo.html") << "\${model.value}"
+    templateFile("foo.html") << "a \${model.value} b <% 3.times {  %> a <% } %>"
 
     and:
     ratpackFile << """
@@ -33,12 +33,12 @@ class TemplateRenderingSpec extends RatpackSpec {
     app.start()
 
     then:
-    urlText() == "bar"
+    urlText() == "a bar b  a  a  a "
   }
 
   def "can render inner template"() {
     given:
-    templateFile("outer.html") << "outer: \${model.value}, \${render 'inner.html', value: 'inner'}"
+    templateFile("outer.html") << "outer: \${model.value}, <% render 'inner.html', value: 'inner' %>"
     templateFile("inner.html") << "inner: \${model.value}"
 
     and:
@@ -57,8 +57,8 @@ class TemplateRenderingSpec extends RatpackSpec {
 
   def "can render inner, inner template"() {
     given:
-    templateFile("outer.html") << "outer: \${model.value}, \${render 'inner.html', value: 'inner'}"
-    templateFile("inner.html") << "inner: \${model.value}, \${render 'innerInner.html', value: 1}, \${render 'innerInner.html', value: 2}, \${render 'innerInner.html', value: 1}"
+    templateFile("outer.html") << "outer: \${model.value}, <% render 'inner.html', value: 'inner' %>"
+    templateFile("inner.html") << "inner: \${model.value}, <% render 'innerInner.html', value: 1 %>, <% render 'innerInner.html', value: 2 %>, <% render 'innerInner.html', value: 1 %>"
     templateFile("innerInner.html") << "innerInner: \${model.value}"
 
     and:
@@ -92,7 +92,7 @@ class TemplateRenderingSpec extends RatpackSpec {
     app.start()
 
     then:
-    errorText().contains('org.ratpackframework.templating.CompositeException: messages{"1", "2"}')
+    errorText().contains('org.ratpackframework.templating.internal.CompositeException: messages{')
   }
 
 
