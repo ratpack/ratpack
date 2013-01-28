@@ -16,24 +16,27 @@
 
 package org.ratpackframework.routing
 
+import groovy.transform.CompileStatic
+import org.ratpackframework.Routing
 import org.ratpackframework.responder.internal.ClosureBackedResponderFactory
 import org.ratpackframework.routing.internal.PathRouter
-import groovy.transform.CompileStatic
 import org.ratpackframework.templating.TemplateRenderer
 
 @CompileStatic
-/**
- * This is the API in the ratpack.groovy file.
- */
-class RouterBuilder {
+class RouterBuilderScript extends Script implements Routing {
 
   private final List<Router> routers = []
 
   private final TemplateRenderer templateRenderer
 
-  RouterBuilder(List<Router> routers, TemplateRenderer templateRenderer) {
+  RouterBuilderScript(List<Router> routers, TemplateRenderer templateRenderer) {
     this.routers = routers
     this.templateRenderer = templateRenderer
+  }
+
+  @Override
+  Routing getRouting() {
+    this
   }
 
   void register(String method, String path, Closure handler) {
@@ -56,4 +59,8 @@ class RouterBuilder {
     register("delete", path, handler)
   }
 
+  @Override
+  Object run() {
+
+  }
 }

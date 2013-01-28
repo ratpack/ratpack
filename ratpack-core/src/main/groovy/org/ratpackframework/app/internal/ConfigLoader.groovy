@@ -14,21 +14,22 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.app
+package org.ratpackframework.app.internal
 
 import groovy.transform.CompileStatic
-import org.vertx.java.core.Vertx
-import org.ratpackframework.routing.internal.ScriptBackedRouter
-import org.ratpackframework.templating.TemplateRenderer
+import org.ratpackframework.app.Config
+
+import org.ratpackframework.script.internal.ScriptRunner
 
 @CompileStatic
-public class RatpackAppFactory {
+class ConfigLoader {
 
-  RatpackApp create(Vertx vertx, Config config) {
-    def publicDir = new File(config.baseDir, config.publicDir)
-    def templateRenderer = new TemplateRenderer(vertx, new File(config.baseDir, config.templatesDir), config.templatesCacheSize)
-    def router = new ScriptBackedRouter(vertx, new File(config.baseDir, config.routes), templateRenderer)
-    new RatpackApp(vertx, config.port, "/", router, templateRenderer, publicDir)
+  Config load(File configFile) {
+    if (!configFile.exists()) {
+      new ConfigScript(configFile.parentFile)
+    } else {
+      new ScriptRunner().run(configFile.name, configFile.text, ConfigScript, getClass().classLoader, true, configFile.parentFile)
+    }
   }
 
 }

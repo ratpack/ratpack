@@ -17,7 +17,7 @@
 package org.ratpackframework.routing.internal
 
 import org.ratpackframework.routing.Router
-import org.ratpackframework.routing.RouterBuilder
+import org.ratpackframework.routing.RouterBuilderScript
 import org.ratpackframework.script.internal.ScriptRunner
 import org.ratpackframework.templating.TemplateRenderer
 import org.vertx.java.core.Handler
@@ -113,13 +113,11 @@ class ScriptBackedRouter implements Router {
     }
 
     List<Router> routers = []
-    def routerBuilder = new RouterBuilder(routers, templateRenderer)
     String string = new String(bytes)
-    new ScriptRunner().run(string, routerBuilder)
+    new ScriptRunner().run(scriptFilePath, string, RouterBuilderScript, getClass().classLoader, false, routers, templateRenderer)
     routerHolder.set(new CompositeRouter(routers))
-
-    lastModifiedHolder.set(lastModifiedTime)
-    contentHolder.set(bytes)
+    this.lastModifiedHolder.set(lastModifiedTime)
+    this.contentHolder.set(bytes)
   }
 
 }

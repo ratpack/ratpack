@@ -14,24 +14,20 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.app
+package org.ratpackframework
 
-import groovy.transform.CompileStatic
-import org.vertx.java.core.Vertx
-import org.ratpackframework.app.internal.ConfigLoader
+interface Routing {
 
-@CompileStatic
-class RatpackMain {
+  Routing getRouting()
 
-  static void main(String[] args) {
-    File configFile = args.length == 0 ? new File("config.groovy") : new File(args[0])
-    if (!configFile.exists() && args.length > 0) {
-      System.err.println("Config file $configFile.absolutePath does not exist")
-      System.exit 1
-    }
+  void register(String method, String path, @DelegatesTo(Response) Closure<?> handler)
 
-    Config config = new ConfigLoader().load(configFile)
-    new RatpackAppFactory().create(Vertx.newVertx(), config).start()
-  }
+  void get(String path, @DelegatesTo(Response) Closure<?> handler)
+
+  void post(String path, @DelegatesTo(Response) Closure<?> handler)
+
+  void put(String path, @DelegatesTo(Response) Closure<?> handler)
+
+  void delete(String path, @DelegatesTo(Response) Closure<?> handler)
 
 }

@@ -16,46 +16,26 @@
 
 package org.ratpackframework.app
 
-import groovy.transform.CompileStatic
-import groovy.transform.ToString
+interface Config {
 
-@ToString
-@CompileStatic
-class Config {
+  File getBaseDir()
+  void setBaseDir(File baseDir)
+  void baseDir(File baseDir)
 
-  int port
+  int getPort()
+  void setPort(int port)
+  void port(int port)
 
-  String publicDir
-  String templatesDir
-  int templateCacheSize = 0
-  String routes
+  String getPublicDir()
+  void setPublicDir(String publicDir)
+  void publicDir(String publicDir)
 
-  Config() {
-    publicDir = "public"
-    templatesDir = "templates"
-    routes = "ratpack.groovy"
-    port = 5050
-  }
+  String getTemplatesDir()
+  void setTemplatesDir(String templatesDir)
+  void templatesDir(String templatesDir)
 
-  void port(int port) {
-    setPort(port)
-  }
-
-  void publicDir(String publicDir) {
-    setPublicDir(publicDir)
-  }
-
-  void templatesDir(String templatesDir) {
-    setTemplatesDir(templatesDir)
-  }
-
-  void templateCacheSize(int templateCacheSize) {
-    setTemplateCacheSize(templateCacheSize)
-  }
-
-  void routes(String routes) {
-    setRoutes(routes)
-  }
-
+  String getRoutes()
+  void setRoutes(String routes)
+  void routes(String routes)
 
 }
