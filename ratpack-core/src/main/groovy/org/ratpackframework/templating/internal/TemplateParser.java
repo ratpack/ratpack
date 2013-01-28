@@ -72,11 +72,11 @@ public class TemplateParser {
   }
 
   private void startScript(Buffer script) {
-    script.appendString("str(\"\"\"");
+    script.appendString("$o();str(\"\"\"");
   }
 
   private void endScript(Buffer script) {
-    script.appendString("\"\"\")");
+    script.appendString("\"\"\");$c();");
   }
 
   private void processGSstring(ChannelBuffer input, Buffer output) throws IOException {
@@ -114,7 +114,7 @@ public class TemplateParser {
   }
 
   private void groovySection(ChannelBuffer input, Buffer output) throws IOException {
-    output.appendString("\"\"\");");
+    output.appendString("\"\"\");$c();");
     byte c;
     while (input.readable()) {
       c = input.readByte();
@@ -130,7 +130,7 @@ public class TemplateParser {
       output.appendByte(c);
     }
 
-    output.appendString(";\nstr(\"\"\"");
+    output.appendString(";$o();str(\"\"\"");
   }
 
 }

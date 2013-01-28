@@ -16,6 +16,9 @@
 
 package org.ratpackframework
 
+import org.ratpackframework.templating.internal.InvalidTemplateException
+import spock.lang.Unroll
+
 class TemplateRenderingSpec extends RatpackSpec {
 
   def "can render template"() {
@@ -115,4 +118,24 @@ class TemplateRenderingSpec extends RatpackSpec {
     urlText() == "outer: ab, inner: aB, innerInner: AB"
   }
 
+  @Unroll "error when using render in output section - #template"() {
+    given:
+    templateFile("outer.html") << template
+
+    and:
+    ratpackFile << """
+      get("/") {
+        render "outer.html"
+      }
+    """
+
+    when:
+    startApp()
+
+    then:
+    errorText().contains(InvalidTemplateException.name)
+
+    where:
+    template << ["\${render 'foo'}", "<%= render 'foo.html' %>"]
+  }
 }

@@ -6,7 +6,7 @@ import spock.lang.Specification
 
 class TemplateCompilerTest extends Specification {
 
-  def compiler = new TemplateCompiler(new ScriptEngine<TemplateScript>(getClass().classLoader, true, TemplateScript))
+  def compiler = new TemplateCompiler(new ScriptEngine<TemplateScript>(getClass().classLoader, true, TemplateScript), true)
 
   CompiledTemplate compile(String source) {
     compiler.compile(new Buffer(source), "test")
@@ -35,7 +35,7 @@ class TemplateCompilerTest extends Specification {
 
   def "rendering"() {
     expect:
-    compile("a<% render 'foo' %>c").execute([:], renderer).parts*.toString() == ["a", "render:[templateName:foo, model:[:]]", "c"]
+    compile("a<%= render 'foo' %>c").execute([:], renderer).parts*.toString() == ["a", "render:[templateName:foo, model:[:]]", "c"]
   }
 
 }
