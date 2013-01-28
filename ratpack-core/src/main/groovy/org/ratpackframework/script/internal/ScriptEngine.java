@@ -37,15 +37,20 @@ public class ScriptEngine<T extends Script> {
     this.classLoader = createClassLoader(parentLoader, staticCompile, scriptBaseClass);
   }
 
-  public <T extends Script> T run(String scriptName, String scriptText, Object... scriptConstructionArgs) throws InstantiationException, IllegalAccessException {
+  public T run(String scriptName, String scriptText, Object... scriptConstructionArgs) throws InstantiationException, IllegalAccessException {
     T script = create(scriptName, scriptText, scriptConstructionArgs);
     script.run();
     return script;
   }
 
-  public <T extends Script> T create(String scriptName, String scriptText, Object... scriptConstructionArgs) throws IllegalAccessException, InstantiationException {
-    @SuppressWarnings("unchecked") Class<T> scriptClass = classLoader.parseClass(scriptText, scriptName);
+  public T create(String scriptName, String scriptText, Object... scriptConstructionArgs) throws IllegalAccessException, InstantiationException {
+    Class<T> scriptClass = compile(scriptName, scriptText);
     return DefaultGroovyMethods.newInstance(scriptClass, scriptConstructionArgs);
+  }
+
+  @SuppressWarnings("unchecked")
+  public Class<T> compile(String scriptName, String scriptText) throws IllegalAccessException, InstantiationException {
+    return classLoader.parseClass(scriptText, scriptName);
   }
 
   private GroovyClassLoader createClassLoader(ClassLoader parentLoader, final boolean staticCompile, Class<? extends Script> scriptBaseClass) {

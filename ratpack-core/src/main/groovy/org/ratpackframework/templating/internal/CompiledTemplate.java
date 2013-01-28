@@ -22,9 +22,9 @@ import java.util.Map;
 
 public class CompiledTemplate {
 
-  private final Class<? extends TemplateScript> templateClass;
+  private final Class<TemplateScript> templateClass;
 
-  public CompiledTemplate(Class<? extends TemplateScript> templateClass) {
+  public CompiledTemplate(Class<TemplateScript> templateClass) {
     this.templateClass = templateClass;
   }
 

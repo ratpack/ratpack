@@ -20,9 +20,11 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import groovy.lang.GroovyClassLoader;
 import org.codehaus.groovy.runtime.IOGroovyMethods;
+import org.ratpackframework.script.internal.ScriptEngine;
 import org.ratpackframework.templating.internal.CompiledTemplate;
 import org.ratpackframework.templating.internal.Render;
 import org.ratpackframework.templating.internal.TemplateCompiler;
+import org.ratpackframework.templating.internal.TemplateScript;
 import org.vertx.java.core.AsyncResult;
 import org.vertx.java.core.AsyncResultHandler;
 import org.vertx.java.core.Vertx;
@@ -89,7 +91,7 @@ public class TemplateRenderer {
   }
 
   private TemplateCompiler createCompiler() {
-    return new TemplateCompiler(new GroovyClassLoader(), staticallyCompile);
+    return new TemplateCompiler(new ScriptEngine<TemplateScript>(getClass().getClassLoader(), staticallyCompile, TemplateScript.class));
   }
 
   private void render(TemplateCompiler templateCompiler, CompiledTemplate compiledTemplate, Map<String, Object> model, AsyncResultHandler<Buffer> handler) {

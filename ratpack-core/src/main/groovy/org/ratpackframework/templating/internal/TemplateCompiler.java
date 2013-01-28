@@ -27,6 +27,7 @@ import org.codehaus.groovy.control.CompilePhase;
 import org.codehaus.groovy.control.CompilerConfiguration;
 import org.codehaus.groovy.control.SourceUnit;
 import org.codehaus.groovy.control.customizers.CompilationCustomizer;
+import org.ratpackframework.script.internal.ScriptEngine;
 import org.vertx.java.core.buffer.Buffer;
 
 import java.io.IOException;
@@ -39,34 +40,18 @@ import java.io.IOException;
 public class TemplateCompiler {
   private boolean verbose;
   private final TemplateParser parser = new TemplateParser();
-  private final CompilerConfiguration compilerConfiguration;
-  private ClassLoader parentLoader;
-  private boolean staticallyCompile;
+  private final ScriptEngine<TemplateScript> scriptEngine;
 
-  public TemplateCompiler(ClassLoader parentLoader, boolean staticallyCompile) {
-    this(parentLoader, staticallyCompile, false);
+  public TemplateCompiler(ScriptEngine<TemplateScript> scriptEngine) {
+    this(scriptEngine, false);
   }
 
-  public TemplateCompiler(ClassLoader parentLoader, boolean staticallyCompile, boolean verbose) {
-    this.parentLoader = parentLoader;
-    this.staticallyCompile = staticallyCompile;
+  public TemplateCompiler(ScriptEngine<TemplateScript> scriptEngine, boolean verbose) {
+    this.scriptEngine = scriptEngine;
     this.verbose = verbose;
-    compilerConfiguration = new CompilerConfiguration();
-    compilerConfiguration.getOptimizationOptions().put("indy", true);
-    compilerConfiguration.setScriptBaseClass(TemplateScript.class.getName());
-    if (staticallyCompile) {
-      compilerConfiguration.addCompilationCustomizers(new CompilationCustomizer(CompilePhase.CONVERSION) {
-        @Override
-        public void call(SourceUnit source, GeneratorContext context, ClassNode classNode) throws CompilationFailedException {
-          classNode.addAnnotation(new AnnotationNode(new ClassNode(CompileStatic.class)));
-        }
-      });
-    }
   }
 
   public CompiledTemplate compile(Buffer templateSource, String name) throws CompilationFailedException, IOException {
-    GroovyClassLoader classLoader = new GroovyClassLoader(parentLoader, compilerConfiguration);
-
     Buffer scriptSource = new Buffer(templateSource.length());
     parser.parse(templateSource, scriptSource);
 
@@ -79,8 +64,7 @@ public class TemplateCompiler {
     }
 
     try {
-      @SuppressWarnings("unchecked")
-      Class<? extends TemplateScript> scriptClass = classLoader.parseClass(scriptSourceString, name);
+      Class<TemplateScript> scriptClass = scriptEngine.compile(name, scriptSourceString);
       return new CompiledTemplate(scriptClass);
     } catch (Exception e) {
       throw new GroovyRuntimeException("Failed to parse template script (your template may contain an error or be trying to use expressions not currently supported): " + e.getMessage());

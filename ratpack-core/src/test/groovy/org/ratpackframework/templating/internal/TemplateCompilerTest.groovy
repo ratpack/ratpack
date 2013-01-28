@@ -1,11 +1,12 @@
 package org.ratpackframework.templating.internal
 
+import org.ratpackframework.script.internal.ScriptEngine
 import org.vertx.java.core.buffer.Buffer
 import spock.lang.Specification
 
 class TemplateCompilerTest extends Specification {
 
-  def compiler = new TemplateCompiler(getClass().classLoader, true)
+  def compiler = new TemplateCompiler(new ScriptEngine<TemplateScript>(getClass().classLoader, true, TemplateScript))
 
   CompiledTemplate compile(String source) {
     compiler.compile(new Buffer(source), "test")

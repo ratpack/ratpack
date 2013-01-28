@@ -35,6 +35,7 @@ class ScriptBackedRouter implements Router {
 
   private final FileSystem fileSystem
   private final String scriptFilePath
+  private final String scriptFileName
   private final TemplateRenderer templateRenderer
 
   private final AtomicLong lastModifiedHolder = new AtomicLong(-1)
@@ -45,6 +46,7 @@ class ScriptBackedRouter implements Router {
   ScriptBackedRouter(Vertx vertx, File scriptFile, TemplateRenderer templateRenderer) {
     this.fileSystem = vertx.fileSystem()
     this.scriptFilePath = scriptFile.absolutePath
+    this.scriptFileName = scriptFile.name
     this.templateRenderer = templateRenderer
   }
 
@@ -114,7 +116,7 @@ class ScriptBackedRouter implements Router {
 
     List<Router> routers = []
     String string = new String(bytes)
-    new ScriptEngine<RouterBuilderScript>(getClass().classLoader, false, RouterBuilderScript).run(scriptFilePath, string, routers, templateRenderer)
+    new ScriptEngine<RouterBuilderScript>(getClass().classLoader, false, RouterBuilderScript).run(scriptFileName, string, routers, templateRenderer)
     routerHolder.set(new CompositeRouter(routers))
     this.lastModifiedHolder.set(lastModifiedTime)
     this.contentHolder.set(bytes)
