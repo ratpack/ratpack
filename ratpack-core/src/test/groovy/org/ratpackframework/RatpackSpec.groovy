@@ -18,8 +18,10 @@ package org.ratpackframework
 
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
+import org.ratpackframework.app.Config
 import org.ratpackframework.app.RatpackApp
 import org.ratpackframework.app.RatpackAppFactory
+import org.ratpackframework.app.internal.ConfigScript
 import spock.lang.Specification
 import org.ratpackframework.util.CookieManager
 
@@ -30,9 +32,7 @@ class RatpackSpec extends Specification {
   RatpackApp app
   CookieManager cookieManager = new CookieManager()
 
-  File getConfigFile() {
-    file("config.groovy")
-  }
+  Config config = new ConfigScript()
 
   File getRatpackFile() {
     file("ratpack.groovy")
@@ -53,7 +53,8 @@ class RatpackSpec extends Specification {
   }
 
   def setup() {
-    app = new RatpackAppFactory().create(configFile)
+    config.baseDir(temporaryFolder.root)
+    app = new RatpackAppFactory().create(config)
   }
 
   def cleanup() {

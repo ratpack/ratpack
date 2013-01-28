@@ -17,6 +17,7 @@
 package org.ratpackframework.app
 
 import groovy.transform.CompileStatic
+import org.ratpackframework.app.internal.ConfigLoader
 
 @CompileStatic
 class RatpackMain {
@@ -28,7 +29,8 @@ class RatpackMain {
       System.exit 1
     }
 
-    new RatpackAppFactory().create(configFile.canonicalFile).start()
+    Config config = new ConfigLoader().load(configFile)
+    new RatpackAppFactory().create(config).start()
   }
 
 }

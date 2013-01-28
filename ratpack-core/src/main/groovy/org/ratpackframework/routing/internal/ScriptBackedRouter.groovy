@@ -72,7 +72,7 @@ class ScriptBackedRouter implements Router {
     long lastModified = scriptFile.lastModified()
     byte[] bytes = scriptFile.bytes
     String string = new String(bytes)
-    new ScriptRunner().run(string, routerBuilder)
+    new ScriptRunner().runWithDelegate(scriptFile.name, string, routerBuilder, getClass().classLoader, false)
     router.set(new CompositeRouter(routers))
     this.lastModified.set(lastModified)
     this.content.set(bytes)

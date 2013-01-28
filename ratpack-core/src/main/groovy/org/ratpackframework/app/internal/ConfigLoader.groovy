@@ -14,21 +14,27 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.app
+package org.ratpackframework.app.internal
 
 import groovy.transform.CompileStatic
-import org.ratpackframework.routing.internal.ScriptBackedRouter
-import org.ratpackframework.templating.TemplateRenderer
+import org.ratpackframework.app.Config
+import org.ratpackframework.script.internal.Configure
+import org.ratpackframework.script.internal.ScriptRunner
 
 @CompileStatic
-public class RatpackAppFactory {
+class ConfigLoader {
 
-  RatpackApp create(Config config) {
-    def publicDir = new File(config.baseDir, config.publicDir)
-    def templateRenderer = new TemplateRenderer(new File(config.baseDir, config.templatesDir))
-    def router = new ScriptBackedRouter(new File(config.baseDir, config.routes), templateRenderer)
-
-    new RatpackApp(config.port, "/", router, templateRenderer, publicDir)
+  Config load(File configFile) {
+    if (!configFile.exists()) {
+      new ConfigScript()
+    } else {
+      new ScriptRunner().run(configFile.name, configFile.text, ConfigScript, getClass().classLoader, true, new Configure<ConfigScript>() {
+        @Override
+        void configure(ConfigScript thing) {
+          thing.baseDir(configFile.parentFile.canonicalFile)
+        }
+      })
+    }
   }
 
 }

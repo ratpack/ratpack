@@ -14,28 +14,45 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.script.internal
+package org.ratpackframework.app.internal
 
 import groovy.transform.CompileStatic
-import org.codehaus.groovy.control.CompilerConfiguration
+import groovy.transform.ToString
+import org.ratpackframework.app.Config
 
+@ToString
 @CompileStatic
-class ScriptRunner {
+class ConfigScript extends Script implements Config {
 
-  void run(String scriptText, GroovyObject delegate) {
-    DelegatingScript script = parse(scriptText)
-    script.$setDelegate(delegate)
-    script.run()
+  File baseDir
+  int port = 5050
+  String publicDir = "public"
+  String templatesDir = "templates"
+  String routes = "ratpack.groovy"
+
+  @Override
+  void baseDir(File baseDir) {
+    setBaseDir(baseDir)
   }
 
-  private DelegatingScript parse(String script) {
-    createShell().parse(script) as DelegatingScript
+  void port(int port) {
+    setPort(port)
   }
 
-  private GroovyShell createShell() {
-    CompilerConfiguration compilerSettings = new CompilerConfiguration()
-    compilerSettings.setScriptBaseClass(DelegatingScript.class.getName())
-    return new GroovyShell(new GroovyClassLoader(getClass().getClassLoader()), new Binding(), compilerSettings)
+  void publicDir(String publicDir) {
+    setPublicDir(publicDir)
   }
 
+  void templatesDir(String templatesDir) {
+    setTemplatesDir(templatesDir)
+  }
+
+  void routes(String routes) {
+    setRoutes(routes)
+  }
+
+  @Override
+  Object run() {
+    this
+  }
 }
