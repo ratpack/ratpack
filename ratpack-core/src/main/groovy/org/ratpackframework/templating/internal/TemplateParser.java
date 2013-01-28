@@ -72,7 +72,7 @@ public class TemplateParser {
   }
 
   private void startScript(Buffer script) {
-    script.appendString("parts.add(\"\"\"");
+    script.appendString("str(\"\"\"");
   }
 
   private void endScript(Buffer script) {
@@ -130,7 +130,7 @@ public class TemplateParser {
       output.appendByte(c);
     }
 
-    output.appendString(";\nparts.add(\"\"\"");
+    output.appendString(";\nstr(\"\"\"");
   }
 
 }

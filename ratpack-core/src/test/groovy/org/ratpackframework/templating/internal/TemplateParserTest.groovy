@@ -16,13 +16,13 @@ class TemplateParserTest extends Specification {
 
   def "encoding"() {
     expect:
-    parse("abc") == 'parts.add("""abc""")'
-    parse("aéc") == 'parts.add("""aéc""")'
-    parse("a\u1234c") == 'parts.add("""a\u1234c""")'
+    parse("abc") == 'str("""abc""")'
+    parse("aéc") == 'str("""aéc""")'
+    parse("a\u1234c") == 'str("""a\u1234c""")'
   }
 
   def "gstrings"() {
     expect:
-    parse("a\${'b'}c") == 'parts.add("""a${\'b\'}c""")'
+    parse("a\${'b'}c") == 'str("""a${\'b\'}c""")'
   }
 }

@@ -16,6 +16,9 @@
 
 package org.ratpackframework.templating.internal;
 
+import org.codehaus.groovy.runtime.DefaultGroovyMethods;
+import org.ratpackframework.templating.TemplateModel;
+
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -29,18 +32,11 @@ public class CompiledTemplate {
   }
 
   ExecutedTemplate execute(Map<String, ?> model, NestedRenderer nestedRenderer) {
-    TemplateScript script;
-    try {
-      script = templateClass.newInstance();
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
-    List<Object> parts = new LinkedList<Object>();
-    script.setParts(parts);
     @SuppressWarnings("unchecked")
     Map<String, Object> modelTyped = (Map<String, Object>) model;
-    script.setModel(new MapBackedTemplateModel(modelTyped));
-    script.setRenderer(nestedRenderer);
+    TemplateModel templateModel = new MapBackedTemplateModel(modelTyped);
+    List<Object> parts = new LinkedList<Object>();
+    TemplateScript script = DefaultGroovyMethods.newInstance(templateClass, new Object[]{templateModel, parts, nestedRenderer});
     script.run();
     return new ExecutedTemplate(parts);
   }

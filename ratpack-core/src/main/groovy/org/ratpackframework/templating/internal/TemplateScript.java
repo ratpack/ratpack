@@ -1,6 +1,5 @@
 package org.ratpackframework.templating.internal;
 
-import groovy.lang.Binding;
 import groovy.lang.Script;
 import org.ratpackframework.templating.Template;
 import org.ratpackframework.templating.TemplateModel;
@@ -11,39 +10,19 @@ import java.util.Map;
 
 public abstract class TemplateScript extends Script implements Template {
 
-  private TemplateModel model;
-  private List<Object> parts;
-  private NestedRenderer renderer;
+  private final TemplateModel model;
+  private final List<Object> parts;
+  private final NestedRenderer renderer;
 
-  @SuppressWarnings("UnusedDeclaration")
-  protected TemplateScript() {
-  }
-
-  @SuppressWarnings("UnusedDeclaration")
-  protected TemplateScript(Binding binding) {
-    super(binding);
-  }
-
-  @SuppressWarnings("UnusedDeclaration")
-  public List<Object> getParts() {
-    return parts;
-  }
-
-  public void setParts(List<Object> parts) {
+  protected TemplateScript(TemplateModel model, List<Object> parts, NestedRenderer renderer) {
+    this.model = model;
     this.parts = parts;
+    this.renderer = renderer;
   }
 
   @Override
   public TemplateModel getModel() {
     return model;
-  }
-
-  public void setModel(TemplateModel model) {
-    this.model = model;
-  }
-
-  public void setRenderer(NestedRenderer renderer) {
-    this.renderer = renderer;
   }
 
   @Override
@@ -54,6 +33,10 @@ public abstract class TemplateScript extends Script implements Template {
   @Override
   public void render(Map<String, ?> model, String templateName) {
     parts.add(renderer.render(templateName, model));
+  }
+
+  public void str(CharSequence charSequence) {
+    parts.add(charSequence);
   }
 
 }
