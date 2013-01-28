@@ -57,7 +57,7 @@ class ScriptBackedRouter implements Router {
 
   @Override
   void handle(RoutedRequest routedRequest) {
-    fileSystem.exists(scriptFilePath, routedRequest.errorHandler.wrap(routedRequest.request, new Handler<Boolean>() {
+    fileSystem.exists(scriptFilePath, routedRequest.errorHandler.asyncHandler(routedRequest.request, new Handler<Boolean>() {
       @Override
       void handle(Boolean exists) {
         if (!exists) {
@@ -92,14 +92,14 @@ class ScriptBackedRouter implements Router {
   }
 
   void checkForChanges(RoutedRequest routedRequest, Router noChange, Router didChange) {
-    fileSystem.props(scriptFilePath, routedRequest.errorHandler.wrap(routedRequest.request, new Handler<FileProps>() {
+    fileSystem.props(scriptFilePath, routedRequest.errorHandler.asyncHandler(routedRequest.request, new Handler<FileProps>() {
       void handle(FileProps fileProps) {
         if (fileProps.lastModifiedTime.time != lastModifiedHolder.get()) {
           didChange.handle(routedRequest)
           return
         }
 
-        fileSystem.readFile(scriptFilePath, routedRequest.errorHandler.wrap(routedRequest.request, new Handler<Buffer>() {
+        fileSystem.readFile(scriptFilePath, routedRequest.errorHandler.asyncHandler(routedRequest.request, new Handler<Buffer>() {
           @Override
           void handle(Buffer buffer) {
             if (buffer.bytes == ScriptBackedRouter.this.contentHolder.get()) {

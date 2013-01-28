@@ -31,7 +31,7 @@ public class StaticFileHandler implements Handler<HttpServerRequest> {
     String relativePath = request.path.substring(1);
     final String filePath = contentDirPath + File.separator + relativePath;
 
-    fileSystem.exists(filePath, errorHandler.wrap(request, new Handler<Boolean>() {
+    fileSystem.exists(filePath, errorHandler.asyncHandler(request, new Handler<Boolean>() {
       @Override
       public void handle(Boolean exists) {
         if (!exists) {
@@ -39,7 +39,7 @@ public class StaticFileHandler implements Handler<HttpServerRequest> {
           return;
         }
 
-        fileSystem.props(filePath, errorHandler.wrap(request, new Handler<FileProps>() {
+        fileSystem.props(filePath, errorHandler.asyncHandler(request, new Handler<FileProps>() {
           @Override
           public void handle(FileProps props) {
             if (props.isDirectory) {

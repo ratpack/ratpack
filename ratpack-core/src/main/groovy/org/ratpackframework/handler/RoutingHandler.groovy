@@ -22,7 +22,7 @@ class RoutingHandler implements Handler<HttpServerRequest> {
 
   @Override
   void handle(HttpServerRequest request) {
-    RoutedRequest routedRequest = new RoutedRequest(request, errorHandler, notFoundHandler, errorHandler.wrap(request, new Handler<FinalizedResponse>() {
+    RoutedRequest routedRequest = new RoutedRequest(request, errorHandler, notFoundHandler, errorHandler.asyncHandler(request, new Handler<FinalizedResponse>() {
       @Override
       void handle(FinalizedResponse response) {
         def realResponse = request.response

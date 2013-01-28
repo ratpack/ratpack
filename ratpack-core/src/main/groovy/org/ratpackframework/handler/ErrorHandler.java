@@ -16,6 +16,7 @@
 
 package org.ratpackframework.handler;
 
+import groovy.lang.Closure;
 import org.codehaus.groovy.runtime.StackTraceUtils;
 import org.ratpackframework.templating.TemplateRenderer;
 import org.vertx.java.core.AsyncResult;
@@ -45,14 +46,27 @@ public class ErrorHandler implements Handler<ErroredHttpServerRequest> {
     renderException(error, request, new FallbackErrorHandlingTemplateRenderer(request, "rendering error template"));
   }
 
-  public <T> AsyncResultHandler<T> wrap(final HttpServerRequest request, final Handler<T> handler) {
+  public <T> AsyncResultHandler<T> asyncHandler(final HttpServerRequest request, final Handler<T> handler) {
     return new AsyncResultHandler<T>() {
       @Override
       public void handle(AsyncResult<T> event) {
         if (event.failed()) {
           ErrorHandler.this.handle(new ErroredHttpServerRequest(request, event.exception));
         } else {
-          handler.handle(event.result);
+          handler(request, handler).handle(event.result);
+        }
+      }
+    };
+  }
+
+  public <T> Handler<T> handler(final HttpServerRequest request, final Handler<T> handler) {
+    return new Handler<T>() {
+      @Override
+      public void handle(T event) {
+        try {
+          handler.handle(event);
+        } catch (Exception exception) {
+          ErrorHandler.this.handle(new ErroredHttpServerRequest(request, exception));
         }
       }
     };
