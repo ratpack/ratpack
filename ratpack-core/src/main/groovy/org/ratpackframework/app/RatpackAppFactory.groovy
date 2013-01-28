@@ -29,7 +29,7 @@ public class RatpackAppFactory {
     def config = new Config()
 
     def publicDir = new File(baseDir, config.publicDir)
-    def templateRenderer = new TemplateRenderer(vertx, new File(baseDir, config.templatesDir))
+    def templateRenderer = new TemplateRenderer(vertx, new File(baseDir, config.templatesDir), config.templateCacheSize)
     def router = new ScriptBackedRouter(vertx, new File(baseDir, config.routes), templateRenderer)
 
     new RatpackApp(vertx, config.port, "/", router, templateRenderer, publicDir)

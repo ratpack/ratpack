@@ -27,6 +27,7 @@ class Config {
 
   String publicDir
   String templatesDir
+  int templateCacheSize = 0
   String routes
 
   Config() {
@@ -48,8 +49,13 @@ class Config {
     setTemplatesDir(templatesDir)
   }
 
+  void templateCacheSize(int templateCacheSize) {
+    setTemplateCacheSize(templateCacheSize)
+  }
+
   void routes(String routes) {
     setRoutes(routes)
   }
+
 
 }
