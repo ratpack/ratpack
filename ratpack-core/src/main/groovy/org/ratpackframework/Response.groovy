@@ -20,6 +20,9 @@ import org.vertx.java.core.AsyncResultHandler
 import org.vertx.java.core.Handler
 import org.vertx.java.core.buffer.Buffer
 
+/**
+ * A response to a request.
+ */
 interface Response {
 
   Request getRequest()

@@ -16,6 +16,12 @@
 
 package org.ratpackframework
 
+import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpSession
+
+/**
+ * A request to be handled.
+ */
 interface Request {
 
   String getUri()
