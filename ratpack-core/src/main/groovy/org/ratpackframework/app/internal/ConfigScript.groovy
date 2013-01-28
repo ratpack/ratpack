@@ -31,6 +31,7 @@ class ConfigScript extends Script implements Config {
   int templatesCacheSize = 0
   boolean staticallyCompileTemplates = true
   String routes = "ratpack.groovy"
+  boolean staticallyCompileRoutes = false
 
   ConfigScript(File baseDir) {
     this.baseDir = baseDir
@@ -65,6 +66,11 @@ class ConfigScript extends Script implements Config {
 
   void routes(String routes) {
     setRoutes(routes)
+  }
+
+  @Override
+  void staticallyCompileRoutes(boolean staticallyCompileRoutes) {
+    setStaticallyCompileRoutes(staticallyCompileRoutes)
   }
 
   @Override

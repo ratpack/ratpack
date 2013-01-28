@@ -27,7 +27,7 @@ class BasicRatpackSpec extends RatpackSpec {
     """
 
     when:
-    app.start()
+    startApp()
 
     then:
     urlText() == "foo"
@@ -42,7 +42,7 @@ class BasicRatpackSpec extends RatpackSpec {
     """
 
     when:
-    app.start()
+    startApp()
 
     then:
     urlText() == "foo"
@@ -70,7 +70,7 @@ class BasicRatpackSpec extends RatpackSpec {
     """
 
     when:
-    app.start()
+    startApp()
 
     then:
     urlText('') == "foo"

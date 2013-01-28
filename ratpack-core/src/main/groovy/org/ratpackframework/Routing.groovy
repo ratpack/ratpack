@@ -20,14 +20,14 @@ interface Routing {
 
   Routing getRouting()
 
-  void register(String method, String path, @DelegatesTo(Response) Closure<?> handler)
+  void register(String method, String path, @HandlerClosure Closure<?> handler)
 
-  void get(String path, @DelegatesTo(Response) Closure<?> handler)
+  void get(String path, @DelegatesTo(value = Response.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler)
 
-  void post(String path, @DelegatesTo(Response) Closure<?> handler)
+  void post(String path, @HandlerClosure Closure<?> handler)
 
-  void put(String path, @DelegatesTo(Response) Closure<?> handler)
+  void put(String path, @HandlerClosure Closure<?> handler)
 
-  void delete(String path, @DelegatesTo(Response) Closure<?> handler)
+  void delete(String path, @HandlerClosure Closure<?> handler)
 
 }

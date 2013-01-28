@@ -38,7 +38,7 @@ abstract class AbstractResponder implements Responder {
 
   @Override
   void respond(AsyncResultHandler<FinalizedResponse> handler) {
-    def response = new DefaultResponse(templateCompiler, handler)
+    def response = new DefaultResponse(request, templateCompiler, handler)
     try {
       doRespond(request, response)
     } catch (Exception e) {

@@ -33,7 +33,7 @@ class RatpackSpec extends Specification {
   RatpackApp app
   CookieManager cookieManager = new CookieManager()
 
-  Config config = new ConfigScript()
+  Config config
 
   File getRatpackFile() {
     file("ratpack.groovy")
@@ -54,12 +54,16 @@ class RatpackSpec extends Specification {
   }
 
   def setup() {
-    config.baseDir(temporaryFolder.root)
+    config = new ConfigScript(temporaryFolder.root)
+  }
+
+  def startApp() {
     app = new RatpackAppFactory().create(Vertx.newVertx(), config)
+    app.start()
   }
 
   def cleanup() {
-    app.stop()
+    app?.stop()
   }
 
   HttpURLConnection urlConnection(String path = "") {

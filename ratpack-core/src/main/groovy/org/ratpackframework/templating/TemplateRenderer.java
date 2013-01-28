@@ -18,7 +18,6 @@ package org.ratpackframework.templating;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import groovy.lang.GroovyClassLoader;
 import org.codehaus.groovy.runtime.IOGroovyMethods;
 import org.ratpackframework.script.internal.ScriptEngine;
 import org.ratpackframework.templating.internal.CompiledTemplate;
@@ -51,7 +50,7 @@ public class TemplateRenderer {
     this.compiledTemplateCache = CacheBuilder.newBuilder().maximumSize(cacheSize).build();
   }
 
-  public void renderFileTemplate(final String templateFileName, final Map<String, Object> model, final AsyncResultHandler<Buffer> handler) {
+  public void renderFileTemplate(final String templateFileName, final Map<String, ?> model, final AsyncResultHandler<Buffer> handler) {
     final TemplateCompiler templateCompiler = createCompiler();
     CompiledTemplate cachedTemplate = compiledTemplateCache.getIfPresent(templateFileName);
     if (cachedTemplate != null) {
@@ -76,11 +75,11 @@ public class TemplateRenderer {
     }
   }
 
-  public void renderError(Map<String, Object> model, AsyncResultHandler<Buffer> handler) {
+  public void renderError(Map<String, ?> model, AsyncResultHandler<Buffer> handler) {
     render(errorPageTemplate, "errorpage", model, handler);
   }
 
-  private void render(String template, String templateName, Map<String, Object> model, AsyncResultHandler<Buffer> handler) {
+  private void render(String template, String templateName, Map<String, ?> model, AsyncResultHandler<Buffer> handler) {
     try {
       TemplateCompiler templateCompiler = createCompiler();
       CompiledTemplate compiledTemplate = templateCompiler.compile(new Buffer(template), templateName);
@@ -94,7 +93,7 @@ public class TemplateRenderer {
     return new TemplateCompiler(new ScriptEngine<TemplateScript>(getClass().getClassLoader(), staticallyCompile, TemplateScript.class));
   }
 
-  private void render(TemplateCompiler templateCompiler, CompiledTemplate compiledTemplate, Map<String, Object> model, AsyncResultHandler<Buffer> handler) {
+  private void render(TemplateCompiler templateCompiler, CompiledTemplate compiledTemplate, Map<String, ?> model, AsyncResultHandler<Buffer> handler) {
     new Render(templateCompiler, vertx.fileSystem(), compiledTemplateCache, templateDirPath, compiledTemplate, model, handler);
   }
 

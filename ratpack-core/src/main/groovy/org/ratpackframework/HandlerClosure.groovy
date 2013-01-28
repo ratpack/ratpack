@@ -16,21 +16,6 @@
 
 package org.ratpackframework
 
-class PathParamsSpec extends RatpackSpec {
-
-  def "can parse url params"() {
-    given:
-    ratpackFile << """
-      get("/:a/:b/:c") {
-        renderString getRequest().urlParams.toString()
-      }
-    """
-
-    when:
-    startApp()
-
-    then:
-    urlText("1/2/3") == [a: 1, b: 2, c: 3].toString()
-  }
-
-}
+@DelegatesTo(value = Response.class, strategy = Closure.DELEGATE_FIRST)
+@groovy.transform.AnnotationCollector
+@interface HandlerClosure {}

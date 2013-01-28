@@ -30,7 +30,7 @@ class TemplateRenderingSpec extends RatpackSpec {
     """
 
     when:
-    app.start()
+    startApp()
 
     then:
     urlText() == "a bar b  a  a  a "
@@ -49,7 +49,7 @@ class TemplateRenderingSpec extends RatpackSpec {
     """
 
     when:
-    app.start()
+    startApp()
 
     then:
     urlText() == "outer: outer, inner: inner"
@@ -69,7 +69,7 @@ class TemplateRenderingSpec extends RatpackSpec {
     """
 
     when:
-    app.start()
+    startApp()
 
     then:
     urlText() == "outer: outer, inner: inner, innerInner: 1, innerInner: 2, innerInner: 1"
@@ -89,7 +89,7 @@ class TemplateRenderingSpec extends RatpackSpec {
     """
 
     when:
-    app.start()
+    startApp()
 
     then:
     errorText().contains('org.ratpackframework.templating.internal.CompositeException: messages{')

@@ -8,13 +8,13 @@ class ConcurrentRequestSpec extends RatpackSpec {
   def "can serve requests concurrently without mixing up params"() {
     given:
     ratpackFile << """
-      get("/:id") { request ->
-        renderString "\$request.urlParams.id:\$request.queryParams.id"
+      get("/:id") {
+        renderString getRequest().urlParams.id + ":" + getRequest().queryParams.id
       }
     """
 
     when:
-    app.start()
+    startApp()
 
     def threads = 100
     def latch = new CountDownLatch(threads)

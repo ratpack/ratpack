@@ -46,4 +46,8 @@ interface Config {
   void setRoutes(String routes)
   void routes(String routes)
 
+  boolean isStaticallyCompileRoutes()
+  void setStaticallyCompileRoutes(boolean staticallyCompileRoutes)
+  void staticallyCompileRoutes(boolean staticallyCompileRoutes)
+
 }

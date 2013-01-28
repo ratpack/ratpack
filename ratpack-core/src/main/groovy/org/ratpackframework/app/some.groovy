@@ -1,79 +1,44 @@
-import groovy.text.GStringTemplateEngine
-import groovy.text.SimpleTemplateEngine
+import groovy.transform.CompileStatic
+import org.codehaus.groovy.ast.AnnotationNode
+import org.codehaus.groovy.ast.ClassNode
+import org.codehaus.groovy.classgen.GeneratorContext
+import org.codehaus.groovy.control.CompilePhase
+import org.codehaus.groovy.control.CompilerConfiguration
+import org.codehaus.groovy.control.SourceUnit
+import org.codehaus.groovy.control.customizers.CompilationCustomizer
 
-import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.atomic.AtomicBoolean
+class Thing {
+  String prop = "foo"
+}
 
+abstract class CustomScript extends Script {
 
-
-class Template {
-  String id
-  Closure done
-  String text = "processing"
-  def random = new Random()
-
-  Template(String id, Closure done) {
-    this.id = id
-    this.done = done
-
-    Thread.start {
-      sleep (random.nextInt(10))
-      text = id
-      done(this)
-    }
+  void doStuff(@DelegatesTo(Thing) Closure c) {
+    c.resolveStrategy = Closure.DELEGATE_FIRST
+    c.delegate = new Thing()
+    c()
   }
 
+}
+
+final CompilerConfiguration compilerConfiguration = new CompilerConfiguration();
+compilerConfiguration.setScriptBaseClass(CustomScript.getName());
+compilerConfiguration.addCompilationCustomizers(new CompilationCustomizer(CompilePhase.CONVERSION) {
   @Override
-  String toString() {
-    text
+  public void call(SourceUnit source, GeneratorContext context, ClassNode classNode) throws org.codehaus.groovy.control.CompilationFailedException {
+    classNode.addAnnotation(new AnnotationNode(new ClassNode(CompileStatic.class)));
   }
-}
-class Renderer {
-  Map<String, Template> inners = [:]
-  Map<String, Template> processing = new ConcurrentHashMap<String, Template>()
-  AtomicBoolean doneFired = new AtomicBoolean()
+});
 
-  Closure done
+def classLoader = new GroovyClassLoader(getClass().classLoader, compilerConfiguration)
+def clazz = classLoader.parseClass("""
 
-  def render(String id) {
-    if (inners.containsKey(id)) {
-      println "returning template: $id"
-      inners[id]
-    } else {
-      println "creating template: $id"
-      def template = new Template(id, { innerFinished(it) })
-      inners[id] = template
-      processing[id] = template
-      template
-    }
+  doStuff {
+    println prop
   }
 
-  protected innerFinished(Template inner) {
-    processing.remove(inner.id)
-    if (processing.isEmpty() && doneFired.compareAndSet(false, true)) {
-      done()
-    }
-  }
-}
-
-def renderer = new Renderer()
-
-def engine = new SimpleTemplateEngine()
-engine.verbose = true
-def template = engine.createTemplate('${(0..1000).collect { render(it.toString()) }}')
-final writable = template.make(render: { renderer.render(it) })
-def latch = new CountDownLatch(1)
-renderer.done = {
-  def writer = new StringWriter()
-  writable.writeTo(writer)
-  println writer.toString()
-  latch.countDown()
-}
-
-def writer1 = new StringWriter()
-writable.writeTo(writer1)
-println writer1
+""")
 
 
-latch.await()
+clazz.newInstance().run()
+

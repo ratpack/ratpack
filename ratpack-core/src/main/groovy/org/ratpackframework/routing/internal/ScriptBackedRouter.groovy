@@ -16,10 +16,12 @@
 
 package org.ratpackframework.routing.internal
 
+import org.ratpackframework.responder.FinalizedResponse
 import org.ratpackframework.routing.Router
 import org.ratpackframework.routing.RouterBuilderScript
 import org.ratpackframework.script.internal.ScriptEngine
 import org.ratpackframework.templating.TemplateRenderer
+import org.vertx.java.core.AsyncResult
 import org.vertx.java.core.Handler
 import org.vertx.java.core.Vertx
 import org.vertx.java.core.buffer.Buffer
@@ -43,11 +45,14 @@ class ScriptBackedRouter implements Router {
   private final AtomicReference<Router> routerHolder = new AtomicReference<>(null)
   private final Lock lock = new ReentrantLock()
 
-  ScriptBackedRouter(Vertx vertx, File scriptFile, TemplateRenderer templateRenderer) {
+  private boolean staticallyCompile
+
+  ScriptBackedRouter(Vertx vertx, File scriptFile, TemplateRenderer templateRenderer, boolean staticallyCompile) {
     this.fileSystem = vertx.fileSystem()
     this.scriptFilePath = scriptFile.absolutePath
     this.scriptFileName = scriptFile.name
     this.templateRenderer = templateRenderer
+    this.staticallyCompile = staticallyCompile
   }
 
   @Override
@@ -71,6 +76,9 @@ class ScriptBackedRouter implements Router {
             ScriptBackedRouter.this.lock.lock()
             try {
               refreshSync()
+            } catch (Exception e) {
+              routedRequest.finalizedResponseHandler.handle(new AsyncResult<FinalizedResponse>(e))
+              return
             } finally {
               ScriptBackedRouter.this.lock.unlock()
             }
@@ -116,7 +124,7 @@ class ScriptBackedRouter implements Router {
 
     List<Router> routers = []
     String string = new String(bytes)
-    new ScriptEngine<RouterBuilderScript>(getClass().classLoader, false, RouterBuilderScript).run(scriptFileName, string, routers, templateRenderer)
+    new ScriptEngine<RouterBuilderScript>(getClass().classLoader, staticallyCompile, RouterBuilderScript).run(scriptFileName, string, routers, templateRenderer)
     routerHolder.set(new CompositeRouter(routers))
     this.lastModifiedHolder.set(lastModifiedTime)
     this.contentHolder.set(bytes)

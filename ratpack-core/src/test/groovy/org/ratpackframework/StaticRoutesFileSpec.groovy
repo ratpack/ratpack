@@ -16,13 +16,16 @@
 
 package org.ratpackframework
 
-class PathParamsSpec extends RatpackSpec {
+class StaticRoutesFileSpec extends RatpackSpec {
 
-  def "can parse url params"() {
+  def "can use static routes file"() {
     given:
+    config.staticallyCompileRoutes true
+
+    and:
     ratpackFile << """
-      get("/:a/:b/:c") {
-        renderString getRequest().urlParams.toString()
+      get("/") {
+        foo()
       }
     """
 
@@ -30,7 +33,14 @@ class PathParamsSpec extends RatpackSpec {
     startApp()
 
     then:
-    urlText("1/2/3") == [a: 1, b: 2, c: 3].toString()
-  }
+    errorText().contains("MultipleCompilationErrorsException")
 
+    when:
+    ratpackFile.text = """
+      get("/") { renderString "foo" }
+    """
+
+    then:
+    urlText() == "foo"
+  }
 }

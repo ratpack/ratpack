@@ -17,6 +17,9 @@
 package org.ratpackframework.routing
 
 import groovy.transform.CompileStatic
+import org.ratpackframework.HandlerClosure
+import org.ratpackframework.Request
+import org.ratpackframework.Response
 import org.ratpackframework.Routing
 import org.ratpackframework.responder.internal.ClosureBackedResponderFactory
 import org.ratpackframework.routing.internal.PathRouter
@@ -39,28 +42,28 @@ class RouterBuilderScript extends Script implements Routing {
     this
   }
 
-  void register(String method, String path, Closure handler) {
+  void register(String method, String path, @HandlerClosure Closure<?> handler) {
     routers << new PathRouter(path, method, new ClosureBackedResponderFactory(templateRenderer, handler))
   }
 
-  void get(String path, Closure handler) {
+  void get(String path, @HandlerClosure Closure<?> handler) {
     register("get", path, handler)
   }
 
-  void post(String path, Closure handler) {
+  void post(String path, @HandlerClosure Closure<?> handler) {
     register("post", path, handler)
   }
 
-  void put(String path, Closure handler) {
+  void put(String path, @HandlerClosure Closure<?> handler) {
     register("put", path, handler)
   }
 
-  void delete(String path, Closure handler) {
+  void delete(String path, @HandlerClosure Closure<?> handler) {
     register("delete", path, handler)
   }
 
   @Override
   Object run() {
-
+    this
   }
 }

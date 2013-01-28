@@ -14,7 +14,7 @@ class SessionSpec extends RatpackSpec {
     """
 
     when:
-    app.start()
+    startApp()
 
     then:
     urlText("a") == urlText("b")
@@ -33,7 +33,7 @@ class SessionSpec extends RatpackSpec {
     """
 
     when:
-    app.start()
+    startApp()
 
     and:
     urlText("set/foo") == "foo"

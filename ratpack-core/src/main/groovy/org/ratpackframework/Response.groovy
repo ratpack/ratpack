@@ -22,6 +22,8 @@ import org.vertx.java.core.buffer.Buffer
 
 interface Response {
 
+  Request getRequest()
+
   Map<String, ?> getHeaders()
 
   int getStatus()
@@ -32,7 +34,7 @@ interface Response {
 
   Handler<Buffer> renderer()
 
-  void render(Map<String, Object> model, String templateName)
+  void render(Map<String, ?> model, String templateName)
 
   void render(String templateName)
 
