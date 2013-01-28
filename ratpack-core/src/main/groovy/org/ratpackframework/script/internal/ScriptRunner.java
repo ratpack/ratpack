@@ -20,6 +20,7 @@ import groovy.lang.GroovyClassLoader;
 import groovy.lang.GroovyObject;
 import groovy.lang.Script;
 import groovy.transform.CompileStatic;
+import groovy.transform.InheritConstructors;
 import org.codehaus.groovy.ast.AnnotationNode;
 import org.codehaus.groovy.ast.ClassNode;
 import org.codehaus.groovy.classgen.GeneratorContext;
@@ -27,43 +28,35 @@ import org.codehaus.groovy.control.CompilePhase;
 import org.codehaus.groovy.control.CompilerConfiguration;
 import org.codehaus.groovy.control.SourceUnit;
 import org.codehaus.groovy.control.customizers.CompilationCustomizer;
+import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 
 public class ScriptRunner {
 
-  public void runWithDelegate(String scriptName, String scriptText, final GroovyObject delegate, ClassLoader parentLoader, boolean staticCompile) throws IllegalAccessException, InstantiationException {
-    run(scriptName, scriptText, DelegatingScript.class, parentLoader, staticCompile, new Configure<DelegatingScript>() {
-      @Override
-      public void configure(DelegatingScript thing) {
-        thing.$setDelegate(delegate);
-      }
-    });
-  }
-
-  public <T extends Script> T run(String scriptName, String scriptText, Class<T> scriptBaseClass, ClassLoader parentLoader, boolean staticCompile, Configure<T> configure) throws InstantiationException, IllegalAccessException {
-    T script = createScript(scriptName, scriptText, scriptBaseClass, parentLoader, staticCompile);
-    configure.configure(script);
+  public <T extends Script> T run(String scriptName, String scriptText, Class<T> scriptBaseClass, ClassLoader parentLoader, boolean staticCompile, Object... scriptConstructionArgs) throws InstantiationException, IllegalAccessException {
+    T script = createScript(scriptName, scriptText, scriptBaseClass, parentLoader, staticCompile, scriptConstructionArgs);
     script.run();
     return script;
   }
 
-  private <T extends Script> T createScript(String scriptName, String scriptText, Class<T> scriptBaseClass, ClassLoader parentLoader, boolean staticCompile) throws IllegalAccessException, InstantiationException {
+  private <T extends Script> T createScript(String scriptName, String scriptText, Class<T> scriptBaseClass, ClassLoader parentLoader, boolean staticCompile, Object... scriptConstructionArgs) throws IllegalAccessException, InstantiationException {
     GroovyClassLoader classLoader = createClassLoader(scriptBaseClass, parentLoader, staticCompile);
     @SuppressWarnings("unchecked") Class<T> scriptClass = classLoader.parseClass(scriptText, scriptName);
-    return scriptBaseClass.cast(scriptClass.newInstance());
+    return DefaultGroovyMethods.newInstance(scriptClass, scriptConstructionArgs);
   }
 
-  private GroovyClassLoader createClassLoader(Class<? extends Script> scriptClass, ClassLoader parentLoader, boolean staticCompile) {
-    CompilerConfiguration compilerConfiguration = new CompilerConfiguration();
+  private GroovyClassLoader createClassLoader(Class<? extends Script> scriptClass, final ClassLoader parentLoader, final boolean staticCompile) {
+    final CompilerConfiguration compilerConfiguration = new CompilerConfiguration();
     compilerConfiguration.getOptimizationOptions().put("indy", true);
     compilerConfiguration.setScriptBaseClass(scriptClass.getName());
-    if (staticCompile) {
       compilerConfiguration.addCompilationCustomizers(new CompilationCustomizer(CompilePhase.CONVERSION) {
         @Override
         public void call(SourceUnit source, GeneratorContext context, ClassNode classNode) throws org.codehaus.groovy.control.CompilationFailedException {
-          classNode.addAnnotation(new AnnotationNode(new ClassNode(CompileStatic.class)));
+          if (staticCompile) {
+            classNode.addAnnotation(new AnnotationNode(new ClassNode(CompileStatic.class)));
+          }
+          classNode.addAnnotation(new AnnotationNode(new ClassNode(InheritConstructors.class)));
         }
       });
-    }
     return new GroovyClassLoader(parentLoader, compilerConfiguration);
   }
 

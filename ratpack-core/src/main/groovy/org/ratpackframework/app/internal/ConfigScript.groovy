@@ -30,6 +30,10 @@ class ConfigScript extends Script implements Config {
   String templatesDir = "templates"
   String routes = "ratpack.groovy"
 
+  ConfigScript(File baseDir) {
+    this.baseDir = baseDir
+  }
+
   @Override
   void baseDir(File baseDir) {
     setBaseDir(baseDir)

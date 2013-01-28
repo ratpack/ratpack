@@ -16,11 +16,11 @@
 
 package org.ratpackframework.routing.internal
 
-import org.ratpackframework.templating.TemplateRenderer
 import org.ratpackframework.responder.Responder
 import org.ratpackframework.routing.Router
-import org.ratpackframework.routing.RouterBuilder
+import org.ratpackframework.routing.RouterBuilderScript
 import org.ratpackframework.script.internal.ScriptRunner
+import org.ratpackframework.templating.TemplateRenderer
 
 import javax.servlet.http.HttpServletRequest
 import java.util.concurrent.atomic.AtomicLong
@@ -68,11 +68,10 @@ class ScriptBackedRouter implements Router {
 
   private void refresh() {
     List<Router> routers = []
-    def routerBuilder = new RouterBuilder(routers, templateRenderer)
     long lastModified = scriptFile.lastModified()
     byte[] bytes = scriptFile.bytes
     String string = new String(bytes)
-    new ScriptRunner().runWithDelegate(scriptFile.name, string, routerBuilder, getClass().classLoader, false)
+    new ScriptRunner().run(scriptFile.name, string, RouterBuilderScript, getClass().classLoader, false, routers, templateRenderer)
     router.set(new CompositeRouter(routers))
     this.lastModified.set(lastModified)
     this.content.set(bytes)

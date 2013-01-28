@@ -14,10 +14,20 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.script.internal
+package org.ratpackframework
 
-interface Configure<T> {
+interface Routing {
 
-  void configure(T thing)
+  Routing getRouting()
+
+  void register(String method, String path, @DelegatesTo(Response) Closure<?> handler)
+
+  void get(String path, @DelegatesTo(Response) Closure<?> handler)
+
+  void post(String path, @DelegatesTo(Response) Closure<?> handler)
+
+  void put(String path, @DelegatesTo(Response) Closure<?> handler)
+
+  void delete(String path, @DelegatesTo(Response) Closure<?> handler)
 
 }
