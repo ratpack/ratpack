@@ -35,7 +35,7 @@ class TemplateCompilerTest extends Specification {
 
   def "rendering"() {
     expect:
-    compile("a<%= render 'foo' %>c").execute([:], renderer).parts*.toString() == ["a", "render:[templateName:foo, model:[:]]", "c"]
+    compile("a<% render 'foo' %>c").execute([:], renderer).parts*.toString() == ["a", "render:[templateName:foo, model:[:]]", "c"]
   }
 
 }

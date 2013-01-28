@@ -26,8 +26,10 @@ import java.util.Map;
 public class CompiledTemplate {
 
   private final Class<TemplateScript> templateClass;
+  private final String templateName;
 
-  public CompiledTemplate(Class<TemplateScript> templateClass) {
+  public CompiledTemplate(String templateName, Class<TemplateScript> templateClass) {
+    this.templateName = templateName;
     this.templateClass = templateClass;
   }
 
@@ -36,7 +38,7 @@ public class CompiledTemplate {
     Map<String, Object> modelTyped = (Map<String, Object>) model;
     TemplateModel templateModel = new MapBackedTemplateModel(modelTyped);
     List<Object> parts = new LinkedList<Object>();
-    TemplateScript script = DefaultGroovyMethods.newInstance(templateClass, new Object[]{templateModel, parts, nestedRenderer});
+    TemplateScript script = DefaultGroovyMethods.newInstance(templateClass, new Object[]{templateName, templateModel, parts, nestedRenderer});
     script.run();
     return new ExecutedTemplate(parts);
   }

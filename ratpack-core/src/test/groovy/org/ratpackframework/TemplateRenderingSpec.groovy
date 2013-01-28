@@ -80,8 +80,8 @@ class TemplateRenderingSpec extends RatpackSpec {
 
   def "inner template exceptions"() {
     given:
-    templateFile("outer.html") << "outer: \${model.value}, \${render 'inner.html', value: 'inner'}"
-    templateFile("inner.html") << "inner: \${model.value}, \${render 'innerInner.html', value: 1}, \${render 'innerInner.html', value: 2}, \${render 'innerInner.html', value: 1}"
+    templateFile("outer.html") << "outer: \${model.value}, <% render 'inner.html', value: 'inner' %>"
+    templateFile("inner.html") << "inner: \${model.value}, <% render 'innerInner.html', value: 1 %>, <% render 'innerInner.html', value: 2 %>, <% render 'innerInner.html', value: 1 %>"
     templateFile("innerInner.html") << "\${throw new Exception(model.value.toString())}"
 
     and:
@@ -95,7 +95,7 @@ class TemplateRenderingSpec extends RatpackSpec {
     startApp()
 
     then:
-    errorText().contains('org.ratpackframework.templating.internal.CompositeException: messages{')
+    errorText().contains('org.ratpackframework.templating.internal.CompositeException')
   }
 
   def "nested templates inherit the outer model"() {
@@ -138,4 +138,27 @@ class TemplateRenderingSpec extends RatpackSpec {
     where:
     template << ["\${render 'foo'}", "<%= render 'foo.html' %>"]
   }
+
+  @Unroll "error when using render in output section in nested - #template"() {
+    given:
+    templateFile("outer.html") << "<% render 'inner.html' %>"
+    templateFile("inner.html") << template
+
+    and:
+    ratpackFile << """
+      get("/") {
+        render "outer.html"
+      }
+    """
+
+    when:
+    startApp()
+
+    then:
+    errorText().contains(InvalidTemplateException.name)
+
+    where:
+    template << ["\${render 'foo'}", "<%= render 'foo.html' %>"]
+  }
+
 }

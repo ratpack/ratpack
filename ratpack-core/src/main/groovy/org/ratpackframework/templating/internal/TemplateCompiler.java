@@ -65,7 +65,7 @@ public class TemplateCompiler {
 
     try {
       Class<TemplateScript> scriptClass = scriptEngine.compile(name, scriptSourceString);
-      return new CompiledTemplate(scriptClass);
+      return new CompiledTemplate(name, scriptClass);
     } catch (Exception e) {
       throw new GroovyRuntimeException("Failed to parse template script (your template may contain an error or be trying to use expressions not currently supported): " + e.getMessage());
     }

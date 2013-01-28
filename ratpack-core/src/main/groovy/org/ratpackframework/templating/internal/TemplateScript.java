@@ -11,13 +11,15 @@ import java.util.Map;
 
 public abstract class TemplateScript extends Script implements Template {
 
+  private final String templateName;
   private final TemplateModel model;
   private final List<Object> parts;
   private final NestedRenderer renderer;
 
   private boolean outputMode = false;
 
-  protected TemplateScript(TemplateModel model, List<Object> parts, NestedRenderer renderer) {
+  protected TemplateScript(String templateName, TemplateModel model, List<Object> parts, NestedRenderer renderer) {
+    this.templateName = templateName;
     this.model = model;
     this.parts = parts;
     this.renderer = renderer;
@@ -28,26 +30,30 @@ public abstract class TemplateScript extends Script implements Template {
     return model;
   }
 
-  protected void $o() { // enter output mode
+  public void $o() { // enter output mode
     this.outputMode = true;
   }
 
-  protected void $c() { // enter code mode
+  public void $c() { // enter code mode
     this.outputMode = false;
   }
 
   @Override
   public void render(String templateName) {
     if (outputMode) {
-      throw new InvalidTemplateException("The render() method can only be called from <% %> blocks (not ${} or <%= %> blocks)");
+      invalidRender();
     }
     parts.add(renderer.render(templateName, Collections.<String, Object>emptyMap()));
+  }
+
+  private void invalidRender() {
+    throw new InvalidTemplateException(templateName, "The render() method can only be called from <% %> blocks (not ${} or <%= %> blocks)");
   }
 
   @Override
   public void render(Map<String, ?> model, String templateName) {
     if (outputMode) {
-      throw new InvalidTemplateException("The render() method can only be called from <% %> blocks (not ${} or <%= %> blocks)");
+      invalidRender();
     }
     parts.add(renderer.render(templateName, model));
   }

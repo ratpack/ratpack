@@ -28,17 +28,18 @@ public class CompositeException extends Exception {
 
   @Override
   public String getMessage() {
-    StringBuilder builder = new StringBuilder("messages{");
+    StringBuilder builder = new StringBuilder("{\n");
     int i = 0;
     for (Exception exception : exceptions) {
-      builder.append('"');
+      builder.append("  ");
+      builder.append(exception.getClass().getName());
+      builder.append(": ");
       builder.append(exception.getMessage());
-      builder.append('"');
       if (++i < exceptions.size()) {
-        builder.append(", ");
+        builder.append(",\n");
       }
     }
-    builder.append("}");
+    builder.append("\n}");
     return builder.toString();
   }
 }
