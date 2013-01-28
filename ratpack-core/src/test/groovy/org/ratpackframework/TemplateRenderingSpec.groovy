@@ -95,5 +95,24 @@ class TemplateRenderingSpec extends RatpackSpec {
     errorText().contains('org.ratpackframework.templating.internal.CompositeException: messages{')
   }
 
+  def "nested templates inherit the outer model"() {
+    given:
+    templateFile("outer.html") << "outer: \${model.a}\${model.b}, <% render 'inner.html', b: 'B' %>"
+    templateFile("inner.html") << "inner: \${model.a}\${model.b}, <% render 'innerInner.html', a: 'A' %>"
+    templateFile("innerInner.html") << "innerInner: \${model.a}\${model.b}"
+
+    and:
+    ratpackFile << """
+      get("/") {
+        render "outer.html", a: "a", b: "b"
+      }
+    """
+
+    when:
+    startApp()
+
+    then:
+    urlText() == "outer: ab, inner: aB, innerInner: AB"
+  }
 
 }

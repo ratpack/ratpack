@@ -131,11 +131,13 @@ public class Render {
     completeTemplate(executingTemplate);
   }
 
-  private ExecutedTemplate execute(CompiledTemplate compiledTemplate, Map<String, ?> model) {
+  private ExecutedTemplate execute(CompiledTemplate compiledTemplate, final Map<String, ?> model) {
     return compiledTemplate.execute(model, new NestedRenderer() {
-      public NestedTemplate render(String templatePath, Map<String, ?> model) {
+      public NestedTemplate render(String templatePath, Map<String, ?> nestedModel) {
         final NestedTemplate nestedTemplate = new NestedTemplate();
-        executeNested(templatePath, model, nestedTemplate);
+        Map<String, Object> modelCopy = new HashMap<String, Object>(model);
+        modelCopy.putAll(nestedModel);
+        executeNested(templatePath, modelCopy, nestedTemplate);
         return nestedTemplate;
       }
     });
