@@ -60,4 +60,12 @@ interface Response {
 
   public void error(Exception e)
 
+  /**
+   * Catches any exceptions thrown during the closure execution and handles appropriately.
+   *
+   * If you go off the first thread, you need to wrap any error throwing code in this.
+   *
+   * @param closure The code that may throw exceptions.
+   */
+  public void handleErrors(Closure<?> closure)
 }

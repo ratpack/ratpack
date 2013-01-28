@@ -17,6 +17,7 @@
 package org.ratpackframework.internal;
 
 import groovy.json.JsonBuilder;
+import groovy.lang.Closure;
 import org.ratpackframework.Request;
 import org.ratpackframework.Response;
 import org.ratpackframework.responder.FinalizedResponse;
@@ -148,4 +149,14 @@ public class DefaultResponse implements Response {
   public void error(Exception e) {
     finalHandler.handle(new AsyncResult<FinalizedResponse>(e));
   }
+
+  @Override
+  public void handleErrors(Closure<?> closure) {
+    try {
+      closure.call();
+    } catch (Exception e) {
+      error(e);
+    }
+  }
+
 }

@@ -22,4 +22,23 @@ class ErrorHandlingSpec extends RatpackSpec {
     then:
     errorText().contains 'error here'
   }
+
+  def "can use wrap error"() {
+    given:
+    ratpackFile << """
+      get("/") { request, response ->
+        Thread.start {
+          response.handleErrors {
+            throw new Exception("bang!")
+          }
+        }
+      }
+    """
+
+    when:
+    startApp()
+
+    then:
+    errorText().contains 'bang!'
+  }
 }
