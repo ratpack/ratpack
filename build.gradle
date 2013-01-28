@@ -1,5 +1,5 @@
 allprojects {
-  group = 'org.ratpackframework'
+  group = 'org.ratpackframework.vertx'
   version = rootProject.file("shared-resources/org/ratpackframework/ratpack-version.txt").text.trim()
 
   apply plugin: 'idea'

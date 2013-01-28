@@ -1,6 +1,6 @@
 buildscript {
   repositories {
-    mavenLocal()
+    maven { url "file://${rootProject.rootDir.absolutePath}/localrepo" }
     mavenCentral()
   }
   dependencies {
@@ -11,6 +11,6 @@ buildscript {
 apply plugin: 'ratpack'
 
 repositories {
-  maven { url: "file://${rootProject.rootDir.absolutePath}/localrepo" }
+  maven { url "file://${rootProject.rootDir.absolutePath}/localrepo" }
   mavenCentral()
 }

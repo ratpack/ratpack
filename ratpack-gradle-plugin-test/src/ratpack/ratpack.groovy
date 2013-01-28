@@ -1,3 +1,3 @@
 get("/") {
-  response.renderString "foo"
+  renderString "foo"
 }
