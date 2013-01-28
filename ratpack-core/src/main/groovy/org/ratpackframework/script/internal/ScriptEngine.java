@@ -17,7 +17,6 @@
 package org.ratpackframework.script.internal;
 
 import groovy.lang.GroovyClassLoader;
-import groovy.lang.GroovyObject;
 import groovy.lang.Script;
 import groovy.transform.CompileStatic;
 import groovy.transform.InheritConstructors;
@@ -30,33 +29,38 @@ import org.codehaus.groovy.control.SourceUnit;
 import org.codehaus.groovy.control.customizers.CompilationCustomizer;
 import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 
-public class ScriptRunner {
+public class ScriptEngine<T extends Script> {
 
-  public <T extends Script> T run(String scriptName, String scriptText, Class<T> scriptBaseClass, ClassLoader parentLoader, boolean staticCompile, Object... scriptConstructionArgs) throws InstantiationException, IllegalAccessException {
-    T script = createScript(scriptName, scriptText, scriptBaseClass, parentLoader, staticCompile, scriptConstructionArgs);
+  private final GroovyClassLoader classLoader;
+
+  public ScriptEngine(ClassLoader parentLoader, boolean staticCompile, Class<T> scriptBaseClass) {
+    this.classLoader = createClassLoader(parentLoader, staticCompile, scriptBaseClass);
+  }
+
+  public <T extends Script> T run(String scriptName, String scriptText, Object... scriptConstructionArgs) throws InstantiationException, IllegalAccessException {
+    T script = create(scriptName, scriptText, scriptConstructionArgs);
     script.run();
     return script;
   }
 
-  private <T extends Script> T createScript(String scriptName, String scriptText, Class<T> scriptBaseClass, ClassLoader parentLoader, boolean staticCompile, Object... scriptConstructionArgs) throws IllegalAccessException, InstantiationException {
-    GroovyClassLoader classLoader = createClassLoader(scriptBaseClass, parentLoader, staticCompile);
+  public <T extends Script> T create(String scriptName, String scriptText, Object... scriptConstructionArgs) throws IllegalAccessException, InstantiationException {
     @SuppressWarnings("unchecked") Class<T> scriptClass = classLoader.parseClass(scriptText, scriptName);
     return DefaultGroovyMethods.newInstance(scriptClass, scriptConstructionArgs);
   }
 
-  private GroovyClassLoader createClassLoader(Class<? extends Script> scriptClass, final ClassLoader parentLoader, final boolean staticCompile) {
+  private GroovyClassLoader createClassLoader(ClassLoader parentLoader, final boolean staticCompile, Class<? extends Script> scriptBaseClass) {
     final CompilerConfiguration compilerConfiguration = new CompilerConfiguration();
     compilerConfiguration.getOptimizationOptions().put("indy", true);
-    compilerConfiguration.setScriptBaseClass(scriptClass.getName());
-      compilerConfiguration.addCompilationCustomizers(new CompilationCustomizer(CompilePhase.CONVERSION) {
-        @Override
-        public void call(SourceUnit source, GeneratorContext context, ClassNode classNode) throws org.codehaus.groovy.control.CompilationFailedException {
-          if (staticCompile) {
-            classNode.addAnnotation(new AnnotationNode(new ClassNode(CompileStatic.class)));
-          }
-          classNode.addAnnotation(new AnnotationNode(new ClassNode(InheritConstructors.class)));
+    compilerConfiguration.setScriptBaseClass(scriptBaseClass.getName());
+    compilerConfiguration.addCompilationCustomizers(new CompilationCustomizer(CompilePhase.CONVERSION) {
+      @Override
+      public void call(SourceUnit source, GeneratorContext context, ClassNode classNode) throws org.codehaus.groovy.control.CompilationFailedException {
+        if (staticCompile) {
+          classNode.addAnnotation(new AnnotationNode(new ClassNode(CompileStatic.class)));
         }
-      });
+        classNode.addAnnotation(new AnnotationNode(new ClassNode(InheritConstructors.class)));
+      }
+    });
     return new GroovyClassLoader(parentLoader, compilerConfiguration);
   }
 

@@ -19,7 +19,7 @@ package org.ratpackframework.app.internal
 import groovy.transform.CompileStatic
 import org.ratpackframework.app.Config
 
-import org.ratpackframework.script.internal.ScriptRunner
+import org.ratpackframework.script.internal.ScriptEngine
 
 @CompileStatic
 class ConfigLoader {
@@ -28,7 +28,7 @@ class ConfigLoader {
     if (!configFile.exists()) {
       new ConfigScript(configFile.parentFile)
     } else {
-      new ScriptRunner().run(configFile.name, configFile.text, ConfigScript, getClass().classLoader, true, configFile.parentFile)
+      new ScriptEngine<ConfigScript>(getClass().classLoader, true, ConfigScript).run(configFile.name, configFile.text, configFile.parentFile)
     }
   }
 

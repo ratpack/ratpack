@@ -19,7 +19,7 @@ package org.ratpackframework.routing.internal
 import org.ratpackframework.responder.Responder
 import org.ratpackframework.routing.Router
 import org.ratpackframework.routing.RouterBuilderScript
-import org.ratpackframework.script.internal.ScriptRunner
+import org.ratpackframework.script.internal.ScriptEngine
 import org.ratpackframework.templating.TemplateRenderer
 
 import javax.servlet.http.HttpServletRequest
@@ -71,7 +71,7 @@ class ScriptBackedRouter implements Router {
     long lastModified = scriptFile.lastModified()
     byte[] bytes = scriptFile.bytes
     String string = new String(bytes)
-    new ScriptRunner().run(scriptFile.name, string, RouterBuilderScript, getClass().classLoader, false, routers, templateRenderer)
+    new ScriptEngine(getClass().classLoader, false, RouterBuilderScript).run(scriptFile.name, string, routers, templateRenderer)
     router.set(new CompositeRouter(routers))
     this.lastModified.set(lastModified)
     this.content.set(bytes)
