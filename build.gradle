@@ -62,8 +62,15 @@ subprojects {
   }
 
   install {
+    repositories {
+      mavenDeployer {
+        repository(url: "file://${rootProject.rootDir.absolutePath}/localrepo")
+        poms << pom
+      }
+    }
     repositories.mavenInstaller {
       poms << pom
+
     }
   }
 

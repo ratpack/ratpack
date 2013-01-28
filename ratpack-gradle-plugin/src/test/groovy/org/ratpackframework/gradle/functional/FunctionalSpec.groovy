@@ -96,6 +96,10 @@ abstract class FunctionalSpec extends Specification {
       apply plugin: RatpackPlugin
       archivesBaseName = "functional-test"
       version = "1.0"
+      repositories {
+        maven { url "file://${localRepo.absolutePath}" }
+        mavenCentral()
+      }
     """
   }
 
@@ -120,5 +124,10 @@ abstract class FunctionalSpec extends Specification {
     }
 
     new File(unpacked, path)
+  }
+
+  File getLocalRepo() {
+    def rootRelative = new File("localrepo")
+    rootRelative.directory ? rootRelative : new File(new File(System.getProperty("user.dir")).parentFile, "localrepo")
   }
 }
