@@ -1,5 +1,5 @@
 allprojects {
-  group = 'org.ratpackframework.vertx'
+  group = 'org.ratpack-framework.vertx'
   version = rootProject.file("shared-resources/org/ratpackframework/ratpack-version.txt").text.trim()
 
   apply plugin: 'idea'
@@ -65,10 +65,12 @@ subprojects {
       beforeDeployment { deployment ->
         signing.signPom(deployment)
       }
-      name = 'mavenCentralReleaseDeployer'
       gradle.taskGraph.whenReady { taskGraph ->
         if (taskGraph.hasTask(task)) {
           repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
+            authentication(userName: mavenCentralUsername, password: mavenCentralPassword)
+          }
+          snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots") {
             authentication(userName: mavenCentralUsername, password: mavenCentralPassword)
           }
         }
