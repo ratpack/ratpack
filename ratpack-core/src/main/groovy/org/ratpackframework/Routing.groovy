@@ -51,7 +51,7 @@ interface Routing {
   /**
    * Delegates {@link #register(java.lang.String, java.lang.String, groovy.lang.Closure)} with a method of "get"
    */
-  void get(String path, @DelegatesTo(value = Response.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler)
+  void get(String path, @HandlerClosure Closure<?> handler)
 
   /**
    * Delegates {@link #register(java.lang.String, java.lang.String, groovy.lang.Closure)} with a method of "post"
@@ -67,5 +67,4 @@ interface Routing {
    * Delegates {@link #register(java.lang.String, java.lang.String, groovy.lang.Closure)} with a method of "delete"
    */
   void delete(String path, @HandlerClosure Closure<?> handler)
-
 }
