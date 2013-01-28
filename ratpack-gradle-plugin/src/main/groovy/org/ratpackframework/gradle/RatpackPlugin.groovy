@@ -55,7 +55,7 @@ class RatpackPlugin implements Plugin<Project> {
 
     project.dependencies {
       runtime 'org.slf4j:slf4j-simple:1.6.3'
-      compile "com.augusttechgroup:ratpack-core:${version}"
+      compile "org.ratpackframework:ratpack-core:${version}"
     }
 
     def configureRun = project.task("configureRun")
