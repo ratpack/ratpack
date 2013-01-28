@@ -22,11 +22,6 @@ class InstallAppSpec extends FunctionalSpec {
 
   def "everything goes in the right place"() {
     given:
-    buildFile << """
-      repositories {
-        mavenLocal()
-       }
-    """
     file("src/ratpack/ratpack.groovy") << """
       get("/") { renderString "foo" }
     """
