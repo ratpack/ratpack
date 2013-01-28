@@ -7,6 +7,8 @@ import org.ratpackframework.templating.TemplateRenderer
 import org.vertx.java.core.Vertx
 import org.vertx.java.core.http.HttpServer
 
+import java.util.concurrent.CountDownLatch
+
 @CompileStatic
 class RatpackApp {
 
@@ -19,6 +21,8 @@ class RatpackApp {
   final File staticFiles
 
   private final Vertx vertx
+
+  private CountDownLatch latch
 
   RatpackApp(Vertx vertx, int port, String appPath, Router router, TemplateRenderer templateCompiler, File staticFiles) {
     this.vertx = vertx
@@ -35,6 +39,7 @@ class RatpackApp {
     }
 
     server = vertx.createHttpServer()
+    latch = new CountDownLatch(1)
     ErrorHandler errorHandler = new ErrorHandler(templateCompiler)
     def notFoundHandler = new NotFoundHandler(templateCompiler)
 
@@ -45,9 +50,15 @@ class RatpackApp {
     server.listen(port)
   }
 
+  void startAndWait() {
+    start()
+    latch.await()
+  }
+
   void stop() {
     server.close()
     server = null
+    latch.countDown()
   }
 
 }
