@@ -16,19 +16,19 @@ class TemplateParserTest extends Specification {
 
   def "encoding"() {
     expect:
-    parse("abc") == '$o();str("""abc""");$c();'
-    parse("aéc") == '$o();str("""aéc""");$c();'
-    parse("a\u1234c") == '$o();str("""a\u1234c""");$c();'
+    parse("abc") == '$o();$s("""abc""");$c();'
+    parse("aéc") == '$o();$s("""aéc""");$c();'
+    parse("a\u1234c") == '$o();$s("""a\u1234c""");$c();'
   }
 
   def "gstrings"() {
     expect:
-    parse("a\${'b'}c") == '$o();str("""a${\'b\'}c""");$c();'
+    parse("a\${'b'}c") == '$o();$s("""a${\'b\'}c""");$c();'
   }
 
   def "code blocks"() {
     expect:
-    parse("a<% b %>c") == '$o();str("""a""");$c(); b ;$o();str("""c""");$c();'
+    parse("a<% b %>c") == '$o();$s("""a""");$c(); b ;$o();$s("""c""");$c();'
   }
 
 }

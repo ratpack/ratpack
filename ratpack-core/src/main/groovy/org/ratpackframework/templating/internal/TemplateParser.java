@@ -72,7 +72,7 @@ public class TemplateParser {
   }
 
   private void startScript(Buffer script) {
-    script.appendString("$o();str(\"\"\"");
+    script.appendString("$o();$s(\"\"\"");
   }
 
   private void endScript(Buffer script) {
@@ -130,7 +130,7 @@ public class TemplateParser {
       output.appendByte(c);
     }
 
-    output.appendString(";$o();str(\"\"\"");
+    output.appendString(";$o();$s(\"\"\"");
   }
 
 }

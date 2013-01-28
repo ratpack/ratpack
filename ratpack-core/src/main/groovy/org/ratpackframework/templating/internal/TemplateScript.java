@@ -58,7 +58,7 @@ public abstract class TemplateScript extends Script implements Template {
     parts.add(renderer.render(templateName, model));
   }
 
-  public void str(CharSequence charSequence) {
+  public void $s(CharSequence charSequence) {
     parts.add(charSequence);
   }
 
