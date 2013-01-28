@@ -15,6 +15,7 @@ subprojects {
 
   apply plugin: 'groovy'
   apply plugin: 'maven'
+  apply from: "${rootDir}/gradle/pom.gradle"
   apply plugin: 'signing'
 
   repositories {
@@ -48,29 +49,11 @@ subprojects {
     required { gradle.taskGraph.hasTask(uploadArchives) }
   }
 
-  ext {
-    poms = []
-    pomModifications = []
-    modifyPom = { pomModifications << it }
-    applyPomMods = { poms ->
-      poms.each { pom ->
-        pomModifications.each { mod ->
-          project.configure(pom, mod)
-        }
-      }
-    }
-  }
-
   install {
     repositories {
       mavenDeployer {
         repository(url: "file://${rootProject.rootDir.absolutePath}/localrepo")
-        poms << pom
       }
-    }
-    repositories.mavenInstaller {
-      poms << pom
-
     }
   }
 
@@ -84,22 +67,16 @@ subprojects {
         if (taskGraph.hasTask(task)) {
           repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
             authentication(userName: mavenCentralUsername, password: mavenCentralPassword)
-            releases(updatePolicy: 'always')
-            snapshots(updatePolicy: 'never')
           }
         }
       }
-      poms << pom
     }
   }
-
-
-  poms*.whenConfigured { applyPomMods(it) }
 
   modifyPom {
     project {
       description 'A Micro Web Framework for Groovy'
-      url 'https://github.com/tlberglund/ratpack'
+      url 'https://github.com/ratpack/ratpack'
       licenses {
         license {
           name 'The Apache Software License, Version 2.0'
@@ -113,15 +90,19 @@ subprojects {
           name 'Tim Berglund'
           email 'tlberglund@gmail.com'
         }
+        developer {
+          id 'ldaley'
+          name 'Luke Daley'
+          email 'ld@ldaley.com'
+        }
       }
       scm {
-        connection 'scm:https://tlberglund@github.com/tlberglund/Ratpack'
-        developerConnection 'scm:git@github.com:tlberglund/Ratpack.git'
-        url 'https://github.com/tlberglund/Ratpack'
+        connection 'scm:https://ratpack@github.com/ratpack/ratpack'
+        developerConnection 'scm:git@github.com:ratpack/ratpack.git'
+        url 'https://github.com/ratpack/ratpack'
       }
     }
   }
-
 }
 
 task wrapper(type: Wrapper) {
