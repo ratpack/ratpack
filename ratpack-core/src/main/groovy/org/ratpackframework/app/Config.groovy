@@ -16,6 +16,9 @@
 
 package org.ratpackframework.app
 
+/**
+ * The API for the config file.
+ */
 interface Config {
 
   File getBaseDir()

@@ -16,6 +16,9 @@
 
 package org.ratpackframework
 
+/**
+ * A response to a request
+ */
 interface Response {
 
   Map<String, ?> getHeaders()
