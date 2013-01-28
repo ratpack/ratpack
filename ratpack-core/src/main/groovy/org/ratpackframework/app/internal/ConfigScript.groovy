@@ -28,6 +28,8 @@ class ConfigScript extends Script implements Config {
   int port = 5050
   String publicDir = "public"
   String templatesDir = "templates"
+  int templatesCacheSize = 0
+  boolean staticallyCompileTemplates = true
   String routes = "ratpack.groovy"
 
   ConfigScript(File baseDir) {
@@ -49,6 +51,16 @@ class ConfigScript extends Script implements Config {
 
   void templatesDir(String templatesDir) {
     setTemplatesDir(templatesDir)
+  }
+
+  @Override
+  void templatesCacheSize(int templatesCacheSize) {
+    setTemplatesCacheSize(templatesCacheSize)
+  }
+
+  @Override
+  void staticallyCompileTemplates(boolean staticallyCompileTemplates) {
+    setStaticallyCompileTemplates(staticallyCompileTemplates)
   }
 
   void routes(String routes) {

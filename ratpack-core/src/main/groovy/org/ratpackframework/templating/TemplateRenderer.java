@@ -39,12 +39,13 @@ public class TemplateRenderer {
   private final String errorPageTemplate;
 
   private final Cache<String, CompiledTemplate> compiledTemplateCache;
+  private final boolean staticallyCompile;
 
-  public TemplateRenderer(Vertx vertx, File dir, int cacheSize) {
+  public TemplateRenderer(Vertx vertx, File dir, int cacheSize, boolean staticallyCompile) {
     this.vertx = vertx;
+    this.staticallyCompile = staticallyCompile;
     this.templateDirPath = dir.getAbsolutePath();
     this.errorPageTemplate = getResourceText("exception.html");
-
     this.compiledTemplateCache = CacheBuilder.newBuilder().maximumSize(cacheSize).build();
   }
 
@@ -88,7 +89,7 @@ public class TemplateRenderer {
   }
 
   private TemplateCompiler createCompiler() {
-    return new TemplateCompiler(new GroovyClassLoader());
+    return new TemplateCompiler(new GroovyClassLoader(), staticallyCompile);
   }
 
   private void render(TemplateCompiler templateCompiler, CompiledTemplate compiledTemplate, Map<String, Object> model, AsyncResultHandler<Buffer> handler) {

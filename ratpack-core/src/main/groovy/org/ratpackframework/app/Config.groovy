@@ -34,6 +34,14 @@ interface Config {
   void setTemplatesDir(String templatesDir)
   void templatesDir(String templatesDir)
 
+  int getTemplatesCacheSize()
+  void setTemplatesCacheSize(int templatesCacheSize)
+  void templatesCacheSize(int templatesCacheSize)
+
+  boolean isStaticallyCompileTemplates()
+  void setStaticallyCompileTemplates(boolean staticallyCompileTemplates)
+  void staticallyCompileTemplates(boolean staticallyCompileTemplates)
+
   String getRoutes()
   void setRoutes(String routes)
   void routes(String routes)

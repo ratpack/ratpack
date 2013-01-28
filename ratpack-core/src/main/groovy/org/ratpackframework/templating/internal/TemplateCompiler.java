@@ -41,23 +41,27 @@ public class TemplateCompiler {
   private final TemplateParser parser = new TemplateParser();
   private final CompilerConfiguration compilerConfiguration;
   private ClassLoader parentLoader;
+  private boolean staticallyCompile;
 
-  public TemplateCompiler(ClassLoader parentLoader) {
-    this(parentLoader, false);
+  public TemplateCompiler(ClassLoader parentLoader, boolean staticallyCompile) {
+    this(parentLoader, staticallyCompile, false);
   }
 
-  public TemplateCompiler(ClassLoader parentLoader, boolean verbose) {
+  public TemplateCompiler(ClassLoader parentLoader, boolean staticallyCompile, boolean verbose) {
     this.parentLoader = parentLoader;
+    this.staticallyCompile = staticallyCompile;
     this.verbose = verbose;
     compilerConfiguration = new CompilerConfiguration();
     compilerConfiguration.getOptimizationOptions().put("indy", true);
     compilerConfiguration.setScriptBaseClass(TemplateScript.class.getName());
-    compilerConfiguration.addCompilationCustomizers(new CompilationCustomizer(CompilePhase.CONVERSION) {
-      @Override
-      public void call(SourceUnit source, GeneratorContext context, ClassNode classNode) throws CompilationFailedException {
-        classNode.addAnnotation(new AnnotationNode(new ClassNode(CompileStatic.class)));
-      }
-    });
+    if (staticallyCompile) {
+      compilerConfiguration.addCompilationCustomizers(new CompilationCustomizer(CompilePhase.CONVERSION) {
+        @Override
+        public void call(SourceUnit source, GeneratorContext context, ClassNode classNode) throws CompilationFailedException {
+          classNode.addAnnotation(new AnnotationNode(new ClassNode(CompileStatic.class)));
+        }
+      });
+    }
   }
 
   public CompiledTemplate compile(Buffer templateSource, String name) throws CompilationFailedException, IOException {

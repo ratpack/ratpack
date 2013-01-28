@@ -17,7 +17,6 @@
 package org.ratpackframework.script.internal;
 
 import groovy.lang.GroovyClassLoader;
-import groovy.lang.GroovyObject;
 import groovy.lang.Script;
 import groovy.transform.CompileStatic;
 import groovy.transform.InheritConstructors;
