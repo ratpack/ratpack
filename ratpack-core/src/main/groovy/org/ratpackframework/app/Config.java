@@ -26,9 +26,7 @@ public interface Config {
   /**
    * The base directory of the app.
    *
-   * All other paths that are part of the config (e.g. templatesDir) are relative to this.
-   * <p>
-   * If ratpack was started via {@link RatpackMain}, this will be the JVM working directory, or the parent
+   * All other paths that are part of the config (e.g. templatesDir) are relative to this. <p> If ratpack was started via {@link RatpackMain}, this will be the JVM working directory, or the parent
    * directory of the config file that was passed as the argument.
    */
   File getBaseDir();
@@ -112,7 +110,7 @@ public interface Config {
   void routes(String routes);
 
   /**
-   * How many compiled templates to keep cached in memory.
+   * <<<<<<< HEAD How many compiled templates to keep cached in memory.
    *
    * Defaults to 0 (i.e. always reload templates)
    */
@@ -161,5 +159,22 @@ public interface Config {
    * @see #isStaticallyCompileRoutes()
    */
   void staticallyCompileRoutes(boolean staticallyCompileRoutes);
+
+  /**
+   * Should the routes file be automatically reloaded when it changes.
+   *
+   * Defaults to true.
+   */
+  boolean isReloadRoutes();
+
+  /**
+   * @see #isReloadRoutes()
+   */
+  void setReloadRoutes(boolean reloadRoutes);
+
+  /**
+   * @see #isReloadRoutes()
+   */
+  void reloadRoutes(boolean reloadRoutes);
 
 }

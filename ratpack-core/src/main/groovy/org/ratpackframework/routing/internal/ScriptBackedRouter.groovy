@@ -47,12 +47,19 @@ class ScriptBackedRouter implements Router {
 
   private boolean staticallyCompile
 
-  ScriptBackedRouter(Vertx vertx, File scriptFile, TemplateRenderer templateRenderer, boolean staticallyCompile) {
+  private final boolean reloadable
+
+  ScriptBackedRouter(Vertx vertx, File scriptFile, TemplateRenderer templateRenderer, boolean staticallyCompile, boolean reloadable) {
     this.fileSystem = vertx.fileSystem()
     this.scriptFilePath = scriptFile.absolutePath
     this.scriptFileName = scriptFile.name
     this.templateRenderer = templateRenderer
     this.staticallyCompile = staticallyCompile
+    this.reloadable = reloadable
+
+    if (!reloadable) {
+      refreshSync()
+    }
   }
 
   @Override
@@ -92,6 +99,11 @@ class ScriptBackedRouter implements Router {
   }
 
   void checkForChanges(RoutedRequest routedRequest, Router noChange, Router didChange) {
+    if (!reloadable) {
+      noChange.handle(routedRequest)
+      return
+    }
+
     fileSystem.props(scriptFilePath, routedRequest.errorHandler.asyncHandler(routedRequest.request, new Handler<FileProps>() {
       void handle(FileProps fileProps) {
         if (fileProps.lastModifiedTime.time != lastModifiedHolder.get()) {
@@ -111,7 +123,6 @@ class ScriptBackedRouter implements Router {
         }))
       }
     }))
-
   }
 
   private void refreshSync() {

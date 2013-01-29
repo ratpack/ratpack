@@ -31,6 +31,7 @@ public class ConfigScript extends Script implements Config {
   private int templatesCacheSize = 0;
   private boolean staticallyCompileTemplates = true;
   boolean staticallyCompileRoutes = false;
+  private boolean reloadRoutes = true;
 
   public ConfigScript(File baseDir) {
     this.baseDir = baseDir;
@@ -84,6 +85,14 @@ public class ConfigScript extends Script implements Config {
   @Override
   public void setRoutes(String routes) {
     this.routes = routes;
+  }
+
+  public boolean isReloadRoutes() {
+    return reloadRoutes;
+  }
+
+  public void setReloadRoutes(boolean reloadRoutes) {
+    this.reloadRoutes = reloadRoutes;
   }
 
   @Override
@@ -154,6 +163,11 @@ public class ConfigScript extends Script implements Config {
   @Override
   public void staticallyCompileRoutes(boolean staticallyCompileRoutes) {
     setStaticallyCompileRoutes(staticallyCompileRoutes);
+  }
+
+  @Override
+  public void reloadRoutes(boolean reloadRoutes) {
+    setReloadRoutes(reloadRoutes);
   }
 
   @Override

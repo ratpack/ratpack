@@ -62,6 +62,46 @@ class BasicRatpackSpec extends RatpackSpec {
     urlGetText() == "bar"
   }
 
+  def "can disable reloading"() {
+    given:
+    config.reloadRoutes false
+    ratpackFile << """
+      get("/") {
+        renderString "foo"
+      }
+    """
+
+    when:
+    startApp()
+
+    then:
+    urlText() == "foo"
+
+    when:
+    ratpackFile.text = """
+      get("/") {
+        renderString "bar"
+      }
+    """
+
+    then:
+    urlText() == "foo"
+  }
+
+  def "app does not start when routes is invalid and reloading disabled"() {
+    given:
+    config.reloadRoutes false
+    ratpackFile << """
+      s s da
+    """
+
+    when:
+    startApp()
+
+    then:
+    thrown(Exception)
+  }
+
   def "can redirect"() {
     given:
     ratpackFile << """

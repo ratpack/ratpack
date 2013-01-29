@@ -59,7 +59,9 @@ class RatpackSpec extends Specification {
 
   def startApp() {
     app = new RatpackAppFactory().create(Vertx.newVertx(), config)
+    config.baseDir(temporaryFolder.root)
     app.start()
+
   }
 
   def cleanup() {
