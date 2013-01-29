@@ -47,7 +47,5 @@ class ClosureBackedResponder extends AbstractResponder {
       default:
         clone.call(request, response)
     }
-
-    clone.delegate = null
   }
 }
