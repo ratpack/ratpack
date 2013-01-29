@@ -55,7 +55,6 @@ public class DefaultRequest implements Request {
   @Override
   public void buffer(Closure<?> receiver) {
     vertxRequest.bodyHandler(errorHandler(new ClosureHandlerAdapter<Buffer>(receiver)));
-    vertxRequest.resume();
   }
 
   @Override
@@ -66,7 +65,6 @@ public class DefaultRequest implements Request {
         textReceiver.call(event.toString(getContentType().getCharset()));
       }
     }));
-    vertxRequest.resume();
   }
 
   @Override
@@ -77,7 +75,6 @@ public class DefaultRequest implements Request {
         jsonReceiver.call(new JsonSlurper().parseText(event.toString(getContentType().getCharset())));
       }
     }));
-    vertxRequest.resume();
   }
 
   @Override
@@ -88,7 +85,6 @@ public class DefaultRequest implements Request {
         formReceiver.call(new ParamParser().parse(event.toString(getContentType().getCharset())));
       }
     }));
-    vertxRequest.resume();
   }
 
   @Override

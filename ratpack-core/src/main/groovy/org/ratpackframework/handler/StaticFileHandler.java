@@ -22,6 +22,7 @@ public class StaticFileHandler implements Handler<HttpServerRequest> {
   }
 
   public void handle(final HttpServerRequest request) {
+    request.resume();
     if (request.path.equals("/")) {
       request.response.statusCode = 403;
       request.response.end();

@@ -38,6 +38,7 @@ public class ErrorHandler implements Handler<ErroredHttpServerRequest> {
 
   @Override
   public void handle(ErroredHttpServerRequest erroredRequest) {
+    erroredRequest.getRequest().resume();
     @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
     Exception error = (Exception) StackTraceUtils.deepSanitize(erroredRequest.getException());
     error.printStackTrace(System.err);
