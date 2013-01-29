@@ -10,11 +10,15 @@ import org.ratpackframework.templating.TemplateRenderer
 import org.vertx.java.core.Handler
 import org.vertx.java.core.Vertx
 import org.vertx.java.core.http.HttpServer
+import org.vertx.java.core.logging.Logger
+import org.vertx.java.core.logging.impl.LoggerFactory
 
 import java.util.concurrent.CountDownLatch
 
 @CompileStatic
 class RatpackApp {
+
+  private final Logger logger = LoggerFactory.getLogger(getClass())
 
   private HttpServer server
 
@@ -59,6 +63,9 @@ class RatpackApp {
 
     server.requestHandler(routingHandler)
     server.listen(port, host)
+    if (logger.isInfoEnabled()) {
+      logger.info(String.format("Ratpack started for http://%s:%s", host, port))
+    }
   }
 
   void startAndWait() {

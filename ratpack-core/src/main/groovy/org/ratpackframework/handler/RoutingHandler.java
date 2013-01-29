@@ -6,11 +6,15 @@ import org.ratpackframework.routing.internal.RoutedRequest;
 import org.vertx.java.core.Handler;
 import org.vertx.java.core.http.HttpServerRequest;
 import org.vertx.java.core.http.HttpServerResponse;
+import org.vertx.java.core.logging.Logger;
+import org.vertx.java.core.logging.impl.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.Map;
 
 public class RoutingHandler implements Handler<HttpServerRequest> {
+
+  private final Logger logger = LoggerFactory.getLogger(getClass());
 
   private final Router router;
   private ErrorHandler errorHandler;
@@ -25,6 +29,10 @@ public class RoutingHandler implements Handler<HttpServerRequest> {
   @Override
   public void handle(final HttpServerRequest request) {
     request.pause();
+
+    if (logger.isInfoEnabled()) {
+      logger.info(String.format("request: %s", request.uri));
+    }
 
     RoutedRequest routedRequest = new RoutedRequest(request, errorHandler, notFoundHandler, errorHandler.asyncHandler(request, new Handler<FinalizedResponse>() {
       @Override
