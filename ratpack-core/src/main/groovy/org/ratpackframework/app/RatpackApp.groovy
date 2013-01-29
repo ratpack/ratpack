@@ -18,18 +18,19 @@ class RatpackApp {
 
   private HttpServer server
 
+  final Vertx vertx
+  final String host
   final int port
   final String appPath
   final Router router
   final TemplateRenderer templateCompiler
   final File staticFiles
 
-  private final Vertx vertx
-
   private CountDownLatch latch
 
-  RatpackApp(Vertx vertx, int port, String appPath, Router router, TemplateRenderer templateCompiler, File staticFiles) {
+  RatpackApp(Vertx vertx, String host, int port, Router router, TemplateRenderer templateCompiler, File staticFiles) {
     this.vertx = vertx
+    this.host = host
     this.port = port
     this.appPath = appPath
     this.router = router
@@ -57,7 +58,7 @@ class RatpackApp {
     def routingHandler = new RoutingHandler(router, errorHandler, staticHandler)
 
     server.requestHandler(routingHandler)
-    server.listen(port)
+    server.listen(port, host)
   }
 
   void startAndWait() {

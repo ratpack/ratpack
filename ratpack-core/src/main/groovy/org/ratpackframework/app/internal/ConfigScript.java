@@ -25,6 +25,7 @@ public class ConfigScript extends Script implements Config {
 
   private File baseDir;
   private int port = 5050;
+  private String host = "localhost";
   private String staticAssetsDir = "public";
   private String templatesDir = "templates";
   private String routes = "ratpack.groovy";
@@ -55,6 +56,14 @@ public class ConfigScript extends Script implements Config {
   @Override
   public void setPort(int port) {
     this.port = port;
+  }
+
+  public String getHost() {
+    return host;
+  }
+
+  public void setHost(String host) {
+    this.host = host;
   }
 
   @Override
@@ -133,6 +142,11 @@ public class ConfigScript extends Script implements Config {
   @Override
   public void port(int port) {
     setPort(port);
+  }
+
+  @Override
+  public void host(String host) {
+    setHost(host);
   }
 
   @Override

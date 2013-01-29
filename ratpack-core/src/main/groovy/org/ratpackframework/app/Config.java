@@ -59,6 +59,23 @@ public interface Config {
   void port(int port);
 
   /**
+   * The hostname to listen to requests on.
+   *
+   * Defaults to "localhost".
+   */
+  String getHost();
+
+  /**
+   * @see #getHost()
+   */
+  void setHost(String host);
+
+  /**
+   * @see #getHost()
+   */
+  void host(String host);
+
+  /**
    * The relative path (to the baseDir) to the directory containing static assets to serve.
    *
    * Defaults to "public".
