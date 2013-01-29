@@ -54,7 +54,9 @@ class PathRouter implements Router {
 
     def matcher = tokenisedPath.regex.matcher(request.path)
     if (matcher.matches()) {
-      responderFactory.createResponder(new DefaultRequest(request, routedRequest.errorHandler, toUrlParams(matcher))).respond(routedRequest.finalizedResponseHandler)
+      final wrappedRequest = new DefaultRequest(request, routedRequest.errorHandler, toUrlParams(matcher))
+      final responder = responderFactory.createResponder(wrappedRequest)
+      responder.respond(routedRequest.finalizedResponseHandler)
     } else {
       routedRequest.notFoundHandler.handle(request)
     }
