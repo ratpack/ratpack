@@ -17,15 +17,15 @@
 package org.ratpackframework.app
 
 import groovy.transform.CompileStatic
-import org.vertx.java.core.Vertx
 import org.ratpackframework.routing.internal.ScriptBackedRouter
 import org.ratpackframework.templating.TemplateRenderer
+import org.vertx.java.core.Vertx
 
 @CompileStatic
 public class RatpackAppFactory {
 
   RatpackApp create(Vertx vertx, Config config) {
-    def publicDir = new File(config.baseDir, config.publicDir)
+    def publicDir = new File(config.baseDir, config.staticAssetsDir)
     def templateRenderer = new TemplateRenderer(vertx, new File(config.baseDir, config.templatesDir), config.templatesCacheSize, config.staticallyCompileTemplates)
     def router = new ScriptBackedRouter(vertx, new File(config.baseDir, config.routes), templateRenderer, config.staticallyCompileRoutes)
     new RatpackApp(vertx, config.port, "/", router, templateRenderer, publicDir)
