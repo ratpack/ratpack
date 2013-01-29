@@ -75,7 +75,7 @@ class BasicRatpackSpec extends RatpackSpec {
     startApp()
 
     then:
-    urlText() == "foo"
+    urlGetText() == "foo"
 
     when:
     ratpackFile.text = """
@@ -85,7 +85,7 @@ class BasicRatpackSpec extends RatpackSpec {
     """
 
     then:
-    urlText() == "foo"
+    urlGetText() == "foo"
   }
 
   def "app does not start when routes is invalid and reloading disabled"() {
