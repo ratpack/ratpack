@@ -14,13 +14,16 @@ class RatpackApp {
 
   private Server server
 
+  final String host
   final int port
   final String appPath
   final Router router
   final TemplateRenderer renderer
   final File staticFiles
 
-  RatpackApp(int port, String appPath, Router router, TemplateRenderer renderer, File staticFiles) {
+
+  RatpackApp(String host, int port, String appPath, Router router, TemplateRenderer renderer, File staticFiles) {
+    this.host = host
     this.port = port
     this.appPath = appPath
     this.router = router
@@ -33,7 +36,7 @@ class RatpackApp {
       throw new IllegalStateException("server already running")
     }
 
-    server = new Server(port)
+    server = new Server(new InetSocketAddress(host, port))
     def handlerList = new HandlerCollection()
 
     def resourceHandler = new ResourceHandler()
