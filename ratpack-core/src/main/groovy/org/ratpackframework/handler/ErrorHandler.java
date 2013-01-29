@@ -24,11 +24,15 @@ import org.vertx.java.core.AsyncResultHandler;
 import org.vertx.java.core.Handler;
 import org.vertx.java.core.buffer.Buffer;
 import org.vertx.java.core.http.HttpServerRequest;
+import org.vertx.java.core.logging.Logger;
+import org.vertx.java.core.logging.impl.LoggerFactory;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class ErrorHandler implements Handler<ErroredHttpServerRequest> {
+
+  private final Logger logger = LoggerFactory.getLogger(getClass());
 
   private final TemplateRenderer templateRenderer;
 
@@ -41,7 +45,7 @@ public class ErrorHandler implements Handler<ErroredHttpServerRequest> {
     erroredRequest.getRequest().resume();
     @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
     Exception error = (Exception) StackTraceUtils.deepSanitize(erroredRequest.getException());
-    error.printStackTrace(System.err);
+    logger.error(error);
     HttpServerRequest request = erroredRequest.getRequest();
     request.response.statusCode = 500;
     renderException(error, request, new FallbackErrorHandlingTemplateRenderer(request, "rendering error template"));
