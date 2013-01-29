@@ -31,7 +31,7 @@ public class RoutingHandler implements Handler<HttpServerRequest> {
     request.pause();
 
     if (logger.isInfoEnabled()) {
-      logger.info(String.format("request: %s", request.uri));
+      logger.info("received " + request.uri );
     }
 
     RoutedRequest routedRequest = new RoutedRequest(request, errorHandler, notFoundHandler, errorHandler.asyncHandler(request, new Handler<FinalizedResponse>() {

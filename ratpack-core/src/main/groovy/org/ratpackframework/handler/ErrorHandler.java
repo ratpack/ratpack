@@ -16,7 +16,6 @@
 
 package org.ratpackframework.handler;
 
-import groovy.lang.Closure;
 import org.codehaus.groovy.runtime.StackTraceUtils;
 import org.ratpackframework.templating.TemplateRenderer;
 import org.vertx.java.core.AsyncResult;
@@ -45,7 +44,7 @@ public class ErrorHandler implements Handler<ErroredHttpServerRequest> {
     erroredRequest.getRequest().resume();
     @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
     Exception error = (Exception) StackTraceUtils.deepSanitize(erroredRequest.getException());
-    logger.error(error);
+    logger.error("error handling " + erroredRequest.getRequest().uri, error);
     HttpServerRequest request = erroredRequest.getRequest();
     request.response.statusCode = 500;
     renderException(error, request, new FallbackErrorHandlingTemplateRenderer(request, "rendering error template"));
