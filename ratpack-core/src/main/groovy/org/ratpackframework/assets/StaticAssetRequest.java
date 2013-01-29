@@ -18,6 +18,7 @@ package org.ratpackframework.assets;
 
 import org.ratpackframework.handler.ErrorHandler;
 import org.vertx.java.core.Handler;
+import org.vertx.java.core.buffer.Buffer;
 import org.vertx.java.core.file.FileProps;
 import org.vertx.java.core.http.HttpServerRequest;
 
@@ -34,5 +35,7 @@ public interface StaticAssetRequest {
   void props(Handler<FileProps> handler);
 
   void exists(Handler<Boolean> handler);
+
+  void read(Handler<Buffer> handler);
 
 }

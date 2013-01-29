@@ -1,11 +1,10 @@
 package org.ratpackframework.app
 
 import groovy.transform.CompileStatic
-import org.ratpackframework.assets.DirectoryStaticAssetRequestHandler
-import org.ratpackframework.assets.FileStaticAssetRequestHandler
-import org.ratpackframework.assets.StaticAssetRequest
-import org.ratpackframework.assets.StaticAssetRequestHandlerWrapper
-import org.ratpackframework.handler.*
+import org.ratpackframework.assets.*
+import org.ratpackframework.handler.ErrorHandler
+import org.ratpackframework.handler.NotFoundHandler
+import org.ratpackframework.handler.RoutingHandler
 import org.ratpackframework.routing.Router
 import org.ratpackframework.templating.TemplateRenderer
 import org.vertx.java.core.Handler
@@ -49,7 +48,9 @@ class RatpackApp {
     def notFoundHandler = new NotFoundHandler(templateCompiler)
 
     def Handler<StaticAssetRequest> staticHandlerChain = new DirectoryStaticAssetRequestHandler(
-        new FileStaticAssetRequestHandler()
+        new HttpCachingStaticAssetRequestHandler(
+            new FileStaticAssetRequestHandler()
+        )
     )
 
     def staticHandler = new StaticAssetRequestHandlerWrapper(vertx, errorHandler, notFoundHandler, staticFiles.absolutePath, staticHandlerChain)

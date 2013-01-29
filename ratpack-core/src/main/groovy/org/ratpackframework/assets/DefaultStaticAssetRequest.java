@@ -19,6 +19,7 @@ package org.ratpackframework.assets;
 import org.ratpackframework.handler.ErrorHandler;
 import org.vertx.java.core.Handler;
 import org.vertx.java.core.Vertx;
+import org.vertx.java.core.buffer.Buffer;
 import org.vertx.java.core.file.FileProps;
 import org.vertx.java.core.file.FileSystemProps;
 import org.vertx.java.core.http.HttpServerRequest;
@@ -89,4 +90,15 @@ public class DefaultStaticAssetRequest implements StaticAssetRequest {
       }));
     }
   }
+
+  @Override
+  public void read(final Handler<Buffer> handler) {
+    vertx.fileSystem().readFile(filePath, errorHandler.asyncHandler(request, new Handler<Buffer>() {
+      @Override
+      public void handle(Buffer buffer) {
+        handler.handle(buffer);
+      }
+    }));
+  }
+
 }

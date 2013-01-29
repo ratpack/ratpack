@@ -16,7 +16,9 @@
 
 package org.ratpackframework.assets;
 
+import org.ratpackframework.util.HttpDateUtil;
 import org.vertx.java.core.Handler;
+import org.vertx.java.core.file.FileProps;
 
 public class FileStaticAssetRequestHandler implements Handler<StaticAssetRequest> {
 
@@ -26,7 +28,13 @@ public class FileStaticAssetRequestHandler implements Handler<StaticAssetRequest
       @Override
       public void handle(Boolean exists) {
         if (exists) {
-          assetRequest.getRequest().response.sendFile(assetRequest.getFilePath());
+          assetRequest.props(new Handler<FileProps>() {
+            @Override
+            public void handle(FileProps props) {
+              assetRequest.getRequest().response.putHeader("Last-Modified", HttpDateUtil.formatDate(props.lastModifiedTime));
+              assetRequest.getRequest().response.sendFile(assetRequest.getFilePath());
+            }
+          });
         } else {
           assetRequest.getNotFoundHandler().handle(assetRequest.getRequest());
         }
