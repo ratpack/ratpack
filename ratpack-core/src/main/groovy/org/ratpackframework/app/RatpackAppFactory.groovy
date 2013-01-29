@@ -24,7 +24,7 @@ import org.ratpackframework.templating.TemplateRenderer
 public class RatpackAppFactory {
 
   RatpackApp create(Config config) {
-    def publicDir = new File(config.baseDir, config.publicDir)
+    def publicDir = new File(config.baseDir, config.staticAssetsDir)
     def templateRenderer = new TemplateRenderer(new File(config.baseDir, config.templatesDir))
     def router = new ScriptBackedRouter(new File(config.baseDir, config.routes), templateRenderer)
 
