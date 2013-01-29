@@ -111,4 +111,55 @@ public interface Config {
    */
   void routes(String routes);
 
+  /**
+   * How many compiled templates to keep cached in memory.
+   *
+   * Defaults to 0 (i.e. always reload templates)
+   */
+  int getTemplatesCacheSize();
+
+  /**
+   * @see #getTemplatesCacheSize()
+   */
+  void setTemplatesCacheSize(int templateCacheSize);
+
+  /**
+   * @see #getTemplatesCacheSize()
+   */
+  void templatesCacheSize(int templateCacheSize);
+
+  /**
+   * Should the templates be compiled statically.
+   *
+   * Defaults to true.
+   */
+  boolean isStaticallyCompileTemplates();
+
+  /**
+   * @see #isStaticallyCompileTemplates()
+   */
+  void setStaticallyCompileTemplates(boolean staticallyCompileTemplates);
+
+  /**
+   * @see #isStaticallyCompileTemplates()
+   */
+  void staticallyCompileTemplates(boolean staticallyCompileTemplates);
+
+  /**
+   * Should the routes file (i.e. ratpack.groovy) be compiled statically.
+   *
+   * Defaults to true.
+   */
+  boolean isStaticallyCompileRoutes();
+
+  /**
+   * @see #isStaticallyCompileRoutes()
+   */
+  void setStaticallyCompileRoutes(boolean staticallyCompileRoutes);
+
+  /**
+   * @see #isStaticallyCompileRoutes()
+   */
+  void staticallyCompileRoutes(boolean staticallyCompileRoutes);
+
 }

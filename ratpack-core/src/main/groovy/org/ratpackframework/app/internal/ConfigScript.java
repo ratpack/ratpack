@@ -28,6 +28,9 @@ public class ConfigScript extends Script implements Config {
   private String staticAssetsDir = "public";
   private String templatesDir = "templates";
   private String routes = "ratpack.groovy";
+  private int templatesCacheSize = 0;
+  private boolean staticallyCompileTemplates = true;
+  boolean staticallyCompileRoutes = false;
 
   public ConfigScript(File baseDir) {
     this.baseDir = baseDir;
@@ -84,6 +87,36 @@ public class ConfigScript extends Script implements Config {
   }
 
   @Override
+  public int getTemplatesCacheSize() {
+    return templatesCacheSize;
+  }
+
+  @Override
+  public void setTemplatesCacheSize(int templatesCacheSize) {
+    this.templatesCacheSize = templatesCacheSize;
+  }
+
+  @Override
+  public boolean isStaticallyCompileTemplates() {
+    return staticallyCompileTemplates;
+  }
+
+  @Override
+  public void setStaticallyCompileTemplates(boolean staticallyCompileTemplates) {
+    this.staticallyCompileTemplates = staticallyCompileTemplates;
+  }
+
+  @Override
+  public boolean isStaticallyCompileRoutes() {
+    return staticallyCompileRoutes;
+  }
+
+  @Override
+  public void setStaticallyCompileRoutes(boolean staticallyCompileRoutes) {
+    this.staticallyCompileRoutes = staticallyCompileRoutes;
+  }
+
+  @Override
   public void baseDir(File baseDir) {
     setBaseDir(baseDir);
   }
@@ -106,6 +139,21 @@ public class ConfigScript extends Script implements Config {
   @Override
   public void routes(String routes) {
     setRoutes(routes);
+  }
+
+  @Override
+  public void templatesCacheSize(int templateCacheSize) {
+    setTemplatesCacheSize(templateCacheSize);
+  }
+
+  @Override
+  public void staticallyCompileTemplates(boolean staticallyCompileTemplates) {
+    setStaticallyCompileTemplates(staticallyCompileTemplates);
+  }
+
+  @Override
+  public void staticallyCompileRoutes(boolean staticallyCompileRoutes) {
+    setStaticallyCompileRoutes(staticallyCompileRoutes);
   }
 
   @Override

@@ -18,7 +18,6 @@ package org.ratpackframework.app.internal
 
 import groovy.transform.CompileStatic
 import org.ratpackframework.app.Config
-
 import org.ratpackframework.script.internal.ScriptEngine
 
 @CompileStatic
