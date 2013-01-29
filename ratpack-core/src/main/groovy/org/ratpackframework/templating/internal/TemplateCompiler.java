@@ -29,6 +29,8 @@ import org.codehaus.groovy.control.SourceUnit;
 import org.codehaus.groovy.control.customizers.CompilationCustomizer;
 import org.ratpackframework.script.internal.ScriptEngine;
 import org.vertx.java.core.buffer.Buffer;
+import org.vertx.java.core.logging.Logger;
+import org.vertx.java.core.logging.impl.LoggerFactory;
 
 import java.io.IOException;
 
@@ -38,6 +40,9 @@ import java.io.IOException;
  * That class is not suitable for the kind of extension required.
  */
 public class TemplateCompiler {
+
+  private final Logger logger = LoggerFactory.getLogger(getClass());
+
   private boolean verbose;
   private final TemplateParser parser = new TemplateParser();
   private final ScriptEngine<TemplateScript> scriptEngine;
@@ -57,10 +62,8 @@ public class TemplateCompiler {
 
     String scriptSourceString = scriptSource.toString();
 
-    if (verbose) {
-      System.out.println("\n-- script source --");
-      System.out.print(scriptSourceString);
-      System.out.println("\n-- script end --\n");
+    if (verbose && logger.isInfoEnabled()) {
+      logger.info(new StringBuilder("\n-- script source --\n").append(scriptSourceString).append("\n-- script end --\n"));
     }
 
     try {
