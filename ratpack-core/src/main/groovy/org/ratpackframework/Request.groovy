@@ -16,6 +16,8 @@
 
 package org.ratpackframework
 
+import org.vertx.java.core.http.HttpServerRequest
+
 /**
  * A request to be handled.
  */
@@ -38,5 +40,7 @@ interface Request {
   void json(Closure<?> jsonReceiver)
 
   void form(Closure<?> formReceiver)
+
+  HttpServerRequest getVertxRequest()
 
 }
