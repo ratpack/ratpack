@@ -55,7 +55,6 @@ public class ScriptEngine<T extends Script> {
 
   private GroovyClassLoader createClassLoader(ClassLoader parentLoader, final boolean staticCompile, Class<? extends Script> scriptBaseClass) {
     final CompilerConfiguration compilerConfiguration = new CompilerConfiguration();
-    compilerConfiguration.getOptimizationOptions().put("indy", true);
     compilerConfiguration.setScriptBaseClass(scriptBaseClass.getName());
     compilerConfiguration.addCompilationCustomizers(new CompilationCustomizer(CompilePhase.CONVERSION) {
       @Override
