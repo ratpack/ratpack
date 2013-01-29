@@ -24,7 +24,7 @@ class StaticFileSpec extends RatpackSpec {
     publicFile("foo/static.text") << "hello!"
 
     when:
-    app.start()
+    startApp()
 
     then:
     urlConnection("").responseCode == 403
@@ -37,7 +37,7 @@ class StaticFileSpec extends RatpackSpec {
     publicFile("static.text") << "hello!"
 
     when:
-    app.start()
+    startApp()
 
     then:
     urlText("static.text") == "hello!"
@@ -51,7 +51,7 @@ class StaticFileSpec extends RatpackSpec {
     """
 
     when:
-    app.start()
+    startApp()
 
     then:
     urlText("static.text") == "hello!"

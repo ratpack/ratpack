@@ -27,7 +27,7 @@ class PathParamsSpec extends RatpackSpec {
     """
 
     when:
-    app.start()
+    startApp()
 
     then:
     urlText("1/2/3") == [a: 1, b: 2, c: 3].toString()

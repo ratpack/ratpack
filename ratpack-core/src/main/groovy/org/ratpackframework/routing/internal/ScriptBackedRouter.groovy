@@ -38,9 +38,16 @@ class ScriptBackedRouter implements Router {
   private final AtomicReference<Router> router = new AtomicReference<>(null)
   private final Lock lock = new ReentrantLock()
 
-  ScriptBackedRouter(File scriptFile, TemplateRenderer templateRenderer) {
+  private final boolean reloadable
+
+  ScriptBackedRouter(File scriptFile, TemplateRenderer templateRenderer, boolean reloadable) {
     this.scriptFile = scriptFile
     this.templateRenderer = templateRenderer
+    this.reloadable = reloadable
+
+    if (!reloadable) {
+      refresh()
+    }
   }
 
   @Override
@@ -78,7 +85,7 @@ class ScriptBackedRouter implements Router {
   }
 
   private boolean isNeedUpdate() {
-    router.get() == null || isTimestampMismatch() || isContentMismatch()
+    reloadable && (router.get() == null || isTimestampMismatch() || isContentMismatch())
   }
 
   private boolean isTimestampMismatch() {

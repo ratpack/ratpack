@@ -111,4 +111,21 @@ public interface Config {
    */
   void routes(String routes);
 
+  /**
+   * Should the routes file be automatically reloaded when it changes.
+   *
+   * Defaults to true.
+   */
+  boolean isReloadRoutes();
+
+  /**
+   * @see #isReloadRoutes()
+   */
+  void setReloadRoutes(boolean reloadRoutes);
+
+  /**
+   * @see #isReloadRoutes()
+   */
+  void reloadRoutes(boolean reloadRoutes);
+
 }

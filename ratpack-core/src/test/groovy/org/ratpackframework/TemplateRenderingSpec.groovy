@@ -30,7 +30,7 @@ class TemplateRenderingSpec extends RatpackSpec {
     """
 
     when:
-    app.start()
+    startApp()
 
     then:
     urlText() == "bar"
@@ -50,7 +50,7 @@ class TemplateRenderingSpec extends RatpackSpec {
     """
 
     when:
-    app.start()
+    startApp()
 
     then:
     urlText() == "outer: outer, inner: inner"
@@ -69,7 +69,7 @@ class TemplateRenderingSpec extends RatpackSpec {
     """
 
     when:
-    app.start()
+    startApp()
 
     then:
     urlText("noModel") == "1"

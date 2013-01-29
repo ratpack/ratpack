@@ -28,6 +28,7 @@ public class ConfigScript extends Script implements Config {
   private String staticAssetsDir = "public";
   private String templatesDir = "templates";
   private String routes = "ratpack.groovy";
+  private boolean reloadRoutes = true;
 
   public ConfigScript(File baseDir) {
     this.baseDir = baseDir;
@@ -83,6 +84,14 @@ public class ConfigScript extends Script implements Config {
     this.routes = routes;
   }
 
+  public boolean isReloadRoutes() {
+    return reloadRoutes;
+  }
+
+  public void setReloadRoutes(boolean reloadRoutes) {
+    this.reloadRoutes = reloadRoutes;
+  }
+
   @Override
   public void baseDir(File baseDir) {
     setBaseDir(baseDir);
@@ -106,6 +115,11 @@ public class ConfigScript extends Script implements Config {
   @Override
   public void routes(String routes) {
     setRoutes(routes);
+  }
+
+  @Override
+  public void reloadRoutes(boolean reloadRoutes) {
+    setReloadRoutes(reloadRoutes);
   }
 
   @Override

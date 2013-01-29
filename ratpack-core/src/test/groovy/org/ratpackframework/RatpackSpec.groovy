@@ -54,11 +54,15 @@ class RatpackSpec extends Specification {
 
   def setup() {
     config.baseDir(temporaryFolder.root)
+  }
+
+  def startApp() {
     app = new RatpackAppFactory().create(config)
+    app.start()
   }
 
   def cleanup() {
-    app.stop()
+    app?.stop()
   }
 
   HttpURLConnection urlConnection(String path = "") {

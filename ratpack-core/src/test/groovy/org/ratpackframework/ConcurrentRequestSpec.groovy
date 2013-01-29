@@ -16,7 +16,7 @@ class ConcurrentRequestSpec extends RatpackSpec {
     """
 
     when:
-    app.start()
+    startApp()
 
     def threads = 100
     def latch = new CountDownLatch(threads)
