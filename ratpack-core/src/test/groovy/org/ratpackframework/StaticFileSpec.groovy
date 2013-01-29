@@ -27,9 +27,9 @@ class StaticFileSpec extends RatpackSpec {
     startApp()
 
     then:
-    urlConnection("").responseCode == 403
-    urlConnection("foo").responseCode == 403
-    urlConnection("foos").responseCode == 404
+    urlGetConnection("").responseCode == 403
+    urlGetConnection("foo").responseCode == 403
+    urlGetConnection("foos").responseCode == 404
   }
 
   def "can serve static file"() {
@@ -40,7 +40,7 @@ class StaticFileSpec extends RatpackSpec {
     startApp()
 
     then:
-    urlText("static.text") == "hello!"
+    urlGetText("static.text") == "hello!"
   }
 
   def "handlers override static files"() {
@@ -54,8 +54,8 @@ class StaticFileSpec extends RatpackSpec {
     startApp()
 
     then:
-    urlText("static.text") == "hello!"
-    urlText() == "foo"
+    urlGetText("static.text") == "hello!"
+    urlGetText() == "foo"
 
     when:
     ratpackFile << """
@@ -63,7 +63,7 @@ class StaticFileSpec extends RatpackSpec {
     """
 
     then:
-    urlText("static.text") == "bar"
+    urlGetText("static.text") == "bar"
   }
 
 }

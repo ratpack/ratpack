@@ -7,7 +7,7 @@ class ErrorHandlingSpec extends RatpackSpec {
     startApp()
 
     then:
-    urlConnection("foo").responseCode == 404
+    urlGetConnection("foo").responseCode == 404
   }
 
   def "handles internal error"() {
@@ -20,7 +20,7 @@ class ErrorHandlingSpec extends RatpackSpec {
     startApp()
 
     then:
-    errorText().contains 'error here'
+    errorGetText().contains 'error here'
   }
 
   def "can use wrap error"() {
@@ -39,6 +39,6 @@ class ErrorHandlingSpec extends RatpackSpec {
     startApp()
 
     then:
-    errorText().contains 'bang!'
+    errorGetText().contains 'bang!'
   }
 }

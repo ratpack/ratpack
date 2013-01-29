@@ -17,7 +17,7 @@ class SessionSpec extends RatpackSpec {
     startApp()
 
     then:
-    urlText("a") == urlText("b")
+    urlGetText("a") == urlGetText("b")
   }
 
   def "can store session vars"() {
@@ -36,10 +36,10 @@ class SessionSpec extends RatpackSpec {
     startApp()
 
     and:
-    urlText("set/foo") == "foo"
+    urlGetText("set/foo") == "foo"
 
     then:
-    urlText() == "foo"
+    urlGetText() == "foo"
   }
 
 }

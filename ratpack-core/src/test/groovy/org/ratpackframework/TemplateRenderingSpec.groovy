@@ -36,7 +36,7 @@ class TemplateRenderingSpec extends RatpackSpec {
     startApp()
 
     then:
-    urlText() == "a bar b  a  a  a "
+    urlGetText() == "a bar b  a  a  a "
   }
 
   def "can render inner template"() {
@@ -55,7 +55,7 @@ class TemplateRenderingSpec extends RatpackSpec {
     startApp()
 
     then:
-    urlText() == "outer: outer, inner: inner"
+    urlGetText() == "outer: outer, inner: inner"
   }
 
   def "can render inner, inner template"() {
@@ -75,7 +75,7 @@ class TemplateRenderingSpec extends RatpackSpec {
     startApp()
 
     then:
-    urlText() == "outer: outer, inner: inner, innerInner: 1, innerInner: 2, innerInner: 1"
+    urlGetText() == "outer: outer, inner: inner, innerInner: 1, innerInner: 2, innerInner: 1"
   }
 
   def "inner template exceptions"() {
@@ -95,7 +95,7 @@ class TemplateRenderingSpec extends RatpackSpec {
     startApp()
 
     then:
-    errorText().contains('org.ratpackframework.templating.internal.CompositeException')
+    errorGetText().contains('org.ratpackframework.templating.internal.CompositeException')
   }
 
   def "nested templates inherit the outer model"() {
@@ -115,7 +115,7 @@ class TemplateRenderingSpec extends RatpackSpec {
     startApp()
 
     then:
-    urlText() == "outer: ab, inner: aB, innerInner: AB"
+    urlGetText() == "outer: ab, inner: aB, innerInner: AB"
   }
 
   @Unroll "error when using render in output section - #template"() {
@@ -133,7 +133,7 @@ class TemplateRenderingSpec extends RatpackSpec {
     startApp()
 
     then:
-    errorText().contains(InvalidTemplateException.name)
+    errorGetText().contains(InvalidTemplateException.name)
 
     where:
     template << ["\${render 'foo'}", "<%= render 'foo.html' %>"]
@@ -155,7 +155,7 @@ class TemplateRenderingSpec extends RatpackSpec {
     startApp()
 
     then:
-    errorText().contains(InvalidTemplateException.name)
+    errorGetText().contains(InvalidTemplateException.name)
 
     where:
     template << ["\${render 'foo'}", "<%= render 'foo.html' %>"]

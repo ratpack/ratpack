@@ -33,7 +33,7 @@ class StaticRoutesFileSpec extends RatpackSpec {
     startApp()
 
     then:
-    errorText().contains("MultipleCompilationErrorsException")
+    errorGetText().contains("MultipleCompilationErrorsException")
 
     when:
     ratpackFile.text = """
@@ -41,6 +41,6 @@ class StaticRoutesFileSpec extends RatpackSpec {
     """
 
     then:
-    urlText() == "foo"
+    urlGetText() == "foo"
   }
 }

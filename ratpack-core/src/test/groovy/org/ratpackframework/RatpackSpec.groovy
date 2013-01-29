@@ -66,9 +66,18 @@ class RatpackSpec extends Specification {
     app?.stop()
   }
 
-  HttpURLConnection urlConnection(String path = "") {
+  HttpURLConnection urlGetConnection(String path = "") {
+    urlConnection(path, "get")
+  }
+
+  HttpURLConnection urlPostConnection(String path = "") {
+    urlConnection(path, "post")
+  }
+
+  HttpURLConnection urlConnection(String path = "", String method) {
     def connection = new URL("http://localhost:$app.port/$path").openConnection() as HttpURLConnection
     connection.allowUserInteraction = true
+    connection.requestMethod = method.toUpperCase()
     cookieManager.setCookies(connection)
     try {
       connection.connect()
@@ -79,11 +88,15 @@ class RatpackSpec extends Specification {
     connection
   }
 
-  String urlText(String path = "") {
-    new String(urlConnection(path).inputStream.bytes)
+  String urlGetText(String path = "") {
+    new String(urlGetConnection(path).inputStream.bytes)
   }
 
-  String errorText(String path = "") {
-    new String(urlConnection(path).errorStream.bytes)
+  String urlPostText(String path = "") {
+    new String(urlPostConnection(path).inputStream.bytes)
+  }
+
+  String errorGetText(String path = "") {
+    new String(urlGetConnection(path).errorStream.bytes)
   }
 }

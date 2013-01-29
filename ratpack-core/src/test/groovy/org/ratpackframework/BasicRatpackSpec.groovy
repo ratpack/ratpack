@@ -22,7 +22,10 @@ class BasicRatpackSpec extends RatpackSpec {
     given:
     ratpackFile << """
       get("/") {
-        renderString "foo"
+        renderString "get"
+      }
+      post("/") {
+        renderString "post"
       }
     """
 
@@ -30,7 +33,8 @@ class BasicRatpackSpec extends RatpackSpec {
     startApp()
 
     then:
-    urlText() == "foo"
+    urlGetText() == "get"
+    urlPostText() == "post"
   }
 
   def "is reloadable"() {
@@ -45,7 +49,7 @@ class BasicRatpackSpec extends RatpackSpec {
     startApp()
 
     then:
-    urlText() == "foo"
+    urlGetText() == "foo"
 
     when:
     ratpackFile.text = """
@@ -55,7 +59,7 @@ class BasicRatpackSpec extends RatpackSpec {
     """
 
     then:
-    urlText() == "bar"
+    urlGetText() == "bar"
   }
 
   def "can redirect"() {
@@ -73,7 +77,7 @@ class BasicRatpackSpec extends RatpackSpec {
     startApp()
 
     then:
-    urlText('') == "foo"
+    urlGetText('') == "foo"
   }
 
 }

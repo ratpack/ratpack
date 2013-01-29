@@ -28,7 +28,7 @@ class ConcurrentRequestSpec extends RatpackSpec {
     threads.times { i ->
       Thread.start {
         try {
-          def text = urlText("$i?id=$i")
+          def text = urlGetText("$i?id=$i")
           assert text ==~ "\\d+:\\d+"
           def (id, value) = text.split(':').collect { it.toInteger() }
           results[id] = value

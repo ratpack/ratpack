@@ -48,6 +48,7 @@ class PathRouter implements Router {
   void handle(RoutedRequest routedRequest) {
     final request = routedRequest.request
     if (request.method.toLowerCase() != method) {
+      routedRequest.notFoundHandler.handle(request)
       return
     }
 

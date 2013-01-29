@@ -28,7 +28,7 @@ class ConfigLoader {
     if (!configFile.exists()) {
       new ConfigScript(configFile.parentFile)
     } else {
-      new ScriptEngine<ConfigScript>(getClass().classLoader, false, ConfigScript).run(configFile.name, configFile.text, configFile.parentFile)
+      new ScriptEngine<ConfigScript>(getClass().classLoader, true, ConfigScript).run(configFile.name, configFile.text, configFile.parentFile)
     }
   }
 
