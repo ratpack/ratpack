@@ -10,6 +10,8 @@ import org.vertx.java.core.Handler;
 import org.vertx.java.core.buffer.Buffer;
 import org.vertx.java.core.http.HttpServerRequest;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.util.Map;
 
 public class DefaultRequest implements Request {
@@ -38,7 +40,11 @@ public class DefaultRequest implements Request {
   @Override
   public Map<String, ?> getQueryParams() {
     if (queryParams == null) {
-      queryParams = new ParamParser().parse(getQuery());
+      try {
+        queryParams = new ParamParser().parse(URLDecoder.decode(getQuery(), "UTF-8"));
+      } catch (UnsupportedEncodingException e) {
+        throw new RuntimeException(e);
+      }
     }
     return queryParams;
   }
@@ -72,7 +78,8 @@ public class DefaultRequest implements Request {
     vertxRequest.bodyHandler(errorHandler(new Handler<Buffer>() {
       @Override
       public void handle(Buffer event) {
-        jsonReceiver.call(new JsonSlurper().parseText(event.toString(getContentType().getCharset())));
+        String charset = getContentType().getCharset();
+        jsonReceiver.call(new JsonSlurper().parseText(event.toString(charset)));
       }
     }));
   }
@@ -82,7 +89,12 @@ public class DefaultRequest implements Request {
     vertxRequest.bodyHandler(errorHandler(new Handler<Buffer>() {
       @Override
       public void handle(Buffer event) {
-        formReceiver.call(new ParamParser().parse(event.toString(getContentType().getCharset())));
+        String charset = getContentType().getCharset();
+        try {
+          formReceiver.call(new ParamParser().parse(URLDecoder.decode(event.toString(charset), charset)));
+        } catch (UnsupportedEncodingException e) {
+          throw new RuntimeException(e);
+        }
       }
     }));
   }
@@ -94,7 +106,7 @@ public class DefaultRequest implements Request {
 
   private ContentType getContentType() {
     if (contentType == null) {
-      contentType = new ContentType(vertxRequest.headers().get("Content-Type"));
+      contentType = new ContentType(vertxRequest.headers().get("content-type"));
     }
     return contentType;
   }

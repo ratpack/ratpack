@@ -11,10 +11,10 @@ class ContentType {
       base = null
       params = Collections.emptyMap()
     } else {
+      params = [:]
       String[] parts = headerValue.tokenize(';')
       base = parts[0]
       if (parts.size() > 1) {
-        params = [:]
         for (part in parts[1..-1]) {
           def (key, value) = part.split("=", 2)
           params.put(key, value.trim())
