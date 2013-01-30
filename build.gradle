@@ -37,14 +37,14 @@ subprojects {
     from sourceSets.main.groovy
   }
 
-  task groovydocJar(type: Jar) {
-    description 'An archive of the GroovyDocs for Maven Central'
+  task javadocJar(type: Jar) {
+    description 'An archive of the JavaDocs for Maven Central'
     classifier 'javadoc'
-    from groovydoc
+    from javadoc
   }
 
   artifacts {
-    archives groovydocJar, sourceJar
+    archives javadocJar, sourceJar
   }
 
   signing {
