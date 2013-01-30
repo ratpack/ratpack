@@ -107,6 +107,7 @@ public class Render {
             compiledTemplate = templateCompiler.compile(event.result, templatePath);
           } catch (Exception e) {
             nestedTemplate.handle(new AsyncResult<ExecutedTemplate>(e));
+            failTemplate(executingTemplate, e);
             return;
           }
 

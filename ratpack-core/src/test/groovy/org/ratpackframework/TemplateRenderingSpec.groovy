@@ -161,4 +161,23 @@ class TemplateRenderingSpec extends RatpackSpec {
     template << ["\${render 'foo'}", "<%= render 'foo.html' %>"]
   }
 
+  def "compile error in inner template"() {
+    given:
+    templateFile("outer.html") << "outer: \${model.value}, <% render 'inner.html', value: 'inner' %>"
+    templateFile("inner.html") << "inner: \${model.value.toInteger()}"
+
+    and:
+    ratpackFile << """
+      get("/") {
+        render "outer.html", value: "outer"
+      }
+    """
+
+    when:
+    startApp()
+
+    then:
+    errorGetText().contains "Failed to parse template script"
+  }
+
 }
