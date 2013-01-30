@@ -14,24 +14,24 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.app
+package org.ratpackframework.app;
 
-import groovy.transform.CompileStatic
-import org.vertx.java.core.Vertx
-import org.ratpackframework.app.internal.ConfigLoader
+import org.ratpackframework.app.internal.ConfigLoader;
+import org.vertx.java.core.Vertx;
 
-@CompileStatic
-class RatpackMain {
+import java.io.File;
+
+public class RatpackMain {
 
   static void main(String[] args) {
-    File configFile = args.length == 0 ? new File("config.groovy") : new File(args[0])
+    File configFile = args.length == 0 ? new File("config.groovy") : new File(args[0]);
     if (!configFile.exists() && args.length > 0) {
-      System.err.println("Config file $configFile.absolutePath does not exist")
-      System.exit 1
+      System.err.println("Config file $configFile.absolutePath does not exist");
+      System.exit(1);
     }
 
-    Config config = new ConfigLoader().load(configFile)
-    new RatpackAppFactory().create(Vertx.newVertx(), config).startAndWait()
+    Config config = new ConfigLoader().load(configFile);
+    new RatpackAppFactory().create(Vertx.newVertx(), config).startAndWait();
   }
 
 }
