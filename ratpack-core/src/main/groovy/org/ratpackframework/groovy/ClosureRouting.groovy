@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-package org.ratpackframework
+package org.ratpackframework.groovy
+
+import org.ratpackframework.Routing
 
 public interface ClosureRouting extends Routing {
 
@@ -28,7 +30,7 @@ public interface ClosureRouting extends Routing {
   /**
    * Adds a route, for the given method at the given path, to be handled by the given handler.
    *
-   * The handler receives one parameter, the {@link Request}.
+   * The handler receives one parameter, the {@link org.ratpackframework.Request}.
    * <p>
    * The {@code path} must always start with a {@code /}.
    * <p>

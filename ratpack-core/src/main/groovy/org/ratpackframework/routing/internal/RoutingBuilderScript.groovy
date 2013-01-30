@@ -16,8 +16,8 @@
 
 package org.ratpackframework.routing.internal
 
-import org.ratpackframework.ClosureRouting
-import org.ratpackframework.HandlerClosure
+import org.ratpackframework.groovy.ClosureRouting
+import org.ratpackframework.groovy.HandlerClosure
 import org.ratpackframework.Response
 import org.vertx.java.core.Handler
 

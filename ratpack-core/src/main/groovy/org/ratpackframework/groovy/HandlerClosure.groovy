@@ -14,7 +14,11 @@
  * limitations under the License.
  */
 
-package org.ratpackframework
+
+
+package org.ratpackframework.groovy
+
+import org.ratpackframework.Response
 
 @DelegatesTo(value = Response.class, strategy = Closure.DELEGATE_FIRST)
 @groovy.transform.AnnotationCollector

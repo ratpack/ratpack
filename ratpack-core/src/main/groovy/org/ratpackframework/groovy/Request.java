@@ -14,38 +14,18 @@
  * limitations under the License.
  */
 
-package org.ratpackframework
+package org.ratpackframework.groovy;
 
-import org.ratpackframework.session.Session
-import org.vertx.java.core.http.HttpServerRequest
+import groovy.lang.Closure;
 
-/**
- * A request to be handled.
- */
-interface Request {
+public interface Request extends org.ratpackframework.Request {
 
-  String getMethod()
+  void buffer(Closure<?> bufferReceiver);
 
-  String getUri()
+  void text(Closure<?> textReceiver);
 
-  String getQuery()
+  void json(Closure<?> jsonReceiver);
 
-  String getPath()
-
-  Map<String, ?> getQueryParams()
-
-  Map<String, String> getUrlParams()
-
-  void buffer(Closure<?> bufferReceiver)
-
-  void text(Closure<?> textReceiver)
-
-  void json(Closure<?> jsonReceiver)
-
-  void form(Closure<?> formReceiver)
-
-  Session getSession()
-
-  HttpServerRequest getVertxRequest()
+  void form(Closure<?> formReceiver);
 
 }

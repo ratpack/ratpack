@@ -8,7 +8,7 @@ class ClosureHandlerAdapter<T> implements Handler<T> {
 
   private final Closure<?> closure
 
-  ClosureHandlerAdapter(@DelegatesTo(T) Closure<?> closure) {
+  ClosureHandlerAdapter(Closure<?> closure) {
     this.closure = closure
   }
 

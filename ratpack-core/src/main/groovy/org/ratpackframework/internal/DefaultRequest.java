@@ -16,9 +16,8 @@
 
 package org.ratpackframework.internal;
 
-import groovy.json.JsonSlurper;
 import groovy.lang.Closure;
-import org.ratpackframework.Request;
+import org.ratpackframework.groovy.Request;
 import org.ratpackframework.handler.ClosureHandlerAdapter;
 import org.ratpackframework.handler.ErrorHandler;
 import org.ratpackframework.handler.ErroredHttpServerRequest;
@@ -27,6 +26,7 @@ import org.ratpackframework.session.internal.RequestSessionManager;
 import org.vertx.java.core.Handler;
 import org.vertx.java.core.buffer.Buffer;
 import org.vertx.java.core.http.HttpServerRequest;
+import org.vertx.java.core.json.JsonObject;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
@@ -79,44 +79,67 @@ public class DefaultRequest implements Request {
   }
 
   @Override
-  public void buffer(Closure<?> receiver) {
-    vertxRequest.bodyHandler(errorHandler(new ClosureHandlerAdapter<Buffer>(receiver)));
+  public void buffer(Handler<Buffer> bufferHandler) {
+    vertxRequest.bodyHandler(errorHandler(bufferHandler));
   }
 
   @Override
-  public void text(final Closure<?> textReceiver) {
+  public void text(final Handler<String> textHandler) {
     vertxRequest.bodyHandler(errorHandler(new Handler<Buffer>() {
       @Override
       public void handle(Buffer event) {
-        textReceiver.call(event.toString(getContentType().getCharset()));
+        textHandler.handle(event.toString(getContentType().getCharset()));
       }
     }));
   }
 
   @Override
-  public void json(final Closure<?> jsonReceiver) {
+  public void json(final Handler<JsonObject> jsonHandler) {
     vertxRequest.bodyHandler(errorHandler(new Handler<Buffer>() {
       @Override
       public void handle(Buffer event) {
         String charset = getContentType().getCharset();
-        jsonReceiver.call(new JsonSlurper().parseText(event.toString(charset)));
+        jsonHandler.handle(new JsonObject(event.toString(charset)));
       }
     }));
   }
 
   @Override
-  public void form(final Closure<?> formReceiver) {
+  public void form(final Handler<Map<String, ?>> formHandler) {
     vertxRequest.bodyHandler(errorHandler(new Handler<Buffer>() {
       @Override
       public void handle(Buffer event) {
         String charset = getContentType().getCharset();
         try {
-          formReceiver.call(new ParamParser().parse(URLDecoder.decode(event.toString(charset), charset)));
+          String string = event.toString(charset);
+          String decoded = URLDecoder.decode(string, charset);
+          Map<String, ?> map = new ParamParser().parse(decoded);
+          formHandler.handle(map);
         } catch (UnsupportedEncodingException e) {
           throw new RuntimeException(e);
         }
       }
     }));
+  }
+
+  @Override
+  public void buffer(Closure<?> receiver) {
+    buffer(new ClosureHandlerAdapter<Buffer>(receiver));
+  }
+
+  @Override
+  public void text(final Closure<?> textReceiver) {
+    buffer(new ClosureHandlerAdapter<Buffer>(textReceiver));
+  }
+
+  @Override
+  public void json(final Closure<?> jsonReceiver) {
+    buffer(new ClosureHandlerAdapter<Buffer>(jsonReceiver));
+  }
+
+  @Override
+  public void form(final Closure<?> formReceiver) {
+    buffer(new ClosureHandlerAdapter<Buffer>(formReceiver));
   }
 
   @Override
