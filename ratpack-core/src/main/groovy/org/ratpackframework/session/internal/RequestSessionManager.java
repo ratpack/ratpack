@@ -22,7 +22,6 @@ import org.vertx.java.core.http.HttpServerRequest;
 
 import java.util.Calendar;
 import java.util.TimeZone;
-import java.util.concurrent.TimeUnit;
 
 public class RequestSessionManager {
 
