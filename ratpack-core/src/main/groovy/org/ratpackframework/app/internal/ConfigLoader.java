@@ -14,20 +14,22 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.app.internal
+package org.ratpackframework.app.internal;
 
-import groovy.transform.CompileStatic
-import org.ratpackframework.app.Config
-import org.ratpackframework.script.internal.ScriptEngine
+import org.codehaus.groovy.runtime.ResourceGroovyMethods;
+import org.ratpackframework.app.Config;
+import org.ratpackframework.script.internal.ScriptEngine;
 
-@CompileStatic
-class ConfigLoader {
+import java.io.File;
 
-  Config load(File configFile) {
+public class ConfigLoader {
+
+  public Config load(File configFile) throws Exception {
     if (!configFile.exists()) {
-      new ConfigScript(configFile.parentFile)
+      return new ConfigScript(configFile.getParentFile());
     } else {
-      new ScriptEngine<ConfigScript>(getClass().classLoader, true, ConfigScript).run(configFile.name, configFile.text, configFile.parentFile)
+      ScriptEngine<ConfigScript> scriptEngine = new ScriptEngine<>(getClass().getClassLoader(), true, ConfigScript.class);
+      return scriptEngine.run(configFile.getName(), ResourceGroovyMethods.getText(configFile), configFile.getParentFile());
     }
   }
 
