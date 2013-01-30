@@ -17,13 +17,12 @@
 package org.ratpackframework.app;
 
 import org.ratpackframework.app.internal.ConfigLoader;
-import org.vertx.java.core.Vertx;
 
 import java.io.File;
 
 public class RatpackMain {
 
-  static void main(String[] args) throws Exception {
+  public static void main(String[] args) throws Exception {
     File configFile = args.length == 0 ? new File("config.groovy") : new File(args[0]);
     if (!configFile.exists() && args.length > 0) {
       System.err.println("Config file $configFile.absolutePath does not exist");
