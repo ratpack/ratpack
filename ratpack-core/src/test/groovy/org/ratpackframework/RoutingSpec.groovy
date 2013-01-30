@@ -16,36 +16,28 @@
 
 package org.ratpackframework
 
-import org.ratpackframework.session.Session
-import org.vertx.java.core.http.HttpServerRequest
+class RoutingSpec extends RatpackSpec {
 
-/**
- * A request to be handled.
- */
-interface Request {
+  def "can route all"() {
+    given:
+    ratpackFile << """
+      all("/a") {
+        renderString it.method
+      }
 
-  String getMethod()
+      register("*", "/b") {
+        renderString it.method
+      }
+    """
 
-  String getUri()
+    when:
+    startApp()
 
-  String getQuery()
-
-  String getPath()
-
-  Map<String, ?> getQueryParams()
-
-  Map<String, String> getUrlParams()
-
-  void buffer(Closure<?> bufferReceiver)
-
-  void text(Closure<?> textReceiver)
-
-  void json(Closure<?> jsonReceiver)
-
-  void form(Closure<?> formReceiver)
-
-  Session getSession()
-
-  HttpServerRequest getVertxRequest()
+    then:
+    urlGetText("a") == "GET"
+    urlPostText("a") == "POST"
+    urlGetText("b") == "GET"
+    urlPostText("b") == "POST"
+  }
 
 }

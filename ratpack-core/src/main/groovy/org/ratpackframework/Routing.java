@@ -23,6 +23,8 @@ import org.vertx.java.core.Handler;
  */
 public interface Routing {
 
+  String ALL_METHODS = "*";
+
   /**
    * Returns this object, for better IDE assist in the script files.
    *
@@ -33,11 +35,18 @@ public interface Routing {
   /**
    * Adds a route, for the given method at the given path, to be handled by the given handler.
    *
+   * You can specify {@value #ALL_METHODS} for the method to match all methods.
+   *
    * @param method The HTTP method the handler is for
    * @param path The path to handle (must start with a /)
    * @param handler The handler for the request
    */
   void register(String method, String path, Handler<Response> handler);
+
+  /**
+   * Delegates {@link #register(java.lang.String, java.lang.String, Handler)} with a method of "*"
+   */
+  void all(String path, Handler<Response> handler);
 
   /**
    * Delegates {@link #register(java.lang.String, java.lang.String, Handler)} with a method of "get"

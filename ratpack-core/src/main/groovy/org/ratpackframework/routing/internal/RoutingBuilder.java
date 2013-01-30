@@ -18,7 +18,6 @@ package org.ratpackframework.routing.internal;
 
 import org.ratpackframework.Response;
 import org.ratpackframework.Routing;
-import org.ratpackframework.routing.internal.ErrorHandlingResponseHandler;
 import org.ratpackframework.routing.ResponseFactory;
 import org.ratpackframework.routing.RoutedRequest;
 import org.vertx.java.core.Handler;
@@ -43,6 +42,11 @@ public class RoutingBuilder implements Routing {
   @Override
   public void register(String method, String path, Handler<Response> handler) {
     routers.add(new PathRouter(path, method, responseFactory, new ErrorHandlingResponseHandler(handler)));
+  }
+
+  @Override
+  public void all(String path, Handler<Response> handler) {
+    register(Routing.ALL_METHODS, path, handler);
   }
 
   @Override

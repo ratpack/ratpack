@@ -132,6 +132,11 @@ public class DefaultRequest implements Request {
   }
 
   @Override
+  public String getMethod() {
+    return vertxRequest.method;
+  }
+
+  @Override
   public String getUri() {
     return vertxRequest.uri;
   }

@@ -38,12 +38,19 @@ public interface ClosureRouting extends Routing {
    *    renderString "path = request.urlParams.a"
    * }
    * </pre>
+   * <p>
+   * You can specify "*" for the method to match all methods.
    *
    * @param method The HTTP method the handler is for
    * @param path The path to handle (must start with a /)
    * @param handler The closure to handle the request
    */
   void register(String method, String path, @HandlerClosure Closure<?> handler)
+
+  /**
+   * Delegates {@link #register(java.lang.String, java.lang.String, groovy.lang.Closure)} with a method of "*"
+   */
+  void all(String path, @HandlerClosure Closure<?> handler)
 
   /**
    * Delegates {@link #register(java.lang.String, java.lang.String, groovy.lang.Closure)} with a method of "get"

@@ -17,6 +17,7 @@
 package org.ratpackframework.routing.internal;
 
 import org.ratpackframework.Response;
+import org.ratpackframework.Routing;
 import org.ratpackframework.routing.ResponseFactory;
 import org.ratpackframework.routing.RoutedRequest;
 import org.vertx.java.core.Handler;
@@ -68,7 +69,7 @@ public class PathRouter implements Handler<RoutedRequest> {
   @Override
   public void handle(RoutedRequest routedRequest) {
     final HttpServerRequest request = routedRequest.getRequest();
-    if (!request.method.toLowerCase().equals(method)) {
+    if (!method.equals(Routing.ALL_METHODS) && !request.method.toLowerCase().equals(method)) {
       routedRequest.getNotFoundHandler().handle(request);
       return;
     }

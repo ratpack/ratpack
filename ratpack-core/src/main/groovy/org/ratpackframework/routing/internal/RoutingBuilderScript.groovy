@@ -40,6 +40,11 @@ public class RoutingBuilderScript extends Script implements ClosureRouting {
   }
 
   @Override
+  public void all(String path, Handler<Response> handler) {
+    routingBuilder.all(path, handler)
+  }
+
+  @Override
   public void get(String path, Handler<Response> handler) {
     routingBuilder.get(path, handler)
   }
@@ -77,6 +82,11 @@ public class RoutingBuilderScript extends Script implements ClosureRouting {
   @Override
   public void get(String path, @HandlerClosure Closure<?> handler) {
     get(path, new ClosureBackedResponseHandler(handler))
+  }
+
+  @Override
+  public void all(String path, @HandlerClosure Closure<?> handler) {
+    all(path, new ClosureBackedResponseHandler(handler))
   }
 
   @Override
