@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.responder.internal
+package org.ratpackframework.session;
 
-import groovy.transform.CompileStatic
-import org.ratpackframework.Request
-import org.ratpackframework.responder.Responder
+import java.util.concurrent.ConcurrentMap;
 
-interface ResponderFactory {
+public interface Session extends ConcurrentMap<String, Object> {
 
-  Responder createResponder(Request request)
+  String getId();
+
+  void invalidate();
 
 }

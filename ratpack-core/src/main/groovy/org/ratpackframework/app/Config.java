@@ -194,4 +194,56 @@ public interface Config {
    */
   void reloadRoutes(boolean reloadRoutes);
 
+  /**
+   * The maximum number of sessions to keep in memory.
+   *
+   * Defaults to 100.
+   */
+  int getMaxActiveSessions();
+
+  /**
+   * @see #getMaxActiveSessions()
+   */
+  void setMaxActiveSessions(int maxActiveSessions);
+
+  /**
+   * @see #getMaxActiveSessions()
+   */
+  void maxActiveSessions(int maxActiveSessions);
+
+  /**
+   * The number of mins to allow sessions to remain inactive for before they are eligible for eviction.
+   *
+   * Defaults to 60.
+   */
+  int getSessionTimeoutMins();
+
+  /**
+   * @see #getSessionTimeoutMins()
+   */
+  void setSessionTimeoutMins(int sessionTimeoutMins);
+
+  /**
+   * @see #getSessionTimeoutMins()
+   */
+  void sessionTimeoutMins(int sessionTimeoutMins);
+
+  /**
+   * The number of mins to allow the session id cookie to live for.
+   *
+   * Defaults to 1 year.
+   *
+   * Use 0 to specify no expiry (i.e. temporary session).
+   */
+  int getSessionCookieExpiresMins();
+
+  /**
+   * @see #getSessionCookieExpiresMins()
+   */
+  void setSessionCookieExpiresMins(int sessionCookieExpiresMins);
+
+  /**
+   * @see #getSessionCookieExpiresMins()
+   */
+  void sessionCookieExpiresMins(int sessionCookieExpiresMins);
 }

@@ -18,6 +18,8 @@ package org.ratpackframework.app
 
 import groovy.transform.CompileStatic
 import org.ratpackframework.routing.internal.ScriptBackedRouter
+import org.ratpackframework.session.internal.DefaultSessionIdGenerator
+import org.ratpackframework.session.internal.SessionManager
 import org.ratpackframework.templating.TemplateRenderer
 import org.vertx.java.core.Vertx
 
@@ -28,7 +30,9 @@ public class RatpackAppFactory {
     def publicDir = new File(config.baseDir, config.staticAssetsDir)
     def templateRenderer = new TemplateRenderer(vertx, new File(config.baseDir, config.templatesDir), config.templatesCacheSize, config.staticallyCompileTemplates)
     def router = new ScriptBackedRouter(vertx, new File(config.baseDir, config.routes), templateRenderer, config.staticallyCompileRoutes, config.reloadRoutes)
-    new RatpackApp(vertx, config.host, config.port, router, templateRenderer, publicDir)
+    def sessionManager = new SessionManager(new DefaultSessionIdGenerator(), config.maxActiveSessions, config.sessionTimeoutMins, config.sessionCookieExpiresMins, config.host, "/")
+
+    new RatpackApp(vertx, config.host, config.port, router, templateRenderer, publicDir, sessionManager)
   }
 
 }

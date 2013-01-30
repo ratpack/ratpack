@@ -6,6 +6,7 @@ import org.ratpackframework.handler.ErrorHandler
 import org.ratpackframework.handler.NotFoundHandler
 import org.ratpackframework.handler.RoutingHandler
 import org.ratpackframework.routing.Router
+import org.ratpackframework.session.internal.SessionManager
 import org.ratpackframework.templating.TemplateRenderer
 import org.vertx.java.core.Handler
 import org.vertx.java.core.Vertx
@@ -32,7 +33,9 @@ class RatpackApp {
 
   private CountDownLatch latch
 
-  RatpackApp(Vertx vertx, String host, int port, Router router, TemplateRenderer templateCompiler, File staticFiles) {
+  private SessionManager sessionManager
+
+  RatpackApp(Vertx vertx, String host, int port, Router router, TemplateRenderer templateCompiler, File staticFiles, SessionManager sessionManager) {
     this.vertx = vertx
     this.host = host
     this.port = port
@@ -40,6 +43,7 @@ class RatpackApp {
     this.router = router
     this.templateCompiler = templateCompiler
     this.staticFiles = staticFiles
+    this.sessionManager = sessionManager
   }
 
   void start() {
@@ -59,7 +63,7 @@ class RatpackApp {
     )
 
     def staticHandler = new StaticAssetRequestHandlerWrapper(vertx, errorHandler, notFoundHandler, staticFiles.absolutePath, staticHandlerChain)
-    def routingHandler = new RoutingHandler(router, errorHandler, staticHandler)
+    def routingHandler = new RoutingHandler(router, errorHandler, staticHandler, sessionManager)
 
     server.requestHandler(routingHandler)
     server.listen(port, host)

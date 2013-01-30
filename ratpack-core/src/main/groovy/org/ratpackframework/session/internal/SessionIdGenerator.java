@@ -14,14 +14,10 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.responder.internal
+package org.ratpackframework.session.internal;
 
-import groovy.transform.CompileStatic
-import org.ratpackframework.Request
-import org.ratpackframework.responder.Responder
+public interface SessionIdGenerator {
 
-interface ResponderFactory {
 
-  Responder createResponder(Request request)
-
+  String generateSessionId();
 }

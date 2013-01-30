@@ -16,6 +16,7 @@
 
 package org.ratpackframework
 
+import org.ratpackframework.session.Session
 import org.vertx.java.core.http.HttpServerRequest
 
 /**
@@ -40,6 +41,8 @@ interface Request {
   void json(Closure<?> jsonReceiver)
 
   void form(Closure<?> formReceiver)
+
+  Session getSession()
 
   HttpServerRequest getVertxRequest()
 

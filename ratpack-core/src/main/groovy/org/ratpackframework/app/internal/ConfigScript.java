@@ -34,6 +34,10 @@ public class ConfigScript extends Script implements Config {
   boolean staticallyCompileRoutes = false;
   private boolean reloadRoutes = true;
 
+  private int maxActiveSessions = 100;
+  private int sessionTimeoutMins = 60;
+  private int sessionCookieExpiresMins = 60 * 60 * 24 * 365; // 1 year
+
   public ConfigScript(File baseDir) {
     this.baseDir = baseDir;
   }
@@ -182,6 +186,51 @@ public class ConfigScript extends Script implements Config {
   @Override
   public void reloadRoutes(boolean reloadRoutes) {
     setReloadRoutes(reloadRoutes);
+  }
+
+  @Override
+  public int getMaxActiveSessions() {
+    return maxActiveSessions;
+  }
+
+  @Override
+  public void setMaxActiveSessions(int maxActiveSessions) {
+    this.maxActiveSessions = maxActiveSessions;
+  }
+
+  @Override
+  public void maxActiveSessions(int maxActiveSessions) {
+    this.maxActiveSessions = maxActiveSessions;
+  }
+
+  @Override
+  public int getSessionTimeoutMins() {
+    return sessionTimeoutMins;
+  }
+
+  @Override
+  public void setSessionTimeoutMins(int sessionTimeoutMins) {
+    this.sessionTimeoutMins = sessionTimeoutMins;
+  }
+
+  @Override
+  public void sessionTimeoutMins(int sessionTimeoutMins) {
+    this.sessionTimeoutMins = sessionTimeoutMins;
+  }
+
+  @Override
+  public int getSessionCookieExpiresMins() {
+    return sessionCookieExpiresMins;
+  }
+
+  @Override
+  public void setSessionCookieExpiresMins(int sessionCookieExpiresMins) {
+    this.sessionCookieExpiresMins = sessionCookieExpiresMins;
+  }
+
+  @Override
+  public void sessionCookieExpiresMins(int sessionCookieExpiresMins) {
+    this.sessionCookieExpiresMins = sessionCookieExpiresMins;
   }
 
   @Override

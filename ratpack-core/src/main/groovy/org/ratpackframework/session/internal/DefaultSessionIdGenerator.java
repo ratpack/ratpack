@@ -14,14 +14,18 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.responder.internal
+package org.ratpackframework.session.internal;
 
-import groovy.transform.CompileStatic
-import org.ratpackframework.Request
-import org.ratpackframework.responder.Responder
+import java.math.BigInteger;
+import java.security.SecureRandom;
 
-interface ResponderFactory {
+public class DefaultSessionIdGenerator implements SessionIdGenerator {
 
-  Responder createResponder(Request request)
+  private SecureRandom random = new SecureRandom();
+
+  @Override
+  public String generateSessionId() {
+      return new BigInteger(130, random).toString(32);
+  }
 
 }
