@@ -16,11 +16,10 @@
 
 package org.ratpackframework.routing.internal;
 
-import org.ratpackframework.responder.FinalizedResponse;
-import org.ratpackframework.routing.Router;
-import org.ratpackframework.routing.RouterBuilderScript;
+import org.ratpackframework.routing.FinalizedResponse;
+import org.ratpackframework.routing.ResponseFactory;
+import org.ratpackframework.routing.RoutedRequest;
 import org.ratpackframework.script.internal.ScriptEngine;
-import org.ratpackframework.templating.TemplateRenderer;
 import org.vertx.java.core.AsyncResult;
 import org.vertx.java.core.Handler;
 import org.vertx.java.core.Vertx;
@@ -38,27 +37,27 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class ScriptBackedRouter implements Router {
+public class ScriptBackedRouter implements Handler<RoutedRequest> {
 
   private final FileSystem fileSystem;
   private final String scriptFilePath;
   private final String scriptFileName;
-  private final TemplateRenderer templateRenderer;
+  private final ResponseFactory responseFactory;
 
   private final AtomicLong lastModifiedHolder = new AtomicLong(-1);
   private final AtomicReference<byte[]> contentHolder = new AtomicReference<byte[]>();
-  private final AtomicReference<Router> routerHolder = new AtomicReference<Router>(null);
+  private final AtomicReference<Handler<RoutedRequest>> routerHolder = new AtomicReference<Handler<RoutedRequest>>(null);
   private final Lock lock = new ReentrantLock();
 
   private boolean staticallyCompile;
 
   private final boolean reloadable;
 
-  public ScriptBackedRouter(Vertx vertx, File scriptFile, TemplateRenderer templateRenderer, boolean staticallyCompile, boolean reloadable) {
+  public ScriptBackedRouter(Vertx vertx, File scriptFile, ResponseFactory responseFactory, boolean staticallyCompile, boolean reloadable) {
     this.fileSystem = vertx.fileSystem();
     this.scriptFilePath = scriptFile.getAbsolutePath();
     this.scriptFileName = scriptFile.getName();
-    this.templateRenderer = templateRenderer;
+    this.responseFactory = responseFactory;
     this.staticallyCompile = staticallyCompile;
     this.reloadable = reloadable;
 
@@ -77,13 +76,13 @@ public class ScriptBackedRouter implements Router {
           return;
         }
 
-        final Router server = new Router() {
+        final Handler<RoutedRequest> server = new Handler<RoutedRequest>() {
           public void handle(RoutedRequest requestToServe) {
             ScriptBackedRouter.this.routerHolder.get().handle(requestToServe);
           }
         };
 
-        Router refresher = new Router() {
+        Handler<RoutedRequest> refresher = new Handler<RoutedRequest>() {
           public void handle(RoutedRequest requestToServe) {
             ScriptBackedRouter.this.lock.lock();
             try {
@@ -103,7 +102,7 @@ public class ScriptBackedRouter implements Router {
     }));
   }
 
-  void checkForChanges(final RoutedRequest routedRequest, final Router noChange, final Router didChange) {
+  void checkForChanges(final RoutedRequest routedRequest, final Handler<RoutedRequest> noChange, final Handler<RoutedRequest> didChange) {
     if (!reloadable) {
       noChange.handle(routedRequest);
       return;
@@ -150,16 +149,17 @@ public class ScriptBackedRouter implements Router {
       return;
     }
 
-    List<Router> routers = new LinkedList<Router>();
+    List<Handler<RoutedRequest>> routers = new LinkedList<>();
+    RoutingBuilder routingBuilder = new RoutingBuilder(routers, responseFactory);
     String string;
     try {
       string = new String(bytes, "utf-8");
     } catch (UnsupportedEncodingException e) {
       throw new RuntimeException(e);
     }
-    ScriptEngine<RouterBuilderScript> scriptEngine = new ScriptEngine<RouterBuilderScript>(getClass().getClassLoader(), staticallyCompile, RouterBuilderScript.class);
+    ScriptEngine<RoutingBuilderScript> scriptEngine = new ScriptEngine<RoutingBuilderScript>(getClass().getClassLoader(), staticallyCompile, RoutingBuilderScript.class);
     try {
-      scriptEngine.run(scriptFileName, string, routers, templateRenderer);
+      scriptEngine.run(scriptFileName, string, routingBuilder);
     } catch (Exception e) {
       throw new RuntimeException(e);
     }

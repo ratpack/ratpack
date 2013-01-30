@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.routing.internal;
+package org.ratpackframework.routing;
 
 import org.ratpackframework.handler.ErrorHandler;
-import org.ratpackframework.responder.FinalizedResponse;
-import org.ratpackframework.session.internal.SessionManager;
+import org.ratpackframework.routing.FinalizedResponse;
 import org.vertx.java.core.AsyncResultHandler;
 import org.vertx.java.core.Handler;
 import org.vertx.java.core.http.HttpServerRequest;
@@ -29,18 +28,16 @@ public class RoutedRequest {
   private final ErrorHandler errorHandler;
   private final Handler<HttpServerRequest> notFoundHandler;
   private final AsyncResultHandler<FinalizedResponse> finalizedResponseHandler;
-  private final SessionManager sessionManager;
 
-  public RoutedRequest(HttpServerRequest request, ErrorHandler errorHandler, Handler<HttpServerRequest> notFoundHandler, SessionManager sessionManager, AsyncResultHandler<FinalizedResponse> finalizedResponseHandler) {
+  public RoutedRequest(HttpServerRequest request, ErrorHandler errorHandler, Handler<HttpServerRequest> notFoundHandler, AsyncResultHandler<FinalizedResponse> finalizedResponseHandler) {
     this.request = request;
     this.errorHandler = errorHandler;
     this.notFoundHandler = notFoundHandler;
-    this.sessionManager = sessionManager;
     this.finalizedResponseHandler = finalizedResponseHandler;
   }
 
   public RoutedRequest withNotFoundHandler(Handler<HttpServerRequest> newNotFoundHandler) {
-    return new RoutedRequest(request, errorHandler, newNotFoundHandler, sessionManager, finalizedResponseHandler);
+    return new RoutedRequest(request, errorHandler, newNotFoundHandler, finalizedResponseHandler);
   }
 
   public HttpServerRequest getRequest() {
@@ -59,7 +56,4 @@ public class RoutedRequest {
     return finalizedResponseHandler;
   }
 
-  public SessionManager getSessionManager() {
-    return sessionManager;
-  }
 }

@@ -16,29 +16,29 @@
 
 package org.ratpackframework.routing.internal
 
-import org.ratpackframework.routing.Router
+import org.ratpackframework.routing.RoutedRequest
 import org.vertx.java.core.Handler
 import org.vertx.java.core.http.HttpServerRequest
 
-class CompositeRouter implements Router {
+class CompositeRouter implements Handler<RoutedRequest> {
 
-  List<Router> routers
+  List<Handler<RoutedRequest>> routers
 
-  CompositeRouter(List<Router> routers) {
+  CompositeRouter(List<Handler<RoutedRequest>> routers) {
     this.routers = routers
   }
 
   @Override
   void handle(RoutedRequest routedRequest) {
-    final routersCopy = new ArrayList<Router>(routers)
+    final routersCopy = new ArrayList<Handler<RoutedRequest>>(routers)
     tryNext(routersCopy, routedRequest, routedRequest.notFoundHandler)
   }
 
-  private void tryNext(List<Router> remainingRouters, RoutedRequest routedRequest, Handler<HttpServerRequest> exhaustedHandler) {
+  private void tryNext(List<Handler<RoutedRequest>> remainingRouters, RoutedRequest routedRequest, Handler<HttpServerRequest> exhaustedHandler) {
     if (remainingRouters.empty) {
       exhaustedHandler.handle(routedRequest.request)
     } else {
-      Router router = remainingRouters.remove(0)
+      Handler<RoutedRequest> router = remainingRouters.remove(0)
       router.handle(routedRequest.withNotFoundHandler(new Handler<HttpServerRequest>() {
         @Override
         void handle(HttpServerRequest ignore) {
@@ -46,27 +46,6 @@ class CompositeRouter implements Router {
         }
       }))
     }
-  }
-
-  int hashCode() {
-    return routers.hashCode()
-  }
-
-  boolean equals(o) {
-    if (this.is(o)) {
-      return true
-    }
-    if (getClass() != o.class) {
-      return false
-    }
-
-    CompositeRouter that = (CompositeRouter) o
-
-    if (routers != that.routers) {
-      return false
-    }
-
-    return true
   }
 
 }

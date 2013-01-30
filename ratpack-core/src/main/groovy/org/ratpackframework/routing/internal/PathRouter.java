@@ -16,12 +16,10 @@
 
 package org.ratpackframework.routing.internal;
 
-import org.ratpackframework.Request;
-import org.ratpackframework.internal.DefaultRequest;
-import org.ratpackframework.responder.Responder;
-import org.ratpackframework.responder.internal.ResponderFactory;
-import org.ratpackframework.routing.Router;
-import org.ratpackframework.session.internal.RequestSessionManager;
+import org.ratpackframework.Response;
+import org.ratpackframework.routing.ResponseFactory;
+import org.ratpackframework.routing.RoutedRequest;
+import org.vertx.java.core.Handler;
 import org.vertx.java.core.http.HttpServerRequest;
 
 import java.util.*;
@@ -29,18 +27,20 @@ import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class PathRouter implements Router {
+public class PathRouter implements Handler<RoutedRequest> {
 
   final String method;
   final String path;
 
   private final TokenisedPath tokenisedPath;
-  private final ResponderFactory responderFactory;
+  private final Handler<Response> handler;
+  private final ResponseFactory responseFactory;
 
-  public PathRouter(String path, String method, ResponderFactory responderFactory) {
+  public PathRouter(String path, String method, ResponseFactory responseFactory, Handler<Response> handler) {
     this.path = path;
     this.method = method.toLowerCase();
-    this.responderFactory = responderFactory;
+    this.responseFactory = responseFactory;
+    this.handler = handler;
     this.tokenisedPath = new TokenisedPath(path);
   }
 
@@ -75,10 +75,9 @@ public class PathRouter implements Router {
 
     Matcher matcher = tokenisedPath.regex.matcher(request.path);
     if (matcher.matches()) {
-      RequestSessionManager requestSessionManager = routedRequest.getSessionManager().getRequestSessionManager(request);
-      Request wrappedRequest = new DefaultRequest(request, routedRequest.getErrorHandler(), toUrlParams(matcher), requestSessionManager);
-      Responder responder = responderFactory.createResponder(wrappedRequest);
-      responder.respond(routedRequest.getFinalizedResponseHandler());
+      Map<String, String> urlParams = toUrlParams(matcher);
+      Response response = responseFactory.create(routedRequest, urlParams);
+      handler.handle(response);
       request.resume();
     } else {
       routedRequest.getNotFoundHandler().handle(request);

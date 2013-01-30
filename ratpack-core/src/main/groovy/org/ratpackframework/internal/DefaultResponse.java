@@ -20,7 +20,7 @@ import groovy.json.JsonBuilder;
 import groovy.lang.Closure;
 import org.ratpackframework.Request;
 import org.ratpackframework.Response;
-import org.ratpackframework.responder.FinalizedResponse;
+import org.ratpackframework.routing.FinalizedResponse;
 import org.ratpackframework.templating.TemplateRenderer;
 import org.vertx.java.core.AsyncResult;
 import org.vertx.java.core.AsyncResultHandler;

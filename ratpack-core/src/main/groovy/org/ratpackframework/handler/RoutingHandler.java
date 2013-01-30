@@ -1,9 +1,7 @@
 package org.ratpackframework.handler;
 
-import org.ratpackframework.responder.FinalizedResponse;
-import org.ratpackframework.routing.Router;
-import org.ratpackframework.routing.internal.RoutedRequest;
-import org.ratpackframework.session.internal.SessionManager;
+import org.ratpackframework.routing.FinalizedResponse;
+import org.ratpackframework.routing.RoutedRequest;
 import org.vertx.java.core.Handler;
 import org.vertx.java.core.http.HttpServerRequest;
 import org.vertx.java.core.http.HttpServerResponse;
@@ -17,16 +15,14 @@ public class RoutingHandler implements Handler<HttpServerRequest> {
 
   private final Logger logger = LoggerFactory.getLogger(getClass());
 
-  private final Router router;
-  private final SessionManager sessionManager;
+  private final Handler<RoutedRequest> router;
   private ErrorHandler errorHandler;
   private Handler<HttpServerRequest> notFoundHandler;
 
-  public RoutingHandler(Router router, ErrorHandler errorHandler, Handler<HttpServerRequest> notFoundHandler, SessionManager sessionManager) {
+  public RoutingHandler(Handler<RoutedRequest> router, ErrorHandler errorHandler, Handler<HttpServerRequest> notFoundHandler) {
     this.router = router;
     this.errorHandler = errorHandler;
     this.notFoundHandler = notFoundHandler;
-    this.sessionManager = sessionManager;
   }
 
   @Override
@@ -37,7 +33,7 @@ public class RoutingHandler implements Handler<HttpServerRequest> {
       logger.info("received " + request.uri);
     }
 
-    RoutedRequest routedRequest = new RoutedRequest(request, errorHandler, notFoundHandler, sessionManager, errorHandler.asyncHandler(request, new Handler<FinalizedResponse>() {
+    RoutedRequest routedRequest = new RoutedRequest(request, errorHandler, notFoundHandler, errorHandler.asyncHandler(request, new Handler<FinalizedResponse>() {
       @Override
       public void handle(FinalizedResponse response) {
         HttpServerResponse realResponse = request.response;

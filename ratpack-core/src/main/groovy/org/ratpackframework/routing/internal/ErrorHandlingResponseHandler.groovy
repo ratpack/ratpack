@@ -14,14 +14,26 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.responder.internal
+package org.ratpackframework.routing.internal
 
-import groovy.transform.CompileStatic
-import org.ratpackframework.Request
-import org.ratpackframework.responder.Responder
+import org.ratpackframework.Response
+import org.vertx.java.core.Handler
 
-interface ResponderFactory {
+class ErrorHandlingResponseHandler implements Handler<Response> {
 
-  Responder createResponder(Request request)
+  private final Handler<Response> delegate;
+
+  ErrorHandlingResponseHandler(Handler<Response> delegate) {
+    this.delegate = delegate
+  }
+
+  @Override
+  void handle(Response response) {
+    try {
+      delegate.handle(response)
+    } catch (Exception e) {
+      response.error(e)
+    }
+  }
 
 }

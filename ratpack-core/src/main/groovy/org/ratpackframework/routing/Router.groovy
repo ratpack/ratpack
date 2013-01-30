@@ -16,7 +16,6 @@
 
 package org.ratpackframework.routing
 
-import org.ratpackframework.routing.internal.RoutedRequest
 import org.vertx.java.core.Handler
 
 interface Router extends Handler<RoutedRequest> {

@@ -1,4 +1,4 @@
-package org.ratpackframework.responder
+package org.ratpackframework.routing
 
 import org.vertx.java.core.buffer.Buffer
 

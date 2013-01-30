@@ -4,7 +4,7 @@ import org.ratpackframework.assets.*;
 import org.ratpackframework.handler.ErrorHandler;
 import org.ratpackframework.handler.NotFoundHandler;
 import org.ratpackframework.handler.RoutingHandler;
-import org.ratpackframework.routing.Router;
+import org.ratpackframework.routing.RoutedRequest;
 import org.ratpackframework.session.internal.SessionManager;
 import org.ratpackframework.templating.TemplateRenderer;
 import org.vertx.java.core.Handler;
@@ -26,21 +26,19 @@ public class RatpackApp {
   final Vertx vertx;
   final String host;
   final int port;
-  final Router router;
+  final Handler<RoutedRequest> router;
   final TemplateRenderer templateCompiler;
   final File staticFiles;
-  private SessionManager sessionManager;
 
   private CountDownLatch latch;
 
-  public RatpackApp(Vertx vertx, String host, int port, Router router, TemplateRenderer templateCompiler, File staticFiles, SessionManager sessionManager) {
+  public RatpackApp(Vertx vertx, String host, int port, Handler<RoutedRequest> router, TemplateRenderer templateCompiler, File staticFiles, SessionManager sessionManager) {
     this.vertx = vertx;
     this.host = host;
     this.port = port;
     this.router = router;
     this.templateCompiler = templateCompiler;
     this.staticFiles = staticFiles;
-    this.sessionManager = sessionManager;
   }
 
   public void start() {
@@ -60,7 +58,7 @@ public class RatpackApp {
     );
 
     Handler<HttpServerRequest> staticHandler = new StaticAssetRequestHandlerWrapper(vertx, errorHandler, notFoundHandler, staticFiles.getAbsolutePath(), staticHandlerChain);
-    Handler<HttpServerRequest> routingHandler = new RoutingHandler(router, errorHandler, staticHandler, sessionManager);
+    Handler<HttpServerRequest> routingHandler = new RoutingHandler(router, errorHandler, staticHandler);
 
     server.requestHandler(routingHandler);
     server.listen(port, host);
