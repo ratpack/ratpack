@@ -31,7 +31,7 @@ public class RatpackMain {
     }
 
     Config config = new ConfigLoader().load(configFile);
-    new RatpackAppFactory().create(Vertx.newVertx(), config).startAndWait();
+    new RatpackAppFactory().create(config).startAndWait();
   }
 
 }

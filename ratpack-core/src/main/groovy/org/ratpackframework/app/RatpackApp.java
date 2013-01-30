@@ -78,7 +78,7 @@ public class RatpackApp {
     }
   }
 
-  void stop() {
+  public void stop() {
     try {
       server.close();
     } finally {

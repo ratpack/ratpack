@@ -16,6 +16,8 @@
 
 package org.ratpackframework.app;
 
+import org.vertx.java.core.Vertx;
+
 import java.io.File;
 
 /**
@@ -246,4 +248,21 @@ public interface Config {
    * @see #getSessionCookieExpiresMins()
    */
   void sessionCookieExpiresMins(int sessionCookieExpiresMins);
+
+  /**
+   * The vertx instance to attach the app to.
+   *
+   * Defaults to {@code Vertx.newVertx()}.
+   */
+  Vertx getVertx();
+
+  /**
+   * @see #getVertx()
+   */
+  void setVertx(Vertx vertx);
+
+  /**
+   * @see #getVertx()
+   */
+  void vertx(Vertx vertx);
 }

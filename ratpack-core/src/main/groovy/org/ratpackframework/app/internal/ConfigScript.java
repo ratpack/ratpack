@@ -18,6 +18,7 @@ package org.ratpackframework.app.internal;
 
 import groovy.lang.Script;
 import org.ratpackframework.app.Config;
+import org.vertx.java.core.Vertx;
 
 import java.io.File;
 
@@ -37,6 +38,8 @@ public class ConfigScript extends Script implements Config {
   private int maxActiveSessions = 100;
   private int sessionTimeoutMins = 60;
   private int sessionCookieExpiresMins = 60 * 60 * 24 * 365; // 1 year
+
+  private Vertx vertx;
 
   public ConfigScript(File baseDir) {
     this.baseDir = baseDir;
@@ -231,6 +234,24 @@ public class ConfigScript extends Script implements Config {
   @Override
   public void sessionCookieExpiresMins(int sessionCookieExpiresMins) {
     this.sessionCookieExpiresMins = sessionCookieExpiresMins;
+  }
+
+  @Override
+  public Vertx getVertx() {
+    if (vertx == null) {
+      vertx = Vertx.newVertx();
+    }
+    return vertx;
+  }
+
+  @Override
+  public void setVertx(Vertx vertx) {
+    this.vertx = vertx;
+  }
+
+  @Override
+  public void vertx(Vertx vertx) {
+    this.vertx = vertx;
   }
 
   @Override

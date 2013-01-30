@@ -58,7 +58,7 @@ class RatpackSpec extends Specification {
   }
 
   def startApp() {
-    app = new RatpackAppFactory().create(Vertx.newVertx(), config)
+    app = new RatpackAppFactory().create(config)
     config.baseDir(temporaryFolder.root)
     app.start()
 
