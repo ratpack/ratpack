@@ -49,17 +49,7 @@ public class RatpackAppFactory {
     ResponseFactory responseFactory = new ResponseFactory(templateRenderer, sessionManager);
     Handler<RoutedRequest> router = new ScriptBackedRouter(vertx, httpServer, routesFile, responseFactory, config.isStaticallyCompileRoutes(), config.isReloadRoutes());
 
-    Handler<Vertx> vertxInit = config.getVertxInit();
-    if (vertxInit != null) {
-      vertxInit.handle(vertx);
-    }
-
-    Handler<HttpServer> httpServerInit = config.getHttpServerInit();
-    if (httpServerInit != null) {
-      httpServerInit.handle(httpServer);
-    }
-
-    return new RatpackApp(vertx, httpServer, config.getHost(), config.getPort(), router, templateRenderer, publicDir);
+    return new RatpackApp(vertx, config.getHost(), config.getPort(), router, templateRenderer, publicDir, config.getOnStart());
   }
 
 }

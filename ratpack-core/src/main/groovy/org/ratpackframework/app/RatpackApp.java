@@ -5,7 +5,6 @@ import org.ratpackframework.handler.ErrorHandler;
 import org.ratpackframework.handler.NotFoundHandler;
 import org.ratpackframework.handler.RoutingHandler;
 import org.ratpackframework.routing.RoutedRequest;
-import org.ratpackframework.session.internal.SessionManager;
 import org.ratpackframework.templating.TemplateRenderer;
 import org.vertx.java.core.Handler;
 import org.vertx.java.core.Vertx;
@@ -31,17 +30,19 @@ public class RatpackApp {
   private final File staticFiles;
 
   private final AtomicBoolean running = new AtomicBoolean();
+  private final Handler<RatpackApp> onStart;
 
   private CountDownLatch latch;
 
-  public RatpackApp(Vertx vertx, HttpServer httpServer, String host, int port, Handler<RoutedRequest> router, TemplateRenderer templateCompiler, File staticFiles) {
+  public RatpackApp(Vertx vertx, String host, int port, Handler<RoutedRequest> router, TemplateRenderer templateCompiler, File staticFiles, Handler<RatpackApp> onStart) {
     this.vertx = vertx;
-    this.httpServer = httpServer;
+    this.httpServer = vertx.createHttpServer();
     this.host = host;
     this.port = port;
     this.router = router;
     this.templateCompiler = templateCompiler;
     this.staticFiles = staticFiles;
+    this.onStart = onStart;
   }
 
   public void start() {
@@ -63,6 +64,11 @@ public class RatpackApp {
     Handler<HttpServerRequest> routingHandler = new RoutingHandler(router, errorHandler, staticHandler);
 
     httpServer.requestHandler(routingHandler);
+
+    if (onStart != null) {
+      onStart.handle(this);
+    }
+
     httpServer.listen(port, host);
     if (logger.isInfoEnabled()) {
       logger.info(String.format("Ratpack started for http://%s:%s", host, port));

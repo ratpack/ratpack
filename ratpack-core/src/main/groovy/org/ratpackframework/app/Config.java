@@ -19,6 +19,7 @@ package org.ratpackframework.app;
 import org.vertx.java.core.Handler;
 import org.vertx.java.core.Vertx;
 import org.vertx.java.core.http.HttpServer;
+import org.vertx.java.core.sockjs.SockJSServer;
 
 import java.io.File;
 
@@ -269,36 +270,19 @@ public interface Config {
   void vertx(Vertx vertx);
 
   /**
-   * The initialiser for the Vertx instance.
+   * The handler callback to post configure the running app.
    *
-   * Defaults to a noop.
+   * Defaults to null.
    */
-  Handler<Vertx> getVertxInit();
+  Handler<RatpackApp> getOnStart();
 
   /**
-   * @see #getVertxInit()
+   * @see #getOnStart()
    */
-  void setVertxInit(Handler<Vertx> vertxInit);
+  void setOnStart(Handler<RatpackApp> onStart);
 
   /**
-   * @see #getVertxInit()
+   * @see #getOnStart()
    */
-  void vertxInit(Handler<Vertx> vertxInit);
-
-  /**
-   * The initialiser for the HttpServer instance.
-   *
-   * Defaults to a noop.
-   */
-  Handler<HttpServer> getHttpServerInit();
-
-  /**
-   * @see #getHttpServerInit()
-   */
-  void setHttpServerInit(Handler<HttpServer> httpServerInit);
-
-  /**
-   * @see #getHttpServerInit()
-   */
-  void httpServerInit(Handler<HttpServer> httpServerInit);
+  void onStart(Handler<RatpackApp> onStart);
 }

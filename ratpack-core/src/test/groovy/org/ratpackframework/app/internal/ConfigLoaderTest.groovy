@@ -44,14 +44,4 @@ class ConfigLoaderTest extends Specification {
     config.port == 2020
   }
 
-  def "compilation is static"() {
-    when:
-    configScript """
-      iDontExist()
-    """
-
-    then:
-    thrown CompilationFailedException
-  }
-
 }
