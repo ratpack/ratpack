@@ -114,8 +114,8 @@ public class DefaultResponse implements Response {
     renderer().handle(new Buffer(DefaultGroovyMethods.toString(text)));
   }
 
-  public void sendRedirect(String location) {
-    status = 301;
+  public void redirect(String location) {
+    status = 302;
     headers.put(HttpHeader.LOCATION, location);
     renderer().handle(new Buffer());
   }

@@ -106,7 +106,7 @@ class BasicRatpackSpec extends RatpackSpec {
     given:
     ratpackFile << """
       get("/") {
-        sendRedirect "/foo"
+        redirect "/foo"
       }
       get("/foo") {
         renderText "foo"

@@ -46,13 +46,13 @@ interface Response {
   void renderText(Object str)
 
   /**
-   * Sends a temporary redirect response (i.e. statusCode 301) to the client using the specified redirect location URL.
+   * Sends a temporary redirect response (i.e. statusCode 302) to the client using the specified redirect location URL.
    *
    * To use a different status code, call {@link #setStatus(int)} after calling this method.
    *
    * @param location the redirect location URL
    */
-  void sendRedirect(String location)
+  void redirect(String location)
 
   public <T> Handler<T> errorHandler(Handler<T> handler)
 
