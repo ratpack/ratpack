@@ -21,15 +21,21 @@ import org.ratpackframework.Routing;
 import org.ratpackframework.routing.ResponseFactory;
 import org.ratpackframework.routing.RoutedRequest;
 import org.vertx.java.core.Handler;
+import org.vertx.java.core.Vertx;
+import org.vertx.java.core.http.HttpServer;
 
 import java.util.List;
 
 public class RoutingBuilder implements Routing {
 
+  private final Vertx vertx;
+  private final HttpServer httpServer;
   private final List<Handler<RoutedRequest>> routers;
   private final ResponseFactory responseFactory;
 
-  RoutingBuilder(List<Handler<RoutedRequest>> routers, ResponseFactory responseFactory) {
+  RoutingBuilder(Vertx vertx, HttpServer httpServer, List<Handler<RoutedRequest>> routers, ResponseFactory responseFactory) {
+    this.vertx = vertx;
+    this.httpServer = httpServer;
     this.routers = routers;
     this.responseFactory = responseFactory;
   }
@@ -37,6 +43,16 @@ public class RoutingBuilder implements Routing {
   @Override
   public Routing getRouting() {
     return this;
+  }
+
+  @Override
+  public Vertx getVertx() {
+    return vertx;
+  }
+
+  @Override
+  public HttpServer getHttpServer() {
+    return httpServer;
   }
 
   @Override

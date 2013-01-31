@@ -17,6 +17,8 @@
 package org.ratpackframework;
 
 import org.vertx.java.core.Handler;
+import org.vertx.java.core.Vertx;
+import org.vertx.java.core.http.HttpServer;
 
 /**
  * The API for the routing file (i.e. ratpack.groovy)
@@ -33,6 +35,20 @@ public interface Routing {
   Routing getRouting();
 
   /**
+   * The vertx instance for this app.
+   *
+   * @return The vertx instance for this app.
+   */
+  Vertx getVertx();
+
+  /**
+   * The http server for the app.
+   *
+   * @return The http server for this app.
+   */
+  HttpServer getHttpServer();
+
+  /**
    * Adds a route, for the given method at the given path, to be handled by the given handler.
    *
    * You can specify {@value #ALL_METHODS} for the method to match all methods.
@@ -47,6 +63,7 @@ public interface Routing {
    * Delegates {@link #register(java.lang.String, java.lang.String, Handler)} with a method of "*"
    */
   void all(String path, Handler<Response> handler);
+
 
   /**
    * Delegates {@link #register(java.lang.String, java.lang.String, Handler)} with a method of "get"
@@ -70,6 +87,4 @@ public interface Routing {
    * Delegates {@link #register(java.lang.String, java.lang.String, Handler)} with a method of "delete"
    */
   void delete(String path, Handler<Response> handler);
-
-
 }

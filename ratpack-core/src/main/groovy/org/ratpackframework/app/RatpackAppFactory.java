@@ -32,6 +32,7 @@ public class RatpackAppFactory {
 
   public RatpackApp create(Config config) {
     Vertx vertx = config.getVertx();
+    HttpServer httpServer = vertx.createHttpServer();
 
     File publicDir = new File(config.getBaseDir(), config.getStaticAssetsDir());
 
@@ -46,14 +47,13 @@ public class RatpackAppFactory {
     );
 
     ResponseFactory responseFactory = new ResponseFactory(templateRenderer, sessionManager);
-    Handler<RoutedRequest> router = new ScriptBackedRouter(vertx, routesFile, responseFactory, config.isStaticallyCompileRoutes(), config.isReloadRoutes());
+    Handler<RoutedRequest> router = new ScriptBackedRouter(vertx, httpServer, routesFile, responseFactory, config.isStaticallyCompileRoutes(), config.isReloadRoutes());
 
     Handler<Vertx> vertxInit = config.getVertxInit();
     if (vertxInit != null) {
       vertxInit.handle(vertx);
     }
 
-    HttpServer httpServer = vertx.createHttpServer();
     Handler<HttpServer> httpServerInit = config.getHttpServerInit();
     if (httpServerInit != null) {
       httpServerInit.handle(httpServer);

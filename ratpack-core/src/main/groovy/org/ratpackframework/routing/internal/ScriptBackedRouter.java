@@ -26,6 +26,7 @@ import org.vertx.java.core.Vertx;
 import org.vertx.java.core.buffer.Buffer;
 import org.vertx.java.core.file.FileProps;
 import org.vertx.java.core.file.FileSystem;
+import org.vertx.java.core.http.HttpServer;
 
 import java.io.File;
 import java.io.UnsupportedEncodingException;
@@ -39,7 +40,8 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class ScriptBackedRouter implements Handler<RoutedRequest> {
 
-  private final FileSystem fileSystem;
+  private final Vertx vertx;
+  private final HttpServer httpServer;
   private final String scriptFilePath;
   private final String scriptFileName;
   private final ResponseFactory responseFactory;
@@ -53,8 +55,9 @@ public class ScriptBackedRouter implements Handler<RoutedRequest> {
 
   private final boolean reloadable;
 
-  public ScriptBackedRouter(Vertx vertx, File scriptFile, ResponseFactory responseFactory, boolean staticallyCompile, boolean reloadable) {
-    this.fileSystem = vertx.fileSystem();
+  public ScriptBackedRouter(Vertx vertx, HttpServer httpServer, File scriptFile, ResponseFactory responseFactory, boolean staticallyCompile, boolean reloadable) {
+    this.vertx = vertx;
+    this.httpServer = httpServer;
     this.scriptFilePath = scriptFile.getAbsolutePath();
     this.scriptFileName = scriptFile.getName();
     this.responseFactory = responseFactory;
@@ -68,7 +71,7 @@ public class ScriptBackedRouter implements Handler<RoutedRequest> {
 
   @Override
   public void handle(final RoutedRequest routedRequest) {
-    fileSystem.exists(scriptFilePath, routedRequest.getErrorHandler().asyncHandler(routedRequest.getRequest(), new Handler<Boolean>() {
+    vertx.fileSystem().exists(scriptFilePath, routedRequest.getErrorHandler().asyncHandler(routedRequest.getRequest(), new Handler<Boolean>() {
       @Override
       public void handle(Boolean exists) {
         if (!exists) {
@@ -108,14 +111,14 @@ public class ScriptBackedRouter implements Handler<RoutedRequest> {
       return;
     }
 
-    fileSystem.props(scriptFilePath, routedRequest.getErrorHandler().asyncHandler(routedRequest.getRequest(), new Handler<FileProps>() {
+    vertx.fileSystem().props(scriptFilePath, routedRequest.getErrorHandler().asyncHandler(routedRequest.getRequest(), new Handler<FileProps>() {
       public void handle(FileProps fileProps) {
         if (fileProps.lastModifiedTime.getTime() != lastModifiedHolder.get()) {
           didChange.handle(routedRequest);
           return;
         }
 
-        fileSystem.readFile(scriptFilePath, routedRequest.getErrorHandler().asyncHandler(routedRequest.getRequest(), new Handler<Buffer>() {
+        vertx.fileSystem().readFile(scriptFilePath, routedRequest.getErrorHandler().asyncHandler(routedRequest.getRequest(), new Handler<Buffer>() {
           @Override
           public void handle(Buffer buffer) {
             if (Arrays.equals(buffer.getBytes(), ScriptBackedRouter.this.contentHolder.get())) {
@@ -132,7 +135,7 @@ public class ScriptBackedRouter implements Handler<RoutedRequest> {
   private void refreshSync() {
     FileProps fileProps;
     try {
-      fileProps = fileSystem.propsSync(scriptFilePath);
+      fileProps = vertx.fileSystem().propsSync(scriptFilePath);
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
@@ -140,7 +143,7 @@ public class ScriptBackedRouter implements Handler<RoutedRequest> {
     long lastModifiedTime = fileProps.lastModifiedTime.getTime();
     byte[] bytes;
     try {
-      bytes = fileSystem.readFileSync(scriptFilePath).getBytes();
+      bytes = vertx.fileSystem().readFileSync(scriptFilePath).getBytes();
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
@@ -150,7 +153,7 @@ public class ScriptBackedRouter implements Handler<RoutedRequest> {
     }
 
     List<Handler<RoutedRequest>> routers = new LinkedList<>();
-    RoutingBuilder routingBuilder = new RoutingBuilder(routers, responseFactory);
+    RoutingBuilder routingBuilder = new RoutingBuilder(vertx, httpServer, routers, responseFactory);
     String string;
     try {
       string = new String(bytes, "utf-8");
