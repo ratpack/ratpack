@@ -18,7 +18,10 @@ package org.ratpackframework.app.internal;
 
 import groovy.lang.Script;
 import org.ratpackframework.app.Config;
+import org.ratpackframework.internal.NoOpHandler;
+import org.vertx.java.core.Handler;
 import org.vertx.java.core.Vertx;
+import org.vertx.java.core.http.HttpServer;
 
 import java.io.File;
 
@@ -38,6 +41,9 @@ public class ConfigScript extends Script implements Config {
   private int maxActiveSessions = 100;
   private int sessionTimeoutMins = 60;
   private int sessionCookieExpiresMins = 60 * 60 * 24 * 365; // 1 year
+
+  private Handler<Vertx> vertxInit = new NoOpHandler<>();
+  private Handler<HttpServer> httpServerInit = new NoOpHandler<>();
 
   private Vertx vertx;
 
@@ -258,4 +264,35 @@ public class ConfigScript extends Script implements Config {
   public Object run() {
     return this;
   }
+
+  @Override
+  public Handler<Vertx> getVertxInit() {
+    return vertxInit;
+  }
+
+  @Override
+  public void setVertxInit(Handler<Vertx> vertxInit) {
+    this.vertxInit = vertxInit;
+  }
+
+  @Override
+  public void vertxInit(Handler<Vertx> vertxInit) {
+    this.vertxInit = vertxInit;
+  }
+
+  @Override
+  public Handler<HttpServer> getHttpServerInit() {
+    return httpServerInit;
+  }
+
+  @Override
+  public void setHttpServerInit(Handler<HttpServer> httpServerInit) {
+    this.httpServerInit = httpServerInit;
+  }
+
+  @Override
+  public void httpServerInit(Handler<HttpServer> httpServerInit) {
+    this.httpServerInit = httpServerInit;
+  }
+
 }

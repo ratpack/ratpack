@@ -16,7 +16,9 @@
 
 package org.ratpackframework.app;
 
+import org.vertx.java.core.Handler;
 import org.vertx.java.core.Vertx;
+import org.vertx.java.core.http.HttpServer;
 
 import java.io.File;
 
@@ -265,4 +267,38 @@ public interface Config {
    * @see #getVertx()
    */
   void vertx(Vertx vertx);
+
+  /**
+   * The initialiser for the Vertx instance.
+   *
+   * Defaults to a noop.
+   */
+  Handler<Vertx> getVertxInit();
+
+  /**
+   * @see #getVertxInit()
+   */
+  void setVertxInit(Handler<Vertx> vertxInit);
+
+  /**
+   * @see #getVertxInit()
+   */
+  void vertxInit(Handler<Vertx> vertxInit);
+
+  /**
+   * The initialiser for the HttpServer instance.
+   *
+   * Defaults to a noop.
+   */
+  Handler<HttpServer> getHttpServerInit();
+
+  /**
+   * @see #getHttpServerInit()
+   */
+  void setHttpServerInit(Handler<HttpServer> httpServerInit);
+
+  /**
+   * @see #getHttpServerInit()
+   */
+  void httpServerInit(Handler<HttpServer> httpServerInit);
 }

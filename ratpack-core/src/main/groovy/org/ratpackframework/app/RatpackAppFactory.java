@@ -24,17 +24,22 @@ import org.ratpackframework.session.internal.SessionManager;
 import org.ratpackframework.templating.TemplateRenderer;
 import org.vertx.java.core.Handler;
 import org.vertx.java.core.Vertx;
+import org.vertx.java.core.http.HttpServer;
 
 import java.io.File;
 
 public class RatpackAppFactory {
 
   public RatpackApp create(Config config) {
-    File publicDir = new File(config.getBaseDir(), config.getStaticAssetsDir());
     Vertx vertx = config.getVertx();
+
+    File publicDir = new File(config.getBaseDir(), config.getStaticAssetsDir());
+
     File templatesDir = new File(config.getBaseDir(), config.getTemplatesDir());
     TemplateRenderer templateRenderer = new TemplateRenderer(vertx, templatesDir, config.getTemplatesCacheSize(), config.isStaticallyCompileTemplates());
+
     File routesFile = new File(config.getBaseDir(), config.getRoutes());
+
     SessionManager sessionManager = new SessionManager(
         new DefaultSessionIdGenerator(), config.getMaxActiveSessions(), config.getSessionTimeoutMins(),
         config.getSessionCookieExpiresMins(), config.getHost(), "/"
@@ -43,7 +48,18 @@ public class RatpackAppFactory {
     ResponseFactory responseFactory = new ResponseFactory(templateRenderer, sessionManager);
     Handler<RoutedRequest> router = new ScriptBackedRouter(vertx, routesFile, responseFactory, config.isStaticallyCompileRoutes(), config.isReloadRoutes());
 
-    return new RatpackApp(vertx, config.getHost(), config.getPort(), router, templateRenderer, publicDir, sessionManager);
+    Handler<Vertx> vertxInit = config.getVertxInit();
+    if (vertxInit != null) {
+      vertxInit.handle(vertx);
+    }
+
+    HttpServer httpServer = vertx.createHttpServer();
+    Handler<HttpServer> httpServerInit = config.getHttpServerInit();
+    if (httpServerInit != null) {
+      httpServerInit.handle(httpServer);
+    }
+
+    return new RatpackApp(vertx, httpServer, config.getHost(), config.getPort(), router, templateRenderer, publicDir);
   }
 
 }

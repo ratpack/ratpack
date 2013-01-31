@@ -16,24 +16,27 @@ import org.vertx.java.core.logging.impl.LoggerFactory;
 
 import java.io.File;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class RatpackApp {
 
   private final Logger logger = LoggerFactory.getLogger(getClass());
 
-  private HttpServer server;
+  private final Vertx vertx;
+  private final HttpServer httpServer;
+  private final String host;
+  private final int port;
+  private final Handler<RoutedRequest> router;
+  private final TemplateRenderer templateCompiler;
+  private final File staticFiles;
 
-  final Vertx vertx;
-  final String host;
-  final int port;
-  final Handler<RoutedRequest> router;
-  final TemplateRenderer templateCompiler;
-  final File staticFiles;
+  private final AtomicBoolean running = new AtomicBoolean();
 
   private CountDownLatch latch;
 
-  public RatpackApp(Vertx vertx, String host, int port, Handler<RoutedRequest> router, TemplateRenderer templateCompiler, File staticFiles, SessionManager sessionManager) {
+  public RatpackApp(Vertx vertx, HttpServer httpServer, String host, int port, Handler<RoutedRequest> router, TemplateRenderer templateCompiler, File staticFiles) {
     this.vertx = vertx;
+    this.httpServer = httpServer;
     this.host = host;
     this.port = port;
     this.router = router;
@@ -42,11 +45,10 @@ public class RatpackApp {
   }
 
   public void start() {
-    if (server != null) {
-      throw new IllegalStateException("server already running");
+    if (!running.compareAndSet(false, true)) {
+      throw new IllegalStateException("httpServer already running");
     }
 
-    server = vertx.createHttpServer();
     latch = new CountDownLatch(1);
     ErrorHandler errorHandler = new ErrorHandler(templateCompiler);
     Handler<HttpServerRequest> notFoundHandler = new NotFoundHandler(templateCompiler);
@@ -60,8 +62,8 @@ public class RatpackApp {
     Handler<HttpServerRequest> staticHandler = new StaticAssetRequestHandlerWrapper(vertx, errorHandler, notFoundHandler, staticFiles.getAbsolutePath(), staticHandlerChain);
     Handler<HttpServerRequest> routingHandler = new RoutingHandler(router, errorHandler, staticHandler);
 
-    server.requestHandler(routingHandler);
-    server.listen(port, host);
+    httpServer.requestHandler(routingHandler);
+    httpServer.listen(port, host);
     if (logger.isInfoEnabled()) {
       logger.info(String.format("Ratpack started for http://%s:%s", host, port));
     }
@@ -78,10 +80,10 @@ public class RatpackApp {
 
   public void stop() {
     try {
-      server.close();
+      httpServer.close();
+      running.set(false);
     } finally {
       latch.countDown();
-      server = null;
     }
   }
 
