@@ -71,15 +71,15 @@ public class MediaType {
     return params.containsKey("charset") ? params.get("charset") : "ISO-8859-1";
   }
 
-  boolean isJson() {
+  public boolean isJson() {
     return !isEmpty() && getBase().equals(APPLICATION_JSON);
   }
 
-  boolean isForm() {
+  public boolean isForm() {
     return !isEmpty() && getBase().equals(APPLICATION_FORM);
   }
 
-  boolean isEmpty() {
+  public boolean isEmpty() {
     return getBase() == null;
   }
 }
