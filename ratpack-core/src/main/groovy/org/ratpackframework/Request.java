@@ -16,6 +16,7 @@
 
 package org.ratpackframework;
 
+import org.ratpackframework.http.ContentType;
 import org.ratpackframework.session.Session;
 import org.vertx.java.core.Handler;
 import org.vertx.java.core.buffer.Buffer;
@@ -50,6 +51,8 @@ public interface Request {
   void form(Handler<Map<String, ?>> formHandler);
 
   Session getSession();
+
+  ContentType getContentType();
 
   HttpServerRequest getVertxRequest();
 

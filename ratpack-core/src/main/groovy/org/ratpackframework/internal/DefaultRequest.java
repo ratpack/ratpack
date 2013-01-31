@@ -21,6 +21,7 @@ import org.ratpackframework.groovy.Request;
 import org.ratpackframework.handler.ClosureHandlerAdapter;
 import org.ratpackframework.handler.ErrorHandler;
 import org.ratpackframework.handler.ErroredHttpServerRequest;
+import org.ratpackframework.http.ContentType;
 import org.ratpackframework.session.Session;
 import org.ratpackframework.session.internal.RequestSessionManager;
 import org.vertx.java.core.Handler;
@@ -153,7 +154,8 @@ public class DefaultRequest implements Request {
     return vertxRequest;
   }
 
-  private ContentType getContentType() {
+  @Override
+  public ContentType getContentType() {
     if (contentType == null) {
       contentType = new ContentType(vertxRequest.headers().get("content-type"));
     }
