@@ -22,11 +22,11 @@ class RoutingSpec extends RatpackSpec {
     given:
     ratpackFile << """
       all("/a") {
-        renderString it.method
+        renderText it.method
       }
 
       register("*", "/b") {
-        renderString it.method
+        renderText it.method
       }
     """
 

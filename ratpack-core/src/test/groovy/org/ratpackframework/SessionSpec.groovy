@@ -6,7 +6,7 @@ class SessionSpec extends RatpackSpec {
     given:
     ratpackFile << """
       get("/:v") {
-        renderString it.session.getId()
+        renderText it.session.getId()
       }
     """
 
@@ -21,11 +21,11 @@ class SessionSpec extends RatpackSpec {
     given:
     ratpackFile << """
       get("/") {
-        renderString it.session.value
+        renderText it.session.value
       }
       get("/set/:value") {
         it.session.value = it.urlParams.value
-        renderString it.session.value
+        renderText it.session.value
       }
     """
 

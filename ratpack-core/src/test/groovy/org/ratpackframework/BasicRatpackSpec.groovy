@@ -22,10 +22,10 @@ class BasicRatpackSpec extends RatpackSpec {
     given:
     ratpackFile << """
       get("/") {
-        renderString "get"
+        renderText "get"
       }
       post("/") {
-        renderString "post"
+        renderText "post"
       }
     """
 
@@ -41,7 +41,7 @@ class BasicRatpackSpec extends RatpackSpec {
     given:
     ratpackFile << """
       get("/") {
-        renderString "foo"
+        renderText "foo"
       }
     """
 
@@ -54,7 +54,7 @@ class BasicRatpackSpec extends RatpackSpec {
     when:
     ratpackFile.text = """
       get("/") {
-        renderString "bar"
+        renderText "bar"
       }
     """
 
@@ -67,7 +67,7 @@ class BasicRatpackSpec extends RatpackSpec {
     config.reloadRoutes false
     ratpackFile << """
       get("/") {
-        renderString "foo"
+        renderText "foo"
       }
     """
 
@@ -80,7 +80,7 @@ class BasicRatpackSpec extends RatpackSpec {
     when:
     ratpackFile.text = """
       get("/") {
-        renderString "bar"
+        renderText "bar"
       }
     """
 
@@ -109,7 +109,7 @@ class BasicRatpackSpec extends RatpackSpec {
         sendRedirect "/foo"
       }
       get("/foo") {
-        renderString "foo"
+        renderText "foo"
       }
     """
 

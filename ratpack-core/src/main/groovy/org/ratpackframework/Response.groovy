@@ -43,7 +43,7 @@ interface Response {
 
   void renderJson(Object o)
 
-  void renderString(String str)
+  void renderText(Object str)
 
   /**
    * Sends a temporary redirect response (i.e. statusCode 301) to the client using the specified redirect location URL.

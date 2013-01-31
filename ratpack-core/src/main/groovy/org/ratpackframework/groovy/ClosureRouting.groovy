@@ -37,7 +37,7 @@ public interface ClosureRouting extends Routing {
    * The path may contain tokens, which are prefixed with a colon.
    * <pre>
    * register("get", "/:a") { Request request ->
-   *    renderString "path = request.urlParams.a"
+   *    renderText "path = request.urlParams.a"
    * }
    * </pre>
    * <p>

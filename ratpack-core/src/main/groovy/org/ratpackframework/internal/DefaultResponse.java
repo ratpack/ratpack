@@ -18,6 +18,7 @@ package org.ratpackframework.internal;
 
 import groovy.json.JsonBuilder;
 import groovy.lang.Closure;
+import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.ratpackframework.Request;
 import org.ratpackframework.Response;
 import org.ratpackframework.routing.FinalizedResponse;
@@ -102,14 +103,14 @@ public class DefaultResponse implements Response {
     errorHandler(new Handler<Object>() {
       @Override
       public void handle(Object event) {
-        renderString(new JsonBuilder(jsonObject).toString());
+        renderText(new JsonBuilder(jsonObject).toString());
       }
     }).handle(jsonObject);
   }
 
-  public void renderString(String str) {
+  public void renderText(Object text) {
     maybeSetContentType(MimeType.TEXT_PLAIN);
-    renderer().handle(new Buffer(str));
+    renderer().handle(new Buffer(DefaultGroovyMethods.toString(text)));
   }
 
   public void sendRedirect(String location) {

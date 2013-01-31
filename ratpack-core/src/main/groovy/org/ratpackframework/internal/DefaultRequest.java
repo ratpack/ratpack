@@ -30,6 +30,7 @@ import org.vertx.java.core.json.JsonObject;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
+import java.util.Collections;
 import java.util.Map;
 
 public class DefaultRequest implements Request {
@@ -60,10 +61,15 @@ public class DefaultRequest implements Request {
   @Override
   public Map<String, ?> getQueryParams() {
     if (queryParams == null) {
-      try {
-        queryParams = new ParamParser().parse(URLDecoder.decode(getQuery(), "UTF-8"));
-      } catch (UnsupportedEncodingException e) {
-        throw new RuntimeException(e);
+      String query = getQuery();
+      if (query == null) {
+        queryParams = Collections.emptyMap();
+      } else {
+        try {
+          queryParams = new ParamParser().parse(URLDecoder.decode(getQuery(), "UTF-8"));
+        } catch (UnsupportedEncodingException e) {
+          throw new RuntimeException(e);
+        }
       }
     }
     return queryParams;

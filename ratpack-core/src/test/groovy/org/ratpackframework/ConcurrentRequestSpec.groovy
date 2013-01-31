@@ -9,7 +9,7 @@ class ConcurrentRequestSpec extends RatpackSpec {
     given:
     ratpackFile << """
       get("/:id") {
-        renderString getRequest().urlParams.id + ":" + getRequest().queryParams.id
+        renderText getRequest().urlParams.id + ":" + getRequest().queryParams.id
       }
     """
 

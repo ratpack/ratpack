@@ -22,7 +22,7 @@ class PathParamsSpec extends RatpackSpec {
     given:
     ratpackFile << """
       get("/:a/:b/:c") {
-        renderString getRequest().urlParams.toString()
+        renderText getRequest().urlParams.toString()
       }
     """
 

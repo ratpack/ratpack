@@ -22,7 +22,15 @@ public class ParamParser {
     Map<String, ?> params = [:]
 
     for (part in content.split("&")) {
-      def (key, value) = part.split("=", 2)
+      def key, value
+      if (part.contains("=")) {
+        def keyAndValue = part.split("=", 2)
+        key = keyAndValue[0]
+        value = keyAndValue[1]
+      } else {
+        key = part
+        value = null
+      }
       storeParam(subscripts(key), value, params)
     }
 
