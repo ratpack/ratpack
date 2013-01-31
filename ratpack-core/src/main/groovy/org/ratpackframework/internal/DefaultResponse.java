@@ -21,6 +21,7 @@ import groovy.lang.Closure;
 import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.ratpackframework.Request;
 import org.ratpackframework.Response;
+import org.ratpackframework.http.MediaType;
 import org.ratpackframework.routing.FinalizedResponse;
 import org.ratpackframework.templating.TemplateRenderer;
 import org.vertx.java.core.AsyncResult;
@@ -94,12 +95,12 @@ public class DefaultResponse implements Response {
   }
 
   public void render(Map<String, ?> model, String templateName) {
-    maybeSetContentType(MimeType.TEXT_HTML);
+    maybeSetContentType(MediaType.TEXT_HTML);
     templateRenderer.renderFileTemplate(templateName, model, asyncErrorHandler(renderer()));
   }
 
   public void renderJson(final Object jsonObject) {
-    maybeSetContentType(MimeType.APPLICATION_JSON);
+    maybeSetContentType(MediaType.APPLICATION_JSON);
     errorHandler(new Handler<Object>() {
       @Override
       public void handle(Object event) {
@@ -109,7 +110,7 @@ public class DefaultResponse implements Response {
   }
 
   public void renderText(Object text) {
-    maybeSetContentType(MimeType.TEXT_PLAIN);
+    maybeSetContentType(MediaType.TEXT_PLAIN);
     renderer().handle(new Buffer(DefaultGroovyMethods.toString(text)));
   }
 

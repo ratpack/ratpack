@@ -21,7 +21,7 @@ import org.ratpackframework.groovy.Request;
 import org.ratpackframework.handler.ClosureHandlerAdapter;
 import org.ratpackframework.handler.ErrorHandler;
 import org.ratpackframework.handler.ErroredHttpServerRequest;
-import org.ratpackframework.http.ContentType;
+import org.ratpackframework.http.MediaType;
 import org.ratpackframework.session.Session;
 import org.ratpackframework.session.internal.RequestSessionManager;
 import org.vertx.java.core.Handler;
@@ -37,7 +37,7 @@ import java.util.Map;
 public class DefaultRequest implements Request {
 
   private final RequestSessionManager sessionManager;
-  private ContentType contentType;
+  private MediaType mediaType;
 
   private final HttpServerRequest vertxRequest;
   private final ErrorHandler errorHandler;
@@ -95,7 +95,7 @@ public class DefaultRequest implements Request {
     vertxRequest.bodyHandler(errorHandler(new Handler<Buffer>() {
       @Override
       public void handle(Buffer event) {
-        textHandler.handle(event.toString(getContentType().getCharset()));
+        textHandler.handle(event.toString(getMediaType().getCharset()));
       }
     }));
   }
@@ -105,7 +105,7 @@ public class DefaultRequest implements Request {
     vertxRequest.bodyHandler(errorHandler(new Handler<Buffer>() {
       @Override
       public void handle(Buffer event) {
-        String charset = getContentType().getCharset();
+        String charset = getMediaType().getCharset();
         jsonHandler.handle(new JsonObject(event.toString(charset)));
       }
     }));
@@ -116,7 +116,7 @@ public class DefaultRequest implements Request {
     vertxRequest.bodyHandler(errorHandler(new Handler<Buffer>() {
       @Override
       public void handle(Buffer event) {
-        String charset = getContentType().getCharset();
+        String charset = getMediaType().getCharset();
         try {
           String string = event.toString(charset);
           String decoded = URLDecoder.decode(string, charset);
@@ -155,11 +155,11 @@ public class DefaultRequest implements Request {
   }
 
   @Override
-  public ContentType getContentType() {
-    if (contentType == null) {
-      contentType = new ContentType(vertxRequest.headers().get("content-type"));
+  public MediaType getMediaType() {
+    if (mediaType == null) {
+      mediaType = new MediaType(vertxRequest.headers().get("content-type"));
     }
-    return contentType;
+    return mediaType;
   }
 
   @Override

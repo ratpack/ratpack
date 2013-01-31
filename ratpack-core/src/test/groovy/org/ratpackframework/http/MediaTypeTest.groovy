@@ -18,7 +18,7 @@ package org.ratpackframework.http
 
 import spock.lang.Specification
 
-class ContentTypeTest extends Specification {
+class MediaTypeTest extends Specification {
 
   def "parsing"() {
     expect:
@@ -33,7 +33,7 @@ class ContentTypeTest extends Specification {
 
   }
 
-  private ContentType ct(s) {
-    new ContentType(s)
+  private MediaType ct(s) {
+    new MediaType(s)
   }
 }

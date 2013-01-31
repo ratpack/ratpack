@@ -20,12 +20,17 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class ContentType {
+public class MediaType {
+
+  public static final String TEXT_HTML = "text/html";
+  public static final String TEXT_PLAIN = "text/plain";
+  public static final String APPLICATION_JSON = "application/json";
+  public static final String APPLICATION_FORM = "application/x-www-form-urlencoded";
 
   private final String base;
   private final Map<String, String> params;
 
-  public ContentType(String headerValue) {
+  public MediaType(String headerValue) {
     if (headerValue == null) {
       base = null;
       params = Collections.emptyMap();
@@ -52,7 +57,6 @@ public class ContentType {
         params = Collections.unmodifiableMap(mutableParams);
       }
     }
-
   }
 
   public String getBase() {
@@ -67,4 +71,15 @@ public class ContentType {
     return params.containsKey("charset") ? params.get("charset") : "ISO-8859-1";
   }
 
+  boolean isJson() {
+    return !isEmpty() && getBase().equals(APPLICATION_JSON);
+  }
+
+  boolean isForm() {
+    return !isEmpty() && getBase().equals(APPLICATION_FORM);
+  }
+
+  boolean isEmpty() {
+    return getBase() == null;
+  }
 }

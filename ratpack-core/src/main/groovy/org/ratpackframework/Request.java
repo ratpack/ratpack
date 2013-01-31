@@ -16,7 +16,7 @@
 
 package org.ratpackframework;
 
-import org.ratpackframework.http.ContentType;
+import org.ratpackframework.http.MediaType;
 import org.ratpackframework.session.Session;
 import org.vertx.java.core.Handler;
 import org.vertx.java.core.buffer.Buffer;
@@ -52,7 +52,7 @@ public interface Request {
 
   Session getSession();
 
-  ContentType getContentType();
+  MediaType getMediaType();
 
   HttpServerRequest getVertxRequest();
 
