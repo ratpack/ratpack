@@ -52,7 +52,7 @@ public interface Request {
 
   Session getSession();
 
-  MediaType getMediaType();
+  MediaType getContentType();
 
   HttpServerRequest getVertxRequest();
 

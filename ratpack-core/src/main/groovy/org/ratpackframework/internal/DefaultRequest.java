@@ -95,7 +95,7 @@ public class DefaultRequest implements Request {
     vertxRequest.bodyHandler(errorHandler(new Handler<Buffer>() {
       @Override
       public void handle(Buffer event) {
-        textHandler.handle(event.toString(getMediaType().getCharset()));
+        textHandler.handle(event.toString(getContentType().getCharset()));
       }
     }));
   }
@@ -105,7 +105,7 @@ public class DefaultRequest implements Request {
     vertxRequest.bodyHandler(errorHandler(new Handler<Buffer>() {
       @Override
       public void handle(Buffer event) {
-        String charset = getMediaType().getCharset();
+        String charset = getContentType().getCharset();
         jsonHandler.handle(new JsonObject(event.toString(charset)));
       }
     }));
@@ -116,7 +116,7 @@ public class DefaultRequest implements Request {
     vertxRequest.bodyHandler(errorHandler(new Handler<Buffer>() {
       @Override
       public void handle(Buffer event) {
-        String charset = getMediaType().getCharset();
+        String charset = getContentType().getCharset();
         try {
           String string = event.toString(charset);
           String decoded = URLDecoder.decode(string, charset);
@@ -155,7 +155,7 @@ public class DefaultRequest implements Request {
   }
 
   @Override
-  public MediaType getMediaType() {
+  public MediaType getContentType() {
     if (mediaType == null) {
       mediaType = new MediaType(vertxRequest.headers().get("content-type"));
     }
