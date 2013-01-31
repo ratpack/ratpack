@@ -28,7 +28,7 @@ public class ConfigLoader {
     if (!configFile.exists()) {
       return new ConfigScript(configFile.getParentFile());
     } else {
-      ScriptEngine<ConfigScript> scriptEngine = new ScriptEngine<>(getClass().getClassLoader(), true, ConfigScript.class);
+      ScriptEngine<ConfigScript> scriptEngine = new ScriptEngine<>(getClass().getClassLoader(), false, ConfigScript.class);
       return scriptEngine.run(configFile.getName(), ResourceGroovyMethods.getText(configFile), configFile.getParentFile());
     }
   }
