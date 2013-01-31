@@ -93,4 +93,23 @@ public class RatpackApp {
     }
   }
 
+  public Vertx getVertx() {
+    return vertx;
+  }
+
+  public HttpServer getHttpServer() {
+    return httpServer;
+  }
+
+  public String getHost() {
+    return host;
+  }
+
+  public int getPort() {
+    return port;
+  }
+
+  public boolean isRunning() {
+    return running.get();
+  }
 }
