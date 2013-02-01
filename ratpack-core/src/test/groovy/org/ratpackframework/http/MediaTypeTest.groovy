@@ -33,7 +33,20 @@ class MediaTypeTest extends Specification {
 
   }
 
+  def "tostring"() {
+    expect:
+    cts("") == ""
+    cts("  application/json   ") == "application/json"
+    cts("application/json;foo=bar") == "application/json;foo=bar"
+    cts("application/json;foo") == "application/json;foo"
+    cts("application/json;a=1 ; b=2") == "application/json;a=1;b=2"
+  }
+
   private MediaType ct(s) {
     new MediaType(s)
+  }
+
+  private String cts(s) {
+    ct(s).toString()
   }
 }

@@ -22,6 +22,7 @@ import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.ratpackframework.Request;
 import org.ratpackframework.Response;
 import org.ratpackframework.http.MediaType;
+import org.ratpackframework.http.MutableMediaType;
 import org.ratpackframework.routing.FinalizedResponse;
 import org.ratpackframework.templating.TemplateRenderer;
 import org.vertx.java.core.AsyncResult;
@@ -36,8 +37,10 @@ import java.util.Map;
 public class DefaultResponse implements Response {
 
   private final Map<String, Object> headers = new LinkedHashMap<String, Object>();
+  private final MutableMediaType contentType = new MutableMediaType();
   private final Request request;
   private int status = 200;
+
 
   private final TemplateRenderer templateRenderer;
   private final AsyncResultHandler<FinalizedResponse> finalHandler;
@@ -68,8 +71,9 @@ public class DefaultResponse implements Response {
     this.status = status;
   }
 
-  public void setContentType(String contentType) {
-    headers.put(HttpHeader.CONTENT_TYPE, contentType);
+  @Override
+  public MutableMediaType getContentType() {
+    return contentType;
   }
 
   @Override
@@ -84,9 +88,9 @@ public class DefaultResponse implements Response {
     };
   }
 
-  private void maybeSetContentType(String contentType) {
-    if (!headers.containsKey(HttpHeader.CONTENT_TYPE)) {
-      headers.put(HttpHeader.CONTENT_TYPE, contentType);
+  private void maybeSetUtf8ContentType(String contentTypeBase) {
+    if (contentType.isEmpty()) {
+      contentType.utf8(contentTypeBase);
     }
   }
 
@@ -95,12 +99,12 @@ public class DefaultResponse implements Response {
   }
 
   public void render(Map<String, ?> model, String templateName) {
-    maybeSetContentType(MediaType.TEXT_HTML);
+    maybeSetUtf8ContentType(MediaType.TEXT_HTML);
     templateRenderer.renderFileTemplate(templateName, model, asyncErrorHandler(renderer()));
   }
 
   public void renderJson(final Object jsonObject) {
-    maybeSetContentType(MediaType.APPLICATION_JSON);
+    maybeSetUtf8ContentType(MediaType.APPLICATION_JSON);
     errorHandler(new Handler<Object>() {
       @Override
       public void handle(Object event) {
@@ -110,7 +114,7 @@ public class DefaultResponse implements Response {
   }
 
   public void renderText(Object text) {
-    maybeSetContentType(MediaType.TEXT_PLAIN);
+    maybeSetUtf8ContentType(MediaType.TEXT_PLAIN);
     renderer().handle(new Buffer(DefaultGroovyMethods.toString(text)));
   }
 

@@ -17,6 +17,7 @@
 package org.ratpackframework;
 
 import groovy.lang.Closure;
+import org.ratpackframework.http.MutableMediaType;
 import org.vertx.java.core.AsyncResultHandler;
 import org.vertx.java.core.Handler;
 import org.vertx.java.core.buffer.Buffer;
@@ -41,6 +42,8 @@ public interface Response {
    *
    * Any non iterable values will be toString()'d. Iterable values indicate a multi value header, and each element will be toString()'d. Headers are not sent immediately. They will be sent when the
    * response is finalised (e.g. after one of the render*() methods).
+   * <p>
+   * The “Content-Type” header is special and is managed by {@link #getContentType()}. Any value for this header in this map will be ignored.
    *
    * @return the headers.
    */
@@ -65,11 +68,10 @@ public interface Response {
   /**
    * The response payload content type.
    *
-   * Defaults to null.
-   *
-   * @param contentType the response payload content type.
+   * Defaults to being {@link org.ratpackframework.http.MutableMediaType#isEmpty()}.
+   * This will always take precedent over any content type set via the {@link #getHeaders()}.
    */
-  void setContentType(String contentType);
+  MutableMediaType getContentType();
 
   /**
    * Returns a handler that can be given a {@link Buffer}, that will finalise the request.

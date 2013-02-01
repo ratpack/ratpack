@@ -27,20 +27,24 @@ public class MediaType {
   public static final String APPLICATION_JSON = "application/json";
   public static final String APPLICATION_FORM = "application/x-www-form-urlencoded";
 
-  private final String base;
-  private final Map<String, String> params;
+  private String base;
+  protected final Map<String, String> params;
 
+  /**
+   * Parses the media type from its string representation (including params).
+   */
   public MediaType(String headerValue) {
+    // TODO: separate this out into a parser and interface.
     if (headerValue == null) {
       base = null;
-      params = Collections.emptyMap();
+      params = emptyMap();
     } else {
       headerValue = headerValue.trim();
       if (headerValue.isEmpty()) {
         base = null;
-        params = Collections.emptyMap();
+        params = emptyMap();
       } else {
-        Map<String, String> mutableParams = new LinkedHashMap<>();
+        params = new LinkedHashMap<>();
         String[] parts = headerValue.split(";");
         base = parts[0].toLowerCase();
         if (parts.length > 1) {
@@ -48,38 +52,94 @@ public class MediaType {
             String part = parts[i].trim();
             if (part.contains("=")) {
               String[] keyValue = part.split("=", 2);
-              mutableParams.put(keyValue[0].toLowerCase(), keyValue[1]);
+              params.put(keyValue[0].toLowerCase(), keyValue[1]);
             } else {
-              mutableParams.put(part.toLowerCase(), null);
+              params.put(part.toLowerCase(), null);
             }
           }
         }
-        params = Collections.unmodifiableMap(mutableParams);
       }
     }
   }
 
+  protected Map<String, String> emptyMap() {
+    return Collections.emptyMap();
+  }
+
+  /**
+   * Given a mime type of "application/json;charset=utf-8", returns "application/json".
+   *
+   * May be null to represent no content type.
+   *
+   * @return The mime type "base"
+   */
   public String getBase() {
     return base;
   }
 
-  public Map<String, String> getParams() {
-    return params;
+  protected void setBase(String base) {
+    this.base = base;
   }
 
+  /**
+   * Returns an unmodifiable view of the parameters of the mime type.
+   *
+   * Given a mime type of "application/json;charset=utf-8", returns "[charset=utf-8]".
+   * May be empty, never null.
+   * <p>
+   * All param names have been lowercased.
+   * It is invalid to have {@code getBase()} return null and this not return an empty map.
+   *
+   * @return the media type params.
+   */
+  public Map<String, String> getParams() {
+    return Collections.unmodifiableMap(params);
+  }
+
+  /**
+   * The "charset" param value if specified, otherwise the HTTP default of "ISO-8859-1".
+   */
   public String getCharset() {
     return params.containsKey("charset") ? params.get("charset") : "ISO-8859-1";
   }
 
+  /**
+   * Is the base {@value #APPLICATION_JSON}?
+   */
   public boolean isJson() {
     return !isEmpty() && getBase().equals(APPLICATION_JSON);
   }
 
+  /**
+   * Is the base {@value #APPLICATION_FORM}?
+   */
   public boolean isForm() {
     return !isEmpty() && getBase().equals(APPLICATION_FORM);
   }
 
+  /**
+   * Is this an empty value? (i.e. {@link #getBase()} == null)
+   */
   public boolean isEmpty() {
     return getBase() == null;
+  }
+
+  /**
+   * The proper string representation of a media type (e.g. for a Content-Type header)
+   */
+  @Override
+  public String toString() {
+    if (isEmpty()) {
+      return "";
+    } else {
+      StringBuilder s = new StringBuilder(getBase());
+      for (Map.Entry<String, String> param : getParams().entrySet()) {
+        s.append(";").append(param.getKey());
+        if (param.getValue() != null) {
+          s.append("=").append(param.getValue());
+        }
+      }
+      return s.toString();
+    }
   }
 }
