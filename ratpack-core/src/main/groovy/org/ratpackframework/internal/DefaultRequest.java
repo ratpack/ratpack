@@ -136,17 +136,17 @@ public class DefaultRequest implements Request {
 
   @Override
   public void text(final Closure<?> textReceiver) {
-    buffer(new ClosureHandlerAdapter<Buffer>(textReceiver));
+    text(new ClosureHandlerAdapter<String>(textReceiver));
   }
 
   @Override
   public void json(final Closure<?> jsonReceiver) {
-    buffer(new ClosureHandlerAdapter<Buffer>(jsonReceiver));
+    json(new ClosureHandlerAdapter<JsonObject>(jsonReceiver));
   }
 
   @Override
   public void form(final Closure<?> formReceiver) {
-    buffer(new ClosureHandlerAdapter<Buffer>(formReceiver));
+    form(new ClosureHandlerAdapter<Map<String, ?>>(formReceiver));
   }
 
   @Override
