@@ -16,17 +16,8 @@
 
 package org.ratpackframework.templating.internal;
 
-import groovy.lang.GroovyClassLoader;
 import groovy.lang.GroovyRuntimeException;
-import groovy.transform.CompileStatic;
-import org.codehaus.groovy.ast.AnnotationNode;
-import org.codehaus.groovy.ast.ClassNode;
-import org.codehaus.groovy.classgen.GeneratorContext;
 import org.codehaus.groovy.control.CompilationFailedException;
-import org.codehaus.groovy.control.CompilePhase;
-import org.codehaus.groovy.control.CompilerConfiguration;
-import org.codehaus.groovy.control.SourceUnit;
-import org.codehaus.groovy.control.customizers.CompilationCustomizer;
 import org.ratpackframework.script.internal.ScriptEngine;
 import org.vertx.java.core.buffer.Buffer;
 import org.vertx.java.core.logging.Logger;
@@ -34,11 +25,6 @@ import org.vertx.java.core.logging.impl.LoggerFactory;
 
 import java.io.IOException;
 
-/**
- * This is a fork of {@link groovy.text.SimpleTemplateEngine}.
- *
- * That class is not suitable for the kind of extension required.
- */
 public class TemplateCompiler {
 
   private final Logger logger = LoggerFactory.getLogger(getClass());
