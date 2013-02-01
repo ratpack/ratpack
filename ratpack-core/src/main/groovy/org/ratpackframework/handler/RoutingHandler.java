@@ -3,6 +3,7 @@ package org.ratpackframework.handler;
 import org.ratpackframework.routing.FinalizedResponse;
 import org.ratpackframework.routing.RoutedRequest;
 import org.vertx.java.core.Handler;
+import org.vertx.java.core.buffer.Buffer;
 import org.vertx.java.core.http.HttpServerRequest;
 import org.vertx.java.core.http.HttpServerResponse;
 import org.vertx.java.core.logging.Logger;
@@ -48,7 +49,12 @@ public class RoutingHandler implements Handler<HttpServerRequest> {
             realResponse.putHeader(entry.getKey(), singleValue);
           }
         }
-        realResponse.end(response.getBuffer());
+        Buffer buffer = response.getBuffer();
+        if (buffer == null) {
+          realResponse.end();
+        } else {
+          realResponse.end(buffer);
+        }
       }
     }));
 

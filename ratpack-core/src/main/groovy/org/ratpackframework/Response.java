@@ -158,4 +158,25 @@ public interface Response {
    * @param closure The code that may throw exceptions.
    */
   public void handleErrors(Closure<?> closure);
+
+  /**
+   * Finalize the request.
+   */
+  public void end();
+
+  /**
+   * Finalize the request, with the given status code.
+   *
+   * @param status The HTTP status code to respond with.
+   */
+  public void end(int status);
+
+  /**
+   * Finalize the request, with the given status code and message
+   *
+   * @param status The HTTP status code to respond with.
+   * @param message The message to send back to the client as part of the status response
+   */
+  public void end(int status, String message);
+
 }

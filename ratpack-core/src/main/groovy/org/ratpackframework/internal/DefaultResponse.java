@@ -165,4 +165,20 @@ public class DefaultResponse implements Response {
     }
   }
 
+  @Override
+  public void end() {
+    renderer().handle(null);
+  }
+
+  @Override
+  public void end(int status) {
+    this.status = status;
+    renderer().handle(null);
+  }
+
+  @Override
+  public void end(int status, String message) {
+    getRequest().getVertxRequest().response.statusMessage = message; // do better
+    end(status);
+  }
 }
