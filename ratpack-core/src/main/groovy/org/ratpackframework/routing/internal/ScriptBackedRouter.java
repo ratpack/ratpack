@@ -20,6 +20,7 @@ import org.ratpackframework.routing.FinalizedResponse;
 import org.ratpackframework.routing.ResponseFactory;
 import org.ratpackframework.routing.RoutedRequest;
 import org.ratpackframework.script.internal.ScriptEngine;
+import org.ratpackframework.service.ServiceRegistry;
 import org.vertx.java.core.AsyncResult;
 import org.vertx.java.core.Handler;
 import org.vertx.java.core.Vertx;
@@ -42,6 +43,7 @@ public class ScriptBackedRouter implements Handler<RoutedRequest> {
 
   private final Vertx vertx;
   private final HttpServer httpServer;
+  private final ServiceRegistry serviceRegistry;
   private final String scriptFilePath;
   private final String scriptFileName;
   private final ResponseFactory responseFactory;
@@ -55,9 +57,10 @@ public class ScriptBackedRouter implements Handler<RoutedRequest> {
 
   private final boolean reloadable;
 
-  public ScriptBackedRouter(Vertx vertx, HttpServer httpServer, File scriptFile, ResponseFactory responseFactory, boolean staticallyCompile, boolean reloadable) {
+  public ScriptBackedRouter(Vertx vertx, HttpServer httpServer, ServiceRegistry serviceRegistry, File scriptFile, ResponseFactory responseFactory, boolean staticallyCompile, boolean reloadable) {
     this.vertx = vertx;
     this.httpServer = httpServer;
+    this.serviceRegistry = serviceRegistry;
     this.scriptFilePath = scriptFile.getAbsolutePath();
     this.scriptFileName = scriptFile.getName();
     this.responseFactory = responseFactory;
@@ -153,7 +156,7 @@ public class ScriptBackedRouter implements Handler<RoutedRequest> {
     }
 
     List<Handler<RoutedRequest>> routers = new LinkedList<>();
-    RoutingBuilder routingBuilder = new RoutingBuilder(vertx, httpServer, routers, responseFactory);
+    RoutingBuilder routingBuilder = new RoutingBuilder(vertx, httpServer, serviceRegistry, routers, responseFactory);
     String string;
     try {
       string = new String(bytes, "utf-8");

@@ -16,6 +16,8 @@
 
 package org.ratpackframework.app;
 
+import org.ratpackframework.service.ServiceRegistry;
+import org.ratpackframework.session.SessionListener;
 import org.vertx.java.core.Handler;
 import org.vertx.java.core.Vertx;
 import org.vertx.java.core.http.HttpServer;
@@ -200,40 +202,6 @@ public interface Config {
   void reloadRoutes(boolean reloadRoutes);
 
   /**
-   * The maximum number of sessions to keep in memory.
-   *
-   * Defaults to 100.
-   */
-  int getMaxActiveSessions();
-
-  /**
-   * @see #getMaxActiveSessions()
-   */
-  void setMaxActiveSessions(int maxActiveSessions);
-
-  /**
-   * @see #getMaxActiveSessions()
-   */
-  void maxActiveSessions(int maxActiveSessions);
-
-  /**
-   * The number of mins to allow sessions to remain inactive for before they are eligible for eviction.
-   *
-   * Defaults to 60.
-   */
-  int getSessionTimeoutMins();
-
-  /**
-   * @see #getSessionTimeoutMins()
-   */
-  void setSessionTimeoutMins(int sessionTimeoutMins);
-
-  /**
-   * @see #getSessionTimeoutMins()
-   */
-  void sessionTimeoutMins(int sessionTimeoutMins);
-
-  /**
    * The number of mins to allow the session id cookie to live for.
    *
    * Defaults to 1 year.
@@ -251,6 +219,7 @@ public interface Config {
    * @see #getSessionCookieExpiresMins()
    */
   void sessionCookieExpiresMins(int sessionCookieExpiresMins);
+
 
   /**
    * The vertx instance to attach the app to.
@@ -285,4 +254,16 @@ public interface Config {
    * @see #getOnStart()
    */
   void onStart(Handler<RatpackApp> onStart);
+
+  SessionListener getSessionListener();
+
+  void setSessionListener(SessionListener sessionListener);
+
+  void sessionListener(SessionListener sessionListener);
+
+  ServiceRegistry getServices();
+
+  void setServices(ServiceRegistry serviceRegistry);
+
+  void services(ServiceRegistry serviceRegistry);
 }

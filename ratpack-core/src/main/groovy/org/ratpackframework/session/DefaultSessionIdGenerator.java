@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.session.internal;
+package org.ratpackframework.session;
+
+import org.vertx.java.core.http.HttpServerRequest;
 
 import java.math.BigInteger;
 import java.security.SecureRandom;
@@ -24,7 +26,7 @@ public class DefaultSessionIdGenerator implements SessionIdGenerator {
   private SecureRandom random = new SecureRandom();
 
   @Override
-  public String generateSessionId() {
+  public String generateSessionId(HttpServerRequest request) {
       return new BigInteger(130, random).toString(32);
   }
 

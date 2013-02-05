@@ -14,12 +14,18 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.session.internal;
+package org.ratpackframework.session;
 
-import java.util.concurrent.ConcurrentMap;
+public interface SessionConfig {
 
-public interface StoredSession extends ConcurrentMap<String, Object> {
+  String getCookieDomain();
 
-  String getId();
+  String getCookiePath();
+
+  int getCookieExpiryMins();
+
+  SessionIdGenerator getIdGenerator();
+
+  SessionListener getSessionListener();
 
 }

@@ -16,12 +16,38 @@
 
 package org.ratpackframework.session;
 
-import java.util.concurrent.ConcurrentMap;
+public interface Session  {
 
-public interface Session extends ConcurrentMap<String, Object> {
+  /**
+   * If there is an existing session, returns the ID in use.
+   *
+   * This will not initiate a session if there is none.
+   *
+   * @return Any existing session id.
+   */
+  String getExistingId();
 
+  /**
+   * Returns the session ID, initiating a session if necessary.
+   *
+   * @return The session id.
+   */
   String getId();
 
-  void invalidate();
+  /**
+   * Initiates a new session, terminating the
+   *
+   * Can only be called once per request, and not if getId() has already initiated a new session.
+   *
+   * @return
+   */
+  String regen();
+
+  /**
+   * Terminates the session with the client.
+   *
+   * Cannot be called during the same request that initiates a session.
+   */
+  void terminate();
 
 }

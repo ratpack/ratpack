@@ -19,8 +19,10 @@ package org.ratpackframework.app;
 import org.ratpackframework.routing.ResponseFactory;
 import org.ratpackframework.routing.RoutedRequest;
 import org.ratpackframework.routing.internal.ScriptBackedRouter;
-import org.ratpackframework.session.internal.DefaultSessionIdGenerator;
-import org.ratpackframework.session.internal.SessionManager;
+import org.ratpackframework.service.ServiceRegistry;
+import org.ratpackframework.session.DefaultSessionIdGenerator;
+import org.ratpackframework.session.SessionConfig;
+import org.ratpackframework.session.internal.DefaultSessionConfig;
 import org.ratpackframework.templating.TemplateRenderer;
 import org.vertx.java.core.Handler;
 import org.vertx.java.core.Vertx;
@@ -41,13 +43,13 @@ public class RatpackAppFactory {
 
     File routesFile = new File(config.getBaseDir(), config.getRoutes());
 
-    SessionManager sessionManager = new SessionManager(
-        new DefaultSessionIdGenerator(), config.getMaxActiveSessions(), config.getSessionTimeoutMins(),
-        config.getSessionCookieExpiresMins(), config.getHost(), "/"
+    SessionConfig sessionConfig = new DefaultSessionConfig(
+        new DefaultSessionIdGenerator(), config.getSessionListener(), config.getSessionCookieExpiresMins(), config.getHost(), "/"
     );
 
-    ResponseFactory responseFactory = new ResponseFactory(templateRenderer, sessionManager);
-    Handler<RoutedRequest> router = new ScriptBackedRouter(vertx, httpServer, routesFile, responseFactory, config.isStaticallyCompileRoutes(), config.isReloadRoutes());
+    ServiceRegistry serviceRegistry = config.getServices();
+    ResponseFactory responseFactory = new ResponseFactory(templateRenderer, sessionConfig);
+    Handler<RoutedRequest> router = new ScriptBackedRouter(vertx, httpServer, serviceRegistry, routesFile, responseFactory, config.isStaticallyCompileRoutes(), config.isReloadRoutes());
 
     return new RatpackApp(vertx, config.getHost(), config.getPort(), router, templateRenderer, publicDir, config.getOnStart());
   }

@@ -20,6 +20,8 @@ import groovy.lang.Script;
 import org.ratpackframework.app.Config;
 import org.ratpackframework.app.RatpackApp;
 import org.ratpackframework.internal.NoOpHandler;
+import org.ratpackframework.service.ServiceRegistry;
+import org.ratpackframework.session.SessionListener;
 import org.vertx.java.core.Handler;
 import org.vertx.java.core.Vertx;
 import org.vertx.java.core.http.HttpServer;
@@ -40,9 +42,10 @@ public class ConfigScript extends Script implements Config {
   boolean staticallyCompileRoutes = false;
   private boolean reloadRoutes = true;
 
-  private int maxActiveSessions = 100;
-  private int sessionTimeoutMins = 60;
   private int sessionCookieExpiresMins = 60 * 60 * 24 * 365; // 1 year
+  private SessionListener sessionListener;
+
+  private ServiceRegistry serviceRegistry;
 
   private Vertx vertx;
 
@@ -199,36 +202,6 @@ public class ConfigScript extends Script implements Config {
   }
 
   @Override
-  public int getMaxActiveSessions() {
-    return maxActiveSessions;
-  }
-
-  @Override
-  public void setMaxActiveSessions(int maxActiveSessions) {
-    this.maxActiveSessions = maxActiveSessions;
-  }
-
-  @Override
-  public void maxActiveSessions(int maxActiveSessions) {
-    this.maxActiveSessions = maxActiveSessions;
-  }
-
-  @Override
-  public int getSessionTimeoutMins() {
-    return sessionTimeoutMins;
-  }
-
-  @Override
-  public void setSessionTimeoutMins(int sessionTimeoutMins) {
-    this.sessionTimeoutMins = sessionTimeoutMins;
-  }
-
-  @Override
-  public void sessionTimeoutMins(int sessionTimeoutMins) {
-    this.sessionTimeoutMins = sessionTimeoutMins;
-  }
-
-  @Override
   public int getSessionCookieExpiresMins() {
     return sessionCookieExpiresMins;
   }
@@ -241,6 +214,36 @@ public class ConfigScript extends Script implements Config {
   @Override
   public void sessionCookieExpiresMins(int sessionCookieExpiresMins) {
     this.sessionCookieExpiresMins = sessionCookieExpiresMins;
+  }
+
+  @Override
+  public SessionListener getSessionListener() {
+    return sessionListener;
+  }
+
+  @Override
+  public void setSessionListener(SessionListener sessionListener) {
+    this.sessionListener = sessionListener;
+  }
+
+  @Override
+  public void sessionListener(SessionListener sessionListener) {
+    this.sessionListener = sessionListener;
+  }
+
+  @Override
+  public ServiceRegistry getServices() {
+    return serviceRegistry;
+  }
+
+  @Override
+  public void setServices(ServiceRegistry serviceRegistry) {
+    this.serviceRegistry = serviceRegistry;
+  }
+
+  @Override
+  public void services(ServiceRegistry serviceRegistry) {
+    this.serviceRegistry = serviceRegistry;
   }
 
   @Override
@@ -260,7 +263,6 @@ public class ConfigScript extends Script implements Config {
   public void vertx(Vertx vertx) {
     this.vertx = vertx;
   }
-
 
   @Override
   public Handler<RatpackApp> getOnStart() {

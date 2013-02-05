@@ -16,6 +16,7 @@
 
 package org.ratpackframework;
 
+import org.ratpackframework.service.ServiceRegistry;
 import org.vertx.java.core.Handler;
 import org.vertx.java.core.Vertx;
 import org.vertx.java.core.http.HttpServer;
@@ -47,6 +48,13 @@ public interface Routing {
    * @return The http server for this app.
    */
   HttpServer getHttpServer();
+
+  /**
+   * The application service registry.
+   *
+   * @return the application service registry.
+   */
+  ServiceRegistry getServices();
 
   /**
    * Adds a route, for the given method at the given path, to be handled by the given handler.
@@ -87,4 +95,5 @@ public interface Routing {
    * Delegates {@link #register(java.lang.String, java.lang.String, Handler)} with a method of "delete"
    */
   void delete(String path, Handler<Response> handler);
+
 }

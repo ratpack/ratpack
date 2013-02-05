@@ -19,6 +19,7 @@ package org.ratpackframework.routing.internal
 import org.ratpackframework.groovy.ClosureRouting
 import org.ratpackframework.groovy.HandlerClosure
 import org.ratpackframework.Response
+import org.ratpackframework.service.ServiceRegistry
 import org.vertx.java.core.Handler
 import org.vertx.java.core.Vertx
 import org.vertx.java.core.http.HttpServer
@@ -44,6 +45,11 @@ public class RoutingBuilderScript extends Script implements ClosureRouting {
   @Override
   HttpServer getHttpServer() {
     routingBuilder.httpServer
+  }
+
+  @Override
+  ServiceRegistry getServices() {
+    routingBuilder.services
   }
 
   @Override

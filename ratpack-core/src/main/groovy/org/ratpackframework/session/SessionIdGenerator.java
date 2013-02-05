@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.session.internal;
+package org.ratpackframework.session;
+
+import org.vertx.java.core.http.HttpServerRequest;
 
 public interface SessionIdGenerator {
 
+  String generateSessionId(HttpServerRequest request);
 
-  String generateSessionId();
 }

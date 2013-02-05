@@ -20,9 +20,8 @@ import org.ratpackframework.Request;
 import org.ratpackframework.Response;
 import org.ratpackframework.internal.DefaultRequest;
 import org.ratpackframework.internal.DefaultResponse;
-import org.ratpackframework.routing.RoutedRequest;
 import org.ratpackframework.session.internal.RequestSessionManager;
-import org.ratpackframework.session.internal.SessionManager;
+import org.ratpackframework.session.SessionConfig;
 import org.ratpackframework.templating.TemplateRenderer;
 
 import java.util.Map;
@@ -30,15 +29,15 @@ import java.util.Map;
 public class ResponseFactory {
 
   private final TemplateRenderer templateRenderer;
-  private final SessionManager sessionManager;
+  private final SessionConfig sessionConfig;
 
-  public ResponseFactory(TemplateRenderer templateRenderer, SessionManager sessionManager) {
+  public ResponseFactory(TemplateRenderer templateRenderer, SessionConfig sessionConfig) {
     this.templateRenderer = templateRenderer;
-    this.sessionManager = sessionManager;
+    this.sessionConfig = sessionConfig;
   }
 
   public Response create(RoutedRequest routedRequest, Map<String, String> urlParams) {
-    RequestSessionManager requestSessionManager = sessionManager.getRequestSessionManager(routedRequest.getRequest());
+    RequestSessionManager requestSessionManager = new RequestSessionManager(routedRequest.getRequest(), sessionConfig);
     Request request = new DefaultRequest(routedRequest.getRequest(), routedRequest.getErrorHandler(), urlParams, requestSessionManager);
     return new DefaultResponse(request, templateRenderer, routedRequest.getFinalizedResponseHandler());
   }
