@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.app.internal
+package org.ratpackframework.bootstrap.internal
 
-import org.codehaus.groovy.control.CompilationFailedException
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
-import org.ratpackframework.app.Config
+import org.ratpackframework.config.Config
+import org.ratpackframework.config.internal.ConfigLoader
 import spock.lang.Specification
 
 class ConfigLoaderTest extends Specification {
@@ -37,11 +37,11 @@ class ConfigLoaderTest extends Specification {
   def "can compile config file"() {
     when:
     configScript """
-      port 2020
+      deployment.port = 2020
     """
 
     then:
-    config.port == 2020
+    config.deployment.port == 2020
   }
 
 }

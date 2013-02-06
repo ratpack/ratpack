@@ -16,9 +16,13 @@
 
 package org.ratpackframework.session.internal;
 
+import org.ratpackframework.config.DeploymentConfig;
+import org.ratpackframework.config.SessionCookieConfig;
 import org.ratpackframework.session.SessionConfig;
 import org.ratpackframework.session.SessionIdGenerator;
 import org.ratpackframework.session.SessionListener;
+
+import javax.inject.Inject;
 
 public class DefaultSessionConfig implements SessionConfig {
 
@@ -28,22 +32,15 @@ public class DefaultSessionConfig implements SessionConfig {
   private final int cookieExpiryMins;
   private final SessionListener sessionListener;
 
-  public DefaultSessionConfig(SessionIdGenerator idGenerator, SessionListener sessionListener, int cookieExpiryMins, String cookieDomain, String cookiePath) {
+  @Inject
+  public DefaultSessionConfig(SessionIdGenerator idGenerator, SessionListener sessionListener, SessionCookieConfig sessionCookieConfig, DeploymentConfig deploymentConfig) {
     this.idGenerator = idGenerator;
-    this.cookieExpiryMins = cookieExpiryMins;
-    this.cookieDomain = cookieDomain;
-    this.cookiePath = cookiePath;
+    this.cookieExpiryMins = sessionCookieConfig.getExpiresMins();
+    this.cookieDomain = deploymentConfig.getPublicHost();
+    this.cookiePath = "/";
 
     if (sessionListener == null) {
-      this.sessionListener = new SessionListener() {
-        @Override
-        public void sessionInitiated(String id) {
-        }
-
-        @Override
-        public void sessionTerminated(String id) {
-        }
-      };
+      this.sessionListener = new NoopSessionListener();
     } else {
       this.sessionListener = sessionListener;
     }
@@ -73,4 +70,5 @@ public class DefaultSessionConfig implements SessionConfig {
   public SessionListener getSessionListener() {
     return sessionListener;
   }
+
 }

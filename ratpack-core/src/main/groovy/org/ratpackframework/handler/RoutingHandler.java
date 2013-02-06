@@ -1,5 +1,6 @@
 package org.ratpackframework.handler;
 
+import com.google.inject.Injector;
 import org.ratpackframework.routing.FinalizedResponse;
 import org.ratpackframework.routing.RoutedRequest;
 import org.vertx.java.core.Handler;
@@ -17,8 +18,8 @@ public class RoutingHandler implements Handler<HttpServerRequest> {
   private final Logger logger = LoggerFactory.getLogger(getClass());
 
   private final Handler<RoutedRequest> router;
-  private ErrorHandler errorHandler;
-  private Handler<HttpServerRequest> notFoundHandler;
+  private final ErrorHandler errorHandler;
+  private final Handler<HttpServerRequest> notFoundHandler;
 
   public RoutingHandler(Handler<RoutedRequest> router, ErrorHandler errorHandler, Handler<HttpServerRequest> notFoundHandler) {
     this.router = router;

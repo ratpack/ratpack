@@ -163,6 +163,7 @@ class TemplateRenderingSpec extends RatpackSpec {
 
   def "compile error in inner template"() {
     given:
+    config.templating.staticallyCompile = true
     templateFile("outer.html") << "outer: \${model.value}, <% render 'inner.html', value: 'inner' %>"
     templateFile("inner.html") << "inner: \${model.value.toInteger()}"
 

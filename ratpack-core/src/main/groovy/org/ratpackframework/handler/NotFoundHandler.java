@@ -4,6 +4,7 @@ import org.ratpackframework.templating.TemplateRenderer;
 import org.vertx.java.core.Handler;
 import org.vertx.java.core.http.HttpServerRequest;
 
+import javax.inject.Inject;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -11,6 +12,7 @@ public class NotFoundHandler implements Handler<HttpServerRequest> {
 
   private final TemplateRenderer templateCompiler;
 
+  @Inject
   public NotFoundHandler(TemplateRenderer templateCompiler) {
     this.templateCompiler = templateCompiler;
   }

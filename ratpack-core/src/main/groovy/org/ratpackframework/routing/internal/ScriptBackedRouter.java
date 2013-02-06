@@ -16,19 +16,20 @@
 
 package org.ratpackframework.routing.internal;
 
+import com.google.inject.Injector;
+import org.ratpackframework.config.LayoutConfig;
+import org.ratpackframework.config.RoutingConfig;
 import org.ratpackframework.routing.FinalizedResponse;
 import org.ratpackframework.routing.ResponseFactory;
 import org.ratpackframework.routing.RoutedRequest;
 import org.ratpackframework.script.internal.ScriptEngine;
-import org.ratpackframework.service.ServiceRegistry;
 import org.vertx.java.core.AsyncResult;
 import org.vertx.java.core.Handler;
 import org.vertx.java.core.Vertx;
 import org.vertx.java.core.buffer.Buffer;
 import org.vertx.java.core.file.FileProps;
-import org.vertx.java.core.file.FileSystem;
-import org.vertx.java.core.http.HttpServer;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
@@ -41,33 +42,29 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class ScriptBackedRouter implements Handler<RoutedRequest> {
 
+  private final Injector injector;
   private final Vertx vertx;
-  private final HttpServer httpServer;
-  private final ServiceRegistry serviceRegistry;
   private final String scriptFilePath;
   private final String scriptFileName;
   private final ResponseFactory responseFactory;
 
   private final AtomicLong lastModifiedHolder = new AtomicLong(-1);
-  private final AtomicReference<byte[]> contentHolder = new AtomicReference<byte[]>();
-  private final AtomicReference<Handler<RoutedRequest>> routerHolder = new AtomicReference<Handler<RoutedRequest>>(null);
+  private final AtomicReference<byte[]> contentHolder = new AtomicReference<>();
+  private final AtomicReference<Handler<RoutedRequest>> routerHolder = new AtomicReference<>(null);
   private final Lock lock = new ReentrantLock();
+  private final RoutingConfig routingConfig;
 
-  private boolean staticallyCompile;
-
-  private final boolean reloadable;
-
-  public ScriptBackedRouter(Vertx vertx, HttpServer httpServer, ServiceRegistry serviceRegistry, File scriptFile, ResponseFactory responseFactory, boolean staticallyCompile, boolean reloadable) {
+  @Inject
+  public ScriptBackedRouter(Injector injector, Vertx vertx, ResponseFactory responseFactory, LayoutConfig layoutConfig, RoutingConfig routingConfig) {
+    this.injector = injector;
     this.vertx = vertx;
-    this.httpServer = httpServer;
-    this.serviceRegistry = serviceRegistry;
-    this.scriptFilePath = scriptFile.getAbsolutePath();
-    this.scriptFileName = scriptFile.getName();
+    File routingFile = new File(layoutConfig.getBaseDir(), routingConfig.getFile());
+    this.scriptFilePath = routingFile.getAbsolutePath();
+    this.scriptFileName = routingFile.getName();
     this.responseFactory = responseFactory;
-    this.staticallyCompile = staticallyCompile;
-    this.reloadable = reloadable;
+    this.routingConfig = routingConfig;
 
-    if (!reloadable) {
+    if (!routingConfig.isReloadable()) {
       refreshSync();
     }
   }
@@ -109,7 +106,7 @@ public class ScriptBackedRouter implements Handler<RoutedRequest> {
   }
 
   void checkForChanges(final RoutedRequest routedRequest, final Handler<RoutedRequest> noChange, final Handler<RoutedRequest> didChange) {
-    if (!reloadable) {
+    if (!routingConfig.isReloadable()) {
       noChange.handle(routedRequest);
       return;
     }
@@ -156,14 +153,14 @@ public class ScriptBackedRouter implements Handler<RoutedRequest> {
     }
 
     List<Handler<RoutedRequest>> routers = new LinkedList<>();
-    RoutingBuilder routingBuilder = new RoutingBuilder(vertx, httpServer, serviceRegistry, routers, responseFactory);
+    RoutingBuilder routingBuilder = new RoutingBuilder(injector, routers, responseFactory);
     String string;
     try {
       string = new String(bytes, "utf-8");
     } catch (UnsupportedEncodingException e) {
       throw new RuntimeException(e);
     }
-    ScriptEngine<RoutingBuilderScript> scriptEngine = new ScriptEngine<RoutingBuilderScript>(getClass().getClassLoader(), staticallyCompile, RoutingBuilderScript.class);
+    ScriptEngine<RoutingBuilderScript> scriptEngine = new ScriptEngine<RoutingBuilderScript>(getClass().getClassLoader(), routingConfig.isStaticallyCompile(), RoutingBuilderScript.class);
     try {
       scriptEngine.run(scriptFileName, string, routingBuilder);
     } catch (Exception e) {

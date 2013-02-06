@@ -84,6 +84,11 @@ public class RequestSessionManager {
 
       @Override
       public void terminate() {
+        String existingId = getExistingId();
+        if (existingId == null) {
+          throw new IllegalStateException("Cannot terminate inactive session");
+        }
+        sessionConfig.getSessionListener().sessionTerminated(existingId);
         setCookie("", new Date(0));
       }
     };

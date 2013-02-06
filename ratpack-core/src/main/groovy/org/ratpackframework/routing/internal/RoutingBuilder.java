@@ -16,51 +16,32 @@
 
 package org.ratpackframework.routing.internal;
 
+import com.google.inject.AbstractModule;
+import com.google.inject.Injector;
+import com.google.inject.TypeLiteral;
 import org.ratpackframework.Response;
 import org.ratpackframework.Routing;
 import org.ratpackframework.routing.ResponseFactory;
 import org.ratpackframework.routing.RoutedRequest;
-import org.ratpackframework.service.ServiceRegistry;
 import org.vertx.java.core.Handler;
-import org.vertx.java.core.Vertx;
-import org.vertx.java.core.http.HttpServer;
 
 import java.util.List;
 
 public class RoutingBuilder implements Routing {
 
-  private final Vertx vertx;
-  private final HttpServer httpServer;
   private final List<Handler<RoutedRequest>> routers;
   private final ResponseFactory responseFactory;
-  private final ServiceRegistry serviceRegistry;
+  private final Injector injector;
 
-  RoutingBuilder(Vertx vertx, HttpServer httpServer, ServiceRegistry serviceRegistry, List<Handler<RoutedRequest>> routers, ResponseFactory responseFactory) {
-    this.vertx = vertx;
-    this.httpServer = httpServer;
-    this.serviceRegistry = serviceRegistry;
+  public RoutingBuilder(Injector injector, List<Handler<RoutedRequest>> routers, ResponseFactory responseFactory) {
+    this.injector = injector;
     this.routers = routers;
     this.responseFactory = responseFactory;
   }
 
   @Override
-  public Routing getRouting() {
-    return this;
-  }
-
-  @Override
-  public Vertx getVertx() {
-    return vertx;
-  }
-
-  @Override
-  public HttpServer getHttpServer() {
-    return httpServer;
-  }
-
-  @Override
-  public ServiceRegistry getServices() {
-    return serviceRegistry;
+  public <T> T service(Class<T> type) {
+    return injector.getInstance(type);
   }
 
   @Override
@@ -69,8 +50,26 @@ public class RoutingBuilder implements Routing {
   }
 
   @Override
+  public void register(String method, String path, final Class<? extends Handler<Response>> handlerType) {
+    Handler<Response> instance = injector.createChildInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        binder().newPrivateBinder().bind(new TypeLiteral<Handler<Response>>() {
+        }).to(handlerType);
+      }
+    }).getInstance(handlerType);
+
+    register(method, path, instance);
+  }
+
+  @Override
   public void all(String path, Handler<Response> handler) {
     register(Routing.ALL_METHODS, path, handler);
+  }
+
+  @Override
+  public void all(String path, Class<? extends Handler<Response>> handlerType) {
+    register(Routing.ALL_METHODS, path, handlerType);
   }
 
   @Override
@@ -79,8 +78,18 @@ public class RoutingBuilder implements Routing {
   }
 
   @Override
+  public void get(String path, Class<? extends Handler<Response>> handlerType) {
+    register("get", path, handlerType);
+  }
+
+  @Override
   public void post(String path, Handler<Response> handler) {
     register("post", path, handler);
+  }
+
+  @Override
+  public void post(String path, Class<? extends Handler<Response>> handlerType) {
+    register("post", path, handlerType);
   }
 
   @Override
@@ -89,8 +98,17 @@ public class RoutingBuilder implements Routing {
   }
 
   @Override
+  public void put(String path, Class<? extends Handler<Response>> handlerType) {
+    register("put", path, handlerType);
+  }
+
+  @Override
   public void delete(String path, Handler<Response> handler) {
     register("delete", path, handler);
   }
 
+  @Override
+  public void delete(String path, Class<? extends Handler<Response>> handlerType) {
+    register("delete", path, handlerType);
+  }
 }

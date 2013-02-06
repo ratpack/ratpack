@@ -14,33 +14,31 @@
  * limitations under the License.
  */
 
-package org.ratpackframework
+package org.ratpackframework.config;
 
-class StaticRoutesFileSpec extends RatpackSpec {
+import com.google.inject.Module;
+import org.ratpackframework.bootstrap.RatpackApp;
+import org.ratpackframework.session.SessionListener;
+import org.vertx.java.core.Handler;
 
-  def "can use static routes file"() {
-    given:
-    config.routing.staticallyCompile = true
+import java.io.File;
+import java.util.List;
 
-    and:
-    ratpackFile << """
-      get("/") {
-        foo()
-      }
-    """
+public interface Config {
 
-    when:
-    startApp()
+  LayoutConfig getLayout();
 
-    then:
-    errorGetText().contains("MultipleCompilationErrorsException")
+  DeploymentConfig getDeployment();
 
-    when:
-    ratpackFile.text = """
-      get("/") { renderText "foo" }
-    """
+  StaticAssetsConfig getStaticAssets();
 
-    then:
-    urlGetText() == "foo"
-  }
+  TemplatingConfig getTemplating();
+
+  RoutingConfig getRouting();
+
+  SessionCookieConfig getSessionCookie();
+
+
+  List<Module> getModules();
+
 }

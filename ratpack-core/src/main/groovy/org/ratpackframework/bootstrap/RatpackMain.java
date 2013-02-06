@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.app;
+package org.ratpackframework.bootstrap;
 
-import org.ratpackframework.app.internal.ConfigLoader;
+import org.ratpackframework.config.Config;
+import org.ratpackframework.config.internal.ConfigLoader;
 
 import java.io.File;
 

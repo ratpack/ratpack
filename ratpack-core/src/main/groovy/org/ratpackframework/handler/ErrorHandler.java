@@ -26,6 +26,7 @@ import org.vertx.java.core.http.HttpServerRequest;
 import org.vertx.java.core.logging.Logger;
 import org.vertx.java.core.logging.impl.LoggerFactory;
 
+import javax.inject.Inject;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -35,6 +36,7 @@ public class ErrorHandler implements Handler<ErroredHttpServerRequest> {
 
   private final TemplateRenderer templateRenderer;
 
+  @Inject
   public ErrorHandler(TemplateRenderer templateRenderer) {
     this.templateRenderer = templateRenderer;
   }

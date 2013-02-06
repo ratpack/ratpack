@@ -16,13 +16,10 @@
 
 package org.ratpackframework.routing.internal
 
+import org.ratpackframework.Response
 import org.ratpackframework.groovy.ClosureRouting
 import org.ratpackframework.groovy.HandlerClosure
-import org.ratpackframework.Response
-import org.ratpackframework.service.ServiceRegistry
 import org.vertx.java.core.Handler
-import org.vertx.java.core.Vertx
-import org.vertx.java.core.http.HttpServer
 
 public class RoutingBuilderScript extends Script implements ClosureRouting {
 
@@ -35,21 +32,6 @@ public class RoutingBuilderScript extends Script implements ClosureRouting {
   @Override
   public ClosureRouting getRouting() {
     return this
-  }
-
-  @Override
-  Vertx getVertx() {
-    routingBuilder.vertx
-  }
-
-  @Override
-  HttpServer getHttpServer() {
-    routingBuilder.httpServer
-  }
-
-  @Override
-  ServiceRegistry getServices() {
-    routingBuilder.services
   }
 
   @Override
@@ -110,6 +92,41 @@ public class RoutingBuilderScript extends Script implements ClosureRouting {
   @Override
   public void register(String method, String path, @HandlerClosure Closure<?> handler) {
     register(method, path, new ClosureBackedResponseHandler(handler))
+  }
+
+  @Override
+  def <T> T service(Class<T> type) {
+    routingBuilder.service(type)
+  }
+
+  @Override
+  void register(String method, String path, Class<? extends Handler<Response>> handlerType) {
+    routingBuilder.register(method, path, handlerType)
+  }
+
+  @Override
+  void all(String path, Class<? extends Handler<Response>> handlerType) {
+    routingBuilder.all(path, handlerType);
+  }
+
+  @Override
+  void get(String path, Class<? extends Handler<Response>> handlerType) {
+    routingBuilder.get(path, handlerType);
+  }
+
+  @Override
+  void post(String path, Class<? extends Handler<Response>> handlerType) {
+    routingBuilder.post(path, handlerType);
+  }
+
+  @Override
+  void put(String path, Class<? extends Handler<Response>> handlerType) {
+    routingBuilder.put(path, handlerType);
+  }
+
+  @Override
+  void delete(String path, Class<? extends Handler<Response>> handlerType) {
+    routingBuilder.delete(path, handlerType);
   }
 
   @Override

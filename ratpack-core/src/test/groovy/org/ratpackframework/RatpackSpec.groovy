@@ -18,12 +18,12 @@ package org.ratpackframework
 
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
-import org.ratpackframework.app.Config
-import org.ratpackframework.app.RatpackApp
-import org.ratpackframework.app.RatpackAppFactory
-import org.ratpackframework.app.internal.ConfigScript
+import org.ratpackframework.bootstrap.RatpackApp
+import org.ratpackframework.bootstrap.RatpackAppFactory
+import org.ratpackframework.bootstrap.internal.DefaultRatpackApp
+import org.ratpackframework.config.Config
+import org.ratpackframework.config.internal.DefaultConfig
 import org.ratpackframework.util.CookieManager
-import org.vertx.java.core.Vertx
 import spock.lang.Specification
 
 class RatpackSpec extends Specification {
@@ -54,12 +54,12 @@ class RatpackSpec extends Specification {
   }
 
   def setup() {
-    config = new ConfigScript(temporaryFolder.root)
+    config = new DefaultConfig(temporaryFolder.root)
   }
 
   def startApp() {
     app = new RatpackAppFactory().create(config)
-    config.baseDir(temporaryFolder.root)
+    config.layout.baseDir = temporaryFolder.root
     app.start()
 
   }
@@ -77,7 +77,7 @@ class RatpackSpec extends Specification {
   }
 
   HttpURLConnection urlConnection(String path = "", String method) {
-    def connection = new URL("http://localhost:$app.port/$path").openConnection() as HttpURLConnection
+    def connection = new URL("http://localhost:$app.bindPort/$path").openConnection() as HttpURLConnection
     connection.allowUserInteraction = true
     connection.requestMethod = method.toUpperCase()
     cookieManager.setCookies(connection)

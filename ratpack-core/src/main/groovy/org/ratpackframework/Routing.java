@@ -16,10 +16,7 @@
 
 package org.ratpackframework;
 
-import org.ratpackframework.service.ServiceRegistry;
 import org.vertx.java.core.Handler;
-import org.vertx.java.core.Vertx;
-import org.vertx.java.core.http.HttpServer;
 
 /**
  * The API for the routing file (i.e. ratpack.groovy)
@@ -28,33 +25,7 @@ public interface Routing {
 
   String ALL_METHODS = "*";
 
-  /**
-   * Returns this object, for better IDE assist in the script files.
-   *
-   * @return this
-   */
-  Routing getRouting();
-
-  /**
-   * The vertx instance for this app.
-   *
-   * @return The vertx instance for this app.
-   */
-  Vertx getVertx();
-
-  /**
-   * The http server for the app.
-   *
-   * @return The http server for this app.
-   */
-  HttpServer getHttpServer();
-
-  /**
-   * The application service registry.
-   *
-   * @return the application service registry.
-   */
-  ServiceRegistry getServices();
+  <T> T service(Class<T> type);
 
   /**
    * Adds a route, for the given method at the given path, to be handled by the given handler.
@@ -68,32 +39,64 @@ public interface Routing {
   void register(String method, String path, Handler<Response> handler);
 
   /**
+   * Creates an instance of the given type, through the dependency injection mechanism.
+   *
+   * The created instance is then passed to {@link #register(String, String, org.vertx.java.core.Handler)}.
+   *
+   * @param method The HTTP method the handler is for
+   * @param path The path to handle (must start with a /)
+   * @param handlerType The type of the handler to be created with dependency injection.
+   */
+  void register(String method, String path, Class<? extends Handler<Response>> handlerType);
+
+  /**
    * Delegates {@link #register(java.lang.String, java.lang.String, Handler)} with a method of "*"
    */
   void all(String path, Handler<Response> handler);
 
+  /**
+   * Delegates {@link #register(java.lang.String, java.lang.String, Class)} with a method of "*"
+   */
+  void all(String path, Class<? extends Handler<Response>> handlerType);
 
   /**
    * Delegates {@link #register(java.lang.String, java.lang.String, Handler)} with a method of "get"
    */
   void get(String path, Handler<Response> handler);
 
+  /**
+   * Delegates {@link #register(java.lang.String, java.lang.String, Class)} with a method of "get"
+   */
+  void get(String path, Class<? extends Handler<Response>> handlerType);
 
   /**
    * Delegates {@link #register(java.lang.String, java.lang.String, Handler)} with a method of "post"
    */
   void post(String path, Handler<Response> handler);
 
+  /**
+   * Delegates {@link #register(java.lang.String, java.lang.String, Class)} with a method of "post"
+   */
+  void post(String path, Class<? extends Handler<Response>> handlerType);
 
   /**
    * Delegates {@link #register(java.lang.String, java.lang.String, Handler)} with a method of "put"
    */
   void put(String path, Handler<Response> handler);
 
+  /**
+   * Delegates {@link #register(java.lang.String, java.lang.String, Class)} with a method of "put"
+   */
+  void put(String path, Class<? extends Handler<Response>> handlerType);
 
   /**
    * Delegates {@link #register(java.lang.String, java.lang.String, Handler)} with a method of "delete"
    */
   void delete(String path, Handler<Response> handler);
+
+  /**
+   * Delegates {@link #register(java.lang.String, java.lang.String, Class)} with a method of "delete"
+   */
+  void delete(String path, Class<? extends Handler<Response>> handlerType);
 
 }

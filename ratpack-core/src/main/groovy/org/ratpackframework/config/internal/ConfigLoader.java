@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.app.internal;
+package org.ratpackframework.config.internal;
 
 import org.codehaus.groovy.runtime.ResourceGroovyMethods;
-import org.ratpackframework.app.Config;
+import org.ratpackframework.config.Config;
 import org.ratpackframework.script.internal.ScriptEngine;
 
 import java.io.File;
@@ -25,11 +25,12 @@ import java.io.File;
 public class ConfigLoader {
 
   public Config load(File configFile) throws Exception {
+    DefaultConfig defaultConfig = new DefaultConfig(configFile.getParentFile());
     if (!configFile.exists()) {
-      return new ConfigScript(configFile.getParentFile());
+      return defaultConfig;
     } else {
       ScriptEngine<ConfigScript> scriptEngine = new ScriptEngine<>(getClass().getClassLoader(), false, ConfigScript.class);
-      return scriptEngine.run(configFile.getName(), ResourceGroovyMethods.getText(configFile), configFile.getParentFile());
+      return scriptEngine.run(configFile.getName(), ResourceGroovyMethods.getText(configFile), defaultConfig);
     }
   }
 

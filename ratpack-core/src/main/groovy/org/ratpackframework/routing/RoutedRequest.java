@@ -17,7 +17,6 @@
 package org.ratpackframework.routing;
 
 import org.ratpackframework.handler.ErrorHandler;
-import org.ratpackframework.routing.FinalizedResponse;
 import org.vertx.java.core.AsyncResultHandler;
 import org.vertx.java.core.Handler;
 import org.vertx.java.core.http.HttpServerRequest;

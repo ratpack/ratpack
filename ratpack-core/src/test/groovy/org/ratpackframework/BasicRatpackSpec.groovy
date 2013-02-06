@@ -64,7 +64,7 @@ class BasicRatpackSpec extends RatpackSpec {
 
   def "can disable reloading"() {
     given:
-    config.reloadRoutes false
+    config.routing.reloadable = false
     ratpackFile << """
       get("/") {
         renderText "foo"
@@ -90,7 +90,7 @@ class BasicRatpackSpec extends RatpackSpec {
 
   def "app does not start when routes is invalid and reloading disabled"() {
     given:
-    config.reloadRoutes false
+    config.routing.reloadable = false
     ratpackFile << """
       s s da
     """
