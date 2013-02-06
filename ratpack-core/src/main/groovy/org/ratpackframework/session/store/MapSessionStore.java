@@ -7,11 +7,11 @@ import org.ratpackframework.session.SessionListener;
 
 import java.util.concurrent.*;
 
-public class ConcurrentMapSessionStore {
+public class MapSessionStore {
 
   private final Cache<String, ConcurrentMap<String, Object>> storage;
 
-  public ConcurrentMapSessionStore(int maxEntries, int ttlMinutes) {
+  public MapSessionStore(int maxEntries, int ttlMinutes) {
     storage = CacheBuilder.<String, ConcurrentMap<String, Object>>newBuilder()
         .maximumSize(maxEntries)
         .expireAfterAccess(ttlMinutes, TimeUnit.MINUTES)

@@ -1,8 +1,7 @@
 package org.ratpackframework
 
-import org.ratpackframework.service.ServiceRegistry
 import org.ratpackframework.service.ServiceRegistryBuilder
-import org.ratpackframework.session.store.ConcurrentMapSessionStore
+import org.ratpackframework.session.store.MapSessionStore
 
 class SessionSpec extends RatpackSpec {
 
@@ -23,7 +22,7 @@ class SessionSpec extends RatpackSpec {
 
   def "can store session vars"() {
     given:
-    def store = new ConcurrentMapSessionStore(10, 10)
+    def store = new MapSessionStore(10, 10)
     config.sessionListener store.asSessionListener()
     config.services new ServiceRegistryBuilder().add("sessionStore", store).build()
 
