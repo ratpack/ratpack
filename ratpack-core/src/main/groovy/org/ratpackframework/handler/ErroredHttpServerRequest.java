@@ -14,17 +14,25 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.handler
+package org.ratpackframework.handler;
 
-import org.vertx.java.core.http.HttpServerRequest
+import org.vertx.java.core.http.HttpServerRequest;
 
-class ErroredHttpServerRequest {
+public class ErroredHttpServerRequest {
 
-  final HttpServerRequest request
-  final Exception exception
+  private final HttpServerRequest request;
+  private final Exception exception;
 
-  ErroredHttpServerRequest(HttpServerRequest request, Exception exception) {
-    this.request = request
-    this.exception = exception
+  public ErroredHttpServerRequest(HttpServerRequest request, Exception exception) {
+    this.request = request;
+    this.exception = exception;
+  }
+
+  public HttpServerRequest getRequest() {
+    return request;
+  }
+
+  public Exception getException() {
+    return exception;
   }
 }
