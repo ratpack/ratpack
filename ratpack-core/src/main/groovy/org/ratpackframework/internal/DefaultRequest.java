@@ -17,6 +17,7 @@
 package org.ratpackframework.internal;
 
 import org.jboss.netty.buffer.ChannelBuffer;
+import org.jboss.netty.handler.codec.http.Cookie;
 import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jboss.netty.handler.codec.http.QueryStringDecoder;
 import org.ratpackframework.Request;
@@ -28,6 +29,7 @@ import org.ratpackframework.session.internal.RequestSessionManager;
 import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class DefaultRequest implements Request {
 
@@ -127,4 +129,10 @@ public class DefaultRequest implements Request {
   public Map<String, List<String>> getForm() {
     return new QueryStringDecoder(getText(), false).getParameters();
   }
+
+  @Override
+  public Set<Cookie> getCookies() {
+    return exchange.getIncomingCookies();
+  }
+
 }

@@ -19,9 +19,7 @@ package org.ratpackframework.internal;
 import groovy.json.JsonBuilder;
 import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.handler.codec.http.HttpHeaders;
-import org.jboss.netty.handler.codec.http.HttpResponse;
-import org.jboss.netty.handler.codec.http.HttpResponseStatus;
+import org.jboss.netty.handler.codec.http.*;
 import org.ratpackframework.Request;
 import org.ratpackframework.Response;
 import org.ratpackframework.handler.HttpExchange;
@@ -196,4 +194,17 @@ public class DefaultResponse implements Response {
   public void clearHeaders() {
     response.clearHeaders();
   }
+
+  @Override
+  public Set<Cookie> getCookies() {
+    return exchange.getOutgoingCookies();
+  }
+
+  @Override
+  public Cookie cookie(String name, String value) {
+    Cookie cookie = new DefaultCookie(name, value);
+    getCookies().add(cookie);
+    return cookie;
+  }
+
 }

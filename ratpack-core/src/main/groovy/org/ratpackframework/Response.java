@@ -17,6 +17,7 @@
 package org.ratpackframework;
 
 import org.jboss.netty.buffer.ChannelBuffer;
+import org.jboss.netty.handler.codec.http.Cookie;
 
 import java.util.List;
 import java.util.Map;
@@ -182,4 +183,14 @@ public interface Response {
    * Removes all headers from this message.
    */
   void clearHeaders();
+
+  /**
+   * Returns any cookies that are scheduled to be sent with this response.
+   */
+  Set<Cookie> getCookies();
+
+  /**
+   * Convenience method for adding a cookie.
+   */
+  Cookie cookie(String name, String value);
 }

@@ -17,11 +17,13 @@
 package org.ratpackframework;
 
 import org.jboss.netty.buffer.ChannelBuffer;
+import org.jboss.netty.handler.codec.http.Cookie;
 import org.ratpackframework.http.MediaType;
 import org.ratpackframework.session.Session;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * A request to be handled.
@@ -49,5 +51,7 @@ public interface Request {
   MediaType getContentType();
 
   Map<String, List<String>> getForm();
+
+  Set<Cookie> getCookies();
 
 }

@@ -58,6 +58,7 @@ public class ReloadableFileBackedHandler<T> implements Handler<Routed<T>> {
       }
     } catch (Exception e) {
       routed.error(e);
+      return;
     }
 
     delegateHolder.get().handle(routed);
