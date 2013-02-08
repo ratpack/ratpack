@@ -6,7 +6,7 @@ class CookiesSpec extends RatpackSpec {
     given:
     ratpackFile << """
       get("/get/:name") { r ->
-        text request.cookies.find { it.name == r.urlParams.name }.value
+        text request.oneCookie(r.urlParams.name)
       }
 
       get("/set/:name/:value") {

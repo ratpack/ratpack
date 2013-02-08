@@ -27,6 +27,7 @@ import org.ratpackframework.session.Session;
 import org.ratpackframework.session.internal.RequestSessionManager;
 
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -133,6 +134,41 @@ public class DefaultRequest implements Request {
   @Override
   public Set<Cookie> getCookies() {
     return exchange.getIncomingCookies();
+  }
+
+  @Override
+  public String oneCookie(String name) {
+    Cookie found = null;
+    List<Cookie> allFound = null;
+    for (Cookie cookie : getCookies()) {
+      if (cookie.getName().equals(name)) {
+        if (found == null) {
+          found = cookie;
+        } else if (allFound == null) {
+          allFound = new ArrayList<>(2);
+          allFound.add(found);
+        } else {
+          allFound.add(cookie);
+        }
+      }
+    }
+
+    if (found == null) {
+      return null;
+    } else if (allFound != null) {
+      StringBuilder s = new StringBuilder("Multiple cookies with name '").append(name).append("': ");
+      int i = 0;
+      for (Cookie cookie : allFound) {
+        s.append(cookie.toString());
+        if (++i < allFound.size()) {
+          s.append(", ");
+        }
+      }
+
+      throw new IllegalStateException(s.toString());
+    } else {
+      return found.getValue();
+    }
   }
 
 }
