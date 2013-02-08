@@ -23,13 +23,16 @@ import org.ratpackframework.handler.HttpExchange;
 import org.ratpackframework.handler.Result;
 import org.ratpackframework.handler.ResultHandler;
 
+/**
+ * Used as a last attempt to handle the error. Useful for wrapping more sophisticated error handlers.
+ */
 @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
-public class FallbackErrorHandlingTemplateRenderer implements ResultHandler<ChannelBuffer> {
+public class FallbackErrorHandler implements ResultHandler<ChannelBuffer> {
 
   private final HttpExchange exchange;
   private final String operationDescription;
 
-  public FallbackErrorHandlingTemplateRenderer(HttpExchange exchange, String operationDescription) {
+  public FallbackErrorHandler(HttpExchange exchange, String operationDescription) {
     this.exchange = exchange;
     this.operationDescription = operationDescription;
   }

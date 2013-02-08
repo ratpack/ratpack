@@ -3,7 +3,7 @@ package org.ratpackframework.handler;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.ratpackframework.Handler;
-import org.ratpackframework.error.FallbackErrorHandlingTemplateRenderer;
+import org.ratpackframework.error.FallbackErrorHandler;
 import org.ratpackframework.routing.RoutedRequest;
 import org.ratpackframework.templating.TemplateRenderer;
 
@@ -32,6 +32,6 @@ public class NotFoundHandler implements Handler<RoutedRequest> {
     metadata.put("Request Method", request.getMethod().getName());
     metadata.put("Request URL", request.getUri());
     model.put("metadata", metadata);
-    templateCompiler.renderError(model, new FallbackErrorHandlingTemplateRenderer(exchange, "404 handling"));
+    templateCompiler.renderError(model, new FallbackErrorHandler(exchange, "404 handling"));
   }
 }

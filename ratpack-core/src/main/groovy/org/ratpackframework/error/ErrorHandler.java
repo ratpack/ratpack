@@ -52,7 +52,7 @@ public class ErrorHandler implements Handler<ErroredHttpExchange> {
     HttpExchange exchange = erroredRequest.getExchange();
     HttpRequest request = exchange.getRequest();
     exchange.getResponse().setStatus(HttpResponseStatus.INTERNAL_SERVER_ERROR);
-    renderException(error, request, new FallbackErrorHandlingTemplateRenderer(exchange, "rendering error template"));
+    renderException(error, request, new FallbackErrorHandler(exchange, "rendering error template"));
   }
 
   void renderException(Exception exception, HttpRequest request, ResultHandler<ChannelBuffer> handler) {
