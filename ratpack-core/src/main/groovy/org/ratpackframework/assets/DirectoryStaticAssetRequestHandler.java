@@ -18,19 +18,21 @@ package org.ratpackframework.assets;
 
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.ratpackframework.Handler;
+import org.ratpackframework.handler.HttpExchange;
+import org.ratpackframework.routing.Routed;
 
 import java.io.File;
 
-public class DirectoryStaticAssetRequestHandler implements Handler<RoutedStaticAssetRequest> {
+public class DirectoryStaticAssetRequestHandler implements Handler<Routed<HttpExchange>> {
 
   @Override
-  public void handle(final RoutedStaticAssetRequest assetRequest) {
-    File targetFile = assetRequest.getTargetFile();
+  public void handle(final Routed<HttpExchange> routed) {
+    File targetFile = routed.get().getTargetFile();
     if (!targetFile.exists() || !targetFile.isDirectory()) {
-      assetRequest.next();
+      routed.next();
       return;
     }
 
-    assetRequest.getExchange().end(HttpResponseStatus.FORBIDDEN);
+    routed.get().end(HttpResponseStatus.FORBIDDEN);
   }
 }

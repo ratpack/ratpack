@@ -17,133 +17,66 @@
 package org.ratpackframework.groovy.routing.internal;
 
 import com.google.inject.Injector;
-import org.codehaus.groovy.runtime.ResourceGroovyMethods;
+import org.ratpackframework.Handler;
 import org.ratpackframework.config.LayoutConfig;
 import org.ratpackframework.config.RoutingConfig;
-import org.ratpackframework.Handler;
-import org.ratpackframework.groovy.routing.internal.RoutingBuilderScript;
-import org.ratpackframework.routing.ResponseFactory;
-import org.ratpackframework.routing.RoutedRequest;
 import org.ratpackframework.groovy.ScriptEngine;
-import org.ratpackframework.routing.internal.CompositeRoutingHandler;
+import org.ratpackframework.handler.HttpExchange;
+import org.ratpackframework.handler.internal.CompositeRoutingHandler;
+import org.ratpackframework.routing.ResponseFactory;
+import org.ratpackframework.routing.Routed;
+import org.ratpackframework.routing.internal.ReloadableFileBackedHandler;
 import org.ratpackframework.routing.internal.RoutingBuilder;
 
 import javax.inject.Inject;
-import java.io.*;
-import java.util.Arrays;
+import java.io.File;
+import java.io.UnsupportedEncodingException;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
-public class ScriptBackedRouter implements Handler<RoutedRequest> {
+public class ScriptBackedRouter implements Handler<Routed<HttpExchange>> {
 
   private final Injector injector;
-  private final File scriptFile;
   private final ResponseFactory responseFactory;
-
-  private final AtomicLong lastModifiedHolder = new AtomicLong(-1);
-  private final AtomicReference<byte[]> contentHolder = new AtomicReference<>();
-  private final AtomicReference<Handler<RoutedRequest>> routerHolder = new AtomicReference<>(null);
-  private final Lock lock = new ReentrantLock();
-  private final RoutingConfig routingConfig;
-  private final boolean reloadable;
+  private final Handler<Routed<HttpExchange>> reloadHandler;
+  private final File file;
+  private final boolean staticallyCompile;
 
   @Inject
-  public ScriptBackedRouter(Injector injector, ResponseFactory responseFactory, LayoutConfig layoutConfig, RoutingConfig routingConfig) {
+  public ScriptBackedRouter(final Injector injector, final ResponseFactory responseFactory, LayoutConfig layoutConfig, RoutingConfig routingConfig) {
     this.injector = injector;
-    this.scriptFile = new File(layoutConfig.getBaseDir(), routingConfig.getFile());
+    file = new File(layoutConfig.getBaseDir(), routingConfig.getFile());
     this.responseFactory = responseFactory;
-    this.routingConfig = routingConfig;
-    this.reloadable = routingConfig.isReloadable();
 
-    if (!reloadable) {
-      try {
-        refresh();
-      } catch (IOException e) {
-        throw new RuntimeException(e);
+    staticallyCompile = routingConfig.isStaticallyCompile();
+    boolean reloadable = routingConfig.isReloadable();
+
+    this.reloadHandler = new ReloadableFileBackedHandler<>(file, reloadable, new ReloadableFileBackedHandler.Delegate<HttpExchange>() {
+      @Override
+      public Handler<Routed<HttpExchange>> produce(File file, byte[] bytes) {
+        List<Handler<Routed<HttpExchange>>> routers = new LinkedList<>();
+        RoutingBuilder routingBuilder = new RoutingBuilder(injector, routers, responseFactory);
+        String string;
+        try {
+          string = new String(bytes, "utf-8");
+        } catch (UnsupportedEncodingException e) {
+          throw new RuntimeException(e);
+        }
+        ScriptEngine<RoutingBuilderScript> scriptEngine = new ScriptEngine<>(getClass().getClassLoader(), staticallyCompile, RoutingBuilderScript.class);
+        try {
+          scriptEngine.run(file.getName(), string, routingBuilder);
+        } catch (Exception e) {
+          throw new RuntimeException(e);
+        }
+
+        return new CompositeRoutingHandler<HttpExchange>(routers);
       }
-    }
+    });
   }
 
   @Override
-  public void handle(final RoutedRequest routedRequest) {
-    if (!reloadable) {
-      routerHolder.get().handle(routedRequest);
-      return;
-    }
-
-    if (!scriptFile.exists()) {
-      routedRequest.next();
-      return;
-    }
-
-    try {
-      if (refreshNeeded()) {
-        refresh();
-      }
-    } catch (Exception e) {
-      routedRequest.getExchange().error(e);
-    }
-
-    routerHolder.get().handle(routedRequest);
-  }
-
-  private boolean isBytesAreSame() throws IOException {
-    byte[] existing = contentHolder.get();
-    if (existing == null) {
-      return false;
-    }
-
-    FileInputStream fileIn = new FileInputStream(scriptFile);
-    InputStream in = new BufferedInputStream(fileIn);
-    int i = 0;
-    int b = in.read();
-    while (b != -1 && i < existing.length) {
-      if (b != existing[i++]) {
-        return false;
-      }
-    }
-
-    return true;
-  }
-
-  private boolean refreshNeeded() throws IOException {
-    return (scriptFile.lastModified() != lastModifiedHolder.get()) || !isBytesAreSame();
-  }
-
-  private void refresh() throws IOException {
-    lock.lock();
-    try {
-      long lastModifiedTime = scriptFile.lastModified();
-      byte[] bytes = ResourceGroovyMethods.getBytes(scriptFile);
-
-      if (lastModifiedTime == lastModifiedHolder.get() && Arrays.equals(bytes, contentHolder.get())) {
-        return;
-      }
-
-      List<Handler<RoutedRequest>> routers = new LinkedList<>();
-      RoutingBuilder routingBuilder = new RoutingBuilder(injector, routers, responseFactory);
-      String string;
-      try {
-        string = new String(bytes, "utf-8");
-      } catch (UnsupportedEncodingException e) {
-        throw new RuntimeException(e);
-      }
-      ScriptEngine<RoutingBuilderScript> scriptEngine = new ScriptEngine<>(getClass().getClassLoader(), routingConfig.isStaticallyCompile(), RoutingBuilderScript.class);
-      try {
-        scriptEngine.run(scriptFile.getName(), string, routingBuilder);
-      } catch (Exception e) {
-        throw new RuntimeException(e);
-      }
-      routerHolder.set(new CompositeRoutingHandler(routers));
-      this.lastModifiedHolder.set(lastModifiedTime);
-      this.contentHolder.set(bytes);
-    } finally {
-      lock.unlock();
-    }
+  public void handle(final Routed<HttpExchange> routedHttpExchange) {
+    reloadHandler.handle(routedHttpExchange);
   }
 
 }

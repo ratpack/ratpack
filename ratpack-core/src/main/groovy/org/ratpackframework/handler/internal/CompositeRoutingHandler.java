@@ -17,46 +17,36 @@
 package org.ratpackframework.handler.internal;
 
 import org.ratpackframework.Handler;
+import org.ratpackframework.routing.Routed;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class CompositeHandler<T> implements Handler<T> {
+public class CompositeRoutingHandler<T> implements Handler<Routed<T>> {
 
-  private final ExhaustionHandler<T> exhausted;
-  private final NextFactory<T> nextFactory;
-  List<Handler<T>> handlers;
+  List<Handler<Routed<T>>> handlers;
 
-  public static interface ExhaustionHandler<T> {
-    void exhausted(T original, T last);
-  }
-
-  public static interface NextFactory<T> {
-    T makeNext(T original, Handler<? super T> next);
-  }
-
-  public CompositeHandler(List<Handler<T>> handlers, ExhaustionHandler<T> exhausted, NextFactory<T> nextFactory) {
+  public CompositeRoutingHandler(List<Handler<Routed<T>>> handlers) {
     this.handlers = handlers;
-    this.exhausted = exhausted;
-    this.nextFactory = nextFactory;
   }
 
   @Override
-  public void handle(T thing) {
+  public void handle(Routed<T> thing) {
     next(new ArrayList<>(handlers), thing, thing);
   }
 
-  private void next(final List<Handler<T>> remaining, final T previous, final T original) {
+  private void next(final List<Handler<Routed<T>>> remaining, final Routed<T> previous, final Routed<T> original) {
     if (remaining.isEmpty()) {
-      exhausted.exhausted(original, previous);
+      original.next();
     } else {
-      Handler<? super T> router = remaining.remove(0);
-      router.handle(nextFactory.makeNext(previous, new Handler<T>() {
+      Handler<Routed<T>> router = remaining.remove(0);
+      Routed<T> forwarding = previous.withNext(new Handler<Routed<T>>() {
         @Override
-        public void handle(T event) {
+        public void handle(Routed<T> event) {
           next(remaining, event, original);
         }
-      }));
+      });
+      router.handle(forwarding);
     }
   }
 

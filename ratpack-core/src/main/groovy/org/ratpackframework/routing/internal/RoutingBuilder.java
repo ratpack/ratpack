@@ -19,21 +19,22 @@ package org.ratpackframework.routing.internal;
 import com.google.inject.AbstractModule;
 import com.google.inject.Injector;
 import com.google.inject.TypeLiteral;
+import org.ratpackframework.Handler;
 import org.ratpackframework.Response;
 import org.ratpackframework.Routing;
-import org.ratpackframework.Handler;
+import org.ratpackframework.handler.HttpExchange;
 import org.ratpackframework.routing.ResponseFactory;
-import org.ratpackframework.routing.RoutedRequest;
+import org.ratpackframework.routing.Routed;
 
 import java.util.List;
 
 public class RoutingBuilder implements Routing {
 
-  private final List<Handler<RoutedRequest>> routers;
+  private final List<Handler<Routed<HttpExchange>>> routers;
   private final ResponseFactory responseFactory;
   private final Injector injector;
 
-  public RoutingBuilder(Injector injector, List<Handler<RoutedRequest>> routers, ResponseFactory responseFactory) {
+  public RoutingBuilder(Injector injector, List<Handler<Routed<HttpExchange>>> routers, ResponseFactory responseFactory) {
     this.injector = injector;
     this.routers = routers;
     this.responseFactory = responseFactory;

@@ -4,14 +4,15 @@ import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.ratpackframework.Handler;
 import org.ratpackframework.error.FallbackErrorHandler;
-import org.ratpackframework.routing.RoutedRequest;
+import org.ratpackframework.routing.Routed;
+import org.ratpackframework.routing.RoutedHttpExchange;
 import org.ratpackframework.templating.TemplateRenderer;
 
 import javax.inject.Inject;
 import java.util.HashMap;
 import java.util.Map;
 
-public class NotFoundHandler implements Handler<RoutedRequest> {
+public class NotFoundHandler implements Handler<Routed<HttpExchange>> {
 
   private final TemplateRenderer templateCompiler;
 
@@ -21,8 +22,8 @@ public class NotFoundHandler implements Handler<RoutedRequest> {
   }
 
   @Override
-  public void handle(RoutedRequest routedRequest) {
-    HttpExchange exchange = routedRequest.getExchange();
+  public void handle(Routed<HttpExchange> routedHttpExchange) {
+    HttpExchange exchange = routedHttpExchange.get();
     HttpRequest request = exchange.getRequest();
     exchange.getResponse().setStatus(HttpResponseStatus.NOT_FOUND);
     Map<String, Object> model = new HashMap<>(3);

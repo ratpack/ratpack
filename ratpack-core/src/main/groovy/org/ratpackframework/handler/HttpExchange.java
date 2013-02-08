@@ -22,9 +22,14 @@ import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpResponse;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 
+import java.io.File;
 import java.util.Set;
 
 public interface HttpExchange {
+
+  File getTargetFile();
+
+  void setTargetFile(File targetFile);
 
   HttpRequest getRequest();
 

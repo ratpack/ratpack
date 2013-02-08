@@ -4,13 +4,15 @@ import com.google.inject.Inject;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.util.CharsetUtil;
 import org.ratpackframework.Handler;
+import org.ratpackframework.handler.HttpExchange;
+import org.ratpackframework.routing.Routed;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 
-public class TargetFileStaticAssetRequestHandler implements Handler<RoutedStaticAssetRequest> {
+public class TargetFileStaticAssetRequestHandler implements Handler<Routed<HttpExchange>> {
 
   private final File assetsDirectory;
 
@@ -20,8 +22,8 @@ public class TargetFileStaticAssetRequestHandler implements Handler<RoutedStatic
   }
 
   @Override
-  public void handle(RoutedStaticAssetRequest assetRequest) {
-    HttpRequest request = assetRequest.getExchange().getRequest();
+  public void handle(Routed<HttpExchange> routed) {
+    HttpRequest request = routed.get().getRequest();
     String uri = request.getUri();
 
     // Decode the path.
@@ -47,11 +49,11 @@ public class TargetFileStaticAssetRequestHandler implements Handler<RoutedStatic
     File file = new File(assetsDirectory, uri);
 
     try {
-      assetRequest.setTargetFile(file.getCanonicalFile());
+      routed.get().setTargetFile(file.getCanonicalFile());
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
 
-    assetRequest.next();
+    routed.next();
   }
 }

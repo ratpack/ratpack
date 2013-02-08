@@ -11,26 +11,29 @@ import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
 import org.jboss.netty.handler.codec.http.HttpContentCompressor;
 import org.jboss.netty.handler.codec.http.HttpRequestDecoder;
 import org.jboss.netty.handler.codec.http.HttpResponseEncoder;
-import org.ratpackframework.assets.*;
+import org.ratpackframework.Handler;
+import org.ratpackframework.assets.DirectoryStaticAssetRequestHandler;
+import org.ratpackframework.assets.FileStaticAssetRequestHandler;
+import org.ratpackframework.assets.TargetFileStaticAssetRequestHandler;
 import org.ratpackframework.bootstrap.RatpackServer;
 import org.ratpackframework.config.DeploymentConfig;
 import org.ratpackframework.config.LayoutConfig;
 import org.ratpackframework.config.StaticAssetsConfig;
-import org.ratpackframework.Handler;
+import org.ratpackframework.groovy.routing.internal.ScriptBackedRouter;
+import org.ratpackframework.groovy.templating.GroovyTemplateRenderer;
+import org.ratpackframework.handler.HttpExchange;
 import org.ratpackframework.handler.NotFoundHandler;
 import org.ratpackframework.handler.RoutingHandler;
+import org.ratpackframework.handler.internal.CompositeRoutingHandler;
 import org.ratpackframework.routing.ResponseFactory;
-import org.ratpackframework.routing.RoutedRequest;
-import org.ratpackframework.routing.internal.CompositeRoutingHandler;
+import org.ratpackframework.routing.Routed;
 import org.ratpackframework.routing.internal.DefaultResponseFactory;
-import org.ratpackframework.groovy.routing.internal.ScriptBackedRouter;
 import org.ratpackframework.session.DefaultSessionIdGenerator;
 import org.ratpackframework.session.SessionConfig;
 import org.ratpackframework.session.SessionIdGenerator;
 import org.ratpackframework.session.SessionListener;
 import org.ratpackframework.session.internal.DefaultSessionConfig;
 import org.ratpackframework.session.internal.NoopSessionListener;
-import org.ratpackframework.groovy.templating.GroovyTemplateRenderer;
 import org.ratpackframework.templating.TemplateRenderer;
 
 import javax.inject.Inject;
@@ -46,13 +49,9 @@ import java.util.concurrent.Executors;
 
 public class RootModule extends AbstractModule {
 
-  private final TypeLiteral<Handler<RoutedRequest>> ROUTER = new TypeLiteral<Handler<RoutedRequest>>() {
+  private final TypeLiteral<Handler<Routed<HttpExchange>>> ROUTER = new TypeLiteral<Handler<Routed<HttpExchange>>>() {
   };
-  private final TypeLiteral<List<Handler<RoutedRequest>>> ROUTING_PIPELINE = new TypeLiteral<List<Handler<RoutedRequest>>>() {
-  };
-  private final TypeLiteral<Handler<RoutedStaticAssetRequest>> STATIC_ASSET_ROUTER = new TypeLiteral<Handler<RoutedStaticAssetRequest>>() {
-  };
-  private TypeLiteral<List<Handler<RoutedStaticAssetRequest>>> STATIC_ASSET_ROUTING_PIPELINE = new TypeLiteral<List<Handler<RoutedStaticAssetRequest>>>() {
+  private final TypeLiteral<List<Handler<Routed<HttpExchange>>>> ROUTING_PIPELINE = new TypeLiteral<List<Handler<Routed<HttpExchange>>>>() {
   };
   private TypeLiteral<Handler<RatpackServer>> RATPACK_INIT = new TypeLiteral<Handler<RatpackServer>>() {
   };
@@ -68,10 +67,10 @@ public class RootModule extends AbstractModule {
     bind(ROUTER).annotatedWith(Names.named("applicationRouter")).to(ScriptBackedRouter.class);
 
     bind(ROUTER).annotatedWith(Names.named("staticAssetRouter")).toProvider(StaticAssetRouterProvider.class);
-    bind(STATIC_ASSET_ROUTING_PIPELINE).annotatedWith(Names.named("mainStaticAssetRoutingPipeline")).toProvider(StaticAssetRoutingPipelineProvider.class);
-    bind(STATIC_ASSET_ROUTER).annotatedWith(Names.named("targetFileStaticAssetHandler")).toProvider(TargetFileStaticAssetHandlerProvider.class);
-    bind(STATIC_ASSET_ROUTER).annotatedWith(Names.named("directoryStaticAssetHandler")).to(DirectoryStaticAssetRequestHandler.class);
-    bind(STATIC_ASSET_ROUTER).annotatedWith(Names.named("fileStaticAssetHandler")).to(FileStaticAssetRequestHandler.class);
+    bind(ROUTING_PIPELINE).annotatedWith(Names.named("mainStaticAssetRoutingPipeline")).toProvider(StaticAssetRoutingPipelineProvider.class);
+    bind(ROUTER).annotatedWith(Names.named("targetFileStaticAssetHandler")).toProvider(TargetFileStaticAssetHandlerProvider.class);
+    bind(ROUTER).annotatedWith(Names.named("directoryStaticAssetHandler")).to(DirectoryStaticAssetRequestHandler.class);
+    bind(ROUTER).annotatedWith(Names.named("fileStaticAssetHandler")).to(FileStaticAssetRequestHandler.class);
 
     bind(SessionIdGenerator.class).to(DefaultSessionIdGenerator.class);
     bind(SessionListener.class).to(NoopSessionListener.class);
@@ -85,46 +84,47 @@ public class RootModule extends AbstractModule {
     bind(RATPACK_INIT).to(NoopInit.class);
   }
 
-  public static class MainRoutingPipelineProvider implements Provider<List<Handler<RoutedRequest>>> {
+  public static class MainRoutingPipelineProvider implements Provider<List<Handler<Routed<HttpExchange>>>> {
     @Inject
     @Named("applicationRouter")
-    Handler<RoutedRequest> applicationRouter;
+    Handler<Routed<HttpExchange>> applicationRouter;
     @Inject
     @Named("staticAssetRouter")
-    Handler<RoutedRequest> staticAssetRouter;
+    Handler<Routed<HttpExchange>> staticAssetRouter;
 
     @Inject
     NotFoundHandler notFoundHandler;
 
     @Override
-    public List<Handler<RoutedRequest>> get() {
+    public List<Handler<Routed<HttpExchange>>> get() {
       return Arrays.asList(applicationRouter, staticAssetRouter, notFoundHandler);
     }
   }
 
-  public static class MainRouterProvider implements Provider<Handler<RoutedRequest>> {
+  public static class MainRouterProvider implements Provider<Handler<Routed<HttpExchange>>> {
     @Inject
     @Named("mainRoutingPipeline")
-    List<Handler<RoutedRequest>> pipeline;
+    List<Handler<Routed<HttpExchange>>> pipeline;
 
     @Override
-    public Handler<RoutedRequest> get() {
+    public Handler<Routed<HttpExchange>> get() {
+      //noinspection unchecked
       return new CompositeRoutingHandler(pipeline);
     }
   }
 
-  public static class StaticAssetRouterProvider implements Provider<Handler<RoutedRequest>> {
+  public static class StaticAssetRouterProvider implements Provider<Handler<Routed<HttpExchange>>> {
     @Inject
     @Named("mainStaticAssetRoutingPipeline")
-    List<Handler<RoutedStaticAssetRequest>> pipeline;
+    List<Handler<Routed<HttpExchange>>> pipeline;
 
     @Override
-    public Handler<RoutedRequest> get() {
-      return new RoutedStaticAssetHandlerAdapter(new CompositeStaticAssetHandler(pipeline));
+    public Handler<Routed<HttpExchange>> get() {
+      return new CompositeRoutingHandler<>(pipeline);
     }
   }
 
-  static class TargetFileStaticAssetHandlerProvider implements Provider<Handler<RoutedStaticAssetRequest>> {
+  static class TargetFileStaticAssetHandlerProvider implements Provider<Handler<Routed<HttpExchange>>> {
     @Inject
     LayoutConfig layoutConfig;
 
@@ -132,26 +132,26 @@ public class RootModule extends AbstractModule {
     StaticAssetsConfig staticAssetsConfig;
 
     @Override
-    public Handler<RoutedStaticAssetRequest> get() {
+    public Handler<Routed<HttpExchange>> get() {
       return new TargetFileStaticAssetRequestHandler(new File(layoutConfig.getBaseDir(), staticAssetsConfig.getDir()));
     }
   }
 
-  public static class StaticAssetRoutingPipelineProvider implements Provider<List<Handler<RoutedStaticAssetRequest>>> {
+  public static class StaticAssetRoutingPipelineProvider implements Provider<List<Handler<Routed<HttpExchange>>>> {
     @Inject
     @Named("targetFileStaticAssetHandler")
-    Handler<RoutedStaticAssetRequest> targetFile;
+    Handler<Routed<HttpExchange>> targetFile;
 
     @Inject
     @Named("directoryStaticAssetHandler")
-    Handler<RoutedStaticAssetRequest> directory;
+    Handler<Routed<HttpExchange>> directory;
 
     @Inject
     @Named("fileStaticAssetHandler")
-    Handler<RoutedStaticAssetRequest> file;
+    Handler<Routed<HttpExchange>> file;
 
     @Override
-    public List<Handler<RoutedStaticAssetRequest>> get() {
+    public List<Handler<Routed<HttpExchange>>> get() {
       return Arrays.asList(targetFile, directory, file);
     }
   }
@@ -212,7 +212,9 @@ public class RootModule extends AbstractModule {
   }
 
   static class ChannelPipelineFactoryProvider implements Provider<ChannelPipelineFactory> {
-    @Inject @Named("nettyRoutingHandler") SimpleChannelUpstreamHandler appHandler;
+    @Inject
+    @Named("nettyRoutingHandler")
+    SimpleChannelUpstreamHandler appHandler;
 
     @Override
     public ChannelPipelineFactory get() {

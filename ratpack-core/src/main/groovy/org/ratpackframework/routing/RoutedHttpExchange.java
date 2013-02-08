@@ -14,34 +14,42 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.assets;
+package org.ratpackframework.routing;
 
 import org.ratpackframework.Handler;
 import org.ratpackframework.handler.HttpExchange;
-import org.ratpackframework.routing.RoutedRequest;
 
 import java.io.File;
 
-public class RoutedStaticAssetRequest extends RoutedRequest {
+public class RoutedHttpExchange implements Routed<HttpExchange> {
 
-  private File targetFile;
+  private final HttpExchange exchange;
+  private final Handler<? super RoutedHttpExchange> next;
 
-  public RoutedStaticAssetRequest(File targetFile, HttpExchange exchange, final Handler<? super RoutedStaticAssetRequest> next) {
-    super(exchange, new Handler<RoutedRequest>() {
-      @Override
-      public void handle(RoutedRequest event) {
-        next.handle((RoutedStaticAssetRequest) event);
-      }
-    });
-    this.targetFile = targetFile;
+  public RoutedHttpExchange(HttpExchange exchange, Handler<? super RoutedHttpExchange> next) {
+    this.exchange = exchange;
+    this.next = next;
   }
 
-  public File getTargetFile() {
-    return targetFile;
+
+  @Override
+  public HttpExchange get() {
+    return exchange;
   }
 
-  public void setTargetFile(File targetFile) {
-    this.targetFile = targetFile;
+  @Override
+  public void next() {
+    next.handle(this);
+  }
+
+  @Override
+  public Routed<HttpExchange> withNext(Handler<Routed<HttpExchange>> next) {
+    return new RoutedHttpExchange(exchange, next);
+  }
+
+  @Override
+  public void error(Exception e) {
+    exchange.error(e);
   }
 
 }

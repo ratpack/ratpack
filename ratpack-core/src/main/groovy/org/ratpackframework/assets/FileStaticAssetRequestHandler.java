@@ -21,6 +21,7 @@ import org.jboss.netty.handler.codec.http.*;
 import org.ratpackframework.Handler;
 import org.ratpackframework.handler.HttpExchange;
 import org.ratpackframework.handler.internal.DefaultHttpExchange;
+import org.ratpackframework.routing.Routed;
 import org.ratpackframework.util.HttpDateParseException;
 import org.ratpackframework.util.HttpDateUtil;
 
@@ -34,20 +35,20 @@ import java.util.Date;
 import static org.jboss.netty.handler.codec.http.HttpHeaders.Names.*;
 import static org.jboss.netty.handler.codec.http.HttpResponseStatus.*;
 
-public class FileStaticAssetRequestHandler implements Handler<RoutedStaticAssetRequest> {
+public class FileStaticAssetRequestHandler implements Handler<Routed<HttpExchange>> {
 
   @Override
-  public void handle(final RoutedStaticAssetRequest assetRequest) {
-    HttpExchange exchange = assetRequest.getExchange();
+  public void handle(final Routed<HttpExchange> routed) {
+    HttpExchange exchange = routed.get();
     HttpRequest request = exchange.getRequest();
     if (request.getMethod() != HttpMethod.GET) {
       exchange.end(METHOD_NOT_ALLOWED);
       return;
     }
 
-    File targetFile = assetRequest.getTargetFile();
+    File targetFile = exchange.getTargetFile();
     if (targetFile.isHidden() || !targetFile.exists()) {
-      assetRequest.next();
+      routed.next();
       return;
     }
 
@@ -58,7 +59,7 @@ public class FileStaticAssetRequestHandler implements Handler<RoutedStaticAssetR
 
     long lastModifiedTime = targetFile.lastModified();
     if (lastModifiedTime < 1) {
-      assetRequest.next();
+      routed.next();
       return;
     }
 
@@ -90,7 +91,7 @@ public class FileStaticAssetRequestHandler implements Handler<RoutedStaticAssetR
     try {
       raf = new RandomAccessFile(targetFile, "r");
     } catch (FileNotFoundException fnfe) {
-      assetRequest.next();
+      routed.next();
       return;
     }
 

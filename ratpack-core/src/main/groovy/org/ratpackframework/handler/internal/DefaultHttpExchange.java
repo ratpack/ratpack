@@ -28,6 +28,7 @@ import org.ratpackframework.error.ErrorHandler;
 import org.ratpackframework.error.ErroredHttpExchange;
 import org.ratpackframework.handler.HttpExchange;
 
+import java.io.File;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -40,6 +41,7 @@ public class DefaultHttpExchange implements HttpExchange {
   private final HttpResponse response;
   private final ChannelHandlerContext channelHandlerContext;
   private final ErrorHandler errorHandler;
+  private File targetFile;
 
   private Set<Cookie> incomingCookies;
   private Set<Cookie> outgoingCookies;
@@ -47,11 +49,22 @@ public class DefaultHttpExchange implements HttpExchange {
   private String query;
   private String path;
 
-  public DefaultHttpExchange(HttpRequest request, HttpResponse response, ChannelHandlerContext channelHandlerContext, ErrorHandler errorHandler) {
+  public DefaultHttpExchange(File targetFile, HttpRequest request, HttpResponse response, ChannelHandlerContext channelHandlerContext, ErrorHandler errorHandler) {
+    this.targetFile = targetFile;
     this.request = request;
     this.response = response;
     this.channelHandlerContext = channelHandlerContext;
     this.errorHandler = errorHandler;
+  }
+
+  @Override
+  public File getTargetFile() {
+    return targetFile;
+  }
+
+  @Override
+  public void setTargetFile(File targetFile) {
+    this.targetFile = targetFile;
   }
 
   public HttpRequest getRequest() {

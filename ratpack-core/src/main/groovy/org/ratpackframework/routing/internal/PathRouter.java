@@ -17,19 +17,19 @@
 package org.ratpackframework.routing.internal;
 
 import org.jboss.netty.handler.codec.http.HttpRequest;
+import org.ratpackframework.Handler;
 import org.ratpackframework.Response;
 import org.ratpackframework.Routing;
-import org.ratpackframework.Handler;
 import org.ratpackframework.handler.HttpExchange;
 import org.ratpackframework.routing.ResponseFactory;
-import org.ratpackframework.routing.RoutedRequest;
+import org.ratpackframework.routing.Routed;
 
 import java.util.*;
 import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class PathRouter implements Handler<RoutedRequest> {
+public class PathRouter implements Handler<Routed<HttpExchange>> {
 
   final String method;
   final String path;
@@ -68,21 +68,21 @@ public class PathRouter implements Handler<RoutedRequest> {
   }
 
   @Override
-  public void handle(RoutedRequest routedRequest) {
-    HttpExchange exchange = routedRequest.getExchange();
+  public void handle(Routed<HttpExchange> routedHttpExchange) {
+    HttpExchange exchange = routedHttpExchange.get();
     HttpRequest request = exchange.getRequest();
     if (!method.equals(Routing.ALL_METHODS) && !request.getMethod().getName().equals(method)) {
-      routedRequest.next();
+      routedHttpExchange.next();
       return;
     }
 
     Matcher matcher = tokenisedPath.regex.matcher(exchange.getPath());
     if (matcher.matches()) {
       Map<String, String> urlParams = toUrlParams(matcher);
-      Response response = responseFactory.create(routedRequest, urlParams);
+      Response response = responseFactory.create(routedHttpExchange, urlParams);
       handler.handle(response);
     } else {
-      routedRequest.next();
+      routedHttpExchange.next();
     }
   }
 

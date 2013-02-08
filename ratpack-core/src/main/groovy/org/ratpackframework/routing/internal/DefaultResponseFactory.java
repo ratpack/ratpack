@@ -19,10 +19,12 @@ package org.ratpackframework.routing.internal;
 import com.google.inject.Inject;
 import org.ratpackframework.Request;
 import org.ratpackframework.Response;
+import org.ratpackframework.handler.HttpExchange;
 import org.ratpackframework.internal.DefaultRequest;
 import org.ratpackframework.internal.DefaultResponse;
 import org.ratpackframework.routing.ResponseFactory;
-import org.ratpackframework.routing.RoutedRequest;
+import org.ratpackframework.routing.Routed;
+import org.ratpackframework.routing.RoutedHttpExchange;
 import org.ratpackframework.session.SessionConfig;
 import org.ratpackframework.session.internal.RequestSessionManager;
 import org.ratpackframework.templating.TemplateRenderer;
@@ -40,10 +42,10 @@ public class DefaultResponseFactory implements ResponseFactory {
     this.sessionConfig = sessionConfig;
   }
 
-  @Override public Response create(RoutedRequest routedRequest, Map<String, String> urlParams) {
-    RequestSessionManager requestSessionManager = new RequestSessionManager(routedRequest.getExchange(), sessionConfig);
-    Request request = new DefaultRequest(routedRequest.getExchange(), urlParams, requestSessionManager);
-    return new DefaultResponse(request, routedRequest.getExchange(), templateRenderer);
+  @Override public Response create(Routed<HttpExchange> routedHttpExchange, Map<String, String> urlParams) {
+    RequestSessionManager requestSessionManager = new RequestSessionManager(routedHttpExchange.get(), sessionConfig);
+    Request request = new DefaultRequest(routedHttpExchange.get(), urlParams, requestSessionManager);
+    return new DefaultResponse(request, routedHttpExchange.get(), templateRenderer);
   }
 
 }
