@@ -16,29 +16,122 @@
 
 package org.ratpackframework.assets;
 
+import org.jboss.netty.channel.*;
+import org.jboss.netty.handler.codec.http.*;
+import org.ratpackframework.handler.Handler;
+import org.ratpackframework.handler.HttpExchange;
+import org.ratpackframework.handler.internal.DefaultHttpExchange;
+import org.ratpackframework.util.HttpDateParseException;
 import org.ratpackframework.util.HttpDateUtil;
-import org.vertx.java.core.Handler;
-import org.vertx.java.core.file.FileProps;
 
-public class FileStaticAssetRequestHandler implements Handler<StaticAssetRequest> {
+import javax.activation.MimetypesFileTypeMap;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.util.Date;
+
+import static org.jboss.netty.handler.codec.http.HttpHeaders.Names.*;
+import static org.jboss.netty.handler.codec.http.HttpResponseStatus.*;
+
+public class FileStaticAssetRequestHandler implements Handler<RoutedStaticAssetRequest> {
 
   @Override
-  public void handle(final StaticAssetRequest assetRequest) {
-    assetRequest.exists(new Handler<Boolean>() {
-      @Override
-      public void handle(Boolean exists) {
-        if (exists) {
-          assetRequest.props(new Handler<FileProps>() {
-            @Override
-            public void handle(FileProps props) {
-              assetRequest.getRequest().response.putHeader("Last-Modified", HttpDateUtil.formatDate(props.lastModifiedTime));
-              assetRequest.getRequest().response.sendFile(assetRequest.getFilePath());
-            }
-          });
-        } else {
-          assetRequest.getNotFoundHandler().handle(assetRequest.getRequest());
+  public void handle(final RoutedStaticAssetRequest assetRequest) {
+    HttpExchange exchange = assetRequest.getExchange();
+    HttpRequest request = exchange.getRequest();
+    if (request.getMethod() != HttpMethod.GET) {
+      exchange.end(METHOD_NOT_ALLOWED);
+      return;
+    }
+
+    File targetFile = assetRequest.getTargetFile();
+    if (targetFile.isHidden() || !targetFile.exists()) {
+      assetRequest.next();
+      return;
+    }
+
+    if (!targetFile.isFile()) {
+      exchange.end(FORBIDDEN);
+      return;
+    }
+
+    long lastModifiedTime = targetFile.lastModified();
+    if (lastModifiedTime < 1) {
+      assetRequest.next();
+      return;
+    }
+
+    HttpResponse response = exchange.getResponse();
+
+    String ifModifiedSinceHeader = request.getHeader(IF_MODIFIED_SINCE);
+
+    if (ifModifiedSinceHeader != null) {
+      try {
+        long ifModifiedSinceSecs = HttpDateUtil.parseDate(ifModifiedSinceHeader).getTime() / 1000;
+        long lastModifiedSecs = lastModifiedTime / 1000;
+        if (lastModifiedSecs == ifModifiedSinceSecs) {
+          exchange.end(NOT_MODIFIED);
+          return;
         }
+      } catch (HttpDateParseException ignore) {
+        // can't parse header, just keep going
+      }
+    }
+
+    final String ifNoneMatch = request.getHeader(HttpHeaders.Names.IF_NONE_MATCH);
+    if (ifNoneMatch != null && ifNoneMatch.trim().equals("*")) {
+      response.setStatus(HttpResponseStatus.NOT_MODIFIED);
+      exchange.end();
+      return;
+    }
+
+    RandomAccessFile raf;
+    try {
+      raf = new RandomAccessFile(targetFile, "r");
+    } catch (FileNotFoundException fnfe) {
+      assetRequest.next();
+      return;
+    }
+
+    long fileLength;
+    try {
+      fileLength = raf.length();
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+
+    HttpHeaders.setContentLength(response, fileLength);
+    response.setHeader(LAST_MODIFIED, HttpDateUtil.formatDate(new Date(targetFile.lastModified())));
+    MimetypesFileTypeMap mimeTypesMap = new MimetypesFileTypeMap();
+    response.setHeader(CONTENT_TYPE, mimeTypesMap.getContentType(targetFile.getPath()));
+
+    Channel ch = ((DefaultHttpExchange) exchange).getChannel();
+
+    // Write the initial line and the header.
+    if (!ch.isOpen()) {
+      return;
+    }
+    ch.write(response);
+
+    // Write the content.
+    ChannelFuture writeFuture;
+    final FileRegion region = new DefaultFileRegion(raf.getChannel(), 0, fileLength);
+    try {
+      writeFuture = ch.write(region);
+    } catch (Exception ignore) {
+      if (ch.isOpen()) {
+        ch.close();
+      }
+      return;
+    }
+
+    writeFuture.addListener(new ChannelFutureListener() {
+      public void operationComplete(ChannelFuture future) {
+        future.addListener(ChannelFutureListener.CLOSE);
+        region.releaseExternalResources();
       }
     });
   }
+
 }

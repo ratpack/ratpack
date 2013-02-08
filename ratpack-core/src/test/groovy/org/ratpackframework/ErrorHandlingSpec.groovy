@@ -28,9 +28,7 @@ class ErrorHandlingSpec extends RatpackSpec {
     ratpackFile << """
       get("/") { request, response ->
         Thread.start {
-          response.handleErrors {
-            throw new Exception("bang!")
-          }
+          response.error(new Exception("bang!"))
         }
       }
     """

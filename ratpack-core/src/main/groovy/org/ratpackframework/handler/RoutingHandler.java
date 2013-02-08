@@ -1,65 +1,51 @@
 package org.ratpackframework.handler;
 
-import com.google.inject.Injector;
-import org.ratpackframework.routing.FinalizedResponse;
+import com.google.inject.Inject;
+import org.jboss.netty.channel.ChannelHandlerContext;
+import org.jboss.netty.channel.MessageEvent;
+import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
+import org.jboss.netty.handler.codec.http.*;
+import org.ratpackframework.handler.internal.DefaultHttpExchange;
 import org.ratpackframework.routing.RoutedRequest;
-import org.vertx.java.core.Handler;
-import org.vertx.java.core.buffer.Buffer;
-import org.vertx.java.core.http.HttpServerRequest;
-import org.vertx.java.core.http.HttpServerResponse;
-import org.vertx.java.core.logging.Logger;
-import org.vertx.java.core.logging.impl.LoggerFactory;
 
-import java.util.Arrays;
-import java.util.Map;
+import javax.inject.Named;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-public class RoutingHandler implements Handler<HttpServerRequest> {
+public class RoutingHandler extends SimpleChannelUpstreamHandler {
 
-  private final Logger logger = LoggerFactory.getLogger(getClass());
+  private final Logger logger = Logger.getLogger(getClass().getName());
 
   private final Handler<RoutedRequest> router;
   private final ErrorHandler errorHandler;
-  private final Handler<HttpServerRequest> notFoundHandler;
 
-  public RoutingHandler(Handler<RoutedRequest> router, ErrorHandler errorHandler, Handler<HttpServerRequest> notFoundHandler) {
+  @Inject
+  public RoutingHandler(@Named("mainRouter") Handler<RoutedRequest> router, ErrorHandler errorHandler) {
     this.router = router;
     this.errorHandler = errorHandler;
-    this.notFoundHandler = notFoundHandler;
   }
 
   @Override
-  public void handle(final HttpServerRequest request) {
-    request.pause();
-
-    if (logger.isInfoEnabled()) {
-      logger.info("received " + request.uri);
+  public void messageReceived(ChannelHandlerContext ctx, MessageEvent event) throws Exception {
+    HttpRequest request = (HttpRequest) event.getMessage();
+    if (logger.isLoggable(Level.INFO)) {
+      logger.info("received " + request.getUri());
     }
 
-    RoutedRequest routedRequest = new RoutedRequest(request, errorHandler, notFoundHandler, errorHandler.asyncHandler(request, new Handler<FinalizedResponse>() {
-      @Override
-      public void handle(FinalizedResponse response) {
-        HttpServerResponse realResponse = request.response;
+    HttpResponse response = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
+    final HttpExchange exchange = new DefaultHttpExchange(request, response, ctx, errorHandler);
 
-        realResponse.statusCode = response.getStatus();
-
-        for (Map.Entry<String, Object> entry : response.getHeaders().entrySet()) {
-          Object value = entry.getValue();
-          @SuppressWarnings("unchecked")
-          Iterable<Object> values = value instanceof Iterable ? (Iterable<Object>) value : Arrays.asList(value);
-          for (Object singleValue : values) {
-            realResponse.putHeader(entry.getKey(), singleValue);
-          }
+    try {
+      RoutedRequest routedRequest = new RoutedRequest(exchange, new Handler<RoutedRequest>() {
+        @Override
+        public void handle(RoutedRequest event) {
+          exchange.end(HttpResponseStatus.NOT_FOUND);
         }
-        Buffer buffer = response.getBuffer();
-        if (buffer == null) {
-          realResponse.end();
-        } else {
-          realResponse.end(buffer);
-        }
-      }
-    }));
-
-    router.handle(routedRequest);
+      });
+      router.handle(routedRequest);
+    } catch (Exception e) {
+      exchange.error(e);
+    }
   }
 
 }

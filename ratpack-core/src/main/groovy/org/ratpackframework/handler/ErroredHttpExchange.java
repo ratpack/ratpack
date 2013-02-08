@@ -14,13 +14,23 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.internal;
+package org.ratpackframework.handler;
 
-import org.vertx.java.core.Handler;
+public class ErroredHttpExchange {
 
-public class NoOpHandler<T> implements Handler<T> {
+  private final HttpExchange exchange;
+  private final Exception exception;
 
-  @Override
-  public void handle(T event) {}
+  public ErroredHttpExchange(HttpExchange exchange, Exception exception) {
+    this.exchange = exchange;
+    this.exception = exception;
+  }
 
+  public HttpExchange getExchange() {
+    return exchange;
+  }
+
+  public Exception getException() {
+    return exception;
+  }
 }

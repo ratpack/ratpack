@@ -16,62 +16,41 @@
 
 package org.ratpackframework.internal;
 
-import groovy.lang.Closure;
-import org.ratpackframework.groovy.Request;
-import org.ratpackframework.handler.ClosureHandlerAdapter;
-import org.ratpackframework.handler.ErrorHandler;
-import org.ratpackframework.handler.ErroredHttpServerRequest;
+import org.jboss.netty.buffer.ChannelBuffer;
+import org.jboss.netty.handler.codec.http.HttpHeaders;
+import org.jboss.netty.handler.codec.http.QueryStringDecoder;
+import org.ratpackframework.Request;
+import org.ratpackframework.handler.HttpExchange;
 import org.ratpackframework.http.MediaType;
 import org.ratpackframework.session.Session;
 import org.ratpackframework.session.internal.RequestSessionManager;
-import org.vertx.java.core.Handler;
-import org.vertx.java.core.buffer.Buffer;
-import org.vertx.java.core.http.HttpServerRequest;
-import org.vertx.java.core.json.JsonObject;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
-import java.util.Collections;
+import java.nio.charset.Charset;
+import java.util.List;
 import java.util.Map;
 
 public class DefaultRequest implements Request {
 
   private final RequestSessionManager sessionManager;
+  private final HttpExchange exchange;
   private MediaType mediaType;
 
-  private final HttpServerRequest vertxRequest;
-  private final ErrorHandler errorHandler;
-
   private final Map<String, String> urlParams;
-  private Map<String, ?> queryParams;
+  private Map<String, List<String>> queryParams;
+  private String query;
+  private String path;
 
-  public DefaultRequest(final HttpServerRequest vertxRequest, final ErrorHandler errorHandler, Map<String, String> urlParams, RequestSessionManager sessionManager) {
-    this.vertxRequest = vertxRequest;
-    this.errorHandler = errorHandler;
+  public DefaultRequest(HttpExchange exchange, Map<String, String> urlParams, RequestSessionManager sessionManager) {
+    this.exchange = exchange;
     this.urlParams = urlParams;
     this.sessionManager = sessionManager;
-
-    vertxRequest.exceptionHandler(new Handler<Exception>() {
-      @Override
-      public void handle(Exception exception) {
-        errorHandler.handle(new ErroredHttpServerRequest(vertxRequest, exception));
-      }
-    });
   }
 
   @Override
-  public Map<String, ?> getQueryParams() {
+  public Map<String, List<String>> getQueryParams() {
     if (queryParams == null) {
-      String query = getQuery();
-      if (query == null) {
-        queryParams = Collections.emptyMap();
-      } else {
-        try {
-          queryParams = new ParamParser().parse(URLDecoder.decode(getQuery(), "UTF-8"));
-        } catch (UnsupportedEncodingException e) {
-          throw new RuntimeException(e);
-        }
-      }
+      QueryStringDecoder queryStringDecoder = new QueryStringDecoder(getUri());
+      queryParams = queryStringDecoder.getParameters();
     }
     return queryParams;
   }
@@ -81,105 +60,52 @@ public class DefaultRequest implements Request {
     return urlParams;
   }
 
-  protected <T> Handler<T> errorHandler(Handler<T> handler) {
-    return errorHandler.handler(vertxRequest, handler);
-  }
-
-  @Override
-  public void buffer(Handler<Buffer> bufferHandler) {
-    vertxRequest.bodyHandler(errorHandler(bufferHandler));
-  }
-
-  @Override
-  public void text(final Handler<String> textHandler) {
-    vertxRequest.bodyHandler(errorHandler(new Handler<Buffer>() {
-      @Override
-      public void handle(Buffer event) {
-        textHandler.handle(event.toString(getContentType().getCharset()));
-      }
-    }));
-  }
-
-  @Override
-  public void json(final Handler<JsonObject> jsonHandler) {
-    vertxRequest.bodyHandler(errorHandler(new Handler<Buffer>() {
-      @Override
-      public void handle(Buffer event) {
-        String charset = getContentType().getCharset();
-        jsonHandler.handle(new JsonObject(event.toString(charset)));
-      }
-    }));
-  }
-
-  @Override
-  public void form(final Handler<Map<String, ?>> formHandler) {
-    vertxRequest.bodyHandler(errorHandler(new Handler<Buffer>() {
-      @Override
-      public void handle(Buffer event) {
-        String charset = getContentType().getCharset();
-        try {
-          String string = event.toString(charset);
-          String decoded = URLDecoder.decode(string, charset);
-          Map<String, ?> map = new ParamParser().parse(decoded);
-          formHandler.handle(map);
-        } catch (UnsupportedEncodingException e) {
-          throw new RuntimeException(e);
-        }
-      }
-    }));
-  }
-
-  @Override
-  public void buffer(Closure<?> receiver) {
-    buffer(new ClosureHandlerAdapter<Buffer>(receiver));
-  }
-
-  @Override
-  public void text(final Closure<?> textReceiver) {
-    text(new ClosureHandlerAdapter<String>(textReceiver));
-  }
-
-  @Override
-  public void json(final Closure<?> jsonReceiver) {
-    json(new ClosureHandlerAdapter<JsonObject>(jsonReceiver));
-  }
-
-  @Override
-  public void form(final Closure<?> formReceiver) {
-    form(new ClosureHandlerAdapter<Map<String, ?>>(formReceiver));
-  }
-
-  @Override
-  public HttpServerRequest getVertxRequest() {
-    return vertxRequest;
-  }
-
   @Override
   public MediaType getContentType() {
     if (mediaType == null) {
-      mediaType = new MediaType(vertxRequest.headers().get("content-type"));
+      mediaType = new MediaType(exchange.getRequest().getHeader(HttpHeaders.Names.CONTENT_TYPE));
     }
     return mediaType;
   }
 
   @Override
   public String getMethod() {
-    return vertxRequest.method;
+    return exchange.getRequest().getMethod().getName();
   }
 
   @Override
   public String getUri() {
-    return vertxRequest.uri;
+    return exchange.getRequest().getUri();
   }
 
   @Override
   public String getQuery() {
-    return vertxRequest.query;
+    if (query == null) {
+      String uri = getUri();
+      int i = uri.indexOf("?");
+      if (i < 0 || i == uri.length()) {
+        query = null;
+      } else {
+        query = uri.substring(i + 1);
+      }
+    }
+
+    return query;
   }
 
   @Override
   public String getPath() {
-    return vertxRequest.path;
+    if (path == null) {
+      String uri = getUri();
+      int i = uri.indexOf("?");
+      if (i <= 0) {
+        path = uri;
+      } else {
+        path = uri.substring(0, i);
+      }
+    }
+
+    return path;
   }
 
   @Override
@@ -187,4 +113,18 @@ public class DefaultRequest implements Request {
     return sessionManager.getSession();
   }
 
+  @Override
+  public String getText() {
+    return getBuffer().toString(Charset.forName(getContentType().getCharset()));
+  }
+
+  @Override
+  public ChannelBuffer getBuffer() {
+    return exchange.getRequest().getContent();
+  }
+
+  @Override
+  public Map<String, List<String>> getForm() {
+    return new QueryStringDecoder(getText(), false).getParameters();
+  }
 }

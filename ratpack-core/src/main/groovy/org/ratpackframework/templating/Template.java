@@ -6,8 +6,8 @@ public interface Template {
 
   TemplateModel getModel();
 
-  void render(String templateName);
+  String render(String templateName) throws Exception;
 
-  void render(Map<String, ?> model, String templateName);
+  String render(Map<String, ?> model, String templateName) throws Exception;
 
 }

@@ -14,25 +14,25 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.routing.internal
+package org.ratpackframework.routing.internal;
 
-import org.ratpackframework.Response
-import org.vertx.java.core.Handler
+import org.ratpackframework.Response;
+import org.ratpackframework.handler.Handler;
 
-class ErrorHandlingResponseHandler implements Handler<Response> {
+public class ErrorHandlingResponseHandler implements Handler<Response> {
 
   private final Handler<Response> delegate;
 
-  ErrorHandlingResponseHandler(Handler<Response> delegate) {
-    this.delegate = delegate
+  public ErrorHandlingResponseHandler(Handler<Response> delegate) {
+    this.delegate = delegate;
   }
 
   @Override
-  void handle(Response response) {
+  public void handle(Response response) {
     try {
-      delegate.handle(response)
+      delegate.handle(response);
     } catch (Exception e) {
-      response.error(e)
+      response.error(e);
     }
   }
 

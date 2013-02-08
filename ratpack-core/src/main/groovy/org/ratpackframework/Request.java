@@ -16,13 +16,12 @@
 
 package org.ratpackframework;
 
+import org.jboss.netty.buffer.ChannelBuffer;
+import org.ratpackframework.handler.Handler;
 import org.ratpackframework.http.MediaType;
 import org.ratpackframework.session.Session;
-import org.vertx.java.core.Handler;
-import org.vertx.java.core.buffer.Buffer;
-import org.vertx.java.core.http.HttpServerRequest;
-import org.vertx.java.core.json.JsonObject;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -38,23 +37,18 @@ public interface Request {
 
   String getPath();
 
-  Map<String, ?> getQueryParams();
+  String getText();
+
+  ChannelBuffer getBuffer();
+
+  Map<String, List<String>> getQueryParams();
 
   Map<String, String> getUrlParams();
-
-  void buffer(Handler<Buffer> bufferHandler);
-
-  void text(Handler<String> textHandler);
-
-  void json(Handler<JsonObject> jsonHandler);
-
-  void form(Handler<Map<String, ?>> formHandler);
 
   Session getSession();
 
   MediaType getContentType();
 
-  HttpServerRequest getVertxRequest();
-
+  Map<String, List<String>> getForm();
 
 }

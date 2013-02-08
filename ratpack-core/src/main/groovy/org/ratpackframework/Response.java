@@ -16,13 +16,11 @@
 
 package org.ratpackframework;
 
-import groovy.lang.Closure;
-import org.ratpackframework.http.MutableMediaType;
-import org.vertx.java.core.AsyncResultHandler;
-import org.vertx.java.core.Handler;
-import org.vertx.java.core.buffer.Buffer;
+import org.jboss.netty.buffer.ChannelBuffer;
 
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * A response to a request.
@@ -36,18 +34,6 @@ public interface Response {
    * @return the request that this response is for.
    */
   Request getRequest();
-
-  /**
-   * The headers to send out.
-   *
-   * Any non iterable values will be toString()'d. Iterable values indicate a multi value header, and each element will be toString()'d. Headers are not sent immediately. They will be sent when the
-   * response is finalised (e.g. after one of the render*() methods).
-   * <p>
-   * The “Content-Type” header is special and is managed by {@link #getContentType()}. Any value for this header in this map will be ignored.
-   *
-   * @return the headers.
-   */
-  Map<String, ?> getHeaders();
 
   /**
    * The status code that will be sent.
@@ -64,21 +50,6 @@ public interface Response {
    * @param status the status code to send.
    */
   void setStatus(int status);
-
-  /**
-   * The response payload content type.
-   *
-   * Defaults to being {@link org.ratpackframework.http.MutableMediaType#isEmpty()}.
-   * This will always take precedent over any content type set via the {@link #getHeaders()}.
-   */
-  MutableMediaType getContentType();
-
-  /**
-   * Returns a handler that can be given a {@link Buffer}, that will finalise the request.
-   *
-   * @return a handler that can be given a {@link Buffer}, that will finalise the request.
-   */
-  Handler<Buffer> renderer();
 
   /**
    * Render the template at the given path (relative to the configure templates dir) with the given model.
@@ -99,20 +70,18 @@ public interface Response {
   void render(String templatePath);
 
   /**
-   * Attempts to render the given object as JSON.
-   *
-   * If the content type has not been set, sets it to “application/json;charset=utf-8 Finalizes the response.
-   *
-   * @param object object to render as JSON.
-   */
-  void renderJson(Object object);
-
-  /**
    * Renders the toString() of the given object as plain text.
    *
    * If the content type has not been set, sets it to “text/plain;charset=utf-8” Finalizes the response.
    */
-  void renderText(Object str);
+  void text(Object str);
+
+  /**
+   * Renders the toString() of the given object as the given content type.
+   *
+   * Sets the content type header to “$contentType;charset=utf-8” and finalizes the response.
+   */
+  void text(String contentType, Object str);
 
   /**
    * Sends a temporary redirect response (i.e. statusCode 302) to the client using the specified redirect location URL.
@@ -124,40 +93,11 @@ public interface Response {
   void redirect(String location);
 
   /**
-   * Returns a handler that simply catches any exceptions thrown by the given handler and forwards them to {@link #error(Exception)}
-   *
-   * @param handler The handler to wrap.
-   * @param <T> The payload type
-   * @return A handler that wraps the given one, adding exception handling.
-   */
-  public <T> Handler<T> errorHandler(Handler<T> handler);
-
-  /**
-   * Returns an async handler that wraps the given handler, delegating to {@link #error(Exception)} if the result is an error.
-   *
-   * The given handler will be wrapped by {@link #errorHandler(org.vertx.java.core.Handler)}.
-   *
-   * @param handler The success handler.
-   * @param <T> The type of result.
-   * @return An async result handler that handles errors and delegates success to the given handler.
-   */
-  public <T> AsyncResultHandler<T> asyncErrorHandler(Handler<T> handler);
-
-  /**
    * End the response with an error (500), by passing the exception to the error handler.
    *
    * @param error What went wrong
    */
   public void error(Exception error);
-
-  /**
-   * Catches any exceptions thrown during the closure execution and handles appropriately.
-   *
-   * If you go off the first thread, you need to wrap any error throwing code in this.
-   *
-   * @param closure The code that may throw exceptions.
-   */
-  public void handleErrors(Closure<?> closure);
 
   /**
    * Finalize the request.
@@ -179,4 +119,66 @@ public interface Response {
    */
   public void end(int status, String message);
 
+  /**
+   * Finalises the response, writing the buffer asynchronously
+   *
+   * @param buffer The response body
+   */
+  void end(ChannelBuffer buffer);
+
+  /**
+   * Returns the header value with the specified header name.  If there are more than one header value for the specified header name, the first value is returned.
+   *
+   * @return the header value or {@code null} if there is no such header
+   */
+  String getHeader(String name);
+
+  /**
+   * Returns the header values with the specified header name.
+   *
+   * @return the {@link List} of header values.  An empty list if there is no such header.
+   */
+  List<String> getHeaders(String name);
+
+  /**
+   * Returns the all header names and values that this message contains.
+   *
+   * @return the {@link List} of the header name-value pairs.  An empty list if there is no header in this message.
+   */
+  List<Map.Entry<String, String>> getHeaders();
+
+  /**
+   * Returns {@code true} if and only if there is a header with the specified header name.
+   */
+  boolean containsHeader(String name);
+
+  /**
+   * Returns the {@link java.util.Set} of all header names that this message contains.
+   */
+  Set<String> getHeaderNames();
+
+  /**
+   * Adds a new header with the specified name and value.
+   */
+  void addHeader(String name, Object value);
+
+  /**
+   * Sets a new header with the specified name and value.  If there is an existing header with the same name, the existing header is removed.
+   */
+  void setHeader(String name, Object value);
+
+  /**
+   * Sets a new header with the specified name and values.  If there is an existing header with the same name, the existing header is removed.
+   */
+  void setHeader(String name, Iterable<?> values);
+
+  /**
+   * Removes the header with the specified name.
+   */
+  void removeHeader(String name);
+
+  /**
+   * Removes all headers from this message.
+   */
+  void clearHeaders();
 }

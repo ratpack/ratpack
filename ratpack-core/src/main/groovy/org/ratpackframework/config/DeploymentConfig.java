@@ -3,8 +3,8 @@ package org.ratpackframework.config;
 public class DeploymentConfig {
 
   int port = 5050;
-  String bindHost = "localhost";
-  String publicHost = "localhost";
+  String bindHost = null;
+  String publicHost = null;
 
   public int getPort() {
     return port;

@@ -9,21 +9,19 @@ class ConcurrentRequestSpec extends RatpackSpec {
     given:
     ratpackFile << """
       get("/:id") {
-        renderText getRequest().urlParams.id + ":" + getRequest().queryParams.id
+        text getRequest().urlParams.id + ":" + getRequest().queryParams.id[0]
       }
     """
 
     when:
     startApp()
 
-    def threads = 100
+    def threads = 10
     def latch = new CountDownLatch(threads)
     def results = []
     threads.times {
       results << null
     }
-
-    def rand = new Random()
 
     threads.times { i ->
       Thread.start {

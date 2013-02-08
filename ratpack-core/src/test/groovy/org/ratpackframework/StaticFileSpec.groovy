@@ -47,7 +47,7 @@ class StaticFileSpec extends RatpackSpec {
     given:
     publicFile("static.text") << "hello!"
     ratpackFile << """
-      get("/") { renderText "foo" }
+      get("/") { text "foo" }
     """
 
     when:
@@ -59,7 +59,7 @@ class StaticFileSpec extends RatpackSpec {
 
     when:
     ratpackFile << """
-      get("/static.text") { renderText "bar" }
+      get("/static.text") { text "bar" }
     """
 
     then:

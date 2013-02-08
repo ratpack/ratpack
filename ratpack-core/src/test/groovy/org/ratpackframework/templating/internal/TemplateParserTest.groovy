@@ -1,6 +1,9 @@
 package org.ratpackframework.templating.internal
 
-import org.vertx.java.core.buffer.Buffer
+import org.jboss.netty.buffer.ChannelBuffer
+import org.jboss.netty.buffer.ChannelBuffers
+import org.jboss.netty.util.CharsetUtil
+import org.ratpackframework.io.IoUtils
 import spock.lang.Specification
 
 class TemplateParserTest extends Specification {
@@ -8,27 +11,27 @@ class TemplateParserTest extends Specification {
   private final TemplateParser parser = new TemplateParser()
 
   String parse(String source) {
-    Buffer sourceBuffer = new Buffer(source)
-    Buffer scriptBuffer = new Buffer(source.size())
+    ChannelBuffer sourceBuffer = IoUtils.utf8Buffer(source)
+    ChannelBuffer scriptBuffer = ChannelBuffers.dynamicBuffer(source.length())
     parser.parse(sourceBuffer, scriptBuffer)
-    scriptBuffer.toString()
+    scriptBuffer.toString(CharsetUtil.UTF_8)
   }
 
   def "encoding"() {
     expect:
-    parse("abc") == '$o();$s("""abc""");$c();'
-    parse("aéc") == '$o();$s("""aéc""");$c();'
-    parse("a\u1234c") == '$o();$s("""a\u1234c""");$c();'
+    parse("abc") == '$(\n"""abc"""\n);'
+    parse("aéc") == '$(\n"""aéc"""\n);'
+    parse("a\u1234c") == '$(\n"""a\u1234c"""\n);'
   }
 
   def "gstrings"() {
     expect:
-    parse("a\${'b'}c") == '$o();$s("""a${\'b\'}c""");$c();'
+    parse("a\${'b'}c") == '$(\n"""a${\'b\'}c"""\n);'
   }
 
   def "code blocks"() {
     expect:
-    parse("a<% b %>c") == '$o();$s("""a""");$c(); b ;$o();$s("""c""");$c();'
+    parse("a<% b %>c") == '$(\n"""a"""\n);\n b \n;$(\n"""c"""\n);'
   }
 
 }

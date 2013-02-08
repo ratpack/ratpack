@@ -17,21 +17,16 @@
 package org.ratpackframework.routing.internal;
 
 import com.google.inject.Injector;
+import org.codehaus.groovy.runtime.ResourceGroovyMethods;
 import org.ratpackframework.config.LayoutConfig;
 import org.ratpackframework.config.RoutingConfig;
-import org.ratpackframework.routing.FinalizedResponse;
+import org.ratpackframework.handler.Handler;
 import org.ratpackframework.routing.ResponseFactory;
 import org.ratpackframework.routing.RoutedRequest;
 import org.ratpackframework.script.internal.ScriptEngine;
-import org.vertx.java.core.AsyncResult;
-import org.vertx.java.core.Handler;
-import org.vertx.java.core.Vertx;
-import org.vertx.java.core.buffer.Buffer;
-import org.vertx.java.core.file.FileProps;
 
 import javax.inject.Inject;
-import java.io.File;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
@@ -43,9 +38,7 @@ import java.util.concurrent.locks.ReentrantLock;
 public class ScriptBackedRouter implements Handler<RoutedRequest> {
 
   private final Injector injector;
-  private final Vertx vertx;
-  private final String scriptFilePath;
-  private final String scriptFileName;
+  private final File scriptFile;
   private final ResponseFactory responseFactory;
 
   private final AtomicLong lastModifiedHolder = new AtomicLong(-1);
@@ -53,122 +46,101 @@ public class ScriptBackedRouter implements Handler<RoutedRequest> {
   private final AtomicReference<Handler<RoutedRequest>> routerHolder = new AtomicReference<>(null);
   private final Lock lock = new ReentrantLock();
   private final RoutingConfig routingConfig;
+  private final boolean reloadable;
 
   @Inject
-  public ScriptBackedRouter(Injector injector, Vertx vertx, ResponseFactory responseFactory, LayoutConfig layoutConfig, RoutingConfig routingConfig) {
+  public ScriptBackedRouter(Injector injector, ResponseFactory responseFactory, LayoutConfig layoutConfig, RoutingConfig routingConfig) {
     this.injector = injector;
-    this.vertx = vertx;
-    File routingFile = new File(layoutConfig.getBaseDir(), routingConfig.getFile());
-    this.scriptFilePath = routingFile.getAbsolutePath();
-    this.scriptFileName = routingFile.getName();
+    this.scriptFile = new File(layoutConfig.getBaseDir(), routingConfig.getFile());
     this.responseFactory = responseFactory;
     this.routingConfig = routingConfig;
+    this.reloadable = routingConfig.isReloadable();
 
-    if (!routingConfig.isReloadable()) {
-      refreshSync();
+    if (!reloadable) {
+      try {
+        refresh();
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
     }
   }
 
   @Override
   public void handle(final RoutedRequest routedRequest) {
-    vertx.fileSystem().exists(scriptFilePath, routedRequest.getErrorHandler().asyncHandler(routedRequest.getRequest(), new Handler<Boolean>() {
-      @Override
-      public void handle(Boolean exists) {
-        if (!exists) {
-          routedRequest.getNotFoundHandler().handle(routedRequest.getRequest());
-          return;
-        }
-
-        final Handler<RoutedRequest> server = new Handler<RoutedRequest>() {
-          public void handle(RoutedRequest requestToServe) {
-            ScriptBackedRouter.this.routerHolder.get().handle(requestToServe);
-          }
-        };
-
-        Handler<RoutedRequest> refresher = new Handler<RoutedRequest>() {
-          public void handle(RoutedRequest requestToServe) {
-            ScriptBackedRouter.this.lock.lock();
-            try {
-              refreshSync();
-            } catch (Exception e) {
-              routedRequest.getFinalizedResponseHandler().handle(new AsyncResult<FinalizedResponse>(e));
-              return;
-            } finally {
-              ScriptBackedRouter.this.lock.unlock();
-            }
-            server.handle(requestToServe);
-          }
-        };
-
-        checkForChanges(routedRequest, server, refresher);
-      }
-    }));
-  }
-
-  void checkForChanges(final RoutedRequest routedRequest, final Handler<RoutedRequest> noChange, final Handler<RoutedRequest> didChange) {
-    if (!routingConfig.isReloadable()) {
-      noChange.handle(routedRequest);
+    if (!reloadable) {
+      routerHolder.get().handle(routedRequest);
       return;
     }
 
-    vertx.fileSystem().props(scriptFilePath, routedRequest.getErrorHandler().asyncHandler(routedRequest.getRequest(), new Handler<FileProps>() {
-      public void handle(FileProps fileProps) {
-        if (fileProps.lastModifiedTime.getTime() != lastModifiedHolder.get()) {
-          didChange.handle(routedRequest);
-          return;
-        }
-
-        vertx.fileSystem().readFile(scriptFilePath, routedRequest.getErrorHandler().asyncHandler(routedRequest.getRequest(), new Handler<Buffer>() {
-          @Override
-          public void handle(Buffer buffer) {
-            if (Arrays.equals(buffer.getBytes(), ScriptBackedRouter.this.contentHolder.get())) {
-              noChange.handle(routedRequest);
-            } else {
-              didChange.handle(routedRequest);
-            }
-          }
-        }));
-      }
-    }));
-  }
-
-  private void refreshSync() {
-    FileProps fileProps;
-    try {
-      fileProps = vertx.fileSystem().propsSync(scriptFilePath);
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
-
-    long lastModifiedTime = fileProps.lastModifiedTime.getTime();
-    byte[] bytes;
-    try {
-      bytes = vertx.fileSystem().readFileSync(scriptFilePath).getBytes();
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
-
-    if (lastModifiedTime == lastModifiedHolder.get() && Arrays.equals(bytes, contentHolder.get())) {
+    if (!scriptFile.exists()) {
+      routedRequest.next();
       return;
     }
 
-    List<Handler<RoutedRequest>> routers = new LinkedList<>();
-    RoutingBuilder routingBuilder = new RoutingBuilder(injector, routers, responseFactory);
-    String string;
     try {
-      string = new String(bytes, "utf-8");
-    } catch (UnsupportedEncodingException e) {
-      throw new RuntimeException(e);
-    }
-    ScriptEngine<RoutingBuilderScript> scriptEngine = new ScriptEngine<RoutingBuilderScript>(getClass().getClassLoader(), routingConfig.isStaticallyCompile(), RoutingBuilderScript.class);
-    try {
-      scriptEngine.run(scriptFileName, string, routingBuilder);
+      if (refreshNeeded()) {
+        refresh();
+      }
     } catch (Exception e) {
-      throw new RuntimeException(e);
+      routedRequest.getExchange().error(e);
     }
-    routerHolder.set(new CompositeRouter(routers));
-    this.lastModifiedHolder.set(lastModifiedTime);
-    this.contentHolder.set(bytes);
+
+    routerHolder.get().handle(routedRequest);
+  }
+
+  private boolean isBytesAreSame() throws IOException {
+    byte[] existing = contentHolder.get();
+    if (existing == null) {
+      return false;
+    }
+
+    FileInputStream fileIn = new FileInputStream(scriptFile);
+    InputStream in = new BufferedInputStream(fileIn);
+    int i = 0;
+    int b = in.read();
+    while (b != -1 && i < existing.length) {
+      if (b != existing[i++]) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  private boolean refreshNeeded() throws IOException {
+    return (scriptFile.lastModified() != lastModifiedHolder.get()) || !isBytesAreSame();
+  }
+
+  private void refresh() throws IOException {
+    lock.lock();
+    try {
+      long lastModifiedTime = scriptFile.lastModified();
+      byte[] bytes = ResourceGroovyMethods.getBytes(scriptFile);
+
+      if (lastModifiedTime == lastModifiedHolder.get() && Arrays.equals(bytes, contentHolder.get())) {
+        return;
+      }
+
+      List<Handler<RoutedRequest>> routers = new LinkedList<>();
+      RoutingBuilder routingBuilder = new RoutingBuilder(injector, routers, responseFactory);
+      String string;
+      try {
+        string = new String(bytes, "utf-8");
+      } catch (UnsupportedEncodingException e) {
+        throw new RuntimeException(e);
+      }
+      ScriptEngine<RoutingBuilderScript> scriptEngine = new ScriptEngine<>(getClass().getClassLoader(), routingConfig.isStaticallyCompile(), RoutingBuilderScript.class);
+      try {
+        scriptEngine.run(scriptFile.getName(), string, routingBuilder);
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+      routerHolder.set(new CompositeRoutingHandler(routers));
+      this.lastModifiedHolder.set(lastModifiedTime);
+      this.contentHolder.set(bytes);
+    } finally {
+      lock.unlock();
+    }
   }
 
 }

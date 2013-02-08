@@ -1,7 +1,8 @@
 dependencies {
-  groovy 'org.codehaus.groovy:groovy-all:2.1.0:indy'
   compile 'org.codehaus.groovy:groovy-all:2.1.0:indy'
-  compile 'org.vert-x:vertx-core:1.3.0.final'
+
+  compile 'io.netty:netty:3.6.1.Final'
+
   compile 'com.google.guava:guava:13.0.1'
   compile 'com.google.inject:guice:3.0', {
     exclude group: 'org.sonatype.sisu.inject'
@@ -22,7 +23,7 @@ dependencies {
 }
 idea.module.iml.whenMerged {
   def pathFactory = new org.gradle.plugins.ide.idea.model.PathFactory()
-  def groovyJarPath = pathFactory.path(configurations.groovy.singleFile)
+  def groovyJarPath = pathFactory.path(configurations.compile.files.find { it.name.contains("groovy-all") })
   def groovyLib = it.dependencies.find { it.classes.contains(groovyJarPath) }
   groovyLib.sources << pathFactory.path(configurations.groovySource.singleFile)
 }

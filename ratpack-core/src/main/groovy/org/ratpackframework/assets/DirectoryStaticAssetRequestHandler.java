@@ -16,38 +16,21 @@
 
 package org.ratpackframework.assets;
 
-import org.vertx.java.core.Handler;
-import org.vertx.java.core.file.FileProps;
+import org.jboss.netty.handler.codec.http.HttpResponseStatus;
+import org.ratpackframework.handler.Handler;
 
-public class DirectoryStaticAssetRequestHandler implements Handler<StaticAssetRequest> {
+import java.io.File;
 
-  private final Handler<StaticAssetRequest> next;
-
-  public DirectoryStaticAssetRequestHandler(Handler<StaticAssetRequest> next) {
-    this.next = next;
-  }
+public class DirectoryStaticAssetRequestHandler implements Handler<RoutedStaticAssetRequest> {
 
   @Override
-  public void handle(final StaticAssetRequest assetRequest) {
-    assetRequest.exists(new Handler<Boolean>() {
-      @Override
-      public void handle(Boolean exists) {
-        if (exists) {
-          assetRequest.props(new Handler<FileProps>() {
-            @Override
-            public void handle(FileProps props) {
-              if (props.isDirectory) {
-                assetRequest.getRequest().response.statusCode = 403;
-                assetRequest.getRequest().response.end();
-              } else {
-                next.handle(assetRequest);
-              }
-            }
-          });
-        } else {
-          next.handle(assetRequest);
-        }
-      }
-    });
+  public void handle(final RoutedStaticAssetRequest assetRequest) {
+    File targetFile = assetRequest.getTargetFile();
+    if (!targetFile.exists() || !targetFile.isDirectory()) {
+      assetRequest.next();
+      return;
+    }
+
+    assetRequest.getExchange().end(HttpResponseStatus.FORBIDDEN);
   }
 }

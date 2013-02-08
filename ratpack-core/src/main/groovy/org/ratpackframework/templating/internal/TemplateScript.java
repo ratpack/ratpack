@@ -1,27 +1,23 @@
 package org.ratpackframework.templating.internal;
 
 import groovy.lang.Script;
+import org.jboss.netty.buffer.ChannelBuffer;
+import org.ratpackframework.io.IoUtils;
 import org.ratpackframework.templating.Template;
 import org.ratpackframework.templating.TemplateModel;
 
-import java.lang.ref.Reference;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 
 public abstract class TemplateScript extends Script implements Template {
 
-  private final String templateName;
   private final TemplateModel model;
-  private final List<Object> parts;
   private final NestedRenderer renderer;
+  private final ChannelBuffer buffer;
 
-  private boolean outputMode = false;
-
-  protected TemplateScript(String templateName, TemplateModel model, List<Object> parts, NestedRenderer renderer) {
-    this.templateName = templateName;
+  protected TemplateScript(TemplateModel model, ChannelBuffer buffer, NestedRenderer renderer) {
     this.model = model;
-    this.parts = parts;
+    this.buffer = buffer;
     this.renderer = renderer;
   }
 
@@ -30,36 +26,19 @@ public abstract class TemplateScript extends Script implements Template {
     return model;
   }
 
-  public void $o() { // enter output mode
-    this.outputMode = true;
-  }
-
-  public void $c() { // enter code mode
-    this.outputMode = false;
+  @Override
+  public String render(String templateName) throws Exception {
+    return render(Collections.<String, Object>emptyMap(), templateName);
   }
 
   @Override
-  public void render(String templateName) {
-    if (outputMode) {
-      invalidRender();
-    }
-    parts.add(renderer.render(templateName, Collections.<String, Object>emptyMap()));
+  public String render(Map<String, ?> model, String templateName) throws Exception {
+    renderer.render(templateName, model);
+    return "";
   }
 
-  private void invalidRender() {
-    throw new InvalidTemplateException(templateName, "The render() method can only be called from <% %> blocks (not ${} or <%= %> blocks)");
-  }
-
-  @Override
-  public void render(Map<String, ?> model, String templateName) {
-    if (outputMode) {
-      invalidRender();
-    }
-    parts.add(renderer.render(templateName, model));
-  }
-
-  public void $s(CharSequence charSequence) {
-    parts.add(charSequence);
+  public void $(CharSequence charSequence) {
+    buffer.writeBytes(IoUtils.utf8Bytes(charSequence.toString()));
   }
 
 }

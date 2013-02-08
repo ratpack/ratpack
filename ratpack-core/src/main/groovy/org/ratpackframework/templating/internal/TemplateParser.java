@@ -1,21 +1,31 @@
 package org.ratpackframework.templating.internal;
 
 import org.jboss.netty.buffer.ChannelBuffer;
-import org.vertx.java.core.buffer.Buffer;
+import org.jboss.netty.util.CharsetUtil;
 
 import java.io.IOException;
 
 /**
- * Note: harcoded to expect UTF-8.
+ * Note: hardcoded to expect UTF-8.
  */
 public class TemplateParser {
 
-  public void parse(Buffer input, Buffer output) throws IOException {
-    parse(input.getChannelBuffer(), output);
+  private static byte[] bytes(String s) {
+    return s.getBytes(CharsetUtil.UTF_8);
   }
 
-  private void parse(ChannelBuffer input, Buffer script) throws IOException {
-    startScript(script);
+  private static final byte[] LESS_THAN = bytes("<");
+  private static final byte[] DOLLAR_BRACE = bytes("${");
+  private static final byte[] PERCENT = bytes("%");
+  private static final byte[] START_OUTPUT = bytes("$(\n\"\"\"");
+  private static final byte[] START_CODE = bytes("\"\"\"\n);");
+  private static final byte[] CLOSE_BRACE = bytes("}");
+  private static final byte[] DOLLAR = bytes("$");
+  private static final byte[] BACKSLASH = bytes("\\");
+  private static final byte[] SEMICOLON = bytes(";");
+
+  public void parse(ChannelBuffer input, ChannelBuffer output) throws IOException {
+    startScript(output);
     byte c;
     while (input.readable()) {
       c = input.readByte();
@@ -23,16 +33,16 @@ public class TemplateParser {
         input.markReaderIndex();
         c = input.readByte();
         if (c != '%') {
-          script.appendString("<");
+          output.writeBytes(LESS_THAN);
           input.resetReaderIndex();
         } else {
           input.markReaderIndex();
           c = input.readByte();
           if (c == '=') {
-            groovyExpression(input, script);
+            groovyExpression(input, output);
           } else {
             input.resetReaderIndex();
-            groovySection(input, script);
+            groovySection(input, output);
           }
         }
         continue; // at least '<' is consumed ... read next chars.
@@ -41,16 +51,16 @@ public class TemplateParser {
         input.markReaderIndex();
         c = input.readByte();
         if (c != '{') {
-          script.appendString("$");
+          output.writeBytes(DOLLAR);
           input.resetReaderIndex();
         } else {
           input.markReaderIndex();
-          processGSstring(input, script);
+          processGSstring(input, output);
         }
         continue; // at least '$' is consumed ... read next chars.
       }
       if (c == '\"') {
-        script.appendString("\\");
+        output.writeBytes(BACKSLASH);
       }
 
       // Handle raw new line characters.
@@ -62,30 +72,30 @@ public class TemplateParser {
             input.resetReaderIndex();
           }
         }
-        script.appendString("\n");
+        output.writeByte('\n');
         continue;
       }
-      script.appendByte(c);
+      output.writeByte(c);
     }
 
-    endScript(script);
+    endScript(output);
   }
 
-  private void startScript(Buffer script) {
-    script.appendString("$o();$s(\"\"\"");
+  private void startScript(ChannelBuffer output) {
+    output.writeBytes(START_OUTPUT);
   }
 
-  private void endScript(Buffer script) {
-    script.appendString("\"\"\");$c();");
+  private void endScript(ChannelBuffer output) {
+    output.writeBytes(START_CODE);
   }
 
-  private void processGSstring(ChannelBuffer input, Buffer output) throws IOException {
-    output.appendString("${");
+  private void processGSstring(ChannelBuffer input, ChannelBuffer output) throws IOException {
+    output.writeBytes(DOLLAR_BRACE);
     byte c;
     while (input.readable()) {
       c = input.readByte();
       if (c != '\n' && c != '\r') {
-        output.appendByte(c);
+        output.writeByte(c);
       }
       if (c == '}') {
         break;
@@ -93,44 +103,48 @@ public class TemplateParser {
     }
   }
 
-  private void groovyExpression(ChannelBuffer input, Buffer output) throws IOException {
-    output.appendString("${");
+  private void groovyExpression(ChannelBuffer input, ChannelBuffer output) throws IOException {
+    output.writeBytes(DOLLAR_BRACE);
     byte c;
     while (input.readable()) {
       c = input.readByte();
       if (c == '%') {
         c = input.readByte();
         if (c != '>') {
-          output.appendString("%");
+          output.writeBytes(PERCENT);
         } else {
           break;
         }
       }
       if (c != '\n' && c != '\r') {
-        output.appendByte(c);
+        output.writeByte(c);
       }
     }
-    output.appendString("}");
+    output.writeBytes(CLOSE_BRACE);
   }
 
-  private void groovySection(ChannelBuffer input, Buffer output) throws IOException {
-    output.appendString("\"\"\");$c();");
+  private void groovySection(ChannelBuffer input, ChannelBuffer output) throws IOException {
+    output.writeBytes(START_CODE);
+    output.writeByte('\n');
     byte c;
     while (input.readable()) {
       c = input.readByte();
       if (c == '%') {
         c = input.readByte();
         if (c != '>') {
-          output.appendString("%");
+          output.writeBytes(PERCENT);
         } else {
           break;
         }
       }
 
-      output.appendByte(c);
+      output.writeByte(c);
     }
 
-    output.appendString(";$o();$s(\"\"\"");
+    output.writeByte('\n');
+    output.writeBytes(SEMICOLON);
+    output.writeBytes(START_OUTPUT);
   }
+
 
 }

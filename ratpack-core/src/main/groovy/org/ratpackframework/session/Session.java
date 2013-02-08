@@ -38,8 +38,6 @@ public interface Session  {
    * Initiates a new session, terminating the
    *
    * Can only be called once per request, and not if getId() has already initiated a new session.
-   *
-   * @return
    */
   String regen();
 

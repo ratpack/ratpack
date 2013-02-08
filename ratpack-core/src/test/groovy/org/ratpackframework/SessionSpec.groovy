@@ -9,7 +9,7 @@ class SessionSpec extends RatpackSpec {
     given:
     ratpackFile << """
       get("/:v") {
-        renderText it.session.getId()
+        text it.session.getId()
       }
     """
 
@@ -27,12 +27,12 @@ class SessionSpec extends RatpackSpec {
     ratpackFile << """
       get("/") {
         def store = service(${MapSessionStore.name}).get(it)
-        renderText store.value
+        text store.value
       }
       get("/set/:value") {
         def store = service(${MapSessionStore.name}).get(it)
         store.value = it.urlParams.value
-        renderText store.value
+        text store.value
       }
     """
 
@@ -53,19 +53,19 @@ class SessionSpec extends RatpackSpec {
     ratpackFile << """
       get("/") {
         def store = service(${MapSessionStore.name}).get(it)
-        renderText store.value
+        text store.value
       }
       get("/set/:value") {
         def store = service(${MapSessionStore.name}).get(it)
         store.value = it.urlParams.value
-        renderText store.value
+        text store.value
       }
       get("/invalidate") {
         it.session.terminate()
         end()
       }
       get("/size") {
-        renderText service(${MapSessionStore.name}).size()
+        text service(${MapSessionStore.name}).size()
       }
     """
 

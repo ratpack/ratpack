@@ -1,33 +1,35 @@
 package org.ratpackframework.handler;
 
+import org.jboss.netty.handler.codec.http.HttpRequest;
+import org.jboss.netty.handler.codec.http.HttpResponseStatus;
+import org.ratpackframework.routing.RoutedRequest;
 import org.ratpackframework.templating.TemplateRenderer;
-import org.vertx.java.core.Handler;
-import org.vertx.java.core.http.HttpServerRequest;
 
 import javax.inject.Inject;
 import java.util.HashMap;
 import java.util.Map;
 
-public class NotFoundHandler implements Handler<HttpServerRequest> {
+public class NotFoundHandler implements Handler<RoutedRequest> {
 
   private final TemplateRenderer templateCompiler;
 
   @Inject
-  public NotFoundHandler(TemplateRenderer templateCompiler) {
-    this.templateCompiler = templateCompiler;
+  public NotFoundHandler(TemplateRenderer templateRenderer) {
+    this.templateCompiler = templateRenderer;
   }
 
   @Override
-  public void handle(HttpServerRequest request) {
-    request.resume();
-    request.response.statusCode = 404;
-    Map<String, Object> model = new HashMap<String, Object>(3);
+  public void handle(RoutedRequest routedRequest) {
+    HttpExchange exchange = routedRequest.getExchange();
+    HttpRequest request = exchange.getRequest();
+    exchange.getResponse().setStatus(HttpResponseStatus.NOT_FOUND);
+    Map<String, Object> model = new HashMap<>(3);
     model.put("title", "Page Not Found");
     model.put("message", "Page Not Found");
-    Map<String, Object> metadata = new HashMap<String, Object>(2);
-    metadata.put("Request Method", request.method.toUpperCase());
-    metadata.put("Request URL", request.uri);
+    Map<String, Object> metadata = new HashMap<>(2);
+    metadata.put("Request Method", request.getMethod().getName());
+    metadata.put("Request URL", request.getUri());
     model.put("metadata", metadata);
-    templateCompiler.renderError(model, new FallbackErrorHandlingTemplateRenderer(request, "404 handling"));
+    templateCompiler.renderError(model, new FallbackErrorHandlingTemplateRenderer(exchange, "404 handling"));
   }
 }

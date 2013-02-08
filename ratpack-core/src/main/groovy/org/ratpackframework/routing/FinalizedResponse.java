@@ -16,7 +16,7 @@
 
 package org.ratpackframework.routing;
 
-import org.vertx.java.core.buffer.Buffer;
+import org.jboss.netty.buffer.ChannelBuffer;
 
 import java.util.Collections;
 import java.util.Map;
@@ -25,9 +25,9 @@ public class FinalizedResponse {
 
   private final Map<String, Object> headers;
   private final int status;
-  private final Buffer buffer;
+  private final ChannelBuffer buffer;
 
-  public FinalizedResponse(Map<String, Object> headers, int status, Buffer buffer) {
+  public FinalizedResponse(Map<String, Object> headers, int status, ChannelBuffer buffer) {
     this.headers = Collections.unmodifiableMap(headers);
     this.status = status;
     this.buffer = buffer;
@@ -41,7 +41,7 @@ public class FinalizedResponse {
     return status;
   }
 
-  public Buffer getBuffer() {
+  public ChannelBuffer getBuffer() {
     return buffer;
   }
 }

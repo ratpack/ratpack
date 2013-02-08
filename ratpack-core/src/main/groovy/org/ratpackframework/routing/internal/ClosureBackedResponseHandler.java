@@ -18,14 +18,16 @@ package org.ratpackframework.routing.internal;
 
 import groovy.lang.Closure;
 import org.ratpackframework.Response;
-import org.vertx.java.core.Handler;
+import org.ratpackframework.handler.Handler;
 
 public class ClosureBackedResponseHandler implements Handler<Response> {
 
   private final Closure<?> closure;
+  private int maximumNumberOfParameters;
 
   public ClosureBackedResponseHandler(Closure<?> closure) {
     this.closure = closure;
+    this.maximumNumberOfParameters = closure.getMaximumNumberOfParameters();
   }
 
   @Override
@@ -34,7 +36,8 @@ public class ClosureBackedResponseHandler implements Handler<Response> {
     clone.setDelegate(response);
     clone.setResolveStrategy(Closure.DELEGATE_FIRST);
 
-    switch (clone.getMaximumNumberOfParameters()) {
+    maximumNumberOfParameters = clone.getMaximumNumberOfParameters();
+    switch (maximumNumberOfParameters) {
       case 0:
         clone.call();
         break;

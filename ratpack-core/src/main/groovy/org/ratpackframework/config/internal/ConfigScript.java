@@ -19,13 +19,7 @@ package org.ratpackframework.config.internal;
 import com.google.inject.Module;
 import groovy.lang.Script;
 import org.ratpackframework.config.*;
-import org.ratpackframework.bootstrap.RatpackApp;
-import org.ratpackframework.session.SessionListener;
-import org.vertx.java.core.Handler;
-import org.vertx.java.core.Vertx;
 
-import java.io.File;
-import java.util.LinkedList;
 import java.util.List;
 
 public class ConfigScript extends Script implements Config {

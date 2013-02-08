@@ -17,142 +17,67 @@
 package org.ratpackframework.templating.internal;
 
 import com.google.common.cache.Cache;
-import com.hazelcast.util.ConcurrentHashSet;
-import org.vertx.java.core.AsyncResult;
-import org.vertx.java.core.AsyncResultHandler;
-import org.vertx.java.core.buffer.Buffer;
-import org.vertx.java.core.file.FileSystem;
+import org.jboss.netty.buffer.ChannelBuffer;
+import org.jboss.netty.buffer.ChannelBuffers;
+import org.ratpackframework.handler.Result;
+import org.ratpackframework.handler.ResultHandler;
+import org.ratpackframework.io.IoUtils;
 
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Render {
 
   private final Cache<String, CompiledTemplate> compiledTemplateCache;
-  private final Set<ExecutingTemplate> executingTemplates = new ConcurrentHashSet<ExecutingTemplate>();
-  private final Map<ExecutingTemplate, Exception> templateErrors = new HashMap<ExecutingTemplate, Exception>();
-
-  private final AtomicBoolean completionHandlerFired = new AtomicBoolean();
-  private final AtomicBoolean topLevelExecuting = new AtomicBoolean();
-
-  private final FileSystem fileSystem;
   private final TemplateCompiler templateCompiler;
-  private final String templateDirPath;
+  private final File templateDir;
 
-  private final AsyncResultHandler<Buffer> handler;
-
-  private ExecutedTemplate rootTemplate;
-
-  public static class ExecutingTemplate {
-  }
-
-  public Render(TemplateCompiler templateCompiler, FileSystem fileSystem, Cache<String, CompiledTemplate> compiledTemplateCache, String templateDirPath, CompiledTemplate template, Map<String, ?> model, final AsyncResultHandler<Buffer> handler) {
+  public Render(TemplateCompiler templateCompiler, Cache<String, CompiledTemplate> compiledTemplateCache, File templateDir, CompiledTemplate template, Map<String, ?> model, final ResultHandler<ChannelBuffer> handler) {
     this.templateCompiler = templateCompiler;
-    this.fileSystem = fileSystem;
     this.compiledTemplateCache = compiledTemplateCache;
-    this.templateDirPath = templateDirPath;
-    this.handler = handler;
+    this.templateDir = templateDir;
 
-    topLevelExecuting.set(true);
+    ChannelBuffer buffer = ChannelBuffers.dynamicBuffer();
+
     try {
-      rootTemplate = execute(template, model);
+      execute(template, model, buffer);
     } catch (Exception e) {
-      handler.handle(new AsyncResult<Buffer>(e));
+      handler.handle(new Result<ChannelBuffer>(e));
       return;
-    } finally {
-      topLevelExecuting.set(false);
     }
 
-    if (executingTemplates.isEmpty()) {
-      complete();
-    }
+    handler.handle(new Result<ChannelBuffer>(buffer));
   }
 
-  private void failTemplate(ExecutingTemplate template, Exception error) {
-    //noinspection ThrowableResultOfMethodCallIgnored
-    templateErrors.put(template, error);
-    completeTemplate(template);
-  }
 
-  private void completeTemplate(ExecutingTemplate template) {
-    executingTemplates.remove(template);
-    if (!topLevelExecuting.get() && executingTemplates.isEmpty() && completionHandlerFired.compareAndSet(false, true)) {
-      complete();
-    }
-  }
-
-  private void executeNested(final String templatePath, final Map<String, ?> model, final NestedTemplate nestedTemplate) {
-    final ExecutingTemplate executingTemplate = new ExecutingTemplate(); // token
-    executingTemplates.add(executingTemplate);
-
+  private void executeNested(final String templatePath, final Map<String, ?> model, ChannelBuffer buffer) throws Exception {
     CompiledTemplate cachedTemplate = compiledTemplateCache.getIfPresent(templatePath);
     if (cachedTemplate != null) {
-      execute(cachedTemplate, model, nestedTemplate, executingTemplate);
+      execute(cachedTemplate, model, buffer);
       return;
     }
 
-    String absoluteTemplatePath = templateDirPath + File.separator + templatePath;
-    fileSystem.readFile(absoluteTemplatePath, new AsyncResultHandler<Buffer>() {
-      @Override
-      public void handle(AsyncResult<Buffer> event) {
-        if (event.failed()) {
-          nestedTemplate.handle(new AsyncResult<ExecutedTemplate>(event.exception));
-          failTemplate(executingTemplate, event.exception);
-        } else {
-          CompiledTemplate compiledTemplate;
-          try {
-            compiledTemplate = templateCompiler.compile(event.result, templatePath);
-          } catch (Exception e) {
-            nestedTemplate.handle(new AsyncResult<ExecutedTemplate>(e));
-            failTemplate(executingTemplate, e);
-            return;
-          }
+    File templateFile = new File(templateDir, templatePath);
 
-          compiledTemplateCache.put(templatePath, compiledTemplate);
-          execute(compiledTemplate, model, nestedTemplate, executingTemplate);
-        }
-      }
-    });
+    CompiledTemplate compiledTemplate;
+
+    ChannelBuffer channelBuffer = IoUtils.readFile(templateFile);
+    compiledTemplate = templateCompiler.compile(channelBuffer, templatePath);
+
+    compiledTemplateCache.put(templatePath, compiledTemplate);
+    execute(compiledTemplate, model, buffer);
   }
 
-  private void execute(CompiledTemplate compiledTemplate, Map<String, ?> model, NestedTemplate nestedTemplate, ExecutingTemplate executingTemplate) {
-    ExecutedTemplate executedTemplate;
-    try {
-      executedTemplate = execute(compiledTemplate, model);
-    } catch (Exception e) {
-      nestedTemplate.handle(new AsyncResult<ExecutedTemplate>(e));
-      failTemplate(executingTemplate, e);
-      return;
-    }
 
-    nestedTemplate.handle(new AsyncResult<ExecutedTemplate>(executedTemplate));
-    completeTemplate(executingTemplate);
-  }
-
-  private ExecutedTemplate execute(CompiledTemplate compiledTemplate, final Map<String, ?> model) {
-    return compiledTemplate.execute(model, new NestedRenderer() {
-      public NestedTemplate render(String templatePath, Map<String, ?> nestedModel) {
-        final NestedTemplate nestedTemplate = new NestedTemplate();
-        Map<String, Object> modelCopy = new HashMap<String, Object>(model);
+  private void execute(CompiledTemplate compiledTemplate, final Map<String, ?> model, final ChannelBuffer parts) throws Exception {
+    compiledTemplate.execute(model, parts, new NestedRenderer() {
+      public void render(String templatePath, Map<String, ?> nestedModel) throws Exception {
+        Map<String, Object> modelCopy = new HashMap<>(model);
         modelCopy.putAll(nestedModel);
-        executeNested(templatePath, modelCopy, nestedTemplate);
-        return nestedTemplate;
+        executeNested(templatePath, modelCopy, parts);
       }
     });
-  }
-
-  private void complete() {
-    if (!templateErrors.isEmpty()) {
-      handler.handle(new AsyncResult<Buffer>(new CompositeException(templateErrors.values())));
-      return;
-    }
-
-    Buffer buffer = new Buffer();
-    rootTemplate.render(buffer);
-    handler.handle(new AsyncResult<Buffer>(buffer));
   }
 
 }

@@ -16,7 +16,8 @@
 
 package org.ratpackframework;
 
-import org.vertx.java.core.Handler;
+
+import org.ratpackframework.handler.Handler;
 
 /**
  * The API for the routing file (i.e. ratpack.groovy)
@@ -41,7 +42,7 @@ public interface Routing {
   /**
    * Creates an instance of the given type, through the dependency injection mechanism.
    *
-   * The created instance is then passed to {@link #register(String, String, org.vertx.java.core.Handler)}.
+   * The created instance is then passed to {@link #register(String, String, Handler)}.
    *
    * @param method The HTTP method the handler is for
    * @param path The path to handle (must start with a /)

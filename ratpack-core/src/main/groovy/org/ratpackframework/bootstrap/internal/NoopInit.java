@@ -1,12 +1,12 @@
 package org.ratpackframework.bootstrap.internal;
 
-import org.ratpackframework.bootstrap.RatpackApp;
-import org.vertx.java.core.Handler;
+import org.ratpackframework.bootstrap.RatpackServer;
+import org.ratpackframework.handler.Handler;
 
-public class NoopInit implements Handler<RatpackApp> {
+public class NoopInit implements Handler<RatpackServer> {
 
   @Override
-  public void handle(RatpackApp event) {
+  public void handle(RatpackServer event) {
   }
 
 }

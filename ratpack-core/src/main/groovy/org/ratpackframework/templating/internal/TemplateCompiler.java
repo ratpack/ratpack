@@ -18,16 +18,18 @@ package org.ratpackframework.templating.internal;
 
 import groovy.lang.GroovyRuntimeException;
 import org.codehaus.groovy.control.CompilationFailedException;
+import org.jboss.netty.buffer.ChannelBuffer;
+import org.jboss.netty.buffer.ChannelBuffers;
+import org.jboss.netty.util.CharsetUtil;
 import org.ratpackframework.script.internal.ScriptEngine;
-import org.vertx.java.core.buffer.Buffer;
-import org.vertx.java.core.logging.Logger;
-import org.vertx.java.core.logging.impl.LoggerFactory;
 
 import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class TemplateCompiler {
 
-  private final Logger logger = LoggerFactory.getLogger(getClass());
+  private final Logger logger = Logger.getLogger(getClass().getName());
 
   private boolean verbose;
   private final TemplateParser parser = new TemplateParser();
@@ -42,21 +44,21 @@ public class TemplateCompiler {
     this.verbose = verbose;
   }
 
-  public CompiledTemplate compile(Buffer templateSource, String name) throws CompilationFailedException, IOException {
-    Buffer scriptSource = new Buffer(templateSource.length());
+  public CompiledTemplate compile(ChannelBuffer templateSource, String name) throws CompilationFailedException, IOException {
+    ChannelBuffer scriptSource = ChannelBuffers.dynamicBuffer(templateSource.capacity());
     parser.parse(templateSource, scriptSource);
 
-    String scriptSourceString = scriptSource.toString();
+    String scriptSourceString = scriptSource.toString(CharsetUtil.UTF_8);
 
-    if (verbose && logger.isInfoEnabled()) {
-      logger.info(new StringBuilder("\n-- script source --\n").append(scriptSourceString).append("\n-- script end --\n"));
+    if (verbose && logger.isLoggable(Level.INFO)) {
+      logger.info("\n-- script source --\n" + scriptSourceString + "\n-- script end --\n");
     }
 
     try {
       Class<TemplateScript> scriptClass = scriptEngine.compile(name, scriptSourceString);
       return new CompiledTemplate(name, scriptClass);
     } catch (Exception e) {
-      throw new GroovyRuntimeException("Failed to parse template script (your template may contain an error or be trying to use expressions not currently supported): " + e.getMessage());
+      throw new InvalidTemplateException(name, "compilation failure", e);
     }
   }
 

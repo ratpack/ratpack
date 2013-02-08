@@ -95,7 +95,7 @@ class TemplateRenderingSpec extends RatpackSpec {
     startApp()
 
     then:
-    errorGetText().contains('org.ratpackframework.templating.internal.CompositeException')
+    errorGetText().contains('[innerInner.html] template execution failed')
   }
 
   def "nested templates inherit the outer model"() {
@@ -118,9 +118,10 @@ class TemplateRenderingSpec extends RatpackSpec {
     urlGetText() == "outer: ab, inner: aB, innerInner: AB"
   }
 
-  @Unroll "error when using render in output section - #template"() {
+  @Unroll "can use render in output section - #template"() {
     given:
     templateFile("outer.html") << template
+    templateFile("foo.html") << "foo"
 
     and:
     ratpackFile << """
@@ -133,16 +134,17 @@ class TemplateRenderingSpec extends RatpackSpec {
     startApp()
 
     then:
-    errorGetText().contains(InvalidTemplateException.name)
+    urlGetText() == "foo"
 
     where:
-    template << ["\${render 'foo'}", "<%= render 'foo.html' %>"]
+    template << ["\${render 'foo.html'}", "<%= render 'foo.html' %>"]
   }
 
-  @Unroll "error when using render in output section in nested - #template"() {
+  @Unroll "can use render in output section in nested - #template"() {
     given:
     templateFile("outer.html") << "<% render 'inner.html' %>"
     templateFile("inner.html") << template
+    templateFile("foo.html") << "foo"
 
     and:
     ratpackFile << """
@@ -155,10 +157,10 @@ class TemplateRenderingSpec extends RatpackSpec {
     startApp()
 
     then:
-    errorGetText().contains(InvalidTemplateException.name)
+    urlGetText() == "foo"
 
     where:
-    template << ["\${render 'foo'}", "<%= render 'foo.html' %>"]
+    template << ["\${render 'foo.html'}", "<%= render 'foo.html' %>"]
   }
 
   def "compile error in inner template"() {
@@ -178,7 +180,7 @@ class TemplateRenderingSpec extends RatpackSpec {
     startApp()
 
     then:
-    errorGetText().contains "Failed to parse template script"
+    errorGetText().contains "[inner.html] compilation failure"
   }
 
 }

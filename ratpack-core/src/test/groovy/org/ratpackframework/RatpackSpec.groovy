@@ -18,9 +18,8 @@ package org.ratpackframework
 
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
-import org.ratpackframework.bootstrap.RatpackApp
 import org.ratpackframework.bootstrap.RatpackAppFactory
-import org.ratpackframework.bootstrap.internal.DefaultRatpackApp
+import org.ratpackframework.bootstrap.RatpackServer
 import org.ratpackframework.config.Config
 import org.ratpackframework.config.internal.DefaultConfig
 import org.ratpackframework.util.CookieManager
@@ -30,7 +29,7 @@ class RatpackSpec extends Specification {
 
   @Rule TemporaryFolder temporaryFolder
 
-  RatpackApp app
+  RatpackServer app
   CookieManager cookieManager = new CookieManager()
 
   Config config
@@ -65,7 +64,7 @@ class RatpackSpec extends Specification {
   }
 
   def cleanup() {
-    app?.stop()
+    app?.stopAndWait()
   }
 
   HttpURLConnection urlGetConnection(String path = "") {

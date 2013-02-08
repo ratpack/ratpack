@@ -17,11 +17,7 @@
 package org.ratpackframework.config;
 
 import com.google.inject.Module;
-import org.ratpackframework.bootstrap.RatpackApp;
-import org.ratpackframework.session.SessionListener;
-import org.vertx.java.core.Handler;
 
-import java.io.File;
 import java.util.List;
 
 public interface Config {

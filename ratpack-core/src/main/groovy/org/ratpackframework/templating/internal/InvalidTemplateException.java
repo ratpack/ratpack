@@ -1,9 +1,11 @@
 package org.ratpackframework.templating.internal;
 
-public class InvalidTemplateException extends RuntimeException {
+import org.ratpackframework.error.ContextualException;
 
-  public InvalidTemplateException(String templateName, String message) {
-    super(String.format("[%s] %s", templateName, message));
+public class InvalidTemplateException extends RuntimeException implements ContextualException {
+
+  public InvalidTemplateException(String templateName, String message, Exception e) {
+    super(String.format("[%s] %s", templateName, message), e);
   }
 
 }

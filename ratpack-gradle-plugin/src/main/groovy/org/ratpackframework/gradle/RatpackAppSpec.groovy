@@ -43,7 +43,7 @@ class RatpackAppSpec {
   }
 
   String getMainClassName() {
-    'org.ratpackframework.app.RatpackMain'
+    'org.ratpackframework.bootstrap.RatpackMain'
   }
 
   String getAppRootRelativePath() {

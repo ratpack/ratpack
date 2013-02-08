@@ -17,6 +17,7 @@
 package org.ratpackframework.templating.internal;
 
 import org.codehaus.groovy.runtime.DefaultGroovyMethods;
+import org.jboss.netty.buffer.ChannelBuffer;
 import org.ratpackframework.templating.TemplateModel;
 
 import java.util.LinkedList;
@@ -33,13 +34,20 @@ public class CompiledTemplate {
     this.templateClass = templateClass;
   }
 
-  ExecutedTemplate execute(Map<String, ?> model, NestedRenderer nestedRenderer) {
+  void execute(Map<String, ?> model, ChannelBuffer buffer, NestedRenderer nestedRenderer) {
     @SuppressWarnings("unchecked")
     Map<String, Object> modelTyped = (Map<String, Object>) model;
     TemplateModel templateModel = new MapBackedTemplateModel(modelTyped);
-    List<Object> parts = new LinkedList<Object>();
-    TemplateScript script = DefaultGroovyMethods.newInstance(templateClass, new Object[]{templateName, templateModel, parts, nestedRenderer});
-    script.run();
-    return new ExecutedTemplate(parts);
+    TemplateScript script = DefaultGroovyMethods.newInstance(templateClass, new Object[]{templateModel, buffer, nestedRenderer});
+
+    try {
+      script.run();
+    } catch (Exception e) {
+      if (e instanceof InvalidTemplateException) {
+        throw e;
+      } else {
+        throw new InvalidTemplateException(templateName, "template execution failed", e);
+      }
+    }
   }
 }

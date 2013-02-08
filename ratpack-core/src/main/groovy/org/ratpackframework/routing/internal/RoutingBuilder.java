@@ -21,9 +21,9 @@ import com.google.inject.Injector;
 import com.google.inject.TypeLiteral;
 import org.ratpackframework.Response;
 import org.ratpackframework.Routing;
+import org.ratpackframework.handler.Handler;
 import org.ratpackframework.routing.ResponseFactory;
 import org.ratpackframework.routing.RoutedRequest;
-import org.vertx.java.core.Handler;
 
 import java.util.List;
 

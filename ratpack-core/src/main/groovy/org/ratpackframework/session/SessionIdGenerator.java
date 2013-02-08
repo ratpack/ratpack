@@ -16,10 +16,10 @@
 
 package org.ratpackframework.session;
 
-import org.vertx.java.core.http.HttpServerRequest;
+import org.jboss.netty.handler.codec.http.HttpRequest;
 
 public interface SessionIdGenerator {
 
-  String generateSessionId(HttpServerRequest request);
+  String generateSessionId(HttpRequest request);
 
 }

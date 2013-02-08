@@ -6,7 +6,7 @@ class RequestMethodsSpec extends RatpackSpec {
     given:
     ratpackFile << """
       get("/") {
-        renderText request.queryParams
+        text request.queryParams
       }
     """
 
@@ -15,8 +15,8 @@ class RequestMethodsSpec extends RatpackSpec {
 
     then:
     urlGetText() == "[:]"
-    urlGetText("?a=b") == "[a:b]"
-    urlGetText("?a[]=b&a[]=c&d=e") == "[a:[b, c], d:e]"
-    urlGetText("?abc") == "[abc:null]"
+    urlGetText("?a=b") == "[a:[b]]"
+    urlGetText("?a[]=b&a[]=c&d=e") == "[a[]:[b, c], d:[e]]"
+    urlGetText("?abc") == "[abc:[]]"
   }
 }

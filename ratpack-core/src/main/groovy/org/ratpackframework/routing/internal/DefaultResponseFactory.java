@@ -23,8 +23,8 @@ import org.ratpackframework.internal.DefaultRequest;
 import org.ratpackframework.internal.DefaultResponse;
 import org.ratpackframework.routing.ResponseFactory;
 import org.ratpackframework.routing.RoutedRequest;
-import org.ratpackframework.session.internal.RequestSessionManager;
 import org.ratpackframework.session.SessionConfig;
+import org.ratpackframework.session.internal.RequestSessionManager;
 import org.ratpackframework.templating.TemplateRenderer;
 
 import java.util.Map;
@@ -41,9 +41,9 @@ public class DefaultResponseFactory implements ResponseFactory {
   }
 
   @Override public Response create(RoutedRequest routedRequest, Map<String, String> urlParams) {
-    RequestSessionManager requestSessionManager = new RequestSessionManager(routedRequest.getRequest(), sessionConfig);
-    Request request = new DefaultRequest(routedRequest.getRequest(), routedRequest.getErrorHandler(), urlParams, requestSessionManager);
-    return new DefaultResponse(request, templateRenderer, routedRequest.getFinalizedResponseHandler());
+    RequestSessionManager requestSessionManager = new RequestSessionManager(routedRequest.getExchange(), sessionConfig);
+    Request request = new DefaultRequest(routedRequest.getExchange(), urlParams, requestSessionManager);
+    return new DefaultResponse(request, routedRequest.getExchange(), templateRenderer);
   }
 
 }

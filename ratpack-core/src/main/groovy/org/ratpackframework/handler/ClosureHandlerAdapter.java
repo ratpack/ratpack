@@ -17,7 +17,6 @@
 package org.ratpackframework.handler;
 
 import groovy.lang.Closure;
-import org.vertx.java.core.Handler;
 
 public class ClosureHandlerAdapter<T> implements Handler<T> {
 

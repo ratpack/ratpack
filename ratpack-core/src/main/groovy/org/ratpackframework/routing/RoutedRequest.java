@@ -16,43 +16,29 @@
 
 package org.ratpackframework.routing;
 
-import org.ratpackframework.handler.ErrorHandler;
-import org.vertx.java.core.AsyncResultHandler;
-import org.vertx.java.core.Handler;
-import org.vertx.java.core.http.HttpServerRequest;
+import org.ratpackframework.handler.Handler;
+import org.ratpackframework.handler.HttpExchange;
 
 public class RoutedRequest {
 
-  private final HttpServerRequest request;
-  private final ErrorHandler errorHandler;
-  private final Handler<HttpServerRequest> notFoundHandler;
-  private final AsyncResultHandler<FinalizedResponse> finalizedResponseHandler;
+  private final HttpExchange exchange;
+  private final Handler<? super RoutedRequest> next;
 
-  public RoutedRequest(HttpServerRequest request, ErrorHandler errorHandler, Handler<HttpServerRequest> notFoundHandler, AsyncResultHandler<FinalizedResponse> finalizedResponseHandler) {
-    this.request = request;
-    this.errorHandler = errorHandler;
-    this.notFoundHandler = notFoundHandler;
-    this.finalizedResponseHandler = finalizedResponseHandler;
+  public RoutedRequest(HttpExchange exchange, Handler<? super RoutedRequest> next) {
+    this.exchange = exchange;
+    this.next = next;
   }
 
-  public RoutedRequest withNotFoundHandler(Handler<HttpServerRequest> newNotFoundHandler) {
-    return new RoutedRequest(request, errorHandler, newNotFoundHandler, finalizedResponseHandler);
+  public void next() {
+    next.handle(this);
   }
 
-  public HttpServerRequest getRequest() {
-    return request;
+  public <T extends RoutedRequest> void next(T nextReplacement) {
+    next.handle(nextReplacement);
   }
 
-  public ErrorHandler getErrorHandler() {
-    return errorHandler;
-  }
-
-  public Handler<HttpServerRequest> getNotFoundHandler() {
-    return notFoundHandler;
-  }
-
-  public AsyncResultHandler<FinalizedResponse> getFinalizedResponseHandler() {
-    return finalizedResponseHandler;
+  public HttpExchange getExchange() {
+    return exchange;
   }
 
 }

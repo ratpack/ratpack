@@ -1,3 +1,3 @@
 get("/") {
-  renderText "foo"
+  text "foo"
 }

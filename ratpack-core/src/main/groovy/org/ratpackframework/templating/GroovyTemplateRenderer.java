@@ -19,17 +19,19 @@ package org.ratpackframework.templating;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import org.codehaus.groovy.runtime.IOGroovyMethods;
+import org.jboss.netty.buffer.ChannelBuffer;
+import org.jboss.netty.buffer.ChannelBuffers;
+import org.jboss.netty.util.CharsetUtil;
 import org.ratpackframework.config.LayoutConfig;
 import org.ratpackframework.config.TemplatingConfig;
+import org.ratpackframework.handler.Result;
+import org.ratpackframework.handler.ResultHandler;
+import org.ratpackframework.io.IoUtils;
 import org.ratpackframework.script.internal.ScriptEngine;
 import org.ratpackframework.templating.internal.CompiledTemplate;
 import org.ratpackframework.templating.internal.Render;
 import org.ratpackframework.templating.internal.TemplateCompiler;
 import org.ratpackframework.templating.internal.TemplateScript;
-import org.vertx.java.core.AsyncResult;
-import org.vertx.java.core.AsyncResultHandler;
-import org.vertx.java.core.Vertx;
-import org.vertx.java.core.buffer.Buffer;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -38,73 +40,65 @@ import java.util.Map;
 
 public class GroovyTemplateRenderer implements TemplateRenderer {
 
-  private final String templateDirPath;
-  private final Vertx vertx;
+  private final File templateDir;
   private final String errorPageTemplate;
 
   private final Cache<String, CompiledTemplate> compiledTemplateCache;
   private final boolean staticallyCompile;
 
   @Inject
-  public GroovyTemplateRenderer(Vertx vertx, LayoutConfig layoutConfig, TemplatingConfig templatingConfig) {
-    this.vertx = vertx;
+  public GroovyTemplateRenderer(LayoutConfig layoutConfig, TemplatingConfig templatingConfig) {
     this.staticallyCompile = templatingConfig.isStaticallyCompile();
-    this.templateDirPath = new File(layoutConfig.getBaseDir(), templatingConfig.getDir()).getAbsolutePath();
+    this.templateDir = new File(layoutConfig.getBaseDir(), templatingConfig.getDir());
     this.errorPageTemplate = getResourceText("exception.html");
     this.compiledTemplateCache = CacheBuilder.newBuilder().maximumSize(templatingConfig.getCacheSize()).build();
   }
 
   @Override
-  public void renderFileTemplate(final String templateFileName, final Map<String, ?> model, final AsyncResultHandler<Buffer> handler) {
-    final TemplateCompiler templateCompiler = createCompiler();
-    CompiledTemplate cachedTemplate = compiledTemplateCache.getIfPresent(templateFileName);
-    if (cachedTemplate != null) {
-      render(templateCompiler, cachedTemplate, model, handler);
-    } else {
-      vertx.fileSystem().readFile(getTemplatePath(templateFileName), new AsyncResultHandler<Buffer>() {
-        @Override
-        public void handle(AsyncResult<Buffer> event) {
-          if (event.failed()) {
-            handler.handle(new AsyncResult<Buffer>(event.exception));
-          } else {
-            try {
-              CompiledTemplate compiledTemplate = templateCompiler.compile(event.result, templateFileName);
-              compiledTemplateCache.put(templateFileName, compiledTemplate);
-              render(templateCompiler, compiledTemplate, model, handler);
-            } catch (Exception e) {
-              handler.handle(new AsyncResult<Buffer>(e));
-            }
-          }
-        }
-      });
+  public void renderFileTemplate(final String templateFileName, final Map<String, ?> model, final ResultHandler<ChannelBuffer> handler) {
+    try {
+      final TemplateCompiler templateCompiler = createCompiler();
+      CompiledTemplate cachedTemplate = compiledTemplateCache.getIfPresent(templateFileName);
+      if (cachedTemplate != null) {
+        render(templateCompiler, cachedTemplate, model, handler);
+      } else {
+        File templateFile = getTemplateFile(templateFileName);
+        ChannelBuffer templateSource = IoUtils.readFile(templateFile);
+        CompiledTemplate compiledTemplate = templateCompiler.compile(templateSource, templateFileName);
+        compiledTemplateCache.put(templateFileName, compiledTemplate);
+        render(templateCompiler, compiledTemplate, model, handler);
+      }
+    } catch (IOException e) {
+      handler.handle(new Result<ChannelBuffer>(e));
     }
   }
 
   @Override
-  public void renderError(Map<String, ?> model, AsyncResultHandler<Buffer> handler) {
+  public void renderError(Map<String, ?> model, ResultHandler<ChannelBuffer> handler) {
     render(errorPageTemplate, "errorpage", model, handler);
   }
 
-  private void render(String template, String templateName, Map<String, ?> model, AsyncResultHandler<Buffer> handler) {
+  private void render(String template, String templateName, Map<String, ?> model, ResultHandler<ChannelBuffer> handler) {
     try {
       TemplateCompiler templateCompiler = createCompiler();
-      CompiledTemplate compiledTemplate = templateCompiler.compile(new Buffer(template), templateName);
+      ChannelBuffer templateSource = ChannelBuffers.copiedBuffer(template, CharsetUtil.UTF_8);
+      CompiledTemplate compiledTemplate = templateCompiler.compile(templateSource, templateName);
       render(templateCompiler, compiledTemplate, model, handler);
     } catch (Exception e) {
-      handler.handle(new AsyncResult<Buffer>(e));
+      handler.handle(new Result<ChannelBuffer>(e));
     }
   }
 
   private TemplateCompiler createCompiler() {
-    return new TemplateCompiler(new ScriptEngine<TemplateScript>(getClass().getClassLoader(), staticallyCompile, TemplateScript.class));
+    return new TemplateCompiler(new ScriptEngine<>(getClass().getClassLoader(), staticallyCompile, TemplateScript.class));
   }
 
-  private void render(TemplateCompiler templateCompiler, CompiledTemplate compiledTemplate, Map<String, ?> model, AsyncResultHandler<Buffer> handler) {
-    new Render(templateCompiler, vertx.fileSystem(), compiledTemplateCache, templateDirPath, compiledTemplate, model, handler);
+  private void render(TemplateCompiler templateCompiler, CompiledTemplate compiledTemplate, Map<String, ?> model, ResultHandler<ChannelBuffer> handler) {
+    new Render(templateCompiler, compiledTemplateCache, templateDir, compiledTemplate, model, handler);
   }
 
-  private String getTemplatePath(String templateName) {
-    return templateDirPath + File.separator + templateName;
+  private File getTemplateFile(String templateName) {
+    return new File(templateDir, templateName);
   }
 
   private String getResourceText(String resourceName) {

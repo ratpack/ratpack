@@ -16,48 +16,47 @@
 
 package org.ratpackframework.session.internal;
 
+import org.jboss.netty.handler.codec.http.Cookie;
+import org.jboss.netty.handler.codec.http.DefaultCookie;
+import org.ratpackframework.handler.HttpExchange;
 import org.ratpackframework.session.Session;
 import org.ratpackframework.session.SessionConfig;
-import org.ratpackframework.util.HttpDateUtil;
-import org.vertx.java.core.http.HttpServerRequest;
-
-import java.util.Calendar;
-import java.util.Date;
-import java.util.TimeZone;
 
 public class RequestSessionManager {
 
   private static final String COOKIE_NAME = "JSESSIONID";
 
-  private final HttpServerRequest request;
+  private final HttpExchange exchange;
   private final SessionConfig sessionConfig;
 
   private String cookieSessionId;
   private String assignedCookieId;
-  private boolean alreadySetCookie;
 
-  public RequestSessionManager(HttpServerRequest request, SessionConfig sessionConfig) {
-    this.request = request;
+  public RequestSessionManager(HttpExchange exchange, SessionConfig sessionConfig) {
+    this.exchange = exchange;
     this.sessionConfig = sessionConfig;
   }
 
   private String getCookieSessionId() {
     if (cookieSessionId == null) {
-      String cookieHeader = request.headers().get("cookie");
-      if (cookieHeader != null) {
-        CookieTokenizer tokenizer = new CookieTokenizer();
-        int num = tokenizer.tokenize(cookieHeader);
-        for (int i = 0; i < num; i += 2) {
-          String token = tokenizer.tokenAt(i);
-          if (token.equals(COOKIE_NAME) && i < (num - 1)) {
-            cookieSessionId = tokenizer.tokenAt(i + 1);
-            break;
-          }
+      Cookie match = null;
+
+      for (Cookie cookie : exchange.getIncomingCookies()) {
+        if (cookie.getName().equals(COOKIE_NAME)) {
+          match = cookie;
+          break;
         }
       }
+
+      if (match != null) {
+        cookieSessionId = match.getValue();
+      } else {
+        cookieSessionId = "";
+      }
+
     }
 
-    return cookieSessionId;
+    return cookieSessionId.equals("") ? null : cookieSessionId;
   }
 
   public Session getSession() {
@@ -89,7 +88,7 @@ public class RequestSessionManager {
           throw new IllegalStateException("Cannot terminate inactive session");
         }
         sessionConfig.getSessionListener().sessionTerminated(existingId);
-        setCookie("", new Date(0));
+        setCookie("", 0);
       }
     };
   }
@@ -109,39 +108,32 @@ public class RequestSessionManager {
   }
 
   private String assignId() {
-    String id = sessionConfig.getIdGenerator().generateSessionId(request);
-    int expiryMins = sessionConfig.getCookieExpiryMins();
-    if (expiryMins > 0) {
-      Calendar expires = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
-      expires.add(Calendar.MINUTE, expiryMins);
-      setCookie(id, expires.getTime());
-    } else {
-      setCookie(id, null);
-    }
+    String id = sessionConfig.getIdGenerator().generateSessionId(exchange.getRequest());
+    setCookie(id, sessionConfig.getCookieExpiryMins());
+
 
     sessionConfig.getSessionListener().sessionInitiated(id);
     return id;
   }
 
-  private void setCookie(String value, Date expires) {
-    if (alreadySetCookie) {
-      throw new IllegalStateException("Cannot set cookie twice for the one request");
-    }
-    alreadySetCookie = true;
-    StringBuilder setCookieValue = new StringBuilder(COOKIE_NAME).append("=").append(value)
-        .append(";").append("path=").append(sessionConfig.getCookiePath());
+  private void setCookie(String value, int expiryMins) {
+    DefaultCookie cookie = new DefaultCookie(COOKIE_NAME, value);
 
     String cookieDomain = sessionConfig.getCookieDomain();
-    if (!cookieDomain.equals("localhost")) {
-      setCookieValue.append(";domain=.").append(cookieDomain);
+    if (cookieDomain != null) {
+      cookie.setDomain(cookieDomain);
     }
 
-    if (expires != null) {
-      String expiresString = HttpDateUtil.formatDate(expires, "EEE, dd-MMM-yyyy HH:mm:ss zzz");
-      setCookieValue.append(";").append("expires=").append(expiresString);
+    String cookiePath = sessionConfig.getCookiePath();
+    if (cookiePath != null) {
+      cookie.setPath(cookiePath);
     }
 
-    request.response.putHeader("Set-Cookie", setCookieValue.toString());
+    if (expiryMins > 0) {
+      cookie.setMaxAge(expiryMins * 60);
+    }
+
+    exchange.getOutgoingCookies().add(cookie);
   }
 
 }

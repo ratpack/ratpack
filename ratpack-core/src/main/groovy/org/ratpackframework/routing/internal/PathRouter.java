@@ -16,12 +16,13 @@
 
 package org.ratpackframework.routing.internal;
 
+import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.ratpackframework.Response;
 import org.ratpackframework.Routing;
+import org.ratpackframework.handler.Handler;
+import org.ratpackframework.handler.HttpExchange;
 import org.ratpackframework.routing.ResponseFactory;
 import org.ratpackframework.routing.RoutedRequest;
-import org.vertx.java.core.Handler;
-import org.vertx.java.core.http.HttpServerRequest;
 
 import java.util.*;
 import java.util.regex.MatchResult;
@@ -39,7 +40,7 @@ public class PathRouter implements Handler<RoutedRequest> {
 
   public PathRouter(String path, String method, ResponseFactory responseFactory, Handler<Response> handler) {
     this.path = path;
-    this.method = method.toLowerCase();
+    this.method = method.toUpperCase();
     this.responseFactory = responseFactory;
     this.handler = handler;
     this.tokenisedPath = new TokenisedPath(path);
@@ -50,7 +51,7 @@ public class PathRouter implements Handler<RoutedRequest> {
     final Pattern regex;
 
     public TokenisedPath(String path) {
-      List<String> names = new LinkedList<String>();
+      List<String> names = new LinkedList<>();
       String regexString = path;
 
       Pattern placeholderPattern = Pattern.compile("(:\\w+)");
@@ -68,26 +69,26 @@ public class PathRouter implements Handler<RoutedRequest> {
 
   @Override
   public void handle(RoutedRequest routedRequest) {
-    final HttpServerRequest request = routedRequest.getRequest();
-    if (!method.equals(Routing.ALL_METHODS) && !request.method.toLowerCase().equals(method)) {
-      routedRequest.getNotFoundHandler().handle(request);
+    HttpExchange exchange = routedRequest.getExchange();
+    HttpRequest request = exchange.getRequest();
+    if (!method.equals(Routing.ALL_METHODS) && !request.getMethod().getName().equals(method)) {
+      routedRequest.next();
       return;
     }
 
-    Matcher matcher = tokenisedPath.regex.matcher(request.path);
+    Matcher matcher = tokenisedPath.regex.matcher(exchange.getPath());
     if (matcher.matches()) {
       Map<String, String> urlParams = toUrlParams(matcher);
       Response response = responseFactory.create(routedRequest, urlParams);
       handler.handle(response);
-      request.resume();
     } else {
-      routedRequest.getNotFoundHandler().handle(request);
+      routedRequest.next();
     }
   }
 
   Map<String, String> toUrlParams(Matcher matcher) {
     MatchResult matchResult = matcher.toMatchResult();
-    Map<String, String> params = new LinkedHashMap<String, String>();
+    Map<String, String> params = new LinkedHashMap<>();
     int i = 1;
     for (String name : tokenisedPath.names) {
       params.put(name, matchResult.group(i++));

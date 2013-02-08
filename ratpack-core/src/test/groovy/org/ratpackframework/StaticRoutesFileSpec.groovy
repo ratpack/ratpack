@@ -37,7 +37,7 @@ class StaticRoutesFileSpec extends RatpackSpec {
 
     when:
     ratpackFile.text = """
-      get("/") { renderText "foo" }
+      get("/") { text "foo" }
     """
 
     then:
