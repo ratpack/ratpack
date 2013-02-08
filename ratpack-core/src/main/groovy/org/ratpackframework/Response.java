@@ -54,8 +54,9 @@ public interface Response {
   /**
    * Render the template at the given path (relative to the configure templates dir) with the given model.
    *
-   * This will finalize the response. Note that rendering happens asynchronously, this will return immediately. Within the template, the given model is available as the “model” variable and is of type
-   * {@link org.ratpackframework.groovy.templating.internal.TemplateModel}. If the content type has not been set, sets it to “text/html;charset=utf-8”
+   * Template rendering semantics are defined by the registered {@link org.ratpackframework.templating.TemplateRenderer}.
+   *
+   * This will finalize the response. Note that rendering may happen asynchronously. That is, these method may return immediately.
    *
    * @param model the model data.
    * @param templatePath the relative path to the template.
