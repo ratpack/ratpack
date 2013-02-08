@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.routing.internal;
+package org.ratpackframework.groovy.routing.internal;
 
 import groovy.lang.Closure;
 import org.ratpackframework.Response;

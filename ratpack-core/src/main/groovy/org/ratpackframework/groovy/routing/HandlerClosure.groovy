@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-
-
-package org.ratpackframework.groovy
+package org.ratpackframework.groovy.routing
 
 import org.ratpackframework.Response
 

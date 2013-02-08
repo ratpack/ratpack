@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.routing.internal
+package org.ratpackframework.groovy.routing.internal
 
 import org.ratpackframework.Response
-import org.ratpackframework.groovy.ClosureRouting
-import org.ratpackframework.groovy.HandlerClosure
+import org.ratpackframework.groovy.routing.ClosureRouting
+import org.ratpackframework.groovy.routing.HandlerClosure
 import org.ratpackframework.Handler
+import org.ratpackframework.groovy.routing.internal.ClosureBackedResponseHandler
+import org.ratpackframework.routing.internal.RoutingBuilder
 
 public class RoutingBuilderScript extends Script implements ClosureRouting {
 

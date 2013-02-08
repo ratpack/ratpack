@@ -23,7 +23,7 @@ import org.ratpackframework.routing.ResponseFactory;
 import org.ratpackframework.routing.RoutedRequest;
 import org.ratpackframework.routing.internal.CompositeRoutingHandler;
 import org.ratpackframework.routing.internal.DefaultResponseFactory;
-import org.ratpackframework.routing.internal.ScriptBackedRouter;
+import org.ratpackframework.groovy.routing.internal.ScriptBackedRouter;
 import org.ratpackframework.session.DefaultSessionIdGenerator;
 import org.ratpackframework.session.SessionConfig;
 import org.ratpackframework.session.SessionIdGenerator;
