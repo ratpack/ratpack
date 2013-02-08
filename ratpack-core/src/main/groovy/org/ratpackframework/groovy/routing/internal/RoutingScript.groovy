@@ -16,18 +16,17 @@
 
 package org.ratpackframework.groovy.routing.internal
 
+import org.ratpackframework.Handler
 import org.ratpackframework.Response
+import org.ratpackframework.Routing
 import org.ratpackframework.groovy.routing.ClosureRouting
 import org.ratpackframework.groovy.routing.HandlerClosure
-import org.ratpackframework.Handler
-import org.ratpackframework.groovy.routing.internal.ClosureBackedResponseHandler
-import org.ratpackframework.routing.internal.RoutingBuilder
 
-public class RoutingBuilderScript extends Script implements ClosureRouting {
+public class RoutingScript extends Script implements ClosureRouting {
 
-  private final RoutingBuilder routingBuilder
+  private final Routing routingBuilder
 
-  public RoutingBuilderScript(RoutingBuilder routingBuilder) {
+  public RoutingScript(Routing routingBuilder) {
     this.routingBuilder = routingBuilder
   }
 

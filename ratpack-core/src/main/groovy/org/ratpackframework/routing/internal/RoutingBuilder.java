@@ -18,11 +18,12 @@ package org.ratpackframework.routing.internal;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Injector;
-import com.google.inject.TypeLiteral;
 import org.ratpackframework.Handler;
+import org.ratpackframework.Request;
 import org.ratpackframework.Response;
 import org.ratpackframework.Routing;
 import org.ratpackframework.handler.HttpExchange;
+import org.ratpackframework.inject.internal.RequestScope;
 import org.ratpackframework.routing.ResponseFactory;
 import org.ratpackframework.routing.Routed;
 
@@ -33,9 +34,11 @@ public class RoutingBuilder implements Routing {
   private final List<Handler<Routed<HttpExchange>>> routers;
   private final ResponseFactory responseFactory;
   private final Injector injector;
+  private final RequestScope requestScope;
 
-  public RoutingBuilder(Injector injector, List<Handler<Routed<HttpExchange>>> routers, ResponseFactory responseFactory) {
+  public RoutingBuilder(Injector injector, RequestScope requestScope, List<Handler<Routed<HttpExchange>>> routers, ResponseFactory responseFactory) {
     this.injector = injector;
+    this.requestScope = requestScope;
     this.routers = routers;
     this.responseFactory = responseFactory;
   }
@@ -50,17 +53,39 @@ public class RoutingBuilder implements Routing {
     routers.add(new PathRouter(path, method, responseFactory, new ErrorHandlingResponseHandler(handler)));
   }
 
+  private class InjectedHandler implements Handler<Response> {
+    private final Class<? extends Handler<Response>> handlerType;
+    private final RequestScope requestScope;
+    private final Injector injector;
+
+    private InjectedHandler(final Class<? extends Handler<Response>> handlerType, RequestScope requestScope, Injector parentInjector) {
+      this.handlerType = handlerType;
+      this.requestScope = requestScope;
+      this.injector = parentInjector.createChildInjector(new AbstractModule() {
+        @Override
+        protected void configure() {
+          bind(handlerType);
+        }
+      });
+    }
+
+    @Override
+    public void handle(Response response) {
+      requestScope.enter();
+      try {
+        Request request = response.getRequest();
+        requestScope.seed(Request.class, request);
+        requestScope.seed(Response.class, response);
+        injector.getInstance(handlerType).handle(response);
+      } finally {
+        requestScope.exit();
+      }
+    }
+  }
+
   @Override
   public void register(String method, String path, final Class<? extends Handler<Response>> handlerType) {
-    Handler<Response> instance = injector.createChildInjector(new AbstractModule() {
-      @Override
-      protected void configure() {
-        binder().newPrivateBinder().bind(new TypeLiteral<Handler<Response>>() {
-        }).to(handlerType);
-      }
-    }).getInstance(handlerType);
-
-    register(method, path, instance);
+    register(method, path, new InjectedHandler(handlerType, requestScope, injector));
   }
 
   @Override

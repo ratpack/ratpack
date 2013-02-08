@@ -4,6 +4,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.TypeLiteral;
 import com.google.inject.name.Names;
+import com.google.inject.servlet.RequestScoped;
 import org.jboss.netty.channel.*;
 import org.jboss.netty.channel.group.ChannelGroup;
 import org.jboss.netty.channel.group.DefaultChannelGroup;
@@ -12,6 +13,8 @@ import org.jboss.netty.handler.codec.http.HttpContentCompressor;
 import org.jboss.netty.handler.codec.http.HttpRequestDecoder;
 import org.jboss.netty.handler.codec.http.HttpResponseEncoder;
 import org.ratpackframework.Handler;
+import org.ratpackframework.Request;
+import org.ratpackframework.Response;
 import org.ratpackframework.assets.DirectoryStaticAssetRequestHandler;
 import org.ratpackframework.assets.FileStaticAssetRequestHandler;
 import org.ratpackframework.assets.TargetFileStaticAssetRequestHandler;
@@ -25,9 +28,12 @@ import org.ratpackframework.handler.HttpExchange;
 import org.ratpackframework.handler.NotFoundHandler;
 import org.ratpackframework.handler.RoutingHandler;
 import org.ratpackframework.handler.internal.CompositeRoutingHandler;
+import org.ratpackframework.inject.internal.RequestScope;
 import org.ratpackframework.routing.ResponseFactory;
 import org.ratpackframework.routing.Routed;
 import org.ratpackframework.routing.internal.DefaultResponseFactory;
+import org.ratpackframework.routing.internal.DefaultRoutingBuilderFactory;
+import org.ratpackframework.routing.internal.RoutingBuilderFactory;
 import org.ratpackframework.session.DefaultSessionIdGenerator;
 import org.ratpackframework.session.SessionConfig;
 import org.ratpackframework.session.SessionIdGenerator;
@@ -66,6 +72,8 @@ public class RootModule extends AbstractModule {
     bind(ROUTING_PIPELINE).annotatedWith(Names.named("mainRoutingPipeline")).toProvider(MainRoutingPipelineProvider.class);
     bind(ROUTER).annotatedWith(Names.named("applicationRouter")).to(ScriptBackedRouter.class);
 
+    bind(RoutingBuilderFactory.class).to(DefaultRoutingBuilderFactory.class);
+
     bind(ROUTER).annotatedWith(Names.named("staticAssetRouter")).toProvider(StaticAssetRouterProvider.class);
     bind(ROUTING_PIPELINE).annotatedWith(Names.named("mainStaticAssetRoutingPipeline")).toProvider(StaticAssetRoutingPipelineProvider.class);
     bind(ROUTER).annotatedWith(Names.named("targetFileStaticAssetHandler")).toProvider(TargetFileStaticAssetHandlerProvider.class);
@@ -82,6 +90,13 @@ public class RootModule extends AbstractModule {
     bind(InetSocketAddress.class).toProvider(InetSocketProvider.class);
     bind(RatpackServer.class).to(NettyRatpackServer.class);
     bind(RATPACK_INIT).to(NoopInit.class);
+
+    RequestScope requestScope = new RequestScope();
+    bindScope(RequestScoped.class, requestScope);
+    bind(RequestScope.class).toInstance(requestScope);
+
+    bind(Request.class).toProvider(RequestScope.<Request>seededKeyProvider()).in(RequestScoped.class);
+    bind(Response.class).toProvider(RequestScope.<Response>seededKeyProvider()).in(RequestScoped.class);
   }
 
   public static class MainRoutingPipelineProvider implements Provider<List<Handler<Routed<HttpExchange>>>> {

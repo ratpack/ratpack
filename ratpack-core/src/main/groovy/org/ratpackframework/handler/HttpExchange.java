@@ -39,9 +39,9 @@ public interface HttpExchange {
 
   void end(ChannelBuffer channelBuffer);
 
-  void end();
-
   void end(HttpResponseStatus status);
+
+  void end();
 
   void error(Exception e);
 

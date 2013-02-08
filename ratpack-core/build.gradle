@@ -7,6 +7,9 @@ dependencies {
   compile 'com.google.inject:guice:3.0', {
     exclude group: 'org.sonatype.sisu.inject'
   }
+  compile 'com.google.inject.extensions:guice-servlet:3.0', {
+    exclude group: 'javax.servlet'
+  }
 
   testCompile 'cglib:cglib-nodep:2.2'
   testCompile 'org.spockframework:spock-core:0.7-groovy-2.0', {
