@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.templating.internal;
+package org.ratpackframework.groovy.templating.internal;
 
 import com.google.common.cache.Cache;
 import org.jboss.netty.buffer.ChannelBuffer;

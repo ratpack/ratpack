@@ -24,8 +24,8 @@ import org.jboss.netty.channel.ChannelFutureListener;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.handler.codec.http.*;
 import org.jboss.netty.util.CharsetUtil;
-import org.ratpackframework.handler.ErrorHandler;
-import org.ratpackframework.handler.ErroredHttpExchange;
+import org.ratpackframework.error.ErrorHandler;
+import org.ratpackframework.error.ErroredHttpExchange;
 import org.ratpackframework.handler.HttpExchange;
 
 import java.util.Collections;
@@ -83,8 +83,11 @@ public class DefaultHttpExchange implements HttpExchange {
       response.addHeader(SET_COOKIE, cookieEncoder.encode());
     }
 
-    ChannelFuture future = getChannel().write(response);
-    future.addListener(ChannelFutureListener.CLOSE);
+    Channel channel = getChannel();
+    if (channel.isOpen()) {
+      ChannelFuture future = channel.write(response);
+      future.addListener(ChannelFutureListener.CLOSE);
+    }
   }
 
   public Channel getChannel() {

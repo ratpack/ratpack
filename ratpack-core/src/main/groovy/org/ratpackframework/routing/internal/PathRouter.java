@@ -19,7 +19,7 @@ package org.ratpackframework.routing.internal;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.ratpackframework.Response;
 import org.ratpackframework.Routing;
-import org.ratpackframework.handler.Handler;
+import org.ratpackframework.Handler;
 import org.ratpackframework.handler.HttpExchange;
 import org.ratpackframework.routing.ResponseFactory;
 import org.ratpackframework.routing.RoutedRequest;

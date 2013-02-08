@@ -1,11 +1,10 @@
 package org.ratpackframework.routing.internal;
 
-import org.ratpackframework.handler.Handler;
+import org.ratpackframework.Handler;
 import org.ratpackframework.handler.internal.CompositeHandler;
 import org.ratpackframework.routing.RoutedRequest;
 
 import javax.inject.Inject;
-import javax.inject.Named;
 import java.util.List;
 
 public class CompositeRoutingHandler extends CompositeHandler<RoutedRequest> {

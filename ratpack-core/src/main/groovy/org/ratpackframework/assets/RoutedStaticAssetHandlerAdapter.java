@@ -1,6 +1,6 @@
 package org.ratpackframework.assets;
 
-import org.ratpackframework.handler.Handler;
+import org.ratpackframework.Handler;
 import org.ratpackframework.routing.RoutedRequest;
 
 import javax.inject.Inject;

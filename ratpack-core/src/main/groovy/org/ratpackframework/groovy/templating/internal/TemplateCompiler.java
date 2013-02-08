@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.templating.internal;
+package org.ratpackframework.groovy.templating.internal;
 
-import groovy.lang.GroovyRuntimeException;
 import org.codehaus.groovy.control.CompilationFailedException;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.util.CharsetUtil;
-import org.ratpackframework.script.internal.ScriptEngine;
+import org.ratpackframework.groovy.ScriptEngine;
 
 import java.io.IOException;
 import java.util.logging.Level;

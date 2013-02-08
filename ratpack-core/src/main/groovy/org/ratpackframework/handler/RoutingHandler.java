@@ -5,6 +5,8 @@ import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
 import org.jboss.netty.handler.codec.http.*;
+import org.ratpackframework.Handler;
+import org.ratpackframework.error.ErrorHandler;
 import org.ratpackframework.handler.internal.DefaultHttpExchange;
 import org.ratpackframework.routing.RoutedRequest;
 

@@ -1,10 +1,10 @@
-package org.ratpackframework.templating.internal;
+package org.ratpackframework.groovy.templating.internal;
 
 import groovy.lang.Script;
 import org.jboss.netty.buffer.ChannelBuffer;
+import org.ratpackframework.groovy.templating.Template;
+import org.ratpackframework.groovy.templating.TemplateModel;
 import org.ratpackframework.io.IoUtils;
-import org.ratpackframework.templating.Template;
-import org.ratpackframework.templating.TemplateModel;
 
 import java.util.Collections;
 import java.util.Map;

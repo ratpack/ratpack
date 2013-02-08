@@ -1,6 +1,6 @@
-package org.ratpackframework.templating.internal;
+package org.ratpackframework.groovy.templating.internal;
 
-import org.ratpackframework.templating.TemplateModel;
+import org.ratpackframework.groovy.templating.TemplateModel;
 
 import java.util.Collection;
 import java.util.Map;

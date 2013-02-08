@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.handler;
+package org.ratpackframework.error;
 
 import org.codehaus.groovy.runtime.StackTraceUtils;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
-import org.ratpackframework.error.ContextualException;
+import org.ratpackframework.Handler;
+import org.ratpackframework.handler.HttpExchange;
+import org.ratpackframework.handler.ResultHandler;
 import org.ratpackframework.templating.TemplateRenderer;
 
 import javax.inject.Inject;

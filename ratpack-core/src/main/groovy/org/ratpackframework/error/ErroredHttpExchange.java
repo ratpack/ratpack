@@ -14,10 +14,25 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.routing
+package org.ratpackframework.error;
 
-import org.ratpackframework.handler.Handler
+import org.ratpackframework.handler.HttpExchange;
 
-interface Router extends Handler<RoutedRequest> {
+public class ErroredHttpExchange {
 
+  private final HttpExchange exchange;
+  private final Exception exception;
+
+  public ErroredHttpExchange(HttpExchange exchange, Exception exception) {
+    this.exchange = exchange;
+    this.exception = exception;
+  }
+
+  public HttpExchange getExchange() {
+    return exchange;
+  }
+
+  public Exception getException() {
+    return exception;
+  }
 }

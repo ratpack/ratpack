@@ -17,7 +17,7 @@
 package org.ratpackframework.routing.internal;
 
 import org.ratpackframework.Response;
-import org.ratpackframework.handler.Handler;
+import org.ratpackframework.Handler;
 
 public class ErrorHandlingResponseHandler implements Handler<Response> {
 

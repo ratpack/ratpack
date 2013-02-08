@@ -23,7 +23,7 @@ import java.util.Map;
 
 public interface TemplateRenderer {
 
-  void renderFileTemplate(String templateFileName, Map<String, ?> model, ResultHandler<ChannelBuffer> handler);
+  void renderTemplate(String templateId, Map<String, ?> model, ResultHandler<ChannelBuffer> handler);
 
   void renderError(Map<String, ?> model, ResultHandler<ChannelBuffer> handler);
 

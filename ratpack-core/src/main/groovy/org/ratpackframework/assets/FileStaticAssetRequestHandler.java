@@ -18,7 +18,7 @@ package org.ratpackframework.assets;
 
 import org.jboss.netty.channel.*;
 import org.jboss.netty.handler.codec.http.*;
-import org.ratpackframework.handler.Handler;
+import org.ratpackframework.Handler;
 import org.ratpackframework.handler.HttpExchange;
 import org.ratpackframework.handler.internal.DefaultHttpExchange;
 import org.ratpackframework.util.HttpDateParseException;

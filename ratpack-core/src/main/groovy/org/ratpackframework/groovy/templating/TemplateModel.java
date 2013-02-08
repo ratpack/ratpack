@@ -1,4 +1,4 @@
-package org.ratpackframework.templating;
+package org.ratpackframework.groovy.templating;
 
 import java.util.Map;
 

@@ -17,7 +17,7 @@
 package org.ratpackframework.assets;
 
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
-import org.ratpackframework.handler.Handler;
+import org.ratpackframework.Handler;
 
 import java.io.File;
 

@@ -19,7 +19,7 @@ package org.ratpackframework.routing.internal
 import org.ratpackframework.Response
 import org.ratpackframework.groovy.ClosureRouting
 import org.ratpackframework.groovy.HandlerClosure
-import org.ratpackframework.handler.Handler
+import org.ratpackframework.Handler
 
 public class RoutingBuilderScript extends Script implements ClosureRouting {
 

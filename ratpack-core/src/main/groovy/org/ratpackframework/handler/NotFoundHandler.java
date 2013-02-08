@@ -2,6 +2,8 @@ package org.ratpackframework.handler;
 
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
+import org.ratpackframework.Handler;
+import org.ratpackframework.error.FallbackErrorHandlingTemplateRenderer;
 import org.ratpackframework.routing.RoutedRequest;
 import org.ratpackframework.templating.TemplateRenderer;
 

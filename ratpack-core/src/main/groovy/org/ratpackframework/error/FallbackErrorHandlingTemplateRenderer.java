@@ -14,11 +14,14 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.handler;
+package org.ratpackframework.error;
 
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.handler.codec.http.HttpResponse;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
+import org.ratpackframework.handler.HttpExchange;
+import org.ratpackframework.handler.Result;
+import org.ratpackframework.handler.ResultHandler;
 
 @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
 public class FallbackErrorHandlingTemplateRenderer implements ResultHandler<ChannelBuffer> {

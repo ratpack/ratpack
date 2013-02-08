@@ -1,4 +1,4 @@
-package org.ratpackframework.handler;
+package org.ratpackframework;
 
 public interface Handler<T> {
 

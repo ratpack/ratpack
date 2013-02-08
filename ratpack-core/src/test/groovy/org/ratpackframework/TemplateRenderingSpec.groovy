@@ -16,7 +16,6 @@
 
 package org.ratpackframework
 
-import org.ratpackframework.templating.internal.InvalidTemplateException
 import spock.lang.Unroll
 
 class TemplateRenderingSpec extends RatpackSpec {

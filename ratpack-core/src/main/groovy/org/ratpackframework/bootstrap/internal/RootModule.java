@@ -16,7 +16,7 @@ import org.ratpackframework.bootstrap.RatpackServer;
 import org.ratpackframework.config.DeploymentConfig;
 import org.ratpackframework.config.LayoutConfig;
 import org.ratpackframework.config.StaticAssetsConfig;
-import org.ratpackframework.handler.Handler;
+import org.ratpackframework.Handler;
 import org.ratpackframework.handler.NotFoundHandler;
 import org.ratpackframework.handler.RoutingHandler;
 import org.ratpackframework.routing.ResponseFactory;
@@ -30,7 +30,7 @@ import org.ratpackframework.session.SessionIdGenerator;
 import org.ratpackframework.session.SessionListener;
 import org.ratpackframework.session.internal.DefaultSessionConfig;
 import org.ratpackframework.session.internal.NoopSessionListener;
-import org.ratpackframework.templating.GroovyTemplateRenderer;
+import org.ratpackframework.groovy.templating.GroovyTemplateRenderer;
 import org.ratpackframework.templating.TemplateRenderer;
 
 import javax.inject.Inject;

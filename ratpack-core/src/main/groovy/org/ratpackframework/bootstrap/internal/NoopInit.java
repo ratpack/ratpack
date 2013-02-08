@@ -1,7 +1,7 @@
 package org.ratpackframework.bootstrap.internal;
 
 import org.ratpackframework.bootstrap.RatpackServer;
-import org.ratpackframework.handler.Handler;
+import org.ratpackframework.Handler;
 
 public class NoopInit implements Handler<RatpackServer> {
 

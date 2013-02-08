@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.templating.internal;
+package org.ratpackframework.groovy.templating.internal;
 
 import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.jboss.netty.buffer.ChannelBuffer;
-import org.ratpackframework.templating.TemplateModel;
+import org.ratpackframework.groovy.templating.TemplateModel;
 
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 
 public class CompiledTemplate {

@@ -86,7 +86,7 @@ public class DefaultResponse implements Response {
 
   public void render(Map<String, ?> model, String templateName) {
     maybeSetUtf8ContentType(MediaType.TEXT_HTML);
-    templateRenderer.renderFileTemplate(templateName, model, new ResultHandler<ChannelBuffer>() {
+    templateRenderer.renderTemplate(templateName, model, new ResultHandler<ChannelBuffer>() {
       @Override
       public void handle(Result<ChannelBuffer> event) {
         if (event.isSuccess()) {

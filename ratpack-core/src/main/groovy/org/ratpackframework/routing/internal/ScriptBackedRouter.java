@@ -20,10 +20,10 @@ import com.google.inject.Injector;
 import org.codehaus.groovy.runtime.ResourceGroovyMethods;
 import org.ratpackframework.config.LayoutConfig;
 import org.ratpackframework.config.RoutingConfig;
-import org.ratpackframework.handler.Handler;
+import org.ratpackframework.Handler;
 import org.ratpackframework.routing.ResponseFactory;
 import org.ratpackframework.routing.RoutedRequest;
-import org.ratpackframework.script.internal.ScriptEngine;
+import org.ratpackframework.groovy.ScriptEngine;
 
 import javax.inject.Inject;
 import java.io.*;

@@ -7,7 +7,7 @@ import org.jboss.netty.channel.ChannelFactory;
 import org.jboss.netty.channel.ChannelPipelineFactory;
 import org.jboss.netty.channel.group.ChannelGroup;
 import org.ratpackframework.bootstrap.RatpackServer;
-import org.ratpackframework.handler.Handler;
+import org.ratpackframework.Handler;
 
 import javax.inject.Inject;
 import java.net.InetSocketAddress;

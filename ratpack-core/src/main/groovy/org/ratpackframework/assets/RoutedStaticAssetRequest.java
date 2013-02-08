@@ -16,7 +16,7 @@
 
 package org.ratpackframework.assets;
 
-import org.ratpackframework.handler.Handler;
+import org.ratpackframework.Handler;
 import org.ratpackframework.handler.HttpExchange;
 import org.ratpackframework.routing.RoutedRequest;
 

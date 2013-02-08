@@ -1,10 +1,10 @@
-package org.ratpackframework.templating.internal
+package org.ratpackframework.groovy.templating.internal
 
 import org.jboss.netty.buffer.ChannelBuffer
 import org.jboss.netty.buffer.ChannelBuffers
 import org.jboss.netty.util.CharsetUtil
 import org.ratpackframework.io.IoUtils
-import org.ratpackframework.script.internal.ScriptEngine
+import org.ratpackframework.groovy.ScriptEngine
 import spock.lang.Specification
 
 class TemplateCompilerTest extends Specification {

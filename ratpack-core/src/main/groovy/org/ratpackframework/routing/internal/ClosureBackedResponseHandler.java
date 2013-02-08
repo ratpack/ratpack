@@ -18,7 +18,7 @@ package org.ratpackframework.routing.internal;
 
 import groovy.lang.Closure;
 import org.ratpackframework.Response;
-import org.ratpackframework.handler.Handler;
+import org.ratpackframework.Handler;
 
 public class ClosureBackedResponseHandler implements Handler<Response> {
 

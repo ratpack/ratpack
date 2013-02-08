@@ -1,4 +1,4 @@
-package org.ratpackframework.templating.internal
+package org.ratpackframework.groovy.templating.internal
 
 import org.jboss.netty.buffer.ChannelBuffer
 import org.jboss.netty.buffer.ChannelBuffers

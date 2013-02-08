@@ -17,8 +17,6 @@
 package org.ratpackframework;
 
 
-import org.ratpackframework.handler.Handler;
-
 /**
  * The API for the routing file (i.e. ratpack.groovy)
  */

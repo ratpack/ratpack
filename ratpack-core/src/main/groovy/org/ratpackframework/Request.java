@@ -17,7 +17,6 @@
 package org.ratpackframework;
 
 import org.jboss.netty.buffer.ChannelBuffer;
-import org.ratpackframework.handler.Handler;
 import org.ratpackframework.http.MediaType;
 import org.ratpackframework.session.Session;
 
