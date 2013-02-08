@@ -16,10 +16,15 @@
 
 package org.ratpackframework.bootstrap;
 
+import com.google.inject.Module;
+import org.ratpackframework.bootstrap.internal.RootModule;
 import org.ratpackframework.config.Config;
 import org.ratpackframework.config.internal.ConfigLoader;
+import org.ratpackframework.config.internal.ConfigModule;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.List;
 
 public class RatpackMain {
 
@@ -30,8 +35,7 @@ public class RatpackMain {
       System.exit(1);
     }
 
-    Config config = new ConfigLoader().load(configFile);
-    new RatpackAppFactory().create(config).startAndWait();
+    new RatpackServerFactory().create(new ConfigLoader().load(configFile)).startAndWait();
   }
 
 }

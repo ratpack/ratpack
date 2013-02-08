@@ -18,17 +18,24 @@ package org.ratpackframework.bootstrap;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.google.inject.Module;
 import com.google.inject.util.Modules;
 import org.ratpackframework.bootstrap.internal.RootModule;
 import org.ratpackframework.config.Config;
 import org.ratpackframework.config.internal.ConfigModule;
 
-public class RatpackAppFactory {
+import java.util.Arrays;
+import java.util.List;
 
-  public RatpackServer create(Config config) {
-    Injector configInjector = Guice.createInjector(new ConfigModule(config));
-    Injector appInjector = configInjector.createChildInjector(Modules.override(new RootModule()).with(config.getModules()));
-    return appInjector.getInstance(RatpackServer.class);
+public class RatpackServerFactory {
+
+  public  RatpackServer create(Config config) {
+    List<? extends Module> core = Arrays.asList(new ConfigModule(config), new RootModule());
+    return create(core, config.getModules());
+  }
+
+  public RatpackServer create(Iterable<? extends Module> core, Iterable<? extends Module> override) {
+    return Guice.createInjector(Modules.override(core).with(override)).getInstance(RatpackServer.class);
   }
 
 }

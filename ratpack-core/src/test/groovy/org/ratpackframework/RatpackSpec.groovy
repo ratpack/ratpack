@@ -18,7 +18,7 @@ package org.ratpackframework
 
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
-import org.ratpackframework.bootstrap.RatpackAppFactory
+import org.ratpackframework.bootstrap.RatpackServerFactory
 import org.ratpackframework.bootstrap.RatpackServer
 import org.ratpackframework.config.Config
 import org.ratpackframework.config.internal.DefaultConfig
@@ -57,7 +57,7 @@ class RatpackSpec extends Specification {
   }
 
   def startApp() {
-    app = new RatpackAppFactory().create(config)
+    app = new RatpackServerFactory().create(config)
     config.layout.baseDir = temporaryFolder.root
     app.start()
 
