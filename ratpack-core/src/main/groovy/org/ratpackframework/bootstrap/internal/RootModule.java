@@ -28,7 +28,7 @@ import org.ratpackframework.handler.HttpExchange;
 import org.ratpackframework.handler.NotFoundHandler;
 import org.ratpackframework.handler.RoutingHandler;
 import org.ratpackframework.handler.internal.CompositeRoutingHandler;
-import org.ratpackframework.inject.internal.RequestScope;
+import org.ratpackframework.inject.RequestScope;
 import org.ratpackframework.routing.ResponseFactory;
 import org.ratpackframework.routing.Routed;
 import org.ratpackframework.routing.internal.DefaultResponseFactory;

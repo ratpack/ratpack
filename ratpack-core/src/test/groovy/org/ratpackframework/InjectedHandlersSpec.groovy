@@ -1,5 +1,7 @@
 package org.ratpackframework
 
+import com.google.inject.AbstractModule
+import com.google.inject.servlet.RequestScoped
 import org.ratpackframework.error.ErrorHandler
 import org.ratpackframework.internal.DefaultRequest
 
@@ -54,5 +56,32 @@ class InjectedHandlersSpec extends RatpackSpec {
 
     then:
     urlGetText("") == DefaultRequest.name
+  }
+
+  static class RequestService {
+    @Inject Request request
+  }
+
+  def "can obtain request scoped services in closures"() {
+    given:
+    config.modules << new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(RequestService)
+      }
+    }
+
+    and:
+    ratpackFile << """
+      get("/") {
+        text service(${RequestService.name}).request.class.name
+      }
+    """
+
+    when:
+    startApp()
+
+    then:
+    urlGetText() == DefaultRequest.name
   }
 }

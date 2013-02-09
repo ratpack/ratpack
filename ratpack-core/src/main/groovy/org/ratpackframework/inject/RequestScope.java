@@ -1,4 +1,4 @@
-package org.ratpackframework.inject.internal;
+package org.ratpackframework.inject;
 
 import com.google.common.collect.Maps;
 import com.google.inject.Key;

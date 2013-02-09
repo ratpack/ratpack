@@ -4,7 +4,7 @@ import com.google.inject.Injector;
 import org.ratpackframework.Handler;
 import org.ratpackframework.Routing;
 import org.ratpackframework.handler.HttpExchange;
-import org.ratpackframework.inject.internal.RequestScope;
+import org.ratpackframework.inject.RequestScope;
 import org.ratpackframework.routing.ResponseFactory;
 import org.ratpackframework.routing.Routed;
 

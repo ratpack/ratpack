@@ -16,14 +16,13 @@
 
 package org.ratpackframework.routing.internal;
 
-import com.google.inject.AbstractModule;
 import com.google.inject.Injector;
 import org.ratpackframework.Handler;
-import org.ratpackframework.Request;
 import org.ratpackframework.Response;
 import org.ratpackframework.Routing;
 import org.ratpackframework.handler.HttpExchange;
-import org.ratpackframework.inject.internal.RequestScope;
+import org.ratpackframework.handler.InjectingHandler;
+import org.ratpackframework.inject.RequestScope;
 import org.ratpackframework.routing.ResponseFactory;
 import org.ratpackframework.routing.Routed;
 
@@ -50,42 +49,14 @@ public class RoutingBuilder implements Routing {
 
   @Override
   public void register(String method, String path, Handler<Response> handler) {
-    routers.add(new PathRouter(path, method, responseFactory, new ErrorHandlingResponseHandler(handler)));
-  }
-
-  private class InjectedHandler implements Handler<Response> {
-    private final Class<? extends Handler<Response>> handlerType;
-    private final RequestScope requestScope;
-    private final Injector injector;
-
-    private InjectedHandler(final Class<? extends Handler<Response>> handlerType, RequestScope requestScope, Injector parentInjector) {
-      this.handlerType = handlerType;
-      this.requestScope = requestScope;
-      this.injector = parentInjector.createChildInjector(new AbstractModule() {
-        @Override
-        protected void configure() {
-          bind(handlerType);
-        }
-      });
-    }
-
-    @Override
-    public void handle(Response response) {
-      requestScope.enter();
-      try {
-        Request request = response.getRequest();
-        requestScope.seed(Request.class, request);
-        requestScope.seed(Response.class, response);
-        injector.getInstance(handlerType).handle(response);
-      } finally {
-        requestScope.exit();
-      }
-    }
+    Handler<Response> responseHandler = new ErrorHandlingResponseHandler(new RequestScopeHandler(requestScope, handler));
+    Handler<Routed<HttpExchange>> pathRouter = new PathRouter(path, method, responseFactory, responseHandler);
+    routers.add(pathRouter);
   }
 
   @Override
   public void register(String method, String path, final Class<? extends Handler<Response>> handlerType) {
-    register(method, path, new InjectedHandler(handlerType, requestScope, injector));
+    register(method, path, new InjectingHandler<>(handlerType, injector));
   }
 
   @Override
