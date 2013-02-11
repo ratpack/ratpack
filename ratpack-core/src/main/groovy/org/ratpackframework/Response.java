@@ -88,11 +88,16 @@ public interface Response {
   /**
    * Sends a temporary redirect response (i.e. statusCode 302) to the client using the specified redirect location URL.
    *
-   * To use a different status code, call {@link #setStatus(int)} after calling this method.
-   *
    * @param location the redirect location URL
    */
   void redirect(String location);
+
+  /**
+   * Sends a redirect response location URL and status code (which should be in the 3xx range).
+   *
+   * @param location the redirect location URL
+   */
+  void redirect(int code, String location);
 
   /**
    * End the response with an error (500), by passing the exception to the error handler.

@@ -126,6 +126,12 @@ public class DefaultResponse implements Response {
     end(HttpResponseStatus.FOUND.getCode());
   }
 
+  @Override
+  public void redirect(int code, String location) {
+    setHeader(HttpHeaders.Names.LOCATION, location);
+    end(code);
+  }
+
   public void error(Exception e) {
     exchange.error(e);
   }
