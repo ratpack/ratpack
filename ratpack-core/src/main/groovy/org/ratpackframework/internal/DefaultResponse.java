@@ -123,7 +123,7 @@ public class DefaultResponse implements Response {
 
   public void redirect(String location) {
     setHeader(HttpHeaders.Names.LOCATION, location);
-    end(HttpResponseStatus.TEMPORARY_REDIRECT.getCode());
+    end(HttpResponseStatus.FOUND.getCode());
   }
 
   public void error(Exception e) {
