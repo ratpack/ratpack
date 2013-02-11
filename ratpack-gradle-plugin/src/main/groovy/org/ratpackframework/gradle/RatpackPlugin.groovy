@@ -54,7 +54,6 @@ class RatpackPlugin implements Plugin<Project> {
     project.mainClassName = ratpackApp.mainClassName
 
     project.dependencies {
-      runtime 'org.slf4j:slf4j-simple:1.6.3'
       compile "org.ratpack-framework.netty:ratpack-core:${version}"
     }
 
