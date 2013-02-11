@@ -193,4 +193,6 @@ public interface Response {
    * Convenience method for adding a cookie.
    */
   Cookie cookie(String name, String value);
+
+  Cookie expireCookie(String name);
 }

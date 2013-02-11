@@ -25,7 +25,7 @@ public class CookieManager {
   private DateFormat dateFormat;
 
   public CookieManager() {
-    store = new HashMap<String, Map<String, Map<Object, String>>>();
+    store = new HashMap<>();
     dateFormat = new SimpleDateFormat(DATE_FORMAT);
   }
 
@@ -79,7 +79,7 @@ public class CookieManager {
 
         while (st.hasMoreTokens()) {
           String token = st.nextToken();
-          cookie.put(token.substring(0, token.indexOf(NAME_VALUE_SEPARATOR)).toLowerCase(),
+          cookie.put(token.substring(0, token.indexOf(NAME_VALUE_SEPARATOR)).toLowerCase().trim(),
               token.substring(token.indexOf(NAME_VALUE_SEPARATOR) + 1, token.length()));
         }
       }

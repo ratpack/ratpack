@@ -5,12 +5,17 @@ class CookiesSpec extends RatpackSpec {
   def "can get and set cookies"() {
     given:
     ratpackFile << """
-      get("/get/:name") { r ->
-        text request.oneCookie(r.urlParams.name)
+      get("/get/:name") {
+        text request.oneCookie(request.urlParams.name)
       }
 
       get("/set/:name/:value") {
         cookie(it.urlParams.name, it.urlParams.value)
+        end()
+      }
+
+      get("/clear/:name") {
+        expireCookie(it.urlParams.name)
         end()
       }
     """
@@ -30,6 +35,11 @@ class CookiesSpec extends RatpackSpec {
     urlGetText("get/a") == "2"
     urlGetText("get/b") == "1"
 
+    when:
+    urlGetText("clear/a")
+
+    then:
+    urlGetText("get/a") == "null"
   }
 
 }

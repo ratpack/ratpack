@@ -207,4 +207,11 @@ public class DefaultResponse implements Response {
     return cookie;
   }
 
+  @Override
+  public Cookie expireCookie(String name) {
+    Cookie cookie = cookie(name, "");
+    cookie.setMaxAge(0);
+    return cookie;
+  }
+
 }
