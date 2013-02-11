@@ -1,7 +1,6 @@
 package org.ratpackframework
 
 import com.google.inject.AbstractModule
-import com.google.inject.servlet.RequestScoped
 import org.ratpackframework.error.ErrorHandler
 import org.ratpackframework.internal.DefaultRequest
 
@@ -9,7 +8,7 @@ import javax.inject.Inject
 
 class InjectedHandlersSpec extends RatpackSpec {
 
-  @Singleton
+  @javax.inject.Singleton
   static class InjectedHandler implements Handler<Response> {
     ErrorHandler errorHandler
 
