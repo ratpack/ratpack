@@ -81,4 +81,16 @@ class StaticFileSpec extends RatpackSpec {
     urlGetText("dir/") == "bar"
   }
 
+  def "can serve files with query strings"() {
+    given:
+    publicFile("index.html") << "foo"
+
+    when:
+    startApp()
+
+    then:
+    urlGetText("?abc") == "foo"
+    urlGetText("index.html?abc") == "foo"
+  }
+
 }

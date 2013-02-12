@@ -23,33 +23,34 @@ public class TargetFileStaticAssetRequestHandler implements Handler<Routed<HttpE
 
   @Override
   public void handle(Routed<HttpExchange> routed) {
-    HttpRequest request = routed.get().getRequest();
-    String uri = request.getUri();
+    HttpExchange httpExchange = routed.get();
+    HttpRequest request = httpExchange.getRequest();
+    String path = httpExchange.getPath();
 
     // Decode the path.
     try {
-      uri = URLDecoder.decode(uri, CharsetUtil.UTF_8.name());
+      path = URLDecoder.decode(path, CharsetUtil.UTF_8.name());
     } catch (UnsupportedEncodingException e) {
       try {
-        uri = URLDecoder.decode(uri, CharsetUtil.ISO_8859_1.name());
+        path = URLDecoder.decode(path, CharsetUtil.ISO_8859_1.name());
       } catch (UnsupportedEncodingException e1) {
         throw new RuntimeException(e1);
       }
     }
 
     // Convert file separators.
-    uri = uri.replace('/', File.separatorChar);
+    path = path.replace('/', File.separatorChar);
 
-    if (uri.contains(File.separator + '.') ||
-        uri.contains('.' + File.separator) ||
-        uri.startsWith(".") || uri.endsWith(".")) {
+    if (path.contains(File.separator + '.') ||
+        path.contains('.' + File.separator) ||
+        path.startsWith(".") || path.endsWith(".")) {
       return;
     }
 
-    File file = new File(assetsDirectory, uri);
+    File file = new File(assetsDirectory, path);
 
     try {
-      routed.get().setTargetFile(file.getCanonicalFile());
+      httpExchange.setTargetFile(file.getCanonicalFile());
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
