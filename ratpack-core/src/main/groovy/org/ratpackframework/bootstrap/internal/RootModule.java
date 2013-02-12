@@ -79,6 +79,7 @@ public class RootModule extends AbstractModule {
     bind(ROUTER).annotatedWith(Names.named("targetFileStaticAssetHandler")).toProvider(TargetFileStaticAssetHandlerProvider.class);
     bind(ROUTER).annotatedWith(Names.named("directoryStaticAssetHandler")).to(DirectoryStaticAssetRequestHandler.class);
     bind(ROUTER).annotatedWith(Names.named("fileStaticAssetHandler")).to(FileStaticAssetRequestHandler.class);
+    bind(new TypeLiteral<List<String>>(){}).annotatedWith(Names.named("indexFiles")).toProvider(IndexFilesProvider.class);
 
     bind(SessionIdGenerator.class).to(DefaultSessionIdGenerator.class);
     bind(SessionListener.class).to(NoopSessionListener.class);
@@ -242,4 +243,12 @@ public class RootModule extends AbstractModule {
     }
   }
 
+  static class IndexFilesProvider implements Provider<List<String>> {
+    @Inject StaticAssetsConfig config;
+
+    @Override
+    public List<String> get() {
+      return config.getIndexFiles();
+    }
+  }
 }

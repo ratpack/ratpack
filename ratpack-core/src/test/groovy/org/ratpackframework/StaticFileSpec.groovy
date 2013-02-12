@@ -66,4 +66,19 @@ class StaticFileSpec extends RatpackSpec {
     urlGetText("static.text") == "bar"
   }
 
+  def "can serve index files"() {
+    given:
+    config.staticAssets.indexFiles << "index.xhtml"
+    publicFile("index.html") << "foo"
+    publicFile("dir/index.xhtml") << "bar"
+
+    when:
+    startApp()
+
+    then:
+    urlGetText() == "foo"
+    urlGetText("dir") == "bar"
+    urlGetText("dir/") == "bar"
+  }
+
 }

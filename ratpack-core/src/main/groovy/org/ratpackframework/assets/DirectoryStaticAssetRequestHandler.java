@@ -21,18 +21,38 @@ import org.ratpackframework.Handler;
 import org.ratpackframework.handler.HttpExchange;
 import org.ratpackframework.routing.Routed;
 
+import javax.inject.Inject;
+import javax.inject.Named;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 public class DirectoryStaticAssetRequestHandler implements Handler<Routed<HttpExchange>> {
 
+  private final List<String> indexFiles;
+
+  @Inject
+  public DirectoryStaticAssetRequestHandler(@Named("indexFiles") List<String> indexFiles) {
+    this.indexFiles = new ArrayList<>(indexFiles);
+  }
+
   @Override
   public void handle(final Routed<HttpExchange> routed) {
-    File targetFile = routed.get().getTargetFile();
-    if (!targetFile.exists() || !targetFile.isDirectory()) {
+    HttpExchange exchange = routed.get();
+    File targetFile = exchange.getTargetFile();
+    if (targetFile.isDirectory()) {
+      for (String indexFileName : indexFiles) {
+        File file = new File(targetFile, indexFileName);
+        if (file.isFile()) {
+          exchange.setTargetFile(file);
+          routed.next();
+          return;
+        }
+      }
+      exchange.end(HttpResponseStatus.FORBIDDEN);
+    } else {
       routed.next();
-      return;
     }
 
-    routed.get().end(HttpResponseStatus.FORBIDDEN);
   }
 }

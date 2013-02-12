@@ -89,11 +89,11 @@ public class DefaultHttpExchange implements HttpExchange {
 
   private void complete() {
     if (outgoingCookies != null && !outgoingCookies.isEmpty()) {
-      CookieEncoder cookieEncoder = new CookieEncoder(true);
       for (Cookie cookie : outgoingCookies) {
+        CookieEncoder cookieEncoder = new CookieEncoder(true);
         cookieEncoder.addCookie(cookie);
+        response.addHeader(SET_COOKIE, cookieEncoder.encode());
       }
-      response.addHeader(SET_COOKIE, cookieEncoder.encode());
     }
 
     Channel channel = getChannel();
