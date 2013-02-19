@@ -18,7 +18,7 @@ package org.ratpackframework.groovy.config.internal;
 
 import org.codehaus.groovy.runtime.ResourceGroovyMethods;
 import org.ratpackframework.groovy.config.Config;
-import org.ratpackframework.groovy.ScriptEngine;
+import org.ratpackframework.groovy.script.ScriptEngine;
 
 import java.io.File;
 

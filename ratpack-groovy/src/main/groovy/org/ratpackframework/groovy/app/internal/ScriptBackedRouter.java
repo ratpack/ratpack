@@ -20,7 +20,7 @@ import org.jboss.netty.buffer.ChannelBuffer;
 import org.ratpackframework.app.Routing;
 import org.ratpackframework.app.internal.ReloadableFileBackedHandler;
 import org.ratpackframework.app.internal.RoutingConverter;
-import org.ratpackframework.groovy.ScriptEngine;
+import org.ratpackframework.groovy.script.ScriptEngine;
 import org.ratpackframework.groovy.app.RoutingConfig;
 import org.ratpackframework.handler.Handler;
 import org.ratpackframework.http.HttpExchange;

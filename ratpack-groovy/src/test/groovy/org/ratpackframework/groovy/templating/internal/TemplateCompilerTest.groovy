@@ -4,7 +4,7 @@ import org.jboss.netty.buffer.ChannelBuffer
 import org.jboss.netty.buffer.ChannelBuffers
 import org.jboss.netty.util.CharsetUtil
 import org.ratpackframework.util.IoUtils
-import org.ratpackframework.groovy.ScriptEngine
+import org.ratpackframework.groovy.script.ScriptEngine
 import spock.lang.Specification
 
 class TemplateCompilerTest extends Specification {

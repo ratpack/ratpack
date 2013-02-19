@@ -20,7 +20,7 @@ import org.codehaus.groovy.control.CompilationFailedException;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.util.CharsetUtil;
-import org.ratpackframework.groovy.ScriptEngine;
+import org.ratpackframework.groovy.script.ScriptEngine;
 
 import java.io.IOException;
 import java.util.logging.Level;

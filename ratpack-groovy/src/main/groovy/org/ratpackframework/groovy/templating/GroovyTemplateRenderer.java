@@ -20,7 +20,7 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import org.codehaus.groovy.runtime.IOGroovyMethods;
 import org.jboss.netty.buffer.ChannelBuffer;
-import org.ratpackframework.groovy.ScriptEngine;
+import org.ratpackframework.groovy.script.ScriptEngine;
 import org.ratpackframework.groovy.templating.internal.*;
 import org.ratpackframework.handler.Result;
 import org.ratpackframework.handler.ResultHandler;
