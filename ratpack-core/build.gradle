@@ -1,6 +1,6 @@
-dependencies {
-  compile 'org.codehaus.groovy:groovy-all:2.1.0:indy'
+apply plugin: "java"
 
+dependencies {
   compile 'io.netty:netty:3.6.1.Final'
 
   compile 'com.google.guava:guava:13.0.1'
@@ -11,22 +11,6 @@ dependencies {
     exclude group: 'javax.servlet'
   }
 
-  testCompile 'cglib:cglib-nodep:2.2'
-  testCompile 'org.spockframework:spock-core:0.7-groovy-2.0', {
-    exclude module: "groovy-all"
-  }
-}
-
-// Workaround gradle bug with source and classifiers
-configurations {
-  groovySource
-}
-dependencies {
-  groovySource 'org.codehaus.groovy:groovy-all:2.1.0:sources', { transitive = false }
-}
-idea.module.iml.whenMerged {
-  def pathFactory = new org.gradle.plugins.ide.idea.model.PathFactory()
-  def groovyJarPath = pathFactory.path(configurations.compile.files.find { it.name.contains("groovy-all") })
-  def groovyLib = it.dependencies.find { it.classes.contains(groovyJarPath) }
-  groovyLib.sources << pathFactory.path(configurations.groovySource.singleFile)
+  testCompile commonDependencies.spock
+  testCompile project(":ratpack-test-support")
 }

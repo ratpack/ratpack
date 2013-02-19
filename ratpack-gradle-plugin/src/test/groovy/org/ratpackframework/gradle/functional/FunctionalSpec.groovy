@@ -23,6 +23,7 @@ import org.gradle.api.execution.TaskExecutionListener
 import org.gradle.api.tasks.TaskState
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
+import org.ratpackframework.gradle.RatpackGroovyPlugin
 import spock.lang.Specification
 import org.ratpackframework.gradle.RatpackPlugin
 import org.gradle.BuildResult
@@ -92,8 +93,8 @@ abstract class FunctionalSpec extends Specification {
   def setup() {
     file("settings.gradle") << "rootProject.name = 'test-app'"
     buildFile << """
-      ext.RatpackPlugin = project.class.classLoader.loadClass('${RatpackPlugin.name}')
-      apply plugin: RatpackPlugin
+      ext.RatpackGroovyPlugin = project.class.classLoader.loadClass('${RatpackGroovyPlugin.name}')
+      apply plugin: RatpackGroovyPlugin
       archivesBaseName = "functional-test"
       version = "1.0"
       repositories {

@@ -1,6 +1,8 @@
 package org.ratpackframework
 
-class ErrorHandlingSpec extends RatpackSpec {
+import org.ratpackframework.test.DefaultRatpackSpec
+
+class ErrorHandlingSpec extends DefaultRatpackSpec {
 
   def "handles 404"() {
     when:
@@ -12,31 +14,31 @@ class ErrorHandlingSpec extends RatpackSpec {
 
   def "handles internal error"() {
     given:
-    ratpackFile << """
+    routing {
       get("/") { throw new RuntimeException('error here') }
-    """
+    }
 
     when:
     startApp()
 
     then:
-    errorGetText().contains 'error here'
+    urlGetConnection().responseCode == 500
   }
 
   def "can use wrap error"() {
     given:
-    ratpackFile << """
+    routing {
       get("/") { request, response ->
         Thread.start {
           response.error(new Exception("bang!"))
         }
       }
-    """
+    }
 
     when:
     startApp()
 
     then:
-    errorGetText().contains 'bang!'
+    urlGetConnection().responseCode == 500
   }
 }

@@ -1,17 +1,19 @@
 package org.ratpackframework
 
+import org.ratpackframework.app.Request
 import org.ratpackframework.session.store.MapSessionStore
 import org.ratpackframework.session.store.MapSessionsModule
+import org.ratpackframework.test.DefaultRatpackSpec
 
-class SessionSpec extends RatpackSpec {
+class SessionSpec extends DefaultRatpackSpec {
 
   def "can use session"() {
     given:
-    ratpackFile << """
+    routing {
       get("/:v") {
         text it.session.getId()
       }
-    """
+    }
 
     when:
     startApp()
@@ -22,19 +24,19 @@ class SessionSpec extends RatpackSpec {
 
   def "can store session vars"() {
     given:
-    config.modules << new MapSessionsModule(10, 10)
+    modules << new MapSessionsModule(10, 10)
 
-    ratpackFile << """
+    routing {
       get("/") {
-        def store = service(${MapSessionStore.name}).get(it)
+        def store = service(MapSessionStore).get(it)
         text store.value
       }
       get("/set/:value") {
-        def store = service(${MapSessionStore.name}).get(it)
+        def store = service(MapSessionStore).get(it)
         store.value = it.urlParams.value
         text store.value
       }
-    """
+    }
 
     when:
     startApp()
@@ -48,26 +50,26 @@ class SessionSpec extends RatpackSpec {
 
   def "can invalidate session vars"() {
     given:
-    config.modules << new MapSessionsModule(10, 10)
+    modules << new MapSessionsModule(10, 10)
 
-    ratpackFile << """
+    routing {
       get("/") {
-        def store = service(${MapSessionStore.name}).get(it)
+        def store = service(MapSessionStore).get(it)
         text store.value
       }
       get("/set/:value") {
-        def store = service(${MapSessionStore.name}).get(it)
+        def store = service(MapSessionStore).get(it)
         store.value = it.urlParams.value
         text store.value
       }
-      get("/invalidate") {
-        it.session.terminate()
+      get("/invalidate") { Request request ->
+        request.session.terminate()
         end()
       }
       get("/size") {
-        text service(${MapSessionStore.name}).size()
+        text service(MapSessionStore).size()
       }
-    """
+    }
 
     when:
     startApp()

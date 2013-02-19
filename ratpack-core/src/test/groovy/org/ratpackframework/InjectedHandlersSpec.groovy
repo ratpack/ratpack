@@ -1,38 +1,43 @@
 package org.ratpackframework
 
 import com.google.inject.AbstractModule
-import org.ratpackframework.error.ErrorHandler
-import org.ratpackframework.internal.DefaultRequest
+import org.ratpackframework.app.Request
+import org.ratpackframework.app.Response
+import org.ratpackframework.app.internal.DefaultRequest
+import org.ratpackframework.handler.Handler
+import org.ratpackframework.templating.NullTemplateRenderer
+import org.ratpackframework.templating.TemplateRenderer
+import org.ratpackframework.test.DefaultRatpackSpec
 
 import javax.inject.Inject
 
-class InjectedHandlersSpec extends RatpackSpec {
+class InjectedHandlersSpec extends DefaultRatpackSpec {
 
   @javax.inject.Singleton
   static class InjectedHandler implements Handler<Response> {
-    ErrorHandler errorHandler
+    TemplateRenderer templateRenderer
 
-    @Inject InjectedHandler(ErrorHandler errorHandler) {
-      this.errorHandler = errorHandler
+    @Inject InjectedHandler(TemplateRenderer templateRenderer) {
+      this.templateRenderer = templateRenderer
     }
 
     @Override
     void handle(Response response) {
-      response.text(errorHandler.class.name)
+      response.text(templateRenderer.class.name)
     }
   }
 
   def "can use injected handlers"() {
     given:
-    ratpackFile << """
-      get("/", ${InjectedHandler.name})
-    """
+    routing {
+      get("/", InjectedHandler)
+    }
 
     when:
     startApp()
 
     then:
-    urlGetText("") == ErrorHandler.name
+    urlGetText("") == NullTemplateRenderer.name
   }
 
   static class InjectedRequestHandler implements Handler<Response> {
@@ -46,9 +51,9 @@ class InjectedHandlersSpec extends RatpackSpec {
 
   def "can inject request"() {
     given:
-    ratpackFile << """
-      get("/", ${InjectedRequestHandler.name})
-    """
+    routing {
+      get("/", InjectedRequestHandler)
+    }
 
     when:
     startApp()
@@ -63,7 +68,7 @@ class InjectedHandlersSpec extends RatpackSpec {
 
   def "can obtain request scoped services in closures"() {
     given:
-    config.modules << new AbstractModule() {
+    modules << new AbstractModule() {
       @Override
       protected void configure() {
         bind(RequestService)
@@ -71,11 +76,11 @@ class InjectedHandlersSpec extends RatpackSpec {
     }
 
     and:
-    ratpackFile << """
+    routing {
       get("/") {
-        text service(${RequestService.name}).request.class.name
+        text service(RequestService).request.class.name
       }
-    """
+    }
 
     when:
     startApp()

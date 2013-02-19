@@ -16,12 +16,14 @@
 
 package org.ratpackframework
 
-class StaticFileSpec extends RatpackSpec {
+import org.ratpackframework.test.DefaultRatpackSpec
+
+class StaticFileSpec extends DefaultRatpackSpec {
 
   def "root listing disabled"() {
     given:
-    publicFile("static.text") << "hello!"
-    publicFile("foo/static.text") << "hello!"
+    assetFile("static.text") << "hello!"
+    assetFile("foo/static.text") << "hello!"
 
     when:
     startApp()
@@ -34,7 +36,7 @@ class StaticFileSpec extends RatpackSpec {
 
   def "can serve static file"() {
     given:
-    publicFile("static.text") << "hello!"
+    assetFile("static.text") << "hello!"
 
     when:
     startApp()
@@ -45,10 +47,10 @@ class StaticFileSpec extends RatpackSpec {
 
   def "handlers override static files"() {
     given:
-    publicFile("static.text") << "hello!"
-    ratpackFile << """
+    assetFile("static.text") << "hello!"
+    routing {
       get("/") { text "foo" }
-    """
+    }
 
     when:
     startApp()
@@ -58,9 +60,10 @@ class StaticFileSpec extends RatpackSpec {
     urlGetText() == "foo"
 
     when:
-    ratpackFile << """
+    routing {
       get("/static.text") { text "bar" }
-    """
+    }
+    restartApp()
 
     then:
     urlGetText("static.text") == "bar"
@@ -68,9 +71,9 @@ class StaticFileSpec extends RatpackSpec {
 
   def "can serve index files"() {
     given:
-    config.staticAssets.indexFiles << "index.xhtml"
-    publicFile("index.html") << "foo"
-    publicFile("dir/index.xhtml") << "bar"
+    staticAssets.indexFiles << "index.xhtml"
+    assetFile("index.html") << "foo"
+    assetFile("dir/index.xhtml") << "bar"
 
     when:
     startApp()
@@ -83,7 +86,7 @@ class StaticFileSpec extends RatpackSpec {
 
   def "can serve files with query strings"() {
     given:
-    publicFile("index.html") << "foo"
+    assetFile("index.html") << "foo"
 
     when:
     startApp()

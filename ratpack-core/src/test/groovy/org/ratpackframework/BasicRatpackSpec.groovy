@@ -16,18 +16,20 @@
 
 package org.ratpackframework
 
-class BasicRatpackSpec extends RatpackSpec {
+import org.ratpackframework.test.DefaultRatpackSpec
+
+class BasicRatpackSpec extends DefaultRatpackSpec {
 
   def "can register route"() {
     given:
-    ratpackFile << """
+    routing {
       get("/") {
         text "get"
       }
       post("/") {
         text "post"
       }
-    """
+    }
 
     when:
     startApp()
@@ -35,89 +37,6 @@ class BasicRatpackSpec extends RatpackSpec {
     then:
     urlGetText() == "get"
     urlPostText() == "post"
-  }
-
-  def "is reloadable"() {
-    given:
-    ratpackFile << """
-      get("/") {
-        text "foo"
-      }
-    """
-
-    when:
-    startApp()
-
-    then:
-    urlGetText() == "foo"
-
-    when:
-    ratpackFile.text = """
-      get("/") {
-        text "bar"
-      }
-    """
-
-    then:
-    urlGetText() == "bar"
-  }
-
-  def "can disable reloading"() {
-    given:
-    config.routing.reloadable = false
-    ratpackFile << """
-      get("/") {
-        text "foo"
-      }
-    """
-
-    when:
-    startApp()
-
-    then:
-    urlGetText() == "foo"
-
-    when:
-    ratpackFile.text = """
-      get("/") {
-        text "bar"
-      }
-    """
-
-    then:
-    urlGetText() == "foo"
-  }
-
-  def "app does not start when routes is invalid and reloading disabled"() {
-    given:
-    config.routing.reloadable = false
-    ratpackFile << """
-      s s da
-    """
-
-    when:
-    startApp()
-
-    then:
-    thrown(Exception)
-  }
-
-  def "can redirect"() {
-    given:
-    ratpackFile << """
-      get("/") {
-        redirect "/foo"
-      }
-      get("/foo") {
-        text "foo"
-      }
-    """
-
-    when:
-    startApp()
-
-    then:
-    urlGetText('') == "foo"
   }
 
 }

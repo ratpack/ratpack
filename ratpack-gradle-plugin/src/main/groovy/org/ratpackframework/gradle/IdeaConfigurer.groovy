@@ -8,12 +8,9 @@ import org.gradle.process.JavaExecSpec
 
 class IdeaConfigurer implements Action<Project> {
 
-  private final RatpackAppSpec ratpackApp
-
   private JavaExecSpec runSpec
 
-  IdeaConfigurer(RatpackAppSpec ratpackApp, JavaExecSpec runSpec) {
-    this.ratpackApp = ratpackApp
+  IdeaConfigurer(JavaExecSpec runSpec) {
     this.runSpec = runSpec
   }
 
@@ -22,7 +19,7 @@ class IdeaConfigurer implements Action<Project> {
     def ideaModule = project.extensions.getByType(IdeaModel).module
     def ideaWorkspace = project.rootProject.extensions.getByType(IdeaModel).workspace
 
-    ideaModule.scopes.RUNTIME.plus += ratpackApp.springloadedClasspath
+//    ideaModule.scopes.RUNTIME.plus += ratpackApp.springloadedClasspath
     ideaWorkspace.iws.withXml { XmlProvider provider ->
       Node node = provider.asNode()
 
@@ -48,10 +45,10 @@ class IdeaConfigurer implements Action<Project> {
       runManagerConfig.append(new XmlParser().parseText("""
             <configuration default="false" name="Ratpack Run (${ideaModule.name})" type="Application" factoryName="Application">
               <extension name="coverage" enabled="false" merge="false" />
-              <option name="MAIN_CLASS_NAME" value="${ratpackApp.mainClassName}" />
+              <option name="MAIN_CLASS_NAME" value="${runSpec.main}" />
               <option name="VM_PARAMETERS" value="${jvmArgs.collect { "&quot;$it&quot;" }.join(" ")}"  />
               <option name="PROGRAM_PARAMETERS" value="" />
-              <option name="WORKING_DIRECTORY" value="${ratpackApp.appRootRelativePath}" />
+              <option name="WORKING_DIRECTORY" value="${runSpec.workingDir.absolutePath}" />
               <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
               <option name="ALTERNATIVE_JRE_PATH" value="" />
               <option name="ENABLE_SWING_INSPECTOR" value="false" />

@@ -1,10 +1,12 @@
 package org.ratpackframework
 
-class CookiesSpec extends RatpackSpec {
+import org.ratpackframework.test.DefaultRatpackSpec
+
+class CookiesSpec extends DefaultRatpackSpec {
 
   def "can get and set cookies"() {
     given:
-    ratpackFile << """
+    routing {
       get("/get/:name") {
         text request.oneCookie(request.urlParams.name)
       }
@@ -18,7 +20,7 @@ class CookiesSpec extends RatpackSpec {
         expireCookie(it.urlParams.name)
         end()
       }
-    """
+    }
 
     when:
     startApp()

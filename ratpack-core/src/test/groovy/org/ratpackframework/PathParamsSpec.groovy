@@ -16,15 +16,17 @@
 
 package org.ratpackframework
 
-class PathParamsSpec extends RatpackSpec {
+import org.ratpackframework.test.DefaultRatpackSpec
+
+class PathParamsSpec extends DefaultRatpackSpec {
 
   def "can parse url params"() {
     given:
-    ratpackFile << """
+    routing {
       get("/:a/:b/:c") {
         text getRequest().urlParams.toString()
       }
-    """
+    }
 
     when:
     startApp()

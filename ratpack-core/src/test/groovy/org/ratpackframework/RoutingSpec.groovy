@@ -16,11 +16,13 @@
 
 package org.ratpackframework
 
-class RoutingSpec extends RatpackSpec {
+import org.ratpackframework.test.DefaultRatpackSpec
+
+class RoutingSpec extends DefaultRatpackSpec {
 
   def "can route all"() {
     given:
-    ratpackFile << """
+    routing {
       all("/a") {
         text it.method
       }
@@ -28,7 +30,7 @@ class RoutingSpec extends RatpackSpec {
       register("*", "/b") {
         text it.method
       }
-    """
+    }
 
     when:
     startApp()
@@ -39,7 +41,5 @@ class RoutingSpec extends RatpackSpec {
     urlGetText("b") == "GET"
     urlPostText("b") == "POST"
   }
-
-
 
 }

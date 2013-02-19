@@ -22,39 +22,25 @@ package org.ratpackframework.gradle
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.plugins.GroovyPlugin
 import org.gradle.api.plugins.ApplicationPlugin
+import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.tasks.JavaExec
 import org.gradle.plugins.ide.idea.IdeaPlugin
 
 class RatpackPlugin implements Plugin<Project> {
 
   void apply(Project project) {
-    def version = getClass().classLoader.getResource("org/ratpackframework/ratpack-version.txt").text.trim()
-
-    project.plugins.apply(GroovyPlugin)
+    project.plugins.apply(JavaPlugin)
     project.plugins.apply(ApplicationPlugin)
 
-    project.repositories {
-      mavenCentral()
-    }
+    project.configurations { springloaded }
 
-    project.configurations {
-      springloaded
-    }
+    def ratpackApp = new SpringloadedUtil(project.configurations['springloaded'])
 
-    def ratpackApp = new RatpackAppSpec(
-        project,
-        project.file("src/ratpack"),
-        project.configurations['compile'],
-        project.configurations['runtime'],
-        project.configurations['springloaded']
-    )
-
-    project.mainClassName = ratpackApp.mainClassName
+    def ratpackDependencies = new RatpackDependencies(project.dependencies)
 
     project.dependencies {
-      compile "org.ratpack-framework.netty:ratpack-core:${version}"
+      compile ratpackDependencies.core
     }
 
     def configureRun = project.task("configureRun")
@@ -67,16 +53,16 @@ class RatpackPlugin implements Plugin<Project> {
 
     JavaExec run = project.run {
       dependsOn configureRun
-      main = ratpackApp.mainClassName
       workingDir = project.file("src/ratpack")
     }
 
     project.installApp {
-      from ratpackApp.appRoot
+      from run.workingDir
     }
 
     project.plugins.withType(IdeaPlugin) {
-      new IdeaConfigurer(ratpackApp, run).execute(project)
+      project.idea.dependsOn(configureRun)
+      new IdeaConfigurer(run).execute(project)
     }
   }
 

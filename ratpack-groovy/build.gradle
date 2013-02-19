@@ -1,0 +1,7 @@
+apply plugin: "groovy"
+
+dependencies {
+  compile commonDependencies.groovy
+  compile project(":ratpack-core")
+  testCompile project(":ratpack-test-support")
+}
