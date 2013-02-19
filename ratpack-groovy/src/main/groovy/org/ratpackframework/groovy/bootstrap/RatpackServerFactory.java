@@ -23,8 +23,7 @@ public class RatpackServerFactory {
     AddressConfig addressConfig = config.getDeployment();
 
     org.ratpackframework.bootstrap.RatpackServerFactory ratpackServerFactory = new org.ratpackframework.bootstrap.RatpackServerFactory(
-        config.getBaseDir(), addressConfig.getPort(),
-        addressConfig.getBindHost(), addressConfig.getPublicHost()
+        config.getBaseDir(), addressConfig
     );
 
     StaticAssetsModule staticAssetsModule = new StaticAssetsModule(config.getStaticAssets());

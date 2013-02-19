@@ -24,6 +24,7 @@ import org.ratpackframework.app.Routing;
 import org.ratpackframework.app.internal.AppRoutingModule;
 import org.ratpackframework.assets.StaticAssetsConfig;
 import org.ratpackframework.assets.StaticAssetsModule;
+import org.ratpackframework.config.AddressConfig;
 import org.ratpackframework.handler.Handler;
 import org.ratpackframework.session.SessionModule;
 
@@ -38,6 +39,10 @@ public class RatpackServerFactory {
   private final int bindPort;
   private final String bindHost;
   private final String publicHost;
+
+  public RatpackServerFactory(File baseDir, AddressConfig addressConfig) {
+    this(baseDir, addressConfig.getPort(), addressConfig.getBindHost(), addressConfig.getPublicHost());
+  }
 
   public RatpackServerFactory(File baseDir, int bindPort, String bindHost, String publicHost) {
     this.baseDir = baseDir;
