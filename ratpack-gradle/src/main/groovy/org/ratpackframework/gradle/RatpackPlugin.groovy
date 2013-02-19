@@ -61,7 +61,7 @@ class RatpackPlugin implements Plugin<Project> {
     }
 
     project.plugins.withType(IdeaPlugin) {
-      project.idea.dependsOn(configureRun)
+      project.rootProject.ideaWorkspace.dependsOn(configureRun)
       new IdeaConfigurer(run).execute(project)
     }
   }

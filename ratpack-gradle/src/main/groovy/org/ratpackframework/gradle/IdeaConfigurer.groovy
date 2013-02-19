@@ -36,12 +36,6 @@ class IdeaConfigurer implements Action<Project> {
         jvmArgs.remove(cpArg) // associated value
       }
 
-      for (arg in ratpackApp.springloadedJvmArgs) {
-        if (!jvmArgs.contains(arg)) {
-          jvmArgs.add(arg)
-        }
-      }
-
       runManagerConfig.append(new XmlParser().parseText("""
             <configuration default="false" name="Ratpack Run (${ideaModule.name})" type="Application" factoryName="Application">
               <extension name="coverage" enabled="false" merge="false" />

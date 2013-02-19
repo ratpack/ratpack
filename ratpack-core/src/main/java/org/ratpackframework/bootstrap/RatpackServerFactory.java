@@ -58,15 +58,15 @@ public class RatpackServerFactory {
     return create(AppRoutingModule.create(appHandler), staticAssetsConfig, modules);
   }
 
-  public RatpackServer create(Class<Handler<Routing>> appHandler, Module... modules) {
+  public RatpackServer create(Class<? extends Handler<Routing>> appHandler, Module... modules) {
     return create(AppRoutingModule.create(appHandler), null, modules);
   }
 
-  public RatpackServer create(Class<Handler<Routing>> appHandler, File staticAssetsDir, Module... modules) {
+  public RatpackServer create(Class<? extends Handler<Routing>> appHandler, File staticAssetsDir, Module... modules) {
     return create(AppRoutingModule.create(appHandler), new StaticAssetsConfig(staticAssetsDir), modules);
   }
 
-  public RatpackServer create(Class<Handler<Routing>> appHandler, StaticAssetsConfig staticAssetsConfig, Module... modules) {
+  public RatpackServer create(Class<? extends Handler<Routing>> appHandler, StaticAssetsConfig staticAssetsConfig, Module... modules) {
     return create(AppRoutingModule.create(appHandler), staticAssetsConfig, modules);
   }
 

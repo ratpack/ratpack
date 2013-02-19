@@ -21,7 +21,7 @@ public class AppRoutingModule extends AbstractModule {
 
   private final Handler<LinkedBindingBuilder<Handler<Routing>>> routingHandlerBindingHandler;
 
-  public static AppRoutingModule create(final Class<Handler<Routing>> routingHandlerClass) {
+  public static AppRoutingModule create(final Class<? extends Handler<Routing>> routingHandlerClass) {
     return new AppRoutingModule(new Handler<LinkedBindingBuilder<Handler<Routing>>>() {
       public void handle(LinkedBindingBuilder<Handler<Routing>> bindingBuilder) {
         bindingBuilder.to(routingHandlerClass);
