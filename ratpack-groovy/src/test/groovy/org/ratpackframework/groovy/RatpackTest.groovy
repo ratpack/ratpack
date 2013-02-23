@@ -1,9 +1,8 @@
 package org.ratpackframework.groovy
 
 import org.ratpackframework.bootstrap.RatpackServer
-import org.ratpackframework.test.RatpackSpec
 
-class RatpackTest extends RatpackSpec {
+class RatpackTest extends RatpackGroovySpec {
 
   def scriptClosure = {}
 
@@ -13,12 +12,13 @@ class RatpackTest extends RatpackSpec {
 
   def "can use static method"() {
     given:
-    file("templates/template.html") << "foo"
     script {
-      routing {
-        get("/") { render "template.html" }
-      }
+      deployment.port = 0
     }
+    templateFile("template.html") << "foo"
+    ratpackFile << """
+      get("/") { render "template.html" }
+    """
 
     when:
     startApp()

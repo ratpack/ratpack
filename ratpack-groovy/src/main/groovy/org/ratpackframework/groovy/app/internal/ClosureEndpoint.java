@@ -17,21 +17,22 @@
 package org.ratpackframework.groovy.app.internal;
 
 import groovy.lang.Closure;
+import org.ratpackframework.app.Endpoint;
+import org.ratpackframework.app.Request;
 import org.ratpackframework.app.Response;
-import org.ratpackframework.handler.Handler;
 
-public class ClosureBackedResponseHandler implements Handler<Response> {
+public class ClosureEndpoint implements Endpoint {
 
   private final Closure<?> closure;
   private int maximumNumberOfParameters;
 
-  public ClosureBackedResponseHandler(Closure<?> closure) {
+  public ClosureEndpoint(Closure<?> closure) {
     this.closure = closure;
     this.maximumNumberOfParameters = closure.getMaximumNumberOfParameters();
   }
 
   @Override
-  public void handle(Response response) {
+  public void respond(Request request, Response response) {
     Closure<?> clone = (Closure<?>) closure.clone();
     clone.setDelegate(response);
     clone.setResolveStrategy(Closure.DELEGATE_FIRST);
@@ -42,10 +43,10 @@ public class ClosureBackedResponseHandler implements Handler<Response> {
         clone.call();
         break;
       case 1:
-        clone.call(response.getRequest());
+        clone.call(request);
         break;
       default:
-        clone.call(response.getRequest(), response);
+        clone.call(request, response);
     }
   }
 }

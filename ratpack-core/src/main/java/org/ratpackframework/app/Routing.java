@@ -16,14 +16,26 @@
 
 package org.ratpackframework.app;
 
-
-import org.ratpackframework.handler.Handler;
-
 public interface Routing {
 
   String ALL_METHODS = "*";
 
+  /**
+   * Retrieves the specified service from the services registered at startup.
+   *
+   * @param type The type of the service.
+   * @param <T> The type of the service.
+   * @return The service instance.
+   */
   <T> T service(Class<T> type);
+
+  /**
+   * Create an endpoint that delegates to an injected instance of the given type each request.
+   *
+   * @param endpointType The type of the endpoint to delegate to.
+   * @return An endpoint that can be passed to one of the registration methods.
+   */
+  Endpoint inject(Class<? extends Endpoint> endpointType);
 
   /**
    * Adds a route, for the given method at the given path, to be handled by the given handler.
@@ -31,70 +43,70 @@ public interface Routing {
    * You can specify {@value #ALL_METHODS} for the method to match all methods.
    *
    * @param method The HTTP method the handler is for
-   * @param path The path to handle (must start with a /)
-   * @param handler The handler for the request
+   * @param path The path to handle
+   * @param endpoint The endpoint for the request
    */
-  void register(String method, String path, Handler<Response> handler);
+  void route(String method, String path, Endpoint endpoint);
 
   /**
-   * Creates an instance of the given type, through the dependency injection mechanism.
+   * Adds a route, for the given method at the given path, to be handled by the given handler.
    *
-   * The created instance is then passed to {@link #register(String, String, Handler)}.
+   * You can specify {@value #ALL_METHODS} for the method to match all methods.
    *
    * @param method The HTTP method the handler is for
-   * @param path The path to handle (must start with a /)
-   * @param handlerType The type of the handler to be created with dependency injection.
+   * @param regex The regex pattern 
+   * @param endpoint The endpoint for the request
    */
-  void register(String method, String path, Class<? extends Handler<Response>> handlerType);
+  void routeRe(String method, String regex, Endpoint endpoint);
 
   /**
-   * Delegates {@link #register(java.lang.String, java.lang.String, Handler)} with a method of "*"
+   * Delegates {@link #route(String, String, Endpoint)} with a method of "*"
    */
-  void all(String path, Handler<Response> handler);
+  void all(String path, Endpoint endpoint);
 
   /**
-   * Delegates {@link #register(java.lang.String, java.lang.String, Class)} with a method of "*"
+   * Delegates {@link #routeRe(String, String, Endpoint)} with a method of "*"
    */
-  void all(String path, Class<? extends Handler<Response>> handlerType);
+  void allRe(String path, Endpoint endpoint);
 
   /**
-   * Delegates {@link #register(java.lang.String, java.lang.String, Handler)} with a method of "get"
+   * Delegates {@link #route(String, String, Endpoint)} with a method of "get"
    */
-  void get(String path, Handler<Response> handler);
+  void get(String path, Endpoint endpoint);
 
   /**
-   * Delegates {@link #register(java.lang.String, java.lang.String, Class)} with a method of "get"
+   * Delegates {@link #routeRe(String, String, Endpoint)} with a method of "get"
    */
-  void get(String path, Class<? extends Handler<Response>> handlerType);
+  void getRe(String pattern, Endpoint endpoint);
 
   /**
-   * Delegates {@link #register(java.lang.String, java.lang.String, Handler)} with a method of "post"
+   * Delegates {@link #route(String, String, Endpoint)} with a method of "post"
    */
-  void post(String path, Handler<Response> handler);
+  void post(String path, Endpoint endpoint);
 
   /**
-   * Delegates {@link #register(java.lang.String, java.lang.String, Class)} with a method of "post"
+   * Delegates {@link #routeRe(String, String, Endpoint)} with a method of "post"
    */
-  void post(String path, Class<? extends Handler<Response>> handlerType);
+  void postRe(String pattern, Endpoint endpoint);
 
   /**
-   * Delegates {@link #register(java.lang.String, java.lang.String, Handler)} with a method of "put"
+   * Delegates {@link #route(String, String, Endpoint)} with a method of "put"
    */
-  void put(String path, Handler<Response> handler);
+  void put(String path, Endpoint endpoint);
 
   /**
-   * Delegates {@link #register(java.lang.String, java.lang.String, Class)} with a method of "put"
+   * Delegates {@link #routeRe(String, String, Endpoint)} with a method of "put"
    */
-  void put(String path, Class<? extends Handler<Response>> handlerType);
+  void putRe(String pattern, Endpoint endpoint);
 
   /**
-   * Delegates {@link #register(java.lang.String, java.lang.String, Handler)} with a method of "delete"
+   * Delegates {@link #route(String, String, Endpoint)} with a method of "delete"
    */
-  void delete(String path, Handler<Response> handler);
+  void delete(String path, Endpoint endpoint);
 
   /**
-   * Delegates {@link #register(java.lang.String, java.lang.String, Class)} with a method of "delete"
+   * Delegates {@link #routeRe(String, String, Endpoint)} with a method of "delete"
    */
-  void delete(String path, Class<? extends Handler<Response>> handlerType);
+  void deleteRe(String pattern, Endpoint endpoint);
 
 }

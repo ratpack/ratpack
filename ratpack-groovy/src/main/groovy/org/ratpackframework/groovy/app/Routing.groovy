@@ -27,50 +27,77 @@ public interface Routing extends org.ratpackframework.app.Routing {
   Routing getRouting()
 
   /**
-   * Adds a route, for the given method at the given path, to be handled by the given handler.
+   * Adds a route, for the given method at the given path, to be handled by the given endpoint.
    *
-   * The handler receives one parameter, the {@link org.ratpackframework.app.Request}.
+   * The endpoint receives one parameter, the {@link org.ratpackframework.app.Request}.
    * <p>
    * The {@code path} must always start with a {@code /}.
    * <p>
    * The path may contain tokens, which are prefixed with a colon.
    * <pre>
-   * register("get", "/:a") { Request request ->
+   * route("get", "/:a") { Request request ->
    *    text "path = request.urlParams.a"
    * }
    * </pre>
    * <p>
    * You can specify "*" for the method to match all methods.
    *
-   * @param method The HTTP method the handler is for
+   * @param method The HTTP method the endpoint is for
    * @param path The path to handle (must start with a /)
    * @param handler The closure to handle the request
    */
-  void register(String method, String path, @HandlerClosure Closure<?> handler)
+  void route(String method, String path, @HandlerClosure Closure<?> handler)
+
+  void routeRe(String method, String pattern, @HandlerClosure Closure<?> handler)
 
   /**
-   * Delegates {@link #register(java.lang.String, java.lang.String, groovy.lang.Closure)} with a method of "*"
+   * Delegates {@link #route(java.lang.String, java.lang.String, groovy.lang.Closure)} with a method of "*"
    */
   void all(String path, @HandlerClosure Closure<?> handler)
 
   /**
-   * Delegates {@link #register(java.lang.String, java.lang.String, groovy.lang.Closure)} with a method of "get"
+   * Delegates {@link #routeRe(java.lang.String, java.lang.String, groovy.lang.Closure)} with a method of "*"
+   */
+  void allRe(String path, @HandlerClosure Closure<?> handler)
+
+  /**
+   * Delegates {@link #route(java.lang.String, java.lang.String, groovy.lang.Closure)} with a method of "get"
    */
   void get(String path, @HandlerClosure Closure<?> handler)
 
   /**
-   * Delegates {@link #register(java.lang.String, java.lang.String, groovy.lang.Closure)} with a method of "post"
+   * Delegates {@link #routeRe(java.lang.String, java.lang.String, groovy.lang.Closure)} with a method of "get"
+   */
+  void getRe(String path, @HandlerClosure Closure<?> handler)
+
+  /**
+   * Delegates {@link #route(java.lang.String, java.lang.String, groovy.lang.Closure)} with a method of "post"
    */
   void post(String path, @HandlerClosure Closure<?> handler)
 
   /**
-   * Delegates {@link #register(java.lang.String, java.lang.String, groovy.lang.Closure)} with a method of "put"
+   * Delegates {@link #routeRe(java.lang.String, java.lang.String, groovy.lang.Closure)} with a method of "post"
+   */
+  void postRe(String path, @HandlerClosure Closure<?> handler)
+
+  /**
+   * Delegates {@link #route(java.lang.String, java.lang.String, groovy.lang.Closure)} with a method of "put"
    */
   void put(String path, @HandlerClosure Closure<?> handler)
 
   /**
-   * Delegates {@link #register(java.lang.String, java.lang.String, groovy.lang.Closure)} with a method of "delete"
+   * Delegates {@link #routeRe(java.lang.String, java.lang.String, groovy.lang.Closure)} with a method of "put"
+   */
+  void putRe(String path, @HandlerClosure Closure<?> handler)
+
+  /**
+   * Delegates {@link #route(java.lang.String, java.lang.String, groovy.lang.Closure)} with a method of "delete"
    */
   void delete(String path, @HandlerClosure Closure<?> handler)
+
+  /**
+   * Delegates {@link #routeRe(java.lang.String, java.lang.String, groovy.lang.Closure)} with a method of "delete"
+   */
+  void deleteRe(String path, @HandlerClosure Closure<?> handler)
 
 }

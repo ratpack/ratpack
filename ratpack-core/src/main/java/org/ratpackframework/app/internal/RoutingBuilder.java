@@ -17,11 +17,14 @@
 package org.ratpackframework.app.internal;
 
 import com.google.inject.Injector;
-import org.ratpackframework.handler.Handler;
-import org.ratpackframework.app.Response;
+import org.jboss.netty.handler.codec.http.HttpMethod;
+import org.ratpackframework.app.Endpoint;
 import org.ratpackframework.app.Routing;
+import org.ratpackframework.app.internal.binding.PathBinding;
+import org.ratpackframework.app.internal.binding.PatternPathBinding;
+import org.ratpackframework.app.internal.binding.TokenPathBinding;
+import org.ratpackframework.handler.Handler;
 import org.ratpackframework.http.HttpExchange;
-import org.ratpackframework.handler.InjectingHandler;
 import org.ratpackframework.routing.Routed;
 
 import java.util.List;
@@ -46,64 +49,84 @@ public class RoutingBuilder implements Routing {
   }
 
   @Override
-  public void register(String method, String path, Handler<Response> handler) {
-    Handler<Response> responseHandler = new ErrorHandlingResponseHandler(new RequestScopeHandler(requestScope, handler));
-    Handler<Routed<HttpExchange>> pathRouter = new PathRouter(path, method, responseFactory, responseHandler);
+  public Endpoint inject(Class<? extends Endpoint> endpointType) {
+    if (Endpoint.class.isAssignableFrom(endpointType)) {
+      return new InjectingEndpoint(endpointType, injector);
+    } else {
+      throw new IllegalArgumentException(endpointType.getName() + " does not implement " + Endpoint.class.getName());
+    }
+  }
+
+  private void register(String method, PathBinding pathBinding, Endpoint endpoint) {
+    Endpoint responseHandler = new ErrorHandlingEndpointDecorator(new RequestScopeEndpointDecorator(requestScope, endpoint));
+    String[] methods;
+    if (method.equals(ALL_METHODS)) {
+      methods = new String[0];
+    } else {
+      methods = new String[]{method};
+    }
+    Handler<Routed<HttpExchange>> pathRouter = new RoutingAdapter(pathBinding, responseFactory, responseHandler, methods);
     routers.add(pathRouter);
   }
 
   @Override
-  public void register(String method, String path, final Class<? extends Handler<Response>> handlerType) {
-    register(method, path, new InjectingHandler<>(handlerType, injector));
+  public void route(String method, String path, Endpoint endpoint) {
+    register(method, new TokenPathBinding(path), endpoint);
   }
 
   @Override
-  public void all(String path, Handler<Response> handler) {
-    register(Routing.ALL_METHODS, path, handler);
+  public void routeRe(String method, String regex, Endpoint endpoint) {
+    register(method, new PatternPathBinding(regex), endpoint);
   }
 
   @Override
-  public void all(String path, Class<? extends Handler<Response>> handlerType) {
-    register(Routing.ALL_METHODS, path, handlerType);
+  public void all(String path, Endpoint endpoint) {
+    route(Routing.ALL_METHODS, path, endpoint);
   }
 
   @Override
-  public void get(String path, Handler<Response> handler) {
-    register("get", path, handler);
+  public void allRe(String path, Endpoint endpoint) {
+    route(Routing.ALL_METHODS, path, endpoint);
   }
 
   @Override
-  public void get(String path, Class<? extends Handler<Response>> handlerType) {
-    register("get", path, handlerType);
+  public void get(String path, Endpoint endpoint) {
+    route(HttpMethod.GET.getName(), path, endpoint);
   }
 
   @Override
-  public void post(String path, Handler<Response> handler) {
-    register("post", path, handler);
+  public void getRe(String pattern, Endpoint endpoint) {
+    routeRe(HttpMethod.GET.getName(), pattern, endpoint);
   }
 
   @Override
-  public void post(String path, Class<? extends Handler<Response>> handlerType) {
-    register("post", path, handlerType);
+  public void post(String path, Endpoint endpoint) {
+    route(HttpMethod.POST.getName(), path, endpoint);
   }
 
   @Override
-  public void put(String path, Handler<Response> handler) {
-    register("put", path, handler);
+  public void postRe(String pattern, Endpoint endpoint) {
+    routeRe(HttpMethod.POST.getName(), pattern, endpoint);
   }
 
   @Override
-  public void put(String path, Class<? extends Handler<Response>> handlerType) {
-    register("put", path, handlerType);
+  public void put(String path, Endpoint endpoint) {
+    route(HttpMethod.PUT.getName(), path, endpoint);
   }
 
   @Override
-  public void delete(String path, Handler<Response> handler) {
-    register("delete", path, handler);
+  public void putRe(String pattern, Endpoint endpoint) {
+    routeRe(HttpMethod.PUT.getName(), pattern, endpoint);
   }
 
   @Override
-  public void delete(String path, Class<? extends Handler<Response>> handlerType) {
-    register("delete", path, handlerType);
+  public void delete(String path, Endpoint endpoint) {
+    route(HttpMethod.DELETE.getName(), path, endpoint);
   }
+
+  @Override
+  public void deleteRe(String pattern, Endpoint endpoint) {
+    routeRe(HttpMethod.DELETE.getName(), pattern, endpoint);
+  }
+
 }

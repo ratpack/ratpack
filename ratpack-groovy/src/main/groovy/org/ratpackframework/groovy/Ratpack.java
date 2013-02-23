@@ -1,99 +1,87 @@
 package org.ratpackframework.groovy;
 
 import com.google.inject.Module;
-import com.google.inject.util.Modules;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.ratpackframework.assets.StaticAssetsConfig;
-import org.ratpackframework.assets.StaticAssetsModule;
 import org.ratpackframework.bootstrap.RatpackServer;
-import org.ratpackframework.bootstrap.RatpackServerFactory;
 import org.ratpackframework.config.AddressConfig;
-import org.ratpackframework.groovy.app.ClosureRouting;
-import org.ratpackframework.groovy.app.Routing;
+import org.ratpackframework.groovy.app.RoutingConfig;
+import org.ratpackframework.groovy.bootstrap.RatpackServerFactory;
+import org.ratpackframework.groovy.config.Config;
+import org.ratpackframework.groovy.config.internal.DefaultConfig;
 import org.ratpackframework.groovy.templating.TemplatingConfig;
-import org.ratpackframework.groovy.templating.TemplatingModule;
 import org.ratpackframework.session.SessionCookieConfig;
-import org.ratpackframework.session.SessionModule;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
-public class Ratpack {
+public class Ratpack implements Config {
 
-  private final StaticAssetsConfig staticAssetsConfig;
-  private final TemplatingConfig templatingConfig;
-  private final AddressConfig addressConfig;
-  private final SessionCookieConfig sessionCookieConfig;
-
-  private File baseDir;
-  private Closure<?> routing;
-  private List<Module> modules = new ArrayList<>();
+  private final File baseDir;
+  private final DefaultConfig config;
 
   public Ratpack(File baseDir) {
     this.baseDir = baseDir;
-    staticAssetsConfig = new StaticAssetsConfig(new File(baseDir, "public"));
-    templatingConfig = new TemplatingConfig(new File(baseDir, "templates"));
-    addressConfig = new AddressConfig();
-    sessionCookieConfig = new SessionCookieConfig();
+    this.config = new DefaultConfig(baseDir);
+  }
+
+  public static RatpackServer ratpack() {
+    return ratpack((Closure<?>) null);
   }
 
   public static RatpackServer ratpack(@DelegatesTo(Ratpack.class) Closure<?> closure) {
     return ratpack(new File(System.getProperty("user.dir")), closure);
   }
 
+  public static RatpackServer ratpack(File baseDir) {
+    return ratpack(baseDir, null);
+  }
+
   public static RatpackServer ratpack(File baseDir, @DelegatesTo(Ratpack.class) Closure<?> closure) {
     Ratpack ratpack = new Ratpack(baseDir);
-    Closure<?> clone = (Closure<?>) closure.clone();
-    clone.setDelegate(ratpack);
-    clone.call();
-    RatpackServer server = ratpack.server();
+    if (closure != null) {
+      Closure<?> clone = (Closure<?>) closure.clone();
+      clone.setDelegate(ratpack);
+      clone.call();
+    }
+    RatpackServer server = new RatpackServerFactory().create(ratpack);
     server.startAndWait();
     return server;
-  }
-
-  public StaticAssetsConfig getStaticAssets() {
-    return staticAssetsConfig;
-  }
-
-  public TemplatingConfig getTemplating() {
-    return templatingConfig;
-  }
-
-  public AddressConfig getAddress() {
-    return addressConfig;
-  }
-
-  public SessionCookieConfig getSessionCookie() {
-    return sessionCookieConfig;
   }
 
   public File getBaseDir() {
     return baseDir;
   }
 
-  public void setBaseDir(File baseDir) {
-    this.baseDir = baseDir;
+  @Override
+  public AddressConfig getDeployment() {
+    return config.getDeployment();
   }
 
-  public void routing(@DelegatesTo(Routing.class) Closure<?> routing) {
-    this.routing = routing;
+  @Override
+  public StaticAssetsConfig getStaticAssets() {
+    return config.getStaticAssets();
   }
 
-  public void modules(Module... modules) {
-    this.modules.addAll(Arrays.asList(modules));
+  @Override
+  public TemplatingConfig getTemplating() {
+    return config.getTemplating();
   }
 
-  public RatpackServer server() {
-    StaticAssetsModule staticAssetsModule = new StaticAssetsModule(staticAssetsConfig);
-    SessionModule sessionModule = new SessionModule(sessionCookieConfig);
-    TemplatingModule templatingModule = new TemplatingModule(templatingConfig);
-
-    Module collapsed = Modules.override(staticAssetsModule, sessionModule, templatingModule).with(modules);
-    RatpackServerFactory serverFactory = new RatpackServerFactory(baseDir, addressConfig);
-
-    return serverFactory.create(new ClosureRouting(routing), collapsed);
+  @Override
+  public RoutingConfig getRouting() {
+    return config.getRouting();
   }
+
+  @Override
+  public SessionCookieConfig getSessionCookie() {
+    return config.getSessionCookie();
+  }
+
+  @Override
+  public List<Module> getModules() {
+    return config.getModules();
+  }
+
 }

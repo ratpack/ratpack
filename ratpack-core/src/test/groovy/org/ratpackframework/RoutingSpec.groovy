@@ -27,7 +27,7 @@ class RoutingSpec extends DefaultRatpackSpec {
         text it.method
       }
 
-      register("*", "/b") {
+      all("/b") {
         text it.method
       }
     }
@@ -40,6 +40,25 @@ class RoutingSpec extends DefaultRatpackSpec {
     urlPostText("a") == "POST"
     urlGetText("b") == "GET"
     urlPostText("b") == "POST"
+  }
+
+  def "can route with regex"() {
+    given:
+    routing {
+      getRe("/a(.+)") {
+        text "a:" + request.urlParams
+      }
+      getRe("/b(.+)") {
+        text "b:" + request.urlParams
+      }
+    }
+
+    when:
+    startApp()
+
+    then:
+    urlGetText("abc/de") == "a:[param0:bc/de]"
+    urlGetText("bbc/de") == "b:[param0:bc/de]"
   }
 
 }

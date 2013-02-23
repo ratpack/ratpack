@@ -16,17 +16,15 @@
 
 package org.ratpackframework.groovy.app.internal
 
-import org.ratpackframework.app.Response
-import org.ratpackframework.groovy.app.HandlerClosure
+import org.ratpackframework.app.Endpoint
 import org.ratpackframework.groovy.app.Routing
-import org.ratpackframework.handler.Handler
 
 public class RoutingScript extends Script implements Routing {
 
-  private final org.ratpackframework.app.Routing routingBuilder
+  private final org.ratpackframework.app.Routing delegate
 
-  public RoutingScript(org.ratpackframework.app.Routing routingBuilder) {
-    this.routingBuilder = routingBuilder
+  public RoutingScript(org.ratpackframework.app.Routing delegate) {
+    this.delegate = delegate
   }
 
   @Override
@@ -35,98 +33,133 @@ public class RoutingScript extends Script implements Routing {
   }
 
   @Override
-  public void register(String method, String path, Handler<Response> handler) {
-    routingBuilder.register(method, path, handler)
-  }
-
-  @Override
-  public void all(String path, Handler<Response> handler) {
-    routingBuilder.all(path, handler)
-  }
-
-  @Override
-  public void get(String path, Handler<Response> handler) {
-    routingBuilder.get(path, handler)
-  }
-
-  @Override
-  public void post(String path, Handler<Response> handler) {
-    routingBuilder.post(path, handler)
-  }
-
-  @Override
-  public void put(String path, Handler<Response> handler) {
-    routingBuilder.put(path, handler)
-  }
-
-  @Override
-  public void delete(String path, Handler<Response> handler) {
-    routingBuilder.delete(path, handler)
-  }
-
-  @Override
-  public void delete(String path, @HandlerClosure Closure<?> handler) {
-    delete(path, new ClosureBackedResponseHandler(handler))
-  }
-
-  @Override
-  public void put(String path, @HandlerClosure Closure<?> handler) {
-    put(path, new ClosureBackedResponseHandler(handler))
-  }
-
-  @Override
-  public void post(String path, @HandlerClosure Closure<?> handler) {
-    post(path, new ClosureBackedResponseHandler(handler))
-  }
-
-  @Override
-  public void get(String path, @HandlerClosure Closure<?> handler) {
-    get(path, new ClosureBackedResponseHandler(handler))
-  }
-
-  @Override
-  public void all(String path, @HandlerClosure Closure<?> handler) {
-    all(path, new ClosureBackedResponseHandler(handler))
-  }
-
-  @Override
-  public void register(String method, String path, @HandlerClosure Closure<?> handler) {
-    register(method, path, new ClosureBackedResponseHandler(handler))
-  }
-
-  @Override
   def <T> T service(Class<T> type) {
-    routingBuilder.service(type)
+    delegate.service(type)
   }
 
   @Override
-  void register(String method, String path, Class<? extends Handler<Response>> handlerType) {
-    routingBuilder.register(method, path, handlerType)
+  Endpoint inject(Class<? extends Endpoint> endpointType) {
+    delegate.inject(endpointType)
   }
 
   @Override
-  void all(String path, Class<? extends Handler<Response>> handlerType) {
-    routingBuilder.all(path, handlerType);
+  void route(String method, String path, Closure<?> endpoint) {
+    route(method, path, new ClosureEndpoint(endpoint))
   }
 
   @Override
-  void get(String path, Class<? extends Handler<Response>> handlerType) {
-    routingBuilder.get(path, handlerType);
+  void all(String path, Closure<?> endpoint) {
+    all(path, new ClosureEndpoint(endpoint))
   }
 
   @Override
-  void post(String path, Class<? extends Handler<Response>> handlerType) {
-    routingBuilder.post(path, handlerType);
+  void get(String path, Closure<?> endpoint) {
+    get(path, new ClosureEndpoint(endpoint))
   }
 
   @Override
-  void put(String path, Class<? extends Handler<Response>> handlerType) {
-    routingBuilder.put(path, handlerType);
+  void post(String path, Closure<?> endpoint) {
+    post(path, new ClosureEndpoint(endpoint))
   }
 
   @Override
-  void delete(String path, Class<? extends Handler<Response>> handlerType) {
-    routingBuilder.delete(path, handlerType);
+  void put(String path, Closure<?> endpoint) {
+    put(path, new ClosureEndpoint(endpoint))
+  }
+
+  @Override
+  void delete(String path, Closure<?> endpoint) {
+    delete(path, new ClosureEndpoint(endpoint))
+  }
+
+  @Override
+  void routeRe(String method, String pattern, Closure<?> endpoint) {
+    routeRe(method, pattern, new ClosureEndpoint(endpoint))
+  }
+
+  @Override
+  void allRe(String path, Closure<?> endpoint) {
+    allRe(path, new ClosureEndpoint(endpoint))
+  }
+
+  @Override
+  void getRe(String path, Closure<?> endpoint) {
+    getRe(path, new ClosureEndpoint(endpoint))
+  }
+
+  @Override
+  void postRe(String path, Closure<?> endpoint) {
+    postRe(path, new ClosureEndpoint(endpoint))
+  }
+
+  @Override
+  void putRe(String path, Closure<?> endpoint) {
+    putRe(path, new ClosureEndpoint(endpoint))
+  }
+
+  @Override
+  void deleteRe(String path, Closure<?> endpoint) {
+    deleteRe(path, new ClosureEndpoint(endpoint))
+  }
+
+  @Override
+  void route(String method, String path, Endpoint endpoint) {
+    delegate.route(method, path, endpoint)
+  }
+
+  @Override
+  void routeRe(String method, String regex, Endpoint endpoint) {
+    delegate.routeRe(method, path, endpoint)
+  }
+
+  @Override
+  void all(String path, Endpoint endpoint) {
+    delegate.all(path, endpoint)
+  }
+
+  @Override
+  void allRe(String path, Endpoint endpoint) {
+    delegate.allRe(path, endpoint)
+  }
+
+  @Override
+  void get(String path, Endpoint endpoint) {
+    delegate.get(path, endpoint)
+  }
+
+  @Override
+  void getRe(String pattern, Endpoint endpoint) {
+    delegate.getRe(pattern, endpoint)
+  }
+
+  @Override
+  void post(String path, Endpoint endpoint) {
+    delegate.post(path, endpoint)
+  }
+
+  @Override
+  void postRe(String pattern, Endpoint endpoint) {
+    delegate.postRe(pattern, endpoint)
+  }
+
+  @Override
+  void put(String path, Endpoint endpoint) {
+    delegate.put(path, endpoint)
+  }
+
+  @Override
+  void putRe(String pattern, Endpoint endpoint) {
+    delegate.putRe(pattern, endpoint)
+  }
+
+  @Override
+  void delete(String path, Endpoint endpoint) {
+    delegate.delete(path, endpoint)
+  }
+
+  @Override
+  void deleteRe(String pattern, Endpoint endpoint) {
+    delegate.deleteRe(pattern, endpoint)
   }
 
   @Override

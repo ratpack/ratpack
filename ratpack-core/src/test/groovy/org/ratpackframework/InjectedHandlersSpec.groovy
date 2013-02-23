@@ -1,10 +1,10 @@
 package org.ratpackframework
 
 import com.google.inject.AbstractModule
+import org.ratpackframework.app.Endpoint
 import org.ratpackframework.app.Request
 import org.ratpackframework.app.Response
 import org.ratpackframework.app.internal.DefaultRequest
-import org.ratpackframework.handler.Handler
 import org.ratpackframework.templating.NullTemplateRenderer
 import org.ratpackframework.templating.TemplateRenderer
 import org.ratpackframework.test.DefaultRatpackSpec
@@ -14,15 +14,16 @@ import javax.inject.Inject
 class InjectedHandlersSpec extends DefaultRatpackSpec {
 
   @javax.inject.Singleton
-  static class InjectedHandler implements Handler<Response> {
+  static class InjectedEndpoint implements Endpoint {
     TemplateRenderer templateRenderer
 
-    @Inject InjectedHandler(TemplateRenderer templateRenderer) {
+    @Inject
+    InjectedHandler(TemplateRenderer templateRenderer) {
       this.templateRenderer = templateRenderer
     }
 
     @Override
-    void handle(Response response) {
+    void respond(Request request, Response response) {
       response.text(templateRenderer.class.name)
     }
   }
@@ -30,7 +31,7 @@ class InjectedHandlersSpec extends DefaultRatpackSpec {
   def "can use injected handlers"() {
     given:
     routing {
-      get("/", InjectedHandler)
+      get("/", inject(InjectedEndpoint))
     }
 
     when:
@@ -40,19 +41,20 @@ class InjectedHandlersSpec extends DefaultRatpackSpec {
     urlGetText("") == NullTemplateRenderer.name
   }
 
-  static class InjectedRequestHandler implements Handler<Response> {
-    @Inject Request request
+  static class InjectedRequestEndpoint implements Endpoint {
+    @Inject Request injectedRequest
 
     @Override
-    void handle(Response response) {
-      response.text(request.class.name)
+    void respond(Request request, Response response) {
+      assert request.is(injectedRequest)
+      response.text(injectedRequest.getClass().name)
     }
   }
 
   def "can inject request"() {
     given:
     routing {
-      get("/", InjectedRequestHandler)
+      get("/", inject(InjectedRequestEndpoint))
     }
 
     when:
@@ -63,7 +65,7 @@ class InjectedHandlersSpec extends DefaultRatpackSpec {
   }
 
   static class RequestService {
-    @Inject Request request
+    @Inject Request injectedRequest
   }
 
   def "can obtain request scoped services in closures"() {
@@ -78,7 +80,7 @@ class InjectedHandlersSpec extends DefaultRatpackSpec {
     and:
     routing {
       get("/") {
-        text service(RequestService).request.class.name
+        text service(RequestService).injectedRequest.class.name
       }
     }
 

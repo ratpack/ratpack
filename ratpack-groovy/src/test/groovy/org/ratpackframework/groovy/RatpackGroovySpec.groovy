@@ -30,5 +30,6 @@ class RatpackGroovySpec extends RatpackSpec {
 
   def setup() {
     config = new DefaultConfig(dir)
+    config.deployment.port = 0
   }
 }

@@ -1,29 +1,29 @@
 package org.ratpackframework.app.internal;
 
-import org.ratpackframework.handler.Handler;
+import org.ratpackframework.app.Endpoint;
 import org.ratpackframework.app.Request;
 import org.ratpackframework.app.Response;
 
-public class RequestScopeHandler implements Handler<Response> {
+public class RequestScopeEndpointDecorator implements Endpoint {
 
   private final RequestScope scope;
-  private final Handler<Response> delegate;
+  private final Endpoint delegate;
 
-  public RequestScopeHandler(RequestScope scope, Handler<Response> delegate) {
+  public RequestScopeEndpointDecorator(RequestScope scope, Endpoint delegate) {
     this.scope = scope;
     this.delegate = delegate;
   }
 
   @Override
-  public void handle(Response response) {
+  public void respond(Request request, Response response) {
     scope.enter();
     try {
-      Request request = response.getRequest();
       scope.seed(Request.class, request);
       scope.seed(Response.class, response);
-      delegate.handle(response);
+      delegate.respond(request, response);
     } finally {
       scope.exit();
     }
   }
+
 }

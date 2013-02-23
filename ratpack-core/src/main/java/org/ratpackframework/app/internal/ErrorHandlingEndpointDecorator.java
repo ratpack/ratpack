@@ -16,21 +16,22 @@
 
 package org.ratpackframework.app.internal;
 
+import org.ratpackframework.app.Endpoint;
+import org.ratpackframework.app.Request;
 import org.ratpackframework.app.Response;
-import org.ratpackframework.handler.Handler;
 
-public class ErrorHandlingResponseHandler implements Handler<Response> {
+public class ErrorHandlingEndpointDecorator implements Endpoint {
 
-  private final Handler<Response> delegate;
+  private final Endpoint delegate;
 
-  public ErrorHandlingResponseHandler(Handler<Response> delegate) {
+  public ErrorHandlingEndpointDecorator(Endpoint delegate) {
     this.delegate = delegate;
   }
 
   @Override
-  public void handle(Response response) {
+  public void respond(Request request, Response response) {
     try {
-      delegate.handle(response);
+      delegate.respond(request, response);
     } catch (Exception e) {
       response.error(e);
     }

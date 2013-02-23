@@ -24,7 +24,7 @@ class PathParamsSpec extends DefaultRatpackSpec {
     given:
     routing {
       get("/:a/:b/:c") {
-        text getRequest().urlParams.toString()
+        text request.urlParams.toString()
       }
     }
 

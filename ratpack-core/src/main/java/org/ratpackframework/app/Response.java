@@ -74,14 +74,14 @@ public interface Response {
   /**
    * Renders the toString() of the given object as plain text.
    *
-   * If the content type has not been set, sets it to “text/plain;charset=utf-8” Finalizes the response.
+   * If the content type has not been set, sets it to "text/plain;charset=utf-8" Finalizes the response.
    */
   void text(Object str);
 
   /**
    * Renders the toString() of the given object as the given content type.
    *
-   * Sets the content type header to “$contentType;charset=utf-8” and finalizes the response.
+   * Sets the content type header to "$contentType;charset=utf-8" and finalizes the response.
    */
   void text(String contentType, Object str);
 
