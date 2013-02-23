@@ -53,7 +53,7 @@ public interface Routing {
   <T> T service(Key<T> key);
 
   /**
-   * Create an endpoint that delegates to an injected instance of the given type each request.
+   * Create an endpoint that delegates to an injected instance of the given type each request, using {@link #getInjector()}.
    *
    * <pre>
    *  get("/login", inject(LogingHandler.class));
