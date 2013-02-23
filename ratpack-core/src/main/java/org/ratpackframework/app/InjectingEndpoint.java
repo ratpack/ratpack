@@ -15,6 +15,8 @@ import org.ratpackframework.app.Response;
  * <p>
  * The {@link Request} and {@link Response} objects are also available for injection (as the same instances that will be passed
  * to {@link #respond(Request, Response)}) as the actual endpoint will be instantiated within the request scope.
+ *
+ * @see Routing#inject(Class)
  */
 public class InjectingEndpoint implements Endpoint {
   private final Class<? extends Endpoint> endpointType;
