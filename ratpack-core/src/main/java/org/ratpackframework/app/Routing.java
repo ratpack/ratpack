@@ -16,6 +16,7 @@
 
 package org.ratpackframework.app;
 
+import com.google.inject.Injector;
 import com.google.inject.Key;
 
 /**
@@ -27,6 +28,11 @@ public interface Routing {
    * A special HTTP method value ({@value} that means ALL methods.
    */
   String ALL_METHODS = "*";
+
+  /**
+   * The injector that backs this application.
+   */
+  Injector getInjector();
 
   /**
    * Retrieves the specified service from the services registered at startup.

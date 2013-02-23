@@ -24,7 +24,7 @@ public class DefaultRoutingFactory implements RoutingFactory {
 
   @Override
   public Routing create(List<Handler<Routed<HttpExchange>>> routes) {
-    return new RoutingBuilder(injector, requestScope, routes, responseFactory);
+    return new DefaultRouting(injector, requestScope, routes, responseFactory);
   }
 
 }

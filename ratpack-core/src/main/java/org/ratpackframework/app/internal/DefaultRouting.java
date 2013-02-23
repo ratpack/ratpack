@@ -31,18 +31,23 @@ import org.ratpackframework.routing.Routed;
 
 import java.util.List;
 
-public class RoutingBuilder implements Routing {
+public class DefaultRouting implements Routing {
 
   private final List<Handler<Routed<HttpExchange>>> routers;
   private final ResponseFactory responseFactory;
   private final Injector injector;
   private final RequestScope requestScope;
 
-  public RoutingBuilder(Injector injector, RequestScope requestScope, List<Handler<Routed<HttpExchange>>> routers, ResponseFactory responseFactory) {
+  public DefaultRouting(Injector injector, RequestScope requestScope, List<Handler<Routed<HttpExchange>>> routers, ResponseFactory responseFactory) {
     this.injector = injector;
     this.requestScope = requestScope;
     this.routers = routers;
     this.responseFactory = responseFactory;
+  }
+
+  @Override
+  public Injector getInjector() {
+    return injector;
   }
 
   @Override

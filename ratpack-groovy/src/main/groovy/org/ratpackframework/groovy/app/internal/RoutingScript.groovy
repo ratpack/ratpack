@@ -16,6 +16,7 @@
 
 package org.ratpackframework.groovy.app.internal
 
+import com.google.inject.Injector
 import com.google.inject.Key
 import org.ratpackframework.app.Endpoint
 import org.ratpackframework.groovy.app.Routing
@@ -31,6 +32,11 @@ public class RoutingScript extends Script implements Routing {
   @Override
   public Routing getRouting() {
     return this
+  }
+
+  @Override
+  Injector getInjector() {
+    delegate.injector
   }
 
   @Override
