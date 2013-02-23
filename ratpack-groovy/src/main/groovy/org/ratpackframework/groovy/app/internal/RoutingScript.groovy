@@ -16,6 +16,7 @@
 
 package org.ratpackframework.groovy.app.internal
 
+import com.google.inject.Key
 import org.ratpackframework.app.Endpoint
 import org.ratpackframework.groovy.app.Routing
 
@@ -35,6 +36,11 @@ public class RoutingScript extends Script implements Routing {
   @Override
   def <T> T service(Class<T> type) {
     delegate.service(type)
+  }
+
+  @Override
+  def <T> T service(Key<T> key) {
+    delegate.service(key)
   }
 
   @Override
@@ -108,7 +114,7 @@ public class RoutingScript extends Script implements Routing {
   }
 
   @Override
-  void routeRe(String method, String regex, Endpoint endpoint) {
+  void routeRe(String method, String pattern, Endpoint endpoint) {
     delegate.routeRe(method, path, endpoint)
   }
 

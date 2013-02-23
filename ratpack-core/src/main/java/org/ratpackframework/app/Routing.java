@@ -16,8 +16,16 @@
 
 package org.ratpackframework.app;
 
+import com.google.inject.Key;
+
+/**
+ * Builder for how requests should be routed to endpoints.
+ */
 public interface Routing {
 
+  /**
+   * A special HTTP method value ({@value} that means ALL methods.
+   */
   String ALL_METHODS = "*";
 
   /**
@@ -30,7 +38,22 @@ public interface Routing {
   <T> T service(Class<T> type);
 
   /**
+   * Retrieves the specified service from the services registered at startup.
+   *
+   * @param key The key of the service.
+   * @param <T> The type of the service.
+   * @return The service instance.
+   */
+  <T> T service(Key<T> key);
+
+  /**
    * Create an endpoint that delegates to an injected instance of the given type each request.
+   *
+   * <pre>
+   *  get("/login", inject(LogingHandler.class));
+   * </pre>
+   * <p>
+   * See {@link InjectingEndpoint} for details.
    *
    * @param endpointType The type of the endpoint to delegate to.
    * @return An endpoint that can be passed to one of the registration methods.
@@ -38,75 +61,96 @@ public interface Routing {
   Endpoint inject(Class<? extends Endpoint> endpointType);
 
   /**
-   * Adds a route, for the given method at the given path, to be handled by the given handler.
+   * Adds a route for the given method at the given path to the given endpoint.
    *
-   * You can specify {@value #ALL_METHODS} for the method to match all methods.
+   * The path may contain "tokens" that will become the {@link org.ratpackframework.app.Request#getPathParams()}
+   * for the request given to the endpoint. Tokens are path components that are prefixed with a ":" character.
    *
-   * @param method The HTTP method the handler is for
-   * @param path The path to handle
-   * @param endpoint The endpoint for the request
+   * <pre>
+   * route("GET", "/products/:id", new Endpoint() {
+   *   void respond(Request request, Response response) {
+   *     assert request.getPathParams().get("id") != null;
+   *     …
+   *   }
+   * });
+   * </pre>
+   *
+   * @param method The HTTP method of the route
+   * @param path The tokenised path to route (must begin with "/")
+   * @param endpoint The endpoint to route to
    */
   void route(String method, String path, Endpoint endpoint);
 
   /**
-   * Adds a route, for the given method at the given path, to be handled by the given handler.
+   * Adds a route for the given method at the given path to the given endpoint.
    *
-   * You can specify {@value #ALL_METHODS} for the method to match all methods.
+   * The pattern may contain capture groups, which will become the {@link org.ratpackframework.app.Request#getPathParams()}
+   * for the request given to the endpoint. The path params are keyed by their index, but as a string.
    *
-   * @param method The HTTP method the handler is for
-   * @param regex The regex pattern 
-   * @param endpoint The endpoint for the request
+   * <pre>
+   * routeRe("GET", "/products/(.+)", new Endpoint() {
+   *   void respond(Request request, Response response) {
+   *     assert request.getPathParams().get("0") != null;
+   *     …
+   *   }
+   * });
+   * </pre>
+   *
+   * Capture groups can span multiple path components.
+   *
+   * @param method The HTTP method of the route
+   * @param pattern The pattern of the path to route (must begin with "/")
+   * @param endpoint The endpoint to route to
    */
-  void routeRe(String method, String regex, Endpoint endpoint);
+  void routeRe(String method, String pattern, Endpoint endpoint);
 
   /**
-   * Delegates {@link #route(String, String, Endpoint)} with a method of "*"
+   * Delegates {@link #route(String, String, Endpoint)} with a method of "{@link #ALL_METHODS}"
    */
   void all(String path, Endpoint endpoint);
 
   /**
-   * Delegates {@link #routeRe(String, String, Endpoint)} with a method of "*"
+   * Delegates {@link #routeRe(String, String, Endpoint)} with a method of "{@link #ALL_METHODS}"
    */
   void allRe(String path, Endpoint endpoint);
 
   /**
-   * Delegates {@link #route(String, String, Endpoint)} with a method of "get"
+   * Delegates {@link #route(String, String, Endpoint)} with a method of "GET"
    */
   void get(String path, Endpoint endpoint);
 
   /**
-   * Delegates {@link #routeRe(String, String, Endpoint)} with a method of "get"
+   * Delegates {@link #routeRe(String, String, Endpoint)} with a method of "GET"
    */
   void getRe(String pattern, Endpoint endpoint);
 
   /**
-   * Delegates {@link #route(String, String, Endpoint)} with a method of "post"
+   * Delegates {@link #route(String, String, Endpoint)} with a method of "POST"
    */
   void post(String path, Endpoint endpoint);
 
   /**
-   * Delegates {@link #routeRe(String, String, Endpoint)} with a method of "post"
+   * Delegates {@link #routeRe(String, String, Endpoint)} with a method of "POST"
    */
   void postRe(String pattern, Endpoint endpoint);
 
   /**
-   * Delegates {@link #route(String, String, Endpoint)} with a method of "put"
+   * Delegates {@link #route(String, String, Endpoint)} with a method of "PUT"
    */
   void put(String path, Endpoint endpoint);
 
   /**
-   * Delegates {@link #routeRe(String, String, Endpoint)} with a method of "put"
+   * Delegates {@link #routeRe(String, String, Endpoint)} with a method of "PUT"
    */
   void putRe(String pattern, Endpoint endpoint);
 
   /**
-   * Delegates {@link #route(String, String, Endpoint)} with a method of "delete"
+   * Delegates {@link #route(String, String, Endpoint)} with a method of "DELETE"
    */
   void delete(String path, Endpoint endpoint);
 
   /**
-   * Delegates {@link #routeRe(String, String, Endpoint)} with a method of "delete"
+   * Delegates {@link #routeRe(String, String, Endpoint)} with a method of "DELETE"
    */
   void deleteRe(String pattern, Endpoint endpoint);
-
 }

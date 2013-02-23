@@ -17,8 +17,10 @@
 package org.ratpackframework.app.internal;
 
 import com.google.inject.Injector;
+import com.google.inject.Key;
 import org.jboss.netty.handler.codec.http.HttpMethod;
 import org.ratpackframework.app.Endpoint;
+import org.ratpackframework.app.InjectingEndpoint;
 import org.ratpackframework.app.Routing;
 import org.ratpackframework.app.internal.binding.PathBinding;
 import org.ratpackframework.app.internal.binding.PatternPathBinding;
@@ -49,9 +51,14 @@ public class RoutingBuilder implements Routing {
   }
 
   @Override
+  public <T> T service(Key<T> key) {
+    return injector.getInstance(key);
+  }
+
+  @Override
   public Endpoint inject(Class<? extends Endpoint> endpointType) {
     if (Endpoint.class.isAssignableFrom(endpointType)) {
-      return new InjectingEndpoint(endpointType, injector);
+      return new InjectingEndpoint(injector, endpointType);
     } else {
       throw new IllegalArgumentException(endpointType.getName() + " does not implement " + Endpoint.class.getName());
     }
@@ -71,12 +78,12 @@ public class RoutingBuilder implements Routing {
 
   @Override
   public void route(String method, String path, Endpoint endpoint) {
-    register(method, new TokenPathBinding(path), endpoint);
+    register(method.toUpperCase(), new TokenPathBinding(path), endpoint);
   }
 
   @Override
-  public void routeRe(String method, String regex, Endpoint endpoint) {
-    register(method, new PatternPathBinding(regex), endpoint);
+  public void routeRe(String method, String pattern, Endpoint endpoint) {
+    register(method.toUpperCase(), new PatternPathBinding(pattern), endpoint);
   }
 
   @Override

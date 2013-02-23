@@ -2,7 +2,6 @@ package org.ratpackframework.app;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.name.Names;
-import com.google.inject.servlet.RequestScoped;
 import org.ratpackframework.app.internal.*;
 import org.ratpackframework.http.HttpExchange;
 import org.ratpackframework.render.DefaultTextRenderer;

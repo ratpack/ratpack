@@ -19,7 +19,7 @@ public class PatternPathBinding implements PathBinding {
     if (matcher.matches()) {
       Map<String, String> params = new LinkedHashMap<>();
       for (int i = 0; i < matcher.groupCount(); i++) {
-        params.put("param" + i, matcher.group(i + 1));
+        params.put(Integer.toString(i), matcher.group(i + 1));
       }
       return params;
     } else {

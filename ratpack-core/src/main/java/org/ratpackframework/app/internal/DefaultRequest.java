@@ -59,7 +59,7 @@ public class DefaultRequest implements Request {
   }
 
   @Override
-  public Map<String, String> getUrlParams() {
+  public Map<String, String> getPathParams() {
     return urlParams;
   }
 

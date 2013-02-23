@@ -44,7 +44,7 @@ public interface Request {
 
   Map<String, List<String>> getQueryParams();
 
-  Map<String, String> getUrlParams();
+  Map<String, String> getPathParams();
 
   Session getSession();
 

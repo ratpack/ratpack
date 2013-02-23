@@ -38,6 +38,19 @@ subprojects {
     sourceCompatibility = "1.7"
     targetCompatibility = "1.7"
 
+    tasks.withType(Javadoc) {
+      options.encoding = 'utf-8'
+      options.docEncoding = 'utf-8'
+      options.charSet = 'utf-8'
+      options.links(
+          "http://docs.oracle.com/javase/7/docs/api",
+          "http://google-guice.googlecode.com/git/javadoc",
+          "http://docs.jboss.org/netty/3.2/api",
+          "http://groovy.codehaus.org/api"
+      )
+      exclude '**/internal/**'
+    }
+
     task sourceJar(type: Jar) {
       description 'An archive of the source code for Maven Central'
       classifier 'sources'

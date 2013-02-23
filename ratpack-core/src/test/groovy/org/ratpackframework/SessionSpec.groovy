@@ -33,7 +33,7 @@ class SessionSpec extends DefaultRatpackSpec {
       }
       get("/set/:value") {
         def store = service(MapSessionStore).get(it)
-        store.value = it.urlParams.value
+        store.value = it.pathParams.value
         text store.value
       }
     }
@@ -59,7 +59,7 @@ class SessionSpec extends DefaultRatpackSpec {
       }
       get("/set/:value") {
         def store = service(MapSessionStore).get(it)
-        store.value = it.urlParams.value
+        store.value = it.pathParams.value
         text store.value
       }
       get("/invalidate") { Request request ->

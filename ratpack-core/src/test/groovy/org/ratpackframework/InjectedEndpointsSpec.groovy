@@ -11,7 +11,7 @@ import org.ratpackframework.test.DefaultRatpackSpec
 
 import javax.inject.Inject
 
-class InjectedHandlersSpec extends DefaultRatpackSpec {
+class InjectedEndpointsSpec extends DefaultRatpackSpec {
 
   @javax.inject.Singleton
   static class InjectedEndpoint implements Endpoint {

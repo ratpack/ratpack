@@ -12,8 +12,8 @@ class PatternPathBindingTest extends Specification {
     expect:
     map("/a", "/b") == null
     map("/a", "/a") == [:]
-    map("/(.+)", "/abc") == [param0: "abc"]
-    map("/(.+)/(d.+)", "/abc/def") == [param0: "abc", param1: "def"]
+    map("/(.+)", "/abc") == ["0": "abc"]
+    map("/(.+)/(d.+)", "/abc/def") == ["0": "abc", "1": "def"]
   }
 
 }

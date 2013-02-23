@@ -46,10 +46,10 @@ class RoutingSpec extends DefaultRatpackSpec {
     given:
     routing {
       getRe("/a(.+)") {
-        text "a:" + request.urlParams
+        text "a:" + request.pathParams
       }
       getRe("/b(.+)") {
-        text "b:" + request.urlParams
+        text "b:" + request.pathParams
       }
     }
 
@@ -57,8 +57,8 @@ class RoutingSpec extends DefaultRatpackSpec {
     startApp()
 
     then:
-    urlGetText("abc/de") == "a:[param0:bc/de]"
-    urlGetText("bbc/de") == "b:[param0:bc/de]"
+    urlGetText("abc/de") == "a:[0:bc/de]"
+    urlGetText("bbc/de") == "b:[0:bc/de]"
   }
 
 }

@@ -12,7 +12,7 @@ class ConcurrentRequestSpec extends DefaultRatpackSpec {
     given:
     routing {
       get("/:id") { Request request ->
-        text request.urlParams.id + ":" + request.queryParams.id[0]
+        text request.pathParams.id + ":" + request.queryParams.id[0]
       }
     }
 

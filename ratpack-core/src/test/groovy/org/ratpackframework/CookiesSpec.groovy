@@ -8,16 +8,16 @@ class CookiesSpec extends DefaultRatpackSpec {
     given:
     routing {
       get("/get/:name") {
-        text request.oneCookie(request.urlParams.name)
+        text request.oneCookie(request.pathParams.name)
       }
 
       get("/set/:name/:value") {
-        cookie(it.urlParams.name, it.urlParams.value)
+        cookie(it.pathParams.name, it.pathParams.value)
         end()
       }
 
       get("/clear/:name") {
-        expireCookie(it.urlParams.name)
+        expireCookie(it.pathParams.name)
         end()
       }
     }
