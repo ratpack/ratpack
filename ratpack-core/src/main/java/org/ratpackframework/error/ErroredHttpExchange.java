@@ -18,6 +18,9 @@ package org.ratpackframework.error;
 
 import org.ratpackframework.http.HttpExchange;
 
+/**
+ * Encapsulates a http exchange and an exception that occurred when processing the exchange.
+ */
 public class ErroredHttpExchange {
 
   private final HttpExchange exchange;

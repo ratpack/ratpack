@@ -5,6 +5,9 @@ import org.ratpackframework.handler.Handler;
 import org.ratpackframework.http.HttpExchange;
 import org.ratpackframework.routing.Routed;
 
+/**
+ * Simply sends a HTTP 404 back to the client.
+ */
 public class DefaultNotFoundHandler implements Handler<Routed<HttpExchange>> {
 
   @Override
