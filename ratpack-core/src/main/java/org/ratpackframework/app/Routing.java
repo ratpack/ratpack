@@ -59,8 +59,14 @@ public interface Routing {
    *  get("/login", inject(LogingHandler.class));
    * </pre>
    * <p>
-   * See {@link InjectingEndpoint} for details.
    *
+   * This facilitates dependency injection into endpoints and the use of {@link org.ratpackframework.app.RequestScoped} services.
+   * A new child module of the given {@code injector} is created internally and the given {@code endpointType} bound.
+   * As this module is a child of the main app module, any services registered at initialisation are candidates for injection.
+   * <p>
+   * The {@link Request} and {@link Response} objects are also available for injection (as the same instances that will be passed
+   * to {@link Endpoint#respond(Request, Response)}) as the actual endpoint will be instantiated within the request scope.
+
    * @param endpointType The type of the endpoint to delegate to.
    * @return An endpoint that can be passed to one of the registration methods.
    */

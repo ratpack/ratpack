@@ -20,7 +20,6 @@ import com.google.inject.Injector;
 import com.google.inject.Key;
 import org.jboss.netty.handler.codec.http.HttpMethod;
 import org.ratpackframework.app.Endpoint;
-import org.ratpackframework.app.InjectingEndpoint;
 import org.ratpackframework.app.Routing;
 import org.ratpackframework.app.internal.binding.PathBinding;
 import org.ratpackframework.app.internal.binding.PatternPathBinding;
