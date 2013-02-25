@@ -31,6 +31,6 @@ class DefaultRatpackSpec extends RatpackSpec {
 
   @Override
   RatpackServer createApp() {
-    new RatpackServerFactory(temporaryFolder.root, 0, null, null).create(new ClosureRouting(routingClosure), staticAssets, * modules)
+    new RatpackServerFactory(0, null, null).create(new ClosureRouting(routingClosure), staticAssets, * modules)
   }
 }

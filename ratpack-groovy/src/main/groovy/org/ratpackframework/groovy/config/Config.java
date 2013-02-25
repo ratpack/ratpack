@@ -28,8 +28,6 @@ import java.util.List;
 
 public interface Config {
 
-  File getBaseDir();
-
   AddressConfig getDeployment();
 
   StaticAssetsConfig getStaticAssets();

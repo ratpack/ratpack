@@ -1,9 +1,10 @@
-package org.ratpackframework.assets;
+package org.ratpackframework.assets.internal;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.name.Names;
+import org.ratpackframework.assets.StaticAssetsConfig;
+import org.ratpackframework.bootstrap.internal.RootModule;
 import org.ratpackframework.handler.Handler;
-import org.ratpackframework.bootstrap.RootModule;
 import org.ratpackframework.http.HttpExchange;
 import org.ratpackframework.routing.CompositeRouter;
 import org.ratpackframework.routing.Routed;
@@ -16,7 +17,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.ratpackframework.bootstrap.RootModule.MAIN_STATIC_ASSET_HTTP_HANDLER;
+import static org.ratpackframework.bootstrap.internal.RootModule.MAIN_STATIC_ASSET_HTTP_HANDLER;
 
 public class StaticAssetsModule extends AbstractModule {
 
@@ -29,10 +30,6 @@ public class StaticAssetsModule extends AbstractModule {
 
   private final File dir;
   private final List<String> indexFiles;
-
-  public StaticAssetsModule() {
-    this(new StaticAssetsConfig());
-  }
 
   public StaticAssetsModule(StaticAssetsConfig config) {
     this(config.getDirectory(), config.getIndexFiles());

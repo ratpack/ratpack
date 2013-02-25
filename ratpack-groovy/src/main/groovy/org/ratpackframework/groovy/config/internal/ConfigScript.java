@@ -37,11 +37,6 @@ public class ConfigScript extends Script implements Config {
   }
 
   @Override
-  public File getBaseDir() {
-    return config.getBaseDir();
-  }
-
-  @Override
   public AddressConfig getDeployment() {
     return config.getDeployment();
   }

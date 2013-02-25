@@ -15,8 +15,8 @@ import javax.inject.Named;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static org.ratpackframework.bootstrap.RootModule.MAIN_HTTP_ERROR_HANDLER;
-import static org.ratpackframework.bootstrap.RootModule.MAIN_HTTP_HANDLER;
+import static org.ratpackframework.bootstrap.internal.RootModule.MAIN_HTTP_ERROR_HANDLER;
+import static org.ratpackframework.bootstrap.internal.RootModule.MAIN_HTTP_HANDLER;
 
 public class NettyRoutingAdapter extends SimpleChannelUpstreamHandler {
 

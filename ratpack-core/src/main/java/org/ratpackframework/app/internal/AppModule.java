@@ -1,8 +1,10 @@
-package org.ratpackframework.app;
+package org.ratpackframework.app.internal;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.name.Names;
-import org.ratpackframework.app.internal.*;
+import org.ratpackframework.app.Request;
+import org.ratpackframework.app.RequestScoped;
+import org.ratpackframework.app.Response;
 import org.ratpackframework.http.HttpExchange;
 import org.ratpackframework.render.DefaultTextRenderer;
 import org.ratpackframework.render.TextRenderer;
@@ -10,8 +12,8 @@ import org.ratpackframework.routing.NoopRouter;
 
 import javax.inject.Singleton;
 
-import static org.ratpackframework.bootstrap.RootModule.HTTP_HANDLER;
-import static org.ratpackframework.bootstrap.RootModule.MAIN_APP_HTTP_HANDLER;
+import static org.ratpackframework.bootstrap.internal.RootModule.HTTP_HANDLER;
+import static org.ratpackframework.bootstrap.internal.RootModule.MAIN_APP_HTTP_HANDLER;
 
 public class AppModule extends AbstractModule {
 

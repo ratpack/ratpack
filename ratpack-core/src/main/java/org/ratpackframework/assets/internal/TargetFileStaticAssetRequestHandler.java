@@ -1,4 +1,4 @@
-package org.ratpackframework.assets;
+package org.ratpackframework.assets.internal;
 
 import com.google.inject.Inject;
 import org.jboss.netty.handler.codec.http.HttpRequest;

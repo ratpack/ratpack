@@ -1,4 +1,4 @@
-package org.ratpackframework.bootstrap;
+package org.ratpackframework.bootstrap.internal;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Inject;
@@ -14,6 +14,7 @@ import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
 import org.jboss.netty.handler.codec.http.HttpContentCompressor;
 import org.jboss.netty.handler.codec.http.HttpRequestDecoder;
 import org.jboss.netty.handler.codec.http.HttpResponseEncoder;
+import org.ratpackframework.bootstrap.RatpackServer;
 import org.ratpackframework.bootstrap.internal.NettyRatpackServer;
 import org.ratpackframework.bootstrap.internal.NoopInit;
 import org.ratpackframework.error.DefaultErrorHandler;
@@ -62,19 +63,16 @@ public class RootModule extends AbstractModule {
   };
   public static final TypeLiteral<List<String>> STRING_LIST = new TypeLiteral<List<String>>() {
   };
-  public static final String BASE_DIR = "baseDir";
   public static final String BIND_PORT = "bindPort";
   public static final String BIND_HOST = "bindHost";
   public static final String BIND_ADDRESS = "bindAddress";
   public static final String PUBLIC_HOST = "publicHost";
 
-  private final File baseDir;
   private final int bindPort;
   private final String bindHost;
   private final String publicHost;
 
-  public RootModule(File baseDir, int bindPort, String bindHost, String publicHost) {
-    this.baseDir = baseDir;
+  public RootModule(int bindPort, String bindHost, String publicHost) {
     this.bindPort = bindPort;
     this.bindHost = bindHost;
     this.publicHost = publicHost;
@@ -89,7 +87,6 @@ public class RootModule extends AbstractModule {
 
     bind(SimpleChannelUpstreamHandler.class).annotatedWith(Names.named(NETTY_ROUTING_ADAPTER)).to(NettyRoutingAdapter.class);
 
-    bind(File.class).annotatedWith(Names.named(BASE_DIR)).toInstance(baseDir);
     bind(Integer.class).annotatedWith(Names.named(BIND_PORT)).toInstance(bindPort);
 
     LinkedBindingBuilder<String> bindHostBinding = bind(String.class).annotatedWith(Names.named(BIND_HOST));

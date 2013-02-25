@@ -6,7 +6,7 @@ import com.google.inject.TypeLiteral;
 import com.google.inject.binder.LinkedBindingBuilder;
 import com.google.inject.name.Names;
 import org.ratpackframework.app.Routing;
-import org.ratpackframework.bootstrap.RootModule;
+import org.ratpackframework.bootstrap.internal.RootModule;
 import org.ratpackframework.handler.Handler;
 import org.ratpackframework.http.HttpExchange;
 import org.ratpackframework.routing.Routed;

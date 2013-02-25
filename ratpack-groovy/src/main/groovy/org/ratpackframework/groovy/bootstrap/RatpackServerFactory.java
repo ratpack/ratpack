@@ -2,7 +2,7 @@ package org.ratpackframework.groovy.bootstrap;
 
 import com.google.inject.Module;
 import com.google.inject.util.Modules;
-import org.ratpackframework.assets.StaticAssetsModule;
+import org.ratpackframework.assets.internal.StaticAssetsModule;
 import org.ratpackframework.bootstrap.RatpackServer;
 import org.ratpackframework.config.AddressConfig;
 import org.ratpackframework.groovy.app.RoutingScriptModule;
@@ -22,9 +22,7 @@ public class RatpackServerFactory {
   public RatpackServer create(Config config) {
     AddressConfig addressConfig = config.getDeployment();
 
-    org.ratpackframework.bootstrap.RatpackServerFactory ratpackServerFactory = new org.ratpackframework.bootstrap.RatpackServerFactory(
-        config.getBaseDir(), addressConfig
-    );
+    org.ratpackframework.bootstrap.RatpackServerFactory ratpackServerFactory = new org.ratpackframework.bootstrap.RatpackServerFactory(addressConfig);
 
     StaticAssetsModule staticAssetsModule = new StaticAssetsModule(config.getStaticAssets());
     SessionModule sessionModule = new SessionModule(config.getSessionCookie());

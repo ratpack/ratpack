@@ -14,8 +14,6 @@ import java.util.List;
 
 public class DefaultConfig implements Config {
 
-  private final File baseDir;
-
   private final AddressConfig deployment = new AddressConfig();
 
   private final StaticAssetsConfig staticAssets;
@@ -26,15 +24,9 @@ public class DefaultConfig implements Config {
   private final List<Module> modules = new LinkedList<>();
 
   public DefaultConfig(File baseDir) {
-    this.baseDir = baseDir;
     staticAssets = new StaticAssetsConfig(new File(baseDir, "public"));
     templating = new TemplatingConfig(new File(baseDir, "templates"));
     routing = new RoutingConfig(new File(baseDir, "ratpack.groovy"));
-  }
-
-  @Override
-  public File getBaseDir() {
-    return baseDir;
   }
 
   public AddressConfig getDeployment() {

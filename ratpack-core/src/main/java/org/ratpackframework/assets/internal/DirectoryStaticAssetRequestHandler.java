@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.assets;
+package org.ratpackframework.assets.internal;
 
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.ratpackframework.handler.Handler;

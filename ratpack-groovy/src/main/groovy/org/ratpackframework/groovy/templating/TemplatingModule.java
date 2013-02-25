@@ -6,7 +6,7 @@ import org.ratpackframework.groovy.error.NotFoundHandler;
 import org.ratpackframework.templating.TemplateRenderer;
 
 import static com.google.inject.name.Names.named;
-import static org.ratpackframework.bootstrap.RootModule.*;
+import static org.ratpackframework.bootstrap.internal.RootModule.*;
 
 public class TemplatingModule extends AbstractModule {
 

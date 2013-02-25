@@ -18,11 +18,9 @@ import java.util.List;
 
 public class Ratpack implements Config {
 
-  private final File baseDir;
   private final DefaultConfig config;
 
   public Ratpack(File baseDir) {
-    this.baseDir = baseDir;
     this.config = new DefaultConfig(baseDir);
   }
 
@@ -48,10 +46,6 @@ public class Ratpack implements Config {
     RatpackServer server = new RatpackServerFactory().create(ratpack);
     server.startAndWait();
     return server;
-  }
-
-  public File getBaseDir() {
-    return baseDir;
   }
 
   @Override
