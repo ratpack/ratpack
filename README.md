@@ -1,22 +1,35 @@
 # Ratpack
 
-## A Micro Web Framework for Groovy
+[![Build Status](https://drone.io/github.com/ratpack/ratpack/status.png)](https://drone.io/github.com/ratpack/ratpack/latest)
 
-This project is the core Ratpack code. It is of interest to developers wanting to extend the Ratpack framework itself—which hopefully means you!
+## A Micro Web Framework for Java (and Groovy)
 
-If you just want to use Ratpack to build a small, Groovy-based web app, then you want the [Ratpack Template](https://github.com/tlberglund/ratpack-template). Go clone that, write your code, and come on back here when you want to hack on the framework.
+Ratpack is micro web framework inspired by [Ruby's Sinatra](http://www.sinatrarb.com/). It is implemented in pure Java on top of [Netty](http://netty.io/ "Netty: Home"), but has specific support for [Groovy](http://groovy.codehaus.org/) and [Gradle](http://www.gradle.org/). It is not a J2EE solution. 
 
+**Note:** Older (pre 0.7, non compatible) versions of Ratpack can be found [here](https://github.com/bleedingwolf/ratpack).
 
-## Release Notes
+### Features
 
-### 0.6.2 (not released yet)
+* Minimalistic, light, API
+* Self contained (no container necessary)
+* Async IO at the networking layer via Netty (i.e. not a thread-per-connection model)
+* Dependency injection via Google Guice
+* Extensibility (entire stack composition is done through overridable Guice modules)
+* Groovy DSL support (i.e. app in a script)
+* Latest Groovy 2 features for improved IDE intellisense
+* Development time hot reloading (via [SpringSource's SpringLoaded](https://github.com/SpringSource/spring-loaded))
+* Gradle plugin for development and packaging support, including advanced IntelliJ IDEA support
 
-* The beginning of the release notes.
-* Reorganized the build to integrate the ratpack-plugin and ratpack-core modules completely. They are no longer separate modules in Maven Central, nor separate subprojects in the Gradle build. They're just different groups of classes in different packages—all part of Ratpack.
-* Moved `src/app/resources/scripts` and `src/app/resources/templates` back to `src/app/scripts` and `src/app/templates`, respectively.
-* Revived the `runRatpack` task, which starts its own Jetty container directly and allows for auto-refresh of template files.
-* Upgraded to Gradle 1.2.
-* Added the ability to have multiple application scripts under `src/app/scripts`. All `.groovy` files recursively under that directory are included as application scripts.
-* Progress toward live reloading of application scripts and API code.
+### Project Status
 
+Ratpack is currently at verison `0.7.0-SNAPSHOT`, which is the first version since the move to Netty (away from Jetty and J2EE).
 
+As we near a `0.7.0` final release, the following are tasks that are outstanding that we'd love your help with:
+
+1. Creating of a website at `http://ratpack-framework.org`
+2. Construction of a user manual
+
+### Examples 
+
+* https://github.com/ratpack/groovy-web-console
+* https://github.com/ratpack/groovy-script-example
