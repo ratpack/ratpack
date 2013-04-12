@@ -5,7 +5,7 @@ import org.gradle.api.artifacts.dsl.DependencyHandler
 
 class RatpackDependencies {
 
-  public static final String GROUP = "org.ratpack-framework.netty"
+  public static final String GROUP = "org.ratpack-framework"
   private final version = getClass().classLoader.getResource("org/ratpackframework/ratpack-version.txt").text.trim()
 
   private final DependencyHandler dependencies
