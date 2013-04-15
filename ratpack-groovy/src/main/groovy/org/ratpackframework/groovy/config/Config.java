@@ -23,7 +23,6 @@ import org.ratpackframework.groovy.app.RoutingConfig;
 import org.ratpackframework.groovy.templating.TemplatingConfig;
 import org.ratpackframework.session.SessionCookieConfig;
 
-import java.io.File;
 import java.util.List;
 
 public interface Config {

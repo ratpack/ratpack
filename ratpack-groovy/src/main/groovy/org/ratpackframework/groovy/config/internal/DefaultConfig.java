@@ -2,7 +2,7 @@ package org.ratpackframework.groovy.config.internal;
 
 import com.google.inject.Module;
 import org.ratpackframework.assets.StaticAssetsConfig;
-import org.ratpackframework.config.*;
+import org.ratpackframework.config.AddressConfig;
 import org.ratpackframework.groovy.app.RoutingConfig;
 import org.ratpackframework.groovy.config.Config;
 import org.ratpackframework.groovy.templating.TemplatingConfig;
