@@ -17,8 +17,8 @@ module.exports = (grunt) ->
 
   # configurable paths
   yeomanConfig =
-    app: "src/ratpack/public"
-    dist: "dist"
+    app: "src/main/static"
+    dist: "src/ratpack/public"
 
   grunt.initConfig
     yeoman: yeomanConfig
@@ -108,7 +108,7 @@ module.exports = (grunt) ->
     cssmin:
       dist:
         files:
-          "<%= yeoman.dist %>/styles/main.css": [".tmp/styles/{,*/}*.css", "<%= yeoman.app %>/styles/{,*/}*.css"]
+          "<%= yeoman.dist %>/styles/ratpack.css": [".tmp/styles/{,*/}*.css", "<%= yeoman.app %>/styles/{,*/}*.css"]
 
     htmlmin:
       dist:
