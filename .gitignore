@@ -4,9 +4,12 @@
 /node_modules/
 *.iws
 .DS_Store
+*.log
 
 # contents of this directory are build by grunt
 /src/ratpack/public/*
 
 # can get rid of this once Grunt is building to the right place
 /dist/
+
+/src/ratpack/*.class
