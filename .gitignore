@@ -1,3 +1,9 @@
 /.gradle/
+/.tmp/
+/.sass-cache/
+/node_modules/
 *.iws
 .DS_Store
+
+# can get rid of this once Grunt is building to the right place
+/dist/

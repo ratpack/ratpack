@@ -17,7 +17,7 @@ module.exports = (grunt) ->
 
   # configurable paths
   yeomanConfig =
-    app: "app"
+    app: "src/ratpack/public"
     dist: "dist"
 
   grunt.initConfig
@@ -30,31 +30,6 @@ module.exports = (grunt) ->
       compass:
         files: ["<%= yeoman.app %>/styles/{,*/}*.{scss,sass}"]
         tasks: ["compass:server"]
-
-      livereload:
-        files: ["<%= yeoman.app %>/*.html", "{.tmp,<%= yeoman.app %>}/styles/{,*/}*.css", "{.tmp,<%= yeoman.app %>}/scripts/{,*/}*.js", "<%= yeoman.app %>/images/{,*/}*.{png,jpg,jpeg,gif,webp,svg}"]
-        tasks: ["livereload"]
-
-    connect:
-      options:
-        port: 9000
-
-        # change this to '0.0.0.0' to access the server from outside
-        hostname: "localhost"
-
-      livereload:
-        options:
-          middleware: (connect) ->
-            [lrSnippet, mountFolder(connect, ".tmp"), mountFolder(connect, "app")]
-
-      dist:
-        options:
-          middleware: (connect) ->
-            [mountFolder(connect, "dist")]
-
-    open:
-      server:
-        path: "http://localhost:<%= connect.options.port %>"
 
     clean:
       dist:
@@ -69,7 +44,7 @@ module.exports = (grunt) ->
       options:
         jshintrc: ".jshintrc"
 
-      all: ["Gruntfile.js", "<%= yeoman.app %>/scripts/{,*/}*.js", "!<%= yeoman.app %>/scripts/vendor/*"]
+      all: ["<%= yeoman.app %>/scripts/{,*/}*.js", "!<%= yeoman.app %>/lib/*"]
 
     coffee:
       dist:
@@ -88,7 +63,7 @@ module.exports = (grunt) ->
         imagesDir: "images"
         javascriptsDir: "<%= yeoman.app %>/scripts"
         fontsDir: "styles/fonts"
-        importPath: "app/components"
+        importPath: "<%= yeoman.app %>/lib"
         relativeAssets: true
 
       dist: {}
@@ -96,19 +71,6 @@ module.exports = (grunt) ->
         options:
           debugInfo: true
 
-
-    # not used since Uglify task does concat,
-    # but still available if needed
-    #concat: {
-    #            dist: {}
-    #        },
-
-    # not enabled since usemin task does concat and uglify
-    # check index.html to edit your build targets
-    # enable this task if you prefer defining your build targets here
-    #uglify: {
-    #            dist: {}
-    #        },
     rev:
       dist:
         files:
@@ -151,16 +113,6 @@ module.exports = (grunt) ->
     htmlmin:
       dist:
         options: {}
-
-        #removeCommentsFromCDATA: true,
-        #                    // https://github.com/yeoman/grunt-usemin/issues/44
-        #                    //collapseWhitespace: true,
-        #                    collapseBooleanAttributes: true,
-        #                    removeAttributeQuotes: true,
-        #                    removeRedundantAttributes: true,
-        #                    useShortDoctype: true,
-        #                    removeEmptyAttributes: true,
-        #                    removeOptionalTags: true
         files: [
           expand: true
           cwd: "<%= yeoman.app %>"
@@ -186,9 +138,5 @@ module.exports = (grunt) ->
       dist: ["coffee", "compass:dist", "imagemin", "svgmin", "htmlmin"]
 
   grunt.renameTask "regarde", "watch"
-  grunt.registerTask "server", (target) ->
-    return grunt.task.run(["build", "open", "connect:dist:keepalive"])  if target is "dist"
-    grunt.task.run ["clean:server", "concurrent:server", "livereload-start", "connect:livereload", "open", "watch"]
-
   grunt.registerTask "build", ["clean:dist", "useminPrepare", "concurrent:dist", "cssmin", "concat", "uglify", "copy", "rev", "usemin"]
   grunt.registerTask "default", ["jshint", "build"]
