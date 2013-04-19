@@ -1,2 +1,3 @@
 /.gradle/
 *.iws
+.DS_Store

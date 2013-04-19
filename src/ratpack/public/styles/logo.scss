@@ -1,0 +1,88 @@
+@import "compass/typography";
+@import "compass/css3";
+
+@import "palette";
+@import "ratpack-logo";
+
+$background-color: $ivory;
+
+* {
+	@include box-sizing(border-box);
+}
+
+body {
+	background: {
+		color: $background-color;
+	}
+}
+
+header {
+	margin-bottom: 2em;
+}
+
+.logo {
+	@include ratpack-logo;
+}
+
+.logo-inverted {
+	@include ratpack-logo-inverted;
+	background-color: #222;
+}
+
+.logo-small {
+	@include ratpack-logo($logo-font-size: 3.125em);
+}
+
+.logo-small-inverted {
+	@include ratpack-logo-inverted($logo-font-size: 3.125em);
+	background-color: #222;
+}
+
+.logo-small-plain {
+	@include ratpack-logo($logo-font-size: 3.125em, $spectrum: false);
+}
+
+.logo-small-plain-inverted {
+	@include ratpack-logo-inverted($logo-font-size: 3.125em, $spectrum: false);
+	background-color: #222;
+}
+
+.logo-small-lettering {
+	background-color: #222;
+
+	&.blue {
+		$color1: transparentize($blue, 0.4);
+		$color2: $blue;
+
+		@include ratpack-logo-inverted(
+			$logo-font-size: 3.125em,
+			$logo-image-background: $color1,
+			$spectrum: false);
+		h1 {
+			.char1, .char3, .char5, .char7 {
+				color: $color2;
+			}
+			.char2, .char4, .char6 {
+				color: $color1;
+			}
+		}
+	}
+
+	&.red {
+		$color1: lighten($red, 10%);
+		$color2: lighten($pink, 10%);
+
+		@include ratpack-logo-inverted(
+			$logo-font-size: 3.125em,
+			$logo-image-background: $color1,
+			$spectrum: false);
+		h1 {
+			.char1, .char3, .char5, .char7 {
+				color: $color2;
+			}
+			.char2, .char4, .char6 {
+				color: $color1;
+			}
+		}
+	}
+}
