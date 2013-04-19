@@ -114,7 +114,8 @@ module.exports = (grunt) ->
     cssmin:
       dist:
         files:
-          "<%= yeoman.dist %>/styles/ratpack.css": [".tmp/styles/{,*/}*.css", "<%= yeoman.app %>/styles/{,*/}*.css"]
+          "<%= yeoman.dist %>/styles/ratpack.css": [".tmp/styles/{,*/}ratpack.css", "<%= yeoman.app %>/styles/{,*/}ratpack.css"]
+          "<%= yeoman.dist %>/styles/logo.css": [".tmp/styles/{,*/}logo.css", "<%= yeoman.app %>/styles/{,*/}logo.css"]
 
     htmlmin:
       dist:
