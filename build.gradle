@@ -1,0 +1,21 @@
+apply plugin: 'ratpack-groovy'
+
+buildscript {
+  repositories {
+    maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
+    mavenCentral()
+  }
+  dependencies {
+    classpath 'org.ratpack-framework.netty:ratpack-gradle:0.7.0-SNAPSHOT'
+  }
+}
+
+repositories {
+  maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
+  mavenCentral()
+  maven { url "http://repo.springsource.org/repo" } // for springloaded
+}
+
+task wrapper(type: Wrapper) {
+  gradleVersion = '1.5'
+}
