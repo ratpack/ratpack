@@ -5,5 +5,8 @@
 *.iws
 .DS_Store
 
+# contents of this directory are build by grunt
+/src/ratpack/public/*
+
 # can get rid of this once Grunt is building to the right place
 /dist/
