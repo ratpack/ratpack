@@ -1,2 +1,2 @@
 $ ->
-	$('.logo-small-lettering h1').lettering()
+  $('.logo-small-lettering h1').lettering()

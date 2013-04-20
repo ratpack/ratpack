@@ -1,4 +1,5 @@
 /.gradle/
+/build/
 /.tmp/
 /.sass-cache/
 /node_modules/
@@ -7,7 +8,8 @@
 *.log
 
 # contents of this directory are build by grunt
-/src/ratpack/public/*
+/src/ratpack/public/scripts/*
+/src/ratpack/public/styles/*
 
 # can get rid of this once Grunt is building to the right place
 /dist/

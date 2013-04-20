@@ -17,57 +17,56 @@ module.exports = (grunt) ->
 
   # configurable paths
   yeomanConfig =
-    app: "src/main/static"
-    dist: "src/ratpack/public"
+    src: "src/main/static"
+    target: "src/ratpack/public"
+    dist: "build/public" # todo: may need to be updated but ratpack gradle task not building right
 
   grunt.initConfig
     yeoman: yeomanConfig
     watch:
       coffee:
-        files: ["<%= yeoman.app %>/scripts/{,*/}*.coffee"]
-        tasks: ["coffee:dist"]
+        files: ["<%= yeoman.src %>/scripts/{,*/}*.coffee"]
+        tasks: ["coffee:build"]
 
       compass:
-        files: ["<%= yeoman.app %>/styles/{,*/}*.{scss,sass}"]
-        tasks: ["compass:server"]
+        files: ["<%= yeoman.src %>/styles/{,*/}*.{scss,sass}"]
+        tasks: ["compass:build"]
 
     clean:
-      dist:
+      all:
         files: [
           dot: true
-          src: [".tmp", "<%= yeoman.dist %>/*", "!<%= yeoman.dist %>/.git*"]
+          src: ["<%= yeoman.target %>/scripts", "<%= yeoman.target %>/styles", "<%= yeoman.dist %>/*", "!<%= yeoman.dist %>/.git*"]
         ]
-
-      server: ".tmp"
 
     jshint:
       options:
         jshintrc: ".jshintrc"
 
-      all: ["<%= yeoman.app %>/scripts/{,*/}*.js", "!<%= yeoman.app %>/lib/*"]
+      all: ["<%= yeoman.src %>/scripts/{,*/}*.js", "!<%= yeoman.src %>/lib/*"]
 
     coffee:
-      dist:
+      build:
         files: [
           expand: true
-          cwd: "<%= yeoman.app %>/scripts"
+          cwd: "<%= yeoman.src %>/scripts"
           src: "{,*/}*.coffee"
-          dest: ".tmp/scripts"
+          dest: "<%= yeoman.target %>/scripts"
           ext: ".js"
         ]
 
     compass:
       options:
-        sassDir: "<%= yeoman.app %>/styles"
-        cssDir: ".tmp/styles"
-        imagesDir: "images"
-        javascriptsDir: "<%= yeoman.app %>/scripts"
+        sassDir: "<%= yeoman.src %>/styles"
+        cssDir: "<%= yeoman.target %>/styles"
+        imagesDir: "<%= yeoman.target %>/images"
+        javascriptsDir: "<%= yeoman.src %>/scripts"
         fontsDir: "styles/fonts"
-        importPath: "<%= yeoman.app %>/lib"
+        importPath: "<%= yeoman.src %>/lib"
         relativeAssets: true
 
       dist: {}
-      server:
+      build:
         options:
           debugInfo: true
 
@@ -77,13 +76,12 @@ module.exports = (grunt) ->
           src: [
             "<%= yeoman.dist %>/scripts/{,*/}*.js"
             "<%= yeoman.dist %>/styles/{,*/}*.css"
-            # commented out as image paths in CSS generated from SASS aren't getting updated with rev numbers by usemin
-#            "<%= yeoman.dist %>/images/{,*/}*.{png,jpg,jpeg,gif,webp}"
+            "<%= yeoman.dist %>/images/{,*/}*.{png,jpg,jpeg,gif,webp}"
             "<%= yeoman.dist %>/styles/fonts/*"
           ]
 
     useminPrepare:
-      html: "<%= yeoman.app %>/index.html"
+      html: "<%= yeoman.src %>/index.html"
       options:
         dest: "<%= yeoman.dist %>"
 
@@ -97,7 +95,7 @@ module.exports = (grunt) ->
       dist:
         files: [
           expand: true
-          cwd: "<%= yeoman.app %>/images"
+          cwd: "<%= yeoman.target %>/images"
           src: "{,*/}*.{png,jpg,jpeg}"
           dest: "<%= yeoman.dist %>/images"
         ]
@@ -106,7 +104,7 @@ module.exports = (grunt) ->
       dist:
         files: [
           expand: true
-          cwd: "<%= yeoman.app %>/images"
+          cwd: "<%= yeoman.target %>/images"
           src: "{,*/}*.svg"
           dest: "<%= yeoman.dist %>/images"
         ]
@@ -114,15 +112,15 @@ module.exports = (grunt) ->
     cssmin:
       dist:
         files:
-          "<%= yeoman.dist %>/styles/ratpack.css": [".tmp/styles/{,*/}ratpack.css", "<%= yeoman.app %>/styles/{,*/}ratpack.css"]
-          "<%= yeoman.dist %>/styles/logo.css": [".tmp/styles/{,*/}logo.css", "<%= yeoman.app %>/styles/{,*/}logo.css"]
+          "<%= yeoman.dist %>/styles/ratpack.css": ["<%= yeoman.target %>/styles/{,*/}ratpack.css", "<%= yeoman.src %>/styles/{,*/}ratpack.css"]
+          "<%= yeoman.dist %>/styles/logo.css": ["<%= yeoman.target %>/styles/{,*/}logo.css", "<%= yeoman.src %>/styles/{,*/}logo.css"]
 
     htmlmin:
       dist:
         options: {}
         files: [
           expand: true
-          cwd: "<%= yeoman.app %>"
+          cwd: "<%= yeoman.src %>"
           src: "*.html"
           dest: "<%= yeoman.dist %>"
         ]
@@ -134,16 +132,16 @@ module.exports = (grunt) ->
         files: [
           expand: true
           dot: true
-          cwd: "<%= yeoman.app %>"
+          cwd: "<%= yeoman.target %>"
           dest: "<%= yeoman.dist %>"
           src: ["*.{ico,txt}", ".htaccess", "images/{,*/}*.{webp,gif}", "styles/fonts/*"]
         ]
 
     concurrent:
-      server: ["coffee:dist", "compass:server"]
-      test: ["coffee", "compass"]
+      develop: ["coffee:build", "compass:build"]
       dist: ["coffee", "compass:dist", "imagemin", "svgmin", "htmlmin"]
 
   grunt.renameTask "regarde", "watch"
-  grunt.registerTask "build", ["clean:dist", "useminPrepare", "concurrent:dist", "cssmin", "concat", "uglify", "copy", "rev", "usemin"]
+  grunt.registerTask "develop", ["concurrent:develop", "watch"]
+  grunt.registerTask "build", ["clean", "useminPrepare", "concurrent:dist", "cssmin", "concat", "uglify", "copy", "rev", "usemin"]
   grunt.registerTask "default", ["jshint", "build"]
