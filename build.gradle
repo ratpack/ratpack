@@ -19,15 +19,22 @@ repositories {
 	maven { url "http://repo.springsource.org/repo" } // for springloaded
 }
 
-task gruntDevelop(type: GruntTask) {
-	gruntArgs = "develop"
+task coffee(type: GruntTask) {
+	gruntArgs = "coffee"
+
+	inputs.dir new File('src/main/static/scripts')
+	outputs.dir new File('src/ratpack/public/scripts')
 }
 
-task gruntBuild(type: GruntTask) {
-	gruntArgs = "build"
+task compass(type: GruntTask) {
+	gruntArgs = "compass"
+
+	inputs.dir new File('src/main/static/styles')
+	outputs.dir new File('src/ratpack/public/styles')
 }
 
-build.dependsOn gruntBuild
+clean.dependsOn cleanCoffee, cleanCompass
+processResources.dependsOn coffee, compass
 
 task wrapper(type: Wrapper) {
 	gradleVersion = '1.5'
