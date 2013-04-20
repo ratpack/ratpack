@@ -19,13 +19,15 @@ repositories {
 	maven { url "http://repo.springsource.org/repo" } // for springloaded
 }
 
-task jshint(type: GruntTask) {
-	gruntArgs = "jshint"
+task gruntDevelop(type: GruntTask) {
+	gruntArgs = "develop"
 }
 
-task watch(type: GruntTask) {
-	gruntArgs = "watch"
+task gruntBuild(type: GruntTask) {
+	gruntArgs = "build"
 }
+
+build.dependsOn gruntBuild
 
 task wrapper(type: Wrapper) {
 	gradleVersion = '1.5'
