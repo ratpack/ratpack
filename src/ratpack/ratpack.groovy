@@ -7,4 +7,8 @@ import org.ratpackframework.groovy.app.Routing
 		response.redirect('index.html')
 	}
 
+	get('/chapter1') { Request request, Response response ->
+		render 'chapter1'
+	}
+
 }

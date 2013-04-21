@@ -3,6 +3,13 @@ import org.gradle.api.tasks.Exec
 
 apply plugin: 'ratpack-groovy'
 
+configurations.all {
+	resolutionStrategy {
+		failOnVersionConflict()
+		force 'org.sonatype.sisu.inject:cglib:3.0'
+	}
+}
+
 buildscript {
 	repositories {
 		maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
@@ -17,6 +24,10 @@ repositories {
 	maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
 	mavenCentral()
 	maven { url "http://repo.springsource.org/repo" } // for springloaded
+}
+
+dependencies {
+	compile('org.pegdown:pegdown:1.2.1')
 }
 
 task coffee(type: GruntTask) {
