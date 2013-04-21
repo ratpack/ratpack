@@ -14,12 +14,7 @@ class MarkdownTemplateRendererSpec extends Specification {
 
 	void 'renders a markdown template to the response stream'() {
 		given:
-		Jerry html
-		def handler = Stub(ResultHandler) {
-			handle(_) >> { Result<ChannelBuffer> result ->
-				html = $(IoUtils.utf8String(result.value))
-			}
-		}
+		def handler = new ParsingResultHandler()
 
 		when:
 		renderer.render('foo', null, handler) {
@@ -27,7 +22,8 @@ class MarkdownTemplateRendererSpec extends Specification {
 		}
 
 		then:
-		def h1 = html.find('h1')
+		def h1 = handler.parsedResult.children().first()
+		h1.is('h1')
 		h1.text() == 'Heading'
 
 		and:
@@ -42,6 +38,21 @@ class MarkdownTemplateRendererSpec extends Specification {
 
 		where:
 		markdown = '# Heading\n\nSome text with [a link](http://www.ratpack-framework.com/) to something.'
+	}
+
+}
+
+class ParsingResultHandler implements ResultHandler<ChannelBuffer> {
+
+	Result<ChannelBuffer> event
+
+	@Override
+	void handle(Result<ChannelBuffer> event) {
+		this.event = event
+	}
+
+	Jerry getParsedResult() {
+		$(IoUtils.utf8String(event.value))
 	}
 
 }
