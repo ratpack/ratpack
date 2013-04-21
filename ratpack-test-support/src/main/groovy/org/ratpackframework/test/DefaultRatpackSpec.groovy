@@ -1,36 +1,33 @@
 package org.ratpackframework.test
 
-import com.google.inject.Module
-import org.ratpackframework.app.Routing
-import org.ratpackframework.assets.StaticAssetsConfig
 import org.ratpackframework.bootstrap.RatpackServer
-import org.ratpackframework.bootstrap.RatpackServerFactory
-import org.ratpackframework.groovy.app.ClosureRouting
-import org.ratpackframework.groovy.app.internal.RoutingScript
-import org.ratpackframework.handler.Handler
+import org.ratpackframework.bootstrap.RatpackServerBuilder
+import org.ratpackframework.groovy.app.Routing
+import org.ratpackframework.groovy.app.internal.ClosureAppFactory
+import org.ratpackframework.groovy.bootstrap.ModuleRegistry
+import org.ratpackframework.http.CoreHttpHandlers
 
 class DefaultRatpackSpec extends RatpackSpec {
 
-  StaticAssetsConfig staticAssets
+  Closure<?> routing = {}
+  Closure<?> modules = {}
 
-  Closure<?> routingClosure = {}
-  List<Module> modules = []
-
-  def setup() {
-    staticAssets = new StaticAssetsConfig(file("public"))
+  void routing(@DelegatesTo(Routing) Closure<?> configurer) {
+    this.routing = configurer
   }
 
-  @Override
-  File getAssetsDir() {
-    staticAssets.directory
-  }
-
-  void routing(@DelegatesTo(org.ratpackframework.groovy.app.Routing) Closure routingClosure) {
-    this.routingClosure = routingClosure
+  void modules(@DelegatesTo(ModuleRegistry) Closure<?> configurer) {
+    this.modules = configurer
   }
 
   @Override
   RatpackServer createApp() {
-    new RatpackServerFactory(0, null, null).create(new ClosureRouting(routingClosure), staticAssets, * modules)
+    ClosureAppFactory appFactory = new ClosureAppFactory()
+    CoreHttpHandlers coreHandlers = appFactory.create(modules, routing)
+
+    RatpackServerBuilder builder = new RatpackServerBuilder(coreHandlers)
+    builder.port = 0
+    builder.host = null
+    builder.build()
   }
 }

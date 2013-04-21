@@ -16,6 +16,10 @@ public class TemplatingModule extends AbstractModule {
     this.templatingConfig = templatingConfig;
   }
 
+  public TemplatingConfig getConfig() {
+    return templatingConfig;
+  }
+
   @Override
   protected void configure() {
     bind(HTTP_ERROR_HANDLER).annotatedWith(named(MAIN_HTTP_ERROR_HANDLER)).to(ErrorHandler.class);

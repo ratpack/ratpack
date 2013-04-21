@@ -16,6 +16,10 @@ public class SessionModule extends AbstractModule {
     this.sessionCookieConfig = sessionCookieConfig;
   }
 
+  public SessionCookieConfig getSessionCookieConfig() {
+    return sessionCookieConfig;
+  }
+
   @Override
   protected void configure() {
     bind(SessionIdGenerator.class).to(DefaultSessionIdGenerator.class).in(Singleton.class);

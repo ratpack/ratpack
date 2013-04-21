@@ -23,7 +23,7 @@ class InstallAppSpec extends FunctionalSpec {
   def "everything goes in the right place"() {
     given:
     file("src/ratpack/ratpack.groovy") << """
-      get("/") { text "foo" }
+      routing { get("/") { text "foo" } }
     """
     when:
     run "installApp"

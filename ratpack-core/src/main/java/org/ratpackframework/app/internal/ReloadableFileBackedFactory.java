@@ -1,9 +1,8 @@
 package org.ratpackframework.app.internal;
 
 import org.jboss.netty.buffer.ChannelBuffer;
-import org.ratpackframework.handler.Handler;
+import org.ratpackframework.Factory;
 import org.ratpackframework.util.IoUtils;
-import org.ratpackframework.routing.Routed;
 
 import java.io.File;
 import java.io.IOException;
@@ -12,7 +11,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class ReloadableFileBackedHandler<T> implements Handler<Routed<T>> {
+public class ReloadableFileBackedFactory<T> implements Factory<T> {
 
   private final File file;
   private final boolean reloadable;
@@ -20,14 +19,14 @@ public class ReloadableFileBackedHandler<T> implements Handler<Routed<T>> {
 
   private final AtomicLong lastModifiedHolder = new AtomicLong(-1);
   private final AtomicReference<ChannelBuffer> contentHolder = new AtomicReference<>();
-  private final AtomicReference<Handler<Routed<T>>> delegateHolder = new AtomicReference<>(null);
+  private final AtomicReference<T> delegateHolder = new AtomicReference<>(null);
   private final Lock lock = new ReentrantLock();
 
   static public interface Delegate<T> {
-    Handler<Routed<T>> produce(File file, ChannelBuffer bytes);
+    T produce(File file, ChannelBuffer bytes);
   }
 
-  public ReloadableFileBackedHandler(File file, boolean reloadable, Delegate<T> delegate) {
+  public ReloadableFileBackedFactory(File file, boolean reloadable, Delegate<T> delegate) {
     this.file = file;
     this.reloadable = reloadable;
     this.delegate = delegate;
@@ -42,15 +41,13 @@ public class ReloadableFileBackedHandler<T> implements Handler<Routed<T>> {
   }
 
   @Override
-  public void handle(final Routed<T> routed) {
+  public T create() {
     if (!reloadable) {
-      delegateHolder.get().handle(routed);
-      return;
+      return delegateHolder.get();
     }
 
     if (!file.exists()) {
-      routed.next();
-      return;
+      return null;
     }
 
     try {
@@ -58,11 +55,10 @@ public class ReloadableFileBackedHandler<T> implements Handler<Routed<T>> {
         refresh();
       }
     } catch (Exception e) {
-      routed.error(e);
-      return;
+      throw new RuntimeException(e);
     }
 
-    delegateHolder.get().handle(routed);
+    return delegateHolder.get();
   }
 
   private boolean isBytesAreSame() throws IOException {

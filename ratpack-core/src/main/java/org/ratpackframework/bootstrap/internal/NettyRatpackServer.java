@@ -7,12 +7,8 @@ import org.jboss.netty.channel.ChannelFactory;
 import org.jboss.netty.channel.ChannelPipelineFactory;
 import org.jboss.netty.channel.group.ChannelGroup;
 import org.ratpackframework.bootstrap.RatpackServer;
-import org.ratpackframework.bootstrap.internal.RootModule;
 import org.ratpackframework.handler.Handler;
 
-import javax.inject.Inject;
-import javax.inject.Named;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -28,9 +24,8 @@ public class NettyRatpackServer extends AbstractIdleService implements RatpackSe
   private final Handler<RatpackServer> init;
   private final ChannelPipelineFactory channelPipelineFactory;
 
-  @Inject
   public NettyRatpackServer(
-      @Named(RootModule.BIND_ADDRESS) InetSocketAddress requestedAddress,
+      InetSocketAddress requestedAddress,
       ChannelFactory channelFactory, ChannelGroup channelGroup, ChannelPipelineFactory channelPipelineFactory,
       Handler<RatpackServer> init
   ) {

@@ -24,7 +24,9 @@ class SessionSpec extends DefaultRatpackSpec {
 
   def "can store session vars"() {
     given:
-    modules << new MapSessionsModule(10, 10)
+    modules {
+      register(new MapSessionsModule(10, 10))
+    }
 
     routing {
       get("/") {
@@ -50,7 +52,7 @@ class SessionSpec extends DefaultRatpackSpec {
 
   def "can invalidate session vars"() {
     given:
-    modules << new MapSessionsModule(10, 10)
+    modules { register(new MapSessionsModule(10, 10)) }
 
     routing {
       get("/") {

@@ -16,6 +16,7 @@
 
 package org.ratpackframework.groovy
 
+import org.ratpackframework.groovy.templating.TemplatingModule
 import spock.lang.Unroll
 
 class TemplateRenderingSpec extends RatpackGroovySpec {
@@ -26,8 +27,10 @@ class TemplateRenderingSpec extends RatpackGroovySpec {
 
     and:
     ratpackFile << """
-      get("/") {
-        render "foo.html", value: "bar"
+      routing {
+        get("/") {
+          render "foo.html", value: "bar"
+        }
       }
     """
 
@@ -45,8 +48,10 @@ class TemplateRenderingSpec extends RatpackGroovySpec {
 
     and:
     ratpackFile << """
-      get("/") {
-        render "outer.html", value: "outer"
+      routing {
+        get("/") {
+          render "outer.html", value: "outer"
+        }
       }
     """
 
@@ -65,8 +70,10 @@ class TemplateRenderingSpec extends RatpackGroovySpec {
 
     and:
     ratpackFile << """
-      get("/") {
-        render "outer.html", value: "outer"
+      routing {
+        get("/") {
+          render "outer.html", value: "outer"
+        }
       }
     """
 
@@ -85,8 +92,10 @@ class TemplateRenderingSpec extends RatpackGroovySpec {
 
     and:
     ratpackFile << """
-      get("/") {
-        render "outer.html", value: "outer"
+      routing {
+        get("/") {
+          render "outer.html", value: "outer"
+        }
       }
     """
 
@@ -105,8 +114,10 @@ class TemplateRenderingSpec extends RatpackGroovySpec {
 
     and:
     ratpackFile << """
-      get("/") {
-        render "outer.html", a: "a", b: "b"
+      routing {
+        get("/") {
+          render "outer.html", a: "a", b: "b"
+        }
       }
     """
 
@@ -124,8 +135,10 @@ class TemplateRenderingSpec extends RatpackGroovySpec {
 
     and:
     ratpackFile << """
-      get("/") {
-        render "outer.html"
+      routing {
+        get("/") {
+          render "outer.html"
+        }
       }
     """
 
@@ -147,8 +160,10 @@ class TemplateRenderingSpec extends RatpackGroovySpec {
 
     and:
     ratpackFile << """
-      get("/") {
-        render "outer.html"
+      routing {
+        get("/") {
+          render "outer.html"
+        }
       }
     """
 
@@ -164,14 +179,21 @@ class TemplateRenderingSpec extends RatpackGroovySpec {
 
   def "compile error in inner template"() {
     given:
-    config.templating.staticallyCompile = true
+    ratpackFile << """
+      modules {
+        get(${TemplatingModule.name}).config.staticallyCompile = true
+      }
+    """
+
     templateFile("outer.html") << "outer: \${model.value}, <% render 'inner.html', value: 'inner' %>"
     templateFile("inner.html") << "inner: \${model.value.toInteger()}"
 
     and:
     ratpackFile << """
-      get("/") {
-        render "outer.html", value: "outer"
+      routing {
+        get("/") {
+          render "outer.html", value: "outer"
+        }
       }
     """
 

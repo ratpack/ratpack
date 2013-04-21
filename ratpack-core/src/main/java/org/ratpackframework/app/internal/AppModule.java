@@ -9,6 +9,8 @@ import org.ratpackframework.http.HttpExchange;
 import org.ratpackframework.render.DefaultTextRenderer;
 import org.ratpackframework.render.TextRenderer;
 import org.ratpackframework.routing.NoopRouter;
+import org.ratpackframework.templating.NullTemplateRenderer;
+import org.ratpackframework.templating.TemplateRenderer;
 
 import javax.inject.Singleton;
 
@@ -21,6 +23,8 @@ public class AppModule extends AbstractModule {
   @Override
   protected void configure() {
     bind(HTTP_HANDLER).annotatedWith(Names.named(MAIN_APP_HTTP_HANDLER)).toInstance(new NoopRouter<HttpExchange>());
+
+    bind(TemplateRenderer.class).to(NullTemplateRenderer.class).in(Singleton.class);
 
     bind(ResponseFactory.class).to(DefaultResponseFactory.class).in(Singleton.class);
     bind(RoutingFactory.class).to(DefaultRoutingFactory.class);

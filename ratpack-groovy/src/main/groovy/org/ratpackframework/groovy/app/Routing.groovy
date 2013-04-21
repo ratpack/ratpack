@@ -16,6 +16,8 @@
 
 package org.ratpackframework.groovy.app
 
+import org.ratpackframework.app.Response
+
 
 public interface Routing extends org.ratpackframework.app.Routing {
 
@@ -46,58 +48,58 @@ public interface Routing extends org.ratpackframework.app.Routing {
    * @param path The path to handle (must start with a /)
    * @param handler The closure to handle the request
    */
-  void route(String method, String path, @HandlerClosure Closure<?> handler)
+  void route(String method, String path, @DelegatesTo(value = Response, strategy = Closure.DELEGATE_FIRST) Closure<?> handler)
 
-  void routeRe(String method, String pattern, @HandlerClosure Closure<?> handler)
+  void routeRe(String method, String pattern, @DelegatesTo(value = Response, strategy = Closure.DELEGATE_FIRST) Closure<?> handler)
 
   /**
    * Delegates {@link #route(java.lang.String, java.lang.String, groovy.lang.Closure)} with a method of "*"
    */
-  void all(String path, @HandlerClosure Closure<?> handler)
+  void all(String path, @DelegatesTo(value = Response, strategy = Closure.DELEGATE_FIRST) Closure<?> handler)
 
   /**
    * Delegates {@link #routeRe(java.lang.String, java.lang.String, groovy.lang.Closure)} with a method of "*"
    */
-  void allRe(String path, @HandlerClosure Closure<?> handler)
+  void allRe(String path, @DelegatesTo(value = Response, strategy = Closure.DELEGATE_FIRST) Closure<?> handler)
 
   /**
    * Delegates {@link #route(java.lang.String, java.lang.String, groovy.lang.Closure)} with a method of "get"
    */
-  void get(String path, @HandlerClosure Closure<?> handler)
+  void get(String path, @DelegatesTo(value = Response, strategy = Closure.DELEGATE_FIRST) Closure<?> handler)
 
   /**
    * Delegates {@link #routeRe(java.lang.String, java.lang.String, groovy.lang.Closure)} with a method of "get"
    */
-  void getRe(String path, @HandlerClosure Closure<?> handler)
+  void getRe(String path, @DelegatesTo(value = Response, strategy = Closure.DELEGATE_FIRST) Closure<?> handler)
 
   /**
    * Delegates {@link #route(java.lang.String, java.lang.String, groovy.lang.Closure)} with a method of "post"
    */
-  void post(String path, @HandlerClosure Closure<?> handler)
+  void post(String path, @DelegatesTo(value = Response, strategy = Closure.DELEGATE_FIRST) Closure<?> handler)
 
   /**
    * Delegates {@link #routeRe(java.lang.String, java.lang.String, groovy.lang.Closure)} with a method of "post"
    */
-  void postRe(String path, @HandlerClosure Closure<?> handler)
+  void postRe(String path, @DelegatesTo(value = Response, strategy = Closure.DELEGATE_FIRST) Closure<?> handler)
 
   /**
    * Delegates {@link #route(java.lang.String, java.lang.String, groovy.lang.Closure)} with a method of "put"
    */
-  void put(String path, @HandlerClosure Closure<?> handler)
+  void put(String path, @DelegatesTo(value = Response, strategy = Closure.DELEGATE_FIRST) Closure<?> handler)
 
   /**
    * Delegates {@link #routeRe(java.lang.String, java.lang.String, groovy.lang.Closure)} with a method of "put"
    */
-  void putRe(String path, @HandlerClosure Closure<?> handler)
+  void putRe(String path, @DelegatesTo(value = Response, strategy = Closure.DELEGATE_FIRST) Closure<?> handler)
 
   /**
    * Delegates {@link #route(java.lang.String, java.lang.String, groovy.lang.Closure)} with a method of "delete"
    */
-  void delete(String path, @HandlerClosure Closure<?> handler)
+  void delete(String path, @DelegatesTo(value = Response, strategy = Closure.DELEGATE_FIRST) Closure<?> handler)
 
   /**
    * Delegates {@link #routeRe(java.lang.String, java.lang.String, groovy.lang.Closure)} with a method of "delete"
    */
-  void deleteRe(String path, @HandlerClosure Closure<?> handler)
+  void deleteRe(String path, @DelegatesTo(value = Response, strategy = Closure.DELEGATE_FIRST) Closure<?> handler)
 
 }

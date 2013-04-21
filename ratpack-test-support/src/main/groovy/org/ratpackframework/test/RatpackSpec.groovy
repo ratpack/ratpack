@@ -31,14 +31,6 @@ abstract class RatpackSpec extends Specification {
 
   abstract RatpackServer createApp()
 
-  File getAssetsDir() {
-    file("public")
-  }
-
-  File assetFile(String path) {
-    prepFile(new File(getAssetsDir(), path))
-  }
-
   File file(String path) {
     prepFile(new File(getDir(), path))
   }

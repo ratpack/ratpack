@@ -61,19 +61,4 @@ class RoutingSpec extends DefaultRatpackSpec {
     urlGetText("bbc/de") == "b:[0:bc/de]"
   }
 
-  def "using wrong http method to access an endpoint produces a 405"() {
-    given:
-    routing {
-      get("/foo") {
-        text "foo"
-      }
-    }
-
-    when:
-    startApp()
-
-    then:
-    urlPostConnection("foo").responseCode == 405
-  }
-
 }

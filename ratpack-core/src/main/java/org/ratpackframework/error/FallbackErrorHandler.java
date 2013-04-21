@@ -23,6 +23,8 @@ import org.ratpackframework.http.HttpExchange;
 import org.ratpackframework.handler.Result;
 import org.ratpackframework.handler.ResultHandler;
 
+import java.util.logging.Logger;
+
 /**
  * Used as a last attempt to handle the error. Useful for wrapping more sophisticated error handlers.
  */

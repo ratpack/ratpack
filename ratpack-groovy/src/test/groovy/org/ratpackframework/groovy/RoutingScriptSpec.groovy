@@ -4,9 +4,13 @@ class RoutingScriptSpec extends RatpackGroovySpec {
 
   def "is reloadable"() {
     given:
+    reloadable = true
+
     ratpackFile << """
-      get("/") {
-        text "foo"
+      routing {
+        get("/") {
+          text "foo"
+        }
       }
     """
 
@@ -18,8 +22,10 @@ class RoutingScriptSpec extends RatpackGroovySpec {
 
     when:
     ratpackFile.text = """
-      get("/") {
-        text "bar"
+      routing {
+        get("/") {
+          text "bar"
+        }
       }
     """
 
@@ -29,10 +35,13 @@ class RoutingScriptSpec extends RatpackGroovySpec {
 
   def "can disable reloading"() {
     given:
-    config.routing.reloadable = false
+    reloadable = false
+
     ratpackFile << """
-      get("/") {
-        text "foo"
+      routing {
+        get("/") {
+          text "foo"
+        }
       }
     """
 
@@ -44,8 +53,10 @@ class RoutingScriptSpec extends RatpackGroovySpec {
 
     when:
     ratpackFile.text = """
-      get("/") {
-        text "bar"
+      routing {
+        get("/") {
+          text "bar"
+        }
       }
     """
 
@@ -55,7 +66,8 @@ class RoutingScriptSpec extends RatpackGroovySpec {
 
   def "app does not start when routes is invalid and reloading disabled"() {
     given:
-    config.routing.reloadable = false
+    reloadable = false
+
     ratpackFile << """
       s s da
     """
@@ -70,11 +82,13 @@ class RoutingScriptSpec extends RatpackGroovySpec {
   def "can redirect"() {
     given:
     ratpackFile << """
-      get("/") {
-        redirect "/foo"
-      }
-      get("/foo") {
-        text "foo"
+      routing {
+        get("/") {
+          redirect "/foo"
+        }
+        get("/foo") {
+          text "foo"
+        }
       }
     """
 

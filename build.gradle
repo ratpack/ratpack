@@ -12,7 +12,7 @@ ext.commonDependencies = [
     spock: dependencies.create('org.spockframework:spock-core:0.7-groovy-2.0', {
       exclude module: "groovy-all"
     }),
-    groovy: dependencies.create('org.codehaus.groovy:groovy-all:2.1.1')
+    groovy: dependencies.create('org.codehaus.groovy:groovy-all:2.1.3')
 ]
 
 subprojects {
@@ -25,6 +25,7 @@ subprojects {
   apply plugin: 'signing'
 
   repositories {
+    mavenLocal()
     mavenCentral()
   }
 

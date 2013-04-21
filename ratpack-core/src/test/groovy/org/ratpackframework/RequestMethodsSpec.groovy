@@ -7,7 +7,7 @@ class RequestMethodsSpec extends DefaultRatpackSpec {
 
   def "can get query params"() {
     given:
-    modules << new GroovyTextRendererModule() // easier to work with this representation
+    modules { register(new GroovyTextRendererModule()) }
 
     routing {
       get("/") {

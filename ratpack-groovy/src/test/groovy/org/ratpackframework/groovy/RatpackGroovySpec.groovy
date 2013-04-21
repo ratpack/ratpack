@@ -1,35 +1,25 @@
 package org.ratpackframework.groovy
 
 import org.ratpackframework.bootstrap.RatpackServer
-import org.ratpackframework.groovy.bootstrap.RatpackServerFactory
-import org.ratpackframework.groovy.config.Config
-import org.ratpackframework.groovy.config.internal.DefaultConfig
+
 import org.ratpackframework.test.RatpackSpec
 
 class RatpackGroovySpec extends RatpackSpec {
 
-  Config config
+  boolean compileStatic = false
+  boolean reloadable = false
 
   File getRatpackFile() {
     file("ratpack.groovy")
   }
 
-  @Override
-  File getAssetsDir() {
-    config.staticAssets.directory
-  }
-
   File templateFile(String path) {
-    prepFile(new File(config.templating.directory, path))
+    file("templates/$path")
   }
 
   @Override
   RatpackServer createApp() {
-    new RatpackServerFactory().create(config)
+    RatpackScriptApp.ratpack(ratpackFile, 0, null, compileStatic, reloadable)
   }
 
-  def setup() {
-    config = new DefaultConfig(dir)
-    config.deployment.port = 0
-  }
 }
