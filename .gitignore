@@ -4,6 +4,8 @@
 /out/
 /.sass-cache/
 /node_modules/
+*.ipr
+*.iml
 *.iws
 .DS_Store
 *.log
