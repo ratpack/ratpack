@@ -1,6 +1,7 @@
 /.gradle/
 /build/
 /.tmp/
+/out/
 /.sass-cache/
 /node_modules/
 *.iws
