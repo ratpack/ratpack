@@ -16,26 +16,23 @@
 
 package org.ratpackframework.assets.internal;
 
-import org.jboss.netty.channel.*;
 import org.jboss.netty.handler.codec.http.*;
 import org.ratpackframework.handler.Handler;
-import org.ratpackframework.http.HttpExchange;
-import org.ratpackframework.http.internal.DefaultHttpExchange;
-import org.ratpackframework.routing.Routed;
 import org.ratpackframework.http.HttpDateParseException;
 import org.ratpackframework.http.HttpDateUtil;
+import org.ratpackframework.http.HttpExchange;
+import org.ratpackframework.http.internal.DefaultHttpExchange;
+import org.ratpackframework.http.internal.FileHttpTransmitter;
+import org.ratpackframework.routing.Routed;
 
-import javax.activation.MimetypesFileTypeMap;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.RandomAccessFile;
-import java.util.Date;
 
-import static org.jboss.netty.handler.codec.http.HttpHeaders.Names.*;
+import static org.jboss.netty.handler.codec.http.HttpHeaders.Names.IF_MODIFIED_SINCE;
 import static org.jboss.netty.handler.codec.http.HttpResponseStatus.*;
 
 public class FileStaticAssetRequestHandler implements Handler<Routed<HttpExchange>> {
+
+  private final FileHttpTransmitter fileHttpTransmitter = new FileHttpTransmitter();
 
   @Override
   public void handle(final Routed<HttpExchange> routed) {
@@ -87,52 +84,6 @@ public class FileStaticAssetRequestHandler implements Handler<Routed<HttpExchang
       return;
     }
 
-    RandomAccessFile raf;
-    try {
-      raf = new RandomAccessFile(targetFile, "r");
-    } catch (FileNotFoundException fnfe) {
-      routed.next();
-      return;
-    }
-
-    long fileLength;
-    try {
-      fileLength = raf.length();
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-
-    HttpHeaders.setContentLength(response, fileLength);
-    response.setHeader(LAST_MODIFIED, HttpDateUtil.formatDate(new Date(targetFile.lastModified())));
-    MimetypesFileTypeMap mimeTypesMap = new MimetypesFileTypeMap();
-    response.setHeader(CONTENT_TYPE, mimeTypesMap.getContentType(targetFile.getPath()));
-
-    Channel ch = ((DefaultHttpExchange) exchange).getChannel();
-
-    // Write the initial line and the header.
-    if (!ch.isOpen()) {
-      return;
-    }
-    ch.write(response);
-
-    // Write the content.
-    ChannelFuture writeFuture;
-    final FileRegion region = new DefaultFileRegion(raf.getChannel(), 0, fileLength);
-    try {
-      writeFuture = ch.write(region);
-    } catch (Exception ignore) {
-      if (ch.isOpen()) {
-        ch.close();
-      }
-      return;
-    }
-
-    writeFuture.addListener(new ChannelFutureListener() {
-      public void operationComplete(ChannelFuture future) {
-        future.addListener(ChannelFutureListener.CLOSE);
-        region.releaseExternalResources();
-      }
-    });
+    fileHttpTransmitter.transmit(targetFile, response, ((DefaultHttpExchange) exchange).getChannel());
   }
-
 }
