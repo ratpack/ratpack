@@ -1,20 +1,24 @@
+# Gradle
 /.gradle/
+/.gradletasknamecache
 /build/
-/.tmp/
-/out/
+
+# JRuby & SASS
+/.jruby/
 /.sass-cache/
-/node_modules/
+
+# IntelliJ IDEA
+/out/
 *.ipr
 *.iml
 *.iws
-.DS_Store
-*.log
 
-# contents of this directory are build by grunt
+# OSX
+.DS_Store
+
+# compiled files
 /src/ratpack/public/scripts/*
 /src/ratpack/public/styles/*
-
-# can get rid of this once Grunt is building to the right place
-/dist/
-
 /src/ratpack/*.class
+
+*.log
