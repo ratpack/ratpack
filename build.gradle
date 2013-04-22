@@ -25,7 +25,6 @@ subprojects {
   apply plugin: 'signing'
 
   repositories {
-    mavenLocal()
     mavenCentral()
   }
 
