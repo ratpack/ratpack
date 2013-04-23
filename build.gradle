@@ -81,18 +81,18 @@ task compileSass(type: JRubyExec) {
 }
 
 task watchSass {
-	Thread.start {
-		project.javaexec {
-			classpath = configurations.jruby
-			main = 'org.jruby.Main'
-			jvmArgs '-client -XX:+TieredCompilation -XX:TieredStopAtLevel=1'.tokenize()
-			environment 'GEM_PATH', gemsDir
-			args "-X-C -S compass watch --sass-dir $sassDir --css-dir $cssDir --images-dir $imagesDir --javascripts-dir $javascriptsDir --relative-assets".tokenize()
-		}
-	}
-
 	doFirst {
 		cssDir.mkdirs()
+
+		Thread.start {
+			project.javaexec {
+				classpath = configurations.jruby
+				main = 'org.jruby.Main'
+				jvmArgs '-client -XX:+TieredCompilation -XX:TieredStopAtLevel=1'.tokenize()
+				environment 'GEM_PATH', gemsDir
+				args "-X-C -S compass watch --sass-dir $sassDir --css-dir $cssDir --images-dir $imagesDir --javascripts-dir $javascriptsDir --relative-assets".tokenize()
+			}
+		}
 	}
 }
 
