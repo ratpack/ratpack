@@ -1,100 +1,101 @@
-@mixin ratpack-logo(
-	$logo-font-size: 6.25em,
-	$text-color: $black,
-	$logo-image: 'ratpack-logo.png',
-	$logo-image-background: $white,
-	$spectrum: true,
-	$disc-color1: transparentize($yellow, 0.4),
-	$disc-color2: transparentize($red, 0.4),
-	$disc-color3: transparentize($blue, 0.4)) {
+$default-font-size: 5em;
 
-	$logo-size: $logo-font-size * 1.2;
-	$logo-border-width: $logo-font-size * 0.03;
-	$logo-border-color: $text-color;
+$logo-image-url: 'http://i36.tinypic.com/2hf78e1.png';
+$inverted-logo-image-url: 'http://i35.tinypic.com/28a8byc.png';
+$mask-image-url: 'http://i36.tinypic.com/w2dt7t.png';
 
-	position: relative;
-	@include inline-block;
-
-	padding: $logo-font-size / 10;
-
-	color: $text-color;
-
-	&:after {
-		content: " ";
-		position: absolute;
-		top: 0;
-		left: 0;
-		width: 100%;
-		height: 100%;
-		background: image-url('noise-bg.png');
-	}
-
-	hgroup {
-		position: relative;
-		padding-left: $logo-size;
-		padding-right: $logo-font-size / 10;
-		&:before {
-			content: " ";
-			background: {
-				color: $logo-image-background;
-				image: image-url($logo-image);
-			 	position: 0 0;
-			 	repeat: no-repeat;
-			 	size: cover;
-			}
-			position: absolute;
-			left: 0;
-			top: 0;
-			border: $logo-border-width solid $text-color;
-			@include border-radius(50%);
-			width: $logo-size;
-			height: $logo-size;
-			@if $spectrum {
-				z-index: -1;
-				@include box-shadow(
-					$disc-color1 ($logo-size / 2) 0 0,
-					$disc-color2 $logo-size 0 0,
-					$disc-color3 ($logo-size * 1.5) 0 0);
-			}
-		}
-	}
-
-	h1, h2 {
-		margin: 0;
-		text-transform: none;
-	}
-
-	h1 {
-		font: {
-			size: $logo-font-size;
-			family: 'Peralta', serif;
-			weight: normal;
-		}
-		line-height: 1.2;
-	}
-
-	h2 {
-		font: {
-			size: $logo-font-size * 0.32;
-			family: 'Oregano', serif;
-			weight: normal;
-		}
-		line-height: 1.1;
-	}
+@mixin noise-mask {
+  &:after {
+    content: " ";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url($mask-image-url);
+  }
 }
 
-@mixin ratpack-logo-inverted(
-	$logo-font-size: 6.25em, 
-	$text-color: #fff,
-	$logo-image: 'ratpack-logo-inverse.png', 
-	$logo-image-background: #fff, 
-	$spectrum: true) {
-	z-index: -1;
-	@include ratpack-logo(
-		$logo-font-size: $logo-font-size,
-		$text-color: #fff,
-		$logo-image: $logo-image,
-		$logo-image-background: $logo-image-background,
-		$spectrum: $spectrum);
+@mixin ratpack-logo($font-size: $default-font-size,
+$text-color: $black,
+$logo-image: $logo-image-url,
+$logo-image-background: $white,
+$spectrum: true,
+$color1: transparentize($yellow, 0.4),
+$color2: transparentize($red, 0.4),
+$color3: transparentize($blue, 0.4)) {
+
+  $gutter: $font-size / 10;
+  $logo-scale: 1.2;
+  $logo-size: $font-size * $logo-scale;
+  $logo-border-width: $font-size * 0.03;
+  $logo-border-color: $text-color;
+
+  color: $text-color;
+  float: left;
+  clear: both;
+
+  @include noise-mask;
+
+  display: inline-block;
+  position: relative;
+  padding-left: $logo-size + $gutter;
+  padding-right: $gutter;
+  padding-top: $gutter;
+  padding-bottom: $gutter;
+
+  &:before {
+    content: " ";
+    background: {
+      color: $logo-image-background;
+      image: url($logo-image);
+      position: 0 0;
+      repeat: no-repeat;
+      size: cover;
+    }
+    position: absolute;
+    left: $gutter;
+    top: $gutter;
+    border: $logo-border-width solid $logo-border-color;
+    border-radius: 50%;
+    box-sizing: border-box;
+    width: $logo-size;
+    height: $logo-size;
+    @if $spectrum {
+      z-index: -1;
+      box-shadow: $color1 ($logo-size / 2) 0 0, $color2 $logo-size 0 0, $color3 ($logo-size * 1.5) 0 0;
+    }
+  }
+
+  h1, p {
+    margin: 0;
+    text-transform: none;
+  }
+
+  h1 {
+    font: {
+      size: $font-size;
+      family: 'Peralta', serif;
+      weight: normal;
+    }
+    line-height: $logo-scale;
+  }
+
+  p {
+    font: {
+      size: $font-size * 0.32;
+      family: 'Oregano', serif;
+      weight: normal;
+    }
+    line-height: 1.1;
+  }
 }
 
+@mixin ratpack-logo-inverted($font-size: $default-font-size,
+$text-color: $white,
+$logo-image: $inverted-logo-image-url,
+$logo-image-background: $white,
+$spectrum: true) {
+  z-index: -1;
+  @include ratpack-logo($font-size: $font-size, $text-color: #fff, $logo-image: $logo-image, $logo-image-background: $logo-image-background, $spectrum: $spectrum);
+}
