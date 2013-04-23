@@ -44,8 +44,15 @@ task compileCoffee(type: CoffeeScriptCompile) {
 	destinationDir file('src/ratpack/public/scripts')
 }
 
+ext {
+	gemsDir = file('.jruby/gems')
+	cssDir = file('src/ratpack/public/styles')
+	sassDir = file('src/main/static/styles')
+	imagesDir = file('src/ratpack/public/images')
+	javascriptsDir = file('src/ratpack/public/scripts')
+}
+
 task installGems(type: JRubyExec) {
-	def gemsDir = file('.jruby/gems')
 	outputs.dir gemsDir
 
 	command = "gem install -i $gemsDir --no-rdoc --no-ri compass"
@@ -58,11 +65,6 @@ task installGems(type: JRubyExec) {
 }
 
 task compileSass(type: JRubyExec) {
-	def cssDir = file('src/ratpack/public/styles')
-	def sassDir = file('src/main/static/styles')
-	def imagesDir = file('src/ratpack/public/images')
-	def javascriptsDir = file('src/ratpack/public/scripts')
-
 	outputs.dir cssDir
 	inputs.files installGems
 	inputs.dir sassDir
@@ -77,6 +79,24 @@ task compileSass(type: JRubyExec) {
 		cssDir.mkdirs()
 	}
 }
+
+task watchSass {
+	Thread.start {
+		project.javaexec {
+			classpath = configurations.jruby
+			main = 'org.jruby.Main'
+			jvmArgs '-client -XX:+TieredCompilation -XX:TieredStopAtLevel=1'.tokenize()
+			environment 'GEM_PATH', gemsDir
+			args "-X-C -S compass watch --sass-dir $sassDir --css-dir $cssDir --images-dir $imagesDir --javascripts-dir $javascriptsDir --relative-assets".tokenize()
+		}
+	}
+
+	doFirst {
+		cssDir.mkdirs()
+	}
+}
+
+run.dependsOn watchSass
 
 clean.dependsOn cleanCompileCoffee, cleanCompileSass
 processResources.inputs.files compileCoffee
