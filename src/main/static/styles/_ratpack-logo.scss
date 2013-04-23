@@ -1,8 +1,9 @@
 $default-font-size: 5em;
+$default-logo-scale: 1.2;
 
-$logo-image-url: 'http://i36.tinypic.com/2hf78e1.png';
-$inverted-logo-image-url: 'http://i35.tinypic.com/28a8byc.png';
-$mask-image-url: 'http://i36.tinypic.com/w2dt7t.png';
+$logo-image-url: 'ratpack-logo.png';
+$inverted-logo-image-url: 'ratpack-logo-inverse.png';
+$mask-image-url: 'noise-bg.png';
 
 @mixin noise-mask {
   &:after {
@@ -12,21 +13,22 @@ $mask-image-url: 'http://i36.tinypic.com/w2dt7t.png';
     left: 0;
     width: 100%;
     height: 100%;
-    background-image: url($mask-image-url);
+    background-image: image-url($mask-image-url);
   }
 }
 
-@mixin ratpack-logo($font-size: $default-font-size,
-$text-color: $black,
-$logo-image: $logo-image-url,
-$logo-image-background: $white,
-$spectrum: true,
-$color1: transparentize($yellow, 0.4),
-$color2: transparentize($red, 0.4),
-$color3: transparentize($blue, 0.4)) {
+@mixin ratpack-logo(
+    $font-size: $default-font-size,
+    $logo-scale: $default-logo-scale,
+    $text-color: $black,
+    $logo-image: $logo-image-url,
+    $logo-image-background: $white,
+    $spectrum: true,
+    $color1: transparentize($yellow, 0.4),
+    $color2: transparentize($red, 0.4),
+    $color3: transparentize($blue, 0.4)) {
 
   $gutter: $font-size / 10;
-  $logo-scale: 1.2;
   $logo-size: $font-size * $logo-scale;
   $logo-border-width: $font-size * 0.03;
   $logo-border-color: $text-color;
@@ -48,7 +50,7 @@ $color3: transparentize($blue, 0.4)) {
     content: " ";
     background: {
       color: $logo-image-background;
-      image: url($logo-image);
+      image: image-url($logo-image);
       position: 0 0;
       repeat: no-repeat;
       size: cover;
@@ -68,6 +70,7 @@ $color3: transparentize($blue, 0.4)) {
   }
 
   h1, p {
+    color: $text-color;
     margin: 0;
     text-transform: none;
   }
@@ -91,11 +94,12 @@ $color3: transparentize($blue, 0.4)) {
   }
 }
 
-@mixin ratpack-logo-inverted($font-size: $default-font-size,
-$text-color: $white,
-$logo-image: $inverted-logo-image-url,
-$logo-image-background: $white,
-$spectrum: true) {
+@mixin ratpack-logo-inverted(
+    $font-size: $default-font-size,
+    $text-color: $white,
+    $logo-image: $inverted-logo-image-url,
+    $logo-image-background: $white,
+    $spectrum: true) {
   z-index: -1;
   @include ratpack-logo($font-size: $font-size, $text-color: #fff, $logo-image: $logo-image, $logo-image-background: $logo-image-background, $spectrum: $spectrum);
 }
