@@ -16,8 +16,7 @@
 
 package org.ratpackframework.app;
 
-import com.google.inject.Injector;
-import com.google.inject.Key;
+import org.ratpackframework.Objects;
 
 /**
  * Builder for how requests should be routed to endpoints.
@@ -29,44 +28,21 @@ public interface Routing {
    */
   String ALL_METHODS = "*";
 
-  /**
-   * The injector that backs this application.
-   */
-  Injector getInjector();
+  Objects getObjects();
 
   /**
-   * Retrieves the specified service from the services registered at startup.
-   *
-   * @param type The type of the service.
-   * @param <T> The type of the service.
-   * @return The service instance.
-   */
-  <T> T service(Class<T> type);
-
-  /**
-   * Retrieves the specified service from the services registered at startup.
-   *
-   * @param key The key of the service.
-   * @param <T> The type of the service.
-   * @return The service instance.
-   */
-  <T> T service(Key<T> key);
-
-  /**
-   * Create an endpoint that delegates to an injected instance of the given type each request, using {@link #getInjector()}.
+   * Create an endpoint that delegates to an injected instance of the given type each request, using {@link #getObjects()}.
    *
    * <pre>
    *  get("/login", inject(LogingHandler.class));
    * </pre>
    * <p>
    *
-   * This facilitates dependency injection into endpoints and the use of {@link org.ratpackframework.app.RequestScoped} services.
-   * A new child module of the given {@code injector} is created internally and the given {@code endpointType} bound.
-   * As this module is a child of the main app module, any services registered at initialisation are candidates for injection.
-   * <p>
-   * The {@link Request} and {@link Response} objects are also available for injection (as the same instances that will be passed
-   * to {@link Endpoint#respond(Request, Response)}) as the actual endpoint will be instantiated within the request scope.
-
+   * This facilitates dependency injection into endpoints and the use of {@link org.ratpackframework.app.RequestScoped} services. A new child module of the given {@code injector} is created internally
+   * and the given {@code endpointType} bound. As this module is a child of the main app module, any services registered at initialisation are candidates for injection. <p> The {@link Request} and
+   * {@link Response} objects are also available for injection (as the same instances that will be passed to {@link Endpoint#respond(Request, Response)}) as the actual endpoint will be instantiated
+   * within the request scope.
+   *
    * @param endpointType The type of the endpoint to delegate to.
    * @return An endpoint that can be passed to one of the registration methods.
    */
@@ -75,8 +51,8 @@ public interface Routing {
   /**
    * Adds a route for the given method at the given path to the given endpoint.
    *
-   * The path may contain "tokens" that will become the {@link org.ratpackframework.app.Request#getPathParams()}
-   * for the request given to the endpoint. Tokens are path components that are prefixed with a ":" character.
+   * The path may contain "tokens" that will become the {@link org.ratpackframework.app.Request#getPathParams()} for the request given to the endpoint. Tokens are path components that are prefixed
+   * with a ":" character.
    *
    * <pre>
    * route("GET", "/products/:id", new Endpoint() {
@@ -96,8 +72,8 @@ public interface Routing {
   /**
    * Adds a route for the given method at the given path to the given endpoint.
    *
-   * The pattern may contain capture groups, which will become the {@link org.ratpackframework.app.Request#getPathParams()}
-   * for the request given to the endpoint. The path params are keyed by their index, but as a string.
+   * The pattern may contain capture groups, which will become the {@link org.ratpackframework.app.Request#getPathParams()} for the request given to the endpoint. The path params are keyed by their
+   * index, but as a string.
    *
    * <pre>
    * routeRe("GET", "/products/(.+)", new Endpoint() {

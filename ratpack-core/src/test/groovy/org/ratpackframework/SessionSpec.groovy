@@ -30,11 +30,11 @@ class SessionSpec extends DefaultRatpackSpec {
 
     routing {
       get("/") {
-        def store = service(MapSessionStore).get(it)
+        def store = objects.get(MapSessionStore).get(it)
         text store.value
       }
       get("/set/:value") {
-        def store = service(MapSessionStore).get(it)
+        def store = objects.get(MapSessionStore).get(it)
         store.value = it.pathParams.value
         text store.value
       }
@@ -58,11 +58,11 @@ class SessionSpec extends DefaultRatpackSpec {
 
     routing {
       get("/") {
-        def store = service(MapSessionStore).get(it)
+        def store = objects.get(MapSessionStore).get(it)
         text store.value
       }
       get("/set/:value") {
-        def store = service(MapSessionStore).get(it)
+        def store = objects.get(MapSessionStore).get(it)
         store.value = it.pathParams.value
         text store.value
       }
@@ -71,7 +71,7 @@ class SessionSpec extends DefaultRatpackSpec {
         end()
       }
       get("/size") {
-        text service(MapSessionStore).size()
+        text objects.get(MapSessionStore).size()
       }
     }
 

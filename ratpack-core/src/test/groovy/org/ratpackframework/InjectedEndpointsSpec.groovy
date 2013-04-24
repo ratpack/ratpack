@@ -80,7 +80,7 @@ class InjectedEndpointsSpec extends DefaultRatpackSpec {
     and:
     routing {
       get("/") {
-        text service(RequestService).injectedRequest.class.name
+        text objects.get(RequestService).injectedRequest.class.name
       }
     }
 

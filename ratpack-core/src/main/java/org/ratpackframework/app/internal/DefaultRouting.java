@@ -17,14 +17,15 @@
 package org.ratpackframework.app.internal;
 
 import com.google.inject.Injector;
-import com.google.inject.Key;
 import org.jboss.netty.handler.codec.http.HttpMethod;
+import org.ratpackframework.DefaultObjects;
+import org.ratpackframework.Handler;
+import org.ratpackframework.Objects;
 import org.ratpackframework.app.Endpoint;
 import org.ratpackframework.app.Routing;
 import org.ratpackframework.app.internal.binding.PathBinding;
 import org.ratpackframework.app.internal.binding.PatternPathBinding;
 import org.ratpackframework.app.internal.binding.TokenPathBinding;
-import org.ratpackframework.Handler;
 import org.ratpackframework.http.HttpExchange;
 import org.ratpackframework.routing.Routed;
 
@@ -34,35 +35,25 @@ public class DefaultRouting implements Routing {
 
   private final List<Handler<Routed<HttpExchange>>> routers;
   private final ResponseFactory responseFactory;
-  private final Injector injector;
+  private final Objects objects;
   private final RequestScope requestScope;
 
   public DefaultRouting(Injector injector, RequestScope requestScope, List<Handler<Routed<HttpExchange>>> routers, ResponseFactory responseFactory) {
-    this.injector = injector;
+    this.objects = new DefaultObjects(injector);
     this.requestScope = requestScope;
     this.routers = routers;
     this.responseFactory = responseFactory;
   }
 
   @Override
-  public Injector getInjector() {
-    return injector;
-  }
-
-  @Override
-  public <T> T service(Class<T> type) {
-    return injector.getInstance(type);
-  }
-
-  @Override
-  public <T> T service(Key<T> key) {
-    return injector.getInstance(key);
+  public Objects getObjects() {
+    return objects;
   }
 
   @Override
   public Endpoint inject(Class<? extends Endpoint> endpointType) {
     if (Endpoint.class.isAssignableFrom(endpointType)) {
-      return new InjectingEndpoint(injector, endpointType);
+      return new InjectingEndpoint(objects.getInjector(), endpointType);
     } else {
       throw new IllegalArgumentException(endpointType.getName() + " does not implement " + Endpoint.class.getName());
     }

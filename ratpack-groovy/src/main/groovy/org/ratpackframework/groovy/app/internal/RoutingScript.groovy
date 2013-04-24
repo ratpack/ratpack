@@ -16,11 +16,10 @@
 
 package org.ratpackframework.groovy.app.internal
 
-import com.google.inject.Injector
-import com.google.inject.Key
 import org.ratpackframework.app.Endpoint
 import org.ratpackframework.groovy.app.Routing
 
+// TODO: rewrite as Java
 public class RoutingScript extends Script implements Routing {
 
   private final org.ratpackframework.app.Routing delegate
@@ -35,18 +34,8 @@ public class RoutingScript extends Script implements Routing {
   }
 
   @Override
-  Injector getInjector() {
-    delegate.injector
-  }
-
-  @Override
-  def <T> T service(Class<T> type) {
-    delegate.service(type)
-  }
-
-  @Override
-  def <T> T service(Key<T> key) {
-    delegate.service(key)
+  org.ratpackframework.Objects getObjects() {
+    delegate.getObjects()
   }
 
   @Override
