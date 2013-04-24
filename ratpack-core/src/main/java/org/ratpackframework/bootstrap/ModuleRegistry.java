@@ -1,7 +1,7 @@
 package org.ratpackframework.bootstrap;
 
 import com.google.inject.Module;
-import org.ratpackframework.Handler;
+import org.ratpackframework.Action;
 
 import java.util.List;
 
@@ -11,7 +11,7 @@ public interface ModuleRegistry {
 
   <T> T get(Class<T> moduleType);
 
-  <T> T get(Class<T> moduleType, Handler<? super T> configurer);
+  <T> T get(Class<T> moduleType, Action<? super T> configurer);
 
   <T extends Module> T remove(Class<T> moduleType);
 

@@ -18,7 +18,7 @@ package org.ratpackframework.groovy;
 
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
-import org.ratpackframework.Handler;
+import org.ratpackframework.Action;
 
 public abstract class Closures {
 
@@ -37,10 +37,10 @@ public abstract class Closures {
   }
 
   // Type token is here for in the future when @DelegatesTo supports this kind of API
-  public static <T> Handler<T> handler(Class<T> type, final Closure<?> configurer) {
-    return new Handler<T>() {
+  public static <T> Action<T> handler(Class<T> type, final Closure<?> configurer) {
+    return new Action<T>() {
       @Override
-      public void handle(T object) {
+      public void execute(T object) {
         configure(object, configurer);
       }
     };

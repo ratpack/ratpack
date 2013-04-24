@@ -1,12 +1,12 @@
 package org.ratpackframework.app.internal;
 
 import org.ratpackframework.app.Routing;
-import org.ratpackframework.Handler;
+import org.ratpackframework.Action;
 import org.ratpackframework.http.HttpExchange;
 import org.ratpackframework.routing.Routed;
 
 public interface RoutingConverter {
 
-  Handler<Routed<HttpExchange>> build(Handler<Routing> routingHandler);
+  Action<Routed<HttpExchange>> build(Action<Routing> routingHandler);
 
 }

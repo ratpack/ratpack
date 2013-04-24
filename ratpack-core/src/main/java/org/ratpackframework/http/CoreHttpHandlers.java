@@ -1,15 +1,15 @@
 package org.ratpackframework.http;
 
+import org.ratpackframework.Action;
 import org.ratpackframework.error.ErroredHttpExchange;
-import org.ratpackframework.Handler;
 import org.ratpackframework.routing.Routed;
 
 public interface CoreHttpHandlers {
 
-  Handler<Routed<HttpExchange>> getAppHandler();
+  Action<Routed<HttpExchange>> getAppHandler();
 
-  Handler<ErroredHttpExchange> getErrorHandler();
+  Action<ErroredHttpExchange> getErrorHandler();
 
-  Handler<Routed<HttpExchange>> getNotFoundHandler();
+  Action<Routed<HttpExchange>> getNotFoundHandler();
 
 }

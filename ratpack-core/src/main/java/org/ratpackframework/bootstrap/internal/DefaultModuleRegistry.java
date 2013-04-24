@@ -2,7 +2,7 @@ package org.ratpackframework.bootstrap.internal;
 
 import com.google.inject.Module;
 import org.ratpackframework.bootstrap.ModuleRegistry;
-import org.ratpackframework.Handler;
+import org.ratpackframework.Action;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -35,9 +35,9 @@ public class DefaultModuleRegistry implements ModuleRegistry {
   }
 
   @Override
-  public <T> T get(Class<T> moduleType, Handler<? super T> configurer) {
+  public <T> T get(Class<T> moduleType, Action<? super T> configurer) {
     T configObject = get(moduleType);
-    configurer.handle(configObject);
+    configurer.execute(configObject);
     return configObject;
   }
 

@@ -17,14 +17,14 @@
 package org.ratpackframework.templating;
 
 import org.jboss.netty.buffer.ChannelBuffer;
-import org.ratpackframework.ResultHandler;
+import org.ratpackframework.ResultAction;
 
 import java.util.Map;
 
 public interface TemplateRenderer {
 
-  void renderTemplate(String templateId, Map<String, ?> model, ResultHandler<ChannelBuffer> handler);
+  void renderTemplate(String templateId, Map<String, ?> model, ResultAction<ChannelBuffer> handler);
 
-  void renderError(Map<String, ?> model, ResultHandler<ChannelBuffer> handler);
+  void renderError(Map<String, ?> model, ResultAction<ChannelBuffer> handler);
 
 }

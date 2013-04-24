@@ -15,7 +15,7 @@ import org.ratpackframework.groovy.Closures;
 import org.ratpackframework.groovy.app.ClosureRouting;
 import org.ratpackframework.groovy.bootstrap.ModuleRegistry;
 import org.ratpackframework.groovy.bootstrap.internal.DefaultModuleRegistry;
-import org.ratpackframework.Handler;
+import org.ratpackframework.Action;
 import org.ratpackframework.http.CoreHttpHandlers;
 import org.ratpackframework.http.DefaultCoreHttpHandlers;
 import org.ratpackframework.http.HttpExchange;
@@ -47,13 +47,13 @@ public class ClosureAppFactory {
 
     Injector injector = Guice.createInjector(masterModule);
 
-    Key<Handler<Routed<HttpExchange>>> appHandlerKey = Key.get(RootModule.HTTP_HANDLER, Names.named(RootModule.MAIN_APP_HTTP_HANDLER));
-    Key<Handler<ErroredHttpExchange>> errorHandlerKey = Key.get(RootModule.HTTP_ERROR_HANDLER, Names.named(RootModule.MAIN_HTTP_ERROR_HANDLER));
-    Key<Handler<Routed<HttpExchange>>> notFoundHandlerKey = Key.get(RootModule.HTTP_HANDLER, Names.named(RootModule.MAIN_NOT_FOUND_HTTP_HANDLER));
+    Key<Action<Routed<HttpExchange>>> appHandlerKey = Key.get(RootModule.HTTP_HANDLER, Names.named(RootModule.MAIN_APP_HTTP_HANDLER));
+    Key<Action<ErroredHttpExchange>> errorHandlerKey = Key.get(RootModule.HTTP_ERROR_HANDLER, Names.named(RootModule.MAIN_HTTP_ERROR_HANDLER));
+    Key<Action<Routed<HttpExchange>>> notFoundHandlerKey = Key.get(RootModule.HTTP_HANDLER, Names.named(RootModule.MAIN_NOT_FOUND_HTTP_HANDLER));
 
-    Handler<Routed<HttpExchange>> appHandler = injector.getInstance(appHandlerKey);
-    Handler<ErroredHttpExchange> errorHandler = injector.getInstance(errorHandlerKey);
-    Handler<Routed<HttpExchange>> notFoundHandler = injector.getInstance(notFoundHandlerKey);
+    Action<Routed<HttpExchange>> appHandler = injector.getInstance(appHandlerKey);
+    Action<ErroredHttpExchange> errorHandler = injector.getInstance(errorHandlerKey);
+    Action<Routed<HttpExchange>> notFoundHandler = injector.getInstance(notFoundHandlerKey);
 
     return new DefaultCoreHttpHandlers(appHandler, errorHandler, notFoundHandler);
   }

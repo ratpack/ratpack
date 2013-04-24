@@ -17,7 +17,7 @@
 package org.ratpackframework.assets.internal;
 
 import org.jboss.netty.handler.codec.http.*;
-import org.ratpackframework.Handler;
+import org.ratpackframework.Action;
 import org.ratpackframework.http.HttpDateParseException;
 import org.ratpackframework.http.HttpDateUtil;
 import org.ratpackframework.http.HttpExchange;
@@ -30,12 +30,12 @@ import java.io.File;
 import static org.jboss.netty.handler.codec.http.HttpHeaders.Names.IF_MODIFIED_SINCE;
 import static org.jboss.netty.handler.codec.http.HttpResponseStatus.*;
 
-public class FileStaticAssetRequestHandler implements Handler<Routed<HttpExchange>> {
+public class FileStaticAssetRequestHandler implements Action<Routed<HttpExchange>> {
 
   private final FileHttpTransmitter fileHttpTransmitter = new FileHttpTransmitter();
 
   @Override
-  public void handle(final Routed<HttpExchange> routed) {
+  public void execute(final Routed<HttpExchange> routed) {
     HttpExchange exchange = routed.get();
     HttpRequest request = exchange.getRequest();
     if (request.getMethod() != HttpMethod.GET) {

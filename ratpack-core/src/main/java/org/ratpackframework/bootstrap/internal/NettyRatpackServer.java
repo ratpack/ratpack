@@ -7,7 +7,7 @@ import org.jboss.netty.channel.ChannelFactory;
 import org.jboss.netty.channel.ChannelPipelineFactory;
 import org.jboss.netty.channel.group.ChannelGroup;
 import org.ratpackframework.bootstrap.RatpackServer;
-import org.ratpackframework.Handler;
+import org.ratpackframework.Action;
 
 import java.net.InetSocketAddress;
 import java.util.logging.Level;
@@ -21,13 +21,13 @@ public class NettyRatpackServer extends AbstractIdleService implements RatpackSe
   private InetSocketAddress boundAddress;
   private final ChannelFactory channelFactory;
   private final ChannelGroup channelGroup;
-  private final Handler<RatpackServer> init;
+  private final Action<RatpackServer> init;
   private final ChannelPipelineFactory channelPipelineFactory;
 
   public NettyRatpackServer(
       InetSocketAddress requestedAddress,
       ChannelFactory channelFactory, ChannelGroup channelGroup, ChannelPipelineFactory channelPipelineFactory,
-      Handler<RatpackServer> init
+      Action<RatpackServer> init
   ) {
     this.requestedAddress = requestedAddress;
     this.channelFactory = channelFactory;
@@ -46,7 +46,7 @@ public class NettyRatpackServer extends AbstractIdleService implements RatpackSe
     boundAddress = ((InetSocketAddress) channel.getLocalAddress());
     channelGroup.add(channel);
 
-    init.handle(this);
+    init.execute(this);
 
     if (logger.isLoggable(Level.INFO)) {
       logger.info(String.format("Ratpack started for http://%s:%s", getBindHost(), getBindPort()));

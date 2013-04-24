@@ -21,24 +21,24 @@ import org.jboss.netty.handler.codec.http.HttpResponse;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.ratpackframework.http.HttpExchange;
 import org.ratpackframework.Result;
-import org.ratpackframework.ResultHandler;
+import org.ratpackframework.ResultAction;
 
 /**
  * Used as a last attempt to handle the error. Useful for wrapping more sophisticated error handlers.
  */
 @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
-public class FallbackErrorHandler implements ResultHandler<ChannelBuffer> {
+public class FallbackErrorAction implements ResultAction<ChannelBuffer> {
 
   private final HttpExchange exchange;
   private final String operationDescription;
 
-  public FallbackErrorHandler(HttpExchange exchange, String operationDescription) {
+  public FallbackErrorAction(HttpExchange exchange, String operationDescription) {
     this.exchange = exchange;
     this.operationDescription = operationDescription;
   }
 
   @Override
-  public void handle(Result<ChannelBuffer> event) {
+  public void execute(Result<ChannelBuffer> event) {
     HttpResponse response = exchange.getResponse();
     if (event.isFailure()) {
       event.getFailure().printStackTrace(System.err);

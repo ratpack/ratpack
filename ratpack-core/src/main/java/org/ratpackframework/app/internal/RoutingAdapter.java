@@ -20,7 +20,7 @@ import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.ratpackframework.app.Endpoint;
 import org.ratpackframework.app.Response;
 import org.ratpackframework.app.internal.binding.PathBinding;
-import org.ratpackframework.Handler;
+import org.ratpackframework.Action;
 import org.ratpackframework.http.HttpExchange;
 import org.ratpackframework.routing.Routed;
 
@@ -28,7 +28,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-public class RoutingAdapter implements Handler<Routed<HttpExchange>> {
+public class RoutingAdapter implements Action<Routed<HttpExchange>> {
 
   private final PathBinding pathBinding;
   private final ResponseFactory responseFactory;
@@ -43,7 +43,7 @@ public class RoutingAdapter implements Handler<Routed<HttpExchange>> {
   }
 
   @Override
-  public void handle(Routed<HttpExchange> routedHttpExchange) {
+  public void execute(Routed<HttpExchange> routedHttpExchange) {
     HttpExchange exchange = routedHttpExchange.get();
     HttpRequest request = exchange.getRequest();
     if (methods.isEmpty() || methods.contains(request.getMethod().getName())) {

@@ -1,7 +1,7 @@
 package org.ratpackframework.app.internal;
 
 import org.ratpackframework.app.Routing;
-import org.ratpackframework.Handler;
+import org.ratpackframework.Action;
 import org.ratpackframework.http.HttpExchange;
 import org.ratpackframework.routing.CompositeRouter;
 import org.ratpackframework.routing.Routed;
@@ -20,10 +20,10 @@ public class DefaultRoutingConverter implements RoutingConverter {
   }
 
   @Override
-  public Handler<Routed<HttpExchange>> build(Handler<Routing> routingHandler) {
-    List<Handler<Routed<HttpExchange>>> routers = new LinkedList<>();
+  public Action<Routed<HttpExchange>> build(Action<Routing> routingHandler) {
+    List<Action<Routed<HttpExchange>>> routers = new LinkedList<>();
     Routing routing = routingFactory.create(routers);
-    routingHandler.handle(routing);
+    routingHandler.execute(routing);
     return new CompositeRouter<>(routers);
   }
 

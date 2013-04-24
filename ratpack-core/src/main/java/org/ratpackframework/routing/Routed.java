@@ -1,6 +1,6 @@
 package org.ratpackframework.routing;
 
-import org.ratpackframework.Handler;
+import org.ratpackframework.Action;
 
 public interface Routed<T> {
 
@@ -8,7 +8,7 @@ public interface Routed<T> {
 
   void next();
 
-  Routed<T> withNext(Handler<Routed<T>> next);
+  Routed<T> withNext(Action<Routed<T>> next);
 
   void error(Exception e);
 }

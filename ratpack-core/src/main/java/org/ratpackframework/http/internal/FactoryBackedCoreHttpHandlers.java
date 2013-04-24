@@ -1,8 +1,8 @@
 package org.ratpackframework.http.internal;
 
+import org.ratpackframework.Action;
 import org.ratpackframework.Factory;
 import org.ratpackframework.error.ErroredHttpExchange;
-import org.ratpackframework.Handler;
 import org.ratpackframework.http.CoreHttpHandlers;
 import org.ratpackframework.http.HttpExchange;
 import org.ratpackframework.routing.Routed;
@@ -16,17 +16,17 @@ public class FactoryBackedCoreHttpHandlers implements CoreHttpHandlers {
   }
 
   @Override
-  public Handler<Routed<HttpExchange>> getAppHandler() {
+  public Action<Routed<HttpExchange>> getAppHandler() {
     return factory.create().getAppHandler();
   }
 
   @Override
-  public Handler<ErroredHttpExchange> getErrorHandler() {
+  public Action<ErroredHttpExchange> getErrorHandler() {
     return factory.create().getErrorHandler();
   }
 
   @Override
-  public Handler<Routed<HttpExchange>> getNotFoundHandler() {
+  public Action<Routed<HttpExchange>> getNotFoundHandler() {
     return factory.create().getNotFoundHandler();
   }
 

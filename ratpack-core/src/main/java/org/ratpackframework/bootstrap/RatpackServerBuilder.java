@@ -9,7 +9,7 @@ import org.jboss.netty.handler.codec.http.HttpRequestDecoder;
 import org.jboss.netty.handler.codec.http.HttpResponseEncoder;
 import org.ratpackframework.bootstrap.internal.NettyRatpackServer;
 import org.ratpackframework.bootstrap.internal.NoopInit;
-import org.ratpackframework.Handler;
+import org.ratpackframework.Action;
 import org.ratpackframework.http.CoreHttpHandlers;
 import org.ratpackframework.http.internal.NettyRoutingAdapter;
 
@@ -24,7 +24,7 @@ public class RatpackServerBuilder {
 
   private int port = DEFAULT_PORT;
   private String host = null;
-  private Handler<RatpackServer> init = new NoopInit();
+  private Action<RatpackServer> init = new NoopInit();
   private Executor appExecutor = Executors.newCachedThreadPool();
   private Executor ioExecutor = Executors.newCachedThreadPool();
   private int maxIoThreads = Runtime.getRuntime().availableProcessors() * 2;
@@ -49,11 +49,11 @@ public class RatpackServerBuilder {
     this.host = host;
   }
 
-  public Handler<RatpackServer> getInit() {
+  public Action<RatpackServer> getInit() {
     return init;
   }
 
-  public void setInit(Handler<RatpackServer> init) {
+  public void setInit(Action<RatpackServer> init) {
     this.init = init;
   }
 

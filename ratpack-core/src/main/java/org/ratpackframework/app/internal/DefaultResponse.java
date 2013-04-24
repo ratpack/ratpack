@@ -18,11 +18,11 @@ package org.ratpackframework.app.internal;
 
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.handler.codec.http.*;
+import org.ratpackframework.ResultAction;
 import org.ratpackframework.app.Request;
 import org.ratpackframework.app.Response;
 import org.ratpackframework.http.HttpExchange;
 import org.ratpackframework.Result;
-import org.ratpackframework.ResultHandler;
 import org.ratpackframework.http.MediaType;
 import org.ratpackframework.http.MutableMediaType;
 import org.ratpackframework.render.TextRenderer;
@@ -85,9 +85,9 @@ public class DefaultResponse implements Response {
 
   public void render(Map<String, ?> model, String templateName) {
     maybeSetUtf8ContentType(MediaType.TEXT_HTML);
-    templateRenderer.renderTemplate(templateName, model, new ResultHandler<ChannelBuffer>() {
+    templateRenderer.renderTemplate(templateName, model, new ResultAction<ChannelBuffer>() {
       @Override
-      public void handle(Result<ChannelBuffer> event) {
+      public void execute(Result<ChannelBuffer> event) {
         if (event.isSuccess()) {
           end(event.getValue());
         } else {

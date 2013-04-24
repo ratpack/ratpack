@@ -1,7 +1,7 @@
 package org.ratpackframework.app.internal;
 
 import com.google.inject.Injector;
-import org.ratpackframework.Handler;
+import org.ratpackframework.Action;
 import org.ratpackframework.app.Routing;
 import org.ratpackframework.http.HttpExchange;
 import org.ratpackframework.routing.Routed;
@@ -23,7 +23,7 @@ public class DefaultRoutingFactory implements RoutingFactory {
   }
 
   @Override
-  public Routing create(List<Handler<Routed<HttpExchange>>> routes) {
+  public Routing create(List<Action<Routed<HttpExchange>>> routes) {
     return new DefaultRouting(injector, requestScope, routes, responseFactory);
   }
 

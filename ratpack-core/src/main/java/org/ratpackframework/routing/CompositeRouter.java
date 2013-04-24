@@ -16,36 +16,36 @@
 
 package org.ratpackframework.routing;
 
-import org.ratpackframework.Handler;
+import org.ratpackframework.Action;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class CompositeRouter<T> implements Handler<Routed<T>> {
+public class CompositeRouter<T> implements Action<Routed<T>> {
 
-  List<Handler<Routed<T>>> handlers;
+  List<Action<Routed<T>>> handlers;
 
-  public CompositeRouter(List<Handler<Routed<T>>> handlers) {
+  public CompositeRouter(List<Action<Routed<T>>> handlers) {
     this.handlers = handlers;
   }
 
   @Override
-  public void handle(Routed<T> thing) {
+  public void execute(Routed<T> thing) {
     next(new ArrayList<>(handlers), thing, thing);
   }
 
-  private void next(final List<Handler<Routed<T>>> remaining, final Routed<T> previous, final Routed<T> original) {
+  private void next(final List<Action<Routed<T>>> remaining, final Routed<T> previous, final Routed<T> original) {
     if (remaining.isEmpty()) {
       original.next();
     } else {
-      Handler<Routed<T>> router = remaining.remove(0);
-      Routed<T> forwarding = previous.withNext(new Handler<Routed<T>>() {
+      Action<Routed<T>> router = remaining.remove(0);
+      Routed<T> forwarding = previous.withNext(new Action<Routed<T>>() {
         @Override
-        public void handle(Routed<T> event) {
+        public void execute(Routed<T> event) {
           next(remaining, event, original);
         }
       });
-      router.handle(forwarding);
+      router.execute(forwarding);
     }
   }
 

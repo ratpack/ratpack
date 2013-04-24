@@ -20,12 +20,12 @@ import org.codehaus.groovy.runtime.StackTraceUtils;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
-import org.ratpackframework.Handler;
+import org.ratpackframework.Action;
 import org.ratpackframework.error.ContextualException;
 import org.ratpackframework.error.ErroredHttpExchange;
-import org.ratpackframework.error.FallbackErrorHandler;
+import org.ratpackframework.error.FallbackErrorAction;
 import org.ratpackframework.http.HttpExchange;
-import org.ratpackframework.ResultHandler;
+import org.ratpackframework.ResultAction;
 import org.ratpackframework.templating.TemplateRenderer;
 
 import javax.inject.Inject;
@@ -36,7 +36,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 @Singleton
-public class ErrorHandler implements Handler<ErroredHttpExchange> {
+public class ErrorHandler implements Action<ErroredHttpExchange> {
 
   private final Logger logger = Logger.getLogger(getClass().getName());
 
@@ -48,17 +48,17 @@ public class ErrorHandler implements Handler<ErroredHttpExchange> {
   }
 
   @Override
-  public void handle(ErroredHttpExchange erroredRequest) {
+  public void execute(ErroredHttpExchange erroredRequest) {
     @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
     Exception error = (Exception) StackTraceUtils.deepSanitize(erroredRequest.getException());
     logger.log(Level.WARNING, "error handling " + erroredRequest.getExchange().getRequest().getUri(), error);
     HttpExchange exchange = erroredRequest.getExchange();
     HttpRequest request = exchange.getRequest();
     exchange.getResponse().setStatus(HttpResponseStatus.INTERNAL_SERVER_ERROR);
-    renderException(error, request, new FallbackErrorHandler(exchange, "rendering error template"));
+    renderException(error, request, new FallbackErrorAction(exchange, "rendering error template"));
   }
 
-  void renderException(Exception exception, HttpRequest request, ResultHandler<ChannelBuffer> handler) {
+  void renderException(Exception exception, HttpRequest request, ResultAction<ChannelBuffer> handler) {
     StackTrace stackTrace = decodeStackTrace(exception);
     Map<String, Object> model = new LinkedHashMap<String, Object>();
     model.put("title", exception.getClass().getName());

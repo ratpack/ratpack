@@ -20,7 +20,7 @@ import com.google.common.cache.Cache;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.ratpackframework.Result;
-import org.ratpackframework.ResultHandler;
+import org.ratpackframework.ResultAction;
 import org.ratpackframework.util.IoUtils;
 
 import java.io.File;
@@ -33,7 +33,7 @@ public class Render {
   private final TemplateCompiler templateCompiler;
   private final File templateDir;
 
-  public Render(TemplateCompiler templateCompiler, Cache<String, CompiledTemplate> compiledTemplateCache, File templateDir, CompiledTemplate template, Map<String, ?> model, final ResultHandler<ChannelBuffer> handler) {
+  public Render(TemplateCompiler templateCompiler, Cache<String, CompiledTemplate> compiledTemplateCache, File templateDir, CompiledTemplate template, Map<String, ?> model, final ResultAction<ChannelBuffer> handler) {
     this.templateCompiler = templateCompiler;
     this.compiledTemplateCache = compiledTemplateCache;
     this.templateDir = templateDir;
@@ -43,11 +43,11 @@ public class Render {
     try {
       execute(template, model, buffer);
     } catch (Exception e) {
-      handler.handle(new Result<ChannelBuffer>(e));
+      handler.execute(new Result<ChannelBuffer>(e));
       return;
     }
 
-    handler.handle(new Result<ChannelBuffer>(buffer));
+    handler.execute(new Result<ChannelBuffer>(buffer));
   }
 
 

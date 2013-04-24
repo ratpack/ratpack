@@ -16,15 +16,15 @@
 
 package org.ratpackframework.routing;
 
-import org.ratpackframework.Handler;
+import org.ratpackframework.Action;
 import org.ratpackframework.http.HttpExchange;
 
 public class RoutedHttpExchange implements Routed<HttpExchange> {
 
   private final HttpExchange exchange;
-  private final Handler<? super RoutedHttpExchange> next;
+  private final Action<? super RoutedHttpExchange> next;
 
-  public RoutedHttpExchange(HttpExchange exchange, Handler<? super RoutedHttpExchange> next) {
+  public RoutedHttpExchange(HttpExchange exchange, Action<? super RoutedHttpExchange> next) {
     this.exchange = exchange;
     this.next = next;
   }
@@ -36,11 +36,11 @@ public class RoutedHttpExchange implements Routed<HttpExchange> {
 
   @Override
   public void next() {
-    next.handle(this);
+    next.execute(this);
   }
 
   @Override
-  public Routed<HttpExchange> withNext(Handler<Routed<HttpExchange>> next) {
+  public Routed<HttpExchange> withNext(Action<Routed<HttpExchange>> next) {
     return new RoutedHttpExchange(exchange, next);
   }
 

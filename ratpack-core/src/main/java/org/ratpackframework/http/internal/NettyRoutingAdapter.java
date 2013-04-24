@@ -4,7 +4,7 @@ import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
 import org.jboss.netty.handler.codec.http.*;
-import org.ratpackframework.Handler;
+import org.ratpackframework.Action;
 import org.ratpackframework.http.CoreHttpHandlers;
 import org.ratpackframework.http.HttpExchange;
 import org.ratpackframework.routing.Routed;
@@ -34,13 +34,13 @@ public class NettyRoutingAdapter extends SimpleChannelUpstreamHandler {
     final HttpExchange exchange = new DefaultHttpExchange(null, request, response, ctx, coreHttpHandlers.getErrorHandler());
 
     try {
-      RoutedHttpExchange routedHttpExchange = new RoutedHttpExchange(exchange, new Handler<Routed<HttpExchange>>() {
+      RoutedHttpExchange routedHttpExchange = new RoutedHttpExchange(exchange, new Action<Routed<HttpExchange>>() {
         @Override
-        public void handle(Routed<HttpExchange> event) {
+        public void execute(Routed<HttpExchange> event) {
           exchange.end(HttpResponseStatus.NOT_FOUND);
         }
       });
-      coreHttpHandlers.getAppHandler().handle(routedHttpExchange);
+      coreHttpHandlers.getAppHandler().execute(routedHttpExchange);
     } catch (Exception e) {
       exchange.error(e);
     }

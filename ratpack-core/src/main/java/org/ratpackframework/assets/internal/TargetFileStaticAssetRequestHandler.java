@@ -3,7 +3,7 @@ package org.ratpackframework.assets.internal;
 import com.google.inject.Inject;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.util.CharsetUtil;
-import org.ratpackframework.Handler;
+import org.ratpackframework.Action;
 import org.ratpackframework.http.HttpExchange;
 import org.ratpackframework.routing.Routed;
 
@@ -13,7 +13,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 
-public class TargetFileStaticAssetRequestHandler implements Handler<Routed<HttpExchange>> {
+public class TargetFileStaticAssetRequestHandler implements Action<Routed<HttpExchange>> {
 
   private final File assetsDirectory;
 
@@ -23,7 +23,7 @@ public class TargetFileStaticAssetRequestHandler implements Handler<Routed<HttpE
   }
 
   @Override
-  public void handle(Routed<HttpExchange> routed) {
+  public void execute(Routed<HttpExchange> routed) {
     HttpExchange httpExchange = routed.get();
     HttpRequest request = httpExchange.getRequest();
     String path = httpExchange.getPath();

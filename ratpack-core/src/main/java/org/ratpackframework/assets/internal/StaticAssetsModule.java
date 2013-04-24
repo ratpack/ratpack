@@ -4,7 +4,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.name.Names;
 import org.ratpackframework.assets.StaticAssetsConfig;
 import org.ratpackframework.bootstrap.internal.RootModule;
-import org.ratpackframework.Handler;
+import org.ratpackframework.Action;
 import org.ratpackframework.http.HttpExchange;
 import org.ratpackframework.routing.CompositeRouter;
 import org.ratpackframework.routing.Routed;
@@ -51,32 +51,32 @@ public class StaticAssetsModule extends AbstractModule {
     bind(File.class).annotatedWith(Names.named(STATIC_ASSET_DIR)).toInstance(dir);
   }
 
-  public static class StaticAssetRouterProvider implements Provider<Handler<Routed<HttpExchange>>> {
+  public static class StaticAssetRouterProvider implements Provider<Action<Routed<HttpExchange>>> {
     @Inject
     @Named(MAIN_STATIC_ASSET_ROUTING_PIPELINE)
-    List<Handler<Routed<HttpExchange>>> pipeline;
+    List<Action<Routed<HttpExchange>>> pipeline;
 
     @Override
-    public Handler<Routed<HttpExchange>> get() {
+    public Action<Routed<HttpExchange>> get() {
       return new CompositeRouter<>(pipeline);
     }
   }
 
-  public static class StaticAssetRoutingPipelineProvider implements Provider<List<Handler<Routed<HttpExchange>>>> {
+  public static class StaticAssetRoutingPipelineProvider implements Provider<List<Action<Routed<HttpExchange>>>> {
     @Inject
     @Named(TARGET_FILE_STATIC_ASSET_HANDLER)
-    Handler<Routed<HttpExchange>> targetFile;
+    Action<Routed<HttpExchange>> targetFile;
 
     @Inject
     @Named(DIRECTORY_STATIC_ASSET_HANDLER)
-    Handler<Routed<HttpExchange>> directory;
+    Action<Routed<HttpExchange>> directory;
 
     @Inject
     @Named(FILE_STATIC_ASSET_HANDLER)
-    Handler<Routed<HttpExchange>> file;
+    Action<Routed<HttpExchange>> file;
 
     @Override
-    public List<Handler<Routed<HttpExchange>>> get() {
+    public List<Action<Routed<HttpExchange>>> get() {
       return Arrays.asList(targetFile, directory, file);
     }
   }

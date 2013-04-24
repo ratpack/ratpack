@@ -20,10 +20,10 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import org.codehaus.groovy.runtime.IOGroovyMethods;
 import org.jboss.netty.buffer.ChannelBuffer;
+import org.ratpackframework.ResultAction;
 import org.ratpackframework.groovy.script.ScriptEngine;
 import org.ratpackframework.groovy.templating.internal.*;
 import org.ratpackframework.Result;
-import org.ratpackframework.ResultHandler;
 import org.ratpackframework.util.IoUtils;
 import org.ratpackframework.templating.TemplateRenderer;
 
@@ -52,7 +52,7 @@ public class GroovyTemplateRenderer implements TemplateRenderer {
   }
 
   @Override
-  public void renderTemplate(final String templateId, final Map<String, ?> model, final ResultHandler<ChannelBuffer> handler) {
+  public void renderTemplate(final String templateId, final Map<String, ?> model, final ResultAction<ChannelBuffer> handler) {
     render(templateId, model, handler, new Callable<ChannelBuffer>() {
       @Override
       public ChannelBuffer call() throws Exception {
@@ -62,7 +62,7 @@ public class GroovyTemplateRenderer implements TemplateRenderer {
   }
 
   @Override
-  public void renderError(Map<String, ?> model, ResultHandler<ChannelBuffer> handler) {
+  public void renderError(Map<String, ?> model, ResultAction<ChannelBuffer> handler) {
     render(ERROR_TEMPLATE, model, handler, new Callable<ChannelBuffer>() {
       @Override
       public ChannelBuffer call() throws Exception {
@@ -76,7 +76,7 @@ public class GroovyTemplateRenderer implements TemplateRenderer {
     });
   }
 
-  private void render(final String templateName, Map<String, ?> model, ResultHandler<ChannelBuffer> handler, final Callable<? extends ChannelBuffer> bufferProvider) {
+  private void render(final String templateName, Map<String, ?> model, ResultAction<ChannelBuffer> handler, final Callable<? extends ChannelBuffer> bufferProvider) {
     try {
       CompiledTemplate compiledTemplate = compiledTemplateCache.get(templateName, new Callable<CompiledTemplate>() {
         @Override
@@ -86,7 +86,7 @@ public class GroovyTemplateRenderer implements TemplateRenderer {
       });
       new Render(templateCompiler, compiledTemplateCache, templateDir, compiledTemplate, model, handler);
     } catch (ExecutionException e) {
-      handler.handle(new Result<ChannelBuffer>(e));
+      handler.execute(new Result<ChannelBuffer>(e));
     }
   }
 

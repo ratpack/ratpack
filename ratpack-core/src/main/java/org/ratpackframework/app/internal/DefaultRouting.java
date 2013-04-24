@@ -19,7 +19,7 @@ package org.ratpackframework.app.internal;
 import com.google.inject.Injector;
 import org.jboss.netty.handler.codec.http.HttpMethod;
 import org.ratpackframework.internal.DefaultObjects;
-import org.ratpackframework.Handler;
+import org.ratpackframework.Action;
 import org.ratpackframework.Objects;
 import org.ratpackframework.app.Endpoint;
 import org.ratpackframework.app.Routing;
@@ -33,12 +33,12 @@ import java.util.List;
 
 public class DefaultRouting implements Routing {
 
-  private final List<Handler<Routed<HttpExchange>>> routers;
+  private final List<Action<Routed<HttpExchange>>> routers;
   private final ResponseFactory responseFactory;
   private final Objects objects;
   private final RequestScope requestScope;
 
-  public DefaultRouting(Injector injector, RequestScope requestScope, List<Handler<Routed<HttpExchange>>> routers, ResponseFactory responseFactory) {
+  public DefaultRouting(Injector injector, RequestScope requestScope, List<Action<Routed<HttpExchange>>> routers, ResponseFactory responseFactory) {
     this.objects = new DefaultObjects(injector);
     this.requestScope = requestScope;
     this.routers = routers;
@@ -67,7 +67,7 @@ public class DefaultRouting implements Routing {
     } else {
       methods = new String[]{method};
     }
-    Handler<Routed<HttpExchange>> pathRouter = new RoutingAdapter(pathBinding, responseFactory, responseHandler, methods);
+    Action<Routed<HttpExchange>> pathRouter = new RoutingAdapter(pathBinding, responseFactory, responseHandler, methods);
     routers.add(pathRouter);
   }
 

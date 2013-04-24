@@ -17,7 +17,7 @@
 package org.ratpackframework.assets.internal;
 
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
-import org.ratpackframework.Handler;
+import org.ratpackframework.Action;
 import org.ratpackframework.http.HttpExchange;
 import org.ratpackframework.routing.Routed;
 
@@ -27,7 +27,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DirectoryStaticAssetRequestHandler implements Handler<Routed<HttpExchange>> {
+public class DirectoryStaticAssetRequestHandler implements Action<Routed<HttpExchange>> {
 
   private final List<String> indexFiles;
 
@@ -37,7 +37,7 @@ public class DirectoryStaticAssetRequestHandler implements Handler<Routed<HttpEx
   }
 
   @Override
-  public void handle(final Routed<HttpExchange> routed) {
+  public void execute(final Routed<HttpExchange> routed) {
     HttpExchange exchange = routed.get();
     File targetFile = exchange.getTargetFile();
     if (targetFile.isDirectory()) {

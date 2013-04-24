@@ -24,7 +24,7 @@ import org.jboss.netty.channel.ChannelFutureListener;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.handler.codec.http.*;
 import org.jboss.netty.util.CharsetUtil;
-import org.ratpackframework.Handler;
+import org.ratpackframework.Action;
 import org.ratpackframework.error.ErroredHttpExchange;
 import org.ratpackframework.http.HttpExchange;
 
@@ -40,7 +40,7 @@ public class DefaultHttpExchange implements HttpExchange {
   private final HttpRequest request;
   private final HttpResponse response;
   private final ChannelHandlerContext channelHandlerContext;
-  private final Handler<ErroredHttpExchange> errorHandler;
+  private final Action<ErroredHttpExchange> errorHandler;
   private File targetFile;
 
   private Set<Cookie> incomingCookies;
@@ -49,7 +49,7 @@ public class DefaultHttpExchange implements HttpExchange {
   private String query;
   private String path;
 
-  public DefaultHttpExchange(File targetFile, HttpRequest request, HttpResponse response, ChannelHandlerContext channelHandlerContext, Handler<ErroredHttpExchange> errorHandler) {
+  public DefaultHttpExchange(File targetFile, HttpRequest request, HttpResponse response, ChannelHandlerContext channelHandlerContext, Action<ErroredHttpExchange> errorHandler) {
     this.targetFile = targetFile;
     this.request = request;
     this.response = response;
@@ -120,7 +120,7 @@ public class DefaultHttpExchange implements HttpExchange {
 
   @Override
   public void error(Exception e) {
-    errorHandler.handle(new ErroredHttpExchange(this, e));
+    errorHandler.execute(new ErroredHttpExchange(this, e));
   }
 
   @Override

@@ -5,8 +5,8 @@ package org.ratpackframework;
  *
  * @param <T> The type of thing.
  */
-public interface Handler<T> {
+public interface Action<T> {
 
-  void handle(T event);
+  void execute(T event);
 
 }

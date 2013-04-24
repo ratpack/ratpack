@@ -3,10 +3,10 @@ package org.ratpackframework.bootstrap.internal;
 import com.google.inject.AbstractModule;
 import com.google.inject.TypeLiteral;
 import com.google.inject.name.Names;
+import org.ratpackframework.Action;
 import org.ratpackframework.error.DefaultErrorHandler;
 import org.ratpackframework.error.DefaultNotFoundHandler;
 import org.ratpackframework.error.ErroredHttpExchange;
-import org.ratpackframework.Handler;
 import org.ratpackframework.http.HttpExchange;
 import org.ratpackframework.routing.Routed;
 
@@ -20,11 +20,11 @@ public class RootModule extends AbstractModule {
   public static final String MAIN_HTTP_ERROR_HANDLER = "mainHttpErrorHandler";
   public static final String MAIN_NOT_FOUND_HTTP_HANDLER = "mainNotFoundHttpHandler";
 
-  public static final TypeLiteral<Handler<Routed<HttpExchange>>> HTTP_HANDLER = new TypeLiteral<Handler<Routed<HttpExchange>>>() {
+  public static final TypeLiteral<Action<Routed<HttpExchange>>> HTTP_HANDLER = new TypeLiteral<Action<Routed<HttpExchange>>>() {
   };
-  public static final TypeLiteral<Handler<ErroredHttpExchange>> HTTP_ERROR_HANDLER = new TypeLiteral<Handler<ErroredHttpExchange>>() {
+  public static final TypeLiteral<Action<ErroredHttpExchange>> HTTP_ERROR_HANDLER = new TypeLiteral<Action<ErroredHttpExchange>>() {
   };
-  public static final TypeLiteral<List<Handler<Routed<HttpExchange>>>> HTTP_HANDLER_PIPELINE = new TypeLiteral<List<Handler<Routed<HttpExchange>>>>() {
+  public static final TypeLiteral<List<Action<Routed<HttpExchange>>>> HTTP_HANDLER_PIPELINE = new TypeLiteral<List<Action<Routed<HttpExchange>>>>() {
   };
   public static final TypeLiteral<List<String>> STRING_LIST = new TypeLiteral<List<String>>() {
   };
