@@ -20,7 +20,7 @@ import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.ratpackframework.app.Endpoint;
 import org.ratpackframework.app.Response;
 import org.ratpackframework.app.internal.binding.PathBinding;
-import org.ratpackframework.handler.Handler;
+import org.ratpackframework.Handler;
 import org.ratpackframework.http.HttpExchange;
 import org.ratpackframework.routing.Routed;
 

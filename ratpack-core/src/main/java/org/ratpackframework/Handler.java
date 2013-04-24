@@ -1,4 +1,4 @@
-package org.ratpackframework.handler;
+package org.ratpackframework;
 
 /**
  * A generic type for an object that does some work with a thing.

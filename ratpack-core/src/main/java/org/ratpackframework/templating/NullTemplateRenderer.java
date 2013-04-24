@@ -1,7 +1,7 @@
 package org.ratpackframework.templating;
 
 import org.jboss.netty.buffer.ChannelBuffer;
-import org.ratpackframework.handler.ResultHandler;
+import org.ratpackframework.ResultHandler;
 
 import java.util.Map;
 

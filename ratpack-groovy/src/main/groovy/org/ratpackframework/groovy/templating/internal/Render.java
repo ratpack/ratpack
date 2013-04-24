@@ -19,8 +19,8 @@ package org.ratpackframework.groovy.templating.internal;
 import com.google.common.cache.Cache;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
-import org.ratpackframework.handler.Result;
-import org.ratpackframework.handler.ResultHandler;
+import org.ratpackframework.Result;
+import org.ratpackframework.ResultHandler;
 import org.ratpackframework.util.IoUtils;
 
 import java.io.File;

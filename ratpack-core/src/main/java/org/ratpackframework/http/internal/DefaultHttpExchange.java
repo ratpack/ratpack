@@ -24,7 +24,7 @@ import org.jboss.netty.channel.ChannelFutureListener;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.handler.codec.http.*;
 import org.jboss.netty.util.CharsetUtil;
-import org.ratpackframework.handler.Handler;
+import org.ratpackframework.Handler;
 import org.ratpackframework.error.ErroredHttpExchange;
 import org.ratpackframework.http.HttpExchange;
 

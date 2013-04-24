@@ -24,7 +24,7 @@ import org.ratpackframework.app.Routing;
 import org.ratpackframework.app.internal.binding.PathBinding;
 import org.ratpackframework.app.internal.binding.PatternPathBinding;
 import org.ratpackframework.app.internal.binding.TokenPathBinding;
-import org.ratpackframework.handler.Handler;
+import org.ratpackframework.Handler;
 import org.ratpackframework.http.HttpExchange;
 import org.ratpackframework.routing.Routed;
 

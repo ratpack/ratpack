@@ -1,4 +1,4 @@
-package org.ratpackframework.handler;
+package org.ratpackframework;
 
 /**
  * Convenience subtype for a handler that takes a result.

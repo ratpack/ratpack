@@ -6,7 +6,7 @@ import com.google.inject.name.Names;
 import org.ratpackframework.error.DefaultErrorHandler;
 import org.ratpackframework.error.DefaultNotFoundHandler;
 import org.ratpackframework.error.ErroredHttpExchange;
-import org.ratpackframework.handler.Handler;
+import org.ratpackframework.Handler;
 import org.ratpackframework.http.HttpExchange;
 import org.ratpackframework.routing.Routed;
 

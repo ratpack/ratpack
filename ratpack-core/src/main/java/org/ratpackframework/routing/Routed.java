@@ -1,6 +1,6 @@
 package org.ratpackframework.routing;
 
-import org.ratpackframework.handler.Handler;
+import org.ratpackframework.Handler;
 
 public interface Routed<T> {
 

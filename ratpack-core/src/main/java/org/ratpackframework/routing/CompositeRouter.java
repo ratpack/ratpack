@@ -16,7 +16,7 @@
 
 package org.ratpackframework.routing;
 
-import org.ratpackframework.handler.Handler;
+import org.ratpackframework.Handler;
 
 import java.util.ArrayList;
 import java.util.List;

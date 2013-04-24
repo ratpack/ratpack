@@ -3,7 +3,7 @@ package org.ratpackframework.groovy.app;
 import groovy.lang.Closure;
 import org.ratpackframework.app.Routing;
 import org.ratpackframework.groovy.app.internal.RoutingScript;
-import org.ratpackframework.handler.Handler;
+import org.ratpackframework.Handler;
 
 public class ClosureRouting implements Handler<Routing> {
 

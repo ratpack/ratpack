@@ -2,7 +2,7 @@ package org.ratpackframework.bootstrap.internal;
 
 import com.google.inject.Module;
 import org.ratpackframework.bootstrap.ModuleRegistry;
-import org.ratpackframework.handler.Handler;
+import org.ratpackframework.Handler;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;

@@ -2,7 +2,7 @@ package org.ratpackframework.groovy.error;
 
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
-import org.ratpackframework.handler.Handler;
+import org.ratpackframework.Handler;
 import org.ratpackframework.error.FallbackErrorHandler;
 import org.ratpackframework.http.HttpExchange;
 import org.ratpackframework.routing.Routed;

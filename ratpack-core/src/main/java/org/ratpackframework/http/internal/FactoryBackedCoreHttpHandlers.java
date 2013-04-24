@@ -2,7 +2,7 @@ package org.ratpackframework.http.internal;
 
 import org.ratpackframework.Factory;
 import org.ratpackframework.error.ErroredHttpExchange;
-import org.ratpackframework.handler.Handler;
+import org.ratpackframework.Handler;
 import org.ratpackframework.http.CoreHttpHandlers;
 import org.ratpackframework.http.HttpExchange;
 import org.ratpackframework.routing.Routed;

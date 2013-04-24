@@ -16,7 +16,7 @@
 
 package org.ratpackframework.routing;
 
-import org.ratpackframework.handler.Handler;
+import org.ratpackframework.Handler;
 import org.ratpackframework.http.HttpExchange;
 
 public class RoutedHttpExchange implements Routed<HttpExchange> {

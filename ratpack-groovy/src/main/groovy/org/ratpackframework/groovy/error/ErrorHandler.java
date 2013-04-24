@@ -20,12 +20,12 @@ import org.codehaus.groovy.runtime.StackTraceUtils;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
-import org.ratpackframework.handler.Handler;
+import org.ratpackframework.Handler;
 import org.ratpackframework.error.ContextualException;
 import org.ratpackframework.error.ErroredHttpExchange;
 import org.ratpackframework.error.FallbackErrorHandler;
 import org.ratpackframework.http.HttpExchange;
-import org.ratpackframework.handler.ResultHandler;
+import org.ratpackframework.ResultHandler;
 import org.ratpackframework.templating.TemplateRenderer;
 
 import javax.inject.Inject;

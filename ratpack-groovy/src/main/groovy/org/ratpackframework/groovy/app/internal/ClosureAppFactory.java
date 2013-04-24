@@ -15,7 +15,7 @@ import org.ratpackframework.groovy.Closures;
 import org.ratpackframework.groovy.app.ClosureRouting;
 import org.ratpackframework.groovy.bootstrap.ModuleRegistry;
 import org.ratpackframework.groovy.bootstrap.internal.DefaultModuleRegistry;
-import org.ratpackframework.handler.Handler;
+import org.ratpackframework.Handler;
 import org.ratpackframework.http.CoreHttpHandlers;
 import org.ratpackframework.http.DefaultCoreHttpHandlers;
 import org.ratpackframework.http.HttpExchange;

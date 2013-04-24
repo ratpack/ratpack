@@ -4,7 +4,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.name.Names;
 import org.ratpackframework.assets.StaticAssetsConfig;
 import org.ratpackframework.bootstrap.internal.RootModule;
-import org.ratpackframework.handler.Handler;
+import org.ratpackframework.Handler;
 import org.ratpackframework.http.HttpExchange;
 import org.ratpackframework.routing.CompositeRouter;
 import org.ratpackframework.routing.Routed;

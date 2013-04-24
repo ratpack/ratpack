@@ -20,10 +20,8 @@ import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.handler.codec.http.HttpResponse;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.ratpackframework.http.HttpExchange;
-import org.ratpackframework.handler.Result;
-import org.ratpackframework.handler.ResultHandler;
-
-import java.util.logging.Logger;
+import org.ratpackframework.Result;
+import org.ratpackframework.ResultHandler;
 
 /**
  * Used as a last attempt to handle the error. Useful for wrapping more sophisticated error handlers.

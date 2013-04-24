@@ -1,4 +1,4 @@
-package org.ratpackframework.handler;
+package org.ratpackframework;
 
 /**
  * The result of an asynchronous operation, which may be a failure.

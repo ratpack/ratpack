@@ -1,7 +1,7 @@
 package org.ratpackframework.bootstrap;
 
 import com.google.inject.Module;
-import org.ratpackframework.handler.Handler;
+import org.ratpackframework.Handler;
 
 import java.util.List;
 

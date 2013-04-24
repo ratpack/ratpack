@@ -1,7 +1,7 @@
 package org.ratpackframework.error;
 
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
-import org.ratpackframework.handler.Handler;
+import org.ratpackframework.Handler;
 import org.ratpackframework.http.HttpExchange;
 
 import java.util.logging.Level;

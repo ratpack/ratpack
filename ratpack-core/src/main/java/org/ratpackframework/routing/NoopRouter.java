@@ -1,7 +1,6 @@
 package org.ratpackframework.routing;
 
-import org.ratpackframework.handler.Handler;
-import org.ratpackframework.http.HttpExchange;
+import org.ratpackframework.Handler;
 
 public class NoopRouter<T> implements Handler<Routed<T>> {
 

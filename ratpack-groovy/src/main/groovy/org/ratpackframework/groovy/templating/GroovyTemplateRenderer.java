@@ -22,8 +22,8 @@ import org.codehaus.groovy.runtime.IOGroovyMethods;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.ratpackframework.groovy.script.ScriptEngine;
 import org.ratpackframework.groovy.templating.internal.*;
-import org.ratpackframework.handler.Result;
-import org.ratpackframework.handler.ResultHandler;
+import org.ratpackframework.Result;
+import org.ratpackframework.ResultHandler;
 import org.ratpackframework.util.IoUtils;
 import org.ratpackframework.templating.TemplateRenderer;
 

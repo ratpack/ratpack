@@ -9,7 +9,7 @@ import org.jboss.netty.handler.codec.http.HttpRequestDecoder;
 import org.jboss.netty.handler.codec.http.HttpResponseEncoder;
 import org.ratpackframework.bootstrap.internal.NettyRatpackServer;
 import org.ratpackframework.bootstrap.internal.NoopInit;
-import org.ratpackframework.handler.Handler;
+import org.ratpackframework.Handler;
 import org.ratpackframework.http.CoreHttpHandlers;
 import org.ratpackframework.http.internal.NettyRoutingAdapter;
 
