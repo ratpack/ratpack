@@ -1,7 +1,8 @@
-package org.ratpackframework;
+package org.ratpackframework.internal;
 
 import com.google.inject.Injector;
 import com.google.inject.Key;
+import org.ratpackframework.Objects;
 
 public class DefaultObjects implements Objects {
 

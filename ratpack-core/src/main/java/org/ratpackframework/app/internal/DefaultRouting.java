@@ -18,7 +18,7 @@ package org.ratpackframework.app.internal;
 
 import com.google.inject.Injector;
 import org.jboss.netty.handler.codec.http.HttpMethod;
-import org.ratpackframework.DefaultObjects;
+import org.ratpackframework.internal.DefaultObjects;
 import org.ratpackframework.Handler;
 import org.ratpackframework.Objects;
 import org.ratpackframework.app.Endpoint;
