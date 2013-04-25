@@ -43,6 +43,8 @@ task compileCoffee(type: CoffeeScriptCompile) {
 	source fileTree('src/main/static/scripts')
 	destinationDir file('src/ratpack/public/scripts')
 }
+processResources.inputs.files compileCoffee
+clean.dependsOn cleanCompileCoffee
 
 ext {
 	gemsDir = file('.jruby/gems')
@@ -79,6 +81,9 @@ task compileSass(type: JRubyExec) {
 		cssDir.mkdirs()
 	}
 }
+processResources.inputs.files compileSass
+clean.dependsOn cleanCompileSass
+
 
 task watchSass {
 	doFirst {
@@ -90,17 +95,13 @@ task watchSass {
 				main = 'org.jruby.Main'
 				jvmArgs '-client -XX:+TieredCompilation -XX:TieredStopAtLevel=1'.tokenize()
 				environment 'GEM_PATH', gemsDir
+				environment 'PATH', "$gemsDir/bin"
 				args "-X-C -S compass watch --sass-dir $sassDir --css-dir $cssDir --images-dir $imagesDir --javascripts-dir $javascriptsDir --relative-assets".tokenize()
 			}
 		}
 	}
 }
-
 run.dependsOn watchSass
-
-clean.dependsOn cleanCompileCoffee, cleanCompileSass
-processResources.inputs.files compileCoffee
-processResources.inputs.files compileSass
 
 task wrapper(type: Wrapper) {
 	gradleVersion = '1.5'
@@ -114,6 +115,7 @@ class JRubyExec extends JavaExec {
 
 	void setGemPath(gemPath) {
 		environment 'GEM_PATH', gemPath
+		environment 'PATH', "$gemPath/bin"
 	}
 
 	void setCommand(String command) {

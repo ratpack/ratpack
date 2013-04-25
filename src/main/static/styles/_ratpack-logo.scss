@@ -34,12 +34,9 @@ $mask-image-url: 'noise-bg.png';
   $logo-border-color: $text-color;
 
   color: $text-color;
-  float: left;
-  clear: both;
 
   @include noise-mask;
 
-  display: inline-block;
   position: relative;
   padding-left: $logo-size + $gutter;
   padding-right: $gutter;
@@ -100,6 +97,6 @@ $mask-image-url: 'noise-bg.png';
     $logo-image: $inverted-logo-image-url,
     $logo-image-background: $white,
     $spectrum: true) {
-  z-index: -1;
+  z-index: 0;
   @include ratpack-logo($font-size: $font-size, $text-color: #fff, $logo-image: $logo-image, $logo-image-background: $logo-image-background, $spectrum: $spectrum);
 }

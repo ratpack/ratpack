@@ -1,0 +1,110 @@
+@mixin pseudo-background {
+  position: relative;
+  &:before {
+    content: " ";
+    display: block;
+    position: absolute;
+    left: -50%;
+    width: 200%;
+
+    @content;
+  }
+}
+
+html {
+  background-color: $ivory;
+}
+
+.masthead {
+  @include column(12);
+
+  @include pseudo-background {
+    background: {
+      color: $black;
+    }
+
+    bottom: 0;
+    height: 200%;
+    z-index: -1;
+
+    @include transform-origin($origin-x: 0);
+    @include skewY(1deg);
+    @include backface-visibility(hidden);
+  }
+
+  @include contrasted($black);
+  background: {
+    image: image-url('ratpack-hero-3.png');
+    repeat: no-repeat;
+    position: top right;
+  }
+
+  header {
+    @include ratpack-logo-inverted;
+    float: left;
+    margin-top: 4.5em;
+    margin-bottom: 4.5em;
+  }
+}
+
+.promo {
+  clear: both;
+  @include clearfix;
+  padding-bottom: 1.2em;
+
+  color: contrast-color($blue);
+  @include pseudo-background {
+    background: {
+      color: $blue;
+    }
+
+    bottom: 0;
+    height: 150%;
+    z-index: -2;
+
+    @include transform-origin($origin-x: 0);
+    @include skewY(-0.5deg);
+    @include backface-visibility(hidden);
+  }
+
+  aside {
+    @include column(4);
+  }
+
+  section {
+    @include column(8);
+  }
+
+  nav {
+    margin-bottom: 0.5em;
+    a {
+      $bg-color: darken($red, 25%);
+      display: block;
+      @include contrasted(transparentize($bg-color, 0.4));
+      padding: 0.5em;
+      margin-bottom: 0.5em;
+  
+      &:active, &:hover {
+        @include contrasted($bg-color);
+      }
+    }
+  }
+}
+
+.callout {
+  margin-bottom: 1.2em;
+  padding: 0 1.2em;
+  @include contrasted(darken($blue, 45%));
+  @include box-shadow(2px 3px 0 6px transparentize(white, 0.5), -3px -2px 0 5px transparentize(white, 0.5));
+}
+
+.content {
+  > * {
+    @include column(10);
+    @include push(1);
+  }
+}
+
+footer {
+  @include column(12);
+}

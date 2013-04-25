@@ -1,13 +1,9 @@
-$sans-font-family: "Cabin", serif;
-$sans-font-family2: "Cabin Condensed", serif;
+$contrasted-dark-default: $black;
+
+$sans-font-family: "Cabin", sans-serif;
+$sans-font-family2: "Cabin Condensed", $sans-font-family;
 $serif-font-family: "Libre Baskerville", serif;
+$mono-font-family: "Courier New", Courier, "Lucida Sans Typewriter", "Lucida Typewriter", monospace;
 
-$body-font-family: $sans-font-family;
-$header-font-family: $sans-font-family2;
-
-$body-bg: $ivory;
-$primary-color: $blue;
-$alert-color: $red;
-$success-color: $green;
-
-// $list-style-position: inside;
+$total-width: 100%;
+$gutter-width: 30px;

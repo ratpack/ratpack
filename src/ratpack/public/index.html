@@ -12,80 +12,49 @@
 
         <link href="http://fonts.googleapis.com/css?family=Cabin:400,400italic|Cabin+Condensed:700|Libre+Baskerville:400,700,400italic|Peralta|Oregano" rel="stylesheet" type="text/css">
         <!-- Place favicon.ico and apple-touch-icon.png in the root directory -->
+        <link rel="stylesheet" href="lib/normalize/normalize.css">
         <link rel="stylesheet" href="styles/ratpack.css">
 
         <!-- build:js scripts/modernizr.js -->
         <script src="lib/modernizr/modernizr.js"></script>
         <!-- endbuild -->
     </head>
-    <body>
+    <body class="fixie">
 
-        <div class="row">
-            <div class="large-12 columns">
-                <header id="logo">
-                    <h1>Ratpack</h1>
-                    <p>a micro web framework for Java &amp; Groovy</p>
-                </header>
-            </div>
+        <div class="masthead">
+            <header>
+                <h1>Ratpack</h1>
+                <p>a micro web framework for Java &amp; Groovy</p>
+            </header>
         </div>
 
-        <section class="row">
-
-            <article class="small-12 large-8 columns">
-                <p>Ratpack is micro web framework inspired by <a href="http://www.sinatrarb.com/">Ruby's Sinatra</a>. It is implemented in pure Java on top of <a href="http://netty.io/" title="Netty: Home">Netty</a>, but has specific support for <a href="http://groovy.codehaus.org/">Groovy</a> and <a href="http://www.gradle.org/">Gradle</a>. It is not a J2EE solution. </p>
-
-                <p><strong>Note:</strong> Older (pre 0.7, non compatible) versions of Ratpack can be found <a href="https://github.com/bleedingwolf/ratpack">here</a>.</p>
-
-                <h3>Features</h3>
-
-                <ul>
-                    <li>Minimalistic, light, API</li>
-                    <li>Self contained (no container necessary)</li>
-                    <li>Async IO at the networking layer via Netty (i.e. not a thread-per-connection model)</li>
-                    <li>Dependency injection via Google Guice</li>
-                    <li>Extensibility (entire stack composition is done through overridable Guice modules)</li>
-                    <li>Groovy DSL support (i.e. app in a script)</li>
-                    <li>Latest Groovy 2 features for improved IDE intellisense</li>
-                    <li>Development time hot reloading (via <a href="https://github.com/SpringSource/spring-loaded">SpringSource's SpringLoaded</a>)</li>
-                    <li>Gradle plugin for development and packaging support, including advanced IntelliJ IDEA support</li>
-                </ul>
-
-                <h3>Project Status</h3>
-
-                <p>Ratpack is currently at verison <code>0.7.0-SNAPSHOT</code>, which is the first version since the move to Netty (away from Jetty and J2EE).</p>
-
-                <p>As we near a <code>0.7.0</code> final release, the following are tasks that are outstanding that we'd love your help with:</p>
-
-                <ol>
-                    <li>Creating of a website at <code>http://ratpack-framework.org</code></li>
-                    <li>Construction of a user manual</li>
-                </ol>
-
-                <h3>Examples</h3>
-
-                <ul>
-                    <li><a href="https://github.com/ratpack/groovy-web-console">https://github.com/ratpack/groovy-web-console</a></li>
-                    <li><a href="https://github.com/ratpack/groovy-script-example">https://github.com/ratpack/groovy-script-example</a></li>
-                </ul>
-            </article>
-
-            <aside class="sidebar small-12 large-4 columns">
+        <div class="promo">
+            <section class="callout">
+                <h2>Get started</h2>
+                <p>Add <code>org.ratpack-framework.netty:ratpack-core:0.7.0-SNAPSHOT</code> to your dependencies.</p>
+                <p></p>
+            </section>
+            <aside class="callout">
+                <h2>Find out more</h2>
                 <nav>
-                    <ul>
-                        <li><a href="#">Intro</a></li>
-                        <li><a href="#">Features</a></li>
-                        <li><a href="#">Project Status</a></li>
-                        <li class="divider"></li>
-                        <li><a href="#">Examples</a></li>
-                    </ul>
+                    <a href="#">The Ratpack manual</a>
+                    <a href="#">Javadocs</a>
+                    <a href="#">Ratpack on GitHub</a>
+                    <a href="#">Raise an issue</a>
                 </nav>
-
-                <p>Authentic aesthetic hella, gluten-free neutra 90's vegan echo park occupy literally farm-to-table shoreditch put a bird on it. Pug marfa forage blog, terry richardson cred brunch intelligentsia direct trade craft beer. PBR banksy banjo irony, occupy ethnic beard tumblr. Tofu next level single-origin coffee, scenester chambray williamsburg pickled fingerstache tattooed terry richardson. Swag whatever squid fashion axe, bicycle rights pickled chambray williamsburg. Etsy butcher thundercats cliche, beard meh terry richardson cray cred neutra brunch pork belly bespoke VHS. Freegan jean shorts disrupt, irony synth selfies cardigan.</p>
-
-                <p>90's biodiesel cosby sweater mumblecore leggings, carles truffaut 3 wolf moon butcher pop-up next level vice quinoa. Selfies aesthetic bushwick dreamcatcher flexitarian 3 wolf moon. Selvage selfies occupy bicycle rights gluten-free skateboard sustainable, bushwick retro mlkshk whatever. Dreamcatcher PBR bushwick, literally vinyl blog sriracha etsy pickled ethnic 8-bit. Ennui Austin PBR pork belly aesthetic, literally hoodie plaid hella before they sold out helvetica mlkshk bushwick carles wes anderson. Blue bottle freegan food truck skateboard cred retro pop-up church-key VHS gastropub stumptown. High life sriracha four loko odd future DIY authentic.</p>
             </aside>
+        </div>
 
-        </section>
+        <div class="content">
+            <article>
+                <h2></h2>
+                <p></p>
+                <p></p>
+                <ul></ul>
+                <h3></h3>
+                <p></p>
+            </article>
+        </div>
 
         <footer class="site-footer"></footer>
 
@@ -103,5 +72,6 @@
 
         <!-- build:js(.tmp) scripts/ratpack.js -->
         <!-- endbuild -->
-</body>
+        <script src="lib/fixie/fixie.min.js"></script>
+    </body>
 </html>

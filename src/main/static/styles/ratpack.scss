@@ -1,64 +1,20 @@
 // Compass
 @import "compass/typography";
 @import "compass/css3";
+@import "compass/utilities";
 
-// Site-wide variables
+// Semantic grid system
+@import "../lib/semantic.gs/grid";
+
+// Site-wide
 @import "palette";
-
-// Zurb Foundation
 @import "settings";
-@import "../lib/foundation/scss/foundation";
+@import "reset";
+@import "typography";
+@import "layout";
 
-// Branding & custom components
+// Stylistic mixins & reusable elements
 @import "ratpack-logo";
 
-ul, ol {
-	padding-left: $list-side-margin;
-}
-
-#logo {
-	@include ratpack-logo;
-}
-
-.sidebar {
-	background: {
-		color: $black;
-	}
-	color: #fff;
-
-	nav {
-		@include side-nav;
-	}
-}
-
-h3 {
-	position: relative;
-	&:before {
-		content: " ";
-		position: absolute;
-		left: -0.5em;
-		top: -0.25em;
-		@include border-radius(50%);
-		width: 2em;
-		height: 2em;
-		z-index: -1;
-	}
-
-	&:nth-of-type(3n + 1) {
-		&:before {
-			background-color: transparentize($yellow, 0.4);
-		}
-	}
-
-	&:nth-of-type(3n + 2) {
-		&:before {
-			background-color: transparentize($red, 0.4);
-		}
-	}
-
-	&:nth-of-type(3n + 3) {
-		&:before {
-			background-color: transparentize($blue, 0.4);
-		}
-	}
-}
+// Pages
+@import "homepage";
