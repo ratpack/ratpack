@@ -13,6 +13,31 @@
   }
 }
 
+@mixin button($base-color, $highlight-color) {
+  display: block;
+  padding: 0.75em;
+
+  @include contrasted($base-color);
+  font: {
+    family: $header-font-family;
+    weight: bold;
+    size: 1.2em;
+  }
+  text-transform: uppercase;
+
+  @include single-transition(background-color, 0.3s);
+
+  &:hover, &:active {
+    @include contrasted($highlight-color);
+  }
+
+  em {
+    font-family: $serif-font-family;
+    font-style: italic;
+    text-transform: lowercase;
+  }
+}
+
 html {
   background-color: $ivory;
 }
@@ -38,8 +63,48 @@ section {
   .logo {
     @include ratpack-logo-inverted;
     float: left;
-    margin-top: 4.5em;
-    margin-bottom: 4.5em;
+    margin-top: 2.5em;
+    margin-bottom: 2em;
+  }
+
+  .content {
+    position: relative;
+  }
+
+  a[href*='github.com'] {
+    $base-color: $blue;
+    $highlight-color: transparentize($red, 0.4);
+
+    position: absolute;
+    right: 1.2em;
+    bottom: 1.2em;
+
+    @include button($base-color, $highlight-color);
+    @include rotate(-1deg);
+    @include backface-visibility(hidden);
+
+    &:before, &:after {
+      content: " ";
+      display: block;
+      position: absolute;
+      top: 0;
+      height: 17%;
+      @include backface-visibility(hidden);
+    }
+
+    &:before {
+      left: -1%;
+      width: 102%;
+      @include rotate(-1deg);
+      box-shadow: 0 -19px 0 0 $highlight-color, 0 -58px 0 0 $highlight-color, 0 -97px 0 0 $highlight-color;
+    }
+
+    &:after {
+      left: 2%;
+      width: 96%;
+      @include rotate(1deg);
+      box-shadow: 0 -40px 0 0 $highlight-color, 0 -77px 0 0 $highlight-color;
+    }
   }
 }
 
