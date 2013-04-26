@@ -4,8 +4,10 @@
     content: " ";
     display: block;
     position: absolute;
-    left: -50%;
-    width: 200%;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: 120%;
 
     @content;
   }
@@ -15,31 +17,25 @@ html {
   background-color: $ivory;
 }
 
-.masthead {
-  @include column(12);
+section {
+  padding: 1.2em 0;
+}
 
+.masthead {
+  color: contrast-color($black);
   @include pseudo-background {
     background: {
       color: $black;
     }
 
-    bottom: 0;
-    height: 200%;
     z-index: -1;
 
-    @include transform-origin($origin-x: 0);
+    @include transform-origin($origin-x: left);
     @include skewY(1deg);
     @include backface-visibility(hidden);
   }
 
-  @include contrasted($black);
-  background: {
-    image: image-url('ratpack-hero-3.png');
-    repeat: no-repeat;
-    position: top right;
-  }
-
-  header {
+  .logo {
     @include ratpack-logo-inverted;
     float: left;
     margin-top: 4.5em;
@@ -48,10 +44,6 @@ html {
 }
 
 .promo {
-  clear: both;
-  @include clearfix;
-  padding-bottom: 1.2em;
-
   color: contrast-color($blue);
   @include pseudo-background {
     background: {
@@ -62,17 +54,17 @@ html {
     height: 150%;
     z-index: -2;
 
-    @include transform-origin($origin-x: 0);
+    @include transform-origin($origin-x: right);
     @include skewY(-0.5deg);
     @include backface-visibility(hidden);
   }
 
-  aside {
-    @include column(4);
+  .primary {
+    @include column(8);
   }
 
-  section {
-    @include column(8);
+  aside {
+    @include column(4);
   }
 
   nav {
@@ -83,11 +75,19 @@ html {
       @include contrasted(transparentize($bg-color, 0.4));
       padding: 0.5em;
       margin-bottom: 0.5em;
-  
+
       &:active, &:hover {
         @include contrasted($bg-color);
       }
     }
+  }
+}
+
+.main {
+  .body {
+    @include column(10);
+    @include push(1);
+    @include pull(1);
   }
 }
 
@@ -98,13 +98,22 @@ html {
   @include box-shadow(2px 3px 0 6px transparentize(white, 0.5), -3px -2px 0 5px transparentize(white, 0.5));
 }
 
-.content {
-  > * {
-    @include column(10);
-    @include push(1);
-  }
-}
+.site-footer {
+  @include contrasted($black);
 
-footer {
-  @include column(12);
+  .content {
+    $bg-image: 'ratpack-footer.png';
+    min-height: image-height($bg-image);
+    background: {
+      image: image-url($bg-image);
+      repeat: no-repeat;
+      position: top left;
+    }
+  }
+
+  .about {
+    @include column(7);
+    @include push(4);
+    @include pull(1);
+  }
 }
