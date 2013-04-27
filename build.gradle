@@ -74,7 +74,7 @@ task compileSass(type: JRubyExec) {
 	inputs.dir imagesDir
 	inputs.dir javascriptsDir
 
-	command = "compass compile --sass-dir $sassDir --css-dir $cssDir --images-dir $imagesDir --javascripts-dir $javascriptsDir --relative-assets"
+	command = "compass compile --sass-dir $sassDir --css-dir $cssDir --images-dir $imagesDir --javascripts-dir $javascriptsDir"
 	gemPath = installGems.outputs.files.singleFile
 
 	doFirst {
@@ -87,7 +87,7 @@ clean.dependsOn cleanCompileSass
 
 task watchSass(type: JRubyExec) {
 	background = true
-	command = "compass watch --sass-dir $sassDir --css-dir $cssDir --images-dir $imagesDir --javascripts-dir $javascriptsDir --relative-assets"
+	command = "compass watch --sass-dir $sassDir --css-dir $cssDir --images-dir $imagesDir --javascripts-dir $javascriptsDir"
 	gemPath = installGems.outputs.files.singleFile
 
 	doFirst {
