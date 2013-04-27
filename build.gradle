@@ -1,4 +1,6 @@
 import org.gradle.plugins.javascript.coffeescript.CoffeeScriptCompile
+import org.gradle.api.*
+import org.gradle.api.tasks.*
 
 apply plugin: 'ratpack-groovy'
 apply plugin: 'coffeescript-base'
@@ -36,7 +38,7 @@ dependencies {
 	compile 'org.pegdown:pegdown:1.2.1'
 
 	testCompile 'org.spockframework:spock-core:0.7-groovy-2.0',
-				'org.jodd:jodd-lagarto:3.4.3'
+			'org.jodd:jodd-lagarto:3.4.3'
 }
 
 task compileCoffee(type: CoffeeScriptCompile) {
@@ -58,7 +60,6 @@ task installGems(type: JRubyExec) {
 	outputs.dir gemsDir
 
 	command = "gem install -i $gemsDir --no-rdoc --no-ri compass"
-	classpath = configurations.jruby
 	gemPath = gemsDir
 
 	doFirst {
@@ -74,7 +75,6 @@ task compileSass(type: JRubyExec) {
 	inputs.dir javascriptsDir
 
 	command = "compass compile --sass-dir $sassDir --css-dir $cssDir --images-dir $imagesDir --javascripts-dir $javascriptsDir --relative-assets"
-	classpath = configurations.jruby
 	gemPath = installGems.outputs.files.singleFile
 
 	doFirst {
@@ -85,20 +85,13 @@ processResources.inputs.files compileSass
 clean.dependsOn cleanCompileSass
 
 
-task watchSass {
+task watchSass(type: JRubyExec) {
+	background = true
+	command = "compass watch --sass-dir $sassDir --css-dir $cssDir --images-dir $imagesDir --javascripts-dir $javascriptsDir --relative-assets"
+	gemPath = installGems.outputs.files.singleFile
+
 	doFirst {
 		cssDir.mkdirs()
-
-		Thread.start {
-			project.javaexec {
-				classpath = configurations.jruby
-				main = 'org.jruby.Main'
-				jvmArgs '-client -XX:+TieredCompilation -XX:TieredStopAtLevel=1'.tokenize()
-				environment 'GEM_PATH', gemsDir
-				environment 'PATH', "$gemsDir/bin"
-				args "-X-C -S compass watch --sass-dir $sassDir --css-dir $cssDir --images-dir $imagesDir --javascripts-dir $javascriptsDir --relative-assets".tokenize()
-			}
-		}
 	}
 }
 run.dependsOn watchSass
@@ -107,18 +100,29 @@ task wrapper(type: Wrapper) {
 	gradleVersion = '1.5'
 }
 
-class JRubyExec extends JavaExec {
-	JRubyExec() {
-		main = 'org.jruby.Main'
-		jvmArgs '-client -XX:+TieredCompilation -XX:TieredStopAtLevel=1'.tokenize()
-	}
+class JRubyExec extends DefaultTask {
 
-	void setGemPath(gemPath) {
-		environment 'GEM_PATH', gemPath
-		environment 'PATH', "$gemPath/bin"
-	}
+	public File gemPath
+	public String command
+	public boolean background = false
 
-	void setCommand(String command) {
-		args "-X-C -S $command".tokenize()
+	@TaskAction
+	void jrubyexec() {
+		def runCommand = {
+			project.javaexec {
+				classpath = project.configurations.jruby
+				main = 'org.jruby.Main'
+				jvmArgs '-client -XX:+TieredCompilation -XX:TieredStopAtLevel=1'.tokenize()
+				environment 'GEM_PATH', gemPath
+				environment 'PATH', "$gemPath/bin"
+				args "-X-C -S $command".tokenize()
+			}
+		}
+
+		if (background) {
+			Thread.start runCommand
+		} else {
+			runCommand()
+		}
 	}
 }
