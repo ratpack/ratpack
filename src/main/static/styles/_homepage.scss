@@ -38,6 +38,31 @@
   }
 }
 
+@mixin stack($color) {
+  &:before, &:after {
+    content: " ";
+    display: block;
+    position: absolute;
+    top: 0;
+    height: 17%;
+    @include backface-visibility(hidden);
+  }
+
+  &:before {
+    left: -1%;
+    width: 102%;
+    @include rotate(-1deg);
+    box-shadow: 0 -19px 0 0 $color, 0 -58px 0 0 $color, 0 -97px 0 0 $color;
+  }
+
+  &:after {
+    left: 2%;
+    width: 96%;
+    @include rotate(1deg);
+    box-shadow: 0 -40px 0 0 $color, 0 -77px 0 0 $color;
+  }
+}
+
 html {
   background-color: $ivory;
 }
@@ -82,29 +107,7 @@ section {
     @include button($base-color, $highlight-color);
     @include rotate(-1deg);
     @include backface-visibility(hidden);
-
-    &:before, &:after {
-      content: " ";
-      display: block;
-      position: absolute;
-      top: 0;
-      height: 17%;
-      @include backface-visibility(hidden);
-    }
-
-    &:before {
-      left: -1%;
-      width: 102%;
-      @include rotate(-1deg);
-      box-shadow: 0 -19px 0 0 $highlight-color, 0 -58px 0 0 $highlight-color, 0 -97px 0 0 $highlight-color;
-    }
-
-    &:after {
-      left: 2%;
-      width: 96%;
-      @include rotate(1deg);
-      box-shadow: 0 -40px 0 0 $highlight-color, 0 -77px 0 0 $highlight-color;
-    }
+    @include stack($highlight-color);
   }
 }
 
@@ -133,17 +136,12 @@ section {
   }
 
   nav {
-    margin-bottom: 0.5em;
+    margin-bottom: 1.2em;
     a {
-      $bg-color: darken($red, 25%);
-      display: block;
-      @include contrasted(transparentize($bg-color, 0.4));
-      padding: 0.5em;
+      $base-color: $blue;
+      $highlight-color: transparentize($red, 0.4);
+      @include button($base-color, $highlight-color);
       margin-bottom: 0.5em;
-
-      &:active, &:hover {
-        @include contrasted($bg-color);
-      }
     }
   }
 }
