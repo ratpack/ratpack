@@ -1,9 +1,9 @@
 import org.gradle.plugins.javascript.coffeescript.CoffeeScriptCompile
-import org.gradle.api.*
-import org.gradle.api.tasks.*
+import org.gradle.plugins.compass.*
 
 apply plugin: 'ratpack-groovy'
 apply plugin: 'coffeescript-base'
+apply plugin: CompassPlugin
 
 configurations.all {
 	resolutionStrategy {
@@ -28,13 +28,7 @@ repositories {
 	maven { url "http://repo.gradle.org/gradle/javascript-public/" } // for coffeescript plugin
 }
 
-configurations {
-	jruby
-}
-
 dependencies {
-	jruby 'org.jruby:jruby-complete:1.7.3'
-
 	compile 'org.pegdown:pegdown:1.2.1'
 
 	testCompile 'org.spockframework:spock-core:0.7-groovy-2.0',
@@ -48,81 +42,17 @@ task compileCoffee(type: CoffeeScriptCompile) {
 processResources.inputs.files compileCoffee
 clean.dependsOn cleanCompileCoffee
 
-ext {
-	gemsDir = file('.jruby/gems')
+compass {
 	cssDir = file('src/ratpack/public/styles')
 	sassDir = file('src/main/static/styles')
 	imagesDir = file('src/ratpack/public/images')
 	javascriptsDir = file('src/ratpack/public/scripts')
 }
 
-task installGems(type: JRubyExec) {
-	outputs.dir gemsDir
-
-	command = "gem install -i $gemsDir --no-rdoc --no-ri compass"
-	gemPath = gemsDir
-
-	doFirst {
-		gemsDir.mkdirs()
-	}
-}
-
-task compileSass(type: JRubyExec) {
-	outputs.dir cssDir
-	inputs.files installGems
-	inputs.dir sassDir
-	inputs.dir imagesDir
-	inputs.dir javascriptsDir
-
-	command = "compass compile --sass-dir $sassDir --css-dir $cssDir --images-dir $imagesDir --javascripts-dir $javascriptsDir"
-	gemPath = installGems.outputs.files.singleFile
-
-	doFirst {
-		cssDir.mkdirs()
-	}
-}
 processResources.inputs.files compileSass
 clean.dependsOn cleanCompileSass
-
-
-task watchSass(type: JRubyExec) {
-	background = true
-	command = "compass watch --sass-dir $sassDir --css-dir $cssDir --images-dir $imagesDir --javascripts-dir $javascriptsDir"
-	gemPath = installGems.outputs.files.singleFile
-
-	doFirst {
-		cssDir.mkdirs()
-	}
-}
 run.dependsOn watchSass
 
 task wrapper(type: Wrapper) {
 	gradleVersion = '1.5'
-}
-
-class JRubyExec extends DefaultTask {
-
-	public File gemPath
-	public String command
-	public boolean background = false
-
-	@TaskAction
-	void jrubyexec() {
-		def runCommand = {
-			project.javaexec {
-				classpath = project.configurations.jruby
-				main = 'org.jruby.Main'
-				jvmArgs '-client -XX:+TieredCompilation -XX:TieredStopAtLevel=1'.tokenize()
-				environment 'GEM_PATH', gemPath
-				environment 'PATH', "$gemPath/bin"
-				args "-X-C -S $command".tokenize()
-			}
-		}
-
-		if (background) {
-			Thread.start runCommand
-		} else {
-			runCommand()
-		}
-	}
 }
