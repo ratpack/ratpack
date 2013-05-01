@@ -74,10 +74,10 @@ section {
 }
 
 .masthead {
-  color: contrast-color($black);
+  color: contrast-color($ivory);
   @include pseudo-background {
     background: {
-      color: $black;
+      color: $ivory;
     }
     @include noise-background;
 
@@ -89,7 +89,7 @@ section {
   }
 
   .logo {
-    @include ratpack-logo-inverted;
+    @include ratpack-logo;
     float: left;
     margin-top: 2.5em;
     margin-bottom: 2em;
@@ -100,8 +100,8 @@ section {
   }
 
   a[href*='github.com'] {
-    $base-color: $blue;
-    $highlight-color: transparentize($red, 0.4);
+    $highlight-color: $blue;
+    $base-color: transparentize($yellow, 0.4);
 
     position: absolute;
     right: 1.2em;
@@ -115,10 +115,10 @@ section {
 }
 
 .promo {
-  color: contrast-color($blue);
+  color: contrast-color($black);
   @include pseudo-background {
     background: {
-      color: $blue;
+      color: $black;
     }
     @include noise-background;
 

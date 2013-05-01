@@ -1,0 +1,8 @@
+/*
+ * Cross-browser antialias for transformed elements.
+ */
+@mixin antialias {
+  @include background-clip(content-box);
+  padding: 2px;
+  @include backface-visibility(hidden);
+}

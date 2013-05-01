@@ -1,87 +1,128 @@
-$default-font-size: 5em;
-$default-logo-scale: 1.2;
+$logo-font-size: 8em;
+$small-logo-font-size: 5em;
+$tiny-logo-font-size: 3em;
 
-$logo-image-url: 'ratpack-logo.png';
-$inverted-logo-image-url: 'ratpack-logo-inverse.png';
+$logo-image: image-url('ratpack-logo.png');
+$logo-inverted: image-url('ratpack-logo-white.png');
 
-@mixin ratpack-logo(
-    $font-size: $default-font-size,
-    $logo-scale: $default-logo-scale,
-    $text-color: $black,
-    $logo-image: $logo-image-url,
-    $logo-image-background: $white,
-    $spectrum: true,
-    $color1: transparentize($yellow, 0.4),
-    $color2: transparentize($red, 0.4),
-    $color3: transparentize($blue, 0.4)) {
+@mixin skewed-background-scale($base-size) {
+  &:before {
+    top: $base-size * 0.25;
+    height: $base-size * 0.8125;
+    left: $base-size * 0.375;
+    width: $base-size * 3.125;
+  }
+}
 
-  $gutter: $font-size / 10;
-  $logo-size: $font-size * $logo-scale;
-  $logo-border-width: $font-size * 0.03;
-  $logo-border-color: $text-color;
+@mixin skewed-background-color($background-color) {
+  &:before {
+    background-color: $background-color;
+  }
+}
 
-  color: $text-color;
-
+@mixin skewed-background($base-size, $background-color) {
   position: relative;
-  padding-left: $logo-size + $gutter;
-  padding-right: $gutter;
-  padding-top: $gutter;
-  padding-bottom: $gutter;
-
+  z-index: 0;
+  @include skewed-background-scale($base-size);
+  @include skewed-background-color($background-color);
   &:before {
     content: " ";
-    background: {
-      color: $logo-image-background;
-      image: image-url($logo-image);
-      position: 0 0;
-      repeat: no-repeat;
-      size: cover;
-    }
     position: absolute;
-    left: $gutter;
-    top: $gutter;
-    border: $logo-border-width solid $logo-border-color;
-    border-radius: 50%;
-    box-sizing: border-box;
-    width: $logo-size;
-    height: $logo-size;
-    @if $spectrum {
-      z-index: -1;
-      box-shadow: $color1 ($logo-size / 2) 0 0, $color2 $logo-size 0 0, $color3 ($logo-size * 1.5) 0 0;
-    }
+    z-index: -1;
+    @include rotate(-4deg);
+    @include antialias;
+    @include noise-background;
   }
+}
+
+@mixin ratpack-logo {
+  display: inline-block;
+  vertical-align: top;
+  margin: 1em;
+
+  @include skewed-background($logo-font-size, transparentize($yellow, 0.1));
 
   h1, p {
-    color: $text-color;
-    margin: 0;
-    text-transform: none;
+    line-height: 1;
+    margin: 0 0;
   }
 
   h1 {
+    display: inline-block;
+    padding: 0 0.75em 0 1em;
+    color: $black;
     font: {
-      size: $font-size;
-      family: 'Peralta', serif;
+      family: 'Engagement', sans-serif;
       weight: normal;
+      size: $logo-font-size;
     }
-    line-height: $logo-scale;
+    text-transform: none;
+    background: {
+      image: $logo-image;
+      repeat: no-repeat;
+      position: {
+        y: bottom;
+        x: left;
+      }
+      size: contain;
+    }
+
+    &:last-child {
+      border-bottom: 0.03em solid $black;
+    }
   }
 
   p {
+    @include contrasted($black);
     font: {
-      size: $font-size * 0.32;
-      family: 'Oregano', serif;
-      weight: normal;
+      family: 'Rokkitt', serif;
+      size: $logo-font-size * 0.25;
     }
-    line-height: 1.1;
+    padding: 0.2em 0.4em;
+  }
+
+  &.small {
+    @include skewed-background-scale($small-logo-font-size);
+    h1 {
+      font-size: $small-logo-font-size;
+    }
+  }
+
+  &.tiny {
+    @include skewed-background-scale($tiny-logo-font-size);
+    h1 {
+      font-size: $tiny-logo-font-size;
+    }
+  }
+
+  &.inverted {
+    @include skewed-background-color(mix($yellow, $black, 40%));
+    &.blue {
+      @include skewed-background-color(mix($blue, $black, 60%));
+    }
+    &.red {
+      @include skewed-background-color(mix($red, $black, 40%));
+    }
+    h1 {
+      color: $white;
+      background-image: $logo-inverted;
+      border-bottom-color: $white;
+    }
+    p {
+      @include contrasted($white);
+    }
+  }
+
+  &.red {
+    @include skewed-background-color(transparentize($red, 0.2));
+  }
+
+  &.blue {
+    @include skewed-background-color(transparentize($blue, 0.1));
+  }
+
+  &.plain {
+    @include skewed-background-color(transparent);
   }
 }
 
-@mixin ratpack-logo-inverted(
-    $font-size: $default-font-size,
-    $text-color: $white,
-    $logo-image: $inverted-logo-image-url,
-    $logo-image-background: $white,
-    $spectrum: true) {
-  z-index: 0;
-  @include ratpack-logo($font-size: $font-size, $text-color: #fff, $logo-image: $logo-image, $logo-image-background: $logo-image-background, $spectrum: $spectrum);
-}
