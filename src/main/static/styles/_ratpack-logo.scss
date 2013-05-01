@@ -3,19 +3,6 @@ $default-logo-scale: 1.2;
 
 $logo-image-url: 'ratpack-logo.png';
 $inverted-logo-image-url: 'ratpack-logo-inverse.png';
-$mask-image-url: 'noise-bg.png';
-
-@mixin noise-mask {
-  &:after {
-    content: " ";
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-image: image-url($mask-image-url);
-  }
-}
 
 @mixin ratpack-logo(
     $font-size: $default-font-size,
@@ -34,8 +21,6 @@ $mask-image-url: 'noise-bg.png';
   $logo-border-color: $text-color;
 
   color: $text-color;
-
-  @include noise-mask;
 
   position: relative;
   padding-left: $logo-size + $gutter;

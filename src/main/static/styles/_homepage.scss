@@ -18,6 +18,7 @@
   padding: 0.75em;
 
   @include contrasted($base-color);
+  @include noise-background;
   font: {
     family: $header-font-family;
     weight: bold;
@@ -65,6 +66,7 @@
 
 html {
   background-color: $ivory;
+  @include noise-background;
 }
 
 section {
@@ -77,6 +79,7 @@ section {
     background: {
       color: $black;
     }
+    @include noise-background;
 
     z-index: -1;
 
@@ -117,6 +120,7 @@ section {
     background: {
       color: $blue;
     }
+    @include noise-background;
 
     bottom: 0;
     height: 150%;
@@ -158,11 +162,13 @@ section {
   margin-bottom: 1.2em;
   padding: 0 1.2em;
   @include contrasted(darken($blue, 45%));
+  @include noise-background;
   @include box-shadow(2px 3px 0 6px transparentize(white, 0.5), -3px -2px 0 5px transparentize(white, 0.5));
 }
 
 .site-footer {
   @include contrasted($black);
+  @include noise-mask;
 
   .content {
     $bg-image: 'ratpack-footer.png';
