@@ -33,8 +33,11 @@
   }
 
   em {
-    font-family: $serif-font-family;
-    font-style: italic;
+    font: {
+      family: $serif-font-family;
+      style: italic;
+      weight: normal;
+    }
     text-transform: lowercase;
   }
 }
