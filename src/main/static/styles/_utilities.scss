@@ -6,3 +6,30 @@
   padding: 2px;
   @include backface-visibility(hidden);
 }
+
+/*
+ * Render rems with fallback pixels. Basically the reverse of https://github.com/bitmanic/rem
+ */
+@mixin rems($property, $rems) {
+  @if type-of($rems) == "number" {
+    #{$property}: $rems * $base-font-size;
+    #{$property}: $rems * 1rem;
+  } @else {
+    // Create an empty list that we can dump values into
+    $px-values: unquote("");
+    $rem-values: unquote("");
+    @each $value in $rems {
+      // If the value is zero, return 0
+      @if $value == 0 {
+        $px-values: append($px-values, $value);
+        $rem-values: append($rem-values, $value);
+      } @else {
+        $px-values: append($px-values, $value * $base-font-size);
+        $rem-values: append($rem-values, $value * 1rem);
+      }
+    }
+    // Return the property and its list of converted values
+    #{$property}: $px-values;
+    #{$property}: $rem-values;
+  }
+}
