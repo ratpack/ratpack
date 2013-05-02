@@ -75,9 +75,10 @@ $logo-inverted: image-url('ratpack-logo-white.png');
   p {
     @include contrasted($black);
     font: {
-      family: 'Rokkitt', serif;
-      size: $logo-font-size * 0.25;
+      family: $mono-font-family;
+      size: $logo-font-size * 0.18;
     }
+    @include text-shadow(0 1px 0 darken($black, 15), 0 -1px 0 darken(contrast-color($black), 40));
     padding: 0.2em 0.4em;
   }
 
