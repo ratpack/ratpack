@@ -22,7 +22,7 @@
   font: {
     family: $header-font-family;
     weight: bold;
-    size: 1.2em;
+    size: 1.125rem;
   }
   text-transform: uppercase;
 
@@ -66,6 +66,7 @@
 
 html {
   background-color: $ivory;
+  color: $black;
   @include noise-background;
 }
 
@@ -100,8 +101,8 @@ section {
   }
 
   a[href*='github.com'] {
-    $highlight-color: $blue;
-    $base-color: transparentize($yellow, 0.4);
+    $base-color: $yellow;
+    $highlight-color: transparentize($red, 0.3);
 
     position: absolute;
     right: 1.2em;

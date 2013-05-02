@@ -10,8 +10,11 @@ $code-font-family: $mono-font-family;
 @include establish-baseline;
 
 body {
-  font: {
-    family: $body-font-family;
+  font-family: $body-font-family;
+
+  // preferred font is larger than fallbacks so resize up if not using webfonts
+  .no-fontface & {
+    @include adjust-font-size-to(18px);
   }
 }
 
@@ -21,11 +24,6 @@ h1, h2, h3, h4, h5, h6 {
   }
   .fontface & {
     font-weight: normal;
-  }
-
-  margin: {
-    top: .2em;
-    bottom: .3em;
   }
 
   text-transform: uppercase;
@@ -51,7 +49,7 @@ pre, code, tt {
   font-family: $code-font-family;
   .fontface & {
     // because Libre Baskerville has a large x-height and counters we need to increase the mono font-size
-    font-size: 1.2em;
+    @include adjust-font-size-to(18px);
   }
 }
 
