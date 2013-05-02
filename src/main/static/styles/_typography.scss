@@ -63,6 +63,7 @@ h5 {
 
 pre, code, tt {
   font-family: $code-font-family;
+  -webkit-font-smoothing: subpixel-antialiased; // this looks better with Courier New even light on dark
   .fontface & {
     // because Libre Baskerville has a large x-height and counters we need to increase the mono font-size
     @include adjust-font-size-to(18px);
