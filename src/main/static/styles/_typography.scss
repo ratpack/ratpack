@@ -7,10 +7,26 @@ $body-font-family: $serif-font-family;
 $header-font-family: $sans-font-family2;
 $code-font-family: $mono-font-family;
 
+/**
+ * Helps legibility by adding a small text shadow (Windows) and using alternate font-smoothing for light text on dark (OSX Webkit).
+ */
+@mixin smooth-font($bg-color) {
+  @include text-shadow(0 1px 1px transparentize($bg-color, 0.7));
+  @if contrast-color($bg-color) == $contrasted-light-default {
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+@mixin contrasted-smooth($bg-color) {
+  @include contrasted($bg-color);
+  @include smooth-font($bg-color);
+}
+
 @include establish-baseline;
 
 body {
   font-family: $body-font-family;
+  text-rendering: optimizeLegibility;
 
   // preferred font is larger than fallbacks so resize up if not using webfonts
   .no-fontface & {

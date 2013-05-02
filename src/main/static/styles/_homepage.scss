@@ -17,7 +17,7 @@
   display: block;
   padding: 0.75em;
 
-  @include contrasted($base-color);
+  @include contrasted-smooth($base-color);
   @include noise-background;
   font: {
     family: $header-font-family;
@@ -29,7 +29,7 @@
   @include single-transition(background-color, 0.3s);
 
   &:hover, &:active {
-    @include contrasted($highlight-color);
+    @include contrasted-smooth($highlight-color);
   }
 
   em {
@@ -68,8 +68,7 @@
 }
 
 html {
-  background-color: $ivory;
-  color: $black;
+  @include contrasted-smooth($ivory);
   @include noise-background;
 }
 
@@ -79,6 +78,7 @@ section {
 
 .masthead {
   color: contrast-color($ivory);
+  @include smooth-font($ivory);
   @include pseudo-background {
     background: {
       color: $ivory;
@@ -120,6 +120,7 @@ section {
 
 .promo {
   color: contrast-color($black);
+  @include smooth-font($black);
   @include pseudo-background {
     background: {
       color: $black;
@@ -165,13 +166,13 @@ section {
 .callout {
   margin-bottom: 1.2em;
   padding: 0 1.2em;
-  @include contrasted(darken($blue, 45%));
+  @include contrasted-smooth(darken($blue, 45%));
   @include noise-background;
   @include box-shadow(2px 3px 0 6px transparentize(white, 0.5), -3px -2px 0 5px transparentize(white, 0.5));
 }
 
 .site-footer {
-  @include contrasted($black);
+  @include contrasted-smooth($black);
   @include noise-mask;
 
   .content {

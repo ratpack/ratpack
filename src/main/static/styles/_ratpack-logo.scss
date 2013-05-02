@@ -51,6 +51,7 @@ $logo-inverted: image-url('ratpack-logo-white.png');
     display: inline-block;
     padding: 0 0.75em 0 1em;
     color: $black;
+    @include smooth-font($black);
     font: {
       family: 'Engagement', sans-serif;
       weight: normal;
@@ -106,11 +107,12 @@ $logo-inverted: image-url('ratpack-logo-white.png');
     }
     h1 {
       color: $white;
+      @include smooth-font($white);
       background-image: $logo-inverted;
       border-bottom-color: $white;
     }
     p {
-      @include contrasted($white);
+      @include contrasted-smooth($white);
     }
   }
 
