@@ -1,3 +1,8 @@
+$sans-font-family: sans-serif;
+$sans-font-family2: "Cabin Condensed", Haettenschweiler, "Franklin Gothic Bold", Charcoal, "Helvetica Inserat", "Bitstream Vera Sans Bold", "Arial Black", sans serif;
+$serif-font-family: "Libre Baskerville", Baskerville, "Baskerville Old Face", "Hoefler Text", Garamond, "Times New Roman", serif;
+$mono-font-family: "Courier New", Courier, "Lucida Sans Typewriter", "Lucida Typewriter", monospace;
+
 $body-font-family: $serif-font-family;
 $header-font-family: $sans-font-family2;
 $code-font-family: $mono-font-family;
@@ -15,7 +20,7 @@ h1, h2, h3, h4, h5, h6 {
     family: $header-font-family;
   }
   .fontface & {
-    font-style: normal;
+    font-weight: normal;
   }
 
   margin: {
@@ -44,6 +49,10 @@ h5 {
 
 pre, code, tt {
   font-family: $code-font-family;
+  .fontface & {
+    // because Libre Baskerville has a large x-height and counters we need to increase the mono font-size
+    font-size: 1.2em;
+  }
 }
 
 $anchor-font-color: $blue;
