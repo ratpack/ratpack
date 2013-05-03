@@ -2,13 +2,13 @@ $logo-font-size: 8rem;
 $small-logo-font-size: 5rem;
 $tiny-logo-font-size: 3rem;
 
-$logo-image: image-url('ratpack-logo.png');
-$logo-inverted: image-url('ratpack-logo-white.png');
+$logo-image: 'ratpack-logo.png';
+$logo-inverted: 'ratpack-logo-white.png';
 
 @mixin skewed-background-scale($base-size) {
   &:before {
     top: $base-size * 0.25;
-    height: $base-size * 0.8125;
+    height: $base-size * 0.75;
     left: $base-size * 0.375;
     width: $base-size * 3.125;
   }
@@ -49,7 +49,7 @@ $logo-inverted: image-url('ratpack-logo-white.png');
 
   h1 {
     display: inline-block;
-    padding: 0 0.75em 0 1em;
+    padding: 0 (image-width($logo-image) / ($base-font-size * ($logo-font-size / 1rem))) * 1em;
     color: $black;
     @include smooth-font($black);
     font: {
@@ -59,7 +59,7 @@ $logo-inverted: image-url('ratpack-logo-white.png');
     }
     text-transform: none;
     background: {
-      image: $logo-image;
+      image: image-url($logo-image);
       repeat: no-repeat;
       position: {
         y: bottom;
@@ -108,7 +108,7 @@ $logo-inverted: image-url('ratpack-logo-white.png');
     h1 {
       color: $white;
       @include smooth-font($white);
-      background-image: $logo-inverted;
+      background-image: image-url($logo-inverted);
       border-bottom-color: $white;
     }
     p {
