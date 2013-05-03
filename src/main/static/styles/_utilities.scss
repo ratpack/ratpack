@@ -8,28 +8,39 @@
 }
 
 /*
- * Render rems with fallback pixels. Basically the reverse of https://github.com/bitmanic/rem
+ * Given a rems size renders rems with fallback pixels.
+ *
+ * Basically the reverse of https://github.com/bitmanic/rem
+ *
+ *     @mixin rems(font-size, 2rem);
+ *
+ * becomes
+ *
+ *     font-size: 32px;
+ *     font-size: 2rem;
+ *
+ * It also works with lists so
+ *
+ *    @mixin rems(padding, 1rem 0 2rem 0.5rem);
+ *
+ * becomes
+ *
+ *    padding: 16px 0 32px 8px;
+ *    padding: 1rem 0 2rem 0.5rem;
  */
-@mixin rems($property, $rems) {
+@mixin rem($property, $rems) {
   @if type-of($rems) == "number" {
-    #{$property}: $rems * $base-font-size;
-    #{$property}: $rems * 1rem;
+    #{$property}: ($rems / 1rem) * $base-font-size;
   } @else {
-    // Create an empty list that we can dump values into
-    $px-values: unquote("");
-    $rem-values: unquote("");
+    $px-values: ();
     @each $value in $rems {
-      // If the value is zero, return 0
       @if $value == 0 {
         $px-values: append($px-values, $value);
-        $rem-values: append($rem-values, $value);
       } @else {
-        $px-values: append($px-values, $value * $base-font-size);
-        $rem-values: append($rem-values, $value * 1rem);
+        $px-values: append($px-values, ($value / 1rem) * $base-font-size);
       }
     }
-    // Return the property and its list of converted values
     #{$property}: $px-values;
-    #{$property}: $rem-values;
   }
+  #{$property}: $rems;
 }

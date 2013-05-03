@@ -73,7 +73,7 @@ html {
 }
 
 section {
-  padding: 1.2em 0;
+  @include rem(padding, 1.2rem 0);
 }
 
 .masthead {
@@ -95,21 +95,20 @@ section {
   .logo {
     @include ratpack-logo;
     float: left;
-    margin-top: 2.5em;
-    margin-bottom: 2em;
+    @include rem(margin, 1rem 0 2rem 2rem);
   }
 
   .content {
     position: relative;
   }
 
-  a[href*='github.com'] {
+  a[href*='github.com'], a[href*='git.io'] {
     $base-color: $yellow;
     $highlight-color: transparentize($red, 0.3);
 
     position: absolute;
-    right: 1.2em;
-    bottom: 1.2em;
+    @include rem(right, 2rem);
+    @include rem(bottom, 2rem);
 
     @include button($base-color, $highlight-color);
     @include rotate(-1deg);
