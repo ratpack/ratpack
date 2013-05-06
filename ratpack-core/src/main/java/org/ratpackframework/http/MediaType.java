@@ -22,27 +22,29 @@ import java.util.Map;
 
 public class MediaType {
 
-  public static final String TEXT_HTML = "text/html";
-  public static final String TEXT_PLAIN = "text/plain";
   public static final String APPLICATION_JSON = "application/json";
   public static final String APPLICATION_FORM = "application/x-www-form-urlencoded";
 
   private String base;
   protected final Map<String, String> params;
 
+  public MediaType(String base) {
+    this(base, "ISO-8859-1");
+  }
+
   /**
    * Parses the media type from its string representation (including params).
    */
-  public MediaType(String headerValue) {
+  public MediaType(String headerValue, String defaultCharset) {
     // TODO: separate this out into a parser and interface.
     if (headerValue == null) {
       base = null;
-      params = emptyMap();
+      params = Collections.emptyMap();
     } else {
       headerValue = headerValue.trim();
       if (headerValue.isEmpty()) {
         base = null;
-        params = emptyMap();
+        params = Collections.emptyMap();
       } else {
         params = new LinkedHashMap<>();
         String[] parts = headerValue.split(";");
@@ -58,12 +60,12 @@ public class MediaType {
             }
           }
         }
+
+        if (isText() && !params.containsKey("charset")) {
+          params.put("charset", defaultCharset);
+        }
       }
     }
-  }
-
-  protected Map<String, String> emptyMap() {
-    return Collections.emptyMap();
   }
 
   /**
@@ -75,10 +77,6 @@ public class MediaType {
    */
   public String getBase() {
     return base;
-  }
-
-  protected void setBase(String base) {
-    this.base = base;
   }
 
   /**
@@ -96,11 +94,12 @@ public class MediaType {
     return Collections.unmodifiableMap(params);
   }
 
-  /**
-   * The "charset" param value if specified, otherwise the HTTP default of "ISO-8859-1".
-   */
   public String getCharset() {
-    return params.containsKey("charset") ? params.get("charset") : "ISO-8859-1";
+    return params.get("charset");
+  }
+
+  public boolean isText() {
+    return !isEmpty() && getBase().startsWith("text/");
   }
 
   /**

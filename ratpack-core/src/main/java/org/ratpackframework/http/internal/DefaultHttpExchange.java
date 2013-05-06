@@ -16,168 +16,97 @@
 
 package org.ratpackframework.http.internal;
 
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.buffer.ChannelBuffers;
-import org.jboss.netty.channel.Channel;
-import org.jboss.netty.channel.ChannelFuture;
-import org.jboss.netty.channel.ChannelFutureListener;
 import org.jboss.netty.channel.ChannelHandlerContext;
-import org.jboss.netty.handler.codec.http.*;
-import org.jboss.netty.util.CharsetUtil;
-import org.ratpackframework.Action;
-import org.ratpackframework.error.ErroredHttpExchange;
-import org.ratpackframework.http.HttpExchange;
+import org.ratpackframework.context.Context;
+import org.ratpackframework.http.Exchange;
+import org.ratpackframework.http.Handler;
+import org.ratpackframework.http.Request;
+import org.ratpackframework.http.Response;
+import org.ratpackframework.path.PathContext;
+import org.ratpackframework.util.CollectionUtils;
 
-import java.io.File;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
+import java.util.Map;
 
-import static org.jboss.netty.handler.codec.http.HttpHeaders.Names.SET_COOKIE;
+public class DefaultHttpExchange implements Exchange {
 
-public class DefaultHttpExchange implements HttpExchange {
+  private final Request request;
+  private final Response response;
 
-  private final HttpRequest request;
-  private final HttpResponse response;
   private final ChannelHandlerContext channelHandlerContext;
-  private final Action<ErroredHttpExchange> errorHandler;
-  private File targetFile;
 
-  private Set<Cookie> incomingCookies;
-  private Set<Cookie> outgoingCookies;
+  private final Handler next;
+  private final Context context;
 
-  private String query;
-  private String path;
-
-  public DefaultHttpExchange(File targetFile, HttpRequest request, HttpResponse response, ChannelHandlerContext channelHandlerContext, Action<ErroredHttpExchange> errorHandler) {
-    this.targetFile = targetFile;
+  public DefaultHttpExchange(Request request, Response response, ChannelHandlerContext channelHandlerContext, Context context, Handler next) {
     this.request = request;
     this.response = response;
     this.channelHandlerContext = channelHandlerContext;
-    this.errorHandler = errorHandler;
+    this.context = context;
+    this.next = next;
   }
 
-  @Override
-  public File getTargetFile() {
-    return targetFile;
-  }
-
-  @Override
-  public void setTargetFile(File targetFile) {
-    this.targetFile = targetFile;
-  }
-
-  public HttpRequest getRequest() {
+  public Request getRequest() {
     return request;
   }
 
-  public HttpResponse getResponse() {
+  public Response getResponse() {
     return response;
   }
 
   @Override
-  public void end(String contentType, String content) {
-    response.setHeader(HttpHeaders.Names.CONTENT_TYPE, contentType);
-    end(ChannelBuffers.copiedBuffer(content, CharsetUtil.UTF_8));
+  public Context getContext() {
+    return context;
   }
 
   @Override
-  public void end(ChannelBuffer channelBuffer) {
-    response.setContent(channelBuffer);
-    complete();
+  public void next() {
+    next.handle(this);
   }
 
-  private void complete() {
-    if (outgoingCookies != null && !outgoingCookies.isEmpty()) {
-      for (Cookie cookie : outgoingCookies) {
-        CookieEncoder cookieEncoder = new CookieEncoder(true);
-        cookieEncoder.addCookie(cookie);
-        response.addHeader(SET_COOKIE, cookieEncoder.encode());
-      }
+  public void next(Handler... handlers) {
+    doNext(context, CollectionUtils.toList(handlers), next);
+  }
+
+  public void next(Iterable<Handler> handlers) {
+    doNext(context, CollectionUtils.toList(handlers), next);
+  }
+
+  @Override
+  public void nextWithContext(Object context, Handler... handlers) {
+    doNext(this.context.push(context), CollectionUtils.toList(handlers), next);
+  }
+
+  @Override
+  public void nextWithContext(Object context, Iterable<Handler> handlers) {
+    doNext(this.context.push(context), CollectionUtils.toList(handlers), next);
+  }
+
+  @Override
+  public Map<String, String> getPathTokens() {
+    return getContext().require(PathContext.class).getTokens();
+  }
+
+  @Override
+  public Map<String, String> getAllPathTokens() {
+    return getContext().require(PathContext.class).getAllTokens();
+  }
+
+  protected void doNext(final Context context, final List<Handler> handlers, final Handler exhausted) {
+    assert context != null;
+    if (handlers.isEmpty()) {
+      exhausted.handle(this);
+    } else {
+      Handler handler = handlers.remove(0);
+      Handler nextHandler = new Handler() {
+        @Override
+        public void handle(Exchange exchange) {
+          ((DefaultHttpExchange) exchange).doNext(context, handlers, exhausted);
+        }
+      };
+      DefaultHttpExchange childExchange = new DefaultHttpExchange(request, response, channelHandlerContext, context, nextHandler);
+      handler.handle(childExchange);
     }
-
-    Channel channel = getChannel();
-    if (channel.isOpen()) {
-      ChannelFuture future = channel.write(response);
-      future.addListener(ChannelFutureListener.CLOSE);
-    }
   }
-
-  public Channel getChannel() {
-    return channelHandlerContext.getChannel();
-  }
-
-  @Override
-  public void end() {
-    end(ChannelBuffers.EMPTY_BUFFER);
-  }
-
-  @Override
-  public void end(HttpResponseStatus status) {
-    response.setStatus(status);
-    end();
-  }
-
-  @Override
-  public void error(Exception e) {
-    errorHandler.execute(new ErroredHttpExchange(this, e));
-  }
-
-  @Override
-  public Set<Cookie> getIncomingCookies() {
-    if (incomingCookies == null) {
-      String header = request.getHeader(HttpHeaders.Names.COOKIE);
-      if (header == null || header.length() == 0) {
-        incomingCookies = Collections.emptySet();
-      } else {
-        incomingCookies = new CookieDecoder().decode(header);
-      }
-    }
-    return incomingCookies;
-  }
-
-  @Override
-  public Set<Cookie> getOutgoingCookies() {
-    if (outgoingCookies == null) {
-      outgoingCookies = new HashSet<>();
-    }
-    return outgoingCookies;
-  }
-
-  @Override
-  public String getUri() {
-    return getRequest().getUri();
-  }
-
-  @Override
-  public String getQuery() {
-    if (query == null) {
-      String uri = getUri();
-      int i = uri.indexOf("?");
-      if (i < 0 || i == uri.length()) {
-        query = null;
-      } else {
-        query = uri.substring(i + 1);
-      }
-    }
-
-    return query;
-  }
-
-  @Override
-  public String getPath() {
-    if (path == null) {
-      String uri = getUri();
-      int i = uri.indexOf("?");
-      if (i <= 0) {
-        path = uri;
-      } else {
-        path = uri.substring(0, i);
-      }
-    }
-
-    return path;
-  }
-
 
 }

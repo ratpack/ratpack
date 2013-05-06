@@ -29,6 +29,7 @@ public abstract class Closures {
     @SuppressWarnings("unchecked")
     Closure<R> clone = (Closure<R>) configurer.clone();
     clone.setDelegate(object);
+    clone.setResolveStrategy(Closure.DELEGATE_FIRST);
     if (clone.getMaximumNumberOfParameters() == 0) {
       return clone.call();
     } else {
@@ -37,13 +38,17 @@ public abstract class Closures {
   }
 
   // Type token is here for in the future when @DelegatesTo supports this kind of API
-  public static <T> Action<T> handler(Class<T> type, final Closure<?> configurer) {
+  public static <T> Action<T> action(Class<T> type, final Closure<?> configurer) {
     return new Action<T>() {
       @Override
       public void execute(T object) {
         configure(object, configurer);
       }
     };
+  }
+
+  public static Action<Object> action(final Closure<?> configurer) {
+    return action(Object.class, configurer);
   }
 
 }

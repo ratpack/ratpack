@@ -7,10 +7,10 @@ import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
 import org.jboss.netty.handler.codec.http.HttpContentCompressor;
 import org.jboss.netty.handler.codec.http.HttpRequestDecoder;
 import org.jboss.netty.handler.codec.http.HttpResponseEncoder;
+import org.ratpackframework.Action;
+import org.ratpackframework.http.Handler;
 import org.ratpackframework.bootstrap.internal.NettyRatpackServer;
 import org.ratpackframework.bootstrap.internal.NoopInit;
-import org.ratpackframework.Action;
-import org.ratpackframework.http.CoreHttpHandlers;
 import org.ratpackframework.http.internal.NettyRoutingAdapter;
 
 import java.net.InetSocketAddress;
@@ -20,7 +20,7 @@ import java.util.concurrent.Executors;
 public class RatpackServerBuilder {
 
   public static final int DEFAULT_PORT = 5050;
-  private final CoreHttpHandlers coreHandlers;
+  private final Handler handler;
 
   private int port = DEFAULT_PORT;
   private String host = null;
@@ -29,8 +29,8 @@ public class RatpackServerBuilder {
   private Executor ioExecutor = Executors.newCachedThreadPool();
   private int maxIoThreads = Runtime.getRuntime().availableProcessors() * 2;
 
-  public RatpackServerBuilder(CoreHttpHandlers coreHandlers) {
-    this.coreHandlers = coreHandlers;
+  public RatpackServerBuilder(Handler handler) {
+    this.handler = handler;
   }
 
   public int getPort() {
@@ -81,10 +81,6 @@ public class RatpackServerBuilder {
     this.maxIoThreads = maxIoThreads;
   }
 
-  public CoreHttpHandlers getCoreHandlers() {
-    return coreHandlers;
-  }
-
   public RatpackServer build() {
     InetSocketAddress address = buildSocketAddress();
     ChannelFactory channelFactory = buildChannelFactory();
@@ -105,7 +101,7 @@ public class RatpackServerBuilder {
   }
 
   protected SimpleChannelUpstreamHandler buildNettyAdapter() {
-    return new NettyRoutingAdapter(coreHandlers);
+    return new NettyRoutingAdapter(handler);
   }
 
   protected ChannelPipelineFactory buildChannelPipelineFactory(final SimpleChannelUpstreamHandler appHandler) {

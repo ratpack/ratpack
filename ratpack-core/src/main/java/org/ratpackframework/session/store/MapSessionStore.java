@@ -1,6 +1,6 @@
 package org.ratpackframework.session.store;
 
-import org.ratpackframework.app.Request;
+import org.ratpackframework.http.Request;
 
 import java.util.concurrent.ConcurrentMap;
 

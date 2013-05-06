@@ -1,11 +1,14 @@
 package org.ratpackframework.test
 
+import org.ratpackframework.http.Handler
+import org.ratpackframework.http.Handlers
 import org.ratpackframework.bootstrap.RatpackServer
 import org.ratpackframework.bootstrap.RatpackServerBuilder
-import org.ratpackframework.groovy.app.Routing
-import org.ratpackframework.groovy.app.internal.ClosureAppFactory
-import org.ratpackframework.groovy.bootstrap.ModuleRegistry
-import org.ratpackframework.http.CoreHttpHandlers
+import org.ratpackframework.guice.DefaultGuiceBackedHandlerFactory
+import org.ratpackframework.guice.ModuleRegistry
+import org.ratpackframework.routing.Routing
+
+import static org.ratpackframework.groovy.Closures.action
 
 class DefaultRatpackSpec extends RatpackSpec {
 
@@ -20,12 +23,22 @@ class DefaultRatpackSpec extends RatpackSpec {
     this.modules = configurer
   }
 
+  void app(Closure<?> configurer) {
+    configurer.call()
+    startApp()
+  }
+
   @Override
   RatpackServer createApp() {
-    ClosureAppFactory appFactory = new ClosureAppFactory()
-    CoreHttpHandlers coreHandlers = appFactory.create(modules, routing)
+    DefaultGuiceBackedHandlerFactory appFactory = new DefaultGuiceBackedHandlerFactory()
+    def routingAction = action(routing)
+    def modulesAction = action(modules)
 
-    RatpackServerBuilder builder = new RatpackServerBuilder(coreHandlers)
+    def withFsContext = Handlers.fsContext(dirPath, routingAction)
+
+    Handler handler = appFactory.create(modulesAction, withFsContext)
+
+    RatpackServerBuilder builder = new RatpackServerBuilder(handler)
     builder.port = 0
     builder.host = null
     builder.build()

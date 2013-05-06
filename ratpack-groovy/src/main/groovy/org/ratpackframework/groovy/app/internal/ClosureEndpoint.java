@@ -18,8 +18,8 @@ package org.ratpackframework.groovy.app.internal;
 
 import groovy.lang.Closure;
 import org.ratpackframework.app.Endpoint;
-import org.ratpackframework.app.Request;
-import org.ratpackframework.app.Response;
+import org.ratpackframework.http.Request;
+import org.ratpackframework.http.Response;
 
 public class ClosureEndpoint implements Endpoint {
 

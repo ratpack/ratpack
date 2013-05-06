@@ -4,45 +4,41 @@ import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
 import org.jboss.netty.handler.codec.http.*;
-import org.ratpackframework.Action;
-import org.ratpackframework.http.CoreHttpHandlers;
-import org.ratpackframework.http.HttpExchange;
-import org.ratpackframework.routing.Routed;
-import org.ratpackframework.routing.RoutedHttpExchange;
-
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.ratpackframework.context.DefaultContext;
+import org.ratpackframework.http.Exchange;
+import org.ratpackframework.http.Handler;
+import org.ratpackframework.http.Request;
+import org.ratpackframework.http.Response;
 
 public class NettyRoutingAdapter extends SimpleChannelUpstreamHandler {
 
-  private final Logger logger = Logger.getLogger(getClass().getName());
+  private final Handler handler;
 
-  private final CoreHttpHandlers coreHttpHandlers;
-
-  public NettyRoutingAdapter(CoreHttpHandlers coreHttpHandlers) {
-    this.coreHttpHandlers = coreHttpHandlers;
+  public NettyRoutingAdapter(Handler handler) {
+    this.handler = handler;
   }
 
   @Override
   public void messageReceived(ChannelHandlerContext ctx, MessageEvent event) throws Exception {
-    HttpRequest request = (HttpRequest) event.getMessage();
-    if (logger.isLoggable(Level.INFO)) {
-      logger.info("received " + request.getUri());
-    }
+    HttpRequest nettyRequest = (HttpRequest) event.getMessage();
+    HttpResponse nettyResponse = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
 
-    HttpResponse response = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
-    final HttpExchange exchange = new DefaultHttpExchange(null, request, response, ctx, coreHttpHandlers.getErrorHandler());
+    Request request = new DefaultRequest(nettyRequest);
+    Response response = new DefaultResponse(nettyResponse, ctx.getChannel());
+
+    final Exchange exchange = new DefaultHttpExchange(request, response, ctx, new DefaultContext(), new Handler() {
+      @Override
+      public void handle(Exchange exchange) {
+        exchange.getResponse().status(404).send();
+      }
+    });
 
     try {
-      RoutedHttpExchange routedHttpExchange = new RoutedHttpExchange(exchange, new Action<Routed<HttpExchange>>() {
-        @Override
-        public void execute(Routed<HttpExchange> event) {
-          exchange.end(HttpResponseStatus.NOT_FOUND);
-        }
-      });
-      coreHttpHandlers.getAppHandler().execute(routedHttpExchange);
+      handler.handle(exchange);
     } catch (Exception e) {
-      exchange.error(e);
+      System.err.println("Unhandled exception! (please bind an error handler)");
+      e.printStackTrace(System.err);
+      exchange.getResponse().status(500).send();
     }
   }
 

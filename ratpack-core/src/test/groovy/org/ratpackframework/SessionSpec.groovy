@@ -1,6 +1,6 @@
 package org.ratpackframework
 
-import org.ratpackframework.app.Request
+import org.ratpackframework.http.Request
 import org.ratpackframework.session.store.MapSessionStore
 import org.ratpackframework.session.store.MapSessionsModule
 import org.ratpackframework.test.DefaultRatpackSpec

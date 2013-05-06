@@ -2,9 +2,9 @@ package org.ratpackframework
 
 import com.google.inject.AbstractModule
 import org.ratpackframework.app.Endpoint
-import org.ratpackframework.app.Request
-import org.ratpackframework.app.Response
-import org.ratpackframework.app.internal.DefaultRequest
+import org.ratpackframework.http.Request
+import org.ratpackframework.http.Response
+import org.ratpackframework.http.internal.DefaultRequest
 import org.ratpackframework.templating.NullTemplateRenderer
 import org.ratpackframework.templating.TemplateRenderer
 import org.ratpackframework.test.DefaultRatpackSpec

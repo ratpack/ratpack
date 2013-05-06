@@ -1,6 +1,6 @@
 package org.ratpackframework
 
-import org.ratpackframework.app.Request
+import org.ratpackframework.http.Request
 import org.ratpackframework.test.DefaultRatpackSpec
 
 import java.util.concurrent.CountDownLatch

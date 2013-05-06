@@ -1,7 +1,7 @@
 package org.ratpackframework.groovy
 
-import org.ratpackframework.groovy.app.Routing
-import org.ratpackframework.groovy.bootstrap.ModuleRegistry
+import org.ratpackframework.groovy.routing.Routing
+import org.ratpackframework.guice.ModuleRegistry
 
 interface Ratpack {
 

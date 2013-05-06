@@ -1,14 +1,12 @@
 package org.ratpackframework.groovy
 
 import groovy.transform.CompileStatic
-import org.ratpackframework.Factory
+import org.ratpackframework.http.Handler
 import org.ratpackframework.bootstrap.RatpackServer
 import org.ratpackframework.bootstrap.RatpackServerBuilder
-import org.ratpackframework.groovy.app.internal.ClosureAppFactory
-import org.ratpackframework.groovy.app.internal.GroovyRatpackAppFactory
+import org.ratpackframework.groovy.app.internal.GroovyHandlerFactory
+
 import org.ratpackframework.groovy.app.internal.ScriptBackedApp
-import org.ratpackframework.http.CoreHttpHandlers
-import org.ratpackframework.http.internal.FactoryBackedCoreHttpHandlers
 
 @CompileStatic
 abstract class RatpackScriptApp {
@@ -25,13 +23,9 @@ abstract class RatpackScriptApp {
   }
 
   static RatpackServer ratpack(File script, int port, String host, boolean compileStatic, boolean reloadable) {
-    File templates = new File(script.parentFile, "templates")
-    ClosureAppFactory appFactory = new GroovyRatpackAppFactory(templates)
+    Handler scriptBackedApp = new ScriptBackedApp(script, new GroovyHandlerFactory(), compileStatic, reloadable)
 
-    Factory<CoreHttpHandlers> scriptBackedApp = new ScriptBackedApp(script, appFactory, compileStatic, reloadable)
-    CoreHttpHandlers handlers = new FactoryBackedCoreHttpHandlers(scriptBackedApp)
-
-    RatpackServerBuilder builder = new RatpackServerBuilder(handlers)
+    RatpackServerBuilder builder = new RatpackServerBuilder(scriptBackedApp)
     builder.setPort(port)
     builder.setHost(host)
 

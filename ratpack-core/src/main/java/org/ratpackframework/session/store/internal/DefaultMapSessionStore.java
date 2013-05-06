@@ -2,7 +2,7 @@ package org.ratpackframework.session.store.internal;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import org.ratpackframework.app.Request;
+import org.ratpackframework.http.Request;
 import org.ratpackframework.session.SessionListener;
 import org.ratpackframework.session.store.MapSessionStore;
 
@@ -31,7 +31,7 @@ public class DefaultMapSessionStore implements MapSessionStore, SessionListener 
   @Override
   public ConcurrentMap<String, Object> get(Request request) {
     try {
-      return storage.get(request.getSession().getId(), new Callable<ConcurrentHashMap<String, Object>>() {
+      return storage.get("asd", new Callable<ConcurrentHashMap<String, Object>>() {
         @Override
         public ConcurrentHashMap<String, Object> call() throws Exception {
           return new ConcurrentHashMap<>();

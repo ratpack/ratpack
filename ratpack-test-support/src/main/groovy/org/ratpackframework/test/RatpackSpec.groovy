@@ -35,6 +35,10 @@ abstract class RatpackSpec extends Specification {
     prepFile(new File(getDir(), path))
   }
 
+  String getDirPath() {
+    dir.absolutePath
+  }
+
   File getDir() {
     temporaryFolder.root
   }

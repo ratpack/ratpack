@@ -17,31 +17,43 @@
 package org.ratpackframework.groovy.app.internal;
 
 import org.jboss.netty.buffer.ChannelBuffer;
-import org.ratpackframework.Factory;
-import org.ratpackframework.app.internal.ReloadableFileBackedFactory;
+import org.ratpackframework.Action;
+import org.ratpackframework.reload.internal.Factory;
+import org.ratpackframework.http.Exchange;
+import org.ratpackframework.http.Handler;
+import org.ratpackframework.reload.internal.ReloadableFileBackedFactory;
+import org.ratpackframework.groovy.Closures;
 import org.ratpackframework.groovy.script.ScriptEngine;
-import org.ratpackframework.http.CoreHttpHandlers;
+import org.ratpackframework.guice.GuiceBackedHandlerFactory;
+import org.ratpackframework.guice.ModuleRegistry;
+import org.ratpackframework.routing.Routing;
+import org.ratpackframework.routing.RoutingHandler;
 import org.ratpackframework.util.IoUtils;
 
 import javax.inject.Inject;
 import java.io.File;
 
-public class ScriptBackedApp implements Factory<CoreHttpHandlers> {
+public class ScriptBackedApp implements Handler {
 
-  private final Factory<CoreHttpHandlers> reloadHandler;
+  private final Factory<Handler> reloadHandler;
 
   @Inject
-  public ScriptBackedApp(File script, final ClosureAppFactory appFactory, final boolean staticCompile, boolean reloadable) {
-    this.reloadHandler = new ReloadableFileBackedFactory<>(script, reloadable, new ReloadableFileBackedFactory.Delegate<CoreHttpHandlers>() {
+  public ScriptBackedApp(File script, final GuiceBackedHandlerFactory appFactory, final boolean staticCompile, boolean reloadable) {
+    this.reloadHandler = new ReloadableFileBackedFactory<>(script, reloadable, new ReloadableFileBackedFactory.Delegate<Handler>() {
       @Override
-      public CoreHttpHandlers produce(final File file, final ChannelBuffer bytes) {
+      public Handler produce(final File file, final ChannelBuffer bytes) {
         try {
           final String string;
           string = IoUtils.utf8String(bytes);
           final ScriptEngine<DefaultRatpack> scriptEngine = new ScriptEngine<>(getClass().getClassLoader(), staticCompile, DefaultRatpack.class);
           DefaultRatpack ratpack = scriptEngine.run(file.getName(), string);
 
-          return appFactory.create(ratpack.getModulesConfigurer(), ratpack.getRoutingConfigurer());
+          Action<ModuleRegistry> modulesAction = Closures.action(ModuleRegistry.class, ratpack.getModulesConfigurer());
+          Action<Routing> routingAction = Closures.action(Routing.class, ratpack.getRoutingConfigurer());
+
+          RoutingHandler routingHandler = new RoutingHandler(routingAction);
+          return appFactory.create(modulesAction, routingHandler);
+
         } catch (Exception e) {
           throw new RuntimeException(e);
         }
@@ -50,8 +62,8 @@ public class ScriptBackedApp implements Factory<CoreHttpHandlers> {
   }
 
   @Override
-  public CoreHttpHandlers create() {
-    return reloadHandler.create();
+  public void handle(Exchange exchange) {
+    reloadHandler.create().handle(exchange);
   }
 
 }

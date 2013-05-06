@@ -18,7 +18,7 @@ package org.ratpackframework.session.internal;
 
 import org.jboss.netty.handler.codec.http.Cookie;
 import org.jboss.netty.handler.codec.http.DefaultCookie;
-import org.ratpackframework.http.HttpExchange;
+import org.ratpackframework.http.Exchange;
 import org.ratpackframework.session.Session;
 import org.ratpackframework.session.SessionManager;
 
@@ -26,13 +26,13 @@ public class RequestSessionManager {
 
   private static final String COOKIE_NAME = "JSESSIONID";
 
-  private final HttpExchange exchange;
+  private final Exchange exchange;
   private final SessionManager sessionManager;
 
   private String cookieSessionId;
   private String assignedCookieId;
 
-  public RequestSessionManager(HttpExchange exchange, SessionManager sessionManager) {
+  public RequestSessionManager(Exchange exchange, SessionManager sessionManager) {
     this.exchange = exchange;
     this.sessionManager = sessionManager;
   }
@@ -41,7 +41,7 @@ public class RequestSessionManager {
     if (cookieSessionId == null) {
       Cookie match = null;
 
-      for (Cookie cookie : exchange.getIncomingCookies()) {
+      for (Cookie cookie : exchange.getRequest().getCookies()) {
         if (cookie.getName().equals(COOKIE_NAME)) {
           match = cookie;
           break;
@@ -133,7 +133,7 @@ public class RequestSessionManager {
       cookie.setMaxAge(expiryMins * 60);
     }
 
-    exchange.getOutgoingCookies().add(cookie);
+    exchange.getResponse().getCookies().add(cookie);
   }
 
 }
