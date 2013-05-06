@@ -43,6 +43,10 @@ public abstract class ClosureHandlers {
     Handlers.method(methods, routingAction(routing))
   }
 
+  public static Handler handler(String path, @DelegatesTo(value = Exchange.class, strategy = Closure.DELEGATE_FIRST) final Closure<?> closure) {
+    Handlers.path(path, handler(closure))
+  }
+
   public static Handler handler(String path, String method, @DelegatesTo(value = Exchange.class, strategy = Closure.DELEGATE_FIRST) final Closure<?> closure) {
     handler(path, Arrays.asList(method), closure)
   }

@@ -16,6 +16,9 @@ class BasicGroovyAppSpec extends RatpackGroovyAppSpec {
           get(":second") {
             response.send allPathTokens.toString()
           }
+          handler("c/:second", ["get", "post"] as List) {
+            response.send allPathTokens.toString()
+          }
         }
       }
     }
@@ -25,6 +28,7 @@ class BasicGroovyAppSpec extends RatpackGroovyAppSpec {
     urlGetConnection("b").responseCode == 415
     urlPostText("b") == "b handler"
     urlGetText("1/2") == "[first:1, second:2]"
+    urlGetText("foo/c/bar") == "[first:foo, second:bar]"
   }
 
 }

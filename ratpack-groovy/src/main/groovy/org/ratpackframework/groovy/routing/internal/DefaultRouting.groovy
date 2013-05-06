@@ -35,6 +35,16 @@ class DefaultRouting implements Routing {
   }
 
   @Override
+  void all(String path, @DelegatesTo(value = Exchange, strategy = Closure.DELEGATE_FIRST) Closure<?> handler) {
+    route(ClosureHandlers.handler(path, handler))
+  }
+
+  @Override
+  void handler(String path, List<String> methods, @DelegatesTo(value = Exchange, strategy = Closure.DELEGATE_FIRST) Closure<?> handler) {
+    route(ClosureHandlers.handler(path, methods, handler))
+  }
+
+  @Override
   void get(String path, @DelegatesTo(value = Exchange, strategy = Closure.DELEGATE_FIRST) Closure<?> handler) {
     route(ClosureHandlers.get(path, handler))
   }
