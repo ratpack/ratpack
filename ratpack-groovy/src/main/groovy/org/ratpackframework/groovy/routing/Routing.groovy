@@ -17,35 +17,17 @@
 package org.ratpackframework.groovy.routing
 
 import org.ratpackframework.http.Exchange
-import org.ratpackframework.http.Response
-
 
 public interface Routing extends org.ratpackframework.routing.Routing {
 
-  Routing getRouting()
-
   void route(@DelegatesTo(value = Exchange, strategy = Closure.DELEGATE_FIRST) Closure<?> handler)
 
-  void path(String path, @DelegatesTo(value = Exchange, strategy = Closure.DELEGATE_FIRST) Closure<?> handler)
+  void routes(@DelegatesTo(value = Exchange, strategy = Closure.DELEGATE_FIRST) Closure<?> handler)
 
-  /**
-   * Delegates {@link #route(java.lang.String, java.lang.String, groovy.lang.Closure)} with a method of "get"
-   */
-  void get(String path, @DelegatesTo(value = Response, strategy = Closure.DELEGATE_FIRST) Closure<?> handler)
+  void path(String path, @DelegatesTo(value = Routing, strategy = Closure.DELEGATE_FIRST) Closure<?> handler)
 
-  /**
-   * Delegates {@link #route(java.lang.String, java.lang.String, groovy.lang.Closure)} with a method of "post"
-   */
-  void post(String path, @DelegatesTo(value = Response, strategy = Closure.DELEGATE_FIRST) Closure<?> handler)
+  void get(String path, @DelegatesTo(value = Exchange, strategy = Closure.DELEGATE_FIRST) Closure<?> handler)
 
-  /**
-   * Delegates {@link #route(java.lang.String, java.lang.String, groovy.lang.Closure)} with a method of "put"
-   */
-  void put(String path, @DelegatesTo(value = Response, strategy = Closure.DELEGATE_FIRST) Closure<?> handler)
-
-  /**
-   * Delegates {@link #route(java.lang.String, java.lang.String, groovy.lang.Closure)} with a method of "delete"
-   */
-  void delete(String path, @DelegatesTo(value = Exchange.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler)
+  void post(String path, @DelegatesTo(value = Exchange, strategy = Closure.DELEGATE_FIRST) Closure<?> handler)
 
 }

@@ -1,14 +1,16 @@
 package org.ratpackframework.test
 
-import org.ratpackframework.http.Handler
-import org.ratpackframework.http.Handlers
+import org.ratpackframework.Action
 import org.ratpackframework.bootstrap.RatpackServer
 import org.ratpackframework.bootstrap.RatpackServerBuilder
 import org.ratpackframework.guice.DefaultGuiceBackedHandlerFactory
 import org.ratpackframework.guice.ModuleRegistry
+import org.ratpackframework.http.Handler
+import org.ratpackframework.http.Handlers
 import org.ratpackframework.routing.Routing
 
 import static org.ratpackframework.groovy.Closures.action
+import static org.ratpackframework.http.Handlers.routes
 
 class DefaultRatpackSpec extends RatpackSpec {
 
@@ -30,17 +32,32 @@ class DefaultRatpackSpec extends RatpackSpec {
 
   @Override
   RatpackServer createApp() {
-    DefaultGuiceBackedHandlerFactory appFactory = new DefaultGuiceBackedHandlerFactory()
-    def routingAction = action(routing)
-    def modulesAction = action(modules)
+    DefaultGuiceBackedHandlerFactory appFactory = createAppFactory()
+    def handler = createHandler()
+    def modulesAction = createModulesAction()
+    def withFsContext = decorateHandler(handler)
+    Handler appHandler = appFactory.create(modulesAction, withFsContext)
 
-    def withFsContext = Handlers.fsContext(dirPath, routingAction)
-
-    Handler handler = appFactory.create(modulesAction, withFsContext)
-
-    RatpackServerBuilder builder = new RatpackServerBuilder(handler)
+    RatpackServerBuilder builder = new RatpackServerBuilder(appHandler)
     builder.port = 0
     builder.host = null
     builder.build()
   }
+
+  protected DefaultGuiceBackedHandlerFactory createAppFactory() {
+    new DefaultGuiceBackedHandlerFactory()
+  }
+
+  Handler decorateHandler(Handler handler) {
+    Handlers.fsContext(dirPath, handler)
+  }
+
+  protected Action<? super ModuleRegistry> createModulesAction() {
+    action(modules)
+  }
+
+  protected Handler createHandler() {
+    routes(action(routing))
+  }
+
 }

@@ -1,6 +1,6 @@
 package org.ratpackframework.groovy
 
-class RoutingScriptSpec extends RatpackGroovySpec {
+class RoutingScriptScriptAppSpec extends RatpackGroovyScriptAppSpec {
 
   def "is reloadable"() {
     given:

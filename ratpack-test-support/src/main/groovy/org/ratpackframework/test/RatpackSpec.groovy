@@ -19,6 +19,9 @@ package org.ratpackframework.test
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import org.ratpackframework.bootstrap.RatpackServer
+import org.ratpackframework.guice.DefaultGuiceBackedHandlerFactory
+import org.ratpackframework.http.Handler
+import org.ratpackframework.http.Handlers
 import org.ratpackframework.util.CookieManager
 import spock.lang.Specification
 

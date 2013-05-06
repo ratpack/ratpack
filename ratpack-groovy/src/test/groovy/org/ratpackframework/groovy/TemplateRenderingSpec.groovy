@@ -19,7 +19,7 @@ package org.ratpackframework.groovy
 import org.ratpackframework.groovy.templating.TemplatingModule
 import spock.lang.Unroll
 
-class TemplateRenderingSpec extends RatpackGroovySpec {
+class TemplateRenderingSpec extends RatpackGroovyScriptAppSpec {
 
   def "can render template"() {
     given:

@@ -16,21 +16,17 @@
 
 package org.ratpackframework.groovy.bootstrap;
 
-import org.ratpackframework.groovy.RatpackScriptApp;
-
-import java.io.File;
-
 public class RatpackMain {
 
   public static void main(String[] args) throws Exception {
-    File ratpackFile = args.length == 0 ? new File("ratpack.groovy") : new File(args[0]);
-    if (!ratpackFile.exists()) {
-      System.err.println("Ratpack file " + ratpackFile.getAbsolutePath() + " does not exist");
-      System.exit(1);
-    }
-
-
-    RatpackScriptApp.ratpack(ratpackFile).startAndWait();
+//    File ratpackFile = args.length == 0 ? new File("ratpack.groovy") : new File(args[0]);
+//    if (!ratpackFile.exists()) {
+//      System.err.println("Ratpack file " + ratpackFile.getAbsolutePath() + " does not exist");
+//      System.exit(1);
+//    }
+//
+//
+//    RatpackScriptApp.ratpack(ratpackFile).startAndWait();
   }
 
 }

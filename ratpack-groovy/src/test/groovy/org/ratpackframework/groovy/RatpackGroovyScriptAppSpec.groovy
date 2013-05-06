@@ -4,7 +4,7 @@ import org.ratpackframework.bootstrap.RatpackServer
 
 import org.ratpackframework.test.RatpackSpec
 
-class RatpackGroovySpec extends RatpackSpec {
+class RatpackGroovyScriptAppSpec extends RatpackSpec {
 
   boolean compileStatic = false
   boolean reloadable = false
