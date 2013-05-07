@@ -23,6 +23,11 @@ public class InjectingHandler implements Handler {
 
   @Override
   public void handle(Exchange exchange) {
+    // TODO what's the cost of creating an injector for every request
+    //      if it's not negligible, we could support using an explicit injector instead of getting
+    //      it from the request context.
+    //
+    //      Another option would be to cache the injector. If the injection context is the same, then just reuse.
     InjectionContext context = exchange.getContext().require(InjectionContext.class);
     Injector injector = context.getInjector();
     Injector childInjector = injector.createChildInjector(module);
