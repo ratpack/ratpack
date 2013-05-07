@@ -1,4 +1,4 @@
-package org.ratpackframework
+package org.ratpackframework.http
 
 import org.ratpackframework.groovy.RatpackGroovyDslSpec
 
