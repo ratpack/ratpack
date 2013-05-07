@@ -1,9 +1,23 @@
+buildscript {
+  repositories {
+    mavenCentral()
+  }
+
+  dependencies {
+    classpath 'org.gradle.api.plugins:gradle-clover-plugin:0.6.1'
+  }
+}
+
 allprojects {
   group = 'org.ratpack-framework'
   version = rootProject.file("shared-resources/org/ratpackframework/ratpack-version.txt").text.trim()
 
   apply plugin: 'idea'
   apply plugin: 'eclipse'
+
+  repositories {
+    mavenCentral()
+  }
 }
 
 apply from: "idea/idea.gradle"
@@ -23,10 +37,6 @@ subprojects {
   apply plugin: 'maven'
   apply from: "${rootDir}/gradle/pom.gradle"
   apply plugin: 'signing'
-
-  repositories {
-    mavenCentral()
-  }
 
   plugins.withType(JavaPlugin) {
     sourceSets.main {
@@ -128,6 +138,12 @@ subprojects {
         }
       }
     }
+  }
+}
+
+if (hasProperty('enableClover')) {
+  configure([rootProject, project(':ratpack-core'), project(':ratpack-gradle'), project(':ratpack-groovy')]) {
+    apply from: rootProject.file("gradle/clover.gradle")
   }
 }
 
