@@ -1,10 +1,13 @@
-package org.ratpackframework.guice;
+package org.ratpackframework.guice.internal;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.util.Modules;
 import org.ratpackframework.Action;
+import org.ratpackframework.guice.GuiceBackedHandlerFactory;
+import org.ratpackframework.guice.ModuleRegistry;
+import org.ratpackframework.guice.internal.InjectorBindingHandler;
 import org.ratpackframework.http.Handler;
 import org.ratpackframework.guice.internal.DefaultModuleRegistry;
 

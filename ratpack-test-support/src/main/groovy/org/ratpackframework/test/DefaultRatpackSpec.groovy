@@ -3,7 +3,7 @@ package org.ratpackframework.test
 import org.ratpackframework.Action
 import org.ratpackframework.bootstrap.RatpackServer
 import org.ratpackframework.bootstrap.RatpackServerBuilder
-import org.ratpackframework.guice.DefaultGuiceBackedHandlerFactory
+import org.ratpackframework.guice.internal.DefaultGuiceBackedHandlerFactory
 import org.ratpackframework.guice.ModuleRegistry
 import org.ratpackframework.http.Handler
 import org.ratpackframework.http.Handlers

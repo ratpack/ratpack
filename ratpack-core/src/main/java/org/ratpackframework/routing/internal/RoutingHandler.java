@@ -1,8 +1,10 @@
-package org.ratpackframework.routing;
+package org.ratpackframework.routing.internal;
 
 import org.ratpackframework.Action;
 import org.ratpackframework.http.Exchange;
 import org.ratpackframework.http.Handler;
+import org.ratpackframework.routing.Routing;
+import org.ratpackframework.routing.internal.DefaultRouting;
 
 import java.util.LinkedList;
 import java.util.List;

@@ -27,7 +27,7 @@ import org.ratpackframework.groovy.script.ScriptEngine;
 import org.ratpackframework.guice.GuiceBackedHandlerFactory;
 import org.ratpackframework.guice.ModuleRegistry;
 import org.ratpackframework.routing.Routing;
-import org.ratpackframework.routing.RoutingHandler;
+import org.ratpackframework.routing.internal.RoutingHandler;
 import org.ratpackframework.util.IoUtils;
 
 import javax.inject.Inject;

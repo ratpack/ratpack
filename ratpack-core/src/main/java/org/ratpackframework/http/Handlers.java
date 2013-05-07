@@ -10,7 +10,7 @@ import org.ratpackframework.path.PathBinding;
 import org.ratpackframework.path.internal.PathHandler;
 import org.ratpackframework.path.internal.TokenPathBinding;
 import org.ratpackframework.routing.Routing;
-import org.ratpackframework.routing.RoutingHandler;
+import org.ratpackframework.routing.internal.RoutingHandler;
 
 import java.io.File;
 import java.util.Arrays;
