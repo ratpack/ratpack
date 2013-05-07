@@ -34,7 +34,7 @@ public class DefaultGuiceBackedHandlerFactory implements GuiceBackedHandlerFacto
     }
 
     Handler decorated = decorateHandler(handler);
-    return new InjectorBackedHandler(injector, decorated);
+    return new InjectorBindingHandler(injector, decorated);
   }
 
   protected Handler decorateHandler(Handler handler) {
