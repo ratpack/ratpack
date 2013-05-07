@@ -1,6 +1,6 @@
 package org.ratpackframework.groovy
 
-class BasicGroovyAppSpec extends RatpackGroovyAppSpec {
+class BasicGroovyDslSpec extends RatpackGroovyDslSpec {
 
   def "can use special Groovy dsl"() {
     when:

@@ -5,7 +5,7 @@ import org.ratpackframework.groovy.routing.internal.RoutingHandler
 import org.ratpackframework.http.Handler
 import org.ratpackframework.test.DefaultRatpackSpec
 
-class RatpackGroovyAppSpec extends DefaultRatpackSpec {
+class RatpackGroovyDslSpec extends DefaultRatpackSpec {
 
   void routing(@DelegatesTo(Routing) Closure<?> configurer) {
     this.routing = configurer

@@ -1,24 +1,23 @@
 package org.ratpackframework
 
-import org.ratpackframework.http.Request
-import org.ratpackframework.test.DefaultRatpackSpec
+import org.ratpackframework.groovy.RatpackGroovyDslSpec
 
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
-class ConcurrentRequestSpec extends DefaultRatpackSpec {
+class ConcurrentRequestSpec extends RatpackGroovyDslSpec {
 
   def "can serve requests concurrently without mixing up params"() {
-    given:
-    routing {
-      get("/:id") { Request request ->
-        text request.pathParams.id + ":" + request.queryParams.id[0]
+    when:
+    app {
+      routing {
+        get(":id") {
+          response.send pathTokens.id + ":" + request.queryParams.id[0]
+        }
       }
     }
 
-    when:
-    startApp()
-
+    and:
     def threads = 100
     def latch = new CountDownLatch(threads)
     def results = []
