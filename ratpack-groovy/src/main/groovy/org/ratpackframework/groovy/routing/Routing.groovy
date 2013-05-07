@@ -16,7 +16,7 @@
 
 package org.ratpackframework.groovy.routing
 
-import org.ratpackframework.http.Exchange
+import org.ratpackframework.routing.Exchange
 
 public interface Routing extends org.ratpackframework.routing.Routing {
 

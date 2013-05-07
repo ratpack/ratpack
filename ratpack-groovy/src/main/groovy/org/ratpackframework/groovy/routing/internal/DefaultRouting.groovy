@@ -4,9 +4,9 @@ import groovy.transform.CompileStatic
 import org.ratpackframework.groovy.ClosureHandlers
 import org.ratpackframework.groovy.Closures
 import org.ratpackframework.groovy.routing.Routing
-import org.ratpackframework.http.Exchange
-import org.ratpackframework.http.Handler
-import org.ratpackframework.http.Handlers
+import org.ratpackframework.routing.Exchange
+import org.ratpackframework.routing.Handler
+import org.ratpackframework.routing.Handlers
 
 @CompileStatic
 class DefaultRouting implements Routing {

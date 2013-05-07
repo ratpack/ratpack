@@ -1,7 +1,7 @@
 package org.ratpackframework.file.internal;
 
-import org.ratpackframework.http.Exchange;
-import org.ratpackframework.http.Handler;
+import org.ratpackframework.routing.Exchange;
+import org.ratpackframework.routing.Handler;
 import org.ratpackframework.file.FileSystemContext;
 
 import java.io.File;

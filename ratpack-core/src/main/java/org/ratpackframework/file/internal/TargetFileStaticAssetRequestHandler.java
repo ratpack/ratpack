@@ -1,8 +1,8 @@
 package org.ratpackframework.file.internal;
 
 import org.jboss.netty.util.CharsetUtil;
-import org.ratpackframework.http.Exchange;
-import org.ratpackframework.http.Handler;
+import org.ratpackframework.routing.Exchange;
+import org.ratpackframework.routing.Handler;
 import org.ratpackframework.context.Context;
 import org.ratpackframework.http.Request;
 import org.ratpackframework.file.FileSystemContext;

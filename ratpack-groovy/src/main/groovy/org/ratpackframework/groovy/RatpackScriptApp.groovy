@@ -1,12 +1,7 @@
 package org.ratpackframework.groovy
 
 import groovy.transform.CompileStatic
-import org.ratpackframework.http.Handler
 import org.ratpackframework.bootstrap.RatpackServer
-import org.ratpackframework.bootstrap.RatpackServerBuilder
-import org.ratpackframework.groovy.app.internal.GroovyHandlerFactory
-
-import org.ratpackframework.groovy.app.internal.ScriptBackedApp
 
 @CompileStatic
 abstract class RatpackScriptApp {

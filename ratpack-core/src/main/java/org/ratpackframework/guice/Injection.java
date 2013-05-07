@@ -1,7 +1,7 @@
 package org.ratpackframework.guice;
 
 import org.ratpackframework.guice.internal.InjectingHandler;
-import org.ratpackframework.http.Handler;
+import org.ratpackframework.routing.Handler;
 
 public abstract class Injection {
 

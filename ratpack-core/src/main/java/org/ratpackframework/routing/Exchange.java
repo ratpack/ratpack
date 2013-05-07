@@ -1,6 +1,8 @@
-package org.ratpackframework.http;
+package org.ratpackframework.routing;
 
 import org.ratpackframework.context.Context;
+import org.ratpackframework.http.Request;
+import org.ratpackframework.http.Response;
 
 import java.util.Map;
 

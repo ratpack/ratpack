@@ -5,10 +5,11 @@ import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
 import org.jboss.netty.handler.codec.http.*;
 import org.ratpackframework.context.DefaultContext;
-import org.ratpackframework.http.Exchange;
-import org.ratpackframework.http.Handler;
+import org.ratpackframework.routing.Exchange;
+import org.ratpackframework.routing.Handler;
 import org.ratpackframework.http.Request;
 import org.ratpackframework.http.Response;
+import org.ratpackframework.routing.internal.DefaultExchange;
 
 public class NettyRoutingAdapter extends SimpleChannelUpstreamHandler {
 
@@ -26,7 +27,7 @@ public class NettyRoutingAdapter extends SimpleChannelUpstreamHandler {
     Request request = new DefaultRequest(nettyRequest);
     Response response = new DefaultResponse(nettyResponse, ctx.getChannel());
 
-    final Exchange exchange = new DefaultHttpExchange(request, response, ctx, new DefaultContext(), new Handler() {
+    final Exchange exchange = new DefaultExchange(request, response, ctx, new DefaultContext(), new Handler() {
       @Override
       public void handle(Exchange exchange) {
         exchange.getResponse().status(404).send();

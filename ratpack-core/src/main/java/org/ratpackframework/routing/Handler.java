@@ -1,4 +1,4 @@
-package org.ratpackframework.http;
+package org.ratpackframework.routing;
 
 public interface Handler {
 

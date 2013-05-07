@@ -2,9 +2,9 @@ package org.ratpackframework.groovy
 
 import groovy.transform.CompileStatic
 import org.ratpackframework.Action
-import org.ratpackframework.http.Exchange
-import org.ratpackframework.http.Handler
-import org.ratpackframework.http.Handlers
+import org.ratpackframework.routing.Exchange
+import org.ratpackframework.routing.Handler
+import org.ratpackframework.routing.Handlers
 import org.ratpackframework.routing.Routing
 
 @CompileStatic

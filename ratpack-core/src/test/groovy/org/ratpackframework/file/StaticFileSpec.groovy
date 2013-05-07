@@ -18,8 +18,8 @@ package org.ratpackframework.file
 
 import org.ratpackframework.test.DefaultRatpackSpec
 
-import static org.ratpackframework.http.Handlers.assets
-import static org.ratpackframework.http.Handlers.assetsPath
+import static org.ratpackframework.routing.Handlers.assets
+import static org.ratpackframework.routing.Handlers.assetsPath
 import static org.ratpackframework.groovy.ClosureHandlers.fsContext
 import static org.ratpackframework.groovy.ClosureHandlers.handler
 

@@ -5,12 +5,12 @@ import org.ratpackframework.bootstrap.RatpackServer
 import org.ratpackframework.bootstrap.RatpackServerBuilder
 import org.ratpackframework.guice.internal.DefaultGuiceBackedHandlerFactory
 import org.ratpackframework.guice.ModuleRegistry
-import org.ratpackframework.http.Handler
-import org.ratpackframework.http.Handlers
+import org.ratpackframework.routing.Handler
+import org.ratpackframework.routing.Handlers
 import org.ratpackframework.routing.Routing
 
 import static org.ratpackframework.groovy.Closures.action
-import static org.ratpackframework.http.Handlers.routes
+import static Handlers.routes
 
 class DefaultRatpackSpec extends RatpackSpec {
 

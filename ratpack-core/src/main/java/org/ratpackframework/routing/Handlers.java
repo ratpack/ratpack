@@ -1,4 +1,4 @@
-package org.ratpackframework.http;
+package org.ratpackframework.routing;
 
 import org.ratpackframework.Action;
 import org.ratpackframework.file.internal.DirectoryStaticAssetRequestHandler;
@@ -9,7 +9,6 @@ import org.ratpackframework.http.internal.MethodHandler;
 import org.ratpackframework.path.PathBinding;
 import org.ratpackframework.path.internal.PathHandler;
 import org.ratpackframework.path.internal.TokenPathBinding;
-import org.ratpackframework.routing.Routing;
 import org.ratpackframework.routing.internal.RoutingHandler;
 
 import java.io.File;

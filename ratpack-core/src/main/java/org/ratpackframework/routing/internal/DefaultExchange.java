@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.http.internal;
+package org.ratpackframework.routing.internal;
 
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.ratpackframework.context.Context;
-import org.ratpackframework.http.Exchange;
-import org.ratpackframework.http.Handler;
+import org.ratpackframework.routing.Exchange;
+import org.ratpackframework.routing.Handler;
 import org.ratpackframework.http.Request;
 import org.ratpackframework.http.Response;
 import org.ratpackframework.path.PathContext;
@@ -28,7 +28,7 @@ import org.ratpackframework.util.CollectionUtils;
 import java.util.List;
 import java.util.Map;
 
-public class DefaultHttpExchange implements Exchange {
+public class DefaultExchange implements Exchange {
 
   private final Request request;
   private final Response response;
@@ -38,7 +38,7 @@ public class DefaultHttpExchange implements Exchange {
   private final Handler next;
   private final Context context;
 
-  public DefaultHttpExchange(Request request, Response response, ChannelHandlerContext channelHandlerContext, Context context, Handler next) {
+  public DefaultExchange(Request request, Response response, ChannelHandlerContext channelHandlerContext, Context context, Handler next) {
     this.request = request;
     this.response = response;
     this.channelHandlerContext = channelHandlerContext;
@@ -101,10 +101,10 @@ public class DefaultHttpExchange implements Exchange {
       Handler nextHandler = new Handler() {
         @Override
         public void handle(Exchange exchange) {
-          ((DefaultHttpExchange) exchange).doNext(context, handlers, exhausted);
+          ((DefaultExchange) exchange).doNext(context, handlers, exhausted);
         }
       };
-      DefaultHttpExchange childExchange = new DefaultHttpExchange(request, response, channelHandlerContext, context, nextHandler);
+      DefaultExchange childExchange = new DefaultExchange(request, response, channelHandlerContext, context, nextHandler);
       handler.handle(childExchange);
     }
   }

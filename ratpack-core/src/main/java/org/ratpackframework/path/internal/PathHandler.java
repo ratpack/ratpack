@@ -1,7 +1,7 @@
 package org.ratpackframework.path.internal;
 
-import org.ratpackframework.http.Exchange;
-import org.ratpackframework.http.Handler;
+import org.ratpackframework.routing.Exchange;
+import org.ratpackframework.routing.Handler;
 import org.ratpackframework.path.PathBinding;
 import org.ratpackframework.path.PathContext;
 

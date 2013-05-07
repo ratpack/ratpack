@@ -2,8 +2,8 @@ package org.ratpackframework.guice
 
 import com.google.inject.AbstractModule
 import org.ratpackframework.groovy.RatpackGroovyDslSpec
-import org.ratpackframework.http.Exchange
-import org.ratpackframework.http.Handler
+import org.ratpackframework.routing.Exchange
+import org.ratpackframework.routing.Handler
 
 import javax.inject.Inject
 

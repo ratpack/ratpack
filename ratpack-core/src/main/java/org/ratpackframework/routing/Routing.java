@@ -16,9 +16,6 @@
 
 package org.ratpackframework.routing;
 
-import org.ratpackframework.http.Exchange;
-import org.ratpackframework.http.Handler;
-
 public interface Routing {
 
     Exchange getExchange();

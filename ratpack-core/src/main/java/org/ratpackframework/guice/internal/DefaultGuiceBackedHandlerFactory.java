@@ -7,9 +7,7 @@ import com.google.inject.util.Modules;
 import org.ratpackframework.Action;
 import org.ratpackframework.guice.GuiceBackedHandlerFactory;
 import org.ratpackframework.guice.ModuleRegistry;
-import org.ratpackframework.guice.internal.InjectorBindingHandler;
-import org.ratpackframework.http.Handler;
-import org.ratpackframework.guice.internal.DefaultModuleRegistry;
+import org.ratpackframework.routing.Handler;
 
 public class DefaultGuiceBackedHandlerFactory implements GuiceBackedHandlerFactory {
 
