@@ -1,4 +1,4 @@
-apply plugin: "java"
+apply plugin: "groovy"
 
 dependencies {
   compile 'io.netty:netty:3.6.1.Final'
@@ -8,6 +8,7 @@ dependencies {
     exclude group: 'org.sonatype.sisu.inject'
   }
 
+  testCompile commonDependencies.groovy
   testCompile commonDependencies.spock
   testCompile project(":ratpack-test-support")
 }
