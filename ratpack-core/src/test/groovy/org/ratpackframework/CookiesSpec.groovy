@@ -1,29 +1,30 @@
 package org.ratpackframework
 
-import org.ratpackframework.test.DefaultRatpackSpec
+import org.ratpackframework.groovy.RatpackGroovyDslSpec
 
-class CookiesSpec extends DefaultRatpackSpec {
+class CookiesSpec extends RatpackGroovyDslSpec {
 
   def "can get and set cookies"() {
     given:
-    routing {
-      get("/get/:name") {
-        text request.oneCookie(request.pathParams.name)
-      }
+    app {
+      routing {
+        get("get/:name") {
+          response.send request.oneCookie(pathTokens.name) ?: "null"
+        }
 
-      get("/set/:name/:value") {
-        cookie(it.pathParams.name, it.pathParams.value)
-        end()
-      }
+        get("set/:name/:value") {
+          response.cookie(pathTokens.name, pathTokens.value)
+          response.send()
+        }
 
-      get("/clear/:name") {
-        expireCookie(it.pathParams.name)
-        end()
+        get("clear/:name") {
+          response.expireCookie(pathTokens.name)
+          response.send()
+        }
       }
     }
 
     when:
-    startApp()
     urlGetText("set/a/1")
 
     then:

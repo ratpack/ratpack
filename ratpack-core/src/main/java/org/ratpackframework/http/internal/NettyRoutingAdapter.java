@@ -36,7 +36,7 @@ public class NettyRoutingAdapter extends SimpleChannelUpstreamHandler {
     try {
       handler.handle(exchange);
     } catch (Exception e) {
-      System.err.println("Unhandled exception! (please bind an error handler)");
+      System.err.println("UNHANDLED EXCEPTION: " + request.getUri());
       e.printStackTrace(System.err);
       exchange.getResponse().status(500).send();
     }
