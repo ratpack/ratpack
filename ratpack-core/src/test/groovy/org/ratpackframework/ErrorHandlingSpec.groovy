@@ -1,44 +1,27 @@
 package org.ratpackframework
 
-import org.ratpackframework.test.DefaultRatpackSpec
+import org.ratpackframework.groovy.RatpackGroovyDslSpec
 
-class ErrorHandlingSpec extends DefaultRatpackSpec {
+class ErrorHandlingSpec extends RatpackGroovyDslSpec {
 
   def "handles 404"() {
     when:
-    startApp()
+    app {}
 
     then:
     urlGetConnection("foo").responseCode == 404
   }
 
   def "handles internal error"() {
-    given:
-    routing {
-      get("/") { throw new RuntimeException('error here') }
-    }
-
     when:
-    startApp()
-
-    then:
-    urlGetConnection().responseCode == 500
-  }
-
-  def "can use wrap error"() {
-    given:
-    routing {
-      get("/") { request, response ->
-        Thread.start {
-          response.error(new Exception("bang!"))
-        }
+    app {
+      routing {
+        get("") { throw new RuntimeException('error here') }
       }
     }
 
-    when:
-    startApp()
-
     then:
     urlGetConnection().responseCode == 500
   }
+
 }
