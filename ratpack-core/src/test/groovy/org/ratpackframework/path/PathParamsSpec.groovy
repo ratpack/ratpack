@@ -14,17 +14,19 @@
  * limitations under the License.
  */
 
-package org.ratpackframework
+package org.ratpackframework.path
 
-import org.ratpackframework.test.DefaultRatpackSpec
+import org.ratpackframework.groovy.RatpackGroovyDslSpec
 
-class PathParamsSpec extends DefaultRatpackSpec {
+class PathParamsSpec extends RatpackGroovyDslSpec {
 
   def "can parse url params"() {
     given:
-    routing {
-      get("/:a/:b/:c") {
-        text request.pathParams.toString()
+    app {
+      routing {
+        get(":a/:b/:c") {
+          response.send pathTokens.toString()
+        }
       }
     }
 
