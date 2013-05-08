@@ -1,13 +1,11 @@
 package org.ratpackframework.groovy
 
-import groovy.transform.CompileStatic
 import org.ratpackframework.Action
 import org.ratpackframework.routing.Exchange
 import org.ratpackframework.routing.Handler
 import org.ratpackframework.routing.Handlers
 import org.ratpackframework.routing.Routing
 
-@CompileStatic
 public abstract class ClosureHandlers {
 
   public static Handler handler(@DelegatesTo(value = Exchange.class, strategy = Closure.DELEGATE_FIRST) final Closure<?> handler) {

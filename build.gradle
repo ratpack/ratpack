@@ -142,7 +142,7 @@ subprojects {
 }
 
 if (hasProperty('enableClover')) {
-  configure([rootProject, project(':ratpack-core'), project(':ratpack-gradle')/*, project(':ratpack-groovy')*/]) {
+  configure([rootProject, project(':ratpack-core'), project(':ratpack-gradle'), project(':ratpack-groovy')]) {
     apply from: rootProject.file("gradle/clover.gradle")
   }
 }
