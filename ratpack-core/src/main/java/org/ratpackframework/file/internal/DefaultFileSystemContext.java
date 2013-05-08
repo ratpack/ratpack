@@ -21,7 +21,7 @@ public class DefaultFileSystemContext implements FileSystemContext {
 
   @Override
   public File file(String... path) {
-    return new File(file, join(File.separator, path));
+    return new File(file, join(File.separator, (Object[]) path));
   }
 
   @Override

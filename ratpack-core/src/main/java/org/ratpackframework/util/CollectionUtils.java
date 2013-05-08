@@ -57,6 +57,7 @@ public abstract class CollectionUtils {
     return string.toString();
   }
 
+  @SuppressWarnings("unchecked")
   public static <R, I> R[] collectArray(I[] list, Class<R> newType, Transformer<? super I, ? extends R> transformer) {
     return collectArray(list, (R[]) Array.newInstance(newType, list.length), transformer);
   }
