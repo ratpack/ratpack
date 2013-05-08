@@ -1,7 +1,7 @@
 package org.ratpackframework.guice
 
 import com.google.inject.AbstractModule
-import org.ratpackframework.groovy.RatpackGroovyDslSpec
+import org.ratpackframework.test.groovy.RatpackGroovyDslSpec
 import org.ratpackframework.routing.Exchange
 import org.ratpackframework.routing.Handler
 

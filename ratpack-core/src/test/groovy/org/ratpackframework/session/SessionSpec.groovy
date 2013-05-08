@@ -1,6 +1,6 @@
 package org.ratpackframework.session
 
-import org.ratpackframework.groovy.RatpackGroovyDslSpec
+import org.ratpackframework.test.groovy.RatpackGroovyDslSpec
 import org.ratpackframework.guice.GuiceBackedHandlerFactory
 import org.ratpackframework.guice.InjectionContext
 import org.ratpackframework.guice.ModuleRegistry

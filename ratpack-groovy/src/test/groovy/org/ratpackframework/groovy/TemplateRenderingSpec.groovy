@@ -17,6 +17,7 @@
 package org.ratpackframework.groovy
 
 import org.ratpackframework.groovy.templating.TemplatingModule
+import org.ratpackframework.test.groovy.RatpackGroovyScriptAppSpec
 import spock.lang.Unroll
 
 class TemplateRenderingSpec extends RatpackGroovyScriptAppSpec {

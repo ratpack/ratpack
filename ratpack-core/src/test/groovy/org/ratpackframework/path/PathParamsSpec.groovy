@@ -16,7 +16,7 @@
 
 package org.ratpackframework.path
 
-import org.ratpackframework.groovy.RatpackGroovyDslSpec
+import org.ratpackframework.test.groovy.RatpackGroovyDslSpec
 
 class PathParamsSpec extends RatpackGroovyDslSpec {
 

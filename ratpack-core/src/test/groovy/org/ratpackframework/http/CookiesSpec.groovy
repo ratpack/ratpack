@@ -1,6 +1,6 @@
 package org.ratpackframework.http
 
-import org.ratpackframework.groovy.RatpackGroovyDslSpec
+import org.ratpackframework.test.groovy.RatpackGroovyDslSpec
 
 class CookiesSpec extends RatpackGroovyDslSpec {
 

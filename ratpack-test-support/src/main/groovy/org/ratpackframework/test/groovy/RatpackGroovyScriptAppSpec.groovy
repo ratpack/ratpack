@@ -1,7 +1,7 @@
-package org.ratpackframework.groovy
+package org.ratpackframework.test.groovy
 
 import org.ratpackframework.bootstrap.RatpackServer
-
+import org.ratpackframework.groovy.RatpackScriptApp
 import org.ratpackframework.test.RatpackSpec
 
 class RatpackGroovyScriptAppSpec extends RatpackSpec {

@@ -1,6 +1,6 @@
 package org.ratpackframework.routing
 
-import org.ratpackframework.groovy.RatpackGroovyDslSpec
+import org.ratpackframework.test.groovy.RatpackGroovyDslSpec
 
 class ErrorHandlingSpec extends RatpackGroovyDslSpec {
 

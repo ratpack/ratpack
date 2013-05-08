@@ -1,4 +1,4 @@
-package org.ratpackframework.groovy
+package org.ratpackframework.test.groovy
 
 class BasicGroovyDslSpec extends RatpackGroovyDslSpec {
 

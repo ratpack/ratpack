@@ -1,5 +1,6 @@
-package org.ratpackframework.groovy
+package org.ratpackframework.test.groovy
 
+import org.ratpackframework.groovy.Closures
 import org.ratpackframework.groovy.routing.Routing
 import org.ratpackframework.groovy.routing.internal.RoutingHandler
 import org.ratpackframework.routing.Handler

@@ -1,5 +1,7 @@
 package org.ratpackframework.groovy
 
+import org.ratpackframework.test.groovy.RatpackGroovyScriptAppSpec
+
 class RoutingScriptScriptAppSpec extends RatpackGroovyScriptAppSpec {
 
   def "is reloadable"() {
