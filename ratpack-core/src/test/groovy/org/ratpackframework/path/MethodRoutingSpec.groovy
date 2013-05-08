@@ -13,7 +13,7 @@ class MethodRoutingSpec extends DefaultRatpackSpec {
       routing {
         route method(["get", "pOsT"]) {
           route handler {
-            response.send request.method
+            response.send request.method.name
           }
         }
       }

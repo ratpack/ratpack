@@ -2,6 +2,7 @@ package org.ratpackframework.session;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Singleton;
+import org.ratpackframework.session.internal.DefaultSessionIdGenerator;
 import org.ratpackframework.session.internal.DefaultSessionManager;
 
 public class SessionModule extends AbstractModule {

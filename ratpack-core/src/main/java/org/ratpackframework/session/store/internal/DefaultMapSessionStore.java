@@ -2,15 +2,16 @@ package org.ratpackframework.session.store.internal;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import org.ratpackframework.http.Request;
 import org.ratpackframework.session.SessionListener;
+import org.ratpackframework.session.store.DefaultSessionStorage;
 import org.ratpackframework.session.store.MapSessionStore;
+import org.ratpackframework.session.store.SessionStorage;
 
 import java.util.concurrent.*;
 
 public class DefaultMapSessionStore implements MapSessionStore, SessionListener {
 
-  private final Cache<String, ConcurrentMap<String, Object>> storage;
+  private final Cache<String, SessionStorage> storage;
 
   public DefaultMapSessionStore(int maxEntries, int ttlMinutes) {
     storage = CacheBuilder.<String, ConcurrentMap<String, Object>>newBuilder()
@@ -29,12 +30,12 @@ public class DefaultMapSessionStore implements MapSessionStore, SessionListener 
   }
 
   @Override
-  public ConcurrentMap<String, Object> get(Request request) {
+  public SessionStorage get(String sessionId) {
     try {
-      return storage.get("asd", new Callable<ConcurrentHashMap<String, Object>>() {
+      return storage.get(sessionId, new Callable<SessionStorage>() {
         @Override
-        public ConcurrentHashMap<String, Object> call() throws Exception {
-          return new ConcurrentHashMap<>();
+        public SessionStorage call() throws Exception {
+          return new DefaultSessionStorage(new ConcurrentHashMap<String, Object>());
         }
       });
     } catch (ExecutionException e) {

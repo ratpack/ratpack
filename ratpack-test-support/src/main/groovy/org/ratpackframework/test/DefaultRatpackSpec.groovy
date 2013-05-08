@@ -3,6 +3,7 @@ package org.ratpackframework.test
 import org.ratpackframework.Action
 import org.ratpackframework.bootstrap.RatpackServer
 import org.ratpackframework.bootstrap.RatpackServerBuilder
+import org.ratpackframework.guice.GuiceBackedHandlerFactory
 import org.ratpackframework.guice.internal.DefaultGuiceBackedHandlerFactory
 import org.ratpackframework.guice.ModuleRegistry
 import org.ratpackframework.routing.Handler
@@ -11,6 +12,7 @@ import org.ratpackframework.routing.Routing
 
 import static org.ratpackframework.groovy.Closures.action
 import static Handlers.routes
+import static org.ratpackframework.routing.Handlers.fsContext
 
 class DefaultRatpackSpec extends RatpackSpec {
 
@@ -44,12 +46,12 @@ class DefaultRatpackSpec extends RatpackSpec {
     builder.build()
   }
 
-  protected DefaultGuiceBackedHandlerFactory createAppFactory() {
+  protected GuiceBackedHandlerFactory createAppFactory() {
     new DefaultGuiceBackedHandlerFactory()
   }
 
   Handler decorateHandler(Handler handler) {
-    Handlers.fsContext(dirPath, handler)
+    fsContext(dirPath, handler)
   }
 
   protected Action<? super ModuleRegistry> createModulesAction() {

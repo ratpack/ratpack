@@ -23,6 +23,7 @@ import org.ratpackframework.routing.Handler;
 import org.ratpackframework.http.Request;
 import org.ratpackframework.http.Response;
 import org.ratpackframework.path.PathContext;
+import org.ratpackframework.session.Session;
 import org.ratpackframework.util.CollectionUtils;
 
 import java.util.List;
@@ -90,6 +91,11 @@ public class DefaultExchange implements Exchange {
   @Override
   public Map<String, String> getAllPathTokens() {
     return getContext().require(PathContext.class).getAllTokens();
+  }
+
+  @Override
+  public Session getSession() {
+    return getContext().require(Session.class);
   }
 
   protected void doNext(final Context context, final List<Handler> handlers, final Handler exhausted) {

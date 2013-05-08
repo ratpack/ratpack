@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.session;
+package org.ratpackframework.session.internal;
 
 import org.ratpackframework.http.Request;
+import org.ratpackframework.session.SessionIdGenerator;
 
 import java.math.BigInteger;
 import java.security.SecureRandom;

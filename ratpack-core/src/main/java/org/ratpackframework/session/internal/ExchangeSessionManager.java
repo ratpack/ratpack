@@ -22,7 +22,7 @@ import org.ratpackframework.routing.Exchange;
 import org.ratpackframework.session.Session;
 import org.ratpackframework.session.SessionManager;
 
-public class RequestSessionManager {
+public class ExchangeSessionManager {
 
   private static final String COOKIE_NAME = "JSESSIONID";
 
@@ -32,7 +32,7 @@ public class RequestSessionManager {
   private String cookieSessionId;
   private String assignedCookieId;
 
-  public RequestSessionManager(Exchange exchange, SessionManager sessionManager) {
+  public ExchangeSessionManager(Exchange exchange, SessionManager sessionManager) {
     this.exchange = exchange;
     this.sessionManager = sessionManager;
   }
