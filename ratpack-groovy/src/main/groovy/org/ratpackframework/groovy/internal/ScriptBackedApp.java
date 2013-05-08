@@ -55,6 +55,7 @@ public class ScriptBackedApp implements Handler {
               try {
                 scriptEngine.run(file.getName(), string);
               } catch (Exception e) {
+                e.printStackTrace();
                 throw new RuntimeException(e);
               }
             }

@@ -8,7 +8,7 @@ public abstract class RatpackScriptBacking {
   private static final ThreadLocal<Action<Closure<?>>> backingHolder = new ThreadLocal<Action<Closure<?>>>() {
     @Override
     protected Action<Closure<?>> initialValue() {
-      throw new IllegalArgumentException("No script backing context");
+      return new StandaloneScriptBacking();
     }
   };
 
