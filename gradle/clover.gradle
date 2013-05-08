@@ -10,10 +10,3 @@ clover {
 dependencies {
   clover 'com.cenqua.clover:clover:3.1.10'
 }
-
-plugins.withType(GroovyPlugin) {
-  //clover plugin still expects groovy dependency to be specified in groovy configuration
-  dependencies {
-    groovy commonDependencies.groovy
-  }
-}

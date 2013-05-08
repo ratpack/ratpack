@@ -1,7 +1,8 @@
 apply plugin: 'groovy'
 
 dependencies {
-  compile localGroovy(), gradleApi()
+  groovy localGroovy()
+  compile gradleApi()
   testCompile 'org.spockframework:spock-core:0.7-groovy-1.8', {
     exclude module: "groovy-all"
   }

@@ -8,7 +8,12 @@ dependencies {
     exclude group: 'org.sonatype.sisu.inject'
   }
 
-  testCompile commonDependencies.groovy
+  groovy commonDependencies.groovy
   testCompile commonDependencies.spock
   testCompile project(":ratpack-test-support")
+}
+
+configurations {
+  compile.extendsFrom -= groovy
+  testCompile.extendsFrom groovy
 }
