@@ -27,11 +27,6 @@ class DefaultRatpackSpec extends RatpackSpec {
     this.modules = configurer
   }
 
-  void app(Closure<?> configurer) {
-    configurer.call()
-    startApp()
-  }
-
   @Override
   RatpackServer createApp() {
     DefaultGuiceBackedHandlerFactory appFactory = createAppFactory()

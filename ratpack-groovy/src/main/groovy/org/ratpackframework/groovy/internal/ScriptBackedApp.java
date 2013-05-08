@@ -14,20 +14,22 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.groovy.app.internal;
+package org.ratpackframework.groovy.internal;
 
+import groovy.lang.Closure;
+import groovy.lang.Script;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.ratpackframework.Action;
-import org.ratpackframework.reload.internal.Factory;
-import org.ratpackframework.routing.Exchange;
-import org.ratpackframework.routing.Handler;
-import org.ratpackframework.reload.internal.ReloadableFileBackedFactory;
 import org.ratpackframework.groovy.Closures;
+import org.ratpackframework.groovy.routing.Routing;
+import org.ratpackframework.groovy.routing.internal.RoutingHandler;
 import org.ratpackframework.groovy.script.ScriptEngine;
 import org.ratpackframework.guice.GuiceBackedHandlerFactory;
 import org.ratpackframework.guice.ModuleRegistry;
-import org.ratpackframework.routing.Routing;
-import org.ratpackframework.routing.internal.RoutingHandler;
+import org.ratpackframework.reload.internal.Factory;
+import org.ratpackframework.reload.internal.ReloadableFileBackedFactory;
+import org.ratpackframework.routing.Exchange;
+import org.ratpackframework.routing.Handler;
 import org.ratpackframework.util.IoUtils;
 
 import javax.inject.Inject;
@@ -45,8 +47,28 @@ public class ScriptBackedApp implements Handler {
         try {
           final String string;
           string = IoUtils.utf8String(bytes);
-          final ScriptEngine<DefaultRatpack> scriptEngine = new ScriptEngine<>(getClass().getClassLoader(), staticCompile, DefaultRatpack.class);
-          DefaultRatpack ratpack = scriptEngine.run(file.getName(), string);
+          final ScriptEngine<Script> scriptEngine = new ScriptEngine<>(getClass().getClassLoader(), staticCompile, Script.class);
+
+          Runnable runScript = new Runnable() {
+            @Override
+            public void run() {
+              try {
+                scriptEngine.run(file.getName(), string);
+              } catch (Exception e) {
+                throw new RuntimeException(e);
+              }
+            }
+          };
+
+          final DefaultRatpack ratpack = new DefaultRatpack();
+          Action<Closure<?>> backing = new Action<Closure<?>>() {
+            @Override
+            public void execute(Closure<?> configurer) {
+              Closures.configure(ratpack, configurer);
+            }
+          };
+
+          RatpackScriptBacking.withBacking(backing, runScript);
 
           Action<ModuleRegistry> modulesAction = Closures.action(ModuleRegistry.class, ratpack.getModulesConfigurer());
           Action<Routing> routingAction = Closures.action(Routing.class, ratpack.getRoutingConfigurer());

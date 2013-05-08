@@ -48,11 +48,15 @@ abstract class RatpackSpec extends Specification {
     file
   }
 
+  void app(Closure<?> configurer) {
+    configurer.call()
+    startApp()
+  }
+
   def startApp() {
     app = createApp()
     app.startAndWait()
   }
-
 
   def stopApp() {
     app?.stopAndWait()

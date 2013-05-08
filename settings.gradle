@@ -1,5 +1,2 @@
 include "ratpack-core", "ratpack-gradle", "ratpack-groovy", "ratpack-test-support"
 
-if (System.properties["incTestProject"] != null) {
-  include "ratpack-gradle-plugin-test"
-}

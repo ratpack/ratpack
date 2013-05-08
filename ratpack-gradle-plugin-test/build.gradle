@@ -1,16 +1,19 @@
 buildscript {
+  version = file("../shared-resources/org/ratpackframework/ratpack-version.txt").text.trim()
+  group = "org.ratpack-framework"
+
   repositories {
-    maven { url "file://${rootProject.rootDir.absolutePath}/localrepo" }
+    maven { url "file://${file("../localrepo").canonicalFile}" }
     mavenCentral()
   }
   dependencies {
-    classpath group: rootProject.group, name: "ratpack-gradle-plugin", version: version
+    classpath group: group, name: "ratpack-gradle", version: version
   }
 }
 
-apply plugin: 'ratpack'
+apply plugin: 'ratpack-groovy'
 
 repositories {
-  maven { url "file://${rootProject.rootDir.absolutePath}/localrepo" }
+  maven { url "file://${projectDir.absolutePath}/../localrepo" }
   mavenCentral()
 }
