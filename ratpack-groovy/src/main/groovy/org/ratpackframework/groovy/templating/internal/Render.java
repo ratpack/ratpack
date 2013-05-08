@@ -29,11 +29,11 @@ import java.util.Map;
 
 public class Render {
 
-  private final Cache<String, CompiledTemplate> compiledTemplateCache;
+  private final Cache<File, CompiledTemplate> compiledTemplateCache;
   private final TemplateCompiler templateCompiler;
   private final File templateDir;
 
-  public Render(TemplateCompiler templateCompiler, Cache<String, CompiledTemplate> compiledTemplateCache, File templateDir, CompiledTemplate template, Map<String, ?> model, final ResultAction<ChannelBuffer> handler) {
+  public Render(TemplateCompiler templateCompiler, Cache<File, CompiledTemplate> compiledTemplateCache, File templateDir, CompiledTemplate template, Map<String, ?> model, final ResultAction<ChannelBuffer> handler) {
     this.templateCompiler = templateCompiler;
     this.compiledTemplateCache = compiledTemplateCache;
     this.templateDir = templateDir;
@@ -52,20 +52,20 @@ public class Render {
 
 
   private void executeNested(final String templatePath, final Map<String, ?> model, ChannelBuffer buffer) throws Exception {
-    CompiledTemplate cachedTemplate = compiledTemplateCache.getIfPresent(templatePath);
+    File templateFile = new File(templateDir, templatePath);
+
+    CompiledTemplate cachedTemplate = compiledTemplateCache.getIfPresent(templateFile);
     if (cachedTemplate != null) {
       execute(cachedTemplate, model, buffer);
       return;
     }
-
-    File templateFile = new File(templateDir, templatePath);
 
     CompiledTemplate compiledTemplate;
 
     ChannelBuffer channelBuffer = IoUtils.readFile(templateFile);
     compiledTemplate = templateCompiler.compile(channelBuffer, templatePath);
 
-    compiledTemplateCache.put(templatePath, compiledTemplate);
+    compiledTemplateCache.put(templateFile, compiledTemplate);
     execute(compiledTemplate, model, buffer);
   }
 

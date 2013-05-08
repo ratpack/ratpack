@@ -18,6 +18,7 @@ package org.ratpackframework.routing.internal;
 
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.ratpackframework.context.Context;
+import org.ratpackframework.error.ErrorHandlingContext;
 import org.ratpackframework.routing.Exchange;
 import org.ratpackframework.routing.Handler;
 import org.ratpackframework.http.Request;
@@ -96,6 +97,11 @@ public class DefaultExchange implements Exchange {
   @Override
   public Session getSession() {
     return getContext().require(Session.class);
+  }
+
+  @Override
+  public void error(Exception exception) {
+    getContext().require(ErrorHandlingContext.class).error(this, exception);
   }
 
   protected void doNext(final Context context, final List<Handler> handlers, final Handler exhausted) {

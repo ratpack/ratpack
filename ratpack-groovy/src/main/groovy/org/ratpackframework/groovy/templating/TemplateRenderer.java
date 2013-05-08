@@ -14,17 +14,16 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.templating;
-
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.ratpackframework.ResultAction;
+package org.ratpackframework.groovy.templating;
 
 import java.util.Map;
 
 public interface TemplateRenderer {
 
-  void renderTemplate(String templateId, Map<String, ?> model, ResultAction<ChannelBuffer> handler);
+  void render(Map<String, ?> model, String templateId);
 
-  void renderError(Map<String, ?> model, ResultAction<ChannelBuffer> handler);
+  void render(String templateId);
+
+  void error(Map<String, ?> model);
 
 }

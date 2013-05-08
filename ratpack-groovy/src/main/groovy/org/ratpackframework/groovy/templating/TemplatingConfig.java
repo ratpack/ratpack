@@ -1,24 +1,9 @@
 package org.ratpackframework.groovy.templating;
 
-import java.io.File;
-
 public class TemplatingConfig {
 
-  private File directory;
   private int cacheSize = 0;
   private boolean staticallyCompile;
-
-  public TemplatingConfig(File directory) {
-    this.directory = directory;
-  }
-
-  public File getDirectory() {
-    return directory;
-  }
-
-  public void setDirectory(File directory) {
-    this.directory = directory;
-  }
 
   public int getCacheSize() {
     return cacheSize;

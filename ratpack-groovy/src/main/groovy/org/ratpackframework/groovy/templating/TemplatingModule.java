@@ -1,15 +1,11 @@
 package org.ratpackframework.groovy.templating;
 
 import com.google.inject.AbstractModule;
-import org.ratpackframework.templating.TemplateRenderer;
+import org.ratpackframework.groovy.templating.internal.GroovyTemplateRenderingEngine;
 
 public class TemplatingModule extends AbstractModule {
 
-  private final TemplatingConfig templatingConfig;
-
-  public TemplatingModule(TemplatingConfig templatingConfig) {
-    this.templatingConfig = templatingConfig;
-  }
+  private final TemplatingConfig templatingConfig = new TemplatingConfig();
 
   public TemplatingConfig getConfig() {
     return templatingConfig;
@@ -17,7 +13,7 @@ public class TemplatingModule extends AbstractModule {
 
   @Override
   protected void configure() {
-    bind(TemplateRenderer.class).to(GroovyTemplateRenderer.class);
+    bind(GroovyTemplateRenderingEngine.class);
     bind(TemplatingConfig.class).toInstance(templatingConfig);
   }
 

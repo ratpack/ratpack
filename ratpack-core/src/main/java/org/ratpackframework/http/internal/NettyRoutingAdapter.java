@@ -5,6 +5,8 @@ import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
 import org.jboss.netty.handler.codec.http.*;
 import org.ratpackframework.context.DefaultContext;
+import org.ratpackframework.error.internal.ErrorHandler;
+import org.ratpackframework.error.internal.TopLevelErrorHandlingContext;
 import org.ratpackframework.routing.Exchange;
 import org.ratpackframework.routing.Handler;
 import org.ratpackframework.http.Request;
@@ -34,13 +36,7 @@ public class NettyRoutingAdapter extends SimpleChannelUpstreamHandler {
       }
     });
 
-    try {
-      handler.handle(exchange);
-    } catch (Exception e) {
-      System.err.println("UNHANDLED EXCEPTION: " + request.getUri());
-      e.printStackTrace(System.err);
-      exchange.getResponse().status(500).send();
-    }
+    exchange.nextWithContext(new TopLevelErrorHandlingContext(), new ErrorHandler(handler));
   }
 
 }

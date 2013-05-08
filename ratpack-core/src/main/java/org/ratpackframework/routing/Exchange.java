@@ -32,4 +32,6 @@ public interface Exchange {
   // TODO - not sure if this is important enough to be on this interface
   Session getSession();
 
+  void error(Exception exception);
+
 }
