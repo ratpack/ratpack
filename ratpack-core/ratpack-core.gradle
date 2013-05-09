@@ -1,8 +1,8 @@
 apply plugin: "groovy"
 
 dependencies {
-  compile 'io.netty:netty:3.6.1.Final'
-
+  compile 'io.netty:netty-codec-http:4.0.0.CR2'
+  runtime 'org.javassist:javassist:3.17.1-GA'
   compile 'com.google.guava:guava:13.0.1'
   compile 'com.google.inject:guice:3.0', {
     exclude group: 'org.sonatype.sisu.inject'

@@ -1,8 +1,8 @@
 package org.ratpackframework.groovy.templating.internal
 
-import org.jboss.netty.buffer.ChannelBuffer
-import org.jboss.netty.buffer.ChannelBuffers
-import org.jboss.netty.util.CharsetUtil
+import io.netty.buffer.ByteBuf
+import io.netty.buffer.Unpooled
+import io.netty.util.CharsetUtil
 import org.ratpackframework.util.IoUtils
 import spock.lang.Specification
 
@@ -11,8 +11,8 @@ class TemplateParserTest extends Specification {
   private final TemplateParser parser = new TemplateParser()
 
   String parse(String source) {
-    ChannelBuffer sourceBuffer = IoUtils.utf8Buffer(source)
-    ChannelBuffer scriptBuffer = ChannelBuffers.dynamicBuffer(source.length())
+    ByteBuf sourceBuffer = IoUtils.utf8Buffer(source)
+    ByteBuf scriptBuffer = Unpooled.buffer(source.length())
     parser.parse(sourceBuffer, scriptBuffer)
     scriptBuffer.toString(CharsetUtil.UTF_8)
   }

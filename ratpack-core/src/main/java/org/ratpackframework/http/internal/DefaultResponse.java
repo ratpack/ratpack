@@ -16,37 +16,31 @@
 
 package org.ratpackframework.http.internal;
 
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.channel.Channel;
-import org.jboss.netty.channel.ChannelFuture;
-import org.jboss.netty.channel.ChannelFutureListener;
-import org.jboss.netty.handler.codec.http.*;
-import org.ratpackframework.http.Response;
-import org.ratpackframework.http.MediaType;
+import io.netty.buffer.ByteBuf;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
+import io.netty.handler.codec.http.*;
 import org.ratpackframework.file.internal.FileHttpTransmitter;
+import org.ratpackframework.http.MediaType;
+import org.ratpackframework.http.Response;
 import org.ratpackframework.util.IoUtils;
 
 import java.io.File;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 public class DefaultResponse implements Response {
 
-  private final HttpResponse response;
+  private final FullHttpResponse response;
   private final Channel channel;
 
   private Set<Cookie> cookies;
 
-  public DefaultResponse(HttpResponse response, Channel channel) {
+  public DefaultResponse(FullHttpResponse response, Channel channel) {
     this.response = response;
     this.channel = channel;
-  }
-
-  @Override
-  public List<Map.Entry<String, String>> getHeaders() {
-    return response.getHeaders();
   }
 
   @Override
@@ -54,12 +48,12 @@ public class DefaultResponse implements Response {
     return new Status() {
       @Override
       public int getCode() {
-        return response.getStatus().getCode();
+        return response.getStatus().code();
       }
 
       @Override
       public String getMessage() {
-        return response.getStatus().getReasonPhrase();
+        return response.getStatus().reasonPhrase();
       }
     };
   }
@@ -89,7 +83,7 @@ public class DefaultResponse implements Response {
   @Override
   public void send(String contentType, String str) {
     contentType(contentType);
-    response.setContent(IoUtils.utf8Buffer(str));
+    response.content().writeBytes(IoUtils.utf8Buffer(str));
     commit();
   }
 
@@ -99,9 +93,9 @@ public class DefaultResponse implements Response {
   }
 
   @Override
-  public void send(String contentType, ChannelBuffer buffer) {
+  public void send(String contentType, ByteBuf buffer) {
     contentType(contentType);
-    response.setContent(buffer);
+    response.content().writeBytes(buffer);
     commit();
   }
 
@@ -127,47 +121,47 @@ public class DefaultResponse implements Response {
 
   @Override
   public String getHeader(String name) {
-    return response.getHeader(name);
+    return response.headers().get(name);
   }
 
   @Override
   public List<String> getHeaders(String name) {
-    return response.getHeaders(name);
+    return response.headers().getAll(name);
   }
 
   @Override
   public boolean containsHeader(String name) {
-    return response.containsHeader(name);
+    return response.headers().contains(name);
   }
 
   @Override
   public Set<String> getHeaderNames() {
-    return response.getHeaderNames();
+    return response.headers().names();
   }
 
   @Override
   public void addHeader(String name, Object value) {
-    response.addHeader(name, value);
+    response.headers().add(name, value);
   }
 
   @Override
   public void setHeader(String name, Object value) {
-    response.setHeader(name, value);
+    response.headers().set(name, value);
   }
 
   @Override
   public void setHeader(String name, Iterable<?> values) {
-    response.setHeader(name, values);
+    response.headers().set(name, values);
   }
 
   @Override
   public void removeHeader(String name) {
-    response.removeHeader(name);
+    response.headers().remove(name);
   }
 
   @Override
   public void clearHeaders() {
-    response.clearHeaders();
+    response.headers().clear();
   }
 
   @Override
@@ -195,9 +189,7 @@ public class DefaultResponse implements Response {
   private void setCookieHeader() {
     if (cookies != null && !cookies.isEmpty()) {
       for (Cookie cookie : cookies) {
-        CookieEncoder cookieEncoder = new CookieEncoder(true);
-        cookieEncoder.addCookie(cookie);
-        response.addHeader(HttpHeaders.Names.SET_COOKIE, cookieEncoder.encode());
+        response.headers().add(HttpHeaders.Names.SET_COOKIE, ServerCookieEncoder.encode(cookie));
       }
     }
   }
@@ -210,8 +202,5 @@ public class DefaultResponse implements Response {
     }
   }
 
-  public HttpResponse getNettyResponse() {
-    return response;
-  }
 
 }

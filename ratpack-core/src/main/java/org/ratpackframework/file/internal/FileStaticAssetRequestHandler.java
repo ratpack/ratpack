@@ -16,20 +16,21 @@
 
 package org.ratpackframework.file.internal;
 
-import org.jboss.netty.handler.codec.http.HttpHeaders;
-import org.ratpackframework.routing.Exchange;
-import org.ratpackframework.routing.Handler;
+import io.netty.handler.codec.http.HttpHeaders;
+import org.ratpackframework.file.FileSystemContext;
 import org.ratpackframework.http.Request;
 import org.ratpackframework.http.Response;
-import org.ratpackframework.file.FileSystemContext;
 import org.ratpackframework.http.internal.HttpDateParseException;
 import org.ratpackframework.http.internal.HttpDateUtil;
+import org.ratpackframework.routing.Exchange;
+import org.ratpackframework.routing.Handler;
 
 import javax.activation.MimetypesFileTypeMap;
 import java.io.File;
 
-import static org.jboss.netty.handler.codec.http.HttpHeaders.Names.IF_MODIFIED_SINCE;
-import static org.jboss.netty.handler.codec.http.HttpResponseStatus.*;
+import static io.netty.handler.codec.http.HttpHeaders.Names.IF_MODIFIED_SINCE;
+import static io.netty.handler.codec.http.HttpResponseStatus.*;
+
 
 public class FileStaticAssetRequestHandler implements Handler {
 
@@ -39,7 +40,7 @@ public class FileStaticAssetRequestHandler implements Handler {
     Response response = exchange.getResponse();
 
     if (!request.getMethod().isGet()) {
-      response.status(METHOD_NOT_ALLOWED.getCode(), METHOD_NOT_ALLOWED.getReasonPhrase()).send();
+      response.status(METHOD_NOT_ALLOWED.code(), METHOD_NOT_ALLOWED.reasonPhrase()).send();
       return;
     }
 
@@ -52,7 +53,7 @@ public class FileStaticAssetRequestHandler implements Handler {
     }
 
     if (!targetFile.isFile()) {
-      response.status(FORBIDDEN.getCode(), FORBIDDEN.getReasonPhrase()).send();
+      response.status(FORBIDDEN.code(), FORBIDDEN.reasonPhrase()).send();
       return;
     }
 
@@ -69,7 +70,7 @@ public class FileStaticAssetRequestHandler implements Handler {
         long ifModifiedSinceSecs = HttpDateUtil.parseDate(ifModifiedSinceHeader).getTime() / 1000;
         long lastModifiedSecs = lastModifiedTime / 1000;
         if (lastModifiedSecs == ifModifiedSinceSecs) {
-          response.status(NOT_MODIFIED.getCode(), NOT_MODIFIED.getReasonPhrase());
+          response.status(NOT_MODIFIED.code(), NOT_MODIFIED.reasonPhrase());
           return;
         }
       } catch (HttpDateParseException ignore) {
@@ -79,7 +80,7 @@ public class FileStaticAssetRequestHandler implements Handler {
 
     final String ifNoneMatch = request.getHeader(HttpHeaders.Names.IF_NONE_MATCH);
     if (ifNoneMatch != null && ifNoneMatch.trim().equals("*")) {
-      response.status(NOT_MODIFIED.getCode(), NOT_MODIFIED.getReasonPhrase()).send();
+      response.status(NOT_MODIFIED.code(), NOT_MODIFIED.reasonPhrase()).send();
       return;
     }
 

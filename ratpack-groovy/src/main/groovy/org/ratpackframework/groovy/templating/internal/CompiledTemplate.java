@@ -17,7 +17,7 @@
 package org.ratpackframework.groovy.templating.internal;
 
 import org.codehaus.groovy.runtime.DefaultGroovyMethods;
-import org.jboss.netty.buffer.ChannelBuffer;
+import io.netty.buffer.ByteBuf;
 import org.ratpackframework.groovy.templating.TemplateModel;
 
 import java.util.Map;
@@ -32,7 +32,7 @@ public class CompiledTemplate {
     this.templateClass = templateClass;
   }
 
-  void execute(Map<String, ?> model, ChannelBuffer buffer, NestedRenderer nestedRenderer) {
+  void execute(Map<String, ?> model, ByteBuf buffer, NestedRenderer nestedRenderer) {
     @SuppressWarnings("unchecked")
     Map<String, Object> modelTyped = (Map<String, Object>) model;
     TemplateModel templateModel = new MapBackedTemplateModel(modelTyped);

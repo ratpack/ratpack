@@ -1,7 +1,7 @@
 package org.ratpackframework.groovy.templating.internal;
 
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.util.CharsetUtil;
+import io.netty.buffer.ByteBuf;
+import io.netty.util.CharsetUtil;
 
 import java.io.IOException;
 
@@ -24,7 +24,7 @@ public class TemplateParser {
   private static final byte[] BACKSLASH = bytes("\\");
   private static final byte[] SEMICOLON = bytes(";");
 
-  public void parse(ChannelBuffer input, ChannelBuffer output) throws IOException {
+  public void parse(ByteBuf input, ByteBuf output) throws IOException {
     startScript(output);
     byte c;
     while (input.readable()) {
@@ -81,15 +81,15 @@ public class TemplateParser {
     endScript(output);
   }
 
-  private void startScript(ChannelBuffer output) {
+  private void startScript(ByteBuf output) {
     output.writeBytes(START_OUTPUT);
   }
 
-  private void endScript(ChannelBuffer output) {
+  private void endScript(ByteBuf output) {
     output.writeBytes(START_CODE);
   }
 
-  private void processGSstring(ChannelBuffer input, ChannelBuffer output) throws IOException {
+  private void processGSstring(ByteBuf input, ByteBuf output) throws IOException {
     output.writeBytes(DOLLAR_BRACE);
     byte c;
     while (input.readable()) {
@@ -103,7 +103,7 @@ public class TemplateParser {
     }
   }
 
-  private void groovyExpression(ChannelBuffer input, ChannelBuffer output) throws IOException {
+  private void groovyExpression(ByteBuf input, ByteBuf output) throws IOException {
     output.writeBytes(DOLLAR_BRACE);
     byte c;
     while (input.readable()) {
@@ -123,7 +123,7 @@ public class TemplateParser {
     output.writeBytes(CLOSE_BRACE);
   }
 
-  private void groovySection(ChannelBuffer input, ChannelBuffer output) throws IOException {
+  private void groovySection(ByteBuf input, ByteBuf output) throws IOException {
     output.writeBytes(START_CODE);
     output.writeByte('\n');
     byte c;

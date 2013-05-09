@@ -16,7 +16,7 @@
 
 package org.ratpackframework.routing.internal;
 
-import org.jboss.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelHandlerContext;
 import org.ratpackframework.context.Context;
 import org.ratpackframework.error.ErrorHandlingContext;
 import org.ratpackframework.routing.Exchange;

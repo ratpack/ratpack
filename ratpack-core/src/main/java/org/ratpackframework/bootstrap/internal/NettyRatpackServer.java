@@ -1,13 +1,14 @@
 package org.ratpackframework.bootstrap.internal;
 
 import com.google.common.util.concurrent.AbstractIdleService;
-import org.jboss.netty.bootstrap.ServerBootstrap;
-import org.jboss.netty.channel.Channel;
-import org.jboss.netty.channel.ChannelFactory;
-import org.jboss.netty.channel.ChannelPipelineFactory;
-import org.jboss.netty.channel.group.ChannelGroup;
-import org.ratpackframework.bootstrap.RatpackServer;
+import io.netty.bootstrap.ServerBootstrap;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.SocketChannel;
+import io.netty.channel.socket.nio.NioServerSocketChannel;
 import org.ratpackframework.Action;
+import org.ratpackframework.bootstrap.RatpackServer;
 
 import java.net.InetSocketAddress;
 import java.util.logging.Level;
@@ -19,32 +20,35 @@ public class NettyRatpackServer extends AbstractIdleService implements RatpackSe
 
   private final InetSocketAddress requestedAddress;
   private InetSocketAddress boundAddress;
-  private final ChannelFactory channelFactory;
-  private final ChannelGroup channelGroup;
+  private final ChannelInitializer<SocketChannel> channelInitializer;
   private final Action<RatpackServer> init;
-  private final ChannelPipelineFactory channelPipelineFactory;
+  private Channel channel;
+  private ServerBootstrap bootstrap;
+  private NioEventLoopGroup bossGroup;
+  private NioEventLoopGroup workerGroup;
 
   public NettyRatpackServer(
       InetSocketAddress requestedAddress,
-      ChannelFactory channelFactory, ChannelGroup channelGroup, ChannelPipelineFactory channelPipelineFactory,
+      ChannelInitializer<SocketChannel> channelInitializer,
       Action<RatpackServer> init
   ) {
     this.requestedAddress = requestedAddress;
-    this.channelFactory = channelFactory;
-    this.channelGroup = channelGroup;
-    this.channelPipelineFactory = channelPipelineFactory;
+    this.channelInitializer = channelInitializer;
     this.init = init;
   }
 
   @Override
-  protected void startUp() {
-    ServerBootstrap bootstrap = new ServerBootstrap(channelFactory);
-    bootstrap.setPipelineFactory(channelPipelineFactory);
-    bootstrap.setOption("child.tcpNoDelay", true);
-    bootstrap.setOption("child.keepAlive", true);
-    Channel channel = bootstrap.bind(requestedAddress);
-    boundAddress = ((InetSocketAddress) channel.getLocalAddress());
-    channelGroup.add(channel);
+  protected void startUp() throws Exception {
+
+    bootstrap = new ServerBootstrap();
+    bossGroup = new NioEventLoopGroup();
+    workerGroup = new NioEventLoopGroup();
+    bootstrap.group(bossGroup, workerGroup)
+        .channel(NioServerSocketChannel.class)
+        .childHandler(channelInitializer);
+
+    channel = bootstrap.bind(requestedAddress).awaitUninterruptibly().channel();
+    boundAddress = ((InetSocketAddress) channel.localAddress());
 
     init.execute(this);
 
@@ -54,9 +58,10 @@ public class NettyRatpackServer extends AbstractIdleService implements RatpackSe
   }
 
   @Override
-  protected void shutDown() {
-    channelGroup.close().awaitUninterruptibly();
-    channelFactory.releaseExternalResources();
+  protected void shutDown() throws Exception {
+    channel.close().sync();
+    bossGroup.shutdownGracefully();
+    workerGroup.shutdownGracefully();
   }
 
   @Override

@@ -1,6 +1,6 @@
 package org.ratpackframework.groovy.templating.internal;
 
-import org.jboss.netty.buffer.ChannelBuffer;
+import io.netty.buffer.ByteBuf;
 import org.ratpackframework.Result;
 import org.ratpackframework.ResultAction;
 import org.ratpackframework.groovy.templating.TemplateRenderer;
@@ -24,9 +24,9 @@ public class DefaultTemplateRenderer implements TemplateRenderer {
 
   @Override
   public void render(Map<String, ?> model, String templateId) {
-    engine.renderTemplate(templateDir, templateId, model, new ResultAction<ChannelBuffer>() {
+    engine.renderTemplate(templateDir, templateId, model, new ResultAction<ByteBuf>() {
       @Override
-      public void execute(Result<ChannelBuffer> event) {
+      public void execute(Result<ByteBuf> event) {
         if (event.isFailure()) {
           error(ExceptionToTemplateModel.transform(exchange.getRequest(), event.getFailure()));
         } else {
@@ -42,9 +42,9 @@ public class DefaultTemplateRenderer implements TemplateRenderer {
 
   @Override
   public void error(Map<String, ?> model) {
-    engine.renderError(templateDir, model, new ResultAction<ChannelBuffer>() {
+    engine.renderError(templateDir, model, new ResultAction<ByteBuf>() {
       @Override
-      public void execute(Result<ChannelBuffer> event) {
+      public void execute(Result<ByteBuf> event) {
         if (event.isFailure()) {
           exchange.error(event.getFailure());
         } else {

@@ -16,8 +16,8 @@
 
 package org.ratpackframework.session.internal;
 
-import org.jboss.netty.handler.codec.http.Cookie;
-import org.jboss.netty.handler.codec.http.DefaultCookie;
+import io.netty.handler.codec.http.Cookie;
+import io.netty.handler.codec.http.DefaultCookie;
 import org.ratpackframework.routing.Exchange;
 import org.ratpackframework.session.Session;
 import org.ratpackframework.session.SessionManager;

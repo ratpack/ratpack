@@ -17,8 +17,8 @@
 package org.ratpackframework.groovy.templating.internal;
 
 import com.google.common.cache.Cache;
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.buffer.ChannelBuffers;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import org.ratpackframework.Result;
 import org.ratpackframework.ResultAction;
 import org.ratpackframework.util.IoUtils;
@@ -33,25 +33,25 @@ public class Render {
   private final TemplateCompiler templateCompiler;
   private final File templateDir;
 
-  public Render(TemplateCompiler templateCompiler, Cache<File, CompiledTemplate> compiledTemplateCache, File templateDir, CompiledTemplate template, Map<String, ?> model, final ResultAction<ChannelBuffer> handler) {
+  public Render(TemplateCompiler templateCompiler, Cache<File, CompiledTemplate> compiledTemplateCache, File templateDir, CompiledTemplate template, Map<String, ?> model, final ResultAction<ByteBuf> handler) {
     this.templateCompiler = templateCompiler;
     this.compiledTemplateCache = compiledTemplateCache;
     this.templateDir = templateDir;
 
-    ChannelBuffer buffer = ChannelBuffers.dynamicBuffer();
+    ByteBuf buffer = Unpooled.buffer();
 
     try {
       execute(template, model, buffer);
     } catch (Exception e) {
-      handler.execute(new Result<ChannelBuffer>(e));
+      handler.execute(new Result<ByteBuf>(e));
       return;
     }
 
-    handler.execute(new Result<ChannelBuffer>(buffer));
+    handler.execute(new Result<ByteBuf>(buffer));
   }
 
 
-  private void executeNested(final String templatePath, final Map<String, ?> model, ChannelBuffer buffer) throws Exception {
+  private void executeNested(final String templatePath, final Map<String, ?> model, ByteBuf buffer) throws Exception {
     File templateFile = new File(templateDir, templatePath);
 
     CompiledTemplate cachedTemplate = compiledTemplateCache.getIfPresent(templateFile);
@@ -62,15 +62,15 @@ public class Render {
 
     CompiledTemplate compiledTemplate;
 
-    ChannelBuffer channelBuffer = IoUtils.readFile(templateFile);
-    compiledTemplate = templateCompiler.compile(channelBuffer, templatePath);
+    ByteBuf ByteBuf = IoUtils.readFile(templateFile);
+    compiledTemplate = templateCompiler.compile(ByteBuf, templatePath);
 
     compiledTemplateCache.put(templateFile, compiledTemplate);
     execute(compiledTemplate, model, buffer);
   }
 
 
-  private void execute(CompiledTemplate compiledTemplate, final Map<String, ?> model, final ChannelBuffer parts) throws Exception {
+  private void execute(CompiledTemplate compiledTemplate, final Map<String, ?> model, final ByteBuf parts) throws Exception {
     compiledTemplate.execute(model, parts, new NestedRenderer() {
       public void render(String templatePath, Map<String, ?> nestedModel) throws Exception {
         Map<String, Object> modelCopy = new HashMap<>(model);

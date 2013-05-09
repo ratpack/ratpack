@@ -16,7 +16,7 @@
 
 package org.ratpackframework.http;
 
-import org.jboss.netty.handler.codec.http.Cookie;
+import io.netty.handler.codec.http.Cookie;
 import org.ratpackframework.http.MediaType;
 
 import java.util.List;
@@ -69,13 +69,6 @@ public interface Request {
    * @return the {@link List} of header values.  An empty list if there is no such header.
    */
   List<String> getHeaders(String name);
-
-  /**
-   * Returns the all header names and values that this message contains.
-   *
-   * @return the {@link List} of the header name-value pairs.  An empty list if there is no header in this message.
-   */
-  List<Map.Entry<String, String>> getHeaders();
 
   /**
    * Returns {@code true} if and only if there is a header with the specified header name.

@@ -17,9 +17,9 @@
 package org.ratpackframework.groovy.templating.internal;
 
 import org.codehaus.groovy.control.CompilationFailedException;
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.buffer.ChannelBuffers;
-import org.jboss.netty.util.CharsetUtil;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
+import io.netty.util.CharsetUtil;
 import org.ratpackframework.groovy.script.ScriptEngine;
 
 import java.io.IOException;
@@ -43,8 +43,8 @@ public class TemplateCompiler {
     this.verbose = verbose;
   }
 
-  public CompiledTemplate compile(ChannelBuffer templateSource, String name) throws CompilationFailedException, IOException {
-    ChannelBuffer scriptSource = ChannelBuffers.dynamicBuffer(templateSource.capacity());
+  public CompiledTemplate compile(ByteBuf templateSource, String name) throws CompilationFailedException, IOException {
+    ByteBuf scriptSource = Unpooled.buffer(templateSource.capacity());
     parser.parse(templateSource, scriptSource);
 
     String scriptSourceString = scriptSource.toString(CharsetUtil.UTF_8);

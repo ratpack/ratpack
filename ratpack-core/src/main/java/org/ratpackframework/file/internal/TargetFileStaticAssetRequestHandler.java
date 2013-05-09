@@ -1,15 +1,13 @@
 package org.ratpackframework.file.internal;
 
-import org.jboss.netty.util.CharsetUtil;
+import org.ratpackframework.context.Context;
+import org.ratpackframework.file.FileSystemContext;
+import org.ratpackframework.http.Request;
+import org.ratpackframework.path.PathContext;
 import org.ratpackframework.routing.Exchange;
 import org.ratpackframework.routing.Handler;
-import org.ratpackframework.context.Context;
-import org.ratpackframework.http.Request;
-import org.ratpackframework.file.FileSystemContext;
-import org.ratpackframework.path.PathContext;
 
 import java.io.File;
-import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
 

@@ -18,16 +18,12 @@ package org.ratpackframework.groovy.templating.internal;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import io.netty.buffer.ByteBuf;
 import org.codehaus.groovy.runtime.IOGroovyMethods;
-import org.jboss.netty.buffer.ChannelBuffer;
 import org.ratpackframework.Result;
 import org.ratpackframework.ResultAction;
 import org.ratpackframework.groovy.script.ScriptEngine;
 import org.ratpackframework.groovy.templating.TemplatingConfig;
-import org.ratpackframework.groovy.templating.internal.CompiledTemplate;
-import org.ratpackframework.groovy.templating.internal.Render;
-import org.ratpackframework.groovy.templating.internal.TemplateCompiler;
-import org.ratpackframework.groovy.templating.internal.TemplateScript;
 import org.ratpackframework.util.IoUtils;
 
 import javax.inject.Inject;
@@ -52,22 +48,22 @@ public class GroovyTemplateRenderingEngine {
     templateCompiler = new TemplateCompiler(scriptEngine);
   }
 
-  public void renderTemplate(final File templateDir, final String templateId, final Map<String, ?> model, final ResultAction<ChannelBuffer> handler) {
+  public void renderTemplate(final File templateDir, final String templateId, final Map<String, ?> model, final ResultAction<ByteBuf> handler) {
     final File templateFile = getTemplateFile(templateDir, templateId);
-    render(templateDir, templateFile, templateId, model, handler, new Callable<ChannelBuffer>() {
+    render(templateDir, templateFile, templateId, model, handler, new Callable<ByteBuf>() {
       @Override
-      public ChannelBuffer call() throws Exception {
+      public ByteBuf call() throws Exception {
         return IoUtils.readFile(templateFile);
       }
     });
   }
 
-  public void renderError(final File templateDir, Map<String, ?> model, ResultAction<ChannelBuffer> handler) {
+  public void renderError(final File templateDir, Map<String, ?> model, ResultAction<ByteBuf> handler) {
     final File errorTemplate = getTemplateFile(templateDir, ERROR_TEMPLATE);
 
-    render(templateDir, errorTemplate, ERROR_TEMPLATE, model, handler, new Callable<ChannelBuffer>() {
+    render(templateDir, errorTemplate, ERROR_TEMPLATE, model, handler, new Callable<ByteBuf>() {
       @Override
-      public ChannelBuffer call() throws Exception {
+      public ByteBuf call() throws Exception {
         if (errorTemplate.exists()) {
           return IoUtils.readFile(errorTemplate);
         } else {
@@ -77,7 +73,7 @@ public class GroovyTemplateRenderingEngine {
     });
   }
 
-  private void render(File templateDir, File templateFile, final String templateName, Map<String, ?> model, ResultAction<ChannelBuffer> handler, final Callable<? extends ChannelBuffer> bufferProvider) {
+  private void render(File templateDir, File templateFile, final String templateName, Map<String, ?> model, ResultAction<ByteBuf> handler, final Callable<? extends ByteBuf> bufferProvider) {
     try {
       CompiledTemplate compiledTemplate = compiledTemplateCache.get(templateFile, new Callable<CompiledTemplate>() {
         @Override
@@ -87,7 +83,7 @@ public class GroovyTemplateRenderingEngine {
       });
       new Render(templateCompiler, compiledTemplateCache, templateDir, compiledTemplate, model, handler);
     } catch (ExecutionException e) {
-      handler.execute(new Result<ChannelBuffer>(e));
+      handler.execute(new Result<ByteBuf>(e));
     }
   }
 
@@ -95,8 +91,8 @@ public class GroovyTemplateRenderingEngine {
     return new File(templateDir, templateName);
   }
 
-  private ChannelBuffer getResourceBuffer(String resourceName) throws IOException {
-    return IoUtils.channelBuffer(IOGroovyMethods.getBytes(getClass().getResourceAsStream(resourceName)));
+  private ByteBuf getResourceBuffer(String resourceName) throws IOException {
+    return IoUtils.ByteBuf(IOGroovyMethods.getBytes(getClass().getResourceAsStream(resourceName)));
   }
 
 }

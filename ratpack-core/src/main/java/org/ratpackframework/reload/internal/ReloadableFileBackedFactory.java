@@ -1,6 +1,6 @@
 package org.ratpackframework.reload.internal;
 
-import org.jboss.netty.buffer.ChannelBuffer;
+import io.netty.buffer.ByteBuf;
 import org.ratpackframework.util.IoUtils;
 
 import java.io.File;
@@ -17,12 +17,12 @@ public class ReloadableFileBackedFactory<T> implements Factory<T> {
   private final Delegate<T> delegate;
 
   private final AtomicLong lastModifiedHolder = new AtomicLong(-1);
-  private final AtomicReference<ChannelBuffer> contentHolder = new AtomicReference<>();
+  private final AtomicReference<ByteBuf> contentHolder = new AtomicReference<>();
   private final AtomicReference<T> delegateHolder = new AtomicReference<>(null);
   private final Lock lock = new ReentrantLock();
 
   static public interface Delegate<T> {
-    T produce(File file, ChannelBuffer bytes);
+    T produce(File file, ByteBuf bytes);
   }
 
   public ReloadableFileBackedFactory(File file, boolean reloadable, Delegate<T> delegate) {
@@ -61,7 +61,7 @@ public class ReloadableFileBackedFactory<T> implements Factory<T> {
   }
 
   private boolean isBytesAreSame() throws IOException {
-    ChannelBuffer existing = contentHolder.get();
+    ByteBuf existing = contentHolder.get();
     //noinspection SimplifiableIfStatement
     if (existing == null) {
       return false;
@@ -78,7 +78,7 @@ public class ReloadableFileBackedFactory<T> implements Factory<T> {
     lock.lock();
     try {
       long lastModifiedTime = file.lastModified();
-      ChannelBuffer bytes = IoUtils.readFile(file);
+      ByteBuf bytes = IoUtils.readFile(file);
 
       if (lastModifiedTime == lastModifiedHolder.get() && bytes.equals(contentHolder.get())) {
         return;

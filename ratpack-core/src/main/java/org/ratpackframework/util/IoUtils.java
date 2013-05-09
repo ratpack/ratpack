@@ -1,8 +1,8 @@
 package org.ratpackframework.util;
 
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.buffer.ChannelBuffers;
-import org.jboss.netty.util.CharsetUtil;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
+import io.netty.util.CharsetUtil;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -12,7 +12,7 @@ import java.nio.channels.FileChannel;
 
 public abstract class IoUtils {
 
-  public static ChannelBuffer readFile(File file) throws IOException {
+  public static ByteBuf readFile(File file) throws IOException {
     FileInputStream fIn = null;
     FileChannel fChan = null;
     long fSize;
@@ -36,23 +36,23 @@ public abstract class IoUtils {
       throw e;
     }
 
-    return ChannelBuffers.wrappedBuffer(mBuf);
+    return Unpooled.wrappedBuffer(mBuf);
   }
 
-  public static ChannelBuffer utf8Buffer(String str) {
-    return channelBuffer(utf8Bytes(str));
+  public static ByteBuf utf8Buffer(String str) {
+    return ByteBuf(utf8Bytes(str));
   }
 
   public static byte[] utf8Bytes(String str) {
     return str.getBytes(CharsetUtil.UTF_8);
   }
 
-  public static String utf8String(ChannelBuffer channelBuffer) {
-    return channelBuffer.toString(CharsetUtil.UTF_8);
+  public static String utf8String(ByteBuf ByteBuf) {
+    return ByteBuf.toString(CharsetUtil.UTF_8);
   }
 
-  public static ChannelBuffer channelBuffer(byte[] bytes) {
-    return ChannelBuffers.wrappedBuffer(bytes);
+  public static ByteBuf ByteBuf(byte[] bytes) {
+    return Unpooled.wrappedBuffer(bytes);
   }
 
 }

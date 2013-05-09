@@ -16,12 +16,11 @@
 
 package org.ratpackframework.http;
 
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.handler.codec.http.Cookie;
+import io.netty.buffer.ByteBuf;
+import io.netty.handler.codec.http.Cookie;
 
 import java.io.File;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -60,7 +59,7 @@ public interface Response {
    *
    * @param buffer The response body
    */
-  void send(String contentType, ChannelBuffer buffer);
+  void send(String contentType, ByteBuf buffer);
 
   void sendFile(String contentType, File file);
 
@@ -91,13 +90,6 @@ public interface Response {
    * @return the {@link List} of header values.  An empty list if there is no such header.
    */
   List<String> getHeaders(String name);
-
-  /**
-   * Returns the all header names and values that this message contains.
-   *
-   * @return the {@link List} of the header name-value pairs.  An empty list if there is no header in this message.
-   */
-  List<Map.Entry<String, String>> getHeaders();
 
   /**
    * Returns {@code true} if and only if there is a header with the specified header name.

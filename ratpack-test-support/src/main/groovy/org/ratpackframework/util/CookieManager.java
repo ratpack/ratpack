@@ -15,7 +15,7 @@ public class CookieManager {
   private static final String COOKIE_VALUE_DELIMITER = ";";
   private static final String PATH = "path";
   private static final String EXPIRES = "expires";
-  private static final String DATE_FORMAT = "EEE, dd-MMM-yyyy hh:mm:ss z";
+  private static final String DATE_FORMAT = "EEE, dd MMM yyyy hh:mm:ss z";
   private static final String SET_COOKIE_SEPARATOR = "; ";
   private static final String COOKIE = "Cookie";
 
@@ -52,7 +52,7 @@ public class CookieManager {
       domainStore = store.get(domain);
     } else {
       // we don't, so let's create it and put it in the store
-      domainStore = new HashMap<String, Map<Object, String>>();
+      domainStore = new HashMap<>();
       store.put(domain, domainStore);
     }
 
@@ -62,7 +62,7 @@ public class CookieManager {
     String headerName;
     for (int i = 1; (headerName = conn.getHeaderFieldKey(i)) != null; i++) {
       if (headerName.equalsIgnoreCase(SET_COOKIE)) {
-        Map<Object, String> cookie = new HashMap<Object, String>();
+        Map<Object, String> cookie = new HashMap<>();
         StringTokenizer st = new StringTokenizer(conn.getHeaderField(i), COOKIE_VALUE_DELIMITER);
 
         // the specification dictates that the first name/value pair

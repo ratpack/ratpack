@@ -1,7 +1,7 @@
 package org.ratpackframework.groovy.templating.internal;
 
 import groovy.lang.Script;
-import org.jboss.netty.buffer.ChannelBuffer;
+import io.netty.buffer.ByteBuf;
 import org.ratpackframework.groovy.templating.Template;
 import org.ratpackframework.groovy.templating.TemplateModel;
 import org.ratpackframework.util.IoUtils;
@@ -13,9 +13,9 @@ public abstract class TemplateScript extends Script implements Template {
 
   private final TemplateModel model;
   private final NestedRenderer renderer;
-  private final ChannelBuffer buffer;
+  private final ByteBuf buffer;
 
-  protected TemplateScript(TemplateModel model, ChannelBuffer buffer, NestedRenderer renderer) {
+  protected TemplateScript(TemplateModel model, ByteBuf buffer, NestedRenderer renderer) {
     this.model = model;
     this.buffer = buffer;
     this.renderer = renderer;

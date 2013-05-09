@@ -18,7 +18,7 @@ class ConcurrentRequestSpec extends RatpackGroovyDslSpec {
     }
 
     and:
-    def threads = 100
+    def threads = 500
     def latch = new CountDownLatch(threads)
     def results = []
     threads.times {

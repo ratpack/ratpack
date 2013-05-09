@@ -18,7 +18,7 @@ package org.ratpackframework.groovy.internal;
 
 import groovy.lang.Closure;
 import groovy.lang.Script;
-import org.jboss.netty.buffer.ChannelBuffer;
+import io.netty.buffer.ByteBuf;
 import org.ratpackframework.Action;
 import org.ratpackframework.groovy.Closures;
 import org.ratpackframework.groovy.routing.Routing;
@@ -43,7 +43,7 @@ public class ScriptBackedApp implements Handler {
   public ScriptBackedApp(File script, final GuiceBackedHandlerFactory appFactory, final boolean staticCompile, boolean reloadable) {
     this.reloadHandler = new ReloadableFileBackedFactory<>(script, reloadable, new ReloadableFileBackedFactory.Delegate<Handler>() {
       @Override
-      public Handler produce(final File file, final ChannelBuffer bytes) {
+      public Handler produce(final File file, final ByteBuf bytes) {
         try {
           final String string;
           string = IoUtils.utf8String(bytes);

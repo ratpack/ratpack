@@ -16,14 +16,15 @@
 
 package org.ratpackframework.file.internal;
 
-import org.jboss.netty.handler.codec.http.HttpResponseStatus;
+import org.ratpackframework.file.FileSystemContext;
 import org.ratpackframework.routing.Exchange;
 import org.ratpackframework.routing.Handler;
-import org.ratpackframework.file.FileSystemContext;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+
+import static io.netty.handler.codec.http.HttpResponseStatus.FORBIDDEN;
 
 public class DirectoryStaticAssetRequestHandler implements Handler {
 
@@ -47,7 +48,7 @@ public class DirectoryStaticAssetRequestHandler implements Handler {
           return;
         }
       }
-      exchange.getResponse().status(HttpResponseStatus.FORBIDDEN.getCode(), HttpResponseStatus.FORBIDDEN.getReasonPhrase()).send();
+      exchange.getResponse().status(FORBIDDEN.code(), FORBIDDEN.reasonPhrase()).send();
     } else {
       exchange.next(delegate);
     }

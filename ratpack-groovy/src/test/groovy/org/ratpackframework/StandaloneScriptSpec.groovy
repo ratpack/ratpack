@@ -20,7 +20,7 @@ class StandaloneScriptSpec extends RatpackGroovyScriptAppSpec {
         server = it
       })
 
-      Thread thread = Thread.start {
+      Thread.start {
         script.run()
       }
 
@@ -35,6 +35,8 @@ class StandaloneScriptSpec extends RatpackGroovyScriptAppSpec {
       if (!server) {
         throw new IllegalStateException("Server did not start")
       }
+
+      server.startAndWait()
     }
 
     @Override

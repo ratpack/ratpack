@@ -1,10 +1,10 @@
 package org.ratpackframework.groovy.templating.internal
 
-import org.jboss.netty.buffer.ChannelBuffer
-import org.jboss.netty.buffer.ChannelBuffers
-import org.jboss.netty.util.CharsetUtil
-import org.ratpackframework.util.IoUtils
+import io.netty.buffer.ByteBuf
+import io.netty.buffer.Unpooled
+import io.netty.util.CharsetUtil
 import org.ratpackframework.groovy.script.ScriptEngine
+import org.ratpackframework.util.IoUtils
 import spock.lang.Specification
 
 class TemplateCompilerTest extends Specification {
@@ -16,7 +16,7 @@ class TemplateCompilerTest extends Specification {
   }
 
   class StubNestedRenderer implements NestedRenderer {
-    ChannelBuffer buffer
+    ByteBuf buffer
 
     @Override
     void render(String templateName, Map<String, ?> model) {
@@ -25,7 +25,7 @@ class TemplateCompilerTest extends Specification {
   }
 
   String exec(String script) {
-    ChannelBuffer buffer = ChannelBuffers.dynamicBuffer(script.size())
+    ByteBuf buffer = Unpooled.buffer(script.size())
     compile(script).execute([:], buffer, new StubNestedRenderer(buffer: buffer))
     buffer.toString(CharsetUtil.UTF_8)
   }

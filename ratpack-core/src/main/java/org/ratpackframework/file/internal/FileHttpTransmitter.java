@@ -1,7 +1,9 @@
 package org.ratpackframework.file.internal;
 
-import org.jboss.netty.channel.*;
-import org.jboss.netty.handler.codec.http.HttpResponse;
+import io.netty.channel.*;
+import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpResponse;
+import io.netty.handler.stream.ChunkedFile;
 import org.ratpackframework.http.internal.HttpDateUtil;
 
 import java.io.File;
@@ -9,8 +11,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.Date;
-
-import static org.jboss.netty.handler.codec.http.HttpHeaders.Names.*;
 
 public class FileHttpTransmitter {
 
@@ -29,8 +29,8 @@ public class FileHttpTransmitter {
       throw new RuntimeException(e);
     }
 
-    response.setHeader(CONTENT_LENGTH, fileLength);
-    response.setHeader(LAST_MODIFIED, HttpDateUtil.formatDate(new Date(targetFile.lastModified())));
+    response.headers().set(HttpHeaders.Names.CONTENT_LENGTH, fileLength);
+    response.headers().set(HttpHeaders.Names.LAST_MODIFIED, HttpDateUtil.formatDate(new Date(targetFile.lastModified())));
 
     // Write the initial line and the header.
     if (!channel.isOpen()) {
@@ -41,9 +41,10 @@ public class FileHttpTransmitter {
 
     // Write the content.
     ChannelFuture writeFuture;
-    final FileRegion region = new DefaultFileRegion(raf.getChannel(), 0, fileLength);
+
     try {
-      writeFuture = channel.write(region);
+
+      writeFuture = channel.write(new ChunkedFile(raf, 0, fileLength, 8192));
     } catch (Exception ignore) {
       if (channel.isOpen()) {
         channel.close();
@@ -54,7 +55,6 @@ public class FileHttpTransmitter {
     writeFuture.addListener(new ChannelFutureListener() {
       public void operationComplete(ChannelFuture future) {
         future.addListener(ChannelFutureListener.CLOSE);
-        region.releaseExternalResources();
       }
     });
 
