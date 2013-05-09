@@ -1,7 +1,0 @@
-apply plugin: "groovy"
-
-dependencies {
-  compile commonDependencies.groovy
-  compile project(":ratpack-core"), project(":ratpack-groovy")
-  compile commonDependencies.spock
-}
