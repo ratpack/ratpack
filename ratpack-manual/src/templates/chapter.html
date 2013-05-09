@@ -1,0 +1,32 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+
+<head>
+  <title>@title@ - <%= chapter.title %> - @ratpack-version@</title>
+  @head@
+</head>
+
+<body>
+  <div id="wrapper">
+    <div id="header">
+      <% if (prev) { %><span class="left">&#x25C0; <a href="<%= prev.filename %>"><%= prev.title %></a></span><% } %>
+      <span class="center"><a href="index.html">Table of Contents</a></span>
+      <% if (next) { %><span class="right"><a href="<%= next.filename %>"><%= next.title %></a> &#x25B6;</span><% } %>
+    </div>
+    <hr />
+    <div class="page_toc">
+      <h3>Chapter Contents</h3>
+      <%= chapter.toc %>
+    </div>
+    <hr />
+    <%= chapter.content %>
+    <hr />
+    <div id="footer">
+      <% if (prev) { %><span class="left">&#x25C0; <a href="<%= prev.filename %>"><%= prev.title %></a></span><% } %>
+      <span class="center"><a href="index.html">Table of Contents</a></span>
+      <% if (next) { %><span class="right"><a href="<%= next.filename %>"><%= next.title %></a> &#x25B6;</span><% } %>
+    </div>
+  </div>
+  <p style="text-align: center">@footer@</p>
+</body>
+</html>

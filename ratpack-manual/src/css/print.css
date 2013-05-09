@@ -1,0 +1,66 @@
+﻿body {
+	color: #000;
+	font-family: serif;
+}
+
+hr {
+	border: 1px solid #CCCCCC;
+	border-top: 0;
+}
+
+a {
+	text-decoration: none;
+	color: #666;
+}
+
+.toc {
+	page-break-after: always;
+}
+.toc a {
+	color: #000;
+	text-decoration: none;
+	margin-left: 1ex;
+}
+.toc a:hover {
+	color: #FFF;
+	background-color: #000;
+}
+.toc ul {
+	font: 18px "Lucida Grande", sans-serif;
+	padding: 0 0 0 3ex;
+	list-style-type: none;
+	list-style-image: none;
+	line-height: 135%;
+}
+.toc ul ul {
+	font-size: 80%;
+}
+
+.chapter {
+	page-break-after: always;
+}
+
+pre {
+	padding-left: 3em;
+}
+
+.graybox {
+   border-top: 1px solid #919699;
+   border-left: 1px solid #919699;
+}
+.graybox th {
+   background: #E2E2E2;
+   border-bottom: 1px solid #919699;
+   border-right: 1px solid #919699;
+   font-size: 12px;
+   font-weight: bold;
+   padding: 4px 8px 4px 8px;
+   text-align: left;
+}
+.graybox td {
+   border-bottom: 1px solid #919699;
+   border-right: 1px solid #919699;
+   font-size: 12px;
+   padding: 8px;
+   vertical-align: top;
+}

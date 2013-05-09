@@ -1,2 +1,7 @@
-include "ratpack-core", "ratpack-gradle", "ratpack-groovy", "ratpack-test-support"
+include \
+    "ratpack-core",
+    "ratpack-gradle",
+    "ratpack-groovy",
+    "ratpack-test-support",
+    "ratpack-manual"
 
