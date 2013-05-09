@@ -48,6 +48,12 @@ subprojects {
   apply from: "${rootDir}/gradle/pom.gradle"
   apply plugin: "signing"
 
+  if (rootProject.hasProperty("ciBuild")) {
+    plugins.withType(ReportingBasePlugin) {
+      reporting.baseDir = rootProject.file("build/reports/$name")
+    }
+  }
+
   plugins.withType(JavaPlugin) {
     sourceSets.main {
       resources {
@@ -162,6 +168,13 @@ if (hasProperty("enableClover")) {
   configure([rootProject, project(":ratpack-core"), project(":ratpack-gradle"), project(":ratpack-groovy")]) {
     apply from: rootProject.file("gradle/clover.gradle")
   }
+}
+
+task ciZip(type: Zip) {
+  into "reports", { from "build/reports" }
+  into "manual", { from { project(":ratpack-manual").packageManual } }
+  archiveName = "ci.zip"
+  destinationDir = buildDir
 }
 
 task wrapper(type: Wrapper) {
