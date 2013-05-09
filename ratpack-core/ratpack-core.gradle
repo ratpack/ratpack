@@ -1,0 +1,19 @@
+apply plugin: "groovy"
+
+dependencies {
+  compile 'io.netty:netty:3.6.1.Final'
+
+  compile 'com.google.guava:guava:13.0.1'
+  compile 'com.google.inject:guice:3.0', {
+    exclude group: 'org.sonatype.sisu.inject'
+  }
+
+  groovy commonDependencies.groovy
+  testCompile commonDependencies.spock
+  testCompile project(":ratpack-test-support")
+}
+
+configurations {
+  compile.extendsFrom -= groovy
+  testCompile.extendsFrom groovy
+}
