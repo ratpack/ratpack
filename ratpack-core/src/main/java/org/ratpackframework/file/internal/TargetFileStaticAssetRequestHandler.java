@@ -10,7 +10,8 @@ import org.ratpackframework.path.PathContext;
 
 import java.io.File;
 import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 public class TargetFileStaticAssetRequestHandler implements Handler {
 
@@ -35,13 +36,9 @@ public class TargetFileStaticAssetRequestHandler implements Handler {
 
     // Decode the pathRoutes.
     try {
-      path = URLDecoder.decode(path, CharsetUtil.UTF_8.name());
-    } catch (UnsupportedEncodingException e) {
-      try {
-        path = URLDecoder.decode(path, CharsetUtil.ISO_8859_1.name());
-      } catch (UnsupportedEncodingException e1) {
-        throw new RuntimeException(e1);
-      }
+      path = new URI(path).getPath();
+    } catch (URISyntaxException e) {
+      throw new RuntimeException(e);
     }
 
     // Convert file separators.

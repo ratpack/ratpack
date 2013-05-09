@@ -113,6 +113,27 @@ class StaticFileSpec extends DefaultRatpackSpec {
     urlGetText("f2.txt?includeSecond") == "2"
   }
 
+  def "decodes URL paths correctly"() {
+    given:
+    file("d1/some other.txt") << "1"
+    file("d1/some+more.txt") << "2"
+    file("d1/path to/some+where/test.txt") << "3"
+
+    when:
+    app {
+      routing {
+        route assets("d1")
+      }
+    }
+
+    then:
+    urlGetText("some%20other.txt") == "1"
+    urlGetText("some+more.txt") == "2"
+    urlGetText("path%20to/some+where/test.txt") == "3"
+    urlGetConnection("some+other.txt").responseCode == 404
+    urlGetConnection("some%20more.txt").responseCode == 404
+  }
+
   def "can specify explicit not found handler"() {
     given:
     file("d1/f1.txt") << "1"
