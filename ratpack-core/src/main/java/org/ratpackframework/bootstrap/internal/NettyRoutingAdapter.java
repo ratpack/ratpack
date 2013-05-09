@@ -1,4 +1,4 @@
-package org.ratpackframework.http.internal;
+package org.ratpackframework.bootstrap.internal;
 
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFutureListener;
@@ -11,6 +11,8 @@ import org.ratpackframework.error.internal.ErrorHandler;
 import org.ratpackframework.error.internal.TopLevelErrorHandlingContext;
 import org.ratpackframework.http.Request;
 import org.ratpackframework.http.Response;
+import org.ratpackframework.http.internal.DefaultRequest;
+import org.ratpackframework.http.internal.DefaultResponse;
 import org.ratpackframework.routing.Exchange;
 import org.ratpackframework.routing.Handler;
 import org.ratpackframework.routing.internal.DefaultExchange;

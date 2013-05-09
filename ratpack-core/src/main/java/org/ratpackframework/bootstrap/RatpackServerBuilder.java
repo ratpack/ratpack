@@ -1,17 +1,11 @@
 package org.ratpackframework.bootstrap;
 
-import io.netty.channel.ChannelInboundMessageHandlerAdapter;
 import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
-import io.netty.handler.codec.http.*;
-import io.netty.handler.stream.ChunkedWriteHandler;
-import io.netty.util.concurrent.DefaultEventExecutorGroup;
-import io.netty.util.concurrent.EventExecutorGroup;
 import org.ratpackframework.Action;
 import org.ratpackframework.bootstrap.internal.NettyRatpackServer;
 import org.ratpackframework.bootstrap.internal.NoopInit;
-import org.ratpackframework.http.internal.NettyRoutingAdapter;
+import org.ratpackframework.bootstrap.internal.RatpackChannelInitializer;
 import org.ratpackframework.routing.Handler;
 
 import java.net.InetSocketAddress;
@@ -21,10 +15,11 @@ public class RatpackServerBuilder {
   public static final int DEFAULT_PORT = 5050;
   private final Handler handler;
 
+  private int workerThreads = Runtime.getRuntime().availableProcessors() * 2;
+
   private int port = DEFAULT_PORT;
   private String host = null;
   private Action<RatpackServer> init = new NoopInit();
-  private EventExecutorGroup appExecutor = new DefaultEventExecutorGroup(Runtime.getRuntime().availableProcessors() * 2);
 
   public RatpackServerBuilder(Handler handler) {
     this.handler = handler;
@@ -54,12 +49,12 @@ public class RatpackServerBuilder {
     this.init = init;
   }
 
-  public EventExecutorGroup getAppExecutor() {
-    return appExecutor;
+  public int getWorkerThreads() {
+    return workerThreads;
   }
 
-  public void setAppExecutor(EventExecutorGroup appExecutor) {
-    this.appExecutor = appExecutor;
+  public void setWorkerThreads(int workerThreads) {
+    this.workerThreads = workerThreads;
   }
 
   public RatpackServer build() {
@@ -70,29 +65,12 @@ public class RatpackServerBuilder {
     );
   }
 
-  private ChannelInitializer<SocketChannel> buildChannelInitializer() {
-    return new ChannelInitializer<SocketChannel>() {
-      public void initChannel(SocketChannel ch) throws Exception {
-        // Create a default pipeline implementation.
-        ChannelPipeline pipeline = ch.pipeline();
-
-        pipeline.addLast("decoder", new HttpRequestDecoder());
-        pipeline.addLast("aggregator", new HttpObjectAggregator(65536));
-        pipeline.addLast("encoder", new HttpResponseEncoder());
-        pipeline.addLast("chunkedWriter", new ChunkedWriteHandler());
-
-        pipeline.addLast(appExecutor, "handler", buildNettyAdapter());
-      }
-    };
-  }
-
   protected InetSocketAddress buildSocketAddress() {
     return (host == null) ? new InetSocketAddress(port) : new InetSocketAddress(host, port);
   }
 
-
-  protected ChannelInboundMessageHandlerAdapter<FullHttpRequest> buildNettyAdapter() {
-    return new NettyRoutingAdapter(handler);
+  private ChannelInitializer<SocketChannel> buildChannelInitializer() {
+    return new RatpackChannelInitializer(workerThreads, handler);
   }
 
 }
