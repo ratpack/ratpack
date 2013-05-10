@@ -3,7 +3,7 @@ import org.gradle.plugins.compass.*
 
 apply plugin: 'ratpack-groovy'
 apply plugin: 'coffeescript-base'
-apply plugin: CompassPlugin
+apply plugin: 'compass'
 
 configurations.all {
 	resolutionStrategy {
@@ -14,10 +14,12 @@ configurations.all {
 buildscript {
 	repositories {
 		maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
+		maven { url "http://dl.bintray.com/robfletcher/gradle-plugins" }
 		mavenCentral()
 	}
 	dependencies {
 		classpath 'org.ratpack-framework.netty:ratpack-gradle:0.7.0-SNAPSHOT'
+		classpath 'org.gradle.plugins:gradle-compass:1.0'
 	}
 }
 
