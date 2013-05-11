@@ -2,9 +2,13 @@
 apply plugin: "idea"
 
 idea {
+  module {
+    excludeDirs += file('localrepo')
+  }
+
   project {
     jdkName "1.7"
-    languageLevel "1.7"
+    languageLevel "1.5"
     ipr {
       withXml { provider ->
         def node = provider.asNode()
