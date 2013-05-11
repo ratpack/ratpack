@@ -63,7 +63,7 @@ public class NettyRatpackServer extends AbstractIdleService implements RatpackSe
         .channel(NioServerSocketChannel.class)
         .childHandler(channelInitializer);
 
-    channel = bootstrap.bind(requestedAddress).awaitUninterruptibly().channel();
+    channel = bootstrap.bind(requestedAddress).sync().channel();
     boundAddress = (InetSocketAddress) channel.localAddress();
 
     init.execute(this);
