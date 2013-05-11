@@ -17,11 +17,15 @@
 package org.ratpackframework.session;
 
 import com.google.inject.AbstractModule;
+import com.google.inject.Injector;
 import com.google.inject.Singleton;
+import org.ratpackframework.guice.HandlerDecoratingModule;
+import org.ratpackframework.routing.Handler;
 import org.ratpackframework.session.internal.DefaultSessionIdGenerator;
 import org.ratpackframework.session.internal.DefaultSessionManager;
+import org.ratpackframework.session.internal.SessionBindingHandler;
 
-public class SessionModule extends AbstractModule {
+public class SessionModule extends AbstractModule implements HandlerDecoratingModule {
 
   private final SessionCookieConfig sessionCookieConfig;
 
@@ -42,6 +46,10 @@ public class SessionModule extends AbstractModule {
     bind(SessionIdGenerator.class).to(DefaultSessionIdGenerator.class).in(Singleton.class);
     bind(SessionManager.class).to(DefaultSessionManager.class).in(Singleton.class);
     bind(SessionCookieConfig.class).toInstance(sessionCookieConfig);
+  }
+
+  public Handler decorate(Injector injector, Handler handler) {
+    return new SessionBindingHandler(handler);
   }
 
 }

@@ -17,9 +17,12 @@
 package org.ratpackframework.groovy.templating;
 
 import com.google.inject.AbstractModule;
+import com.google.inject.Injector;
 import org.ratpackframework.groovy.templating.internal.GroovyTemplateRenderingEngine;
+import org.ratpackframework.guice.HandlerDecoratingModule;
+import org.ratpackframework.routing.Handler;
 
-public class TemplatingModule extends AbstractModule {
+public class TemplatingModule extends AbstractModule implements HandlerDecoratingModule {
 
   private final TemplatingConfig templatingConfig = new TemplatingConfig();
 
@@ -33,4 +36,8 @@ public class TemplatingModule extends AbstractModule {
     bind(TemplatingConfig.class).toInstance(templatingConfig);
   }
 
+  public Handler decorate(Injector injector, Handler handler) {
+    TemplatingConfig config = injector.getInstance(TemplatingConfig.class);
+    return TemplatingHandlers.templates(config.getTemplatesPath(), handler);
+  }
 }

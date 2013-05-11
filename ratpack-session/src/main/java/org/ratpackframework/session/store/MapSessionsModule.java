@@ -17,16 +17,20 @@
 package org.ratpackframework.session.store;
 
 import com.google.inject.AbstractModule;
+import com.google.inject.Injector;
 import com.google.inject.Provides;
+import org.ratpackframework.guice.HandlerDecoratingModule;
+import org.ratpackframework.routing.Handler;
 import org.ratpackframework.session.SessionManager;
 import org.ratpackframework.session.store.internal.DefaultMapSessionStore;
+import org.ratpackframework.session.store.internal.SessionStorageBindingHandler;
 
 import javax.inject.Singleton;
 
 /**
  * An extension module that provides an in memory map store for sessions, {@link MapSessionStore}.
  */
-public class MapSessionsModule extends AbstractModule {
+public class MapSessionsModule extends AbstractModule implements HandlerDecoratingModule {
 
   private final int maxEntries;
   private final int ttlMinutes;
@@ -47,4 +51,7 @@ public class MapSessionsModule extends AbstractModule {
     return defaultMapSessionStore;
   }
 
+  public Handler decorate(Injector injector, Handler handler) {
+    return new SessionStorageBindingHandler(handler);
+  }
 }

@@ -14,26 +14,14 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.groovy.templating.internal;
+package org.ratpackframework.guice;
 
-import org.ratpackframework.groovy.templating.TemplateRenderer;
-import org.ratpackframework.routing.Exchange;
+import com.google.inject.Injector;
+import com.google.inject.Module;
 import org.ratpackframework.routing.Handler;
 
-public class TemplateRenderingErrorHandler implements Handler {
+public interface HandlerDecoratingModule extends Module {
 
-  private final Handler delegate;
+  Handler decorate(Injector injector, Handler handler);
 
-  public TemplateRenderingErrorHandler(Handler delegate) {
-    this.delegate = delegate;
-  }
-
-  public void handle(Exchange exchange) {
-    try {
-      exchange.next(delegate);
-    } catch (Exception exception) {
-      TemplateRenderer renderer = exchange.get(TemplateRenderer.class);
-      renderer.error(ExceptionToTemplateModel.transform(exchange.getRequest(), exception));
-    }
-  }
 }

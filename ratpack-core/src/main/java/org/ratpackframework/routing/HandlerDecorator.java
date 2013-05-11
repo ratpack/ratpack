@@ -14,21 +14,10 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.groovy.bootstrap;
+package org.ratpackframework.routing;
 
-import org.ratpackframework.groovy.templating.TemplatingModule;
-import org.ratpackframework.guice.ModuleRegistry;
-import org.ratpackframework.guice.internal.DefaultGuiceBackedHandlerFactory;
-import org.ratpackframework.session.SessionModule;
+public interface HandlerDecorator {
 
-public class GroovyKitAppFactory extends DefaultGuiceBackedHandlerFactory {
-
-  @Override
-  protected void registerDefaultModules(ModuleRegistry moduleRegistry) {
-    moduleRegistry.register(new SessionModule());
-    moduleRegistry.register(new TemplatingModule());
-
-    super.registerDefaultModules(moduleRegistry);
-  }
+  Handler decorate(Handler handler);
 
 }

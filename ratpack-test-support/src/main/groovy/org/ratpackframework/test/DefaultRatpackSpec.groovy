@@ -29,11 +29,10 @@ class DefaultRatpackSpec extends RatpackSpec {
 
   @Override
   RatpackServer createApp() {
-    DefaultGuiceBackedHandlerFactory appFactory = createAppFactory()
+    GuiceBackedHandlerFactory appFactory = createAppFactory()
     def handler = createHandler()
     def modulesAction = createModulesAction()
-    def withFsContext = decorateHandler(handler)
-    Handler appHandler = appFactory.create(modulesAction, withFsContext)
+    Handler appHandler = appFactory.create(dir, modulesAction, handler)
 
     RatpackServerBuilder builder = new RatpackServerBuilder(appHandler)
     builder.port = 0
@@ -43,10 +42,6 @@ class DefaultRatpackSpec extends RatpackSpec {
 
   protected GuiceBackedHandlerFactory createAppFactory() {
     new DefaultGuiceBackedHandlerFactory()
-  }
-
-  Handler decorateHandler(Handler handler) {
-    fsContext(dirPath, handler)
   }
 
   protected Action<? super ModuleRegistry> createModulesAction() {

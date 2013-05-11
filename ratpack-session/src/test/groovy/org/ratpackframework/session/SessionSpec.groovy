@@ -1,12 +1,8 @@
 package org.ratpackframework.session
 
-import com.google.inject.Injector
 import org.ratpackframework.guice.GuiceBackedHandlerFactory
 import org.ratpackframework.guice.ModuleRegistry
 import org.ratpackframework.guice.internal.DefaultGuiceBackedHandlerFactory
-import org.ratpackframework.routing.Exchange
-import org.ratpackframework.routing.Handler
-import org.ratpackframework.session.internal.SessionBindingHandler
 import org.ratpackframework.session.store.MapSessionStore
 import org.ratpackframework.session.store.MapSessionsModule
 import org.ratpackframework.session.store.SessionStorage
@@ -17,31 +13,11 @@ class SessionSpec extends RatpackGroovyDslSpec {
   @Override
   protected GuiceBackedHandlerFactory createAppFactory() {
     new DefaultGuiceBackedHandlerFactory() {
-      @Override
-      protected void registerDefaultModules(ModuleRegistry moduleRegistry) {
-        moduleRegistry.register(new SessionModule())
-        moduleRegistry.register(new MapSessionsModule(10, 5))
-        super.registerDefaultModules(moduleRegistry)
+      protected void registerDefaultModules(ModuleRegistry modules) {
+        modules.register(new SessionModule())
+        modules.register(new MapSessionsModule(10, 5))
       }
     }
-  }
-
-  @Override
-  Handler decorateHandler(Handler handler) {
-    super.decorateHandler(new SessionBindingHandler(new Handler() {
-      @Override
-      void handle(Exchange exchange) {
-        // TODO a proper handler impl for this
-
-        def injector = exchange.get(Injector)
-        def mapSessionStore = injector.getInstance(MapSessionStore)
-
-        // TODO we are creating a session map even if we dont' use use it
-        // We should avoid doing so unless some really asks for the session storage
-        def sessionStorage = mapSessionStore.get(exchange.maybeGet(Session).id)
-        exchange.nextWithContext(sessionStorage, handler)
-      }
-    }))
   }
 
   def "can use session"() {

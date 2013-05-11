@@ -29,16 +29,11 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
   protected GuiceBackedHandlerFactory createAppFactory() {
     new DefaultGuiceBackedHandlerFactory() {
       @Override
-      protected void registerDefaultModules(ModuleRegistry moduleRegistry) {
-        moduleRegistry.register(new TemplatingModule())
-        super.registerDefaultModules(moduleRegistry)
+      protected void registerDefaultModules(ModuleRegistry modules) {
+        modules.register(new TemplatingModule())
+        super.registerDefaultModules(modules)
       }
     }
-  }
-
-  @Override
-  Handler decorateHandler(Handler handler) {
-    return super.decorateHandler(TemplatingHandlers.templates("templates", handler))
   }
 
   def "can render template"() {
@@ -48,7 +43,7 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     when:
     app {
       routing {
-        get("") {
+        get {
           get(TemplateRenderer).render "foo.html", value: "bar"
         }
       }
@@ -66,7 +61,7 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     when:
     app {
       routing {
-        get("") {
+        get {
           get(TemplateRenderer).render "outer.html", value: "outer"
         }
       }
@@ -85,7 +80,7 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     when:
     app {
       routing {
-        get("") {
+        get {
           get(TemplateRenderer).render "outer.html", value: "outer"
         }
       }
@@ -104,7 +99,7 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     when:
     app {
       routing {
-        get("") {
+        get {
           get(TemplateRenderer).render "outer.html", value: "outer"
         }
       }
@@ -123,7 +118,7 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     when:
     app {
       routing {
-        get("") {
+        get {
           get(TemplateRenderer).render "outer.html", a: "a", b: "b"
         }
       }
@@ -142,7 +137,7 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     when:
     app {
       routing {
-        get("") {
+        get {
           get(TemplateRenderer).render "outer.html"
         }
       }
@@ -165,7 +160,7 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     when:
     app {
       routing {
-        get("") {
+        get {
           get(TemplateRenderer).render "outer.html"
         }
       }
@@ -190,7 +185,7 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
       }
 
       routing {
-        get("") {
+        get {
           get(TemplateRenderer).render "outer.html", value: "outer"
         }
       }

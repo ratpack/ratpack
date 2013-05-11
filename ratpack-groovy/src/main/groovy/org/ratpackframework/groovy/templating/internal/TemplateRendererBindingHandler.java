@@ -33,7 +33,6 @@ public class TemplateRendererBindingHandler implements Handler {
     this.delegate = delegate;
   }
 
-  @Override
   public void handle(Exchange exchange) {
     GroovyTemplateRenderingEngine engine = exchange.get(GroovyTemplateRenderingEngine.class);
 

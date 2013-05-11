@@ -21,20 +21,28 @@ import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.util.Modules;
 import org.ratpackframework.Action;
+import org.ratpackframework.file.internal.FileSystemContextHandler;
 import org.ratpackframework.guice.GuiceBackedHandlerFactory;
+import org.ratpackframework.guice.HandlerDecoratingModule;
 import org.ratpackframework.guice.ModuleRegistry;
 import org.ratpackframework.routing.Handler;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 public class DefaultGuiceBackedHandlerFactory implements GuiceBackedHandlerFactory {
 
-  public Handler create(Action<? super ModuleRegistry> modulesAction, Handler handler) {
-    ModuleRegistry modules = new DefaultModuleRegistry();
+  public Handler create(File baseDir, Action<? super ModuleRegistry> modulesAction, Handler handler) {
+    ModuleRegistry moduleRegistry = new DefaultModuleRegistry();
 
-    registerDefaultModules(modules);
-    modulesAction.execute(modules);
+    registerDefaultModules(moduleRegistry);
+    modulesAction.execute(moduleRegistry);
 
     Module masterModule = null;
-    for (Module module : modules.getModules()) {
+    List<Module> modules = moduleRegistry.getModules();
+    for (Module module : modules) {
       if (masterModule == null) {
         masterModule = module;
       } else {
@@ -49,7 +57,20 @@ public class DefaultGuiceBackedHandlerFactory implements GuiceBackedHandlerFacto
       injector = Guice.createInjector(masterModule);
     }
 
-    Handler decorated = decorateHandler(handler);
+    Handler decorated = handler;
+
+    List<Module> modulesReversed = new ArrayList<Module>(modules);
+    Collections.reverse(modulesReversed);
+
+    for (Module module : modulesReversed) {
+      if (module instanceof HandlerDecoratingModule) {
+        decorated = ((HandlerDecoratingModule) module).decorate(injector, decorated);
+      }
+    }
+
+    decorated = new FileSystemContextHandler(baseDir, decorated);
+    decorated = decorateHandler(decorated);
+
     return new InjectorBindingHandler(injector, decorated);
   }
 

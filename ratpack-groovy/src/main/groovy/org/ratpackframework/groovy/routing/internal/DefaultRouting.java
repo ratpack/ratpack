@@ -17,7 +17,6 @@
 package org.ratpackframework.groovy.routing.internal;
 
 import groovy.lang.Closure;
-import groovy.lang.DelegatesTo;
 import org.ratpackframework.groovy.ClosureHandlers;
 import org.ratpackframework.groovy.routing.Routing;
 import org.ratpackframework.routing.Exchange;
