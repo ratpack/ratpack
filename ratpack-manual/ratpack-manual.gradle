@@ -7,6 +7,8 @@ buildscript {
   }
 }
 
+apply from: "$rootDir/gradle/checkstyle.gradle"
+
 archivesBaseName = "ratpack-manual"
 
 modifyPom { pom ->
@@ -70,6 +72,14 @@ task api(type: Javadoc) {
     classpath += it.sourceSets.main.compileClasspath + it.sourceSets.main.output
   }
   exclude "**/internal/**"
+}
+
+task checkstyleApi(type: Checkstyle) {
+  source api.source
+  configFile = rootProject.file("gradle/checkstyle/checkstyle-api.xml")
+  classpath = files()
+  reports.xml.destination = reporting.file("checkstyle-api.xml")
+  ignoreFailures true
 }
 
 task compileManual {
