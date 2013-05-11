@@ -16,6 +16,7 @@
 
 package org.ratpackframework.file
 
+import org.ratpackframework.groovy.templating.TemplateRenderer
 import org.ratpackframework.test.DefaultRatpackSpec
 
 import static org.ratpackframework.routing.Handlers.assets

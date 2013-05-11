@@ -20,6 +20,7 @@ import io.netty.channel.ChannelHandlerContext;
 import org.ratpackframework.context.Context;
 import org.ratpackframework.context.internal.ObjectHoldingContext;
 import org.ratpackframework.error.ErrorHandlingContext;
+import org.ratpackframework.file.FileSystemContext;
 import org.ratpackframework.routing.Exchange;
 import org.ratpackframework.routing.Handler;
 import org.ratpackframework.http.Request;
@@ -27,6 +28,7 @@ import org.ratpackframework.http.Response;
 import org.ratpackframework.path.PathContext;
 import org.ratpackframework.util.CollectionUtils;
 
+import java.io.File;
 import java.util.List;
 import java.util.Map;
 
@@ -112,6 +114,11 @@ public class DefaultExchange implements Exchange {
   @Override
   public Map<String, String> getAllPathTokens() {
     return get(PathContext.class).getAllTokens();
+  }
+
+  @Override
+  public File file(String... pathComponents) {
+    return get(FileSystemContext.class).file(pathComponents);
   }
 
   @Override

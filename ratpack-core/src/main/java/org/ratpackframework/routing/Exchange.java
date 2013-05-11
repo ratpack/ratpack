@@ -20,6 +20,7 @@ import org.ratpackframework.context.Context;
 import org.ratpackframework.http.Request;
 import org.ratpackframework.http.Response;
 
+import java.io.File;
 import java.util.Map;
 
 public interface Exchange {
@@ -51,6 +52,8 @@ public interface Exchange {
   Map<String, String> getPathTokens();
 
   Map<String, String> getAllPathTokens();
+
+  File file(String... pathComponents);
 
   void error(Exception exception);
 

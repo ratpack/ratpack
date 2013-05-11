@@ -1,5 +1,7 @@
 package org.ratpackframework.test.groovy
 
+import org.ratpackframework.groovy.templating.TemplateRenderer
+
 class BasicGroovyDslSpec extends RatpackGroovyDslSpec {
 
   def "can use special Groovy dsl"() {
@@ -36,4 +38,29 @@ class BasicGroovyDslSpec extends RatpackGroovyDslSpec {
     urlGetText("foo.txt") == "bar"
   }
 
+  def "can use file method to access file contextual"() {
+    given:
+    file("foo/file.txt") << "foo"
+    file("bar/file.txt") << "bar"
+
+    when:
+    app {
+      routing {
+        fsContext("foo") {
+          get("foo") {
+            response.send file("file.txt").text
+          }
+        }
+        fsContext("bar") {
+          get("bar") {
+            response.send file("file.txt").text
+          }
+        }
+      }
+    }
+
+    then:
+    urlGetText("foo") == 'foo'
+    urlGetText("bar") == 'bar'
+  }
 }
