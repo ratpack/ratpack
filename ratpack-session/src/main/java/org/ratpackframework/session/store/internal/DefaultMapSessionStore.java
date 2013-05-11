@@ -36,20 +36,16 @@ public class DefaultMapSessionStore implements MapSessionStore, SessionListener 
         .build();
   }
 
-  @Override
   public void sessionInitiated(String id) {
   }
 
-  @Override
   public void sessionTerminated(String id) {
     storage.invalidate(id);
   }
 
-  @Override
   public SessionStorage get(String sessionId) {
     try {
       return storage.get(sessionId, new Callable<SessionStorage>() {
-        @Override
         public SessionStorage call() throws Exception {
           return new DefaultSessionStorage(new ConcurrentHashMap<String, Object>());
         }
@@ -59,7 +55,6 @@ public class DefaultMapSessionStore implements MapSessionStore, SessionListener 
     }
   }
 
-  @Override
   public long size() {
     return storage.size();
   }

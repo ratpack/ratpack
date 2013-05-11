@@ -26,22 +26,21 @@ public abstract class CollectionUtils {
   public static <T> List<T> toList(Iterable<? extends T> source) {
     if (source instanceof Collection) {
       //noinspection unchecked
-      return new ArrayList<>((Collection<? extends T>) source);
+      return new ArrayList<T>((Collection<? extends T>) source);
     }
 
-    List<T> list = new LinkedList<>();
+    List<T> list = new LinkedList<T>();
     for (T item : source) {
       list.add(item);
     }
     return list;
   }
 
-  @SafeVarargs
   public static <T> List<T> toList(T... things) {
     if (things.length == 0) {
       return Collections.emptyList();
     } else {
-      List<T> list = new ArrayList<>(things.length);
+      List<T> list = new ArrayList<T>(things.length);
       for (T thing : things) {
         list.add(thing);
       }
@@ -106,7 +105,6 @@ public abstract class CollectionUtils {
   }
 
   private static class UpperCaseTransformer implements Transformer<Object, String> {
-    @Override
     public String transform(Object from) {
       return from.toString().toUpperCase();
     }

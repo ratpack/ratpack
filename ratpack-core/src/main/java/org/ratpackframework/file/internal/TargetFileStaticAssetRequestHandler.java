@@ -34,7 +34,6 @@ public class TargetFileStaticAssetRequestHandler implements Handler {
     this.delegate = delegate;
   }
 
-  @Override
   public void handle(Exchange exchange) {
     FileSystemContext fileSystemContext = exchange.get(FileSystemContext.class);
 

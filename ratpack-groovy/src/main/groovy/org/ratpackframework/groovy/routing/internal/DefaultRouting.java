@@ -37,67 +37,54 @@ public class DefaultRouting implements Routing {
     this.handlers = handlers;
   }
 
-  @Override
   public void route(Closure<?> handler) {
     route(ClosureHandlers.handler(handler));
   }
 
-  @Override
   public void routes(Closure<?> routing) {
     route(new RoutingHandler(action(routing)));
   }
 
-  @Override
   public void path(String path, Closure<?> routing) {
     route(Handlers.path(path, new RoutingHandler(action(routing))));
   }
 
-  @Override
   public void all(String path, Closure<?> handler) {
     route(ClosureHandlers.handler(path, handler));
   }
 
-  @Override
   public void handler(String path, List<String> methods, Closure<?> handler) {
     route(ClosureHandlers.handler(path, methods, handler));
   }
 
-  @Override
   public void get(String path, Closure<?> handler) {
     route(ClosureHandlers.get(path, handler));
   }
 
-  @Override
   public void get(Closure<?> handler) {
     get("", handler);
   }
 
-  @Override
   public void post(String path, Closure<?> handler) {
     route(ClosureHandlers.post(path, handler));
   }
 
-  @Override
   public void post(Closure<?> handler) {
     post("", handler);
   }
 
-  @Override
   public void assets(String path, String... indexFiles) {
     route(Handlers.assets(path, indexFiles));
   }
 
-  @Override
   public void fsContext(String path, Closure<?> routing) {
     route(Handlers.fsContext(path, new RoutingHandler(action(routing))));
   }
 
-  @Override
   public Exchange getExchange() {
     return exchange;
   }
 
-  @Override
   public void route(Handler handler) {
     handlers.add(handler);
   }

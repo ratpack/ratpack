@@ -25,7 +25,7 @@ public class CookieManager {
   private DateFormat dateFormat;
 
   public CookieManager() {
-    store = new HashMap<>();
+    store = new HashMap<String, Map<String, Map<Object, String>>>();
     dateFormat = new SimpleDateFormat(DATE_FORMAT);
   }
 
@@ -52,7 +52,7 @@ public class CookieManager {
       domainStore = store.get(domain);
     } else {
       // we don't, so let's create it and put it in the store
-      domainStore = new HashMap<>();
+      domainStore = new HashMap<String, Map<Object, String>>();
       store.put(domain, domainStore);
     }
 
@@ -62,7 +62,7 @@ public class CookieManager {
     String headerName;
     for (int i = 1; (headerName = conn.getHeaderFieldKey(i)) != null; i++) {
       if (headerName.equalsIgnoreCase(SET_COOKIE)) {
-        Map<Object, String> cookie = new HashMap<>();
+        Map<Object, String> cookie = new HashMap<Object, String>();
         StringTokenizer st = new StringTokenizer(conn.getHeaderField(i), COOKIE_VALUE_DELIMITER);
 
         // the specification dictates that the first name/value pair

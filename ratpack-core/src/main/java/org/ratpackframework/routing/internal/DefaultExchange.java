@@ -18,7 +18,7 @@ package org.ratpackframework.routing.internal;
 
 import io.netty.channel.ChannelHandlerContext;
 import org.ratpackframework.context.Context;
-import org.ratpackframework.context.internal.ObjectHoldingContext;
+import org.ratpackframework.context.internal.ObjectHoldingHierarchicalContext;
 import org.ratpackframework.error.ErrorHandlingContext;
 import org.ratpackframework.file.FileSystemContext;
 import org.ratpackframework.routing.Exchange;
@@ -58,22 +58,18 @@ public class DefaultExchange implements Exchange {
     return response;
   }
 
-  @Override
   public Context getContext() {
     return context;
   }
 
-  @Override
   public <T> T get(Class<T> type) {
     return context.get(type);
   }
 
-  @Override
   public <T> T maybeGet(Class<T> type) {
     return context.maybeGet(type);
   }
 
-  @Override
   public void next() {
     next.handle(this);
   }
@@ -86,42 +82,34 @@ public class DefaultExchange implements Exchange {
     doNext(context, CollectionUtils.toList(handlers), next);
   }
 
-  @Override
   public void nextWithContext(Object object, Handler... handlers) {
-    doNext(new ObjectHoldingContext(this.context, object), CollectionUtils.toList(handlers), next);
+    doNext(new ObjectHoldingHierarchicalContext(this.context, object), CollectionUtils.toList(handlers), next);
   }
 
-  @Override
   public void nextWithContext(Object object, Iterable<Handler> handlers) {
-    doNext(new ObjectHoldingContext(this.context, object), CollectionUtils.toList(handlers), next);
+    doNext(new ObjectHoldingHierarchicalContext(this.context, object), CollectionUtils.toList(handlers), next);
   }
 
-  @Override
   public void nextWithContext(Context context, Handler... handlers) {
     doNext(context, CollectionUtils.toList(handlers), next);
   }
 
-  @Override
   public void nextWithContext(Context context, Iterable<Handler> handlers) {
     doNext(context, CollectionUtils.toList(handlers), next);
   }
 
-  @Override
   public Map<String, String> getPathTokens() {
     return get(PathContext.class).getTokens();
   }
 
-  @Override
   public Map<String, String> getAllPathTokens() {
     return get(PathContext.class).getAllTokens();
   }
 
-  @Override
   public File file(String... pathComponents) {
     return get(FileSystemContext.class).file(pathComponents);
   }
 
-  @Override
   public void error(Exception exception) {
     get(ErrorHandlingContext.class).error(this, exception);
   }
@@ -133,7 +121,6 @@ public class DefaultExchange implements Exchange {
     } else {
       Handler handler = handlers.remove(0);
       Handler nextHandler = new Handler() {
-        @Override
         public void handle(Exchange exchange) {
           ((DefaultExchange) exchange).doNext(context, handlers, exhausted);
         }

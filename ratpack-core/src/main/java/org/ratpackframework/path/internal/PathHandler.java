@@ -31,7 +31,6 @@ public class PathHandler implements Handler {
     this.delegate = delegate;
   }
 
-  @Override
   public void handle(Exchange exchange) {
     PathContext childContext = binding.bind(exchange.getRequest().getPath(), exchange.maybeGet(PathContext.class));
     if (childContext != null) {

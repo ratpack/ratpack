@@ -35,7 +35,7 @@ public class TokenPathBinding implements PathBinding {
     this.exact = exact;
     Validations.noLeadingForwardSlash(path, "token path");
 
-    List<String> names = new LinkedList<>();
+    List<String> names = new LinkedList<String>();
     String regexString = Pattern.quote(path);
 
     Pattern placeholderPattern = Pattern.compile("(:\\w+)");
@@ -50,7 +50,6 @@ public class TokenPathBinding implements PathBinding {
     this.tokenNames = Collections.unmodifiableList(names);
   }
 
-  @Override
   public PathContext bind(String path, PathContext pathContext) {
     String regexString = regex.pattern();
 
@@ -69,7 +68,7 @@ public class TokenPathBinding implements PathBinding {
     if (matcher.matches()) {
       MatchResult matchResult = matcher.toMatchResult();
       String boundPath = matchResult.group(1);
-      Map<String, String> params = new LinkedHashMap<>();
+      Map<String, String> params = new LinkedHashMap<String, String>();
       int i = 2;
       for (String name : tokenNames) {
         params.put(name, matchResult.group(i++));

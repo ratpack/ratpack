@@ -42,11 +42,11 @@ public class MediaType {
       params = Collections.emptyMap();
     } else {
       headerValue = headerValue.trim();
-      if (headerValue.isEmpty()) {
+      if (headerValue.length() == 0) {
         base = null;
         params = Collections.emptyMap();
       } else {
-        params = new LinkedHashMap<>();
+        params = new LinkedHashMap<String, String>();
         String[] parts = headerValue.split(";");
         base = parts[0].toLowerCase();
         if (parts.length > 1) {

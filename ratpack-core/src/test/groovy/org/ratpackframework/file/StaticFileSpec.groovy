@@ -16,13 +16,12 @@
 
 package org.ratpackframework.file
 
-import org.ratpackframework.groovy.templating.TemplateRenderer
 import org.ratpackframework.test.DefaultRatpackSpec
 
-import static org.ratpackframework.routing.Handlers.assets
-import static org.ratpackframework.routing.Handlers.assetsPath
 import static org.ratpackframework.groovy.ClosureHandlers.fsContext
 import static org.ratpackframework.groovy.ClosureHandlers.handler
+import static org.ratpackframework.routing.Handlers.assets
+import static org.ratpackframework.routing.Handlers.assetsPath
 
 class StaticFileSpec extends DefaultRatpackSpec {
 

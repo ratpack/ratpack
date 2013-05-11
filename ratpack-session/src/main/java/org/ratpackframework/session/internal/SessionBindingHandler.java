@@ -28,7 +28,6 @@ public class SessionBindingHandler implements Handler {
     this.delegate = delegate;
   }
 
-  @Override
   public void handle(Exchange exchange) {
     SessionManager sessionManager = exchange.get(SessionManager.class);
     ExchangeSessionManager exchangeSessionManager = new ExchangeSessionManager(exchange, sessionManager);

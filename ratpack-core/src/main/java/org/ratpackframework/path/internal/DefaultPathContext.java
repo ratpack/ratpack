@@ -40,7 +40,7 @@ public class DefaultPathContext implements PathContext {
     if (parent == null) {
       allTokens = tokens;
     } else {
-      allTokens = new LinkedHashMap<>(parent.getAllTokens());
+      allTokens = new LinkedHashMap<String, String>(parent.getAllTokens());
       allTokens.putAll(tokens);
     }
 
@@ -55,27 +55,22 @@ public class DefaultPathContext implements PathContext {
     }
   }
 
-  @Override
   public String getPastBinding() {
     return pastBinding;
   }
 
-  @Override
   public String getBoundTo() {
     return binding;
   }
 
-  @Override
   public String join(String path) {
     return CollectionUtils.join("/", this.binding, path);
   }
 
-  @Override
   public Map<String, String> getTokens() {
     return tokens;
   }
 
-  @Override
   public Map<String, String> getAllTokens() {
     return allTokens;
   }

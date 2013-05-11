@@ -44,14 +44,13 @@ public class GroovyTemplateRenderingEngine {
   public GroovyTemplateRenderingEngine(TemplatingConfig templatingConfig) {
     this.compiledTemplateCache = CacheBuilder.newBuilder().maximumSize(templatingConfig.getCacheSize()).build();
 
-    ScriptEngine<TemplateScript> scriptEngine = new ScriptEngine<>(getClass().getClassLoader(), templatingConfig.isStaticallyCompile(), TemplateScript.class);
+    ScriptEngine<TemplateScript> scriptEngine = new ScriptEngine<TemplateScript>(getClass().getClassLoader(), templatingConfig.isStaticallyCompile(), TemplateScript.class);
     templateCompiler = new TemplateCompiler(scriptEngine);
   }
 
   public void renderTemplate(final File templateDir, final String templateId, final Map<String, ?> model, final ResultAction<ByteBuf> handler) {
     final File templateFile = getTemplateFile(templateDir, templateId);
     render(templateDir, templateFile, templateId, model, handler, new Callable<ByteBuf>() {
-      @Override
       public ByteBuf call() throws Exception {
         return IoUtils.readFile(templateFile);
       }
@@ -62,7 +61,6 @@ public class GroovyTemplateRenderingEngine {
     final File errorTemplate = getTemplateFile(templateDir, ERROR_TEMPLATE);
 
     render(templateDir, errorTemplate, ERROR_TEMPLATE, model, handler, new Callable<ByteBuf>() {
-      @Override
       public ByteBuf call() throws Exception {
         if (errorTemplate.exists()) {
           return IoUtils.readFile(errorTemplate);
@@ -76,7 +74,6 @@ public class GroovyTemplateRenderingEngine {
   private void render(File templateDir, File templateFile, final String templateName, Map<String, ?> model, ResultAction<ByteBuf> handler, final Callable<? extends ByteBuf> bufferProvider) {
     try {
       CompiledTemplate compiledTemplate = compiledTemplateCache.get(templateFile, new Callable<CompiledTemplate>() {
-        @Override
         public CompiledTemplate call() throws Exception {
           return templateCompiler.compile(bufferProvider.call(), templateName);
         }

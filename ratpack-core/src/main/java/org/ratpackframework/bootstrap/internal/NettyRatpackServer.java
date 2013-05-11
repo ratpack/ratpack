@@ -80,12 +80,10 @@ public class NettyRatpackServer extends AbstractIdleService implements RatpackSe
     workerGroup.shutdownGracefully();
   }
 
-  @Override
   public int getBindPort() {
     return boundAddress == null ? -1 : boundAddress.getPort();
   }
 
-  @Override
   public String getBindHost() {
     return boundAddress == null ? null : boundAddress.getAddress().getHostName();
   }

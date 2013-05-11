@@ -14,30 +14,26 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.guice.internal;
+package org.ratpackframework.context.internal;
 
-import com.google.inject.Binding;
-import com.google.inject.Injector;
-import com.google.inject.Key;
 import org.ratpackframework.context.Context;
-import org.ratpackframework.context.ContextSupport;
+import org.ratpackframework.context.HierarchicalContextSupport;
 
-public class InjectorBackedContext extends ContextSupport {
+public class ObjectHoldingHierarchicalContext extends HierarchicalContextSupport {
 
-  private final Injector injector;
+  private final Object value;
 
-  public InjectorBackedContext(Context parent, Injector injector) {
+  public ObjectHoldingHierarchicalContext(Context parent, Object value) {
     super(parent);
-    this.injector = injector;
+    this.value = value;
   }
 
   @Override
-  public <T> T doMaybeGet(Class<T> type) {
-    Binding<T> existingBinding = injector.getExistingBinding(Key.get(type));
-    if (existingBinding == null) {
-      return null;
+  protected <T> T doMaybeGet(Class<T> type) {
+    if (type.isInstance(value)) {
+      return type.cast(value);
     } else {
-      return existingBinding.getProvider().get();
+      return null;
     }
   }
 

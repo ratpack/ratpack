@@ -73,7 +73,7 @@ public class Render {
   private void execute(CompiledTemplate compiledTemplate, final Map<String, ?> model, final ByteBuf parts) throws Exception {
     compiledTemplate.execute(model, parts, new NestedRenderer() {
       public void render(String templatePath, Map<String, ?> nestedModel) throws Exception {
-        Map<String, Object> modelCopy = new HashMap<>(model);
+        Map<String, Object> modelCopy = new HashMap<String, Object>(model);
         modelCopy.putAll(nestedModel);
         executeNested(templatePath, modelCopy, parts);
       }

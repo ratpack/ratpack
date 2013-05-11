@@ -43,34 +43,28 @@ public class DefaultResponse implements Response {
     this.channel = channel;
   }
 
-  @Override
   public Status getStatus() {
     return new Status() {
-      @Override
       public int getCode() {
         return response.getStatus().code();
       }
 
-      @Override
       public String getMessage() {
         return response.getStatus().reasonPhrase();
       }
     };
   }
 
-  @Override
   public Response status(int code) {
     response.setStatus(HttpResponseStatus.valueOf(code));
     return this;
   }
 
-  @Override
   public Response status(int code, String message) {
     response.setStatus(new HttpResponseStatus(code, message));
     return this;
   }
 
-  @Override
   public void send() {
     commit();
   }
@@ -80,26 +74,22 @@ public class DefaultResponse implements Response {
     return this;
   }
 
-  @Override
   public void send(String contentType, String str) {
     contentType(contentType);
     response.content().writeBytes(IoUtils.utf8Buffer(str));
     commit();
   }
 
-  @Override
   public void send(String text) {
     send("text/plain", text);
   }
 
-  @Override
   public void send(String contentType, ByteBuf buffer) {
     contentType(contentType);
     response.content().writeBytes(buffer);
     commit();
   }
 
-  @Override
   public void sendFile(String contentType, File file) {
     contentType(contentType);
     setCookieHeader();
@@ -112,74 +102,61 @@ public class DefaultResponse implements Response {
     commit();
   }
 
-  @Override
   public void redirect(int code, String location) {
     status(code);
     setHeader(HttpHeaders.Names.LOCATION, location);
     commit();
   }
 
-  @Override
   public String getHeader(String name) {
     return response.headers().get(name);
   }
 
-  @Override
   public List<String> getHeaders(String name) {
     return response.headers().getAll(name);
   }
 
-  @Override
   public boolean containsHeader(String name) {
     return response.headers().contains(name);
   }
 
-  @Override
   public Set<String> getHeaderNames() {
     return response.headers().names();
   }
 
-  @Override
   public void addHeader(String name, Object value) {
     response.headers().add(name, value);
   }
 
-  @Override
   public void setHeader(String name, Object value) {
     response.headers().set(name, value);
   }
 
-  @Override
   public void setHeader(String name, Iterable<?> values) {
     response.headers().set(name, values);
   }
 
-  @Override
   public void removeHeader(String name) {
     response.headers().remove(name);
   }
 
-  @Override
   public void clearHeaders() {
     response.headers().clear();
   }
 
-  @Override
   public Set<Cookie> getCookies() {
     if (cookies == null) {
-      cookies = new HashSet<>();
+      cookies = new HashSet<Cookie>();
     }
     return cookies;
   }
 
-  @Override
   public Cookie cookie(String name, String value) {
     Cookie cookie = new DefaultCookie(name, value);
     getCookies().add(cookie);
     return cookie;
   }
 
-  @Override
   public Cookie expireCookie(String name) {
     Cookie cookie = cookie(name, "");
     cookie.setMaxAge(0);

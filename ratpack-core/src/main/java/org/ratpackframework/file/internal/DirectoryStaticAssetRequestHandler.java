@@ -33,10 +33,9 @@ public class DirectoryStaticAssetRequestHandler implements Handler {
 
   public DirectoryStaticAssetRequestHandler(List<String> indexFiles, Handler delegate) {
     this.delegate = delegate;
-    this.indexFiles = new ArrayList<>(indexFiles);
+    this.indexFiles = new ArrayList<String>(indexFiles);
   }
 
-  @Override
   public void handle(Exchange exchange) {
     FileSystemContext fileSystemContext = exchange.get(FileSystemContext.class);
     File targetFile = fileSystemContext.getFile();

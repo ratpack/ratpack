@@ -29,82 +29,66 @@ public class DefaultSessionStorage implements SessionStorage {
     this.delegate = delegate;
   }
 
-  @Override
   public Object putIfAbsent(String key, Object value) {
     return delegate.putIfAbsent(key, value);
   }
 
-  @Override
   public boolean remove(Object key, Object value) {
     return delegate.remove(key, value);
   }
 
-  @Override
   public boolean replace(String key, Object oldValue, Object newValue) {
     return delegate.replace(key, oldValue, newValue);
   }
 
-  @Override
   public Object replace(String key, Object value) {
     return delegate.replace(key, value);
   }
 
-  @Override
   public int size() {
     return delegate.size();
   }
 
-  @Override
   public boolean isEmpty() {
     return delegate.isEmpty();
   }
 
-  @Override
   public boolean containsKey(Object key) {
     return delegate.containsKey(key);
   }
 
-  @Override
   public boolean containsValue(Object value) {
     return delegate.containsValue(value);
   }
 
-  @Override
   public Object get(Object key) {
     return delegate.get(key);
   }
 
-  @Override
   public Object put(String key, Object value) {
     return delegate.put(key, value);
   }
 
-  @Override
   public Object remove(Object key) {
     return delegate.remove(key);
   }
 
-  @Override
   public void putAll(Map<? extends String, ?> m) {
     delegate.putAll(m);
   }
 
-  @Override
   public void clear() {
     delegate.clear();
   }
 
-  @Override
   public Set<String> keySet() {
     return delegate.keySet();
   }
 
-  @Override
   public Collection<Object> values() {
     return delegate.values();
   }
 
-  @Override
   public Set<Entry<String, Object>> entrySet() {
     return delegate.entrySet();
   }

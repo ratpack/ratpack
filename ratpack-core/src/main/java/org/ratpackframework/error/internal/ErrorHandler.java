@@ -27,7 +27,6 @@ public class ErrorHandler implements Handler {
     this.handler = handler;
   }
 
-  @Override
   public void handle(Exchange exchange) {
     try {
       handler.handle(exchange);

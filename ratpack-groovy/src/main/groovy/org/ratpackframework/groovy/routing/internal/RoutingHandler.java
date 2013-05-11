@@ -32,9 +32,8 @@ public class RoutingHandler implements Handler {
     this.action = action;
   }
 
-  @Override
   public void handle(Exchange exchange) {
-    List<Handler> handlers = new LinkedList<>();
+    List<Handler> handlers = new LinkedList<Handler>();
     Routing routing = new DefaultRouting(exchange, handlers);
     action.execute(routing);
     exchange.next(handlers);

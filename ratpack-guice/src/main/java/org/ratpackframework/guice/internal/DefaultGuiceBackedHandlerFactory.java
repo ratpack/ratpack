@@ -27,7 +27,6 @@ import org.ratpackframework.routing.Handler;
 
 public class DefaultGuiceBackedHandlerFactory implements GuiceBackedHandlerFactory {
 
-  @Override
   public Handler create(Action<? super ModuleRegistry> modulesAction, Handler handler) {
     ModuleRegistry modules = new DefaultModuleRegistry();
 

@@ -28,12 +28,12 @@ public class ExceptionToTemplateModel {
 
   public static Map<String, ?> transform(Request request, Exception exception) {
     StackTrace stackTrace = decodeStackTrace(exception);
-    Map<String, Object> model = new LinkedHashMap<>();
+    Map<String, Object> model = new LinkedHashMap<String, Object>();
     model.put("title", exception.getClass().getName());
     model.put("message", exception.getMessage());
     model.put("stacktrace", stackTrace.html);
 
-    Map<String, Object> metadata = new LinkedHashMap<>();
+    Map<String, Object> metadata = new LinkedHashMap<String, Object>();
     metadata.put("Request Method", request.getMethod().getName());
     metadata.put("Request URL", request.getUri());
     metadata.put("Exception Type", exception.getClass().getName());

@@ -16,17 +16,24 @@
 
 package org.ratpackframework.context.internal;
 
-import org.ratpackframework.context.Context;
+import org.ratpackframework.context.ContextSupport;
 
-public class RootContext implements Context {
+public class RootContext extends ContextSupport {
 
-  @Override
-  public <T> T maybeGet(Class<T> type) {
+  private final Object[] objects;
+
+  public RootContext(Object... objects) {
+    this.objects = objects;
+  }
+
+  protected <T> T doMaybeGet(Class<T> type) {
+    for (Object object : objects) {
+      if (type.isInstance(object)) {
+        return type.cast(object);
+      }
+    }
+
     return null;
   }
 
-  @Override
-  public <T> T get(Class<T> type) {
-    throw new IllegalStateException(String.format("Could not find %s in context", type));
-  }
 }

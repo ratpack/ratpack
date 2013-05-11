@@ -41,16 +41,14 @@ public class ScriptBackedApp implements Handler {
 
   @Inject
   public ScriptBackedApp(File script, final GuiceBackedHandlerFactory appFactory, final boolean staticCompile, boolean reloadable) {
-    this.reloadHandler = new ReloadableFileBackedFactory<>(script, reloadable, new ReloadableFileBackedFactory.Delegate<Handler>() {
-      @Override
+    this.reloadHandler = new ReloadableFileBackedFactory<Handler>(script, reloadable, new ReloadableFileBackedFactory.Delegate<Handler>() {
       public Handler produce(final File file, final ByteBuf bytes) {
         try {
           final String string;
           string = IoUtils.utf8String(bytes);
-          final ScriptEngine<Script> scriptEngine = new ScriptEngine<>(getClass().getClassLoader(), staticCompile, Script.class);
+          final ScriptEngine<Script> scriptEngine = new ScriptEngine<Script>(getClass().getClassLoader(), staticCompile, Script.class);
 
           Runnable runScript = new Runnable() {
-            @Override
             public void run() {
               try {
                 scriptEngine.run(file.getName(), string);
@@ -63,7 +61,6 @@ public class ScriptBackedApp implements Handler {
 
           final DefaultRatpack ratpack = new DefaultRatpack();
           Action<Closure<?>> backing = new Action<Closure<?>>() {
-            @Override
             public void execute(Closure<?> configurer) {
               Closures.configure(ratpack, configurer);
             }
@@ -84,7 +81,6 @@ public class ScriptBackedApp implements Handler {
     });
   }
 
-  @Override
   public void handle(Exchange exchange) {
     reloadHandler.create().handle(exchange);
   }

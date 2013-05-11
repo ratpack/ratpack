@@ -32,12 +32,10 @@ public class DefaultRouting implements Routing {
     this.handlers = handlers;
   }
 
-  @Override
   public Exchange getExchange() {
     return exchange;
   }
 
-  @Override
   public void route(Handler handler) {
     handlers.add(handler);
   }

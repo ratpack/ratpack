@@ -26,7 +26,6 @@ public class DefaultSessionIdGenerator implements SessionIdGenerator {
 
   private SecureRandom random = new SecureRandom();
 
-  @Override
   public String generateSessionId(Request request) {
     return new BigInteger(130, random).toString(32);
   }

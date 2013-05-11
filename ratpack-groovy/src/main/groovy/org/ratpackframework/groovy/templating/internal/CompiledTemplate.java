@@ -42,7 +42,7 @@ public class CompiledTemplate {
       script.run();
     } catch (Exception e) {
       if (e instanceof InvalidTemplateException) {
-        throw e;
+        throw (InvalidTemplateException) e;
       } else {
         throw new InvalidTemplateException(templateName, "template execution failed", e);
       }

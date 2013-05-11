@@ -14,27 +14,19 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.context.internal;
+package org.ratpackframework.context;
 
-import org.ratpackframework.context.Context;
-import org.ratpackframework.context.ContextSupport;
+public abstract class HierarchicalContextSupport extends ContextSupport {
 
-public class ObjectHoldingContext extends ContextSupport {
+  private final Context parent;
 
-  private final Object value;
-
-  public ObjectHoldingContext(Context parent, Object value) {
-    super(parent);
-    this.value = value;
+  protected HierarchicalContextSupport(Context parent) {
+    this.parent = parent;
   }
 
   @Override
-  public <T> T doMaybeGet(Class<T> type) {
-    if (type.isInstance(value)) {
-      return type.cast(value);
-    } else {
-      return null;
-    }
+  public <T> T onNotFound(Class<T> type) {
+    return parent.maybeGet(type);
   }
 
 }

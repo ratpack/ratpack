@@ -36,7 +36,6 @@ public class FileSystemContextHandler implements Handler {
     this.absoluteContext = new DefaultFileSystemContext(file.getAbsoluteFile());
   }
 
-  @Override
   public void handle(Exchange exchange) {
     if (absolute) {
       exchange.nextWithContext(absoluteContext, delegate);

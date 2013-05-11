@@ -61,17 +61,14 @@ public class ExchangeSessionManager {
 
   public Session getSession() {
     return new Session() {
-      @Override
       public String getId() {
         return getSessionIdOrInit();
       }
 
-      @Override
       public String getExistingId() {
         return getCookieSessionId();
       }
 
-      @Override
       public String regen() {
         String existingId = getExistingId();
         if (existingId != null) {
@@ -81,7 +78,6 @@ public class ExchangeSessionManager {
 
       }
 
-      @Override
       public void terminate() {
         String existingId = getExistingId();
         if (existingId == null) {

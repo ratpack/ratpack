@@ -42,7 +42,6 @@ public class DefaultRequest implements Request {
     this.method = new DefaultHttpMethod(nettyRequest.getMethod().name());
   }
 
-  @Override
   public Map<String, List<String>> getQueryParams() {
     if (queryParams == null) {
       QueryStringDecoder queryStringDecoder = new QueryStringDecoder(getUri());
@@ -51,7 +50,6 @@ public class DefaultRequest implements Request {
     return queryParams;
   }
 
-  @Override
   public MediaType getContentType() {
     if (mediaType == null) {
       mediaType = new MediaType(nettyRequest.headers().get(HttpHeaders.Names.CONTENT_TYPE));
@@ -59,17 +57,14 @@ public class DefaultRequest implements Request {
     return mediaType;
   }
 
-  @Override
   public HttpMethod getMethod() {
     return method;
   }
 
-  @Override
   public String getUri() {
     return nettyRequest.getUri();
   }
 
-  @Override
   public String getQuery() {
     if (query == null) {
       String uri = getUri();
@@ -84,7 +79,6 @@ public class DefaultRequest implements Request {
     return query;
   }
 
-  @Override
   public String getPath() {
     if (path == null) {
       String uri = getUri();
@@ -100,7 +94,6 @@ public class DefaultRequest implements Request {
     return path;
   }
 
-  @Override
   public String getText() {
     return getBuffer().toString(Charset.forName(getContentType().getCharset()));
   }
@@ -109,12 +102,10 @@ public class DefaultRequest implements Request {
     return nettyRequest.content();
   }
 
-  @Override
   public Map<String, List<String>> getForm() {
     return new QueryStringDecoder(getText(), false).parameters();
   }
 
-  @Override
   public Set<Cookie> getCookies() {
     if (cookies == null) {
       String header = nettyRequest.headers().get(HttpHeaders.Names.COOKIE);
@@ -128,7 +119,6 @@ public class DefaultRequest implements Request {
     return cookies;
   }
 
-  @Override
   public String oneCookie(String name) {
     Cookie found = null;
     List<Cookie> allFound = null;
@@ -137,7 +127,7 @@ public class DefaultRequest implements Request {
         if (found == null) {
           found = cookie;
         } else if (allFound == null) {
-          allFound = new ArrayList<>(2);
+          allFound = new ArrayList<Cookie>(2);
           allFound.add(found);
         } else {
           allFound.add(cookie);
@@ -163,22 +153,18 @@ public class DefaultRequest implements Request {
     }
   }
 
-  @Override
   public String getHeader(String name) {
     return nettyRequest.headers().get(name);
   }
 
-  @Override
   public List<String> getHeaders(String name) {
     return nettyRequest.headers().getAll(name);
   }
 
-  @Override
   public boolean containsHeader(String name) {
     return nettyRequest.headers().contains(name);
   }
 
-  @Override
   public Set<String> getHeaderNames() {
     return nettyRequest.headers().names();
   }

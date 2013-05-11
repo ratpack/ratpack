@@ -35,7 +35,6 @@ public abstract class Handlers {
 
   public static Handler context(final Object context, final Action<? super Routing> action) {
     return new Handler() {
-      @Override
       public void handle(Exchange exchange) {
         exchange.nextWithContext(context, routes(action));
       }

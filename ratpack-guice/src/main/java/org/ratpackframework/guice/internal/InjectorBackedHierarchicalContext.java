@@ -16,21 +16,29 @@
 
 package org.ratpackframework.guice.internal;
 
+import com.google.inject.Binding;
 import com.google.inject.Injector;
-import org.ratpackframework.routing.Exchange;
-import org.ratpackframework.routing.Handler;
+import com.google.inject.Key;
+import org.ratpackframework.context.Context;
+import org.ratpackframework.context.HierarchicalContextSupport;
 
-public class InjectorBindingHandler implements Handler {
+public class InjectorBackedHierarchicalContext extends HierarchicalContextSupport {
 
   private final Injector injector;
-  private final Handler delegate;
 
-  public InjectorBindingHandler(Injector injector, Handler delegate) {
+  public InjectorBackedHierarchicalContext(Context parent, Injector injector) {
+    super(parent);
     this.injector = injector;
-    this.delegate = delegate;
   }
 
-  public void handle(Exchange exchange) {
-    exchange.nextWithContext(new InjectorBackedHierarchicalContext(exchange.getContext(), injector), delegate);
+  @Override
+  protected <T> T doMaybeGet(Class<T> type) {
+    Binding<T> existingBinding = injector.getExistingBinding(Key.get(type));
+    if (existingBinding == null) {
+      return null;
+    } else {
+      return existingBinding.getProvider().get();
+    }
   }
+
 }

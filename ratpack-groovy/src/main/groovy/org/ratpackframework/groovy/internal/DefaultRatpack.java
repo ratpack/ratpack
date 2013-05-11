@@ -24,12 +24,10 @@ public class DefaultRatpack implements Ratpack {
   private Closure<?> modulesConfigurer;
   private Closure<?> routingConfigurer;
 
-  @Override
   public void modules(Closure<?> modulesConfigurer) {
     this.modulesConfigurer = modulesConfigurer;
   }
 
-  @Override
   public void routing(Closure<?> routingConfigurer) {
     this.routingConfigurer = routingConfigurer;
   }

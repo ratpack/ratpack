@@ -14,16 +14,19 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.session.internal;
+package org.ratpackframework.file.internal;
 
-import org.ratpackframework.session.SessionListener;
+import org.ratpackframework.file.MimeTypes;
 
-public class NoopSessionListener implements SessionListener {
-  @Override
-  public void sessionInitiated(String id) {
+import javax.activation.MimetypesFileTypeMap;
+import java.io.File;
+
+public class ActivationBackedMimeTypes implements MimeTypes {
+
+  private final MimetypesFileTypeMap mimeTypesMap = new MimetypesFileTypeMap();
+
+  public String getContentType(File file) {
+    return mimeTypesMap.getContentType(file);
   }
 
-  @Override
-  public void sessionTerminated(String id) {
-  }
 }

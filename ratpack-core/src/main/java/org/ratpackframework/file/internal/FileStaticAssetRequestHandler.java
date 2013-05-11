@@ -18,6 +18,7 @@ package org.ratpackframework.file.internal;
 
 import io.netty.handler.codec.http.HttpHeaders;
 import org.ratpackframework.file.FileSystemContext;
+import org.ratpackframework.file.MimeTypes;
 import org.ratpackframework.http.Request;
 import org.ratpackframework.http.Response;
 import org.ratpackframework.http.internal.HttpDateParseException;
@@ -25,7 +26,6 @@ import org.ratpackframework.http.internal.HttpDateUtil;
 import org.ratpackframework.routing.Exchange;
 import org.ratpackframework.routing.Handler;
 
-import javax.activation.MimetypesFileTypeMap;
 import java.io.File;
 
 import static io.netty.handler.codec.http.HttpHeaders.Names.IF_MODIFIED_SINCE;
@@ -34,7 +34,6 @@ import static io.netty.handler.codec.http.HttpResponseStatus.*;
 
 public class FileStaticAssetRequestHandler implements Handler {
 
-  @Override
   public void handle(Exchange exchange) {
     Request request = exchange.getRequest();
     Response response = exchange.getResponse();
@@ -84,8 +83,7 @@ public class FileStaticAssetRequestHandler implements Handler {
       return;
     }
 
-    MimetypesFileTypeMap mimeTypesMap = new MimetypesFileTypeMap();
-    String contentType = mimeTypesMap.getContentType(targetFile.getPath());
+    String contentType = exchange.get(MimeTypes.class).getContentType(targetFile);
 
     response.sendFile(contentType, targetFile);
   }

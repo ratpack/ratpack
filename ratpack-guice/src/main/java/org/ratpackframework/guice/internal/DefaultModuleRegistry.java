@@ -26,9 +26,8 @@ import java.util.Map;
 
 public class DefaultModuleRegistry implements ModuleRegistry {
 
-  private final Map<Class<?>, Module> modules = new LinkedHashMap<>();
+  private final Map<Class<?>, Module> modules = new LinkedHashMap<Class<?>, Module>();
 
-  @Override
   public void register(Module module) {
     Class<? extends Module> type = module.getClass();
     if (modules.containsKey(type)) {
@@ -39,7 +38,6 @@ public class DefaultModuleRegistry implements ModuleRegistry {
     modules.put(type, module);
   }
 
-  @Override
   public <T> T get(Class<T> moduleType) {
     Object configObject = modules.get(moduleType);
     if (configObject == null) {
@@ -49,7 +47,6 @@ public class DefaultModuleRegistry implements ModuleRegistry {
     return moduleType.cast(configObject);
   }
 
-  @Override
   public <T extends Module> T remove(Class<T> moduleType) {
     if (!modules.containsKey(moduleType)) {
       throw new IllegalArgumentException(String.format("There is no module with type '%s'", moduleType));
@@ -58,8 +55,7 @@ public class DefaultModuleRegistry implements ModuleRegistry {
     return moduleType.cast(modules.remove(moduleType));
   }
 
-  @Override
   public List<Module> getModules() {
-    return new ArrayList<>(modules.values());
+    return new ArrayList<Module>(modules.values());
   }
 }

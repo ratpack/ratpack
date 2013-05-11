@@ -25,6 +25,7 @@ import io.netty.util.CharsetUtil;
 import org.ratpackframework.context.internal.RootContext;
 import org.ratpackframework.error.internal.ErrorHandler;
 import org.ratpackframework.error.internal.TopLevelErrorHandlingContext;
+import org.ratpackframework.file.internal.ActivationBackedMimeTypes;
 import org.ratpackframework.http.Request;
 import org.ratpackframework.http.Response;
 import org.ratpackframework.http.internal.DefaultRequest;
@@ -41,7 +42,6 @@ public class NettyRoutingAdapter extends ChannelInboundMessageHandlerAdapter<Ful
     this.handler = handler;
   }
 
-  @Override
   public void messageReceived(ChannelHandlerContext ctx, FullHttpRequest nettyRequest) throws Exception {
     if (!nettyRequest.getDecoderResult().isSuccess()) {
       sendError(ctx, HttpResponseStatus.BAD_REQUEST);
@@ -54,13 +54,12 @@ public class NettyRoutingAdapter extends ChannelInboundMessageHandlerAdapter<Ful
     Response response = new DefaultResponse(nettyResponse, ctx.channel());
 
     final Exchange exchange = new DefaultExchange(request, response, ctx, new RootContext(), new Handler() {
-      @Override
       public void handle(Exchange exchange) {
         exchange.getResponse().status(404).send();
       }
     });
 
-    exchange.nextWithContext(new TopLevelErrorHandlingContext(), new ErrorHandler(handler));
+    exchange.nextWithContext(new RootContext(new TopLevelErrorHandlingContext(), new ActivationBackedMimeTypes()), new ErrorHandler(handler));
   }
 
   public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {

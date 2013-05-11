@@ -18,26 +18,22 @@ package org.ratpackframework.context;
 
 public abstract class ContextSupport implements Context {
 
-  private final Context parent;
+  protected abstract <T> T doMaybeGet(Class<T> type);
 
-  protected ContextSupport(Context parent) {
-    this.parent = parent;
+  protected <T> T onNotFound(Class<T> type) {
+    return null;
   }
 
-  public abstract <T> T doMaybeGet(Class<T> type);
-
-  @Override
   public <T> T maybeGet(Class<T> type) {
     T value = doMaybeGet(type);
 
     if (value == null) {
-      return parent.maybeGet(type);
+      return onNotFound(type);
     } else {
       return value;
     }
   }
 
-  @Override
   public <T> T get(Class<T> type) {
     T found = maybeGet(type);
     if (found == null) {

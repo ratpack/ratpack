@@ -32,13 +32,12 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class StandaloneScriptBacking implements Action<Closure<?>> {
 
-  private final static AtomicReference<Action<? super RatpackServer>> CAPTURE_ACTION = new AtomicReference<>(null);
+  private final static AtomicReference<Action<? super RatpackServer>> CAPTURE_ACTION = new AtomicReference<Action<? super RatpackServer>>(null);
 
   public static void captureNext(Action<? super RatpackServer> action) {
     CAPTURE_ACTION.set(action);
   }
 
-  @Override
   public void execute(Closure<?> closure) {
     File scriptFile = findScript(closure);
 

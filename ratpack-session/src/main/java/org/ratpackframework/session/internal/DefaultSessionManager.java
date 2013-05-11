@@ -28,7 +28,7 @@ import java.util.List;
 public class DefaultSessionManager implements SessionManager {
 
   private final SessionIdGenerator idGenerator;
-  private final List<SessionListener> sessionListeners = new ArrayList<>(1);
+  private final List<SessionListener> sessionListeners = new ArrayList<SessionListener>(1);
   private final SessionCookieConfig sessionCookieConfig;
 
   @Inject
@@ -37,39 +37,32 @@ public class DefaultSessionManager implements SessionManager {
     this.sessionCookieConfig = sessionCookieConfig;
   }
 
-  @Override
   public String getCookieDomain() {
     return sessionCookieConfig.getDomain();
   }
 
-  @Override
   public String getCookiePath() {
     return sessionCookieConfig.getPath();
   }
 
-  @Override
   public int getCookieExpiryMins() {
     return sessionCookieConfig.getExpiresMins();
   }
 
-  @Override
   public SessionIdGenerator getIdGenerator() {
     return idGenerator;
   }
 
-  @Override
   public void addSessionListener(SessionListener sessionListener) {
     sessionListeners.add(sessionListener);
   }
 
-  @Override
   public void notifySessionInitiated(String sessionId) {
     for (SessionListener sessionListener : sessionListeners) {
       sessionListener.sessionInitiated(sessionId);
     }
   }
 
-  @Override
   public void notifySessionTerminated(String sessionId) {
     for (SessionListener sessionListener : sessionListeners) {
       sessionListener.sessionTerminated(sessionId);
