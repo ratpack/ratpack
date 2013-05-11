@@ -36,8 +36,9 @@ task tokeniseManual(type: Sync) {
       head: """
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width">
+        <link href="http://fonts.googleapis.com/css?family=Cabin+Condensed:700|Libre+Baskerville:400,700,400italic|Engagement" rel="stylesheet" type="text/css">
         <link href="css/stylesheet.css" rel="stylesheet" type="text/css">
-        <link href="css/prism.css" rel="stylesheet" type="text/css">
+        <script src="js/modernizr.js"></script>
         <script src="js/prism.js"></script>
         <script src="js/jquery-1.9.1.min.js"></script>
       """,

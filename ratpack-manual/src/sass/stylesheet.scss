@@ -1,4 +1,12 @@
-body {
-  max-width: 1140px;
-  margin: 0 auto;
-}
+@import "compass";
+
+@import "lib/grid";
+
+@import "palette";
+@import "settings";
+@import "reset";
+@import "typography";
+@import "layout";
+@import "utilties";
+
+@import "lib/prism";

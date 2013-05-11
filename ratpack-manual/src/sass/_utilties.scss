@@ -1,0 +1,46 @@
+/*
+ * Cross-browser antialias for transformed elements.
+ */
+@mixin antialias {
+  @include background-clip(content-box);
+  padding: 2px;
+  @include backface-visibility(hidden);
+}
+
+/*
+ * Given a rems size renders rems with fallback pixels.
+ *
+ * Basically the reverse of https://github.com/bitmanic/rem
+ *
+ *     @mixin rems(font-size, 2rem);
+ *
+ * becomes
+ *
+ *     font-size: 32px;
+ *     font-size: 2rem;
+ *
+ * It also works with lists so
+ *
+ *    @mixin rems(padding, 1rem 0 2rem 0.5rem);
+ *
+ * becomes
+ *
+ *    padding: 16px 0 32px 8px;
+ *    padding: 1rem 0 2rem 0.5rem;
+ */
+@mixin rem($property, $rems) {
+  @if type-of($rems) == "number" {
+    #{$property}: ($rems / 1rem) * $base-font-size;
+  } @else {
+    $px-values: ();
+    @each $value in $rems {
+      @if $value == 0 {
+        $px-values: append($px-values, $value);
+      } @else {
+        $px-values: append($px-values, ($value / 1rem) * $base-font-size);
+      }
+    }
+    #{$property}: $px-values;
+  }
+  #{$property}: $rems;
+}
