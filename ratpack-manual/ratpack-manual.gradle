@@ -35,7 +35,7 @@ task tokeniseManual(type: Sync) {
         <link href="css/stylesheet.css" rel="stylesheet" type="text/css">
         <link href="css/prism.css" rel="stylesheet" type="text/css">
         <script src="js/prism.js"></script>
-        <script src="js/jquery-1.6.1.min.js"></script>
+        <script src="js/jquery-1.9.1.min.js"></script>
       """,
       footer: """
         <p>Ratpack Manual - $version - ${new Date().format("MMMM, yyyy")}</p>
