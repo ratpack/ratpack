@@ -1,9 +1,9 @@
 package org.ratpackframework.path.internal;
 
-import org.ratpackframework.routing.Exchange;
-import org.ratpackframework.routing.Handler;
 import org.ratpackframework.path.PathBinding;
 import org.ratpackframework.path.PathContext;
+import org.ratpackframework.routing.Exchange;
+import org.ratpackframework.routing.Handler;
 
 public class PathHandler implements Handler {
 
@@ -17,7 +17,7 @@ public class PathHandler implements Handler {
 
   @Override
   public void handle(Exchange exchange) {
-    PathContext childContext = binding.bind(exchange.getRequest().getPath(), exchange.getContext().maybeGet(PathContext.class));
+    PathContext childContext = binding.bind(exchange.getRequest().getPath(), exchange.maybeGet(PathContext.class));
     if (childContext != null) {
       exchange.nextWithContext(childContext, delegate);
     } else {

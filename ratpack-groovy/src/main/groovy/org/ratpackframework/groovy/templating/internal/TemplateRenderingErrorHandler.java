@@ -17,7 +17,7 @@ public class TemplateRenderingErrorHandler implements Handler {
     try {
       exchange.next(delegate);
     } catch (Exception exception) {
-      TemplateRenderer renderer = exchange.getContext().get(TemplateRenderer.class);
+      TemplateRenderer renderer = exchange.get(TemplateRenderer.class);
       renderer.error(ExceptionToTemplateModel.transform(exchange.getRequest(), exception));
     }
   }

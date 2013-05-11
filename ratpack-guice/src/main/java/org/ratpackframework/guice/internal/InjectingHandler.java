@@ -27,7 +27,7 @@ public class InjectingHandler implements Handler {
     //      it from the request context.
     //
     //      Another option would be to cache the injector. If the injection context is the same, then just reuse.
-    Injector injector = exchange.getContext().get(Injector.class);
+    Injector injector = exchange.get(Injector.class);
     Injector childInjector = injector.createChildInjector(module);
     Handler instance = childInjector.getInstance(handlerType);
     instance.handle(exchange);

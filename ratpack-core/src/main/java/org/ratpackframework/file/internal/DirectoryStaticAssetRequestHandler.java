@@ -38,7 +38,7 @@ public class DirectoryStaticAssetRequestHandler implements Handler {
 
   @Override
   public void handle(Exchange exchange) {
-    FileSystemContext fileSystemContext = exchange.getContext().get(FileSystemContext.class);
+    FileSystemContext fileSystemContext = exchange.get(FileSystemContext.class);
     File targetFile = fileSystemContext.getFile();
     if (targetFile.isDirectory()) {
       for (String indexFileName : indexFiles) {

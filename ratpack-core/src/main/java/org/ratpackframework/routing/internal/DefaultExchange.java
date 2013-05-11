@@ -106,17 +106,17 @@ public class DefaultExchange implements Exchange {
 
   @Override
   public Map<String, String> getPathTokens() {
-    return getContext().get(PathContext.class).getTokens();
+    return get(PathContext.class).getTokens();
   }
 
   @Override
   public Map<String, String> getAllPathTokens() {
-    return getContext().get(PathContext.class).getAllTokens();
+    return get(PathContext.class).getAllTokens();
   }
 
   @Override
   public void error(Exception exception) {
-    getContext().get(ErrorHandlingContext.class).error(this, exception);
+    get(ErrorHandlingContext.class).error(this, exception);
   }
 
   protected void doNext(final Context context, final List<Handler> handlers, final Handler exhausted) {

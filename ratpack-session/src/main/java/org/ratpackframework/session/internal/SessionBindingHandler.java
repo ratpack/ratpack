@@ -14,7 +14,7 @@ public class SessionBindingHandler implements Handler {
 
   @Override
   public void handle(Exchange exchange) {
-    SessionManager sessionManager = exchange.getContext().get(SessionManager.class);
+    SessionManager sessionManager = exchange.get(SessionManager.class);
     ExchangeSessionManager exchangeSessionManager = new ExchangeSessionManager(exchange, sessionManager);
     exchange.nextWithContext(exchangeSessionManager.getSession(), delegate);
   }

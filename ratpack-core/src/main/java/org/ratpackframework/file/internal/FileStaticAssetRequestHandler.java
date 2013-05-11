@@ -44,7 +44,7 @@ public class FileStaticAssetRequestHandler implements Handler {
       return;
     }
 
-    FileSystemContext fileSystemContext = exchange.getContext().get(FileSystemContext.class);
+    FileSystemContext fileSystemContext = exchange.get(FileSystemContext.class);
     File targetFile = fileSystemContext.getFile();
 
     if (targetFile.isHidden() || !targetFile.exists()) {
