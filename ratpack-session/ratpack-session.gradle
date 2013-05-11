@@ -1,4 +1,4 @@
-apply from: "$rootDir/gradle/javaModule.groovy"
+apply from: "$rootDir/gradle/javaModule.gradle"
 
 dependencies {
   compile project(":ratpack-guice")

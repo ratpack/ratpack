@@ -10,4 +10,10 @@ dependencies {
 
 test {
   dependsOn { apiModules*.install }
+  allprojects {
+    if (it == project) {
+      return
+    }
+    mustRunAfter tasks.withType(VerificationTask)
+  }
 }

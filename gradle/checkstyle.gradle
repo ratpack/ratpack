@@ -10,7 +10,3 @@ checkstyle {
 tasks.withType(Test) {
   mustRunAfter tasks.withType(Checkstyle)
 }
-
-tasks.withType(Test) {
-  mustRunAfter tasks.withType(Checkstyle)
-}

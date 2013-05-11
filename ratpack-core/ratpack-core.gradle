@@ -1,4 +1,4 @@
-apply from: "$rootDir/gradle/javaModule.groovy"
+apply from: "$rootDir/gradle/javaModule.gradle"
 
 dependencies {
   compile 'io.netty:netty-codec-http:4.0.0.CR2'

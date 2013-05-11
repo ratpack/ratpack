@@ -47,6 +47,12 @@ subprojects {
     }
   }
 
+  tasks.withType(Test) {
+    allprojects {
+      mustRunAfter tasks.withType(Checkstyle)
+    }
+  }
+
   if (project.name.endsWith("-test")) {
     return
   }
