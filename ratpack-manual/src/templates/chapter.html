@@ -1,4 +1,4 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<!doctype html>
 <html>
 
 <head>
@@ -7,26 +7,37 @@
 </head>
 
 <body>
-  <div id="wrapper">
-    <div id="header">
-      <% if (prev) { %><span class="left">&#x25C0; <a href="<%= prev.filename %>"><%= prev.title %></a></span><% } %>
-      <span class="center"><a href="index.html">Table of Contents</a></span>
-      <% if (next) { %><span class="right"><a href="<%= next.filename %>"><%= next.title %></a> &#x25B6;</span><% } %>
+
+  <header>
+    <div class="ratpack-logo">
+      <h1>@title@</h1>
+      <p>@tagline@</p>
     </div>
-    <hr />
-    <div class="page_toc">
-      <h3>Chapter Contents</h3>
-      <%= chapter.toc %>
-    </div>
-    <hr />
+
+    <nav class="pagination">
+      <% if (prev) { %><a href="<%= prev.filename %>" rel="prev">&#x25C0; <%= prev.title %></a><% } %>
+      <a href="index.html" rel="index">Table of Contents</a>
+      <% if (next) { %><a href="<%= next.filename %>" rel="next"><%= next.title %> &#x25B6;</a><% } %>
+    </nav>
+  </header>
+
+  <nav class="page_toc">
+    <h3>Chapter Contents</h3>
+    <%= chapter.toc %>
+  </nav>
+
+  <article class="manual">
     <%= chapter.content %>
-    <hr />
-    <div id="footer">
-      <% if (prev) { %><span class="left">&#x25C0; <a href="<%= prev.filename %>"><%= prev.title %></a></span><% } %>
-      <span class="center"><a href="index.html">Table of Contents</a></span>
-      <% if (next) { %><span class="right"><a href="<%= next.filename %>"><%= next.title %></a> &#x25B6;</span><% } %>
-    </div>
-  </div>
-  <p style="text-align: center">@footer@</p>
+  </article>
+
+  <footer>
+    <nav class="pagination">
+      <% if (prev) { %><a href="<%= prev.filename %>" rel="prev">&#x25C0; <%= prev.title %></a><% } %>
+      <a href="index.html" rel="index">Table of Contents</a>
+      <% if (next) { %><a href="<%= next.filename %>" rel="next"><%= next.title %> &#x25B6;</a><% } %>
+    </nav>
+    @footer@
+  </footer>
+
 </body>
 </html>

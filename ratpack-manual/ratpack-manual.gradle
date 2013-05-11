@@ -7,7 +7,7 @@ buildscript {
   }
 }
 
-archivesBaseName = "geb-manual"
+archivesBaseName = "ratpack-manual"
 
 modifyPom { pom ->
   project {
@@ -21,25 +21,26 @@ task tokeniseManual(type: Sync) {
 
   ext.substitutionProperties = [
       title: "Ratpack Manual",
-      tagline: "– A Micro Web Framework for Java (and Groovy) –",
+      tagline: "A Micro Web Framework for Java & Groovy",
       "ratpack-version": project.version,
       "ratpack-group": project.group,
       "groovy-version": groovyVersion,
       "manual-url": "https://oss.sonatype.org/content/repositories/${isSnapshot ? 'snapshots' : 'releases'}/org/ratpack-framework/ratpack-manual/$version/ratpack-manual-${version}.zip".toString(),
       head: """
-        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width">
         <link href="css/stylesheet.css" rel="stylesheet" type="text/css">
-        <link type="text/css" rel="stylesheet" href="css/shCore.css"></link>
-        <link type="text/css" rel="stylesheet" href="css/shThemeEclipse.css"></link>
-        <script language="javascript" src="js/shCore.js"></script>
-        <script language="javascript" src="js/shBrushGroovy.js"></script>
-        <script type="text/javascript" src="js/jquery-1.6.1.min.js"></script>
-        <script type="text/javascript" src="js/syntaxhighlight.js"></script>
+        <link type="text/css" rel="stylesheet" href="css/shCore.css">
+        <link type="text/css" rel="stylesheet" href="css/shThemeEclipse.css">
+        <script src="js/shCore.js"></script>
+        <script src="js/shBrushGroovy.js"></script>
+        <script src="js/jquery-1.6.1.min.js"></script>
+        <script src="js/syntaxhighlight.js"></script>
       """,
       footer: """
-        Ratpack Manual - $version - ${new Date().format("MMMM, yyyy")}<br />
-        <a href="http://www.ratpack-framework.org">www.ratpack-framework.org</a><br />
-        Licensed under the <a href="http://www.apache.org/licenses/LICENSE-2.0">Apache License, Version 2.0</a>
+        <p>Ratpack Manual - $version - ${new Date().format("MMMM, yyyy")}</p>
+        <p><a href="http://www.ratpack-framework.org">www.ratpack-framework.org</a></p>
+        <p>Licensed under the <a href="http://www.apache.org/licenses/LICENSE-2.0">Apache License, Version 2.0</a></p>
       """.toString()
   ]
 
