@@ -14,6 +14,10 @@ public interface Exchange {
 
   Context getContext();
 
+  <T> T get(Class<T> type);
+
+  <T> T maybeGet(Class<T> type);
+
   void next();
 
   void next(Handler... handlers);

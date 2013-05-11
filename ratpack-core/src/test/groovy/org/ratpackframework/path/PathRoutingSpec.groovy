@@ -14,7 +14,7 @@ class PathRoutingSpec extends DefaultRatpackSpec {
       routing {
         route path("abc") {
           route handler {
-            response.send(context.get(PathContext).boundTo)
+            response.send(get(PathContext).boundTo)
           }
         }
       }
@@ -31,7 +31,7 @@ class PathRoutingSpec extends DefaultRatpackSpec {
         route path("abc") {
           route path("def") {
             route handler {
-              response.send(context.get(PathContext).pastBinding)
+              response.send(get(PathContext).pastBinding)
             }
           }
         }
@@ -48,7 +48,7 @@ class PathRoutingSpec extends DefaultRatpackSpec {
       routing {
         route path(":a/:b/:c") {
           route handler {
-            def pathContext = context.get(PathContext)
+            def pathContext = get(PathContext)
             response.send("$pathContext.tokens - $pathContext.pastBinding")
           }
         }
@@ -66,7 +66,7 @@ class PathRoutingSpec extends DefaultRatpackSpec {
         route path(":a/:b") {
           route path(":d/:e") {
             route handler {
-              def pathContext = context.get(PathContext)
+              def pathContext = get(PathContext)
               response.send("$pathContext.tokens - $pathContext.allTokens - $pathContext.pastBinding")
             }
           }
@@ -84,7 +84,7 @@ class PathRoutingSpec extends DefaultRatpackSpec {
       routing {
         route exactPath(":a/:b/:c") {
           route handler {
-            def pathContext = context.get(PathContext)
+            def pathContext = get(PathContext)
             response.send("$pathContext.tokens - $pathContext.pastBinding")
           }
         }
@@ -103,7 +103,7 @@ class PathRoutingSpec extends DefaultRatpackSpec {
         route path(":a/:b") {
           route exactPath(":d/:e") {
             route handler {
-              def pathContext = context.get(PathContext)
+              def pathContext = get(PathContext)
               response.send("$pathContext.tokens - $pathContext.allTokens - $pathContext.pastBinding")
             }
           }

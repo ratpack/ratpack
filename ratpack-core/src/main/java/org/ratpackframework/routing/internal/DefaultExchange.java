@@ -62,6 +62,16 @@ public class DefaultExchange implements Exchange {
   }
 
   @Override
+  public <T> T get(Class<T> type) {
+    return context.require(type);
+  }
+
+  @Override
+  public <T> T maybeGet(Class<T> type) {
+    return context.get(type);
+  }
+
+  @Override
   public void next() {
     next.handle(this);
   }

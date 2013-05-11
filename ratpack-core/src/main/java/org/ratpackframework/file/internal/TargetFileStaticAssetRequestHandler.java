@@ -1,6 +1,5 @@
 package org.ratpackframework.file.internal;
 
-import org.ratpackframework.context.Context;
 import org.ratpackframework.file.FileSystemContext;
 import org.ratpackframework.http.Request;
 import org.ratpackframework.path.PathContext;
@@ -21,13 +20,12 @@ public class TargetFileStaticAssetRequestHandler implements Handler {
 
   @Override
   public void handle(Exchange exchange) {
-    Context context = exchange.getContext();
-    FileSystemContext fileSystemContext = context.require(FileSystemContext.class);
+    FileSystemContext fileSystemContext = exchange.get(FileSystemContext.class);
 
     Request request = exchange.getRequest();
 
     String path = request.getPath();
-    PathContext pathContext = context.get(PathContext.class);
+    PathContext pathContext = exchange.maybeGet(PathContext.class);
     if (pathContext != null) {
       path = pathContext.getPastBinding();
     }
