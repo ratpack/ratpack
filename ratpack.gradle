@@ -40,6 +40,13 @@ ext {
 
 
 subprojects {
+
+  tasks.withType(Upload).matching { it.name != "install" }.all {
+    rootProject.subprojects {
+      mustRunAfter tasks.matching { it instanceof VerificationTask }
+    }
+  }
+
   if (project.name.endsWith("-test")) {
     return
   }
