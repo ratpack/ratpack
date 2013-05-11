@@ -6,13 +6,15 @@ It is not a J2EE solution.
 
 ## Detail
 
-    ratpack {
-      routing {
-        get("foo/bar") {
-          response.send "Yeah!"
-        }
-      }
+```language-groovy
+ratpack {
+  routing {
+    get("foo/bar") {
+      response.send "Yeah!"
     }
+  }
+}
+```
 
 ### Features
 

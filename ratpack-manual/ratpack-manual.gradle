@@ -4,6 +4,7 @@ buildscript {
   }
   dependencies {
     classpath "org.gebish:markdown2book:1.0"
+    classpath "org.pegdown:pegdown:1.2.1"
   }
 }
 
@@ -32,12 +33,9 @@ task tokeniseManual(type: Sync) {
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width">
         <link href="css/stylesheet.css" rel="stylesheet" type="text/css">
-        <link type="text/css" rel="stylesheet" href="css/shCore.css">
-        <link type="text/css" rel="stylesheet" href="css/shThemeEclipse.css">
-        <script src="js/shCore.js"></script>
-        <script src="js/shBrushGroovy.js"></script>
+        <link href="css/prism.css" rel="stylesheet" type="text/css">
+        <script src="js/prism.js"></script>
         <script src="js/jquery-1.6.1.min.js"></script>
-        <script src="js/syntaxhighlight.js"></script>
       """,
       footer: """
         <p>Ratpack Manual - $version - ${new Date().format("MMMM, yyyy")}</p>
