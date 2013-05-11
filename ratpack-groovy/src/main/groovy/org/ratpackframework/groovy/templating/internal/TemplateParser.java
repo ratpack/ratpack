@@ -27,7 +27,7 @@ public class TemplateParser {
   public void parse(ByteBuf input, ByteBuf output) throws IOException {
     startScript(output);
     byte c;
-    while (input.readable()) {
+    while (input.isReadable()) {
       c = input.readByte();
       if (c == '<') {
         input.markReaderIndex();
@@ -92,7 +92,7 @@ public class TemplateParser {
   private void processGSstring(ByteBuf input, ByteBuf output) throws IOException {
     output.writeBytes(DOLLAR_BRACE);
     byte c;
-    while (input.readable()) {
+    while (input.isReadable()) {
       c = input.readByte();
       if (c != '\n' && c != '\r') {
         output.writeByte(c);
@@ -106,7 +106,7 @@ public class TemplateParser {
   private void groovyExpression(ByteBuf input, ByteBuf output) throws IOException {
     output.writeBytes(DOLLAR_BRACE);
     byte c;
-    while (input.readable()) {
+    while (input.isReadable()) {
       c = input.readByte();
       if (c == '%') {
         c = input.readByte();
@@ -127,7 +127,7 @@ public class TemplateParser {
     output.writeBytes(START_CODE);
     output.writeByte('\n');
     byte c;
-    while (input.readable()) {
+    while (input.isReadable()) {
       c = input.readByte();
       if (c == '%') {
         c = input.readByte();
