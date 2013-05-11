@@ -6,7 +6,8 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundMessageHandlerAdapter;
 import io.netty.handler.codec.http.*;
 import io.netty.util.CharsetUtil;
-import org.ratpackframework.context.DefaultContext;
+import org.ratpackframework.context.internal.ObjectHoldingContext;
+import org.ratpackframework.context.internal.RootContext;
 import org.ratpackframework.error.internal.ErrorHandler;
 import org.ratpackframework.error.internal.TopLevelErrorHandlingContext;
 import org.ratpackframework.http.Request;
@@ -37,7 +38,7 @@ public class NettyRoutingAdapter extends ChannelInboundMessageHandlerAdapter<Ful
     Request request = new DefaultRequest(nettyRequest);
     Response response = new DefaultResponse(nettyResponse, ctx.channel());
 
-    final Exchange exchange = new DefaultExchange(request, response, ctx, new DefaultContext(), new Handler() {
+    final Exchange exchange = new DefaultExchange(request, response, ctx, new RootContext(), new Handler() {
       @Override
       public void handle(Exchange exchange) {
         exchange.getResponse().status(404).send();

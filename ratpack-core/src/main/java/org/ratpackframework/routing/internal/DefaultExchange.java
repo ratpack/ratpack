@@ -18,13 +18,13 @@ package org.ratpackframework.routing.internal;
 
 import io.netty.channel.ChannelHandlerContext;
 import org.ratpackframework.context.Context;
+import org.ratpackframework.context.internal.ObjectHoldingContext;
 import org.ratpackframework.error.ErrorHandlingContext;
 import org.ratpackframework.routing.Exchange;
 import org.ratpackframework.routing.Handler;
 import org.ratpackframework.http.Request;
 import org.ratpackframework.http.Response;
 import org.ratpackframework.path.PathContext;
-import org.ratpackframework.session.Session;
 import org.ratpackframework.util.CollectionUtils;
 
 import java.util.List;
@@ -75,13 +75,23 @@ public class DefaultExchange implements Exchange {
   }
 
   @Override
-  public void nextWithContext(Object context, Handler... handlers) {
-    doNext(this.context.push(context), CollectionUtils.toList(handlers), next);
+  public void nextWithContext(Object object, Handler... handlers) {
+    doNext(new ObjectHoldingContext(this.context, object), CollectionUtils.toList(handlers), next);
   }
 
   @Override
-  public void nextWithContext(Object context, Iterable<Handler> handlers) {
-    doNext(this.context.push(context), CollectionUtils.toList(handlers), next);
+  public void nextWithContext(Object object, Iterable<Handler> handlers) {
+    doNext(new ObjectHoldingContext(this.context, object), CollectionUtils.toList(handlers), next);
+  }
+
+  @Override
+  public void nextWithContext(Context context, Handler... handlers) {
+    doNext(context, CollectionUtils.toList(handlers), next);
+  }
+
+  @Override
+  public void nextWithContext(Context context, Iterable<Handler> handlers) {
+    doNext(context, CollectionUtils.toList(handlers), next);
   }
 
   @Override
@@ -92,11 +102,6 @@ public class DefaultExchange implements Exchange {
   @Override
   public Map<String, String> getAllPathTokens() {
     return getContext().require(PathContext.class).getAllTokens();
-  }
-
-  @Override
-  public Session getSession() {
-    return getContext().require(Session.class);
   }
 
   @Override

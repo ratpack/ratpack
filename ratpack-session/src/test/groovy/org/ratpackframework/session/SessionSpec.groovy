@@ -1,8 +1,7 @@
 package org.ratpackframework.session
 
-import org.ratpackframework.test.groovy.RatpackGroovyDslSpec
+import com.google.inject.Injector
 import org.ratpackframework.guice.GuiceBackedHandlerFactory
-import org.ratpackframework.guice.InjectionContext
 import org.ratpackframework.guice.ModuleRegistry
 import org.ratpackframework.guice.internal.DefaultGuiceBackedHandlerFactory
 import org.ratpackframework.routing.Exchange
@@ -11,6 +10,7 @@ import org.ratpackframework.session.internal.SessionBindingHandler
 import org.ratpackframework.session.store.MapSessionStore
 import org.ratpackframework.session.store.MapSessionsModule
 import org.ratpackframework.session.store.SessionStorage
+import org.ratpackframework.test.groovy.RatpackGroovyDslSpec
 
 class SessionSpec extends RatpackGroovyDslSpec {
 
@@ -33,14 +33,12 @@ class SessionSpec extends RatpackGroovyDslSpec {
       void handle(Exchange exchange) {
         // TODO a proper handler impl for this
 
-
-        def injectionContext = exchange.context.require(InjectionContext)
-        def injector = injectionContext.injector
+        def injector = exchange.context.require(Injector)
         def mapSessionStore = injector.getInstance(MapSessionStore)
 
         // TODO we are creating a session map even if we dont' use use it
         // We should avoid doing so unless some really asks for the session storage
-        def sessionStorage = mapSessionStore.get(exchange.session.id)
+        def sessionStorage = mapSessionStore.get(exchange.context.get(Session).id)
         exchange.nextWithContext(sessionStorage, handler)
       }
     }))
@@ -51,7 +49,7 @@ class SessionSpec extends RatpackGroovyDslSpec {
     app {
       routing {
         get(":v") {
-          response.send session.getId()
+          response.send context.get(Session).getId()
         }
       }
     }
@@ -97,11 +95,11 @@ class SessionSpec extends RatpackGroovyDslSpec {
           response.send store.value ?: "null"
         }
         get("invalidate") {
-          session.terminate()
+          context.get(Session).terminate()
           response.send()
         }
         get("size") {
-          response.send context.get(InjectionContext).getInjector().getInstance(MapSessionStore).size().toString()
+          response.send context.get(MapSessionStore).size().toString()
         }
       }
     }

@@ -6,6 +6,4 @@ public interface Context {
 
   <T> T require(Class<T> type);
 
-  Context push(Object value);
-
 }

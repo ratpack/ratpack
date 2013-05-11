@@ -9,5 +9,5 @@ dependencies {
 }
 
 test {
-  dependsOn ":ratpack-core:install", ":ratpack-groovy:install"
+  dependsOn { apiModules*.install }
 }

@@ -34,7 +34,7 @@ ext {
   ]
 
   apiModules = [
-      "ratpack-core", "ratpack-groovy"
+      "ratpack-core", "ratpack-groovy", "ratpack-guice", "ratpack-session"
   ].collect { project(it) }
 }
 

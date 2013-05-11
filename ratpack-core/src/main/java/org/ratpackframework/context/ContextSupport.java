@@ -1,28 +1,23 @@
 package org.ratpackframework.context;
 
-public class DefaultContext implements Context {
+public abstract class ContextSupport implements Context {
 
   private final Context parent;
-  private final Object value;
 
-  public DefaultContext() {
-    this.parent = null;
-    this.value = null;
-  }
-
-  private DefaultContext(Context parent, Object value) {
+  protected ContextSupport(Context parent) {
     this.parent = parent;
-    this.value = value;
   }
+
+  public abstract <T> T doGet(Class<T> type);
 
   @Override
   public <T> T get(Class<T> type) {
+    T value = doGet(type);
+
     if (value == null) {
-      return null;
-    } else if (type.isInstance(value)) {
-      return type.cast(value);
-    } else {
       return parent.get(type);
+    } else {
+      return value;
     }
   }
 
@@ -34,11 +29,6 @@ public class DefaultContext implements Context {
     }
 
     return found;
-  }
-
-  @Override
-  public Context push(Object value) {
-    return new DefaultContext(this, value);
   }
 
 }

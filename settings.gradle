@@ -1,5 +1,7 @@
 include \
     "ratpack-core",
+    "ratpack-guice",
+    "ratpack-session",
     "ratpack-gradle",
     "ratpack-groovy",
     "ratpack-test-support",

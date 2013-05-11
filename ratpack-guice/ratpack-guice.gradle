@@ -1,0 +1,9 @@
+apply from: "$rootDir/gradle/javaModule.groovy"
+
+dependencies {
+  compile project(":ratpack-core")
+  compile 'com.google.inject:guice:3.0', {
+    exclude group: 'org.sonatype.sisu.inject'
+  }
+  testCompile project(":ratpack-test-support")
+}

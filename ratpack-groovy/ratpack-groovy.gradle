@@ -4,5 +4,7 @@ dependencies {
   groovy commonDependencies.groovy
   compile commonDependencies.groovy
   compile project(":ratpack-core")
+  compile project(":ratpack-guice")
+  compile project(":ratpack-session")
   testCompile project(":ratpack-test-support")
 }

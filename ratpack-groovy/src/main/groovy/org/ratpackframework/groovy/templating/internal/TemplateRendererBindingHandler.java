@@ -4,7 +4,6 @@ import com.google.inject.Injector;
 import org.ratpackframework.context.Context;
 import org.ratpackframework.file.FileSystemContext;
 import org.ratpackframework.groovy.templating.TemplateRenderer;
-import org.ratpackframework.guice.InjectionContext;
 import org.ratpackframework.routing.Exchange;
 import org.ratpackframework.routing.Handler;
 
@@ -23,7 +22,7 @@ public class TemplateRendererBindingHandler implements Handler {
   @Override
   public void handle(Exchange exchange) {
     Context context = exchange.getContext();
-    Injector injector = context.get(InjectionContext.class).getInjector();
+    Injector injector = context.get(Injector.class);
     GroovyTemplateRenderingEngine engine = injector.getInstance(GroovyTemplateRenderingEngine.class);
 
     File templateDirFile = context.require(FileSystemContext.class).file(templateDir);

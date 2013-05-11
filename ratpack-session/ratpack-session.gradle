@@ -1,0 +1,6 @@
+apply from: "$rootDir/gradle/javaModule.groovy"
+
+dependencies {
+  compile project(":ratpack-guice")
+  testCompile project(":ratpack-test-support")
+}
