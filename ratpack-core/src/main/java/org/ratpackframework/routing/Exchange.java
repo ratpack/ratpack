@@ -57,4 +57,6 @@ public interface Exchange {
 
   void error(Exception exception);
 
+  void withErrorHandling(Runnable runnable);
+
 }

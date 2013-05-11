@@ -17,6 +17,7 @@
 package org.ratpackframework.groovy.routing.internal;
 
 import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 import org.ratpackframework.groovy.ClosureHandlers;
 import org.ratpackframework.groovy.routing.Routing;
 import org.ratpackframework.routing.Exchange;
@@ -42,11 +43,11 @@ public class DefaultRouting implements Routing {
   }
 
   public void routes(Closure<?> routing) {
-    route(new RoutingHandler(action(routing)));
+    route(routing(routing));
   }
 
   public void path(String path, Closure<?> routing) {
-    route(Handlers.path(path, new RoutingHandler(action(routing))));
+    route(Handlers.path(path, routing(routing)));
   }
 
   public void all(String path, Closure<?> handler) {
@@ -77,8 +78,16 @@ public class DefaultRouting implements Routing {
     route(Handlers.assets(path, indexFiles));
   }
 
+  public void context(Object object, Closure<?> routing) {
+    route(Handlers.context(object, routing(routing)));
+  }
+
   public void fsContext(String path, Closure<?> routing) {
-    route(Handlers.fsContext(path, new RoutingHandler(action(routing))));
+    route(Handlers.fsContext(path, routing(routing)));
+  }
+
+  private Handler routing(Closure<?> routing) {
+    return new RoutingHandler(action(routing));
   }
 
   public Exchange getExchange() {
@@ -88,4 +97,6 @@ public class DefaultRouting implements Routing {
   public void route(Handler handler) {
     handlers.add(handler);
   }
+
+
 }

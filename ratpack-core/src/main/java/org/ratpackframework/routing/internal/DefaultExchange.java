@@ -114,6 +114,14 @@ public class DefaultExchange implements Exchange {
     get(ErrorHandlingContext.class).error(this, exception);
   }
 
+  public void withErrorHandling(Runnable runnable) {
+    try {
+      runnable.run();
+    } catch (Exception e) {
+      error(e);
+    }
+  }
+
   protected void doNext(final Context context, final List<Handler> handlers, final Handler exhausted) {
     assert context != null;
     if (handlers.isEmpty()) {

@@ -34,9 +34,13 @@ import java.util.Collection;
 public abstract class Handlers {
 
   public static Handler context(final Object context, final Action<? super Routing> action) {
+    return context(context, routes(action));
+  }
+
+  public static Handler context(final Object context, final Handler handler) {
     return new Handler() {
       public void handle(Exchange exchange) {
-        exchange.nextWithContext(context, routes(action));
+        exchange.nextWithContext(context, handler);
       }
     };
   }

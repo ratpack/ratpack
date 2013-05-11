@@ -40,6 +40,8 @@ public interface Routing extends org.ratpackframework.routing.Routing {
 
   void assets(String path, String... indexFiles)
 
+  void context(Object object, @DelegatesTo(value = Routing, strategy = Closure.DELEGATE_FIRST) Closure<?> routing)
+
   void fsContext(String path, @DelegatesTo(value = Routing, strategy = Closure.DELEGATE_FIRST) Closure<?> routing)
 
 }
