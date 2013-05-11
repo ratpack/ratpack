@@ -4,6 +4,6 @@ public interface Context {
 
   <T> T get(Class<T> type);
 
-  <T> T require(Class<T> type);
+  <T> T maybeGet(Class<T> type);
 
 }

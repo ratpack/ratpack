@@ -49,7 +49,7 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     app {
       routing {
         get("") {
-          context.get(TemplateRenderer).render "foo.html", value: "bar"
+          context.maybeGet(TemplateRenderer).render "foo.html", value: "bar"
         }
       }
     }
@@ -67,7 +67,7 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     app {
       routing {
         get("") {
-          context.get(TemplateRenderer).render "outer.html", value: "outer"
+          context.maybeGet(TemplateRenderer).render "outer.html", value: "outer"
         }
       }
     }
@@ -86,7 +86,7 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     app {
       routing {
         get("") {
-          context.get(TemplateRenderer).render "outer.html", value: "outer"
+          context.maybeGet(TemplateRenderer).render "outer.html", value: "outer"
         }
       }
     }
@@ -105,7 +105,7 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     app {
       routing {
         get("") {
-          context.get(TemplateRenderer).render "outer.html", value: "outer"
+          context.maybeGet(TemplateRenderer).render "outer.html", value: "outer"
         }
       }
     }
@@ -124,7 +124,7 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     app {
       routing {
         get("") {
-          context.get(TemplateRenderer).render "outer.html", a: "a", b: "b"
+          context.maybeGet(TemplateRenderer).render "outer.html", a: "a", b: "b"
         }
       }
     }
@@ -143,7 +143,7 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     app {
       routing {
         get("") {
-          context.get(TemplateRenderer).render "outer.html"
+          context.maybeGet(TemplateRenderer).render "outer.html"
         }
       }
     }
@@ -166,7 +166,7 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     app {
       routing {
         get("") {
-          context.get(TemplateRenderer).render "outer.html"
+          context.maybeGet(TemplateRenderer).render "outer.html"
         }
       }
     }
@@ -191,7 +191,7 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
 
       routing {
         get("") {
-          context.get(TemplateRenderer).render "outer.html", value: "outer"
+          context.maybeGet(TemplateRenderer).render "outer.html", value: "outer"
         }
       }
     }

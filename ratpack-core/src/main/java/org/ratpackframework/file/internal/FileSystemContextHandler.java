@@ -25,7 +25,7 @@ public class FileSystemContextHandler implements Handler {
     if (absolute) {
       exchange.nextWithContext(absoluteContext, delegate);
     } else {
-      FileSystemContext parentContext = exchange.getContext().get(FileSystemContext.class);
+      FileSystemContext parentContext = exchange.getContext().maybeGet(FileSystemContext.class);
       if (parentContext == null) {
         exchange.nextWithContext(absoluteContext, delegate);
       } else {

@@ -63,12 +63,12 @@ public class DefaultExchange implements Exchange {
 
   @Override
   public <T> T get(Class<T> type) {
-    return context.require(type);
+    return context.get(type);
   }
 
   @Override
   public <T> T maybeGet(Class<T> type) {
-    return context.get(type);
+    return context.maybeGet(type);
   }
 
   @Override
@@ -106,17 +106,17 @@ public class DefaultExchange implements Exchange {
 
   @Override
   public Map<String, String> getPathTokens() {
-    return getContext().require(PathContext.class).getTokens();
+    return getContext().get(PathContext.class).getTokens();
   }
 
   @Override
   public Map<String, String> getAllPathTokens() {
-    return getContext().require(PathContext.class).getAllTokens();
+    return getContext().get(PathContext.class).getAllTokens();
   }
 
   @Override
   public void error(Exception exception) {
-    getContext().require(ErrorHandlingContext.class).error(this, exception);
+    getContext().get(ErrorHandlingContext.class).error(this, exception);
   }
 
   protected void doNext(final Context context, final List<Handler> handlers, final Handler exhausted) {

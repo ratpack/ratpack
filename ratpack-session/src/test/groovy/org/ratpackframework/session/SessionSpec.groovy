@@ -33,12 +33,12 @@ class SessionSpec extends RatpackGroovyDslSpec {
       void handle(Exchange exchange) {
         // TODO a proper handler impl for this
 
-        def injector = exchange.context.require(Injector)
+        def injector = exchange.context.get(Injector)
         def mapSessionStore = injector.getInstance(MapSessionStore)
 
         // TODO we are creating a session map even if we dont' use use it
         // We should avoid doing so unless some really asks for the session storage
-        def sessionStorage = mapSessionStore.get(exchange.context.get(Session).id)
+        def sessionStorage = mapSessionStore.get(exchange.context.maybeGet(Session).id)
         exchange.nextWithContext(sessionStorage, handler)
       }
     }))
@@ -49,7 +49,7 @@ class SessionSpec extends RatpackGroovyDslSpec {
     app {
       routing {
         get(":v") {
-          response.send context.get(Session).getId()
+          response.send context.maybeGet(Session).getId()
         }
       }
     }
@@ -63,11 +63,11 @@ class SessionSpec extends RatpackGroovyDslSpec {
     app {
       routing {
         get("") {
-          def store = context.require(SessionStorage)
+          def store = context.get(SessionStorage)
           response.send store.value.toString()
         }
         get("set/:value") {
-          def store = context.require(SessionStorage)
+          def store = context.get(SessionStorage)
           store.value = pathTokens.value
           response.send store.value.toString()
         }
@@ -86,20 +86,20 @@ class SessionSpec extends RatpackGroovyDslSpec {
     app {
       routing {
         get("") {
-          def store = context.require(SessionStorage)
+          def store = context.get(SessionStorage)
           response.send store.value ?: "null"
         }
         get("set/:value") {
-          def store = context.require(SessionStorage)
+          def store = context.get(SessionStorage)
           store.value = pathTokens.value
           response.send store.value ?: "null"
         }
         get("invalidate") {
-          context.get(Session).terminate()
+          context.maybeGet(Session).terminate()
           response.send()
         }
         get("size") {
-          response.send context.get(MapSessionStore).size().toString()
+          response.send context.maybeGet(MapSessionStore).size().toString()
         }
       }
     }

@@ -16,7 +16,7 @@ public class InjectorBackedContext extends ContextSupport {
   }
 
   @Override
-  public <T> T doGet(Class<T> type) {
+  public <T> T doMaybeGet(Class<T> type) {
     Binding<T> existingBinding = injector.getExistingBinding(Key.get(type));
     if (existingBinding == null) {
       return null;

@@ -57,7 +57,7 @@ public class CookieManager {
     }
 
 
-    // OK, now we are ready to get the cookies out of the URLConnection
+    // OK, now we are ready to maybeGet the cookies out of the URLConnection
 
     String headerName;
     for (int i = 1; (headerName = conn.getHeaderFieldKey(i)) != null; i++) {

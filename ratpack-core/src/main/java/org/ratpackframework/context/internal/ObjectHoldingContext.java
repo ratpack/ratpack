@@ -13,7 +13,7 @@ public class ObjectHoldingContext extends ContextSupport {
   }
 
   @Override
-  public <T> T doGet(Class<T> type) {
+  public <T> T doMaybeGet(Class<T> type) {
     if (type.isInstance(value)) {
       return type.cast(value);
     } else {

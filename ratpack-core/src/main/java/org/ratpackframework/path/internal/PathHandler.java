@@ -17,7 +17,7 @@ public class PathHandler implements Handler {
 
   @Override
   public void handle(Exchange exchange) {
-    PathContext childContext = binding.bind(exchange.getRequest().getPath(), exchange.getContext().get(PathContext.class));
+    PathContext childContext = binding.bind(exchange.getRequest().getPath(), exchange.getContext().maybeGet(PathContext.class));
     if (childContext != null) {
       exchange.nextWithContext(childContext, delegate);
     } else {

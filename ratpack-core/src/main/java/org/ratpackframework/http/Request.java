@@ -49,7 +49,7 @@ public interface Request {
    *
    * If there is more than one cookie with this name, this method will throw an exception.
    *
-   * @param name The name of the cookie to get the value of
+   * @param name The name of the cookie to maybeGet the value of
    * @return The cookie value, or null if not present
    */
   String oneCookie(String name);
