@@ -1,8 +1,12 @@
+apply plugin: 'compass'
+
 buildscript {
   repositories {
     mavenCentral()
+    maven { url 'http://dl.bintray.com/robfletcher/gradle-plugins' }
   }
   dependencies {
+    classpath 'org.gradle.plugins:gradle-compass:1.0'
     classpath "org.gebish:markdown2book:1.0"
     classpath "org.pegdown:pegdown:1.2.1"
   }
@@ -121,3 +125,12 @@ artifacts {
 }
 
 task build(dependsOn: manualZip)
+
+compass {
+  cssDir = file('src/css')
+  sassDir = file('src/sass')
+  imagesDir = file('src/images')
+  javascriptsDir = file('src/js')
+}
+
+compileManual.inputs.files compileSass
