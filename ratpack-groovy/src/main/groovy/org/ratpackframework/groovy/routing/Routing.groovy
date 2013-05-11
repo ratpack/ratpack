@@ -34,4 +34,6 @@ public interface Routing extends org.ratpackframework.routing.Routing {
 
   void post(String path, @DelegatesTo(value = Exchange, strategy = Closure.DELEGATE_FIRST) Closure<?> handler)
 
+  void assets(String path, String... indexFiles)
+
 }

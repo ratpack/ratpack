@@ -55,6 +55,11 @@ class DefaultRouting implements Routing {
   }
 
   @Override
+  void assets(String path, String... indexFiles) {
+    route(Handlers.assets(path, indexFiles))
+  }
+
+  @Override
   Exchange getExchange() {
     exchange
   }

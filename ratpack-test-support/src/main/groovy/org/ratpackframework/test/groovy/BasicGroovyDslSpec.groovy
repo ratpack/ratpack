@@ -3,6 +3,9 @@ package org.ratpackframework.test.groovy
 class BasicGroovyDslSpec extends RatpackGroovyDslSpec {
 
   def "can use special Groovy dsl"() {
+    given:
+    file("public/foo.txt") << "bar"
+
     when:
     app {
       routing {
@@ -20,6 +23,7 @@ class BasicGroovyDslSpec extends RatpackGroovyDslSpec {
             response.send allPathTokens.toString()
           }
         }
+        assets("public")
       }
     }
 
@@ -29,6 +33,7 @@ class BasicGroovyDslSpec extends RatpackGroovyDslSpec {
     urlPostText("b") == "b handler"
     urlGetText("1/2") == "[first:1, second:2]"
     urlGetText("foo/c/bar") == "[first:foo, second:bar]"
+    urlGetText("foo.txt") == "bar"
   }
 
 }
