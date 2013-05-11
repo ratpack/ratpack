@@ -1,0 +1,16 @@
+apply plugin: 'checkstyle'
+
+def checkstyleConfigDir = new File(buildscript.sourceFile.parentFile, 'checkstyle')
+
+checkstyle {
+  configFile = new File(checkstyleConfigDir, "checkstyle.xml")
+  configProperties.checkstyleConfigDir = checkstyleConfigDir
+}
+
+tasks.withType(Test) {
+  mustRunAfter tasks.withType(Checkstyle)
+}
+
+tasks.withType(Test) {
+  mustRunAfter tasks.withType(Checkstyle)
+}

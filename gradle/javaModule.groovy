@@ -10,3 +10,5 @@ configurations {
   compile.extendsFrom -= groovy
   testCompile.extendsFrom groovy
 }
+
+apply from: "$rootDir/gradle/checkstyle.gradle"

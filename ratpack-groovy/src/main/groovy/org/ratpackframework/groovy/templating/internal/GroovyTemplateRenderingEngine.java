@@ -92,7 +92,7 @@ public class GroovyTemplateRenderingEngine {
   }
 
   private ByteBuf getResourceBuffer(String resourceName) throws IOException {
-    return IoUtils.ByteBuf(IOGroovyMethods.getBytes(getClass().getResourceAsStream(resourceName)));
+    return IoUtils.byteBuf(IOGroovyMethods.getBytes(getClass().getResourceAsStream(resourceName)));
   }
 
 }
