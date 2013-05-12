@@ -6,7 +6,7 @@ buildscript {
     maven { url 'http://dl.bintray.com/robfletcher/gradle-plugins' }
   }
   dependencies {
-    classpath 'org.gradle.plugins:gradle-compass:1.0'
+    classpath 'org.gradle.plugins:gradle-compass:1.0.1'
     classpath "org.gebish:markdown2book:1.0"
     classpath "org.pegdown:pegdown:1.2.1"
   }
@@ -27,7 +27,7 @@ task tokeniseManual(type: Sync) {
   into "$buildDir/manual-tokenised"
 
   ext.substitutionProperties = [
-      title: "Ratpack Manual",
+      title: "Ratpack",
       tagline: "A Micro Web Framework for Java & Groovy",
       "ratpack-version": project.version,
       "ratpack-group": project.group,
@@ -150,6 +150,7 @@ compass {
   sassDir = file('src/sass')
   imagesDir = file('src/images')
   javascriptsDir = file('src/js')
+  relativeAssets = true
 }
 
 compileManual.inputs.files compileSass
