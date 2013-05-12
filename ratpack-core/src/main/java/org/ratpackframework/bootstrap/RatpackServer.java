@@ -19,17 +19,21 @@ package org.ratpackframework.bootstrap;
 import com.google.common.util.concurrent.Service;
 
 /**
- * A ratpack server.
+ * A Ratpack server.
  */
 public interface RatpackServer extends Service {
 
   /**
    * The actual port that the application is bound to.
+   *
+   * @return The actual port that the application is bound to, or -1 if the server is not running.
    */
   int getBindPort();
 
   /**
    * The actual host/ip that the application is bound to.
+   *
+   * @return The actual host/ip that the application is bound to, or null if this server is not running.
    */
   String getBindHost();
 

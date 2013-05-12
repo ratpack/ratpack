@@ -18,61 +18,138 @@ package org.ratpackframework.bootstrap;
 
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;
-import org.ratpackframework.util.Action;
+import org.ratpackframework.api.Nullable;
 import org.ratpackframework.bootstrap.internal.NettyRatpackServer;
 import org.ratpackframework.bootstrap.internal.NoopInit;
 import org.ratpackframework.bootstrap.internal.RatpackChannelInitializer;
 import org.ratpackframework.routing.Handler;
+import org.ratpackframework.util.Action;
 
 import java.net.InetSocketAddress;
 
+/**
+ * Builds a {@link RatpackServer}.
+ */
 public class RatpackServerBuilder {
 
+  /**
+   * The port that Ratpack apps use unless otherwise specified ({@value}).
+   */
   public static final int DEFAULT_PORT = 5050;
-  private final Handler handler;
 
+  private final Handler handler;
   private int workerThreads = Runtime.getRuntime().availableProcessors() * 2;
 
   private int port = DEFAULT_PORT;
   private String host;
   private Action<RatpackServer> init = new NoopInit();
 
+  /**
+   * Create a new builder, with the given handler as the "application".
+   *
+   * @param handler The handler for all requests.
+   */
   public RatpackServerBuilder(Handler handler) {
     this.handler = handler;
   }
 
+  /**
+   * The port that the application should listen to requests on.
+   *
+   * Defaults to {@value #DEFAULT_PORT}.
+   *
+   * @return The port that the application should listen to requests on.
+   */
   public int getPort() {
     return port;
   }
 
+  /**
+   * Sets the port that the application should listen to requests on.
+   *
+   * @param port The port.
+   */
   public void setPort(int port) {
     this.port = port;
   }
 
+  /**
+   * The hostname of the interface that the application should bind to.
+   *
+   * A value of null causes all interfaces to be bound. Defaults to null.
+   *
+   * @return The hostname of the interface that the application should bind to.
+   */
+  @Nullable
   public String getHost() {
     return host;
   }
 
-  public void setHost(String host) {
+  /**
+   * Sets the hostname of the interface that the application should bind to.
+   *
+   * A value of null causes all interfaces to be bound.
+   *
+   * @param host The host.
+   */
+  public void setHost(@Nullable String host) {
     this.host = host;
   }
 
+  /**
+   * The action that will be executed with the server when it is started.
+   *
+   * Defaults to a noop.
+   *
+   * @return The action that will be executed with the server when it is started.
+   */
   public Action<RatpackServer> getInit() {
     return init;
   }
 
+  /**
+   * Sets the action that will be executed with the server when it is started.
+   *
+   * @param init The action that to execute with the server when it is started.
+   */
   public void setInit(Action<RatpackServer> init) {
     this.init = init;
   }
 
+  /**
+   * The number of worker threads for handling application requests.
+   *
+   * If the value is greater than 0, a thread pool (of this size) will be created for servicing requests. This allows handlers
+   * to perform blocking operations.
+   * <p>
+   * If the value is 0 or less, no thread pool will be used to handle requests. This means that the handler will be called on the
+   * same thread that accepted the request. This means that handlers SHOULD NOT block in their operation.
+   * <p>
+   * The default value for this property is calculated as: {@code Runtime.getRuntime().availableProcessors() * 2}
+   *
+   * @return The number of worker threads to use to execute the handler.
+   */
   public int getWorkerThreads() {
     return workerThreads;
   }
 
+  /**
+   * Sets the number of worker threads to use to execute the handler.
+   *
+   * @see #setWorkerThreads(int)
+   * @param workerThreads The number of worker threads to use to execute the handler.
+   */
   public void setWorkerThreads(int workerThreads) {
     this.workerThreads = workerThreads;
   }
 
+  /**
+   * Constructs a new server based on the builder's state.
+   *
+   * The returned server has not been started.
+   *
+   * @return A new, not yet started, Ratpack server.
+   */
   public RatpackServer build() {
     InetSocketAddress address = buildSocketAddress();
     ChannelInitializer<SocketChannel> channelInitializer = buildChannelInitializer();
@@ -81,7 +158,7 @@ public class RatpackServerBuilder {
     );
   }
 
-  protected InetSocketAddress buildSocketAddress() {
+  private InetSocketAddress buildSocketAddress() {
     return (host == null) ? new InetSocketAddress(port) : new InetSocketAddress(host, port);
   }
 
