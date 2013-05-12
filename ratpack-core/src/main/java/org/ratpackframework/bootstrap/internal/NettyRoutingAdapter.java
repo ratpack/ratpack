@@ -24,7 +24,7 @@ import io.netty.handler.codec.http.*;
 import io.netty.util.CharsetUtil;
 import org.ratpackframework.context.internal.RootContext;
 import org.ratpackframework.error.internal.ErrorHandler;
-import org.ratpackframework.error.internal.TopLevelErrorHandlingContext;
+import org.ratpackframework.error.internal.TopLevelErrorHandler;
 import org.ratpackframework.file.internal.ActivationBackedMimeTypes;
 import org.ratpackframework.http.Request;
 import org.ratpackframework.http.Response;
@@ -59,7 +59,7 @@ public class NettyRoutingAdapter extends ChannelInboundMessageHandlerAdapter<Ful
       }
     });
 
-    exchange.nextWithContext(new RootContext(new TopLevelErrorHandlingContext(), new ActivationBackedMimeTypes()), new ErrorHandler(handler));
+    exchange.nextWithContext(new RootContext(new TopLevelErrorHandler(), new ActivationBackedMimeTypes()), new ErrorHandler(handler));
   }
 
   public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {

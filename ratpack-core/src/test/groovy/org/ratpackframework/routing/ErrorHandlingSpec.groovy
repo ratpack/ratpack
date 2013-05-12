@@ -1,6 +1,6 @@
 package org.ratpackframework.routing
 
-import org.ratpackframework.error.ErrorHandlingContext
+import org.ratpackframework.error.ErrorHandler
 import org.ratpackframework.test.groovy.RatpackGroovyDslSpec
 
 class ErrorHandlingSpec extends RatpackGroovyDslSpec {
@@ -27,7 +27,7 @@ class ErrorHandlingSpec extends RatpackGroovyDslSpec {
 
   def "can handle errors on forked threads"() {
     given:
-    def errorHandler = new ErrorHandlingContext() {
+    def errorHandler = new ErrorHandler() {
       void error(Exchange exchange, Exception exception) {
         exchange.response.send("Caught: $exception.message")
       }

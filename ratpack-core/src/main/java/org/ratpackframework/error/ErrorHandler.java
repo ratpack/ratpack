@@ -14,17 +14,12 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.error.internal;
+package org.ratpackframework.error;
 
-import org.ratpackframework.error.ErrorHandlingContext;
 import org.ratpackframework.routing.Exchange;
 
-public class TopLevelErrorHandlingContext implements ErrorHandlingContext {
+public interface ErrorHandler {
 
-  public void error(Exchange exchange, Exception exception) {
-    System.err.println("UNHANDLED EXCEPTION: " + exchange.getRequest().getUri());
-    exception.printStackTrace(System.err);
-    exchange.getResponse().status(500).send();
-  }
+  void error(Exchange exchange, Exception exception);
 
 }

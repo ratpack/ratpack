@@ -19,7 +19,7 @@ package org.ratpackframework.routing.internal;
 import io.netty.channel.ChannelHandlerContext;
 import org.ratpackframework.context.Context;
 import org.ratpackframework.context.internal.ObjectHoldingHierarchicalContext;
-import org.ratpackframework.error.ErrorHandlingContext;
+import org.ratpackframework.error.ErrorHandler;
 import org.ratpackframework.file.FileSystemContext;
 import org.ratpackframework.routing.Exchange;
 import org.ratpackframework.routing.Handler;
@@ -111,7 +111,7 @@ public class DefaultExchange implements Exchange {
   }
 
   public void error(Exception exception) {
-    get(ErrorHandlingContext.class).error(this, exception);
+    get(ErrorHandler.class).error(this, exception);
   }
 
   public void withErrorHandling(Runnable runnable) {
