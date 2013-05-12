@@ -125,7 +125,9 @@ artifacts {
   archives manualZip
 }
 
-task build(dependsOn: manualZip)
+task check(dependsOn: checkstyleApi)
+task build(dependsOn: [assemble, check])
+
 
 compass {
   cssDir = file('src/css')
