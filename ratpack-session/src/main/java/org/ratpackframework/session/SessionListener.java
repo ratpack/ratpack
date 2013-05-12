@@ -18,8 +18,8 @@ package org.ratpackframework.session;
 
 public interface SessionListener {
 
-    void sessionInitiated(String id);
+  void sessionInitiated(String id);
 
-    void sessionTerminated(String id);
+  void sessionTerminated(String id);
 
 }
