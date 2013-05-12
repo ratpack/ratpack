@@ -16,11 +16,8 @@
 
 package org.ratpackframework.groovy
 
-import org.ratpackframework.Action
-import org.ratpackframework.routing.Exchange
-import org.ratpackframework.routing.Handler
-import org.ratpackframework.routing.Handlers
-import org.ratpackframework.routing.Routing
+import org.ratpackframework.groovy.routing.internal.ClosureBackedRoutingBuilder
+import org.ratpackframework.routing.*
 
 public abstract class ClosureHandlers {
 
@@ -34,27 +31,27 @@ public abstract class ClosureHandlers {
   }
 
   public static Handler context(final Object context, @DelegatesTo(value = Routing.class, strategy = Closure.DELEGATE_FIRST) final Closure<?> routes) {
-    Handlers.context(context, routingAction(routes));
+    Handlers.context(context, routingBuilder(routes));
   }
 
-  private static Action<Routing> routingAction(@DelegatesTo(value = Routing.class, strategy = Closure.DELEGATE_FIRST) Closure<?> routes) {
-    Closures.action(Routing.class, routes)
+  private static RoutingBuilder<Routing> routingBuilder(@DelegatesTo(value = Routing.class, strategy = Closure.DELEGATE_FIRST) Closure<?> routes) {
+    new ClosureBackedRoutingBuilder<Routing>(routes)
   }
 
   public static Handler fsContext(String path, @DelegatesTo(value = Routing.class, strategy = Closure.DELEGATE_FIRST) Closure routing) {
-    Handlers.fsContext(path, routingAction(routing))
+    Handlers.fsContext(path, routingBuilder(routing))
   }
 
   public static Handler path(String path, @DelegatesTo(value = Routing.class, strategy = Closure.DELEGATE_FIRST) Closure routing) {
-    Handlers.path(path, routingAction(routing))
+    Handlers.path(path, routingBuilder(routing))
   }
 
   public static Handler exactPath(String path, @DelegatesTo(value = Routing.class, strategy = Closure.DELEGATE_FIRST) Closure routing) {
-    Handlers.exactPath(path, routingAction(routing))
+    Handlers.exactPath(path, routingBuilder(routing))
   }
 
   public static Handler method(Collection<String> methods, @DelegatesTo(value = Routing.class, strategy = Closure.DELEGATE_FIRST) Closure routing) {
-    Handlers.method(methods, routingAction(routing))
+    Handlers.method(methods, routingBuilder(routing))
   }
 
   public static Handler handler(String path, @DelegatesTo(value = Exchange.class, strategy = Closure.DELEGATE_FIRST) final Closure<?> closure) {

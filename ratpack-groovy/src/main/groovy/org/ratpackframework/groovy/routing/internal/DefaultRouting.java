@@ -25,8 +25,6 @@ import org.ratpackframework.routing.Handlers;
 
 import java.util.List;
 
-import static org.ratpackframework.groovy.Closures.action;
-
 public class DefaultRouting implements Routing {
 
   private final List<Handler> handlers;
@@ -86,7 +84,7 @@ public class DefaultRouting implements Routing {
   }
 
   private Handler routing(Closure<?> routing) {
-    return new RoutingHandler(action(routing));
+    return new RoutingHandler(new ClosureBackedRoutingBuilder(routing));
   }
 
   public Exchange getExchange() {

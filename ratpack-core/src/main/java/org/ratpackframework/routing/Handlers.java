@@ -16,7 +16,6 @@
 
 package org.ratpackframework.routing;
 
-import org.ratpackframework.Action;
 import org.ratpackframework.file.internal.DirectoryStaticAssetRequestHandler;
 import org.ratpackframework.file.internal.FileStaticAssetRequestHandler;
 import org.ratpackframework.file.internal.FileSystemContextHandler;
@@ -33,8 +32,8 @@ import java.util.Collection;
 
 public abstract class Handlers {
 
-  public static Handler context(final Object context, final Action<? super Routing> action) {
-    return context(context, routes(action));
+  public static Handler context(final Object context, final RoutingBuilder builder) {
+    return context(context, routes(builder));
   }
 
   public static Handler context(final Object context, final Handler handler) {
@@ -45,16 +44,16 @@ public abstract class Handlers {
     };
   }
 
-  public static Handler routes(Action<? super Routing> action) {
-    return new RoutingHandler(action);
+  public static Handler routes(RoutingBuilder builder) {
+    return new RoutingHandler(builder);
   }
 
   public static Handler fsContext(String path, Handler handler) {
     return new FileSystemContextHandler(new File(path), handler);
   }
 
-  public static Handler fsContext(String path, Action<? super Routing> action) {
-    return fsContext(path, routes(action));
+  public static Handler fsContext(String path, RoutingBuilder builder) {
+    return fsContext(path, routes(builder));
   }
 
   public static Handler assets(String path, Handler notFound) {
@@ -102,16 +101,16 @@ public abstract class Handlers {
     };
   }
 
-  public static Handler path(String path, Action<? super Routing> action) {
-    return path(path, routes(action));
+  public static Handler path(String path, RoutingBuilder builder) {
+    return path(path, routes(builder));
   }
 
   public static Handler path(String path, Handler handler) {
     return pathBinding(new TokenPathBinding(path, false), handler);
   }
 
-  public static Handler exactPath(String path, Action<? super Routing> action) {
-    return exactPath(path, routes(action));
+  public static Handler exactPath(String path, RoutingBuilder builder) {
+    return exactPath(path, routes(builder));
   }
 
   public static Handler exactPath(String path, Handler handler) {
@@ -122,8 +121,8 @@ public abstract class Handlers {
     return new PathHandler(pathBinding, handler);
   }
 
-  public static Handler method(Collection<String> methods, Action<Routing> routingAction) {
-    return method(methods, routes(routingAction));
+  public static Handler method(Collection<String> methods, RoutingBuilder builder) {
+    return method(methods, routes(builder));
   }
 
   public static Handler method(Collection<String> methods, Handler handler) {

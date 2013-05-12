@@ -14,14 +14,23 @@
  * limitations under the License.
  */
 
-package org.ratpackframework;
+package org.ratpackframework.groovy.routing.internal;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import groovy.lang.Closure;
+import org.ratpackframework.groovy.Closures;
+import org.ratpackframework.routing.Routing;
+import org.ratpackframework.routing.RoutingBuilder;
 
-@Retention(RetentionPolicy.SOURCE)
-@Target({ElementType.PARAMETER, ElementType.METHOD})
-public @interface Nullable {
+public class ClosureBackedRoutingBuilder<T extends Routing> implements RoutingBuilder<T> {
+
+  private final Closure<?> closure;
+
+  public ClosureBackedRoutingBuilder(Closure<?> closure) {
+    this.closure = closure;
+  }
+
+  public void addRoutes(T routing) {
+    Closures.configure(routing, closure);
+  }
+
 }

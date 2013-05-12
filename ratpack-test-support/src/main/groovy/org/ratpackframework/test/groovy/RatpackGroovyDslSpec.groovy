@@ -1,7 +1,7 @@
 package org.ratpackframework.test.groovy
 
-import org.ratpackframework.groovy.Closures
 import org.ratpackframework.groovy.routing.Routing
+import org.ratpackframework.groovy.routing.internal.ClosureBackedRoutingBuilder
 import org.ratpackframework.groovy.routing.internal.RoutingHandler
 import org.ratpackframework.routing.Handler
 import org.ratpackframework.test.DefaultRatpackSpec
@@ -14,6 +14,6 @@ class RatpackGroovyDslSpec extends DefaultRatpackSpec {
 
   @Override
   protected Handler createHandler() {
-    return new RoutingHandler(Closures.action(routingCallback))
+    return new RoutingHandler(new ClosureBackedRoutingBuilder<Routing>(routingCallback))
   }
 }

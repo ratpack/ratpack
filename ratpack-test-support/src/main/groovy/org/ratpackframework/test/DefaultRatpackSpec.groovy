@@ -4,6 +4,7 @@ import com.google.inject.Module
 import org.ratpackframework.Action
 import org.ratpackframework.bootstrap.RatpackServer
 import org.ratpackframework.bootstrap.RatpackServerBuilder
+import org.ratpackframework.groovy.routing.internal.ClosureBackedRoutingBuilder
 import org.ratpackframework.guice.GuiceBackedHandlerFactory
 import org.ratpackframework.guice.internal.DefaultGuiceBackedHandlerFactory
 import org.ratpackframework.guice.ModuleRegistry
@@ -57,7 +58,7 @@ class DefaultRatpackSpec extends RatpackSpec {
   }
 
   protected Handler createHandler() {
-    routes(action(routingCallback))
+    routes(new ClosureBackedRoutingBuilder<Routing>(routingCallback))
   }
 
 }

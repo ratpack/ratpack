@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-package org.ratpackframework;
+package org.ratpackframework.routing;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import org.ratpackframework.Blocking;
 
-@Retention(RetentionPolicy.SOURCE)
-@Target({ElementType.PARAMETER, ElementType.METHOD})
-public @interface Nullable {
+public interface RoutingBuilder<T extends Routing> {
+
+  @Blocking
+  void addRoutes(T routing);
+
 }

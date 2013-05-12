@@ -16,26 +16,26 @@
 
 package org.ratpackframework.routing.internal;
 
-import org.ratpackframework.Action;
 import org.ratpackframework.routing.Exchange;
 import org.ratpackframework.routing.Handler;
 import org.ratpackframework.routing.Routing;
+import org.ratpackframework.routing.RoutingBuilder;
 
 import java.util.LinkedList;
 import java.util.List;
 
 public class RoutingHandler implements Handler {
 
-  private final Action<? super Routing> action;
+  private final RoutingBuilder builder;
 
-  public RoutingHandler(Action<? super Routing> action) {
-    this.action = action;
+  public RoutingHandler(RoutingBuilder builder) {
+    this.builder = builder;
   }
 
   public void handle(Exchange exchange) {
     List<Handler> handlers = new LinkedList<Handler>();
     Routing routing = new DefaultRouting(exchange, handlers);
-    action.execute(routing);
+    builder.addRoutes(routing);
     exchange.next(handlers);
   }
 

@@ -22,6 +22,7 @@ import io.netty.buffer.ByteBuf;
 import org.ratpackframework.Action;
 import org.ratpackframework.groovy.Closures;
 import org.ratpackframework.groovy.routing.Routing;
+import org.ratpackframework.groovy.routing.internal.ClosureBackedRoutingBuilder;
 import org.ratpackframework.groovy.routing.internal.RoutingHandler;
 import org.ratpackframework.groovy.script.ScriptEngine;
 import org.ratpackframework.guice.GuiceBackedHandlerFactory;
@@ -30,6 +31,7 @@ import org.ratpackframework.Factory;
 import org.ratpackframework.reload.internal.ReloadableFileBackedFactory;
 import org.ratpackframework.routing.Exchange;
 import org.ratpackframework.routing.Handler;
+import org.ratpackframework.routing.RoutingBuilder;
 import org.ratpackframework.util.IoUtils;
 
 import javax.inject.Inject;
@@ -69,9 +71,9 @@ public class ScriptBackedApp implements Handler {
           RatpackScriptBacking.withBacking(backing, runScript);
 
           Action<ModuleRegistry> modulesAction = Closures.action(ModuleRegistry.class, ratpack.getModulesConfigurer());
-          Action<Routing> routingAction = Closures.action(Routing.class, ratpack.getRoutingConfigurer());
+          RoutingBuilder<Routing> routingBuilder = new ClosureBackedRoutingBuilder<Routing>(ratpack.getRoutingConfigurer());
 
-          RoutingHandler routingHandler = new RoutingHandler(routingAction);
+          RoutingHandler routingHandler = new RoutingHandler(routingBuilder);
           return appFactory.create(baseDir, modulesAction, routingHandler);
 
         } catch (Exception e) {
