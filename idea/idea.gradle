@@ -29,6 +29,14 @@ idea {
             </copyright>
           """))
         }
+
+        def module2copyright = copyrightManager.module2copyright.first()
+        def productionCodeModule = module2copyright.find { it.element.find { it.@module == "Production" }?.@value == "ASL2" }
+        if (productionCodeModule == null) {
+          module2copyright.append(new XmlParser().parseText("""
+              <element module="Production" copyright="ASL2" />
+          """))
+        }
       }
     }
   }
