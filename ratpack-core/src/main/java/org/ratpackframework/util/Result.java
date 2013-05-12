@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.ratpackframework;
+package org.ratpackframework.util;
 
 /**
  * The result of an asynchronous operation, which may be a failure.

@@ -14,20 +14,22 @@
  * limitations under the License.
  */
 
-package org.ratpackframework;
+package org.ratpackframework.util;
 
 /**
- * A generic type for an object that does some work with a thing.
+ * An object that creates another.
  *
- * @param <T> The type of thing.
+ * Factories are expected to create a new object each time. Implementors should explain there behaviour if they do not do this.
+ *
+ * @param <T> The type of object that this factory creates.
  */
-public interface Action<T> {
+public interface Factory<T> {
 
   /**
-   * Executes the action against the given thing.
+   * Creates a new object.
    *
-   * @param thing The thing to execute the action against.
+   * @return A newly created object.
    */
-  void execute(T thing);
+  T create();
 
 }

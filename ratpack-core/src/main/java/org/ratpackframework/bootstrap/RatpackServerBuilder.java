@@ -18,7 +18,7 @@ package org.ratpackframework.bootstrap;
 
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;
-import org.ratpackframework.Action;
+import org.ratpackframework.util.Action;
 import org.ratpackframework.bootstrap.internal.NettyRatpackServer;
 import org.ratpackframework.bootstrap.internal.NoopInit;
 import org.ratpackframework.bootstrap.internal.RatpackChannelInitializer;

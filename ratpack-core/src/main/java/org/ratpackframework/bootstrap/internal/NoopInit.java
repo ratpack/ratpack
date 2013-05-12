@@ -17,7 +17,7 @@
 package org.ratpackframework.bootstrap.internal;
 
 import org.ratpackframework.bootstrap.RatpackServer;
-import org.ratpackframework.Action;
+import org.ratpackframework.util.Action;
 
 public class NoopInit implements Action<RatpackServer> {
 

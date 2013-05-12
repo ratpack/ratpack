@@ -19,8 +19,8 @@ package org.ratpackframework.groovy.templating.internal;
 import com.google.common.cache.Cache;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import org.ratpackframework.Result;
-import org.ratpackframework.ResultAction;
+import org.ratpackframework.util.Result;
+import org.ratpackframework.util.ResultAction;
 import org.ratpackframework.util.IoUtils;
 
 import java.io.File;

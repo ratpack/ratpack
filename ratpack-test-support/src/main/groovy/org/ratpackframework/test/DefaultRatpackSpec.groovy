@@ -1,7 +1,7 @@
 package org.ratpackframework.test
 
 import com.google.inject.Module
-import org.ratpackframework.Action
+import org.ratpackframework.util.Action
 import org.ratpackframework.bootstrap.RatpackServer
 import org.ratpackframework.bootstrap.RatpackServerBuilder
 import org.ratpackframework.groovy.routing.internal.ClosureBackedRoutingBuilder

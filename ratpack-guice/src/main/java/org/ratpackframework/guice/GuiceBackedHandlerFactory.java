@@ -16,7 +16,7 @@
 
 package org.ratpackframework.guice;
 
-import org.ratpackframework.Action;
+import org.ratpackframework.util.Action;
 import org.ratpackframework.routing.Handler;
 
 import java.io.File;

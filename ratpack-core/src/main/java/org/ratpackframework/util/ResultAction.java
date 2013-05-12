@@ -14,22 +14,13 @@
  * limitations under the License.
  */
 
-package org.ratpackframework;
+package org.ratpackframework.util;
 
 /**
- * An object that transforms an object into another.
+ * Convenience subtype for an action that takes a result.
  *
- * @param <F> The type of the input object.
- * @param <T> The type of the output (transformed) object.
+ * @param <T> The type of the successful result object.
  */
-public interface Transformer<F, T> {
-
-  /**
-   * Transforms the given object into a different object.
-   *
-   * @param from The object to transform
-   * @return The transformed object
-   */
-  T transform(F from);
+public interface ResultAction<T> extends Action<Result<T>> {
 
 }

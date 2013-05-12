@@ -16,7 +16,7 @@
 
 package org.ratpackframework.context;
 
-import org.ratpackframework.Factory;
+import org.ratpackframework.util.Factory;
 
 public class LazyHierarchicalContext extends HierarchicalContextSupport {
 

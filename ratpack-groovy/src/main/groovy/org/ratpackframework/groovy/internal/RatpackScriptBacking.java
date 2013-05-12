@@ -17,7 +17,7 @@
 package org.ratpackframework.groovy.internal;
 
 import groovy.lang.Closure;
-import org.ratpackframework.Action;
+import org.ratpackframework.util.Action;
 
 public abstract class RatpackScriptBacking {
 

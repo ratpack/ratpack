@@ -16,7 +16,7 @@
 
 package org.ratpackframework.session.store.internal;
 
-import org.ratpackframework.Factory;
+import org.ratpackframework.util.Factory;
 import org.ratpackframework.context.Context;
 import org.ratpackframework.context.LazyHierarchicalContext;
 import org.ratpackframework.routing.Exchange;

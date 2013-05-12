@@ -16,8 +16,6 @@
 
 package org.ratpackframework.util;
 
-import org.ratpackframework.Transformer;
-
 import java.lang.reflect.Array;
 import java.util.*;
 

@@ -23,7 +23,7 @@ import io.netty.channel.ChannelInitializer;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import org.ratpackframework.Action;
+import org.ratpackframework.util.Action;
 import org.ratpackframework.bootstrap.RatpackServer;
 
 import java.net.InetSocketAddress;

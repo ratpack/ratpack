@@ -20,7 +20,7 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.util.Modules;
-import org.ratpackframework.Action;
+import org.ratpackframework.util.Action;
 import org.ratpackframework.file.internal.FileSystemContextHandler;
 import org.ratpackframework.guice.GuiceBackedHandlerFactory;
 import org.ratpackframework.guice.HandlerDecoratingModule;
