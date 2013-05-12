@@ -1,5 +1,9 @@
 apply from: "$rootDir/gradle/groovyModule.gradle"
 
+ext.apiLinks = [
+    "http://groovy.codehaus.org/api" // TODO point to the specific version we are using
+]
+
 dependencies {
   compile project(":ratpack-core")
   compile project(":ratpack-guice")

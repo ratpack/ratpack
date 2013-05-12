@@ -1,5 +1,9 @@
 apply from: "$rootDir/gradle/javaModule.gradle"
 
+ext.apiLinks = [
+    "http://google-guice.googlecode.com/git/javadoc"
+]
+
 dependencies {
   compile project(":ratpack-core")
   compile 'com.google.inject:guice:3.0', {

@@ -70,11 +70,21 @@ apiModules.each { evaluationDependsOn(it.path) }
 task api(type: Javadoc) {
   classpath = files()
   destinationDir = file("$buildDir/api")
+  options.use true
+
   apiModules.each {
     source it.sourceSets.main.java
     classpath += it.sourceSets.main.compileClasspath + it.sourceSets.main.output
+
+    options.links("http://docs.oracle.com/javase/7/docs/api")
+
+    if (it.hasProperty("apiLinks")) {
+      options.links(*it.apiLinks)
+    }
   }
+
   exclude "**/internal/**"
+
 }
 
 task checkstyleApi(type: Checkstyle) {
