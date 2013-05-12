@@ -1,5 +1,6 @@
 package org.ratpackframework.test
 
+import com.google.inject.Module
 import org.ratpackframework.Action
 import org.ratpackframework.bootstrap.RatpackServer
 import org.ratpackframework.bootstrap.RatpackServerBuilder
@@ -12,19 +13,21 @@ import org.ratpackframework.routing.Routing
 
 import static org.ratpackframework.groovy.Closures.action
 import static Handlers.routes
-import static org.ratpackframework.routing.Handlers.fsContext
+import static org.ratpackframework.groovy.Closures.configure
 
 class DefaultRatpackSpec extends RatpackSpec {
 
-  Closure<?> routing = {}
-  Closure<?> modules = {}
+  Closure<?> routingCallback = {}
+  Closure<?> modulesCallback = {}
+
+  List<Module> modules = []
 
   void routing(@DelegatesTo(Routing) Closure<?> configurer) {
-    this.routing = configurer
+    this.routingCallback = configurer
   }
 
   void modules(@DelegatesTo(ModuleRegistry) Closure<?> configurer) {
-    this.modules = configurer
+    this.modulesCallback = configurer
   }
 
   @Override
@@ -45,11 +48,16 @@ class DefaultRatpackSpec extends RatpackSpec {
   }
 
   protected Action<? super ModuleRegistry> createModulesAction() {
-    action(modules)
+    action(ModuleRegistry) { ModuleRegistry registry ->
+      this.modules.each {
+        registry.register(it)
+      }
+      configure(registry, modulesCallback)
+    }
   }
 
   protected Handler createHandler() {
-    routes(action(routing))
+    routes(action(routingCallback))
   }
 
 }

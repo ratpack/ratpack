@@ -1,8 +1,5 @@
 package org.ratpackframework.session
 
-import org.ratpackframework.guice.GuiceBackedHandlerFactory
-import org.ratpackframework.guice.ModuleRegistry
-import org.ratpackframework.guice.internal.DefaultGuiceBackedHandlerFactory
 import org.ratpackframework.session.store.MapSessionStore
 import org.ratpackframework.session.store.MapSessionsModule
 import org.ratpackframework.session.store.SessionStorage
@@ -10,14 +7,9 @@ import org.ratpackframework.test.groovy.RatpackGroovyDslSpec
 
 class SessionSpec extends RatpackGroovyDslSpec {
 
-  @Override
-  protected GuiceBackedHandlerFactory createAppFactory() {
-    new DefaultGuiceBackedHandlerFactory() {
-      protected void registerDefaultModules(ModuleRegistry modules) {
-        modules.register(new SessionModule())
-        modules.register(new MapSessionsModule(10, 5))
-      }
-    }
+  def setup() {
+    modules << new SessionModule()
+    modules << new MapSessionsModule(10, 5)
   }
 
   def "can use session"() {

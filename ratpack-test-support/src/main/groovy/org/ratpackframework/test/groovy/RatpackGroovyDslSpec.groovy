@@ -9,11 +9,11 @@ import org.ratpackframework.test.DefaultRatpackSpec
 class RatpackGroovyDslSpec extends DefaultRatpackSpec {
 
   void routing(@DelegatesTo(Routing) Closure<?> configurer) {
-    this.routing = configurer
+    this.routingCallback = configurer
   }
 
   @Override
   protected Handler createHandler() {
-    return new RoutingHandler(Closures.action(routing))
+    return new RoutingHandler(Closures.action(routingCallback))
   }
 }

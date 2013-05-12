@@ -40,7 +40,6 @@ public abstract class Closures {
   // Type token is here for in the future when @DelegatesTo supports this kind of API
   public static <T> Action<T> action(Class<T> type, final Closure<?> configurer) {
     return new Action<T>() {
-      @Override
       public void execute(T object) {
         configure(object, configurer);
       }

@@ -16,24 +16,13 @@
 
 package org.ratpackframework.groovy.templating
 
-import org.ratpackframework.guice.GuiceBackedHandlerFactory
-import org.ratpackframework.guice.ModuleRegistry
-import org.ratpackframework.guice.internal.DefaultGuiceBackedHandlerFactory
-import org.ratpackframework.routing.Handler
 import org.ratpackframework.test.groovy.RatpackGroovyDslSpec
 import spock.lang.Unroll
 
 class TemplateRenderingSpec extends RatpackGroovyDslSpec {
 
-  @Override
-  protected GuiceBackedHandlerFactory createAppFactory() {
-    new DefaultGuiceBackedHandlerFactory() {
-      @Override
-      protected void registerDefaultModules(ModuleRegistry modules) {
-        modules.register(new TemplatingModule())
-        super.registerDefaultModules(modules)
-      }
-    }
+  def setup() {
+    modules << new TemplatingModule()
   }
 
   def "can render template"() {
