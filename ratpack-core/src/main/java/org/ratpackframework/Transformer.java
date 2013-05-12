@@ -16,8 +16,20 @@
 
 package org.ratpackframework;
 
+/**
+ * An object that transforms an object into another.
+ *
+ * @param <F> The type of the input object.
+ * @param <T> The type of the output (transformed) object.
+ */
 public interface Transformer<F, T> {
 
+  /**
+   * Transforms the given object into a different object.
+   *
+   * @param from The object to transform
+   * @return The transformed object
+   */
   T transform(F from);
 
 }

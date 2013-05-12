@@ -26,28 +26,59 @@ public class Result<T> {
   private final Exception failure;
   private final T value;
 
+  /**
+   * Creates a failure result object.
+   *
+   * @param failure An exception representing the failure
+   */
   public Result(Exception failure) {
     this.failure = failure;
     this.value = null;
   }
 
+  /**
+   * Creates a successful result object.
+   *
+   * @param value The object representing the result of the operation.
+   * @param <Y> The type of the result object.
+   */
   public <Y extends T> Result(Y value) {
     this.value = value;
     this.failure = null;
   }
 
+  /**
+   * The failure exception.
+   *
+   * @return The failure exception, or null if the result was not failure.
+   */
   public Exception getFailure() {
     return failure;
   }
 
+  /**
+   * The result value.
+   *
+   * @return The result value, or null if the result was not success.
+   */
   public T getValue() {
     return value;
   }
 
+  /**
+   * True if this was a success result.
+   *
+   * @return whether the result is success.
+   */
   public boolean isSuccess() {
     return failure == null;
   }
 
+  /**
+   * True if this was a failure result.
+   *
+   * @return whether the result is failure.
+   */
   public boolean isFailure() {
     return failure != null;
   }

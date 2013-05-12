@@ -16,11 +16,8 @@
 
 package org.ratpackframework.routing;
 
-import org.ratpackframework.Blocking;
-
 public interface RoutingBuilder<T extends Routing> {
 
-  @Blocking
   void addRoutes(T routing);
 
 }

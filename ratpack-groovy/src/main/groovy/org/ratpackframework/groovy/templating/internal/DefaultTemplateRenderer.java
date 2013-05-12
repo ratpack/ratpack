@@ -38,15 +38,13 @@ public class DefaultTemplateRenderer implements TemplateRenderer {
     this.engine = engine;
   }
 
-  @Override
   public void render(Map<String, ?> model, String templateId) {
     engine.renderTemplate(templateDir, templateId, model, new ResultAction<ByteBuf>() {
-      @Override
-      public void execute(Result<ByteBuf> event) {
-        if (event.isFailure()) {
-          error(ExceptionToTemplateModel.transform(exchange.getRequest(), event.getFailure()));
+      public void execute(Result<ByteBuf> thing) {
+        if (thing.isFailure()) {
+          error(ExceptionToTemplateModel.transform(exchange.getRequest(), thing.getFailure()));
         } else {
-          exchange.getResponse().send("text/html", event.getValue());
+          exchange.getResponse().send("text/html", thing.getValue());
         }
       }
     });
@@ -56,15 +54,13 @@ public class DefaultTemplateRenderer implements TemplateRenderer {
     render(Collections.<String, Object>emptyMap(), templateId);
   }
 
-  @Override
   public void error(Map<String, ?> model) {
     engine.renderError(templateDir, model, new ResultAction<ByteBuf>() {
-      @Override
-      public void execute(Result<ByteBuf> event) {
-        if (event.isFailure()) {
-          exchange.error(event.getFailure());
+      public void execute(Result<ByteBuf> thing) {
+        if (thing.isFailure()) {
+          exchange.error(thing.getFailure());
         } else {
-          exchange.getResponse().status(500).send("text/html", event.getValue());
+          exchange.getResponse().status(500).send("text/html", thing.getValue());
         }
       }
     });

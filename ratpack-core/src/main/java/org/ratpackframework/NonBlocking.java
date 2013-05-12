@@ -21,7 +21,13 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+/**
+ * Declares that a method is non blocking, making no guarantees about when it will return.
+ *
+ * Callers of non blocking methods cannot assume anything about what was done before the method returned. In other words, non blocking methods are free to do their work on other threads and return
+ * from the method immediately.
+ */
 @Retention(RetentionPolicy.SOURCE)
 @Target({ElementType.METHOD})
-public @interface Blocking {
+public @interface NonBlocking {
 }

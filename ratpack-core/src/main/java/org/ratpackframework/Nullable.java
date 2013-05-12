@@ -21,6 +21,13 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+/**
+ * Denotes that something may be null.
+ *
+ * When present on an API parameter, denotes that it is valid to supply null as the value for the parameter.
+ * <p>
+ * When present on an API method, denotes that the method may return null.
+ */
 @Retention(RetentionPolicy.SOURCE)
 @Target({ElementType.PARAMETER, ElementType.METHOD})
 public @interface Nullable {

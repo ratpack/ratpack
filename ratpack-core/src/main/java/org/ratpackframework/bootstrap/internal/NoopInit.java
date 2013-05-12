@@ -21,7 +21,7 @@ import org.ratpackframework.Action;
 
 public class NoopInit implements Action<RatpackServer> {
 
-  public void execute(RatpackServer event) {
+  public void execute(RatpackServer thing) {
   }
 
 }

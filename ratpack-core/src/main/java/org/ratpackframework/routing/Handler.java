@@ -16,8 +16,11 @@
 
 package org.ratpackframework.routing;
 
+import org.ratpackframework.NonBlocking;
+
 public interface Handler {
 
+  @NonBlocking
   void handle(Exchange exchange);
 
 }

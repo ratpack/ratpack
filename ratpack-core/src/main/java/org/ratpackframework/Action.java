@@ -23,6 +23,11 @@ package org.ratpackframework;
  */
 public interface Action<T> {
 
-  void execute(T event);
+  /**
+   * Executes the action against the given thing.
+   *
+   * @param thing The thing to execute the action against.
+   */
+  void execute(T thing);
 
 }

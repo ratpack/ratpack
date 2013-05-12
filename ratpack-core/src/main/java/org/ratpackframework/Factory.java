@@ -16,8 +16,20 @@
 
 package org.ratpackframework;
 
+/**
+ * An object that creates another.
+ *
+ * Factories are expected to create a new object each time. Implementors should explain there behaviour if they do not do this.
+ *
+ * @param <T> The type of object that this factory creates.
+ */
 public interface Factory<T> {
 
+  /**
+   * Creates a new object.
+   *
+   * @return A newly created object.
+   */
   T create();
 
 }
