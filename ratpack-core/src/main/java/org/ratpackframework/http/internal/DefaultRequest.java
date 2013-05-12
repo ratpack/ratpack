@@ -157,6 +157,10 @@ public class DefaultRequest implements Request {
     return nettyRequest.headers().get(name);
   }
 
+  public Date getDateHeader(String name) {
+    return HttpHeaders.getDateHeader(nettyRequest, name, null);
+  }
+
   public List<String> getHeaders(String name) {
     return nettyRequest.headers().getAll(name);
   }

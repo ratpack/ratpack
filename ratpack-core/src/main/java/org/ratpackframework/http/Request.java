@@ -18,6 +18,7 @@ package org.ratpackframework.http;
 
 import io.netty.handler.codec.http.Cookie;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -61,6 +62,8 @@ public interface Request {
    * @return the header value or {@code null} if there is no such header
    */
   String getHeader(String name);
+
+  Date getDateHeader(String name);
 
   /**
    * Returns the header values with the specified header name.

@@ -18,8 +18,8 @@ package org.ratpackframework.routing;
 
 public interface Routing {
 
-    Exchange getExchange();
+  Exchange getExchange();
 
-    void route(Handler handler);
+  void route(Handler handler);
 
 }

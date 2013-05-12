@@ -21,12 +21,11 @@ import org.ratpackframework.file.FileSystemContext;
 import org.ratpackframework.file.MimeTypes;
 import org.ratpackframework.http.Request;
 import org.ratpackframework.http.Response;
-import org.ratpackframework.http.internal.HttpDateParseException;
-import org.ratpackframework.http.internal.HttpDateUtil;
 import org.ratpackframework.routing.Exchange;
 import org.ratpackframework.routing.Handler;
 
 import java.io.File;
+import java.util.Date;
 
 import static io.netty.handler.codec.http.HttpHeaders.Names.IF_MODIFIED_SINCE;
 import static io.netty.handler.codec.http.HttpResponseStatus.*;
@@ -62,18 +61,14 @@ public class FileStaticAssetRequestHandler implements Handler {
       return;
     }
 
-    String ifModifiedSinceHeader = request.getHeader(IF_MODIFIED_SINCE);
+    Date ifModifiedSinceHeader = request.getDateHeader(IF_MODIFIED_SINCE);
 
     if (ifModifiedSinceHeader != null) {
-      try {
-        long ifModifiedSinceSecs = HttpDateUtil.parseDate(ifModifiedSinceHeader).getTime() / 1000;
-        long lastModifiedSecs = lastModifiedTime / 1000;
-        if (lastModifiedSecs == ifModifiedSinceSecs) {
-          response.status(NOT_MODIFIED.code(), NOT_MODIFIED.reasonPhrase());
-          return;
-        }
-      } catch (HttpDateParseException ignore) {
-        // can't parse header, just keep going
+      long ifModifiedSinceSecs = ifModifiedSinceHeader.getTime() / 1000;
+      long lastModifiedSecs = lastModifiedTime / 1000;
+      if (lastModifiedSecs == ifModifiedSinceSecs) {
+        response.status(NOT_MODIFIED.code(), NOT_MODIFIED.reasonPhrase());
+        return;
       }
     }
 

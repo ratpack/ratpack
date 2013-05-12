@@ -21,7 +21,11 @@
         <property name="file" value="${checkstyleConfigDir}/suppressions.xml"/>
     </module>
     <module name="TreeWalker">
-        <!-- Blocks -->
+      <!--<module name="Indentation">-->
+        <!--<property name="basicOffset" value="2"/>-->
+      <!--</module>-->
+
+      <!-- Blocks -->
         <module name="EmptyBlock">
             <property name="option" value="stmt"/>
             <property name="tokens" value="LITERAL_DO,LITERAL_ELSE,LITERAL_FINALLY,LITERAL_IF,LITERAL_FOR,LITERAL_TRY,LITERAL_WHILE,INSTANCE_INIT,STATIC_INIT"/>

@@ -16,11 +16,12 @@
 
 package org.ratpackframework.file.internal;
 
-import io.netty.channel.*;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.stream.ChunkedFile;
-import org.ratpackframework.http.internal.HttpDateUtil;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -46,7 +47,7 @@ public class FileHttpTransmitter {
     }
 
     response.headers().set(HttpHeaders.Names.CONTENT_LENGTH, fileLength);
-    response.headers().set(HttpHeaders.Names.LAST_MODIFIED, HttpDateUtil.formatDate(new Date(targetFile.lastModified())));
+    HttpHeaders.setDateHeader(response, HttpHeaders.Names.LAST_MODIFIED, new Date(targetFile.lastModified()));
 
     // Write the initial line and the header.
     if (!channel.isOpen()) {
