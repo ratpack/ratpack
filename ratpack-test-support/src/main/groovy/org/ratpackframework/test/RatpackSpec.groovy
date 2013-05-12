@@ -49,6 +49,9 @@ abstract class RatpackSpec extends Specification {
   }
 
   void app(Closure<?> configurer) {
+    if (app?.running) {
+      app.stopAndWait()
+    }
     configurer.call()
     startApp()
   }

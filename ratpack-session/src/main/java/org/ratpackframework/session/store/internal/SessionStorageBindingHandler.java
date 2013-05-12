@@ -16,6 +16,9 @@
 
 package org.ratpackframework.session.store.internal;
 
+import org.ratpackframework.Factory;
+import org.ratpackframework.context.Context;
+import org.ratpackframework.context.LazyHierarchicalContext;
 import org.ratpackframework.routing.Exchange;
 import org.ratpackframework.routing.Handler;
 import org.ratpackframework.session.Session;
@@ -31,14 +34,16 @@ public class SessionStorageBindingHandler implements Handler {
   }
 
   public void handle(Exchange exchange) {
-    MapSessionStore mapSessionStore = exchange.get(MapSessionStore.class);
+    final MapSessionStore mapSessionStore = exchange.get(MapSessionStore.class);
 
-    // TODO we are creating a session map even if we dont' use use it
-    // We should avoid doing so unless some really asks for the session storage
     Session session = exchange.get(Session.class);
-    String id = session.getId();
-    SessionStorage sessionStorage = mapSessionStore.get(id);
-    exchange.nextWithContext(sessionStorage, handler);
+    final String id = session.getId();
+    Context sessionContext = new LazyHierarchicalContext(exchange.getContext(), SessionStorage.class, new Factory<SessionStorage>() {
+      public SessionStorage create() {
+        return mapSessionStore.get(id);
+      }
+    });
+    exchange.nextWithContext(sessionContext, handler);
   }
 
 }

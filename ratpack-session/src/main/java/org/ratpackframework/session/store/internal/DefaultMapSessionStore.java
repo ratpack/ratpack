@@ -19,7 +19,6 @@ package org.ratpackframework.session.store.internal;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import org.ratpackframework.session.SessionListener;
-import org.ratpackframework.session.store.DefaultSessionStorage;
 import org.ratpackframework.session.store.MapSessionStore;
 import org.ratpackframework.session.store.SessionStorage;
 

@@ -17,6 +17,7 @@
 package org.ratpackframework.reload.internal;
 
 import io.netty.buffer.ByteBuf;
+import org.ratpackframework.Factory;
 import org.ratpackframework.util.IoUtils;
 
 import java.io.File;

@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.session.store;
+package org.ratpackframework.session.store.internal;
+
+import org.ratpackframework.session.store.SessionStorage;
 
 import java.util.Collection;
 import java.util.Map;

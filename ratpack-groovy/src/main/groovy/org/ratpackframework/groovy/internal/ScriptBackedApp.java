@@ -26,7 +26,7 @@ import org.ratpackframework.groovy.routing.internal.RoutingHandler;
 import org.ratpackframework.groovy.script.ScriptEngine;
 import org.ratpackframework.guice.GuiceBackedHandlerFactory;
 import org.ratpackframework.guice.ModuleRegistry;
-import org.ratpackframework.reload.internal.Factory;
+import org.ratpackframework.Factory;
 import org.ratpackframework.reload.internal.ReloadableFileBackedFactory;
 import org.ratpackframework.routing.Exchange;
 import org.ratpackframework.routing.Handler;

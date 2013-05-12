@@ -95,4 +95,30 @@ class SessionSpec extends RatpackGroovyDslSpec {
     urlGetText("size") == "1"
   }
 
+  def "sessions are created on demand"() {
+    when:
+    app {
+      routing {
+        get {
+          response.send get(MapSessionStore).size().toString()
+        }
+      }
+    }
+
+    then:
+    urlGetText() == "0"
+
+    when:
+    app {
+      routing {
+        get {
+          get(SessionStorage)
+          response.send get(MapSessionStore).size().toString()
+        }
+      }
+    }
+
+    then:
+    urlGetText() == "1"
+  }
 }

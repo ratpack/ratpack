@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.reload.internal;
+package org.ratpackframework;
 
 public interface Factory<T> {
 
