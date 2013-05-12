@@ -14,31 +14,14 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.context.internal;
-
-import java.util.Arrays;
-
-public class RootContext extends ContextSupport {
-
-  private final Object[] objects;
-
-  public RootContext(Object... objects) {
-    this.objects = objects;
-  }
-
-  @Override
-  public String toString() {
-    return "RootContext{" + Arrays.toString(objects) + '}';
-  }
-
-  protected <T> T doMaybeGet(Class<T> type) {
-    for (Object object : objects) {
-      if (type.isInstance(object)) {
-        return type.cast(object);
-      }
-    }
-
-    return null;
-  }
-
-}
+/**
+ * Handlers communicate with each other by binding a "context" on to each {@link org.ratpackframework.routing.Exchange}.
+ *
+ * A context is just an object that may be able to provide an object of a given type. Typically, upstream handlers add
+ * objects to the context for downstream handlers to use.
+ *
+ * This package
+ *
+ * @see org.ratpackframework.context.Context
+ */
+package org.ratpackframework.context;

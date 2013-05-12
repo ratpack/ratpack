@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.context;
+package org.ratpackframework.context.internal;
+
+import org.ratpackframework.context.Context;
+import org.ratpackframework.context.NotInContextException;
 
 public abstract class ContextSupport implements Context {
 
@@ -24,7 +27,7 @@ public abstract class ContextSupport implements Context {
     return null;
   }
 
-  public <T> T maybeGet(Class<T> type) {
+  public final <T> T maybeGet(Class<T> type) {
     T value = doMaybeGet(type);
 
     if (value == null) {
@@ -34,10 +37,10 @@ public abstract class ContextSupport implements Context {
     }
   }
 
-  public <T> T get(Class<T> type) {
+  public final <T> T get(Class<T> type) {
     T found = maybeGet(type);
     if (found == null) {
-      throw new IllegalStateException(String.format("Could not find %s in context", type));
+      throw new NotInContextException(this, type);
     }
 
     return found;

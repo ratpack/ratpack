@@ -20,7 +20,7 @@ import com.google.inject.Binding;
 import com.google.inject.Injector;
 import com.google.inject.Key;
 import org.ratpackframework.context.Context;
-import org.ratpackframework.context.HierarchicalContextSupport;
+import org.ratpackframework.context.internal.HierarchicalContextSupport;
 
 public class InjectorBackedHierarchicalContext extends HierarchicalContextSupport {
 
@@ -39,6 +39,11 @@ public class InjectorBackedHierarchicalContext extends HierarchicalContextSuppor
     } else {
       return existingBinding.getProvider().get();
     }
+  }
+
+  @Override
+  protected String describe() {
+    return "Injector";
   }
 
 }

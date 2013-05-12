@@ -16,10 +16,37 @@
 
 package org.ratpackframework.context;
 
+import org.ratpackframework.api.Nullable;
+
+/**
+ * An object that can potentially provide objects of given types.
+ *
+ * A context object services as a kind of service locator. A context can be requested to provide an object of a certain type.
+ * <p>
+ * Context objects are not thread safe.
+ *
+ * @see org.ratpackframework.routing.Exchange#getContext()
+ */
 public interface Context {
 
-  <T> T get(Class<T> type);
+  /**
+   * Provides an object of the specified type, or throws an exception if no object of that type is available.
+   *
+   * @param type The type of the object to provide
+   * @param <T> The type of the object to provide
+   * @return An object of the specified type
+   * @throws NotInContextException If no object of this type can be returned
+   */
+  <T> T get(Class<T> type) throws NotInContextException;
 
+  /**
+   * Does the same thing as {@link #get(Class)}, except returns null instead of throwing an exception.
+   *
+   * @param type The type of the object to provide
+   * @param <T> The type of the object to provide
+   * @return An object of the specified type, or null if no object of this type is available.
+   */
+  @Nullable
   <T> T maybeGet(Class<T> type);
 
 }

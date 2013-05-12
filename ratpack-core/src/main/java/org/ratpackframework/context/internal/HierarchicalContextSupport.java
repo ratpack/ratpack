@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.context;
+package org.ratpackframework.context.internal;
+
+import org.ratpackframework.context.Context;
 
 public abstract class HierarchicalContextSupport extends ContextSupport {
 
@@ -25,8 +27,15 @@ public abstract class HierarchicalContextSupport extends ContextSupport {
   }
 
   @Override
+  public String toString() {
+    return describe() + " -> " + parent.toString();
+  }
+
+  @Override
   public <T> T onNotFound(Class<T> type) {
     return parent.maybeGet(type);
   }
+
+  protected abstract String describe();
 
 }

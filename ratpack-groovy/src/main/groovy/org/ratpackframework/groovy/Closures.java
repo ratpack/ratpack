@@ -19,6 +19,7 @@ package org.ratpackframework.groovy;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.ratpackframework.util.Action;
+import org.ratpackframework.util.Factory;
 
 public abstract class Closures {
 
@@ -48,6 +49,16 @@ public abstract class Closures {
 
   public static Action<Object> action(final Closure<?> configurer) {
     return action(Object.class, configurer);
+  }
+
+  public static <T> Factory<T> factory(Closure<T> closure) {
+    final Closure clone = (Closure) closure.clone();
+    return new Factory<T>() {
+      public T create() {
+        //noinspection unchecked
+        return (T) clone.call();
+      }
+    };
   }
 
 }

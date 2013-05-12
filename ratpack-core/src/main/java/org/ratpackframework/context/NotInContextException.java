@@ -14,31 +14,23 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.context.internal;
+package org.ratpackframework.context;
 
-import java.util.Arrays;
+/**
+ * Thrown when a request is made for an object that a context cannot provide.
+ *
+ * @see Context#get(Class)
+ */
+public class NotInContextException extends RuntimeException {
 
-public class RootContext extends ContextSupport {
-
-  private final Object[] objects;
-
-  public RootContext(Object... objects) {
-    this.objects = objects;
-  }
-
-  @Override
-  public String toString() {
-    return "RootContext{" + Arrays.toString(objects) + '}';
-  }
-
-  protected <T> T doMaybeGet(Class<T> type) {
-    for (Object object : objects) {
-      if (type.isInstance(object)) {
-        return type.cast(object);
-      }
-    }
-
-    return null;
+  /**
+   * Constructs the exception.
+   *
+   * @param context The context that the object was requested of
+   * @param type The requested type of the object
+   */
+  public NotInContextException(Context context, Class<?> type) {
+    super(String.format("No object for type '%s' in context: %s", type.getName(), context.toString()));
   }
 
 }

@@ -17,8 +17,10 @@
 package org.ratpackframework.context.internal;
 
 import org.ratpackframework.context.Context;
-import org.ratpackframework.context.HierarchicalContextSupport;
 
+/**
+ * A simple context that
+ */
 public class ObjectHoldingHierarchicalContext extends HierarchicalContextSupport {
 
   private final Object value;
@@ -37,4 +39,8 @@ public class ObjectHoldingHierarchicalContext extends HierarchicalContextSupport
     }
   }
 
+  @Override
+  protected String describe() {
+    return "ObjectContext{" + value + "}";
+  }
 }

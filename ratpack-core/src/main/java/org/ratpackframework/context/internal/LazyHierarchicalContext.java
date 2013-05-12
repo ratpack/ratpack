@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.context;
+package org.ratpackframework.context.internal;
 
+import org.ratpackframework.context.Context;
 import org.ratpackframework.util.Factory;
 
 public class LazyHierarchicalContext extends HierarchicalContextSupport {
@@ -44,5 +45,10 @@ public class LazyHierarchicalContext extends HierarchicalContextSupport {
       object = factory.create();
     }
     return object;
+  }
+
+  @Override
+  protected String describe() {
+    return "LazyContext{" + type.getName() + "}";
   }
 }
