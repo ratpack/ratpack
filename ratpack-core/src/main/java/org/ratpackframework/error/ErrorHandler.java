@@ -16,10 +16,26 @@
 
 package org.ratpackframework.error;
 
+import org.ratpackframework.api.NonBlocking;
 import org.ratpackframework.routing.Exchange;
 
+/**
+ * An object that can deal with errors that occur during the processing of an exchange.
+ *
+ * Typically retrieved from the exchange context.
+ *
+ * @see Exchange#error(Exception)
+ * @see Exchange#withErrorHandling(Runnable)
+ */
 public interface ErrorHandler {
 
+  /**
+   * Processes the given exception that occurred processing the given exchange.
+   *
+   * @param exchange The exchange being processed
+   * @param exception The exception that occurred
+   */
+  @NonBlocking
   void error(Exchange exchange, Exception exception);
 
 }
