@@ -2,10 +2,6 @@
 apply plugin: "idea"
 
 idea {
-  module {
-    excludeDirs += file('localrepo')
-  }
-
   project {
     jdkName "1.7"
     languageLevel "1.5"
@@ -13,7 +9,7 @@ idea {
       withXml { provider ->
         def node = provider.asNode()
         node.component.find { it.'@name' == 'VcsDirectoryMappings' }?.mapping[0].'@vcs' = 'Git'
-        node.append(new XmlParser().parse(file("idea/codeStyle.xml")))
+        node.append(new XmlParser().parse(file("gradle/idea/codeStyle.xml")))
 
         def copyrightManager = node.component.find { it.'@name' == 'CopyrightManager' }
         copyrightManager.@default = "ASL2"
