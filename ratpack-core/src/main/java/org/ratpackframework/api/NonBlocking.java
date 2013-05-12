@@ -14,21 +14,18 @@
  * limitations under the License.
  */
 
-package org.ratpackframework;
+package org.ratpackframework.api;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.*;
 
 /**
- * Denotes that something may be null.
+ * Declares that a method is non blocking, making no guarantees about when it will return.
  *
- * When present on an API parameter, denotes that it is valid to supply null as the value for the parameter.
- * <p>
- * When present on an API method, denotes that the method may return null.
+ * Callers of non blocking methods cannot assume anything about what was done before the method returned. In other words, non blocking methods are free to do their work on other threads and return
+ * from the method immediately.
  */
+@Documented
 @Retention(RetentionPolicy.SOURCE)
-@Target({ElementType.PARAMETER, ElementType.METHOD})
-public @interface Nullable {
+@Target({ElementType.METHOD})
+public @interface NonBlocking {
 }

@@ -16,7 +16,7 @@
 
 package org.ratpackframework.path;
 
-import org.ratpackframework.Nullable;
+import org.ratpackframework.api.Nullable;
 
 public interface PathBinding {
 

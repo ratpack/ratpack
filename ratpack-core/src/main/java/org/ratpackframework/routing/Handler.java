@@ -16,7 +16,7 @@
 
 package org.ratpackframework.routing;
 
-import org.ratpackframework.NonBlocking;
+import org.ratpackframework.api.NonBlocking;
 
 public interface Handler {
 
