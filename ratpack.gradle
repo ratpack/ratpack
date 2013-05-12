@@ -117,7 +117,7 @@ subprojects {
     install {
       repositories {
         mavenDeployer {
-          repository(url: "file://${rootProject.rootDir.absolutePath}/localrepo")
+          repository(url: "file://${rootProject.buildDir.absolutePath}/localrepo")
         }
       }
     }

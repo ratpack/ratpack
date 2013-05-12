@@ -128,7 +128,7 @@ abstract class FunctionalSpec extends Specification {
   }
 
   File getLocalRepo() {
-    def rootRelative = new File("localrepo")
-    rootRelative.directory ? rootRelative : new File(new File(System.getProperty("user.dir")).parentFile, "localrepo")
+    def rootRelative = new File("build/localrepo")
+    rootRelative.directory ? rootRelative : new File(new File(System.getProperty("user.dir")).parentFile, "build/localrepo")
   }
 }
