@@ -4,7 +4,7 @@ import io.netty.buffer.ByteBuf
 import io.netty.buffer.Unpooled
 import io.netty.util.CharsetUtil
 import org.ratpackframework.groovy.script.ScriptEngine
-import org.ratpackframework.util.IoUtils
+import org.ratpackframework.util.internal.IoUtils
 import spock.lang.Specification
 
 class TemplateCompilerTest extends Specification {

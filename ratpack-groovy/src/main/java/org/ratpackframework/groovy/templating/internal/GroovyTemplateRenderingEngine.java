@@ -20,11 +20,11 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import io.netty.buffer.ByteBuf;
 import org.codehaus.groovy.runtime.IOGroovyMethods;
-import org.ratpackframework.util.Result;
-import org.ratpackframework.util.ResultAction;
+import org.ratpackframework.util.internal.Result;
+import org.ratpackframework.util.internal.ResultAction;
 import org.ratpackframework.groovy.script.ScriptEngine;
 import org.ratpackframework.groovy.templating.TemplatingConfig;
-import org.ratpackframework.util.IoUtils;
+import org.ratpackframework.util.internal.IoUtils;
 
 import javax.inject.Inject;
 import java.io.File;

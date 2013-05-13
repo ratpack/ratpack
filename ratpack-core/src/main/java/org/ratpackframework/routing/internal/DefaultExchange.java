@@ -26,7 +26,7 @@ import org.ratpackframework.routing.Handler;
 import org.ratpackframework.http.Request;
 import org.ratpackframework.http.Response;
 import org.ratpackframework.path.PathContext;
-import org.ratpackframework.util.CollectionUtils;
+import org.ratpackframework.util.internal.CollectionUtils;
 
 import java.io.File;
 import java.util.List;

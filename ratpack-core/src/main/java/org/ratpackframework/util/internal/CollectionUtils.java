@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.util;
+package org.ratpackframework.util.internal;
 
 import java.lang.reflect.Array;
 import java.util.*;

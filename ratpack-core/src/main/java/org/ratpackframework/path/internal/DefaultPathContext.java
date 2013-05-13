@@ -17,7 +17,7 @@
 package org.ratpackframework.path.internal;
 
 import org.ratpackframework.path.PathContext;
-import org.ratpackframework.util.CollectionUtils;
+import org.ratpackframework.util.internal.CollectionUtils;
 
 import java.util.LinkedHashMap;
 import java.util.Map;

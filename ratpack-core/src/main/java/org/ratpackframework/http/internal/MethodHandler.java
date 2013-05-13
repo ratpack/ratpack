@@ -22,7 +22,7 @@ import org.ratpackframework.routing.Handler;
 import java.util.Collection;
 import java.util.List;
 
-import static org.ratpackframework.util.CollectionUtils.toUpperCase;
+import static org.ratpackframework.util.internal.CollectionUtils.toUpperCase;
 
 public class MethodHandler implements Handler {
 

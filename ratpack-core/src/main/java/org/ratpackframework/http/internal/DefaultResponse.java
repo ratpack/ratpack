@@ -24,7 +24,7 @@ import io.netty.handler.codec.http.*;
 import org.ratpackframework.file.internal.FileHttpTransmitter;
 import org.ratpackframework.http.MediaType;
 import org.ratpackframework.http.Response;
-import org.ratpackframework.util.IoUtils;
+import org.ratpackframework.util.internal.IoUtils;
 
 import java.io.File;
 import java.util.HashSet;

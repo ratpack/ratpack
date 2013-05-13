@@ -20,7 +20,7 @@ import org.ratpackframework.file.FileSystemContext;
 
 import java.io.File;
 
-import static org.ratpackframework.util.CollectionUtils.join;
+import static org.ratpackframework.util.internal.CollectionUtils.join;
 
 public class DefaultFileSystemContext implements FileSystemContext {
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.util;
+package org.ratpackframework.util.internal;
 
 /**
  * An object that creates another.

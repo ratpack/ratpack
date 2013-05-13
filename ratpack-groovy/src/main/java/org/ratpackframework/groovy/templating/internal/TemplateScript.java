@@ -20,7 +20,7 @@ import groovy.lang.Script;
 import io.netty.buffer.ByteBuf;
 import org.ratpackframework.groovy.templating.Template;
 import org.ratpackframework.groovy.templating.TemplateModel;
-import org.ratpackframework.util.IoUtils;
+import org.ratpackframework.util.internal.IoUtils;
 
 import java.util.Collections;
 import java.util.Map;

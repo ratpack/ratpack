@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.util;
+package org.ratpackframework.util.internal;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
