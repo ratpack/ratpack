@@ -18,14 +18,14 @@ package org.ratpackframework.file;
 
 import java.io.File;
 
-public interface FileSystemContext {
+public interface FileSystemBinding {
 
   File getFile();
 
   File file(String... path);
 
-  FileSystemContext context(String... path);
+  FileSystemBinding binding(String... path);
 
-  FileSystemContext context(File file);
+  FileSystemBinding binding(File file);
 
 }

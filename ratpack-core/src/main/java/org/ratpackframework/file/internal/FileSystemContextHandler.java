@@ -16,9 +16,9 @@
 
 package org.ratpackframework.file.internal;
 
+import org.ratpackframework.file.FileSystemBinding;
 import org.ratpackframework.routing.Exchange;
 import org.ratpackframework.routing.Handler;
-import org.ratpackframework.file.FileSystemContext;
 
 import java.io.File;
 
@@ -27,24 +27,24 @@ public class FileSystemContextHandler implements Handler {
   private final File file;
   private final Handler delegate;
   private final boolean absolute;
-  private final FileSystemContext absoluteContext;
+  private final FileSystemBinding absoluteContext;
 
   public FileSystemContextHandler(File file, Handler delegate) {
     this.file = file;
     this.delegate = delegate;
     this.absolute = file.isAbsolute();
-    this.absoluteContext = new DefaultFileSystemContext(file.getAbsoluteFile());
+    this.absoluteContext = new DefaultFileSystemBinding(file.getAbsoluteFile());
   }
 
   public void handle(Exchange exchange) {
     if (absolute) {
       exchange.nextWithContext(absoluteContext, delegate);
     } else {
-      FileSystemContext parentContext = exchange.maybeGet(FileSystemContext.class);
+      FileSystemBinding parentContext = exchange.maybeGet(FileSystemBinding.class);
       if (parentContext == null) {
         exchange.nextWithContext(absoluteContext, delegate);
       } else {
-        exchange.nextWithContext(parentContext.context(file.getPath()), delegate);
+        exchange.nextWithContext(parentContext.binding(file.getPath()), delegate);
       }
     }
   }

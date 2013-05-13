@@ -17,7 +17,7 @@
 package org.ratpackframework.file.internal;
 
 import io.netty.handler.codec.http.HttpHeaders;
-import org.ratpackframework.file.FileSystemContext;
+import org.ratpackframework.file.FileSystemBinding;
 import org.ratpackframework.file.MimeTypes;
 import org.ratpackframework.http.Request;
 import org.ratpackframework.http.Response;
@@ -42,8 +42,8 @@ public class FileStaticAssetRequestHandler implements Handler {
       return;
     }
 
-    FileSystemContext fileSystemContext = exchange.get(FileSystemContext.class);
-    File targetFile = fileSystemContext.getFile();
+    FileSystemBinding fileSystemBinding = exchange.get(FileSystemBinding.class);
+    File targetFile = fileSystemBinding.getFile();
 
     if (targetFile.isHidden() || !targetFile.exists()) {
       exchange.next();

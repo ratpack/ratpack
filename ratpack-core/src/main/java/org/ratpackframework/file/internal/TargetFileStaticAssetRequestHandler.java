@@ -16,7 +16,7 @@
 
 package org.ratpackframework.file.internal;
 
-import org.ratpackframework.file.FileSystemContext;
+import org.ratpackframework.file.FileSystemBinding;
 import org.ratpackframework.http.Request;
 import org.ratpackframework.path.PathContext;
 import org.ratpackframework.routing.Exchange;
@@ -35,7 +35,7 @@ public class TargetFileStaticAssetRequestHandler implements Handler {
   }
 
   public void handle(Exchange exchange) {
-    FileSystemContext fileSystemContext = exchange.get(FileSystemContext.class);
+    FileSystemBinding fileSystemBinding = exchange.get(FileSystemBinding.class);
 
     Request request = exchange.getRequest();
 
@@ -63,7 +63,7 @@ public class TargetFileStaticAssetRequestHandler implements Handler {
       return;
     }
 
-    FileSystemContext childContext = fileSystemContext.context(path);
+    FileSystemBinding childContext = fileSystemBinding.binding(path);
     exchange.nextWithContext(childContext, delegate);
   }
 }

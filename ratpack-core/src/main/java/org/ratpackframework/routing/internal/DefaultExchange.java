@@ -20,7 +20,7 @@ import io.netty.channel.ChannelHandlerContext;
 import org.ratpackframework.context.Context;
 import org.ratpackframework.context.internal.ObjectHoldingHierarchicalContext;
 import org.ratpackframework.error.ErrorHandler;
-import org.ratpackframework.file.FileSystemContext;
+import org.ratpackframework.file.FileSystemBinding;
 import org.ratpackframework.routing.Exchange;
 import org.ratpackframework.routing.Handler;
 import org.ratpackframework.http.Request;
@@ -107,7 +107,7 @@ public class DefaultExchange implements Exchange {
   }
 
   public File file(String... pathComponents) {
-    return get(FileSystemContext.class).file(pathComponents);
+    return get(FileSystemBinding.class).file(pathComponents);
   }
 
   public void error(Exception exception) {

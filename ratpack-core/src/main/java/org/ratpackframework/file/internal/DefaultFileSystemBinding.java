@@ -16,17 +16,17 @@
 
 package org.ratpackframework.file.internal;
 
-import org.ratpackframework.file.FileSystemContext;
+import org.ratpackframework.file.FileSystemBinding;
 
 import java.io.File;
 
 import static org.ratpackframework.util.internal.CollectionUtils.join;
 
-public class DefaultFileSystemContext implements FileSystemContext {
+public class DefaultFileSystemBinding implements FileSystemBinding {
 
   private final File file;
 
-  public DefaultFileSystemContext(File file) {
+  public DefaultFileSystemBinding(File file) {
     this.file = file;
   }
 
@@ -38,11 +38,11 @@ public class DefaultFileSystemContext implements FileSystemContext {
     return new File(file, join(File.separator, (Object[]) path));
   }
 
-  public FileSystemContext context(String... path) {
-    return new DefaultFileSystemContext(file(path));
+  public FileSystemBinding binding(String... path) {
+    return new DefaultFileSystemBinding(file(path));
   }
 
-  public FileSystemContext context(File file) {
-    return new DefaultFileSystemContext(file);
+  public FileSystemBinding binding(File file) {
+    return new DefaultFileSystemBinding(file);
   }
 }
