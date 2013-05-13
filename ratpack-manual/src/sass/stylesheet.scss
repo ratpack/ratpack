@@ -76,7 +76,7 @@ a {
 
 .toc {
 	@include row;
-	@include margin-trailer(2);
+	@include margin-trailer(1);
 
 	header, ul, ol {
 		@include full-width;
@@ -98,6 +98,7 @@ a {
 
 	.manual-links {
 		@include full-width;
+		@include margin-trailer(1);
 
 		h2, a {
 			margin-right: 1em;
@@ -114,20 +115,21 @@ a {
 
 	.chapter {
 		@include full-width;
-		@include margin-trailer(2);
+		@include margin-trailer(1);
 	}
 }
 
 footer {
 	$bg: $black;
+	$font-size: 14px;
 
 	font-family: $sans-font-family;
 	@include contrasted-smooth($bg);
-	@include adjust-font-size-to(14px);
-	@include padding-leader(1, 14px);
-	@include padding-trailer(1, 14px);
-	border-top: 1em solid $blue;
-	margin-top: 1em;
+	@include adjust-font-size-to($font-size);
+	@include margin-leader(1, $font-size);
+	@include padding-leader(1, $font-size);
+	@include padding-trailer(1, $font-size);
+	border-top: rhythm(1, $font-size) solid $blue;
 
 	a {
 		color: contrast-color($bg);
@@ -148,7 +150,7 @@ footer {
 	}
 
 	h2 {
-		@include adjust-font-size-to($to-size: 14px, $from-size: 14px);
+		@include adjust-font-size-to($to-size: $font-size, $from-size: $font-size);
 		text-transform: uppercase;
 	}
 
