@@ -26,6 +26,7 @@ import org.ratpackframework.context.internal.RootContext;
 import org.ratpackframework.error.internal.ErrorHandler;
 import org.ratpackframework.error.internal.TopLevelErrorHandler;
 import org.ratpackframework.file.internal.ActivationBackedMimeTypes;
+import org.ratpackframework.file.internal.DefaultFileSystemBinding;
 import org.ratpackframework.http.Request;
 import org.ratpackframework.http.Response;
 import org.ratpackframework.http.internal.DefaultRequest;
@@ -34,12 +35,16 @@ import org.ratpackframework.routing.Exchange;
 import org.ratpackframework.routing.Handler;
 import org.ratpackframework.routing.internal.DefaultExchange;
 
+import java.io.File;
+
 public class NettyRoutingAdapter extends ChannelInboundMessageHandlerAdapter<FullHttpRequest> {
 
   private final Handler handler;
+  private final File baseDir;
 
-  public NettyRoutingAdapter(Handler handler) {
+  public NettyRoutingAdapter(Handler handler, File baseDir) {
     this.handler = handler;
+    this.baseDir = baseDir;
   }
 
   public void messageReceived(ChannelHandlerContext ctx, FullHttpRequest nettyRequest) throws Exception {
@@ -53,13 +58,19 @@ public class NettyRoutingAdapter extends ChannelInboundMessageHandlerAdapter<Ful
     Request request = new DefaultRequest(nettyRequest);
     Response response = new DefaultResponse(nettyResponse, ctx.channel());
 
-    final Exchange exchange = new DefaultExchange(request, response, ctx, new RootContext(), new Handler() {
+    RootContext rootContext = new RootContext(
+        new TopLevelErrorHandler(),
+        new ActivationBackedMimeTypes(),
+        new DefaultFileSystemBinding(baseDir)
+    );
+
+    final Exchange exchange = new DefaultExchange(request, response, ctx, rootContext, new Handler() {
       public void handle(Exchange exchange) {
         exchange.getResponse().status(404).send();
       }
     });
 
-    exchange.nextWithContext(new RootContext(new TopLevelErrorHandler(), new ActivationBackedMimeTypes()), new ErrorHandler(handler));
+    exchange.next(new ErrorHandler(handler));
   }
 
   public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {

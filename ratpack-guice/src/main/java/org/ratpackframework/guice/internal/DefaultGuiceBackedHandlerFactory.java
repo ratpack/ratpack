@@ -20,21 +20,19 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.util.Modules;
-import org.ratpackframework.util.Action;
-import org.ratpackframework.file.internal.FileSystemContextHandler;
 import org.ratpackframework.guice.GuiceBackedHandlerFactory;
 import org.ratpackframework.guice.HandlerDecoratingModule;
 import org.ratpackframework.guice.ModuleRegistry;
 import org.ratpackframework.routing.Handler;
+import org.ratpackframework.util.Action;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 public class DefaultGuiceBackedHandlerFactory implements GuiceBackedHandlerFactory {
 
-  public Handler create(File baseDir, Action<? super ModuleRegistry> modulesAction, Handler handler) {
+  public Handler create(Action<? super ModuleRegistry> modulesAction, Handler handler) {
     ModuleRegistry moduleRegistry = new DefaultModuleRegistry();
 
     registerDefaultModules(moduleRegistry);
@@ -68,7 +66,6 @@ public class DefaultGuiceBackedHandlerFactory implements GuiceBackedHandlerFacto
       }
     }
 
-    decorated = new FileSystemContextHandler(baseDir, decorated);
     decorated = decorateHandler(decorated);
 
     return new InjectorBindingHandler(injector, decorated);

@@ -42,7 +42,7 @@ public class ScriptBackedApp implements Handler {
   private final Factory<Handler> reloadHandler;
 
   @Inject
-  public ScriptBackedApp(File script, final File baseDir, final GuiceBackedHandlerFactory appFactory, final boolean staticCompile, boolean reloadable) {
+  public ScriptBackedApp(File script, final GuiceBackedHandlerFactory appFactory, final boolean staticCompile, boolean reloadable) {
     this.reloadHandler = new ReloadableFileBackedFactory<Handler>(script, reloadable, new ReloadableFileBackedFactory.Delegate<Handler>() {
       public Handler produce(final File file, final ByteBuf bytes) {
         try {
@@ -74,7 +74,7 @@ public class ScriptBackedApp implements Handler {
           RoutingBuilder<Routing> routingBuilder = new ClosureBackedRoutingBuilder<Routing>(ratpack.getRoutingConfigurer());
 
           RoutingHandler routingHandler = new RoutingHandler(routingBuilder);
-          return appFactory.create(baseDir, modulesAction, routingHandler);
+          return appFactory.create(modulesAction, routingHandler);
 
         } catch (Exception e) {
           throw new RuntimeException(e);

@@ -14,13 +14,8 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.guice;
+/**
+ * Types for dealing with the file system and serving files.
+ */
+package org.ratpackframework.file;
 
-import org.ratpackframework.routing.Handler;
-import org.ratpackframework.util.Action;
-
-public interface GuiceBackedHandlerFactory {
-
-  Handler create(Action<? super ModuleRegistry> modulesAction, Handler handler);
-
-}

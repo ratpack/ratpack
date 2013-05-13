@@ -106,8 +106,8 @@ public class DefaultExchange implements Exchange {
     return get(PathContext.class).getAllTokens();
   }
 
-  public File file(String... pathComponents) {
-    return get(FileSystemBinding.class).file(pathComponents);
+  public File file(String path) {
+    return get(FileSystemBinding.class).file(path);
   }
 
   public void error(Exception exception) {

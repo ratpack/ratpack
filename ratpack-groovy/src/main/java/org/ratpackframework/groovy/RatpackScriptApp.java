@@ -43,9 +43,9 @@ public abstract class RatpackScriptApp {
   }
 
   public static RatpackServer ratpack(File script, File baseDir, int port, String host, boolean compileStatic, boolean reloadable) {
-    Handler scriptBackedApp = new ScriptBackedApp(script, baseDir, new GroovyKitAppFactory(), compileStatic, reloadable);
+    Handler scriptBackedApp = new ScriptBackedApp(script, new GroovyKitAppFactory(), compileStatic, reloadable);
 
-    RatpackServerBuilder builder = new RatpackServerBuilder(scriptBackedApp);
+    RatpackServerBuilder builder = new RatpackServerBuilder(scriptBackedApp, baseDir);
     builder.setPort(port);
     builder.setHost(host);
 

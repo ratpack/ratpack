@@ -53,7 +53,7 @@ public interface Exchange {
 
   Map<String, String> getAllPathTokens();
 
-  File file(String... pathComponents);
+  File file(String path);
 
   void error(Exception exception);
 

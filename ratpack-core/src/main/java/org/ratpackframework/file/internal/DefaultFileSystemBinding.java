@@ -34,11 +34,11 @@ public class DefaultFileSystemBinding implements FileSystemBinding {
     return file;
   }
 
-  public File file(String... path) {
-    return new File(file, join(File.separator, (Object[]) path));
+  public File file(String path) {
+    return new File(file, path);
   }
 
-  public FileSystemBinding binding(String... path) {
+  public FileSystemBinding binding(String path) {
     return new DefaultFileSystemBinding(file(path));
   }
 

@@ -36,9 +36,9 @@ class DefaultRatpackSpec extends RatpackSpec {
     GuiceBackedHandlerFactory appFactory = createAppFactory()
     def handler = createHandler()
     def modulesAction = createModulesAction()
-    Handler appHandler = appFactory.create(dir, modulesAction, handler)
+    Handler appHandler = appFactory.create(modulesAction, handler)
 
-    RatpackServerBuilder builder = new RatpackServerBuilder(appHandler)
+    RatpackServerBuilder builder = new RatpackServerBuilder(appHandler, dir)
     builder.port = 0
     builder.host = null
     builder.build()

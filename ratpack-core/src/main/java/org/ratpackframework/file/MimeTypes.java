@@ -18,8 +18,20 @@ package org.ratpackframework.file;
 
 import java.io.File;
 
+/**
+ * A registry for mime types.
+ *
+ * Every exchange has an instance of this type available via the context.
+ * The default implementation uses the {@link javax.activation.MimetypesFileTypeMap} class.
+ */
 public interface MimeTypes {
 
+  /**
+   * Calculate the mime type for the given file.
+   *
+   * @param file The file to calculate the mime type for.
+   * @return The mime type for the file.
+   */
   String getContentType(File file);
 
 }

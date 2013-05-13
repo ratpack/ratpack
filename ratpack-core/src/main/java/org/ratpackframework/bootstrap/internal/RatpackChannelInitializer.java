@@ -26,15 +26,21 @@ import io.netty.handler.stream.ChunkedWriteHandler;
 import io.netty.util.concurrent.DefaultEventExecutorGroup;
 import org.ratpackframework.routing.Handler;
 
+import java.io.File;
+
 public class RatpackChannelInitializer extends ChannelInitializer<SocketChannel> {
 
   private final int workerThreads;
   private final Handler handler;
+  private final File baseDir;
 
-  public RatpackChannelInitializer(int workerThreads, Handler handler) {
+  public RatpackChannelInitializer(int workerThreads, Handler handler, File baseDir) {
     this.workerThreads = workerThreads;
     this.handler = handler;
+    this.baseDir = baseDir;
   }
+
+
 
   public void initChannel(SocketChannel ch) throws Exception {
     // Create a default pipeline implementation.
@@ -45,7 +51,7 @@ public class RatpackChannelInitializer extends ChannelInitializer<SocketChannel>
     pipeline.addLast("encoder", new HttpResponseEncoder());
     pipeline.addLast("chunkedWriter", new ChunkedWriteHandler());
 
-    NettyRoutingAdapter nettyRoutingAdapter = new NettyRoutingAdapter(handler);
+    NettyRoutingAdapter nettyRoutingAdapter = new NettyRoutingAdapter(handler, baseDir);
 
     if (workerThreads > 0) {
       pipeline.addLast(new DefaultEventExecutorGroup(workerThreads), "handler", nettyRoutingAdapter);

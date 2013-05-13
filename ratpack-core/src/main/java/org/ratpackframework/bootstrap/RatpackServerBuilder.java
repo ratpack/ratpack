@@ -25,6 +25,7 @@ import org.ratpackframework.bootstrap.internal.RatpackChannelInitializer;
 import org.ratpackframework.routing.Handler;
 import org.ratpackframework.util.Action;
 
+import java.io.File;
 import java.net.InetSocketAddress;
 
 /**
@@ -38,6 +39,8 @@ public class RatpackServerBuilder {
   public static final int DEFAULT_PORT = 5050;
 
   private final Handler handler;
+  private final File baseDir;
+
   private int workerThreads = Runtime.getRuntime().availableProcessors() * 2;
 
   private int port = DEFAULT_PORT;
@@ -48,9 +51,11 @@ public class RatpackServerBuilder {
    * Create a new builder, with the given handler as the "application".
    *
    * @param handler The handler for all requests.
+   * @param baseDir
    */
-  public RatpackServerBuilder(Handler handler) {
+  public RatpackServerBuilder(Handler handler, File baseDir) {
     this.handler = handler;
+    this.baseDir = baseDir;
   }
 
   /**
@@ -163,7 +168,7 @@ public class RatpackServerBuilder {
   }
 
   private ChannelInitializer<SocketChannel> buildChannelInitializer() {
-    return new RatpackChannelInitializer(workerThreads, handler);
+    return new RatpackChannelInitializer(workerThreads, handler, baseDir);
   }
 
 }

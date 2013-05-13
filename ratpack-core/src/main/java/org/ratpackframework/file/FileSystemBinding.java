@@ -18,14 +18,54 @@ package org.ratpackframework.file;
 
 import java.io.File;
 
+/**
+ * A file system binding represents a file system location that is used to resolve relative paths.
+ *
+ * Every exchange has a file system binding available via its context, as every Ratpack app has a file system binding.
+ * <p>
+ * The file system binding is used by asset serving handlers, among other places.
+ *
+ * @see org.ratpackframework.routing.Handlers#fsContext(String, org.ratpackframework.routing.RoutingBuilder)
+ * @see org.ratpackframework.routing.Handlers#assets(String, org.ratpackframework.routing.Handler)
+ */
 public interface FileSystemBinding {
 
+  /**
+   * The actual point on the
+   * @return
+   */
   File getFile();
 
-  File file(String... path);
+  /**
+   * Creates a file reference relative to the bind point denoted by the given relative path.
+   *
+   * Absolute paths are resolved relative to the bind point, not the filesystem root.
+   *
+   * @param path The relative path from this binding to the desired file
+   * @return The file
+   */
+  File file(String path);
 
-  FileSystemBinding binding(String... path);
+  /**
+   * Construct a new binding by using the given path as a relative path from this bind point.
+   *
+   * Absolute paths are resolved relative to the bind point, not the filesystem root.
+   * <p>
+   * Prefer using {@link org.ratpackframework.routing.Exchange#file(String)}.
+   *
+   * @param path The relative path from this binding to the desired binding
+   * @return The binding
+   */
+  FileSystemBinding binding(String path);
 
+  /**
+   * Construct a new binding at the given file.
+   *
+   * Prefer using {@link org.ratpackframework.routing.Exchange#file(String)}.
+   *
+   * @param file The file of the desired binding
+   * @return The binding
+   */
   FileSystemBinding binding(File file);
 
 }
