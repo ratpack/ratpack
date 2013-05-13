@@ -1,3 +1,5 @@
+import com.sun.org.apache.xerces.internal.parsers.XMLParser
+
 // This only gets applied to the root project
 apply plugin: "idea"
 
@@ -31,6 +33,15 @@ idea {
         if (productionCodeModule == null) {
           module2copyright.append(new XmlParser().parseText("""
               <element module="Production" copyright="ASL2" />
+          """))
+        }
+
+        def javacSettings = node.component.find { it.@name == 'JavacSettings' }
+        if (!javacSettings) {
+          node.append(new XmlParser().parseText("""
+          <component name="JavacSettings">
+            <option name="ADDITIONAL_OPTIONS_STRING" value="-Werror -Xlint:all -Xlint:-options" />
+          </component>
           """))
         }
       }

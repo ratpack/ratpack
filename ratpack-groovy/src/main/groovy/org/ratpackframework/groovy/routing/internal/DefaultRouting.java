@@ -84,7 +84,7 @@ public class DefaultRouting implements Routing {
   }
 
   private Handler routing(Closure<?> routing) {
-    return new RoutingHandler(new ClosureBackedRoutingBuilder(routing));
+    return new RoutingHandler(new ClosureBackedRoutingBuilder<Routing>(routing));
   }
 
   public Exchange getExchange() {

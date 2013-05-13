@@ -70,6 +70,10 @@ subprojects {
       }
     }
 
+    tasks.withType(AbstractCompile) {
+      options.compilerArgs << "-Werror" <<  "-Xlint:all" << "-Xlint:-options"
+    }
+
     test {
       testLogging {
         events "failed"

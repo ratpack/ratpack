@@ -26,9 +26,9 @@ import java.util.List;
 
 public class RoutingHandler implements Handler {
 
-  private final RoutingBuilder builder;
+  private final RoutingBuilder<? super Routing> builder;
 
-  public RoutingHandler(RoutingBuilder builder) {
+  public RoutingHandler(RoutingBuilder<? super Routing> builder) {
     this.builder = builder;
   }
 

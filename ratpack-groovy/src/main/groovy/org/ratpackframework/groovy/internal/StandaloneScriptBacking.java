@@ -54,8 +54,8 @@ public class StandaloneScriptBacking implements Action<Closure<?>> {
     ratpack.startAndWait();
   }
 
-  private File findScript(Closure<?> closure) {
-    Class<? extends Closure> clazz = closure.getClass();
+  private <T> File findScript(Closure<T> closure) {
+    Class<?> clazz = closure.getClass();
     ProtectionDomain protectionDomain = clazz.getProtectionDomain();
     CodeSource codeSource = protectionDomain.getCodeSource();
     URL location = codeSource.getLocation();

@@ -23,6 +23,8 @@ package org.ratpackframework.context;
  */
 public class NotInContextException extends RuntimeException {
 
+  private static final long serialVersionUID = 0;
+
   /**
    * Constructs the exception.
    *

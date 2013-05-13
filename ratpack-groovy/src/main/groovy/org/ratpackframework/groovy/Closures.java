@@ -39,7 +39,7 @@ public abstract class Closures {
   }
 
   // Type token is here for in the future when @DelegatesTo supports this kind of API
-  public static <T> Action<T> action(Class<T> type, final Closure<?> configurer) {
+  public static <T> Action<T> action(@SuppressWarnings("UnusedParameters") Class<T> type, final Closure<?> configurer) {
     return new Action<T>() {
       public void execute(T object) {
         configure(object, configurer);
@@ -52,11 +52,11 @@ public abstract class Closures {
   }
 
   public static <T> Factory<T> factory(Closure<T> closure) {
-    final Closure clone = (Closure) closure.clone();
+    @SuppressWarnings("unchecked")
+    final Closure<T> clone = (Closure<T>) closure.clone();
     return new Factory<T>() {
       public T create() {
-        //noinspection unchecked
-        return (T) clone.call();
+        return clone.call();
       }
     };
   }
