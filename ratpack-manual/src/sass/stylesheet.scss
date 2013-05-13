@@ -121,8 +121,6 @@ a {
 footer {
 	$bg: $black;
 
-	@include row;
-
 	font-family: $sans-font-family;
 	@include contrasted-smooth($bg);
 	@include adjust-font-size-to(14px);
@@ -151,16 +149,19 @@ footer {
 
 	h2 {
 		@include adjust-font-size-to($to-size: 14px, $from-size: 14px);
-		@include column(6);
 		text-transform: uppercase;
 	}
 
-	p {
-		@include column(6);
-		text-align: right;
-	}
+	@media(min-width: 768px) {
+		@include row;
 
-	.license {
-		@include push(6);
+		h2 {
+			@include column(6);
+		}
+
+		p {
+			@include column(6);
+			text-align: right;
+		}
 	}
 }
