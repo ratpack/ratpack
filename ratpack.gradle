@@ -18,6 +18,10 @@ allprojects {
   repositories {
     mavenCentral()
   }
+
+  if (project.hasProperty("enableClover")) {
+    project.apply from: rootProject.file("gradle/clover.gradle")
+  }
 }
 
 apply from: "gradle/idea/idea.gradle"
@@ -40,7 +44,6 @@ ext {
 
 
 subprojects {
-
   tasks.withType(Upload).matching { it.name != "install" }.all {
     rootProject.subprojects {
       mustRunAfter tasks.matching { it instanceof VerificationTask }
@@ -174,12 +177,6 @@ subprojects {
         }
       }
     }
-  }
-}
-
-if (hasProperty("enableClover")) {
-  configure([rootProject, project(":ratpack-core"), project(":ratpack-gradle"), project(":ratpack-groovy")]) {
-    apply from: rootProject.file("gradle/clover.gradle")
   }
 }
 

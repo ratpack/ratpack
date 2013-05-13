@@ -1,7 +1,7 @@
-apply plugin: "groovy"
+apply from: "$rootDir/gradle/javaModule.gradle"
 
 dependencies {
-  compile commonDependencies.groovy
+  groovy commonDependencies.groovy
   compile project(":ratpack-core"), project(":ratpack-groovy")
   compile commonDependencies.spock
 }
