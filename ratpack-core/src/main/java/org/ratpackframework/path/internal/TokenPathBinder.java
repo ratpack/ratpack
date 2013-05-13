@@ -16,8 +16,8 @@
 
 package org.ratpackframework.path.internal;
 
+import org.ratpackframework.path.PathBinder;
 import org.ratpackframework.path.PathBinding;
-import org.ratpackframework.path.PathContext;
 import org.ratpackframework.util.internal.Validations;
 
 import java.util.*;
@@ -25,13 +25,13 @@ import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class TokenPathBinding implements PathBinding {
+public class TokenPathBinder implements PathBinder {
 
   private final List<String> tokenNames;
   private final Pattern regex;
   private final boolean exact;
 
-  public TokenPathBinding(String path, boolean exact) {
+  public TokenPathBinder(String path, boolean exact) {
     this.exact = exact;
     Validations.noLeadingForwardSlash(path, "token path");
 
@@ -50,11 +50,11 @@ public class TokenPathBinding implements PathBinding {
     this.tokenNames = Collections.unmodifiableList(names);
   }
 
-  public PathContext bind(String path, PathContext pathContext) {
+  public PathBinding bind(String path, PathBinding pathBinding) {
     String regexString = regex.pattern();
 
-    if (pathContext != null) {
-      regexString = pathContext.join(regexString);
+    if (pathBinding != null) {
+      regexString = pathBinding.join(regexString);
     }
 
     regexString = "(" + regexString + ")";
@@ -74,7 +74,7 @@ public class TokenPathBinding implements PathBinding {
         params.put(name, matchResult.group(i++));
       }
 
-      return new DefaultPathContext(path, boundPath, params, pathContext);
+      return new DefaultPathBinding(path, boundPath, params, pathBinding);
     } else {
       return null;
     }

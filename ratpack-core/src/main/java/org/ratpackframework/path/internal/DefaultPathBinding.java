@@ -16,13 +16,13 @@
 
 package org.ratpackframework.path.internal;
 
-import org.ratpackframework.path.PathContext;
+import org.ratpackframework.path.PathBinding;
 import org.ratpackframework.util.internal.CollectionUtils;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class DefaultPathContext implements PathContext {
+public class DefaultPathBinding implements PathBinding {
 
   private final String binding;
   private final String bindingTerminated;
@@ -30,9 +30,9 @@ public class DefaultPathContext implements PathContext {
 
   private final Map<String, String> tokens;
   private final Map<String, String> allTokens;
-  private final PathContext parent;
+  private final PathBinding parent;
 
-  public DefaultPathContext(String path, String binding, Map<String, String> tokens, PathContext parent) {
+  public DefaultPathBinding(String path, String binding, Map<String, String> tokens, PathBinding parent) {
     this.binding = binding;
     this.tokens = tokens;
     this.parent = parent;

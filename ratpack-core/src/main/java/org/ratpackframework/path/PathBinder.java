@@ -16,17 +16,10 @@
 
 package org.ratpackframework.path;
 
-import java.util.Map;
+import org.ratpackframework.api.Nullable;
 
-public interface PathContext {
+public interface PathBinder {
 
-  String getBoundTo();
+  PathBinding bind(String path, @Nullable PathBinding pathBinding);
 
-  String getPastBinding();
-
-  String join(String path);
-
-  Map<String, String> getTokens();
-
-  Map<String, String> getAllTokens();
 }

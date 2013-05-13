@@ -5,7 +5,7 @@ import spock.lang.Specification
 class TokenPathBindingTest extends Specification {
 
   Map<String, String> map(String pattern, String path) {
-    new TokenPathBinding(pattern, true).bind(path, null)?.tokens
+    new TokenPathBinder(pattern, true).bind(path, null)?.tokens
   }
 
   def "map"() {

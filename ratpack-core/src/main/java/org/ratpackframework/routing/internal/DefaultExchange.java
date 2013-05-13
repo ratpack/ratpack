@@ -21,11 +21,11 @@ import org.ratpackframework.context.Context;
 import org.ratpackframework.context.internal.ObjectHoldingHierarchicalContext;
 import org.ratpackframework.error.ErrorHandler;
 import org.ratpackframework.file.FileSystemBinding;
+import org.ratpackframework.path.PathBinding;
 import org.ratpackframework.routing.Exchange;
 import org.ratpackframework.routing.Handler;
 import org.ratpackframework.http.Request;
 import org.ratpackframework.http.Response;
-import org.ratpackframework.path.PathContext;
 import org.ratpackframework.util.internal.CollectionUtils;
 
 import java.io.File;
@@ -99,11 +99,11 @@ public class DefaultExchange implements Exchange {
   }
 
   public Map<String, String> getPathTokens() {
-    return get(PathContext.class).getTokens();
+    return get(PathBinding.class).getTokens();
   }
 
   public Map<String, String> getAllPathTokens() {
-    return get(PathContext.class).getAllTokens();
+    return get(PathBinding.class).getAllTokens();
   }
 
   public File file(String path) {

@@ -18,7 +18,7 @@ package org.ratpackframework.file.internal;
 
 import org.ratpackframework.file.FileSystemBinding;
 import org.ratpackframework.http.Request;
-import org.ratpackframework.path.PathContext;
+import org.ratpackframework.path.PathBinding;
 import org.ratpackframework.routing.Exchange;
 import org.ratpackframework.routing.Handler;
 
@@ -40,9 +40,9 @@ public class TargetFileStaticAssetRequestHandler implements Handler {
     Request request = exchange.getRequest();
 
     String path = request.getPath();
-    PathContext pathContext = exchange.maybeGet(PathContext.class);
-    if (pathContext != null) {
-      path = pathContext.getPastBinding();
+    PathBinding pathBinding = exchange.maybeGet(PathBinding.class);
+    if (pathBinding != null) {
+      path = pathBinding.getPastBinding();
     }
 
     // Decode the pathRoutes.

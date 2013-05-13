@@ -21,9 +21,9 @@ import org.ratpackframework.file.internal.FileStaticAssetRequestHandler;
 import org.ratpackframework.file.internal.FileSystemContextHandler;
 import org.ratpackframework.file.internal.TargetFileStaticAssetRequestHandler;
 import org.ratpackframework.http.internal.MethodHandler;
-import org.ratpackframework.path.PathBinding;
+import org.ratpackframework.path.PathBinder;
 import org.ratpackframework.path.internal.PathHandler;
-import org.ratpackframework.path.internal.TokenPathBinding;
+import org.ratpackframework.path.internal.TokenPathBinder;
 import org.ratpackframework.routing.internal.RoutingHandler;
 
 import java.io.File;
@@ -106,7 +106,7 @@ public abstract class Handlers {
   }
 
   public static Handler path(String path, Handler handler) {
-    return pathBinding(new TokenPathBinding(path, false), handler);
+    return pathBinding(new TokenPathBinder(path, false), handler);
   }
 
   public static Handler exactPath(String path, RoutingBuilder<? super Routing> builder) {
@@ -114,11 +114,11 @@ public abstract class Handlers {
   }
 
   public static Handler exactPath(String path, Handler handler) {
-    return pathBinding(new TokenPathBinding(path, true), handler);
+    return pathBinding(new TokenPathBinder(path, true), handler);
   }
 
-  public static Handler pathBinding(PathBinding pathBinding, Handler handler) {
-    return new PathHandler(pathBinding, handler);
+  public static Handler pathBinding(PathBinder pathBinder, Handler handler) {
+    return new PathHandler(pathBinder, handler);
   }
 
   public static Handler method(Collection<String> methods, RoutingBuilder<? super Routing> builder) {
