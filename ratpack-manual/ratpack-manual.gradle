@@ -124,7 +124,7 @@ task packageManual(type: Sync) {
   }
 }
 
-task openManual() {
+task openManual(dependsOn: packageManual) {
   doLast {
     new java.awt.Desktop().browse(file("$packageManual.destinationDir/index.html").toURI())
   }
