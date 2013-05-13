@@ -14,7 +14,12 @@ buildscript {
 
 apply from: "$rootDir/gradle/checkstyle.gradle"
 
-archivesBaseName = "ratpack-manual"
+idea {
+  module {
+    excludeDirs += file(".jruby")
+    excludeDirs += file(".sass-cache")
+  }
+}
 
 modifyPom { pom ->
   project {
@@ -22,7 +27,44 @@ modifyPom { pom ->
   }
 }
 
+apiModules.each { evaluationDependsOn(it.path) }
+task api(type: Javadoc) {
+  group "manual"
+  description "Generates the Javadoc for the entire public API"
+
+  classpath = files()
+  destinationDir = file("$buildDir/api")
+  options.use true
+
+  options.links("http://docs.oracle.com/javase/7/docs/api")
+
+  apiModules.each {
+    source it.sourceSets.main.java
+    classpath += it.sourceSets.main.compileClasspath + it.sourceSets.main.output
+
+    if (it.hasProperty("apiLinks")) {
+      options.links(*it.apiLinks)
+    }
+  }
+
+  exclude "**/internal/**"
+}
+
+task checkApi(type: Checkstyle) {
+  group "manual"
+  description "Tests that the public API is sufficiently documented"
+
+  source api.source
+  configFile = rootProject.file("gradle/checkstyle/checkstyle-api.xml")
+  classpath = files()
+  reports.xml.destination = reporting.file("checkstyle-api.xml")
+  ignoreFailures true
+}
+
 task tokeniseManual(type: Sync) {
+  group "manual"
+  description "Substitute the variables in the manual Markdown files"
+
   from "src"
   into "$buildDir/manual-tokenised"
 
@@ -64,41 +106,10 @@ task tokeniseManual(type: Sync) {
   }
 }
 
-configurations {
-  groovydoc
-}
-
-apiModules.each { evaluationDependsOn(it.path) }
-
-task api(type: Javadoc) {
-  classpath = files()
-  destinationDir = file("$buildDir/api")
-  options.use true
-
-  apiModules.each {
-    source it.sourceSets.main.java
-    classpath += it.sourceSets.main.compileClasspath + it.sourceSets.main.output
-
-    options.links("http://docs.oracle.com/javase/7/docs/api")
-
-    if (it.hasProperty("apiLinks")) {
-      options.links(*it.apiLinks)
-    }
-  }
-
-  exclude "**/internal/**"
-
-}
-
-task checkstyleApi(type: Checkstyle) {
-  source api.source
-  configFile = rootProject.file("gradle/checkstyle/checkstyle-api.xml")
-  classpath = files()
-  reports.xml.destination = reporting.file("checkstyle-api.xml")
-  ignoreFailures true
-}
-
 task compileManual {
+  group "manual"
+  description "Converts the manual tokenised Markdown into HTML"
+
   dependsOn tokeniseManual
 
   ext.source = tokeniseManual.destinationDir
@@ -116,6 +127,9 @@ task compileManual {
 }
 
 task packageManual(type: Sync) {
+  group "manual"
+  description "Brings together the compiled manual and API reference"
+
   into "$buildDir/manual"
   from compileManual
 
@@ -125,12 +139,18 @@ task packageManual(type: Sync) {
 }
 
 task openManual(dependsOn: packageManual) {
+  group "manual"
+  description "Builds the manual, then opens it in your web browser"
+
   doLast {
     new java.awt.Desktop().browse(file("$packageManual.destinationDir/index.html").toURI())
   }
 }
 
 task openApi(dependsOn: api) {
+  group "manual"
+  description "Builds the API reference, then opens it in your web browser"
+
   doLast {
     new java.awt.Desktop().browse(file("$api.destinationDir/index.html").toURI())
   }
@@ -144,8 +164,11 @@ artifacts {
   archives manualZip
 }
 
-task check(dependsOn: checkstyleApi)
-task build(dependsOn: [assemble, check])
+task check(dependsOn: checkApi)
+task build(dependsOn: [assemble, check]) {
+  group "build"
+  description "Builds the manual and tests it"
+}
 
 
 compass {
