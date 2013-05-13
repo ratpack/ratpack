@@ -51,7 +51,7 @@ public class RatpackServerBuilder {
    * Create a new builder, with the given handler as the "application".
    *
    * @param handler The handler for all requests.
-   * @param baseDir
+   * @param baseDir The directory that will serve as the initial {@link org.ratpackframework.file.FileSystemBinding} for all handlers
    */
   public RatpackServerBuilder(Handler handler, File baseDir) {
     this.handler = handler;
