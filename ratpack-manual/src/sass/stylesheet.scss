@@ -141,16 +141,21 @@ footer {
 		}
 	}
 
-	p {
+	h2, p {
 		padding: 0 1em;
+		margin: {
+			top: 0;
+			bottom: 0;
+		}
 	}
 
-	.version {
+	h2 {
+		@include adjust-font-size-to($to-size: 14px, $from-size: 14px);
 		@include column(6);
 		text-transform: uppercase;
 	}
 
-	.home-link, .license {
+	p {
 		@include column(6);
 		text-align: right;
 	}
