@@ -18,6 +18,7 @@ package org.ratpackframework.path.internal;
 
 import org.ratpackframework.path.PathBinding;
 import org.ratpackframework.util.internal.CollectionUtils;
+import org.ratpackframework.util.internal.Validations;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -63,7 +64,8 @@ public class DefaultPathBinding implements PathBinding {
     return binding;
   }
 
-  public String join(String path) {
+  public String childPath(String path) {
+    Validations.noLeadingForwardSlash(path, "child path");
     return CollectionUtils.join("/", this.binding, path);
   }
 

@@ -31,8 +31,9 @@ import java.io.File;
 public interface FileSystemBinding {
 
   /**
-   * The actual point on the
-   * @return
+   * The actual point on the filesystem that this binding is bound to.
+   *
+   * @return The actual point on the filesystem that this binding is bound to.
    */
   File getFile();
 

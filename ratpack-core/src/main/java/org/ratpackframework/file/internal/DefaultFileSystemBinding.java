@@ -20,8 +20,6 @@ import org.ratpackframework.file.FileSystemBinding;
 
 import java.io.File;
 
-import static org.ratpackframework.util.internal.CollectionUtils.join;
-
 public class DefaultFileSystemBinding implements FileSystemBinding {
 
   private final File file;

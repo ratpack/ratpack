@@ -50,11 +50,11 @@ public class TokenPathBinder implements PathBinder {
     this.tokenNames = Collections.unmodifiableList(names);
   }
 
-  public PathBinding bind(String path, PathBinding pathBinding) {
+  public PathBinding bind(String path, PathBinding parentBinding) {
     String regexString = regex.pattern();
 
-    if (pathBinding != null) {
-      regexString = pathBinding.join(regexString);
+    if (parentBinding != null) {
+      regexString = parentBinding.childPath(regexString);
     }
 
     regexString = "(" + regexString + ")";
@@ -74,7 +74,7 @@ public class TokenPathBinder implements PathBinder {
         params.put(name, matchResult.group(i++));
       }
 
-      return new DefaultPathBinding(path, boundPath, params, pathBinding);
+      return new DefaultPathBinding(path, boundPath, params, parentBinding);
     } else {
       return null;
     }
