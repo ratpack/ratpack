@@ -13,29 +13,34 @@
       <h1>Ratpack</h1>
       <p>@tagline@</p>
     </div>
-
-    <nav class="pagination">
-      <% if (prev) { %><a href="<%= prev.filename %>" rel="prev">&#x25C0; <%= prev.title %></a><% } %>
-      <a href="index.html" rel="index">Table of Contents</a>
-      <% if (next) { %><a href="<%= next.filename %>" rel="next"><%= next.title %> &#x25B6;</a><% } %>
-    </nav>
   </header>
 
-  <nav class="page_toc">
-    <h3>Chapter Contents</h3>
+  <nav class="pagination">
+    <% if (prev) { %><a href="<%= prev.filename %>" rel="prev">&#x25C0; <%= prev.title %></a><% } %>
+    <a href="index.html" rel="index">Table of Contents</a>
+    <% if (next) { %><a href="<%= next.filename %>" rel="next"><%= next.title %> &#x25B6;</a><% } %>
+  </nav>
+
+  <nav class="toc page-toc">
+    <header>
+      <h3>Chapter Contents</h3>
+    </header>
     <%= chapter.toc %>
   </nav>
 
   <article class="manual">
-    <%= chapter.content %>
+    <section class="chapter">
+      <%= chapter.content %>
+    </section>
   </article>
 
+  <nav class="pagination">
+    <% if (prev) { %><a href="<%= prev.filename %>" rel="prev">&#x25C0; <%= prev.title %></a><% } %>
+    <a href="index.html" rel="index">Table of Contents</a>
+    <% if (next) { %><a href="<%= next.filename %>" rel="next"><%= next.title %> &#x25B6;</a><% } %>
+  </nav>
+
   <footer>
-    <nav class="pagination">
-      <% if (prev) { %><a href="<%= prev.filename %>" rel="prev">&#x25C0; <%= prev.title %></a><% } %>
-      <a href="index.html" rel="index">Table of Contents</a>
-      <% if (next) { %><a href="<%= next.filename %>" rel="next"><%= next.title %> &#x25B6;</a><% } %>
-    </nav>
     @footer@
   </footer>
 

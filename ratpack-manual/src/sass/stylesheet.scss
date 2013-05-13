@@ -13,3 +13,149 @@
 @import "ratpack-logo";
 
 @import "lib/prism";
+
+a {
+	color: $black;
+	display: inline-block;
+	border-bottom: 1px dotted $black;
+	@include single-transition;
+
+	&:visited {
+		color: inherit;
+	}
+
+	&:hover, &:active {
+		color: $red;
+		border-bottom-color: $red;
+	}
+}
+
+@mixin full-width {
+	@include column(12);
+	padding: {
+		left: 1em;
+		right: 1em;
+	}
+}
+
+.pagination, .manual-links {
+	$bg: $black;
+
+	@include contrasted-smooth($bg);
+	@include padding-leader(0.75);
+	@include padding-trailer(0.75);
+
+	h2 {
+		display: inline-block;
+		@include adjust-font-size-to(16px);
+	}
+
+	a {
+		color: contrast-color($bg);
+		border-bottom: none;
+
+		&:hover, &:active {
+			color: $yellow;
+		}
+	}
+}
+
+.pagination {
+	@include row;
+
+	a {
+		@include column(4);
+		text-align: center;
+		padding: 0 1em;
+
+		&[rel='index']:first-child {
+			@include push(4);
+		}
+	}
+}
+
+.toc {
+	@include row;
+	@include margin-trailer(2);
+
+	header, ul, ol {
+		@include full-width;
+	}
+
+	h3 {
+		margin: 0;
+	}
+
+	li {
+		list-style: none;
+	}
+
+	.toc_number {
+		display: inline-block;
+		margin-right: 1em;
+		margin-top: 0.25em;
+	}
+
+	.manual-links {
+		@include full-width;
+
+		h2, a {
+			margin-right: 1em;
+		}
+	}
+
+	&.page-toc {
+		margin-top: 1em;
+	}
+}
+
+.manual {
+	@include row;
+
+	.chapter {
+		@include full-width;
+		@include margin-trailer(2);
+	}
+}
+
+footer {
+	$bg: $black;
+
+	@include row;
+
+	font-family: $sans-font-family;
+	@include contrasted-smooth($bg);
+	@include adjust-font-size-to(14px);
+	@include padding-leader(1, 14px);
+	@include padding-trailer(1, 14px);
+	border-top: 1em solid $blue;
+	margin-top: 1em;
+
+	a {
+		color: contrast-color($bg);
+		border-bottom-color: contrast-color($bg);
+
+		&:hover, &:active {
+			color: $yellow;
+			border-bottom-color: $yellow;
+		}
+	}
+
+	p {
+		padding: 0 1em;
+	}
+
+	.version {
+		@include column(6);
+		text-transform: uppercase;
+	}
+
+	.home-link, .license {
+		@include column(6);
+		text-align: right;
+	}
+
+	.license {
+		@include push(6);
+	}
+}

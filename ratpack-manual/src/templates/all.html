@@ -9,21 +9,21 @@
 <body>
 
 <header>
-  <div class="ratpack-logo small">
+  <div class="ratpack-logo">
     <h1>Ratpack</h1>
     <p>@tagline@</p>
   </div>
-
-  <nav class="toc">
-    <h2>Version: @ratpack-version@</h2>
-    <ul class="manual-links">
-      <li><a href="index.html">Multi Page</a></li>
-      <li class="active">Single Page</li>
-      <li><a href="@manual-url@">Zip Download</a></li>
-    </ul>
-    <%= toc %>
-  </nav>
 </header>
+
+<nav class="toc">
+  <header class="manual-links">
+    <h2>Version: @ratpack-version@</h2>
+    <a href="index.html">Multi Page</a>
+    <a class="active">Single Page</a>
+    <a href="@manual-url@">Zip Download</a>
+  </header>
+  <%= toc %>
+</nav>
 
 <article class="manual">
   <% chapters.each { chapter -> %>

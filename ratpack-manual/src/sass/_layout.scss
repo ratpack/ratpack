@@ -1,9 +1,10 @@
-body {
-  overflow-x: hidden;
+html {
+  height: 100%;
 }
 
 body {
+  min-height: 100%;
   max-width: gridsystem-width();
+  overflow-x: hidden;
   margin: 0 auto;
-  padding: 0 1em;
 }
