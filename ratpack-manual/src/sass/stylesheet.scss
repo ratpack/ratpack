@@ -124,7 +124,7 @@ footer {
 	$font-size: 14px;
 
 	font-family: $sans-font-family;
-	@include contrasted-smooth($bg);
+	@include contrasted($bg);
 	@include adjust-font-size-to($font-size);
 	@include margin-leader(1, $font-size);
 	@include padding-leader(1, $font-size);
