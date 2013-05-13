@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.groovy
+package org.ratpackframework.groovy;
 
-import org.ratpackframework.groovy.routing.Routing
-import org.ratpackframework.guice.ModuleRegistry
+import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
+import org.ratpackframework.groovy.internal.RatpackScriptBacking;
 
-interface Ratpack {
+abstract public class RatpackScript {
 
-  void modules(@DelegatesTo(value = ModuleRegistry, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer)
-
-  void routing(@DelegatesTo(value = Routing, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer)
+  public static void ratpack(@DelegatesTo(value = Ratpack.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) {
+    RatpackScriptBacking.getBacking().execute(closure);
+  }
 
 }
