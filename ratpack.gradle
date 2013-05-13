@@ -189,7 +189,3 @@ task ciZip(type: Zip) {
   archiveName = "ci.zip"
   destinationDir = buildDir
 }
-
-task wrapper(type: Wrapper) {
-  gradleVersion = "1.6"
-}
