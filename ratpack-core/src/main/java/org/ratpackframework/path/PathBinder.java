@@ -20,7 +20,7 @@ import org.ratpackframework.api.Nullable;
 
 /**
  * A path binder binds to a request path, extracting information from it.
- *
+ * <p/>
  * They are used to conditionally execute handlers based on the request path.
  *
  * @see org.ratpackframework.routing.Handlers#path(String, org.ratpackframework.routing.Handler)
@@ -31,7 +31,7 @@ public interface PathBinder {
 
   /**
    * Creates a binding for the given path, if this binder can bind to this path.
-   *
+   * <p/>
    * A binder may use whatever strategy it desires to decider whether or not it wants to
    * create a binding for the given path.
    *
