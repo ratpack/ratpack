@@ -24,12 +24,10 @@ Ratpack is micro web framework inspired by [Ruby's Sinatra](http://www.sinatrarb
 
 Ratpack is currently at verison `0.7.0-SNAPSHOT`, which is the first version since the move to Netty (away from Jetty and J2EE).
 
-As we near a `0.7.0` final release, the following are tasks that are outstanding that we'd love your help with:
-
-1. Creating of a website at `http://ratpack-framework.org`
-2. Construction of a user manual
+If you're interested in getting involved, please take a look at some of the [outstanding issues](https://github.com/ratpack/ratpack/issues) and comment away.
 
 ### Examples 
 
-* https://github.com/ratpack/groovy-web-console
-* https://github.com/ratpack/groovy-script-example
+* [A standalone Groovy script app](https://github.com/ratpack/example-ratpack-standalone-groovy-script)
+* [A Groovy app built with Gradle](https://github.com/ratpack/example-ratpack-gradle-groovy-app)
+* [A Java app built with Gradle](https://github.com/ratpack/example-ratpack-gradle-java-app)
