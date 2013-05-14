@@ -73,9 +73,9 @@ public class DefaultResponse implements Response {
     return this;
   }
 
-  public void send(String contentType, String str) {
+  public void send(String contentType, String body) {
     contentType(contentType);
-    response.content().writeBytes(IoUtils.utf8Buffer(str));
+    response.content().writeBytes(IoUtils.utf8Buffer(body));
     commit();
   }
 
