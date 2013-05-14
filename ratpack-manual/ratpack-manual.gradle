@@ -78,7 +78,7 @@ task tokeniseManual(type: Sync) {
       head: """
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width">
-        <link href="http://fonts.googleapis.com/css?family=Cabin+Condensed:700|Libre+Baskerville:400,700,400italic|Engagement|Raleway:200" rel="stylesheet" type="text/css">
+        <link href="http://fonts.googleapis.com/css?family=Libre+Baskerville:400,700,400italic|Engagement|Raleway:200,400" rel="stylesheet" type="text/css">
         <link href="css/normalize.css" rel="stylesheet" type="text/css">
         <link href="css/stylesheet.css" rel="stylesheet" type="text/css">
         <script src="js/modernizr.js"></script>

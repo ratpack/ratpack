@@ -47,6 +47,8 @@ a {
 	a {
 		border-bottom: none;
 		@include diamond-background;
+		line-height: 3em;
+		@include nowrap;
 		&:hover, &:active {
 			color: inherit;
 		}
