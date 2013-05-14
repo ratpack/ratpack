@@ -39,24 +39,9 @@ a {
 }
 
 .pagination, .manual-links {
-	$bg: $black;
-
-	@include contrasted-smooth($bg);
-	@include padding-leader(0.75);
-	@include padding-trailer(0.75);
-
 	h2 {
 		display: inline-block;
 		@include adjust-font-size-to(16px);
-	}
-
-	a {
-		color: contrast-color($bg);
-		border-bottom: none;
-
-		&:hover, &:active {
-			color: $yellow;
-		}
 	}
 }
 
@@ -76,6 +61,7 @@ a {
 
 .toc {
 	@include row;
+	@include margin-leader(1);
 	@include margin-trailer(1);
 
 	header, ul, ol {
@@ -98,7 +84,6 @@ a {
 
 	.manual-links {
 		@include full-width;
-		@include margin-trailer(1);
 
 		h2, a {
 			margin-right: 1em;
