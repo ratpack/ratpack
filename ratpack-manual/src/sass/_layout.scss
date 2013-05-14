@@ -1,10 +1,19 @@
+@mixin when-full-width {
+	@media(min-width: gridsystem-width()) {
+		@content;
+	}
+}
+
 html {
-  height: 100%;
+	height: 100%;
 }
 
 body {
-  min-height: 100%;
-  max-width: gridsystem-width();
-  overflow-x: hidden;
-  margin: 0 auto;
+	min-height: 100%;
+
+	@include when-full-width {
+		max-width: gridsystem-width();
+		overflow-x: hidden;
+		margin: 0 auto;
+	}
 }
