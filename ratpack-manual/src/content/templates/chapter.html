@@ -8,7 +8,7 @@
 
 <body>
 
-  <header>
+  <header class="page-header">
     <div class="ratpack-logo small">
       <h1>Ratpack</h1>
       <p>@tagline@</p>
@@ -22,9 +22,6 @@
   </nav>
 
   <nav class="toc page-toc">
-    <header>
-      <h3>Chapter Contents</h3>
-    </header>
     <%= chapter.toc %>
   </nav>
 
@@ -40,7 +37,7 @@
     <% if (next) { %><a href="<%= next.filename %>" rel="next"><%= next.title %> &#x25B6;</a><% } %>
   </nav>
 
-  <footer>
+  <footer class="page-footer">
     @footer@
   </footer>
 

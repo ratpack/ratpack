@@ -15,6 +15,11 @@
 
 @import "lib/prism";
 
+html {
+	background-color: $black;
+	@include noise-background;
+}
+
 body {
 	background-color: $ivory;
 	@include noise-background;
@@ -53,11 +58,12 @@ a {
 	}
 }
 
+.page-header {
+	// @include row;
+	// border-bottom: rhythm(1) solid $blue;
+}
+
 .pagination, .manual-links {
-	h2 {
-		display: inline-block;
-		@include adjust-font-size-to(16px);
-	}
 	a {
 		border-bottom: none;
 		@include diamond-background;
@@ -71,7 +77,15 @@ a {
 
 .pagination {
 	@include row;
+	height: 2.25em;
+	border: {
+		width: 2px 0;
+		style: dotted;
+		color: $black;
+	}
 	a {
+		position: relative;
+		top: -0.5em;
 		@include column(4);
 		text-align: center;
 		padding: 0 1em;
@@ -111,6 +125,10 @@ a {
 		h2, a {
 			margin-right: 1em;
 		}
+		h2 {
+			float: right;
+			@include adjust-font-size-to(16px);
+		}
 	}
 
 	&.page-toc {
@@ -137,7 +155,7 @@ a {
 	}
 }
 
-footer {
+.page-footer {
 	$bg: $black;
 	$font-size: 14px;
 
