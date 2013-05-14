@@ -3,6 +3,8 @@
 .settings
 .project
 .gradle
+.gradletasknamecache
+gradle.properties
 build/
 bin/
 out/
