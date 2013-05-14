@@ -11,6 +11,7 @@
 @import "noise";
 
 @import "ratpack-logo";
+@import "theme-elements";
 
 @import "lib/prism";
 
@@ -42,6 +43,13 @@ a {
 	h2 {
 		display: inline-block;
 		@include adjust-font-size-to(16px);
+	}
+	a {
+		border-bottom: none;
+		@include diamond-background;
+		&:hover, &:active {
+			color: inherit;
+		}
 	}
 }
 

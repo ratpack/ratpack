@@ -1,0 +1,38 @@
+/*
+ * Creates a diamond background behind an element.
+ */
+@mixin diamond-background($color: $blue, $hover-color: darken($color, 20%), $width: 8em, $height: 1.5em) {
+	text-align: center;
+	position: relative;
+	min-width: $width;
+	&:before, &:after {
+		position: absolute;
+		z-index: -1;
+		content: " ";
+		left: 50%;
+		margin-left: -$width / 2;
+		height: 0;
+		width: 0;
+		border: {
+			left: $width / 2 solid transparent;
+			right: $width / 2 solid transparent;
+		}
+		@include single-transition;
+	}
+	&:before {
+		bottom: 50%;
+		border-bottom: $height solid $color;
+	}
+	&:after {
+		top: 50%;
+		border-top: $height solid $color;
+	}
+	&:hover, &:active {
+		&:before {
+			border-bottom-color: $hover-color;
+		}
+		&:after {
+			border-top-color: $hover-color;
+		}
+	}
+}
