@@ -19,6 +19,7 @@ package org.ratpackframework.guice;
 import org.ratpackframework.guice.internal.DefaultGuiceBackedHandlerFactory;
 import org.ratpackframework.guice.internal.InjectingHandler;
 import org.ratpackframework.routing.Handler;
+import org.ratpackframework.util.Action;
 
 public abstract class Injection {
 
@@ -26,8 +27,8 @@ public abstract class Injection {
     return new InjectingHandler(handlerType);
   }
 
-  public static GuiceBackedHandlerFactory handlerFactory() {
-    return new DefaultGuiceBackedHandlerFactory();
+  public static Handler handler(Action<? super ModuleRegistry> moduleConfigurer, Handler handler) {
+    return new DefaultGuiceBackedHandlerFactory().create(moduleConfigurer, handler);
   }
 
 }
