@@ -16,129 +16,86 @@
 
 package org.ratpackframework.http;
 
-import java.util.Collections;
-import java.util.LinkedHashMap;
+import org.ratpackframework.api.Nullable;
+
 import java.util.Map;
 
-public class MediaType {
-
-  public static final String APPLICATION_JSON = "application/json";
-  public static final String APPLICATION_FORM = "application/x-www-form-urlencoded";
-
-  private String base;
-  protected final Map<String, String> params;
-
-  public MediaType(String base) {
-    this(base, "ISO-8859-1");
-  }
+/**
+ * A structured value for a Content-Type header value.
+ * <p>
+ * Can also represent a non existent (i.e. empty) value.
+ */
+public interface MediaType {
 
   /**
-   * Parses the media type from its string representation (including params).
+   * {@value}
    */
-  public MediaType(String headerValue, String defaultCharset) {
-    // TODO: separate this out into a parser and interface.
-    if (headerValue == null) {
-      base = null;
-      params = Collections.emptyMap();
-    } else {
-      headerValue = headerValue.trim();
-      if (headerValue.length() == 0) {
-        base = null;
-        params = Collections.emptyMap();
-      } else {
-        params = new LinkedHashMap<String, String>();
-        String[] parts = headerValue.split(";");
-        base = parts[0].toLowerCase();
-        if (parts.length > 1) {
-          for (int i = 1; i < parts.length; ++i) {
-            String part = parts[i].trim();
-            if (part.contains("=")) {
-              String[] keyValue = part.split("=", 2);
-              params.put(keyValue[0].toLowerCase(), keyValue[1]);
-            } else {
-              params.put(part.toLowerCase(), null);
-            }
-          }
-        }
-
-        if (isText() && !params.containsKey("charset")) {
-          params.put("charset", defaultCharset);
-        }
-      }
-    }
-  }
+  String APPLICATION_JSON = "application/json";
 
   /**
+   * {@value}
+   */
+  String APPLICATION_FORM = "application/x-www-form-urlencoded";
+
+  /**
+   * The type without parameters.
+   * <p>
    * Given a mime type of "application/json;charset=utf-8", returns "application/json".
-   *
+   * <p>
    * May be null to represent no content type.
    *
-   * @return The mime type "base"
+   * @return The mime type without parameters, or null if this represents the absence of a value.
    */
-  public String getBase() {
-    return base;
-  }
+  @Nullable
+  String getType();
 
   /**
-   * Returns an unmodifiable view of the parameters of the mime type.
-   *
-   * Given a mime type of "application/json;charset=utf-8", returns "[charset=utf-8]".
+   * The parameters of the mime type.
+   * <p>
+   * Given a mime type of "application/json;charset=utf-8", returns {@code [charset: "utf-8"]}".
    * May be empty, never null.
    * <p>
-   * All param names have been lowercased.
-   * It is invalid to have {@code getBase()} return null and this not return an empty map.
+   *
+   * All param names have been lower cased.
    *
    * @return the media type params.
    */
-  public Map<String, String> getParams() {
-    return Collections.unmodifiableMap(params);
-  }
-
-  public String getCharset() {
-    return params.get("charset");
-  }
-
-  public boolean isText() {
-    return !isEmpty() && getBase().startsWith("text/");
-  }
+  Map<String, String> getParams();
 
   /**
-   * Is the base {@value #APPLICATION_JSON}?
+   * The value of the "charset" parameter, or the HTTP default of {@code "ISO-8859-1"}.
+   * <p>
+   * This method always returns a value, even if the actual type is a binary type.
+   *
+   * @return The value of the charset parameter, or the HTTP default of {@code "ISO-8859-1"}.
    */
-  public boolean isJson() {
-    return !isEmpty() && getBase().equals(APPLICATION_JSON);
-  }
+  String getCharset();
 
   /**
-   * Is the base {@value #APPLICATION_FORM}?
+   * True if this type starts with "{@code text/}".
+   *
+   * @return True if this type starts with "{@code text/}".
    */
-  public boolean isForm() {
-    return !isEmpty() && getBase().equals(APPLICATION_FORM);
-  }
+  boolean isText();
 
   /**
-   * Is this an empty value? (i.e. {@link #getBase()} == null)
+   * True if this type equals {@value #APPLICATION_JSON}.
+   *
+   * @return True if this type equals {@value #APPLICATION_JSON}.
    */
-  public boolean isEmpty() {
-    return getBase() == null;
-  }
+  boolean isJson();
 
   /**
-   * The proper string representation of a media type (e.g. for a Content-Type header)
+   * True if this type equals {@value #APPLICATION_FORM}.
+   *
+   * @return True if this type equals {@value #APPLICATION_FORM}.
    */
-  @Override
-  public String toString() {
-    if (isEmpty()) {
-      return "";
-    } else {
-      StringBuilder s = new StringBuilder(getBase());
-      for (Map.Entry<String, String> param : getParams().entrySet()) {
-        s.append(";").append(param.getKey());
-        if (param.getValue() != null) {
-          s.append("=").append(param.getValue());
-        }
-      }
-      return s.toString();
-    }
-  }
+  boolean isForm();
+
+  /**
+   * True if this represents the absence of a value (i.e. no Content-Type header)
+   *
+   * @return True if this represents the absence of a value (i.e. no Content-Type header)
+   */
+  boolean isEmpty();
 }

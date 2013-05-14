@@ -16,17 +16,18 @@
 
 package org.ratpackframework.http
 
+import org.ratpackframework.http.internal.DefaultMediaType
 import spock.lang.Specification
 
-class MediaTypeTest extends Specification {
+class DefaultMediaTypeTest extends Specification {
 
   def "parsing"() {
     expect:
-    ct(" application/json ").base == "application/json"
+    ct(" application/json ").type == "application/json"
     ct(" application/json ").params.isEmpty()
-    ct(null).base == null
+    ct(null).type == null
     ct(null).params.isEmpty()
-    ct(" ").base == null
+    ct(" ").type == null
     ct(" ").params.isEmpty()
     ct(" application/json;charset=foo ").params.charset == "foo"
     ct(" application/json;charset ;foo=bar ").params == [charset: null, foo: "bar"]
@@ -42,8 +43,8 @@ class MediaTypeTest extends Specification {
     cts("application/json;a=1 ; b=2") == "application/json;a=1;b=2"
   }
 
-  private MediaType ct(s) {
-    new MediaType(s)
+  private DefaultMediaType ct(s) {
+    new DefaultMediaType(s)
   }
 
   private String cts(s) {

@@ -22,7 +22,6 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.handler.codec.http.*;
 import org.ratpackframework.file.internal.FileHttpTransmitter;
-import org.ratpackframework.http.MediaType;
 import org.ratpackframework.http.Response;
 import org.ratpackframework.util.internal.IoUtils;
 
@@ -70,7 +69,7 @@ public class DefaultResponse implements Response {
   }
 
   protected Response contentType(String contentType) {
-    setHeader(HttpHeaders.Names.CONTENT_TYPE, new MediaType(contentType, "utf8").toString());
+    setHeader(HttpHeaders.Names.CONTENT_TYPE, new DefaultMediaType(contentType, "utf8").toString());
     return this;
   }
 
