@@ -11,3 +11,5 @@ out/
 *.iws
 db/
 starth2
+.gradletasknamecache
+gradle.properties
