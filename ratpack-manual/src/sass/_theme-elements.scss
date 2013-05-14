@@ -4,6 +4,7 @@
 @mixin diamond-background($color: transparentize($blue, 0.25), $hover-color: darken($color, 20%), $width: 8em, $height: 1.5em) {
 	text-align: center;
 	position: relative;
+	z-index: 0;
 	min-width: $width;
 	font-family: $sans-font-family;
 	.fontface & {

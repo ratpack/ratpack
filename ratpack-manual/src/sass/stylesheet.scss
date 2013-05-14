@@ -15,6 +15,11 @@
 
 @import "lib/prism";
 
+body {
+	background-color: $ivory;
+	@include noise-background;
+}
+
 a {
 	color: $black;
 	display: inline-block;
@@ -39,6 +44,15 @@ a {
 	}
 }
 
+@mixin content-width {
+	@include column(10);
+	@include push(1);
+	padding: {
+		left: 1em;
+		right: 1em;
+	}
+}
+
 .pagination, .manual-links {
 	h2 {
 		display: inline-block;
@@ -57,7 +71,6 @@ a {
 
 .pagination {
 	@include row;
-
 	a {
 		@include column(4);
 		text-align: center;
@@ -74,8 +87,8 @@ a {
 	@include margin-leader(1);
 	@include margin-trailer(1);
 
-	header, ul, ol {
-		@include full-width;
+	header, > ul, > ol {
+		@include content-width;
 	}
 
 	h3 {
@@ -109,8 +122,18 @@ a {
 	@include row;
 
 	.chapter {
-		@include full-width;
+		@include content-width;
 		@include margin-trailer(1);
+	}
+
+	h1, h2, h3, h4, h5, h6 {
+		position: relative;
+		span {
+			position: absolute;
+			right: 100%;
+			@include rem(padding-left, 1rem);
+			@include rem(padding-right, 1rem);
+		}
 	}
 }
 
@@ -120,6 +143,7 @@ footer {
 
 	font-family: $sans-font-family;
 	@include contrasted($bg);
+	@include noise-background;
 	@include adjust-font-size-to($font-size);
 	@include margin-leader(1, $font-size);
 	@include padding-leader(1, $font-size);
