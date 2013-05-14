@@ -59,12 +59,19 @@ a {
 }
 
 .page-header {
-	// @include row;
-	// border-bottom: rhythm(1) solid $blue;
+	@include margin-trailer(1);
 }
 
 .pagination, .manual-links {
+	height: 2.25em;
+	border: {
+		width: 0.125em 0;
+		style: dotted;
+		color: $black;
+	}
 	a {
+		position: relative;
+		top: -0.5em;
 		border-bottom: none;
 		@include diamond-background;
 		line-height: 3em;
@@ -77,15 +84,10 @@ a {
 
 .pagination {
 	@include row;
-	height: 2.25em;
-	border: {
-		width: 2px 0;
-		style: dotted;
-		color: $black;
-	}
+	@include margin-leader(1);
+	@include margin-trailer(1);
+
 	a {
-		position: relative;
-		top: -0.5em;
 		@include column(4);
 		text-align: center;
 		padding: 0 1em;
@@ -121,6 +123,7 @@ a {
 
 	.manual-links {
 		@include full-width;
+		@include margin-trailer(1);
 
 		h2, a {
 			margin-right: 1em;
@@ -128,11 +131,9 @@ a {
 		h2 {
 			float: right;
 			@include adjust-font-size-to(16px);
+			line-height: 2;
+			margin: 0;
 		}
-	}
-
-	&.page-toc {
-		margin-top: 1em;
 	}
 }
 
