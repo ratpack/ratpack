@@ -1,16 +1,20 @@
-@mixin when-full-width {
-	@media(min-width: gridsystem-width()) {
-		@content;
+@mixin full-width {
+	@include column(12);
+	padding: {
+		left: 1em;
+		right: 1em;
 	}
 }
 
-html {
-	// height: 100%;
+@mixin content-width {
+	@include full-width;
+	@include when-tablet-portrait {
+		@include column(10);
+		@include push(1);
+	}
 }
 
 body {
-	// min-height: 100%;
-
 	@include when-full-width {
 		max-width: gridsystem-width();
 		overflow-x: hidden;

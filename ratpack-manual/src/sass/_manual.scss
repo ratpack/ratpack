@@ -1,0 +1,159 @@
+html {
+	background-color: $black;
+	@include noise-background;
+}
+
+body {
+	background-color: $ivory;
+	@include noise-background;
+}
+
+a {
+	color: $black;
+	display: inline-block;
+	border-bottom: 1px dotted $black;
+	@include single-transition;
+
+	&:visited {
+		color: inherit;
+	}
+
+	&:hover, &:active {
+		color: $red;
+		border-bottom-color: $red;
+	}
+}
+
+.page-header {
+	@include margin-trailer(1);
+}
+
+.pagination, .manual-links {
+	@include link-bar;
+}
+
+.pagination {
+	@include row;
+	@include margin-leader(1);
+	@include margin-trailer(1);
+
+	a {
+		@include column(4);
+		text-align: center;
+		padding: 0 1em;
+
+		&[rel='index']:first-child {
+			@include push(4);
+		}
+	}
+}
+
+.toc {
+	@include row;
+	@include margin-leader(1);
+	@include margin-trailer(1);
+
+	header, > ul, > ol {
+		@include content-width;
+	}
+
+	h3 {
+		margin: 0;
+	}
+
+	li {
+		list-style: none;
+	}
+
+	.toc_number {
+		display: inline-block;
+		margin-right: 1em;
+		margin-top: 0.25em;
+	}
+
+	.manual-links {
+		@include full-width;
+		@include margin-trailer(1);
+
+		h2, a {
+			margin-right: 1em;
+		}
+		h2 {
+			float: right;
+			@include adjust-font-size-to(16px);
+			line-height: 2;
+			margin: 0;
+		}
+	}
+}
+
+.manual {
+	@include row;
+
+	.chapter {
+		@include content-width;
+		@include margin-trailer(1);
+	}
+
+	h1, h2, h3, h4, h5, h6 {
+		position: relative;
+		@include when-tablet-portrait {
+			span {
+				position: absolute;
+				right: 100%;
+				@include rem(padding-left, 1rem);
+				@include rem(padding-right, 1rem);
+			}
+		}
+	}
+}
+
+.page-footer {
+	$bg: $black;
+	$font-size: 14px;
+
+	font-family: $sans-font-family;
+	@include contrasted($bg);
+	@include noise-background;
+	@include adjust-font-size-to($font-size);
+	@include margin-leader(1, $font-size);
+	@include padding-leader(1, $font-size);
+	@include padding-trailer(1, $font-size);
+	border-top: rhythm(1, $font-size) solid $blue;
+
+	a {
+		color: contrast-color($bg);
+		border-bottom-color: contrast-color($bg);
+
+		&:hover, &:active {
+			color: $yellow;
+			border-bottom-color: $yellow;
+		}
+	}
+
+	h2, p {
+		padding: 0 1em;
+		margin: {
+			top: 0;
+			bottom: 0;
+		}
+	}
+
+	h2 {
+		@include adjust-font-size-to($to-size: $font-size, $from-size: $font-size);
+		text-transform: uppercase;
+	}
+
+	@include when-tablet-portrait {
+		@include row;
+
+		h2 {
+			@include column(6);
+		}
+
+		p {
+			@include column(6);
+			text-align: right;
+		}
+	}
+}

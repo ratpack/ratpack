@@ -42,3 +42,23 @@
 		}
 	}
 }
+
+@mixin link-bar {
+	height: 2.25em;
+	border: {
+		width: 0.125em 0;
+		style: dotted;
+		color: $black;
+	}
+	a {
+		position: relative;
+		top: -0.5em;
+		border-bottom: none;
+		@include diamond-background;
+		line-height: 3em;
+		@include nowrap;
+		&:hover, &:active {
+			color: inherit;
+		}
+	}
+}
