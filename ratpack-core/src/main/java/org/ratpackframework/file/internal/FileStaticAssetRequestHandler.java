@@ -67,7 +67,7 @@ public class FileStaticAssetRequestHandler implements Handler {
       long ifModifiedSinceSecs = ifModifiedSinceHeader.getTime() / 1000;
       long lastModifiedSecs = lastModifiedTime / 1000;
       if (lastModifiedSecs == ifModifiedSinceSecs) {
-        response.status(NOT_MODIFIED.code(), NOT_MODIFIED.reasonPhrase());
+        response.status(NOT_MODIFIED.code(), NOT_MODIFIED.reasonPhrase()).send();
         return;
       }
     }
