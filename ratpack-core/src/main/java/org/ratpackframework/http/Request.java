@@ -17,6 +17,7 @@
 package org.ratpackframework.http;
 
 import io.netty.handler.codec.http.Cookie;
+import org.ratpackframework.api.Nullable;
 
 import java.util.Date;
 import java.util.List;
@@ -26,59 +27,133 @@ import java.util.Set;
 /**
  * A request to be handled.
  */
+@SuppressWarnings("UnusedDeclaration")
 public interface Request {
 
+  /**
+   * The method of the request.
+   *
+   * @return The method of the request.
+   */
   HttpMethod getMethod();
 
+  /**
+   * The complete URI of the request (path + query string).
+   * <p/>
+   * This value is always absolute (i.e. begins with "{@code /}").
+   *
+   * @return The complete URI of the request (path + query string).
+   */
   String getUri();
 
+  /**
+   * The query string component of the request URI, without the "?".
+   * <p/>
+   * If the request does not contain a query component, an empty string will be returned.
+   *
+   * @return The query string component of the request URI, without the "?".
+   */
   String getQuery();
 
+  /**
+   * The URI without the query string and leading forward slash.
+   *
+   * @return The URI without the query string and leading forward slash
+   */
   String getPath();
 
+  /**
+   * TBD.
+   *
+   * @return TBD.
+   */
   Map<String, List<String>> getQueryParams();
 
-  MediaType getContentType();
-
+  /**
+   * TBD.
+   *
+   * @return TBD.
+   */
   Map<String, List<String>> getForm();
 
+  /**
+   * A structured representation of the "Content-Type" header value of the request.
+   *
+   * @return A structured representation of the "Content-Type" header value of the request.
+   */
+  MediaType getContentType();
+
+  /**
+   * The cookies that were sent with the request.
+   * <p/>
+   * An empty set will be returned if no cookies were sent.
+   *
+   * @return The cookies that were sent with the request.
+   */
   Set<Cookie> getCookies();
 
   /**
-   * Assumes that the user agent sent 0 or 1 cookies with the given name, returns it's value.
-   *
+   * Returns the value of the cookie with the specified name if it was sent.
+   * <p/>
    * If there is more than one cookie with this name, this method will throw an exception.
    *
-   * @param name The name of the cookie to maybeGet the value of
+   * @param name The name of the cookie to get the value of
    * @return The cookie value, or null if not present
    */
+  @Nullable
   String oneCookie(String name);
 
+  /**
+   * The request body as text.
+   * <p/>
+   * The encoding used will be determined by the value of the Content-Type header of the request.
+   *
+   * @return The request body as text, or an empty string if the request has no body.
+   */
   String getText();
 
   /**
-   * Returns the header value with the specified header name.  If there are more than one header value for the specified header name, the first value is returned.
+   * Returns the header value with the specified header name.
+   * <p/>
+   * If there is more than one header value for the specified header name, the first value is returned.
    *
+   * @param name The case insensitive name of the header to get retrieve the first value of
    * @return the header value or {@code null} if there is no such header
    */
+  @Nullable
   String getHeader(String name);
 
+  /**
+   * Returns the header value as a date with the specified header name.
+   * <p/>
+   * If there is more than one header value for the specified header name, the first value is returned.
+   *
+   * @param name The case insensitive name of the header to get retrieve the first value of
+   * @return the header value as a date or {@code null} if there is no such header or the header value is not a valid date format
+   */
+  @Nullable
   Date getDateHeader(String name);
 
   /**
-   * Returns the header values with the specified header name.
+   * Returns all of the header values with the specified header name.
    *
-   * @return the {@link List} of header values.  An empty list if there is no such header.
+   * @param name The case insensitive name of the header to retrieve all of the values of
+   * @return the {@link List} of header values, or an empty list if there is no such header
    */
   List<String> getHeaders(String name);
 
   /**
-   * Returns {@code true} if and only if there is a header with the specified header name.
+   * Checks whether a header has been specified for the given value.
+   *
+   * @param name The name of the header to check the existence of
+   * @return True if there is a header with the specified header name
    */
   boolean containsHeader(String name);
 
   /**
-   * Returns the {@link java.util.Set} of all header names that this message contains.
+   * All header names.
+   *
+   * @return The names of all headers that were sent
    */
   Set<String> getHeaderNames();
 

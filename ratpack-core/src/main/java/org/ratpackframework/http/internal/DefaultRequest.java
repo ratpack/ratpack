@@ -70,7 +70,7 @@ public class DefaultRequest implements Request {
       String uri = getUri();
       int i = uri.indexOf("?");
       if (i < 0 || i == uri.length()) {
-        query = null;
+        query = "";
       } else {
         query = uri.substring(i + 1);
       }

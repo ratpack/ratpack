@@ -20,10 +20,11 @@ import java.lang.annotation.*;
 
 /**
  * Denotes that something may be null.
- *
- * When present on an API parameter, denotes that it is valid to supply null as the value for the parameter.
- * <p>
- * When present on an API method, denotes that the method may return null.
+ * <p/>
+ * <ul>
+ * <li>On a <b>parameter</b>, denotes that it is valid to supply null as the value for the parameter.
+ * <li>On a <b>method</b>, denotes that the method may return null.
+ * </ul>
  */
 @Documented
 @Retention(RetentionPolicy.SOURCE)

@@ -15,6 +15,6 @@
  */
 
 /**
- * Core HTTP types.
+ * The HTTP protocol.
  */
 package org.ratpackframework.http;

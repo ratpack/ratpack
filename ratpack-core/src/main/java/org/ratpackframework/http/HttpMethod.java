@@ -19,6 +19,7 @@ package org.ratpackframework.http;
 /**
  * The method of a HTTP request.
  */
+@SuppressWarnings("UnusedDeclaration")
 public interface HttpMethod {
 
   /**
