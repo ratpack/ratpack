@@ -166,3 +166,24 @@ a {
 		}
 	}
 }
+
+.fontface {
+	a[href='http://www.google.com/fonts/specimen/Libre+Baskerville'] {
+		font-style: italic;
+	}
+	a[href='http://www.google.com/fonts/specimen/Raleway'] {
+		font: {
+			family: Raleway;
+			size: 1.1em;
+			weight: 100;
+		}
+		@include rem(line-height, 1.5rem);
+	}
+	a[href='http://www.google.com/fonts/specimen/Engagement'] {
+		font: {
+			family: Engagement;
+			size: 1.65em;
+		}
+		@include rem(line-height, 1.5rem);
+	}
+}

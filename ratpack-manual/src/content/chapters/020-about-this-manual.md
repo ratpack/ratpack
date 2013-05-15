@@ -12,9 +12,9 @@
 
 Web fonts are served by [Google Web Fonts](http://www.google.com/fonts/).
 
-* Body text: [Libre Baskerville](http://www.google.com/fonts/specimen/Libre+Baskerville) by [Impallari Type](http://www.impallari.com/)
-* Headings: [Raleway](http://www.google.com/fonts/specimen/Raleway) by [The League of Moveable Type](http://www.theleagueofmoveabletype.com/)
-* Ratpack logo: [Engagement](http://www.google.com/fonts/specimen/Engagement) by [Astigmatic One Eye Typographic Institute](http://www.astigmatic.com/)
+* [Libre Baskerville](http://www.google.com/fonts/specimen/Libre+Baskerville) by [Impallari Type](http://www.impallari.com/)
+* [Raleway](http://www.google.com/fonts/specimen/Raleway) by [The League of Moveable Type](http://www.theleagueofmoveabletype.com/)
+* [Engagement](http://www.google.com/fonts/specimen/Engagement) by [Astigmatic One Eye Typographic Institute](http://www.astigmatic.com/)
 
 ### Images
 
