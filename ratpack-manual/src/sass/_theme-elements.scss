@@ -69,6 +69,7 @@
 	$leader: rhythm(3);
 	$border-weight: 0.125em;
 	$icon-border-weight: $border-weight * 1.5;
+	$icon-position: ($icon-size * 0.25) - $icon-border-weight;
 
 	position: relative;
 	margin-top: $leader;
@@ -77,8 +78,8 @@
 		content: " ";
 		position: absolute;
 		top: $leader / -2;
-		left: 0;
-		width: 100%;
+		left: 1em;
+		right: 1em;
 		height: 0;
 		border-top: $border-weight dotted $black;
 	}
@@ -88,8 +89,7 @@
 			color: $white;
 			size: $icon-size $icon-size;
 			repeat: no-repeat;
-			position-x: ($icon-size * 0.25) - $icon-border-weight;
-			position-y: ($icon-size * 0.25) - $icon-border-weight;
+			position: $icon-position $icon-position;
 		}
 		border: {
 			width: $icon-border-weight;
@@ -111,15 +111,14 @@
 	&:nth-of-type(3n+2):after {
 		background: {
 			image: image-url('../images/noun_project_884.svg');
-			position-y: 0.15em;
+			position: $icon-position 0.15em;
 		}
 	}
 	&:nth-of-type(3n):after {
 		background: {
 			image: image-url('../images/noun_project_7964.svg');
 			size: 1.75em 1.75em;
-			position-x: 0.475em;
-			position-y: 0.475em;
+			position: 0.475em 0.475em;
 		}
 	}
 }
