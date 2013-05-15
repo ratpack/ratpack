@@ -62,3 +62,59 @@
 		}
 	}
 }
+
+@mixin divider {
+	$icon-size: 2em;
+	$box-size: $icon-size * 1.5;
+	$leader: rhythm(3);
+	$border-weight: 0.125em;
+
+	position: relative;
+	margin-top: $leader;
+
+	&:before {
+		content: " ";
+		position: absolute;
+		top: $leader / -2;
+		width: 100%;
+		height: 0;
+		border-top: $border-weight dotted $black;
+	}
+	&:after {
+		content: " ";
+		background: {
+			color: $blue;
+			size: $icon-size $icon-size;
+			repeat: no-repeat;
+			position-x: $icon-size * 0.25;
+			position-y: $icon-size * 0.25;
+		}
+		border: {
+			radius: 50%;
+		}
+		position: absolute;
+		top: ($leader / -2) + $border-weight;
+		left: 50%;
+		margin-left: $box-size / -2;
+		margin-top: $box-size / -2;
+		width: $box-size;
+		height: $box-size;
+	}
+	&:nth-of-type(3n+1):after {
+		background-image: image-url('../images/noun_project_7340.svg');
+	}
+	&:nth-of-type(3n+2):after {
+		background: {
+			image: image-url('../images/noun_project_884.svg');
+			position-y: 0.35em;
+		}
+	}
+	&:nth-of-type(3n):after {
+		background: {
+			image: image-url('../images/noun_project_7964.svg');
+			size: 1.85em 1.85em;
+			position-x: 0.65em;
+			position-y: 0.65em;
+		}
+	}
+}

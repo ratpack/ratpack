@@ -96,10 +96,12 @@ a {
 
 .manual {
 	@include row;
+	@include margin-leader(1);
 
 	.chapter {
 		@include content-width;
 		@include margin-trailer(1);
+		@include divider;
 	}
 
 	h1, h2, h3, h4, h5, h6 {
