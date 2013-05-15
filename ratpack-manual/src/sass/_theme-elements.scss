@@ -83,42 +83,44 @@
 		height: 0;
 		border-top: $border-weight dotted $black;
 	}
-	&:after {
-		content: " ";
-		background: {
-			color: $white;
-			size: $icon-size $icon-size;
-			repeat: no-repeat;
-			position: $icon-position $icon-position;
+	.svg & {
+		&:after {
+			content: " ";
+			background: {
+				color: $white;
+				size: $icon-size $icon-size;
+				repeat: no-repeat;
+				position: $icon-position $icon-position;
+			}
+			border: {
+				width: $icon-border-weight;
+				style: solid;
+				color: $black;
+				radius: 50%;
+			}
+			position: absolute;
+			top: ($leader / -2) + $border-weight;
+			left: 50%;
+			margin-left: $box-size / -2;
+			margin-top: $box-size / -2;
+			width: $box-size;
+			height: $box-size;
 		}
-		border: {
-			width: $icon-border-weight;
-			style: solid;
-			color: $black;
-			radius: 50%;
+		&:nth-of-type(3n+1):after {
+			background-image: image-url('../images/noun_project_7340.svg');
 		}
-		position: absolute;
-		top: ($leader / -2) + $border-weight;
-		left: 50%;
-		margin-left: $box-size / -2;
-		margin-top: $box-size / -2;
-		width: $box-size;
-		height: $box-size;
-	}
-	&:nth-of-type(3n+1):after {
-		background-image: image-url('../images/noun_project_7340.svg');
-	}
-	&:nth-of-type(3n+2):after {
-		background: {
-			image: image-url('../images/noun_project_884.svg');
-			position: $icon-position 0.15em;
+		&:nth-of-type(3n+2):after {
+			background: {
+				image: image-url('../images/noun_project_884.svg');
+				position: $icon-position 0.15em;
+			}
 		}
-	}
-	&:nth-of-type(3n):after {
-		background: {
-			image: image-url('../images/noun_project_7964.svg');
-			size: 1.75em 1.75em;
-			position: 0.475em 0.475em;
+		&:nth-of-type(3n):after {
+			background: {
+				image: image-url('../images/noun_project_7964.svg');
+				size: 1.75em 1.75em;
+				position: 0.475em 0.475em;
+			}
 		}
 	}
 }
