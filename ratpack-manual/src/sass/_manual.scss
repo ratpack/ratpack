@@ -26,6 +26,13 @@ a {
 
 .page-header {
 	@include margin-trailer(1);
+
+	.ratpack-logo:not(.small) {
+		@include rem(font-size, 0.625rem);
+		@include when-tablet-portrait {
+			@include rem(font-size, 1rem);
+		}
+	}
 }
 
 .pagination, .manual-links {
