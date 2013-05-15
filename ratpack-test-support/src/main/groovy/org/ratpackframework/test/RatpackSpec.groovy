@@ -19,6 +19,7 @@ package org.ratpackframework.test
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import org.ratpackframework.bootstrap.RatpackServer
+import org.ratpackframework.groovy.Closures
 import org.ratpackframework.util.CookieManager
 import spock.lang.Specification
 
@@ -52,7 +53,7 @@ abstract class RatpackSpec extends Specification {
     if (app?.running) {
       app.stopAndWait()
     }
-    configurer.call()
+    Closures.configure(this, configurer)
     startApp()
   }
 

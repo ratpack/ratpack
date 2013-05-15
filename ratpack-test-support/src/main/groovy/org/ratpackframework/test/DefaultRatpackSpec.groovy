@@ -1,19 +1,18 @@
 package org.ratpackframework.test
 
 import com.google.inject.Module
-import org.ratpackframework.util.Action
 import org.ratpackframework.bootstrap.RatpackServer
 import org.ratpackframework.bootstrap.RatpackServerBuilder
-import org.ratpackframework.groovy.routing.internal.ClosureBackedRoutingBuilder
 import org.ratpackframework.guice.GuiceBackedHandlerFactory
-import org.ratpackframework.guice.internal.DefaultGuiceBackedHandlerFactory
 import org.ratpackframework.guice.ModuleRegistry
+import org.ratpackframework.guice.internal.DefaultGuiceBackedHandlerFactory
 import org.ratpackframework.routing.Handler
 import org.ratpackframework.routing.Handlers
 import org.ratpackframework.routing.Routing
+import org.ratpackframework.util.Action
 
-import static org.ratpackframework.groovy.Closures.action
 import static Handlers.routes
+import static org.ratpackframework.groovy.Closures.action
 import static org.ratpackframework.groovy.Closures.configure
 
 class DefaultRatpackSpec extends RatpackSpec {
@@ -58,7 +57,7 @@ class DefaultRatpackSpec extends RatpackSpec {
   }
 
   protected Handler createHandler() {
-    routes(new ClosureBackedRoutingBuilder<Routing>(routingCallback))
+    routes(action(routingCallback))
   }
 
 }

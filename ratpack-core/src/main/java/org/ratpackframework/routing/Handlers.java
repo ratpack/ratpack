@@ -25,6 +25,7 @@ import org.ratpackframework.path.PathBinder;
 import org.ratpackframework.path.internal.PathHandler;
 import org.ratpackframework.path.internal.TokenPathBinder;
 import org.ratpackframework.routing.internal.RoutingHandler;
+import org.ratpackframework.util.Action;
 
 import java.io.File;
 import java.util.Arrays;
@@ -32,7 +33,7 @@ import java.util.Collection;
 
 public abstract class Handlers {
 
-  public static Handler context(final Object context, final RoutingBuilder<? super Routing> builder) {
+  public static Handler context(final Object context, final Action<? super Routing> builder) {
     return context(context, routes(builder));
   }
 
@@ -44,15 +45,15 @@ public abstract class Handlers {
     };
   }
 
-  public static Handler routes(RoutingBuilder<? super Routing> builder) {
-    return new RoutingHandler(builder);
+  public static Handler routes(Action<? super Routing> action) {
+    return new RoutingHandler(action);
   }
 
   public static Handler fsContext(String path, Handler handler) {
     return new FileSystemContextHandler(new File(path), handler);
   }
 
-  public static Handler fsContext(String path, RoutingBuilder<? super Routing> builder) {
+  public static Handler fsContext(String path, Action<? super Routing> builder) {
     return fsContext(path, routes(builder));
   }
 
@@ -101,7 +102,7 @@ public abstract class Handlers {
     };
   }
 
-  public static Handler path(String path, RoutingBuilder<? super Routing> builder) {
+  public static Handler path(String path, Action<? super Routing> builder) {
     return path(path, routes(builder));
   }
 
@@ -109,7 +110,7 @@ public abstract class Handlers {
     return pathBinding(new TokenPathBinder(path, false), handler);
   }
 
-  public static Handler exactPath(String path, RoutingBuilder<? super Routing> builder) {
+  public static Handler exactPath(String path, Action<? super Routing> builder) {
     return exactPath(path, routes(builder));
   }
 
@@ -121,7 +122,7 @@ public abstract class Handlers {
     return new PathHandler(pathBinder, handler);
   }
 
-  public static Handler method(Collection<String> methods, RoutingBuilder<? super Routing> builder) {
+  public static Handler method(Collection<String> methods, Action<? super Routing> builder) {
     return method(methods, routes(builder));
   }
 
