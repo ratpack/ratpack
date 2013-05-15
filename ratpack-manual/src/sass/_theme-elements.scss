@@ -15,30 +15,49 @@
 		position: absolute;
 		z-index: -1;
 		content: " ";
-		left: 50%;
-		margin-left: -$width / 2;
+		top: 0;
 		height: 0;
 		width: 0;
 		border: {
-			left: $width / 2 solid transparent;
-			right: $width / 2 solid transparent;
+			top: $height solid transparent;
+			bottom: $height solid transparent;
 		}
 		@include single-transition;
 	}
 	&:before {
-		bottom: 50%;
-		border-bottom: $height solid $color;
+		left: 50%;
+		margin-left: $width * -0.5;
+		border-right: $width / 2 solid $color;
 	}
 	&:after {
-		top: 50%;
-		border-top: $height solid $color;
+		right: 50%;
+		margin-right: $width * -0.5;
+		border-left: $width / 2 solid $color;
 	}
 	&:hover, &:active {
 		&:before {
-			border-bottom-color: $hover-color;
+			border-right-color: $hover-color;
 		}
 		&:after {
-			border-top-color: $hover-color;
+			border-left-color: $hover-color;
+		}
+	}
+
+	&[rel='prev'] {
+		&:before {
+			border-right-width: $width;
+		}
+		&:after {
+			border-left: none;
+		}
+	}
+
+	&[rel='next'] {
+		&:before {
+			border-right: none;
+		}
+		&:after {
+			border-left-width: $width;
 		}
 	}
 }
