@@ -183,6 +183,7 @@ a {
 			weight: 100;
 		}
 		@include rem(line-height, 1.5rem);
+		vertical-align: bottom;
 	}
 	a[href='http://www.google.com/fonts/specimen/Engagement'] {
 		font: {
@@ -190,5 +191,6 @@ a {
 			size: 1.65em;
 		}
 		@include rem(line-height, 1.5rem);
+		vertical-align: bottom;
 	}
 }
