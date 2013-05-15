@@ -20,7 +20,7 @@ import java.lang.annotation.*;
 
 /**
  * Denotes that something may be null.
- * <p/>
+ * <p>
  * <ul>
  * <li>On a <b>parameter</b>, denotes that it is valid to supply null as the value for the parameter.
  * <li>On a <b>method</b>, denotes that the method may return null.

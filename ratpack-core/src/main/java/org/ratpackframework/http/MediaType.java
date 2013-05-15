@@ -22,7 +22,7 @@ import java.util.Map;
 
 /**
  * A structured value for a Content-Type header value.
- * <p/>
+ * <p>
  * Can also represent a non existent (i.e. empty) value.
  */
 @SuppressWarnings("UnusedDeclaration")
@@ -40,9 +40,9 @@ public interface MediaType {
 
   /**
    * The type without parameters.
-   * <p/>
+   * <p>
    * Given a mime type of "application/json;charset=utf-8", returns "application/json".
-   * <p/>
+   * <p>
    * May be null to represent no content type.
    *
    * @return The mime type without parameters, or null if this represents the absence of a value.
@@ -52,10 +52,10 @@ public interface MediaType {
 
   /**
    * The parameters of the mime type.
-   * <p/>
+   * <p>
    * Given a mime type of "application/json;charset=utf-8", returns {@code [charset: "utf-8"]}".
    * May be empty, never null.
-   * <p/>
+   * <p>
    * All param names have been lower cased.
    *
    * @return the media type params.
@@ -64,7 +64,7 @@ public interface MediaType {
 
   /**
    * The value of the "charset" parameter, or the HTTP default of {@code "ISO-8859-1"}.
-   * <p/>
+   * <p>
    * This method always returns a value, even if the actual type is a binary type.
    *
    * @return The value of the charset parameter, or the HTTP default of {@code "ISO-8859-1"}.

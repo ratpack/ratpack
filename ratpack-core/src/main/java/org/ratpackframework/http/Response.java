@@ -26,7 +26,7 @@ import java.util.Set;
 
 /**
  * A response to a request.
- * <p/>
+ * <p>
  * The headers and status are configured, before committing the response with one of the {@link #send} methods.
  */
 @SuppressWarnings("UnusedDeclaration")
@@ -53,7 +53,7 @@ public interface Response {
 
   /**
    * The status that will be part of the response when sent.
-   * <p/>
+   * <p>
    * By default, this will return a {@code "200 OK"} response.
    *
    * @return The status that will be part of the response when sent
@@ -63,7 +63,7 @@ public interface Response {
 
   /**
    * Sets the status line of the response.
-   * <p/>
+   * <p>
    * The message used will be the standard for the code.
    *
    * @param code The status code of the response to use when it is sent.
@@ -87,11 +87,11 @@ public interface Response {
 
   /**
    * Sends the response, using the given content type and string as the response body.
-   * <p/>
+   * <p>
    * The string will be sent in "utf8" encoding, and the given content type will have this appended.
    * That is, given a {@code contentType} of "{@code application/json}" the actual value for the {@code Content-Type}
    * header will be "{@code application/json;charset=utf8}".
-   * <p/>
+   * <p>
    * The value given for content type will override any previously set value for this header.
    *
    * @param contentType The value of the content type header
@@ -101,7 +101,7 @@ public interface Response {
 
   /**
    * Sends the response, using "{@code text/plain}" as the content type and the given string as the response body.
-   * <p/>
+   * <p>
    * Equivalent to calling "{@code send\("text/plain", text)}.
    *
    * @param text The text to render as a plain text response.
@@ -141,7 +141,7 @@ public interface Response {
 
   /**
    * Returns the header value with the specified header name.
-   * <p/>
+   * <p>
    * If there is more than one header value for the specified header name, the first value is returned.
    *
    * @param name The case insensitive name of the header to get retrieve the first value of
@@ -175,7 +175,7 @@ public interface Response {
 
   /**
    * Adds a new header with the specified name and value.
-   * <p/>
+   * <p>
    * Will not replace any existing values for the header.
    *
    * @param name The name of the header
@@ -185,7 +185,7 @@ public interface Response {
 
   /**
    * Sets the (only) value for the header with the specified name.
-   * <p/>
+   * <p>
    * All existing values for the same header will be removed.
    *
    * @param name The name of the header
@@ -195,7 +195,7 @@ public interface Response {
 
   /**
    * Sets a new header with the specified name and values.
-   * <p/>
+   * <p>
    * All existing values for the same header will be removed.
    *
    * @param name The name of the header
@@ -217,7 +217,7 @@ public interface Response {
 
   /**
    * The cookies that are to be part of the response.
-   * <p/>
+   * <p>
    * The cookies are mutable.
    *
    * @return The cookies that are to be part of the response.
@@ -226,7 +226,7 @@ public interface Response {
 
   /**
    * Creates a new cookie with the given name and value.
-   * <p/>
+   * <p>
    * The cookie will have no expiry. Use the returned cookie object to fine tune the cookie.
    *
    * @param name The name of the cookie

@@ -27,10 +27,10 @@ public interface PathBinding {
 
   /**
    * The path of the request path that was bound to.
-   * <p/>
+   * <p>
    * Some bindings are "prefix" bindings, in which case they will not have bound to the whole path.
    * The bound path is always absolute.
-   * <p/>
+   * <p>
    * If a prefix binder for path "/a/b/c" created a binding for path "/a/b/c/d/e", the "bound to" value would be "/a/b/c".
    *
    * @return The path of the request path that was bound to.
@@ -39,9 +39,9 @@ public interface PathBinding {
 
   /**
    * The section of the path that is "past" where the binding bound to.
-   * <p/>
+   * <p>
    * Strict bindings may bind to an exact path, therefore there is nothing "past" what they bind to.
-   * <p/>
+   * <p>
    * If a prefix binder for path "/a/b/c" created a binding for path "/a/b/c/d/e", the "past binding" value would be "d/e".
    *
    * @return The part of the path bound to that is past where the binding bound to. May be an empty string if the exact path was bound to.
@@ -50,7 +50,7 @@ public interface PathBinding {
 
   /**
    * Constructs a new path using the {@link #getBoundTo()} value of this binding and the given path.
-   * <p/>
+   * <p>
    * For a binding with a "bound to" value of "/a/b/c", calling join("d/e") will return "/a/b/c/d/e".
    * It is invalid to call this method with an absolute path.
    *
@@ -61,10 +61,10 @@ public interface PathBinding {
 
   /**
    * Any tokens that the binding has extracted from the path.
-   * <p/>
+   * <p>
    * The definition of how tokens are extracted is implementation specific. Except that tokens are never
    * extracted from the query string, only the path.
-   * <p/>
+   * <p>
    * The returned map is ordered. The order of the map entries denotes the order in which the tokens were extracted.
    *
    * @return Any tokens extracted by the binding.
@@ -74,7 +74,7 @@ public interface PathBinding {
 
   /**
    * Similar to {@link #getTokens()} except that tokens of all parent bindings are included.
-   * <p/>
+   * <p>
    * If a parent binding extracts a token with the same name as this binding, the token from this binding
    * will supersede the value from the parent.
    *

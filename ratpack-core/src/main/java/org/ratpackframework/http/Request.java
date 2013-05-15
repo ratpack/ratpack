@@ -39,7 +39,7 @@ public interface Request {
 
   /**
    * The complete URI of the request (path + query string).
-   * <p/>
+   * <p>
    * This value is always absolute (i.e. begins with "{@code /}").
    *
    * @return The complete URI of the request (path + query string).
@@ -48,7 +48,7 @@ public interface Request {
 
   /**
    * The query string component of the request URI, without the "?".
-   * <p/>
+   * <p>
    * If the request does not contain a query component, an empty string will be returned.
    *
    * @return The query string component of the request URI, without the "?".
@@ -85,7 +85,7 @@ public interface Request {
 
   /**
    * The cookies that were sent with the request.
-   * <p/>
+   * <p>
    * An empty set will be returned if no cookies were sent.
    *
    * @return The cookies that were sent with the request.
@@ -94,7 +94,7 @@ public interface Request {
 
   /**
    * Returns the value of the cookie with the specified name if it was sent.
-   * <p/>
+   * <p>
    * If there is more than one cookie with this name, this method will throw an exception.
    *
    * @param name The name of the cookie to get the value of
@@ -105,7 +105,7 @@ public interface Request {
 
   /**
    * The request body as text.
-   * <p/>
+   * <p>
    * The encoding used will be determined by the value of the Content-Type header of the request.
    *
    * @return The request body as text, or an empty string if the request has no body.
@@ -114,7 +114,7 @@ public interface Request {
 
   /**
    * Returns the header value with the specified header name.
-   * <p/>
+   * <p>
    * If there is more than one header value for the specified header name, the first value is returned.
    *
    * @param name The case insensitive name of the header to get retrieve the first value of
@@ -125,7 +125,7 @@ public interface Request {
 
   /**
    * Returns the header value as a date with the specified header name.
-   * <p/>
+   * <p>
    * If there is more than one header value for the specified header name, the first value is returned.
    *
    * @param name The case insensitive name of the header to get retrieve the first value of
