@@ -90,6 +90,11 @@ a {
 			@include adjust-font-size-to(16px);
 			line-height: 2;
 			margin: 0;
+
+			display: none;
+			@include when-tablet-portrait {
+				display: block;
+			}
 		}
 	}
 }
