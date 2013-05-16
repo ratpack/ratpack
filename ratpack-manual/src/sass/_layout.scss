@@ -20,4 +20,9 @@ body {
 		overflow-x: hidden;
 		margin: 0 auto;
 	}
+	.no-mediaqueries & {
+		max-width: gridsystem-width();
+		overflow-x: hidden;
+		margin: 0 auto;
+ 	}
 }
