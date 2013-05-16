@@ -6,7 +6,7 @@ buildscript {
     maven { url 'http://dl.bintray.com/robfletcher/gradle-plugins' }
   }
   dependencies {
-    classpath 'org.gradle.plugins:gradle-compass:1.0.1'
+    classpath 'org.gradle.plugins:gradle-compass:1.0.4'
     classpath "org.gebish:markdown2book:1.0"
     classpath "org.pegdown:pegdown:1.2.1"
   }
@@ -132,6 +132,7 @@ compass {
   imagesDir = file("$buildDir/assets/images")
   javascriptsDir = file("$buildDir/assets/js")
   relativeAssets = true
+  encoding = 'UTF-8'
 }
 
 task stylizeManual(type: Sync) {
