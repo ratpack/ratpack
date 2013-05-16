@@ -62,6 +62,10 @@ a {
 
 	header, > ul, > ol {
 		@include content-width;
+
+		&:last-child {
+			margin-bottom: 0;
+		}
 	}
 
 	h3 {

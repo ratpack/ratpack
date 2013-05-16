@@ -85,7 +85,7 @@
 @mixin divider {
 	$icon-size: 2em;
 	$box-size: $icon-size * 1.5;
-	$leader: rhythm(3);
+	$leader: rhythm(2);
 	$border-weight: 0.125em;
 	$icon-border-weight: $border-weight * 1.5;
 	$icon-position: ($icon-size * 0.25) - $icon-border-weight;
