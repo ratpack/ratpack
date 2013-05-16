@@ -26,11 +26,15 @@ a {
 
 .page-header {
 	@include margin-trailer(1);
+	@include row;
 
-	.ratpack-logo:not(.small) {
-		@include rem(font-size, 0.625rem);
-		@include when-tablet-portrait {
-			@include rem(font-size, 1rem);
+	.ratpack-logo {
+		@include content-width;
+		&:not(.small) {
+			@include rem(font-size, 0.625rem);
+			@include when-tablet-portrait {
+				@include rem(font-size, 1rem);
+			}
 		}
 	}
 }
@@ -83,7 +87,6 @@ a {
 	}
 
 	.manual-links {
-		@include full-width;
 		@include margin-trailer(1);
 
 		h2, a {
