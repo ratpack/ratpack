@@ -1,4 +1,6 @@
-package org.ratpackframework.test.groovy
+package org.ratpackframework.groovy.handling
+
+import org.ratpackframework.test.groovy.RatpackGroovyScriptAppSpec
 
 class BasicGroovyScriptAppSpec extends RatpackGroovyScriptAppSpec {
 
@@ -10,7 +12,7 @@ class BasicGroovyScriptAppSpec extends RatpackGroovyScriptAppSpec {
     app {
       script """
         ratpack {
-          routing {
+          handlers {
             get("") {
               getResponse().send("foo")
             }

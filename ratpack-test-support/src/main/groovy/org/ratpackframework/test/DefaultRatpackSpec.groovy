@@ -11,11 +11,11 @@ import org.ratpackframework.handling.Handlers
 import org.ratpackframework.handling.ChainBuilder
 import org.ratpackframework.util.Action
 
-import static Handlers.routes
+import static Handlers.chain
 import static org.ratpackframework.groovy.Closures.action
 import static org.ratpackframework.groovy.Closures.configure
 
-class DefaultRatpackSpec extends RatpackSpec {
+abstract class DefaultRatpackSpec extends RatpackSpec {
 
   Closure<?> handlersClosure = {}
   Closure<?> modulesClosure = {}
@@ -57,7 +57,7 @@ class DefaultRatpackSpec extends RatpackSpec {
   }
 
   protected Handler createHandler() {
-    routes(action(handlersClosure))
+    chain(action(handlersClosure))
   }
 
 }

@@ -37,16 +37,16 @@ public class DefaultChainBuilder implements ChainBuilder {
     this.handlers = handlers;
   }
 
-  public void route(Closure<?> handler) {
+  public void handler(Closure<?> handler) {
     add(ClosureHandlers.handler(handler));
   }
 
-  public void routes(Closure<?> routing) {
-    add(routing(routing));
+  public void chain(Closure<?> handlers) {
+    add(chainBuildingHandler(handlers));
   }
 
-  public void path(String path, Closure<?> routing) {
-    add(Handlers.path(path, routing(routing)));
+  public void path(String path, Closure<?> handlers) {
+    add(Handlers.path(path, chainBuildingHandler(handlers)));
   }
 
   public void all(String path, Closure<?> handler) {
@@ -77,16 +77,16 @@ public class DefaultChainBuilder implements ChainBuilder {
     add(Handlers.assets(path, indexFiles));
   }
 
-  public void context(Object object, Closure<?> routing) {
-    add(Handlers.context(object, routing(routing)));
+  public void context(Object object, Closure<?> handlers) {
+    add(Handlers.context(object, chainBuildingHandler(handlers)));
   }
 
-  public void fsContext(String path, Closure<?> routing) {
-    add(Handlers.fsContext(path, routing(routing)));
+  public void fsContext(String path, Closure<?> handlers) {
+    add(Handlers.fsContext(path, chainBuildingHandler(handlers)));
   }
 
-  private Handler routing(Closure<?> routing) {
-    return new RoutingHandler(action(routing));
+  private Handler chainBuildingHandler(Closure<?> handlers) {
+    return new ChainBuildingHandler(action(handlers));
   }
 
   public Exchange getExchange() {

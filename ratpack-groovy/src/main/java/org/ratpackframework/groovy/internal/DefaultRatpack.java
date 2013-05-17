@@ -22,22 +22,22 @@ import org.ratpackframework.groovy.Ratpack;
 public class DefaultRatpack implements Ratpack {
 
   private Closure<?> modulesConfigurer;
-  private Closure<?> routingConfigurer;
+  private Closure<?> handlersConfigurer;
 
   public void modules(Closure<?> modulesConfigurer) {
     this.modulesConfigurer = modulesConfigurer;
   }
 
-  public void handlers(Closure<?> routingConfigurer) {
-    this.routingConfigurer = routingConfigurer;
+  public void handlers(Closure<?> handlersConfigurer) {
+    this.handlersConfigurer = handlersConfigurer;
   }
 
   public Closure<?> getModulesConfigurer() {
     return modulesConfigurer;
   }
 
-  public Closure<?> getRoutingConfigurer() {
-    return routingConfigurer;
+  public Closure<?> getHandlersConfigurer() {
+    return handlersConfigurer;
   }
 
 }

@@ -51,12 +51,12 @@ public class RatpackChannelInitializer extends ChannelInitializer<SocketChannel>
     pipeline.addLast("encoder", new HttpResponseEncoder());
     pipeline.addLast("chunkedWriter", new ChunkedWriteHandler());
 
-    NettyRoutingAdapter nettyRoutingAdapter = new NettyRoutingAdapter(handler, baseDir);
+    NettyHandlerAdapter nettyHandlerAdapter = new NettyHandlerAdapter(handler, baseDir);
 
     if (workerThreads > 0) {
-      pipeline.addLast(new DefaultEventExecutorGroup(workerThreads), "handler", nettyRoutingAdapter);
+      pipeline.addLast(new DefaultEventExecutorGroup(workerThreads), "handler", nettyHandlerAdapter);
     } else {
-      pipeline.addLast("handler", nettyRoutingAdapter);
+      pipeline.addLast("handler", nettyHandlerAdapter);
     }
   }
 }

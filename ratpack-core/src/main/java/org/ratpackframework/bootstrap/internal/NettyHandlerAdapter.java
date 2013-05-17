@@ -37,12 +37,12 @@ import org.ratpackframework.handling.internal.DefaultExchange;
 
 import java.io.File;
 
-public class NettyRoutingAdapter extends ChannelInboundMessageHandlerAdapter<FullHttpRequest> {
+public class NettyHandlerAdapter extends ChannelInboundMessageHandlerAdapter<FullHttpRequest> {
 
   private final Handler handler;
   private final File baseDir;
 
-  public NettyRoutingAdapter(Handler handler, File baseDir) {
+  public NettyHandlerAdapter(Handler handler, File baseDir) {
     this.handler = handler;
     this.baseDir = baseDir;
   }

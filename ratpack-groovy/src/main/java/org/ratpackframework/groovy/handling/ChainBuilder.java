@@ -24,9 +24,9 @@ import java.util.List;
 
 public interface ChainBuilder extends org.ratpackframework.handling.ChainBuilder {
 
-  void route(@DelegatesTo(value = Exchange.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
+  void handler(@DelegatesTo(value = Exchange.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
 
-  void routes(@DelegatesTo(value = Exchange.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
+  void chain(@DelegatesTo(value = ChainBuilder.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
 
   void all(String path, @DelegatesTo(value = Exchange.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
 
@@ -44,8 +44,8 @@ public interface ChainBuilder extends org.ratpackframework.handling.ChainBuilder
 
   void assets(String path, String... indexFiles);
 
-  void context(Object object, @DelegatesTo(value = org.ratpackframework.groovy.handling.ChainBuilder.class, strategy = Closure.DELEGATE_FIRST) Closure<?> routing);
+  void context(Object object, @DelegatesTo(value = org.ratpackframework.groovy.handling.ChainBuilder.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handlers);
 
-  void fsContext(String path, @DelegatesTo(value = org.ratpackframework.groovy.handling.ChainBuilder.class, strategy = Closure.DELEGATE_FIRST) Closure<?> routing);
+  void fsContext(String path, @DelegatesTo(value = org.ratpackframework.groovy.handling.ChainBuilder.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handlers);
 
 }

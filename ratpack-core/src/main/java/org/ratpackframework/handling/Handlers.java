@@ -20,11 +20,11 @@ import org.ratpackframework.file.internal.DirectoryStaticAssetRequestHandler;
 import org.ratpackframework.file.internal.FileStaticAssetRequestHandler;
 import org.ratpackframework.file.internal.FileSystemContextHandler;
 import org.ratpackframework.file.internal.TargetFileStaticAssetRequestHandler;
+import org.ratpackframework.handling.internal.ChainBuildingHandler;
 import org.ratpackframework.http.internal.MethodHandler;
 import org.ratpackframework.path.PathBinder;
 import org.ratpackframework.path.internal.PathHandler;
 import org.ratpackframework.path.internal.TokenPathBinder;
-import org.ratpackframework.handling.internal.RoutingHandler;
 import org.ratpackframework.util.Action;
 
 import java.io.File;
@@ -34,7 +34,7 @@ import java.util.Collection;
 public abstract class Handlers {
 
   public static Handler context(final Object context, final Action<? super ChainBuilder> builder) {
-    return context(context, routes(builder));
+    return context(context, chain(builder));
   }
 
   public static Handler context(final Object context, final Handler handler) {
@@ -45,8 +45,8 @@ public abstract class Handlers {
     };
   }
 
-  public static Handler routes(Action<? super ChainBuilder> action) {
-    return new RoutingHandler(action);
+  public static Handler chain(Action<? super ChainBuilder> action) {
+    return new ChainBuildingHandler(action);
   }
 
   public static Handler fsContext(String path, Handler handler) {
@@ -54,7 +54,7 @@ public abstract class Handlers {
   }
 
   public static Handler fsContext(String path, Action<? super ChainBuilder> builder) {
-    return fsContext(path, routes(builder));
+    return fsContext(path, chain(builder));
   }
 
   public static Handler assets(String path, Handler notFound) {
@@ -103,7 +103,7 @@ public abstract class Handlers {
   }
 
   public static Handler path(String path, Action<? super ChainBuilder> builder) {
-    return path(path, routes(builder));
+    return path(path, chain(builder));
   }
 
   public static Handler path(String path, Handler handler) {
@@ -111,7 +111,7 @@ public abstract class Handlers {
   }
 
   public static Handler exactPath(String path, Action<? super ChainBuilder> builder) {
-    return exactPath(path, routes(builder));
+    return exactPath(path, chain(builder));
   }
 
   public static Handler exactPath(String path, Handler handler) {
@@ -123,7 +123,7 @@ public abstract class Handlers {
   }
 
   public static Handler method(Collection<String> methods, Action<? super ChainBuilder> builder) {
-    return method(methods, routes(builder));
+    return method(methods, chain(builder));
   }
 
   public static Handler method(Collection<String> methods, Handler handler) {

@@ -45,7 +45,7 @@ public class TargetFileStaticAssetRequestHandler implements Handler {
       path = pathBinding.getPastBinding();
     }
 
-    // Decode the pathRoutes.
+    // Decode the path.
     try {
       path = new URI(path).getPath();
     } catch (URISyntaxException e) {

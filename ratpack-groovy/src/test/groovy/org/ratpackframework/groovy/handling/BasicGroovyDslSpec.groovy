@@ -1,4 +1,6 @@
-package org.ratpackframework.test.groovy
+package org.ratpackframework.groovy.handling
+
+import org.ratpackframework.test.groovy.RatpackGroovyDslSpec
 
 class BasicGroovyDslSpec extends RatpackGroovyDslSpec {
 

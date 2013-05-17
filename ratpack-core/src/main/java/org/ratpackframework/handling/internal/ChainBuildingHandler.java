@@ -24,11 +24,11 @@ import org.ratpackframework.util.Action;
 import java.util.LinkedList;
 import java.util.List;
 
-public class RoutingHandler implements Handler {
+public class ChainBuildingHandler implements Handler {
 
   private final Action<? super ChainBuilder> action;
 
-  public RoutingHandler(Action<? super ChainBuilder> action) {
+  public ChainBuildingHandler(Action<? super ChainBuilder> action) {
     this.action = action;
   }
 

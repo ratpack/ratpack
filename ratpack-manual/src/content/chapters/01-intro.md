@@ -8,7 +8,7 @@ It is not a J2EE solution.
 
 ```language-groovy
 ratpack {
-  routing {
+  handlers {
     get("foo/bar") {
       response.send "Yeah!"
     }

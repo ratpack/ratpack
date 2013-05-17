@@ -1,13 +1,13 @@
 package org.ratpackframework.test.groovy
 
 import org.ratpackframework.groovy.handling.ChainBuilder
-import org.ratpackframework.groovy.handling.internal.RoutingHandler
+import org.ratpackframework.groovy.handling.internal.ChainBuildingHandler
 import org.ratpackframework.handling.Handler
 import org.ratpackframework.test.DefaultRatpackSpec
 
 import static org.ratpackframework.groovy.Closures.action
 
-class RatpackGroovyDslSpec extends DefaultRatpackSpec {
+abstract class RatpackGroovyDslSpec extends DefaultRatpackSpec {
 
   void handlers(@DelegatesTo(ChainBuilder) Closure<?> configurer) {
     this.handlersClosure = configurer
@@ -15,6 +15,6 @@ class RatpackGroovyDslSpec extends DefaultRatpackSpec {
 
   @Override
   protected Handler createHandler() {
-    return new RoutingHandler(action(handlersClosure))
+    return new ChainBuildingHandler(action(handlersClosure))
   }
 }
