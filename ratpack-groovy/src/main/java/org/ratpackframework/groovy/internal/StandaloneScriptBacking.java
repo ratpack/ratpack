@@ -51,7 +51,11 @@ public class StandaloneScriptBacking implements Action<Closure<?>> {
       action.execute(ratpack);
     }
 
-    ratpack.startAndWait();
+    try {
+      ratpack.startAndWait();
+    } catch (Exception e) {
+      throw new IllegalStateException("Failed to start Ratpack application", e);
+    }
   }
 
   private <T> File findScript(Closure<T> closure) {

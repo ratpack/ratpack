@@ -23,41 +23,34 @@ import io.netty.channel.ChannelInitializer;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import org.ratpackframework.bootstrap.RatpackServer;
-import org.ratpackframework.util.Action;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class NettyRatpackServer extends AbstractIdleService implements RatpackServer {
+public class NettyRatpackService extends AbstractIdleService implements RatpackService {
 
   private final Logger logger = Logger.getLogger(getClass().getName());
 
   private final InetSocketAddress requestedAddress;
   private InetSocketAddress boundAddress;
   private final ChannelInitializer<SocketChannel> channelInitializer;
-  private final Action<RatpackServer> init;
   private Channel channel;
-  private ServerBootstrap bootstrap;
   private NioEventLoopGroup bossGroup;
   private NioEventLoopGroup workerGroup;
 
-  public NettyRatpackServer(
+  public NettyRatpackService(
       InetSocketAddress requestedAddress,
-      ChannelInitializer<SocketChannel> channelInitializer,
-      Action<RatpackServer> init
+      ChannelInitializer<SocketChannel> channelInitializer
   ) {
     this.requestedAddress = requestedAddress;
     this.channelInitializer = channelInitializer;
-    this.init = init;
   }
 
   @Override
   protected void startUp() throws Exception {
-
-    bootstrap = new ServerBootstrap();
+    ServerBootstrap bootstrap = new ServerBootstrap();
     bossGroup = new NioEventLoopGroup();
     workerGroup = new NioEventLoopGroup();
     bootstrap.group(bossGroup, workerGroup)
@@ -66,8 +59,6 @@ public class NettyRatpackServer extends AbstractIdleService implements RatpackSe
 
     channel = bootstrap.bind(requestedAddress).sync().channel();
     boundAddress = (InetSocketAddress) channel.localAddress();
-
-    init.execute(this);
 
     if (logger.isLoggable(Level.INFO)) {
       logger.info(String.format("Ratpack started for http://%s:%s", getBindHost(), getBindPort()));

@@ -2,13 +2,15 @@ package org.ratpackframework
 
 import com.google.common.util.concurrent.AbstractIdleService
 import org.ratpackframework.bootstrap.RatpackServer
+import org.ratpackframework.bootstrap.internal.RatpackService
+import org.ratpackframework.bootstrap.internal.ServiceBackedServer
 import org.ratpackframework.groovy.Closures
 import org.ratpackframework.groovy.internal.StandaloneScriptBacking
 import org.ratpackframework.test.groovy.RatpackGroovyScriptAppSpec
 
 class StandaloneScriptSpec extends RatpackGroovyScriptAppSpec {
 
-  class ScriptBackedServer extends AbstractIdleService implements RatpackServer {
+  class ScriptBackedService extends AbstractIdleService implements RatpackService {
     RatpackServer server
 
     @Override
@@ -57,7 +59,7 @@ class StandaloneScriptSpec extends RatpackGroovyScriptAppSpec {
 
   @Override
   RatpackServer createApp() {
-    new ScriptBackedServer()
+    new ServiceBackedServer(new ScriptBackedService())
   }
 
   def "can execute plain script and reload"() {

@@ -8,7 +8,7 @@ import spock.lang.Specification
 
 import java.util.concurrent.ExecutionException
 
-class NettyRatpackServerTest extends Specification {
+class NettyRatpackServiceTest extends Specification {
 
   @Rule TemporaryFolder temporaryFolder
 
@@ -19,7 +19,7 @@ class NettyRatpackServerTest extends Specification {
       build()
     }
 
-    server1.start().get()
+    server1.start()
 
     when:
     def server2 = new RatpackServerBuilder({} as Handler, temporaryFolder.root).with {
@@ -27,7 +27,7 @@ class NettyRatpackServerTest extends Specification {
       build()
     }
 
-    server2.start().get()
+    server2.start()
 
     then:
     def e = thrown(ExecutionException)

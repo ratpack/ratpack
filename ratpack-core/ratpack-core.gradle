@@ -2,7 +2,6 @@ apply from: "$rootDir/gradle/javaModule.gradle"
 
 ext.apiLinks = [
     "http://netty.io/4.0/api",
-    "http://docs.guava-libraries.googlecode.com/git-history/v13.0.1/javadoc"
 ]
 
 dependencies {

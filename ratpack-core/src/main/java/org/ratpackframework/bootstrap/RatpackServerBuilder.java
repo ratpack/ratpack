@@ -19,11 +19,10 @@ package org.ratpackframework.bootstrap;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;
 import org.ratpackframework.api.Nullable;
-import org.ratpackframework.bootstrap.internal.NettyRatpackServer;
-import org.ratpackframework.bootstrap.internal.NoopInit;
+import org.ratpackframework.bootstrap.internal.NettyRatpackService;
 import org.ratpackframework.bootstrap.internal.RatpackChannelInitializer;
+import org.ratpackframework.bootstrap.internal.ServiceBackedServer;
 import org.ratpackframework.handling.Handler;
-import org.ratpackframework.util.Action;
 
 import java.io.File;
 import java.net.InetAddress;
@@ -32,6 +31,7 @@ import java.net.InetSocketAddress;
 /**
  * Builds a {@link RatpackServer}.
  */
+@SuppressWarnings("UnusedDeclaration")
 public class RatpackServerBuilder {
 
   /**
@@ -46,7 +46,6 @@ public class RatpackServerBuilder {
 
   private int port = DEFAULT_PORT;
   private InetAddress address;
-  private Action<RatpackServer> init = new NoopInit();
 
   /**
    * Create a new builder, with the given handler as the "application".
@@ -103,26 +102,6 @@ public class RatpackServerBuilder {
   }
 
   /**
-   * The action that will be executed with the server when it is started.
-   * <p>
-   * Defaults to a noop.
-   *
-   * @return The action that will be executed with the server when it is started.
-   */
-  public Action<RatpackServer> getInit() {
-    return init;
-  }
-
-  /**
-   * Sets the action that will be executed with the server when it is started.
-   *
-   * @param init The action that to execute with the server when it is started.
-   */
-  public void setInit(Action<RatpackServer> init) {
-    this.init = init;
-  }
-
-  /**
    * The number of worker threads for handling application requests.
    * <p>
    * If the value is greater than 0, a thread pool (of this size) will be created for servicing requests. This allows handlers
@@ -159,9 +138,8 @@ public class RatpackServerBuilder {
   public RatpackServer build() {
     InetSocketAddress address = buildSocketAddress();
     ChannelInitializer<SocketChannel> channelInitializer = buildChannelInitializer();
-    return new NettyRatpackServer(
-        address, channelInitializer, init
-    );
+    NettyRatpackService service = new NettyRatpackService(address, channelInitializer);
+    return new ServiceBackedServer(service);
   }
 
   private InetSocketAddress buildSocketAddress() {
