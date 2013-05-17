@@ -31,7 +31,7 @@ class BasicGroovyDslSpec extends RatpackGroovyDslSpec {
 
     then:
     urlGetText("a") == "a handler"
-    urlGetConnection("b").responseCode == 415
+    urlGetConnection("b").responseCode == 405
     urlPostText("b") == "b handler"
     urlGetText("1/2") == "[first:1, second:2]"
     urlGetText("foo/c/bar") == "[first:foo, second:bar]"
