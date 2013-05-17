@@ -7,12 +7,14 @@ buildscript {
   }
   dependencies {
     classpath 'org.gradle.plugins:gradle-compass:1.0.4'
-    classpath "org.gebish:markdown2book:1.0"
     classpath "org.pegdown:pegdown:1.2.1"
   }
 }
 
+
+
 apply from: "$rootDir/gradle/checkstyle.gradle"
+apply from: "$rootDir/gradle/markdown2book.gradle"
 
 idea {
   module {
@@ -107,6 +109,8 @@ task tokeniseManual(type: Sync) {
   }
 }
 
+import static org.pegdown.Extensions.*
+
 task compileManual {
   group "manual"
   description "Converts the manual tokenised Markdown into HTML "
@@ -122,8 +126,11 @@ task compileManual {
   ext.encoding = "UTF-8"
   inputs.property("encoding", encoding)
 
+  ext.options = QUOTES & SMARTYPANTS
+  inputs.property("options", options)
+
   doLast {
-    new markdown2book.Generator(source, destination, encoding).generate()
+    markdown2book.generate(source, destination, options)
   }
 }
 
