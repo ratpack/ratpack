@@ -10,11 +10,11 @@ class PathAndMethodRoutingSpec extends DefaultRatpackSpec {
     when:
     app {
       routing {
-        route get("a/b/c") {
+        add get("a/b/c") {
           response.send request.query
         }
-        route path(":a/:b") {
-          route handler(":c/:d", ["post", "put"] as List) {
+        add path(":a/:b") {
+          add handler(":c/:d", ["post", "put"] as List) {
             if (request.method.post) {
               response.send allPathTokens.toString()
             } else {

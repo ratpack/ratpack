@@ -16,10 +16,10 @@
 
 package org.ratpackframework.handling;
 
-public interface Routing {
+public interface ChainBuilder {
 
   Exchange getExchange();
 
-  void route(Handler handler);
+  void add(Handler handler);
 
 }

@@ -12,8 +12,8 @@ class PathRoutingSpec extends DefaultRatpackSpec {
     when:
     app {
       routing {
-        route path("abc") {
-          route handler {
+        add path("abc") {
+          add handler {
             response.send(get(PathBinding).boundTo)
           }
         }
@@ -28,9 +28,9 @@ class PathRoutingSpec extends DefaultRatpackSpec {
     when:
     app {
       routing {
-        route path("abc") {
-          route path("def") {
-            route handler {
+        add path("abc") {
+          add path("def") {
+            add handler {
               response.send(get(PathBinding).pastBinding)
             }
           }
@@ -46,8 +46,8 @@ class PathRoutingSpec extends DefaultRatpackSpec {
     when:
     app {
       routing {
-        route path(":a/:b/:c") {
-          route handler {
+        add path(":a/:b/:c") {
+          add handler {
             def pathContext = get(PathBinding)
             response.send("$pathContext.tokens - $pathContext.pastBinding")
           }
@@ -63,9 +63,9 @@ class PathRoutingSpec extends DefaultRatpackSpec {
     when:
     app {
       routing {
-        route path(":a/:b") {
-          route path(":d/:e") {
-            route handler {
+        add path(":a/:b") {
+          add path(":d/:e") {
+            add handler {
               def pathContext = get(PathBinding)
               response.send("$pathContext.tokens - $pathContext.allTokens - $pathContext.pastBinding")
             }
@@ -82,8 +82,8 @@ class PathRoutingSpec extends DefaultRatpackSpec {
     when:
     app {
       routing {
-        route exactPath(":a/:b/:c") {
-          route handler {
+        add exactPath(":a/:b/:c") {
+          add handler {
             def pathContext = get(PathBinding)
             response.send("$pathContext.tokens - $pathContext.pastBinding")
           }
@@ -100,9 +100,9 @@ class PathRoutingSpec extends DefaultRatpackSpec {
     when:
     app {
       routing {
-        route path(":a/:b") {
-          route exactPath(":d/:e") {
-            route handler {
+        add path(":a/:b") {
+          add exactPath(":d/:e") {
+            add handler {
               def pathContext = get(PathBinding)
               response.send("$pathContext.tokens - $pathContext.allTokens - $pathContext.pastBinding")
             }

@@ -16,7 +16,7 @@
 
 package org.ratpackframework.groovy.handling.internal;
 
-import org.ratpackframework.groovy.handling.Routing;
+import org.ratpackframework.groovy.handling.ChainBuilder;
 import org.ratpackframework.handling.Exchange;
 import org.ratpackframework.handling.Handler;
 import org.ratpackframework.util.Action;
@@ -26,15 +26,15 @@ import java.util.List;
 
 public class RoutingHandler implements Handler {
 
-  private final Action<? super Routing> action;
+  private final Action<? super ChainBuilder> action;
 
-  public RoutingHandler(Action<? super Routing> action) {
+  public RoutingHandler(Action<? super ChainBuilder> action) {
     this.action = action;
   }
 
   public void handle(Exchange exchange) {
     List<Handler> handlers = new LinkedList<Handler>();
-    Routing routing = new DefaultRouting(exchange, handlers);
+    ChainBuilder routing = new DefaultChainBuilder(exchange, handlers);
     action.execute(routing);
     exchange.next(handlers);
   }

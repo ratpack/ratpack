@@ -8,7 +8,7 @@ import org.ratpackframework.guice.ModuleRegistry
 import org.ratpackframework.guice.internal.DefaultGuiceBackedHandlerFactory
 import org.ratpackframework.handling.Handler
 import org.ratpackframework.handling.Handlers
-import org.ratpackframework.handling.Routing
+import org.ratpackframework.handling.ChainBuilder
 import org.ratpackframework.util.Action
 
 import static Handlers.routes
@@ -22,7 +22,7 @@ class DefaultRatpackSpec extends RatpackSpec {
 
   List<Module> modules = []
 
-  void routing(@DelegatesTo(Routing) Closure<?> configurer) {
+  void routing(@DelegatesTo(ChainBuilder) Closure<?> configurer) {
     this.routingCallback = configurer
   }
 

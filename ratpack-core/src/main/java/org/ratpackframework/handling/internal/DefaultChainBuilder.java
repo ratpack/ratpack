@@ -16,18 +16,18 @@
 
 package org.ratpackframework.handling.internal;
 
+import org.ratpackframework.handling.ChainBuilder;
 import org.ratpackframework.handling.Exchange;
 import org.ratpackframework.handling.Handler;
-import org.ratpackframework.handling.Routing;
 
 import java.util.List;
 
-public class DefaultRouting implements Routing {
+public class DefaultChainBuilder implements ChainBuilder {
 
   private final Exchange exchange;
   private final List<Handler> handlers;
 
-  public DefaultRouting(Exchange exchange, List<Handler> handlers) {
+  public DefaultChainBuilder(Exchange exchange, List<Handler> handlers) {
     this.exchange = exchange;
     this.handlers = handlers;
   }
@@ -36,7 +36,7 @@ public class DefaultRouting implements Routing {
     return exchange;
   }
 
-  public void route(Handler handler) {
+  public void add(Handler handler) {
     handlers.add(handler);
   }
 

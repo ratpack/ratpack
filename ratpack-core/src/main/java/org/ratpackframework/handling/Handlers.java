@@ -33,7 +33,7 @@ import java.util.Collection;
 
 public abstract class Handlers {
 
-  public static Handler context(final Object context, final Action<? super Routing> builder) {
+  public static Handler context(final Object context, final Action<? super ChainBuilder> builder) {
     return context(context, routes(builder));
   }
 
@@ -45,7 +45,7 @@ public abstract class Handlers {
     };
   }
 
-  public static Handler routes(Action<? super Routing> action) {
+  public static Handler routes(Action<? super ChainBuilder> action) {
     return new RoutingHandler(action);
   }
 
@@ -53,7 +53,7 @@ public abstract class Handlers {
     return new FileSystemContextHandler(new File(path), handler);
   }
 
-  public static Handler fsContext(String path, Action<? super Routing> builder) {
+  public static Handler fsContext(String path, Action<? super ChainBuilder> builder) {
     return fsContext(path, routes(builder));
   }
 
@@ -102,7 +102,7 @@ public abstract class Handlers {
     };
   }
 
-  public static Handler path(String path, Action<? super Routing> builder) {
+  public static Handler path(String path, Action<? super ChainBuilder> builder) {
     return path(path, routes(builder));
   }
 
@@ -110,7 +110,7 @@ public abstract class Handlers {
     return pathBinding(new TokenPathBinder(path, false), handler);
   }
 
-  public static Handler exactPath(String path, Action<? super Routing> builder) {
+  public static Handler exactPath(String path, Action<? super ChainBuilder> builder) {
     return exactPath(path, routes(builder));
   }
 
@@ -122,7 +122,7 @@ public abstract class Handlers {
     return new PathHandler(pathBinder, handler);
   }
 
-  public static Handler method(Collection<String> methods, Action<? super Routing> builder) {
+  public static Handler method(Collection<String> methods, Action<? super ChainBuilder> builder) {
     return method(methods, routes(builder));
   }
 

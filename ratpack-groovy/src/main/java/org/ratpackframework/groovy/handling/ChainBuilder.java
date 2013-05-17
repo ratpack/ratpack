@@ -22,7 +22,7 @@ import org.ratpackframework.handling.Exchange;
 
 import java.util.List;
 
-public interface Routing extends org.ratpackframework.handling.Routing {
+public interface ChainBuilder extends org.ratpackframework.handling.ChainBuilder {
 
   void route(@DelegatesTo(value = Exchange.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
 
@@ -32,7 +32,7 @@ public interface Routing extends org.ratpackframework.handling.Routing {
 
   void handler(String path, List<String> methods, @DelegatesTo(value = Exchange.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
 
-  void path(String path, @DelegatesTo(value = Routing.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
+  void path(String path, @DelegatesTo(value = org.ratpackframework.groovy.handling.ChainBuilder.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
 
   void get(String path, @DelegatesTo(value = Exchange.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
 
@@ -44,8 +44,8 @@ public interface Routing extends org.ratpackframework.handling.Routing {
 
   void assets(String path, String... indexFiles);
 
-  void context(Object object, @DelegatesTo(value = Routing.class, strategy = Closure.DELEGATE_FIRST) Closure<?> routing);
+  void context(Object object, @DelegatesTo(value = org.ratpackframework.groovy.handling.ChainBuilder.class, strategy = Closure.DELEGATE_FIRST) Closure<?> routing);
 
-  void fsContext(String path, @DelegatesTo(value = Routing.class, strategy = Closure.DELEGATE_FIRST) Closure<?> routing);
+  void fsContext(String path, @DelegatesTo(value = org.ratpackframework.groovy.handling.ChainBuilder.class, strategy = Closure.DELEGATE_FIRST) Closure<?> routing);
 
 }

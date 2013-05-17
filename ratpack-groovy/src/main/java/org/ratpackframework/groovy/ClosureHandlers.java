@@ -21,7 +21,7 @@ import groovy.lang.DelegatesTo;
 import org.ratpackframework.handling.Exchange;
 import org.ratpackframework.handling.Handler;
 import org.ratpackframework.handling.Handlers;
-import org.ratpackframework.handling.Routing;
+import org.ratpackframework.handling.ChainBuilder;
 import org.ratpackframework.util.Action;
 
 import java.util.Arrays;
@@ -37,28 +37,28 @@ public abstract class ClosureHandlers {
     };
   }
 
-  public static Handler context(final Object context, @DelegatesTo(value = Routing.class, strategy = Closure.DELEGATE_FIRST) final Closure<?> routes) {
-    return Handlers.context(context, routes(routes));
+  public static Handler context(final Object context, @DelegatesTo(value = ChainBuilder.class, strategy = Closure.DELEGATE_FIRST) final Closure<?> handlers) {
+    return Handlers.context(context, chain(handlers));
   }
 
-  private static Action<Routing> routes(@DelegatesTo(value = Routing.class, strategy = Closure.DELEGATE_FIRST) Closure<?> routes) {
-    return Closures.action(Routing.class, routes);
+  private static Action<ChainBuilder> chain(@DelegatesTo(value = ChainBuilder.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handlers) {
+    return Closures.action(ChainBuilder.class, handlers);
   }
 
-  public static Handler fsContext(String path, @DelegatesTo(value = Routing.class, strategy = Closure.DELEGATE_FIRST) Closure<?> routing) {
-    return Handlers.fsContext(path, routes(routing));
+  public static Handler fsContext(String path, @DelegatesTo(value = ChainBuilder.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handlers) {
+    return Handlers.fsContext(path, chain(handlers));
   }
 
-  public static Handler path(String path, @DelegatesTo(value = Routing.class, strategy = Closure.DELEGATE_FIRST) Closure<?> routing) {
-    return Handlers.path(path, routes(routing));
+  public static Handler path(String path, @DelegatesTo(value = ChainBuilder.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handlers) {
+    return Handlers.path(path, chain(handlers));
   }
 
-  public static Handler exactPath(String path, @DelegatesTo(value = Routing.class, strategy = Closure.DELEGATE_FIRST) Closure<?> routing) {
-    return Handlers.exactPath(path, routes(routing));
+  public static Handler exactPath(String path, @DelegatesTo(value = ChainBuilder.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handlers) {
+    return Handlers.exactPath(path, chain(handlers));
   }
 
-  public static Handler method(Collection<String> methods, @DelegatesTo(value = Routing.class, strategy = Closure.DELEGATE_FIRST) Closure<?> routing) {
-    return Handlers.method(methods, routes(routing));
+  public static Handler method(Collection<String> methods, @DelegatesTo(value = ChainBuilder.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handlers) {
+    return Handlers.method(methods, chain(handlers));
   }
 
   public static Handler handler(String path, @DelegatesTo(value = Exchange.class, strategy = Closure.DELEGATE_FIRST) final Closure<?> closure) {

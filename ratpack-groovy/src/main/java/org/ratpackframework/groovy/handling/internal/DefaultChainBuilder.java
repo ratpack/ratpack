@@ -18,7 +18,7 @@ package org.ratpackframework.groovy.handling.internal;
 
 import groovy.lang.Closure;
 import org.ratpackframework.groovy.ClosureHandlers;
-import org.ratpackframework.groovy.handling.Routing;
+import org.ratpackframework.groovy.handling.ChainBuilder;
 import org.ratpackframework.handling.Exchange;
 import org.ratpackframework.handling.Handler;
 import org.ratpackframework.handling.Handlers;
@@ -27,38 +27,38 @@ import java.util.List;
 
 import static org.ratpackframework.groovy.Closures.action;
 
-public class DefaultRouting implements Routing {
+public class DefaultChainBuilder implements ChainBuilder {
 
   private final List<Handler> handlers;
   private final Exchange exchange;
 
-  DefaultRouting(Exchange exchange, List<Handler> handlers) {
+  DefaultChainBuilder(Exchange exchange, List<Handler> handlers) {
     this.exchange = exchange;
     this.handlers = handlers;
   }
 
   public void route(Closure<?> handler) {
-    route(ClosureHandlers.handler(handler));
+    add(ClosureHandlers.handler(handler));
   }
 
   public void routes(Closure<?> routing) {
-    route(routing(routing));
+    add(routing(routing));
   }
 
   public void path(String path, Closure<?> routing) {
-    route(Handlers.path(path, routing(routing)));
+    add(Handlers.path(path, routing(routing)));
   }
 
   public void all(String path, Closure<?> handler) {
-    route(ClosureHandlers.handler(path, handler));
+    add(ClosureHandlers.handler(path, handler));
   }
 
   public void handler(String path, List<String> methods, Closure<?> handler) {
-    route(ClosureHandlers.handler(path, methods, handler));
+    add(ClosureHandlers.handler(path, methods, handler));
   }
 
   public void get(String path, Closure<?> handler) {
-    route(ClosureHandlers.get(path, handler));
+    add(ClosureHandlers.get(path, handler));
   }
 
   public void get(Closure<?> handler) {
@@ -66,7 +66,7 @@ public class DefaultRouting implements Routing {
   }
 
   public void post(String path, Closure<?> handler) {
-    route(ClosureHandlers.post(path, handler));
+    add(ClosureHandlers.post(path, handler));
   }
 
   public void post(Closure<?> handler) {
@@ -74,15 +74,15 @@ public class DefaultRouting implements Routing {
   }
 
   public void assets(String path, String... indexFiles) {
-    route(Handlers.assets(path, indexFiles));
+    add(Handlers.assets(path, indexFiles));
   }
 
   public void context(Object object, Closure<?> routing) {
-    route(Handlers.context(object, routing(routing)));
+    add(Handlers.context(object, routing(routing)));
   }
 
   public void fsContext(String path, Closure<?> routing) {
-    route(Handlers.fsContext(path, routing(routing)));
+    add(Handlers.fsContext(path, routing(routing)));
   }
 
   private Handler routing(Closure<?> routing) {
@@ -93,7 +93,7 @@ public class DefaultRouting implements Routing {
     return exchange;
   }
 
-  public void route(Handler handler) {
+  public void add(Handler handler) {
     handlers.add(handler);
   }
 

@@ -33,7 +33,7 @@ class StaticFileSpec extends DefaultRatpackSpec {
     when:
     app {
       routing {
-        route assets("public")
+        add assets("public")
       }
     }
 
@@ -50,7 +50,7 @@ class StaticFileSpec extends DefaultRatpackSpec {
     when:
     app {
       routing {
-        route assets("public")
+        add assets("public")
       }
     }
 
@@ -66,7 +66,7 @@ class StaticFileSpec extends DefaultRatpackSpec {
     when:
     app {
       routing {
-        route assets("public", "index.html", "index.xhtml")
+        add assets("public", "index.html", "index.xhtml")
       }
     }
 
@@ -83,7 +83,7 @@ class StaticFileSpec extends DefaultRatpackSpec {
     when:
     app {
       routing {
-        route assets("public", "index.html")
+        add assets("public", "index.html")
       }
     }
 
@@ -100,9 +100,9 @@ class StaticFileSpec extends DefaultRatpackSpec {
     when:
     app {
       routing {
-        route assets("d1")
+        add assets("d1")
         if (exchange.request.queryParams.includeSecond) {
-          route assets("d2")
+          add assets("d2")
         }
       }
     }
@@ -122,7 +122,7 @@ class StaticFileSpec extends DefaultRatpackSpec {
     when:
     app {
       routing {
-        route assets("d1")
+        add assets("d1")
       }
     }
 
@@ -142,10 +142,10 @@ class StaticFileSpec extends DefaultRatpackSpec {
     when:
     app {
       routing {
-        route assets("d1", handler {
+        add assets("d1", handler {
           response.send("in not found handler")
         })
-        route assets("d2")
+        add assets("d2")
       }
     }
 
@@ -161,9 +161,9 @@ class StaticFileSpec extends DefaultRatpackSpec {
     when:
     app {
       routing {
-        route fsContext("d1") {
-          route fsContext("d2") {
-            route assets("d3", "index.html")
+        add fsContext("d1") {
+          add fsContext("d2") {
+            add assets("d3", "index.html")
           }
         }
       }
@@ -180,7 +180,7 @@ class StaticFileSpec extends DefaultRatpackSpec {
     when:
     app {
       routing {
-        route assetsPath("bar", "foo")
+        add assetsPath("bar", "foo")
       }
     }
 

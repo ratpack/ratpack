@@ -18,13 +18,13 @@ package org.ratpackframework.groovy;
 
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
-import org.ratpackframework.groovy.handling.Routing;
+import org.ratpackframework.groovy.handling.ChainBuilder;
 import org.ratpackframework.guice.ModuleRegistry;
 
 public interface Ratpack {
 
   void modules(@DelegatesTo(value = ModuleRegistry.class, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer);
 
-  void routing(@DelegatesTo(value = Routing.class, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer);
+  void routing(@DelegatesTo(value = ChainBuilder.class, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer);
 
 }

@@ -11,8 +11,8 @@ class MethodRoutingSpec extends DefaultRatpackSpec {
     when:
     app {
       routing {
-        route method(["get", "pOsT"]) {
-          route handler {
+        add method(["get", "pOsT"]) {
+          add handler {
             response.send request.method.name
           }
         }
