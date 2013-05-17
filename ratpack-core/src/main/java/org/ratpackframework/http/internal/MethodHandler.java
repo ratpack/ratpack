@@ -16,8 +16,8 @@
 
 package org.ratpackframework.http.internal;
 
-import org.ratpackframework.routing.Exchange;
-import org.ratpackframework.routing.Handler;
+import org.ratpackframework.handling.Exchange;
+import org.ratpackframework.handling.Handler;
 
 import java.util.Collection;
 import java.util.List;

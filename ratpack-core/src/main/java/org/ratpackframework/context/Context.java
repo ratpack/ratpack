@@ -25,7 +25,7 @@ import org.ratpackframework.api.Nullable;
  * <p>
  * Context objects are not thread safe.
  *
- * @see org.ratpackframework.routing.Exchange#getContext()
+ * @see org.ratpackframework.handling.Exchange#getContext()
  */
 public interface Context {
 

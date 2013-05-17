@@ -18,7 +18,7 @@ package org.ratpackframework.groovy;
 
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
-import org.ratpackframework.groovy.routing.Routing;
+import org.ratpackframework.groovy.handling.Routing;
 import org.ratpackframework.guice.ModuleRegistry;
 
 public interface Ratpack {

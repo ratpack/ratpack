@@ -17,8 +17,8 @@
 package org.ratpackframework.guice.internal;
 
 import com.google.inject.Injector;
-import org.ratpackframework.routing.Exchange;
-import org.ratpackframework.routing.Handler;
+import org.ratpackframework.handling.Exchange;
+import org.ratpackframework.handling.Handler;
 
 public class InjectorBindingHandler implements Handler {
 

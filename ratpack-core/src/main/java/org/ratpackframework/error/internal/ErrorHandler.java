@@ -16,8 +16,8 @@
 
 package org.ratpackframework.error.internal;
 
-import org.ratpackframework.routing.Exchange;
-import org.ratpackframework.routing.Handler;
+import org.ratpackframework.handling.Exchange;
+import org.ratpackframework.handling.Handler;
 
 public class ErrorHandler implements Handler {
 

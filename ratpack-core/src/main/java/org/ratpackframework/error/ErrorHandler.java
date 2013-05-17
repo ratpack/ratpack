@@ -17,7 +17,7 @@
 package org.ratpackframework.error;
 
 import org.ratpackframework.api.NonBlocking;
-import org.ratpackframework.routing.Exchange;
+import org.ratpackframework.handling.Exchange;
 
 /**
  * An object that can deal with errors that occur during the processing of an exchange.

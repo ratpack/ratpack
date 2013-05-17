@@ -22,7 +22,7 @@ import org.ratpackframework.api.Nullable;
 import org.ratpackframework.bootstrap.internal.NettyRatpackServer;
 import org.ratpackframework.bootstrap.internal.NoopInit;
 import org.ratpackframework.bootstrap.internal.RatpackChannelInitializer;
-import org.ratpackframework.routing.Handler;
+import org.ratpackframework.handling.Handler;
 import org.ratpackframework.util.Action;
 
 import java.io.File;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.routing;
+package org.ratpackframework.handling;
 
 import org.ratpackframework.context.Context;
 import org.ratpackframework.http.Request;

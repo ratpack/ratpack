@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.routing.internal;
+package org.ratpackframework.handling.internal;
 
 import io.netty.channel.ChannelHandlerContext;
 import org.ratpackframework.context.Context;
@@ -22,8 +22,8 @@ import org.ratpackframework.context.internal.ObjectHoldingHierarchicalContext;
 import org.ratpackframework.error.ErrorHandler;
 import org.ratpackframework.file.FileSystemBinding;
 import org.ratpackframework.path.PathBinding;
-import org.ratpackframework.routing.Exchange;
-import org.ratpackframework.routing.Handler;
+import org.ratpackframework.handling.Exchange;
+import org.ratpackframework.handling.Handler;
 import org.ratpackframework.http.Request;
 import org.ratpackframework.http.Response;
 import org.ratpackframework.util.internal.CollectionUtils;

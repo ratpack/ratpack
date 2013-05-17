@@ -15,7 +15,7 @@
  */
 
 /**
- * Handlers communicate with each other by binding a "context" on to each {@link org.ratpackframework.routing.Exchange}.
+ * Handlers communicate with each other by binding a "context" on to each {@link org.ratpackframework.handling.Exchange}.
  *
  * A context is just an object that may be able to provide an object of a given type. Typically, upstream handlers add
  * objects to the context for downstream handlers to use.

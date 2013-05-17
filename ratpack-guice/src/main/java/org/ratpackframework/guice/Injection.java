@@ -18,7 +18,7 @@ package org.ratpackframework.guice;
 
 import org.ratpackframework.guice.internal.DefaultGuiceBackedHandlerFactory;
 import org.ratpackframework.guice.internal.InjectingHandler;
-import org.ratpackframework.routing.Handler;
+import org.ratpackframework.handling.Handler;
 import org.ratpackframework.util.Action;
 
 public abstract class Injection {

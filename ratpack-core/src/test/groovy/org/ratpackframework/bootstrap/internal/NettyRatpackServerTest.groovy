@@ -3,7 +3,7 @@ package org.ratpackframework.bootstrap.internal
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import org.ratpackframework.bootstrap.RatpackServerBuilder
-import org.ratpackframework.routing.Handler
+import org.ratpackframework.handling.Handler
 import spock.lang.Specification
 
 import java.util.concurrent.ExecutionException

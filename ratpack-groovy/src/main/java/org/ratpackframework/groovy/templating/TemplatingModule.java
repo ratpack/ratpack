@@ -20,7 +20,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Injector;
 import org.ratpackframework.groovy.templating.internal.GroovyTemplateRenderingEngine;
 import org.ratpackframework.guice.HandlerDecoratingModule;
-import org.ratpackframework.routing.Handler;
+import org.ratpackframework.handling.Handler;
 
 public class TemplatingModule extends AbstractModule implements HandlerDecoratingModule {
 

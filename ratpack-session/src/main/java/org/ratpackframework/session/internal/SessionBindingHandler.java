@@ -16,8 +16,8 @@
 
 package org.ratpackframework.session.internal;
 
-import org.ratpackframework.routing.Exchange;
-import org.ratpackframework.routing.Handler;
+import org.ratpackframework.handling.Exchange;
+import org.ratpackframework.handling.Handler;
 import org.ratpackframework.session.SessionManager;
 
 public class SessionBindingHandler implements Handler {

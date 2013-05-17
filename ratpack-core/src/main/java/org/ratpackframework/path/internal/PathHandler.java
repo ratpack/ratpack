@@ -18,8 +18,8 @@ package org.ratpackframework.path.internal;
 
 import org.ratpackframework.path.PathBinder;
 import org.ratpackframework.path.PathBinding;
-import org.ratpackframework.routing.Exchange;
-import org.ratpackframework.routing.Handler;
+import org.ratpackframework.handling.Exchange;
+import org.ratpackframework.handling.Handler;
 
 public class PathHandler implements Handler {
 

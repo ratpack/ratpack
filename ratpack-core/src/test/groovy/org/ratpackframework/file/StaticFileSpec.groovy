@@ -20,8 +20,8 @@ import org.ratpackframework.test.DefaultRatpackSpec
 
 import static org.ratpackframework.groovy.ClosureHandlers.fsContext
 import static org.ratpackframework.groovy.ClosureHandlers.handler
-import static org.ratpackframework.routing.Handlers.assets
-import static org.ratpackframework.routing.Handlers.assetsPath
+import static org.ratpackframework.handling.Handlers.assets
+import static org.ratpackframework.handling.Handlers.assetsPath
 
 class StaticFileSpec extends DefaultRatpackSpec {
 

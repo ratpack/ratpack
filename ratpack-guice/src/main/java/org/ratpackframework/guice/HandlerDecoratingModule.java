@@ -18,7 +18,7 @@ package org.ratpackframework.guice;
 
 import com.google.inject.Injector;
 import com.google.inject.Module;
-import org.ratpackframework.routing.Handler;
+import org.ratpackframework.handling.Handler;
 
 public interface HandlerDecoratingModule extends Module {
 

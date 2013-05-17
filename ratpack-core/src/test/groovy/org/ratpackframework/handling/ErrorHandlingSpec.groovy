@@ -1,4 +1,4 @@
-package org.ratpackframework.routing
+package org.ratpackframework.handling
 
 import org.ratpackframework.error.ErrorHandler
 import org.ratpackframework.test.groovy.RatpackGroovyDslSpec

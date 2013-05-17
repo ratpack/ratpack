@@ -23,7 +23,7 @@ import com.google.inject.util.Modules;
 import org.ratpackframework.guice.GuiceBackedHandlerFactory;
 import org.ratpackframework.guice.HandlerDecoratingModule;
 import org.ratpackframework.guice.ModuleRegistry;
-import org.ratpackframework.routing.Handler;
+import org.ratpackframework.handling.Handler;
 import org.ratpackframework.util.Action;
 
 import java.util.ArrayList;

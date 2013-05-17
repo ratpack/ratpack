@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.routing.internal;
+package org.ratpackframework.handling.internal;
 
-import org.ratpackframework.routing.Exchange;
-import org.ratpackframework.routing.Handler;
-import org.ratpackframework.routing.Routing;
+import org.ratpackframework.handling.Exchange;
+import org.ratpackframework.handling.Handler;
+import org.ratpackframework.handling.Routing;
 
 import java.util.List;
 

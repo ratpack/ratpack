@@ -17,4 +17,4 @@
 /**
  * How requests will be processed and responded to.
  */
-package org.ratpackframework.routing;
+package org.ratpackframework.handling;

@@ -16,7 +16,7 @@
 
 package org.ratpackframework.error.internal;
 
-import org.ratpackframework.routing.Exchange;
+import org.ratpackframework.handling.Exchange;
 
 public class TopLevelErrorHandler implements org.ratpackframework.error.ErrorHandler {
 

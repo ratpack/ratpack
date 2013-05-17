@@ -17,8 +17,8 @@
 package org.ratpackframework.file.internal;
 
 import org.ratpackframework.file.FileSystemBinding;
-import org.ratpackframework.routing.Exchange;
-import org.ratpackframework.routing.Handler;
+import org.ratpackframework.handling.Exchange;
+import org.ratpackframework.handling.Handler;
 
 import java.io.File;
 

@@ -18,10 +18,10 @@ package org.ratpackframework.groovy;
 
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
-import org.ratpackframework.routing.Exchange;
-import org.ratpackframework.routing.Handler;
-import org.ratpackframework.routing.Handlers;
-import org.ratpackframework.routing.Routing;
+import org.ratpackframework.handling.Exchange;
+import org.ratpackframework.handling.Handler;
+import org.ratpackframework.handling.Handlers;
+import org.ratpackframework.handling.Routing;
 import org.ratpackframework.util.Action;
 
 import java.util.Arrays;

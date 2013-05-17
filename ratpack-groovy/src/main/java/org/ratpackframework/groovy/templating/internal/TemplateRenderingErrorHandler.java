@@ -17,8 +17,8 @@
 package org.ratpackframework.groovy.templating.internal;
 
 import org.ratpackframework.groovy.templating.TemplateRenderer;
-import org.ratpackframework.routing.Exchange;
-import org.ratpackframework.routing.Handler;
+import org.ratpackframework.handling.Exchange;
+import org.ratpackframework.handling.Handler;
 
 public class TemplateRenderingErrorHandler implements Handler {
 

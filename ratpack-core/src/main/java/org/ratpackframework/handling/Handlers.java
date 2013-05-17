@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.routing;
+package org.ratpackframework.handling;
 
 import org.ratpackframework.file.internal.DirectoryStaticAssetRequestHandler;
 import org.ratpackframework.file.internal.FileStaticAssetRequestHandler;
@@ -24,7 +24,7 @@ import org.ratpackframework.http.internal.MethodHandler;
 import org.ratpackframework.path.PathBinder;
 import org.ratpackframework.path.internal.PathHandler;
 import org.ratpackframework.path.internal.TokenPathBinder;
-import org.ratpackframework.routing.internal.RoutingHandler;
+import org.ratpackframework.handling.internal.RoutingHandler;
 import org.ratpackframework.util.Action;
 
 import java.io.File;

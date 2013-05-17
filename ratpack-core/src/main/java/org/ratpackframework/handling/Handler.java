@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.routing;
+package org.ratpackframework.handling;
 
-public interface Routing {
+import org.ratpackframework.api.NonBlocking;
 
-  Exchange getExchange();
+public interface Handler {
 
-  void route(Handler handler);
+  @NonBlocking
+  void handle(Exchange exchange);
 
 }

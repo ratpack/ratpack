@@ -24,7 +24,7 @@ import io.netty.handler.codec.http.HttpRequestDecoder;
 import io.netty.handler.codec.http.HttpResponseEncoder;
 import io.netty.handler.stream.ChunkedWriteHandler;
 import io.netty.util.concurrent.DefaultEventExecutorGroup;
-import org.ratpackframework.routing.Handler;
+import org.ratpackframework.handling.Handler;
 
 import java.io.File;
 

@@ -31,9 +31,9 @@ import org.ratpackframework.http.Request;
 import org.ratpackframework.http.Response;
 import org.ratpackframework.http.internal.DefaultRequest;
 import org.ratpackframework.http.internal.DefaultResponse;
-import org.ratpackframework.routing.Exchange;
-import org.ratpackframework.routing.Handler;
-import org.ratpackframework.routing.internal.DefaultExchange;
+import org.ratpackframework.handling.Exchange;
+import org.ratpackframework.handling.Handler;
+import org.ratpackframework.handling.internal.DefaultExchange;
 
 import java.io.File;
 

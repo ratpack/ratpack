@@ -20,7 +20,7 @@ import org.ratpackframework.bootstrap.RatpackServer;
 import org.ratpackframework.bootstrap.RatpackServerBuilder;
 import org.ratpackframework.groovy.bootstrap.GroovyKitAppFactory;
 import org.ratpackframework.groovy.internal.ScriptBackedApp;
-import org.ratpackframework.routing.Handler;
+import org.ratpackframework.handling.Handler;
 
 import java.io.File;
 import java.net.InetAddress;

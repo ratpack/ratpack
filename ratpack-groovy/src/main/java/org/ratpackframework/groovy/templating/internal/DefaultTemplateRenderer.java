@@ -20,7 +20,7 @@ import io.netty.buffer.ByteBuf;
 import org.ratpackframework.util.internal.Result;
 import org.ratpackframework.util.internal.ResultAction;
 import org.ratpackframework.groovy.templating.TemplateRenderer;
-import org.ratpackframework.routing.Exchange;
+import org.ratpackframework.handling.Exchange;
 
 import java.io.File;
 import java.util.Collections;

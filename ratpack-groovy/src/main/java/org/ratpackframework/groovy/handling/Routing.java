@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.groovy.routing;
+package org.ratpackframework.groovy.handling;
 
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
-import org.ratpackframework.routing.Exchange;
+import org.ratpackframework.handling.Exchange;
 
 import java.util.List;
 
-public interface Routing extends org.ratpackframework.routing.Routing {
+public interface Routing extends org.ratpackframework.handling.Routing {
 
   void route(@DelegatesTo(value = Exchange.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
 

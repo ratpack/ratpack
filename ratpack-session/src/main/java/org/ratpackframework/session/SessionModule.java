@@ -20,7 +20,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Injector;
 import com.google.inject.Singleton;
 import org.ratpackframework.guice.HandlerDecoratingModule;
-import org.ratpackframework.routing.Handler;
+import org.ratpackframework.handling.Handler;
 import org.ratpackframework.session.internal.DefaultSessionIdGenerator;
 import org.ratpackframework.session.internal.DefaultSessionManager;
 import org.ratpackframework.session.internal.SessionBindingHandler;

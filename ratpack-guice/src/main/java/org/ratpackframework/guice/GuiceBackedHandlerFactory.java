@@ -16,7 +16,7 @@
 
 package org.ratpackframework.guice;
 
-import org.ratpackframework.routing.Handler;
+import org.ratpackframework.handling.Handler;
 import org.ratpackframework.util.Action;
 
 public interface GuiceBackedHandlerFactory {

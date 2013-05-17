@@ -25,8 +25,8 @@ import java.io.File;
  * <p>
  * The file system binding is used by asset serving handlers, among other places.
  *
- * @see org.ratpackframework.routing.Handlers#fsContext(String, org.ratpackframework.util.Action)
- * @see org.ratpackframework.routing.Handlers#assets(String, org.ratpackframework.routing.Handler)
+ * @see org.ratpackframework.handling.Handlers#fsContext(String, org.ratpackframework.util.Action)
+ * @see org.ratpackframework.handling.Handlers#assets(String, org.ratpackframework.handling.Handler)
  */
 public interface FileSystemBinding {
 
@@ -52,7 +52,7 @@ public interface FileSystemBinding {
    *
    * Absolute paths are resolved relative to the bind point, not the filesystem root.
    * <p>
-   * Prefer using {@link org.ratpackframework.routing.Exchange#file(String)}.
+   * Prefer using {@link org.ratpackframework.handling.Exchange#file(String)}.
    *
    * @param path The relative path from this binding to the desired binding
    * @return The binding
@@ -62,7 +62,7 @@ public interface FileSystemBinding {
   /**
    * Construct a new binding at the given file.
    *
-   * Prefer using {@link org.ratpackframework.routing.Exchange#file(String)}.
+   * Prefer using {@link org.ratpackframework.handling.Exchange#file(String)}.
    *
    * @param file The file of the desired binding
    * @return The binding

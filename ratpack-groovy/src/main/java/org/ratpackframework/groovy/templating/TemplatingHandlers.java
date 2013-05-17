@@ -18,7 +18,7 @@ package org.ratpackframework.groovy.templating;
 
 import org.ratpackframework.groovy.templating.internal.TemplateRendererBindingHandler;
 import org.ratpackframework.groovy.templating.internal.TemplateRenderingErrorHandler;
-import org.ratpackframework.routing.Handler;
+import org.ratpackframework.handling.Handler;
 
 public abstract class TemplatingHandlers {
 

@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.groovy.routing.internal;
+package org.ratpackframework.groovy.handling.internal;
 
 import groovy.lang.Closure;
 import org.ratpackframework.groovy.ClosureHandlers;
-import org.ratpackframework.groovy.routing.Routing;
-import org.ratpackframework.routing.Exchange;
-import org.ratpackframework.routing.Handler;
-import org.ratpackframework.routing.Handlers;
+import org.ratpackframework.groovy.handling.Routing;
+import org.ratpackframework.handling.Exchange;
+import org.ratpackframework.handling.Handler;
+import org.ratpackframework.handling.Handlers;
 
 import java.util.List;
 
