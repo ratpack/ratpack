@@ -20,10 +20,6 @@ Ratpack is micro web framework inspired by [Ruby's Sinatra](http://www.sinatrarb
 * Development time hot reloading (via [SpringSource's SpringLoaded](https://github.com/SpringSource/spring-loaded))
 * Gradle plugin for development and packaging support, including advanced IntelliJ IDEA support
 
-### Project Status
-
-Ratpack is currently at verison `0.7.0-SNAPSHOT`, which is the first version since the move to Netty (away from Jetty and J2EE).
-
 If you're interested in getting involved, please take a look at some of the [outstanding issues](https://github.com/ratpack/ratpack/issues) and comment away.
 
 ### Examples 
