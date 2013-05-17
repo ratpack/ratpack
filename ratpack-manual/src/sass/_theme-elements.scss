@@ -108,7 +108,7 @@
 		height: 0;
 		border-top: $border-weight dotted $black;
 	}
-	.border-radius.svg & {
+	.borderradius.svg & {
 		&:after {
 			content: " ";
 			background: {
