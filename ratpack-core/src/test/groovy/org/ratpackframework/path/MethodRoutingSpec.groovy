@@ -22,7 +22,7 @@ class MethodRoutingSpec extends DefaultRatpackSpec {
     then:
     urlGetText("/") == "GET"
     urlPostText("/") == "POST"
-    urlConnection("/", "PUT").responseCode == 415
+    urlConnection("/", "PUT").responseCode == 405
   }
 
 }

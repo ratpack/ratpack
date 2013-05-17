@@ -45,7 +45,7 @@ public class MethodHandler implements Handler {
     if (methods.contains(methodName)) {
       exchange.next(delegate);
     } else {
-      exchange.getResponse().status(415).send();
+      exchange.getResponse().status(405).send();
     }
   }
 }
