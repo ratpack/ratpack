@@ -84,7 +84,7 @@ abstract class RatpackSpec extends Specification {
   }
 
   HttpURLConnection urlConnection(String path = "", String method) {
-    def connection = new URL("http://localhost:$app.bindPort/$path").openConnection() as HttpURLConnection
+    def connection = new URL("http://$app.bindHost:$app.bindPort/$path").openConnection() as HttpURLConnection
     connection.allowUserInteraction = true
     connection.requestMethod = method.toUpperCase()
     cookieManager.setCookies(connection)

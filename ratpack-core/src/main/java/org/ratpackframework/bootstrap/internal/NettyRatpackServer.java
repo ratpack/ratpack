@@ -23,9 +23,10 @@ import io.netty.channel.ChannelInitializer;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import org.ratpackframework.util.Action;
 import org.ratpackframework.bootstrap.RatpackServer;
+import org.ratpackframework.util.Action;
 
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -85,7 +86,16 @@ public class NettyRatpackServer extends AbstractIdleService implements RatpackSe
   }
 
   public String getBindHost() {
-    return boundAddress == null ? null : boundAddress.getAddress().getHostName();
+    if (boundAddress == null) {
+      return null;
+    } else {
+      InetAddress address = boundAddress.getAddress();
+      if (address.isAnyLocalAddress()) {
+        return "localhost";
+      } else {
+        return address.getHostAddress();
+      }
+    }
   }
 
 }

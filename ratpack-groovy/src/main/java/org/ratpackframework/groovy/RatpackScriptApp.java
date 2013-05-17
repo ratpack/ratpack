@@ -23,6 +23,8 @@ import org.ratpackframework.groovy.internal.ScriptBackedApp;
 import org.ratpackframework.routing.Handler;
 
 import java.io.File;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.Properties;
 
 public abstract class RatpackScriptApp {
@@ -35,19 +37,29 @@ public abstract class RatpackScriptApp {
     String portString = properties.getProperty("ratpack.port", new Integer(RatpackServerBuilder.DEFAULT_PORT).toString());
     int port = Integer.valueOf(portString);
 
-    String host = properties.getProperty("ratpack.host", null);
+    InetAddress address = null;
+    String addressString = properties.getProperty("ratpack.address");
+
+    if (addressString != null) {
+      try {
+        address = InetAddress.getByName(addressString);
+      } catch (UnknownHostException e) {
+        throw new IllegalStateException("Failed to resolve requested bind address: " + addressString, e);
+      }
+    }
+
     boolean reloadable = Boolean.parseBoolean(properties.getProperty("ratpack.reloadable", "false"));
     boolean compileStatic = Boolean.parseBoolean(properties.getProperty("ratpack.compileStatic", "false"));
 
-    return ratpack(script, script.getAbsoluteFile().getParentFile(), port, host, compileStatic, reloadable);
+    return ratpack(script, script.getAbsoluteFile().getParentFile(), port, address, compileStatic, reloadable);
   }
 
-  public static RatpackServer ratpack(File script, File baseDir, int port, String host, boolean compileStatic, boolean reloadable) {
+  public static RatpackServer ratpack(File script, File baseDir, int port, InetAddress address, boolean compileStatic, boolean reloadable) {
     Handler scriptBackedApp = new ScriptBackedApp(script, new GroovyKitAppFactory(), compileStatic, reloadable);
 
     RatpackServerBuilder builder = new RatpackServerBuilder(scriptBackedApp, baseDir);
     builder.setPort(port);
-    builder.setHost(host);
+    builder.setAddress(address);
 
     return builder.build();
   }

@@ -26,6 +26,7 @@ import org.ratpackframework.routing.Handler;
 import org.ratpackframework.util.Action;
 
 import java.io.File;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 
 /**
@@ -44,7 +45,7 @@ public class RatpackServerBuilder {
   private int workerThreads = Runtime.getRuntime().availableProcessors() * 2;
 
   private int port = DEFAULT_PORT;
-  private String host;
+  private InetAddress address;
   private Action<RatpackServer> init = new NoopInit();
 
   /**
@@ -60,7 +61,7 @@ public class RatpackServerBuilder {
 
   /**
    * The port that the application should listen to requests on.
-   *
+   * <p/>
    * Defaults to {@value #DEFAULT_PORT}.
    *
    * @return The port that the application should listen to requests on.
@@ -79,31 +80,31 @@ public class RatpackServerBuilder {
   }
 
   /**
-   * The hostname of the interface that the application should bind to.
-   *
+   * The address of the interface that the application should bind to.
+   * <p/>
    * A value of null causes all interfaces to be bound. Defaults to null.
    *
-   * @return The hostname of the interface that the application should bind to.
+   * @return The address of the interface that the application should bind to.
    */
   @Nullable
-  public String getHost() {
-    return host;
+  public InetAddress getAddress() {
+    return address;
   }
 
   /**
-   * Sets the hostname of the interface that the application should bind to.
-   *
+   * Sets the address of the interface that the application should bind to.
+   * <p/>
    * A value of null causes all interfaces to be bound.
    *
-   * @param host The host.
+   * @param address The address.
    */
-  public void setHost(@Nullable String host) {
-    this.host = host;
+  public void setAddress(@Nullable InetAddress address) {
+    this.address = address;
   }
 
   /**
    * The action that will be executed with the server when it is started.
-   *
+   * <p/>
    * Defaults to a noop.
    *
    * @return The action that will be executed with the server when it is started.
@@ -123,13 +124,13 @@ public class RatpackServerBuilder {
 
   /**
    * The number of worker threads for handling application requests.
-   *
+   * <p/>
    * If the value is greater than 0, a thread pool (of this size) will be created for servicing requests. This allows handlers
    * to perform blocking operations.
-   * <p>
+   * <p/>
    * If the value is 0 or less, no thread pool will be used to handle requests. This means that the handler will be called on the
    * same thread that accepted the request. This means that handlers SHOULD NOT block in their operation.
-   * <p>
+   * <p/>
    * The default value for this property is calculated as: {@code Runtime.getRuntime().availableProcessors() * 2}
    *
    * @return The number of worker threads to use to execute the handler.
@@ -141,8 +142,8 @@ public class RatpackServerBuilder {
   /**
    * Sets the number of worker threads to use to execute the handler.
    *
-   * @see #setWorkerThreads(int)
    * @param workerThreads The number of worker threads to use to execute the handler.
+   * @see #setWorkerThreads(int)
    */
   public void setWorkerThreads(int workerThreads) {
     this.workerThreads = workerThreads;
@@ -150,7 +151,7 @@ public class RatpackServerBuilder {
 
   /**
    * Constructs a new server based on the builder's state.
-   *
+   * <p/>
    * The returned server has not been started.
    *
    * @return A new, not yet started, Ratpack server.
@@ -164,7 +165,7 @@ public class RatpackServerBuilder {
   }
 
   private InetSocketAddress buildSocketAddress() {
-    return (host == null) ? new InetSocketAddress(port) : new InetSocketAddress(host, port);
+    return (address == null) ? new InetSocketAddress(port) : new InetSocketAddress(address, port);
   }
 
   private ChannelInitializer<SocketChannel> buildChannelInitializer() {

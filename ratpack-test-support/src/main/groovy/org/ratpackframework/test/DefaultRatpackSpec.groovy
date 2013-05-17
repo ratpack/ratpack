@@ -39,7 +39,7 @@ class DefaultRatpackSpec extends RatpackSpec {
 
     RatpackServerBuilder builder = new RatpackServerBuilder(appHandler, dir)
     builder.port = 0
-    builder.host = null
+    builder.address = null
     builder.build()
   }
 
