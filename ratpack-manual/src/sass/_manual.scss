@@ -30,17 +30,24 @@ a {
 
 	.ratpack-logo {
 		@include content-width;
+		margin-bottom: 0;
 		&:not(.small) {
 			@include rem(font-size, 0.625rem);
 			@include when-tablet-portrait {
 				@include rem(font-size, 1rem);
+				margin-bottom: 1.5em;
 			}
 		}
 	}
 }
 
 .pagination, .manual-links {
-	@include link-bar;
+	@include when-tablet-portrait {
+		@include link-bar;
+		a {
+			@include diamond-button;
+		}
+	}
 }
 
 .pagination {
@@ -66,6 +73,7 @@ a {
 
 	header, > ul, > ol {
 		@include content-width;
+		@include clearfix;
 
 		&:last-child {
 			margin-bottom: 0;
@@ -88,19 +96,17 @@ a {
 
 	.manual-links {
 		@include margin-trailer(1);
-
-		h2, a {
-			margin-right: 1em;
-		}
 		h2 {
-			float: right;
 			@include adjust-font-size-to(16px);
-			line-height: 2;
-			margin: 0;
-
-			display: none;
-			@include when-tablet-portrait {
-				display: block;
+		}
+		@include when-tablet-portrait {
+			h2, a {
+				margin-right: 1em;
+			}
+			h2 {
+				float: right;
+				line-height: 2;
+				margin: 0;
 			}
 		}
 	}

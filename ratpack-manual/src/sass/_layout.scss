@@ -8,7 +8,7 @@
 
 @mixin content-width {
 	@include full-width;
-	@include when-tablet-portrait {
+	@include when-tablet-landscape {
 		@include column(10);
 		@include push(1);
 	}

@@ -1,8 +1,10 @@
 /*
  * Creates a diamond background behind an element.
  */
-@mixin diamond-background($color: transparentize($blue, 0.25), $hover-color: darken($color, 20%), $width: 8em, $height: 1.5em) {
+@mixin diamond-button($color: transparentize($blue, 0.25), $hover-color: darken($color, 20%), $width: 8em, $height: 1.5em) {
+	border-bottom: none;
 	text-align: center;
+	line-height: 3em;
 	position: relative;
 	z-index: 0;
 	min-width: $width;
@@ -41,6 +43,7 @@
 		}
 	}
 	&:hover, &:active {
+		color: inherit;
 		&:before {
 			@include safe-rgba(border-right-color, $hover-color);
 		}
@@ -78,13 +81,7 @@
 	a {
 		position: relative;
 		top: -0.5em;
-		border-bottom: none;
-		@include diamond-background;
-		line-height: 3em;
 		@include nowrap;
-		&:hover, &:active {
-			color: inherit;
-		}
 	}
 }
 
