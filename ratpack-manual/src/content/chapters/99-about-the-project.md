@@ -1,8 +1,10 @@
-# About this manual
+# The Ratpack Project
 
-## Resources
+## About this manual
 
-### Libraries
+### Resources
+
+#### Libraries
 
 * [Prism](http://prismjs.com/) by [Lea Verou](http://lea.verou.me/)
 * The [Semantic Grid System](http://semantic.gs/) by [TwigKit](http://twigkit.com/)
@@ -10,7 +12,7 @@
 * [Modernizr](http://modernizr.com/)
 * [jQuery](http://jquery.com/)
 
-### Fonts
+#### Fonts
 
 Web fonts are served by [Google Web Fonts](http://www.google.com/fonts/).
 
@@ -18,7 +20,7 @@ Web fonts are served by [Google Web Fonts](http://www.google.com/fonts/).
 * [Raleway](http://www.google.com/fonts/specimen/Raleway) by [The League of Moveable Type](http://www.theleagueofmoveabletype.com/)
 * [Engagement](http://www.google.com/fonts/specimen/Engagement) by [Astigmatic One Eye Typographic Institute](http://www.astigmatic.com/)
 
-### Images
+#### Images
 
 * [Groovepaper](http://subtlepatterns.com/groovepaper/) designed by [Isaac](http://graphicriver.net/user/krispdesigns) from Subtle Patterns
 * [Hat](http://thenounproject.com/noun/hat/#icon-No884) designed by [Adhara Garcia](http://thenounproject.com/adhara.garcia) from The Noun Project
