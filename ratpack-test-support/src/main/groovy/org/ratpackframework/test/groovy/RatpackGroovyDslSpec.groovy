@@ -9,12 +9,12 @@ import static org.ratpackframework.groovy.Closures.action
 
 class RatpackGroovyDslSpec extends DefaultRatpackSpec {
 
-  void routing(@DelegatesTo(ChainBuilder) Closure<?> configurer) {
-    this.routingCallback = configurer
+  void handlers(@DelegatesTo(ChainBuilder) Closure<?> configurer) {
+    this.handlersClosure = configurer
   }
 
   @Override
   protected Handler createHandler() {
-    return new RoutingHandler(action(routingCallback))
+    return new RoutingHandler(action(handlersClosure))
   }
 }

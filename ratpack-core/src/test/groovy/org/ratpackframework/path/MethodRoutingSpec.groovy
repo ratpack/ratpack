@@ -10,7 +10,7 @@ class MethodRoutingSpec extends DefaultRatpackSpec {
   def "can route by method"() {
     when:
     app {
-      routing {
+      handlers {
         add method(["get", "pOsT"]) {
           add handler {
             response.send request.method.name

@@ -32,7 +32,7 @@ class StaticFileSpec extends DefaultRatpackSpec {
 
     when:
     app {
-      routing {
+      handlers {
         add assets("public")
       }
     }
@@ -49,7 +49,7 @@ class StaticFileSpec extends DefaultRatpackSpec {
 
     when:
     app {
-      routing {
+      handlers {
         add assets("public")
       }
     }
@@ -65,7 +65,7 @@ class StaticFileSpec extends DefaultRatpackSpec {
 
     when:
     app {
-      routing {
+      handlers {
         add assets("public", "index.html", "index.xhtml")
       }
     }
@@ -82,7 +82,7 @@ class StaticFileSpec extends DefaultRatpackSpec {
 
     when:
     app {
-      routing {
+      handlers {
         add assets("public", "index.html")
       }
     }
@@ -99,7 +99,7 @@ class StaticFileSpec extends DefaultRatpackSpec {
 
     when:
     app {
-      routing {
+      handlers {
         add assets("d1")
         if (exchange.request.queryParams.includeSecond) {
           add assets("d2")
@@ -121,7 +121,7 @@ class StaticFileSpec extends DefaultRatpackSpec {
 
     when:
     app {
-      routing {
+      handlers {
         add assets("d1")
       }
     }
@@ -141,7 +141,7 @@ class StaticFileSpec extends DefaultRatpackSpec {
 
     when:
     app {
-      routing {
+      handlers {
         add assets("d1", handler {
           response.send("in not found handler")
         })
@@ -160,7 +160,7 @@ class StaticFileSpec extends DefaultRatpackSpec {
 
     when:
     app {
-      routing {
+      handlers {
         add fsContext("d1") {
           add fsContext("d2") {
             add assets("d3", "index.html")
@@ -179,7 +179,7 @@ class StaticFileSpec extends DefaultRatpackSpec {
 
     when:
     app {
-      routing {
+      handlers {
         add assetsPath("bar", "foo")
       }
     }

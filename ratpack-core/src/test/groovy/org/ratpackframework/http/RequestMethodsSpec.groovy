@@ -7,7 +7,7 @@ class RequestMethodsSpec extends RatpackGroovyDslSpec {
   def "can get query params"() {
     when:
     app {
-      routing {
+      handlers {
         get("") {
           response.send request.queryParams.toString()
         }

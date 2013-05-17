@@ -7,7 +7,7 @@ class CookiesSpec extends RatpackGroovyDslSpec {
   def "can get and set cookies"() {
     given:
     app {
-      routing {
+      handlers {
         get("get/:name") {
           response.send request.oneCookie(pathTokens.name) ?: "null"
         }

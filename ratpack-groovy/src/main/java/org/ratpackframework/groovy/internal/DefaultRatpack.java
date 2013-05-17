@@ -28,7 +28,7 @@ public class DefaultRatpack implements Ratpack {
     this.modulesConfigurer = modulesConfigurer;
   }
 
-  public void routing(Closure<?> routingConfigurer) {
+  public void handlers(Closure<?> routingConfigurer) {
     this.routingConfigurer = routingConfigurer;
   }
 

@@ -15,7 +15,7 @@ class SessionSpec extends RatpackGroovyDslSpec {
   def "can use session"() {
     when:
     app {
-      routing {
+      handlers {
         get(":v") {
           response.send get(Session).id
         }
@@ -29,7 +29,7 @@ class SessionSpec extends RatpackGroovyDslSpec {
   def "can store session vars"() {
     when:
     app {
-      routing {
+      handlers {
         get("") {
           def store = get(SessionStorage)
           response.send store.value.toString()
@@ -52,7 +52,7 @@ class SessionSpec extends RatpackGroovyDslSpec {
   def "can invalidate session vars"() {
     when:
     app {
-      routing {
+      handlers {
         get("") {
           def store = get(SessionStorage)
           response.send store.value ?: "null"
@@ -90,7 +90,7 @@ class SessionSpec extends RatpackGroovyDslSpec {
   def "sessions are created on demand"() {
     when:
     app {
-      routing {
+      handlers {
         get {
           response.send get(MapSessionStore).size().toString()
         }
@@ -102,7 +102,7 @@ class SessionSpec extends RatpackGroovyDslSpec {
 
     when:
     app {
-      routing {
+      handlers {
         get {
           get(SessionStorage)
           response.send get(MapSessionStore).size().toString()

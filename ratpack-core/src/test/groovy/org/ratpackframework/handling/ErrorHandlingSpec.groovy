@@ -16,7 +16,7 @@ class ErrorHandlingSpec extends RatpackGroovyDslSpec {
   def "handles internal error"() {
     when:
     app {
-      routing {
+      handlers {
         get("") { throw new RuntimeException('error here') }
       }
     }
@@ -35,7 +35,7 @@ class ErrorHandlingSpec extends RatpackGroovyDslSpec {
 
     when:
     app {
-      routing {
+      handlers {
         context(errorHandler) {
           get {
             withErrorHandling new Thread({

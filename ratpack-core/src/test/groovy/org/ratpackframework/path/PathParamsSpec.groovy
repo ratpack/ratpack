@@ -23,7 +23,7 @@ class PathParamsSpec extends RatpackGroovyDslSpec {
   def "can parse url params"() {
     given:
     app {
-      routing {
+      handlers {
         get(":a/:b/:c") {
           response.send pathTokens.toString()
         }

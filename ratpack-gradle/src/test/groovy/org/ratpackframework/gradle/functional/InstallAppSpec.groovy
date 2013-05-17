@@ -26,7 +26,7 @@ class InstallAppSpec extends FunctionalSpec {
       import static org.ratpackframework.groovy.RatpackScript.ratpack
 
       ratpack {
-        routing {
+        handlers {
           get("") {
             response.send "foo"
           }

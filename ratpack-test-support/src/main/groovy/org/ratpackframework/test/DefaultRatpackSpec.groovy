@@ -17,17 +17,17 @@ import static org.ratpackframework.groovy.Closures.configure
 
 class DefaultRatpackSpec extends RatpackSpec {
 
-  Closure<?> routingCallback = {}
-  Closure<?> modulesCallback = {}
+  Closure<?> handlersClosure = {}
+  Closure<?> modulesClosure = {}
 
   List<Module> modules = []
 
-  void routing(@DelegatesTo(ChainBuilder) Closure<?> configurer) {
-    this.routingCallback = configurer
+  void handlers(@DelegatesTo(ChainBuilder) Closure<?> configurer) {
+    this.handlersClosure = configurer
   }
 
   void modules(@DelegatesTo(ModuleRegistry) Closure<?> configurer) {
-    this.modulesCallback = configurer
+    this.modulesClosure = configurer
   }
 
   @Override
@@ -52,12 +52,12 @@ class DefaultRatpackSpec extends RatpackSpec {
       this.modules.each {
         registry.register(it)
       }
-      configure(registry, modulesCallback)
+      configure(registry, modulesClosure)
     }
   }
 
   protected Handler createHandler() {
-    routes(action(routingCallback))
+    routes(action(handlersClosure))
   }
 
 }

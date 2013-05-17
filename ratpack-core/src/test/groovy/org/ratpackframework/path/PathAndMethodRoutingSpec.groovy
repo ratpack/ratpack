@@ -9,7 +9,7 @@ class PathAndMethodRoutingSpec extends DefaultRatpackSpec {
   def "can use path and method routes"() {
     when:
     app {
-      routing {
+      handlers {
         add get("a/b/c") {
           response.send request.query
         }

@@ -1,7 +1,5 @@
 package org.ratpackframework.test.groovy
 
-import org.ratpackframework.groovy.templating.TemplateRenderer
-
 class BasicGroovyDslSpec extends RatpackGroovyDslSpec {
 
   def "can use special Groovy dsl"() {
@@ -10,7 +8,7 @@ class BasicGroovyDslSpec extends RatpackGroovyDslSpec {
 
     when:
     app {
-      routing {
+      handlers {
         get("a") {
           response.send "a handler"
         }
@@ -45,7 +43,7 @@ class BasicGroovyDslSpec extends RatpackGroovyDslSpec {
 
     when:
     app {
-      routing {
+      handlers {
         fsContext("foo") {
           get("foo") {
             response.send file("file.txt").text

@@ -67,7 +67,7 @@ class StandaloneScriptSpec extends RatpackGroovyScriptAppSpec {
         System.setProperty("ratpack.port", "0")
 
         ratpack {
-          routing {
+          handlers {
             get("") {
               response.send "foo"
             }
@@ -82,7 +82,7 @@ class StandaloneScriptSpec extends RatpackGroovyScriptAppSpec {
     when:
     script """
       ratpack {
-        routing {
+        handlers {
           get("") {
             response.send "bar"
           }

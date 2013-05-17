@@ -11,7 +11,7 @@ class PathRoutingSpec extends DefaultRatpackSpec {
   def "can route by path"() {
     when:
     app {
-      routing {
+      handlers {
         add path("abc") {
           add handler {
             response.send(get(PathBinding).boundTo)
@@ -27,7 +27,7 @@ class PathRoutingSpec extends DefaultRatpackSpec {
   def "can route by nested path"() {
     when:
     app {
-      routing {
+      handlers {
         add path("abc") {
           add path("def") {
             add handler {
@@ -45,7 +45,7 @@ class PathRoutingSpec extends DefaultRatpackSpec {
   def "can route by path with tokens"() {
     when:
     app {
-      routing {
+      handlers {
         add path(":a/:b/:c") {
           add handler {
             def pathContext = get(PathBinding)
@@ -62,7 +62,7 @@ class PathRoutingSpec extends DefaultRatpackSpec {
   def "can route by nested path with tokens"() {
     when:
     app {
-      routing {
+      handlers {
         add path(":a/:b") {
           add path(":d/:e") {
             add handler {
@@ -81,7 +81,7 @@ class PathRoutingSpec extends DefaultRatpackSpec {
   def "can route by exact path with tokens"() {
     when:
     app {
-      routing {
+      handlers {
         add exactPath(":a/:b/:c") {
           add handler {
             def pathContext = get(PathBinding)
@@ -99,7 +99,7 @@ class PathRoutingSpec extends DefaultRatpackSpec {
   def "can route by nested exact path with tokens"() {
     when:
     app {
-      routing {
+      handlers {
         add path(":a/:b") {
           add exactPath(":d/:e") {
             add handler {

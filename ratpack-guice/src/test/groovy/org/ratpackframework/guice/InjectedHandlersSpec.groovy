@@ -44,7 +44,7 @@ class InjectedHandlersSpec extends RatpackGroovyDslSpec {
           }
         })
       }
-      routing {
+      handlers {
         add handler(InjectedHandler)
       }
     }
