@@ -1,0 +1,29 @@
+body {
+	max-width: 1024px;
+	margin: 0 auto;
+	padding: 0 1em;
+
+	line-height: 1.4;
+}
+
+h1, h2, h3, h4, h5, h6 {
+	line-height: 1.1;
+}
+
+.fontface .ratpack-logo h1 {
+	font: {
+		family: "Engagement", cursive;
+		size: 4em;
+		weight: 400;
+	}
+	margin: 0.25em 0;
+}
+
+.toc ul {
+	list-style-type: none;
+	margin-left: 1em;
+
+	li span {
+		margin-right: 0.5em;
+	}
+}
