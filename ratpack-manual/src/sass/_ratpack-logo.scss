@@ -10,13 +10,20 @@ $logo-inverted: 'ratpack-logo-white.png';
     top: $base-size * 0.25;
     height: $base-size * 0.75;
     left: $base-size * 0.375;
-    width: $base-size * 3.125;
+    width: $base-size * 2.1875;
+    .backgroundsize & {
+      width: $base-size * 3.125;
+    }
   }
 }
 
 @mixin skewed-background-color($background-color) {
   &:before {
-    background-color: $background-color;
+    @if $background-color == transparent {
+      background-color: transparent;
+    } @else {
+      @include safe-rgba(background-color, $background-color);
+    }
   }
 }
 
@@ -49,7 +56,7 @@ $logo-inverted: 'ratpack-logo-white.png';
 
   h1 {
     display: inline-block;
-    padding: 0 (image-width($logo-image) / ($base-font-size * ($logo-font-size / 1em))) * 1em;
+    padding: 0;
     color: $black;
     @include smooth-font($black);
     font: {
@@ -58,14 +65,18 @@ $logo-inverted: 'ratpack-logo-white.png';
       size: $logo-font-size;
     }
     text-transform: none;
-    background: {
-      image: image-url($logo-image);
-      repeat: no-repeat;
-      position: {
-        y: bottom;
-        x: left;
+
+    .backgroundsize & {
+      padding: 0 (image-width($logo-image) / ($base-font-size * ($logo-font-size / 1em))) * 1em;
+      background: {
+        image: image-url($logo-image);
+        repeat: no-repeat;
+        position: {
+          y: bottom;
+          x: left;
+        }
+        size: contain;
       }
-      size: contain;
     }
 
     &:last-child {
@@ -80,7 +91,6 @@ $logo-inverted: 'ratpack-logo-white.png';
       size: $logo-font-size * 0.18;
     }
     @include text-shadow(0 1px 0 darken($black, 15), 0 -1px 0 darken(contrast-color($black), 40));
-    display: inline-block;
     padding: 0.2em 0.4em;
   }
 

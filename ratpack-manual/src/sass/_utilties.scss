@@ -44,3 +44,17 @@
   }
   #{$property}: $rems;
 }
+
+/*
+ * Outputs a color property with an opaque fallback for browsers that do not support RGBA.
+ */
+@mixin safe-rgba($property, $color, $fallback-color: opacify($color, 1)) {
+  @if opacity($color) == 1 {
+    #{$property}: $color;
+  } @else {
+    #{$property}: $fallback-color;
+    .rgba & {
+      #{$property}: $color;
+    }
+  }
+}

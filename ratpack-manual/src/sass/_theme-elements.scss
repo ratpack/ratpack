@@ -27,19 +27,25 @@
 	&:before {
 		left: 50%;
 		margin-left: $width * -0.5;
-		border-right: $width / 2 solid $color;
+		border-right: $width / 2 solid opacify($color, 1);
+		.rgba & {
+			border-right-color: $color;
+		}
 	}
 	&:after {
 		right: 50%;
 		margin-right: $width * -0.5;
-		border-left: $width / 2 solid $color;
+		border-left: $width / 2 solid opacify($color, 1);
+		.rgba & {
+			border-left-color: $color;
+		}
 	}
 	&:hover, &:active {
 		&:before {
-			border-right-color: $hover-color;
+			@include safe-rgba(border-right-color, $hover-color);
 		}
 		&:after {
-			border-left-color: $hover-color;
+			@include safe-rgba(border-left-color, $hover-color);
 		}
 	}
 
@@ -102,7 +108,7 @@
 		height: 0;
 		border-top: $border-weight dotted $black;
 	}
-	.svg & {
+	.border-radius.svg & {
 		&:after {
 			content: " ";
 			background: {
