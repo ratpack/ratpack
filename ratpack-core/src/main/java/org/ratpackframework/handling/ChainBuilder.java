@@ -18,8 +18,6 @@ package org.ratpackframework.handling;
 
 public interface ChainBuilder {
 
-  Exchange getExchange();
-
   void add(Handler handler);
 
 }

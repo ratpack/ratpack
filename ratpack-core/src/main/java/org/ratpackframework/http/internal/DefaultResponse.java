@@ -69,7 +69,7 @@ public class DefaultResponse implements Response {
   }
 
   protected Response contentType(String contentType) {
-    setHeader(HttpHeaders.Names.CONTENT_TYPE, new DefaultMediaType(contentType, "utf8").toString());
+    setHeader(HttpHeaders.Names.CONTENT_TYPE, DefaultMediaType.utf8(contentType).toString());
     return this;
   }
 

@@ -20,6 +20,7 @@ import org.ratpackframework.test.DefaultRatpackSpec
 
 import static org.ratpackframework.groovy.ClosureHandlers.fsContext
 import static org.ratpackframework.groovy.ClosureHandlers.handler
+import static org.ratpackframework.groovy.ClosureHandlers.path
 import static org.ratpackframework.handling.Handlers.assets
 import static org.ratpackframework.handling.Handlers.assetsPath
 
@@ -100,17 +101,18 @@ class StaticFileSpec extends DefaultRatpackSpec {
     when:
     app {
       handlers {
-        add assets("d1")
-        if (exchange.request.queryParams.includeSecond) {
+        add path("a") {
+          add assets("d1")
+        }
+        add path("b") {
           add assets("d2")
         }
       }
     }
 
     then:
-    urlGetText("f1.txt") == "1"
-    urlGetConnection("f2.txt").responseCode == 404
-    urlGetText("f2.txt?includeSecond") == "2"
+    urlGetText("a/f1.txt") == "1"
+    urlGetText("b/f2.txt") == "2"
   }
 
   def "decodes URL paths correctly"() {

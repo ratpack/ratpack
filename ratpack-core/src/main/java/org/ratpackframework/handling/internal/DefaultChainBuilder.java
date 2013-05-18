@@ -17,23 +17,16 @@
 package org.ratpackframework.handling.internal;
 
 import org.ratpackframework.handling.ChainBuilder;
-import org.ratpackframework.handling.Exchange;
 import org.ratpackframework.handling.Handler;
 
 import java.util.List;
 
 public class DefaultChainBuilder implements ChainBuilder {
 
-  private final Exchange exchange;
   private final List<Handler> handlers;
 
-  public DefaultChainBuilder(Exchange exchange, List<Handler> handlers) {
-    this.exchange = exchange;
+  public DefaultChainBuilder(List<Handler> handlers) {
     this.handlers = handlers;
-  }
-
-  public Exchange getExchange() {
-    return exchange;
   }
 
   public void add(Handler handler) {

@@ -34,7 +34,7 @@ public class ChainBuildingHandler implements Handler {
 
   public void handle(Exchange exchange) {
     List<Handler> handlers = new LinkedList<Handler>();
-    ChainBuilder chainBuilder = new DefaultChainBuilder(exchange, handlers);
+    ChainBuilder chainBuilder = new DefaultChainBuilder(handlers);
     action.execute(chainBuilder);
     exchange.next(handlers);
   }

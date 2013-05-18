@@ -43,8 +43,8 @@ class DefaultMediaTypeTest extends Specification {
     cts("application/json;a=1 ; b=2") == "application/json;a=1;b=2"
   }
 
-  private DefaultMediaType ct(s) {
-    new DefaultMediaType(s)
+  private MediaType ct(s) {
+    DefaultMediaType.get(s)
   }
 
   private String cts(s) {

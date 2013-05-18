@@ -52,7 +52,7 @@ public class DefaultRequest implements Request {
 
   public MediaType getContentType() {
     if (mediaType == null) {
-      mediaType = new DefaultMediaType(nettyRequest.headers().get(HttpHeaders.Names.CONTENT_TYPE));
+      mediaType = DefaultMediaType.get(getHeader(HttpHeaders.Names.CONTENT_TYPE));
     }
     return mediaType;
   }

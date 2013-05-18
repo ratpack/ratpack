@@ -19,7 +19,6 @@ package org.ratpackframework.groovy.handling.internal;
 import groovy.lang.Closure;
 import org.ratpackframework.groovy.ClosureHandlers;
 import org.ratpackframework.groovy.handling.ChainBuilder;
-import org.ratpackframework.handling.Exchange;
 import org.ratpackframework.handling.Handler;
 import org.ratpackframework.handling.Handlers;
 
@@ -30,10 +29,8 @@ import static org.ratpackframework.groovy.Closures.action;
 public class DefaultChainBuilder implements ChainBuilder {
 
   private final List<Handler> handlers;
-  private final Exchange exchange;
 
-  DefaultChainBuilder(Exchange exchange, List<Handler> handlers) {
-    this.exchange = exchange;
+  DefaultChainBuilder(List<Handler> handlers) {
     this.handlers = handlers;
   }
 
@@ -87,10 +84,6 @@ public class DefaultChainBuilder implements ChainBuilder {
 
   private Handler chainBuildingHandler(Closure<?> handlers) {
     return new ChainBuildingHandler(action(handlers));
-  }
-
-  public Exchange getExchange() {
-    return exchange;
   }
 
   public void add(Handler handler) {
