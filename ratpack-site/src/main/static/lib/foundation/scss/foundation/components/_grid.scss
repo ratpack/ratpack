@@ -1,0 +1,168 @@
+//
+// Grid Variables
+//
+$row-width:     emCalc(1000px) !default;
+$column-gutter: emCalc(30px) !default;
+$total-columns: 12 !default;
+
+//
+// Grid Mixins
+//
+
+// For creating container, nested, and collapsed rows.
+@mixin grid-row($behavior: false) {
+
+  // use @include grid-row(nest); to include a nested row
+  @if $behavior == nest {
+    width: auto;
+    margin-#{$default-float}: -($column-gutter/2);
+    margin-#{$opposite-direction}: -($column-gutter/2);
+    margin-top: 0;
+    margin-bottom: 0;
+    max-width: none;
+  }
+
+  // use @include grid-row(collapse); to collapsed a container row margins
+  @else if $behavior == collapse {
+    width: 100%;
+    margin: 0;
+    max-width: $row-width;
+  }
+
+  // use @include grid-row(nest-collapse); to collapse outer margins on a nested row
+  @else if $behavior == nest-collapse {
+    width: auto;
+    margin: 0;
+    max-width: none;
+  }
+
+  // use @include grid-row; to use a container row
+  @else {
+    width: 100%;
+    margin-#{$default-float}: auto;
+    margin-#{$opposite-direction}: auto;
+    margin-top: 0;
+    margin-bottom: 0;
+    max-width: $row-width;
+  }
+
+  // Clearfix for all rows
+  @include clearfix();
+
+}
+
+
+// For creating columns - @include these inside a media query to control small vs. large grid layouts
+@mixin grid-column($columns:false, $last-column:false, $center:false, $offset:false, $push:false, $pull:false, $collapse:false, $float:$default-float) {
+
+  position: relative;
+
+  // Gutter padding whenever a column isn't set to collapse
+  @if $collapse == false {
+    padding-#{$default-float}: $column-gutter / 2;
+    padding-#{$opposite-direction}: $column-gutter / 2;
+  }
+
+  // If a column number is given, calculate width
+  @if $columns {
+    width: gridCalc($columns, $total-columns);
+
+    // If last column, float naturally instead of to the right
+    @if $last-column { float: $opposite-direction; }
+
+    // if collapsed, get rid of gutter padding
+    @else if $collapse { padding-#{$default-float}: 0; padding-#{$opposite-direction}: 0; }
+
+  }
+
+  @if $collapse { padding-#{$default-float}: 0; padding-#{$opposite-direction}: 0; }
+
+  // If offset, calculate appropriate margins
+  @if $offset { margin-#{$default-float}: gridCalc($offset, $total-columns); }
+
+  // Source Ordering, adds left/right depending on which you use.
+  @if $push { #{$default-float}: gridCalc($push, $total-columns); #{$opposite-direction}: auto; }
+  @if $pull { #{$opposite-direction}: gridCalc($pull, $total-columns); #{$default-float}: auto; }
+
+  // If centered, get rid of float and add appropriate margins
+  @if $center {
+    margin-#{$default-float}: auto;
+    margin-#{$opposite-direction}: auto;
+    float: none !important;
+  }
+
+  @if $float {
+    @if $float == left or true { float: $default-float; }
+    @else if $float == right { float: $opposite-direction; }
+    @else { float: none; }
+  }
+
+}
+
+
+/* Grid HTML Classes */
+@if $include-html-grid-classes {
+
+  .row {
+    @include grid-row;
+
+    .column,
+    .columns { @include grid-column($columns:$total-columns); }
+
+    &.collapse {
+      .column,
+      .columns { @include grid-column($collapse:true); }
+    }
+
+    .row { @include grid-row($behavior:nest);
+      &.collapse { @include grid-row($behavior:nest-collapse); }
+    }
+  }
+
+  @media only screen {
+
+    .row .column,
+    .row .columns { @include grid-column($columns:false); }
+
+    @for $i from 1 through $total-columns {
+      .row .small#{-$i} { @include grid-column($columns:$i,$collapse:null,$float:false); }
+    }
+
+    @for $i from 1 through $total-columns - 2 {
+      .row .small-offset-#{$i} { @include grid-column($offset:$i, $collapse:null,$float:false); }
+    }
+
+    [class*="column"] + [class*="column"]:last-child { float: $opposite-direction; }
+    [class*="column"] + [class*="column"].end { float: $default-float; }
+
+    .column.small-centered,
+    .columns.small-centered { @include grid-column($center:true, $collapse:null, $float:false); }
+  }
+
+  /* Styles for screens that are atleast 768px; */
+  @media #{$small} {
+
+    @for $i from 1 through $total-columns {
+      .row .large#{-$i} { @include grid-column($columns:$i,$collapse:null,$float:false); }
+    }
+
+    @for $i from 1 through $total-columns - 2 {
+      .row .large-offset-#{$i} { @include grid-column($offset:$i, $collapse:null,$float:false); }
+    }
+
+    @for $i from 2 through $total-columns - 2 {
+      .push#{-$i} { @include grid-column($push:$i, $collapse:null, $float:false); }
+      .pull#{-$i} { @include grid-column($pull:$i, $collapse:null, $float:false); }
+    }
+
+    @for $i from 2 through $total-columns - 2 {
+      .small-push#{-$i} { #{$default-float}: inherit; }
+      .small-pull#{-$i} { #{$opposite-direction}: inherit; }
+    }
+
+    .column.large-centered,
+    .columns.large-centered { @include grid-column($center:true, $collapse:null, $float:false); }
+
+  }
+
+}

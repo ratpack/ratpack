@@ -1,0 +1,26 @@
+# Gradle
+/.gradle/
+/.gradletasknamecache
+/build/
+/buildSrc/.gradle/
+/buildSrc/build/
+
+# JRuby & SASS
+/.jruby/
+/.sass-cache/
+
+# IntelliJ IDEA
+/out/
+*.ipr
+*.iml
+*.iws
+
+# OSX
+.DS_Store
+
+# compiled files
+/src/ratpack/public/scripts/*
+/src/ratpack/public/styles/*
+/src/ratpack/*.class
+
+*.log
