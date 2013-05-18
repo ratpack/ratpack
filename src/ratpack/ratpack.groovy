@@ -1,14 +1,10 @@
-import org.ratpackframework.app.*
-import org.ratpackframework.groovy.app.Routing
+import static org.ratpackframework.groovy.RatpackScript.ratpack
 
-(this as Routing).with {
-
-	get('/') { Request request, Response response ->
-		response.redirect('index.html')
+ratpack {
+	handlers {
+        get {
+            response.sendFile("text/html", file('public/index.html'))
+        }
+        assets "public"
 	}
-
-	get('/chapter1') { Request request, Response response ->
-		render 'chapter1'
-	}
-
 }

@@ -4,6 +4,7 @@ import org.gradle.plugins.compass.*
 apply plugin: 'ratpack-groovy'
 apply plugin: 'coffeescript-base'
 apply plugin: 'compass'
+apply plugin: 'idea'
 
 configurations.all {
 	resolutionStrategy {
@@ -18,7 +19,7 @@ buildscript {
 		mavenCentral()
 	}
 	dependencies {
-		classpath 'org.ratpack-framework.netty:ratpack-gradle:0.7.0-SNAPSHOT'
+		classpath 'org.ratpack-framework:ratpack-gradle:0.9.0-SNAPSHOT'
 		classpath 'org.gradle.plugins:gradle-compass:1.0'
 	}
 }
@@ -51,9 +52,9 @@ compass {
 	javascriptsDir = file('src/ratpack/public/scripts')
 }
 
-processResources.inputs.files compileSass
 clean.dependsOn cleanCompileSass
 run.dependsOn watchSass
+installApp.dependsOn compileSass
 
 task wrapper(type: Wrapper) {
 	gradleVersion = '1.5'
