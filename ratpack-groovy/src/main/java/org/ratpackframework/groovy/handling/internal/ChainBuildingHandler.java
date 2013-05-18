@@ -26,16 +26,15 @@ import java.util.List;
 
 public class ChainBuildingHandler implements Handler {
 
-  private final Action<? super ChainBuilder> action;
+  private final List<Handler> handlers;
 
   public ChainBuildingHandler(Action<? super ChainBuilder> action) {
-    this.action = action;
+    handlers = new LinkedList<Handler>();
+    ChainBuilder chainBuilder = new DefaultChainBuilder(handlers);
+    action.execute(chainBuilder);
   }
 
   public void handle(Exchange exchange) {
-    List<Handler> handlers = new LinkedList<Handler>();
-    ChainBuilder chainBuilder = new DefaultChainBuilder(handlers);
-    action.execute(chainBuilder);
     exchange.next(handlers);
   }
 
