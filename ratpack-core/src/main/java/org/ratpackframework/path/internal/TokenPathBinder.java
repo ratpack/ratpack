@@ -36,35 +36,32 @@ public class TokenPathBinder implements PathBinder {
     Validations.noLeadingForwardSlash(path, "token path");
 
     List<String> names = new LinkedList<String>();
-    String regexString = Pattern.quote(path);
+    String pattern = Pattern.quote(path);
 
     Pattern placeholderPattern = Pattern.compile("(:\\w+)");
     Matcher matchResult = placeholderPattern.matcher(path);
     while (matchResult.find()) {
       String name = matchResult.group();
-      regexString = regexString.replaceFirst(name, "\\\\E([^/?&#]+)\\\\Q");
+      pattern = pattern.replaceFirst(name, "\\\\E([^/?&#]+)\\\\Q");
       names.add(name.substring(1));
     }
 
-    this.regex = Pattern.compile(regexString);
+    pattern = "(".concat(pattern).concat(")");
+    if (exact) {
+      regex = Pattern.compile(pattern);
+    } else {
+      regex = Pattern.compile(pattern.concat("(?:/.*)?"));
+    }
+
     this.tokenNames = Collections.unmodifiableList(names);
   }
 
   public PathBinding bind(String path, PathBinding parentBinding) {
-    String regexString = regex.pattern();
-
     if (parentBinding != null) {
-      regexString = parentBinding.childPath(regexString);
+      path = parentBinding.getPastBinding();
     }
 
-    regexString = "(" + regexString + ")";
-    if (!exact) {
-      regexString = regexString.concat("(?:/.*)?");
-    }
-
-    Pattern bindPattern = Pattern.compile(regexString);
-
-    Matcher matcher = bindPattern.matcher(path);
+    Matcher matcher = regex.matcher(path);
     if (matcher.matches()) {
       MatchResult matchResult = matcher.toMatchResult();
       String boundPath = matchResult.group(1);
