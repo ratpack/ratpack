@@ -72,6 +72,7 @@ public class ScriptBackedApp implements Handler {
           Action<ChainBuilder> chainBuilderAction = Closures.action(ChainBuilder.class, ratpack.getHandlersConfigurer());
 
           ChainBuildingHandler chainBuildingHandler = new ChainBuildingHandler(chainBuilderAction);
+
           return appFactory.create(modulesAction, chainBuildingHandler);
 
         } catch (Exception e) {
@@ -79,6 +80,16 @@ public class ScriptBackedApp implements Handler {
         }
       }
     });
+
+    new Thread(new Runnable() {
+      public void run() {
+        try {
+          reloadHandler.create();
+        } catch (Exception ignore) {
+          // ignore
+        }
+      }
+    }).run();
   }
 
   public void handle(Exchange exchange) {

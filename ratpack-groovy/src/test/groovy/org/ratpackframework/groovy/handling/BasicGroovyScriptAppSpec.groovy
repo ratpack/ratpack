@@ -13,7 +13,7 @@ class BasicGroovyScriptAppSpec extends RatpackGroovyScriptAppSpec {
       script """
         ratpack {
           handlers {
-            get("") {
+            get {
               getResponse().send("foo")
             }
           }
