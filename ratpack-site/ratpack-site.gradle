@@ -1,0 +1,121 @@
+buildscript {
+  repositories {
+    maven { url "http://dl.bintray.com/robfletcher/gradle-plugins" }
+    mavenCentral()
+  }
+  dependencies {
+    classpath 'org.gradle.plugins:gradle-compass:1.0'
+  }
+}
+
+import org.gradle.plugins.ide.idea.model.IdeaModel
+import org.gradle.plugins.javascript.coffeescript.CoffeeScriptCompile
+import org.gradle.plugins.compass.*
+
+apply plugin: 'coffeescript-base'
+apply plugin: 'compass'
+
+configurations {
+  springloaded {}
+}
+
+repositories {
+	mavenCentral()
+	maven { url "http://repo.springsource.org/repo" } // for springloaded
+	maven { url "http://repo.gradle.org/gradle/javascript-public/" } // for coffeescript plugin
+}
+
+apply plugin: "application"
+mainClassName = "org.ratpackframework.groovy.bootstrap.RatpackMain"
+
+task configureRun {
+  doLast {
+    run.jvmArgs "-javaagent:${configurations.springloaded.singleFile.absolutePath}", "-noverify"
+  }
+}
+
+run {
+  dependsOn configureRun
+  workingDir = "src/ratpack"
+}
+
+ideaModule.dependsOn configureRun
+
+dependencies {
+  springloaded "org.springsource.springloaded:springloaded-core:1.1.1"
+	compile project(":ratpack-groovy")
+}
+
+task compileCoffee(type: CoffeeScriptCompile) {
+	source fileTree('src/main/static/scripts')
+	destinationDir file('src/ratpack/public/scripts')
+}
+
+processResources.inputs.files compileCoffee
+clean.dependsOn cleanCompileCoffee
+
+compass {
+	cssDir = file('src/ratpack/public/styles')
+	sassDir = file('src/main/static/styles')
+	imagesDir = file('src/ratpack/public/images')
+	javascriptsDir = file('src/ratpack/public/scripts')
+}
+
+clean.dependsOn cleanCompileSass
+run.dependsOn watchSass
+installApp.dependsOn compileSass
+
+task createScriptsDir {
+  doLast {
+    mkdir "src/ratpack/public/scripts"
+  }
+}
+configure([watchSass, compileSass]) {
+  dependsOn createScriptsDir
+}
+
+// Duplicate the Gradle plugin stuff. We can't use it because it's part of this build.
+
+rootProject.ideaWorkspace.dependsOn(configureRun)
+def ideaModule = extensions.getByType(IdeaModel).module
+rootProject.extensions.getByType(IdeaModel).workspace.iws.withXml { XmlProvider provider ->
+  def jvmArgs = new ArrayList<>(run.allJvmArgs)
+  def cpArg = jvmArgs.indexOf("-cp")
+  if (cpArg < 0) {
+    cpArg = jvmArgs.indexOf("-classpath")
+  }
+
+  if (cpArg >= 0) {
+    jvmArgs.remove(cpArg) // -cp
+    jvmArgs.remove(cpArg) // associated value
+  }
+
+  Node node = provider.asNode()
+
+  Node runManagerConfig = node.getByName('component').find { it.'@name' == 'RunManager' }
+  runManagerConfig.append(new XmlParser().parseText("""
+            <configuration default="false" name="Ratpack Run (${ideaModule.name})" type="Application" factoryName="Application">
+              <extension name="coverage" enabled="false" merge="false" />
+              <option name="MAIN_CLASS_NAME" value="${run.main}" />
+              <option name="VM_PARAMETERS" value="${jvmArgs.collect { "&quot;$it&quot;" }.join(" ")}"  />
+              <option name="PROGRAM_PARAMETERS" value="" />
+              <option name="WORKING_DIRECTORY" value="${run.workingDir.absolutePath}" />
+              <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
+              <option name="ALTERNATIVE_JRE_PATH" value="" />
+              <option name="ENABLE_SWING_INSPECTOR" value="false" />
+              <option name="ENV_VARIABLES" />
+              <option name="PASS_PARENT_ENVS" value="true" />
+              <module name="${ideaModule.name}" />
+              <envs />
+              <RunnerSettings RunnerId="Debug">
+                <option name="DEBUG_PORT" value="63810" />
+                <option name="TRANSPORT" value="0" />
+                <option name="LOCAL" value="true" />
+              </RunnerSettings>
+              <RunnerSettings RunnerId="Run" />
+              <ConfigurationWrapper RunnerId="Debug" />
+              <ConfigurationWrapper RunnerId="Run" />
+              <method />
+            </configuration>
+        """))
+}

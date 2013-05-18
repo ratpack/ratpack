@@ -5,8 +5,8 @@ include \
     "ratpack-gradle",
     "ratpack-groovy",
     "ratpack-test-support",
-    "ratpack-manual"
-
+    "ratpack-manual",
+    "ratpack-site"
 
 rootProject.name = 'ratpack'
 

@@ -13,3 +13,5 @@ db/
 starth2
 .gradletasknamecache
 gradle.properties
+.sass-cache/
+.jruby/
