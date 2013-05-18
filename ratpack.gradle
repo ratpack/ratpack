@@ -24,7 +24,8 @@ allprojects {
     mavenCentral()
   }
 
-  if (project.hasProperty("enableClover")) {
+  def noClover = ["ratpack-site", "ratpack-manual"]
+  if (project.hasProperty("enableClover") && !noClover.contains(project.name)) {
     project.apply from: rootProject.file("gradle/clover.gradle")
   }
 }
