@@ -30,20 +30,20 @@ import java.io.File;
 
 public class RatpackChannelInitializer extends ChannelInitializer<SocketChannel> {
 
-  private final int workerThreads;
-  private final Handler handler;
-  private final File baseDir;
+  private NettyHandlerAdapter nettyHandlerAdapter;
+  private DefaultEventExecutorGroup eventExecutorGroup;
 
   public RatpackChannelInitializer(int workerThreads, Handler handler, File baseDir) {
-    this.workerThreads = workerThreads;
-    this.handler = handler;
-    this.baseDir = baseDir;
+    this.nettyHandlerAdapter = new NettyHandlerAdapter(handler, baseDir);
+
+    if (workerThreads > 0) {
+      this.eventExecutorGroup = new DefaultEventExecutorGroup(workerThreads);
+    } else {
+      this.eventExecutorGroup = null;
+    }
   }
 
-
-
   public void initChannel(SocketChannel ch) throws Exception {
-    // Create a default pipeline implementation.
     ChannelPipeline pipeline = ch.pipeline();
 
     pipeline.addLast("decoder", new HttpRequestDecoder());
@@ -51,10 +51,8 @@ public class RatpackChannelInitializer extends ChannelInitializer<SocketChannel>
     pipeline.addLast("encoder", new HttpResponseEncoder());
     pipeline.addLast("chunkedWriter", new ChunkedWriteHandler());
 
-    NettyHandlerAdapter nettyHandlerAdapter = new NettyHandlerAdapter(handler, baseDir);
-
-    if (workerThreads > 0) {
-      pipeline.addLast(new DefaultEventExecutorGroup(workerThreads), "handler", nettyHandlerAdapter);
+    if (eventExecutorGroup != null) {
+      pipeline.addLast(eventExecutorGroup, "handler", nettyHandlerAdapter);
     } else {
       pipeline.addLast("handler", nettyHandlerAdapter);
     }

@@ -18,6 +18,7 @@ package org.ratpackframework.bootstrap.internal;
 
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundMessageHandlerAdapter;
 import io.netty.handler.codec.http.*;
@@ -37,14 +38,26 @@ import org.ratpackframework.handling.internal.DefaultExchange;
 
 import java.io.File;
 
+@ChannelHandler.Sharable
 public class NettyHandlerAdapter extends ChannelInboundMessageHandlerAdapter<FullHttpRequest> {
 
   private final Handler handler;
-  private final File baseDir;
+  private final RootContext rootContext;
+  private Handler return404;
 
   public NettyHandlerAdapter(Handler handler, File baseDir) {
     this.handler = handler;
-    this.baseDir = baseDir;
+    this.rootContext = new RootContext(
+        new TopLevelErrorHandler(),
+        new ActivationBackedMimeTypes(),
+        new DefaultFileSystemBinding(baseDir)
+    );
+
+    return404 = new Handler() {
+      public void handle(Exchange exchange) {
+        exchange.getResponse().status(404).send();
+      }
+    };
   }
 
   public void messageReceived(ChannelHandlerContext ctx, FullHttpRequest nettyRequest) throws Exception {
@@ -57,18 +70,7 @@ public class NettyHandlerAdapter extends ChannelInboundMessageHandlerAdapter<Ful
 
     Request request = new DefaultRequest(nettyRequest);
     Response response = new DefaultResponse(nettyResponse, ctx.channel());
-
-    RootContext rootContext = new RootContext(
-        new TopLevelErrorHandler(),
-        new ActivationBackedMimeTypes(),
-        new DefaultFileSystemBinding(baseDir)
-    );
-
-    final Exchange exchange = new DefaultExchange(request, response, ctx, rootContext, new Handler() {
-      public void handle(Exchange exchange) {
-        exchange.getResponse().status(404).send();
-      }
-    });
+    final Exchange exchange = new DefaultExchange(request, response, ctx, rootContext, return404);
 
     exchange.next(new ErrorHandler(handler));
   }
