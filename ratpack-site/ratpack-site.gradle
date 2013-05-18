@@ -14,19 +14,35 @@ import org.gradle.plugins.compass.*
 
 apply plugin: 'coffeescript-base'
 apply plugin: 'compass'
+apply plugin: "application"
+
+repositories {
+  mavenCentral()
+  maven { url "http://repo.springsource.org/repo" } // for springloaded
+  maven { url "http://repo.gradle.org/gradle/javascript-public/" } // for coffeescript plugin
+}
 
 configurations {
   springloaded {}
+  latestManual {}
 }
 
-repositories {
-	mavenCentral()
-	maven { url "http://repo.springsource.org/repo" } // for springloaded
-	maven { url "http://repo.gradle.org/gradle/javascript-public/" } // for coffeescript plugin
+dependencies {
+  springloaded "org.springsource.springloaded:springloaded-core:1.1.1"
+  compile project(":ratpack-groovy")
+  latestManual project(":ratpack-manual")
 }
 
-apply plugin: "application"
-mainClassName = "org.ratpackframework.groovy.bootstrap.RatpackMain"
+
+task gatherManuals(type: Sync) {
+  inputs.files configurations.latestManual
+  into "src/ratpack/public/manual"
+  ["snapshot", version].each {
+    into it, {
+      from { zipTree(configurations.latestManual.singleFile) }
+    }
+  }
+}
 
 task configureRun {
   doLast {
@@ -34,17 +50,23 @@ task configureRun {
   }
 }
 
+task prepareContent {
+  dependsOn gatherManuals
+}
+
+mainClassName = "org.ratpackframework.groovy.bootstrap.RatpackMain"
+
 run {
-  dependsOn configureRun
+  dependsOn configureRun, prepareContent
   workingDir = "src/ratpack"
 }
 
-ideaModule.dependsOn configureRun
-
-dependencies {
-  springloaded "org.springsource.springloaded:springloaded-core:1.1.1"
-	compile project(":ratpack-groovy")
+installApp {
+  dependsOn prepareContent
+  from run.workingDir
 }
+
+ideaModule.dependsOn configureRun
 
 task compileCoffee(type: CoffeeScriptCompile) {
 	source fileTree('src/main/static/scripts')
@@ -52,7 +74,6 @@ task compileCoffee(type: CoffeeScriptCompile) {
 }
 
 processResources.inputs.files compileCoffee
-clean.dependsOn cleanCompileCoffee
 
 compass {
 	cssDir = file('src/ratpack/public/styles')
@@ -119,3 +140,6 @@ rootProject.extensions.getByType(IdeaModel).workspace.iws.withXml { XmlProvider 
             </configuration>
         """))
 }
+
+clean.dependsOn cleanCompileCoffee
+clean.dependsOn cleanGatherManuals

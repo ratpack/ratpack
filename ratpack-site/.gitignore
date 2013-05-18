@@ -1,4 +1,5 @@
 /src/ratpack/public/scripts/*
 /src/ratpack/public/styles/*
+/src/ratpack/public/manual/*
 /src/ratpack/*.class
 *.log

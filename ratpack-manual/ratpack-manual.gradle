@@ -11,7 +11,9 @@ buildscript {
   }
 }
 
-
+configurations {
+  delegate."default".extendsFrom archives
+}
 
 apply from: "$rootDir/gradle/checkstyle.gradle"
 apply from: "$rootDir/gradle/markdown2book.gradle"
