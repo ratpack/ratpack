@@ -8,6 +8,11 @@ buildscript {
   }
 }
 
+def encoding = java.nio.charset.Charset.defaultCharset().name()
+if (encoding != "UTF-8") {
+  throw new IllegalStateException("Build environment must be UTF-8 (it is: $encoding)")
+}
+
 allprojects {
   group = "org.ratpack-framework"
   version = rootProject.file("shared-resources/org/ratpackframework/ratpack-version.txt").text.trim()
