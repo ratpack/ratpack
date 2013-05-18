@@ -59,6 +59,7 @@ mainClassName = "org.ratpackframework.groovy.bootstrap.RatpackMain"
 run {
   dependsOn configureRun, prepareContent
   workingDir = "src/ratpack"
+  jvmArgs "-Dratpack.reloadable=true"
 }
 
 installApp {
