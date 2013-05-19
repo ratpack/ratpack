@@ -26,7 +26,7 @@ public class ActivationBackedMimeTypes implements MimeTypes {
   private final MimetypesFileTypeMap mimeTypesMap = new MimetypesFileTypeMap();
 
   public String getContentType(File file) {
-    return mimeTypesMap.getContentType(file);
+    return mimeTypesMap.getContentType(file.getName());
   }
 
 }

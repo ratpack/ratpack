@@ -23,16 +23,13 @@ import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.stream.ChunkedFile;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.RandomAccessFile;
+import java.io.*;
 import java.util.Date;
 
 public class FileHttpTransmitter {
 
-  public boolean transmit(File targetFile, HttpResponse response, Channel channel) {
-    RandomAccessFile raf;
+  public boolean transmit(final File targetFile, HttpResponse response, Channel channel) {
+    final RandomAccessFile raf;
     try {
       raf = new RandomAccessFile(targetFile, "r");
     } catch (FileNotFoundException fnfe) {
@@ -43,6 +40,7 @@ public class FileHttpTransmitter {
     try {
       fileLength = raf.length();
     } catch (IOException e) {
+      closeQuietly(raf);
       throw new RuntimeException(e);
     }
 
@@ -51,31 +49,58 @@ public class FileHttpTransmitter {
 
     // Write the initial line and the header.
     if (!channel.isOpen()) {
+      closeQuietly(raf);
       return false;
     }
 
-    channel.write(response);
+    try {
+      channel.write(response);
+    } catch (Exception e) {
+      closeQuietly(raf);
+    }
 
     // Write the content.
     ChannelFuture writeFuture;
 
+    ChunkedFile message = null;
     try {
-
-      writeFuture = channel.write(new ChunkedFile(raf, 0, fileLength, 8192));
+      message = new ChunkedFile(raf, 0, fileLength, 8192);
+      writeFuture = channel.write(message);
     } catch (Exception ignore) {
       if (channel.isOpen()) {
         channel.close();
       }
+      if (message != null) {
+        try {
+          message.close();
+        } catch (Exception e) {
+          throw new RuntimeException(e);
+        }
+      }
       return false;
     }
 
+    final ChunkedFile finalMessage = message;
     writeFuture.addListener(new ChannelFutureListener() {
       public void operationComplete(ChannelFuture future) {
+        try {
+          finalMessage.close();
+        } catch (Exception e) {
+          throw new RuntimeException(e);
+        }
         future.addListener(ChannelFutureListener.CLOSE);
       }
     });
 
     return true;
+  }
+
+  private void closeQuietly(Closeable closeable) {
+    try {
+      closeable.close();
+    } catch (IOException e1) {
+      throw new RuntimeException(e1);
+    }
   }
 
 }
