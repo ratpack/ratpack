@@ -41,15 +41,13 @@ public abstract class IoUtils {
       mBuf = ByteBuffer.allocate((int) fSize);
       fChan.read(mBuf);
       mBuf.rewind();
-    } catch (IOException e) {
+    } finally {
       if (fChan != null) {
         fChan.close();
       }
       if (fIn != null) {
         fIn.close();
       }
-
-      throw e;
     }
 
     return Unpooled.wrappedBuffer(mBuf);
