@@ -38,6 +38,11 @@ a {
 				margin-bottom: 1.5em;
 			}
 		}
+
+		a:link, a:hover, a:active, a:visited {
+			color: inherit;
+			border-bottom: none;
+		}
 	}
 }
 
