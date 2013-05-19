@@ -14,16 +14,28 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.error.internal;
+package org.ratpackframework.error;
 
+import org.ratpackframework.api.NonBlocking;
 import org.ratpackframework.handling.Exchange;
 
-public class TopLevelErrorHandler implements org.ratpackframework.error.ErrorHandler {
+/**
+ * An object that can deal with errors that occur during the processing of an exchange.
+ *
+ * Typically retrieved from the exchange context.
+ *
+ * @see Exchange#error(Exception)
+ * @see Exchange#withErrorHandling(Runnable)
+ */
+public interface ServerErrorHandler {
 
-  public void error(Exchange exchange, Exception exception) {
-    System.err.println("UNHANDLED EXCEPTION: " + exchange.getRequest().getUri());
-    exception.printStackTrace(System.err);
-    exchange.getResponse().status(500).send();
-  }
+  /**
+   * Processes the given exception that occurred processing the given exchange.
+   *
+   * @param exchange The exchange being processed
+   * @param exception The exception that occurred
+   */
+  @NonBlocking
+  void error(Exchange exchange, Exception exception);
 
 }

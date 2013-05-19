@@ -16,26 +16,25 @@
 
 package org.ratpackframework.error;
 
-import org.ratpackframework.api.NonBlocking;
 import org.ratpackframework.handling.Exchange;
 
 /**
- * An object that can deal with errors that occur during the processing of an exchange.
- *
- * Typically retrieved from the exchange context.
- *
- * @see Exchange#error(Exception)
- * @see Exchange#withErrorHandling(Runnable)
+ * The client error handler deals with errors that are due to the client doing something wrong.
+ * <p>
+ * Examples:
+ * <ul>
+ *   <li>Unsupported media type (415)
+ *   <li>Unsupported method (405)
+ * </ul>
  */
-public interface ErrorHandler {
+public interface ClientErrorHandler {
 
   /**
-   * Processes the given exception that occurred processing the given exchange.
+   * Handle a client error.
    *
-   * @param exchange The exchange being processed
-   * @param exception The exception that occurred
+   * @param exchange The exchange
+   * @param statusCode The 4xx status code that explains the problem
    */
-  @NonBlocking
-  void error(Exchange exchange, Exception exception);
+  void error(Exchange exchange, int statusCode);
 
 }

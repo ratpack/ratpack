@@ -39,13 +39,12 @@ public class MethodHandler implements Handler {
     this.delegate = delegate;
   }
 
-  @Override
   public void handle(Exchange exchange) {
     String methodName = exchange.getRequest().getMethod().getName();
     if (methods.contains(methodName)) {
       exchange.next(delegate);
     } else {
-      exchange.getResponse().status(405).send();
+      exchange.clientError(405);
     }
   }
 }

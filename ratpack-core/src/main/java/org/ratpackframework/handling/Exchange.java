@@ -57,6 +57,8 @@ public interface Exchange {
 
   void error(Exception exception);
 
+  void clientError(int statusCode);
+
   void withErrorHandling(Runnable runnable);
 
   ByMethodChain getMethods();

@@ -25,6 +25,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import static io.netty.handler.codec.http.HttpResponseStatus.METHOD_NOT_ALLOWED;
+
 public class DefaultByMethodChain implements ByMethodChain {
 
   private final Exchange exchange;
@@ -70,7 +72,7 @@ public class DefaultByMethodChain implements ByMethodChain {
     for (Map.Entry<String, Runnable> entry : runnables.entrySet()) {
       handlers.add(new ByMethodHandler(entry.getKey(), entry.getValue()));
     }
-    handlers.add(new MethodNotAllowedHandler());
+    handlers.add(new ClientErrorHandler(METHOD_NOT_ALLOWED.code()));
     exchange.next(handlers);
   }
 

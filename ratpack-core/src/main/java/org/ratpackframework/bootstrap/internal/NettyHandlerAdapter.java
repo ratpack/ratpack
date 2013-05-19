@@ -24,10 +24,12 @@ import io.netty.channel.ChannelInboundMessageHandlerAdapter;
 import io.netty.handler.codec.http.*;
 import io.netty.util.CharsetUtil;
 import org.ratpackframework.context.internal.RootContext;
+import org.ratpackframework.error.internal.DefaultClientErrorHandler;
+import org.ratpackframework.error.internal.DefaultServerErrorHandler;
 import org.ratpackframework.error.internal.ErrorCatchingHandler;
-import org.ratpackframework.error.internal.TopLevelErrorHandler;
 import org.ratpackframework.file.internal.ActivationBackedMimeTypes;
 import org.ratpackframework.file.internal.DefaultFileSystemBinding;
+import org.ratpackframework.handling.internal.ClientErrorHandler;
 import org.ratpackframework.http.Request;
 import org.ratpackframework.http.Response;
 import org.ratpackframework.http.internal.DefaultRequest;
@@ -37,6 +39,8 @@ import org.ratpackframework.handling.Handler;
 import org.ratpackframework.handling.internal.DefaultExchange;
 
 import java.io.File;
+
+import static io.netty.handler.codec.http.HttpResponseStatus.NOT_FOUND;
 
 @ChannelHandler.Sharable
 public class NettyHandlerAdapter extends ChannelInboundMessageHandlerAdapter<FullHttpRequest> {
@@ -48,16 +52,13 @@ public class NettyHandlerAdapter extends ChannelInboundMessageHandlerAdapter<Ful
   public NettyHandlerAdapter(Handler handler, File baseDir) {
     this.handler = handler;
     this.rootContext = new RootContext(
-        new TopLevelErrorHandler(),
+        new DefaultServerErrorHandler(),
+        new DefaultClientErrorHandler(),
         new ActivationBackedMimeTypes(),
         new DefaultFileSystemBinding(baseDir)
     );
 
-    return404 = new Handler() {
-      public void handle(Exchange exchange) {
-        exchange.getResponse().status(404).send();
-      }
-    };
+    return404 = new ClientErrorHandler(NOT_FOUND.code());
   }
 
   public void messageReceived(ChannelHandlerContext ctx, FullHttpRequest nettyRequest) throws Exception {

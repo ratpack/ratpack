@@ -14,15 +14,17 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.handling.internal;
+package org.ratpackframework.error.internal;
 
+import org.ratpackframework.error.ServerErrorHandler;
 import org.ratpackframework.handling.Exchange;
-import org.ratpackframework.handling.Handler;
 
-public class MethodNotAllowedHandler implements Handler {
+public class DefaultServerErrorHandler implements ServerErrorHandler {
 
-  public void handle(Exchange exchange) {
-    exchange.getResponse().status(405).send();
+  public void error(Exchange exchange, Exception exception) {
+    System.err.println("UNHANDLED EXCEPTION: " + exchange.getRequest().getUri());
+    exception.printStackTrace(System.err);
+    exchange.getResponse().status(500).send();
   }
 
 }
