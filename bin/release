@@ -6,11 +6,9 @@ BUILD_DIR=$1
 cat <<EOF
 ---
 config_vars:
-  PATH: .jdk7/bin:.gradle/bin:.tools:/usr/local/bin:/usr/bin:/bin
-  JAVA_OPTS: -Xmx384m -Xss512k
-  RATPACK_SITE_OPTS: -Dratpack.port=\$PORT -Dfile.encoding=UTF-8
-addons:
-  shared-database:5mb
+  JAVA_HOME: .jdk7
+  JAVA_OPTS: -Dfile.encoding=UTF-8 -server -Xmx512m -XX:+UseCompressedOops
+  RATPACK_SITE_OPTS: -Dratpack.port=\$PORT
 EOF
 
 if [ ! -f $BUILD_DIR/Procfile ]; then
