@@ -1,7 +1,7 @@
 /*
  * Creates a diamond background behind an element.
  */
-@mixin diamond-button($color: transparentize($blue, 0.25), $hover-color: darken($color, 20%), $width: 8em, $height: 1.5em) {
+@mixin diamond-button($color: transparentize($blue, 0.25), $hover-color: transparentize($red, 0.25), $width: 8em, $height: 1.5em) {
 	border-bottom: none;
 	text-align: center;
 	line-height: 3em;

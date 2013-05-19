@@ -68,7 +68,7 @@ a {
 
 	a {
 		$arrow-color: transparentize($blue, 0.25);
-		$highlight-color: $red;//darken($arrow-color, 20%);
+		$highlight-color: transparentize($red, 0.25);
 
 		border-bottom: none;
 
