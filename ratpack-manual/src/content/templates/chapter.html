@@ -15,9 +15,11 @@
   </header>
 
   <nav class="pagination">
-    <% if (prev) { %><a href="<%= prev.filename %>" rel="prev"><%= prev.title %></a><% } %>
-    <a href="index.html" rel="index">Table of Contents</a>
-    <% if (next) { %><a href="<%= next.filename %>" rel="next"><%= next.title %></a><% } %>
+    <ul>
+      <% if (prev) { %><li class="prev"><a href="<%= prev.filename %>" rel="prev"><%= prev.title %></a></li><% } %>
+      <li class="index"><a href="index.html" rel="index">Table of Contents</a></li>
+      <% if (next) { %><li class="next"><a href="<%= next.filename %>" rel="next"><%= next.title %></a></li><% } %>
+    </ul>
   </nav>
 
   <nav class="toc page-toc">
@@ -31,9 +33,11 @@
   </article>
 
   <nav class="pagination">
-    <% if (prev) { %><a href="<%= prev.filename %>" rel="prev"><%= prev.title %></a><% } %>
-    <a href="index.html" rel="index">Table of Contents</a>
-    <% if (next) { %><a href="<%= next.filename %>" rel="next"><%= next.title %></a><% } %>
+    <ul>
+      <% if (prev) { %><li class="prev"><a href="<%= prev.filename %>" rel="prev"><%= prev.title %></a></li><% } %>
+      <li class="index"><a href="index.html" rel="index">Table of Contents</a></li>
+      <% if (next) { %><li class="next"><a href="<%= next.filename %>" rel="next"><%= next.title %></a></li><% } %>
+    </ul>
   </nav>
 
   <footer class="page-footer">

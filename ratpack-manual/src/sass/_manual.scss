@@ -41,27 +41,63 @@ a {
 	}
 }
 
-.pagination, .manual-links {
-	@include when-tablet-portrait {
-		@include link-bar;
-		a {
-			@include diamond-button;
-		}
-	}
-}
-
 .pagination {
-	@include row;
 	@include margin-leader(1);
 	@include margin-trailer(1);
 
-	a {
+	ul {
+		@include row;
+		padding: 0;
+	}
+	li {
 		@include column(4);
 		text-align: center;
 		padding: 0 1em;
 
-		&[rel='index']:first-child {
-			@include push(4);
+		&.index {
+			&:first-child {
+				@include push(4);
+			}
+		}
+	}
+
+	a {
+		$arrow-color: transparentize($blue, 0.25);
+		$highlight-color: $red;//darken($arrow-color, 20%);
+
+		border-bottom: none;
+
+		position: relative;
+		&:after {
+			display: inline-block;
+			position: absolute;
+			bottom: 0;
+			color: $arrow-color;
+			font-size: 1.5em;
+			@include single-transition;
+		}
+
+		&:active, &:hover {
+			&:after {
+				color: $highlight-color;
+			}
+		}
+
+		&[rel="index"]:after {
+			left: 50%;
+			margin-left: -0.5em;
+			top: -1em;
+			content: "\25B2";
+		}
+
+		&[rel="prev"]:after {
+			left: -1.25em;
+			content: "\25C0";
+		}
+
+		&[rel="next"]:after {
+			right: -1.25em;
+			content: "\25B6";
 		}
 	}
 }
@@ -100,6 +136,7 @@ a {
 			@include adjust-font-size-to(16px);
 		}
 		@include when-tablet-portrait {
+			@include link-bar;
 			h2, a {
 				margin-right: 1em;
 			}
@@ -107,6 +144,9 @@ a {
 				float: right;
 				line-height: 2;
 				margin: 0;
+			}
+			a {
+				@include diamond-button;
 			}
 		}
 	}
