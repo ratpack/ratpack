@@ -39,6 +39,7 @@ public class TemplateRenderingClientErrorHandler implements ClientErrorHandler {
     Map<String, Object> metadata = new LinkedHashMap<String, Object>();
     metadata.put("Request Method", exchange.getRequest().getMethod().getName());
     metadata.put("Request URL", exchange.getRequest().getUri());
+    model.put("metadata", metadata);
 
     exchange.getResponse().status(statusCode);
 
