@@ -16,15 +16,33 @@
 
 package org.ratpackframework.groovy.templating.internal;
 
-import org.ratpackframework.error.ServerErrorHandler;
+import io.netty.handler.codec.http.HttpResponseStatus;
+import org.ratpackframework.error.ClientErrorHandler;
 import org.ratpackframework.groovy.templating.TemplateRenderer;
 import org.ratpackframework.handling.Exchange;
 
-public class TemplateRenderingErrorHandler implements ServerErrorHandler {
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
-  public void error(Exchange exchange, Exception exception) {
+public class TemplateRenderingClientErrorHandler implements ClientErrorHandler {
+
+  public void error(Exchange exchange, int statusCode) {
     TemplateRenderer renderer = exchange.get(TemplateRenderer.class);
-    renderer.error(ExceptionToTemplateModel.transform(exchange.getRequest(), exception));
+    Map<String, Object> model = new HashMap<String, Object>();
+
+    HttpResponseStatus status = HttpResponseStatus.valueOf(statusCode);
+
+    model.put("title", status.reasonPhrase());
+    model.put("message", status.reasonPhrase());
+
+    Map<String, Object> metadata = new LinkedHashMap<String, Object>();
+    metadata.put("Request Method", exchange.getRequest().getMethod().getName());
+    metadata.put("Request URL", exchange.getRequest().getUri());
+
+    exchange.getResponse().status(statusCode);
+
+    renderer.error(model);
   }
 
 }

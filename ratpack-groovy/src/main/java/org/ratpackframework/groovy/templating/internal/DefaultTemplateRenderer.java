@@ -17,6 +17,7 @@
 package org.ratpackframework.groovy.templating.internal;
 
 import io.netty.buffer.ByteBuf;
+import org.ratpackframework.http.Response;
 import org.ratpackframework.util.internal.Result;
 import org.ratpackframework.util.internal.ResultAction;
 import org.ratpackframework.groovy.templating.TemplateRenderer;
@@ -60,7 +61,11 @@ public class DefaultTemplateRenderer implements TemplateRenderer {
         if (thing.isFailure()) {
           exchange.error(thing.getFailure());
         } else {
-          exchange.getResponse().status(500).send("text/html", thing.getValue());
+          Response response = exchange.getResponse();
+          if (response.getStatus().getCode() < 400) {
+            response.status(500);
+          }
+          response.send("text/html", thing.getValue());
         }
       }
     });

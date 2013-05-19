@@ -16,6 +16,7 @@
 
 package org.ratpackframework.groovy.templating
 
+import org.ratpackframework.error.ClientErrorHandler
 import org.ratpackframework.test.groovy.RatpackGroovyDslSpec
 import spock.lang.Unroll
 
@@ -200,5 +201,21 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     then:
     errorGetText().contains "[inner.html] compilation failure"
   }
+
+  def "client errors are rendered with the template renderer"() {
+    when:
+    app {
+      handlers {
+        handler {
+          clientError(404)
+        }
+      }
+    }
+
+    then:
+    urlGetConnection().errorStream.text.contains "<title>Not Found</title>"
+    urlGetConnection().responseCode == 404
+  }
+
 
 }
