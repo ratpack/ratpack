@@ -1,0 +1,13 @@
+apply plugin: 'groovy'
+
+dependencies {
+  groovy localGroovy()
+  compile gradleApi()
+}
+
+sourceSets {
+  main {
+    groovy.srcDirs = ["../ratpack-gradle/src/main/groovy"]
+    resources.srcDirs = ["../ratpack-gradle/src/main/resources", "../shared-resources"]
+  }
+}
