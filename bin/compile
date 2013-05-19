@@ -48,8 +48,8 @@ export PATH="$JAVA_HOME/bin:$PATH"
 echo ""
 echo "-----> Building project with Gradle wrapper:"
 echo "       ./gradlew clean installApp"
-GRADLE_OPTS="-Xmx384m -Xss512k -XX:+UseCompressedOops"
-JAVA_OPTS="-Dfile.encoding=UTF-8"
+export GRADLE_OPTS="-Xmx384m -Xss512k -XX:+UseCompressedOops"
+export JAVA_OPTS="-Dfile.encoding=UTF-8"
 ./gradlew clean installApp
 
 rm -rf "$CACHE_DIR/.jdk7"
