@@ -19,11 +19,11 @@ package org.ratpackframework.error.internal;
 import org.ratpackframework.handling.Exchange;
 import org.ratpackframework.handling.Handler;
 
-public class ErrorHandler implements Handler {
+public class ErrorCatchingHandler implements Handler {
 
   private final Handler handler;
 
-  public ErrorHandler(Handler handler) {
+  public ErrorCatchingHandler(Handler handler) {
     this.handler = handler;
   }
 
