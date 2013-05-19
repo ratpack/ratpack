@@ -59,4 +59,6 @@ public interface Exchange {
 
   void withErrorHandling(Runnable runnable);
 
+  ByMethodChain getMethods();
+
 }

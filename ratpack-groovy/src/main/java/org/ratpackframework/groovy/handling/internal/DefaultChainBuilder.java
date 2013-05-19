@@ -17,8 +17,10 @@
 package org.ratpackframework.groovy.handling.internal;
 
 import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 import org.ratpackframework.groovy.ClosureHandlers;
 import org.ratpackframework.groovy.handling.ChainBuilder;
+import org.ratpackframework.handling.Exchange;
 import org.ratpackframework.handling.Handler;
 import org.ratpackframework.handling.Handlers;
 
@@ -52,6 +54,10 @@ public class DefaultChainBuilder implements ChainBuilder {
 
   public void handler(String path, List<String> methods, Closure<?> handler) {
     add(ClosureHandlers.handler(path, methods, handler));
+  }
+
+  public void handler(String path, @DelegatesTo(value = Exchange.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler) {
+    add(Handlers.exactPath(path, ClosureHandlers.handler(handler)));
   }
 
   public void get(String path, Closure<?> handler) {

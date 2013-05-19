@@ -63,4 +63,27 @@ class BasicGroovyDslSpec extends RatpackGroovyDslSpec {
     urlGetText("foo") == 'foo'
     urlGetText("bar") == 'bar'
   }
+
+  def "can use method chain"() {
+    when:
+    app {
+      handlers {
+        handler("foo") {
+          def prefix = "common"
+
+          methods.get {
+            response.send("$prefix: get")
+          }.post {
+            response.send("$prefix: post")
+          }.call()
+        }
+      }
+    }
+
+    then:
+    urlGetText("foo") == "common: get"
+    urlPostText("foo") == "common: post"
+    urlConnection("foo", "PUT").responseCode == 405
+  }
+
 }

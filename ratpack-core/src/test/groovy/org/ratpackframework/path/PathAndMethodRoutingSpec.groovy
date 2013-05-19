@@ -30,4 +30,26 @@ class PathAndMethodRoutingSpec extends DefaultRatpackSpec {
     urlPostText("1/2/3/4") == "[a:1, b:2, c:3, d:4]"
     urlConnection("5/6/7/8", "PUT").inputStream.text == "[A:5, B:6, C:7, D:8]"
   }
+
+  def "can use method chain"() {
+    when:
+    app {
+      handlers {
+        add handler("foo") {
+          def prefix = "common"
+
+          methods.get {
+            response.send("$prefix: get")
+          }.post {
+            response.send("$prefix: post")
+          }.call()
+        }
+      }
+    }
+
+    then:
+    urlGetText("foo") == "common: get"
+    urlPostText("foo") == "common: post"
+    urlConnection("foo", "PUT").responseCode == 405
+  }
 }

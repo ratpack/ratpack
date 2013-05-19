@@ -32,6 +32,8 @@ public interface ChainBuilder extends org.ratpackframework.handling.ChainBuilder
 
   void handler(String path, List<String> methods, @DelegatesTo(value = Exchange.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
 
+  void handler(String path, @DelegatesTo(value = Exchange.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
+
   void path(String path, @DelegatesTo(value = org.ratpackframework.groovy.handling.ChainBuilder.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
 
   void get(String path, @DelegatesTo(value = Exchange.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);

@@ -21,6 +21,7 @@ import org.ratpackframework.context.Context;
 import org.ratpackframework.context.internal.ObjectHoldingHierarchicalContext;
 import org.ratpackframework.error.ErrorHandler;
 import org.ratpackframework.file.FileSystemBinding;
+import org.ratpackframework.handling.ByMethodChain;
 import org.ratpackframework.path.PathBinding;
 import org.ratpackframework.handling.Exchange;
 import org.ratpackframework.handling.Handler;
@@ -120,6 +121,10 @@ public class DefaultExchange implements Exchange {
     } catch (Exception e) {
       error(e);
     }
+  }
+
+  public ByMethodChain getMethods() {
+    return new DefaultByMethodChain(this);
   }
 
   protected void doNext(final Context context, final List<Handler> handlers, final Handler exhausted) {
