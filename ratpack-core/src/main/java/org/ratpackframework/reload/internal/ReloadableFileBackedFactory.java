@@ -77,13 +77,18 @@ public class ReloadableFileBackedFactory<T> implements Factory<T> {
   }
 
   private boolean isBytesAreSame() throws IOException {
-    ByteBuf existing = contentHolder.get();
-    //noinspection SimplifiableIfStatement
-    if (existing == null) {
-      return false;
-    }
+    lock.lock();
+    try {
+      ByteBuf existing = contentHolder.get();
+      //noinspection SimplifiableIfStatement
+      if (existing == null) {
+        return false;
+      }
 
-    return IoUtils.readFile(file).equals(existing);
+      return IoUtils.readFile(file).equals(existing);
+    } finally {
+      lock.unlock();
+    }
   }
 
   private boolean refreshNeeded() throws IOException {
