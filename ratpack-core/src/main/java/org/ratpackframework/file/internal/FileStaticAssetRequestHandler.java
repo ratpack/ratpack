@@ -38,7 +38,7 @@ public class FileStaticAssetRequestHandler implements Handler {
     Response response = exchange.getResponse();
 
     if (!request.getMethod().isGet()) {
-      response.status(METHOD_NOT_ALLOWED.code(), METHOD_NOT_ALLOWED.reasonPhrase()).send();
+      exchange.clientError(METHOD_NOT_ALLOWED.code());
       return;
     }
 
@@ -51,7 +51,7 @@ public class FileStaticAssetRequestHandler implements Handler {
     }
 
     if (!targetFile.isFile()) {
-      response.status(FORBIDDEN.code(), FORBIDDEN.reasonPhrase()).send();
+      exchange.clientError(FORBIDDEN.code());
       return;
     }
 
