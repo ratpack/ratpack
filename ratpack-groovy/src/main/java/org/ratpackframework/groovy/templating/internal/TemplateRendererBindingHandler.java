@@ -35,9 +35,7 @@ public class TemplateRendererBindingHandler implements Handler {
 
   public void handle(Exchange exchange) {
     GroovyTemplateRenderingEngine engine = exchange.get(GroovyTemplateRenderingEngine.class);
-
     File templateDirFile = exchange.get(FileSystemBinding.class).file(templateDir);
-
     TemplateRenderer renderer = new DefaultTemplateRenderer(templateDirFile, exchange, engine);
     exchange.nextWithContext(renderer, delegate);
   }

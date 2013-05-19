@@ -42,6 +42,23 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     urlGetText() == "a bar b  a  a  a "
   }
 
+  def "off thread errors are rendered"() {
+    given:
+    when:
+    app {
+      handlers {
+        get {
+          withErrorHandling Thread.start {
+            throw new Exception("nested!")
+          }
+        }
+      }
+    }
+
+    then:
+    urlGetConnection().errorStream.text.contains "<title>java.lang.Exception</title>"
+  }
+
   def "can render inner template"() {
     given:
     file("templates/outer.html") << "outer: \${model.value}, <% render 'inner.html', value: 'inner' %>"

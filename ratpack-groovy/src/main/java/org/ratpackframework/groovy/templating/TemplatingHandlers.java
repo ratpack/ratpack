@@ -20,9 +20,11 @@ import org.ratpackframework.groovy.templating.internal.TemplateRendererBindingHa
 import org.ratpackframework.groovy.templating.internal.TemplateRenderingErrorHandler;
 import org.ratpackframework.handling.Handler;
 
+import static org.ratpackframework.handling.Handlers.context;
+
 public abstract class TemplatingHandlers {
 
   public static Handler templates(String templatesDir, Handler handler) {
-    return new TemplateRendererBindingHandler(templatesDir, new TemplateRenderingErrorHandler(handler));
+    return new TemplateRendererBindingHandler(templatesDir, context(new TemplateRenderingErrorHandler(), handler));
   }
 }

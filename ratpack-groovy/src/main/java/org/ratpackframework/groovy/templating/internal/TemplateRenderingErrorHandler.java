@@ -16,24 +16,16 @@
 
 package org.ratpackframework.groovy.templating.internal;
 
+import org.ratpackframework.error.ServerErrorHandler;
 import org.ratpackframework.groovy.templating.TemplateRenderer;
 import org.ratpackframework.handling.Exchange;
 import org.ratpackframework.handling.Handler;
 
-public class TemplateRenderingErrorHandler implements Handler {
+public class TemplateRenderingErrorHandler implements ServerErrorHandler {
 
-  private final Handler delegate;
-
-  public TemplateRenderingErrorHandler(Handler delegate) {
-    this.delegate = delegate;
+  public void error(Exchange exchange, Exception exception) {
+    TemplateRenderer renderer = exchange.get(TemplateRenderer.class);
+    renderer.error(ExceptionToTemplateModel.transform(exchange.getRequest(), exception));
   }
 
-  public void handle(Exchange exchange) {
-    try {
-      exchange.next(delegate);
-    } catch (Exception exception) {
-      TemplateRenderer renderer = exchange.get(TemplateRenderer.class);
-      renderer.error(ExceptionToTemplateModel.transform(exchange.getRequest(), exception));
-    }
-  }
 }
