@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+# bin/release <build-dir>
+
+BUILD_DIR=$1
+
+cat <<EOF
+---
+config_vars:
+  PATH: .jdk7/bin:.gradle/bin:.tools:/usr/local/bin:/usr/bin:/bin
+  JAVA_OPTS: -Xmx384m -Xss512k
+  RATPACK_SITE_OPTS: -Dratpack.port=\$PORT -Dfile.encoding=UTF-8
+addons:
+  shared-database:5mb
+EOF
+
+if [ ! -f $BUILD_DIR/Procfile ]; then
+cat <<EOF
+default_process_types:
+  web: ratpack-site/build/install/ratpack-site/bin/ratpack-site ratpack-site/build/install/ratpack-site/ratpack.groovy
+EOF
+fi
