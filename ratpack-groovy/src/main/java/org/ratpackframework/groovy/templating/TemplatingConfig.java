@@ -19,7 +19,7 @@ package org.ratpackframework.groovy.templating;
 public class TemplatingConfig {
 
   private String templatesPath = "templates";
-  private int cacheSize;
+  private int cacheSize = 100;
   private boolean staticallyCompile;
 
   public int getCacheSize() {
