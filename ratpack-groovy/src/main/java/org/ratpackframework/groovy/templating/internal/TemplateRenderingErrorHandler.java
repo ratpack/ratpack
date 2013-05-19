@@ -19,7 +19,6 @@ package org.ratpackframework.groovy.templating.internal;
 import org.ratpackframework.error.ServerErrorHandler;
 import org.ratpackframework.groovy.templating.TemplateRenderer;
 import org.ratpackframework.handling.Exchange;
-import org.ratpackframework.handling.Handler;
 
 public class TemplateRenderingErrorHandler implements ServerErrorHandler {
 
