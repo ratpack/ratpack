@@ -17,17 +17,11 @@
 package org.ratpackframework.groovy.templating;
 
 import org.ratpackframework.groovy.templating.internal.TemplateRendererBindingHandler;
-import org.ratpackframework.groovy.templating.internal.TemplateRenderingClientErrorHandler;
-import org.ratpackframework.groovy.templating.internal.TemplateRenderingServerErrorHandler;
 import org.ratpackframework.handling.Handler;
-
-import static org.ratpackframework.handling.Handlers.context;
 
 public abstract class TemplatingHandlers {
 
   public static Handler templates(String templatesDir, Handler handler) {
-    Handler withClientHandler = context(new TemplateRenderingClientErrorHandler(), handler);
-    Handler withServerHandler = context(new TemplateRenderingServerErrorHandler(), withClientHandler);
-    return new TemplateRendererBindingHandler(templatesDir, withServerHandler);
+    return new TemplateRendererBindingHandler(templatesDir, handler);
   }
 }

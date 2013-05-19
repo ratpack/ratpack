@@ -18,9 +18,15 @@ package org.ratpackframework.groovy.templating;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Injector;
+import org.ratpackframework.error.ClientErrorHandler;
+import org.ratpackframework.error.ServerErrorHandler;
 import org.ratpackframework.groovy.templating.internal.GroovyTemplateRenderingEngine;
+import org.ratpackframework.groovy.templating.internal.TemplateRenderingClientErrorHandler;
+import org.ratpackframework.groovy.templating.internal.TemplateRenderingServerErrorHandler;
 import org.ratpackframework.guice.HandlerDecoratingModule;
 import org.ratpackframework.handling.Handler;
+
+import javax.inject.Singleton;
 
 public class TemplatingModule extends AbstractModule implements HandlerDecoratingModule {
 
@@ -32,8 +38,11 @@ public class TemplatingModule extends AbstractModule implements HandlerDecoratin
 
   @Override
   protected void configure() {
-    bind(GroovyTemplateRenderingEngine.class);
+    bind(GroovyTemplateRenderingEngine.class).in(Singleton.class);
     bind(TemplatingConfig.class).toInstance(templatingConfig);
+
+    bind(ClientErrorHandler.class).to(TemplateRenderingClientErrorHandler.class).in(Singleton.class);
+    bind(ServerErrorHandler.class).to(TemplateRenderingServerErrorHandler.class).in(Singleton.class);
   }
 
   public Handler decorate(Injector injector, Handler handler) {
