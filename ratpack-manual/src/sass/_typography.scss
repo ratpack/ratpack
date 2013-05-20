@@ -1,5 +1,5 @@
 $sans-font-family: "Raleway", Futura, "Trebuchet MS", Arial, sans-serif;
-$serif-font-family: "Libre Baskerville", Baskerville, "Baskerville Old Face", "Hoefler Text", Garamond, "Times New Roman", serif;
+$serif-font-family: "Gentium Basic", Baskerville, "Baskerville Old Face", "Hoefler Text", Garamond, "Times New Roman", serif;
 $mono-font-family: "Courier New", Courier, "Lucida Sans Typewriter", "Lucida Typewriter", monospace;
 $script-font-family: "Engagement", cursive;
 
@@ -27,11 +27,6 @@ $code-font-family: $mono-font-family;
 body {
   font-family: $body-font-family;
   text-rendering: optimizeLegibility;
-
-  // preferred font is larger than fallbacks so resize up if not using webfonts
-  .no-fontface & {
-    @include adjust-font-size-to(18px);
-  }
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -47,16 +42,16 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 h1 {
-  @include adjust-font-size-to(44px);
+  @include adjust-font-size-to(32px);
 }
 h2 {
-  @include adjust-font-size-to(37px);
+  @include adjust-font-size-to(28px);
 }
 h3 {
-  @include adjust-font-size-to(27px);
+  @include adjust-font-size-to(24px);
 }
 h4 {
-  @include adjust-font-size-to(23px);
+  @include adjust-font-size-to(20px);
 }
 h5 {
   @include adjust-font-size-to(18px);
@@ -65,27 +60,31 @@ h5 {
 pre, code, tt {
   font-family: $code-font-family;
   -webkit-font-smoothing: subpixel-antialiased; // this looks better with Courier New even light on dark
-  .fontface & {
-    // because Libre Baskerville has a large x-height and counters we need to increase the mono font-size
-    @include adjust-font-size-to(18px);
-  }
 }
 
 pre {
   white-space: pre-line;
 }
 
-$anchor-font-color: $blue;
-$anchor-font-color-hover: $ivory;
+$anchor-font-color: darken($blue, 30%);
+$anchor-font-color-hover: $blue;
 $anchor-text-decoration: none;
 
 a {
-  color: $anchor-font-color;
   text-decoration: $anchor-text-decoration;
   line-height: inherit;
+  @include single-transition;
+
+  &:link,
+  &:active,
+  &:visited {
+    color: $anchor-font-color;
+  }
 
   &:hover,
-  &:focus { color: $anchor-font-color-hover; }
+  &:focus {
+    color: $anchor-font-color-hover;
+  }
 
   img { border:none; }
 }

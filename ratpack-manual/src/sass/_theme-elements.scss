@@ -1,18 +1,14 @@
 /*
  * Creates a diamond background behind an element.
  */
-@mixin diamond-button($color: transparentize($blue, 0.25), $hover-color: transparentize($red, 0.25), $width: 8em, $height: 1.5em) {
-	border-bottom: none;
+@mixin diamond-button($color: transparentize($anchor-font-color, 0.25), $hover-color: transparentize($anchor-font-color-hover, 0.25), $width: 8em, $height: 1.5em) {
+	display: inline-block;
 	text-align: center;
 	line-height: 3em;
 	position: relative;
 	z-index: 0;
 	min-width: $width;
-	font-family: $sans-font-family;
-	.fontface & {
-		font-weight: 400;
-	}
-	text-transform: uppercase;
+	font-style: italic;
 	&:before, &:after {
 		position: absolute;
 		z-index: -1;
@@ -42,8 +38,11 @@
 			border-left-color: $color;
 		}
 	}
-	&:hover, &:active {
-		color: inherit;
+	&:link, &:visited, &:active {
+		color: contrast-color($color);
+	}
+	&:hover, &:focus {
+		color: contrast-color($hover-color);
 		&:before {
 			@include safe-rgba(border-right-color, $hover-color);
 		}

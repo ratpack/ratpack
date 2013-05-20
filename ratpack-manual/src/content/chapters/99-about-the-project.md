@@ -16,7 +16,7 @@
 
 Web fonts are served by [Google Web Fonts](http://www.google.com/fonts/).
 
-* [Libre Baskerville](http://www.google.com/fonts/specimen/Libre+Baskerville) by [Impallari Type](http://www.impallari.com/)
+* [Gentium Basic](http://www.google.com/fonts/specimen/Gentium+Basic) by [Victor Gaultney](http://www-01.sil.org/~gaultney/bio.html)
 * [Raleway](http://www.google.com/fonts/specimen/Raleway) by [The League of Moveable Type](http://www.theleagueofmoveabletype.com/)
 * [Engagement](http://www.google.com/fonts/specimen/Engagement) by [Astigmatic One Eye Typographic Institute](http://www.astigmatic.com/)
 

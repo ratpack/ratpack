@@ -8,22 +8,6 @@ body {
 	@include noise-background;
 }
 
-a {
-	color: $black;
-	display: inline-block;
-	border-bottom: 1px dotted $black;
-	@include single-transition;
-
-	&:visited {
-		color: inherit;
-	}
-
-	&:hover, &:active {
-		color: $red;
-		border-bottom-color: $red;
-	}
-}
-
 .page-header {
 	@include margin-trailer(1);
 	@include row;
@@ -73,9 +57,11 @@ a {
 	}
 
 	a {
-		$arrow-color: transparentize($blue, 0.25);
-		$highlight-color: transparentize($red, 0.25);
+		$arrow-color: $anchor-font-color;
+		$highlight-color: $anchor-font-color-hover;
 
+		display: inline-block;
+		vertical-align: middle;
 		max-width: 100%;
 		@include ellipsis;
 
@@ -86,6 +72,7 @@ a {
 		position: relative;
 		&:after {
 			display: inline-block;
+			vertical-align: middle;
 			position: absolute;
 			bottom: 0;
 			text-indent: 0;
@@ -96,7 +83,7 @@ a {
 			}
 		}
 
-		&:active, &:hover {
+		&:hover, &:focus {
 			&:after {
 				color: $highlight-color;
 			}
@@ -251,7 +238,7 @@ a {
 }
 
 .fontface {
-	a[href='http://www.google.com/fonts/specimen/Libre+Baskerville'] {
+	a[href='http://www.google.com/fonts/specimen/Gentium+Basic'] {
 		font-style: italic;
 	}
 	a[href='http://www.google.com/fonts/specimen/Raleway'] {
