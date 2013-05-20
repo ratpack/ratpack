@@ -17,11 +17,11 @@
 package org.ratpackframework.groovy.templating.internal;
 
 import io.netty.buffer.ByteBuf;
+import org.ratpackframework.groovy.templating.TemplateRenderer;
+import org.ratpackframework.handling.Exchange;
 import org.ratpackframework.http.Response;
 import org.ratpackframework.util.internal.Result;
 import org.ratpackframework.util.internal.ResultAction;
-import org.ratpackframework.groovy.templating.TemplateRenderer;
-import org.ratpackframework.handling.Exchange;
 
 import java.io.File;
 import java.util.Collections;
