@@ -25,7 +25,7 @@ import java.io.File;
  * <p>
  * The file system binding is used by asset serving handlers, among other places.
  *
- * @see org.ratpackframework.handling.Handlers#fsContext(String, org.ratpackframework.util.Action)
+ * @see org.ratpackframework.handling.Handlers#fileSystem(String, org.ratpackframework.util.Action)
  * @see org.ratpackframework.handling.Handlers#assets(String, org.ratpackframework.handling.Handler)
  */
 public interface FileSystemBinding {

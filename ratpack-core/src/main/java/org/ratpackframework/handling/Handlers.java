@@ -43,12 +43,12 @@ public abstract class Handlers {
     return ChainBuilder.INSTANCE.build(ChainActionTransformer.INSTANCE, action);
   }
 
-  public static Handler fsContext(String path, Handler handler) {
+  public static Handler fileSystem(String path, Handler handler) {
     return new FileSystemContextHandler(new File(path), handler);
   }
 
-  public static Handler fsContext(String path, Action<? super Chain> builder) {
-    return fsContext(path, chain(builder));
+  public static Handler fileSystem(String path, Action<? super Chain> builder) {
+    return fileSystem(path, chain(builder));
   }
 
   public static Handler assets(String path, Handler notFound) {
@@ -64,7 +64,7 @@ public abstract class Handlers {
     Handler directoryHandler = new DirectoryStaticAssetRequestHandler(Arrays.asList(indexFiles), fileHandler);
     Handler contextSetter = new TargetFileStaticAssetRequestHandler(directoryHandler);
 
-    return fsContext(path, chain(contextSetter, notFound));
+    return fileSystem(path, chain(contextSetter, notFound));
   }
 
   public static Handler assetsPath(String uriPath, String fsPath, Handler notFound) {

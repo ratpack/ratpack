@@ -77,8 +77,8 @@ public class DefaultChain implements Chain {
     add(Handlers.context(object, chainBuildingHandler(handlers)));
   }
 
-  public void fsContext(String path, Closure<?> handlers) {
-    add(Handlers.fsContext(path, chainBuildingHandler(handlers)));
+  public void fileSystem(String path, Closure<?> handlers) {
+    add(Handlers.fileSystem(path, chainBuildingHandler(handlers)));
   }
 
   private Handler chainBuildingHandler(Closure<?> handlers) {

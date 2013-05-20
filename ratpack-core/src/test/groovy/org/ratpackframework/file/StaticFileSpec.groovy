@@ -18,7 +18,7 @@ package org.ratpackframework.file
 
 import org.ratpackframework.test.DefaultRatpackSpec
 
-import static org.ratpackframework.groovy.ClosureHandlers.fsContext
+import static org.ratpackframework.groovy.ClosureHandlers.fileSystem
 import static org.ratpackframework.groovy.ClosureHandlers.handler
 import static org.ratpackframework.groovy.ClosureHandlers.path
 import static org.ratpackframework.handling.Handlers.assets
@@ -163,8 +163,8 @@ class StaticFileSpec extends DefaultRatpackSpec {
     when:
     app {
       handlers {
-        add fsContext("d1") {
-          add fsContext("d2") {
+        add fileSystem("d1") {
+          add fileSystem("d2") {
             add assets("d3", "index.html")
           }
         }

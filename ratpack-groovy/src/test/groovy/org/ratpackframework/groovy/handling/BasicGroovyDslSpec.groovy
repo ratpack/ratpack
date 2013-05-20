@@ -46,12 +46,12 @@ class BasicGroovyDslSpec extends RatpackGroovyDslSpec {
     when:
     app {
       handlers {
-        fsContext("foo") {
+        fileSystem("foo") {
           get("foo") {
             response.send file("file.txt").text
           }
         }
-        fsContext("bar") {
+        fileSystem("bar") {
           get("bar") {
             response.send file("file.txt").text
           }

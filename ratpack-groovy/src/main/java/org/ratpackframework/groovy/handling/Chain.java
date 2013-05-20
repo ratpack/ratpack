@@ -42,6 +42,6 @@ public interface Chain extends org.ratpackframework.handling.Chain {
 
   void context(Object object, @DelegatesTo(value = org.ratpackframework.groovy.handling.Chain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handlers);
 
-  void fsContext(String path, @DelegatesTo(value = org.ratpackframework.groovy.handling.Chain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handlers);
+  void fileSystem(String path, @DelegatesTo(value = org.ratpackframework.groovy.handling.Chain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handlers);
 
 }

@@ -43,8 +43,8 @@ public abstract class ClosureHandlers {
     return Closures.action(Chain.class, handlers);
   }
 
-  public static Handler fsContext(String path, @DelegatesTo(value = Chain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handlers) {
-    return Handlers.fsContext(path, chain(handlers));
+  public static Handler fileSystem(String path, @DelegatesTo(value = Chain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handlers) {
+    return Handlers.fileSystem(path, chain(handlers));
   }
 
   public static Handler path(String path, @DelegatesTo(value = Chain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handlers) {
