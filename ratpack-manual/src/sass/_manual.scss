@@ -69,13 +69,12 @@ body {
 		@include ellipsis;
 
 		border-bottom: none;
-		padding-top: 1.25em;
 		font-style: italic;
+		line-height: 2.65em;
 
 		position: relative;
 		&:after {
 			display: inline-block;
-			vertical-align: middle;
 			position: absolute;
 			bottom: 0;
 			text-indent: 0;
@@ -84,7 +83,6 @@ body {
 				size: 1.5em;
 				style: normal;
 			}
-			line-height: 1;
 		}
 
 		&:hover, &:focus {
@@ -93,11 +91,16 @@ body {
 			}
 		}
 
-		&[rel="index"]:after {
-			content: "\25B2";
-			top: 0;
-			left: 50%;
-			margin-left: -0.5em;
+		&[rel="index"]{
+			padding-top: 1.25em;
+			line-height: inherit;
+			&:after {
+				content: "\25B2";
+				top: 0;
+				left: 50%;
+				margin-left: -0.5em;
+				line-height: 1;
+			}
 		}
 
 		&[rel="prev"] {
