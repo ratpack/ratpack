@@ -22,6 +22,7 @@ import org.ratpackframework.file.internal.FileSystemContextHandler;
 import org.ratpackframework.file.internal.TargetFileStaticAssetRequestHandler;
 import org.ratpackframework.handling.internal.ChainActionTransformer;
 import org.ratpackframework.handling.internal.ChainBuilder;
+import org.ratpackframework.handling.internal.ChainHandler;
 import org.ratpackframework.http.internal.MethodHandler;
 import org.ratpackframework.path.PathBinder;
 import org.ratpackframework.path.internal.PathHandler;
@@ -88,11 +89,7 @@ public abstract class Handlers {
   }
 
   public static Handler chain(final Handler... handlers) {
-    return new Handler() {
-      public void handle(Exchange exchange) {
-        exchange.next(handlers);
-      }
-    };
+    return new ChainHandler(Arrays.asList(handlers));
   }
 
   public static Handler noop() {
