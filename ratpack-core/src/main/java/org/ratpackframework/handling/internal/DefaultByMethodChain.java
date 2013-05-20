@@ -67,7 +67,7 @@ public class DefaultByMethodChain implements ByMethodChain {
     }
   }
 
-  public void call() {
+  public void send() {
     List<Handler> handlers = new ArrayList<Handler>(runnables.size());
     for (Map.Entry<String, Runnable> entry : runnables.entrySet()) {
       handlers.add(new ByMethodHandler(entry.getKey(), entry.getValue()));

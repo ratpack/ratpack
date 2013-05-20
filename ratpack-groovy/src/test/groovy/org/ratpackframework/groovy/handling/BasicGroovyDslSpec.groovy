@@ -75,7 +75,7 @@ class BasicGroovyDslSpec extends RatpackGroovyDslSpec {
             response.send("$prefix: get")
           }.post {
             response.send("$prefix: post")
-          }.call()
+          }.send()
         }
       }
     }

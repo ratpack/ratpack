@@ -25,6 +25,7 @@ public interface ByMethodChain {
   // TODO add shorthand for other common methods
   
   ByMethodChain named(String methodName, Runnable runnable);
-  
-  void call();
+
+  void send();
+
 }

@@ -19,7 +19,7 @@ class PathAndMethodRoutingSpec extends DefaultRatpackSpec {
               response.send allPathTokens.toString()
             }.named("put") {
               response.send allPathTokens.collectEntries { [it.key.toUpperCase(), it.value.toUpperCase()] }.toString()
-            }()
+            }.send()
           }
         }
       }
@@ -42,7 +42,7 @@ class PathAndMethodRoutingSpec extends DefaultRatpackSpec {
             response.send("$prefix: get")
           }.post {
             response.send("$prefix: post")
-          }.call()
+          }.send()
         }
       }
     }
