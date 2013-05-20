@@ -54,9 +54,16 @@ task api(type: Javadoc) {
 
   classpath = files()
   destinationDir = file("$buildDir/api")
-  options.use true
 
-  options.links("http://docs.oracle.com/javase/7/docs/api")
+  configure(options) {
+    splitIndex true
+    use = true
+    links "http://docs.oracle.com/javase/7/docs/api"
+    linkSource true
+    windowTitle "Ratpack API ($project.version)"
+    docTitle "Ratpack API ($project.version)"
+
+  }
 
   apiModules.each {
     source it.sourceSets.main.java
