@@ -123,6 +123,7 @@ body {
 		@include content-width;
 		@include clearfix;
 
+		margin-top: 0;
 		&:last-child {
 			margin-bottom: 0;
 		}
