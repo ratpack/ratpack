@@ -2,9 +2,9 @@
  * Cross-browser antialias for transformed elements.
  */
 @mixin antialias {
-  @include background-clip(content-box);
-  padding: 2px;
-  @include backface-visibility(hidden);
+	@include background-clip(content-box);
+	padding: 2px;
+	@include backface-visibility(hidden);
 }
 
 /*
@@ -29,32 +29,32 @@
  *    padding: 1rem 0 2rem 0.5rem;
  */
 @mixin rem($property, $rems) {
-  @if type-of($rems) == "number" {
-    #{$property}: ($rems / 1rem) * $base-font-size;
-  } @else {
-    $px-values: ();
-    @each $value in $rems {
-      @if $value == 0 {
-        $px-values: append($px-values, $value);
-      } @else {
-        $px-values: append($px-values, ($value / 1rem) * $base-font-size);
-      }
-    }
-    #{$property}: $px-values;
-  }
-  #{$property}: $rems;
+	@if type-of($rems) == "number" {
+		#{$property}: ($rems / 1rem) * $base-font-size;
+	} @else {
+		$px-values: ();
+		@each $value in $rems {
+			@if $value == 0 {
+				$px-values: append($px-values, $value);
+			} @else {
+				$px-values: append($px-values, ($value / 1rem) * $base-font-size);
+			}
+		}
+		#{$property}: $px-values;
+	}
+	#{$property}: $rems;
 }
 
 /*
  * Outputs a color property with an opaque fallback for browsers that do not support RGBA.
  */
 @mixin safe-rgba($property, $color, $fallback-color: opacify($color, 1)) {
-  @if opacity($color) == 1 {
-    #{$property}: $color;
-  } @else {
-    #{$property}: $fallback-color;
-    .rgba & {
-      #{$property}: $color;
-    }
-  }
+	@if opacity($color) == 1 {
+		#{$property}: $color;
+	} @else {
+		#{$property}: $fallback-color;
+		.rgba & {
+			#{$property}: $color;
+		}
+	}
 }

@@ -11,59 +11,59 @@ $code-font-family: $mono-font-family;
  * Helps legibility by adding a small text shadow (Windows) and using alternate font-smoothing for light text on dark (OSX Webkit).
  */
 @mixin smooth-font($bg-color) {
-  @include text-shadow(0 1px 1px transparentize($bg-color, 0.7));
-  @if contrast-color($bg-color) == $contrasted-light-default {
-    -webkit-font-smoothing: antialiased;
-  }
+	@include text-shadow(0 1px 1px transparentize($bg-color, 0.7));
+	@if contrast-color($bg-color) == $contrasted-light-default {
+		-webkit-font-smoothing: antialiased;
+	}
 }
 
 @mixin contrasted-smooth($bg-color) {
-  @include contrasted($bg-color);
-  @include smooth-font($bg-color);
+	@include contrasted($bg-color);
+	@include smooth-font($bg-color);
 }
 
 @include establish-baseline;
 
 body {
-  font-family: $body-font-family;
-  text-rendering: optimizeLegibility;
+	font-family: $body-font-family;
+	text-rendering: optimizeLegibility;
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font: {
-    family: $header-font-family;
-  }
-  .fontface & {
-    font-weight: 200;
-    -webkit-font-smoothing: subpixel-antialiased;
-  }
+	font: {
+		family: $header-font-family;
+	}
+	.fontface & {
+		font-weight: 200;
+		-webkit-font-smoothing: subpixel-antialiased;
+	}
 
-  text-transform: uppercase;
+	text-transform: uppercase;
 }
 
 h1 {
-  @include adjust-font-size-to(32px);
+	@include adjust-font-size-to(32px);
 }
 h2 {
-  @include adjust-font-size-to(28px);
+	@include adjust-font-size-to(28px);
 }
 h3 {
-  @include adjust-font-size-to(24px);
+	@include adjust-font-size-to(24px);
 }
 h4 {
-  @include adjust-font-size-to(20px);
+	@include adjust-font-size-to(20px);
 }
 h5 {
-  @include adjust-font-size-to(18px);
+	@include adjust-font-size-to(18px);
 }
 
 pre, code, tt {
-  font-family: $code-font-family;
-  -webkit-font-smoothing: subpixel-antialiased; // this looks better with Courier New even light on dark
+	font-family: $code-font-family;
+	-webkit-font-smoothing: subpixel-antialiased; // this looks better with Courier New even light on dark
 }
 
 pre {
-  white-space: pre-line;
+	white-space: pre-line;
 }
 
 $anchor-font-color: darken($blue, 30%);
@@ -71,24 +71,24 @@ $anchor-font-color-hover: $blue;
 $anchor-text-decoration: none;
 
 a {
-  text-decoration: $anchor-text-decoration;
-  line-height: inherit;
-  @include single-transition;
+	text-decoration: $anchor-text-decoration;
+	line-height: inherit;
+	@include single-transition;
 
-  &:link,
-  &:active,
-  &:visited {
-    color: $anchor-font-color;
-  }
+	&:link,
+	&:active,
+	&:visited {
+		color: $anchor-font-color;
+	}
 
-  &:hover,
-  &:focus {
-    color: $anchor-font-color-hover;
-  }
+	&:hover,
+	&:focus {
+		color: $anchor-font-color-hover;
+	}
 
-  img { border:none; }
+	img { border:none; }
 }
 
 ul, ol {
-  padding-left: 1.2em;
+	padding-left: 1.2em;
 }
