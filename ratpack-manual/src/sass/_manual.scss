@@ -248,6 +248,11 @@ body {
 			text-align: right;
 		}
 	}
+
+	@include when-full-width {
+		width: 102.5%;
+		margin-left: -1.25%;
+	}
 }
 
 .fontface {
