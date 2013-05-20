@@ -45,7 +45,7 @@ $logo-inverted: 'ratpack-logo-white.png';
 @mixin ratpack-logo {
 	display: inline-block;
 	vertical-align: top;
-	margin: rhythm(1);
+	margin: rhythm(1) 0;
 
 	@include skewed-background($logo-font-size, transparentize($yellow, 0.1));
 

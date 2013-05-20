@@ -2,18 +2,14 @@ $num-columns: 12;
 $column-width: 100% / $num-columns;
 $content-width: 1024px;
 
-@mixin full-width($gutter: 1em) {
+@mixin full-width {
 	width: 100%;
-	@if $gutter > 0 {
-		padding: {
-			left: $gutter;
-			right: $gutter;
-		}
-	}
+	@include rem(padding-left, 1rem);
+	@include rem(padding-right, 1rem);
 }
 
-@mixin content-width($gutter: 1em) {
-	@include full-width($gutter);
+@mixin content-width {
+	@include full-width;
 	@include when-tablet-portrait {
 		width: $column-width * 10;
 		margin: {
@@ -24,14 +20,13 @@ $content-width: 1024px;
 }
 
 body {
+	overflow-x: hidden;
 	@include when-full-width {
 		max-width: $content-width;
-		overflow-x: hidden;
 		margin: 0 auto;
 	}
 	.no-mediaqueries & {
 		max-width: $content-width;
-		overflow-x: hidden;
 		margin: 0 auto;
  	}
 }

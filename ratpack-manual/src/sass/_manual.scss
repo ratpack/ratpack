@@ -33,7 +33,7 @@ body {
 	@include margin-leader(1);
 	@include margin-trailer(1);
 
-	@include content-width($gutter: 0);
+	@include content-width;
 
 	ul {
 		@include clearfix;
@@ -214,9 +214,9 @@ body {
 
 	a {
 		color: contrast-color($bg);
-		border-bottom-color: contrast-color($bg);
+		border-bottom: 1px dotted contrast-color($bg);
 
-		&:hover, &:active {
+		&:hover, &:focus {
 			color: $yellow;
 			border-bottom-color: $yellow;
 		}
