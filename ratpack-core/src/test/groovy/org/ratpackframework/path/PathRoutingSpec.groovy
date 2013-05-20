@@ -82,11 +82,9 @@ class PathRoutingSpec extends DefaultRatpackSpec {
     when:
     app {
       handlers {
-        add exactPath(":a/:b/:c") {
-          add handler {
-            def pathContext = get(PathBinding)
-            response.send("$pathContext.tokens - $pathContext.pastBinding")
-          }
+        add handler(":a/:b/:c") {
+          def pathContext = get(PathBinding)
+          response.send("$pathContext.tokens - $pathContext.pastBinding")
         }
       }
     }
@@ -101,11 +99,9 @@ class PathRoutingSpec extends DefaultRatpackSpec {
     app {
       handlers {
         add path(":a/:b") {
-          add exactPath(":d/:e") {
-            add handler {
-              def pathContext = get(PathBinding)
-              response.send("$pathContext.tokens - $pathContext.allTokens - $pathContext.pastBinding")
-            }
+          add handler(":d/:e") {
+            def pathContext = get(PathBinding)
+            response.send("$pathContext.tokens - $pathContext.allTokens - $pathContext.pastBinding")
           }
         }
       }

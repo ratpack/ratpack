@@ -19,30 +19,23 @@ package org.ratpackframework.http.internal;
 import org.ratpackframework.handling.Exchange;
 import org.ratpackframework.handling.Handler;
 
-import java.util.Collection;
-import java.util.List;
-
-import static org.ratpackframework.util.internal.CollectionUtils.toUpperCase;
-
 public class MethodHandler implements Handler {
 
-  private final List<String> methods;
-  private final Handler delegate;
+  private final String method;
 
-  public MethodHandler(Collection<String> methods, Handler delegate) {
-    this.methods = toUpperCase(methods);
-    this.delegate = delegate;
-  }
+  public static final Handler GET = new MethodHandler("GET");
+  public static final Handler POST = new MethodHandler("POST");
+  public static final Handler PUT = new MethodHandler("PUT");
+  public static final Handler DELETE = new MethodHandler("DELETE");
 
-  public MethodHandler(List<String> methods, Handler delegate) {
-    this.methods = toUpperCase(methods);
-    this.delegate = delegate;
+  public MethodHandler(String method) {
+    this.method = method.toUpperCase();
   }
 
   public void handle(Exchange exchange) {
-    String methodName = exchange.getRequest().getMethod().getName();
-    if (methods.contains(methodName)) {
-      exchange.next(delegate);
+    String actualMethodName = exchange.getRequest().getMethod().getName();
+    if (actualMethodName.equals(method)) {
+      exchange.next();
     } else {
       exchange.clientError(405);
     }

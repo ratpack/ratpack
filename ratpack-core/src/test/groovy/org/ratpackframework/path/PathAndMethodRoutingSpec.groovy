@@ -14,12 +14,12 @@ class PathAndMethodRoutingSpec extends DefaultRatpackSpec {
           response.send request.query
         }
         add path(":a/:b") {
-          add handler(":c/:d", ["post", "put"] as List) {
-            if (request.method.post) {
+          add handler(":c/:d") {
+            methods.post {
               response.send allPathTokens.toString()
-            } else {
+            }.named("put") {
               response.send allPathTokens.collectEntries { [it.key.toUpperCase(), it.value.toUpperCase()] }.toString()
-            }
+            }()
           }
         }
       }

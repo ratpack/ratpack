@@ -21,7 +21,7 @@ class BasicGroovyDslSpec extends RatpackGroovyDslSpec {
           get(":second") {
             response.send allPathTokens.toString()
           }
-          handler("c/:second", ["get", "post"] as List) {
+          handler("c/:second") {
             response.send allPathTokens.toString()
           }
         }

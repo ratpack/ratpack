@@ -21,7 +21,6 @@ import org.ratpackframework.file.internal.FileStaticAssetRequestHandler;
 import org.ratpackframework.file.internal.FileSystemContextHandler;
 import org.ratpackframework.file.internal.TargetFileStaticAssetRequestHandler;
 import org.ratpackframework.handling.internal.*;
-import org.ratpackframework.http.internal.MethodHandler;
 import org.ratpackframework.path.PathBinder;
 import org.ratpackframework.path.internal.PathHandler;
 import org.ratpackframework.path.internal.TokenPathBinder;
@@ -29,7 +28,6 @@ import org.ratpackframework.util.Action;
 
 import java.io.File;
 import java.util.Arrays;
-import java.util.Collection;
 
 public abstract class Handlers {
 
@@ -75,7 +73,6 @@ public abstract class Handlers {
 
   public static Handler assetsPath(String uriPath, String fsPath, String... indexFiles) {
     return path(uriPath, assets(fsPath, indexFiles));
-
   }
 
   public static Handler assetsPath(String uriPath, String fsPath, String[] indexFiles, final Handler notFound) {
@@ -98,24 +95,12 @@ public abstract class Handlers {
     return pathBinding(new TokenPathBinder(path, false), handler);
   }
 
-  public static Handler exactPath(String path, Action<? super Chain> builder) {
-    return exactPath(path, chain(builder));
-  }
-
-  public static Handler exactPath(String path, Handler handler) {
+  public static Handler handler(String path, Handler handler) {
     return pathBinding(new TokenPathBinder(path, true), handler);
   }
 
   public static Handler pathBinding(PathBinder pathBinder, Handler handler) {
     return new PathHandler(pathBinder, handler);
-  }
-
-  public static Handler method(Collection<String> methods, Action<? super Chain> builder) {
-    return method(methods, chain(builder));
-  }
-
-  public static Handler method(Collection<String> methods, Handler handler) {
-    return new MethodHandler(methods, handler);
   }
 
 }

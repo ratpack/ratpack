@@ -20,17 +20,11 @@ import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.ratpackframework.handling.Exchange;
 
-import java.util.List;
-
 public interface Chain extends org.ratpackframework.handling.Chain {
 
   void handler(@DelegatesTo(value = Exchange.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
 
   void chain(@DelegatesTo(value = org.ratpackframework.groovy.handling.Chain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
-
-  void all(String path, @DelegatesTo(value = Exchange.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
-
-  void handler(String path, List<String> methods, @DelegatesTo(value = Exchange.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
 
   void handler(String path, @DelegatesTo(value = Exchange.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
 

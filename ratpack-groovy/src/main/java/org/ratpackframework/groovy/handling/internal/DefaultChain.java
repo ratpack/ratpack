@@ -49,16 +49,8 @@ public class DefaultChain implements Chain {
     add(Handlers.path(path, chainBuildingHandler(handlers)));
   }
 
-  public void all(String path, Closure<?> handler) {
-    add(ClosureHandlers.handler(path, handler));
-  }
-
-  public void handler(String path, List<String> methods, Closure<?> handler) {
-    add(ClosureHandlers.handler(path, methods, handler));
-  }
-
   public void handler(String path, @DelegatesTo(value = Exchange.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler) {
-    add(Handlers.exactPath(path, ClosureHandlers.handler(handler)));
+    add(Handlers.handler(path, ClosureHandlers.handler(handler)));
   }
 
   public void get(String path, Closure<?> handler) {
