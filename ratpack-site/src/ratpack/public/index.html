@@ -34,16 +34,25 @@
         <section class="promo">
             <div class="content">
                 <div class="primary callout">
-                    <h2>Get started</h2>
-                    <p>Add <code>org.ratpack-framework:ratpack-core:0.9.0-SNAPSHOT</code> to your dependencies.</p>
-                    <p></p>
+                    <h2>What is Ratpack?</h2>
+                    <p>It's a minimalist toolkit for creating JVM based web applications.</p>
+                    <p>Ratpack apps are simple, light, easy to combine with other tools/libraries, fast, easy to test… and enjoyable.</p>
+                    <p>
+                      Ratpack is implemented in Java, designed with Groovy in mind.
+                      Apps can be implemented as a single Groovy script, or can scale up to the large with your build tool of choice (we prefer <a href="http://www.gradle.org">Gradle</a> and provide integration with it).
+                    </p>
+                    <p>
+                      Ratpack is built on <a href="http://netty.io/">Netty</a> and is designed for asynchronous request processing. A synchronous, blocking, style can also be used.
+                      Ratpack is not a J2EE solution and apps are typically deployed as executable JARs.
+                    </p>
                 </div>
                 <aside class="callout">
                     <h2>Find out more</h2>
                     <nav>
-                        <a href="/manual/snapshot/">The Ratpack manual</a>
-                        <a href="/manual/snapshot/api/">Javadocs</a>
-                        <a href="https://github.com/ratpack/ratpack/issues/new">Raise an issue</a>
+                        <a href="/manual/snapshot/">Manual</a>
+                        <a href="/manual/snapshot/api/">API Reference</a>
+                        <a href="https://github.com/ratpack/ratpack/issues">Issue Tracker</a>
+                        <a href="/forums/user">User Forum</a>
                     </nav>
                 </aside>
             </div>
@@ -52,12 +61,30 @@
         <section class="main">
             <div class="content">
                 <div class="body">
-                    <h2></h2>
-                    <p></p>
-                    <p></p>
-                    <ul></ul>
-                    <h3></h3>
-                    <p></p>
+                  <h2>Getting Started</h2>
+                  <p>
+                    Create a Groovy script on your filesystem with:
+                  </p>
+                  <pre><code>@Grab("org.ratpack-framework:ratpack-groovy:0.9.0")
+import static org.ratpackframework.groovy.RatpackScript.ratpack
+
+ratpack {
+  handlers {
+    get {
+      response.send "Hello world!"
+    }
+  }
+}</code>
+                  </pre>
+                  <p>That's just the tip of the iceberg.</p>
+                  <p>Check out the <a href="/manual/snapshot/">Ratpack Manual</a> for more possibilities.</p>
+                  <h2>Example Apps</h2>
+                  <p>If you're more of a “show me the code” type, check out the following example apps on GitHub:</p>
+                  <ul>
+                    <li><a href="https://github.com/ratpack/example-ratpack-standalone-groovy-script">Standalone Groovy script app</a></li>
+                    <li><a href="https://github.com/ratpack/example-ratpack-gradle-groovy-app">Groovy app built with Gradle</a></li>
+                    <li><a href="https://github.com/ratpack/example-ratpack-gradle-java-app">Java app built with Gradle</a></li>
+                  </ul>
                 </div>
             </div>
         </section>
@@ -65,8 +92,8 @@
         <footer class="site-footer">
             <div class="content">
                 <div class="about">
-                    <p>&copy; 2013</p>
-                    <p>Built with Ratpack</p>
+                    <p>Follow <a href="https://twitter.com/ratpackweb">@ratpackweb</a> on Twitter to keep up with the latest.</p>
+                    <p>Ratpack is free to use, <a href="https://github.com/ratpack/ratpack">open source</a>, and licensed under the <a href="http://www.apache.org/licenses/LICENSE-2.0.html">Apache License, Version 2.0.</a></p>
                 </div>
             </div>
         </footer>
@@ -82,9 +109,5 @@
         <!-- build:js scripts/jquery.js -->
         <script src="lib/jquery/jquery.min.js"></script>
         <!-- endbuild -->
-
-        <!-- build:js(.tmp) scripts/ratpack.js -->
-        <!-- endbuild -->
-        <script src="lib/fixie/fixie.min.js"></script>
     </body>
 </html>
