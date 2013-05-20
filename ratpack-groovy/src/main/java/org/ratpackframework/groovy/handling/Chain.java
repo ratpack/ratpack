@@ -22,11 +22,11 @@ import org.ratpackframework.handling.Exchange;
 
 import java.util.List;
 
-public interface ChainBuilder extends org.ratpackframework.handling.ChainBuilder {
+public interface Chain extends org.ratpackframework.handling.Chain {
 
   void handler(@DelegatesTo(value = Exchange.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
 
-  void chain(@DelegatesTo(value = ChainBuilder.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
+  void chain(@DelegatesTo(value = org.ratpackframework.groovy.handling.Chain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
 
   void all(String path, @DelegatesTo(value = Exchange.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
 
@@ -34,7 +34,7 @@ public interface ChainBuilder extends org.ratpackframework.handling.ChainBuilder
 
   void handler(String path, @DelegatesTo(value = Exchange.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
 
-  void path(String path, @DelegatesTo(value = org.ratpackframework.groovy.handling.ChainBuilder.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
+  void path(String path, @DelegatesTo(value = org.ratpackframework.groovy.handling.Chain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
 
   void get(String path, @DelegatesTo(value = Exchange.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
 
@@ -46,8 +46,8 @@ public interface ChainBuilder extends org.ratpackframework.handling.ChainBuilder
 
   void assets(String path, String... indexFiles);
 
-  void context(Object object, @DelegatesTo(value = org.ratpackframework.groovy.handling.ChainBuilder.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handlers);
+  void context(Object object, @DelegatesTo(value = org.ratpackframework.groovy.handling.Chain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handlers);
 
-  void fsContext(String path, @DelegatesTo(value = org.ratpackframework.groovy.handling.ChainBuilder.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handlers);
+  void fsContext(String path, @DelegatesTo(value = org.ratpackframework.groovy.handling.Chain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handlers);
 
 }

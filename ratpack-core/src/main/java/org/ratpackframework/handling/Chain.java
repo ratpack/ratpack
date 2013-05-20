@@ -14,23 +14,10 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.handling.internal;
+package org.ratpackframework.handling;
 
-import org.ratpackframework.handling.ChainBuilder;
-import org.ratpackframework.handling.Handler;
+public interface Chain {
 
-import java.util.List;
-
-public class DefaultChainBuilder implements ChainBuilder {
-
-  private final List<Handler> handlers;
-
-  public DefaultChainBuilder(List<Handler> handlers) {
-    this.handlers = handlers;
-  }
-
-  public void add(Handler handler) {
-    handlers.add(handler);
-  }
+  void add(Handler handler);
 
 }

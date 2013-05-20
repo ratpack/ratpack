@@ -1,6 +1,6 @@
 package org.ratpackframework.test.groovy
 
-import org.ratpackframework.groovy.handling.ChainBuilder
+import org.ratpackframework.groovy.handling.Chain
 import org.ratpackframework.groovy.handling.internal.ChainBuildingHandler
 import org.ratpackframework.handling.Handler
 import org.ratpackframework.test.DefaultRatpackSpec
@@ -9,7 +9,7 @@ import static org.ratpackframework.groovy.Closures.action
 
 abstract class RatpackGroovyDslSpec extends DefaultRatpackSpec {
 
-  void handlers(@DelegatesTo(ChainBuilder) Closure<?> configurer) {
+  void handlers(@DelegatesTo(Chain) Closure<?> configurer) {
     this.handlersClosure = configurer
   }
 

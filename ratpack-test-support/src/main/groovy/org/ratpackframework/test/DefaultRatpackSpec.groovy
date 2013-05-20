@@ -8,7 +8,7 @@ import org.ratpackframework.guice.ModuleRegistry
 import org.ratpackframework.guice.internal.DefaultGuiceBackedHandlerFactory
 import org.ratpackframework.handling.Handler
 import org.ratpackframework.handling.Handlers
-import org.ratpackframework.handling.ChainBuilder
+import org.ratpackframework.handling.Chain
 import org.ratpackframework.util.Action
 
 import static Handlers.chain
@@ -22,7 +22,7 @@ abstract class DefaultRatpackSpec extends RatpackSpec {
 
   List<Module> modules = []
 
-  void handlers(@DelegatesTo(ChainBuilder) Closure<?> configurer) {
+  void handlers(@DelegatesTo(Chain) Closure<?> configurer) {
     this.handlersClosure = configurer
   }
 
