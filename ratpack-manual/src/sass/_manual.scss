@@ -9,13 +9,16 @@ body {
 }
 
 .page-header {
+	@include padding-leader(1);
 	@include margin-trailer(1);
 
 	.ratpack-logo {
 		@include content-width;
-		margin-bottom: 0;
+		@include rem(font-size, 0.55rem);
 		&:not(.small) {
-			@include rem(font-size, 0.625rem);
+			@include when-phone-landscape {
+				@include rem(font-size, 0.625rem);
+			}
 			@include when-tablet-portrait {
 				@include rem(font-size, 1rem);
 				margin-bottom: 1.5em;
