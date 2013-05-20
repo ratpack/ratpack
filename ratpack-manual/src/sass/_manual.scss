@@ -37,8 +37,13 @@ body {
 
 	ul {
 		@include clearfix;
-		padding: 0;
 		list-style: none;
+		padding: 0.5em 0 0.25em;
+		border: {
+			color: #222;
+			style: dotted;
+			width: 0.125em 0;
+		}
 	}
 	li {
 		width: $column-width * 4;
