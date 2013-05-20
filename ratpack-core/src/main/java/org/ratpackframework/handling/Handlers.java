@@ -20,10 +20,7 @@ import org.ratpackframework.file.internal.DirectoryStaticAssetRequestHandler;
 import org.ratpackframework.file.internal.FileStaticAssetRequestHandler;
 import org.ratpackframework.file.internal.FileSystemContextHandler;
 import org.ratpackframework.file.internal.TargetFileStaticAssetRequestHandler;
-import org.ratpackframework.handling.internal.ChainActionTransformer;
-import org.ratpackframework.handling.internal.ChainBuilder;
-import org.ratpackframework.handling.internal.ChainHandler;
-import org.ratpackframework.handling.internal.NextHandler;
+import org.ratpackframework.handling.internal.*;
 import org.ratpackframework.http.internal.MethodHandler;
 import org.ratpackframework.path.PathBinder;
 import org.ratpackframework.path.internal.PathHandler;
@@ -41,11 +38,7 @@ public abstract class Handlers {
   }
 
   public static Handler context(final Object context, final Handler handler) {
-    return new Handler() {
-      public void handle(Exchange exchange) {
-        exchange.nextWithContext(context, handler);
-      }
-    };
+    return new ContextInsertingHandler(context, handler);
   }
 
   public static Handler chain(Action<? super Chain> action) {
