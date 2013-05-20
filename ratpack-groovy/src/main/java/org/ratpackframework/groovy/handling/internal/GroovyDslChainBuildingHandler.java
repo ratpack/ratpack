@@ -17,25 +17,20 @@
 package org.ratpackframework.groovy.handling.internal;
 
 import org.ratpackframework.groovy.handling.Chain;
-import org.ratpackframework.handling.Exchange;
 import org.ratpackframework.handling.Handler;
+import org.ratpackframework.handling.internal.ChainBuildingHandler;
 import org.ratpackframework.util.Action;
 
-import java.util.LinkedList;
 import java.util.List;
 
-public class ChainBuildingHandler implements Handler {
+public class GroovyDslChainBuildingHandler extends ChainBuildingHandler<Chain> {
 
-  private final List<Handler> handlers;
-
-  public ChainBuildingHandler(Action<? super Chain> action) {
-    handlers = new LinkedList<Handler>();
-    Chain chainBuilder = new DefaultChain(handlers);
-    action.execute(chainBuilder);
+  public GroovyDslChainBuildingHandler(Action<? super Chain> action) {
+    super(action);
   }
 
-  public void handle(Exchange exchange) {
-    exchange.next(handlers);
+  @Override
+  protected Chain create(List<Handler> storage) {
+    return new DefaultChain(storage);
   }
-
 }

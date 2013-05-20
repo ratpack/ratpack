@@ -89,7 +89,7 @@ public class DefaultChain implements Chain {
   }
 
   private Handler chainBuildingHandler(Closure<?> handlers) {
-    return new ChainBuildingHandler(action(handlers));
+    return new GroovyDslChainBuildingHandler(action(handlers));
   }
 
   public void add(Handler handler) {

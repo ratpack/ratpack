@@ -21,7 +21,7 @@ import groovy.lang.Script;
 import io.netty.buffer.ByteBuf;
 import org.ratpackframework.groovy.Closures;
 import org.ratpackframework.groovy.handling.Chain;
-import org.ratpackframework.groovy.handling.internal.ChainBuildingHandler;
+import org.ratpackframework.groovy.handling.internal.GroovyDslChainBuildingHandler;
 import org.ratpackframework.groovy.script.ScriptEngine;
 import org.ratpackframework.guice.GuiceBackedHandlerFactory;
 import org.ratpackframework.guice.ModuleRegistry;
@@ -71,7 +71,7 @@ public class ScriptBackedApp implements Handler {
           Action<ModuleRegistry> modulesAction = Closures.action(ModuleRegistry.class, ratpack.getModulesConfigurer());
           Action<Chain> chainBuilderAction = Closures.action(Chain.class, ratpack.getHandlersConfigurer());
 
-          ChainBuildingHandler chainBuildingHandler = new ChainBuildingHandler(chainBuilderAction);
+          Handler chainBuildingHandler = new GroovyDslChainBuildingHandler(chainBuilderAction);
 
           return appFactory.create(modulesAction, chainBuildingHandler);
 

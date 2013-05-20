@@ -16,7 +16,6 @@
 
 package org.ratpackframework.handling.internal;
 
-import org.ratpackframework.handling.Chain;
 import org.ratpackframework.handling.Exchange;
 import org.ratpackframework.handling.Handler;
 import org.ratpackframework.util.Action;
@@ -24,18 +23,20 @@ import org.ratpackframework.util.Action;
 import java.util.LinkedList;
 import java.util.List;
 
-public class ChainBuildingHandler implements Handler {
+public abstract class ChainBuildingHandler<T> implements Handler {
 
   private final List<Handler> handlers;
 
-  public ChainBuildingHandler(Action<? super Chain> action) {
+  public ChainBuildingHandler(Action<? super T> action) {
     handlers = new LinkedList<Handler>();
-    Chain chain = new DefaultChain(handlers);
+    T chain = create(handlers);
     action.execute(chain);
   }
 
   public void handle(Exchange exchange) {
     exchange.next(handlers);
   }
+
+  protected abstract T create(List<Handler> storage);
 
 }
