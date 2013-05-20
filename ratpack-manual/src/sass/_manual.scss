@@ -56,10 +56,16 @@ a {
 	}
 	li {
 		@include column(4);
-		text-align: center;
-		padding: 0 1em;
+		padding: 0;
 
+		&.prev {
+			text-align: left;
+		}
+		&.next {
+			text-align: right;
+		}
 		&.index {
+			text-align: center;
 			&:first-child {
 				@include push(4);
 			}
@@ -70,16 +76,20 @@ a {
 		$arrow-color: transparentize($blue, 0.25);
 		$highlight-color: transparentize($red, 0.25);
 
+		max-width: 100%;
+		@include ellipsis;
+
 		border-bottom: none;
+		padding-top: 1.25em;
 
 		position: relative;
 		&:after {
 			display: inline-block;
 			position: absolute;
 			bottom: 0;
+			text-indent: 0;
 			color: $arrow-color;
 			font-size: 1.5em;
-			@include single-transition;
 		}
 
 		&:active, &:hover {
@@ -89,20 +99,26 @@ a {
 		}
 
 		&[rel="index"]:after {
+			content: "\25B2";
+			top: 0;
 			left: 50%;
 			margin-left: -0.5em;
-			top: -1em;
-			content: "\25B2";
 		}
 
-		&[rel="prev"]:after {
-			left: -1.25em;
-			content: "\25C0";
+		&[rel="prev"] {
+			padding-left: 2.25em;
+			&:after {
+				left: 0.5em;
+				content: "\25C0";
+			}
 		}
 
-		&[rel="next"]:after {
-			right: -1.25em;
-			content: "\25B6";
+		&[rel="next"] {
+			padding-right: 2.25em;
+			&:after {
+				right: 0.5em;
+				content: "\25B6";
+			}
 		}
 	}
 }
