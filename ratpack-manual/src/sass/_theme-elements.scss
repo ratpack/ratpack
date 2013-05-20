@@ -1,7 +1,7 @@
 /*
  * Creates a diamond background behind an element.
  */
-@mixin diamond-button($color: transparentize($anchor-font-color, 0.25), $hover-color: transparentize($anchor-font-color-hover, 0.25), $width: 8em, $height: 1.5em) {
+@mixin diamond-button($color: transparentize($anchor-font-color, 0.25), $hover-color: transparentize($anchor-font-color-hover, 0.25), $width: 6em, $height: 1.5em) {
 	display: inline-block;
 	text-align: center;
 	line-height: 3em;
@@ -77,6 +77,7 @@
 		style: dotted;
 		color: $black;
 	}
+	overflow: visible;
 	a {
 		position: relative;
 		top: -0.5em;
@@ -87,7 +88,7 @@
 @mixin divider {
 	$icon-size: 2em;
 	$box-size: $icon-size * 1.5;
-	$leader: rhythm(2);
+	$leader: rhythm(4);
 	$border-weight: 0.125em;
 	$icon-border-weight: $border-weight * 1.5;
 	$icon-position: ($icon-size * 0.25) - $icon-border-weight;

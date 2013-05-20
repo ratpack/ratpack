@@ -10,7 +10,6 @@ body {
 
 .page-header {
 	@include margin-trailer(1);
-	@include row;
 
 	.ratpack-logo {
 		@include content-width;
@@ -34,12 +33,16 @@ body {
 	@include margin-leader(1);
 	@include margin-trailer(1);
 
+	@include content-width($gutter: 0);
+
 	ul {
-		@include row;
+		@include clearfix;
 		padding: 0;
+		list-style: none;
 	}
 	li {
-		@include column(4);
+		width: $column-width * 4;
+		float: left;
 		padding: 0;
 
 		&.prev {
@@ -51,7 +54,7 @@ body {
 		&.index {
 			text-align: center;
 			&:first-child {
-				@include push(4);
+				margin-left: $column-width * 4;
 			}
 		}
 	}
@@ -81,6 +84,7 @@ body {
 				size: 1.5em;
 				style: normal;
 			}
+			line-height: 1;
 		}
 
 		&:hover, &:focus {
@@ -115,7 +119,6 @@ body {
 }
 
 .toc {
-	@include row;
 	@include margin-leader(1);
 	@include margin-trailer(1);
 
@@ -150,9 +153,6 @@ body {
 		}
 		@include when-tablet-portrait {
 			@include link-bar;
-			h2, a {
-				margin-right: 1em;
-			}
 			h2 {
 				float: right;
 				line-height: 2;
@@ -160,14 +160,15 @@ body {
 			}
 			a {
 				@include diamond-button;
+				margin-right: 0.5em
 			}
 		}
 	}
 }
 
 .manual {
-	@include row;
 	@include margin-leader(1);
+	@include margin-trailer(1);
 
 	.chapter {
 		@include content-width;
@@ -196,7 +197,7 @@ body {
 	@include contrasted($bg);
 	@include noise-background;
 	@include adjust-font-size-to($font-size);
-	@include margin-leader(1, $font-size);
+	@include margin-leader(2, $font-size);
 	@include padding-leader(1, $font-size);
 	@include padding-trailer(1, $font-size);
 	border-top: rhythm(1, $font-size) solid $blue;
@@ -225,14 +226,11 @@ body {
 	}
 
 	@include when-tablet-portrait {
-		@include row;
-
-		h2 {
-			@include column(6);
+		h2, p {
+			width: $column-width * 6;
 		}
 
 		p {
-			@include column(6);
 			text-align: right;
 		}
 	}

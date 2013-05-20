@@ -7,7 +7,6 @@
 #### Libraries
 
 * [Prism](http://prismjs.com/) by [Lea Verou](http://lea.verou.me/)
-* The [Semantic Grid System](http://semantic.gs/) by [TwigKit](http://twigkit.com/)
 * [Normalize.css](git.io/normalize) by [Nicolas Gallagher](https://github.com/necolas)
 * [Modernizr](http://modernizr.com/)
 * [jQuery](http://jquery.com/)
