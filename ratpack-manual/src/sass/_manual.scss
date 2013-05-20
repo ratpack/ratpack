@@ -4,7 +4,7 @@ html {
 }
 
 body {
-	background-color: $ivory;
+	@include contrasted-smooth($ivory);
 	@include noise-background;
 }
 
@@ -202,6 +202,7 @@ body {
 	$font-size: 14px;
 
 	font-family: $sans-font-family;
+	text-shadow: none;
 	@include clearfix;
 	@include contrasted($bg);
 	@include noise-background;
