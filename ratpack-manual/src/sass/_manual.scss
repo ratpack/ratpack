@@ -81,6 +81,7 @@ a {
 
 		border-bottom: none;
 		padding-top: 1.25em;
+		font-style: italic;
 
 		position: relative;
 		&:after {
@@ -89,7 +90,10 @@ a {
 			bottom: 0;
 			text-indent: 0;
 			color: $arrow-color;
-			font-size: 1.5em;
+			font: {
+				size: 1.5em;
+				style: normal;
+			}
 		}
 
 		&:active, &:hover {
