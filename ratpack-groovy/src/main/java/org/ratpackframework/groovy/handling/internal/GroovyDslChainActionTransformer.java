@@ -18,19 +18,16 @@ package org.ratpackframework.groovy.handling.internal;
 
 import org.ratpackframework.groovy.handling.Chain;
 import org.ratpackframework.handling.Handler;
-import org.ratpackframework.handling.internal.ChainBuildingHandler;
-import org.ratpackframework.util.Action;
+import org.ratpackframework.util.internal.Transformer;
 
 import java.util.List;
 
-public class GroovyDslChainBuildingHandler extends ChainBuildingHandler<Chain> {
+public class GroovyDslChainActionTransformer implements Transformer<List<Handler>, Chain> {
 
-  public GroovyDslChainBuildingHandler(Action<? super Chain> action) {
-    super(action);
-  }
+  public static final Transformer<List<Handler>, Chain> INSTANCE = new GroovyDslChainActionTransformer();
 
-  @Override
-  protected Chain create(List<Handler> storage) {
+  public Chain transform(List<Handler> storage) {
     return new DefaultChain(storage);
   }
+
 }

@@ -23,6 +23,7 @@ import org.ratpackframework.groovy.handling.Chain;
 import org.ratpackframework.handling.Exchange;
 import org.ratpackframework.handling.Handler;
 import org.ratpackframework.handling.Handlers;
+import org.ratpackframework.handling.internal.ChainBuilder;
 
 import java.util.List;
 
@@ -89,12 +90,11 @@ public class DefaultChain implements Chain {
   }
 
   private Handler chainBuildingHandler(Closure<?> handlers) {
-    return new GroovyDslChainBuildingHandler(action(handlers));
+    return ChainBuilder.INSTANCE.build(GroovyDslChainActionTransformer.INSTANCE, action(handlers));
   }
 
   public void add(Handler handler) {
     handlers.add(handler);
   }
-
 
 }

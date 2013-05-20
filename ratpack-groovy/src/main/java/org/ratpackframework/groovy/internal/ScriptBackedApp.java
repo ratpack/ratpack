@@ -21,10 +21,11 @@ import groovy.lang.Script;
 import io.netty.buffer.ByteBuf;
 import org.ratpackframework.groovy.Closures;
 import org.ratpackframework.groovy.handling.Chain;
-import org.ratpackframework.groovy.handling.internal.GroovyDslChainBuildingHandler;
+import org.ratpackframework.groovy.handling.internal.GroovyDslChainActionTransformer;
 import org.ratpackframework.groovy.script.ScriptEngine;
 import org.ratpackframework.guice.GuiceBackedHandlerFactory;
 import org.ratpackframework.guice.ModuleRegistry;
+import org.ratpackframework.handling.internal.ChainBuilder;
 import org.ratpackframework.reload.internal.ReloadableFileBackedFactory;
 import org.ratpackframework.handling.Exchange;
 import org.ratpackframework.handling.Handler;
@@ -69,9 +70,9 @@ public class ScriptBackedApp implements Handler {
           RatpackScriptBacking.withBacking(backing, runScript);
 
           Action<ModuleRegistry> modulesAction = Closures.action(ModuleRegistry.class, ratpack.getModulesConfigurer());
-          Action<Chain> chainBuilderAction = Closures.action(Chain.class, ratpack.getHandlersConfigurer());
+          Action<Chain> chainAction = Closures.action(Chain.class, ratpack.getHandlersConfigurer());
 
-          Handler chainBuildingHandler = new GroovyDslChainBuildingHandler(chainBuilderAction);
+          Handler chainBuildingHandler = ChainBuilder.INSTANCE.build(GroovyDslChainActionTransformer.INSTANCE, chainAction);
 
           return appFactory.create(modulesAction, chainBuildingHandler);
 

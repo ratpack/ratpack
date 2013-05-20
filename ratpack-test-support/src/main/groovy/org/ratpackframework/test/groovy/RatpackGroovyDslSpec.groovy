@@ -1,8 +1,9 @@
 package org.ratpackframework.test.groovy
 
 import org.ratpackframework.groovy.handling.Chain
-import org.ratpackframework.groovy.handling.internal.GroovyDslChainBuildingHandler
+import org.ratpackframework.groovy.handling.internal.GroovyDslChainActionTransformer
 import org.ratpackframework.handling.Handler
+import org.ratpackframework.handling.internal.ChainBuilder
 import org.ratpackframework.test.DefaultRatpackSpec
 
 import static org.ratpackframework.groovy.Closures.action
@@ -15,6 +16,6 @@ abstract class RatpackGroovyDslSpec extends DefaultRatpackSpec {
 
   @Override
   protected Handler createHandler() {
-    return new GroovyDslChainBuildingHandler(action(handlersClosure))
+    ChainBuilder.INSTANCE.build(GroovyDslChainActionTransformer.INSTANCE, action(handlersClosure))
   }
 }

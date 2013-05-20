@@ -20,8 +20,8 @@ import org.ratpackframework.file.internal.DirectoryStaticAssetRequestHandler;
 import org.ratpackframework.file.internal.FileStaticAssetRequestHandler;
 import org.ratpackframework.file.internal.FileSystemContextHandler;
 import org.ratpackframework.file.internal.TargetFileStaticAssetRequestHandler;
-import org.ratpackframework.handling.internal.ChainBuildingHandler;
-import org.ratpackframework.handling.internal.DefaultChain;
+import org.ratpackframework.handling.internal.ChainActionTransformer;
+import org.ratpackframework.handling.internal.ChainBuilder;
 import org.ratpackframework.http.internal.MethodHandler;
 import org.ratpackframework.path.PathBinder;
 import org.ratpackframework.path.internal.PathHandler;
@@ -31,7 +31,6 @@ import org.ratpackframework.util.Action;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
 
 public abstract class Handlers {
 
@@ -48,11 +47,7 @@ public abstract class Handlers {
   }
 
   public static Handler chain(Action<? super Chain> action) {
-    return new ChainBuildingHandler<Chain>(action) {
-      protected Chain create(List<Handler> storage) {
-        return new DefaultChain(storage);
-      }
-    };
+    return ChainBuilder.INSTANCE.build(ChainActionTransformer.INSTANCE, action);
   }
 
   public static Handler fsContext(String path, Handler handler) {
