@@ -23,6 +23,7 @@ import org.ratpackframework.file.internal.TargetFileStaticAssetRequestHandler;
 import org.ratpackframework.handling.internal.ChainActionTransformer;
 import org.ratpackframework.handling.internal.ChainBuilder;
 import org.ratpackframework.handling.internal.ChainHandler;
+import org.ratpackframework.handling.internal.NextHandler;
 import org.ratpackframework.http.internal.MethodHandler;
 import org.ratpackframework.path.PathBinder;
 import org.ratpackframework.path.internal.PathHandler;
@@ -64,7 +65,7 @@ public abstract class Handlers {
   }
 
   public static Handler assets(String path, String... indexFiles) {
-    return assets(path, indexFiles, noop());
+    return assets(path, indexFiles, next());
   }
 
   public static Handler assets(String path, String[] indexFiles, final Handler notFound) {
@@ -92,12 +93,8 @@ public abstract class Handlers {
     return new ChainHandler(Arrays.asList(handlers));
   }
 
-  public static Handler noop() {
-    return new Handler() {
-      public void handle(Exchange exchange) {
-        exchange.next();
-      }
-    };
+  public static Handler next() {
+    return NextHandler.INSTANCE;
   }
 
   public static Handler path(String path, Action<? super Chain> builder) {
@@ -127,4 +124,5 @@ public abstract class Handlers {
   public static Handler method(Collection<String> methods, Handler handler) {
     return new MethodHandler(methods, handler);
   }
+
 }
