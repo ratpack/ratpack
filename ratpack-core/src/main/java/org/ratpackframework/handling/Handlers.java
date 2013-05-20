@@ -62,7 +62,7 @@ public abstract class Handlers {
   }
 
   public static Handler assets(String path, String[] indexFiles, final Handler notFound) {
-    Handler fileHandler = new FileStaticAssetRequestHandler();
+    Handler fileHandler = FileStaticAssetRequestHandler.INSTANCE;
     Handler directoryHandler = new DirectoryStaticAssetRequestHandler(Arrays.asList(indexFiles), fileHandler);
     Handler contextSetter = new TargetFileStaticAssetRequestHandler(directoryHandler);
 

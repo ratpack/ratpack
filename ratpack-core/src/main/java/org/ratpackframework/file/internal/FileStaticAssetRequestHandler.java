@@ -33,6 +33,8 @@ import static io.netty.handler.codec.http.HttpResponseStatus.*;
 
 public class FileStaticAssetRequestHandler implements Handler {
 
+  public static final Handler INSTANCE = new FileStaticAssetRequestHandler();
+
   public void handle(Exchange exchange) {
     Request request = exchange.getRequest();
     Response response = exchange.getResponse();
