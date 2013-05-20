@@ -176,7 +176,7 @@ body {
 
 .manual {
 	@include margin-leader(1);
-	@include margin-trailer(1);
+	@include margin-trailer(2);
 
 	.chapter {
 		@include content-width;
@@ -202,6 +202,7 @@ body {
 	$font-size: 14px;
 
 	font-family: $sans-font-family;
+	@include clearfix;
 	@include contrasted($bg);
 	@include noise-background;
 	@include adjust-font-size-to($font-size);
@@ -236,6 +237,7 @@ body {
 	@include when-tablet-portrait {
 		h2, p {
 			width: $column-width * 6;
+			float: left;
 		}
 
 		p {
