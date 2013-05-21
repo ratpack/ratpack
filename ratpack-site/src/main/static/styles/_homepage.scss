@@ -172,7 +172,6 @@ section {
 
 .site-footer {
   @include contrasted-smooth($black);
-  @include noise-mask;
 
   .content {
     $bg-image: 'ratpack-footer.png';

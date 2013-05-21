@@ -158,11 +158,11 @@ subprojects {
         }
         gradle.taskGraph.whenReady { taskGraph ->
           if (taskGraph.hasTask(task)) {
-            repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
-              authentication(userName: mavenCentralUsername, password: mavenCentralPassword)
+            repository(url: "http://oss.jfrog.org/artifactory/simple/oss-release-local") {
+              authentication(userName: ratpackBintrayUser, password: ratpackBintrayApiKey)
             }
-            snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots") {
-              authentication(userName: mavenCentralUsername, password: mavenCentralPassword)
+            snapshotRepository(url: "http://oss.jfrog.org/artifactory/simple/oss-snapshot-local") {
+              authentication(userName: ratpackBintrayUser, password: ratpackBintrayApiKey)
             }
           }
         }
