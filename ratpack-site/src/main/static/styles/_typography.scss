@@ -71,7 +71,7 @@ pre, code, tt {
 }
 
 $anchor-font-color: $blue;
-$anchor-font-color-hover: $ivory;
+$anchor-font-color-hover: lighten($blue, 15%);
 $anchor-text-decoration: none;
 
 a {
