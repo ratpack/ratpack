@@ -97,7 +97,7 @@ task tokeniseManual(type: Sync) {
 
   ext.substitutionProperties = [
       title: "Ratpack",
-      tagline: "A Micro Web Framework for Java & Groovy",
+      tagline: "A toolkit for JVM web applications",
       "ratpack-version": project.version,
       "ratpack-group": project.group,
       "groovy-version": groovyVersion,
