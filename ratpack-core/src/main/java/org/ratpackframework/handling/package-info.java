@@ -15,6 +15,6 @@
  */
 
 /**
- * How requests will be processed and responded to.
+ * The handling of application requests.
  */
 package org.ratpackframework.handling;
