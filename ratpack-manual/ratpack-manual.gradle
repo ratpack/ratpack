@@ -62,7 +62,7 @@ task api(type: Javadoc) {
     linkSource true
     windowTitle "Ratpack API ($project.version)"
     docTitle "Ratpack API ($project.version)"
-
+    docEncoding "utf8"
   }
 
   apiModules.each {
