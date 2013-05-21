@@ -31,6 +31,6 @@ public class InjectorBindingHandler implements Handler {
   }
 
   public void handle(Exchange exchange) {
-    exchange.nextWithContext(new InjectorBackedHierarchicalContext(exchange.getContext(), injector), delegate);
+    exchange.insert(new InjectorBackedHierarchicalContext(exchange.getContext(), injector), delegate);
   }
 }

@@ -45,13 +45,13 @@ public class DirectoryStaticAssetRequestHandler implements Handler {
         File file = new File(targetFile, indexFileName);
         if (file.isFile()) {
           Context newContext = exchange.getContext().plus(FileSystemBinding.class, fileSystemBinding.binding(file));
-          exchange.nextWithContext(newContext, delegate);
+          exchange.insert(newContext, delegate);
           return;
         }
       }
       exchange.getResponse().status(FORBIDDEN.code(), FORBIDDEN.reasonPhrase()).send();
     } else {
-      exchange.next(delegate);
+      exchange.insert(delegate);
     }
   }
 }

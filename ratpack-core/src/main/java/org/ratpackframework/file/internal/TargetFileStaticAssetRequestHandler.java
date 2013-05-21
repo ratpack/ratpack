@@ -66,6 +66,6 @@ public class TargetFileStaticAssetRequestHandler implements Handler {
 
     FileSystemBinding newBinding = fileSystemBinding.binding(path);
     Context newContext = exchange.getContext().plus(FileSystemBinding.class, newBinding);
-    exchange.nextWithContext(newContext, delegate);
+    exchange.insert(newContext, delegate);
   }
 }

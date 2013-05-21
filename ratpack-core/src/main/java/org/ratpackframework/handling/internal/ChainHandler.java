@@ -28,7 +28,7 @@ public class ChainHandler implements Handler {
   }
 
   public void handle(Exchange exchange) {
-    exchange.next(chain);
+    exchange.insert(chain);
   }
 
 }

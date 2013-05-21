@@ -34,7 +34,7 @@ public class SessionBindingHandler implements Handler {
     SessionManager sessionManager = exchange.get(SessionManager.class);
     ExchangeSessionManager exchangeSessionManager = new ExchangeSessionManager(exchange, sessionManager);
     Context context = exchange.getContext().plus(Session.class, exchangeSessionManager.getSession());
-    exchange.nextWithContext(context, delegate);
+    exchange.insert(context, delegate);
   }
 
 }

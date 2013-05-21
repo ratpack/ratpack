@@ -73,7 +73,7 @@ public class DefaultByMethodChain implements ByMethodChain {
       handlers.add(new ByMethodHandler(entry.getKey(), entry.getValue()));
     }
     handlers.add(new ClientErrorHandler(METHOD_NOT_ALLOWED.code()));
-    exchange.next(handlers);
+    exchange.insert(handlers);
   }
 
 }

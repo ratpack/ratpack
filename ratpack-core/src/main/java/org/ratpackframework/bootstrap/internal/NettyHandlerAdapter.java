@@ -73,7 +73,7 @@ public class NettyHandlerAdapter extends ChannelInboundMessageHandlerAdapter<Ful
     Response response = new DefaultResponse(nettyResponse, ctx.channel());
     final Exchange exchange = new DefaultExchange(request, response, ctx, rootContext, return404);
 
-    exchange.next(new ErrorCatchingHandler(handler));
+    exchange.insert(new ErrorCatchingHandler(handler));
   }
 
   public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {

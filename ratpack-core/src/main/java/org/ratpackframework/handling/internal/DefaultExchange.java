@@ -75,19 +75,19 @@ public class DefaultExchange implements Exchange {
     next.handle(this);
   }
 
-  public void next(Handler... handlers) {
+  public void insert(Handler... handlers) {
     doNext(context, CollectionUtils.toList(handlers), next);
   }
 
-  public void next(Iterable<Handler> handlers) {
+  public void insert(Iterable<Handler> handlers) {
     doNext(context, CollectionUtils.toList(handlers), next);
   }
 
-  public void nextWithContext(Context context, Handler... handlers) {
+  public void insert(Context context, Handler... handlers) {
     doNext(context, CollectionUtils.toList(handlers), next);
   }
 
-  public void nextWithContext(Context context, Iterable<Handler> handlers) {
+  public void insert(Context context, Iterable<Handler> handlers) {
     doNext(context, CollectionUtils.toList(handlers), next);
   }
 

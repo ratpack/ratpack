@@ -42,9 +42,9 @@ public class ContextInsertingHandler implements Handler {
   public void handle(Exchange exchange) {
     Context context = exchange.getContext();
     if (type == null) {
-      exchange.nextWithContext(context.plus(object), handler);
+      exchange.insert(context.plus(object), handler);
     } else {
-      exchange.nextWithContext(context.plus((Class<? super Object>) type, object), handler);
+      exchange.insert(context.plus((Class<? super Object>) type, object), handler);
     }
   }
 }

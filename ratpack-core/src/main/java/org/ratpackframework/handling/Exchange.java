@@ -37,13 +37,13 @@ public interface Exchange {
 
   void next();
 
-  void next(Handler... handlers);
+  void insert(Handler... handlers);
 
-  void next(Iterable<Handler> handlers);
+  void insert(Iterable<Handler> handlers);
 
-  void nextWithContext(Context context, Handler... handlers);
+  void insert(Context context, Handler... handlers);
 
-  void nextWithContext(Context context, Iterable<Handler> handlers);
+  void insert(Context context, Iterable<Handler> handlers);
 
   Map<String, String> getPathTokens();
 

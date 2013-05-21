@@ -43,7 +43,7 @@ public class SessionStorageBindingHandler implements Handler {
         return mapSessionStore.get(id);
       }
     });
-    exchange.nextWithContext(sessionContext, handler);
+    exchange.insert(sessionContext, handler);
   }
 
 }

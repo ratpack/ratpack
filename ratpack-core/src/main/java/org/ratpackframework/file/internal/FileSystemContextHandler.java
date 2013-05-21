@@ -40,14 +40,14 @@ public class FileSystemContextHandler implements Handler {
   public void handle(Exchange exchange) {
     Context currentContext = exchange.getContext();
     if (absolute) {
-      exchange.nextWithContext(currentContext.plus(FileSystemBinding.class, absoluteContext), delegate);
+      exchange.insert(currentContext.plus(FileSystemBinding.class, absoluteContext), delegate);
     } else {
       FileSystemBinding parentContext = exchange.maybeGet(FileSystemBinding.class);
       if (parentContext == null) {
-        exchange.nextWithContext(currentContext.plus(FileSystemBinding.class, absoluteContext), delegate);
+        exchange.insert(currentContext.plus(FileSystemBinding.class, absoluteContext), delegate);
       } else {
         FileSystemBinding binding = parentContext.binding(file.getPath());
-        exchange.nextWithContext(currentContext.plus(FileSystemBinding.class, binding), delegate);
+        exchange.insert(currentContext.plus(FileSystemBinding.class, binding), delegate);
       }
     }
   }
