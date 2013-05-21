@@ -160,6 +160,15 @@ section {
     @include push(1);
     @include pull(1);
   }
+  ul {
+    padding-left: 0em;
+    list-style: none;
+    li:before {
+      content: '\2192';
+      font-weight: bold;
+      margin: 0 1em 0 0;
+    }
+  }
 }
 
 .callout {
