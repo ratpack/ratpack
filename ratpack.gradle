@@ -62,6 +62,11 @@ ext {
   apiModules = [
       "ratpack-core", "ratpack-groovy", "ratpack-guice", "ratpack-session"
   ].collect { project(it) }
+
+  publishedModules = [
+      "ratpack-core", "ratpack-groovy", "ratpack-guice", "ratpack-session", "ratpack-test-support",
+      "ratpack-manual"
+  ].collect { project(it) }
 }
 
 
@@ -139,7 +144,9 @@ subprojects {
     }
 
     signing {
-      sign configurations.archives
+      if (!isSnapshot) {
+        sign configurations.archives
+      }
       required { gradle.taskGraph.hasTask(uploadArchives) }
     }
 
@@ -150,11 +157,15 @@ subprojects {
         }
       }
     }
+  }
 
+  if (project in publishedModules) {
     uploadArchives { task ->
       repositories.mavenDeployer {
         beforeDeployment { deployment ->
-          signing.signPom(deployment)
+          if (!isSnapshot) {
+            signing.signPom(deployment)
+          }
         }
         gradle.taskGraph.whenReady { taskGraph ->
           if (taskGraph.hasTask(task)) {
