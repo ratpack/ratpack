@@ -47,14 +47,14 @@ import java.util.Map;
  * <p>
  * The {@code insert()} methods can be used to insert one or more handlers in the pipeline and then delegate
  * to the first inserted handler.
- * The last inserted handler's “next” handler will become the “next” handler of this exchange.
- * That is, the “insert” operation is inserting before the current next handler.
+ * The last inserted handler's "next" handler will become the "next" handler of this exchange.
+ * That is, the "insert" operation is inserting before the current next handler.
  * </p>
  * <h4>Inserting with a different context</h4>
  * <p>
  * There are variants of the {@code insert()} method that allow the injection of a new context.
  * The given context will <b>only</b> be the context for the inserted handlers.
- * It is in effect “scoped” to just the inserted handlers.
+ * It is in effect "scoped" to just the inserted handlers.
  * The context for existing handlers that are already part of the pipeline cannot be influenced.
  * This gives processing a hierarchical nature.
  * Handlers can delegate to a tree of handlers (inserted handlers can insert other handlers) that
