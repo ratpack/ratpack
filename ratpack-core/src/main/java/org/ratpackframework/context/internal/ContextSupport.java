@@ -46,4 +46,11 @@ public abstract class ContextSupport implements Context {
     return found;
   }
 
+  public Context plus(Object object) {
+    return new ObjectHoldingHierarchicalContext(this, object);
+  }
+
+  public <T> Context plus(Class<? super T> type, T object) {
+    return new ObjectHoldingHierarchicalContext(this, type, object);
+  }
 }

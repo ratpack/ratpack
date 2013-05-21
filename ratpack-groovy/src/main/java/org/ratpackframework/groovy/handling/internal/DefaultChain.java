@@ -77,6 +77,10 @@ public class DefaultChain implements Chain {
     add(Handlers.context(object, chainBuildingHandler(handlers)));
   }
 
+  public <T> void context(Class<? super T> type, T object, @DelegatesTo(value = Chain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handlers) {
+    add(Handlers.context(type, object, chainBuildingHandler(handlers)));
+  }
+
   public void fileSystem(String path, Closure<?> handlers) {
     add(Handlers.fileSystem(path, chainBuildingHandler(handlers)));
   }

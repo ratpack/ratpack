@@ -41,10 +41,6 @@ public interface Exchange {
 
   void next(Iterable<Handler> handlers);
 
-  void nextWithContext(Object object, Handler... handlers);
-
-  void nextWithContext(Object object, Iterable<Handler> handlers);
-
   void nextWithContext(Context context, Handler... handlers);
 
   void nextWithContext(Context context, Iterable<Handler> handlers);

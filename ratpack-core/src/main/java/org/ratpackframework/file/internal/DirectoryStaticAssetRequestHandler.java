@@ -16,6 +16,7 @@
 
 package org.ratpackframework.file.internal;
 
+import org.ratpackframework.context.Context;
 import org.ratpackframework.file.FileSystemBinding;
 import org.ratpackframework.handling.Exchange;
 import org.ratpackframework.handling.Handler;
@@ -43,7 +44,8 @@ public class DirectoryStaticAssetRequestHandler implements Handler {
       for (String indexFileName : indexFiles) {
         File file = new File(targetFile, indexFileName);
         if (file.isFile()) {
-          exchange.nextWithContext(fileSystemBinding.binding(file), delegate);
+          Context newContext = exchange.getContext().plus(FileSystemBinding.class, fileSystemBinding.binding(file));
+          exchange.nextWithContext(newContext, delegate);
           return;
         }
       }

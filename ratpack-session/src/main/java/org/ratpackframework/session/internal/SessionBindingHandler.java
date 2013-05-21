@@ -16,8 +16,10 @@
 
 package org.ratpackframework.session.internal;
 
+import org.ratpackframework.context.Context;
 import org.ratpackframework.handling.Exchange;
 import org.ratpackframework.handling.Handler;
+import org.ratpackframework.session.Session;
 import org.ratpackframework.session.SessionManager;
 
 public class SessionBindingHandler implements Handler {
@@ -31,7 +33,8 @@ public class SessionBindingHandler implements Handler {
   public void handle(Exchange exchange) {
     SessionManager sessionManager = exchange.get(SessionManager.class);
     ExchangeSessionManager exchangeSessionManager = new ExchangeSessionManager(exchange, sessionManager);
-    exchange.nextWithContext(exchangeSessionManager.getSession(), delegate);
+    Context context = exchange.getContext().plus(Session.class, exchangeSessionManager.getSession());
+    exchange.nextWithContext(context, delegate);
   }
 
 }

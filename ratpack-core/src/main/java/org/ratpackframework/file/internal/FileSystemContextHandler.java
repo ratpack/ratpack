@@ -16,6 +16,7 @@
 
 package org.ratpackframework.file.internal;
 
+import org.ratpackframework.context.Context;
 import org.ratpackframework.file.FileSystemBinding;
 import org.ratpackframework.handling.Exchange;
 import org.ratpackframework.handling.Handler;
@@ -37,14 +38,16 @@ public class FileSystemContextHandler implements Handler {
   }
 
   public void handle(Exchange exchange) {
+    Context currentContext = exchange.getContext();
     if (absolute) {
-      exchange.nextWithContext(absoluteContext, delegate);
+      exchange.nextWithContext(currentContext.plus(FileSystemBinding.class, absoluteContext), delegate);
     } else {
       FileSystemBinding parentContext = exchange.maybeGet(FileSystemBinding.class);
       if (parentContext == null) {
-        exchange.nextWithContext(absoluteContext, delegate);
+        exchange.nextWithContext(currentContext.plus(FileSystemBinding.class, absoluteContext), delegate);
       } else {
-        exchange.nextWithContext(parentContext.binding(file.getPath()), delegate);
+        FileSystemBinding binding = parentContext.binding(file.getPath());
+        exchange.nextWithContext(currentContext.plus(FileSystemBinding.class, binding), delegate);
       }
     }
   }

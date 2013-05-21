@@ -49,4 +49,31 @@ public interface Context {
   @Nullable
   <T> T maybeGet(Class<T> type);
 
+  /**
+   * Constructs a new context, which provides the given object (by its concrete type) in addition to the existing objects of this context.
+   * <p>
+   * The given object will take precedence over any existing object in this context.
+   * <p>
+   * This does not change <b>this</b> context.
+   *
+   * @param object The object to add to the copy of this context
+   * @return A new context with the given object in addition to the objects of this context
+   */
+  Context plus(Object object);
+
+  /**
+   * Constructs a new context, which provides the given object (by the given type) in addition to the existing objects of this context.
+   * <p>
+   * The given object will take precedence over any existing object in this context.
+   * <p>
+   * The object will only be retrievable by the type that is given.
+   * <p>
+   * This does not change <b>this</b> context.
+   *
+   * @param type The advertised type of the object
+   * @param object The object to add to the copy of this context
+   * @return A new context with the given object in addition to the objects of this context
+   */
+  <T> Context plus(Class<? super T> type, T object);
+
 }

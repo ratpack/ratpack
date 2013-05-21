@@ -18,16 +18,15 @@ package org.ratpackframework.handling.internal;
 
 import io.netty.channel.ChannelHandlerContext;
 import org.ratpackframework.context.Context;
-import org.ratpackframework.context.internal.ObjectHoldingHierarchicalContext;
 import org.ratpackframework.error.ClientErrorHandler;
 import org.ratpackframework.error.ServerErrorHandler;
 import org.ratpackframework.file.FileSystemBinding;
 import org.ratpackframework.handling.ByMethodChain;
-import org.ratpackframework.path.PathBinding;
 import org.ratpackframework.handling.Exchange;
 import org.ratpackframework.handling.Handler;
 import org.ratpackframework.http.Request;
 import org.ratpackframework.http.Response;
+import org.ratpackframework.path.PathBinding;
 import org.ratpackframework.util.internal.CollectionUtils;
 
 import java.io.File;
@@ -82,14 +81,6 @@ public class DefaultExchange implements Exchange {
 
   public void next(Iterable<Handler> handlers) {
     doNext(context, CollectionUtils.toList(handlers), next);
-  }
-
-  public void nextWithContext(Object object, Handler... handlers) {
-    doNext(new ObjectHoldingHierarchicalContext(this.context, object), CollectionUtils.toList(handlers), next);
-  }
-
-  public void nextWithContext(Object object, Iterable<Handler> handlers) {
-    doNext(new ObjectHoldingHierarchicalContext(this.context, object), CollectionUtils.toList(handlers), next);
   }
 
   public void nextWithContext(Context context, Handler... handlers) {

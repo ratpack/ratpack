@@ -36,7 +36,7 @@ class ErrorHandlingSpec extends RatpackGroovyDslSpec {
     when:
     app {
       handlers {
-        context(errorHandler) {
+        context(ServerErrorHandler, errorHandler) {
           get {
             withErrorHandling new Thread({
               throw new Exception("thrown in forked thread")

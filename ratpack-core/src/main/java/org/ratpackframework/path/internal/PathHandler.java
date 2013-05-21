@@ -32,9 +32,9 @@ public class PathHandler implements Handler {
   }
 
   public void handle(Exchange exchange) {
-    PathBinding childContext = binding.bind(exchange.getRequest().getPath(), exchange.maybeGet(PathBinding.class));
-    if (childContext != null) {
-      exchange.nextWithContext(childContext, delegate);
+    PathBinding childBinding = binding.bind(exchange.getRequest().getPath(), exchange.maybeGet(PathBinding.class));
+    if (childBinding != null) {
+      exchange.nextWithContext(exchange.getContext().plus(PathBinding.class, childBinding), delegate);
     } else {
       exchange.next();
     }

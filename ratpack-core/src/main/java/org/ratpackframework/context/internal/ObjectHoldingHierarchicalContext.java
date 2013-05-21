@@ -24,16 +24,23 @@ import org.ratpackframework.context.Context;
 public class ObjectHoldingHierarchicalContext extends HierarchicalContextSupport {
 
   private final Object value;
+  private final Class<?> type;
 
+  @SuppressWarnings("unchecked")
   public ObjectHoldingHierarchicalContext(Context parent, Object value) {
+    this(parent, (Class<? super Object>) value.getClass(), value);
+  }
+
+  public <T> ObjectHoldingHierarchicalContext(Context parent, Class<? super T> type, T value) {
     super(parent);
     this.value = value;
+    this.type = type;
   }
 
   @Override
-  protected <T> T doMaybeGet(Class<T> type) {
-    if (type.isInstance(value)) {
-      return type.cast(value);
+  protected <T> T doMaybeGet(Class<T> targetType) {
+    if (targetType.equals(type)) {
+      return targetType.cast(value);
     } else {
       return null;
     }

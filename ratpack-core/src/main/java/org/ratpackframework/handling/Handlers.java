@@ -35,8 +35,12 @@ public abstract class Handlers {
     return context(context, chain(builder));
   }
 
-  public static Handler context(final Object context, final Handler handler) {
-    return new ContextInsertingHandler(context, handler);
+  public static Handler context(Object object, final Handler handler) {
+    return new ContextInsertingHandler(object, handler);
+  }
+
+  public static <T> Handler context(Class<? super T> type, T object, final Handler handler) {
+    return new ContextInsertingHandler(type, object, handler);
   }
 
   public static Handler chain(Action<? super Chain> action) {

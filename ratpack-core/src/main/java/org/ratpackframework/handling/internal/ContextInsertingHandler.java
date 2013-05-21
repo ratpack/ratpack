@@ -16,20 +16,35 @@
 
 package org.ratpackframework.handling.internal;
 
+import org.ratpackframework.context.Context;
 import org.ratpackframework.handling.Exchange;
 import org.ratpackframework.handling.Handler;
 
 public class ContextInsertingHandler implements Handler {
 
-  private final Object context;
+  private final Class<?> type;
+  private final Object object;
   private final Handler handler;
 
-  public ContextInsertingHandler(Object context, Handler handler) {
-    this.context = context;
+  public <T> ContextInsertingHandler(T object, Handler handler) {
+    this.type = null;
+    this.object = object;
     this.handler = handler;
   }
 
+  public <T> ContextInsertingHandler(Class<? super T> type, T object, Handler handler) {
+    this.type = type;
+    this.object = object;
+    this.handler = handler;
+  }
+
+  @SuppressWarnings("unchecked")
   public void handle(Exchange exchange) {
-    exchange.nextWithContext(context, handler);
+    Context context = exchange.getContext();
+    if (type == null) {
+      exchange.nextWithContext(context.plus(object), handler);
+    } else {
+      exchange.nextWithContext(context.plus((Class<? super Object>) type, object), handler);
+    }
   }
 }
