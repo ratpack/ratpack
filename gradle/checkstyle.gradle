@@ -23,6 +23,23 @@ checkstyle {
   configProperties.checkstyleConfigDir = checkstyleConfigDir
 }
 
+plugins.withType(GroovyBasePlugin) {
+  sourceSets.all { sourceSet ->
+    task "${sourceSet.getTaskName('checkstyle', 'groovy')}"(type: Checkstyle) {
+      configFile = new File(checkstyleConfigDir, "checkstyle-groovy.xml")
+      source sourceSet.allGroovy
+      classpath = sourceSet.compileClasspath
+      reports.xml.destination new File(checkstyle.reportsDir, "${sourceSet.name}-groovy.xml")
+    }
+  }
+}
+
+def checkstyleTasks = tasks.withType(Checkstyle)
+
+task checkstyle(dependsOn: checkstyleTasks)
+
+check.dependsOn checkstyleTasks
+
 tasks.withType(Test) {
-  mustRunAfter tasks.withType(Checkstyle)
+  mustRunAfter checkstyleTasks
 }

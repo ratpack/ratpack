@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+apply plugin: 'base'
 apply plugin: 'compass'
 
 buildscript {
@@ -30,6 +31,8 @@ buildscript {
 configurations {
   delegate."default".extendsFrom archives
 }
+
+task check
 
 apply from: "$rootDir/gradle/checkstyle.gradle"
 apply from: "$rootDir/gradle/markdown2book.gradle"
@@ -224,7 +227,6 @@ artifacts {
   archives manualZip
 }
 
-task check(dependsOn: checkApi)
 task build(dependsOn: [assemble, check]) {
   group "build"
   description "Builds the manual and tests it"
