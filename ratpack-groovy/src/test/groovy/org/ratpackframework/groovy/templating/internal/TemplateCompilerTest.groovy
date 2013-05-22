@@ -3,7 +3,7 @@ package org.ratpackframework.groovy.templating.internal
 import io.netty.buffer.ByteBuf
 import io.netty.buffer.Unpooled
 import io.netty.util.CharsetUtil
-import org.ratpackframework.groovy.script.ScriptEngine
+import org.ratpackframework.groovy.script.internal.ScriptEngine
 import org.ratpackframework.util.internal.IoUtils
 import spock.lang.Specification
 

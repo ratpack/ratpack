@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.groovy.script;
+package org.ratpackframework.groovy.script.internal;
 
 import groovy.lang.GroovyClassLoader;
 import groovy.lang.Script;

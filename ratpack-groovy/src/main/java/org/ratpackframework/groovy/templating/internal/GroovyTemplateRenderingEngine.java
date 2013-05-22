@@ -22,7 +22,7 @@ import io.netty.buffer.ByteBuf;
 import org.codehaus.groovy.runtime.IOGroovyMethods;
 import org.ratpackframework.util.internal.Result;
 import org.ratpackframework.util.internal.ResultAction;
-import org.ratpackframework.groovy.script.ScriptEngine;
+import org.ratpackframework.groovy.script.internal.ScriptEngine;
 import org.ratpackframework.groovy.templating.TemplatingConfig;
 import org.ratpackframework.util.internal.IoUtils;
 
