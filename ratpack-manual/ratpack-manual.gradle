@@ -22,7 +22,7 @@ buildscript {
     maven { url 'http://dl.bintray.com/robfletcher/gradle-plugins' }
   }
   dependencies {
-    classpath 'org.gradle.plugins:gradle-compass:1.0.5'
+    classpath 'org.gradle.plugins:gradle-compass:1.0.6'
     classpath "org.pegdown:pegdown:1.2.1"
   }
 }
@@ -160,6 +160,7 @@ compass {
   cssDir = file("$buildDir/assets/css")
   imagesDir = file("$buildDir/assets/images")
   javascriptsDir = file("$buildDir/assets/js")
+  importPath = files('../ratpack-stylesheets')
   relativeAssets = true
   encoding = 'UTF-8'
 }
