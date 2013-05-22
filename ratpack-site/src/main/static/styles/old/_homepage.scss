@@ -181,6 +181,7 @@ section {
 
 .site-footer {
   @include contrasted-smooth($black);
+  @include adjust-font-size-to(14px);
 
   .content {
     $bg-image: 'ratpack-footer.png';
@@ -189,9 +190,6 @@ section {
       image: image-url($bg-image);
       repeat: no-repeat;
       position: top left;
-    }
-    font: {
-      size: 80%;
     }
     text: {
       align: right;

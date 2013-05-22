@@ -1,22 +1,13 @@
-// Compass
-@import "compass/typography";
-@import "compass/css3";
-@import "compass/utilities";
+@import "compass";
 
-// Semantic grid system
-@import "../lib/semantic.gs/grid";
-
-// Site-wide
+// common stuff from /ratpack-stylesheets
 @import "palette";
+@import "breakpoints";
 @import "settings";
 @import "reset";
+@import "utilties";
 @import "typography";
 @import "layout";
-@import "utilities";
-
-// Stylistic mixins & reusable elements
-@import "ratpack-logo";
 @import "noise";
-
-// Pages
-@import "homepage";
+@import "ratpack-logo";
+@import "theme-elements";
