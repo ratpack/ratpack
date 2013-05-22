@@ -1,16 +1,17 @@
 @import "compass";
 
+// common stuff from /ratpack-stylesheets
 @import "palette";
-@import "breakpoints";
 @import "settings";
+@import "breakpoints";
 @import "reset";
 @import "utilties";
 @import "typography";
 @import "layout";
 @import "noise";
-
+@import "prism";
 @import "ratpack-logo";
 @import "theme-elements";
-@import "manual";
+@import "page-elements";
 
-@import "lib/prism";
+@import "manual";

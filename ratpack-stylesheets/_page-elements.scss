@@ -1,0 +1,59 @@
+html {
+	background-color: $black;
+	@include noise-background;
+}
+
+body {
+	@include contrasted-smooth($ivory);
+	@include noise-background;
+}
+
+.page-header {
+	@include padding-leader(1);
+	@include margin-trailer(1);
+
+	.ratpack-logo {
+		@include content-width;
+		@include rem(font-size, 0.55rem);
+		&:not(.small) {
+			@include when-phone-landscape {
+				@include rem(font-size, 0.625rem);
+			}
+			@include when-tablet-portrait {
+				@include rem(font-size, 1rem);
+				margin-bottom: 1.5em;
+			}
+		}
+
+		a:link, a:hover, a:active, a:visited {
+			color: inherit;
+		}
+	}
+}
+
+.page-footer {
+	font-family: $sans-font-family;
+	text-shadow: none;
+	@include clearfix;
+	@include contrasted-smooth($footer-background-color);
+	@include noise-background;
+	@include adjust-font-size-to($footer-font-size);
+	@include margin-leader(2, $footer-font-size);
+	@include padding-leader(1, $footer-font-size);
+	@include padding-trailer(1, $footer-font-size);
+	padding: {
+		left: 1em;
+		right: 1em;
+	}
+	border-top: rhythm(1, $footer-font-size) solid $blue;
+
+	a {
+		@include link-colors($white, $yellow);
+		@include link-underline($white, $yellow);
+	}
+
+	@include when-full-width {
+		width: 102.5%;
+		margin-left: -1.25%;
+	}
+}

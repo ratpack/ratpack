@@ -1,7 +1,3 @@
-$num-columns: 12;
-$column-width: 100% / $num-columns;
-$content-width: 1024px;
-
 @mixin full-width {
 	width: 100%;
 	@include rem(padding-left, 1rem);

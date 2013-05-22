@@ -1,0 +1,76 @@
+.page-header {
+	.social {
+		$button-size: 48px;
+		$border-width: 6px;
+
+		@include adjust-font-size-to(18px);
+		@include margin-leader(1);
+		@include margin-trailer(1);
+		@include content-width;
+
+		> * {
+			display: inline-block;
+			vertical-align: middle;
+		}
+
+		a {
+			background-color: $black;
+			@include link-colors($white, $white);
+			&:hover, &:active {
+				background-color: $blue;
+			}
+			border-radius: 50%;
+			text-align: center;
+			line-height: $button-size;
+			width: $button-size + (2 * $border-width);
+			height: $button-size + (2 * $border-width);
+			[class^='icon-'] {
+				font-size: $button-size + (2 * $border-width);
+			}
+			&[href*='twitter'] {
+				border: $border-width solid $black;
+				&:hover, &:active {
+					border-color: $blue;
+				}
+				[class^='icon-'] {
+					font-size: $button-size;
+				}
+			}
+		}
+	}
+}
+
+.promo, .main {
+	@include margin-leader(1);
+	@include margin-trailer(1);
+	@include content-width;
+}
+
+.promo {
+	@include contrasted-smooth($black);
+	@include padding-leader(1);
+	@include padding-trailer(1);
+
+	a {
+		@include link-colors($blue, $white);
+	}
+
+	h2:first-of-type {
+		margin-top: 0;
+	}
+
+	nav a {
+		display: list-item;
+		list-style-position: inside;
+	}
+}
+
+.page-footer {
+	a.build-status {
+		border-bottom: none;
+	}
+
+	.about p:first-child {
+		margin-top: 0;
+	}
+}

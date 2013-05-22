@@ -6,3 +6,18 @@ $contrasted-dark-default: $black;
 
 // Compass vertical rhythm
 $base-line-height: 22px;
+
+// Constants
+$num-columns: 12;
+$column-width: 100% / $num-columns;
+$content-width: 1024px;
+
+$footer-background-color: $black;
+$footer-font-size: 14px;
+
+$anchor-font-color: darken($blue, 30%);
+$anchor-font-color-hover: $blue;
+$anchor-text-decoration: none;
+
+$anchor-font-color-alt: $blue;
+$anchor-font-color-hover-alt: lighten($blue, 15%);

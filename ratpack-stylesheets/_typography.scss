@@ -22,6 +22,22 @@ $code-font-family: $mono-font-family;
 	@include smooth-font($bg-color);
 }
 
+@mixin link-colors($inactive-color, $active-color) {
+	&:link, &:visited, &:active {
+		color: $inactive-color;
+	}
+	&:hover, &:focus {
+		color: $active-color;
+	}
+}
+
+@mixin link-underline($inactive-color, $active-color, $style: dotted) {
+	border-bottom: 1px $style $inactive-color;
+	&:hover, &:focus {
+		border-bottom-color: $active-color;
+	}
+}
+
 @include establish-baseline;
 
 body {
@@ -65,10 +81,6 @@ pre, code, tt {
 pre {
 	white-space: pre;
 }
-
-$anchor-font-color: darken($blue, 30%);
-$anchor-font-color-hover: $blue;
-$anchor-text-decoration: none;
 
 a {
 	text-decoration: $anchor-text-decoration;

@@ -1,37 +1,3 @@
-html {
-	background-color: $black;
-	@include noise-background;
-}
-
-body {
-	@include contrasted-smooth($ivory);
-	@include noise-background;
-}
-
-.page-header {
-	@include padding-leader(1);
-	@include margin-trailer(1);
-
-	.ratpack-logo {
-		@include content-width;
-		@include rem(font-size, 0.55rem);
-		&:not(.small) {
-			@include when-phone-landscape {
-				@include rem(font-size, 0.625rem);
-			}
-			@include when-tablet-portrait {
-				@include rem(font-size, 1rem);
-				margin-bottom: 1.5em;
-			}
-		}
-
-		a:link, a:hover, a:active, a:visited {
-			color: inherit;
-			border-bottom: none;
-		}
-	}
-}
-
 .pagination {
 	@include margin-leader(1);
 	@include margin-trailer(1);
@@ -76,7 +42,6 @@ body {
 		max-width: 100%;
 		@include ellipsis;
 
-		border-bottom: none;
 		font-style: italic;
 		line-height: 2.65em;
 
@@ -201,32 +166,7 @@ body {
 }
 
 .page-footer {
-	$bg: $black;
-	$font-size: 14px;
-
-	font-family: $sans-font-family;
-	text-shadow: none;
-	@include clearfix;
-	@include contrasted($bg);
-	@include noise-background;
-	@include adjust-font-size-to($font-size);
-	@include margin-leader(2, $font-size);
-	@include padding-leader(1, $font-size);
-	@include padding-trailer(1, $font-size);
-	border-top: rhythm(1, $font-size) solid $blue;
-
-	a {
-		color: contrast-color($bg);
-		border-bottom: 1px dotted contrast-color($bg);
-
-		&:hover, &:focus {
-			color: $yellow;
-			border-bottom-color: $yellow;
-		}
-	}
-
 	h2, p {
-		padding: 0 1em;
 		margin: {
 			top: 0;
 			bottom: 0;
@@ -234,7 +174,7 @@ body {
 	}
 
 	h2 {
-		@include adjust-font-size-to($to-size: $font-size, $from-size: $font-size);
+		@include adjust-font-size-to($to-size: $footer-font-size, $from-size: $footer-font-size);
 		text-transform: uppercase;
 	}
 
@@ -247,11 +187,6 @@ body {
 		p {
 			text-align: right;
 		}
-	}
-
-	@include when-full-width {
-		width: 102.5%;
-		margin-left: -1.25%;
 	}
 }
 
