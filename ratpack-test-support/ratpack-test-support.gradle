@@ -19,5 +19,9 @@ apply from: "$rootDir/gradle/javaModule.gradle"
 dependencies {
   groovy commonDependencies.groovy
   compile project(":ratpack-core"), project(":ratpack-groovy")
+  compile "com.jayway.restassured:rest-assured:1.7.2", {
+    exclude module: "groovy"
+    exclude group: "org.hamcrest"
+  }
   compile commonDependencies.spock
 }
