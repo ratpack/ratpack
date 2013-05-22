@@ -83,6 +83,14 @@ subprojects {
     }
   }
 
+  tasks.withType(Javadoc) {
+    options {
+      encoding = 'UTF-8'
+      docEncoding = 'UTF-8'
+      charSet = 'UTF-8'
+    }
+  }
+
   apply plugin: "maven"
   apply from: "${rootDir}/gradle/pom.gradle"
   apply plugin: "signing"
