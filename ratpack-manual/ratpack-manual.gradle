@@ -59,7 +59,6 @@ task api(type: Javadoc) {
     splitIndex true
     use = true
     links "http://docs.oracle.com/javase/7/docs/api"
-    linkSource true
     windowTitle "Ratpack API ($project.version)"
     docTitle "Ratpack API ($project.version)"
   }
@@ -72,8 +71,6 @@ task api(type: Javadoc) {
       options.links(*it.apiLinks)
     }
   }
-
-  exclude "**/internal/**"
 }
 
 task checkApi(type: Checkstyle) {
