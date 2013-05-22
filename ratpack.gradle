@@ -26,7 +26,7 @@ buildscript {
 
 def jvmEncoding = java.nio.charset.Charset.defaultCharset().name()
 if (jvmEncoding != "UTF-8") {
-  throw new IllegalStateException("Build environment must be UTF-8 (it is: $jvmEncoding) - Set GRADLE_OPTS to include -Dfile.encoding=UTF-8")
+  throw new IllegalStateException("Build environment must be UTF-8 (it is: $jvmEncoding)")
 }
 
 allprojects {
@@ -152,7 +152,11 @@ subprojects {
       }
     }
   }
+}
 
+// Have to evaluate the children before setting up the publishing stuff so the dependencies are defined.
+evaluationDependsOnChildren()
+subprojects {
   if (project in publishedModules) {
     uploadArchives { task ->
       repositories.mavenDeployer {
