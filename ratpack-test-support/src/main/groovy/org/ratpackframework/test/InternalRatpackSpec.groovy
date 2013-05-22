@@ -14,24 +14,36 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.path
+package org.ratpackframework.test
 
-import org.ratpackframework.test.groovy.RatpackGroovyDslSpec
+import org.junit.Rule
+import org.junit.rules.TemporaryFolder
+import org.ratpackframework.groovy.Closures
 
-class PathParamsSpec extends RatpackGroovyDslSpec {
+abstract class InternalRatpackSpec extends RequestingSpec {
 
-  def "can parse url params"() {
-    when:
-    app {
-      handlers {
-        get(":a/:b/:c") {
-          response.send pathTokens.toString()
-        }
-      }
-    }
+  @Rule TemporaryFolder temporaryFolder
 
-    then:
-    getText("1/2/3") == [a: 1, b: 2, c: 3].toString()
+  File file(String path) {
+    prepFile(new File(getDir(), path))
+  }
+
+  String getDirPath() {
+    dir.absolutePath
+  }
+
+  File getDir() {
+    temporaryFolder.root
+  }
+
+  static File prepFile(File file) {
+    assert file.parentFile.mkdirs() || file.parentFile.exists()
+    file
+  }
+
+  void app(Closure<?> configurer) {
+    stopServer()
+    Closures.configure(this, configurer)
   }
 
 }

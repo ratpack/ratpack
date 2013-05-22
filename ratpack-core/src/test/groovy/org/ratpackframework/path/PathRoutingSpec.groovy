@@ -21,7 +21,7 @@ class PathRoutingSpec extends DefaultRatpackSpec {
     }
 
     then:
-    urlGetText("abc/def") == "abc"
+    getText("abc/def") == "abc"
   }
 
   def "can route by nested path"() {
@@ -39,7 +39,7 @@ class PathRoutingSpec extends DefaultRatpackSpec {
     }
 
     then:
-    urlGetText("abc/def/ghi") == "ghi"
+    getText("abc/def/ghi") == "ghi"
   }
 
   def "can route by path with tokens"() {
@@ -56,7 +56,7 @@ class PathRoutingSpec extends DefaultRatpackSpec {
     }
 
     then:
-    urlGetText("1/2/3/4/5") == "[a:1, b:2, c:3] - 4/5"
+    getText("1/2/3/4/5") == "[a:1, b:2, c:3] - 4/5"
   }
 
   def "can route by nested path with tokens"() {
@@ -75,7 +75,7 @@ class PathRoutingSpec extends DefaultRatpackSpec {
     }
 
     then:
-    urlGetText("1/2/3/4/5/6") == "[d:3, e:4] - [a:1, b:2, d:3, e:4] - 5/6"
+    getText("1/2/3/4/5/6") == "[d:3, e:4] - [a:1, b:2, d:3, e:4] - 5/6"
   }
 
   def "can route by exact path with tokens"() {
@@ -90,8 +90,8 @@ class PathRoutingSpec extends DefaultRatpackSpec {
     }
 
     then:
-    urlGetConnection("1/2/3/4/5").responseCode == 404
-    urlGetText("1/2/3") == "[a:1, b:2, c:3] - "
+    get("1/2/3/4/5").statusCode == 404
+    getText("1/2/3") == "[a:1, b:2, c:3] - "
   }
 
   def "can route by nested exact path with tokens"() {
@@ -108,8 +108,8 @@ class PathRoutingSpec extends DefaultRatpackSpec {
     }
 
     then:
-    urlGetText("1/2/3/4") == "[d:3, e:4] - [a:1, b:2, d:3, e:4] - "
-    urlGetConnection("1/2/3/4/5/6").responseCode == 404
+    getText("1/2/3/4") == "[d:3, e:4] - [a:1, b:2, d:3, e:4] - "
+    get("1/2/3/4/5/6").statusCode == 404
   }
 
 }

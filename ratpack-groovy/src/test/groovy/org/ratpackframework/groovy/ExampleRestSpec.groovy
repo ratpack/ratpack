@@ -1,6 +1,8 @@
-package org.ratpackframework.test.rest
+package org.ratpackframework.groovy
 
-class ExampleRestSpec extends RestSpecSupportFixture {
+import org.ratpackframework.test.groovy.RatpackGroovyScriptAppSpec
+
+class ExampleRestSpec extends RatpackGroovyScriptAppSpec {
 
   def "get by id"() {
     given:
@@ -25,10 +27,8 @@ class ExampleRestSpec extends RestSpecSupportFixture {
   def "can verify json"() {
     given:
     script """
-import groovy.json.JsonOutput
-import groovy.json.JsonSlurper
-
-import static org.ratpackframework.groovy.RatpackScript.ratpack
+      import groovy.json.JsonOutput
+      import groovy.json.JsonSlurper
 
       ratpack {
         handlers {
@@ -74,6 +74,30 @@ import static org.ratpackframework.groovy.RatpackScript.ratpack
     then:
     response.statusCode == 200
     response.jsonPath().value == 2
+  }
+
+  def "can read request body"() {
+    given:
+    script """
+      ratpack {
+        handlers {
+          post {
+            response.send(request.text)
+          }
+        }
+      }
+    """
+
+    when:
+    request {
+      body "foo"
+    }
+
+    post()
+
+    then:
+    response.statusCode == 200
+    response.body.asString() == "foo"
   }
 
 }

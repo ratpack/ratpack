@@ -25,10 +25,12 @@ class ConcurrentRequestSpec extends RatpackGroovyDslSpec {
       results << null
     }
 
+    startServerIfNeeded()
+
     threads.times { i ->
       Thread.start {
         try {
-          def text = urlGetText("$i?id=$i")
+          def text = createRequest().get(toUrl("$i?id=$i")).asString()
           assert text ==~ "\\d+:\\d+"
           def (id, value) = text.split(':').collect { it.toInteger() }
           results[id] = value

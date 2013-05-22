@@ -40,7 +40,7 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    urlGetText() == "a bar b  a  a  a "
+    text == "a bar b  a  a  a "
   }
 
   def "off thread errors are rendered"() {
@@ -57,7 +57,7 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    urlGetConnection().errorStream.text.contains "<title>java.lang.Exception</title>"
+    text.contains "<title>java.lang.Exception</title>"
   }
 
   def "can render inner template"() {
@@ -75,7 +75,7 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    urlGetText() == "outer: outer, inner: inner"
+    text == "outer: outer, inner: inner"
   }
 
   def "can render inner, inner template"() {
@@ -94,7 +94,7 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    urlGetText() == "outer: outer, inner: inner, innerInner: 1, innerInner: 2, innerInner: 1"
+    text == "outer: outer, inner: inner, innerInner: 1, innerInner: 2, innerInner: 1"
   }
 
   def "inner template exceptions"() {
@@ -113,7 +113,7 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    errorGetText().contains('[innerInner.html] template execution failed')
+    text.contains('[innerInner.html] template execution failed')
   }
 
   def "nested templates inherit the outer model"() {
@@ -132,7 +132,7 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    urlGetText() == "outer: ab, inner: aB, innerInner: AB"
+    text == "outer: ab, inner: aB, innerInner: AB"
   }
 
   @Unroll
@@ -151,7 +151,7 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    urlGetText() == "foo"
+    text == "foo"
 
     where:
     template << ["\${render 'foo.html'}", "<%= render 'foo.html' %>"]
@@ -174,7 +174,7 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    urlGetText() == "foo"
+    text == "foo"
 
     where:
     template << ["\${render 'foo.html'}", "<%= render 'foo.html' %>"]
@@ -199,7 +199,7 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    errorGetText().contains "[inner.html] compilation failure"
+    text.contains "[inner.html] compilation failure"
   }
 
   def "client errors are rendered with the template renderer"() {
@@ -213,8 +213,8 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    urlGetConnection().errorStream.text.contains "<title>Not Found</title>"
-    urlGetConnection().responseCode == 404
+    text.contains "<title>Not Found</title>"
+    get().statusCode == 404
   }
 
 

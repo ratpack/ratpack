@@ -22,6 +22,6 @@ class BasicGroovyScriptAppSpec extends RatpackGroovyScriptAppSpec {
     }
 
     then:
-    urlGetText("") == "foo"
+    getText() == "foo"
   }
 }

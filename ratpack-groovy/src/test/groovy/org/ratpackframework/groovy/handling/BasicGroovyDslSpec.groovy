@@ -30,12 +30,12 @@ class BasicGroovyDslSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    urlGetText("a") == "a handler"
-    urlGetConnection("b").responseCode == 405
-    urlPostText("b") == "b handler"
-    urlGetText("1/2") == "[first:1, second:2]"
-    urlGetText("foo/c/bar") == "[first:foo, second:bar]"
-    urlGetText("foo.txt") == "bar"
+    getText("a") == "a handler"
+    get("b").statusCode == 405
+    postText("b") == "b handler"
+    getText("1/2") == "[first:1, second:2]"
+    getText("foo/c/bar") == "[first:foo, second:bar]"
+    getText("foo.txt") == "bar"
   }
 
   def "can use file method to access file contextual"() {
@@ -60,8 +60,8 @@ class BasicGroovyDslSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    urlGetText("foo") == 'foo'
-    urlGetText("bar") == 'bar'
+    getText("foo") == 'foo'
+    getText("bar") == 'bar'
   }
 
   def "can use method chain"() {
@@ -81,9 +81,9 @@ class BasicGroovyDslSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    urlGetText("foo") == "common: get"
-    urlPostText("foo") == "common: post"
-    urlConnection("foo", "PUT").responseCode == 405
+    getText("foo") == "common: get"
+    postText("foo") == "common: post"
+    put("foo").statusCode == 405
   }
 
 }

@@ -39,9 +39,9 @@ class StaticFileSpec extends DefaultRatpackSpec {
     }
 
     then:
-    urlGetConnection("").responseCode == 403
-    urlGetConnection("foo").responseCode == 403
-    urlGetConnection("foos").responseCode == 404
+    get("").statusCode == 403
+    get("foo").statusCode == 403
+    get("foos").statusCode == 404
   }
 
   def "can serve static file"() {
@@ -56,7 +56,7 @@ class StaticFileSpec extends DefaultRatpackSpec {
     }
 
     then:
-    urlGetText("static.text") == "hello!"
+    getText("static.text") == "hello!"
   }
 
 
@@ -72,9 +72,9 @@ class StaticFileSpec extends DefaultRatpackSpec {
     }
 
     then:
-    urlGetText() == "foo"
-    urlGetText("dir") == "bar"
-    urlGetText("dir/") == "bar"
+    getText() == "foo"
+    getText("dir") == "bar"
+    getText("dir/") == "bar"
   }
 
   def "can serve files with query strings"() {
@@ -89,8 +89,8 @@ class StaticFileSpec extends DefaultRatpackSpec {
     }
 
     then:
-    urlGetText("?abc") == "foo"
-    urlGetText("index.html?abc") == "foo"
+    getText("?abc") == "foo"
+    getText("index.html?abc") == "foo"
   }
 
   def "can map to multiple dirs"() {
@@ -111,8 +111,8 @@ class StaticFileSpec extends DefaultRatpackSpec {
     }
 
     then:
-    urlGetText("a/f1.txt") == "1"
-    urlGetText("b/f2.txt") == "2"
+    getText("a/f1.txt") == "1"
+    getText("b/f2.txt") == "2"
   }
 
   def "decodes URL paths correctly"() {
@@ -129,11 +129,11 @@ class StaticFileSpec extends DefaultRatpackSpec {
     }
 
     then:
-    urlGetText("some%20other.txt") == "1"
-    urlGetText("some+more.txt") == "2"
-    urlGetText("path%20to/some+where/test.txt") == "3"
-    urlGetConnection("some+other.txt").responseCode == 404
-    urlGetConnection("some%20more.txt").responseCode == 404
+    getText("some%20other.txt") == "1"
+    getText("some+more.txt") == "2"
+    getText("path%20to/some+where/test.txt") == "3"
+    get("some+other.txt").statusCode == 404
+    get("some%20more.txt").statusCode == 404
   }
 
   def "can specify explicit not found handler"() {
@@ -152,8 +152,8 @@ class StaticFileSpec extends DefaultRatpackSpec {
     }
 
     then:
-    urlGetText("f1.txt") == "1"
-    urlGetText("f2.txt") == "in not found handler"
+    getText("f1.txt") == "1"
+    getText("f2.txt") == "in not found handler"
   }
 
   def "can nest file system contexts handlers"() {
@@ -172,7 +172,7 @@ class StaticFileSpec extends DefaultRatpackSpec {
     }
 
     then:
-    urlGetText("dir") == "3"
+    getText("dir") == "3"
   }
 
   def "can bind to subpath"() {
@@ -187,7 +187,7 @@ class StaticFileSpec extends DefaultRatpackSpec {
     }
 
     then:
-    urlGetConnection("foo/file.txt").responseCode == 404
-    urlGetText("bar/file.txt") == "file"
+    get("foo/file.txt").statusCode == 404
+    getText("bar/file.txt") == "file"
   }
 }

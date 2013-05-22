@@ -25,24 +25,24 @@ class CookiesSpec extends RatpackGroovyDslSpec {
     }
 
     when:
-    urlGetText("set/a/1")
+    getText("set/a/1")
 
     then:
-    urlGetText("get/a") == "1"
+    getText("get/a") == "1"
 
     when:
-    urlGetText("set/a/2")
-    urlGetText("set/b/1")
+    getText("set/a/2")
+    getText("set/b/1")
 
     then:
-    urlGetText("get/a") == "2"
-    urlGetText("get/b") == "1"
+    getText("get/a") == "2"
+    getText("get/b") == "1"
 
     when:
-    urlGetText("clear/a")
+    getText("clear/a")
 
     then:
-    urlGetText("get/a") == "null"
+    getText("get/a") == "null"
   }
 
 }

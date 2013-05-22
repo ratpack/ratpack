@@ -1,10 +1,9 @@
-package org.ratpackframework
+package org.ratpackframework.groovy
 
 import com.google.common.util.concurrent.AbstractIdleService
 import org.ratpackframework.bootstrap.RatpackServer
 import org.ratpackframework.bootstrap.internal.RatpackService
 import org.ratpackframework.bootstrap.internal.ServiceBackedServer
-import org.ratpackframework.groovy.Closures
 import org.ratpackframework.groovy.internal.StandaloneScriptBacking
 import org.ratpackframework.test.groovy.RatpackGroovyScriptAppSpec
 
@@ -58,7 +57,7 @@ class StandaloneScriptSpec extends RatpackGroovyScriptAppSpec {
   }
 
   @Override
-  RatpackServer createApp() {
+  RatpackServer createServer() {
     new ServiceBackedServer(new ScriptBackedService())
   }
 
@@ -79,7 +78,7 @@ class StandaloneScriptSpec extends RatpackGroovyScriptAppSpec {
     }
 
     then:
-    urlGetText() == "foo"
+    getText() == "foo"
 
     when:
     script """
@@ -93,6 +92,6 @@ class StandaloneScriptSpec extends RatpackGroovyScriptAppSpec {
     """
 
     then:
-    urlGetText() == "bar"
+    getText() == "bar"
   }
 }

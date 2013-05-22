@@ -15,7 +15,7 @@ import static Handlers.chain
 import static org.ratpackframework.groovy.Closures.action
 import static org.ratpackframework.groovy.Closures.configure
 
-abstract class DefaultRatpackSpec extends RatpackSpec {
+abstract class DefaultRatpackSpec extends InternalRatpackSpec {
 
   Closure<?> handlersClosure = {}
   Closure<?> modulesClosure = {}
@@ -31,7 +31,7 @@ abstract class DefaultRatpackSpec extends RatpackSpec {
   }
 
   @Override
-  RatpackServer createApp() {
+  protected RatpackServer createServer() {
     GuiceBackedHandlerFactory appFactory = createAppFactory()
     def handler = createHandler()
     def modulesAction = createModulesAction()

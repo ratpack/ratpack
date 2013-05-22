@@ -3,9 +3,9 @@ package org.ratpackframework.test.groovy
 import org.ratpackframework.bootstrap.RatpackServer
 import org.ratpackframework.groovy.RatpackScript
 import org.ratpackframework.groovy.RatpackScriptApp
-import org.ratpackframework.test.RatpackSpec
+import org.ratpackframework.test.InternalRatpackSpec
 
-class RatpackGroovyScriptAppSpec extends RatpackSpec {
+abstract class RatpackGroovyScriptAppSpec extends InternalRatpackSpec {
 
   boolean compileStatic = false
   boolean reloadable = false
@@ -27,7 +27,7 @@ class RatpackGroovyScriptAppSpec extends RatpackSpec {
   }
 
   @Override
-  RatpackServer createApp() {
+  protected RatpackServer createServer() {
     RatpackScriptApp.ratpack(ratpackFile, dir, 0, null, compileStatic, reloadable)
   }
 

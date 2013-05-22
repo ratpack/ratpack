@@ -10,7 +10,7 @@ class ErrorHandlingSpec extends RatpackGroovyDslSpec {
     app {}
 
     then:
-    urlGetConnection("foo").responseCode == 404
+    get().statusCode == 404
   }
 
   def "handles internal error"() {
@@ -22,7 +22,7 @@ class ErrorHandlingSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    urlGetConnection().responseCode == 500
+    get().statusCode == 500
   }
 
   def "can handle errors on forked threads"() {
@@ -47,7 +47,7 @@ class ErrorHandlingSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    urlGetText() == "Caught: thrown in forked thread"
+    text == "Caught: thrown in forked thread"
   }
 
 }

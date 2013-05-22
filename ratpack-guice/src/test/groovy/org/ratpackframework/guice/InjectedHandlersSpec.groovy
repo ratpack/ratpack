@@ -50,7 +50,7 @@ class InjectedHandlersSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    urlGetText("") == nameValue
+    text == nameValue
   }
 
 }

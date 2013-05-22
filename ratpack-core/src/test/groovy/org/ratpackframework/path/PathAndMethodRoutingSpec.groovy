@@ -26,9 +26,10 @@ class PathAndMethodRoutingSpec extends DefaultRatpackSpec {
     }
 
     then:
-    urlGetText("a/b/c?foo=bar") == "foo=bar"
-    urlPostText("1/2/3/4") == "[a:1, b:2, c:3, d:4]"
-    urlConnection("5/6/7/8", "PUT").inputStream.text == "[A:5, B:6, C:7, D:8]"
+    getText("a/b/c?foo=baz") == "foo=baz"
+    resetRequest()
+    postText("1/2/3/4") == "[a:1, b:2, c:3, d:4]"
+    putText("5/6/7/8") == "[A:5, B:6, C:7, D:8]"
   }
 
   def "can use method chain"() {
@@ -48,8 +49,8 @@ class PathAndMethodRoutingSpec extends DefaultRatpackSpec {
     }
 
     then:
-    urlGetText("foo") == "common: get"
-    urlPostText("foo") == "common: post"
-    urlConnection("foo", "PUT").responseCode == 405
+    getText("foo") == "common: get"
+    postText("foo") == "common: post"
+    put("foo").statusCode == 405
   }
 }

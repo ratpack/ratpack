@@ -23,7 +23,7 @@ class SessionSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    urlGetText("a") == urlGetText("b")
+    getText("a") == getText("b")
   }
 
   def "can store session vars"() {
@@ -43,10 +43,10 @@ class SessionSpec extends RatpackGroovyDslSpec {
     }
 
     and:
-    urlGetText("set/foo") == "foo"
+    getText("set/foo") == "foo"
 
     then:
-    urlGetText() == "foo"
+    getText() == "foo"
   }
 
   def "can invalidate session vars"() {
@@ -73,18 +73,18 @@ class SessionSpec extends RatpackGroovyDslSpec {
     }
 
     and:
-    urlGetText("set/foo")
+    getText("set/foo")
 
     then:
-    urlGetText() == "foo"
-    urlGetText("size") == "1"
+    getText() == "foo"
+    getText("size") == "1"
 
     when:
-    urlGetText("invalidate")
+    getText("invalidate")
 
     then:
-    urlGetText() == "null"
-    urlGetText("size") == "1"
+    getText() == "null"
+    getText("size") == "1"
   }
 
   def "sessions are created on demand"() {
@@ -98,7 +98,7 @@ class SessionSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    urlGetText() == "0"
+    getText() == "0"
 
     when:
     app {
@@ -111,6 +111,6 @@ class SessionSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    urlGetText() == "1"
+    getText() == "1"
   }
 }
