@@ -21,7 +21,6 @@ body {
 			}
 			@include when-tablet-portrait {
 				@include rem(font-size, 1rem);
-				margin-bottom: 1.5em;
 			}
 		}
 

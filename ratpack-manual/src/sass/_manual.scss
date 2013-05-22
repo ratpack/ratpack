@@ -1,3 +1,9 @@
+.ratpack-logo:not(.small) {
+	@include when-tablet-portrait {
+		margin-bottom: 1.5em;
+	}
+}
+
 .pagination {
 	@include margin-leader(1);
 	@include margin-trailer(1);
