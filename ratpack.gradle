@@ -118,8 +118,8 @@ subprojects {
       }
     }
 
-    sourceCompatibility = "1.5"
-    targetCompatibility = "1.5"
+    sourceCompatibility = "1.6"
+    targetCompatibility = "1.6"
 
     task sourceJar(type: Jar) {
       description "An archive of the source code for Maven Central"
