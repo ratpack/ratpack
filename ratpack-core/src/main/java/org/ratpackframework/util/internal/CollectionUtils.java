@@ -16,14 +16,13 @@
 
 package org.ratpackframework.util.internal;
 
-import java.lang.reflect.Array;
 import java.util.*;
 
 public abstract class CollectionUtils {
 
+  @SuppressWarnings("unchecked")
   public static <T> List<T> toList(Iterable<? extends T> source) {
     if (source instanceof Collection) {
-      //noinspection unchecked
       return new ArrayList<T>((Collection<? extends T>) source);
     }
 
@@ -68,56 +67,6 @@ public abstract class CollectionUtils {
       first = false;
     }
     return string.toString();
-  }
-
-  @SuppressWarnings("unchecked")
-  public static <R, I> R[] collectArray(I[] list, Class<R> newType, Transformer<? super I, ? extends R> transformer) {
-    return collectArray(list, (R[]) Array.newInstance(newType, list.length), transformer);
-  }
-
-  public static <R, I> R[] collectArray(I[] list, R[] destination, Transformer<? super I, ? extends R> transformer) {
-    assert list.length <= destination.length;
-    for (int i = 0; i < list.length; ++i) {
-      destination[i] = transformer.transform(list[i]);
-    }
-    return destination;
-  }
-
-  public static <R, I> List<R> collect(List<? extends I> list, Transformer<? super I, ? extends R> transformer) {
-    return collect(list, new ArrayList<R>(list.size()), transformer);
-  }
-
-  public static <R, I> List<R> collect(I[] list, Transformer<? super I, ? extends R> transformer) {
-    return collect(Arrays.asList(list), transformer);
-  }
-
-  public static <R, I> Set<R> collect(Set<? extends I> set, Transformer<? super I, ? extends R> transformer) {
-    return collect(set, new HashSet<R>(), transformer);
-  }
-
-  public static <R, I, C extends Collection<R>> C collect(Iterable<? extends I> source, C destination, Transformer<? super I, ? extends R> transformer) {
-    for (I item : source) {
-      destination.add(transformer.transform(item));
-    }
-    return destination;
-  }
-
-  private static class UpperCaseTransformer implements Transformer<Object, String> {
-    public String transform(Object from) {
-      return from.toString().toUpperCase();
-    }
-  }
-
-  public static List<String> toUpperCase(Iterable<?> things) {
-    return collect(things, new LinkedList<String>(), new UpperCaseTransformer());
-  }
-
-  public static List<String> toUpperCase(List<?> things) {
-    return collect(things, new UpperCaseTransformer());
-  }
-
-  public static List<String> toUpperCase(Object... things) {
-    return collect(things, new UpperCaseTransformer());
   }
 
 }
