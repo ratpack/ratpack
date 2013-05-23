@@ -17,6 +17,8 @@
 package org.ratpackframework.handling.internal;
 
 import org.ratpackframework.context.Context;
+import org.ratpackframework.error.ServerErrorHandler;
+import org.ratpackframework.error.internal.ErrorCatchingHandler;
 import org.ratpackframework.handling.Exchange;
 import org.ratpackframework.handling.Handler;
 
@@ -26,16 +28,25 @@ public class ContextInsertingHandler implements Handler {
   private final Object object;
   private final Handler handler;
 
+  @SuppressWarnings("unchecked")
   public <T> ContextInsertingHandler(T object, Handler handler) {
     this.type = null;
     this.object = object;
-    this.handler = handler;
+    this.handler = decorate((Class<? super T>) object.getClass(), handler);
   }
 
   public <T> ContextInsertingHandler(Class<? super T> type, T object, Handler handler) {
     this.type = type;
     this.object = object;
-    this.handler = handler;
+    this.handler = decorate(type, handler);
+  }
+
+  protected <T> Handler decorate(Class<? super T> type, Handler handler) {
+    if (ServerErrorHandler.class.isAssignableFrom(type)) {
+      return new ErrorCatchingHandler(handler);
+    } else {
+      return handler;
+    }
   }
 
   @SuppressWarnings("unchecked")

@@ -66,4 +66,27 @@ class ErrorHandlingSpec extends RatpackGroovyDslSpec {
     text == "Caught: thrown in forked thread"
   }
 
+  def "can use contextual handler"() {
+    given:
+    def errorHandler = new ServerErrorHandler() {
+      void error(Exchange exchange, Exception exception) {
+        exchange.response.send("Caught: $exception.message")
+      }
+    }
+
+    when:
+    app {
+      handlers {
+        context(ServerErrorHandler, errorHandler) {
+          get {
+            throw new Exception("thrown")
+          }
+        }
+      }
+    }
+
+    then:
+    text == "Caught: thrown"
+  }
+
 }
