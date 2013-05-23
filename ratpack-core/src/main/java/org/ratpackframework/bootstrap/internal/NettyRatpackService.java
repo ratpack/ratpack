@@ -42,6 +42,7 @@ public class NettyRatpackService extends AbstractIdleService implements RatpackS
   private Channel channel;
   private NioEventLoopGroup bossGroup;
   private NioEventLoopGroup workerGroup;
+  private ServerBootstrap bootstrap;
 
   public NettyRatpackService(
       InetSocketAddress requestedAddress,
@@ -53,7 +54,7 @@ public class NettyRatpackService extends AbstractIdleService implements RatpackS
 
   @Override
   protected void startUp() throws Exception {
-    ServerBootstrap bootstrap = new ServerBootstrap();
+    bootstrap = new ServerBootstrap();
     bossGroup = new NioEventLoopGroup();
     workerGroup = new NioEventLoopGroup();
     bootstrap.group(bossGroup, workerGroup)
@@ -79,11 +80,13 @@ public class NettyRatpackService extends AbstractIdleService implements RatpackS
     }
   }
 
+  @SuppressWarnings("deprecation")
   @Override
   protected void shutDown() throws Exception {
-    channel.close().sync();
-    bossGroup.shutdownGracefully();
-    workerGroup.shutdownGracefully();
+    bootstrap.shutdown();
+//    channel.close().sync();
+//    bossGroup.shutdownGracefully();
+//    workerGroup.shutdownGracefully();
   }
 
   public int getBindPort() {
