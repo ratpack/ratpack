@@ -14,29 +14,23 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.error.internal;
+package org.ratpackframework.handling.internal;
 
 import org.ratpackframework.handling.Exchange;
-import org.ratpackframework.handling.Handler;
-import org.ratpackframework.handling.internal.HandlerException;
 
-public class ErrorCatchingHandler implements Handler {
+public class HandlerException extends RuntimeException {
 
-  private final Handler handler;
+  private static final long serialVersionUID = 0;
 
-  public ErrorCatchingHandler(Handler handler) {
-    this.handler = handler;
+  private final Exchange exchange;
+
+  public HandlerException(Exchange exchange, Exception exception) {
+    super(exception);
+    this.exchange = exchange;
   }
 
-  public void handle(Exchange exchange) {
-    try {
-      handler.handle(exchange);
-    } catch (Exception exception) {
-      if (exception instanceof HandlerException) {
-        ((HandlerException) exception).getExchange().error((Exception) exception.getCause());
-      } else {
-        exchange.error(exception);
-      }
-    }
+  public Exchange getExchange() {
+    return exchange;
   }
+
 }

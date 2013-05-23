@@ -72,7 +72,11 @@ public class DefaultExchange implements Exchange {
   }
 
   public void next() {
-    next.handle(this);
+    try {
+      next.handle(this);
+    } catch (Exception e) {
+      throw new HandlerException(this, e);
+    }
   }
 
   public void insert(Handler... handlers) {
@@ -104,7 +108,8 @@ public class DefaultExchange implements Exchange {
   }
 
   public void error(Exception exception) {
-    get(ServerErrorHandler.class).error(this, exception);
+    ServerErrorHandler serverErrorHandler = get(ServerErrorHandler.class);
+    serverErrorHandler.error(this, exception);
   }
 
   public void clientError(int statusCode) {

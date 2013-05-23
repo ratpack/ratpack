@@ -39,6 +39,10 @@ public abstract class ClosureHandlers {
     return Handlers.context(context, chain(handlers));
   }
 
+  public static <T> Handler context(Class<? super T> type, T object, @DelegatesTo(value = Chain.class, strategy = Closure.DELEGATE_FIRST) final Closure<?> handlers) {
+    return Handlers.context(type, object, chain(handlers));
+  }
+
   private static Action<Chain> chain(@DelegatesTo(value = Chain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handlers) {
     return Closures.action(Chain.class, handlers);
   }
@@ -57,6 +61,10 @@ public abstract class ClosureHandlers {
 
   public static Handler get(String path, @DelegatesTo(value = Exchange.class, strategy = Closure.DELEGATE_FIRST) final Closure<?> closure) {
     return Handlers.handler(path, Handlers.chain(MethodHandler.GET, handler(closure)));
+  }
+
+  public static Handler get(@DelegatesTo(value = Exchange.class, strategy = Closure.DELEGATE_FIRST) final Closure<?> closure) {
+    return Handlers.handler("", Handlers.chain(MethodHandler.GET, handler(closure)));
   }
 
   public static Handler post(String path, @DelegatesTo(value = Exchange.class, strategy = Closure.DELEGATE_FIRST) final Closure<?> closure) {

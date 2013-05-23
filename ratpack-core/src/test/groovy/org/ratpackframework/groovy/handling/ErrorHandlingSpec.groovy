@@ -14,12 +14,16 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.handling
+package org.ratpackframework.groovy.handling
 
 import org.ratpackframework.error.ServerErrorHandler
-import org.ratpackframework.test.groovy.RatpackGroovyDslSpec
+import org.ratpackframework.handling.Exchange
+import org.ratpackframework.test.DefaultRatpackSpec
 
-class ErrorHandlingSpec extends RatpackGroovyDslSpec {
+import static org.ratpackframework.groovy.ClosureHandlers.context
+import static org.ratpackframework.groovy.ClosureHandlers.get
+
+class ErrorHandlingSpec extends DefaultRatpackSpec {
 
   def "handles 404"() {
     when:
@@ -33,7 +37,7 @@ class ErrorHandlingSpec extends RatpackGroovyDslSpec {
     when:
     app {
       handlers {
-        get("") { throw new RuntimeException('error here') }
+        add get { throw new RuntimeException('error here') }
       }
     }
 
@@ -52,8 +56,8 @@ class ErrorHandlingSpec extends RatpackGroovyDslSpec {
     when:
     app {
       handlers {
-        context(ServerErrorHandler, errorHandler) {
-          get {
+        add context(ServerErrorHandler, errorHandler) {
+          add get {
             withErrorHandling new Thread({
               throw new Exception("thrown in forked thread")
             })
@@ -64,6 +68,41 @@ class ErrorHandlingSpec extends RatpackGroovyDslSpec {
 
     then:
     text == "Caught: thrown in forked thread"
+  }
+
+  def "can use contextual handler on forked threads"() {
+    given:
+    def errorHandler1 = new ServerErrorHandler() {
+      void error(Exchange exchange, Exception exception) {
+        exchange.response.send("1: $exception.message")
+      }
+    }
+
+    def errorHandler2 = new ServerErrorHandler() {
+      void error(Exchange exchange, Exception exception) {
+        exchange.response.send("2: $exception.message")
+      }
+    }
+
+    when:
+    app {
+      handlers {
+        add context(ServerErrorHandler, errorHandler1) {
+          add get {
+            withErrorHandling new Thread({
+              insert context(ServerErrorHandler, errorHandler2) {
+                add get {
+                  throw new Exception("down here")
+                }
+              }
+            })
+          }
+        }
+      }
+    }
+
+    then:
+    text == "2: down here"
   }
 
   def "can use contextual handler"() {
@@ -77,8 +116,8 @@ class ErrorHandlingSpec extends RatpackGroovyDslSpec {
     when:
     app {
       handlers {
-        context(ServerErrorHandler, errorHandler) {
-          get {
+        add context(ServerErrorHandler, errorHandler) {
+          add get {
             throw new Exception("thrown")
           }
         }

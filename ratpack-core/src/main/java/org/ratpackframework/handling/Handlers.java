@@ -31,8 +31,12 @@ import java.util.Arrays;
 
 public abstract class Handlers {
 
-  public static Handler context(final Object context, final Action<? super Chain> builder) {
+  public static Handler context(final Object context, Action<? super Chain> builder) {
     return context(context, chain(builder));
+  }
+
+  public static <T> Handler context(Class<? super T> type, T object, Action<? super Chain> builder) {
+    return context(type, object, chain(builder));
   }
 
   public static Handler context(Object object, final Handler handler) {
