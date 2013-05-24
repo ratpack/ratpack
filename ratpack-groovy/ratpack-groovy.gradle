@@ -28,5 +28,5 @@ dependencies {
 }
 
 clean{
-  delete fileTree(dir: rootDir, include: "**/Expression$*.class")
+  delete fileTree(dir: rootDir, include: "**/Expression\$*.class")
 }
