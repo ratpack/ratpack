@@ -105,6 +105,40 @@ class ErrorHandlingSpec extends DefaultRatpackSpec {
     text == "2: down here"
   }
 
+  def "can segment error handlers"() {
+    given:
+    def errorHandler1 = new ServerErrorHandler() {
+      void error(Exchange exchange, Exception exception) {
+        exchange.response.send("1: $exception.message")
+      }
+    }
+    def errorHandler2 = new ServerErrorHandler() {
+      void error(Exchange exchange, Exception exception) {
+        exchange.response.send("2: $exception.message")
+      }
+    }
+
+    when:
+    app {
+      handlers {
+        add context(ServerErrorHandler, errorHandler1) {
+          add context(ServerErrorHandler, errorHandler2) {
+            add get("a") {
+              throw new Exception("1")
+            }
+          }
+          add get("b") {
+            throw new Exception("2")
+          }
+        }
+      }
+    }
+
+    then:
+    getText("a") == "2: 1"
+    getText("b") == "1: 2"
+  }
+
   def "can use contextual handler"() {
     given:
     def errorHandler = new ServerErrorHandler() {

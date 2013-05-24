@@ -75,24 +75,28 @@ public class DefaultExchange implements Exchange {
     try {
       next.handle(this);
     } catch (Exception e) {
-      throw new HandlerException(this, e);
+      if (e instanceof HandlerException) {
+        throw (HandlerException) e;
+      } else {
+        throw new HandlerException(this, e);
+      }
     }
   }
 
   public void insert(Handler... handlers) {
-    doNext(context, CollectionUtils.toList(handlers), next);
+    doNext(this, context, CollectionUtils.toList(handlers), next);
   }
 
   public void insert(Iterable<Handler> handlers) {
-    doNext(context, CollectionUtils.toList(handlers), next);
+    doNext(this, context, CollectionUtils.toList(handlers), next);
   }
 
   public void insert(Context context, Handler... handlers) {
-    doNext(context, CollectionUtils.toList(handlers), next);
+    doNext(this, context, CollectionUtils.toList(handlers), next);
   }
 
   public void insert(Context context, Iterable<Handler> handlers) {
-    doNext(context, CollectionUtils.toList(handlers), next);
+    doNext(this, context, CollectionUtils.toList(handlers), next);
   }
 
   public Map<String, String> getPathTokens() {
@@ -128,15 +132,15 @@ public class DefaultExchange implements Exchange {
     return new DefaultByMethodChain(this);
   }
 
-  protected void doNext(final Context context, final List<Handler> handlers, final Handler exhausted) {
+  protected void doNext(final Exchange parentExchange, final Context context, final List<Handler> handlers, final Handler exhausted) {
     assert context != null;
     if (handlers.isEmpty()) {
-      exhausted.handle(this);
+      exhausted.handle(parentExchange);
     } else {
       Handler handler = handlers.remove(0);
       Handler nextHandler = new Handler() {
         public void handle(Exchange exchange) {
-          ((DefaultExchange) exchange).doNext(context, handlers, exhausted);
+          ((DefaultExchange) exchange).doNext(parentExchange, context, handlers, exhausted);
         }
       };
       DefaultExchange childExchange = new DefaultExchange(request, response, channelHandlerContext, context, nextHandler);
