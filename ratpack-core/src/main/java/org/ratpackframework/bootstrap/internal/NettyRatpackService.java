@@ -19,7 +19,6 @@ package org.ratpackframework.bootstrap.internal;
 import com.google.common.util.concurrent.AbstractIdleService;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
-import io.netty.buffer.UnpooledByteBufAllocator;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
@@ -43,7 +42,6 @@ public class NettyRatpackService extends AbstractIdleService implements RatpackS
   private Channel channel;
   private NioEventLoopGroup bossGroup;
   private NioEventLoopGroup workerGroup;
-  private ServerBootstrap bootstrap;
 
   public NettyRatpackService(
       InetSocketAddress requestedAddress,
@@ -55,7 +53,7 @@ public class NettyRatpackService extends AbstractIdleService implements RatpackS
 
   @Override
   protected void startUp() throws Exception {
-    bootstrap = new ServerBootstrap();
+    ServerBootstrap bootstrap = new ServerBootstrap();
     bossGroup = new NioEventLoopGroup();
     workerGroup = new NioEventLoopGroup();
     bootstrap.group(bossGroup, workerGroup)
