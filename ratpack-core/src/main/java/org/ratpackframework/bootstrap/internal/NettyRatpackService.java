@@ -81,13 +81,11 @@ public class NettyRatpackService extends AbstractIdleService implements RatpackS
     }
   }
 
-  @SuppressWarnings("deprecation")
   @Override
   protected void shutDown() throws Exception {
-    bootstrap.shutdown();
-//    channel.close().sync();
-//    bossGroup.shutdownGracefully();
-//    workerGroup.shutdownGracefully();
+    channel.close().sync();
+    bossGroup.shutdownGracefully();
+    workerGroup.shutdownGracefully();
   }
 
   public int getBindPort() {
