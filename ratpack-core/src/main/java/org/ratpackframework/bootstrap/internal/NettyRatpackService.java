@@ -72,6 +72,7 @@ public class NettyRatpackService extends AbstractIdleService implements RatpackS
     bootstrap.childOption(ChannelOption.SO_KEEPALIVE, socket.getKeepAlive());
     bootstrap.option(ChannelOption.SO_REUSEADDR, true);
     bootstrap.option(ChannelOption.SO_BACKLOG, 1024);
+    socket.close();
 
     channel = bootstrap.bind(requestedAddress).sync().channel();
     boundAddress = (InetSocketAddress) channel.localAddress();
