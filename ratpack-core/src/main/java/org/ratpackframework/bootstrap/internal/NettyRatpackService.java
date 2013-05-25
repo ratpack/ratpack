@@ -70,7 +70,7 @@ public class NettyRatpackService extends AbstractIdleService implements RatpackS
     bootstrap.childOption(ChannelOption.IP_TOS, socket.getTrafficClass());
     bootstrap.childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
     bootstrap.childOption(ChannelOption.SO_KEEPALIVE, socket.getKeepAlive());
-    bootstrap.option(ChannelOption.SO_REUSEADDR, socket.getReuseAddress());
+    bootstrap.option(ChannelOption.SO_REUSEADDR, true);
     bootstrap.option(ChannelOption.SO_BACKLOG, 1024);
 
     channel = bootstrap.bind(requestedAddress).sync().channel();
