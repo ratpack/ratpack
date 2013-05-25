@@ -18,6 +18,7 @@ package org.ratpackframework.bootstrap.internal;
 
 import com.google.common.util.concurrent.AbstractIdleService;
 import io.netty.bootstrap.ServerBootstrap;
+import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.buffer.UnpooledByteBufAllocator;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
@@ -67,7 +68,7 @@ public class NettyRatpackService extends AbstractIdleService implements RatpackS
     bootstrap.childOption(ChannelOption.SO_RCVBUF, socket.getReceiveBufferSize());
     bootstrap.option(ChannelOption.SO_LINGER, socket.getSoLinger());
     bootstrap.childOption(ChannelOption.IP_TOS, socket.getTrafficClass());
-    bootstrap.childOption(ChannelOption.ALLOCATOR, UnpooledByteBufAllocator.DEFAULT);
+    bootstrap.childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
     bootstrap.childOption(ChannelOption.SO_KEEPALIVE, socket.getKeepAlive());
     bootstrap.option(ChannelOption.SO_REUSEADDR, socket.getReuseAddress());
     bootstrap.option(ChannelOption.SO_BACKLOG, 1024);
