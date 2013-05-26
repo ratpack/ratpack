@@ -53,7 +53,7 @@ class IdeaConfigurer implements Action<Project> {
       }
 
       runManagerConfig.append(new XmlParser().parseText("""
-            <configuration default="false" name="Ratpack Run (${ideaModule.name})" type="Application" factoryName="Application">
+            <configuration default="false" name="Ratpack Run (${project.path})" type="Application" factoryName="Application">
               <extension name="coverage" enabled="false" merge="false" />
               <option name="MAIN_CLASS_NAME" value="${runSpec.main}" />
               <option name="VM_PARAMETERS" value="${jvmArgs.collect { "&quot;$it&quot;" }.join(" ")}"  />
