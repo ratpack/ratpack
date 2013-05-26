@@ -9,7 +9,7 @@ import org.ratpackframework.util.Action;
 public class Routing implements Action<Chain> {
 
   public void execute(Chain chain) {
-    chain.add(Handlers.get(new Handler() {
+    chain.add(Handlers.get("foo/bar", new Handler() {
       public void handle(Exchange exchange) {
         exchange.getResponse().send(exchange.getRequest().getUri());
       }
