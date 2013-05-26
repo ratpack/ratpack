@@ -25,6 +25,7 @@ include \
     "ratpack-site"
 
 include \
+  "perftest",
   "perftest:raw",
   "perftest:simple-java",
   "perftest:guice"

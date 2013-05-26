@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-/*
-  A simple Java application.
-  Useful for benching built in routing.
-*/
+subprojects {
+  apply from: "$rootDir/gradle/javaModule.gradle"
 
-apply plugin: "ratpack"
-mainClassName = "ratpack.Main"
+  apply plugin: "ratpack"
+  mainClassName = "ratpack.Main"
+}
