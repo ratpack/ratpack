@@ -14,31 +14,10 @@
  * limitations under the License.
  */
 
-include \
-    "ratpack-core",
-    "ratpack-guice",
-    "ratpack-session",
-    "ratpack-gradle",
-    "ratpack-groovy",
-    "ratpack-test-support",
-    "ratpack-manual",
-    "ratpack-site"
+/*
+  A simple Java application.
+  Useful for benching built in routing.
+*/
 
-include \
-  "perftest:raw",
-  "perftest:simple-java"
-
-rootProject.name = 'ratpack'
-
-def setBuildFile(project) {
-  project.buildFileName = "${project.name}.gradle"
-  project.children.each {
-    setBuildFile(it)
-  }
-}
-
-setBuildFile(rootProject)
-rootProject.children.each {
-  setBuildFile(it)
-}
-
+apply plugin: "ratpack"
+mainClassName = "ratpack.Main"
