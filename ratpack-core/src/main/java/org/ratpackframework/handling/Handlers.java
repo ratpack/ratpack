@@ -21,6 +21,7 @@ import org.ratpackframework.file.internal.FileStaticAssetRequestHandler;
 import org.ratpackframework.file.internal.FileSystemContextHandler;
 import org.ratpackframework.file.internal.TargetFileStaticAssetRequestHandler;
 import org.ratpackframework.handling.internal.*;
+import org.ratpackframework.http.internal.MethodHandler;
 import org.ratpackframework.path.PathBinder;
 import org.ratpackframework.path.internal.PathHandler;
 import org.ratpackframework.path.internal.TokenPathBinder;
@@ -93,6 +94,18 @@ public abstract class Handlers {
 
   public static Handler next() {
     return NextHandler.INSTANCE;
+  }
+
+  public static Handler get(String path, Handler handler) {
+    return path(path, chain(MethodHandler.GET, handler));
+  }
+
+  public static Handler get(Handler handler) {
+    return path("", chain(MethodHandler.GET, handler));
+  }
+
+  public static Handler post(String path, Handler handler) {
+    return path(path, chain(MethodHandler.POST, handler));
   }
 
   public static Handler path(String path, Action<? super Chain> builder) {

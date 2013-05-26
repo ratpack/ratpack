@@ -16,6 +16,7 @@
 
 package org.ratpackframework.path
 
+import org.ratpackframework.handling.Handlers
 import org.ratpackframework.test.DefaultRatpackSpec
 
 import static org.ratpackframework.groovy.ClosureHandlers.handler
@@ -127,4 +128,22 @@ class PathRoutingSpec extends DefaultRatpackSpec {
     get("1/2/3/4/5/6").statusCode == 404
   }
 
+  def "can use get handler"() {
+    when:
+    app {
+      handlers {
+        add Handlers.get(handler {
+          response.send("root")
+        })
+
+        add Handlers.get("a", handler {
+          response.send("a")
+        })
+      }
+    }
+
+    then:
+    getText() == "root"
+    getText("a") == "a"
+  }
 }
