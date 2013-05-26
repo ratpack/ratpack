@@ -50,7 +50,7 @@ public class NettyHandlerAdapter extends ChannelInboundMessageHandlerAdapter<Ful
   private Handler return404;
 
   public NettyHandlerAdapter(Handler handler, File baseDir) {
-    this.handler = handler;
+    this.handler = new ErrorCatchingHandler(handler);
     this.rootContext = new RootContext(
         new DefaultServerErrorHandler(),
         new DefaultClientErrorHandler(),
@@ -73,7 +73,7 @@ public class NettyHandlerAdapter extends ChannelInboundMessageHandlerAdapter<Ful
     Response response = new DefaultResponse(nettyResponse, ctx.channel());
     final Exchange exchange = new DefaultExchange(request, response, ctx, rootContext, return404);
 
-    exchange.insert(new ErrorCatchingHandler(handler));
+    handler.handle(exchange);
   }
 
   public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
