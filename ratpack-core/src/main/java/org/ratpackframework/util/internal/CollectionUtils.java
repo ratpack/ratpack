@@ -20,31 +20,6 @@ import java.util.*;
 
 public abstract class CollectionUtils {
 
-  @SuppressWarnings("unchecked")
-  public static <T> List<T> toList(Iterable<? extends T> source) {
-    if (source instanceof Collection) {
-      return new ArrayList<T>((Collection<? extends T>) source);
-    }
-
-    List<T> list = new LinkedList<T>();
-    for (T item : source) {
-      list.add(item);
-    }
-    return list;
-  }
-
-  public static <T> List<T> toList(T... things) {
-    if (things.length == 0) {
-      return Collections.emptyList();
-    } else {
-      List<T> list = new ArrayList<T>(things.length);
-      for (T thing : things) {
-        list.add(thing);
-      }
-      return list;
-    }
-  }
-
   public static String join(String separator, Object... objects) {
     return join(separator, objects == null ? null : Arrays.asList(objects));
   }

@@ -22,17 +22,20 @@ import org.ratpackframework.handling.Exchange;
 import org.ratpackframework.handling.Handler;
 
 import java.io.File;
+import java.util.List;
+
+import static java.util.Collections.singletonList;
 
 public class FileSystemContextHandler implements Handler {
 
   private final File file;
-  private final Handler delegate;
+  private final List<Handler> delegate;
   private final boolean absolute;
   private final FileSystemBinding absoluteContext;
 
   public FileSystemContextHandler(File file, Handler delegate) {
     this.file = file;
-    this.delegate = delegate;
+    this.delegate = singletonList(delegate);
     this.absolute = file.isAbsolute();
     this.absoluteContext = new DefaultFileSystemBinding(file.getAbsoluteFile());
   }

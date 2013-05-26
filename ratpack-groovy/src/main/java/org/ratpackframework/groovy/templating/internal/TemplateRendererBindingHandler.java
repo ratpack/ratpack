@@ -22,15 +22,17 @@ import org.ratpackframework.handling.Exchange;
 import org.ratpackframework.handling.Handler;
 
 import java.io.File;
+import java.util.Collections;
+import java.util.List;
 
 public class TemplateRendererBindingHandler implements Handler {
 
   private final String templateDir;
-  private final Handler delegate;
+  private final List<Handler> delegate;
 
   public TemplateRendererBindingHandler(String templateDir, Handler delegate) {
     this.templateDir = templateDir;
-    this.delegate = delegate;
+    this.delegate = Collections.singletonList(delegate);
   }
 
   public void handle(Exchange exchange) {

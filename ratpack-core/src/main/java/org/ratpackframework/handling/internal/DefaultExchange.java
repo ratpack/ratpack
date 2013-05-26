@@ -27,7 +27,6 @@ import org.ratpackframework.handling.Handler;
 import org.ratpackframework.http.Request;
 import org.ratpackframework.http.Response;
 import org.ratpackframework.path.PathBinding;
-import org.ratpackframework.util.internal.CollectionUtils;
 
 import java.io.File;
 import java.util.List;
@@ -83,20 +82,12 @@ public class DefaultExchange implements Exchange {
     }
   }
 
-  public void insert(Handler... handlers) {
-    doNext(this, context, CollectionUtils.toList(handlers), next);
+  public void insert(List<Handler> handlers) {
+    doNext(this, context, handlers, 0, next);
   }
 
-  public void insert(Iterable<Handler> handlers) {
-    doNext(this, context, CollectionUtils.toList(handlers), next);
-  }
-
-  public void insert(Context context, Handler... handlers) {
-    doNext(this, context, CollectionUtils.toList(handlers), next);
-  }
-
-  public void insert(Context context, Iterable<Handler> handlers) {
-    doNext(this, context, CollectionUtils.toList(handlers), next);
+  public void insert(Context context, List<Handler> handlers) {
+    doNext(this, context, handlers, 0, next);
   }
 
   public Map<String, String> getPathTokens() {
@@ -132,15 +123,15 @@ public class DefaultExchange implements Exchange {
     return new DefaultByMethodChain(this);
   }
 
-  protected void doNext(final Exchange parentExchange, final Context context, final List<Handler> handlers, final Handler exhausted) {
+  protected void doNext(final Exchange parentExchange, final Context context, final List<Handler> handlers, final int index, final Handler exhausted) {
     assert context != null;
-    if (handlers.isEmpty()) {
+    if (index == handlers.size()) {
       exhausted.handle(parentExchange);
     } else {
-      Handler handler = handlers.remove(0);
+      Handler handler = handlers.get(index);
       Handler nextHandler = new Handler() {
         public void handle(Exchange exchange) {
-          ((DefaultExchange) exchange).doNext(parentExchange, context, handlers, exhausted);
+          ((DefaultExchange) exchange).doNext(parentExchange, context, handlers, index + 1, exhausted);
         }
       };
       DefaultExchange childExchange = new DefaultExchange(request, response, channelHandlerContext, context, nextHandler);

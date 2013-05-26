@@ -18,21 +18,24 @@ package org.ratpackframework.file.internal;
 
 import org.ratpackframework.context.Context;
 import org.ratpackframework.file.FileSystemBinding;
-import org.ratpackframework.http.Request;
-import org.ratpackframework.path.PathBinding;
 import org.ratpackframework.handling.Exchange;
 import org.ratpackframework.handling.Handler;
+import org.ratpackframework.http.Request;
+import org.ratpackframework.path.PathBinding;
 
 import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.List;
+
+import static java.util.Collections.singletonList;
 
 public class TargetFileStaticAssetRequestHandler implements Handler {
 
-  private final Handler delegate;
+  private final List<Handler> delegate;
 
   public TargetFileStaticAssetRequestHandler(Handler delegate) {
-    this.delegate = delegate;
+    this.delegate = singletonList(delegate);
   }
 
   public void handle(Exchange exchange) {

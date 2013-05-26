@@ -16,7 +16,6 @@
 
 package org.ratpackframework.session.store.internal;
 
-import org.ratpackframework.util.internal.Factory;
 import org.ratpackframework.context.Context;
 import org.ratpackframework.context.internal.LazyHierarchicalContext;
 import org.ratpackframework.handling.Exchange;
@@ -24,13 +23,18 @@ import org.ratpackframework.handling.Handler;
 import org.ratpackframework.session.Session;
 import org.ratpackframework.session.store.MapSessionStore;
 import org.ratpackframework.session.store.SessionStorage;
+import org.ratpackframework.util.internal.Factory;
+
+import java.util.List;
+
+import static java.util.Collections.singletonList;
 
 public class SessionStorageBindingHandler implements Handler {
 
-  private final Handler handler;
+  private final List<Handler> handler;
 
   public SessionStorageBindingHandler(Handler handler) {
-    this.handler = handler;
+    this.handler = singletonList(handler);
   }
 
   public void handle(Exchange exchange) {

@@ -19,11 +19,13 @@ package org.ratpackframework.handling.internal;
 import org.ratpackframework.handling.Exchange;
 import org.ratpackframework.handling.Handler;
 
+import java.util.List;
+
 public class ChainHandler implements Handler {
 
-  private final Iterable<Handler> chain;
+  private final List<Handler> chain;
 
-  public ChainHandler(Iterable<Handler> chain) {
+  public ChainHandler(List<Handler> chain) {
     this.chain = chain;
   }
 

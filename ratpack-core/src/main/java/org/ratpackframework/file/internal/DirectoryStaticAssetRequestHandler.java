@@ -26,14 +26,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static io.netty.handler.codec.http.HttpResponseStatus.FORBIDDEN;
+import static java.util.Collections.singletonList;
 
 public class DirectoryStaticAssetRequestHandler implements Handler {
 
   private final List<String> indexFiles;
   private final Handler delegate;
+  private final List<Handler> delegateList;
 
   public DirectoryStaticAssetRequestHandler(List<String> indexFiles, Handler delegate) {
     this.delegate = delegate;
+    this.delegateList = singletonList(delegate);
     this.indexFiles = new ArrayList<String>(indexFiles);
   }
 
@@ -45,7 +48,7 @@ public class DirectoryStaticAssetRequestHandler implements Handler {
         File file = new File(targetFile, indexFileName);
         if (file.isFile()) {
           Context newContext = exchange.getContext().plus(FileSystemBinding.class, fileSystemBinding.binding(file));
-          exchange.insert(newContext, delegate);
+          exchange.insert(newContext, delegateList);
           return;
         }
       }

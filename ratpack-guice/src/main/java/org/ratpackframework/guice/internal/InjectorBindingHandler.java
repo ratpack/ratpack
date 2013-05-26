@@ -20,14 +20,18 @@ import com.google.inject.Injector;
 import org.ratpackframework.handling.Exchange;
 import org.ratpackframework.handling.Handler;
 
+import java.util.List;
+
+import static java.util.Collections.singletonList;
+
 public class InjectorBindingHandler implements Handler {
 
   private final Injector injector;
-  private final Handler delegate;
+  private final List<Handler> delegate;
 
   public InjectorBindingHandler(Injector injector, Handler delegate) {
     this.injector = injector;
-    this.delegate = delegate;
+    this.delegate = singletonList(delegate);
   }
 
   public void handle(Exchange exchange) {

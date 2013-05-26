@@ -22,12 +22,16 @@ import org.ratpackframework.handling.Handler;
 import org.ratpackframework.session.Session;
 import org.ratpackframework.session.SessionManager;
 
+import java.util.List;
+
+import static java.util.Collections.singletonList;
+
 public class SessionBindingHandler implements Handler {
 
-  private final Handler delegate;
+  private final List<Handler> delegate;
 
   public SessionBindingHandler(Handler delegate) {
-    this.delegate = delegate;
+    this.delegate = singletonList(delegate);
   }
 
   public void handle(Exchange exchange) {

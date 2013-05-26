@@ -24,6 +24,7 @@ import org.ratpackframework.http.Request;
 import org.ratpackframework.http.Response;
 
 import java.io.File;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -128,31 +129,7 @@ public interface Exchange {
    * @param handlers The handlers to insert.
    */
   @NonBlocking
-  void insert(Handler... handlers);
-
-  /**
-   * Inserts some handlers into the pipeline, then delegates to the first.
-   * <p>
-   * The request and response of this object should not be accessed after this method is called.
-   *
-   * @param handlers The handlers to insert.
-   */
-  @NonBlocking
-  void insert(Iterable<Handler> handlers);
-
-  /**
-   * Inserts some handlers into the pipeline to execute with the given context, then delegates to the first.
-   * <p>
-   * The given context is only applicable to the inserted handlers.
-   * <p>
-   * Almost always, the context should be a super set of the current context. This can easily be achieved
-   * by using the {@link Context#plus(Class, Object)} method of {@link #getContext()} this exchange's context.
-   *
-   * @param context The context for the inserted handlers
-   * @param handlers The handlers to insert
-   */
-  @NonBlocking
-  void insert(Context context, Handler... handlers);
+  void insert(List<Handler> handlers);
 
   /**
    * Inserts some handlers into the pipeline to execute with the given context, then delegates to the first.
@@ -166,7 +143,7 @@ public interface Exchange {
    * @param handlers The handlers to insert
    */
   @NonBlocking
-  void insert(Context context, Iterable<Handler> handlers);
+  void insert(Context context, List<Handler> handlers);
 
   /**
    * A buildable processing chain for conditional processing based on the HTTP request method.
@@ -185,8 +162,6 @@ public interface Exchange {
    * <p>
    * The default configuration of Ratpack includes a {@link org.ratpackframework.error.ServerErrorHandler} in all contexts.
    * A {@link NotInContextException} will only be thrown if a very custom context setup is being used.
-   *
-   * @param exception
    */
   @NonBlocking
   void error(Exception exception) throws NotInContextException;

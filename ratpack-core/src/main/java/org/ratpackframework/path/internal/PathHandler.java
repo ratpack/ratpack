@@ -16,19 +16,23 @@
 
 package org.ratpackframework.path.internal;
 
-import org.ratpackframework.path.PathBinder;
-import org.ratpackframework.path.PathBinding;
 import org.ratpackframework.handling.Exchange;
 import org.ratpackframework.handling.Handler;
+import org.ratpackframework.path.PathBinder;
+import org.ratpackframework.path.PathBinding;
+
+import java.util.List;
+
+import static java.util.Collections.singletonList;
 
 public class PathHandler implements Handler {
 
   private final PathBinder binding;
-  private final Handler delegate;
+  private final List<Handler> delegate;
 
   public PathHandler(PathBinder binding, Handler delegate) {
     this.binding = binding;
-    this.delegate = delegate;
+    this.delegate = singletonList(delegate);
   }
 
   public void handle(Exchange exchange) {

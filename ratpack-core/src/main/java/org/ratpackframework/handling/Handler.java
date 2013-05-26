@@ -28,7 +28,7 @@ import org.ratpackframework.api.NonBlocking;
  * <ol>
  * <li>Send a response back to the client, terminating processing</li>
  * <li>Opt out of processing the exchange, passing control to the next handler in the pipeline via {@link org.ratpackframework.handling.Exchange#next()}</li>
- * <li>Insert handlers into the pipeline via {@link Exchange#insert(org.ratpackframework.context.Context, Handler...)} (or related methods)</li>
+ * <li>Insert handlers into the pipeline via {@link Exchange#insert(java.util.List)} (or related methods)</li>
  * <li>Forward the exchange to another internal handler by calling its {@link #handle(Exchange)} method</li>
  * </ol>
  */

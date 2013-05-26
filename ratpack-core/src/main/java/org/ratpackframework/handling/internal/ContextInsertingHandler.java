@@ -22,23 +22,27 @@ import org.ratpackframework.error.internal.ErrorCatchingHandler;
 import org.ratpackframework.handling.Exchange;
 import org.ratpackframework.handling.Handler;
 
+import java.util.List;
+
+import static java.util.Collections.singletonList;
+
 public class ContextInsertingHandler implements Handler {
 
   private final Class<?> type;
   private final Object object;
-  private final Handler handler;
+  private final List<Handler> handler;
 
   @SuppressWarnings("unchecked")
   public <T> ContextInsertingHandler(T object, Handler handler) {
     this.type = null;
     this.object = object;
-    this.handler = decorate((Class<? super T>) object.getClass(), handler);
+    this.handler = singletonList(decorate((Class<? super T>) object.getClass(), handler));
   }
 
   public <T> ContextInsertingHandler(Class<? super T> type, T object, Handler handler) {
     this.type = type;
     this.object = object;
-    this.handler = decorate(type, handler);
+    this.handler = singletonList(decorate(type, handler));
   }
 
   protected <T> Handler decorate(Class<? super T> type, Handler handler) {

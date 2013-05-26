@@ -88,13 +88,13 @@ class ErrorHandlingSpec extends DefaultRatpackSpec {
     app {
       handlers {
         add context(ServerErrorHandler, errorHandler1) {
-          add get {
+          add get { exchange ->
             withErrorHandling new Thread({
-              insert context(ServerErrorHandler, errorHandler2) {
+              context(ServerErrorHandler, errorHandler2) {
                 add get {
                   throw new Exception("down here")
                 }
-              }
+              }.handle(exchange)
             })
           }
         }
