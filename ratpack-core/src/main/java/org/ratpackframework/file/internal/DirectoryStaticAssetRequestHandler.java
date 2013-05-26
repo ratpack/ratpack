@@ -51,7 +51,7 @@ public class DirectoryStaticAssetRequestHandler implements Handler {
       }
       exchange.getResponse().status(FORBIDDEN.code(), FORBIDDEN.reasonPhrase()).send();
     } else {
-      exchange.insert(delegate);
+      delegate.handle(exchange);
     }
   }
 }
