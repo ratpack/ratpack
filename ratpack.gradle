@@ -33,6 +33,7 @@ allprojects {
   group = "org.ratpack-framework"
   version = rootProject.file("shared-resources/org/ratpackframework/ratpack-version.txt").text.trim()
 
+  apply plugin: "base"
   apply plugin: "idea"
   apply plugin: "eclipse"
 
@@ -43,6 +44,10 @@ allprojects {
   def noClover = ["ratpack-site", "ratpack-manual"]
   if (project.hasProperty("enableClover") && !noClover.contains(project.name)) {
     project.apply from: rootProject.file("gradle/clover.gradle")
+  }
+
+  clean {
+    delete fileTree(dir: projectDir, include: "**/Expression\$*.class")
   }
 }
 

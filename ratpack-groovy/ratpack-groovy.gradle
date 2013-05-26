@@ -26,7 +26,3 @@ dependencies {
   compile project(":ratpack-session")
   testCompile project(":ratpack-test-support")
 }
-
-clean{
-  delete fileTree(dir: rootDir, include: "**/Expression\$*.class")
-}
