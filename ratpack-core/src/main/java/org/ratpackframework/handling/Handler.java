@@ -18,8 +18,28 @@ package org.ratpackframework.handling;
 
 import org.ratpackframework.api.NonBlocking;
 
+/**
+ * A handler participates in the processing of a request/response pair (i.e. an {@link Exchange}).
+ * <p>
+ * Handlers do not necessarily generate a response to the request, though they can.
+ * They may delegate to, or cooperate with other handlers.
+ * <p>
+ * Handlers can do one of four things:
+ * <ol>
+ * <li>Send a response back to the client, terminating processing</li>
+ * <li>Opt out of processing the exchange, passing control to the next handler in the pipeline via {@link org.ratpackframework.handling.Exchange#next()}</li>
+ * <li>Insert handlers into the pipeline via {@link Exchange#insert(org.ratpackframework.context.Context, Handler...)} (or related methods)</li>
+ * <li>Forward the exchange to another internal handler by calling its {@link #handle(Exchange)} method</li>
+ * </ol>
+ */
 public interface Handler {
 
+  /**
+   * Handles the exchange.
+   *
+   * @param exchange The exchange to handle
+   * @see Handler
+   */
   @NonBlocking
   void handle(Exchange exchange);
 
