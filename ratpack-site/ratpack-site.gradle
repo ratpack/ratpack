@@ -31,10 +31,6 @@ apply plugin: 'coffeescript-base'
 apply plugin: 'compass'
 apply plugin: "ratpack-groovy"
 
-// Remove the dependencies that the plugin added (we'll use project dependencies)
-configurations.compile.dependencies.clear()
-configurations.groovy.dependencies.clear()
-
 repositories {
   mavenCentral()
   maven { url "http://repo.springsource.org/repo" } // for springloaded
