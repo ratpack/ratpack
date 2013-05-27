@@ -47,10 +47,13 @@
 }
 
 .promo {
+	$promo-font-size: 18px;
+
 	@include contrasted-smooth($black);
 	@include noise-background;
-	@include padding-leader(1);
-	@include padding-trailer(1);
+	@include adjust-font-size-to($promo-font-size);
+	@include padding-leader(1, $promo-font-size);
+	@include padding-trailer(1, $promo-font-size);
 
 	a {
 		@include link-colors($blue, $white);
