@@ -28,7 +28,7 @@ class ConcurrentRequestSpec extends RatpackGroovyDslSpec {
     app {
       handlers {
         get(":id") {
-          response.send pathTokens.id + ":" + request.queryParams.id[0]
+          response.send pathTokens.id + ":" + request.queryParams.id
         }
       }
     }

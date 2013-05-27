@@ -14,30 +14,19 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.http
+package org.ratpackframework.util;
 
-import org.ratpackframework.test.groovy.RatpackGroovyDslSpec
+import org.ratpackframework.api.Nullable;
 
-class RequestMethodsSpec extends RatpackGroovyDslSpec {
+import java.util.List;
+import java.util.Map;
 
-  def "can get query params"() {
-    when:
-    app {
-      handlers {
-        get {
-          response.send request.queryParams.toString()
-        }
-      }
-    }
+public interface MultiValueMap<K, V> extends Map<K, V> {
 
-    then:
-    getText() == "[:]" && resetRequest()
-    getText("?a=b") == "[a:[b]]" && resetRequest()
-    request {
-      queryParam "a", "b", "c"
-      queryParam "d", "e"
-    }
-    getText() == "[a:[b, c], d:[e]]" && resetRequest()
-    getText("?abc") == "[abc:[]]" && resetRequest()
-  }
+  public List<V> getAll(K key);
+
+  public Map<K, List<V>> getAll();
+
+  @Nullable
+  public V get(Object key);
 }

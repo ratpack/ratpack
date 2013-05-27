@@ -18,10 +18,10 @@ package org.ratpackframework.http;
 
 import io.netty.handler.codec.http.Cookie;
 import org.ratpackframework.api.Nullable;
+import org.ratpackframework.util.MultiValueMap;
 
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -67,14 +67,14 @@ public interface Request {
    *
    * @return TBD.
    */
-  Map<String, List<String>> getQueryParams();
+  MultiValueMap<String, String> getQueryParams();
 
   /**
    * TBD.
    *
    * @return TBD.
    */
-  Map<String, List<String>> getForm();
+  MultiValueMap<String, String> getForm();
 
   /**
    * A structured representation of the "Content-Type" header value of the request.

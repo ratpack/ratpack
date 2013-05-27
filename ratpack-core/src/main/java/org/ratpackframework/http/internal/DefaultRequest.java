@@ -21,6 +21,8 @@ import io.netty.handler.codec.http.*;
 import org.ratpackframework.http.HttpMethod;
 import org.ratpackframework.http.MediaType;
 import org.ratpackframework.http.Request;
+import org.ratpackframework.util.MultiValueMap;
+import org.ratpackframework.util.internal.ImmutableDelegatingMultiValueMap;
 
 import java.nio.charset.Charset;
 import java.util.*;
@@ -31,7 +33,7 @@ public class DefaultRequest implements Request {
 
   private MediaType mediaType;
 
-  private Map<String, List<String>> queryParams;
+  private ImmutableDelegatingMultiValueMap<String, String> queryParams;
   private String query;
   private String path;
   private final HttpMethod method;
@@ -42,10 +44,10 @@ public class DefaultRequest implements Request {
     this.method = new DefaultHttpMethod(nettyRequest.getMethod().name());
   }
 
-  public Map<String, List<String>> getQueryParams() {
+  public MultiValueMap<String, String> getQueryParams() {
     if (queryParams == null) {
       QueryStringDecoder queryStringDecoder = new QueryStringDecoder(getUri());
-      queryParams = queryStringDecoder.parameters();
+      queryParams = new ImmutableDelegatingMultiValueMap<String, String>(queryStringDecoder.parameters());
     }
     return queryParams;
   }
@@ -102,8 +104,9 @@ public class DefaultRequest implements Request {
     return nettyRequest.content();
   }
 
-  public Map<String, List<String>> getForm() {
-    return new QueryStringDecoder(getText(), false).parameters();
+  public MultiValueMap<String, String> getForm() {
+    Map<String, List<String>> parsedForm = new QueryStringDecoder(getText(), false).parameters();
+    return new ImmutableDelegatingMultiValueMap<String, String>(parsedForm);
   }
 
   public Set<Cookie> getCookies() {
