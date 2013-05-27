@@ -9,8 +9,7 @@ body {
 }
 
 .page-header {
-	@include padding-leader(1);
-	@include margin-trailer(1);
+	@include rhythm($padding-leader: 1, $trailer: 1);
 
 	.ratpack-logo {
 		@include content-width;
@@ -30,6 +29,19 @@ body {
 	}
 }
 
+@mixin big-section-border($border-top: true, $border-bottom: true) {
+	@if $border-top {
+		border-top: rhythm(1, $footer-font-size) solid $blue;
+	}
+	@if $border-bottom {
+		border-bottom: rhythm(1, $footer-font-size) solid $blue;
+	}
+	@include when-full-width {
+		width: 102.5%;
+		margin-left: -1.25%;
+	}
+}
+
 .page-footer {
 	font-family: $sans-font-family;
 	text-shadow: none;
@@ -37,22 +49,15 @@ body {
 	@include contrasted-smooth($footer-background-color);
 	@include noise-background;
 	@include adjust-font-size-to($footer-font-size);
-	@include margin-leader(2, $footer-font-size);
-	@include padding-leader(1, $footer-font-size);
-	@include padding-trailer(1, $footer-font-size);
+	@include rhythm($leader: 2, $padding-leader: 1, $padding-trailer: 1, $font-size: $footer-font-size);
+	@include big-section-border($border-bottom: false);
 	padding: {
 		left: 1em;
 		right: 1em;
 	}
-	border-top: rhythm(1, $footer-font-size) solid $blue;
 
 	a {
 		@include link-colors($white, $yellow);
 		@include link-underline($white, $yellow);
-	}
-
-	@include when-full-width {
-		width: 102.5%;
-		margin-left: -1.25%;
 	}
 }
