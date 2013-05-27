@@ -16,7 +16,7 @@
 	}
 
 	a {
-		@include link-colors($blue, $white);
+		@include link-colors($blue, $yellow);
 	}
 
 	h2 {
@@ -104,7 +104,7 @@
 		a {
 			background-color: $white;
 			@include link-colors($black, $black);
-			&:hover, &:active {
+			&:hover, &:focus {
 				background-color: $yellow;
 				box-shadow: 0 0 5px $yellow;
 			}
