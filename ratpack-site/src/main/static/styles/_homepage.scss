@@ -95,6 +95,7 @@
 			width: 90%;
 			height: 90%;
 			z-index: -1;
+			@include backface-visibility(hidden);
 			border: {
 				width: 2px;
 				style: solid;
