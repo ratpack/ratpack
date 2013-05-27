@@ -55,6 +55,11 @@
 	@include padding-leader(1, $promo-font-size);
 	@include padding-trailer(1, $promo-font-size);
 
+	p {
+		@include margin-leader(1, $promo-font-size);
+		@include margin-trailer(1, $promo-font-size);
+	}
+
 	a {
 		@include link-colors($blue, $white);
 	}
@@ -63,13 +68,27 @@
 		margin-top: 0;
 	}
 
-	nav a {
-		display: list-item;
-		list-style-position: inside;
+	article, nav {
+		@include full-width;
 	}
 
-	article, aside {
-		@include full-width;
+	nav ul {
+		@include adjust-font-size-to($to-size: 24px, $from-size: $promo-font-size);
+		@include margin-leader(1, 24px);
+		@include margin-trailer(1, 24px);
+		list-style: none;
+		padding-left: 0;
+		a {
+			font-style: italic;
+			display: inline-block;
+			line-height: image-height('star.png');
+			&:before {
+				content: image-url('star.png');
+				display: inline-block;
+				vertical-align: top;
+				margin-right: 0.5em;
+			}
+		}
 	}
 
 	@include when-tablet-portrait {
@@ -80,7 +99,7 @@
 			float: left;
 		}
 
-		aside {
+		nav {
 			@include columns(4);
 			@include pull(1);
 			float: left;
