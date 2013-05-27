@@ -75,21 +75,21 @@
 	@include when-tablet-portrait {
 		@include clearfix;
 		article {
-			width: $column-width * 6;
-			margin-left: $column-width;
+			@include columns(6);
+			@include push(1);
 			float: left;
 		}
 
 		aside {
-			width: $column-width * 4;
-			margin-right: $column-width;
+			@include columns(4);
+			@include pull(1);
 			float: left;
 		}
 
 		position: relative;
 		z-index: 0;
-		@include padding-leader(2);
-		@include padding-trailer(2);
+		@include padding-leader(2, $promo-font-size);
+		@include padding-trailer(2, $promo-font-size);
 		&:before, &:after {
 			content: " ";
 			position: absolute;
@@ -126,8 +126,8 @@
 	@include when-tablet-portrait {
 		.multiplebgs & {
 			> * {
-				width: $column-width * 7;
-				margin-left: $column-width * 5;
+				@include columns(7);
+				@include push(5);
 			}
 
 			$footer-image-url: 'ratpack-footer.png';

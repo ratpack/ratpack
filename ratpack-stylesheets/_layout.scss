@@ -15,6 +15,18 @@
 	}
 }
 
+@mixin columns($num-columns) {
+	width: $num-columns * $column-width;
+}
+
+@mixin push($num-columns) {
+	margin-left: $num-columns * $column-width;
+}
+
+@mixin pull($num-columns) {
+	margin-right: $num-columns * $column-width;
+}
+
 body {
 	overflow-x: hidden;
 	@include when-full-width {
