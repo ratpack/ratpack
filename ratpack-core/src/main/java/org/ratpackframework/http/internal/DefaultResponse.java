@@ -34,12 +34,16 @@ public class DefaultResponse implements Response {
 
   private final FullHttpResponse response;
   private final Channel channel;
+  private final boolean keepAlive;
+  private final HttpVersion version;
 
   private Set<Cookie> cookies;
 
-  public DefaultResponse(FullHttpResponse response, Channel channel) {
+  public DefaultResponse(FullHttpResponse response, Channel channel, boolean keepAlive, HttpVersion version) {
     this.response = response;
     this.channel = channel;
+    this.keepAlive = keepAlive;
+    this.version = version;
   }
 
   public Status getStatus() {
@@ -65,6 +69,7 @@ public class DefaultResponse implements Response {
   }
 
   public void send() {
+    response.headers().set(HttpHeaders.Names.CONTENT_LENGTH, 0);
     commit();
   }
 
@@ -85,6 +90,9 @@ public class DefaultResponse implements Response {
 
   public void send(String contentType, ByteBuf buffer) {
     contentType(contentType);
+    if (!contentLengthSet()) {
+      response.headers().set(HttpHeaders.Names.CONTENT_LENGTH, buffer.writerIndex());
+    }
     response.content().writeBytes(buffer);
     commit();
   }
@@ -170,11 +178,27 @@ public class DefaultResponse implements Response {
     }
   }
 
+  private boolean contentLengthSet() {
+    if (response.headers() == null) {
+      return false;
+    }
+    return response.headers().contains(HttpHeaders.Names.CONTENT_LENGTH);
+  }
+
   private void commit() {
+    boolean shouldClose = true;
     setCookieHeader();
     if (channel.isOpen()) {
+      if (keepAlive && contentLengthSet()) {
+        if (version == HttpVersion.HTTP_1_0) {
+          response.headers().set("Connection", "Keep-Alive");
+        }
+        shouldClose = false;
+      }
       ChannelFuture future = channel.write(response);
-      future.addListener(ChannelFutureListener.CLOSE);
+      if (shouldClose) {
+        future.addListener(ChannelFutureListener.CLOSE);
+      }
     }
   }
 

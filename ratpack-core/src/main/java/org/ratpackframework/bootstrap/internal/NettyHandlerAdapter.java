@@ -70,7 +70,12 @@ public class NettyHandlerAdapter extends ChannelInboundMessageHandlerAdapter<Ful
     FullHttpResponse nettyResponse = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
 
     Request request = new DefaultRequest(nettyRequest);
-    Response response = new DefaultResponse(nettyResponse, ctx.channel());
+
+    HttpVersion version = nettyRequest.getProtocolVersion();
+    boolean keepAlive = version == HttpVersion.HTTP_1_1
+        || (version == HttpVersion.HTTP_1_0 && "Keep-Alive".equalsIgnoreCase(nettyRequest.headers().get("Connection")));
+
+    Response response = new DefaultResponse(nettyResponse, ctx.channel(), keepAlive, version);
     final Exchange exchange = new DefaultExchange(request, response, ctx, rootContext, return404);
 
     handler.handle(exchange);
