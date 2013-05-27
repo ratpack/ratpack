@@ -18,18 +18,22 @@ package org.ratpackframework.bootstrap.internal;
 
 import com.google.common.util.concurrent.AbstractIdleService;
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.EventLoopGroup;
+import io.netty.buffer.PooledByteBufAllocator;
+import io.netty.buffer.Unpooled;
+import io.netty.buffer.UnpooledByteBufAllocator;
+import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.util.concurrent.DefaultThreadFactory;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.util.concurrent.ThreadFactory;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+@ChannelHandler.Sharable
 public class NettyRatpackService extends AbstractIdleService implements RatpackService {
 
   private final Logger logger = Logger.getLogger(getClass().getName());
@@ -52,11 +56,16 @@ public class NettyRatpackService extends AbstractIdleService implements RatpackS
   @Override
   protected void startUp() throws Exception {
     ServerBootstrap bootstrap = new ServerBootstrap();
-    bossGroup = new NioEventLoopGroup();
-    workerGroup = new NioEventLoopGroup();
+    bossGroup = new NioEventLoopGroup(1, new DefaultThreadFactory("ratpack-boss-group", Thread.MAX_PRIORITY));
+    workerGroup = new NioEventLoopGroup(MultithreadEventLoopGroup.DEFAULT_EVENT_LOOP_THREADS, new DefaultThreadFactory("ratpack-worker-group", Thread.MAX_PRIORITY));
     bootstrap.group(bossGroup, workerGroup)
         .channel(NioServerSocketChannel.class)
         .childHandler(channelInitializer);
+
+    bootstrap.childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
+    bootstrap.childOption(ChannelOption.TCP_NODELAY, true);
+    bootstrap.option(ChannelOption.SO_REUSEADDR, true);
+    bootstrap.option(ChannelOption.SO_BACKLOG, 1024);
 
     channel = bootstrap.bind(requestedAddress).sync().channel();
     boundAddress = (InetSocketAddress) channel.localAddress();

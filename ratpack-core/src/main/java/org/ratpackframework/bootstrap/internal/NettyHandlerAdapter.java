@@ -29,14 +29,14 @@ import org.ratpackframework.error.internal.DefaultServerErrorHandler;
 import org.ratpackframework.error.internal.ErrorCatchingHandler;
 import org.ratpackframework.file.internal.ActivationBackedMimeTypes;
 import org.ratpackframework.file.internal.DefaultFileSystemBinding;
+import org.ratpackframework.handling.Exchange;
+import org.ratpackframework.handling.Handler;
 import org.ratpackframework.handling.internal.ClientErrorHandler;
+import org.ratpackframework.handling.internal.DefaultExchange;
 import org.ratpackframework.http.Request;
 import org.ratpackframework.http.Response;
 import org.ratpackframework.http.internal.DefaultRequest;
 import org.ratpackframework.http.internal.DefaultResponse;
-import org.ratpackframework.handling.Exchange;
-import org.ratpackframework.handling.Handler;
-import org.ratpackframework.handling.internal.DefaultExchange;
 
 import java.io.File;
 
