@@ -120,16 +120,18 @@
 	}
 
 	@include when-tablet-portrait {
-		> * {
-			width: $column-width * 7;
-			margin-left: $column-width * 5;
-		}
+		.multiplebgs & {
+			> * {
+				width: $column-width * 7;
+				margin-left: $column-width * 5;
+			}
 
-		min-height: image-height('ratpack-footer.png');
-		background: {
-			image: image-url('ratpack-footer.png');
-			repeat: no-repeat;
-			position: top left;
+			$footer-image-url: 'ratpack-footer.png';
+
+			min-height: image-height($footer-image-url);
+			background:
+				image-url($mask-image-url) top left repeat,
+				$black image-url($footer-image-url) top left no-repeat;
 		}
 	}
 }
