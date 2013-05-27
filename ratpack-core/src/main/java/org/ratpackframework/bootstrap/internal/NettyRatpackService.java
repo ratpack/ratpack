@@ -30,7 +30,6 @@ import java.net.InetSocketAddress;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-@ChannelHandler.Sharable
 public class NettyRatpackService extends AbstractIdleService implements RatpackService {
 
   private final Logger logger = Logger.getLogger(getClass().getName());
