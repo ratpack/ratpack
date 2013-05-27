@@ -1,44 +1,3 @@
-.page-header {
-	.social {
-		$button-size: 48px;
-		$border-width: 6px;
-
-		@include adjust-font-size-to(18px);
-		@include rhythm($leader: 1, $trailer: 1, $font-size: 18px);
-		@include content-width;
-
-		> * {
-			display: inline-block;
-			vertical-align: middle;
-		}
-
-		a {
-			background-color: $black;
-			@include link-colors($white, $white);
-			&:hover, &:active {
-				background-color: $blue;
-			}
-			border-radius: 50%;
-			text-align: center;
-			line-height: $button-size;
-			width: $button-size + (2 * $border-width);
-			height: $button-size + (2 * $border-width);
-			[class^='icon-'] {
-				font-size: $button-size + (2 * $border-width);
-			}
-			&[href*='twitter'] {
-				border: $border-width solid $black;
-				&:hover, &:active {
-					border-color: $blue;
-				}
-				[class^='icon-'] {
-					font-size: $button-size;
-				}
-			}
-		}
-	}
-}
-
 .main {
 	@include rhythm($leader: 1, $trailer: 1);
 	@include content-width;
@@ -122,6 +81,56 @@
 }
 
 .page-footer {
+	.social {
+		$button-size: 48px;
+		$icon-font-size: 32px;
+
+		@include adjust-font-size-to(18px);
+		@include rhythm($leader: 1, $trailer: 1, $font-size: 18px);
+
+		> * {
+			display: inline-block;
+			vertical-align: middle;
+		}
+
+		em {
+			font: {
+				family: $script-font-family;
+				size: 32px;
+				style: normal;
+			}
+		}
+
+		a {
+			background-color: $white;
+			@include link-colors($black, $black);
+			&:hover, &:active {
+				background-color: $yellow;
+				box-shadow: 0 0 5px $yellow;
+			}
+			border-radius: 50%;
+			text-align: center;
+			line-height: $button-size;
+			width: $button-size;
+			height: $button-size;
+			margin: {
+				left: 0.25em;
+				right: 0.25em;
+			}
+			[class^='icon-'] {
+				font-size: $icon-font-size;
+				&:before {
+					width: 100%;
+					height: 100%;
+					margin: {
+						left: 0;
+						right: 0;
+					}
+				}
+			}
+		}
+	}
+
 	a.build-status {
 		border-bottom: none;
 	}
