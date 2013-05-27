@@ -116,4 +116,18 @@
 	.about p:first-child {
 		margin-top: 0;
 	}
+
+	@include when-tablet-portrait {
+		> * {
+			width: $column-width * 7;
+			margin-left: $column-width * 5;
+		}
+
+		min-height: image-height('ratpack-footer.png');
+		background: {
+			image: image-url('ratpack-footer.png');
+			repeat: no-repeat;
+			position: top left;
+		}
+	}
 }
