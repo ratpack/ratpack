@@ -59,18 +59,23 @@ h1, h2, h3, h4, h5, h6 {
 
 h1 {
 	@include adjust-font-size-to(32px);
+	@include rhythm($leader: 1, $trailer: 1, $font-size: 32px);
 }
 h2 {
 	@include adjust-font-size-to(28px);
+	@include rhythm($leader: 1, $trailer: 1, $font-size: 28px);
 }
 h3 {
 	@include adjust-font-size-to(24px);
+	@include rhythm($leader: 1, $trailer: 1, $font-size: 24px);
 }
 h4 {
 	@include adjust-font-size-to(20px);
+	@include rhythm($leader: 1, $trailer: 1, $font-size: 20px);
 }
 h5 {
 	@include adjust-font-size-to(18px);
+	@include rhythm($leader: 1, $trailer: 1, $font-size: 18px);
 }
 
 pre, code, tt {
