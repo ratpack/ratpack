@@ -16,33 +16,12 @@
 
 package org.ratpackframework.groovy.templating;
 
-public class TemplatingConfig {
+public interface TemplatingConfig {
 
-  private String templatesPath = "templates";
-  private int cacheSize = 100;
-  private boolean staticallyCompile;
+  int getCacheSize();
 
-  public int getCacheSize() {
-    return cacheSize;
-  }
+  boolean isStaticallyCompile();
 
-  public void setCacheSize(int cacheSize) {
-    this.cacheSize = cacheSize;
-  }
+  String getTemplatesPath();
 
-  public boolean isStaticallyCompile() {
-    return staticallyCompile;
-  }
-
-  public void setStaticallyCompile(boolean staticallyCompile) {
-    this.staticallyCompile = staticallyCompile;
-  }
-
-  public String getTemplatesPath() {
-    return templatesPath;
-  }
-
-  public void setTemplatesPath(String templatesPath) {
-    this.templatesPath = templatesPath;
-  }
 }

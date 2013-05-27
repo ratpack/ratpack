@@ -20,6 +20,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Injector;
 import org.ratpackframework.error.ClientErrorHandler;
 import org.ratpackframework.error.ServerErrorHandler;
+import org.ratpackframework.groovy.templating.internal.DefaultTemplatingConfig;
 import org.ratpackframework.groovy.templating.internal.GroovyTemplateRenderingEngine;
 import org.ratpackframework.groovy.templating.internal.TemplateRenderingClientErrorHandler;
 import org.ratpackframework.groovy.templating.internal.TemplateRenderingServerErrorHandler;
@@ -28,18 +29,41 @@ import org.ratpackframework.handling.Handler;
 
 import javax.inject.Singleton;
 
+@SuppressWarnings("UnusedDeclaration")
 public class TemplatingModule extends AbstractModule implements HandlerDecoratingModule {
 
-  private final TemplatingConfig templatingConfig = new TemplatingConfig();
+  private String templatesPath = "templates";
+  private int cacheSize = 100;
+  private boolean staticallyCompile;
 
-  public TemplatingConfig getConfig() {
-    return templatingConfig;
+  public String getTemplatesPath() {
+    return templatesPath;
+  }
+
+  public void setTemplatesPath(String templatesPath) {
+    this.templatesPath = templatesPath;
+  }
+
+  public int getCacheSize() {
+    return cacheSize;
+  }
+
+  public void setCacheSize(int cacheSize) {
+    this.cacheSize = cacheSize;
+  }
+
+  public boolean isStaticallyCompile() {
+    return staticallyCompile;
+  }
+
+  public void setStaticallyCompile(boolean staticallyCompile) {
+    this.staticallyCompile = staticallyCompile;
   }
 
   @Override
   protected void configure() {
     bind(GroovyTemplateRenderingEngine.class).in(Singleton.class);
-    bind(TemplatingConfig.class).toInstance(templatingConfig);
+    bind(TemplatingConfig.class).toInstance(new DefaultTemplatingConfig(templatesPath, cacheSize, staticallyCompile));
 
     bind(ClientErrorHandler.class).to(TemplateRenderingClientErrorHandler.class).in(Singleton.class);
     bind(ServerErrorHandler.class).to(TemplateRenderingServerErrorHandler.class).in(Singleton.class);

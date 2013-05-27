@@ -16,7 +16,6 @@
 
 package org.ratpackframework.groovy.templating
 
-import org.ratpackframework.error.ClientErrorHandler
 import org.ratpackframework.test.groovy.RatpackGroovyDslSpec
 import spock.lang.Unroll
 
@@ -188,7 +187,7 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     when:
     app {
       modules {
-        get(TemplatingModule).config.staticallyCompile = true
+        get(TemplatingModule).staticallyCompile = true
       }
 
       handlers {
