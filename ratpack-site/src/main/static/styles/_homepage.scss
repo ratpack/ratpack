@@ -40,7 +40,7 @@
 	}
 }
 
-.promo, .main {
+.main {
 	@include margin-leader(1);
 	@include margin-trailer(1);
 	@include content-width;
@@ -48,6 +48,7 @@
 
 .promo {
 	@include contrasted-smooth($black);
+	@include noise-background;
 	@include padding-leader(1);
 	@include padding-trailer(1);
 
@@ -62,6 +63,48 @@
 	nav a {
 		display: list-item;
 		list-style-position: inside;
+	}
+
+	article, aside {
+		@include full-width;
+	}
+
+	@include when-tablet-portrait {
+		@include clearfix;
+		article {
+			width: $column-width * 6;
+			margin-left: $column-width;
+			float: left;
+		}
+
+		aside {
+			width: $column-width * 4;
+			margin-right: $column-width;
+			float: left;
+		}
+
+		position: relative;
+		@include padding-leader(2);
+		@include padding-trailer(2);
+		&:before, &:after {
+			content: " ";
+			position: absolute;
+			top: 5%;
+			left: 5%;
+			width: 90%;
+			height: 90%;
+			border: {
+				width: 2px;
+				style: solid;
+				color: transparentize($white, 0.5);
+			}
+		}
+		&:before {
+			@include transform(skew(2deg) rotate(-0.5deg));
+		}
+		&:after {
+			@include transform(skewY(0.5deg));
+		}
 	}
 }
 
