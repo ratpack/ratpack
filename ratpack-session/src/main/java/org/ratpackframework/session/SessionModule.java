@@ -21,31 +21,47 @@ import com.google.inject.Injector;
 import com.google.inject.Singleton;
 import org.ratpackframework.guice.HandlerDecoratingModule;
 import org.ratpackframework.handling.Handler;
+import org.ratpackframework.session.internal.DefaultSessionCookieConfig;
 import org.ratpackframework.session.internal.DefaultSessionIdGenerator;
 import org.ratpackframework.session.internal.DefaultSessionManager;
 import org.ratpackframework.session.internal.SessionBindingHandler;
 
+@SuppressWarnings("UnusedDeclaration")
 public class SessionModule extends AbstractModule implements HandlerDecoratingModule {
 
-  private final SessionCookieConfig sessionCookieConfig;
+  private int cookieExpiresMins = 60 * 60 * 24 * 365; // 1 year
+  private String cookieDomain;
+  private String cookiePath = "/";
 
-  public SessionModule() {
-    this(new SessionCookieConfig());
+  public int getCookieExpiresMins() {
+    return cookieExpiresMins;
   }
 
-  public SessionModule(SessionCookieConfig sessionCookieConfig) {
-    this.sessionCookieConfig = sessionCookieConfig;
+  public void setCookieExpiresMins(int cookieExpiresMins) {
+    this.cookieExpiresMins = cookieExpiresMins;
   }
 
-  public SessionCookieConfig getSessionCookieConfig() {
-    return sessionCookieConfig;
+  public String getCookieDomain() {
+    return cookieDomain;
+  }
+
+  public void setCookieDomain(String cookieDomain) {
+    this.cookieDomain = cookieDomain;
+  }
+
+  public String getCookiePath() {
+    return cookiePath;
+  }
+
+  public void setCookiePath(String cookiePath) {
+    this.cookiePath = cookiePath;
   }
 
   @Override
   protected void configure() {
     bind(SessionIdGenerator.class).to(DefaultSessionIdGenerator.class).in(Singleton.class);
     bind(SessionManager.class).to(DefaultSessionManager.class).in(Singleton.class);
-    bind(SessionCookieConfig.class).toInstance(sessionCookieConfig);
+    bind(SessionCookieConfig.class).toInstance(new DefaultSessionCookieConfig(cookieExpiresMins, cookieDomain, cookiePath));
   }
 
   public Handler decorate(Injector injector, Handler handler) {

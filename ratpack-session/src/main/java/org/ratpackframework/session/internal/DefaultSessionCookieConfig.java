@@ -14,12 +14,32 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.session;
+package org.ratpackframework.session.internal;
 
-public interface SessionCookieConfig {
+import org.ratpackframework.session.SessionCookieConfig;
 
-  int getExpiresMins();
-  String getDomain();
-  String getPath();
+public class DefaultSessionCookieConfig implements SessionCookieConfig {
+
+  private final int expiresMins;
+  private final String domain;
+  private final String path;
+
+  public DefaultSessionCookieConfig(int expiresMins, String domain, String path) {
+    this.expiresMins = expiresMins;
+    this.domain = domain;
+    this.path = path;
+  }
+
+  public int getExpiresMins() {
+    return expiresMins;
+  }
+
+  public String getDomain() {
+    return domain;
+  }
+
+  public String getPath() {
+    return path;
+  }
 
 }
