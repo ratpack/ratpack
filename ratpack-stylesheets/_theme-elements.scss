@@ -147,3 +147,21 @@
 		}
 	}
 }
+
+@mixin starburst-links {
+	$starburst-image: 'starburst.png';
+	list-style: none;
+	padding-left: 0;
+	a {
+		font-style: italic;
+		display: inline-block;
+		vertical-align: middle;
+		&:before {
+			content: image-url($starburst-image);
+			height: image-height($starburst-image);
+			display: inline-block;
+			vertical-align: middle;
+			margin-right: 0.5em;
+		}
+	}
+}

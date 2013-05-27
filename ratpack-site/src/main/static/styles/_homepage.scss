@@ -4,8 +4,7 @@
 		$border-width: 6px;
 
 		@include adjust-font-size-to(18px);
-		@include margin-leader(1);
-		@include margin-trailer(1);
+		@include rhythm($leader: 1, $trailer: 1, $font-size: 18px);
 		@include content-width;
 
 		> * {
@@ -41,8 +40,7 @@
 }
 
 .main {
-	@include margin-leader(1);
-	@include margin-trailer(1);
+	@include rhythm($leader: 1, $trailer: 1);
 	@include content-width;
 }
 
@@ -52,20 +50,21 @@
 	@include contrasted-smooth($black);
 	@include noise-background;
 	@include adjust-font-size-to($promo-font-size);
-	@include padding-leader(1, $promo-font-size);
-	@include padding-trailer(1, $promo-font-size);
+	@include rhythm($padding-leader: 1, $padding-trailer: 1, $font-size: $promo-font-size);
 
 	p {
-		@include margin-leader(1, $promo-font-size);
-		@include margin-trailer(1, $promo-font-size);
+		@include rhythm($leader: 1, $trailer: 1, $font-size: $promo-font-size);
 	}
 
 	a {
 		@include link-colors($blue, $white);
 	}
 
-	h2:first-of-type {
-		margin-top: 0;
+	h2 {
+		@include adjust-font-size-to($to-size: 28px, $from-size: $promo-font-size);
+		&:first-of-type {
+			margin-top: 0;
+		}
 	}
 
 	article, nav {
@@ -74,20 +73,10 @@
 
 	nav ul {
 		@include adjust-font-size-to($to-size: 24px, $from-size: $promo-font-size);
-		@include margin-leader(1, 24px);
-		@include margin-trailer(1, 24px);
-		list-style: none;
-		padding-left: 0;
-		a {
-			font-style: italic;
-			display: inline-block;
-			line-height: image-height('star.png');
-			&:before {
-				content: image-url('star.png');
-				display: inline-block;
-				vertical-align: top;
-				margin-right: 0.5em;
-			}
+		@include rhythm($leader: 1, $trailer: 1, $font-size: 24px);
+		@include starburst-links;
+		li {
+			@include margin-trailer(0.5, 24px);
 		}
 	}
 
@@ -107,8 +96,7 @@
 
 		position: relative;
 		z-index: 0;
-		@include padding-leader(2, $promo-font-size);
-		@include padding-trailer(2, $promo-font-size);
+		@include rhythm($padding-leader: 2, $padding-trailer: 2, $font-size: $promo-font-size);
 		&:before, &:after {
 			content: " ";
 			position: absolute;
