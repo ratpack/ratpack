@@ -104,12 +104,12 @@ $logo-inverted: 'ratpack-logo-white.png';
 	}
 
 	&.inverted {
-		@include skewed-background-color(mix($yellow, $black, 40%));
+		@include skewed-background-color(mix($yellow, $black, 65%));
 		&.blue {
-			@include skewed-background-color(mix($blue, $black, 60%));
+			@include skewed-background-color(mix($blue, $black, 80%));
 		}
 		&.red {
-			@include skewed-background-color(mix($red, $black, 40%));
+			@include skewed-background-color(mix($red, $black, 60%));
 		}
 		h1 {
 			color: $white;
