@@ -36,6 +36,7 @@ public class DefaultResponse implements Response {
   private final Channel channel;
   private final boolean keepAlive;
   private final HttpVersion version;
+  private boolean contentLengthSet;
 
   private Set<Cookie> cookies;
 
@@ -80,7 +81,11 @@ public class DefaultResponse implements Response {
 
   public void send(String contentType, String body) {
     contentType(contentType);
-    response.content().writeBytes(IoUtils.utf8Buffer(body));
+    ByteBuf buffer = IoUtils.utf8Buffer(body);
+    if (!contentLengthSet) {
+      setHeader(HttpHeaders.Names.CONTENT_LENGTH, buffer.writerIndex());
+    }
+    response.content().writeBytes(buffer);
     commit();
   }
 
@@ -90,8 +95,8 @@ public class DefaultResponse implements Response {
 
   public void send(String contentType, ByteBuf buffer) {
     contentType(contentType);
-    if (!contentLengthSet()) {
-      response.headers().set(HttpHeaders.Names.CONTENT_LENGTH, buffer.writerIndex());
+    if (!contentLengthSet) {
+      setHeader(HttpHeaders.Names.CONTENT_LENGTH, buffer.writerIndex());
     }
     response.content().writeBytes(buffer);
     commit();
@@ -132,22 +137,35 @@ public class DefaultResponse implements Response {
   }
 
   public void addHeader(String name, Object value) {
+    if (name.equalsIgnoreCase(HttpHeaders.Names.CONTENT_LENGTH)) {
+      contentLengthSet = true;
+    }
     response.headers().add(name, value);
   }
 
   public void setHeader(String name, Object value) {
+    if (name.equalsIgnoreCase(HttpHeaders.Names.CONTENT_LENGTH)) {
+      contentLengthSet = true;
+    }
     response.headers().set(name, value);
   }
 
   public void setHeader(String name, Iterable<?> values) {
+    if (name.equalsIgnoreCase(HttpHeaders.Names.CONTENT_LENGTH)) {
+      contentLengthSet = true;
+    }
     response.headers().set(name, values);
   }
 
   public void removeHeader(String name) {
+    if (name.equalsIgnoreCase(HttpHeaders.Names.CONTENT_LENGTH)) {
+      contentLengthSet = false;
+    }
     response.headers().remove(name);
   }
 
   public void clearHeaders() {
+    contentLengthSet = false;
     response.headers().clear();
   }
 
@@ -178,18 +196,11 @@ public class DefaultResponse implements Response {
     }
   }
 
-  private boolean contentLengthSet() {
-    if (response.headers() == null) {
-      return false;
-    }
-    return response.headers().contains(HttpHeaders.Names.CONTENT_LENGTH);
-  }
-
   private void commit() {
     boolean shouldClose = true;
     setCookieHeader();
     if (channel.isOpen()) {
-      if (keepAlive && contentLengthSet()) {
+      if (keepAlive && contentLengthSet) {
         if (version == HttpVersion.HTTP_1_0) {
           response.headers().set("Connection", "Keep-Alive");
         }
