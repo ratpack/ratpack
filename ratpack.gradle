@@ -207,25 +207,13 @@ subprojects {
 
     modifyPom {
       project {
-        description "A Micro Web Framework for Groovy"
-        url "https://github.com/ratpack/ratpack"
+        description "A toolkit for JVM web applications"
+        url "http://www.ratpack-framework.org"
         licenses {
           license {
             name "The Apache Software License, Version 2.0"
             url "http://www.apache.org/licenses/LICENSE-2.0.txt"
             distribution "repo"
-          }
-        }
-        developers {
-          developer {
-            id "tlberglund"
-            name "Tim Berglund"
-            email "tlberglund@gmail.com"
-          }
-          developer {
-            id "ldaley"
-            name "Luke Daley"
-            email "ld@ldaley.com"
           }
         }
         scm {
