@@ -24,18 +24,20 @@ import java.util.*;
 
 public class ImmutableDelegatingMultiValueMap<K, V> implements MultiValueMap<K, V> {
 
-  private final Map<K, List<V>> delegate;
+  private final Map<? extends K, ? extends List<? extends V>> delegate;
 
-  public ImmutableDelegatingMultiValueMap(Map<K, List<V>> map) {
+  public ImmutableDelegatingMultiValueMap(Map<? extends K, ? extends List<? extends V>> map) {
     this.delegate = map;
   }
 
+  @SuppressWarnings("unchecked")
   public List<V> getAll(K key) {
-    return delegate.get(key);
+    return (List<V>) delegate.get(key);
   }
 
+  @SuppressWarnings("unchecked")
   public Map<K, List<V>> getAll() {
-    return delegate;
+    return (Map<K, List<V>>) delegate;
   }
 
   public int size() {
@@ -51,7 +53,8 @@ public class ImmutableDelegatingMultiValueMap<K, V> implements MultiValueMap<K, 
   }
 
   public boolean containsValue(Object value) {
-    for (List<V> values : delegate.values()) {
+    for (List<? extends V> values : delegate.values()) {
+      //noinspection SuspiciousMethodCalls
       if (values.contains(value)) {
         return true;
       }
@@ -60,7 +63,7 @@ public class ImmutableDelegatingMultiValueMap<K, V> implements MultiValueMap<K, 
   }
 
   public V get(Object key) {
-    List<V> result = delegate.get(key);
+    List<? extends V> result = delegate.get(key);
     return result != null && result.size() > 0 ? result.get(0) : null;
   }
 
@@ -72,6 +75,7 @@ public class ImmutableDelegatingMultiValueMap<K, V> implements MultiValueMap<K, 
     throw new UnsupportedOperationException("This implementation is immutable");
   }
 
+  @SuppressWarnings("NullableProblems")
   public void putAll(Map<? extends K, ? extends V> m) {
     throw new UnsupportedOperationException("This implementation is immutable");
   }
@@ -80,17 +84,20 @@ public class ImmutableDelegatingMultiValueMap<K, V> implements MultiValueMap<K, 
     throw new UnsupportedOperationException("This implementation is immutable");
   }
 
+  @SuppressWarnings({"unchecked", "NullableProblems"})
   public Set<K> keySet() {
-    return delegate.keySet();
+    return (Set<K>) delegate.keySet();
   }
 
+  @SuppressWarnings("NullableProblems")
   public Collection<V> values() {
-    return Lists.newArrayList(Iterables.concat(delegate.values()));
+    return Lists.newArrayList(Iterables.<V>concat(delegate.values()));
   }
 
+  @SuppressWarnings("NullableProblems")
   public Set<Entry<K, V>> entrySet() {
     Set<Entry<K, V>> result = new HashSet<Entry<K, V>>();
-    for (Entry<K, List<V>> entry : delegate.entrySet()) {
+    for (Entry<? extends K, ? extends List<? extends V>> entry : delegate.entrySet()) {
       if (entry.getValue().size() > 0) {
         result.add(new AbstractMap.SimpleImmutableEntry<K, V>(entry.getKey(), entry.getValue().get(0)));
       }
@@ -106,7 +113,7 @@ public class ImmutableDelegatingMultiValueMap<K, V> implements MultiValueMap<K, 
     }
     StringBuilder buffer = new StringBuilder("[");
     boolean first = true;
-    for (Entry<K, List<V>> entry : delegate.entrySet()) {
+    for (Entry<? extends K, ? extends List<? extends V>> entry : delegate.entrySet()) {
       if (first) {
         first = false;
       } else {

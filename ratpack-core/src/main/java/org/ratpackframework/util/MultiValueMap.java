@@ -23,9 +23,9 @@ import java.util.Map;
 
 public interface MultiValueMap<K, V> extends Map<K, V> {
 
-  public List<V> getAll(K key);
+  public List<? extends V> getAll(K key);
 
-  public Map<K, List<V>> getAll();
+  public Map<? extends K, ? extends List<? extends V>> getAll();
 
   @Nullable
   public V get(Object key);
