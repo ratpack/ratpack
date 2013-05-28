@@ -34,6 +34,7 @@ public class DefaultMediaType implements MediaType {
 
   private final String type;
   protected final Map<String, String> params;
+  private final String string;
 
   private static final int CACHE_SIZE = 200;
 
@@ -98,6 +99,8 @@ public class DefaultMediaType implements MediaType {
     if (!params.containsKey(CHARSET_KEY) && !defaultCharset.equals(DEFAULT_CHARSET)) {
       params.put(CHARSET_KEY, defaultCharset);
     }
+
+    string = generateString();
   }
 
   public String getType() {
@@ -130,6 +133,10 @@ public class DefaultMediaType implements MediaType {
 
   @Override
   public String toString() {
+    return string;
+  }
+
+  private String generateString() {
     if (isEmpty()) {
       return "";
     } else {
