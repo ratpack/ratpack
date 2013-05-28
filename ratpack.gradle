@@ -82,7 +82,7 @@ ext {
 
   publishedModules = [
       "ratpack-core", "ratpack-groovy", "ratpack-guice", "ratpack-session", "ratpack-test-support",
-      "ratpack-manual"
+      "ratpack-manual", "ratpack-gradle"
   ].collect { project(it) }
 }
 
