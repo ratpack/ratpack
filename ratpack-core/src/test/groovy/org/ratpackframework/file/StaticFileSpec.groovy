@@ -215,7 +215,7 @@ class StaticFileSpec extends DefaultRatpackSpec {
   }
 
   @Unroll
-  def "asset handler returns a #statusCode if file is #state the request's If-Modified-Since header"() {
+  def "asset handler returns a #statusCode if file is #state the request's if-modified-since header"() {
     given:
     def file = file("public/file.txt") << "hello!"
 
@@ -241,6 +241,26 @@ class StaticFileSpec extends DefaultRatpackSpec {
     0               | NOT_MODIFIED | 0
 
     state = ifModifiedSince < 0 ? "newer than" : ifModifiedSince == 0 ? "the same age as" : "older than"
+  }
+
+  def "asset handler respect if-modified-since header when serving index files"() {
+    given:
+    def file = file("public/index.txt") << "hello!"
+
+    and:
+    app {
+      handlers {
+        add assets("public", "index.txt")
+      }
+    }
+
+    and:
+    request.header IF_MODIFIED_SINCE, formatDateHeader(file.lastModified())
+
+    expect:
+    def response = get("")
+    response.statusCode == NOT_MODIFIED.code()
+    response.getHeader(CONTENT_LENGTH).toInteger() == 0
   }
 
   private static Date parseDateHeader(Response response, String name) {
