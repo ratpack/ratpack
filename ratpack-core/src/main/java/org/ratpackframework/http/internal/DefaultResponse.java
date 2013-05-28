@@ -70,6 +70,7 @@ public class DefaultResponse implements Response {
   }
 
   public void send() {
+    contentLengthSet = true;
     response.headers().set(HttpHeaders.Names.CONTENT_LENGTH, 0);
     commit();
   }
