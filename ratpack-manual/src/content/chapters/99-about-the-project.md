@@ -9,7 +9,6 @@
 * [Prism](http://prismjs.com/) by [Lea Verou](http://lea.verou.me/)
 * [Normalize.css](git.io/normalize) by [Nicolas Gallagher](https://github.com/necolas)
 * [Modernizr](http://modernizr.com/)
-* [jQuery](http://jquery.com/)
 
 #### Fonts
 

@@ -1,9 +1,0 @@
-body {
-  overflow-x: hidden;
-}
-
-.content {
-  max-width: gridsystem-width();
-  margin: 0 auto;
-  @include clearfix;
-}
