@@ -16,8 +16,14 @@
 
 package org.ratpackframework.file
 
+import com.jayway.restassured.response.Response
+import io.netty.handler.codec.http.HttpHeaderDateFormat
 import org.ratpackframework.test.DefaultRatpackSpec
+import spock.lang.Unroll
 
+import static io.netty.handler.codec.http.HttpHeaders.Names.*
+import static io.netty.handler.codec.http.HttpResponseStatus.NOT_MODIFIED
+import static io.netty.handler.codec.http.HttpResponseStatus.OK
 import static org.ratpackframework.groovy.ClosureHandlers.fileSystem
 import static org.ratpackframework.groovy.ClosureHandlers.handler
 import static org.ratpackframework.groovy.ClosureHandlers.path
@@ -189,5 +195,59 @@ class StaticFileSpec extends DefaultRatpackSpec {
     then:
     get("foo/file.txt").statusCode == 404
     getText("bar/file.txt") == "file"
+  }
+
+  def "files report a last modified time"() {
+    given:
+    def file = file("public/file.txt") << "hello!"
+
+    and:
+    app {
+      handlers {
+        add assets("public")
+      }
+    }
+
+    expect:
+    def response = get("file.txt")
+    response.statusCode == 200
+    parseDateHeader(response, LAST_MODIFIED) == new Date(file.lastModified())
+  }
+
+  @Unroll
+  def "asset handler returns a #statusCode if file is #state the request's If-Modified-Since header"() {
+    given:
+    def file = file("public/file.txt") << "hello!"
+
+    and:
+    app {
+      handlers {
+        add assets("public")
+      }
+    }
+
+    and:
+    request.header IF_MODIFIED_SINCE, formatDateHeader(file.lastModified() + ifModifiedSince)
+
+    expect:
+    def response = get("file.txt")
+    response.statusCode == statusCode.code()
+    response.getHeader(CONTENT_LENGTH).toInteger() == contentLength
+
+    where:
+    ifModifiedSince | statusCode   | contentLength
+    -1000           | OK           | "hello!".length()
+    +1000           | OK           | "hello!".length()
+    0               | NOT_MODIFIED | 0
+
+    state = ifModifiedSince < 0 ? "newer than" : ifModifiedSince == 0 ? "the same age as" : "older than"
+  }
+
+  private static Date parseDateHeader(Response response, String name) {
+    new HttpHeaderDateFormat().parse(response.getHeader(name))
+  }
+
+  private static String formatDateHeader(long timestamp) {
+    new HttpHeaderDateFormat().format(new Date(timestamp))
   }
 }
