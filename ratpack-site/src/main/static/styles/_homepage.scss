@@ -136,23 +136,34 @@
 		border-bottom: none;
 	}
 
-	.about p:first-child {
-		margin-top: 0;
+	.credits {
+		text-align: center;
+		@include margin-leader(1, $footer-font-size);
+		a {
+			border-bottom: none;
+			@include rem(margin-right, 1rem);
+		}
 	}
 
 	@include when-tablet-portrait {
 		.multiplebgs & {
-			> * {
-				@include columns(7);
-				@include push(5);
-			}
-
 			$footer-image-url: 'ratpack-footer.png';
 
-			min-height: image-height($footer-image-url);
+			.social, .about {
+				margin-left: image-width($footer-image-url);
+			}
+
+			min-height: image-height($footer-image-url) + (2 * image-height('bintray.png'));
 			background:
 				image-url($mask-image-url) top left repeat,
 				$black image-url($footer-image-url) top left no-repeat;
+
+			padding-bottom: 2 * image-height('bintray.png');
+			position: relative;
+			.credits {
+				position: absolute;
+				bottom: rhythm(1, $footer-font-size);
+			}
 		}
 	}
 }
