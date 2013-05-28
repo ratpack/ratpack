@@ -36,6 +36,10 @@ body {
 			}
 		}
 
+		.no-mediaqueries & {
+			@include rem(font-size, $logo-font-size-large);
+		}
+
 		a:link, a:hover, a:active, a:visited {
 			color: inherit;
 		}
