@@ -17,16 +17,28 @@
 buildscript {
   repositories {
     mavenCentral()
+    maven { url 'http://repo.jfrog.org/artifactory/gradle-plugins' }
   }
 
   dependencies {
     classpath "org.gradle.api.plugins:gradle-clover-plugin:0.6.1"
+    classpath "org.jfrog.buildinfo:build-info-extractor-gradle:2.0.16"
   }
 }
 
 def jvmEncoding = java.nio.charset.Charset.defaultCharset().name()
 if (jvmEncoding != "UTF-8") {
   throw new IllegalStateException("Build environment must be UTF-8 (it is: $jvmEncoding)")
+}
+
+apply plugin: 'artifactory'
+
+artifactory {
+  contextUrl = 'http://oss.jfrog.org'
+}
+
+artifactoryPublish {
+  skip true
 }
 
 allprojects {
@@ -148,7 +160,6 @@ subprojects {
       if (!isSnapshot) {
         sign configurations.archives
       }
-      required { gradle.taskGraph.hasTask(uploadArchives) }
     }
 
     install {
@@ -158,27 +169,36 @@ subprojects {
         }
       }
     }
+
+    install.repositories["mavenInstaller"].beforeDeployment { deployment ->
+      if (!isSnapshot) {
+        artifacts {
+          signatures signing.signPom(deployment)
+        }
+      }
+    }
   }
 }
 
 // Have to evaluate the children before setting up the publishing stuff so the dependencies are defined.
 evaluationDependsOnChildren()
 subprojects {
+  configurations.signatures.artifacts.all {
+    extension = toSignArtifact.extension + "." + extension
+  }
+
   if (project in publishedModules) {
-    uploadArchives { task ->
-      repositories.mavenDeployer {
-        beforeDeployment { deployment ->
-          if (!isSnapshot) {
-            signing.signPom(deployment)
-          }
-        }
-        gradle.taskGraph.whenReady { taskGraph ->
-          if (taskGraph.hasTask(task)) {
-            repository(url: "http://oss.jfrog.org/oss-release-local") {
-              authentication(userName: ratpackBintrayUser, password: ratpackBintrayApiKey)
-            }
-            snapshotRepository(url: "http://oss.jfrog.org/oss-snapshot-local") {
-              authentication(userName: ratpackBintrayUser, password: ratpackBintrayApiKey)
+    apply plugin: "artifactory"
+    artifactoryPublish { task ->
+      rootProject.artifactory {
+        publish {
+          repository {
+            repoKey = isSnapshot ? 'oss-snapshot-local' : 'oss-release-local'
+            gradle.taskGraph.whenReady { taskGraph ->
+              if (taskGraph.hasTask(task)) {
+                username = ratpackBintrayUser
+                password = ratpackBintrayApiKey
+              }
             }
           }
         }
