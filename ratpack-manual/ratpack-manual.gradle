@@ -73,6 +73,16 @@ task api(type: Javadoc) {
     if (it.hasProperty("apiLinks")) {
       options.links(*it.apiLinks)
     }
+
+    def packages = []
+    def root = it.file("src/main/java")
+    root.eachDirRecurse {
+      if (it.listFiles().any { it.name.endsWith(".java") }) {
+        packages << ((it.absolutePath - root.absolutePath) - "/").replaceAll("/", ".")
+      }
+    }
+
+    options.group it.name, packages
   }
 }
 
