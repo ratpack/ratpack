@@ -174,10 +174,10 @@ subprojects {
         }
         gradle.taskGraph.whenReady { taskGraph ->
           if (taskGraph.hasTask(task)) {
-            repository(url: "http://oss.jfrog.org/artifactory/simple/oss-release-local") {
+            repository(url: "http://oss.jfrog.org/oss-release-local") {
               authentication(userName: ratpackBintrayUser, password: ratpackBintrayApiKey)
             }
-            snapshotRepository(url: "http://oss.jfrog.org/artifactory/simple/oss-snapshot-local") {
+            snapshotRepository(url: "http://oss.jfrog.org/oss-snapshot-local") {
               authentication(userName: ratpackBintrayUser, password: ratpackBintrayApiKey)
             }
           }
