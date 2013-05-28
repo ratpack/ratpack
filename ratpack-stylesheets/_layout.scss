@@ -1,3 +1,7 @@
+$num-columns: 12 !default;
+$content-width: 1024px !default;
+$column-width: 100% / $num-columns;
+
 @mixin full-width {
 	width: 100%;
 	@include rem(padding-left, 1rem);
@@ -7,11 +11,9 @@
 @mixin content-width {
 	@include full-width;
 	@include when-tablet-portrait {
-		width: $column-width * 10;
-		margin: {
-			left: $column-width;
-			right: $column-width;
-		}
+		@include columns(10);
+		@include push(1);
+		@include pull(1);
 	}
 }
 

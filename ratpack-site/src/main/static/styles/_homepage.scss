@@ -10,7 +10,7 @@
 	@include noise-background;
 	@include adjust-font-size-to($promo-font-size);
 	@include rhythm($padding-leader: 1, $padding-trailer: 1, $font-size: $promo-font-size);
-	@include big-section-border;
+	@include big-section-border($font-size: $promo-font-size);
 
 	p {
 		@include rhythm($leader: 1, $trailer: 1, $font-size: $promo-font-size);

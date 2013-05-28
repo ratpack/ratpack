@@ -1,11 +1,18 @@
-$sans-font-family: "Raleway", Futura, "Trebuchet MS", Arial, sans-serif;
-$serif-font-family: "Gentium Basic", "Book Antiqua", Palatino, "Palatino Linotype", "Palatino LT STD", Georgia, serif;
-$mono-font-family: "Courier New", Courier, "Lucida Sans Typewriter", "Lucida Typewriter", monospace;
-$script-font-family: "Engagement", cursive;
+$sans-font-family: "Raleway", Futura, "Trebuchet MS", Arial, sans-serif !default;
+$serif-font-family: "Gentium Basic", "Book Antiqua", Palatino, "Palatino Linotype", "Palatino LT STD", Georgia, serif !default;
+$mono-font-family: "Courier New", Courier, "Lucida Sans Typewriter", "Lucida Typewriter", monospace !default;
+$script-font-family: "Engagement", cursive !default;
 
-$body-font-family: $serif-font-family;
-$header-font-family: $sans-font-family;
-$code-font-family: $mono-font-family;
+$body-font-family: $serif-font-family !default;
+$header-font-family: $sans-font-family !default;
+$code-font-family: $mono-font-family !default;
+
+$anchor-font-color: darken($blue, 30%) !default;
+$anchor-font-color-hover: $blue !default;
+$anchor-text-decoration: none !default;
+
+$anchor-font-color-alt: $blue !default;
+$anchor-font-color-hover-alt: lighten($blue, 15%) !default;
 
 /**
  * Helps legibility by adding a small text shadow (Windows) and using alternate font-smoothing for light text on dark (OSX Webkit).

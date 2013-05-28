@@ -1,3 +1,10 @@
+$logo-font-size-large: 1rem !default;
+$logo-font-size-medium: 0.625rem !default;
+$logo-font-size-small: 0.55rem !default;
+
+$footer-background-color: $black !default;
+$footer-font-size: 14px !default;
+
 html {
 	background-color: $black;
 	@include noise-background;
@@ -13,13 +20,19 @@ body {
 
 	.ratpack-logo {
 		@include content-width;
-		@include rem(font-size, 0.55rem);
+		@include rem(font-size, $logo-font-size-small);
 		&:not(.small) {
 			@include when-phone-landscape {
-				@include rem(font-size, 0.625rem);
+				@include rem(font-size, $logo-font-size-medium);
 			}
 			@include when-tablet-portrait {
-				@include rem(font-size, 1rem);
+				@include rem(font-size, $logo-font-size-large);
+			}
+			@include when-full-width {
+				padding: {
+					left: 0;
+					right: 0;
+				}
 			}
 		}
 
@@ -29,12 +42,12 @@ body {
 	}
 }
 
-@mixin big-section-border($border-top: true, $border-bottom: true) {
+@mixin big-section-border($border-top: true, $border-bottom: true, $font-size: $base-font-size) {
 	@if $border-top {
-		border-top: rhythm(1, $footer-font-size) solid $blue;
+		border-top: rhythm(1, $font-size) solid $blue;
 	}
 	@if $border-bottom {
-		border-bottom: rhythm(1, $footer-font-size) solid $blue;
+		border-bottom: rhythm(1, $font-size) solid $blue;
 	}
 	@include when-full-width {
 		width: 102.5%;
@@ -50,7 +63,7 @@ body {
 	@include noise-background;
 	@include adjust-font-size-to($footer-font-size);
 	@include rhythm($leader: 2, $padding-leader: 1, $padding-trailer: 1, $font-size: $footer-font-size);
-	@include big-section-border($border-bottom: false);
+	@include big-section-border($border-bottom: false, $font-size: $footer-font-size);
 	padding: {
 		left: 1em;
 		right: 1em;
