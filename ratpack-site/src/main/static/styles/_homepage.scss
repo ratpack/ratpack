@@ -175,7 +175,9 @@
 			position: relative;
 			.credits {
 				position: absolute;
+				left: 0;
 				bottom: rhythm(1, $footer-font-size);
+				width: 100%;
 			}
 		}
 	}
