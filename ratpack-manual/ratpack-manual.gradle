@@ -119,7 +119,7 @@ task tokeniseManual(type: Sync) {
       head: """
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width">
-        <link href="http://fonts.googleapis.com/css?family=Gentium+Basic:400,700,400italic|Engagement|Purple+Purse" rel="stylesheet" type="text/css">
+        <link href="http://fonts.googleapis.com/css?family=Lora:400,700,400italic|Engagement|Playfair+Display:700" rel="stylesheet" type="text/css">
         <link href="css/normalize.css" rel="stylesheet" type="text/css">
         <!--[if lt IE 8]><link href="css/minimal.css" rel="stylesheet" type="text/css"><![endif]-->
         <!--[if gt IE 7]><!--><link href="css/stylesheet.css" rel="stylesheet" type="text/css"><!--<![endif]-->
