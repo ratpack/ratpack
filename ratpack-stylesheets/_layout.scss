@@ -10,7 +10,7 @@ $column-width: 100% / $num-columns;
 
 @mixin content-width {
 	@include full-width;
-	@include when-tablet-portrait {
+	@include at-least($tablet-portrait) {
 		@include columns(10);
 		@include push(1);
 		@include pull(1);
@@ -31,7 +31,7 @@ $column-width: 100% / $num-columns;
 
 body {
 	overflow-x: hidden;
-	@include when-full-width {
+	@include at-least($full-width) {
 		max-width: $content-width;
 		margin: 0 auto;
 	}

@@ -40,7 +40,7 @@
 		}
 	}
 
-	@include when-tablet-portrait {
+	@include at-least($tablet-portrait) {
 		@include clearfix;
 		article {
 			@include columns(6);
@@ -159,7 +159,7 @@
 		}
 	}
 
-	@include when-tablet-portrait {
+	@include at-least($tablet-portrait) {
 		.multiplebgs & {
 			$footer-image-url: 'ratpack-footer.png';
 

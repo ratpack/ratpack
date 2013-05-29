@@ -1,5 +1,5 @@
 .ratpack-logo:not(.small) {
-	@include when-tablet-portrait {
+	@include at-least($tablet-portrait) {
 		margin-bottom: 1.5em;
 	}
 }
@@ -133,7 +133,7 @@
 		h2 {
 			@include adjust-font-size-to(16px);
 		}
-		@include when-tablet-portrait {
+		@include at-least($tablet-portrait) {
 			@include link-bar;
 			h2 {
 				float: right;
@@ -163,7 +163,7 @@
 		span {
 			font-size: 0.75em;
 		}
-		@include when-tablet-portrait {
+		@include at-least($tablet-portrait) {
 			span {
 				position: absolute;
 				right: 100%;
@@ -186,7 +186,7 @@
 		text-transform: uppercase;
 	}
 
-	@include when-tablet-portrait {
+	@include at-least($tablet-portrait) {
 		h2, p {
 			width: $column-width * 6;
 			float: left;

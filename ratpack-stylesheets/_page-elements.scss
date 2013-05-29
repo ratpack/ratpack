@@ -22,13 +22,13 @@ body {
 		@include content-width;
 		@include rem(font-size, $logo-font-size-small);
 		&:not(.small) {
-			@include when-phone-landscape {
+			@include at-least($phone-landscape) {
 				@include rem(font-size, $logo-font-size-medium);
 			}
-			@include when-tablet-portrait {
+			@include at-least($tablet-portrait) {
 				@include rem(font-size, $logo-font-size-large);
 			}
-			@include when-full-width {
+			@include at-least($full-width) {
 				padding: {
 					left: 0;
 					right: 0;
@@ -53,7 +53,7 @@ body {
 	@if $border-bottom {
 		border-bottom: rhythm(1, $font-size) solid $blue;
 	}
-	@include when-full-width {
+	@include at-least($full-width) {
 		width: 102.5%;
 		margin-left: -1.25%;
 	}
