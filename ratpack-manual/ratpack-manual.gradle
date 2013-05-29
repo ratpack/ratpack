@@ -15,6 +15,9 @@
  */
 
 apply from: "$rootDir/gradle/javaModule.gradle"
+configurations.runtime.artifacts.clear()
+configurations.archives.artifacts.clear()
+
 apply plugin: 'compass'
 
 buildscript {
@@ -79,6 +82,12 @@ task api(type: Javadoc) {
     }
 
     options.group it.name, packages
+  }
+}
+
+test {
+  apiModules.each {
+    inputs.files apiModules.sourceSets.main.allSource
   }
 }
 
@@ -229,5 +238,5 @@ task manualZip(type: Zip) {
 }
 
 artifacts {
-  archives manualZip
+  delegate.default manualZip
 }
