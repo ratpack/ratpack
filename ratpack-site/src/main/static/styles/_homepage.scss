@@ -21,7 +21,7 @@
 	}
 
 	h2 {
-		@include adjust-font-size-to($to-size: 28px, $from-size: $promo-font-size);
+		@include adjust-font-size-to($to-size: 36px, $from-size: $promo-font-size);
 		&:first-of-type {
 			margin-top: 0;
 		}
@@ -123,6 +123,7 @@
 				&:before {
 					width: 100%;
 					height: 100%;
+					line-height: $button-size;
 					margin: {
 						left: 0;
 						right: 0;

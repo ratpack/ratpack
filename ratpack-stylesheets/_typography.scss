@@ -1,10 +1,10 @@
-$sans-font-family: "Raleway", Futura, "Trebuchet MS", Arial, sans-serif !default;
-$serif-font-family: "Gentium Basic", "Book Antiqua", Palatino, "Palatino Linotype", "Palatino LT STD", Georgia, serif !default;
+$sans-font-family: "Avant Garde", Avantgarde, "Century Gothic", CenturyGothic, "AppleGothic", sans-serif !default;
+$serif-font-family: "Lora", "Book Antiqua", Palatino, "Palatino Linotype", "Palatino LT STD", Georgia, serif !default;
 $mono-font-family: "Courier New", Courier, "Lucida Sans Typewriter", "Lucida Typewriter", monospace !default;
 $script-font-family: "Engagement", cursive !default;
 
 $body-font-family: $serif-font-family !default;
-$header-font-family: $sans-font-family !default;
+$header-font-family: "Purple Purse", "Bodoni MT", Didot, "Didot LT STD", "Hoefler Text", Garamond, "Times New Roman", serif !default;
 $code-font-family: $mono-font-family !default;
 
 $anchor-font-color: darken($blue, 30%) !default;
@@ -57,32 +57,30 @@ h1, h2, h3, h4, h5, h6 {
 		family: $header-font-family;
 	}
 	.fontface & {
-		font-weight: 200;
-		-webkit-font-smoothing: subpixel-antialiased;
+		font-weight: 400;
+		text-shadow: none;
 	}
-
-	text-transform: uppercase;
 }
 
 h1 {
+	@include adjust-font-size-to(40px);
+	@include rhythm($leader: 1, $trailer: 1, $font-size: 40px);
+}
+h2 {
+	@include adjust-font-size-to(36px);
+	@include rhythm($leader: 1, $trailer: 1, $font-size: 36px);
+}
+h3 {
 	@include adjust-font-size-to(32px);
 	@include rhythm($leader: 1, $trailer: 1, $font-size: 32px);
 }
-h2 {
+h4 {
 	@include adjust-font-size-to(28px);
 	@include rhythm($leader: 1, $trailer: 1, $font-size: 28px);
 }
-h3 {
-	@include adjust-font-size-to(24px);
-	@include rhythm($leader: 1, $trailer: 1, $font-size: 24px);
-}
-h4 {
-	@include adjust-font-size-to(20px);
-	@include rhythm($leader: 1, $trailer: 1, $font-size: 20px);
-}
 h5 {
-	@include adjust-font-size-to(18px);
-	@include rhythm($leader: 1, $trailer: 1, $font-size: 18px);
+	@include adjust-font-size-to(26px);
+	@include rhythm($leader: 1, $trailer: 1, $font-size: 26px);
 }
 
 pre, code, tt {

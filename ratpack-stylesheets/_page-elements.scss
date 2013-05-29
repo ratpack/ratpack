@@ -60,7 +60,6 @@ body {
 }
 
 .page-footer {
-	font-family: $sans-font-family;
 	text-shadow: none;
 	@include clearfix;
 	@include contrasted-smooth($footer-background-color);
