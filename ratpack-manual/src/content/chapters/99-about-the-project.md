@@ -15,7 +15,7 @@
 Web fonts are served by [Google Web Fonts](http://www.google.com/fonts/).
 
 * [Lora](http://www.google.com/fonts/specimen/Lora) by [Cyreal](http://www.cyreal.org/)
-* [Raleway](http://www.google.com/fonts/specimen/Raleway) by [The League of Moveable Type](http://www.theleagueofmoveabletype.com/)
+* [Playfair Display](http://www.google.com/fonts/specimen/Playfair+Display) by [Claus Eggers Sørensen](http://www.forthehearts.net/)
 * [Engagement](http://www.google.com/fonts/specimen/Engagement) by [Astigmatic One Eye Typographic Institute](http://www.astigmatic.com/)
 
 #### Images
