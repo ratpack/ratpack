@@ -160,12 +160,14 @@
 
 	h1, h2, h3, h4, h5, h6 {
 		position: relative;
+		span {
+			font-size: 0.75em;
+		}
 		@include when-tablet-portrait {
 			span {
 				position: absolute;
 				right: 100%;
-				@include rem(padding-left, 1rem);
-				@include rem(padding-right, 1rem);
+				@include rem(padding-right, 0.5rem);
 			}
 		}
 	}

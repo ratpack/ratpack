@@ -62,25 +62,31 @@ h1, h2, h3, h4, h5, h6 {
 	}
 }
 
+$h1-font-size: 40px;
+$h2-font-size: 36px;
+$h3-font-size: 32px;
+$h4-font-size: 28px;
+$h5-font-size: 24px;
+
 h1 {
-	@include adjust-font-size-to(40px);
-	@include rhythm($leader: 1, $trailer: 1, $font-size: 40px);
+	@include adjust-font-size-to($h1-font-size);
+	@include rhythm($leader: 1, $trailer: 1, $font-size: $h1-font-size);
 }
 h2 {
-	@include adjust-font-size-to(36px);
-	@include rhythm($leader: 1, $trailer: 1, $font-size: 36px);
+	@include adjust-font-size-to($h2-font-size);
+	@include rhythm($leader: 1, $trailer: 1, $font-size: $h2-font-size);
 }
 h3 {
-	@include adjust-font-size-to(32px);
-	@include rhythm($leader: 1, $trailer: 1, $font-size: 32px);
+	@include adjust-font-size-to($h3-font-size);
+	@include rhythm($leader: 1, $trailer: 1, $font-size: $h3-font-size);
 }
 h4 {
-	@include adjust-font-size-to(28px);
-	@include rhythm($leader: 1, $trailer: 1, $font-size: 28px);
+	@include adjust-font-size-to($h4-font-size);
+	@include rhythm($leader: 1, $trailer: 1, $font-size: $h4-font-size);
 }
 h5 {
-	@include adjust-font-size-to(26px);
-	@include rhythm($leader: 1, $trailer: 1, $font-size: 26px);
+	@include adjust-font-size-to($h5-font-size);
+	@include rhythm($leader: 1, $trailer: 1, $font-size: $h5-font-size);
 }
 
 pre, code, tt {
