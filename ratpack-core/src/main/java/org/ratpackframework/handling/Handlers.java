@@ -30,6 +30,39 @@ import org.ratpackframework.util.Action;
 import java.io.File;
 import java.util.Arrays;
 
+/**
+ * Factory methods for certain types of handlers.
+ * <p>
+ * Typically used by {@link Chain} implementations to build a handler chain.
+ * <pre class="groovyTestCase">
+ * import static org.ratpackframework.handling.Handlers.*;
+ * import org.ratpackframework.handling.Handler;
+ * import org.ratpackframework.handling.Chain;
+ * import org.ratpackframework.handling.Exchange;
+ * import org.ratpackframework.util.Action;
+ *
+ * class ExampleHandler implements Handler {
+ *   void handle(Exchange exchange) {
+ *     // implementation omitted
+ *   }
+ * }
+ *
+ * class ChainBuilder implements Action&lt;Chain&gt; {
+ *   void execute(Chain chain) {
+ *     chain.add(assets("public"));
+ *     chain.add(get("info", new ExampleHandler()));
+ *     chain.add(path("api", new Action&lt;Chain&gt;() {
+ *       void execute(Chain apiChain) {
+ *         apiChain.add(get("version", new ExampleHandler()));
+ *         apiChain.add(get("log", new ExampleHandler()));
+ *       }
+ *     }));
+ *   }
+ * }
+ *
+ * Handler handler = chain(new ChainBuilder());
+ * </pre>
+ */
 public abstract class Handlers {
 
   public static Handler context(final Object context, Action<? super Chain> builder) {
