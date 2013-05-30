@@ -1,24 +1,15 @@
-.ratpack-logo:not(.small) {
-	@include at-least($tablet-portrait) {
-		margin-bottom: 1.5em;
-	}
-}
-
 .pagination {
 	@include margin-leader(1);
 	@include margin-trailer(1);
-
-	@include content-width;
+	@include contrasted-smooth($black);
+	@include noise-background;
+	@include full-width;
+	@include big-section-border;
 
 	ul {
 		@include clearfix;
+		margin: 0;
 		list-style: none;
-		padding: 0.5em 0 0.25em;
-		border: {
-			color: #222;
-			style: dotted;
-			width: 0.125em 0;
-		}
 	}
 	li {
 		width: $column-width * 4;
@@ -27,9 +18,11 @@
 
 		&.prev {
 			text-align: left;
+			padding-left: 1em;
 		}
 		&.next {
 			text-align: right;
+			padding-right: 1em;
 		}
 		&.index {
 			text-align: center;
@@ -40,61 +33,33 @@
 	}
 
 	a {
-		$arrow-color: $anchor-font-color;
-		$highlight-color: $anchor-font-color-hover;
-
 		display: inline-block;
-		vertical-align: middle;
 		max-width: 100%;
 		@include ellipsis;
 
-		font-style: italic;
-		line-height: 2.65em;
+		font: {
+			family: $header-font-family;
+			style: italic;
+			weight: 700;
+		}
+		@include adjust-font-size-to($to-size: 18px, $lines: 2);
+		@include link-colors($blue, $yellow);
 
-		position: relative;
-		&:after {
-			display: inline-block;
-			position: absolute;
-			bottom: 0;
-			text-indent: 0;
-			color: $arrow-color;
+		&:before, &:after {
 			font: {
-				size: 1.5em;
 				style: normal;
 			}
 		}
 
-		&:hover, &:focus {
-			&:after {
-				color: $highlight-color;
-			}
-		}
-
-		&[rel="index"]{
-			padding-top: 1.25em;
-			line-height: inherit;
-			&:after {
-				content: "\25B2";
-				top: 0;
-				left: 50%;
-				margin-left: -0.5em;
-				line-height: 1;
-			}
-		}
-
 		&[rel="prev"] {
-			padding-left: 2.25em;
-			&:after {
-				left: 0.5em;
-				content: "\25C0";
+			&:before {
+				content: "«\00a0";
 			}
 		}
 
 		&[rel="next"] {
-			padding-right: 2.25em;
 			&:after {
-				right: 0.5em;
-				content: "\25B6";
+				content: "\00a0»";
 			}
 		}
 	}
@@ -104,7 +69,7 @@
 	@include margin-leader(1);
 	@include margin-trailer(1);
 
-	header, > ul, > ol {
+	> ul, > ol {
 		@include content-width;
 		@include clearfix;
 
@@ -129,20 +94,34 @@
 	}
 
 	.manual-links {
+		@include contrasted-smooth($black);
+		@include noise-background;
 		@include margin-trailer(1);
+		@include full-width;
+		@include big-section-border;
 		h2 {
-			@include adjust-font-size-to(16px);
+			@include adjust-font-size-to($to-size: 18px, $lines: 2);
+		}
+		a {
+			@include adjust-font-size-to($to-size: 18px, $lines: 2);
+			font: {
+				family: $header-font-family;
+				style: italic;
+				weight: 700;
+			}
+			@include link-colors($blue, $yellow);
+			margin-right: 1em;
 		}
 		@include at-least($tablet-portrait) {
-			@include link-bar;
 			h2 {
 				float: right;
-				line-height: 2;
 				margin: 0;
+				@include pull(1);
 			}
 			a {
-				@include diamond-button;
-				margin-right: 0.5em
+				&:first-of-type {
+					@include push(1);
+				}
 			}
 		}
 	}

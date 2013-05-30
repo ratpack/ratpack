@@ -1,91 +1,3 @@
-/*
- * Creates a diamond background behind an element.
- */
-@mixin diamond-button($color: transparentize($anchor-font-color, 0.25), $hover-color: transparentize($anchor-font-color-hover, 0.25), $width: 6em, $height: 1.5em) {
-	display: inline-block;
-	text-align: center;
-	line-height: 3em;
-	position: relative;
-	z-index: 0;
-	min-width: $width;
-	font-style: italic;
-	@include text-shadow(0 1px 1px transparentize($anchor-font-color-hover, 0.2));
-	&:before, &:after {
-		position: absolute;
-		z-index: -1;
-		content: " ";
-		top: 0;
-		height: 0;
-		width: 0;
-		border: {
-			top: $height solid transparent;
-			bottom: $height solid transparent;
-		}
-		@include single-transition;
-	}
-	&:before {
-		left: 50%;
-		margin-left: $width * -0.5;
-		border-right: $width / 2 solid opacify($color, 1);
-		.rgba & {
-			border-right-color: $color;
-		}
-	}
-	&:after {
-		right: 50%;
-		margin-right: $width * -0.5;
-		border-left: $width / 2 solid opacify($color, 1);
-		.rgba & {
-			border-left-color: $color;
-		}
-	}
-	&:link, &:visited, &:active {
-		color: contrast-color($color);
-	}
-	&:hover, &:focus {
-		color: contrast-color($hover-color);
-		&:before {
-			@include safe-rgba(border-right-color, $hover-color);
-		}
-		&:after {
-			@include safe-rgba(border-left-color, $hover-color);
-		}
-	}
-
-	&[rel='prev'] {
-		&:before {
-			border-right-width: $width;
-		}
-		&:after {
-			border-left: none;
-		}
-	}
-
-	&[rel='next'] {
-		&:before {
-			border-right: none;
-		}
-		&:after {
-			border-left-width: $width;
-		}
-	}
-}
-
-@mixin link-bar {
-	height: 2.25em;
-	border: {
-		width: 0.125em 0;
-		style: dotted;
-		color: $black;
-	}
-	overflow: visible;
-	a {
-		position: relative;
-		top: -0.5em;
-		@include nowrap;
-	}
-}
-
 @mixin divider {
 	$icon-size: 2em;
 	$box-size: $icon-size * 1.5;
@@ -145,6 +57,19 @@
 				position: 0.475em 0.475em;
 			}
 		}
+	}
+}
+
+@mixin big-section-border($border-top: true, $border-bottom: true, $font-size: $base-font-size) {
+	@if $border-top {
+		border-top: rhythm(1, $font-size) solid $blue;
+	}
+	@if $border-bottom {
+		border-bottom: rhythm(1, $font-size) solid $blue;
+	}
+	@include at-least($full-width) {
+		width: 102.5%;
+		margin-left: -1.25%;
 	}
 }
 

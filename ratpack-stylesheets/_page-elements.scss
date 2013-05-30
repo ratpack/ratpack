@@ -46,19 +46,6 @@ body {
 	}
 }
 
-@mixin big-section-border($border-top: true, $border-bottom: true, $font-size: $base-font-size) {
-	@if $border-top {
-		border-top: rhythm(1, $font-size) solid $blue;
-	}
-	@if $border-bottom {
-		border-bottom: rhythm(1, $font-size) solid $blue;
-	}
-	@include at-least($full-width) {
-		width: 102.5%;
-		margin-left: -1.25%;
-	}
-}
-
 .page-footer {
 	text-shadow: none;
 	@include clearfix;
