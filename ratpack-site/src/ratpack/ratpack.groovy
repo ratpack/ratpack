@@ -1,5 +1,9 @@
 import static org.ratpackframework.groovy.RatpackScript.ratpack
 
+def snapshotVersion = System.getProperty("snapshotVersion")
+def currentVersion = System.getProperty("currentVersion")
+def indexPages = ["index.html"] as String[]
+
 ratpack {
   handlers {
   	handler {
@@ -8,6 +12,15 @@ ratpack {
       }
       next()
     }
-    assets "public", "index.html"
+
+    path("manual/snapshot") {
+      assets "public/manual/$snapshotVersion", indexPages
+    }
+
+    path("manual/current") {
+      assets "public/manual/$currentVersion", indexPages
+    }
+
+    assets "public", indexPages
   }
 }

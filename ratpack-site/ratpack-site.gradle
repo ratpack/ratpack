@@ -50,10 +50,8 @@ dependencies {
 task gatherManuals(type: Sync) {
   inputs.files configurations.latestManual
   into "src/ratpack/public/manual"
-  ["snapshot", version].each {
-    into it, {
-      from { zipTree(configurations.latestManual.singleFile) }
-    }
+  into version, {
+    from { zipTree(configurations.latestManual.singleFile) }
   }
 }
 
@@ -64,6 +62,8 @@ task prepareContent {
 run {
   dependsOn configureRun, prepareContent
   jvmArgs "-Dratpack.reloadable=true"
+  systemProperty "snapshotVersion", project.version
+  systemProperty "currentVersion", project.version
 }
 
 installApp {
@@ -72,17 +72,17 @@ installApp {
 }
 
 task compileCoffee(type: CoffeeScriptCompile) {
-	source fileTree('src/main/static/scripts')
-	destinationDir file('src/ratpack/public/scripts')
+  source fileTree('src/main/static/scripts')
+  destinationDir file('src/ratpack/public/scripts')
 }
 
 processResources.inputs.files compileCoffee
 
 compass {
-	cssDir = file('src/ratpack/public/styles')
-	sassDir = file('src/main/static/styles')
-	imagesDir = file('src/ratpack/public/images')
-	javascriptsDir = file('src/ratpack/public/scripts')
+  cssDir = file('src/ratpack/public/styles')
+  sassDir = file('src/main/static/styles')
+  imagesDir = file('src/ratpack/public/images')
+  javascriptsDir = file('src/ratpack/public/scripts')
   importPath = files('../ratpack-stylesheets')
 }
 
