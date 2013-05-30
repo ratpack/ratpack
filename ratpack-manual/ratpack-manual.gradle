@@ -72,9 +72,7 @@ task configureApi << {
       options.group it.name, packages
     }
 
-    options.bottom = "<script src=\"{@docRoot}/ga.js\"><script src=\"{@docRoot}/prism.js\" data-manual></script><script src=\"{@docRoot}/highlight.js\"></script><link rel=\"stylesheet\" type=\"text/css\" href=\"{@docRoot}/prism.css\">"
-
-    api.dependsOn compileSass
+    options.bottom = "<script src=\"{@docRoot}/ga.js\"></script><script src=\"{@docRoot}/prism.js\" data-manual></script><script src=\"{@docRoot}/highlight.js\"></script><link rel=\"stylesheet\" type=\"text/css\" href=\"{@docRoot}/prism.css\">"
 
     doLast {
       copy {
