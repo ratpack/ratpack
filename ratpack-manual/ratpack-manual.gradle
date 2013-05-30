@@ -50,7 +50,44 @@ modifyPom { pom ->
 }
 
 apiModules.each { evaluationDependsOn(it.path) }
-task api(type: Javadoc) {
+
+task configureApi << {
+  api {
+    apiModules.each {
+      source it.sourceSets.main.java
+      classpath += it.sourceSets.main.compileClasspath + it.sourceSets.main.output
+
+      if (it.hasProperty("apiLinks")) {
+        options.links(*it.apiLinks)
+      }
+
+      def packages = []
+      def root = it.file("src/main/java")
+      root.eachDirRecurse {
+        if (it.listFiles().any { it.name.endsWith(".java") }) {
+          packages << ((it.absolutePath - root.absolutePath) - "/").replaceAll("/", ".")
+        }
+      }
+
+      options.group it.name, packages
+    }
+
+    options.bottom = "<script src=\"{@docRoot}/prism.js\" data-manual></script><script src=\"{@docRoot}/highlight.js\"></script><link rel=\"stylesheet\" type=\"text/css\" href=\"{@docRoot}/prism.css\">"
+
+    api.dependsOn compileSass
+
+    doLast {
+      copy {
+        into api.destinationDir
+        from "src/assets/js/prism.js"
+        from "src/api-assets"
+
+      }
+    }
+  }
+}
+
+task api(type: Javadoc, dependsOn: configureApi) {
   group "manual"
   description "Generates the Javadoc for the entire public API"
 
@@ -65,24 +102,7 @@ task api(type: Javadoc) {
     docTitle "Ratpack API ($project.version)"
   }
 
-  apiModules.each {
-    source it.sourceSets.main.java
-    classpath += it.sourceSets.main.compileClasspath + it.sourceSets.main.output
 
-    if (it.hasProperty("apiLinks")) {
-      options.links(*it.apiLinks)
-    }
-
-    def packages = []
-    def root = it.file("src/main/java")
-    root.eachDirRecurse {
-      if (it.listFiles().any { it.name.endsWith(".java") }) {
-        packages << ((it.absolutePath - root.absolutePath) - "/").replaceAll("/", ".")
-      }
-    }
-
-    options.group it.name, packages
-  }
 }
 
 test {
