@@ -34,6 +34,7 @@ public class DefaultRequest implements Request {
   private MediaType mediaType;
 
   private ImmutableDelegatingMultiValueMap<String, String> queryParams;
+  private ImmutableDelegatingMultiValueMap<String, String> form;
   private String query;
   private String path;
   private final HttpMethod method;
@@ -105,8 +106,11 @@ public class DefaultRequest implements Request {
   }
 
   public MultiValueMap<String, String> getForm() {
-    Map<String, List<String>> parsedForm = new QueryStringDecoder(getText(), false).parameters();
-    return new ImmutableDelegatingMultiValueMap<String, String>(parsedForm);
+    if (form == null) {
+      QueryStringDecoder formDecoder = new QueryStringDecoder(getText(), false);
+      form = new ImmutableDelegatingMultiValueMap<String, String>(formDecoder.parameters());
+    }
+    return form;
   }
 
   public Set<Cookie> getCookies() {
