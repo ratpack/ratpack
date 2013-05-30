@@ -43,7 +43,7 @@ import java.util.Arrays;
  *
  * class ExampleHandler implements Handler {
  *   void handle(Exchange exchange) {
- *     // implementation omitted
+ *     // …
  *   }
  * }
  *
@@ -59,28 +59,71 @@ import java.util.Arrays;
  *     }));
  *   }
  * }
- *
- * Handler handler = chain(new ChainBuilder());
+ * 0;
  * </pre>
  */
 public abstract class Handlers {
 
-  public static Handler context(final Object context, Action<? super Chain> builder) {
-    return context(context, chain(builder));
+  private Handlers() {}
+
+  /**
+   * Creates a handler that inserts the handler chain defined by the builder, with the given context addition.
+   * <p>
+   * The context object will be available by its concrete type.
+   * To make it available by a different type (perhaps one of its interfaces) use {@link #context(Class, Object, org.ratpackframework.util.Action)}.
+   *
+   * @param object The object to add to the context, only for the handlers defined by {@code builder}
+   * @param builder The definition of the handler chain to insert with the context
+   * @return A handler
+   */
+  public static Handler context(Object object, Action<? super Chain> builder) {
+    return context(object, chain(builder));
   }
 
+  /**
+   * Creates a handler that inserts the handler chain defined by the builder, with the given context addition.
+   *
+   * @param type The type by which to make the context addition available
+   * @param object The object to add to the context, only for the handlers defined by {@code builder}
+   * @param builder The definition of the handler chain to insert with the context
+   * @return A handler
+   */
   public static <T> Handler context(Class<? super T> type, T object, Action<? super Chain> builder) {
     return context(type, object, chain(builder));
   }
 
-  public static Handler context(Object object, final Handler handler) {
+  /**
+   * Creates a handler that inserts the given handler with the given context addition.
+   * <p>
+   * The context object will be available by its concrete type.
+   * To make it available by a different type (perhaps one of its interfaces) use {@link #context(Class, Object, Handler)}.
+   *
+   * @param object The object to add to the context for the handler
+   * @param handler The handler to make the context addition available for
+   * @return A handler
+   */
+  public static Handler context(Object object, Handler handler) {
     return new ContextInsertingHandler(object, handler);
   }
 
-  public static <T> Handler context(Class<? super T> type, T object, final Handler handler) {
+  /**
+   * Creates a handler that inserts the handler chain defined by the builder, with the given context addition.
+   *
+   * @param type The type by which to make the context addition available
+   * @param object The object to add to the context, only for the handlers defined by {@code builder}
+   * @param handler The handler to
+   * @return A handler
+   */
+  public static <T> Handler context(Class<? super T> type, T object, Handler handler) {
     return new ContextInsertingHandler(type, object, handler);
   }
 
+  /**
+   * Builds a handler chain.
+   *
+   * @param action The chain definition
+   * @return A handler
+   */
   public static Handler chain(Action<? super Chain> action) {
     return ChainBuilder.INSTANCE.build(ChainActionTransformer.INSTANCE, action);
   }

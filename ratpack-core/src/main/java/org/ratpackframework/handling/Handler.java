@@ -88,7 +88,6 @@ import org.ratpackframework.api.NonBlocking;
  *   }
  * }
  *
- *
  * // A handler does not need to participate in the response, but can instead "route" the exchange to different handlers…
  *
  * class RoutingHandler implements Handler {
@@ -124,8 +123,7 @@ import org.ratpackframework.api.NonBlocking;
  *     }
  *   }
  * }
- *
- * Handler filtered = new FilteringHandler(new SimpleHandler());
+ * 0;
  * </pre>
  *
  * @see Handlers

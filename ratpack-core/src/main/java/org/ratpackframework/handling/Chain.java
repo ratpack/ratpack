@@ -16,8 +16,21 @@
 
 package org.ratpackframework.handling;
 
+/**
+ * A chain can be used to build a linked series of handlers.
+ * <p>
+ * The {@code Chain} type does not represent the handlers "in action".
+ * That is, it is the construction of a handler chain.
+ *
+ * @see Handlers#chain(org.ratpackframework.util.Action)
+ */
 public interface Chain {
 
+  /**
+   * Add the given handler to the chain being constructed.
+   *
+   * @param handler The handler to add to the chain being constructed
+   */
   void add(Handler handler);
 
 }
