@@ -72,7 +72,7 @@ task configureApi << {
       options.group it.name, packages
     }
 
-    options.bottom = "<script src=\"{@docRoot}/prism.js\" data-manual></script><script src=\"{@docRoot}/highlight.js\"></script><link rel=\"stylesheet\" type=\"text/css\" href=\"{@docRoot}/prism.css\">"
+    options.bottom = "<script src=\"{@docRoot}/ga.js\"><script src=\"{@docRoot}/prism.js\" data-manual></script><script src=\"{@docRoot}/highlight.js\"></script><link rel=\"stylesheet\" type=\"text/css\" href=\"{@docRoot}/prism.css\">"
 
     api.dependsOn compileSass
 
@@ -80,10 +80,15 @@ task configureApi << {
       copy {
         into api.destinationDir
         from "src/assets/js/prism.js"
+        from "src/assets/js/ga.js"
         from "src/api-assets"
-
       }
     }
+
+    inputs.files files("src/api-assets")
+    inputs.files files("src/assets/js/prism.js")
+    inputs.property "bottom", options.bottom
+    inputs.property "groups", options.groups
   }
 }
 
@@ -101,8 +106,6 @@ task api(type: Javadoc, dependsOn: configureApi) {
     windowTitle "Ratpack API ($project.version)"
     docTitle "Ratpack API ($project.version)"
   }
-
-
 }
 
 test {
@@ -145,6 +148,7 @@ task tokeniseManual(type: Sync) {
         <!--[if gt IE 7]><!--><link href="css/stylesheet.css" rel="stylesheet" type="text/css"><!--<![endif]-->
         <script src="js/modernizr.js"></script>
         <script src="js/prism.js"></script>
+        <script src="js/ga.js"></script>
       """,
       footer: """
         <h2>Ratpack Manual - $version - ${new Date().format("MMMM, yyyy")}</h2>
@@ -152,15 +156,6 @@ task tokeniseManual(type: Sync) {
           <a href="http://www.ratpack-framework.org">www.ratpack-framework.org</a><br>
           Licensed under the <a href="http://www.apache.org/licenses/LICENSE-2.0">Apache License, Version 2.0</a>
         </p>
-        <script>
-          (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-              m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-          })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
-
-          ga('create', 'UA-41264608-1', 'ratpack-framework.org');
-          ga('send', 'pageview');
-        </script>
       """.toString()
   ]
 
