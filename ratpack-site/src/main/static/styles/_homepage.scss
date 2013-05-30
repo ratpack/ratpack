@@ -21,7 +21,7 @@
 	}
 
 	h2 {
-		@include adjust-font-size-to($to-size: 36px, $from-size: $promo-font-size);
+		@include adjust-font-size-to($to-size: $h2-font-size, $from-size: $promo-font-size);
 		&:first-of-type {
 			margin-top: 0;
 		}
