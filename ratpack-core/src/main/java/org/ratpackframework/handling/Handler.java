@@ -58,8 +58,8 @@ import org.ratpackframework.api.NonBlocking;
  * <pre class="groovyTestCase">
  * import org.ratpackframework.handling.*;
  *
- * // - SIMPLE RESPONDER
- * // A simple "responder" type handler may just unconditionally return a response to the client.
+ *
+ * // A responder may just return a response to the client…
  *
  * class SimpleHandler implements Handler {
  *   void handle(Exchange exchange) {
@@ -67,8 +67,15 @@ import org.ratpackframework.api.NonBlocking;
  *   }
  * }
  *
+ * // A responder may add a response header, but not the body…
  *
- * // - CONDITIONAL RESPONDER
+ * class DecoratingHandler implements Handler {
+ *   void handle(Exchange exchange) {
+ *     exchange.getResponse().setHeader("Cache-Control", "no-cache");
+ *     exchange.next();
+ *   }
+ * }
+ *
  * // Or a handler may conditionally respond…
  *
  * class ConditionalHandler implements Handler {
@@ -82,8 +89,7 @@ import org.ratpackframework.api.NonBlocking;
  * }
  *
  *
- * // - INSERTING ROUTER
- * // A handler does not need to participate in the response, but can instead "route" the exchange to different handlers.
+ * // A handler does not need to participate in the response, but can instead "route" the exchange to different handlers…
  *
  * class RoutingHandler implements Handler {
  *   private final List&lt;Handler&gt; fooHandlers;
@@ -101,8 +107,7 @@ import org.ratpackframework.api.NonBlocking;
  *   }
  * }
  *
- * // - DELEGATING ROUTER
- * // It can sometimes be appropriate to directly delegate to a handler, instead of using {@code insert()}.
+ * // It can sometimes be appropriate to directly delegate to a handler, instead of using exchange.insert() …
  *
  * class FilteringHandler implements Handler {
  *   private final Handler nestedHandler;
