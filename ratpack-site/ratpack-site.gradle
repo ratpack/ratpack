@@ -59,11 +59,13 @@ task prepareContent {
   dependsOn gatherManuals
 }
 
+processResources {
+  expand snapshot: project.version, current: project.version
+}
+
 run {
   dependsOn configureRun, prepareContent
   jvmArgs "-Dratpack.reloadable=true"
-  systemProperty "snapshotVersion", project.version
-  systemProperty "currentVersion", project.version
 }
 
 installApp {

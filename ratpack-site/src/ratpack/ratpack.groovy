@@ -1,7 +1,13 @@
 import static org.ratpackframework.groovy.RatpackScript.ratpack
 
-def snapshotVersion = System.getProperty("snapshotVersion")
-def currentVersion = System.getProperty("currentVersion")
+def versionsFile = getClass().classLoader.getResource("versions.properties")
+def versions = new Properties()
+versionsFile.openStream().withStream {
+  versions.load(it)
+}
+
+def snapshotVersion = versions.snapshot
+def currentVersion = versions.current
 def indexPages = ["index.html"] as String[]
 
 ratpack {
