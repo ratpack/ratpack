@@ -196,14 +196,13 @@
 }
 
 .fontface {
-	a[href='http://www.google.com/fonts/specimen/Gentium+Basic'] {
+	a[href='http://www.google.com/fonts/specimen/Lora'] {
 		font-style: italic;
 	}
-	a[href='http://www.google.com/fonts/specimen/Raleway'] {
+	a[href='http://www.google.com/fonts/specimen/Playfair+Display'] {
 		font: {
-			family: Raleway;
-			size: 1.1em;
-			weight: 100;
+			family: "Playfair Display";
+			weight: 700;
 		}
 		@include rem(line-height, 1.5rem);
 		vertical-align: bottom;
