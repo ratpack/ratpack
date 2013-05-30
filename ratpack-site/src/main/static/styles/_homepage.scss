@@ -71,6 +71,12 @@
 				style: solid;
 				color: transparentize($white, 0.5);
 			}
+			// fix for aliasing on iOS - place a transparent outline just outside the border
+			outline: {
+				width: 2px;
+				style: solid;
+				color: transparent;
+			}
 		}
 		&:before {
 			@include transform(skew(2deg) rotate(-0.5deg));
