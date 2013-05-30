@@ -26,17 +26,14 @@ import java.util.Map;
 public class DefaultPathBinding implements PathBinding {
 
   private final String binding;
-  private final String bindingTerminated;
   private final String pastBinding;
 
   private final Map<String, String> tokens;
   private final Map<String, String> allTokens;
-  private final PathBinding parent;
 
   public DefaultPathBinding(String path, String binding, Map<String, String> tokens, PathBinding parent) {
     this.binding = binding;
     this.tokens = tokens;
-    this.parent = parent;
 
     if (parent == null) {
       allTokens = tokens;
@@ -45,7 +42,7 @@ public class DefaultPathBinding implements PathBinding {
       allTokens.putAll(tokens);
     }
 
-    this.bindingTerminated = binding + "/";
+    String bindingTerminated = binding + "/";
 
     if (path.equals(binding)) {
       pastBinding = "";
