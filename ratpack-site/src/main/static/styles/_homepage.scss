@@ -31,12 +31,19 @@
 		@include full-width;
 	}
 
-	nav ul {
-		@include adjust-font-size-to($to-size: 24px, $from-size: $promo-font-size);
-		@include rhythm($leader: 1, $trailer: 1, $font-size: 24px);
-		@include starburst-links;
+	nav {
+		$link-font-size: $h4-font-size;
+		ul {
+			@include adjust-font-size-to($to-size: $link-font-size, $from-size: $promo-font-size);
+			@include rhythm($leader: 1, $trailer: 1, $font-size: $link-font-size);
+			@include starburst-links;
+		}
 		li {
-			@include margin-trailer(0.5, 24px);
+			@include margin-trailer(0.5, $link-font-size);
+		}
+		a {
+			font-family: $header-font-family;
+			font-weight: 700;
 		}
 	}
 

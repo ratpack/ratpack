@@ -149,7 +149,6 @@
 }
 
 @mixin starburst-links {
-	$starburst-vector-image: 'starburst.svg';
 	$starburst-bitmap-image: 'starburst.png';
 	list-style: none;
 	padding-left: 0;
@@ -160,7 +159,8 @@
 		&:before {
 			content: " ";
 			background: {
-				image: image-url($starburst-vector-image);
+				image: inline-image('starburst-blue.svg');
+				repeat: no-repeat;
 				size: contain;
 			}
 			.no-svg & {
@@ -171,6 +171,11 @@
 			display: inline-block;
 			vertical-align: middle;
 			margin-right: 0.5em;
+		}
+		&:hover, &:focus {
+			&:before {
+				background-image: inline-image('starburst-yellow.svg');
+			}
 		}
 	}
 }
