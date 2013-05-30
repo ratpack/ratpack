@@ -28,7 +28,6 @@ import static org.ratpackframework.groovy.ClosureHandlers.fileSystem
 import static org.ratpackframework.groovy.ClosureHandlers.handler
 import static org.ratpackframework.groovy.ClosureHandlers.path
 import static org.ratpackframework.handling.Handlers.assets
-import static org.ratpackframework.handling.Handlers.assetsPath
 
 class StaticFileSpec extends DefaultRatpackSpec {
 
@@ -188,7 +187,9 @@ class StaticFileSpec extends DefaultRatpackSpec {
     when:
     app {
       handlers {
-        add assetsPath("bar", "foo")
+        add path("bar") {
+          add assets("foo")
+        }
       }
     }
 

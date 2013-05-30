@@ -128,22 +128,84 @@ public abstract class Handlers {
     return ChainBuilder.INSTANCE.build(ChainActionTransformer.INSTANCE, action);
   }
 
+  public static Handler chain(final Handler... handlers) {
+    return new ChainHandler(Arrays.asList(handlers));
+  }
+
+  /**
+   * A handler that changes the {@link org.ratpackframework.file.FileSystemBinding} for the given handler.
+   * <p>
+   * The new file system binding will be created by the {@link org.ratpackframework.file.FileSystemBinding#binding(String)} method of the contextual binding.
+   *
+   * @param path The relative path to the new file system binding point
+   * @param handler The handler to execute with the new file system binding
+   * @return A handler
+   */
   public static Handler fileSystem(String path, Handler handler) {
     return new FileSystemContextHandler(new File(path), handler);
   }
 
+  /**
+   * A handler that changes the {@link org.ratpackframework.file.FileSystemBinding} for the given handler chain.
+   * <p>
+   * The new file system binding will be created by the {@link org.ratpackframework.file.FileSystemBinding#binding(String)} method of the contextual binding.
+   *
+   * @param path The relative path to the new file system binding point
+   * @param builder The definition of the handler chain
+   * @return A handler
+   */
   public static Handler fileSystem(String path, Action<? super Chain> builder) {
     return fileSystem(path, chain(builder));
   }
 
+  /**
+   * A handler that serves static assets at the given file system path, relative to the contextual file system binding.
+   * <p>
+   * See {@link #assets(String, String[], Handler)} for the definition of how what to serve is calculated.
+   * <p>
+   * No "index files" will be used.
+   *
+   * @param path The relative path to the location of the assets to serve
+   * @param notFound The handler to delegate to if no file matches the request
+   * @return A handler
+   */
   public static Handler assets(String path, Handler notFound) {
     return assets(path, new String[0], notFound);
   }
 
+  /**
+   * A handler that serves static assets at the given file system path, relative to the contextual file system binding.
+   * <p>
+   * See {@link #assets(String, String[], Handler)} for the definition of how what to serve is calculated.
+   * <p>
+   * If no file can be found to serve, the exchange will be delegated to the next handler in the chain.
+   *
+   * @param path The relative path to the location of the assets to serve
+   * @param indexFiles The index files to try if the request is for a directory
+   * @return A handler
+   */
   public static Handler assets(String path, String... indexFiles) {
     return assets(path, indexFiles, next());
   }
 
+  /**
+   * A handler that serves static assets at the given file system path, relative to the contextual file system binding.
+   * <p>
+   * The file to serve is calculated based on the contextual {@link org.ratpackframework.file.FileSystemBinding} and the
+   * contextual {@link org.ratpackframework.path.PathBinding}.
+   * The {@link org.ratpackframework.path.PathBinding#getPastBinding()} of the contextual path binding is used to find a file/directory
+   * relative to the contextual file system binding.
+   * <p>
+   * If the request matches a directory, an index file may be served.
+   * The {@code indexFiles} array specifies the names of files to look for in order to serve.
+   * <p>
+   * If no file can be found to serve, the exchange will be delegated to the given handler.
+   *
+   * @param path The relative path to the location of the assets to serve
+   * @param indexFiles The index files to try if the request is for a directory
+   * @param notFound The handler to delegate to if no file could be found to serve
+   * @return A handler
+   */
   public static Handler assets(String path, String[] indexFiles, final Handler notFound) {
     Handler fileHandler = FileStaticAssetRequestHandler.INSTANCE;
     Handler directoryHandler = new DirectoryStaticAssetRequestHandler(Arrays.asList(indexFiles), fileHandler);
@@ -152,22 +214,13 @@ public abstract class Handlers {
     return fileSystem(path, chain(contextSetter, notFound));
   }
 
-  public static Handler assetsPath(String uriPath, String fsPath, Handler notFound) {
-    return path(uriPath, assets(fsPath, notFound));
-  }
-
-  public static Handler assetsPath(String uriPath, String fsPath, String... indexFiles) {
-    return path(uriPath, assets(fsPath, indexFiles));
-  }
-
-  public static Handler assetsPath(String uriPath, String fsPath, String[] indexFiles, final Handler notFound) {
-    return path(uriPath, assets(fsPath, indexFiles, notFound));
-  }
-
-  public static Handler chain(final Handler... handlers) {
-    return new ChainHandler(Arrays.asList(handlers));
-  }
-
+  /**
+   * A handler that simply delegates to the next handler.
+   * <p>
+   * Effectively a noop.
+   *
+   * @return A handler
+   */
   public static Handler next() {
     return NextHandler.INSTANCE;
   }
