@@ -29,10 +29,8 @@ public class TokenPathBinder implements PathBinder {
 
   private final List<String> tokenNames;
   private final Pattern regex;
-  private final boolean exact;
 
   public TokenPathBinder(String path, boolean exact) {
-    this.exact = exact;
     Validations.noLeadingForwardSlash(path, "token path");
 
     List<String> names = new LinkedList<String>();
@@ -53,7 +51,7 @@ public class TokenPathBinder implements PathBinder {
       regex = Pattern.compile(pattern.concat("(?:/.*)?"));
     }
 
-    this.tokenNames = Collections.unmodifiableList(names);
+    this.tokenNames = names;
   }
 
   public PathBinding bind(String path, PathBinding parentBinding) {
