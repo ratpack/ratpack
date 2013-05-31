@@ -22,7 +22,7 @@ import org.ratpackframework.util.Action;
 
 public abstract class Closures {
 
-  public static <T, R> R configure(T object, @DelegatesTo(target = "object") Closure<R> configurer) {
+  public static <T, R> R configure(@DelegatesTo.Target T object, @DelegatesTo(strategy = Closure.DELEGATE_FIRST) Closure<R> configurer) {
     if (configurer == null) {
       return null;
     }
