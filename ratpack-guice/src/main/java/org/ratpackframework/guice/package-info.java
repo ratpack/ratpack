@@ -16,5 +16,7 @@
 
 /**
  * Integration with <a href="https://code.google.com/p/google-guice/">Google Guice</a>.
+ *
+ * @see org.ratpackframework.guice.Guice
  */
 package org.ratpackframework.guice;

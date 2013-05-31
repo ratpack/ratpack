@@ -72,7 +72,7 @@ import org.ratpackframework.handling.Handler;
  * }
  * </pre>
  *
- * @see GuiceBackedHandlerFactory
+ * @see org.ratpackframework.guice.Guice#handler(org.ratpackframework.util.Action, org.ratpackframework.handling.Handler)
  */
 public interface HandlerDecoratingModule extends Module {
 

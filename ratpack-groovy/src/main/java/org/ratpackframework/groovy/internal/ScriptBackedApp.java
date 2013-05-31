@@ -23,7 +23,7 @@ import org.ratpackframework.groovy.Closures;
 import org.ratpackframework.groovy.handling.Chain;
 import org.ratpackframework.groovy.handling.internal.GroovyDslChainActionTransformer;
 import org.ratpackframework.groovy.script.internal.ScriptEngine;
-import org.ratpackframework.guice.GuiceBackedHandlerFactory;
+import org.ratpackframework.guice.internal.GuiceBackedHandlerFactory;
 import org.ratpackframework.guice.ModuleRegistry;
 import org.ratpackframework.handling.internal.ChainBuilder;
 import org.ratpackframework.reload.internal.ReloadableFileBackedFactory;

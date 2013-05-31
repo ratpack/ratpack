@@ -16,19 +16,17 @@
 
 package org.ratpackframework.guice;
 
-import org.ratpackframework.guice.internal.DefaultGuiceBackedHandlerFactory;
-import org.ratpackframework.guice.internal.InjectingHandler;
-import org.ratpackframework.handling.Handler;
-import org.ratpackframework.util.Action;
+import com.google.inject.Module;
 
-public abstract class Injection {
+/**
+ * Thrown when a module is requested that does not exist.
+ */
+public class NoSuchModuleException extends IllegalArgumentException {
 
-  public static Handler handler(Class<? extends Handler> handlerType) {
-    return new InjectingHandler(handlerType);
-  }
+  private static final long serialVersionUID = 0;
 
-  public static Handler handler(Action<? super ModuleRegistry> moduleConfigurer, Handler handler) {
-    return new DefaultGuiceBackedHandlerFactory().create(moduleConfigurer, handler);
+  public NoSuchModuleException(Class<? extends Module> type) {
+    super(String.format("No module of type '%s' found", type.getName()));
   }
 
 }

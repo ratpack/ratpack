@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.guice;
+package org.ratpackframework.guice.internal;
 
+import org.ratpackframework.guice.ModuleRegistry;
 import org.ratpackframework.handling.Handler;
 import org.ratpackframework.util.Action;
 

@@ -17,7 +17,7 @@
 package org.ratpackframework.test.groovy
 
 import org.ratpackframework.groovy.bootstrap.GroovyKitAppFactory
-import org.ratpackframework.guice.GuiceBackedHandlerFactory
+import org.ratpackframework.guice.internal.GuiceBackedHandlerFactory
 
 abstract class RatpackGroovyAppSpec extends RatpackGroovyDslSpec {
 

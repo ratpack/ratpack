@@ -18,7 +18,7 @@ package ratpack;
 
 import org.ratpackframework.bootstrap.RatpackServer;
 import org.ratpackframework.bootstrap.RatpackServerBuilder;
-import org.ratpackframework.guice.Injection;
+import org.ratpackframework.guice.Guice;
 import org.ratpackframework.handling.Chain;
 import org.ratpackframework.handling.Handler;
 import org.ratpackframework.util.Action;
@@ -32,9 +32,9 @@ public class Main {
 
   public static void main(String[] args) throws Exception {
 
-    Handler handler = Injection.handler(new ModuleBootstrap(), chain(new Action<Chain>() {
+    Handler handler = Guice.handler(new ModuleBootstrap(), chain(new Action<Chain>() {
       public void execute(Chain chain) {
-        chain.add(get(Injection.handler(InjectedHandler.class)));
+        chain.add(get(Guice.handler(InjectedHandler.class)));
       }
     }));
 
