@@ -22,7 +22,6 @@ import org.ratpackframework.handling.Chain;
 import org.ratpackframework.handling.Exchange;
 import org.ratpackframework.handling.Handler;
 import org.ratpackframework.handling.Handlers;
-import org.ratpackframework.http.internal.MethodHandler;
 import org.ratpackframework.util.Action;
 
 public abstract class ClosureHandlers {
@@ -60,23 +59,23 @@ public abstract class ClosureHandlers {
   }
 
   public static Handler get(String path, @DelegatesTo(value = Exchange.class, strategy = Closure.DELEGATE_FIRST) final Closure<?> closure) {
-    return Handlers.path(path, MethodHandler.GET, handler(closure));
+    return Handlers.path(path, Handlers.get(), handler(closure));
   }
 
   public static Handler get(@DelegatesTo(value = Exchange.class, strategy = Closure.DELEGATE_FIRST) final Closure<?> closure) {
-    return Handlers.path("", MethodHandler.GET, handler(closure));
+    return Handlers.path("", Handlers.get(), handler(closure));
   }
 
   public static Handler post(String path, @DelegatesTo(value = Exchange.class, strategy = Closure.DELEGATE_FIRST) final Closure<?> closure) {
-    return Handlers.path(path, MethodHandler.POST, handler(closure));
+    return Handlers.path(path, Handlers.post(), handler(closure));
   }
 
   public static Handler put(String path, @DelegatesTo(value = Exchange.class, strategy = Closure.DELEGATE_FIRST) final Closure<?> closure) {
-    return Handlers.path(path, MethodHandler.PUT, handler(closure));
+    return Handlers.path(path, Handlers.put(), handler(closure));
   }
 
   public static Handler delete(String path, @DelegatesTo(value = Exchange.class, strategy = Closure.DELEGATE_FIRST) final Closure<?> closure) {
-    return Handlers.path(path, MethodHandler.DELETE, handler(closure));
+    return Handlers.path(path, Handlers.delete(), handler(closure));
   }
 
 }

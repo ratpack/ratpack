@@ -226,19 +226,35 @@ public abstract class Handlers {
   }
 
   public static Handler get(String path, Handler handler) {
-    return path(path, MethodHandler.GET, handler);
+    return path(path, get(), handler);
   }
 
   public static Handler get(Handler handler) {
-    return path("", MethodHandler.GET, handler);
+    return path("", get(), handler);
+  }
+
+  public static Handler get() {
+    return MethodHandler.GET;
   }
 
   public static Handler post(String path, Handler handler) {
-    return path(path, MethodHandler.POST, handler);
+    return path(path, post(), handler);
   }
 
   public static Handler post(Handler handler) {
-    return path("", MethodHandler.POST, handler);
+    return path("", post(), handler);
+  }
+
+  public static Handler post() {
+    return MethodHandler.POST;
+  }
+
+  public static Handler put() {
+    return MethodHandler.PUT;
+  }
+
+  public static Handler delete() {
+    return MethodHandler.DELETE;
   }
 
   public static Handler prefix(String path, Action<? super Chain> builder) {
