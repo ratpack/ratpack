@@ -7,9 +7,9 @@ $logo-inverted: 'ratpack-logo-white.png';
 
 @mixin skewed-background-scale($base-size) {
 	&:before {
-		top: $base-size * 0.25;
+		top: $base-size * 0.225;
 		height: $base-size * 0.75;
-		left: $base-size * 0.375;
+		left: $base-size * 0.25;
 		width: $base-size * 2.1875;
 		.backgroundsize & {
 			width: $base-size * 3.125;
@@ -36,7 +36,7 @@ $logo-inverted: 'ratpack-logo-white.png';
 		content: " ";
 		position: absolute;
 		z-index: -1;
-		@include rotate(-4deg);
+		@include transform(rotate(-4deg) scaleY(1.15));
 		@include antialias;
 		@include noise-background;
 	}
