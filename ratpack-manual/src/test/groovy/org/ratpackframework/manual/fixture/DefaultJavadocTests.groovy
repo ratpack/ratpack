@@ -14,31 +14,23 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.manual
+package org.ratpackframework.manual.fixture
 
-import junit.framework.TestCase
-import junit.framework.TestSuite
+import org.junit.runner.Runner
 
-class JavaDocTestSuite extends TestCase {
+class DefaultJavadocTests implements JavadocTests {
 
-  static TestSuite suite()  {
-    File cwd = new File(System.getProperty("user.dir"))
-    File root
-    if (new File(cwd, "ratpack-manual.gradle").exists()) {
-      root = cwd.parentFile
-    } else {
-      root = cwd
-    }
+  private final Class<?> clazz
+  private final List<Runner> runners
 
-    def suite = new TestSuite()
-    root.eachDirMatch(~/ratpack-.+/) {
-      def mainSrc = new File(it, "src/main")
-      if (mainSrc.exists()) {
-        suite.addTest(JavadocAssertionTestSuite.suite(mainSrc.absolutePath))
-      }
-    }
-
-    suite
+  DefaultJavadocTests(Class<?> clazz, List<Runner> runners) {
+    this.clazz = clazz
+    this.runners = runners
   }
+
+  public void testCodeSnippets(File root, String include) {
+    runners.addAll(JavadocCodeSnippetRunnerBuilder.build(clazz, root, include))
+  }
+
 
 }

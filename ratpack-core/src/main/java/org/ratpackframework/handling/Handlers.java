@@ -34,7 +34,7 @@ import java.util.Arrays;
  * Factory methods for certain types of handlers.
  * <p>
  * Typically used by {@link Chain} implementations to build a handler chain.
- * <pre class="groovyTestCase">
+ * <pre class="tested">
  * import static org.ratpackframework.handling.Handlers.*;
  * import org.ratpackframework.handling.Handler;
  * import org.ratpackframework.handling.Chain;
@@ -51,7 +51,7 @@ import java.util.Arrays;
  *   void execute(Chain chain) {
  *     chain.add(assets("public"));
  *     chain.add(get("info", new ExampleHandler()));
- *     chain.add(path("api", new Action&lt;Chain&gt;() {
+ *     chain.add(prefix("api", new Action&lt;Chain&gt;() {
  *       void execute(Chain apiChain) {
  *         apiChain.add(get("version", new ExampleHandler()));
  *         apiChain.add(get("log", new ExampleHandler()));
@@ -59,7 +59,6 @@ import java.util.Arrays;
  *     }));
  *   }
  * }
- * 0;
  * </pre>
  */
 public abstract class Handlers {
