@@ -19,11 +19,11 @@ ratpack {
       next()
     }
 
-    path("manual/snapshot") {
+    prefix("manual/snapshot") {
       assets "public/manual/$snapshotVersion", indexPages
     }
 
-    path("manual/current") {
+    prefix("manual/current") {
       assets "public/manual/$currentVersion", indexPages
     }
 

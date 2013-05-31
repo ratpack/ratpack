@@ -24,7 +24,7 @@ import org.ratpackframework.api.Nullable;
  * They are used to conditionally execute handlers based on the request path.
  *
  * @see org.ratpackframework.handling.Handlers#path(String, org.ratpackframework.handling.Handler)
- * @see org.ratpackframework.handling.Handlers#path(String, org.ratpackframework.util.Action)
+ * @see org.ratpackframework.handling.Handlers#prefix(String, org.ratpackframework.util.Action)
  * @see org.ratpackframework.handling.Handlers#pathBinding(PathBinder, org.ratpackframework.handling.Handler)
  */
 public interface PathBinder {

@@ -33,11 +33,11 @@ class BasicGroovyDslSpec extends RatpackGroovyDslSpec {
         post("b") {
           response.send "b handler"
         }
-        path(":first") {
+        prefix(":first") {
           get(":second") {
             response.send allPathTokens.toString()
           }
-          handler("c/:second") {
+          path("c/:second") {
             response.send allPathTokens.toString()
           }
         }
@@ -84,7 +84,7 @@ class BasicGroovyDslSpec extends RatpackGroovyDslSpec {
     when:
     app {
       handlers {
-        handler("foo") {
+        path("foo") {
           def prefix = "common"
 
           methods.get {

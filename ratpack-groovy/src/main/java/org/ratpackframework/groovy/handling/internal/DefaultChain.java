@@ -17,10 +17,8 @@
 package org.ratpackframework.groovy.handling.internal;
 
 import groovy.lang.Closure;
-import groovy.lang.DelegatesTo;
 import org.ratpackframework.groovy.ClosureHandlers;
 import org.ratpackframework.groovy.handling.Chain;
-import org.ratpackframework.handling.Exchange;
 import org.ratpackframework.handling.Handler;
 import org.ratpackframework.handling.Handlers;
 import org.ratpackframework.handling.internal.ChainBuilder;
@@ -45,12 +43,12 @@ public class DefaultChain implements Chain {
     add(chainBuildingHandler(handlers));
   }
 
-  public void path(String path, Closure<?> handlers) {
-    add(Handlers.path(path, chainBuildingHandler(handlers)));
+  public void prefix(String path, Closure<?> handlers) {
+    add(Handlers.prefix(path, chainBuildingHandler(handlers)));
   }
 
-  public void handler(String path, @DelegatesTo(value = Exchange.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler) {
-    add(Handlers.handler(path, ClosureHandlers.handler(handler)));
+  public void path(String path, Closure<?> handler) {
+    add(Handlers.path(path, ClosureHandlers.handler(handler)));
   }
 
   public void get(String path, Closure<?> handler) {
@@ -77,7 +75,7 @@ public class DefaultChain implements Chain {
     add(Handlers.context(object, chainBuildingHandler(handlers)));
   }
 
-  public <T> void context(Class<? super T> type, T object, @DelegatesTo(value = Chain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handlers) {
+  public <T> void context(Class<? super T> type, T object, Closure<?> handlers) {
     add(Handlers.context(type, object, chainBuildingHandler(handlers)));
   }
 

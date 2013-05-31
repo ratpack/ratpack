@@ -23,22 +23,20 @@ import org.ratpackframework.path.PathBinding;
 
 import java.util.List;
 
-import static java.util.Collections.singletonList;
-
 public class PathHandler implements Handler {
 
   private final PathBinder binding;
-  private final List<Handler> delegate;
+  private final List<Handler> chain;
 
-  public PathHandler(PathBinder binding, Handler delegate) {
+  public PathHandler(PathBinder binding, List<Handler> chain) {
     this.binding = binding;
-    this.delegate = singletonList(delegate);
+    this.chain = chain;
   }
 
   public void handle(Exchange exchange) {
     PathBinding childBinding = binding.bind(exchange.getRequest().getPath(), exchange.maybeGet(PathBinding.class));
     if (childBinding != null) {
-      exchange.insert(exchange.getContext().plus(PathBinding.class, childBinding), delegate);
+      exchange.insert(exchange.getContext().plus(PathBinding.class, childBinding), chain);
     } else {
       exchange.next();
     }

@@ -52,31 +52,31 @@ public abstract class ClosureHandlers {
   }
 
   public static Handler path(String path, @DelegatesTo(value = Chain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handlers) {
-    return Handlers.path(path, chain(handlers));
+    return Handlers.prefix(path, chain(handlers));
   }
 
   public static Handler handler(String path, @DelegatesTo(value = Exchange.class, strategy = Closure.DELEGATE_FIRST) final Closure<?> closure) {
-    return Handlers.handler(path, handler(closure));
+    return Handlers.path(path, handler(closure));
   }
 
   public static Handler get(String path, @DelegatesTo(value = Exchange.class, strategy = Closure.DELEGATE_FIRST) final Closure<?> closure) {
-    return Handlers.handler(path, Handlers.chain(MethodHandler.GET, handler(closure)));
+    return Handlers.path(path, MethodHandler.GET, handler(closure));
   }
 
   public static Handler get(@DelegatesTo(value = Exchange.class, strategy = Closure.DELEGATE_FIRST) final Closure<?> closure) {
-    return Handlers.handler("", Handlers.chain(MethodHandler.GET, handler(closure)));
+    return Handlers.path("", MethodHandler.GET, handler(closure));
   }
 
   public static Handler post(String path, @DelegatesTo(value = Exchange.class, strategy = Closure.DELEGATE_FIRST) final Closure<?> closure) {
-    return Handlers.handler(path, Handlers.chain(MethodHandler.POST, handler(closure)));
+    return Handlers.path(path, MethodHandler.POST, handler(closure));
   }
 
   public static Handler put(String path, @DelegatesTo(value = Exchange.class, strategy = Closure.DELEGATE_FIRST) final Closure<?> closure) {
-    return Handlers.handler(path, Handlers.chain(MethodHandler.PUT, handler(closure)));
+    return Handlers.path(path, MethodHandler.PUT, handler(closure));
   }
 
   public static Handler delete(String path, @DelegatesTo(value = Exchange.class, strategy = Closure.DELEGATE_FIRST) final Closure<?> closure) {
-    return Handlers.handler(path, Handlers.chain(MethodHandler.DELETE, handler(closure)));
+    return Handlers.path(path, MethodHandler.DELETE, handler(closure));
   }
 
 }

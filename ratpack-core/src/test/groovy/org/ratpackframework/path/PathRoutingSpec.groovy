@@ -145,5 +145,6 @@ class PathRoutingSpec extends DefaultRatpackSpec {
     then:
     getText() == "root"
     getText("a") == "a"
+    get("a/b/c").statusCode == 404
   }
 }

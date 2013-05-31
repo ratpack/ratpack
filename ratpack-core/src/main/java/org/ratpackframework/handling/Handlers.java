@@ -226,31 +226,35 @@ public abstract class Handlers {
   }
 
   public static Handler get(String path, Handler handler) {
-    return path(path, chain(MethodHandler.GET, handler));
+    return path(path, MethodHandler.GET, handler);
   }
 
   public static Handler get(Handler handler) {
-    return path("", chain(MethodHandler.GET, handler));
+    return path("", MethodHandler.GET, handler);
   }
 
   public static Handler post(String path, Handler handler) {
-    return path(path, chain(MethodHandler.POST, handler));
+    return path(path, MethodHandler.POST, handler);
   }
 
-  public static Handler path(String path, Action<? super Chain> builder) {
-    return path(path, chain(builder));
+  public static Handler post(Handler handler) {
+    return path("", MethodHandler.POST, handler);
   }
 
-  public static Handler path(String path, Handler handler) {
-    return pathBinding(new TokenPathBinder(path, false), handler);
+  public static Handler prefix(String path, Action<? super Chain> builder) {
+    return prefix(path, chain(builder));
   }
 
-  public static Handler handler(String path, Handler handler) {
-    return pathBinding(new TokenPathBinder(path, true), handler);
+  public static Handler prefix(String path, Handler... handlers) {
+    return path(new TokenPathBinder(path, false), handlers);
   }
 
-  public static Handler pathBinding(PathBinder pathBinder, Handler handler) {
-    return new PathHandler(pathBinder, handler);
+  public static Handler path(String path, Handler... handlers) {
+    return path(new TokenPathBinder(path, true), handlers);
+  }
+
+  public static Handler path(PathBinder pathBinder, Handler... handlers) {
+    return new PathHandler(pathBinder, Arrays.asList(handlers));
   }
 
 }
