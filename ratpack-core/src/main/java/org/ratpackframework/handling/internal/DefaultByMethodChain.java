@@ -44,6 +44,14 @@ public class DefaultByMethodChain implements ByMethodChain {
     return named("post", runnable);
   }
 
+  public ByMethodChain put(Runnable runnable) {
+    return named("put", runnable);
+  }
+
+  public ByMethodChain delete(Runnable runnable) {
+    return named("delete", runnable);
+  }
+
   public ByMethodChain named(String methodName, Runnable runnable) {
     runnables.put(methodName.toLowerCase(), runnable);
     return this;
@@ -68,7 +76,7 @@ public class DefaultByMethodChain implements ByMethodChain {
   }
 
   public void send() {
-    List<Handler> handlers = new ArrayList<Handler>(runnables.size());
+    List<Handler> handlers = new ArrayList<Handler>(runnables.size() + 1);
     for (Map.Entry<String, Runnable> entry : runnables.entrySet()) {
       handlers.add(new ByMethodHandler(entry.getKey(), entry.getValue()));
     }
