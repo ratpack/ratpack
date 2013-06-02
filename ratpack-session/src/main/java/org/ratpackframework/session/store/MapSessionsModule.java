@@ -32,21 +32,30 @@ import javax.inject.Singleton;
  */
 public class MapSessionsModule extends AbstractModule implements HandlerDecoratingModule {
 
-  private final int maxEntries;
-  private final int ttlMinutes;
+  public static final int DEFAULT_MAX_ENTRIES = 100;
+  public static final int DEFAULT_MAX_IDLE_TIMEOUT_MINUTES = 60;
 
-  public MapSessionsModule(int maxEntries, int ttlMinutes) {
+  private final int maxEntries;
+  private final int idleTimeoutMinutes;
+
+  @SuppressWarnings("UnusedDeclaration")
+  public MapSessionsModule() {
+    this(DEFAULT_MAX_ENTRIES, DEFAULT_MAX_IDLE_TIMEOUT_MINUTES);
+  }
+
+  public MapSessionsModule(int maxEntries, int idleTimeoutMinutes) {
     this.maxEntries = maxEntries;
-    this.ttlMinutes = ttlMinutes;
+    this.idleTimeoutMinutes = idleTimeoutMinutes;
   }
 
   @Override
   protected void configure() {}
 
+  @SuppressWarnings("UnusedDeclaration")
   @Provides
   @Singleton
   MapSessionStore provideMapSessionStore(SessionManager sessionManager) {
-    DefaultMapSessionStore defaultMapSessionStore = new DefaultMapSessionStore(maxEntries, ttlMinutes);
+    DefaultMapSessionStore defaultMapSessionStore = new DefaultMapSessionStore(maxEntries, idleTimeoutMinutes);
     sessionManager.addSessionListener(defaultMapSessionStore);
     return defaultMapSessionStore;
   }

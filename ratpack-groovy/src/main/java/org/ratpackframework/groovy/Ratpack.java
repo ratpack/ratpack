@@ -21,10 +21,25 @@ import groovy.lang.DelegatesTo;
 import org.ratpackframework.groovy.handling.Chain;
 import org.ratpackframework.guice.ModuleRegistry;
 
+/**
+ * The definition of a Groovy Ratpack application.
+ *
+ * @see RatpackScript#ratpack(groovy.lang.Closure)
+ */
 public interface Ratpack {
 
+  /**
+   * Registers the closure used to configure the {@link ModuleRegistry} that will back the application.
+   *
+   * @param configurer The configuration closure, delegating to {@link ModuleRegistry}
+   */
   void modules(@DelegatesTo(value = ModuleRegistry.class, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer);
 
+  /**
+   * Registers the closure used to build the handler chain of the application.
+   *
+   * @param configurer The configuration closure, delegating to {@link Chain}
+   */
   void handlers(@DelegatesTo(value = Chain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer);
 
 }

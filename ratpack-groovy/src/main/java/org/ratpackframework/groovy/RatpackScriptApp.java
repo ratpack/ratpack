@@ -18,7 +18,7 @@ package org.ratpackframework.groovy;
 
 import org.ratpackframework.bootstrap.RatpackServer;
 import org.ratpackframework.bootstrap.RatpackServerBuilder;
-import org.ratpackframework.groovy.bootstrap.GroovyKitAppFactory;
+import org.ratpackframework.groovy.bootstrap.internal.GroovyKitAppFactory;
 import org.ratpackframework.groovy.internal.ScriptBackedApp;
 import org.ratpackframework.handling.Handler;
 
@@ -27,8 +27,33 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Properties;
 
+/**
+ * Factory methods for starting Groovy script based Ratpack applications.
+ * <p>
+ * Script apps are based on a Groovy script, that ultimately calls the {@link RatpackScript#ratpack(groovy.lang.Closure)} method.
+ * <h3>Features</h3>
+ * Ratpack script apps have more features than plain Ratpack applications.
+ * <h4>Guice Support</h4>
+ * Script apps are Guice backed, via the {@link org.ratpackframework.guice.Guice Ratpack Guice integration}.
+ * <h4>Templating Support</h4>
+ * Support for Groovy based templates is provided by the {@link org.ratpackframework.groovy.templating.TemplatingModule}.
+ * <h4>Session Support</h4>
+ * Support for session tracking is provided by the {@link org.ratpackframework.session.SessionModule}.
+ * This does not include session based storage.
+ * For this, you can add the {@link org.ratpackframework.session.store.MapSessionsModule} module (or add your own storage mechanism).
+ * <h4>Runtime reloading</h4>
+ * See {@link #ratpack(java.io.File, java.io.File, int, java.net.InetAddress, boolean, boolean)}
+ */
 public abstract class RatpackScriptApp {
 
+  private RatpackScriptApp() {}
+
+  /**
+   * Calls {@link #ratpack(java.io.File, java.util.Properties)} with the given script and {@link System#getProperties()} as the properties argument.
+   *
+   * @param script The script that defines the ratpack application
+   * @return A not yet started {@link RatpackServer}
+   */
   public static RatpackServer ratpack(File script) {
     return ratpack(script, System.getProperties());
   }
