@@ -28,8 +28,8 @@ import org.ratpackframework.handling.Chain
 import org.ratpackframework.util.Action
 
 import static Handlers.chain
-import static org.ratpackframework.groovy.Closures.action
-import static org.ratpackframework.groovy.Closures.configure
+import static org.ratpackframework.groovy.util.Closures.action
+import static org.ratpackframework.groovy.util.Closures.configure
 
 abstract class DefaultRatpackSpec extends InternalRatpackSpec {
 

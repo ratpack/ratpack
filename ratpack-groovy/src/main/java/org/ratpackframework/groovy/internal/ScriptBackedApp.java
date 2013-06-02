@@ -19,7 +19,7 @@ package org.ratpackframework.groovy.internal;
 import groovy.lang.Closure;
 import groovy.lang.Script;
 import io.netty.buffer.ByteBuf;
-import org.ratpackframework.groovy.Closures;
+import org.ratpackframework.groovy.util.Closures;
 import org.ratpackframework.groovy.handling.Chain;
 import org.ratpackframework.groovy.handling.internal.GroovyDslChainActionTransformer;
 import org.ratpackframework.groovy.script.internal.ScriptEngine;

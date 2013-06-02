@@ -24,9 +24,9 @@ import spock.lang.Unroll
 import static io.netty.handler.codec.http.HttpHeaders.Names.*
 import static io.netty.handler.codec.http.HttpResponseStatus.NOT_MODIFIED
 import static io.netty.handler.codec.http.HttpResponseStatus.OK
-import static org.ratpackframework.groovy.ClosureHandlers.fileSystem
-import static org.ratpackframework.groovy.ClosureHandlers.handler
-import static org.ratpackframework.groovy.ClosureHandlers.path
+import static org.ratpackframework.groovy.handling.ClosureHandlers.fileSystem
+import static org.ratpackframework.groovy.handling.ClosureHandlers.handler
+import static org.ratpackframework.groovy.handling.ClosureHandlers.path
 import static org.ratpackframework.handling.Handlers.assets
 
 class StaticFileSpec extends DefaultRatpackSpec {

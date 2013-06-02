@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.groovy;
+package org.ratpackframework.groovy.handling;
 
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
+import org.ratpackframework.groovy.util.Closures;
 import org.ratpackframework.handling.Chain;
 import org.ratpackframework.handling.Exchange;
 import org.ratpackframework.handling.Handler;

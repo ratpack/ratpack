@@ -18,7 +18,7 @@ package org.ratpackframework.test.groovy
 
 import org.ratpackframework.bootstrap.RatpackServer
 import org.ratpackframework.groovy.RatpackScript
-import org.ratpackframework.groovy.RatpackScriptApp
+import org.ratpackframework.groovy.bootstrap.RatpackScriptApp
 import org.ratpackframework.test.InternalRatpackSpec
 
 abstract class RatpackGroovyScriptAppSpec extends InternalRatpackSpec {

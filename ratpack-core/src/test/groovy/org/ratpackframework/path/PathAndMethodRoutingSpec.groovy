@@ -18,7 +18,7 @@ package org.ratpackframework.path
 
 import org.ratpackframework.test.DefaultRatpackSpec
 
-import static org.ratpackframework.groovy.ClosureHandlers.*
+import static org.ratpackframework.groovy.handling.ClosureHandlers.*
 
 class PathAndMethodRoutingSpec extends DefaultRatpackSpec {
 

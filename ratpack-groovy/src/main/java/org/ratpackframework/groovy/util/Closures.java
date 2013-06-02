@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.groovy;
+package org.ratpackframework.groovy.util;
 
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;

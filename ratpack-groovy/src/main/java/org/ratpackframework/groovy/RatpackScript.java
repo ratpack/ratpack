@@ -60,7 +60,7 @@ abstract public class RatpackScript {
    * In such a mode, a script like above is still used to define the application, but the script is no longer the entry point.
    * Ratpack will manage the compilation and execution of the script internally.
    * <h3>Groovy app features</h3>
-   * See {@link RatpackScriptApp} for details on what features are available to Groovy Ratpack applications.
+   * See {@link org.ratpackframework.groovy.bootstrap.RatpackScriptApp} for details on what features are available to Groovy Ratpack applications.
    *
    * @param closure The definition closure, delegating to {@link Ratpack}
    */

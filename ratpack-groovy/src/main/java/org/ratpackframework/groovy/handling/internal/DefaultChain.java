@@ -17,7 +17,7 @@
 package org.ratpackframework.groovy.handling.internal;
 
 import groovy.lang.Closure;
-import org.ratpackframework.groovy.ClosureHandlers;
+import org.ratpackframework.groovy.handling.ClosureHandlers;
 import org.ratpackframework.groovy.handling.Chain;
 import org.ratpackframework.handling.Handler;
 import org.ratpackframework.handling.Handlers;
@@ -25,7 +25,7 @@ import org.ratpackframework.handling.internal.ChainBuilder;
 
 import java.util.List;
 
-import static org.ratpackframework.groovy.Closures.action;
+import static org.ratpackframework.groovy.util.Closures.action;
 
 public class DefaultChain implements Chain {
 
