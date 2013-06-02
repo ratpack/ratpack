@@ -54,13 +54,6 @@ apiModules.each { evaluationDependsOn(it.path) }
 task configureApi << {
   api {
     apiModules.each {
-      source it.sourceSets.main.java
-      classpath += it.sourceSets.main.compileClasspath + it.sourceSets.main.output
-
-      if (it.hasProperty("apiLinks")) {
-        options.links(*it.apiLinks)
-      }
-
       def packages = []
       def root = it.file("src/main/java")
       root.eachDirRecurse {
@@ -96,6 +89,15 @@ task api(type: Javadoc, dependsOn: configureApi) {
 
   classpath = files()
   destinationDir = file("$buildDir/api")
+
+  apiModules.each {
+    source it.sourceSets.main.java
+    classpath += it.sourceSets.main.compileClasspath + it.sourceSets.main.output
+
+    if (it.hasProperty("apiLinks")) {
+      options.links(* it.apiLinks)
+    }
+  }
 
   configure(options) {
     splitIndex true
@@ -232,7 +234,7 @@ task packageManual(type: Sync) {
   into "$buildDir/manual"
   from stylizeManual
 
-  into ("api") {
+  into("api") {
     from api
   }
 }
