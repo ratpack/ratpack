@@ -39,16 +39,16 @@ public class FileStaticAssetRequestHandler implements Handler {
     Request request = exchange.getRequest();
     Response response = exchange.getResponse();
 
-    if (!request.getMethod().isGet()) {
-      exchange.clientError(METHOD_NOT_ALLOWED.code());
-      return;
-    }
-
     FileSystemBinding fileSystemBinding = exchange.get(FileSystemBinding.class);
     File targetFile = fileSystemBinding.getFile();
 
     if (targetFile.isHidden() || !targetFile.exists()) {
       exchange.next();
+      return;
+    }
+
+    if (!request.getMethod().isGet()) {
+      exchange.clientError(METHOD_NOT_ALLOWED.code());
       return;
     }
 

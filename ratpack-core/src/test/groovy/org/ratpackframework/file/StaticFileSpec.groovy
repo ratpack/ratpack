@@ -28,6 +28,7 @@ import static org.ratpackframework.groovy.handling.ClosureHandlers.fileSystem
 import static org.ratpackframework.groovy.handling.ClosureHandlers.handler
 import static org.ratpackframework.groovy.handling.ClosureHandlers.path
 import static org.ratpackframework.handling.Handlers.assets
+import static org.ratpackframework.handling.Handlers.post
 
 class StaticFileSpec extends DefaultRatpackSpec {
 
@@ -213,6 +214,24 @@ class StaticFileSpec extends DefaultRatpackSpec {
     def response = get("file.txt")
     response.statusCode == 200
     parseDateHeader(response, LAST_MODIFIED) == new Date(file.lastModified())
+  }
+
+  def "404 when posting to a non existent asset"() {
+    given:
+    file("public/file.txt") << "a"
+
+    when:
+    app {
+      handlers {
+        add assets("public")
+      }
+    }
+
+    then:
+    this.get("file.txt").statusCode == 200
+    this.post("file.txt").statusCode == 405
+    this.get("nothing").statusCode == 404
+    this.post("nothing").statusCode == 404
   }
 
   @Unroll

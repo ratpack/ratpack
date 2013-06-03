@@ -37,6 +37,8 @@ public interface RatpackServer {
 
   /**
    * Returns {@code true} if the server is running.
+   *
+   * @return {@code true} if the server is running.
    */
   boolean isRunning();
 
