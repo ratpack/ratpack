@@ -38,4 +38,43 @@ class DefaultGroovyErrorHandlingSpec extends RatpackGroovyAppSpec {
     response.body.asString().contains "html"
   }
 
+  def "error handler is registered next() is not called"() {
+    given:
+    app {
+      handlers {
+        prefix("foo") {
+          handler {
+            throw new Exception("!")
+
+          }
+        }
+      }
+    }
+
+    when:
+    get("foo")
+
+    then:
+    response.statusCode == 500
+    response.body.asString().contains "html"
+  }
+
+  def "404 page is used"() {
+    given:
+    app {
+      handlers {
+        get("foo") {
+          response.send("foo")
+        }
+      }
+    }
+
+    when:
+    get("bar")
+
+    then:
+    response.statusCode == 404
+    response.body.asString().contains "html"
+  }
+
 }
