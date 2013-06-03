@@ -129,4 +129,26 @@ class SessionSpec extends RatpackGroovyDslSpec {
     then:
     getText() == "1"
   }
+
+  def "session cookies are only set when needed"() {
+    when:
+    app {
+      handlers {
+        get("foo") {
+          response.send("foo")
+        }
+        get("bar") {
+          get(SessionStorage) // just retrieve
+          response.send("bar")
+        }
+      }
+    }
+
+    then:
+    get("foo").cookies().isEmpty()
+    get("bar").cookies().JSESSIONID != null
+
+    // null because the session id is already set
+    get("bar").cookies().JSESSIONID == null
+  }
 }

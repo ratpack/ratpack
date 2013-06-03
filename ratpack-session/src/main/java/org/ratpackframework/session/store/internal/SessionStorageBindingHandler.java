@@ -37,13 +37,12 @@ public class SessionStorageBindingHandler implements Handler {
     this.handler = singletonList(handler);
   }
 
-  public void handle(Exchange exchange) {
+  public void handle(final Exchange exchange) {
     final MapSessionStore mapSessionStore = exchange.get(MapSessionStore.class);
-
-    Session session = exchange.get(Session.class);
-    final String id = session.getId();
     Context sessionContext = new LazyHierarchicalContext(exchange.getContext(), SessionStorage.class, new Factory<SessionStorage>() {
       public SessionStorage create() {
+        Session session = exchange.get(Session.class);
+        final String id = session.getId();
         return mapSessionStore.get(id);
       }
     });
