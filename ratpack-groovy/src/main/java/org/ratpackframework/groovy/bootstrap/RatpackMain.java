@@ -54,7 +54,7 @@ public class RatpackMain {
     }
 
 
-    RatpackScriptApp.ratpack(ratpackFile).startAndWait();
+    RatpackScriptApp.ratpack(ratpackFile).start();
   }
 
 }

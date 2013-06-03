@@ -54,12 +54,12 @@ class StandaloneScriptSpec extends RatpackGroovyScriptAppSpec {
         throw new IllegalStateException("Server did not start")
       }
 
-      server.startAndWait()
+      server.start()
     }
 
     @Override
     protected void shutDown() throws Exception {
-      server?.stopAndWait()
+      server?.stop()
     }
 
     @Override

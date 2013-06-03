@@ -101,7 +101,7 @@ abstract class RequestingSpec extends Specification {
   }
 
   void stopServer() {
-    server?.stopAndWait()
+    server?.stop()
     server = null
   }
 

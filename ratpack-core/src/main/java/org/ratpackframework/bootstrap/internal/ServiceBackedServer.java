@@ -42,15 +42,8 @@ public class ServiceBackedServer implements RatpackServer {
     ratpackService.start().get();
   }
 
-  public void startAndWait() throws Exception {
-    ratpackService.startAndWait();
-  }
-
   public void stop() throws Exception {
     ratpackService.stop().get();
   }
 
-  public void stopAndWait() throws Exception {
-    ratpackService.stopAndWait();
-  }
 }

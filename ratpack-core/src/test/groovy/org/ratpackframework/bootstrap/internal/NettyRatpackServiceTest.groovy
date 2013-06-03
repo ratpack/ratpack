@@ -52,7 +52,7 @@ class NettyRatpackServiceTest extends Specification {
     cleanup:
     [server1, server2].each {
       if (it && it.running) {
-        it.stopAndWait()
+        it.stop()
       }
     }
   }

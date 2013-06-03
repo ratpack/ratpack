@@ -42,13 +42,20 @@ public interface RatpackServer {
    */
   boolean isRunning();
 
+  /**
+   * Starts the server, returning as soon as the server is up and ready to receive requests.
+   * <p>
+   * This will create new threads that are not daemonized.
+   *
+   * @throws Exception if the server could not be started
+   */
   void start() throws Exception;
 
-  void startAndWait() throws Exception;
-
+  /**
+   * Stops the server, returning as soon as the server has stopped receiving requests.
+   *
+   * @throws Exception if the server could not be stopped cleanly
+   */
   void stop() throws Exception;
-
-  void stopAndWait() throws Exception;
-
 
 }
