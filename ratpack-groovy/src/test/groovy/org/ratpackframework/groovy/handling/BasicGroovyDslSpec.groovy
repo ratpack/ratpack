@@ -35,10 +35,10 @@ class BasicGroovyDslSpec extends RatpackGroovyDslSpec {
         }
         prefix(":first") {
           get(":second") {
-            response.send allPathTokens.toString()
+            response.send new LinkedHashMap<>(allPathTokens).toString()
           }
           path("c/:second") {
-            response.send allPathTokens.toString()
+            response.send new LinkedHashMap<>(allPathTokens).toString()
           }
         }
         assets("public")

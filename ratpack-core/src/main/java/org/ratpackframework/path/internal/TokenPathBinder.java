@@ -16,11 +16,13 @@
 
 package org.ratpackframework.path.internal;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import org.ratpackframework.path.PathBinder;
 import org.ratpackframework.path.PathBinding;
 import org.ratpackframework.util.internal.Validations;
 
-import java.util.*;
+import java.util.List;
 import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -33,7 +35,7 @@ public class TokenPathBinder implements PathBinder {
   public TokenPathBinder(String path, boolean exact) {
     Validations.noLeadingForwardSlash(path, "token path");
 
-    List<String> names = new LinkedList<String>();
+    ImmutableList.Builder<String> namesBuilder = ImmutableList.builder();
     String pattern = Pattern.quote(path);
 
     Pattern placeholderPattern = Pattern.compile("(:\\w+)");
@@ -41,7 +43,7 @@ public class TokenPathBinder implements PathBinder {
     while (matchResult.find()) {
       String name = matchResult.group();
       pattern = pattern.replaceFirst(name, "\\\\E([^/?&#]+)\\\\Q");
-      names.add(name.substring(1));
+      namesBuilder.add(name.substring(1));
     }
 
     pattern = "(".concat(pattern).concat(")");
@@ -51,7 +53,7 @@ public class TokenPathBinder implements PathBinder {
       regex = Pattern.compile(pattern.concat("(?:/.*)?"));
     }
 
-    this.tokenNames = names;
+    this.tokenNames = namesBuilder.build();
   }
 
   public PathBinding bind(String path, PathBinding parentBinding) {
@@ -63,13 +65,13 @@ public class TokenPathBinder implements PathBinder {
     if (matcher.matches()) {
       MatchResult matchResult = matcher.toMatchResult();
       String boundPath = matchResult.group(1);
-      Map<String, String> params = new LinkedHashMap<String, String>();
+      ImmutableMap.Builder<String, String> paramsBuilder = ImmutableMap.builder();
       int i = 2;
       for (String name : tokenNames) {
-        params.put(name, matchResult.group(i++));
+        paramsBuilder.put(name, matchResult.group(i++));
       }
 
-      return new DefaultPathBinding(path, boundPath, params, parentBinding);
+      return new DefaultPathBinding(path, boundPath, paramsBuilder.build(), parentBinding);
     } else {
       return null;
     }

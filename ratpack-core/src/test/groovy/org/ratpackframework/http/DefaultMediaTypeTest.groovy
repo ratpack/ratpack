@@ -30,7 +30,7 @@ class DefaultMediaTypeTest extends Specification {
     ct(" ").type == null
     ct(" ").params.isEmpty()
     ct(" application/json;charset=foo ").params.charset == "foo"
-    ct(" application/json;charset ;foo=bar ").params == [charset: null, foo: "bar"]
+    ct(" application/json;charset ;foo=bar ").params == [charset: "", foo: "bar"]
 
   }
 

@@ -16,6 +16,7 @@
 
 package org.ratpackframework.handling.internal;
 
+import com.google.common.collect.ImmutableList;
 import org.ratpackframework.handling.Handler;
 import org.ratpackframework.util.Action;
 import org.ratpackframework.util.internal.Transformer;
@@ -31,7 +32,7 @@ public class ChainBuilder  {
     List<Handler> handlers = new LinkedList<Handler>();
     T thing = transformer.transform(handlers);
     action.execute(thing);
-    return new ChainHandler(handlers);
+    return new ChainHandler(ImmutableList.copyOf(handlers));
   }
 
 }

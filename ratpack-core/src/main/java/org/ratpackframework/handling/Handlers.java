@@ -16,6 +16,7 @@
 
 package org.ratpackframework.handling;
 
+import com.google.common.collect.ImmutableList;
 import org.ratpackframework.file.internal.DirectoryStaticAssetRequestHandler;
 import org.ratpackframework.file.internal.FileStaticAssetRequestHandler;
 import org.ratpackframework.file.internal.FileSystemContextHandler;
@@ -28,7 +29,6 @@ import org.ratpackframework.path.internal.TokenPathBinder;
 import org.ratpackframework.util.Action;
 
 import java.io.File;
-import java.util.Arrays;
 
 /**
  * Factory methods for certain types of handlers.
@@ -128,7 +128,7 @@ public abstract class Handlers {
   }
 
   public static Handler chain(final Handler... handlers) {
-    return new ChainHandler(Arrays.asList(handlers));
+    return new ChainHandler(ImmutableList.<Handler>builder().add(handlers).build());
   }
 
   /**
@@ -207,7 +207,7 @@ public abstract class Handlers {
    */
   public static Handler assets(String path, String[] indexFiles, final Handler notFound) {
     Handler fileHandler = FileStaticAssetRequestHandler.INSTANCE;
-    Handler directoryHandler = new DirectoryStaticAssetRequestHandler(Arrays.asList(indexFiles), fileHandler);
+    Handler directoryHandler = new DirectoryStaticAssetRequestHandler(ImmutableList.<String>builder().add(indexFiles).build(), fileHandler);
     Handler contextSetter = new TargetFileStaticAssetRequestHandler(directoryHandler);
 
     return fileSystem(path, chain(contextSetter, notFound));
@@ -269,7 +269,7 @@ public abstract class Handlers {
   }
 
   public static Handler path(PathBinder pathBinder, Handler... handlers) {
-    return new PathHandler(pathBinder, Arrays.asList(handlers));
+    return new PathHandler(pathBinder, ImmutableList.<Handler>builder().add(handlers).build());
   }
 
 }

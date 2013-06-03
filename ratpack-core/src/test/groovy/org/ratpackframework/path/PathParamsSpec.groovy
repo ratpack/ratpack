@@ -25,7 +25,7 @@ class PathParamsSpec extends RatpackGroovyDslSpec {
     app {
       handlers {
         get(":a/:b/:c") {
-          response.send pathTokens.toString()
+          response.send new LinkedHashMap(pathTokens).toString()
         }
       }
     }

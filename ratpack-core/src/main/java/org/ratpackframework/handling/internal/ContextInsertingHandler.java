@@ -16,6 +16,7 @@
 
 package org.ratpackframework.handling.internal;
 
+import com.google.common.collect.ImmutableList;
 import org.ratpackframework.context.Context;
 import org.ratpackframework.error.ServerErrorHandler;
 import org.ratpackframework.error.internal.ErrorCatchingHandler;
@@ -23,8 +24,6 @@ import org.ratpackframework.handling.Exchange;
 import org.ratpackframework.handling.Handler;
 
 import java.util.List;
-
-import static java.util.Collections.singletonList;
 
 public class ContextInsertingHandler implements Handler {
 
@@ -36,13 +35,13 @@ public class ContextInsertingHandler implements Handler {
   public <T> ContextInsertingHandler(T object, Handler handler) {
     this.type = null;
     this.object = object;
-    this.handler = singletonList(decorate((Class<? super T>) object.getClass(), handler));
+    this.handler = ImmutableList.of(decorate((Class<? super T>) object.getClass(), handler));
   }
 
   public <T> ContextInsertingHandler(Class<? super T> type, T object, Handler handler) {
     this.type = type;
     this.object = object;
-    this.handler = singletonList(decorate(type, handler));
+    this.handler = ImmutableList.of(decorate(type, handler));
   }
 
   protected <T> Handler decorate(Class<? super T> type, Handler handler) {
