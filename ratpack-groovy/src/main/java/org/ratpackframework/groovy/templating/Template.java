@@ -18,12 +18,42 @@ package org.ratpackframework.groovy.templating;
 
 import java.util.Map;
 
+/**
+ * The API available in template files.
+ */
+@SuppressWarnings("UnusedDeclaration")
 public interface Template {
 
+  /**
+   * The backing model for this template.
+   *
+   * @return The backing model for this template
+   */
   TemplateModel getModel();
 
+  /**
+   * Renders a nested template inline, using the same model as this template.
+   *
+   * @param templateName The name of the template to render
+   * @return An empty string
+   * @throws Exception if an error occurs compiling/executing the template
+   * @see #render(java.util.Map, String)
+   */
   String render(String templateName) throws Exception;
 
+  /**
+   * Renders a nested template inline, with the given model merged with the current template model.
+   * <p>
+   * The nested template will be rendered directly to the underlying buffer; it is not returned from this method.
+   * This method returns an empty string so that it can be used in situations where the return value would have been
+   * included in the output (e.g. a {@code <?= ?>} block).
+   * <p>
+   * The template name is resolved into a template using the same renderer that initiated rendering of this template.
+   *
+   * @param templateName The name of the template to render
+   * @return The rendered template content
+   * @throws Exception if an error occurs compiling/executing the template
+   */
   String render(Map<String, ?> model, String templateName) throws Exception;
 
 }

@@ -24,14 +24,13 @@ import org.ratpackframework.handling.Handler;
 import org.ratpackframework.handling.internal.ClientErrorHandler;
 
 import java.io.File;
-import java.util.List;
 
 import static io.netty.handler.codec.http.HttpResponseStatus.NOT_FOUND;
 
 public class TemplateRendererBindingHandler implements Handler {
 
   private final String templateDir;
-  private final List<Handler> delegate;
+  private final ImmutableList<Handler> delegate;
 
   public TemplateRendererBindingHandler(String templateDir, Handler delegate) {
     this.templateDir = templateDir;

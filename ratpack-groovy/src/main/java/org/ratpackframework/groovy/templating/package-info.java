@@ -14,4 +14,7 @@
  * limitations under the License.
  */
 
+/**
+ * Support for templating based on embedded Groovy code in text.
+ */
 package org.ratpackframework.groovy.templating;

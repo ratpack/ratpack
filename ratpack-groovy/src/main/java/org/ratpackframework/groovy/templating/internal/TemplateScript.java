@@ -37,17 +37,14 @@ public abstract class TemplateScript extends Script implements Template {
     this.renderer = renderer;
   }
 
-  @Override
   public TemplateModel getModel() {
     return model;
   }
 
-  @Override
   public String render(String templateName) throws Exception {
     return render(Collections.<String, Object>emptyMap(), templateName);
   }
 
-  @Override
   public String render(Map<String, ?> model, String templateName) throws Exception {
     renderer.render(templateName, model);
     return "";
