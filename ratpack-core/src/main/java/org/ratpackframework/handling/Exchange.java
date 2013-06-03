@@ -162,13 +162,35 @@ public interface Exchange {
    * <p>
    * The default configuration of Ratpack includes a {@link org.ratpackframework.error.ServerErrorHandler} in all contexts.
    * A {@link NotInContextException} will only be thrown if a very custom context setup is being used.
+   *
+   * @param exception The exception that occurred
+   * @throws NotInContextException if no {@link org.ratpackframework.error.ServerErrorHandler} can be found in the context
    */
   @NonBlocking
   void error(Exception exception) throws NotInContextException;
 
+  /**
+   * Forwards the error to the {@link org.ratpackframework.error.ClientErrorHandler} in this context.
+   *
+   * The default configuration of Ratpack includes a {@link org.ratpackframework.error.ClientErrorHandler} in all contexts.
+   * A {@link NotInContextException} will only be thrown if a very custom context setup is being used.
+   *
+   * @param statusCode The 4xx range status code that indicates the error type
+   * @throws NotInContextException if no {@link org.ratpackframework.error.ClientErrorHandler} can be found in the context
+   */
   @NonBlocking
   void clientError(int statusCode) throws NotInContextException;
 
+  /**
+   * Executes the given runnable in a try/catch, where exceptions are given to {@link #error(Exception)}.
+   * <p>
+   * This can be used by handlers when they are jumping off thread.
+   * Exceptions raised on the thread that called the handler's {@linkplain Handler#handle(Exchange) handle} will always be caught.
+   * If the handler “moves” to another thread, it should call this method no the new thread to ensure that any thrown exceptions
+   * are caught and forwarded appropriately.
+   *
+   * @param runnable The code to surround with error handling
+   */
   void withErrorHandling(Runnable runnable);
 
   /**
