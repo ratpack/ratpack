@@ -16,7 +16,7 @@
 
 package org.ratpackframework.session.store;
 
-public interface MapSessionStore {
+public interface SessionStore {
   SessionStorage get(String sessionId);
   long size();
 }

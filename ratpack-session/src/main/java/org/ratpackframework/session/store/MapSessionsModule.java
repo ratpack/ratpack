@@ -22,13 +22,13 @@ import com.google.inject.Provides;
 import org.ratpackframework.guice.HandlerDecoratingModule;
 import org.ratpackframework.handling.Handler;
 import org.ratpackframework.session.SessionManager;
-import org.ratpackframework.session.store.internal.DefaultMapSessionStore;
+import org.ratpackframework.session.store.internal.DefaultSessionStore;
 import org.ratpackframework.session.store.internal.SessionStorageBindingHandler;
 
 import javax.inject.Singleton;
 
 /**
- * An extension module that provides an in memory map store for sessions, {@link MapSessionStore}.
+ * An extension module that provides an in memory map store for sessions, {@link SessionStore}.
  */
 public class MapSessionsModule extends AbstractModule implements HandlerDecoratingModule {
 
@@ -54,8 +54,8 @@ public class MapSessionsModule extends AbstractModule implements HandlerDecorati
   @SuppressWarnings("UnusedDeclaration")
   @Provides
   @Singleton
-  MapSessionStore provideMapSessionStore(SessionManager sessionManager) {
-    DefaultMapSessionStore defaultMapSessionStore = new DefaultMapSessionStore(maxEntries, idleTimeoutMinutes);
+  SessionStore provideMapSessionStore(SessionManager sessionManager) {
+    DefaultSessionStore defaultMapSessionStore = new DefaultSessionStore(maxEntries, idleTimeoutMinutes);
     sessionManager.addSessionListener(defaultMapSessionStore);
     return defaultMapSessionStore;
   }

@@ -38,7 +38,7 @@ abstract public class RatpackScript {
    * ratpack {
    *   modules {
    *     // example of registering a module
-   *     register(new MapSessionsModule())
+   *     register(new MapSessionsModule(100, 60))
    *   }
    *   handlers {
    *     // define the application handlers
