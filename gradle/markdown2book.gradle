@@ -37,7 +37,6 @@ class Generator {
   private static MARKDOWN_EXTENSIONS = ['.markdown', '.md', '.mdown']
   private static HEADING_PATTERN = Pattern.compile("^(#+)\\s+(.*)\$")
   private static FILENAME_SUBSTITUTE_PATTERN = Pattern.compile("^(?:\\d+-)?(.*?)\\.(?:markdown|md|mdown)\$")
-  private static TEMPLATE_ENGINE = new SimpleTemplateEngine()
   private static TEMPLATE_EXTENSION = "html"
   private static ALL_TEMPLATE = "all." + TEMPLATE_EXTENSION
   private static CHAPTER_TEMPLATE = "chapter." + TEMPLATE_EXTENSION
@@ -55,8 +54,8 @@ class Generator {
   final File destination
   final String charset
 
+  private final templateEngine = new SimpleTemplateEngine()
   private final markdownProcessor
-
 
   Generator(File source, File destination, int options, String charset = Charset.defaultCharset().name()) {
     if (source == null) {
@@ -315,7 +314,7 @@ class Generator {
 
   private templatise(Map binding, String templateName, Writer writer) {
     def template = getTemplate(templateName)
-    TEMPLATE_ENGINE.createTemplate(template.getText(charset)).make(binding).writeTo(writer)
+    templateEngine.createTemplate(template.getText(charset)).make(binding).writeTo(writer)
   }
 
   private copyOtherFiles() {
