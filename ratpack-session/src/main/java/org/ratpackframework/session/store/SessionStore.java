@@ -16,7 +16,26 @@
 
 package org.ratpackframework.session.store;
 
+/**
+ * A store of sessions.
+ * <p>
+ * Implementations may impose their own behavior on storage.
+ * For example: maximum concurrent session limits, idle timeouts etc.
+ */
 public interface SessionStore {
+
+  /**
+   * Retrieve the session storage for the given id, creating it on demand if necessary.
+   *
+   * @param sessionId The id of the session to retrieve the storage for
+   * @return The session storage
+   */
   SessionStorage get(String sessionId);
+
+  /**
+   * The number of currently stored sessions.
+   *
+   * @return The number of currently stored sessions
+   */
   long size();
 }

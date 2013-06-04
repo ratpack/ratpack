@@ -14,15 +14,7 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.session.store;
-
-import java.util.concurrent.ConcurrentMap;
-
 /**
- * A marker concurrent map sub interface, to make retrieving the session storage from the context easier.
- * <p>
- * The session storage is not available for dependency injection via Guice.
- * It must be retrieved via context lookup.
+ * Session scoped storage.
  */
-public interface SessionStorage extends ConcurrentMap<String, Object> {
-}
+package org.ratpackframework.session.store;
