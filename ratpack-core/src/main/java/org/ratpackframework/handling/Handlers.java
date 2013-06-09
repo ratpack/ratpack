@@ -257,12 +257,34 @@ public abstract class Handlers {
     return NextHandler.INSTANCE;
   }
 
+  /**
+   * A handler that delegates to the given handler if the request is GET and matches the given path.
+   * <p>
+   * If the request is not a GET or does not match the path, the next handler in the chain will be invoked.
+   * <p>
+   * If the request does match the given path but is not a GET, a 405 will be sent to the exchange's
+   * {@linkplain Exchange#clientError(int) client error handler}.
+   * <p>
+   * See {@link #path(String, java.util.List)} for details on how the path argument is interpreted.
+   *
+   * @param path The path to match requests for
+   * @param handler The handler to delegate to if the path matches and the request is a GET
+   * @return A handler
+   */
   public static Handler get(String path, Handler handler) {
-    return path(path, get(), handler);
+    return path(path, ImmutableList.<Handler>builder().add(get(), handler).build());
   }
 
+  /**
+   * A handler that delegates to the given handler if the request is GET and the path is at the current root.
+   * <p>
+   * This is shorthand for calling {@link #get(String, Handler)} with a path of {@code ""}.
+   *
+   * @param handler The handler to delegate to if the path matches and the request is a GET
+   * @return A handler
+   */
   public static Handler get(Handler handler) {
-    return path("", get(), handler);
+    return path("", ImmutableList.<Handler>builder().add(get(), handler).build());
   }
 
   public static Handler get() {
@@ -270,11 +292,11 @@ public abstract class Handlers {
   }
 
   public static Handler post(String path, Handler handler) {
-    return path(path, post(), handler);
+    return path(path, ImmutableList.<Handler>builder().add(post(), handler).build());
   }
 
   public static Handler post(Handler handler) {
-    return path("", post(), handler);
+    return path("", ImmutableList.<Handler>builder().add(post(), handler).build());
   }
 
   public static Handler post() {
@@ -293,16 +315,32 @@ public abstract class Handlers {
     return prefix(path, chain(builder));
   }
 
-  public static Handler prefix(String path, Handler... handlers) {
+  public static Handler prefix(String path, Handler handler) {
+    return prefix(path, singleton(handler));
+  }
+
+  public static Handler prefix(String path, List<Handler> handlers) {
     return path(new TokenPathBinder(path, false), handlers);
   }
 
-  public static Handler path(String path, Handler... handlers) {
+  public static Handler path(String path, Handler handler) {
+    return path(path, singleton(handler));
+  }
+
+  public static Handler path(String path, List<Handler> handlers) {
     return path(new TokenPathBinder(path, true), handlers);
   }
 
-  public static Handler path(PathBinder pathBinder, Handler... handlers) {
-    return new PathHandler(pathBinder, ImmutableList.<Handler>builder().add(handlers).build());
+  public static Handler path(PathBinder pathBinder, Handler handler) {
+    return path(pathBinder, singleton(handler));
+  }
+
+  public static Handler path(PathBinder pathBinder, List<Handler> handlers) {
+    return new PathHandler(pathBinder, ImmutableList.copyOf(handlers));
+  }
+
+  private static <T> ImmutableList<T> singleton(T thing) {
+    return ImmutableList.<T>builder().add(thing).build();
   }
 
 }

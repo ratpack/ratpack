@@ -16,6 +16,7 @@
 
 package org.ratpackframework.groovy.handling;
 
+import com.google.common.collect.ImmutableList;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.ratpackframework.groovy.util.Closures;
@@ -60,23 +61,23 @@ public abstract class ClosureHandlers {
   }
 
   public static Handler get(String path, @DelegatesTo(value = Exchange.class, strategy = Closure.DELEGATE_FIRST) final Closure<?> closure) {
-    return Handlers.path(path, Handlers.get(), handler(closure));
+    return Handlers.path(path, ImmutableList.<Handler>builder().add(Handlers.get(), handler(closure)).build());
   }
 
   public static Handler get(@DelegatesTo(value = Exchange.class, strategy = Closure.DELEGATE_FIRST) final Closure<?> closure) {
-    return Handlers.path("", Handlers.get(), handler(closure));
+    return Handlers.path("", ImmutableList.<Handler>builder().add(Handlers.get(), handler(closure)).build());
   }
 
   public static Handler post(String path, @DelegatesTo(value = Exchange.class, strategy = Closure.DELEGATE_FIRST) final Closure<?> closure) {
-    return Handlers.path(path, Handlers.post(), handler(closure));
+    return Handlers.path(path, ImmutableList.<Handler>builder().add(Handlers.post(), handler(closure)).build());
   }
 
   public static Handler put(String path, @DelegatesTo(value = Exchange.class, strategy = Closure.DELEGATE_FIRST) final Closure<?> closure) {
-    return Handlers.path(path, Handlers.put(), handler(closure));
+    return Handlers.path(path, ImmutableList.<Handler>builder().add(Handlers.put(), handler(closure)).build());
   }
 
   public static Handler delete(String path, @DelegatesTo(value = Exchange.class, strategy = Closure.DELEGATE_FIRST) final Closure<?> closure) {
-    return Handlers.path(path, Handlers.delete(), handler(closure));
+    return Handlers.path(path, ImmutableList.<Handler>builder().add(Handlers.delete(), handler(closure)).build());
   }
 
 }
