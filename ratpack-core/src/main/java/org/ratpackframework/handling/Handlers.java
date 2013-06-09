@@ -85,6 +85,7 @@ public abstract class Handlers {
    * @param type The type by which to make the context addition available
    * @param object The object to add to the context, only for the handlers defined by {@code builder}
    * @param builder The definition of the handler chain to insert with the context
+   * @param <T> The concrete type of the context addition
    * @return A handler
    */
   public static <T> Handler context(Class<? super T> type, T object, Action<? super Chain> builder) {
@@ -111,6 +112,7 @@ public abstract class Handlers {
    * @param type The type by which to make the context addition available
    * @param object The object to add to the context, only for the handlers defined by {@code builder}
    * @param handler The handler to
+   * @param <T> The concrete type of the context addition
    * @return A handler
    */
   public static <T> Handler context(Class<? super T> type, T object, Handler handler) {
@@ -127,6 +129,12 @@ public abstract class Handlers {
     return ChainBuilder.INSTANCE.build(ChainActionTransformer.INSTANCE, action);
   }
 
+  /**
+   * Creates a handler chain from the given handlers.
+   *
+   * @param handlers The handlers to connect into a chain
+   * @return A new handler that is the given handlers connected into a chain
+   */
   public static Handler chain(final Handler... handlers) {
     return new ChainHandler(ImmutableList.<Handler>builder().add(handlers).build());
   }
