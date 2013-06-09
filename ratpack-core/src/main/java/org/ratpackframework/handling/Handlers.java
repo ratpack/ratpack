@@ -136,7 +136,13 @@ public abstract class Handlers {
    * @return A new handler that is the given handlers connected into a chain
    */
   public static Handler chain(final Handler... handlers) {
-    return new ChainHandler(ImmutableList.<Handler>builder().add(handlers).build());
+    if (handlers.length == 0) {
+      return next();
+    } else if (handlers.length == 1) {
+      return handlers[0];
+    } else {
+      return new ChainHandler(ImmutableList.<Handler>builder().add(handlers).build());
+    }
   }
 
   /**
