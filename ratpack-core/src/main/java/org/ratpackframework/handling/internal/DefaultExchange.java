@@ -107,7 +107,11 @@ public class DefaultExchange implements Exchange {
     try {
       runnable.run();
     } catch (Exception e) {
-      error(e);
+      if (e instanceof HandlerException) {
+        ((HandlerException) e).getExchange().error((Exception) e.getCause());
+      } else {
+        error(e);
+      }
     }
   }
 

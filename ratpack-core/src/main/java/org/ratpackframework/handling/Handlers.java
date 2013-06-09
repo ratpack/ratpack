@@ -91,7 +91,7 @@ public abstract class Handlers {
    * @return A handler
    */
   public static <T> Handler context(Class<? super T> type, T object, Action<? super Chain> builder) {
-    return context(type, object, chain(builder));
+    return context(type, object, chainList(builder));
   }
 
   /**
@@ -105,7 +105,7 @@ public abstract class Handlers {
    * @return A handler
    */
   public static Handler context(Object object, Handler handler) {
-    return new ContextInsertingHandler(object, handler);
+    return new ContextInsertingHandler(object, singleton(handler));
   }
 
   /**
@@ -118,7 +118,20 @@ public abstract class Handlers {
    * @return A handler
    */
   public static <T> Handler context(Class<? super T> type, T object, Handler handler) {
-    return new ContextInsertingHandler(type, object, handler);
+    return new ContextInsertingHandler(type, object, singleton(handler));
+  }
+
+  /**
+   * Creates a handler that inserts the handler chain defined by the builder, with the given context addition.
+   *
+   * @param type The type by which to make the context addition available
+   * @param object The object to add to the context, only for the handlers defined by {@code builder}
+   * @param handlers The handler to
+   * @param <T> The concrete type of the context addition
+   * @return A handler
+   */
+  public static <T> Handler context(Class<? super T> type, T object, List<Handler> handlers) {
+    return new ContextInsertingHandler(type, object, ImmutableList.copyOf(handlers));
   }
 
   /**
@@ -141,13 +154,13 @@ public abstract class Handlers {
    * @param handlers The handlers to connect into a chain
    * @return A new handler that is the given handlers connected into a chain
    */
-  public static Handler chain(final Handler... handlers) {
-    if (handlers.length == 0) {
+  public static Handler chain(List<Handler> handlers) {
+    if (handlers.size() == 0) {
       return next();
-    } else if (handlers.length == 1) {
-      return handlers[0];
+    } else if (handlers.size() == 1) {
+      return handlers.get(0);
     } else {
-      return new ChainHandler(ImmutableList.<Handler>builder().add(handlers).build());
+      return new ChainHandler(ImmutableList.copyOf(handlers));
     }
   }
 
@@ -161,7 +174,7 @@ public abstract class Handlers {
    * @return A handler
    */
   public static Handler fileSystem(String path, Handler handler) {
-    return new FileSystemContextHandler(new File(path), ImmutableList.<Handler>builder().add(handler).build());
+    return new FileSystemContextHandler(new File(path), singleton(handler));
   }
 
   /**
@@ -243,7 +256,7 @@ public abstract class Handlers {
     Handler directoryHandler = new DirectoryStaticAssetRequestHandler(ImmutableList.<String>builder().add(indexFiles).build(), fileHandler);
     Handler contextSetter = new TargetFileStaticAssetRequestHandler(directoryHandler);
 
-    return fileSystem(path, ImmutableList.<Handler>builder().add(contextSetter, notFound).build());
+    return fileSystem(path, ImmutableList.<Handler>of(contextSetter, notFound));
   }
 
   /**
@@ -272,7 +285,7 @@ public abstract class Handlers {
    * @return A handler
    */
   public static Handler get(String path, Handler handler) {
-    return path(path, ImmutableList.<Handler>builder().add(get(), handler).build());
+    return path(path, ImmutableList.<Handler>of(get(), handler));
   }
 
   /**
@@ -284,43 +297,112 @@ public abstract class Handlers {
    * @return A handler
    */
   public static Handler get(Handler handler) {
-    return path("", ImmutableList.<Handler>builder().add(get(), handler).build());
+    return path("", ImmutableList.<Handler>of(get(), handler));
   }
 
+  /**
+   * A handler that delegates to the next handler if the request is GET, otherwise raises a 405 client error.
+   *
+   * @return A handler
+   */
   public static Handler get() {
     return MethodHandler.GET;
   }
 
+  /**
+   * A handler that delegates to the given handler if the request is POST and matches the given path.
+   * <p>
+   * If the request is not a POST or does not match the path, the next handler in the chain will be invoked.
+   * <p>
+   * If the request does match the given path but is not a POST, a 405 will be sent to the exchange's
+   * {@linkplain Exchange#clientError(int) client error handler}.
+   * <p>
+   * See {@link #path(String, java.util.List)} for details on how the path argument is interpreted.
+   *
+   * @param path The path to match requests for
+   * @param handler The handler to delegate to if the path matches and the request is a POST
+   * @return A handler
+   */
   public static Handler post(String path, Handler handler) {
-    return path(path, ImmutableList.<Handler>builder().add(post(), handler).build());
+    return path(path, ImmutableList.<Handler>of(post(), handler));
   }
 
+  /**
+   * A handler that delegates to the given handler if the request is POST and the path is at the current root.
+   * <p>
+   * This is shorthand for calling {@link #post(String, Handler)} with a path of {@code ""}.
+   *
+   * @param handler The handler to delegate to if the path matches and the request is a POST
+   * @return A handler
+   */
   public static Handler post(Handler handler) {
-    return path("", ImmutableList.<Handler>builder().add(post(), handler).build());
+    return path("", ImmutableList.<Handler>of(post(), handler));
   }
 
+  /**
+   * A handler that delegates to the next handler if the request is POST, otherwise raises a 405 client error.
+   *
+   * @return A handler
+   */
   public static Handler post() {
     return MethodHandler.POST;
   }
 
+  /**
+   * A handler that delegates to the next handler if the request is PUT, otherwise raises a 405 client error.
+   *
+   * @return A handler
+   */
   public static Handler put() {
     return MethodHandler.PUT;
   }
 
+  /**
+   * A handler that delegates to the next handler if the request is DELETE, otherwise raises a 405 client error.
+   *
+   * @return A handler
+   */
   public static Handler delete() {
     return MethodHandler.DELETE;
   }
 
-  public static Handler prefix(String path, Action<? super Chain> builder) {
-    return prefix(path, chain(builder));
+  /**
+   * Creates a handler that delegates to the given handlers if the request path starts with the given prefix.
+   * <p>
+   * See {@link #prefix(String, List)} for the details on how {@code prefix} is interpreted.
+   *
+   * @param prefix The path prefix to match
+   * @param builder The definition of the chain to delegate to
+   * @return A handler
+   */
+  public static Handler prefix(String prefix, Action<? super Chain> builder) {
+    return prefix(prefix, chainList(builder));
   }
 
-  public static Handler prefix(String path, Handler handler) {
-    return prefix(path, singleton(handler));
+  /**
+   * Creates a handler that delegates to the given handler if the request path starts with the given prefix.
+   * <p>
+   * See {@link #prefix(String, List)} for the details on how {@code prefix} is interpreted.
+   *
+   * @param prefix The path prefix to match
+   * @param handler The handler to delegate to
+   * @return A handler
+   */
+  public static Handler prefix(String prefix, Handler handler) {
+    return prefix(prefix, singleton(handler));
   }
 
-  public static Handler prefix(String path, List<Handler> handlers) {
-    return path(new TokenPathBinder(path, false), handlers);
+  /**
+   * Creates a handler that delegates to the given handlers if the request path starts with the given prefix.
+   * <p>
+   *
+   *
+   * @param prefix The path prefix to match
+   * @param handlers The handlers to delegate to
+   * @return A handler
+   */
+  public static Handler prefix(String prefix, List<Handler> handlers) {
+    return path(new TokenPathBinder(prefix, false), handlers);
   }
 
   public static Handler path(String path, Handler handler) {
@@ -340,7 +422,7 @@ public abstract class Handlers {
   }
 
   private static <T> ImmutableList<T> singleton(T thing) {
-    return ImmutableList.<T>builder().add(thing).build();
+    return ImmutableList.of(thing);
   }
 
 }

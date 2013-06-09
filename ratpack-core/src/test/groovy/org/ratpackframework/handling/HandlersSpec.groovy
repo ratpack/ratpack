@@ -25,7 +25,7 @@ class HandlersSpec extends DefaultRatpackSpec {
     when:
     app {
       handlers {
-        add Handlers.chain()
+        add Handlers.chain([])
       }
     }
 
@@ -37,7 +37,7 @@ class HandlersSpec extends DefaultRatpackSpec {
     when:
     app {
       handlers {
-        add Handlers.chain(ClosureHandlers.get { response.send("foo") })
+        add Handlers.chain([ClosureHandlers.get { response.send("foo") }])
       }
     }
 
@@ -49,10 +49,10 @@ class HandlersSpec extends DefaultRatpackSpec {
     when:
     app {
       handlers {
-        add Handlers.chain(
+        add Handlers.chain([
             ClosureHandlers.get("a") { response.send("foo") },
             ClosureHandlers.get("b") { response.send("bar") }
-        )
+        ])
       }
     }
 
