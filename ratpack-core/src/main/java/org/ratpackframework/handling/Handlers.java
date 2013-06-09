@@ -67,6 +67,10 @@ public abstract class Handlers {
   private Handlers() {
   }
 
+  private static <T> ImmutableList<T> singleton(T thing) {
+    return ImmutableList.of(thing);
+  }
+
   /**
    * Creates a handler that inserts the handler chain defined by the builder, with the given context addition.
    * <p>
@@ -370,7 +374,10 @@ public abstract class Handlers {
   /**
    * Creates a handler that delegates to the given handlers if the request path starts with the given prefix.
    * <p>
-   *
+   * The {@code prefix} is relative to the contextual {@link org.ratpackframework.path.PathBinding} of the exchange.
+   * <p>
+   * A new contextual {@link org.ratpackframework.path.PathBinding} will be established for the given handlers,
+   * using the given prefix as the bind point.
    *
    * @param prefix The path prefix to match
    * @param handlers The handlers to delegate to
@@ -380,24 +387,55 @@ public abstract class Handlers {
     return path(new TokenPathBinder(prefix, false), handlers);
   }
 
+  /**
+   * Creates a handler that delegates to the given handler if the request matches the given path exactly.
+   * <p>
+   * See {@link #path(String, List)} for the details on how {@code prefix} is interpreted.
+   *
+   * @param path The exact path to match to
+   * @param handler The handler to delegate to if the path matches
+   * @return A handler
+   */
   public static Handler path(String path, Handler handler) {
     return path(path, singleton(handler));
   }
 
+  /**
+   * Creates a handler that delegates to the given handlers if the request matches the given path exactly.
+   * <p>
+   * The {@code path} is relative to the contextual {@link org.ratpackframework.path.PathBinding} of the exchange.
+   * <p>
+   * A new contextual {@link org.ratpackframework.path.PathBinding} will be established for the given handlers,
+   * using the given path as the bind point.
+   *
+   * @param path The exact path to match to
+   * @param handlers The handlers to delegate to if the path matches
+   * @return A handler
+   */
   public static Handler path(String path, List<Handler> handlers) {
     return path(new TokenPathBinder(path, true), handlers);
   }
 
+  /**
+   * Creates a handler that delegates to the given handler if the request can be bound by the given path binder.
+   *
+   * @param pathBinder The path binder that may bind to the request path
+   * @param handler The handler to delegate to if path binder does bind to the path
+   * @return A handler
+   */
   public static Handler path(PathBinder pathBinder, Handler handler) {
     return path(pathBinder, singleton(handler));
   }
 
+  /**
+   * Creates a handler that delegates to the given handlers if the request can be bound by the given path binder.
+   *
+   * @param pathBinder The path binder that may bind to the request path
+   * @param handlers The handlers to delegate to if path binder does bind to the path
+   * @return A handler
+   */
   public static Handler path(PathBinder pathBinder, List<Handler> handlers) {
     return new PathHandler(pathBinder, ImmutableList.copyOf(handlers));
-  }
-
-  private static <T> ImmutableList<T> singleton(T thing) {
-    return ImmutableList.of(thing);
   }
 
 }
