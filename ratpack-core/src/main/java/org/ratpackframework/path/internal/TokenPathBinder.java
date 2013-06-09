@@ -45,13 +45,12 @@ public class TokenPathBinder implements PathBinder {
       namesBuilder.add(name.substring(1));
     }
 
-    pattern = "(".concat(pattern).concat(")");
-    if (exact) {
-      regex = Pattern.compile(pattern);
-    } else {
-      regex = Pattern.compile(pattern.concat("(?:/.*)?"));
+    StringBuilder patternBuilder = new StringBuilder("(").append(pattern).append(")");
+    if (!exact) {
+      patternBuilder.append("(?:/.*)?");
     }
 
+    this.regex = Pattern.compile(patternBuilder.toString());
     this.tokenNames = namesBuilder.build();
   }
 
