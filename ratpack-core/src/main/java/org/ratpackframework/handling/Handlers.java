@@ -29,6 +29,7 @@ import org.ratpackframework.path.internal.TokenPathBinder;
 import org.ratpackframework.util.Action;
 
 import java.io.File;
+import java.util.List;
 
 /**
  * Factory methods for certain types of handlers.
@@ -63,7 +64,8 @@ import java.io.File;
  */
 public abstract class Handlers {
 
-  private Handlers() {}
+  private Handlers() {
+  }
 
   /**
    * Creates a handler that inserts the handler chain defined by the builder, with the given context addition.
@@ -126,7 +128,11 @@ public abstract class Handlers {
    * @return A handler
    */
   public static Handler chain(Action<? super Chain> action) {
-    return ChainBuilder.INSTANCE.build(ChainActionTransformer.INSTANCE, action);
+    return ChainBuilder.INSTANCE.buildHandler(ChainActionTransformer.INSTANCE, action);
+  }
+
+  private static ImmutableList<Handler> chainList(Action<? super Chain> action) {
+    return ChainBuilder.INSTANCE.buildList(ChainActionTransformer.INSTANCE, action);
   }
 
   /**
@@ -146,7 +152,7 @@ public abstract class Handlers {
   }
 
   /**
-   * A handler that changes the {@link org.ratpackframework.file.FileSystemBinding} for the given handler.
+   * A handlers that changes the {@link org.ratpackframework.file.FileSystemBinding} for the given handler.
    * <p>
    * The new file system binding will be created by the {@link org.ratpackframework.file.FileSystemBinding#binding(String)} method of the contextual binding.
    *
@@ -155,7 +161,20 @@ public abstract class Handlers {
    * @return A handler
    */
   public static Handler fileSystem(String path, Handler handler) {
-    return new FileSystemContextHandler(new File(path), handler);
+    return new FileSystemContextHandler(new File(path), ImmutableList.<Handler>builder().add(handler).build());
+  }
+
+  /**
+   * A handlers that changes the {@link org.ratpackframework.file.FileSystemBinding} for the given handlers.
+   * <p>
+   * The new file system binding will be created by the {@link org.ratpackframework.file.FileSystemBinding#binding(String)} method of the contextual binding.
+   *
+   * @param path The relative path to the new file system binding point
+   * @param handlers The handlers to execute with the new file system binding
+   * @return A handler
+   */
+  public static Handler fileSystem(String path, List<Handler> handlers) {
+    return new FileSystemContextHandler(new File(path), ImmutableList.copyOf(handlers));
   }
 
   /**
@@ -168,7 +187,7 @@ public abstract class Handlers {
    * @return A handler
    */
   public static Handler fileSystem(String path, Action<? super Chain> builder) {
-    return fileSystem(path, chain(builder));
+    return fileSystem(path, chainList(builder));
   }
 
   /**
@@ -224,7 +243,7 @@ public abstract class Handlers {
     Handler directoryHandler = new DirectoryStaticAssetRequestHandler(ImmutableList.<String>builder().add(indexFiles).build(), fileHandler);
     Handler contextSetter = new TargetFileStaticAssetRequestHandler(directoryHandler);
 
-    return fileSystem(path, chain(contextSetter, notFound));
+    return fileSystem(path, ImmutableList.<Handler>builder().add(contextSetter, notFound).build());
   }
 
   /**

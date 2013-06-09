@@ -70,7 +70,7 @@ public class ScriptBackedApp implements Handler {
           Action<ModuleRegistry> modulesAction = Closures.action(ModuleRegistry.class, ratpack.getModulesConfigurer());
           Action<Chain> chainAction = Closures.action(Chain.class, ratpack.getHandlersConfigurer());
 
-          Handler chainBuildingHandler = ChainBuilder.INSTANCE.build(GroovyDslChainActionTransformer.INSTANCE, chainAction);
+          Handler chainBuildingHandler = ChainBuilder.INSTANCE.buildHandler(GroovyDslChainActionTransformer.INSTANCE, chainAction);
 
           return appFactory.create(modulesAction, chainBuildingHandler);
 

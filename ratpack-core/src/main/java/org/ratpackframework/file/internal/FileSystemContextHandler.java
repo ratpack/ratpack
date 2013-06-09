@@ -32,9 +32,9 @@ public class FileSystemContextHandler implements Handler {
   private final boolean absolute;
   private final FileSystemBinding absoluteContext;
 
-  public FileSystemContextHandler(File file, Handler delegate) {
+  public FileSystemContextHandler(File file, ImmutableList<Handler> delegate) {
     this.file = file;
-    this.delegate = ImmutableList.of(delegate);
+    this.delegate = delegate;
     this.absolute = file.isAbsolute();
     this.absoluteContext = new DefaultFileSystemBinding(file.getAbsoluteFile());
   }

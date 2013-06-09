@@ -32,6 +32,6 @@ abstract class RatpackGroovyDslSpec extends DefaultRatpackSpec {
 
   @Override
   protected Handler createHandler() {
-    ChainBuilder.INSTANCE.build(GroovyDslChainActionTransformer.INSTANCE, action(handlersClosure))
+    ChainBuilder.INSTANCE.buildHandler(GroovyDslChainActionTransformer.INSTANCE, action(handlersClosure))
   }
 }

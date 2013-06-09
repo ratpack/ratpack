@@ -84,7 +84,7 @@ public class DefaultChain implements Chain {
   }
 
   private Handler chainBuildingHandler(Closure<?> handlers) {
-    return ChainBuilder.INSTANCE.build(GroovyDslChainActionTransformer.INSTANCE, action(handlers));
+    return ChainBuilder.INSTANCE.buildHandler(GroovyDslChainActionTransformer.INSTANCE, action(handlers));
   }
 
   public void add(Handler handler) {

@@ -24,15 +24,19 @@ import org.ratpackframework.util.internal.Transformer;
 import java.util.LinkedList;
 import java.util.List;
 
-public class ChainBuilder  {
+public class ChainBuilder {
 
   public static final ChainBuilder INSTANCE = new ChainBuilder();
 
-  public <T> Handler build(Transformer<List<Handler>, ? extends T> transformer, Action<? super T> action) {
+  public <T> Handler buildHandler(Transformer<List<Handler>, ? extends T> transformer, Action<? super T> action) {
+    return new ChainHandler(buildList(transformer, action));
+  }
+
+  public <T> ImmutableList<Handler> buildList(Transformer<List<Handler>, ? extends T> transformer, Action<? super T> action) {
     List<Handler> handlers = new LinkedList<Handler>();
     T thing = transformer.transform(handlers);
     action.execute(thing);
-    return new ChainHandler(ImmutableList.copyOf(handlers));
+    return ImmutableList.copyOf(handlers);
   }
 
 }
