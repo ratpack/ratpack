@@ -22,14 +22,13 @@ import org.ratpackframework.path.PathBinder;
 import org.ratpackframework.path.PathBinding;
 import org.ratpackframework.util.internal.Validations;
 
-import java.util.List;
 import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class TokenPathBinder implements PathBinder {
 
-  private final List<String> tokenNames;
+  private final ImmutableList<String> tokenNames;
   private final Pattern regex;
 
   public TokenPathBinder(String path, boolean exact) {
