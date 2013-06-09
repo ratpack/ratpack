@@ -78,7 +78,7 @@ public abstract class Handlers {
    * @return A handler
    */
   public static Handler context(Object object, Action<? super Chain> builder) {
-    return context(object, chain(builder));
+    return context(object, chainList(builder));
   }
 
   /**
@@ -95,30 +95,18 @@ public abstract class Handlers {
   }
 
   /**
-   * Creates a handler that inserts the given handler with the given context addition.
+   * Creates a handler that inserts the handler chain defined by the builder, with the given context addition.
    * <p>
    * The context object will be available by its concrete type.
-   * To make it available by a different type (perhaps one of its interfaces) use {@link #context(Class, Object, Handler)}.
-   *
-   * @param object The object to add to the context for the handler
-   * @param handler The handler to make the context addition available for
-   * @return A handler
-   */
-  public static Handler context(Object object, Handler handler) {
-    return new ContextInsertingHandler(object, singleton(handler));
-  }
+   * To make it available by a different type (perhaps one of its interfaces) use {@link #context(Class, Object, List)}.
 
-  /**
-   * Creates a handler that inserts the handler chain defined by the builder, with the given context addition.
-   *
-   * @param type The type by which to make the context addition available
    * @param object The object to add to the context, only for the handlers defined by {@code builder}
-   * @param handler The handler to
+   * @param handlers The handler to
    * @param <T> The concrete type of the context addition
    * @return A handler
    */
-  public static <T> Handler context(Class<? super T> type, T object, Handler handler) {
-    return new ContextInsertingHandler(type, object, singleton(handler));
+  public static <T> Handler context(T object, List<Handler> handlers) {
+    return new ContextInsertingHandler(object, ImmutableList.copyOf(handlers));
   }
 
   /**
@@ -162,19 +150,6 @@ public abstract class Handlers {
     } else {
       return new ChainHandler(ImmutableList.copyOf(handlers));
     }
-  }
-
-  /**
-   * A handlers that changes the {@link org.ratpackframework.file.FileSystemBinding} for the given handler.
-   * <p>
-   * The new file system binding will be created by the {@link org.ratpackframework.file.FileSystemBinding#binding(String)} method of the contextual binding.
-   *
-   * @param path The relative path to the new file system binding point
-   * @param handler The handler to execute with the new file system binding
-   * @return A handler
-   */
-  public static Handler fileSystem(String path, Handler handler) {
-    return new FileSystemContextHandler(new File(path), singleton(handler));
   }
 
   /**
