@@ -75,32 +75,61 @@
 
 @mixin starburst-links {
 	$starburst-bitmap-image: 'starburst.png';
+  $skew: -5deg;
 	list-style: none;
 	padding-left: 0;
+
+  li {
+    position: relative;
+    &:before {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: image-width($starburst-bitmap-image);
+      height: image-height($starburst-bitmap-image);
+      display: inline-block;
+      z-index: 1;
+      content: " ";
+      background: {
+        image: inline-image('starburst.svg');
+        repeat: no-repeat;
+        size: contain;
+      }
+      .no-svg & {
+        background-image: image-url($starburst-bitmap-image);
+      }
+    }
+    &:hover, &:focus {
+      &:before {
+        background-image: inline-image('starburst-yellow.svg');
+        .no-svg & {
+          background-image: image-url('starburst-yellow.png');
+        }
+      }
+    }
+  }
+
 	a {
-		font-style: italic;
-		display: inline-block;
-		vertical-align: middle;
-		&:before {
-			content: " ";
-			background: {
-				image: inline-image('starburst-blue.svg');
-				repeat: no-repeat;
-				size: contain;
-			}
-			.no-svg & {
-				background-image: image-url($starburst-bitmap-image);
-			}
-			width: image-width($starburst-bitmap-image);
-			height: image-height($starburst-bitmap-image);
-			display: inline-block;
-			vertical-align: middle;
-			margin-right: 0.5em;
-		}
-		&:hover, &:focus {
-			&:before {
-				background-image: inline-image('starburst-yellow.svg');
-			}
-		}
+    font-style: italic;
+    display: inline-block;
+    margin-left: image-width($starburst-bitmap-image) / 1.5;
+    padding: 0 0.75em 0 1em;
+    vertical-align: middle;
+    @include transform(rotate($skew));
+    @include link-colors($white, $yellow);
+
+    position: relative;
+    &:after {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      content: " ";
+      background-color: transparentize($blue, 0.25);
+      @include transform(skewX($skew));
+      @include antialias;
+    }
 	}
 }
