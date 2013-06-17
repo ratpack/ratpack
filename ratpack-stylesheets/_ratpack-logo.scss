@@ -2,6 +2,7 @@ $logo-font-size: 8em;
 $small-logo-scale: 0.625;
 $tiny-logo-scale: 0.375;
 
+$logo-vector: 'ratpack-logo.svg';
 $logo-image: 'ratpack-logo.png';
 $logo-inverted: 'ratpack-logo-white.png';
 
@@ -12,7 +13,7 @@ $logo-inverted: 'ratpack-logo-white.png';
 		left: $base-size * 0.25;
 		width: $base-size * 2.1875;
 		.backgroundsize & {
-			width: $base-size * 3.125;
+			width: $base-size * 3.375;
 		}
 	}
 }
@@ -57,7 +58,6 @@ $logo-inverted: 'ratpack-logo-white.png';
 		display: inline-block;
 		padding: 0;
 		color: $black;
-		@include smooth-font($black);
 		font: {
 			family: 'Engagement', sans-serif;
 			weight: normal;
@@ -68,7 +68,7 @@ $logo-inverted: 'ratpack-logo-white.png';
 		.backgroundsize & {
 			padding: 0 (image-width($logo-image) / ($base-font-size * ($logo-font-size / 1em))) * 1em;
 			background: {
-				image: image-url($logo-image);
+				image: image-url($logo-vector);
 				repeat: no-repeat;
 				position: {
 					y: bottom;
@@ -76,7 +76,11 @@ $logo-inverted: 'ratpack-logo-white.png';
 				}
 				size: contain;
 			}
+
 		}
+    .backgroundsize.no-svg & {
+      background-image: image-url($logo-image);
+    }
 
 		&:last-child {
 			border-bottom: 0.03em solid $black;
