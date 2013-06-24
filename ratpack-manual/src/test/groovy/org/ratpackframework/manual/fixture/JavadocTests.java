@@ -20,6 +20,6 @@ import java.io.File;
 
 public interface JavadocTests {
 
-  void testCodeSnippets(File root, String include);
+  void testCodeSnippets(File root, String include, String cssClass, ScriptRunner scriptRunner);
 
 }

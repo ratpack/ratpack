@@ -32,7 +32,7 @@ public class DefaultChain implements Chain {
 
   private final List<Handler> handlers;
 
-  DefaultChain(List<Handler> handlers) {
+  public DefaultChain(List<Handler> handlers) {
     this.handlers = handlers;
   }
 
@@ -40,14 +40,8 @@ public class DefaultChain implements Chain {
     add(ClosureHandlers.handler(handler));
   }
 
-  public void chain(Closure<?> handlers) {
-    for (Handler handler : toHandlerList(handlers)) {
-      add(handler);
-    }
-  }
-
-  public void prefix(String path, Closure<?> handlers) {
-    add(Handlers.prefix(path, toHandlerList(handlers)));
+  public void prefix(String prefix, Closure<?> chain) {
+    add(Handlers.prefix(prefix, toHandlerList(chain)));
   }
 
   public void path(String path, Closure<?> handler) {

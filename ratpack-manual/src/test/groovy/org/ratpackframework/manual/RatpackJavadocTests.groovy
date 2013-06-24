@@ -18,6 +18,7 @@ package org.ratpackframework.manual
 
 import org.ratpackframework.manual.fixture.JavadocTestCase
 import org.ratpackframework.manual.fixture.JavadocTests
+import org.ratpackframework.manual.fixture.DefaultScriptRunner
 
 class RatpackJavadocTests extends JavadocTestCase {
 
@@ -34,7 +35,20 @@ class RatpackJavadocTests extends JavadocTestCase {
     root.eachDirMatch(~/ratpack-.+/) {
       def mainSrc = new File(it, "src/main")
       if (mainSrc.exists()) {
-        tests.testCodeSnippets(mainSrc, "**/*.java")
+        tests.testCodeSnippets(mainSrc, "**/*.java", "tested", new DefaultScriptRunner())
+
+        def groovyChainDslPrefix = """
+          import org.ratpackframework.groovy.handling.Chain;
+          import org.ratpackframework.groovy.handling.internal.DefaultChain;
+          import org.ratpackframework.groovy.util.Closures;
+
+          Closures.configure((Chain) new DefaultChain([])) {
+        """
+
+        def groovyChainDslSuffix = """
+          }
+        """
+        tests.testCodeSnippets(mainSrc, "**/*.java", "groovy-chain-dsl", new DefaultScriptRunner(groovyChainDslPrefix, groovyChainDslSuffix))
       }
     }
   }

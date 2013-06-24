@@ -16,17 +16,8 @@
 
 package org.ratpackframework.manual.fixture
 
-import groovy.transform.CompileStatic
 import org.apache.commons.lang3.StringEscapeUtils
-import org.codehaus.groovy.ast.AnnotationNode
-import org.codehaus.groovy.ast.ClassNode
-import org.codehaus.groovy.classgen.GeneratorContext
-import org.codehaus.groovy.control.CompilationFailedException
-import org.codehaus.groovy.control.CompilePhase
-import org.codehaus.groovy.control.CompilerConfiguration
 import org.codehaus.groovy.control.MultipleCompilationErrorsException
-import org.codehaus.groovy.control.SourceUnit
-import org.codehaus.groovy.control.customizers.CompilationCustomizer
 import org.codehaus.groovy.control.messages.SyntaxErrorMessage
 import org.junit.runner.Description
 import org.junit.runner.Runner
@@ -41,27 +32,25 @@ class JavadocCodeSnippetRunnerBuilder {
   private static Pattern javadocPattern =
     Pattern.compile(/(?ims)\/\*\*.*?\*\//)
 
-  private static Pattern snippetTagPattern =
-    Pattern.compile(/(?ims)<([a-z]+)\s+class\s*=\s*['"]tested['"]\s*>.*?<\s*\/\s*\1>/)
-
-  static List<Runner> build(Class<?> clazz, File root, String include) {
+  static List<Runner> build(Class<?> clazz, File root, String include, String cssClass, ScriptRunner scriptRunner) {
     List<Runner> runners = []
+    def snippetTagPattern = Pattern.compile(/(?ims)<([a-z]+)\s+class\s*=\s*['"]$cssClass['"]\s*>.*?<\s*\/\s*\1>/)
     def filenames = new FileNameFinder().getFileNames(root.absolutePath, include)
     filenames.each { filename ->
       def file = new File(filename)
-      addTests(clazz, runners, file)
+      addTests(clazz, runners, file, snippetTagPattern, scriptRunner)
     }
 
     runners
   }
 
-  private static void addTests(Class<?> clazz, List<Runner> runners, File file) {
+  private static void addTests(Class<?> clazz, List<Runner> runners, File file, Pattern snippetTagPattern, ScriptRunner scriptRunner) {
     def source = file.text
     String testName = calculateBaseName(file, source)
-    Map<Integer, String> snippetsByLine = findSnippetsByLine(source)
+    Map<Integer, String> snippetsByLine = findSnippetsByLine(source, snippetTagPattern)
     snippetsByLine.each { lineNumber, snippets ->
       snippets.each { snippet ->
-        runners << createRunner(clazz, testName, file, lineNumber, snippet)
+        runners << createRunner(clazz, testName, file, lineNumber, snippet, scriptRunner)
       }
     }
   }
@@ -71,7 +60,7 @@ class JavadocCodeSnippetRunnerBuilder {
     packageNameMatch[0][1] + "." + (file.name[0..file.name.lastIndexOf(".") - 1])
   }
 
-  private static List<String> findSnippetTags(String code) {
+  private static List<String> findSnippetTags(String code, Pattern snippetTagPattern) {
     List<String> tags = []
 
     code.eachMatch(javadocPattern) { String javadoc ->
@@ -81,8 +70,8 @@ class JavadocCodeSnippetRunnerBuilder {
     tags
   }
 
-  private static Map<Integer, String> findSnippetsByLine(String source) {
-    List<String> snippetTags = findSnippetTags(source)
+  private static Map<Integer, String> findSnippetsByLine(String source, Pattern snippetTagPattern) {
+    List<String> snippetTags = findSnippetTags(source, snippetTagPattern)
     Map lineNumberToAssertions = [:]
 
     int codeIndex = 0
@@ -99,7 +88,7 @@ class JavadocCodeSnippetRunnerBuilder {
     lineNumberToAssertions
   }
 
-  private static Runner createRunner(Class<?> testClass, String sourceClassName, File sourceFile, int lineNumber, String snippet) {
+  private static Runner createRunner(Class<?> testClass, String sourceClassName, File sourceFile, int lineNumber, String snippet, ScriptRunner scriptRunner) {
     def description = Description.createTestDescription(testClass, sourceClassName + ":$lineNumber")
     new Runner() {
       @Override
@@ -109,18 +98,9 @@ class JavadocCodeSnippetRunnerBuilder {
 
       @Override
       void run(RunNotifier notifier) {
-        def config = new CompilerConfiguration()
-        config.addCompilationCustomizers(new CompilationCustomizer(CompilePhase.CONVERSION) {
-          @Override
-          public void call(SourceUnit source, GeneratorContext context, ClassNode classNode) throws CompilationFailedException {
-            classNode.addAnnotation(new AnnotationNode(new ClassNode(CompileStatic.class)));
-          }
-        })
-
-        def shell = new GroovyShell(config)
         try {
           notifier.fireTestStarted(getDescription())
-          shell.evaluate(snippet + ";0;", sourceClassName)
+          scriptRunner.runScript(snippet, sourceClassName)
         } catch (Throwable t) {
           def errorLine = 0
 
@@ -136,6 +116,7 @@ class JavadocCodeSnippetRunnerBuilder {
               errorLine = frame.lineNumber
             }
           }
+          errorLine = errorLine - scriptRunner.scriptLineOffset
           StackTraceElement[] stack = t.getStackTrace()
           List<StackTraceElement> newStack = new ArrayList<StackTraceElement>(stack.length + 1)
           newStack.add(new StackTraceElement(sourceClassName, "javadoc", sourceFile.name, lineNumber + errorLine))

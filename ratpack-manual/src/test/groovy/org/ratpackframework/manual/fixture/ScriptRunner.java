@@ -14,23 +14,12 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.manual.fixture
+package org.ratpackframework.manual.fixture;
 
-import org.junit.runner.Runner
+public interface ScriptRunner {
 
-class DefaultJavadocTests implements JavadocTests {
+  void runScript(String script, String sourceClassName);
 
-  private final Class<?> clazz
-  private final List<Runner> runners
-
-  DefaultJavadocTests(Class<?> clazz, List<Runner> runners) {
-    this.clazz = clazz
-    this.runners = runners
-  }
-
-  public void testCodeSnippets(File root, String include, String cssClass, ScriptRunner scriptRunner) {
-    runners.addAll(JavadocCodeSnippetRunnerBuilder.build(clazz, root, include, cssClass, scriptRunner))
-  }
-
+  int getScriptLineOffset();
 
 }
