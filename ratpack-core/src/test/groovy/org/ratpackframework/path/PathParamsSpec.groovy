@@ -24,7 +24,7 @@ class PathParamsSpec extends RatpackGroovyDslSpec {
     when:
     app {
       handlers {
-        get(":a/:b/:c") {
+        get(":a/:b/:c?") {
           response.send new LinkedHashMap(pathTokens).toString()
         }
       }
@@ -32,6 +32,8 @@ class PathParamsSpec extends RatpackGroovyDslSpec {
 
     then:
     getText("1/2/3") == [a: 1, b: 2, c: 3].toString()
+    and:
+    getText("1/2") == [a: 1, b: 2].toString()
   }
 
 }
