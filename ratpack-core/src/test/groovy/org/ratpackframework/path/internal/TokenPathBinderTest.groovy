@@ -30,6 +30,8 @@ class TokenPathBinderTest extends Specification {
     map("a", "a") == [:]
     map("(.+)", "abc") == null
     map(":a/:b", "abc/def") == [a: "abc", b: "def"]
+    map(":a/:b?", "abc/def") == [a: "abc", b: "def"]
+    map(":a/:b?", "abc") == [a: "abc"]
   }
 
 }

@@ -37,12 +37,13 @@ public class TokenPathBinder implements PathBinder {
     ImmutableList.Builder<String> namesBuilder = ImmutableList.builder();
     String pattern = Pattern.quote(path);
 
-    Pattern placeholderPattern = Pattern.compile("(:\\w+)");
+    Pattern placeholderPattern = Pattern.compile("(/?:(\\w+)\\?*)");
     Matcher matchResult = placeholderPattern.matcher(path);
     while (matchResult.find()) {
-      String name = matchResult.group();
-      pattern = pattern.replaceFirst(name, "\\\\E([^/?&#]+)\\\\Q");
-      namesBuilder.add(name.substring(1));
+      String name = matchResult.group(1);
+      boolean optional =  name.contains("?");
+      pattern = pattern.replaceFirst(Pattern.quote(name), "\\\\E/?([^/?&#]+)"+((optional) ? "?": "")+"\\\\Q");
+      namesBuilder.add(matchResult.group(2));
     }
 
     StringBuilder patternBuilder = new StringBuilder("(").append(pattern).append(")");
@@ -58,7 +59,6 @@ public class TokenPathBinder implements PathBinder {
     if (parentBinding != null) {
       path = parentBinding.getPastBinding();
     }
-
     Matcher matcher = regex.matcher(path);
     if (matcher.matches()) {
       MatchResult matchResult = matcher.toMatchResult();
@@ -66,7 +66,10 @@ public class TokenPathBinder implements PathBinder {
       ImmutableMap.Builder<String, String> paramsBuilder = ImmutableMap.builder();
       int i = 2;
       for (String name : tokenNames) {
-        paramsBuilder.put(name, matchResult.group(i++));
+        String value = matchResult.group(i++);
+        if (value != null) {
+            paramsBuilder.put(name, value);
+        }
       }
 
       return new DefaultPathBinding(path, boundPath, paramsBuilder.build(), parentBinding);
