@@ -39,9 +39,16 @@ public class TokenPathBinder implements PathBinder {
 
     Pattern placeholderPattern = Pattern.compile("(/?:(\\w+)\\?*)");
     Matcher matchResult = placeholderPattern.matcher(path);
+    boolean hasOptional = false;
     while (matchResult.find()) {
       String name = matchResult.group(1);
       boolean optional =  name.contains("?");
+
+      hasOptional = hasOptional || optional;
+      if (hasOptional && !optional) {
+          throw new IllegalArgumentException(String.format("path %s should not define mandatory parameters after an optional parameter", path));
+      }
+
       pattern = pattern.replaceFirst(Pattern.quote(name), "\\\\E/?([^/?&#]+)"+((optional) ? "?": "")+"\\\\Q");
       namesBuilder.add(matchResult.group(2));
     }

@@ -16,6 +16,8 @@
 
 package org.ratpackframework.util.internal;
 
+import java.util.regex.Matcher;
+
 public abstract class Validations {
 
   public static void noLeadingForwardSlash(String string, String description) {
