@@ -42,14 +42,14 @@ public class TokenPathBinder implements PathBinder {
     boolean hasOptional = false;
     while (matchResult.find()) {
       String name = matchResult.group(1);
-      boolean optional =  name.contains("?");
+      boolean optional = name.contains("?");
 
       hasOptional = hasOptional || optional;
       if (hasOptional && !optional) {
-          throw new IllegalArgumentException(String.format("path %s should not define mandatory parameters after an optional parameter", path));
+        throw new IllegalArgumentException(String.format("path %s should not define mandatory parameters after an optional parameter", path));
       }
 
-      pattern = pattern.replaceFirst(Pattern.quote(name), "\\\\E/?([^/?&#]+)"+((optional) ? "?": "")+"\\\\Q");
+      pattern = pattern.replaceFirst(Pattern.quote(name), "\\\\E/?([^/?&#]+)" + ((optional) ? "?" : "") + "\\\\Q");
       namesBuilder.add(matchResult.group(2));
     }
 
@@ -75,7 +75,7 @@ public class TokenPathBinder implements PathBinder {
       for (String name : tokenNames) {
         String value = matchResult.group(i++);
         if (value != null) {
-            paramsBuilder.put(name, value);
+          paramsBuilder.put(name, value);
         }
       }
 
