@@ -42,7 +42,7 @@ public class TokenPathBinder implements PathBinder {
     boolean hasOptional = false;
     while (matchResult.find()) {
       String name = matchResult.group(1);
-      boolean optional = name.contains("?");
+      boolean optional = name.endsWith("?");
 
       hasOptional = hasOptional || optional;
       if (hasOptional && !optional) {
