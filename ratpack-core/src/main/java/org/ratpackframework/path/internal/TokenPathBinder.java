@@ -49,7 +49,7 @@ public class TokenPathBinder implements PathBinder {
         throw new IllegalArgumentException(String.format("path %s should not define mandatory parameters after an optional parameter", path));
       }
 
-      pattern = pattern.replaceFirst(Pattern.quote(name), "\\\\E/?([^/?&#]+)" + ((optional) ? "?" : "") + "\\\\Q");
+      pattern = pattern.replaceFirst(Pattern.quote(name), "\\\\E/?([^/?&#]+)" + (optional ? "?" : "") + "\\\\Q");
       namesBuilder.add(matchResult.group(2));
     }
 
