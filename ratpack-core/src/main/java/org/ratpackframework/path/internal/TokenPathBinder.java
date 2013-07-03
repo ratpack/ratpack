@@ -37,7 +37,7 @@ public class TokenPathBinder implements PathBinder {
     ImmutableList.Builder<String> namesBuilder = ImmutableList.builder();
     String pattern = Pattern.quote(path);
 
-    Pattern placeholderPattern = Pattern.compile("(/?:(\\w+)\\?*)");
+    Pattern placeholderPattern = Pattern.compile("(/?:(\\w+)\\??)");
     Matcher matchResult = placeholderPattern.matcher(path);
     boolean hasOptional = false;
     while (matchResult.find()) {
