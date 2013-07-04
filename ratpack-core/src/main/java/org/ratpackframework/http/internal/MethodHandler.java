@@ -33,8 +33,7 @@ public class MethodHandler implements Handler {
   }
 
   public void handle(Exchange exchange) {
-    String actualMethodName = exchange.getRequest().getMethod().getName();
-    if (actualMethodName.equals(method)) {
+    if (exchange.getRequest().getMethod().name(method)) {
       exchange.next();
     } else {
       exchange.clientError(405);

@@ -60,6 +60,12 @@ abstract class RequestingSpec extends Specification {
     postRequest()
   }
 
+  Response head(String path = "") {
+    preRequest()
+    response = request.head(toUrl(path))
+    postRequest()
+  }
+
   Response postRequest() {
     response.detailedCookies.each { Cookie setCookie ->
       def date = setCookie.getExpiryDate()

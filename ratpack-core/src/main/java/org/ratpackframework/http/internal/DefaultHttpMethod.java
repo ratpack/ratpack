@@ -35,7 +35,11 @@ public class DefaultHttpMethod implements HttpMethod {
   }
 
   public boolean isGet() {
-    return name.equals("GET");
+    return name.equals("GET") || name.equals("HEAD");
+  }
+
+  public boolean isHead() {
+    return name.equals("HEAD");
   }
 
   public boolean isPut() {
@@ -47,7 +51,11 @@ public class DefaultHttpMethod implements HttpMethod {
   }
 
   public boolean name(String name) {
-    return this.name.equals(name.toUpperCase());
+    if (name.equalsIgnoreCase("GET")) {
+      return isGet();
+    } else {
+      return this.name.equalsIgnoreCase(name);
+    }
   }
 
 }

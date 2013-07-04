@@ -27,6 +27,7 @@ class PathAndMethodRoutingSpec extends DefaultRatpackSpec {
     app {
       handlers {
         add get("a/b/c") {
+          response.setHeader("X-value", request.query)
           response.send request.query
         }
         add path(":a/:b") {
@@ -49,6 +50,11 @@ class PathAndMethodRoutingSpec extends DefaultRatpackSpec {
     resetRequest()
     postText("1/2/3/4") == "[a:1, b:2, c:3, d:4]"
     putText("5/6/7/8") == "[A:5, B:6, C:7, D:8]"
+    with(head("a/b/c?head")) {
+      statusCode == 200
+      getHeader("X-value") == "head"
+      asByteArray().length == 0
+    }
   }
 
   def "can use method chain"() {

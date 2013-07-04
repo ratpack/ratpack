@@ -52,7 +52,7 @@ class StaticFileSpec extends DefaultRatpackSpec {
 
   def "can serve static file"() {
     given:
-    file("public/static.text") << "hello!"
+    def file = file("public/static.text") << "hello!"
 
     when:
     app {
@@ -63,8 +63,14 @@ class StaticFileSpec extends DefaultRatpackSpec {
 
     then:
     getText("static.text") == "hello!"
-  }
+    getText("static.text") == "hello!"
 
+    with(head("static.text")) {
+      statusCode == 200
+      asByteArray().length == 0
+      getHeader("content-length") == file.length().toString()
+    }
+  }
 
   def "can serve index files"() {
     file("public/index.html") << "foo"
