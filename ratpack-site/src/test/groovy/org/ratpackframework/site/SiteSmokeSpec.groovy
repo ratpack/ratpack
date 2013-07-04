@@ -16,27 +16,12 @@
 
 package org.ratpackframework.site
 
-import org.ratpackframework.test.RequestingSpec
-import org.ratpackframework.bootstrap.RatpackServer
-import org.ratpackframework.groovy.RatpackScriptApp
+import org.ratpackframework.test.ScriptAppSpec
 
 
-
-class SiteSmokeSpec extends RequestingSpec {
-
-		
-  @Override
-  protected RatpackServer createServer() {
-  	//It doesn't seem like I should have to do this work everytime is there a spec type I should be extending?
-  	def file = new File("src/ratpack/ratpack.groovy")
-    return RatpackScriptApp.ratpack(file,file.getAbsoluteFile().getParentFile(),0,null,false,false)
-  }
-
+class SiteSmokeSpec extends ScriptAppSpec {
 
 	def "Check Site Index"() {
-		given:
-
-
 		when:
 		get("index.html")
 
@@ -47,15 +32,12 @@ class SiteSmokeSpec extends RequestingSpec {
 	}
 
 	def "Check Site /"() {
-		given:
-
-
 		when:
 		get("")
 
 		then:
 		response.statusCode == 200
 		response.body.asString().contains('<title>Ratpack: A toolkit for JVM web applications</title>')
-	}	
+	}
 
 }
