@@ -14,14 +14,24 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.bootstrap.internal;
+package org.ratpackframework.manual.fixture;
 
-import org.ratpackframework.bootstrap.RatpackServer;
-import org.ratpackframework.util.Action;
+import org.junit.runner.RunWith;
+import org.junit.runner.Runner;
 
-public class NoopInit implements Action<RatpackServer> {
+import java.util.LinkedList;
+import java.util.List;
 
-  public void execute(RatpackServer thing) {
+@RunWith(DelegatingTestRunner.class)
+abstract public class JavadocTestCase implements RunnerProvider {
+
+  protected abstract void addTests(JavadocTests tests);
+
+  public final List<Runner> getRunners() {
+    List<Runner> runners = new LinkedList<Runner>();
+    JavadocTests tests = new DefaultJavadocTests(getClass(), runners);
+    addTests(tests);
+    return runners;
   }
 
 }

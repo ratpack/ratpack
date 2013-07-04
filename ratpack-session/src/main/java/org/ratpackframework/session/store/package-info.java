@@ -14,13 +14,7 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.guice;
-
-import org.ratpackframework.handling.Handler;
-import org.ratpackframework.util.Action;
-
-public interface GuiceBackedHandlerFactory {
-
-  Handler create(Action<? super ModuleRegistry> modulesAction, Handler handler);
-
-}
+/**
+ * Session scoped storage.
+ */
+package org.ratpackframework.session.store;

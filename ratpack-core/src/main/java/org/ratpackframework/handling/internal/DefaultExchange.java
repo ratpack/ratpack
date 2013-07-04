@@ -71,15 +71,7 @@ public class DefaultExchange implements Exchange {
   }
 
   public void next() {
-    try {
-      next.handle(this);
-    } catch (Exception e) {
-      if (e instanceof HandlerException) {
-        throw (HandlerException) e;
-      } else {
-        throw new HandlerException(this, e);
-      }
-    }
+    next.handle(this);
   }
 
   public void insert(List<Handler> handlers) {
@@ -115,7 +107,11 @@ public class DefaultExchange implements Exchange {
     try {
       runnable.run();
     } catch (Exception e) {
-      error(e);
+      if (e instanceof HandlerException) {
+        ((HandlerException) e).getExchange().error((Exception) e.getCause());
+      } else {
+        error(e);
+      }
     }
   }
 
@@ -126,7 +122,16 @@ public class DefaultExchange implements Exchange {
   protected void doNext(final Exchange parentExchange, final Context context, final List<Handler> handlers, final int index, final Handler exhausted) {
     assert context != null;
     if (index == handlers.size()) {
-      exhausted.handle(parentExchange);
+      try {
+        exhausted.handle(parentExchange);
+      } catch (Exception e) {
+        if (e instanceof HandlerException) {
+          throw (HandlerException) e;
+        } else {
+          throw new HandlerException(this, e);
+        }
+      }
+
     } else {
       Handler handler = handlers.get(index);
       Handler nextHandler = new Handler() {
@@ -135,7 +140,15 @@ public class DefaultExchange implements Exchange {
         }
       };
       DefaultExchange childExchange = new DefaultExchange(request, response, channelHandlerContext, context, nextHandler);
-      handler.handle(childExchange);
+      try {
+        handler.handle(childExchange);
+      } catch (Exception e) {
+        if (e instanceof HandlerException) {
+          throw (HandlerException) e;
+        } else {
+          throw new HandlerException(this, e);
+        }
+      }
     }
   }
 

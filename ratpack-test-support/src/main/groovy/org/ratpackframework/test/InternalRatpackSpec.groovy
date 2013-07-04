@@ -18,7 +18,7 @@ package org.ratpackframework.test
 
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
-import org.ratpackframework.groovy.Closures
+import org.ratpackframework.groovy.util.Closures
 
 abstract class InternalRatpackSpec extends RequestingSpec {
 

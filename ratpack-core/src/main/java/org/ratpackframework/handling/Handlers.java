@@ -16,6 +16,7 @@
 
 package org.ratpackframework.handling;
 
+import com.google.common.collect.ImmutableList;
 import org.ratpackframework.file.internal.DirectoryStaticAssetRequestHandler;
 import org.ratpackframework.file.internal.FileStaticAssetRequestHandler;
 import org.ratpackframework.file.internal.FileSystemContextHandler;
@@ -28,13 +29,13 @@ import org.ratpackframework.path.internal.TokenPathBinder;
 import org.ratpackframework.util.Action;
 
 import java.io.File;
-import java.util.Arrays;
+import java.util.List;
 
 /**
  * Factory methods for certain types of handlers.
  * <p>
  * Typically used by {@link Chain} implementations to build a handler chain.
- * <pre class="groovyTestCase">
+ * <pre class="tested">
  * import static org.ratpackframework.handling.Handlers.*;
  * import org.ratpackframework.handling.Handler;
  * import org.ratpackframework.handling.Chain;
@@ -51,7 +52,7 @@ import java.util.Arrays;
  *   void execute(Chain chain) {
  *     chain.add(assets("public"));
  *     chain.add(get("info", new ExampleHandler()));
- *     chain.add(path("api", new Action&lt;Chain&gt;() {
+ *     chain.add(prefix("api", new Action&lt;Chain&gt;() {
  *       void execute(Chain apiChain) {
  *         apiChain.add(get("version", new ExampleHandler()));
  *         apiChain.add(get("log", new ExampleHandler()));
@@ -59,12 +60,16 @@ import java.util.Arrays;
  *     }));
  *   }
  * }
- * 0;
  * </pre>
  */
 public abstract class Handlers {
 
-  private Handlers() {}
+  private Handlers() {
+  }
+
+  private static <T> ImmutableList<T> singleton(T thing) {
+    return ImmutableList.of(thing);
+  }
 
   /**
    * Creates a handler that inserts the handler chain defined by the builder, with the given context addition.
@@ -77,7 +82,7 @@ public abstract class Handlers {
    * @return A handler
    */
   public static Handler context(Object object, Action<? super Chain> builder) {
-    return context(object, chain(builder));
+    return context(object, chainList(builder));
   }
 
   /**
@@ -86,24 +91,26 @@ public abstract class Handlers {
    * @param type The type by which to make the context addition available
    * @param object The object to add to the context, only for the handlers defined by {@code builder}
    * @param builder The definition of the handler chain to insert with the context
+   * @param <T> The concrete type of the context addition
    * @return A handler
    */
   public static <T> Handler context(Class<? super T> type, T object, Action<? super Chain> builder) {
-    return context(type, object, chain(builder));
+    return context(type, object, chainList(builder));
   }
 
   /**
-   * Creates a handler that inserts the given handler with the given context addition.
+   * Creates a handler that inserts the handler chain defined by the builder, with the given context addition.
    * <p>
    * The context object will be available by its concrete type.
-   * To make it available by a different type (perhaps one of its interfaces) use {@link #context(Class, Object, Handler)}.
-   *
-   * @param object The object to add to the context for the handler
-   * @param handler The handler to make the context addition available for
+   * To make it available by a different type (perhaps one of its interfaces) use {@link #context(Class, Object, List)}.
+
+   * @param object The object to add to the context, only for the handlers defined by {@code builder}
+   * @param handlers The handler to
+   * @param <T> The concrete type of the context addition
    * @return A handler
    */
-  public static Handler context(Object object, Handler handler) {
-    return new ContextInsertingHandler(object, handler);
+  public static <T> Handler context(T object, List<Handler> handlers) {
+    return new ContextInsertingHandler(object, ImmutableList.copyOf(handlers));
   }
 
   /**
@@ -111,11 +118,12 @@ public abstract class Handlers {
    *
    * @param type The type by which to make the context addition available
    * @param object The object to add to the context, only for the handlers defined by {@code builder}
-   * @param handler The handler to
+   * @param handlers The handler to
+   * @param <T> The concrete type of the context addition
    * @return A handler
    */
-  public static <T> Handler context(Class<? super T> type, T object, Handler handler) {
-    return new ContextInsertingHandler(type, object, handler);
+  public static <T> Handler context(Class<? super T> type, T object, List<Handler> handlers) {
+    return new ContextInsertingHandler(type, object, ImmutableList.copyOf(handlers));
   }
 
   /**
@@ -125,24 +133,40 @@ public abstract class Handlers {
    * @return A handler
    */
   public static Handler chain(Action<? super Chain> action) {
-    return ChainBuilder.INSTANCE.build(ChainActionTransformer.INSTANCE, action);
+    return ChainBuilder.INSTANCE.buildHandler(ChainActionTransformer.INSTANCE, action);
   }
 
-  public static Handler chain(final Handler... handlers) {
-    return new ChainHandler(Arrays.asList(handlers));
+  private static ImmutableList<Handler> chainList(Action<? super Chain> action) {
+    return ChainBuilder.INSTANCE.buildList(ChainActionTransformer.INSTANCE, action);
   }
 
   /**
-   * A handler that changes the {@link org.ratpackframework.file.FileSystemBinding} for the given handler.
+   * Creates a handler chain from the given handlers.
+   *
+   * @param handlers The handlers to connect into a chain
+   * @return A new handler that is the given handlers connected into a chain
+   */
+  public static Handler chain(List<Handler> handlers) {
+    if (handlers.size() == 0) {
+      return next();
+    } else if (handlers.size() == 1) {
+      return handlers.get(0);
+    } else {
+      return new ChainHandler(ImmutableList.copyOf(handlers));
+    }
+  }
+
+  /**
+   * A handlers that changes the {@link org.ratpackframework.file.FileSystemBinding} for the given handlers.
    * <p>
    * The new file system binding will be created by the {@link org.ratpackframework.file.FileSystemBinding#binding(String)} method of the contextual binding.
    *
    * @param path The relative path to the new file system binding point
-   * @param handler The handler to execute with the new file system binding
+   * @param handlers The handlers to execute with the new file system binding
    * @return A handler
    */
-  public static Handler fileSystem(String path, Handler handler) {
-    return new FileSystemContextHandler(new File(path), handler);
+  public static Handler fileSystem(String path, List<Handler> handlers) {
+    return new FileSystemContextHandler(new File(path), ImmutableList.copyOf(handlers));
   }
 
   /**
@@ -155,7 +179,7 @@ public abstract class Handlers {
    * @return A handler
    */
   public static Handler fileSystem(String path, Action<? super Chain> builder) {
-    return fileSystem(path, chain(builder));
+    return fileSystem(path, chainList(builder));
   }
 
   /**
@@ -208,10 +232,10 @@ public abstract class Handlers {
    */
   public static Handler assets(String path, String[] indexFiles, final Handler notFound) {
     Handler fileHandler = FileStaticAssetRequestHandler.INSTANCE;
-    Handler directoryHandler = new DirectoryStaticAssetRequestHandler(Arrays.asList(indexFiles), fileHandler);
+    Handler directoryHandler = new DirectoryStaticAssetRequestHandler(ImmutableList.<String>builder().add(indexFiles).build(), fileHandler);
     Handler contextSetter = new TargetFileStaticAssetRequestHandler(directoryHandler);
 
-    return fileSystem(path, chain(contextSetter, notFound));
+    return fileSystem(path, ImmutableList.<Handler>of(contextSetter, notFound));
   }
 
   /**
@@ -225,32 +249,193 @@ public abstract class Handlers {
     return NextHandler.INSTANCE;
   }
 
+  /**
+   * A handler that delegates to the given handler if the request is GET and matches the given path.
+   * <p>
+   * If the request is not a GET or does not match the path, the next handler in the chain will be invoked.
+   * <p>
+   * If the request does match the given path but is not a GET, a 405 will be sent to the exchange's
+   * {@linkplain Exchange#clientError(int) client error handler}.
+   * <p>
+   * See {@link #path(String, java.util.List)} for details on how the path argument is interpreted.
+   *
+   * @param path The path to match requests for
+   * @param handler The handler to delegate to if the path matches and the request is a GET
+   * @return A handler
+   */
   public static Handler get(String path, Handler handler) {
-    return path(path, chain(MethodHandler.GET, handler));
+    return path(path, ImmutableList.<Handler>of(get(), handler));
   }
 
+  /**
+   * A handler that delegates to the given handler if the request is GET and the path is at the current root.
+   * <p>
+   * This is shorthand for calling {@link #get(String, Handler)} with a path of {@code ""}.
+   *
+   * @param handler The handler to delegate to if the path matches and the request is a GET
+   * @return A handler
+   */
   public static Handler get(Handler handler) {
-    return path("", chain(MethodHandler.GET, handler));
+    return path("", ImmutableList.<Handler>of(get(), handler));
   }
 
+  /**
+   * A handler that delegates to the next handler if the request is GET, otherwise raises a 405 client error.
+   *
+   * @return A handler
+   */
+  public static Handler get() {
+    return MethodHandler.GET;
+  }
+
+  /**
+   * A handler that delegates to the given handler if the request is POST and matches the given path.
+   * <p>
+   * If the request is not a POST or does not match the path, the next handler in the chain will be invoked.
+   * <p>
+   * If the request does match the given path but is not a POST, a 405 will be sent to the exchange's
+   * {@linkplain Exchange#clientError(int) client error handler}.
+   * <p>
+   * See {@link #path(String, java.util.List)} for details on how the path argument is interpreted.
+   *
+   * @param path The path to match requests for
+   * @param handler The handler to delegate to if the path matches and the request is a POST
+   * @return A handler
+   */
   public static Handler post(String path, Handler handler) {
-    return path(path, chain(MethodHandler.POST, handler));
+    return path(path, ImmutableList.<Handler>of(post(), handler));
   }
 
-  public static Handler path(String path, Action<? super Chain> builder) {
-    return path(path, chain(builder));
+  /**
+   * A handler that delegates to the given handler if the request is POST and the path is at the current root.
+   * <p>
+   * This is shorthand for calling {@link #post(String, Handler)} with a path of {@code ""}.
+   *
+   * @param handler The handler to delegate to if the path matches and the request is a POST
+   * @return A handler
+   */
+  public static Handler post(Handler handler) {
+    return path("", ImmutableList.<Handler>of(post(), handler));
   }
 
+  /**
+   * A handler that delegates to the next handler if the request is POST, otherwise raises a 405 client error.
+   *
+   * @return A handler
+   */
+  public static Handler post() {
+    return MethodHandler.POST;
+  }
+
+  /**
+   * A handler that delegates to the next handler if the request is PUT, otherwise raises a 405 client error.
+   *
+   * @return A handler
+   */
+  public static Handler put() {
+    return MethodHandler.PUT;
+  }
+
+  /**
+   * A handler that delegates to the next handler if the request is DELETE, otherwise raises a 405 client error.
+   *
+   * @return A handler
+   */
+  public static Handler delete() {
+    return MethodHandler.DELETE;
+  }
+
+  /**
+   * Creates a handler that delegates to the given handlers if the request path starts with the given prefix.
+   * <p>
+   * See {@link #prefix(String, List)} for the details on how {@code prefix} is interpreted.
+   *
+   * @param prefix The path prefix to match
+   * @param builder The definition of the chain to delegate to
+   * @return A handler
+   */
+  public static Handler prefix(String prefix, Action<? super Chain> builder) {
+    return prefix(prefix, chainList(builder));
+  }
+
+  /**
+   * Creates a handler that delegates to the given handler if the request path starts with the given prefix.
+   * <p>
+   * See {@link #prefix(String, List)} for the details on how {@code prefix} is interpreted.
+   *
+   * @param prefix The path prefix to match
+   * @param handler The handler to delegate to
+   * @return A handler
+   */
+  public static Handler prefix(String prefix, Handler handler) {
+    return prefix(prefix, singleton(handler));
+  }
+
+  /**
+   * Creates a handler that delegates to the given handlers if the request path starts with the given prefix.
+   * <p>
+   * The {@code prefix} is relative to the contextual {@link org.ratpackframework.path.PathBinding} of the exchange.
+   * <p>
+   * A new contextual {@link org.ratpackframework.path.PathBinding} will be established for the given handlers,
+   * using the given prefix as the bind point.
+   *
+   * @param prefix The path prefix to match
+   * @param handlers The handlers to delegate to
+   * @return A handler
+   */
+  public static Handler prefix(String prefix, List<Handler> handlers) {
+    return path(new TokenPathBinder(prefix, false), handlers);
+  }
+
+  /**
+   * Creates a handler that delegates to the given handler if the request matches the given path exactly.
+   * <p>
+   * See {@link #path(String, List)} for the details on how {@code prefix} is interpreted.
+   *
+   * @param path The exact path to match to
+   * @param handler The handler to delegate to if the path matches
+   * @return A handler
+   */
   public static Handler path(String path, Handler handler) {
-    return pathBinding(new TokenPathBinder(path, false), handler);
+    return path(path, singleton(handler));
   }
 
-  public static Handler handler(String path, Handler handler) {
-    return pathBinding(new TokenPathBinder(path, true), handler);
+  /**
+   * Creates a handler that delegates to the given handlers if the request matches the given path exactly.
+   * <p>
+   * The {@code path} is relative to the contextual {@link org.ratpackframework.path.PathBinding} of the exchange.
+   * <p>
+   * A new contextual {@link org.ratpackframework.path.PathBinding} will be established for the given handlers,
+   * using the given path as the bind point.
+   *
+   * @param path The exact path to match to
+   * @param handlers The handlers to delegate to if the path matches
+   * @return A handler
+   */
+  public static Handler path(String path, List<Handler> handlers) {
+    return path(new TokenPathBinder(path, true), handlers);
   }
 
-  public static Handler pathBinding(PathBinder pathBinder, Handler handler) {
-    return new PathHandler(pathBinder, handler);
+  /**
+   * Creates a handler that delegates to the given handler if the request can be bound by the given path binder.
+   *
+   * @param pathBinder The path binder that may bind to the request path
+   * @param handler The handler to delegate to if path binder does bind to the path
+   * @return A handler
+   */
+  public static Handler path(PathBinder pathBinder, Handler handler) {
+    return path(pathBinder, singleton(handler));
+  }
+
+  /**
+   * Creates a handler that delegates to the given handlers if the request can be bound by the given path binder.
+   *
+   * @param pathBinder The path binder that may bind to the request path
+   * @param handlers The handlers to delegate to if path binder does bind to the path
+   * @return A handler
+   */
+  public static Handler path(PathBinder pathBinder, List<Handler> handlers) {
+    return new PathHandler(pathBinder, ImmutableList.copyOf(handlers));
   }
 
 }

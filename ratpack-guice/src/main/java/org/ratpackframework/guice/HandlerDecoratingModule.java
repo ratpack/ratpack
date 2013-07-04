@@ -20,8 +20,69 @@ import com.google.inject.Injector;
 import com.google.inject.Module;
 import org.ratpackframework.handling.Handler;
 
+/**
+ * A Guice module that contributes to the default handler setup.
+ * <p>
+ * Modules can implement this interface to decorate the application handler <b>before</b> user handlers.
+ * <p>
+ * The following example adds a global logging handler so that all requests are logged.
+ * <pre class="tested">
+ * import org.ratpackframework.handling.*;
+ * import org.ratpackframework.guice.*;
+ * import com.google.inject.AbstractModule;
+ * import com.google.inject.Injector;
+ *
+ * // A service interface
+ * interface Logger {
+ *   void log(String str);
+ * }
+ *
+ * // A service impl
+ * class LoggerImpl implements Logger {
+ *   void log(String str) {
+ *     System.out.println(str);
+ *   }
+ * }
+ *
+ * // A handler that uses the service, and delegates
+ * class LoggingHandler implements Handler {
+ *   private final Handler rest;
+ *   private final Logger logger;
+ *
+ *   public LoggingHandler(Logger logger, Handler rest) {
+ *     this.logger = logger;
+ *     this.rest = rest;
+ *   }
+ *
+ *   void handle(Exchange exchange) {
+ *     logger.log("Request: " + exchange.getRequest().getPath());
+ *     rest.handle(exchange);
+ *   }
+ * }
+ *
+ * // A module that binds the service impl, and decorates the application handler
+ * class LoggingModule extends AbstractModule implements HandlerDecoratingModule {
+ *   protected void configure() {
+ *     bind(Logger.class).to(LoggerImpl.class);
+ *   }
+ *
+ *   public Handler decorate(Injector injector, Handler handler) {
+ *     return new LoggingHandler(injector.getInstance(Logger.class), handler);
+ *   }
+ * }
+ * </pre>
+ *
+ * @see org.ratpackframework.guice.Guice#handler(org.ratpackframework.util.Action, org.ratpackframework.handling.Handler)
+ */
 public interface HandlerDecoratingModule extends Module {
 
+  /**
+   * Decorate the given handler with any <i>global</i> logic.
+   *
+   * @param injector The injector created from all the application modules
+   * @param handler The application handler
+   * @return A new handler that decorates the given handler
+   */
   Handler decorate(Injector injector, Handler handler);
 
 }

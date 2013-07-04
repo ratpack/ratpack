@@ -16,13 +16,12 @@
 
 package org.ratpackframework.guice.internal;
 
+import com.google.common.collect.ImmutableList;
 import com.google.inject.Injector;
 import org.ratpackframework.handling.Exchange;
 import org.ratpackframework.handling.Handler;
 
 import java.util.List;
-
-import static java.util.Collections.singletonList;
 
 public class InjectorBindingHandler implements Handler {
 
@@ -31,7 +30,7 @@ public class InjectorBindingHandler implements Handler {
 
   public InjectorBindingHandler(Injector injector, Handler delegate) {
     this.injector = injector;
-    this.delegate = singletonList(delegate);
+    this.delegate = ImmutableList.of(delegate);
   }
 
   public void handle(Exchange exchange) {

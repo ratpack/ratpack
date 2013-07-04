@@ -16,6 +16,7 @@
 
 package org.ratpackframework.file.internal;
 
+import com.google.common.collect.ImmutableList;
 import org.ratpackframework.context.Context;
 import org.ratpackframework.file.FileSystemBinding;
 import org.ratpackframework.handling.Exchange;
@@ -28,14 +29,12 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
 
-import static java.util.Collections.singletonList;
-
 public class TargetFileStaticAssetRequestHandler implements Handler {
 
   private final List<Handler> delegate;
 
   public TargetFileStaticAssetRequestHandler(Handler delegate) {
-    this.delegate = singletonList(delegate);
+    this.delegate = ImmutableList.of(delegate);
   }
 
   public void handle(Exchange exchange) {

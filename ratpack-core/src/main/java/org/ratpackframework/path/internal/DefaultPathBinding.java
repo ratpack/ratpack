@@ -16,38 +16,36 @@
 
 package org.ratpackframework.path.internal;
 
+import com.google.common.collect.ImmutableMap;
 import org.ratpackframework.path.PathBinding;
-import org.ratpackframework.util.internal.CollectionUtils;
 import org.ratpackframework.util.internal.Validations;
 
-import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class DefaultPathBinding implements PathBinding {
 
   private final String binding;
+  private final String bindingWithSlash;
   private final String pastBinding;
 
-  private final Map<String, String> tokens;
-  private final Map<String, String> allTokens;
+  private final ImmutableMap<String, String> tokens;
+  private final ImmutableMap<String, String> allTokens;
 
-  public DefaultPathBinding(String path, String binding, Map<String, String> tokens, PathBinding parent) {
+  public DefaultPathBinding(String path, String binding, ImmutableMap<String, String> tokens, PathBinding parent) {
     this.binding = binding;
+    this.bindingWithSlash = binding.concat("/");
     this.tokens = tokens;
 
     if (parent == null) {
       allTokens = tokens;
     } else {
-      allTokens = new LinkedHashMap<String, String>(parent.getAllTokens());
-      allTokens.putAll(tokens);
+      allTokens = ImmutableMap.<String, String>builder().putAll(parent.getAllTokens()).putAll(tokens).build();
     }
-
-    String bindingTerminated = binding + "/";
 
     if (path.equals(binding)) {
       pastBinding = "";
-    } else if (path.startsWith(bindingTerminated)) {
-      pastBinding = path.substring(bindingTerminated.length());
+    } else if (path.startsWith(bindingWithSlash)) {
+      pastBinding = path.substring(bindingWithSlash.length());
     } else {
       throw new IllegalArgumentException(String.format("Path '%s' is not a child of '%s'", path, binding));
     }
@@ -63,7 +61,7 @@ public class DefaultPathBinding implements PathBinding {
 
   public String childPath(String path) {
     Validations.noLeadingForwardSlash(path, "child path");
-    return CollectionUtils.join("/", this.binding, path);
+    return bindingWithSlash.concat(path);
   }
 
   public Map<String, String> getTokens() {

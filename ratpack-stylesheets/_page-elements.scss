@@ -19,7 +19,7 @@ body {
 	@include rhythm($padding-leader: 1, $trailer: 1);
 
 	.ratpack-logo {
-		@include content-width;
+		@include content-width($padding: 0);
 		@include rem(font-size, $logo-font-size-small);
 		&:not(.small) {
 			@include at-least($phone-landscape) {
@@ -27,12 +27,6 @@ body {
 			}
 			@include at-least($tablet-portrait) {
 				@include rem(font-size, $logo-font-size-large);
-			}
-			@include at-least($full-width) {
-				padding: {
-					left: 0;
-					right: 0;
-				}
 			}
 		}
 

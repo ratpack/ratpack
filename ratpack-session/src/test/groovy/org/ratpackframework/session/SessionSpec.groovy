@@ -16,9 +16,9 @@
 
 package org.ratpackframework.session
 
-import org.ratpackframework.session.store.MapSessionStore
 import org.ratpackframework.session.store.MapSessionsModule
 import org.ratpackframework.session.store.SessionStorage
+import org.ratpackframework.session.store.SessionStore
 import org.ratpackframework.test.groovy.RatpackGroovyDslSpec
 
 class SessionSpec extends RatpackGroovyDslSpec {
@@ -83,7 +83,7 @@ class SessionSpec extends RatpackGroovyDslSpec {
           response.send()
         }
         get("size") {
-          response.send get(MapSessionStore).size().toString()
+          response.send get(SessionStore).size().toString()
         }
       }
     }
@@ -108,7 +108,7 @@ class SessionSpec extends RatpackGroovyDslSpec {
     app {
       handlers {
         get {
-          response.send get(MapSessionStore).size().toString()
+          response.send get(SessionStore).size().toString()
         }
       }
     }
@@ -121,12 +121,34 @@ class SessionSpec extends RatpackGroovyDslSpec {
       handlers {
         get {
           get(SessionStorage)
-          response.send get(MapSessionStore).size().toString()
+          response.send get(SessionStore).size().toString()
         }
       }
     }
 
     then:
     getText() == "1"
+  }
+
+  def "session cookies are only set when needed"() {
+    when:
+    app {
+      handlers {
+        get("foo") {
+          response.send("foo")
+        }
+        get("bar") {
+          get(SessionStorage) // just retrieve
+          response.send("bar")
+        }
+      }
+    }
+
+    then:
+    get("foo").cookies().isEmpty()
+    get("bar").cookies().JSESSIONID != null
+
+    // null because the session id is already set
+    get("bar").cookies().JSESSIONID == null
   }
 }

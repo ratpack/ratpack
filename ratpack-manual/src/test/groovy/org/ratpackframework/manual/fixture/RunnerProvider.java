@@ -14,21 +14,14 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.guice;
+package org.ratpackframework.manual.fixture;
 
-import org.ratpackframework.guice.internal.DefaultGuiceBackedHandlerFactory;
-import org.ratpackframework.guice.internal.InjectingHandler;
-import org.ratpackframework.handling.Handler;
-import org.ratpackframework.util.Action;
+import org.junit.runner.Runner;
 
-public abstract class Injection {
+import java.util.List;
 
-  public static Handler handler(Class<? extends Handler> handlerType) {
-    return new InjectingHandler(handlerType);
-  }
+public interface RunnerProvider {
 
-  public static Handler handler(Action<? super ModuleRegistry> moduleConfigurer, Handler handler) {
-    return new DefaultGuiceBackedHandlerFactory().create(moduleConfigurer, handler);
-  }
+  List<Runner> getRunners();
 
 }

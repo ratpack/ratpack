@@ -20,15 +20,45 @@ import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.ratpackframework.handling.Exchange;
 
+/**
+ * A Groovy oriented handler chain builder DSL.
+ * <p>
+ * The methods specific to this subclass create {@link org.ratpackframework.handling.Handler} instances from closures and
+ * add them to the underlying chain.
+ * <p>
+ * These methods are generally shortcuts for the combination of a method on {@link ClosureHandlers} and {@link #add(org.ratpackframework.handling.Handler)}
+ * on this underlying chain.
+ */
 public interface Chain extends org.ratpackframework.handling.Chain {
 
-  void chain(@DelegatesTo(value = org.ratpackframework.groovy.handling.Chain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
-
-  void path(String path, @DelegatesTo(value = org.ratpackframework.groovy.handling.Chain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
+  /**
+   * Creates a nested chain that is inserted if the request path matches the given prefix.
+   * <p>
+   * All path based handlers become relative to the given prefix.
+   * <pre class="groovy-chain-dsl">
+   *   prefix("person/:id") {
+   *    get("info") {
+   *      // e.g. /person/2/info
+   *    }
+   *    post("save") {
+   *      // e.g. /person/2/save
+   *    }
+   *    prefix("child/:childId") {
+   *      get("info") {
+   *        // e.g. /person/2/child/1/info
+   *      }
+   *    }
+   *   }
+   * </pre>
+   *
+   * @param prefix The prefix to bind to.
+   * @param chain The definition of the nested handlers
+   */
+  void prefix(String prefix, @DelegatesTo(value = org.ratpackframework.groovy.handling.Chain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> chain);
 
   void handler(@DelegatesTo(value = Exchange.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
 
-  void handler(String path, @DelegatesTo(value = Exchange.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
+  void path(String path, @DelegatesTo(value = Exchange.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
 
   void get(String path, @DelegatesTo(value = Exchange.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
 

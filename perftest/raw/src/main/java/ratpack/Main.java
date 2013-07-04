@@ -38,7 +38,7 @@ public class Main {
     ratpackServerBuilder.setWorkerThreads(0); // don't use a worker connection pool
     RatpackServer server = ratpackServerBuilder.build();
 
-    server.startAndWait();
+    server.start();
   }
 
 }

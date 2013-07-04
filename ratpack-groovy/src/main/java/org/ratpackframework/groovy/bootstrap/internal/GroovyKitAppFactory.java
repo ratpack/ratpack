@@ -14,31 +14,20 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.manual
+package org.ratpackframework.groovy.bootstrap.internal;
 
-import junit.framework.TestCase
-import junit.framework.TestSuite
+import org.ratpackframework.groovy.templating.TemplatingModule;
+import org.ratpackframework.guice.ModuleRegistry;
+import org.ratpackframework.guice.internal.DefaultGuiceBackedHandlerFactory;
+import org.ratpackframework.session.SessionModule;
 
-class JavaDocTestSuite extends TestCase {
+public class GroovyKitAppFactory extends DefaultGuiceBackedHandlerFactory {
 
-  static TestSuite suite()  {
-    File cwd = new File(System.getProperty("user.dir"))
-    File root
-    if (new File(cwd, "ratpack-manual.gradle").exists()) {
-      root = cwd.parentFile
-    } else {
-      root = cwd
-    }
-
-    def suite = new TestSuite()
-    root.eachDirMatch(~/ratpack-.+/) {
-      def mainSrc = new File(it, "src/main")
-      if (mainSrc.exists()) {
-        suite.addTest(JavadocAssertionTestSuite.suite(mainSrc.absolutePath))
-      }
-    }
-
-    suite
+  @Override
+  protected void registerDefaultModules(ModuleRegistry moduleRegistry) {
+    moduleRegistry.register(new SessionModule());
+    moduleRegistry.register(new TemplatingModule());
+    super.registerDefaultModules(moduleRegistry);
   }
 
 }

@@ -14,22 +14,12 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.path.internal
+package org.ratpackframework.manual.fixture;
 
-import spock.lang.Specification
+public interface ScriptRunner {
 
-class TokenPathBindingTest extends Specification {
+  void runScript(String script, String sourceClassName);
 
-  Map<String, String> map(String pattern, String path) {
-    new TokenPathBinder(pattern, true).bind(path, null)?.tokens
-  }
-
-  def "map"() {
-    expect:
-    map("a", "b") == null
-    map("a", "a") == [:]
-    map("(.+)", "abc") == null
-    map(":a/:b", "abc/def") == [a: "abc", b: "def"]
-  }
+  int getScriptLineOffset();
 
 }

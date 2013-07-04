@@ -21,6 +21,7 @@ import org.ratpackframework.bootstrap.RatpackServer
 import org.ratpackframework.bootstrap.internal.RatpackService
 import org.ratpackframework.bootstrap.internal.ServiceBackedServer
 import org.ratpackframework.groovy.internal.StandaloneScriptBacking
+import org.ratpackframework.groovy.util.Closures
 import org.ratpackframework.test.groovy.RatpackGroovyScriptAppSpec
 
 class StandaloneScriptSpec extends RatpackGroovyScriptAppSpec {
@@ -53,12 +54,12 @@ class StandaloneScriptSpec extends RatpackGroovyScriptAppSpec {
         throw new IllegalStateException("Server did not start")
       }
 
-      server.startAndWait()
+      server.start()
     }
 
     @Override
     protected void shutDown() throws Exception {
-      server?.stopAndWait()
+      server?.stop()
     }
 
     @Override

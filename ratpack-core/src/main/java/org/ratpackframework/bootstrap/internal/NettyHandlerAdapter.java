@@ -16,6 +16,7 @@
 
 package org.ratpackframework.bootstrap.internal;
 
+import com.google.common.collect.ImmutableList;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler;
@@ -52,10 +53,12 @@ public class NettyHandlerAdapter extends ChannelInboundMessageHandlerAdapter<Ful
   public NettyHandlerAdapter(Handler handler, File baseDir) {
     this.handler = new ErrorCatchingHandler(handler);
     this.rootContext = new RootContext(
+      ImmutableList.of(
         new DefaultServerErrorHandler(),
         new DefaultClientErrorHandler(),
         new ActivationBackedMimeTypes(),
         new DefaultFileSystemBinding(baseDir)
+      )
     );
 
     return404 = new ClientErrorHandler(NOT_FOUND.code());
@@ -87,6 +90,7 @@ public class NettyHandlerAdapter extends ChannelInboundMessageHandlerAdapter<Ful
       sendError(ctx, HttpResponseStatus.INTERNAL_SERVER_ERROR);
     }
   }
+
   private static void sendError(ChannelHandlerContext ctx, HttpResponseStatus status) {
     FullHttpResponse response = new DefaultFullHttpResponse(
         HttpVersion.HTTP_1_1, status, Unpooled.copiedBuffer("Failure: " + status.toString() + "\r\n", CharsetUtil.UTF_8));

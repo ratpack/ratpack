@@ -16,23 +16,25 @@
 
 package org.ratpackframework.groovy.templating.internal;
 
+import com.google.common.collect.ImmutableList;
 import org.ratpackframework.file.FileSystemBinding;
 import org.ratpackframework.groovy.templating.TemplateRenderer;
 import org.ratpackframework.handling.Exchange;
 import org.ratpackframework.handling.Handler;
+import org.ratpackframework.handling.internal.ClientErrorHandler;
 
 import java.io.File;
-import java.util.Collections;
-import java.util.List;
+
+import static io.netty.handler.codec.http.HttpResponseStatus.NOT_FOUND;
 
 public class TemplateRendererBindingHandler implements Handler {
 
   private final String templateDir;
-  private final List<Handler> delegate;
+  private final ImmutableList<Handler> delegate;
 
   public TemplateRendererBindingHandler(String templateDir, Handler delegate) {
     this.templateDir = templateDir;
-    this.delegate = Collections.singletonList(delegate);
+    this.delegate = ImmutableList.of(delegate, new ClientErrorHandler(NOT_FOUND.code()));
   }
 
   public void handle(Exchange exchange) {

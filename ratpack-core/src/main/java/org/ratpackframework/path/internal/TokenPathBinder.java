@@ -16,60 +16,70 @@
 
 package org.ratpackframework.path.internal;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import org.ratpackframework.path.PathBinder;
 import org.ratpackframework.path.PathBinding;
 import org.ratpackframework.util.internal.Validations;
 
-import java.util.*;
 import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class TokenPathBinder implements PathBinder {
 
-  private final List<String> tokenNames;
+  private final ImmutableList<String> tokenNames;
   private final Pattern regex;
 
   public TokenPathBinder(String path, boolean exact) {
     Validations.noLeadingForwardSlash(path, "token path");
 
-    List<String> names = new LinkedList<String>();
+    ImmutableList.Builder<String> namesBuilder = ImmutableList.builder();
     String pattern = Pattern.quote(path);
 
-    Pattern placeholderPattern = Pattern.compile("(:\\w+)");
+    Pattern placeholderPattern = Pattern.compile("(/?:(\\w+)\\??)");
     Matcher matchResult = placeholderPattern.matcher(path);
+    boolean hasOptional = false;
     while (matchResult.find()) {
-      String name = matchResult.group();
-      pattern = pattern.replaceFirst(name, "\\\\E([^/?&#]+)\\\\Q");
-      names.add(name.substring(1));
+      String name = matchResult.group(1);
+      boolean optional = name.endsWith("?");
+
+      hasOptional = hasOptional || optional;
+      if (hasOptional && !optional) {
+        throw new IllegalArgumentException(String.format("path %s should not define mandatory parameters after an optional parameter", path));
+      }
+
+      pattern = pattern.replaceFirst(Pattern.quote(name), "\\\\E/?([^/?&#]+)" + (optional ? "?" : "") + "\\\\Q");
+      namesBuilder.add(matchResult.group(2));
     }
 
-    pattern = "(".concat(pattern).concat(")");
-    if (exact) {
-      regex = Pattern.compile(pattern);
-    } else {
-      regex = Pattern.compile(pattern.concat("(?:/.*)?"));
+    StringBuilder patternBuilder = new StringBuilder("(").append(pattern).append(")");
+    if (!exact) {
+      patternBuilder.append("(?:/.*)?");
     }
 
-    this.tokenNames = names;
+    this.regex = Pattern.compile(patternBuilder.toString());
+    this.tokenNames = namesBuilder.build();
   }
 
   public PathBinding bind(String path, PathBinding parentBinding) {
     if (parentBinding != null) {
       path = parentBinding.getPastBinding();
     }
-
     Matcher matcher = regex.matcher(path);
     if (matcher.matches()) {
       MatchResult matchResult = matcher.toMatchResult();
       String boundPath = matchResult.group(1);
-      Map<String, String> params = new LinkedHashMap<String, String>();
+      ImmutableMap.Builder<String, String> paramsBuilder = ImmutableMap.builder();
       int i = 2;
       for (String name : tokenNames) {
-        params.put(name, matchResult.group(i++));
+        String value = matchResult.group(i++);
+        if (value != null) {
+          paramsBuilder.put(name, value);
+        }
       }
 
-      return new DefaultPathBinding(path, boundPath, params, parentBinding);
+      return new DefaultPathBinding(path, boundPath, paramsBuilder.build(), parentBinding);
     } else {
       return null;
     }

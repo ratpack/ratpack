@@ -19,8 +19,8 @@ package org.ratpackframework.path
 import org.ratpackframework.handling.Handlers
 import org.ratpackframework.test.DefaultRatpackSpec
 
-import static org.ratpackframework.groovy.ClosureHandlers.handler
-import static org.ratpackframework.groovy.ClosureHandlers.path
+import static org.ratpackframework.groovy.handling.ClosureHandlers.handler
+import static org.ratpackframework.groovy.handling.ClosureHandlers.path
 
 class PathRoutingSpec extends DefaultRatpackSpec {
 
@@ -145,5 +145,6 @@ class PathRoutingSpec extends DefaultRatpackSpec {
     then:
     getText() == "root"
     getText("a") == "a"
+    get("a/b/c").statusCode == 404
   }
 }

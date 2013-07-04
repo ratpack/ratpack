@@ -16,19 +16,19 @@
 
 package org.ratpackframework.context.internal;
 
-import java.util.Arrays;
+import com.google.common.collect.ImmutableList;
 
 public class RootContext extends ContextSupport {
 
-  private final Object[] objects;
+  private final ImmutableList<? extends Object> objects;
 
-  public RootContext(Object... objects) {
+  public RootContext(ImmutableList<? extends Object> objects) {
     this.objects = objects;
   }
 
   @Override
   public String toString() {
-    return "RootContext{" + Arrays.toString(objects) + '}';
+    return "RootContext{" + objects + '}';
   }
 
   protected <T> T doMaybeGet(Class<T> type) {

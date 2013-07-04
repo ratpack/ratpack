@@ -16,16 +16,15 @@
 
 package org.ratpackframework.handling.internal;
 
+import com.google.common.collect.ImmutableList;
 import org.ratpackframework.handling.Exchange;
 import org.ratpackframework.handling.Handler;
 
-import java.util.List;
-
 public class ChainHandler implements Handler {
 
-  private final List<Handler> chain;
+  private final ImmutableList<Handler> chain;
 
-  public ChainHandler(List<Handler> chain) {
+  public ChainHandler(ImmutableList<Handler> chain) {
     this.chain = chain;
   }
 

@@ -18,6 +18,7 @@ package org.ratpackframework.guice.internal;
 
 import com.google.inject.Module;
 import org.ratpackframework.guice.ModuleRegistry;
+import org.ratpackframework.guice.NoSuchModuleException;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -38,10 +39,10 @@ public class DefaultModuleRegistry implements ModuleRegistry {
     modules.put(type, module);
   }
 
-  public <T> T get(Class<T> moduleType) {
+  public <T extends Module> T get(Class<T> moduleType) {
     Object configObject = modules.get(moduleType);
     if (configObject == null) {
-      throw new IllegalArgumentException(String.format("No module registered with type '%s'", moduleType));
+      throw new NoSuchModuleException(moduleType);
     }
 
     return moduleType.cast(configObject);
@@ -49,13 +50,13 @@ public class DefaultModuleRegistry implements ModuleRegistry {
 
   public <T extends Module> T remove(Class<T> moduleType) {
     if (!modules.containsKey(moduleType)) {
-      throw new IllegalArgumentException(String.format("There is no module with type '%s'", moduleType));
+      throw new NoSuchModuleException(moduleType);
     }
 
     return moduleType.cast(modules.remove(moduleType));
   }
 
-  public List<Module> getModules() {
+  public List<? extends Module> getModules() {
     return new ArrayList<Module>(modules.values());
   }
 }

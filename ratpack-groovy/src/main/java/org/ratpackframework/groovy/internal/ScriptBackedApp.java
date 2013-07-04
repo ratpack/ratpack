@@ -19,28 +19,26 @@ package org.ratpackframework.groovy.internal;
 import groovy.lang.Closure;
 import groovy.lang.Script;
 import io.netty.buffer.ByteBuf;
-import org.ratpackframework.groovy.Closures;
+import org.ratpackframework.groovy.util.Closures;
 import org.ratpackframework.groovy.handling.Chain;
 import org.ratpackframework.groovy.handling.internal.GroovyDslChainActionTransformer;
 import org.ratpackframework.groovy.script.internal.ScriptEngine;
-import org.ratpackframework.guice.GuiceBackedHandlerFactory;
 import org.ratpackframework.guice.ModuleRegistry;
-import org.ratpackframework.handling.internal.ChainBuilder;
-import org.ratpackframework.reload.internal.ReloadableFileBackedFactory;
+import org.ratpackframework.guice.internal.GuiceBackedHandlerFactory;
 import org.ratpackframework.handling.Exchange;
 import org.ratpackframework.handling.Handler;
+import org.ratpackframework.handling.internal.ChainBuilder;
+import org.ratpackframework.reload.internal.ReloadableFileBackedFactory;
 import org.ratpackframework.util.Action;
 import org.ratpackframework.util.internal.Factory;
 import org.ratpackframework.util.internal.IoUtils;
 
-import javax.inject.Inject;
 import java.io.File;
 
 public class ScriptBackedApp implements Handler {
 
   private final Factory<Handler> reloadHandler;
 
-  @Inject
   public ScriptBackedApp(File script, final GuiceBackedHandlerFactory appFactory, final boolean staticCompile, boolean reloadable) {
     this.reloadHandler = new ReloadableFileBackedFactory<Handler>(script, reloadable, new ReloadableFileBackedFactory.Delegate<Handler>() {
       public Handler produce(final File file, final ByteBuf bytes) {
@@ -72,7 +70,7 @@ public class ScriptBackedApp implements Handler {
           Action<ModuleRegistry> modulesAction = Closures.action(ModuleRegistry.class, ratpack.getModulesConfigurer());
           Action<Chain> chainAction = Closures.action(Chain.class, ratpack.getHandlersConfigurer());
 
-          Handler chainBuildingHandler = ChainBuilder.INSTANCE.build(GroovyDslChainActionTransformer.INSTANCE, chainAction);
+          Handler chainBuildingHandler = ChainBuilder.INSTANCE.buildHandler(GroovyDslChainActionTransformer.INSTANCE, chainAction);
 
           return appFactory.create(modulesAction, chainBuildingHandler);
 

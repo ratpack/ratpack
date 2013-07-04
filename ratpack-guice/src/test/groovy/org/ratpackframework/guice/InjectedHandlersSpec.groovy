@@ -23,7 +23,7 @@ import org.ratpackframework.handling.Handler
 
 import javax.inject.Inject
 
-import static org.ratpackframework.guice.Injection.handler
+import static Guice.handler
 
 class InjectedHandlersSpec extends RatpackGroovyDslSpec {
 

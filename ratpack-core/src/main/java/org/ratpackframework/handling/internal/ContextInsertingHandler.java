@@ -16,50 +16,37 @@
 
 package org.ratpackframework.handling.internal;
 
+import com.google.common.collect.ImmutableList;
 import org.ratpackframework.context.Context;
-import org.ratpackframework.error.ServerErrorHandler;
-import org.ratpackframework.error.internal.ErrorCatchingHandler;
 import org.ratpackframework.handling.Exchange;
 import org.ratpackframework.handling.Handler;
-
-import java.util.List;
-
-import static java.util.Collections.singletonList;
 
 public class ContextInsertingHandler implements Handler {
 
   private final Class<?> type;
   private final Object object;
-  private final List<Handler> handler;
+  private final ImmutableList<Handler> handlers;
 
   @SuppressWarnings("unchecked")
-  public <T> ContextInsertingHandler(T object, Handler handler) {
+  public <T> ContextInsertingHandler(T object, ImmutableList<Handler> handlers) {
     this.type = null;
     this.object = object;
-    this.handler = singletonList(decorate((Class<? super T>) object.getClass(), handler));
+    this.handlers = handlers;
   }
 
-  public <T> ContextInsertingHandler(Class<? super T> type, T object, Handler handler) {
+  public <T> ContextInsertingHandler(Class<? super T> type, T object, ImmutableList<Handler> handlers) {
     this.type = type;
     this.object = object;
-    this.handler = singletonList(decorate(type, handler));
-  }
-
-  protected <T> Handler decorate(Class<? super T> type, Handler handler) {
-    if (ServerErrorHandler.class.isAssignableFrom(type)) {
-      return new ErrorCatchingHandler(handler);
-    } else {
-      return handler;
-    }
+    this.handlers = handlers;
   }
 
   @SuppressWarnings("unchecked")
   public void handle(Exchange exchange) {
     Context context = exchange.getContext();
     if (type == null) {
-      exchange.insert(context.plus(object), handler);
+      exchange.insert(context.plus(object), handlers);
     } else {
-      exchange.insert(context.plus((Class<? super Object>) type, object), handler);
+      exchange.insert(context.plus((Class<? super Object>) type, object), handlers);
     }
   }
 }

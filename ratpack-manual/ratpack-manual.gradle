@@ -26,7 +26,7 @@ buildscript {
     maven { url 'http://dl.bintray.com/robfletcher/gradle-plugins' }
   }
   dependencies {
-    classpath 'org.gradle.plugins:gradle-compass:1.0.6'
+    classpath 'org.gradle.plugins:gradle-compass:1.0.7'
     classpath "org.pegdown:pegdown:1.2.1"
   }
 }
@@ -54,13 +54,6 @@ apiModules.each { evaluationDependsOn(it.path) }
 task configureApi << {
   api {
     apiModules.each {
-      source it.sourceSets.main.java
-      classpath += it.sourceSets.main.compileClasspath + it.sourceSets.main.output
-
-      if (it.hasProperty("apiLinks")) {
-        options.links(*it.apiLinks)
-      }
-
       def packages = []
       def root = it.file("src/main/java")
       root.eachDirRecurse {
@@ -96,6 +89,15 @@ task api(type: Javadoc, dependsOn: configureApi) {
 
   classpath = files()
   destinationDir = file("$buildDir/api")
+
+  apiModules.each {
+    source it.sourceSets.main.java
+    classpath += it.sourceSets.main.compileClasspath + it.sourceSets.main.output
+
+    if (it.hasProperty("apiLinks")) {
+      options.links(* it.apiLinks)
+    }
+  }
 
   configure(options) {
     splitIndex true
@@ -198,10 +200,10 @@ compass {
   sassDir = file("src/sass")
   cssDir = file("$buildDir/assets/css")
   imagesDir = file("$buildDir/assets/images")
-  javascriptsDir = file("$buildDir/assets/js")
   importPath = files('../ratpack-stylesheets')
   relativeAssets = true
   encoding = 'UTF-8'
+  quiet = true
 }
 
 task stylizeManual(type: Sync) {
@@ -232,7 +234,7 @@ task packageManual(type: Sync) {
   into "$buildDir/manual"
   from stylizeManual
 
-  into ("api") {
+  into("api") {
     from api
   }
 }

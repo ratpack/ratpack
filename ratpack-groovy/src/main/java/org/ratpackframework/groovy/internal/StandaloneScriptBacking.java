@@ -19,7 +19,7 @@ package org.ratpackframework.groovy.internal;
 import groovy.lang.Closure;
 import org.ratpackframework.util.Action;
 import org.ratpackframework.bootstrap.RatpackServer;
-import org.ratpackframework.groovy.RatpackScriptApp;
+import org.ratpackframework.groovy.bootstrap.RatpackScriptApp;
 
 import java.io.File;
 import java.net.URI;
@@ -52,7 +52,7 @@ public class StandaloneScriptBacking implements Action<Closure<?>> {
     }
 
     try {
-      ratpack.startAndWait();
+      ratpack.start();
     } catch (Exception e) {
       throw new IllegalStateException("Failed to start Ratpack application", e);
     }

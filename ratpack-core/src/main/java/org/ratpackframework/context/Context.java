@@ -71,6 +71,7 @@ public interface Context {
    * This does not change <b>this</b> context.
    *
    * @param type The advertised type of the object
+   * @param <T> The concrete type of the object
    * @param object The object to add to the copy of this context
    * @return A new context with the given object in addition to the objects of this context
    */

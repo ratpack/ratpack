@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.groovy;
+package org.ratpackframework.groovy.handling;
 
+import com.google.common.collect.ImmutableList;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
+import org.ratpackframework.groovy.util.Closures;
 import org.ratpackframework.handling.Chain;
 import org.ratpackframework.handling.Exchange;
 import org.ratpackframework.handling.Handler;
 import org.ratpackframework.handling.Handlers;
-import org.ratpackframework.http.internal.MethodHandler;
 import org.ratpackframework.util.Action;
 
 public abstract class ClosureHandlers {
@@ -52,31 +53,31 @@ public abstract class ClosureHandlers {
   }
 
   public static Handler path(String path, @DelegatesTo(value = Chain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handlers) {
-    return Handlers.path(path, chain(handlers));
+    return Handlers.prefix(path, chain(handlers));
   }
 
   public static Handler handler(String path, @DelegatesTo(value = Exchange.class, strategy = Closure.DELEGATE_FIRST) final Closure<?> closure) {
-    return Handlers.handler(path, handler(closure));
+    return Handlers.path(path, handler(closure));
   }
 
   public static Handler get(String path, @DelegatesTo(value = Exchange.class, strategy = Closure.DELEGATE_FIRST) final Closure<?> closure) {
-    return Handlers.handler(path, Handlers.chain(MethodHandler.GET, handler(closure)));
+    return Handlers.path(path, ImmutableList.<Handler>builder().add(Handlers.get(), handler(closure)).build());
   }
 
   public static Handler get(@DelegatesTo(value = Exchange.class, strategy = Closure.DELEGATE_FIRST) final Closure<?> closure) {
-    return Handlers.handler("", Handlers.chain(MethodHandler.GET, handler(closure)));
+    return Handlers.path("", ImmutableList.<Handler>builder().add(Handlers.get(), handler(closure)).build());
   }
 
   public static Handler post(String path, @DelegatesTo(value = Exchange.class, strategy = Closure.DELEGATE_FIRST) final Closure<?> closure) {
-    return Handlers.handler(path, Handlers.chain(MethodHandler.POST, handler(closure)));
+    return Handlers.path(path, ImmutableList.<Handler>builder().add(Handlers.post(), handler(closure)).build());
   }
 
   public static Handler put(String path, @DelegatesTo(value = Exchange.class, strategy = Closure.DELEGATE_FIRST) final Closure<?> closure) {
-    return Handlers.handler(path, Handlers.chain(MethodHandler.PUT, handler(closure)));
+    return Handlers.path(path, ImmutableList.<Handler>builder().add(Handlers.put(), handler(closure)).build());
   }
 
   public static Handler delete(String path, @DelegatesTo(value = Exchange.class, strategy = Closure.DELEGATE_FIRST) final Closure<?> closure) {
-    return Handlers.handler(path, Handlers.chain(MethodHandler.DELETE, handler(closure)));
+    return Handlers.path(path, ImmutableList.<Handler>builder().add(Handlers.delete(), handler(closure)).build());
   }
 
 }

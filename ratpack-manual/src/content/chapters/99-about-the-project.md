@@ -1,5 +1,34 @@
 # The Ratpack Project
 
+## Credits
+
+Ratpack has been made possible by the following people.
+
+### Active Project Members
+
+The following people are currently actively contributing their time to Ratpack.
+
+* [Luke Daley](https://github.com/alkemist)
+* [Rob Fletcher](https://github.com/robfletcher)
+* [Tim Berglund](https://github.com/tlberglund)
+* [Peter Ledbrook](https://github.com/pledbrook)
+* [Marcin Erdmann](https://github.com/erdi)
+
+### Contributors
+
+The following people have provided significant contributions.
+
+* [Marco Vermeulen](https://github.com/marcoVermeulen)
+* [Jeff Beck](https://github.com/beckje01)
+* [Paul Fairless](https://github.com/paulfairless)
+
+### Past Project Members
+
+The following people have contributed their time to Ratpack in the past, but are no longer actively working on it.
+
+* [Justin Voss](https://github.com/Vossy)
+* [Ray Myers](https://github.com/raymyers)
+
 ## About this manual
 
 ### Resources

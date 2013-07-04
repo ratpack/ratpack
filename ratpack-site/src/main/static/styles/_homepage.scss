@@ -95,55 +95,25 @@
 }
 
 .page-footer {
-	.social {
-		$button-size: 48px;
-		$icon-font-size: 32px;
+  overflow: visible;
 
-		@include adjust-font-size-to(18px);
-		@include rhythm($leader: 1, $trailer: 1, $font-size: 18px);
+	.social {
+		@include rhythm($trailer: 1);
+
+    margin-top: -5em;
 
 		> * {
 			display: inline-block;
 			vertical-align: middle;
 		}
 
-		em {
-			font: {
-				family: $script-font-family;
-				size: 32px;
-				style: normal;
-			}
+		a {
+			border: none;
 		}
 
-		a {
-			background-color: $white;
-			@include link-colors($black, $black);
-			&:hover, &:focus {
-				background-color: $yellow;
-				box-shadow: 0 0 5px $yellow;
-			}
-			border-radius: 50%;
-			text-align: center;
-			line-height: $button-size;
-			width: $button-size;
-			height: $button-size;
-			margin: {
-				left: 0.25em;
-				right: 0.25em;
-			}
-			[class^='icon-'] {
-				font-size: $icon-font-size;
-				&:before {
-					width: 100%;
-					height: 100%;
-					line-height: $button-size;
-					margin: {
-						left: 0;
-						right: 0;
-					}
-				}
-			}
-		}
+    img {
+      height: 9.142em;
+    }
 	}
 
 	a.build-status {

@@ -18,10 +18,10 @@ package org.ratpackframework.http.internal;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.common.collect.ImmutableMap;
 import org.ratpackframework.http.MediaType;
 
 import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -69,37 +69,46 @@ public class DefaultMediaType implements MediaType {
   }
 
   private DefaultMediaType(String value, String defaultCharset) {
+    ImmutableMap.Builder<String, String> paramsBuilder = ImmutableMap.builder();
+    boolean setCharset = false;
+
     if (value == null) {
       type = null;
-      params = Collections.emptyMap();
     } else {
       value = value.trim();
       if (value.length() == 0) {
         type = null;
-        params = Collections.emptyMap();
       } else {
-        params = new LinkedHashMap<String, String>();
         String[] parts = value.split(";");
         type = parts[0].toLowerCase();
         if (parts.length > 1) {
           for (int i = 1; i < parts.length; ++i) {
             String part = parts[i].trim();
+            String keyPart;
+            String valuePart;
             if (part.contains("=")) {
-              String[] keyValue = part.split("=", 2);
-              params.put(keyValue[0].toLowerCase(), keyValue[1]);
+              String[] valueSplit = part.split("=", 2);
+              keyPart = valueSplit[0].toLowerCase();
+              valuePart = valueSplit[1];
+
+              if (keyPart.equals(CHARSET_KEY)) {
+                setCharset = true;
+              }
             } else {
-              params.put(part.toLowerCase(), null);
+              keyPart = part.toLowerCase();
+              valuePart = "";
             }
+            paramsBuilder.put(keyPart, valuePart);
           }
         }
-
       }
     }
 
-    if (!params.containsKey(CHARSET_KEY) && !defaultCharset.equals(DEFAULT_CHARSET)) {
-      params.put(CHARSET_KEY, defaultCharset);
+    if (!setCharset && !defaultCharset.equals(DEFAULT_CHARSET)) {
+      paramsBuilder.put(CHARSET_KEY, defaultCharset);
     }
 
+    params = paramsBuilder.build();
     string = generateString();
   }
 
@@ -143,7 +152,7 @@ public class DefaultMediaType implements MediaType {
       StringBuilder s = new StringBuilder(getType());
       for (Map.Entry<String, String> param : getParams().entrySet()) {
         s.append(";").append(param.getKey());
-        if (param.getValue() != null) {
+        if (!param.getValue().isEmpty()) {
           s.append("=").append(param.getValue());
         }
       }

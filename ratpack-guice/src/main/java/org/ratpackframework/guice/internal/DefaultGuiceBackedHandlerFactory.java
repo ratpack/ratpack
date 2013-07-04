@@ -20,7 +20,6 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.util.Modules;
-import org.ratpackframework.guice.GuiceBackedHandlerFactory;
 import org.ratpackframework.guice.HandlerDecoratingModule;
 import org.ratpackframework.guice.ModuleRegistry;
 import org.ratpackframework.handling.Handler;
@@ -39,7 +38,7 @@ public class DefaultGuiceBackedHandlerFactory implements GuiceBackedHandlerFacto
     modulesAction.execute(moduleRegistry);
 
     Module masterModule = null;
-    List<Module> modules = moduleRegistry.getModules();
+    List<? extends Module> modules = moduleRegistry.getModules();
     for (Module module : modules) {
       if (masterModule == null) {
         masterModule = module;

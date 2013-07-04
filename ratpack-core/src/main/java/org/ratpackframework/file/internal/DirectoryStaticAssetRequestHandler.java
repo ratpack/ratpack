@@ -16,17 +16,16 @@
 
 package org.ratpackframework.file.internal;
 
+import com.google.common.collect.ImmutableList;
 import org.ratpackframework.context.Context;
 import org.ratpackframework.file.FileSystemBinding;
 import org.ratpackframework.handling.Exchange;
 import org.ratpackframework.handling.Handler;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 
 import static io.netty.handler.codec.http.HttpResponseStatus.FORBIDDEN;
-import static java.util.Collections.singletonList;
 
 public class DirectoryStaticAssetRequestHandler implements Handler {
 
@@ -36,8 +35,8 @@ public class DirectoryStaticAssetRequestHandler implements Handler {
 
   public DirectoryStaticAssetRequestHandler(List<String> indexFiles, Handler delegate) {
     this.delegate = delegate;
-    this.delegateList = singletonList(delegate);
-    this.indexFiles = new ArrayList<String>(indexFiles);
+    this.delegateList = ImmutableList.of(delegate);
+    this.indexFiles = indexFiles;
   }
 
   public void handle(Exchange exchange) {

@@ -18,7 +18,7 @@ package org.ratpackframework.path
 
 import org.ratpackframework.test.DefaultRatpackSpec
 
-import static org.ratpackframework.groovy.ClosureHandlers.*
+import static org.ratpackframework.groovy.handling.ClosureHandlers.*
 
 class PathAndMethodRoutingSpec extends DefaultRatpackSpec {
 
@@ -31,11 +31,14 @@ class PathAndMethodRoutingSpec extends DefaultRatpackSpec {
         }
         add path(":a/:b") {
           add handler(":c/:d") {
-            methods.post {
-              response.send allPathTokens.toString()
-            }.named("put") {
-              response.send allPathTokens.collectEntries { [it.key.toUpperCase(), it.value.toUpperCase()] }.toString()
-            }.send()
+            methods.
+                post {
+                  response.send new LinkedHashMap(allPathTokens).toString()
+                }.
+                put {
+                  response.send allPathTokens.collectEntries { [it.key.toUpperCase(), it.value.toUpperCase()] }.toString()
+                }.
+                send()
           }
         }
       }

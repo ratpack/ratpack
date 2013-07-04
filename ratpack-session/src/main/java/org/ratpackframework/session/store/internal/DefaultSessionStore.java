@@ -19,16 +19,16 @@ package org.ratpackframework.session.store.internal;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import org.ratpackframework.session.SessionListener;
-import org.ratpackframework.session.store.MapSessionStore;
+import org.ratpackframework.session.store.SessionStore;
 import org.ratpackframework.session.store.SessionStorage;
 
 import java.util.concurrent.*;
 
-public class DefaultMapSessionStore implements MapSessionStore, SessionListener {
+public class DefaultSessionStore implements SessionStore, SessionListener {
 
   private final Cache<String, SessionStorage> storage;
 
-  public DefaultMapSessionStore(int maxEntries, int ttlMinutes) {
+  public DefaultSessionStore(int maxEntries, int ttlMinutes) {
     storage = CacheBuilder.<String, ConcurrentMap<String, Object>>newBuilder()
         .maximumSize(maxEntries)
         .expireAfterAccess(ttlMinutes, TimeUnit.MINUTES)

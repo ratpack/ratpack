@@ -55,7 +55,7 @@ import org.ratpackframework.api.NonBlocking;
  * <h3>Examples</h3>
  * While there is no strict taxonomy of handlers, the following are indicative examples of common functions.
  * <p>
- * <pre class="groovyTestCase">
+ * <pre class="tested">
  * import org.ratpackframework.handling.*;
  *
  *
@@ -123,7 +123,6 @@ import org.ratpackframework.api.NonBlocking;
  *     }
  *   }
  * }
- * 0;
  * </pre>
  *
  * @see Handlers

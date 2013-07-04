@@ -2,8 +2,8 @@
  * Cross-browser antialias for transformed elements.
  */
 @mixin antialias {
-	@include background-clip(content-box);
-	padding: 2px;
+  padding: 1px;
+  @include background-clip(content-box);
 	@include backface-visibility(hidden);
 }
 

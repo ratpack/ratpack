@@ -20,8 +20,8 @@ import org.ratpackframework.error.ServerErrorHandler
 import org.ratpackframework.handling.Exchange
 import org.ratpackframework.test.DefaultRatpackSpec
 
-import static org.ratpackframework.groovy.ClosureHandlers.context
-import static org.ratpackframework.groovy.ClosureHandlers.get
+import static ClosureHandlers.context
+import static ClosureHandlers.get
 
 class ErrorHandlingSpec extends DefaultRatpackSpec {
 

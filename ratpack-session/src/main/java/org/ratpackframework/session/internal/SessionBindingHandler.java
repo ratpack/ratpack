@@ -16,28 +16,33 @@
 
 package org.ratpackframework.session.internal;
 
+import com.google.common.collect.ImmutableList;
 import org.ratpackframework.context.Context;
+import org.ratpackframework.context.internal.LazyHierarchicalContext;
 import org.ratpackframework.handling.Exchange;
 import org.ratpackframework.handling.Handler;
 import org.ratpackframework.session.Session;
 import org.ratpackframework.session.SessionManager;
+import org.ratpackframework.util.internal.Factory;
 
 import java.util.List;
-
-import static java.util.Collections.singletonList;
 
 public class SessionBindingHandler implements Handler {
 
   private final List<Handler> delegate;
 
   public SessionBindingHandler(Handler delegate) {
-    this.delegate = singletonList(delegate);
+    this.delegate = ImmutableList.of(delegate);
   }
 
   public void handle(Exchange exchange) {
     SessionManager sessionManager = exchange.get(SessionManager.class);
-    ExchangeSessionManager exchangeSessionManager = new ExchangeSessionManager(exchange, sessionManager);
-    Context context = exchange.getContext().plus(Session.class, exchangeSessionManager.getSession());
+    final ExchangeSessionManager exchangeSessionManager = new ExchangeSessionManager(exchange, sessionManager);
+    Context context = new LazyHierarchicalContext(exchange.getContext(), Session.class, new Factory<Session>() {
+      public Session create() {
+        return exchangeSessionManager.getSession();
+      }
+    });
     exchange.insert(context, delegate);
   }
 

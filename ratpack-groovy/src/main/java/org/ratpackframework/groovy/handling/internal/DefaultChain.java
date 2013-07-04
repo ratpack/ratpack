@@ -16,24 +16,23 @@
 
 package org.ratpackframework.groovy.handling.internal;
 
+import com.google.common.collect.ImmutableList;
 import groovy.lang.Closure;
-import groovy.lang.DelegatesTo;
-import org.ratpackframework.groovy.ClosureHandlers;
 import org.ratpackframework.groovy.handling.Chain;
-import org.ratpackframework.handling.Exchange;
+import org.ratpackframework.groovy.handling.ClosureHandlers;
 import org.ratpackframework.handling.Handler;
 import org.ratpackframework.handling.Handlers;
 import org.ratpackframework.handling.internal.ChainBuilder;
 
 import java.util.List;
 
-import static org.ratpackframework.groovy.Closures.action;
+import static org.ratpackframework.groovy.util.Closures.action;
 
 public class DefaultChain implements Chain {
 
   private final List<Handler> handlers;
 
-  DefaultChain(List<Handler> handlers) {
+  public DefaultChain(List<Handler> handlers) {
     this.handlers = handlers;
   }
 
@@ -41,16 +40,12 @@ public class DefaultChain implements Chain {
     add(ClosureHandlers.handler(handler));
   }
 
-  public void chain(Closure<?> handlers) {
-    add(chainBuildingHandler(handlers));
+  public void prefix(String prefix, Closure<?> chain) {
+    add(Handlers.prefix(prefix, toHandlerList(chain)));
   }
 
-  public void path(String path, Closure<?> handlers) {
-    add(Handlers.path(path, chainBuildingHandler(handlers)));
-  }
-
-  public void handler(String path, @DelegatesTo(value = Exchange.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler) {
-    add(Handlers.handler(path, ClosureHandlers.handler(handler)));
+  public void path(String path, Closure<?> handler) {
+    add(Handlers.path(path, ClosureHandlers.handler(handler)));
   }
 
   public void get(String path, Closure<?> handler) {
@@ -74,19 +69,19 @@ public class DefaultChain implements Chain {
   }
 
   public void context(Object object, Closure<?> handlers) {
-    add(Handlers.context(object, chainBuildingHandler(handlers)));
+    add(Handlers.context(object, toHandlerList(handlers)));
   }
 
-  public <T> void context(Class<? super T> type, T object, @DelegatesTo(value = Chain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handlers) {
-    add(Handlers.context(type, object, chainBuildingHandler(handlers)));
+  public <T> void context(Class<? super T> type, T object, Closure<?> handlers) {
+    add(Handlers.context(type, object, toHandlerList(handlers)));
   }
 
   public void fileSystem(String path, Closure<?> handlers) {
-    add(Handlers.fileSystem(path, chainBuildingHandler(handlers)));
+    add(Handlers.fileSystem(path, toHandlerList(handlers)));
   }
 
-  private Handler chainBuildingHandler(Closure<?> handlers) {
-    return ChainBuilder.INSTANCE.build(GroovyDslChainActionTransformer.INSTANCE, action(handlers));
+  private ImmutableList<Handler> toHandlerList(Closure<?> handlers) {
+    return ChainBuilder.INSTANCE.buildList(GroovyDslChainActionTransformer.INSTANCE, action(handlers));
   }
 
   public void add(Handler handler) {
