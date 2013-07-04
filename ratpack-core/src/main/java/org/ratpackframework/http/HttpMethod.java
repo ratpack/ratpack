@@ -37,9 +37,9 @@ public interface HttpMethod {
   boolean isPost();
 
   /**
-   * True if the method is GET.
+   * True if the method is GET or HEAD.
    *
-   * @return True if the method is GET.
+   * @return True if the method is GET or HEAD.
    */
   boolean isGet();
 
@@ -56,6 +56,13 @@ public interface HttpMethod {
    * @return True if the method is DELETE.
    */
   boolean isDelete();
+
+  /**
+   * True if the method is HEAD.
+   *
+   * @return True if the method is HEAD.
+   */
+  boolean isHead();
 
   /**
    * Returns true if the method has the given name, insensitive to case.
