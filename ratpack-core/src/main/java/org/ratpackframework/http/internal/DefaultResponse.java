@@ -29,6 +29,7 @@ import java.io.File;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 public class DefaultResponse implements Response {
 
@@ -36,15 +37,17 @@ public class DefaultResponse implements Response {
   private final Channel channel;
   private final boolean keepAlive;
   private final HttpVersion version;
+  private final FullHttpRequest request;
   private boolean contentLengthSet;
 
   private Set<Cookie> cookies;
 
-  public DefaultResponse(FullHttpResponse response, Channel channel, boolean keepAlive, HttpVersion version) {
+  public DefaultResponse(FullHttpResponse response, Channel channel, boolean keepAlive, HttpVersion version, FullHttpRequest request) {
     this.response = response;
     this.channel = channel;
     this.keepAlive = keepAlive;
     this.version = version;
+    this.request = request;
   }
 
   public Status getStatus() {
@@ -111,13 +114,13 @@ public class DefaultResponse implements Response {
 
   public void redirect(String location) {
     response.setStatus(HttpResponseStatus.FOUND);
-    setHeader(HttpHeaders.Names.LOCATION, location);
+    setHeader(HttpHeaders.Names.LOCATION, generateRedirectLocation(location));
     commit();
   }
 
   public void redirect(int code, String location) {
     status(code);
-    setHeader(HttpHeaders.Names.LOCATION, location);
+    setHeader(HttpHeaders.Names.LOCATION, generateRedirectLocation(location));
     commit();
   }
 
@@ -214,5 +217,68 @@ public class DefaultResponse implements Response {
     }
   }
 
+  private String generateRedirectLocation(String path) {
+    //Rules
+    //1. Given absolute URL use it
+    //2. Given Starting Slash prepend public facing domain:port if provided if not use base URL of request
+    //3. Given relative URL prepend public facing domain:port plus parent path of request URL otherwise full parent path
+
+    String generatedPath = null;
+
+    Pattern pattern = Pattern.compile("^https?://.*");
+
+    if (pattern.matcher(path).matches()) {
+      //Rule 1 - Path is absolute
+      generatedPath = path;
+    } else {
+      if (path.charAt(0) == '/') {
+        //Rule 2 - Starting Slash
+        generatedPath = getHost() + path;
+      } else {
+        //Rule 3
+        generatedPath = getHost() + getParentPath(request.getUri()) + path;
+      }
+    }
+
+    return generatedPath;
+  }
+
+
+  /**
+   * Using any specified public url first and then falling back to the Host header. If there is no host header we will return an empty string.
+   *
+   * @return The host if it can be found
+   */
+  private String getHost() {
+    boolean hasPublicHost = false;
+
+    String host = "";
+    if (hasPublicHost) {
+      host = "http://publichost.com";
+    } else {
+      if (request != null) {
+        if (request.headers().get("Host") != null) {
+          //TODO find if there is a way not to assume http
+          host = "http://" + request.headers().get("Host");
+        }
+      }
+    }
+
+    return host;
+  }
+
+  private String getParentPath(String path) {
+    String parentPath = "/";
+
+    int indexOfSlash = path.lastIndexOf('/');
+    if (indexOfSlash >= 0) {
+      parentPath = path.substring(0, indexOfSlash) + '/';
+    }
+
+    if (!parentPath.startsWith("/")) {
+      parentPath = "/" + parentPath;
+    }
+    return parentPath;
+  }
 
 }

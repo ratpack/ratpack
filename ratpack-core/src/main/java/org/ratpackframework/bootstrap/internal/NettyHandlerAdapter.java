@@ -78,7 +78,7 @@ public class NettyHandlerAdapter extends ChannelInboundMessageHandlerAdapter<Ful
     boolean keepAlive = version == HttpVersion.HTTP_1_1
         || (version == HttpVersion.HTTP_1_0 && "Keep-Alive".equalsIgnoreCase(nettyRequest.headers().get("Connection")));
 
-    Response response = new DefaultResponse(nettyResponse, ctx.channel(), keepAlive, version);
+    Response response = new DefaultResponse(nettyResponse, ctx.channel(), keepAlive, version, nettyRequest);
     final Exchange exchange = new DefaultExchange(request, response, ctx, rootContext, return404);
 
     handler.handle(exchange);
