@@ -33,7 +33,7 @@ import javax.inject.Singleton;
 public class TemplatingModule extends AbstractModule implements HandlerDecoratingModule {
 
   private String templatesPath = "templates";
-  private int cacheSize = 100;
+  private int cacheSize = 0;
   private boolean staticallyCompile;
 
   public String getTemplatesPath() {
