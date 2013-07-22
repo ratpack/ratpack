@@ -38,6 +38,10 @@ class RatpackDependencies {
     dependency("ratpack-groovy")
   }
 
+  Dependency getTestSupport() {
+    dependency("ratpack-test-support")
+  }
+
   Dependency dependency(String name) {
     dependencies.create("${GROUP}:${name}:${version}")
   }
