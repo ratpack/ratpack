@@ -24,4 +24,6 @@ public interface TemplateModel extends Map<String, Object> {
 
   Map<String, Object> map(String key);
 
+  <T> T get(String key, Class<T> type);
+
 }
