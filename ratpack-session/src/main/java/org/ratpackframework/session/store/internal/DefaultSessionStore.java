@@ -29,7 +29,7 @@ public class DefaultSessionStore implements SessionStore, SessionListener {
   private final Cache<String, SessionStorage> storage;
 
   public DefaultSessionStore(int maxEntries, int ttlMinutes) {
-    storage = CacheBuilder.<String, ConcurrentMap<String, Object>>newBuilder()
+    storage = CacheBuilder.newBuilder()
         .maximumSize(maxEntries)
         .expireAfterAccess(ttlMinutes, TimeUnit.MINUTES)
         .build();

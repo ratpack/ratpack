@@ -34,6 +34,7 @@ public class TemplatingModule extends AbstractModule implements HandlerDecoratin
 
   private String templatesPath = "templates";
   private int cacheSize = 100;
+  private boolean checkTimestamp = true;
   private boolean staticallyCompile;
 
   public String getTemplatesPath() {
@@ -52,6 +53,14 @@ public class TemplatingModule extends AbstractModule implements HandlerDecoratin
     this.cacheSize = cacheSize;
   }
 
+  public boolean isCheckTimestamp() {
+    return checkTimestamp;
+  }
+
+  public void setCheckTimestamp(boolean checkTimestamp) {
+    this.checkTimestamp = checkTimestamp;
+  }
+
   public boolean isStaticallyCompile() {
     return staticallyCompile;
   }
@@ -63,7 +72,7 @@ public class TemplatingModule extends AbstractModule implements HandlerDecoratin
   @Override
   protected void configure() {
     bind(GroovyTemplateRenderingEngine.class).in(Singleton.class);
-    bind(TemplatingConfig.class).toInstance(new DefaultTemplatingConfig(templatesPath, cacheSize, staticallyCompile));
+    bind(TemplatingConfig.class).toInstance(new DefaultTemplatingConfig(templatesPath, cacheSize, checkTimestamp, staticallyCompile));
 
     bind(ClientErrorHandler.class).to(TemplateRenderingClientErrorHandler.class).in(Singleton.class);
     bind(ServerErrorHandler.class).to(TemplateRenderingServerErrorHandler.class).in(Singleton.class);
