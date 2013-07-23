@@ -14,16 +14,30 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.groovy.templating;
+package org.ratpackframework.site
 
-import java.util.Map;
+import org.ratpackframework.test.ScriptAppSpec
 
-public interface TemplateModel extends Map<String, Object> {
 
-  <K, V> Map<K, V> map(String key, Class<K> keyType, Class<V> valueType);
+class SiteSmokeSpec extends ScriptAppSpec {
 
-  Map<String, Object> map(String key);
+	def "Check Site Index"() {
+		when:
+		get("index.html")
 
-  <T> T get(String key, Class<T> type);
+		then:
+		response.statusCode == 200
+		response.body.asString().contains('<title>Ratpack: A toolkit for JVM web applications</title>')
+
+	}
+
+	def "Check Site /"() {
+		when:
+		get("")
+
+		then:
+		response.statusCode == 200
+		response.body.asString().contains('<title>Ratpack: A toolkit for JVM web applications</title>')
+	}
 
 }

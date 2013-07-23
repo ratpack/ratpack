@@ -32,7 +32,14 @@ import org.ratpackframework.handling.Exchange;
 public interface Chain extends org.ratpackframework.handling.Chain {
 
   /**
-   * Creates a nested chain that is inserted if the request path matches the given prefix.
+   * Adds a handler with the given closure as its implementation.
+   *
+   * @param handler The closure to add as a handler.
+   */
+  void handler(@DelegatesTo(value = Exchange.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
+
+  /**
+   * Adds a nested chain that is inserted if the request path matches the given prefix.
    * <p>
    * All path based handlers become relative to the given prefix.
    * <pre class="groovy-chain-dsl">
@@ -50,13 +57,13 @@ public interface Chain extends org.ratpackframework.handling.Chain {
    *    }
    *   }
    * </pre>
+   * <p>
+   * See {@link org.ratpackframework.handling.Handlers#prefix(String, org.ratpackframework.util.Action)} for format details on the prefix string.
    *
    * @param prefix The prefix to bind to.
    * @param chain The definition of the nested handlers
    */
   void prefix(String prefix, @DelegatesTo(value = org.ratpackframework.groovy.handling.Chain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> chain);
-
-  void handler(@DelegatesTo(value = Exchange.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
 
   void path(String path, @DelegatesTo(value = Exchange.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
 

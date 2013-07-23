@@ -201,6 +201,27 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     text.contains "[inner.html] compilation failure"
   }
 
+  def "can get model object via type"() {
+    given:
+    file("templates/template.html") << "value: \${model.get('value', String).toInteger()}"
+
+    when:
+    app {
+      modules {
+        get(TemplatingModule).staticallyCompile = true
+      }
+
+      handlers {
+        get {
+          get(TemplateRenderer).render "template.html", value: "2"
+        }
+      }
+    }
+
+    then:
+    text.contains "value: 2"
+  }
+
   def "client errors are rendered with the template renderer"() {
     when:
     app {

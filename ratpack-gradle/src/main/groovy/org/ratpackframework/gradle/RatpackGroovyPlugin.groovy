@@ -33,6 +33,7 @@ class RatpackGroovyPlugin implements Plugin<Project> {
 
     project.dependencies {
       groovy ratpackDependencies.groovy
+      testCompile ratpackDependencies.testSupport
     }
   }
 
