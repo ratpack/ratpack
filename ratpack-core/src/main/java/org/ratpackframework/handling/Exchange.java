@@ -18,8 +18,8 @@ package org.ratpackframework.handling;
 
 import org.ratpackframework.api.NonBlocking;
 import org.ratpackframework.api.Nullable;
-import org.ratpackframework.context.Context;
-import org.ratpackframework.context.NotInContextException;
+import org.ratpackframework.service.NotInServiceRegistryException;
+import org.ratpackframework.service.ServiceRegistry;
 import org.ratpackframework.http.Request;
 import org.ratpackframework.http.Response;
 
@@ -30,7 +30,7 @@ import java.util.Map;
 /**
  * An exchange represents to the processing of a particular request.
  * <p>
- * It provides access to the request and response, along with the current <i>context</i>.
+ * It provides access to the request and response, along with the current <i>service</i>.
  * It is also the fundamental routing mechanism.
  * <p>
  * Different handlers that participate in the processing of an exchange may actually receive different instances.
@@ -51,12 +51,12 @@ import java.util.Map;
  * The last inserted handler's “next” handler will become the “next” handler of this exchange.
  * That is, the “insert” operation is inserting before the current next handler.
  * </p>
- * <h4>Inserting with a different context</h4>
+ * <h4>Inserting with a different service</h4>
  * <p>
- * There are variants of the {@code insert()} method that allow the injection of a new context.
- * The given context will <b>only</b> be the context for the inserted handlers.
+ * There are variants of the {@code insert()} method that allow the injection of a new service.
+ * The given service will <b>only</b> be the service for the inserted handlers.
  * It is in effect “scoped” to just the inserted handlers.
- * The context for existing handlers that are already part of the pipeline cannot be influenced.
+ * The service for existing handlers that are already part of the pipeline cannot be influenced.
  * This gives processing a hierarchical nature.
  * Handlers can delegate to a tree of handlers (inserted handlers can insert other handlers) that
  * operate in different contexts.
@@ -64,7 +64,7 @@ import java.util.Map;
  * for a portion of the application.
  * </p>
  */
-public interface Exchange {
+public interface Exchange extends ServiceRegistry {
 
   /**
    * The HTTP request.
@@ -81,34 +81,25 @@ public interface Exchange {
   Response getResponse();
 
   /**
-   * The current context of the exchange.
+   * Shorthand for {@link org.ratpackframework.service.ServiceRegistry#get(Class) getServiceRegistry().get(type)}.
    * <p>
-   * The context gives access to various services and objects.
+   * The service is dependent on processing that has happened prior in the handling pipeline.
    *
-   * @return The current context of the exchange.
-   */
-  Context getContext();
-
-  /**
-   * Shorthand for {@link Context#get(Class) getContext().get(type)}.
-   * <p>
-   * The context is dependent on processing that has happened prior in the handling pipeline.
-   *
-   * @param type The type of object to fetch from the context
-   * @param <T> The type of object to fetch from the context
+   * @param type The type of object to fetch from the service
+   * @param <T> The type of object to fetch from the service
    * @return An object of the requested type
-   * @throws NotInContextException if no object of that type could be supplied by the context
+   * @throws org.ratpackframework.service.NotInServiceRegistryException if no object of that type could be supplied by the service
    */
-  <T> T get(Class<T> type) throws NotInContextException;
+  <T> T get(Class<T> type) throws NotInServiceRegistryException;
 
   /**
-   * Shorthand for {@link Context#maybeGet(Class) getContext().maybeGet(type)}.
+   * Shorthand for {@link org.ratpackframework.service.ServiceRegistry#maybeGet(Class) getServiceRegistry().maybeGet(type)}.
    * <p>
-   * The context is dependent on processing that has happened prior in the handling pipeline.
+   * The service is dependent on processing that has happened prior in the handling pipeline.
    *
-   * @param type The type of object to fetch from the context
-   * @param <T> The type of object to fetch from the context
-   * @return An object of the requested type, or {@code null} if an object of the given type could not be supplied by the context
+   * @param type The type of object to fetch from the service
+   * @param <T> The type of object to fetch from the service
+   * @return An object of the requested type, or {@code null} if an object of the given type could not be supplied by the service
    */
   @Nullable
   <T> T maybeGet(Class<T> type);
@@ -132,18 +123,44 @@ public interface Exchange {
   void insert(List<Handler> handlers);
 
   /**
-   * Inserts some handlers into the pipeline to execute with the given context, then delegates to the first.
+   * Inserts some handlers into the pipeline to execute with the given service registry, then delegates to the first.
    * <p>
-   * The given context is only applicable to the inserted handlers.
+   * The given service registry is only applicable to the inserted handlers.
    * <p>
-   * Almost always, the context should be a super set of the current context. This can easily be achieved
-   * by using the {@link Context#plus(Class, Object)} method of {@link #getContext() this exchange's context}.
+   * Almost always, the service registry should be a super set of the current service registry.
    *
-   * @param context The context for the inserted handlers
+   * @param serviceRegistry The service registry for the inserted handlers
    * @param handlers The handlers to insert
    */
   @NonBlocking
-  void insert(Context context, List<Handler> handlers);
+  void insert(ServiceRegistry serviceRegistry, List<Handler> handlers);
+
+  /**
+   * Inserts some handlers into the pipeline to execute with the given service, then delegates to the first.
+   * <p>
+   * The given object will take precedence over object advertised by the given advertised type.
+   * <p>
+   * The object will only be retrievable by the type that is given.
+   *
+   * @param <P> The public type of the object
+   * @param <T> The concrete type of the object
+   * @param publicType The advertised type of the object (i.e. what it is retrievable by)
+   * @param implementation The actual implementation
+   * @param handlers The handlers to insert
+   */
+  @NonBlocking
+  <P, T extends P> void insert(Class<P> publicType, T implementation, List<Handler> handlers);
+
+  /**
+   * Inserts some handlers into the pipeline to execute with the the given object added to the service, then delegates to the first.
+   * <p>
+   * The given object will take precedence over any existing object available via its concrete type.
+   *
+   * @param object The object to add to the service for the handlers
+   * @param handlers The handlers to insert
+   */
+  @NonBlocking
+  void insert(Object object, List<Handler> handlers);
 
   /**
    * A buildable processing chain for conditional processing based on the HTTP request method.
@@ -155,31 +172,31 @@ public interface Exchange {
   ByMethodChain getMethods();
 
 
-  // Shorthands for common context lookups
+  // Shorthands for common service lookups
 
   /**
-   * Forwards the exception to the {@link org.ratpackframework.error.ServerErrorHandler} in this context.
+   * Forwards the exception to the {@link org.ratpackframework.error.ServerErrorHandler} in this service.
    * <p>
    * The default configuration of Ratpack includes a {@link org.ratpackframework.error.ServerErrorHandler} in all contexts.
-   * A {@link NotInContextException} will only be thrown if a very custom context setup is being used.
+   * A {@link org.ratpackframework.service.NotInServiceRegistryException} will only be thrown if a very custom service setup is being used.
    *
    * @param exception The exception that occurred
-   * @throws NotInContextException if no {@link org.ratpackframework.error.ServerErrorHandler} can be found in the context
+   * @throws org.ratpackframework.service.NotInServiceRegistryException if no {@link org.ratpackframework.error.ServerErrorHandler} can be found in the service
    */
   @NonBlocking
-  void error(Exception exception) throws NotInContextException;
+  void error(Exception exception) throws NotInServiceRegistryException;
 
   /**
-   * Forwards the error to the {@link org.ratpackframework.error.ClientErrorHandler} in this context.
+   * Forwards the error to the {@link org.ratpackframework.error.ClientErrorHandler} in this service.
    *
    * The default configuration of Ratpack includes a {@link org.ratpackframework.error.ClientErrorHandler} in all contexts.
-   * A {@link NotInContextException} will only be thrown if a very custom context setup is being used.
+   * A {@link org.ratpackframework.service.NotInServiceRegistryException} will only be thrown if a very custom service setup is being used.
    *
    * @param statusCode The 4xx range status code that indicates the error type
-   * @throws NotInContextException if no {@link org.ratpackframework.error.ClientErrorHandler} can be found in the context
+   * @throws org.ratpackframework.service.NotInServiceRegistryException if no {@link org.ratpackframework.error.ClientErrorHandler} can be found in the service
    */
   @NonBlocking
-  void clientError(int statusCode) throws NotInContextException;
+  void clientError(int statusCode) throws NotInServiceRegistryException;
 
   /**
    * Executes the given runnable in a try/catch, where exceptions are given to {@link #error(Exception)}.
@@ -194,37 +211,37 @@ public interface Exchange {
   void withErrorHandling(Runnable runnable);
 
   /**
-   * The path tokens of the current {@link org.ratpackframework.path.PathBinding} in this exchange's context.
+   * The path tokens of the current {@link org.ratpackframework.path.PathBinding} in this exchange's service.
    * <p>
-   * Shorthand for {@code getContext().get(PathBinding.class).getPathTokens()}.
+   * Shorthand for {@code getServiceRegistry().get(PathBinding.class).getPathTokens()}.
    *
-   * @return The path tokens of the current {@link org.ratpackframework.path.PathBinding} in this exchange's context
-   * @throws NotInContextException if there is no {@link org.ratpackframework.path.PathBinding} in the current context
+   * @return The path tokens of the current {@link org.ratpackframework.path.PathBinding} in this exchange's service
+   * @throws org.ratpackframework.service.NotInServiceRegistryException if there is no {@link org.ratpackframework.path.PathBinding} in the current service
    */
-  Map<String, String> getPathTokens() throws NotInContextException;
+  Map<String, String> getPathTokens() throws NotInServiceRegistryException;
 
   /**
-   * All of path tokens of the current {@link org.ratpackframework.path.PathBinding} in this exchange's context.
+   * All of path tokens of the current {@link org.ratpackframework.path.PathBinding} in this exchange's service.
    * <p>
-   * Shorthand for {@code getContext().get(PathBinding.class).getAllPathTokens()}.
+   * Shorthand for {@code getServiceRegistry().get(PathBinding.class).getAllPathTokens()}.
    *
-   * @return The path tokens of the current {@link org.ratpackframework.path.PathBinding} in this exchange's context
-   * @throws NotInContextException if there is no {@link org.ratpackframework.path.PathBinding} in the current context
+   * @return The path tokens of the current {@link org.ratpackframework.path.PathBinding} in this exchange's service
+   * @throws org.ratpackframework.service.NotInServiceRegistryException if there is no {@link org.ratpackframework.path.PathBinding} in the current service
    */
-  Map<String, String> getAllPathTokens() throws NotInContextException;
+  Map<String, String> getAllPathTokens() throws NotInServiceRegistryException;
 
   /**
-   * Gets the file relative to the current {@link org.ratpackframework.file.FileSystemBinding} in this exchange's context.
+   * Gets the file relative to the current {@link org.ratpackframework.file.FileSystemBinding} in this exchange's service.
    * <p>
-   * Shorthand for {@code getContext().get(FileSystemBinding.class).file(path)}.
+   * Shorthand for {@code getServiceRegistry().get(FileSystemBinding.class).file(path)}.
    * <p>
    * The default configuration of Ratpack includes a {@link org.ratpackframework.file.FileSystemBinding} in all contexts.
-   * A {@link NotInContextException} will only be thrown if a very custom context setup is being used.
+   * A {@link org.ratpackframework.service.NotInServiceRegistryException} will only be thrown if a very custom service setup is being used.
    *
    * @param path The path to pass to the {@link org.ratpackframework.file.FileSystemBinding#file(String)} method.
-   * @return The file relative to the current {@link org.ratpackframework.file.FileSystemBinding} in this exchange's context
-   * @throws NotInContextException if there is no {@link org.ratpackframework.file.FileSystemBinding} in the current context
+   * @return The file relative to the current {@link org.ratpackframework.file.FileSystemBinding} in this exchange's service
+   * @throws org.ratpackframework.service.NotInServiceRegistryException if there is no {@link org.ratpackframework.file.FileSystemBinding} in the current service
    */
-  File file(String path) throws NotInContextException;
+  File file(String path) throws NotInServiceRegistryException;
 
 }

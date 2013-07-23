@@ -21,7 +21,7 @@ import java.io.File;
 /**
  * A file system binding represents a file system location that is used to resolve relative paths.
  *
- * Every exchange has a file system binding available via its context, as every Ratpack app has a file system binding.
+ * Every exchange has a file system binding available via its service, as every Ratpack app has a file system binding.
  * <p>
  * The file system binding is used by asset serving handlers, among other places.
  *

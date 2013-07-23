@@ -14,18 +14,22 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.context.internal;
+package org.ratpackframework.service.internal;
 
-import org.ratpackframework.context.Context;
+import org.ratpackframework.service.ServiceRegistry;
 import org.ratpackframework.util.internal.Factory;
 
-public class LazyHierarchicalContext extends HierarchicalContextSupport {
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
+public class LazyHierarchicalServiceRegistry extends HierarchicalServiceRegistrySupport {
 
   private final Class<?> type;
   private final Factory<?> factory;
   private Object object;
+  private Lock lock = new ReentrantLock();
 
-  public <T> LazyHierarchicalContext(Context parent, Class<T> type, Factory<? extends T> factory) {
+  public <T> LazyHierarchicalServiceRegistry(ServiceRegistry parent, Class<T> type, Factory<? extends T> factory) {
     super(parent);
     this.type = type;
     this.factory = factory;
@@ -36,19 +40,27 @@ public class LazyHierarchicalContext extends HierarchicalContextSupport {
     if (type.isAssignableFrom(requestedType)) {
       return requestedType.cast(getObject());
     } else {
-      return  null;
+      return null;
     }
   }
 
   private Object getObject() {
     if (object == null) {
-      object = factory.create();
+      lock.lock();
+      try {
+        //noinspection ConstantConditions
+        if (object == null) {
+          object = factory.create();
+        }
+      } finally {
+        lock.unlock();
+      }
     }
     return object;
   }
 
   @Override
   protected String describe() {
-    return "LazyContext{" + type.getName() + "}";
+    return "LazyHierarchicalServiceRegistry{" + type.getName() + "}";
   }
 }

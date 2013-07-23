@@ -33,7 +33,7 @@ public abstract class Guice {
    * <p>
    * The handler instance is created by using the {@link com.google.inject.Injector#getInstance(Class)} method.
    * The injected instance is created lazily.
-   * For each request, the {@link com.google.inject.Injector} is retrieved from the exchange context.
+   * For each request, the {@link com.google.inject.Injector} is retrieved from the exchange service registry.
    * An instance of the given handler type is then retrieved from the exchange.
    * <p>
    * To avoid having a new handler instance created each exchange, you should annotate the handler type with {@link javax.inject.Singleton}.
@@ -65,7 +65,7 @@ public abstract class Guice {
    * The handler returned from this method <b>is not</b> of the given type.
    * It is a kind of proxy that creates an instance of the specified type on demand.
    * <p>
-   * If there is no contextual {@link com.google.inject.Injector} for the exchange, a {@link org.ratpackframework.context.NotInContextException} will be thrown.
+   * If there is no contextual {@link com.google.inject.Injector} for the exchange, a {@link org.ratpackframework.service.NotInServiceRegistryException} will be thrown.
    * This means that it only makes sense to use an injected handler like this if the application is Guice backed.
    * Such as when using a {@link #handler(org.ratpackframework.util.Action, org.ratpackframework.handling.Handler)} handler as the root.
    *
@@ -129,10 +129,10 @@ public abstract class Guice {
    * </pre>
    * <p>
    * Modules are processed eagerly. Before this method returns, the modules will be used to create a single
-   * {@link com.google.inject.Injector} instance. This injector is available to the given handler via context lookup.
+   * {@link com.google.inject.Injector} instance. This injector is available to the given handler via service lookup.
    * A new injector <b>is not</b> created for each exchange (as this would be unnecessary and expensive).
    * <p>
-   * The injector also makes all of its objects available via context lookup.
+   * The injector also makes all of its objects available via service lookup.
    * This means that you can retrieve objects that were bound by modules in handlers via {@link org.ratpackframework.handling.Exchange#get(Class)}.
    * Objects are only retrievable via their public type.
    *

@@ -36,12 +36,12 @@ public abstract class ClosureHandlers {
     };
   }
 
-  public static Handler context(final Object context, @DelegatesTo(value = Chain.class, strategy = Closure.DELEGATE_FIRST) final Closure<?> handlers) {
-    return Handlers.context(context, chain(handlers));
+  public static Handler service(final Object service, @DelegatesTo(value = Chain.class, strategy = Closure.DELEGATE_FIRST) final Closure<?> handlers) {
+    return Handlers.service(service, chain(handlers));
   }
 
-  public static <T> Handler context(Class<? super T> type, T object, @DelegatesTo(value = Chain.class, strategy = Closure.DELEGATE_FIRST) final Closure<?> handlers) {
-    return Handlers.context(type, object, chain(handlers));
+  public static <T> Handler service(Class<? super T> type, T object, @DelegatesTo(value = Chain.class, strategy = Closure.DELEGATE_FIRST) final Closure<?> handlers) {
+    return Handlers.service(type, object, chain(handlers));
   }
 
   private static Action<Chain> chain(@DelegatesTo(value = Chain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handlers) {

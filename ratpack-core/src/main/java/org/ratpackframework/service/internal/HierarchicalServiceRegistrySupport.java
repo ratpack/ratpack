@@ -14,14 +14,28 @@
  * limitations under the License.
  */
 
-/**
- * Handlers communicate with each other by binding a "context" on to each {@link org.ratpackframework.handling.Exchange}.
- *
- * A context is just an object that may be able to provide an object of a given type. Typically, upstream handlers add
- * objects to the context for downstream handlers to use.
- *
- * This package
- *
- * @see org.ratpackframework.context.Context
- */
-package org.ratpackframework.context;
+package org.ratpackframework.service.internal;
+
+import org.ratpackframework.service.ServiceRegistry;
+
+public abstract class HierarchicalServiceRegistrySupport extends ServiceRegistrySupport {
+
+  private final ServiceRegistry parent;
+
+  protected HierarchicalServiceRegistrySupport(ServiceRegistry parent) {
+    this.parent = parent;
+  }
+
+  @Override
+  public String toString() {
+    return describe() + " -> " + parent.toString();
+  }
+
+  @Override
+  public <T> T onNotFound(Class<T> type) {
+    return parent.maybeGet(type);
+  }
+
+  protected abstract String describe();
+
+}

@@ -82,11 +82,11 @@ public class MapSessionsModule extends AbstractModule implements HandlerDecorati
   }
 
   /**
-   * Makes {@link SessionStorage} available in the exchange context.
+   * Makes {@link SessionStorage} available in the exchange service.
    *
    * @param injector The injector created from all the application modules
    * @param handler The application handler
-   * @return A handler that provides a {@link SessionStorage} impl in the exchange context
+   * @return A handler that provides a {@link SessionStorage} impl in the exchange service
    */
   public Handler decorate(Injector injector, Handler handler) {
     return new SessionStorageBindingHandler(handler);

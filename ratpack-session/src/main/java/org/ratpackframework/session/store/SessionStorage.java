@@ -19,10 +19,10 @@ package org.ratpackframework.session.store;
 import java.util.concurrent.ConcurrentMap;
 
 /**
- * A marker concurrent map sub interface, to make retrieving the session storage from the context easier.
+ * A marker concurrent map sub interface, to make retrieving the session storage from the service easier.
  * <p>
  * The session storage is not available for dependency injection via Guice.
- * It must be retrieved via context lookup.
+ * It must be retrieved via service lookup.
  */
 public interface SessionStorage extends ConcurrentMap<String, Object> {
 }

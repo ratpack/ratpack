@@ -17,24 +17,23 @@
 package org.ratpackframework.handling.internal;
 
 import com.google.common.collect.ImmutableList;
-import org.ratpackframework.context.Context;
 import org.ratpackframework.handling.Exchange;
 import org.ratpackframework.handling.Handler;
 
-public class ContextInsertingHandler implements Handler {
+public class ServiceInsertingHandler implements Handler {
 
   private final Class<?> type;
   private final Object object;
   private final ImmutableList<Handler> handlers;
 
   @SuppressWarnings("unchecked")
-  public <T> ContextInsertingHandler(T object, ImmutableList<Handler> handlers) {
+  public <T> ServiceInsertingHandler(T object, ImmutableList<Handler> handlers) {
     this.type = null;
     this.object = object;
     this.handlers = handlers;
   }
 
-  public <T> ContextInsertingHandler(Class<? super T> type, T object, ImmutableList<Handler> handlers) {
+  public <T> ServiceInsertingHandler(Class<? super T> type, T object, ImmutableList<Handler> handlers) {
     this.type = type;
     this.object = object;
     this.handlers = handlers;
@@ -42,11 +41,10 @@ public class ContextInsertingHandler implements Handler {
 
   @SuppressWarnings("unchecked")
   public void handle(Exchange exchange) {
-    Context context = exchange.getContext();
     if (type == null) {
-      exchange.insert(context.plus(object), handlers);
+      exchange.insert(object, handlers);
     } else {
-      exchange.insert(context.plus((Class<? super Object>) type, object), handlers);
+      exchange.insert((Class)type, object, handlers);
     }
   }
 }

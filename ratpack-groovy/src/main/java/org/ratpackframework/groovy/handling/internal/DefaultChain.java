@@ -68,12 +68,12 @@ public class DefaultChain implements Chain {
     add(Handlers.assets(path, indexFiles));
   }
 
-  public void context(Object object, Closure<?> handlers) {
-    add(Handlers.context(object, toHandlerList(handlers)));
+  public void service(Object object, Closure<?> handlers) {
+    add(Handlers.service(object, toHandlerList(handlers)));
   }
 
-  public <T> void context(Class<? super T> type, T object, Closure<?> handlers) {
-    add(Handlers.context(type, object, toHandlerList(handlers)));
+  public <T> void service(Class<? super T> type, T object, Closure<?> handlers) {
+    add(Handlers.service(type, object, toHandlerList(handlers)));
   }
 
   public void fileSystem(String path, Closure<?> handlers) {

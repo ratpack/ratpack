@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.context.internal;
+package org.ratpackframework.service.internal;
 
-import org.ratpackframework.context.Context;
-import org.ratpackframework.context.NotInContextException;
+import org.ratpackframework.service.NotInServiceRegistryException;
+import org.ratpackframework.service.ServiceRegistry;
 
-public abstract class ContextSupport implements Context {
+public abstract class ServiceRegistrySupport implements ServiceRegistry {
 
   protected abstract <T> T doMaybeGet(Class<T> type);
 
@@ -40,17 +40,10 @@ public abstract class ContextSupport implements Context {
   public final <T> T get(Class<T> type) {
     T found = maybeGet(type);
     if (found == null) {
-      throw new NotInContextException(this, type);
+      throw new NotInServiceRegistryException(this, type);
     }
 
     return found;
   }
 
-  public Context plus(Object object) {
-    return new ObjectHoldingHierarchicalContext(this, object);
-  }
-
-  public <T> Context plus(Class<? super T> type, T object) {
-    return new ObjectHoldingHierarchicalContext(this, type, object);
-  }
 }

@@ -17,7 +17,7 @@
 package org.ratpackframework.error;
 
 /**
- * A marker interface to indicate that if an exception has a cause, it is merely providing context.
+ * A marker interface to indicate that if an exception has a cause, it is merely providing service.
  *
  * That is, it should not be considered the root cause.
  */

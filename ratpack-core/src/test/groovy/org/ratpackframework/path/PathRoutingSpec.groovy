@@ -64,8 +64,8 @@ class PathRoutingSpec extends DefaultRatpackSpec {
       handlers {
         add path(":a/:b/:c") {
           add handler {
-            def pathContext = get(PathBinding)
-            response.send("$pathContext.tokens - $pathContext.pastBinding")
+            def binding = get(PathBinding)
+            response.send("$binding.tokens - $binding.pastBinding")
           }
         }
       }
@@ -82,8 +82,8 @@ class PathRoutingSpec extends DefaultRatpackSpec {
         add path(":a/:b") {
           add path(":d/:e") {
             add handler {
-              def pathContext = get(PathBinding)
-              response.send("$pathContext.tokens - $pathContext.allTokens - $pathContext.pastBinding")
+              def binding = get(PathBinding)
+              response.send("$binding.tokens - $binding.allTokens - $binding.pastBinding")
             }
           }
         }
@@ -99,8 +99,8 @@ class PathRoutingSpec extends DefaultRatpackSpec {
     app {
       handlers {
         add handler(":a/:b/:c") {
-          def pathContext = get(PathBinding)
-          response.send("$pathContext.tokens - $pathContext.pastBinding")
+          def binding = get(PathBinding)
+          response.send("$binding.tokens - $binding.pastBinding")
         }
       }
     }
@@ -116,8 +116,8 @@ class PathRoutingSpec extends DefaultRatpackSpec {
       handlers {
         add path(":a/:b") {
           add handler(":d/:e") {
-            def pathContext = get(PathBinding)
-            response.send("$pathContext.tokens - $pathContext.allTokens - $pathContext.pastBinding")
+            def binding = get(PathBinding)
+            response.send("$binding.tokens - $binding.allTokens - $binding.pastBinding")
           }
         }
       }

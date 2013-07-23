@@ -168,7 +168,7 @@ class StaticFileSpec extends DefaultRatpackSpec {
     getText("f2.txt") == "in not found handler"
   }
 
-  def "can nest file system contexts handlers"() {
+  def "can nest file system binding handlers"() {
     given:
     file("d1/d2/d3/dir/index.html") << "3"
 

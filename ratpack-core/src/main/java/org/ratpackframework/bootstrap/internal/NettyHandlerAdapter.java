@@ -24,7 +24,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundMessageHandlerAdapter;
 import io.netty.handler.codec.http.*;
 import io.netty.util.CharsetUtil;
-import org.ratpackframework.context.internal.RootContext;
+import org.ratpackframework.service.internal.RootServiceRegistry;
 import org.ratpackframework.error.internal.DefaultClientErrorHandler;
 import org.ratpackframework.error.internal.DefaultServerErrorHandler;
 import org.ratpackframework.error.internal.ErrorCatchingHandler;
@@ -47,12 +47,12 @@ import static io.netty.handler.codec.http.HttpResponseStatus.NOT_FOUND;
 public class NettyHandlerAdapter extends ChannelInboundMessageHandlerAdapter<FullHttpRequest> {
 
   private final Handler handler;
-  private final RootContext rootContext;
+  private final RootServiceRegistry rootServiceRegistry;
   private Handler return404;
 
   public NettyHandlerAdapter(Handler handler, File baseDir) {
     this.handler = new ErrorCatchingHandler(handler);
-    this.rootContext = new RootContext(
+    this.rootServiceRegistry = new RootServiceRegistry(
       ImmutableList.of(
         new DefaultServerErrorHandler(),
         new DefaultClientErrorHandler(),
@@ -79,7 +79,7 @@ public class NettyHandlerAdapter extends ChannelInboundMessageHandlerAdapter<Ful
         || (version == HttpVersion.HTTP_1_0 && "Keep-Alive".equalsIgnoreCase(nettyRequest.headers().get("Connection")));
 
     Response response = new DefaultResponse(nettyResponse, ctx.channel(), keepAlive, version);
-    final Exchange exchange = new DefaultExchange(request, response, ctx, rootContext, return404);
+    final Exchange exchange = new DefaultExchange(request, response, ctx, rootServiceRegistry, return404);
 
     handler.handle(exchange);
   }

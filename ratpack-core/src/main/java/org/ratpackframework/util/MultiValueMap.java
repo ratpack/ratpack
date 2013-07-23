@@ -30,7 +30,7 @@ import java.util.Map;
  * <b>All implementations of this type are immutable.</b> Mutating operations throw {@link UnsupportedOperationException}.
  * <p>
  * Where there is multiple values for a given key, retrieving a single value will return the <i>first</i> value,
- * where the first value is intrinsic to the context in which the map is being used.
+ * where the first value is intrinsic to the service in which the map is being used.
  *
  * @param <K> The type of key objects
  * @param <V> The type of value objects

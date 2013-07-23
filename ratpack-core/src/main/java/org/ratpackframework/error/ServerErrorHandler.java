@@ -22,7 +22,7 @@ import org.ratpackframework.handling.Exchange;
 /**
  * An object that can deal with errors that occur during the processing of an exchange.
  *
- * Typically retrieved from the exchange context.
+ * Typically retrieved from the exchange service.
  *
  * @see Exchange#error(Exception)
  * @see Exchange#withErrorHandling(Runnable)

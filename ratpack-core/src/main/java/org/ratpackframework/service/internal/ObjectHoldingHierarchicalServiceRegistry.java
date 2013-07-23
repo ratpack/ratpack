@@ -14,24 +14,24 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.context.internal;
+package org.ratpackframework.service.internal;
 
-import org.ratpackframework.context.Context;
+import org.ratpackframework.service.ServiceRegistry;
 
 /**
- * A simple context that
+ * A simple service that
  */
-public class ObjectHoldingHierarchicalContext extends HierarchicalContextSupport {
+public class ObjectHoldingHierarchicalServiceRegistry extends HierarchicalServiceRegistrySupport {
 
   private final Object value;
   private final Class<?> type;
 
   @SuppressWarnings("unchecked")
-  public ObjectHoldingHierarchicalContext(Context parent, Object value) {
+  public ObjectHoldingHierarchicalServiceRegistry(ServiceRegistry parent, Object value) {
     this(parent, (Class<? super Object>) value.getClass(), value);
   }
 
-  public <T> ObjectHoldingHierarchicalContext(Context parent, Class<? super T> type, T value) {
+  public <T> ObjectHoldingHierarchicalServiceRegistry(ServiceRegistry parent, Class<? super T> type, T value) {
     super(parent);
     this.value = value;
     this.type = type;
@@ -48,6 +48,6 @@ public class ObjectHoldingHierarchicalContext extends HierarchicalContextSupport
 
   @Override
   protected String describe() {
-    return "ObjectContext{" + value + "}";
+    return "ObjectServiceRegistry{" + value + "}";
   }
 }

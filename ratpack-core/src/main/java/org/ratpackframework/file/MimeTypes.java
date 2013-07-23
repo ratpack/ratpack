@@ -21,7 +21,7 @@ import java.io.File;
 /**
  * A registry for mime types.
  *
- * Every exchange has an instance of this type available via the context.
+ * Every exchange has an instance of this type available via the service.
  * The default implementation uses the {@link javax.activation.MimetypesFileTypeMap} class.
  */
 public interface MimeTypes {

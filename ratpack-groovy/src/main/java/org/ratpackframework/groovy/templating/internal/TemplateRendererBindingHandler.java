@@ -41,6 +41,6 @@ public class TemplateRendererBindingHandler implements Handler {
     GroovyTemplateRenderingEngine engine = exchange.get(GroovyTemplateRenderingEngine.class);
     File templateDirFile = exchange.get(FileSystemBinding.class).file(templateDir);
     TemplateRenderer renderer = new DefaultTemplateRenderer(templateDirFile, exchange, engine);
-    exchange.insert(exchange.getContext().plus(TemplateRenderer.class, renderer), delegate);
+    exchange.insert(TemplateRenderer.class, renderer, delegate);
   }
 }

@@ -20,8 +20,8 @@ import org.ratpackframework.error.ServerErrorHandler
 import org.ratpackframework.handling.Exchange
 import org.ratpackframework.test.DefaultRatpackSpec
 
-import static ClosureHandlers.context
 import static ClosureHandlers.get
+import static ClosureHandlers.service
 
 class ErrorHandlingSpec extends DefaultRatpackSpec {
 
@@ -56,7 +56,7 @@ class ErrorHandlingSpec extends DefaultRatpackSpec {
     when:
     app {
       handlers {
-        add context(ServerErrorHandler, errorHandler) {
+        add service(ServerErrorHandler, errorHandler) {
           add get {
             withErrorHandling new Thread({
               throw new Exception("thrown in forked thread")
@@ -70,7 +70,7 @@ class ErrorHandlingSpec extends DefaultRatpackSpec {
     text == "Caught: thrown in forked thread"
   }
 
-  def "can use contextual handler on forked threads"() {
+  def "can use service on forked threads"() {
     given:
     def errorHandler1 = new ServerErrorHandler() {
       void error(Exchange exchange, Exception exception) {
@@ -87,10 +87,10 @@ class ErrorHandlingSpec extends DefaultRatpackSpec {
     when:
     app {
       handlers {
-        add context(ServerErrorHandler, errorHandler1) {
+        add service(ServerErrorHandler, errorHandler1) {
           add get { exchange ->
             withErrorHandling new Thread({
-              context(ServerErrorHandler, errorHandler2) {
+              service(ServerErrorHandler, errorHandler2) {
                 add get {
                   throw new Exception("down here")
                 }
@@ -121,8 +121,8 @@ class ErrorHandlingSpec extends DefaultRatpackSpec {
     when:
     app {
       handlers {
-        add context(ServerErrorHandler, errorHandler1) {
-          add context(ServerErrorHandler, errorHandler2) {
+        add service(ServerErrorHandler, errorHandler1) {
+          add service(ServerErrorHandler, errorHandler2) {
             add get("a") {
               throw new Exception("1")
             }
@@ -139,7 +139,7 @@ class ErrorHandlingSpec extends DefaultRatpackSpec {
     getText("b") == "1: 2"
   }
 
-  def "can use contextual handler"() {
+  def "can use service handler"() {
     given:
     def errorHandler = new ServerErrorHandler() {
       void error(Exchange exchange, Exception exception) {
@@ -150,7 +150,7 @@ class ErrorHandlingSpec extends DefaultRatpackSpec {
     when:
     app {
       handlers {
-        add context(ServerErrorHandler, errorHandler) {
+        add service(ServerErrorHandler, errorHandler) {
           add get {
             throw new Exception("thrown")
           }

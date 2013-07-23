@@ -19,7 +19,7 @@ package org.ratpackframework.handling;
 import com.google.common.collect.ImmutableList;
 import org.ratpackframework.file.internal.DirectoryStaticAssetRequestHandler;
 import org.ratpackframework.file.internal.FileStaticAssetRequestHandler;
-import org.ratpackframework.file.internal.FileSystemContextHandler;
+import org.ratpackframework.file.internal.FileSystemBindingHandler;
 import org.ratpackframework.file.internal.TargetFileStaticAssetRequestHandler;
 import org.ratpackframework.handling.internal.*;
 import org.ratpackframework.http.internal.MethodHandler;
@@ -72,58 +72,58 @@ public abstract class Handlers {
   }
 
   /**
-   * Creates a handler that inserts the handler chain defined by the builder, with the given context addition.
+   * Creates a handler that inserts the handler chain defined by the builder, with the given service addition.
    * <p>
-   * The context object will be available by its concrete type.
-   * To make it available by a different type (perhaps one of its interfaces) use {@link #context(Class, Object, org.ratpackframework.util.Action)}.
+   * The service object will be available by its concrete type.
+   * To make it available by a different type (perhaps one of its interfaces) use {@link #service(Class, Object, org.ratpackframework.util.Action)}.
    *
-   * @param object The object to add to the context, only for the handlers defined by {@code builder}
-   * @param builder The definition of the handler chain to insert with the context
+   * @param object The object to add to the service, only for the handlers defined by {@code builder}
+   * @param builder The definition of the handler chain to insert with the service
    * @return A handler
    */
-  public static Handler context(Object object, Action<? super Chain> builder) {
-    return context(object, chainList(builder));
+  public static Handler service(Object object, Action<? super Chain> builder) {
+    return service(object, chainList(builder));
   }
 
   /**
-   * Creates a handler that inserts the handler chain defined by the builder, with the given context addition.
+   * Creates a handler that inserts the handler chain defined by the builder, with the given service addition.
    *
-   * @param type The type by which to make the context addition available
-   * @param object The object to add to the context, only for the handlers defined by {@code builder}
-   * @param builder The definition of the handler chain to insert with the context
-   * @param <T> The concrete type of the context addition
+   * @param type The type by which to make the service addition available
+   * @param object The object to add to the service, only for the handlers defined by {@code builder}
+   * @param builder The definition of the handler chain to insert with the service
+   * @param <T> The concrete type of the service addition
    * @return A handler
    */
-  public static <T> Handler context(Class<? super T> type, T object, Action<? super Chain> builder) {
-    return context(type, object, chainList(builder));
+  public static <T> Handler service(Class<? super T> type, T object, Action<? super Chain> builder) {
+    return service(type, object, chainList(builder));
   }
 
   /**
-   * Creates a handler that inserts the handler chain defined by the builder, with the given context addition.
+   * Creates a handler that inserts the handler chain defined by the builder, with the given service addition.
    * <p>
-   * The context object will be available by its concrete type.
-   * To make it available by a different type (perhaps one of its interfaces) use {@link #context(Class, Object, List)}.
+   * The service object will be available by its concrete type.
+   * To make it available by a different type (perhaps one of its interfaces) use {@link #service(Class, Object, List)}.
 
-   * @param object The object to add to the context, only for the handlers defined by {@code builder}
+   * @param object The object to add to the service, only for the handlers defined by {@code builder}
    * @param handlers The handler to
-   * @param <T> The concrete type of the context addition
+   * @param <T> The concrete type of the service addition
    * @return A handler
    */
-  public static <T> Handler context(T object, List<Handler> handlers) {
-    return new ContextInsertingHandler(object, ImmutableList.copyOf(handlers));
+  public static <T> Handler service(T object, List<Handler> handlers) {
+    return new ServiceInsertingHandler(object, ImmutableList.copyOf(handlers));
   }
 
   /**
-   * Creates a handler that inserts the handler chain defined by the builder, with the given context addition.
+   * Creates a handler that inserts the handler chain defined by the builder, with the given service addition.
    *
-   * @param type The type by which to make the context addition available
-   * @param object The object to add to the context, only for the handlers defined by {@code builder}
+   * @param type The type by which to make the service addition available
+   * @param object The object to add to the service, only for the handlers defined by {@code builder}
    * @param handlers The handler to
-   * @param <T> The concrete type of the context addition
+   * @param <T> The concrete type of the service addition
    * @return A handler
    */
-  public static <T> Handler context(Class<? super T> type, T object, List<Handler> handlers) {
-    return new ContextInsertingHandler(type, object, ImmutableList.copyOf(handlers));
+  public static <T> Handler service(Class<? super T> type, T object, List<Handler> handlers) {
+    return new ServiceInsertingHandler(type, object, ImmutableList.copyOf(handlers));
   }
 
   /**
@@ -166,7 +166,7 @@ public abstract class Handlers {
    * @return A handler
    */
   public static Handler fileSystem(String path, List<Handler> handlers) {
-    return new FileSystemContextHandler(new File(path), ImmutableList.copyOf(handlers));
+    return new FileSystemBindingHandler(new File(path), ImmutableList.copyOf(handlers));
   }
 
   /**

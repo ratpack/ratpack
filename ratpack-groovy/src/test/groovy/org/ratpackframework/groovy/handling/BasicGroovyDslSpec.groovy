@@ -54,7 +54,7 @@ class BasicGroovyDslSpec extends RatpackGroovyDslSpec {
     getText("foo.txt") == "bar"
   }
 
-  def "can use file method to access file contextual"() {
+  def "can use file method to access file contextually"() {
     given:
     file("foo/file.txt") << "foo"
     file("bar/file.txt") << "bar"

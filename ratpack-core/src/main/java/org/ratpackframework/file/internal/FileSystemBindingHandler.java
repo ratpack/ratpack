@@ -17,7 +17,6 @@
 package org.ratpackframework.file.internal;
 
 import com.google.common.collect.ImmutableList;
-import org.ratpackframework.context.Context;
 import org.ratpackframework.file.FileSystemBinding;
 import org.ratpackframework.handling.Exchange;
 import org.ratpackframework.handling.Handler;
@@ -25,31 +24,30 @@ import org.ratpackframework.handling.Handler;
 import java.io.File;
 import java.util.List;
 
-public class FileSystemContextHandler implements Handler {
+public class FileSystemBindingHandler implements Handler {
 
   private final File file;
   private final List<Handler> delegate;
   private final boolean absolute;
-  private final FileSystemBinding absoluteContext;
+  private final FileSystemBinding absoluteBinding;
 
-  public FileSystemContextHandler(File file, ImmutableList<Handler> delegate) {
+  public FileSystemBindingHandler(File file, ImmutableList<Handler> delegate) {
     this.file = file;
     this.delegate = delegate;
     this.absolute = file.isAbsolute();
-    this.absoluteContext = new DefaultFileSystemBinding(file.getAbsoluteFile());
+    this.absoluteBinding = new DefaultFileSystemBinding(file.getAbsoluteFile());
   }
 
   public void handle(Exchange exchange) {
-    Context currentContext = exchange.getContext();
     if (absolute) {
-      exchange.insert(currentContext.plus(FileSystemBinding.class, absoluteContext), delegate);
+      exchange.insert(FileSystemBinding.class, absoluteBinding, delegate);
     } else {
-      FileSystemBinding parentContext = exchange.maybeGet(FileSystemBinding.class);
-      if (parentContext == null) {
-        exchange.insert(currentContext.plus(FileSystemBinding.class, absoluteContext), delegate);
+      FileSystemBinding parentBinding = exchange.maybeGet(FileSystemBinding.class);
+      if (parentBinding == null) {
+        exchange.insert(FileSystemBinding.class, absoluteBinding, delegate);
       } else {
-        FileSystemBinding binding = parentContext.binding(file.getPath());
-        exchange.insert(currentContext.plus(FileSystemBinding.class, binding), delegate);
+        FileSystemBinding binding = parentBinding.binding(file.getPath());
+        exchange.insert(FileSystemBinding.class, binding, delegate);
       }
     }
   }

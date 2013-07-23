@@ -17,7 +17,6 @@
 package org.ratpackframework.file.internal;
 
 import com.google.common.collect.ImmutableList;
-import org.ratpackframework.context.Context;
 import org.ratpackframework.file.FileSystemBinding;
 import org.ratpackframework.handling.Exchange;
 import org.ratpackframework.handling.Handler;
@@ -59,15 +58,14 @@ public class TargetFileStaticAssetRequestHandler implements Handler {
     path = path.replace('/', File.separatorChar);
 
     if (
-        path.contains(File.separator + '.')
-            || path.contains('.' + File.separator)
-            || path.startsWith(".") || path.endsWith(".")
+      path.contains(File.separator + '.')
+          || path.contains('.' + File.separator)
+          || path.startsWith(".") || path.endsWith(".")
         ) {
       return;
     }
 
     FileSystemBinding newBinding = fileSystemBinding.binding(path);
-    Context newContext = exchange.getContext().plus(FileSystemBinding.class, newBinding);
-    exchange.insert(newContext, delegate);
+    exchange.insert(FileSystemBinding.class, newBinding, delegate);
   }
 }

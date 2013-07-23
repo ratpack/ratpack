@@ -37,7 +37,7 @@ public class PathHandler implements Handler {
   public void handle(Exchange exchange) {
     PathBinding childBinding = binding.bind(exchange.getRequest().getPath(), exchange.maybeGet(PathBinding.class));
     if (childBinding != null) {
-      exchange.insert(exchange.getContext().plus(PathBinding.class, childBinding), chain);
+      exchange.insert(PathBinding.class, childBinding, chain);
     } else {
       exchange.next();
     }

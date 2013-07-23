@@ -127,7 +127,7 @@ import org.ratpackframework.api.NonBlocking;
  *
  * @see Handlers
  * @see Chain
- * @see org.ratpackframework.context.Context
+ * @see org.ratpackframework.service.ServiceRegistry
  */
 public interface Handler {
 

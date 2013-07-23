@@ -17,8 +17,8 @@
 package org.ratpackframework.session.store.internal;
 
 import com.google.common.collect.ImmutableList;
-import org.ratpackframework.context.Context;
-import org.ratpackframework.context.internal.LazyHierarchicalContext;
+import org.ratpackframework.service.ServiceRegistry;
+import org.ratpackframework.service.internal.LazyHierarchicalServiceRegistry;
 import org.ratpackframework.handling.Exchange;
 import org.ratpackframework.handling.Handler;
 import org.ratpackframework.session.Session;
@@ -38,14 +38,14 @@ public class SessionStorageBindingHandler implements Handler {
 
   public void handle(final Exchange exchange) {
     final SessionStore sessionStore = exchange.get(SessionStore.class);
-    Context sessionContext = new LazyHierarchicalContext(exchange.getContext(), SessionStorage.class, new Factory<SessionStorage>() {
+    ServiceRegistry sessionServiceRegistry = new LazyHierarchicalServiceRegistry(exchange, SessionStorage.class, new Factory<SessionStorage>() {
       public SessionStorage create() {
         Session session = exchange.get(Session.class);
         final String id = session.getId();
         return sessionStore.get(id);
       }
     });
-    exchange.insert(sessionContext, handler);
+    exchange.insert(sessionServiceRegistry, handler);
   }
 
 }
