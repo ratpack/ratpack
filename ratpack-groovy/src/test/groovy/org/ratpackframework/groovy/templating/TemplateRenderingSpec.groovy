@@ -32,8 +32,8 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     when:
     app {
       handlers {
-        get {
-          get(TemplateRenderer).render "foo.html", value: "bar"
+        get { TemplateRenderer templateRenderer ->
+          templateRenderer.render "foo.html", value: "bar"
         }
       }
     }
@@ -67,8 +67,8 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     when:
     app {
       handlers {
-        get {
-          get(TemplateRenderer).render "outer.html", value: "outer"
+        get { TemplateRenderer templateRenderer ->
+          templateRenderer.render "outer.html", value: "outer"
         }
       }
     }
@@ -86,8 +86,8 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     when:
     app {
       handlers {
-        get {
-          get(TemplateRenderer).render "outer.html", value: "outer"
+        get { TemplateRenderer templateRenderer ->
+          templateRenderer.render "outer.html", value: "outer"
         }
       }
     }
@@ -105,8 +105,8 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     when:
     app {
       handlers {
-        get {
-          get(TemplateRenderer).render "outer.html", value: "outer"
+        get { TemplateRenderer templateRenderer ->
+          templateRenderer.render "outer.html", value: "outer"
         }
       }
     }
@@ -124,8 +124,8 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     when:
     app {
       handlers {
-        get {
-          get(TemplateRenderer).render "outer.html", a: "a", b: "b"
+        get { TemplateRenderer templateRenderer ->
+          templateRenderer.render "outer.html", a: "a", b: "b"
         }
       }
     }
@@ -143,8 +143,8 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     when:
     app {
       handlers {
-        get {
-          get(TemplateRenderer).render "outer.html"
+        get { TemplateRenderer templateRenderer ->
+          templateRenderer.render "outer.html"
         }
       }
     }
@@ -166,8 +166,8 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     when:
     app {
       handlers {
-        get {
-          get(TemplateRenderer).render "outer.html"
+        get { TemplateRenderer templateRenderer ->
+          templateRenderer.render "outer.html"
         }
       }
     }
@@ -191,8 +191,8 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
       }
 
       handlers {
-        get {
-          get(TemplateRenderer).render "outer.html", value: "outer"
+        get { TemplateRenderer templateRenderer ->
+          templateRenderer.render "outer.html", value: "outer"
         }
       }
     }
@@ -212,8 +212,8 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
       }
 
       handlers {
-        get {
-          get(TemplateRenderer).render "template.html", value: "2"
+        get { TemplateRenderer templateRenderer ->
+          templateRenderer.render "template.html", value: "2"
         }
       }
     }

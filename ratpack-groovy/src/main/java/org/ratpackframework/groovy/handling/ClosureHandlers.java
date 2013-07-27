@@ -19,6 +19,7 @@ package org.ratpackframework.groovy.handling;
 import com.google.common.collect.ImmutableList;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
+import org.ratpackframework.groovy.handling.internal.ClosureBackedHandler;
 import org.ratpackframework.groovy.util.Closures;
 import org.ratpackframework.handling.Chain;
 import org.ratpackframework.handling.Exchange;
@@ -29,11 +30,7 @@ import org.ratpackframework.util.Action;
 public abstract class ClosureHandlers {
 
   public static Handler handler(@DelegatesTo(value = Exchange.class, strategy = Closure.DELEGATE_ONLY) final Closure<?> handler) {
-    return new Handler() {
-      public void handle(Exchange exchange) {
-        Closures.configureDelegateOnly(exchange, handler);
-      }
-    };
+    return new ClosureBackedHandler(handler);
   }
 
   public static Handler service(final Object service, @DelegatesTo(value = Chain.class, strategy = Closure.DELEGATE_ONLY) final Closure<?> handlers) {

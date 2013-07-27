@@ -16,6 +16,10 @@
 
 package org.ratpackframework.groovy.handling
 
+import org.ratpackframework.error.ServerErrorHandler
+import org.ratpackframework.error.internal.DefaultServerErrorHandler
+import org.ratpackframework.file.FileSystemBinding
+import org.ratpackframework.file.internal.DefaultFileSystemBinding
 import org.ratpackframework.test.groovy.RatpackGroovyDslSpec
 
 class BasicGroovyDslSpec extends RatpackGroovyDslSpec {
@@ -102,4 +106,21 @@ class BasicGroovyDslSpec extends RatpackGroovyDslSpec {
     put("foo").statusCode == 405
   }
 
+  def "can inject services via closure params"() {
+    when:
+    app {
+      handlers {
+        get("p1") { FileSystemBinding fileSystemBinding ->
+          response.send fileSystemBinding.class.name
+        }
+        get("p2") { FileSystemBinding fileSystemBinding, ServerErrorHandler serverErrorHandler ->
+          response.send serverErrorHandler.class.name
+        }
+      }
+    }
+
+    then:
+    getText("p1") == DefaultFileSystemBinding.class.name
+    getText("p2") == DefaultServerErrorHandler.class.name
+  }
 }
