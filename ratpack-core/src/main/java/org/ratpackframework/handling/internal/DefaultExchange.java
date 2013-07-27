@@ -151,7 +151,7 @@ public class DefaultExchange implements Exchange {
         if (e instanceof HandlerException) {
           throw (HandlerException) e;
         } else {
-          throw new HandlerException(this, e);
+          throw new HandlerException(childExchange, e);
         }
       }
     }

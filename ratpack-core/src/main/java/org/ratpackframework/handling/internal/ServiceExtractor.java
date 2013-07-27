@@ -27,10 +27,14 @@ public abstract class ServiceExtractor {
 
   public static Object[] extract(List<Class<?>> serviceTypes, ServiceRegistry serviceRegistry) {
     Object[] services = new Object[serviceTypes.size()];
-    for (int i = 0; i < services.length; ++i) {
-      Class<?> type = serviceTypes.get(i);
-      services[i] = serviceRegistry.get(type);
-    }
+    extract(serviceTypes, serviceRegistry, services, 0);
     return services;
+  }
+
+  public static void extract(List<Class<?>> serviceTypes, ServiceRegistry serviceRegistry, Object[] services, int startIndex) {
+    for (int i = 0; i < serviceTypes.size(); ++i) {
+      Class<?> type = serviceTypes.get(i);
+      services[i + startIndex] = serviceRegistry.get(type);
+    }
   }
 }
