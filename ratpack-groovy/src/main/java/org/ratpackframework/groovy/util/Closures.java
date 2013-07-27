@@ -22,14 +22,22 @@ import org.ratpackframework.util.Action;
 
 public abstract class Closures {
 
-  public static <T, R> R configure(@DelegatesTo.Target T object, @DelegatesTo(strategy = Closure.DELEGATE_FIRST) Closure<R> configurer) {
+  public static <T, R> R configureDelegateOnly(@DelegatesTo.Target T object, @DelegatesTo(strategy = Closure.DELEGATE_ONLY) Closure<R> configurer) {
+    return configure(object, configurer, Closure.DELEGATE_ONLY);
+  }
+
+  public static <T, R> R configureDelegateFirst(@DelegatesTo.Target T object, @DelegatesTo(strategy = Closure.DELEGATE_FIRST) Closure<R> configurer) {
+    return configure(object, configurer, Closure.DELEGATE_FIRST);
+  }
+
+  private static <T, R> R configure(T object, Closure<R> configurer, int resolveStrategy) {
     if (configurer == null) {
       return null;
     }
     @SuppressWarnings("unchecked")
     Closure<R> clone = (Closure<R>) configurer.clone();
     clone.setDelegate(object);
-    clone.setResolveStrategy(Closure.DELEGATE_FIRST);
+    clone.setResolveStrategy(resolveStrategy);
     if (clone.getMaximumNumberOfParameters() == 0) {
       return clone.call();
     } else {
@@ -41,7 +49,7 @@ public abstract class Closures {
   public static <T> Action<T> action(@SuppressWarnings("UnusedParameters") Class<T> type, final Closure<?> configurer) {
     return new Action<T>() {
       public void execute(T object) {
-        configure(object, configurer);
+        configureDelegateFirst(object, configurer);
       }
     };
   }

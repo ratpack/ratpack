@@ -36,7 +36,7 @@ public interface Chain extends org.ratpackframework.handling.Chain {
    *
    * @param handler The closure to add as a handler.
    */
-  void handler(@DelegatesTo(value = Exchange.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
+  void handler(@DelegatesTo(value = Exchange.class, strategy = Closure.DELEGATE_ONLY) Closure<?> handler);
 
   /**
    * Adds a nested chain that is inserted if the request path matches the given prefix.
@@ -63,24 +63,24 @@ public interface Chain extends org.ratpackframework.handling.Chain {
    * @param prefix The prefix to bind to.
    * @param chain The definition of the nested handlers
    */
-  void prefix(String prefix, @DelegatesTo(value = org.ratpackframework.groovy.handling.Chain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> chain);
+  void prefix(String prefix, @DelegatesTo(value = org.ratpackframework.groovy.handling.Chain.class, strategy = Closure.DELEGATE_ONLY) Closure<?> chain);
 
-  void path(String path, @DelegatesTo(value = Exchange.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
+  void path(String path, @DelegatesTo(value = Exchange.class, strategy = Closure.DELEGATE_ONLY) Closure<?> handler);
 
-  void get(String path, @DelegatesTo(value = Exchange.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
+  void get(String path, @DelegatesTo(value = Exchange.class, strategy = Closure.DELEGATE_ONLY) Closure<?> handler);
 
-  void get(@DelegatesTo(value = Exchange.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
+  void get(@DelegatesTo(value = Exchange.class, strategy = Closure.DELEGATE_ONLY) Closure<?> handler);
 
-  void post(String path, @DelegatesTo(value = Exchange.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
+  void post(String path, @DelegatesTo(value = Exchange.class, strategy = Closure.DELEGATE_ONLY) Closure<?> handler);
 
-  void post(@DelegatesTo(value = Exchange.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
+  void post(@DelegatesTo(value = Exchange.class, strategy = Closure.DELEGATE_ONLY) Closure<?> handler);
 
   void assets(String path, String... indexFiles);
 
-  void service(Object object, @DelegatesTo(value = org.ratpackframework.groovy.handling.Chain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handlers);
+  void service(Object object, @DelegatesTo(value = org.ratpackframework.groovy.handling.Chain.class, strategy = Closure.DELEGATE_ONLY) Closure<?> handlers);
 
-  <T> void service(Class<? super T> type, T object, @DelegatesTo(value = org.ratpackframework.groovy.handling.Chain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handlers);
+  <T> void service(Class<? super T> type, T object, @DelegatesTo(value = org.ratpackframework.groovy.handling.Chain.class, strategy = Closure.DELEGATE_ONLY) Closure<?> handlers);
 
-  void fileSystem(String path, @DelegatesTo(value = org.ratpackframework.groovy.handling.Chain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handlers);
+  void fileSystem(String path, @DelegatesTo(value = org.ratpackframework.groovy.handling.Chain.class, strategy = Closure.DELEGATE_ONLY) Closure<?> handlers);
 
 }

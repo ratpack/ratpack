@@ -43,7 +43,7 @@ abstract class InternalRatpackSpec extends RequestingSpec {
 
   void app(Closure<?> configurer) {
     stopServer()
-    Closures.configure(this, configurer)
+    Closures.configureDelegateFirst(this, configurer)
   }
 
 }

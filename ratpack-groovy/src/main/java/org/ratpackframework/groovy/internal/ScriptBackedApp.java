@@ -61,7 +61,7 @@ public class ScriptBackedApp implements Handler {
           final DefaultRatpack ratpack = new DefaultRatpack();
           Action<Closure<?>> backing = new Action<Closure<?>>() {
             public void execute(Closure<?> configurer) {
-              Closures.configure(ratpack, configurer);
+              Closures.configureDelegateFirst(ratpack, configurer);
             }
           };
 

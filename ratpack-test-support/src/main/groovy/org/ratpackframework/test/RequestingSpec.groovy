@@ -123,12 +123,12 @@ abstract class RequestingSpec extends Specification {
   }
 
   void request(@DelegatesTo(value = RequestSpecification, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) {
-    Closures.configure(request, closure)
+    Closures.configureDelegateFirst(request, closure)
   }
 
   @ConditionBlock
   void response(@DelegatesTo(value = Response, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) {
-    Closures.configure(response, closure)
+    Closures.configureDelegateFirst(response, closure)
   }
 
 }

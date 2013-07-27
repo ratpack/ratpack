@@ -29,7 +29,8 @@ import org.ratpackframework.util.Action
 
 import static Handlers.chain
 import static org.ratpackframework.groovy.util.Closures.action
-import static org.ratpackframework.groovy.util.Closures.configure
+import static org.ratpackframework.groovy.util.Closures.configureDelegateFirst
+import static org.ratpackframework.groovy.util.Closures.configureDelegateOnly
 
 abstract class DefaultRatpackSpec extends InternalRatpackSpec {
 
@@ -68,7 +69,7 @@ abstract class DefaultRatpackSpec extends InternalRatpackSpec {
       this.modules.each {
         registry.register(it)
       }
-      configure(registry, modulesClosure)
+      configureDelegateFirst(registry, modulesClosure)
     }
   }
 

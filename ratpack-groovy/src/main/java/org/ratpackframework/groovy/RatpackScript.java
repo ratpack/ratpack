@@ -64,7 +64,7 @@ abstract public class RatpackScript {
    *
    * @param closure The definition closure, delegating to {@link Ratpack}
    */
-  public static void ratpack(@DelegatesTo(value = Ratpack.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) {
+  public static void ratpack(@DelegatesTo(value = Ratpack.class, strategy = Closure.DELEGATE_ONLY) Closure<?> closure) {
     RatpackScriptBacking.getBacking().execute(closure);
   }
 
