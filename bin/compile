@@ -51,7 +51,7 @@ echo "       ./gradlew clean installApp"
 export GRADLE_OPTS="-Dfile.encoding=UTF-8 -server -Xmx512m -XX:+UseCompressedOops"
 export GRADLE_USER_HOME="$CACHE_DIR/.gradle"
 
-./gradlew clean installApp
+./gradlew clean ratpack-site:installApp
 
 rm -rf "$CACHE_DIR/.jdk7"
 cp -r .jdk7 "$CACHE_DIR/.jdk7"
