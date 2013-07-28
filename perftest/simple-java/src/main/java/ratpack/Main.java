@@ -16,8 +16,8 @@
 
 package ratpack;
 
-import org.ratpackframework.bootstrap.RatpackServer;
-import org.ratpackframework.bootstrap.RatpackServerBuilder;
+import org.ratpackframework.server.RatpackServer;
+import org.ratpackframework.server.RatpackServerBuilder;
 import org.ratpackframework.handling.Handler;
 import org.ratpackframework.handling.Handlers;
 

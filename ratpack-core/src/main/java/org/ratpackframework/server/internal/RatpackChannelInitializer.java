@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.bootstrap.internal;
+package org.ratpackframework.server.internal;
 
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;

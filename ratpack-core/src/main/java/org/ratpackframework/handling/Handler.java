@@ -22,7 +22,7 @@ import org.ratpackframework.api.NonBlocking;
  * A handler participates in the processing of a request/response pair (i.e. an {@link Exchange}).
  * <p>
  * Handlers are the heart and soul of Ratpack applications. The entire request processing logic is composed of different handlers.
- * A single handler is given to the server builder ({@link org.ratpackframework.bootstrap.RatpackServerBuilder}) when bootstrapping
+ * A single handler is given to the server builder ({@link org.ratpackframework.server.RatpackServerBuilder}) when bootstrapping
  * an application that will receive every single request. This handler is typically some type of composite of different types of handlers.
  * <h3>Non blocking/Asynchronous</h3>
  * <p>

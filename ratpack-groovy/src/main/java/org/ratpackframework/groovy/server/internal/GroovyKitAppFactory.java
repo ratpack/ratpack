@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.groovy.bootstrap.internal;
+package org.ratpackframework.groovy.server.internal;
 
 import org.ratpackframework.groovy.templating.TemplatingModule;
 import org.ratpackframework.guice.ModuleRegistry;

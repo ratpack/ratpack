@@ -17,9 +17,9 @@
 package org.ratpackframework.groovy
 
 import com.google.common.util.concurrent.AbstractIdleService
-import org.ratpackframework.bootstrap.RatpackServer
-import org.ratpackframework.bootstrap.internal.RatpackService
-import org.ratpackframework.bootstrap.internal.ServiceBackedServer
+import org.ratpackframework.server.RatpackServer
+import org.ratpackframework.server.internal.RatpackService
+import org.ratpackframework.server.internal.ServiceBackedServer
 import org.ratpackframework.groovy.internal.StandaloneScriptBacking
 import org.ratpackframework.groovy.util.Closures
 import org.ratpackframework.test.groovy.RatpackGroovyScriptAppSpec

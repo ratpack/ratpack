@@ -16,10 +16,11 @@
 
 package org.ratpackframework.test
 
-import org.ratpackframework.bootstrap.RatpackServer
-import org.ratpackframework.groovy.bootstrap.RatpackScriptApp
+import org.ratpackframework.server.RatpackServer
+import org.ratpackframework.groovy.server.RatpackScriptApp
 
 
+@SuppressWarnings("GrMethodMayBeStatic")
 class ScriptAppSpec extends RequestingSpec {
 
   @Override

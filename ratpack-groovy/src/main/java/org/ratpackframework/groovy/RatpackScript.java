@@ -56,11 +56,11 @@ abstract public class RatpackScript {
    * <h3>Full Applications</h3>
    * <p>
    * It's also possible to build Groovy Ratpack applications with a traditional class based entry point.
-   * The {@link org.ratpackframework.groovy.bootstrap.RatpackMain} class provides such an entry point.
+   * The {@link org.ratpackframework.groovy.server.RatpackMain} class provides such an entry point.
    * In such a mode, a script like above is still used to define the application, but the script is no longer the entry point.
    * Ratpack will manage the compilation and execution of the script internally.
    * <h3>Groovy app features</h3>
-   * See {@link org.ratpackframework.groovy.bootstrap.RatpackScriptApp} for details on what features are available to Groovy Ratpack applications.
+   * See {@link org.ratpackframework.groovy.server.RatpackScriptApp} for details on what features are available to Groovy Ratpack applications.
    *
    * @param closure The definition closure, delegating to {@link Ratpack}
    */

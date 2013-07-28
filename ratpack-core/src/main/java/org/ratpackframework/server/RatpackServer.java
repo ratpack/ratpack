@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.bootstrap;
+package org.ratpackframework.server;
 
 /**
  * A Ratpack server.

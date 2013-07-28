@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.groovy.bootstrap;
+package org.ratpackframework.groovy.server;
 
 import java.io.File;
 

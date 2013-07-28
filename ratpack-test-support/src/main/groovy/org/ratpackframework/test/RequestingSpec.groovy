@@ -21,7 +21,7 @@ import com.jayway.restassured.response.Cookie
 import com.jayway.restassured.response.Cookies
 import com.jayway.restassured.response.Response
 import com.jayway.restassured.specification.RequestSpecification
-import org.ratpackframework.bootstrap.RatpackServer
+import org.ratpackframework.server.RatpackServer
 import org.ratpackframework.groovy.util.Closures
 import org.spockframework.lang.ConditionBlock
 import spock.lang.Specification

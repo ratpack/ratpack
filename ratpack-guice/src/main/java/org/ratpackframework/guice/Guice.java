@@ -83,7 +83,7 @@ public abstract class Guice {
    * <pre class="tested">
    * import org.ratpackframework.handling.*;
    * import org.ratpackframework.guice.*;
-   * import org.ratpackframework.bootstrap.*;
+   * import org.ratpackframework.server.*;
    * import org.ratpackframework.util.Action;
    * import com.google.inject.AbstractModule;
    * import javax.inject.Singleton;

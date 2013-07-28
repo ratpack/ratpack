@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.bootstrap;
+package org.ratpackframework.server;
 
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;
 import org.ratpackframework.api.Nullable;
-import org.ratpackframework.bootstrap.internal.NettyRatpackService;
-import org.ratpackframework.bootstrap.internal.RatpackChannelInitializer;
-import org.ratpackframework.bootstrap.internal.ServiceBackedServer;
+import org.ratpackframework.server.internal.NettyRatpackService;
+import org.ratpackframework.server.internal.RatpackChannelInitializer;
+import org.ratpackframework.server.internal.ServiceBackedServer;
 import org.ratpackframework.handling.Handler;
 
 import java.io.File;

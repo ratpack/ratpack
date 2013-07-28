@@ -15,6 +15,6 @@
  */
 
 /**
- * Support for starting Groovy based Ratpack apps.
+ * Objects used to start a ratpack application.
  */
-package org.ratpackframework.groovy.bootstrap;
+package org.ratpackframework.server;

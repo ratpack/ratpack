@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.bootstrap.internal;
+package org.ratpackframework.server.internal;
 
-import org.ratpackframework.bootstrap.RatpackServer;
+import org.ratpackframework.server.RatpackServer;
 
 public class ServiceBackedServer implements RatpackServer {
 

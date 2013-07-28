@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.groovy.bootstrap;
+package org.ratpackframework.groovy.server;
 
-import org.ratpackframework.bootstrap.RatpackServer;
-import org.ratpackframework.bootstrap.RatpackServerBuilder;
-import org.ratpackframework.groovy.bootstrap.internal.GroovyKitAppFactory;
+import org.ratpackframework.server.RatpackServer;
+import org.ratpackframework.server.RatpackServerBuilder;
+import org.ratpackframework.groovy.server.internal.GroovyKitAppFactory;
 import org.ratpackframework.groovy.internal.ScriptBackedApp;
 import org.ratpackframework.handling.Handler;
 

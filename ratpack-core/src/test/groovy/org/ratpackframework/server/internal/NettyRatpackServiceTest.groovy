@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.bootstrap.internal
+package org.ratpackframework.server.internal
 
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
-import org.ratpackframework.bootstrap.RatpackServerBuilder
+import org.ratpackframework.server.RatpackServerBuilder
 import org.ratpackframework.handling.Handler
 import spock.lang.Specification
 

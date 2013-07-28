@@ -18,8 +18,8 @@ package org.ratpackframework.groovy.internal;
 
 import groovy.lang.Closure;
 import org.ratpackframework.util.Action;
-import org.ratpackframework.bootstrap.RatpackServer;
-import org.ratpackframework.groovy.bootstrap.RatpackScriptApp;
+import org.ratpackframework.server.RatpackServer;
+import org.ratpackframework.groovy.server.RatpackScriptApp;
 
 import java.io.File;
 import java.net.URI;

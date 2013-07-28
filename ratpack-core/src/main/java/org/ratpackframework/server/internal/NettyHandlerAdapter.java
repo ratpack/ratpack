@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.bootstrap.internal;
+package org.ratpackframework.server.internal;
 
 import com.google.common.collect.ImmutableList;
 import io.netty.buffer.Unpooled;
