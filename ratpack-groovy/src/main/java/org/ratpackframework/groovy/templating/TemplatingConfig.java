@@ -20,6 +20,8 @@ public interface TemplatingConfig {
 
   int getCacheSize();
 
+  boolean isCheckTimestamp();
+
   boolean isStaticallyCompile();
 
   String getTemplatesPath();

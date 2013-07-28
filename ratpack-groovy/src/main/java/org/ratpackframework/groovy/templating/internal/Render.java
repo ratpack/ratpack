@@ -29,13 +29,15 @@ import java.util.Map;
 
 public class Render {
 
-  private final Cache<File, CompiledTemplate> compiledTemplateCache;
+  private final Cache<String, CompiledTemplate> compiledTemplateCache;
   private final TemplateCompiler templateCompiler;
   private final File templateDir;
+  private final boolean checkTimestamp;
 
-  public Render(TemplateCompiler templateCompiler, Cache<File, CompiledTemplate> compiledTemplateCache, File templateDir, CompiledTemplate template, Map<String, ?> model, final ResultAction<ByteBuf> handler) {
+  public Render(TemplateCompiler templateCompiler, Cache<String, CompiledTemplate> compiledTemplateCache, boolean checkTimestamp, File templateDir, CompiledTemplate template, Map<String, ?> model, final ResultAction<ByteBuf> handler) {
     this.templateCompiler = templateCompiler;
     this.compiledTemplateCache = compiledTemplateCache;
+    this.checkTimestamp = checkTimestamp;
     this.templateDir = templateDir;
 
     ByteBuf buffer = Unpooled.buffer();
@@ -54,18 +56,19 @@ public class Render {
   private void executeNested(final String templatePath, final Map<String, ?> model, ByteBuf buffer) throws Exception {
     File templateFile = new File(templateDir, templatePath);
 
-    CompiledTemplate cachedTemplate = compiledTemplateCache.getIfPresent(templateFile);
+    long timeStamp = checkTimestamp ? templateFile.lastModified() : 0;
+    String templateKey = templateFile.getPath() + File.separator + timeStamp;
+
+    CompiledTemplate cachedTemplate = compiledTemplateCache.getIfPresent(templateKey);
     if (cachedTemplate != null) {
       execute(cachedTemplate, model, buffer);
       return;
     }
 
-    CompiledTemplate compiledTemplate;
-
     ByteBuf byteBuf = IoUtils.readFile(templateFile);
-    compiledTemplate = templateCompiler.compile(byteBuf, templatePath);
+    CompiledTemplate compiledTemplate = templateCompiler.compile(byteBuf, templatePath);
 
-    compiledTemplateCache.put(templateFile, compiledTemplate);
+    compiledTemplateCache.put(templateKey, compiledTemplate);
     execute(compiledTemplate, model, buffer);
   }
 
