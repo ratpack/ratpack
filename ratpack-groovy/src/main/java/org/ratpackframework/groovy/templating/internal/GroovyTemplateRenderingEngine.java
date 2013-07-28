@@ -37,12 +37,15 @@ public class GroovyTemplateRenderingEngine {
 
   private static final String ERROR_TEMPLATE = "error.html";
 
-  private final Cache<File, CompiledTemplate> compiledTemplateCache;
+  private final Cache<String, CompiledTemplate> compiledTemplateCache;
   private final TemplateCompiler templateCompiler;
+
+  private final boolean checkTimestamp;
 
   @Inject
   public GroovyTemplateRenderingEngine(TemplatingConfig templatingConfig) {
     this.compiledTemplateCache = CacheBuilder.newBuilder().maximumSize(templatingConfig.getCacheSize()).build();
+    checkTimestamp = templatingConfig.isCheckTimestamp();
 
     ScriptEngine<TemplateScript> scriptEngine = new ScriptEngine<TemplateScript>(getClass().getClassLoader(), templatingConfig.isStaticallyCompile(), TemplateScript.class);
     templateCompiler = new TemplateCompiler(scriptEngine);
@@ -71,14 +74,20 @@ public class GroovyTemplateRenderingEngine {
     });
   }
 
-  private void render(File templateDir, File templateFile, final String templateName, Map<String, ?> model, ResultAction<ByteBuf> handler, final Callable<? extends ByteBuf> bufferProvider) {
+  private void render(File templateDir, File templateFile, final String templateName
+      , Map<String, ?> model, ResultAction<ByteBuf> handler, final Callable<? extends ByteBuf> bufferProvider)
+  {
     try {
-      CompiledTemplate compiledTemplate = compiledTemplateCache.get(templateFile, new Callable<CompiledTemplate>() {
+      long timeStamp = checkTimestamp ? templateFile.lastModified() : 0;
+      String templateKey = templateFile.getPath() + File.separator + timeStamp;
+
+      CompiledTemplate compiledTemplate = compiledTemplateCache.get(templateKey, new Callable<CompiledTemplate>() {
         public CompiledTemplate call() throws Exception {
           return templateCompiler.compile(bufferProvider.call(), templateName);
         }
       });
-      new Render(templateCompiler, compiledTemplateCache, templateDir, compiledTemplate, model, handler);
+
+      new Render(templateCompiler, compiledTemplateCache, checkTimestamp, templateDir, compiledTemplate, model, handler);
     } catch (ExecutionException e) {
       handler.execute(new Result<ByteBuf>(e));
     }

@@ -22,16 +22,22 @@ public class DefaultTemplatingConfig implements TemplatingConfig {
 
   private final String templatesPath;
   private final int cacheSize;
+  private final boolean checkTimeStamp;
   private final boolean staticallyCompile;
 
-  public DefaultTemplatingConfig(String templatesPath, int cacheSize, boolean staticallyCompile) {
+  public DefaultTemplatingConfig(String templatesPath, int cacheSize, boolean checkTimeStamp, boolean staticallyCompile) {
     this.templatesPath = templatesPath;
     this.cacheSize = cacheSize;
+    this.checkTimeStamp = checkTimeStamp;
     this.staticallyCompile = staticallyCompile;
   }
 
   public int getCacheSize() {
     return cacheSize;
+  }
+
+  public boolean isCheckTimestamp() {
+    return checkTimeStamp;
   }
 
   public boolean isStaticallyCompile() {
