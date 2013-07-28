@@ -22,6 +22,7 @@ import org.ratpackframework.server.internal.RatpackService
 import org.ratpackframework.server.internal.ServiceBackedServer
 import org.ratpackframework.groovy.internal.StandaloneScriptBacking
 import org.ratpackframework.groovy.util.Closures
+import org.ratpackframework.server.internal.ServiceBackedServerSettings
 import org.ratpackframework.test.groovy.RatpackGroovyScriptAppSpec
 
 class StandaloneScriptSpec extends RatpackGroovyScriptAppSpec {
@@ -64,18 +65,19 @@ class StandaloneScriptSpec extends RatpackGroovyScriptAppSpec {
 
     @Override
     int getBindPort() {
-      server.bindPort
+      server.settings.bindPort
     }
 
     @Override
     String getBindHost() {
-      server.bindHost
+      server.settings.bindHost
     }
   }
 
   @Override
   RatpackServer createServer() {
-    new ServiceBackedServer(new ScriptBackedService())
+    def service = new ScriptBackedService()
+    new ServiceBackedServer(service, new ServiceBackedServerSettings(service, true))
   }
 
   def "can execute plain script and reload"() {

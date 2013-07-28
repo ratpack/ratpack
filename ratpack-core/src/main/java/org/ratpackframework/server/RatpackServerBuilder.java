@@ -19,10 +19,11 @@ package org.ratpackframework.server;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;
 import org.ratpackframework.api.Nullable;
+import org.ratpackframework.handling.Handler;
 import org.ratpackframework.server.internal.NettyRatpackService;
 import org.ratpackframework.server.internal.RatpackChannelInitializer;
 import org.ratpackframework.server.internal.ServiceBackedServer;
-import org.ratpackframework.handling.Handler;
+import org.ratpackframework.server.internal.ServiceBackedServerSettings;
 
 import java.io.File;
 import java.net.InetAddress;
@@ -46,6 +47,7 @@ public class RatpackServerBuilder {
 
   private int port = DEFAULT_PORT;
   private InetAddress address;
+  private boolean reloadable;
 
   /**
    * Create a new builder, with the given handler as the "application".
@@ -88,6 +90,30 @@ public class RatpackServerBuilder {
   @Nullable
   public InetAddress getAddress() {
     return address;
+  }
+
+  /**
+   * Whether or not the server is in "reloadable" (i.e. development) mode.
+   * <p>
+   * Different parts of the application may respond to this as they see fit.
+   *
+   * @return {@code true} if the server is in "reloadable" mode
+   */
+  public boolean isReloadable() {
+    return reloadable;
+  }
+
+  /**
+   * Sets whether or not the server is in "reloadable" (i.e. development) mode.
+   * <p>
+   * Different parts of the application may respond to this as they see fit.
+   * <p>
+   * Defaults to {@code false}.
+   *
+   * @param reloadable {@code true} if the server should be in "reloadable" mode
+   */
+  public void setReloadable(boolean reloadable) {
+    this.reloadable = reloadable;
   }
 
   /**
@@ -139,7 +165,7 @@ public class RatpackServerBuilder {
     InetSocketAddress address = buildSocketAddress();
     ChannelInitializer<SocketChannel> channelInitializer = buildChannelInitializer();
     NettyRatpackService service = new NettyRatpackService(address, channelInitializer);
-    return new ServiceBackedServer(service);
+    return new ServiceBackedServer(service, new ServiceBackedServerSettings(service, reloadable));
   }
 
   private InetSocketAddress buildSocketAddress() {

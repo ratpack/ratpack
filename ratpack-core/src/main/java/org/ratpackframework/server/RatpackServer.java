@@ -22,18 +22,11 @@ package org.ratpackframework.server;
 public interface RatpackServer {
 
   /**
-   * The actual port that the application is bound to.
+   * The (read only) settings of this server.
    *
-   * @return The actual port that the application is bound to, or -1 if the server is not running.
+   * @return the (read only) settings of this server
    */
-  int getBindPort();
-
-  /**
-   * The actual host/ip that the application is bound to.
-   *
-   * @return The actual host/ip that the application is bound to, or null if this server is not running.
-   */
-  String getBindHost();
+  RatpackServerSettings getSettings();
 
   /**
    * Returns {@code true} if the server is running.

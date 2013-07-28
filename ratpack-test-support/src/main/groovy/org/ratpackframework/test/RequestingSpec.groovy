@@ -103,7 +103,7 @@ abstract class RequestingSpec extends Specification {
       throw new IllegalStateException("Server not started")
     }
 
-    "http://$server.bindHost:$server.bindPort/$path"
+    "http://$server.settings.bindHost:$server.settings.bindPort/$path"
   }
 
   void stopServer() {

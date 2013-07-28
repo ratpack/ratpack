@@ -16,33 +16,27 @@
 
 package org.ratpackframework.server.internal;
 
-import org.ratpackframework.server.RatpackServer;
 import org.ratpackframework.server.RatpackServerSettings;
 
-public class ServiceBackedServer implements RatpackServer {
+public class ServiceBackedServerSettings implements RatpackServerSettings {
 
   private final RatpackService ratpackService;
-  private final RatpackServerSettings settings;
+  private final boolean reloadable;
 
-  public ServiceBackedServer(RatpackService ratpackService, RatpackServerSettings settings) {
+  public ServiceBackedServerSettings(RatpackService ratpackService, boolean reloadable) {
     this.ratpackService = ratpackService;
-    this.settings = settings;
+    this.reloadable = reloadable;
   }
 
-  public RatpackServerSettings getSettings() {
-    return settings;
+  public int getBindPort() {
+    return ratpackService.getBindPort();
   }
 
-  public boolean isRunning() {
-    return ratpackService.isRunning();
+  public String getBindHost() {
+    return ratpackService.getBindHost();
   }
 
-  public void start() throws Exception {
-    ratpackService.start().get();
+  public boolean isReloadable() {
+    return reloadable;
   }
-
-  public void stop() throws Exception {
-    ratpackService.stop().get();
-  }
-
 }

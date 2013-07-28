@@ -160,6 +160,7 @@ public abstract class RatpackScriptApp {
     RatpackServerBuilder builder = new RatpackServerBuilder(scriptBackedApp, baseDir);
     builder.setPort(port);
     builder.setAddress(address);
+    builder.setReloadable(reloadable);
 
     return builder.build();
   }
