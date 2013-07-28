@@ -54,14 +54,11 @@ class ExampleRestSpec extends RatpackGroovyScriptAppSpec {
               return
             }
 
-            if (request.getHeader("Accept") != "application/json") {
-              clientError(406)
-              return
-            }
-
-            def json = new JsonSlurper().parseText(request.text)
-            def value = json.value
-            response.send "application/json", JsonOutput.toJson([value: value * 2])
+            accepts.type("application/json") {
+              def json = new JsonSlurper().parseText(request.text)
+              def value = json.value
+              response.send "application/json", JsonOutput.toJson([value: value * 2])
+            }.send()
           }
         }
       }

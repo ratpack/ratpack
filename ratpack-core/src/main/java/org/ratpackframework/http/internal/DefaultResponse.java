@@ -37,6 +37,7 @@ public class DefaultResponse implements Response {
   private final boolean keepAlive;
   private final HttpVersion version;
   private boolean contentLengthSet;
+  private boolean contentTypeSet;
 
   private Set<Cookie> cookies;
 
@@ -82,6 +83,10 @@ public class DefaultResponse implements Response {
 
   public void send(String contentType, String body) {
     contentType(contentType);
+    doSend(body);
+  }
+
+  private void doSend(String body) {
     ByteBuf buffer = IoUtils.utf8Buffer(body);
     if (!contentLengthSet) {
       setHeader(HttpHeaders.Names.CONTENT_LENGTH, buffer.writerIndex());
@@ -91,7 +96,11 @@ public class DefaultResponse implements Response {
   }
 
   public void send(String text) {
-    send("text/plain", text);
+    if (!contentTypeSet) {
+      send("text/plain", text);
+    } else {
+      doSend(text);
+    }
   }
 
   public void send(String contentType, ByteBuf buffer) {
@@ -141,12 +150,18 @@ public class DefaultResponse implements Response {
     if (name.equalsIgnoreCase(HttpHeaders.Names.CONTENT_LENGTH)) {
       contentLengthSet = true;
     }
+    if (name.equalsIgnoreCase(HttpHeaders.Names.CONTENT_TYPE)) {
+      contentTypeSet = true;
+    }
     response.headers().add(name, value);
   }
 
   public void setHeader(String name, Object value) {
     if (name.equalsIgnoreCase(HttpHeaders.Names.CONTENT_LENGTH)) {
       contentLengthSet = true;
+    }
+    if (name.equalsIgnoreCase(HttpHeaders.Names.CONTENT_TYPE)) {
+      contentTypeSet = true;
     }
     response.headers().set(name, value);
   }
@@ -155,6 +170,9 @@ public class DefaultResponse implements Response {
     if (name.equalsIgnoreCase(HttpHeaders.Names.CONTENT_LENGTH)) {
       contentLengthSet = true;
     }
+    if (name.equalsIgnoreCase(HttpHeaders.Names.CONTENT_TYPE)) {
+      contentTypeSet = true;
+    }
     response.headers().set(name, values);
   }
 
@@ -162,11 +180,15 @@ public class DefaultResponse implements Response {
     if (name.equalsIgnoreCase(HttpHeaders.Names.CONTENT_LENGTH)) {
       contentLengthSet = false;
     }
+    if (name.equalsIgnoreCase(HttpHeaders.Names.CONTENT_TYPE)) {
+      contentTypeSet = false;
+    }
     response.headers().remove(name);
   }
 
   public void clearHeaders() {
     contentLengthSet = false;
+    contentTypeSet = false;
     response.headers().clear();
   }
 

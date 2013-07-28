@@ -17,6 +17,8 @@
 package org.ratpackframework.handling.internal;
 
 import io.netty.channel.ChannelHandlerContext;
+import org.ratpackframework.http.ByAcceptsResponder;
+import org.ratpackframework.http.internal.DefaultByAcceptsResponder;
 import org.ratpackframework.server.RatpackServerSettings;
 import org.ratpackframework.service.ServiceRegistry;
 import org.ratpackframework.service.internal.ObjectHoldingHierarchicalServiceRegistry;
@@ -129,6 +131,10 @@ public class DefaultExchange implements Exchange {
 
   public ByMethodChain getMethods() {
     return new DefaultByMethodChain(this);
+  }
+
+  public ByAcceptsResponder getAccepts() {
+    return new DefaultByAcceptsResponder(this);  //To change body of implemented methods use File | Settings | File Templates.
   }
 
   protected void doNext(final Exchange parentExchange, final ServiceRegistry serviceRegistry, final List<Handler> handlers, final int index, final Handler exhausted) {

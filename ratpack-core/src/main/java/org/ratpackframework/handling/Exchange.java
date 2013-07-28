@@ -18,6 +18,7 @@ package org.ratpackframework.handling;
 
 import org.ratpackframework.api.NonBlocking;
 import org.ratpackframework.api.Nullable;
+import org.ratpackframework.http.ByAcceptsResponder;
 import org.ratpackframework.server.RatpackServerSettings;
 import org.ratpackframework.service.NotInServiceRegistryException;
 import org.ratpackframework.service.ServiceRegistry;
@@ -172,12 +173,17 @@ public interface Exchange extends ServiceRegistry {
 
   /**
    * A buildable processing chain for conditional processing based on the HTTP request method.
-   * <p>
-   * See {@link ByMethodChain} for how this can be used.
    *
    * @return A buildable processing chain for conditional processing based on the HTTP request method.
    */
   ByMethodChain getMethods();
+
+  /**
+   * A buildable responder useful for performing content negotiation.
+   *
+   * @return A buildable responder useful for performing content negotiation.
+   */
+  ByAcceptsResponder getAccepts();
 
 
   // Shorthands for common service lookups
