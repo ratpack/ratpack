@@ -1,7 +1,3 @@
-package org.ratpackframework.http.internal;
-
-import java.util.*;
-
 /**
  * MIME-Type Parser
  *
@@ -17,6 +13,11 @@ import java.util.*;
  *
  * Ported by Tom Zellman <tzellman@gmail.com>.
  */
+
+package org.ratpackframework.http.internal;
+
+import java.util.*;
+
 public final class MimeParse {
 
   protected static class ParseResults {

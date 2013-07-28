@@ -130,7 +130,7 @@ public class DefaultExchange implements Exchange {
   }
 
   public ByAcceptsResponder getAccepts() {
-    return new DefaultByAcceptsResponder(this);  //To change body of implemented methods use File | Settings | File Templates.
+    return new DefaultByAcceptsResponder(this);
   }
 
   protected void doNext(final Exchange parentExchange, final ServiceRegistry serviceRegistry, final List<Handler> handlers, final int index, final Handler exhausted) {
