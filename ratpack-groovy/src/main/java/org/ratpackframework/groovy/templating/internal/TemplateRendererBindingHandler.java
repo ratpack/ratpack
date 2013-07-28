@@ -22,6 +22,9 @@ import org.ratpackframework.groovy.templating.TemplateRenderer;
 import org.ratpackframework.handling.Exchange;
 import org.ratpackframework.handling.Handler;
 import org.ratpackframework.handling.internal.ClientErrorHandler;
+import org.ratpackframework.service.ServiceRegistry;
+import org.ratpackframework.service.internal.LazyHierarchicalServiceRegistry;
+import org.ratpackframework.util.internal.Factory;
 
 import java.io.File;
 
@@ -37,10 +40,14 @@ public class TemplateRendererBindingHandler implements Handler {
     this.delegate = ImmutableList.of(delegate, new ClientErrorHandler(NOT_FOUND.code()));
   }
 
-  public void handle(Exchange exchange) {
-    GroovyTemplateRenderingEngine engine = exchange.get(GroovyTemplateRenderingEngine.class);
-    File templateDirFile = exchange.get(FileSystemBinding.class).file(templateDir);
-    TemplateRenderer renderer = new DefaultTemplateRenderer(templateDirFile, exchange, engine);
-    exchange.insert(TemplateRenderer.class, renderer, delegate);
+  public void handle(final Exchange exchange) {
+    ServiceRegistry serviceRegistry = new LazyHierarchicalServiceRegistry(exchange, TemplateRenderer.class, new Factory<TemplateRenderer>() {
+      public TemplateRenderer create() {
+        GroovyTemplateRenderingEngine engine = exchange.get(GroovyTemplateRenderingEngine.class);
+        File templateDirFile = exchange.get(FileSystemBinding.class).file(templateDir);
+        return new DefaultTemplateRenderer(templateDirFile, exchange, engine);
+      }
+    });
+    exchange.insert(serviceRegistry, delegate);
   }
 }
