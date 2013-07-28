@@ -17,8 +17,7 @@
 package org.ratpackframework.handling.internal;
 
 import io.netty.channel.ChannelHandlerContext;
-import org.ratpackframework.http.ByAcceptsResponder;
-import org.ratpackframework.http.internal.DefaultByAcceptsResponder;
+import org.ratpackframework.handling.ByAcceptsResponder;
 import org.ratpackframework.server.RatpackServerSettings;
 import org.ratpackframework.service.ServiceRegistry;
 import org.ratpackframework.service.internal.ObjectHoldingHierarchicalServiceRegistry;

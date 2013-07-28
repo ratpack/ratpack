@@ -18,7 +18,6 @@ package org.ratpackframework.handling;
 
 import org.ratpackframework.api.NonBlocking;
 import org.ratpackframework.api.Nullable;
-import org.ratpackframework.http.ByAcceptsResponder;
 import org.ratpackframework.http.Request;
 import org.ratpackframework.http.Response;
 import org.ratpackframework.service.NotInServiceRegistryException;

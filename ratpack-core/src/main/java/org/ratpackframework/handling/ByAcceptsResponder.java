@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.http;
+package org.ratpackframework.handling;
 
 /**
  * A buildable strategy for responding based on the HTTP "Accepts" request header.

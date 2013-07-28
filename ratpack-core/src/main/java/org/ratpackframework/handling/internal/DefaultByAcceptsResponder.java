@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.http.internal;
+package org.ratpackframework.handling.internal;
 
 import io.netty.handler.codec.http.HttpHeaders;
 import org.ratpackframework.handling.Exchange;
-import org.ratpackframework.http.ByAcceptsResponder;
+import org.ratpackframework.handling.ByAcceptsResponder;
+import org.ratpackframework.http.internal.MimeParse;
 
 import java.util.*;
 
