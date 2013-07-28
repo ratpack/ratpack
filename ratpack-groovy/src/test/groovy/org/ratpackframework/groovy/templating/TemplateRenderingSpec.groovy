@@ -253,7 +253,7 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     text == "1"
 
     when:
-    sleep 100
+    sleep 1000
     file("templates/t").text =  "2"
 
     then:
@@ -300,7 +300,7 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     text == "1"
 
     when:
-    sleep 100
+    sleep 1000
     file("templates/t").text =  "2"
 
     then:
