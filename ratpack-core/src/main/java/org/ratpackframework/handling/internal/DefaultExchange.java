@@ -64,10 +64,6 @@ public class DefaultExchange implements Exchange {
     return response;
   }
 
-  public RatpackServerSettings getServerSettings() {
-    return serverSettings;
-  }
-
   public <T> T get(Class<T> type) {
     return serviceRegistry.get(type);
   }
