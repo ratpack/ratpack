@@ -20,11 +20,11 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import io.netty.buffer.ByteBuf;
 import org.codehaus.groovy.runtime.IOGroovyMethods;
-import org.ratpackframework.util.internal.Result;
-import org.ratpackframework.util.internal.ResultAction;
 import org.ratpackframework.groovy.script.internal.ScriptEngine;
 import org.ratpackframework.groovy.templating.TemplatingConfig;
 import org.ratpackframework.util.internal.IoUtils;
+import org.ratpackframework.util.internal.Result;
+import org.ratpackframework.util.internal.ResultAction;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -74,9 +74,7 @@ public class GroovyTemplateRenderingEngine {
     });
   }
 
-  private void render(File templateDir, File templateFile, final String templateName
-      , Map<String, ?> model, ResultAction<ByteBuf> handler, final Callable<? extends ByteBuf> bufferProvider)
-  {
+  private void render(File templateDir, File templateFile, final String templateName, Map<String, ?> model, ResultAction<ByteBuf> handler, final Callable<? extends ByteBuf> bufferProvider) {
     try {
       long timeStamp = checkTimestamp ? templateFile.lastModified() : 0;
       String templateKey = templateFile.getPath() + File.separator + timeStamp;
