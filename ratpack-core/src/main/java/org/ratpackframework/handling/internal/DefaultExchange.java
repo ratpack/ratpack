@@ -17,6 +17,7 @@
 package org.ratpackframework.handling.internal;
 
 import io.netty.channel.ChannelHandlerContext;
+import org.ratpackframework.server.RatpackServerSettings;
 import org.ratpackframework.service.ServiceRegistry;
 import org.ratpackframework.service.internal.ObjectHoldingHierarchicalServiceRegistry;
 import org.ratpackframework.error.ClientErrorHandler;
@@ -38,14 +39,16 @@ public class DefaultExchange implements Exchange {
   private final Request request;
   private final Response response;
 
+  private final RatpackServerSettings serverSettings;
   private final ChannelHandlerContext channelHandlerContext;
 
   private final Handler next;
   private final ServiceRegistry serviceRegistry;
 
-  public DefaultExchange(Request request, Response response, ChannelHandlerContext channelHandlerContext, ServiceRegistry serviceRegistry, Handler next) {
+  public DefaultExchange(Request request, Response response, RatpackServerSettings serverSettings, ChannelHandlerContext channelHandlerContext, ServiceRegistry serviceRegistry, Handler next) {
     this.request = request;
     this.response = response;
+    this.serverSettings = serverSettings;
     this.channelHandlerContext = channelHandlerContext;
     this.serviceRegistry = serviceRegistry;
     this.next = next;
@@ -57,6 +60,10 @@ public class DefaultExchange implements Exchange {
 
   public Response getResponse() {
     return response;
+  }
+
+  public RatpackServerSettings getServerSettings() {
+    return serverSettings;
   }
 
   public <T> T get(Class<T> type) {
@@ -144,7 +151,7 @@ public class DefaultExchange implements Exchange {
           ((DefaultExchange) exchange).doNext(parentExchange, serviceRegistry, handlers, index + 1, exhausted);
         }
       };
-      DefaultExchange childExchange = new DefaultExchange(request, response, channelHandlerContext, serviceRegistry, nextHandler);
+      DefaultExchange childExchange = new DefaultExchange(request, response, serverSettings, channelHandlerContext, serviceRegistry, nextHandler);
       try {
         handler.handle(childExchange);
       } catch (Exception e) {

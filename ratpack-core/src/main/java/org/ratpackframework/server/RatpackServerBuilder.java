@@ -20,10 +20,10 @@ import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;
 import org.ratpackframework.api.Nullable;
 import org.ratpackframework.handling.Handler;
+import org.ratpackframework.server.internal.DefaultRatpackServerSettings;
 import org.ratpackframework.server.internal.NettyRatpackService;
 import org.ratpackframework.server.internal.RatpackChannelInitializer;
 import org.ratpackframework.server.internal.ServiceBackedServer;
-import org.ratpackframework.server.internal.ServiceBackedServerSettings;
 
 import java.io.File;
 import java.net.InetAddress;
@@ -162,18 +162,19 @@ public class RatpackServerBuilder {
    * @return A new, not yet started, Ratpack server.
    */
   public RatpackServer build() {
+    RatpackServerSettings settings = new DefaultRatpackServerSettings(reloadable);
     InetSocketAddress address = buildSocketAddress();
-    ChannelInitializer<SocketChannel> channelInitializer = buildChannelInitializer();
+    ChannelInitializer<SocketChannel> channelInitializer = buildChannelInitializer(settings);
     NettyRatpackService service = new NettyRatpackService(address, channelInitializer);
-    return new ServiceBackedServer(service, new ServiceBackedServerSettings(service, reloadable));
+    return new ServiceBackedServer(service, settings);
   }
 
   private InetSocketAddress buildSocketAddress() {
     return (address == null) ? new InetSocketAddress(port) : new InetSocketAddress(address, port);
   }
 
-  private ChannelInitializer<SocketChannel> buildChannelInitializer() {
-    return new RatpackChannelInitializer(workerThreads, handler, baseDir);
+  private ChannelInitializer<SocketChannel> buildChannelInitializer(RatpackServerSettings settings) {
+    return new RatpackChannelInitializer(workerThreads, handler, baseDir, settings);
   }
 
 }

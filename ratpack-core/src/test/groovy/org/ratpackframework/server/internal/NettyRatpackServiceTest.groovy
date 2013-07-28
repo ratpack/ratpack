@@ -39,7 +39,7 @@ class NettyRatpackServiceTest extends Specification {
 
     when:
     def server2 = new RatpackServerBuilder({} as Handler, temporaryFolder.root).with {
-      port = server1.settings.bindPort
+      port = server1.bindPort
       build()
     }
 

@@ -18,6 +18,7 @@ package org.ratpackframework.handling;
 
 import org.ratpackframework.api.NonBlocking;
 import org.ratpackframework.api.Nullable;
+import org.ratpackframework.server.RatpackServerSettings;
 import org.ratpackframework.service.NotInServiceRegistryException;
 import org.ratpackframework.service.ServiceRegistry;
 import org.ratpackframework.http.Request;
@@ -79,6 +80,13 @@ public interface Exchange extends ServiceRegistry {
    * @return The HTTP response.
    */
   Response getResponse();
+
+  /**
+   * The server configuration.
+   *
+   * @return The server configuration.
+   */
+  RatpackServerSettings getServerSettings();
 
   /**
    * Shorthand for {@link org.ratpackframework.service.ServiceRegistry#get(Class) getServiceRegistry().get(type)}.

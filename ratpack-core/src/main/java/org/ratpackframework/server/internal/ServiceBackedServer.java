@@ -45,4 +45,12 @@ public class ServiceBackedServer implements RatpackServer {
     ratpackService.stop().get();
   }
 
+  public int getBindPort() {
+    return ratpackService.getBindPort();
+  }
+
+  public String getBindHost() {
+    return ratpackService.getBindHost();
+  }
+
 }
