@@ -19,6 +19,7 @@ package org.ratpackframework.gradle
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.GroovyPlugin
+import org.gradle.api.tasks.JavaExec
 
 class RatpackGroovyPlugin implements Plugin<Project> {
 
@@ -35,6 +36,9 @@ class RatpackGroovyPlugin implements Plugin<Project> {
       groovy ratpackDependencies.groovy
       testCompile ratpackDependencies.testSupport
     }
+
+    JavaExec runTask = project.tasks.findByName("run")
+    runTask.systemProperty("ratpack.reloadable", true)
   }
 
 }
