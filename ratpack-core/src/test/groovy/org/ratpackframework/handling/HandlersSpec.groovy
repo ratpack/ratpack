@@ -60,4 +60,23 @@ class HandlersSpec extends DefaultRatpackSpec {
     getText("a") == "foo"
     getText("b") == "bar"
   }
+
+  def "default services available"() {
+    when:
+    app {
+      handlers {
+        add ClosureHandlers.handler {
+          get(org.ratpackframework.error.ServerErrorHandler)
+          get(org.ratpackframework.error.ClientErrorHandler)
+          get(org.ratpackframework.file.MimeTypes)
+          get(org.ratpackframework.server.RatpackServerSettings)
+          get(org.ratpackframework.file.FileSystemBinding)
+          response.send "ok"
+        }
+      }
+    }
+
+    then:
+    text == "ok"
+  }
 }

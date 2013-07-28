@@ -18,6 +18,7 @@ package org.ratpackframework.server.internal
 
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
+import org.ratpackframework.server.DefaultRatpackServerSettings
 import org.ratpackframework.server.RatpackServerBuilder
 import org.ratpackframework.handling.Handler
 import spock.lang.Specification
@@ -30,7 +31,7 @@ class NettyRatpackServiceTest extends Specification {
 
   def "throws exception if can't bind to port"() {
     given:
-    def server1 = new RatpackServerBuilder({} as Handler, temporaryFolder.root).with {
+    def server1 = new RatpackServerBuilder(new DefaultRatpackServerSettings(temporaryFolder.root, false), {} as Handler).with {
       port = 0
       build()
     }
@@ -38,7 +39,7 @@ class NettyRatpackServiceTest extends Specification {
     server1.start()
 
     when:
-    def server2 = new RatpackServerBuilder({} as Handler, temporaryFolder.root).with {
+    def server2 = new RatpackServerBuilder(new DefaultRatpackServerSettings(temporaryFolder.root, false), {} as Handler).with {
       port = server1.bindPort
       build()
     }

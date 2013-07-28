@@ -17,6 +17,7 @@
 package org.ratpackframework.test
 
 import com.google.inject.Module
+import org.ratpackframework.server.DefaultRatpackServerSettings
 import org.ratpackframework.server.RatpackServer
 import org.ratpackframework.server.RatpackServerBuilder
 import org.ratpackframework.guice.internal.GuiceBackedHandlerFactory
@@ -53,7 +54,7 @@ abstract class DefaultRatpackSpec extends InternalRatpackSpec {
     def modulesAction = createModulesAction()
     Handler appHandler = appFactory.create(modulesAction, handler)
 
-    RatpackServerBuilder builder = new RatpackServerBuilder(appHandler, dir)
+    RatpackServerBuilder builder = new RatpackServerBuilder(new DefaultRatpackServerSettings(dir, false), appHandler)
     builder.port = 0
     builder.address = null
     builder.build()

@@ -14,16 +14,31 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.server.internal;
+package org.ratpackframework.server;
 
-import org.ratpackframework.server.RatpackServerSettings;
+import java.io.File;
 
+/**
+ * A default implementation of {@link RatpackServerSettings}.
+ */
 public class DefaultRatpackServerSettings implements RatpackServerSettings {
 
+  private final File baseDir;
   private final boolean reloadable;
 
-  public DefaultRatpackServerSettings(boolean reloadable) {
+  /**
+   * Constructor.
+   *
+   * @param baseDir The base dir value.
+   * @param reloadable The reloadable value.
+   */
+  public DefaultRatpackServerSettings(File baseDir, boolean reloadable) {
+    this.baseDir = baseDir;
     this.reloadable = reloadable;
+  }
+
+  public File getBaseDir() {
+    return baseDir;
   }
 
   public boolean isReloadable() {

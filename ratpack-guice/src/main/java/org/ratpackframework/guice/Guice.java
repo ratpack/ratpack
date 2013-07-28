@@ -125,7 +125,7 @@ public abstract class Guice {
    *
    * Handler guiceBackedHandler = Guice.handler(new ModuleBootstrap(), appHandlers);
    *
-   * RatpackServerBuilder serverBuilder = new RatpackServerBuilder(guiceBackedHandler, new File("appRoot"))
+   * RatpackServerBuilder serverBuilder = new RatpackServerBuilder(new DefaultRatpackServerSettings(new File("appRoot"), false), guiceBackedHandler)
    * </pre>
    * <p>
    * Modules are processed eagerly. Before this method returns, the modules will be used to create a single

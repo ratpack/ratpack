@@ -16,6 +16,7 @@
 
 package ratpack;
 
+import org.ratpackframework.server.DefaultRatpackServerSettings;
 import org.ratpackframework.server.RatpackServer;
 import org.ratpackframework.server.RatpackServerBuilder;
 import org.ratpackframework.guice.Guice;
@@ -39,7 +40,7 @@ public class Main {
     }));
 
     File dir = new File("src/ratpack");
-    RatpackServerBuilder ratpackServerBuilder = new RatpackServerBuilder(handler, dir);
+    RatpackServerBuilder ratpackServerBuilder = new RatpackServerBuilder(new DefaultRatpackServerSettings(dir, false), handler);
     ratpackServerBuilder.setWorkerThreads(0); // don't use a worker connection pool
     RatpackServer server = ratpackServerBuilder.build();
 

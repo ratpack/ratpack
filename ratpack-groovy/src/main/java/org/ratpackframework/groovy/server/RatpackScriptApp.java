@@ -16,6 +16,7 @@
 
 package org.ratpackframework.groovy.server;
 
+import org.ratpackframework.server.DefaultRatpackServerSettings;
 import org.ratpackframework.server.RatpackServer;
 import org.ratpackframework.server.RatpackServerBuilder;
 import org.ratpackframework.groovy.server.internal.GroovyKitAppFactory;
@@ -157,7 +158,7 @@ public abstract class RatpackScriptApp {
   public static RatpackServer ratpack(File script, File baseDir, int port, InetAddress address, boolean compileStatic, boolean reloadable) {
     Handler scriptBackedApp = new ScriptBackedApp(script, new GroovyKitAppFactory(), compileStatic, reloadable);
 
-    RatpackServerBuilder builder = new RatpackServerBuilder(scriptBackedApp, baseDir);
+    RatpackServerBuilder builder = new RatpackServerBuilder(new DefaultRatpackServerSettings(baseDir, reloadable), scriptBackedApp);
     builder.setPort(port);
     builder.setAddress(address);
     builder.setReloadable(reloadable);

@@ -22,7 +22,7 @@ import org.ratpackframework.server.internal.RatpackService
 import org.ratpackframework.server.internal.ServiceBackedServer
 import org.ratpackframework.groovy.internal.StandaloneScriptBacking
 import org.ratpackframework.groovy.util.Closures
-import org.ratpackframework.server.internal.DefaultRatpackServerSettings
+import org.ratpackframework.server.DefaultRatpackServerSettings
 import org.ratpackframework.test.groovy.RatpackGroovyScriptAppSpec
 
 class StandaloneScriptSpec extends RatpackGroovyScriptAppSpec {
@@ -77,7 +77,7 @@ class StandaloneScriptSpec extends RatpackGroovyScriptAppSpec {
   @Override
   RatpackServer createServer() {
     def service = new ScriptBackedService()
-    new ServiceBackedServer(service, new DefaultRatpackServerSettings(true))
+    new ServiceBackedServer(service, new DefaultRatpackServerSettings(ratpackFile.parentFile, true))
   }
 
   def "can execute plain script and reload"() {
@@ -103,7 +103,7 @@ class StandaloneScriptSpec extends RatpackGroovyScriptAppSpec {
     script """
       ratpack {
         handlers {
-          get("") {
+          get {
             response.send "bar"
           }
         }

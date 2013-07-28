@@ -16,6 +16,8 @@
 
 package org.ratpackframework.server;
 
+import java.io.File;
+
 public interface RatpackServerSettings {
 
   /**
@@ -26,5 +28,7 @@ public interface RatpackServerSettings {
    * @return {@code true} if the server is in "reloadable" mode
    */
   boolean isReloadable();
+
+  File getBaseDir();
 
 }
