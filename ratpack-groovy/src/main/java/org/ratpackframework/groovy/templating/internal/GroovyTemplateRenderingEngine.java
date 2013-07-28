@@ -16,87 +16,70 @@
 
 package org.ratpackframework.groovy.templating.internal;
 
-import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import io.netty.buffer.ByteBuf;
-import org.codehaus.groovy.runtime.IOGroovyMethods;
 import org.ratpackframework.groovy.script.internal.ScriptEngine;
 import org.ratpackframework.groovy.templating.TemplatingConfig;
-import org.ratpackframework.util.internal.IoUtils;
 import org.ratpackframework.util.internal.Result;
 import org.ratpackframework.util.internal.ResultAction;
+import org.ratpackframework.util.internal.Transformer;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.io.IOException;
 import java.util.Map;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
 
 public class GroovyTemplateRenderingEngine {
 
   private static final String ERROR_TEMPLATE = "error.html";
 
-  private final Cache<String, CompiledTemplate> compiledTemplateCache;
+  private final LoadingCache<TemplateSource, CompiledTemplate> compiledTemplateCache;
   private final TemplateCompiler templateCompiler;
-
   private final boolean checkTimestamp;
 
   @Inject
   public GroovyTemplateRenderingEngine(TemplatingConfig templatingConfig) {
-    this.compiledTemplateCache = CacheBuilder.newBuilder().maximumSize(templatingConfig.getCacheSize()).build();
-    checkTimestamp = templatingConfig.isCheckTimestamp();
-
     ScriptEngine<TemplateScript> scriptEngine = new ScriptEngine<TemplateScript>(getClass().getClassLoader(), templatingConfig.isStaticallyCompile(), TemplateScript.class);
     templateCompiler = new TemplateCompiler(scriptEngine);
+    this.compiledTemplateCache = CacheBuilder.newBuilder().maximumSize(templatingConfig.getCacheSize()).build(new CacheLoader<TemplateSource, CompiledTemplate>() {
+      @Override
+      public CompiledTemplate load(TemplateSource templateSource) throws Exception {
+        return templateCompiler.compile(templateSource.getContent(), templateSource.getName());
+      }
+    });
+
+    checkTimestamp = templatingConfig.isCheckTimestamp();
   }
 
   public void renderTemplate(final File templateDir, final String templateId, final Map<String, ?> model, final ResultAction<ByteBuf> handler) {
     final File templateFile = getTemplateFile(templateDir, templateId);
-    render(templateDir, templateFile, templateId, model, handler, new Callable<ByteBuf>() {
-      public ByteBuf call() throws Exception {
-        return IoUtils.readFile(templateFile);
-      }
-    });
+    render(templateDir, new FileTemplateSource(templateFile, templateId, checkTimestamp), model, handler);
   }
 
   public void renderError(final File templateDir, Map<String, ?> model, ResultAction<ByteBuf> handler) {
     final File errorTemplate = getTemplateFile(templateDir, ERROR_TEMPLATE);
-
-    render(templateDir, errorTemplate, ERROR_TEMPLATE, model, handler, new Callable<ByteBuf>() {
-      public ByteBuf call() throws Exception {
-        if (errorTemplate.exists()) {
-          return IoUtils.readFile(errorTemplate);
-        } else {
-          return getResourceBuffer(ERROR_TEMPLATE);
-        }
-      }
-    });
+    if (errorTemplate.exists()) {
+      render(templateDir, new FileTemplateSource(errorTemplate, ERROR_TEMPLATE, checkTimestamp), model, handler);
+    } else {
+      render(templateDir, new ResourceTemplateSource(ERROR_TEMPLATE), model, handler);
+    }
   }
 
-  private void render(File templateDir, File templateFile, final String templateName, Map<String, ?> model, ResultAction<ByteBuf> handler, final Callable<? extends ByteBuf> bufferProvider) {
+  private void render(final File templateDir, final TemplateSource templateSource, Map<String, ?> model, ResultAction<ByteBuf> handler) {
     try {
-      long timeStamp = checkTimestamp ? templateFile.lastModified() : 0;
-      String templateKey = templateFile.getPath() + File.separator + timeStamp;
-
-      CompiledTemplate compiledTemplate = compiledTemplateCache.get(templateKey, new Callable<CompiledTemplate>() {
-        public CompiledTemplate call() throws Exception {
-          return templateCompiler.compile(bufferProvider.call(), templateName);
+      new Render(compiledTemplateCache, templateSource, model, handler, new Transformer<String, TemplateSource>() {
+        public TemplateSource transform(String templateName) {
+          return new FileTemplateSource(new File(templateDir, templateName), templateName, checkTimestamp);
         }
       });
-
-      new Render(templateCompiler, compiledTemplateCache, checkTimestamp, templateDir, compiledTemplate, model, handler);
-    } catch (ExecutionException e) {
+    } catch (Exception e) {
       handler.execute(new Result<ByteBuf>(e));
     }
   }
 
   private File getTemplateFile(File templateDir, String templateName) {
     return new File(templateDir, templateName);
-  }
-
-  private ByteBuf getResourceBuffer(String resourceName) throws IOException {
-    return IoUtils.byteBuf(IOGroovyMethods.getBytes(getClass().getResourceAsStream(resourceName)));
   }
 
 }
