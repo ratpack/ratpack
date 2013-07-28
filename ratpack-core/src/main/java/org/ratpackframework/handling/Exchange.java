@@ -163,11 +163,11 @@ public interface Exchange extends ServiceRegistry {
   void insert(Object object, List<Handler> handlers);
 
   /**
-   * A buildable processing chain for conditional processing based on the HTTP request method.
+   * A buildable responder for conditional processing based on the HTTP request method.
    *
-   * @return A buildable processing chain for conditional processing based on the HTTP request method.
+   * @return A buildable responder for conditional processing based on the HTTP request method.
    */
-  ByMethodChain getMethods();
+  ByMethodResponder getMethods();
 
   /**
    * A buildable responder useful for performing content negotiation.

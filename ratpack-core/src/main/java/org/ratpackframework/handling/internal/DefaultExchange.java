@@ -18,13 +18,13 @@ package org.ratpackframework.handling.internal;
 
 import io.netty.channel.ChannelHandlerContext;
 import org.ratpackframework.handling.ByAcceptsResponder;
+import org.ratpackframework.handling.ByMethodResponder;
 import org.ratpackframework.server.RatpackServerSettings;
 import org.ratpackframework.service.ServiceRegistry;
 import org.ratpackframework.service.internal.ObjectHoldingHierarchicalServiceRegistry;
 import org.ratpackframework.error.ClientErrorHandler;
 import org.ratpackframework.error.ServerErrorHandler;
 import org.ratpackframework.file.FileSystemBinding;
-import org.ratpackframework.handling.ByMethodChain;
 import org.ratpackframework.handling.Exchange;
 import org.ratpackframework.handling.Handler;
 import org.ratpackframework.http.Request;
@@ -124,8 +124,8 @@ public class DefaultExchange implements Exchange {
     }
   }
 
-  public ByMethodChain getMethods() {
-    return new DefaultByMethodChain(this);
+  public ByMethodResponder getMethods() {
+    return new DefaultByMethodResponder(this);
   }
 
   public ByAcceptsResponder getAccepts() {

@@ -16,7 +16,7 @@
 
 package org.ratpackframework.handling.internal;
 
-import org.ratpackframework.handling.ByMethodChain;
+import org.ratpackframework.handling.ByMethodResponder;
 import org.ratpackframework.handling.Exchange;
 import org.ratpackframework.handling.Handler;
 
@@ -27,32 +27,32 @@ import java.util.Map;
 
 import static io.netty.handler.codec.http.HttpResponseStatus.METHOD_NOT_ALLOWED;
 
-public class DefaultByMethodChain implements ByMethodChain {
+public class DefaultByMethodResponder implements ByMethodResponder {
 
   private final Exchange exchange;
   private final Map<String, Runnable> runnables = new LinkedHashMap<String, Runnable>(2);
 
-  public DefaultByMethodChain(Exchange exchange) {
+  public DefaultByMethodResponder(Exchange exchange) {
     this.exchange = exchange;
   }
 
-  public ByMethodChain get(Runnable runnable) {
+  public ByMethodResponder get(Runnable runnable) {
     return named("get", runnable);
   }
 
-  public ByMethodChain post(Runnable runnable) {
+  public ByMethodResponder post(Runnable runnable) {
     return named("post", runnable);
   }
 
-  public ByMethodChain put(Runnable runnable) {
+  public ByMethodResponder put(Runnable runnable) {
     return named("put", runnable);
   }
 
-  public ByMethodChain delete(Runnable runnable) {
+  public ByMethodResponder delete(Runnable runnable) {
     return named("delete", runnable);
   }
 
-  public ByMethodChain named(String methodName, Runnable runnable) {
+  public ByMethodResponder named(String methodName, Runnable runnable) {
     runnables.put(methodName.toLowerCase(), runnable);
     return this;
   }

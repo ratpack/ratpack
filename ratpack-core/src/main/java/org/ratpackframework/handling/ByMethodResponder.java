@@ -19,9 +19,9 @@ package org.ratpackframework.handling;
 /**
  * A buildable strategy for processing an exchange based on HTTP method.
  * <p>
- * A by-method-chain is exposed by {@link org.ratpackframework.handling.Exchange#getMethods()}.
+ * A by-method-responder is exposed by {@link org.ratpackframework.handling.Exchange#getMethods()}.
  * It is used to respond differently based on the HTTP method.
- * If there is no action registered with the chain before {@link #send()} is called, a {@code 405} will be issued to
+ * If there is no action registered with the responder before {@link #send()} is called, a {@code 405} will be issued to
  * the contextual {@link org.ratpackframework.error.ClientErrorHandler} (which by default will send back a HTTP 405 to the client).
  * <p>
  * This is useful when a given handler can respond to more than one HTTP method.
@@ -69,11 +69,11 @@ package org.ratpackframework.handling;
  * }
  * </pre>
  * <p>
- * You <b>must</b> call the {@link #send()} method to finalise the chain. Otherwise, the exchange will not be processed.
+ * You <b>must</b> call the {@link #send()} method to finalise the responder. Otherwise, the exchange will not be processed.
  * <p>
  * Only the last added runnable for a method will be used. Adding a subsequent runnable for the same method will replace the previous.
  */
-public interface ByMethodChain {
+public interface ByMethodResponder {
 
   /**
    * Defines the action to to take if the request has a HTTP method of GET.
@@ -81,7 +81,7 @@ public interface ByMethodChain {
    * @param runnable The action to take
    * @return this
    */
-  ByMethodChain get(Runnable runnable);
+  ByMethodResponder get(Runnable runnable);
 
   /**
    * Defines the action to to take if the request has a HTTP method of POST.
@@ -89,7 +89,7 @@ public interface ByMethodChain {
    * @param runnable The action to take
    * @return this
    */
-  ByMethodChain post(Runnable runnable);
+  ByMethodResponder post(Runnable runnable);
 
   /**
    * Defines the action to to take if the request has a HTTP method of PUT.
@@ -97,7 +97,7 @@ public interface ByMethodChain {
    * @param runnable The action to take
    * @return this
    */
-  ByMethodChain put(Runnable runnable);
+  ByMethodResponder put(Runnable runnable);
 
   /**
    * Defines the action to to take if the request has a HTTP method of DELETE.
@@ -105,7 +105,7 @@ public interface ByMethodChain {
    * @param runnable The action to take
    * @return this
    */
-  ByMethodChain delete(Runnable runnable);
+  ByMethodResponder delete(Runnable runnable);
 
   /**
    * Defines the action to to take if the request has a HTTP method of {@code methodName}.
@@ -116,10 +116,10 @@ public interface ByMethodChain {
    * @param runnable The action to take
    * @return this
    */
-  ByMethodChain named(String methodName, Runnable runnable);
+  ByMethodResponder named(String methodName, Runnable runnable);
 
   /**
-   * Finalise the chain and processes the exchange.
+   * Finalise the responder and processes the exchange.
    * <p>
    * <b>Must be called to actually perform the action.</b>
    */
