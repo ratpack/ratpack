@@ -19,10 +19,16 @@ package org.ratpackframework.test
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import org.ratpackframework.groovy.util.Closures
+import org.ratpackframework.server.DefaultRatpackServerSettings
+import org.ratpackframework.server.RatpackServerSettings
 
 abstract class InternalRatpackSpec extends RequestingSpec {
 
   @Rule TemporaryFolder temporaryFolder
+
+  RatpackServerSettings createServerSettings() {
+    new DefaultRatpackServerSettings(getDir(), false)
+  }
 
   File file(String path) {
     prepFile(new File(getDir(), path))
@@ -45,5 +51,7 @@ abstract class InternalRatpackSpec extends RequestingSpec {
     stopServer()
     Closures.configureDelegateFirst(this, configurer)
   }
+
+
 
 }

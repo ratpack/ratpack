@@ -14,15 +14,21 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.test.groovy
+package org.ratpackframework.guice.internal;
 
-import org.ratpackframework.groovy.server.internal.GroovyKitAppFactory
-import org.ratpackframework.guice.internal.GuiceBackedHandlerFactory
+import com.google.inject.AbstractModule;
+import org.ratpackframework.server.RatpackServerSettings;
 
-abstract class RatpackGroovyAppSpec extends RatpackGroovyDslSpec {
+public class DefaultRatpackModule extends AbstractModule {
 
-  protected GuiceBackedHandlerFactory createAppFactory() {
-    return new GroovyKitAppFactory(createServerSettings())
+  private final RatpackServerSettings serverSettings;
+
+  public DefaultRatpackModule(RatpackServerSettings serverSettings) {
+    this.serverSettings = serverSettings;
   }
 
+  @Override
+  protected void configure() {
+    bind(RatpackServerSettings.class).toInstance(serverSettings);
+  }
 }

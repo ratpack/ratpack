@@ -32,15 +32,16 @@ import static org.ratpackframework.handling.Handlers.get;
 public class Main {
 
   public static void main(String[] args) throws Exception {
+    File dir = new File("src/ratpack");
+    DefaultRatpackServerSettings settings = new DefaultRatpackServerSettings(dir, false);
 
-    Handler handler = Guice.handler(new ModuleBootstrap(), chain(new Action<Chain>() {
+    Handler handler = Guice.handler(settings, new ModuleBootstrap(), chain(new Action<Chain>() {
       public void execute(Chain chain) {
         chain.add(get(Guice.handler(InjectedHandler.class)));
       }
     }));
 
-    File dir = new File("src/ratpack");
-    RatpackServerBuilder ratpackServerBuilder = new RatpackServerBuilder(new DefaultRatpackServerSettings(dir, false), handler);
+    RatpackServerBuilder ratpackServerBuilder = new RatpackServerBuilder(settings, handler);
     ratpackServerBuilder.setWorkerThreads(0); // don't use a worker connection pool
     RatpackServer server = ratpackServerBuilder.build();
 

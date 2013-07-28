@@ -54,14 +54,14 @@ abstract class DefaultRatpackSpec extends InternalRatpackSpec {
     def modulesAction = createModulesAction()
     Handler appHandler = appFactory.create(modulesAction, handler)
 
-    RatpackServerBuilder builder = new RatpackServerBuilder(new DefaultRatpackServerSettings(dir, false), appHandler)
+    RatpackServerBuilder builder = new RatpackServerBuilder(createServerSettings(), appHandler)
     builder.port = 0
     builder.address = null
     builder.build()
   }
 
   protected GuiceBackedHandlerFactory createAppFactory() {
-    new DefaultGuiceBackedHandlerFactory()
+    new DefaultGuiceBackedHandlerFactory(createServerSettings())
   }
 
   protected Action<? super ModuleRegistry> createModulesAction() {

@@ -22,6 +22,7 @@ import org.ratpackframework.server.RatpackServerBuilder;
 import org.ratpackframework.groovy.server.internal.GroovyKitAppFactory;
 import org.ratpackframework.groovy.internal.ScriptBackedApp;
 import org.ratpackframework.handling.Handler;
+import org.ratpackframework.server.RatpackServerSettings;
 
 import java.io.File;
 import java.net.InetAddress;
@@ -156,9 +157,10 @@ public abstract class RatpackScriptApp {
    * @return A not yet started Ratpack server
    */
   public static RatpackServer ratpack(File script, File baseDir, int port, InetAddress address, boolean compileStatic, boolean reloadable) {
-    Handler scriptBackedApp = new ScriptBackedApp(script, new GroovyKitAppFactory(), compileStatic, reloadable);
+    RatpackServerSettings settings = new DefaultRatpackServerSettings(baseDir, reloadable);
+    Handler scriptBackedApp = new ScriptBackedApp(script, new GroovyKitAppFactory(settings), compileStatic, reloadable);
 
-    RatpackServerBuilder builder = new RatpackServerBuilder(new DefaultRatpackServerSettings(baseDir, reloadable), scriptBackedApp);
+    RatpackServerBuilder builder = new RatpackServerBuilder(settings, scriptBackedApp);
     builder.setPort(port);
     builder.setAddress(address);
     builder.setReloadable(reloadable);

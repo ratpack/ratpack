@@ -19,6 +19,7 @@ package org.ratpackframework.guice;
 import org.ratpackframework.guice.internal.DefaultGuiceBackedHandlerFactory;
 import org.ratpackframework.guice.internal.InjectingHandler;
 import org.ratpackframework.handling.Handler;
+import org.ratpackframework.server.RatpackServerSettings;
 import org.ratpackframework.util.Action;
 
 /**
@@ -26,7 +27,8 @@ import org.ratpackframework.util.Action;
  */
 public abstract class Guice {
 
-  private Guice() {}
+  private Guice() {
+  }
 
   /**
    * Creates a dependency injected handler by fetching the contextual {@link com.google.inject.Injector} and creating an instance of the given type.
@@ -67,7 +69,7 @@ public abstract class Guice {
    * <p>
    * If there is no contextual {@link com.google.inject.Injector} for the exchange, a {@link org.ratpackframework.service.NotInServiceRegistryException} will be thrown.
    * This means that it only makes sense to use an injected handler like this if the application is Guice backed.
-   * Such as when using a {@link #handler(org.ratpackframework.util.Action, org.ratpackframework.handling.Handler)} handler as the root.
+   * Such as when using a {@link #handler(RatpackServerSettings, Action, Handler)} handler as the root.
    *
    * @param handlerType The type of handler to create via dependency injection
    * @return A handler that delegates to a created-on-demand dependency injected instance of the given type
@@ -123,9 +125,9 @@ public abstract class Guice {
    *   }
    * }
    *
-   * Handler guiceBackedHandler = Guice.handler(new ModuleBootstrap(), appHandlers);
-   *
-   * RatpackServerBuilder serverBuilder = new RatpackServerBuilder(new DefaultRatpackServerSettings(new File("appRoot"), false), guiceBackedHandler)
+   * RatpackServerSettings serverSettings = new DefaultRatpackServerSettings(new File("appRoot"), false);
+   * Handler guiceBackedHandler = Guice.handler(serverSettings, new ModuleBootstrap(), appHandlers);
+   * RatpackServerBuilder serverBuilder = new RatpackServerBuilder(serverSettings, guiceBackedHandler);
    * </pre>
    * <p>
    * Modules are processed eagerly. Before this method returns, the modules will be used to create a single
@@ -136,12 +138,13 @@ public abstract class Guice {
    * This means that you can retrieve objects that were bound by modules in handlers via {@link org.ratpackframework.handling.Exchange#get(Class)}.
    * Objects are only retrievable via their public type.
    *
+   * @param serverSettings The settings of the server
    * @param moduleConfigurer The configurer of the {@link ModuleRegistry} to back the created handler
    * @param handler The handler of the application
    * @return A handler that makes the injector and its content available to the given handler
    */
-  public static Handler handler(Action<? super ModuleRegistry> moduleConfigurer, Handler handler) {
-    return new DefaultGuiceBackedHandlerFactory().create(moduleConfigurer, handler);
+  public static Handler handler(RatpackServerSettings serverSettings, Action<? super ModuleRegistry> moduleConfigurer, Handler handler) {
+    return new DefaultGuiceBackedHandlerFactory(serverSettings).create(moduleConfigurer, handler);
   }
 
 }

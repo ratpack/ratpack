@@ -23,6 +23,7 @@ import com.google.inject.util.Modules;
 import org.ratpackframework.guice.HandlerDecoratingModule;
 import org.ratpackframework.guice.ModuleRegistry;
 import org.ratpackframework.handling.Handler;
+import org.ratpackframework.server.RatpackServerSettings;
 import org.ratpackframework.util.Action;
 
 import java.util.ArrayList;
@@ -30,6 +31,12 @@ import java.util.Collections;
 import java.util.List;
 
 public class DefaultGuiceBackedHandlerFactory implements GuiceBackedHandlerFactory {
+
+  private final RatpackServerSettings serverSettings;
+
+  public DefaultGuiceBackedHandlerFactory(RatpackServerSettings serverSettings) {
+    this.serverSettings = serverSettings;
+  }
 
   public Handler create(Action<? super ModuleRegistry> modulesAction, Handler handler) {
     ModuleRegistry moduleRegistry = new DefaultModuleRegistry();
@@ -75,7 +82,7 @@ public class DefaultGuiceBackedHandlerFactory implements GuiceBackedHandlerFacto
   }
 
   protected void registerDefaultModules(ModuleRegistry moduleRegistry) {
-
+    moduleRegistry.register(new DefaultRatpackModule(serverSettings));
   }
 
 }
