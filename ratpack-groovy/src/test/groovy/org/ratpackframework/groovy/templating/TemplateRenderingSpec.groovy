@@ -237,5 +237,74 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     get().statusCode == 404
   }
 
+  def "templates are reloadable in reload mode"() {
+    given:
+    reloadable = true
+    file("templates/t") << "1"
+
+    when:
+    app {
+      handlers {
+        get { TemplateRenderer renderer -> renderer.render("t") }
+      }
+    }
+
+    then:
+    text == "1"
+
+    when:
+    sleep 100
+    file("templates/t").text =  "2"
+
+    then:
+    text == "2"
+  }
+
+  def "templates are not reloadable in reload mode"() {
+    given:
+    reloadable = false
+    file("templates/t") << "1"
+
+    when:
+    app {
+      handlers {
+        get { TemplateRenderer renderer -> renderer.render("t") }
+      }
+    }
+
+    then:
+    text == "1"
+
+    when:
+    file("templates/t").text =  "2"
+
+    then:
+    text == "1"
+  }
+
+  def "templates are reloadable if reloading is forced"() {
+    given:
+    file("templates/t") << "1"
+
+    when:
+    app {
+      modules {
+        get(TemplatingModule).reloadable = true
+      }
+      handlers {
+        get { TemplateRenderer renderer -> renderer.render("t") }
+      }
+    }
+
+    then:
+    text == "1"
+
+    when:
+    sleep 100
+    file("templates/t").text =  "2"
+
+    then:
+    text == "2"
+  }
 
 }

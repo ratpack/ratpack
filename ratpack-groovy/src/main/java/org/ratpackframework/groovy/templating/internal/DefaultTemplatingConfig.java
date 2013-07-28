@@ -22,13 +22,13 @@ public class DefaultTemplatingConfig implements TemplatingConfig {
 
   private final String templatesPath;
   private final int cacheSize;
-  private final boolean checkTimeStamp;
+  private final boolean reloadable;
   private final boolean staticallyCompile;
 
-  public DefaultTemplatingConfig(String templatesPath, int cacheSize, boolean checkTimeStamp, boolean staticallyCompile) {
+  public DefaultTemplatingConfig(String templatesPath, int cacheSize, boolean reloadable, boolean staticallyCompile) {
     this.templatesPath = templatesPath;
     this.cacheSize = cacheSize;
-    this.checkTimeStamp = checkTimeStamp;
+    this.reloadable = reloadable;
     this.staticallyCompile = staticallyCompile;
   }
 
@@ -36,8 +36,8 @@ public class DefaultTemplatingConfig implements TemplatingConfig {
     return cacheSize;
   }
 
-  public boolean isCheckTimestamp() {
-    return checkTimeStamp;
+  public boolean isReloadable() {
+    return reloadable;
   }
 
   public boolean isStaticallyCompile() {

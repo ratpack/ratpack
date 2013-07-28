@@ -18,6 +18,7 @@ package org.ratpackframework.groovy.templating;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Injector;
+import com.google.inject.Provides;
 import org.ratpackframework.error.ClientErrorHandler;
 import org.ratpackframework.error.ServerErrorHandler;
 import org.ratpackframework.groovy.templating.internal.DefaultTemplatingConfig;
@@ -26,6 +27,7 @@ import org.ratpackframework.groovy.templating.internal.TemplateRenderingClientEr
 import org.ratpackframework.groovy.templating.internal.TemplateRenderingServerErrorHandler;
 import org.ratpackframework.guice.HandlerDecoratingModule;
 import org.ratpackframework.handling.Handler;
+import org.ratpackframework.server.RatpackServerSettings;
 
 import javax.inject.Singleton;
 
@@ -34,7 +36,7 @@ public class TemplatingModule extends AbstractModule implements HandlerDecoratin
 
   private String templatesPath = "templates";
   private int cacheSize = 100;
-  private boolean checkTimestamp = true;
+  private boolean reloadable;
   private boolean staticallyCompile;
 
   public String getTemplatesPath() {
@@ -53,12 +55,12 @@ public class TemplatingModule extends AbstractModule implements HandlerDecoratin
     this.cacheSize = cacheSize;
   }
 
-  public boolean isCheckTimestamp() {
-    return checkTimestamp;
+  public boolean isReloadable() {
+    return reloadable;
   }
 
-  public void setCheckTimestamp(boolean checkTimestamp) {
-    this.checkTimestamp = checkTimestamp;
+  public void setReloadable(boolean reloadable) {
+    this.reloadable = reloadable;
   }
 
   public boolean isStaticallyCompile() {
@@ -72,8 +74,6 @@ public class TemplatingModule extends AbstractModule implements HandlerDecoratin
   @Override
   protected void configure() {
     bind(GroovyTemplateRenderingEngine.class).in(Singleton.class);
-    bind(TemplatingConfig.class).toInstance(new DefaultTemplatingConfig(templatesPath, cacheSize, checkTimestamp, staticallyCompile));
-
     bind(ClientErrorHandler.class).to(TemplateRenderingClientErrorHandler.class).in(Singleton.class);
     bind(ServerErrorHandler.class).to(TemplateRenderingServerErrorHandler.class).in(Singleton.class);
   }
@@ -81,5 +81,10 @@ public class TemplatingModule extends AbstractModule implements HandlerDecoratin
   public Handler decorate(Injector injector, Handler handler) {
     TemplatingConfig config = injector.getInstance(TemplatingConfig.class);
     return TemplatingHandlers.templates(config.getTemplatesPath(), handler);
+  }
+
+  @Provides
+  TemplatingConfig provideTemplatingConfig(RatpackServerSettings serverSettings) {
+    return new DefaultTemplatingConfig(templatesPath, cacheSize, reloadable || serverSettings.isReloadable(), staticallyCompile);
   }
 }

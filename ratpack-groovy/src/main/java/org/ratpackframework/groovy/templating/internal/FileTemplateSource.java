@@ -31,7 +31,7 @@ class FileTemplateSource implements TemplateSource {
   FileTemplateSource(File file, String name, boolean reloadable) {
     this.file = file;
     this.name = name;
-    this.id = file.getAbsolutePath() + File.separator + (reloadable ? 0 : file.lastModified());
+    this.id = file.getAbsolutePath() + File.separator + (reloadable ? file.lastModified() : 0);
   }
 
   public String getName() {

@@ -20,7 +20,7 @@ public interface TemplatingConfig {
 
   int getCacheSize();
 
-  boolean isCheckTimestamp();
+  boolean isReloadable();
 
   boolean isStaticallyCompile();
 

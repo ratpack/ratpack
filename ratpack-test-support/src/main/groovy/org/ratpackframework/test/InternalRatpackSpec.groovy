@@ -25,9 +25,10 @@ import org.ratpackframework.server.RatpackServerSettings
 abstract class InternalRatpackSpec extends RequestingSpec {
 
   @Rule TemporaryFolder temporaryFolder
+  boolean reloadable
 
   RatpackServerSettings createServerSettings() {
-    new DefaultRatpackServerSettings(getDir(), false)
+    new DefaultRatpackServerSettings(getDir(), reloadable)
   }
 
   File file(String path) {

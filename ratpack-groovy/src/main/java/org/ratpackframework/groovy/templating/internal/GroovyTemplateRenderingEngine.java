@@ -36,7 +36,7 @@ public class GroovyTemplateRenderingEngine {
 
   private final LoadingCache<TemplateSource, CompiledTemplate> compiledTemplateCache;
   private final TemplateCompiler templateCompiler;
-  private final boolean checkTimestamp;
+  private final boolean reloadable;
 
   @Inject
   public GroovyTemplateRenderingEngine(TemplatingConfig templatingConfig) {
@@ -49,18 +49,18 @@ public class GroovyTemplateRenderingEngine {
       }
     });
 
-    checkTimestamp = templatingConfig.isCheckTimestamp();
+    reloadable = templatingConfig.isReloadable();
   }
 
   public void renderTemplate(final File templateDir, final String templateId, final Map<String, ?> model, final ResultAction<ByteBuf> handler) {
     final File templateFile = getTemplateFile(templateDir, templateId);
-    render(templateDir, new FileTemplateSource(templateFile, templateId, checkTimestamp), model, handler);
+    render(templateDir, new FileTemplateSource(templateFile, templateId, reloadable), model, handler);
   }
 
   public void renderError(final File templateDir, Map<String, ?> model, ResultAction<ByteBuf> handler) {
     final File errorTemplate = getTemplateFile(templateDir, ERROR_TEMPLATE);
     if (errorTemplate.exists()) {
-      render(templateDir, new FileTemplateSource(errorTemplate, ERROR_TEMPLATE, checkTimestamp), model, handler);
+      render(templateDir, new FileTemplateSource(errorTemplate, ERROR_TEMPLATE, reloadable), model, handler);
     } else {
       render(templateDir, new ResourceTemplateSource(ERROR_TEMPLATE), model, handler);
     }
@@ -70,7 +70,7 @@ public class GroovyTemplateRenderingEngine {
     try {
       new Render(compiledTemplateCache, templateSource, model, handler, new Transformer<String, TemplateSource>() {
         public TemplateSource transform(String templateName) {
-          return new FileTemplateSource(new File(templateDir, templateName), templateName, checkTimestamp);
+          return new FileTemplateSource(new File(templateDir, templateName), templateName, reloadable);
         }
       });
     } catch (Exception e) {
