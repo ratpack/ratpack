@@ -21,8 +21,8 @@ import com.jayway.restassured.response.Cookie
 import com.jayway.restassured.response.Cookies
 import com.jayway.restassured.response.Response
 import com.jayway.restassured.specification.RequestSpecification
+import org.ratpackframework.groovy.Util
 import org.ratpackframework.server.RatpackServer
-import org.ratpackframework.groovy.util.Closures
 import org.spockframework.lang.ConditionBlock
 import spock.lang.Specification
 
@@ -123,12 +123,12 @@ abstract class RequestingSpec extends Specification {
   }
 
   void request(@DelegatesTo(value = RequestSpecification, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) {
-    Closures.configureDelegateFirst(request, closure)
+    Util.configureDelegateFirst(request, closure)
   }
 
   @ConditionBlock
   void response(@DelegatesTo(value = Response, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) {
-    Closures.configureDelegateFirst(response, closure)
+    Util.configureDelegateFirst(response, closure)
   }
 
 }

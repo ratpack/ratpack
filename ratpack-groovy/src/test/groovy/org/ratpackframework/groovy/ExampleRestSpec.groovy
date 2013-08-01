@@ -45,6 +45,7 @@ class ExampleRestSpec extends RatpackGroovyScriptAppSpec {
     script """
       import groovy.json.JsonOutput
       import groovy.json.JsonSlurper
+      import static org.ratpackframework.groovy.Util.with
 
       ratpack {
         handlers {
@@ -54,11 +55,13 @@ class ExampleRestSpec extends RatpackGroovyScriptAppSpec {
               return
             }
 
-            accepts.type("application/json") {
-              def json = new JsonSlurper().parseText(request.text)
-              def value = json.value
-              response.send "application/json", JsonOutput.toJson([value: value * 2])
-            }.send()
+            with(accepts) {
+              type("application/json") {
+                def json = new JsonSlurper().parseText(request.text)
+                def value = json.value
+                response.send "application/json", JsonOutput.toJson([value: value * 2])
+              }
+            }
           }
         }
       }

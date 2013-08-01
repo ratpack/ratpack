@@ -19,8 +19,8 @@ package org.ratpackframework.groovy.handling;
 import com.google.common.collect.ImmutableList;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
+import org.ratpackframework.groovy.Util;
 import org.ratpackframework.groovy.handling.internal.ClosureBackedHandler;
-import org.ratpackframework.groovy.util.Closures;
 import org.ratpackframework.handling.Chain;
 import org.ratpackframework.handling.Exchange;
 import org.ratpackframework.handling.Handler;
@@ -42,7 +42,7 @@ public abstract class ClosureHandlers {
   }
 
   private static Action<Chain> chain(@DelegatesTo(value = Chain.class, strategy = Closure.DELEGATE_ONLY) Closure<?> handlers) {
-    return Closures.action(Chain.class, handlers);
+    return Util.action(Chain.class, handlers);
   }
 
   public static Handler fileSystem(String path, @DelegatesTo(value = Chain.class, strategy = Closure.DELEGATE_ONLY) Closure<?> handlers) {

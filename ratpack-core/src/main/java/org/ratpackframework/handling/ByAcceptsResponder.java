@@ -16,6 +16,8 @@
 
 package org.ratpackframework.handling;
 
+import org.ratpackframework.util.Buildable;
+
 /**
  * A buildable strategy for responding based on the HTTP "Accepts" request header.
  * <p>
@@ -45,39 +47,41 @@ package org.ratpackframework.handling;
  *           // HTML handling logic
  *         }
  *       }).
- *       send(); // finalize
+ *       build(); // finalize
  *   }
  * }
  * </pre>
  * <p>
- * If you are using Groovy, you can use closures as the definitions (because closures implement {@link Runnable}).
+ * If you are using Groovy, you can use closures as the definitions (because closures implement {@link Runnable}),
+ * along with {@code Buildable.with}…
  * <pre class="tested">
  * import org.ratpackframework.handling.*
+ * import static org.ratpackframework.groovy.Util.with
  *
  * class MyHandler implements Handler {
  *   void handle(Exchange exchange) {
- *     exchange.accepts.
+ *     with(exchange.accepts) {
  *       type("application/json") {
  *         // JSON handling logic
- *       }.
+ *       }
  *       type("text/html") {
  *         // HTML handling logic
- *       }.
- *       send() // finalize
+ *       }
+ *     }
  *   }
  * }
  * </pre>
  * <p>
- * You <b>must</b> call the {@link #send()} method to finalise the responder. Otherwise, nothing will happen.
+ * You <b>must</b> call the {@link #build()} method to finalise the responder. Otherwise, nothing will happen.
  * <p>
- * If there is no action registered with the responder before {@link #send()} is called, or the client does not accept any
+ * If there is no action registered with the responder before {@link #build()} is called, or the client does not accept any
  * of the given types, a {@code 406} will be issued to the {@link org.ratpackframework.handling.Exchange#clientError(int)}
  * that the responder is associated with.
  * <p>
  * Only the last added runnable for a type will be used.
  * Adding a subsequent runnable for the same type will replace the previous.
  */
-public interface ByAcceptsResponder {
+public interface ByAcceptsResponder extends Buildable {
 
   /**
    * Register how to respond with the given mime type.
@@ -91,6 +95,6 @@ public interface ByAcceptsResponder {
   /**
    * Finalizes this responder, invoking the appropriate registered runnable.
    */
-  void send();
+  void build();
 
 }

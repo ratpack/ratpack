@@ -19,7 +19,7 @@ package org.ratpackframework.groovy.internal;
 import groovy.lang.Closure;
 import groovy.lang.Script;
 import io.netty.buffer.ByteBuf;
-import org.ratpackframework.groovy.util.Closures;
+import org.ratpackframework.groovy.Util;
 import org.ratpackframework.groovy.handling.Chain;
 import org.ratpackframework.groovy.handling.internal.GroovyDslChainActionTransformer;
 import org.ratpackframework.groovy.script.internal.ScriptEngine;
@@ -61,14 +61,14 @@ public class ScriptBackedApp implements Handler {
           final DefaultRatpack ratpack = new DefaultRatpack();
           Action<Closure<?>> backing = new Action<Closure<?>>() {
             public void execute(Closure<?> configurer) {
-              Closures.configureDelegateFirst(ratpack, configurer);
+              Util.configureDelegateFirst(ratpack, configurer);
             }
           };
 
           RatpackScriptBacking.withBacking(backing, runScript);
 
-          Action<ModuleRegistry> modulesAction = Closures.action(ModuleRegistry.class, ratpack.getModulesConfigurer());
-          Action<Chain> chainAction = Closures.action(Chain.class, ratpack.getHandlersConfigurer());
+          Action<ModuleRegistry> modulesAction = Util.action(ModuleRegistry.class, ratpack.getModulesConfigurer());
+          Action<Chain> chainAction = Util.action(Chain.class, ratpack.getHandlersConfigurer());
 
           Handler chainBuildingHandler = ChainBuilder.INSTANCE.buildHandler(GroovyDslChainActionTransformer.INSTANCE, chainAction);
 

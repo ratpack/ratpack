@@ -18,7 +18,7 @@ package org.ratpackframework.test
 
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
-import org.ratpackframework.groovy.util.Closures
+import org.ratpackframework.groovy.Util
 import org.ratpackframework.server.DefaultRatpackServerSettings
 import org.ratpackframework.server.RatpackServerSettings
 
@@ -50,7 +50,7 @@ abstract class InternalRatpackSpec extends RequestingSpec {
 
   void app(Closure<?> configurer) {
     stopServer()
-    Closures.configureDelegateFirst(this, configurer)
+    Util.configureDelegateFirst(this, configurer)
   }
 
 

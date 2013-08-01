@@ -22,7 +22,7 @@ import org.ratpackframework.handling.Handler
 import org.ratpackframework.handling.internal.ChainBuilder
 import org.ratpackframework.test.DefaultRatpackSpec
 
-import static org.ratpackframework.groovy.util.Closures.action
+import static org.ratpackframework.groovy.Util.action
 
 abstract class RatpackGroovyDslSpec extends DefaultRatpackSpec {
 

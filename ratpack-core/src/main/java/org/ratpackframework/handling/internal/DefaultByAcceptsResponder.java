@@ -50,7 +50,7 @@ public class DefaultByAcceptsResponder implements ByAcceptsResponder {
     return this;
   }
 
-  public void send() {
+  public void build() {
     if (first == null) {
       exchange.clientError(406);
       return;

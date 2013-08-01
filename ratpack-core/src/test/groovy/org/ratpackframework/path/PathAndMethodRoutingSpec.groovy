@@ -16,30 +16,31 @@
 
 package org.ratpackframework.path
 
-import org.ratpackframework.test.DefaultRatpackSpec
+import org.ratpackframework.test.groovy.RatpackGroovyDslSpec
 
-import static org.ratpackframework.groovy.handling.ClosureHandlers.*
+import static org.ratpackframework.groovy.Util.with
 
-class PathAndMethodRoutingSpec extends DefaultRatpackSpec {
+
+class PathAndMethodRoutingSpec extends RatpackGroovyDslSpec {
 
   def "can use path and method routes"() {
     when:
     app {
       handlers {
-        add get("a/b/c") {
+        get("a/b/c") {
           response.setHeader("X-value", request.query)
           response.send request.query
         }
-        add path(":a/:b") {
-          add handler(":c/:d") {
-            methods.
-                post {
-                  response.send new LinkedHashMap(allPathTokens).toString()
-                }.
-                put {
-                  response.send allPathTokens.collectEntries { [it.key.toUpperCase(), it.value.toUpperCase()] }.toString()
-                }.
-                send()
+        prefix(":a/:b") {
+          path(":c/:d") {
+            with(methods) {
+              post {
+                response.send new LinkedHashMap(allPathTokens).toString()
+              }
+              put {
+                response.send allPathTokens.collectEntries { [it.key.toUpperCase(), it.value.toUpperCase()] }.toString()
+              }
+            }
           }
         }
       }
@@ -50,7 +51,7 @@ class PathAndMethodRoutingSpec extends DefaultRatpackSpec {
     resetRequest()
     postText("1/2/3/4") == "[a:1, b:2, c:3, d:4]"
     putText("5/6/7/8") == "[A:5, B:6, C:7, D:8]"
-    with(head("a/b/c?head")) {
+    this.with(head("a/b/c?head")) {
       statusCode == 200
       getHeader("X-value") == "head"
       asByteArray().length == 0
@@ -61,14 +62,16 @@ class PathAndMethodRoutingSpec extends DefaultRatpackSpec {
     when:
     app {
       handlers {
-        add handler("foo") {
+        path("foo") {
           def prefix = "common"
-
-          methods.get {
-            response.send("$prefix: get")
-          }.post {
-            response.send("$prefix: post")
-          }.send()
+          with(methods) {
+            get {
+              response.send("$prefix: get")
+            }
+            post {
+              response.send("$prefix: post")
+            }
+          }
         }
       }
     }

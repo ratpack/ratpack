@@ -75,7 +75,7 @@ public class DefaultByMethodResponder implements ByMethodResponder {
     }
   }
 
-  public void send() {
+  public void build() {
     List<Handler> handlers = new ArrayList<Handler>(runnables.size() + 1);
     for (Map.Entry<String, Runnable> entry : runnables.entrySet()) {
       handlers.add(new ByMethodHandler(entry.getKey(), entry.getValue()));

@@ -21,6 +21,7 @@ import org.ratpackframework.error.internal.DefaultServerErrorHandler
 import org.ratpackframework.file.FileSystemBinding
 import org.ratpackframework.file.internal.DefaultFileSystemBinding
 import org.ratpackframework.test.groovy.RatpackGroovyDslSpec
+import static org.ratpackframework.groovy.Util.with
 
 class BasicGroovyDslSpec extends RatpackGroovyDslSpec {
 
@@ -90,12 +91,14 @@ class BasicGroovyDslSpec extends RatpackGroovyDslSpec {
       handlers {
         path("foo") {
           def prefix = "common"
-
-          methods.get {
-            response.send("$prefix: get")
-          }.post {
-            response.send("$prefix: post")
-          }.send()
+          with(methods) {
+            get {
+              response.send("$prefix: get")
+            }
+            post {
+              response.send("$prefix: post")
+            }
+          }
         }
       }
     }

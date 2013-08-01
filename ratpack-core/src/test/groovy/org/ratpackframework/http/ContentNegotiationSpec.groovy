@@ -16,26 +16,30 @@
 
 package org.ratpackframework.http
 
+import static org.ratpackframework.groovy.Util.with
 import org.ratpackframework.test.groovy.RatpackGroovyDslSpec
+
+
 
 class ContentNegotiationSpec extends RatpackGroovyDslSpec {
 
   def "can content negotiate"() {
     when:
     app {
+
       handlers {
         get {
-          accepts.
-          type("application/json") {
-            response.send "json"
-          }.
-          type("text/html") {
-            response.send "html"
-          }.
-          send()
+          with(accepts) {
+            type("application/json") {
+              response.send "json"
+            }
+            type("text/html") {
+              response.send "html"
+            }
+          }
         }
         get("noneRegistered") {
-          accepts.send()
+          with(accepts) {}
         }
       }
     }

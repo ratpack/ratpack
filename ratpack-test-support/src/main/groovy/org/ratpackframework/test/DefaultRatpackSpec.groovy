@@ -17,7 +17,6 @@
 package org.ratpackframework.test
 
 import com.google.inject.Module
-import org.ratpackframework.server.DefaultRatpackServerSettings
 import org.ratpackframework.server.RatpackServer
 import org.ratpackframework.server.RatpackServerBuilder
 import org.ratpackframework.guice.internal.GuiceBackedHandlerFactory
@@ -29,8 +28,8 @@ import org.ratpackframework.handling.Chain
 import org.ratpackframework.util.Action
 
 import static Handlers.chain
-import static org.ratpackframework.groovy.util.Closures.action
-import static org.ratpackframework.groovy.util.Closures.configureDelegateFirst
+import static org.ratpackframework.groovy.Util.action
+import static org.ratpackframework.groovy.Util.configureDelegateFirst
 
 abstract class DefaultRatpackSpec extends InternalRatpackSpec {
 
