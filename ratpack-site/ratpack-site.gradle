@@ -65,7 +65,7 @@ processResources {
 }
 
 run {
-  dependsOn configureRun, prepareContent
+  dependsOn configureRun
 }
 
 installApp {
@@ -78,7 +78,7 @@ task compileCoffee(type: CoffeeScriptCompile) {
   destinationDir file('src/ratpack/public/scripts')
 }
 
-processResources.inputs.files compileCoffee
+processResources.inputs.files compileCoffee, compileSass, prepareContent
 
 compass {
   cssDir = file('src/ratpack/public/styles')
