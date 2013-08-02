@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.util.internal;
+package org.ratpackframework.util;
 
 /**
  * An object that transforms an object into another.

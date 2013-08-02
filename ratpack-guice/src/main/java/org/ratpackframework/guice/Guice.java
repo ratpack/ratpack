@@ -16,11 +16,14 @@
 
 package org.ratpackframework.guice;
 
+import com.google.inject.Injector;
 import org.ratpackframework.guice.internal.DefaultGuiceBackedHandlerFactory;
 import org.ratpackframework.guice.internal.InjectingHandler;
 import org.ratpackframework.handling.Handler;
 import org.ratpackframework.server.RatpackServerSettings;
 import org.ratpackframework.util.Action;
+import org.ratpackframework.util.Transformer;
+import org.ratpackframework.util.internal.ConstantTransformer;
 
 /**
  * Utilities for creating Guice backed handlers.
@@ -144,7 +147,12 @@ public abstract class Guice {
    * @return A handler that makes the injector and its content available to the given handler
    */
   public static Handler handler(RatpackServerSettings serverSettings, Action<? super ModuleRegistry> moduleConfigurer, Handler handler) {
-    return new DefaultGuiceBackedHandlerFactory(serverSettings).create(moduleConfigurer, handler);
+    return handler(serverSettings, moduleConfigurer, new ConstantTransformer<Handler>(handler));
   }
+
+  public static Handler handler(RatpackServerSettings serverSettings, Action<? super ModuleRegistry> moduleConfigurer, Transformer<? super Injector, ? extends Handler> injectorTransformer) {
+    return new DefaultGuiceBackedHandlerFactory(serverSettings).create(moduleConfigurer, injectorTransformer);
+  }
+
 
 }

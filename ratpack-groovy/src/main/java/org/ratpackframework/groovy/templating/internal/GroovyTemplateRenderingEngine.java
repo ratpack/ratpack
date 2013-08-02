@@ -24,7 +24,7 @@ import org.ratpackframework.groovy.script.internal.ScriptEngine;
 import org.ratpackframework.groovy.templating.TemplatingConfig;
 import org.ratpackframework.util.internal.Result;
 import org.ratpackframework.util.internal.ResultAction;
-import org.ratpackframework.util.internal.Transformer;
+import org.ratpackframework.util.Transformer;
 
 import javax.inject.Inject;
 import java.io.File;

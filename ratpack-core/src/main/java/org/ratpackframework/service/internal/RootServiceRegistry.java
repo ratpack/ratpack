@@ -26,6 +26,10 @@ public class RootServiceRegistry extends ServiceRegistrySupport {
     this.objects = objects;
   }
 
+  public RootServiceRegistry() {
+    this(ImmutableList.of());
+  }
+
   @Override
   public String toString() {
     return "RootServiceRegistry{" + objects + '}';

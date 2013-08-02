@@ -16,13 +16,12 @@
 
 package org.ratpackframework.test.groovy
 
+import com.google.inject.Injector
 import org.ratpackframework.groovy.handling.Chain
-import org.ratpackframework.groovy.handling.internal.GroovyDslChainActionTransformer
+import org.ratpackframework.groovy.internal.InjectorHandlerTransformer
 import org.ratpackframework.handling.Handler
-import org.ratpackframework.handling.internal.ChainBuilder
 import org.ratpackframework.test.DefaultRatpackSpec
-
-import static org.ratpackframework.groovy.Util.action
+import org.ratpackframework.util.Transformer
 
 abstract class RatpackGroovyDslSpec extends DefaultRatpackSpec {
 
@@ -31,7 +30,7 @@ abstract class RatpackGroovyDslSpec extends DefaultRatpackSpec {
   }
 
   @Override
-  protected Handler createHandler() {
-    ChainBuilder.INSTANCE.buildHandler(GroovyDslChainActionTransformer.INSTANCE, action(handlersClosure))
+  protected Transformer<Injector, Handler> createHandlerTransformer() {
+    new InjectorHandlerTransformer(handlersClosure);
   }
 }

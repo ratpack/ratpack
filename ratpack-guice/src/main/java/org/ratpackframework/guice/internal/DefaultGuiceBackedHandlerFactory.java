@@ -25,6 +25,7 @@ import org.ratpackframework.guice.ModuleRegistry;
 import org.ratpackframework.handling.Handler;
 import org.ratpackframework.server.RatpackServerSettings;
 import org.ratpackframework.util.Action;
+import org.ratpackframework.util.Transformer;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -38,7 +39,7 @@ public class DefaultGuiceBackedHandlerFactory implements GuiceBackedHandlerFacto
     this.serverSettings = serverSettings;
   }
 
-  public Handler create(Action<? super ModuleRegistry> modulesAction, Handler handler) {
+  public Handler create(Action<? super ModuleRegistry> modulesAction, Transformer<? super Injector, ? extends Handler> injectorTransformer) {
     ModuleRegistry moduleRegistry = new DefaultModuleRegistry();
 
     registerDefaultModules(moduleRegistry);
@@ -61,7 +62,7 @@ public class DefaultGuiceBackedHandlerFactory implements GuiceBackedHandlerFacto
       injector = Guice.createInjector(masterModule);
     }
 
-    Handler decorated = handler;
+    Handler decorated = injectorTransformer.transform(injector);
 
     List<Module> modulesReversed = new ArrayList<Module>(modules);
     Collections.reverse(modulesReversed);

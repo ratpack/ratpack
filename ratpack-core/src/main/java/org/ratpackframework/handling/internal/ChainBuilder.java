@@ -19,7 +19,7 @@ package org.ratpackframework.handling.internal;
 import com.google.common.collect.ImmutableList;
 import org.ratpackframework.handling.Handler;
 import org.ratpackframework.util.Action;
-import org.ratpackframework.util.internal.Transformer;
+import org.ratpackframework.util.Transformer;
 
 import java.util.LinkedList;
 import java.util.List;

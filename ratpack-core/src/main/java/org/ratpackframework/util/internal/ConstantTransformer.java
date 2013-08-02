@@ -14,20 +14,20 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.groovy.handling.internal;
+package org.ratpackframework.util.internal;
 
-import org.ratpackframework.groovy.handling.Chain;
-import org.ratpackframework.handling.Handler;
 import org.ratpackframework.util.Transformer;
 
-import java.util.List;
+public class ConstantTransformer<T> implements Transformer<Object, T> {
 
-public class GroovyDslChainActionTransformer implements Transformer<List<Handler>, Chain> {
+  private final T thing;
 
-  public static final Transformer<List<Handler>, Chain> INSTANCE = new GroovyDslChainActionTransformer();
+  public ConstantTransformer(T thing) {
+    this.thing = thing;
+  }
 
-  public Chain transform(List<Handler> storage) {
-    return new DefaultChain(storage);
+  public T transform(Object from) {
+    return thing;
   }
 
 }

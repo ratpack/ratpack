@@ -17,40 +17,19 @@
 package org.ratpackframework.groovy.handling.internal;
 
 import groovy.lang.Closure;
+import org.ratpackframework.groovy.internal.ClosureInvoker;
 import org.ratpackframework.handling.Exchange;
 import org.ratpackframework.handling.Handler;
-import org.ratpackframework.handling.internal.ServiceExtractor;
-
-import java.util.List;
 
 public class ClosureBackedHandler implements Handler {
 
-  private final Closure<?> closure;
-  private final List<Class<?>> parameterTypes;
-  private final boolean supportsExhangeParam;
+  private final ClosureInvoker<?, Exchange> invoker;
 
   public ClosureBackedHandler(Closure<?> closure) {
-    this.closure = (Closure<?>) closure.clone();
-    this.supportsExhangeParam = closure.getMaximumNumberOfParameters() > 0;
-    closure.setDelegate(null);
-
-    this.parameterTypes = ClosureHandlerParameterListInspector.retrieveParameterTypes(this.closure);
+    this.invoker = new ClosureInvoker<Object, Exchange>(closure);
   }
 
   public void handle(Exchange exchange) {
-    Closure<?> exchangeInstance = (Closure<?>) closure.clone();
-    exchangeInstance.setDelegate(exchange);
-    exchangeInstance.setResolveStrategy(Closure.DELEGATE_ONLY);
-
-    if (parameterTypes.isEmpty()) {
-      if (supportsExhangeParam) {
-        exchangeInstance.call(exchange);
-      } else {
-        exchangeInstance.call();
-      }
-    } else {
-      Object[] services = ServiceExtractor.extract(parameterTypes, exchange);
-      exchangeInstance.call(services);
-    }
+    invoker.invoke(exchange, exchange, Closure.DELEGATE_FIRST);
   }
 }

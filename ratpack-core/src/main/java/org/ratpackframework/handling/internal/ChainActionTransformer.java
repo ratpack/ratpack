@@ -18,7 +18,7 @@ package org.ratpackframework.handling.internal;
 
 import org.ratpackframework.handling.Chain;
 import org.ratpackframework.handling.Handler;
-import org.ratpackframework.util.internal.Transformer;
+import org.ratpackframework.util.Transformer;
 
 import java.util.List;
 

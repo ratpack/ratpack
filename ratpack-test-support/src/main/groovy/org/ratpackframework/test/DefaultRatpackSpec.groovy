@@ -16,6 +16,7 @@
 
 package org.ratpackframework.test
 
+import com.google.inject.Injector
 import com.google.inject.Module
 import org.ratpackframework.server.RatpackServer
 import org.ratpackframework.server.RatpackServerBuilder
@@ -26,6 +27,8 @@ import org.ratpackframework.handling.Handler
 import org.ratpackframework.handling.Handlers
 import org.ratpackframework.handling.Chain
 import org.ratpackframework.util.Action
+import org.ratpackframework.util.Transformer
+import org.ratpackframework.util.internal.ConstantTransformer
 
 import static Handlers.chain
 import static org.ratpackframework.groovy.Util.action
@@ -49,7 +52,7 @@ abstract class DefaultRatpackSpec extends InternalRatpackSpec {
   @Override
   protected RatpackServer createServer() {
     GuiceBackedHandlerFactory appFactory = createAppFactory()
-    def handler = createHandler()
+    def handler = createHandlerTransformer()
     def modulesAction = createModulesAction()
     Handler appHandler = appFactory.create(modulesAction, handler)
 
@@ -72,8 +75,8 @@ abstract class DefaultRatpackSpec extends InternalRatpackSpec {
     }
   }
 
-  protected Handler createHandler() {
-    chain(action(handlersClosure))
+  protected Transformer<Injector, Handler> createHandlerTransformer() {
+    new ConstantTransformer(chain(action(handlersClosure)))
   }
 
 }

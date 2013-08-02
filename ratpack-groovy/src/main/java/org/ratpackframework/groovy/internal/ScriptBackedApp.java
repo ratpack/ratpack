@@ -20,14 +20,11 @@ import groovy.lang.Closure;
 import groovy.lang.Script;
 import io.netty.buffer.ByteBuf;
 import org.ratpackframework.groovy.Util;
-import org.ratpackframework.groovy.handling.Chain;
-import org.ratpackframework.groovy.handling.internal.GroovyDslChainActionTransformer;
 import org.ratpackframework.groovy.script.internal.ScriptEngine;
 import org.ratpackframework.guice.ModuleRegistry;
 import org.ratpackframework.guice.internal.GuiceBackedHandlerFactory;
 import org.ratpackframework.handling.Exchange;
 import org.ratpackframework.handling.Handler;
-import org.ratpackframework.handling.internal.ChainBuilder;
 import org.ratpackframework.reload.internal.ReloadableFileBackedFactory;
 import org.ratpackframework.util.Action;
 import org.ratpackframework.util.internal.Factory;
@@ -67,12 +64,11 @@ public class ScriptBackedApp implements Handler {
 
           RatpackScriptBacking.withBacking(backing, runScript);
 
-          Action<ModuleRegistry> modulesAction = Util.action(ModuleRegistry.class, ratpack.getModulesConfigurer());
-          Action<Chain> chainAction = Util.action(Chain.class, ratpack.getHandlersConfigurer());
+          Closure<?> modulesConfigurer = ratpack.getModulesConfigurer();
+          Closure<?> handlersConfigurer = ratpack.getHandlersConfigurer();
 
-          Handler chainBuildingHandler = ChainBuilder.INSTANCE.buildHandler(GroovyDslChainActionTransformer.INSTANCE, chainAction);
-
-          return appFactory.create(modulesAction, chainBuildingHandler);
+          Action<ModuleRegistry> modulesAction = Util.action(ModuleRegistry.class, modulesConfigurer);
+          return appFactory.create(modulesAction, new InjectorHandlerTransformer(handlersConfigurer));
 
         } catch (Exception e) {
           throw new RuntimeException(e);
