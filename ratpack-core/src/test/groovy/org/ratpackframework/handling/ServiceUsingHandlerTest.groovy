@@ -114,6 +114,6 @@ class ServiceUsingHandlerTest extends DefaultRatpackSpec {
     }
 
     then:
-    text =~ "No object for type 'java.lang.Exception' in service registry"
+    text =~ "No object for type 'java.lang.Exception' in registry"
   }
 }

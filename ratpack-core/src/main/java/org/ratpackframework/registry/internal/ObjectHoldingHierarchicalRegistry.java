@@ -14,24 +14,24 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.service.internal;
+package org.ratpackframework.registry.internal;
 
-import org.ratpackframework.service.ServiceRegistry;
+import org.ratpackframework.registry.Registry;
 
 /**
  * A simple service that
  */
-public class ObjectHoldingHierarchicalServiceRegistry extends HierarchicalServiceRegistrySupport {
+public class ObjectHoldingHierarchicalRegistry extends HierarchicalRegistrySupport {
 
   private final Object value;
   private final Class<?> type;
 
   @SuppressWarnings("unchecked")
-  public ObjectHoldingHierarchicalServiceRegistry(ServiceRegistry parent, Object value) {
+  public ObjectHoldingHierarchicalRegistry(Registry parent, Object value) {
     this(parent, (Class<? super Object>) value.getClass(), value);
   }
 
-  public <T> ObjectHoldingHierarchicalServiceRegistry(ServiceRegistry parent, Class<? super T> type, T value) {
+  public <T> ObjectHoldingHierarchicalRegistry(Registry parent, Class<? super T> type, T value) {
     super(parent);
     this.value = value;
     this.type = type;

@@ -17,11 +17,10 @@
 package org.ratpackframework.handling;
 
 import org.ratpackframework.api.NonBlocking;
-import org.ratpackframework.api.Nullable;
 import org.ratpackframework.http.Request;
 import org.ratpackframework.http.Response;
-import org.ratpackframework.service.NotInServiceRegistryException;
-import org.ratpackframework.service.ServiceRegistry;
+import org.ratpackframework.registry.NotInRegistryException;
+import org.ratpackframework.registry.Registry;
 
 import java.io.File;
 import java.util.List;
@@ -64,7 +63,7 @@ import java.util.Map;
  * for a portion of the application.
  * </p>
  */
-public interface Exchange extends ServiceRegistry {
+public interface Exchange extends Registry {
 
   /**
    * The HTTP request.
@@ -79,30 +78,6 @@ public interface Exchange extends ServiceRegistry {
    * @return The HTTP response.
    */
   Response getResponse();
-
-  /**
-   * Shorthand for {@link org.ratpackframework.service.ServiceRegistry#get(Class) getServiceRegistry().get(type)}.
-   * <p>
-   * The service is dependent on processing that has happened prior in the handling pipeline.
-   *
-   * @param type The type of object to fetch from the service
-   * @param <T> The type of object to fetch from the service
-   * @return An object of the requested type
-   * @throws org.ratpackframework.service.NotInServiceRegistryException if no object of that type could be supplied by the service
-   */
-  <T> T get(Class<T> type) throws NotInServiceRegistryException;
-
-  /**
-   * Shorthand for {@link org.ratpackframework.service.ServiceRegistry#maybeGet(Class) getServiceRegistry().maybeGet(type)}.
-   * <p>
-   * The service is dependent on processing that has happened prior in the handling pipeline.
-   *
-   * @param type The type of object to fetch from the service
-   * @param <T> The type of object to fetch from the service
-   * @return An object of the requested type, or {@code null} if an object of the given type could not be supplied by the service
-   */
-  @Nullable
-  <T> T maybeGet(Class<T> type);
 
   /**
    * Delegate handling to the next handler in line.
@@ -123,17 +98,17 @@ public interface Exchange extends ServiceRegistry {
   void insert(List<Handler> handlers);
 
   /**
-   * Inserts some handlers into the pipeline to execute with the given service registry, then delegates to the first.
+   * Inserts some handlers into the pipeline to execute with the given registry, then delegates to the first.
    * <p>
-   * The given service registry is only applicable to the inserted handlers.
+   * The given registry is only applicable to the inserted handlers.
    * <p>
-   * Almost always, the service registry should be a super set of the current service registry.
+   * Almost always, the registry should be a super set of the current registry.
    *
-   * @param serviceRegistry The service registry for the inserted handlers
+   * @param registry The registry for the inserted handlers
    * @param handlers The handlers to insert
    */
   @NonBlocking
-  void insert(ServiceRegistry serviceRegistry, List<Handler> handlers);
+  void insert(Registry registry, List<Handler> handlers);
 
   /**
    * Inserts some handlers into the pipeline to execute with the given service, then delegates to the first.
@@ -183,25 +158,25 @@ public interface Exchange extends ServiceRegistry {
    * Forwards the exception to the {@link org.ratpackframework.error.ServerErrorHandler} in this service.
    * <p>
    * The default configuration of Ratpack includes a {@link org.ratpackframework.error.ServerErrorHandler} in all contexts.
-   * A {@link org.ratpackframework.service.NotInServiceRegistryException} will only be thrown if a very custom service setup is being used.
+   * A {@link org.ratpackframework.registry.NotInRegistryException} will only be thrown if a very custom service setup is being used.
    *
    * @param exception The exception that occurred
-   * @throws org.ratpackframework.service.NotInServiceRegistryException if no {@link org.ratpackframework.error.ServerErrorHandler} can be found in the service
+   * @throws NotInRegistryException if no {@link org.ratpackframework.error.ServerErrorHandler} can be found in the service
    */
   @NonBlocking
-  void error(Exception exception) throws NotInServiceRegistryException;
+  void error(Exception exception) throws NotInRegistryException;
 
   /**
    * Forwards the error to the {@link org.ratpackframework.error.ClientErrorHandler} in this service.
    *
    * The default configuration of Ratpack includes a {@link org.ratpackframework.error.ClientErrorHandler} in all contexts.
-   * A {@link org.ratpackframework.service.NotInServiceRegistryException} will only be thrown if a very custom service setup is being used.
+   * A {@link org.ratpackframework.registry.NotInRegistryException} will only be thrown if a very custom service setup is being used.
    *
    * @param statusCode The 4xx range status code that indicates the error type
-   * @throws org.ratpackframework.service.NotInServiceRegistryException if no {@link org.ratpackframework.error.ClientErrorHandler} can be found in the service
+   * @throws NotInRegistryException if no {@link org.ratpackframework.error.ClientErrorHandler} can be found in the service
    */
   @NonBlocking
-  void clientError(int statusCode) throws NotInServiceRegistryException;
+  void clientError(int statusCode) throws NotInRegistryException;
 
   /**
    * Executes the given runnable in a try/catch, where exceptions are given to {@link #error(Exception)}.
@@ -221,9 +196,9 @@ public interface Exchange extends ServiceRegistry {
    * Shorthand for {@code getServiceRegistry().get(PathBinding.class).getPathTokens()}.
    *
    * @return The path tokens of the current {@link org.ratpackframework.path.PathBinding} in this exchange's service
-   * @throws org.ratpackframework.service.NotInServiceRegistryException if there is no {@link org.ratpackframework.path.PathBinding} in the current service
+   * @throws NotInRegistryException if there is no {@link org.ratpackframework.path.PathBinding} in the current service
    */
-  Map<String, String> getPathTokens() throws NotInServiceRegistryException;
+  Map<String, String> getPathTokens() throws NotInRegistryException;
 
   /**
    * All of path tokens of the current {@link org.ratpackframework.path.PathBinding} in this exchange's service.
@@ -231,9 +206,9 @@ public interface Exchange extends ServiceRegistry {
    * Shorthand for {@code getServiceRegistry().get(PathBinding.class).getAllPathTokens()}.
    *
    * @return The path tokens of the current {@link org.ratpackframework.path.PathBinding} in this exchange's service
-   * @throws org.ratpackframework.service.NotInServiceRegistryException if there is no {@link org.ratpackframework.path.PathBinding} in the current service
+   * @throws NotInRegistryException if there is no {@link org.ratpackframework.path.PathBinding} in the current service
    */
-  Map<String, String> getAllPathTokens() throws NotInServiceRegistryException;
+  Map<String, String> getAllPathTokens() throws NotInRegistryException;
 
   /**
    * Gets the file relative to the current {@link org.ratpackframework.file.FileSystemBinding} in this exchange's service.
@@ -241,12 +216,12 @@ public interface Exchange extends ServiceRegistry {
    * Shorthand for {@code getServiceRegistry().get(FileSystemBinding.class).file(path)}.
    * <p>
    * The default configuration of Ratpack includes a {@link org.ratpackframework.file.FileSystemBinding} in all contexts.
-   * A {@link org.ratpackframework.service.NotInServiceRegistryException} will only be thrown if a very custom service setup is being used.
+   * A {@link org.ratpackframework.registry.NotInRegistryException} will only be thrown if a very custom service setup is being used.
    *
    * @param path The path to pass to the {@link org.ratpackframework.file.FileSystemBinding#file(String)} method.
    * @return The file relative to the current {@link org.ratpackframework.file.FileSystemBinding} in this exchange's service
-   * @throws org.ratpackframework.service.NotInServiceRegistryException if there is no {@link org.ratpackframework.file.FileSystemBinding} in the current service
+   * @throws NotInRegistryException if there is no {@link org.ratpackframework.file.FileSystemBinding} in the current service
    */
-  File file(String path) throws NotInServiceRegistryException;
+  File file(String path) throws NotInRegistryException;
 
 }

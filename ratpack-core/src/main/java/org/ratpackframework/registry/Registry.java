@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.service;
+package org.ratpackframework.registry;
 
 import org.ratpackframework.api.Nullable;
 
 /**
  * An object that can potentially provide objects of given types.
  *
- * A service object services as a kind of service locator. A service can be requested to provide an object of a certain type.
+ * A registry acts as a kind of service locator. A registry can be requested to provide an object of a certain type.
  * <p>
- * ServiceRegistry objects must be threadsafe.
+ * Registry objects must be threadsafe.
  */
-public interface ServiceRegistry {
+public interface Registry {
 
   /**
    * Provides an object of the specified type, or throws an exception if no object of that type is available.
@@ -33,9 +33,9 @@ public interface ServiceRegistry {
    * @param type The type of the object to provide
    * @param <T> The type of the object to provide
    * @return An object of the specified type
-   * @throws NotInServiceRegistryException If no object of this type can be returned
+   * @throws org.ratpackframework.registry.NotInRegistryException If no object of this type can be returned
    */
-  <T> T get(Class<T> type) throws NotInServiceRegistryException;
+  <T> T get(Class<T> type) throws NotInRegistryException;
 
   /**
    * Does the same thing as {@link #get(Class)}, except returns null instead of throwing an exception.

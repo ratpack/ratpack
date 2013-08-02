@@ -19,9 +19,9 @@ package org.ratpackframework.handling.internal;
 import io.netty.channel.ChannelHandlerContext;
 import org.ratpackframework.handling.ByAcceptsResponder;
 import org.ratpackframework.handling.ByMethodResponder;
+import org.ratpackframework.registry.Registry;
 import org.ratpackframework.server.RatpackServerSettings;
-import org.ratpackframework.service.ServiceRegistry;
-import org.ratpackframework.service.internal.ObjectHoldingHierarchicalServiceRegistry;
+import org.ratpackframework.registry.internal.ObjectHoldingHierarchicalRegistry;
 import org.ratpackframework.error.ClientErrorHandler;
 import org.ratpackframework.error.ServerErrorHandler;
 import org.ratpackframework.file.FileSystemBinding;
@@ -44,14 +44,14 @@ public class DefaultExchange implements Exchange {
   private final ChannelHandlerContext channelHandlerContext;
 
   private final Handler next;
-  private final ServiceRegistry serviceRegistry;
+  private final Registry registry;
 
-  public DefaultExchange(Request request, Response response, RatpackServerSettings serverSettings, ChannelHandlerContext channelHandlerContext, ServiceRegistry serviceRegistry, Handler next) {
+  public DefaultExchange(Request request, Response response, RatpackServerSettings serverSettings, ChannelHandlerContext channelHandlerContext, Registry registry, Handler next) {
     this.request = request;
     this.response = response;
     this.serverSettings = serverSettings;
     this.channelHandlerContext = channelHandlerContext;
-    this.serviceRegistry = serviceRegistry;
+    this.registry = registry;
     this.next = next;
   }
 
@@ -64,11 +64,11 @@ public class DefaultExchange implements Exchange {
   }
 
   public <T> T get(Class<T> type) {
-    return serviceRegistry.get(type);
+    return registry.get(type);
   }
 
   public <T> T maybeGet(Class<T> type) {
-    return serviceRegistry.maybeGet(type);
+    return registry.maybeGet(type);
   }
 
   public void next() {
@@ -76,19 +76,19 @@ public class DefaultExchange implements Exchange {
   }
 
   public void insert(List<Handler> handlers) {
-    doNext(this, serviceRegistry, handlers, 0, next);
+    doNext(this, registry, handlers, 0, next);
   }
 
-  public void insert(ServiceRegistry serviceRegistry, List<Handler> handlers) {
-    doNext(this, serviceRegistry, handlers, 0, next);
+  public void insert(Registry registry, List<Handler> handlers) {
+    doNext(this, registry, handlers, 0, next);
   }
 
   public <P, T extends P> void insert(Class<P> publicType, T implementation, List<Handler> handlers) {
-    doNext(this, new ObjectHoldingHierarchicalServiceRegistry(serviceRegistry, publicType, implementation), handlers, 0, next);
+    doNext(this, new ObjectHoldingHierarchicalRegistry(registry, publicType, implementation), handlers, 0, next);
   }
 
   public void insert(Object object, List<Handler> handlers) {
-    doNext(this, new ObjectHoldingHierarchicalServiceRegistry(serviceRegistry, object), handlers, 0, next);
+    doNext(this, new ObjectHoldingHierarchicalRegistry(registry, object), handlers, 0, next);
   }
 
   public Map<String, String> getPathTokens() {
@@ -132,8 +132,8 @@ public class DefaultExchange implements Exchange {
     return new DefaultByAcceptsResponder(this);
   }
 
-  protected void doNext(final Exchange parentExchange, final ServiceRegistry serviceRegistry, final List<Handler> handlers, final int index, final Handler exhausted) {
-    assert serviceRegistry != null;
+  protected void doNext(final Exchange parentExchange, final Registry registry, final List<Handler> handlers, final int index, final Handler exhausted) {
+    assert registry != null;
     if (index == handlers.size()) {
       try {
         exhausted.handle(parentExchange);
@@ -149,10 +149,10 @@ public class DefaultExchange implements Exchange {
       Handler handler = handlers.get(index);
       Handler nextHandler = new Handler() {
         public void handle(Exchange exchange) {
-          ((DefaultExchange) exchange).doNext(parentExchange, serviceRegistry, handlers, index + 1, exhausted);
+          ((DefaultExchange) exchange).doNext(parentExchange, registry, handlers, index + 1, exhausted);
         }
       };
-      DefaultExchange childExchange = new DefaultExchange(request, response, serverSettings, channelHandlerContext, serviceRegistry, nextHandler);
+      DefaultExchange childExchange = new DefaultExchange(request, response, serverSettings, channelHandlerContext, registry, nextHandler);
       try {
         handler.handle(childExchange);
       } catch (Exception e) {

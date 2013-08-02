@@ -14,22 +14,22 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.service.internal;
+package org.ratpackframework.registry.internal;
 
-import org.ratpackframework.service.ServiceRegistry;
+import org.ratpackframework.registry.Registry;
 import org.ratpackframework.util.internal.Factory;
 
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class LazyHierarchicalServiceRegistry extends HierarchicalServiceRegistrySupport {
+public class LazyHierarchicalRegistry extends HierarchicalRegistrySupport {
 
   private final Class<?> type;
   private final Factory<?> factory;
   private Object object;
   private Lock lock = new ReentrantLock();
 
-  public <T> LazyHierarchicalServiceRegistry(ServiceRegistry parent, Class<T> type, Factory<? extends T> factory) {
+  public <T> LazyHierarchicalRegistry(Registry parent, Class<T> type, Factory<? extends T> factory) {
     super(parent);
     this.type = type;
     this.factory = factory;
@@ -61,6 +61,6 @@ public class LazyHierarchicalServiceRegistry extends HierarchicalServiceRegistry
 
   @Override
   protected String describe() {
-    return "LazyHierarchicalServiceRegistry{" + type.getName() + "}";
+    return "LazyHierarchicalRegistry{" + type.getName() + "}";
   }
 }

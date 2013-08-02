@@ -14,25 +14,25 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.service.internal;
+package org.ratpackframework.registry.internal;
 
 import com.google.common.collect.ImmutableList;
 
-public class RootServiceRegistry extends ServiceRegistrySupport {
+public class RootRegistry extends RegistrySupport {
 
   private final ImmutableList<? extends Object> objects;
 
-  public RootServiceRegistry(ImmutableList<? extends Object> objects) {
+  public RootRegistry(ImmutableList<? extends Object> objects) {
     this.objects = objects;
   }
 
-  public RootServiceRegistry() {
+  public RootRegistry() {
     this(ImmutableList.of());
   }
 
   @Override
   public String toString() {
-    return "RootServiceRegistry{" + objects + '}';
+    return "RootRegistry{" + objects + '}';
   }
 
   protected <T> T doMaybeGet(Class<T> type) {

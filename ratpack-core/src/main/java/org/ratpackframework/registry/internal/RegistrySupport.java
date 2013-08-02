@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.service.internal;
+package org.ratpackframework.registry.internal;
 
-import org.ratpackframework.service.NotInServiceRegistryException;
-import org.ratpackframework.service.ServiceRegistry;
+import org.ratpackframework.registry.NotInRegistryException;
+import org.ratpackframework.registry.Registry;
 
-public abstract class ServiceRegistrySupport implements ServiceRegistry {
+public abstract class RegistrySupport implements Registry {
 
   protected abstract <T> T doMaybeGet(Class<T> type);
 
@@ -40,7 +40,7 @@ public abstract class ServiceRegistrySupport implements ServiceRegistry {
   public final <T> T get(Class<T> type) {
     T found = maybeGet(type);
     if (found == null) {
-      throw new NotInServiceRegistryException(this, type);
+      throw new NotInRegistryException(this, type);
     }
 
     return found;

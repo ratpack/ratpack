@@ -34,6 +34,6 @@ public class InjectorBindingHandler implements Handler {
   }
 
   public void handle(Exchange exchange) {
-    exchange.insert(new InjectorBackedHierarchicalServiceRegistry(exchange, injector), delegate);
+    exchange.insert(new InjectorBackedHierarchicalRegistry(exchange, injector), delegate);
   }
 }

@@ -20,11 +20,11 @@ import com.google.inject.Injector;
 import groovy.lang.Closure;
 import org.ratpackframework.groovy.handling.Chain;
 import org.ratpackframework.groovy.handling.internal.GroovyDslChainActionTransformer;
-import org.ratpackframework.guice.internal.InjectorBackedHierarchicalServiceRegistry;
+import org.ratpackframework.guice.internal.InjectorBackedHierarchicalRegistry;
 import org.ratpackframework.handling.Handler;
 import org.ratpackframework.handling.internal.ChainBuilder;
-import org.ratpackframework.service.ServiceRegistry;
-import org.ratpackframework.service.internal.RootServiceRegistry;
+import org.ratpackframework.registry.Registry;
+import org.ratpackframework.registry.internal.RootRegistry;
 import org.ratpackframework.util.Action;
 import org.ratpackframework.util.Transformer;
 
@@ -37,12 +37,12 @@ public class InjectorHandlerTransformer implements Transformer<Injector, Handler
   }
 
   public Handler transform(Injector injector) {
-    final ServiceRegistry serviceRegistry = new InjectorBackedHierarchicalServiceRegistry(new RootServiceRegistry(), injector);
+    final Registry registry = new InjectorBackedHierarchicalRegistry(new RootRegistry(), injector);
 
     Action<Chain> chainAction = new Action<Chain>() {
       public void execute(Chain chain) {
         ClosureInvoker<Object, Chain> closureInvoker = new ClosureInvoker<Object, Chain>(closure);
-        closureInvoker.invoke(serviceRegistry, chain, Closure.DELEGATE_FIRST);
+        closureInvoker.invoke(registry, chain, Closure.DELEGATE_FIRST);
       }
     };
 

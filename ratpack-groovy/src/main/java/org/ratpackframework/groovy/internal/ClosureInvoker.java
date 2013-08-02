@@ -19,7 +19,7 @@ package org.ratpackframework.groovy.internal;
 import com.google.common.collect.ImmutableList;
 import groovy.lang.Closure;
 import org.ratpackframework.handling.internal.ServiceExtractor;
-import org.ratpackframework.service.ServiceRegistry;
+import org.ratpackframework.registry.Registry;
 
 import java.util.Collections;
 import java.util.List;
@@ -40,7 +40,7 @@ public class ClosureInvoker<T, D> {
     this.parameterTypes = retrieveParameterTypes(this.closure);
   }
 
-  public <T> T invoke(ServiceRegistry serviceRegistry, D delegate, int resolveStrategy) {
+  public <T> T invoke(Registry registry, D delegate, int resolveStrategy) {
     @SuppressWarnings("unchecked")
     Closure<T> clone = (Closure<T>) closure.clone();
     clone.setDelegate(delegate);
@@ -53,7 +53,7 @@ public class ClosureInvoker<T, D> {
         return clone.call();
       }
     } else {
-      Object[] services = ServiceExtractor.extract(parameterTypes, serviceRegistry);
+      Object[] services = ServiceExtractor.extract(parameterTypes, registry);
       return clone.call(services);
     }
   }

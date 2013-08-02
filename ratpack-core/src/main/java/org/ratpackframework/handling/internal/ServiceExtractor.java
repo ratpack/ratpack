@@ -16,7 +16,7 @@
 
 package org.ratpackframework.handling.internal;
 
-import org.ratpackframework.service.ServiceRegistry;
+import org.ratpackframework.registry.Registry;
 
 import java.util.List;
 
@@ -25,16 +25,16 @@ public abstract class ServiceExtractor {
   private ServiceExtractor() {
   }
 
-  public static Object[] extract(List<Class<?>> serviceTypes, ServiceRegistry serviceRegistry) {
+  public static Object[] extract(List<Class<?>> serviceTypes, Registry registry) {
     Object[] services = new Object[serviceTypes.size()];
-    extract(serviceTypes, serviceRegistry, services, 0);
+    extract(serviceTypes, registry, services, 0);
     return services;
   }
 
-  public static void extract(List<Class<?>> serviceTypes, ServiceRegistry serviceRegistry, Object[] services, int startIndex) {
+  public static void extract(List<Class<?>> serviceTypes, Registry registry, Object[] services, int startIndex) {
     for (int i = 0; i < serviceTypes.size(); ++i) {
       Class<?> type = serviceTypes.get(i);
-      services[i + startIndex] = serviceRegistry.get(type);
+      services[i + startIndex] = registry.get(type);
     }
   }
 }

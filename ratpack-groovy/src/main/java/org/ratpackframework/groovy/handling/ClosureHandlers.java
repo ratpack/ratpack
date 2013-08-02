@@ -33,11 +33,11 @@ public abstract class ClosureHandlers {
     return new ClosureBackedHandler(handler);
   }
 
-  public static Handler service(final Object service, @DelegatesTo(value = Chain.class, strategy = Closure.DELEGATE_ONLY) final Closure<?> handlers) {
+  public static Handler register(final Object service, @DelegatesTo(value = Chain.class, strategy = Closure.DELEGATE_ONLY) final Closure<?> handlers) {
     return Handlers.service(service, chain(handlers));
   }
 
-  public static <T> Handler service(Class<? super T> type, T object, @DelegatesTo(value = Chain.class, strategy = Closure.DELEGATE_ONLY) final Closure<?> handlers) {
+  public static <T> Handler register(Class<? super T> type, T object, @DelegatesTo(value = Chain.class, strategy = Closure.DELEGATE_ONLY) final Closure<?> handlers) {
     return Handlers.service(type, object, chain(handlers));
   }
 

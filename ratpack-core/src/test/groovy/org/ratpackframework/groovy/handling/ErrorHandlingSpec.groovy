@@ -21,7 +21,7 @@ import org.ratpackframework.handling.Exchange
 import org.ratpackframework.test.DefaultRatpackSpec
 
 import static ClosureHandlers.get
-import static ClosureHandlers.service
+import static ClosureHandlers.register
 
 class ErrorHandlingSpec extends DefaultRatpackSpec {
 
@@ -56,7 +56,7 @@ class ErrorHandlingSpec extends DefaultRatpackSpec {
     when:
     app {
       handlers {
-        add service(ServerErrorHandler, errorHandler) {
+        add register(ServerErrorHandler, errorHandler) {
           add get {
             withErrorHandling new Thread({
               throw new Exception("thrown in forked thread")
@@ -87,10 +87,10 @@ class ErrorHandlingSpec extends DefaultRatpackSpec {
     when:
     app {
       handlers {
-        add service(ServerErrorHandler, errorHandler1) {
+        add register(ServerErrorHandler, errorHandler1) {
           add get { exchange ->
             withErrorHandling new Thread({
-              service(ServerErrorHandler, errorHandler2) {
+              register(ServerErrorHandler, errorHandler2) {
                 add get {
                   throw new Exception("down here")
                 }
@@ -121,8 +121,8 @@ class ErrorHandlingSpec extends DefaultRatpackSpec {
     when:
     app {
       handlers {
-        add service(ServerErrorHandler, errorHandler1) {
-          add service(ServerErrorHandler, errorHandler2) {
+        add register(ServerErrorHandler, errorHandler1) {
+          add register(ServerErrorHandler, errorHandler2) {
             add get("a") {
               throw new Exception("1")
             }
@@ -150,7 +150,7 @@ class ErrorHandlingSpec extends DefaultRatpackSpec {
     when:
     app {
       handlers {
-        add service(ServerErrorHandler, errorHandler) {
+        add register(ServerErrorHandler, errorHandler) {
           add get {
             throw new Exception("thrown")
           }

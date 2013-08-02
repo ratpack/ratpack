@@ -38,7 +38,7 @@ public abstract class Guice {
    * <p>
    * The handler instance is created by using the {@link com.google.inject.Injector#getInstance(Class)} method.
    * The injected instance is created lazily.
-   * For each request, the {@link com.google.inject.Injector} is retrieved from the exchange service registry.
+   * For each request, the {@link com.google.inject.Injector} is retrieved from the exchange registry.
    * An instance of the given handler type is then retrieved from the exchange.
    * <p>
    * To avoid having a new handler instance created each exchange, you should annotate the handler type with {@link javax.inject.Singleton}.
@@ -70,7 +70,7 @@ public abstract class Guice {
    * The handler returned from this method <b>is not</b> of the given type.
    * It is a kind of proxy that creates an instance of the specified type on demand.
    * <p>
-   * If there is no contextual {@link com.google.inject.Injector} for the exchange, a {@link org.ratpackframework.service.NotInServiceRegistryException} will be thrown.
+   * If there is no contextual {@link com.google.inject.Injector} for the exchange, a {@link org.ratpackframework.registry.NotInRegistryException} will be thrown.
    * This means that it only makes sense to use an injected handler like this if the application is Guice backed.
    * Such as when using a {@link #handler(RatpackServerSettings, Action, Handler)} handler as the root.
    *

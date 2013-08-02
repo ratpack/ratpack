@@ -19,14 +19,14 @@ package org.ratpackframework.guice.internal;
 import com.google.inject.Binding;
 import com.google.inject.Injector;
 import com.google.inject.Key;
-import org.ratpackframework.service.ServiceRegistry;
-import org.ratpackframework.service.internal.HierarchicalServiceRegistrySupport;
+import org.ratpackframework.registry.Registry;
+import org.ratpackframework.registry.internal.HierarchicalRegistrySupport;
 
-public class InjectorBackedHierarchicalServiceRegistry extends HierarchicalServiceRegistrySupport {
+public class InjectorBackedHierarchicalRegistry extends HierarchicalRegistrySupport {
 
   private final Injector injector;
 
-  public InjectorBackedHierarchicalServiceRegistry(ServiceRegistry parent, Injector injector) {
+  public InjectorBackedHierarchicalRegistry(Registry parent, Injector injector) {
     super(parent);
     this.injector = injector;
   }

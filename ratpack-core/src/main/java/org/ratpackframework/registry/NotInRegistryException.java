@@ -14,25 +14,25 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.service;
+package org.ratpackframework.registry;
 
 /**
- * Thrown when a request is made for an object that a service cannot provide.
+ * Thrown when a request is made for an object that a registry cannot provide.
  *
- * @see ServiceRegistry#get(Class)
+ * @see org.ratpackframework.registry.Registry#get(Class)
  */
-public class NotInServiceRegistryException extends RuntimeException {
+public class NotInRegistryException extends RuntimeException {
 
   private static final long serialVersionUID = 0;
 
   /**
    * Constructs the exception.
    *
-   * @param serviceRegistry The service registry that the object was requested of
+   * @param registry The registry that the object was requested of
    * @param type The requested type of the object
    */
-  public NotInServiceRegistryException(ServiceRegistry serviceRegistry, Class<?> type) {
-    super(String.format("No object for type '%s' in service registry: %s", type.getName(), serviceRegistry.toString()));
+  public NotInRegistryException(Registry registry, Class<?> type) {
+    super(String.format("No object for type '%s' in registry: %s", type.getName(), registry.toString()));
   }
 
 }
