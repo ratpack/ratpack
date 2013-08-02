@@ -18,13 +18,13 @@ package org.ratpackframework.groovy.templating.internal;
 
 import org.ratpackframework.error.ServerErrorHandler;
 import org.ratpackframework.groovy.templating.TemplateRenderer;
-import org.ratpackframework.handling.Exchange;
+import org.ratpackframework.handling.Context;
 
 public class TemplateRenderingServerErrorHandler implements ServerErrorHandler {
 
-  public void error(Exchange exchange, Exception exception) {
-    TemplateRenderer renderer = exchange.get(TemplateRenderer.class);
-    renderer.error(ExceptionToTemplateModel.transform(exchange.getRequest(), exception));
+  public void error(Context context, Exception exception) {
+    TemplateRenderer renderer = context.get(TemplateRenderer.class);
+    renderer.error(ExceptionToTemplateModel.transform(context.getRequest(), exception));
   }
 
 }

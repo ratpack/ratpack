@@ -18,7 +18,7 @@ package org.ratpackframework.file.internal;
 
 import com.google.common.collect.ImmutableList;
 import org.ratpackframework.file.FileSystemBinding;
-import org.ratpackframework.handling.Exchange;
+import org.ratpackframework.handling.Context;
 import org.ratpackframework.handling.Handler;
 import org.ratpackframework.http.Request;
 import org.ratpackframework.path.PathBinding;
@@ -36,13 +36,13 @@ public class TargetFileStaticAssetRequestHandler implements Handler {
     this.delegate = ImmutableList.of(delegate);
   }
 
-  public void handle(Exchange exchange) {
-    FileSystemBinding fileSystemBinding = exchange.get(FileSystemBinding.class);
+  public void handle(Context context) {
+    FileSystemBinding fileSystemBinding = context.get(FileSystemBinding.class);
 
-    Request request = exchange.getRequest();
+    Request request = context.getRequest();
 
     String path = request.getPath();
-    PathBinding pathBinding = exchange.maybeGet(PathBinding.class);
+    PathBinding pathBinding = context.maybeGet(PathBinding.class);
     if (pathBinding != null) {
       path = pathBinding.getPastBinding();
     }
@@ -66,6 +66,6 @@ public class TargetFileStaticAssetRequestHandler implements Handler {
     }
 
     FileSystemBinding newBinding = fileSystemBinding.binding(path);
-    exchange.insert(FileSystemBinding.class, newBinding, delegate);
+    context.insert(FileSystemBinding.class, newBinding, delegate);
   }
 }

@@ -17,7 +17,7 @@
 package org.ratpackframework.handling.internal;
 
 import io.netty.handler.codec.http.HttpHeaders;
-import org.ratpackframework.handling.Exchange;
+import org.ratpackframework.handling.Context;
 import org.ratpackframework.handling.ByAcceptsResponder;
 import org.ratpackframework.http.internal.MimeParse;
 
@@ -27,10 +27,10 @@ public class DefaultByAcceptsResponder implements ByAcceptsResponder {
 
   private final Map<String, Runnable> map = new LinkedHashMap<String, Runnable>(3);
   private String first;
-  private final Exchange exchange;
+  private final Context context;
 
-  public DefaultByAcceptsResponder(Exchange exchange) {
-    this.exchange = exchange;
+  public DefaultByAcceptsResponder(Context context) {
+    this.context = context;
   }
 
   public ByAcceptsResponder type(String mimeType, Runnable runnable) {
@@ -52,7 +52,7 @@ public class DefaultByAcceptsResponder implements ByAcceptsResponder {
 
   public void build() {
     if (first == null) {
-      exchange.clientError(406);
+      context.clientError(406);
       return;
     }
 
@@ -60,15 +60,15 @@ public class DefaultByAcceptsResponder implements ByAcceptsResponder {
     Collections.reverse(types);
     String winner = first;
 
-    String acceptHeader = exchange.getRequest().getHeader(HttpHeaders.Names.ACCEPT);
+    String acceptHeader = context.getRequest().getHeader(HttpHeaders.Names.ACCEPT);
     if (acceptHeader != null && !acceptHeader.isEmpty()) {
       winner = MimeParse.bestMatch(types, acceptHeader);
     }
 
     if (winner == null || winner.isEmpty()) {
-      exchange.clientError(406);
+      context.clientError(406);
     } else {
-      exchange.getResponse().setHeader(HttpHeaders.Names.CONTENT_TYPE, winner);
+      context.getResponse().setHeader(HttpHeaders.Names.CONTENT_TYPE, winner);
       Runnable runnable = map.get(winner);
       runnable.run();
     }

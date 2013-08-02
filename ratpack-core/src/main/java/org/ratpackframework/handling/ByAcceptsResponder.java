@@ -21,7 +21,7 @@ import org.ratpackframework.util.Buildable;
 /**
  * A buildable strategy for responding based on the HTTP "Accepts" request header.
  * <p>
- * A by-accepts-responder is created by {@link org.ratpackframework.handling.Exchange#getAccepts()}.
+ * A by-accepts-responder is created by {@link Context#getAccepts()}.
  * It is used to respond differently based on what content the client is willing to accept.
  * This is useful when a given handler can provide content of more than one type (i.e. content negotiation).
  * <p>
@@ -33,7 +33,7 @@ import org.ratpackframework.util.Buildable;
  * import org.ratpackframework.handling.*;
  *
  * class MyHandler implements Handler {
- *   public void handle(final Exchange exchange) {
+ *   public void handle(final Context exchange) {
  *     // Do processing common to all methods …
  *
  *     exchange.getAccepts().
@@ -59,7 +59,7 @@ import org.ratpackframework.util.Buildable;
  * import static org.ratpackframework.groovy.Util.with
  *
  * class MyHandler implements Handler {
- *   void handle(Exchange exchange) {
+ *   void handle(Context exchange) {
  *     with(exchange.accepts) {
  *       type("application/json") {
  *         // JSON handling logic
@@ -75,7 +75,7 @@ import org.ratpackframework.util.Buildable;
  * You <b>must</b> call the {@link #build()} method to finalise the responder. Otherwise, nothing will happen.
  * <p>
  * If there is no action registered with the responder before {@link #build()} is called, or the client does not accept any
- * of the given types, a {@code 406} will be issued to the {@link org.ratpackframework.handling.Exchange#clientError(int)}
+ * of the given types, a {@code 406} will be issued to the {@link Context#clientError(int)}
  * that the responder is associated with.
  * <p>
  * Only the last added runnable for a type will be used.

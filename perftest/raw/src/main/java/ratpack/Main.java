@@ -16,10 +16,10 @@
 
 package ratpack;
 
+import org.ratpackframework.handling.Context;
 import org.ratpackframework.server.DefaultRatpackServerSettings;
 import org.ratpackframework.server.RatpackServer;
 import org.ratpackframework.server.RatpackServerBuilder;
-import org.ratpackframework.handling.Exchange;
 import org.ratpackframework.handling.Handler;
 
 import java.io.File;
@@ -28,7 +28,7 @@ public class Main {
 
   public static void main(String[] args) throws Exception {
     Handler handler = new Handler() {
-      public void handle(Exchange exchange) {
+      public void handle(Context exchange) {
         // Just return 200;
         exchange.getResponse().send();
       }

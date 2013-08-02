@@ -18,7 +18,7 @@ package org.ratpackframework.guice
 
 import com.google.inject.AbstractModule
 import org.ratpackframework.test.groovy.RatpackGroovyDslSpec
-import org.ratpackframework.handling.Exchange
+import org.ratpackframework.handling.Context
 import org.ratpackframework.handling.Handler
 
 import javax.inject.Inject
@@ -41,7 +41,7 @@ class InjectedHandlersSpec extends RatpackGroovyDslSpec {
     }
 
     @Override
-    void handle(Exchange exchange) {
+    void handle(Context exchange) {
       exchange.response.send(injectable.name)
     }
   }

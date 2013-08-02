@@ -33,7 +33,7 @@ import java.util.Map;
  * It is also the fundamental routing mechanism.
  * <p>
  * Different handlers that participate in the processing of an exchange may actually receive different instances.
- * Handler implementations should not assume that there is only one {@code Exchange} object during processing.
+ * Handler implementations should not assume that there is only one {@code Context} object during processing.
  * </p>
  * <h3>Routing</h3>
  * <p>
@@ -63,7 +63,7 @@ import java.util.Map;
  * for a portion of the application.
  * </p>
  */
-public interface Exchange extends Registry {
+public interface Context extends Registry {
 
   /**
    * The HTTP request.
@@ -182,7 +182,7 @@ public interface Exchange extends Registry {
    * Executes the given runnable in a try/catch, where exceptions are given to {@link #error(Exception)}.
    * <p>
    * This can be used by handlers when they are jumping off thread.
-   * Exceptions raised on the thread that called the handler's {@linkplain Handler#handle(Exchange) handle} will always be caught.
+   * Exceptions raised on the thread that called the handler's {@linkplain Handler#handle(Context) handle} will always be caught.
    * If the handler “moves” to another thread, it should call this method no the new thread to ensure that any thrown exceptions
    * are caught and forwarded appropriately.
    *

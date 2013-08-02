@@ -17,7 +17,7 @@
 package org.ratpackframework.groovy.handling
 
 import org.ratpackframework.error.ServerErrorHandler
-import org.ratpackframework.handling.Exchange
+import org.ratpackframework.handling.Context
 import org.ratpackframework.test.DefaultRatpackSpec
 
 import static ClosureHandlers.get
@@ -48,7 +48,7 @@ class ErrorHandlingSpec extends DefaultRatpackSpec {
   def "can handle errors on forked threads"() {
     given:
     def errorHandler = new ServerErrorHandler() {
-      void error(Exchange exchange, Exception exception) {
+      void error(Context exchange, Exception exception) {
         exchange.response.send("Caught: $exception.message")
       }
     }
@@ -73,13 +73,13 @@ class ErrorHandlingSpec extends DefaultRatpackSpec {
   def "can use service on forked threads"() {
     given:
     def errorHandler1 = new ServerErrorHandler() {
-      void error(Exchange exchange, Exception exception) {
+      void error(Context exchange, Exception exception) {
         exchange.response.send("1: $exception.message")
       }
     }
 
     def errorHandler2 = new ServerErrorHandler() {
-      void error(Exchange exchange, Exception exception) {
+      void error(Context exchange, Exception exception) {
         exchange.response.send("2: $exception.message")
       }
     }
@@ -108,12 +108,12 @@ class ErrorHandlingSpec extends DefaultRatpackSpec {
   def "can segment error handlers"() {
     given:
     def errorHandler1 = new ServerErrorHandler() {
-      void error(Exchange exchange, Exception exception) {
+      void error(Context exchange, Exception exception) {
         exchange.response.send("1: $exception.message")
       }
     }
     def errorHandler2 = new ServerErrorHandler() {
-      void error(Exchange exchange, Exception exception) {
+      void error(Context exchange, Exception exception) {
         exchange.response.send("2: $exception.message")
       }
     }
@@ -142,7 +142,7 @@ class ErrorHandlingSpec extends DefaultRatpackSpec {
   def "can use service handler"() {
     given:
     def errorHandler = new ServerErrorHandler() {
-      void error(Exchange exchange, Exception exception) {
+      void error(Context exchange, Exception exception) {
         exchange.response.send("Caught: $exception.message")
       }
     }

@@ -17,7 +17,7 @@
 package org.ratpackframework.handling.internal;
 
 import com.google.common.collect.ImmutableList;
-import org.ratpackframework.handling.Exchange;
+import org.ratpackframework.handling.Context;
 import org.ratpackframework.handling.Handler;
 
 public class ChainHandler implements Handler {
@@ -28,8 +28,8 @@ public class ChainHandler implements Handler {
     this.chain = chain;
   }
 
-  public void handle(Exchange exchange) {
-    exchange.insert(chain);
+  public void handle(Context context) {
+    context.insert(chain);
   }
 
 }

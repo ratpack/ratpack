@@ -19,7 +19,7 @@ package org.ratpackframework.groovy.templating.internal;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import org.ratpackframework.error.ClientErrorHandler;
 import org.ratpackframework.groovy.templating.TemplateRenderer;
-import org.ratpackframework.handling.Exchange;
+import org.ratpackframework.handling.Context;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -27,8 +27,8 @@ import java.util.Map;
 
 public class TemplateRenderingClientErrorHandler implements ClientErrorHandler {
 
-  public void error(Exchange exchange, int statusCode) {
-    TemplateRenderer renderer = exchange.get(TemplateRenderer.class);
+  public void error(Context context, int statusCode) {
+    TemplateRenderer renderer = context.get(TemplateRenderer.class);
     Map<String, Object> model = new HashMap<String, Object>();
 
     HttpResponseStatus status = HttpResponseStatus.valueOf(statusCode);
@@ -37,11 +37,11 @@ public class TemplateRenderingClientErrorHandler implements ClientErrorHandler {
     model.put("message", status.reasonPhrase());
 
     Map<String, Object> metadata = new LinkedHashMap<String, Object>();
-    metadata.put("Request Method", exchange.getRequest().getMethod().getName());
-    metadata.put("Request URL", exchange.getRequest().getUri());
+    metadata.put("Request Method", context.getRequest().getMethod().getName());
+    metadata.put("Request URL", context.getRequest().getUri());
     model.put("metadata", metadata);
 
-    exchange.getResponse().status(statusCode);
+    context.getResponse().status(statusCode);
 
     renderer.error(model);
   }

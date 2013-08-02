@@ -19,20 +19,20 @@ package org.ratpackframework.handling;
 import org.ratpackframework.api.NonBlocking;
 
 /**
- * A handler participates in the processing of a request/response pair (i.e. an {@link Exchange}).
+ * A handler participates in the processing of a request/response pair (i.e. an {@link Context}).
  * <p>
  * Handlers are the heart and soul of Ratpack applications. The entire request processing logic is composed of different handlers.
  * A single handler is given to the server builder ({@link org.ratpackframework.server.RatpackServerBuilder}) when bootstrapping
  * an application that will receive every single request. This handler is typically some type of composite of different types of handlers.
  * <h3>Non blocking/Asynchronous</h3>
  * <p>
- * Handlers are fundamentally asynchronous. This means that there is no guarantee that the handler is “finished” when its {@link #handle(Exchange)}
+ * Handlers are fundamentally asynchronous. This means that there is no guarantee that the handler is “finished” when its {@link #handle(Context)}
  * method returns. This means that handlers <b>must</b> ensure to do <i>something</i> with the response. Where <i>something</i> is either send
  * a response or delegate to another handler.
  * <h3>Handler chains</h3>
  * <p>
- * Handlers are always implicitly connected in a chain like structure. The {@link Exchange} that the handler operates on provides
- * the {@link Exchange#next()} method that allows the next handler in the chain to process the exchange.
+ * Handlers are always implicitly connected in a chain like structure. The {@link Context} that the handler operates on provides
+ * the {@link Context#next()} method that allows the next handler in the chain to process the exchange.
  * The last handler in the chain is always the “404” handler in that it returns an empty body 404 response to the client.
  * <p>
  * The {@link Chain} type can be used to “build” handler chains.
@@ -45,9 +45,9 @@ import org.ratpackframework.api.NonBlocking;
  * <p>
  * <ol>
  * <li>Send a response back to the client, terminating processing</li>
- * <li>Pass control to the next handler in the pipeline via {@link Exchange#next()}</li>
- * <li>Insert handlers into the pipeline via {@link Exchange#insert(java.util.List)} (or related methods) before passing on control</li>
- * <li>Forward the exchange to another handler (that it has a reference to) by directly calling its {@link #handle(Exchange)} method</li>
+ * <li>Pass control to the next handler in the pipeline via {@link Context#next()}</li>
+ * <li>Insert handlers into the pipeline via {@link Context#insert(java.util.List)} (or related methods) before passing on control</li>
+ * <li>Forward the exchange to another handler (that it has a reference to) by directly calling its {@link #handle(Context)} method</li>
  * </ol>
  * <p>
  * A handler can either generate a response, decorate the response (e.g. add a response header) or direct the exchange to different handlers.
@@ -62,7 +62,7 @@ import org.ratpackframework.api.NonBlocking;
  * // A responder may just return a response to the client…
  *
  * class SimpleHandler implements Handler {
- *   void handle(Exchange exchange) {
+ *   void handle(Context exchange) {
  *     exchange.getResponse().send("Hello World!");
  *   }
  * }
@@ -70,7 +70,7 @@ import org.ratpackframework.api.NonBlocking;
  * // A responder may add a response header, but not the body…
  *
  * class DecoratingHandler implements Handler {
- *   void handle(Exchange exchange) {
+ *   void handle(Context exchange) {
  *     exchange.getResponse().setHeader("Cache-Control", "no-cache");
  *     exchange.next();
  *   }
@@ -79,7 +79,7 @@ import org.ratpackframework.api.NonBlocking;
  * // Or a handler may conditionally respond…
  *
  * class ConditionalHandler implements Handler {
- *   void handle(Exchange exchange) {
+ *   void handle(Context exchange) {
  *     if (exchange.getRequest().getPath().equals("foo")) {
  *       exchange.getResponse().send("Hello World!");
  *     } else {
@@ -97,7 +97,7 @@ import org.ratpackframework.api.NonBlocking;
  *     this.fooHandlers = fooHandlers;
  *   }
  *
- *   void handle(Exchange exchange) {
+ *   void handle(Context exchange) {
  *     if (exchange.getRequest().getPath().startsWith("foo/")) {
  *       exchange.insert(fooHandlers);
  *     } else {
@@ -115,7 +115,7 @@ import org.ratpackframework.api.NonBlocking;
  *     this.nestedHandler = nestedHandler;
  *   }
  *
- *   void handle(Exchange exchange) {
+ *   void handle(Context exchange) {
  *     if (exchange.getRequest().getPath().startsWith("foo/")) {
  *       nestedHandler.handle(exchange);
  *     } else {
@@ -132,12 +132,11 @@ import org.ratpackframework.api.NonBlocking;
 public interface Handler {
 
   /**
-   * Handles the exchange.
+   * Handles the context.
    *
-   * @param exchange The exchange to handle
-   * @see Handler
+   * @param context The context to handle
    */
   @NonBlocking
-  void handle(Exchange exchange);
+  void handle(Context context);
 
 }

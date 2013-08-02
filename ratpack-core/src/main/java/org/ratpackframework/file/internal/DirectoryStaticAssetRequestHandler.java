@@ -18,7 +18,7 @@ package org.ratpackframework.file.internal;
 
 import com.google.common.collect.ImmutableList;
 import org.ratpackframework.file.FileSystemBinding;
-import org.ratpackframework.handling.Exchange;
+import org.ratpackframework.handling.Context;
 import org.ratpackframework.handling.Handler;
 
 import java.io.File;
@@ -38,20 +38,20 @@ public class DirectoryStaticAssetRequestHandler implements Handler {
     this.indexFiles = indexFiles;
   }
 
-  public void handle(Exchange exchange) {
-    FileSystemBinding fileSystemBinding = exchange.get(FileSystemBinding.class);
+  public void handle(Context context) {
+    FileSystemBinding fileSystemBinding = context.get(FileSystemBinding.class);
     File targetFile = fileSystemBinding.getFile();
     if (targetFile.isDirectory()) {
       for (String indexFileName : indexFiles) {
         File file = new File(targetFile, indexFileName);
         if (file.isFile()) {
-          exchange.insert(FileSystemBinding.class, fileSystemBinding.binding(file), delegateList);
+          context.insert(FileSystemBinding.class, fileSystemBinding.binding(file), delegateList);
           return;
         }
       }
-      exchange.getResponse().status(FORBIDDEN.code(), FORBIDDEN.reasonPhrase()).send();
+      context.getResponse().status(FORBIDDEN.code(), FORBIDDEN.reasonPhrase()).send();
     } else {
-      delegate.handle(exchange);
+      delegate.handle(context);
     }
   }
 }

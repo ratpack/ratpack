@@ -18,7 +18,7 @@ package org.ratpackframework.guice.internal;
 
 import com.google.common.collect.ImmutableList;
 import com.google.inject.Injector;
-import org.ratpackframework.handling.Exchange;
+import org.ratpackframework.handling.Context;
 import org.ratpackframework.handling.Handler;
 
 import java.util.List;
@@ -33,7 +33,7 @@ public class InjectorBindingHandler implements Handler {
     this.delegate = ImmutableList.of(delegate);
   }
 
-  public void handle(Exchange exchange) {
-    exchange.insert(new InjectorBackedHierarchicalRegistry(exchange, injector), delegate);
+  public void handle(Context context) {
+    context.insert(new InjectorBackedHierarchicalRegistry(context, injector), delegate);
   }
 }

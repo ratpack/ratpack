@@ -17,7 +17,7 @@
 package org.ratpackframework.guice.internal;
 
 import com.google.inject.Injector;
-import org.ratpackframework.handling.Exchange;
+import org.ratpackframework.handling.Context;
 import org.ratpackframework.handling.Handler;
 
 public class InjectingHandler implements Handler {
@@ -28,10 +28,10 @@ public class InjectingHandler implements Handler {
     this.handlerType = handlerType;
   }
 
-  public void handle(Exchange exchange) {
-    Injector injector = exchange.get(Injector.class);
+  public void handle(Context context) {
+    Injector injector = context.get(Injector.class);
     Handler instance = injector.getInstance(handlerType);
-    instance.handle(exchange);
+    instance.handle(context);
   }
 
 }

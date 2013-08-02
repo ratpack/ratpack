@@ -43,7 +43,7 @@ public abstract class ServiceUsingHandler implements Handler {
         continue;
       }
 
-      if (!parameterTypes[0].equals(Exchange.class)) {
+      if (!parameterTypes[0].equals(Context.class)) {
         continue;
       }
 
@@ -60,10 +60,10 @@ public abstract class ServiceUsingHandler implements Handler {
     this.serviceTypes = ImmutableList.copyOf(Arrays.asList(parameterTypes).subList(1, parameterTypes.length));
   }
 
-  public void handle(Exchange exchange) {
+  public void handle(Context context) {
     Object[] args = new Object[serviceTypes.size() + 1];
-    args[0] = exchange;
-    ServiceExtractor.extract(serviceTypes, exchange, args, 1);
+    args[0] = context;
+    ServiceExtractor.extract(serviceTypes, context, args, 1);
     try {
       handleMethod.invoke(this, args);
     } catch (IllegalAccessException e) {

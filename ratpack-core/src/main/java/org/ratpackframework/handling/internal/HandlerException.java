@@ -16,21 +16,21 @@
 
 package org.ratpackframework.handling.internal;
 
-import org.ratpackframework.handling.Exchange;
+import org.ratpackframework.handling.Context;
 
 public class HandlerException extends RuntimeException {
 
   private static final long serialVersionUID = 0;
 
-  private final Exchange exchange;
+  private final Context context;
 
-  public HandlerException(Exchange exchange, Exception exception) {
+  public HandlerException(Context context, Exception exception) {
     super(exception);
-    this.exchange = exchange;
+    this.context = context;
   }
 
-  public Exchange getExchange() {
-    return exchange;
+  public Context getContext() {
+    return context;
   }
 
 }

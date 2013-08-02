@@ -19,13 +19,13 @@ package org.ratpackframework.handling.internal;
 import io.netty.channel.ChannelHandlerContext;
 import org.ratpackframework.handling.ByAcceptsResponder;
 import org.ratpackframework.handling.ByMethodResponder;
+import org.ratpackframework.handling.Context;
 import org.ratpackframework.registry.Registry;
 import org.ratpackframework.server.RatpackServerSettings;
 import org.ratpackframework.registry.internal.ObjectHoldingHierarchicalRegistry;
 import org.ratpackframework.error.ClientErrorHandler;
 import org.ratpackframework.error.ServerErrorHandler;
 import org.ratpackframework.file.FileSystemBinding;
-import org.ratpackframework.handling.Exchange;
 import org.ratpackframework.handling.Handler;
 import org.ratpackframework.http.Request;
 import org.ratpackframework.http.Response;
@@ -35,7 +35,7 @@ import java.io.File;
 import java.util.List;
 import java.util.Map;
 
-public class DefaultExchange implements Exchange {
+public class DefaultContext implements Context {
 
   private final Request request;
   private final Response response;
@@ -46,7 +46,7 @@ public class DefaultExchange implements Exchange {
   private final Handler next;
   private final Registry registry;
 
-  public DefaultExchange(Request request, Response response, RatpackServerSettings serverSettings, ChannelHandlerContext channelHandlerContext, Registry registry, Handler next) {
+  public DefaultContext(Request request, Response response, RatpackServerSettings serverSettings, ChannelHandlerContext channelHandlerContext, Registry registry, Handler next) {
     this.request = request;
     this.response = response;
     this.serverSettings = serverSettings;
@@ -117,7 +117,7 @@ public class DefaultExchange implements Exchange {
       runnable.run();
     } catch (Exception e) {
       if (e instanceof HandlerException) {
-        ((HandlerException) e).getExchange().error((Exception) e.getCause());
+        ((HandlerException) e).getContext().error((Exception) e.getCause());
       } else {
         error(e);
       }
@@ -132,11 +132,11 @@ public class DefaultExchange implements Exchange {
     return new DefaultByAcceptsResponder(this);
   }
 
-  protected void doNext(final Exchange parentExchange, final Registry registry, final List<Handler> handlers, final int index, final Handler exhausted) {
+  protected void doNext(final Context parentContext, final Registry registry, final List<Handler> handlers, final int index, final Handler exhausted) {
     assert registry != null;
     if (index == handlers.size()) {
       try {
-        exhausted.handle(parentExchange);
+        exhausted.handle(parentContext);
       } catch (Exception e) {
         if (e instanceof HandlerException) {
           throw (HandlerException) e;
@@ -148,11 +148,11 @@ public class DefaultExchange implements Exchange {
     } else {
       Handler handler = handlers.get(index);
       Handler nextHandler = new Handler() {
-        public void handle(Exchange exchange) {
-          ((DefaultExchange) exchange).doNext(parentExchange, registry, handlers, index + 1, exhausted);
+        public void handle(Context exchange) {
+          ((DefaultContext) exchange).doNext(parentContext, registry, handlers, index + 1, exhausted);
         }
       };
-      DefaultExchange childExchange = new DefaultExchange(request, response, serverSettings, channelHandlerContext, registry, nextHandler);
+      DefaultContext childExchange = new DefaultContext(request, response, serverSettings, channelHandlerContext, registry, nextHandler);
       try {
         handler.handle(childExchange);
       } catch (Exception e) {

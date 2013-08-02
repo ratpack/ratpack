@@ -29,10 +29,10 @@ import org.ratpackframework.error.internal.DefaultServerErrorHandler;
 import org.ratpackframework.error.internal.ErrorCatchingHandler;
 import org.ratpackframework.file.internal.ActivationBackedMimeTypes;
 import org.ratpackframework.file.internal.DefaultFileSystemBinding;
-import org.ratpackframework.handling.Exchange;
+import org.ratpackframework.handling.Context;
 import org.ratpackframework.handling.Handler;
 import org.ratpackframework.handling.internal.ClientErrorHandler;
-import org.ratpackframework.handling.internal.DefaultExchange;
+import org.ratpackframework.handling.internal.DefaultContext;
 import org.ratpackframework.http.Request;
 import org.ratpackframework.http.Response;
 import org.ratpackframework.http.internal.DefaultRequest;
@@ -84,9 +84,9 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
         || (version == HttpVersion.HTTP_1_0 && "Keep-Alive".equalsIgnoreCase(nettyRequest.headers().get("Connection")));
 
     Response response = new DefaultResponse(nettyResponse, ctx.channel(), keepAlive, version);
-    final Exchange exchange = new DefaultExchange(request, response, settings, ctx, rootServiceRegistry, return404);
+    final Context context = new DefaultContext(request, response, settings, ctx, rootServiceRegistry, return404);
 
-    handler.handle(exchange);
+    handler.handle(context);
   }
 
   @Override

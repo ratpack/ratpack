@@ -16,7 +16,7 @@
 
 package org.ratpackframework.handling.internal;
 
-import org.ratpackframework.handling.Exchange;
+import org.ratpackframework.handling.Context;
 import org.ratpackframework.handling.Handler;
 
 public class ClientErrorHandler implements Handler {
@@ -27,8 +27,8 @@ public class ClientErrorHandler implements Handler {
     this.statusCode = statusCode;
   }
 
-  public void handle(Exchange exchange) {
-    exchange.clientError(statusCode);
+  public void handle(Context context) {
+    context.clientError(statusCode);
   }
 
 }

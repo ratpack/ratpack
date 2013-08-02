@@ -16,14 +16,14 @@
 
 package org.ratpackframework.handling.internal;
 
-import org.ratpackframework.handling.Exchange;
+import org.ratpackframework.handling.Context;
 import org.ratpackframework.handling.Handler;
 
 public class NextHandler implements Handler {
 
   public static final Handler INSTANCE = new NextHandler();
 
-  public void handle(Exchange exchange) {
-    exchange.next();
+  public void handle(Context context) {
+    context.next();
   }
 }

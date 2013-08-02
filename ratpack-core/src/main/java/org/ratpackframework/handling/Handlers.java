@@ -39,11 +39,11 @@ import java.util.List;
  * import static org.ratpackframework.handling.Handlers.*;
  * import org.ratpackframework.handling.Handler;
  * import org.ratpackframework.handling.Chain;
- * import org.ratpackframework.handling.Exchange;
+ * import org.ratpackframework.handling.Context;
  * import org.ratpackframework.util.Action;
  *
  * class ExampleHandler implements Handler {
- *   void handle(Exchange exchange) {
+ *   void handle(Context exchange) {
  *     // …
  *   }
  * }
@@ -255,7 +255,7 @@ public abstract class Handlers {
    * If the request is not a GET or does not match the path, the next handler in the chain will be invoked.
    * <p>
    * If the request does match the given path but is not a GET, a 405 will be sent to the exchange's
-   * {@linkplain Exchange#clientError(int) client error handler}.
+   * {@linkplain Context#clientError(int) client error handler}.
    * <p>
    * See {@link #path(String, java.util.List)} for details on how the path argument is interpreted.
    *
@@ -294,7 +294,7 @@ public abstract class Handlers {
    * If the request is not a POST or does not match the path, the next handler in the chain will be invoked.
    * <p>
    * If the request does match the given path but is not a POST, a 405 will be sent to the exchange's
-   * {@linkplain Exchange#clientError(int) client error handler}.
+   * {@linkplain Context#clientError(int) client error handler}.
    * <p>
    * See {@link #path(String, java.util.List)} for details on how the path argument is interpreted.
    *

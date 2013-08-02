@@ -17,7 +17,7 @@
 package org.ratpackframework.handling.internal;
 
 import org.ratpackframework.handling.ByMethodResponder;
-import org.ratpackframework.handling.Exchange;
+import org.ratpackframework.handling.Context;
 import org.ratpackframework.handling.Handler;
 
 import java.util.ArrayList;
@@ -29,11 +29,11 @@ import static io.netty.handler.codec.http.HttpResponseStatus.METHOD_NOT_ALLOWED;
 
 public class DefaultByMethodResponder implements ByMethodResponder {
 
-  private final Exchange exchange;
+  private final Context context;
   private final Map<String, Runnable> runnables = new LinkedHashMap<String, Runnable>(2);
 
-  public DefaultByMethodResponder(Exchange exchange) {
-    this.exchange = exchange;
+  public DefaultByMethodResponder(Context context) {
+    this.context = context;
   }
 
   public ByMethodResponder get(Runnable runnable) {
@@ -66,11 +66,11 @@ public class DefaultByMethodResponder implements ByMethodResponder {
       this.runnable = runnable;
     }
 
-    public void handle(Exchange exchange) {
-      if (exchange.getRequest().getMethod().name(method)) {
+    public void handle(Context context) {
+      if (context.getRequest().getMethod().name(method)) {
         runnable.run();
       } else {
-        exchange.next();
+        context.next();
       }
     }
   }
@@ -81,7 +81,7 @@ public class DefaultByMethodResponder implements ByMethodResponder {
       handlers.add(new ByMethodHandler(entry.getKey(), entry.getValue()));
     }
     handlers.add(new ClientErrorHandler(METHOD_NOT_ALLOWED.code()));
-    exchange.insert(handlers);
+    context.insert(handlers);
   }
 
 }

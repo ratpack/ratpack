@@ -17,13 +17,13 @@
 package org.ratpackframework.error.internal;
 
 import org.ratpackframework.error.ClientErrorHandler;
-import org.ratpackframework.handling.Exchange;
+import org.ratpackframework.handling.Context;
 
 public class DefaultClientErrorHandler implements ClientErrorHandler {
 
-  public void error(Exchange exchange, int statusCode) {
+  public void error(Context context, int statusCode) {
     // TODO is it worth validating th status code?
-    exchange.getResponse().status(statusCode).send();
+    context.getResponse().status(statusCode).send();
   }
 
 }

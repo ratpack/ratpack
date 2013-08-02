@@ -54,7 +54,7 @@ import org.ratpackframework.handling.Handler;
  *     this.rest = rest;
  *   }
  *
- *   void handle(Exchange exchange) {
+ *   void handle(Context exchange) {
  *     logger.log("Request: " + exchange.getRequest().getPath());
  *     rest.handle(exchange);
  *   }
@@ -72,7 +72,7 @@ import org.ratpackframework.handling.Handler;
  * }
  * </pre>
  *
- * @see org.ratpackframework.guice.Guice#handler(org.ratpackframework.util.Action, org.ratpackframework.handling.Handler)
+ * @see org.ratpackframework.guice.Guice#handler(org.ratpackframework.server.RatpackServerSettings, org.ratpackframework.util.Action, org.ratpackframework.handling.Handler)
  */
 public interface HandlerDecoratingModule extends Module {
 

@@ -52,7 +52,7 @@ public interface FileSystemBinding {
    *
    * Absolute paths are resolved relative to the bind point, not the filesystem root.
    * <p>
-   * Prefer using {@link org.ratpackframework.handling.Exchange#file(String)}.
+   * Prefer using {@link org.ratpackframework.handling.Context#file(String)}.
    *
    * @param path The relative path from this binding to the desired binding
    * @return The binding
@@ -62,7 +62,7 @@ public interface FileSystemBinding {
   /**
    * Construct a new binding at the given file.
    *
-   * Prefer using {@link org.ratpackframework.handling.Exchange#file(String)}.
+   * Prefer using {@link org.ratpackframework.handling.Context#file(String)}.
    *
    * @param file The file of the desired binding
    * @return The binding

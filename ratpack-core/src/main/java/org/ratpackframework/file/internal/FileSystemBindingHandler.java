@@ -18,7 +18,7 @@ package org.ratpackframework.file.internal;
 
 import com.google.common.collect.ImmutableList;
 import org.ratpackframework.file.FileSystemBinding;
-import org.ratpackframework.handling.Exchange;
+import org.ratpackframework.handling.Context;
 import org.ratpackframework.handling.Handler;
 
 import java.io.File;
@@ -38,16 +38,16 @@ public class FileSystemBindingHandler implements Handler {
     this.absoluteBinding = new DefaultFileSystemBinding(file.getAbsoluteFile());
   }
 
-  public void handle(Exchange exchange) {
+  public void handle(Context context) {
     if (absolute) {
-      exchange.insert(FileSystemBinding.class, absoluteBinding, delegate);
+      context.insert(FileSystemBinding.class, absoluteBinding, delegate);
     } else {
-      FileSystemBinding parentBinding = exchange.maybeGet(FileSystemBinding.class);
+      FileSystemBinding parentBinding = context.maybeGet(FileSystemBinding.class);
       if (parentBinding == null) {
-        exchange.insert(FileSystemBinding.class, absoluteBinding, delegate);
+        context.insert(FileSystemBinding.class, absoluteBinding, delegate);
       } else {
         FileSystemBinding binding = parentBinding.binding(file.getPath());
-        exchange.insert(FileSystemBinding.class, binding, delegate);
+        context.insert(FileSystemBinding.class, binding, delegate);
       }
     }
   }

@@ -23,7 +23,7 @@ import org.ratpackframework.groovy.Util;
 import org.ratpackframework.groovy.script.internal.ScriptEngine;
 import org.ratpackframework.guice.ModuleRegistry;
 import org.ratpackframework.guice.internal.GuiceBackedHandlerFactory;
-import org.ratpackframework.handling.Exchange;
+import org.ratpackframework.handling.Context;
 import org.ratpackframework.handling.Handler;
 import org.ratpackframework.reload.internal.ReloadableFileBackedFactory;
 import org.ratpackframework.util.Action;
@@ -87,8 +87,8 @@ public class ScriptBackedApp implements Handler {
     }).run();
   }
 
-  public void handle(Exchange exchange) {
-    reloadHandler.create().handle(exchange);
+  public void handle(Context context) {
+    reloadHandler.create().handle(context);
   }
 
 }

@@ -16,7 +16,7 @@
 
 package org.ratpackframework.error;
 
-import org.ratpackframework.handling.Exchange;
+import org.ratpackframework.handling.Context;
 
 /**
  * The client error handler deals with errors that are due to the client doing something wrong.
@@ -32,9 +32,9 @@ public interface ClientErrorHandler {
   /**
    * Handle a client error.
    *
-   * @param exchange The exchange
+   * @param context The context
    * @param statusCode The 4xx status code that explains the problem
    */
-  void error(Exchange exchange, int statusCode);
+  void error(Context context, int statusCode);
 
 }

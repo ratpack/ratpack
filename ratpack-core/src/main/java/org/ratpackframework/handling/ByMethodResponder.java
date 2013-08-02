@@ -21,7 +21,7 @@ import org.ratpackframework.util.Buildable;
 /**
  * A buildable strategy for processing an exchange based on HTTP method.
  * <p>
- * A by-method-responder is exposed by {@link org.ratpackframework.handling.Exchange#getMethods()}.
+ * A by-method-responder is exposed by {@link Context#getMethods()}.
  * It is used to respond differently based on the HTTP method.
  * If there is no action registered with the responder before {@link #build()} is called, a {@code 405} will be issued to
  * the contextual {@link org.ratpackframework.error.ClientErrorHandler} (which by default will send back a HTTP 405 to the client).
@@ -32,7 +32,7 @@ import org.ratpackframework.util.Buildable;
  * import org.ratpackframework.handling.*;
  *
  * class MyHandler implements Handler {
- *   public void handle(final Exchange exchange) {
+ *   public void handle(final Context exchange) {
  *     // Do processing common to all methods …
  *
  *     exchange.getMethods().
@@ -57,7 +57,7 @@ import org.ratpackframework.util.Buildable;
  * import static org.ratpackframework.groovy.Util.with
  *
  * class MyHandler implements Handler {
- *   void handle(Exchange exchange) {
+ *   void handle(Context exchange) {
  *     // Do processing common to all methods …
  *
  *     with(exchange.methods) {

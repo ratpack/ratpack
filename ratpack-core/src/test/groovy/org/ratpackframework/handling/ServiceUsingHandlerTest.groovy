@@ -51,7 +51,7 @@ class ServiceUsingHandlerTest extends DefaultRatpackSpec {
 
   static class InjectedHandler extends ServiceUsingHandler {
     @SuppressWarnings(["GrMethodMayBeStatic", "GroovyUnusedDeclaration"])
-    protected handle(Exchange exchange, FileSystemBinding fileSystemBinding) {
+    protected handle(Context exchange, FileSystemBinding fileSystemBinding) {
       assert fileSystemBinding.is(exchange.get(FileSystemBinding))
       exchange.response.send(fileSystemBinding.class.name)
     }
@@ -71,7 +71,7 @@ class ServiceUsingHandlerTest extends DefaultRatpackSpec {
 
   static class Injected2Handler extends ServiceUsingHandler {
     @SuppressWarnings(["GrMethodMayBeStatic", "GroovyUnusedDeclaration"])
-    protected handle(Exchange exchange, FileSystemBinding fileSystemBinding, ServerErrorHandler serverErrorHandler) {
+    protected handle(Context exchange, FileSystemBinding fileSystemBinding, ServerErrorHandler serverErrorHandler) {
       assert fileSystemBinding.is(exchange.get(FileSystemBinding))
       assert serverErrorHandler.is(exchange.get(ServerErrorHandler))
       exchange.response.send(serverErrorHandler.class.name)
@@ -92,11 +92,11 @@ class ServiceUsingHandlerTest extends DefaultRatpackSpec {
 
   static class InjectedBadHandler extends ServiceUsingHandler {
     @SuppressWarnings(["GrMethodMayBeStatic", "GroovyUnusedDeclaration"])
-    protected handle(Exchange exchange, FileSystemBinding fileSystemBinding, Exception notInRegistry) {}
+    protected handle(Context exchange, FileSystemBinding fileSystemBinding, Exception notInRegistry) {}
   }
 
   static class MessageServerErrorHandler implements ServerErrorHandler {
-    void error(Exchange exchange, Exception exception) {
+    void error(Context exchange, Exception exception) {
       exchange.response.status(500).send(exception.message)
     }
   }

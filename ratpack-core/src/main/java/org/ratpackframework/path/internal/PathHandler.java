@@ -17,7 +17,7 @@
 package org.ratpackframework.path.internal;
 
 import com.google.common.collect.ImmutableList;
-import org.ratpackframework.handling.Exchange;
+import org.ratpackframework.handling.Context;
 import org.ratpackframework.handling.Handler;
 import org.ratpackframework.path.PathBinder;
 import org.ratpackframework.path.PathBinding;
@@ -34,12 +34,12 @@ public class PathHandler implements Handler {
     this.chain = chain;
   }
 
-  public void handle(Exchange exchange) {
-    PathBinding childBinding = binding.bind(exchange.getRequest().getPath(), exchange.maybeGet(PathBinding.class));
+  public void handle(Context context) {
+    PathBinding childBinding = binding.bind(context.getRequest().getPath(), context.maybeGet(PathBinding.class));
     if (childBinding != null) {
-      exchange.insert(PathBinding.class, childBinding, chain);
+      context.insert(PathBinding.class, childBinding, chain);
     } else {
-      exchange.next();
+      context.next();
     }
   }
 }

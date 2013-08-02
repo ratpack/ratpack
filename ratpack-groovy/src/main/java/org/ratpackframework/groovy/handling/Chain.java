@@ -18,7 +18,7 @@ package org.ratpackframework.groovy.handling;
 
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
-import org.ratpackframework.handling.Exchange;
+import org.ratpackframework.handling.Context;
 
 /**
  * A Groovy oriented handler chain builder DSL.
@@ -36,7 +36,7 @@ public interface Chain extends org.ratpackframework.handling.Chain {
    *
    * @param handler The closure to add as a handler.
    */
-  void handler(@DelegatesTo(value = Exchange.class, strategy = Closure.DELEGATE_ONLY) Closure<?> handler);
+  void handler(@DelegatesTo(value = Context.class, strategy = Closure.DELEGATE_ONLY) Closure<?> handler);
 
   /**
    * Adds a nested chain that is inserted if the request path matches the given prefix.
@@ -65,15 +65,15 @@ public interface Chain extends org.ratpackframework.handling.Chain {
    */
   void prefix(String prefix, @DelegatesTo(value = org.ratpackframework.groovy.handling.Chain.class, strategy = Closure.DELEGATE_ONLY) Closure<?> chain);
 
-  void path(String path, @DelegatesTo(value = Exchange.class, strategy = Closure.DELEGATE_ONLY) Closure<?> handler);
+  void path(String path, @DelegatesTo(value = Context.class, strategy = Closure.DELEGATE_ONLY) Closure<?> handler);
 
-  void get(String path, @DelegatesTo(value = Exchange.class, strategy = Closure.DELEGATE_ONLY) Closure<?> handler);
+  void get(String path, @DelegatesTo(value = Context.class, strategy = Closure.DELEGATE_ONLY) Closure<?> handler);
 
-  void get(@DelegatesTo(value = Exchange.class, strategy = Closure.DELEGATE_ONLY) Closure<?> handler);
+  void get(@DelegatesTo(value = Context.class, strategy = Closure.DELEGATE_ONLY) Closure<?> handler);
 
-  void post(String path, @DelegatesTo(value = Exchange.class, strategy = Closure.DELEGATE_ONLY) Closure<?> handler);
+  void post(String path, @DelegatesTo(value = Context.class, strategy = Closure.DELEGATE_ONLY) Closure<?> handler);
 
-  void post(@DelegatesTo(value = Exchange.class, strategy = Closure.DELEGATE_ONLY) Closure<?> handler);
+  void post(@DelegatesTo(value = Context.class, strategy = Closure.DELEGATE_ONLY) Closure<?> handler);
 
   void assets(String path, String... indexFiles);
 

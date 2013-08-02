@@ -15,7 +15,7 @@
  */
 
 /**
- * Handlers communicate with each other by binding a "service" on to each {@link org.ratpackframework.handling.Exchange}.
+ * Handlers communicate with each other by binding a "service" on to each {@link org.ratpackframework.handling.Context}.
  *
  * A service is just an object that may be able to provide an object of a given type. Typically, upstream handlers add
  * objects to the service for downstream handlers to use.

@@ -17,7 +17,7 @@
 package org.ratpackframework.handling.internal;
 
 import com.google.common.collect.ImmutableList;
-import org.ratpackframework.handling.Exchange;
+import org.ratpackframework.handling.Context;
 import org.ratpackframework.handling.Handler;
 
 public class ServiceInsertingHandler implements Handler {
@@ -40,11 +40,11 @@ public class ServiceInsertingHandler implements Handler {
   }
 
   @SuppressWarnings("unchecked")
-  public void handle(Exchange exchange) {
+  public void handle(Context context) {
     if (type == null) {
-      exchange.insert(object, handlers);
+      context.insert(object, handlers);
     } else {
-      exchange.insert((Class)type, object, handlers);
+      context.insert((Class)type, object, handlers);
     }
   }
 }

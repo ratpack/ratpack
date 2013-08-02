@@ -16,7 +16,7 @@
 
 package org.ratpackframework.error.internal;
 
-import org.ratpackframework.handling.Exchange;
+import org.ratpackframework.handling.Context;
 import org.ratpackframework.handling.Handler;
 import org.ratpackframework.handling.internal.HandlerException;
 
@@ -28,14 +28,14 @@ public class ErrorCatchingHandler implements Handler {
     this.handler = handler;
   }
 
-  public void handle(Exchange exchange) {
+  public void handle(Context context) {
     try {
-      handler.handle(exchange);
+      handler.handle(context);
     } catch (Exception exception) {
       if (exception instanceof HandlerException) {
-        ((HandlerException) exception).getExchange().error((Exception) exception.getCause());
+        ((HandlerException) exception).getContext().error((Exception) exception.getCause());
       } else {
-        exchange.error(exception);
+        context.error(exception);
       }
     }
   }

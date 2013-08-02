@@ -17,14 +17,14 @@
 package org.ratpackframework.error.internal;
 
 import org.ratpackframework.error.ServerErrorHandler;
-import org.ratpackframework.handling.Exchange;
+import org.ratpackframework.handling.Context;
 
 public class DefaultServerErrorHandler implements ServerErrorHandler {
 
-  public void error(Exchange exchange, Exception exception) {
-    System.err.println("UNHANDLED EXCEPTION: " + exchange.getRequest().getUri());
+  public void error(Context context, Exception exception) {
+    System.err.println("UNHANDLED EXCEPTION: " + context.getRequest().getUri());
     exception.printStackTrace(System.err);
-    exchange.getResponse().status(500).send();
+    context.getResponse().status(500).send();
   }
 
 }

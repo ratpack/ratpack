@@ -18,18 +18,18 @@ package org.ratpackframework.groovy.handling.internal;
 
 import groovy.lang.Closure;
 import org.ratpackframework.groovy.internal.ClosureInvoker;
-import org.ratpackframework.handling.Exchange;
+import org.ratpackframework.handling.Context;
 import org.ratpackframework.handling.Handler;
 
 public class ClosureBackedHandler implements Handler {
 
-  private final ClosureInvoker<?, Exchange> invoker;
+  private final ClosureInvoker<?, Context> invoker;
 
   public ClosureBackedHandler(Closure<?> closure) {
-    this.invoker = new ClosureInvoker<Object, Exchange>(closure);
+    this.invoker = new ClosureInvoker<Object, Context>(closure);
   }
 
-  public void handle(Exchange exchange) {
-    invoker.invoke(exchange, exchange, Closure.DELEGATE_FIRST);
+  public void handle(Context context) {
+    invoker.invoke(context, context, Closure.DELEGATE_FIRST);
   }
 }

@@ -19,9 +19,9 @@ package org.ratpackframework.file.internal;
 import io.netty.handler.codec.http.HttpHeaders;
 import org.ratpackframework.file.FileSystemBinding;
 import org.ratpackframework.file.MimeTypes;
+import org.ratpackframework.handling.Context;
 import org.ratpackframework.http.Request;
 import org.ratpackframework.http.Response;
-import org.ratpackframework.handling.Exchange;
 import org.ratpackframework.handling.Handler;
 
 import java.io.File;
@@ -35,31 +35,31 @@ public class FileStaticAssetRequestHandler implements Handler {
 
   public static final Handler INSTANCE = new FileStaticAssetRequestHandler();
 
-  public void handle(Exchange exchange) {
-    Request request = exchange.getRequest();
-    Response response = exchange.getResponse();
+  public void handle(Context context) {
+    Request request = context.getRequest();
+    Response response = context.getResponse();
 
-    FileSystemBinding fileSystemBinding = exchange.get(FileSystemBinding.class);
+    FileSystemBinding fileSystemBinding = context.get(FileSystemBinding.class);
     File targetFile = fileSystemBinding.getFile();
 
     if (targetFile.isHidden() || !targetFile.exists()) {
-      exchange.next();
+      context.next();
       return;
     }
 
     if (!request.getMethod().isGet()) {
-      exchange.clientError(METHOD_NOT_ALLOWED.code());
+      context.clientError(METHOD_NOT_ALLOWED.code());
       return;
     }
 
     if (!targetFile.isFile()) {
-      exchange.clientError(FORBIDDEN.code());
+      context.clientError(FORBIDDEN.code());
       return;
     }
 
     long lastModifiedTime = targetFile.lastModified();
     if (lastModifiedTime < 1) {
-      exchange.next();
+      context.next();
       return;
     }
 
@@ -80,7 +80,7 @@ public class FileStaticAssetRequestHandler implements Handler {
       return;
     }
 
-    String contentType = exchange.get(MimeTypes.class).getContentType(targetFile);
+    String contentType = context.get(MimeTypes.class).getContentType(targetFile);
 
     response.sendFile(contentType, targetFile);
   }

@@ -18,7 +18,7 @@ package org.ratpackframework.groovy.templating.internal;
 
 import io.netty.buffer.ByteBuf;
 import org.ratpackframework.groovy.templating.TemplateRenderer;
-import org.ratpackframework.handling.Exchange;
+import org.ratpackframework.handling.Context;
 import org.ratpackframework.http.Response;
 import org.ratpackframework.util.internal.Result;
 import org.ratpackframework.util.internal.ResultAction;
@@ -30,12 +30,12 @@ import java.util.Map;
 public class DefaultTemplateRenderer implements TemplateRenderer {
 
   private final File templateDir;
-  private final Exchange exchange;
+  private final Context context;
   private final GroovyTemplateRenderingEngine engine;
 
-  public DefaultTemplateRenderer(File templateDir, Exchange exchange, GroovyTemplateRenderingEngine engine) {
+  public DefaultTemplateRenderer(File templateDir, Context context, GroovyTemplateRenderingEngine engine) {
     this.templateDir = templateDir;
-    this.exchange = exchange;
+    this.context = context;
     this.engine = engine;
   }
 
@@ -43,9 +43,9 @@ public class DefaultTemplateRenderer implements TemplateRenderer {
     engine.renderTemplate(templateDir, templateId, model, new ResultAction<ByteBuf>() {
       public void execute(Result<ByteBuf> thing) {
         if (thing.isFailure()) {
-          error(ExceptionToTemplateModel.transform(exchange.getRequest(), thing.getFailure()));
+          error(ExceptionToTemplateModel.transform(context.getRequest(), thing.getFailure()));
         } else {
-          exchange.getResponse().send("text/html", thing.getValue());
+          context.getResponse().send("text/html", thing.getValue());
         }
       }
     });
@@ -59,9 +59,9 @@ public class DefaultTemplateRenderer implements TemplateRenderer {
     engine.renderError(templateDir, model, new ResultAction<ByteBuf>() {
       public void execute(Result<ByteBuf> thing) {
         if (thing.isFailure()) {
-          exchange.error(thing.getFailure());
+          context.error(thing.getFailure());
         } else {
-          Response response = exchange.getResponse();
+          Response response = context.getResponse();
           if (response.getStatus().getCode() < 400) {
             response.status(500);
           }

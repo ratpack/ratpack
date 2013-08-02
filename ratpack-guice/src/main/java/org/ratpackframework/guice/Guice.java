@@ -59,7 +59,7 @@ public abstract class Guice {
    *     this.service = service;
    *   }
    *
-   *   public void handle(Exchange exchange) {
+   *   public void handle(Context exchange) {
    *     // …
    *   }
    * }
@@ -105,7 +105,7 @@ public abstract class Guice {
    *     this.service = service;
    *   }
    *
-   *   public void handle(Exchange exchange) {
+   *   public void handle(Context exchange) {
    *     // …
    *   }
    * }
@@ -138,7 +138,7 @@ public abstract class Guice {
    * A new injector <b>is not</b> created for each exchange (as this would be unnecessary and expensive).
    * <p>
    * The injector also makes all of its objects available via service lookup.
-   * This means that you can retrieve objects that were bound by modules in handlers via {@link org.ratpackframework.handling.Exchange#get(Class)}.
+   * This means that you can retrieve objects that were bound by modules in handlers via {@link org.ratpackframework.handling.Context#get(Class)}.
    * Objects are only retrievable via their public type.
    *
    * @param serverSettings The settings of the server
