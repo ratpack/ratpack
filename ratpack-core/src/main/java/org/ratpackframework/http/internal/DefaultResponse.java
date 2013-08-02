@@ -229,7 +229,7 @@ public class DefaultResponse implements Response {
         }
         shouldClose = false;
       }
-      ChannelFuture future = channel.write(response);
+      ChannelFuture future = channel.writeAndFlush(response);
       if (shouldClose) {
         future.addListener(ChannelFutureListener.CLOSE);
       }

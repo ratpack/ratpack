@@ -24,6 +24,7 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.util.concurrent.DefaultThreadFactory;
+import io.netty.util.internal.SystemPropertyUtil;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -31,6 +32,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class NettyRatpackService extends AbstractIdleService implements RatpackService {
+
+  private static final int DEFAULT_EVENT_LOOP_THREADS = Math.max(1, SystemPropertyUtil.getInt(
+      "io.netty.eventLoopThreads", Runtime.getRuntime().availableProcessors() * 2));
 
   private final Logger logger = Logger.getLogger(getClass().getName());
 
@@ -51,7 +55,7 @@ public class NettyRatpackService extends AbstractIdleService implements RatpackS
   @Override
   protected void startUp() throws Exception {
     ServerBootstrap bootstrap = new ServerBootstrap();
-    group = new NioEventLoopGroup(MultithreadEventLoopGroup.DEFAULT_EVENT_LOOP_THREADS, new DefaultThreadFactory("ratpack-group", Thread.MAX_PRIORITY));
+    group = new NioEventLoopGroup(DEFAULT_EVENT_LOOP_THREADS, new DefaultThreadFactory("ratpack-group", Thread.MAX_PRIORITY));
 
     bootstrap.group(group)
         .channel(NioServerSocketChannel.class)

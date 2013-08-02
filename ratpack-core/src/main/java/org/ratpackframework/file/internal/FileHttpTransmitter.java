@@ -65,7 +65,7 @@ public class FileHttpTransmitter {
     ChunkedFile message = null;
     try {
       message = new ChunkedFile(raf, 0, fileLength, 8192);
-      writeFuture = channel.write(message);
+      writeFuture = channel.writeAndFlush(message);
     } catch (Exception ignore) {
       if (channel.isOpen()) {
         channel.close();
