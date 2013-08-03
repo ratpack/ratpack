@@ -16,6 +16,9 @@
 
 package org.ratpackframework.handling;
 
+import org.ratpackframework.api.Nullable;
+import org.ratpackframework.registry.Registry;
+
 /**
  * A chain can be used to build a linked series of handlers.
  * <p>
@@ -32,5 +35,15 @@ public interface Chain {
    * @param handler The handler to add to the chain being constructed
    */
   void add(Handler handler);
+
+  /**
+   * The registry that backs this chain.
+   * <p>
+   * The registry that is available is dependent on how the chain was constructed.
+   *
+   * @return The registry that backs this chain, or {@code null} if this chain has no registry.
+   */
+  @Nullable
+  Registry getRegistry();
 
 }

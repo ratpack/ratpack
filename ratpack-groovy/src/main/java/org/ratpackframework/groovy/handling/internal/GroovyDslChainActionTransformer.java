@@ -16,18 +16,24 @@
 
 package org.ratpackframework.groovy.handling.internal;
 
+import org.ratpackframework.api.Nullable;
 import org.ratpackframework.groovy.handling.Chain;
 import org.ratpackframework.handling.Handler;
+import org.ratpackframework.registry.Registry;
 import org.ratpackframework.util.Transformer;
 
 import java.util.List;
 
 public class GroovyDslChainActionTransformer implements Transformer<List<Handler>, Chain> {
 
-  public static final Transformer<List<Handler>, Chain> INSTANCE = new GroovyDslChainActionTransformer();
+  private final Registry registry;
+
+  public GroovyDslChainActionTransformer(@Nullable Registry registry) {
+    this.registry = registry;
+  }
 
   public Chain transform(List<Handler> storage) {
-    return new DefaultChain(storage);
+    return new DefaultChain(storage, registry);
   }
 
 }

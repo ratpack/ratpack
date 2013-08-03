@@ -24,7 +24,7 @@ import org.ratpackframework.registry.internal.HierarchicalRegistrySupport;
 
 public class InjectorBackedHierarchicalRegistry extends HierarchicalRegistrySupport {
 
-  private final Injector injector;
+  final Injector injector;
 
   public InjectorBackedHierarchicalRegistry(Registry parent, Injector injector) {
     super(parent);

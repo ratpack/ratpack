@@ -42,7 +42,7 @@ class RatpackJavadocTests extends JavadocTestCase {
           import org.ratpackframework.groovy.handling.internal.DefaultChain;
           import org.ratpackframework.groovy.Util;
 
-          Util.configureDelegateOnly((Chain) new DefaultChain([])) {
+          Util.configureDelegateOnly((Chain) new DefaultChain([], null)) {
         """
 
         def groovyChainDslSuffix = """

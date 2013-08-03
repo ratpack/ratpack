@@ -133,11 +133,11 @@ public abstract class Handlers {
    * @return A handler
    */
   public static Handler chain(Action<? super Chain> action) {
-    return ChainBuilder.INSTANCE.buildHandler(ChainActionTransformer.INSTANCE, action);
+    return ChainBuilder.INSTANCE.buildHandler(new ChainActionTransformer(null), action);
   }
 
   private static ImmutableList<Handler> chainList(Action<? super Chain> action) {
-    return ChainBuilder.INSTANCE.buildList(ChainActionTransformer.INSTANCE, action);
+    return ChainBuilder.INSTANCE.buildList(new ChainActionTransformer(null), action);
   }
 
   /**

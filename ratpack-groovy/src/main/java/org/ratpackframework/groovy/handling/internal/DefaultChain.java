@@ -18,21 +18,21 @@ package org.ratpackframework.groovy.handling.internal;
 
 import com.google.common.collect.ImmutableList;
 import groovy.lang.Closure;
+import org.ratpackframework.api.Nullable;
 import org.ratpackframework.groovy.Util;
 import org.ratpackframework.groovy.handling.Chain;
 import org.ratpackframework.groovy.handling.ClosureHandlers;
 import org.ratpackframework.handling.Handler;
 import org.ratpackframework.handling.Handlers;
 import org.ratpackframework.handling.internal.ChainBuilder;
+import org.ratpackframework.registry.Registry;
 
 import java.util.List;
 
-public class DefaultChain implements Chain {
+public class DefaultChain extends org.ratpackframework.handling.internal.DefaultChain implements Chain {
 
-  private final List<Handler> handlers;
-
-  public DefaultChain(List<Handler> handlers) {
-    this.handlers = handlers;
+  public DefaultChain(List<Handler> handlers, @Nullable Registry registry) {
+    super(handlers, registry);
   }
 
   public void handler(Closure<?> handler) {
@@ -80,11 +80,7 @@ public class DefaultChain implements Chain {
   }
 
   private ImmutableList<Handler> toHandlerList(Closure<?> handlers) {
-    return ChainBuilder.INSTANCE.buildList(GroovyDslChainActionTransformer.INSTANCE, Util.action(handlers));
-  }
-
-  public void add(Handler handler) {
-    handlers.add(handler);
+    return ChainBuilder.INSTANCE.buildList(new GroovyDslChainActionTransformer(getRegistry()), Util.action(handlers));
   }
 
 }

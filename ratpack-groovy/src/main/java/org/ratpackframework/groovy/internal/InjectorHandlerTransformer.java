@@ -46,7 +46,7 @@ public class InjectorHandlerTransformer implements Transformer<Injector, Handler
       }
     };
 
-    return ChainBuilder.INSTANCE.buildHandler(GroovyDslChainActionTransformer.INSTANCE, chainAction);
+    return ChainBuilder.INSTANCE.buildHandler(new GroovyDslChainActionTransformer(registry), chainAction);
   }
 
 }

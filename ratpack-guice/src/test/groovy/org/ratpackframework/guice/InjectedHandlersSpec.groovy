@@ -17,13 +17,11 @@
 package org.ratpackframework.guice
 
 import com.google.inject.AbstractModule
-import org.ratpackframework.test.groovy.RatpackGroovyDslSpec
 import org.ratpackframework.handling.Context
 import org.ratpackframework.handling.Handler
+import org.ratpackframework.test.groovy.RatpackGroovyDslSpec
 
 import javax.inject.Inject
-
-import static Guice.handler
 
 class InjectedHandlersSpec extends RatpackGroovyDslSpec {
 
@@ -61,7 +59,7 @@ class InjectedHandlersSpec extends RatpackGroovyDslSpec {
         })
       }
       handlers {
-        add handler(InjectedHandler)
+        add registry.get(InjectedHandler)
       }
     }
 

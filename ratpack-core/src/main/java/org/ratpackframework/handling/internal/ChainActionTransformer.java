@@ -16,18 +16,24 @@
 
 package org.ratpackframework.handling.internal;
 
+import org.ratpackframework.api.Nullable;
 import org.ratpackframework.handling.Chain;
 import org.ratpackframework.handling.Handler;
+import org.ratpackframework.registry.Registry;
 import org.ratpackframework.util.Transformer;
 
 import java.util.List;
 
 public class ChainActionTransformer implements Transformer<List<Handler>, Chain> {
 
-  public static final Transformer<List<Handler>, Chain> INSTANCE = new ChainActionTransformer();
+  private final Registry registry;
+
+  public ChainActionTransformer(@Nullable Registry registry) {
+    this.registry = registry;
+  }
 
   public Chain transform(List<Handler> handlers) {
-    return new DefaultChain(handlers);
+    return new DefaultChain(handlers, registry);
   }
 
 }
