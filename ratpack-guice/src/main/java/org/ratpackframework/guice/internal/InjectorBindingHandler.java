@@ -18,6 +18,7 @@ package org.ratpackframework.guice.internal;
 
 import com.google.common.collect.ImmutableList;
 import com.google.inject.Injector;
+import org.ratpackframework.guice.Guice;
 import org.ratpackframework.handling.Context;
 import org.ratpackframework.handling.Handler;
 
@@ -34,6 +35,6 @@ public class InjectorBindingHandler implements Handler {
   }
 
   public void handle(Context context) {
-    context.insert(new InjectorBackedChildRegistry(context, injector), delegate);
+    context.insert(Guice.registry(context, injector), delegate);
   }
 }

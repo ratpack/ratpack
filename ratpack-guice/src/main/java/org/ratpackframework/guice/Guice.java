@@ -19,7 +19,10 @@ package org.ratpackframework.guice;
 import com.google.inject.Injector;
 import org.ratpackframework.guice.internal.DefaultGuiceBackedHandlerFactory;
 import org.ratpackframework.guice.internal.InjectingHandler;
+import org.ratpackframework.guice.internal.InjectorBackedChildRegistry;
+import org.ratpackframework.guice.internal.JustInTimeInjectorRegistry;
 import org.ratpackframework.handling.Handler;
+import org.ratpackframework.registry.Registry;
 import org.ratpackframework.server.RatpackServerSettings;
 import org.ratpackframework.util.Action;
 import org.ratpackframework.util.Transformer;
@@ -154,5 +157,12 @@ public abstract class Guice {
     return new DefaultGuiceBackedHandlerFactory(serverSettings).create(moduleConfigurer, injectorTransformer);
   }
 
+  public static Registry justInTimeRegistry(Injector injector) {
+    return new JustInTimeInjectorRegistry(injector);
+  }
+
+  public static Registry registry(Registry parent, Injector injector) {
+    return new InjectorBackedChildRegistry(parent, injector);
+  }
 
 }

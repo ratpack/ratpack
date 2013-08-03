@@ -20,7 +20,7 @@ import com.google.inject.Injector;
 import groovy.lang.Closure;
 import org.ratpackframework.groovy.handling.Chain;
 import org.ratpackframework.groovy.handling.internal.GroovyDslChainActionTransformer;
-import org.ratpackframework.guice.internal.JustInTimeInjectorRegistry;
+import org.ratpackframework.guice.Guice;
 import org.ratpackframework.handling.Handler;
 import org.ratpackframework.handling.internal.ChainBuilder;
 import org.ratpackframework.registry.Registry;
@@ -36,7 +36,7 @@ public class InjectorHandlerTransformer implements Transformer<Injector, Handler
   }
 
   public Handler transform(Injector injector) {
-    final Registry registry = new JustInTimeInjectorRegistry(injector);
+    final Registry registry = Guice.justInTimeRegistry(injector);
 
     Action<Chain> chainAction = new Action<Chain>() {
       public void execute(Chain chain) {
