@@ -20,13 +20,13 @@ import com.google.inject.Binding;
 import com.google.inject.Injector;
 import com.google.inject.Key;
 import org.ratpackframework.registry.Registry;
-import org.ratpackframework.registry.internal.HierarchicalRegistrySupport;
+import org.ratpackframework.registry.internal.ChildRegistrySupport;
 
-public class InjectorBackedHierarchicalRegistry extends HierarchicalRegistrySupport {
+public class InjectorBackedChildRegistry extends ChildRegistrySupport {
 
   final Injector injector;
 
-  public InjectorBackedHierarchicalRegistry(Registry parent, Injector injector) {
+  public InjectorBackedChildRegistry(Registry parent, Injector injector) {
     super(parent);
     this.injector = injector;
   }

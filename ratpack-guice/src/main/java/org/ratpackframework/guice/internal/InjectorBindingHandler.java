@@ -34,6 +34,6 @@ public class InjectorBindingHandler implements Handler {
   }
 
   public void handle(Context context) {
-    context.insert(new InjectorBackedHierarchicalRegistry(context, injector), delegate);
+    context.insert(new InjectorBackedChildRegistry(context, injector), delegate);
   }
 }

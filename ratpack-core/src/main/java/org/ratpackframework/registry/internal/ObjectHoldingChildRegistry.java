@@ -21,17 +21,17 @@ import org.ratpackframework.registry.Registry;
 /**
  * A simple service that
  */
-public class ObjectHoldingHierarchicalRegistry extends HierarchicalRegistrySupport {
+public class ObjectHoldingChildRegistry extends ChildRegistrySupport {
 
   private final Object value;
   private final Class<?> type;
 
   @SuppressWarnings("unchecked")
-  public ObjectHoldingHierarchicalRegistry(Registry parent, Object value) {
+  public ObjectHoldingChildRegistry(Registry parent, Object value) {
     this(parent, (Class<? super Object>) value.getClass(), value);
   }
 
-  public <T> ObjectHoldingHierarchicalRegistry(Registry parent, Class<? super T> type, T value) {
+  public <T> ObjectHoldingChildRegistry(Registry parent, Class<? super T> type, T value) {
     super(parent);
     this.value = value;
     this.type = type;

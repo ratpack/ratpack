@@ -23,7 +23,7 @@ import org.ratpackframework.handling.Context;
 import org.ratpackframework.handling.Handler;
 import org.ratpackframework.handling.internal.ClientErrorHandler;
 import org.ratpackframework.registry.Registry;
-import org.ratpackframework.registry.internal.LazyHierarchicalRegistry;
+import org.ratpackframework.registry.internal.LazyChildRegistry;
 import org.ratpackframework.util.internal.Factory;
 
 import java.io.File;
@@ -41,7 +41,7 @@ public class TemplateRendererBindingHandler implements Handler {
   }
 
   public void handle(final Context context) {
-    Registry registry = new LazyHierarchicalRegistry(context, TemplateRenderer.class, new Factory<TemplateRenderer>() {
+    Registry registry = new LazyChildRegistry(context, TemplateRenderer.class, new Factory<TemplateRenderer>() {
       public TemplateRenderer create() {
         GroovyTemplateRenderingEngine engine = context.get(GroovyTemplateRenderingEngine.class);
         File templateDirFile = context.get(FileSystemBinding.class).file(templateDir);

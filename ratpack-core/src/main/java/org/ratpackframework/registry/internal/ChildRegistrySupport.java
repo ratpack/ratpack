@@ -18,11 +18,11 @@ package org.ratpackframework.registry.internal;
 
 import org.ratpackframework.registry.Registry;
 
-public abstract class HierarchicalRegistrySupport extends RegistrySupport {
+public abstract class ChildRegistrySupport extends RegistrySupport {
 
   private final Registry parent;
 
-  protected HierarchicalRegistrySupport(Registry parent) {
+  protected ChildRegistrySupport(Registry parent) {
     this.parent = parent;
   }
 

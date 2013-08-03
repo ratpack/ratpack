@@ -17,8 +17,8 @@
 package org.ratpackframework.registry
 
 import com.google.common.collect.ImmutableList
-import org.ratpackframework.registry.internal.LazyHierarchicalRegistry
-import org.ratpackframework.registry.internal.ObjectHoldingHierarchicalRegistry
+import org.ratpackframework.registry.internal.LazyChildRegistry
+import org.ratpackframework.registry.internal.ObjectHoldingChildRegistry
 import org.ratpackframework.registry.internal.RootRegistry
 import spock.lang.Specification
 
@@ -27,11 +27,11 @@ class ServiceRegistryToStringSpec extends Specification {
   def "registry to strings show chain"() {
     when:
     def root = new RootRegistry(ImmutableList.of(1))
-    def object1 = new ObjectHoldingHierarchicalRegistry(root, 2)
-    def object2 = new ObjectHoldingHierarchicalRegistry(object1, 3)
-    def lazy = new LazyHierarchicalRegistry(object2, Integer, { 4 } as org.ratpackframework.util.internal.Factory<Integer>)
+    def object1 = new ObjectHoldingChildRegistry(root, 2)
+    def object2 = new ObjectHoldingChildRegistry(object1, 3)
+    def lazy = new LazyChildRegistry(object2, Integer, { 4 } as org.ratpackframework.util.internal.Factory<Integer>)
 
     then:
-    lazy.toString() == "LazyHierarchicalRegistry{${Integer.name}} -> ObjectServiceRegistry{3} -> ObjectServiceRegistry{2} -> RootRegistry{[1]}"
+    lazy.toString() == "LazyChildRegistry{${Integer.name}} -> ObjectServiceRegistry{3} -> ObjectServiceRegistry{2} -> RootRegistry{[1]}"
   }
 }

@@ -19,7 +19,7 @@ package org.ratpackframework.session.internal;
 import com.google.common.collect.ImmutableList;
 import org.ratpackframework.handling.Context;
 import org.ratpackframework.registry.Registry;
-import org.ratpackframework.registry.internal.LazyHierarchicalRegistry;
+import org.ratpackframework.registry.internal.LazyChildRegistry;
 import org.ratpackframework.handling.Handler;
 import org.ratpackframework.session.Session;
 import org.ratpackframework.session.SessionManager;
@@ -38,7 +38,7 @@ public class SessionBindingHandler implements Handler {
   public void handle(Context context) {
     SessionManager sessionManager = context.get(SessionManager.class);
     final ExchangeSessionManager exchangeSessionManager = new ExchangeSessionManager(context, sessionManager);
-    Registry registry = new LazyHierarchicalRegistry(context, Session.class, new Factory<Session>() {
+    Registry registry = new LazyChildRegistry(context, Session.class, new Factory<Session>() {
       public Session create() {
         return exchangeSessionManager.getSession();
       }

@@ -21,8 +21,8 @@ import org.ratpackframework.handling.ByAcceptsResponder;
 import org.ratpackframework.handling.ByMethodResponder;
 import org.ratpackframework.handling.Context;
 import org.ratpackframework.registry.Registry;
+import org.ratpackframework.registry.internal.ObjectHoldingChildRegistry;
 import org.ratpackframework.server.RatpackServerSettings;
-import org.ratpackframework.registry.internal.ObjectHoldingHierarchicalRegistry;
 import org.ratpackframework.error.ClientErrorHandler;
 import org.ratpackframework.error.ServerErrorHandler;
 import org.ratpackframework.file.FileSystemBinding;
@@ -84,11 +84,11 @@ public class DefaultContext implements Context {
   }
 
   public <P, T extends P> void insert(Class<P> publicType, T implementation, List<Handler> handlers) {
-    doNext(this, new ObjectHoldingHierarchicalRegistry(registry, publicType, implementation), handlers, 0, next);
+    doNext(this, new ObjectHoldingChildRegistry(registry, publicType, implementation), handlers, 0, next);
   }
 
   public void insert(Object object, List<Handler> handlers) {
-    doNext(this, new ObjectHoldingHierarchicalRegistry(registry, object), handlers, 0, next);
+    doNext(this, new ObjectHoldingChildRegistry(registry, object), handlers, 0, next);
   }
 
   public Map<String, String> getPathTokens() {
