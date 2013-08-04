@@ -35,4 +35,8 @@ public class NotInRegistryException extends RuntimeException {
     super(String.format("No object for type '%s' in registry: %s", type.getName(), registry.toString()));
   }
 
+
+  public NotInRegistryException(String message) {
+    super(message);
+  }
 }

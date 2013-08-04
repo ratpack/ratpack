@@ -17,8 +17,7 @@
 package org.ratpackframework.guice;
 
 import com.google.inject.Module;
-
-import java.util.List;
+import org.ratpackframework.registry.MutableRegistry;
 
 /**
  * A container of modules, used for specifying which modules to back an application with.
@@ -29,77 +28,42 @@ import java.util.List;
  * The order that modules are registered in is important.
  * Modules registered later can override the bindings of modules registered prior.
  * This can be useful for overriding default implementation bindings.
+ * <p>
+ * Some modules have properties/methods that can be used to configure their bindings.
+ * This method can be used to retrieve such modules and configure them.
+ * The modules have have already been registered “upstream”.
+ * <pre class="tested">
+ * import org.ratpackframework.guice.*;
+ * import org.ratpackframework.util.*;
+ * import com.google.inject.AbstractModule;
+ *
+ * class MyService {
+ *   private final String value;
+ *   public MyService(String value) {
+ *     this.value = value;
+ *   }
+ * }
+ *
+ * class MyModule extends AbstractModule {
+ *   public String serviceValue;
+ *
+ *   protected void configure() {
+ *     bind(MyService.class).toInstance(new MyService(serviceValue));
+ *   }
+ * }
+ *
+ * class ModuleAction implements Action&lt;ModuleRegistry&gt; {
+ *   public void execute(ModuleRegistry modules) {
+ *     // MyModule has been added by some other action that executed against this registry…
+ *
+ *     modules.get(MyModule.class).serviceValue = "foo";
+ *   }
+ * }
+ * </pre>
  *
  * @see Guice#handler(org.ratpackframework.launch.LaunchConfig, org.ratpackframework.util.Action, org.ratpackframework.handling.Handler)
  * @see HandlerDecoratingModule
  */
-public interface ModuleRegistry {
-
-  /**
-   * Registers the given module.
-   *
-   * @param module The module to register.
-   */
-  void register(Module module);
-
-  /**
-   * Can be used to retrieve a registered module by type.
-   * <p>
-   * Some modules have properties/methods that can be used to configure their bindings.
-   * This method can be used to retrieve such modules and configure them.
-   * The modules have have already been registered “upstream”.
-   * <pre class="tested">
-   * import org.ratpackframework.guice.*;
-   * import org.ratpackframework.util.*;
-   * import com.google.inject.AbstractModule;
-   *
-   * class MyService {
-   *   private final String value;
-   *   public MyService(String value) {
-   *     this.value = value;
-   *   }
-   * }
-   *
-   * class MyModule extends AbstractModule {
-   *   public String serviceValue;
-   *
-   *   protected void configure() {
-   *     bind(MyService.class).toInstance(new MyService(serviceValue));
-   *   }
-   * }
-   *
-   * class ModuleAction implements Action&lt;ModuleRegistry&gt; {
-   *   public void execute(ModuleRegistry modules) {
-   *     // MyModule has been added by some other action that executed against this registry…
-   *
-   *     modules.get(MyModule.class).serviceValue = "foo";
-   *   }
-   * }
-   * </pre>
-   *
-   * @param moduleType The type of the module to retrieve
-   * @param <T> The module type
-   * @throws NoSuchModuleException If there is no module of this exact type registered
-   * @return The registered module of the given type
-   */
-  <T extends Module> T get(Class<T> moduleType) throws NoSuchModuleException;
-
-  /**
-   * Removes the module of the given type from the registry.
-   *
-   * @param moduleType The type of the module to remove
-   * @throws NoSuchModuleException if there is no module of this exact type registered
-   * @return The removed module
-   */
-  <T extends Module> T remove(Class<T> moduleType) throws NoSuchModuleException;
-
-  /**
-   * All of the currently registered modules.
-   * <p>
-   * The returned list is the actual list of modules in order that they will be used. It is mutable.
-   *
-   * @return The actual registered modules, in registration order
-   */
-  List<? extends Module> getModules();
+public interface ModuleRegistry extends MutableRegistry<Module> {
 
 }

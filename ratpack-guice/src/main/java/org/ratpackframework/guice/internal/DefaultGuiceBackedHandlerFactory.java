@@ -40,7 +40,7 @@ public class DefaultGuiceBackedHandlerFactory implements GuiceBackedHandlerFacto
   }
 
   public Handler create(Action<? super ModuleRegistry> modulesAction, Transformer<? super Injector, ? extends Handler> injectorTransformer) {
-    ModuleRegistry moduleRegistry = new DefaultModuleRegistry();
+    DefaultModuleRegistry moduleRegistry = new DefaultModuleRegistry();
 
     registerDefaultModules(moduleRegistry);
     modulesAction.execute(moduleRegistry);

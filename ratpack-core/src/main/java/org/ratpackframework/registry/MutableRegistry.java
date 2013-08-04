@@ -20,6 +20,8 @@ public interface MutableRegistry<T> extends Registry<T> {
 
   <O extends T> void register(Class<O> type, O object);
 
+  void register(T object);
+
   <O extends T> O remove(Class<O> type) throws NotInRegistryException;
 
 }

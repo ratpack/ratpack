@@ -27,25 +27,38 @@ import java.util.Map;
 
 public class DefaultModuleRegistry implements ModuleRegistry {
 
-  private final Map<Class<?>, Module> modules = new LinkedHashMap<Class<?>, Module>();
+  private final Map<Class<? extends Module>, Module> modules = new LinkedHashMap<Class<? extends Module>, Module>();
 
+  @SuppressWarnings("unchecked")
   public void register(Module module) {
-    Class<? extends Module> type = module.getClass();
+    register((Class<Module>) module.getClass(), module);
+  }
+
+  public <O extends Module> void register(Class<O> type, O module) {
     if (modules.containsKey(type)) {
       Object existing = modules.get(type);
-      throw new IllegalArgumentException(String.format("Mdule '%s' is already registered with type '%s' (attempting to register '%s')", existing, type, module));
+      throw new IllegalArgumentException(String.format("Module '%s' is already registered with type '%s' (attempting to register '%s')", existing, type, module));
     }
 
     modules.put(type, module);
   }
 
   public <T extends Module> T get(Class<T> moduleType) {
-    Object configObject = modules.get(moduleType);
-    if (configObject == null) {
+    Module module = modules.get(moduleType);
+    if (module == null) {
       throw new NoSuchModuleException(moduleType);
     }
 
-    return moduleType.cast(configObject);
+    return moduleType.cast(module);
+  }
+
+  public <O extends Module> O maybeGet(Class<O> type) {
+    Module module = modules.get(type);
+    if (module == null) {
+      return null;
+    }
+
+    return type.cast(module);
   }
 
   public <T extends Module> T remove(Class<T> moduleType) {
@@ -59,4 +72,5 @@ public class DefaultModuleRegistry implements ModuleRegistry {
   public List<? extends Module> getModules() {
     return new ArrayList<Module>(modules.values());
   }
+
 }

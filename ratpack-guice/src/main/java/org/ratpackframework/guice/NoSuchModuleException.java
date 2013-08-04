@@ -17,11 +17,12 @@
 package org.ratpackframework.guice;
 
 import com.google.inject.Module;
+import org.ratpackframework.registry.NotInRegistryException;
 
 /**
  * Thrown when a module is requested that does not exist.
  */
-public class NoSuchModuleException extends IllegalArgumentException {
+public class NoSuchModuleException extends NotInRegistryException {
 
   private static final long serialVersionUID = 0;
 
