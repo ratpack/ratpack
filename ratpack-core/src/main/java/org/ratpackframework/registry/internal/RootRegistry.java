@@ -18,16 +18,12 @@ package org.ratpackframework.registry.internal;
 
 import com.google.common.collect.ImmutableList;
 
-public class RootRegistry extends RegistrySupport {
+public class RootRegistry<T> extends RegistrySupport<T> {
 
-  private final ImmutableList<? extends Object> objects;
+  private final ImmutableList<? extends T> objects;
 
-  public RootRegistry(ImmutableList<? extends Object> objects) {
+  public RootRegistry(ImmutableList<? extends T> objects) {
     this.objects = objects;
-  }
-
-  public RootRegistry() {
-    this(ImmutableList.of());
   }
 
   @Override
@@ -35,7 +31,7 @@ public class RootRegistry extends RegistrySupport {
     return "RootRegistry{" + objects + '}';
   }
 
-  protected <T> T doMaybeGet(Class<T> type) {
+  protected <O extends T> O doMaybeGet(Class<O> type) {
     for (Object object : objects) {
       if (type.isInstance(object)) {
         return type.cast(object);

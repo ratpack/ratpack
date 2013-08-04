@@ -19,16 +19,16 @@ package org.ratpackframework.registry.internal;
 import org.ratpackframework.registry.NotInRegistryException;
 import org.ratpackframework.registry.Registry;
 
-public abstract class RegistrySupport implements Registry {
+public abstract class RegistrySupport<T> implements Registry<T> {
 
-  protected abstract <T> T doMaybeGet(Class<T> type);
+  protected abstract <O extends T> O doMaybeGet(Class<O> type);
 
-  protected <T> T onNotFound(Class<T> type) {
+  protected <O extends T> O onNotFound(@SuppressWarnings("UnusedParameters") Class<O> type) {
     return null;
   }
 
-  public final <T> T maybeGet(Class<T> type) {
-    T value = doMaybeGet(type);
+  public final <O extends T> O maybeGet(Class<O> type) {
+    O value = doMaybeGet(type);
 
     if (value == null) {
       return onNotFound(type);
@@ -37,8 +37,8 @@ public abstract class RegistrySupport implements Registry {
     }
   }
 
-  public final <T> T get(Class<T> type) {
-    T found = maybeGet(type);
+  public final <O extends T> O get(Class<O> type) {
+    O found = maybeGet(type);
     if (found == null) {
       throw new NotInRegistryException(this, type);
     }

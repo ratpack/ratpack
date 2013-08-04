@@ -38,6 +38,7 @@ import org.ratpackframework.http.Response;
 import org.ratpackframework.http.internal.DefaultRequest;
 import org.ratpackframework.http.internal.DefaultResponse;
 import org.ratpackframework.launch.LaunchConfig;
+import org.ratpackframework.registry.Registry;
 import org.ratpackframework.registry.internal.RootRegistry;
 
 import static io.netty.handler.codec.http.HttpResponseStatus.NOT_FOUND;
@@ -46,12 +47,12 @@ import static io.netty.handler.codec.http.HttpResponseStatus.NOT_FOUND;
 public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
 
   private final Handler handler;
-  private final RootRegistry rootServiceRegistry;
+  private final Registry<Object> rootServiceRegistry;
   private Handler return404;
 
   public NettyHandlerAdapter(Handler handler, LaunchConfig launchConfig) {
     this.handler = new ErrorCatchingHandler(handler);
-    this.rootServiceRegistry = new RootRegistry(
+    this.rootServiceRegistry = new RootRegistry<Object>(
       ImmutableList.of(
         launchConfig,
         new DefaultServerErrorHandler(),

@@ -22,14 +22,15 @@ import com.google.inject.Key;
 import org.ratpackframework.registry.Registry;
 import org.ratpackframework.registry.internal.ChildRegistrySupport;
 
-public class InjectorBackedChildRegistry extends ChildRegistrySupport {
+public class InjectorBackedChildRegistry extends ChildRegistrySupport<Object> {
 
   final Injector injector;
 
-  public InjectorBackedChildRegistry(Registry parent, Injector injector) {
+  public InjectorBackedChildRegistry(Registry<Object> parent, Injector injector) {
     super(parent);
     this.injector = injector;
   }
+
 
   @Override
   protected <T> T doMaybeGet(Class<T> type) {

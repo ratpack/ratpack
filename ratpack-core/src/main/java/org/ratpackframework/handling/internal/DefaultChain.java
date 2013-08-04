@@ -26,9 +26,9 @@ import java.util.List;
 public class DefaultChain implements Chain {
 
   private final List<Handler> handlers;
-  private final Registry registry;
+  private final Registry<Object> registry;
 
-  public DefaultChain(List<Handler> handlers, @Nullable Registry registry) {
+  public DefaultChain(List<Handler> handlers, @Nullable Registry<Object> registry) {
     this.handlers = handlers;
     this.registry = registry;
   }
@@ -37,7 +37,7 @@ public class DefaultChain implements Chain {
     handlers.add(handler);
   }
 
-  public Registry getRegistry() {
+  public Registry<Object> getRegistry() {
     return registry;
   }
 }

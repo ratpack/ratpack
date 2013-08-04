@@ -41,7 +41,7 @@ public class TemplateRendererBindingHandler implements Handler {
   }
 
   public void handle(final Context context) {
-    Registry registry = new LazyChildRegistry(context, TemplateRenderer.class, new Factory<TemplateRenderer>() {
+    Registry<Object> registry = new LazyChildRegistry<Object, TemplateRenderer>(context, TemplateRenderer.class, new Factory<TemplateRenderer>() {
       public TemplateRenderer create() {
         GroovyTemplateRenderingEngine engine = context.get(GroovyTemplateRenderingEngine.class);
         File templateDirFile = context.get(FileSystemBinding.class).file(templateDir);

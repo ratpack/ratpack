@@ -63,7 +63,7 @@ import java.util.Map;
  * for a portion of the application.
  * </p>
  */
-public interface Context extends Registry {
+public interface Context extends Registry<Object> {
 
   /**
    * The HTTP request.
@@ -108,7 +108,7 @@ public interface Context extends Registry {
    * @param handlers The handlers to insert
    */
   @NonBlocking
-  void insert(Registry registry, List<Handler> handlers);
+  void insert(Registry<Object> registry, List<Handler> handlers);
 
   /**
    * Inserts some handlers into the pipeline to execute with the given service, then delegates to the first.

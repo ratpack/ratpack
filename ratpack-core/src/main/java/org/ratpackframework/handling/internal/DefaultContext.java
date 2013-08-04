@@ -27,6 +27,7 @@ import org.ratpackframework.handling.Handler;
 import org.ratpackframework.http.Request;
 import org.ratpackframework.http.Response;
 import org.ratpackframework.path.PathBinding;
+import org.ratpackframework.registry.NotInRegistryException;
 import org.ratpackframework.registry.Registry;
 import org.ratpackframework.registry.internal.ObjectHoldingChildRegistry;
 
@@ -42,9 +43,9 @@ public class DefaultContext implements Context {
   private final ChannelHandlerContext channelHandlerContext;
 
   private final Handler next;
-  private final Registry registry;
+  private final Registry<Object> registry;
 
-  public DefaultContext(Request request, Response response, ChannelHandlerContext channelHandlerContext, Registry registry, Handler next) {
+  public DefaultContext(Request request, Response response, ChannelHandlerContext channelHandlerContext, Registry<Object> registry, Handler next) {
     this.request = request;
     this.response = response;
     this.channelHandlerContext = channelHandlerContext;
@@ -60,11 +61,11 @@ public class DefaultContext implements Context {
     return response;
   }
 
-  public <T> T get(Class<T> type) {
+  public <O> O get(Class<O> type) throws NotInRegistryException {
     return registry.get(type);
   }
 
-  public <T> T maybeGet(Class<T> type) {
+  public <O> O maybeGet(Class<O> type) {
     return registry.maybeGet(type);
   }
 
@@ -76,16 +77,16 @@ public class DefaultContext implements Context {
     doNext(this, registry, handlers, 0, next);
   }
 
-  public void insert(Registry registry, List<Handler> handlers) {
+  public void insert(Registry<Object> registry, List<Handler> handlers) {
     doNext(this, registry, handlers, 0, next);
   }
 
   public <P, T extends P> void insert(Class<P> publicType, T implementation, List<Handler> handlers) {
-    doNext(this, new ObjectHoldingChildRegistry(registry, publicType, implementation), handlers, 0, next);
+    doNext(this, new ObjectHoldingChildRegistry<Object>(registry, publicType, implementation), handlers, 0, next);
   }
 
   public void insert(Object object, List<Handler> handlers) {
-    doNext(this, new ObjectHoldingChildRegistry(registry, object), handlers, 0, next);
+    doNext(this, new ObjectHoldingChildRegistry<Object>(registry, object), handlers, 0, next);
   }
 
   public Map<String, String> getPathTokens() {
@@ -129,7 +130,7 @@ public class DefaultContext implements Context {
     return new DefaultByAcceptsResponder(this);
   }
 
-  protected void doNext(final Context parentContext, final Registry registry, final List<Handler> handlers, final int index, final Handler exhausted) {
+  protected void doNext(final Context parentContext, final Registry<Object> registry, final List<Handler> handlers, final int index, final Handler exhausted) {
     assert registry != null;
     if (index == handlers.size()) {
       try {

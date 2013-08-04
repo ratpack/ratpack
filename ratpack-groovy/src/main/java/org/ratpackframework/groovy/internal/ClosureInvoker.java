@@ -40,7 +40,7 @@ public class ClosureInvoker<T, D> {
     this.parameterTypes = retrieveParameterTypes(this.closure);
   }
 
-  public <T> T invoke(Registry registry, D delegate, int resolveStrategy) {
+  public <T> T invoke(Registry<Object> registry, D delegate, int resolveStrategy) {
     @SuppressWarnings("unchecked")
     Closure<T> clone = (Closure<T>) closure.clone();
     clone.setDelegate(delegate);

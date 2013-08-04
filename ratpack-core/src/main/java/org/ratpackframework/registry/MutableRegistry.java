@@ -14,28 +14,12 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.registry.internal;
+package org.ratpackframework.registry;
 
-import org.ratpackframework.registry.Registry;
+public interface MutableRegistry<T> extends Registry<T> {
 
-public abstract class ChildRegistrySupport<T> extends RegistrySupport<T> {
+  <O extends T> void register(Class<O> type, O object);
 
-  private final Registry<T> parent;
-
-  protected ChildRegistrySupport(Registry<T> parent) {
-    this.parent = parent;
-  }
-
-  @Override
-  public String toString() {
-    return describe() + " -> " + parent.toString();
-  }
-
-  @Override
-  protected <O extends T> O onNotFound(@SuppressWarnings("UnusedParameters") Class<O> type) {
-    return parent.maybeGet(type);
-  }
-
-  protected abstract String describe();
+  <O extends T> O remove(Class<O> type) throws NotInRegistryException;
 
 }

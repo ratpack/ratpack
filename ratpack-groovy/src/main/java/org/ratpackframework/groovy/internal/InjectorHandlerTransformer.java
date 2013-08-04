@@ -36,7 +36,7 @@ public class InjectorHandlerTransformer implements Transformer<Injector, Handler
   }
 
   public Handler transform(Injector injector) {
-    final Registry registry = Guice.justInTimeRegistry(injector);
+    final Registry<Object> registry = Guice.justInTimeRegistry(injector);
 
     Action<Chain> chainAction = new Action<Chain>() {
       public void execute(Chain chain) {

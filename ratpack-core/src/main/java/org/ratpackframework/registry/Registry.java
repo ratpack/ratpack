@@ -24,27 +24,29 @@ import org.ratpackframework.api.Nullable;
  * A registry acts as a kind of service locator. A registry can be requested to provide an object of a certain type.
  * <p>
  * Registry objects must be threadsafe.
+ *
+ * @param <T> the baseline type of objects in this registry
  */
-public interface Registry {
+public interface Registry<T> {
 
   /**
    * Provides an object of the specified type, or throws an exception if no object of that type is available.
    *
    * @param type The type of the object to provide
-   * @param <T> The type of the object to provide
+   * @param <O> The type of the object to provide
    * @return An object of the specified type
    * @throws org.ratpackframework.registry.NotInRegistryException If no object of this type can be returned
    */
-  <T> T get(Class<T> type) throws NotInRegistryException;
+  <O extends T> O get(Class<O> type) throws NotInRegistryException;
 
   /**
    * Does the same thing as {@link #get(Class)}, except returns null instead of throwing an exception.
    *
    * @param type The type of the object to provide
-   * @param <T> The type of the object to provide
+   * @param <O> The type of the object to provide
    * @return An object of the specified type, or null if no object of this type is available.
    */
   @Nullable
-  <T> T maybeGet(Class<T> type);
+  <O extends T> O maybeGet(Class<O> type);
 
 }

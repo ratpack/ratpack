@@ -19,7 +19,7 @@ package org.ratpackframework.guice.internal;
 import com.google.inject.Injector;
 import org.ratpackframework.registry.internal.RegistrySupport;
 
-public class JustInTimeInjectorRegistry extends RegistrySupport {
+public class JustInTimeInjectorRegistry extends RegistrySupport<Object> {
 
   private final Injector injector;
 

@@ -160,11 +160,11 @@ public abstract class Guice {
     return new DefaultGuiceBackedHandlerFactory(launchConfig).create(moduleConfigurer, injectorTransformer);
   }
 
-  public static Registry justInTimeRegistry(Injector injector) {
+  public static Registry<Object> justInTimeRegistry(Injector injector) {
     return new JustInTimeInjectorRegistry(injector);
   }
 
-  public static Registry registry(Registry parent, Injector injector) {
+  public static Registry<Object> registry(Registry<Object> parent, Injector injector) {
     return new InjectorBackedChildRegistry(parent, injector);
   }
 

@@ -26,9 +26,9 @@ import java.util.List;
 
 public class GroovyDslChainActionTransformer implements Transformer<List<Handler>, Chain> {
 
-  private final Registry registry;
+  private final Registry<Object> registry;
 
-  public GroovyDslChainActionTransformer(@Nullable Registry registry) {
+  public GroovyDslChainActionTransformer(@Nullable Registry<Object> registry) {
     this.registry = registry;
   }
 

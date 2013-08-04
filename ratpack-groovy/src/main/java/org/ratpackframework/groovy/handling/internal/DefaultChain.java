@@ -31,7 +31,7 @@ import java.util.List;
 
 public class DefaultChain extends org.ratpackframework.handling.internal.DefaultChain implements Chain {
 
-  public DefaultChain(List<Handler> handlers, @Nullable Registry registry) {
+  public DefaultChain(List<Handler> handlers, @Nullable Registry<Object> registry) {
     super(handlers, registry);
   }
 

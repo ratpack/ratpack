@@ -38,7 +38,7 @@ public class SessionBindingHandler implements Handler {
   public void handle(Context context) {
     SessionManager sessionManager = context.get(SessionManager.class);
     final ExchangeSessionManager exchangeSessionManager = new ExchangeSessionManager(context, sessionManager);
-    Registry registry = new LazyChildRegistry(context, Session.class, new Factory<Session>() {
+    Registry<Object> registry = new LazyChildRegistry<Object, Session>(context, Session.class, new Factory<Session>() {
       public Session create() {
         return exchangeSessionManager.getSession();
       }

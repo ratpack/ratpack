@@ -44,6 +44,6 @@ public interface Chain {
    * @return The registry that backs this chain, or {@code null} if this chain has no registry.
    */
   @Nullable
-  Registry getRegistry();
+  Registry<Object> getRegistry();
 
 }
