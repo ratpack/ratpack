@@ -30,7 +30,7 @@ import java.util.List;
  * Modules registered later can override the bindings of modules registered prior.
  * This can be useful for overriding default implementation bindings.
  *
- * @see Guice#handler(org.ratpackframework.util.Action, org.ratpackframework.handling.Handler)
+ * @see Guice#handler(org.ratpackframework.launch.LaunchConfig, org.ratpackframework.util.Action, org.ratpackframework.handling.Handler)
  * @see HandlerDecoratingModule
  */
 public interface ModuleRegistry {
