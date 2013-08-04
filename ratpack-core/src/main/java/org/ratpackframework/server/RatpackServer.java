@@ -16,17 +16,19 @@
 
 package org.ratpackframework.server;
 
+import org.ratpackframework.launch.LaunchConfig;
+
 /**
  * A Ratpack server.
  */
 public interface RatpackServer {
 
   /**
-   * The (read only) settings of this server.
+   * The (read only) configuration that was used to launch this server.
    *
-   * @return the (read only) settings of this server
+   * @return the (read only) configuration that was used to launch this server.
    */
-  RatpackServerSettings getSettings();
+  LaunchConfig getLaunchConfig();
 
   /**
    * The actual port that the application is bound to.

@@ -37,7 +37,7 @@ import org.ratpackframework.http.Request;
 import org.ratpackframework.http.Response;
 import org.ratpackframework.http.internal.DefaultRequest;
 import org.ratpackframework.http.internal.DefaultResponse;
-import org.ratpackframework.server.RatpackServerSettings;
+import org.ratpackframework.launch.LaunchConfig;
 import org.ratpackframework.registry.internal.RootRegistry;
 
 import static io.netty.handler.codec.http.HttpResponseStatus.NOT_FOUND;
@@ -47,19 +47,17 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
 
   private final Handler handler;
   private final RootRegistry rootServiceRegistry;
-  private final RatpackServerSettings settings;
   private Handler return404;
 
-  public NettyHandlerAdapter(Handler handler, RatpackServerSettings settings) {
-    this.settings = settings;
+  public NettyHandlerAdapter(Handler handler, LaunchConfig launchConfig) {
     this.handler = new ErrorCatchingHandler(handler);
     this.rootServiceRegistry = new RootRegistry(
       ImmutableList.of(
-        settings,
+        launchConfig,
         new DefaultServerErrorHandler(),
         new DefaultClientErrorHandler(),
         new ActivationBackedMimeTypes(),
-        new DefaultFileSystemBinding(settings.getBaseDir())
+        new DefaultFileSystemBinding(launchConfig.getBaseDir())
       )
     );
 
@@ -81,10 +79,10 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
 
     HttpVersion version = nettyRequest.getProtocolVersion();
     boolean keepAlive = version == HttpVersion.HTTP_1_1
-        || (version == HttpVersion.HTTP_1_0 && "Keep-Alive".equalsIgnoreCase(nettyRequest.headers().get("Connection")));
+      || (version == HttpVersion.HTTP_1_0 && "Keep-Alive".equalsIgnoreCase(nettyRequest.headers().get("Connection")));
 
     Response response = new DefaultResponse(nettyResponse, ctx.channel(), keepAlive, version);
-    final Context context = new DefaultContext(request, response, settings, ctx, rootServiceRegistry, return404);
+    final Context context = new DefaultContext(request, response, ctx, rootServiceRegistry, return404);
 
     handler.handle(context);
   }
@@ -99,7 +97,7 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
 
   private static void sendError(ChannelHandlerContext ctx, HttpResponseStatus status) {
     FullHttpResponse response = new DefaultFullHttpResponse(
-        HttpVersion.HTTP_1_1, status, Unpooled.copiedBuffer("Failure: " + status.toString() + "\r\n", CharsetUtil.UTF_8));
+      HttpVersion.HTTP_1_1, status, Unpooled.copiedBuffer("Failure: " + status.toString() + "\r\n", CharsetUtil.UTF_8));
     response.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/plain; charset=UTF-8");
 
     // Close the connection as soon as the error message is sent.

@@ -16,12 +16,14 @@
 
 package org.ratpackframework.groovy
 
+import com.google.common.collect.ImmutableMap
 import com.google.common.util.concurrent.AbstractIdleService
+import org.ratpackframework.groovy.internal.StandaloneScriptBacking
+import org.ratpackframework.groovy.launch.GroovyScriptHandlerFactory
+import org.ratpackframework.launch.internal.DefaultLaunchConfig
 import org.ratpackframework.server.RatpackServer
 import org.ratpackframework.server.internal.RatpackService
 import org.ratpackframework.server.internal.ServiceBackedServer
-import org.ratpackframework.groovy.internal.StandaloneScriptBacking
-import org.ratpackframework.server.DefaultRatpackServerSettings
 import org.ratpackframework.test.groovy.RatpackGroovyScriptAppSpec
 
 class StandaloneScriptSpec extends RatpackGroovyScriptAppSpec {
@@ -76,18 +78,16 @@ class StandaloneScriptSpec extends RatpackGroovyScriptAppSpec {
   @Override
   RatpackServer createServer() {
     def service = new ScriptBackedService()
-    new ServiceBackedServer(service, new DefaultRatpackServerSettings(ratpackFile.parentFile, true))
+    new ServiceBackedServer(service, new DefaultLaunchConfig(ratpackFile.parentFile, 0, null, true, 0, ImmutableMap.of(), new GroovyScriptHandlerFactory()))
   }
 
   def "can execute plain script and reload"() {
     when:
     app {
       script """
-        System.setProperty("ratpack.port", "0")
-
         ratpack {
           handlers {
-            get("") {
+            get {
               response.send "foo"
             }
           }

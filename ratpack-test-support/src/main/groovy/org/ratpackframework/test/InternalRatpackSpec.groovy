@@ -19,17 +19,11 @@ package org.ratpackframework.test
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import org.ratpackframework.groovy.Util
-import org.ratpackframework.server.DefaultRatpackServerSettings
-import org.ratpackframework.server.RatpackServerSettings
 
 abstract class InternalRatpackSpec extends RequestingSpec {
 
   @Rule TemporaryFolder temporaryFolder
   boolean reloadable
-
-  RatpackServerSettings createServerSettings() {
-    new DefaultRatpackServerSettings(getDir(), reloadable)
-  }
 
   File file(String path) {
     prepFile(new File(getDir(), path))

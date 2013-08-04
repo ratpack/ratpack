@@ -25,16 +25,17 @@ import io.netty.handler.codec.http.HttpResponseEncoder;
 import io.netty.handler.stream.ChunkedWriteHandler;
 import io.netty.util.concurrent.DefaultEventExecutorGroup;
 import org.ratpackframework.handling.Handler;
-import org.ratpackframework.server.RatpackServerSettings;
+import org.ratpackframework.launch.LaunchConfig;
 
 public class RatpackChannelInitializer extends ChannelInitializer<SocketChannel> {
 
   private NettyHandlerAdapter nettyHandlerAdapter;
   private DefaultEventExecutorGroup eventExecutorGroup;
 
-  public RatpackChannelInitializer(int workerThreads, Handler handler, RatpackServerSettings settings) {
-    this.nettyHandlerAdapter = new NettyHandlerAdapter(handler, settings);
+  public RatpackChannelInitializer(LaunchConfig launchConfig, Handler handler) {
+    this.nettyHandlerAdapter = new NettyHandlerAdapter(handler, launchConfig);
 
+    int workerThreads = launchConfig.getWorkerThreads();
     if (workerThreads > 0) {
       this.eventExecutorGroup = new DefaultEventExecutorGroup(workerThreads);
     } else {

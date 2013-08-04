@@ -28,7 +28,7 @@ class RatpackGroovyPlugin implements Plugin<Project> {
     project.plugins.apply(RatpackPlugin)
     project.plugins.apply(GroovyPlugin)
 
-    project.mainClassName = "org.ratpackframework.groovy.server.RatpackMain"
+    project.mainClassName = "org.ratpackframework.groovy.launch.RatpackMain"
 
     def ratpackDependencies = new RatpackDependencies(project.dependencies)
 
@@ -37,7 +37,7 @@ class RatpackGroovyPlugin implements Plugin<Project> {
       testCompile ratpackDependencies.testSupport
     }
 
-    JavaExec runTask = project.tasks.findByName("run")
+    JavaExec runTask = project.tasks.findByName("run") as JavaExec
     runTask.systemProperty("ratpack.reloadable", true)
   }
 

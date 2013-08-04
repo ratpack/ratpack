@@ -17,9 +17,12 @@
 package org.ratpackframework.groovy.internal;
 
 import groovy.lang.Closure;
-import org.ratpackframework.util.Action;
+import org.ratpackframework.groovy.launch.GroovyScriptHandlerFactory;
+import org.ratpackframework.launch.LaunchConfig;
+import org.ratpackframework.launch.LaunchConfigFactory;
 import org.ratpackframework.server.RatpackServer;
-import org.ratpackframework.groovy.server.RatpackScriptApp;
+import org.ratpackframework.server.RatpackServerBuilder;
+import org.ratpackframework.util.Action;
 
 import java.io.File;
 import java.net.URI;
@@ -41,10 +44,19 @@ public class StandaloneScriptBacking implements Action<Closure<?>> {
   public void execute(Closure<?> closure) {
     File scriptFile = findScript(closure);
 
-    Properties properties = new Properties(System.getProperties());
-    properties.setProperty("ratpack.reloadable", "true");
+    Properties defaultProperties = new Properties();
+    defaultProperties.setProperty(LaunchConfigFactory.Property.RELOADABLE, "true");
 
-    RatpackServer ratpack = RatpackScriptApp.ratpack(scriptFile, properties);
+    Properties properties = LaunchConfigFactory.getDefaultPrefixedProperties();
+    properties.setProperty(LaunchConfigFactory.Property.HANDLER_FACTORY, GroovyScriptHandlerFactory.class.getName());
+    properties.setProperty(GroovyScriptHandlerFactory.SCRIPT_PROPERTY_NAME, scriptFile.getName());
+
+    File baseDir = scriptFile.getParentFile();
+    File configFile = new File(baseDir, LaunchConfigFactory.CONFIG_RESOURCE_DEFAULT);
+
+    LaunchConfig launchConfig = LaunchConfigFactory.createFromFile(closure.getClass().getClassLoader(), baseDir, configFile, properties, defaultProperties);
+
+    RatpackServer ratpack = RatpackServerBuilder.build(launchConfig);
 
     Action<? super RatpackServer> action = CAPTURE_ACTION.getAndSet(null);
     if (action != null) {

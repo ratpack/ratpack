@@ -22,8 +22,8 @@ import org.ratpackframework.guice.internal.InjectingHandler;
 import org.ratpackframework.guice.internal.InjectorBackedChildRegistry;
 import org.ratpackframework.guice.internal.JustInTimeInjectorRegistry;
 import org.ratpackframework.handling.Handler;
+import org.ratpackframework.launch.LaunchConfig;
 import org.ratpackframework.registry.Registry;
-import org.ratpackframework.server.RatpackServerSettings;
 import org.ratpackframework.util.Action;
 import org.ratpackframework.util.Transformer;
 import org.ratpackframework.util.internal.ConstantTransformer;
@@ -75,7 +75,7 @@ public abstract class Guice {
    * <p>
    * If there is no contextual {@link com.google.inject.Injector} for the exchange, a {@link org.ratpackframework.registry.NotInRegistryException} will be thrown.
    * This means that it only makes sense to use an injected handler like this if the application is Guice backed.
-   * Such as when using a {@link #handler(RatpackServerSettings, Action, Handler)} handler as the root.
+   * Such as when using a {@link #handler(LaunchConfig, Action, Handler)} handler as the root.
    *
    * @param handlerType The type of handler to create via dependency injection
    * @return A handler that delegates to a created-on-demand dependency injected instance of the given type
@@ -91,7 +91,7 @@ public abstract class Guice {
    * <pre class="tested">
    * import org.ratpackframework.handling.*;
    * import org.ratpackframework.guice.*;
-   * import org.ratpackframework.server.*;
+   * import org.ratpackframework.launch.*;
    * import org.ratpackframework.util.Action;
    * import com.google.inject.AbstractModule;
    * import javax.inject.Singleton;
@@ -131,9 +131,12 @@ public abstract class Guice {
    *   }
    * }
    *
-   * RatpackServerSettings serverSettings = new DefaultRatpackServerSettings(new File("appRoot"), false);
-   * Handler guiceBackedHandler = Guice.handler(serverSettings, new ModuleBootstrap(), appHandlers);
-   * RatpackServerBuilder serverBuilder = new RatpackServerBuilder(serverSettings, guiceBackedHandler);
+   * LaunchConfig launchConfig = LaunchConfigBuilder.baseDir(new File("appRoot"))
+   *   .build(new HandlerFactory() {
+   *     public Handler create(LaunchConfig launchConfig) {
+   *       return Guice.handler(launchConfig, new ModuleBootstrap(), appHandlers);
+   *     }
+   *   });
    * </pre>
    * <p>
    * Modules are processed eagerly. Before this method returns, the modules will be used to create a single
@@ -144,17 +147,17 @@ public abstract class Guice {
    * This means that you can retrieve objects that were bound by modules in handlers via {@link org.ratpackframework.handling.Context#get(Class)}.
    * Objects are only retrievable via their public type.
    *
-   * @param serverSettings The settings of the server
+   * @param launchConfig The launch config of the server
    * @param moduleConfigurer The configurer of the {@link ModuleRegistry} to back the created handler
    * @param handler The handler of the application
    * @return A handler that makes the injector and its content available to the given handler
    */
-  public static Handler handler(RatpackServerSettings serverSettings, Action<? super ModuleRegistry> moduleConfigurer, Handler handler) {
-    return handler(serverSettings, moduleConfigurer, new ConstantTransformer<Handler>(handler));
+  public static Handler handler(LaunchConfig launchConfig, Action<? super ModuleRegistry> moduleConfigurer, Handler handler) {
+    return handler(launchConfig, moduleConfigurer, new ConstantTransformer<Handler>(handler));
   }
 
-  public static Handler handler(RatpackServerSettings serverSettings, Action<? super ModuleRegistry> moduleConfigurer, Transformer<? super Injector, ? extends Handler> injectorTransformer) {
-    return new DefaultGuiceBackedHandlerFactory(serverSettings).create(moduleConfigurer, injectorTransformer);
+  public static Handler handler(LaunchConfig launchConfig, Action<? super ModuleRegistry> moduleConfigurer, Transformer<? super Injector, ? extends Handler> injectorTransformer) {
+    return new DefaultGuiceBackedHandlerFactory(launchConfig).create(moduleConfigurer, injectorTransformer);
   }
 
   public static Registry justInTimeRegistry(Injector injector) {

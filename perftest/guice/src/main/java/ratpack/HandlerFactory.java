@@ -16,36 +16,23 @@
 
 package ratpack;
 
-import org.ratpackframework.server.DefaultRatpackServerSettings;
-import org.ratpackframework.server.RatpackServer;
-import org.ratpackframework.server.RatpackServerBuilder;
 import org.ratpackframework.guice.Guice;
 import org.ratpackframework.handling.Chain;
 import org.ratpackframework.handling.Handler;
+import org.ratpackframework.launch.LaunchConfig;
 import org.ratpackframework.util.Action;
-
-import java.io.File;
 
 import static org.ratpackframework.handling.Handlers.chain;
 import static org.ratpackframework.handling.Handlers.get;
 
-public class Main {
+public class HandlerFactory implements org.ratpackframework.launch.HandlerFactory {
 
-  public static void main(String[] args) throws Exception {
-    File dir = new File("src/ratpack");
-    DefaultRatpackServerSettings settings = new DefaultRatpackServerSettings(dir, false);
-
-    Handler handler = Guice.handler(settings, new ModuleBootstrap(), chain(new Action<Chain>() {
+  public Handler create(LaunchConfig launchConfig) {
+    return Guice.handler(launchConfig, new ModuleBootstrap(), chain(new Action<Chain>() {
       public void execute(Chain chain) {
         chain.add(get(Guice.handler(InjectedHandler.class)));
       }
     }));
-
-    RatpackServerBuilder ratpackServerBuilder = new RatpackServerBuilder(settings, handler);
-    ratpackServerBuilder.setWorkerThreads(0); // don't use a worker connection pool
-    RatpackServer server = ratpackServerBuilder.build();
-
-    server.start();
   }
 
 }

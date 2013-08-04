@@ -16,9 +16,12 @@
 
 package org.ratpackframework.test.groovy
 
-import org.ratpackframework.server.RatpackServer
 import org.ratpackframework.groovy.RatpackScript
-import org.ratpackframework.groovy.server.RatpackScriptApp
+import org.ratpackframework.groovy.launch.GroovyScriptHandlerFactory
+import org.ratpackframework.launch.LaunchConfig
+import org.ratpackframework.launch.LaunchConfigFactory
+import org.ratpackframework.server.RatpackServer
+import org.ratpackframework.server.RatpackServerBuilder
 import org.ratpackframework.test.InternalRatpackSpec
 
 abstract class RatpackGroovyScriptAppSpec extends InternalRatpackSpec {
@@ -44,7 +47,14 @@ abstract class RatpackGroovyScriptAppSpec extends InternalRatpackSpec {
 
   @Override
   protected RatpackServer createServer() {
-    RatpackScriptApp.ratpack(ratpackFile, dir, 0, null, compileStatic, reloadable)
+    Properties properties = new Properties()
+    properties.setProperty(LaunchConfigFactory.Property.HANDLER_FACTORY, GroovyScriptHandlerFactory.name)
+    properties.setProperty(LaunchConfigFactory.Property.RELOADABLE, reloadable.toString())
+    properties.setProperty(LaunchConfigFactory.Property.PORT, "0")
+    properties.setProperty(GroovyScriptHandlerFactory.COMPILE_STATIC_PROPERTY_NAME, compileStatic.toString())
+    properties.setProperty(GroovyScriptHandlerFactory.SCRIPT_PROPERTY_NAME, ratpackFile.name)
+    LaunchConfig launchConfig = LaunchConfigFactory.createWithBaseDir(getClass().classLoader, ratpackFile.parentFile, properties)
+    RatpackServerBuilder.build(launchConfig)
   }
 
 }

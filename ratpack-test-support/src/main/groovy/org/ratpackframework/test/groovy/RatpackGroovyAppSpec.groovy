@@ -18,11 +18,13 @@ package org.ratpackframework.test.groovy
 
 import org.ratpackframework.groovy.server.internal.GroovyKitAppFactory
 import org.ratpackframework.guice.internal.GuiceBackedHandlerFactory
+import org.ratpackframework.launch.LaunchConfig
 
 abstract class RatpackGroovyAppSpec extends RatpackGroovyDslSpec {
 
-  protected GuiceBackedHandlerFactory createAppFactory() {
-    return new GroovyKitAppFactory(createServerSettings())
+  @Override
+  protected GuiceBackedHandlerFactory createHandlerFactory(LaunchConfig launchConfig) {
+    new GroovyKitAppFactory(launchConfig)
   }
 
 }

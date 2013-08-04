@@ -16,42 +16,17 @@
 
 package org.ratpackframework.test
 
+import org.ratpackframework.groovy.launch.RatpackMain
 import org.ratpackframework.server.RatpackServer
-import org.ratpackframework.groovy.server.RatpackScriptApp
-
 
 @SuppressWarnings("GrMethodMayBeStatic")
 class ScriptAppSpec extends RequestingSpec {
 
   @Override
   protected RatpackServer createServer() {
-
-    return RatpackScriptApp.ratpack(script, baseDir, port, address, compileStatic, reloadable)
-  }
-
-  protected File getScript(){
-    //TODO Confirm default location of ratpack.groovy
-    return new File("src/ratpack/ratpack.groovy")
-  }
-
-  protected File getBaseDir(){
-    return script.getAbsoluteFile().getParentFile()
-  }
-
-  protected int getPort(){
-    return 0
-  }
-
-  protected InetAddress getAddress(){
-    return null
-  }
-
-  protected boolean getCompileStatic(){
-    return false
-  }
-
-  protected boolean getReloadable(){
-    return false
+    Properties systemProperties = new Properties(System.getProperties())
+    systemProperties.setProperty("ratpack.port", "0")
+    new RatpackMain().server(systemProperties, new Properties())
   }
 
 }

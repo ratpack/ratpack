@@ -11,6 +11,7 @@ ratpack {
   }
   handlers { RatpackVersions versions ->
   	handler {
+      println request.path
       if (request.path.empty || request.path == "index.html") {
         response.addHeader "X-UA-Compatible", "IE=edge,chrome=1"
       }

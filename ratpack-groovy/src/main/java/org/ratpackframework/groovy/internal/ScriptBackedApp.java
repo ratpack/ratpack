@@ -35,8 +35,10 @@ import java.io.File;
 public class ScriptBackedApp implements Handler {
 
   private final Factory<Handler> reloadHandler;
+  private final File script;
 
   public ScriptBackedApp(File script, final GuiceBackedHandlerFactory appFactory, final boolean staticCompile, boolean reloadable) {
+    this.script = script;
     this.reloadHandler = new ReloadableFileBackedFactory<Handler>(script, reloadable, new ReloadableFileBackedFactory.Delegate<Handler>() {
       public Handler produce(final File file, final ByteBuf bytes) {
         try {
@@ -88,7 +90,12 @@ public class ScriptBackedApp implements Handler {
   }
 
   public void handle(Context context) {
-    reloadHandler.create().handle(context);
+    Handler handler = reloadHandler.create();
+    if (handler == null) {
+      context.getResponse().send("script file does not exist:" + script.getAbsolutePath());
+    } else {
+      handler.handle(context);
+    }
   }
 
 }

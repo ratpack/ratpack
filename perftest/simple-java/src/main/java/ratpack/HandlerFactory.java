@@ -16,25 +16,20 @@
 
 package ratpack;
 
-import org.ratpackframework.server.DefaultRatpackServerSettings;
-import org.ratpackframework.server.RatpackServer;
-import org.ratpackframework.server.RatpackServerBuilder;
+import org.ratpackframework.handling.Context;
 import org.ratpackframework.handling.Handler;
 import org.ratpackframework.handling.Handlers;
+import org.ratpackframework.launch.LaunchConfig;
 
-import java.io.File;
+public class HandlerFactory implements org.ratpackframework.launch.HandlerFactory {
 
-public class Main {
-
-  public static void main(String[] args) throws Exception {
-    Handler handler = Handlers.chain(new Routing());
-
-    File dir = new File("src/ratpack");
-    RatpackServerBuilder ratpackServerBuilder = new RatpackServerBuilder(new DefaultRatpackServerSettings(dir, false), handler);
-    ratpackServerBuilder.setWorkerThreads(0); // don't use a worker connection pool
-    RatpackServer server = ratpackServerBuilder.build();
-
-    server.start();
+  public Handler create(LaunchConfig launchConfig) {
+    return Handlers.get("foo/bar", new Handler() {
+      public void handle(Context context) {
+        context.getResponse().send(context.getRequest().getUri());
+      }
+    });
   }
+
 
 }

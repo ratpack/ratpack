@@ -69,7 +69,7 @@ class HandlersSpec extends DefaultRatpackSpec {
           get(org.ratpackframework.error.ServerErrorHandler)
           get(org.ratpackframework.error.ClientErrorHandler)
           get(org.ratpackframework.file.MimeTypes)
-          get(org.ratpackframework.server.RatpackServerSettings)
+          get(org.ratpackframework.launch.LaunchConfig)
           get(org.ratpackframework.file.FileSystemBinding)
           response.send "ok"
         }

@@ -17,19 +17,18 @@
 package org.ratpackframework.handling.internal;
 
 import io.netty.channel.ChannelHandlerContext;
-import org.ratpackframework.handling.ByAcceptsResponder;
-import org.ratpackframework.handling.ByMethodResponder;
-import org.ratpackframework.handling.Context;
-import org.ratpackframework.registry.Registry;
-import org.ratpackframework.registry.internal.ObjectHoldingChildRegistry;
-import org.ratpackframework.server.RatpackServerSettings;
 import org.ratpackframework.error.ClientErrorHandler;
 import org.ratpackframework.error.ServerErrorHandler;
 import org.ratpackframework.file.FileSystemBinding;
+import org.ratpackframework.handling.ByAcceptsResponder;
+import org.ratpackframework.handling.ByMethodResponder;
+import org.ratpackframework.handling.Context;
 import org.ratpackframework.handling.Handler;
 import org.ratpackframework.http.Request;
 import org.ratpackframework.http.Response;
 import org.ratpackframework.path.PathBinding;
+import org.ratpackframework.registry.Registry;
+import org.ratpackframework.registry.internal.ObjectHoldingChildRegistry;
 
 import java.io.File;
 import java.util.List;
@@ -40,16 +39,14 @@ public class DefaultContext implements Context {
   private final Request request;
   private final Response response;
 
-  private final RatpackServerSettings serverSettings;
   private final ChannelHandlerContext channelHandlerContext;
 
   private final Handler next;
   private final Registry registry;
 
-  public DefaultContext(Request request, Response response, RatpackServerSettings serverSettings, ChannelHandlerContext channelHandlerContext, Registry registry, Handler next) {
+  public DefaultContext(Request request, Response response, ChannelHandlerContext channelHandlerContext, Registry registry, Handler next) {
     this.request = request;
     this.response = response;
-    this.serverSettings = serverSettings;
     this.channelHandlerContext = channelHandlerContext;
     this.registry = registry;
     this.next = next;
@@ -152,7 +149,7 @@ public class DefaultContext implements Context {
           ((DefaultContext) exchange).doNext(parentContext, registry, handlers, index + 1, exhausted);
         }
       };
-      DefaultContext childExchange = new DefaultContext(request, response, serverSettings, channelHandlerContext, registry, nextHandler);
+      DefaultContext childExchange = new DefaultContext(request, response, channelHandlerContext, registry, nextHandler);
       try {
         handler.handle(childExchange);
       } catch (Exception e) {

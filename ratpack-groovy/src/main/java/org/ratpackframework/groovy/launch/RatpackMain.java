@@ -14,21 +14,24 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.guice.internal;
+package org.ratpackframework.groovy.launch;
 
-import com.google.inject.AbstractModule;
-import org.ratpackframework.launch.LaunchConfig;
+import org.ratpackframework.launch.LaunchConfigFactory;
 
-public class DefaultRatpackModule extends AbstractModule {
+import java.util.Properties;
 
-  private final LaunchConfig launchConfig;
+/**
+ * The standard “main” entry point for Groovy script based apps.
+ */
+public class RatpackMain extends org.ratpackframework.launch.RatpackMain {
 
-  public DefaultRatpackModule(LaunchConfig launchConfig) {
-    this.launchConfig = launchConfig;
+  public static void main(String[] args) throws Exception {
+    new RatpackMain().start();
   }
 
   @Override
-  protected void configure() {
-    bind(LaunchConfig.class).toInstance(launchConfig);
+  protected void addImpliedDefaults(Properties properties) {
+    properties.put(LaunchConfigFactory.Property.HANDLER_FACTORY, GroovyScriptHandlerFactory.class.getName());
+    properties.put(GroovyScriptHandlerFactory.SCRIPT_PROPERTY_NAME, "ratpack.groovy");
   }
 }

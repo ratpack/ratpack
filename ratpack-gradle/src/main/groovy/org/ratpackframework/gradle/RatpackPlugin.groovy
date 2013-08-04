@@ -21,6 +21,9 @@ import org.gradle.api.Project
 import org.gradle.api.plugins.ApplicationPlugin
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.tasks.JavaExec
+import org.gradle.api.tasks.SourceSet
+import org.gradle.api.tasks.SourceSetContainer
+import org.gradle.api.tasks.application.CreateStartScripts
 import org.gradle.plugins.ide.idea.IdeaPlugin
 
 class RatpackPlugin implements Plugin<Project> {
@@ -52,8 +55,24 @@ class RatpackPlugin implements Plugin<Project> {
       workingDir = project.file("src/ratpack")
     }
 
+    project.mainClassName = "org.ratpackframework.launch.RatpackMain"
+
+    SourceSetContainer sourceSets = project.sourceSets
+    def testSourceSet = sourceSets[SourceSet.TEST_SOURCE_SET_NAME]
+    testSourceSet.resources.srcDir(run.workingDir)
+
     project.installApp {
-      from run.workingDir
+      from run.workingDir, {
+        into "app"
+      }
+    }
+
+    CreateStartScripts startScripts = project.startScripts
+    startScripts.with {
+      doLast {
+        unixScript.text = unixScript.text.replaceAll('CLASSPATH=.+\n', '$0cd "\\$APP_HOME/app"\n')
+        windowsScript.text = windowsScript.text.replaceAll('CLASSPATH=.+\n', '$0dir "%APP_HOME%\\app"\n')
+      }
     }
 
     project.plugins.withType(IdeaPlugin) {

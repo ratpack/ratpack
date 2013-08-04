@@ -16,7 +16,5 @@
 
 subprojects {
   apply from: "$rootDir/gradle/javaModule.gradle"
-
   apply plugin: "ratpack"
-  mainClassName = "ratpack.Main"
 }

@@ -23,7 +23,7 @@ import com.google.inject.util.Modules;
 import org.ratpackframework.guice.HandlerDecoratingModule;
 import org.ratpackframework.guice.ModuleRegistry;
 import org.ratpackframework.handling.Handler;
-import org.ratpackframework.server.RatpackServerSettings;
+import org.ratpackframework.launch.LaunchConfig;
 import org.ratpackframework.util.Action;
 import org.ratpackframework.util.Transformer;
 
@@ -33,10 +33,10 @@ import java.util.List;
 
 public class DefaultGuiceBackedHandlerFactory implements GuiceBackedHandlerFactory {
 
-  private final RatpackServerSettings serverSettings;
+  private final LaunchConfig launchConfig;
 
-  public DefaultGuiceBackedHandlerFactory(RatpackServerSettings serverSettings) {
-    this.serverSettings = serverSettings;
+  public DefaultGuiceBackedHandlerFactory(LaunchConfig launchConfig) {
+    this.launchConfig = launchConfig;
   }
 
   public Handler create(Action<? super ModuleRegistry> modulesAction, Transformer<? super Injector, ? extends Handler> injectorTransformer) {
@@ -83,7 +83,7 @@ public class DefaultGuiceBackedHandlerFactory implements GuiceBackedHandlerFacto
   }
 
   protected void registerDefaultModules(ModuleRegistry moduleRegistry) {
-    moduleRegistry.register(new DefaultRatpackModule(serverSettings));
+    moduleRegistry.register(new DefaultRatpackModule(launchConfig));
   }
 
 }

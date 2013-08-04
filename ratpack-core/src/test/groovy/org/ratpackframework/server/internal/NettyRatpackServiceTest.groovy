@@ -16,11 +16,12 @@
 
 package org.ratpackframework.server.internal
 
+import com.google.common.collect.ImmutableMap
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
-import org.ratpackframework.server.DefaultRatpackServerSettings
+import org.ratpackframework.launch.HandlerFactory
+import org.ratpackframework.launch.internal.DefaultLaunchConfig
 import org.ratpackframework.server.RatpackServerBuilder
-import org.ratpackframework.handling.Handler
 import spock.lang.Specification
 
 import java.util.concurrent.ExecutionException
@@ -31,19 +32,13 @@ class NettyRatpackServiceTest extends Specification {
 
   def "throws exception if can't bind to port"() {
     given:
-    def server1 = new RatpackServerBuilder(new DefaultRatpackServerSettings(temporaryFolder.root, false), {} as Handler).with {
-      port = 0
-      build()
-    }
-
+    def config1 = new DefaultLaunchConfig(temporaryFolder.root, 0, null, false, 0, ImmutableMap.of(), {} as HandlerFactory)
+    def server1 = RatpackServerBuilder.build(config1)
     server1.start()
 
     when:
-    def server2 = new RatpackServerBuilder(new DefaultRatpackServerSettings(temporaryFolder.root, false), {} as Handler).with {
-      port = server1.bindPort
-      build()
-    }
-
+    def config2 = new DefaultLaunchConfig(temporaryFolder.root, server1.bindPort, null, false, 0, ImmutableMap.of(), {} as HandlerFactory)
+    def server2 = RatpackServerBuilder.build(config2)
     server2.start()
 
     then:

@@ -34,14 +34,17 @@ class IdeaConfigurer implements Action<Project> {
   void execute(Project project) {
     def ideaModule = project.extensions.getByType(IdeaModel).module
     def ideaWorkspace = project.rootProject.extensions.getByType(IdeaModel).workspace
+    def ideaProject = project.rootProject.extensions.getByType(IdeaModel).project
 
-//    ideaModule.scopes.RUNTIME.plus += ratpackApp.springloadedClasspath
+    ideaModule.sourceDirs.add(project.file("src/ratpack"))
+    ideaProject.wildcards.add("ratpack:*")
+
     ideaWorkspace.iws.withXml { XmlProvider provider ->
       Node node = provider.asNode()
 
-      Node runManagerConfig = node.getByName('component').find { it.'@name' == 'RunManager' }
+      Node runManagerConfig = node['component'].find { it.'@name' == 'RunManager' } as Node
 
-      def jvmArgs = new ArrayList<>(runSpec.allJvmArgs)
+      def jvmArgs = new ArrayList<String>(runSpec.allJvmArgs)
       def cpArg = jvmArgs.indexOf("-cp")
       if (cpArg < 0) {
         cpArg = jvmArgs.indexOf("-classpath")

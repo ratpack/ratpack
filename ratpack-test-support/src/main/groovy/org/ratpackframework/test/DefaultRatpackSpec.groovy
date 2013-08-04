@@ -16,8 +16,12 @@
 
 package org.ratpackframework.test
 
+import com.google.common.collect.ImmutableMap
 import com.google.inject.Injector
 import com.google.inject.Module
+import org.ratpackframework.launch.HandlerFactory
+import org.ratpackframework.launch.LaunchConfig
+import org.ratpackframework.launch.internal.DefaultLaunchConfig
 import org.ratpackframework.server.RatpackServer
 import org.ratpackframework.server.RatpackServerBuilder
 import org.ratpackframework.guice.internal.GuiceBackedHandlerFactory
@@ -51,19 +55,21 @@ abstract class DefaultRatpackSpec extends InternalRatpackSpec {
 
   @Override
   protected RatpackServer createServer() {
-    GuiceBackedHandlerFactory appFactory = createAppFactory()
     def handler = createHandlerTransformer()
     def modulesAction = createModulesAction()
-    Handler appHandler = appFactory.create(modulesAction, handler)
 
-    RatpackServerBuilder builder = new RatpackServerBuilder(createServerSettings(), appHandler)
-    builder.port = 0
-    builder.address = null
-    builder.build()
+    LaunchConfig launchConfig = new DefaultLaunchConfig(dir, 0, null, reloadable, 0, ImmutableMap.of(), new HandlerFactory() {
+      Handler create(LaunchConfig launchConfig) {
+        createHandlerFactory(launchConfig).create(modulesAction, handler)
+      }
+    })
+
+    RatpackServerBuilder.build(launchConfig)
   }
 
-  protected GuiceBackedHandlerFactory createAppFactory() {
-    new DefaultGuiceBackedHandlerFactory(createServerSettings())
+  @SuppressWarnings("GrMethodMayBeStatic")
+  protected GuiceBackedHandlerFactory createHandlerFactory(LaunchConfig launchConfig) {
+    new DefaultGuiceBackedHandlerFactory(launchConfig)
   }
 
   protected Action<? super ModuleRegistry> createModulesAction() {

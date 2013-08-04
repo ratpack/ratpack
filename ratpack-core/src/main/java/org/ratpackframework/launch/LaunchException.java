@@ -14,34 +14,20 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.server;
-
-import java.io.File;
+package org.ratpackframework.launch;
 
 /**
- * A default implementation of {@link RatpackServerSettings}.
+ * Thrown if something goes wrong at launch time.
  */
-public class DefaultRatpackServerSettings implements RatpackServerSettings {
+public class LaunchException extends RuntimeException {
 
-  private final File baseDir;
-  private final boolean reloadable;
+  private static final long serialVersionUID = 0;
 
-  /**
-   * Constructor.
-   *
-   * @param baseDir The base dir value.
-   * @param reloadable The reloadable value.
-   */
-  public DefaultRatpackServerSettings(File baseDir, boolean reloadable) {
-    this.baseDir = baseDir;
-    this.reloadable = reloadable;
+  public LaunchException(String message) {
+    super(message);
   }
 
-  public File getBaseDir() {
-    return baseDir;
-  }
-
-  public boolean isReloadable() {
-    return reloadable;
+  public LaunchException(String message, Throwable cause) {
+    super(message, cause);
   }
 }

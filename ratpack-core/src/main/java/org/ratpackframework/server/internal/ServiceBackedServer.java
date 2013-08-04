@@ -16,21 +16,21 @@
 
 package org.ratpackframework.server.internal;
 
+import org.ratpackframework.launch.LaunchConfig;
 import org.ratpackframework.server.RatpackServer;
-import org.ratpackframework.server.RatpackServerSettings;
 
 public class ServiceBackedServer implements RatpackServer {
 
   private final RatpackService ratpackService;
-  private final RatpackServerSettings settings;
+  private final LaunchConfig launchConfig;
 
-  public ServiceBackedServer(RatpackService ratpackService, RatpackServerSettings settings) {
+  public ServiceBackedServer(RatpackService ratpackService, LaunchConfig launchConfig) {
     this.ratpackService = ratpackService;
-    this.settings = settings;
+    this.launchConfig = launchConfig;
   }
 
-  public RatpackServerSettings getSettings() {
-    return settings;
+  public LaunchConfig getLaunchConfig() {
+    return launchConfig;
   }
 
   public boolean isRunning() {

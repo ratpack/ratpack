@@ -27,7 +27,7 @@ import org.ratpackframework.groovy.templating.internal.TemplateRenderingClientEr
 import org.ratpackframework.groovy.templating.internal.TemplateRenderingServerErrorHandler;
 import org.ratpackframework.guice.HandlerDecoratingModule;
 import org.ratpackframework.handling.Handler;
-import org.ratpackframework.server.RatpackServerSettings;
+import org.ratpackframework.launch.LaunchConfig;
 
 import javax.inject.Singleton;
 
@@ -84,7 +84,7 @@ public class TemplatingModule extends AbstractModule implements HandlerDecoratin
   }
 
   @Provides
-  TemplatingConfig provideTemplatingConfig(RatpackServerSettings serverSettings) {
-    return new DefaultTemplatingConfig(templatesPath, cacheSize, reloadable || serverSettings.isReloadable(), staticallyCompile);
+  TemplatingConfig provideTemplatingConfig(LaunchConfig launchConfig) {
+    return new DefaultTemplatingConfig(templatesPath, cacheSize, reloadable || launchConfig.isReloadable(), staticallyCompile);
   }
 }

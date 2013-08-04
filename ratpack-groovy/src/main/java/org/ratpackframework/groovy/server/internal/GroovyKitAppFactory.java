@@ -19,13 +19,13 @@ package org.ratpackframework.groovy.server.internal;
 import org.ratpackframework.groovy.templating.TemplatingModule;
 import org.ratpackframework.guice.ModuleRegistry;
 import org.ratpackframework.guice.internal.DefaultGuiceBackedHandlerFactory;
-import org.ratpackframework.server.RatpackServerSettings;
+import org.ratpackframework.launch.LaunchConfig;
 import org.ratpackframework.session.SessionModule;
 
 public class GroovyKitAppFactory extends DefaultGuiceBackedHandlerFactory {
 
-  public GroovyKitAppFactory(RatpackServerSettings serverSettings) {
-    super(serverSettings);
+  public GroovyKitAppFactory(LaunchConfig launchConfig) {
+    super(launchConfig);
   }
 
   @Override
