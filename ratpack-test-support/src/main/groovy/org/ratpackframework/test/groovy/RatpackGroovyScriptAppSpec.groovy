@@ -45,14 +45,19 @@ abstract class RatpackGroovyScriptAppSpec extends InternalRatpackSpec {
     ratpackFile.text = "import static ${RatpackScript.name}.ratpack\n\n$text"
   }
 
-  @Override
-  protected RatpackServer createServer() {
+  protected Properties getProperties() {
     Properties properties = new Properties()
     properties.setProperty(LaunchConfigFactory.Property.HANDLER_FACTORY, GroovyScriptHandlerFactory.name)
     properties.setProperty(LaunchConfigFactory.Property.RELOADABLE, reloadable.toString())
     properties.setProperty(LaunchConfigFactory.Property.PORT, "0")
     properties.setProperty("other." + GroovyScriptHandlerFactory.COMPILE_STATIC_PROPERTY_NAME, compileStatic.toString())
     properties.setProperty("other." + GroovyScriptHandlerFactory.SCRIPT_PROPERTY_NAME, ratpackFile.name)
+
+    return properties
+  }
+
+  @Override
+  protected RatpackServer createServer() {
     LaunchConfig launchConfig = LaunchConfigFactory.createWithBaseDir(getClass().classLoader, ratpackFile.parentFile, properties)
     RatpackServerBuilder.build(launchConfig)
   }

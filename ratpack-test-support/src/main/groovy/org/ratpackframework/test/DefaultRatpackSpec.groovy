@@ -62,7 +62,7 @@ abstract class DefaultRatpackSpec extends InternalRatpackSpec {
       Handler create(LaunchConfig launchConfig) {
         createHandlerFactory(launchConfig).create(modulesAction, handler)
       }
-    })
+    },new URL("http://localhost"))
 
     RatpackServerBuilder.build(launchConfig)
   }

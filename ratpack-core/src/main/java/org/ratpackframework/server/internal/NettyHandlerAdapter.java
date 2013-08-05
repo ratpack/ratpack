@@ -37,6 +37,7 @@ import org.ratpackframework.http.internal.DefaultResponse;
 import org.ratpackframework.launch.LaunchConfig;
 import org.ratpackframework.registry.Registry;
 import org.ratpackframework.registry.internal.RootRegistry;
+import org.ratpackframework.url.internal.DefaultPublicAddress;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -58,8 +59,6 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
   public NettyHandlerAdapter(Handler handler, LaunchConfig launchConfig) {
     this.launchConfig = launchConfig;
     this.handler = new ErrorCatchingHandler(handler);
-
-
     this.return404 = new ClientErrorHandler(NOT_FOUND.code());
   }
 

@@ -228,4 +228,18 @@ public interface Context extends Registry<Object> {
   @NonBlocking
   void render(Object object) throws NotInRegistryException, NoSuchRendererException;
 
+  /**
+   * Sends a temporary redirect response (i.e. statusCode 302) to the client using the specified redirect location URL.
+   *
+   * @param location the redirect location URL
+   */
+  void redirect(String location);
+
+  /**
+   * Sends a redirect response location URL and status code (which should be in the 3xx range).
+   *
+   * @param code The status code of the redirect
+   * @param location the redirect location URL
+   */
+  void redirect(int code, String location);
 }

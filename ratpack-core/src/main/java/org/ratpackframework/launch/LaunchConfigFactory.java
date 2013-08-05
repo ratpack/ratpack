@@ -22,10 +22,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.InetAddress;
-import java.net.URI;
-import java.net.URL;
-import java.net.UnknownHostException;
+import java.net.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -137,6 +134,17 @@ public abstract class LaunchConfigFactory {
         }
       }
 
+      URL publicAddress = null;
+      String publicAddressString = properties.getProperty(Property.PUBLIC_ADDRESS);
+
+      if (publicAddressString != null) {
+        try {
+          publicAddress = new URL(publicAddressString);
+        } catch (MalformedURLException ex) {
+          throw new IllegalStateException("Failed to create URL from: " + publicAddressString, ex);
+        }
+      }
+
       boolean reloadable = Boolean.parseBoolean(properties.getProperty(Property.RELOADABLE, "false"));
       int workerThreads = Integer.valueOf(properties.getProperty(Property.WORKER_THREADS, "0"));
 
@@ -153,6 +161,7 @@ public abstract class LaunchConfigFactory {
       return LaunchConfigBuilder.baseDir(baseDir)
         .port(port)
         .address(address)
+        .publicAddress(publicAddress)
         .reloadable(reloadable)
         .workerThreads(workerThreads)
         .other(otherProperties)
@@ -172,40 +181,34 @@ public abstract class LaunchConfigFactory {
     }
 
     /**
-     * The port to listen for requests on. Defaults to {@link LaunchConfig#DEFAULT_PORT}.
-     * <p>
-     * <b>Value:</b> {@value}
+     * The port to listen for requests on. Defaults to {@link LaunchConfig#DEFAULT_PORT}. <p> <b>Value:</b> {@value}
      */
     public static final String PORT = "port";
 
     /**
-     * The address to bind to. Defaults to {@code null} (all addresses).
-     * <p>
-     * If the value is not {@code null}, it will converted to an Inet Address via {@link java.net.InetAddress#getByName(String)}.
-     * <p>
-     * <b>Value:</b> {@value} - (inet address)
+     * The address to bind to. Defaults to {@code null} (all addresses). <p> If the value is not {@code null}, it will converted to an Inet Address via {@link java.net.InetAddress#getByName(String)}.
+     * <p> <b>Value:</b> {@value} - (inet address)
      */
     public static final String ADDRESS = "address";
 
     /**
-     * Whether to reload the application if the script changes at runtime. Defaults to {@code false}.
-     * <p>
-     * <b>Value:</b> {@value} - (boolean)
+     * Whether to reload the application if the script changes at runtime. Defaults to {@code false}. <p> <b>Value:</b> {@value} - (boolean)
      */
     public static final String RELOADABLE = "reloadable";
 
     /**
-     * The full qualified classname of the handler factory (required).
-     * <p>
-     * <b>Value:</b> {@value} - (string)
+     * The full qualified classname of the handler factory (required). <p> <b>Value:</b> {@value} - (string)
      */
     public static final String HANDLER_FACTORY = "handlerFactory";
 
     /**
-     * The number of worker threads to use. Defaults to 0.
-     * <p>
-     * <b>Value:</b> {@value} - (int)
+     * The number of worker threads to use. Defaults to 0. <p> <b>Value:</b> {@value} - (int)
      */
     public static final String WORKER_THREADS = "workerThreads";
+
+    /**
+     * The public address of the site. <p> If the value is not {@code null}, it will converted to an URL. <p> <b>Value:</b> {@value} - (url)
+     */
+    public static final String PUBLIC_ADDRESS = "publicAddress";
   }
 }

@@ -20,6 +20,7 @@ import org.ratpackframework.api.Nullable;
 
 import java.io.File;
 import java.net.InetAddress;
+import java.net.URL;
 
 public interface LaunchConfig {
 
@@ -71,6 +72,13 @@ public interface LaunchConfig {
    * @return The number of worker threads to use to execute the handler.
    */
   public int getWorkerThreads();
+
+  /**
+   * The public address of the site used for redirects.
+   *
+   * @return The url of the public address;
+   */
+  public URL getPublicAddress();
 
   public String getOther(String key, String defaultValue);
 

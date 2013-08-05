@@ -83,7 +83,7 @@ class StandaloneScriptSpec extends RatpackGroovyScriptAppSpec {
   @Override
   RatpackServer createServer() {
     def service = new ScriptBackedService()
-    new ServiceBackedServer(service, new DefaultLaunchConfig(ratpackFile.parentFile, 0, null, true, 0, ImmutableMap.of(), new GroovyScriptHandlerFactory()))
+    new ServiceBackedServer(service, new DefaultLaunchConfig(ratpackFile.parentFile, 0, null, true, 0, ImmutableMap.of(), new GroovyScriptHandlerFactory(),new URL("http://localhost")))
   }
 
   def "can execute plain script and reload"() {
