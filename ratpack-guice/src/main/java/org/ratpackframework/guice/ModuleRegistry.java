@@ -17,6 +17,7 @@
 package org.ratpackframework.guice;
 
 import com.google.inject.Module;
+import org.ratpackframework.launch.LaunchConfig;
 import org.ratpackframework.registry.MutableRegistry;
 
 /**
@@ -65,5 +66,12 @@ import org.ratpackframework.registry.MutableRegistry;
  * @see HandlerDecoratingModule
  */
 public interface ModuleRegistry extends MutableRegistry<Module> {
+
+  /**
+   * The launch config for the application the module registry is for.
+   *
+   * @return the launch config for the application the module registry is for.
+   */
+  LaunchConfig getLaunchConfig();
 
 }

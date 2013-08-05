@@ -51,6 +51,9 @@ class InjectedHandlersSpec extends RatpackGroovyDslSpec {
     when:
     app {
       modules {
+
+        assert launchConfig != null
+
         register(new AbstractModule() {
           @Override
           protected void configure() {

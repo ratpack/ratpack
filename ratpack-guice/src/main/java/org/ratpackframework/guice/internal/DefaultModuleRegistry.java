@@ -19,6 +19,7 @@ package org.ratpackframework.guice.internal;
 import com.google.inject.Module;
 import org.ratpackframework.guice.ModuleRegistry;
 import org.ratpackframework.guice.NoSuchModuleException;
+import org.ratpackframework.launch.LaunchConfig;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -28,6 +29,15 @@ import java.util.Map;
 public class DefaultModuleRegistry implements ModuleRegistry {
 
   private final Map<Class<? extends Module>, Module> modules = new LinkedHashMap<Class<? extends Module>, Module>();
+  private final LaunchConfig launchConfig;
+
+  public DefaultModuleRegistry(LaunchConfig launchConfig) {
+    this.launchConfig = launchConfig;
+  }
+
+  public LaunchConfig getLaunchConfig() {
+    return launchConfig;
+  }
 
   @SuppressWarnings("unchecked")
   public void register(Module module) {
