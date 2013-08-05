@@ -25,7 +25,7 @@ import spock.lang.Specification
 
 class TemplateCompilerTest extends Specification {
 
-  def compiler = new TemplateCompiler(new ScriptEngine<TemplateScript>(getClass().classLoader, true, TemplateScript), true)
+  def compiler = new TemplateCompiler(new ScriptEngine<DefaultTemplateScript>(getClass().classLoader, true, DefaultTemplateScript), true)
 
   CompiledTemplate compile(String source) {
     compiler.compile(IoUtils.utf8Buffer(source), "test")

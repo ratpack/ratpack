@@ -18,20 +18,20 @@ package org.ratpackframework.groovy.templating.internal;
 
 import groovy.lang.Script;
 import io.netty.buffer.ByteBuf;
-import org.ratpackframework.groovy.templating.Template;
 import org.ratpackframework.groovy.templating.TemplateModel;
+import org.ratpackframework.groovy.templating.TemplateScript;
 import org.ratpackframework.util.internal.IoUtils;
 
 import java.util.Collections;
 import java.util.Map;
 
-public abstract class TemplateScript extends Script implements Template {
+public abstract class DefaultTemplateScript extends Script implements TemplateScript {
 
   private final TemplateModel model;
   private final NestedRenderer renderer;
   private final ByteBuf buffer;
 
-  protected TemplateScript(TemplateModel model, ByteBuf buffer, NestedRenderer renderer) {
+  protected DefaultTemplateScript(TemplateModel model, ByteBuf buffer, NestedRenderer renderer) {
     this.model = model;
     this.buffer = buffer;
     this.renderer = renderer;
@@ -51,8 +51,9 @@ public abstract class TemplateScript extends Script implements Template {
   }
 
   //CHECKSTYLE:OFF
+  @SuppressWarnings("UnusedDeclaration")
   public void $(CharSequence charSequence) {
-  //CHECKSTYLE:ON
+    //CHECKSTYLE:ON
     buffer.writeBytes(IoUtils.utf8Bytes(charSequence.toString()));
   }
 

@@ -17,32 +17,35 @@
 package org.ratpackframework.groovy.templating.internal;
 
 import io.netty.buffer.ByteBuf;
-import org.ratpackframework.error.ServerErrorHandler;
+import org.ratpackframework.groovy.templating.Template;
 import org.ratpackframework.handling.Context;
-import org.ratpackframework.http.Response;
+import org.ratpackframework.render.ByTypeRenderer;
 import org.ratpackframework.util.internal.Result;
 import org.ratpackframework.util.internal.ResultAction;
 
-import java.util.Map;
+import javax.inject.Inject;
 
-public class TemplateRenderingServerErrorHandler implements ServerErrorHandler {
+public class TemplateRenderer extends ByTypeRenderer<Template> {
 
-  public void error(final Context context, final Exception exception) {
-    GroovyTemplateRenderingEngine renderer = context.get(GroovyTemplateRenderingEngine.class);
-    Map<String, ?> model = ExceptionToTemplateModel.transform(context.getRequest(), exception);
-    renderer.renderError(model, new ResultAction<ByteBuf>() {
+  private final GroovyTemplateRenderingEngine engine;
+
+  @Inject
+  public TemplateRenderer(GroovyTemplateRenderingEngine engine) {
+    super(Template.class);
+    this.engine = engine;
+  }
+
+  public void render(final Context context, Template template) {
+    engine.renderTemplate(template.getId(), template.getModel(), new ResultAction<ByteBuf>() {
       public void execute(Result<ByteBuf> thing) {
         if (thing.isFailure()) {
           context.error(thing.getFailure());
         } else {
-          Response response = context.getResponse();
-          if (response.getStatus().getCode() < 400) {
-            response.status(500);
-          }
-          response.send("text/html", thing.getValue());
+          // TODO - make the content type controllable via the template object
+          //      - default should also be calculated from extension
+          context.getResponse().send("text/html", thing.getValue());
         }
       }
     });
   }
-
 }

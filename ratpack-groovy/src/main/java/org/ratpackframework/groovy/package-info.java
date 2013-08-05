@@ -20,7 +20,7 @@
  * <p>The Groovy support provides the following key features:</p>
  * <ul>
  * <li>A {@link groovy.lang.Closure} based Handler Chain building DSL - see {@link org.ratpackframework.groovy.handling.Chain}.</li>
- * <li>Dynamic templates based on embedded groovy code - see {@link org.ratpackframework.groovy.templating.TemplateRenderer}.</li>
+ * <li>Dynamic templates based on embedded groovy code - see {@link org.ratpackframework.groovy.templating.internal.TemplateRenderer}.</li>
  * <li>Defining applications as a single script - see {@link org.ratpackframework.groovy.RatpackScript}.</li>
  * <li>Support for Google Guice and sessions - see {@link org.ratpackframework.groovy.server.RatpackScriptApp}.</li>
  * </ul>

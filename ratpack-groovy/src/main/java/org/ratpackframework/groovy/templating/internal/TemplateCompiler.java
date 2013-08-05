@@ -32,13 +32,13 @@ public class TemplateCompiler {
 
   private boolean verbose;
   private final TemplateParser parser = new TemplateParser();
-  private final ScriptEngine<TemplateScript> scriptEngine;
+  private final ScriptEngine<DefaultTemplateScript> scriptEngine;
 
-  public TemplateCompiler(ScriptEngine<TemplateScript> scriptEngine) {
+  public TemplateCompiler(ScriptEngine<DefaultTemplateScript> scriptEngine) {
     this(scriptEngine, false);
   }
 
-  public TemplateCompiler(ScriptEngine<TemplateScript> scriptEngine, boolean verbose) {
+  public TemplateCompiler(ScriptEngine<DefaultTemplateScript> scriptEngine, boolean verbose) {
     this.scriptEngine = scriptEngine;
     this.verbose = verbose;
   }
@@ -54,7 +54,7 @@ public class TemplateCompiler {
     }
 
     try {
-      Class<TemplateScript> scriptClass = scriptEngine.compile(name, scriptSourceString);
+      Class<DefaultTemplateScript> scriptClass = scriptEngine.compile(name, scriptSourceString);
       return new CompiledTemplate(name, scriptClass);
     } catch (Exception e) {
       throw new InvalidTemplateException(name, "compilation failure", e);

@@ -16,44 +16,34 @@
 
 package org.ratpackframework.groovy.templating;
 
+import com.google.common.collect.ImmutableMap;
+
 import java.util.Map;
 
-/**
- * The API available in template files.
- */
-@SuppressWarnings("UnusedDeclaration")
-public interface Template {
+public class Template {
 
-  /**
-   * The backing model for this template.
-   *
-   * @return The backing model for this template
-   */
-  TemplateModel getModel();
+  private final String id;
+  private final ImmutableMap<String, ?> model;
 
-  /**
-   * Renders a nested template inline, using the same model as this template.
-   *
-   * @param templateName The name of the template to render
-   * @return An empty string
-   * @throws Exception if an error occurs compiling/executing the template
-   * @see #render(java.util.Map, String)
-   */
-  String render(String templateName) throws Exception;
+  public Template(String id, Map<String, ?> model) {
+    this.id = id;
+    this.model = ImmutableMap.copyOf(model);
+  }
 
-  /**
-   * Renders a nested template inline, with the given model merged with the current template model.
-   * <p>
-   * The nested template will be rendered directly to the underlying buffer; it is not returned from this method.
-   * This method returns an empty string so that it can be used in situations where the return value would have been
-   * included in the output (e.g. a {@code <?= ?>} block).
-   * <p>
-   * The template name is resolved into a template using the same renderer that initiated rendering of this template.
-   *
-   * @param templateName The name of the template to render
-   * @return The rendered template content
-   * @throws Exception if an error occurs compiling/executing the template
-   */
-  String render(Map<String, ?> model, String templateName) throws Exception;
+  public String getId() {
+    return id;
+  }
+
+  public ImmutableMap<String, ?> getModel() {
+    return model;
+  }
+
+  public static Template groovyTemplate(String id) {
+    return new Template(id, ImmutableMap.<String, Object>of());
+  }
+
+  public static Template groovyTemplate(Map<String, ?> model, String id) {
+    return new Template(id, model);
+  }
 
 }

@@ -22,9 +22,10 @@ import com.google.common.cache.LoadingCache;
 import io.netty.buffer.ByteBuf;
 import org.ratpackframework.groovy.script.internal.ScriptEngine;
 import org.ratpackframework.groovy.templating.TemplatingConfig;
+import org.ratpackframework.launch.LaunchConfig;
+import org.ratpackframework.util.Transformer;
 import org.ratpackframework.util.internal.Result;
 import org.ratpackframework.util.internal.ResultAction;
-import org.ratpackframework.util.Transformer;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -37,10 +38,11 @@ public class GroovyTemplateRenderingEngine {
   private final LoadingCache<TemplateSource, CompiledTemplate> compiledTemplateCache;
   private final TemplateCompiler templateCompiler;
   private final boolean reloadable;
+  private final File templateDir;
 
   @Inject
-  public GroovyTemplateRenderingEngine(TemplatingConfig templatingConfig) {
-    ScriptEngine<TemplateScript> scriptEngine = new ScriptEngine<TemplateScript>(getClass().getClassLoader(), templatingConfig.isStaticallyCompile(), TemplateScript.class);
+  public GroovyTemplateRenderingEngine(LaunchConfig launchConfig, TemplatingConfig templatingConfig) {
+    ScriptEngine<DefaultTemplateScript> scriptEngine = new ScriptEngine<DefaultTemplateScript>(getClass().getClassLoader(), templatingConfig.isStaticallyCompile(), DefaultTemplateScript.class);
     templateCompiler = new TemplateCompiler(scriptEngine);
     this.compiledTemplateCache = CacheBuilder.newBuilder().maximumSize(templatingConfig.getCacheSize()).build(new CacheLoader<TemplateSource, CompiledTemplate>() {
       @Override
@@ -50,23 +52,24 @@ public class GroovyTemplateRenderingEngine {
     });
 
     reloadable = templatingConfig.isReloadable();
+    templateDir = new File(launchConfig.getBaseDir(), templatingConfig.getTemplatesPath());
   }
 
-  public void renderTemplate(final File templateDir, final String templateId, final Map<String, ?> model, final ResultAction<ByteBuf> handler) {
-    final File templateFile = getTemplateFile(templateDir, templateId);
-    render(templateDir, new FileTemplateSource(templateFile, templateId, reloadable), model, handler);
+  public void renderTemplate(final String templateId, final Map<String, ?> model, final ResultAction<ByteBuf> handler) {
+    final File templateFile = getTemplateFile(templateId);
+    render(new FileTemplateSource(templateFile, templateId, reloadable), model, handler);
   }
 
-  public void renderError(final File templateDir, Map<String, ?> model, ResultAction<ByteBuf> handler) {
-    final File errorTemplate = getTemplateFile(templateDir, ERROR_TEMPLATE);
+  public void renderError(Map<String, ?> model, ResultAction<ByteBuf> handler) {
+    final File errorTemplate = getTemplateFile(ERROR_TEMPLATE);
     if (errorTemplate.exists()) {
-      render(templateDir, new FileTemplateSource(errorTemplate, ERROR_TEMPLATE, reloadable), model, handler);
+      render(new FileTemplateSource(errorTemplate, ERROR_TEMPLATE, reloadable), model, handler);
     } else {
-      render(templateDir, new ResourceTemplateSource(ERROR_TEMPLATE), model, handler);
+      render(new ResourceTemplateSource(ERROR_TEMPLATE), model, handler);
     }
   }
 
-  private void render(final File templateDir, final TemplateSource templateSource, Map<String, ?> model, ResultAction<ByteBuf> handler) {
+  private void render(final TemplateSource templateSource, Map<String, ?> model, ResultAction<ByteBuf> handler) {
     try {
       new Render(compiledTemplateCache, templateSource, model, handler, new Transformer<String, TemplateSource>() {
         public TemplateSource transform(String templateName) {
@@ -78,7 +81,7 @@ public class GroovyTemplateRenderingEngine {
     }
   }
 
-  private File getTemplateFile(File templateDir, String templateName) {
+  private File getTemplateFile(String templateName) {
     return new File(templateDir, templateName);
   }
 

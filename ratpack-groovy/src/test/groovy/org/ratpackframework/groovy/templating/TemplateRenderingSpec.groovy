@@ -19,6 +19,8 @@ package org.ratpackframework.groovy.templating
 import org.ratpackframework.test.groovy.RatpackGroovyDslSpec
 import spock.lang.Unroll
 
+import static org.ratpackframework.groovy.templating.Template.groovyTemplate
+
 class TemplateRenderingSpec extends RatpackGroovyDslSpec {
 
   def setup() {
@@ -26,14 +28,15 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
   }
 
   def "can render template"() {
+
     given:
     file("templates/foo.html") << "a \${model.value} b <% 3.times {  %> a <% } %>"
 
     when:
     app {
       handlers {
-        get { TemplateRenderer templateRenderer ->
-          templateRenderer.render "foo.html", value: "bar"
+        get {
+          render groovyTemplate("foo.html", value: "bar")
         }
       }
     }
@@ -67,8 +70,8 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     when:
     app {
       handlers {
-        get { TemplateRenderer templateRenderer ->
-          templateRenderer.render "outer.html", value: "outer"
+        get {
+          render groovyTemplate("outer.html", value: "outer")
         }
       }
     }
@@ -86,8 +89,8 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     when:
     app {
       handlers {
-        get { TemplateRenderer templateRenderer ->
-          templateRenderer.render "outer.html", value: "outer"
+        get {
+          render groovyTemplate("outer.html", value: "outer")
         }
       }
     }
@@ -105,8 +108,8 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     when:
     app {
       handlers {
-        get { TemplateRenderer templateRenderer ->
-          templateRenderer.render "outer.html", value: "outer"
+        get {
+          render groovyTemplate("outer.html", value: "outer")
         }
       }
     }
@@ -124,8 +127,8 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     when:
     app {
       handlers {
-        get { TemplateRenderer templateRenderer ->
-          templateRenderer.render "outer.html", a: "a", b: "b"
+        get {
+          render groovyTemplate("outer.html", a: "a", b: "b")
         }
       }
     }
@@ -143,8 +146,8 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     when:
     app {
       handlers {
-        get { TemplateRenderer templateRenderer ->
-          templateRenderer.render "outer.html"
+        get {
+          render groovyTemplate("outer.html")
         }
       }
     }
@@ -166,8 +169,8 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     when:
     app {
       handlers {
-        get { TemplateRenderer templateRenderer ->
-          templateRenderer.render "outer.html"
+        get {
+          render groovyTemplate("outer.html")
         }
       }
     }
@@ -191,8 +194,8 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
       }
 
       handlers {
-        get { TemplateRenderer templateRenderer ->
-          templateRenderer.render "outer.html", value: "outer"
+        get {
+          render groovyTemplate("outer.html", value: "outer")
         }
       }
     }
@@ -212,8 +215,8 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
       }
 
       handlers {
-        get { TemplateRenderer templateRenderer ->
-          templateRenderer.render "template.html", value: "2"
+        get {
+          render groovyTemplate("template.html", value: "2")
         }
       }
     }
@@ -245,7 +248,7 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     when:
     app {
       handlers {
-        get { TemplateRenderer renderer -> renderer.render("t") }
+        get { render groovyTemplate("t") }
       }
     }
 
@@ -254,7 +257,7 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
 
     when:
     sleep 1000
-    file("templates/t").text =  "2"
+    file("templates/t").text = "2"
 
     then:
     text == "2"
@@ -268,7 +271,7 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     when:
     app {
       handlers {
-        get { TemplateRenderer renderer -> renderer.render("t") }
+        get { render groovyTemplate("t") }
       }
     }
 
@@ -276,7 +279,7 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     text == "1"
 
     when:
-    file("templates/t").text =  "2"
+    file("templates/t").text = "2"
 
     then:
     text == "1"
@@ -292,7 +295,7 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
         get(TemplatingModule).reloadable = true
       }
       handlers {
-        get { TemplateRenderer renderer -> renderer.render("t") }
+        get { render groovyTemplate("t") }
       }
     }
 
@@ -301,7 +304,7 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
 
     when:
     sleep 1000
-    file("templates/t").text =  "2"
+    file("templates/t").text = "2"
 
     then:
     text == "2"

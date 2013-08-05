@@ -24,10 +24,10 @@ import java.util.Map;
 
 public class CompiledTemplate {
 
-  private final Class<TemplateScript> templateClass;
+  private final Class<DefaultTemplateScript> templateClass;
   private final String templateName;
 
-  public CompiledTemplate(String templateName, Class<TemplateScript> templateClass) {
+  public CompiledTemplate(String templateName, Class<DefaultTemplateScript> templateClass) {
     this.templateName = templateName;
     this.templateClass = templateClass;
   }
@@ -36,7 +36,7 @@ public class CompiledTemplate {
     @SuppressWarnings("unchecked")
     Map<String, Object> modelTyped = (Map<String, Object>) model;
     TemplateModel templateModel = new MapBackedTemplateModel(modelTyped);
-    TemplateScript script = DefaultGroovyMethods.newInstance(templateClass, new Object[]{templateModel, buffer, nestedRenderer});
+    DefaultTemplateScript script = DefaultGroovyMethods.newInstance(templateClass, new Object[]{templateModel, buffer, nestedRenderer});
 
     try {
       script.run();

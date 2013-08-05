@@ -16,10 +16,13 @@
 
 package org.ratpackframework.groovy.templating.internal;
 
+import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import org.ratpackframework.error.ClientErrorHandler;
-import org.ratpackframework.groovy.templating.TemplateRenderer;
 import org.ratpackframework.handling.Context;
+import org.ratpackframework.http.Response;
+import org.ratpackframework.util.internal.Result;
+import org.ratpackframework.util.internal.ResultAction;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -27,8 +30,8 @@ import java.util.Map;
 
 public class TemplateRenderingClientErrorHandler implements ClientErrorHandler {
 
-  public void error(Context context, int statusCode) {
-    TemplateRenderer renderer = context.get(TemplateRenderer.class);
+  public void error(final Context context, final int statusCode) {
+    GroovyTemplateRenderingEngine renderer = context.get(GroovyTemplateRenderingEngine.class);
     Map<String, Object> model = new HashMap<String, Object>();
 
     HttpResponseStatus status = HttpResponseStatus.valueOf(statusCode);
@@ -43,7 +46,16 @@ public class TemplateRenderingClientErrorHandler implements ClientErrorHandler {
 
     context.getResponse().status(statusCode);
 
-    renderer.error(model);
+    renderer.renderError(model, new ResultAction<ByteBuf>() {
+      public void execute(Result<ByteBuf> thing) {
+        if (thing.isFailure()) {
+          context.error(thing.getFailure());
+        } else {
+          Response response = context.getResponse();
+          response.status(statusCode).send("text/html", thing.getValue());
+        }
+      }
+    });
   }
 
 }
