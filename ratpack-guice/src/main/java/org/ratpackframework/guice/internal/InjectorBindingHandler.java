@@ -17,24 +17,52 @@
 package org.ratpackframework.guice.internal;
 
 import com.google.common.collect.ImmutableList;
+import com.google.inject.Binding;
 import com.google.inject.Injector;
+import com.google.inject.Key;
 import org.ratpackframework.guice.Guice;
 import org.ratpackframework.handling.Context;
 import org.ratpackframework.handling.Handler;
+import org.ratpackframework.registry.Registry;
+import org.ratpackframework.registry.internal.ObjectHoldingChildRegistry;
+import org.ratpackframework.render.RenderController;
+import org.ratpackframework.render.Renderer;
+import org.ratpackframework.render.internal.DefaultRenderController;
 
 import java.util.List;
+import java.util.Map;
 
 public class InjectorBindingHandler implements Handler {
 
   private final Injector injector;
   private final List<Handler> delegate;
+  private final ImmutableList<Renderer<?>> renderers;
 
   public InjectorBindingHandler(Injector injector, Handler delegate) {
     this.injector = injector;
     this.delegate = ImmutableList.of(delegate);
+
+    ImmutableList.Builder<Renderer<?>> renderersBuilder = ImmutableList.builder();
+    Map<Key<?>, Binding<?>> allBindings = injector.getAllBindings();
+    for (Map.Entry<Key<?>, Binding<?>> keyBindingEntry : allBindings.entrySet()) {
+      Class<?> rawType = keyBindingEntry.getKey().getTypeLiteral().getRawType();
+      if (Renderer.class.isAssignableFrom(rawType)) {
+        Renderer<?> renderer = (Renderer) keyBindingEntry.getValue().getProvider().get();
+        renderersBuilder.add(renderer);
+      }
+    }
+
+    renderers = renderersBuilder.build();
   }
 
   public void handle(Context context) {
-    context.insert(Guice.registry(context, injector), delegate);
+    Registry<Object> injectorRegistry = Guice.registry(context, injector);
+
+    RenderController parentRenderController = context.maybeGet(RenderController.class);
+    RenderController renderController = new DefaultRenderController(parentRenderController, renderers);
+
+    Registry<Object> registry = new ObjectHoldingChildRegistry<Object>(injectorRegistry, RenderController.class, renderController);
+
+    context.insert(registry, delegate);
   }
 }

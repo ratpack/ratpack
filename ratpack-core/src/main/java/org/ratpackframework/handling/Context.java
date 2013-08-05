@@ -21,6 +21,7 @@ import org.ratpackframework.http.Request;
 import org.ratpackframework.http.Response;
 import org.ratpackframework.registry.NotInRegistryException;
 import org.ratpackframework.registry.Registry;
+import org.ratpackframework.render.NoSuchRendererException;
 
 import java.io.File;
 import java.util.List;
@@ -223,5 +224,8 @@ public interface Context extends Registry<Object> {
    * @throws NotInRegistryException if there is no {@link org.ratpackframework.file.FileSystemBinding} in the current service
    */
   File file(String path) throws NotInRegistryException;
+
+  @NonBlocking
+  void render(Object object) throws NotInRegistryException, NoSuchRendererException;
 
 }

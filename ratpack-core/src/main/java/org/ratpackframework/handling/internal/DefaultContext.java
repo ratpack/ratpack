@@ -30,6 +30,8 @@ import org.ratpackframework.path.PathBinding;
 import org.ratpackframework.registry.NotInRegistryException;
 import org.ratpackframework.registry.Registry;
 import org.ratpackframework.registry.internal.ObjectHoldingChildRegistry;
+import org.ratpackframework.render.NoSuchRendererException;
+import org.ratpackframework.render.RenderController;
 
 import java.io.File;
 import java.util.List;
@@ -99,6 +101,10 @@ public class DefaultContext implements Context {
 
   public File file(String path) {
     return get(FileSystemBinding.class).file(path);
+  }
+
+  public void render(Object object) throws NoSuchRendererException {
+    get(RenderController.class).render(this, object);
   }
 
   public void error(Exception exception) {
