@@ -14,19 +14,7 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.url;
-
-import java.net.URL;
-
 /**
- * A public URL holder.
+ * Objects used to deal with a public url for ratpack.
  */
-public interface PublicAddress {
-
-  /**
-   * Get the URL that is the public address of the system.
-   *
-   * @return The URL that is the public address of the system.
-   */
-  URL getUrl();
-}
+package org.ratpackframework.url;
