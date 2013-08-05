@@ -16,15 +16,17 @@
 
 package org.ratpackframework.file.internal;
 
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.*;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpResponse;
+import io.netty.handler.codec.http.LastHttpContent;
 import io.netty.handler.stream.ChunkedFile;
 
 import java.io.*;
 import java.util.Date;
+
+import static io.netty.handler.codec.http.HttpHeaders.Names.CONNECTION;
+import static io.netty.handler.codec.http.HttpHeaders.Values.KEEP_ALIVE;
 
 public class FileHttpTransmitter {
 
@@ -65,17 +67,10 @@ public class FileHttpTransmitter {
     ChunkedFile message = null;
     try {
       message = new ChunkedFile(raf, 0, fileLength, 8192);
-      writeFuture = channel.write(message);
+      writeFuture = channel.writeAndFlush(message);
     } catch (Exception ignore) {
       if (channel.isOpen()) {
         channel.close();
-      }
-      if (message != null) {
-        try {
-          message.close();
-        } catch (Exception e) {
-          throw new RuntimeException(e);
-        }
       }
       return false;
     }
@@ -88,9 +83,13 @@ public class FileHttpTransmitter {
         } catch (Exception e) {
           throw new RuntimeException(e);
         }
-        future.addListener(ChannelFutureListener.CLOSE);
       }
     });
+
+    ChannelFuture lastContentFuture = channel.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
+    if (!KEEP_ALIVE.equals(response.headers().get(CONNECTION))) {
+      lastContentFuture.addListener(ChannelFutureListener.CLOSE);
+    }
 
     return true;
   }

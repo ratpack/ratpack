@@ -225,11 +225,11 @@ public class DefaultResponse implements Response {
     if (channel.isOpen()) {
       if (keepAlive && contentLengthSet) {
         if (version == HttpVersion.HTTP_1_0) {
-          response.headers().set("Connection", "Keep-Alive");
+          response.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
         }
         shouldClose = false;
       }
-      ChannelFuture future = channel.write(response);
+      ChannelFuture future = channel.writeAndFlush(response);
       if (shouldClose) {
         future.addListener(ChannelFutureListener.CLOSE);
       }

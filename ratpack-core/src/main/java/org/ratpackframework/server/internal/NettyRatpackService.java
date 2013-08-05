@@ -51,7 +51,7 @@ public class NettyRatpackService extends AbstractIdleService implements RatpackS
   @Override
   protected void startUp() throws Exception {
     ServerBootstrap bootstrap = new ServerBootstrap();
-    group = new NioEventLoopGroup(MultithreadEventLoopGroup.DEFAULT_EVENT_LOOP_THREADS, new DefaultThreadFactory("ratpack-group", Thread.MAX_PRIORITY));
+    group = new NioEventLoopGroup(0, new DefaultThreadFactory("ratpack-group", Thread.MAX_PRIORITY));
 
     bootstrap.group(group)
         .channel(NioServerSocketChannel.class)
