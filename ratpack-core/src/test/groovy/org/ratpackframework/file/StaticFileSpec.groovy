@@ -18,6 +18,7 @@ package org.ratpackframework.file
 
 import com.jayway.restassured.response.Response
 import io.netty.handler.codec.http.HttpHeaderDateFormat
+import org.apache.commons.lang3.RandomStringUtils
 import org.ratpackframework.test.DefaultRatpackSpec
 import spock.lang.Unroll
 
@@ -287,6 +288,30 @@ class StaticFileSpec extends DefaultRatpackSpec {
     def response = get("")
     response.statusCode == NOT_MODIFIED.code()
     response.getHeader(CONTENT_LENGTH).toInteger() == 0
+  }
+
+  def "can serve large static file"() {
+    given:
+    def file = file("public/static.text") << RandomStringUtils.randomAscii(fileSize)
+
+    when:
+    app {
+      handlers {
+        add assets("public")
+      }
+    }
+
+    then:
+    getText("static.text").bytes.length == file.length()
+
+    with(head("static.text")) {
+      statusCode == 200
+      asByteArray().length == 0
+      getHeader("content-length") == file.length().toString()
+    }
+
+    where:
+    fileSize = 2131795 // taken from original bug report
   }
 
   private static Date parseDateHeader(Response response, String name) {
