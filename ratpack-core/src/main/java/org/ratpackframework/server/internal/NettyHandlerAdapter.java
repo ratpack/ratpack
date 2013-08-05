@@ -21,7 +21,7 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.channel.ChannelInboundMessageHandlerAdapter;
 import io.netty.handler.codec.http.*;
 import io.netty.util.CharsetUtil;
 import org.ratpackframework.error.internal.DefaultClientErrorHandler;
@@ -44,7 +44,7 @@ import org.ratpackframework.registry.internal.RootRegistry;
 import static io.netty.handler.codec.http.HttpResponseStatus.NOT_FOUND;
 
 @ChannelHandler.Sharable
-public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
+public class NettyHandlerAdapter extends ChannelInboundMessageHandlerAdapter<FullHttpRequest> {
 
   private final Handler handler;
   private final Registry<Object> rootServiceRegistry;
@@ -65,10 +65,7 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
     return404 = new ClientErrorHandler(NOT_FOUND.code());
   }
 
-  @Override
-  public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-    FullHttpRequest nettyRequest = (FullHttpRequest) msg;
-
+  public void messageReceived(ChannelHandlerContext ctx, FullHttpRequest nettyRequest) throws Exception {
     if (!nettyRequest.getDecoderResult().isSuccess()) {
       sendError(ctx, HttpResponseStatus.BAD_REQUEST);
       return;
@@ -88,7 +85,6 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
     handler.handle(context);
   }
 
-  @Override
   public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
     cause.printStackTrace();
     if (ctx.channel().isActive()) {

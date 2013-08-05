@@ -21,7 +21,7 @@ ext.apiLinks = [
 ]
 
 dependencies {
-  compile 'io.netty:netty-codec-http:4.0.4.Final'
+  compile 'io.netty:netty-codec-http:4.0.0.CR3'
   runtime 'org.javassist:javassist:3.17.1-GA'
 
   compile 'com.google.guava:guava:13.0.1'
