@@ -81,6 +81,6 @@ public class LaunchConfigBuilder {
   }
 
   public LaunchConfig build(HandlerFactory handlerFactory) {
-    return new DefaultLaunchConfig(baseDir, port, address, reloadable, workerThreads, other.build(), handlerFactory, publicAddress);
+    return new DefaultLaunchConfig(baseDir, port, address, reloadable, workerThreads, publicAddress, other.build(), handlerFactory);
   }
 }

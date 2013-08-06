@@ -181,33 +181,61 @@ public abstract class LaunchConfigFactory {
     }
 
     /**
-     * The port to listen for requests on. Defaults to {@link LaunchConfig#DEFAULT_PORT}. <p> <b>Value:</b> {@value}
+     * The port to listen for requests on. Defaults to {@link LaunchConfig#DEFAULT_PORT}.
+     *
+     * <p>
+     *
+     * <b>Value:</b> {@value}
      */
     public static final String PORT = "port";
 
     /**
-     * The address to bind to. Defaults to {@code null} (all addresses). <p> If the value is not {@code null}, it will converted to an Inet Address via {@link java.net.InetAddress#getByName(String)}.
-     * <p> <b>Value:</b> {@value} - (inet address)
+     * The address to bind to. Defaults to {@code null} (all addresses).
+     *
+     * <p>
+     *
+     * If the value is not {@code null}, it will converted to an Inet Address via {@link java.net.InetAddress#getByName(String)}.
+     *
+     * <p>
+     *
+     * <b>Value:</b> {@value} - (inet address)
      */
     public static final String ADDRESS = "address";
 
     /**
-     * Whether to reload the application if the script changes at runtime. Defaults to {@code false}. <p> <b>Value:</b> {@value} - (boolean)
+     * Whether to reload the application if the script changes at runtime. Defaults to {@code false}.
+     *
+     * <p>
+     *
+     * <b>Value:</b> {@value} - (boolean)
      */
     public static final String RELOADABLE = "reloadable";
 
     /**
-     * The full qualified classname of the handler factory (required). <p> <b>Value:</b> {@value} - (string)
+     * The full qualified classname of the handler factory (required).
+     *
+     * <p>
+     *
+     * <b>Value:</b> {@value} - (string)
      */
     public static final String HANDLER_FACTORY = "handlerFactory";
 
     /**
-     * The number of worker threads to use. Defaults to 0. <p> <b>Value:</b> {@value} - (int)
+     * The number of worker threads to use. Defaults to 0.
+     *
+     * <p>
+     *
+     * <b>Value:</b> {@value} - (int)
      */
     public static final String WORKER_THREADS = "workerThreads";
 
     /**
-     * The public address of the site. <p> If the value is not {@code null}, it will converted to an URL. <p> <b>Value:</b> {@value} - (url)
+     * The public address of the site.
+     *
+     * <p>
+     * If the value is not {@code null}, it will converted to an URL.
+     *
+     * <p> <b>Value:</b> {@value} - (url)
      */
     public static final String PUBLIC_ADDRESS = "publicAddress";
   }

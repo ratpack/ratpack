@@ -17,6 +17,7 @@
 package org.ratpackframework.handling.internal;
 
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.codec.http.HttpResponseStatus;
 import org.ratpackframework.error.ClientErrorHandler;
 import org.ratpackframework.error.ServerErrorHandler;
 import org.ratpackframework.file.FileSystemBinding;
@@ -27,18 +28,17 @@ import org.ratpackframework.handling.Handler;
 import org.ratpackframework.http.Request;
 import org.ratpackframework.http.Response;
 import org.ratpackframework.path.PathBinding;
+import org.ratpackframework.redirect.Redirector;
 import org.ratpackframework.registry.NotInRegistryException;
 import org.ratpackframework.registry.Registry;
 import org.ratpackframework.registry.internal.ObjectHoldingChildRegistry;
 import org.ratpackframework.render.NoSuchRendererException;
 import org.ratpackframework.render.RenderController;
-import org.ratpackframework.url.PublicAddress;
 
 import java.io.File;
-import java.net.URL;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Pattern;
+
 
 public class DefaultContext implements Context {
 
@@ -106,17 +106,17 @@ public class DefaultContext implements Context {
     return get(FileSystemBinding.class).file(path);
   }
 
-
   public void render(Object object) throws NoSuchRendererException {
     get(RenderController.class).render(this, object);
   }
 
   public void redirect(String location) {
-    response.redirect(generateRedirectLocation(location));
+    redirect(HttpResponseStatus.FOUND.code(), location);
   }
 
   public void redirect(int code, String location) {
-    response.redirect(code, generateRedirectLocation(location));
+    Redirector redirector = registry.get(Redirector.class);
+    redirector.redirect(this, response, request, location, code);
   }
 
   public void error(Exception exception) {
@@ -181,77 +181,4 @@ public class DefaultContext implements Context {
     }
   }
 
-
-  private String generateRedirectLocation(String path) {
-    //Rules
-    //1. Given absolute URL use it
-    //2. Given Starting Slash prepend public facing domain:port if provided if not use base URL of request
-    //3. Given relative URL prepend public facing domain:port plus parent path of request URL otherwise full parent path
-
-    String generatedPath = null;
-
-    Pattern pattern = Pattern.compile("^https?://.*");
-
-    if (pattern.matcher(path).matches()) {
-      //Rule 1 - Path is absolute
-      generatedPath = path;
-    } else {
-      if (path.charAt(0) == '/') {
-        //Rule 2 - Starting Slash
-        generatedPath = getHost() + path;
-      } else {
-        //Rule 3
-        generatedPath = getHost() + getParentPath(request.getUri()) + path;
-      }
-    }
-
-    return generatedPath;
-  }
-
-
-  /**
-   * Using any specified public url first and then falling back to the Host header. If there is no host header we will return an empty string.
-   *
-   * @return The host if it can be found
-   */
-  protected String getHost() {
-    String host = "";
-    if (getPublicHost() != null) {
-      host = getPublicHost().toString();
-    } else {
-      if (request != null) {
-        if (request.getHeader("Host") != null) {
-          //TODO find if there is a way not to assume http
-          host = "http://" + request.getHeader("Host");
-        }
-      }
-    }
-
-    return host;
-  }
-
-  private URL getPublicHost() {
-
-    URL publicAdd = null;
-    PublicAddress publicAddress = registry.maybeGet(PublicAddress.class);
-    if (publicAddress != null) {
-      publicAdd = publicAddress.getUrl();
-    }
-
-    return publicAdd;
-  }
-
-  private String getParentPath(String path) {
-    String parentPath = "/";
-
-    int indexOfSlash = path.lastIndexOf('/');
-    if (indexOfSlash >= 0) {
-      parentPath = path.substring(0, indexOfSlash) + '/';
-    }
-
-    if (!parentPath.startsWith("/")) {
-      parentPath = "/" + parentPath;
-    }
-    return parentPath;
-  }
 }

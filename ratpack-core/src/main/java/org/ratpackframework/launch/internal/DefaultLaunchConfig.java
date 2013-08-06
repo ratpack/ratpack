@@ -35,15 +35,15 @@ public class DefaultLaunchConfig implements LaunchConfig {
   private final URL publicAddress;
   private final ImmutableMap<String, String> other;
 
-  public DefaultLaunchConfig(File baseDir, int port, InetAddress address, boolean reloadable, int workerThreads, ImmutableMap<String, String> other, HandlerFactory handlerFactory, URL publicAddress) {
+  public DefaultLaunchConfig(File baseDir, int port, InetAddress address, boolean reloadable, int workerThreads, URL publicAddress, ImmutableMap<String, String> other, HandlerFactory handlerFactory) {
     this.baseDir = baseDir;
     this.port = port;
     this.address = address;
     this.reloadable = reloadable;
     this.workerThreads = workerThreads;
+    this.publicAddress = publicAddress;
     this.other = other;
     this.handlerFactory = handlerFactory;
-    this.publicAddress = publicAddress;
   }
 
   public File getBaseDir() {

@@ -35,6 +35,7 @@ import org.ratpackframework.http.Response;
 import org.ratpackframework.http.internal.DefaultRequest;
 import org.ratpackframework.http.internal.DefaultResponse;
 import org.ratpackframework.launch.LaunchConfig;
+import org.ratpackframework.redirect.internal.DefaultRedirector;
 import org.ratpackframework.registry.Registry;
 import org.ratpackframework.registry.internal.RootRegistry;
 import org.ratpackframework.url.internal.DefaultPublicAddress;
@@ -102,6 +103,8 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
         new DefaultFileSystemBinding(launchConfig.getBaseDir()),
         new ActivationBackedMimeTypes(),
         new InetSocketAddressBackedBindAddress(socketAddress),
+        new DefaultPublicAddress(launchConfig.getPublicAddress()),
+        new DefaultRedirector(),
         new DefaultClientErrorHandler(),
         new DefaultServerErrorHandler(),
         launchConfig

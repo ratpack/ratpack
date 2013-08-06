@@ -17,8 +17,11 @@
 package org.ratpackframework.url.internal;
 
 
+import org.ratpackframework.handling.Context;
+import org.ratpackframework.server.BindAddress;
 import org.ratpackframework.url.PublicAddress;
 
+import java.net.MalformedURLException;
 import java.net.URL;
 
 public class DefaultPublicAddress implements PublicAddress {
@@ -29,7 +32,19 @@ public class DefaultPublicAddress implements PublicAddress {
     this.publicAddress = publicAddress;
   }
 
-  public URL getUrl() {
-    return publicAddress;
+  public URL getUrl(Context context) {
+    BindAddress bindAddress = context.get(BindAddress.class);
+    URL currentUrl = null;
+    if (publicAddress == null) {
+      try {
+        //TODO is it always http?
+        currentUrl = new URL("http", bindAddress.getHost(), bindAddress.getPort(), "");
+      } catch (MalformedURLException e) {
+        //TODO deal with exception
+      }
+    } else {
+      currentUrl = publicAddress;
+    }
+    return currentUrl;
   }
 }

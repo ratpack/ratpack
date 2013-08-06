@@ -16,7 +16,6 @@
 package org.ratpackframework.handling.internal
 
 import com.jayway.restassured.RestAssured
-import com.jayway.restassured.specification.RequestSpecification
 import org.ratpackframework.groovy.launch.GroovyScriptHandlerFactory
 import org.ratpackframework.launch.LaunchConfigFactory
 import org.ratpackframework.test.groovy.RatpackGroovyScriptAppSpec
@@ -26,17 +25,17 @@ class DefaultContextSpec extends RatpackGroovyScriptAppSpec {
   Properties properties
 
   @Override
-  RequestSpecification createRequest() {
-    //We are testing redirects so its best not to follow them
-    RestAssured.with().urlEncodingEnabled(false).redirects().follow(false)
-  }
-
-  @Override
   protected Properties getProperties() {
     return properties
   }
 
+  def cleanupSpec() {
+    resetRequest()
+  }
+
   def setup() {
+    request = RestAssured.with().urlEncodingEnabled(false).redirects().follow(false)
+
     properties = new Properties()
     properties.setProperty(LaunchConfigFactory.Property.HANDLER_FACTORY, GroovyScriptHandlerFactory.name)
     properties.setProperty(LaunchConfigFactory.Property.RELOADABLE, reloadable.toString())

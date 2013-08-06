@@ -14,22 +14,25 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.url;
+package org.ratpackframework.redirect;
 
+import org.ratpackframework.api.NonBlocking;
 import org.ratpackframework.handling.Context;
-
-import java.net.URL;
+import org.ratpackframework.http.Request;
+import org.ratpackframework.http.Response;
 
 /**
- * A public URL holder.
+ * A way to do smart redirects
  */
-public interface PublicAddress {
+public interface Redirector {
 
   /**
-   *  Get the URL that is the public address of the system.
    *
    * @param context
-   * @return The URL that is the public address of the system.
+   * @param response
+   * @param location
+   * @param code
    */
-  URL getUrl(Context context);
+  @NonBlocking
+  void redirect(Context context, Response response, Request request, String location, int code);
 }

@@ -19,17 +19,17 @@ package org.ratpackframework.test
 import com.google.common.collect.ImmutableMap
 import com.google.inject.Injector
 import com.google.inject.Module
+import org.ratpackframework.guice.ModuleRegistry
+import org.ratpackframework.guice.internal.DefaultGuiceBackedHandlerFactory
+import org.ratpackframework.guice.internal.GuiceBackedHandlerFactory
+import org.ratpackframework.handling.Chain
+import org.ratpackframework.handling.Handler
+import org.ratpackframework.handling.Handlers
 import org.ratpackframework.launch.HandlerFactory
 import org.ratpackframework.launch.LaunchConfig
 import org.ratpackframework.launch.internal.DefaultLaunchConfig
 import org.ratpackframework.server.RatpackServer
 import org.ratpackframework.server.RatpackServerBuilder
-import org.ratpackframework.guice.internal.GuiceBackedHandlerFactory
-import org.ratpackframework.guice.ModuleRegistry
-import org.ratpackframework.guice.internal.DefaultGuiceBackedHandlerFactory
-import org.ratpackframework.handling.Handler
-import org.ratpackframework.handling.Handlers
-import org.ratpackframework.handling.Chain
 import org.ratpackframework.util.Action
 import org.ratpackframework.util.Transformer
 import org.ratpackframework.util.internal.ConstantTransformer
@@ -58,11 +58,11 @@ abstract class DefaultRatpackSpec extends InternalRatpackSpec {
     def handler = createHandlerTransformer()
     def modulesAction = createModulesAction()
 
-    LaunchConfig launchConfig = new DefaultLaunchConfig(dir, 0, null, reloadable, 0, ImmutableMap.of(), new HandlerFactory() {
+    LaunchConfig launchConfig = new DefaultLaunchConfig(dir, 0, null, reloadable, 0, new URL("http://localhost"), ImmutableMap.of(), new HandlerFactory() {
       Handler create(LaunchConfig launchConfig) {
         createHandlerFactory(launchConfig).create(modulesAction, handler)
       }
-    },new URL("http://localhost"))
+    })
 
     RatpackServerBuilder.build(launchConfig)
   }
