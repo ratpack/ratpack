@@ -20,28 +20,20 @@ import org.ratpackframework.handling.Context;
 import org.ratpackframework.render.RenderOperation;
 import org.ratpackframework.render.Renderer;
 
-public class DefaultRenderOperation<T, R> implements RenderOperation<T, R> {
+public class DefaultRenderOperation<R> implements RenderOperation<R> {
 
   private final Context context;
   private final Renderer<R> renderer;
-  private final T object;
-  private final R accepted;
+  private final R toRender;
 
-  public DefaultRenderOperation(Context context, Renderer<R> renderer, T object, R accepted) {
+  public DefaultRenderOperation(Context context, Renderer<R> renderer, R toRender) {
     this.context = context;
     this.renderer = renderer;
-    this.object = object;
-    this.accepted = accepted;
+    this.toRender = toRender;
   }
 
-  @SuppressWarnings("unchecked")
-  public Class<T> getInputType() {
-    return (Class<T>) object.getClass();
-  }
-
-  @SuppressWarnings("unchecked")
-  public Class<R> getRenderType() {
-    return (Class<R>) accepted.getClass();
+  public R getToRender() {
+    return toRender;
   }
 
   public Renderer<R> getRenderer() {
@@ -49,6 +41,6 @@ public class DefaultRenderOperation<T, R> implements RenderOperation<T, R> {
   }
 
   public void execute() {
-    renderer.render(context, accepted);
+    getRenderer().render(context, getToRender());
   }
 }

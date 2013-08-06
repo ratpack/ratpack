@@ -18,11 +18,9 @@ package org.ratpackframework.render;
 
 import org.ratpackframework.api.NonBlocking;
 
-public interface RenderOperation<I, R> {
+public interface RenderOperation<R> {
 
-  Class<I> getInputType();
-
-  Class<R> getRenderType();
+  R getToRender();
 
   Renderer<R> getRenderer();
 

@@ -35,18 +35,18 @@ public class DefaultRenderController implements RenderController {
   }
 
   public <T> void render(Context context, T object) throws NoSuchRendererException {
-    RenderOperation<T, ?> operation = operation(context, object);
+    RenderOperation<?> operation = operation(context, object);
 
     if (operation == null) {
-      throw new NoSuchRendererException("No renderer for type '" + object.getClass() + "' available by controller: " + this);
+      throw new NoSuchRendererException("No renderer for object '" + object + "' available by controller '" + this + "'");
     } else {
       operation.execute();
     }
   }
 
-  public <T> RenderOperation<T, ?> operation(Context context, T object) {
+  public <T> RenderOperation<?> operation(Context context, T object) {
     for (Renderer<?> renderer : renderers) {
-      RenderOperation<T, ?> operation = doAccept(context, object, renderer);
+      RenderOperation<?> operation = doAccept(context, object, renderer);
       if (operation != null) {
         return operation;
       }
@@ -59,12 +59,12 @@ public class DefaultRenderController implements RenderController {
     }
   }
 
-  private <T, R> RenderOperation<T, R> doAccept(Context context, T object, Renderer<R> renderer) {
+  private <T, R> RenderOperation<R> doAccept(Context context, T object, Renderer<R> renderer) {
     R accepted = renderer.accept(object);
     if (accepted == null) {
       return null;
     } else {
-      return new DefaultRenderOperation<T, R>(context, renderer, object, accepted);
+      return new DefaultRenderOperation<R>(context, renderer, accepted);
     }
   }
 

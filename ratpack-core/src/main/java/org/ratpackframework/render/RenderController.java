@@ -26,6 +26,6 @@ public interface RenderController {
   <T> void render(Context context, T object) throws NoSuchRendererException;
 
   @Nullable
-  <T> RenderOperation<T, ?> operation(Context context, T object);
+  <T> RenderOperation<?> operation(Context context, T object);
 
 }
