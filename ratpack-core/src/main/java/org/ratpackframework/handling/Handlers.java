@@ -26,6 +26,7 @@ import org.ratpackframework.http.internal.MethodHandler;
 import org.ratpackframework.path.PathBinder;
 import org.ratpackframework.path.internal.PathHandler;
 import org.ratpackframework.path.internal.TokenPathBinder;
+import org.ratpackframework.registry.Registry;
 import org.ratpackframework.util.Action;
 
 import java.io.File;
@@ -133,7 +134,11 @@ public abstract class Handlers {
    * @return A handler
    */
   public static Handler chain(Action<? super Chain> action) {
-    return ChainBuilder.INSTANCE.buildHandler(new ChainActionTransformer(null), action);
+    return chain(null, action);
+  }
+
+  public static Handler chain(Registry<Object> registry, Action<? super Chain> action) {
+    return ChainBuilder.INSTANCE.buildHandler(new ChainActionTransformer(registry), action);
   }
 
   private static ImmutableList<Handler> chainList(Action<? super Chain> action) {

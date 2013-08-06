@@ -18,15 +18,17 @@ package org.ratpackframework.guice;
 
 import com.google.inject.Injector;
 import org.ratpackframework.guice.internal.DefaultGuiceBackedHandlerFactory;
-import org.ratpackframework.guice.internal.InjectingHandler;
 import org.ratpackframework.guice.internal.InjectorBackedChildRegistry;
 import org.ratpackframework.guice.internal.JustInTimeInjectorRegistry;
+import org.ratpackframework.handling.Chain;
 import org.ratpackframework.handling.Handler;
 import org.ratpackframework.launch.LaunchConfig;
 import org.ratpackframework.registry.Registry;
 import org.ratpackframework.util.Action;
 import org.ratpackframework.util.Transformer;
 import org.ratpackframework.util.internal.ConstantTransformer;
+
+import static org.ratpackframework.handling.Handlers.chain;
 
 /**
  * Utilities for creating Guice backed handlers.
@@ -37,54 +39,6 @@ public abstract class Guice {
   }
 
   /**
-   * Creates a dependency injected handler by fetching the contextual {@link com.google.inject.Injector} and creating an instance of the given type.
-   * <p>
-   * The handler instance is created by using the {@link com.google.inject.Injector#getInstance(Class)} method.
-   * The injected instance is created lazily.
-   * For each request, the {@link com.google.inject.Injector} is retrieved from the exchange registry.
-   * An instance of the given handler type is then retrieved from the exchange.
-   * <p>
-   * To avoid having a new handler instance created each exchange, you should annotate the handler type with {@link javax.inject.Singleton}.
-   * <pre class="tested">
-   * import org.ratpackframework.handling.*;
-   * import org.ratpackframework.guice.Guice;
-   * import javax.inject.Singleton;
-   * import javax.inject.Inject;
-   *
-   * interface SomeService {}
-   *
-   * {@literal @}Singleton
-   * class InjectedHandler implements Handler {
-   *   private final SomeService service;
-   *
-   *   {@literal @}Inject
-   *   public InjectedHandler(SomeService service) {
-   *     this.service = service;
-   *   }
-   *
-   *   public void handle(Context exchange) {
-   *     // …
-   *   }
-   * }
-   *
-   * Handler injected = Guice.handler(InjectedHandler.class);
-   * </pre>
-   * <p>
-   * The handler returned from this method <b>is not</b> of the given type.
-   * It is a kind of proxy that creates an instance of the specified type on demand.
-   * <p>
-   * If there is no contextual {@link com.google.inject.Injector} for the exchange, a {@link org.ratpackframework.registry.NotInRegistryException} will be thrown.
-   * This means that it only makes sense to use an injected handler like this if the application is Guice backed.
-   * Such as when using a {@link #handler(LaunchConfig, Action, Handler)} handler as the root.
-   *
-   * @param handlerType The type of handler to create via dependency injection
-   * @return A handler that delegates to a created-on-demand dependency injected instance of the given type
-   */
-  public static Handler handler(Class<? extends Handler> handlerType) {
-    return new InjectingHandler(handlerType);
-  }
-
-  /**
    * Creates a handler that can be used as the entry point for a Guice backed Ratpack app.
    * <p>
    * Typically used as the “root” handler for an app.
@@ -92,10 +46,9 @@ public abstract class Guice {
    * import org.ratpackframework.handling.*;
    * import org.ratpackframework.guice.*;
    * import org.ratpackframework.launch.*;
-   * import org.ratpackframework.util.Action;
-   * import com.google.inject.AbstractModule;
-   * import javax.inject.Singleton;
-   * import javax.inject.Inject;
+   * import org.ratpackframework.util.*;
+   * import com.google.inject.*;
+   * import javax.inject.*;
    *
    * class SomeService {}
    *
@@ -113,12 +66,6 @@ public abstract class Guice {
    *   }
    * }
    *
-   * Handler appHandlers = Handlers.chain(new Action&lt;Chain&gt;() {
-   *  public void execute(Chain chain) {
-   *    chain.add(Guice.handler(InjectedHandler.class));
-   *  }
-   * });
-   *
    * class ServiceModule extends AbstractModule {
    *   protected void configure() {
    *     bind(SomeService.class);
@@ -134,7 +81,11 @@ public abstract class Guice {
    * LaunchConfig launchConfig = LaunchConfigBuilder.baseDir(new File("appRoot"))
    *   .build(new HandlerFactory() {
    *     public Handler create(LaunchConfig launchConfig) {
-   *       return Guice.handler(launchConfig, new ModuleBootstrap(), appHandlers);
+   *       return Guice.handler(launchConfig, new ModuleBootstrap(), new Action&lt;Chain&gt;() {
+   *         public void execute(Chain chain) {
+   *           chain.add(chain.getRegistry().get(InjectedHandler.class));
+   *         }
+   *       });
    *     }
    *   });
    * </pre>
@@ -158,6 +109,14 @@ public abstract class Guice {
 
   public static Handler handler(LaunchConfig launchConfig, Action<? super ModuleRegistry> moduleConfigurer, Transformer<? super Injector, ? extends Handler> injectorTransformer) {
     return new DefaultGuiceBackedHandlerFactory(launchConfig).create(moduleConfigurer, injectorTransformer);
+  }
+
+  public static Handler handler(LaunchConfig launchConfig, Action<? super ModuleRegistry> moduleConfigurer, final Action<? super Chain> action) {
+    return new DefaultGuiceBackedHandlerFactory(launchConfig).create(moduleConfigurer, new Transformer<Injector, Handler>() {
+      public Handler transform(Injector injector) {
+        return chain(Guice.justInTimeRegistry(injector), action);
+      }
+    });
   }
 
   public static Registry<Object> justInTimeRegistry(Injector injector) {

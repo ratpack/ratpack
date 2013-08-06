@@ -22,17 +22,14 @@ import org.ratpackframework.handling.Handler;
 import org.ratpackframework.launch.LaunchConfig;
 import org.ratpackframework.util.Action;
 
-import static org.ratpackframework.handling.Handlers.chain;
-import static org.ratpackframework.handling.Handlers.get;
-
 public class HandlerFactory implements org.ratpackframework.launch.HandlerFactory {
 
   public Handler create(LaunchConfig launchConfig) {
-    return Guice.handler(launchConfig, new ModuleBootstrap(), chain(new Action<Chain>() {
+    return Guice.handler(launchConfig, new ModuleBootstrap(), new Action<Chain>() {
       public void execute(Chain chain) {
-        chain.add(get(Guice.handler(InjectedHandler.class)));
+        chain.add(chain.getRegistry().get(InjectedHandler.class));
       }
-    }));
+    });
   }
 
 }
