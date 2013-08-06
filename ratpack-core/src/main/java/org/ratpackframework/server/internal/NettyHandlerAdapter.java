@@ -100,12 +100,12 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
 
     return new RootRegistry<Object>(
       ImmutableList.of(
-        launchConfig,
-        new InetSocketAddressBackedBindAddress(socketAddress),
-        new DefaultServerErrorHandler(),
-        new DefaultClientErrorHandler(),
+        new DefaultFileSystemBinding(launchConfig.getBaseDir()),
         new ActivationBackedMimeTypes(),
-        new DefaultFileSystemBinding(launchConfig.getBaseDir())
+        new InetSocketAddressBackedBindAddress(socketAddress),
+        new DefaultClientErrorHandler(),
+        new DefaultServerErrorHandler(),
+        launchConfig
       )
     );
   }
