@@ -19,13 +19,15 @@ package org.ratpackframework.server.internal;
 import com.google.common.util.concurrent.AbstractIdleService;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
-import io.netty.channel.*;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelOption;
+import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.util.concurrent.DefaultThreadFactory;
 
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -41,8 +43,8 @@ public class NettyRatpackService extends AbstractIdleService implements RatpackS
   private EventLoopGroup group;
 
   public NettyRatpackService(
-      InetSocketAddress requestedAddress,
-      ChannelInitializer<SocketChannel> channelInitializer
+    InetSocketAddress requestedAddress,
+    ChannelInitializer<SocketChannel> channelInitializer
   ) {
     this.requestedAddress = requestedAddress;
     this.channelInitializer = channelInitializer;
@@ -54,8 +56,8 @@ public class NettyRatpackService extends AbstractIdleService implements RatpackS
     group = new NioEventLoopGroup(0, new DefaultThreadFactory("ratpack-group", Thread.MAX_PRIORITY));
 
     bootstrap.group(group)
-        .channel(NioServerSocketChannel.class)
-        .childHandler(channelInitializer);
+      .channel(NioServerSocketChannel.class)
+      .childHandler(channelInitializer);
 
     bootstrap.childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
     bootstrap.childOption(ChannelOption.TCP_NODELAY, true);
@@ -84,12 +86,7 @@ public class NettyRatpackService extends AbstractIdleService implements RatpackS
     if (boundAddress == null) {
       return null;
     } else {
-      InetAddress address = boundAddress.getAddress();
-      if (address.isAnyLocalAddress()) {
-        return "localhost";
-      } else {
-        return address.getHostAddress();
-      }
+      return InetSocketAddressBackedBindAddress.determineHost(boundAddress);
     }
   }
 

@@ -18,10 +18,7 @@ package org.ratpackframework.server.internal;
 
 import com.google.common.collect.ImmutableList;
 import io.netty.buffer.Unpooled;
-import io.netty.channel.ChannelFutureListener;
-import io.netty.channel.ChannelHandler;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
 import io.netty.util.CharsetUtil;
 import org.ratpackframework.error.internal.DefaultClientErrorHandler;
@@ -42,6 +39,9 @@ import org.ratpackframework.registry.Registry;
 import org.ratpackframework.registry.internal.RootRegistry;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import static io.netty.handler.codec.http.HttpResponseStatus.NOT_FOUND;
 
@@ -49,22 +49,18 @@ import static io.netty.handler.codec.http.HttpResponseStatus.NOT_FOUND;
 public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpRequest> {
 
   private final Handler handler;
-  private final Registry<Object> rootServiceRegistry;
-  private Handler return404;
+  private final Handler return404;
+  private final LaunchConfig launchConfig;
+
+  private Registry<Object> registry;
+  private final Lock registryLock = new ReentrantLock();
 
   public NettyHandlerAdapter(Handler handler, LaunchConfig launchConfig) {
+    this.launchConfig = launchConfig;
     this.handler = new ErrorCatchingHandler(handler);
-    this.rootServiceRegistry = new RootRegistry<Object>(
-      ImmutableList.of(
-        launchConfig,
-        new DefaultServerErrorHandler(),
-        new DefaultClientErrorHandler(),
-        new ActivationBackedMimeTypes(),
-        new DefaultFileSystemBinding(launchConfig.getBaseDir())
-      )
-    );
 
-    return404 = new ClientErrorHandler(NOT_FOUND.code());
+
+    this.return404 = new ClientErrorHandler(NOT_FOUND.code());
   }
 
   public void channelRead0(ChannelHandlerContext ctx, FullHttpRequest nettyRequest) throws Exception {
@@ -82,9 +78,36 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
       || (version == HttpVersion.HTTP_1_0 && "Keep-Alive".equalsIgnoreCase(nettyRequest.headers().get("Connection")));
 
     Response response = new DefaultResponse(nettyResponse, ctx.channel(), keepAlive, version);
-    final Context context = new DefaultContext(request, response, ctx, rootServiceRegistry, return404);
+
+    if (registry == null) {
+      try {
+        registryLock.lock();
+        if (registry == null) {
+          registry = createRegistry(ctx.channel());
+        }
+      } finally {
+        registryLock.unlock();
+      }
+    }
+
+    final Context context = new DefaultContext(request, response, ctx, registry, return404);
 
     handler.handle(context);
+  }
+
+  private Registry<Object> createRegistry(Channel channel) {
+    InetSocketAddress socketAddress = (InetSocketAddress) channel.localAddress();
+
+    return new RootRegistry<Object>(
+      ImmutableList.of(
+        launchConfig,
+        new InetSocketAddressBackedBindAddress(socketAddress),
+        new DefaultServerErrorHandler(),
+        new DefaultClientErrorHandler(),
+        new ActivationBackedMimeTypes(),
+        new DefaultFileSystemBinding(launchConfig.getBaseDir())
+      )
+    );
   }
 
   @Override
