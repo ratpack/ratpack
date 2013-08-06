@@ -41,6 +41,8 @@ import org.ratpackframework.launch.LaunchConfig;
 import org.ratpackframework.registry.Registry;
 import org.ratpackframework.registry.internal.RootRegistry;
 
+import java.io.IOException;
+
 import static io.netty.handler.codec.http.HttpResponseStatus.NOT_FOUND;
 
 @ChannelHandler.Sharable
@@ -90,10 +92,17 @@ public class NettyHandlerAdapter extends ChannelInboundHandlerAdapter {
 
   @Override
   public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-    cause.printStackTrace();
-    if (ctx.channel().isActive()) {
-      sendError(ctx, HttpResponseStatus.INTERNAL_SERVER_ERROR);
+    if (!isIgnorableException(cause)) {
+      cause.printStackTrace();
+      if (ctx.channel().isActive()) {
+        sendError(ctx, HttpResponseStatus.INTERNAL_SERVER_ERROR);
+      }
     }
+  }
+
+  private boolean isIgnorableException(Throwable throwable) {
+    // There really does not seem to be a better way of detecting this kind of exception
+    return throwable instanceof IOException && throwable.getMessage().equals("Connection reset by peer");
   }
 
   private static void sendError(ChannelHandlerContext ctx, HttpResponseStatus status) {
