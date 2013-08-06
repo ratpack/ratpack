@@ -16,7 +16,7 @@
 
 buildscript {
   repositories {
-    mavenCentral()
+    jcenter()
     maven { url 'http://repo.jfrog.org/artifactory/gradle-plugins' }
   }
 
@@ -51,7 +51,7 @@ allprojects {
   apply from: "$rootDir/gradle/dependencyRules.gradle"
 
   repositories {
-    mavenCentral()
+    jcenter()
   }
 
   def noClover = ["ratpack-site", "ratpack-manual"]

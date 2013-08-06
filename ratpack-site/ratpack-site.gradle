@@ -17,7 +17,7 @@
 buildscript {
   repositories {
     maven { url "http://dl.bintray.com/robfletcher/gradle-plugins" }
-    mavenCentral()
+    jcenter()
   }
   dependencies {
     classpath 'org.gradle.plugins:gradle-compass:1.0.7'
@@ -32,7 +32,7 @@ apply plugin: 'compass'
 apply plugin: "ratpack-groovy"
 
 repositories {
-  mavenCentral()
+  jcenter()
   maven { url "http://repo.springsource.org/repo" } // for springloaded
   maven { url "http://repo.gradle.org/gradle/javascript-public/" } // for coffeescript plugin
 }
