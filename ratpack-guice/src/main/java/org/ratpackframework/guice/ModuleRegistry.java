@@ -82,6 +82,8 @@ public interface ModuleRegistry extends MutableRegistry<Module> {
 
   <T> void bind(Class<T> publicType, T instance);
 
+  <T> void bind(T instance);
+
   <T> void provider(Class<T> publicType, Class<? extends Provider<? extends T>> providerType);
 
 }

@@ -68,6 +68,16 @@ public class DefaultModuleRegistry implements ModuleRegistry {
     });
   }
 
+  public <T> void bind(final T instance) {
+    @SuppressWarnings("unchecked") final
+    Class<T> type = (Class<T>) instance.getClass();
+    actions.add(new Action<Binder>() {
+      public void execute(Binder binder) {
+        binder.bind(type).toInstance(instance);
+      }
+    });
+  }
+
   public <T> void provider(final Class<T> publicType, final Class<? extends Provider<? extends T>> providerType) {
     actions.add(new Action<Binder>() {
       public void execute(Binder binder) {
