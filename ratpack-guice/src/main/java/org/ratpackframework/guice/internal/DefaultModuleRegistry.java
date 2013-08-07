@@ -60,6 +60,14 @@ public class DefaultModuleRegistry implements ModuleRegistry {
     });
   }
 
+  public <T> void bind(final Class<T> publicType, final T instance) {
+    actions.add(new Action<Binder>() {
+      public void execute(Binder binder) {
+        binder.bind(publicType).toInstance(instance);
+      }
+    });
+  }
+
   public <T> void provider(final Class<T> publicType, final Class<? extends Provider<? extends T>> providerType) {
     actions.add(new Action<Binder>() {
       public void execute(Binder binder) {
