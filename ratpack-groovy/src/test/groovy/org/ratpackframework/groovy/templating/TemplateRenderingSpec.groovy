@@ -310,4 +310,31 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     text == "2"
   }
 
+  def "content type by template extension"() {
+    when:
+    file("templates/t.html") << "1"
+    file("templates/t.xml") << "1"
+    file("templates/dir/t.html") << "1"
+    file("templates/dir/t.xml") << "1"
+    file("templates/dir/t") << "1"
+
+    app {
+      handlers {
+        handler {
+          render groovyTemplate(request.path, request.queryParams.type)
+        }
+      }
+    }
+
+    then:
+    get("t.html").contentType == "text/html;charset=UTF-8"
+    get("t.xml").contentType == "application/xml;charset=UTF-8"
+    get("dir/t.html").contentType == "text/html;charset=UTF-8"
+    get("dir/t.xml").contentType == "application/xml;charset=UTF-8"
+    get("dir/t").contentType == "application/octet-stream;charset=UTF-8"
+
+    get("t.xml?type=foo/bar").contentType == "foo/bar;charset=UTF-8"
+    get("dir/t.xml?type=foo/bar").contentType == "foo/bar;charset=UTF-8"
+  }
+
 }

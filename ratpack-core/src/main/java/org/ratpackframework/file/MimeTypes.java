@@ -16,8 +16,6 @@
 
 package org.ratpackframework.file;
 
-import java.io.File;
-
 /**
  * A registry for mime types.
  *
@@ -29,9 +27,9 @@ public interface MimeTypes {
   /**
    * Calculate the mime type for the given file.
    *
-   * @param file The file to calculate the mime type for.
-   * @return The mime type for the file.
+   * @param name The file name to calculate the mime type for.
+   * @return The mime type for the file name.
    */
-  String getContentType(File file);
+  String getContentType(String name);
 
 }
