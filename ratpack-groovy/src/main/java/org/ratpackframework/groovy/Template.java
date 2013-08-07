@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.groovy.templating;
+package org.ratpackframework.groovy;
 
 import com.google.common.collect.ImmutableMap;
 

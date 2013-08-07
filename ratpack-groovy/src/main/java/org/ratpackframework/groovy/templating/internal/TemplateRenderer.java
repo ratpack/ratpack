@@ -17,7 +17,7 @@
 package org.ratpackframework.groovy.templating.internal;
 
 import io.netty.buffer.ByteBuf;
-import org.ratpackframework.groovy.templating.Template;
+import org.ratpackframework.groovy.Template;
 import org.ratpackframework.handling.Context;
 import org.ratpackframework.render.ByTypeRenderer;
 import org.ratpackframework.util.internal.Result;
