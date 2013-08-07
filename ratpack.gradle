@@ -22,7 +22,7 @@ buildscript {
 
   dependencies {
     classpath "org.gradle.api.plugins:gradle-clover-plugin:0.6.1"
-    classpath "org.jfrog.buildinfo:build-info-extractor-gradle:2.0.16"
+    classpath "org.jfrog.buildinfo:build-info-extractor-gradle:2.1.0"
   }
 }
 
