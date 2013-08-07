@@ -16,12 +16,15 @@
 
 package org.ratpackframework.guice.internal;
 
+import com.google.common.collect.ImmutableList;
+import com.google.inject.Binder;
 import com.google.inject.Module;
 import org.ratpackframework.guice.ModuleRegistry;
 import org.ratpackframework.guice.NoSuchModuleException;
 import org.ratpackframework.launch.LaunchConfig;
+import org.ratpackframework.util.Action;
 
-import java.util.ArrayList;
+import javax.inject.Provider;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,12 +34,38 @@ public class DefaultModuleRegistry implements ModuleRegistry {
   private final Map<Class<? extends Module>, Module> modules = new LinkedHashMap<Class<? extends Module>, Module>();
   private final LaunchConfig launchConfig;
 
+  private final ImmutableList.Builder<Action<Binder>> actions = ImmutableList.builder();
+
   public DefaultModuleRegistry(LaunchConfig launchConfig) {
     this.launchConfig = launchConfig;
   }
 
   public LaunchConfig getLaunchConfig() {
     return launchConfig;
+  }
+
+  public void bind(final Class<?> type) {
+    actions.add(new Action<Binder>() {
+      public void execute(Binder binder) {
+        binder.bind(type);
+      }
+    });
+  }
+
+  public <T> void bind(final Class<T> publicType, final Class<? extends T> implType) {
+    actions.add(new Action<Binder>() {
+      public void execute(Binder binder) {
+        binder.bind(publicType).to(implType);
+      }
+    });
+  }
+
+  public <T> void provider(final Class<T> publicType, final Class<? extends Provider<? extends T>> providerType) {
+    actions.add(new Action<Binder>() {
+      public void execute(Binder binder) {
+        binder.bind(publicType).toProvider(providerType);
+      }
+    });
   }
 
   @SuppressWarnings("unchecked")
@@ -79,8 +108,21 @@ public class DefaultModuleRegistry implements ModuleRegistry {
     return moduleType.cast(modules.remove(moduleType));
   }
 
-  public List<? extends Module> getModules() {
-    return new ArrayList<Module>(modules.values());
+  public List<Module> getModules() {
+    return ImmutableList.<Module>builder()
+      .addAll(modules.values())
+      .add(createOverrideModule())
+      .build();
+  }
+
+  private Module createOverrideModule() {
+    return new Module() {
+      public void configure(Binder binder) {
+        for (Action<Binder> binderAction : actions.build()) {
+          binderAction.execute(binder);
+        }
+      }
+    };
   }
 
 }

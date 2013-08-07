@@ -20,6 +20,8 @@ import com.google.inject.Module;
 import org.ratpackframework.launch.LaunchConfig;
 import org.ratpackframework.registry.MutableRegistry;
 
+import javax.inject.Provider;
+
 /**
  * A container of modules, used for specifying which modules to back an application with.
  * <p>
@@ -73,5 +75,12 @@ public interface ModuleRegistry extends MutableRegistry<Module> {
    * @return the launch config for the application the module registry is for.
    */
   LaunchConfig getLaunchConfig();
+
+  void bind(Class<?> type);
+
+  <T> void bind(Class<T> publicType, Class<? extends T> implType);
+
+  <T> void provider(Class<T> publicType, Class<? extends Provider<? extends T>> providerType);
+
 
 }
