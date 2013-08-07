@@ -49,7 +49,7 @@ public class StandaloneScriptBacking implements Action<Closure<?>> {
 
     Properties properties = LaunchConfigFactory.getDefaultPrefixedProperties();
     properties.setProperty(LaunchConfigFactory.Property.HANDLER_FACTORY, GroovyScriptHandlerFactory.class.getName());
-    properties.setProperty(GroovyScriptHandlerFactory.SCRIPT_PROPERTY_NAME, scriptFile.getName());
+    properties.setProperty("other." + GroovyScriptHandlerFactory.SCRIPT_PROPERTY_NAME, scriptFile.getName());
 
     File baseDir = scriptFile.getParentFile();
     File configFile = new File(baseDir, LaunchConfigFactory.CONFIG_RESOURCE_DEFAULT);

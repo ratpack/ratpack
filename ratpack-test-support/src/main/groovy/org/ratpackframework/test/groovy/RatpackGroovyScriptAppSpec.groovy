@@ -51,8 +51,8 @@ abstract class RatpackGroovyScriptAppSpec extends InternalRatpackSpec {
     properties.setProperty(LaunchConfigFactory.Property.HANDLER_FACTORY, GroovyScriptHandlerFactory.name)
     properties.setProperty(LaunchConfigFactory.Property.RELOADABLE, reloadable.toString())
     properties.setProperty(LaunchConfigFactory.Property.PORT, "0")
-    properties.setProperty(GroovyScriptHandlerFactory.COMPILE_STATIC_PROPERTY_NAME, compileStatic.toString())
-    properties.setProperty(GroovyScriptHandlerFactory.SCRIPT_PROPERTY_NAME, ratpackFile.name)
+    properties.setProperty("other." + GroovyScriptHandlerFactory.COMPILE_STATIC_PROPERTY_NAME, compileStatic.toString())
+    properties.setProperty("other." + GroovyScriptHandlerFactory.SCRIPT_PROPERTY_NAME, ratpackFile.name)
     LaunchConfig launchConfig = LaunchConfigFactory.createWithBaseDir(getClass().classLoader, ratpackFile.parentFile, properties)
     RatpackServerBuilder.build(launchConfig)
   }
