@@ -16,14 +16,12 @@
 
 package org.ratpackframework.handling;
 
-import org.ratpackframework.util.Buildable;
-
 /**
  * A buildable strategy for processing an exchange based on HTTP method.
  * <p>
  * A by-method-responder is exposed by {@link Context#getMethods()}.
  * It is used to respond differently based on the HTTP method.
- * If there is no action registered with the responder before {@link #build()} is called, a {@code 405} will be issued to
+ * If there is no action registered with the responder before {@link #respond(Context)} is called, a {@code 405} will be issued to
  * the contextual {@link org.ratpackframework.error.ClientErrorHandler} (which by default will send back a HTTP 405 to the client).
  * <p>
  * This is useful when a given handler can respond to more than one HTTP method.
@@ -32,10 +30,10 @@ import org.ratpackframework.util.Buildable;
  * import org.ratpackframework.handling.*;
  *
  * class MyHandler implements Handler {
- *   public void handle(final Context exchange) {
+ *   public void handle(final Context context) {
  *     // Do processing common to all methods …
  *
- *     exchange.getMethods().
+ *     context.respond(context.getMethods().
  *       get(new Runnable() {
  *         public void run() {
  *           // GET handling logic
@@ -45,8 +43,8 @@ import org.ratpackframework.util.Buildable;
  *         public void run() {
  *           // POST handling logic
  *         }
- *       }).
- *       build(); // do the processing
+ *       })
+ *     );
  *   }
  * }
  * </pre>
@@ -57,26 +55,22 @@ import org.ratpackframework.util.Buildable;
  * import static org.ratpackframework.groovy.Util.with
  *
  * class MyHandler implements Handler {
- *   void handle(Context exchange) {
+ *   void handle(Context context) {
  *     // Do processing common to all methods …
  *
- *     with(exchange.methods) {
+ *     context.respond context.methods.
  *       get {
  *         // GET handling logic
- *       }
+ *       }.
  *       post {
  *         // POST handling logic
  *       }
- *     }
  *   }
  * }
  * </pre>
- * <p>
- * You <b>must</b> call the {@link #build()} method to finalise the responder. Otherwise, the exchange will not be processed.
- * <p>
  * Only the last added runnable for a method will be used. Adding a subsequent runnable for the same method will replace the previous.
  */
-public interface ByMethodResponder extends Buildable {
+public interface ByMethodResponder extends Responder {
 
   /**
    * Defines the action to to take if the request has a HTTP method of GET.
@@ -120,12 +114,5 @@ public interface ByMethodResponder extends Buildable {
    * @return this
    */
   ByMethodResponder named(String methodName, Runnable runnable);
-
-  /**
-   * Finalise the responder and processes the exchange.
-   * <p>
-   * <b>Must be called to actually perform the action.</b>
-   */
-  void build();
 
 }

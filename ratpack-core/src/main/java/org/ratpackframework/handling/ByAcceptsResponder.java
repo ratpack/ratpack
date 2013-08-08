@@ -16,8 +16,6 @@
 
 package org.ratpackframework.handling;
 
-import org.ratpackframework.util.Buildable;
-
 /**
  * A buildable strategy for responding based on the HTTP "Accepts" request header.
  * <p>
@@ -33,10 +31,10 @@ import org.ratpackframework.util.Buildable;
  * import org.ratpackframework.handling.*;
  *
  * class MyHandler implements Handler {
- *   public void handle(final Context exchange) {
+ *   public void handle(final Context context) {
  *     // Do processing common to all methods …
  *
- *     exchange.getAccepts().
+ *     context.respond(context.getAccepts().
  *       type("application/json", new Runnable() {
  *         public void run() {
  *           // JSON responding logic
@@ -46,8 +44,8 @@ import org.ratpackframework.util.Buildable;
  *         public void run() {
  *           // HTML handling logic
  *         }
- *       }).
- *       build(); // finalize
+ *       })
+ *     );
  *   }
  * }
  * </pre>
@@ -59,29 +57,25 @@ import org.ratpackframework.util.Buildable;
  * import static org.ratpackframework.groovy.Util.with
  *
  * class MyHandler implements Handler {
- *   void handle(Context exchange) {
- *     with(exchange.accepts) {
+ *   void handle(Context context) {
+ *     context.respond context.accepts.
  *       type("application/json") {
  *         // JSON handling logic
- *       }
+ *       }.
  *       type("text/html") {
  *         // HTML handling logic
  *       }
- *     }
  *   }
  * }
  * </pre>
- * <p>
- * You <b>must</b> call the {@link #build()} method to finalise the responder. Otherwise, nothing will happen.
- * <p>
- * If there is no action registered with the responder before {@link #build()} is called, or the client does not accept any
+ * If there is no type registered before {@link #respond(Context)} is called, or the client does not accept any
  * of the given types, a {@code 406} will be issued to the {@link Context#clientError(int)}
  * that the responder is associated with.
  * <p>
  * Only the last added runnable for a type will be used.
  * Adding a subsequent runnable for the same type will replace the previous.
  */
-public interface ByAcceptsResponder extends Buildable {
+public interface ByAcceptsResponder extends Responder {
 
   /**
    * Register how to respond with the given mime type.
@@ -123,10 +117,5 @@ public interface ByAcceptsResponder extends Buildable {
    * @return this
    */
   ByAcceptsResponder xml(Runnable runnable);
-
-  /**
-   * Finalizes this responder, invoking the appropriate registered runnable.
-   */
-  void build();
 
 }

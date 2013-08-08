@@ -19,16 +19,10 @@ package org.ratpackframework.groovy;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.ratpackframework.util.Action;
-import org.ratpackframework.util.Buildable;
 
 public abstract class Util {
 
   private Util() {
-  }
-
-  public static <T extends Buildable> void with(@DelegatesTo.Target T buildable, @DelegatesTo(strategy = Closure.DELEGATE_FIRST) Closure<?> closure) {
-    configureDelegateFirst(buildable, closure);
-    buildable.build();
   }
 
   public static <T, R> R configureDelegateOnly(@DelegatesTo.Target T object, @DelegatesTo(strategy = Closure.DELEGATE_ONLY) Closure<R> configurer) {

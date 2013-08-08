@@ -138,6 +138,9 @@ public interface Context extends Registry<Object> {
   @NonBlocking
   void insert(Object object, List<Handler> handlers);
 
+  @NonBlocking
+  void respond(Responder responder);
+
   /**
    * A buildable responder for conditional processing based on the HTTP request method.
    *

@@ -21,10 +21,7 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 import org.ratpackframework.error.ClientErrorHandler;
 import org.ratpackframework.error.ServerErrorHandler;
 import org.ratpackframework.file.FileSystemBinding;
-import org.ratpackframework.handling.ByAcceptsResponder;
-import org.ratpackframework.handling.ByMethodResponder;
-import org.ratpackframework.handling.Context;
-import org.ratpackframework.handling.Handler;
+import org.ratpackframework.handling.*;
 import org.ratpackframework.http.Request;
 import org.ratpackframework.http.Response;
 import org.ratpackframework.path.PathBinding;
@@ -94,6 +91,10 @@ public class DefaultContext implements Context {
     doNext(this, new ObjectHoldingChildRegistry<Object>(registry, object), handlers, 0, next);
   }
 
+  public void respond(Responder responder) {
+    responder.respond(this);
+  }
+
   public Map<String, String> getPathTokens() {
     return get(PathBinding.class).getTokens();
   }
@@ -141,11 +142,11 @@ public class DefaultContext implements Context {
   }
 
   public ByMethodResponder getMethods() {
-    return new DefaultByMethodResponder(this);
+    return new DefaultByMethodResponder();
   }
 
   public ByAcceptsResponder getAccepts() {
-    return new DefaultByAcceptsResponder(this);
+    return new DefaultByAcceptsResponder();
   }
 
   protected void doNext(final Context parentContext, final Registry<Object> registry, final List<Handler> handlers, final int index, final Handler exhausted) {

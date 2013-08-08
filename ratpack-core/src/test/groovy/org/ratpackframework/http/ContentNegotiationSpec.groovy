@@ -16,13 +16,7 @@
 
 package org.ratpackframework.http
 
-import org.ratpackframework.groovy.handling.ClosureHandlers
-import org.ratpackframework.handling.Handlers
-
-import static org.ratpackframework.groovy.Util.with
-import static org.ratpackframework.groovy.Util.with
 import org.ratpackframework.test.groovy.RatpackGroovyDslSpec
-
 
 class ContentNegotiationSpec extends RatpackGroovyDslSpec {
 
@@ -32,17 +26,16 @@ class ContentNegotiationSpec extends RatpackGroovyDslSpec {
 
       handlers {
         get {
-          with(accepts) {
-            type("application/json") {
-              response.send "json"
-            }
-            type("text/html") {
-              response.send "html"
-            }
-          }
+          respond accepts.
+              type("application/json") {
+                response.send "json"
+              }.
+              type("text/html") {
+                response.send "html"
+              }
         }
         get("noneRegistered") {
-          with(accepts) {}
+          respond accepts
         }
       }
     }
@@ -91,12 +84,11 @@ class ContentNegotiationSpec extends RatpackGroovyDslSpec {
     app {
       handlers {
         get {
-          with(accepts) {
-            json { response.send "json" }
-            xml { response.send "xml" }
-            plainText { response.send "text" }
-            html { response.send "html" }
-          }
+          respond accepts.
+              json { response.send "json" }.
+              xml { response.send "xml" }.
+              plainText { response.send "text" }.
+              html { response.send "html" }
         }
       }
     }

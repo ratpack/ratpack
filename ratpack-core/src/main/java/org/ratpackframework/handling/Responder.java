@@ -14,10 +14,13 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.util;
+package org.ratpackframework.handling;
 
-public interface Buildable {
+import org.ratpackframework.api.NonBlocking;
 
-  void build();
+public interface Responder {
+
+  @NonBlocking
+  void respond(Context context);
 
 }

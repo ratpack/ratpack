@@ -18,9 +18,6 @@ package org.ratpackframework.path
 
 import org.ratpackframework.test.groovy.RatpackGroovyDslSpec
 
-import static org.ratpackframework.groovy.Util.with
-
-
 class PathAndMethodRoutingSpec extends RatpackGroovyDslSpec {
 
   def "can use path and method routes"() {
@@ -33,14 +30,13 @@ class PathAndMethodRoutingSpec extends RatpackGroovyDslSpec {
         }
         prefix(":a/:b") {
           path(":c/:d") {
-            with(methods) {
-              post {
-                response.send new LinkedHashMap(allPathTokens).toString()
-              }
-              put {
-                response.send allPathTokens.collectEntries { [it.key.toUpperCase(), it.value.toUpperCase()] }.toString()
-              }
-            }
+            respond methods.
+                post {
+                  response.send new LinkedHashMap(allPathTokens).toString()
+                }.
+                put {
+                  response.send allPathTokens.collectEntries { [it.key.toUpperCase(), it.value.toUpperCase()] }.toString()
+                }
           }
         }
       }
@@ -51,7 +47,7 @@ class PathAndMethodRoutingSpec extends RatpackGroovyDslSpec {
     resetRequest()
     postText("1/2/3/4") == "[a:1, b:2, c:3, d:4]"
     putText("5/6/7/8") == "[A:5, B:6, C:7, D:8]"
-    this.with(head("a/b/c?head")) {
+    with(head("a/b/c?head")) {
       statusCode == 200
       getHeader("X-value") == "head"
       asByteArray().length == 0
@@ -64,14 +60,13 @@ class PathAndMethodRoutingSpec extends RatpackGroovyDslSpec {
       handlers {
         path("foo") {
           def prefix = "common"
-          with(methods) {
-            get {
-              response.send("$prefix: get")
-            }
-            post {
-              response.send("$prefix: post")
-            }
-          }
+          respond methods.
+              get {
+                response.send("$prefix: get")
+              }.
+              post {
+                response.send("$prefix: post")
+              }
         }
       }
     }

@@ -17,8 +17,8 @@
 package org.ratpackframework.handling.internal;
 
 import io.netty.handler.codec.http.HttpHeaders;
-import org.ratpackframework.handling.Context;
 import org.ratpackframework.handling.ByAcceptsResponder;
+import org.ratpackframework.handling.Context;
 import org.ratpackframework.http.internal.MimeParse;
 
 import java.util.*;
@@ -27,11 +27,6 @@ public class DefaultByAcceptsResponder implements ByAcceptsResponder {
 
   private final Map<String, Runnable> map = new LinkedHashMap<String, Runnable>(3);
   private String first;
-  private final Context context;
-
-  public DefaultByAcceptsResponder(Context context) {
-    this.context = context;
-  }
 
   public ByAcceptsResponder type(String mimeType, Runnable runnable) {
     if (mimeType == null) {
@@ -66,7 +61,7 @@ public class DefaultByAcceptsResponder implements ByAcceptsResponder {
     return type("application/xml", runnable);
   }
 
-  public void build() {
+  public void respond(Context context) {
     if (first == null) {
       context.clientError(406);
       return;
