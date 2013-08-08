@@ -111,7 +111,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
         new DefaultClientErrorHandler(),
         new DefaultServerErrorHandler(),
         launchConfig
-      )                                   g
+      )
     );
   }
 
