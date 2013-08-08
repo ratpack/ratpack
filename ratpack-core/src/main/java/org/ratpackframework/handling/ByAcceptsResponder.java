@@ -93,6 +93,38 @@ public interface ByAcceptsResponder extends Buildable {
   ByAcceptsResponder type(String mimeType, Runnable runnable);
 
   /**
+   * Convenience method to respond with "text/plain" mime type
+   *
+   * @param runnable
+   * @return this
+   */
+  ByAcceptsResponder plainText(Runnable runnable);
+
+  /**
+   * Convenience method to respond with "text/html" mime type
+   *
+   * @param runnable
+   * @return this
+   */
+  ByAcceptsResponder html(Runnable runnable);
+
+  /**
+   * Convenience method to respond with "application/json" mime type
+   *
+   * @param runnable
+   * @return this
+   */
+  ByAcceptsResponder json(Runnable runnable);
+
+  /**
+   * Convenience method to respond with "application/xml" mime type
+   *
+   * @param runnable
+   * @return this
+   */
+  ByAcceptsResponder xml(Runnable runnable);
+
+  /**
    * Finalizes this responder, invoking the appropriate registered runnable.
    */
   void build();
