@@ -14,21 +14,26 @@
  * limitations under the License.
  */
 
-apply from: "$rootDir/gradle/javaModule.gradle"
+package org.ratpackframework.file.internal;
 
-ext.apiLinks = [
-    "http://netty.io/4.0/api",
-]
+import org.ratpackframework.file.MimeTypes;
+import org.ratpackframework.handling.Context;
+import org.ratpackframework.render.ByTypeRenderer;
+import java.io.File;
 
-dependencies {
-  compile 'io.netty:netty-codec-http:4.0.6.Final'
-  runtime 'org.javassist:javassist:3.17.1-GA'
+import javax.inject.Inject;
 
-  compile 'com.google.guava:guava:13.0.1'
+public class FileRenderer extends ByTypeRenderer<File> {
 
-  compile 'com.google.inject:guice:3.0', {
-    exclude group: 'org.sonatype.sisu.inject'
+  @Inject
+  public FileRenderer(){
+    super(File.class);
   }
 
-  testCompile project(":ratpack-test-support")
+  @Override
+  public void render(Context context, File targetFile) {
+    String contentType = context.get(MimeTypes.class).getContentType(targetFile.getName());
+    context.getResponse().sendFile(contentType, targetFile);
+  }
+
 }
