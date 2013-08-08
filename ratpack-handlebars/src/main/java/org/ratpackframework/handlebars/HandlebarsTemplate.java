@@ -14,34 +14,29 @@
  * limitations under the License.
  */
 
-include \
-    "ratpack-core",
-    "ratpack-guice",
-    "ratpack-session",
-    "ratpack-gradle",
-    "ratpack-groovy",
-    "ratpack-test-support",
-    "ratpack-manual",
-    "ratpack-site",
-    "ratpack-handlebars"
+package org.ratpackframework.handlebars;
 
-include \
-  "perftest",
-  "perftest:raw",
-  "perftest:simple-java",
-  "perftest:guice"
+import java.util.Map;
 
-rootProject.name = 'ratpack'
+public class HandlebarsTemplate {
 
-def setBuildFile(project) {
-  project.buildFileName = "${project.name}.gradle"
-  project.children.each {
-    setBuildFile(it)
+  private final String name;
+  private final Object model;
+
+  public String getName() {
+    return name;
+  }
+
+  public Object getModel() {
+    return model;
+  }
+
+  public HandlebarsTemplate(String name, Object model) {
+    this.name = name;
+    this.model = model;
+  }
+
+  public static HandlebarsTemplate handlebarsTemplate(Map<String, ?> model, String name) {
+    return new HandlebarsTemplate(name, model);
   }
 }
-
-setBuildFile(rootProject)
-rootProject.children.each {
-  setBuildFile(it)
-}
-

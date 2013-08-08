@@ -14,34 +14,10 @@
  * limitations under the License.
  */
 
-include \
-    "ratpack-core",
-    "ratpack-guice",
-    "ratpack-session",
-    "ratpack-gradle",
-    "ratpack-groovy",
-    "ratpack-test-support",
-    "ratpack-manual",
-    "ratpack-site",
-    "ratpack-handlebars"
+apply from: "$rootDir/gradle/javaModule.gradle"
 
-include \
-  "perftest",
-  "perftest:raw",
-  "perftest:simple-java",
-  "perftest:guice"
-
-rootProject.name = 'ratpack'
-
-def setBuildFile(project) {
-  project.buildFileName = "${project.name}.gradle"
-  project.children.each {
-    setBuildFile(it)
-  }
+dependencies {
+  compile project(":ratpack-guice")
+  compile 'com.github.jknack:handlebars:1.1.1'
+  testCompile project(":ratpack-test-support")
 }
-
-setBuildFile(rootProject)
-rootProject.children.each {
-  setBuildFile(it)
-}
-

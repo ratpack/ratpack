@@ -14,34 +14,32 @@
  * limitations under the License.
  */
 
-include \
-    "ratpack-core",
-    "ratpack-guice",
-    "ratpack-session",
-    "ratpack-gradle",
-    "ratpack-groovy",
-    "ratpack-test-support",
-    "ratpack-manual",
-    "ratpack-site",
-    "ratpack-handlebars"
+package org.ratpackframework.handlebars
 
-include \
-  "perftest",
-  "perftest:raw",
-  "perftest:simple-java",
-  "perftest:guice"
+import org.ratpackframework.test.groovy.RatpackGroovyDslSpec
 
-rootProject.name = 'ratpack'
+import static org.ratpackframework.handlebars.HandlebarsTemplate.handlebarsTemplate
 
-def setBuildFile(project) {
-  project.buildFileName = "${project.name}.gradle"
-  project.children.each {
-    setBuildFile(it)
+class HandlebarsTemplateRenderingSpec extends RatpackGroovyDslSpec {
+
+  def setup() {
+    modules << new HandlebarsModule()
+  }
+
+  void 'can render a handlebars template from default location'() {
+    given:
+    file('handlebars/simple.hbs') << '{{key}}'
+
+    when:
+    app {
+      handlers {
+        get {
+          render handlebarsTemplate('simple', key: 'it works!')
+        }
+      }
+    }
+
+    then:
+    text == 'it works!'
   }
 }
-
-setBuildFile(rootProject)
-rootProject.children.each {
-  setBuildFile(it)
-}
-
