@@ -50,6 +50,22 @@ public class DefaultByAcceptsResponder implements ByAcceptsResponder {
     return this;
   }
 
+  public ByAcceptsResponder plainText(Runnable runnable) {
+    return type("text/plain", runnable);
+  }
+
+  public ByAcceptsResponder html(Runnable runnable) {
+    return type("text/html", runnable);
+  }
+
+  public ByAcceptsResponder json(Runnable runnable) {
+    return type("application/json", runnable);
+  }
+
+  public ByAcceptsResponder xml(Runnable runnable) {
+    return type("application/xml", runnable);
+  }
+
   public void build() {
     if (first == null) {
       context.clientError(406);
