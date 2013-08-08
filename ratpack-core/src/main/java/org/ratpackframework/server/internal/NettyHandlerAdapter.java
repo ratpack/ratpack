@@ -35,8 +35,10 @@ import org.ratpackframework.http.Response;
 import org.ratpackframework.http.internal.DefaultRequest;
 import org.ratpackframework.http.internal.DefaultResponse;
 import org.ratpackframework.launch.LaunchConfig;
+import org.ratpackframework.redirect.internal.DefaultRedirector;
 import org.ratpackframework.registry.Registry;
 import org.ratpackframework.registry.internal.RootRegistry;
+import org.ratpackframework.server.BindAddress;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -58,8 +60,6 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
   public NettyHandlerAdapter(Handler handler, LaunchConfig launchConfig) {
     this.launchConfig = launchConfig;
     this.handler = new ErrorCatchingHandler(handler);
-
-
     this.return404 = new ClientErrorHandler(NOT_FOUND.code());
   }
 
@@ -98,11 +98,15 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
   private Registry<Object> createRegistry(Channel channel) {
     InetSocketAddress socketAddress = (InetSocketAddress) channel.localAddress();
 
+    BindAddress bindAddress = new InetSocketAddressBackedBindAddress(socketAddress);
+
     return new RootRegistry<Object>(
       ImmutableList.of(
         new DefaultFileSystemBinding(launchConfig.getBaseDir()),
         new ActivationBackedMimeTypes(),
-        new InetSocketAddressBackedBindAddress(socketAddress),
+        bindAddress,
+        new DefaultPublicAddress(launchConfig.getPublicAddress(), bindAddress),
+        new DefaultRedirector(),
         new DefaultClientErrorHandler(),
         new DefaultServerErrorHandler(),
         launchConfig
