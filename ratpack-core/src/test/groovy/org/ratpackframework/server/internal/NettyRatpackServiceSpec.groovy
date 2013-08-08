@@ -32,12 +32,12 @@ class NettyRatpackServiceSpec extends Specification {
 
   def "throws exception if can't bind to port"() {
     given:
-    def config1 = new DefaultLaunchConfig(temporaryFolder.root, 0, null, false, 0, ImmutableMap.of(), {} as HandlerFactory)
+    def config1 = new DefaultLaunchConfig(temporaryFolder.root, 0, null, false, 0, new URL("http://localhost:5050"), ImmutableMap.of(), {} as HandlerFactory)
     def server1 = RatpackServerBuilder.build(config1)
     server1.start()
 
     when:
-    def config2 = new DefaultLaunchConfig(temporaryFolder.root, server1.bindPort, null, false, 0, ImmutableMap.of(), {} as HandlerFactory)
+    def config2 = new DefaultLaunchConfig(temporaryFolder.root, server1.bindPort, null, false, 0,  new URL("http://localhost:${server1.bindPort}"), ImmutableMap.of(), {} as HandlerFactory)
     def server2 = RatpackServerBuilder.build(config2)
     server2.start()
 

@@ -125,21 +125,6 @@ public interface Response {
   void sendFile(String contentType, File file);
 
   /**
-   * Sends a temporary redirect response (i.e. statusCode 302) to the client using the specified redirect location URL.
-   *
-   * @param location the redirect location URL
-   */
-  void redirect(String location);
-
-  /**
-   * Sends a redirect response location URL and status code (which should be in the 3xx range).
-   *
-   * @param code The status code of the redirect
-   * @param location the redirect location URL
-   */
-  void redirect(int code, String location);
-
-  /**
    * Returns the header value with the specified header name.
    * <p>
    * If there is more than one header value for the specified header name, the first value is returned.

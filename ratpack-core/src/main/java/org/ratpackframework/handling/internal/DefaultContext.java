@@ -17,6 +17,7 @@
 package org.ratpackframework.handling.internal;
 
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.codec.http.HttpResponseStatus;
 import org.ratpackframework.error.ClientErrorHandler;
 import org.ratpackframework.error.ServerErrorHandler;
 import org.ratpackframework.file.FileSystemBinding;
@@ -27,6 +28,7 @@ import org.ratpackframework.handling.Handler;
 import org.ratpackframework.http.Request;
 import org.ratpackframework.http.Response;
 import org.ratpackframework.path.PathBinding;
+import org.ratpackframework.redirect.Redirector;
 import org.ratpackframework.registry.NotInRegistryException;
 import org.ratpackframework.registry.Registry;
 import org.ratpackframework.registry.internal.ObjectHoldingChildRegistry;
@@ -36,6 +38,7 @@ import org.ratpackframework.render.RenderController;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
+
 
 public class DefaultContext implements Context {
 
@@ -105,6 +108,15 @@ public class DefaultContext implements Context {
 
   public void render(Object object) throws NoSuchRendererException {
     get(RenderController.class).render(this, object);
+  }
+
+  public void redirect(String location) throws NotInRegistryException {
+    redirect(HttpResponseStatus.FOUND.code(), location);
+  }
+
+  public void redirect(int code, String location) throws NotInRegistryException {
+    Redirector redirector = registry.get(Redirector.class);
+    redirector.redirect(this, response, request, location, code);
   }
 
   public void error(Exception exception) {

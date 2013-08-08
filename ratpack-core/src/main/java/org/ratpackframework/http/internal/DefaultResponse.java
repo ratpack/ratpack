@@ -118,18 +118,6 @@ public class DefaultResponse implements Response {
     new FileHttpTransmitter().transmit(file, response, channel);
   }
 
-  public void redirect(String location) {
-    response.setStatus(HttpResponseStatus.FOUND);
-    setHeader(HttpHeaders.Names.LOCATION, location);
-    commit();
-  }
-
-  public void redirect(int code, String location) {
-    status(code);
-    setHeader(HttpHeaders.Names.LOCATION, location);
-    commit();
-  }
-
   public String getHeader(String name) {
     return response.headers().get(name);
   }
@@ -235,6 +223,4 @@ public class DefaultResponse implements Response {
       }
     }
   }
-
-
 }
