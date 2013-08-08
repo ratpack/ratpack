@@ -18,7 +18,7 @@ package org.ratpackframework.path.internal
 
 import spock.lang.Specification
 
-class TokenPathBinderTest extends Specification {
+class TokenPathBinderSpec extends Specification {
 
   Map<String, String> map(String pattern, String path) {
     new TokenPathBinder(pattern, true).bind(path, null)?.tokens

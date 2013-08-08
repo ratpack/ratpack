@@ -21,7 +21,7 @@ import org.junit.rules.TemporaryFolder
 import org.ratpackframework.file.FileSystemBinding
 import spock.lang.Specification
 
-class DefaultFileSystemBindingTest extends Specification {
+class DefaultFileSystemBindingSpec extends Specification {
 
   @Rule TemporaryFolder temporaryFolder
 

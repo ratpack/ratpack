@@ -22,7 +22,7 @@ import io.netty.util.CharsetUtil
 import org.ratpackframework.util.internal.IoUtils
 import spock.lang.Specification
 
-class TemplateParserTest extends Specification {
+class TemplateParserSpec extends Specification {
 
   private final TemplateParser parser = new TemplateParser()
 

@@ -26,7 +26,7 @@ import spock.lang.Specification
 
 import java.util.concurrent.ExecutionException
 
-class NettyRatpackServiceTest extends Specification {
+class NettyRatpackServiceSpec extends Specification {
 
   @Rule TemporaryFolder temporaryFolder
 

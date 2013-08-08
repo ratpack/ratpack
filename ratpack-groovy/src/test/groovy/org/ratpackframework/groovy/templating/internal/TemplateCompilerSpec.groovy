@@ -23,7 +23,7 @@ import org.ratpackframework.groovy.script.internal.ScriptEngine
 import org.ratpackframework.util.internal.IoUtils
 import spock.lang.Specification
 
-class TemplateCompilerTest extends Specification {
+class TemplateCompilerSpec extends Specification {
 
   def compiler = new TemplateCompiler(new ScriptEngine<DefaultTemplateScript>(getClass().classLoader, true, DefaultTemplateScript), true)
 

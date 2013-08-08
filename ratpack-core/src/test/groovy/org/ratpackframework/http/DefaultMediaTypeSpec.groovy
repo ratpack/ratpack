@@ -19,7 +19,7 @@ package org.ratpackframework.http
 import org.ratpackframework.http.internal.DefaultMediaType
 import spock.lang.Specification
 
-class DefaultMediaTypeTest extends Specification {
+class DefaultMediaTypeSpec extends Specification {
 
   def "parsing"() {
     expect:

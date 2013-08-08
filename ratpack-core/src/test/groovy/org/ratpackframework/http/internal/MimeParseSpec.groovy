@@ -18,7 +18,7 @@ package org.ratpackframework.http.internal
 
 import spock.lang.Specification
 
-class MimeParseTest extends Specification {
+class MimeParseSpec extends Specification {
 
   def "matching"() {
     expect:
