@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.url;
+package org.ratpackframework.server;
 
 import org.ratpackframework.handling.Context;
 

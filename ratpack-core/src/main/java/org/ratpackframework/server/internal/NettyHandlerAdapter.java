@@ -39,7 +39,6 @@ import org.ratpackframework.redirect.internal.DefaultRedirector;
 import org.ratpackframework.registry.Registry;
 import org.ratpackframework.registry.internal.RootRegistry;
 import org.ratpackframework.server.BindAddress;
-import org.ratpackframework.url.internal.DefaultPublicAddress;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;

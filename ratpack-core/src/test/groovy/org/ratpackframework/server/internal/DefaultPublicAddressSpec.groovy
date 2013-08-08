@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.url.internal
+package org.ratpackframework.server.internal
 
 import org.ratpackframework.server.BindAddress
+import org.ratpackframework.server.internal.DefaultPublicAddress
 import spock.lang.Specification
 import spock.lang.Unroll
 

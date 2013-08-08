@@ -21,7 +21,7 @@ import org.ratpackframework.handling.Context;
 import org.ratpackframework.http.Request;
 import org.ratpackframework.http.Response;
 import org.ratpackframework.redirect.Redirector;
-import org.ratpackframework.url.PublicAddress;
+import org.ratpackframework.server.PublicAddress;
 
 import java.net.URL;
 import java.util.regex.Pattern;

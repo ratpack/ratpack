@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.url.internal;
+package org.ratpackframework.server.internal;
 
 
 import org.ratpackframework.handling.Context;
 import org.ratpackframework.server.BindAddress;
-import org.ratpackframework.url.PublicAddress;
+import org.ratpackframework.server.PublicAddress;
 
 import java.net.MalformedURLException;
 import java.net.URL;
