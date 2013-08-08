@@ -17,12 +17,12 @@
 buildscript {
   repositories {
     jcenter()
-    maven { url 'http://repo.jfrog.org/artifactory/gradle-plugins' }
+    maven { url 'http://repo.jfrog.org/artifactory/libs-snapshots-local' }
   }
 
   dependencies {
     classpath "org.gradle.api.plugins:gradle-clover-plugin:0.6.1"
-    classpath "org.jfrog.buildinfo:build-info-extractor-gradle:2.1.0"
+    classpath "org.jfrog.buildinfo:build-info-extractor-gradle:2.1.x-SNAPSHOT"
   }
 }
 
