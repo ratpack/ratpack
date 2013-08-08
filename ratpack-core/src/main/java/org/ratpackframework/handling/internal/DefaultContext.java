@@ -141,12 +141,12 @@ public class DefaultContext implements Context {
     }
   }
 
-  public ByMethodResponder getMethods() {
+  public ByMethodResponder getByMethod() {
     return new DefaultByMethodResponder();
   }
 
-  public ByAcceptsResponder getAccepts() {
-    return new DefaultByAcceptsResponder();
+  public ByContentResponder getByContent() {
+    return new DefaultByContentResponder();
   }
 
   protected void doNext(final Context parentContext, final Registry<Object> registry, final List<Handler> handlers, final int index, final Handler exhausted) {

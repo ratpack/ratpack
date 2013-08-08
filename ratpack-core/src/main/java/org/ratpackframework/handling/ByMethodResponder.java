@@ -19,7 +19,7 @@ package org.ratpackframework.handling;
 /**
  * A buildable strategy for processing an exchange based on HTTP method.
  * <p>
- * A by-method-responder is exposed by {@link Context#getMethods()}.
+ * A by-method-responder is exposed by {@link Context#getByMethod()}.
  * It is used to respond differently based on the HTTP method.
  * If there is no action registered with the responder before {@link #respond(Context)} is called, a {@code 405} will be issued to
  * the contextual {@link org.ratpackframework.error.ClientErrorHandler} (which by default will send back a HTTP 405 to the client).
@@ -33,7 +33,7 @@ package org.ratpackframework.handling;
  *   public void handle(final Context context) {
  *     // Do processing common to all methods …
  *
- *     context.respond(context.getMethods().
+ *     context.respond(context.getByMethod().
  *       get(new Runnable() {
  *         public void run() {
  *           // GET handling logic
@@ -58,7 +58,7 @@ package org.ratpackframework.handling;
  *   void handle(Context context) {
  *     // Do processing common to all methods …
  *
- *     context.respond context.methods.
+ *     context.respond context.byMethod.
  *       get {
  *         // GET handling logic
  *       }.

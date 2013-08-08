@@ -146,14 +146,14 @@ public interface Context extends Registry<Object> {
    *
    * @return A buildable responder for conditional processing based on the HTTP request method.
    */
-  ByMethodResponder getMethods();
+  ByMethodResponder getByMethod();
 
   /**
    * A buildable responder useful for performing content negotiation.
    *
    * @return A buildable responder useful for performing content negotiation.
    */
-  ByAcceptsResponder getAccepts();
+  ByContentResponder getByContent();
 
 
   // Shorthands for common service lookups

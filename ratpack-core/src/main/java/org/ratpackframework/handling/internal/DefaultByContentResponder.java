@@ -17,18 +17,18 @@
 package org.ratpackframework.handling.internal;
 
 import io.netty.handler.codec.http.HttpHeaders;
-import org.ratpackframework.handling.ByAcceptsResponder;
+import org.ratpackframework.handling.ByContentResponder;
 import org.ratpackframework.handling.Context;
 import org.ratpackframework.http.internal.MimeParse;
 
 import java.util.*;
 
-public class DefaultByAcceptsResponder implements ByAcceptsResponder {
+public class DefaultByContentResponder implements ByContentResponder {
 
   private final Map<String, Runnable> map = new LinkedHashMap<String, Runnable>(3);
   private String first;
 
-  public ByAcceptsResponder type(String mimeType, Runnable runnable) {
+  public ByContentResponder type(String mimeType, Runnable runnable) {
     if (mimeType == null) {
       throw new IllegalArgumentException("mimeType cannot be null");
     }
@@ -45,19 +45,19 @@ public class DefaultByAcceptsResponder implements ByAcceptsResponder {
     return this;
   }
 
-  public ByAcceptsResponder plainText(Runnable runnable) {
+  public ByContentResponder plainText(Runnable runnable) {
     return type("text/plain", runnable);
   }
 
-  public ByAcceptsResponder html(Runnable runnable) {
+  public ByContentResponder html(Runnable runnable) {
     return type("text/html", runnable);
   }
 
-  public ByAcceptsResponder json(Runnable runnable) {
+  public ByContentResponder json(Runnable runnable) {
     return type("application/json", runnable);
   }
 
-  public ByAcceptsResponder xml(Runnable runnable) {
+  public ByContentResponder xml(Runnable runnable) {
     return type("application/xml", runnable);
   }
 

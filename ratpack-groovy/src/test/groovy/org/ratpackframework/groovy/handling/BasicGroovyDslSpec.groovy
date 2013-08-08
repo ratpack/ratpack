@@ -91,7 +91,7 @@ class BasicGroovyDslSpec extends RatpackGroovyDslSpec {
       handlers {
         path("foo") {
           def prefix = "common"
-          respond methods.
+          respond byMethod.
               get {
                 response.send("$prefix: get")
               }.

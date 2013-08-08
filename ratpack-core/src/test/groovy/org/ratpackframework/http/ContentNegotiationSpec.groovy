@@ -26,7 +26,7 @@ class ContentNegotiationSpec extends RatpackGroovyDslSpec {
 
       handlers {
         get {
-          respond accepts.
+          respond byContent.
               type("application/json") {
                 response.send "json"
               }.
@@ -35,7 +35,7 @@ class ContentNegotiationSpec extends RatpackGroovyDslSpec {
               }
         }
         get("noneRegistered") {
-          respond accepts
+          respond byContent
         }
       }
     }
@@ -84,7 +84,7 @@ class ContentNegotiationSpec extends RatpackGroovyDslSpec {
     app {
       handlers {
         get {
-          respond accepts.
+          respond byContent.
               json { response.send "json" }.
               xml { response.send "xml" }.
               plainText { response.send "text" }.

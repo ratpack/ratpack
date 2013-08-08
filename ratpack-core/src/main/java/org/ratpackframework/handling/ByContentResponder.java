@@ -19,7 +19,7 @@ package org.ratpackframework.handling;
 /**
  * A buildable strategy for responding based on the HTTP "Accepts" request header.
  * <p>
- * A by-accepts-responder is created by {@link Context#getAccepts()}.
+ * A by-accepts-responder is created by {@link Context#getByContent()}.
  * It is used to respond differently based on what content the client is willing to accept.
  * This is useful when a given handler can provide content of more than one type (i.e. content negotiation).
  * <p>
@@ -34,13 +34,13 @@ package org.ratpackframework.handling;
  *   public void handle(final Context context) {
  *     // Do processing common to all methods …
  *
- *     context.respond(context.getAccepts().
- *       type("application/json", new Runnable() {
+ *     context.respond(context.getByContent().
+ *       json(new Runnable() {
  *         public void run() {
  *           // JSON responding logic
  *         }
  *       }).
- *       type("text/html", new Runnable() {
+ *       html(new Runnable() {
  *         public void run() {
  *           // HTML handling logic
  *         }
@@ -58,11 +58,11 @@ package org.ratpackframework.handling;
  *
  * class MyHandler implements Handler {
  *   void handle(Context context) {
- *     context.respond context.accepts.
- *       type("application/json") {
+ *     context.respond context.byContent.
+ *       json {
  *         // JSON handling logic
  *       }.
- *       type("text/html") {
+ *       html {
  *         // HTML handling logic
  *       }
  *   }
@@ -75,7 +75,7 @@ package org.ratpackframework.handling;
  * Only the last added runnable for a type will be used.
  * Adding a subsequent runnable for the same type will replace the previous.
  */
-public interface ByAcceptsResponder extends Responder {
+public interface ByContentResponder extends Responder {
 
   /**
    * Register how to respond with the given mime type.
@@ -84,7 +84,7 @@ public interface ByAcceptsResponder extends Responder {
    * @param runnable The code that responds with the given mime type (should terminate the response)
    * @return this
    */
-  ByAcceptsResponder type(String mimeType, Runnable runnable);
+  ByContentResponder type(String mimeType, Runnable runnable);
 
   /**
    * Convenience method to respond with "text/plain" mime type
@@ -92,7 +92,7 @@ public interface ByAcceptsResponder extends Responder {
    * @param runnable
    * @return this
    */
-  ByAcceptsResponder plainText(Runnable runnable);
+  ByContentResponder plainText(Runnable runnable);
 
   /**
    * Convenience method to respond with "text/html" mime type
@@ -100,7 +100,7 @@ public interface ByAcceptsResponder extends Responder {
    * @param runnable
    * @return this
    */
-  ByAcceptsResponder html(Runnable runnable);
+  ByContentResponder html(Runnable runnable);
 
   /**
    * Convenience method to respond with "application/json" mime type
@@ -108,7 +108,7 @@ public interface ByAcceptsResponder extends Responder {
    * @param runnable
    * @return this
    */
-  ByAcceptsResponder json(Runnable runnable);
+  ByContentResponder json(Runnable runnable);
 
   /**
    * Convenience method to respond with "application/xml" mime type
@@ -116,6 +116,6 @@ public interface ByAcceptsResponder extends Responder {
    * @param runnable
    * @return this
    */
-  ByAcceptsResponder xml(Runnable runnable);
+  ByContentResponder xml(Runnable runnable);
 
 }
