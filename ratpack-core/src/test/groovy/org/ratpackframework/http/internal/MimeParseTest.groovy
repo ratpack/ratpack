@@ -25,6 +25,7 @@ class MimeParseTest extends Specification {
     match("a/a", "a/b") == ""
     match("a/a", "a/b", "a/a") == "a/a"
     match("a/a;q=0.5,a/b;q=1", "a/b", "a/a") == "a/b"
+    match("a/a;q=0.9,a/b", "a/b", "a/a") == "a/b"     // Verify default value of 'q' is 1.0
     match("a/a;q=1;a/b;q=0.5,*", "a/c") == "a/c"
     match("*", "a/c", "a/b") == "a/b"
   }
