@@ -29,10 +29,6 @@ class DefaultContextSpec extends RatpackGroovyScriptAppSpec {
     return properties
   }
 
-  def cleanupSpec() {
-    resetRequest()
-  }
-
   def setup() {
     request = RestAssured.with().urlEncodingEnabled(false).redirects().follow(false)
 

@@ -110,11 +110,11 @@ public class DefaultContext implements Context {
     get(RenderController.class).render(this, object);
   }
 
-  public void redirect(String location) {
+  public void redirect(String location) throws NotInRegistryException {
     redirect(HttpResponseStatus.FOUND.code(), location);
   }
 
-  public void redirect(int code, String location) {
+  public void redirect(int code, String location) throws NotInRegistryException {
     Redirector redirector = registry.get(Redirector.class);
     redirector.redirect(this, response, request, location, code);
   }
