@@ -21,6 +21,7 @@ The following people have provided significant contributions.
 * [Marco Vermeulen](https://github.com/marcoVermeulen)
 * [Jeff Beck](https://github.com/beckje01)
 * [Paul Fairless](https://github.com/paulfairless)
+* [Dan Woods](https://github.com/danveloper)
 
 ### Past Project Members
 
