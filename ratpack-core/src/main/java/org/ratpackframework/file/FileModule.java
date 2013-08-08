@@ -14,21 +14,17 @@
  * limitations under the License.
  */
 
-apply from: "$rootDir/gradle/javaModule.gradle"
+package org.ratpackframework.file;
 
-ext.apiLinks = [
-    "http://netty.io/4.0/api",
-]
+import com.google.inject.AbstractModule;
+import com.google.inject.Singleton;
+import org.ratpackframework.file.internal.FileRenderer;
 
-dependencies {
-  compile 'io.netty:netty-codec-http:4.0.6.Final'
-  runtime 'org.javassist:javassist:3.17.1-GA'
+public class FileModule extends AbstractModule {
 
-  compile 'com.google.guava:guava:13.0.1'
-
-  compile 'com.google.inject:guice:3.0', {
-    exclude group: 'org.sonatype.sisu.inject'
+  @Override
+  protected void configure() {
+    bind(FileRenderer.class).in(Singleton.class);
   }
 
-  testCompile project(":ratpack-test-support")
 }
