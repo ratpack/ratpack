@@ -24,7 +24,6 @@ import static org.ratpackframework.groovy.Util.with
 import org.ratpackframework.test.groovy.RatpackGroovyDslSpec
 
 
-
 class ContentNegotiationSpec extends RatpackGroovyDslSpec {
 
   def "can content negotiate"() {
@@ -91,15 +90,14 @@ class ContentNegotiationSpec extends RatpackGroovyDslSpec {
     "setting up the handler chain"
     app {
       handlers {
-        add Handlers.chain(
-          [ClosureHandlers.get {
-            with(accepts) {
-              json      { response.send "json" }
-              xml       { response.send "xml"  }
-              plainText { response.send "text" }
-              html      { response.send "html" }
-            }
-          }])
+        get {
+          with(accepts) {
+            json { response.send "json" }
+            xml { response.send "xml" }
+            plainText { response.send "text" }
+            html { response.send "html" }
+          }
+        }
       }
     }
 
