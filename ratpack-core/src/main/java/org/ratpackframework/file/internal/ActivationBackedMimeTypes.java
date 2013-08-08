@@ -19,14 +19,13 @@ package org.ratpackframework.file.internal;
 import org.ratpackframework.file.MimeTypes;
 
 import javax.activation.MimetypesFileTypeMap;
-import java.io.File;
 
 public class ActivationBackedMimeTypes implements MimeTypes {
 
   private final MimetypesFileTypeMap mimeTypesMap = new MimetypesFileTypeMap();
 
-  public String getContentType(File file) {
-    return mimeTypesMap.getContentType(file.getName());
+  public String getContentType(String name) {
+    return mimeTypesMap.getContentType(name);
   }
 
 }

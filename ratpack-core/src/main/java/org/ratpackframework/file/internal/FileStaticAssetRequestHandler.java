@@ -80,7 +80,7 @@ public class FileStaticAssetRequestHandler implements Handler {
       return;
     }
 
-    String contentType = context.get(MimeTypes.class).getContentType(targetFile);
+    String contentType = context.get(MimeTypes.class).getContentType(targetFile.getName());
 
     response.sendFile(contentType, targetFile);
   }

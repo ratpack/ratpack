@@ -17,9 +17,8 @@
 package org.ratpackframework.guice.internal;
 
 import com.google.common.collect.ImmutableList;
-import com.google.inject.Binding;
 import com.google.inject.Injector;
-import com.google.inject.Key;
+import com.google.inject.TypeLiteral;
 import org.ratpackframework.guice.Guice;
 import org.ratpackframework.handling.Context;
 import org.ratpackframework.handling.Handler;
@@ -30,7 +29,6 @@ import org.ratpackframework.render.Renderer;
 import org.ratpackframework.render.internal.DefaultRenderController;
 
 import java.util.List;
-import java.util.Map;
 
 public class InjectorBindingHandler implements Handler {
 
@@ -41,18 +39,8 @@ public class InjectorBindingHandler implements Handler {
   public InjectorBindingHandler(Injector injector, Handler delegate) {
     this.injector = injector;
     this.delegate = ImmutableList.of(delegate);
-
-    ImmutableList.Builder<Renderer<?>> renderersBuilder = ImmutableList.builder();
-    Map<Key<?>, Binding<?>> allBindings = injector.getAllBindings();
-    for (Map.Entry<Key<?>, Binding<?>> keyBindingEntry : allBindings.entrySet()) {
-      Class<?> rawType = keyBindingEntry.getKey().getTypeLiteral().getRawType();
-      if (Renderer.class.isAssignableFrom(rawType)) {
-        Renderer<?> renderer = (Renderer) keyBindingEntry.getValue().getProvider().get();
-        renderersBuilder.add(renderer);
-      }
-    }
-
-    renderers = renderersBuilder.build();
+    this.renderers = GuiceUtil.ofType(injector, new TypeLiteral<Renderer<?>>() {
+    });
   }
 
   public void handle(Context context) {

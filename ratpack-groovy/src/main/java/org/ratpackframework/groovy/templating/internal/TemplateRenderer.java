@@ -17,7 +17,8 @@
 package org.ratpackframework.groovy.templating.internal;
 
 import io.netty.buffer.ByteBuf;
-import org.ratpackframework.groovy.templating.Template;
+import org.ratpackframework.file.MimeTypes;
+import org.ratpackframework.groovy.Template;
 import org.ratpackframework.handling.Context;
 import org.ratpackframework.render.ByTypeRenderer;
 import org.ratpackframework.util.internal.Result;
@@ -35,15 +36,18 @@ public class TemplateRenderer extends ByTypeRenderer<Template> {
     this.engine = engine;
   }
 
-  public void render(final Context context, Template template) {
+  public void render(final Context context, final Template template) {
     engine.renderTemplate(template.getId(), template.getModel(), new ResultAction<ByteBuf>() {
       public void execute(Result<ByteBuf> thing) {
         if (thing.isFailure()) {
           context.error(thing.getFailure());
         } else {
-          // TODO - make the content type controllable via the template object
-          //      - default should also be calculated from extension
-          context.getResponse().send("text/html", thing.getValue());
+          String type = template.getType();
+          if (type == null) {
+            type = context.get(MimeTypes.class).getContentType(template.getId());
+          }
+
+          context.getResponse().send(type, thing.getValue());
         }
       }
     });
