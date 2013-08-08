@@ -28,7 +28,7 @@ public interface PublicAddress {
   /**
    *  Get the URL that is the public address of the system.
    *
-   * @param context
+   * @param context The context
    * @return The URL that is the public address of the system.
    */
   URL getUrl(Context context);

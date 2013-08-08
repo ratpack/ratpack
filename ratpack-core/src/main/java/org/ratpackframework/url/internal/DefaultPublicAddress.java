@@ -27,13 +27,14 @@ import java.net.URL;
 public class DefaultPublicAddress implements PublicAddress {
 
   private URL publicAddress;
+  private BindAddress bindAddress;
 
-  public DefaultPublicAddress(URL publicAddress) {
+  public DefaultPublicAddress(URL publicAddress, BindAddress bindAddress) {
     this.publicAddress = publicAddress;
+    this.bindAddress = bindAddress;
   }
 
   public URL getUrl(Context context) {
-    BindAddress bindAddress = context.get(BindAddress.class);
     URL currentUrl = null;
     if (publicAddress == null) {
       try {

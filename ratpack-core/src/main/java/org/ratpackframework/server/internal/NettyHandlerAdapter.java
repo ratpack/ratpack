@@ -38,6 +38,7 @@ import org.ratpackframework.launch.LaunchConfig;
 import org.ratpackframework.redirect.internal.DefaultRedirector;
 import org.ratpackframework.registry.Registry;
 import org.ratpackframework.registry.internal.RootRegistry;
+import org.ratpackframework.server.BindAddress;
 import org.ratpackframework.url.internal.DefaultPublicAddress;
 
 import java.io.IOException;
@@ -98,17 +99,19 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
   private Registry<Object> createRegistry(Channel channel) {
     InetSocketAddress socketAddress = (InetSocketAddress) channel.localAddress();
 
+    BindAddress bindAddress = new InetSocketAddressBackedBindAddress(socketAddress);
+
     return new RootRegistry<Object>(
       ImmutableList.of(
         new DefaultFileSystemBinding(launchConfig.getBaseDir()),
         new ActivationBackedMimeTypes(),
-        new InetSocketAddressBackedBindAddress(socketAddress),
-        new DefaultPublicAddress(launchConfig.getPublicAddress()),
+        bindAddress,
+        new DefaultPublicAddress(launchConfig.getPublicAddress(), bindAddress),
         new DefaultRedirector(),
         new DefaultClientErrorHandler(),
         new DefaultServerErrorHandler(),
         launchConfig
-      )
+      )                                   g
     );
   }
 
