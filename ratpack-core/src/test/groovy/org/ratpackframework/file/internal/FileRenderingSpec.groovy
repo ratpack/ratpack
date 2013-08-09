@@ -1,15 +1,10 @@
 package org.ratpackframework.file.internal
 
-import org.ratpackframework.file.FileModule
 import org.ratpackframework.test.groovy.RatpackGroovyDslSpec
 
-class FileRendererSpec extends RatpackGroovyDslSpec {
+class FileRenderingSpec extends RatpackGroovyDslSpec {
 
   private static final String FILE_CONTENTS = "hello!"
-
-  def setup() {
-    modules << new FileModule()
-  }
 
   def "can render file"() {
     given:
