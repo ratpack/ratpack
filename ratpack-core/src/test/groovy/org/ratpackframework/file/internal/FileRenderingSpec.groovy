@@ -16,17 +16,25 @@
 
 package org.ratpackframework.file.internal
 
+import io.netty.handler.codec.http.HttpHeaderDateFormat
 import org.ratpackframework.test.groovy.RatpackGroovyDslSpec
+
+import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_LENGTH
+import static io.netty.handler.codec.http.HttpHeaders.Names.IF_MODIFIED_SINCE
+import static io.netty.handler.codec.http.HttpResponseStatus.NOT_MODIFIED
+import static io.netty.handler.codec.http.HttpResponseStatus.OK
 
 class FileRenderingSpec extends RatpackGroovyDslSpec {
 
   private static final String FILE_CONTENTS = "hello!"
+  private File myFile
+
+  def setup() {
+    myFile = file("myFile.text") << FILE_CONTENTS
+  }
 
   def "can render file"() {
     given:
-    def myFile = file("myFile.text") << FILE_CONTENTS
-
-    and:
     app {
       handlers {
         get("path") {render myFile}
@@ -38,11 +46,36 @@ class FileRenderingSpec extends RatpackGroovyDslSpec {
 
     then:
     with (response) {
-      statusCode == 200
+      statusCode == OK.code()
       response.body.asString().contains(FILE_CONTENTS)
       response.contentType.equals("text/plain;charset=UTF-8")
-      response.header("Content-Length").equals(FILE_CONTENTS.length().toString())
+      response.header(CONTENT_LENGTH).toInteger() == FILE_CONTENTS.length()
     }
+  }
+
+  def "renderer respect if-modified-since header"() {
+    given:
+    app {
+      handlers {
+        get("path") {render myFile}
+      }
+    }
+
+    and:
+    request.header IF_MODIFIED_SINCE, formatDateHeader(myFile.lastModified())
+
+    when:
+    get("path")
+
+    then:
+    with (response) {
+      statusCode ==  NOT_MODIFIED.code()
+      response.header(CONTENT_LENGTH).toInteger() == 0
+    }
+  }
+
+  private static String formatDateHeader(long timestamp) {
+    new HttpHeaderDateFormat().format(new Date(timestamp))
   }
 
 }
