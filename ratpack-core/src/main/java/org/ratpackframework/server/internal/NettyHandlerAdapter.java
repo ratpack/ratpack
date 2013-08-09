@@ -26,6 +26,7 @@ import org.ratpackframework.error.internal.DefaultServerErrorHandler;
 import org.ratpackframework.error.internal.ErrorCatchingHandler;
 import org.ratpackframework.file.internal.ActivationBackedMimeTypes;
 import org.ratpackframework.file.internal.DefaultFileSystemBinding;
+import org.ratpackframework.file.internal.FileRenderer;
 import org.ratpackframework.handling.Context;
 import org.ratpackframework.handling.Handler;
 import org.ratpackframework.handling.internal.ClientErrorHandler;
@@ -38,6 +39,8 @@ import org.ratpackframework.launch.LaunchConfig;
 import org.ratpackframework.redirect.internal.DefaultRedirector;
 import org.ratpackframework.registry.Registry;
 import org.ratpackframework.registry.internal.RootRegistry;
+import org.ratpackframework.render.Renderer;
+import org.ratpackframework.render.internal.DefaultRenderController;
 import org.ratpackframework.server.BindAddress;
 
 import java.io.IOException;
@@ -100,6 +103,10 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
 
     BindAddress bindAddress = new InetSocketAddressBackedBindAddress(socketAddress);
 
+    ImmutableList<Renderer<?>> renderers = new ImmutableList.Builder<Renderer<?>>()
+      .add(new FileRenderer())
+      .build();
+
     return new RootRegistry<Object>(
       ImmutableList.of(
         new DefaultFileSystemBinding(launchConfig.getBaseDir()),
@@ -109,7 +116,8 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
         new DefaultRedirector(),
         new DefaultClientErrorHandler(),
         new DefaultServerErrorHandler(),
-        launchConfig
+        launchConfig,
+        new DefaultRenderController(null, renderers)
       )
     );
   }
