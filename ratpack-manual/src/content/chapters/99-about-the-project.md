@@ -22,6 +22,7 @@ The following people have provided significant contributions.
 * [Jeff Beck](https://github.com/beckje01)
 * [Paul Fairless](https://github.com/paulfairless)
 * [Dan Woods](https://github.com/danveloper)
+* [Rus Hart](https://github.com/rhart)
 
 ### Past Project Members
 
