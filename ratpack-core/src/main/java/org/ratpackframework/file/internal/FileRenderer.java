@@ -19,9 +19,13 @@ package org.ratpackframework.file.internal;
 import org.ratpackframework.file.MimeTypes;
 import org.ratpackframework.handling.Context;
 import org.ratpackframework.render.ByTypeRenderer;
-import java.io.File;
 
 import javax.inject.Inject;
+import java.io.File;
+import java.util.Date;
+
+import static io.netty.handler.codec.http.HttpHeaders.Names.IF_MODIFIED_SINCE;
+import static io.netty.handler.codec.http.HttpResponseStatus.NOT_MODIFIED;
 
 public class FileRenderer extends ByTypeRenderer<File> {
 
@@ -32,6 +36,23 @@ public class FileRenderer extends ByTypeRenderer<File> {
 
   @Override
   public void render(Context context, File targetFile) {
+    long lastModifiedTime = targetFile.lastModified();
+    if (lastModifiedTime < 1) {
+      context.next();
+      return;
+    }
+
+    Date ifModifiedSinceHeader = context.getRequest().getDateHeader(IF_MODIFIED_SINCE);
+
+    if (ifModifiedSinceHeader != null) {
+      long ifModifiedSinceSecs = ifModifiedSinceHeader.getTime() / 1000;
+      long lastModifiedSecs = lastModifiedTime / 1000;
+      if (lastModifiedSecs == ifModifiedSinceSecs) {
+        context.getResponse().status(NOT_MODIFIED.code(), NOT_MODIFIED.reasonPhrase()).send();
+        return;
+      }
+    }
+
     String contentType = context.get(MimeTypes.class).getContentType(targetFile.getName());
     context.getResponse().sendFile(contentType, targetFile);
   }
