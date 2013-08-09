@@ -61,6 +61,7 @@ public class FileRenderer extends ByTypeRenderer<File> {
       long lastModifiedSecs = lastModifiedTime / 1000;
       if (lastModifiedSecs == ifModifiedSinceSecs) {
         response.status(NOT_MODIFIED.code(), NOT_MODIFIED.reasonPhrase()).send();
+        context.getResponse().status(NOT_MODIFIED.code(), NOT_MODIFIED.reasonPhrase()).send();
         return;
       }
     }
