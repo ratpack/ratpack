@@ -108,11 +108,3 @@ configure([watchSass, compileSass]) {
 
 clean.dependsOn cleanCompileCoffee
 clean.dependsOn cleanGatherManuals
-
-startScripts {
-  doLast {
-    def lines = unixScript.text.readLines()
-    lines.add(2, "env\n")
-    unixScript.text = lines.join("\n")
-  }
-}

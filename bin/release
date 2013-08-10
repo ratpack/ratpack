@@ -5,12 +5,6 @@ BUILD_DIR=$1
 
 cat <<EOF
 ---
-config_vars:
-  JAVA_HOME: .jdk7
-  JAVA_OPTS: -Dfile.encoding=UTF-8 -server -Xmx512m -XX:+UseCompressedOops
-  RATPACK_SITE_OPTS: -Dratpack.port=\$PORT
-EOF
-
 if [ ! -f $BUILD_DIR/Procfile ]; then
 cat <<EOF
 default_process_types:
