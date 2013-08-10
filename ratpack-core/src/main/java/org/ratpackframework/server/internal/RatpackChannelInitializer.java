@@ -35,9 +35,9 @@ public class RatpackChannelInitializer extends ChannelInitializer<SocketChannel>
   public RatpackChannelInitializer(LaunchConfig launchConfig, Handler handler) {
     this.nettyHandlerAdapter = new NettyHandlerAdapter(handler, launchConfig);
 
-    int workerThreads = launchConfig.getWorkerThreads();
-    if (workerThreads > 0) {
-      this.eventExecutorGroup = new DefaultEventExecutorGroup(workerThreads);
+    int mainThreads = launchConfig.getMainThreads();
+    if (mainThreads > 0) {
+      this.eventExecutorGroup = new DefaultEventExecutorGroup(mainThreads);
     } else {
       this.eventExecutorGroup = null;
     }

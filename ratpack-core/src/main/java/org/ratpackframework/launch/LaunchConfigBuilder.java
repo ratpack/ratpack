@@ -31,7 +31,7 @@ public class LaunchConfigBuilder {
   private int port = LaunchConfig.DEFAULT_PORT;
   private InetAddress address;
   private boolean reloadable;
-  private int workerThreads;
+  private int mainThreads;
   private URL publicAddress;
   private ImmutableMap.Builder<String, String> other = ImmutableMap.builder();
 
@@ -58,8 +58,8 @@ public class LaunchConfigBuilder {
     return this;
   }
 
-  public LaunchConfigBuilder workerThreads(int workerThreads) {
-    this.workerThreads = workerThreads;
+  public LaunchConfigBuilder mainThreads(int mainThreads) {
+    this.mainThreads = mainThreads;
     return this;
   }
 
@@ -81,6 +81,6 @@ public class LaunchConfigBuilder {
   }
 
   public LaunchConfig build(HandlerFactory handlerFactory) {
-    return new DefaultLaunchConfig(baseDir, port, address, reloadable, workerThreads, publicAddress, other.build(), handlerFactory);
+    return new DefaultLaunchConfig(baseDir, port, address, reloadable, mainThreads, publicAddress, other.build(), handlerFactory);
   }
 }

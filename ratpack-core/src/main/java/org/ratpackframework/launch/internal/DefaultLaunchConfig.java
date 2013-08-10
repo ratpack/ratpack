@@ -31,16 +31,16 @@ public class DefaultLaunchConfig implements LaunchConfig {
   private final int port;
   private final InetAddress address;
   private final boolean reloadable;
-  private final int workerThreads;
+  private final int mainThreads;
   private final URL publicAddress;
   private final ImmutableMap<String, String> other;
 
-  public DefaultLaunchConfig(File baseDir, int port, InetAddress address, boolean reloadable, int workerThreads, URL publicAddress, ImmutableMap<String, String> other, HandlerFactory handlerFactory) {
+  public DefaultLaunchConfig(File baseDir, int port, InetAddress address, boolean reloadable, int mainThreads, URL publicAddress, ImmutableMap<String, String> other, HandlerFactory handlerFactory) {
     this.baseDir = baseDir;
     this.port = port;
     this.address = address;
     this.reloadable = reloadable;
-    this.workerThreads = workerThreads;
+    this.mainThreads = mainThreads;
     this.publicAddress = publicAddress;
     this.other = other;
     this.handlerFactory = handlerFactory;
@@ -66,8 +66,8 @@ public class DefaultLaunchConfig implements LaunchConfig {
     return reloadable;
   }
 
-  public int getWorkerThreads() {
-    return workerThreads;
+  public int getMainThreads() {
+    return mainThreads;
   }
 
   public URL getPublicAddress() {
