@@ -17,27 +17,30 @@
 package org.ratpackframework.handlebars.internal;
 
 import com.github.jknack.handlebars.Handlebars;
-import org.ratpackframework.handlebars.HandlebarsTemplate;
+import org.ratpackframework.file.MimeTypes;
+import org.ratpackframework.handlebars.Template;
 import org.ratpackframework.handling.Context;
 import org.ratpackframework.render.ByTypeRenderer;
 
 import javax.inject.Inject;
 import java.io.IOException;
 
-public class HandlebarsTemplateRenderer extends ByTypeRenderer<HandlebarsTemplate> {
+public class HandlebarsTemplateRenderer extends ByTypeRenderer<Template> {
 
   private final Handlebars handlebars;
 
   @Inject
   public HandlebarsTemplateRenderer(Handlebars handlebars){
-    super(HandlebarsTemplate.class);
+    super(Template.class);
     this.handlebars = handlebars;
   }
 
   @Override
-  public void render(Context context, HandlebarsTemplate template) {
+  public void render(Context context, Template template) {
+    String contentType = template.getContentType();
+    contentType = contentType == null ? context.get(MimeTypes.class).getContentType(template.getName()) : contentType;
     try {
-      context.getResponse().send("text/html", handlebars.compile(template.getName()).apply(template.getModel()));
+      context.getResponse().send(contentType, handlebars.compile(template.getName()).apply(template.getModel()));
     } catch (IOException e) {
       context.error(e);
     }

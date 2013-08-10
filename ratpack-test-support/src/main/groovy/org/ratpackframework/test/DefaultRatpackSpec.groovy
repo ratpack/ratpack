@@ -44,6 +44,7 @@ abstract class DefaultRatpackSpec extends InternalRatpackSpec {
   Closure<?> modulesClosure = {}
 
   List<Module> modules = []
+  Map<String, String> others = [:]
 
   void handlers(@DelegatesTo(Chain) Closure<?> configurer) {
     this.handlersClosure = configurer
@@ -58,7 +59,7 @@ abstract class DefaultRatpackSpec extends InternalRatpackSpec {
     def handler = createHandlerTransformer()
     def modulesAction = createModulesAction()
 
-    LaunchConfig launchConfig = new DefaultLaunchConfig(dir, 0, null, reloadable, 0, new URL("http://localhost"), ImmutableMap.of(), new HandlerFactory() {
+    LaunchConfig launchConfig = new DefaultLaunchConfig(dir, 0, null, reloadable, 0, new URL("http://localhost"), ImmutableMap.builder().putAll(others).build(), new HandlerFactory() {
       Handler create(LaunchConfig launchConfig) {
         createHandlerFactory(launchConfig).create(modulesAction, handler)
       }

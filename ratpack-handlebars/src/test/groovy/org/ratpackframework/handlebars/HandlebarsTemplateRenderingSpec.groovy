@@ -16,22 +16,26 @@
 
 package org.ratpackframework.handlebars
 
+import com.github.jknack.handlebars.Options
 import org.ratpackframework.test.groovy.RatpackGroovyDslSpec
+import spock.lang.Unroll
 
-import static org.ratpackframework.handlebars.HandlebarsTemplate.handlebarsTemplate
+import static Template.handlebarsTemplate
+import static org.apache.http.HttpStatus.SC_INTERNAL_SERVER_ERROR
 
 class HandlebarsTemplateRenderingSpec extends RatpackGroovyDslSpec {
 
-  def setup() {
-    modules << new HandlebarsModule()
-  }
-
-  void 'can render a handlebars template from default location'() {
+  @Unroll
+  void 'can render a handlebars template from #scenario'() {
     given:
-    file('handlebars/simple.hbs') << '{{key}}'
+    others = otherConfig
+    file(filePath) << '{{key}}'
 
     when:
     app {
+      modules {
+        register new HandlebarsModule(templatesPath: templatesPath)
+      }
       handlers {
         get {
           render handlebarsTemplate('simple', key: 'it works!')
@@ -41,5 +45,116 @@ class HandlebarsTemplateRenderingSpec extends RatpackGroovyDslSpec {
 
     then:
     text == 'it works!'
+
+    where:
+    scenario             | templatesPath | filePath                | otherConfig
+    'default path'       | null          | 'handlebars/simple.hbs' | [:]
+    'path set in module' | 'custom'      | 'custom/simple.hbs'     | [:]
+    'path set in config' | null          | 'fromConfig/simple.hbs' | ['handlebars.templatesPath': "fromConfig"]
+  }
+
+  @Unroll
+  void 'can configure loader suffix via #scenario'() {
+    given:
+    others = otherConfig
+    file('handlebars/simple.hbs') << '{{this}}'
+
+    when:
+    app {
+      modules {
+        register new HandlebarsModule(templatesSuffix: templatesSuffix)
+      }
+      handlers {
+        get {
+          render handlebarsTemplate('simple.hbs', 'it works!')
+        }
+      }
+    }
+
+    then:
+    text == 'it works!'
+
+    where:
+    scenario | templatesSuffix | otherConfig
+    'module' | ''              | [:]
+    'config' | null            | ['handlebars.templatesSuffix': '']
+  }
+
+  void 'missing templates are handled'() {
+    given:
+    file('handlebars').mkdir()
+
+    app {
+      modules {
+        register new HandlebarsModule()
+      }
+      handlers {
+        get {
+          render handlebarsTemplate('simple', key: 'it works!')
+        }
+      }
+    }
+
+    when:
+    get()
+
+    then:
+    response.statusCode == SC_INTERNAL_SERVER_ERROR
+  }
+
+  void 'helpers can be registered'() {
+    given:
+    file('handlebars/helper.hbs') << '{{test}}'
+
+    when:
+    app {
+      modules {
+        register new HandlebarsModule()
+        bind TestHelper
+      }
+      handlers {
+        get {
+          render handlebarsTemplate('helper', null)
+        }
+      }
+    }
+
+    then:
+    get().statusCode
+    text == 'from helper'
+  }
+
+  void 'content types are based on file type but can be overriden'() {
+    given:
+    file('handlebars/simple.hbs') << '{{this}}'
+    file('handlebars/simple.json.hbs') << '{{this}}'
+    file('handlebars/simple.html.hbs') << '{{this}}'
+
+    when:
+    app {
+      modules {
+        register new HandlebarsModule()
+      }
+      handlers {
+        handler {
+          render handlebarsTemplate(request.path, 'content types', request.queryParams.type)
+        }
+      }
+    }
+
+    then:
+    get("simple").contentType == "application/octet-stream;charset=UTF-8"
+    get("simple.json").contentType == "application/json;charset=UTF-8"
+    get("simple.html").contentType == "text/html;charset=UTF-8"
+    get("simple.html?type=application/octet-stream").contentType == "application/octet-stream;charset=UTF-8"
+  }
+}
+
+class TestHelper implements NamedHelper {
+
+  String name = 'test'
+
+  CharSequence apply(Object context, Options options) throws IOException {
+    'from helper'
   }
 }

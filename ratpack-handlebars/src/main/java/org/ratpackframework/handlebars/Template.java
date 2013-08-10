@@ -18,10 +18,12 @@ package org.ratpackframework.handlebars;
 
 import java.util.Map;
 
-public class HandlebarsTemplate {
+public class Template {
 
   private final String name;
   private final Object model;
+
+  private final String contentType;
 
   public String getName() {
     return name;
@@ -31,12 +33,29 @@ public class HandlebarsTemplate {
     return model;
   }
 
-  public HandlebarsTemplate(String name, Object model) {
-    this.name = name;
-    this.model = model;
+  public String getContentType() {
+    return contentType;
   }
 
-  public static HandlebarsTemplate handlebarsTemplate(Map<String, ?> model, String name) {
-    return new HandlebarsTemplate(name, model);
+  private Template(String name, Object model, String contentType) {
+    this.name = name;
+    this.model = model;
+    this.contentType = contentType;
+  }
+
+  public static Template handlebarsTemplate(Map<String, ?> model, String name) {
+    return handlebarsTemplate(model, name, null);
+  }
+
+  public static Template handlebarsTemplate(Map<String, ?> model, String name, String contentType) {
+    return new Template(name, model, contentType);
+  }
+
+  public static Template handlebarsTemplate(String name, Object model) {
+    return handlebarsTemplate(name, model, null);
+  }
+
+  public static Template handlebarsTemplate(String name, Object model, String contentType) {
+    return new Template(name, model, contentType);
   }
 }

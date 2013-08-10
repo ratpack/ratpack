@@ -18,23 +18,62 @@ package org.ratpackframework.handlebars;
 
 import com.github.jknack.handlebars.Handlebars;
 import com.github.jknack.handlebars.io.FileTemplateLoader;
-import com.google.inject.AbstractModule;
-import com.google.inject.Provides;
-import com.google.inject.Singleton;
+import com.github.jknack.handlebars.io.TemplateLoader;
+import com.google.inject.*;
+import org.ratpackframework.guice.internal.GuiceUtil;
 import org.ratpackframework.handlebars.internal.HandlebarsTemplateRenderer;
 import org.ratpackframework.launch.LaunchConfig;
+import org.ratpackframework.util.Action;
 
 import java.io.File;
 
 public class HandlebarsModule extends AbstractModule {
+
+  private String templatesPath;
+
+  private String templatesSuffix;
+
+  public String getTemplatesPath() {
+    return templatesPath;
+  }
+
+  public void setTemplatesPath(String templatesPath) {
+    this.templatesPath = templatesPath;
+  }
+
+  public String getTemplatesSuffix() {
+    return templatesSuffix;
+  }
+
+  public void setTemplatesSuffix(String templatesSuffix) {
+    this.templatesSuffix = templatesSuffix;
+  }
+
   @Override
   protected void configure() {
     bind(HandlebarsTemplateRenderer.class).in(Singleton.class);
+    bind(TemplateLoader.class).to(FileTemplateLoader.class).in(Singleton.class);
   }
 
   @Provides
-  Handlebars provideHandlebars(LaunchConfig launchConfig) {
-    File templatesPath = new File(launchConfig.getBaseDir(), "handlebars");
-    return new Handlebars().with(new FileTemplateLoader(templatesPath));
+  FileTemplateLoader provideTemplateLoader(LaunchConfig launchConfig) {
+    String path = templatesPath == null ? launchConfig.getOther("handlebars.templatesPath", "handlebars") : templatesPath;
+    String suffix = templatesSuffix == null ? launchConfig.getOther("handlebars.templatesSuffix", ".hbs") : templatesSuffix;
+    File templatesPathFile = new File(launchConfig.getBaseDir(), path);
+    return new FileTemplateLoader(templatesPathFile, suffix);
+  }
+
+  @SuppressWarnings({"unchecked", "rawtypes"})
+  @Provides @Singleton
+  Handlebars provideHandlebars(Injector injector, TemplateLoader templateLoader) {
+    final Handlebars handlebars = new Handlebars().with(templateLoader);
+
+    GuiceUtil.eachOfType(injector, TypeLiteral.get(NamedHelper.class), new Action<NamedHelper>() {
+      public void execute(NamedHelper helper) {
+        handlebars.registerHelper(helper.getName(), helper);
+      }
+    });
+
+    return handlebars;
   }
 }
