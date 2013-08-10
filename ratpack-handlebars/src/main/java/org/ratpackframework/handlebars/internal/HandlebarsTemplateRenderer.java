@@ -30,7 +30,7 @@ public class HandlebarsTemplateRenderer extends ByTypeRenderer<Template> {
   private final Handlebars handlebars;
 
   @Inject
-  public HandlebarsTemplateRenderer(Handlebars handlebars){
+  public HandlebarsTemplateRenderer(Handlebars handlebars) {
     super(Template.class);
     this.handlebars = handlebars;
   }
