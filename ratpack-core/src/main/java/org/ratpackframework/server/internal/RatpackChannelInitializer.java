@@ -16,6 +16,8 @@
 
 package org.ratpackframework.server.internal;
 
+import com.google.common.util.concurrent.ListeningExecutorService;
+import com.google.common.util.concurrent.MoreExecutors;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
@@ -33,14 +35,15 @@ public class RatpackChannelInitializer extends ChannelInitializer<SocketChannel>
   private DefaultEventExecutorGroup eventExecutorGroup;
 
   public RatpackChannelInitializer(LaunchConfig launchConfig, Handler handler) {
-    this.nettyHandlerAdapter = new NettyHandlerAdapter(handler, launchConfig);
-
     int mainThreads = launchConfig.getMainThreads();
     if (mainThreads > 0) {
       this.eventExecutorGroup = new DefaultEventExecutorGroup(mainThreads);
     } else {
       this.eventExecutorGroup = null;
     }
+
+    ListeningExecutorService blockingExecutorService = MoreExecutors.listeningDecorator(launchConfig.getBlockingExecutorService());
+    this.nettyHandlerAdapter = new NettyHandlerAdapter(handler, launchConfig, blockingExecutorService);
   }
 
   public void initChannel(SocketChannel ch) throws Exception {

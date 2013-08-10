@@ -16,8 +16,11 @@
 
 package org.ratpackframework.handling.internal;
 
+import com.google.common.util.concurrent.ListeningExecutorService;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.HttpResponseStatus;
+import org.ratpackframework.block.Blocking;
+import org.ratpackframework.block.internal.DefaultBlocking;
 import org.ratpackframework.error.ClientErrorHandler;
 import org.ratpackframework.error.ServerErrorHandler;
 import org.ratpackframework.file.FileSystemBinding;
@@ -35,6 +38,7 @@ import org.ratpackframework.render.RenderController;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
 
 
 public class DefaultContext implements Context {
@@ -44,14 +48,18 @@ public class DefaultContext implements Context {
 
   private final ChannelHandlerContext channelHandlerContext;
 
+  private final ExecutorService mainExecutorService;
+  private final ListeningExecutorService blockingExecutorService;
   private final Handler next;
   private final Registry<Object> registry;
 
-  public DefaultContext(Request request, Response response, ChannelHandlerContext channelHandlerContext, Registry<Object> registry, Handler next) {
+  public DefaultContext(Request request, Response response, ChannelHandlerContext channelHandlerContext, Registry<Object> registry, ExecutorService mainExecutorService, ListeningExecutorService blockingExecutorService, Handler next) {
     this.request = request;
     this.response = response;
     this.channelHandlerContext = channelHandlerContext;
     this.registry = registry;
+    this.mainExecutorService = mainExecutorService;
+    this.blockingExecutorService = blockingExecutorService;
     this.next = next;
   }
 
@@ -84,11 +92,11 @@ public class DefaultContext implements Context {
   }
 
   public <P, T extends P> void insert(Class<P> publicType, T implementation, List<Handler> handlers) {
-    doNext(this, new ObjectHoldingChildRegistry<Object>(registry, publicType, implementation), handlers, 0, next);
+    doNext(this, new ObjectHoldingChildRegistry<>(registry, publicType, implementation), handlers, 0, next);
   }
 
   public void insert(Object object, List<Handler> handlers) {
-    doNext(this, new ObjectHoldingChildRegistry<Object>(registry, object), handlers, 0, next);
+    doNext(this, new ObjectHoldingChildRegistry<>(registry, object), handlers, 0, next);
   }
 
   public void respond(Responder responder) {
@@ -109,6 +117,11 @@ public class DefaultContext implements Context {
 
   public void render(Object object) throws NoSuchRendererException {
     get(RenderController.class).render(this, object);
+  }
+
+  @Override
+  public Blocking getBlocking() {
+    return new DefaultBlocking(mainExecutorService, blockingExecutorService, this);
   }
 
   public void redirect(String location) throws NotInRegistryException {
@@ -169,7 +182,7 @@ public class DefaultContext implements Context {
           ((DefaultContext) exchange).doNext(parentContext, registry, handlers, index + 1, exhausted);
         }
       };
-      DefaultContext childExchange = new DefaultContext(request, response, channelHandlerContext, registry, nextHandler);
+      DefaultContext childExchange = new DefaultContext(request, response, channelHandlerContext, registry, mainExecutorService, blockingExecutorService, nextHandler);
       try {
         handler.handle(childExchange);
       } catch (Exception e) {

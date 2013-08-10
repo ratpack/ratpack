@@ -21,6 +21,7 @@ import org.ratpackframework.api.Nullable;
 import java.io.File;
 import java.net.InetAddress;
 import java.net.URL;
+import java.util.concurrent.ExecutorService;
 
 public interface LaunchConfig {
 
@@ -72,6 +73,8 @@ public interface LaunchConfig {
    * @return The number of threads to use to execute the handler.
    */
   public int getMainThreads();
+
+  public ExecutorService getBlockingExecutorService();
 
   /**
    * The public address of the site used for redirects.

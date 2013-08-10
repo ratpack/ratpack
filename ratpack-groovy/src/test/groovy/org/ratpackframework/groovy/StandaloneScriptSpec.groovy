@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableMap
 import com.google.common.util.concurrent.AbstractIdleService
 import org.ratpackframework.groovy.internal.StandaloneScriptBacking
 import org.ratpackframework.groovy.launch.GroovyScriptHandlerFactory
+import org.ratpackframework.launch.LaunchConfigBuilder
 import org.ratpackframework.launch.internal.DefaultLaunchConfig
 import org.ratpackframework.server.RatpackServer
 import org.ratpackframework.server.internal.RatpackService
@@ -83,7 +84,7 @@ class StandaloneScriptSpec extends RatpackGroovyScriptAppSpec {
   @Override
   RatpackServer createServer() {
     def service = new ScriptBackedService()
-    new ServiceBackedServer(service, new DefaultLaunchConfig(ratpackFile.parentFile, 0, null, true, 0, new URL("http://localhost"), ImmutableMap.of(), new GroovyScriptHandlerFactory()))
+    new ServiceBackedServer(service, LaunchConfigBuilder.baseDir(ratpackFile.parentFile).build(new GroovyScriptHandlerFactory()))
   }
 
   def "can execute plain script and reload"() {

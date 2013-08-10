@@ -23,6 +23,7 @@ import org.ratpackframework.launch.LaunchConfig;
 import java.io.File;
 import java.net.InetAddress;
 import java.net.URL;
+import java.util.concurrent.ExecutorService;
 
 public class DefaultLaunchConfig implements LaunchConfig {
 
@@ -32,15 +33,17 @@ public class DefaultLaunchConfig implements LaunchConfig {
   private final InetAddress address;
   private final boolean reloadable;
   private final int mainThreads;
+  private final ExecutorService blockingExecutorService;
   private final URL publicAddress;
   private final ImmutableMap<String, String> other;
 
-  public DefaultLaunchConfig(File baseDir, int port, InetAddress address, boolean reloadable, int mainThreads, URL publicAddress, ImmutableMap<String, String> other, HandlerFactory handlerFactory) {
+  public DefaultLaunchConfig(File baseDir, int port, InetAddress address, boolean reloadable, int mainThreads, ExecutorService blockingExecutorService, URL publicAddress, ImmutableMap<String, String> other, HandlerFactory handlerFactory) {
     this.baseDir = baseDir;
     this.port = port;
     this.address = address;
     this.reloadable = reloadable;
     this.mainThreads = mainThreads;
+    this.blockingExecutorService = blockingExecutorService;
     this.publicAddress = publicAddress;
     this.other = other;
     this.handlerFactory = handlerFactory;
@@ -68,6 +71,11 @@ public class DefaultLaunchConfig implements LaunchConfig {
 
   public int getMainThreads() {
     return mainThreads;
+  }
+
+  @Override
+  public ExecutorService getBlockingExecutorService() {
+    return blockingExecutorService;
   }
 
   public URL getPublicAddress() {

@@ -23,6 +23,8 @@ import java.io.File;
 import java.net.InetAddress;
 import java.net.URL;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class LaunchConfigBuilder {
 
@@ -34,6 +36,7 @@ public class LaunchConfigBuilder {
   private int mainThreads;
   private URL publicAddress;
   private ImmutableMap.Builder<String, String> other = ImmutableMap.builder();
+  private ExecutorService blockingExecutorService;
 
   private LaunchConfigBuilder(File baseDir) {
     this.baseDir = baseDir;
@@ -63,6 +66,11 @@ public class LaunchConfigBuilder {
     return this;
   }
 
+  public LaunchConfigBuilder blockingExecutorService(ExecutorService executorService) {
+    this.blockingExecutorService = executorService;
+    return this;
+  }
+
   public LaunchConfigBuilder publicAddress(URL publicAddress) {
     this.publicAddress = publicAddress;
     return this;
@@ -81,6 +89,10 @@ public class LaunchConfigBuilder {
   }
 
   public LaunchConfig build(HandlerFactory handlerFactory) {
-    return new DefaultLaunchConfig(baseDir, port, address, reloadable, mainThreads, publicAddress, other.build(), handlerFactory);
+    ExecutorService blockingExecutorService = this.blockingExecutorService;
+    if (blockingExecutorService == null) {
+      blockingExecutorService = Executors.newCachedThreadPool();
+    }
+    return new DefaultLaunchConfig(baseDir, port, address, reloadable, mainThreads, blockingExecutorService, publicAddress, other.build(), handlerFactory);
   }
 }
