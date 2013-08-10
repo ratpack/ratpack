@@ -16,11 +16,12 @@
 
 package org.ratpackframework.file.internal
 
+import com.jayway.restassured.response.Response
 import io.netty.handler.codec.http.HttpHeaderDateFormat
+import org.apache.commons.lang3.RandomStringUtils
 import org.ratpackframework.test.groovy.RatpackGroovyDslSpec
 
-import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_LENGTH
-import static io.netty.handler.codec.http.HttpHeaders.Names.IF_MODIFIED_SINCE
+import static io.netty.handler.codec.http.HttpHeaders.Names.*
 import static io.netty.handler.codec.http.HttpResponseStatus.NOT_MODIFIED
 import static io.netty.handler.codec.http.HttpResponseStatus.OK
 
@@ -74,8 +75,62 @@ class FileRenderingSpec extends RatpackGroovyDslSpec {
     }
   }
 
-  private static String formatDateHeader(long timestamp) {
-    new HttpHeaderDateFormat().format(new Date(timestamp))
+  def "can render large file"() {
+    given:
+    def largeFile = file("myFile.text") << RandomStringUtils.randomAscii(fileSize)
+
+    and:
+    app {
+      handlers {
+        get("path") {render largeFile}
+      }
+    }
+
+    when:
+    get("path")
+
+    then:
+    with (response) {
+      statusCode == OK.code()
+      response.body.asString().bytes.length == largeFile.length()
+      response.contentType.equals("text/plain;charset=UTF-8")
+      response.header(CONTENT_LENGTH).toInteger() == largeFile.length()
+    }
+
+    where:
+    fileSize = 2131795 // taken from original bug report
   }
 
+  def "files report a last modified time"() {
+    given:
+    app {
+      handlers {
+        get("path") {render myFile}
+      }
+    }
+
+    when:
+    get("path")
+
+    then:
+    with (response) {
+      statusCode == OK.code()
+
+      // compare the last modified dates formatted as milliseconds are stripped when added as a response header
+      formatDateHeader(parseDateHeader(response, LAST_MODIFIED)) == formatDateHeader(myFile.lastModified())
+    }
+
+  }
+
+  private static Date parseDateHeader(Response response, String name) {
+    new HttpHeaderDateFormat().parse(response.getHeader(name))
+  }
+
+  private static String formatDateHeader(long timestamp) {
+    formatDateHeader(new Date(timestamp))
+  }
+
+  private static String formatDateHeader(Date date) {
+    new HttpHeaderDateFormat().format(date)
+  }
 }
