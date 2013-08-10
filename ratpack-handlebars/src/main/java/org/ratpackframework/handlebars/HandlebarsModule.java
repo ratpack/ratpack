@@ -68,7 +68,10 @@ public class HandlebarsModule extends AbstractModule {
   Handlebars provideHandlebars(Injector injector, TemplateLoader templateLoader) {
     final Handlebars handlebars = new Handlebars().with(templateLoader);
 
-    GuiceUtil.eachOfType(injector, TypeLiteral.get(NamedHelper.class), new Action<NamedHelper>() {
+    TypeLiteral<NamedHelper<?>> type = new TypeLiteral<NamedHelper<?>>() {
+    };
+
+    GuiceUtil.eachOfType(injector, type, new Action<NamedHelper<?>>() {
       public void execute(NamedHelper helper) {
         handlebars.registerHelper(helper.getName(), helper);
       }
