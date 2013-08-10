@@ -17,6 +17,7 @@
 package org.ratpackframework.server.internal;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.util.concurrent.ListeningExecutorService;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
@@ -56,12 +57,14 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
   private final Handler handler;
   private final Handler return404;
   private final LaunchConfig launchConfig;
+  private final ListeningExecutorService blockingExecutorService;
 
   private Registry<Object> registry;
   private final Lock registryLock = new ReentrantLock();
 
-  public NettyHandlerAdapter(Handler handler, LaunchConfig launchConfig) {
+  public NettyHandlerAdapter(Handler handler, LaunchConfig launchConfig, ListeningExecutorService blockingExecutorService) {
     this.launchConfig = launchConfig;
+    this.blockingExecutorService = blockingExecutorService;
     this.handler = new ErrorCatchingHandler(handler);
     this.return404 = new ClientErrorHandler(NOT_FOUND.code());
   }
@@ -93,7 +96,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
       }
     }
 
-    final Context context = new DefaultContext(request, response, ctx, registry, return404);
+    final Context context = new DefaultContext(request, response, ctx, registry, ctx.executor(), blockingExecutorService, return404);
 
     handler.handle(context);
   }
@@ -107,7 +110,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
       .add(new FileRenderer())
       .build();
 
-    return new RootRegistry<Object>(
+    return new RootRegistry<>(
       ImmutableList.of(
         new DefaultFileSystemBinding(launchConfig.getBaseDir()),
         new ActivationBackedMimeTypes(),

@@ -16,7 +16,6 @@
 
 package org.ratpackframework.test
 
-import com.google.common.collect.ImmutableMap
 import com.google.inject.Injector
 import com.google.inject.Module
 import org.ratpackframework.guice.ModuleRegistry
@@ -27,7 +26,7 @@ import org.ratpackframework.handling.Handler
 import org.ratpackframework.handling.Handlers
 import org.ratpackframework.launch.HandlerFactory
 import org.ratpackframework.launch.LaunchConfig
-import org.ratpackframework.launch.internal.DefaultLaunchConfig
+import org.ratpackframework.launch.LaunchConfigBuilder
 import org.ratpackframework.server.RatpackServer
 import org.ratpackframework.server.RatpackServerBuilder
 import org.ratpackframework.util.Action
@@ -59,7 +58,11 @@ abstract class DefaultRatpackSpec extends InternalRatpackSpec {
     def handler = createHandlerTransformer()
     def modulesAction = createModulesAction()
 
-    LaunchConfig launchConfig = new DefaultLaunchConfig(dir, 0, null, reloadable, 0, new URL("http://localhost"), ImmutableMap.builder().putAll(others).build(), new HandlerFactory() {
+    LaunchConfig launchConfig = LaunchConfigBuilder
+        .baseDir(dir)
+        .port(0)
+        .reloadable(reloadable)
+        .build(new HandlerFactory() {
       Handler create(LaunchConfig launchConfig) {
         createHandlerFactory(launchConfig).create(modulesAction, handler)
       }

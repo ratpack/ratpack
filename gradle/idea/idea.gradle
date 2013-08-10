@@ -6,7 +6,7 @@ apply plugin: "idea"
 idea {
   project {
     jdkName "1.7"
-    languageLevel "1.5"
+    languageLevel "1.7"
     ipr {
       withXml { provider ->
         def node = provider.asNode()

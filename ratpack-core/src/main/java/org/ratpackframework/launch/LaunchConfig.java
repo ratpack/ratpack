@@ -21,6 +21,7 @@ import org.ratpackframework.api.Nullable;
 import java.io.File;
 import java.net.InetAddress;
 import java.net.URL;
+import java.util.concurrent.ExecutorService;
 
 public interface LaunchConfig {
 
@@ -59,7 +60,7 @@ public interface LaunchConfig {
   public boolean isReloadable();
 
   /**
-   * The number of worker threads for handling application requests.
+   * The number of threads for handling application requests.
    * <p>
    * If the value is greater than 0, a thread pool (of this size) will be created for servicing requests. This allows handlers
    * to perform blocking operations.
@@ -69,9 +70,11 @@ public interface LaunchConfig {
    * <p>
    * The default value for this property is calculated as: {@code Runtime.getRuntime().availableProcessors() * 2}
    *
-   * @return The number of worker threads to use to execute the handler.
+   * @return The number of threads to use to execute the handler.
    */
-  public int getWorkerThreads();
+  public int getMainThreads();
+
+  public ExecutorService getBlockingExecutorService();
 
   /**
    * The public address of the site used for redirects.

@@ -146,9 +146,9 @@ public abstract class LaunchConfigFactory {
       }
 
       boolean reloadable = Boolean.parseBoolean(properties.getProperty(Property.RELOADABLE, "false"));
-      int workerThreads = Integer.valueOf(properties.getProperty(Property.WORKER_THREADS, "0"));
+      int mainThreads = Integer.valueOf(properties.getProperty(Property.MAIN_THREADS, "0"));
 
-      Map<String, String> otherProperties = new HashMap<String, String>();
+      Map<String, String> otherProperties = new HashMap<>();
       extractProperties("other.", properties, otherProperties);
 
       HandlerFactory handlerFactory;
@@ -163,7 +163,7 @@ public abstract class LaunchConfigFactory {
         .address(address)
         .publicAddress(publicAddress)
         .reloadable(reloadable)
-        .workerThreads(workerThreads)
+        .mainThreads(mainThreads)
         .other(otherProperties)
         .build(handlerFactory);
 
@@ -227,7 +227,7 @@ public abstract class LaunchConfigFactory {
      *
      * <b>Value:</b> {@value} - (int)
      */
-    public static final String WORKER_THREADS = "workerThreads";
+    public static final String MAIN_THREADS = "mainThreads";
 
     /**
      * The public address of the site.

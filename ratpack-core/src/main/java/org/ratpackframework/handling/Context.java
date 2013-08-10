@@ -17,6 +17,7 @@
 package org.ratpackframework.handling;
 
 import org.ratpackframework.api.NonBlocking;
+import org.ratpackframework.block.Blocking;
 import org.ratpackframework.http.Request;
 import org.ratpackframework.http.Response;
 import org.ratpackframework.registry.NotInRegistryException;
@@ -230,6 +231,14 @@ public interface Context extends Registry<Object> {
 
   @NonBlocking
   void render(Object object) throws NotInRegistryException, NoSuchRendererException;
+
+  /**
+   * Provides a mechanism for executing blocking IO operations.
+   *
+   * @see Blocking
+   * @return A new instance of {@link Blocking}
+   */
+  Blocking getBlocking();
 
   /**
    * Sends a temporary redirect response (i.e. statusCode 302) to the client using the specified redirect location URL.

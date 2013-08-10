@@ -16,11 +16,10 @@
 
 package org.ratpackframework.server.internal
 
-import com.google.common.collect.ImmutableMap
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import org.ratpackframework.launch.HandlerFactory
-import org.ratpackframework.launch.internal.DefaultLaunchConfig
+import org.ratpackframework.launch.LaunchConfigBuilder
 import org.ratpackframework.server.RatpackServerBuilder
 import spock.lang.Specification
 
@@ -32,12 +31,12 @@ class NettyRatpackServiceSpec extends Specification {
 
   def "throws exception if can't bind to port"() {
     given:
-    def config1 = new DefaultLaunchConfig(temporaryFolder.root, 0, null, false, 0, new URL("http://localhost:5050"), ImmutableMap.of(), {} as HandlerFactory)
+    def config1 = LaunchConfigBuilder.baseDir(temporaryFolder.root).build({} as HandlerFactory)
     def server1 = RatpackServerBuilder.build(config1)
     server1.start()
 
     when:
-    def config2 = new DefaultLaunchConfig(temporaryFolder.root, server1.bindPort, null, false, 0,  new URL("http://localhost:${server1.bindPort}"), ImmutableMap.of(), {} as HandlerFactory)
+    def config2 = LaunchConfigBuilder.baseDir(temporaryFolder.root).port(server1.bindPort).build({} as HandlerFactory)
     def server2 = RatpackServerBuilder.build(config2)
     server2.start()
 

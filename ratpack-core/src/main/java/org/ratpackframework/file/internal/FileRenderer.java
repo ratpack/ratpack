@@ -19,14 +19,14 @@ package org.ratpackframework.file.internal;
 import org.ratpackframework.file.MimeTypes;
 import org.ratpackframework.handling.Context;
 import org.ratpackframework.render.ByTypeRenderer;
-import java.io.File;
 
 import javax.inject.Inject;
+import java.io.File;
 
 public class FileRenderer extends ByTypeRenderer<File> {
 
   @Inject
-  public FileRenderer(){
+  public FileRenderer() {
     super(File.class);
   }
 

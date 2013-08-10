@@ -18,6 +18,8 @@ package org.ratpackframework.groovy;
 
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
+import org.ratpackframework.api.NonBlocking;
+import org.ratpackframework.block.Blocking;
 import org.ratpackframework.util.Action;
 
 public abstract class Util {
@@ -60,4 +62,15 @@ public abstract class Util {
   public static Action<Object> action(final Closure<?> configurer) {
     return action(Object.class, configurer);
   }
+
+  @NonBlocking
+  public static <T> void exec(Blocking blocking, Closure<T> operation, Closure<?> onSuccess) {
+    blocking.exec(operation).then(action(onSuccess));
+  }
+
+  @NonBlocking
+  public static <T> void exec(Blocking blocking, Closure<T> operation, Closure<?> onFailure, Closure<?> onSuccess) {
+    blocking.exec(operation).onError(action(onFailure)).then(action(onSuccess));
+  }
+
 }

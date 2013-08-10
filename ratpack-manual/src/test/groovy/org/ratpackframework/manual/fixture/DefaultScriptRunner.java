@@ -27,6 +27,9 @@ import org.codehaus.groovy.control.CompilerConfiguration;
 import org.codehaus.groovy.control.SourceUnit;
 import org.codehaus.groovy.control.customizers.CompilationCustomizer;
 
+import java.util.Arrays;
+import java.util.List;
+
 public class DefaultScriptRunner implements ScriptRunner {
 
   private final GroovyShell groovyShell;
@@ -53,8 +56,27 @@ public class DefaultScriptRunner implements ScriptRunner {
   }
 
   public void runScript(String script, String sourceClassName) {
-    String scriptText = prefix + script + suffix + ";0;";
+    List<String> importsAndScript = extractImports(script);
+    String scriptText = importsAndScript.get(0) + prefix + importsAndScript.get(1) + suffix + ";0;";
     groovyShell.evaluate(scriptText, sourceClassName);
+  }
+
+  private List<String> extractImports(String script) {
+    StringBuilder imports = new StringBuilder();
+    StringBuilder scriptMinusImports = new StringBuilder();
+
+    for (String line : script.split("\\n")) {
+      StringBuilder target;
+      if (line.trim().startsWith("import ")) {
+        target = imports;
+      } else {
+        target = scriptMinusImports;
+      }
+
+      target.append(line).append("\n");
+    }
+
+    return Arrays.asList(imports.toString(), scriptMinusImports.toString());
   }
 
   public int getScriptLineOffset() {
