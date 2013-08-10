@@ -14,6 +14,6 @@ EOF
 if [ ! -f $BUILD_DIR/Procfile ]; then
 cat <<EOF
 default_process_types:
-  web: echo "javahome: $JAVA_HOME"; ratpack-site/build/install/ratpack-site/bin/ratpack-site
+  web: ratpack-site/build/install/ratpack-site/bin/ratpack-site
 EOF
 fi
