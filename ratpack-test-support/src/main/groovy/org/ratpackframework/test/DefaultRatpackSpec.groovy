@@ -62,6 +62,7 @@ abstract class DefaultRatpackSpec extends InternalRatpackSpec {
         .baseDir(dir)
         .port(0)
         .reloadable(reloadable)
+        .other(others)
         .build(new HandlerFactory() {
       Handler create(LaunchConfig launchConfig) {
         createHandlerFactory(launchConfig).create(modulesAction, handler)
