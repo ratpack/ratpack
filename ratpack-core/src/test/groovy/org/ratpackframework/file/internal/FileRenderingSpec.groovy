@@ -17,14 +17,11 @@
 package org.ratpackframework.file.internal
 
 import com.jayway.restassured.response.Response
-import org.apache.commons.lang3.RandomStringUtils
-
-import static io.netty.handler.codec.http.HttpHeaders.Names.*
 import io.netty.handler.codec.http.HttpHeaderDateFormat
+import org.apache.commons.lang3.RandomStringUtils
 import org.ratpackframework.test.groovy.RatpackGroovyDslSpec
 
-import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_LENGTH
-import static io.netty.handler.codec.http.HttpHeaders.Names.IF_MODIFIED_SINCE
+import static io.netty.handler.codec.http.HttpHeaders.Names.*
 import static io.netty.handler.codec.http.HttpResponseStatus.NOT_MODIFIED
 import static io.netty.handler.codec.http.HttpResponseStatus.OK
 
