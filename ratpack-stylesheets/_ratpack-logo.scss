@@ -68,7 +68,7 @@ $logo-inverted: 'ratpack-logo-white.png';
 		.backgroundsize & {
 			padding: 0 (image-width($logo-image) / ($base-font-size * ($logo-font-size / 1em))) * 1em;
 			background: {
-				image: image-url($logo-vector);
+				image: simple-image-url($logo-vector);
 				repeat: no-repeat;
 				position: {
 					y: bottom;
@@ -79,7 +79,7 @@ $logo-inverted: 'ratpack-logo-white.png';
 
 		}
     .backgroundsize.no-svg & {
-      background-image: image-url($logo-image);
+      background-image: simple-image-url($logo-image);
     }
 
 		&:last-child {
@@ -118,7 +118,7 @@ $logo-inverted: 'ratpack-logo-white.png';
 		h1 {
 			color: $white;
 			@include smooth-font($white);
-			background-image: image-url($logo-inverted);
+			background-image: simple-image-url($logo-inverted);
 			border-bottom-color: $white;
 		}
 		p {

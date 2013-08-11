@@ -42,17 +42,17 @@
 			height: $box-size;
 		}
 		&:nth-of-type(3n+1):after {
-			background-image: image-url('../images/noun_project_7340.svg');
+			background-image: simple-image-url('../images/noun_project_7340.svg');
 		}
 		&:nth-of-type(3n+2):after {
 			background: {
-				image: image-url('../images/noun_project_884.svg');
+				image: simple-image-url('../images/noun_project_884.svg');
 				position: $icon-position 0.15em;
 			}
 		}
 		&:nth-of-type(3n):after {
 			background: {
-				image: image-url('../images/noun_project_7964.svg');
+				image: simple-image-url('../images/noun_project_7964.svg');
 				size: 1.75em 1.75em;
 				position: 0.475em 0.475em;
 			}
@@ -96,14 +96,14 @@
         size: contain;
       }
       .no-svg & {
-        background-image: image-url($starburst-bitmap-image);
+        background-image: simple-image-url($starburst-bitmap-image);
       }
     }
     &:hover, &:focus {
       &:before {
         background-image: inline-image('starburst-yellow.svg');
         .no-svg & {
-          background-image: image-url('starburst-yellow.png');
+          background-image: simple-image-url('starburst-yellow.png');
         }
       }
     }
