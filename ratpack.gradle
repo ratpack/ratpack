@@ -101,6 +101,12 @@ subprojects {
     }
   }
 
+  tasks.withType(GroovyCompile) {
+    allprojects {
+      mustRunAfter tasks.withType(CodeNarc)
+    }
+  }
+
   apply from: "$rootDir/gradle/ratpackLocal.gradle"
 
   tasks.withType(Javadoc) {

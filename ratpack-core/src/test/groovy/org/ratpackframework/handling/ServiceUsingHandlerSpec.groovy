@@ -25,7 +25,7 @@ import org.ratpackframework.util.Action
 
 import static org.ratpackframework.handling.Handlers.service
 
-class ServiceUsingHandlerTest extends DefaultRatpackSpec {
+class ServiceUsingHandlerSpec extends DefaultRatpackSpec {
 
   static class NoHandleMethod extends ServiceUsingHandler {}
 

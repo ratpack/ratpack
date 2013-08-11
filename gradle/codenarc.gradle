@@ -1,0 +1,14 @@
+project.apply plugin: "codenarc"
+
+dependencies {
+  codenarc 'org.codenarc:CodeNarc:0.19'
+}
+
+codenarc {
+  configFile rootProject.file('gradle/codenarc/ruleset.groovy')
+}
+
+codenarcTest {
+  configFile rootProject.file('gradle/codenarc/testRuleset.groovy')
+}
+
