@@ -140,8 +140,8 @@
 
 			min-height: image-height($footer-image-url) + (2 * image-height('bintray.png'));
 			background:
-				image-url($mask-image-url) top left repeat,
-				$black image-url($footer-image-url) top left no-repeat;
+				simple-image-url($mask-image-url) top left repeat,
+				$black simple-image-url($footer-image-url) top left no-repeat;
 
 			padding-bottom: 2 * image-height('bintray.png');
 			position: relative;

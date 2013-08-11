@@ -9,13 +9,13 @@ $mask-image-url: 'groovepaper_alpha.png';
 		left: 0;
 		width: 100%;
 		height: 100%;
-		background-image: image-url($mask-image-url);
+		background-image: simple-image-url($mask-image-url);
 	}
 }
 
 @mixin noise-background {
 	background: {
-		image: image-url($mask-image-url);
+		image: simple-image-url($mask-image-url);
 		repeat: repeat;
 	}
 }
