@@ -114,13 +114,12 @@ class HandlebarsTemplateRenderingSpec extends RatpackGroovyDslSpec {
       }
       handlers {
         get {
-          render handlebarsTemplate('helper', null)
+          render handlebarsTemplate('helper')
         }
       }
     }
 
     then:
-    get().statusCode
     text == 'from helper'
   }
 

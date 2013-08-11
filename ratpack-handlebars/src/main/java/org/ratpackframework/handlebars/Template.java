@@ -43,6 +43,10 @@ public class Template<T> {
     this.contentType = contentType;
   }
 
+  public static Template<Object> handlebarsTemplate(String name) {
+    return handlebarsTemplate(name, null);
+  }
+
   public static Template<Map<String, ?>> handlebarsTemplate(Map<String, ?> model, String name) {
     return handlebarsTemplate(model, name, null);
   }
