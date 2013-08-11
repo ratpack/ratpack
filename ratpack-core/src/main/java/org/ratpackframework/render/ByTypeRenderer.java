@@ -16,6 +16,7 @@
 
 package org.ratpackframework.render;
 
+import com.google.inject.TypeLiteral;
 import org.ratpackframework.handling.Context;
 
 public abstract class ByTypeRenderer<T> implements Renderer<T> {
@@ -24,6 +25,11 @@ public abstract class ByTypeRenderer<T> implements Renderer<T> {
 
   protected ByTypeRenderer(Class<T> type) {
     this.type = type;
+  }
+
+  protected ByTypeRenderer(TypeLiteral<T> typeLiteral) {
+    @SuppressWarnings("unchecked") Class<T> rawType = (Class<T>) typeLiteral.getRawType();
+    this.type = rawType;
   }
 
   public T accept(Object object) {
