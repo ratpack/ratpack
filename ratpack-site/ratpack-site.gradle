@@ -35,10 +35,16 @@ repositories {
   jcenter()
   maven { url "http://repo.springsource.org/repo" } // for springloaded
   maven { url "http://repo.gradle.org/gradle/javascript-public/" } // for coffeescript plugin
+  maven { url "https://oss.sonatype.org/content/repositories/snapshots/" } // for Netty snapshot
 }
 
 configurations {
   latestManual {}
+  compile.resolutionStrategy.eachDependency {
+    if (it.requested.group == "io.netty") {
+      it.useVersion "4.0.8.Final-SNAPSHOT"
+    }
+  }
 }
 
 dependencies {
