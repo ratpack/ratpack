@@ -18,6 +18,54 @@ package org.ratpackframework.handlebars;
 
 import com.github.jknack.handlebars.Helper;
 
+/**
+ * Instances of classes implementing this interface bound to the module registry will be automatically
+ * registered as handlebars helpers.
+ * <p/>
+ * Example usage: (Java DSL)
+ * <pre class="tested">
+ * import org.ratpackframework.handlebars.NamedHelper;
+ * import com.github.jknack.handlebars.Options;
+ * import org.ratpackframework.handling.*;
+ * import org.ratpackframework.guice.*;
+ * import org.ratpackframework.util.*;
+ * import org.ratpackframework.launch.*;
+ *
+ * public class MultiplyHelper implements NamedHelper<String> {
+ *
+ *   public String getName() {
+ *     return "hello";
+ *   }
+ *
+ *   CharSequence apply(String context, Options options) throws IOException {
+ *     return String.format("Hello %s", context)
+ *   }
+ * }
+ *
+ * class ModuleBootstrap implements Action&lt;ModuleRegistry&gt; {
+ *   public void execute(ModuleRegistry modules) {
+ *     modules.bind(MultiplyHelper.class)
+ *   }
+ * }
+ *
+ * LaunchConfig launchConfig = LaunchConfigBuilder.baseDir(new File("appRoot"))
+ *   .build(new HandlerFactory() {
+ *     public Handler create(LaunchConfig launchConfig) {
+ *       return Guice.handler(launchConfig, new ModuleBootstrap(), new Action&lt;Chain&gt;() {
+ *         public void execute(Chain chain) {
+ *         }
+ *       });
+ *     }
+ *   });
+ * </pre>
+ *
+ * Example usage: (Groovy DSL)
+ * <pre>
+ * modules {
+ *   bind MultiplyHelper
+ * }
+ * </pre>
+ */
 public interface NamedHelper<T> extends Helper<T> {
   public String getName();
 }

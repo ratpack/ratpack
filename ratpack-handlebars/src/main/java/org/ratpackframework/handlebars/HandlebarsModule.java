@@ -27,6 +27,76 @@ import org.ratpackframework.util.Action;
 
 import java.io.File;
 
+/**
+ * An extension module that provides support for Handlebars.java templating engine.
+ * <p>
+ * To use it one has to register the module and then render {@link org.ratpackframework.handlebars.Template} instances.
+ * Instances of {@code Template} can be created using one of the
+ * {@link org.ratpackframework.handlebars.Template#handlebarsTemplate(java.util.Map, String, String)}
+ * static methods.
+ * </p>
+ * <p>
+ * By default templates are looked up in the {@code handlebars} directory of the application root with a {@code .hbs} suffix.
+ * So {@code handlebarsTemplate("my/template/path")} maps to {@code handlebars/my/template/path.hbs} in the application root directory.
+ * This can be configured using {@link #setTemplatesPath(String)} and {@link #setTemplatesSuffix(String)} as well as
+ * {@code other.handlebars.templatesPath} and {@code other.handlebars.templatesSuffix} configuration properties.
+ * </p>
+ * <p>
+ * Response content type is determined based on the extension of the template file - i.e. for {@code handlebarsTemplate("template.html")}
+ * it would be {@code text/html}. It can also be also manually specified if required, i.e. {@code handlebarsTemplate("template", model, "text/html")}
+ * </p>
+ * <p>Custom handlebars helpers can be registered by binding instances of {@link org.ratpackframework.handlebars.NamedHelper}.</p>
+ *
+ * Example usage: (Java DSL)
+ * <pre class="tested">
+ * import org.ratpackframework.handling.*;
+ * import org.ratpackframework.guice.*;
+ * import org.ratpackframework.util.*;
+ * import org.ratpackframework.launch.*;
+ * import org.ratpackframework.handlebars.HandlebarsModule;
+ * import static org.ratpackframework.handlebars.Template.handlebarsTemplate;
+ *
+ * class MyHandler implements Handler {
+ *   void handle(final Context context) {
+ *     context.render(handlebarsTemplate("my/template/path", key: "it works!"));
+ *   }
+ * }
+ *
+ * class ModuleBootstrap implements Action&lt;ModuleRegistry&gt; {
+ *   public void execute(ModuleRegistry modules) {
+ *     modules.register(new HandlebarsModule());
+ *   }
+ * }
+ *
+ * LaunchConfig launchConfig = LaunchConfigBuilder.baseDir(new File("appRoot"))
+ *   .build(new HandlerFactory() {
+ *     public Handler create(LaunchConfig launchConfig) {
+ *       return Guice.handler(launchConfig, new ModuleBootstrap(), new Action&lt;Chain&gt;() {
+ *         public void execute(Chain chain) {
+ *           chain.add(chain.getRegistry().get(MyHandler.class));
+ *         }
+ *       });
+ *     }
+ *   });
+ * </pre>
+ *
+ * Example usage: (Groovy DSL)
+ * <pre class="groovy-ratpack-dsl">
+ * import org.ratpackframework.handlebars.HandlebarsModule
+ * import static org.ratpackframework.handlebars.Template.handlebarsTemplate
+ *
+ * modules {
+ *   register new HandlebarsModule()
+ * }
+ * handlers {
+ *   get {
+ *     render handlebarsTemplate('my/template/path', key: 'it works!')
+ *   }
+ * }
+ * </pre>
+ *
+ * @see <a href="http://jknack.github.io/handlebars.java/" target="_blank">Handlebars.java</a>
+ */
 public class HandlebarsModule extends AbstractModule {
 
   private String templatesPath;

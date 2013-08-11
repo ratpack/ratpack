@@ -33,6 +33,8 @@ buildscript {
 
 dependencies {
   testRuntime "org.apache.ant:ant-nodeps:1.8.1"
+
+  testCompile apiModules
 }
 apply from: "$rootDir/gradle/markdown2book.gradle"
 
