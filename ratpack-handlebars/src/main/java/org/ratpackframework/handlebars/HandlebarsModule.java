@@ -72,7 +72,7 @@ public class HandlebarsModule extends AbstractModule {
     };
 
     GuiceUtil.eachOfType(injector, type, new Action<NamedHelper<?>>() {
-      public void execute(NamedHelper helper) {
+      public void execute(NamedHelper<?> helper) {
         handlebars.registerHelper(helper.getName(), helper);
       }
     });
