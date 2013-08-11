@@ -63,7 +63,6 @@ public class HandlebarsModule extends AbstractModule {
     return new FileTemplateLoader(templatesPathFile, suffix);
   }
 
-  @SuppressWarnings({"unchecked", "rawtypes"})
   @Provides @Singleton
   Handlebars provideHandlebars(Injector injector, TemplateLoader templateLoader) {
     final Handlebars handlebars = new Handlebars().with(templateLoader);
