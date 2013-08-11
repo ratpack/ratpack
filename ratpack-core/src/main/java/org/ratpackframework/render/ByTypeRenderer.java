@@ -16,7 +16,7 @@
 
 package org.ratpackframework.render;
 
-import com.google.inject.TypeLiteral;
+import org.ratpackframework.api.TypeLiteral;
 import org.ratpackframework.handling.Context;
 
 public abstract class ByTypeRenderer<T> implements Renderer<T> {
