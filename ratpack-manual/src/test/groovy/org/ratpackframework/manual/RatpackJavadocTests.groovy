@@ -37,6 +37,10 @@ class RatpackJavadocTests extends JavadocTestCase {
       if (mainSrc.exists()) {
         tests.testCodeSnippets(mainSrc, "**/*.java", "tested", new DefaultScriptRunner())
 
+        def groovyDslSuffix = """
+          }
+        """
+
         def groovyChainDslPrefix = """
           import org.ratpackframework.groovy.handling.Chain;
           import org.ratpackframework.groovy.handling.internal.DefaultChain;
@@ -45,10 +49,16 @@ class RatpackJavadocTests extends JavadocTestCase {
           Util.configureDelegateOnly((Chain) new DefaultChain([], null)) {
         """
 
-        def groovyChainDslSuffix = """
-          }
+        tests.testCodeSnippets(mainSrc, "**/*.java", "groovy-chain-dsl", new DefaultScriptRunner(groovyChainDslPrefix, groovyDslSuffix))
+
+        def groovyRatpackDslPrefix = """
+          def ratpack(@DelegatesTo(value = org.ratpackframework.groovy.Ratpack, strategy = Closure.DELEGATE_ONLY) Closure closure) { }
+
+
+          ratpack {
         """
-        tests.testCodeSnippets(mainSrc, "**/*.java", "groovy-chain-dsl", new DefaultScriptRunner(groovyChainDslPrefix, groovyChainDslSuffix))
+
+        tests.testCodeSnippets(mainSrc, "**/*.java", "groovy-ratpack-dsl", new DefaultScriptRunner(groovyRatpackDslPrefix, groovyDslSuffix))
       }
     }
   }
