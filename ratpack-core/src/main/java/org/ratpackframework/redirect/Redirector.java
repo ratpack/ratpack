@@ -18,21 +18,12 @@ package org.ratpackframework.redirect;
 
 import org.ratpackframework.api.NonBlocking;
 import org.ratpackframework.handling.Context;
-import org.ratpackframework.http.Request;
-import org.ratpackframework.http.Response;
 
 /**
  * A way to do smart redirects
  */
 public interface Redirector {
 
-  /**
-   *
-   * @param context
-   * @param response
-   * @param location
-   * @param code
-   */
   @NonBlocking
-  void redirect(Context context, Response response, Request request, String location, int code);
+  void redirect(Context context, String location, int code);
 }

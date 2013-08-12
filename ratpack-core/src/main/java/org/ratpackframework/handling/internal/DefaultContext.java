@@ -124,13 +124,13 @@ public class DefaultContext implements Context {
     return new DefaultBlocking(mainExecutorService, blockingExecutorService, this);
   }
 
-  public void redirect(String location) throws NotInRegistryException {
+  public void redirect(String location) {
     redirect(HttpResponseStatus.FOUND.code(), location);
   }
 
-  public void redirect(int code, String location) throws NotInRegistryException {
+  public void redirect(int code, String location) {
     Redirector redirector = registry.get(Redirector.class);
-    redirector.redirect(this, response, request, location, code);
+    redirector.redirect(this, location, code);
   }
 
   public void error(Exception exception) {

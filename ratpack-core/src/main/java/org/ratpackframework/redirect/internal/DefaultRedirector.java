@@ -19,7 +19,6 @@ package org.ratpackframework.redirect.internal;
 import io.netty.handler.codec.http.HttpHeaders;
 import org.ratpackframework.handling.Context;
 import org.ratpackframework.http.Request;
-import org.ratpackframework.http.Response;
 import org.ratpackframework.redirect.Redirector;
 import org.ratpackframework.server.PublicAddress;
 
@@ -30,11 +29,11 @@ public class DefaultRedirector implements Redirector {
 
   private static final Pattern ABSOLUTE_PATTERN = Pattern.compile("^https?://.*");
 
-  public void redirect(Context context, Response response, Request request, String location, int code) {
-    response.status(code);
-    response.setHeader(HttpHeaders.Names.LOCATION, generateRedirectLocation(context, request, location));
-    response.send();
-
+  public void redirect(Context context, String location, int code) {
+    context.getResponse().status(code);
+    String normalizedLocation = generateRedirectLocation(context, context.getRequest(), location);
+    context.getResponse().setHeader(HttpHeaders.Names.LOCATION, normalizedLocation);
+    context.getResponse().send();
   }
 
   private String generateRedirectLocation(Context context, Request request, String path) {
@@ -44,7 +43,7 @@ public class DefaultRedirector implements Redirector {
     //3. Given relative URL prepend public facing domain:port plus parent path of request URL otherwise full parent path
 
     PublicAddress publicAddress = context.get(PublicAddress.class);
-    String generatedPath = null;
+    String generatedPath;
     URL host = publicAddress.getUrl(context);
 
     if (ABSOLUTE_PATTERN.matcher(path).matches()) {
