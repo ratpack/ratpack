@@ -43,6 +43,11 @@ public class FileRenderer extends ByTypeRenderer<File> {
     Request request = context.getRequest();
     Response response = context.getResponse();
 
+    if (targetFile.isHidden() || !targetFile.exists()) {
+      context.next();
+      return;
+    }
+
     if (!targetFile.isFile()) {
       context.clientError(FORBIDDEN.code());
       return;
