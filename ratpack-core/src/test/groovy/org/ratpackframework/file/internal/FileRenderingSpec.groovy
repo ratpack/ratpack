@@ -37,7 +37,7 @@ class FileRenderingSpec extends RatpackGroovyDslSpec {
     given:
     app {
       handlers {
-        get("path") {render myFile}
+        get("path") { render myFile }
       }
     }
 
@@ -57,7 +57,7 @@ class FileRenderingSpec extends RatpackGroovyDslSpec {
     given:
     app {
       handlers {
-        get("path") {render myFile}
+        get("path") { render myFile }
       }
     }
 
@@ -78,7 +78,7 @@ class FileRenderingSpec extends RatpackGroovyDslSpec {
     given:
     app {
       handlers {
-        get("path") {render myFile}
+        get("path") { render myFile }
       }
     }
 
