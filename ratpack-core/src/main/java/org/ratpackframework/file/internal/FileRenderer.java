@@ -16,12 +16,20 @@
 
 package org.ratpackframework.file.internal;
 
+import io.netty.handler.codec.http.HttpHeaders;
 import org.ratpackframework.file.MimeTypes;
 import org.ratpackframework.handling.Context;
+import org.ratpackframework.http.Request;
+import org.ratpackframework.http.Response;
 import org.ratpackframework.render.ByTypeRenderer;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.Date;
+
+import static io.netty.handler.codec.http.HttpHeaders.Names.IF_MODIFIED_SINCE;
+import static io.netty.handler.codec.http.HttpResponseStatus.FORBIDDEN;
+import static io.netty.handler.codec.http.HttpResponseStatus.NOT_MODIFIED;
 
 public class FileRenderer extends ByTypeRenderer<File> {
 
@@ -32,8 +40,40 @@ public class FileRenderer extends ByTypeRenderer<File> {
 
   @Override
   public void render(Context context, File targetFile) {
+    Request request = context.getRequest();
+    Response response = context.getResponse();
+
+    if (!targetFile.isFile()) {
+      context.clientError(FORBIDDEN.code());
+      return;
+    }
+
+    long lastModifiedTime = targetFile.lastModified();
+    if (lastModifiedTime < 1) {
+      context.next();
+      return;
+    }
+
+    Date ifModifiedSinceHeader = request.getDateHeader(IF_MODIFIED_SINCE);
+
+    if (ifModifiedSinceHeader != null) {
+      long ifModifiedSinceSecs = ifModifiedSinceHeader.getTime() / 1000;
+      long lastModifiedSecs = lastModifiedTime / 1000;
+      if (lastModifiedSecs == ifModifiedSinceSecs) {
+        response.status(NOT_MODIFIED.code(), NOT_MODIFIED.reasonPhrase()).send();
+        context.getResponse().status(NOT_MODIFIED.code(), NOT_MODIFIED.reasonPhrase()).send();
+        return;
+      }
+    }
+
+    final String ifNoneMatch = request.getHeader(HttpHeaders.Names.IF_NONE_MATCH);
+    if (ifNoneMatch != null && ifNoneMatch.trim().equals("*")) {
+      response.status(NOT_MODIFIED.code(), NOT_MODIFIED.reasonPhrase()).send();
+      return;
+    }
+
     String contentType = context.get(MimeTypes.class).getContentType(targetFile.getName());
-    context.getResponse().sendFile(contentType, targetFile);
+    response.sendFile(contentType, targetFile);
   }
 
 }

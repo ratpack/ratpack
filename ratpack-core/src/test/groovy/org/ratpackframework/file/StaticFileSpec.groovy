@@ -29,7 +29,6 @@ import static org.ratpackframework.groovy.handling.ClosureHandlers.fileSystem
 import static org.ratpackframework.groovy.handling.ClosureHandlers.handler
 import static org.ratpackframework.groovy.handling.ClosureHandlers.path
 import static org.ratpackframework.handling.Handlers.assets
-import static org.ratpackframework.handling.Handlers.post
 
 class StaticFileSpec extends DefaultRatpackSpec {
 
@@ -220,7 +219,8 @@ class StaticFileSpec extends DefaultRatpackSpec {
     expect:
     def response = get("file.txt")
     response.statusCode == 200
-    parseDateHeader(response, LAST_MODIFIED) == new Date(file.lastModified())
+    // compare the last modified dates formatted as milliseconds are stripped when added as a response header
+    formatDateHeader(parseDateHeader(response, LAST_MODIFIED)) == formatDateHeader(file.lastModified())
   }
 
   def "404 when posting to a non existent asset"() {
@@ -319,6 +319,10 @@ class StaticFileSpec extends DefaultRatpackSpec {
   }
 
   private static String formatDateHeader(long timestamp) {
-    new HttpHeaderDateFormat().format(new Date(timestamp))
+    formatDateHeader(new Date(timestamp))
+  }
+
+  private static String formatDateHeader(Date date) {
+    new HttpHeaderDateFormat().format(date)
   }
 }
