@@ -217,7 +217,6 @@ class StaticFileSpec extends DefaultRatpackSpec {
     expect:
     def response = get("file.txt")
     response.statusCode == 200
-
     // compare the last modified dates formatted as milliseconds are stripped when added as a response header
     formatDateHeader(parseDateHeader(response, LAST_MODIFIED)) == formatDateHeader(file.lastModified())
   }
