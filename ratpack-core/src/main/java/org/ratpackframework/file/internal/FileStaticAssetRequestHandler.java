@@ -36,11 +36,6 @@ public class FileStaticAssetRequestHandler implements Handler {
     FileSystemBinding fileSystemBinding = context.get(FileSystemBinding.class);
     File targetFile = fileSystemBinding.getFile();
 
-    if (targetFile.isHidden() || !targetFile.exists()) {
-      context.next();
-      return;
-    }
-
     if (!request.getMethod().isGet()) {
       context.clientError(METHOD_NOT_ALLOWED.code());
       return;
