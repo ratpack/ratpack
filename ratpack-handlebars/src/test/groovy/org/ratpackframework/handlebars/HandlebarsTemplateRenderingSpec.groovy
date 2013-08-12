@@ -21,7 +21,7 @@ import org.ratpackframework.test.groovy.RatpackGroovyDslSpec
 import spock.lang.Unroll
 
 import static Template.handlebarsTemplate
-import static org.apache.http.HttpStatus.SC_INTERNAL_SERVER_ERROR
+import static io.netty.handler.codec.http.HttpResponseStatus.INTERNAL_SERVER_ERROR
 
 class HandlebarsTemplateRenderingSpec extends RatpackGroovyDslSpec {
 
@@ -99,7 +99,7 @@ class HandlebarsTemplateRenderingSpec extends RatpackGroovyDslSpec {
     get()
 
     then:
-    response.statusCode == SC_INTERNAL_SERVER_ERROR
+    response.statusCode == INTERNAL_SERVER_ERROR.code()
   }
 
   void 'helpers can be registered'() {
