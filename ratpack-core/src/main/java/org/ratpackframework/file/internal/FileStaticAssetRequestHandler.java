@@ -16,20 +16,14 @@
 
 package org.ratpackframework.file.internal;
 
-import io.netty.handler.codec.http.HttpHeaders;
 import org.ratpackframework.file.FileSystemBinding;
-import org.ratpackframework.file.MimeTypes;
 import org.ratpackframework.handling.Context;
-import org.ratpackframework.http.Request;
-import org.ratpackframework.http.Response;
 import org.ratpackframework.handling.Handler;
+import org.ratpackframework.http.Request;
 
 import java.io.File;
-import java.util.Date;
 
-import static io.netty.handler.codec.http.HttpHeaders.Names.IF_MODIFIED_SINCE;
-import static io.netty.handler.codec.http.HttpResponseStatus.*;
-
+import static io.netty.handler.codec.http.HttpResponseStatus.METHOD_NOT_ALLOWED;
 
 public class FileStaticAssetRequestHandler implements Handler {
 
@@ -37,7 +31,6 @@ public class FileStaticAssetRequestHandler implements Handler {
 
   public void handle(Context context) {
     Request request = context.getRequest();
-    Response response = context.getResponse();
 
     FileSystemBinding fileSystemBinding = context.get(FileSystemBinding.class);
     File targetFile = fileSystemBinding.getFile();
@@ -52,36 +45,6 @@ public class FileStaticAssetRequestHandler implements Handler {
       return;
     }
 
-    if (!targetFile.isFile()) {
-      context.clientError(FORBIDDEN.code());
-      return;
-    }
-
-    long lastModifiedTime = targetFile.lastModified();
-    if (lastModifiedTime < 1) {
-      context.next();
-      return;
-    }
-
-    Date ifModifiedSinceHeader = request.getDateHeader(IF_MODIFIED_SINCE);
-
-    if (ifModifiedSinceHeader != null) {
-      long ifModifiedSinceSecs = ifModifiedSinceHeader.getTime() / 1000;
-      long lastModifiedSecs = lastModifiedTime / 1000;
-      if (lastModifiedSecs == ifModifiedSinceSecs) {
-        response.status(NOT_MODIFIED.code(), NOT_MODIFIED.reasonPhrase()).send();
-        return;
-      }
-    }
-
-    final String ifNoneMatch = request.getHeader(HttpHeaders.Names.IF_NONE_MATCH);
-    if (ifNoneMatch != null && ifNoneMatch.trim().equals("*")) {
-      response.status(NOT_MODIFIED.code(), NOT_MODIFIED.reasonPhrase()).send();
-      return;
-    }
-
-    String contentType = context.get(MimeTypes.class).getContentType(targetFile.getName());
-
-    response.sendFile(contentType, targetFile);
+    context.render(targetFile);
   }
 }
