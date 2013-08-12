@@ -109,6 +109,22 @@ public interface Response {
   void send(String text);
 
   /**
+   * Sends the response, guessing the content type.  If the content type cannot be guessed then a default content
+   * type of "{@code application/octet-stream}" will be used.
+   *
+   * @param bytes The response body
+   */
+  void send(byte[] bytes);
+
+  /**
+   * Sends the response, using the given content type and byte array as the response body.
+   *
+   * @param contentType The value of the {@code Content-Type} header
+   * @param bytes The response body
+   */
+  void send(String contentType, byte[] bytes);
+
+  /**
    * Sends the response, using the given content type and bytes as the response body.
    *
    * @param contentType The value of the {@code Content-Type} header

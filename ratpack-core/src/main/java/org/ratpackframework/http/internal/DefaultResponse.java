@@ -25,12 +25,18 @@ import org.ratpackframework.file.internal.FileHttpTransmitter;
 import org.ratpackframework.http.Response;
 import org.ratpackframework.util.internal.IoUtils;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.IOException;
+import java.net.URLConnection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Logger;
 
 public class DefaultResponse implements Response {
+
+  private final Logger logger = Logger.getLogger(getClass().getName());
 
   private final FullHttpResponse response;
   private final Channel channel;
@@ -101,6 +107,28 @@ public class DefaultResponse implements Response {
     } else {
       doSend(text);
     }
+  }
+
+  public void send(byte[] bytes) {
+    String contentType = "application/octet-stream";
+
+    try {
+      String guessedContentType = URLConnection.guessContentTypeFromStream(new ByteArrayInputStream(bytes));
+      if (guessedContentType != null) {
+        contentType = guessedContentType;
+      } else {
+        logger.warning(String.format("Cannot guess content type, %s will be used instead", contentType));
+      }
+    } catch (IOException e) {
+      logger.warning(String.format("Cannot guess content type, %s will be used instead", contentType));
+    }
+
+    send(contentType, bytes);
+  }
+
+  public void send(String contentType, byte[] bytes) {
+    ByteBuf buffer = IoUtils.byteBuf(bytes);
+    send(contentType, buffer);
   }
 
   public void send(String contentType, ByteBuf buffer) {
