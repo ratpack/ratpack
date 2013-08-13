@@ -76,7 +76,8 @@ public class DefaultResponse implements Response {
     commit();
   }
 
-  protected Response contentType(String contentType) {
+  @Override
+  public Response contentType(String contentType) {
     setHeader(HttpHeaders.Names.CONTENT_TYPE, DefaultMediaType.utf8(contentType).toString());
     return this;
   }

@@ -125,6 +125,14 @@ public interface Response {
   void sendFile(String contentType, File file);
 
   /**
+   * Sets the response {@code Content-Type} header.
+   *
+   * @param contentType The value of the {@code Content-Type} header
+   * @return This
+   */
+  Response contentType(String contentType);
+
+  /**
    * Returns the header value with the specified header name.
    * <p>
    * If there is more than one header value for the specified header name, the first value is returned.
