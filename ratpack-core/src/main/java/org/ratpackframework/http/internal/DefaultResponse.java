@@ -104,11 +104,30 @@ public class DefaultResponse implements Response {
     }
   }
 
+  public void send(byte[] bytes) {
+    ByteBuf buffer = IoUtils.byteBuf(bytes);
+    send(buffer);
+  }
+
+  public void send(String contentType, byte[] bytes) {
+    ByteBuf buffer = IoUtils.byteBuf(bytes);
+    send(contentType, buffer);
+  }
+
   public void send(String contentType, ByteBuf buffer) {
     contentType(contentType);
+    send(buffer);
+  }
+
+  public void send(ByteBuf buffer) {
+    if (!contentTypeSet) {
+      contentType("application/octet-stream");
+    }
+
     if (!contentLengthSet) {
       setHeader(HttpHeaders.Names.CONTENT_LENGTH, buffer.writerIndex());
     }
+
     response.content().writeBytes(buffer);
     commit();
   }
