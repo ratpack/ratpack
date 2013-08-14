@@ -37,11 +37,11 @@ public class SessionStorageBindingHandler implements Handler {
   }
 
   public void handle(final Context context) {
-    final SessionStore sessionStore = context.get(SessionStore.class);
     Registry<Object> sessionRegistry = new LazyChildRegistry<>(context, SessionStorage.class, new Factory<SessionStorage>() {
       public SessionStorage create() {
         Session session = context.get(Session.class);
-        final String id = session.getId();
+        String id = session.getId();
+        SessionStore sessionStore = context.get(SessionStore.class);
         return sessionStore.get(id);
       }
     });
