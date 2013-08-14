@@ -64,7 +64,7 @@ public class FileHttpTransmitter {
     // Write the content.
     ChannelFuture writeFuture;
 
-    ChunkedFile message = null;
+    ChunkedFile message;
     try {
       message = new ChunkedFile(raf, 0, fileLength, 8192);
       writeFuture = channel.writeAndFlush(message);
