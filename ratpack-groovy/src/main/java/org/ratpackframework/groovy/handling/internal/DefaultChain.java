@@ -67,12 +67,12 @@ public class DefaultChain extends org.ratpackframework.handling.internal.Default
     add(Handlers.assets(path, indexFiles));
   }
 
-  public void service(Object object, Closure<?> handlers) {
-    add(Handlers.service(object, toHandlerList(handlers)));
+  public void register(Object object, Closure<?> handlers) {
+    add(Handlers.register(object, toHandlerList(handlers)));
   }
 
-  public <T> void service(Class<? super T> type, T object, Closure<?> handlers) {
-    add(Handlers.service(type, object, toHandlerList(handlers)));
+  public <T> void register(Class<? super T> type, T object, Closure<?> handlers) {
+    add(Handlers.register(type, object, toHandlerList(handlers)));
   }
 
   public void fileSystem(String path, Closure<?> handlers) {

@@ -20,20 +20,20 @@ import com.google.common.collect.ImmutableList;
 import org.ratpackframework.handling.Context;
 import org.ratpackframework.handling.Handler;
 
-public class ServiceInsertingHandler implements Handler {
+public class RegisteringHandler implements Handler {
 
   private final Class<?> type;
   private final Object object;
   private final ImmutableList<Handler> handlers;
 
   @SuppressWarnings("unchecked")
-  public <T> ServiceInsertingHandler(T object, ImmutableList<Handler> handlers) {
+  public <T> RegisteringHandler(T object, ImmutableList<Handler> handlers) {
     this.type = null;
     this.object = object;
     this.handlers = handlers;
   }
 
-  public <T> ServiceInsertingHandler(Class<? super T> type, T object, ImmutableList<Handler> handlers) {
+  public <T> RegisteringHandler(Class<? super T> type, T object, ImmutableList<Handler> handlers) {
     this.type = type;
     this.object = object;
     this.handlers = handlers;

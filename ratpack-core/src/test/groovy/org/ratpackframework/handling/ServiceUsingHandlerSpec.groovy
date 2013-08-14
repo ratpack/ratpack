@@ -23,7 +23,7 @@ import org.ratpackframework.file.internal.DefaultFileSystemBinding
 import org.ratpackframework.test.DefaultRatpackSpec
 import org.ratpackframework.util.Action
 
-import static org.ratpackframework.handling.Handlers.service
+import static org.ratpackframework.handling.Handlers.register
 
 class ServiceUsingHandlerSpec extends DefaultRatpackSpec {
 
@@ -105,7 +105,7 @@ class ServiceUsingHandlerSpec extends DefaultRatpackSpec {
     when:
     app {
       handlers {
-        add service(ServerErrorHandler, new MessageServerErrorHandler(), new Action<Chain>() {
+        add register(ServerErrorHandler, new MessageServerErrorHandler(), new Action<Chain>() {
           void execute(Chain handlers) {
             handlers.add(new InjectedBadHandler())
           }
