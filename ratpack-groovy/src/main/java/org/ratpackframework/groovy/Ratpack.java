@@ -33,13 +33,13 @@ public interface Ratpack {
    *
    * @param configurer The configuration closure, delegating to {@link ModuleRegistry}
    */
-  void modules(@DelegatesTo(value = ModuleRegistry.class, strategy = Closure.DELEGATE_ONLY) Closure<?> configurer);
+  void modules(@DelegatesTo(value = ModuleRegistry.class, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer);
 
   /**
    * Registers the closure used to build the handler chain of the application.
    *
    * @param configurer The configuration closure, delegating to {@link Chain}
    */
-  void handlers(@DelegatesTo(value = Chain.class, strategy = Closure.DELEGATE_ONLY) Closure<?> configurer);
+  void handlers(@DelegatesTo(value = Chain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer);
 
 }

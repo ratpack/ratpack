@@ -29,51 +29,51 @@ import org.ratpackframework.util.Action;
 
 public abstract class ClosureHandlers {
 
-  public static Handler handler(@DelegatesTo(value = Context.class, strategy = Closure.DELEGATE_ONLY) final Closure<?> handler) {
+  public static Handler handler(@DelegatesTo(value = Context.class, strategy = Closure.DELEGATE_FIRST) final Closure<?> handler) {
     return new ClosureBackedHandler(handler);
   }
 
-  public static Handler register(final Object service, @DelegatesTo(value = Chain.class, strategy = Closure.DELEGATE_ONLY) final Closure<?> handlers) {
+  public static Handler register(final Object service, @DelegatesTo(value = Chain.class, strategy = Closure.DELEGATE_FIRST) final Closure<?> handlers) {
     return Handlers.register(service, chain(handlers));
   }
 
-  public static <T> Handler register(Class<? super T> type, T object, @DelegatesTo(value = Chain.class, strategy = Closure.DELEGATE_ONLY) final Closure<?> handlers) {
+  public static <T> Handler register(Class<? super T> type, T object, @DelegatesTo(value = Chain.class, strategy = Closure.DELEGATE_FIRST) final Closure<?> handlers) {
     return Handlers.register(type, object, chain(handlers));
   }
 
-  private static Action<Chain> chain(@DelegatesTo(value = Chain.class, strategy = Closure.DELEGATE_ONLY) Closure<?> handlers) {
+  private static Action<Chain> chain(@DelegatesTo(value = Chain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handlers) {
     return Util.action(Chain.class, handlers);
   }
 
-  public static Handler fileSystem(String path, @DelegatesTo(value = Chain.class, strategy = Closure.DELEGATE_ONLY) Closure<?> handlers) {
+  public static Handler fileSystem(String path, @DelegatesTo(value = Chain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handlers) {
     return Handlers.fileSystem(path, chain(handlers));
   }
 
-  public static Handler path(String path, @DelegatesTo(value = Chain.class, strategy = Closure.DELEGATE_ONLY) Closure<?> handlers) {
+  public static Handler path(String path, @DelegatesTo(value = Chain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handlers) {
     return Handlers.prefix(path, chain(handlers));
   }
 
-  public static Handler handler(String path, @DelegatesTo(value = Context.class, strategy = Closure.DELEGATE_ONLY) final Closure<?> closure) {
+  public static Handler handler(String path, @DelegatesTo(value = Context.class, strategy = Closure.DELEGATE_FIRST) final Closure<?> closure) {
     return Handlers.path(path, handler(closure));
   }
 
-  public static Handler get(String path, @DelegatesTo(value = Context.class, strategy = Closure.DELEGATE_ONLY) final Closure<?> closure) {
+  public static Handler get(String path, @DelegatesTo(value = Context.class, strategy = Closure.DELEGATE_FIRST) final Closure<?> closure) {
     return Handlers.path(path, ImmutableList.<Handler>builder().add(Handlers.get(), handler(closure)).build());
   }
 
-  public static Handler get(@DelegatesTo(value = Context.class, strategy = Closure.DELEGATE_ONLY) final Closure<?> closure) {
+  public static Handler get(@DelegatesTo(value = Context.class, strategy = Closure.DELEGATE_FIRST) final Closure<?> closure) {
     return Handlers.path("", ImmutableList.<Handler>builder().add(Handlers.get(), handler(closure)).build());
   }
 
-  public static Handler post(String path, @DelegatesTo(value = Context.class, strategy = Closure.DELEGATE_ONLY) final Closure<?> closure) {
+  public static Handler post(String path, @DelegatesTo(value = Context.class, strategy = Closure.DELEGATE_FIRST) final Closure<?> closure) {
     return Handlers.path(path, ImmutableList.<Handler>builder().add(Handlers.post(), handler(closure)).build());
   }
 
-  public static Handler put(String path, @DelegatesTo(value = Context.class, strategy = Closure.DELEGATE_ONLY) final Closure<?> closure) {
+  public static Handler put(String path, @DelegatesTo(value = Context.class, strategy = Closure.DELEGATE_FIRST) final Closure<?> closure) {
     return Handlers.path(path, ImmutableList.<Handler>builder().add(Handlers.put(), handler(closure)).build());
   }
 
-  public static Handler delete(String path, @DelegatesTo(value = Context.class, strategy = Closure.DELEGATE_ONLY) final Closure<?> closure) {
+  public static Handler delete(String path, @DelegatesTo(value = Context.class, strategy = Closure.DELEGATE_FIRST) final Closure<?> closure) {
     return Handlers.path(path, ImmutableList.<Handler>builder().add(Handlers.delete(), handler(closure)).build());
   }
 
