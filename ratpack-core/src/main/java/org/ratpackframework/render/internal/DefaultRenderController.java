@@ -64,7 +64,7 @@ public class DefaultRenderController implements RenderController {
     if (accepted == null) {
       return null;
     } else {
-      return new DefaultRenderOperation<R>(context, renderer, accepted);
+      return new DefaultRenderOperation<>(context, renderer, accepted);
     }
   }
 

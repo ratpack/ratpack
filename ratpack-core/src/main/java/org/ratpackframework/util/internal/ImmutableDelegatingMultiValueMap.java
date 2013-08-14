@@ -96,10 +96,10 @@ public class ImmutableDelegatingMultiValueMap<K, V> implements MultiValueMap<K, 
 
   @SuppressWarnings("NullableProblems")
   public Set<Entry<K, V>> entrySet() {
-    Set<Entry<K, V>> result = new HashSet<Entry<K, V>>();
+    Set<Entry<K, V>> result = new HashSet<>();
     for (Entry<? extends K, ? extends List<? extends V>> entry : delegate.entrySet()) {
       if (entry.getValue().size() > 0) {
-        result.add(new AbstractMap.SimpleImmutableEntry<K, V>(entry.getKey(), entry.getValue().get(0)));
+        result.add(new AbstractMap.SimpleImmutableEntry<>(entry.getKey(), entry.getValue().get(0)));
       }
     }
 

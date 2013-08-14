@@ -42,7 +42,7 @@ public final class MimeParse {
   protected static ParseResults parseMimeType(String mimeType) {
     String[] parts = mimeType.split(";");
     ParseResults results = new ParseResults();
-    results.params = new HashMap<String, String>();
+    results.params = new HashMap<>();
 
     for (int i = 1; i < parts.length; ++i) {
       String p = parts[i];
@@ -140,8 +140,8 @@ public final class MimeParse {
   }
 
   public static String bestMatch(Iterable<String> supported, String header) {
-    List<ParseResults> parseResults = new LinkedList<ParseResults>();
-    List<FitnessAndQuality> weightedMatches = new LinkedList<FitnessAndQuality>();
+    List<ParseResults> parseResults = new LinkedList<>();
+    List<FitnessAndQuality> weightedMatches = new LinkedList<>();
     for (String r : header.split(",")) {
       parseResults.add(parseMediaRange(r));
     }

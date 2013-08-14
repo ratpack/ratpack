@@ -202,7 +202,7 @@ public class DefaultResponse implements Response {
 
   public Set<Cookie> getCookies() {
     if (cookies == null) {
-      cookies = new HashSet<Cookie>();
+      cookies = new HashSet<>();
     }
     return cookies;
   }

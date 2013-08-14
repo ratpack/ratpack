@@ -33,7 +33,7 @@ public class ChainBuilder {
   }
 
   public <T> ImmutableList<Handler> buildList(Transformer<List<Handler>, ? extends T> transformer, Action<? super T> action) {
-    List<Handler> handlers = new LinkedList<Handler>();
+    List<Handler> handlers = new LinkedList<>();
     T thing = transformer.transform(handlers);
     action.execute(thing);
     return ImmutableList.copyOf(handlers);

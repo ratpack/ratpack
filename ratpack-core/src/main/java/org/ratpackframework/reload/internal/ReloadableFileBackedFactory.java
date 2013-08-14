@@ -34,8 +34,8 @@ public class ReloadableFileBackedFactory<T> implements Factory<T> {
   private final Delegate<T> delegate;
 
   private final AtomicLong lastModifiedHolder = new AtomicLong(-1);
-  private final AtomicReference<ByteBuf> contentHolder = new AtomicReference<ByteBuf>();
-  private final AtomicReference<T> delegateHolder = new AtomicReference<T>(null);
+  private final AtomicReference<ByteBuf> contentHolder = new AtomicReference<>();
+  private final AtomicReference<T> delegateHolder = new AtomicReference<>(null);
   private final Lock lock = new ReentrantLock();
 
   static public interface Delegate<T> {

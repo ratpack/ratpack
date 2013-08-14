@@ -49,7 +49,7 @@ public class InjectorBindingHandler implements Handler {
     RenderController parentRenderController = context.maybeGet(RenderController.class);
     RenderController renderController = new DefaultRenderController(parentRenderController, renderers);
 
-    Registry<Object> registry = new ObjectHoldingChildRegistry<Object>(injectorRegistry, RenderController.class, renderController);
+    Registry<Object> registry = new ObjectHoldingChildRegistry<>(injectorRegistry, RenderController.class, renderController);
 
     context.insert(registry, delegate);
   }
