@@ -51,7 +51,7 @@ public abstract class Util {
   }
 
   // Type token is here for in the future when @DelegatesTo supports this kind of API
-  public static <T> Action<T> action(@SuppressWarnings("UnusedParameters") Class<T> type, final Closure<?> configurer) {
+  public static <T> Action<T> delegatingAction(@SuppressWarnings("UnusedParameters") Class<T> type, final Closure<?> configurer) {
     return new Action<T>() {
       public void execute(T object) {
         configureDelegateFirst(object, configurer);
@@ -59,8 +59,13 @@ public abstract class Util {
     };
   }
 
-  public static Action<Object> action(final Closure<?> configurer) {
-    return action(Object.class, configurer);
+  public static Action<Object> delegatingAction(final Closure<?> configurer) {
+    return delegatingAction(Object.class, configurer);
+  }
+
+  public static Action<Object> action(final Closure<?> closure) {
+    final Closure<?> copy = closure.rehydrate(null, closure.getOwner(), closure.getThisObject());
+    return new NoDelegateClosureAction(copy);
   }
 
   @NonBlocking
@@ -73,4 +78,17 @@ public abstract class Util {
     blocking.exec(operation).onError(action(onFailure)).then(action(onSuccess));
   }
 
+  private static class NoDelegateClosureAction implements Action<Object> {
+
+    private final Closure<?> copy;
+
+    public NoDelegateClosureAction(Closure<?> copy) {
+      this.copy = copy;
+    }
+
+    @Override
+    public void execute(Object thing) {
+      copy.call(thing);
+    }
+  }
 }

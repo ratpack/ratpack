@@ -166,4 +166,21 @@ class BlockingSpec extends RatpackGroovyDslSpec {
     response.statusCode == 500
   }
 
+  def "delegate in closure actions is no the arg"() {
+    when:
+    app {
+      handlers {
+        handler {
+          exec blocking, {
+            [foo: "bar"]
+          }, {
+            response.send it.toString()
+          }
+        }
+      }
+    }
+
+    then:
+    getText() == [foo: "bar"].toString()
+  }
 }

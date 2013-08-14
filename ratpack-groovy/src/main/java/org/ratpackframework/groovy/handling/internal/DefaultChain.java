@@ -80,7 +80,7 @@ public class DefaultChain extends org.ratpackframework.handling.internal.Default
   }
 
   private ImmutableList<Handler> toHandlerList(Closure<?> handlers) {
-    return ChainBuilder.INSTANCE.buildList(new GroovyDslChainActionTransformer(getRegistry()), Util.action(handlers));
+    return ChainBuilder.INSTANCE.buildList(new GroovyDslChainActionTransformer(getRegistry()), Util.delegatingAction(handlers));
   }
 
 }

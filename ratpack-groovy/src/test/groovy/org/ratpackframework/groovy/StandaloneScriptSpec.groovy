@@ -16,12 +16,10 @@
 
 package org.ratpackframework.groovy
 
-import com.google.common.collect.ImmutableMap
 import com.google.common.util.concurrent.AbstractIdleService
 import org.ratpackframework.groovy.internal.StandaloneScriptBacking
 import org.ratpackframework.groovy.launch.GroovyScriptHandlerFactory
 import org.ratpackframework.launch.LaunchConfigBuilder
-import org.ratpackframework.launch.internal.DefaultLaunchConfig
 import org.ratpackframework.server.RatpackServer
 import org.ratpackframework.server.internal.RatpackService
 import org.ratpackframework.server.internal.ServiceBackedServer
@@ -37,7 +35,7 @@ class StandaloneScriptSpec extends RatpackGroovyScriptAppSpec {
       def shell = new GroovyShell(getClass().classLoader)
       def script = shell.parse(StandaloneScriptSpec.this.ratpackFile)
 
-      StandaloneScriptBacking.captureNext(Util.action {
+      StandaloneScriptBacking.captureNext(Util.delegatingAction {
         server = it
       })
 
