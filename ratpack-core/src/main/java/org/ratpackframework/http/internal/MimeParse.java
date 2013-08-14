@@ -134,11 +134,6 @@ public final class MimeParse {
     return new FitnessAndQuality(bestFitness, bestFitQ);
   }
 
-  protected static float qualityParsed(String mimeType,
-                                       Collection<ParseResults> parsedRanges) {
-    return fitnessAndQualityParsed(mimeType, parsedRanges).quality;
-  }
-
   public static String bestMatch(Iterable<String> supported, String header) {
     List<ParseResults> parseResults = new LinkedList<>();
     List<FitnessAndQuality> weightedMatches = new LinkedList<>();
