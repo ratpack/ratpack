@@ -37,13 +37,13 @@ class ServiceUsingHandlerSpec extends DefaultRatpackSpec {
     thrown ServiceUsingHandler.NoSuitableHandleMethodException
   }
 
-  static class NoHandleMethodWithExchange extends ServiceUsingHandler {
+  static class NoHandleMethodWithContextAsFirstParam extends ServiceUsingHandler {
     void handle(String foo) {}
   }
 
-  def "must have handle method with exchange as first param"() {
+  def "must have handle method with context as first param"() {
     when:
-    new NoHandleMethodWithExchange()
+    new NoHandleMethodWithContextAsFirstParam()
 
     then:
     thrown ServiceUsingHandler.NoSuitableHandleMethodException
