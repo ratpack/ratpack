@@ -16,63 +16,86 @@
 
 package org.ratpackframework.file.internal;
 
-import io.netty.channel.*;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.LastHttpContent;
 import io.netty.handler.stream.ChunkedFile;
+import org.ratpackframework.block.Blocking;
+import org.ratpackframework.util.Action;
 
-import java.io.*;
+import java.io.Closeable;
+import java.io.File;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.util.Date;
+import java.util.concurrent.Callable;
 
 import static io.netty.handler.codec.http.HttpHeaders.Names.CONNECTION;
 import static io.netty.handler.codec.http.HttpHeaders.Values.KEEP_ALIVE;
 
 public class FileHttpTransmitter {
 
-  public boolean transmit(final File targetFile, HttpResponse response, Channel channel) {
-    final RandomAccessFile raf;
-    try {
-      raf = new RandomAccessFile(targetFile, "r");
-    } catch (FileNotFoundException fnfe) {
-      throw new RuntimeException(fnfe);
-    }
+  public static class FileServingInfo {
+    public final long lastModified;
+    public final long length;
+    public final RandomAccessFile randomAccessFile;
 
-    long fileLength;
-    try {
-      fileLength = raf.length();
-    } catch (IOException e) {
-      closeQuietly(raf);
-      throw new RuntimeException(e);
+    public FileServingInfo(long lastModified, long length, RandomAccessFile randomAccessFile) {
+      this.lastModified = lastModified;
+      this.length = length;
+      this.randomAccessFile = randomAccessFile;
     }
+  }
 
-    response.headers().set(HttpHeaders.Names.CONTENT_LENGTH, fileLength);
-    HttpHeaders.setDateHeader(response, HttpHeaders.Names.LAST_MODIFIED, new Date(targetFile.lastModified()));
+  public void transmit(final Blocking blocking, final File file, final HttpResponse response, final Channel channel) {
+    blocking.exec(new Callable<FileServingInfo>() {
+      @Override
+      public FileServingInfo call() throws Exception {
+        long lastModified = file.lastModified();
+        long length = file.length();
+        RandomAccessFile randomAccessFile = new RandomAccessFile(file, "r");
+
+        return new FileServingInfo(lastModified, length, randomAccessFile);
+      }
+    }).then(new Action<FileServingInfo>() {
+      @Override
+      public void execute(FileServingInfo fileServingInfo) {
+        transmit(fileServingInfo, response, channel);
+      }
+    });
+  }
+
+  public void transmit(FileServingInfo fileServingInfo, HttpResponse response, Channel channel) {
+
+    response.headers().set(HttpHeaders.Names.CONTENT_LENGTH, fileServingInfo.length);
+    HttpHeaders.setDateHeader(response, HttpHeaders.Names.LAST_MODIFIED, new Date(fileServingInfo.lastModified));
 
     // Write the initial line and the header.
     if (!channel.isOpen()) {
-      closeQuietly(raf);
-      return false;
+      closeQuietly(fileServingInfo.randomAccessFile);
+      return;
     }
 
     try {
       channel.write(response);
     } catch (Exception e) {
-      closeQuietly(raf);
+      closeQuietly(fileServingInfo.randomAccessFile);
+      return;
     }
 
-    // Write the content.
     ChannelFuture writeFuture;
-
     ChunkedFile message;
     try {
-      message = new ChunkedFile(raf, 0, fileLength, 8192);
+      message = new ChunkedFile(fileServingInfo.randomAccessFile, 0, fileServingInfo.length, 8192);
       writeFuture = channel.writeAndFlush(message);
     } catch (Exception ignore) {
       if (channel.isOpen()) {
         channel.close();
       }
-      return false;
+      return;
     }
 
     final ChunkedFile finalMessage = message;
@@ -90,8 +113,6 @@ public class FileHttpTransmitter {
     if (!KEEP_ALIVE.equals(response.headers().get(CONNECTION))) {
       lastContentFuture.addListener(ChannelFutureListener.CLOSE);
     }
-
-    return true;
   }
 
   private void closeQuietly(Closeable closeable) {

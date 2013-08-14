@@ -73,7 +73,7 @@ public class FileRenderer extends ByTypeRenderer<File> {
     }
 
     String contentType = context.get(MimeTypes.class).getContentType(targetFile.getName());
-    response.sendFile(contentType, targetFile);
+    response.sendFile(context.getBlocking(), contentType, targetFile);
   }
 
 }
