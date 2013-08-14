@@ -29,7 +29,7 @@ import static io.netty.handler.codec.http.HttpResponseStatus.METHOD_NOT_ALLOWED;
 
 public class DefaultByMethodResponder implements ByMethodResponder {
 
-  private final Map<String, Runnable> runnables = new LinkedHashMap<String, Runnable>(2);
+  private final Map<String, Runnable> runnables = new LinkedHashMap<>(2);
 
   public ByMethodResponder get(Runnable runnable) {
     return named("get", runnable);
@@ -71,7 +71,7 @@ public class DefaultByMethodResponder implements ByMethodResponder {
   }
 
   public void respond(Context context) {
-    List<Handler> handlers = new ArrayList<Handler>(runnables.size() + 1);
+    List<Handler> handlers = new ArrayList<>(runnables.size() + 1);
     for (Map.Entry<String, Runnable> entry : runnables.entrySet()) {
       handlers.add(new ByMethodHandler(entry.getKey(), entry.getValue()));
     }

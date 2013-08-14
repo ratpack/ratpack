@@ -23,7 +23,7 @@ import org.ratpackframework.file.internal.DefaultFileSystemBinding
 import org.ratpackframework.test.DefaultRatpackSpec
 import org.ratpackframework.util.Action
 
-import static org.ratpackframework.handling.Handlers.service
+import static org.ratpackframework.handling.Handlers.register
 
 class ServiceUsingHandlerSpec extends DefaultRatpackSpec {
 
@@ -37,13 +37,13 @@ class ServiceUsingHandlerSpec extends DefaultRatpackSpec {
     thrown ServiceUsingHandler.NoSuitableHandleMethodException
   }
 
-  static class NoHandleMethodWithExchange extends ServiceUsingHandler {
+  static class NoHandleMethodWithContextAsFirstParam extends ServiceUsingHandler {
     void handle(String foo) {}
   }
 
-  def "must have handle method with exchange as first param"() {
+  def "must have handle method with context as first param"() {
     when:
-    new NoHandleMethodWithExchange()
+    new NoHandleMethodWithContextAsFirstParam()
 
     then:
     thrown ServiceUsingHandler.NoSuitableHandleMethodException
@@ -105,7 +105,7 @@ class ServiceUsingHandlerSpec extends DefaultRatpackSpec {
     when:
     app {
       handlers {
-        add service(ServerErrorHandler, new MessageServerErrorHandler(), new Action<Chain>() {
+        add register(ServerErrorHandler, new MessageServerErrorHandler(), new Action<Chain>() {
           void execute(Chain handlers) {
             handlers.add(new InjectedBadHandler())
           }

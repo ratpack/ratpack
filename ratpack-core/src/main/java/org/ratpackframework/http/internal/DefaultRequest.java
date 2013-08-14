@@ -17,6 +17,7 @@
 package org.ratpackframework.http.internal;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufInputStream;
 import io.netty.handler.codec.http.*;
 import org.ratpackframework.http.HttpMethod;
 import org.ratpackframework.http.MediaType;
@@ -24,6 +25,7 @@ import org.ratpackframework.http.Request;
 import org.ratpackframework.util.MultiValueMap;
 import org.ratpackframework.util.internal.ImmutableDelegatingMultiValueMap;
 
+import java.io.*;
 import java.nio.charset.Charset;
 import java.util.*;
 
@@ -48,7 +50,7 @@ public class DefaultRequest implements Request {
   public MultiValueMap<String, String> getQueryParams() {
     if (queryParams == null) {
       QueryStringDecoder queryStringDecoder = new QueryStringDecoder(getUri());
-      queryParams = new ImmutableDelegatingMultiValueMap<String, String>(queryStringDecoder.parameters());
+      queryParams = new ImmutableDelegatingMultiValueMap<>(queryStringDecoder.parameters());
     }
     return queryParams;
   }
@@ -101,6 +103,34 @@ public class DefaultRequest implements Request {
     return getBuffer().toString(Charset.forName(getContentType().getCharset()));
   }
 
+  @Override
+  public byte[] getBytes() {
+    ByteBuf buffer = getBuffer();
+    if (buffer.hasArray()) {
+      return buffer.array();
+    } else {
+      ByteArrayOutputStream baos = new ByteArrayOutputStream(buffer.writerIndex());
+      try {
+        writeBodyTo(baos);
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+      return baos.toByteArray();
+    }
+  }
+
+  @Override
+  public void writeBodyTo(OutputStream destination) throws IOException {
+    ByteBuf buffer = getBuffer();
+    buffer.resetReaderIndex();
+    buffer.readBytes(destination, buffer.writerIndex());
+  }
+
+  @Override
+  public InputStream getInputStream() {
+    return new ByteBufInputStream(getBuffer());
+  }
+
   private ByteBuf getBuffer() {
     return nettyRequest.content();
   }
@@ -108,7 +138,7 @@ public class DefaultRequest implements Request {
   public MultiValueMap<String, String> getForm() {
     if (form == null) {
       QueryStringDecoder formDecoder = new QueryStringDecoder(getText(), false);
-      form = new ImmutableDelegatingMultiValueMap<String, String>(formDecoder.parameters());
+      form = new ImmutableDelegatingMultiValueMap<>(formDecoder.parameters());
     }
     return form;
   }
@@ -134,7 +164,7 @@ public class DefaultRequest implements Request {
         if (found == null) {
           found = cookie;
         } else if (allFound == null) {
-          allFound = new ArrayList<Cookie>(2);
+          allFound = new ArrayList<>(2);
           allFound.add(found);
         } else {
           allFound.add(cookie);

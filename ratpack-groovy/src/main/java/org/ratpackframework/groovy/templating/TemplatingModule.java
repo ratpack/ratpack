@@ -16,22 +16,17 @@
 
 package org.ratpackframework.groovy.templating;
 
-import com.google.common.collect.ImmutableList;
 import com.google.inject.AbstractModule;
-import com.google.inject.Injector;
 import com.google.inject.Provides;
 import org.ratpackframework.error.ClientErrorHandler;
 import org.ratpackframework.error.ServerErrorHandler;
 import org.ratpackframework.groovy.templating.internal.*;
-import org.ratpackframework.guice.HandlerDecoratingModule;
-import org.ratpackframework.handling.Handler;
-import org.ratpackframework.handling.Handlers;
 import org.ratpackframework.launch.LaunchConfig;
 
 import javax.inject.Singleton;
 
 @SuppressWarnings("UnusedDeclaration")
-public class TemplatingModule extends AbstractModule implements HandlerDecoratingModule {
+public class TemplatingModule extends AbstractModule {
 
   private String templatesPath = "templates";
   private int cacheSize = 100;
@@ -76,10 +71,6 @@ public class TemplatingModule extends AbstractModule implements HandlerDecoratin
     bind(ClientErrorHandler.class).to(TemplateRenderingClientErrorHandler.class).in(Singleton.class);
     bind(ServerErrorHandler.class).to(TemplateRenderingServerErrorHandler.class).in(Singleton.class);
     bind(TemplateRenderer.class);
-  }
-
-  public Handler decorate(Injector injector, Handler handler) {
-    return Handlers.chain(ImmutableList.of(handler, new org.ratpackframework.handling.internal.ClientErrorHandler(404)));
   }
 
   @Provides

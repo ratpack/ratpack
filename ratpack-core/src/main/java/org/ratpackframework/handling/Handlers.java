@@ -76,14 +76,14 @@ public abstract class Handlers {
    * Creates a handler that inserts the handler chain defined by the builder, with the given service addition.
    * <p>
    * The service object will be available by its concrete type.
-   * To make it available by a different type (perhaps one of its interfaces) use {@link #service(Class, Object, org.ratpackframework.util.Action)}.
+   * To make it available by a different type (perhaps one of its interfaces) use {@link #register(Class, Object, org.ratpackframework.util.Action)}.
    *
    * @param object The object to add to the service, only for the handlers defined by {@code builder}
    * @param builder The definition of the handler chain to insert with the service
    * @return A handler
    */
-  public static Handler service(Object object, Action<? super Chain> builder) {
-    return service(object, chainList(builder));
+  public static Handler register(Object object, Action<? super Chain> builder) {
+    return register(object, chainList(builder));
   }
 
   /**
@@ -95,23 +95,23 @@ public abstract class Handlers {
    * @param <T> The concrete type of the service addition
    * @return A handler
    */
-  public static <T> Handler service(Class<? super T> type, T object, Action<? super Chain> builder) {
-    return service(type, object, chainList(builder));
+  public static <T> Handler register(Class<? super T> type, T object, Action<? super Chain> builder) {
+    return register(type, object, chainList(builder));
   }
 
   /**
    * Creates a handler that inserts the handler chain defined by the builder, with the given service addition.
    * <p>
    * The service object will be available by its concrete type.
-   * To make it available by a different type (perhaps one of its interfaces) use {@link #service(Class, Object, List)}.
+   * To make it available by a different type (perhaps one of its interfaces) use {@link #register(Class, Object, List)}.
 
    * @param object The object to add to the service, only for the handlers defined by {@code builder}
    * @param handlers The handler to
    * @param <T> The concrete type of the service addition
    * @return A handler
    */
-  public static <T> Handler service(T object, List<Handler> handlers) {
-    return new ServiceInsertingHandler(object, ImmutableList.copyOf(handlers));
+  public static <T> Handler register(T object, List<Handler> handlers) {
+    return new RegisteringHandler(object, ImmutableList.copyOf(handlers));
   }
 
   /**
@@ -123,8 +123,8 @@ public abstract class Handlers {
    * @param <T> The concrete type of the service addition
    * @return A handler
    */
-  public static <T> Handler service(Class<? super T> type, T object, List<Handler> handlers) {
-    return new ServiceInsertingHandler(type, object, ImmutableList.copyOf(handlers));
+  public static <T> Handler register(Class<? super T> type, T object, List<Handler> handlers) {
+    return new RegisteringHandler(type, object, ImmutableList.copyOf(handlers));
   }
 
   /**

@@ -76,7 +76,8 @@ public class DefaultResponse implements Response {
     commit();
   }
 
-  protected Response contentType(String contentType) {
+  @Override
+  public Response contentType(String contentType) {
     setHeader(HttpHeaders.Names.CONTENT_TYPE, DefaultMediaType.utf8(contentType).toString());
     return this;
   }
@@ -103,11 +104,30 @@ public class DefaultResponse implements Response {
     }
   }
 
+  public void send(byte[] bytes) {
+    ByteBuf buffer = IoUtils.byteBuf(bytes);
+    send(buffer);
+  }
+
+  public void send(String contentType, byte[] bytes) {
+    ByteBuf buffer = IoUtils.byteBuf(bytes);
+    send(contentType, buffer);
+  }
+
   public void send(String contentType, ByteBuf buffer) {
     contentType(contentType);
+    send(buffer);
+  }
+
+  public void send(ByteBuf buffer) {
+    if (!contentTypeSet) {
+      contentType("application/octet-stream");
+    }
+
     if (!contentLengthSet) {
       setHeader(HttpHeaders.Names.CONTENT_LENGTH, buffer.writerIndex());
     }
+
     response.content().writeBytes(buffer);
     commit();
   }
@@ -182,7 +202,7 @@ public class DefaultResponse implements Response {
 
   public Set<Cookie> getCookies() {
     if (cookies == null) {
-      cookies = new HashSet<Cookie>();
+      cookies = new HashSet<>();
     }
     return cookies;
   }

@@ -109,6 +109,30 @@ public interface Response {
   void send(String text);
 
   /**
+   * Sends the response, using "{@code application/octet-stream}" as the content type (if a content type hasn't
+   * already been set) and the given byte array as the response body.
+   *
+   * @param bytes The response body
+   */
+  void send(byte[] bytes);
+
+  /**
+   * Sends the response, using the given content type and byte array as the response body.
+   *
+   * @param contentType The value of the {@code Content-Type} header
+   * @param bytes The response body
+   */
+  void send(String contentType, byte[] bytes);
+
+  /**
+   * Sends the response, using "{@code application/octet-stream}" as the content type (if a content type hasn't
+   * already been set) and the given bytes as the response body.
+   *
+   * @param buffer The response body
+   */
+  void send(ByteBuf buffer);
+
+  /**
    * Sends the response, using the given content type and bytes as the response body.
    *
    * @param contentType The value of the {@code Content-Type} header
@@ -123,6 +147,14 @@ public interface Response {
    * @param file The file whose contents are to be used as the response body
    */
   void sendFile(String contentType, File file);
+
+  /**
+   * Sets the response {@code Content-Type} header.
+   *
+   * @param contentType The value of the {@code Content-Type} header
+   * @return This
+   */
+  Response contentType(String contentType);
 
   /**
    * Returns the header value with the specified header name.

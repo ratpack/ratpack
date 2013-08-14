@@ -20,6 +20,9 @@ import io.netty.handler.codec.http.Cookie;
 import org.ratpackframework.api.Nullable;
 import org.ratpackframework.util.MultiValueMap;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -113,6 +116,32 @@ public interface Request {
   String getText();
 
   /**
+   * The request body as bytes.
+   * <p>
+   * If there is no request body, or it is 0 length, an empty byte array will be returned.
+   *
+   * @return The request body as bytes.
+   */
+  byte[] getBytes();
+
+  /**
+   * Writes the request body bytes to the given output stream.
+   * <p>
+   * If there is no request body, or it is 0 length, nothing will be written to the stream.
+   *
+   * @param destination The stream to write the bytes to
+   * @throws IOException If destination throws an exception during writing
+   */
+  void writeBodyTo(OutputStream destination) throws IOException;
+
+  /**
+   * Provides an input stream of the request body.
+   *
+   * @return an input stream of the request body.
+   */
+  InputStream getInputStream();
+
+  /**
    * Returns the header value with the specified header name.
    * <p>
    * If there is more than one header value for the specified header name, the first value is returned.
@@ -156,5 +185,4 @@ public interface Request {
    * @return The names of all headers that were sent
    */
   Set<String> getHeaderNames();
-
 }

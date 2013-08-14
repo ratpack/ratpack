@@ -16,6 +16,7 @@
 
 package org.ratpackframework.guice.internal;
 
+import com.google.common.collect.ImmutableList;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
@@ -23,6 +24,8 @@ import com.google.inject.util.Modules;
 import org.ratpackframework.guice.HandlerDecoratingModule;
 import org.ratpackframework.guice.ModuleRegistry;
 import org.ratpackframework.handling.Handler;
+import org.ratpackframework.handling.Handlers;
+import org.ratpackframework.handling.internal.ClientErrorHandler;
 import org.ratpackframework.launch.LaunchConfig;
 import org.ratpackframework.util.Action;
 import org.ratpackframework.util.Transformer;
@@ -73,7 +76,7 @@ public class DefaultGuiceBackedHandlerFactory implements GuiceBackedHandlerFacto
       }
     }
 
-    decorated = decorateHandler(decorated);
+    decorated = Handlers.chain(ImmutableList.of(decorateHandler(decorated), new ClientErrorHandler(404)));
 
     return new InjectorBindingHandler(injector, decorated);
   }

@@ -22,7 +22,7 @@ import org.ratpackframework.handling.Context;
 import org.ratpackframework.session.Session;
 import org.ratpackframework.session.SessionManager;
 
-public class ExchangeSessionManager {
+public class RequestSessionManager {
 
   private static final String COOKIE_NAME = "JSESSIONID";
 
@@ -32,7 +32,7 @@ public class ExchangeSessionManager {
   private String cookieSessionId;
   private String assignedCookieId;
 
-  public ExchangeSessionManager(Context context, SessionManager sessionManager) {
+  public RequestSessionManager(Context context, SessionManager sessionManager) {
     this.context = context;
     this.sessionManager = sessionManager;
   }

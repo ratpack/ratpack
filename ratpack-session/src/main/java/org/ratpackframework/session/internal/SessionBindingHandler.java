@@ -35,12 +35,12 @@ public class SessionBindingHandler implements Handler {
     this.delegate = ImmutableList.of(delegate);
   }
 
-  public void handle(Context context) {
-    SessionManager sessionManager = context.get(SessionManager.class);
-    final ExchangeSessionManager exchangeSessionManager = new ExchangeSessionManager(context, sessionManager);
-    Registry<Object> registry = new LazyChildRegistry<Object, Session>(context, Session.class, new Factory<Session>() {
+  public void handle(final Context context) {
+    Registry<Object> registry = new LazyChildRegistry<>(context, Session.class, new Factory<Session>() {
       public Session create() {
-        return exchangeSessionManager.getSession();
+        SessionManager sessionManager = context.get(SessionManager.class);
+        final RequestSessionManager requestSessionManager = new RequestSessionManager(context, sessionManager);
+        return requestSessionManager.getSession();
       }
     });
     context.insert(registry, delegate);

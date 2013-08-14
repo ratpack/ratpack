@@ -47,9 +47,9 @@ class FileRenderingSpec extends RatpackGroovyDslSpec {
     then:
     with (response) {
       statusCode == OK.code()
-      response.body.asString().contains(FILE_CONTENTS)
-      response.contentType.equals("text/plain;charset=UTF-8")
-      response.header(CONTENT_LENGTH).toInteger() == FILE_CONTENTS.length()
+      body.asString().contains(FILE_CONTENTS)
+      contentType.equals("text/plain;charset=UTF-8")
+      header(CONTENT_LENGTH).toInteger() == FILE_CONTENTS.length()
     }
   }
 
@@ -70,7 +70,7 @@ class FileRenderingSpec extends RatpackGroovyDslSpec {
     then:
     with (response) {
       statusCode ==  NOT_MODIFIED.code()
-      response.header(CONTENT_LENGTH).toInteger() == 0
+      header(CONTENT_LENGTH).toInteger() == 0
     }
   }
 

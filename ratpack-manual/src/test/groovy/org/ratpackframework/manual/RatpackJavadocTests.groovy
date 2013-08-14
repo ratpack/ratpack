@@ -52,7 +52,7 @@ class RatpackJavadocTests extends JavadocTestCase {
         tests.testCodeSnippets(mainSrc, "**/*.java", "groovy-chain-dsl", new DefaultScriptRunner(groovyChainDslPrefix, groovyDslSuffix))
 
         def groovyRatpackDslPrefix = """
-          def ratpack(@DelegatesTo(value = org.ratpackframework.groovy.Ratpack, strategy = Closure.DELEGATE_ONLY) Closure closure) { }
+          def ratpack(@DelegatesTo(value = org.ratpackframework.groovy.Ratpack, strategy = Closure.DELEGATE_FIRST) Closure closure) { }
 
 
           ratpack {

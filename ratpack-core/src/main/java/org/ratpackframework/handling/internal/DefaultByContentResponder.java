@@ -25,7 +25,7 @@ import java.util.*;
 
 public class DefaultByContentResponder implements ByContentResponder {
 
-  private final Map<String, Runnable> map = new LinkedHashMap<String, Runnable>(3);
+  private final Map<String, Runnable> map = new LinkedHashMap<>(3);
   private String first;
 
   public ByContentResponder type(String mimeType, Runnable runnable) {
@@ -67,7 +67,7 @@ public class DefaultByContentResponder implements ByContentResponder {
       return;
     }
 
-    List<String> types = new ArrayList<String>(map.keySet());
+    List<String> types = new ArrayList<>(map.keySet());
     Collections.reverse(types);
     String winner = first;
 
