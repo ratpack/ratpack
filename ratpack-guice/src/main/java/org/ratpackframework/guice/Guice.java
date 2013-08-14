@@ -19,6 +19,7 @@ package org.ratpackframework.guice;
 import com.google.inject.Injector;
 import org.ratpackframework.guice.internal.DefaultGuiceBackedHandlerFactory;
 import org.ratpackframework.guice.internal.InjectorBackedChildRegistry;
+import org.ratpackframework.guice.internal.JustInTimeInjectorChildRegistry;
 import org.ratpackframework.guice.internal.JustInTimeInjectorRegistry;
 import org.ratpackframework.handling.Chain;
 import org.ratpackframework.handling.Handler;
@@ -104,7 +105,7 @@ public abstract class Guice {
    * @return A handler that makes the injector and its content available to the given handler
    */
   public static Handler handler(LaunchConfig launchConfig, Action<? super ModuleRegistry> moduleConfigurer, Handler handler) {
-    return handler(launchConfig, moduleConfigurer, new ConstantTransformer<Handler>(handler));
+    return handler(launchConfig, moduleConfigurer, new ConstantTransformer<>(handler));
   }
 
   public static Handler handler(LaunchConfig launchConfig, Action<? super ModuleRegistry> moduleConfigurer, Transformer<? super Injector, ? extends Handler> injectorTransformer) {
@@ -121,6 +122,10 @@ public abstract class Guice {
 
   public static Registry<Object> justInTimeRegistry(Injector injector) {
     return new JustInTimeInjectorRegistry(injector);
+  }
+
+  public static Registry<Object> justInTimeRegistry(Registry<Object> parent, Injector injector) {
+    return new JustInTimeInjectorChildRegistry(parent, injector);
   }
 
   public static Registry<Object> registry(Registry<Object> parent, Injector injector) {
