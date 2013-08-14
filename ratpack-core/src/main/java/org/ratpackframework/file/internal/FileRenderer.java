@@ -22,10 +22,12 @@ import org.ratpackframework.handling.Context;
 import org.ratpackframework.http.Request;
 import org.ratpackframework.http.Response;
 import org.ratpackframework.render.ByTypeRenderer;
+import org.ratpackframework.util.Action;
 
 import javax.inject.Inject;
 import java.io.File;
 import java.util.Date;
+import java.util.concurrent.Callable;
 
 import static io.netty.handler.codec.http.HttpHeaders.Names.IF_MODIFIED_SINCE;
 import static io.netty.handler.codec.http.HttpResponseStatus.FORBIDDEN;
@@ -39,16 +41,29 @@ public class FileRenderer extends ByTypeRenderer<File> {
   }
 
   @Override
-  public void render(Context context, File targetFile) {
-    Request request = context.getRequest();
-    Response response = context.getResponse();
+  public void render(final Context context, final File targetFile) {
+    final Request request = context.getRequest();
+    final Response response = context.getResponse();
 
     if (!targetFile.isFile()) {
       context.clientError(FORBIDDEN.code());
       return;
     }
 
-    long lastModifiedTime = targetFile.lastModified();
+    context.getBlocking().exec(new Callable<Long>() {
+      @Override
+      public Long call() throws Exception {
+        return targetFile.lastModified();
+      }
+    }).then(new Action<Long>() {
+      @Override
+      public void execute(Long lastModifiedTime) {
+        sendFile(context, targetFile, request, response, lastModifiedTime);
+      }
+    });
+  }
+
+  private void sendFile(Context context, File targetFile, Request request, Response response, long lastModifiedTime) {
     if (lastModifiedTime < 1) {
       context.next();
       return;
