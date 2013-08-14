@@ -35,6 +35,21 @@ class RequestBodyReadingSpec extends RatpackGroovyDslSpec {
     postText() == "foo"
   }
 
+  def "can get request body as input stream"() {
+    when:
+    app {
+      handlers {
+        post {
+          response.send new String(request.inputStream.bytes, "utf8")
+        }
+      }
+    }
+
+    then:
+    request.body("foo".getBytes("utf8"))
+    postText() == "foo"
+  }
+
   def "can get large request body as bytes"() {
     given:
     def string = "a" * 1024 * 9

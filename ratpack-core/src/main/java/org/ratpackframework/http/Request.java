@@ -21,6 +21,7 @@ import org.ratpackframework.api.Nullable;
 import org.ratpackframework.util.MultiValueMap;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Date;
 import java.util.List;
@@ -132,6 +133,13 @@ public interface Request {
    * @throws IOException If destination throws an exception during writing
    */
   void writeBodyTo(OutputStream destination) throws IOException;
+
+  /**
+   * Provides an input stream of the request body.
+   *
+   * @return an input stream of the request body.
+   */
+  InputStream getInputStream();
 
   /**
    * Returns the header value with the specified header name.

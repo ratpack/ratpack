@@ -17,6 +17,7 @@
 package org.ratpackframework.http.internal;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufInputStream;
 import io.netty.handler.codec.http.*;
 import org.ratpackframework.http.HttpMethod;
 import org.ratpackframework.http.MediaType;
@@ -24,9 +25,7 @@ import org.ratpackframework.http.Request;
 import org.ratpackframework.util.MultiValueMap;
 import org.ratpackframework.util.internal.ImmutableDelegatingMultiValueMap;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
 import java.nio.charset.Charset;
 import java.util.*;
 
@@ -125,6 +124,11 @@ public class DefaultRequest implements Request {
     ByteBuf buffer = getBuffer();
     buffer.resetReaderIndex();
     buffer.readBytes(destination, buffer.writerIndex());
+  }
+
+  @Override
+  public InputStream getInputStream() {
+    return new ByteBufInputStream(getBuffer());
   }
 
   private ByteBuf getBuffer() {
