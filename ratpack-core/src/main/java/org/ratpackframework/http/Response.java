@@ -18,7 +18,9 @@ package org.ratpackframework.http;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.Cookie;
+import org.ratpackframework.api.NonBlocking;
 import org.ratpackframework.api.Nullable;
+import org.ratpackframework.block.Blocking;
 
 import java.io.File;
 import java.util.List;
@@ -143,10 +145,12 @@ public interface Response {
   /**
    * Sends the response, using the given content type and the content of the given type as the response body.
    *
+   * @param blocking the blocking operation manager to use
    * @param contentType The value of the {@code Content-Type} header
    * @param file The file whose contents are to be used as the response body
    */
-  void sendFile(String contentType, File file);
+  @NonBlocking
+  void sendFile(Blocking blocking, String contentType, File file);
 
   /**
    * Sets the response {@code Content-Type} header.

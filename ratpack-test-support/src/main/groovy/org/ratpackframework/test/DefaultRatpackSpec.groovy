@@ -34,7 +34,7 @@ import org.ratpackframework.util.Transformer
 import org.ratpackframework.util.internal.ConstantTransformer
 
 import static Handlers.chain
-import static org.ratpackframework.groovy.Util.action
+import static org.ratpackframework.groovy.Util.delegatingAction
 import static org.ratpackframework.groovy.Util.configureDelegateFirst
 
 abstract class DefaultRatpackSpec extends InternalRatpackSpec {
@@ -78,7 +78,7 @@ abstract class DefaultRatpackSpec extends InternalRatpackSpec {
   }
 
   protected Action<? super ModuleRegistry> createModulesAction() {
-    action(ModuleRegistry) { ModuleRegistry registry ->
+    delegatingAction(ModuleRegistry) { ModuleRegistry registry ->
       this.modules.each {
         registry.register(it)
       }
@@ -87,7 +87,7 @@ abstract class DefaultRatpackSpec extends InternalRatpackSpec {
   }
 
   protected Transformer<Injector, Handler> createHandlerTransformer() {
-    new ConstantTransformer(chain(action(handlersClosure)))
+    new ConstantTransformer(chain(delegatingAction(handlersClosure)))
   }
 
 }

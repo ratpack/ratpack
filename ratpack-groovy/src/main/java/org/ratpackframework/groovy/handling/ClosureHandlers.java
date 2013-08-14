@@ -42,7 +42,7 @@ public abstract class ClosureHandlers {
   }
 
   private static Action<Chain> chain(@DelegatesTo(value = Chain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handlers) {
-    return Util.action(Chain.class, handlers);
+    return Util.delegatingAction(Chain.class, handlers);
   }
 
   public static Handler fileSystem(String path, @DelegatesTo(value = Chain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handlers) {

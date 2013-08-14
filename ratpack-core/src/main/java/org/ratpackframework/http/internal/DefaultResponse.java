@@ -21,6 +21,7 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.handler.codec.http.*;
+import org.ratpackframework.block.Blocking;
 import org.ratpackframework.file.internal.FileHttpTransmitter;
 import org.ratpackframework.http.Response;
 import org.ratpackframework.util.internal.IoUtils;
@@ -132,10 +133,10 @@ public class DefaultResponse implements Response {
     commit();
   }
 
-  public void sendFile(String contentType, File file) {
+  public void sendFile(Blocking blocking, String contentType, File file) {
     contentType(contentType);
     setCookieHeader();
-    new FileHttpTransmitter().transmit(file, response, channel);
+    new FileHttpTransmitter().transmit(blocking, file, response, channel);
   }
 
   public String getHeader(String name) {

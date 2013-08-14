@@ -39,12 +39,12 @@ public class ScriptBackedApp implements Handler {
 
   public ScriptBackedApp(File script, final GuiceBackedHandlerFactory appFactory, final boolean staticCompile, boolean reloadable) {
     this.script = script;
-    this.reloadHandler = new ReloadableFileBackedFactory<Handler>(script, reloadable, new ReloadableFileBackedFactory.Delegate<Handler>() {
+    this.reloadHandler = new ReloadableFileBackedFactory<>(script, reloadable, new ReloadableFileBackedFactory.Delegate<Handler>() {
       public Handler produce(final File file, final ByteBuf bytes) {
         try {
           final String string;
           string = IoUtils.utf8String(bytes);
-          final ScriptEngine<Script> scriptEngine = new ScriptEngine<Script>(getClass().getClassLoader(), staticCompile, Script.class);
+          final ScriptEngine<Script> scriptEngine = new ScriptEngine<>(getClass().getClassLoader(), staticCompile, Script.class);
 
           Runnable runScript = new Runnable() {
             public void run() {
@@ -69,7 +69,7 @@ public class ScriptBackedApp implements Handler {
           Closure<?> modulesConfigurer = ratpack.getModulesConfigurer();
           Closure<?> handlersConfigurer = ratpack.getHandlersConfigurer();
 
-          Action<ModuleRegistry> modulesAction = Util.action(ModuleRegistry.class, modulesConfigurer);
+          Action<ModuleRegistry> modulesAction = Util.delegatingAction(ModuleRegistry.class, modulesConfigurer);
           return appFactory.create(modulesAction, new InjectorHandlerTransformer(handlersConfigurer));
 
         } catch (Exception e) {
