@@ -25,6 +25,7 @@ import java.net.URL;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 
 public class LaunchConfigBuilder {
 
@@ -91,8 +92,20 @@ public class LaunchConfigBuilder {
   public LaunchConfig build(HandlerFactory handlerFactory) {
     ExecutorService blockingExecutorService = this.blockingExecutorService;
     if (blockingExecutorService == null) {
-      blockingExecutorService = Executors.newCachedThreadPool();
+      blockingExecutorService = Executors.newCachedThreadPool(new BlockingThreadFactory());
     }
     return new DefaultLaunchConfig(baseDir, port, address, reloadable, mainThreads, blockingExecutorService, publicAddress, other.build(), handlerFactory);
+  }
+
+  @SuppressWarnings("NullableProblems")
+  private static class BlockingThreadFactory implements ThreadFactory {
+
+    private final ThreadGroup threadGroup = new ThreadGroup("ratpack-blocking-worker-group");
+    private int i = 0;
+
+    @Override
+    public Thread newThread(Runnable r) {
+      return new Thread(threadGroup, r, "ratpack-blocking-worker-" + i++);
+    }
   }
 }
