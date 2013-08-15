@@ -34,6 +34,7 @@ import java.util.Set;
 public class DefaultResponse implements Response {
 
   private final FullHttpResponse response;
+  private final FullHttpRequest request;
   private final Channel channel;
   private final boolean keepAlive;
   private final HttpVersion version;
@@ -42,8 +43,9 @@ public class DefaultResponse implements Response {
 
   private Set<Cookie> cookies;
 
-  public DefaultResponse(FullHttpResponse response, Channel channel, boolean keepAlive, HttpVersion version) {
+  public DefaultResponse(FullHttpResponse response, FullHttpRequest request, Channel channel, boolean keepAlive, HttpVersion version) {
     this.response = response;
+    this.request = request;
     this.channel = channel;
     this.keepAlive = keepAlive;
     this.version = version;
@@ -136,7 +138,7 @@ public class DefaultResponse implements Response {
   public void sendFile(Blocking blocking, String contentType, File file) {
     contentType(contentType);
     setCookieHeader();
-    new FileHttpTransmitter().transmit(blocking, file, response, channel);
+    new FileHttpTransmitter().transmit(blocking, file, request, response, channel);
   }
 
   public String getHeader(String name) {

@@ -20,6 +20,7 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.LastHttpContent;
 import io.netty.handler.stream.ChunkedFile;
@@ -34,7 +35,7 @@ import java.util.Date;
 import java.util.concurrent.Callable;
 
 import static io.netty.handler.codec.http.HttpHeaders.Names.CONNECTION;
-import static io.netty.handler.codec.http.HttpHeaders.Values.KEEP_ALIVE;
+import static io.netty.handler.codec.http.HttpHeaders.isKeepAlive;
 
 public class FileHttpTransmitter {
 
@@ -50,7 +51,7 @@ public class FileHttpTransmitter {
     }
   }
 
-  public void transmit(final Blocking blocking, final File file, final HttpResponse response, final Channel channel) {
+  public void transmit(final Blocking blocking, final File file, final HttpRequest request, final HttpResponse response, final Channel channel) {
     blocking.exec(new Callable<FileServingInfo>() {
       @Override
       public FileServingInfo call() throws Exception {
@@ -63,15 +64,19 @@ public class FileHttpTransmitter {
     }).then(new Action<FileServingInfo>() {
       @Override
       public void execute(FileServingInfo fileServingInfo) {
-        transmit(fileServingInfo, response, channel);
+        transmit(fileServingInfo, request, response, channel);
       }
     });
   }
 
-  public void transmit(FileServingInfo fileServingInfo, HttpResponse response, Channel channel) {
+  public void transmit(FileServingInfo fileServingInfo, HttpRequest request, HttpResponse response, Channel channel) {
 
     response.headers().set(HttpHeaders.Names.CONTENT_LENGTH, fileServingInfo.length);
     HttpHeaders.setDateHeader(response, HttpHeaders.Names.LAST_MODIFIED, new Date(fileServingInfo.lastModified));
+
+    if (isKeepAlive(request)) {
+      response.headers().set(CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
+    }
 
     // Write the initial line and the header.
     if (!channel.isOpen()) {
@@ -79,12 +84,7 @@ public class FileHttpTransmitter {
       return;
     }
 
-    try {
-      channel.write(response);
-    } catch (Exception e) {
-      closeQuietly(fileServingInfo.randomAccessFile);
-      return;
-    }
+    channel.write(response);
 
     ChannelFuture writeFuture;
     ChunkedFile message;
@@ -110,7 +110,7 @@ public class FileHttpTransmitter {
     });
 
     ChannelFuture lastContentFuture = channel.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
-    if (!KEEP_ALIVE.equals(response.headers().get(CONNECTION))) {
+    if (!isKeepAlive(response)) {
       lastContentFuture.addListener(ChannelFutureListener.CLOSE);
     }
   }

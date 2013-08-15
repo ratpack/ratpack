@@ -83,7 +83,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
     boolean keepAlive = version == HttpVersion.HTTP_1_1
       || (version == HttpVersion.HTTP_1_0 && "Keep-Alive".equalsIgnoreCase(nettyRequest.headers().get("Connection")));
 
-    Response response = new DefaultResponse(nettyResponse, ctx.channel(), keepAlive, version);
+    Response response = new DefaultResponse(nettyResponse, nettyRequest, ctx.channel(), keepAlive, version);
 
     if (registry == null) {
       try {
