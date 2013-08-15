@@ -27,6 +27,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 
+@SuppressWarnings("UnusedDeclaration")
 public class LaunchConfigBuilder {
 
   private final File baseDir;
@@ -101,7 +102,7 @@ public class LaunchConfigBuilder {
   private static class BlockingThreadFactory implements ThreadFactory {
 
     private final ThreadGroup threadGroup = new ThreadGroup("ratpack-blocking-worker-group");
-    private int i = 0;
+    private int i;
 
     @Override
     public Thread newThread(Runnable r) {
