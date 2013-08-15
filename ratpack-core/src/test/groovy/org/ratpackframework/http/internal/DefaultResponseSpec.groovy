@@ -218,4 +218,25 @@ class DefaultResponseSpec extends RatpackGroovyDslSpec {
     }
   }
 
+  def "can send empty response"() {
+    given:
+    app {
+      handlers {
+        get() {
+          response.send()
+        }
+      }
+    }
+
+    when:
+    get()
+
+    then:
+    with (response) {
+      statusCode == OK.code()
+      body.asString().empty
+      contentType.equals("")
+      header(CONTENT_LENGTH).toInteger() == 0
+    }
+  }
 }
