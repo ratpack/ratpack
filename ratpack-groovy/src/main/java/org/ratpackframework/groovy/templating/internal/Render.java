@@ -18,10 +18,10 @@ package org.ratpackframework.groovy.templating.internal;
 
 import com.google.common.cache.LoadingCache;
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
+import io.netty.buffer.PooledByteBufAllocator;
+import org.ratpackframework.util.Transformer;
 import org.ratpackframework.util.internal.Result;
 import org.ratpackframework.util.internal.ResultAction;
-import org.ratpackframework.util.Transformer;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -35,7 +35,7 @@ public class Render {
     this.compiledTemplateCache = compiledTemplateCache;
     this.includeTransformer = includeTransformer;
 
-    ByteBuf buffer = Unpooled.buffer();
+    ByteBuf buffer = PooledByteBufAllocator.DEFAULT.buffer();
 
     try {
       execute(compiledTemplateCache.get(templateSource), model, buffer);
@@ -44,7 +44,8 @@ public class Render {
       return;
     }
 
-    handler.execute(new Result<>(buffer));
+    //noinspection Convert2Diamond
+    handler.execute(new Result<ByteBuf>(buffer));
   }
 
 
