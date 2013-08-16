@@ -21,7 +21,7 @@ import org.ratpackframework.launch.internal.DefaultLaunchConfig;
 
 import java.io.File;
 import java.net.InetAddress;
-import java.net.URL;
+import java.net.URI;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -36,7 +36,7 @@ public class LaunchConfigBuilder {
   private InetAddress address;
   private boolean reloadable;
   private int mainThreads;
-  private URL publicAddress;
+  private URI publicAddress;
   private ImmutableMap.Builder<String, String> other = ImmutableMap.builder();
   private ExecutorService blockingExecutorService;
 
@@ -73,7 +73,7 @@ public class LaunchConfigBuilder {
     return this;
   }
 
-  public LaunchConfigBuilder publicAddress(URL publicAddress) {
+  public LaunchConfigBuilder publicAddress(URI publicAddress) {
     this.publicAddress = publicAddress;
     return this;
   }

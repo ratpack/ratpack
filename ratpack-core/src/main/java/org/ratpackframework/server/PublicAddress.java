@@ -18,18 +18,18 @@ package org.ratpackframework.server;
 
 import org.ratpackframework.handling.Context;
 
-import java.net.URL;
+import java.net.URI;
 
 /**
- * A public URL holder.
+ * The advertised public address.
  */
 public interface PublicAddress {
 
   /**
-   *  Get the URL that is the public address of the system.
+   * The advertised public address.
    *
-   * @param context The context
-   * @return The URL that is the public address of the system.
+   * @param context The context that the public address is being determined for.
+   * @return the public address for the context.
    */
-  URL getUrl(Context context);
+  URI getAddress(Context context);
 }

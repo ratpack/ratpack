@@ -21,27 +21,26 @@ import org.ratpackframework.handling.Context;
 import org.ratpackframework.server.BindAddress;
 import org.ratpackframework.server.PublicAddress;
 
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 public class DefaultPublicAddress implements PublicAddress {
 
-  private URL publicAddress;
+  private URI publicAddress;
   private BindAddress bindAddress;
 
-  public DefaultPublicAddress(URL publicAddress, BindAddress bindAddress) {
+  public DefaultPublicAddress(URI publicAddress, BindAddress bindAddress) {
     this.publicAddress = publicAddress;
     this.bindAddress = bindAddress;
   }
 
-  public URL getUrl(Context context) {
-    URL currentUrl = null;
+  public URI getAddress(Context context) {
+    URI currentUrl = null;
     if (publicAddress == null) {
       try {
-        //TODO is it always http?
-        currentUrl = new URL("http", bindAddress.getHost(), bindAddress.getPort(), "");
-      } catch (MalformedURLException e) {
-        //TODO deal with exception
+        currentUrl = new URI("http", null, bindAddress.getHost(), bindAddress.getPort(), null, null, null);
+      } catch (URISyntaxException e) {
+        context.error(e);
       }
     } else {
       currentUrl = publicAddress;

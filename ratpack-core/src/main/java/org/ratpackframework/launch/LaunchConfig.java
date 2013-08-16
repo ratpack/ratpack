@@ -20,7 +20,7 @@ import org.ratpackframework.api.Nullable;
 
 import java.io.File;
 import java.net.InetAddress;
-import java.net.URL;
+import java.net.URI;
 import java.util.concurrent.ExecutorService;
 
 public interface LaunchConfig {
@@ -81,7 +81,7 @@ public interface LaunchConfig {
    *
    * @return The url of the public address;
    */
-  public URL getPublicAddress();
+  public URI getPublicAddress();
 
   public String getOther(String key, String defaultValue);
 
