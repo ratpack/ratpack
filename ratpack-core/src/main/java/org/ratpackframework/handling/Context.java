@@ -25,6 +25,7 @@ import org.ratpackframework.registry.Registry;
 import org.ratpackframework.render.NoSuchRendererException;
 
 import java.io.File;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -256,4 +257,19 @@ public interface Context extends Registry<Object> {
    * @throws NotInRegistryException if there is no {@link org.ratpackframework.redirect.Redirector} in the current service but one is provided by default
    */
   void redirect(int code, String location) throws NotInRegistryException;
+
+  /**
+   * Convenience method for handling last-modified based HTTP caching.
+   * <p>
+   * The given date is the "last modified" value of the response.
+   * If the client sent an "If-Modified-Since" header that is of equal or greater value than date, a 304
+   * will be returned to the client. Otherwise, the given runnable will be executed (it should send a response)
+   * and the "Last-Modified" header will be set by this method.
+   *
+   * @param date The effective last modified date of the response
+   * @param runnable The response sending action if the response needs to be sent
+   */
+  @NonBlocking
+  void lastModified(Date date, Runnable runnable);
+
 }

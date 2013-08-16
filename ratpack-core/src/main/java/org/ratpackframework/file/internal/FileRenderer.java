@@ -29,7 +29,6 @@ import java.io.File;
 import java.util.Date;
 import java.util.concurrent.Callable;
 
-import static io.netty.handler.codec.http.HttpHeaders.Names.IF_MODIFIED_SINCE;
 import static io.netty.handler.codec.http.HttpResponseStatus.FORBIDDEN;
 import static io.netty.handler.codec.http.HttpResponseStatus.NOT_MODIFIED;
 
@@ -63,32 +62,26 @@ public class FileRenderer extends ByTypeRenderer<File> {
     });
   }
 
-  private void sendFile(Context context, File targetFile, Request request, Response response, long lastModifiedTime) {
+  private void sendFile(final Context context, final File targetFile, final Request request, final Response response, long lastModifiedTime) {
     if (lastModifiedTime < 1) {
       context.next();
       return;
     }
 
-    Date ifModifiedSinceHeader = request.getDateHeader(IF_MODIFIED_SINCE);
+    context.lastModified(new Date(lastModifiedTime), new Runnable() {
+      @Override
+      public void run() {
+        final String ifNoneMatch = request.getHeader(HttpHeaders.Names.IF_NONE_MATCH);
+        if (ifNoneMatch != null && ifNoneMatch.trim().equals("*")) {
+          response.status(NOT_MODIFIED.code(), NOT_MODIFIED.reasonPhrase()).send();
+          return;
+        }
 
-    if (ifModifiedSinceHeader != null) {
-      long ifModifiedSinceSecs = ifModifiedSinceHeader.getTime() / 1000;
-      long lastModifiedSecs = lastModifiedTime / 1000;
-      if (lastModifiedSecs == ifModifiedSinceSecs) {
-        response.status(NOT_MODIFIED.code(), NOT_MODIFIED.reasonPhrase()).send();
-        context.getResponse().status(NOT_MODIFIED.code(), NOT_MODIFIED.reasonPhrase()).send();
-        return;
+        String contentType = context.get(MimeTypes.class).getContentType(targetFile.getName());
+        response.sendFile(context.getBlocking(), contentType, targetFile);
       }
-    }
+    });
 
-    final String ifNoneMatch = request.getHeader(HttpHeaders.Names.IF_NONE_MATCH);
-    if (ifNoneMatch != null && ifNoneMatch.trim().equals("*")) {
-      response.status(NOT_MODIFIED.code(), NOT_MODIFIED.reasonPhrase()).send();
-      return;
-    }
-
-    String contentType = context.get(MimeTypes.class).getContentType(targetFile.getName());
-    response.sendFile(context.getBlocking(), contentType, targetFile);
   }
 
 }

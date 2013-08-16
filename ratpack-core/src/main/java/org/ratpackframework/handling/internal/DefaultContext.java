@@ -18,6 +18,7 @@ package org.ratpackframework.handling.internal;
 
 import com.google.common.util.concurrent.ListeningExecutorService;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import org.ratpackframework.block.Blocking;
 import org.ratpackframework.block.internal.DefaultBlocking;
@@ -36,9 +37,13 @@ import org.ratpackframework.render.NoSuchRendererException;
 import org.ratpackframework.render.RenderController;
 
 import java.io.File;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
+
+import static io.netty.handler.codec.http.HttpHeaders.Names.IF_MODIFIED_SINCE;
+import static io.netty.handler.codec.http.HttpResponseStatus.NOT_MODIFIED;
 
 
 public class DefaultContext implements Context {
@@ -131,6 +136,25 @@ public class DefaultContext implements Context {
   public void redirect(int code, String location) {
     Redirector redirector = registry.get(Redirector.class);
     redirector.redirect(this, location, code);
+  }
+
+  @Override
+  public void lastModified(Date date, Runnable runnable) {
+    Date ifModifiedSinceHeader = request.getDateHeader(IF_MODIFIED_SINCE);
+    long lastModifiedSecs = date.getTime() / 1000;
+
+    if (ifModifiedSinceHeader != null) {
+      long time = ifModifiedSinceHeader.getTime();
+      long ifModifiedSinceSecs = time / 1000;
+
+      if (lastModifiedSecs == ifModifiedSinceSecs) {
+        response.status(NOT_MODIFIED.code(), NOT_MODIFIED.reasonPhrase()).send();
+        return;
+      }
+    }
+
+    response.setHeader(HttpHeaders.Names.LAST_MODIFIED, lastModifiedSecs);
+    runnable.run();
   }
 
   public void error(Exception exception) {
