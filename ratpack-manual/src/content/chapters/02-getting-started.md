@@ -2,7 +2,7 @@
 
 To start play with Ratpack, you just need to have Java and Groovy installed. 
 
-If you don't have the Java JDK and JAVA_HOME set, follow this guide ( http://docs.oracle.com/javase/7/docs/webnotes/install/ )
+If you don't have the Java JDK and JAVA_HOME set, follow [this guide](http://docs.oracle.com/javase/7/docs/webnotes/install/)
 
 The easiest way to install groovy is via the GVM tool. Open a terminal and type:
 
@@ -17,7 +17,7 @@ Open a text file and save it as ratpack.groovy
 
 ```
 @GrabResolver("https://oss.jfrog.org/artifactory/repo") // (1)
-@Grab("org.ratpack-framework:ratpack-groovy:0.9.0-SNAPSHOT") // 
+@Grab("org.ratpack-framework:ratpack-groovy:0.9.0-SNAPSHOT") 
 
 import static org.ratpackframework.groovy.RatpackScript.ratpack 
 
@@ -156,7 +156,7 @@ In your ratpack.groovy file, add the following lines at the end:
 
 ```
 prefix('images'){
-		assets "images"
+	assets "images"
 }
 ```
 
@@ -314,8 +314,6 @@ Overall, this template is very intuitive and I highly recommend using this struc
 
 There is a section with github repositories of other example applications if you would like to explore alternatives.
 
-( There is currently a bug in the generated template - I have submitted a [pull request](https://github.com/pledbrook/lazybones/pull/72) )
-
 ##Modularizing your application.
 
 As your application grows, it becomes more and more important to separate out bits of code so they can be tested and developed in isolation.
@@ -341,7 +339,7 @@ ratpack {
 
 In (1), we are calling the injected service globally so it applies to the all the handlers. 
 
-If I go to the (MongoModule)[https://github.com/tomaslin/ratpack-mongo-angular/blob/master/server/src/main/groovy/com/tomaslin/mongopack/MongoModule.groovy], you can see that it injects a mongo service based on the provided configuration,
+If you go to the [MongoModule](https://github.com/tomaslin/ratpack-mongo-angular/blob/master/server/src/main/groovy/com/tomaslin/mongopack/MongoModule.groovy), you can see that it injects a mongo service based on the provided configuration,
 
 ```
 package com.tomaslin.mongopack
@@ -389,7 +387,7 @@ Notice that the injected dependency is referenced at the handler level adn not i
 
 * Marco Vermeulen has worked very hard in getting Ratpack deployed into Heroku. You can read his [blog post](http://wiredforcode.com/blog/2013/08/05/deploy-ratpack-on-heroku/) on how to deploy Ratpack using a buildpack. Marco is working on a [gradle plugin](https://github.com/marcoVermeulen/gradle-heroku) that will make deployment into Heroku fairly simple.
 
-* If you would rather build your application locally instead of having Heroku do it, I have some instructions [on how to deploy to Cloud Foundry without a Buildpack](http://fbflex.wordpress.com/2013/08/07/ratpack-to-cloudfoundry-with-java-buildpack/).
+* If you would rather build your application locally instead of having Heroku do it, Tomas Lin has some instructions [on how to deploy to Cloud Foundry without a Buildpack](http://fbflex.wordpress.com/2013/08/07/ratpack-to-cloudfoundry-with-java-buildpack/).
 
 ## Ratpack Examples 
 
@@ -400,6 +398,7 @@ Notice that the injected dependency is referenced at the handler level adn not i
 ##Reference Projects
 
 There are a few good projects you can look at for inspiration:
+
 * [FOASS](https://github.com/danveloper/ratpack-foaas/)
 * [Ratpack Website](https://github.com/ratpack/ratpack/tree/master/ratpack-site)
 * [Mid Century Ipsum](https://github.com/robfletcher/midcentury-ipsum/)
