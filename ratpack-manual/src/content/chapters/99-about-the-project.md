@@ -23,6 +23,7 @@ The following people have provided significant contributions.
 * [Paul Fairless](https://github.com/paulfairless)
 * [Dan Woods](https://github.com/danveloper)
 * [Rus Hart](https://github.com/rhart)
+* [Tomás Lin](https://github.com/tomaslin)
 
 ### Past Project Members
 
