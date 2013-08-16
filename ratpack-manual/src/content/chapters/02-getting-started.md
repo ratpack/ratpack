@@ -113,7 +113,7 @@ You can have as many optional path tokens as you want as long as they are not fo
 
 ```language-groovy
 get('echo/:message/:trim?/:add?'){
-	response.send pathTokens.message - pathTokens.trim + ( pathTokens.add?:'' )
+	  response.send pathTokens.message - pathTokens.trim + ( pathTokens.add?:'' )
 }
 ```
 
@@ -128,11 +128,11 @@ In the following example, we capitalize a message if the upper=true query parame
 
 ```language-groovy
 get('echo/:message'){
-	String message = pathTokens.message
-	if( request.queryParams.upper ){
-		message = message.toUpperCase()
-	}
-	response.send message
+	  String message = pathTokens.message
+	  if( request.queryParams.upper ){
+		    message = message.toUpperCase()
+	  }
+	  response.send message
 }
 ```
 
@@ -156,7 +156,7 @@ In your ratpack.groovy file, add the following lines at the end:
 
 ```language-groovy
 prefix('images'){
-	assets "images"
+	  assets "images"
 }
 ```
 
@@ -168,7 +168,7 @@ It does not have to be a direct match to a directory, you can change the path
 
 ```language-groovy
 prefix('images/public/today'){
-		assets "images"
+    assets "images"
 }
 ```
 
@@ -205,7 +205,7 @@ The template looks as follows:
   <title>${model.title}</title>
 </head>
 <body>
-	${model.content}
+  ${model.content}
 </body>
 </html>
 ```
@@ -225,13 +225,13 @@ Here is an example from the FOASS application that converts a string of text int
 
 ```language-groovy
 prefix("mp3") {
-  get(":type/:p1/:p2?") {
-    def (to, from, type) = betterPathTokens
-    FuckOff f = service.get(type, from, to)
-    exec blocking, 
-        { f.toMp3() },  // what to run
-        { byte[] bytes -> response.send "audio/mpeg", copiedBuffer(bytes) } // on success
-  }
+    get(":type/:p1/:p2?") {
+        def (to, from, type) = betterPathTokens
+        FuckOff f = service.get(type, from, to)
+        exec blocking,
+            { f.toMp3() },  // what to run
+            { byte[] bytes -> response.send "audio/mpeg", copiedBuffer(bytes) } // on success
+    }
 }
 ```
 
@@ -241,11 +241,11 @@ You can also provide an optional failure condition to the exec blocking operatio
 
 ```language-groovy
 get {
-       exec blocking,
-          { sleep 300; throw new Exception("!") }, // blocking
-          { response.status(210).send("error: $it.message") }, // on error
-          { /* never called */ } // on success
-       }
+    exec blocking,
+        { sleep 300; throw new Exception("!") }, // blocking
+        { response.status(210).send("error: $it.message") }, // on error
+        { /* never called */ } // on success
+    }
 }
 ```
 
@@ -326,13 +326,12 @@ If you look at the [MongoDB Ratpack Angular project](https://github.com/tomaslin
 
 ```language-groovy
 ratpack {
-
     modules {
         register new MongoModule(new File('config.groovy'))
     }
 
     handlers { MongoService mongoService -> // (1)
-       ...
+        // ...
     }
 }
 ```
@@ -356,7 +355,7 @@ class MongoModule extends AbstractModule{
 
     @Override
     protected void configure() {
-        ...
+        // ...
         bind(MongoService).toInstance(new MongoService(host, port, username, password, db)) // (2)
     }
 
@@ -375,9 +374,9 @@ This looks as follows:
 
 ```language-groovy
 post("api/person") { PeopleDAO dao ->
-   accepts.type("application/json") {
-       response.send serialize(dao.save(request.text))
-   }.send()
+    accepts.type("application/json") {
+        response.send serialize(dao.save(request.text))
+    }.send()
 }
 ```
 
