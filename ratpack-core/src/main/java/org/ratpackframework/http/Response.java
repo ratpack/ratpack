@@ -85,7 +85,18 @@ public interface Response {
   /**
    * Sends the response back to the client, with no body.
    */
+  @NonBlocking
   public void send();
+
+  /**
+   * Sends the response, using "{@code text/plain}" as the content type and the given string as the response body.
+   * <p>
+   * Equivalent to calling "{@code send\("text/plain", text)}.
+   *
+   * @param text The text to render as a plain text response.
+   */
+  @NonBlocking
+  void send(String text);
 
   /**
    * Sends the response, using the given content type and string as the response body.
@@ -99,16 +110,8 @@ public interface Response {
    * @param contentType The value of the content type header
    * @param body The string to render as the body of the response
    */
+  @NonBlocking
   void send(String contentType, String body);
-
-  /**
-   * Sends the response, using "{@code text/plain}" as the content type and the given string as the response body.
-   * <p>
-   * Equivalent to calling "{@code send\("text/plain", text)}.
-   *
-   * @param text The text to render as a plain text response.
-   */
-  void send(String text);
 
   /**
    * Sends the response, using "{@code application/octet-stream}" as the content type (if a content type hasn't
@@ -116,6 +119,7 @@ public interface Response {
    *
    * @param bytes The response body
    */
+  @NonBlocking
   void send(byte[] bytes);
 
   /**
@@ -124,6 +128,7 @@ public interface Response {
    * @param contentType The value of the {@code Content-Type} header
    * @param bytes The response body
    */
+  @NonBlocking
   void send(String contentType, byte[] bytes);
 
   /**
@@ -132,6 +137,7 @@ public interface Response {
    *
    * @param buffer The response body
    */
+  @NonBlocking
   void send(ByteBuf buffer);
 
   /**
@@ -140,6 +146,7 @@ public interface Response {
    * @param contentType The value of the {@code Content-Type} header
    * @param buffer The response body
    */
+  @NonBlocking
   void send(String contentType, ByteBuf buffer);
 
   /**
