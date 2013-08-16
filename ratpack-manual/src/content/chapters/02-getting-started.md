@@ -53,7 +53,7 @@ Let's break down the script a little bit. Leave the server running now.
 2. The main application, it is composed of several different handlers and modules
 3. This is a get handler. Since it has no parameters, it will resolve to the root of our application. We are telling it to return the words 'Hello World'
 
-###Adding another handler.
+###Adding another handler
 
 Let's try adding another handler. Open the ratpack.groovy file and add a second handler:
 

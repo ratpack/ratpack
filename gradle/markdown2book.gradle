@@ -35,7 +35,7 @@ import org.apache.commons.io.FileUtils
 class Generator {
 
   private static MARKDOWN_EXTENSIONS = ['.markdown', '.md', '.mdown']
-  private static HEADING_PATTERN = Pattern.compile("^(#+)\\s+(.*)\$")
+  private static HEADING_PATTERN = Pattern.compile("^(#+)\\s*(.*)\$")
   private static FILENAME_SUBSTITUTE_PATTERN = Pattern.compile("^(?:\\d+-)?(.*?)\\.(?:markdown|md|mdown)\$")
   private static TEMPLATE_EXTENSION = "html"
   private static ALL_TEMPLATE = "all." + TEMPLATE_EXTENSION
