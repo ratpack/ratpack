@@ -27,6 +27,8 @@ import org.ratpackframework.http.Response;
 import org.ratpackframework.util.internal.IoUtils;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -115,6 +117,16 @@ public class DefaultResponse implements Response {
   public void send(String contentType, byte[] bytes) {
     ByteBuf buffer = IoUtils.byteBuf(bytes);
     send(contentType, buffer);
+  }
+
+  @Override
+  public void send(InputStream inputStream) throws IOException {
+    send(IoUtils.byteBuf(inputStream));
+  }
+
+  @Override
+  public void send(String contentType, InputStream inputStream) throws IOException {
+    contentType(contentType).send(inputStream);
   }
 
   public void send(String contentType, ByteBuf buffer) {

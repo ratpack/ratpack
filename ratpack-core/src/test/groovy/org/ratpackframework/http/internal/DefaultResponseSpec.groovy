@@ -239,4 +239,21 @@ class DefaultResponseSpec extends RatpackGroovyDslSpec {
       header(CONTENT_LENGTH).toInteger() == 0
     }
   }
+
+  def "can send input streams"() {
+    when:
+    def string = "a" * 1024 * 10
+    def bytes = string.getBytes("utf8")
+
+    app {
+      handlers {
+        handler {
+          response.send "text/plain;charset=UTF-8", new ByteArrayInputStream(bytes)
+        }
+      }
+    }
+
+    then:
+    text == string
+  }
 }

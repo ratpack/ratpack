@@ -23,6 +23,8 @@ import org.ratpackframework.api.Nullable;
 import org.ratpackframework.block.Blocking;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 import java.util.Set;
 
@@ -130,6 +132,24 @@ public interface Response {
    */
   @NonBlocking
   void send(String contentType, byte[] bytes);
+
+  /**
+   * Sends the response, using "{@code application/octet-stream}" as the content type (if a content type hasn't
+   * already been set) and the contents of the given input stream as the response body.
+   *
+   * @param inputStream The response body
+   */
+  @NonBlocking
+  void send(InputStream inputStream) throws IOException;
+
+  /**
+   * Sends the response, using the given content type and the content of the given input stream as the response body.
+   *
+   * @param contentType The value of the {@code Content-Type} header
+   * @param inputStream response body
+   */
+  @NonBlocking
+  void send(String contentType, InputStream inputStream) throws IOException;
 
   /**
    * Sends the response, using "{@code application/octet-stream}" as the content type (if a content type hasn't
