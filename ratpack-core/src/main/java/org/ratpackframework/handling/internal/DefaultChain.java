@@ -38,14 +38,20 @@ public class DefaultChain implements Chain {
     handlers.add(handler);
   }
 
-  @Override
   public void get(String path, Handler handler) {
     add(Handlers.get(path, handler));
   }
 
-  @Override
   public void get(Handler handler) {
     get("", handler);
+  }
+
+  public void post(String path, Handler handler) {
+    add(Handlers.post(path, handler));
+  }
+
+  public void post(Handler handler) {
+    post("", handler);
   }
 
   public Registry<Object> getRegistry() {
