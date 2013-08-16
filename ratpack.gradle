@@ -36,6 +36,17 @@ apply plugin: 'artifactory'
 artifactory {
   contextUrl = 'http://oss.jfrog.org'
 }
+gradle.buildFinished {
+  // Work around https://www.jfrog.com/jira/browse/GAP-145
+  [
+    org.jfrog.gradle.plugin.artifactory.dsl.ArtifactoryPluginConvention,
+    org.jfrog.build.client.ArtifactoryClientConfiguration.BuildInfoHandler,
+    org.jfrog.build.client.ArtifactoryClientConfiguration.ProxyHandler,
+    org.jfrog.gradle.plugin.artifactory.dsl.PublisherConfig
+  ].each {
+    GroovySystem.metaClassRegistry.removeMetaClass(it)
+  }
+}
 
 artifactoryPublish {
   skip true
@@ -134,7 +145,7 @@ subprojects {
     }
 
     tasks.withType(AbstractCompile) {
-      options.compilerArgs << "-Werror" <<  "-Xlint:all" << "-Xlint:-options"
+      options.compilerArgs << "-Werror" << "-Xlint:all" << "-Xlint:-options"
     }
 
     test {
