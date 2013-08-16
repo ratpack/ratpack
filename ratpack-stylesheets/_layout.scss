@@ -1,44 +1,31 @@
-$num-columns: 12 !default;
 $content-width: 1024px !default;
+
+@mixin content-width {
+  width: 100%;
+  max-width: $content-width;
+  margin: {
+    left: auto;
+    right: auto;
+  }
+  @include rem(padding-left, 1rem);
+  @include rem(padding-right, 1rem);
+}
+
+$num-columns: 12 !default;
 $column-width: 100% / $num-columns;
 
-@mixin full-width($padding: 1rem) {
-	width: 100%;
-  @if $padding > 0 {
-    @include rem(padding-left, $padding);
-    @include rem(padding-right, $padding);
+@mixin columns($columns) {
+  width: $columns * $column-width;
+  @if $columns < $num-columns {
+    float: left;
   }
 }
 
-@mixin content-width($padding: 1rem) {
-	@include full-width($padding);
-	@include at-least($tablet-portrait) {
-		@include columns(10);
-		@include push(1);
-		@include pull(1);
-	}
+@mixin push($columns) {
+  margin-left: $columns * $column-width;
 }
 
-@mixin columns($num-columns) {
-	width: $num-columns * $column-width;
+@mixin pull($columns) {
+  margin-right: $columns * $column-width;
 }
 
-@mixin push($num-columns) {
-	margin-left: $num-columns * $column-width;
-}
-
-@mixin pull($num-columns) {
-	margin-right: $num-columns * $column-width;
-}
-
-body {
-	overflow-x: hidden;
-	@include at-least($full-width) {
-		max-width: $content-width;
-		margin: 0 auto;
-	}
-	.no-mediaqueries & {
-		max-width: $content-width;
-		margin: 0 auto;
- 	}
-}

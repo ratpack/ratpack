@@ -39,7 +39,6 @@ $logo-inverted: 'ratpack-logo-white.png';
 		z-index: -1;
 		@include transform(rotate(-4deg) scaleY(1.15));
 		@include antialias;
-		@include noise-background;
 	}
 }
 
@@ -62,6 +61,7 @@ $logo-inverted: 'ratpack-logo-white.png';
 			family: 'Engagement', sans-serif;
 			weight: normal;
 			size: $logo-font-size;
+      style: normal;
 		}
 		text-transform: none;
 

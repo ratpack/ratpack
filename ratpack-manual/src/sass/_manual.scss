@@ -1,14 +1,17 @@
+$pagination-background: $purple;
+
 .pagination {
 	@include margin-leader(1);
 	@include margin-trailer(1);
-	@include contrasted-smooth($black);
-	@include noise-background;
-	@include full-width;
-	@include big-section-border;
+  @include banner($background-color: $pagination-background, $offset: 0.5rem);
 
 	ul {
+    @extend .content;
 		@include clearfix;
-		margin: 0;
+		margin: {
+      top: 0;
+      bottom: 0;
+    }
 		list-style: none;
 	}
 	li {
@@ -42,8 +45,9 @@
 			style: italic;
 			weight: 700;
 		}
+    vertical-align: middle;
 		@include adjust-font-size-to($to-size: 18px, $lines: 2);
-		@include link-colors($blue, $yellow);
+		@include link-colors(contrast-color($pagination-background), $yellow);
 
 		&:before, &:after {
 			font: {
@@ -94,14 +98,13 @@
 	}
 
 	.manual-links {
-		@include contrasted-smooth($black);
-		@include noise-background;
-		@include margin-trailer(1);
-		@include full-width;
-		@include big-section-border;
+    @extend .pagination;
+
 		h2 {
 			@include adjust-font-size-to($to-size: 18px, $lines: 2);
+      vertical-align: middle;
 		}
+
 		a {
 			@include adjust-font-size-to($to-size: 18px, $lines: 2);
 			font: {
@@ -109,10 +112,10 @@
 				style: italic;
 				weight: 700;
 			}
-			@include link-colors($blue, $yellow);
+      @include link-colors(contrast-color($pagination-background), $yellow);
 			margin-right: 1em;
 		}
-		@include at-least($tablet-portrait) {
+		@include breakpoint($tablet-portrait) {
 			h2 {
 				float: right;
 				margin: 0;
@@ -136,20 +139,9 @@
 		@include margin-trailer(1);
 		@include divider;
 	}
-
-	h1, h2, h3, h4, h5, h6 {
-		position: relative;
-		@include at-least($tablet-portrait) {
-			span {
-				position: absolute;
-				right: 100%;
-				@include rem(padding-right, 0.5rem);
-			}
-		}
-	}
 }
 
-.page-footer {
+#page-footer {
 	h2, p {
 		margin: {
 			top: 0;
@@ -162,7 +154,7 @@
 		text-transform: uppercase;
 	}
 
-	@include at-least($tablet-portrait) {
+	@include breakpoint($tablet-portrait) {
 		h2, p {
 			width: $column-width * 6;
 			float: left;
@@ -175,16 +167,15 @@
 }
 
 .fontface {
-	a[href='http://www.google.com/fonts/specimen/Lora'] {
+	a[href='http://www.google.com/fonts/specimen/Merriweather'] {
 		font-style: italic;
 	}
-	a[href='http://www.google.com/fonts/specimen/Playfair+Display'] {
+	a[href='http://www.google.com/fonts/specimen/Merriweather+Sans'] {
 		font: {
-			family: "Playfair Display";
+			family: "Merriweather Sans";
+      style: italic;
 			weight: 700;
 		}
-		@include rem(line-height, 1.5rem);
-		vertical-align: bottom;
 	}
 	a[href='http://www.google.com/fonts/specimen/Engagement'] {
 		font: {

@@ -1,17 +1,18 @@
-$logo-font-size-large: 1.2rem;
+$logo-font-size-large: 1rem;
 $logo-font-size-medium: 0.8rem;
 
 @import "compass";
+@import "breakpoint";
 
 // common stuff from /ratpack-stylesheets
 @import "palette";
 @import "settings";
 @import "breakpoints";
 @import "reset";
+@import "fouc";
 @import "utilties";
 @import "typography";
 @import "layout";
-@import "noise";
 @import "prism";
 @import "ratpack-logo";
 @import "theme-elements";

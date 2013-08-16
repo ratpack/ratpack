@@ -3,15 +3,3 @@ $tablet-landscape: 1024px !default;
 $tablet-portrait: 768px !default;
 $phone-landscape: 480px !default;
 $phone-portrait: 320px !default;
-
-@mixin at-least($breakpoint) {
-  @media screen and (min-width: $breakpoint) {
-    @content
-  }
-}
-
-@mixin until($breakpoint) {
-  @media screen and (max-width: $breakpoint - 1) {
-    @content
-  }
-}

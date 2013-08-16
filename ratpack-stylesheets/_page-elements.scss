@@ -5,28 +5,31 @@ $logo-font-size-small: 0.55rem !default;
 $footer-background-color: $black !default;
 $footer-font-size: 14px !default;
 
-html {
-	background-color: $black;
-	@include noise-background;
+.content {
+  @include content-width;
 }
 
-body {
-	@include contrasted-smooth($ivory);
-	@include noise-background;
-}
-
-.page-header {
+#page-header {
+  @extend .content;
+  position: relative;
 	@include rhythm($padding-leader: 1, $trailer: 1);
+  @include clearfix;
+  @include breakpoint(max-width ($tablet-portrait - 1px)) {
+    text-align: center;
+  }
 
 	.ratpack-logo {
-		@include content-width($padding: 0);
 		@include rem(font-size, $logo-font-size-small);
 		&:not(.small) {
-			@include at-least($phone-landscape) {
+			@include breakpoint($phone-landscape) {
 				@include rem(font-size, $logo-font-size-medium);
 			}
-			@include at-least($tablet-portrait) {
-				@include rem(font-size, $logo-font-size-large);
+      @include breakpoint($tablet-portrait) {
+        @include rem(font-size, 0.75rem);
+      }
+			@include breakpoint($tablet-landscape) {
+        vertical-align: bottom;
+        @include rem(font-size, $logo-font-size-large);
 			}
 		}
 
@@ -40,21 +43,26 @@ body {
 	}
 }
 
-.page-footer {
+#page-footer {
 	text-shadow: none;
 	@include clearfix;
 	@include contrasted-smooth($footer-background-color);
-	@include noise-background;
 	@include adjust-font-size-to($footer-font-size);
 	@include rhythm($leader: 2, $padding-leader: 1, $padding-trailer: 1, $font-size: $footer-font-size);
-	@include big-section-border($border-bottom: false, $font-size: $footer-font-size);
-	padding: {
-		left: 1em;
-		right: 1em;
-	}
 
 	a {
 		@include link-colors($white, $yellow);
 		@include link-underline($white, $yellow);
 	}
+}
+
+pre[class*='language-'] {
+  @include overlay-background($blue);
+  overflow: inherit;
+}
+
+code[class*='language-'] {
+  display: block;
+  overflow: auto;
+  @include rem(padding, 1rem);
 }

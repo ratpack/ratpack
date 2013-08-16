@@ -1,0 +1,8 @@
+body {
+  opacity: 0;
+  @include single-transition(opacity);
+
+  .wf-active &, .wf-inactive &, .no-js & {
+    opacity: 1;
+  }
+}

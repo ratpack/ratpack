@@ -60,76 +60,100 @@
 	}
 }
 
-@mixin big-section-border($border-top: true, $border-bottom: true, $font-size: $base-font-size) {
-	@if $border-top {
-		border-top: rhythm(1, $font-size) solid $blue;
-	}
-	@if $border-bottom {
-		border-bottom: rhythm(1, $font-size) solid $blue;
-	}
-	@include at-least($full-width) {
-		width: 102.5%;
-		margin-left: -1.25%;
-	}
-}
-
-@mixin starburst-links {
-	$starburst-bitmap-image: 'starburst.png';
-  $skew: -5deg;
-	list-style: none;
-	padding-left: 0;
-
-  li {
-    position: relative;
-    &:before {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: image-width($starburst-bitmap-image);
-      height: image-height($starburst-bitmap-image);
-      display: inline-block;
-      z-index: 1;
-      content: " ";
-      background: {
-        image: inline-image('starburst.svg');
-        repeat: no-repeat;
-        size: contain;
-      }
-      .no-svg & {
-        background-image: simple-image-url($starburst-bitmap-image);
-      }
+@mixin starburst($font-size: $base-font-size) {
+  $starburst-bitmap-image: 'starburst.png';
+  position: relative;
+  padding-left: (image-width($starburst-bitmap-image) / $font-size) + 0.25em;
+  &:before {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: image-width($starburst-bitmap-image);
+    height: image-height($starburst-bitmap-image);
+    display: inline-block;
+    z-index: 1;
+    content: " ";
+    background: {
+      image: inline-image('starburst.svg');
+      repeat: no-repeat;
+      size: contain;
     }
-    &:hover, &:focus {
-      &:before {
-        background-image: inline-image('starburst-yellow.svg');
-        .no-svg & {
-          background-image: simple-image-url('starburst-yellow.png');
-        }
-      }
+    .no-svg & {
+      background-image: simple-image-url($starburst-bitmap-image);
     }
   }
+}
 
-	a {
-    font-style: italic;
-    display: inline-block;
-    margin-left: image-width($starburst-bitmap-image) / 1.5;
-    padding: 0 0.75em 0 1em;
-    vertical-align: middle;
-    @include transform(rotate($skew));
-    @include link-colors($white, $yellow);
+@mixin banner($background-color, $mix-color: $white, $offset: 1rem) {
+  position: relative;
+  &:before {
+    content: "";
+    position: absolute;
+    left: 0;
+    width: 100%;
+    z-index: -1;
+    @include rem(top, $offset);
+    @include rem(bottom, $offset);
+    background-color: mix($background-color, $mix-color, 50%);
+  }
 
-    position: relative;
-    &:after {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      z-index: -1;
-      content: " ";
-      background-color: transparentize($blue, 0.25);
-      @include transform(skewX($skew));
-      @include antialias;
+  > * {
+    @include contrasted-smooth($background-color);
+  }
+}
+
+@mixin frame {
+  // TODO: base this on rems rather than %
+  position: relative;
+  z-index: 0;
+  &:before, &:after {
+    content: " ";
+    position: absolute;
+    top: 4%;
+    left: 2%;
+    width: 96%;
+    height: 92%;
+    z-index: -1;
+    @include backface-visibility(hidden);
+    border: {
+      width: 2px;
+      style: solid;
+      color: transparentize($white, 0.5);
     }
-	}
+    // fix for aliasing on iOS - place a transparent outline just outside the border
+    outline: {
+      width: 2px;
+      style: solid;
+      color: transparent;
+    }
+  }
+  &:before {
+    @include transform(skew(2deg) rotate(-0.5deg));
+  }
+  &:after {
+    @include transform(skewY(0.5deg));
+  }
+}
+
+@mixin overlay-background($color1, $color2: complement($color1)) {
+  position: relative;
+  z-index: 0;
+  &:before, &:after {
+    content: " ";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    @include background-clip(content-box);
+  }
+  &:before {
+    background-color: transparentize($color1, 0.75);
+    @include transform(skew(2deg) rotate(-0.5deg));
+  }
+  &:after {
+    background-color: transparentize($color2, 0.75);
+    @include transform(skewY(0.5deg));
+  }
 }

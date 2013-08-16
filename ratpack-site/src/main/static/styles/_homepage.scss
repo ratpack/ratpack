@@ -1,156 +1,189 @@
-.main {
-	@include rhythm($leader: 1, $trailer: 1);
-	@include content-width;
-}
+#page-header .social {
+  $social-font-size: 1.3rem;
+  $social-background-color: $lichtgrau;
+  $social-link-background: $white;
+  $social-link-highlight: $yellow;
 
-.promo {
-	$promo-font-size: 18px;
+  @include breakpoint(max-width ($tablet-portrait - 1px)) {
+    @include margin-leader(1);
+  }
 
-	@include contrasted-smooth($black);
-	@include noise-background;
-	@include adjust-font-size-to($promo-font-size);
-	@include rhythm($padding-leader: 1, $padding-trailer: 1, $font-size: $promo-font-size);
-	@include big-section-border($font-size: $promo-font-size);
+  @include breakpoint($tablet-portrait) {
+    text-align: left;
+    position: absolute;
+    right: 0.5em;
+    bottom: 0;
+  }
 
-	p {
-		@include rhythm($leader: 1, $trailer: 1, $font-size: $promo-font-size);
-	}
+  @include rem(font-size, $social-font-size);
 
-	a {
-		@include link-colors($blue, $yellow);
-	}
-
-	h2 {
-		@include adjust-font-size-to($to-size: $h2-font-size, $from-size: $promo-font-size);
-		&:first-of-type {
-			margin-top: 0;
-		}
-	}
-
-	article, nav {
-		@include full-width;
-	}
-
-	nav {
-		$link-font-size: $h4-font-size;
-		ul {
-			@include adjust-font-size-to($to-size: $link-font-size, $from-size: $promo-font-size);
-			@include rhythm($leader: 1, $trailer: 1, $font-size: $link-font-size);
-			@include starburst-links;
-		}
-		li {
-			@include margin-trailer(0.5, $link-font-size);
-		}
-		a {
-			font-family: $header-font-family;
-			font-weight: 700;
-		}
-	}
-
-	@include at-least($tablet-portrait) {
-		@include clearfix;
-		article {
-			@include columns(6);
-			@include push(1);
-			float: left;
-		}
-
-		nav {
-			@include columns(4);
-			@include pull(1);
-			float: left;
-		}
-
-		position: relative;
-		z-index: 0;
-		@include rhythm($padding-leader: 2, $padding-trailer: 2, $font-size: $promo-font-size);
-		&:before, &:after {
-			content: " ";
-			position: absolute;
-			top: 5%;
-			left: 5%;
-			width: 90%;
-			height: 90%;
-			z-index: -1;
-			@include backface-visibility(hidden);
-			border: {
-				width: 2px;
-				style: solid;
-				color: transparentize($white, 0.5);
-			}
-			// fix for aliasing on iOS - place a transparent outline just outside the border
-			outline: {
-				width: 2px;
-				style: solid;
-				color: transparent;
-			}
-		}
-		&:before {
-			@include transform(skew(2deg) rotate(-0.5deg));
-		}
-		&:after {
-			@include transform(skewY(0.5deg));
-		}
-	}
-}
-
-.page-footer {
-  overflow: visible;
-
-	.social {
-		@include rhythm($trailer: 1);
-
-    margin-top: -5em;
-
-		> * {
-			display: inline-block;
-			vertical-align: middle;
-		}
-
-		a {
-			border: none;
-		}
-
-    img {
-      height: 9.142em;
+  h2 {
+    font: {
+      family: $sans-font-family;
+      size: 1em;
     }
-	}
+    line-height: 1;
+    margin: 0;
+    @include transform(rotate(-5deg));
+  }
 
-	a.build-status {
-		border-bottom: none;
-	}
+  a {
+    display: inline-block;
+    $badge-size: image-height('twitter-badge.png');
+    width: $badge-size;
+    height: $badge-size;
+    text-indent: -9999px;
 
-	.credits {
-		text-align: center;
-		@include margin-leader(1, $footer-font-size);
-		a {
-			border-bottom: none;
-			@include rem(margin-right, 1rem);
-			@include grayscale-until-hovered;
-		}
-	}
+    &[href*='github'] {
+      background-image: image-url('github-badge.png');
+    }
 
-	@include at-least($tablet-portrait) {
-		.multiplebgs & {
-			$footer-image-url: 'ratpack-footer.png';
+    &[href*='twitter'] {
+      background-image: image-url('twitter-badge.png');
+    }
 
-			.social, .about {
-				margin-left: image-width($footer-image-url);
-			}
+    &:active, &:hover {
+      @include transform(rotate(-10deg));
+    }
+  }
+}
 
-			min-height: image-height($footer-image-url) + (2 * image-height('bintray.png'));
-			background:
-				simple-image-url($mask-image-url) top left repeat,
-				$black simple-image-url($footer-image-url) top left no-repeat;
+#promo {
+  $promo-background-color: $purple;
+  $promo-text-color: contrast-color($promo-background-color);
+  $promo-link-color-active: $yellow;
 
-			padding-bottom: 2 * image-height('bintray.png');
-			position: relative;
-			.credits {
-				position: absolute;
-				left: 0;
-				bottom: rhythm(1, $footer-font-size);
-				width: 100%;
-			}
-		}
-	}
+  @include banner($promo-background-color);
+  @include margin-leader(1);
+  @include margin-trailer(1);
+
+  @include breakpoint($tablet-portrait) {
+    @include rem(padding-left, 1rem);
+    @include rem(padding-right, 1rem);
+  }
+
+  a {
+    @include link-colors($promo-text-color, $promo-link-color-active);
+    @include link-underline($promo-text-color, $promo-link-color-active);
+  }
+
+  .content {
+    @include clearfix;
+    @include rem(padding-left, 1rem);
+    @include rem(padding-right, 1rem);
+
+    @include breakpoint($tablet-portrait) {
+      @include rem(padding, 2rem);
+      @include frame;
+    }
+  }
+
+  article {
+    h2 {
+      @include starburst($h2-font-size);
+    }
+  }
+
+  nav {
+    @include breakpoint(max-width ($tablet-portrait - 1px)) {
+      h2 {
+        @include starburst($h2-font-size);
+      }
+    }
+
+    ul {
+      font: {
+        family: $sans-font-family;
+        style: italic;
+        weight: 700;
+      }
+      @include adjust-font-size-to(26px);
+      margin-top: 0;
+    }
+
+    a {
+      border-bottom: none;
+    }
+  }
+
+  @include breakpoint($tablet-portrait) {
+    article, nav {
+      :first-child {
+        margin-top: 0;
+      }
+
+      :last-child {
+        margin-bottom: 0;
+      }
+    }
+
+    article {
+      @include columns(8);
+      @include rem(padding-right, 1rem);
+    }
+
+    nav {
+      @include columns(4);
+    }
+  }
+}
+
+// this makes the social buttons overlap on top of the promo box
+@include breakpoint(max-width ($tablet-portrait - 1px)) {
+  $overlap: image-height('twitter-badge.png') / 2;
+
+  #page-header {
+    margin-bottom: -$overlap;
+    z-index: 1;
+  }
+
+  #promo {
+    margin-top: 0;
+    .content {
+      padding-top: $overlap;
+    }
+  }
+}
+
+#page-footer {
+  .credits {
+    text-align: center;
+    @include margin-leader(1, $footer-font-size);
+    a {
+      border-bottom: none;
+      @include rem(margin-right, 1rem);
+      @include grayscale-until-hovered;
+    }
+  }
+
+  background-color: $black;
+
+  @include breakpoint($tablet-portrait) {
+    .content {
+      $footer-image: 'ratpack-footer.png';
+      $footer-image-width: image-width($footer-image);
+      $footer-image-height: image-height($footer-image);
+      $credits-height: 2 * image-height('bintray.png');
+
+      .about {
+        margin-left: $footer-image-width;
+      }
+
+      min-height: $footer-image-height + $credits-height;
+      background: {
+        image: simple-image-url($footer-image);
+        position: top left;
+        repeat: no-repeat;
+      }
+
+      padding-bottom: $credits-height;
+      position: relative;
+      .credits {
+        position: absolute;
+        left: 0;
+        bottom: rhythm(1, $footer-font-size);
+        width: 100%;
+      }
+    }
+  }
 }
