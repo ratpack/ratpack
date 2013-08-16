@@ -62,10 +62,10 @@ pre[class*='language-'] {
 }
 
 pre code {
+  display: block;
   overflow: auto;
 }
 
 code[class*='language-'] {
-  display: block;
   @include rem(padding, 1rem);
 }
