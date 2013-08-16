@@ -37,6 +37,19 @@ public interface Chain {
   void add(Handler handler);
 
   /**
+   * Add a GET handler to the chain being constructed for the given path.
+   * @param path The path to match requests for
+   * @param handler The handler to delegate to if the path matches and the request is a GET
+   */
+  void get(String path, Handler handler);
+
+  /**
+   * Add a GET handler to the chain being constructed for the root path.
+   * @param handler The handler to delegate to for the root path if the request is a GET
+   */
+  void get(Handler handler);
+
+  /**
    * The registry that backs this chain.
    * <p>
    * The registry that is available is dependent on how the chain was constructed.

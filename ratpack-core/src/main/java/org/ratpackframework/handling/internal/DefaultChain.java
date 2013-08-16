@@ -19,6 +19,7 @@ package org.ratpackframework.handling.internal;
 import org.ratpackframework.api.Nullable;
 import org.ratpackframework.handling.Chain;
 import org.ratpackframework.handling.Handler;
+import org.ratpackframework.handling.Handlers;
 import org.ratpackframework.registry.Registry;
 
 import java.util.List;
@@ -35,6 +36,16 @@ public class DefaultChain implements Chain {
 
   public void add(Handler handler) {
     handlers.add(handler);
+  }
+
+  @Override
+  public void get(String path, Handler handler) {
+    add(Handlers.get(path, handler));
+  }
+
+  @Override
+  public void get(Handler handler) {
+    get("", handler);
   }
 
   public Registry<Object> getRegistry() {
