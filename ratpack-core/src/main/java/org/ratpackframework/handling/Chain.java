@@ -50,6 +50,19 @@ public interface Chain {
   void get(Handler handler);
 
   /**
+   * Add a POST handler to the chain being constructed for the given path.
+   * @param path The path to match requests for
+   * @param handler The handler to delegate to if the path matches and the request is a POST
+   */
+  void post(String path, Handler handler);
+
+  /**
+   * Add a POST handler to the chain being constructed for the root path.
+   * @param handler The handler to delegate to for the root path if the request is a POST
+   */
+  void post(Handler handler);
+
+  /**
    * The registry that backs this chain.
    * <p>
    * The registry that is available is dependent on how the chain was constructed.

@@ -26,7 +26,7 @@ import static io.netty.handler.codec.http.HttpResponseStatus.OK
 
 class HandlersSpec extends DefaultRatpackSpec {
 
-  def "path chain handler"() {
+  def "get chain handler"() {
     given:
     app {
       handlers { Chain handlers ->
@@ -76,6 +76,63 @@ class HandlersSpec extends DefaultRatpackSpec {
 
     when:
     post()
+
+    then:
+    with (response) {
+      statusCode == METHOD_NOT_ALLOWED.code()
+    }
+  }
+
+  def "post chain handler"() {
+    given:
+    app {
+      handlers { Chain handlers ->
+
+        handlers.post("myPath", new Handler() {
+          @Override
+          void handle(Context context) {
+            context.getResponse().send("from the myPath handler");
+          }
+        })
+
+        handlers.post(new Handler() {
+          @Override
+          void handle(Context context) {
+            context.getResponse().send("from the root path handler");
+          }
+        })
+
+      }
+    }
+
+    when:
+    post("myPath")
+
+    then:
+    with (response) {
+      statusCode == OK.code()
+      body.asString().contains("from the myPath handler")
+    }
+
+    when:
+    post()
+
+    then:
+    with (response) {
+      statusCode == OK.code()
+      body.asString().contains("from the root path handler")
+    }
+
+    when:
+    get("myPath")
+
+    then:
+    with (response) {
+      statusCode == METHOD_NOT_ALLOWED.code()
+    }
+
+    when:
+    get()
 
     then:
     with (response) {
