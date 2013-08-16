@@ -142,10 +142,10 @@ class HandlebarsTemplateRenderingSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    get("simple").contentType == "application/octet-stream;charset=UTF-8"
-    get("simple.json").contentType == "application/json;charset=UTF-8"
+    get("simple").contentType == "application/octet-stream"
+    get("simple.json").contentType == "application/json"
     get("simple.html").contentType == "text/html;charset=UTF-8"
-    get("simple.html?type=application/octet-stream").contentType == "application/octet-stream;charset=UTF-8"
+    get("simple.html?type=application/octet-stream").contentType == "application/octet-stream"
   }
 }
 

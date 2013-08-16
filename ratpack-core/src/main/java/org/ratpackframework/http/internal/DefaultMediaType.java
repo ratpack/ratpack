@@ -104,7 +104,7 @@ public class DefaultMediaType implements MediaType {
       }
     }
 
-    if (!setCharset && !defaultCharset.equals(DEFAULT_CHARSET)) {
+    if (!setCharset && isText() && !defaultCharset.equals(DEFAULT_CHARSET)) {
       paramsBuilder.put(CHARSET_KEY, defaultCharset);
     }
 
