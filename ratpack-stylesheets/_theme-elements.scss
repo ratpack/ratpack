@@ -149,11 +149,11 @@
     @include background-clip(content-box);
   }
   &:before {
-    background-color: transparentize($color1, 0.75);
+    background-color: transparentize($color1, 0.9);
     @include transform(skew(2deg) rotate(-0.5deg));
   }
   &:after {
-    background-color: transparentize($color2, 0.75);
+    background-color: transparentize($color2, 0.9);
     @include transform(skewY(0.5deg));
   }
 }

@@ -61,8 +61,11 @@ pre[class*='language-'] {
   overflow: inherit;
 }
 
+pre code {
+  overflow: auto;
+}
+
 code[class*='language-'] {
   display: block;
-  overflow: auto;
   @include rem(padding, 1rem);
 }
