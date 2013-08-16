@@ -199,7 +199,7 @@ Let's take a look at the actual rendering function, it takes in a groovyTemplate
 
 The template looks as follows:
 
-```language-html
+```language-markup
 <!doctype html>
 <head>
   <title>${model.title}</title>
