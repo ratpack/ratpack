@@ -37,6 +37,13 @@ public interface Chain {
   void add(Handler handler);
 
   /**
+   * Add a path handler to the chain being constructed for the given path.
+   * @param path The path to match requests for, the match must be an exact match
+   * @param handler The handler to delegate to if the request matches the given path exactly
+   */
+  void path(String path, Handler handler);
+
+  /**
    * Add a GET handler to the chain being constructed for the given path.
    * @param path The path to match requests for
    * @param handler The handler to delegate to if the path matches and the request is a GET

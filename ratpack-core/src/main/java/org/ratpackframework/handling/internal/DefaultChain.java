@@ -38,6 +38,10 @@ public class DefaultChain implements Chain {
     handlers.add(handler);
   }
 
+  public void path(String path, Handler handler) {
+    add(Handlers.path(path, handler));
+  }
+
   public void get(String path, Handler handler) {
     add(Handlers.get(path, handler));
   }
