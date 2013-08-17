@@ -39,6 +39,16 @@ import static io.netty.handler.codec.http.HttpHeaders.isKeepAlive;
 
 public class FileHttpTransmitter {
 
+  private final HttpRequest request;
+  private final HttpResponse response;
+  private final Channel channel;
+
+  public FileHttpTransmitter(HttpRequest request, HttpResponse response, Channel channel) {
+    this.request = request;
+    this.response = response;
+    this.channel = channel;
+  }
+
   public static class FileServingInfo {
     public final long lastModified;
     public final long length;
@@ -51,7 +61,7 @@ public class FileHttpTransmitter {
     }
   }
 
-  public void transmit(final Blocking blocking, final File file, final HttpRequest request, final HttpResponse response, final Channel channel) {
+  public void transmit(final Blocking blocking, final File file) {
     blocking.exec(new Callable<FileServingInfo>() {
       @Override
       public FileServingInfo call() throws Exception {
@@ -64,12 +74,12 @@ public class FileHttpTransmitter {
     }).then(new Action<FileServingInfo>() {
       @Override
       public void execute(FileServingInfo fileServingInfo) {
-        transmit(fileServingInfo, request, response, channel);
+        transmit(fileServingInfo);
       }
     });
   }
 
-  public void transmit(FileServingInfo fileServingInfo, HttpRequest request, HttpResponse response, Channel channel) {
+  public void transmit(FileServingInfo fileServingInfo) {
 
     response.headers().set(HttpHeaders.Names.CONTENT_LENGTH, fileServingInfo.length);
     HttpHeaders.setDateHeader(response, HttpHeaders.Names.LAST_MODIFIED, new Date(fileServingInfo.lastModified));

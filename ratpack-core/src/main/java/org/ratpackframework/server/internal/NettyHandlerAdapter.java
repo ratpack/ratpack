@@ -28,6 +28,7 @@ import org.ratpackframework.error.internal.DefaultServerErrorHandler;
 import org.ratpackframework.error.internal.ErrorCatchingHandler;
 import org.ratpackframework.file.internal.ActivationBackedMimeTypes;
 import org.ratpackframework.file.internal.DefaultFileSystemBinding;
+import org.ratpackframework.file.internal.FileHttpTransmitter;
 import org.ratpackframework.file.internal.FileRenderer;
 import org.ratpackframework.handling.Context;
 import org.ratpackframework.handling.Handler;
@@ -85,11 +86,13 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
       || (version == HttpVersion.HTTP_1_0 && "Keep-Alive".equalsIgnoreCase(nettyRequest.headers().get("Connection")));
 
     final Channel channel = ctx.channel();
+
+    final DefaultStatus responseStatus = new DefaultStatus();
     final MutableHeaders responseHeaders = new NettyHeadersBackedMutableHeaders(nettyResponse.headers());
     final ByteBuf responseBody = nettyResponse.content();
-    final DefaultStatus responseStatus = new DefaultStatus();
+    FileHttpTransmitter fileHttpTransmitter = new FileHttpTransmitter(nettyRequest, nettyResponse, channel);
 
-    Runnable responseCommitter = new Runnable() {
+    Response response = new DefaultResponse(responseStatus, responseHeaders, responseBody, fileHttpTransmitter, new Runnable() {
       @Override
       public void run() {
         nettyResponse.setStatus(responseStatus.getResponseStatus());
@@ -108,9 +111,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
           }
         }
       }
-    };
-
-    Response response = new DefaultResponse(responseStatus, responseHeaders, responseBody, responseCommitter, nettyResponse, nettyRequest, channel);
+    });
 
     if (registry == null) {
       try {

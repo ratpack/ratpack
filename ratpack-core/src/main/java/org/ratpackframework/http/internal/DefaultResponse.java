@@ -17,8 +17,10 @@
 package org.ratpackframework.http.internal;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.channel.Channel;
-import io.netty.handler.codec.http.*;
+import io.netty.handler.codec.http.Cookie;
+import io.netty.handler.codec.http.DefaultCookie;
+import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.ServerCookieEncoder;
 import org.ratpackframework.block.Blocking;
 import org.ratpackframework.file.internal.FileHttpTransmitter;
 import org.ratpackframework.http.MutableHeaders;
@@ -36,25 +38,21 @@ import java.util.Set;
 
 public class DefaultResponse implements Response {
 
-  private final MutableHeaders headers;
-  private final FullHttpResponse response;
-  private final FullHttpRequest request;
-  private final Channel channel;
-  private final Runnable committer;
-  private final ByteBuf body;
   private final Status status;
-  private boolean contentTypeSet;
+  private final MutableHeaders headers;
+  private final ByteBuf body;
+  private final FileHttpTransmitter fileHttpTransmitter;
+  private final Runnable committer;
 
+  private boolean contentTypeSet;
   private Set<Cookie> cookies;
 
-  public DefaultResponse(Status status, MutableHeaders headers, ByteBuf body, Runnable committer, FullHttpResponse response, FullHttpRequest request, Channel channel) {
+  public DefaultResponse(Status status, MutableHeaders headers, ByteBuf body, FileHttpTransmitter fileHttpTransmitter, Runnable committer) {
     this.status = status;
+    this.fileHttpTransmitter = fileHttpTransmitter;
     this.headers = new MutableHeadersWrapper(headers);
     this.body = body;
     this.committer = committer;
-    this.response = response;
-    this.request = request;
-    this.channel = channel;
   }
 
   class MutableHeadersWrapper implements MutableHeaders {
@@ -222,7 +220,7 @@ public class DefaultResponse implements Response {
   public void sendFile(Blocking blocking, String contentType, File file) {
     contentType(contentType);
     setCookieHeader();
-    new FileHttpTransmitter().transmit(blocking, file, request, response, channel);
+    fileHttpTransmitter.transmit(blocking, file);
   }
 
 
