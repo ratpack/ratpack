@@ -274,7 +274,7 @@ handlers {
 }
 ```
 
-## Building a Java-based application with Gradle.
+## Building a Java-based application with Gradle
 
 While our small script is nice, it is fairly difficult to deploy and grow. We really need a good project structure to hold our application together.
 
@@ -339,7 +339,7 @@ Overall, this template is very intuitive and I highly recommend using this struc
 
 There is a section with GitHub repositories of other example applications if you would like to explore alternatives.
 
-## Modularizing your application.
+## Modularizing your application
 
 As your application grows, it becomes more and more important to separate out bits of code so they can be tested and developed in isolation.
 
@@ -411,7 +411,7 @@ handlers {
 
 Notice that the injected dependency is referenced at the handler level adn not in the handlers closure.
 
-## Deploying your application to the Cloud.
+## Deploying your application to the Cloud
 
 * Marco Vermeulen has worked very hard in getting Ratpack deployed into Heroku. You can read his [blog post](http://wiredforcode.com/blog/2013/08/05/deploy-ratpack-on-heroku/) on how to deploy Ratpack using a buildpack. Marco is working on a [gradle plugin](https://github.com/marcoVermeulen/gradle-heroku) that will make deployment into Heroku fairly simple.
 
