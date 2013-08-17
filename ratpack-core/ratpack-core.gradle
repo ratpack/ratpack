@@ -18,6 +18,7 @@ apply from: "$rootDir/gradle/javaModule.gradle"
 
 ext.apiLinks = [
     "http://netty.io/4.0/api",
+    "http://docs.oracle.com/javase/7/docs/api"
 ]
 
 dependencies {
