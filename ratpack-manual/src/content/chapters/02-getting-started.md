@@ -347,9 +347,10 @@ Ratpack provides a very powerful dependency injection mechanism powered by [Goog
 
 While there is a more direct mechanism for injecting dependencies, Ratpack also offers the ability to define dependencies via modules.
 
-If you look at the [MongoDB Ratpack Angular project](https://github.com/tomaslin/ratpack-mongo-angular/blob/master/server/src/ratpack/ratpack.groovy), you will see that there is a reference to modules as follows:
+If you look at the [MongoDB Ratpack Angular project](https://github.com/tomaslin/ratpack-mongo-angular) there is a [MongoModule](https://github.com/tomaslin/ratpack-mongo-angular/blob/master/server/src/main/groovy/com/tomaslin/mongopack/MongoModule.groovy) class that injects a mongo service based on the provided configuration. Then in the [ratpack.groovy](https://github.com/tomaslin/ratpack-mongo-angular/blob/master/server/src/ratpack/ratpack.groovy) file, you will see that there is a reference to modules:
 
 ```language-groovy groovy-ratpack
+// MongoModule
 import com.google.inject.AbstractModule
 
 class MongoService {
@@ -359,13 +360,13 @@ class MongoService {
 }
 
 class MongoModule extends AbstractModule {
-
     @Override
     protected void configure() {
-        bind(MongoService) // (2)
+        bind(MongoService)                  // (2)
     }
 }
 
+// ratpack.groovy
 ratpack {
     modules {
         register new MongoModule()
@@ -379,16 +380,11 @@ ratpack {
 }
 ```
 
-In (1), we are calling the injected service globally so it applies to the all the handlers. 
+In *(1)*, we are calling the injected service globally so it applies to the all the handlers.
 
-If you go to the [MongoModule](https://github.com/tomaslin/ratpack-mongo-angular/blob/master/server/src/main/groovy/com/tomaslin/mongopack/MongoModule.groovy), you can see that it injects a mongo service based on the provided configuration,
+The most important line here is *(2)*, where the actual mongo service is bound to the module context.
 
-```language-groovy
-```
-
-The most important line here is (2), where the actual mongo service is bound to the module context.
-
-This is then available to (1) above and provides a nice simple way of adding additional functionality to our applications without polluting the *ratpack.groovy* server script too much.
+This is then available to *(1)* above and provides a nice simple way of adding additional functionality to our applications without polluting the *ratpack.groovy* server script too much.
 
 ### Per-handler dependency injection
 
