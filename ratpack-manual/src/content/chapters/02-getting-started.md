@@ -82,9 +82,9 @@ Let's change our echo handler so it returns what we entered:
 
 ```language-groovy groovy-handlers
 handlers {
-  get('echo/:message') {
-    getResponse().send getPathTokens().message
-  }
+    get('echo/:message') {
+        getResponse().send getPathTokens().message
+    }
 }
 ```
 
@@ -104,9 +104,9 @@ This can be done by adding a question mark at the end of the optional parameter.
 
 ```language-groovy groovy-handlers
 handlers {
-  get('echo/:message/:trim?'){
-    getResponse().send getPathTokens().message - getPathTokens().trim
-  }
+    get('echo/:message/:trim?'){
+        getResponse().send getPathTokens().message - getPathTokens().trim
+    }
 }
 ```
 
@@ -117,9 +117,9 @@ You can have as many optional path tokens as you want as long as they are not fo
 
 ```language-groovy groovy-handlers
 handlers {
-  get('echo/:message/:trim?/:add?') {
-	  getResponse().send getPathTokens().message - getPathTokens().trim + ( getPathTokens().add?:'' )
-  }
+    get('echo/:message/:trim?/:add?') {
+        getResponse().send getPathTokens().message - getPathTokens().trim + ( getPathTokens().add?:'' )
+    }
 }
 ```
 
@@ -134,13 +134,13 @@ In the following example, we capitalize a message if the `upper=true` query para
 
 ```language-groovy groovy-handlers
 handlers {
-  get('echo/:message') {
-	  String message = getPathTokens().message
-	  if (getRequest().queryParams.upper) {
-		  message = message.toUpperCase()
-	  }
-	  getResponse().send message
-  }
+    get('echo/:message') {
+        String message = getPathTokens().message
+        if (getRequest().queryParams.upper) {
+            message = message.toUpperCase()
+        }
+        getResponse().send message
+    }
 }
 ```
 
@@ -164,9 +164,9 @@ In your *ratpack.groovy* file, add the following lines at the end:
 
 ```language-groovy groovy-handlers
 handlers {
-  prefix('images') {
-	  assets "images"
-  }
+    prefix('images') {
+        assets "images"
+    }
 }
 ```
 
@@ -178,9 +178,9 @@ It does not have to be a direct match to a directory, you can change the path:
 
 ```language-groovy groovy-handlers
 handlers {
-  prefix('images/public/today') {
-    assets "images"
-  }
+    prefix('images/public/today') {
+        assets "images"
+    }
 }
 ```
 
@@ -237,8 +237,8 @@ One of the interesting features about Ratpack is the fact that calls are non-blo
 import static org.ratpackframework.groovy.Util.exec
 
 interface DbService {
-  // Uses blocking IO
-  String getName(String personId)
+    // Uses blocking IO
+    String getName(String personId)
 }
 
 handlers {
@@ -258,10 +258,10 @@ You can also provide an optional failure condition to the exec blocking operatio
 import static org.ratpackframework.groovy.Util.exec
 
 interface DbService {
-  // Uses blocking IO
-  String getName(String personId)
+    // Uses blocking IO
+    String getName(String personId)
 
-  void logError(Exception e)
+    void logError(Exception e)
 }
 
 handlers {
@@ -353,9 +353,9 @@ If you look at the [MongoDB Ratpack Angular project](https://github.com/tomaslin
 import com.google.inject.AbstractModule
 
 class MongoService {
-  List<String> getEntries() {
-    // connect to db
-  }
+    List<String> getEntries() {
+        // connect to db
+    }
 }
 
 class MongoModule extends AbstractModule {
@@ -368,13 +368,13 @@ class MongoModule extends AbstractModule {
 
 ratpack {
     modules {
-      register new MongoModule()
+        register new MongoModule()
     }
 
     handlers { MongoService mongoService -> // (1)
-      post("some/path") {
-        getResponse().send mongoService.entries.join("\n")
-      }
+        post("some/path") {
+            getResponse().send mongoService.entries.join("\n")
+        }
     }
 }
 ```
@@ -398,14 +398,14 @@ This looks as follows:
 
 ```language-groovy groovy-handlers
 interface PeopleDAO {
-  void save(String person)
+    void save(String person)
 }
 
 handlers {
-  post("api/person") { PeopleDAO dao ->
-    dao.save(getRequest().text)
-    getResponse().send "saved"
-  }
+    post("api/person") { PeopleDAO dao ->
+        dao.save(getRequest().text)
+        getResponse().send "saved"
+    }
 }
 ```
 
