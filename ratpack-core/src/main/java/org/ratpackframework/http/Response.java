@@ -35,25 +35,6 @@ import java.util.Set;
 public interface Response {
 
   /**
-   * A status line of a HTTP response.
-   */
-  interface Status {
-    /**
-     * The status code.
-     *
-     * @return The status code.
-     */
-    int getCode();
-
-    /**
-     * The message of the status.
-     *
-     * @return The message of the status.
-     */
-    String getMessage();
-  }
-
-  /**
    * The status that will be part of the response when sent.
    * <p>
    * By default, this will return a {@code "200 OK"} response.

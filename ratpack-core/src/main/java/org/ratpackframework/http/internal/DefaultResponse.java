@@ -23,6 +23,7 @@ import org.ratpackframework.block.Blocking;
 import org.ratpackframework.file.internal.FileHttpTransmitter;
 import org.ratpackframework.http.MutableHeaders;
 import org.ratpackframework.http.Response;
+import org.ratpackframework.http.Status;
 import org.ratpackframework.util.internal.IoUtils;
 
 import java.io.File;
@@ -41,11 +42,13 @@ public class DefaultResponse implements Response {
   private final Channel channel;
   private final Runnable committer;
   private final ByteBuf body;
+  private final Status status;
   private boolean contentTypeSet;
 
   private Set<Cookie> cookies;
 
-  public DefaultResponse(MutableHeaders headers, ByteBuf body, Runnable committer, FullHttpResponse response, FullHttpRequest request, Channel channel) {
+  public DefaultResponse(Status status, MutableHeaders headers, ByteBuf body, Runnable committer, FullHttpResponse response, FullHttpRequest request, Channel channel) {
+    this.status = status;
     this.headers = new MutableHeadersWrapper(headers);
     this.body = body;
     this.committer = committer;
@@ -131,24 +134,16 @@ public class DefaultResponse implements Response {
   }
 
   public Status getStatus() {
-    return new Status() {
-      public int getCode() {
-        return response.getStatus().code();
-      }
-
-      public String getMessage() {
-        return response.getStatus().reasonPhrase();
-      }
-    };
+    return status;
   }
 
   public Response status(int code) {
-    response.setStatus(HttpResponseStatus.valueOf(code));
+    status.set(code);
     return this;
   }
 
   public Response status(int code, String message) {
-    response.setStatus(new HttpResponseStatus(code, message));
+    status.set(code, message);
     return this;
   }
 

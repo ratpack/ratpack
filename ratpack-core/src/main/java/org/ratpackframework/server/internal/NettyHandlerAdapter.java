@@ -36,10 +36,7 @@ import org.ratpackframework.handling.internal.DefaultContext;
 import org.ratpackframework.http.MutableHeaders;
 import org.ratpackframework.http.Request;
 import org.ratpackframework.http.Response;
-import org.ratpackframework.http.internal.DefaultRequest;
-import org.ratpackframework.http.internal.DefaultResponse;
-import org.ratpackframework.http.internal.NettyHeadersBackedHeaders;
-import org.ratpackframework.http.internal.NettyHeadersBackedMutableHeaders;
+import org.ratpackframework.http.internal.*;
 import org.ratpackframework.launch.LaunchConfig;
 import org.ratpackframework.redirect.internal.DefaultRedirector;
 import org.ratpackframework.registry.Registry;
@@ -90,10 +87,12 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
     final Channel channel = ctx.channel();
     final MutableHeaders responseHeaders = new NettyHeadersBackedMutableHeaders(nettyResponse.headers());
     final ByteBuf responseBody = nettyResponse.content();
+    final DefaultStatus responseStatus = new DefaultStatus();
 
     Runnable responseCommitter = new Runnable() {
       @Override
       public void run() {
+        nettyResponse.setStatus(responseStatus.getResponseStatus());
         responseHeaders.set(HttpHeaders.Names.CONTENT_LENGTH, responseBody.writerIndex());
         boolean shouldClose = true;
         if (channel.isOpen()) {
@@ -111,7 +110,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
       }
     };
 
-    Response response = new DefaultResponse(responseHeaders, responseBody, responseCommitter, nettyResponse, nettyRequest, channel);
+    Response response = new DefaultResponse(responseStatus, responseHeaders, responseBody, responseCommitter, nettyResponse, nettyRequest, channel);
 
     if (registry == null) {
       try {
