@@ -55,15 +55,15 @@ public class NettyRatpackService extends AbstractIdleService implements RatpackS
     ServerBootstrap bootstrap = new ServerBootstrap();
     group = new NioEventLoopGroup(0, new DefaultThreadFactory("ratpack-group", Thread.MAX_PRIORITY));
 
-    bootstrap.group(group)
+    bootstrap
+      .group(group)
       .channel(NioServerSocketChannel.class)
-      .childHandler(channelInitializer);
-
-    bootstrap.childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
-    bootstrap.childOption(ChannelOption.TCP_NODELAY, true);
-    bootstrap.option(ChannelOption.SO_REUSEADDR, true);
-    bootstrap.option(ChannelOption.SO_BACKLOG, 1024);
-    bootstrap.option(ChannelOption.ALLOCATOR, byteBufAllocator);
+      .childHandler(channelInitializer)
+      .childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
+      .childOption(ChannelOption.TCP_NODELAY, true)
+      .option(ChannelOption.SO_REUSEADDR, true)
+      .option(ChannelOption.SO_BACKLOG, 1024)
+      .option(ChannelOption.ALLOCATOR, byteBufAllocator);
 
     channel = bootstrap.bind(requestedAddress).sync().channel();
     boundAddress = (InetSocketAddress) channel.localAddress();
