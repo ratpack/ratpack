@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.manual.fixture;
+package org.ratpackframework.manual.snippets.junit;
 
 import org.junit.runner.Runner;
 import org.junit.runners.Suite;
 import org.junit.runners.model.InitializationError;
+import org.ratpackframework.manual.snippets.junit.RunnerProvider;
 
 import java.util.List;
 

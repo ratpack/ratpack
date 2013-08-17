@@ -14,24 +14,30 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.manual.fixture;
+package org.ratpackframework.manual.snippets.fixtures
 
-import org.junit.runner.RunWith;
-import org.junit.runner.Runner;
+class GroovyRatpackDslFixture implements SnippetFixture {
 
-import java.util.LinkedList;
-import java.util.List;
-
-@RunWith(DelegatingTestRunner.class)
-abstract public class JavadocTestCase implements RunnerProvider {
-
-  protected abstract void addTests(JavadocTests tests);
-
-  public final List<Runner> getRunners() {
-    List<Runner> runners = new LinkedList<Runner>();
-    JavadocTests tests = new DefaultJavadocTests(getClass(), runners);
-    addTests(tests);
-    return runners;
+  @Override
+  public void setup() {
   }
 
+  @Override
+  public void cleanup() {
+  }
+
+  @Override
+  public String pre() {
+"""
+def ratpack(@DelegatesTo(value = org.ratpackframework.groovy.Ratpack, strategy = Closure.DELEGATE_FIRST) Closure closure) { }
+ratpack {
+"""
+  }
+
+  @Override
+  public String post() {
+"""
+}
+"""
+  }
 }

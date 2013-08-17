@@ -14,12 +14,25 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.manual.fixture;
+package org.ratpackframework.manual.snippets
 
-public interface ScriptRunner {
+import org.junit.runner.Runner
+import org.ratpackframework.manual.snippets.junit.SnippetRunner
 
-  void runScript(String script, String sourceClassName);
+class DefaultCodeSnippetTests implements CodeSnippetTests {
 
-  int getScriptLineOffset();
+  private final Class<?> clazz
+  private final List<Runner> runners
+  private final SnippetExecuter executer;
+
+  DefaultCodeSnippetTests(Class<?> clazz, List<Runner> runners, SnippetExecuter executer) {
+    this.clazz = clazz
+    this.runners = runners
+    this.executer = executer
+  }
+
+  public void add(TestCodeSnippet snippet) {
+    runners.add(new SnippetRunner(clazz, executer, snippet));
+  }
 
 }

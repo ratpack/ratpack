@@ -14,12 +14,25 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.manual.fixture;
+package org.ratpackframework.manual.snippets.fixtures;
 
-import java.io.File;
+public class DoNothingSnippetFixture implements SnippetFixture {
 
-public interface JavadocTests {
+  @Override
+  public void setup() {
+  }
 
-  void testCodeSnippets(File root, String include, String cssClass, ScriptRunner scriptRunner);
+  @Override
+  public void cleanup() {
+  }
 
+  @Override
+  public String pre() {
+    return "";
+  }
+
+  @Override
+  public String post() {
+    return "";
+  }
 }

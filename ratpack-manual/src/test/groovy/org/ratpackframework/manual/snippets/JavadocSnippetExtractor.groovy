@@ -14,43 +14,44 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.manual.fixture
+package org.ratpackframework.manual.snippets
 
 import org.apache.commons.lang3.StringEscapeUtils
 import org.codehaus.groovy.control.MultipleCompilationErrorsException
 import org.codehaus.groovy.control.messages.SyntaxErrorMessage
-import org.junit.runner.Description
-import org.junit.runner.Runner
-import org.junit.runner.notification.Failure
-import org.junit.runner.notification.RunNotifier
+import org.ratpackframework.manual.snippets.fixtures.SnippetFixture
+import org.ratpackframework.util.Transformer
 
 import java.util.regex.MatchResult
 import java.util.regex.Pattern
 
-class JavadocCodeSnippetRunnerBuilder {
+class JavadocSnippetExtractor {
 
   private static Pattern javadocPattern =
     Pattern.compile(/(?ims)\/\*\*.*?\*\//)
 
-  static List<Runner> build(Class<?> clazz, File root, String include, String cssClass, ScriptRunner scriptRunner) {
-    List<Runner> runners = []
+  static List<TestCodeSnippet> extract(File root, String include, String cssClass, SnippetFixture fixture) {
+    List<TestCodeSnippet> snippets = []
+
     def snippetTagPattern = Pattern.compile(/(?ims)<([a-z]+)\s+class\s*=\s*['"]$cssClass['"]\s*>.*?<\s*\/\s*\1>/)
     def filenames = new FileNameFinder().getFileNames(root.absolutePath, include)
+
     filenames.each { filename ->
       def file = new File(filename)
-      addTests(clazz, runners, file, snippetTagPattern, scriptRunner)
+      addSnippets(snippets, file, snippetTagPattern, fixture)
     }
 
-    runners
+    snippets
   }
 
-  private static void addTests(Class<?> clazz, List<Runner> runners, File file, Pattern snippetTagPattern, ScriptRunner scriptRunner) {
+  private static void addSnippets(List<TestCodeSnippet> snippets, File file, Pattern snippetTagPattern, SnippetFixture snippetFixture) {
     def source = file.text
     String testName = calculateBaseName(file, source)
     Map<Integer, String> snippetsByLine = findSnippetsByLine(source, snippetTagPattern)
-    snippetsByLine.each { lineNumber, snippets ->
-      snippets.each { snippet ->
-        runners << createRunner(clazz, testName, file, lineNumber, snippet, scriptRunner)
+
+    snippetsByLine.each { lineNumber, snippetBlocks ->
+      snippetBlocks.each { snippet ->
+        snippets << createSnippet(testName, file, lineNumber, snippet, snippetFixture)
       }
     }
   }
@@ -88,59 +89,43 @@ class JavadocCodeSnippetRunnerBuilder {
     lineNumberToAssertions
   }
 
-  private static Runner createRunner(Class<?> testClass, String sourceClassName, File sourceFile, int lineNumber, String snippet, ScriptRunner scriptRunner) {
-    def description = Description.createTestDescription(testClass, sourceClassName + ":$lineNumber")
-    new Runner() {
-      @Override
-      Description getDescription() {
-        description
-      }
-
-      @Override
-      void run(RunNotifier notifier) {
-        try {
-          notifier.fireTestStarted(getDescription())
-          scriptRunner.runScript(snippet, sourceClassName)
-        } catch (Throwable t) {
-          def errorLine = 0
-
-          if (t instanceof MultipleCompilationErrorsException) {
-            def compilationException = t as MultipleCompilationErrorsException
-            def error = compilationException.errorCollector.getError(0)
-            if (error instanceof SyntaxErrorMessage) {
-              errorLine = error.cause.line
-            }
-          } else {
-            def frame = t.getStackTrace().find { it.fileName == sourceClassName }
-            if (frame) {
-              errorLine = frame.lineNumber
-            }
-          }
-          errorLine = errorLine - scriptRunner.scriptLineOffset
-          StackTraceElement[] stack = t.getStackTrace()
-          List<StackTraceElement> newStack = new ArrayList<StackTraceElement>(stack.length + 1)
-          newStack.add(new StackTraceElement(sourceClassName, "javadoc", sourceFile.name, lineNumber + errorLine))
-          newStack.addAll(stack)
-          t.setStackTrace(newStack as StackTraceElement[])
-          notifier.fireTestFailure(new Failure(getDescription(), t))
-        } finally {
-          notifier.fireTestFinished(getDescription())
-        }
-      }
-
-      @Override
-      int testCount() {
-        1
-      }
-    }
-  }
-
   private static String extractSnippetFromTag(String tag) {
     String tagInner = tag.substring(tag.indexOf(">") + 1, tag.lastIndexOf("<"))
     String html = tagInner.replaceAll("(?m)^\\s*\\*", "")
     String deliteral = html.replaceAll("\\{@literal (.+?)}", '$1')
     def snippet = StringEscapeUtils.unescapeHtml4(deliteral)
     snippet
+  }
+
+  private static TestCodeSnippet createSnippet(String sourceClassName, File sourceFile, int lineNumber, String snippet, SnippetFixture fixture) {
+    new TestCodeSnippet(snippet, sourceClassName, sourceClassName + ":$lineNumber", fixture, new Transformer<Throwable, Throwable>() {
+      @Override
+      Throwable transform(Throwable t) {
+        def errorLine = 0
+
+        if (t instanceof MultipleCompilationErrorsException) {
+          def compilationException = t as MultipleCompilationErrorsException
+          def error = compilationException.errorCollector.getError(0)
+          if (error instanceof SyntaxErrorMessage) {
+            errorLine = error.cause.line
+          }
+        } else {
+          def frame = t.getStackTrace().find { it.fileName == sourceClassName }
+          if (frame) {
+            errorLine = frame.lineNumber
+          }
+        }
+        errorLine = errorLine - fixture.pre().split("\n").size()
+        StackTraceElement[] stack = t.getStackTrace()
+        List<StackTraceElement> newStack = new ArrayList<StackTraceElement>(stack.length + 1)
+        newStack.add(new StackTraceElement(sourceClassName, "javadoc", sourceFile.name, lineNumber + errorLine))
+        newStack.addAll(stack)
+        t.setStackTrace(newStack as StackTraceElement[])
+
+        t
+      }
+    })
+
   }
 
 }

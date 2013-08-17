@@ -14,14 +14,10 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.manual.fixture;
+package org.ratpackframework.manual.snippets;
 
-import org.junit.runner.Runner;
+public interface CodeSnippetTests {
 
-import java.util.List;
-
-public interface RunnerProvider {
-
-  List<Runner> getRunners();
+  void add(TestCodeSnippet testCodeSnippet);
 
 }

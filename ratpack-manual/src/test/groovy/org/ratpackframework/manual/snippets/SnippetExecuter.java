@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.manual.fixture;
+package org.ratpackframework.manual.snippets;
 
 import groovy.lang.GroovyShell;
+import groovy.lang.Script;
 import groovy.transform.CompileStatic;
 import org.codehaus.groovy.ast.AnnotationNode;
 import org.codehaus.groovy.ast.ClassNode;
@@ -26,20 +27,16 @@ import org.codehaus.groovy.control.CompilePhase;
 import org.codehaus.groovy.control.CompilerConfiguration;
 import org.codehaus.groovy.control.SourceUnit;
 import org.codehaus.groovy.control.customizers.CompilationCustomizer;
+import org.ratpackframework.manual.snippets.fixtures.SnippetFixture;
 
 import java.util.Arrays;
 import java.util.List;
 
-public class DefaultScriptRunner implements ScriptRunner {
+public class SnippetExecuter {
 
   private final GroovyShell groovyShell;
-  private final String prefix;
-  private final String suffix;
 
-  public DefaultScriptRunner(String prefix, String suffix) {
-    this.prefix = prefix;
-    this.suffix = suffix;
-
+  public SnippetExecuter() {
     CompilerConfiguration config = new CompilerConfiguration();
     config.addCompilationCustomizers(new CompilationCustomizer(CompilePhase.CONVERSION) {
       @Override
@@ -51,21 +48,30 @@ public class DefaultScriptRunner implements ScriptRunner {
     groovyShell = new GroovyShell(config);
   }
 
-  public DefaultScriptRunner() {
-    this("", "");
+  public void execute(TestCodeSnippet snippet) {
+    List<String> importsAndSnippet = extractImports(snippet.getSnippet());
+
+    String imports = importsAndSnippet.get(0);
+    String snippetMinusImports = importsAndSnippet.get(1);
+
+    SnippetFixture fixture = snippet.getFixture();
+    String fullSnippet = imports + fixture.pre() + snippetMinusImports + fixture.post() + ";0;";
+
+    Script script = groovyShell.parse(fullSnippet, snippet.getClassName());
+
+    fixture.setup();
+    try {
+      script.run();
+    } finally {
+      fixture.cleanup();
+    }
   }
 
-  public void runScript(String script, String sourceClassName) {
-    List<String> importsAndScript = extractImports(script);
-    String scriptText = importsAndScript.get(0) + prefix + importsAndScript.get(1) + suffix + ";0;";
-    groovyShell.evaluate(scriptText, sourceClassName);
-  }
-
-  private List<String> extractImports(String script) {
+  private List<String> extractImports(String snippet) {
     StringBuilder imports = new StringBuilder();
     StringBuilder scriptMinusImports = new StringBuilder();
 
-    for (String line : script.split("\\n")) {
+    for (String line : snippet.split("\\n")) {
       StringBuilder target;
       if (line.trim().startsWith("import ")) {
         target = imports;
@@ -78,9 +84,4 @@ public class DefaultScriptRunner implements ScriptRunner {
 
     return Arrays.asList(imports.toString(), scriptMinusImports.toString());
   }
-
-  public int getScriptLineOffset() {
-    return prefix.split("\\n").length - 1;
-  }
-
 }
