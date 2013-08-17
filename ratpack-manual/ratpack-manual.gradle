@@ -143,7 +143,7 @@ task tokeniseManual(type: Sync) {
       "manual-url": "http://oss.jfrog.org/artifactory/repo/org/ratpack-framework/ratpack-manual/$version/ratpack-manual-${version}.zip".toString(),
       head: """
         <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
         <link href="css/normalize.css" rel="stylesheet" type="text/css">
         <!--[if lt IE 8]><link href="css/minimal.css" rel="stylesheet" type="text/css"><![endif]-->
         <!--[if gt IE 7]><!--><link href="css/stylesheet.css" rel="stylesheet" type="text/css"><!--<![endif]-->
