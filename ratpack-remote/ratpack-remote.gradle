@@ -14,34 +14,15 @@
  * limitations under the License.
  */
 
-include \
-    "ratpack-core",
-    "ratpack-guice",
-    "ratpack-session",
-    "ratpack-gradle",
-    "ratpack-groovy",
-    "ratpack-test-support",
-    "ratpack-manual",
-    "ratpack-site",
-    "ratpack-handlebars",
-    "ratpack-remote"
 
-include \
-  "perftest",
-  "perftest:java",
-  "perftest:groovy"
 
-rootProject.name = 'ratpack'
+apply from: "$rootDir/gradle/groovyModule.gradle"
 
-def setBuildFile(project) {
-  project.buildFileName = "${project.name}.gradle"
-  project.children.each {
-    setBuildFile(it)
-  }
-}
+dependencies {
+  compile project(":ratpack-guice")
+  compile 'org.codehaus.groovy.modules.remote:remote-core:0.5'
 
-setBuildFile(rootProject)
-rootProject.children.each {
-  setBuildFile(it)
+  testCompile project(":ratpack-test-support")
+  testCompile 'org.codehaus.groovy.modules.remote:remote-transport-http:0.5'
 }
 

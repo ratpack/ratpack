@@ -14,34 +14,7 @@
  * limitations under the License.
  */
 
-include \
-    "ratpack-core",
-    "ratpack-guice",
-    "ratpack-session",
-    "ratpack-gradle",
-    "ratpack-groovy",
-    "ratpack-test-support",
-    "ratpack-manual",
-    "ratpack-site",
-    "ratpack-handlebars",
-    "ratpack-remote"
-
-include \
-  "perftest",
-  "perftest:java",
-  "perftest:groovy"
-
-rootProject.name = 'ratpack'
-
-def setBuildFile(project) {
-  project.buildFileName = "${project.name}.gradle"
-  project.children.each {
-    setBuildFile(it)
-  }
-}
-
-setBuildFile(rootProject)
-rootProject.children.each {
-  setBuildFile(it)
-}
-
+/**
+ * Integration with <a href="http://groovy.codehaus.org/modules/remote/" target="_blank">Groovy Remote Control</a>.
+ */
+package org.ratpackframework.remote;

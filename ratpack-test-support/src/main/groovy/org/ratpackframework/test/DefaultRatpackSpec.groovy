@@ -44,7 +44,7 @@ abstract class DefaultRatpackSpec extends InternalRatpackSpec {
   Closure<?> modulesClosure = {}
 
   List<Module> modules = []
-  Map<String, String> others = [:]
+  Map<String, String> other = [:]
 
   void handlers(@DelegatesTo(Chain) Closure<?> configurer) {
     this.handlersClosure = configurer
@@ -63,7 +63,7 @@ abstract class DefaultRatpackSpec extends InternalRatpackSpec {
         .baseDir(dir)
         .port(0)
         .reloadable(reloadable)
-        .other(others)
+        .other(other)
         .build(new HandlerFactory() {
       Handler create(LaunchConfig launchConfig) {
         createHandlerFactory(launchConfig).create(modulesAction, createInjectorFactory(), handler)
