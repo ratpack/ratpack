@@ -139,6 +139,10 @@ $pagination-background: $purple;
 		@include margin-trailer(1);
 		@include divider;
 	}
+
+  em, :not(pre) > code {
+    @include hyphenation;
+  }
 }
 
 #page-footer {
