@@ -7,7 +7,7 @@ def indexPages = ["index.html"] as String[]
 
 ratpack {
   modules {
-    register new VersionsModule(getClass().classLoader, "versions.properties")
+    register new VersionsModule(getClass().classLoader)
   }
   handlers { RatpackVersions versions ->
   	handler {

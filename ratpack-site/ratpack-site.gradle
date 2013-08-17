@@ -67,7 +67,14 @@ task prepareContent {
 }
 
 processResources {
-  expand snapshot: project.version, current: project.version
+  inputs.property("currentVersion", version)
+  def currentVersionsFile = file("src/main/resources/currentVersion.txt")
+  outputs.file currentVersionsFile
+
+  doFirst {
+    currentVersionsFile.parentFile.mkdirs()
+    currentVersionsFile.text = version
+  }
 }
 
 run {
