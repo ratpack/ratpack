@@ -23,7 +23,6 @@ import org.ratpackframework.groovy.Util;
 import org.ratpackframework.groovy.handling.Chain;
 import org.ratpackframework.groovy.handling.ClosureHandlers;
 import org.ratpackframework.handling.Handler;
-import org.ratpackframework.handling.Handlers;
 import org.ratpackframework.handling.internal.ChainBuilder;
 import org.ratpackframework.registry.Registry;
 
@@ -36,47 +35,43 @@ public class DefaultChain extends org.ratpackframework.handling.internal.Default
   }
 
   public void handler(Closure<?> handler) {
-    add(ClosureHandlers.handler(handler));
+    handler(ClosureHandlers.handler(handler));
   }
 
   public void prefix(String prefix, Closure<?> chain) {
-    add(Handlers.prefix(prefix, toHandlerList(chain)));
+    prefix(prefix, toHandlerList(chain));
   }
 
   public void path(String path, Closure<?> handler) {
-    add(Handlers.path(path, ClosureHandlers.handler(handler)));
+    path(path, ClosureHandlers.handler(handler));
   }
 
   public void get(String path, Closure<?> handler) {
-    add(ClosureHandlers.get(path, handler));
+    get(path, ClosureHandlers.handler(handler));
   }
 
   public void get(Closure<?> handler) {
-    get("", handler);
+    get(ClosureHandlers.handler(handler));
   }
 
   public void post(String path, Closure<?> handler) {
-    add(ClosureHandlers.post(path, handler));
+    post(path, ClosureHandlers.handler(handler));
   }
 
   public void post(Closure<?> handler) {
-    post("", handler);
-  }
-
-  public void assets(String path, String... indexFiles) {
-    add(Handlers.assets(path, indexFiles));
+    post(ClosureHandlers.handler(handler));
   }
 
   public void register(Object object, Closure<?> handlers) {
-    add(Handlers.register(object, toHandlerList(handlers)));
+    register(object, toHandlerList(handlers));
   }
 
   public <T> void register(Class<? super T> type, T object, Closure<?> handlers) {
-    add(Handlers.register(type, object, toHandlerList(handlers)));
+    register(type, object, toHandlerList(handlers));
   }
 
   public void fileSystem(String path, Closure<?> handlers) {
-    add(Handlers.fileSystem(path, toHandlerList(handlers)));
+    fileSystem(path, toHandlerList(handlers));
   }
 
   private ImmutableList<Handler> toHandlerList(Closure<?> handlers) {
