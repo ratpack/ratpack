@@ -188,26 +188,17 @@ public class DefaultResponse implements Response {
     return this;
   }
 
-  public void send(String contentType, String body) {
-    contentType(contentType);
-    doSend(body);
-  }
-
-  private void doSend(String body) {
-    ByteBuf buffer = IoUtils.utf8Buffer(body);
-    if (!contentLengthSet) {
-      headers.set(HttpHeaders.Names.CONTENT_LENGTH, buffer.writerIndex());
-    }
-    response.content().writeBytes(buffer);
-    commit();
-  }
-
   public void send(String text) {
     if (!contentTypeSet) {
-      send("text/plain", text);
-    } else {
-      doSend(text);
+      contentType("text/plain");
     }
+
+    send(IoUtils.utf8Buffer(text));
+  }
+
+  public void send(String contentType, String body) {
+    contentType(contentType);
+    send(body);
   }
 
   public void send(byte[] bytes) {
