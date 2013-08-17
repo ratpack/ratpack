@@ -40,9 +40,11 @@ repositories {
 
 configurations {
   latestManual {}
-  compile.resolutionStrategy.eachDependency {
-    if (it.requested.group == "io.netty") {
-      it.useVersion "4.0.8.Final-SNAPSHOT"
+  all {
+    resolutionStrategy.eachDependency {
+      if (it.requested.group == "io.netty") {
+        it.useVersion "4.0.8.Final-SNAPSHOT"
+      }
     }
   }
 }
