@@ -18,6 +18,7 @@ package org.ratpackframework.server.internal;
 
 import com.google.common.util.concurrent.AbstractIdleService;
 import io.netty.bootstrap.ServerBootstrap;
+import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
@@ -37,16 +38,15 @@ public class NettyRatpackService extends AbstractIdleService implements RatpackS
   private final Logger logger = Logger.getLogger(getClass().getName());
 
   private final InetSocketAddress requestedAddress;
+  private final ByteBufAllocator byteBufAllocator;
   private InetSocketAddress boundAddress;
   private final ChannelInitializer<SocketChannel> channelInitializer;
   private Channel channel;
   private EventLoopGroup group;
 
-  public NettyRatpackService(
-    InetSocketAddress requestedAddress,
-    ChannelInitializer<SocketChannel> channelInitializer
-  ) {
+  public NettyRatpackService(InetSocketAddress requestedAddress, ByteBufAllocator byteBufAllocator, ChannelInitializer<SocketChannel> channelInitializer) {
     this.requestedAddress = requestedAddress;
+    this.byteBufAllocator = byteBufAllocator;
     this.channelInitializer = channelInitializer;
   }
 
@@ -63,6 +63,7 @@ public class NettyRatpackService extends AbstractIdleService implements RatpackS
     bootstrap.childOption(ChannelOption.TCP_NODELAY, true);
     bootstrap.option(ChannelOption.SO_REUSEADDR, true);
     bootstrap.option(ChannelOption.SO_BACKLOG, 1024);
+    bootstrap.option(ChannelOption.ALLOCATOR, byteBufAllocator);
 
     channel = bootstrap.bind(requestedAddress).sync().channel();
     boundAddress = (InetSocketAddress) channel.localAddress();
