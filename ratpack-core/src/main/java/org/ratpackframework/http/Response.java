@@ -19,13 +19,11 @@ package org.ratpackframework.http;
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.Cookie;
 import org.ratpackframework.api.NonBlocking;
-import org.ratpackframework.api.Nullable;
 import org.ratpackframework.block.Blocking;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -83,6 +81,8 @@ public interface Response {
    * @return This
    */
   Response status(int code, String message);
+
+  MutableHeaders getHeaders();
 
   /**
    * Sends the response back to the client, with no body.
@@ -186,82 +186,6 @@ public interface Response {
    * @return This
    */
   Response contentType(String contentType);
-
-  /**
-   * Returns the header value with the specified header name.
-   * <p>
-   * If there is more than one header value for the specified header name, the first value is returned.
-   *
-   * @param name The case insensitive name of the header to get retrieve the first value of
-   * @return the header value or {@code null} if there is no such header
-   */
-  @Nullable
-  String getHeader(String name);
-
-  /**
-   * Returns all of the header values with the specified header name.
-   *
-   * @param name The case insensitive name of the header to retrieve all of the values of
-   * @return the {@link List} of header values, or an empty list if there is no such header
-   */
-  List<String> getHeaders(String name);
-
-  /**
-   * Checks whether a header has been specified for the given value.
-   *
-   * @param name The name of the header to check the existence of
-   * @return True if there is a header with the specified header name
-   */
-  boolean containsHeader(String name);
-
-  /**
-   * All header names.
-   *
-   * @return The names of all headers that will be sent
-   */
-  Set<String> getHeaderNames();
-
-  /**
-   * Adds a new header with the specified name and value.
-   * <p>
-   * Will not replace any existing values for the header.
-   *
-   * @param name The name of the header
-   * @param value The value of the header
-   */
-  void addHeader(String name, Object value);
-
-  /**
-   * Sets the (only) value for the header with the specified name.
-   * <p>
-   * All existing values for the same header will be removed.
-   *
-   * @param name The name of the header
-   * @param value The value of the header
-   */
-  void setHeader(String name, Object value);
-
-  /**
-   * Sets a new header with the specified name and values.
-   * <p>
-   * All existing values for the same header will be removed.
-   *
-   * @param name The name of the header
-   * @param values The values of the header
-   */
-  void setHeader(String name, Iterable<?> values);
-
-  /**
-   * Removes the header with the specified name.
-   *
-   * @param name The name of the header to remove.
-   */
-  void removeHeader(String name);
-
-  /**
-   * Removes all headers from this message.
-   */
-  void clearHeaders();
 
   /**
    * The cookies that are to be part of the response.

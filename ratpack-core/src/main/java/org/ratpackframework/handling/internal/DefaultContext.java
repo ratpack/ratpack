@@ -156,7 +156,7 @@ public class DefaultContext implements Context {
       }
     }
 
-    response.setHeader(HttpHeaders.Names.LAST_MODIFIED, lastModifiedSecs);
+    response.getHeaders().set(HttpHeaders.Names.LAST_MODIFIED, lastModifiedSecs);
     runnable.run();
   }
 

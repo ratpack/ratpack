@@ -79,7 +79,7 @@ public class DefaultByContentResponder implements ByContentResponder {
     if (winner == null || winner.isEmpty()) {
       context.clientError(406);
     } else {
-      context.getResponse().setHeader(HttpHeaders.Names.CONTENT_TYPE, winner);
+      context.getResponse().contentType(winner);
       Runnable runnable = map.get(winner);
       runnable.run();
     }

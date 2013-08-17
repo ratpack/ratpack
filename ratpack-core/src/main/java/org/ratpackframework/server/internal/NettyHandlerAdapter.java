@@ -36,7 +36,8 @@ import org.ratpackframework.http.Request;
 import org.ratpackframework.http.Response;
 import org.ratpackframework.http.internal.DefaultRequest;
 import org.ratpackframework.http.internal.DefaultResponse;
-import org.ratpackframework.http.internal.HttpMessageBackedHeaders;
+import org.ratpackframework.http.internal.NettyHeadersBackedHeaders;
+import org.ratpackframework.http.internal.NettyHeadersBackedMutableHeaders;
 import org.ratpackframework.launch.LaunchConfig;
 import org.ratpackframework.redirect.internal.DefaultRedirector;
 import org.ratpackframework.registry.Registry;
@@ -78,13 +79,13 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
 
     FullHttpResponse nettyResponse = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
 
-    Request request = new DefaultRequest(new HttpMessageBackedHeaders(nettyRequest), nettyRequest.getMethod().name(), nettyRequest.getUri(), nettyRequest.content());
+    Request request = new DefaultRequest(new NettyHeadersBackedHeaders(nettyRequest.headers()), nettyRequest.getMethod().name(), nettyRequest.getUri(), nettyRequest.content());
 
     HttpVersion version = nettyRequest.getProtocolVersion();
     boolean keepAlive = version == HttpVersion.HTTP_1_1
       || (version == HttpVersion.HTTP_1_0 && "Keep-Alive".equalsIgnoreCase(nettyRequest.headers().get("Connection")));
 
-    Response response = new DefaultResponse(nettyResponse, nettyRequest, ctx.channel(), launchConfig.getBufferAllocator(), keepAlive, version);
+    Response response = new DefaultResponse(new NettyHeadersBackedMutableHeaders(nettyResponse.headers()), nettyResponse, nettyRequest, ctx.channel(), launchConfig.getBufferAllocator(), keepAlive, version);
 
     if (registry == null) {
       try {

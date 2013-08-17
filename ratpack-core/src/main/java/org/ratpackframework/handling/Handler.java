@@ -71,7 +71,7 @@ import org.ratpackframework.api.NonBlocking;
  *
  * class DecoratingHandler implements Handler {
  *   void handle(Context exchange) {
- *     exchange.getResponse().setHeader("Cache-Control", "no-cache");
+ *     exchange.getResponse().getHeaders().set("Cache-Control", "no-cache");
  *     exchange.next();
  *   }
  * }

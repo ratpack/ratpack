@@ -24,18 +24,21 @@ import io.netty.channel.ChannelFutureListener;
 import io.netty.handler.codec.http.*;
 import org.ratpackframework.block.Blocking;
 import org.ratpackframework.file.internal.FileHttpTransmitter;
+import org.ratpackframework.http.MutableHeaders;
 import org.ratpackframework.http.Response;
 import org.ratpackframework.util.internal.IoUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 public class DefaultResponse implements Response {
 
+  private final MutableHeaders headers;
   private final FullHttpResponse response;
   private final FullHttpRequest request;
   private final Channel channel;
@@ -47,13 +50,103 @@ public class DefaultResponse implements Response {
 
   private Set<Cookie> cookies;
 
-  public DefaultResponse(FullHttpResponse response, FullHttpRequest request, Channel channel, ByteBufAllocator bufferAllocator, boolean keepAlive, HttpVersion version) {
+  public DefaultResponse(MutableHeaders headers, FullHttpResponse response, FullHttpRequest request, Channel channel, ByteBufAllocator bufferAllocator, boolean keepAlive, HttpVersion version) {
+    this.headers = new MutableHeadersWrapper(headers);
     this.response = response;
     this.request = request;
     this.channel = channel;
     this.bufferAllocator = bufferAllocator;
     this.keepAlive = keepAlive;
     this.version = version;
+  }
+
+  class MutableHeadersWrapper implements MutableHeaders {
+
+    private final MutableHeaders wrapped;
+
+    MutableHeadersWrapper(MutableHeaders wrapped) {
+      this.wrapped = wrapped;
+    }
+
+    @Override
+    public void add(String name, Object value) {
+      if (name.equalsIgnoreCase(HttpHeaders.Names.CONTENT_LENGTH)) {
+        contentLengthSet = true;
+      }
+      if (name.equalsIgnoreCase(HttpHeaders.Names.CONTENT_TYPE)) {
+        contentTypeSet = true;
+      }
+
+      wrapped.add(name, value);
+    }
+
+    @Override
+    public void set(String name, Object value) {
+      if (name.equalsIgnoreCase(HttpHeaders.Names.CONTENT_LENGTH)) {
+        contentLengthSet = true;
+      }
+      if (name.equalsIgnoreCase(HttpHeaders.Names.CONTENT_TYPE)) {
+        contentTypeSet = true;
+      }
+
+      wrapped.set(name, value);
+    }
+
+    @Override
+    public void set(String name, Iterable<?> values) {
+      if (name.equalsIgnoreCase(HttpHeaders.Names.CONTENT_LENGTH)) {
+        contentLengthSet = true;
+      }
+      if (name.equalsIgnoreCase(HttpHeaders.Names.CONTENT_TYPE)) {
+        contentTypeSet = true;
+      }
+
+      wrapped.set(name, values);
+    }
+
+    @Override
+    public void remove(String name) {
+      if (name.equalsIgnoreCase(HttpHeaders.Names.CONTENT_LENGTH)) {
+        contentLengthSet = false;
+      }
+      if (name.equalsIgnoreCase(HttpHeaders.Names.CONTENT_TYPE)) {
+        contentTypeSet = false;
+      }
+
+      wrapped.remove(name);
+    }
+
+    @Override
+    public void clear() {
+      contentLengthSet = false;
+      contentTypeSet = false;
+      wrapped.clear();
+    }
+
+    @Override
+    public String get(String name) {
+      return wrapped.get(name);
+    }
+
+    @Override
+    public Date getDate(String name) {
+      return wrapped.getDate(name);
+    }
+
+    @Override
+    public List<String> getAll(String name) {
+      return wrapped.getAll(name);
+    }
+
+    @Override
+    public boolean contains(String name) {
+      return wrapped.contains(name);
+    }
+
+    @Override
+    public Set<String> getNames() {
+      return wrapped.getNames();
+    }
   }
 
   public Status getStatus() {
@@ -78,6 +171,11 @@ public class DefaultResponse implements Response {
     return this;
   }
 
+  @Override
+  public MutableHeaders getHeaders() {
+    return headers;
+  }
+
   public void send() {
     contentLengthSet = true;
     response.headers().set(HttpHeaders.Names.CONTENT_LENGTH, 0);
@@ -86,7 +184,7 @@ public class DefaultResponse implements Response {
 
   @Override
   public Response contentType(String contentType) {
-    setHeader(HttpHeaders.Names.CONTENT_TYPE, DefaultMediaType.utf8(contentType).toString());
+    headers.set(HttpHeaders.Names.CONTENT_TYPE, DefaultMediaType.utf8(contentType).toString());
     return this;
   }
 
@@ -98,7 +196,7 @@ public class DefaultResponse implements Response {
   private void doSend(String body) {
     ByteBuf buffer = IoUtils.utf8Buffer(body);
     if (!contentLengthSet) {
-      setHeader(HttpHeaders.Names.CONTENT_LENGTH, buffer.writerIndex());
+      headers.set(HttpHeaders.Names.CONTENT_LENGTH, buffer.writerIndex());
     }
     response.content().writeBytes(buffer);
     commit();
@@ -148,7 +246,7 @@ public class DefaultResponse implements Response {
     }
 
     if (!contentLengthSet) {
-      setHeader(HttpHeaders.Names.CONTENT_LENGTH, buffer.writerIndex());
+      headers.set(HttpHeaders.Names.CONTENT_LENGTH, buffer.writerIndex());
     }
 
     response.content().writeBytes(buffer);
@@ -161,67 +259,6 @@ public class DefaultResponse implements Response {
     new FileHttpTransmitter().transmit(blocking, file, request, response, channel);
   }
 
-  public String getHeader(String name) {
-    return response.headers().get(name);
-  }
-
-  public List<String> getHeaders(String name) {
-    return response.headers().getAll(name);
-  }
-
-  public boolean containsHeader(String name) {
-    return response.headers().contains(name);
-  }
-
-  public Set<String> getHeaderNames() {
-    return response.headers().names();
-  }
-
-  public void addHeader(String name, Object value) {
-    if (name.equalsIgnoreCase(HttpHeaders.Names.CONTENT_LENGTH)) {
-      contentLengthSet = true;
-    }
-    if (name.equalsIgnoreCase(HttpHeaders.Names.CONTENT_TYPE)) {
-      contentTypeSet = true;
-    }
-    response.headers().add(name, value);
-  }
-
-  public void setHeader(String name, Object value) {
-    if (name.equalsIgnoreCase(HttpHeaders.Names.CONTENT_LENGTH)) {
-      contentLengthSet = true;
-    }
-    if (name.equalsIgnoreCase(HttpHeaders.Names.CONTENT_TYPE)) {
-      contentTypeSet = true;
-    }
-    response.headers().set(name, value);
-  }
-
-  public void setHeader(String name, Iterable<?> values) {
-    if (name.equalsIgnoreCase(HttpHeaders.Names.CONTENT_LENGTH)) {
-      contentLengthSet = true;
-    }
-    if (name.equalsIgnoreCase(HttpHeaders.Names.CONTENT_TYPE)) {
-      contentTypeSet = true;
-    }
-    response.headers().set(name, values);
-  }
-
-  public void removeHeader(String name) {
-    if (name.equalsIgnoreCase(HttpHeaders.Names.CONTENT_LENGTH)) {
-      contentLengthSet = false;
-    }
-    if (name.equalsIgnoreCase(HttpHeaders.Names.CONTENT_TYPE)) {
-      contentTypeSet = false;
-    }
-    response.headers().remove(name);
-  }
-
-  public void clearHeaders() {
-    contentLengthSet = false;
-    contentTypeSet = false;
-    response.headers().clear();
-  }
 
   public Set<Cookie> getCookies() {
     if (cookies == null) {

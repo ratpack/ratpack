@@ -18,4 +18,46 @@ package org.ratpackframework.http;
 
 public interface MutableHeaders extends Headers {
 
+  /**
+   * Adds a new header with the specified name and value.
+   * <p>
+   * Will not replace any existing values for the header.
+   *
+   * @param name The name of the header
+   * @param value The value of the header
+   */
+  void add(String name, Object value);
+
+  /**
+   * Sets the (only) value for the header with the specified name.
+   * <p>
+   * All existing values for the same header will be removed.
+   *
+   * @param name The name of the header
+   * @param value The value of the header
+   */
+  void set(String name, Object value);
+
+  /**
+   * Sets a new header with the specified name and values.
+   * <p>
+   * All existing values for the same header will be removed.
+   *
+   * @param name The name of the header
+   * @param values The values of the header
+   */
+  void set(String name, Iterable<?> values);
+
+  /**
+   * Removes the header with the specified name.
+   *
+   * @param name The name of the header to remove.
+   */
+  void remove(String name);
+
+  /**
+   * Removes all headers from this message.
+   */
+  void clear();
+
 }

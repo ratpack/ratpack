@@ -17,39 +17,48 @@
 package org.ratpackframework.http.internal;
 
 import io.netty.handler.codec.http.HttpHeaders;
-import io.netty.handler.codec.http.HttpMessage;
 import org.ratpackframework.http.Headers;
 
+import java.text.ParseException;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
-public class HttpMessageBackedHeaders implements Headers {
+public class NettyHeadersBackedHeaders implements Headers {
 
-  private final HttpMessage httpMessage;
+  protected final HttpHeaders headers;
 
-  public HttpMessageBackedHeaders(HttpMessage httpMessage) {
-    this.httpMessage = httpMessage;
+  public NettyHeadersBackedHeaders(HttpHeaders headers) {
+    this.headers = headers;
   }
 
   public String get(String name) {
-    return httpMessage.headers().get(name);
+    return headers.get(name);
   }
 
   public Date getDate(String name) {
-    return HttpHeaders.getDateHeader(httpMessage, name, null);
+    final String value = get(name);
+    if (value == null) {
+      return null;
+    }
+
+    try {
+      return HttpHeaderDateFormat.get().parse(value);
+    } catch (ParseException e) {
+      return null;
+    }
   }
 
   public List<String> getAll(String name) {
-    return httpMessage.headers().getAll(name);
+    return headers.getAll(name);
   }
 
   public boolean contains(String name) {
-    return httpMessage.headers().contains(name);
+    return headers.contains(name);
   }
 
   public Set<String> getNames() {
-    return httpMessage.headers().names();
+    return headers.names();
   }
 
 }

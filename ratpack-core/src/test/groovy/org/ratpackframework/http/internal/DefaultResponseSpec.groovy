@@ -19,7 +19,8 @@ package org.ratpackframework.http.internal
 import org.ratpackframework.test.groovy.RatpackGroovyDslSpec
 import org.ratpackframework.util.internal.IoUtils
 
-import static io.netty.handler.codec.http.HttpHeaders.Names.*
+import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_LENGTH
+import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_TYPE
 import static io.netty.handler.codec.http.HttpResponseStatus.OK
 
 class DefaultResponseSpec extends RatpackGroovyDslSpec {
@@ -40,7 +41,7 @@ class DefaultResponseSpec extends RatpackGroovyDslSpec {
     get()
 
     then:
-    with (response) {
+    with(response) {
       statusCode == OK.code()
       body.asString().equals(BODY)
       contentType.equals("text/plain;charset=UTF-8")
@@ -53,7 +54,7 @@ class DefaultResponseSpec extends RatpackGroovyDslSpec {
     app {
       handlers {
         get() {
-          response.setHeader(CONTENT_TYPE, "application/octet-stream")
+          response.headers.set(CONTENT_TYPE, "application/octet-stream")
           response.send "text/plain", BODY.bytes
         }
       }
@@ -63,7 +64,7 @@ class DefaultResponseSpec extends RatpackGroovyDslSpec {
     get()
 
     then:
-    with (response) {
+    with(response) {
       statusCode == OK.code()
       body.asString().equals(BODY)
       contentType.equals("text/plain;charset=UTF-8")
@@ -85,7 +86,7 @@ class DefaultResponseSpec extends RatpackGroovyDslSpec {
     get()
 
     then:
-    with (response) {
+    with(response) {
       statusCode == OK.code()
       body.asString().equals(BODY)
       contentType.equals("application/octet-stream")
@@ -98,7 +99,7 @@ class DefaultResponseSpec extends RatpackGroovyDslSpec {
     app {
       handlers {
         get() {
-          response.setHeader(CONTENT_TYPE, "application/octet-stream")
+          response.headers.set(CONTENT_TYPE, "application/octet-stream")
           response.send BODY.bytes
         }
       }
@@ -108,7 +109,7 @@ class DefaultResponseSpec extends RatpackGroovyDslSpec {
     get()
 
     then:
-    with (response) {
+    with(response) {
       statusCode == OK.code()
       body.asString().equals(BODY)
       contentType.equals("application/octet-stream")
@@ -133,7 +134,7 @@ class DefaultResponseSpec extends RatpackGroovyDslSpec {
     get()
 
     then:
-    with (response) {
+    with(response) {
       statusCode == OK.code()
       body.asString().equals(BODY)
       contentType.equals("text/plain;charset=UTF-8")
@@ -149,7 +150,7 @@ class DefaultResponseSpec extends RatpackGroovyDslSpec {
     app {
       handlers {
         get() {
-          response.setHeader(CONTENT_TYPE, "application/octet-stream")
+          response.headers.set(CONTENT_TYPE, "application/octet-stream")
           response.send "text/plain", bufferedBody
         }
       }
@@ -159,7 +160,7 @@ class DefaultResponseSpec extends RatpackGroovyDslSpec {
     get()
 
     then:
-    with (response) {
+    with(response) {
       statusCode == OK.code()
       body.asString().equals(BODY)
       contentType.equals("text/plain;charset=UTF-8")
@@ -184,7 +185,7 @@ class DefaultResponseSpec extends RatpackGroovyDslSpec {
     get()
 
     then:
-    with (response) {
+    with(response) {
       statusCode == OK.code()
       body.asString().equals(BODY)
       contentType.equals("application/octet-stream")
@@ -200,7 +201,7 @@ class DefaultResponseSpec extends RatpackGroovyDslSpec {
     app {
       handlers {
         get() {
-          response.setHeader(CONTENT_TYPE, "application/foo")
+          response.headers.set(CONTENT_TYPE, "application/foo")
           response.send bufferedBody
         }
       }
@@ -210,7 +211,7 @@ class DefaultResponseSpec extends RatpackGroovyDslSpec {
     get()
 
     then:
-    with (response) {
+    with(response) {
       statusCode == OK.code()
       body.asString().equals(BODY)
       contentType.equals("application/foo")
@@ -232,7 +233,7 @@ class DefaultResponseSpec extends RatpackGroovyDslSpec {
     get()
 
     then:
-    with (response) {
+    with(response) {
       statusCode == OK.code()
       body.asString().empty
       contentType.equals("")

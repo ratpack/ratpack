@@ -32,7 +32,7 @@ public class DefaultRedirector implements Redirector {
   public void redirect(Context context, String location, int code) {
     context.getResponse().status(code);
     String normalizedLocation = generateRedirectLocation(context, context.getRequest(), location);
-    context.getResponse().setHeader(HttpHeaders.Names.LOCATION, normalizedLocation);
+    context.getResponse().getHeaders().set(HttpHeaders.Names.LOCATION, normalizedLocation);
     context.getResponse().send();
   }
 
