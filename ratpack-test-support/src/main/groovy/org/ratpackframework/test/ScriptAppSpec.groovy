@@ -20,7 +20,7 @@ import org.ratpackframework.groovy.launch.RatpackMain
 import org.ratpackframework.server.RatpackServer
 
 @SuppressWarnings("GrMethodMayBeStatic")
-class ScriptAppSpec extends RequestingSpec {
+abstract class ScriptAppSpec extends RequestingSpec {
 
   @Override
   protected RatpackServer createServer() {
