@@ -78,7 +78,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
 
     FullHttpResponse nettyResponse = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
 
-    Request request = new DefaultRequest(nettyRequest, new HttpMessageBackedHeaders(nettyRequest));
+    Request request = new DefaultRequest(new HttpMessageBackedHeaders(nettyRequest), nettyRequest.getMethod().name(), nettyRequest.getUri(), nettyRequest.content());
 
     HttpVersion version = nettyRequest.getProtocolVersion();
     boolean keepAlive = version == HttpVersion.HTTP_1_1
