@@ -63,7 +63,6 @@ allprojects {
 
   repositories {
     jcenter()
-    maven { url "https://oss.sonatype.org/content/repositories/snapshots/" } // for Netty snapshot
   }
 
   def noClover = ["ratpack-site", "ratpack-manual"]
