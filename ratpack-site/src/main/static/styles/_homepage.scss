@@ -92,14 +92,14 @@
     }
   }
 
-  article {
-    h2 {
+  @include breakpoint($phone-landscape) {
+    article h2 {
       @include starburst($h2-font-size);
     }
   }
 
   nav {
-    @include breakpoint(max-width ($tablet-portrait - 1px)) {
+    @include breakpoint($phone-landscape ($tablet-portrait - 1px)) {
       h2 {
         @include starburst($h2-font-size);
       }

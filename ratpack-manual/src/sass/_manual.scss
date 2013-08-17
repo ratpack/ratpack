@@ -21,11 +21,15 @@ $pagination-background: $purple;
 
 		&.prev {
 			text-align: left;
-			padding-left: 1em;
+      @include breakpoint($tablet-portrait) {
+			  padding-left: 1em;
+      }
 		}
 		&.next {
 			text-align: right;
-			padding-right: 1em;
+      @include breakpoint($tablet-portrait) {
+  			padding-right: 1em;
+      }
 		}
 		&.index {
 			text-align: center;
@@ -101,22 +105,30 @@ $pagination-background: $purple;
     @extend .pagination;
 
 		h2 {
-			@include adjust-font-size-to($to-size: 18px, $lines: 2);
+			display: none;
+      @include adjust-font-size-to($to-size: 18px, $lines: 2);
       vertical-align: middle;
 		}
 
 		a {
-			@include adjust-font-size-to($to-size: 18px, $lines: 2);
 			font: {
 				family: $header-font-family;
 				style: italic;
 				weight: 700;
 			}
+      margin-right: 1em;
       @include link-colors(contrast-color($pagination-background), $yellow);
-			margin-right: 1em;
+
+      &.download {
+        @include breakpoint(max-width ($tablet-portrait - 1)) {
+          display: none;
+        }
+      }
 		}
+
 		@include breakpoint($tablet-portrait) {
 			h2 {
+        display: block;
 				float: right;
 				margin: 0;
 				@include pull(1);
