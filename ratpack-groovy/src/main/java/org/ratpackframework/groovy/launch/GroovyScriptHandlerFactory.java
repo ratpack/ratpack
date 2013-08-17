@@ -18,6 +18,7 @@ package org.ratpackframework.groovy.launch;
 
 import org.ratpackframework.groovy.internal.ScriptBackedApp;
 import org.ratpackframework.groovy.server.internal.GroovyKitAppFactory;
+import org.ratpackframework.guice.Guice;
 import org.ratpackframework.handling.Handler;
 import org.ratpackframework.launch.HandlerFactory;
 import org.ratpackframework.launch.LaunchConfig;
@@ -38,7 +39,7 @@ public class GroovyScriptHandlerFactory implements HandlerFactory {
 
     boolean compileStatic = Boolean.getBoolean(launchConfig.getOther(COMPILE_STATIC_PROPERTY_NAME, COMPILE_STATIC_PROPERTY_DEFAULT));
 
-    return new ScriptBackedApp(script, new GroovyKitAppFactory(launchConfig), compileStatic, launchConfig.isReloadable());
+    return new ScriptBackedApp(script, new GroovyKitAppFactory(launchConfig), Guice.newInjectorFactory(), compileStatic, launchConfig.isReloadable());
   }
 
 }

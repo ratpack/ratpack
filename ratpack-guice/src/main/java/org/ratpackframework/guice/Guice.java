@@ -17,6 +17,7 @@
 package org.ratpackframework.guice;
 
 import com.google.inject.Injector;
+import com.google.inject.Module;
 import org.ratpackframework.guice.internal.DefaultGuiceBackedHandlerFactory;
 import org.ratpackframework.guice.internal.InjectorBackedChildRegistry;
 import org.ratpackframework.guice.internal.JustInTimeInjectorChildRegistry;
@@ -29,6 +30,7 @@ import org.ratpackframework.util.Action;
 import org.ratpackframework.util.Transformer;
 import org.ratpackframework.util.internal.ConstantTransformer;
 
+import static com.google.inject.Guice.createInjector;
 import static org.ratpackframework.handling.Handlers.chain;
 
 /**
@@ -109,15 +111,19 @@ public abstract class Guice {
   }
 
   public static Handler handler(LaunchConfig launchConfig, Action<? super ModuleRegistry> moduleConfigurer, Transformer<? super Injector, ? extends Handler> injectorTransformer) {
-    return new DefaultGuiceBackedHandlerFactory(launchConfig).create(moduleConfigurer, injectorTransformer);
+    return new DefaultGuiceBackedHandlerFactory(launchConfig).create(moduleConfigurer, newInjectorFactory(), injectorTransformer);
+  }
+
+  public static Handler handler(LaunchConfig launchConfig, Injector parentInjector, Action<? super ModuleRegistry> moduleConfigurer, Transformer<? super Injector, ? extends Handler> injectorTransformer) {
+    return new DefaultGuiceBackedHandlerFactory(launchConfig).create(moduleConfigurer, childInjectorFactory(parentInjector), injectorTransformer);
   }
 
   public static Handler handler(LaunchConfig launchConfig, Action<? super ModuleRegistry> moduleConfigurer, final Action<? super Chain> action) {
-    return new DefaultGuiceBackedHandlerFactory(launchConfig).create(moduleConfigurer, new Transformer<Injector, Handler>() {
-      public Handler transform(Injector injector) {
-        return chain(Guice.justInTimeRegistry(injector), action);
-      }
-    });
+    return new DefaultGuiceBackedHandlerFactory(launchConfig).create(moduleConfigurer, newInjectorFactory(), new InjectorHandlerTransformer(action));
+  }
+
+  public static Handler handler(LaunchConfig launchConfig, Injector parentInjector, Action<? super ModuleRegistry> moduleConfigurer, final Action<? super Chain> action) {
+    return new DefaultGuiceBackedHandlerFactory(launchConfig).create(moduleConfigurer, childInjectorFactory(parentInjector), new InjectorHandlerTransformer(action));
   }
 
   public static Registry<Object> justInTimeRegistry(Injector injector) {
@@ -132,4 +138,33 @@ public abstract class Guice {
     return new InjectorBackedChildRegistry(parent, injector);
   }
 
+  public static Transformer<Module, Injector> newInjectorFactory() {
+    return new Transformer<Module, Injector>() {
+      @Override
+      public Injector transform(Module from) {
+        return from == null ? createInjector() : createInjector(from);
+      }
+    };
+  }
+
+  public static Transformer<Module, Injector> childInjectorFactory(final Injector parent) {
+    return new Transformer<Module, Injector>() {
+      @Override
+      public Injector transform(Module from) {
+        return from == null ? parent.createChildInjector() : parent.createChildInjector(from);
+      }
+    };
+  }
+
+  private static class InjectorHandlerTransformer implements Transformer<Injector, Handler> {
+    private final Action<? super Chain> action;
+
+    public InjectorHandlerTransformer(Action<? super Chain> action) {
+      this.action = action;
+    }
+
+    public Handler transform(Injector injector) {
+      return chain(Guice.justInTimeRegistry(injector), action);
+    }
+  }
 }

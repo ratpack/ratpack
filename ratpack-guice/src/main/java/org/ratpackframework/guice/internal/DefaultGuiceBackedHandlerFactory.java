@@ -17,7 +17,6 @@
 package org.ratpackframework.guice.internal;
 
 import com.google.common.collect.ImmutableList;
-import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.util.Modules;
@@ -42,7 +41,7 @@ public class DefaultGuiceBackedHandlerFactory implements GuiceBackedHandlerFacto
     this.launchConfig = launchConfig;
   }
 
-  public Handler create(Action<? super ModuleRegistry> modulesAction, Transformer<? super Injector, ? extends Handler> injectorTransformer) {
+  public Handler create(Action<? super ModuleRegistry> modulesAction, Transformer<? super Module, ? extends Injector> moduleTransformer, Transformer<? super Injector, ? extends Handler> injectorTransformer) {
     DefaultModuleRegistry moduleRegistry = new DefaultModuleRegistry(launchConfig);
 
     registerDefaultModules(moduleRegistry);
@@ -58,13 +57,7 @@ public class DefaultGuiceBackedHandlerFactory implements GuiceBackedHandlerFacto
       }
     }
 
-    Injector injector;
-    if (masterModule == null) {
-      injector = Guice.createInjector();
-    } else {
-      injector = Guice.createInjector(masterModule);
-    }
-
+    Injector injector = moduleTransformer.transform(masterModule);
     Handler decorated = injectorTransformer.transform(injector);
 
     List<Module> modulesReversed = new ArrayList<>(modules);

@@ -17,6 +17,7 @@
 package org.ratpackframework.guice.internal;
 
 import com.google.inject.Injector;
+import com.google.inject.Module;
 import org.ratpackframework.guice.ModuleRegistry;
 import org.ratpackframework.handling.Handler;
 import org.ratpackframework.util.Action;
@@ -24,6 +25,6 @@ import org.ratpackframework.util.Transformer;
 
 public interface GuiceBackedHandlerFactory {
 
-  Handler create(Action<? super ModuleRegistry> modulesAction, Transformer<? super Injector, ? extends Handler> handler);
+  Handler create(Action<? super ModuleRegistry> modulesAction, Transformer<? super Module, ? extends Injector> moduleTransformer, Transformer<? super Injector, ? extends Handler> handler);
 
 }
