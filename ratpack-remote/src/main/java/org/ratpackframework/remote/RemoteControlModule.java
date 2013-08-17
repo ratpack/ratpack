@@ -16,14 +16,16 @@
 
 package org.ratpackframework.remote;
 
-import com.google.common.collect.ImmutableList;
 import com.google.inject.AbstractModule;
 import com.google.inject.Injector;
 import org.ratpackframework.guice.HandlerDecoratingModule;
 import org.ratpackframework.handling.Handler;
-import org.ratpackframework.handling.Handlers;
 import org.ratpackframework.launch.LaunchConfig;
 import org.ratpackframework.remote.internal.RemoteControlHandler;
+
+import static com.google.common.collect.ImmutableList.of;
+import static org.ratpackframework.handling.Handlers.chain;
+import static org.ratpackframework.handling.Handlers.post;
 
 /**
  * An extension module that adds a Groovy Remote Control endpoint.
@@ -101,8 +103,13 @@ public class RemoteControlModule extends AbstractModule implements HandlerDecora
   public Handler decorate(Injector injector, Handler handler) {
     LaunchConfig launchConfig = injector.getInstance(LaunchConfig.class);
     String endpointPath = path == null ? launchConfig.getOther("remoteControl.path", "remote-control") : path;
-    if (launchConfig.getOther("remoteControl.enabled", "false").equals("true")) {
-      return Handlers.chain(ImmutableList.of(handler, Handlers.post(endpointPath, new RemoteControlHandler(injector))));
+    boolean enabled = Boolean.valueOf(launchConfig.getOther("remoteControl.enabled", "false"));
+
+    if (enabled) {
+      return chain(of(
+        post(endpointPath, new RemoteControlHandler(injector)),
+        handler
+      ));
     } else {
       return handler;
     }
