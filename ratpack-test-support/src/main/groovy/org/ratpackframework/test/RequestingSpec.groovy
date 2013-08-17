@@ -111,7 +111,7 @@ abstract class RequestingSpec extends Specification {
     server = null
   }
 
-  def cleanupSpec() {
+  def cleanup() {
     stopServer()
   }
 
