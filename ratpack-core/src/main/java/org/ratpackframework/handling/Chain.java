@@ -19,6 +19,8 @@ package org.ratpackframework.handling;
 import org.ratpackframework.api.Nullable;
 import org.ratpackframework.registry.Registry;
 
+import java.util.List;
+
 /**
  * A chain can be used to build a linked series of handlers.
  * <p>
@@ -37,7 +39,24 @@ public interface Chain {
   void add(Handler handler);
 
   /**
+   * Add the given handler to the chain being constructed.
+   *
+   * @param handler The handler to add to the chain being constructed
+   */
+  void handler(Handler handler);
+
+  /**
+   * Add a prefix handler to the chain being constructed for the given prefix.
+   * See {@link org.ratpackframework.handling.Handlers#prefix(String, org.ratpackframework.util.Action)} for format details on the prefix string.
+   *
+   * @param prefix The prefix to bind to
+   * @param handlers The definition of the nested handlers
+   */
+  void prefix(String prefix, List<Handler> handlers);
+
+  /**
    * Add a path handler to the chain being constructed for the given path.
+   *
    * @param path The path to match requests for, the match must be an exact match
    * @param handler The handler to delegate to if the request matches the given path exactly
    */
@@ -45,6 +64,7 @@ public interface Chain {
 
   /**
    * Add a GET handler to the chain being constructed for the given path.
+   *
    * @param path The path to match requests for
    * @param handler The handler to delegate to if the path matches and the request is a GET
    */
@@ -52,12 +72,14 @@ public interface Chain {
 
   /**
    * Add a GET handler to the chain being constructed for the root path.
+   *
    * @param handler The handler to delegate to for the root path if the request is a GET
    */
   void get(Handler handler);
 
   /**
    * Add a POST handler to the chain being constructed for the given path.
+   *
    * @param path The path to match requests for
    * @param handler The handler to delegate to if the path matches and the request is a POST
    */
@@ -65,9 +87,38 @@ public interface Chain {
 
   /**
    * Add a POST handler to the chain being constructed for the root path.
+   *
    * @param handler The handler to delegate to for the root path if the request is a POST
    */
   void post(Handler handler);
+
+  /**
+   * Adds a register handler to the chain being constructed, with the given service addition.
+   *
+   * @param object The object to add to the service
+   * @param handlers The handlers to register the service with
+   */
+  void register(Object object, List<Handler> handlers);
+
+  /**
+   * Adds a register handler to the chain being constructed.
+   *
+   * @param type The type by which to make the service addition available
+   * @param object The object to add to the service
+   * @param handlers The handlers to register the service with
+   * @param <T> The concrete type of the service addition
+   */
+  <T> void register(Class<? super T> type, T object, List<Handler> handlers);
+
+  void fileSystem(String path, List<Handler> handlers);
+
+  /**
+   * Add an asset handler to the chain being constructed.
+   *
+   * @param path The relative path to the location of the assets to serve
+   * @param indexFiles The index files to try if the request is for a directory
+   */
+  void assets(String path, String[] indexFiles);
 
   /**
    * The registry that backs this chain.
