@@ -127,6 +127,7 @@ public class HandlebarsModule extends AbstractModule {
     bind(TemplateLoader.class).to(FileTemplateLoader.class).in(Singleton.class);
   }
 
+  @SuppressWarnings("UnusedDeclaration")
   @Provides
   FileTemplateLoader provideTemplateLoader(LaunchConfig launchConfig) {
     String path = templatesPath == null ? launchConfig.getOther("handlebars.templatesPath", "handlebars") : templatesPath;
@@ -135,6 +136,7 @@ public class HandlebarsModule extends AbstractModule {
     return new FileTemplateLoader(templatesPathFile, suffix);
   }
 
+  @SuppressWarnings("UnusedDeclaration")
   @Provides @Singleton
   Handlebars provideHandlebars(Injector injector, TemplateLoader templateLoader) {
     final Handlebars handlebars = new Handlebars().with(templateLoader);
