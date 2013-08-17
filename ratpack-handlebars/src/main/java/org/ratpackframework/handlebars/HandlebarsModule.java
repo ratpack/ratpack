@@ -85,12 +85,14 @@ import java.io.File;
  * import org.ratpackframework.handlebars.HandlebarsModule
  * import static org.ratpackframework.handlebars.Template.handlebarsTemplate
  *
- * modules {
- *   register new HandlebarsModule()
- * }
- * handlers {
- *   get {
- *     render handlebarsTemplate('my/template/path', key: 'it works!')
+ * ratpack {
+ *   modules {
+ *     register new HandlebarsModule()
+ *   }
+ *   handlers {
+ *     get {
+ *       render handlebarsTemplate('my/template/path', key: 'it works!')
+ *     }
  *   }
  * }
  * </pre>
