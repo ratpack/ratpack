@@ -143,7 +143,7 @@ public class DefaultContext implements Context {
 
   @Override
   public void lastModified(Date date, Runnable runnable) {
-    Date ifModifiedSinceHeader = request.getDateHeader(IF_MODIFIED_SINCE);
+    Date ifModifiedSinceHeader = request.getHeaders().getDate(IF_MODIFIED_SINCE);
     long lastModifiedSecs = date.getTime() / 1000;
 
     if (ifModifiedSinceHeader != null) {

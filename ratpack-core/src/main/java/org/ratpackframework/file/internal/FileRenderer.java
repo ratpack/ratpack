@@ -71,7 +71,7 @@ public class FileRenderer extends ByTypeRenderer<File> {
     context.lastModified(new Date(lastModifiedTime), new Runnable() {
       @Override
       public void run() {
-        final String ifNoneMatch = request.getHeader(HttpHeaders.Names.IF_NONE_MATCH);
+        final String ifNoneMatch = request.getHeaders().get(HttpHeaders.Names.IF_NONE_MATCH);
         if (ifNoneMatch != null && ifNoneMatch.trim().equals("*")) {
           response.status(NOT_MODIFIED.code(), NOT_MODIFIED.reasonPhrase()).send();
           return;

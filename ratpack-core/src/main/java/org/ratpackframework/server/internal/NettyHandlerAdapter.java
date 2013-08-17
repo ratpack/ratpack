@@ -36,6 +36,7 @@ import org.ratpackframework.http.Request;
 import org.ratpackframework.http.Response;
 import org.ratpackframework.http.internal.DefaultRequest;
 import org.ratpackframework.http.internal.DefaultResponse;
+import org.ratpackframework.http.internal.HttpMessageBackedHeaders;
 import org.ratpackframework.launch.LaunchConfig;
 import org.ratpackframework.redirect.internal.DefaultRedirector;
 import org.ratpackframework.registry.Registry;
@@ -77,7 +78,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
 
     FullHttpResponse nettyResponse = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
 
-    Request request = new DefaultRequest(nettyRequest);
+    Request request = new DefaultRequest(nettyRequest, new HttpMessageBackedHeaders(nettyRequest));
 
     HttpVersion version = nettyRequest.getProtocolVersion();
     boolean keepAlive = version == HttpVersion.HTTP_1_1

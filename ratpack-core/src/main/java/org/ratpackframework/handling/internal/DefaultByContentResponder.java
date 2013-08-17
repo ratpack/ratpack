@@ -71,7 +71,7 @@ public class DefaultByContentResponder implements ByContentResponder {
     Collections.reverse(types);
     String winner = first;
 
-    String acceptHeader = context.getRequest().getHeader(HttpHeaders.Names.ACCEPT);
+    String acceptHeader = context.getRequest().getHeaders().get(HttpHeaders.Names.ACCEPT);
     if (acceptHeader != null && !acceptHeader.isEmpty()) {
       winner = MimeParse.bestMatch(types, acceptHeader);
     }
