@@ -62,7 +62,12 @@ public class NettyRatpackService extends AbstractIdleService implements RatpackS
       .option(ChannelOption.SO_BACKLOG, 1024)
       .option(ChannelOption.ALLOCATOR, launchConfig.getBufferAllocator());
 
-    channel = bootstrap.bind(buildSocketAddress()).sync().channel();
+    try {
+      channel = bootstrap.bind(buildSocketAddress()).sync().channel();
+    } catch (Exception e) {
+      partialShutdown();
+      throw e;
+    }
     boundAddress = (InetSocketAddress) channel.localAddress();
 
     if (logger.isLoggable(Level.INFO)) {
@@ -72,8 +77,13 @@ public class NettyRatpackService extends AbstractIdleService implements RatpackS
 
   @Override
   protected void shutDown() throws Exception {
-    channel.close().sync();
+    channel.close();
+    partialShutdown();
+  }
+
+  private void partialShutdown() {
     group.shutdownGracefully();
+    launchConfig.getBlockingExecutorService().shutdown();
   }
 
   public int getBindPort() {
