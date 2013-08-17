@@ -25,23 +25,16 @@ import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpRequestDecoder;
 import io.netty.handler.codec.http.HttpResponseEncoder;
 import io.netty.handler.stream.ChunkedWriteHandler;
-import io.netty.util.concurrent.DefaultEventExecutorGroup;
+import io.netty.util.concurrent.Future;
+import io.netty.util.concurrent.GenericFutureListener;
 import org.ratpackframework.handling.Handler;
 import org.ratpackframework.launch.LaunchConfig;
 
 public class RatpackChannelInitializer extends ChannelInitializer<SocketChannel> {
 
   private NettyHandlerAdapter nettyHandlerAdapter;
-  private DefaultEventExecutorGroup eventExecutorGroup;
 
   public RatpackChannelInitializer(LaunchConfig launchConfig, Handler handler) {
-    int mainThreads = launchConfig.getMainThreads();
-    if (mainThreads > 0) {
-      this.eventExecutorGroup = new DefaultEventExecutorGroup(mainThreads);
-    } else {
-      this.eventExecutorGroup = null;
-    }
-
     ListeningExecutorService blockingExecutorService = MoreExecutors.listeningDecorator(launchConfig.getBlockingExecutorService());
     this.nettyHandlerAdapter = new NettyHandlerAdapter(handler, launchConfig, blockingExecutorService);
   }
@@ -53,11 +46,14 @@ public class RatpackChannelInitializer extends ChannelInitializer<SocketChannel>
     pipeline.addLast("aggregator", new HttpObjectAggregator(65536));
     pipeline.addLast("encoder", new HttpResponseEncoder());
     pipeline.addLast("chunkedWriter", new ChunkedWriteHandler());
+    pipeline.addLast("handler", nettyHandlerAdapter);
 
-    if (eventExecutorGroup != null) {
-      pipeline.addLast(eventExecutorGroup, "handler", nettyHandlerAdapter);
-    } else {
-      pipeline.addLast("handler", nettyHandlerAdapter);
-    }
+    pipeline.channel().closeFuture().addListener(new GenericFutureListener<Future<Void>>() {
+      @Override
+      public void operationComplete(Future<Void> future) throws Exception {
+        System.err.println("closed");
+      }
+    });
+
   }
 }

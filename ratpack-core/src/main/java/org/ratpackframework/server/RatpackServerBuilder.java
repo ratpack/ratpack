@@ -26,9 +26,6 @@ import org.ratpackframework.server.internal.NettyRatpackService;
 import org.ratpackframework.server.internal.RatpackChannelInitializer;
 import org.ratpackframework.server.internal.ServiceBackedServer;
 
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-
 /**
  * Builds a {@link RatpackServer}.
  */
@@ -45,15 +42,11 @@ public abstract class RatpackServerBuilder {
    * @return A new, not yet started, Ratpack server.
    */
   public static RatpackServer build(LaunchConfig launchConfig) {
-    InetSocketAddress address = buildSocketAddress(launchConfig.getAddress(), launchConfig.getPort());
     ChannelInitializer<SocketChannel> channelInitializer = buildChannelInitializer(launchConfig);
-    NettyRatpackService service = new NettyRatpackService(address, launchConfig.getBufferAllocator(), channelInitializer);
+    NettyRatpackService service = new NettyRatpackService(launchConfig, channelInitializer);
     return new ServiceBackedServer(service, launchConfig);
   }
 
-  private static InetSocketAddress buildSocketAddress(InetAddress address, int port) {
-    return (address == null) ? new InetSocketAddress(port) : new InetSocketAddress(address, port);
-  }
 
   private static ChannelInitializer<SocketChannel> buildChannelInitializer(LaunchConfig launchConfig) {
     return new RatpackChannelInitializer(launchConfig, createHandler(launchConfig));

@@ -18,8 +18,6 @@ package org.ratpackframework.server.internal;
 
 import com.google.common.util.concurrent.AbstractIdleService;
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.buffer.ByteBufAllocator;
-import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
@@ -28,6 +26,7 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.util.concurrent.DefaultThreadFactory;
+import org.ratpackframework.launch.LaunchConfig;
 
 import java.net.InetSocketAddress;
 import java.util.logging.Level;
@@ -37,35 +36,33 @@ public class NettyRatpackService extends AbstractIdleService implements RatpackS
 
   private final Logger logger = Logger.getLogger(getClass().getName());
 
-  private final InetSocketAddress requestedAddress;
-  private final ByteBufAllocator byteBufAllocator;
+  private final LaunchConfig launchConfig;
   private InetSocketAddress boundAddress;
   private final ChannelInitializer<SocketChannel> channelInitializer;
   private Channel channel;
   private EventLoopGroup group;
 
-  public NettyRatpackService(InetSocketAddress requestedAddress, ByteBufAllocator byteBufAllocator, ChannelInitializer<SocketChannel> channelInitializer) {
-    this.requestedAddress = requestedAddress;
-    this.byteBufAllocator = byteBufAllocator;
+  public NettyRatpackService(LaunchConfig launchConfig, ChannelInitializer<SocketChannel> channelInitializer) {
+    this.launchConfig = launchConfig;
     this.channelInitializer = channelInitializer;
   }
 
   @Override
   protected void startUp() throws Exception {
     ServerBootstrap bootstrap = new ServerBootstrap();
-    group = new NioEventLoopGroup(0, new DefaultThreadFactory("ratpack-group", Thread.MAX_PRIORITY));
+    group = new NioEventLoopGroup(launchConfig.getMainThreads(), new DefaultThreadFactory("ratpack-group", Thread.MAX_PRIORITY));
 
     bootstrap
       .group(group)
       .channel(NioServerSocketChannel.class)
       .childHandler(channelInitializer)
-      .childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
+      .childOption(ChannelOption.ALLOCATOR, launchConfig.getBufferAllocator())
       .childOption(ChannelOption.TCP_NODELAY, true)
       .option(ChannelOption.SO_REUSEADDR, true)
       .option(ChannelOption.SO_BACKLOG, 1024)
-      .option(ChannelOption.ALLOCATOR, byteBufAllocator);
+      .option(ChannelOption.ALLOCATOR, launchConfig.getBufferAllocator());
 
-    channel = bootstrap.bind(requestedAddress).sync().channel();
+    channel = bootstrap.bind(buildSocketAddress()).sync().channel();
     boundAddress = (InetSocketAddress) channel.localAddress();
 
     if (logger.isLoggable(Level.INFO)) {
@@ -89,6 +86,10 @@ public class NettyRatpackService extends AbstractIdleService implements RatpackS
     } else {
       return InetSocketAddressBackedBindAddress.determineHost(boundAddress);
     }
+  }
+
+  private InetSocketAddress buildSocketAddress() {
+    return (launchConfig.getAddress() == null) ? new InetSocketAddress(launchConfig.getPort()) : new InetSocketAddress(launchConfig.getAddress(), launchConfig.getPort());
   }
 
 }
