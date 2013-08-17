@@ -16,7 +16,7 @@
 
 package org.ratpackframework.manual.snippets.fixtures
 
-class GroovyRatpackDslFixture implements SnippetFixture {
+class GroovyHandlersFixture implements SnippetFixture {
 
   @Override
   public void setup() {
@@ -29,7 +29,7 @@ class GroovyRatpackDslFixture implements SnippetFixture {
   @Override
   public String pre() {
 """
-def ratpack(@DelegatesTo(value = org.ratpackframework.groovy.Ratpack, strategy = Closure.DELEGATE_FIRST) Closure closure) { }
+def handlers(@DelegatesTo(value = org.ratpackframework.groovy.handling.Chain, strategy = Closure.DELEGATE_FIRST) Closure closure) { }
 """
   }
 

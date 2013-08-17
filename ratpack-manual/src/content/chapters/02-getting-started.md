@@ -57,14 +57,14 @@ Let's break down the script a little bit. Leave the server running now.
 
 Let's try adding another handler. Open the *ratpack.groovy* file and add a second handler:
 
-```language-groovy
+```language-groovy groovy-ratpack
 ratpack { 
     handlers { 
         get { 
-            response.send "Hello World" 
+            getResponse().send "Hello World"
         }
-        get('echo'){             // our new handler
-            response.send "echo" 
+        get('echo') {             // our new handler
+            getResponse().send "echo"
         }
     }
 }
@@ -80,9 +80,11 @@ But this is the web. It should be exciting and fun. We should at least be able t
 
 Let's change our echo handler so it returns what we entered:
 
-```language-groovy
-get('echo/:message'){
-    response.send pathTokens.message
+```language-groovy groovy-handlers
+handlers {
+  get('echo/:message') {
+    getResponse().send getPathTokens().message
+  }
 }
 ```
 
@@ -100,9 +102,11 @@ Let's change our echo server to optionally remove parts of my message.
 
 This can be done by adding a question mark at the end of the optional parameter. `:this?`
 
-```language-groovy
-get('echo/:message/:trim?'){
-    response.send pathTokens.message - pathTokens.trim
+```language-groovy groovy-handlers
+handlers {
+  get('echo/:message/:trim?'){
+    getResponse().send getPathTokens().message - getPathTokens().trim
+  }
 }
 ```
 
@@ -111,9 +115,11 @@ get('echo/:message/:trim?'){
 
 You can have as many optional path tokens as you want as long as they are not followed by a mandatory token. 
 
-```language-groovy
-get('echo/:message/:trim?/:add?') {
-	  response.send pathTokens.message - pathTokens.trim + ( pathTokens.add?:'' )
+```language-groovy groovy-handlers
+handlers {
+  get('echo/:message/:trim?/:add?') {
+	  getResponse().send getPathTokens().message - getPathTokens().trim + ( getPathTokens().add?:'' )
+  }
 }
 ```
 
@@ -126,13 +132,15 @@ You can also have query parameters via the `request.queryParams` property in you
 
 In the following example, we capitalize a message if the `upper=true` query parameter is passed into our handler.
 
-```language-groovy
-get('echo/:message'){
-	  String message = pathTokens.message
-	  if( request.queryParams.upper ){
-		    message = message.toUpperCase()
+```language-groovy groovy-handlers
+handlers {
+  get('echo/:message') {
+	  String message = getPathTokens().message
+	  if (getRequest().queryParams.upper) {
+		  message = message.toUpperCase()
 	  }
-	  response.send message
+	  getResponse().send message
+  }
 }
 ```
 
@@ -154,9 +162,11 @@ Now, we can create a simple handler for this directory.
 
 In your *ratpack.groovy* file, add the following lines at the end:
 
-```language-groovy
-prefix('images'){
+```language-groovy groovy-handlers
+handlers {
+  prefix('images') {
 	  assets "images"
+  }
 }
 ```
 
@@ -166,9 +176,11 @@ The assets hierarchy also mirrors your folder structure; Add a file under *image
 
 It does not have to be a direct match to a directory, you can change the path:
 
-```language-groovy
-prefix('images/public/today'){
+```language-groovy groovy-handlers
+handlers {
+  prefix('images/public/today') {
     assets "images"
+  }
 }
 ```
 
@@ -221,16 +233,19 @@ There is also an implementation of using Handlebars templates by Marcin Erdmann.
 
 One of the interesting features about Ratpack is the fact that calls are non-blocking by default. However, if you have things that may take a little bit longer but are necessary for your application, you can force them into blocking calls.
 
-Here is an example from the *FOASS* application that converts a string of text into an MP3 before serving it back to the user:
+```language-groovy groovy-handlers
+import static org.ratpackframework.groovy.Util.exec
 
-```language-groovy
-prefix("mp3") {
-    get(":type/:p1/:p2?") {
-        def (to, from, type) = betterPathTokens
-        FuckOff f = service.get(type, from, to)
-        exec blocking,
-            { f.toMp3() },  // what to run
-            { byte[] bytes -> response.send "audio/mpeg", copiedBuffer(bytes) } // on success
+interface DbService {
+  // Uses blocking IO
+  String getName(String personId)
+}
+
+handlers {
+    get("name/:id") { DbService db ->
+        exec getBlocking(),
+            { db.getName(getPathTokens().id) },
+            { getResponse().send("name is: $it") }
     }
 }
 ```
@@ -239,12 +254,22 @@ The `exec` block takes two closures, the first one is the blocking operation, fo
 
 You can also provide an optional failure condition to the exec blocking operation, as outlined by the following test:
 
-```language-groovy
-get {
-    exec blocking,
-        { sleep 300; throw new Exception("!") }, // blocking
-        { response.status(210).send("error: $it.message") }, // on error
-        { /* never called */ } // on success
+```language-groovy groovy-handlers
+import static org.ratpackframework.groovy.Util.exec
+
+interface DbService {
+  // Uses blocking IO
+  String getName(String personId)
+
+  void logError(Exception e)
+}
+
+handlers {
+    get("name/:id") { DbService db ->
+        exec getBlocking(),
+            { db.getName(getPathTokens().id) },
+            { Exception e -> db.logError(e); error(e) },
+            { getResponse().send("name is: $it") }
     }
 }
 ```
@@ -324,14 +349,32 @@ While there is a more direct mechanism for injecting dependencies, Ratpack also 
 
 If you look at the [MongoDB Ratpack Angular project](https://github.com/tomaslin/ratpack-mongo-angular/blob/master/server/src/ratpack/ratpack.groovy), you will see that there is a reference to modules as follows:
 
-```language-groovy
+```language-groovy groovy-ratpack
+import com.google.inject.AbstractModule
+
+class MongoService {
+  List<String> getEntries() {
+    // connect to db
+  }
+}
+
+class MongoModule extends AbstractModule {
+
+    @Override
+    protected void configure() {
+        bind(MongoService) // (2)
+    }
+}
+
 ratpack {
     modules {
-        register new MongoModule(new File('config.groovy'))
+      register new MongoModule()
     }
 
     handlers { MongoService mongoService -> // (1)
-        // ...
+      post("some/path") {
+        getResponse().send mongoService.entries.join("\n")
+      }
     }
 }
 ```
@@ -341,25 +384,6 @@ In (1), we are calling the injected service globally so it applies to the all th
 If you go to the [MongoModule](https://github.com/tomaslin/ratpack-mongo-angular/blob/master/server/src/main/groovy/com/tomaslin/mongopack/MongoModule.groovy), you can see that it injects a mongo service based on the provided configuration,
 
 ```language-groovy
-package com.tomaslin.mongopack
-
-import com.google.inject.AbstractModule
-
-class MongoModule extends AbstractModule{
-
-    private static ConfigObject config
-
-    MongoModule(File cfg) {
-        config = new ConfigSlurper().parse(cfg.text).app
-    }
-
-    @Override
-    protected void configure() {
-        // ...
-        bind(MongoService).toInstance(new MongoService(host, port, username, password, db)) // (2)
-    }
-
-}
 ```
 
 The most important line here is (2), where the actual mongo service is bound to the module context.
@@ -372,11 +396,16 @@ Injected services can also be accessed on a per-handler basis instead of globall
 
 This looks as follows:
 
-```language-groovy
-post("api/person") { PeopleDAO dao ->
-    accepts.type("application/json") {
-        response.send serialize(dao.save(request.text))
-    }.send()
+```language-groovy groovy-handlers
+interface PeopleDAO {
+  void save(String person)
+}
+
+handlers {
+  post("api/person") { PeopleDAO dao ->
+    dao.save(getRequest().text)
+    getResponse().send "saved"
+  }
 }
 ```
 
