@@ -70,7 +70,7 @@ public abstract class IoUtils {
     return Unpooled.wrappedBuffer(bytes);
   }
 
-  public static ByteBuf writeTo(InputStream inputStream, ByteBuf byteBuf) throws IOException {
+  public static void writeTo(InputStream inputStream, ByteBuf byteBuf) throws IOException {
     byte[] bytes = new byte[1024]; // completely arbitrary size
     int read = inputStream.read(bytes);
     while (read > 0) {
@@ -78,7 +78,6 @@ public abstract class IoUtils {
       read = inputStream.read(bytes);
     }
     inputStream.close();
-    return byteBuf;
   }
 
 }

@@ -36,7 +36,14 @@ class ResourceTemplateSource implements TemplateSource {
   }
 
   public ByteBuf getContent() throws IOException {
-    return IoUtils.writeTo(getClass().getResourceAsStream(resourcePath), byteBufAllocator.buffer());
+    ByteBuf buffer = byteBufAllocator.buffer();
+    try {
+      IoUtils.writeTo(getClass().getResourceAsStream(resourcePath), buffer);
+    } catch (IOException e) {
+      buffer.release();
+      throw e;
+    }
+    return buffer;
   }
 
   @Override

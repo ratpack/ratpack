@@ -17,10 +17,7 @@
 package org.ratpackframework.http.internal;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
 import io.netty.handler.codec.http.*;
 import org.ratpackframework.block.Blocking;
 import org.ratpackframework.file.internal.FileHttpTransmitter;
@@ -42,22 +39,19 @@ public class DefaultResponse implements Response {
   private final FullHttpResponse response;
   private final FullHttpRequest request;
   private final Channel channel;
-  private final ByteBufAllocator bufferAllocator;
-  private final boolean keepAlive;
-  private final HttpVersion version;
-  private boolean contentLengthSet;
+  private final Runnable committer;
+  private final ByteBuf body;
   private boolean contentTypeSet;
 
   private Set<Cookie> cookies;
 
-  public DefaultResponse(MutableHeaders headers, FullHttpResponse response, FullHttpRequest request, Channel channel, ByteBufAllocator bufferAllocator, boolean keepAlive, HttpVersion version) {
+  public DefaultResponse(MutableHeaders headers, ByteBuf body, Runnable committer, FullHttpResponse response, FullHttpRequest request, Channel channel) {
     this.headers = new MutableHeadersWrapper(headers);
+    this.body = body;
+    this.committer = committer;
     this.response = response;
     this.request = request;
     this.channel = channel;
-    this.bufferAllocator = bufferAllocator;
-    this.keepAlive = keepAlive;
-    this.version = version;
   }
 
   class MutableHeadersWrapper implements MutableHeaders {
@@ -70,9 +64,6 @@ public class DefaultResponse implements Response {
 
     @Override
     public void add(String name, Object value) {
-      if (name.equalsIgnoreCase(HttpHeaders.Names.CONTENT_LENGTH)) {
-        contentLengthSet = true;
-      }
       if (name.equalsIgnoreCase(HttpHeaders.Names.CONTENT_TYPE)) {
         contentTypeSet = true;
       }
@@ -82,9 +73,6 @@ public class DefaultResponse implements Response {
 
     @Override
     public void set(String name, Object value) {
-      if (name.equalsIgnoreCase(HttpHeaders.Names.CONTENT_LENGTH)) {
-        contentLengthSet = true;
-      }
       if (name.equalsIgnoreCase(HttpHeaders.Names.CONTENT_TYPE)) {
         contentTypeSet = true;
       }
@@ -94,9 +82,6 @@ public class DefaultResponse implements Response {
 
     @Override
     public void set(String name, Iterable<?> values) {
-      if (name.equalsIgnoreCase(HttpHeaders.Names.CONTENT_LENGTH)) {
-        contentLengthSet = true;
-      }
       if (name.equalsIgnoreCase(HttpHeaders.Names.CONTENT_TYPE)) {
         contentTypeSet = true;
       }
@@ -106,9 +91,6 @@ public class DefaultResponse implements Response {
 
     @Override
     public void remove(String name) {
-      if (name.equalsIgnoreCase(HttpHeaders.Names.CONTENT_LENGTH)) {
-        contentLengthSet = false;
-      }
       if (name.equalsIgnoreCase(HttpHeaders.Names.CONTENT_TYPE)) {
         contentTypeSet = false;
       }
@@ -118,7 +100,6 @@ public class DefaultResponse implements Response {
 
     @Override
     public void clear() {
-      contentLengthSet = false;
       contentTypeSet = false;
       wrapped.clear();
     }
@@ -172,13 +153,16 @@ public class DefaultResponse implements Response {
   }
 
   @Override
+  public ByteBuf getBody() {
+    return body;
+  }
+
+  @Override
   public MutableHeaders getHeaders() {
     return headers;
   }
 
   public void send() {
-    contentLengthSet = true;
-    headers.set(HttpHeaders.Names.CONTENT_LENGTH, 0);
     commit();
   }
 
@@ -193,7 +177,8 @@ public class DefaultResponse implements Response {
       contentType("text/plain");
     }
 
-    send(IoUtils.utf8Buffer(text));
+    body.writeBytes(IoUtils.utf8Bytes(text));
+    commit();
   }
 
   public void send(String contentType, String body) {
@@ -202,23 +187,22 @@ public class DefaultResponse implements Response {
   }
 
   public void send(byte[] bytes) {
-    ByteBuf buffer = IoUtils.byteBuf(bytes);
-    send(buffer);
+    if (!contentTypeSet) {
+      contentType("application/octet-stream");
+    }
+
+    body.writeBytes(bytes);
+    commit();
   }
 
   public void send(String contentType, byte[] bytes) {
-    ByteBuf buffer = IoUtils.byteBuf(bytes);
-    send(contentType, buffer);
+    contentType(contentType).send(bytes);
   }
 
   @Override
   public void send(InputStream inputStream) throws IOException {
-    ByteBuf buffer = bufferAllocator.buffer();
-    try {
-      send(IoUtils.writeTo(inputStream, buffer));
-    } finally {
-      buffer.release();
-    }
+    IoUtils.writeTo(inputStream, body);
+    commit();
   }
 
   @Override
@@ -236,11 +220,7 @@ public class DefaultResponse implements Response {
       contentType("application/octet-stream");
     }
 
-    if (!contentLengthSet) {
-      headers.set(HttpHeaders.Names.CONTENT_LENGTH, buffer.writerIndex());
-    }
-
-    response.content().writeBytes(buffer);
+    body.writeBytes(buffer);
     commit();
   }
 
@@ -279,19 +259,7 @@ public class DefaultResponse implements Response {
   }
 
   private void commit() {
-    boolean shouldClose = true;
     setCookieHeader();
-    if (channel.isOpen()) {
-      if (keepAlive && contentLengthSet) {
-        if (version == HttpVersion.HTTP_1_0) {
-          headers.set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
-        }
-        shouldClose = false;
-      }
-      ChannelFuture future = channel.writeAndFlush(response);
-      if (shouldClose) {
-        future.addListener(ChannelFutureListener.CLOSE);
-      }
-    }
+    committer.run();
   }
 }

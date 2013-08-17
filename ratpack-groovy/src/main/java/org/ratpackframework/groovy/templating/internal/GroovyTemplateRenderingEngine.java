@@ -51,7 +51,12 @@ public class GroovyTemplateRenderingEngine {
     this.compiledTemplateCache = CacheBuilder.newBuilder().maximumSize(templatingConfig.getCacheSize()).build(new CacheLoader<TemplateSource, CompiledTemplate>() {
       @Override
       public CompiledTemplate load(TemplateSource templateSource) throws Exception {
-        return templateCompiler.compile(templateSource.getContent(), templateSource.getName());
+        ByteBuf content = templateSource.getContent();
+        try {
+          return templateCompiler.compile(content, templateSource.getName());
+        } finally {
+          content.release();
+        }
       }
     });
 

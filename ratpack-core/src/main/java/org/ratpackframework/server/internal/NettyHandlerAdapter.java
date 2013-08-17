@@ -18,6 +18,7 @@ package org.ratpackframework.server.internal;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.ListeningExecutorService;
+import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
@@ -32,6 +33,7 @@ import org.ratpackframework.handling.Context;
 import org.ratpackframework.handling.Handler;
 import org.ratpackframework.handling.internal.ClientErrorHandler;
 import org.ratpackframework.handling.internal.DefaultContext;
+import org.ratpackframework.http.MutableHeaders;
 import org.ratpackframework.http.Request;
 import org.ratpackframework.http.Response;
 import org.ratpackframework.http.internal.DefaultRequest;
@@ -71,27 +73,51 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
     this.return404 = new ClientErrorHandler(NOT_FOUND.code());
   }
 
-  public void channelRead0(ChannelHandlerContext ctx, FullHttpRequest nettyRequest) throws Exception {
+  public void channelRead0(final ChannelHandlerContext ctx, FullHttpRequest nettyRequest) throws Exception {
     if (!nettyRequest.getDecoderResult().isSuccess()) {
       sendError(ctx, HttpResponseStatus.BAD_REQUEST);
       return;
     }
 
-    FullHttpResponse nettyResponse = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
+    final FullHttpResponse nettyResponse = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
 
     Request request = new DefaultRequest(new NettyHeadersBackedHeaders(nettyRequest.headers()), nettyRequest.getMethod().name(), nettyRequest.getUri(), nettyRequest.content());
 
-    HttpVersion version = nettyRequest.getProtocolVersion();
-    boolean keepAlive = version == HttpVersion.HTTP_1_1
+    final HttpVersion version = nettyRequest.getProtocolVersion();
+    final boolean keepAlive = version == HttpVersion.HTTP_1_1
       || (version == HttpVersion.HTTP_1_0 && "Keep-Alive".equalsIgnoreCase(nettyRequest.headers().get("Connection")));
 
-    Response response = new DefaultResponse(new NettyHeadersBackedMutableHeaders(nettyResponse.headers()), nettyResponse, nettyRequest, ctx.channel(), launchConfig.getBufferAllocator(), keepAlive, version);
+    final Channel channel = ctx.channel();
+    final MutableHeaders responseHeaders = new NettyHeadersBackedMutableHeaders(nettyResponse.headers());
+    final ByteBuf responseBody = nettyResponse.content();
+
+    Runnable responseCommitter = new Runnable() {
+      @Override
+      public void run() {
+        responseHeaders.set(HttpHeaders.Names.CONTENT_LENGTH, responseBody.writerIndex());
+        boolean shouldClose = true;
+        if (channel.isOpen()) {
+          if (keepAlive) {
+            if (version == HttpVersion.HTTP_1_0) {
+              responseHeaders.set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
+            }
+            shouldClose = false;
+          }
+          ChannelFuture future = channel.writeAndFlush(nettyResponse);
+          if (shouldClose) {
+            future.addListener(ChannelFutureListener.CLOSE);
+          }
+        }
+      }
+    };
+
+    Response response = new DefaultResponse(responseHeaders, responseBody, responseCommitter, nettyResponse, nettyRequest, channel);
 
     if (registry == null) {
       try {
         registryLock.lock();
         if (registry == null) {
-          registry = createRegistry(ctx.channel());
+          registry = createRegistry(channel);
         }
       } finally {
         registryLock.unlock();

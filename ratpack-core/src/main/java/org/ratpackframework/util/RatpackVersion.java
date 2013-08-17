@@ -50,7 +50,8 @@ public class RatpackVersion {
     @Override
     protected void doExecute(ByteBuf buffer) {
       try {
-        content = IoUtils.writeTo(resourceAsStream, buffer).toString(CharsetUtil.UTF_8);
+        IoUtils.writeTo(resourceAsStream, buffer);
+        content = buffer.toString(CharsetUtil.UTF_8);
       } catch (IOException e) {
         throw new RuntimeException(e);
       }
