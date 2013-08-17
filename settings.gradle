@@ -27,9 +27,8 @@ include \
 
 include \
   "perftest",
-  "perftest:raw",
-  "perftest:simple-java",
-  "perftest:guice"
+  "perftest:java",
+  "perftest:groovy"
 
 rootProject.name = 'ratpack'
 

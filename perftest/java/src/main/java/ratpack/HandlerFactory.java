@@ -16,18 +16,26 @@
 
 package ratpack;
 
-import org.ratpackframework.guice.Guice;
 import org.ratpackframework.handling.Chain;
+import org.ratpackframework.handling.Context;
 import org.ratpackframework.handling.Handler;
 import org.ratpackframework.launch.LaunchConfig;
 import org.ratpackframework.util.Action;
 
+import static org.ratpackframework.handling.Handlers.*;
+
 public class HandlerFactory implements org.ratpackframework.launch.HandlerFactory {
 
   public Handler create(LaunchConfig launchConfig) {
-    return Guice.handler(launchConfig, new ModuleBootstrap(), new Action<Chain>() {
+    return chain(new Action<Chain>() {
       public void execute(Chain chain) {
-        chain.add(chain.getRegistry().get(InjectedHandler.class));
+        chain.add(assets("public"));
+
+        chain.add(prefix("path", new Handler() {
+          public void handle(Context context) {
+            context.getResponse().send(context.getRequest().getUri());
+          }
+        }));
       }
     });
   }

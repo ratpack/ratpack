@@ -14,12 +14,8 @@
  * limitations under the License.
  */
 
-package ratpack;
+apply plugin: "ratpack-groovy"
 
-public class ServiceImpl implements Service {
-
-  public String getValue() {
-    return "value";
-  }
-
+run {
+  systemProperty "ratpack.reloadable", "false"
 }
