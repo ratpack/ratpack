@@ -35,6 +35,9 @@ import org.ratpackframework.registry.Registry;
 import org.ratpackframework.registry.internal.ObjectHoldingChildRegistry;
 import org.ratpackframework.render.NoSuchRendererException;
 import org.ratpackframework.render.RenderController;
+import org.ratpackframework.util.Action;
+import org.ratpackframework.util.Result;
+import org.ratpackframework.util.ResultAction;
 
 import java.io.File;
 import java.util.Date;
@@ -176,6 +179,20 @@ public class DefaultContext implements Context {
         error(e);
       }
     }
+  }
+
+  @Override
+  public <T> ResultAction<T> resultAction(final Action<T> action) {
+    return new ResultAction<T>() {
+      @Override
+      public void execute(Result<T> result) {
+        if (result.isFailure()) {
+          error(result.getFailure());
+        } else {
+          action.execute(result.getValue());
+        }
+      }
+    };
   }
 
   public ByMethodResponder getByMethod() {

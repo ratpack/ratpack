@@ -124,7 +124,12 @@ public class DefaultResponse implements Response {
 
   @Override
   public void send(InputStream inputStream) throws IOException {
-    send(IoUtils.writeTo(inputStream, bufferAllocator.buffer()));
+    ByteBuf buffer = bufferAllocator.buffer();
+    try {
+      send(IoUtils.writeTo(inputStream, buffer));
+    } finally {
+      buffer.release();
+    }
   }
 
   @Override

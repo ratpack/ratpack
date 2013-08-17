@@ -20,8 +20,7 @@ import io.netty.buffer.ByteBuf;
 import org.ratpackframework.error.ServerErrorHandler;
 import org.ratpackframework.handling.Context;
 import org.ratpackframework.http.Response;
-import org.ratpackframework.util.internal.Result;
-import org.ratpackframework.util.internal.ResultAction;
+import org.ratpackframework.util.internal.ReleasingAction;
 
 import java.util.Map;
 
@@ -30,19 +29,15 @@ public class TemplateRenderingServerErrorHandler implements ServerErrorHandler {
   public void error(final Context context, final Exception exception) {
     GroovyTemplateRenderingEngine renderer = context.get(GroovyTemplateRenderingEngine.class);
     Map<String, ?> model = ExceptionToTemplateModel.transform(context.getRequest(), exception);
-    renderer.renderError(model, new ResultAction<ByteBuf>() {
-      public void execute(Result<ByteBuf> thing) {
-        if (thing.isFailure()) {
-          context.error(thing.getFailure());
-        } else {
-          Response response = context.getResponse();
-          if (response.getStatus().getCode() < 400) {
-            response.status(500);
-          }
-          response.send("text/html", thing.getValue());
+    renderer.renderError(model, context.resultAction(new ReleasingAction<ByteBuf>() {
+      protected void doExecute(ByteBuf byteBuf) {
+        Response response = context.getResponse();
+        if (response.getStatus().getCode() < 400) {
+          response.status(500);
         }
+        response.send("text/html", byteBuf);
       }
-    });
+    }));
   }
 
 }

@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.util.internal;
-
-import org.ratpackframework.util.Action;
+package org.ratpackframework.util;
 
 /**
  * Convenience subtype for an action that takes a result.

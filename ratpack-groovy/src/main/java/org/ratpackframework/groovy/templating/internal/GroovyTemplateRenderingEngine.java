@@ -24,9 +24,9 @@ import io.netty.buffer.ByteBufAllocator;
 import org.ratpackframework.groovy.script.internal.ScriptEngine;
 import org.ratpackframework.groovy.templating.TemplatingConfig;
 import org.ratpackframework.launch.LaunchConfig;
+import org.ratpackframework.util.Action;
+import org.ratpackframework.util.Result;
 import org.ratpackframework.util.Transformer;
-import org.ratpackframework.util.internal.Result;
-import org.ratpackframework.util.internal.ResultAction;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -59,12 +59,12 @@ public class GroovyTemplateRenderingEngine {
     templateDir = new File(launchConfig.getBaseDir(), templatingConfig.getTemplatesPath());
   }
 
-  public void renderTemplate(final String templateId, final Map<String, ?> model, final ResultAction<ByteBuf> handler) {
+  public void renderTemplate(final String templateId, final Map<String, ?> model, final Action<Result<ByteBuf>> handler) {
     final File templateFile = getTemplateFile(templateId);
     render(new FileTemplateSource(templateFile, templateId, reloadable), model, handler);
   }
 
-  public void renderError(Map<String, ?> model, ResultAction<ByteBuf> handler) {
+  public void renderError(Map<String, ?> model, Action<Result<ByteBuf>> handler) {
     final File errorTemplate = getTemplateFile(ERROR_TEMPLATE);
     if (errorTemplate.exists()) {
       render(new FileTemplateSource(errorTemplate, ERROR_TEMPLATE, reloadable), model, handler);
@@ -73,7 +73,7 @@ public class GroovyTemplateRenderingEngine {
     }
   }
 
-  private void render(final TemplateSource templateSource, Map<String, ?> model, ResultAction<ByteBuf> handler) {
+  private void render(final TemplateSource templateSource, Map<String, ?> model, Action<Result<ByteBuf>> handler) {
     try {
       new Render(compiledTemplateCache, templateSource, byteBufAllocator, model, handler, new Transformer<String, TemplateSource>() {
         public TemplateSource transform(String templateName) {

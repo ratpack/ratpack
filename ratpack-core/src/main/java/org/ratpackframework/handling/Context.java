@@ -23,6 +23,8 @@ import org.ratpackframework.http.Response;
 import org.ratpackframework.registry.NotInRegistryException;
 import org.ratpackframework.registry.Registry;
 import org.ratpackframework.render.NoSuchRendererException;
+import org.ratpackframework.util.Action;
+import org.ratpackframework.util.ResultAction;
 
 import java.io.File;
 import java.util.Date;
@@ -195,6 +197,17 @@ public interface Context extends Registry<Object> {
    * @param runnable The code to surround with error handling
    */
   void withErrorHandling(Runnable runnable);
+
+  /**
+   * Creates a result action that uses the contextual error handler if the result is failure.
+   * <p>
+   * The given action is invoked if the result is successful.
+   *
+   * @param action The action to invoke on a successful result.
+   * @param <T> The type of the successful result value
+   * @return An action that takes {@code Result<T>}
+   */
+  <T> ResultAction<T> resultAction(Action<T> action);
 
   /**
    * The path tokens of the current {@link org.ratpackframework.path.PathBinding} in this exchange's service.

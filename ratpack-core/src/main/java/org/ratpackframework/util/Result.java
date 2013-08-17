@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.util.internal;
+package org.ratpackframework.util;
 
 /**
  * The result of an asynchronous operation, which may be a failure.
  *
  * @param <T> The type of the successful result object.
  */
+@SuppressWarnings("UnusedDeclaration")
 public class Result<T> {
 
   private final Exception failure;
