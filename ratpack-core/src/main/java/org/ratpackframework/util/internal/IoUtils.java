@@ -55,7 +55,7 @@ public abstract class IoUtils {
   }
 
   public static ByteBuf utf8Buffer(String str) {
-    return byteBuf(utf8Bytes(str));
+    return Unpooled.copiedBuffer(str, CharsetUtil.UTF_8);
   }
 
   public static byte[] utf8Bytes(String str) {
@@ -70,8 +70,7 @@ public abstract class IoUtils {
     return Unpooled.wrappedBuffer(bytes);
   }
 
-  public static ByteBuf byteBuf(InputStream inputStream) throws IOException {
-    ByteBuf byteBuf = Unpooled.buffer();
+  public static ByteBuf writeTo(InputStream inputStream, ByteBuf byteBuf) throws IOException {
     byte[] bytes = new byte[1024]; // completely arbitrary size
     int read = inputStream.read(bytes);
     while (read > 0) {

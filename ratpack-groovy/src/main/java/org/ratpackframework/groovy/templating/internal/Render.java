@@ -18,7 +18,7 @@ package org.ratpackframework.groovy.templating.internal;
 
 import com.google.common.cache.LoadingCache;
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.PooledByteBufAllocator;
+import io.netty.buffer.ByteBufAllocator;
 import org.ratpackframework.util.Transformer;
 import org.ratpackframework.util.internal.Result;
 import org.ratpackframework.util.internal.ResultAction;
@@ -31,11 +31,11 @@ public class Render {
   private final LoadingCache<TemplateSource, CompiledTemplate> compiledTemplateCache;
   private final Transformer<String, TemplateSource> includeTransformer;
 
-  public Render(LoadingCache<TemplateSource, CompiledTemplate> compiledTemplateCache, TemplateSource templateSource, Map<String, ?> model, final ResultAction<ByteBuf> handler, Transformer<String, TemplateSource> includeTransformer) {
+  public Render(LoadingCache<TemplateSource, CompiledTemplate> compiledTemplateCache, TemplateSource templateSource, ByteBufAllocator byteBufAllocator, Map<String, ?> model, final ResultAction<ByteBuf> handler, Transformer<String, TemplateSource> includeTransformer) {
     this.compiledTemplateCache = compiledTemplateCache;
     this.includeTransformer = includeTransformer;
 
-    ByteBuf buffer = PooledByteBufAllocator.DEFAULT.buffer();
+    ByteBuf buffer = byteBufAllocator.buffer();
 
     try {
       execute(compiledTemplateCache.get(templateSource), model, buffer);

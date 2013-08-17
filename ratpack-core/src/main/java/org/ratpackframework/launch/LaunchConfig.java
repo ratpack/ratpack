@@ -16,6 +16,7 @@
 
 package org.ratpackframework.launch;
 
+import io.netty.buffer.ByteBufAllocator;
 import org.ratpackframework.api.Nullable;
 
 import java.io.File;
@@ -75,6 +76,15 @@ public interface LaunchConfig {
   public int getMainThreads();
 
   public ExecutorService getBlockingExecutorService();
+
+  /**
+   * The allocator for buffers needed by the application.
+   * <p>
+   * Defaults to Netty's {@link io.netty.buffer.PooledByteBufAllocator}.
+   *
+   * @return The allocator for buffers needed by the application.
+   */
+  public ByteBufAllocator getBufferAllocator();
 
   /**
    * The public address of the site used for redirects.

@@ -20,6 +20,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
 import org.ratpackframework.groovy.script.internal.ScriptEngine;
 import org.ratpackframework.groovy.templating.TemplatingConfig;
 import org.ratpackframework.launch.LaunchConfig;
@@ -39,11 +40,14 @@ public class GroovyTemplateRenderingEngine {
   private final TemplateCompiler templateCompiler;
   private final boolean reloadable;
   private final File templateDir;
+  private final ByteBufAllocator byteBufAllocator;
 
   @Inject
   public GroovyTemplateRenderingEngine(LaunchConfig launchConfig, TemplatingConfig templatingConfig) {
-    ScriptEngine<DefaultTemplateScript> scriptEngine = new ScriptEngine<DefaultTemplateScript>(getClass().getClassLoader(), templatingConfig.isStaticallyCompile(), DefaultTemplateScript.class);
-    templateCompiler = new TemplateCompiler(scriptEngine);
+    this.byteBufAllocator = launchConfig.getBufferAllocator();
+
+    ScriptEngine<DefaultTemplateScript> scriptEngine = new ScriptEngine<>(getClass().getClassLoader(), templatingConfig.isStaticallyCompile(), DefaultTemplateScript.class);
+    templateCompiler = new TemplateCompiler(scriptEngine, byteBufAllocator);
     this.compiledTemplateCache = CacheBuilder.newBuilder().maximumSize(templatingConfig.getCacheSize()).build(new CacheLoader<TemplateSource, CompiledTemplate>() {
       @Override
       public CompiledTemplate load(TemplateSource templateSource) throws Exception {
@@ -65,13 +69,13 @@ public class GroovyTemplateRenderingEngine {
     if (errorTemplate.exists()) {
       render(new FileTemplateSource(errorTemplate, ERROR_TEMPLATE, reloadable), model, handler);
     } else {
-      render(new ResourceTemplateSource(ERROR_TEMPLATE), model, handler);
+      render(new ResourceTemplateSource(ERROR_TEMPLATE, byteBufAllocator), model, handler);
     }
   }
 
   private void render(final TemplateSource templateSource, Map<String, ?> model, ResultAction<ByteBuf> handler) {
     try {
-      new Render(compiledTemplateCache, templateSource, model, handler, new Transformer<String, TemplateSource>() {
+      new Render(compiledTemplateCache, templateSource, byteBufAllocator, model, handler, new Transformer<String, TemplateSource>() {
         public TemplateSource transform(String templateName) {
           return new FileTemplateSource(new File(templateDir, templateName), templateName, reloadable);
         }

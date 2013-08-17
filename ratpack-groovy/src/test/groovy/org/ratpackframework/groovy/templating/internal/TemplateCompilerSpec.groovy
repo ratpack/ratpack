@@ -18,6 +18,7 @@ package org.ratpackframework.groovy.templating.internal
 
 import io.netty.buffer.ByteBuf
 import io.netty.buffer.Unpooled
+import io.netty.buffer.UnpooledByteBufAllocator
 import io.netty.util.CharsetUtil
 import org.ratpackframework.groovy.script.internal.ScriptEngine
 import org.ratpackframework.util.internal.IoUtils
@@ -25,7 +26,7 @@ import spock.lang.Specification
 
 class TemplateCompilerSpec extends Specification {
 
-  def compiler = new TemplateCompiler(new ScriptEngine<DefaultTemplateScript>(getClass().classLoader, true, DefaultTemplateScript), true)
+  def compiler = new TemplateCompiler(new ScriptEngine<DefaultTemplateScript>(getClass().classLoader, true, DefaultTemplateScript), true, UnpooledByteBufAllocator.DEFAULT)
 
   CompiledTemplate compile(String source) {
     compiler.compile(IoUtils.utf8Buffer(source), "test")

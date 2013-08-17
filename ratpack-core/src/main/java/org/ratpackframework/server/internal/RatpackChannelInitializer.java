@@ -31,10 +31,12 @@ import org.ratpackframework.launch.LaunchConfig;
 
 public class RatpackChannelInitializer extends ChannelInitializer<SocketChannel> {
 
+  private final LaunchConfig launchConfig;
   private NettyHandlerAdapter nettyHandlerAdapter;
   private DefaultEventExecutorGroup eventExecutorGroup;
 
   public RatpackChannelInitializer(LaunchConfig launchConfig, Handler handler) {
+    this.launchConfig = launchConfig;
     int mainThreads = launchConfig.getMainThreads();
     if (mainThreads > 0) {
       this.eventExecutorGroup = new DefaultEventExecutorGroup(mainThreads);
@@ -47,6 +49,7 @@ public class RatpackChannelInitializer extends ChannelInitializer<SocketChannel>
   }
 
   public void initChannel(SocketChannel ch) throws Exception {
+    ch.config().setAllocator(launchConfig.getBufferAllocator());
     ChannelPipeline pipeline = ch.pipeline();
 
     pipeline.addLast("decoder", new HttpRequestDecoder());

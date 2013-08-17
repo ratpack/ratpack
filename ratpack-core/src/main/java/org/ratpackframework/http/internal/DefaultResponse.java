@@ -17,6 +17,7 @@
 package org.ratpackframework.http.internal;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
@@ -38,6 +39,7 @@ public class DefaultResponse implements Response {
   private final FullHttpResponse response;
   private final FullHttpRequest request;
   private final Channel channel;
+  private final ByteBufAllocator bufferAllocator;
   private final boolean keepAlive;
   private final HttpVersion version;
   private boolean contentLengthSet;
@@ -45,10 +47,11 @@ public class DefaultResponse implements Response {
 
   private Set<Cookie> cookies;
 
-  public DefaultResponse(FullHttpResponse response, FullHttpRequest request, Channel channel, boolean keepAlive, HttpVersion version) {
+  public DefaultResponse(FullHttpResponse response, FullHttpRequest request, Channel channel, ByteBufAllocator bufferAllocator, boolean keepAlive, HttpVersion version) {
     this.response = response;
     this.request = request;
     this.channel = channel;
+    this.bufferAllocator = bufferAllocator;
     this.keepAlive = keepAlive;
     this.version = version;
   }
@@ -121,7 +124,7 @@ public class DefaultResponse implements Response {
 
   @Override
   public void send(InputStream inputStream) throws IOException {
-    send(IoUtils.byteBuf(inputStream));
+    send(IoUtils.writeTo(inputStream, bufferAllocator.buffer()));
   }
 
   @Override
