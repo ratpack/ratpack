@@ -47,7 +47,7 @@ public abstract class RatpackServerBuilder {
   public static RatpackServer build(LaunchConfig launchConfig) {
     InetSocketAddress address = buildSocketAddress(launchConfig.getAddress(), launchConfig.getPort());
     ChannelInitializer<SocketChannel> channelInitializer = buildChannelInitializer(launchConfig);
-    NettyRatpackService service = new NettyRatpackService(address, channelInitializer);
+    NettyRatpackService service = new NettyRatpackService(address, launchConfig.getBufferAllocator(), channelInitializer);
     return new ServiceBackedServer(service, launchConfig);
   }
 

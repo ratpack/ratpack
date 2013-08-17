@@ -16,11 +16,12 @@
 
 package org.ratpackframework.launch;
 
+import io.netty.buffer.ByteBufAllocator;
 import org.ratpackframework.api.Nullable;
 
 import java.io.File;
 import java.net.InetAddress;
-import java.net.URL;
+import java.net.URI;
 import java.util.concurrent.ExecutorService;
 
 public interface LaunchConfig {
@@ -77,11 +78,20 @@ public interface LaunchConfig {
   public ExecutorService getBlockingExecutorService();
 
   /**
+   * The allocator for buffers needed by the application.
+   * <p>
+   * Defaults to Netty's {@link io.netty.buffer.PooledByteBufAllocator}.
+   *
+   * @return The allocator for buffers needed by the application.
+   */
+  public ByteBufAllocator getBufferAllocator();
+
+  /**
    * The public address of the site used for redirects.
    *
    * @return The url of the public address;
    */
-  public URL getPublicAddress();
+  public URI getPublicAddress();
 
   public String getOther(String key, String defaultValue);
 

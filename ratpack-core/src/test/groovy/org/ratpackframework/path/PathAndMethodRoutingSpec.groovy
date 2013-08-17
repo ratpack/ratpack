@@ -25,7 +25,7 @@ class PathAndMethodRoutingSpec extends RatpackGroovyDslSpec {
     app {
       handlers {
         get("a/b/c") {
-          response.setHeader("X-value", request.query)
+          response.headers.set("X-value", request.query)
           response.send request.query
         }
         prefix(":a/:b") {

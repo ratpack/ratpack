@@ -23,8 +23,11 @@ import org.ratpackframework.http.Response;
 import org.ratpackframework.registry.NotInRegistryException;
 import org.ratpackframework.registry.Registry;
 import org.ratpackframework.render.NoSuchRendererException;
+import org.ratpackframework.util.Action;
+import org.ratpackframework.util.ResultAction;
 
 import java.io.File;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -196,6 +199,17 @@ public interface Context extends Registry<Object> {
   void withErrorHandling(Runnable runnable);
 
   /**
+   * Creates a result action that uses the contextual error handler if the result is failure.
+   * <p>
+   * The given action is invoked if the result is successful.
+   *
+   * @param action The action to invoke on a successful result.
+   * @param <T> The type of the successful result value
+   * @return An action that takes {@code Result<T>}
+   */
+  <T> ResultAction<T> resultAction(Action<T> action);
+
+  /**
    * The path tokens of the current {@link org.ratpackframework.path.PathBinding} in this exchange's service.
    * <p>
    * Shorthand for {@code getServiceRegistry().get(PathBinding.class).getPathTokens()}.
@@ -256,4 +270,19 @@ public interface Context extends Registry<Object> {
    * @throws NotInRegistryException if there is no {@link org.ratpackframework.redirect.Redirector} in the current service but one is provided by default
    */
   void redirect(int code, String location) throws NotInRegistryException;
+
+  /**
+   * Convenience method for handling last-modified based HTTP caching.
+   * <p>
+   * The given date is the "last modified" value of the response.
+   * If the client sent an "If-Modified-Since" header that is of equal or greater value than date, a 304
+   * will be returned to the client. Otherwise, the given runnable will be executed (it should send a response)
+   * and the "Last-Modified" header will be set by this method.
+   *
+   * @param date The effective last modified date of the response
+   * @param runnable The response sending action if the response needs to be sent
+   */
+  @NonBlocking
+  void lastModified(Date date, Runnable runnable);
+
 }

@@ -134,14 +134,14 @@ public abstract class LaunchConfigFactory {
         }
       }
 
-      URL publicAddress = null;
+      URI publicAddress = null;
       String publicAddressString = properties.getProperty(Property.PUBLIC_ADDRESS);
 
       if (publicAddressString != null) {
         try {
-          publicAddress = new URL(publicAddressString);
-        } catch (MalformedURLException ex) {
-          throw new IllegalStateException("Failed to create URL from: " + publicAddressString, ex);
+          publicAddress = new URI(publicAddressString);
+        } catch (URISyntaxException ex) {
+          throw new IllegalStateException("Failed to create URI from: " + publicAddressString, ex);
         }
       }
 

@@ -17,16 +17,18 @@
 package org.ratpackframework.groovy.templating.internal;
 
 import io.netty.buffer.ByteBuf;
-import org.codehaus.groovy.runtime.IOGroovyMethods;
+import io.netty.buffer.ByteBufAllocator;
 import org.ratpackframework.util.internal.IoUtils;
 
 import java.io.IOException;
 
 class ResourceTemplateSource implements TemplateSource {
   private final String resourcePath;
+  private final ByteBufAllocator byteBufAllocator;
 
-  ResourceTemplateSource(String resourcePath) {
+  ResourceTemplateSource(String resourcePath, ByteBufAllocator byteBufAllocator) {
     this.resourcePath = resourcePath;
+    this.byteBufAllocator = byteBufAllocator;
   }
 
   public String getName() {
@@ -34,7 +36,14 @@ class ResourceTemplateSource implements TemplateSource {
   }
 
   public ByteBuf getContent() throws IOException {
-    return IoUtils.byteBuf(IOGroovyMethods.getBytes(getClass().getResourceAsStream(resourcePath)));
+    ByteBuf buffer = byteBufAllocator.buffer();
+    try {
+      IoUtils.writeTo(getClass().getResourceAsStream(resourcePath), buffer);
+    } catch (IOException e) {
+      buffer.release();
+      throw e;
+    }
+    return buffer;
   }
 
   @Override

@@ -18,20 +18,32 @@ package org.ratpackframework.http.internal;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
-import io.netty.handler.codec.http.*;
+import io.netty.handler.codec.http.Cookie;
+import io.netty.handler.codec.http.CookieDecoder;
+import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.QueryStringDecoder;
+import org.ratpackframework.http.Headers;
 import org.ratpackframework.http.HttpMethod;
 import org.ratpackframework.http.MediaType;
 import org.ratpackframework.http.Request;
 import org.ratpackframework.util.MultiValueMap;
 import org.ratpackframework.util.internal.ImmutableDelegatingMultiValueMap;
 
-import java.io.*;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.charset.Charset;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 
 public class DefaultRequest implements Request {
 
-  private final FullHttpRequest nettyRequest;
+  private final Headers headers;
+  private final ByteBuf content;
+  private final String uri;
 
   private MediaType mediaType;
 
@@ -42,9 +54,11 @@ public class DefaultRequest implements Request {
   private final HttpMethod method;
   private Set<Cookie> cookies;
 
-  public DefaultRequest(FullHttpRequest nettyRequest) {
-    this.nettyRequest = nettyRequest;
-    this.method = new DefaultHttpMethod(nettyRequest.getMethod().name());
+  public DefaultRequest(Headers headers, String methodName, String uri, ByteBuf content) {
+    this.headers = headers;
+    this.method = new DefaultHttpMethod(methodName);
+    this.uri = uri;
+    this.content = content;
   }
 
   public MultiValueMap<String, String> getQueryParams() {
@@ -57,7 +71,7 @@ public class DefaultRequest implements Request {
 
   public MediaType getContentType() {
     if (mediaType == null) {
-      mediaType = DefaultMediaType.get(getHeader(HttpHeaders.Names.CONTENT_TYPE));
+      mediaType = DefaultMediaType.get(headers.get(HttpHeaders.Names.CONTENT_TYPE));
     }
     return mediaType;
   }
@@ -67,7 +81,7 @@ public class DefaultRequest implements Request {
   }
 
   public String getUri() {
-    return nettyRequest.getUri();
+    return uri;
   }
 
   public String getQuery() {
@@ -132,7 +146,7 @@ public class DefaultRequest implements Request {
   }
 
   private ByteBuf getBuffer() {
-    return nettyRequest.content();
+    return content;
   }
 
   public MultiValueMap<String, String> getForm() {
@@ -145,7 +159,7 @@ public class DefaultRequest implements Request {
 
   public Set<Cookie> getCookies() {
     if (cookies == null) {
-      String header = nettyRequest.headers().get(HttpHeaders.Names.COOKIE);
+      String header = headers.get(HttpHeaders.Names.COOKIE);
       if (header == null || header.length() == 0) {
         cookies = Collections.emptySet();
       } else {
@@ -190,23 +204,8 @@ public class DefaultRequest implements Request {
     }
   }
 
-  public String getHeader(String name) {
-    return nettyRequest.headers().get(name);
-  }
-
-  public Date getDateHeader(String name) {
-    return HttpHeaders.getDateHeader(nettyRequest, name, null);
-  }
-
-  public List<String> getHeaders(String name) {
-    return nettyRequest.headers().getAll(name);
-  }
-
-  public boolean containsHeader(String name) {
-    return nettyRequest.headers().contains(name);
-  }
-
-  public Set<String> getHeaderNames() {
-    return nettyRequest.headers().names();
+  @Override
+  public Headers getHeaders() {
+    return headers;
   }
 }

@@ -7,10 +7,9 @@
         <meta charset="utf-8">
         <title>Ratpack: A toolkit for JVM web applications</title>
         <meta name="description" content="Ratpack apps are lightweight, fast, composable with other tools and libraries, easy to test and enjoyable to develop.">
-        <meta name="viewport" content="width=device-width">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
 
         <link rel="author" href="humans.txt">
-        <link href="http://fonts.googleapis.com/css?family=Lora:400,700,400italic|Engagement|Playfair+Display:700,700italic" rel="stylesheet" type="text/css">
         <!-- Place favicon.ico and apple-touch-icon.png in the root directory -->
         <link rel="stylesheet" href="lib/normalize/normalize.css">
         <link rel="stylesheet" href="styles/ratpack.css">
@@ -20,41 +19,49 @@
     </head>
     <body>
 
-        <header class="page-header">
+        <header id="page-header">
             <div class="ratpack-logo">
                 <h1>Ratpack</h1>
                 <p>A toolkit for JVM web applications</p>
             </div>
+            <nav class="social">
+                <h2>Ratpack is on&hellip;</h2>
+                <a href="http://github.com/ratpack/" title="ratpack on GitHub" rel="external">GitHub</a>
+                <span class="join">&amp;</span>
+                <a href="http://twitter.com/ratpackweb" title="@ratpackweb on Twitter" rel="external">Twitter</a>
+            </nav>
         </header>
 
-        <section class="promo">
-            <article>
-                <h2>What is Ratpack?</h2>
-                <p>
-                  Ratpack apps are lightweight, fast, composable with other tools &amp; libraries, easy to test and enjoyable to develop.
-                </p>
-                <p>
-                  Ratpack is implemented in Java, designed with <a href="http://groovy-lang.org">Groovy</a> in mind.
-                  Apps can be implemented as a single Groovy script, or can scale up to the large with your build tool of choice. We prefer <a href="http://www.gradle.org">Gradle</a> and provide tight integration.
-                </p>
-                <p>
-                  Ratpack is built on <a href="http://netty.io/">Netty</a> and is designed for asynchronous request processing. Synchronous, blocking, style can also be used (though throughput is typically lower).
-                  Ratpack is not a J2EE solution. Deployments are typically as executable JARs.
-                </p>
-            </article>
-            <nav>
-                <h2>Find out more</h2>
-                <ul>
-                    <li><a href="/manual/current/">Manual</a></li>
-                    <li><a href="/manual/current/api/">API Reference</a></li>
-                    <li><a href="https://github.com/ratpack/ratpack/issues" rel="external">Issue Tracker</a></li>
-                    <li><a href="http://forum.ratpack-framework.org/">User Forum</a></li>
-                </ul>
-            </nav>
+        <section id="promo">
+            <div class="content">
+                <article>
+                    <h2>What is Ratpack?</h2>
+                    <p>
+                      Ratpack apps are lightweight, fast, composable with other tools &amp; libraries, easy to test and enjoyable to develop.
+                    </p>
+                    <p>
+                      Ratpack is implemented in Java, designed with <a href="http://groovy-lang.org">Groovy</a> in mind.
+                      Apps can be implemented as a single Groovy script, or can scale up to the large with your build tool of choice. We prefer <a href="http://www.gradle.org">Gradle</a> and provide tight integration.
+                    </p>
+                    <p>
+                      Ratpack is built on <a href="http://netty.io/">Netty</a> and is designed for asynchronous request processing. Synchronous, blocking, style can also be used (though throughput is typically lower).
+                      Ratpack is not a J2EE solution. Deployments are typically as executable JARs.
+                    </p>
+                </article>
+                <nav>
+                    <h2>Find out more</h2>
+                    <ul>
+                        <li><a href="/manual/current/">Manual</a></li>
+                        <li><a href="/manual/current/api/">API Reference</a></li>
+                        <li><a href="https://github.com/ratpack/ratpack/issues" rel="external">Issue Tracker</a></li>
+                        <li><a href="http://forum.ratpack-framework.org/">User Forum</a></li>
+                    </ul>
+                </nav>
+            </div>
         </section>
 
-        <section class="main">
-            <article>
+        <section id="main">
+            <article class="content">
                 <h2>Getting Started</h2>
                 <p>
                 Create a Groovy script on your filesystem with:
@@ -73,7 +80,7 @@ ratpack {
                 <p>That's just the tip of the iceberg.</p>
                 <p>Check out the <a href="/manual/snapshot/">Ratpack Manual</a> for more possibilities.</p>
                 <h2>Example Apps</h2>
-                <p>If you're more of a “show me the code” type, check out the following example apps on GitHub:</p>
+                <p>If you're more of a <em>“show me the code”</em> type, check out the following example apps on GitHub:</p>
                 <ul>
                     <li><a href="https://github.com/ratpack/example-ratpack-standalone-groovy-script" rel="external">Standalone Groovy script app</a></li>
                     <li><a href="https://github.com/ratpack/example-ratpack-gradle-groovy-app" rel="external">Groovy app built with Gradle</a></li>
@@ -82,24 +89,37 @@ ratpack {
             </article>
         </section>
 
-        <footer class="page-footer">
-            <nav class="social">
-                <a href="http://github.com/ratpack/" title="ratpack on GitHub" rel="external"><img src="images/github-badge.png"></a>
-                <a href="http://twitter.com/ratpackweb" title="@ratpackweb on Twitter" rel="external"><img src="images/twitter-badge.png"></a>
-            </nav>
-            <section class="about">
-                <p>Ratpack is free to use, <a href="https://github.com/ratpack/ratpack" rel="external">open source</a>, and licensed under the <a href="http://www.apache.org/licenses/LICENSE-2.0.html" rel="external">Apache License, Version 2.0.</a></p>
-                <p>This site is a Ratpack application running on <a href="https://www.heroku.com/" rel="external">Heroku</a>.</p>
-            </section>
-            <section class="credits">
-                <a href="https://bintray.com/" rel="external"><img src="images/bintray.png" alt="Bintray logo"></a>
-                <a href="https://github.com/" rel="external"><img src="images/github.png" alt="Octocat"></a>
-                <a href="http://www.gradle.org/" rel="external"><img src="images/gradle.png" alt="Gradle logo"></a>
-                <a href="http://groovy.codehaus.org/" rel="external"><img src="images/groovy.png" alt="Groovy logo"></a>
-                <a href="https://www.heroku.com/" rel="external"><img src="images/heroku.png" alt="Heroku logo"></a>
-                <a href="http://netty.io/" rel="external"><img src="images/netty.png" alt="Netty logo"></a>
-            </section>
+        <footer id="page-footer">
+            <div class="content">
+                <section class="about">
+                    <p>Ratpack is free to use, <a href="https://github.com/ratpack/ratpack" rel="external">open source</a>, and licensed under the <a href="http://www.apache.org/licenses/LICENSE-2.0.html" rel="external">Apache License, Version 2.0.</a></p>
+                    <p>This site is a Ratpack application running on <a href="https://www.heroku.com/" rel="external">Heroku</a>.</p>
+                </section>
+                <section class="credits">
+                    <a href="https://bintray.com/" rel="external"><img src="images/bintray.png" alt="Bintray logo"></a>
+                    <a href="https://github.com/" rel="external"><img src="images/github.png" alt="Octocat"></a>
+                    <a href="http://www.gradle.org/" rel="external"><img src="images/gradle.png" alt="Gradle logo"></a>
+                    <a href="http://groovy.codehaus.org/" rel="external"><img src="images/groovy.png" alt="Groovy logo"></a>
+                    <a href="https://www.heroku.com/" rel="external"><img src="images/heroku.png" alt="Heroku logo"></a>
+                    <a href="http://netty.io/" rel="external"><img src="images/netty.png" alt="Netty logo"></a>
+                </section>
+            </div>
         </footer>
+
+        <script>
+          WebFontConfig = {
+            google: { families: [ 'Engagement::latin', 'Merriweather:400,400italic,700:latin', 'Merriweather+Sans:700italic,700:latin' ] }
+          };
+          (function() {
+            var wf = document.createElement('script');
+            wf.src = ('https:' == document.location.protocol ? 'https' : 'http') +
+                '://ajax.googleapis.com/ajax/libs/webfont/1/webfont.js';
+            wf.type = 'text/javascript';
+            wf.async = 'true';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(wf, s);
+          })();
+        </script>
 
         <script>
           (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){

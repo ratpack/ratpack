@@ -16,6 +16,8 @@
 
 package org.ratpackframework.groovy.internal;
 
+import com.google.inject.Injector;
+import com.google.inject.Module;
 import groovy.lang.Closure;
 import groovy.lang.Script;
 import io.netty.buffer.ByteBuf;
@@ -27,6 +29,7 @@ import org.ratpackframework.handling.Context;
 import org.ratpackframework.handling.Handler;
 import org.ratpackframework.reload.internal.ReloadableFileBackedFactory;
 import org.ratpackframework.util.Action;
+import org.ratpackframework.util.Transformer;
 import org.ratpackframework.util.internal.Factory;
 import org.ratpackframework.util.internal.IoUtils;
 
@@ -37,7 +40,7 @@ public class ScriptBackedApp implements Handler {
   private final Factory<Handler> reloadHandler;
   private final File script;
 
-  public ScriptBackedApp(File script, final GuiceBackedHandlerFactory appFactory, final boolean staticCompile, boolean reloadable) {
+  public ScriptBackedApp(File script, final GuiceBackedHandlerFactory appFactory, final Transformer<? super Module, ? extends Injector> moduleTransformer, final boolean staticCompile, boolean reloadable) {
     this.script = script;
     this.reloadHandler = new ReloadableFileBackedFactory<>(script, reloadable, new ReloadableFileBackedFactory.Delegate<Handler>() {
       public Handler produce(final File file, final ByteBuf bytes) {
@@ -70,7 +73,7 @@ public class ScriptBackedApp implements Handler {
           Closure<?> handlersConfigurer = ratpack.getHandlersConfigurer();
 
           Action<ModuleRegistry> modulesAction = Util.delegatingAction(ModuleRegistry.class, modulesConfigurer);
-          return appFactory.create(modulesAction, new InjectorHandlerTransformer(handlersConfigurer));
+          return appFactory.create(modulesAction, moduleTransformer, new InjectorHandlerTransformer(handlersConfigurer));
 
         } catch (Exception e) {
           throw new RuntimeException(e);

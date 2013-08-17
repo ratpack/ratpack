@@ -15,6 +15,11 @@
  */
 
 subprojects {
-  apply from: "$rootDir/gradle/javaModule.gradle"
+  apply plugin: "java"
   apply plugin: "ratpack"
+  apply from: "$rootDir/gradle/checkstyle.gradle"
+
+  plugins.withType(GroovyPlugin) {
+    project.apply from: "$rootDir/gradle/codenarc.gradle"
+  }
 }

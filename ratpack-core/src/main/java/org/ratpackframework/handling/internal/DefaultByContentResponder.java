@@ -71,7 +71,7 @@ public class DefaultByContentResponder implements ByContentResponder {
     Collections.reverse(types);
     String winner = first;
 
-    String acceptHeader = context.getRequest().getHeader(HttpHeaders.Names.ACCEPT);
+    String acceptHeader = context.getRequest().getHeaders().get(HttpHeaders.Names.ACCEPT);
     if (acceptHeader != null && !acceptHeader.isEmpty()) {
       winner = MimeParse.bestMatch(types, acceptHeader);
     }
@@ -79,7 +79,7 @@ public class DefaultByContentResponder implements ByContentResponder {
     if (winner == null || winner.isEmpty()) {
       context.clientError(406);
     } else {
-      context.getResponse().setHeader(HttpHeaders.Names.CONTENT_TYPE, winner);
+      context.getResponse().contentType(winner);
       Runnable runnable = map.get(winner);
       runnable.run();
     }

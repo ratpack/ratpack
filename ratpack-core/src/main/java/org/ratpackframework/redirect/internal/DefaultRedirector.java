@@ -22,7 +22,7 @@ import org.ratpackframework.http.Request;
 import org.ratpackframework.redirect.Redirector;
 import org.ratpackframework.server.PublicAddress;
 
-import java.net.URL;
+import java.net.URI;
 import java.util.regex.Pattern;
 
 public class DefaultRedirector implements Redirector {
@@ -32,7 +32,7 @@ public class DefaultRedirector implements Redirector {
   public void redirect(Context context, String location, int code) {
     context.getResponse().status(code);
     String normalizedLocation = generateRedirectLocation(context, context.getRequest(), location);
-    context.getResponse().setHeader(HttpHeaders.Names.LOCATION, normalizedLocation);
+    context.getResponse().getHeaders().set(HttpHeaders.Names.LOCATION, normalizedLocation);
     context.getResponse().send();
   }
 
@@ -44,7 +44,7 @@ public class DefaultRedirector implements Redirector {
 
     PublicAddress publicAddress = context.get(PublicAddress.class);
     String generatedPath;
-    URL host = publicAddress.getUrl(context);
+    URI host = publicAddress.getAddress(context);
 
     if (ABSOLUTE_PATTERN.matcher(path).matches()) {
       //Rule 1 - Path is absolute

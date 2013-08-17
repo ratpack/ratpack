@@ -18,6 +18,7 @@ package org.ratpackframework.test
 
 import com.google.inject.Injector
 import com.google.inject.Module
+import org.ratpackframework.guice.Guice
 import org.ratpackframework.guice.ModuleRegistry
 import org.ratpackframework.guice.internal.DefaultGuiceBackedHandlerFactory
 import org.ratpackframework.guice.internal.GuiceBackedHandlerFactory
@@ -65,11 +66,15 @@ abstract class DefaultRatpackSpec extends InternalRatpackSpec {
         .other(others)
         .build(new HandlerFactory() {
       Handler create(LaunchConfig launchConfig) {
-        createHandlerFactory(launchConfig).create(modulesAction, handler)
+        createHandlerFactory(launchConfig).create(modulesAction, createInjectorFactory(), handler)
       }
     })
 
     RatpackServerBuilder.build(launchConfig)
+  }
+
+  Transformer<Module, Injector> createInjectorFactory() {
+    Guice.newInjectorFactory()
   }
 
   @SuppressWarnings("GrMethodMayBeStatic")

@@ -17,15 +17,19 @@
 package org.ratpackframework.launch;
 
 import com.google.common.collect.ImmutableMap;
+import io.netty.buffer.ByteBufAllocator;
+import io.netty.buffer.PooledByteBufAllocator;
 import org.ratpackframework.launch.internal.DefaultLaunchConfig;
 
 import java.io.File;
 import java.net.InetAddress;
-import java.net.URL;
+import java.net.URI;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 
+@SuppressWarnings("UnusedDeclaration")
 public class LaunchConfigBuilder {
 
   private final File baseDir;
@@ -34,9 +38,10 @@ public class LaunchConfigBuilder {
   private InetAddress address;
   private boolean reloadable;
   private int mainThreads;
-  private URL publicAddress;
+  private URI publicAddress;
   private ImmutableMap.Builder<String, String> other = ImmutableMap.builder();
   private ExecutorService blockingExecutorService;
+  private ByteBufAllocator byteBufAllocator = PooledByteBufAllocator.DEFAULT;
 
   private LaunchConfigBuilder(File baseDir) {
     this.baseDir = baseDir;
@@ -71,7 +76,12 @@ public class LaunchConfigBuilder {
     return this;
   }
 
-  public LaunchConfigBuilder publicAddress(URL publicAddress) {
+  public LaunchConfigBuilder bufferAllocator(ByteBufAllocator byteBufAllocator) {
+    this.byteBufAllocator = byteBufAllocator;
+    return this;
+  }
+
+  public LaunchConfigBuilder publicAddress(URI publicAddress) {
     this.publicAddress = publicAddress;
     return this;
   }
@@ -91,8 +101,20 @@ public class LaunchConfigBuilder {
   public LaunchConfig build(HandlerFactory handlerFactory) {
     ExecutorService blockingExecutorService = this.blockingExecutorService;
     if (blockingExecutorService == null) {
-      blockingExecutorService = Executors.newCachedThreadPool();
+      blockingExecutorService = Executors.newCachedThreadPool(new BlockingThreadFactory());
     }
-    return new DefaultLaunchConfig(baseDir, port, address, reloadable, mainThreads, blockingExecutorService, publicAddress, other.build(), handlerFactory);
+    return new DefaultLaunchConfig(baseDir, port, address, reloadable, mainThreads, blockingExecutorService, byteBufAllocator, publicAddress, other.build(), handlerFactory);
+  }
+
+  @SuppressWarnings("NullableProblems")
+  private static class BlockingThreadFactory implements ThreadFactory {
+
+    private final ThreadGroup threadGroup = new ThreadGroup("ratpack-blocking-worker-group");
+    private int i;
+
+    @Override
+    public Thread newThread(Runnable r) {
+      return new Thread(threadGroup, r, "ratpack-blocking-worker-" + i++);
+    }
   }
 }

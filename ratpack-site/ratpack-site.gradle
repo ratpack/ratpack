@@ -20,7 +20,7 @@ buildscript {
     jcenter()
   }
   dependencies {
-    classpath 'org.gradle.plugins:gradle-compass:1.0.7'
+    classpath 'org.gradle.plugins:gradle-compass:1.0.9'
   }
 }
 
@@ -67,7 +67,14 @@ task prepareContent {
 }
 
 processResources {
-  expand snapshot: project.version, current: project.version
+  inputs.property("currentVersion", version)
+  def currentVersionsFile = file("src/main/resources/currentVersion.txt")
+  outputs.file currentVersionsFile
+
+  doFirst {
+    currentVersionsFile.parentFile.mkdirs()
+    currentVersionsFile.text = version
+  }
 }
 
 run {
@@ -87,6 +94,7 @@ task compileCoffee(type: CoffeeScriptCompile) {
 processResources.inputs.files compileCoffee, compileSass, prepareContent
 
 compass {
+  gems = ["compass", "breakpoint"]
   cssDir = file('src/ratpack/public/styles')
   sassDir = file('src/main/static/styles')
   imagesDir = file('src/ratpack/public/images')

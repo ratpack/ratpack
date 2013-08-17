@@ -17,7 +17,6 @@
 package org.ratpackframework.server.internal
 
 import org.ratpackframework.server.BindAddress
-import org.ratpackframework.server.internal.DefaultPublicAddress
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -37,11 +36,11 @@ class DefaultPublicAddressSpec extends Specification {
         return host2
       }
     }
-    def url = publicURL ? new URL(publicURL) : null
+    def url = publicURL ? new URI(publicURL) : null
 
     DefaultPublicAddress publicAddress = new DefaultPublicAddress(url, bindAddress)
     expect:
-    publicAddress.getUrl(null).toString() == expected
+    publicAddress.getAddress(null).toString() == expected
 
     where:
     publicURL             | bindHost    | bindPort || expected

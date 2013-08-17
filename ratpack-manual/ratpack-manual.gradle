@@ -26,7 +26,7 @@ buildscript {
     maven { url 'http://dl.bintray.com/robfletcher/gradle-plugins' }
   }
   dependencies {
-    classpath 'org.gradle.plugins:gradle-compass:1.0.7'
+    classpath 'org.gradle.plugins:gradle-compass:1.0.9'
     classpath "org.pegdown:pegdown:1.2.1"
   }
 }
@@ -143,14 +143,13 @@ task tokeniseManual(type: Sync) {
       "manual-url": "http://oss.jfrog.org/artifactory/repo/org/ratpack-framework/ratpack-manual/$version/ratpack-manual-${version}.zip".toString(),
       head: """
         <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width">
-        <link href="http://fonts.googleapis.com/css?family=Lora:400,700,400italic|Engagement|Playfair+Display:700" rel="stylesheet" type="text/css">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
         <link href="css/normalize.css" rel="stylesheet" type="text/css">
         <!--[if lt IE 8]><link href="css/minimal.css" rel="stylesheet" type="text/css"><![endif]-->
         <!--[if gt IE 7]><!--><link href="css/stylesheet.css" rel="stylesheet" type="text/css"><!--<![endif]-->
         <script src="js/modernizr.js"></script>
         <script src="js/prism.js"></script>
-        <script src="js/ga.js"></script>
+        <script src="js/manual.js"></script>
       """,
       footer: """
         <h2>Ratpack Manual - $version - ${new Date().format("MMMM, yyyy")}</h2>
@@ -199,6 +198,7 @@ task compileManual {
 }
 
 compass {
+  gems = ["compass", "breakpoint"]
   sassDir = file("src/sass")
   cssDir = file("$buildDir/assets/css")
   imagesDir = file("$buildDir/assets/images")

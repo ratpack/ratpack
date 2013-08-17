@@ -17,12 +17,13 @@
 package org.ratpackframework.launch.internal;
 
 import com.google.common.collect.ImmutableMap;
+import io.netty.buffer.ByteBufAllocator;
 import org.ratpackframework.launch.HandlerFactory;
 import org.ratpackframework.launch.LaunchConfig;
 
 import java.io.File;
 import java.net.InetAddress;
-import java.net.URL;
+import java.net.URI;
 import java.util.concurrent.ExecutorService;
 
 public class DefaultLaunchConfig implements LaunchConfig {
@@ -34,16 +35,18 @@ public class DefaultLaunchConfig implements LaunchConfig {
   private final boolean reloadable;
   private final int mainThreads;
   private final ExecutorService blockingExecutorService;
-  private final URL publicAddress;
+  private final ByteBufAllocator byteBufAllocator;
+  private final URI publicAddress;
   private final ImmutableMap<String, String> other;
 
-  public DefaultLaunchConfig(File baseDir, int port, InetAddress address, boolean reloadable, int mainThreads, ExecutorService blockingExecutorService, URL publicAddress, ImmutableMap<String, String> other, HandlerFactory handlerFactory) {
+  public DefaultLaunchConfig(File baseDir, int port, InetAddress address, boolean reloadable, int mainThreads, ExecutorService blockingExecutorService, ByteBufAllocator byteBufAllocator, URI publicAddress, ImmutableMap<String, String> other, HandlerFactory handlerFactory) {
     this.baseDir = baseDir;
     this.port = port;
     this.address = address;
     this.reloadable = reloadable;
     this.mainThreads = mainThreads;
     this.blockingExecutorService = blockingExecutorService;
+    this.byteBufAllocator = byteBufAllocator;
     this.publicAddress = publicAddress;
     this.other = other;
     this.handlerFactory = handlerFactory;
@@ -78,7 +81,12 @@ public class DefaultLaunchConfig implements LaunchConfig {
     return blockingExecutorService;
   }
 
-  public URL getPublicAddress() {
+  @Override
+  public ByteBufAllocator getBufferAllocator() {
+    return byteBufAllocator;
+  }
+
+  public URI getPublicAddress() {
     return publicAddress;
   }
 

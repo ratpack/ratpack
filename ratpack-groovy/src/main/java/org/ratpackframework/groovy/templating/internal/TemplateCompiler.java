@@ -16,10 +16,10 @@
 
 package org.ratpackframework.groovy.templating.internal;
 
-import org.codehaus.groovy.control.CompilationFailedException;
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
+import io.netty.buffer.ByteBufAllocator;
 import io.netty.util.CharsetUtil;
+import org.codehaus.groovy.control.CompilationFailedException;
 import org.ratpackframework.groovy.script.internal.ScriptEngine;
 
 import java.io.IOException;
@@ -29,22 +29,24 @@ import java.util.logging.Logger;
 public class TemplateCompiler {
 
   private final Logger logger = Logger.getLogger(getClass().getName());
+  private final ByteBufAllocator byteBufAllocator;
 
   private boolean verbose;
   private final TemplateParser parser = new TemplateParser();
   private final ScriptEngine<DefaultTemplateScript> scriptEngine;
 
-  public TemplateCompiler(ScriptEngine<DefaultTemplateScript> scriptEngine) {
-    this(scriptEngine, false);
+  public TemplateCompiler(ScriptEngine<DefaultTemplateScript> scriptEngine, ByteBufAllocator byteBufAllocator) {
+    this(scriptEngine, false, byteBufAllocator);
   }
 
-  public TemplateCompiler(ScriptEngine<DefaultTemplateScript> scriptEngine, boolean verbose) {
+  public TemplateCompiler(ScriptEngine<DefaultTemplateScript> scriptEngine, boolean verbose, ByteBufAllocator byteBufAllocator) {
     this.scriptEngine = scriptEngine;
     this.verbose = verbose;
+    this.byteBufAllocator = byteBufAllocator;
   }
 
   public CompiledTemplate compile(ByteBuf templateSource, String name) throws CompilationFailedException, IOException {
-    ByteBuf scriptSource = Unpooled.buffer(templateSource.capacity());
+    ByteBuf scriptSource = byteBufAllocator.buffer(templateSource.capacity());
     parser.parse(templateSource, scriptSource);
 
     String scriptSourceString = scriptSource.toString(CharsetUtil.UTF_8);

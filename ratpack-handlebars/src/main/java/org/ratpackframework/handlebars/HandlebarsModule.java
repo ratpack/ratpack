@@ -85,12 +85,14 @@ import java.io.File;
  * import org.ratpackframework.handlebars.HandlebarsModule
  * import static org.ratpackframework.handlebars.Template.handlebarsTemplate
  *
- * modules {
- *   register new HandlebarsModule()
- * }
- * handlers {
- *   get {
- *     render handlebarsTemplate('my/template/path', key: 'it works!')
+ * ratpack {
+ *   modules {
+ *     register new HandlebarsModule()
+ *   }
+ *   handlers {
+ *     get {
+ *       render handlebarsTemplate('my/template/path', key: 'it works!')
+ *     }
  *   }
  * }
  * </pre>
@@ -125,6 +127,7 @@ public class HandlebarsModule extends AbstractModule {
     bind(TemplateLoader.class).to(FileTemplateLoader.class).in(Singleton.class);
   }
 
+  @SuppressWarnings("UnusedDeclaration")
   @Provides
   FileTemplateLoader provideTemplateLoader(LaunchConfig launchConfig) {
     String path = templatesPath == null ? launchConfig.getOther("handlebars.templatesPath", "handlebars") : templatesPath;
@@ -133,6 +136,7 @@ public class HandlebarsModule extends AbstractModule {
     return new FileTemplateLoader(templatesPathFile, suffix);
   }
 
+  @SuppressWarnings("UnusedDeclaration")
   @Provides @Singleton
   Handlebars provideHandlebars(Injector injector, TemplateLoader templateLoader) {
     final Handlebars handlebars = new Handlebars().with(templateLoader);

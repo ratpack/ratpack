@@ -7,12 +7,12 @@ def indexPages = ["index.html"] as String[]
 
 ratpack {
   modules {
-    register new VersionsModule(getClass().classLoader, "versions.properties")
+    register new VersionsModule(getClass().classLoader)
   }
   handlers { RatpackVersions versions ->
   	handler {
       if (request.path.empty || request.path == "index.html") {
-        response.addHeader "X-UA-Compatible", "IE=edge,chrome=1"
+        response.headers.set "X-UA-Compatible", "IE=edge,chrome=1"
       }
       next()
     }

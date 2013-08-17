@@ -18,6 +18,7 @@ package org.ratpackframework.handling.internal;
 
 import com.google.common.util.concurrent.ListeningExecutorService;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import org.ratpackframework.block.Blocking;
 import org.ratpackframework.block.internal.DefaultBlocking;
@@ -34,11 +35,18 @@ import org.ratpackframework.registry.Registry;
 import org.ratpackframework.registry.internal.ObjectHoldingChildRegistry;
 import org.ratpackframework.render.NoSuchRendererException;
 import org.ratpackframework.render.RenderController;
+import org.ratpackframework.util.Action;
+import org.ratpackframework.util.Result;
+import org.ratpackframework.util.ResultAction;
 
 import java.io.File;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
+
+import static io.netty.handler.codec.http.HttpHeaders.Names.IF_MODIFIED_SINCE;
+import static io.netty.handler.codec.http.HttpResponseStatus.NOT_MODIFIED;
 
 
 public class DefaultContext implements Context {
@@ -133,6 +141,25 @@ public class DefaultContext implements Context {
     redirector.redirect(this, location, code);
   }
 
+  @Override
+  public void lastModified(Date date, Runnable runnable) {
+    Date ifModifiedSinceHeader = request.getHeaders().getDate(IF_MODIFIED_SINCE);
+    long lastModifiedSecs = date.getTime() / 1000;
+
+    if (ifModifiedSinceHeader != null) {
+      long time = ifModifiedSinceHeader.getTime();
+      long ifModifiedSinceSecs = time / 1000;
+
+      if (lastModifiedSecs == ifModifiedSinceSecs) {
+        response.status(NOT_MODIFIED.code(), NOT_MODIFIED.reasonPhrase()).send();
+        return;
+      }
+    }
+
+    response.getHeaders().set(HttpHeaders.Names.LAST_MODIFIED, lastModifiedSecs);
+    runnable.run();
+  }
+
   public void error(Exception exception) {
     ServerErrorHandler serverErrorHandler = get(ServerErrorHandler.class);
     serverErrorHandler.error(this, exception);
@@ -152,6 +179,20 @@ public class DefaultContext implements Context {
         error(e);
       }
     }
+  }
+
+  @Override
+  public <T> ResultAction<T> resultAction(final Action<T> action) {
+    return new ResultAction<T>() {
+      @Override
+      public void execute(Result<T> result) {
+        if (result.isFailure()) {
+          error(result.getFailure());
+        } else {
+          action.execute(result.getValue());
+        }
+      }
+    };
   }
 
   public ByMethodResponder getByMethod() {

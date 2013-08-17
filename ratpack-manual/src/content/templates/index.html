@@ -8,7 +8,7 @@
 
 <body>
 
-  <header class="page-header">
+  <header id="page-header">
     <div class="ratpack-logo">
       <h1><a href="http://www.ratpack-framework.org">Ratpack</a></h1>
       <p>@tagline@</p>
@@ -19,14 +19,16 @@
 
   <nav class="toc">
     <header class="manual-links">
-      <h2>Version: @ratpack-version@</h2>
-      <a href="index.html" class="active">Multi Page</a>
-      <a href="all.html">Single Page</a>
-      <a href="@manual-url@">Zip Download</a>
+      <div class="content">
+        <h2>Version: @ratpack-version@</h2>
+        <a href="index.html" class="active">Multi Page</a>
+        <a href="all.html">Single Page</a>
+        <a href="@manual-url@" class="download">Zip Download</a>
+      </div>
     </header>
     <%= toc %>
   </nav>
 
-  <footer class="page-footer">@footer@</footer>
+  <footer id="page-footer"><div class="content">@footer@</div></footer>
 </body>
 </html>

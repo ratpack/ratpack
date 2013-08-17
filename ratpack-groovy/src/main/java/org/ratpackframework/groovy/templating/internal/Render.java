@@ -18,9 +18,8 @@ package org.ratpackframework.groovy.templating.internal;
 
 import com.google.common.cache.LoadingCache;
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
-import org.ratpackframework.util.internal.Result;
-import org.ratpackframework.util.internal.ResultAction;
+import org.ratpackframework.util.Action;
+import org.ratpackframework.util.Result;
 import org.ratpackframework.util.Transformer;
 
 import java.util.HashMap;
@@ -31,11 +30,9 @@ public class Render {
   private final LoadingCache<TemplateSource, CompiledTemplate> compiledTemplateCache;
   private final Transformer<String, TemplateSource> includeTransformer;
 
-  public Render(LoadingCache<TemplateSource, CompiledTemplate> compiledTemplateCache, TemplateSource templateSource, Map<String, ?> model, final ResultAction<ByteBuf> handler, Transformer<String, TemplateSource> includeTransformer) {
+  public Render(ByteBuf buffer, LoadingCache<TemplateSource, CompiledTemplate> compiledTemplateCache, TemplateSource templateSource, Map<String, ?> model, final Action<Result<ByteBuf>> handler, Transformer<String, TemplateSource> includeTransformer) {
     this.compiledTemplateCache = compiledTemplateCache;
     this.includeTransformer = includeTransformer;
-
-    ByteBuf buffer = Unpooled.buffer();
 
     try {
       execute(compiledTemplateCache.get(templateSource), model, buffer);
@@ -44,6 +41,7 @@ public class Render {
       return;
     }
 
+    //noinspection Convert2Diamond
     handler.execute(new Result<ByteBuf>(buffer));
   }
 
@@ -57,7 +55,7 @@ public class Render {
   private void execute(CompiledTemplate compiledTemplate, final Map<String, ?> model, final ByteBuf parts) throws Exception {
     compiledTemplate.execute(model, parts, new NestedRenderer() {
       public void render(String templatePath, Map<String, ?> nestedModel) throws Exception {
-        Map<String, Object> modelCopy = new HashMap<String, Object>(model);
+        Map<String, Object> modelCopy = new HashMap<>(model);
         modelCopy.putAll(nestedModel);
         executeNested(templatePath, modelCopy, parts);
       }

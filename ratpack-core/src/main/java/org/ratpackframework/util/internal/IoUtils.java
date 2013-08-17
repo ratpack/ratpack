@@ -23,6 +23,7 @@ import io.netty.util.CharsetUtil;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 
@@ -54,7 +55,7 @@ public abstract class IoUtils {
   }
 
   public static ByteBuf utf8Buffer(String str) {
-    return byteBuf(utf8Bytes(str));
+    return Unpooled.copiedBuffer(str, CharsetUtil.UTF_8);
   }
 
   public static byte[] utf8Bytes(String str) {
@@ -67,6 +68,16 @@ public abstract class IoUtils {
 
   public static ByteBuf byteBuf(byte[] bytes) {
     return Unpooled.wrappedBuffer(bytes);
+  }
+
+  public static void writeTo(InputStream inputStream, ByteBuf byteBuf) throws IOException {
+    byte[] bytes = new byte[1024]; // completely arbitrary size
+    int read = inputStream.read(bytes);
+    while (read > 0) {
+      byteBuf.writeBytes(bytes, 0, read);
+      read = inputStream.read(bytes);
+    }
+    inputStream.close();
   }
 
 }

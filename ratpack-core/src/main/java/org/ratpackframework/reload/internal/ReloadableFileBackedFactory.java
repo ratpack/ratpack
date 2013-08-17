@@ -29,6 +29,9 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class ReloadableFileBackedFactory<T> implements Factory<T> {
 
+  // Note: we are blocking for IO on the main thread here, but it only really impacts
+  // reloadable mode so it's not worth the complication of jumping off the main thread
+
   private final File file;
   private final boolean reloadable;
   private final Delegate<T> delegate;

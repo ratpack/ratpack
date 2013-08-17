@@ -18,7 +18,6 @@ package org.ratpackframework.site
 
 import org.ratpackframework.test.ScriptAppSpec
 
-
 class SiteSmokeSpec extends ScriptAppSpec {
 
 	def "Check Site Index"() {

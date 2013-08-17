@@ -20,12 +20,13 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
 import org.ratpackframework.groovy.script.internal.ScriptEngine;
 import org.ratpackframework.groovy.templating.TemplatingConfig;
 import org.ratpackframework.launch.LaunchConfig;
+import org.ratpackframework.util.Action;
+import org.ratpackframework.util.Result;
 import org.ratpackframework.util.Transformer;
-import org.ratpackframework.util.internal.Result;
-import org.ratpackframework.util.internal.ResultAction;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -39,15 +40,23 @@ public class GroovyTemplateRenderingEngine {
   private final TemplateCompiler templateCompiler;
   private final boolean reloadable;
   private final File templateDir;
+  private final ByteBufAllocator byteBufAllocator;
 
   @Inject
   public GroovyTemplateRenderingEngine(LaunchConfig launchConfig, TemplatingConfig templatingConfig) {
-    ScriptEngine<DefaultTemplateScript> scriptEngine = new ScriptEngine<DefaultTemplateScript>(getClass().getClassLoader(), templatingConfig.isStaticallyCompile(), DefaultTemplateScript.class);
-    templateCompiler = new TemplateCompiler(scriptEngine);
+    this.byteBufAllocator = launchConfig.getBufferAllocator();
+
+    ScriptEngine<DefaultTemplateScript> scriptEngine = new ScriptEngine<>(getClass().getClassLoader(), templatingConfig.isStaticallyCompile(), DefaultTemplateScript.class);
+    templateCompiler = new TemplateCompiler(scriptEngine, byteBufAllocator);
     this.compiledTemplateCache = CacheBuilder.newBuilder().maximumSize(templatingConfig.getCacheSize()).build(new CacheLoader<TemplateSource, CompiledTemplate>() {
       @Override
       public CompiledTemplate load(TemplateSource templateSource) throws Exception {
-        return templateCompiler.compile(templateSource.getContent(), templateSource.getName());
+        ByteBuf content = templateSource.getContent();
+        try {
+          return templateCompiler.compile(content, templateSource.getName());
+        } finally {
+          content.release();
+        }
       }
     });
 
@@ -55,23 +64,23 @@ public class GroovyTemplateRenderingEngine {
     templateDir = new File(launchConfig.getBaseDir(), templatingConfig.getTemplatesPath());
   }
 
-  public void renderTemplate(final String templateId, final Map<String, ?> model, final ResultAction<ByteBuf> handler) {
+  public void renderTemplate(ByteBuf buffer, final String templateId, final Map<String, ?> model, final Action<Result<ByteBuf>> handler) {
     final File templateFile = getTemplateFile(templateId);
-    render(new FileTemplateSource(templateFile, templateId, reloadable), model, handler);
+    render(buffer, new FileTemplateSource(templateFile, templateId, reloadable), model, handler);
   }
 
-  public void renderError(Map<String, ?> model, ResultAction<ByteBuf> handler) {
+  public void renderError(ByteBuf buffer, Map<String, ?> model, Action<Result<ByteBuf>> handler) {
     final File errorTemplate = getTemplateFile(ERROR_TEMPLATE);
     if (errorTemplate.exists()) {
-      render(new FileTemplateSource(errorTemplate, ERROR_TEMPLATE, reloadable), model, handler);
+      render(buffer, new FileTemplateSource(errorTemplate, ERROR_TEMPLATE, reloadable), model, handler);
     } else {
-      render(new ResourceTemplateSource(ERROR_TEMPLATE), model, handler);
+      render(buffer, new ResourceTemplateSource(ERROR_TEMPLATE, byteBufAllocator), model, handler);
     }
   }
 
-  private void render(final TemplateSource templateSource, Map<String, ?> model, ResultAction<ByteBuf> handler) {
+  private void render(ByteBuf buffer, final TemplateSource templateSource, Map<String, ?> model, Action<Result<ByteBuf>> handler) {
     try {
-      new Render(compiledTemplateCache, templateSource, model, handler, new Transformer<String, TemplateSource>() {
+      new Render(buffer, compiledTemplateCache, templateSource, model, handler, new Transformer<String, TemplateSource>() {
         public TemplateSource transform(String templateName) {
           return new FileTemplateSource(new File(templateDir, templateName), templateName, reloadable);
         }

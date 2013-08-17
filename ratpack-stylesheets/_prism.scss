@@ -7,7 +7,6 @@
 code[class*="language-"],
 pre[class*="language-"] {
   color: black;
-  text-shadow: 0 1px white;
   direction: ltr;
   text-align: left;
   white-space: pre;
@@ -21,13 +20,6 @@ pre[class*="language-"] {
   -moz-hyphens: none;
   -ms-hyphens: none;
   hyphens: none;
-}
-
-@media print {
-  code[class*="language-"],
-  pre[class*="language-"] {
-    text-shadow: none;
-  }
 }
 
 /* Code blocks */
@@ -75,7 +67,6 @@ pre[class*="language-"] {
 .language-css .token.string,
 .style .token.string {
   color: #a67f59;
-  background: hsla(0,0%,100%,.5);
 }
 
 .token.atrule,

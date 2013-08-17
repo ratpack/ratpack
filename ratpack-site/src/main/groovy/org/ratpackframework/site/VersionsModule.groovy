@@ -2,16 +2,15 @@ package org.ratpackframework.site
 
 import com.google.inject.AbstractModule
 import com.google.inject.Provides
+import org.ratpackframework.util.RatpackVersion
 
 @SuppressWarnings(["GrMethodMayBeStatic", "GroovyUnusedDeclaration"])
 class VersionsModule extends AbstractModule {
 
   private final ClassLoader classLoader
-  private final String resourceName
 
-  VersionsModule(ClassLoader classLoader, String resourceName) {
+  VersionsModule(ClassLoader classLoader) {
     this.classLoader = classLoader
-    this.resourceName = resourceName
   }
 
   @Override
@@ -19,11 +18,8 @@ class VersionsModule extends AbstractModule {
 
   @Provides
   RatpackVersions provideRatpackVersions() {
-    def resourceStream = classLoader.getResourceAsStream(resourceName)
-    resourceStream.withStream { InputStream inputStream ->
-      def properties = new Properties()
-      properties.load(inputStream)
-      new RatpackVersions(properties)
-    }
+    def current = classLoader.getResourceAsStream("currentVersion.txt").text
+    def snapshot = RatpackVersion.version
+    new RatpackVersions(current, snapshot)
   }
 }

@@ -1,10 +1,10 @@
-$sans-font-family: "Avant Garde", Avantgarde, "Century Gothic", CenturyGothic, "AppleGothic", sans-serif !default;
-$serif-font-family: "Lora", "Book Antiqua", Palatino, "Palatino Linotype", "Palatino LT STD", Georgia, serif !default;
+$sans-font-family: "Merriweather Sans", Futura, "Trebuchet MS", Arial, sans-serif !default;
+$serif-font-family: "Merriweather", Georgia, Times, "Times New Roman", serif !default;
 $mono-font-family: "Courier New", Courier, "Lucida Sans Typewriter", "Lucida Typewriter", monospace !default;
 $script-font-family: "Engagement", cursive !default;
 
 $body-font-family: $serif-font-family !default;
-$header-font-family: "Playfair Display", "Bodoni MT", Didot, "Didot LT STD", "Hoefler Text", Garamond, "Times New Roman", serif !default;
+$header-font-family: $sans-font-family !default;
 $code-font-family: $mono-font-family !default;
 
 $anchor-font-color: darken($blue, 30%) !default;
@@ -55,10 +55,10 @@ body {
 h1, h2, h3, h4, h5, h6 {
 	font: {
 		family: $header-font-family;
+    style: italic;
+    weight: 700;
 	}
-	.fontface & {
-		text-shadow: none;
-	}
+  text-transform: uppercase;
 }
 
 $h1-font-size: 36px;
