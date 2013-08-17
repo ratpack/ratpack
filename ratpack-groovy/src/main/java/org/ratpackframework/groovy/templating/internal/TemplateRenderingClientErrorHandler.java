@@ -21,7 +21,7 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 import org.ratpackframework.error.ClientErrorHandler;
 import org.ratpackframework.handling.Context;
 import org.ratpackframework.http.Response;
-import org.ratpackframework.util.internal.ReleasingAction;
+import org.ratpackframework.util.Action;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -45,10 +45,10 @@ public class TemplateRenderingClientErrorHandler implements ClientErrorHandler {
 
     context.getResponse().status(statusCode);
 
-    renderer.renderError(model, context.resultAction(new ReleasingAction<ByteBuf>() {
-      protected void doExecute(ByteBuf byteBuf) {
+    renderer.renderError(context.getResponse().getBody(), model, context.resultAction(new Action<ByteBuf>() {
+      public void execute(ByteBuf byteBuf) {
         Response response = context.getResponse();
-        response.status(statusCode).send("text/html", byteBuf);
+        response.status(statusCode).contentType("text/html").send();
       }
     }));
   }

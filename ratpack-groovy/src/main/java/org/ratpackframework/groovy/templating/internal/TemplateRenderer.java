@@ -21,7 +21,7 @@ import org.ratpackframework.file.MimeTypes;
 import org.ratpackframework.groovy.Template;
 import org.ratpackframework.handling.Context;
 import org.ratpackframework.render.ByTypeRenderer;
-import org.ratpackframework.util.internal.ReleasingAction;
+import org.ratpackframework.util.Action;
 
 import javax.inject.Inject;
 
@@ -36,14 +36,13 @@ public class TemplateRenderer extends ByTypeRenderer<Template> {
   }
 
   public void render(final Context context, final Template template) {
-    engine.renderTemplate(template.getId(), template.getModel(), context.resultAction(new ReleasingAction<ByteBuf>() {
-      @Override
-      protected void doExecute(ByteBuf byteBuf) {
+    engine.renderTemplate(context.getResponse().getBody(), template.getId(), template.getModel(), context.resultAction(new Action<ByteBuf>() {
+      public void execute(ByteBuf byteBuf) {
         String type = template.getType();
         if (type == null) {
           type = context.get(MimeTypes.class).getContentType(template.getId());
         }
-        context.getResponse().send(type, byteBuf);
+        context.getResponse().contentType(type).send();
       }
     }));
   }

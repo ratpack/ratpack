@@ -64,23 +64,23 @@ public class GroovyTemplateRenderingEngine {
     templateDir = new File(launchConfig.getBaseDir(), templatingConfig.getTemplatesPath());
   }
 
-  public void renderTemplate(final String templateId, final Map<String, ?> model, final Action<Result<ByteBuf>> handler) {
+  public void renderTemplate(ByteBuf buffer, final String templateId, final Map<String, ?> model, final Action<Result<ByteBuf>> handler) {
     final File templateFile = getTemplateFile(templateId);
-    render(new FileTemplateSource(templateFile, templateId, reloadable), model, handler);
+    render(buffer, new FileTemplateSource(templateFile, templateId, reloadable), model, handler);
   }
 
-  public void renderError(Map<String, ?> model, Action<Result<ByteBuf>> handler) {
+  public void renderError(ByteBuf buffer, Map<String, ?> model, Action<Result<ByteBuf>> handler) {
     final File errorTemplate = getTemplateFile(ERROR_TEMPLATE);
     if (errorTemplate.exists()) {
-      render(new FileTemplateSource(errorTemplate, ERROR_TEMPLATE, reloadable), model, handler);
+      render(buffer, new FileTemplateSource(errorTemplate, ERROR_TEMPLATE, reloadable), model, handler);
     } else {
-      render(new ResourceTemplateSource(ERROR_TEMPLATE, byteBufAllocator), model, handler);
+      render(buffer, new ResourceTemplateSource(ERROR_TEMPLATE, byteBufAllocator), model, handler);
     }
   }
 
-  private void render(final TemplateSource templateSource, Map<String, ?> model, Action<Result<ByteBuf>> handler) {
+  private void render(ByteBuf buffer, final TemplateSource templateSource, Map<String, ?> model, Action<Result<ByteBuf>> handler) {
     try {
-      new Render(compiledTemplateCache, templateSource, byteBufAllocator, model, handler, new Transformer<String, TemplateSource>() {
+      new Render(buffer, compiledTemplateCache, templateSource, model, handler, new Transformer<String, TemplateSource>() {
         public TemplateSource transform(String templateName) {
           return new FileTemplateSource(new File(templateDir, templateName), templateName, reloadable);
         }
