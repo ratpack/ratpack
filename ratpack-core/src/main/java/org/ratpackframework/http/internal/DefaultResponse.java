@@ -178,7 +178,7 @@ public class DefaultResponse implements Response {
 
   public void send() {
     contentLengthSet = true;
-    response.headers().set(HttpHeaders.Names.CONTENT_LENGTH, 0);
+    headers.set(HttpHeaders.Names.CONTENT_LENGTH, 0);
     commit();
   }
 
@@ -282,7 +282,7 @@ public class DefaultResponse implements Response {
   private void setCookieHeader() {
     if (cookies != null && !cookies.isEmpty()) {
       for (Cookie cookie : cookies) {
-        response.headers().add(HttpHeaders.Names.SET_COOKIE, ServerCookieEncoder.encode(cookie));
+        headers.add(HttpHeaders.Names.SET_COOKIE, ServerCookieEncoder.encode(cookie));
       }
     }
   }
@@ -293,7 +293,7 @@ public class DefaultResponse implements Response {
     if (channel.isOpen()) {
       if (keepAlive && contentLengthSet) {
         if (version == HttpVersion.HTTP_1_0) {
-          response.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
+          headers.set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
         }
         shouldClose = false;
       }
