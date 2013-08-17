@@ -82,6 +82,11 @@ public class DefaultResponse implements Response {
     }
 
     @Override
+    public void setDate(String name, Date value) {
+      wrapped.set(name, value);
+    }
+
+    @Override
     public void set(String name, Iterable<?> values) {
       if (name.equalsIgnoreCase(HttpHeaders.Names.CONTENT_TYPE)) {
         contentTypeSet = true;

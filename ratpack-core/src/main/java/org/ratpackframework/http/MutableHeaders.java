@@ -16,6 +16,8 @@
 
 package org.ratpackframework.http;
 
+import java.util.Date;
+
 public interface MutableHeaders extends Headers {
 
   /**
@@ -37,6 +39,8 @@ public interface MutableHeaders extends Headers {
    * @param value The value of the header
    */
   void set(String name, Object value);
+
+  void setDate(String name, Date value);
 
   /**
    * Sets a new header with the specified name and values.

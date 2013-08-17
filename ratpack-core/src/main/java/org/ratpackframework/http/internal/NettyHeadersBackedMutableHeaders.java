@@ -19,6 +19,8 @@ package org.ratpackframework.http.internal;
 import io.netty.handler.codec.http.HttpHeaders;
 import org.ratpackframework.http.MutableHeaders;
 
+import java.util.Date;
+
 public class NettyHeadersBackedMutableHeaders extends NettyHeadersBackedHeaders implements MutableHeaders {
 
   public NettyHeadersBackedMutableHeaders(HttpHeaders headers) {
@@ -31,6 +33,11 @@ public class NettyHeadersBackedMutableHeaders extends NettyHeadersBackedHeaders 
 
   public void set(String name, Object value) {
     headers.set(name, value);
+  }
+
+  @Override
+  public void setDate(String name, Date value) {
+    headers.set(name, HttpHeaderDateFormat.get().format(value));
   }
 
   public void set(String name, Iterable<?> values) {

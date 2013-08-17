@@ -62,7 +62,7 @@ public class FileRenderer extends ByTypeRenderer<File> {
     });
   }
 
-  private void sendFile(final Context context, final File targetFile, final Request request, final Response response, long lastModifiedTime) {
+  private void sendFile(final Context context, final File targetFile, final Request request, final Response response, final long lastModifiedTime) {
     if (lastModifiedTime < 1) {
       context.next();
       return;
@@ -76,6 +76,8 @@ public class FileRenderer extends ByTypeRenderer<File> {
           response.status(NOT_MODIFIED.code(), NOT_MODIFIED.reasonPhrase()).send();
           return;
         }
+
+        response.getHeaders().setDate(HttpHeaders.Names.LAST_MODIFIED, new Date(lastModifiedTime));
 
         String contentType = context.get(MimeTypes.class).getContentType(targetFile.getName());
         response.sendFile(context.getBlocking(), contentType, targetFile);
