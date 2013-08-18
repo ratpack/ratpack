@@ -44,44 +44,6 @@ import static org.ratpackframework.handling.Handlers.post;
  * <p>
  * Command context is populated with the registry of the remote application which is available as {@code registry} variable.
  * </p>
- *
- * Example usage: (Java DSL)
- * <pre class="tested">
- * import org.ratpackframework.handling.*;
- * import org.ratpackframework.guice.*;
- * import org.ratpackframework.util.*;
- * import org.ratpackframework.launch.*;
- * import org.ratpackframework.remote.RemoteControlModule;
- *
- * class ModuleBootstrap implements Action&lt;ModuleRegistry&gt; {
- *   public void execute(ModuleRegistry modules) {
- *     modules.register(new RemoteControlModule());
- *   }
- * }
- *
- * LaunchConfig launchConfig = LaunchConfigBuilder.baseDir(new File("appRoot"))
- *   .build(new HandlerFactory() {
- *     public Handler create(LaunchConfig launchConfig) {
- *       return Guice.handler(launchConfig, new ModuleBootstrap(), new Action&lt;Chain&gt;() {
- *         public void execute(Chain chain) {
- *           chain.add(chain.getRegistry().get(MyHandler.class));
- *         }
- *       });
- *     }
- *   });
- * </pre>
- *
- * Example usage: (Groovy DSL)
- * <pre class="groovy-ratpack-dsl">
- * import org.ratpackframework.remote.RemoteControlModule
- *
- * ratpack {
- *   modules {
- *     register new RemoteControlModule()
- *   }
- * }
- * </pre>
- *
  * Sending remote control commands from a spec:
  * <pre class="not-tested">
  * import org.ratpackframework.groovy.test.ScriptAppSpec
