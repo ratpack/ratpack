@@ -118,7 +118,7 @@ $small-logo-image: 'ratpack-logo-small.png';
 .no-fontface, .no-csstransforms {
   .ratpack-logo {
     background: {
-      image: image-url($logo-image);
+      image: simple-image-url($logo-image);
       right: no-repeat;
       size: contain;
     }
@@ -134,7 +134,7 @@ $small-logo-image: 'ratpack-logo-small.png';
     }
 
     &.small {
-      background-image: image-url($small-logo-image);
+      background-image: simple-image-url($small-logo-image);
       width: image-width($small-logo-image);
       height: image-height($small-logo-image);
     }

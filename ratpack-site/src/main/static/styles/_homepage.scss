@@ -35,11 +35,11 @@
     text-indent: -9999px;
 
     &[href*='github'] {
-      background-image: image-url('github-badge.png');
+      background-image: simple-image-url('github-badge.png');
     }
 
     &[href*='twitter'] {
-      background-image: image-url('twitter-badge.png');
+      background-image: simple-image-url('twitter-badge.png');
     }
 
     &:active, &:hover {
