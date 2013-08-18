@@ -81,11 +81,17 @@ ext {
   groovyVersion = "2.1.4"
   isSnapshot = version.endsWith("SNAPSHOT")
 
+  commonVersions = [
+      remote: "0.5"
+  ]
+
   commonDependencies = [
       spock: dependencies.create("org.spockframework:spock-core:0.7-groovy-2.0", {
         exclude module: "groovy-all"
       }),
-      groovy: dependencies.create("org.codehaus.groovy:groovy-all:$groovyVersion")
+      groovy: dependencies.create("org.codehaus.groovy:groovy-all:$groovyVersion"),
+      remote: "org.codehaus.groovy.modules.remote:remote-core:${commonVersions.remote}",
+      "remote-http": "org.codehaus.groovy.modules.remote:remote-transport-http:${commonVersions.remote}"
   ]
 
   publishedModules = [

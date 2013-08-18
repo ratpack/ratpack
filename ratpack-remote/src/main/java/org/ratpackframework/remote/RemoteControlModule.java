@@ -79,6 +79,29 @@ import static org.ratpackframework.handling.Handlers.post;
  * }
  * </pre>
  *
+ * Sending remote control commands from a spec:
+ * <pre">
+ * import org.ratpackframework.groovy.test.ScriptAppSpec
+ * import org.ratpackframework.groovy.test.remote.RemoteControl
+ * import org.ratpackframework.launch.LaunchConfig
+ *
+ * class RemoteControlSpec extends ScriptAppSpec {
+ *
+ *   void setup() {
+ *     System.properties['ratpack.other.remoteControl.enabled'] = 'true'
+ *     System.properties['ratpack.other.test'] = 'it works!'
+ *   }
+ *
+ *   void 'can send commands to the remote-control endpoint'() {
+ *     given:
+ *     def remote = new RemoteControl(runningApplication)
+ *
+ *     expect:
+ *     remote.exec { registry.get(LaunchConfig).other.test } == 'it works!'
+ *   }
+ * }
+ * </pre>
+ *
  * @see <a href="http://groovy.codehaus.org/modules/remote/" target="_blank">Groovy Remote Control</a>
  */
 public class RemoteControlModule extends AbstractModule implements HandlerDecoratingModule {

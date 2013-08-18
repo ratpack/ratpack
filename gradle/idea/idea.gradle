@@ -7,6 +7,7 @@ idea {
   project {
     jdkName "1.7"
     languageLevel "1.7"
+    wildcards.add 'ratpack.groovy'
     ipr {
       withXml { provider ->
         def node = provider.asNode()

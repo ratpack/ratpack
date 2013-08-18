@@ -14,12 +14,20 @@
  * limitations under the License.
  */
 
-apply from: "$rootDir/gradle/groovyModule.gradle"
+package org.ratpackframework.groovy.test.remote
 
-dependencies {
-  compile project(":ratpack-guice")
-  compile commonDependencies.remote
+import groovyx.remote.transport.http.HttpTransport
+import org.ratpackframework.test.RunningApplication
 
-  testCompile commonDependencies."remote-http"
+import static org.ratpackframework.remote.RemoteControlModule.DEFAULT_REMOTE_CONTROL_PATH
+
+class RemoteControl extends groovyx.remote.client.RemoteControl {
+
+  RemoteControl(RunningApplication application, String path) {
+    super(new HttpTransport("$application.address/$path"))
+  }
+
+  RemoteControl(RunningApplication application) {
+    this(application, DEFAULT_REMOTE_CONTROL_PATH)
+  }
 }
-
