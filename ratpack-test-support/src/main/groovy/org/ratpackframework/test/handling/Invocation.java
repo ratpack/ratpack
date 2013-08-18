@@ -14,12 +14,35 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.file.internal;
+package org.ratpackframework.test.handling;
 
-import org.ratpackframework.block.Blocking;
+import org.ratpackframework.api.Nullable;
+import org.ratpackframework.http.Headers;
+import org.ratpackframework.http.Status;
 
 import java.io.File;
 
-public interface FileHttpTransmitter {
-  void transmit(Blocking blocking, File file);
+/**
+ * Represents the result of invoking a handler.
+ */
+public interface Invocation {
+
+  @Nullable
+  Exception getException();
+
+  Headers getHeaders();
+
+  String getBodyText();
+
+  byte[] getBodyBytes();
+
+  Status getStatus();
+
+  boolean isCalledNext();
+
+  boolean isSentResponse(); // This is not named right, as it doesn't include sending files
+
+  @Nullable
+  File getSentFile();
+
 }

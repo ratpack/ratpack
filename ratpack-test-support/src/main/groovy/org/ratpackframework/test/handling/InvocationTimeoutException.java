@@ -14,12 +14,15 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.file.internal;
+package org.ratpackframework.test.handling;
 
-import org.ratpackframework.block.Blocking;
+public class InvocationTimeoutException extends RuntimeException {
 
-import java.io.File;
+  private static final long serialVersionUID = 0;
 
-public interface FileHttpTransmitter {
-  void transmit(Blocking blocking, File file);
+  public InvocationTimeoutException(Invocation invocation, int timeout) {
+    // need to ensure invocation has a good toString()
+    super(String.format("handler took more than %s seconds to delegate to the next handler or send a response (result: %s)", timeout, invocation));
+  }
+
 }

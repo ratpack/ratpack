@@ -26,10 +26,7 @@ import io.netty.util.CharsetUtil;
 import org.ratpackframework.error.internal.DefaultClientErrorHandler;
 import org.ratpackframework.error.internal.DefaultServerErrorHandler;
 import org.ratpackframework.error.internal.ErrorCatchingHandler;
-import org.ratpackframework.file.internal.ActivationBackedMimeTypes;
-import org.ratpackframework.file.internal.DefaultFileSystemBinding;
-import org.ratpackframework.file.internal.FileHttpTransmitter;
-import org.ratpackframework.file.internal.FileRenderer;
+import org.ratpackframework.file.internal.*;
 import org.ratpackframework.handling.Context;
 import org.ratpackframework.handling.Handler;
 import org.ratpackframework.handling.internal.ClientErrorHandler;
@@ -90,7 +87,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
     final DefaultStatus responseStatus = new DefaultStatus();
     final MutableHeaders responseHeaders = new NettyHeadersBackedMutableHeaders(nettyResponse.headers());
     final ByteBuf responseBody = nettyResponse.content();
-    FileHttpTransmitter fileHttpTransmitter = new FileHttpTransmitter(nettyRequest, nettyResponse, channel);
+    FileHttpTransmitter fileHttpTransmitter = new DefaultFileHttpTransmitter(nettyRequest, nettyResponse, channel);
 
     Response response = new DefaultResponse(responseStatus, responseHeaders, responseBody, fileHttpTransmitter, new Runnable() {
       @Override

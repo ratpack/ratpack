@@ -14,12 +14,18 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.file.internal;
+package org.ratpackframework.groovy.test.handling;
 
-import org.ratpackframework.block.Blocking;
+import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
+import org.ratpackframework.groovy.Util;
+import org.ratpackframework.handling.Handler;
+import org.ratpackframework.test.handling.Invocation;
 
-import java.io.File;
+public class InvocationBuilder extends org.ratpackframework.test.handling.InvocationBuilder {
 
-public interface FileHttpTransmitter {
-  void transmit(Blocking blocking, File file);
+  public static Invocation invoke(Handler handler, @DelegatesTo(InvocationBuilder.class) Closure<?> builder) {
+    return invoke(handler, Util.delegatingAction(builder));
+  }
+
 }
