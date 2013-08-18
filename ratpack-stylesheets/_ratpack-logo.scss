@@ -2,8 +2,8 @@ $logo-font-size: 8em;
 $small-logo-scale: 0.625;
 $tiny-logo-scale: 0.375;
 
-$logo-vector: 'martini.svg';
-$logo-image: 'martini.png';
+$martini-vector: 'martini.svg';
+$martini-image: 'martini.png';
 
 @mixin skewed-background-scale($base-size) {
 	&:before {
@@ -45,7 +45,7 @@ $logo-image: 'martini.png';
 	display: inline-block;
 	vertical-align: top;
 
-	@include skewed-background($logo-font-size, transparentize($yellow, 0.1));
+  @include skewed-background($logo-font-size, transparentize($yellow, 0.1));
 
 	h1, p {
 		line-height: 1;
@@ -65,9 +65,9 @@ $logo-image: 'martini.png';
 		text-transform: none;
 
 		.backgroundsize & {
-			padding: 0 (image-width($logo-image) / ($base-font-size * ($logo-font-size / 1em))) * 1em;
+			padding: 0 (image-width($martini-image) / ($base-font-size * ($logo-font-size / 1em))) * 1em;
 			background: {
-				image: simple-image-url($logo-vector);
+				image: simple-image-url($martini-vector);
 				repeat: no-repeat;
 				position: {
 					y: bottom;
@@ -78,7 +78,7 @@ $logo-image: 'martini.png';
 
 		}
     .backgroundsize.no-svg & {
-      background-image: simple-image-url($logo-image);
+      background-image: simple-image-url($martini-image);
     }
 
 		&:last-child {
@@ -109,4 +109,39 @@ $logo-image: 'martini.png';
 	&.plain {
 		@include skewed-background-color(transparent);
 	}
+}
+
+// fallback for browsers that can't display the logo properly using CSS
+$logo-image: 'ratpack-logo.png';
+$small-logo-image: 'ratpack-logo-small.png';
+
+.no-fontface, .no-csstransforms {
+  .ratpack-logo {
+    background: {
+      image: image-url($logo-image);
+      right: no-repeat;
+      size: contain;
+    }
+    width: image-width($logo-image);
+    height: image-height($logo-image);
+
+    &:before {
+      background: none;
+    }
+
+    h1, p {
+      display: none;
+    }
+
+    &.small {
+      background-image: image-url($small-logo-image);
+      width: image-width($small-logo-image);
+      height: image-height($small-logo-image);
+    }
+
+    &.tiny {
+      width: image-width($logo-image) * $tiny-logo-scale;
+      height: image-height($logo-image) * $tiny-logo-scale;
+    }
+  }
 }

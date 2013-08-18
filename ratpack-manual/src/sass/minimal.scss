@@ -1,33 +1,39 @@
 body {
-	max-width: 1024px;
-	margin: 0 auto;
-	padding: 0 1em;
+  max-width: 1024px;
+  margin: 0 auto;
+  padding: 0 1em;
 
-	line-height: 1.4;
+  line-height: 1.4;
 }
 
 h1, h2, h3, h4, h5, h6 {
-	line-height: 1.1;
+  line-height: 1.1;
 }
 
-.fontface .ratpack-logo h1 {
-	font: {
-		family: "Engagement", cursive;
-		size: 4em;
-		weight: 400;
-	}
-	margin: 0.25em 0;
+.ratpack-logo {
+  $logo-image: 'ratpack-logo.png';
+  background: {
+    image: image-url($logo-image);
+    right: no-repeat;
+    size: contain;
+  }
+  width: image-width($logo-image);
+  height: image-height($logo-image);
+
+  h1, p {
+    display: none;
+  }
 }
 
 .toc ul {
-	list-style-type: none;
-	margin-left: 1em;
+  list-style-type: none;
+  margin-left: 1em;
 
-	li span {
-		margin-right: 0.5em;
-	}
+  li span {
+    margin-right: 0.5em;
+  }
 }
 
 pre code {
-	white-space: pre-line;
+  white-space: pre-line;
 }

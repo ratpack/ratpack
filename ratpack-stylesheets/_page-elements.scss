@@ -28,7 +28,6 @@ $footer-font-size: 14px !default;
         @include rem(font-size, 0.75rem);
       }
 			@include breakpoint($tablet-landscape) {
-        vertical-align: bottom;
         @include rem(font-size, $logo-font-size-large);
 			}
 		}
