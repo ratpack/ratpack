@@ -39,11 +39,13 @@ class InvocationBuilderExampleSpec extends Specification {
   def "can unit test handler"() {
     when:
     def invocation = invoke(new MyHandler()) {
+      // Use the InvocationBuilder DSL in here to set up the context for the handler
       requestHeaders.set("Test-Header", "foo")
       uri = "/bar"
     }
 
     then:
+    // The invocation object gives you insight on what the handler did
     with(invocation) {
       bodyText == "foo:/bar"
       headers.get("set-header") == "set"
