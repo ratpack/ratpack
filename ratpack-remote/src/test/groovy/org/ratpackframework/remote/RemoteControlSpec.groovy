@@ -124,4 +124,13 @@ class RemoteControlSpec extends RatpackGroovyDslSpec {
     //created just in time
     remote.exec { registry.get(FileRenderer) != null }
   }
+
+  void 'endpoint is also enabled if reloading is enabled'() {
+    given:
+    reloadable = true
+    appWithRemoteControl()
+
+    expect:
+    remote.exec { 1 + 2 } == 3
+  }
 }

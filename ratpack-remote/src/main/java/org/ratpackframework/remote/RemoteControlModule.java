@@ -33,13 +33,13 @@ import static org.ratpackframework.handling.Handlers.post;
  * To use it one has to register the module.
  * </p>
  * <p>
- * By default the endpoind is registered under {@code /remote-control}. This can be configured using {@link #setPath(String)} or
+ * By default the endpoint is registered under {@code /remote-control}. This can be configured using {@link #setPath(String)} or
  * {@code other.remoteControl.path} configuration property.
  * </p>
  * <p>
- * The endpoint is not registered unless {@code other.remoteControl.enabled} configuration property is set to {@code true}. This
- * is so that you have to explicitly enable it, for example when integration testing the application, and it's harder to make a mistake
- * of keeping it on for production. Securing the endpoint when used in production is left for the users to implement if desired.
+ * The endpoint is not registered unless {@code other.remoteControl.enabled} configuration property is set to {@code true} or reloading
+ * is enabled. This is so that you have to explicitly enable it, for example when integration testing the application, and it's harder
+ * to make a mistake of keeping it on for production. Securing the endpoint when used in production is left for the users to implement if desired.
  * </p>
  *
  * Example usage: (Java DSL)
@@ -103,7 +103,7 @@ public class RemoteControlModule extends AbstractModule implements HandlerDecora
   public Handler decorate(Injector injector, Handler handler) {
     LaunchConfig launchConfig = injector.getInstance(LaunchConfig.class);
     String endpointPath = path == null ? launchConfig.getOther("remoteControl.path", "remote-control") : path;
-    boolean enabled = Boolean.valueOf(launchConfig.getOther("remoteControl.enabled", "false"));
+    boolean enabled = Boolean.valueOf(launchConfig.getOther("remoteControl.enabled", "false")) || launchConfig.isReloadable();
 
     if (enabled) {
       return chain(of(
