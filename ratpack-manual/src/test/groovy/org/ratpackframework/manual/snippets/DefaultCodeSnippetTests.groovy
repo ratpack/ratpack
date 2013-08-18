@@ -23,16 +23,14 @@ class DefaultCodeSnippetTests implements CodeSnippetTests {
 
   private final Class<?> clazz
   private final List<Runner> runners
-  private final SnippetExecuter executer;
 
-  DefaultCodeSnippetTests(Class<?> clazz, List<Runner> runners, SnippetExecuter executer) {
+  DefaultCodeSnippetTests(Class<?> clazz, List<Runner> runners) {
     this.clazz = clazz
     this.runners = runners
-    this.executer = executer
   }
 
   public void add(TestCodeSnippet snippet) {
-    runners.add(new SnippetRunner(clazz, executer, snippet));
+    runners.add(new SnippetRunner(clazz, new SnippetExecuter(), snippet));
   }
 
 }

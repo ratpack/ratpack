@@ -30,8 +30,8 @@ abstract public class CodeSnippetTestCase implements RunnerProvider {
   protected abstract void addTests(CodeSnippetTests tests);
 
   public final List<Runner> getRunners() {
-    List<Runner> runners = new LinkedList<Runner>();
-    CodeSnippetTests tests = new DefaultCodeSnippetTests(getClass(), runners, new SnippetExecuter());
+    List<Runner> runners = new LinkedList<>();
+    CodeSnippetTests tests = new DefaultCodeSnippetTests(getClass(), runners);
     addTests(tests);
     return runners;
   }
