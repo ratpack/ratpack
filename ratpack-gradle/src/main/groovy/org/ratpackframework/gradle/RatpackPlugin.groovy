@@ -40,6 +40,7 @@ class RatpackPlugin implements Plugin<Project> {
 
     project.dependencies {
       compile ratpackDependencies.core
+      testCompile ratpackDependencies.test
     }
 
     def configureRun = project.task("configureRun")

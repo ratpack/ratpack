@@ -16,13 +16,15 @@
 
 include \
     "ratpack-core",
+    "ratpack-manual",
+    "ratpack-site",
+    "ratpack-test",
+    "ratpack-test-internal",
+    "ratpack-groovy",
+    "ratpack-groovy-test",
     "ratpack-guice",
     "ratpack-session",
     "ratpack-gradle",
-    "ratpack-groovy",
-    "ratpack-test-support",
-    "ratpack-manual",
-    "ratpack-site",
     "ratpack-handlebars",
     "ratpack-remote"
 

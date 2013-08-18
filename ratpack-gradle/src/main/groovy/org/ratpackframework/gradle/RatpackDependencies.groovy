@@ -38,8 +38,12 @@ class RatpackDependencies {
     dependency("ratpack-groovy")
   }
 
-  Dependency getTestSupport() {
-    dependency("ratpack-test-support")
+  Dependency getTest() {
+    dependency("ratpack-test")
+  }
+
+  Dependency getGroovyTest() {
+    dependency("ratpack-groovy-test")
   }
 
   Dependency dependency(String name) {

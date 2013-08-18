@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-apply from: "$rootDir/gradle/javaModule.gradle"
+apply from: "$rootDir/gradle/groovyModule.gradle"
 
 dependencies {
-  compile project(":ratpack-guice")
-  compile 'com.github.jknack:handlebars:1.1.1'
+  compile project(":ratpack-groovy-test")
 }

@@ -14,9 +14,20 @@
  * limitations under the License.
  */
 
-apply from: "$rootDir/gradle/javaModule.gradle"
+package org.ratpackframework.test
 
-dependencies {
-  compile project(":ratpack-guice")
-  compile 'com.github.jknack:handlebars:1.1.1'
+import org.ratpackframework.groovy.launch.RatpackMain
+import org.ratpackframework.groovy.test.RequestingSpec
+import org.ratpackframework.server.RatpackServer
+
+@SuppressWarnings("GrMethodMayBeStatic")
+abstract class ScriptAppSpec extends RequestingSpec {
+
+  @Override
+  protected RatpackServer createServer() {
+    Properties systemProperties = new Properties(System.getProperties())
+    systemProperties.setProperty("ratpack.port", "0")
+    new RatpackMain().server(systemProperties, new Properties())
+  }
+
 }

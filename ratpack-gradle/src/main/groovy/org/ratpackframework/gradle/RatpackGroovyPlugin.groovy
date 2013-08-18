@@ -34,7 +34,7 @@ class RatpackGroovyPlugin implements Plugin<Project> {
 
     project.dependencies {
       groovy ratpackDependencies.groovy
-      testCompile ratpackDependencies.testSupport
+      testCompile ratpackDependencies.groovyTest
     }
 
     JavaExec runTask = project.tasks.findByName("run") as JavaExec

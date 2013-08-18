@@ -14,19 +14,8 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.test
+apply from: "$rootDir/gradle/javaModule.gradle"
 
-import org.ratpackframework.groovy.launch.RatpackMain
-import org.ratpackframework.server.RatpackServer
-
-@SuppressWarnings("GrMethodMayBeStatic")
-abstract class ScriptAppSpec extends RequestingSpec {
-
-  @Override
-  protected RatpackServer createServer() {
-    Properties systemProperties = new Properties(System.getProperties())
-    systemProperties.setProperty("ratpack.port", "0")
-    new RatpackMain().server(systemProperties, new Properties())
-  }
-
+dependencies {
+  compile project(":ratpack-core")
 }

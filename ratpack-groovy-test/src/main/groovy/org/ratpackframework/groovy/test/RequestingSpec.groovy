@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.test
+package org.ratpackframework.groovy.test
 
 import com.jayway.restassured.RestAssured
 import com.jayway.restassured.response.Cookie

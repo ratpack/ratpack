@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-apply from: "$rootDir/gradle/javaModule.gradle"
+apply from: "$rootDir/gradle/groovyModule.gradle"
 
 dependencies {
-  groovy commonDependencies.groovy
-  compile project(":ratpack-core"), project(":ratpack-groovy")
+  compile project(":ratpack-groovy"), project(":ratpack-test")
   compile "com.jayway.restassured:rest-assured:1.7.2", {
     exclude module: "groovy"
     exclude group: "org.hamcrest"

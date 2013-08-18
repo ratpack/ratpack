@@ -19,7 +19,7 @@ apply plugin: "groovy"
 dependencies {
   groovy commonDependencies.groovy
   testCompile commonDependencies.spock
-  testCompile project(":ratpack-test-support")
+  testCompile project(":ratpack-test-internal")
 }
 
 configurations {

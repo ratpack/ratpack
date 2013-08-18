@@ -88,15 +88,12 @@ ext {
       groovy: dependencies.create("org.codehaus.groovy:groovy-all:$groovyVersion")
   ]
 
-  apiModules = [
-      "ratpack-core", "ratpack-groovy", "ratpack-guice", "ratpack-session", "ratpack-handlebars",
-      "ratpack-remote"
-  ].collect { project(it) }
-
   publishedModules = [
-      "ratpack-core", "ratpack-groovy", "ratpack-guice", "ratpack-session", "ratpack-test-support",
+      "ratpack-core", "ratpack-groovy", "ratpack-guice", "ratpack-session", "ratpack-test", "ratpack-groovy-test",
       "ratpack-manual", "ratpack-gradle", "ratpack-handlebars", "ratpack-remote"
   ].collect { project(it) }
+
+  apiModules = publishedModules.findAll { !(it.name in ["ratpack-manual", "ratpack-gradle"]) }
 }
 
 

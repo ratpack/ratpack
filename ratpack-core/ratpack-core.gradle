@@ -27,6 +27,4 @@ dependencies {
   compile 'javax.inject:javax.inject:1'
 
   runtime 'org.javassist:javassist:3.17.1-GA'
-
-  testCompile project(":ratpack-test-support")
 }

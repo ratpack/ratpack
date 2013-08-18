@@ -44,7 +44,7 @@ configurations {
 dependencies {
   springloaded "org.springsource.springloaded:springloaded-core:1.1.1"
   compile project(":ratpack-groovy")
-  testCompile project(":ratpack-test-support")
+  testCompile project(":ratpack-test-internal")
   latestManual project(":ratpack-manual")
 }
 

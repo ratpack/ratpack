@@ -14,15 +14,12 @@
  * limitations under the License.
  */
 
-
-
 apply from: "$rootDir/gradle/groovyModule.gradle"
 
 dependencies {
   compile project(":ratpack-guice")
   compile 'org.codehaus.groovy.modules.remote:remote-core:0.5'
 
-  testCompile project(":ratpack-test-support")
   testCompile 'org.codehaus.groovy.modules.remote:remote-transport-http:0.5'
 }
 
