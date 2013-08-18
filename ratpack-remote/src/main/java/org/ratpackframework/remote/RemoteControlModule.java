@@ -80,7 +80,7 @@ import static org.ratpackframework.handling.Handlers.post;
  * </pre>
  *
  * Sending remote control commands from a spec:
- * <pre">
+ * <pre class="not-tested">
  * import org.ratpackframework.groovy.test.ScriptAppSpec
  * import org.ratpackframework.groovy.test.remote.RemoteControl
  * import org.ratpackframework.launch.LaunchConfig
