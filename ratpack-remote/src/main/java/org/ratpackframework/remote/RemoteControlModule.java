@@ -41,6 +41,9 @@ import static org.ratpackframework.handling.Handlers.post;
  * is enabled. This is so that you have to explicitly enable it, for example when integration testing the application, and it's harder
  * to make a mistake of keeping it on for production. Securing the endpoint when used in production is left for the users to implement if desired.
  * </p>
+ * <p>
+ * Command context is populated with the registry of the remote application which is available as {@code registry} variable.
+ * </p>
  *
  * Example usage: (Java DSL)
  * <pre class="tested">

@@ -50,21 +50,21 @@ public class RemoteControlHandler implements Handler {
   public void handle(final Context context) {
     Request request = context.getRequest();
 
-    if (!validContentType(request)) {
+    if (validContentType(request)) {
+      context.respond(context.getByContent().type(RESPONSE_CONTENT_TYPE, new Runnable() {
+        @Override
+        public void run() {
+          Registry<Object> registry = Guice.justInTimeRegistry(context, injector);
+          Receiver receiver = new Receiver(ImmutableMap.of("registry", registry));
+
+          ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+          receiver.execute(context.getRequest().getInputStream(), outputStream);
+
+          context.getResponse().send(RESPONSE_CONTENT_TYPE, outputStream.toByteArray());
+        }
+      }));
+    } else {
       context.clientError(UNSUPPORTED_MEDIA_TYPE.code());
     }
-
-    context.respond(context.getByContent().type(RESPONSE_CONTENT_TYPE, new Runnable() {
-      @Override
-      public void run() {
-        Registry<Object> registry = Guice.justInTimeRegistry(context, injector);
-        Receiver receiver = new Receiver(ImmutableMap.of("registry", registry));
-
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        receiver.execute(context.getRequest().getInputStream(), outputStream);
-
-        context.getResponse().send(RESPONSE_CONTENT_TYPE, outputStream.toByteArray());
-      }
-    }));
   }
 }
