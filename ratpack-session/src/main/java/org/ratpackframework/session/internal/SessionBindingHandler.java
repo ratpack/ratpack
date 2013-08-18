@@ -23,7 +23,7 @@ import org.ratpackframework.registry.internal.LazyChildRegistry;
 import org.ratpackframework.handling.Handler;
 import org.ratpackframework.session.Session;
 import org.ratpackframework.session.SessionManager;
-import org.ratpackframework.util.internal.Factory;
+import org.ratpackframework.util.Factory;
 
 import java.util.List;
 

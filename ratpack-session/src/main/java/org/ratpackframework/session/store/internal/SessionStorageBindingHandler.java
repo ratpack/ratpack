@@ -24,7 +24,7 @@ import org.ratpackframework.handling.Handler;
 import org.ratpackframework.session.Session;
 import org.ratpackframework.session.store.SessionStore;
 import org.ratpackframework.session.store.SessionStorage;
-import org.ratpackframework.util.internal.Factory;
+import org.ratpackframework.util.Factory;
 
 import java.util.List;
 

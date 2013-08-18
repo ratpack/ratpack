@@ -29,7 +29,7 @@ class ServiceRegistryToStringSpec extends Specification {
     def root = new RootRegistry(ImmutableList.of(1))
     def object1 = new ObjectHoldingChildRegistry(root, 2)
     def object2 = new ObjectHoldingChildRegistry(object1, 3)
-    def lazy = new LazyChildRegistry(object2, Integer, { 4 } as org.ratpackframework.util.internal.Factory<Integer>)
+    def lazy = new LazyChildRegistry(object2, Integer, { 4 } as org.ratpackframework.util.Factory<Integer>)
 
     then:
     lazy.toString() == "LazyChildRegistry{${Integer.name}} -> ObjectServiceRegistry{3} -> ObjectServiceRegistry{2} -> RootRegistry{[1]}"

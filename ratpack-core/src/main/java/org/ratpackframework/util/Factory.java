@@ -14,17 +14,22 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.groovy.test
+package org.ratpackframework.util;
 
-import org.ratpackframework.test.RunningApplication
+/**
+ * An object that creates another.
+ *
+ * Factories are expected to create a new object each time. Implementors should explain there behaviour if they do not do this.
+ *
+ * @param <T> The type of object that this factory creates.
+ */
+public interface Factory<T> {
 
-abstract class ScriptAppSpec extends RequestingSpec {
-
-  private final RunningApplication runningApplication = new LocalScriptRunningApplication()
-
-  @Override
-  protected RunningApplication getRunningApplication() {
-    runningApplication
-  }
+  /**
+   * Creates a new object.
+   *
+   * @return A newly created object.
+   */
+  T create();
 
 }

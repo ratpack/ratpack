@@ -22,7 +22,7 @@ import com.jayway.restassured.response.Cookies
 import com.jayway.restassured.response.Response
 import com.jayway.restassured.specification.RequestSpecification
 import org.ratpackframework.groovy.Util
-import org.ratpackframework.server.RatpackServer
+import org.ratpackframework.test.RunningApplication
 import org.spockframework.lang.ConditionBlock
 import spock.lang.Specification
 
@@ -30,10 +30,9 @@ abstract class RequestingSpec extends Specification {
 
   RequestSpecification request = createRequest()
   Response response
-  RatpackServer server
   List<Cookie> cookies = []
 
-  abstract protected RatpackServer createServer()
+  abstract protected RunningApplication getRunningApplication()
 
   RequestSpecification createRequest() {
     RestAssured.with().urlEncodingEnabled(false)
@@ -80,7 +79,6 @@ abstract class RequestingSpec extends Specification {
 
   def void preRequest() {
     request.cookies = new Cookies(cookies)
-    startServerIfNeeded()
   }
 
   String postText(String path = "") {
@@ -89,7 +87,6 @@ abstract class RequestingSpec extends Specification {
   }
 
   Response put(String path = "") {
-    startServerIfNeeded()
     response = request.put(toUrl(path))
     postRequest()
   }
@@ -99,27 +96,7 @@ abstract class RequestingSpec extends Specification {
   }
 
   String toUrl(String path) {
-    if (!server) {
-      throw new IllegalStateException("Server not started")
-    }
-
-    "http://$server.bindHost:$server.bindPort/$path"
-  }
-
-  void stopServer() {
-    server?.stop()
-    server = null
-  }
-
-  def cleanup() {
-    stopServer()
-  }
-
-  protected startServerIfNeeded() {
-    if (!server) {
-      server = createServer()
-      server.start()
-    }
+    "$runningApplication.address/$path"
   }
 
   void request(@DelegatesTo(value = RequestSpecification, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) {

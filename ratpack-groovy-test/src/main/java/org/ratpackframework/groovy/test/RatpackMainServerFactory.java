@@ -14,17 +14,13 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.groovy.test
+package org.ratpackframework.groovy.test;
 
-import org.ratpackframework.test.RunningApplication
+import org.ratpackframework.groovy.launch.RatpackMain;
 
-abstract class ScriptAppSpec extends RequestingSpec {
+public class RatpackMainServerFactory extends org.ratpackframework.test.RatpackMainServerFactory {
 
-  private final RunningApplication runningApplication = new LocalScriptRunningApplication()
-
-  @Override
-  protected RunningApplication getRunningApplication() {
-    runningApplication
+  public RatpackMainServerFactory() {
+    super(new RatpackMain());
   }
-
 }

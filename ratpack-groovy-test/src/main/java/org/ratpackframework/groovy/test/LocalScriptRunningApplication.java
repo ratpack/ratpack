@@ -14,22 +14,13 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.util.internal;
+package org.ratpackframework.groovy.test;
 
-/**
- * An object that creates another.
- *
- * Factories are expected to create a new object each time. Implementors should explain there behaviour if they do not do this.
- *
- * @param <T> The type of object that this factory creates.
- */
-public interface Factory<T> {
+import org.ratpackframework.test.ServerBackedRunningApplication;
 
-  /**
-   * Creates a new object.
-   *
-   * @return A newly created object.
-   */
-  T create();
+public class LocalScriptRunningApplication extends ServerBackedRunningApplication {
 
+  public LocalScriptRunningApplication() {
+    super(new RatpackMainServerFactory());
+  }
 }

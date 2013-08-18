@@ -20,11 +20,26 @@ import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import org.ratpackframework.groovy.Util
 import org.ratpackframework.groovy.test.RequestingSpec
+import org.ratpackframework.server.RatpackServer
 
 abstract class InternalRatpackSpec extends RequestingSpec {
 
   @Rule TemporaryFolder temporaryFolder
   boolean reloadable
+
+  RatpackServer server
+
+  abstract protected RatpackServer createServer()
+
+  @Override
+  protected RunningApplication getRunningApplication() {
+    startServerIfNeeded()
+    new RunningApplication() {
+      String getAddress() {
+        "http://${InternalRatpackSpec.this.server.bindHost}:${InternalRatpackSpec.this.server.bindPort}"
+      }
+    }
+  }
 
   File file(String path) {
     prepFile(new File(getDir(), path))
@@ -48,6 +63,21 @@ abstract class InternalRatpackSpec extends RequestingSpec {
     Util.configureDelegateFirst(this, configurer)
   }
 
+  void stopServer() {
+    server?.stop()
+    server = null
+  }
+
+  def cleanup() {
+    stopServer()
+  }
+
+  protected startServerIfNeeded() {
+    if (!server) {
+      server = createServer()
+      server.start()
+    }
+  }
 
 
 }

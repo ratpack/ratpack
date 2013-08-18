@@ -17,7 +17,7 @@
 package org.ratpackframework.registry.internal;
 
 import org.ratpackframework.registry.Registry;
-import org.ratpackframework.util.internal.Factory;
+import org.ratpackframework.util.Factory;
 
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;

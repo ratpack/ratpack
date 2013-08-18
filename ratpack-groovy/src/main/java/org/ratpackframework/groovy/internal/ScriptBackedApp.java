@@ -30,7 +30,7 @@ import org.ratpackframework.handling.Handler;
 import org.ratpackframework.reload.internal.ReloadableFileBackedFactory;
 import org.ratpackframework.util.Action;
 import org.ratpackframework.util.Transformer;
-import org.ratpackframework.util.internal.Factory;
+import org.ratpackframework.util.Factory;
 import org.ratpackframework.util.internal.IoUtils;
 
 import java.io.File;
