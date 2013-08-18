@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.test
+package org.ratpackframework.groovy.test
 
 import org.ratpackframework.groovy.launch.RatpackMain
 import org.ratpackframework.groovy.test.RequestingSpec

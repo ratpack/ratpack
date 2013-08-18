@@ -16,7 +16,7 @@
 
 package org.ratpackframework.site
 
-import org.ratpackframework.test.ScriptAppSpec
+import org.ratpackframework.groovy.test.ScriptAppSpec
 
 class SiteSmokeSpec extends ScriptAppSpec {
 
