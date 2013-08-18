@@ -124,7 +124,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
       }
     }
 
-    final Context context = new DefaultContext(request, response, ctx, registry, ctx.executor(), blockingExecutorService, return404);
+    final Context context = new DefaultContext(request, response, registry, ctx.executor(), blockingExecutorService, return404);
 
     handler.handle(context);
   }

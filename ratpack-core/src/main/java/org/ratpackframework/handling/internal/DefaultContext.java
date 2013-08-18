@@ -17,7 +17,6 @@
 package org.ratpackframework.handling.internal;
 
 import com.google.common.util.concurrent.ListeningExecutorService;
-import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import org.ratpackframework.block.Blocking;
@@ -54,17 +53,14 @@ public class DefaultContext implements Context {
   private final Request request;
   private final Response response;
 
-  private final ChannelHandlerContext channelHandlerContext;
-
   private final ExecutorService mainExecutorService;
   private final ListeningExecutorService blockingExecutorService;
   private final Handler next;
   private final Registry<Object> registry;
 
-  public DefaultContext(Request request, Response response, ChannelHandlerContext channelHandlerContext, Registry<Object> registry, ExecutorService mainExecutorService, ListeningExecutorService blockingExecutorService, Handler next) {
+  public DefaultContext(Request request, Response response, Registry<Object> registry, ExecutorService mainExecutorService, ListeningExecutorService blockingExecutorService, Handler next) {
     this.request = request;
     this.response = response;
-    this.channelHandlerContext = channelHandlerContext;
     this.registry = registry;
     this.mainExecutorService = mainExecutorService;
     this.blockingExecutorService = blockingExecutorService;
@@ -223,7 +219,7 @@ public class DefaultContext implements Context {
           ((DefaultContext) exchange).doNext(parentContext, registry, handlers, index + 1, exhausted);
         }
       };
-      DefaultContext childExchange = new DefaultContext(request, response, channelHandlerContext, registry, mainExecutorService, blockingExecutorService, nextHandler);
+      DefaultContext childExchange = new DefaultContext(request, response, registry, mainExecutorService, blockingExecutorService, nextHandler);
       try {
         handler.handle(childExchange);
       } catch (Exception e) {
