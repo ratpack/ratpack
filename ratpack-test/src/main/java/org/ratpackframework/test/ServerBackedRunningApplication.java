@@ -42,4 +42,15 @@ public class ServerBackedRunningApplication implements RunningApplication {
     return "http://" + server.getBindHost() + ":" + server.getBindPort();
   }
 
+  public void stop() {
+    if (server != null) {
+      try {
+        server.stop();
+        server = null;
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    }
+
+  }
 }

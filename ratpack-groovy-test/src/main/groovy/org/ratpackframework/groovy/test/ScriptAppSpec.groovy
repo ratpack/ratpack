@@ -17,14 +17,19 @@
 package org.ratpackframework.groovy.test
 
 import org.ratpackframework.test.RunningApplication
+import org.ratpackframework.test.ServerBackedRunningApplication
 
 abstract class ScriptAppSpec extends RequestingSpec {
 
-  private final RunningApplication runningApplication = new LocalScriptRunningApplication()
+  private final ServerBackedRunningApplication runningApplication = new LocalScriptRunningApplication()
 
   @Override
   protected RunningApplication getRunningApplication() {
     runningApplication
+  }
+
+  def cleanupSpec() {
+    runningApplication.stop()
   }
 
 }
