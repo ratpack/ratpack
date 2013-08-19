@@ -22,7 +22,7 @@ import com.jayway.restassured.response.Cookies
 import com.jayway.restassured.response.Response
 import com.jayway.restassured.specification.RequestSpecification
 import org.ratpackframework.groovy.Util
-import org.ratpackframework.test.RunningApplication
+import org.ratpackframework.test.ApplicationUnderTest
 import org.spockframework.lang.ConditionBlock
 import spock.lang.Specification
 
@@ -32,7 +32,7 @@ abstract class RequestingSpec extends Specification {
   Response response
   List<Cookie> cookies = []
 
-  abstract protected RunningApplication getRunningApplication()
+  abstract protected ApplicationUnderTest getApplicationUnderTest()
 
   RequestSpecification createRequest() {
     RestAssured.with().urlEncodingEnabled(false)
@@ -96,7 +96,7 @@ abstract class RequestingSpec extends Specification {
   }
 
   String toUrl(String path) {
-    "$runningApplication.address/$path"
+    "$applicationUnderTest.address/$path"
   }
 
   void request(@DelegatesTo(value = RequestSpecification, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) {

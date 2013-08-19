@@ -22,12 +22,12 @@ import org.ratpackframework.util.Factory;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-public class ServerBackedRunningApplication implements RunningApplication {
+public class ServerBackedApplicationUnderTest implements ApplicationUnderTest {
 
   private RatpackServer server;
   private final Factory<RatpackServer> serverFactory;
 
-  public ServerBackedRunningApplication(Factory<RatpackServer> serverFactory) {
+  public ServerBackedApplicationUnderTest(Factory<RatpackServer> serverFactory) {
     this.serverFactory = serverFactory;
   }
 
@@ -42,7 +42,7 @@ public class ServerBackedRunningApplication implements RunningApplication {
       }
     }
 
-    URI address = null;
+    URI address;
     try {
       address = new URI("http://" + server.getBindHost() + ":" + server.getBindPort());
     } catch (URISyntaxException e) {

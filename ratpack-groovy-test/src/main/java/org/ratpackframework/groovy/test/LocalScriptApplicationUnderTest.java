@@ -14,20 +14,13 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.test;
+package org.ratpackframework.groovy.test;
 
-import java.net.URI;
+import org.ratpackframework.test.ServerBackedApplicationUnderTest;
 
-/**
- * Provides the address of the running application.
- * <p>
- * This will be called on demand. Implementations may bootstrap the application
- * the first time the address is asked for.
- * <p>
- * Implementations do not need to be thread safe.
- */
-public interface RunningApplication {
+public class LocalScriptApplicationUnderTest extends ServerBackedApplicationUnderTest {
 
-  URI getAddress();
-
+  public LocalScriptApplicationUnderTest() {
+    super(new RatpackMainServerFactory());
+  }
 }

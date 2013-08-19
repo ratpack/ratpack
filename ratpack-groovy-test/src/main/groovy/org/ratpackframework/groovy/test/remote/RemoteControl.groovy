@@ -17,17 +17,17 @@
 package org.ratpackframework.groovy.test.remote
 
 import groovyx.remote.transport.http.HttpTransport
-import org.ratpackframework.test.RunningApplication
+import org.ratpackframework.test.ApplicationUnderTest
 
 import static org.ratpackframework.remote.RemoteControlModule.DEFAULT_REMOTE_CONTROL_PATH
 
 class RemoteControl extends groovyx.remote.client.RemoteControl {
 
-  RemoteControl(RunningApplication application, String path) {
+  RemoteControl(ApplicationUnderTest application, String path) {
     super(new HttpTransport("$application.address/$path"))
   }
 
-  RemoteControl(RunningApplication application) {
+  RemoteControl(ApplicationUnderTest application) {
     this(application, DEFAULT_REMOTE_CONTROL_PATH)
   }
 }

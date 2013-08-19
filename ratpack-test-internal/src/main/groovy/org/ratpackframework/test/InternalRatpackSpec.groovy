@@ -32,9 +32,9 @@ abstract class InternalRatpackSpec extends RequestingSpec {
   abstract protected RatpackServer createServer()
 
   @Override
-  protected RunningApplication getRunningApplication() {
+  protected ApplicationUnderTest getApplicationUnderTest() {
     startServerIfNeeded()
-    new RunningApplication() {
+    new ApplicationUnderTest() {
       URI getAddress() {
         new URI("http://${InternalRatpackSpec.this.server.bindHost}:${InternalRatpackSpec.this.server.bindPort}")
       }

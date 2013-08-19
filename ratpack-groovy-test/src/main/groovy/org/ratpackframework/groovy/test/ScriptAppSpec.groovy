@@ -16,15 +16,15 @@
 
 package org.ratpackframework.groovy.test
 
-import org.ratpackframework.test.RunningApplication
-import org.ratpackframework.test.ServerBackedRunningApplication
+import org.ratpackframework.test.ApplicationUnderTest
+import org.ratpackframework.test.ServerBackedApplicationUnderTest
 
 abstract class ScriptAppSpec extends RequestingSpec {
 
-  private final ServerBackedRunningApplication runningApp = new LocalScriptRunningApplication()
+  private final ServerBackedApplicationUnderTest runningApp = new LocalScriptApplicationUnderTest()
 
   @Override
-  protected RunningApplication getRunningApplication() {
+  protected ApplicationUnderTest getApplicationUnderTest() {
     runningApp
   }
 

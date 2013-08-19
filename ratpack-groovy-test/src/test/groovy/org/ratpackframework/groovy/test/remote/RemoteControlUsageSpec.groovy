@@ -45,7 +45,7 @@ class RemoteControlUsageSpec extends RatpackGroovyDslSpec {
     }
 
     and:
-    def remote = new RemoteControl(runningApplication)
+    def remote = new RemoteControl(applicationUnderTest)
 
     then:
     text == "initial"
