@@ -19,6 +19,9 @@ package org.ratpackframework.test;
 import org.ratpackframework.server.RatpackServer;
 import org.ratpackframework.util.Factory;
 
+import java.net.URI;
+import java.net.URISyntaxException;
+
 public class ServerBackedRunningApplication implements RunningApplication {
 
   private RatpackServer server;
@@ -29,7 +32,7 @@ public class ServerBackedRunningApplication implements RunningApplication {
   }
 
   @Override
-  public String getAddress() {
+  public URI getAddress() {
     if (server == null) {
       server = serverFactory.create();
       try {
@@ -39,7 +42,14 @@ public class ServerBackedRunningApplication implements RunningApplication {
       }
     }
 
-    return "http://" + server.getBindHost() + ":" + server.getBindPort();
+    URI address = null;
+    try {
+      address = new URI("http://" + server.getBindHost() + ":" + server.getBindPort());
+    } catch (URISyntaxException e) {
+      throw new RuntimeException(e);
+    }
+
+    return address;
   }
 
   public void stop() {

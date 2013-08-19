@@ -35,8 +35,8 @@ abstract class InternalRatpackSpec extends RequestingSpec {
   protected RunningApplication getRunningApplication() {
     startServerIfNeeded()
     new RunningApplication() {
-      String getAddress() {
-        "http://${InternalRatpackSpec.this.server.bindHost}:${InternalRatpackSpec.this.server.bindPort}"
+      URI getAddress() {
+        new URI("http://${InternalRatpackSpec.this.server.bindHost}:${InternalRatpackSpec.this.server.bindPort}")
       }
     }
   }
