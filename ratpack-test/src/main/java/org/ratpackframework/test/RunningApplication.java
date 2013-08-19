@@ -16,6 +16,8 @@
 
 package org.ratpackframework.test;
 
+import java.net.URI;
+
 /**
  * Provides the address of the running application.
  * <p>
@@ -26,6 +28,6 @@ package org.ratpackframework.test;
  */
 public interface RunningApplication {
 
-  String getAddress();
+  URI getAddress();
 
 }
