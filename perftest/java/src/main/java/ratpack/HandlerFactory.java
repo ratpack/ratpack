@@ -29,13 +29,13 @@ public class HandlerFactory implements org.ratpackframework.launch.HandlerFactor
   public Handler create(LaunchConfig launchConfig) {
     return chain(new Action<Chain>() {
       public void execute(Chain chain) {
-        chain.handler(assets("public"));
-
-        chain.handler(prefix("path", new Handler() {
+        chain
+          .assets("public")
+          .prefix("path", new Handler() {
           public void handle(Context context) {
             context.getResponse().send(context.getRequest().getUri());
           }
-        }));
+        });
       }
     });
   }

@@ -25,7 +25,7 @@ import org.ratpackframework.util.Transformer
 
 abstract class RatpackGroovyDslSpec extends DefaultRatpackSpec {
 
-  void handlers(@DelegatesTo(Chain) Closure<?> configurer) {
+  void handlers(@DelegatesTo(value = Chain, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer) {
     this.handlersClosure = configurer
   }
 

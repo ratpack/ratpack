@@ -35,63 +35,63 @@ public class DefaultChain implements Chain {
     this.registry = registry;
   }
 
-  public void handler(Handler handler) {
+  public Chain handler(Handler handler) {
     handlers.add(handler);
+    return this;
   }
 
-  public void prefix(String prefix, List<Handler> handlers) {
-    handler(Handlers.prefix(prefix, handlers));
+  public Chain prefix(String prefix, Handler... handlers) {
+    return handler(Handlers.prefix(prefix, handlers));
   }
 
   @Override
-  public void prefix(String prefix, Action<? super Chain> chainAction) {
-    handler(Handlers.prefix(prefix, chainAction));
+  public Chain prefix(String prefix, List<Handler> handlers) {
+    return handler(Handlers.prefix(prefix, handlers));
   }
 
-  public void path(String path, Handler handler) {
-    handler(Handlers.path(path, handler));
+  @Override
+  public Chain prefix(String prefix, Action<? super Chain> chainAction) {
+    return handler(Handlers.prefix(prefix, chainAction));
   }
 
-  public Handler get(String path, Handler handler) {
-    Handler getHandler = Handlers.get(path, handler);
-    handler(getHandler);
-    return getHandler;
+  public Chain path(String path, Handler handler) {
+    return handler(Handlers.path(path, handler));
   }
 
-  public Handler get(Handler handler) {
+  public Chain get(String path, Handler handler) {
+    return handler(Handlers.get(path, handler));
+  }
+
+  public Chain get(Handler handler) {
     return get("", handler);
   }
 
-  public void post(String path, Handler handler) {
-    handler(Handlers.post(path, handler));
+  public Chain post(String path, Handler handler) {
+    return handler(Handlers.post(path, handler));
   }
 
-  public void post(Handler handler) {
-    post("", handler);
+  public Chain post(Handler handler) {
+    return post("", handler);
   }
 
-  public void assets(String path, String[] indexFiles) {
-    handler(Handlers.assets(path, indexFiles));
+  public Chain assets(String path, String... indexFiles) {
+    return handler(Handlers.assets(path, indexFiles));
   }
 
-  public void assets(String path, Handler notFound) {
-    handler(Handlers.assets(path, notFound));
+  public Chain assets(String path, Handler notFound) {
+    return handler(Handlers.assets(path, notFound));
   }
 
-  public Handler register(Object object, List<Handler> handlers) {
-    Handler registerHandler = Handlers.register(object, handlers);
-    handler(registerHandler);
-    return registerHandler;
+  public Chain register(Object object, List<Handler> handlers) {
+    return handler(Handlers.register(object, handlers));
   }
 
-  public <T> Handler register(Class<? super T> type, T object, List<Handler> handlers) {
-    Handler registerHandler = Handlers.register(type, object, handlers);
-    handler(registerHandler);
-    return registerHandler;
+  public <T> Chain register(Class<? super T> type, T object, List<Handler> handlers) {
+    return handler(Handlers.register(type, object, handlers));
   }
 
-  public void fileSystem(String path, List<Handler> handlers) {
-    handler(Handlers.fileSystem(path, handlers));
+  public Chain fileSystem(String path, List<Handler> handlers) {
+    return handler(Handlers.fileSystem(path, handlers));
   }
 
   public Registry<Object> getRegistry() {

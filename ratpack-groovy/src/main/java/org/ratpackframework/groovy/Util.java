@@ -20,6 +20,9 @@ import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.ratpackframework.api.NonBlocking;
 import org.ratpackframework.block.Blocking;
+import org.ratpackframework.groovy.handling.internal.ClosureBackedHandler;
+import org.ratpackframework.handling.Context;
+import org.ratpackframework.handling.Handler;
 import org.ratpackframework.util.Action;
 
 public abstract class Util {
@@ -76,6 +79,10 @@ public abstract class Util {
   @NonBlocking
   public static <T> void exec(Blocking blocking, Closure<T> operation, Closure<?> onFailure, Closure<?> onSuccess) {
     blocking.exec(operation).onError(action(onFailure)).then(action(onSuccess));
+  }
+
+  public static Handler asHandler(@DelegatesTo(value = Context.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) {
+    return new ClosureBackedHandler(closure);
   }
 
   private static class NoDelegateClosureAction implements Action<Object> {

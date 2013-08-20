@@ -16,7 +16,16 @@
 
 package org.ratpackframework.handling
 
+import org.ratpackframework.error.ClientErrorHandler
+import org.ratpackframework.error.ServerErrorHandler
+import org.ratpackframework.file.FileSystemBinding
+import org.ratpackframework.file.MimeTypes
+import org.ratpackframework.groovy.handling.internal.ClosureBackedHandler
+import org.ratpackframework.launch.LaunchConfig
 import org.ratpackframework.test.groovy.RatpackGroovyDslSpec
+
+import static org.ratpackframework.groovy.Util.asHandler
+import static org.ratpackframework.handling.Handlers.chain
 
 class HandlersSpec extends RatpackGroovyDslSpec {
 
@@ -24,7 +33,7 @@ class HandlersSpec extends RatpackGroovyDslSpec {
     when:
     app {
       handlers {
-        Handlers.chain([])
+        chain([])
       }
     }
 
@@ -36,7 +45,9 @@ class HandlersSpec extends RatpackGroovyDslSpec {
     when:
     app {
       handlers {
-        Handlers.chain([get { response.send("foo") }])
+        handler chain(
+          Handlers.get(asHandler { response.send("foo") })
+        )
       }
     }
 
@@ -48,10 +59,10 @@ class HandlersSpec extends RatpackGroovyDslSpec {
     when:
     app {
       handlers {
-        Handlers.chain([
-            get("a") { response.send("foo") },
-            get("b") { response.send("bar") }
-        ])
+        handler chain(
+          Handlers.get("a", asHandler { response.send("foo") }),
+          Handlers.get("b", asHandler { response.send("bar") })
+        )
       }
     }
 
@@ -65,11 +76,11 @@ class HandlersSpec extends RatpackGroovyDslSpec {
     app {
       handlers {
         handler {
-          get(org.ratpackframework.error.ServerErrorHandler)
-          get(org.ratpackframework.error.ClientErrorHandler)
-          get(org.ratpackframework.file.MimeTypes)
-          get(org.ratpackframework.launch.LaunchConfig)
-          get(org.ratpackframework.file.FileSystemBinding)
+          get(ServerErrorHandler)
+          get(ClientErrorHandler)
+          get(MimeTypes)
+          get(LaunchConfig)
+          get(FileSystemBinding)
           response.send "ok"
         }
       }

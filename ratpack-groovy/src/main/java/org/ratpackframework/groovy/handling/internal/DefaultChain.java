@@ -33,48 +33,52 @@ public class DefaultChain extends org.ratpackframework.handling.internal.Default
     super(handlers, registry);
   }
 
-  public void handler(Closure<?> handler) {
-    handler(new ClosureBackedHandler(handler));
+  public Chain handler(Handler handler) {
+    return (Chain) super.handler(handler);
   }
 
-  public void prefix(String prefix, Closure<?> chain) {
-    prefix(prefix, toHandlerList(chain));
+  public Chain handler(Closure<?> handler) {
+    return handler(new ClosureBackedHandler(handler));
   }
 
-  public void path(String path, Closure<?> handler) {
-    path(path, new ClosureBackedHandler(handler));
+  public Chain prefix(String prefix, Closure<?> chain) {
+    return (Chain) prefix(prefix, toHandlerList(chain));
   }
 
-  public Handler get(String path, Closure<?> handler) {
-    return get(path, new ClosureBackedHandler(handler));
+  public Chain path(String path, Closure<?> handler) {
+    return (Chain) path(path, new ClosureBackedHandler(handler));
   }
 
-  public Handler get(Closure<?> handler) {
+  public Chain get(String path, Closure<?> handler) {
+    return (Chain) get(path, new ClosureBackedHandler(handler));
+  }
+
+  public Chain get(Closure<?> handler) {
     return get("", handler);
   }
 
-  public void post(String path, Closure<?> handler) {
-    post(path, new ClosureBackedHandler(handler));
+  public Chain post(String path, Closure<?> handler) {
+    return (Chain) post(path, new ClosureBackedHandler(handler));
   }
 
-  public void post(Closure<?> handler) {
-    post("", handler);
+  public Chain post(Closure<?> handler) {
+    return post("", handler);
   }
 
-  public void assets(String path, Closure<?> handler) {
-    assets(path, new ClosureBackedHandler(handler));
+  public Chain assets(String path, Closure<?> handler) {
+    return (Chain) assets(path, new ClosureBackedHandler(handler));
   }
 
-  public Handler register(Object object, Closure<?> handlers) {
-    return register(object, toHandlerList(handlers));
+  public Chain register(Object object, Closure<?> handlers) {
+    return (Chain) register(object, toHandlerList(handlers));
   }
 
-  public <T> Handler register(Class<? super T> type, T object, Closure<?> handlers) {
-    return register(type, object, toHandlerList(handlers));
+  public <T> Chain register(Class<? super T> type, T object, Closure<?> handlers) {
+    return (Chain) register(type, object, toHandlerList(handlers));
   }
 
-  public void fileSystem(String path, Closure<?> handlers) {
-    fileSystem(path, toHandlerList(handlers));
+  public Chain fileSystem(String path, Closure<?> handlers) {
+    return (Chain) fileSystem(path, toHandlerList(handlers));
   }
 
   private ImmutableList<Handler> toHandlerList(Closure<?> handlers) {
