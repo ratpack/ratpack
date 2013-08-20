@@ -14,37 +14,33 @@
  * limitations under the License.
  */
 
-include \
-    "ratpack-core",
-    "ratpack-manual",
-    "ratpack-site",
-    "ratpack-test",
-    "ratpack-test-internal",
-    "ratpack-groovy",
-    "ratpack-groovy-test",
-    "ratpack-guice",
-    "ratpack-session",
-    "ratpack-gradle",
-    "ratpack-handlebars",
-    "ratpack-remote",
-    "ratpack-jackson"
+package org.ratpackframework.jackson
 
-include \
-  "perftest",
-  "perftest:java",
-  "perftest:groovy"
+import org.ratpackframework.test.groovy.RatpackGroovyDslSpec
 
-rootProject.name = 'ratpack'
+import static org.ratpackframework.jackson.Json.json
 
-def setBuildFile(project) {
-  project.buildFileName = "${project.name}.gradle"
-  project.children.each {
-    setBuildFile(it)
+class JacksonRenderingSpec extends RatpackGroovyDslSpec {
+
+  static class User {
+    String username
+    String password
+  }
+
+  def "can render json"() {
+    when:
+    app {
+      modules {
+        register new JacksonModule()
+      }
+      handlers {
+        get {
+          render json(new User(username: "foo", password: "bar"))
+        }
+      }
+    }
+
+    then:
+    get().jsonPath().get("username") == "foo"
   }
 }
-
-setBuildFile(rootProject)
-rootProject.children.each {
-  setBuildFile(it)
-}
-

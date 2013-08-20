@@ -14,37 +14,9 @@
  * limitations under the License.
  */
 
-include \
-    "ratpack-core",
-    "ratpack-manual",
-    "ratpack-site",
-    "ratpack-test",
-    "ratpack-test-internal",
-    "ratpack-groovy",
-    "ratpack-groovy-test",
-    "ratpack-guice",
-    "ratpack-session",
-    "ratpack-gradle",
-    "ratpack-handlebars",
-    "ratpack-remote",
-    "ratpack-jackson"
+apply from: "$rootDir/gradle/javaModule.gradle"
 
-include \
-  "perftest",
-  "perftest:java",
-  "perftest:groovy"
-
-rootProject.name = 'ratpack'
-
-def setBuildFile(project) {
-  project.buildFileName = "${project.name}.gradle"
-  project.children.each {
-    setBuildFile(it)
-  }
+dependencies {
+  compile project(":ratpack-guice")
+  compile "com.fasterxml.jackson.core:jackson-databind:2.2.2"
 }
-
-setBuildFile(rootProject)
-rootProject.children.each {
-  setBuildFile(it)
-}
-
