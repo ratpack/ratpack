@@ -63,7 +63,7 @@ class InjectedHandlersSpec extends RatpackGroovyDslSpec {
       }
 
       handlers {
-        add registry.get(InjectedHandler)
+        handler registry.get(InjectedHandler)
       }
     }
 

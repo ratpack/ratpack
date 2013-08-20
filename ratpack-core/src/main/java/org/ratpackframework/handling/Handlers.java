@@ -51,14 +51,14 @@ import java.util.List;
  *
  * class ChainBuilder implements Action&lt;Chain&gt; {
  *   void execute(Chain chain) {
- *     chain.add(assets("public"));
- *     chain.add(get("info", new ExampleHandler()));
- *     chain.add(prefix("api", new Action&lt;Chain&gt;() {
+ *     chain.assets("public");
+ *     chain.get("info", new ExampleHandler());
+ *     chain.prefix("api", new Action&lt;Chain&gt;() {
  *       void execute(Chain apiChain) {
- *         apiChain.add(get("version", new ExampleHandler()));
- *         apiChain.add(get("log", new ExampleHandler()));
+ *         apiChain.get("version", new ExampleHandler());
+ *         apiChain.get("log", new ExampleHandler());
  *       }
- *     }));
+ *     });
  *   }
  * }
  * </pre>

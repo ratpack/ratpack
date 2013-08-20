@@ -27,7 +27,7 @@ import org.ratpackframework.handling.Handler;
  * The methods specific to this subclass create {@link org.ratpackframework.handling.Handler} instances from closures and
  * add them to the underlying chain.
  * <p>
- * These methods are generally shortcuts for {@link #add(org.ratpackframework.handling.Handler)} on this underlying chain.
+ * These methods are generally shortcuts for {@link #handler(org.ratpackframework.handling.Handler)} on this underlying chain.
  */
 public interface Chain extends org.ratpackframework.handling.Chain {
 

@@ -18,6 +18,7 @@ package org.ratpackframework.handling;
 
 import org.ratpackframework.api.Nullable;
 import org.ratpackframework.registry.Registry;
+import org.ratpackframework.util.Action;
 
 import java.util.List;
 
@@ -36,13 +37,6 @@ public interface Chain {
    *
    * @param handler The handler to add to the chain being constructed
    */
-  void add(Handler handler);
-
-  /**
-   * Add the given handler to the chain being constructed.
-   *
-   * @param handler The handler to add to the chain being constructed
-   */
   void handler(Handler handler);
 
   /**
@@ -53,6 +47,8 @@ public interface Chain {
    * @param handlers The definition of the nested handlers
    */
   void prefix(String prefix, List<Handler> handlers);
+
+  void prefix(String prefix, Action<? super Chain> chainAction);
 
   /**
    * Add a path handler to the chain being constructed for the given path.

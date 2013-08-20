@@ -61,7 +61,7 @@ class ServiceUsingHandlerSpec extends DefaultRatpackSpec {
     when:
     app {
       handlers {
-        add new InjectedHandler()
+        handler new InjectedHandler()
       }
     }
 
@@ -82,7 +82,7 @@ class ServiceUsingHandlerSpec extends DefaultRatpackSpec {
     when:
     app {
       handlers {
-        add new Injected2Handler()
+        handler new Injected2Handler()
       }
     }
 
@@ -105,9 +105,9 @@ class ServiceUsingHandlerSpec extends DefaultRatpackSpec {
     when:
     app {
       handlers {
-        add register(ServerErrorHandler, new MessageServerErrorHandler(), new Action<Chain>() {
+        handler register(ServerErrorHandler, new MessageServerErrorHandler(), new Action<Chain>() {
           void execute(Chain handlers) {
-            handlers.add(new InjectedBadHandler())
+            handlers.handler(new InjectedBadHandler())
           }
         })
       }

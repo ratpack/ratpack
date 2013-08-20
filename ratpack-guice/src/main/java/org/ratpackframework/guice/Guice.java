@@ -86,7 +86,7 @@ public abstract class Guice {
    *     public Handler create(LaunchConfig launchConfig) {
    *       return Guice.handler(launchConfig, new ModuleBootstrap(), new Action&lt;Chain&gt;() {
    *         public void execute(Chain chain) {
-   *           chain.add(chain.getRegistry().get(InjectedHandler.class));
+   *           chain.handler(chain.getRegistry().get(InjectedHandler.class));
    *         }
    *       });
    *     }

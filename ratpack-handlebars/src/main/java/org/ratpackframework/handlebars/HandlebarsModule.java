@@ -73,7 +73,7 @@ import java.io.File;
  *     public Handler create(LaunchConfig launchConfig) {
  *       return Guice.handler(launchConfig, new ModuleBootstrap(), new Action&lt;Chain&gt;() {
  *         public void execute(Chain chain) {
- *           chain.add(chain.getRegistry().get(MyHandler.class));
+ *           chain.handler(chain.getRegistry().get(MyHandler.class));
  *         }
  *       });
  *     }
