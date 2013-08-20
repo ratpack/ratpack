@@ -22,7 +22,7 @@ import org.ratpackframework.handling.Handler;
 import org.ratpackframework.launch.LaunchConfig;
 import org.ratpackframework.util.Action;
 
-import static org.ratpackframework.handling.Handlers.*;
+import static org.ratpackframework.handling.Handlers.chain;
 
 public class HandlerFactory implements org.ratpackframework.launch.HandlerFactory {
 
@@ -32,10 +32,10 @@ public class HandlerFactory implements org.ratpackframework.launch.HandlerFactor
         chain
           .assets("public")
           .prefix("path", new Handler() {
-          public void handle(Context context) {
-            context.getResponse().send(context.getRequest().getUri());
-          }
-        });
+            public void handle(Context context) {
+              context.getResponse().send(context.getRequest().getUri());
+            }
+          });
       }
     });
   }
