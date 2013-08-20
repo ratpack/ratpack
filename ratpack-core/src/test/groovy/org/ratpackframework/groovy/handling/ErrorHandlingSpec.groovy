@@ -18,12 +18,9 @@ package org.ratpackframework.groovy.handling
 
 import org.ratpackframework.error.ServerErrorHandler
 import org.ratpackframework.handling.Context
-import org.ratpackframework.test.DefaultRatpackSpec
+import org.ratpackframework.test.groovy.RatpackGroovyDslSpec
 
-import static ClosureHandlers.get
-import static ClosureHandlers.register
-
-class ErrorHandlingSpec extends DefaultRatpackSpec {
+class ErrorHandlingSpec extends RatpackGroovyDslSpec {
 
   def "handles 404"() {
     when:
@@ -37,7 +34,7 @@ class ErrorHandlingSpec extends DefaultRatpackSpec {
     when:
     app {
       handlers {
-        add get { throw new RuntimeException('error here') }
+        get { throw new RuntimeException('error here') }
       }
     }
 
@@ -56,8 +53,8 @@ class ErrorHandlingSpec extends DefaultRatpackSpec {
     when:
     app {
       handlers {
-        add register(ServerErrorHandler, errorHandler) {
-          add get {
+        register(ServerErrorHandler, errorHandler) {
+          get {
             withErrorHandling new Thread({
               throw new Exception("thrown in forked thread")
             })
@@ -87,11 +84,11 @@ class ErrorHandlingSpec extends DefaultRatpackSpec {
     when:
     app {
       handlers {
-        add register(ServerErrorHandler, errorHandler1) {
-          add get { exchange ->
+        register(ServerErrorHandler, errorHandler1) {
+          get { exchange ->
             withErrorHandling new Thread({
               register(ServerErrorHandler, errorHandler2) {
-                add get {
+                get {
                   throw new Exception("down here")
                 }
               }.handle(exchange)
@@ -121,13 +118,13 @@ class ErrorHandlingSpec extends DefaultRatpackSpec {
     when:
     app {
       handlers {
-        add register(ServerErrorHandler, errorHandler1) {
-          add register(ServerErrorHandler, errorHandler2) {
-            add get("a") {
+        register(ServerErrorHandler, errorHandler1) {
+          register(ServerErrorHandler, errorHandler2) {
+            get("a") {
               throw new Exception("1")
             }
           }
-          add get("b") {
+          get("b") {
             throw new Exception("2")
           }
         }
@@ -150,8 +147,8 @@ class ErrorHandlingSpec extends DefaultRatpackSpec {
     when:
     app {
       handlers {
-        add register(ServerErrorHandler, errorHandler) {
-          add get {
+        register(ServerErrorHandler, errorHandler) {
+          get {
             throw new Exception("thrown")
           }
         }

@@ -16,20 +16,18 @@
 
 package org.ratpackframework.path
 
-import org.ratpackframework.handling.Handlers
-import org.ratpackframework.test.DefaultRatpackSpec
+import org.ratpackframework.test.groovy.RatpackGroovyDslSpec
+import static io.netty.handler.codec.http.HttpResponseStatus.NOT_FOUND
 
-import static org.ratpackframework.groovy.handling.ClosureHandlers.handler
-import static org.ratpackframework.groovy.handling.ClosureHandlers.path
 
-class PathRoutingSpec extends DefaultRatpackSpec {
+class PathRoutingSpec extends RatpackGroovyDslSpec {
 
-  def "can route by path"() {
+  def "can route by prefix"() {
     when:
     app {
       handlers {
-        add path("abc") {
-          add handler {
+        prefix("abc") {
+          handler {
             response.send(get(PathBinding).boundTo)
           }
         }
@@ -38,15 +36,18 @@ class PathRoutingSpec extends DefaultRatpackSpec {
 
     then:
     getText("abc/def") == "abc"
+    getText("abc/ghi") == "abc"
+    getText("abc") == "abc"
+    get("ab/def").statusCode == NOT_FOUND.code()
   }
 
-  def "can route by nested path"() {
+  def "can route by nested prefix"() {
     when:
     app {
       handlers {
-        add path("abc") {
-          add path("def") {
-            add handler {
+        prefix("abc") {
+          prefix("def") {
+            handler {
               response.send(get(PathBinding).pastBinding)
             }
           }
@@ -56,14 +57,17 @@ class PathRoutingSpec extends DefaultRatpackSpec {
 
     then:
     getText("abc/def/ghi") == "ghi"
+    getText("abc/def/jkl") == "jkl"
+    getText("abc/def") == ""
+    get("abc/de/ghi").statusCode == NOT_FOUND.code()
   }
 
-  def "can route by path with tokens"() {
+  def "can route by prefix with tokens"() {
     when:
     app {
       handlers {
-        add path(":a/:b/:c") {
-          add handler {
+        prefix(":a/:b/:c") {
+          handler {
             def binding = get(PathBinding)
             response.send("$binding.tokens - $binding.pastBinding")
           }
@@ -75,13 +79,13 @@ class PathRoutingSpec extends DefaultRatpackSpec {
     getText("1/2/3/4/5") == "[a:1, b:2, c:3] - 4/5"
   }
 
-  def "can route by nested path with tokens"() {
+  def "can route by nested prefix with tokens"() {
     when:
     app {
       handlers {
-        add path(":a/:b") {
-          add path(":d/:e") {
-            add handler {
+        prefix(":a/:b") {
+          prefix(":d/:e") {
+            handler {
               def binding = get(PathBinding)
               response.send("$binding.tokens - $binding.allTokens - $binding.pastBinding")
             }
@@ -94,11 +98,46 @@ class PathRoutingSpec extends DefaultRatpackSpec {
     getText("1/2/3/4/5/6") == "[d:3, e:4] - [a:1, b:2, d:3, e:4] - 5/6"
   }
 
+  def "can route by exact path"() {
+    when:
+    app {
+      handlers {
+        path("abc") {
+          response.send(get(PathBinding).boundTo)
+        }
+      }
+    }
+
+    then:
+    getText("abc") == "abc"
+    get("abc/def").statusCode == NOT_FOUND.code()
+    get("ab").statusCode == NOT_FOUND.code()
+  }
+
+  def "can route by nested exact path"() {
+    when:
+    app {
+      handlers {
+        prefix("abc") {
+          path("def") {
+            response.send(get(PathBinding).boundTo)
+          }
+        }
+      }
+    }
+
+    then:
+    getText("abc/def") == "def"
+    get("abc/def/ghi").statusCode == NOT_FOUND.code()
+    get("abc/de").statusCode == NOT_FOUND.code()
+    get("abc").statusCode == NOT_FOUND.code()
+  }
+
   def "can route by exact path with tokens"() {
     when:
     app {
       handlers {
-        add handler(":a/:b/:c") {
+        path(":a/:b/:c") {
           def binding = get(PathBinding)
           response.send("$binding.tokens - $binding.pastBinding")
         }
@@ -106,7 +145,7 @@ class PathRoutingSpec extends DefaultRatpackSpec {
     }
 
     then:
-    get("1/2/3/4/5").statusCode == 404
+    get("1/2/3/4/5").statusCode == NOT_FOUND.code()
     getText("1/2/3") == "[a:1, b:2, c:3] - "
   }
 
@@ -114,8 +153,8 @@ class PathRoutingSpec extends DefaultRatpackSpec {
     when:
     app {
       handlers {
-        add path(":a/:b") {
-          add handler(":d/:e") {
+        prefix(":a/:b") {
+          path(":d/:e") {
             def binding = get(PathBinding)
             response.send("$binding.tokens - $binding.allTokens - $binding.pastBinding")
           }
@@ -125,26 +164,26 @@ class PathRoutingSpec extends DefaultRatpackSpec {
 
     then:
     getText("1/2/3/4") == "[d:3, e:4] - [a:1, b:2, d:3, e:4] - "
-    get("1/2/3/4/5/6").statusCode == 404
+    get("1/2/3/4/5/6").statusCode == NOT_FOUND.code()
   }
 
   def "can use get handler"() {
     when:
     app {
       handlers {
-        add Handlers.get(handler {
+        get {
           response.send("root")
-        })
+        }
 
-        add Handlers.get("a", handler {
+        get("a") {
           response.send("a")
-        })
+        }
       }
     }
 
     then:
     getText() == "root"
     getText("a") == "a"
-    get("a/b/c").statusCode == 404
+    get("a/b/c").statusCode == NOT_FOUND.code()
   }
 }

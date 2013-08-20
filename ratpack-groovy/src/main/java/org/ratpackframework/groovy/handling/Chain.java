@@ -19,6 +19,7 @@ package org.ratpackframework.groovy.handling;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.ratpackframework.handling.Context;
+import org.ratpackframework.handling.Handler;
 
 /**
  * A Groovy oriented handler chain builder DSL.
@@ -26,8 +27,7 @@ import org.ratpackframework.handling.Context;
  * The methods specific to this subclass create {@link org.ratpackframework.handling.Handler} instances from closures and
  * add them to the underlying chain.
  * <p>
- * These methods are generally shortcuts for the combination of a method on {@link ClosureHandlers} and {@link #add(org.ratpackframework.handling.Handler)}
- * on this underlying chain.
+ * These methods are generally shortcuts for {@link #add(org.ratpackframework.handling.Handler)} on this underlying chain.
  */
 public interface Chain extends org.ratpackframework.handling.Chain {
 
@@ -63,24 +63,24 @@ public interface Chain extends org.ratpackframework.handling.Chain {
    * @param prefix The prefix to bind to.
    * @param chain The definition of the nested handlers
    */
-  void prefix(String prefix, @DelegatesTo(value = org.ratpackframework.groovy.handling.Chain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> chain);
+  void prefix(String prefix, @DelegatesTo(value = Chain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> chain);
 
   void path(String path, @DelegatesTo(value = Context.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
 
-  void get(String path, @DelegatesTo(value = Context.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
+  Handler get(String path, @DelegatesTo(value = Context.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
 
-  void get(@DelegatesTo(value = Context.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
+  Handler get(@DelegatesTo(value = Context.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
 
   void post(String path, @DelegatesTo(value = Context.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
 
   void post(@DelegatesTo(value = Context.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
 
-  void assets(String path, String... indexFiles);
+  void assets(String path, @DelegatesTo(value = Context.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
 
-  void register(Object object, @DelegatesTo(value = org.ratpackframework.groovy.handling.Chain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handlers);
+  Handler register(Object object, @DelegatesTo(value = Chain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handlers);
 
-  <T> void register(Class<? super T> type, T object, @DelegatesTo(value = org.ratpackframework.groovy.handling.Chain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handlers);
+  <T> Handler register(Class<? super T> type, T object, @DelegatesTo(value = Chain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handlers);
 
-  void fileSystem(String path, @DelegatesTo(value = org.ratpackframework.groovy.handling.Chain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handlers);
+  void fileSystem(String path, @DelegatesTo(value = Chain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handlers);
 
 }

@@ -16,16 +16,15 @@
 
 package org.ratpackframework.handling
 
-import org.ratpackframework.groovy.handling.ClosureHandlers
-import org.ratpackframework.test.DefaultRatpackSpec
+import org.ratpackframework.test.groovy.RatpackGroovyDslSpec
 
-class HandlersSpec extends DefaultRatpackSpec {
+class HandlersSpec extends RatpackGroovyDslSpec {
 
   def "empty chain handler"() {
     when:
     app {
       handlers {
-        add Handlers.chain([])
+        Handlers.chain([])
       }
     }
 
@@ -37,7 +36,7 @@ class HandlersSpec extends DefaultRatpackSpec {
     when:
     app {
       handlers {
-        add Handlers.chain([ClosureHandlers.get { response.send("foo") }])
+        Handlers.chain([get { response.send("foo") }])
       }
     }
 
@@ -49,9 +48,9 @@ class HandlersSpec extends DefaultRatpackSpec {
     when:
     app {
       handlers {
-        add Handlers.chain([
-            ClosureHandlers.get("a") { response.send("foo") },
-            ClosureHandlers.get("b") { response.send("bar") }
+        Handlers.chain([
+            get("a") { response.send("foo") },
+            get("b") { response.send("bar") }
         ])
       }
     }
@@ -65,7 +64,7 @@ class HandlersSpec extends DefaultRatpackSpec {
     when:
     app {
       handlers {
-        add ClosureHandlers.handler {
+        handler {
           get(org.ratpackframework.error.ServerErrorHandler)
           get(org.ratpackframework.error.ClientErrorHandler)
           get(org.ratpackframework.file.MimeTypes)
