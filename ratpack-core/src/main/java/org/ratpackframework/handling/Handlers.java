@@ -33,14 +33,37 @@ import java.io.File;
 import java.util.List;
 
 /**
- * Factory methods for certain types of handlers. <p> Typically used by {@link Chain} implementations to build a handler chain. <pre class="tested"> import static
- * org.ratpackframework.handling.Handlers.*; import org.ratpackframework.handling.Handler; import org.ratpackframework.handling.Chain; import org.ratpackframework.handling.Context; import
- * org.ratpackframework.util.Action;
+ * Factory methods for certain types of handlers.
+ * <p>
+ * Typically used by {@link Chain} implementations to build a handler chain.
+ * <pre class="tested">
+ * import static org.ratpackframework.handling.Handlers.*;
+ * import org.ratpackframework.handling.Handler;
+ * import org.ratpackframework.handling.Chain;
+ * import org.ratpackframework.handling.Context;
+ * import org.ratpackframework.util.Action;
  *
- * class ExampleHandler implements Handler { void handle(Context exchange) { // … } }
+ * class ExampleHandler implements Handler {
+ *   void handle(Context exchange) {
+ *     // …
+ *   }
+ * }
  *
- * class ChainBuilder implements Action&lt;Chain&gt; { void execute(Chain chain) { chain.assets("public"); chain.get("info", new ExampleHandler()); chain.prefix("api", new Action&lt;Chain&gt;() { void
- * execute(Chain apiChain) { apiChain.get("version", new ExampleHandler()); apiChain.get("log", new ExampleHandler()); } }); } } </pre>
+ * class ChainBuilder implements Action&lt;Chain&gt; {
+ *   void execute(Chain chain) {
+ *     chain
+ *       .assets("public")
+ *       .get("info", new ExampleHandler())
+ *       .prefix("api", new Action&lt;Chain&gt;() {
+ *         void execute(Chain apiChain) {
+ *           apiChain
+ *           .get("version", new ExampleHandler())
+ *           .get("log", new ExampleHandler());
+ *         }
+ *       });
+ *   }
+ * }
+ * </pre>
  */
 public abstract class Handlers {
 
@@ -52,8 +75,10 @@ public abstract class Handlers {
   }
 
   /**
-   * Creates a handler that inserts the handler chain defined by the builder, with the given service addition. <p> The service object will be available by its concrete type. To make it available by a
-   * different type (perhaps one of its interfaces) use {@link #register(Class, Object, org.ratpackframework.util.Action)}.
+   * Creates a handler that inserts the handler chain defined by the builder, with the given service addition.
+   * <p>
+   * The service object will be available by its concrete type.
+   * To make it available by a different type (perhaps one of its interfaces) use {@link #register(Class, Object, org.ratpackframework.util.Action)}.
    *
    * @param object The object to add to the service, only for the handlers defined by {@code builder}
    * @param builder The definition of the handler chain to insert with the service
@@ -77,9 +102,11 @@ public abstract class Handlers {
   }
 
   /**
-   * Creates a handler that inserts the handler chain defined by the builder, with the given service addition. <p> The service object will be available by its concrete type. To make it available by a
-   * different type (perhaps one of its interfaces) use {@link #register(Class, Object, List)}.
-   *
+   * Creates a handler that inserts the handler chain defined by the builder, with the given service addition.
+   * <p>
+   * The service object will be available by its concrete type.
+   * To make it available by a different type (perhaps one of its interfaces) use {@link #register(Class, Object, List)}.
+
    * @param object The object to add to the service, only for the handlers defined by {@code builder}
    * @param handlers The handler to
    * @param <T> The concrete type of the service addition
@@ -136,13 +163,10 @@ public abstract class Handlers {
     }
   }
 
-  public static Handler chain(Handler... handlers) {
-    return chain(ImmutableList.copyOf(handlers));
-  }
-
   /**
-   * A handlers that changes the {@link org.ratpackframework.file.FileSystemBinding} for the given handlers. <p> The new file system binding will be created by the {@link
-   * org.ratpackframework.file.FileSystemBinding#binding(String)} method of the contextual binding.
+   * A handlers that changes the {@link org.ratpackframework.file.FileSystemBinding} for the given handlers.
+   * <p>
+   * The new file system binding will be created by the {@link org.ratpackframework.file.FileSystemBinding#binding(String)} method of the contextual binding.
    *
    * @param path The relative path to the new file system binding point
    * @param handlers The handlers to execute with the new file system binding
@@ -153,8 +177,9 @@ public abstract class Handlers {
   }
 
   /**
-   * A handler that changes the {@link org.ratpackframework.file.FileSystemBinding} for the given handler chain. <p> The new file system binding will be created by the {@link
-   * org.ratpackframework.file.FileSystemBinding#binding(String)} method of the contextual binding.
+   * A handler that changes the {@link org.ratpackframework.file.FileSystemBinding} for the given handler chain.
+   * <p>
+   * The new file system binding will be created by the {@link org.ratpackframework.file.FileSystemBinding#binding(String)} method of the contextual binding.
    *
    * @param path The relative path to the new file system binding point
    * @param builder The definition of the handler chain
@@ -165,8 +190,11 @@ public abstract class Handlers {
   }
 
   /**
-   * A handler that serves static assets at the given file system path, relative to the contextual file system binding. <p> See {@link #assets(String, String[], Handler)} for the definition of how
-   * what to serve is calculated. <p> No "index files" will be used.
+   * A handler that serves static assets at the given file system path, relative to the contextual file system binding.
+   * <p>
+   * See {@link #assets(String, String[], Handler)} for the definition of how what to serve is calculated.
+   * <p>
+   * No "index files" will be used.
    *
    * @param path The relative path to the location of the assets to serve
    * @param notFound The handler to delegate to if no file matches the request
@@ -177,8 +205,11 @@ public abstract class Handlers {
   }
 
   /**
-   * A handler that serves static assets at the given file system path, relative to the contextual file system binding. <p> See {@link #assets(String, String[], Handler)} for the definition of how
-   * what to serve is calculated. <p> If no file can be found to serve, the exchange will be delegated to the next handler in the chain.
+   * A handler that serves static assets at the given file system path, relative to the contextual file system binding.
+   * <p>
+   * See {@link #assets(String, String[], Handler)} for the definition of how what to serve is calculated.
+   * <p>
+   * If no file can be found to serve, the exchange will be delegated to the next handler in the chain.
    *
    * @param path The relative path to the location of the assets to serve
    * @param indexFiles The index files to try if the request is for a directory
@@ -189,10 +220,17 @@ public abstract class Handlers {
   }
 
   /**
-   * A handler that serves static assets at the given file system path, relative to the contextual file system binding. <p> The file to serve is calculated based on the contextual {@link
-   * org.ratpackframework.file.FileSystemBinding} and the contextual {@link org.ratpackframework.path.PathBinding}. The {@link org.ratpackframework.path.PathBinding#getPastBinding()} of the contextual
-   * path binding is used to find a file/directory relative to the contextual file system binding. <p> If the request matches a directory, an index file may be served. The {@code indexFiles} array
-   * specifies the names of files to look for in order to serve. <p> If no file can be found to serve, the exchange will be delegated to the given handler.
+   * A handler that serves static assets at the given file system path, relative to the contextual file system binding.
+   * <p>
+   * The file to serve is calculated based on the contextual {@link org.ratpackframework.file.FileSystemBinding} and the
+   * contextual {@link org.ratpackframework.path.PathBinding}.
+   * The {@link org.ratpackframework.path.PathBinding#getPastBinding()} of the contextual path binding is used to find a file/directory
+   * relative to the contextual file system binding.
+   * <p>
+   * If the request matches a directory, an index file may be served.
+   * The {@code indexFiles} array specifies the names of files to look for in order to serve.
+   * <p>
+   * If no file can be found to serve, the exchange will be delegated to the given handler.
    *
    * @param path The relative path to the location of the assets to serve
    * @param indexFiles The index files to try if the request is for a directory
@@ -208,7 +246,9 @@ public abstract class Handlers {
   }
 
   /**
-   * A handler that simply delegates to the next handler. <p> Effectively a noop.
+   * A handler that simply delegates to the next handler.
+   * <p>
+   * Effectively a noop.
    *
    * @return A handler
    */
@@ -217,9 +257,14 @@ public abstract class Handlers {
   }
 
   /**
-   * A handler that delegates to the given handler if the request is GET and matches the given path. <p> If the request is not a GET or does not match the path, the next handler in the chain will be
-   * invoked. <p> If the request does match the given path but is not a GET, a 405 will be sent to the exchange's {@linkplain Context#clientError(int) client error handler}. <p> See {@link
-   * #path(String, java.util.List)} for details on how the path argument is interpreted.
+   * A handler that delegates to the given handler if the request is GET and matches the given path.
+   * <p>
+   * If the request is not a GET or does not match the path, the next handler in the chain will be invoked.
+   * <p>
+   * If the request does match the given path but is not a GET, a 405 will be sent to the exchange's
+   * {@linkplain Context#clientError(int) client error handler}.
+   * <p>
+   * See {@link #path(String, java.util.List)} for details on how the path argument is interpreted.
    *
    * @param path The path to match requests for
    * @param handler The handler to delegate to if the path matches and the request is a GET
@@ -230,8 +275,9 @@ public abstract class Handlers {
   }
 
   /**
-   * A handler that delegates to the given handler if the request is GET and the path is at the current root. <p> This is shorthand for calling {@link #get(String, Handler)} with a path of {@code
-   * ""}.
+   * A handler that delegates to the given handler if the request is GET and the path is at the current root.
+   * <p>
+   * This is shorthand for calling {@link #get(String, Handler)} with a path of {@code ""}.
    *
    * @param handler The handler to delegate to if the path matches and the request is a GET
    * @return A handler
@@ -250,9 +296,14 @@ public abstract class Handlers {
   }
 
   /**
-   * A handler that delegates to the given handler if the request is POST and matches the given path. <p> If the request is not a POST or does not match the path, the next handler in the chain will be
-   * invoked. <p> If the request does match the given path but is not a POST, a 405 will be sent to the exchange's {@linkplain Context#clientError(int) client error handler}. <p> See {@link
-   * #path(String, java.util.List)} for details on how the path argument is interpreted.
+   * A handler that delegates to the given handler if the request is POST and matches the given path.
+   * <p>
+   * If the request is not a POST or does not match the path, the next handler in the chain will be invoked.
+   * <p>
+   * If the request does match the given path but is not a POST, a 405 will be sent to the exchange's
+   * {@linkplain Context#clientError(int) client error handler}.
+   * <p>
+   * See {@link #path(String, java.util.List)} for details on how the path argument is interpreted.
    *
    * @param path The path to match requests for
    * @param handler The handler to delegate to if the path matches and the request is a POST
@@ -263,8 +314,9 @@ public abstract class Handlers {
   }
 
   /**
-   * A handler that delegates to the given handler if the request is POST and the path is at the current root. <p> This is shorthand for calling {@link #post(String, Handler)} with a path of {@code
-   * ""}.
+   * A handler that delegates to the given handler if the request is POST and the path is at the current root.
+   * <p>
+   * This is shorthand for calling {@link #post(String, Handler)} with a path of {@code ""}.
    *
    * @param handler The handler to delegate to if the path matches and the request is a POST
    * @return A handler
@@ -301,8 +353,9 @@ public abstract class Handlers {
   }
 
   /**
-   * Creates a handler that delegates to the given handlers if the request path starts with the given prefix. <p> See {@link #prefix(String, List)} for the details on how {@code prefix} is
-   * interpreted.
+   * Creates a handler that delegates to the given handlers if the request path starts with the given prefix.
+   * <p>
+   * See {@link #prefix(String, List)} for the details on how {@code prefix} is interpreted.
    *
    * @param prefix The path prefix to match
    * @param builder The definition of the chain to delegate to
@@ -313,8 +366,9 @@ public abstract class Handlers {
   }
 
   /**
-   * Creates a handler that delegates to the given handler if the request path starts with the given prefix. <p> See {@link #prefix(String, List)} for the details on how {@code prefix} is
-   * interpreted.
+   * Creates a handler that delegates to the given handler if the request path starts with the given prefix.
+   * <p>
+   * See {@link #prefix(String, List)} for the details on how {@code prefix} is interpreted.
    *
    * @param prefix The path prefix to match
    * @param handler The handler to delegate to
@@ -325,9 +379,12 @@ public abstract class Handlers {
   }
 
   /**
-   * Creates a handler that delegates to the given handlers if the request path starts with the given prefix. <p> The {@code prefix} is relative to the contextual {@link
-   * org.ratpackframework.path.PathBinding} of the exchange. <p> A new contextual {@link org.ratpackframework.path.PathBinding} will be established for the given handlers, using the given prefix as
-   * the bind point.
+   * Creates a handler that delegates to the given handlers if the request path starts with the given prefix.
+   * <p>
+   * The {@code prefix} is relative to the contextual {@link org.ratpackframework.path.PathBinding} of the exchange.
+   * <p>
+   * A new contextual {@link org.ratpackframework.path.PathBinding} will be established for the given handlers,
+   * using the given prefix as the bind point.
    *
    * @param prefix The path prefix to match
    * @param handlers The handlers to delegate to
@@ -337,12 +394,10 @@ public abstract class Handlers {
     return path(new TokenPathBinder(prefix, false), handlers);
   }
 
-  public static Handler prefix(String prefix, Handler... handlers) {
-    return prefix(prefix, ImmutableList.copyOf(handlers));
-  }
-
   /**
-   * Creates a handler that delegates to the given handler if the request matches the given path exactly. <p> See {@link #path(String, List)} for the details on how {@code prefix} is interpreted.
+   * Creates a handler that delegates to the given handler if the request matches the given path exactly.
+   * <p>
+   * See {@link #path(String, List)} for the details on how {@code prefix} is interpreted.
    *
    * @param path The exact path to match to
    * @param handler The handler to delegate to if the path matches
@@ -353,9 +408,12 @@ public abstract class Handlers {
   }
 
   /**
-   * Creates a handler that delegates to the given handlers if the request matches the given path exactly. <p> The {@code path} is relative to the contextual {@link
-   * org.ratpackframework.path.PathBinding} of the exchange. <p> A new contextual {@link org.ratpackframework.path.PathBinding} will be established for the given handlers, using the given path as the
-   * bind point.
+   * Creates a handler that delegates to the given handlers if the request matches the given path exactly.
+   * <p>
+   * The {@code path} is relative to the contextual {@link org.ratpackframework.path.PathBinding} of the exchange.
+   * <p>
+   * A new contextual {@link org.ratpackframework.path.PathBinding} will be established for the given handlers,
+   * using the given path as the bind point.
    *
    * @param path The exact path to match to
    * @param handlers The handlers to delegate to if the path matches
@@ -387,4 +445,7 @@ public abstract class Handlers {
     return new PathHandler(pathBinder, ImmutableList.copyOf(handlers));
   }
 
+  public static Handler prefix(String prefix, Handler... handlers) {
+    return prefix(prefix, ImmutableList.copyOf(handlers));
+  }
 }
