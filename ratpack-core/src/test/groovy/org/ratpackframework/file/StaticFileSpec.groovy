@@ -19,19 +19,17 @@ package org.ratpackframework.file
 import com.jayway.restassured.response.Response
 import io.netty.handler.codec.http.HttpHeaderDateFormat
 import org.apache.commons.lang3.RandomStringUtils
-import org.ratpackframework.test.DefaultRatpackSpec
+import org.ratpackframework.test.groovy.RatpackGroovyDslSpec
 import spock.lang.Unroll
 
 import static io.netty.handler.codec.http.HttpHeaders.Names.*
 import static io.netty.handler.codec.http.HttpResponseStatus.NOT_MODIFIED
 import static io.netty.handler.codec.http.HttpResponseStatus.OK
-import static org.ratpackframework.groovy.handling.ClosureHandlers.fileSystem
-import static org.ratpackframework.groovy.handling.ClosureHandlers.handler
-import static org.ratpackframework.groovy.handling.ClosureHandlers.path
-import static org.ratpackframework.handling.Handlers.assets
-import static org.ratpackframework.handling.Handlers.post
+import static io.netty.handler.codec.http.HttpResponseStatus.FORBIDDEN
+import static io.netty.handler.codec.http.HttpResponseStatus.NOT_FOUND
+import static io.netty.handler.codec.http.HttpResponseStatus.METHOD_NOT_ALLOWED
 
-class StaticFileSpec extends DefaultRatpackSpec {
+class StaticFileSpec extends RatpackGroovyDslSpec {
 
   def "root listing disabled"() {
     given:
@@ -41,14 +39,14 @@ class StaticFileSpec extends DefaultRatpackSpec {
     when:
     app {
       handlers {
-        add assets("public")
+        assets("public")
       }
     }
 
     then:
-    get("").statusCode == 403
-    get("foo").statusCode == 403
-    get("foos").statusCode == 404
+    get("").statusCode == FORBIDDEN.code()
+    get("foo").statusCode == FORBIDDEN.code()
+    get("foos").statusCode == NOT_FOUND.code()
   }
 
   def "can serve static file"() {
@@ -58,7 +56,7 @@ class StaticFileSpec extends DefaultRatpackSpec {
     when:
     app {
       handlers {
-        add assets("public")
+        assets("public")
       }
     }
 
@@ -67,7 +65,7 @@ class StaticFileSpec extends DefaultRatpackSpec {
     getText("static.text") == "hello!"
 
     with(head("static.text")) {
-      statusCode == 200
+      statusCode == OK.code()
       asByteArray().length == 0
       getHeader("content-length") == file.length().toString()
     }
@@ -80,7 +78,7 @@ class StaticFileSpec extends DefaultRatpackSpec {
     when:
     app {
       handlers {
-        add assets("public", "index.html", "index.xhtml")
+        assets("public", "index.html", "index.xhtml")
       }
     }
 
@@ -97,7 +95,7 @@ class StaticFileSpec extends DefaultRatpackSpec {
     when:
     app {
       handlers {
-        add assets("public", "index.html")
+        assets("public", "index.html")
       }
     }
 
@@ -114,11 +112,11 @@ class StaticFileSpec extends DefaultRatpackSpec {
     when:
     app {
       handlers {
-        add path("a") {
-          add assets("d1")
+        prefix("a") {
+          assets("d1")
         }
-        add path("b") {
-          add assets("d2")
+        prefix("b") {
+          assets("d2")
         }
       }
     }
@@ -137,7 +135,7 @@ class StaticFileSpec extends DefaultRatpackSpec {
     when:
     app {
       handlers {
-        add assets("d1")
+        assets("d1")
       }
     }
 
@@ -145,8 +143,8 @@ class StaticFileSpec extends DefaultRatpackSpec {
     getText("some%20other.txt") == "1"
     getText("some+more.txt") == "2"
     getText("path%20to/some+where/test.txt") == "3"
-    get("some+other.txt").statusCode == 404
-    get("some%20more.txt").statusCode == 404
+    get("some+other.txt").statusCode == NOT_FOUND.code()
+    get("some%20more.txt").statusCode == NOT_FOUND.code()
   }
 
   def "can specify explicit not found handler"() {
@@ -157,10 +155,10 @@ class StaticFileSpec extends DefaultRatpackSpec {
     when:
     app {
       handlers {
-        add assets("d1", handler {
+        assets("d1") {
           response.send("in not found handler")
-        })
-        add assets("d2")
+        }
+        assets("d2")
       }
     }
 
@@ -176,9 +174,9 @@ class StaticFileSpec extends DefaultRatpackSpec {
     when:
     app {
       handlers {
-        add fileSystem("d1") {
-          add fileSystem("d2") {
-            add assets("d3", "index.html")
+        fileSystem("d1") {
+          fileSystem("d2") {
+            assets("d3", "index.html")
           }
         }
       }
@@ -195,14 +193,14 @@ class StaticFileSpec extends DefaultRatpackSpec {
     when:
     app {
       handlers {
-        add path("bar") {
-          add assets("foo")
+        prefix("bar") {
+          assets("foo")
         }
       }
     }
 
     then:
-    get("foo/file.txt").statusCode == 404
+    get("foo/file.txt").statusCode == NOT_FOUND.code()
     getText("bar/file.txt") == "file"
   }
 
@@ -213,13 +211,13 @@ class StaticFileSpec extends DefaultRatpackSpec {
     and:
     app {
       handlers {
-        add assets("public")
+        assets("public")
       }
     }
 
     expect:
     def response = get("file.txt")
-    response.statusCode == 200
+    response.statusCode == OK.code()
     // compare the last modified dates formatted as milliseconds are stripped when added as a response header
     formatDateHeader(parseDateHeader(response, LAST_MODIFIED)) == formatDateHeader(file.lastModified())
   }
@@ -231,15 +229,15 @@ class StaticFileSpec extends DefaultRatpackSpec {
     when:
     app {
       handlers {
-        add assets("public")
+        assets("public")
       }
     }
 
     then:
-    this.get("file.txt").statusCode == 200
-    this.post("file.txt").statusCode == 405
-    this.get("nothing").statusCode == 404
-    this.post("nothing").statusCode == 404
+    this.get("file.txt").statusCode == OK.code()
+    this.post("file.txt").statusCode == METHOD_NOT_ALLOWED.code()
+    this.get("nothing").statusCode == NOT_FOUND.code()
+    this.post("nothing").statusCode == NOT_FOUND.code()
   }
 
   @Unroll
@@ -250,7 +248,7 @@ class StaticFileSpec extends DefaultRatpackSpec {
     and:
     app {
       handlers {
-        add assets("public")
+        assets("public")
       }
     }
 
@@ -278,7 +276,7 @@ class StaticFileSpec extends DefaultRatpackSpec {
     and:
     app {
       handlers {
-        add assets("public", "index.txt")
+        assets("public", "index.txt")
       }
     }
 
@@ -298,7 +296,7 @@ class StaticFileSpec extends DefaultRatpackSpec {
     when:
     app {
       handlers {
-        add assets("public")
+        assets("public")
       }
     }
 
@@ -306,7 +304,7 @@ class StaticFileSpec extends DefaultRatpackSpec {
     getText("static.text").bytes.length == file.length()
 
     with(head("static.text")) {
-      statusCode == 200
+      statusCode == OK.code()
       asByteArray().length == 0
       getHeader("content-length") == file.length().toString()
     }
