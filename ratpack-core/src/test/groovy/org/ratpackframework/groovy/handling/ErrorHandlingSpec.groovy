@@ -53,13 +53,14 @@ class ErrorHandlingSpec extends RatpackGroovyDslSpec {
 
     when:
     app {
+      modules {
+        bind ServerErrorHandler, errorHandler
+      }
       handlers {
-        register(ServerErrorHandler, errorHandler) {
-          get {
-            withErrorHandling new Thread({
-              throw new Exception("thrown in forked thread")
-            })
-          }
+        get {
+          withErrorHandling new Thread({
+            throw new Exception("thrown in forked thread")
+          })
         }
       }
     }
@@ -84,18 +85,19 @@ class ErrorHandlingSpec extends RatpackGroovyDslSpec {
 
     when:
     app {
+      modules {
+        bind ServerErrorHandler, errorHandler1
+      }
       handlers {
-        register(ServerErrorHandler, errorHandler1) {
-          get { exchange ->
-            withErrorHandling new Thread({
-              insert(ServerErrorHandler, errorHandler2, Arrays.asList(new Handler() {
-                @Override
-                void handle(Context context) {
-                  throw new Exception("down here")
-                }
-              }))
-            })
-          }
+        get { exchange ->
+          withErrorHandling new Thread({
+            insert(ServerErrorHandler, errorHandler2, Arrays.asList(new Handler() {
+              @Override
+              void handle(Context context) {
+                throw new Exception("down here")
+              }
+            }))
+          })
         }
       }
     }
@@ -119,16 +121,17 @@ class ErrorHandlingSpec extends RatpackGroovyDslSpec {
 
     when:
     app {
+      modules {
+        bind ServerErrorHandler, errorHandler1
+      }
       handlers {
-        register(ServerErrorHandler, errorHandler1) {
-          register(ServerErrorHandler, errorHandler2) {
-            get("a") {
-              throw new Exception("1")
-            }
+        register(ServerErrorHandler, errorHandler2) {
+          get("a") {
+            throw new Exception("1")
           }
-          get("b") {
-            throw new Exception("2")
-          }
+        }
+        get("b") {
+          throw new Exception("2")
         }
       }
     }
@@ -148,11 +151,12 @@ class ErrorHandlingSpec extends RatpackGroovyDslSpec {
 
     when:
     app {
+      modules {
+        bind ServerErrorHandler, errorHandler
+      }
       handlers {
-        register(ServerErrorHandler, errorHandler) {
-          get {
-            throw new Exception("thrown")
-          }
+        get {
+          throw new Exception("thrown")
         }
       }
     }
