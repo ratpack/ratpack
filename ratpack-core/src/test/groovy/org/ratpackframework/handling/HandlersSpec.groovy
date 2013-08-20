@@ -20,7 +20,6 @@ import org.ratpackframework.error.ClientErrorHandler
 import org.ratpackframework.error.ServerErrorHandler
 import org.ratpackframework.file.FileSystemBinding
 import org.ratpackframework.file.MimeTypes
-import org.ratpackframework.groovy.handling.internal.ClosureBackedHandler
 import org.ratpackframework.launch.LaunchConfig
 import org.ratpackframework.test.groovy.RatpackGroovyDslSpec
 

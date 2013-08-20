@@ -163,6 +163,10 @@ public abstract class Handlers {
     }
   }
 
+  public static Handler chain(Handler... handlers) {
+    return chain(ImmutableList.copyOf(handlers));
+  }
+
   /**
    * A handlers that changes the {@link org.ratpackframework.file.FileSystemBinding} for the given handlers.
    * <p>
