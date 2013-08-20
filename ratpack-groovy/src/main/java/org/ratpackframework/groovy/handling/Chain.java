@@ -20,6 +20,9 @@ import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.ratpackframework.handling.Context;
 import org.ratpackframework.handling.Handler;
+import org.ratpackframework.util.Action;
+
+import java.util.List;
 
 /**
  * A Groovy oriented handler chain builder DSL.
@@ -67,22 +70,72 @@ public interface Chain extends org.ratpackframework.handling.Chain {
    */
   Chain prefix(String prefix, @DelegatesTo(value = Chain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> chain);
 
+  Chain prefix(String prefix, Handler... handlers);
+
+  /**
+   * {@inheritDoc}
+   */
+  org.ratpackframework.handling.Chain prefix(String prefix, Handler handler);
+
   Chain path(String path, @DelegatesTo(value = Context.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
+
+  /**
+   * {@inheritDoc}
+   */
+  Chain path(String path, Handler handler);
+
+  /**
+   * {@inheritDoc}
+   */
+  Chain get(Handler handler);
+
+  /**
+   * {@inheritDoc}
+   */
+  Chain get(String path, Handler handler);
 
   Chain get(String path, @DelegatesTo(value = Context.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
 
   Chain get(@DelegatesTo(value = Context.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
 
+  /**
+   * {@inheritDoc}
+   */
+  Chain post(String path, Handler handler);
+
   Chain post(String path, @DelegatesTo(value = Context.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
 
+  /**
+   * {@inheritDoc}
+   */
+  Chain post(Handler handler);
+
   Chain post(@DelegatesTo(value = Context.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
+
+  /**
+   * {@inheritDoc}
+   */
+  Chain assets(String path, Handler handler);
 
   Chain assets(String path, @DelegatesTo(value = Context.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
 
   Chain register(Object object, @DelegatesTo(value = Chain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handlers);
 
+  Chain register(Object object, List<Handler> handlers);
+
   <T> Chain register(Class<? super T> type, T object, @DelegatesTo(value = Chain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handlers);
+
+  <T> Chain register(Class<? super T> type, T object, List<Handler> handlers);
 
   Chain fileSystem(String path, @DelegatesTo(value = Chain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handlers);
 
+  Chain prefix(String prefix, List<Handler> handlers);
+
+  Chain prefix(String prefix, Action<? super org.ratpackframework.handling.Chain> chainAction);
+
+  @Override
+  Chain assets(String path, String... indexFiles);
+
+  @Override
+  Chain fileSystem(String path, List<Handler> handlers);
 }
