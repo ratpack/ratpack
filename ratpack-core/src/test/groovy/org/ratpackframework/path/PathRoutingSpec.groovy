@@ -62,6 +62,34 @@ class PathRoutingSpec extends RatpackGroovyDslSpec {
     get("abc/de/ghi").statusCode == NOT_FOUND.code()
   }
 
+  def "can route by multi path prefix"() {
+    when:
+    app {
+      handlers {
+        prefix(["abc", "ghi"]) {
+          handler {
+            def binding = get(PathBinding)
+            binding.boundTo.equals("abc") ? next() : response.send("handler1 - $binding.boundTo")
+          }
+        }
+
+        prefix(["abc", "ghi", "mno"]) {
+          prefix("def") {
+            handler {
+              def binding = get(PathBinding)
+              response.send("handler2 - $binding.boundTo")
+            }
+          }
+        }
+      }
+    }
+
+    then:
+    getText("abc/def/jkl") == "handler2 - def"
+    getText("ghi/def/jkl") == "handler1 - ghi"
+    getText("mno/def/jkl") == "handler2 - def"
+  }
+
   def "can route by prefix with tokens"() {
     when:
     app {
@@ -133,6 +161,27 @@ class PathRoutingSpec extends RatpackGroovyDslSpec {
     get("abc").statusCode == NOT_FOUND.code()
   }
 
+  def "can route by exact multi path"() {
+    when:
+    app {
+      handlers {
+        path(["abc", "def"]) {
+          def binding = get(PathBinding)
+          binding.boundTo.equals("abc") ? next() : response.send("handler1 - $binding.boundTo")
+        }
+
+        path("abc") {
+          def binding = get(PathBinding)
+          response.send("handler2 - $binding.boundTo")
+        }
+      }
+    }
+
+    then:
+    getText("abc") == "handler2 - abc"
+    getText("def") == "handler1 - def"
+  }
+
   def "can route by exact path with tokens"() {
     when:
     app {
@@ -186,4 +235,26 @@ class PathRoutingSpec extends RatpackGroovyDslSpec {
     getText("a") == "a"
     get("a/b/c").statusCode == NOT_FOUND.code()
   }
+
+  def "can use multi path get handler"() {
+    when:
+    app {
+      handlers {
+        get(["abc", "def"]) {
+          def binding = get(PathBinding)
+          binding.boundTo.equals("abc") ? next() : response.send("handler1 - $binding.boundTo")
+        }
+
+        get("abc") {
+          def binding = get(PathBinding)
+          response.send("handler2 - $binding.boundTo")
+        }
+      }
+    }
+
+    then:
+    getText("abc") == "handler2 - abc"
+    getText("def") == "handler1 - def"
+  }
+
 }

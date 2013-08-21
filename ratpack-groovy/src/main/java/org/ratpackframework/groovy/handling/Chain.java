@@ -75,7 +75,25 @@ public interface Chain extends org.ratpackframework.handling.Chain {
   /**
    * {@inheritDoc}
    */
-  org.ratpackframework.handling.Chain prefix(String prefix, Handler handler);
+  Chain prefix(String prefix, Handler handler);
+
+  Chain prefix(String prefix, List<Handler> handlers);
+
+  Chain prefix(String prefix, Action<? super org.ratpackframework.handling.Chain> chainAction);
+
+  Chain prefix(List<String> prefixes, @DelegatesTo(value = Chain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> chain);
+
+  Chain prefix(List<String> prefixes, Handler... handlers);
+
+  Chain prefix(List<String> prefixes, Handler handler);
+
+  Chain prefix(List<String> prefixes, List<Handler> handlers);
+
+  Chain prefix(List<String> prefixes, Action<? super org.ratpackframework.handling.Chain> chainAction);
+
+  Chain path(List<String> paths, @DelegatesTo(value = Context.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
+
+  Chain path(List<String> paths, Handler handler);
 
   Chain path(String path, @DelegatesTo(value = Context.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
 
@@ -98,12 +116,20 @@ public interface Chain extends org.ratpackframework.handling.Chain {
 
   Chain get(@DelegatesTo(value = Context.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
 
+  Chain get(List<String> paths, Handler handler);
+
+  Chain get(List<String> paths, @DelegatesTo(value = Context.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
+
   /**
    * {@inheritDoc}
    */
   Chain post(String path, Handler handler);
 
   Chain post(String path, @DelegatesTo(value = Context.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
+
+  Chain post(List<String> paths, Handler handler);
+
+  Chain post(List<String> paths, @DelegatesTo(value = Context.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
 
   /**
    * {@inheritDoc}
@@ -120,15 +146,12 @@ public interface Chain extends org.ratpackframework.handling.Chain {
 
   <T> Chain register(Class<? super T> type, T object, List<Handler> handlers);
 
-  Chain fileSystem(String path, @DelegatesTo(value = Chain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handlers);
-
-  Chain prefix(String prefix, List<Handler> handlers);
-
-  Chain prefix(String prefix, Action<? super org.ratpackframework.handling.Chain> chainAction);
-
   @Override
   Chain assets(String path, String... indexFiles);
 
   @Override
   Chain fileSystem(String path, List<Handler> handlers);
+
+  Chain fileSystem(String path, @DelegatesTo(value = Chain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handlers);
+
 }

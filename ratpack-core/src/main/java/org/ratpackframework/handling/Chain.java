@@ -52,6 +52,14 @@ public interface Chain {
 
   Chain prefix(String prefix, Action<? super Chain> chainAction);
 
+  Chain prefix(List<String> prefixes, Handler... handlers);
+
+  Chain prefix(List<String> prefixes, List<Handler> handlers);
+
+  Chain prefix(List<String> prefixes, Action<? super Chain> chainAction);
+
+  Chain path(List<String> paths, Handler handler);
+
   /**
    * Add a path handler to the chain being constructed for the given path.
    * <p>See also {@link org.ratpackframework.handling.Handlers#path(String, Handler)}
@@ -60,6 +68,8 @@ public interface Chain {
    * @param handler The handler to delegate to if the request matches the given path exactly
    */
   Chain path(String path, Handler handler);
+
+  Chain get(List<String> paths, Handler handler);
 
   /**
    * Add a GET handler to the chain being constructed for the given path.
@@ -81,6 +91,8 @@ public interface Chain {
    * @return A Handler
    */
   Chain get(Handler handler);
+
+  Chain post(List<String> paths, Handler handler);
 
   /**
    * Add a POST handler to the chain being constructed for the given path.

@@ -18,9 +18,11 @@ package org.ratpackframework.groovy.handling.internal;
 
 import com.google.common.collect.ImmutableList;
 import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 import org.ratpackframework.api.Nullable;
 import org.ratpackframework.groovy.Util;
 import org.ratpackframework.groovy.handling.Chain;
+import org.ratpackframework.handling.Context;
 import org.ratpackframework.handling.Handler;
 import org.ratpackframework.handling.internal.ChainBuilder;
 import org.ratpackframework.registry.Registry;
@@ -50,16 +52,44 @@ public class DefaultChain extends org.ratpackframework.handling.internal.Default
     return (Chain) super.prefix(prefix, handlers);
   }
 
-  public Chain prefix(String prefix, List<Handler> handlers) {
-    return (Chain) super.prefix(prefix, handlers);
-  }
-
   public Chain prefix(String prefix, Handler handler) {
     return (Chain) super.prefix(prefix, handler);
   }
 
+  public Chain prefix(String prefix, List<Handler> handlers) {
+    return (Chain) super.prefix(prefix, handlers);
+  }
+
   public Chain prefix(String prefix, Action<? super org.ratpackframework.handling.Chain> chainAction) {
     return (Chain) super.prefix(prefix, chainAction);
+  }
+
+  public Chain prefix(List<String> prefixes, Closure<?> chain) {
+    return prefix(prefixes, toHandlerList(chain));
+  }
+
+  public Chain prefix(List<String> prefixes, Handler... handlers) {
+    return (Chain) super.prefix(prefixes, handlers);
+  }
+
+  public Chain prefix(List<String> prefixes, Handler handler) {
+    return (Chain) super.prefix(prefixes, handler);
+  }
+
+  public Chain prefix(List<String> prefixes, List<Handler> handlers) {
+    return (Chain) super.prefix(prefixes, handlers);
+  }
+
+  public Chain prefix(List<String> prefixes, Action<? super org.ratpackframework.handling.Chain> chainAction) {
+    return (Chain) super.prefix(prefixes, chainAction);
+  }
+
+  public Chain path(List<String> paths, Handler handler) {
+    return (Chain) super.path(paths, handler);
+  }
+
+  public Chain path(List<String> paths, Closure<?> handler) {
+    return path(paths, new ClosureBackedHandler(handler));
   }
 
   public Chain path(String path, Closure<?> handler) {
@@ -86,12 +116,28 @@ public class DefaultChain extends org.ratpackframework.handling.internal.Default
     return get("", handler);
   }
 
+  public Chain get(List<String> paths, Handler handler) {
+    return (Chain) super.get(paths, handler);
+  }
+
+  public Chain get(List<String> paths, @DelegatesTo(value = Context.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler) {
+    return get(paths, new ClosureBackedHandler(handler));
+  }
+
   public Chain post(String path, Handler handler) {
     return (Chain) super.post(path, handler);
   }
 
   public Chain post(String path, Closure<?> handler) {
     return post(path, new ClosureBackedHandler(handler));
+  }
+
+  public Chain post(List<String> paths, Handler handler) {
+    return (Chain) super.post(paths, handler);
+  }
+
+  public Chain post(List<String> paths, @DelegatesTo(value = Context.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler) {
+    return post(paths, new ClosureBackedHandler(handler));
   }
 
   public Chain post(Handler handler) {
