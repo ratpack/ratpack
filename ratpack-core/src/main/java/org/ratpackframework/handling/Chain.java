@@ -109,15 +109,6 @@ public interface Chain {
   Chain assets(String path, String... indexFiles);
 
   /**
-   * Add an asset handler to the chain being constructed.
-   * <p>See also {@link org.ratpackframework.handling.Handlers#path(String, Handler)}
-   *
-   * @param path The relative path to the location of the assets to serve
-   * @param notFound The handler to delegate to if no file matches the request
-   */
-  Chain assets(String path, Handler notFound);
-
-  /**
    * Adds a register handler to the chain being constructed, with the given service addition.
    * <p>See also {@link org.ratpackframework.handling.Handlers#register(Object, java.util.List)}
    *

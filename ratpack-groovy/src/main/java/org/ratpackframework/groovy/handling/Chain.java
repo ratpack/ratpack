@@ -112,13 +112,6 @@ public interface Chain extends org.ratpackframework.handling.Chain {
 
   Chain post(@DelegatesTo(value = Context.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
 
-  /**
-   * {@inheritDoc}
-   */
-  Chain assets(String path, Handler handler);
-
-  Chain assets(String path, @DelegatesTo(value = Context.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
-
   Chain register(Object object, @DelegatesTo(value = Chain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handlers);
 
   Chain register(Object object, List<Handler> handlers);

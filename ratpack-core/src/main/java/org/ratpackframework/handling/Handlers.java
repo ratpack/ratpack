@@ -44,24 +44,24 @@ import java.util.List;
  * import org.ratpackframework.util.Action;
  *
  * class ExampleHandler implements Handler {
- *   void handle(Context exchange) {
- *     // …
- *   }
+ * void handle(Context exchange) {
+ * // …
+ * }
  * }
  *
  * class ChainBuilder implements Action&lt;Chain&gt; {
- *   void execute(Chain chain) {
- *     chain
- *       .assets("public")
- *       .get("info", new ExampleHandler())
- *       .prefix("api", new Action&lt;Chain&gt;() {
- *         void execute(Chain apiChain) {
- *           apiChain
- *           .get("version", new ExampleHandler())
- *           .get("log", new ExampleHandler());
- *         }
- *       });
- *   }
+ * void execute(Chain chain) {
+ * chain
+ * .assets("public")
+ * .get("info", new ExampleHandler())
+ * .prefix("api", new Action&lt;Chain&gt;() {
+ * void execute(Chain apiChain) {
+ * apiChain
+ * .get("version", new ExampleHandler())
+ * .get("log", new ExampleHandler());
+ * }
+ * });
+ * }
  * }
  * </pre>
  */
@@ -106,7 +106,7 @@ public abstract class Handlers {
    * <p>
    * The service object will be available by its concrete type.
    * To make it available by a different type (perhaps one of its interfaces) use {@link #register(Class, Object, List)}.
-
+   *
    * @param object The object to add to the service, only for the handlers defined by {@code builder}
    * @param handlers The handler to
    * @param <T> The concrete type of the service addition
@@ -196,36 +196,6 @@ public abstract class Handlers {
   /**
    * A handler that serves static assets at the given file system path, relative to the contextual file system binding.
    * <p>
-   * See {@link #assets(String, String[], Handler)} for the definition of how what to serve is calculated.
-   * <p>
-   * No "index files" will be used.
-   *
-   * @param path The relative path to the location of the assets to serve
-   * @param notFound The handler to delegate to if no file matches the request
-   * @return A handler
-   */
-  public static Handler assets(String path, Handler notFound) {
-    return assets(path, new String[0], notFound);
-  }
-
-  /**
-   * A handler that serves static assets at the given file system path, relative to the contextual file system binding.
-   * <p>
-   * See {@link #assets(String, String[], Handler)} for the definition of how what to serve is calculated.
-   * <p>
-   * If no file can be found to serve, the exchange will be delegated to the next handler in the chain.
-   *
-   * @param path The relative path to the location of the assets to serve
-   * @param indexFiles The index files to try if the request is for a directory
-   * @return A handler
-   */
-  public static Handler assets(String path, String... indexFiles) {
-    return assets(path, indexFiles, next());
-  }
-
-  /**
-   * A handler that serves static assets at the given file system path, relative to the contextual file system binding.
-   * <p>
    * The file to serve is calculated based on the contextual {@link org.ratpackframework.file.FileSystemBinding} and the
    * contextual {@link org.ratpackframework.path.PathBinding}.
    * The {@link org.ratpackframework.path.PathBinding#getPastBinding()} of the contextual path binding is used to find a file/directory
@@ -234,19 +204,19 @@ public abstract class Handlers {
    * If the request matches a directory, an index file may be served.
    * The {@code indexFiles} array specifies the names of files to look for in order to serve.
    * <p>
-   * If no file can be found to serve, the exchange will be delegated to the given handler.
+   * If no file can be found to serve, then control will be delegated to the next handler.
    *
    * @param path The relative path to the location of the assets to serve
    * @param indexFiles The index files to try if the request is for a directory
-   * @param notFound The handler to delegate to if no file could be found to serve
    * @return A handler
    */
-  public static Handler assets(String path, String[] indexFiles, final Handler notFound) {
+
+  public static Handler assets(String path, String... indexFiles) {
     Handler fileHandler = FileStaticAssetRequestHandler.INSTANCE;
     Handler directoryHandler = new DirectoryStaticAssetRequestHandler(ImmutableList.<String>builder().add(indexFiles).build(), fileHandler);
     Handler contextSetter = new TargetFileStaticAssetRequestHandler(directoryHandler);
 
-    return fileSystem(path, ImmutableList.<Handler>of(contextSetter, notFound));
+    return fileSystem(path, ImmutableList.of(contextSetter));
   }
 
   /**

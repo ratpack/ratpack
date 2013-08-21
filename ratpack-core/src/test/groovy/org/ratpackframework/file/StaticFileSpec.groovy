@@ -147,26 +147,6 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
     get("some%20more.txt").statusCode == NOT_FOUND.code()
   }
 
-  def "can specify explicit not found handler"() {
-    given:
-    file("d1/f1.txt") << "1"
-    file("d2/f2.txt") << "2"
-
-    when:
-    app {
-      handlers {
-        assets("d1") {
-          response.send("in not found handler")
-        }
-        assets("d2")
-      }
-    }
-
-    then:
-    getText("f1.txt") == "1"
-    getText("f2.txt") == "in not found handler"
-  }
-
   def "can nest file system binding handlers"() {
     given:
     file("d1/d2/d3/dir/index.html") << "3"

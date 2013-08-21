@@ -102,17 +102,8 @@ public class DefaultChain extends org.ratpackframework.handling.internal.Default
     return post("", handler);
   }
 
-  @Override
   public Chain assets(String path, String... indexFiles) {
     return (Chain) super.assets(path, indexFiles);
-  }
-
-  public Chain assets(String path, Handler handler) {
-    return (Chain) super.assets(path, handler);
-  }
-
-  public Chain assets(String path, Closure<?> handler) {
-    return assets(path, new ClosureBackedHandler(handler));
   }
 
   public Chain register(Object object, Closure<?> handlers) {

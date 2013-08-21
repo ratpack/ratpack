@@ -78,10 +78,6 @@ public class DefaultChain implements Chain {
     return handler(Handlers.assets(path, indexFiles));
   }
 
-  public Chain assets(String path, Handler notFound) {
-    return handler(Handlers.assets(path, notFound));
-  }
-
   public Chain register(Object object, List<Handler> handlers) {
     return handler(Handlers.register(object, handlers));
   }
