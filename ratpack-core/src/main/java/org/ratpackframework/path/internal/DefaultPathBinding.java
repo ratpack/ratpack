@@ -21,8 +21,6 @@ import org.ratpackframework.path.PathBinding;
 import org.ratpackframework.path.PathTokens;
 import org.ratpackframework.util.internal.Validations;
 
-import java.util.Map;
-
 public class DefaultPathBinding implements PathBinding {
 
   private final String binding;

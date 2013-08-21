@@ -16,8 +16,6 @@
 
 package org.ratpackframework.path;
 
-import java.util.Map;
-
 /**
  * A path binding represents some kind of "match" on the path of a request.
  *

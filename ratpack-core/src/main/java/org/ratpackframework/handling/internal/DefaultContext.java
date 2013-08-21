@@ -42,12 +42,10 @@ import org.ratpackframework.util.ResultAction;
 import java.io.File;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ExecutorService;
 
 import static io.netty.handler.codec.http.HttpHeaders.Names.IF_MODIFIED_SINCE;
 import static io.netty.handler.codec.http.HttpResponseStatus.NOT_MODIFIED;
-
 
 public class DefaultContext implements Context {
 
