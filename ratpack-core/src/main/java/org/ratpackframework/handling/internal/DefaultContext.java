@@ -28,6 +28,7 @@ import org.ratpackframework.handling.*;
 import org.ratpackframework.http.Request;
 import org.ratpackframework.http.Response;
 import org.ratpackframework.path.PathBinding;
+import org.ratpackframework.path.PathTokens;
 import org.ratpackframework.redirect.Redirector;
 import org.ratpackframework.registry.NotInRegistryException;
 import org.ratpackframework.registry.Registry;
@@ -107,11 +108,11 @@ public class DefaultContext implements Context {
     responder.respond(this);
   }
 
-  public Map<String, String> getPathTokens() {
+  public PathTokens getPathTokens() {
     return get(PathBinding.class).getTokens();
   }
 
-  public Map<String, String> getAllPathTokens() {
+  public PathTokens getAllPathTokens() {
     return get(PathBinding.class).getAllTokens();
   }
 

@@ -18,6 +18,7 @@ package org.ratpackframework.path.internal;
 
 import com.google.common.collect.ImmutableMap;
 import org.ratpackframework.path.PathBinding;
+import org.ratpackframework.path.PathTokens;
 import org.ratpackframework.util.internal.Validations;
 
 import java.util.Map;
@@ -28,18 +29,18 @@ public class DefaultPathBinding implements PathBinding {
   private final String bindingWithSlash;
   private final String pastBinding;
 
-  private final ImmutableMap<String, String> tokens;
-  private final ImmutableMap<String, String> allTokens;
+  private final PathTokens tokens;
+  private final PathTokens allTokens;
 
   public DefaultPathBinding(String path, String binding, ImmutableMap<String, String> tokens, PathBinding parent) {
     this.binding = binding;
     this.bindingWithSlash = binding.concat("/");
-    this.tokens = tokens;
+    this.tokens = new PathTokens(tokens);
 
     if (parent == null) {
-      allTokens = tokens;
+      allTokens = new PathTokens(tokens);
     } else {
-      allTokens = ImmutableMap.<String, String>builder().putAll(parent.getAllTokens()).putAll(tokens).build();
+      allTokens = new PathTokens(ImmutableMap.<String, String>builder().putAll(parent.getAllTokens()).putAll(tokens).build());
     }
 
     if (path.equals(binding)) {
@@ -64,11 +65,11 @@ public class DefaultPathBinding implements PathBinding {
     return bindingWithSlash.concat(path);
   }
 
-  public Map<String, String> getTokens() {
+  public PathTokens getTokens() {
     return tokens;
   }
 
-  public Map<String, String> getAllTokens() {
+  public PathTokens getAllTokens() {
     return allTokens;
   }
 }

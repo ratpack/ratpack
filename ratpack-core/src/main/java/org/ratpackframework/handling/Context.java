@@ -20,6 +20,7 @@ import org.ratpackframework.api.NonBlocking;
 import org.ratpackframework.block.Blocking;
 import org.ratpackframework.http.Request;
 import org.ratpackframework.http.Response;
+import org.ratpackframework.path.PathTokens;
 import org.ratpackframework.registry.NotInRegistryException;
 import org.ratpackframework.registry.Registry;
 import org.ratpackframework.render.NoSuchRendererException;
@@ -217,7 +218,7 @@ public interface Context extends Registry<Object> {
    * @return The path tokens of the current {@link org.ratpackframework.path.PathBinding} in this exchange's service
    * @throws NotInRegistryException if there is no {@link org.ratpackframework.path.PathBinding} in the current service
    */
-  Map<String, String> getPathTokens() throws NotInRegistryException;
+  PathTokens getPathTokens() throws NotInRegistryException;
 
   /**
    * All of path tokens of the current {@link org.ratpackframework.path.PathBinding} in this exchange's service.
@@ -227,7 +228,7 @@ public interface Context extends Registry<Object> {
    * @return The path tokens of the current {@link org.ratpackframework.path.PathBinding} in this exchange's service
    * @throws NotInRegistryException if there is no {@link org.ratpackframework.path.PathBinding} in the current service
    */
-  Map<String, String> getAllPathTokens() throws NotInRegistryException;
+  PathTokens getAllPathTokens() throws NotInRegistryException;
 
   /**
    * Gets the file relative to the current {@link org.ratpackframework.file.FileSystemBinding} in this exchange's service.
