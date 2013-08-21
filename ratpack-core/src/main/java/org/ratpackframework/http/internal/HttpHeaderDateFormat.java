@@ -46,7 +46,7 @@ public class HttpHeaderDateFormat extends SimpleDateFormat {
       }
     };
 
-  static HttpHeaderDateFormat get() {
+  public static HttpHeaderDateFormat get() {
     return DATE_FORMAT_THREAD_LOCAL.get();
   }
 

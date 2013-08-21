@@ -17,17 +17,13 @@
 package org.ratpackframework.file
 
 import com.jayway.restassured.response.Response
-import io.netty.handler.codec.http.HttpHeaderDateFormat
 import org.apache.commons.lang3.RandomStringUtils
+import org.ratpackframework.http.internal.HttpHeaderDateFormat
 import org.ratpackframework.test.groovy.RatpackGroovyDslSpec
 import spock.lang.Unroll
 
 import static io.netty.handler.codec.http.HttpHeaders.Names.*
-import static io.netty.handler.codec.http.HttpResponseStatus.NOT_MODIFIED
-import static io.netty.handler.codec.http.HttpResponseStatus.OK
-import static io.netty.handler.codec.http.HttpResponseStatus.FORBIDDEN
-import static io.netty.handler.codec.http.HttpResponseStatus.NOT_FOUND
-import static io.netty.handler.codec.http.HttpResponseStatus.METHOD_NOT_ALLOWED
+import static io.netty.handler.codec.http.HttpResponseStatus.*
 
 class StaticFileSpec extends RatpackGroovyDslSpec {
 
@@ -294,7 +290,7 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
   }
 
   private static Date parseDateHeader(Response response, String name) {
-    new HttpHeaderDateFormat().parse(response.getHeader(name))
+    HttpHeaderDateFormat.get().parse(response.getHeader(name))
   }
 
   private static String formatDateHeader(long timestamp) {
@@ -302,6 +298,6 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
   }
 
   private static String formatDateHeader(Date date) {
-    new HttpHeaderDateFormat().format(date)
+    HttpHeaderDateFormat.get().format(date)
   }
 }
