@@ -16,11 +16,8 @@
 
 package org.ratpackframework.launch;
 
-import com.google.common.io.Closeables;
-
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.*;
 import java.util.HashMap;
@@ -86,19 +83,10 @@ public abstract class LaunchConfigFactory {
   public static LaunchConfig createFromFile(ClassLoader classLoader, File baseDir, File configFile, Properties overrideProperties, Properties defaultProperties) {
     Properties fileProperties = new Properties(defaultProperties);
     if (configFile != null && configFile.exists()) {
-      InputStream inputStream;
-      try {
-        inputStream = new FileInputStream(configFile);
+      try (InputStream inputStream = new FileInputStream(configFile)) {
+        fileProperties.load(inputStream);
       } catch (Exception e) {
         throw new LaunchException("Could not read config file '" + configFile + "'", e);
-      }
-
-      try {
-        fileProperties.load(inputStream);
-      } catch (IOException e) {
-        throw new LaunchException("Could not read config file '" + configFile + "'", e);
-      } finally {
-        Closeables.closeQuietly(inputStream);
       }
     }
 
