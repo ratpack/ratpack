@@ -168,8 +168,7 @@ public class DefaultInvocation implements Invocation {
     if (type.isAssignableFrom(rendered.getClass())) {
       return type.cast(rendered);
     } else {
-      // TODO: better exception type
-      throw new IllegalStateException(String.format("Wrong type of object rendered. Was expecting %s but got %s", type, rendered.getClass()));
+      throw new AssertionError(String.format("Wrong type of object rendered. Was expecting %s but got %s", type, rendered.getClass()));
     }
   }
 }
