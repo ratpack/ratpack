@@ -18,6 +18,7 @@ package org.ratpackframework.path;
 
 import java.util.AbstractMap;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Set;
 
 public class PathTokens extends AbstractMap<String, String> {
@@ -31,5 +32,30 @@ public class PathTokens extends AbstractMap<String, String> {
   @Override
   public Set<Entry<String, String>> entrySet() {
     return delegate.entrySet();
+  }
+
+  public Boolean getAsBoolean(String key) {
+    if (!containsKey(key)) return null;
+    return Boolean.valueOf(get(key));
+  }
+
+  public Byte getAsByte(String key) {
+    if (!containsKey(key)) return null;
+    return Byte.valueOf(get(key));
+  }
+
+  public Short getAsShort(String key) {
+    if (!containsKey(key)) return null;
+    return Short.valueOf(get(key));
+  }
+
+  public Integer getAsInt(String key) {
+    if (!containsKey(key)) return null;
+    return Integer.valueOf(get(key));
+  }
+
+  public Long getAsLong(String key) {
+    if (!containsKey(key)) return null;
+    return Long.valueOf(get(key));
   }
 }
