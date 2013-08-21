@@ -163,11 +163,10 @@ public class DefaultInvocation implements Invocation {
     return sentFile;
   }
 
-  @SuppressWarnings("unchecked")
   @Override
   public <T> T rendered(Class<T> type) {
     if (type.isAssignableFrom(rendered.getClass())) {
-      return (T) rendered;
+      return type.cast(rendered);
     } else {
       // TODO: better exception type
       throw new IllegalStateException(String.format("Wrong type of object rendered. Was expecting %s but got %s", type, rendered.getClass()));
