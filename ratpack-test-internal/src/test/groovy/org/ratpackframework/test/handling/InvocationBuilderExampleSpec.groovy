@@ -16,6 +16,7 @@
 
 package org.ratpackframework.test.handling
 
+import org.ratpackframework.groovy.Template
 import org.ratpackframework.handling.Context
 import org.ratpackframework.handling.Handler
 import spock.lang.Specification
@@ -49,6 +50,25 @@ class InvocationBuilderExampleSpec extends Specification {
     with(invocation) {
       bodyText == "foo:/bar"
       headers.get("set-header") == "set"
+    }
+  }
+
+  static class RenderingHandler implements Handler {
+    @Override
+    void handle(Context context) {
+      context.render Template.groovyTemplate("index.html", a: "a")
+    }
+  }
+
+  def "can unit test a handler that renders a template"() {
+    when:
+    def invocation = invoke(new RenderingHandler()) {}
+
+    then:
+    with(invocation) {
+      bodyText == null
+      rendered(Template).id == "index.html"
+      rendered(Template).model == [a: "a"]
     }
   }
 

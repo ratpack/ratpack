@@ -32,8 +32,10 @@ public interface Invocation {
 
   Headers getHeaders();
 
+  @Nullable
   String getBodyText();
 
+  @Nullable
   byte[] getBodyBytes();
 
   Status getStatus();
@@ -44,5 +46,8 @@ public interface Invocation {
 
   @Nullable
   File getSentFile();
+
+  @Nullable
+  <T> T rendered(Class<T> type);
 
 }

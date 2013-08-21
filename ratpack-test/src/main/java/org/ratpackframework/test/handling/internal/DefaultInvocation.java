@@ -28,6 +28,7 @@ import org.ratpackframework.handling.internal.DelegatingHeaders;
 import org.ratpackframework.http.*;
 import org.ratpackframework.http.internal.DefaultResponse;
 import org.ratpackframework.registry.Registry;
+import org.ratpackframework.render.NoSuchRendererException;
 import org.ratpackframework.test.handling.Invocation;
 import org.ratpackframework.test.handling.InvocationTimeoutException;
 
@@ -48,6 +49,7 @@ public class DefaultInvocation implements Invocation {
   private boolean calledNext;
   private boolean sentResponse;
   private File sentFile;
+  private Object rendered;
 
   public DefaultInvocation(Request request, Status status, MutableHeaders responseHeaders, ByteBuf responseBody, Registry<Object> registry, final int timeout, Handler handler) {
 
@@ -85,7 +87,13 @@ public class DefaultInvocation implements Invocation {
     };
 
     Response response = new DefaultResponse(status, responseHeaders, responseBody, fileHttpTransmitter, committer);
-    Context context = new DefaultContext(request, response, registry, mainExecutor, blockingExecutor, next);
+    Context context = new DefaultContext(request, response, registry, mainExecutor, blockingExecutor, next) {
+      @Override
+      public void render(Object object) throws NoSuchRendererException {
+        rendered = object;
+        latch.countDown();
+      }
+    };
 
     try {
       handler.handle(context);
@@ -153,5 +161,16 @@ public class DefaultInvocation implements Invocation {
   @Override
   public File getSentFile() {
     return sentFile;
+  }
+
+  @SuppressWarnings("unchecked")
+  @Override
+  public <T> T rendered(Class<T> type) {
+    if (type.isAssignableFrom(rendered.getClass())) {
+      return (T) rendered;
+    } else {
+      // TODO: better exception type
+      throw new IllegalStateException(String.format("Wrong type of object rendered. Was expecting %s but got %s", type, rendered.getClass()));
+    }
   }
 }
