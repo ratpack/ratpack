@@ -33,12 +33,12 @@ public class DefaultPathBinding implements PathBinding {
   public DefaultPathBinding(String path, String binding, ImmutableMap<String, String> tokens, PathBinding parent) {
     this.binding = binding;
     this.bindingWithSlash = binding.concat("/");
-    this.tokens = new PathTokens(tokens);
+    this.tokens = new DefaultPathTokens(tokens);
 
     if (parent == null) {
-      allTokens = new PathTokens(tokens);
+      allTokens = new DefaultPathTokens(tokens);
     } else {
-      allTokens = new PathTokens(ImmutableMap.<String, String>builder().putAll(parent.getAllTokens()).putAll(tokens).build());
+      allTokens = new DefaultPathTokens(ImmutableMap.<String, String>builder().putAll(parent.getAllTokens()).putAll(tokens).build());
     }
 
     if (path.equals(binding)) {

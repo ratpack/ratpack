@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.path
+package org.ratpackframework.path.internal
 
 import com.google.common.collect.ImmutableMap
 import spock.lang.Specification
 import spock.lang.Unroll
 
 @Unroll
-class PathTokensSpec extends Specification {
+class DefaultPathTokensSpec extends Specification {
 
   def "can retrieve #type token"() {
     given:
-    def tokens = new PathTokens(ImmutableMap.of("a", tokenValue))
+    def tokens = new DefaultPathTokens(ImmutableMap.of("a", tokenValue))
 
     expect:
     tokens."$method"("a") == coercedValue
@@ -44,7 +44,7 @@ class PathTokensSpec extends Specification {
 
   def "throws exception if token value cannot be parsed as a #type"() {
     given:
-    def tokens = new PathTokens(ImmutableMap.of("a", "a"))
+    def tokens = new DefaultPathTokens(ImmutableMap.of("a", "a"))
 
     when:
     tokens."$method"("a")
@@ -54,12 +54,12 @@ class PathTokensSpec extends Specification {
 
     where:
     method << ["getAsInt", "getAsByte", "getAsShort", "getAsLong"]
-    type = PathTokens.getMethod(method, String).returnType.simpleName
+    type = DefaultPathTokens.getMethod(method, String).returnType.simpleName
   }
 
   def "#method returns null if delegate map does not contain the key"() {
     given:
-    def tokens = new PathTokens(Collections.EMPTY_MAP)
+    def tokens = new DefaultPathTokens(Collections.EMPTY_MAP)
 
     expect:
     tokens."$method"("a") is null
