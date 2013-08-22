@@ -17,10 +17,7 @@
 package org.ratpackframework.file.internal;
 
 import io.netty.channel.*;
-import io.netty.handler.codec.http.HttpHeaders;
-import io.netty.handler.codec.http.HttpRequest;
-import io.netty.handler.codec.http.HttpResponse;
-import io.netty.handler.codec.http.LastHttpContent;
+import io.netty.handler.codec.http.*;
 import org.ratpackframework.block.Blocking;
 import org.ratpackframework.util.Action;
 
@@ -76,7 +73,9 @@ public class DefaultFileHttpTransmitter implements FileHttpTransmitter {
       return;
     }
 
-    channel.write(response); // headers
+    HttpResponse minimalResponse = new DefaultHttpResponse(response.getProtocolVersion(), response.getStatus());
+    minimalResponse.headers().set(response.headers());
+    channel.write(minimalResponse); // headers
 
     FileRegion message = new DefaultFileRegion(fileChannel, 0, length);
     ChannelFuture writeFuture = channel.writeAndFlush(message);
