@@ -19,7 +19,10 @@ package org.ratpackframework.file.internal;
 import org.ratpackframework.block.Blocking;
 
 import java.io.File;
+import java.nio.file.attribute.BasicFileAttributes;
 
 public interface FileHttpTransmitter {
-  void transmit(Blocking blocking, File file);
+
+  void transmit(Blocking blocking, BasicFileAttributes basicFileAttributes, File file);
+
 }

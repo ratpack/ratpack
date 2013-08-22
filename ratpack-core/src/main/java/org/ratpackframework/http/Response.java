@@ -24,6 +24,7 @@ import org.ratpackframework.block.Blocking;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Set;
 
 /**
@@ -197,4 +198,6 @@ public interface Response {
    * @return The created cookie
    */
   Cookie expireCookie(String name);
+
+  void sendFile(Blocking blocking, String contentType, BasicFileAttributes attributes, File file);
 }

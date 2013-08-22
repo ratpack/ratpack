@@ -24,7 +24,12 @@ import io.netty.handler.codec.http.LastHttpContent;
 import org.ratpackframework.block.Blocking;
 import org.ratpackframework.util.Action;
 
-import java.io.*;
+import java.io.Closeable;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.nio.channels.FileChannel;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.concurrent.Callable;
 
 import static io.netty.handler.codec.http.HttpHeaders.Names.CONNECTION;
@@ -42,37 +47,23 @@ public class DefaultFileHttpTransmitter implements FileHttpTransmitter {
     this.channel = channel;
   }
 
-  public static class FileServingInfo {
-    public final long length;
-    public final FileInputStream fileInputStream;
-
-    public FileServingInfo(long length, FileInputStream fileInputStream) {
-      this.length = length;
-      this.fileInputStream = fileInputStream;
-    }
-  }
-
   @Override
-  public void transmit(final Blocking blocking, final File file) {
-    blocking.exec(new Callable<FileServingInfo>() {
+  public void transmit(Blocking blocking, final BasicFileAttributes basicFileAttributes, final File file) {
+    blocking.exec(new Callable<FileChannel>() {
       @Override
-      public FileServingInfo call() throws Exception {
-        long length = file.length();
-        FileInputStream randomAccessFile = new FileInputStream(file);
-
-        return new FileServingInfo(length, randomAccessFile);
+      public FileChannel call() throws Exception {
+        return new FileInputStream(file).getChannel();
       }
-    }).then(new Action<FileServingInfo>() {
+    }).then(new Action<FileChannel>() {
       @Override
-      public void execute(FileServingInfo fileServingInfo) {
-        transmit(fileServingInfo);
+      public void execute(FileChannel fileChannel) {
+        transmit(basicFileAttributes, fileChannel);
       }
     });
   }
 
-  public void transmit(final FileServingInfo fileServingInfo) {
-    long length = fileServingInfo.length;
-    final FileInputStream fileInputStream = fileServingInfo.fileInputStream;
+  private void transmit(BasicFileAttributes basicFileAttributes, final FileChannel fileChannel) {
+    long length = basicFileAttributes.size();
 
     response.headers().set(HttpHeaders.Names.CONTENT_LENGTH, length);
 
@@ -81,19 +72,19 @@ public class DefaultFileHttpTransmitter implements FileHttpTransmitter {
     }
 
     if (!channel.isOpen()) {
-      closeQuietly(fileInputStream);
+      closeQuietly(fileChannel);
       return;
     }
 
     channel.write(response); // headers
 
-    FileRegion message = new DefaultFileRegion(fileInputStream.getChannel(), 0, length);
+    FileRegion message = new DefaultFileRegion(fileChannel, 0, length);
     ChannelFuture writeFuture = channel.writeAndFlush(message);
 
     writeFuture.addListener(new ChannelFutureListener() {
       public void operationComplete(ChannelFuture future) {
         try {
-          fileInputStream.close();
+          fileChannel.close();
         } catch (Exception e) {
           throw new RuntimeException(e);
         }
