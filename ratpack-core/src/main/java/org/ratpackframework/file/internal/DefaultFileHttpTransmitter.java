@@ -17,14 +17,16 @@
 package org.ratpackframework.file.internal;
 
 import io.netty.channel.*;
-import io.netty.handler.codec.http.HttpHeaders;
-import io.netty.handler.codec.http.HttpRequest;
-import io.netty.handler.codec.http.HttpResponse;
-import io.netty.handler.codec.http.LastHttpContent;
+import io.netty.handler.codec.http.*;
 import org.ratpackframework.block.Blocking;
 import org.ratpackframework.util.Action;
 
-import java.io.*;
+import java.io.Closeable;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.nio.channels.FileChannel;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.concurrent.Callable;
 
 import static io.netty.handler.codec.http.HttpHeaders.Names.CONNECTION;
@@ -42,37 +44,21 @@ public class DefaultFileHttpTransmitter implements FileHttpTransmitter {
     this.channel = channel;
   }
 
-  public static class FileServingInfo {
-    public final long length;
-    public final FileInputStream fileInputStream;
-
-    public FileServingInfo(long length, FileInputStream fileInputStream) {
-      this.length = length;
-      this.fileInputStream = fileInputStream;
-    }
-  }
-
   @Override
-  public void transmit(final Blocking blocking, final File file) {
-    blocking.exec(new Callable<FileServingInfo>() {
-      @Override
-      public FileServingInfo call() throws Exception {
-        long length = file.length();
-        FileInputStream randomAccessFile = new FileInputStream(file);
-
-        return new FileServingInfo(length, randomAccessFile);
+  public void transmit(Blocking blocking, final BasicFileAttributes basicFileAttributes, final File file) {
+    blocking.exec(new Callable<FileChannel>() {
+      public FileChannel call() throws Exception {
+        return new FileInputStream(file).getChannel();
       }
-    }).then(new Action<FileServingInfo>() {
-      @Override
-      public void execute(FileServingInfo fileServingInfo) {
-        transmit(fileServingInfo);
+    }).then(new Action<FileChannel>() {
+      public void execute(FileChannel fileChannel) {
+        transmit(basicFileAttributes, fileChannel);
       }
     });
   }
 
-  public void transmit(final FileServingInfo fileServingInfo) {
-    long length = fileServingInfo.length;
-    final FileInputStream fileInputStream = fileServingInfo.fileInputStream;
+  private void transmit(BasicFileAttributes basicFileAttributes, final FileChannel fileChannel) {
+    long length = basicFileAttributes.size();
 
     response.headers().set(HttpHeaders.Names.CONTENT_LENGTH, length);
 
@@ -81,21 +67,31 @@ public class DefaultFileHttpTransmitter implements FileHttpTransmitter {
     }
 
     if (!channel.isOpen()) {
-      closeQuietly(fileInputStream);
+      closeQuietly(fileChannel);
       return;
     }
 
-    channel.write(response); // headers
+    HttpResponse minimalResponse = new DefaultHttpResponse(response.getProtocolVersion(), response.getStatus());
+    minimalResponse.headers().set(response.headers());
+    ChannelFuture writeFuture = channel.writeAndFlush(minimalResponse);
 
-    FileRegion message = new DefaultFileRegion(fileInputStream.getChannel(), 0, length);
-    ChannelFuture writeFuture = channel.writeAndFlush(message);
+    writeFuture.addListener(new ChannelFutureListener() {
+      public void operationComplete(ChannelFuture future) throws Exception {
+        if (!future.isSuccess()) {
+          closeQuietly(fileChannel);
+          channel.close();
+        }
+      }
+    });
+
+    FileRegion message = new DefaultFileRegion(fileChannel, 0, length);
+    writeFuture = channel.write(message);
 
     writeFuture.addListener(new ChannelFutureListener() {
       public void operationComplete(ChannelFuture future) {
-        try {
-          fileInputStream.close();
-        } catch (Exception e) {
-          throw new RuntimeException(e);
+        closeQuietly(fileChannel);
+        if (!future.isSuccess()) {
+          channel.close();
         }
       }
     });

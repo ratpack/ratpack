@@ -16,8 +16,6 @@
 
 package org.ratpackframework.path;
 
-import java.util.Map;
-
 /**
  * A path binding represents some kind of "match" on the path of a request.
  *
@@ -70,7 +68,7 @@ public interface PathBinding {
    * @return Any tokens extracted by the binding.
    * @see #getAllTokens()
    */
-  Map<String, String> getTokens();
+  PathTokens getTokens();
 
   /**
    * Similar to {@link #getTokens()} except that tokens of all parent bindings are included.
@@ -80,5 +78,5 @@ public interface PathBinding {
    *
    * @return All tokens extracted from the path by this binding and its parents.
    */
-  Map<String, String> getAllTokens();
+  PathTokens getAllTokens();
 }

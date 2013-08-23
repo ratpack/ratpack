@@ -17,19 +17,21 @@
 package org.ratpackframework.file.internal;
 
 import io.netty.handler.codec.http.HttpHeaders;
+import org.ratpackframework.block.Blocking;
 import org.ratpackframework.file.MimeTypes;
 import org.ratpackframework.handling.Context;
-import org.ratpackframework.http.Request;
-import org.ratpackframework.http.Response;
 import org.ratpackframework.render.ByTypeRenderer;
 import org.ratpackframework.util.Action;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Date;
 import java.util.concurrent.Callable;
 
-import static io.netty.handler.codec.http.HttpResponseStatus.FORBIDDEN;
 import static io.netty.handler.codec.http.HttpResponseStatus.NOT_MODIFIED;
 
 public class FileRenderer extends ByTypeRenderer<File> {
@@ -41,49 +43,51 @@ public class FileRenderer extends ByTypeRenderer<File> {
 
   @Override
   public void render(final Context context, final File targetFile) {
-    final Request request = context.getRequest();
-    final Response response = context.getResponse();
-
-    if (!targetFile.isFile()) {
-      context.clientError(FORBIDDEN.code());
-      return;
-    }
-
-    context.getBlocking().exec(new Callable<Long>() {
+    readAttributes(context.getBlocking(), targetFile, new Action<BasicFileAttributes>() {
       @Override
-      public Long call() throws Exception {
-        return targetFile.lastModified();
-      }
-    }).then(new Action<Long>() {
-      @Override
-      public void execute(Long lastModifiedTime) {
-        sendFile(context, targetFile, request, response, lastModifiedTime);
+      public void execute(BasicFileAttributes attributes) {
+        if (attributes == null || !attributes.isRegularFile()) {
+          context.clientError(404);
+        } else {
+          sendFile(context, targetFile, attributes);
+        }
       }
     });
   }
 
-  private void sendFile(final Context context, final File targetFile, final Request request, final Response response, final long lastModifiedTime) {
-    if (lastModifiedTime < 1) {
-      context.next();
+  public static  void sendFile(final Context context, final File file, final BasicFileAttributes attributes) {
+    if (!context.getRequest().getMethod().isGet()) {
+      context.clientError(405);
       return;
     }
 
-    context.lastModified(new Date(lastModifiedTime), new Runnable() {
-      @Override
+    Date date = new Date(attributes.lastModifiedTime().toMillis());
+
+    context.lastModified(date, new Runnable() {
       public void run() {
-        final String ifNoneMatch = request.getHeaders().get(HttpHeaders.Names.IF_NONE_MATCH);
+        final String ifNoneMatch = context.getRequest().getHeaders().get(HttpHeaders.Names.IF_NONE_MATCH);
         if (ifNoneMatch != null && ifNoneMatch.trim().equals("*")) {
-          response.status(NOT_MODIFIED.code(), NOT_MODIFIED.reasonPhrase()).send();
+          context.getResponse().status(NOT_MODIFIED.code(), NOT_MODIFIED.reasonPhrase()).send();
           return;
         }
 
-        response.getHeaders().setDate(HttpHeaders.Names.LAST_MODIFIED, new Date(lastModifiedTime));
-
-        String contentType = context.get(MimeTypes.class).getContentType(targetFile.getName());
-        response.sendFile(context.getBlocking(), contentType, targetFile);
+        String contentType = context.get(MimeTypes.class).getContentType(file.getName());
+        context.getResponse().sendFile(context.getBlocking(), contentType, attributes, file);
       }
     });
+  }
 
+  public static void readAttributes(Blocking blocking, final File file, Action<? super BasicFileAttributes> then) {
+    blocking.exec(new Callable<BasicFileAttributes>() {
+      public BasicFileAttributes call() throws Exception {
+        Path path = Paths.get(file.toURI());
+        if (Files.exists(path)) {
+          return Files.readAttributes(path, BasicFileAttributes.class);
+        } else {
+          return null;
+        }
+      }
+    }).then(then);
   }
 
 }

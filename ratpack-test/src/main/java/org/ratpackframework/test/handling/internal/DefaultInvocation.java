@@ -33,6 +33,7 @@ import org.ratpackframework.test.handling.Invocation;
 import org.ratpackframework.test.handling.InvocationTimeoutException;
 
 import java.io.File;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -66,7 +67,8 @@ public class DefaultInvocation implements Invocation {
     final CountDownLatch latch = new CountDownLatch(1);
 
     FileHttpTransmitter fileHttpTransmitter = new FileHttpTransmitter() {
-      public void transmit(Blocking blocking, File file) {
+      @Override
+      public void transmit(Blocking blocking, BasicFileAttributes basicFileAttributes, File file) {
         sentFile = file;
         latch.countDown();
       }

@@ -37,15 +37,17 @@
                 <article>
                     <h2>What is Ratpack?</h2>
                     <p>
-                      Ratpack apps are lightweight, fast, composable with other tools &amp; libraries, easy to test and enjoyable to develop.
+                      Ratpack is a simple, capable, toolkit for creating high performance web applications.
                     </p>
                     <p>
-                      Ratpack is implemented in Java, designed with <a href="http://groovy-lang.org">Groovy</a> in mind.
-                      Apps can be implemented as a single Groovy script, or can scale up to the large with your build tool of choice. We prefer <a href="http://www.gradle.org">Gradle</a> and provide tight integration.
+                      Ratpack is built on Java and the <a href="http://netty.io/">Netty</a> event-driven networking engine.
+                      The API is optimized for <a href="http://groovy-lang.org">Groovy</a> and Java 8, though Java 7 can also be used.
                     </p>
                     <p>
-                      Ratpack is built on <a href="http://netty.io/">Netty</a> and is designed for asynchronous request processing. Synchronous, blocking, style can also be used (though throughput is typically lower).
-                      Ratpack is not a J2EE solution. Deployments are typically as executable JARs.
+                      Optional Google Guice integration provides a foundation for scaling your application in size in a managed way.
+                    </p>
+                    <p>
+                      Optional Gradle build time support makes building and testing applications a breeze.
                     </p>
                 </article>
                 <nav>
@@ -64,28 +66,21 @@
             <article class="content">
                 <h2>Getting Started</h2>
                 <p>
-                Create a Groovy script on your filesystem with:
+                Here's a simple executable Groovy script that is a complete Ratpack application …
                 </p>
                 <pre><code class="language-groovy">@GrabResolver("http://oss.jfrog.org/artifactory/libs-snapshot")
 @Grab("org.ratpack-framework:ratpack-groovy:0.9.0-SNAPSHOT")
 import static org.ratpackframework.groovy.RatpackScript.ratpack
 
 ratpack {
-    handlers {
-        get {
-            response.send "Hello world!"
-        }
+  handlers {
+    get {
+      response.send "Hello world!"
     }
+  }
 }</code></pre>
                 <p>That's just the tip of the iceberg.</p>
                 <p>Check out the <a href="/manual/snapshot/">Ratpack Manual</a> for more possibilities.</p>
-                <h2>Example Apps</h2>
-                <p>If you're more of a <em>“show me the code”</em> type, check out the following example apps on GitHub:</p>
-                <ul>
-                    <li><a href="https://github.com/ratpack/example-ratpack-standalone-groovy-script" rel="external">Standalone Groovy script app</a></li>
-                    <li><a href="https://github.com/ratpack/example-ratpack-gradle-groovy-app" rel="external">Groovy app built with Gradle</a></li>
-                    <li><a href="https://github.com/ratpack/example-ratpack-gradle-java-app" rel="external">Java app built with Gradle</a></li>
-                </ul>
             </article>
         </section>
 

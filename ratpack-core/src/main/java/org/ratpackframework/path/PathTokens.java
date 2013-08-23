@@ -14,15 +14,22 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.file.internal;
+package org.ratpackframework.path;
 
-import org.ratpackframework.block.Blocking;
+import java.util.Map;
 
-import java.io.File;
-import java.nio.file.attribute.BasicFileAttributes;
+/**
+ * A map delegate that provides convenience methods for retrieving String
+ * values coerced to other basic types.
+ */
+public interface PathTokens extends Map<String, String> {
+  Boolean getAsBoolean(String key);
 
-public interface FileHttpTransmitter {
+  Byte getAsByte(String key);
 
-  void transmit(Blocking blocking, BasicFileAttributes basicFileAttributes, File file);
+  Short getAsShort(String key);
 
+  Integer getAsInt(String key);
+
+  Long getAsLong(String key);
 }

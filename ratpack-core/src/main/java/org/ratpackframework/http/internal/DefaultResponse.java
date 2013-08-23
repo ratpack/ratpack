@@ -26,15 +26,19 @@ import org.ratpackframework.file.internal.FileHttpTransmitter;
 import org.ratpackframework.http.MutableHeaders;
 import org.ratpackframework.http.Response;
 import org.ratpackframework.http.Status;
+import org.ratpackframework.util.Action;
 import org.ratpackframework.util.internal.IoUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import static org.ratpackframework.file.internal.FileRenderer.readAttributes;
 
 public class DefaultResponse implements Response {
 
@@ -222,12 +226,20 @@ public class DefaultResponse implements Response {
     commit();
   }
 
-  public void sendFile(Blocking blocking, String contentType, File file) {
+  @Override
+  public void sendFile(Blocking blocking, String contentType, BasicFileAttributes attributes, File file) {
     contentType(contentType);
     setCookieHeader();
-    fileHttpTransmitter.transmit(blocking, file);
+    fileHttpTransmitter.transmit(blocking, attributes, file);
   }
 
+  public void sendFile(final Blocking blocking, final String contentType, final File file) {
+    readAttributes(blocking, file, new Action<BasicFileAttributes>() {
+      public void execute(BasicFileAttributes fileAttributes) {
+        sendFile(blocking, contentType, fileAttributes, file);
+      }
+    });
+  }
 
   public Set<Cookie> getCookies() {
     if (cookies == null) {
