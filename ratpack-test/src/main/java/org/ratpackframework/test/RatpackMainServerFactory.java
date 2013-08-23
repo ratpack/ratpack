@@ -37,7 +37,7 @@ public class RatpackMainServerFactory implements Factory<RatpackServer> {
   @Override
   public RatpackServer create() {
     Properties systemProperties = new Properties(System.getProperties());
-    systemProperties.setProperty("ratpack.port", "0");
+    systemProperties.setProperty("ratpack.port", systemProperties.getProperty("ratpack.port", "0"));
     return ratpackMain.server(systemProperties, new Properties());
   }
 

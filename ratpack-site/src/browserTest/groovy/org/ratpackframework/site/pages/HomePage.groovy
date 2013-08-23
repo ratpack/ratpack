@@ -30,6 +30,4 @@ class HomePage extends Page {
   void clickManualLink() {
     manualLink.click()
   }
-
-
 }

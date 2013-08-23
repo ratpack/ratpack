@@ -18,27 +18,43 @@ buildscript {
   repositories {
     maven { url "http://dl.bintray.com/robfletcher/gradle-plugins" }
     jcenter()
+    maven { url "https://oss.sonatype.org/content/repositories/snapshots" }
   }
   dependencies {
     classpath 'org.gradle.plugins:gradle-compass:1.0.9'
+    classpath 'org.gebish:geb-gradle:0.9.2-SNAPSHOT'
   }
 }
 
 import org.gradle.plugins.javascript.coffeescript.CoffeeScriptCompile
 import org.gradle.plugins.compass.*
+import geb.gradle.saucelabs.SauceTest
 
 apply plugin: 'coffeescript-base'
 apply plugin: 'compass'
 apply plugin: "ratpack-groovy"
+apply plugin: "geb-saucelabs"
 
 repositories {
   jcenter()
   maven { url "http://repo.springsource.org/repo" } // for springloaded
   maven { url "http://repo.gradle.org/gradle/javascript-public/" } // for coffeescript plugin
+  maven { url "http://repository-saucelabs.forge.cloudbees.com/release" }
+  maven { url "https://oss.sonatype.org/content/repositories/snapshots/" } //for geb snapshots
 }
 
 configurations {
   latestManual {}
+  browserTestCompile.extendsFrom testCompile
+  browserTestRuntime.extendsFrom testRuntime
+}
+
+sourceSets {
+  browserTest {
+    resources.srcDir(file('src/ratpack'))
+    compileClasspath += main.output
+    runtimeClasspath += main.output
+  }
 }
 
 dependencies {
@@ -47,13 +63,11 @@ dependencies {
   testCompile project(":ratpack-groovy-test")
   latestManual project(":ratpack-manual")
 
-  def gebVersion = "0.9.1"
-  def seleniumVersion = "2.26.0"
-  testCompile "org.gebish:geb-spock:$gebVersion"
-  testCompile "org.seleniumhq.selenium:selenium-chrome-driver:$seleniumVersion"
-  testCompile "org.seleniumhq.selenium:selenium-firefox-driver:$seleniumVersion"
-  testCompile "org.seleniumhq.selenium:selenium-htmlunit-driver:$seleniumVersion"
-  testRuntime "org.seleniumhq.selenium:selenium-support:$seleniumVersion"
+  browserTestCompile "org.gebish:geb-spock:0.9.2-SNAPSHOT"
+  browserTestCompile "org.seleniumhq.selenium:selenium-remote-driver:2.35.0", {
+    exclude module: 'guava'
+  }
+  sauceConnect "com.saucelabs:sauce-connect:3.0.28"
 }
 
 task gatherManuals(type: Sync) {
@@ -83,8 +97,21 @@ run {
   dependsOn configureRun
 }
 
-test {
-  systemProperties "geb.build.reportsDir": "$reportsDir/geb"
+sauceBrowsers {
+  chrome_linux
+}
+
+task browserTest(type: Test) {
+  enabled = false
+
+  testClassesDir = sourceSets.browserTest.output.classesDir
+  classpath = sourceSets.browserTest.runtimeClasspath
+
+  sauceTasksBuilder.build it
+}
+
+tasks.withType(SauceTest) {
+  jvmArgs '-Dratpack.port=5050'
 }
 
 installApp {
@@ -128,3 +155,10 @@ configure([watchSass, compileSass]) {
 
 clean.dependsOn cleanCompileCoffee
 clean.dependsOn cleanGatherManuals
+
+idea {
+  module {
+    testSourceDirs += sourceSets.browserTest.allSource.srcDirs
+    scopes.TEST.plus += configurations.browserTestCompile
+  }
+}

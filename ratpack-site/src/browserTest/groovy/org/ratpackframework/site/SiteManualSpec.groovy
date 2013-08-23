@@ -19,20 +19,21 @@ package org.ratpackframework.site
 import geb.spock.GebReportingSpec
 import org.ratpackframework.groovy.test.LocalScriptApplicationUnderTest
 import org.ratpackframework.site.pages.APIIndexPage
-import org.ratpackframework.site.pages.ManualToCPage
-import org.ratpackframework.test.ApplicationUnderTest
 import org.ratpackframework.site.pages.HomePage
-
+import org.ratpackframework.site.pages.ManualToCPage
+import org.ratpackframework.test.ServerBackedApplicationUnderTest
 
 class SiteManualSpec extends GebReportingSpec {
 
-
-  private final static ApplicationUnderTest applicationUnderTest = new LocalScriptApplicationUnderTest()
-
+  private final static ServerBackedApplicationUnderTest applicationUnderTest = new LocalScriptApplicationUnderTest()
 
   def setup() {
     URI base = applicationUnderTest.address
     browser.baseUrl = base.toString()
+  }
+
+  def cleanup() {
+    applicationUnderTest.stop()
   }
 
   def "go to current manual"() {
@@ -44,7 +45,6 @@ class SiteManualSpec extends GebReportingSpec {
 
     then:
     at ManualToCPage
-
   }
 
   def "got to current api" () {
