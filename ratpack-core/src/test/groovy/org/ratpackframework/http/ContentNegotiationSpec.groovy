@@ -27,12 +27,12 @@ class ContentNegotiationSpec extends RatpackGroovyDslSpec {
       handlers {
         get {
           respond byContent.
-              type("application/json") {
-                response.send "json"
-              }.
-              type("text/html") {
-                response.send "html"
-              }
+            type("application/json") {
+              response.send "json"
+            }.
+            type("text/html") {
+              response.send "html"
+            }
         }
         get("noneRegistered") {
           respond byContent
@@ -47,28 +47,34 @@ class ContentNegotiationSpec extends RatpackGroovyDslSpec {
     response.statusCode == 200
 
     then:
+    resetRequest()
     request.header("Accept", "application/json,text/html")
     text == "json"
     response.header("Content-Type") == "application/json"
     response.statusCode == 200
 
     then:
+    resetRequest()
     request.header("Accept", "*")
     text == "json"
 
     then:
+    resetRequest()
     request.header("Accept", "*/*")
     text == "json"
 
     then:
+    resetRequest()
     request.header("Accept", "text/*")
     text == "html"
 
     then:
+    resetRequest()
     request.header("Accept", "")
     text == "json"
 
     then:
+    resetRequest()
     request.header("Accept", "some/nonsense")
     text == ""
     response.statusCode == 406
@@ -79,50 +85,36 @@ class ContentNegotiationSpec extends RatpackGroovyDslSpec {
   }
 
   def "by accepts responder mime types"() {
-    setup:
-    "setting up the handler chain"
+    when:
     app {
       handlers {
         get {
           respond byContent.
-              json { response.send "json" }.
-              xml { response.send "xml" }.
-              plainText { response.send "text" }.
-              html { response.send "html" }
+            json { response.send "json" }.
+            xml { response.send "xml" }.
+            plainText { response.send "text" }.
+            html { response.send "html" }
         }
       }
     }
 
-    when:
-    "testing json"
-    request.header("Accept", "application/json")
-
     then:
-    "the json accept type should be invoked"
+    request.header("Accept", "application/json")
     text == "json"
 
-    when:
-    "testing xml"
-    request.header("Accept", "application/xml")
-
     then:
-    "the xml accept type should be invoked"
+    resetRequest()
+    request.header("Accept", "application/xml")
     text == "xml"
 
-    when:
-    "testing plainText"
-    request.header("Accept", "text/plain")
-
     then:
-    "the plain text accept type should be invoked"
+    resetRequest()
+    request.header("Accept", "text/plain")
     text == "text"
 
-    when:
-    "testing html"
-    request.header("Accept", "text/html")
-
     then:
-    "the plain text accept type should be invoked"
+    resetRequest()
+    request.header("Accept", "text/html")
     text == "html"
   }
 }
