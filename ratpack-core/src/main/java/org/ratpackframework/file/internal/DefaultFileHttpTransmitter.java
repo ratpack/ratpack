@@ -47,12 +47,10 @@ public class DefaultFileHttpTransmitter implements FileHttpTransmitter {
   @Override
   public void transmit(Blocking blocking, final BasicFileAttributes basicFileAttributes, final File file) {
     blocking.exec(new Callable<FileChannel>() {
-      @Override
       public FileChannel call() throws Exception {
         return new FileInputStream(file).getChannel();
       }
     }).then(new Action<FileChannel>() {
-      @Override
       public void execute(FileChannel fileChannel) {
         transmit(basicFileAttributes, fileChannel);
       }
@@ -75,17 +73,25 @@ public class DefaultFileHttpTransmitter implements FileHttpTransmitter {
 
     HttpResponse minimalResponse = new DefaultHttpResponse(response.getProtocolVersion(), response.getStatus());
     minimalResponse.headers().set(response.headers());
-    channel.write(minimalResponse);
+    ChannelFuture writeFuture = channel.writeAndFlush(minimalResponse);
+
+    writeFuture.addListener(new ChannelFutureListener() {
+      public void operationComplete(ChannelFuture future) throws Exception {
+        if (!future.isSuccess()) {
+          closeQuietly(fileChannel);
+          channel.close();
+        }
+      }
+    });
 
     FileRegion message = new DefaultFileRegion(fileChannel, 0, length);
-    ChannelFuture writeFuture = channel.writeAndFlush(message);
+    writeFuture = channel.write(message);
 
     writeFuture.addListener(new ChannelFutureListener() {
       public void operationComplete(ChannelFuture future) {
-        try {
-          fileChannel.close();
-        } catch (Exception e) {
-          throw new RuntimeException(e);
+        closeQuietly(fileChannel);
+        if (!future.isSuccess()) {
+          channel.close();
         }
       }
     });
