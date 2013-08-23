@@ -75,7 +75,7 @@ public class DefaultFileHttpTransmitter implements FileHttpTransmitter {
 
     HttpResponse minimalResponse = new DefaultHttpResponse(response.getProtocolVersion(), response.getStatus());
     minimalResponse.headers().set(response.headers());
-    channel.write(minimalResponse); // headers
+    channel.write(minimalResponse);
 
     FileRegion message = new DefaultFileRegion(fileChannel, 0, length);
     ChannelFuture writeFuture = channel.writeAndFlush(message);
