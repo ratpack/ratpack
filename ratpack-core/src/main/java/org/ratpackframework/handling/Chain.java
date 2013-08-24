@@ -23,7 +23,7 @@ import org.ratpackframework.util.Action;
 import java.util.List;
 
 /**
- * A chain can be used to build a linked series of handlers.
+ * A {@code Chain} can be used to build a linked series of {@code Handlers}.
  * <p>
  * The {@code Chain} type does not represent the handlers "in action".
  * That is, it is the construction of a handler chain.
@@ -33,119 +33,224 @@ import java.util.List;
 public interface Chain {
 
   /**
-   * Add the given handler to the chain being constructed.
+   * Adds the given {@code Handler} to this {@code Chain}.
    *
-   * @param handler The handler to add to the chain being constructed
+   * @param handler the {@code Handler} to add
+   * @return this {@code Chain}
    */
   Chain handler(Handler handler);
 
   /**
-   * Add a prefix handler to the chain being constructed for the given prefix.
-   * See {@link org.ratpackframework.handling.Handlers#prefix(String, org.ratpackframework.util.Action)} for format details on the prefix string.
+   * Adds a {@code Handler} to this {@code Chain} that delegates to the given handlers if the
+   * relative path starts with the given {@code prefix}.
+   * <p>
+   * All path based handlers become relative to the given {@code prefix}.
+   * <pre>
+   *   prefix("person/:id") {
+   *     get("info") {
+   *       // e.g. /person/2/info
+   *     }
+   *     post("save") {
+   *       // e.g. /person/2/save
+   *     }
+   *     prefix("child/:childId") {
+   *       get("info") {
+   *         // e.g. /person/2/child/1/info
+   *       }
+   *     }
+   *   }
+   * </pre>
+   * <p>
+   * See {@link org.ratpackframework.handling.Handlers#prefix(String, java.util.List)}
+   * for format details on the {@code prefix} string.
    *
-   * @param prefix The prefix to bind to
-   * @param handlers The definition of the nested handlers
+   * @param prefix the relative path to match on
+   * @param handlers the handlers to delegate to
+   * @return this {@code Chain}
    */
   Chain prefix(String prefix, Handler... handlers);
 
+  /**
+   * Adds a {@code Handler} to this {@code Chain} that delegates to the given handlers if the
+   * relative path starts with the given {@code prefix}.
+   * <p>
+   * See {@link Chain#prefix(String, Handler...)} for more details.
+   *
+   * @param prefix the relative path to match on
+   * @param handlers the handlers to delegate to
+   * @return this {@code Chain}
+   */
   Chain prefix(String prefix, List<Handler> handlers);
 
-  Chain prefix(String prefix, Action<? super Chain> chainAction);
+  /**
+   * Adds a {@code Handler} to this {@code Chain} that delegates to the given chain if the
+   * relative path starts with the given {@code prefix}.
+   * <p>
+   * See {@link Chain#prefix(String, Handler...)} for more details.
+   *
+   * @param prefix the relative path to match on
+   * @param builder the definition of the chain to delegate to
+   * @return this {@code Chain}
+   */
+  Chain prefix(String prefix, Action<? super Chain> builder);
 
   /**
-   * Add a path handler to the chain being constructed for the given path.
-   * <p>See also {@link org.ratpackframework.handling.Handlers#path(String, Handler)}
+   * Adds a {@code Handler} to this {@code Chain} that delegates to the given {@code Handler} if the relative {@code path}
+   * matches the given {@code path} exactly.
+   * <p>
+   * Nesting {@code path} handlers will not work due to the exact matching, use a combination of {@code path}
+   * and {@code prefix} instead.  See {@link Chain#prefix(String, Handler...)} for details.
+   * <pre>
+   *   // this will not work
+   *   path("person/:id") {
+   *     path("child/:childId") {
+   *       // a request of /person/2/child/1 will not get passed the first handler as it will try
+   *       // to match "person/2/child/1" with "person/2" which does not match
+   *     }
    *
-   * @param path The path to match requests for, the match must be an exact match
-   * @param handler The handler to delegate to if the request matches the given path exactly
+   *   // this will work
+   *   prefix("person/:id") {
+   *     path("child/:childId") {
+   *       // a request of /person/2/child/1 will work this time
+   *     }
+   *   }
+   * </pre>
+   * <p>
+   * See {@link Handlers#path(String, List)} for the details on how {@code path} is interpreted.
+   *
+   * @param path the relative path to match exactly on
+   * @param handler the handler to delegate to
+   * @return this {@code Chain}
+   * @see Chain#post(String, Handler)
+   * @see Chain#get(String, Handler)
    */
   Chain path(String path, Handler handler);
 
   /**
-   * Add a GET handler to the chain being constructed for the given path.
-   * <p>See also {@link org.ratpackframework.handling.Handlers#get(String, Handler)}
+   * Adds a {@code Handler} to this {@code Chain} that delegates to the given {@code Handler}
+   * if the relative {@code path} matches the given {@code path} and the {@code request}
+   * {@code HTTPMethod} is {@code GET}.
+   * <p>
+   * See {@link Handlers#get(String, Handler)} for more details on the {@code Handler} created
    *
-   *
-   * @param path The path to match requests for
-   * @param handler The handler to delegate to if the path matches and the request is a GET
-   * @return A Handler
+   * @param path the relative path to match on
+   * @param handler the handler to delegate to
+   * @return this {@code Chain}
+   * @see Chain#post(String, Handler)
+   * @see Chain#path(String, Handler)
    */
   Chain get(String path, Handler handler);
 
   /**
-   * Add a GET handler to the chain being constructed for the root path.
-   * <p>See also {@link org.ratpackframework.handling.Handlers#get(Handler)}
+   * Adds a {@code Handler} to this {@code Chain} that delegates to the given {@code Handler}
+   * if the {@code request} {@code HTTPMethod} is {@code GET} and the {@code path} is at the
+   * current root.
+   * <p>
+   * See {@link Handlers#get(Handler)} for more details on the {@code Handler} created
    *
-   *
-   * @param handler The handler to delegate to for the root path if the request is a GET
-   * @return A Handler
+   * @param handler the handler to delegate to
+   * @return this {@code Chain}
+   * @see Chain#post(Handler)
    */
   Chain get(Handler handler);
 
   /**
-   * Add a POST handler to the chain being constructed for the given path.
-   * <p>See also {@link org.ratpackframework.handling.Handlers#post(String, Handler)}
+   * Adds a {@code Handler} to this {@code Chain} that delegates to the given {@code Handler} if
+   * the relative {@code path} matches the given {@code path} and the {@code request} {@code HTTPMethod}
+   * is {@code POST}.
+   * <p>
+   * See {@link Handlers#post(String, Handler)} for more details on the {@code Handler} created
    *
-   * @param path The path to match requests for
-   * @param handler The handler to delegate to if the path matches and the request is a POST
+   * @param path the relative path to match on
+   * @param handler the handler to delegate to
+   * @return this {@code Chain}
+   * @see Chain#get(String, Handler)
+   * @see Chain#path(String, Handler)
    */
   Chain post(String path, Handler handler);
 
   /**
-   * Add a POST handler to the chain being constructed for the root path.
-   * <p>See also {@link org.ratpackframework.handling.Handlers#post(Handler)}
+   * Adds a {@code Handler} to this {@code Chain} that delegates to the given {@code Handler} if
+   * the {@code request} {@code HTTPMethod} is {@code POST} and the {@code path} is at the current root.
+   * <p>
+   * See {@link Handlers#post(Handler)} for more details on the {@code Handler} created
    *
-   * @param handler The handler to delegate to for the root path if the request is a POST
+   * @param handler the handler to delegate to
+   * @return this {@code Chain}
+   * @see Chain#get(Handler)
    */
   Chain post(Handler handler);
 
   /**
-   * Add an asset handler to the chain being constructed.
-   * <p>See also {@link org.ratpackframework.handling.Handlers#assets(String, String...)}
+   * Adds a {@code Handler} to this {@code Chain} that serves static assets at the given file system path,
+   * relative to the contextual file system binding.
+   * <p>
+   * See {@link Handlers#assets(String, String...)} for more details on the {@code Handler} created
+   * <pre>
+   *    prefix("foo") {
+   *      assets("d1", "index.html", "index.xhtml")
+   *    }
+   * </pre>
+   * In the above configuration a request like "/foo/app.js" will return the static file "app.js" that is
+   * located in the directory "d1".
+   * <p>
+   * If the request matches a directory e.g. "/foo", an index file may be served.  The {@code indexFiles}
+   * array specifies the names of files to look for in order to serve.
    *
-   * @param path The relative path to the location of the assets to serve
-   * @param indexFiles The index files to try if the request is for a directory
+   * @param path the relative path to the location of the assets to serve
+   * @param indexFiles the index files to try if the request is for a directory
+   * @return this {@code Chain}
    */
   Chain assets(String path, String... indexFiles);
 
   /**
-   * Adds a register handler to the chain being constructed, with the given service addition.
-   * <p>See also {@link org.ratpackframework.handling.Handlers#register(Object, java.util.List)}
+   * Adds a {@code Handler} to this {@code Chain} that inserts the given handlers with the given {@code service} addition.
+   * <p>
+   * The {@code service} object will be available by its concrete type.
+   * <p>
+   * See {@link Handlers#register(Object, java.util.List)} for more details on the {@code Handler} created
    *
-   *
-   * @param object The object to add to the service
-   * @param handlers The handlers to register the service with
-   * @return A Handler
+   * @param service the object to add to the service for the handlers
+   * @param handlers the handlers to register the service with
+   * @return this {@code Chain}
+   * @see Chain#register(Class, Object, java.util.List)
    */
-  Chain register(Object object, List<Handler> handlers);
+  Chain register(Object service, List<Handler> handlers);
 
   /**
-   * Adds a register handler to the chain being constructed.
-   * <p>See also {@link org.ratpackframework.handling.Handlers#register(Class, Object, java.util.List)}
+   * Adds a {@code Handler} to this {@code Chain} that inserts the given handlers with the given {@code service} addition.
+   * <p>
+   * The {@code service} object will be available by the given type.
+   * <p>
+   * See {@link Handlers#register(Class, Object, java.util.List)} for more details on the {@code Handler} created
    *
-   *
-   * @param type The type by which to make the service addition available
-   * @param object The object to add to the service
-   * @param handlers The handlers to register the service with
-   * @return A Handler
+   * @param type the {@code Type} by which to make the service object available
+   * @param service the object to add to the service for the handlers
+   * @param handlers the handlers to register the service with
+   * @param <T> the concrete type of the service addition
+   * @return this {@code Chain}
+   * @see Chain#register(Object, java.util.List)
    */
-  <T> Chain register(Class<? super T> type, T object, List<Handler> handlers);
+  <T> Chain register(Class<? super T> type, T service, List<Handler> handlers);
 
   /**
-   * Adds a filesystem handler to the chain being constructed.
-   * <p>See also {@link org.ratpackframework.handling.Handlers#fileSystem(String, java.util.List)}
+   * Adds a {@code Handler} to this {@code Chain} that changes the {@link org.ratpackframework.file.FileSystemBinding}
+   * for the given handlers.
+   * <p>
+   * See {@link Handlers#fileSystem(String, java.util.List)} for more details on the {@code Handler} created
    *
-   * @param path The relative path to the new file system binding point
-   * @param handlers The definition of the handler chain
+   * @param path the relative {@code path} to the new file system binding point
+   * @param handlers the definition of the handler chain
+   * @return this {@code Chain}
    */
   Chain fileSystem(String path, List<Handler> handlers);
 
   /**
-   * The registry that backs this chain.
+   * The registry that backs this {@code Chain}.
    * <p>
-   * The registry that is available is dependent on how the chain was constructed.
+   * The registry that is available is dependent on how the {@code Chain} was constructed.
    *
-   * @return The registry that backs this chain, or {@code null} if this chain has no registry.
+   * @return The registry that backs this {@code Chain}, or {@code null} if this {@code Chain} has no registry.
    */
   @Nullable
   Registry<Object> getRegistry();
