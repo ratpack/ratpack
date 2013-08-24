@@ -54,8 +54,43 @@ public class DefaultChain implements Chain {
     return handler(Handlers.prefix(prefix, chainAction));
   }
 
+  public Chain prefix(List<String> prefixes, Handler... handlers) {
+    for (String prefix : prefixes) {
+      prefix(prefix, handlers);
+    }
+    return this;
+  }
+
+  public Chain prefix(List<String> prefixes, List<Handler> handlers) {
+    for (String prefix : prefixes) {
+      prefix(prefix, handlers);
+    }
+    return this;
+  }
+
+  public Chain prefix(List<String> prefixes, Action<? super Chain> chainAction) {
+    for (String prefix : prefixes) {
+      prefix(prefix, chainAction);
+    }
+    return this;
+  }
+
+  public Chain path(List<String> paths, Handler handler) {
+    for (String path : paths) {
+      path(path, handler);
+    }
+    return this;
+  }
+
   public Chain path(String path, Handler handler) {
     return handler(Handlers.path(path, handler));
+  }
+
+  public Chain get(List<String> paths, Handler handler) {
+    for (String path : paths) {
+      get(path, handler);
+    }
+    return this;
   }
 
   public Chain get(String path, Handler handler) {
@@ -64,6 +99,13 @@ public class DefaultChain implements Chain {
 
   public Chain get(Handler handler) {
     return get("", handler);
+  }
+
+  public Chain post(List<String> paths, Handler handler) {
+    for (String path : paths) {
+      post(path, handler);
+    }
+    return this;
   }
 
   public Chain post(String path, Handler handler) {
