@@ -244,6 +244,6 @@ class PathRoutingSpec extends RatpackGroovyDslSpec {
     then:
     deleteText() == "root"
     deleteText("a") == "a"
-    delete("a/b/c").statusCode == NOT_FOUND.code()
+    delete("a/b/c/d").statusCode == NOT_FOUND.code()
   }
 }
