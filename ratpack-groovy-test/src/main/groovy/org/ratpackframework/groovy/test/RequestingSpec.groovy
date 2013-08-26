@@ -95,6 +95,15 @@ abstract class RequestingSpec extends Specification {
     put(path).asString()
   }
 
+  Response delete(String path = "") {
+    response = request.delete(toUrl(path))
+    postRequest()
+  }
+
+  String deleteText(String path = "") {
+    delete(path).asString()
+  }
+
   String toUrl(String path) {
     "$applicationUnderTest.address/$path"
   }

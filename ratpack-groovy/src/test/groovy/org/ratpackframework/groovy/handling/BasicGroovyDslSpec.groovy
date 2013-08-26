@@ -38,6 +38,12 @@ class BasicGroovyDslSpec extends RatpackGroovyDslSpec {
         post("b") {
           response.send "b handler"
         }
+        put("c") {
+          response.send "c handler"
+        }
+        delete("d") {
+          response.send "d handler"
+        }
         prefix(":first") {
           get(":second") {
             response.send new LinkedHashMap<>(allPathTokens).toString()
@@ -54,6 +60,8 @@ class BasicGroovyDslSpec extends RatpackGroovyDslSpec {
     getText("a") == "a handler"
     get("b").statusCode == 405
     postText("b") == "b handler"
+    putText("c") == "c handler"
+    deleteText("d") == "d handler"
     getText("1/2") == "[first:1, second:2]"
     getText("foo/c/bar") == "[first:foo, second:bar]"
     getText("foo.txt") == "bar"
