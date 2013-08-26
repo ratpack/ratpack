@@ -304,12 +304,72 @@ public abstract class Handlers {
   }
 
   /**
+   * A handler that delegates to the given handler if the request is PUT and matches the given path.
+   * <p>
+   * If the request is not a PUT or does not match the path, the next handler in the chain will be invoked.
+   * <p>
+   * If the request does match the given path but is not a PUT, a 405 will be sent to the exchange's
+   * {@linkplain Context#clientError(int) client error handler}.
+   * <p>
+   * See {@link #path(String, java.util.List)} for details on how the path argument is interpreted.
+   *
+   * @param path The path to match requests for
+   * @param handler The handler to delegate to if the path matches and the request is a PUT
+   * @return A handler
+   */
+  public static Handler put(String path, Handler handler) {
+    return path(path, ImmutableList.<Handler>of(put(), handler));
+  }
+
+  /**
+   * A handler that delegates to the given handler if the request is PUT and the path is at the current root.
+   * <p>
+   * This is shorthand for calling {@link #put(String, Handler)} with a path of {@code ""}.
+   *
+   * @param handler The handler to delegate to if the path matches and the request is a PUT
+   * @return A handler
+   */
+  public static Handler put(Handler handler) {
+    return path("", ImmutableList.<Handler>of(put(), handler));
+  }
+
+  /**
    * A handler that delegates to the next handler if the request is PUT, otherwise raises a 405 client error.
    *
    * @return A handler
    */
   public static Handler put() {
     return MethodHandler.PUT;
+  }
+
+  /**
+   * A handler that delegates to the given handler if the request is DELETE and matches the given path.
+   * <p>
+   * If the request is not a DELETE or does not match the path, the next handler in the chain will be invoked.
+   * <p>
+   * If the request does match the given path but is not a DELETE, a 405 will be sent to the exchange's
+   * {@linkplain Context#clientError(int) client error handler}.
+   * <p>
+   * See {@link #path(String, java.util.List)} for details on how the path argument is interpreted.
+   *
+   * @param path The path to match requests for
+   * @param handler The handler to delegate to if the path matches and the request is a DELETE
+   * @return A handler
+   */
+  public static Handler delete(String path, Handler handler) {
+    return path(path, ImmutableList.<Handler>of(delete(), handler));
+  }
+
+  /**
+   * A handler that delegates to the given handler if the request is DELETE and the path is at the current root.
+   * <p>
+   * This is shorthand for calling {@link #delete(String, Handler)} with a path of {@code ""}.
+   *
+   * @param handler The handler to delegate to if the path matches and the request is a DELETE
+   * @return A handler
+   */
+  public static Handler delete(Handler handler) {
+    return path("", ImmutableList.<Handler>of(delete(), handler));
   }
 
   /**
