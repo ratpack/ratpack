@@ -312,6 +312,7 @@ public interface Chain {
    * <p>
    * The registry that is available is dependent on how the {@code Chain} was constructed.
    *
+   * @see Handlers#chain(org.ratpackframework.registry.Registry, org.ratpackframework.util.Action)
    * @return The registry that backs this {@code Chain}, or {@code null} if this {@code Chain} has no registry.
    */
   @Nullable
