@@ -102,7 +102,7 @@ class PathRoutingSpec extends RatpackGroovyDslSpec {
     when:
     app {
       handlers {
-        path("abc") {
+        handler("abc") {
           response.send(get(PathBinding).boundTo)
         }
       }
@@ -119,7 +119,7 @@ class PathRoutingSpec extends RatpackGroovyDslSpec {
     app {
       handlers {
         prefix("abc") {
-          path("def") {
+          handler("def") {
             response.send(get(PathBinding).boundTo)
           }
         }
@@ -137,7 +137,7 @@ class PathRoutingSpec extends RatpackGroovyDslSpec {
     when:
     app {
       handlers {
-        path(":a/:b/:c") {
+        handler(":a/:b/:c") {
           def binding = get(PathBinding)
           response.send("$binding.tokens - $binding.pastBinding")
         }
@@ -154,7 +154,7 @@ class PathRoutingSpec extends RatpackGroovyDslSpec {
     app {
       handlers {
         prefix(":a/:b") {
-          path(":d/:e") {
+          handler(":d/:e") {
             def binding = get(PathBinding)
             response.send("$binding.tokens - $binding.allTokens - $binding.pastBinding")
           }

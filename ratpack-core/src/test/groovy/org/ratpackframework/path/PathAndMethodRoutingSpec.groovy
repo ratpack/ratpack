@@ -29,7 +29,7 @@ class PathAndMethodRoutingSpec extends RatpackGroovyDslSpec {
           response.send request.query
         }
         prefix(":a/:b") {
-          path(":c/:d") {
+          handler(":c/:d") {
             respond byMethod.
                 post {
                   response.send new LinkedHashMap(allPathTokens).toString()
@@ -58,7 +58,7 @@ class PathAndMethodRoutingSpec extends RatpackGroovyDslSpec {
     when:
     app {
       handlers {
-        path("foo") {
+        handler("foo") {
           def prefix = "common"
           respond byMethod.
               get {

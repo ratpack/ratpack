@@ -43,6 +43,18 @@ public interface Chain extends org.ratpackframework.handling.Chain {
   Chain handler(@DelegatesTo(value = Context.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
 
   /**
+   * Adds a {@code Handler} to this {@code Chain} that delegates to the given {@code Closure} as a {@code Handler} if the
+   * relative {@code path} matches the given {@code path} exactly.
+   * <p>
+   * See {@link Chain#handler(String, org.ratpackframework.handling.Handler)} for more details.
+   *
+   * @param path the relative path to match exactly on
+   * @param handler the handler to delegate to
+   * @return this {@code Chain}
+   */
+  Chain handler(String path, @DelegatesTo(value = Context.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
+
+  /**
    * {@inheritDoc}
    */
   @Override
@@ -78,18 +90,6 @@ public interface Chain extends org.ratpackframework.handling.Chain {
    */
   @Override
   Chain prefix(String prefix, Action<? super org.ratpackframework.handling.Chain> chainAction);
-
-  /**
-   * Adds a {@code Handler} to this {@code Chain} that delegates to the given {@code Closure} as a {@code Handler} if the
-   * relative {@code path} matches the given {@code path} exactly.
-   * <p>
-   * See {@link Chain#handler(String, org.ratpackframework.handling.Handler)} for more details.
-   *
-   * @param path the relative path to match exactly on
-   * @param handler the handler to delegate to
-   * @return this {@code Chain}
-   */
-  Chain path(String path, @DelegatesTo(value = Context.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
 
   /**
    * {@inheritDoc}

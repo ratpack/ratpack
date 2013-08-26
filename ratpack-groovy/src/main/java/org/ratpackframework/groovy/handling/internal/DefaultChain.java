@@ -62,7 +62,7 @@ public class DefaultChain extends org.ratpackframework.handling.internal.Default
     return (Chain) super.prefix(prefix, builder);
   }
 
-  public Chain path(String path, Closure<?> handler) {
+  public Chain handler(String path, Closure<?> handler) {
     return handler(path, new ClosureBackedHandler(handler));
   }
 
