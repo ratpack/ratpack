@@ -168,6 +168,76 @@ public interface Chain extends org.ratpackframework.handling.Chain {
   Chain post(@DelegatesTo(value = Context.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
 
   /**
+   * {@inheritDoc}
+   */
+  @Override
+  Chain put(Handler handler);
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  Chain put(String path, Handler handler);
+
+  /**
+   * Adds a {@code Handler} to this {@code Chain} that delegates to the given {@code Closure} as a {@code Handler} if the
+   * relative {@code path} matches the given {@code path} and the {@code request} {@code HTTPMethod} is {@code PUT}.
+   * <p>
+   * See {@link Chain#put(String, org.ratpackframework.handling.Handler)} for more details.
+   *
+   * @param path the relative path to match on
+   * @param handler the handler to delegate to
+   * @return this {@code Chain}
+   */
+  Chain put(String path, @DelegatesTo(value = Context.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
+
+  /**
+   * Adds a {@code Handler} to this {@code Chain} that delegates to the given {@code Closure} as a {@code Handler}
+   * if the {@code request} {@code HTTPMethod} is {@code PUT} and the {@code path} is at the current root.
+   * <p>
+   * See {@link Chain#put(org.ratpackframework.handling.Handler)} for more details.
+   *
+   * @param handler the handler to delegate to
+   * @return this {@code Chain}
+   */
+  Chain put(@DelegatesTo(value = Context.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  Chain delete(Handler handler);
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  Chain delete(String path, Handler handler);
+
+  /**
+   * Adds a {@code Handler} to this {@code Chain} that delegates to the given {@code Closure} as a {@code Handler} if the
+   * relative {@code path} matches the given {@code path} and the {@code request} {@code HTTPMethod} is {@code DELETE}.
+   * <p>
+   * See {@link Chain#delete(String, org.ratpackframework.handling.Handler)} for more details.
+   *
+   * @param path the relative path to match on
+   * @param handler the handler to delegate to
+   * @return this {@code Chain}
+   */
+  Chain delete(String path, @DelegatesTo(value = Context.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
+
+  /**
+   * Adds a {@code Handler} to this {@code Chain} that delegates to the given {@code Closure} as a {@code Handler}
+   * if the {@code request} {@code HTTPMethod} is {@code DELETE} and the {@code path} is at the current root.
+   * <p>
+   * See {@link Chain#delete(org.ratpackframework.handling.Handler)} for more details.
+   *
+   * @param handler the handler to delegate to
+   * @return this {@code Chain}
+   */
+  Chain delete(@DelegatesTo(value = Context.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
+
+  /**
    * Creates a {@code List} of {@code Handler} from the given {@code Closure} and adds a {@code Handler} to this {@code Chain}
    * that inserts the {@code Handler} list with the given {@code service} addition.
    * <p>

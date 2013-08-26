@@ -186,4 +186,64 @@ class PathRoutingSpec extends RatpackGroovyDslSpec {
     getText("a") == "a"
     get("a/b/c").statusCode == NOT_FOUND.code()
   }
+
+  def "can use post handler"() {
+    when:
+    app {
+      handlers {
+        post {
+          response.send("root")
+        }
+
+        post("a") {
+          response.send("a")
+        }
+      }
+    }
+
+    then:
+    postText() == "root"
+    postText("a") == "a"
+    post("a/b/c").statusCode == NOT_FOUND.code()
+  }
+
+  def "can use put handler"() {
+    when:
+    app {
+      handlers {
+        put {
+          response.send("root")
+        }
+
+        put("a") {
+          response.send("a")
+        }
+      }
+    }
+
+    then:
+    putText() == "root"
+    putText("a") == "a"
+    put("a/b/c").statusCode == NOT_FOUND.code()
+  }
+
+  def "can use delete handler"() {
+    when:
+    app {
+      handlers {
+        delete {
+          response.send("root")
+        }
+
+        delete("a") {
+          response.send("a")
+        }
+      }
+    }
+
+    then:
+    deleteText() == "root"
+    deleteText("a") == "a"
+    delete("a/b/c").statusCode == NOT_FOUND.code()
+  }
 }

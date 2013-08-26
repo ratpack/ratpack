@@ -107,6 +107,42 @@ public class DefaultChain extends org.ratpackframework.handling.internal.Default
     return post("", handler);
   }
 
+  public Chain put(String path, Closure<?> handler) {
+    return put(path, new ClosureBackedHandler(handler));
+  }
+
+  @Override
+  public Chain put(String path, Handler handler) {
+    return (Chain) super.put(path, handler);
+  }
+
+  @Override
+  public Chain put(Handler handler) {
+    return (Chain) super.put(handler);
+  }
+
+  public Chain put(Closure<?> handler) {
+    return put("", handler);
+  }
+
+  public Chain delete(String path, Closure<?> handler) {
+    return delete(path, new ClosureBackedHandler(handler));
+  }
+
+  @Override
+  public Chain delete(String path, Handler handler) {
+    return (Chain) super.delete(path, handler);
+  }
+
+  @Override
+  public Chain delete(Handler handler) {
+    return (Chain) super.delete(handler);
+  }
+
+  public Chain delete(Closure<?> handler) {
+    return delete("", handler);
+  }
+
   @Override
   public Chain assets(String path, String... indexFiles) {
     return (Chain) super.assets(path, indexFiles);

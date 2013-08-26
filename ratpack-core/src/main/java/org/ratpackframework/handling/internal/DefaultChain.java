@@ -72,6 +72,22 @@ public class DefaultChain implements Chain {
     return post("", handler);
   }
 
+  public Chain put(String path, Handler handler) {
+    return handler(Handlers.put(path, handler));
+  }
+
+  public Chain put(Handler handler) {
+    return put("", handler);
+  }
+
+  public Chain delete(String path, Handler handler) {
+    return handler(Handlers.delete(path, handler));
+  }
+
+  public Chain delete(Handler handler) {
+    return delete("", handler);
+  }
+
   public Chain assets(String path, String... indexFiles) {
     return handler(Handlers.assets(path, indexFiles));
   }
