@@ -17,10 +17,10 @@
 package org.ratpackframework.test.handling
 
 import io.netty.util.CharsetUtil
-import org.ratpackframework.groovy.handling.internal.ClosureBackedHandler
 import org.ratpackframework.handling.Context
 import spock.lang.Specification
 
+import static org.ratpackframework.groovy.Util.asHandler
 import static org.ratpackframework.groovy.Util.delegatingAction
 
 class InvocationBuilderSpec extends Specification {
@@ -28,7 +28,7 @@ class InvocationBuilderSpec extends Specification {
   @Delegate Invocation invocation
 
   void invoke(@DelegatesTo(Context) Closure handler, @DelegatesTo(InvocationBuilder) Closure build) {
-    invocation = InvocationBuilder.invoke(new ClosureBackedHandler(handler), delegatingAction(build))
+    invocation = InvocationBuilder.invoke(asHandler(handler), delegatingAction(build))
   }
 
   def "can test handler that just calls next"() {

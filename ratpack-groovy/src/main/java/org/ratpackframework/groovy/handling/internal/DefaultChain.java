@@ -28,6 +28,8 @@ import org.ratpackframework.util.Action;
 
 import java.util.List;
 
+import static org.ratpackframework.groovy.Util.asHandler;
+
 public class DefaultChain extends org.ratpackframework.handling.internal.DefaultChain implements Chain {
 
   public DefaultChain(List<Handler> handlers, @Nullable Registry<Object> registry) {
@@ -40,7 +42,7 @@ public class DefaultChain extends org.ratpackframework.handling.internal.Default
   }
 
   public Chain handler(Closure<?> handler) {
-    return handler(new ClosureBackedHandler(handler));
+    return handler(asHandler(handler));
   }
 
   public Chain prefix(String prefix, Closure<?> chain) {
@@ -63,7 +65,7 @@ public class DefaultChain extends org.ratpackframework.handling.internal.Default
   }
 
   public Chain handler(String path, Closure<?> handler) {
-    return handler(path, new ClosureBackedHandler(handler));
+    return handler(path, asHandler(handler));
   }
 
   @Override
@@ -72,7 +74,7 @@ public class DefaultChain extends org.ratpackframework.handling.internal.Default
   }
 
   public Chain get(String path, Closure<?> handler) {
-    return get(path, new ClosureBackedHandler(handler));
+    return get(path, asHandler(handler));
   }
 
   @Override
@@ -95,7 +97,7 @@ public class DefaultChain extends org.ratpackframework.handling.internal.Default
   }
 
   public Chain post(String path, Closure<?> handler) {
-    return post(path, new ClosureBackedHandler(handler));
+    return post(path, asHandler(handler));
   }
 
   @Override
@@ -108,7 +110,7 @@ public class DefaultChain extends org.ratpackframework.handling.internal.Default
   }
 
   public Chain put(String path, Closure<?> handler) {
-    return put(path, new ClosureBackedHandler(handler));
+    return put(path, asHandler(handler));
   }
 
   @Override
@@ -126,7 +128,7 @@ public class DefaultChain extends org.ratpackframework.handling.internal.Default
   }
 
   public Chain delete(String path, Closure<?> handler) {
-    return delete(path, new ClosureBackedHandler(handler));
+    return delete(path, asHandler(handler));
   }
 
   @Override
