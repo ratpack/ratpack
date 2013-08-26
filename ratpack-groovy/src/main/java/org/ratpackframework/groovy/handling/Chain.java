@@ -83,7 +83,7 @@ public interface Chain extends org.ratpackframework.handling.Chain {
    * Adds a {@code Handler} to this {@code Chain} that delegates to the given {@code Closure} as a {@code Handler} if the
    * relative {@code path} matches the given {@code path} exactly.
    * <p>
-   * See {@link Chain#path(String, org.ratpackframework.handling.Handler)} for more details.
+   * See {@link Chain#handler(String, org.ratpackframework.handling.Handler)} for more details.
    *
    * @param path the relative path to match exactly on
    * @param handler the handler to delegate to
@@ -95,7 +95,7 @@ public interface Chain extends org.ratpackframework.handling.Chain {
    * {@inheritDoc}
    */
   @Override
-  Chain path(String path, Handler handler);
+  Chain handler(String path, Handler handler);
 
   /**
    * {@inheritDoc}

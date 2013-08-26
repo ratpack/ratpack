@@ -52,7 +52,7 @@ public class DefaultChain implements Chain {
     return handler(Handlers.prefix(prefix, builder));
   }
 
-  public Chain path(String path, Handler handler) {
+  public Chain handler(String path, Handler handler) {
     return handler(Handlers.path(path, handler));
   }
 

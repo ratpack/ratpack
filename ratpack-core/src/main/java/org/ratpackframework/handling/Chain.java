@@ -186,7 +186,7 @@ public interface Chain {
    * @see Chain#post(String, Handler)
    * @see Chain#get(String, Handler)
    */
-  Chain path(String path, Handler handler);
+  Chain handler(String path, Handler handler);
 
   /**
    * Adds a {@code Handler} to this {@code Chain} that delegates to the given {@code Handler}
@@ -199,7 +199,7 @@ public interface Chain {
    * @param handler the handler to delegate to
    * @return this {@code Chain}
    * @see Chain#post(String, Handler)
-   * @see Chain#path(String, Handler)
+   * @see Chain#handler(String, Handler)
    */
   Chain get(String path, Handler handler);
 
@@ -227,7 +227,7 @@ public interface Chain {
    * @param handler the handler to delegate to
    * @return this {@code Chain}
    * @see Chain#get(String, Handler)
-   * @see Chain#path(String, Handler)
+   * @see Chain#handler(String, Handler)
    */
   Chain post(String path, Handler handler);
 

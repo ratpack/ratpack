@@ -63,12 +63,12 @@ public class DefaultChain extends org.ratpackframework.handling.internal.Default
   }
 
   public Chain path(String path, Closure<?> handler) {
-    return path(path, new ClosureBackedHandler(handler));
+    return handler(path, new ClosureBackedHandler(handler));
   }
 
   @Override
-  public Chain path(String path, Handler handler) {
-    return (Chain) super.path(path, handler);
+  public Chain handler(String path, Handler handler) {
+    return (Chain) super.handler(path, handler);
   }
 
   public Chain get(String path, Closure<?> handler) {
