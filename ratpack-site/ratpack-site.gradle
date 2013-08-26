@@ -111,7 +111,7 @@ task browserTest(type: Test) {
 }
 
 tasks.withType(SauceTest) {
-  jvmArgs '-Dratpack.port=5050'
+  systemProperty 'ratpack.port', '5050'
 }
 
 installApp {
