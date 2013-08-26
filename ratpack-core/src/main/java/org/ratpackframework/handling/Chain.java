@@ -23,12 +23,61 @@ import org.ratpackframework.util.Action;
 import java.util.List;
 
 /**
- * A {@code Chain} can be used to build a linked series of {@code Handlers}.
+ * A chain can be used to build a linked series of handlers.
  * <p>
  * The {@code Chain} type does not represent the handlers "in action".
  * That is, it is the construction of a handler chain.
+ * <p>
+ * A chain can be constructed using the {@link Handlers#chain(org.ratpackframework.util.Action)} like methods.
+ * For example, from a {@link org.ratpackframework.launch.HandlerFactory} implementation…
+ * <pre class="tested">
+ * import org.ratpackframework.launch.HandlerFactory;
+ * import org.ratpackframework.launch.LaunchConfig;
+ * import org.ratpackframework.handling.Chain;
+ * import org.ratpackframework.handling.Handler;
+ * import org.ratpackframework.handling.Handlers;
+ * import org.ratpackframework.handling.Context;
+ * import org.ratpackframework.util.Action;
  *
- * @see Handlers#chain(org.ratpackframework.util.Action)
+ * public class MyHandlerBootstrap implements HandlerFactory {
+ *   public Handler create(LaunchConfig launchConfig) {
+ *
+ *     return Handlers.chain(new Action&lt;Chain&gt;() {
+ *       public void execute(Chain chain) {
+ *         chain
+ *           .assets("public")
+ *           .prefix("api", new Action&lt;Chain&gt;() {
+ *             public void execute(Chain api) {
+ *               api
+ *                 .get("people", new PeopleHandler())
+ *                 .post( "person/:id", new Handler() {
+ *                   public void handle(Context context) {
+ *                     // handle
+ *                   }
+ *                 })
+ *             }
+ *           })
+ *       }
+ *     });
+ *
+ *   }
+ * }
+ *
+ * public class PeopleHandler implements Handler {
+ *   public void handle(Context context) {
+ *     // handle
+ *   }
+ * }
+ * </pre>
+ * <p>
+ * Chains <i>may</i> be backed by a {@link Registry registry}, depending on how the chain was constructed.
+ * For example, the Ratpack Guice module makes it possible to create a Guice backed registry that can be used to
+ * construct dependency injected handlers. See the {@code ratpack-guice} library for details.
+ * </p>
+ * <p>
+ * A Groovy specific subclass of this interface is provided by the Groovy module that overloads methods here with {@code Closure} based variants.
+ * See the {@code ratpack-groovy} library for details.
+ * </p>
  */
 public interface Chain {
 
