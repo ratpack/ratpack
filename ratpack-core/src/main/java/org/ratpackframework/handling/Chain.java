@@ -94,20 +94,33 @@ public interface Chain {
    * relative path starts with the given {@code prefix}.
    * <p>
    * All path based handlers become relative to the given {@code prefix}.
-   * <pre>
-   *   prefix("person/:id") {
-   *     get("info") {
-   *       // e.g. /person/2/info
-   *     }
-   *     post("save") {
-   *       // e.g. /person/2/save
-   *     }
-   *     prefix("child/:childId") {
-   *       get("info") {
-   *         // e.g. /person/2/child/1/info
+   * <pre class="java-chain-dsl">
+   *   chain
+   *     .prefix("person/:id", new Action&lt;Chain&gt;() {
+   *       public void execute(Chain personChain) {
+   *         personChain
+   *           .get("info", new Handler() {
+   *             public void handle(Context context) {
+   *               // e.g. /person/2/info
+   *             }
+   *           })
+   *           .post("save", new Handler() {
+   *             public void handle(Context context) {
+   *               // e.g. /person/2/save
+   *             }
+   *           })
+   *           .prefix("child/:childId", new Action&lt;Chain&gt;() {
+   *             public void execute(Chain childChain) {
+   *               childChain
+   *                 .get("info", new Handler() {
+   *                   public void handle(Context context) {
+   *                     // e.g. /person/2/child/1/info
+   *                   }
+   *                 });
+   *             }
+   *           });
    *       }
-   *     }
-   *   }
+   *     });
    * </pre>
    * <p>
    * See {@link org.ratpackframework.handling.Handlers#prefix(String, java.util.List)}

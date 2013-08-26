@@ -18,12 +18,11 @@ package org.ratpackframework.manual
 
 import org.ratpackframework.manual.snippets.CodeSnippetTestCase
 import org.ratpackframework.manual.snippets.CodeSnippetTests
-import org.ratpackframework.manual.snippets.fixtures.DoNothingSnippetFixture
 import org.ratpackframework.manual.snippets.JavadocSnippetExtractor
-import org.ratpackframework.manual.snippets.SnippetExecuter
+import org.ratpackframework.manual.snippets.fixtures.DoNothingSnippetFixture
 import org.ratpackframework.manual.snippets.fixtures.GroovyChainDslFixture
 import org.ratpackframework.manual.snippets.fixtures.GroovyRatpackDslFixture
-import org.ratpackframework.manual.snippets.fixtures.SnippetFixture
+import org.ratpackframework.manual.snippets.fixtures.JavaChainDslFixture
 
 class JavadocCodeSnippetTests extends CodeSnippetTestCase {
 
@@ -42,9 +41,10 @@ class JavadocCodeSnippetTests extends CodeSnippetTestCase {
       if (mainSrc.exists()) {
         [
           "tested": new DoNothingSnippetFixture(),
+          "java-chain-dsl": new JavaChainDslFixture(),
           "groovy-chain-dsl": new GroovyChainDslFixture(),
           "groovy-ratpack-dsl": new GroovyRatpackDslFixture()
-        ].each { selector,  snippetFixture ->
+        ].each { selector, snippetFixture ->
           JavadocSnippetExtractor.extract(mainSrc, "**/*.java", selector, snippetFixture).each {
             tests.add(it)
           }
