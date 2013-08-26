@@ -44,14 +44,12 @@ public class DefaultChain implements Chain {
     return handler(Handlers.prefix(prefix, handlers));
   }
 
-  @Override
   public Chain prefix(String prefix, List<Handler> handlers) {
     return handler(Handlers.prefix(prefix, handlers));
   }
 
-  @Override
-  public Chain prefix(String prefix, Action<? super Chain> chainAction) {
-    return handler(Handlers.prefix(prefix, chainAction));
+  public Chain prefix(String prefix, Action<? super Chain> builder) {
+    return handler(Handlers.prefix(prefix, builder));
   }
 
   public Chain path(String path, Handler handler) {
@@ -78,12 +76,12 @@ public class DefaultChain implements Chain {
     return handler(Handlers.assets(path, indexFiles));
   }
 
-  public Chain register(Object object, List<Handler> handlers) {
-    return handler(Handlers.register(object, handlers));
+  public Chain register(Object service, List<Handler> handlers) {
+    return handler(Handlers.register(service, handlers));
   }
 
-  public <T> Chain register(Class<? super T> type, T object, List<Handler> handlers) {
-    return handler(Handlers.register(type, object, handlers));
+  public <T> Chain register(Class<? super T> type, T service, List<Handler> handlers) {
+    return handler(Handlers.register(type, service, handlers));
   }
 
   public Chain fileSystem(String path, List<Handler> handlers) {

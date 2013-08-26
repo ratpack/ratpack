@@ -34,6 +34,7 @@ public class DefaultChain extends org.ratpackframework.handling.internal.Default
     super(handlers, registry);
   }
 
+  @Override
   public Chain handler(Handler handler) {
     return (Chain) super.handler(handler);
   }
@@ -46,26 +47,26 @@ public class DefaultChain extends org.ratpackframework.handling.internal.Default
     return prefix(prefix, toHandlerList(chain));
   }
 
+  @Override
   public Chain prefix(String prefix, Handler... handlers) {
     return (Chain) super.prefix(prefix, handlers);
   }
 
+  @Override
   public Chain prefix(String prefix, List<Handler> handlers) {
     return (Chain) super.prefix(prefix, handlers);
   }
 
-  public Chain prefix(String prefix, Handler handler) {
-    return (Chain) super.prefix(prefix, handler);
-  }
-
-  public Chain prefix(String prefix, Action<? super org.ratpackframework.handling.Chain> chainAction) {
-    return (Chain) super.prefix(prefix, chainAction);
+  @Override
+  public Chain prefix(String prefix, Action<? super org.ratpackframework.handling.Chain> builder) {
+    return (Chain) super.prefix(prefix, builder);
   }
 
   public Chain path(String path, Closure<?> handler) {
     return path(path, new ClosureBackedHandler(handler));
   }
 
+  @Override
   public Chain path(String path, Handler handler) {
     return (Chain) super.path(path, handler);
   }
@@ -74,10 +75,12 @@ public class DefaultChain extends org.ratpackframework.handling.internal.Default
     return get(path, new ClosureBackedHandler(handler));
   }
 
+  @Override
   public Chain get(String path, Handler handler) {
     return (Chain) super.get(path, handler);
   }
 
+  @Override
   public Chain get(Handler handler) {
     return (Chain) super.get(handler);
   }
@@ -86,6 +89,7 @@ public class DefaultChain extends org.ratpackframework.handling.internal.Default
     return get("", handler);
   }
 
+  @Override
   public Chain post(String path, Handler handler) {
     return (Chain) super.post(path, handler);
   }
@@ -94,6 +98,7 @@ public class DefaultChain extends org.ratpackframework.handling.internal.Default
     return post(path, new ClosureBackedHandler(handler));
   }
 
+  @Override
   public Chain post(Handler handler) {
     return (Chain) super.post(handler);
   }
@@ -102,24 +107,27 @@ public class DefaultChain extends org.ratpackframework.handling.internal.Default
     return post("", handler);
   }
 
+  @Override
   public Chain assets(String path, String... indexFiles) {
     return (Chain) super.assets(path, indexFiles);
   }
 
-  public Chain register(Object object, Closure<?> handlers) {
-    return register(object, toHandlerList(handlers));
+  public Chain register(Object service, Closure<?> handlers) {
+    return register(service, toHandlerList(handlers));
   }
 
-  public Chain register(Object object, List<Handler> handlers) {
-    return (Chain) super.register(object, handlers);
+  @Override
+  public Chain register(Object service, List<Handler> handlers) {
+    return (Chain) super.register(service, handlers);
   }
 
-  public <T> Chain register(Class<? super T> type, T object, Closure<?> handlers) {
-    return register(type, object, toHandlerList(handlers));
+  public <T> Chain register(Class<? super T> type, T service, Closure<?> handlers) {
+    return register(type, service, toHandlerList(handlers));
   }
 
-  public <T> Chain register(Class<? super T> type, T object, List<Handler> handlers) {
-    return (Chain) super.register(type, object, handlers);
+  @Override
+  public <T> Chain register(Class<? super T> type, T service, List<Handler> handlers) {
+    return (Chain) super.register(type, service, handlers);
   }
 
   @Override
