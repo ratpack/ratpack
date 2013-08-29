@@ -21,11 +21,12 @@ import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import org.ratpackframework.groovy.Util
 import org.ratpackframework.groovy.test.TestHttpClient
-import org.ratpackframework.groovy.test.internal.DefaultTestHttpClient
 import org.ratpackframework.server.RatpackServer
 import org.ratpackframework.test.ApplicationUnderTest
 import org.ratpackframework.util.Action
 import spock.lang.Specification
+
+import static org.ratpackframework.groovy.test.TestHttpClients.testHttpClient
 
 abstract class InternalRatpackSpec extends Specification {
 
@@ -33,7 +34,7 @@ abstract class InternalRatpackSpec extends Specification {
   RatpackServer server
   boolean reloadable
 
-  @Delegate TestHttpClient client = new DefaultTestHttpClient(
+  @Delegate TestHttpClient client = testHttpClient(
     {
       startServerIfNeeded()
       new URI("http://${server.bindHost}:${server.bindPort}")

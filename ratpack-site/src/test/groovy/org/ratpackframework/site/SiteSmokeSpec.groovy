@@ -18,13 +18,12 @@ package org.ratpackframework.site
 
 import org.ratpackframework.groovy.test.LocalScriptApplicationUnderTest
 import org.ratpackframework.groovy.test.TestHttpClient
-import org.ratpackframework.groovy.test.internal.DefaultTestHttpClient
 import spock.lang.Specification
 
 class SiteSmokeSpec extends Specification {
 
   def aut = new LocalScriptApplicationUnderTest()
-  @Delegate TestHttpClient client = new DefaultTestHttpClient(aut)
+  @Delegate TestHttpClient client = aut.httpClient()
 
   def "Check Site Index"() {
     when:

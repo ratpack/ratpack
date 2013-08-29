@@ -36,10 +36,6 @@ public class DefaultTestHttpClient implements TestHttpClient {
   private final ApplicationUnderTest applicationUnderTest;
   private final Action<RequestSpecification> requestConfigurer;
 
-  public DefaultTestHttpClient(ApplicationUnderTest applicationUnderTest) {
-    this(applicationUnderTest, null);
-  }
-
   public DefaultTestHttpClient(ApplicationUnderTest applicationUnderTest, @Nullable Action<RequestSpecification> requestConfigurer) {
     this.applicationUnderTest = applicationUnderTest;
     this.requestConfigurer = requestConfigurer;
