@@ -21,14 +21,14 @@ import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import org.ratpackframework.groovy.Util
 import org.ratpackframework.server.RatpackServer
-import org.ratpackframework.groovy.test.RequestingSupport
+import org.ratpackframework.groovy.test.TestHttpClient
 import org.ratpackframework.test.ApplicationUnderTest
 import org.ratpackframework.util.Action
 import spock.lang.Specification
 
 abstract class InternalRatpackSpec extends Specification {
 
-  @Delegate RequestingSupport requestingSupport = new RequestingSupport(
+  @Delegate TestHttpClient client = new TestHttpClient(
     { getApplicationUnderTest().address } as ApplicationUnderTest,
     { configureRequest(it) } as Action<RequestSpecification>
   )
@@ -39,7 +39,7 @@ abstract class InternalRatpackSpec extends Specification {
   RatpackServer server
 
   def setup() {
-    requestingSupport.resetRequest()
+    client.resetRequest()
   }
 
   void configureRequest(RequestSpecification requestSpecification) {

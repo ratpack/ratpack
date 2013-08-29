@@ -21,6 +21,7 @@ import com.jayway.restassured.response.Cookie;
 import com.jayway.restassured.response.Cookies;
 import com.jayway.restassured.response.Response;
 import com.jayway.restassured.specification.RequestSpecification;
+import org.ratpackframework.api.Nullable;
 import org.ratpackframework.test.ApplicationUnderTest;
 import org.ratpackframework.util.Action;
 
@@ -29,12 +30,16 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
-public class RequestingSupport {
+public class TestHttpClient {
 
   private final ApplicationUnderTest applicationUnderTest;
   private final Action<RequestSpecification> requestConfigurer;
 
-  public RequestingSupport(ApplicationUnderTest applicationUnderTest, Action<RequestSpecification> requestConfigurer) {
+  public TestHttpClient(ApplicationUnderTest applicationUnderTest) {
+    this(applicationUnderTest, null);
+  }
+
+  public TestHttpClient(ApplicationUnderTest applicationUnderTest, @Nullable Action<RequestSpecification> requestConfigurer) {
     this.applicationUnderTest = applicationUnderTest;
     this.requestConfigurer = requestConfigurer;
   }
@@ -146,7 +151,9 @@ public class RequestingSupport {
 
   public RequestSpecification createRequest() {
     RequestSpecification request = RestAssured.with().urlEncodingEnabled(false);
-    requestConfigurer.execute(request);
+    if (requestConfigurer != null) {
+      requestConfigurer.execute(request);
+    }
     return request;
   }
 
