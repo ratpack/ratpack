@@ -16,7 +16,7 @@
 
 package org.ratpackframework.jackson;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import org.ratpackframework.api.Nullable;
 
 /**
@@ -53,7 +53,7 @@ import org.ratpackframework.api.Nullable;
 public class Json<T> {
 
   private final T object;
-  private final ObjectMapper objectMapper;
+  private final ObjectWriter objectWriter;
 
   /**
    * Constructs a JSON wrapper around the given object.
@@ -62,11 +62,11 @@ public class Json<T> {
    * </p>
    *
    * @param object The object to render as JSON.
-   * @param objectMapper The mapper to use to convert the object to JSON.
+   * @param objectWriter The writier to use to convert the object to JSON.
    */
-  public Json(T object, @Nullable ObjectMapper objectMapper) {
+  public Json(T object, @Nullable ObjectWriter objectWriter) {
     this.object = object;
-    this.objectMapper = objectMapper;
+    this.objectWriter = objectWriter;
   }
 
   /**
@@ -79,15 +79,15 @@ public class Json<T> {
   }
 
   /**
-   * The object mapper to use to render the object as JSON.
+   * The object writer to use to render the object as JSON.
    * <p>
-   * If null, the "default" mapper should be used by the renderer.
+   * If null, the "default" writer should be used by the renderer.
    *
    * @return The object mapper to be used.
    */
   @Nullable
-  public ObjectMapper getObjectMapper() {
-    return objectMapper;
+  public ObjectWriter getObjectWriter() {
+    return objectWriter;
   }
 
   /**
@@ -105,12 +105,12 @@ public class Json<T> {
    * Json rendering of the given object, using the given object mapper.
    *
    * @param object The object to render as JSON.
-   * @param objectMapper The mapper to use to render the object as JSON. If null, the default object mapper will be used by the renderer.
+   * @param objectWriter The writer to use to render the object as JSON. If null, the default object writer will be used by the renderer.
    * @param <T> The type of the object to render as JSON.
    * @return A JSON type wrapper for the given object.
    */
-  public static <T> Json<T> json(T object, @Nullable ObjectMapper objectMapper) {
-    return new Json<>(object, objectMapper);
+  public static <T> Json<T> json(T object, @Nullable ObjectWriter objectWriter) {
+    return new Json<>(object, objectWriter);
   }
 
 }

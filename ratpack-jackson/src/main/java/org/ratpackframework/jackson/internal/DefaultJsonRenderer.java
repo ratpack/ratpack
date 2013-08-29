@@ -16,7 +16,7 @@
 
 package org.ratpackframework.jackson.internal;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import io.netty.buffer.ByteBuf;
 import org.ratpackframework.api.TypeLiteral;
 import org.ratpackframework.handling.Context;
@@ -31,13 +31,13 @@ import java.io.OutputStream;
 
 public class DefaultJsonRenderer extends ByTypeRenderer<Json<?>> implements JsonRenderer {
 
-  private final ObjectMapper defaultObjectMapper;
+  private final ObjectWriter defaultObjectWriter;
 
   @Inject
-  public DefaultJsonRenderer(ObjectMapper defaultObjectMapper) {
+  public DefaultJsonRenderer(ObjectWriter defaultObjectWriter) {
     super(new TypeLiteral<Json<?>>() {
     });
-    this.defaultObjectMapper = defaultObjectMapper;
+    this.defaultObjectWriter = defaultObjectWriter;
   }
 
   @Override
@@ -48,13 +48,13 @@ public class DefaultJsonRenderer extends ByTypeRenderer<Json<?>> implements Json
         final ByteBuf body = context.getResponse().getBody();
         OutputStream outputStream = new ByteBufWriteThroughOutputStream(body);
 
-        ObjectMapper mapper = object.getObjectMapper();
-        if (mapper == null) {
-          mapper = defaultObjectMapper;
+        ObjectWriter writer = object.getObjectWriter();
+        if (writer == null) {
+          writer = defaultObjectWriter;
         }
 
         try {
-          mapper.writeValue(outputStream, object.getObject());
+          writer.writeValue(outputStream, object.getObject());
         } catch (IOException e) {
           context.error(e);
         }

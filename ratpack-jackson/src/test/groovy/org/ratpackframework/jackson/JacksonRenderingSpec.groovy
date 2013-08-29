@@ -27,11 +27,43 @@ class JacksonRenderingSpec extends RatpackGroovyDslSpec {
     String password
   }
 
-  def "can render json"() {
+  def setup() {
+    modules << new JacksonModule()
+  }
+
+  def "can render custom objects as json"() {
+    when:
+    app {
+      handlers {
+        get {
+          render json(new User(username: "foo", password: "bar"))
+        }
+      }
+    }
+
+    then:
+    text == '{"username":"foo","password":"bar"}'
+  }
+
+  def "can render standard objects as json"() {
+    when:
+    app {
+      handlers {
+        get {
+          render json(username: "foo", numbers: [1, 2, 3])
+        }
+      }
+    }
+
+    then:
+    text == '{"username":"foo","numbers":[1,2,3]}'
+  }
+
+  def "can pretty print"() {
     when:
     app {
       modules {
-        register new JacksonModule()
+        get(JacksonModule).prettyPrint = true
       }
       handlers {
         get {
@@ -41,6 +73,11 @@ class JacksonRenderingSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    get().jsonPath().get("username") == "foo"
+    text == '''{
+  "username" : "foo",
+  "password" : "bar"
+}'''
+
   }
+
 }
