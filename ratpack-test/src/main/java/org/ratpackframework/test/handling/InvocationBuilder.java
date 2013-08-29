@@ -72,7 +72,7 @@ public class InvocationBuilder {
       request,
       status,
       responseHeaders,
-      responseBody,
+      Unpooled.unmodifiableBuffer(responseBody.copy()),
       registry,
       timeout,
       handler
