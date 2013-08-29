@@ -16,22 +16,37 @@
 
 package org.ratpackframework.test
 
+import com.jayway.restassured.specification.RequestSpecification
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import org.ratpackframework.groovy.Util
-import org.ratpackframework.groovy.test.RequestingSpec
 import org.ratpackframework.server.RatpackServer
+import org.ratpackframework.groovy.test.RequestingSupport
+import org.ratpackframework.util.Action
+import spock.lang.Specification
 
-abstract class InternalRatpackSpec extends RequestingSpec {
+abstract class InternalRatpackSpec extends Specification {
+
+  @Delegate RequestingSupport requestingSupport = new RequestingSupport(
+    { getApplicationUnderTest().address } as ApplicationUnderTest,
+    { configureRequest(it) } as Action<RequestSpecification>
+  )
 
   @Rule TemporaryFolder temporaryFolder
   boolean reloadable
 
   RatpackServer server
 
+  def setup() {
+    requestingSupport.resetRequest()
+  }
+
+  void configureRequest(RequestSpecification requestSpecification) {
+    // do nothing
+  }
+
   abstract protected RatpackServer createServer()
 
-  @Override
   protected ApplicationUnderTest getApplicationUnderTest() {
     startServerIfNeeded()
     new ApplicationUnderTest() {
@@ -78,6 +93,7 @@ abstract class InternalRatpackSpec extends RequestingSpec {
       server.start()
     }
   }
+
 
 
 }

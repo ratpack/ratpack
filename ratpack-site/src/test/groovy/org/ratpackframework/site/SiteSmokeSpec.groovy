@@ -32,7 +32,7 @@ class SiteSmokeSpec extends ScriptAppSpec {
 
 	def "Check Site /"() {
 		when:
-		get("")
+		get()
 
 		then:
 		response.statusCode == 200

@@ -66,7 +66,7 @@ class ExampleRestSpec extends RatpackGroovyScriptAppSpec {
     """
 
     when:
-    request {
+    request.with {
       contentType "text/plain"
       body "foo"
     }
@@ -77,7 +77,7 @@ class ExampleRestSpec extends RatpackGroovyScriptAppSpec {
     response.statusCode == 415
 
     when:
-    request {
+    request.with {
       header "Accept", "application/json"
       contentType "application/json"
       body '{"value": 1}'
@@ -103,7 +103,7 @@ class ExampleRestSpec extends RatpackGroovyScriptAppSpec {
     """
 
     when:
-    request {
+    request.with {
       body "foo"
     }
 

@@ -33,7 +33,7 @@ class RequestParametersSpec extends RatpackGroovyDslSpec {
     then:
     getText() == "[:]" && resetRequest()
     getText("?a=b") == "[a:[b]]" && resetRequest()
-    request {
+    request.with {
       queryParam "a", "b", "c"
       queryParam "d", "e"
     }
@@ -53,11 +53,11 @@ class RequestParametersSpec extends RatpackGroovyDslSpec {
 
     then:
     postText() == "[:]" && resetRequest()
-    request {
+    request.with {
       param "a", "b"
     }
     postText() == "[a:[b]]" && resetRequest()
-    request {
+    request.with {
       param "a", "b", "c"
       param "d", "e"
       param "abc"

@@ -16,17 +16,19 @@
 
 package org.ratpackframework.groovy.test
 
-import org.ratpackframework.test.ApplicationUnderTest
 import org.ratpackframework.test.ServerBackedApplicationUnderTest
+import org.ratpackframework.util.Action
+import spock.lang.Specification
 
-abstract class ScriptAppSpec extends RequestingSpec {
+abstract class ScriptAppSpec extends Specification {
 
   private final ServerBackedApplicationUnderTest runningApp = new LocalScriptApplicationUnderTest()
 
-  @Override
-  protected ApplicationUnderTest getApplicationUnderTest() {
-    runningApp
-  }
+  @Delegate
+  private final RequestingSupport requestingSupport = new RequestingSupport(
+    runningApp,
+    {} as Action
+  )
 
   def cleanup() {
     runningApp.stop()
