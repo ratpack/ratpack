@@ -16,9 +16,14 @@
 
 apply from: "$rootDir/gradle/groovyModule.gradle"
 
+def restAssuredVersion = "1.8.1"
+ext.apiLinks = [
+  "http://rest-assured.googlecode.com/svn/tags/$restAssuredVersion/apidocs"
+]
+
 dependencies {
   compile project(":ratpack-groovy"), project(":ratpack-test"), project(':ratpack-remote')
-  compile "com.jayway.restassured:rest-assured:1.7.2", {
+  compile "com.jayway.restassured:rest-assured:$restAssuredVersion", {
     exclude module: "groovy"
     exclude group: "org.hamcrest"
   }
