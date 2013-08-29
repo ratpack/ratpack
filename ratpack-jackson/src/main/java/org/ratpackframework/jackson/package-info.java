@@ -16,5 +16,7 @@
 
 /**
  * Integration with the <a href="https://github.com/FasterXML/jackson-databind">Jackson JSON marshalling library</a>.
+ *
+ * See {@link org.ratpackframework.jackson.Json} and {@link org.ratpackframework.jackson.JacksonModule} to get started.
  */
 package org.ratpackframework.jackson;
