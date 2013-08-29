@@ -17,7 +17,7 @@
 package org.ratpackframework.file.internal
 
 import com.jayway.restassured.response.Response
-import io.netty.handler.codec.http.HttpHeaderDateFormat
+import org.ratpackframework.http.internal.HttpHeaderDateFormat
 import org.ratpackframework.test.internal.RatpackGroovyDslSpec
 
 import static io.netty.handler.codec.http.HttpHeaders.Names.*
@@ -45,7 +45,7 @@ class FileRenderingSpec extends RatpackGroovyDslSpec {
     get("path")
 
     then:
-    with (response) {
+    with(response) {
       statusCode == OK.code()
       body.asString().contains(FILE_CONTENTS)
       contentType.equals("text/plain;charset=UTF-8")
@@ -68,8 +68,8 @@ class FileRenderingSpec extends RatpackGroovyDslSpec {
     get("path")
 
     then:
-    with (response) {
-      statusCode ==  NOT_MODIFIED.code()
+    with(response) {
+      statusCode == NOT_MODIFIED.code()
       header(CONTENT_LENGTH).toInteger() == 0
     }
   }
@@ -86,7 +86,7 @@ class FileRenderingSpec extends RatpackGroovyDslSpec {
     get("path")
 
     then:
-    with (response) {
+    with(response) {
       statusCode == OK.code()
       // compare the last modified dates formatted as milliseconds are stripped when added as a response header
       formatDateHeader(parseDateHeader(response, LAST_MODIFIED)) == formatDateHeader(myFile.lastModified())
@@ -95,7 +95,7 @@ class FileRenderingSpec extends RatpackGroovyDslSpec {
   }
 
   private static Date parseDateHeader(Response response, String name) {
-    new HttpHeaderDateFormat().parse(response.getHeader(name))
+    HttpHeaderDateFormat.get().parse(response.getHeader(name))
   }
 
   private static String formatDateHeader(long timestamp) {
@@ -103,6 +103,6 @@ class FileRenderingSpec extends RatpackGroovyDslSpec {
   }
 
   private static String formatDateHeader(Date date) {
-    new HttpHeaderDateFormat().format(date)
+    HttpHeaderDateFormat.get().format(date)
   }
 }
