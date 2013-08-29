@@ -222,7 +222,7 @@ The template looks as follows:
 </html>
 ```
 
-Ratpack will look for the template relative to place where the script is being run. So this template should be saved under *template/index.html*.
+Ratpack will look for the template relative to place where the script is being run. So this template should be saved under *templates/index.html*.
 
 When we run this, you should get an HTML page where all the values inside `${}` are replaced with the real values.
 

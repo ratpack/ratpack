@@ -9,6 +9,7 @@ out/
 *.iml
 *.ipr
 *.iws
+*.idea
 db/
 starth2
 .gradletasknamecache
