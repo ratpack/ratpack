@@ -24,6 +24,7 @@ The following people have provided significant contributions.
 * [Dan Woods](https://github.com/danveloper)
 * [Rus Hart](https://github.com/rhart)
 * [Tomás Lin](https://github.com/tomaslin)
+* [Kevin Marquardsen](https://github.com/kmarquardsen)
 
 ### Past Project Members
 
