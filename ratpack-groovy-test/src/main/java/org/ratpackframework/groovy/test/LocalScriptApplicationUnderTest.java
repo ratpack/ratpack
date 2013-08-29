@@ -16,11 +16,18 @@
 
 package org.ratpackframework.groovy.test;
 
+import org.ratpackframework.groovy.launch.RatpackMain;
 import org.ratpackframework.test.ServerBackedApplicationUnderTest;
 
 public class LocalScriptApplicationUnderTest extends ServerBackedApplicationUnderTest {
 
   public LocalScriptApplicationUnderTest() {
     super(new RatpackMainServerFactory());
+  }
+
+  private static class RatpackMainServerFactory extends org.ratpackframework.test.RatpackMainServerFactory {
+    public RatpackMainServerFactory() {
+      super(new RatpackMain());
+    }
   }
 }
