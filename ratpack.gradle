@@ -91,7 +91,8 @@ ext {
       }),
       groovy: dependencies.create("org.codehaus.groovy:groovy-all:$groovyVersion"),
       remote: "org.codehaus.groovy.modules.remote:remote-core:${commonVersions.remote}",
-      "remote-http": "org.codehaus.groovy.modules.remote:remote-transport-http:${commonVersions.remote}"
+      "remote-http": "org.codehaus.groovy.modules.remote:remote-transport-http:${commonVersions.remote}",
+      jackson: "com.fasterxml.jackson.core:jackson-databind:2.2.2"
   ]
 
   publishedModules = [
