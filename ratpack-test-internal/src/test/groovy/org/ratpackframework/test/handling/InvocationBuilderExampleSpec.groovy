@@ -28,11 +28,24 @@ import static org.ratpackframework.groovy.test.handling.InvocationBuilder.invoke
  */
 class InvocationBuilderExampleSpec extends Specification {
 
+  static class LabelProvider {
+    private final label
+
+    LabelProvider(label) {
+      this.label = label
+    }
+
+    String getLabel() {
+      "$label: "
+    }
+  }
+
   static class MyHandler implements Handler {
     void handle(Context context) {
       context.with {
+        def labelProvider = get(LabelProvider)
         response.headers.set("set-header", "set")
-        response.send request.headers.get("test-header") + ":" + request.uri
+        response.send "${labelProvider.label}${request.headers.get("test-header")}:$request.uri"
       }
     }
   }
@@ -41,6 +54,7 @@ class InvocationBuilderExampleSpec extends Specification {
     when:
     def invocation = invoke(new MyHandler()) {
       // Use the InvocationBuilder DSL in here to set up the context for the handler
+      register(new LabelProvider("baz"))
       requestHeaders.set("Test-Header", "foo")
       uri = "/bar"
     }
@@ -48,7 +62,25 @@ class InvocationBuilderExampleSpec extends Specification {
     then:
     // The invocation object gives you insight on what the handler did
     with(invocation) {
-      bodyText == "foo:/bar"
+      bodyText == "baz: foo:/bar"
+      headers.get("set-header") == "set"
+    }
+  }
+
+  def "can unit test handler with context builder syntax"() {
+    given:
+    def context = new InvocationBuilder()
+    context.register(new LabelProvider("baz"))
+    context.requestHeaders.set("Test-Header", "foo")
+    context.uri = "/bar"
+
+    when:
+    def result = context.invoke(new MyHandler())
+
+    then:
+    // The HandlerResult object gives you insight on what the handler did
+    with(result) {
+      bodyText == "baz: foo:/bar"
       headers.get("set-header") == "set"
     }
   }

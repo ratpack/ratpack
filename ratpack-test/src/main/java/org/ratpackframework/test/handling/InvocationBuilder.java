@@ -60,6 +60,29 @@ public class InvocationBuilder {
    * Invokes a handler in a controlled way, allowing it to be tested.
    *
    * @param handler The handler to invoke
+   * @return A result object indicating what happened
+   * @throws InvocationTimeoutException if the handler takes more than {@link #getTimeout()} seconds to send a response or call {@code next()} on the context
+   */
+  public Invocation invoke(Handler handler) throws InvocationTimeoutException {
+    Request request = new DefaultRequest(requestHeaders, method, uri, requestBody);
+
+    Registry<Object> registry = new RootRegistry<>(registryContents.build());
+
+    return new DefaultInvocation(
+      request,
+      status,
+      responseHeaders,
+      responseBody,
+      registry,
+      timeout,
+      handler
+    );
+  }
+
+  /**
+   * Invokes a handler in a controlled way, allowing it to be tested.
+   *
+   * @param handler The handler to invoke
    * @param action The configuration of the context for the handler
    * @return A result object indicating what happened
    * @throws InvocationTimeoutException if the handler takes more than {@link #getTimeout()} seconds to send a response or call {@code next()} on the context
@@ -69,19 +92,7 @@ public class InvocationBuilder {
 
     action.execute(builder);
 
-    Request request = new DefaultRequest(builder.requestHeaders, builder.method, builder.uri, builder.requestBody);
-
-    Registry<Object> registry = new RootRegistry<>(builder.registryContents.build());
-
-    return new DefaultInvocation(
-      request,
-      builder.status,
-      builder.responseHeaders,
-      builder.responseBody,
-      registry,
-      builder.timeout,
-      handler
-    );
+    return builder.invoke(handler);
   }
 
   public ByteBuf getRequestBody() {
