@@ -54,7 +54,7 @@ public class InvocationBuilder {
 
   private ImmutableList.Builder<Object> registryContents = ImmutableList.builder();
 
-  protected InvocationBuilder() {
+  public InvocationBuilder() {
   }
 
   /**
