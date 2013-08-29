@@ -19,21 +19,22 @@ package org.ratpackframework.test.handling
 import io.netty.util.CharsetUtil
 import org.ratpackframework.handling.Context
 import spock.lang.Specification
+import spock.lang.Subject
 
 import static org.ratpackframework.groovy.Util.asHandler
-import static org.ratpackframework.groovy.Util.delegatingAction
 
 class InvocationBuilderSpec extends Specification {
 
+  @Subject InvocationBuilder builder = new InvocationBuilder()
   @Delegate Invocation invocation
 
-  void invoke(@DelegatesTo(Context) Closure handler, @DelegatesTo(InvocationBuilder) Closure build) {
-    invocation = InvocationBuilder.invoke(asHandler(handler), delegatingAction(build))
+  void invoke(@DelegatesTo(Context) Closure handler) {
+    invocation = builder.invoke(asHandler(handler))
   }
 
   def "can test handler that just calls next"() {
     when:
-    invoke({ next() }, {},)
+    invoke { next() }
 
     then:
     bodyText == null
@@ -46,7 +47,7 @@ class InvocationBuilderSpec extends Specification {
 
   def "can test handler that sends string"() {
     when:
-    invoke({ response.send "foo" }, {},)
+    invoke { response.send "foo" }
 
     then:
     bodyText == "foo"
@@ -60,7 +61,7 @@ class InvocationBuilderSpec extends Specification {
 
   def "can test handler that sends bytes"() {
     when:
-    invoke({ response.send "foo".getBytes(CharsetUtil.UTF_8) }, {},)
+    invoke { response.send "foo".getBytes(CharsetUtil.UTF_8) }
 
     then:
     bodyText == "foo"
@@ -75,7 +76,7 @@ class InvocationBuilderSpec extends Specification {
 
   def "can test handler that sends file"() {
     when:
-    invoke({ response.sendFile blocking, "text/plain", new File("foo") }, {},)
+    invoke { response.sendFile blocking, "text/plain", new File("foo") }
 
     then:
     bodyText == null
@@ -88,32 +89,44 @@ class InvocationBuilderSpec extends Specification {
   }
 
   def "can register things"() {
+    given:
+    builder.register "foo"
+
     when:
-    invoke({ response.send get(String) }, { register new String("foo") })
+    invoke { response.send get(String) }
 
     then:
     bodyText == "foo"
   }
 
   def "can test async handlers"() {
+    given:
+    builder.timeout = 3
+
     when:
-    invoke({ Thread.start { sleep 1000; next() } }, { timeout = 3 })
+    invoke { Thread.start { sleep 1000; next() } }
 
     then:
     calledNext
   }
 
   def "will throw if handler takes too long"() {
+    given:
+    builder.timeout = 1
+
     when:
-    invoke({ Thread.start { sleep 2000; next() } }, { timeout = 1 })
+    invoke { Thread.start { sleep 2000; next() } }
 
     then:
     thrown InvocationTimeoutException
   }
 
   def "can set uri"() {
+    given:
+    builder.uri = "foo"
+
     when:
-    invoke({ response.send request.uri }, { uri = "foo" })
+    invoke { response.send request.uri }
 
     then:
     bodyText == "/foo"
