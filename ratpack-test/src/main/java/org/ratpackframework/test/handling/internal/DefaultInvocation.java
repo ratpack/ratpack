@@ -18,6 +18,7 @@ package org.ratpackframework.test.handling.internal;
 
 import com.google.common.util.concurrent.ListeningExecutorService;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.util.CharsetUtil;
 import org.ratpackframework.block.Blocking;
 import org.ratpackframework.file.internal.FileHttpTransmitter;
@@ -59,7 +60,6 @@ public class DefaultInvocation implements Invocation {
 
     this.headers = new DelegatingHeaders(responseHeaders);
     this.status = status;
-    this.body = responseBody;
 
     ExecutorService mainExecutor = newSingleThreadExecutor();
     ListeningExecutorService blockingExecutor = listeningDecorator(newSingleThreadExecutor());
@@ -111,6 +111,8 @@ public class DefaultInvocation implements Invocation {
     } catch (InterruptedException e) {
       throw new RuntimeException(e); // what to do here?
     }
+
+    this.body = Unpooled.unmodifiableBuffer(responseBody);
   }
 
   @Override
