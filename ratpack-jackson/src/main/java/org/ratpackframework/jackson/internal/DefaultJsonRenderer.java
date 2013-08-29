@@ -31,13 +31,13 @@ import java.io.OutputStream;
 
 public class DefaultJsonRenderer extends ByTypeRenderer<Json<?>> implements JsonRenderer {
 
-  private final ObjectMapper objectMapper;
+  private final ObjectMapper defaultObjectMapper;
 
   @Inject
-  public DefaultJsonRenderer(ObjectMapper objectMapper) {
+  public DefaultJsonRenderer(ObjectMapper defaultObjectMapper) {
     super(new TypeLiteral<Json<?>>() {
     });
-    this.objectMapper = objectMapper;
+    this.defaultObjectMapper = defaultObjectMapper;
   }
 
   @Override
@@ -48,8 +48,13 @@ public class DefaultJsonRenderer extends ByTypeRenderer<Json<?>> implements Json
         final ByteBuf body = context.getResponse().getBody();
         OutputStream outputStream = new ByteBufWriteThroughOutputStream(body);
 
+        ObjectMapper mapper = object.getObjectMapper();
+        if (mapper == null) {
+          mapper = defaultObjectMapper;
+        }
+
         try {
-          objectMapper.writeValue(outputStream, object.getObject());
+          mapper.writeValue(outputStream, object.getObject());
         } catch (IOException e) {
           context.error(e);
         }

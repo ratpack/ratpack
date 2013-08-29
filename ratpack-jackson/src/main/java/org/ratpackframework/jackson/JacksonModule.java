@@ -18,14 +18,21 @@ package org.ratpackframework.jackson;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.AbstractModule;
+import com.google.inject.Scopes;
 import org.ratpackframework.jackson.internal.DefaultJsonRenderer;
 
+/**
+ * A Guice module that provides an implementation of {@link JsonRenderer}, a renderer for {@link Json} object.
+ * <p>
+ * Also provides a default instance of {@link ObjectMapper}, which is the engine for serialization.
+ * To globally customize JSON generation, override this binding.
+ */
 public class JacksonModule extends AbstractModule {
 
   @Override
   protected void configure() {
     bind(JsonRenderer.class).to(DefaultJsonRenderer.class);
-    bind(ObjectMapper.class).asEagerSingleton();
+    bind(ObjectMapper.class).in(Scopes.SINGLETON);
   }
 
 }

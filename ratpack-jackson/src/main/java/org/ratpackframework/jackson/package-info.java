@@ -14,13 +14,7 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.jackson;
-
-import org.ratpackframework.render.Renderer;
-
 /**
- * Renders {@link Json} objects.
+ * Integration with the <a href="https://github.com/FasterXML/jackson-databind">Jackson JSON marshalling library</a>.
  */
-public interface JsonRenderer extends Renderer<Json<?>> {
-
-}
+package org.ratpackframework.jackson;
