@@ -16,27 +16,41 @@
 
 package org.ratpackframework.site
 
-import org.ratpackframework.groovy.test.ScriptAppSpec
+import org.ratpackframework.groovy.test.LocalScriptApplicationUnderTest
+import org.ratpackframework.groovy.test.RequestingSupport
+import org.ratpackframework.util.Action
+import spock.lang.Specification
 
-class SiteSmokeSpec extends ScriptAppSpec {
+class SiteSmokeSpec extends Specification {
 
-	def "Check Site Index"() {
-		when:
-		get("index.html")
+  def aut = new LocalScriptApplicationUnderTest()
 
-		then:
-		response.statusCode == 200
-		response.body.asString().contains('<title>Ratpack: A toolkit for JVM web applications</title>')
+  @Delegate RequestingSupport requestingSupport = new RequestingSupport(
+    aut,
+    {} as Action
+  )
 
-	}
+  def "Check Site Index"() {
+    when:
+    get("index.html")
 
-	def "Check Site /"() {
-		when:
-		get()
+    then:
+    response.statusCode == 200
+    response.body.asString().contains('<title>Ratpack: A toolkit for JVM web applications</title>')
 
-		then:
-		response.statusCode == 200
-		response.body.asString().contains('<title>Ratpack: A toolkit for JVM web applications</title>')
-	}
+  }
+
+  def "Check Site /"() {
+    when:
+    get()
+
+    then:
+    response.statusCode == 200
+    response.body.asString().contains('<title>Ratpack: A toolkit for JVM web applications</title>')
+  }
+
+  def cleanup() {
+    aut.stop()
+  }
 
 }

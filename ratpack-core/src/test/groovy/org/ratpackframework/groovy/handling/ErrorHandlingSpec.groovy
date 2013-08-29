@@ -19,7 +19,7 @@ package org.ratpackframework.groovy.handling
 import org.ratpackframework.error.ServerErrorHandler
 import org.ratpackframework.handling.Context
 import org.ratpackframework.handling.Handler
-import org.ratpackframework.test.groovy.RatpackGroovyDslSpec
+import org.ratpackframework.test.internal.RatpackGroovyDslSpec
 
 class ErrorHandlingSpec extends RatpackGroovyDslSpec {
 

@@ -22,17 +22,12 @@ dependencies {
     exclude module: "groovy"
     exclude group: "org.hamcrest"
   }
-  compile commonDependencies.spock
   compile commonDependencies."remote-http"
 }
 
 modifyPom {
   def exclusionClass = delegate.class.classLoader.loadClass("org.apache.maven.model.Exclusion")
   dependencies.removeAll { it.artifactId == project.name }
-  dependencies.find { it.artifactId == "spock-core" }.with {
-    addExclusion(exclusionClass.newInstance(artifactId: "groovy-all"))
-    addExclusion(exclusionClass.newInstance(groupId: "org.hamcrest"))
-  }
   dependencies.find { it.artifactId == "rest-assured" }.with {
     addExclusion(exclusionClass.newInstance(artifactId: "groovy"))
     addExclusion(exclusionClass.newInstance(groupId: "org.hamcrest"))

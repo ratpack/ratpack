@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.test.groovy
+package org.ratpackframework.test.internal
 
 import org.ratpackframework.groovy.RatpackScript
 import org.ratpackframework.groovy.launch.GroovyScriptHandlerFactory
@@ -22,7 +22,7 @@ import org.ratpackframework.launch.LaunchConfig
 import org.ratpackframework.launch.LaunchConfigFactory
 import org.ratpackframework.server.RatpackServer
 import org.ratpackframework.server.RatpackServerBuilder
-import org.ratpackframework.test.InternalRatpackSpec
+import org.ratpackframework.test.internal.InternalRatpackSpec
 
 abstract class RatpackGroovyScriptAppSpec extends InternalRatpackSpec {
 

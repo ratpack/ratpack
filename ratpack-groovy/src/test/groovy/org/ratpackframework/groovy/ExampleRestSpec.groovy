@@ -16,7 +16,7 @@
 
 package org.ratpackframework.groovy
 
-import org.ratpackframework.test.groovy.RatpackGroovyScriptAppSpec
+import org.ratpackframework.test.internal.RatpackGroovyScriptAppSpec
 
 class ExampleRestSpec extends RatpackGroovyScriptAppSpec {
 

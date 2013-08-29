@@ -40,8 +40,13 @@ public class RequestingSupport {
   }
 
   private RequestSpecification request;
+
   private Response response;
   private List<Cookie> cookies = new LinkedList<>();
+
+  public ApplicationUnderTest getApplicationUnderTest() {
+    return applicationUnderTest;
+  }
 
   public RequestSpecification getRequest() {
     return request;

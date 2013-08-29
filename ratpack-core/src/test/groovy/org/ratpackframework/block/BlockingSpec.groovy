@@ -18,7 +18,7 @@ package org.ratpackframework.block
 
 import org.ratpackframework.error.PrintingServerErrorHandler
 import org.ratpackframework.error.ServerErrorHandler
-import org.ratpackframework.test.groovy.RatpackGroovyDslSpec
+import org.ratpackframework.test.internal.RatpackGroovyDslSpec
 
 import static org.ratpackframework.groovy.Util.exec
 

@@ -17,7 +17,7 @@
 package org.ratpackframework.handlebars
 
 import com.github.jknack.handlebars.Options
-import org.ratpackframework.test.groovy.RatpackGroovyDslSpec
+import org.ratpackframework.test.internal.RatpackGroovyDslSpec
 import spock.lang.Unroll
 
 import static Template.handlebarsTemplate

@@ -17,11 +17,11 @@
 package org.ratpackframework.groovy.test.remote
 
 import org.ratpackframework.remote.RemoteControlModule
-import org.ratpackframework.test.groovy.RatpackGroovyDslSpec
+import org.ratpackframework.test.internal.RatpackGroovyDslSpec
 
 class RemoteControlUsageSpec extends RatpackGroovyDslSpec {
 
-  void setup() {
+  def setup() {
     other.put("remoteControl.enabled", "true")
   }
 

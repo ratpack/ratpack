@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.test.groovy
+package org.ratpackframework.test.internal
 
 import com.google.inject.Injector
 import org.ratpackframework.groovy.handling.Chain
 import org.ratpackframework.groovy.internal.InjectorHandlerTransformer
 import org.ratpackframework.handling.Handler
-import org.ratpackframework.test.DefaultRatpackSpec
+import org.ratpackframework.test.internal.DefaultRatpackSpec
 import org.ratpackframework.util.Transformer
 
 abstract class RatpackGroovyDslSpec extends DefaultRatpackSpec {

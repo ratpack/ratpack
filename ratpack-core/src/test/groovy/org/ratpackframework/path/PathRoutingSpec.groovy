@@ -16,7 +16,7 @@
 
 package org.ratpackframework.path
 
-import org.ratpackframework.test.groovy.RatpackGroovyDslSpec
+import org.ratpackframework.test.internal.RatpackGroovyDslSpec
 import static io.netty.handler.codec.http.HttpResponseStatus.NOT_FOUND
 
 

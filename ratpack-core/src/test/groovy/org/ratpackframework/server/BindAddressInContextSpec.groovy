@@ -16,7 +16,7 @@
 
 package org.ratpackframework.server
 
-import org.ratpackframework.test.groovy.RatpackGroovyDslSpec
+import org.ratpackframework.test.internal.RatpackGroovyDslSpec
 
 class BindAddressInContextSpec extends RatpackGroovyDslSpec {
 

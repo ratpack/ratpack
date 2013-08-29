@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.test
+package org.ratpackframework.test.internal
 
 import com.google.inject.Injector
 import com.google.inject.Module

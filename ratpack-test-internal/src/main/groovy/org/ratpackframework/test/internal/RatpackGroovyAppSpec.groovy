@@ -14,20 +14,17 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.groovy.test.remote
+package org.ratpackframework.test.internal
 
-import groovyx.remote.transport.http.HttpTransport
-import org.ratpackframework.test.ApplicationUnderTest
+import org.ratpackframework.groovy.server.internal.GroovyKitAppFactory
+import org.ratpackframework.guice.internal.GuiceBackedHandlerFactory
+import org.ratpackframework.launch.LaunchConfig
 
-import static org.ratpackframework.remote.RemoteControlModule.DEFAULT_REMOTE_CONTROL_PATH
+abstract class RatpackGroovyAppSpec extends RatpackGroovyDslSpec {
 
-class RemoteControl extends groovyx.remote.client.RemoteControl {
-
-  RemoteControl(ApplicationUnderTest application, String path) {
-    super(new HttpTransport("$application.address/$path"))
+  @Override
+  protected GuiceBackedHandlerFactory createHandlerFactory(LaunchConfig launchConfig) {
+    new GroovyKitAppFactory(launchConfig)
   }
 
-  RemoteControl(ApplicationUnderTest application) {
-    this(application, DEFAULT_REMOTE_CONTROL_PATH)
-  }
 }

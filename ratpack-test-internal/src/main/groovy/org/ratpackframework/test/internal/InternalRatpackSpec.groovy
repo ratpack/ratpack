@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.test
+package org.ratpackframework.test.internal
 
 import com.jayway.restassured.specification.RequestSpecification
 import org.junit.Rule
@@ -22,6 +22,7 @@ import org.junit.rules.TemporaryFolder
 import org.ratpackframework.groovy.Util
 import org.ratpackframework.server.RatpackServer
 import org.ratpackframework.groovy.test.RequestingSupport
+import org.ratpackframework.test.ApplicationUnderTest
 import org.ratpackframework.util.Action
 import spock.lang.Specification
 

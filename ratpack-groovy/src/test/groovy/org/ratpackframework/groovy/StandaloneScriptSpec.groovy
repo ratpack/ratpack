@@ -23,7 +23,7 @@ import org.ratpackframework.launch.LaunchConfigBuilder
 import org.ratpackframework.server.RatpackServer
 import org.ratpackframework.server.internal.RatpackService
 import org.ratpackframework.server.internal.ServiceBackedServer
-import org.ratpackframework.test.groovy.RatpackGroovyScriptAppSpec
+import org.ratpackframework.test.internal.RatpackGroovyScriptAppSpec
 
 class StandaloneScriptSpec extends RatpackGroovyScriptAppSpec {
 

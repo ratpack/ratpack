@@ -18,7 +18,7 @@ package org.ratpackframework.handling.internal
 import com.jayway.restassured.specification.RequestSpecification
 import org.ratpackframework.groovy.launch.GroovyScriptHandlerFactory
 import org.ratpackframework.launch.LaunchConfigFactory
-import org.ratpackframework.test.groovy.RatpackGroovyScriptAppSpec
+import org.ratpackframework.test.internal.RatpackGroovyScriptAppSpec
 
 class DefaultContextSpec extends RatpackGroovyScriptAppSpec {
 

@@ -16,7 +16,7 @@
 
 package org.ratpackframework.jackson
 
-import org.ratpackframework.test.groovy.RatpackGroovyDslSpec
+import org.ratpackframework.test.internal.RatpackGroovyDslSpec
 
 import static org.ratpackframework.jackson.Json.json
 

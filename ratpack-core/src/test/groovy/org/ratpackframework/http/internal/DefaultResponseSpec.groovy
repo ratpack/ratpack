@@ -16,7 +16,7 @@
 
 package org.ratpackframework.http.internal
 
-import org.ratpackframework.test.groovy.RatpackGroovyDslSpec
+import org.ratpackframework.test.internal.RatpackGroovyDslSpec
 import org.ratpackframework.util.internal.IoUtils
 
 import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_LENGTH

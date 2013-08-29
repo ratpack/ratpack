@@ -16,7 +16,7 @@
 
 package org.ratpackframework.groovy.handling
 
-import org.ratpackframework.test.groovy.RatpackGroovyAppSpec
+import org.ratpackframework.test.internal.RatpackGroovyAppSpec
 
 class DefaultGroovyErrorHandlingSpec extends RatpackGroovyAppSpec {
 

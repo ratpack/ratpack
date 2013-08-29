@@ -16,7 +16,7 @@
 
 package org.ratpackframework.groovy.handling
 
-import org.ratpackframework.test.groovy.RatpackGroovyScriptAppSpec
+import org.ratpackframework.test.internal.RatpackGroovyScriptAppSpec
 
 class BasicGroovyScriptAppSpec extends RatpackGroovyScriptAppSpec {
 

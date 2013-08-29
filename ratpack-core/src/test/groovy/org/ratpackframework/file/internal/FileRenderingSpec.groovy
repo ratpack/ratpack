@@ -18,7 +18,7 @@ package org.ratpackframework.file.internal
 
 import com.jayway.restassured.response.Response
 import io.netty.handler.codec.http.HttpHeaderDateFormat
-import org.ratpackframework.test.groovy.RatpackGroovyDslSpec
+import org.ratpackframework.test.internal.RatpackGroovyDslSpec
 
 import static io.netty.handler.codec.http.HttpHeaders.Names.*
 import static io.netty.handler.codec.http.HttpResponseStatus.NOT_MODIFIED

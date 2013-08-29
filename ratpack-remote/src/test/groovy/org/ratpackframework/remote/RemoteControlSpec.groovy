@@ -23,7 +23,7 @@ import org.ratpackframework.file.internal.DefaultFileSystemBinding
 import org.ratpackframework.file.internal.FileRenderer
 import org.ratpackframework.launch.LaunchConfig
 import org.ratpackframework.remote.internal.RemoteControlHandler
-import org.ratpackframework.test.groovy.RatpackGroovyDslSpec
+import org.ratpackframework.test.internal.RatpackGroovyDslSpec
 import spock.lang.Unroll
 
 import static io.netty.handler.codec.http.HttpResponseStatus.*

@@ -17,7 +17,7 @@
 package org.ratpackframework.groovy.handling
 
 import com.google.inject.AbstractModule
-import org.ratpackframework.test.groovy.RatpackGroovyAppSpec
+import org.ratpackframework.test.internal.RatpackGroovyAppSpec
 
 class ClosureServiceParametersSpec extends RatpackGroovyAppSpec {
 

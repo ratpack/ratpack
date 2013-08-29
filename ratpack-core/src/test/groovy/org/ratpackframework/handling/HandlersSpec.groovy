@@ -21,7 +21,7 @@ import org.ratpackframework.error.ServerErrorHandler
 import org.ratpackframework.file.FileSystemBinding
 import org.ratpackframework.file.MimeTypes
 import org.ratpackframework.launch.LaunchConfig
-import org.ratpackframework.test.groovy.RatpackGroovyDslSpec
+import org.ratpackframework.test.internal.RatpackGroovyDslSpec
 
 import static org.ratpackframework.groovy.Util.asHandler
 import static org.ratpackframework.handling.Handlers.chain

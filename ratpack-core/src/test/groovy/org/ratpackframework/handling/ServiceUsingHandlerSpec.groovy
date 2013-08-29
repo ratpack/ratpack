@@ -20,7 +20,7 @@ import org.ratpackframework.error.ServerErrorHandler
 import org.ratpackframework.error.internal.DefaultServerErrorHandler
 import org.ratpackframework.file.FileSystemBinding
 import org.ratpackframework.file.internal.DefaultFileSystemBinding
-import org.ratpackframework.test.DefaultRatpackSpec
+import org.ratpackframework.test.internal.DefaultRatpackSpec
 import org.ratpackframework.util.Action
 
 import static org.ratpackframework.handling.Handlers.register

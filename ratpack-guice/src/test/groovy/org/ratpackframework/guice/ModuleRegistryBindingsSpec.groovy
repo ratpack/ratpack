@@ -17,7 +17,7 @@
 package org.ratpackframework.guice
 
 import com.google.inject.AbstractModule
-import org.ratpackframework.test.groovy.RatpackGroovyDslSpec
+import org.ratpackframework.test.internal.RatpackGroovyDslSpec
 
 import javax.inject.Provider
 

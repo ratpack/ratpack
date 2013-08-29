@@ -16,7 +16,7 @@
 
 package org.ratpackframework.http
 
-import org.ratpackframework.test.groovy.RatpackGroovyDslSpec
+import org.ratpackframework.test.internal.RatpackGroovyDslSpec
 import spock.lang.Issue
 
 import static io.netty.handler.codec.http.HttpResponseStatus.OK

@@ -16,7 +16,7 @@
 
 package org.ratpackframework.groovy.templating
 
-import org.ratpackframework.test.groovy.RatpackGroovyDslSpec
+import org.ratpackframework.test.internal.RatpackGroovyDslSpec
 import spock.lang.Unroll
 
 import static org.ratpackframework.groovy.Template.groovyTemplate

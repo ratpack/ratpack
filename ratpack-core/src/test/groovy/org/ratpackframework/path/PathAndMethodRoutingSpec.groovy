@@ -16,7 +16,7 @@
 
 package org.ratpackframework.path
 
-import org.ratpackframework.test.groovy.RatpackGroovyDslSpec
+import org.ratpackframework.test.internal.RatpackGroovyDslSpec
 
 class PathAndMethodRoutingSpec extends RatpackGroovyDslSpec {
 

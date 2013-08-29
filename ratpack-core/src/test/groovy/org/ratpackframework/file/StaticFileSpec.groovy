@@ -19,7 +19,7 @@ package org.ratpackframework.file
 import com.jayway.restassured.response.Response
 import org.apache.commons.lang3.RandomStringUtils
 import org.ratpackframework.http.internal.HttpHeaderDateFormat
-import org.ratpackframework.test.groovy.RatpackGroovyDslSpec
+import org.ratpackframework.test.internal.RatpackGroovyDslSpec
 import spock.lang.Unroll
 
 import static io.netty.handler.codec.http.HttpHeaders.Names.*

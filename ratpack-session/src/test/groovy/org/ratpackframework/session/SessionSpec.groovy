@@ -19,7 +19,7 @@ package org.ratpackframework.session
 import org.ratpackframework.session.store.MapSessionsModule
 import org.ratpackframework.session.store.SessionStorage
 import org.ratpackframework.session.store.SessionStore
-import org.ratpackframework.test.groovy.RatpackGroovyDslSpec
+import org.ratpackframework.test.internal.RatpackGroovyDslSpec
 
 class SessionSpec extends RatpackGroovyDslSpec {
 

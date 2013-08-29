@@ -18,4 +18,5 @@ apply from: "$rootDir/gradle/groovyModule.gradle"
 
 dependencies {
   compile project(":ratpack-groovy-test")
+  compile commonDependencies.spock
 }

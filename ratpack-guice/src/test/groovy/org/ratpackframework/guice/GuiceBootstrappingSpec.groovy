@@ -19,7 +19,7 @@ package org.ratpackframework.guice
 import com.google.inject.AbstractModule
 import com.google.inject.Injector
 import com.google.inject.Module
-import org.ratpackframework.test.groovy.RatpackGroovyDslSpec
+import org.ratpackframework.test.internal.RatpackGroovyDslSpec
 import org.ratpackframework.util.Transformer
 
 import static com.google.inject.Guice.createInjector
