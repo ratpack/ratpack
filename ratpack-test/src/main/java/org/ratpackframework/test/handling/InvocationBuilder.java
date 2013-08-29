@@ -18,7 +18,6 @@ package org.ratpackframework.test.handling;
 
 import com.google.common.collect.ImmutableList;
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
 import org.ratpackframework.handling.Handler;
 import org.ratpackframework.http.MutableHeaders;
@@ -32,16 +31,18 @@ import org.ratpackframework.registry.internal.RootRegistry;
 import org.ratpackframework.test.handling.internal.DefaultInvocation;
 import org.ratpackframework.util.Action;
 
+import static io.netty.buffer.Unpooled.*;
+
 /**
  * @see #invoke(org.ratpackframework.handling.Handler, org.ratpackframework.util.Action)
  */
 @SuppressWarnings("UnusedDeclaration")
 public class InvocationBuilder {
 
-  private final ByteBuf requestBody = Unpooled.buffer();
+  private final ByteBuf requestBody = unreleasableBuffer(buffer());
   private final MutableHeaders requestHeaders = new NettyHeadersBackedMutableHeaders(new DefaultHttpHeaders());
 
-  private final ByteBuf responseBody = Unpooled.buffer();
+  private final ByteBuf responseBody = unreleasableBuffer(buffer());
   private final MutableHeaders responseHeaders = new NettyHeadersBackedMutableHeaders(new DefaultHttpHeaders());
 
   private final Status status = new DefaultStatus();
@@ -72,7 +73,7 @@ public class InvocationBuilder {
       request,
       status,
       responseHeaders,
-      Unpooled.unmodifiableBuffer(responseBody.copy()),
+      unreleasableBuffer(unmodifiableBuffer(responseBody.copy())),
       registry,
       timeout,
       handler
