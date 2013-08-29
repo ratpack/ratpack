@@ -83,7 +83,7 @@ public class Json<T> {
    * <p>
    * If null, the "default" writer should be used by the renderer.
    *
-   * @return The object mapper to be used.
+   * @return The object writer to be used.
    */
   @Nullable
   public ObjectWriter getObjectWriter() {
@@ -91,7 +91,7 @@ public class Json<T> {
   }
 
   /**
-   * Json rendering of the given object, using the default object mapper.
+   * Json rendering of the given object, using the default object writer.
    *
    * @param object The object to render as JSON.
    * @param <T> The type of the object to render as JSON.
@@ -102,7 +102,7 @@ public class Json<T> {
   }
 
   /**
-   * Json rendering of the given object, using the given object mapper.
+   * Json rendering of the given object, using the given object writer.
    *
    * @param object The object to render as JSON.
    * @param objectWriter The writer to use to render the object as JSON. If null, the default object writer will be used by the renderer.
