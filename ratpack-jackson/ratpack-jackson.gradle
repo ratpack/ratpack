@@ -16,6 +16,10 @@
 
 apply from: "$rootDir/gradle/javaModule.gradle"
 
+ext.apiLinks = [
+  "http://fasterxml.github.io/jackson-databind/javadoc/2.0.0"
+]
+
 dependencies {
   compile project(":ratpack-guice")
   compile "com.fasterxml.jackson.core:jackson-databind:2.2.2"
