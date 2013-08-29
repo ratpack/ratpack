@@ -16,178 +16,55 @@
 
 package org.ratpackframework.groovy.test;
 
-import com.jayway.restassured.RestAssured;
-import com.jayway.restassured.response.Cookie;
-import com.jayway.restassured.response.Cookies;
 import com.jayway.restassured.response.Response;
 import com.jayway.restassured.specification.RequestSpecification;
-import org.ratpackframework.api.Nullable;
 import org.ratpackframework.test.ApplicationUnderTest;
-import org.ratpackframework.util.Action;
 
-import java.lang.reflect.Field;
-import java.util.Date;
-import java.util.LinkedList;
-import java.util.List;
+public interface TestHttpClient {
 
-public class TestHttpClient {
+  ApplicationUnderTest getApplicationUnderTest();
 
-  private final ApplicationUnderTest applicationUnderTest;
-  private final Action<RequestSpecification> requestConfigurer;
+  RequestSpecification getRequest();
 
-  public TestHttpClient(ApplicationUnderTest applicationUnderTest) {
-    this(applicationUnderTest, null);
-  }
+  Response getResponse();
 
-  public TestHttpClient(ApplicationUnderTest applicationUnderTest, @Nullable Action<RequestSpecification> requestConfigurer) {
-    this.applicationUnderTest = applicationUnderTest;
-    this.requestConfigurer = requestConfigurer;
-  }
+  RequestSpecification resetRequest();
 
-  private RequestSpecification request;
+  Response head();
 
-  private Response response;
-  private List<Cookie> cookies = new LinkedList<>();
+  Response head(String path);
 
-  public ApplicationUnderTest getApplicationUnderTest() {
-    return applicationUnderTest;
-  }
+  Response get();
 
-  public RequestSpecification getRequest() {
-    return request;
-  }
+  Response get(String path);
 
-  public Response getResponse() {
-    return response;
-  }
+  String getText();
 
-  public RequestSpecification resetRequest() {
-    request = createRequest();
-    return request;
-  }
+  String getText(String path);
 
-  public Response head() {
-    return head("");
-  }
+  Response post();
 
-  public Response head(String path) {
-    response = request.head(toAbsolute(path));
-    return postRequest();
-  }
+  Response post(String path);
 
-  public Response get() {
-    return get("");
-  }
+  String postText();
 
-  public Response get(String path) {
-    preRequest();
-    response = request.get(toAbsolute(path));
-    return postRequest();
-  }
+  String postText(String path);
 
-  public String getText() {
-    return getText("");
-  }
+  Response put();
 
-  public String getText(String path) {
-    get(path);
-    return response.asString();
-  }
+  Response put(String path);
 
-  public Response post() {
-    return post("");
-  }
+  String putText();
 
-  public Response post(String path) {
-    preRequest();
-    response = request.post(toAbsolute(path));
-    return postRequest();
-  }
+  String putText(String path);
 
-  public String postText() {
-    return postText("");
-  }
+  Response delete();
 
-  public String postText(String path) {
-    post(path);
-    return response.asString();
-  }
+  Response delete(String path);
 
-  public Response put() {
-    return put("");
-  }
+  String deleteText();
 
-  public Response put(String path) {
-    preRequest();
-    response = request.put(toAbsolute(path));
-    return postRequest();
-  }
+  String deleteText(String path);
 
-  public String putText() {
-    return putText("");
-  }
-
-  public String putText(String path) {
-    return put(path).asString();
-  }
-
-  public Response delete() {
-    return delete("");
-  }
-
-  public Response delete(String path) {
-    preRequest();
-    response = request.delete(toAbsolute(path));
-    return postRequest();
-  }
-
-  public String deleteText() {
-    return deleteText("");
-  }
-
-  public String deleteText(String path) {
-    return delete(path).asString();
-  }
-
-  public RequestSpecification createRequest() {
-    RequestSpecification request = RestAssured.with().urlEncodingEnabled(false);
-    if (requestConfigurer != null) {
-      requestConfigurer.execute(request);
-    }
-    return request;
-  }
-
-  private void preRequest() {
-    if (request == null) {
-      request = createRequest();
-    }
-    try {
-      Field field = request.getClass().getDeclaredField("cookies");
-      field.setAccessible(true);
-      field.set(request, new Cookies(cookies));
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
-  }
-
-  private Response postRequest() {
-    for (Cookie setCookie : response.getDetailedCookies()) {
-      Date date = setCookie.getExpiryDate();
-      for (Cookie priorCookie : new LinkedList<>(cookies)) {
-        if (priorCookie.getName().equals(setCookie.getName())) {
-          cookies.remove(priorCookie);
-        }
-      }
-      if (date == null || date.compareTo(new Date()) > 0) {
-        cookies.add(setCookie);
-      }
-    }
-
-    return response;
-  }
-
-  private String toAbsolute(String path) {
-    return applicationUnderTest.getAddress() + "/" + path;
-  }
-
+  RequestSpecification createRequest();
 }

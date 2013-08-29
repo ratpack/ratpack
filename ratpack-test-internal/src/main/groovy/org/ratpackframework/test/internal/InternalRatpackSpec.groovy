@@ -20,23 +20,26 @@ import com.jayway.restassured.specification.RequestSpecification
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import org.ratpackframework.groovy.Util
-import org.ratpackframework.server.RatpackServer
 import org.ratpackframework.groovy.test.TestHttpClient
+import org.ratpackframework.groovy.test.internal.DefaultTestHttpClient
+import org.ratpackframework.server.RatpackServer
 import org.ratpackframework.test.ApplicationUnderTest
 import org.ratpackframework.util.Action
 import spock.lang.Specification
 
 abstract class InternalRatpackSpec extends Specification {
 
-  @Delegate TestHttpClient client = new TestHttpClient(
-    { getApplicationUnderTest().address } as ApplicationUnderTest,
-    { configureRequest(it) } as Action<RequestSpecification>
-  )
-
   @Rule TemporaryFolder temporaryFolder
+  RatpackServer server
   boolean reloadable
 
-  RatpackServer server
+  @Delegate TestHttpClient client = new DefaultTestHttpClient(
+    {
+      startServerIfNeeded()
+      new URI("http://${server.bindHost}:${server.bindPort}")
+    } as ApplicationUnderTest,
+    { configureRequest(it) } as Action<RequestSpecification>
+  )
 
   def setup() {
     client.resetRequest()
@@ -47,15 +50,6 @@ abstract class InternalRatpackSpec extends Specification {
   }
 
   abstract protected RatpackServer createServer()
-
-  protected ApplicationUnderTest getApplicationUnderTest() {
-    startServerIfNeeded()
-    new ApplicationUnderTest() {
-      URI getAddress() {
-        new URI("http://${InternalRatpackSpec.this.server.bindHost}:${InternalRatpackSpec.this.server.bindPort}")
-      }
-    }
-  }
 
   File file(String path) {
     prepFile(new File(getDir(), path))
@@ -94,7 +88,6 @@ abstract class InternalRatpackSpec extends Specification {
       server.start()
     }
   }
-
 
 
 }
