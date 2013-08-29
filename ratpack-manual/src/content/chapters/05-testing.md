@@ -45,33 +45,34 @@ The specification for this handler will look like this:
 package org.ratpackframework.test.handling
 
 import spock.lang.Specification
-import static org.ratpackframework.groovy.test.handling.InvocationBuilder.invoke //1
 
 class MyHandlerSpec extends Specification {
 
   def "should set a header and return the uri path in the body"() {
+    given: "a handler context is established"
+    def builder = new InvocationBuilder() // 1
+    builder.requestHeaders.set("Test-Header", "foo")
+    builder.uri = "/bar"
+
     when: "call invoke on MyHandler"
-    def invocation = invoke(new MyHandler()) { // 2
-      requestHeaders.set("Test-Header", "foo")
-      uri = "/bar"
-    }
+    def invocation = builder.invoke(new MyHandler()) // 2
 
     then: "expect the correct headers and body text to be returned"
-    invocation.getHeaders().get("set-header") == "set" //3
+    invocation.getHeaders().get("set-header") == "set" // 3
     invocation.getBodyText() == "foo:/bar"
   }
 }
 ```
 
-1. First, we import the invoke method from the [`InvocationBuilder`](api/org/ratpackframework/groovy/test/handling/InvocationBuilder.html) so that we can unit test our Handler
+1. First, we construct a new [`InvocationBuilder`](api/org/ratpackframework/groovy/test/handling/InvocationBuilder.html) and call methods on it to establish the context the handler will run in.
 
-2. The invoke method in our when block takes in an instance of the handler under test, followed by the invocation being built, which is a DSL. 
+2. The invoke method in our when block takes in an instance of the handler under test.
 
 3. Invoke returns a [`Invocation`](api/org/ratpackframework/groovy/test/handling/InvocationBuilder.html). We can query the invocation to make sure our implementation is correct.
 
 ### Building Invocations
 
-In the closure passed to invoke(), you can set the following:
+You can set the following on `InvocationHandler`:
 
 * __requestHeaders__ - this is a [`Headers`](api/org/ratpackframework/http/Headers.html) object. You can add headers via requestHeaders.set(name, value).
 * __method__ - Either one of the following Strings: "GET", "POST", "HEAD", "PUT" or "DELETE". Defaults to "GET". 
@@ -92,6 +93,40 @@ Once invoked, an [`Invocation`](api/org/ratpackframework/groovy/test/handling/In
 * __getSentFile()__ - When a handler uses response.sendFile, this method will return the file being sent. 
 * __getStatus()__ - http status of the response
 
+### Building the handler context inline
+
+For simpler tests you can use an alternate syntax for handler tests. `InvocationHandler` has a static form of the `invoke` method that takes a closure as well as the handler. The closure is used to configure the handler context.
+
+The test above could be re-written as:
+
+```
+package org.ratpackframework.test.handling
+
+import spock.lang.Specification
+import static org.ratpackframework.groovy.test.handling.InvocationBuilder.invoke // 1
+
+class MyHandlerSpec extends Specification {
+
+  def "should set a header and return the uri path in the body"() {
+    when: "call invoke on MyHandler"
+    def invocation = invoke(new MyHandler()) { // 2
+      requestHeaders.set("Test-Header", "foo")
+      uri = "/bar"
+    }
+
+    then: "expect the correct headers and body text to be returned"
+    invocation.getHeaders().get("set-header") == "set" // 3
+    invocation.getBodyText() == "foo:/bar"
+  }
+}
+```
+
+1. First, we import the static form of the `invoke` method from the [`InvocationBuilder`](api/org/ratpackframework/groovy/test/handling/InvocationBuilder.html).
+
+2. The invoke method in our when block takes in an instance of the handler under test, followed by a closure used for building the handler context. The methods available in the closure are identical to those available directly on `InvocationBuilder`.
+
+3. The assertions are made in exactly the same way.
+
 ### Testing Template Rendering
 
 We are also able to unit test handlers that render a template. 
@@ -111,8 +146,11 @@ The corresponding specification looks as follows:
 
 ```
 def "can unit test a handler that renders a template"() {
+  given:
+  def builder = new InvocationBuilder()
+
   when:
-  def invocation = invoke(new RenderingHandler()) {}
+  def invocation = builder.invoke(new RenderingHandler())
   Template template = invocation.rendered(Template)
 
   then:
