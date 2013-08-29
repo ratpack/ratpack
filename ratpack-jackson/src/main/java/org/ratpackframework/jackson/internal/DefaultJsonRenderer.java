@@ -25,14 +25,19 @@ import org.ratpackframework.jackson.JsonRenderer;
 import org.ratpackframework.render.ByTypeRenderer;
 import org.ratpackframework.util.internal.ByteBufWriteThroughOutputStream;
 
+import javax.inject.Inject;
 import java.io.IOException;
 import java.io.OutputStream;
 
 public class DefaultJsonRenderer extends ByTypeRenderer<Json<?>> implements JsonRenderer {
 
-  public DefaultJsonRenderer() {
+  private final ObjectMapper objectMapper;
+
+  @Inject
+  public DefaultJsonRenderer(ObjectMapper objectMapper) {
     super(new TypeLiteral<Json<?>>() {
     });
+    this.objectMapper = objectMapper;
   }
 
   @Override
@@ -40,7 +45,6 @@ public class DefaultJsonRenderer extends ByTypeRenderer<Json<?>> implements Json
     context.respond(context.getByContent().json(new Runnable() {
       @Override
       public void run() {
-        ObjectMapper objectMapper = new ObjectMapper();
         final ByteBuf body = context.getResponse().getBody();
         OutputStream outputStream = new ByteBufWriteThroughOutputStream(body);
 

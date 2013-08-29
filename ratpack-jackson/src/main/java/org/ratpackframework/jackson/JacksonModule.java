@@ -16,6 +16,7 @@
 
 package org.ratpackframework.jackson;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.AbstractModule;
 import org.ratpackframework.jackson.internal.DefaultJsonRenderer;
 
@@ -24,6 +25,7 @@ public class JacksonModule extends AbstractModule {
   @Override
   protected void configure() {
     bind(JsonRenderer.class).to(DefaultJsonRenderer.class);
+    bind(ObjectMapper.class).asEagerSingleton();
   }
 
 }
