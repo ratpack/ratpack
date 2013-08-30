@@ -20,6 +20,21 @@ import java.lang.reflect.*;
 
 /**
  * Representation of a type literal that supports generic type.
+ * <p>
+ * To use to represent a generic type, create an anonymous implementation.
+ * <pre class="tested">
+ * import org.ratpackframework.api.TypeLiteral;
+ *
+ * void someMethodThatTakesATypeLiteral(TypeLiteral&lt;?&gt; type) {
+ *   // does something
+ * }
+ *
+ * class Foo&lt;T&gt; {
+ *
+ * }
+ *
+ * someMethodThatTakesATypeLiteral(new TypeLiteral&lt;Foo&lt;String&gt;&gt;() {});
+ * </pre>
  *
  * @param <T> The type.
  */
@@ -27,12 +42,20 @@ public abstract class TypeLiteral<T> {
 
   private final Class<? super T> rawType;
 
+  /**
+   * Constructor.
+   */
   protected TypeLiteral() {
     @SuppressWarnings("unchecked")
     Class<? super T> rawType = (Class<? super T>) getRawType(getSuperclassTypeParameter(getClass()));
     this.rawType = rawType;
   }
 
+  /**
+   * Returns the raw, non generic, type represented by this type literal.
+   *
+   * @return the raw, non generic, type represented by this type literal.
+   */
   public Class<? super T> getRawType() {
     return rawType;
   }
