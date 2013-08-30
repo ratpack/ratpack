@@ -32,41 +32,42 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * An exchange represents to the processing of a particular request.
+ * An context represents the context of an individual handler invocation, which is conceptually a reaction to a request.
  * <p>
- * It provides access to the request and response, along with the current <i>service</i>.
- * It is also the fundamental routing mechanism.
- * <p>
- * Different handlers that participate in the processing of an exchange may actually receive different instances.
- * Handler implementations should not assume that there is only one {@code Context} object during processing.
+ * It provides:
+ * <ul>
+ * <li>Access the HTTP request and response</li>
+ * <li>Processing/delegation control (via the {@link #next} and {@link #insert} family of methods)</li>
+ * <li>Access to <i>contextual objects</i> (see below)</li>
+ * <li>Convenience mechanism for common handler operations</li>
+ * </ul>
  * </p>
- * <h3>Routing</h3>
  * <p>
- * Handlers either finalize the exchange by sending the response, or delegating to another handler.
- * This can be done via either the {@link #next()} method or one of the {@code insert()} methods.
- * <p>
- * The {@link #next()} method will simply delegate the processing to the next handler in line.
- * If a handler does not want to process the exchange it should call this method.
- * No further request/response processing should be done after this as the exchange is from that point on
- * the responsibility of the next handler. The last handler always simply sends a 404 back to the client.
- * <p>
- * The {@code insert()} methods can be used to insert one or more handlers in the pipeline and then delegate
- * to the first inserted handler.
- * The last inserted handler's “next” handler will become the “next” handler of this exchange.
- * That is, the “insert” operation is inserting before the current next handler.
+ * See {@link Handler} for information on how to work with a context object for request processing.
  * </p>
- * <h4>Inserting with a different service</h4>
+ * <h4>Contextual objects</h4>
  * <p>
- * There are variants of the {@code insert()} method that allow the injection of a new service.
- * The given service will <b>only</b> be the service for the inserted handlers.
- * It is in effect “scoped” to just the inserted handlers.
- * The service for existing handlers that are already part of the pipeline cannot be influenced.
- * This gives processing a hierarchical nature.
- * Handlers can delegate to a tree of handlers (inserted handlers can insert other handlers) that
- * operate in different contexts.
- * This can be used to partition the application and do things such as use a different {@link org.ratpackframework.error.ServerErrorHandler}
- * for a portion of the application.
- * </p>
+ * A context is also a {@link Registry} of objects.
+ * Arbitrary objects can be "pushed" into the context by <i>upstream</i> handlers for use by <i>downstream</i> handlers.
+ * <p>
+ * There are some significant contextual objects that drive key infrastructure.
+ * For example, error handling is based on informing the contextual {@link org.ratpackframework.error.ServerErrorHandler} of exceptions.
+ * The error handling strategy for an application can be changed by pushing a new implementation of this interface into the context that is used downstream.
+ * <p>
+ * See {@link #insert(Class, Object, java.util.List)} for more on how to do this.
+ * <h5>Default contextual objects</h5>
+ * <p>There is also a set of default objects that are made available via the Ratpack infrastructure:
+ * <ul>
+ * <li>The effective {@link org.ratpackframework.launch.LaunchConfig}</li>
+ * <li>A {@link org.ratpackframework.file.FileSystemBinding} that is the application {@link org.ratpackframework.launch.LaunchConfig#getBaseDir()}</li>
+ * <li>A {@link org.ratpackframework.file.MimeTypes} implementation</li>
+ * <li>A {@link org.ratpackframework.error.ServerErrorHandler}</li>
+ * <li>A {@link org.ratpackframework.error.ClientErrorHandler}</li>
+ * <li>A {@link org.ratpackframework.render.controller.RenderController} that can render {@link File} objects</li>
+ * <li>A {@link org.ratpackframework.server.BindAddress}</li>
+ * <li>A {@link org.ratpackframework.server.PublicAddress}</li>
+ * <li>A {@link org.ratpackframework.redirect.Redirector}</li>
+ * </ul>
  */
 public interface Context extends Registry<Object> {
 
@@ -116,9 +117,9 @@ public interface Context extends Registry<Object> {
   void insert(Registry<Object> registry, List<Handler> handlers);
 
   /**
-   * Inserts some handlers into the pipeline to execute with the given service, then delegates to the first.
+   * Inserts some handlers into the pipeline to execute with the given object made available, then delegates to the first.
    * <p>
-   * The given object will take precedence over object advertised by the given advertised type.
+   * The given object will take precedence over an existing contextual object advertised by the given advertised type.
    * <p>
    * The object will only be retrievable by the type that is given.
    *
@@ -219,27 +220,27 @@ public interface Context extends Registry<Object> {
   <T> ResultAction<T> resultAction(Action<T> action);
 
   /**
-   * The path tokens of the current {@link org.ratpackframework.path.PathBinding} in this exchange's service.
+   * The contextual path tokens of the current {@link org.ratpackframework.path.PathBinding}.
    * <p>
    * Shorthand for {@code getServiceRegistry().get(PathBinding.class).getPathTokens()}.
    *
-   * @return The path tokens of the current {@link org.ratpackframework.path.PathBinding} in this exchange's service
+   * @return The contextual path tokens of the current {@link org.ratpackframework.path.PathBinding}.
    * @throws NotInRegistryException if there is no {@link org.ratpackframework.path.PathBinding} in the current service
    */
   PathTokens getPathTokens() throws NotInRegistryException;
 
   /**
-   * All of path tokens of the current {@link org.ratpackframework.path.PathBinding} in this exchange's service.
+   * The contextual path tokens of the current {@link org.ratpackframework.path.PathBinding}.
    * <p>
    * Shorthand for {@code getServiceRegistry().get(PathBinding.class).getAllPathTokens()}.
    *
-   * @return The path tokens of the current {@link org.ratpackframework.path.PathBinding} in this exchange's service
+   * @return The contextual path tokens of the current {@link org.ratpackframework.path.PathBinding}.
    * @throws NotInRegistryException if there is no {@link org.ratpackframework.path.PathBinding} in the current service
    */
   PathTokens getAllPathTokens() throws NotInRegistryException;
 
   /**
-   * Gets the file relative to the current {@link org.ratpackframework.file.FileSystemBinding} in this exchange's service.
+   * Gets the file relative to the contextual {@link org.ratpackframework.file.FileSystemBinding}.
    * <p>
    * Shorthand for {@code getServiceRegistry().get(FileSystemBinding.class).file(path)}.
    * <p>
@@ -247,7 +248,7 @@ public interface Context extends Registry<Object> {
    * A {@link org.ratpackframework.registry.NotInRegistryException} will only be thrown if a very custom service setup is being used.
    *
    * @param path The path to pass to the {@link org.ratpackframework.file.FileSystemBinding#file(String)} method.
-   * @return The file relative to the current {@link org.ratpackframework.file.FileSystemBinding} in this exchange's service
+   * @return The file relative to the contextual {@link org.ratpackframework.file.FileSystemBinding}
    * @throws NotInRegistryException if there is no {@link org.ratpackframework.file.FileSystemBinding} in the current service
    */
   File file(String path) throws NotInRegistryException;

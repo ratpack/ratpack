@@ -135,6 +135,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
       .add(new FileRenderer())
       .build();
 
+    // If you update this list, update the class level javadoc on Context.
     return new RootRegistry<>(
       ImmutableList.of(
         new DefaultFileSystemBinding(launchConfig.getBaseDir()),
