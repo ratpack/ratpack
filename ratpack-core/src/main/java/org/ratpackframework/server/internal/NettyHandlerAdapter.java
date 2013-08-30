@@ -40,7 +40,6 @@ import org.ratpackframework.redirect.internal.DefaultRedirector;
 import org.ratpackframework.registry.Registry;
 import org.ratpackframework.registry.internal.RootRegistry;
 import org.ratpackframework.render.Renderer;
-import org.ratpackframework.render.controller.internal.DefaultRenderController;
 import org.ratpackframework.server.BindAddress;
 
 import java.io.IOException;
@@ -149,7 +148,6 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
         new DefaultServerErrorHandler(),
         launchConfig,
         renderController(renderers),
-        new DefaultRenderController(null, renderers),
         new DefaultIndexFiles(launchConfig.getOther(INDEX_FILES_PROPERTY_NAME, null))
       )
     );
