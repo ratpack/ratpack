@@ -115,6 +115,7 @@ import java.util.concurrent.Callable;
  *     { Exception exception -> /* do something with the exception *&#47 },
  *     { Integer result -> getResponse().send result.toString() }
  * }
+ * </pre>
  */
 public interface Blocking {
 
@@ -135,7 +136,7 @@ public interface Blocking {
   interface SuccessOrError<T> extends Success<T> {
 
     /**
-     * Specifies the action to take should an error occur during the blocking operation
+     * Specifies the action to take should an error occur during the blocking operation.
      *
      * @param errorHandler The action to take
      * @return A builder for specifying the action to take when the blocking operation succeeds
