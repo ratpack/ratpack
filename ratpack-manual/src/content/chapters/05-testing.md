@@ -12,7 +12,7 @@ To include the plugin manually, you should copy the corresponding entries from t
 
 Once you have included the ratpack-groovy plugin, you can run your Spock tests via:
 
-```
+```language-bash
 ./gradlew test
 ```
 
@@ -22,7 +22,7 @@ The invoke() mechanism within Ratpack allows you to unit test [`Handlers`](api/o
 
 Let's assume we have a Handler that looks like the following:
 
-```
+```language-groovy
 class MyHandler implements Handler {
   @Override
   void handle(Context context) {
@@ -41,7 +41,7 @@ If we ran this Handler, we would expect:
 
 The specification for this handler will look like this:
 
-```
+```language-groovy
 package org.ratpackframework.test.handling
 
 import spock.lang.Specification
@@ -99,7 +99,7 @@ For simpler tests you can use an alternate syntax for handler tests. `Invocation
 
 The test above could be re-written as:
 
-```
+```language-groovy
 package org.ratpackframework.test.handling
 
 import spock.lang.Specification
@@ -133,7 +133,7 @@ We are also able to unit test handlers that render a template.
 
 The following handler renders out into a groovy template called index.html.
 
-```
+```language-groovy
 class RenderingHandler implements Handler {
   @Override
   void handle(Context context) {
@@ -144,7 +144,7 @@ class RenderingHandler implements Handler {
 
 The corresponding specification looks as follows:
 
-```
+```language-groovy
 def "can unit test a handler that renders a template"() {
   given:
   def builder = new InvocationBuilder()
