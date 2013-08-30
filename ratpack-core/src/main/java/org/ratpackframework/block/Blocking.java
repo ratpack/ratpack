@@ -112,7 +112,7 @@ import java.util.concurrent.Callable;
  * get("some/path") {
  *   exec getBlocking(),
  *     { /* a blocking operation *&#47; 2 },
- *     { Exception exception -> /* do something with the exception *&#47 },
+ *     { Exception exception -> /* do something with the exception *&#47; },
  *     { Integer result -> getResponse().send result.toString() }
  * }
  * </pre>
