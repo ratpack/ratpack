@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.error;
+package org.ratpackframework.error.internal;
 
+import org.ratpackframework.error.ServerErrorHandler;
 import org.ratpackframework.handling.Context;
 
 import java.io.IOException;
