@@ -18,6 +18,7 @@ package org.ratpackframework.handling;
 
 import com.google.common.collect.ImmutableList;
 import org.ratpackframework.file.internal.AssetHandler;
+import org.ratpackframework.file.internal.DefaultIndexFiles;
 import org.ratpackframework.file.internal.FileSystemBindingHandler;
 import org.ratpackframework.handling.internal.*;
 import org.ratpackframework.http.internal.MethodHandler;
@@ -210,7 +211,7 @@ public abstract class Handlers {
    */
 
   public static Handler assets(String path, String... indexFiles) {
-    Handler handler = new AssetHandler(ImmutableList.<String>builder().add(indexFiles).build());
+    Handler handler = new AssetHandler(new DefaultIndexFiles(indexFiles));
     return fileSystem(path, ImmutableList.of(handler));
   }
 

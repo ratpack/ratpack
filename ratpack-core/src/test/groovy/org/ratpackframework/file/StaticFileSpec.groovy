@@ -16,8 +16,10 @@
 
 package org.ratpackframework.file
 
+import com.google.common.collect.ImmutableList
 import com.jayway.restassured.response.Response
 import org.apache.commons.lang3.RandomStringUtils
+import org.ratpackframework.guice.Guice
 import org.ratpackframework.http.internal.HttpHeaderDateFormat
 import org.ratpackframework.test.internal.RatpackGroovyDslSpec
 import spock.lang.Unroll
@@ -287,6 +289,71 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
 
     where:
     fileSize = 2131795 // taken from original bug report
+  }
+
+  def "can serve index files using global configuration"() {
+    given:
+    file("d1/custom.html") << "foo"
+    file("d2/custom.xhtml") << "bar"
+    and:
+    other.put("other.indexFiles", "custom.xhtml,custom.html")
+
+    when:
+    app {
+      handlers {
+        prefix("a") {
+          assets("d1")
+        }
+        prefix("b") {
+          assets("d2")
+        }
+      }
+    }
+
+    then:
+    getText("a") == "foo"
+    getText("b") == "bar"
+  }
+
+  def "can serve index files overriding global configuration with handler"() {
+    given:
+    file("public/custom.html") << "foo"
+    file("public/index.html") << "bar"
+    and:
+    other.put("other.indexFiles", "custom.xhtml,custom.html")
+
+    when:
+    app {
+      handlers {
+        assets("public", "index.html")
+      }
+    }
+
+    then:
+    getText() == "bar"
+  }
+
+  def "can serve index files overriding global configuration with module"() {
+    given:
+    file("public/custom.html") << "foo"
+    file("public/index.html") << "bar"
+    and:
+    other.put("other.indexFiles", "custom.xhtml,custom.html")
+
+    when:
+    app {
+      modules {
+        bind IndexFiles, new IndexFiles() {
+          List<String> getFileNames() { ["index.html"] }
+        }
+      }
+      handlers {
+        assets("public")
+      }
+    }
+
+    then:
+    getText() == "bar"
   }
 
   private static Date parseDateHeader(Response response, String name) {

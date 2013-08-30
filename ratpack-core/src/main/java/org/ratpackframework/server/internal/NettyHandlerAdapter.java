@@ -40,6 +40,7 @@ import org.ratpackframework.redirect.internal.DefaultRedirector;
 import org.ratpackframework.registry.Registry;
 import org.ratpackframework.registry.internal.RootRegistry;
 import org.ratpackframework.render.Renderer;
+import org.ratpackframework.render.controller.internal.DefaultRenderController;
 import org.ratpackframework.server.BindAddress;
 
 import java.io.IOException;
@@ -53,6 +54,7 @@ import static org.ratpackframework.render.controller.RenderControllers.renderCon
 @ChannelHandler.Sharable
 public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpRequest> {
 
+  private static final String INDEX_FILES_PROPERTY_NAME = "other.indexFiles";
   private final Handler handler;
   private final Handler return404;
   private final LaunchConfig launchConfig;
@@ -146,7 +148,9 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
         new DefaultClientErrorHandler(),
         new DefaultServerErrorHandler(),
         launchConfig,
-        renderController(renderers)
+        renderController(renderers),
+        new DefaultRenderController(null, renderers),
+        new DefaultIndexFiles(launchConfig.getOther(INDEX_FILES_PROPERTY_NAME, null))
       )
     );
   }
