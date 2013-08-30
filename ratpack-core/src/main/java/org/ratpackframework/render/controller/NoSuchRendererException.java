@@ -14,17 +14,22 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.render;
+package org.ratpackframework.render.controller;
 
-import org.ratpackframework.api.NonBlocking;
+/**
+ * Thrown when a request is made to render an object, but no suitable renderer can be found.
+ */
+public class NoSuchRendererException extends RuntimeException {
 
-public interface RenderOperation<R> {
+  private static final long serialVersionUID = 0;
 
-  R getToRender();
-
-  Renderer<R> getRenderer();
-
-  @NonBlocking
-  void execute();
+  /**
+   * Constructor.
+   *
+   * @param message The exception message.
+   */
+  public NoSuchRendererException(String message) {
+    super(message);
+  }
 
 }

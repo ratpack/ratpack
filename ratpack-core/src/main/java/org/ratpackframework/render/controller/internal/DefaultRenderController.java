@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.render.internal;
+package org.ratpackframework.render.controller.internal;
 
 import com.google.common.collect.ImmutableList;
 import org.ratpackframework.api.Nullable;
 import org.ratpackframework.handling.Context;
-import org.ratpackframework.render.NoSuchRendererException;
-import org.ratpackframework.render.RenderController;
-import org.ratpackframework.render.RenderOperation;
+import org.ratpackframework.render.controller.NoSuchRendererException;
+import org.ratpackframework.render.controller.RenderController;
+import org.ratpackframework.render.controller.RenderOperation;
 import org.ratpackframework.render.Renderer;
+import org.ratpackframework.render.internal.DefaultRenderOperation;
 
 public class DefaultRenderController implements RenderController {
 

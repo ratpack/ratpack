@@ -40,7 +40,6 @@ import org.ratpackframework.redirect.internal.DefaultRedirector;
 import org.ratpackframework.registry.Registry;
 import org.ratpackframework.registry.internal.RootRegistry;
 import org.ratpackframework.render.Renderer;
-import org.ratpackframework.render.internal.DefaultRenderController;
 import org.ratpackframework.server.BindAddress;
 
 import java.io.IOException;
@@ -49,6 +48,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import static io.netty.handler.codec.http.HttpResponseStatus.NOT_FOUND;
+import static org.ratpackframework.render.controller.RenderControllers.renderController;
 
 @ChannelHandler.Sharable
 public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpRequest> {
@@ -145,7 +145,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
         new DefaultClientErrorHandler(),
         new DefaultServerErrorHandler(),
         launchConfig,
-        new DefaultRenderController(null, renderers)
+        renderController(renderers)
       )
     );
   }

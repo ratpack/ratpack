@@ -17,7 +17,7 @@
 package org.ratpackframework.render.internal;
 
 import org.ratpackframework.handling.Context;
-import org.ratpackframework.render.RenderOperation;
+import org.ratpackframework.render.controller.RenderOperation;
 import org.ratpackframework.render.Renderer;
 
 public class DefaultRenderOperation<R> implements RenderOperation<R> {

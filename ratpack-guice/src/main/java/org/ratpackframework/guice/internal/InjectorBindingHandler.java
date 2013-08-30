@@ -24,11 +24,12 @@ import org.ratpackframework.handling.Context;
 import org.ratpackframework.handling.Handler;
 import org.ratpackframework.registry.Registry;
 import org.ratpackframework.registry.internal.ObjectHoldingChildRegistry;
-import org.ratpackframework.render.RenderController;
+import org.ratpackframework.render.controller.RenderController;
 import org.ratpackframework.render.Renderer;
-import org.ratpackframework.render.internal.DefaultRenderController;
 
 import java.util.List;
+
+import static org.ratpackframework.render.controller.RenderControllers.renderController;
 
 public class InjectorBindingHandler implements Handler {
 
@@ -47,7 +48,7 @@ public class InjectorBindingHandler implements Handler {
     Registry<Object> injectorRegistry = Guice.registry(context, injector);
 
     RenderController parentRenderController = context.maybeGet(RenderController.class);
-    RenderController renderController = new DefaultRenderController(parentRenderController, renderers);
+    RenderController renderController = renderController(parentRenderController, renderers);
 
     Registry<Object> registry = new ObjectHoldingChildRegistry<>(injectorRegistry, RenderController.class, renderController);
 

@@ -14,14 +14,9 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.render;
-
-public class NoSuchRendererException extends RuntimeException {
-
-  private static final long serialVersionUID = 0;
-
-  public NoSuchRendererException(String message) {
-    super(message);
-  }
-
-}
+/**
+ * Infrastructure around rendering operations.
+ * <p>
+ * Typically not used in applications, but may be used by infrastructure extensions (e.g. the Guice add-on).
+ */
+package org.ratpackframework.render.controller;

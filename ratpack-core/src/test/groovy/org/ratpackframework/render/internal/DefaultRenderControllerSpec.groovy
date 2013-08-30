@@ -16,12 +16,13 @@
 
 package org.ratpackframework.render.internal
 
-import com.google.common.collect.ImmutableList
 import org.ratpackframework.handling.Context
 import org.ratpackframework.http.Response
-import org.ratpackframework.render.NoSuchRendererException
+import org.ratpackframework.render.controller.NoSuchRendererException
 import org.ratpackframework.render.Renderer
 import spock.lang.Specification
+
+import static org.ratpackframework.render.controller.RenderControllers.renderController
 
 class DefaultRenderControllerSpec extends Specification {
 
@@ -35,8 +36,8 @@ class DefaultRenderControllerSpec extends Specification {
     def r1 = renderer("r1")
     def r2 = renderer("r2")
     def r3 = renderer("r3")
-    def c1 = new DefaultRenderController(null, r(r1, r2))
-    def c2 = new DefaultRenderController(c1, r(r3))
+    def c1 = renderController(r1, r2)
+    def c2 = renderController(c1, r3)
 
     then:
     c1.toString() == "RenderController[r1, r2]"
@@ -48,8 +49,8 @@ class DefaultRenderControllerSpec extends Specification {
     def r1 = renderer("r1")
     def r2 = renderer("r2")
     def r3 = renderer("r3")
-    def c1 = new DefaultRenderController(null, r(r1, r2))
-    def c2 = new DefaultRenderController(c1, r(r3))
+    def c1 = renderController(r1, r2)
+    def c2 = renderController(c1, r3)
 
     when:
     c2.render(context, "r1")
@@ -78,11 +79,9 @@ class DefaultRenderControllerSpec extends Specification {
     Mock(Renderer) {
       toString() >> s
       accept(_) >> { String arg -> arg == s ? s.toUpperCase() : null }
+      //noinspection GroovyAssignabilityCheck
       render(_, _) >> { Context context, String value -> context.response.send(value) }
     }
   }
 
-  ImmutableList<Renderer<?>> r(Renderer<?>... renderers) {
-    ImmutableList.<Renderer> copyOf(Arrays.asList(renderers))
-  }
 }
