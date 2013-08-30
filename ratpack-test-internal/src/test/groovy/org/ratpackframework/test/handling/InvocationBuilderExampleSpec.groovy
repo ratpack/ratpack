@@ -54,9 +54,9 @@ class InvocationBuilderExampleSpec extends Specification {
     when:
     def invocation = invoke(new MyHandler()) {
       // Use the InvocationBuilder DSL in here to set up the context for the handler
-      register(new LabelProvider("baz"))
-      requestHeaders.set("Test-Header", "foo")
-      uri = "/bar"
+      register new LabelProvider("baz")
+      header "Test-Header", "foo"
+      uri "/bar"
     }
 
     then:
@@ -70,15 +70,29 @@ class InvocationBuilderExampleSpec extends Specification {
   def "can unit test handler with context builder syntax"() {
     given:
     def context = new InvocationBuilder()
-    context.register(new LabelProvider("baz"))
-    context.requestHeaders.set("Test-Header", "foo")
-    context.uri = "/bar"
+    context.register new LabelProvider("baz")
+    context.header "Test-Header", "foo"
+    context.uri "/bar"
 
     when:
     def result = context.invoke(new MyHandler())
 
     then:
-    // The HandlerResult object gives you insight on what the handler did
+    with(result) {
+      bodyText == "baz: foo:/bar"
+      headers.get("set-header") == "set"
+    }
+  }
+
+  def "can use a fluent style with the context builder"() {
+    when:
+    def result = new InvocationBuilder()
+      .register(new LabelProvider("baz"))
+      .header("Test-Header", "foo")
+      .uri("/bar")
+      .invoke(new MyHandler())
+
+    then:
     with(result) {
       bodyText == "baz: foo:/bar"
       headers.get("set-header") == "set"

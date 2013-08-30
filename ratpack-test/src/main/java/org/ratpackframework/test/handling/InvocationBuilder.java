@@ -19,10 +19,12 @@ package org.ratpackframework.test.handling;
 import com.google.common.collect.ImmutableList;
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
+import io.netty.handler.codec.http.HttpHeaders;
 import org.ratpackframework.handling.Handler;
 import org.ratpackframework.http.MutableHeaders;
 import org.ratpackframework.http.Request;
 import org.ratpackframework.http.Status;
+import org.ratpackframework.http.internal.DefaultMediaType;
 import org.ratpackframework.http.internal.DefaultRequest;
 import org.ratpackframework.http.internal.DefaultStatus;
 import org.ratpackframework.http.internal.NettyHeadersBackedMutableHeaders;
@@ -62,7 +64,7 @@ public class InvocationBuilder {
    *
    * @param handler The handler to invoke
    * @return A result object indicating what happened
-   * @throws InvocationTimeoutException if the handler takes more than {@link #getTimeout()} seconds to send a response or call {@code next()} on the context
+   * @throws InvocationTimeoutException if the handler takes more than {@link #timeout(int)} seconds to send a response or call {@code next()} on the context
    */
   public Invocation invoke(Handler handler) throws InvocationTimeoutException {
     Request request = new DefaultRequest(requestHeaders, method, uri, requestBody);
@@ -86,7 +88,7 @@ public class InvocationBuilder {
    * @param handler The handler to invoke
    * @param action The configuration of the context for the handler
    * @return A result object indicating what happened
-   * @throws InvocationTimeoutException if the handler takes more than {@link #getTimeout()} seconds to send a response or call {@code next()} on the context
+   * @throws InvocationTimeoutException if the handler takes more than {@link #timeout(int)} seconds to send a response or call {@code next()} on the context
    */
   public static Invocation invoke(Handler handler, Action<? super InvocationBuilder> action) throws InvocationTimeoutException {
     InvocationBuilder builder = new InvocationBuilder();
@@ -96,42 +98,46 @@ public class InvocationBuilder {
     return builder.invoke(handler);
   }
 
-  public ByteBuf getRequestBody() {
-    return requestBody;
+  public InvocationBuilder header(String name, String value) {
+    requestHeaders.add(name, value);
+    return this;
   }
 
-  public MutableHeaders getRequestHeaders() {
-    return requestHeaders;
+  public InvocationBuilder body(byte[] bytes, String contentType) {
+    requestHeaders.add(HttpHeaders.Names.CONTENT_TYPE, contentType);
+    requestHeaders.add(HttpHeaders.Names.CONTENT_LENGTH, bytes.length);
+    requestBody.capacity(bytes.length).writeBytes(bytes);
+    return this;
   }
 
-  public ByteBuf getResponseBody() {
-    return responseBody;
+  public InvocationBuilder body(String text, String contentType) {
+    return body(text.getBytes(), DefaultMediaType.utf8(contentType).toString());
   }
 
-  public MutableHeaders getResponseHeaders() {
-    return responseHeaders;
+  public InvocationBuilder responseHeader(String name, String value) {
+    responseHeaders.add(name, value);
+    return this;
   }
 
-  public Status getStatus() {
-    return status;
+  public InvocationBuilder responseBody(byte[] bytes, String contentType) {
+    responseHeaders.add(HttpHeaders.Names.CONTENT_TYPE, contentType);
+    responseBody.capacity(bytes.length).writeBytes(bytes);
+    return this;
   }
 
-  public String getMethod() {
-    return method;
+  public InvocationBuilder responseBody(String text, String contentType) {
+    return responseBody(text.getBytes(), DefaultMediaType.utf8(contentType).toString());
   }
 
-  public void setMethod(String method) {
+  public InvocationBuilder method(String method) {
     if (method == null) {
       throw new IllegalArgumentException("method must not be null");
     }
     this.method = method.toUpperCase();
+    return this;
   }
 
-  public String getUri() {
-    return uri;
-  }
-
-  public void setUri(String uri) {
+  public InvocationBuilder uri(String uri) {
     if (uri == null) {
       throw new NullPointerException("uri cannot be null");
     }
@@ -140,20 +146,19 @@ public class InvocationBuilder {
     }
 
     this.uri = uri;
+    return this;
   }
 
-  public int getTimeout() {
-    return timeout;
-  }
-
-  public void setTimeout(int timeout) {
+  public InvocationBuilder timeout(int timeout) {
     if (timeout < 0) {
       throw new IllegalArgumentException("timeout must be > 0");
     }
     this.timeout = timeout;
+    return this;
   }
 
-  public void register(Object object) {
+  public InvocationBuilder register(Object object) {
     registryContents.add(object);
+    return this;
   }
 }

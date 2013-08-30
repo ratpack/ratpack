@@ -20,13 +20,16 @@ import io.netty.util.CharsetUtil
 import org.ratpackframework.handling.Context
 import spock.lang.Specification
 import spock.lang.Subject
+import spock.lang.Unroll
 
 import static org.ratpackframework.groovy.Util.asHandler
 
 class InvocationBuilderSpec extends Specification {
 
-  @Subject InvocationBuilder builder = new InvocationBuilder()
-  @Delegate Invocation invocation
+  @Subject
+  InvocationBuilder builder = new InvocationBuilder()
+  @Delegate
+  Invocation invocation
 
   void invoke(@DelegatesTo(Context) Closure handler) {
     invocation = builder.invoke(asHandler(handler))
@@ -71,7 +74,6 @@ class InvocationBuilderSpec extends Specification {
     exception == null
     headers.get("content-type") == "application/octet-stream"
     sentFile == null
-
   }
 
   def "can test handler that sends file"() {
@@ -101,7 +103,7 @@ class InvocationBuilderSpec extends Specification {
 
   def "can test async handlers"() {
     given:
-    builder.timeout = 3
+    builder.timeout 3
 
     when:
     invoke { Thread.start { sleep 1000; next() } }
@@ -112,7 +114,7 @@ class InvocationBuilderSpec extends Specification {
 
   def "will throw if handler takes too long"() {
     given:
-    builder.timeout = 1
+    builder.timeout 1
 
     when:
     invoke { Thread.start { sleep 2000; next() } }
@@ -123,12 +125,89 @@ class InvocationBuilderSpec extends Specification {
 
   def "can set uri"() {
     given:
-    builder.uri = "foo"
+    builder.uri "foo"
 
     when:
     invoke { response.send request.uri }
 
     then:
     bodyText == "/foo"
+  }
+
+  def "can set request method"() {
+    given:
+    builder.method "PUT"
+
+    when:
+    invoke { response.send request.method.name }
+
+    then:
+    bodyText == "PUT"
+  }
+
+  def "can set request headers"() {
+    given:
+    builder.header "X-Requested-With", "Spock"
+
+    when:
+    invoke { response.send request.headers.get("X-Requested-With") }
+
+    then:
+    bodyText == "Spock"
+  }
+
+  def "can set response headers"() {
+    given:
+    builder.responseHeader "Via", "Ratpack"
+
+    when:
+    invoke { response.send response.headers.get("Via") }
+
+    then:
+    bodyText == "Ratpack"
+  }
+
+  @Unroll
+  def "can set request body"() {
+    given:
+    builder.body(* arguments)
+
+    when:
+    invoke {
+      response.headers.set "X-Request-Content-Length", request.headers.get("Content-Length")
+      response.headers.set "X-Request-Content-Type", request.headers.get("Content-Type")
+      response.send request.bytes
+    }
+
+    then:
+    bodyBytes == responseBytes
+    headers.get("X-Request-Content-Type") == responseContentType
+    headers.get("X-Request-Content-Length") == "$responseBytes.length"
+
+    where:
+    arguments                             | responseContentType        | responseBytes
+    [[0, 1, 2, 4] as byte[], "image/png"] | "image/png"                | [0, 1, 2, 4] as byte[]
+    ["foo", "text/plain"]                 | "text/plain;charset=UTF-8" | "foo".bytes
+  }
+
+  @Unroll
+  def "can set response body"() {
+    given:
+    builder.responseBody(* arguments)
+
+    when:
+    invoke {
+      // just pass through the existing response
+      response.send()
+    }
+
+    then:
+    bodyBytes == responseBytes
+    headers.get("Content-Type") == responseContentType
+
+    where:
+    arguments                             | responseContentType        | responseBytes
+    [[0, 1, 2, 4] as byte[], "image/png"] | "image/png"                | [0, 1, 2, 4] as byte[]
+    ["foo", "text/plain"]                 | "text/plain;charset=UTF-8" | "foo".bytes
   }
 }
