@@ -64,7 +64,7 @@ import javax.inject.Provider;
  * }
  * </pre>
  *
- * @see Guice#handler(org.ratpackframework.launch.LaunchConfig, org.ratpackframework.util.Action, org.ratpackframework.handling.Handler)
+ * @see Guice#handler(org.ratpackframework.launch.LaunchConfig, org.ratpackframework.util.Action, org.ratpackframework.util.Action)
  * @see HandlerDecoratingModule
  */
 public interface ModuleRegistry extends MutableRegistry<Module> {
