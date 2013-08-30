@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.handlebars;
+package org.ratpackframework.jdbi;
 
 import com.github.jknack.handlebars.Handlebars;
 import com.github.jknack.handlebars.io.FileTemplateLoader;
 import com.github.jknack.handlebars.io.TemplateLoader;
 import com.google.inject.*;
 import org.ratpackframework.guice.internal.GuiceUtil;
-import org.ratpackframework.handlebars.internal.HandlebarsTemplateRenderer;
+import org.ratpackframework.jdbi.internal.HandlebarsTemplateRenderer;
 import org.ratpackframework.launch.LaunchConfig;
 import org.ratpackframework.util.Action;
 
@@ -30,9 +30,9 @@ import java.io.File;
 /**
  * An extension module that provides support for Handlebars.java templating engine.
  * <p>
- * To use it one has to register the module and then render {@link org.ratpackframework.handlebars.Template} instances.
+ * To use it one has to register the module and then render {@link org.ratpackframework.jdbi.Template} instances.
  * Instances of {@code Template} can be created using one of the
- * {@link org.ratpackframework.handlebars.Template#handlebarsTemplate(java.util.Map, String, String)}
+ * {@link org.ratpackframework.jdbi.Template#handlebarsTemplate(java.util.Map, String, String)}
  * static methods.
  * </p>
  * <p>
@@ -45,7 +45,7 @@ import java.io.File;
  * Response content type is determined based on the extension of the template file - i.e. for {@code handlebarsTemplate("template.html")}
  * it would be {@code text/html}. It can also be also manually specified if required, i.e. {@code handlebarsTemplate("template", model, "text/html")}
  * </p>
- * <p>Custom handlebars helpers can be registered by binding instances of {@link org.ratpackframework.handlebars.NamedHelper}.</p>
+ * <p>Custom handlebars helpers can be registered by binding instances of {@link org.ratpackframework.jdbi.NamedHelper}.</p>
  *
  * Example usage: (Java DSL)
  * <pre class="tested">

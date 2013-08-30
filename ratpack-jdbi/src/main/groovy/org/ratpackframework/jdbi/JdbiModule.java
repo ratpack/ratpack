@@ -13,8 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.ratpackframework.jdbi;
+
+import com.google.inject.AbstractModule;
+import org.ratpackframework.jdbi.internal.DBIProviderImpl;
 
 /**
- * Integration with <a href="http://jknack.github.io/handlebars.java/" target="_blank">Handlebars.java</a> templating engine.
+ * @author Andres Almiray
+ * @author Lukasz Pielak
+ * @author Tom Bujok
+ * @author Dmitry Vyazelenko
  */
-package org.ratpackframework.handlebars;
+public class JdbiModule extends AbstractModule {
+
+  @Override
+  protected void configure() {
+    bind(DBIProvider.class).to(DBIProviderImpl.class);
+  }
+
+}

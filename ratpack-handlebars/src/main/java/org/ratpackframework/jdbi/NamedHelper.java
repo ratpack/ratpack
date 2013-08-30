@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.handlebars;
+package org.ratpackframework.jdbi;
 
 import com.github.jknack.handlebars.Helper;
 

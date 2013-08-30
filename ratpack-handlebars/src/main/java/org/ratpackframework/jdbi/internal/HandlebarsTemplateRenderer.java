@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.handlebars.internal;
+package org.ratpackframework.jdbi.internal;
 
 import com.github.jknack.handlebars.Handlebars;
 import org.ratpackframework.api.TypeLiteral;
 import org.ratpackframework.file.MimeTypes;
-import org.ratpackframework.handlebars.Template;
+import org.ratpackframework.jdbi.Template;
 import org.ratpackframework.handling.Context;
 import org.ratpackframework.render.ByTypeRenderer;
 
