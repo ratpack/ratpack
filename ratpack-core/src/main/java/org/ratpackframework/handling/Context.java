@@ -142,6 +142,15 @@ public interface Context extends Registry<Object> {
   @NonBlocking
   void insert(Object object, List<Handler> handlers);
 
+  /**
+   * Convenience method for invoking a responder.
+   * <p>
+   * Enables responder DSLs.
+   *
+   * @see ByContentResponder
+   * @see ByMethodResponder
+   * @param responder The responder to invoke
+   */
   @NonBlocking
   void respond(Responder responder);
 
@@ -243,6 +252,23 @@ public interface Context extends Registry<Object> {
    */
   File file(String path) throws NotInRegistryException;
 
+  /**
+   * Render the given object, using the rendering framework.
+   * <p>
+   * This will attempt to retrieve a {@link org.ratpackframework.render.controller.RenderController} via the {@link #get(Class)} method.
+   * If a render controller is found, the {@link org.ratpackframework.render.controller.RenderController#render(Context, Object)} method will
+   * be invoked and this context given along with {@code object}.
+   * <p>
+   * This will finalize the response, no further processing should be done.
+   * <p>
+   * The default configuration of Ratpack always makes a renderer for {@link File} objects available.
+   * <p>
+   * See {@link org.ratpackframework.render.Renderer} for more on the rendering framework.
+   *
+   * @param object The object to render
+   * @throws NotInRegistryException If there is no {@link org.ratpackframework.render.controller.RenderController} available
+   * @throws NoSuchRendererException If there is no suitable renderer for the object
+   */
   @NonBlocking
   void render(Object object) throws NotInRegistryException, NoSuchRendererException;
 
