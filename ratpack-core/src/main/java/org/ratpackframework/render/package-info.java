@@ -17,6 +17,6 @@
 /**
  * The renderer framework provides a pluggable mechanism for serializing objects to the response.
  * <p>
- * See {@link Renderer} to get started.
+ * See {@link org.ratpackframework.render.Renderer} to get started.
  */
 package org.ratpackframework.render;
