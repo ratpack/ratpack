@@ -81,39 +81,39 @@ public interface ByContentResponder extends Responder {
    * Register how to respond with the given mime type.
    *
    * @param mimeType The mime type to register for.
-   * @param runnable The code that responds with the given mime type (should terminate the response)
+   * @param runnable The action to take if the client wants to given type.
    * @return this
    */
   ByContentResponder type(String mimeType, Runnable runnable);
 
   /**
-   * Convenience method to respond with "text/plain" mime type
+   * Convenience method to respond with "text/plain" mime type.
    *
-   * @param runnable
+   * @param runnable the action to take if the client wants plain text.
    * @return this
    */
   ByContentResponder plainText(Runnable runnable);
 
   /**
-   * Convenience method to respond with "text/html" mime type
+   * Convenience method to respond with "text/html" mime type.
    *
-   * @param runnable
+   * @param runnable the action to take if the client wants html.
    * @return this
    */
   ByContentResponder html(Runnable runnable);
 
   /**
-   * Convenience method to respond with "application/json" mime type
+   * Convenience method to respond with "application/json" mime type.
    *
-   * @param runnable
+   * @param runnable the action to take if the client wants json.
    * @return this
    */
   ByContentResponder json(Runnable runnable);
 
   /**
-   * Convenience method to respond with "application/xml" mime type
+   * Convenience method to respond with "application/xml" mime type.
    *
-   * @param runnable
+   * @param runnable the action to take if the client wants xml.
    * @return this
    */
   ByContentResponder xml(Runnable runnable);
