@@ -18,6 +18,9 @@ package org.ratpackframework.http;
 
 import java.util.Date;
 
+/**
+ * A set of HTTP headers that can be changed.
+ */
 public interface MutableHeaders extends Headers {
 
   /**
@@ -40,6 +43,12 @@ public interface MutableHeaders extends Headers {
    */
   void set(String name, Object value);
 
+  /**
+   * Set a header with the given date as the value.
+   *
+   * @param name The name of the header
+   * @param value The date value
+   */
   void setDate(String name, Date value);
 
   /**
