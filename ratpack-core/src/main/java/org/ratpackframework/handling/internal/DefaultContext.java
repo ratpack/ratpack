@@ -102,8 +102,8 @@ public class DefaultContext implements Context {
     doNext(this, new ObjectHoldingChildRegistry<>(registry, object), handlers, 0, next);
   }
 
-  public void respond(Responder responder) {
-    responder.respond(this);
+  public void respond(Handler handler) {
+    handler.handle(this);
   }
 
   public PathTokens getPathTokens() {
@@ -190,12 +190,12 @@ public class DefaultContext implements Context {
     };
   }
 
-  public ByMethodResponder getByMethod() {
-    return new DefaultByMethodResponder();
+  public ByMethodHandler getByMethod() {
+    return new DefaultByMethodHandler();
   }
 
-  public ByContentResponder getByContent() {
-    return new DefaultByContentResponder();
+  public ByContentHandler getByContent() {
+    return new DefaultByContentHandler();
   }
 
   protected void doNext(final Context parentContext, final Registry<Object> registry, final List<Handler> handlers, final int index, final Handler exhausted) {

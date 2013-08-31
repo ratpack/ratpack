@@ -21,7 +21,7 @@ package org.ratpackframework.handling;
  * <p>
  * A by-method-responder is exposed by {@link Context#getByMethod()}.
  * It is used to respond differently based on the HTTP method.
- * If there is no action registered with the responder before {@link #respond(Context)} is called, a {@code 405} will be issued to
+ * If there is no action registered with the responder before {@link #handle(Context)} is called, a {@code 405} will be issued to
  * the contextual {@link org.ratpackframework.error.ClientErrorHandler} (which by default will send back a HTTP 405 to the client).
  * <p>
  * This is useful when a given handler can respond to more than one HTTP method.
@@ -70,7 +70,7 @@ package org.ratpackframework.handling;
  * </pre>
  * Only the last added runnable for a method will be used. Adding a subsequent runnable for the same method will replace the previous.
  */
-public interface ByMethodResponder extends Responder {
+public interface ByMethodHandler extends Handler {
 
   /**
    * Defines the action to to take if the request has a HTTP method of GET.
@@ -78,7 +78,7 @@ public interface ByMethodResponder extends Responder {
    * @param runnable The action to take
    * @return this
    */
-  ByMethodResponder get(Runnable runnable);
+  ByMethodHandler get(Runnable runnable);
 
   /**
    * Defines the action to to take if the request has a HTTP method of POST.
@@ -86,7 +86,7 @@ public interface ByMethodResponder extends Responder {
    * @param runnable The action to take
    * @return this
    */
-  ByMethodResponder post(Runnable runnable);
+  ByMethodHandler post(Runnable runnable);
 
   /**
    * Defines the action to to take if the request has a HTTP method of PUT.
@@ -94,7 +94,7 @@ public interface ByMethodResponder extends Responder {
    * @param runnable The action to take
    * @return this
    */
-  ByMethodResponder put(Runnable runnable);
+  ByMethodHandler put(Runnable runnable);
 
   /**
    * Defines the action to to take if the request has a HTTP method of DELETE.
@@ -102,7 +102,7 @@ public interface ByMethodResponder extends Responder {
    * @param runnable The action to take
    * @return this
    */
-  ByMethodResponder delete(Runnable runnable);
+  ByMethodHandler delete(Runnable runnable);
 
   /**
    * Defines the action to to take if the request has a HTTP method of {@code methodName}.
@@ -113,6 +113,6 @@ public interface ByMethodResponder extends Responder {
    * @param runnable The action to take
    * @return this
    */
-  ByMethodResponder named(String methodName, Runnable runnable);
+  ByMethodHandler named(String methodName, Runnable runnable);
 
 }

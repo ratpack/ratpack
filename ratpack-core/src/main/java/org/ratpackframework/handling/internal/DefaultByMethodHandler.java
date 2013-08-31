@@ -16,7 +16,7 @@
 
 package org.ratpackframework.handling.internal;
 
-import org.ratpackframework.handling.ByMethodResponder;
+import org.ratpackframework.handling.ByMethodHandler;
 import org.ratpackframework.handling.Context;
 import org.ratpackframework.handling.Handler;
 
@@ -27,27 +27,27 @@ import java.util.Map;
 
 import static io.netty.handler.codec.http.HttpResponseStatus.METHOD_NOT_ALLOWED;
 
-public class DefaultByMethodResponder implements ByMethodResponder {
+public class DefaultByMethodHandler implements ByMethodHandler {
 
   private final Map<String, Runnable> runnables = new LinkedHashMap<>(2);
 
-  public ByMethodResponder get(Runnable runnable) {
+  public org.ratpackframework.handling.ByMethodHandler get(Runnable runnable) {
     return named("get", runnable);
   }
 
-  public ByMethodResponder post(Runnable runnable) {
+  public org.ratpackframework.handling.ByMethodHandler post(Runnable runnable) {
     return named("post", runnable);
   }
 
-  public ByMethodResponder put(Runnable runnable) {
+  public org.ratpackframework.handling.ByMethodHandler put(Runnable runnable) {
     return named("put", runnable);
   }
 
-  public ByMethodResponder delete(Runnable runnable) {
+  public org.ratpackframework.handling.ByMethodHandler delete(Runnable runnable) {
     return named("delete", runnable);
   }
 
-  public ByMethodResponder named(String methodName, Runnable runnable) {
+  public org.ratpackframework.handling.ByMethodHandler named(String methodName, Runnable runnable) {
     runnables.put(methodName.toLowerCase(), runnable);
     return this;
   }
@@ -70,7 +70,7 @@ public class DefaultByMethodResponder implements ByMethodResponder {
     }
   }
 
-  public void respond(Context context) {
+  public void handle(Context context) {
     List<Handler> handlers = new ArrayList<>(runnables.size() + 1);
     for (Map.Entry<String, Runnable> entry : runnables.entrySet()) {
       handlers.add(new ByMethodHandler(entry.getKey(), entry.getValue()));

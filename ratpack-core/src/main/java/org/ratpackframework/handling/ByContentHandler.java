@@ -68,14 +68,14 @@ package org.ratpackframework.handling;
  *   }
  * }
  * </pre>
- * If there is no type registered before {@link #respond(Context)} is called, or the client does not accept any
+ * If there is no type registered before {@link #handle(Context)} is called, or the client does not accept any
  * of the given types, a {@code 406} will be issued to the {@link Context#clientError(int)}
  * that the responder is associated with.
  * <p>
  * Only the last added runnable for a type will be used.
  * Adding a subsequent runnable for the same type will replace the previous.
  */
-public interface ByContentResponder extends Responder {
+public interface ByContentHandler extends Handler {
 
   /**
    * Register how to respond with the given mime type.
@@ -84,7 +84,7 @@ public interface ByContentResponder extends Responder {
    * @param runnable The action to take if the client wants to given type.
    * @return this
    */
-  ByContentResponder type(String mimeType, Runnable runnable);
+  ByContentHandler type(String mimeType, Runnable runnable);
 
   /**
    * Convenience method to respond with "text/plain" mime type.
@@ -92,7 +92,7 @@ public interface ByContentResponder extends Responder {
    * @param runnable the action to take if the client wants plain text.
    * @return this
    */
-  ByContentResponder plainText(Runnable runnable);
+  ByContentHandler plainText(Runnable runnable);
 
   /**
    * Convenience method to respond with "text/html" mime type.
@@ -100,7 +100,7 @@ public interface ByContentResponder extends Responder {
    * @param runnable the action to take if the client wants html.
    * @return this
    */
-  ByContentResponder html(Runnable runnable);
+  ByContentHandler html(Runnable runnable);
 
   /**
    * Convenience method to respond with "application/json" mime type.
@@ -108,7 +108,7 @@ public interface ByContentResponder extends Responder {
    * @param runnable the action to take if the client wants json.
    * @return this
    */
-  ByContentResponder json(Runnable runnable);
+  ByContentHandler json(Runnable runnable);
 
   /**
    * Convenience method to respond with "application/xml" mime type.
@@ -116,6 +116,6 @@ public interface ByContentResponder extends Responder {
    * @param runnable the action to take if the client wants xml.
    * @return this
    */
-  ByContentResponder xml(Runnable runnable);
+  ByContentHandler xml(Runnable runnable);
 
 }

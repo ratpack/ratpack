@@ -144,30 +144,30 @@ public interface Context extends Registry<Object> {
   void insert(Object object, List<Handler> handlers);
 
   /**
-   * Convenience method for invoking a responder.
+   * Convenience method for delegating to a single handler.
    * <p>
-   * Enables responder DSLs.
+   * Designed to be used in conjunction with the {@link #getByMethod()} and {@link #getByContent()} methods.
    *
-   * @see ByContentResponder
-   * @see ByMethodResponder
-   * @param responder The responder to invoke
+   * @see ByContentHandler
+   * @see ByMethodHandler
+   * @param handler The handler to invoke
    */
   @NonBlocking
-  void respond(Responder responder);
+  void respond(Handler handler);
 
   /**
-   * A buildable responder for conditional processing based on the HTTP request method.
+   * A buildable handler for conditional processing based on the HTTP request method.
    *
-   * @return A buildable responder for conditional processing based on the HTTP request method.
+   * @return A buildable handler for conditional processing based on the HTTP request method.
    */
-  ByMethodResponder getByMethod();
+  ByMethodHandler getByMethod();
 
   /**
-   * A buildable responder useful for performing content negotiation.
+   * A buildable handler useful for performing content negotiation.
    *
-   * @return A buildable responder useful for performing content negotiation.
+   * @return A buildable handler useful for performing content negotiation.
    */
-  ByContentResponder getByContent();
+  ByContentHandler getByContent();
 
 
   // Shorthands for common service lookups
