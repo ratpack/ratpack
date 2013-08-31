@@ -16,6 +16,7 @@
 
 package org.ratpackframework.launch;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.PooledByteBufAllocator;
@@ -39,6 +40,7 @@ public class LaunchConfigBuilder {
   private boolean reloadable;
   private int mainThreads;
   private URI publicAddress;
+  private ImmutableList.Builder<String> indexFiles = ImmutableList.builder();
   private ImmutableMap.Builder<String, String> other = ImmutableMap.builder();
   private ExecutorService blockingExecutorService;
   private ByteBufAllocator byteBufAllocator = PooledByteBufAllocator.DEFAULT;
@@ -98,12 +100,17 @@ public class LaunchConfigBuilder {
     return this;
   }
 
+  public LaunchConfigBuilder indexFiles(String... indexFiles) {
+    this.indexFiles.add(indexFiles);
+    return this;
+  }
+
   public LaunchConfig build(HandlerFactory handlerFactory) {
     ExecutorService blockingExecutorService = this.blockingExecutorService;
     if (blockingExecutorService == null) {
       blockingExecutorService = Executors.newCachedThreadPool(new BlockingThreadFactory());
     }
-    return new DefaultLaunchConfig(baseDir, port, address, reloadable, mainThreads, blockingExecutorService, byteBufAllocator, publicAddress, other.build(), handlerFactory);
+    return new DefaultLaunchConfig(baseDir, port, address, reloadable, mainThreads, blockingExecutorService, byteBufAllocator, publicAddress, indexFiles.build(), other.build(), handlerFactory);
   }
 
   @SuppressWarnings("NullableProblems")

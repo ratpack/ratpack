@@ -30,12 +30,13 @@ class JavaChainDslFixture implements SnippetFixture {
   public String pre() {
     """
 import org.ratpackframework.util.Action;
+import org.ratpackframework.launch.LaunchConfig;
 import org.ratpackframework.handling.Chain;
 import org.ratpackframework.handling.Handler;
 import org.ratpackframework.handling.Context;
 import org.ratpackframework.handling.internal.DefaultChain;
 
-Chain chain = new org.ratpackframework.handling.internal.DefaultChain([], null)
+Chain chain = new org.ratpackframework.handling.internal.DefaultChain([], [:] as LaunchConfig, null)
 """
   }
 

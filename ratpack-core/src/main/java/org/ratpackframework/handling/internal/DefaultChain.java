@@ -21,20 +21,24 @@ import org.ratpackframework.api.Nullable;
 import org.ratpackframework.handling.Chain;
 import org.ratpackframework.handling.Handler;
 import org.ratpackframework.handling.Handlers;
+import org.ratpackframework.launch.LaunchConfig;
 import org.ratpackframework.registry.Registry;
 import org.ratpackframework.util.Action;
 
 import java.util.List;
 
+import static com.google.common.collect.ImmutableList.copyOf;
 import static com.google.common.collect.ImmutableList.of;
 
 public class DefaultChain implements Chain {
 
   private final List<Handler> handlers;
+  private final LaunchConfig launchConfig;
   private final Registry<Object> registry;
 
-  public DefaultChain(List<Handler> handlers, @Nullable Registry<Object> registry) {
+  public DefaultChain(List<Handler> handlers, LaunchConfig launchConfig, @Nullable Registry<Object> registry) {
     this.handlers = handlers;
+    this.launchConfig = launchConfig;
     this.registry = registry;
   }
 
@@ -52,7 +56,7 @@ public class DefaultChain implements Chain {
   }
 
   public Chain prefix(String prefix, Action<? super Chain> builder) {
-    return handler(Handlers.prefix(prefix, Handlers.chainList(getRegistry(), builder)));
+    return handler(Handlers.prefix(prefix, Handlers.chainList(launchConfig, getRegistry(), builder)));
   }
 
   public Chain handler(String path, Handler handler) {
@@ -92,7 +96,7 @@ public class DefaultChain implements Chain {
   }
 
   public Chain assets(String path, String... indexFiles) {
-    return handler(Handlers.assets(path, indexFiles));
+    return handler(Handlers.assets(path, indexFiles.length == 0 ? launchConfig.getIndexFiles() : copyOf(indexFiles)));
   }
 
   public Chain register(Object service, List<Handler> handlers) {
@@ -110,4 +114,9 @@ public class DefaultChain implements Chain {
   public Registry<Object> getRegistry() {
     return registry;
   }
+
+  public LaunchConfig getLaunchConfig() {
+    return launchConfig;
+  }
+
 }

@@ -20,7 +20,7 @@ import com.google.inject.Injector
 import org.ratpackframework.groovy.handling.Chain
 import org.ratpackframework.groovy.internal.InjectorHandlerTransformer
 import org.ratpackframework.handling.Handler
-import org.ratpackframework.test.internal.DefaultRatpackSpec
+import org.ratpackframework.launch.LaunchConfig
 import org.ratpackframework.util.Transformer
 
 abstract class RatpackGroovyDslSpec extends DefaultRatpackSpec {
@@ -30,7 +30,7 @@ abstract class RatpackGroovyDslSpec extends DefaultRatpackSpec {
   }
 
   @Override
-  protected Transformer<Injector, Handler> createHandlerTransformer() {
-    new InjectorHandlerTransformer(handlersClosure);
+  protected Transformer<Injector, Handler> createHandlerTransformer(LaunchConfig launchConfig) {
+    new InjectorHandlerTransformer(launchConfig, handlersClosure);
   }
 }

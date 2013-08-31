@@ -19,10 +19,10 @@ package org.ratpackframework.handling;
 import com.google.common.collect.ImmutableList;
 import org.ratpackframework.api.Nullable;
 import org.ratpackframework.file.internal.AssetHandler;
-import org.ratpackframework.file.internal.DefaultIndexFiles;
 import org.ratpackframework.file.internal.FileSystemBindingHandler;
 import org.ratpackframework.handling.internal.*;
 import org.ratpackframework.http.internal.MethodHandler;
+import org.ratpackframework.launch.LaunchConfig;
 import org.ratpackframework.path.PathBinder;
 import org.ratpackframework.path.internal.PathHandler;
 import org.ratpackframework.path.internal.TokenPathBinder;
@@ -31,6 +31,8 @@ import org.ratpackframework.util.Action;
 
 import java.io.File;
 import java.util.List;
+
+import static com.google.common.collect.ImmutableList.copyOf;
 
 /**
  * Factory methods for handler decorations.
@@ -52,7 +54,7 @@ public abstract class Handlers {
    * @return A handler
    */
   public static <T> Handler register(T object, List<? extends Handler> handlers) {
-    return new RegisteringHandler(object, ImmutableList.copyOf(handlers));
+    return new RegisteringHandler(object, copyOf(handlers));
   }
 
   /**
@@ -65,28 +67,30 @@ public abstract class Handlers {
    * @return A handler
    */
   public static <T> Handler register(Class<? super T> type, T object, List<? extends Handler> handlers) {
-    return new RegisteringHandler(type, object, ImmutableList.copyOf(handlers));
+    return new RegisteringHandler(type, object, copyOf(handlers));
   }
 
   /**
    * Builds a handler chain, with no backing registry.
    *
+   * @param launchConfig The application launch config
    * @param action The chain definition
    * @return A handler
    */
-  public static Handler chain(Action<? super Chain> action) {
-    return chain(null, action);
+  public static Handler chain(LaunchConfig launchConfig, Action<? super Chain> action) {
+    return chain(launchConfig, null, action);
   }
 
   /**
    * Builds a chain, backed by the given registry.
    *
+   * @param launchConfig The application launch config
    * @param registry The registry.
    * @param action The chain building action.
    * @return A handler
    */
-  public static Handler chain(@Nullable Registry<Object> registry, Action<? super Chain> action) {
-    return ChainBuilder.INSTANCE.buildHandler(new ChainActionTransformer(registry), action);
+  public static Handler chain(LaunchConfig launchConfig, @Nullable Registry<Object> registry, Action<? super Chain> action) {
+    return ChainBuilder.INSTANCE.buildHandler(new ChainActionTransformer(launchConfig, registry), action);
   }
 
   /**
@@ -94,11 +98,12 @@ public abstract class Handlers {
    * <p>
    * The chain given to the action will have no backing registry.
    *
+   * @param launchConfig The application launch config
    * @param action The chain building action
    * @return The handlers added by the chain action
    */
-  public static List<Handler> chainList(Action<? super Chain> action) {
-    return chainList(null, action);
+  public static List<Handler> chainList(LaunchConfig launchConfig, Action<? super Chain> action) {
+    return chainList(launchConfig, null, action);
   }
 
   /**
@@ -106,12 +111,13 @@ public abstract class Handlers {
    * <p>
    * The chain given to the action will have the given backing registry.
    *
+   * @param launchConfig The application launch config
    * @param action The chain building action
    * @param registry The registry to back the chain with
    * @return The handlers added by the chain action
    */
-  public static List<Handler> chainList(@Nullable Registry<Object> registry, Action<? super Chain> action) {
-    return ChainBuilder.INSTANCE.buildList(new ChainActionTransformer(registry), action);
+  public static List<Handler> chainList(LaunchConfig launchConfig, @Nullable Registry<Object> registry, Action<? super Chain> action) {
+    return ChainBuilder.INSTANCE.buildList(new ChainActionTransformer(launchConfig, registry), action);
   }
 
   /**
@@ -126,7 +132,7 @@ public abstract class Handlers {
     } else if (handlers.size() == 1) {
       return handlers.get(0);
     } else {
-      return new ChainHandler(ImmutableList.copyOf(handlers));
+      return new ChainHandler(copyOf(handlers));
     }
   }
 
@@ -140,7 +146,7 @@ public abstract class Handlers {
    * @return A handler
    */
   public static Handler fileSystem(String path, List<? extends Handler> handlers) {
-    return new FileSystemBindingHandler(new File(path), ImmutableList.copyOf(handlers));
+    return new FileSystemBindingHandler(new File(path), copyOf(handlers));
   }
 
   /**
@@ -161,8 +167,8 @@ public abstract class Handlers {
    * @return A handler
    */
 
-  public static Handler assets(String path, String... indexFiles) {
-    Handler handler = new AssetHandler(new DefaultIndexFiles(indexFiles));
+  public static Handler assets(String path, List<String> indexFiles) {
+    Handler handler = new AssetHandler(copyOf(indexFiles));
     return fileSystem(path, ImmutableList.of(handler));
   }
 
@@ -253,6 +259,6 @@ public abstract class Handlers {
    * @return A handler
    */
   public static Handler path(PathBinder pathBinder, List<? extends Handler> handlers) {
-    return new PathHandler(pathBinder, ImmutableList.copyOf(handlers));
+    return new PathHandler(pathBinder, copyOf(handlers));
   }
 }

@@ -17,6 +17,7 @@
 package org.ratpackframework.handling;
 
 import org.ratpackframework.api.Nullable;
+import org.ratpackframework.launch.LaunchConfig;
 import org.ratpackframework.registry.Registry;
 import org.ratpackframework.util.Action;
 
@@ -28,7 +29,7 @@ import java.util.List;
  * The {@code Chain} type does not represent the handlers "in action".
  * That is, it is the construction of a handler chain.
  * <p>
- * A chain can be constructed using the {@link Handlers#chain(org.ratpackframework.util.Action)} like methods.
+ * A chain can be constructed using the {@link Handlers#chain(LaunchConfig, org.ratpackframework.util.Action)} like methods.
  * For example, from a {@link org.ratpackframework.launch.HandlerFactory} implementation…
  * <pre class="tested">
  * import org.ratpackframework.launch.HandlerFactory;
@@ -42,7 +43,7 @@ import java.util.List;
  * public class MyHandlerBootstrap implements HandlerFactory {
  *   public Handler create(LaunchConfig launchConfig) {
  *
- *     return Handlers.chain(new Action&lt;Chain&gt;() {
+ *     return Handlers.chain(launchConfig, new Action&lt;Chain&gt;() {
  *       public void execute(Chain chain) {
  *         chain
  *           .assets("public")
@@ -306,7 +307,7 @@ public interface Chain {
    * Adds a {@code Handler} to this {@code Chain} that serves static assets at the given file system path,
    * relative to the contextual file system binding.
    * <p>
-   * See {@link Handlers#assets(String, String...)} for more details on the {@code Handler} created
+   * See {@link Handlers#assets(String, List)} for more details on the {@code Handler} created
    * <pre>
    *    prefix("foo") {
    *      assets("d1", "index.html", "index.xhtml")
@@ -371,10 +372,17 @@ public interface Chain {
    * <p>
    * The registry that is available is dependent on how the {@code Chain} was constructed.
    *
-   * @see Handlers#chain(org.ratpackframework.registry.Registry, org.ratpackframework.util.Action)
+   * @see Handlers#chain(LaunchConfig, org.ratpackframework.registry.Registry, org.ratpackframework.util.Action)
    * @return The registry that backs this {@code Chain}, or {@code null} if this {@code Chain} has no registry.
    */
   @Nullable
   Registry<Object> getRegistry();
+
+  /**
+   * The launch config of the application that this chain is being created for.
+   *
+   * @return The launch config of the application that this chain is being created for.
+   */
+  LaunchConfig getLaunchConfig();
 
 }

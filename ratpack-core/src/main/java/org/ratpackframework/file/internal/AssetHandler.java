@@ -17,7 +17,6 @@
 package org.ratpackframework.file.internal;
 
 import com.google.common.collect.ImmutableList;
-import org.ratpackframework.file.IndexFiles;
 import org.ratpackframework.handling.Context;
 import org.ratpackframework.handling.Handler;
 import org.ratpackframework.http.Request;
@@ -34,12 +33,10 @@ import static org.ratpackframework.file.internal.FileRenderer.sendFile;
 
 public class AssetHandler implements Handler {
 
-  private ImmutableList<String> indexFiles;
+  private final ImmutableList<String> indexFiles;
 
-  public AssetHandler(IndexFiles indexFiles) {
-    this.indexFiles = ImmutableList.<String>builder()
-      .addAll(indexFiles.getFileNames())
-      .build();
+  public AssetHandler(ImmutableList<String> indexFiles) {
+    this.indexFiles = indexFiles;
   }
 
   public void handle(Context context) {
@@ -85,12 +82,6 @@ public class AssetHandler implements Handler {
   }
 
   private void maybeSendFile(final Context context, final File file, final int i) {
-    // If this Handler has been created without any index files then load any globally
-    // defined ones instead.
-    if (indexFiles.isEmpty()) {
-      loadGlobalIndexFiles(context);
-    }
-
     if (i == indexFiles.size()) {
       context.clientError(403);
     } else {
@@ -106,12 +97,6 @@ public class AssetHandler implements Handler {
         }
       });
     }
-  }
-
-  private void loadGlobalIndexFiles(final Context context) {
-    indexFiles = ImmutableList.<String>builder()
-      .addAll(context.get(IndexFiles.class).getFileNames())
-      .build();
   }
 
 }

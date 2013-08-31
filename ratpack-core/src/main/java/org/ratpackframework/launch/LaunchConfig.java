@@ -22,6 +22,7 @@ import org.ratpackframework.api.Nullable;
 import java.io.File;
 import java.net.InetAddress;
 import java.net.URI;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 
 public interface LaunchConfig {
@@ -89,9 +90,16 @@ public interface LaunchConfig {
   /**
    * The public address of the site used for redirects.
    *
-   * @return The url of the public address;
+   * @return The url of the public address
    */
   public URI getPublicAddress();
+
+  /**
+   * The names of files that can be served if a request is made to serve a directory.
+   *
+   * @return The names of files that can be served if a request is made to serve a directory.
+   */
+  public List<String> getIndexFiles();
 
   public String getOther(String key, String defaultValue);
 

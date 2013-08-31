@@ -23,6 +23,7 @@ import org.ratpackframework.groovy.Util;
 import org.ratpackframework.groovy.handling.Chain;
 import org.ratpackframework.handling.Handler;
 import org.ratpackframework.handling.internal.ChainBuilder;
+import org.ratpackframework.launch.LaunchConfig;
 import org.ratpackframework.registry.Registry;
 import org.ratpackframework.util.Action;
 
@@ -32,8 +33,8 @@ import static org.ratpackframework.groovy.Util.asHandler;
 
 public class DefaultChain extends org.ratpackframework.handling.internal.DefaultChain implements Chain {
 
-  public DefaultChain(List<Handler> handlers, @Nullable Registry<Object> registry) {
-    super(handlers, registry);
+  public DefaultChain(List<Handler> handlers, LaunchConfig launchConfig, @Nullable Registry<Object> registry) {
+    super(handlers, launchConfig, registry);
   }
 
   @Override
@@ -178,7 +179,7 @@ public class DefaultChain extends org.ratpackframework.handling.internal.Default
   }
 
   private ImmutableList<Handler> toHandlerList(Closure<?> handlers) {
-    return ChainBuilder.INSTANCE.buildList(new GroovyDslChainActionTransformer(getRegistry()), Util.delegatingAction(handlers));
+    return ChainBuilder.INSTANCE.buildList(new GroovyDslChainActionTransformer(getLaunchConfig(), getRegistry()), Util.delegatingAction(handlers));
   }
 
 }

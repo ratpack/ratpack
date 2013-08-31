@@ -23,15 +23,18 @@ import org.ratpackframework.groovy.handling.internal.GroovyDslChainActionTransfo
 import org.ratpackframework.guice.Guice;
 import org.ratpackframework.handling.Handler;
 import org.ratpackframework.handling.internal.ChainBuilder;
+import org.ratpackframework.launch.LaunchConfig;
 import org.ratpackframework.registry.Registry;
 import org.ratpackframework.util.Action;
 import org.ratpackframework.util.Transformer;
 
 public class InjectorHandlerTransformer implements Transformer<Injector, Handler> {
 
+  private final LaunchConfig launchConfig;
   private final Closure<?> closure;
 
-  public InjectorHandlerTransformer(Closure<?> closure) {
+  public InjectorHandlerTransformer(LaunchConfig launchConfig, Closure<?> closure) {
+    this.launchConfig = launchConfig;
     this.closure = closure;
   }
 
@@ -40,12 +43,12 @@ public class InjectorHandlerTransformer implements Transformer<Injector, Handler
 
     Action<Chain> chainAction = new Action<Chain>() {
       public void execute(Chain chain) {
-        ClosureInvoker<Object, Chain> closureInvoker = new ClosureInvoker<Object, Chain>(closure);
+        ClosureInvoker<Object, Chain> closureInvoker = new ClosureInvoker<>(closure);
         closureInvoker.invoke(registry, chain, Closure.DELEGATE_FIRST);
       }
     };
 
-    return ChainBuilder.INSTANCE.buildHandler(new GroovyDslChainActionTransformer(registry), chainAction);
+    return ChainBuilder.INSTANCE.buildHandler(new GroovyDslChainActionTransformer(launchConfig, registry), chainAction);
   }
 
 }

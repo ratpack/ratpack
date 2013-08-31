@@ -66,52 +66,52 @@ import static org.ratpackframework.handling.Handlers.chain;
  *
  * // A Guice module that provides the service
  * class ServiceModule extends AbstractModule {
- *   protected void configure() {
- *     bind(SomeService.class);
- *   }
+ * protected void configure() {
+ * bind(SomeService.class);
+ * }
  * }
  *
  * // An action that registers the module with the registry, making it part of the application
  * class ModuleBootstrap implements Action&lt;ModuleRegistry&gt; {
- *   public void execute(ModuleRegistry modules) {
- *     modules.register(new ServiceModule());
- *   }
+ * public void execute(ModuleRegistry modules) {
+ * modules.register(new ServiceModule());
+ * }
  * }
  *
  * // A handler implementation that is dependency injected
  * {@literal @}Singleton
  * class InjectedHandler implements Handler {
- *   private final SomeService service;
+ * private final SomeService service;
  *
- *   {@literal @}Inject
- *   public InjectedHandler(SomeService service) {
- *     this.service = service;
- *   }
+ * {@literal @}Inject
+ * public InjectedHandler(SomeService service) {
+ * this.service = service;
+ * }
  *
- *   public void handle(Context exchange) {
- *     // …
- *   }
+ * public void handle(Context exchange) {
+ * // …
+ * }
  * }
  *
  * // A chain configurer that adds a dependency injected handler to the chain
  * class HandlersBootstrap implements Action&lt;Chain&gt; {
- *   public void execute(Chain chain) {
+ * public void execute(Chain chain) {
  *
- *     // The registry in a Guice backed chain can be used to retrieve objects that were bound,
- *     // or to create objects that are bound “just-in-time”.
- *     Registry&lt;Object&gt; registry = chain.getRegistry();
- *     Handler injectedHandler = registry.get(InjectedHandler.class);
+ * // The registry in a Guice backed chain can be used to retrieve objects that were bound,
+ * // or to create objects that are bound “just-in-time”.
+ * Registry&lt;Object&gt; registry = chain.getRegistry();
+ * Handler injectedHandler = registry.get(InjectedHandler.class);
  *
- *     // Add the handler into the chain
- *     chain.get("some/path", injectedHandler);
- *   }
+ * // Add the handler into the chain
+ * chain.get("some/path", injectedHandler);
+ * }
  * }
  *
  * // A HandlerFactory implementation used to bootstrap the application
  * class MyHandlerFactory implements HandlerFactory {
- *   public Handler create(LaunchConfig launchConfig) {
- *     return Guice.handler(launchConfig, new ModuleBootstrap(), new HandlersBootstrap());
- *   }
+ * public Handler create(LaunchConfig launchConfig) {
+ * return Guice.handler(launchConfig, new ModuleBootstrap(), new HandlersBootstrap());
+ * }
  * }
  *
  * // Building a launch config with our handler factory
@@ -178,7 +178,7 @@ public abstract class Guice {
    * @return A handler that makes all Guice bound objects available to the handlers added to the {@link Chain} given to {@code chainConfigurer}.
    */
   public static Handler handler(LaunchConfig launchConfig, Action<? super ModuleRegistry> moduleConfigurer, final Action<? super Chain> chainConfigurer) {
-    return new DefaultGuiceBackedHandlerFactory(launchConfig).create(moduleConfigurer, newInjectorFactory(), new InjectorHandlerTransformer(chainConfigurer));
+    return new DefaultGuiceBackedHandlerFactory(launchConfig).create(moduleConfigurer, newInjectorFactory(), new InjectorHandlerTransformer(launchConfig, chainConfigurer));
   }
 
   /**
@@ -212,7 +212,7 @@ public abstract class Guice {
    * @return A handler that makes all Guice bound objects available to the handlers added to the {@link Chain} given to {@code chainConfigurer}.
    */
   public static Handler handler(LaunchConfig launchConfig, Injector parentInjector, Action<? super ModuleRegistry> moduleConfigurer, final Action<? super Chain> chainConfigurer) {
-    return new DefaultGuiceBackedHandlerFactory(launchConfig).create(moduleConfigurer, childInjectorFactory(parentInjector), new InjectorHandlerTransformer(chainConfigurer));
+    return new DefaultGuiceBackedHandlerFactory(launchConfig).create(moduleConfigurer, childInjectorFactory(parentInjector), new InjectorHandlerTransformer(launchConfig, chainConfigurer));
   }
 
   /**
@@ -234,7 +234,7 @@ public abstract class Guice {
   /**
    * Creates a Ratpack {@link Registry} backed by the given {@link Injector} that will create objects via “just-in-time” binding.
    * <p>
-   * Typically used in conjuction with the {@link org.ratpackframework.handling.Handlers#chain(org.ratpackframework.registry.Registry, org.ratpackframework.util.Action)}
+   * Typically used in conjuction with the {@link org.ratpackframework.handling.Handlers#chain(LaunchConfig, org.ratpackframework.registry.Registry, org.ratpackframework.util.Action)}
    * method.
    *
    * @param injector The injector to back the registry
@@ -247,7 +247,7 @@ public abstract class Guice {
   /**
    * Creates a Ratpack {@link Registry} backed by the given {@link Injector} that will create objects via “just-in-time” binding.
    * <p>
-   * Typically used in conjuction with the {@link org.ratpackframework.handling.Handlers#chain(org.ratpackframework.registry.Registry, org.ratpackframework.util.Action)}
+   * Typically used in conjuction with the {@link org.ratpackframework.handling.Handlers#chain(LaunchConfig, org.ratpackframework.registry.Registry, org.ratpackframework.util.Action)}
    * method.
    * <p>
    * If the injector cannot provide an instance of the requested type, the returned registry will delegate to the given parent.
@@ -307,14 +307,16 @@ public abstract class Guice {
   }
 
   private static class InjectorHandlerTransformer implements Transformer<Injector, Handler> {
+    private final LaunchConfig launchConfig;
     private final Action<? super Chain> action;
 
-    public InjectorHandlerTransformer(Action<? super Chain> action) {
+    public InjectorHandlerTransformer(LaunchConfig launchConfig, Action<? super Chain> action) {
+      this.launchConfig = launchConfig;
       this.action = action;
     }
 
     public Handler transform(Injector injector) {
-      return chain(justInTimeRegistry(injector), action);
+      return chain(launchConfig, justInTimeRegistry(injector), action);
     }
   }
 }

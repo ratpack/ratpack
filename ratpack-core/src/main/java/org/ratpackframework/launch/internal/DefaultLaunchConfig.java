@@ -16,6 +16,7 @@
 
 package org.ratpackframework.launch.internal;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.netty.buffer.ByteBufAllocator;
 import org.ratpackframework.launch.HandlerFactory;
@@ -24,6 +25,7 @@ import org.ratpackframework.launch.LaunchConfig;
 import java.io.File;
 import java.net.InetAddress;
 import java.net.URI;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 
 public class DefaultLaunchConfig implements LaunchConfig {
@@ -37,9 +39,10 @@ public class DefaultLaunchConfig implements LaunchConfig {
   private final ExecutorService blockingExecutorService;
   private final ByteBufAllocator byteBufAllocator;
   private final URI publicAddress;
+  private final ImmutableList<String> indexFiles;
   private final ImmutableMap<String, String> other;
 
-  public DefaultLaunchConfig(File baseDir, int port, InetAddress address, boolean reloadable, int mainThreads, ExecutorService blockingExecutorService, ByteBufAllocator byteBufAllocator, URI publicAddress, ImmutableMap<String, String> other, HandlerFactory handlerFactory) {
+  public DefaultLaunchConfig(File baseDir, int port, InetAddress address, boolean reloadable, int mainThreads, ExecutorService blockingExecutorService, ByteBufAllocator byteBufAllocator, URI publicAddress, ImmutableList<String> indexFiles, ImmutableMap<String, String> other, HandlerFactory handlerFactory) {
     this.baseDir = baseDir;
     this.port = port;
     this.address = address;
@@ -48,6 +51,7 @@ public class DefaultLaunchConfig implements LaunchConfig {
     this.blockingExecutorService = blockingExecutorService;
     this.byteBufAllocator = byteBufAllocator;
     this.publicAddress = publicAddress;
+    this.indexFiles = indexFiles;
     this.other = other;
     this.handlerFactory = handlerFactory;
   }
@@ -88,6 +92,11 @@ public class DefaultLaunchConfig implements LaunchConfig {
 
   public URI getPublicAddress() {
     return publicAddress;
+  }
+
+  @Override
+  public List<String> getIndexFiles() {
+    return indexFiles;
   }
 
   public String getOther(String key, String defaultValue) {

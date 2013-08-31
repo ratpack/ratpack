@@ -27,6 +27,7 @@ import org.ratpackframework.guice.ModuleRegistry;
 import org.ratpackframework.guice.internal.GuiceBackedHandlerFactory;
 import org.ratpackframework.handling.Context;
 import org.ratpackframework.handling.Handler;
+import org.ratpackframework.launch.LaunchConfig;
 import org.ratpackframework.reload.internal.ReloadableFileBackedFactory;
 import org.ratpackframework.util.Action;
 import org.ratpackframework.util.Transformer;
@@ -40,7 +41,7 @@ public class ScriptBackedApp implements Handler {
   private final Factory<Handler> reloadHandler;
   private final File script;
 
-  public ScriptBackedApp(File script, final GuiceBackedHandlerFactory appFactory, final Transformer<? super Module, ? extends Injector> moduleTransformer, final boolean staticCompile, boolean reloadable) {
+  public ScriptBackedApp(File script, final LaunchConfig launchConfig, final GuiceBackedHandlerFactory appFactory, final Transformer<? super Module, ? extends Injector> moduleTransformer, final boolean staticCompile, boolean reloadable) {
     this.script = script;
     this.reloadHandler = new ReloadableFileBackedFactory<>(script, reloadable, new ReloadableFileBackedFactory.Delegate<Handler>() {
       public Handler produce(final File file, final ByteBuf bytes) {
@@ -73,7 +74,7 @@ public class ScriptBackedApp implements Handler {
           Closure<?> handlersConfigurer = ratpack.getHandlersConfigurer();
 
           Action<ModuleRegistry> modulesAction = Util.delegatingAction(ModuleRegistry.class, modulesConfigurer);
-          return appFactory.create(modulesAction, moduleTransformer, new InjectorHandlerTransformer(handlersConfigurer));
+          return appFactory.create(modulesAction, moduleTransformer, new InjectorHandlerTransformer(launchConfig, handlersConfigurer));
 
         } catch (Exception e) {
           throw new RuntimeException(e);

@@ -16,10 +16,8 @@
 
 package org.ratpackframework.file
 
-import com.google.common.collect.ImmutableList
 import com.jayway.restassured.response.Response
 import org.apache.commons.lang3.RandomStringUtils
-import org.ratpackframework.guice.Guice
 import org.ratpackframework.http.internal.HttpHeaderDateFormat
 import org.ratpackframework.test.internal.RatpackGroovyDslSpec
 import spock.lang.Unroll
@@ -295,8 +293,11 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
     given:
     file("d1/custom.html") << "foo"
     file("d2/custom.xhtml") << "bar"
+
     and:
-    other.put("other.indexFiles", "custom.xhtml,custom.html")
+    launchConfig {
+      indexFiles "custom.xhtml", "custom.html"
+    }
 
     when:
     app {
@@ -319,8 +320,11 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
     given:
     file("public/custom.html") << "foo"
     file("public/index.html") << "bar"
+
     and:
-    other.put("other.indexFiles", "custom.xhtml,custom.html")
+    launchConfig {
+      indexFiles "custom.html"
+    }
 
     when:
     app {
@@ -338,15 +342,12 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
     file("public/custom.html") << "foo"
     file("public/index.html") << "bar"
     and:
-    other.put("other.indexFiles", "custom.xhtml,custom.html")
+    launchConfig {
+      indexFiles "index.html", "custom.html"
+    }
 
     when:
     app {
-      modules {
-        bind IndexFiles, new IndexFiles() {
-          List<String> getFileNames() { ["index.html"] }
-        }
-      }
       handlers {
         assets("public")
       }

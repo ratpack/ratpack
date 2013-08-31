@@ -27,7 +27,7 @@ import static org.ratpackframework.handling.Handlers.chain;
 public class HandlerFactory implements org.ratpackframework.launch.HandlerFactory {
 
   public Handler create(LaunchConfig launchConfig) {
-    return chain(new Action<Chain>() {
+    return chain(launchConfig, new Action<Chain>() {
       public void execute(Chain chain) {
         chain
           .assets("public")

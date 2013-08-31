@@ -35,13 +35,14 @@ import org.ratpackframework.util.Transformer
 import org.ratpackframework.util.internal.ConstantTransformer
 
 import static Handlers.chain
-import static org.ratpackframework.groovy.Util.delegatingAction
 import static org.ratpackframework.groovy.Util.configureDelegateFirst
+import static org.ratpackframework.groovy.Util.delegatingAction
 
 abstract class DefaultRatpackSpec extends InternalRatpackSpec {
 
   Closure<?> handlersClosure = {}
   Closure<?> modulesClosure = {}
+  Closure<?> launchConfigClosure = {}
 
   List<Module> modules = []
   Map<String, String> other = [:]
@@ -54,19 +55,25 @@ abstract class DefaultRatpackSpec extends InternalRatpackSpec {
     this.modulesClosure = configurer
   }
 
+  void launchConfig(@DelegatesTo(LaunchConfigBuilder) Closure<?> configurer) {
+    this.launchConfigClosure = configurer
+  }
+
   @Override
   protected RatpackServer createServer() {
-    def handler = createHandlerTransformer()
     def modulesAction = createModulesAction()
 
-    LaunchConfig launchConfig = LaunchConfigBuilder
-        .baseDir(dir)
-        .port(0)
-        .reloadable(reloadable)
-        .other(other)
-        .build(new HandlerFactory() {
+    def launchConfigBuilder = LaunchConfigBuilder
+      .baseDir(dir)
+      .port(0)
+      .reloadable(reloadable)
+      .other(other)
+
+    configureDelegateFirst(launchConfigBuilder, launchConfigClosure)
+
+    LaunchConfig launchConfig = launchConfigBuilder.build(new HandlerFactory() {
       Handler create(LaunchConfig launchConfig) {
-        createHandlerFactory(launchConfig).create(modulesAction, createInjectorFactory(), handler)
+        createHandlerFactory(launchConfig).create(modulesAction, createInjectorFactory(), createHandlerTransformer(launchConfig))
       }
     })
 
@@ -91,8 +98,8 @@ abstract class DefaultRatpackSpec extends InternalRatpackSpec {
     }
   }
 
-  protected Transformer<Injector, Handler> createHandlerTransformer() {
-    new ConstantTransformer(chain(delegatingAction(handlersClosure)))
+  protected Transformer<Injector, Handler> createHandlerTransformer(LaunchConfig launchConfig) {
+    new ConstantTransformer(chain(launchConfig, delegatingAction(handlersClosure)))
   }
 
 }
