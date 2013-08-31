@@ -48,12 +48,12 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import static io.netty.handler.codec.http.HttpResponseStatus.NOT_FOUND;
+import static org.ratpackframework.file.internal.DefaultIndexFiles.indexFiles;
 import static org.ratpackframework.render.controller.RenderControllers.renderController;
 
 @ChannelHandler.Sharable
 public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpRequest> {
 
-  private static final String INDEX_FILES_PROPERTY_NAME = "other.indexFiles";
   private final Handler handler;
   private final Handler return404;
   private final LaunchConfig launchConfig;
@@ -148,7 +148,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
         new DefaultServerErrorHandler(),
         launchConfig,
         renderController(renderers),
-        new DefaultIndexFiles(launchConfig.getOther(INDEX_FILES_PROPERTY_NAME, null))
+        indexFiles(launchConfig)
       )
     );
   }

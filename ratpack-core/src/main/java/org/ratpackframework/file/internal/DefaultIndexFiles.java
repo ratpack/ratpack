@@ -17,6 +17,7 @@
 package org.ratpackframework.file.internal;
 
 import org.ratpackframework.file.IndexFiles;
+import org.ratpackframework.launch.LaunchConfig;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -26,6 +27,8 @@ import java.util.List;
  * A default implementation of {@link IndexFiles}.
  */
 public class DefaultIndexFiles implements IndexFiles {
+
+  public static final String LAUNCH_CONFIG_PROPERTY_NAME = "other.indexFiles";
 
   private List<String> fileNames = new ArrayList<>();
 
@@ -51,6 +54,16 @@ public class DefaultIndexFiles implements IndexFiles {
 
   public List<String> getFileNames() {
     return fileNames;
+  }
+
+  /**
+   * Create an implementation based on the value of the {@value #LAUNCH_CONFIG_PROPERTY_NAME} launch config property.
+   *
+   * @param launchConfig The launch config
+   * @return An IndexFiles
+   */
+  public static IndexFiles indexFiles(LaunchConfig launchConfig) {
+    return new DefaultIndexFiles(launchConfig.getOther(LAUNCH_CONFIG_PROPERTY_NAME, null));
   }
 
 }
