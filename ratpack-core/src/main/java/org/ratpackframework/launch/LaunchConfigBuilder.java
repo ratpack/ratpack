@@ -25,6 +25,7 @@ import org.ratpackframework.launch.internal.DefaultLaunchConfig;
 import java.io.File;
 import java.net.InetAddress;
 import java.net.URI;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -102,6 +103,11 @@ public class LaunchConfigBuilder {
 
   public LaunchConfigBuilder indexFiles(String... indexFiles) {
     this.indexFiles.add(indexFiles);
+    return this;
+  }
+
+  public LaunchConfigBuilder indexFiles(List<String> indexFiles) {
+    this.indexFiles.addAll(indexFiles);
     return this;
   }
 

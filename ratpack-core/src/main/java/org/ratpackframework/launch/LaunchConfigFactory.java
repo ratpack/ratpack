@@ -16,11 +16,14 @@
 
 package org.ratpackframework.launch;
 
+import com.google.common.collect.ImmutableList;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.net.*;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
@@ -136,6 +139,16 @@ public abstract class LaunchConfigFactory {
       boolean reloadable = Boolean.parseBoolean(properties.getProperty(Property.RELOADABLE, "false"));
       int mainThreads = Integer.valueOf(properties.getProperty(Property.MAIN_THREADS, "0"));
 
+      String indexFilesValue = properties.getProperty(Property.INDEX_FILES, "");
+      ImmutableList.Builder<String> trimmed = ImmutableList.builder();
+      for (String value : indexFilesValue.split(",")) {
+        value = value.trim();
+        if (!value.isEmpty()) {
+          trimmed.add(value);
+        }
+      }
+      List<String> indexFiles = trimmed.build();
+
       Map<String, String> otherProperties = new HashMap<>();
       extractProperties("other.", properties, otherProperties);
 
@@ -152,6 +165,7 @@ public abstract class LaunchConfigFactory {
         .publicAddress(publicAddress)
         .reloadable(reloadable)
         .mainThreads(mainThreads)
+        .indexFiles(indexFiles)
         .other(otherProperties)
         .build(handlerFactory);
 
@@ -226,5 +240,15 @@ public abstract class LaunchConfigFactory {
      * <p> <b>Value:</b> {@value} - (url)
      */
     public static final String PUBLIC_ADDRESS = "publicAddress";
+
+    /**
+     * The comma separated list of file names of files that can be served in place of a directory.
+     *
+     * <p>
+     * If the value is not {@code null}, it will be converted to a string list by splitting on ",".
+     *
+     * <p> <b>Value:</b> {@value} - (comma separated string list)
+     */
+    public static final String INDEX_FILES = "indexFiles";
   }
 }

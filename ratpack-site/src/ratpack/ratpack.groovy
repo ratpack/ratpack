@@ -3,8 +3,6 @@ import org.ratpackframework.site.VersionsModule
 
 import static org.ratpackframework.groovy.RatpackScript.ratpack
 
-def indexPages = ["index.html"] as String[]
-
 ratpack {
   modules {
     register new VersionsModule(getClass().classLoader)
@@ -18,13 +16,13 @@ ratpack {
     }
 
     prefix("manual/snapshot") {
-      assets "public/manual/$versions.snapshot", indexPages
+      assets "public/manual/$versions.snapshot"
     }
 
     prefix("manual/current") {
-      assets "public/manual/$versions.current", indexPages
+      assets "public/manual/$versions.current"
     }
 
-    assets "public", indexPages
+    assets "public"
   }
 }
