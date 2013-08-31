@@ -169,6 +169,7 @@ class InvocationBuilderSpec extends Specification {
 
   @Unroll
   def "can set request body"() {
+    //noinspection GroovyAssignabilityCheck
     given:
     builder.body(* arguments)
 
@@ -192,6 +193,7 @@ class InvocationBuilderSpec extends Specification {
 
   @Unroll
   def "can set response body"() {
+    //noinspection GroovyAssignabilityCheck
     given:
     builder.responseBody(* arguments)
 
