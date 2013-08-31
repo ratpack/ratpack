@@ -24,12 +24,20 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * Convenience handler super class that provides syntactic sugar for accessing contextual objects.
+ */
 public abstract class ServiceUsingHandler implements Handler {
 
   private final List<Class<?>> serviceTypes;
   private final Method handleMethod;
 
-  protected ServiceUsingHandler() {
+  /**
+   * Constructor.
+   *
+   * @throws NoSuitableHandleMethodException if this class doesn't provide a suitable handle method.
+   */
+  protected ServiceUsingHandler() throws NoSuitableHandleMethodException {
     Class<?> thisClass = this.getClass();
 
     Method handleMethod = null;
@@ -60,6 +68,11 @@ public abstract class ServiceUsingHandler implements Handler {
     this.serviceTypes = ImmutableList.copyOf(Arrays.asList(parameterTypes).subList(1, parameterTypes.length));
   }
 
+  /**
+   * Invokes the custom "handle" method, extracting necessary parameters from the context to satisfy the call.
+   *
+   * @param context The context to handle
+   */
   public void handle(Context context) {
     Object[] args = new Object[serviceTypes.size() + 1];
     args[0] = context;
@@ -78,9 +91,12 @@ public abstract class ServiceUsingHandler implements Handler {
     }
   }
 
+  /**
+   * Exception thrown if the subclass doesn't provide a valid handle method.
+   */
   public static class NoSuitableHandleMethodException extends RuntimeException {
     private static final long serialVersionUID = 0;
-    public NoSuitableHandleMethodException(Class<?> clazz) {
+    private NoSuitableHandleMethodException(Class<?> clazz) {
       super("No injectable handle method found for " + clazz.getName());
     }
   }
