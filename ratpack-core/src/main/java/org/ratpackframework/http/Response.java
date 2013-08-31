@@ -64,8 +64,18 @@ public interface Response {
    */
   Response status(int code, String message);
 
+  /**
+   * The response headers.
+   *
+   * @return The response headers.
+   */
   MutableHeaders getHeaders();
 
+  /**
+   * The (mutable) buffer that is the body to be sent.
+   *
+   * @return The (mutable) buffer that is the body to be sent.
+   */
   ByteBuf getBody();
 
   /**
@@ -122,6 +132,7 @@ public interface Response {
    * already been set) and the contents of the given input stream as the response body.
    *
    * @param inputStream The response body
+   * @throws IOException if the input stream cannot be consumed
    */
   @NonBlocking
   void send(InputStream inputStream) throws IOException;
@@ -131,6 +142,7 @@ public interface Response {
    *
    * @param contentType The value of the {@code Content-Type} header
    * @param inputStream response body
+   * @throws IOException if the input stream cannot be consumed
    */
   @NonBlocking
   void send(String contentType, InputStream inputStream) throws IOException;
@@ -152,16 +164,6 @@ public interface Response {
    */
   @NonBlocking
   void send(String contentType, ByteBuf buffer);
-
-  /**
-   * Sends the response, using the given content type and the content of the given type as the response body.
-   *
-   * @param blocking the blocking operation manager to use
-   * @param contentType The value of the {@code Content-Type} header
-   * @param file The file whose contents are to be used as the response body
-   */
-  @NonBlocking
-  void sendFile(Blocking blocking, String contentType, File file);
 
   /**
    * Sets the response {@code Content-Type} header.
@@ -199,5 +201,27 @@ public interface Response {
    */
   Cookie expireCookie(String name);
 
+  /**
+   * Sends the response, using the given content type and the content of the given type as the response body.
+   * <p>
+   * Prefer {@link #sendFile(org.ratpackframework.block.Blocking, String, java.nio.file.attribute.BasicFileAttributes, java.io.File)} where
+   * the file attributes have already been retrieved to avoid another IO operation.
+   *
+   * @param blocking the blocking operation manager to use
+   * @param contentType The value of the {@code Content-Type} header
+   * @param file The file whose contents are to be used as the response body
+   */
+  @NonBlocking
+  void sendFile(Blocking blocking, String contentType, File file);
+
+  /**
+   * Sends the response, using the given content type and the content of the given type as the response body.
+   *
+   * @param blocking the blocking operation manager to use
+   * @param contentType The value of the {@code Content-Type} header
+   * @param attributes The attributes of the file, used for the headers.
+   * @param file The file whose contents are to be used as the response body
+   */
+  @NonBlocking
   void sendFile(Blocking blocking, String contentType, BasicFileAttributes attributes, File file);
 }

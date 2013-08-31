@@ -139,5 +139,10 @@ public interface Request {
    */
   InputStream getInputStream();
 
+  /**
+   * The request headers.
+   *
+   * @return The request headers.
+   */
   Headers getHeaders();
 }
