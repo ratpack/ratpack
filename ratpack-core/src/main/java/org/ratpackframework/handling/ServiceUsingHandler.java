@@ -26,6 +26,36 @@ import java.util.List;
 
 /**
  * Convenience handler super class that provides syntactic sugar for accessing contextual objects.
+ * <p>
+ * Subclasses must implement exactly one method named {@code "handle"} that accepts a {@link Context} as the first parameter,
+ * and at least one other parameter of any type.
+ * <p>
+ * Each parameter after the first {@link Context} parameter is expected to be a contextual object.
+ * It's value will be the result of calling {@link Context#get(Class)} with the parameter type.
+ * <p>
+ * The following two handlers are functionally equivalent:
+ * <pre class="tested">
+ * import org.ratpackframework.handling.*;
+ * import org.ratpackframework.file.FileSystemBinding;
+ *
+ * public class VerboseHandler implements Handler {
+ *   public void handle(Context context) {
+ *     FileSystemBinding fileSystemBinding = context.get(FileSystemBinding.class);
+ *     context.getResponse().send(fileSystemBinding.getFile().getAbsolutePath());
+ *   }
+ * }
+ *
+ * public class SuccinctHandler extends ServiceUsingHandler {
+ *   public void handle(Context context, FileSystemBinding fileSystemBinding) {
+ *     context.getResponse().send(fileSystemBinding.getFile().getAbsolutePath());
+ *   }
+ * }
+ * </pre>
+ * <p>
+ * If the parameters cannot be satisifed, a {@link org.ratpackframework.registry.NotInRegistryException} will be thrown.
+ * <p>
+ * If there is no suitable {@code handle(Context, ...)} method, a {@link NoSuitableHandleMethodException} will be thrown at construction time.
+ *
  */
 public abstract class ServiceUsingHandler implements Handler {
 
@@ -73,7 +103,7 @@ public abstract class ServiceUsingHandler implements Handler {
    *
    * @param context The context to handle
    */
-  public void handle(Context context) {
+  public final void handle(Context context) {
     Object[] args = new Object[serviceTypes.size() + 1];
     args[0] = context;
     ServiceExtractor.extract(serviceTypes, context, args, 1);
