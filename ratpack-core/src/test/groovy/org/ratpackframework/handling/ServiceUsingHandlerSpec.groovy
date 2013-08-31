@@ -21,8 +21,8 @@ import org.ratpackframework.error.internal.DefaultServerErrorHandler
 import org.ratpackframework.file.FileSystemBinding
 import org.ratpackframework.file.internal.DefaultFileSystemBinding
 import org.ratpackframework.test.internal.DefaultRatpackSpec
-import org.ratpackframework.util.Action
 
+import static java.util.Collections.singletonList
 import static org.ratpackframework.handling.Handlers.register
 
 class ServiceUsingHandlerSpec extends DefaultRatpackSpec {
@@ -105,11 +105,7 @@ class ServiceUsingHandlerSpec extends DefaultRatpackSpec {
     when:
     app {
       handlers {
-        handler register(ServerErrorHandler, new MessageServerErrorHandler(), new Action<Chain>() {
-          void execute(Chain handlers) {
-            handlers.handler(new InjectedBadHandler())
-          }
-        })
+        handler register(ServerErrorHandler, new MessageServerErrorHandler(), singletonList(new InjectedBadHandler()))
       }
     }
 

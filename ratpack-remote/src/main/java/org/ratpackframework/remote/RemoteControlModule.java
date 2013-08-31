@@ -24,8 +24,7 @@ import org.ratpackframework.launch.LaunchConfig;
 import org.ratpackframework.remote.internal.RemoteControlHandler;
 
 import static com.google.common.collect.ImmutableList.of;
-import static org.ratpackframework.handling.Handlers.chain;
-import static org.ratpackframework.handling.Handlers.post;
+import static org.ratpackframework.handling.Handlers.*;
 
 /**
  * An extension module that adds a Groovy Remote Control endpoint.
@@ -73,11 +72,13 @@ public class RemoteControlModule extends AbstractModule implements HandlerDecora
 
     if (enabled) {
       return chain(of(
-        post(endpointPath, new RemoteControlHandler(injector)),
+        path(endpointPath, of(post(), new RemoteControlHandler(injector))),
         handler
       ));
     } else {
       return handler;
     }
   }
+
+
 }

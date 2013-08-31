@@ -314,7 +314,7 @@ public abstract class Guice {
     }
 
     public Handler transform(Injector injector) {
-      return chain(Guice.justInTimeRegistry(injector), action);
+      return chain(justInTimeRegistry(injector), action);
     }
   }
 }

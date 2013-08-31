@@ -16,6 +16,7 @@
 
 package org.ratpackframework.handling.internal;
 
+import com.google.common.collect.ImmutableList;
 import org.ratpackframework.api.Nullable;
 import org.ratpackframework.handling.Chain;
 import org.ratpackframework.handling.Handler;
@@ -24,6 +25,8 @@ import org.ratpackframework.registry.Registry;
 import org.ratpackframework.util.Action;
 
 import java.util.List;
+
+import static com.google.common.collect.ImmutableList.of;
 
 public class DefaultChain implements Chain {
 
@@ -41,7 +44,7 @@ public class DefaultChain implements Chain {
   }
 
   public Chain prefix(String prefix, Handler... handlers) {
-    return handler(Handlers.prefix(prefix, handlers));
+    return handler(Handlers.prefix(prefix, ImmutableList.copyOf(handlers)));
   }
 
   public Chain prefix(String prefix, List<Handler> handlers) {
@@ -49,15 +52,15 @@ public class DefaultChain implements Chain {
   }
 
   public Chain prefix(String prefix, Action<? super Chain> builder) {
-    return handler(Handlers.prefix(prefix, builder));
+    return handler(Handlers.prefix(prefix, Handlers.chainList(getRegistry(), builder)));
   }
 
   public Chain handler(String path, Handler handler) {
-    return handler(Handlers.path(path, handler));
+    return handler(Handlers.path(path, of(handler)));
   }
 
   public Chain get(String path, Handler handler) {
-    return handler(Handlers.get(path, handler));
+    return handler(Handlers.path(path, of(Handlers.get(), handler)));
   }
 
   public Chain get(Handler handler) {
@@ -65,7 +68,7 @@ public class DefaultChain implements Chain {
   }
 
   public Chain post(String path, Handler handler) {
-    return handler(Handlers.post(path, handler));
+    return handler(Handlers.path(path, of(Handlers.post(), handler)));
   }
 
   public Chain post(Handler handler) {
@@ -73,7 +76,7 @@ public class DefaultChain implements Chain {
   }
 
   public Chain put(String path, Handler handler) {
-    return handler(Handlers.put(path, handler));
+    return handler(Handlers.path(path, of(Handlers.put(), handler)));
   }
 
   public Chain put(Handler handler) {
@@ -81,7 +84,7 @@ public class DefaultChain implements Chain {
   }
 
   public Chain delete(String path, Handler handler) {
-    return handler(Handlers.delete(path, handler));
+    return handler(Handlers.path(path, of(Handlers.delete(), handler)));
   }
 
   public Chain delete(Handler handler) {

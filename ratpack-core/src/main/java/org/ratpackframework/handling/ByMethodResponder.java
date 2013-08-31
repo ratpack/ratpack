@@ -25,7 +25,7 @@ package org.ratpackframework.handling;
  * the contextual {@link org.ratpackframework.error.ClientErrorHandler} (which by default will send back a HTTP 405 to the client).
  * <p>
  * This is useful when a given handler can respond to more than one HTTP method.
- * If a handler only needs to respond to one HTTP method it can be more convenient to use {@link Handlers#get(Handler)} and friends.
+ * If a handler only needs to respond to one HTTP method it can be more convenient to use {@link Chain#get(Handler)} and friends.
  * <pre class="tested">
  * import org.ratpackframework.handling.*;
  *

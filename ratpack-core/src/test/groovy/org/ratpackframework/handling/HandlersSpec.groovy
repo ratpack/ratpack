@@ -23,7 +23,6 @@ import org.ratpackframework.file.MimeTypes
 import org.ratpackframework.launch.LaunchConfig
 import org.ratpackframework.test.internal.RatpackGroovyDslSpec
 
-import static org.ratpackframework.groovy.Util.asHandler
 import static org.ratpackframework.handling.Handlers.chain
 
 class HandlersSpec extends RatpackGroovyDslSpec {
@@ -40,35 +39,7 @@ class HandlersSpec extends RatpackGroovyDslSpec {
     get().statusCode == 404
   }
 
-  def "single chain handler"() {
-    when:
-    app {
-      handlers {
-        handler chain(
-          Handlers.get(asHandler { response.send("foo") })
-        )
-      }
-    }
 
-    then:
-    text == "foo"
-  }
-
-  def "multi chain handler"() {
-    when:
-    app {
-      handlers {
-        handler chain(
-          Handlers.get("a", asHandler { response.send("foo") }),
-          Handlers.get("b", asHandler { response.send("bar") })
-        )
-      }
-    }
-
-    then:
-    getText("a") == "foo"
-    getText("b") == "bar"
-  }
 
   def "default services available"() {
     when:
