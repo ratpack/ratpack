@@ -149,6 +149,10 @@ sauceLabs {
   }
 }
 
+if (project.hasProperty("ciBuild")) {
+  check.dependsOn allSauceTests
+}
+
 installApp {
   dependsOn prepareContent
   from run.workingDir
