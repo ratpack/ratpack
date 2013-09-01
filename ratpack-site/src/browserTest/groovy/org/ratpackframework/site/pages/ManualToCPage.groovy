@@ -21,7 +21,5 @@ import geb.Page
 
 class ManualToCPage extends Page {
 
-  static url = "/manual/current/"
   static at = { title.startsWith("Ratpack - Table of Contents") }
-
 }

@@ -21,7 +21,5 @@ import geb.Page
 
 class APIIndexPage extends Page {
 
-  static url = "/manual/current/api/"
   static at = { title.startsWith("Overview (Ratpack API") }
-
 }

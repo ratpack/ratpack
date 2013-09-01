@@ -21,13 +21,12 @@ import geb.Page
 class HomePage extends Page {
 
   static url = "/"
-  static at = { title == "Ratpack: A toolkit for JVM web applications" }
-  static content = {
-    manualLink(to: ManualToCPage) { $("a", text: "Manual") }
-    apiLink(to: APIIndexPage)  { $("a", text: "API Reference") }
-  }
 
-  void clickManualLink() {
-    manualLink.click()
+  static at = { title == "Ratpack: A toolkit for JVM web applications" }
+
+  static content = {
+    promoNavLink { text -> $('#promo nav a', text: text) }
+    manualLink(to: ManualToCPage, wait: true) { promoNavLink("Manual") }
+    apiLink(to: APIIndexPage, wait: true)  { promoNavLink("API Reference") }
   }
 }
