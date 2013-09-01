@@ -150,7 +150,7 @@ sauceLabs {
 }
 
 if (project.hasProperty("ciBuild")) {
-  check.dependsOn chromeLinuxTest
+  check.dependsOn "allSauceTests"
 }
 
 installApp {
