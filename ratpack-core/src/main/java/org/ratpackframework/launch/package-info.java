@@ -14,23 +14,7 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.launch;
-
-import org.ratpackframework.handling.Handler;
-
 /**
- * A factory contract for creating handlers, typically the root handler of the application.
- * <p>
- * See {@link LaunchConfigBuilder#build(HandlerFactory)}.
+ * Classes used to bootstrap a Ratpack application.
  */
-public interface HandlerFactory {
-
-  /**
-   * Creates a handler from the given launch config.
-   *
-   * @param launchConfig The application launch config
-   * @return A handler
-   */
-  Handler create(LaunchConfig launchConfig);
-
-}
+package org.ratpackframework.launch;

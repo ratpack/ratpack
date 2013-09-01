@@ -21,6 +21,11 @@ import org.ratpackframework.server.RatpackServerBuilder;
 
 import java.util.Properties;
 
+/**
+ * An application entry point for starting a Ratpack application.
+ *
+ *
+ */
 public class RatpackMain {
 
   public static void main(String[] args) throws Exception {

@@ -31,6 +31,29 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 
+/**
+ * A builder for {@link LaunchConfig} objects.
+ * <p>
+ * The following is the minimum requirement for creating a launch config…
+ * <pre class="tested">
+ * import org.ratpackframework.launch.*;
+ * import org.ratpackframework.handling.*;
+ *
+ * LaunchConfig launchConfig = LaunchConfigBuilder.baseDir(new File("some/path")).build(
+ *   new HandlerFactory() {
+ *     public Handler create(LaunchConfig launchConfig) {
+ *       return new Handler() {
+ *         public void handle(Context context) {
+ *           context.getResponse().send("Hello World!");
+ *         }
+ *       };
+ *     }
+ *   }
+ * );
+ * </pre>
+ *
+ * @see #baseDir(java.io.File)
+ */
 @SuppressWarnings("UnusedDeclaration")
 public class LaunchConfigBuilder {
 
@@ -50,50 +73,159 @@ public class LaunchConfigBuilder {
     this.baseDir = baseDir;
   }
 
+  /**
+   * Create a new builder, using the given file as the base dir.
+   *
+   * @param baseDir The base dir of the launch config
+   * @see org.ratpackframework.launch.LaunchConfig#getBaseDir()
+   * @return A new launch config builder
+   */
   public static LaunchConfigBuilder baseDir(File baseDir) {
     return new LaunchConfigBuilder(baseDir);
   }
 
+  /**
+   * Sets the port to bind to.
+   * <p>
+   * Default value is {@value LaunchConfig#DEFAULT_PORT}.
+   *
+   * @param port The port to bind to
+   * @see LaunchConfig#getPort()
+   * @return this
+   */
   public LaunchConfigBuilder port(int port) {
     this.port = port;
     return this;
   }
 
+  /**
+   * Sets the address to bind to.
+   * <p>
+   * Default value is {@code null}.
+   *
+   * @param address The address to bind to
+   * @see LaunchConfig#getAddress()
+   * @return this
+   */
   public LaunchConfigBuilder address(InetAddress address) {
     this.address = address;
     return this;
   }
 
+  /**
+   * Whether or not the application is "reloadable".
+   * <p>
+   * Default value is {@code false}.
+   *
+   * @param reloadable Whether or not the application is "reloadable".
+   * @see LaunchConfig#isReloadable()
+   * @return this
+   */
   public LaunchConfigBuilder reloadable(boolean reloadable) {
     this.reloadable = reloadable;
     return this;
   }
 
+  /**
+   * How many request handling threads to use.
+   * <p>
+   * Default value is {@code 0}.
+   *
+   * @param mainThreads The port to bind to
+   * @see LaunchConfig#getMainThreads()
+   * @return this
+   */
   public LaunchConfigBuilder mainThreads(int mainThreads) {
     this.mainThreads = mainThreads;
     return this;
   }
 
+  /**
+   * The executor service to use for blocking operations.
+   * <p>
+   * Default value is {@link Executors#newCachedThreadPool()}.
+   *
+   * @param executorService The executor service to use for blocking operations
+   * @see LaunchConfig#getBlockingExecutorService()
+   * @return this
+   */
   public LaunchConfigBuilder blockingExecutorService(ExecutorService executorService) {
     this.blockingExecutorService = executorService;
     return this;
   }
 
+  /**
+   * The allocator to use when creating buffers in the application.
+   * <p>
+   * Default value is {@link PooledByteBufAllocator#DEFAULT}.
+   *
+   * @param byteBufAllocator The allocator to use when creating buffers in the application
+   * @see LaunchConfig#getBufferAllocator()
+   * @return this
+   */
   public LaunchConfigBuilder bufferAllocator(ByteBufAllocator byteBufAllocator) {
     this.byteBufAllocator = byteBufAllocator;
     return this;
   }
 
+  /**
+   * The public address of the application.
+   * <p>
+   * Default value is {@code null}.
+   *
+   * @param publicAddress The public address of the application
+   * @see LaunchConfig#getPublicAddress()
+   * @return this
+   */
   public LaunchConfigBuilder publicAddress(URI publicAddress) {
     this.publicAddress = publicAddress;
     return this;
   }
 
+  /**
+   * Adds the given values as potential index file names.
+   *
+   * @param indexFiles the potential index file names.
+   * @see LaunchConfig#getIndexFiles()
+   * @return this
+   */
+  public LaunchConfigBuilder indexFiles(String... indexFiles) {
+    this.indexFiles.add(indexFiles);
+    return this;
+  }
+
+  /**
+   * Adds the given values as potential index file names.
+   *
+   * @param indexFiles the potential index file names.
+   * @see LaunchConfig#getIndexFiles()
+   * @return this
+   */
+  public LaunchConfigBuilder indexFiles(List<String> indexFiles) {
+    this.indexFiles.addAll(indexFiles);
+    return this;
+  }
+
+  /**
+   * Add an "other" property.
+   *
+   * @param key The key of the property
+   * @param value The value of the property
+   * @see LaunchConfig#getOther(String, String)
+   * @return this
+   */
   public LaunchConfigBuilder other(String key, String value) {
     other.put(key, value);
     return this;
   }
 
+  /**
+   * Add some "other" properties.
+   *
+   * @param other A map of properties to add to the launch config other properties
+   * @see LaunchConfig#getOther(String, String)
+   * @return this
+   */
   public LaunchConfigBuilder other(Map<String, String> other) {
     for (Map.Entry<String, String> entry : other.entrySet()) {
       other(entry.getKey(), entry.getValue());
@@ -101,16 +233,12 @@ public class LaunchConfigBuilder {
     return this;
   }
 
-  public LaunchConfigBuilder indexFiles(String... indexFiles) {
-    this.indexFiles.add(indexFiles);
-    return this;
-  }
-
-  public LaunchConfigBuilder indexFiles(List<String> indexFiles) {
-    this.indexFiles.addAll(indexFiles);
-    return this;
-  }
-
+  /**
+   * Builds the launch config, based on the current state and the handler factory.
+   *
+   * @param handlerFactory The handler factory for the application.
+   * @return A newly constructed {@link LaunchConfig} based on this builder's state
+   */
   public LaunchConfig build(HandlerFactory handlerFactory) {
     ExecutorService blockingExecutorService = this.blockingExecutorService;
     if (blockingExecutorService == null) {

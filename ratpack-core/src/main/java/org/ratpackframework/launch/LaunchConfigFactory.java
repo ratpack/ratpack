@@ -27,6 +27,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+/**
+ * Factory methods for creating {@link LaunchConfig} objects using various strategies.
+ */
 public abstract class LaunchConfigFactory {
 
   public static final String SYSPROP_PREFIX_PROPERTY = "ratpack.syspropPrefix";

@@ -25,12 +25,32 @@ import java.net.URI;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 
+/**
+ * The configuration used to launch a server.
+ *
+ * @see LaunchConfigBuilder
+ * @see LaunchConfigFactory
+ * @see org.ratpackframework.server.RatpackServerBuilder#build(LaunchConfig)
+ */
 public interface LaunchConfig {
 
+  /**
+   * The default port for Ratpack applications, {@value}.
+   */
   public static final int DEFAULT_PORT = 5050;
 
+  /**
+   * The base dir of the application, which is also the initial {@link org.ratpackframework.file.FileSystemBinding}.
+   *
+   * @return The base dir of the application.
+   */
   public File getBaseDir();
 
+  /**
+   * The handler factory that can create the root handler for the application.
+   *
+   * @return The handler factory that can create the root handler for the application.
+   */
   public HandlerFactory getHandlerFactory();
 
   /**
@@ -76,6 +96,12 @@ public interface LaunchConfig {
    */
   public int getMainThreads();
 
+  /**
+   * The executor service to use to perform blocking IO operations.
+   *
+   * @see org.ratpackframework.handling.Context#getBlocking()
+   * @return The executor service to use to perform blocking IO operations.
+   */
   public ExecutorService getBlockingExecutorService();
 
   /**
@@ -101,6 +127,15 @@ public interface LaunchConfig {
    */
   public List<String> getIndexFiles();
 
+  /**
+   * Provides access to any "other" properties that were specified.
+   * <p>
+   * Extensions and plugins can use other properties for their configuration.
+   *
+   * @param key The property key
+   * @param defaultValue The value to return if the property was not set
+   * @return The other property for {@code key}, or the {@code defaultValue} if it is not set
+   */
   public String getOther(String key, String defaultValue);
 
 }
