@@ -24,6 +24,10 @@ import java.lang.reflect.Type;
 
 /**
  * A convenience super class for renderers that can only render one type of object.
+ * <p>
+ * Typically, it sufficient to just extend this class with a concrete (i.e. not a bounded or wildcard type) type for {@code T}
+ * and to implement the {@link #render(org.ratpackframework.handling.Context, Object)} method.
+ * An implementation of the {@link #accept(Object)} method is provided that “accepts” the input if it is assignable to {@code T}.
  *
  * @param <T> The type of object that can be rendered.
  */
@@ -31,41 +35,12 @@ public abstract class ByTypeRenderer<T> implements Renderer<T> {
 
   private final Class<T> type;
 
-  private static Class<?> findRenderedType(Class<?> type) {
-    ParameterizedType renderInterfaceType = findRenderSuperclassType(type.getGenericSuperclass());
-    Type[] actualTypeArguments = renderInterfaceType.getActualTypeArguments();
-    Type tType = actualTypeArguments[0];
-
-    if (tType instanceof Class) {
-      return (Class<?>) tType;
-    } else if (tType instanceof ParameterizedType) {
-      return (Class<?>) ((ParameterizedType) tType).getRawType();
-    } else {
-      throw new IllegalStateException("Class " + type.getName() + " should concretely implement Render");
-    }
-  }
-
-  private static ParameterizedType findRenderSuperclassType(Type type) {
-    if (type instanceof ParameterizedType) {
-      ParameterizedType parameterizedType = (ParameterizedType) type;
-      Class<?> rawType = (Class<?>) parameterizedType.getRawType();
-      if (rawType.equals(ByTypeRenderer.class)) {
-        return parameterizedType;
-      } else {
-        return findRenderSuperclassType(rawType.getGenericSuperclass());
-      }
-    } else if (type instanceof Class) {
-      Class<?> classType = (Class) type;
-      if (type.equals(Object.class)) {
-        throw new IllegalStateException(type + " does not extend " + ByTypeRenderer.class);
-      }
-      return findRenderSuperclassType(classType.getGenericSuperclass());
-    } else {
-      throw new IllegalStateException("Unhandled type: " + type);
-    }
-  }
-
-  public ByTypeRenderer() {
+  /**
+   * Infers the render object type, but reflecting to find {@code T}.
+   * <p>
+   * Use an alternative constructor only if your implementation uses an “exotic” signature.
+   */
+  protected ByTypeRenderer() {
     @SuppressWarnings("unchecked")
     Class<T> renderedType = (Class<T>) findRenderedType(getClass());
     this.type = renderedType;
@@ -73,6 +48,8 @@ public abstract class ByTypeRenderer<T> implements Renderer<T> {
 
   /**
    * Use the given type as the target to-render type.
+   * <p>
+   * Prefer using the no-arg constructor.
    *
    * @param type the target to-render type.
    */
@@ -83,7 +60,7 @@ public abstract class ByTypeRenderer<T> implements Renderer<T> {
   /**
    * Use the given type as the target to-render type.
    * <p>
-   * Useful if the target type is a generic type.
+   * Prefer using the no-arg constructor.
    *
    * @param typeLiteral the target to-render type.
    */
@@ -111,4 +88,38 @@ public abstract class ByTypeRenderer<T> implements Renderer<T> {
    * {@inheritDoc}
    */
   abstract public void render(Context context, T object);
+
+  private static ParameterizedType findRenderSuperclassType(Type type) {
+    if (type instanceof ParameterizedType) {
+      ParameterizedType parameterizedType = (ParameterizedType) type;
+      Class<?> rawType = (Class<?>) parameterizedType.getRawType();
+      if (rawType.equals(ByTypeRenderer.class)) {
+        return parameterizedType;
+      } else {
+        return findRenderSuperclassType(rawType.getGenericSuperclass());
+      }
+    } else if (type instanceof Class) {
+      Class<?> classType = (Class) type;
+      if (type.equals(Object.class)) {
+        throw new IllegalStateException(type + " does not extend " + ByTypeRenderer.class);
+      }
+      return findRenderSuperclassType(classType.getGenericSuperclass());
+    } else {
+      throw new IllegalStateException("Unhandled type: " + type);
+    }
+  }
+
+  private static Class<?> findRenderedType(Class<?> type) {
+    ParameterizedType renderInterfaceType = findRenderSuperclassType(type.getGenericSuperclass());
+    Type[] actualTypeArguments = renderInterfaceType.getActualTypeArguments();
+    Type tType = actualTypeArguments[0];
+
+    if (tType instanceof Class) {
+      return (Class<?>) tType;
+    } else if (tType instanceof ParameterizedType) {
+      return (Class<?>) ((ParameterizedType) tType).getRawType();
+    } else {
+      throw new IllegalStateException("Class " + type.getName() + " should concretely implement Render");
+    }
+  }
 }
