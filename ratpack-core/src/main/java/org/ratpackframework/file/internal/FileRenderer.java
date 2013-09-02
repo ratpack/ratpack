@@ -23,7 +23,6 @@ import org.ratpackframework.handling.Context;
 import org.ratpackframework.render.ByTypeRenderer;
 import org.ratpackframework.util.Action;
 
-import javax.inject.Inject;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -35,11 +34,6 @@ import java.util.concurrent.Callable;
 import static io.netty.handler.codec.http.HttpResponseStatus.NOT_MODIFIED;
 
 public class FileRenderer extends ByTypeRenderer<File> {
-
-  @Inject
-  public FileRenderer() {
-    super(File.class);
-  }
 
   @Override
   public void render(final Context context, final File targetFile) {
@@ -55,7 +49,7 @@ public class FileRenderer extends ByTypeRenderer<File> {
     });
   }
 
-  public static  void sendFile(final Context context, final File file, final BasicFileAttributes attributes) {
+  public static void sendFile(final Context context, final File file, final BasicFileAttributes attributes) {
     if (!context.getRequest().getMethod().isGet()) {
       context.clientError(405);
       return;

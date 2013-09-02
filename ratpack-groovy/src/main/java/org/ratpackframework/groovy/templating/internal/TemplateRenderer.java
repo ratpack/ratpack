@@ -31,7 +31,6 @@ public class TemplateRenderer extends ByTypeRenderer<Template> {
 
   @Inject
   public TemplateRenderer(GroovyTemplateRenderingEngine engine) {
-    super(Template.class);
     this.engine = engine;
   }
 

@@ -17,7 +17,6 @@
 package org.ratpackframework.handlebars.internal;
 
 import com.github.jknack.handlebars.Handlebars;
-import org.ratpackframework.api.TypeLiteral;
 import org.ratpackframework.file.MimeTypes;
 import org.ratpackframework.handlebars.Template;
 import org.ratpackframework.handling.Context;
@@ -32,7 +31,6 @@ public class HandlebarsTemplateRenderer extends ByTypeRenderer<Template<?>> {
 
   @Inject
   public HandlebarsTemplateRenderer(Handlebars handlebars) {
-    super(new TypeLiteral<Template<?>>() {});
     this.handlebars = handlebars;
   }
 

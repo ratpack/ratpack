@@ -27,10 +27,6 @@ import org.ratpackframework.test.internal.RatpackGroovyDslSpec
 class RendererBindingsSpec extends RatpackGroovyDslSpec {
 
   static class IntRenderer extends ByTypeRenderer<Integer> {
-    public IntRenderer() {
-      super(Integer)
-    }
-
     @Override
     void render(Context context, Integer object) {
       context.response.send("text/integer", object.toString())
@@ -38,10 +34,6 @@ class RendererBindingsSpec extends RatpackGroovyDslSpec {
   }
 
   static class StringRenderer extends ByTypeRenderer<String> {
-    public StringRenderer() {
-      super(String)
-    }
-
     @Override
     void render(Context context, String object) {
       context.response.send("text/string", object.toString())

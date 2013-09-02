@@ -19,6 +19,9 @@ package org.ratpackframework.render;
 import org.ratpackframework.api.TypeLiteral;
 import org.ratpackframework.handling.Context;
 
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+
 /**
  * A convenience super class for renderers that can only render one type of object.
  *
@@ -27,6 +30,46 @@ import org.ratpackframework.handling.Context;
 public abstract class ByTypeRenderer<T> implements Renderer<T> {
 
   private final Class<T> type;
+
+  private static Class<?> findRenderedType(Class<?> type) {
+    ParameterizedType renderInterfaceType = findRenderSuperclassType(type.getGenericSuperclass());
+    Type[] actualTypeArguments = renderInterfaceType.getActualTypeArguments();
+    Type tType = actualTypeArguments[0];
+
+    if (tType instanceof Class) {
+      return (Class<?>) tType;
+    } else if (tType instanceof ParameterizedType) {
+      return (Class<?>) ((ParameterizedType) tType).getRawType();
+    } else {
+      throw new IllegalStateException("Class " + type.getName() + " should concretely implement Render");
+    }
+  }
+
+  private static ParameterizedType findRenderSuperclassType(Type type) {
+    if (type instanceof ParameterizedType) {
+      ParameterizedType parameterizedType = (ParameterizedType) type;
+      Class<?> rawType = (Class<?>) parameterizedType.getRawType();
+      if (rawType.equals(ByTypeRenderer.class)) {
+        return parameterizedType;
+      } else {
+        return findRenderSuperclassType(rawType.getGenericSuperclass());
+      }
+    } else if (type instanceof Class) {
+      Class<?> classType = (Class) type;
+      if (type.equals(Object.class)) {
+        throw new IllegalStateException(type + " does not extend " + ByTypeRenderer.class);
+      }
+      return findRenderSuperclassType(classType.getGenericSuperclass());
+    } else {
+      throw new IllegalStateException("Unhandled type: " + type);
+    }
+  }
+
+  public ByTypeRenderer() {
+    @SuppressWarnings("unchecked")
+    Class<T> renderedType = (Class<T>) findRenderedType(getClass());
+    this.type = renderedType;
+  }
 
   /**
    * Use the given type as the target to-render type.
@@ -55,6 +98,7 @@ public abstract class ByTypeRenderer<T> implements Renderer<T> {
    * @param object An object to potentially accept to render.
    * @return The same input object, cast to {@code T}.
    */
+
   public T accept(Object object) {
     if (type.isInstance(object)) {
       return type.cast(object);

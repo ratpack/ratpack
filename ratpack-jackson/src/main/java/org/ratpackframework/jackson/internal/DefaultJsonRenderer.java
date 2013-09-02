@@ -18,7 +18,6 @@ package org.ratpackframework.jackson.internal;
 
 import com.fasterxml.jackson.databind.ObjectWriter;
 import io.netty.buffer.ByteBuf;
-import org.ratpackframework.api.TypeLiteral;
 import org.ratpackframework.handling.Context;
 import org.ratpackframework.jackson.Json;
 import org.ratpackframework.jackson.JsonRenderer;
@@ -35,8 +34,6 @@ public class DefaultJsonRenderer extends ByTypeRenderer<Json<?>> implements Json
 
   @Inject
   public DefaultJsonRenderer(ObjectWriter defaultObjectWriter) {
-    super(new TypeLiteral<Json<?>>() {
-    });
     this.defaultObjectWriter = defaultObjectWriter;
   }
 
