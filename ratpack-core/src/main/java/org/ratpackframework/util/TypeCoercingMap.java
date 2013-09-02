@@ -18,17 +18,55 @@ package org.ratpackframework.util;
 
 import java.util.Map;
 
+/**
+ * A string valued map that can do simple type conversions from the string values to primitive types.
+ *
+ * @param <K> The type of the keys
+ */
 @SuppressWarnings("UnusedDeclaration")
 public interface TypeCoercingMap<K> extends Map<K, String> {
 
+  /**
+   * Convert the value with given key to a Boolean, using {@link Boolean#valueOf(String)}.
+   *
+   * @param key The key of the value to convert
+   * @return The result of {@link Boolean#valueOf(String)} if the value is not null, else null
+   */
   Boolean asBool(K key);
 
+  /**
+   * Convert the value with given key to a Byte, using {@link Byte#valueOf(String)}.
+   *
+   * @param key The key of the value to convert
+   * @return The result of {@link Byte#valueOf(String)} if the value is not null, else null
+   */
   Byte asByte(K key);
 
-  Short asShort(K key);
+  /**
+   * Convert the value with given key to a Short, using {@link Short#valueOf(String)}.
+   *
+   * @param key The key of the value to convert
+   * @return The result of {@link Short#valueOf(String)} if the value is not null, else null
+   * @throws NumberFormatException if the value cannot be coerced
+   */
+  Short asShort(K key) throws NumberFormatException;
 
-  Integer asInt(K key);
+  /**
+   * Convert the value with given key to a Integer, using {@link Integer#valueOf(String)}.
+   *
+   * @param key The key of the value to convert
+   * @return The result of {@link Integer#valueOf(String)} if the value is not null, else null
+   * @throws NumberFormatException if the value cannot be coerced
+   */
+  Integer asInt(K key) throws NumberFormatException;
 
-  Long asLong(K key);
+  /**
+   * Convert the value with given key to a Long, using {@link Long#valueOf(String)}.
+   *
+   * @param key The key of the value to convert
+   * @return The result of {@link Long#valueOf(String)} if the value is not null, else null
+   * @throws NumberFormatException if the value cannot be coerced
+   */
+  Long asLong(K key) throws NumberFormatException;
 
 }

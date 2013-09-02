@@ -19,8 +19,9 @@ package org.ratpackframework.path;
 import org.ratpackframework.util.TypeCoercingMap;
 
 /**
- * A map delegate that provides convenience methods for retrieving String
- * values coerced to other basic types.
+ * A marker interface for the contextual object that represents the tokens extracted from the request path.
+ *
+ * @see org.ratpackframework.handling.Chain#handler(String, org.ratpackframework.handling.Handler)
  */
 public interface PathTokens extends TypeCoercingMap<String> {
 
