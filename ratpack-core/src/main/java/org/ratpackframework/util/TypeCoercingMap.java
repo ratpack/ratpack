@@ -18,16 +18,17 @@ package org.ratpackframework.util;
 
 import java.util.Map;
 
+@SuppressWarnings("UnusedDeclaration")
 public interface TypeCoercingMap<K> extends Map<K, String> {
 
-  Boolean getAsBoolean(K key);
+  Boolean asBool(K key);
 
-  Byte getAsByte(K key);
+  Byte asByte(K key);
 
-  Short getAsShort(K key);
+  Short asShort(K key);
 
-  Integer getAsInt(K key);
+  Integer asInt(K key);
 
-  Long getAsLong(K key);
+  Long asLong(K key);
 
 }

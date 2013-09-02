@@ -31,13 +31,13 @@ class DefaultTypeCoercingMapSpec extends Specification {
     tokens."$method"("a") == coercedValue
 
     where:
-    tokenValue | method         || coercedValue
-    "a"        | "get"          || "a"
-    "1"        | "getAsInt"     || 1i
-    "TRUE"     | "getAsBoolean" || true
-    "1"        | "getAsByte"    || (byte) 1
-    "1"        | "getAsShort"   || (short) 1
-    "1"        | "getAsLong"    || 1L
+    tokenValue | method    || coercedValue
+    "a"        | "get"     || "a"
+    "1"        | "asInt"   || 1i
+    "TRUE"     | "asBool"  || true
+    "1"        | "asByte"  || (byte) 1
+    "1"        | "asShort" || (short) 1
+    "1"        | "asLong"  || 1L
 
     type = coercedValue.getClass().simpleName
   }
@@ -53,7 +53,7 @@ class DefaultTypeCoercingMapSpec extends Specification {
     thrown NumberFormatException
 
     where:
-    method << ["getAsInt", "getAsByte", "getAsShort", "getAsLong"]
+    method << ["asInt", "asByte", "asShort", "asLong"]
     type = DefaultTypeCoercingMap.getMethod(method, Object).returnType.simpleName
   }
 
@@ -65,7 +65,7 @@ class DefaultTypeCoercingMapSpec extends Specification {
     tokens."$method"("a") is null
 
     where:
-    method << ["get", "getAsInt", "getAsBoolean", "getAsByte", "getAsShort", "getAsLong"]
+    method << ["get", "asInt", "asBool", "asByte", "asShort", "asLong"]
   }
 
 }

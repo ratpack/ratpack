@@ -31,7 +31,7 @@ public class DefaultTypeCoercingMap<K> extends AbstractMap<K, String> implements
   }
 
   @Override
-  public Boolean getAsBoolean(K key) {
+  public Boolean asBool(K key) {
     if (!containsKey(key)) {
       return null;
     }
@@ -39,7 +39,7 @@ public class DefaultTypeCoercingMap<K> extends AbstractMap<K, String> implements
   }
 
   @Override
-  public Byte getAsByte(K key) {
+  public Byte asByte(K key) {
     if (!containsKey(key)) {
       return null;
     }
@@ -47,7 +47,7 @@ public class DefaultTypeCoercingMap<K> extends AbstractMap<K, String> implements
   }
 
   @Override
-  public Short getAsShort(K key) {
+  public Short asShort(K key) {
     if (!containsKey(key)) {
       return null;
     }
@@ -55,7 +55,7 @@ public class DefaultTypeCoercingMap<K> extends AbstractMap<K, String> implements
   }
 
   @Override
-  public Integer getAsInt(K key) {
+  public Integer asInt(K key) {
     if (!containsKey(key)) {
       return null;
     }
@@ -63,7 +63,7 @@ public class DefaultTypeCoercingMap<K> extends AbstractMap<K, String> implements
   }
 
   @Override
-  public Long getAsLong(K key) {
+  public Long asLong(K key) {
     if (!containsKey(key)) {
       return null;
     }
