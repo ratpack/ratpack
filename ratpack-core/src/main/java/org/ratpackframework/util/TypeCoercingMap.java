@@ -14,16 +14,20 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.path.internal;
+package org.ratpackframework.util;
 
-import com.google.common.collect.ImmutableMap;
-import org.ratpackframework.path.PathTokens;
-import org.ratpackframework.util.internal.DefaultTypeCoercingMap;
+import java.util.Map;
 
-public class DefaultPathTokens extends DefaultTypeCoercingMap<String> implements PathTokens {
+public interface TypeCoercingMap<K> extends Map<K, String> {
 
-  public DefaultPathTokens(ImmutableMap<String, String> delegate) {
-    super(delegate);
-  }
+  Boolean getAsBoolean(K key);
+
+  Byte getAsByte(K key);
+
+  Short getAsShort(K key);
+
+  Integer getAsInt(K key);
+
+  Long getAsLong(K key);
 
 }

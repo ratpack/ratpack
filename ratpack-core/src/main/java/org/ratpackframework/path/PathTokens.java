@@ -16,20 +16,12 @@
 
 package org.ratpackframework.path;
 
-import java.util.Map;
+import org.ratpackframework.util.TypeCoercingMap;
 
 /**
  * A map delegate that provides convenience methods for retrieving String
  * values coerced to other basic types.
  */
-public interface PathTokens extends Map<String, String> {
-  Boolean getAsBoolean(String key);
+public interface PathTokens extends TypeCoercingMap<String> {
 
-  Byte getAsByte(String key);
-
-  Short getAsShort(String key);
-
-  Integer getAsInt(String key);
-
-  Long getAsLong(String key);
 }
