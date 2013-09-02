@@ -16,20 +16,21 @@
 
 package org.ratpackframework.path.internal;
 
+import com.google.common.collect.ImmutableMap;
 import org.ratpackframework.path.PathTokens;
 
 import java.util.AbstractMap;
-import java.util.Map;
 import java.util.Set;
 
 public class DefaultPathTokens extends AbstractMap<String, String> implements PathTokens {
 
-  private final Map<String, String> delegate;
+  private final ImmutableMap<String, String> delegate;
 
-  public DefaultPathTokens(Map<String, String> delegate) {
+  public DefaultPathTokens(ImmutableMap<String, String> delegate) {
     this.delegate = delegate;
   }
 
+  @SuppressWarnings("NullableProblems")
   @Override
   public Set<Entry<String, String>> entrySet() {
     return delegate.entrySet();

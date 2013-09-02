@@ -59,7 +59,7 @@ class DefaultPathTokensSpec extends Specification {
 
   def "#method returns null if delegate map does not contain the key"() {
     given:
-    def tokens = new DefaultPathTokens(Collections.EMPTY_MAP)
+    def tokens = new DefaultPathTokens(ImmutableMap.of())
 
     expect:
     tokens."$method"("a") is null
