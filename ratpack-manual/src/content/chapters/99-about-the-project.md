@@ -1,10 +1,10 @@
-# The Ratpack Project
+# The Ratpack project
 
 ## Credits
 
 Ratpack has been made possible by the following people.
 
-### Active Project Members
+### Active project members
 
 The following people are currently actively contributing their time to Ratpack.
 
@@ -26,7 +26,7 @@ The following people have provided significant contributions.
 * [Tomás Lin](https://github.com/tomaslin)
 * [Kevin Marquardsen](https://github.com/kmarquardsen)
 
-### Past Project Members
+### Past project members
 
 The following people have contributed their time to Ratpack in the past, but are no longer actively working on it.
 
