@@ -23,25 +23,54 @@ import java.util.Properties;
 
 /**
  * An application entry point for starting a Ratpack application.
- *
- *
+ * <p>
+ * This class is designed to be subclassable.
  */
 public class RatpackMain {
 
+  /**
+   * Starts a Ratpack application, by creating a new instance of this class and calling {@link #start()}.
+   *
+   * @param args ignored
+   * @throws Exception if the application cannot be started
+   */
   public static void main(String[] args) throws Exception {
     new RatpackMain().start();
   }
 
-  public RatpackServer server(Properties systemProperties, Properties defaultProperties) {
+  /**
+   * Builds a server by calling {@link LaunchConfigFactory#createFromGlobalProperties(ClassLoader, java.util.Properties, java.util.Properties)}.
+   * <p>
+   * Uses this class's classloader as the classloader.
+   *
+   * @param overrideProperties The override properties
+   * @param defaultProperties The default properties
+   * @return A ratpack server, built from the launch config
+   */
+  public RatpackServer server(Properties overrideProperties, Properties defaultProperties) {
     addImpliedDefaults(defaultProperties);
-    LaunchConfig launchConfig = LaunchConfigFactory.createFromGlobalProperties(RatpackMain.class.getClassLoader(), systemProperties, defaultProperties);
+    LaunchConfig launchConfig = LaunchConfigFactory.createFromGlobalProperties(RatpackMain.class.getClassLoader(), overrideProperties, defaultProperties);
     return RatpackServerBuilder.build(launchConfig);
   }
 
+  /**
+   * Starts the server returned by calling {@link #server(java.util.Properties, java.util.Properties)}.
+   * <p>
+   * The system properties are given as the override properties, and an empty property set as the defaults.
+   *
+   * @throws Exception if the server cannot be started
+   */
   public void start() throws Exception {
     server(System.getProperties(), new Properties()).start();
   }
 
+  /**
+   * Subclass hook for adding default property values.
+   * <p>
+   * This implementation does not add any.
+   *
+   * @param properties The properties to add the defaults to
+   */
   protected void addImpliedDefaults(Properties properties) {
 
   }

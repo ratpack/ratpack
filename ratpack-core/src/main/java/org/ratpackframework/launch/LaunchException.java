@@ -23,10 +23,21 @@ public class LaunchException extends RuntimeException {
 
   private static final long serialVersionUID = 0;
 
+  /**
+   * Constructor.
+   *
+   * @param message The exception message
+   */
   public LaunchException(String message) {
     super(message);
   }
 
+  /**
+   * Constructor.
+   *
+   * @param message The exception message
+   * @param cause The nested exception
+   */
   public LaunchException(String message, Throwable cause) {
     super(message, cause);
   }
