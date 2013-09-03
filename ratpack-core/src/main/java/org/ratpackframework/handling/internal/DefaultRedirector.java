@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.redirect.internal;
+package org.ratpackframework.handling.internal;
 
 import io.netty.handler.codec.http.HttpHeaders;
 import org.ratpackframework.handling.Context;
 import org.ratpackframework.http.Request;
-import org.ratpackframework.redirect.Redirector;
+import org.ratpackframework.handling.Redirector;
 import org.ratpackframework.server.PublicAddress;
 
 import java.net.URI;

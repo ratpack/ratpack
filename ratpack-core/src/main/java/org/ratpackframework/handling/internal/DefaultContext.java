@@ -29,7 +29,7 @@ import org.ratpackframework.http.Request;
 import org.ratpackframework.http.Response;
 import org.ratpackframework.path.PathBinding;
 import org.ratpackframework.path.PathTokens;
-import org.ratpackframework.redirect.Redirector;
+import org.ratpackframework.handling.Redirector;
 import org.ratpackframework.registry.NotInRegistryException;
 import org.ratpackframework.registry.Registry;
 import org.ratpackframework.registry.internal.ObjectHoldingChildRegistry;

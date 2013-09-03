@@ -36,7 +36,7 @@ import org.ratpackframework.http.Request;
 import org.ratpackframework.http.Response;
 import org.ratpackframework.http.internal.*;
 import org.ratpackframework.launch.LaunchConfig;
-import org.ratpackframework.redirect.internal.DefaultRedirector;
+import org.ratpackframework.handling.internal.DefaultRedirector;
 import org.ratpackframework.registry.Registry;
 import org.ratpackframework.registry.internal.RootRegistry;
 import org.ratpackframework.render.Renderer;

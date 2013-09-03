@@ -66,9 +66,10 @@ import java.util.List;
  * <li>A {@link org.ratpackframework.render.controller.RenderController} that can render {@link File} objects</li>
  * <li>A {@link org.ratpackframework.server.BindAddress}</li>
  * <li>A {@link org.ratpackframework.server.PublicAddress}</li>
- * <li>A {@link org.ratpackframework.redirect.Redirector}</li>
+ * <li>A {@link Redirector}</li>
  * </ul>
  */
+@SuppressWarnings("UnusedDeclaration")
 public interface Context extends Registry<Object> {
 
   /**
@@ -285,7 +286,7 @@ public interface Context extends Registry<Object> {
    * Sends a temporary redirect response (i.e. statusCode 302) to the client using the specified redirect location URL.
    *
    * @param location the redirect location URL
-   * @throws NotInRegistryException if there is no {@link org.ratpackframework.redirect.Redirector} in the current service but one is provided by default
+   * @throws NotInRegistryException if there is no {@link Redirector} in the current service but one is provided by default
    */
   void redirect(String location) throws NotInRegistryException;
 
@@ -294,7 +295,7 @@ public interface Context extends Registry<Object> {
    *
    * @param code The status code of the redirect
    * @param location the redirect location URL
-   * @throws NotInRegistryException if there is no {@link org.ratpackframework.redirect.Redirector} in the current service but one is provided by default
+   * @throws NotInRegistryException if there is no {@link Redirector} in the current service but one is provided by default
    */
   void redirect(int code, String location) throws NotInRegistryException;
 

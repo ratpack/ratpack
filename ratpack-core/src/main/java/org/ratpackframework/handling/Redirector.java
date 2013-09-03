@@ -14,16 +14,27 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.redirect;
+package org.ratpackframework.handling;
 
 import org.ratpackframework.api.NonBlocking;
-import org.ratpackframework.handling.Context;
 
 /**
- * A way to do smart redirects
+ * Contextual strategy for issuing redirects.
+ * <p>
+ * Ratpack provides a default contextual implementation that uses the {@link org.ratpackframework.launch.LaunchConfig#getPublicAddress()} to
+ * make any relative redirect locations absolute in terms of the public address.
+ * <p>
+ * This strategy is typically sufficient and a user implementation of this type is not required.
  */
 public interface Redirector {
 
+  /**
+   * Issue a redirect to the client.
+   *
+   * @param context The context to issue the redirect for
+   * @param location The user given location value (i.e. the {@code location} arg to {@link Context#redirect(int, String)})
+   * @param code The http code to issue with the redirect
+   */
   @NonBlocking
   void redirect(Context context, String location, int code);
 }
