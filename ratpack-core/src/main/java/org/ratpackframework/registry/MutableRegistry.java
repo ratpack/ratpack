@@ -16,12 +16,37 @@
 
 package org.ratpackframework.registry;
 
+/**
+ * A {@link Registry} that is also mutable.
+ *
+ * @param <T> The base type of object in the registry.
+ */
 public interface MutableRegistry<T> extends Registry<T> {
 
+  /**
+   * Register the given object under the given type.
+   *
+   * @param type The public type of the object
+   * @param object The object to add to the registry
+   * @param <O> The public type of the object
+   */
   <O extends T> void register(Class<O> type, O object);
 
+  /**
+   * Registers the given object with its concrete type.
+   *
+   * @param object The object to register
+   */
   void register(T object);
 
+  /**
+   * Remove the registration for the given type.
+   *
+   * @param type The type of the thing to remove
+   * @param <O> The type of the thing to remove
+   * @return The removed object
+   * @throws NotInRegistryException if there is nothing registered by that type
+   */
   <O extends T> O remove(Class<O> type) throws NotInRegistryException;
 
 }

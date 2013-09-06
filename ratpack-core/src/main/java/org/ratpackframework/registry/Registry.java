@@ -35,7 +35,7 @@ public interface Registry<T> {
    * @param type The type of the object to provide
    * @param <O> The type of the object to provide
    * @return An object of the specified type
-   * @throws org.ratpackframework.registry.NotInRegistryException If no object of this type can be returned
+   * @throws NotInRegistryException If no object of this type can be returned
    */
   <O extends T> O get(Class<O> type) throws NotInRegistryException;
 
