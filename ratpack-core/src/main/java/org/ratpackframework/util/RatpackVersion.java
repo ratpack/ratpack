@@ -25,11 +25,19 @@ import org.ratpackframework.util.internal.ReleasingAction;
 import java.io.IOException;
 import java.io.InputStream;
 
+/**
+ * Provides the version of the Ratpack core at runtime.
+ */
 public class RatpackVersion {
 
   private RatpackVersion() {
   }
 
+  /**
+   * The version of Ratpack.
+   *
+   * @return The version of Ratpack
+   */
   public static String getVersion() {
     ClassLoader classLoader = RatpackVersion.class.getClassLoader();
     final InputStream resourceAsStream = classLoader.getResourceAsStream("org/ratpackframework/ratpack-version.txt");
