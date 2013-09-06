@@ -39,6 +39,7 @@ public abstract class RatpackServerBuilder {
    * <p>
    * The returned server has not been started.
    *
+   * @param launchConfig The server's configuration
    * @return A new, not yet started, Ratpack server.
    */
   public static RatpackServer build(LaunchConfig launchConfig) {
