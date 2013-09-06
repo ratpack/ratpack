@@ -16,10 +16,25 @@
 
 package org.ratpackframework.server;
 
+/**
+ * Represents the address that the server is listening on for requests.
+ * <p>
+ * This is available as a contextual object.
+ */
 public interface BindAddress {
 
+  /**
+   * The port number.
+   *
+   * @return The port number
+   */
   int getPort();
 
+  /**
+   * The host name.
+   *
+   * @return The host name
+   */
   String getHost();
 
 }
