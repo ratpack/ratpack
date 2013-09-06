@@ -26,6 +26,9 @@ import org.ratpackframework.render.controller.internal.DefaultRenderController;
  */
 import static com.google.common.collect.ImmutableList.copyOf;
 
+/**
+ * Factory methods for {@link RenderController} instances.
+ */
 public abstract class RenderControllers {
 
   private RenderControllers() {
