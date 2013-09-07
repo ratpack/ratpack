@@ -16,7 +16,6 @@
 
 package org.ratpackframework.http
 
-import groovy.transform.CompileStatic
 import org.junit.Rule
 import org.junit.rules.TestRule
 import org.junit.runner.Description
@@ -85,7 +84,6 @@ class HttpsSpec extends RatpackGroovyDslSpec {
  * That means that any HTTPS connections made by the test are unverified and will work against HTTPS servers
  * running on localhost and/or with invalid certificates.
  */
-@CompileStatic
 class DummySSLContext implements TestRule {
 
   @Override
