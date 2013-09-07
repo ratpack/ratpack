@@ -46,6 +46,7 @@ import java.net.InetSocketAddress;
 
 import static io.netty.handler.codec.http.HttpHeaders.isKeepAlive;
 import static io.netty.handler.codec.http.HttpResponseStatus.NOT_FOUND;
+import static org.ratpackframework.registry.internal.CachingRegistry.cachingRegistry;
 
 @ChannelHandler.Sharable
 public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpRequest> {
@@ -76,7 +77,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
     BindAddress bindAddress = new InetSocketAddressBackedBindAddress(socketAddress);
 
     // If you update this list, update the class level javadoc on Context.
-    return new RootRegistry<>(
+    return cachingRegistry(new RootRegistry<>(
       ImmutableList.of(
         new DefaultFileSystemBinding(launchConfig.getBaseDir()),
         new ActivationBackedMimeTypes(),
@@ -88,7 +89,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
         launchConfig,
         new DefaultFileRenderer()
       )
-    );
+    ));
   }
 
   public void channelRead0(final ChannelHandlerContext ctx, final FullHttpRequest nettyRequest) throws Exception {

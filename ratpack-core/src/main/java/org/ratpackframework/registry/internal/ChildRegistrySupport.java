@@ -40,7 +40,7 @@ public abstract class ChildRegistrySupport<T> extends RegistrySupport<T> {
   }
 
   @Override
-  protected final <O extends T> List<O> doGetAll(Class<O> type) {
+  public final <O extends T> List<O> getAll(Class<O> type) {
     return ImmutableList.<O>builder().addAll(doChildGetAll(type)).addAll(parent.getAll(type)).build();
   }
 

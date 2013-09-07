@@ -43,8 +43,7 @@ public class RootRegistry<T> extends RegistrySupport<T> {
     return null;
   }
 
-  @Override
-  protected <O extends T> List<O> doGetAll(Class<O> type) {
+  public <O extends T> List<O> getAll(Class<O> type) {
     ImmutableList.Builder<O> builder = ImmutableList.builder();
     for (T object : objects) {
       if (type.isInstance(object)) {

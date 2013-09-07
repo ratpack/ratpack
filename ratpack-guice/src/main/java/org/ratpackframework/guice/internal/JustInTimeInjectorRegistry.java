@@ -19,6 +19,8 @@ package org.ratpackframework.guice.internal;
 import com.google.inject.Injector;
 import org.ratpackframework.registry.internal.RegistrySupport;
 
+import java.util.List;
+
 public class JustInTimeInjectorRegistry extends RegistrySupport<Object> {
 
   private final Injector injector;
@@ -30,6 +32,11 @@ public class JustInTimeInjectorRegistry extends RegistrySupport<Object> {
   @Override
   protected <T> T doMaybeGet(Class<T> type) {
     return injector.getInstance(type);
+  }
+
+  @Override
+  public <O extends Object> List<O> getAll(Class<O> type) {
+    return GuiceUtil.ofType(injector, type);
   }
 
   @Override
