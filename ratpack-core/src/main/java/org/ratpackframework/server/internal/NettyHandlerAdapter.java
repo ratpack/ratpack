@@ -43,8 +43,6 @@ import org.ratpackframework.server.BindAddress;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 import static io.netty.handler.codec.http.HttpResponseStatus.NOT_FOUND;
 
@@ -57,13 +55,39 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
   private final ListeningExecutorService blockingExecutorService;
 
   private Registry<Object> registry;
-  private final Lock registryLock = new ReentrantLock();
 
   public NettyHandlerAdapter(Handler handler, LaunchConfig launchConfig, ListeningExecutorService blockingExecutorService) {
     this.launchConfig = launchConfig;
     this.blockingExecutorService = blockingExecutorService;
     this.handler = new ErrorCatchingHandler(handler);
     this.return404 = new ClientErrorHandler(NOT_FOUND.code());
+  }
+
+  @Override
+  public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
+    registry = createRegistry(ctx.channel());
+    super.channelRegistered(ctx);
+  }
+
+  private Registry<Object> createRegistry(Channel channel) {
+    InetSocketAddress socketAddress = (InetSocketAddress) channel.localAddress();
+
+    BindAddress bindAddress = new InetSocketAddressBackedBindAddress(socketAddress);
+
+    // If you update this list, update the class level javadoc on Context.
+    return new RootRegistry<>(
+      ImmutableList.of(
+        new DefaultFileSystemBinding(launchConfig.getBaseDir()),
+        new ActivationBackedMimeTypes(),
+        bindAddress,
+        new DefaultPublicAddress(launchConfig.getPublicAddress(), bindAddress),
+        new DefaultRedirector(),
+        new DefaultClientErrorHandler(),
+        new DefaultServerErrorHandler(),
+        launchConfig,
+        new DefaultFileRenderer()
+      )
+    );
   }
 
   public void channelRead0(final ChannelHandlerContext ctx, FullHttpRequest nettyRequest) throws Exception {
@@ -109,40 +133,12 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
     });
 
     if (registry == null) {
-      try {
-        registryLock.lock();
-        if (registry == null) {
-          registry = createRegistry(channel);
-        }
-      } finally {
-        registryLock.unlock();
-      }
+      throw new IllegalStateException("Registry is not set, channel is not registered");
     }
 
     final Context context = new DefaultContext(request, response, registry, ctx.executor(), blockingExecutorService, return404);
 
     handler.handle(context);
-  }
-
-  private Registry<Object> createRegistry(Channel channel) {
-    InetSocketAddress socketAddress = (InetSocketAddress) channel.localAddress();
-
-    BindAddress bindAddress = new InetSocketAddressBackedBindAddress(socketAddress);
-
-    // If you update this list, update the class level javadoc on Context.
-    return new RootRegistry<>(
-      ImmutableList.of(
-        new DefaultFileSystemBinding(launchConfig.getBaseDir()),
-        new ActivationBackedMimeTypes(),
-        bindAddress,
-        new DefaultPublicAddress(launchConfig.getPublicAddress(), bindAddress),
-        new DefaultRedirector(),
-        new DefaultClientErrorHandler(),
-        new DefaultServerErrorHandler(),
-        launchConfig,
-        new DefaultFileRenderer()
-      )
-    );
   }
 
   @Override
