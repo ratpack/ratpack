@@ -21,31 +21,37 @@ import org.ratpackframework.registry.Registry;
 
 import java.util.List;
 
-public abstract class ChildRegistrySupport<T> extends RegistrySupport<T> {
+public abstract class SingleValueChildRegistry<T, L extends T> extends ChildRegistrySupport<T> {
 
-  private final Registry<T> parent;
+  private final Class<L> type;
 
-  protected ChildRegistrySupport(Registry<T> parent) {
-    this.parent = parent;
+  public SingleValueChildRegistry(Registry<T> parent, Class<L> type) {
+    super(parent);
+    this.type = type;
   }
 
   @Override
-  public String toString() {
-    return describe() + " -> " + parent.toString();
+  protected <O extends T> O doMaybeGet(Class<O> requestedType) {
+    if (type.isAssignableFrom(requestedType)) {
+      return requestedType.cast(getObject());
+    } else {
+      return null;
+    }
   }
 
   @Override
-  protected <O extends T> O onNotFound(@SuppressWarnings("UnusedParameters") Class<O> type) {
-    return parent.maybeGet(type);
+  protected <O extends T> List<O> doChildGetAll(Class<O> type) {
+    if (type.isAssignableFrom(this.type)) {
+      @SuppressWarnings("unchecked") O cast = (O) getObject();
+      return ImmutableList.of(cast);
+    } else {
+      return ImmutableList.of();
+    }
   }
 
-  @Override
-  protected final <O extends T> List<O> doGetAll(Class<O> type) {
-    return ImmutableList.<O>builder().addAll(doChildGetAll(type)).addAll(parent.getAll(type)).build();
+  protected abstract L getObject();
+
+  protected Class<L> getType() {
+    return type;
   }
-
-  protected abstract <O extends T> List<O> doChildGetAll(Class<O> type);
-
-  protected abstract String describe();
-
 }

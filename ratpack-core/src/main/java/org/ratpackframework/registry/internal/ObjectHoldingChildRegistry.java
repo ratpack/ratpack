@@ -21,29 +21,23 @@ import org.ratpackframework.registry.Registry;
 /**
  * A simple service that
  */
-public class ObjectHoldingChildRegistry<T> extends ChildRegistrySupport<T> {
+public class ObjectHoldingChildRegistry<T, L extends T> extends SingleValueChildRegistry<T, L> {
 
-  private final T value;
-  private final Class<?> type;
+  private final L value;
 
   @SuppressWarnings("unchecked")
-  public ObjectHoldingChildRegistry(Registry<T> parent, T value) {
-    this(parent, (Class<T>) value.getClass(), value);
+  public ObjectHoldingChildRegistry(Registry<T> parent, L value) {
+    this(parent, (Class<L>) value.getClass(), value);
   }
 
-  public ObjectHoldingChildRegistry(Registry<T> parent, Class<? extends T> type, T value) {
-    super(parent);
+  public ObjectHoldingChildRegistry(Registry<T> parent, Class<L> type, L value) {
+    super(parent, type);
     this.value = value;
-    this.type = type;
   }
 
   @Override
-  protected <O extends T> O doMaybeGet(Class<O> targetType) {
-    if (targetType.equals(type)) {
-      return targetType.cast(value);
-    } else {
-      return null;
-    }
+  protected L getObject() {
+    return value;
   }
 
   @Override

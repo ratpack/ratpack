@@ -28,8 +28,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.attribute.BasicFileAttributes;
 
-import static org.ratpackframework.file.internal.FileRenderer.readAttributes;
-import static org.ratpackframework.file.internal.FileRenderer.sendFile;
+import static org.ratpackframework.file.internal.DefaultFileRenderer.readAttributes;
+import static org.ratpackframework.file.internal.DefaultFileRenderer.sendFile;
 
 public class AssetHandler implements Handler {
 

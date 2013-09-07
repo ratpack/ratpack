@@ -22,29 +22,18 @@ import org.ratpackframework.util.Factory;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class LazyChildRegistry<T, L extends T> extends ChildRegistrySupport<T> {
+public class LazyChildRegistry<T, L extends T> extends SingleValueChildRegistry<T, L> {
 
-  private final Class<L> type;
   private final Factory<? extends L> factory;
-  private T object;
+  private L object;
   private Lock lock = new ReentrantLock();
 
   public LazyChildRegistry(Registry<T> parent, Class<L> type, Factory<? extends L> factory) {
-    super(parent);
-    this.type = type;
+    super(parent, type);
     this.factory = factory;
   }
 
-  @Override
-  protected <O extends T> O doMaybeGet(Class<O> requestedType) {
-    if (type.isAssignableFrom(requestedType)) {
-      return requestedType.cast(getObject());
-    } else {
-      return null;
-    }
-  }
-
-  private T getObject() {
+  protected L getObject() {
     if (object == null) {
       lock.lock();
       try {
@@ -61,6 +50,6 @@ public class LazyChildRegistry<T, L extends T> extends ChildRegistrySupport<T> {
 
   @Override
   protected String describe() {
-    return "LazyChildRegistry{" + type.getName() + "}";
+    return "LazyChildRegistry{" + getType().getName() + "}";
   }
 }

@@ -18,6 +18,7 @@ package org.ratpackframework.file.internal;
 
 import io.netty.handler.codec.http.HttpHeaders;
 import org.ratpackframework.block.Blocking;
+import org.ratpackframework.file.FileRenderer;
 import org.ratpackframework.file.MimeTypes;
 import org.ratpackframework.handling.Context;
 import org.ratpackframework.render.ByTypeRenderer;
@@ -33,7 +34,7 @@ import java.util.concurrent.Callable;
 
 import static io.netty.handler.codec.http.HttpResponseStatus.NOT_MODIFIED;
 
-public class FileRenderer extends ByTypeRenderer<File> {
+public class DefaultFileRenderer extends ByTypeRenderer<File> implements FileRenderer {
 
   @Override
   public void render(final Context context, final File targetFile) {

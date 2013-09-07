@@ -18,6 +18,8 @@ package org.ratpackframework.registry.internal;
 
 import com.google.common.collect.ImmutableList;
 
+import java.util.List;
+
 public class RootRegistry<T> extends RegistrySupport<T> {
 
   private final ImmutableList<? extends T> objects;
@@ -41,4 +43,15 @@ public class RootRegistry<T> extends RegistrySupport<T> {
     return null;
   }
 
+  @Override
+  protected <O extends T> List<O> doGetAll(Class<O> type) {
+    ImmutableList.Builder<O> builder = ImmutableList.builder();
+    for (T object : objects) {
+      if (type.isInstance(object)) {
+        @SuppressWarnings("unchecked") O castObject = (O) object;
+        builder.add(castObject);
+      }
+    }
+    return builder.build();
+  }
 }

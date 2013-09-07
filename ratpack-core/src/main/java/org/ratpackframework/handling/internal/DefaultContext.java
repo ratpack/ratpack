@@ -29,12 +29,11 @@ import org.ratpackframework.http.Request;
 import org.ratpackframework.http.Response;
 import org.ratpackframework.path.PathBinding;
 import org.ratpackframework.path.PathTokens;
-import org.ratpackframework.handling.Redirector;
 import org.ratpackframework.registry.NotInRegistryException;
 import org.ratpackframework.registry.Registry;
 import org.ratpackframework.registry.internal.ObjectHoldingChildRegistry;
+import org.ratpackframework.render.Renderer;
 import org.ratpackframework.render.controller.NoSuchRendererException;
-import org.ratpackframework.render.controller.RenderController;
 import org.ratpackframework.util.Action;
 import org.ratpackframework.util.Result;
 import org.ratpackframework.util.ResultAction;
@@ -78,6 +77,10 @@ public class DefaultContext implements Context {
     return registry.get(type);
   }
 
+  public <O extends Object> List<O> getAll(Class<O> type) {
+    return registry.getAll(type);
+  }
+
   public <O> O maybeGet(Class<O> type) {
     return registry.maybeGet(type);
   }
@@ -119,7 +122,23 @@ public class DefaultContext implements Context {
   }
 
   public void render(Object object) throws NoSuchRendererException {
-    get(RenderController.class).render(this, object);
+    for (Renderer<?> renderer : registry.getAll(Renderer.class)) {
+      if (maybeRender(object, renderer)) {
+        return;
+      }
+    }
+
+    throw new NoSuchRendererException("No renderer for object '" + object + "'");
+  }
+
+  private <T> boolean maybeRender(Object object, Renderer<T> renderer) {
+    T accepted = renderer.accept(object);
+    if (accepted != null) {
+      renderer.render(this, accepted);
+      return true;
+    } else {
+      return false;
+    }
   }
 
   @Override

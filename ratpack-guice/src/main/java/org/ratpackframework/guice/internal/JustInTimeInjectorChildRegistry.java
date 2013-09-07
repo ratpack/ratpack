@@ -21,6 +21,8 @@ import com.google.inject.Injector;
 import org.ratpackframework.registry.Registry;
 import org.ratpackframework.registry.internal.ChildRegistrySupport;
 
+import java.util.List;
+
 public class JustInTimeInjectorChildRegistry extends ChildRegistrySupport<Object> {
 
   private final Injector injector;
@@ -44,4 +46,8 @@ public class JustInTimeInjectorChildRegistry extends ChildRegistrySupport<Object
     }
   }
 
+  @Override
+  protected <O extends Object> List<O> doChildGetAll(Class<O> type) {
+    return GuiceUtil.ofType(injector, type);
+  }
 }

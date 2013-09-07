@@ -31,15 +31,14 @@ import org.ratpackframework.handling.Context;
 import org.ratpackframework.handling.Handler;
 import org.ratpackframework.handling.internal.ClientErrorHandler;
 import org.ratpackframework.handling.internal.DefaultContext;
+import org.ratpackframework.handling.internal.DefaultRedirector;
 import org.ratpackframework.http.MutableHeaders;
 import org.ratpackframework.http.Request;
 import org.ratpackframework.http.Response;
 import org.ratpackframework.http.internal.*;
 import org.ratpackframework.launch.LaunchConfig;
-import org.ratpackframework.handling.internal.DefaultRedirector;
 import org.ratpackframework.registry.Registry;
 import org.ratpackframework.registry.internal.RootRegistry;
-import org.ratpackframework.render.Renderer;
 import org.ratpackframework.server.BindAddress;
 
 import java.io.IOException;
@@ -48,7 +47,6 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import static io.netty.handler.codec.http.HttpResponseStatus.NOT_FOUND;
-import static org.ratpackframework.render.controller.RenderControllers.renderController;
 
 @ChannelHandler.Sharable
 public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpRequest> {
@@ -131,10 +129,6 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
 
     BindAddress bindAddress = new InetSocketAddressBackedBindAddress(socketAddress);
 
-    ImmutableList<Renderer<?>> renderers = new ImmutableList.Builder<Renderer<?>>()
-      .add(new FileRenderer())
-      .build();
-
     // If you update this list, update the class level javadoc on Context.
     return new RootRegistry<>(
       ImmutableList.of(
@@ -146,7 +140,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
         new DefaultClientErrorHandler(),
         new DefaultServerErrorHandler(),
         launchConfig,
-        renderController(renderers)
+        new DefaultFileRenderer()
       )
     );
   }

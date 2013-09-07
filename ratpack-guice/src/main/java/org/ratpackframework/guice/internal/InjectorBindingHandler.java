@@ -18,40 +18,23 @@ package org.ratpackframework.guice.internal;
 
 import com.google.common.collect.ImmutableList;
 import com.google.inject.Injector;
-import com.google.inject.TypeLiteral;
 import org.ratpackframework.guice.Guice;
 import org.ratpackframework.handling.Context;
 import org.ratpackframework.handling.Handler;
-import org.ratpackframework.registry.Registry;
-import org.ratpackframework.registry.internal.ObjectHoldingChildRegistry;
-import org.ratpackframework.render.controller.RenderController;
-import org.ratpackframework.render.Renderer;
 
 import java.util.List;
-
-import static org.ratpackframework.render.controller.RenderControllers.renderController;
 
 public class InjectorBindingHandler implements Handler {
 
   private final Injector injector;
   private final List<Handler> delegate;
-  private final ImmutableList<Renderer<?>> renderers;
 
   public InjectorBindingHandler(Injector injector, Handler delegate) {
     this.injector = injector;
     this.delegate = ImmutableList.of(delegate);
-    this.renderers = GuiceUtil.ofType(injector, new TypeLiteral<Renderer<?>>() {
-    });
   }
 
   public void handle(Context context) {
-    Registry<Object> injectorRegistry = Guice.registry(context, injector);
-
-    RenderController parentRenderController = context.maybeGet(RenderController.class);
-    RenderController renderController = renderController(parentRenderController, renderers);
-
-    Registry<Object> registry = new ObjectHoldingChildRegistry<>(injectorRegistry, RenderController.class, renderController);
-
-    context.insert(registry, delegate);
+    context.insert(Guice.registry(context, injector), delegate);
   }
 }

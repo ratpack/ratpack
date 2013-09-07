@@ -31,7 +31,7 @@ import java.util.Map;
 
 public class DefaultModuleRegistry implements ModuleRegistry {
 
-  private final Map<Class<? extends Module>, Module> modules = new LinkedHashMap<Class<? extends Module>, Module>();
+  private final Map<Class<? extends Module>, Module> modules = new LinkedHashMap<>();
   private final LaunchConfig launchConfig;
 
   private final ImmutableList.Builder<Action<Binder>> actions = ImmutableList.builder();
@@ -107,6 +107,18 @@ public class DefaultModuleRegistry implements ModuleRegistry {
     }
 
     return moduleType.cast(module);
+  }
+
+  @Override
+  public <O extends Module> List<O> getAll(Class<O> type) {
+    ImmutableList.Builder<O> builder = ImmutableList.builder();
+    for (Module module : modules.values()) {
+      if (type.isInstance(module)) {
+        @SuppressWarnings("unchecked") O cast = (O) module;
+        builder.add(cast);
+      }
+    }
+    return builder.build();
   }
 
   public <O extends Module> O maybeGet(Class<O> type) {

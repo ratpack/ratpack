@@ -16,10 +16,26 @@
 
 package org.ratpackframework.registry.internal;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+import com.google.common.collect.ImmutableList;
 import org.ratpackframework.registry.NotInRegistryException;
 import org.ratpackframework.registry.Registry;
 
+import java.util.List;
+import java.util.concurrent.ExecutionException;
+
 public abstract class RegistrySupport<T> implements Registry<T> {
+
+  private final LoadingCache<Class<?>, List<T>> allCache = CacheBuilder.newBuilder()
+    .concurrencyLevel(1) // low write contention
+    .build(new CacheLoader<Class<?>, List<T>>() {
+      public List<T> load(Class<?> key) throws Exception {
+        @SuppressWarnings("unchecked") Class<T> castKey = (Class<T>) key;
+        return doGetAll(castKey);
+      }
+    });
 
   protected abstract <O extends T> O doMaybeGet(Class<O> type);
 
@@ -44,6 +60,29 @@ public abstract class RegistrySupport<T> implements Registry<T> {
     }
 
     return found;
+  }
+
+  protected <O extends T> List<O> doGetAll(Class<O> type) {
+    O object = maybeGet(type);
+    if (object == null) {
+      return ImmutableList.of();
+    } else {
+      return ImmutableList.of(object);
+    }
+  }
+
+  @Override
+  public <O extends T> List<O> getAll(Class<O> type) {
+    List<O> list;
+    try {
+      @SuppressWarnings("unchecked")
+      List<O> castList = (List<O>) allCache.get(type);
+      list = castList;
+    } catch (ExecutionException e) {
+      throw new RuntimeException(e); // very unlikely
+    }
+
+    return list;
   }
 
 }

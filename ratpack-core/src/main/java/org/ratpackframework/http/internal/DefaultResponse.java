@@ -38,7 +38,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static org.ratpackframework.file.internal.FileRenderer.readAttributes;
+import static org.ratpackframework.file.internal.DefaultFileRenderer.readAttributes;
 
 public class DefaultResponse implements Response {
 

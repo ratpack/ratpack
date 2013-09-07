@@ -20,7 +20,7 @@ import groovyx.remote.client.RemoteControl
 import groovyx.remote.transport.http.HttpTransport
 import io.netty.handler.codec.http.HttpHeaders
 import org.ratpackframework.file.internal.DefaultFileSystemBinding
-import org.ratpackframework.file.internal.FileRenderer
+import org.ratpackframework.file.internal.DefaultFileRenderer
 import org.ratpackframework.launch.LaunchConfig
 import org.ratpackframework.remote.internal.RemoteControlHandler
 import org.ratpackframework.test.internal.RatpackGroovyDslSpec
@@ -122,7 +122,7 @@ class RemoteControlSpec extends RatpackGroovyDslSpec {
     //from root registry
     remote.exec { registry.get(DefaultFileSystemBinding) != null }
     //created just in time
-    remote.exec { registry.get(FileRenderer) != null }
+    remote.exec { registry.get(DefaultFileRenderer) != null }
   }
 
   void 'endpoint is also enabled if reloading is enabled'() {

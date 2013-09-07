@@ -18,6 +18,8 @@ package org.ratpackframework.registry;
 
 import org.ratpackframework.api.Nullable;
 
+import java.util.List;
+
 /**
  * An object that can potentially provide objects of given types.
  *
@@ -48,5 +50,7 @@ public interface Registry<T> {
    */
   @Nullable
   <O extends T> O maybeGet(Class<O> type);
+
+  <O extends T> List<O> getAll(Class<O> type);
 
 }

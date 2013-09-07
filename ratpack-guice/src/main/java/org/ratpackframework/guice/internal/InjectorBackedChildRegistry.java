@@ -22,6 +22,8 @@ import com.google.inject.Key;
 import org.ratpackframework.registry.Registry;
 import org.ratpackframework.registry.internal.ChildRegistrySupport;
 
+import java.util.List;
+
 public class InjectorBackedChildRegistry extends ChildRegistrySupport<Object> {
 
   final Injector injector;
@@ -40,6 +42,11 @@ public class InjectorBackedChildRegistry extends ChildRegistrySupport<Object> {
     } else {
       return existingBinding.getProvider().get();
     }
+  }
+
+  @Override
+  protected <O extends Object> List<O> doChildGetAll(Class<O> type) {
+    return GuiceUtil.ofType(injector, type);
   }
 
   @Override

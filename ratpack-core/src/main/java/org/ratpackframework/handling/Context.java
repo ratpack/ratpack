@@ -63,7 +63,7 @@ import java.util.List;
  * <li>A {@link org.ratpackframework.file.MimeTypes} implementation</li>
  * <li>A {@link org.ratpackframework.error.ServerErrorHandler}</li>
  * <li>A {@link org.ratpackframework.error.ClientErrorHandler}</li>
- * <li>A {@link org.ratpackframework.render.controller.RenderController} that can render {@link File} objects</li>
+ * <li>A {@link org.ratpackframework.file.FileRenderer}</li>
  * <li>A {@link org.ratpackframework.server.BindAddress}</li>
  * <li>A {@link org.ratpackframework.server.PublicAddress}</li>
  * <li>A {@link Redirector}</li>
@@ -257,9 +257,7 @@ public interface Context extends Registry<Object> {
   /**
    * Render the given object, using the rendering framework.
    * <p>
-   * This will attempt to retrieve a {@link org.ratpackframework.render.controller.RenderController} via the {@link #get(Class)} method.
-   * If a render controller is found, the {@link org.ratpackframework.render.controller.RenderController#render(Context, Object)} method will
-   * be invoked and this context given along with {@code object}.
+   * This will retrieve all contextual renderers, and use the first one that can render the object.
    * <p>
    * This will finalize the response, no further processing should be done.
    * <p>
@@ -268,11 +266,10 @@ public interface Context extends Registry<Object> {
    * See {@link org.ratpackframework.render.Renderer} for more on the rendering framework.
    *
    * @param object The object to render
-   * @throws NotInRegistryException If there is no {@link org.ratpackframework.render.controller.RenderController} available
    * @throws NoSuchRendererException If there is no suitable renderer for the object
    */
   @NonBlocking
-  void render(Object object) throws NotInRegistryException, NoSuchRendererException;
+  void render(Object object) throws NoSuchRendererException;
 
   /**
    * Provides a mechanism for executing blocking IO operations.

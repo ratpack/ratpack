@@ -14,33 +14,13 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.render.internal;
+package org.ratpackframework.file;
 
 import org.ratpackframework.handling.Context;
-import org.ratpackframework.render.controller.RenderOperation;
 import org.ratpackframework.render.Renderer;
 
-public class DefaultRenderOperation<R> implements RenderOperation<R> {
+import java.io.File;
 
-  private final Context context;
-  private final Renderer<R> renderer;
-  private final R toRender;
-
-  public DefaultRenderOperation(Context context, Renderer<R> renderer, R toRender) {
-    this.context = context;
-    this.renderer = renderer;
-    this.toRender = toRender;
-  }
-
-  public R getToRender() {
-    return toRender;
-  }
-
-  public Renderer<R> getRenderer() {
-    return renderer;
-  }
-
-  public void execute() {
-    getRenderer().render(context, getToRender());
-  }
+public interface FileRenderer extends Renderer<File> {
+  void render(Context context, File targetFile);
 }
