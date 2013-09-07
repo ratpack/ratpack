@@ -132,9 +132,9 @@ public class DefaultContext implements Context {
   }
 
   private <T> boolean maybeRender(Object object, Renderer<T> renderer) {
-    T accepted = renderer.accept(object);
-    if (accepted != null) {
-      renderer.render(this, accepted);
+    if (renderer.getType().isInstance(object)) {
+      @SuppressWarnings("unchecked") T cast = (T) object;
+      renderer.render(this, cast);
       return true;
     } else {
       return false;

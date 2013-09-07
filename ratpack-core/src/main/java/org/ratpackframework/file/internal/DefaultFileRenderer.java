@@ -21,7 +21,7 @@ import org.ratpackframework.block.Blocking;
 import org.ratpackframework.file.FileRenderer;
 import org.ratpackframework.file.MimeTypes;
 import org.ratpackframework.handling.Context;
-import org.ratpackframework.render.ByTypeRenderer;
+import org.ratpackframework.render.internal.ByTypeRenderer;
 import org.ratpackframework.util.Action;
 
 import java.io.File;

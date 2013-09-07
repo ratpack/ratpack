@@ -20,7 +20,7 @@ import com.github.jknack.handlebars.Handlebars;
 import org.ratpackframework.file.MimeTypes;
 import org.ratpackframework.handlebars.Template;
 import org.ratpackframework.handling.Context;
-import org.ratpackframework.render.ByTypeRenderer;
+import org.ratpackframework.render.internal.ByTypeRenderer;
 
 import javax.inject.Inject;
 import java.io.IOException;

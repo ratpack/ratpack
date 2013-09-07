@@ -21,7 +21,7 @@ import io.netty.buffer.ByteBuf;
 import org.ratpackframework.handling.Context;
 import org.ratpackframework.jackson.Json;
 import org.ratpackframework.jackson.JsonRenderer;
-import org.ratpackframework.render.ByTypeRenderer;
+import org.ratpackframework.render.internal.ByTypeRenderer;
 import org.ratpackframework.util.internal.ByteBufWriteThroughOutputStream;
 
 import javax.inject.Inject;

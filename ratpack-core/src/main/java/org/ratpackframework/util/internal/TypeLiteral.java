@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.api;
+package org.ratpackframework.util.internal;
 
 import java.lang.reflect.*;
 
@@ -23,7 +23,7 @@ import java.lang.reflect.*;
  * <p>
  * To use to represent a generic type, create an anonymous implementation.
  * <pre class="tested">
- * import org.ratpackframework.api.TypeLiteral;
+ * import org.ratpackframework.util.internal.TypeLiteral;
  *
  * void someMethodThatTakesATypeLiteral(TypeLiteral&lt;?&gt; type) {
  *   // does something

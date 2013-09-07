@@ -14,74 +14,27 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.render;
+package org.ratpackframework.render.internal;
 
-import org.ratpackframework.api.TypeLiteral;
 import org.ratpackframework.handling.Context;
+import org.ratpackframework.render.Renderer;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 
-/**
- * A convenience super class for renderers that can only render one type of object.
- * <p>
- * Typically, it sufficient to just extend this class with a concrete (i.e. not a bounded or wildcard type) type for {@code T}
- * and to implement the {@link #render(org.ratpackframework.handling.Context, Object)} method.
- * An implementation of the {@link #accept(Object)} method is provided that “accepts” the input if it is assignable to {@code T}.
- *
- * @param <T> The type of object that can be rendered.
- */
 public abstract class ByTypeRenderer<T> implements Renderer<T> {
 
   private final Class<T> type;
 
-  /**
-   * Infers the render object type, but reflecting to find {@code T}.
-   * <p>
-   * Use an alternative constructor only if your implementation uses an “exotic” signature.
-   */
   protected ByTypeRenderer() {
     @SuppressWarnings("unchecked")
     Class<T> renderedType = (Class<T>) findRenderedType(getClass());
     this.type = renderedType;
   }
 
-  /**
-   * Use the given type as the target to-render type.
-   * <p>
-   * Prefer using the no-arg constructor.
-   *
-   * @param type the target to-render type.
-   */
-  protected ByTypeRenderer(Class<T> type) {
-    this.type = type;
-  }
-
-  /**
-   * Use the given type as the target to-render type.
-   * <p>
-   * Prefer using the no-arg constructor.
-   *
-   * @param typeLiteral the target to-render type.
-   */
-  protected ByTypeRenderer(TypeLiteral<T> typeLiteral) {
-    @SuppressWarnings("unchecked") Class<T> rawType = (Class<T>) typeLiteral.getRawType();
-    this.type = rawType;
-  }
-
-  /**
-   * Accepts the object if it is an instance of {@code T}.
-   *
-   * @param object An object to potentially accept to render.
-   * @return The same input object, cast to {@code T}.
-   */
-
-  public T accept(Object object) {
-    if (type.isInstance(object)) {
-      return type.cast(object);
-    } else {
-      return null;
-    }
+  @Override
+  public Class<T> getType() {
+    return type;
   }
 
   /**

@@ -20,7 +20,7 @@ import io.netty.buffer.ByteBuf;
 import org.ratpackframework.file.MimeTypes;
 import org.ratpackframework.groovy.Template;
 import org.ratpackframework.handling.Context;
-import org.ratpackframework.render.ByTypeRenderer;
+import org.ratpackframework.render.internal.ByTypeRenderer;
 import org.ratpackframework.util.Action;
 
 import javax.inject.Inject;
