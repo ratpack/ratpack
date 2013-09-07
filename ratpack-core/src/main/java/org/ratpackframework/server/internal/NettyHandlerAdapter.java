@@ -44,6 +44,7 @@ import org.ratpackframework.server.BindAddress;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
+import static io.netty.handler.codec.http.HttpHeaders.isKeepAlive;
 import static io.netty.handler.codec.http.HttpResponseStatus.NOT_FOUND;
 
 @ChannelHandler.Sharable
@@ -90,7 +91,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
     );
   }
 
-  public void channelRead0(final ChannelHandlerContext ctx, FullHttpRequest nettyRequest) throws Exception {
+  public void channelRead0(final ChannelHandlerContext ctx, final FullHttpRequest nettyRequest) throws Exception {
     if (!nettyRequest.getDecoderResult().isSuccess()) {
       sendError(ctx, HttpResponseStatus.BAD_REQUEST);
       return;
@@ -99,10 +100,6 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
     final FullHttpResponse nettyResponse = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
 
     Request request = new DefaultRequest(new NettyHeadersBackedHeaders(nettyRequest.headers()), nettyRequest.getMethod().name(), nettyRequest.getUri(), nettyRequest.content());
-
-    final HttpVersion version = nettyRequest.getProtocolVersion();
-    final boolean keepAlive = version == HttpVersion.HTTP_1_1
-      || (version == HttpVersion.HTTP_1_0 && "Keep-Alive".equalsIgnoreCase(nettyRequest.headers().get("Connection")));
 
     final Channel channel = ctx.channel();
 
@@ -118,10 +115,8 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
         responseHeaders.set(HttpHeaders.Names.CONTENT_LENGTH, responseBody.writerIndex());
         boolean shouldClose = true;
         if (channel.isOpen()) {
-          if (keepAlive) {
-            if (version == HttpVersion.HTTP_1_0) {
-              responseHeaders.set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
-            }
+          if (isKeepAlive(nettyRequest)) {
+            responseHeaders.set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
             shouldClose = false;
           }
           ChannelFuture future = channel.writeAndFlush(nettyResponse);
