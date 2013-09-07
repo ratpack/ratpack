@@ -37,7 +37,7 @@ abstract class InternalRatpackSpec extends Specification {
   @Delegate TestHttpClient client = testHttpClient(
     {
       startServerIfNeeded()
-      new URI("http://${server.bindHost}:${server.bindPort}")
+      new URI("${server.scheme}://${server.bindHost}:${server.bindPort}")
     } as ApplicationUnderTest,
     { configureRequest(it) } as Action<RequestSpecification>
   )

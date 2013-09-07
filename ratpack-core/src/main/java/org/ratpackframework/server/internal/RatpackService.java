@@ -20,6 +20,8 @@ import com.google.common.util.concurrent.Service;
 
 public interface RatpackService extends Service {
 
+  String getScheme();
+
   int getBindPort();
 
   String getBindHost();

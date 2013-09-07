@@ -86,6 +86,11 @@ public class NettyRatpackService extends AbstractIdleService implements RatpackS
     launchConfig.getBlockingExecutorService().shutdown();
   }
 
+  @Override
+  public String getScheme() {
+    return launchConfig.getSSLContext() == null ? "http" : "https";
+  }
+
   public int getBindPort() {
     return boundAddress == null ? -1 : boundAddress.getPort();
   }

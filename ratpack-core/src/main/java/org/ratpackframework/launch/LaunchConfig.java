@@ -19,6 +19,7 @@ package org.ratpackframework.launch;
 import io.netty.buffer.ByteBufAllocator;
 import org.ratpackframework.api.Nullable;
 
+import javax.net.ssl.SSLContext;
 import java.io.File;
 import java.net.InetAddress;
 import java.net.URI;
@@ -128,6 +129,13 @@ public interface LaunchConfig {
   public List<String> getIndexFiles();
 
   /**
+   * The SSL context to use if the application will serve content over HTTPS.
+   *
+   * @return The SSL context or <code>null</code> if the application does not use SSL.
+   */
+  public SSLContext getSSLContext();
+
+  /**
    * Provides access to any "other" properties that were specified.
    * <p>
    * Extensions and plugins can use other properties for their configuration.
@@ -137,5 +145,4 @@ public interface LaunchConfig {
    * @return The other property for {@code key}, or the {@code defaultValue} if it is not set
    */
   public String getOther(String key, String defaultValue);
-
 }

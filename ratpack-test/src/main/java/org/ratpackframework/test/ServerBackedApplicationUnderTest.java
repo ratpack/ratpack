@@ -44,7 +44,7 @@ public class ServerBackedApplicationUnderTest implements ApplicationUnderTest {
 
     URI address;
     try {
-      address = new URI("http://" + server.getBindHost() + ":" + server.getBindPort());
+      address = new URI(server.getScheme() + "://" + server.getBindHost() + ":" + server.getBindPort());
     } catch (URISyntaxException e) {
       throw new RuntimeException(e);
     }

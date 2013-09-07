@@ -24,21 +24,34 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpRequestDecoder;
 import io.netty.handler.codec.http.HttpResponseEncoder;
+import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.stream.ChunkedWriteHandler;
 import org.ratpackframework.handling.Handler;
 import org.ratpackframework.launch.LaunchConfig;
 
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLEngine;
+
 public class RatpackChannelInitializer extends ChannelInitializer<SocketChannel> {
 
   private NettyHandlerAdapter nettyHandlerAdapter;
+  private SSLContext sslContext;
 
   public RatpackChannelInitializer(LaunchConfig launchConfig, Handler handler) {
     ListeningExecutorService blockingExecutorService = MoreExecutors.listeningDecorator(launchConfig.getBlockingExecutorService());
     this.nettyHandlerAdapter = new NettyHandlerAdapter(handler, launchConfig, blockingExecutorService);
+    this.sslContext = launchConfig.getSSLContext();
   }
 
-  public void initChannel(SocketChannel ch) throws Exception {
+  public void initChannel(SocketChannel ch) {
     ChannelPipeline pipeline = ch.pipeline();
+
+    if (sslContext != null) {
+      SSLEngine engine = sslContext.createSSLEngine();
+      engine.setUseClientMode(false);
+      pipeline.addLast("ssl", new SslHandler(engine));
+    }
+
     pipeline.addLast("decoder", new HttpRequestDecoder());
     pipeline.addLast("aggregator", new HttpObjectAggregator(65536));
     pipeline.addLast("encoder", new HttpResponseEncoder());

@@ -22,6 +22,7 @@ import io.netty.buffer.ByteBufAllocator;
 import org.ratpackframework.launch.HandlerFactory;
 import org.ratpackframework.launch.LaunchConfig;
 
+import javax.net.ssl.SSLContext;
 import java.io.File;
 import java.net.InetAddress;
 import java.net.URI;
@@ -41,8 +42,9 @@ public class DefaultLaunchConfig implements LaunchConfig {
   private final URI publicAddress;
   private final ImmutableList<String> indexFiles;
   private final ImmutableMap<String, String> other;
+  private final SSLContext sslContext;
 
-  public DefaultLaunchConfig(File baseDir, int port, InetAddress address, boolean reloadable, int mainThreads, ExecutorService blockingExecutorService, ByteBufAllocator byteBufAllocator, URI publicAddress, ImmutableList<String> indexFiles, ImmutableMap<String, String> other, HandlerFactory handlerFactory) {
+  public DefaultLaunchConfig(File baseDir, int port, InetAddress address, boolean reloadable, int mainThreads, ExecutorService blockingExecutorService, ByteBufAllocator byteBufAllocator, URI publicAddress, ImmutableList<String> indexFiles, ImmutableMap<String, String> other, HandlerFactory handlerFactory, SSLContext sslContext) {
     this.baseDir = baseDir;
     this.port = port;
     this.address = address;
@@ -54,28 +56,35 @@ public class DefaultLaunchConfig implements LaunchConfig {
     this.indexFiles = indexFiles;
     this.other = other;
     this.handlerFactory = handlerFactory;
+    this.sslContext = sslContext;
   }
 
+  @Override
   public File getBaseDir() {
     return baseDir;
   }
 
+  @Override
   public HandlerFactory getHandlerFactory() {
     return handlerFactory;
   }
 
+  @Override
   public int getPort() {
     return port;
   }
 
+  @Override
   public InetAddress getAddress() {
     return address;
   }
 
+  @Override
   public boolean isReloadable() {
     return reloadable;
   }
 
+  @Override
   public int getMainThreads() {
     return mainThreads;
   }
@@ -90,6 +99,7 @@ public class DefaultLaunchConfig implements LaunchConfig {
     return byteBufAllocator;
   }
 
+  @Override
   public URI getPublicAddress() {
     return publicAddress;
   }
@@ -97,6 +107,11 @@ public class DefaultLaunchConfig implements LaunchConfig {
   @Override
   public List<String> getIndexFiles() {
     return indexFiles;
+  }
+
+  @Override
+  public SSLContext getSSLContext() {
+    return sslContext;
   }
 
   public String getOther(String key, String defaultValue) {

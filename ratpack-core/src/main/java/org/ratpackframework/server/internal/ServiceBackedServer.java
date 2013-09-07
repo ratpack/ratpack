@@ -45,6 +45,11 @@ public class ServiceBackedServer implements RatpackServer {
     ratpackService.stop().get();
   }
 
+  @Override
+  public String getScheme() {
+    return ratpackService.getScheme();
+  }
+
   public int getBindPort() {
     return ratpackService.getBindPort();
   }

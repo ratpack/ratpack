@@ -31,6 +31,13 @@ public interface RatpackServer {
   LaunchConfig getLaunchConfig();
 
   /**
+   * The URL scheme the server uses.
+   *
+   * @return Either <em>http</em> or <em>https</em> depending on whether the server is using SSL or not.
+   */
+  String getScheme();
+
+  /**
    * The actual port that the application is bound to.
    *
    * @return The actual port that the application is bound to, or -1 if the server is not running.

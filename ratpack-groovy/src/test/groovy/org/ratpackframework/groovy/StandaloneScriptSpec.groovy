@@ -64,6 +64,11 @@ class StandaloneScriptSpec extends RatpackGroovyScriptAppSpec {
     }
 
     @Override
+    String getScheme() {
+      server.scheme
+    }
+
+    @Override
     int getBindPort() {
       server.bindPort
     }
