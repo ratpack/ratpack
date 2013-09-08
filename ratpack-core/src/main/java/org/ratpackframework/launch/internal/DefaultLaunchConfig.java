@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableMap;
 import io.netty.buffer.ByteBufAllocator;
 import org.ratpackframework.launch.HandlerFactory;
 import org.ratpackframework.launch.LaunchConfig;
+import org.ratpackframework.ssl.SSLContextFactory;
 
 import javax.net.ssl.SSLContext;
 import java.io.File;
@@ -42,9 +43,9 @@ public class DefaultLaunchConfig implements LaunchConfig {
   private final URI publicAddress;
   private final ImmutableList<String> indexFiles;
   private final ImmutableMap<String, String> other;
-  private final SSLContext sslContext;
+  private final SSLContextFactory sslContextFactory;
 
-  public DefaultLaunchConfig(File baseDir, int port, InetAddress address, boolean reloadable, int mainThreads, ExecutorService blockingExecutorService, ByteBufAllocator byteBufAllocator, URI publicAddress, ImmutableList<String> indexFiles, ImmutableMap<String, String> other, HandlerFactory handlerFactory, SSLContext sslContext) {
+  public DefaultLaunchConfig(File baseDir, int port, InetAddress address, boolean reloadable, int mainThreads, ExecutorService blockingExecutorService, ByteBufAllocator byteBufAllocator, URI publicAddress, ImmutableList<String> indexFiles, ImmutableMap<String, String> other, HandlerFactory handlerFactory, SSLContextFactory sslContextFactory) {
     this.baseDir = baseDir;
     this.port = port;
     this.address = address;
@@ -56,7 +57,7 @@ public class DefaultLaunchConfig implements LaunchConfig {
     this.indexFiles = indexFiles;
     this.other = other;
     this.handlerFactory = handlerFactory;
-    this.sslContext = sslContext;
+    this.sslContextFactory = sslContextFactory;
   }
 
   @Override
@@ -110,8 +111,8 @@ public class DefaultLaunchConfig implements LaunchConfig {
   }
 
   @Override
-  public SSLContext getSSLContext() {
-    return sslContext;
+  public SSLContextFactory getSSLContextFactory() {
+    return sslContextFactory;
   }
 
   public String getOther(String key, String defaultValue) {

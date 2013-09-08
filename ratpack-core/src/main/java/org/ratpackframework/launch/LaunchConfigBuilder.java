@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableMap;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.PooledByteBufAllocator;
 import org.ratpackframework.launch.internal.DefaultLaunchConfig;
+import org.ratpackframework.ssl.SSLContextFactory;
 
 import javax.net.ssl.SSLContext;
 import java.io.File;
@@ -69,7 +70,7 @@ public class LaunchConfigBuilder {
   private ImmutableMap.Builder<String, String> other = ImmutableMap.builder();
   private ExecutorService blockingExecutorService;
   private ByteBufAllocator byteBufAllocator = PooledByteBufAllocator.DEFAULT;
-  private SSLContext sslContext;
+  private SSLContextFactory sslContextFactory;
 
   private LaunchConfigBuilder(File baseDir) {
     this.baseDir = baseDir;
@@ -211,12 +212,12 @@ public class LaunchConfigBuilder {
   /**
    * The SSL context to use if the application serves content over HTTPS.
    *
-   * @param sslContext the SSL context.
-   * @see LaunchConfig#getSSLContext()
+   * @param sslContextFactory the SSL context.
+   * @see LaunchConfig#getSSLContextFactory()
    * @return this
    */
-  public LaunchConfigBuilder sslContext(SSLContext sslContext) {
-    this.sslContext = sslContext;
+  public LaunchConfigBuilder sslContextFactory(SSLContextFactory sslContextFactory) {
+    this.sslContextFactory = sslContextFactory;
     return this;
   }
 
@@ -258,7 +259,7 @@ public class LaunchConfigBuilder {
     if (blockingExecutorService == null) {
       blockingExecutorService = Executors.newCachedThreadPool(new BlockingThreadFactory());
     }
-    return new DefaultLaunchConfig(baseDir, port, address, reloadable, mainThreads, blockingExecutorService, byteBufAllocator, publicAddress, indexFiles.build(), other.build(), handlerFactory, sslContext);
+    return new DefaultLaunchConfig(baseDir, port, address, reloadable, mainThreads, blockingExecutorService, byteBufAllocator, publicAddress, indexFiles.build(), other.build(), handlerFactory, sslContextFactory);
   }
 
   @SuppressWarnings("NullableProblems")

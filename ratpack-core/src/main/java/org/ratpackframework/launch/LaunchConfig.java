@@ -18,6 +18,7 @@ package org.ratpackframework.launch;
 
 import io.netty.buffer.ByteBufAllocator;
 import org.ratpackframework.api.Nullable;
+import org.ratpackframework.ssl.SSLContextFactory;
 
 import javax.net.ssl.SSLContext;
 import java.io.File;
@@ -133,7 +134,8 @@ public interface LaunchConfig {
    *
    * @return The SSL context or <code>null</code> if the application does not use SSL.
    */
-  public SSLContext getSSLContext();
+  @Nullable
+  public SSLContextFactory getSSLContextFactory();
 
   /**
    * Provides access to any "other" properties that were specified.
