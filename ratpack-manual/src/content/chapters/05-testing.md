@@ -18,7 +18,7 @@ Once you have included the *ratpack-groovy* plugin, you can run your Spock tests
 
 ## Unit testing Ratpack handlers
 
-The [`InvocationBuilder`](api/org/ratpackframework/test/handling/InvocationBuilder.html) and [`Invocation'](api/org/ratpackframework/test/handling/Invocation.html) classes in the Ratpack test API allow you to unit test your [`Handler`](api/org/ratpackframework/handling/Handler.html) implementations without starting up a Ratpack server.
+The [`InvocationBuilder`](api/org/ratpackframework/test/handling/InvocationBuilder.html) and [`Invocation`](api/org/ratpackframework/test/handling/Invocation.html) classes in the Ratpack test API allow you to unit test your [`Handler`](api/org/ratpackframework/handling/Handler.html) implementations without starting up a Ratpack server.
 
 Let's assume we have a `Handler` implementation that looks like this:
 
