@@ -26,11 +26,13 @@ import java.net.URISyntaxException;
 
 public class DefaultPublicAddress implements PublicAddress {
 
-  private URI publicAddress;
-  private BindAddress bindAddress;
+  private final URI publicAddress;
+  private final String uriScheme;
+  private final BindAddress bindAddress;
 
-  public DefaultPublicAddress(URI publicAddress, BindAddress bindAddress) {
+  public DefaultPublicAddress(URI publicAddress, String uriScheme, BindAddress bindAddress) {
     this.publicAddress = publicAddress;
+    this.uriScheme = uriScheme;
     this.bindAddress = bindAddress;
   }
 
@@ -38,7 +40,7 @@ public class DefaultPublicAddress implements PublicAddress {
     URI currentUrl = null;
     if (publicAddress == null) {
       try {
-        currentUrl = new URI("http", null, bindAddress.getHost(), bindAddress.getPort(), null, null, null);
+        currentUrl = new URI(uriScheme, null, bindAddress.getHost(), bindAddress.getPort(), null, null, null);
       } catch (URISyntaxException e) {
         context.error(e);
       }

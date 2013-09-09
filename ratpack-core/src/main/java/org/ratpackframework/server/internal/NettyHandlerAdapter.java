@@ -80,13 +80,14 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
     InetSocketAddress socketAddress = (InetSocketAddress) channel.localAddress();
 
     BindAddress bindAddress = new InetSocketAddressBackedBindAddress(socketAddress);
+    String uriScheme = launchConfig.getSSLContext() == null ? "http" : "https";
 
     // If you update this list, update the class level javadoc on Context.
     return RegistryBuilder.builder()
       .add(FileSystemBinding.class, new DefaultFileSystemBinding(launchConfig.getBaseDir()))
       .add(MimeTypes.class, new ActivationBackedMimeTypes())
       .add(BindAddress.class, bindAddress)
-      .add(PublicAddress.class, new DefaultPublicAddress(launchConfig.getPublicAddress(), bindAddress))
+      .add(PublicAddress.class, new DefaultPublicAddress(launchConfig.getPublicAddress(), uriScheme, bindAddress))
       .add(Redirector.class, new DefaultRedirector())
       .add(ClientErrorHandler.class, new DefaultClientErrorHandler())
       .add(ServerErrorHandler.class, new DefaultServerErrorHandler())

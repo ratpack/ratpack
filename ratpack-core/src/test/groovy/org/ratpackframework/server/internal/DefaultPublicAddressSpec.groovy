@@ -23,7 +23,7 @@ import spock.lang.Unroll
 class DefaultPublicAddressSpec extends Specification {
 
   @Unroll
-  def "Get URL #publicURL , #bindHost : #bindPort -> #expected"() {
+  def "Get URL #publicURL, #scheme, #bindHost:#bindPort -> #expected"() {
     given:
     def port2 = bindPort
     def host2 = bindHost
@@ -38,15 +38,16 @@ class DefaultPublicAddressSpec extends Specification {
     }
     def url = publicURL ? new URI(publicURL) : null
 
-    DefaultPublicAddress publicAddress = new DefaultPublicAddress(url, bindAddress)
+    DefaultPublicAddress publicAddress = new DefaultPublicAddress(url, scheme, bindAddress)
     expect:
     publicAddress.getAddress(null).toString() == expected
 
     where:
-    publicURL             | bindHost    | bindPort || expected
-    null                  | "localhost" | 80       || "http://localhost:80"
-    "http://example.com"  | "localhost" | 80       || "http://example.com"
-    "https://example.com" | "localhost" | 80       || "https://example.com"
+    publicURL             | scheme  | bindHost    | bindPort || expected
+    null                  | "http"  | "localhost" | 80       || "http://localhost:80"
+    null                  | "https" | "localhost" | 80       || "https://localhost:80"
+    "http://example.com"  | "http"  | "localhost" | 80       || "http://example.com"
+    "https://example.com" | "https" | "localhost" | 80       || "https://example.com"
 
   }
 

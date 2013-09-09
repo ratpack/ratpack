@@ -17,13 +17,13 @@ See the chapter on “bootstrapping” for more detail. - TODO: write this chapt
 
 ## Serving content over HTTPS
 
-In order to have your Ratpack application serve content over HTTPS you need to configure an [`SSLContext`](http://docs.oracle.com/javase/7/docs/api/javax/net/ssl/SSLContext.html) and add it to your launch config. When the application runs it will accept HTTPS traffic rather than HTTP.
+In order to have your Ratpack application serve content over HTTPS you need to configure an [`SSLContext`](http://docs.oracle.com/javase/7/docs/api/javax/net/ssl/SSLContext.html) and add it to your launch config. When the application runs it will then accept HTTPS traffic rather than HTTP.
 
 The easiest way to do this is if your SSL context is based on a password protected *.keystore* file. If that is the case you can use the [`LaunchConfigBuilder.ssl`](api/org/ratpackframework/launch/LaunchConfigBuilder.html#ssl) method to tell Ratpack to load the keystore. For example:
 
 ```language-groovy
 launchConfig {
-  ssl getClass().getResource("my-keystore.keystore"), myKeystorePassword)
+  ssl getClass().getResource("my-keystore.keystore"), myKeystorePassword
 }
 ```
 
