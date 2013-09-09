@@ -88,7 +88,7 @@ public class NettyRatpackService extends AbstractIdleService implements RatpackS
 
   @Override
   public String getScheme() {
-    return launchConfig.getSSLContextFactory() == null ? "http" : "https";
+    return launchConfig.getSSLContext() == null ? "http" : "https";
   }
 
   public int getBindPort() {

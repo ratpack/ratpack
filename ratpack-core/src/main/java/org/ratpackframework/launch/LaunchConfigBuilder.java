@@ -21,11 +21,16 @@ import com.google.common.collect.ImmutableMap;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.PooledByteBufAllocator;
 import org.ratpackframework.launch.internal.DefaultLaunchConfig;
-import org.ratpackframework.ssl.SSLContextFactory;
+import org.ratpackframework.ssl.SSLContexts;
 
+import javax.net.ssl.SSLContext;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.URI;
+import java.net.URL;
+import java.security.GeneralSecurityException;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -69,7 +74,7 @@ public class LaunchConfigBuilder {
   private ImmutableMap.Builder<String, String> other = ImmutableMap.builder();
   private ExecutorService blockingExecutorService;
   private ByteBufAllocator byteBufAllocator = PooledByteBufAllocator.DEFAULT;
-  private SSLContextFactory sslContextFactory;
+  private SSLContext sslContext;
 
   private LaunchConfigBuilder(File baseDir) {
     this.baseDir = baseDir;
@@ -211,13 +216,46 @@ public class LaunchConfigBuilder {
   /**
    * The SSL context to use if the application serves content over HTTPS.
    *
-   * @param sslContextFactory the SSL context.
-   * @see LaunchConfig#getSSLContextFactory()
+   * @param sslContext the SSL context.
+   * @see LaunchConfig#getSSLContext()
    * @return this
    */
-  public LaunchConfigBuilder sslContextFactory(SSLContextFactory sslContextFactory) {
-    this.sslContextFactory = sslContextFactory;
+  public LaunchConfigBuilder sslContext(SSLContext sslContext) {
+    this.sslContext = sslContext;
     return this;
+  }
+
+  /**
+   * A convenience method for configuring an SSL context using a password-protected keystore file.
+   *
+   * @see SSLContexts#sslContext(java.io.InputStream, String)
+   * @see LaunchConfig#getSSLContext()
+   * @return this
+   */
+  public LaunchConfigBuilder ssl(InputStream keyStore, String password) throws GeneralSecurityException, IOException {
+    return sslContext(SSLContexts.sslContext(keyStore, password));
+  }
+
+  /**
+   * A convenience method for configuring an SSL context using a password-protected keystore file.
+   *
+   * @see SSLContexts#sslContext(java.net.URL, String)
+   * @see LaunchConfig#getSSLContext()
+   * @return this
+   */
+  public LaunchConfigBuilder ssl(URL keyStore, String password) throws GeneralSecurityException, IOException {
+    return sslContext(SSLContexts.sslContext(keyStore, password));
+  }
+
+  /**
+   * A convenience method for configuring an SSL context using a password-protected keystore file.
+   *
+   * @see SSLContexts#sslContext(java.io.File, String)
+   * @see LaunchConfig#getSSLContext()
+   * @return this
+   */
+  public LaunchConfigBuilder ssl(File keyStore, String password) throws GeneralSecurityException, IOException {
+    return sslContext(SSLContexts.sslContext(keyStore, password));
   }
 
   /**
@@ -258,7 +296,7 @@ public class LaunchConfigBuilder {
     if (blockingExecutorService == null) {
       blockingExecutorService = Executors.newCachedThreadPool(new BlockingThreadFactory());
     }
-    return new DefaultLaunchConfig(baseDir, port, address, reloadable, mainThreads, blockingExecutorService, byteBufAllocator, publicAddress, indexFiles.build(), other.build(), handlerFactory, sslContextFactory);
+    return new DefaultLaunchConfig(baseDir, port, address, reloadable, mainThreads, blockingExecutorService, byteBufAllocator, publicAddress, indexFiles.build(), other.build(), handlerFactory, sslContext);
   }
 
   @SuppressWarnings("NullableProblems")

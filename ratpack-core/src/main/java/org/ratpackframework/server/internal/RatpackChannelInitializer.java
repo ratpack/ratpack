@@ -28,37 +28,28 @@ import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.stream.ChunkedWriteHandler;
 import org.ratpackframework.handling.Handler;
 import org.ratpackframework.launch.LaunchConfig;
-import org.ratpackframework.launch.LaunchException;
-import org.ratpackframework.ssl.SSLContextFactory;
 
+import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
-import java.io.IOException;
-import java.security.GeneralSecurityException;
 
 public class RatpackChannelInitializer extends ChannelInitializer<SocketChannel> {
 
   private NettyHandlerAdapter nettyHandlerAdapter;
-  private SSLContextFactory sslContextFactory;
+  private SSLContext sslContext;
 
   public RatpackChannelInitializer(LaunchConfig launchConfig, Handler handler) {
     ListeningExecutorService blockingExecutorService = MoreExecutors.listeningDecorator(launchConfig.getBlockingExecutorService());
     this.nettyHandlerAdapter = new NettyHandlerAdapter(handler, launchConfig, blockingExecutorService);
-    this.sslContextFactory = launchConfig.getSSLContextFactory();
+    this.sslContext = launchConfig.getSSLContext();
   }
 
   public void initChannel(SocketChannel ch) {
     ChannelPipeline pipeline = ch.pipeline();
 
-    if (sslContextFactory != null) {
-      try {
-        SSLEngine engine = sslContextFactory.createServerContext().createSSLEngine();
-        engine.setUseClientMode(false);
-        pipeline.addLast("ssl", new SslHandler(engine));
-      } catch (GeneralSecurityException e) {
-        throw new LaunchException("Security exception creating SSL context", e);
-      } catch (IOException e) {
-        throw new LaunchException("IO exception creating SSL context", e);
-      }
+    if (sslContext != null) {
+      SSLEngine engine = sslContext.createSSLEngine();
+      engine.setUseClientMode(false);
+      pipeline.addLast("ssl", new SslHandler(engine));
     }
 
     pipeline.addLast("decoder", new HttpRequestDecoder());

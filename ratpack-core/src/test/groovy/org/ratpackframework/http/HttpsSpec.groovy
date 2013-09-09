@@ -17,7 +17,6 @@
 package org.ratpackframework.http
 
 import org.junit.Rule
-import org.ratpackframework.ssl.DefaultSSLContextFactory
 import org.ratpackframework.test.internal.RatpackGroovyDslSpec
 import org.ratpackframework.test.internal.ssl.client.NonValidatingSSLClientContext
 
@@ -25,12 +24,11 @@ class HttpsSpec extends RatpackGroovyDslSpec {
 
   @Rule
   NonValidatingSSLClientContext clientContext = new NonValidatingSSLClientContext()
-  def serverContext = new DefaultSSLContextFactory(HttpsSpec.getResource("dummy.keystore"), "password")
 
   def "can serve content over HTTPS"() {
     given:
     launchConfig {
-      sslContextFactory serverContext
+      ssl HttpsSpec.getResource("dummy.keystore"), "password"
     }
 
     and:
