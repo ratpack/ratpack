@@ -376,7 +376,7 @@ public interface Chain {
    * @return The registry that backs this {@code Chain}, or {@code null} if this {@code Chain} has no registry.
    */
   @Nullable
-  Registry<Object> getRegistry();
+  Registry getRegistry();
 
   /**
    * The launch config of the application that this chain is being created for.

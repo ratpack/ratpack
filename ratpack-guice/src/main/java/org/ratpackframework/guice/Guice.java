@@ -19,8 +19,7 @@ package org.ratpackframework.guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import org.ratpackframework.guice.internal.DefaultGuiceBackedHandlerFactory;
-import org.ratpackframework.guice.internal.InjectorBackedChildRegistry;
-import org.ratpackframework.guice.internal.JustInTimeInjectorChildRegistry;
+import org.ratpackframework.guice.internal.InjectorBackedRegistry;
 import org.ratpackframework.guice.internal.JustInTimeInjectorRegistry;
 import org.ratpackframework.handling.Chain;
 import org.ratpackframework.handling.Handler;
@@ -240,38 +239,18 @@ public abstract class Guice {
    * @param injector The injector to back the registry
    * @return A registry that wraps the injector
    */
-  public static Registry<Object> justInTimeRegistry(Injector injector) {
+  public static Registry justInTimeRegistry(Injector injector) {
     return new JustInTimeInjectorRegistry(injector);
   }
 
   /**
-   * Creates a Ratpack {@link Registry} backed by the given {@link Injector} that will create objects via “just-in-time” binding.
-   * <p>
-   * Typically used in conjuction with the {@link org.ratpackframework.handling.Handlers#chain(LaunchConfig, org.ratpackframework.registry.Registry, org.ratpackframework.util.Action)}
-   * method.
-   * <p>
-   * If the injector cannot provide an instance of the requested type, the returned registry will delegate to the given parent.
-   *
-   * @param parent The parent registry to delegate to if the injector can't satisfy the registry {@link Registry#get(Class)} request.
-   * @param injector The injector to back the registry
-   * @return A registry that wraps the injector
-   */
-  public static Registry<Object> justInTimeRegistry(Registry<Object> parent, Injector injector) {
-    return new JustInTimeInjectorChildRegistry(parent, injector);
-  }
-
-  /**
    * Creates a Ratpack {@link Registry} backed by the given {@link Injector} that will <b>NOT</b> create objects via “just-in-time” binding.
-   * <p>
-   * If the injector cannot provide an instance of the requested type (because no object of that type was bound),
-   * the returned registry will delegate to the given parent.
    *
-   * @param parent The parent registry to delegate to if the injector can't satisfy the registry {@link Registry#get(Class)} request.
    * @param injector The injector to back the registry
    * @return A registry that wraps the injector
    */
-  public static Registry<Object> registry(Registry<Object> parent, Injector injector) {
-    return new InjectorBackedChildRegistry(parent, injector);
+  public static Registry registry(Injector injector) {
+    return new InjectorBackedRegistry(injector);
   }
 
   /**

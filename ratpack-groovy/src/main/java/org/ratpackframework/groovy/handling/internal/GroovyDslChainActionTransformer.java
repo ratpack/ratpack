@@ -28,9 +28,9 @@ import java.util.List;
 public class GroovyDslChainActionTransformer implements Transformer<List<Handler>, Chain> {
 
   private final LaunchConfig launchConfig;
-  private final Registry<Object> registry;
+  private final Registry registry;
 
-  public GroovyDslChainActionTransformer(LaunchConfig launchConfig, @Nullable Registry<Object> registry) {
+  public GroovyDslChainActionTransformer(LaunchConfig launchConfig, @Nullable Registry registry) {
     this.launchConfig = launchConfig;
     this.registry = registry;
   }

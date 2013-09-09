@@ -75,7 +75,7 @@ public class DefaultByMethodHandler implements ByMethodHandler {
     for (Map.Entry<String, Runnable> entry : runnables.entrySet()) {
       handlers.add(new ByMethodHandler(entry.getKey(), entry.getValue()));
     }
-    handlers.add(new ClientErrorHandler(METHOD_NOT_ALLOWED.code()));
+    handlers.add(new ClientErrorForwardingHandler(METHOD_NOT_ALLOWED.code()));
     context.insert(handlers);
   }
 

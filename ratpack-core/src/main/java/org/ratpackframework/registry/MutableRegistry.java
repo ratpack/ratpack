@@ -21,7 +21,7 @@ package org.ratpackframework.registry;
  *
  * @param <T> The base type of object in the registry.
  */
-public interface MutableRegistry<T> extends Registry<T> {
+public interface MutableRegistry<T> extends Registry {
 
   /**
    * Register the given object under the given type.

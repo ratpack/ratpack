@@ -16,12 +16,14 @@
 
 package org.ratpackframework.guice.internal;
 
+import com.google.inject.ConfigurationException;
 import com.google.inject.Injector;
-import org.ratpackframework.registry.internal.RegistrySupport;
+import org.ratpackframework.registry.NotInRegistryException;
+import org.ratpackframework.registry.Registry;
 
 import java.util.List;
 
-public class JustInTimeInjectorRegistry extends RegistrySupport<Object> {
+public class JustInTimeInjectorRegistry implements Registry {
 
   private final Injector injector;
 
@@ -29,9 +31,12 @@ public class JustInTimeInjectorRegistry extends RegistrySupport<Object> {
     this.injector = injector;
   }
 
-  @Override
-  protected <T> T doMaybeGet(Class<T> type) {
-    return injector.getInstance(type);
+  public <T> T maybeGet(Class<T> type) {
+    try {
+      return injector.getInstance(type);
+    } catch (ConfigurationException e) {
+      return null;
+    }
   }
 
   @Override
@@ -40,8 +45,11 @@ public class JustInTimeInjectorRegistry extends RegistrySupport<Object> {
   }
 
   @Override
-  public String toString() {
-    return "JustInTimeInjectorRegistry{" + injector + '}';
+  public <O> O get(Class<O> type) throws NotInRegistryException {
+    try {
+      return injector.getInstance(type);
+    } catch (ConfigurationException e) {
+      throw new NotInRegistryException(type);
+    }
   }
-
 }

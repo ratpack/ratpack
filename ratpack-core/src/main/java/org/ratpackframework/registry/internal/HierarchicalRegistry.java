@@ -17,35 +17,46 @@
 package org.ratpackframework.registry.internal;
 
 import com.google.common.collect.ImmutableList;
+import org.ratpackframework.registry.NotInRegistryException;
 import org.ratpackframework.registry.Registry;
 
 import java.util.List;
 
-public abstract class ChildRegistrySupport<T> extends RegistrySupport<T> {
+public class HierarchicalRegistry implements Registry {
 
-  private final Registry<T> parent;
+  private final Registry parent;
+  private final Registry child;
 
-  protected ChildRegistrySupport(Registry<T> parent) {
+  public HierarchicalRegistry(Registry parent, Registry child) {
     this.parent = parent;
+    this.child = child;
   }
 
   @Override
-  public String toString() {
-    return describe() + " -> " + parent.toString();
+  public <O> O get(Class<O> type) throws NotInRegistryException {
+    O object = maybeGet(type);
+
+    if (object == null) {
+      throw new NotInRegistryException(type);
+    } else {
+      return object;
+    }
   }
 
   @Override
-  protected <O extends T> O onNotFound(@SuppressWarnings("UnusedParameters") Class<O> type) {
-    return parent.maybeGet(type);
+  public <O> O maybeGet(Class<O> type) {
+    O object = child.maybeGet(type);
+    if (object == null) {
+      object = parent.maybeGet(type);
+    }
+
+    return object;
   }
 
   @Override
-  public final <O extends T> List<O> getAll(Class<O> type) {
-    return ImmutableList.<O>builder().addAll(doChildGetAll(type)).addAll(parent.getAll(type)).build();
+  public <O> List<O> getAll(Class<O> type) {
+    List<O> childAll = child.getAll(type);
+    List<O> parentAll = parent.getAll(type);
+    return ImmutableList.<O>builder().addAll(childAll).addAll(parentAll).build();
   }
-
-  protected abstract <O extends T> List<O> doChildGetAll(Class<O> type);
-
-  protected abstract String describe();
-
 }

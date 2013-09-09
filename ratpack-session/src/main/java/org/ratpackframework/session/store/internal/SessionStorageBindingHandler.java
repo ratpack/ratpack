@@ -18,12 +18,10 @@ package org.ratpackframework.session.store.internal;
 
 import com.google.common.collect.ImmutableList;
 import org.ratpackframework.handling.Context;
-import org.ratpackframework.registry.Registry;
-import org.ratpackframework.registry.internal.LazyChildRegistry;
 import org.ratpackframework.handling.Handler;
 import org.ratpackframework.session.Session;
-import org.ratpackframework.session.store.SessionStore;
 import org.ratpackframework.session.store.SessionStorage;
+import org.ratpackframework.session.store.SessionStore;
 import org.ratpackframework.util.Factory;
 
 import java.util.List;
@@ -37,7 +35,7 @@ public class SessionStorageBindingHandler implements Handler {
   }
 
   public void handle(final Context context) {
-    Registry<Object> sessionRegistry = new LazyChildRegistry<>(context, SessionStorage.class, new Factory<SessionStorage>() {
+    context.insert(handler, SessionStorage.class, new Factory<SessionStorage>() {
       public SessionStorage create() {
         Session session = context.get(Session.class);
         String id = session.getId();
@@ -45,7 +43,6 @@ public class SessionStorageBindingHandler implements Handler {
         return sessionStore.get(id);
       }
     });
-    context.insert(sessionRegistry, handler);
   }
 
 }

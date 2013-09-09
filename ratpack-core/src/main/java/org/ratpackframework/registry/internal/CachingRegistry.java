@@ -26,39 +26,39 @@ import org.ratpackframework.registry.Registry;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
-public class CachingRegistry<T> implements Registry<T> {
+public class CachingRegistry implements Registry {
 
-  private final Registry<T> delegate;
+  private final Registry delegate;
 
-  private final LoadingCache<Class<? extends T>, ? extends Optional<? extends T>> cache = CacheBuilder.newBuilder().build(new CacheLoader<Class<? extends T>, Optional<? extends T>>() {
-    public Optional<? extends T> load(Class<? extends T> key) throws Exception {
-      T nullableReference = delegate.maybeGet(key);
+  private final LoadingCache<Class<?>, ? extends Optional<?>> cache = CacheBuilder.newBuilder().build(new CacheLoader<Class<?>, Optional<?>>() {
+    public Optional<?> load(Class<?> key) throws Exception {
+      Object nullableReference = delegate.maybeGet(key);
       return Optional.fromNullable(nullableReference);
     }
   });
 
-  private final LoadingCache<Class<? extends T>, List<? extends T>> allCache = CacheBuilder.newBuilder().build(new CacheLoader<Class<? extends T>, List<? extends T>>() {
-    public List<? extends T> load(Class<? extends T> key) throws Exception {
+  private final LoadingCache<Class<?>, List<?>> allCache = CacheBuilder.newBuilder().build(new CacheLoader<Class<?>, List<?>>() {
+    public List<?> load(Class<?> key) throws Exception {
       return delegate.getAll(key);
     }
   });
 
-  public CachingRegistry(Registry<T> delegate) {
+  public CachingRegistry(Registry delegate) {
     this.delegate = delegate;
   }
 
   @Override
-  public <O extends T> O get(Class<O> type) throws NotInRegistryException {
+  public <O> O get(Class<O> type) throws NotInRegistryException {
     O o = maybeGet(type);
     if (o == null) {
-      throw new NotInRegistryException(delegate, type);
+      throw new NotInRegistryException(type);
     } else {
       return o;
     }
   }
 
   @Override
-  public <O extends T> O maybeGet(Class<O> type) {
+  public <O> O maybeGet(Class<O> type) {
     try {
       @SuppressWarnings("unchecked") O o = (O) cache.get(type).orNull();
       return o;
@@ -77,7 +77,7 @@ public class CachingRegistry<T> implements Registry<T> {
   }
 
   @Override
-  public <O extends T> List<O> getAll(Class<O> type) {
+  public <O> List<O> getAll(Class<O> type) {
     try {
       @SuppressWarnings("unchecked") List<O> objects = (List<O>) allCache.get(type);
       return objects;
@@ -86,7 +86,4 @@ public class CachingRegistry<T> implements Registry<T> {
     }
   }
 
-  public static <T> Registry<T> cachingRegistry(Registry<T> registry) {
-    return new CachingRegistry<>(registry);
-  }
 }

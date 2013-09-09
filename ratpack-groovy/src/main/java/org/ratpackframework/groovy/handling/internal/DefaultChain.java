@@ -33,7 +33,7 @@ import static org.ratpackframework.groovy.Util.asHandler;
 
 public class DefaultChain extends org.ratpackframework.handling.internal.DefaultChain implements Chain {
 
-  public DefaultChain(List<Handler> handlers, LaunchConfig launchConfig, @Nullable Registry<Object> registry) {
+  public DefaultChain(List<Handler> handlers, LaunchConfig launchConfig, @Nullable Registry registry) {
     super(handlers, launchConfig, registry);
   }
 

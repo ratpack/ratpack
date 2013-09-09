@@ -89,7 +89,7 @@ public abstract class Handlers {
    * @param action The chain building action.
    * @return A handler
    */
-  public static Handler chain(LaunchConfig launchConfig, @Nullable Registry<Object> registry, Action<? super Chain> action) {
+  public static Handler chain(LaunchConfig launchConfig, @Nullable Registry registry, Action<? super Chain> action) {
     return ChainBuilder.INSTANCE.buildHandler(new ChainActionTransformer(launchConfig, registry), action);
   }
 
@@ -102,6 +102,7 @@ public abstract class Handlers {
    * @param action The chain building action
    * @return The handlers added by the chain action
    */
+  @SuppressWarnings("UnusedDeclaration")
   public static List<Handler> chainList(LaunchConfig launchConfig, Action<? super Chain> action) {
     return chainList(launchConfig, null, action);
   }
@@ -116,7 +117,7 @@ public abstract class Handlers {
    * @param registry The registry to back the chain with
    * @return The handlers added by the chain action
    */
-  public static List<Handler> chainList(LaunchConfig launchConfig, @Nullable Registry<Object> registry, Action<? super Chain> action) {
+  public static List<Handler> chainList(LaunchConfig launchConfig, @Nullable Registry registry, Action<? super Chain> action) {
     return ChainBuilder.INSTANCE.buildList(new ChainActionTransformer(launchConfig, registry), action);
   }
 

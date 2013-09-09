@@ -16,24 +16,31 @@
 
 package org.ratpackframework.registry.internal;
 
-import org.ratpackframework.registry.Registry;
 import org.ratpackframework.util.Factory;
 
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class LazyChildRegistry<T, L extends T> extends SingleValueChildRegistry<T, L> {
+public class LazyRegistryEntry<T> implements RegistryEntry<T> {
 
-  private final Factory<? extends L> factory;
-  private L object;
-  private Lock lock = new ReentrantLock();
+  private final Class<T> type;
+  private final Factory<? extends T> factory;
+  private final Lock lock = new ReentrantLock();
 
-  public LazyChildRegistry(Registry<T> parent, Class<L> type, Factory<? extends L> factory) {
-    super(parent, type);
+  private T object;
+
+  public LazyRegistryEntry(Class<T> type, Factory<? extends T> factory) {
+    this.type = type;
     this.factory = factory;
   }
 
-  protected L getObject() {
+  @Override
+  public Class<T> getType() {
+    return type;
+  }
+
+  @Override
+  public T get() {
     if (object == null) {
       lock.lock();
       try {
@@ -46,10 +53,5 @@ public class LazyChildRegistry<T, L extends T> extends SingleValueChildRegistry<
       }
     }
     return object;
-  }
-
-  @Override
-  protected String describe() {
-    return "LazyChildRegistry{" + getType().getName() + "}";
   }
 }

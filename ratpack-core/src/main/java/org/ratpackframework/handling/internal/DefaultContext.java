@@ -31,10 +31,11 @@ import org.ratpackframework.path.PathBinding;
 import org.ratpackframework.path.PathTokens;
 import org.ratpackframework.registry.NotInRegistryException;
 import org.ratpackframework.registry.Registry;
-import org.ratpackframework.registry.internal.ObjectHoldingChildRegistry;
+import org.ratpackframework.registry.RegistryBuilder;
 import org.ratpackframework.render.Renderer;
 import org.ratpackframework.render.controller.NoSuchRendererException;
 import org.ratpackframework.util.Action;
+import org.ratpackframework.util.Factory;
 import org.ratpackframework.util.Result;
 import org.ratpackframework.util.ResultAction;
 
@@ -54,9 +55,9 @@ public class DefaultContext implements Context {
   private final ExecutorService mainExecutorService;
   private final ListeningExecutorService blockingExecutorService;
   private final Handler next;
-  private final Registry<Object> registry;
+  private final Registry registry;
 
-  public DefaultContext(Request request, Response response, Registry<Object> registry, ExecutorService mainExecutorService, ListeningExecutorService blockingExecutorService, Handler next) {
+  public DefaultContext(Request request, Response response, Registry registry, ExecutorService mainExecutorService, ListeningExecutorService blockingExecutorService, Handler next) {
     this.request = request;
     this.response = response;
     this.registry = registry;
@@ -93,16 +94,21 @@ public class DefaultContext implements Context {
     doNext(this, registry, handlers, 0, next);
   }
 
-  public void insert(Registry<Object> registry, List<Handler> handlers) {
-    doNext(this, registry, handlers, 0, next);
+  public void insert(List<Handler> handlers, Registry registry) {
+    doNext(this, RegistryBuilder.join(this.registry, registry), handlers, 0, next);
   }
 
-  public <P, T extends P> void insert(Class<P> publicType, T implementation, List<Handler> handlers) {
-    doNext(this, new ObjectHoldingChildRegistry<>(registry, publicType, implementation), handlers, 0, next);
+  @Override
+  public <T> void insert(List<Handler> handlers, Class<T> publicType, Factory<? extends T> factory) {
+    insert(handlers, RegistryBuilder.builder().add(publicType, factory).build());
   }
 
-  public void insert(Object object, List<Handler> handlers) {
-    doNext(this, new ObjectHoldingChildRegistry<>(registry, object), handlers, 0, next);
+  public <P, T extends P> void insert(List<Handler> handlers, Class<P> publicType, T implementation) {
+    insert(handlers, RegistryBuilder.builder().add(publicType, implementation).build());
+  }
+
+  public void insert(List<Handler> handlers, Object object) {
+    insert(handlers, RegistryBuilder.builder().add(object).build());
   }
 
   public void respond(Handler handler) {
@@ -122,7 +128,9 @@ public class DefaultContext implements Context {
   }
 
   public void render(Object object) throws NoSuchRendererException {
-    for (Renderer<?> renderer : registry.getAll(Renderer.class)) {
+    @SuppressWarnings("rawtypes")
+    List<Renderer> all = registry.getAll(Renderer.class);
+    for (Renderer<?> renderer : all) {
       if (maybeRender(object, renderer)) {
         return;
       }
@@ -217,7 +225,7 @@ public class DefaultContext implements Context {
     return new DefaultByContentHandler();
   }
 
-  protected void doNext(final Context parentContext, final Registry<Object> registry, final List<Handler> handlers, final int index, final Handler exhausted) {
+  protected void doNext(final Context parentContext, final Registry registry, final List<Handler> handlers, final int index, final Handler exhausted) {
     assert registry != null;
     if (index == handlers.size()) {
       try {

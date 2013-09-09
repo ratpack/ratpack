@@ -28,9 +28,9 @@ import java.util.List;
 public class ChainActionTransformer implements Transformer<List<Handler>, Chain> {
 
   private final LaunchConfig launchConfig;
-  private final Registry<Object> registry;
+  private final Registry registry;
 
-  public ChainActionTransformer(LaunchConfig launchConfig, @Nullable Registry<Object> registry) {
+  public ChainActionTransformer(LaunchConfig launchConfig, @Nullable Registry registry) {
     this.launchConfig = launchConfig;
     this.registry = registry;
   }

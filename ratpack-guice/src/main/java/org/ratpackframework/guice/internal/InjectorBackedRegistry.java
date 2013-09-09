@@ -16,38 +16,44 @@
 
 package org.ratpackframework.guice.internal;
 
-import com.google.inject.ConfigurationException;
+import com.google.inject.Binding;
 import com.google.inject.Injector;
+import com.google.inject.Key;
+import org.ratpackframework.registry.NotInRegistryException;
 import org.ratpackframework.registry.Registry;
-import org.ratpackframework.registry.internal.ChildRegistrySupport;
 
 import java.util.List;
 
-public class JustInTimeInjectorChildRegistry extends ChildRegistrySupport<Object> {
+public class InjectorBackedRegistry implements Registry {
 
-  private final Injector injector;
+  final Injector injector;
 
-  public JustInTimeInjectorChildRegistry(Registry<Object> parent, Injector injector) {
-    super(parent);
+  public InjectorBackedRegistry(Injector injector) {
     this.injector = injector;
   }
 
   @Override
-  protected String describe() {
-    return "JustInTimeInjectorChildRegistry{" + injector + '}';
+  public <O> O get(Class<O> type) throws NotInRegistryException {
+    O object = maybeGet(type);
+    if (object == null) {
+      throw new NotInRegistryException(type);
+    } else {
+      return object;
+    }
   }
 
-  @Override
-  protected <O extends Object> O doMaybeGet(Class<O> type) {
-    try {
-      return injector.getInstance(type);
-    } catch (ConfigurationException ignore) {
+  public <T> T maybeGet(Class<T> type) {
+    Binding<T> existingBinding = injector.getExistingBinding(Key.get(type));
+    if (existingBinding == null) {
       return null;
+    } else {
+      return existingBinding.getProvider().get();
     }
   }
 
   @Override
-  protected <O extends Object> List<O> doChildGetAll(Class<O> type) {
+  public <O> List<O> getAll(Class<O> type) {
     return GuiceUtil.ofType(injector, type);
   }
+
 }

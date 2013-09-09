@@ -14,21 +14,22 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.handling.internal;
+package org.ratpackframework.registry
 
-import org.ratpackframework.handling.Context;
-import org.ratpackframework.handling.Handler;
+import spock.lang.Specification
 
-public class ClientErrorHandler implements Handler {
+class RegistryBuilderSpec extends Specification {
 
-  private final int statusCode;
+  def "can retrieve successfully"() {
+    given:
+    def c = RegistryBuilder.builder().add(String, "foo").build()
+    def p = RegistryBuilder.builder().add(Integer, 2).build()
+    def n = RegistryBuilder.join(p, c)
 
-  public ClientErrorHandler(int statusCode) {
-    this.statusCode = statusCode;
-  }
-
-  public void handle(Context context) {
-    context.clientError(statusCode);
+    expect:
+    n.get(String) == "foo"
+    n.get(Number) == 2 // delegating to parent
+    n.getAll(Object) == ["foo", 2]
   }
 
 }

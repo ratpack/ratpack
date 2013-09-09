@@ -37,7 +37,7 @@ public class PathHandler implements Handler {
   public void handle(Context context) {
     PathBinding childBinding = binding.bind(context.getRequest().getPath(), context.maybeGet(PathBinding.class));
     if (childBinding != null) {
-      context.insert(PathBinding.class, childBinding, chain);
+      context.insert(chain, PathBinding.class, childBinding);
     } else {
       context.next();
     }

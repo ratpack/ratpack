@@ -20,8 +20,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.inject.Binder;
 import com.google.inject.Module;
 import org.ratpackframework.guice.ModuleRegistry;
-import org.ratpackframework.guice.NoSuchModuleException;
 import org.ratpackframework.launch.LaunchConfig;
+import org.ratpackframework.registry.NotInRegistryException;
 import org.ratpackframework.util.Action;
 
 import javax.inject.Provider;
@@ -100,17 +100,17 @@ public class DefaultModuleRegistry implements ModuleRegistry {
     modules.put(type, module);
   }
 
-  public <T extends Module> T get(Class<T> moduleType) {
-    Module module = modules.get(moduleType);
+  public <T> T get(Class<T> moduleType) {
+    @SuppressWarnings("SuspiciousMethodCalls") Module module = modules.get(moduleType);
     if (module == null) {
-      throw new NoSuchModuleException(moduleType);
+      throw new NotInRegistryException(moduleType);
     }
 
     return moduleType.cast(module);
   }
 
   @Override
-  public <O extends Module> List<O> getAll(Class<O> type) {
+  public <O> List<O> getAll(Class<O> type) {
     ImmutableList.Builder<O> builder = ImmutableList.builder();
     for (Module module : modules.values()) {
       if (type.isInstance(module)) {
@@ -121,8 +121,8 @@ public class DefaultModuleRegistry implements ModuleRegistry {
     return builder.build();
   }
 
-  public <O extends Module> O maybeGet(Class<O> type) {
-    Module module = modules.get(type);
+  public <O> O maybeGet(Class<O> type) {
+    @SuppressWarnings("SuspiciousMethodCalls") Module module = modules.get(type);
     if (module == null) {
       return null;
     }
@@ -132,7 +132,7 @@ public class DefaultModuleRegistry implements ModuleRegistry {
 
   public <T extends Module> T remove(Class<T> moduleType) {
     if (!modules.containsKey(moduleType)) {
-      throw new NoSuchModuleException(moduleType);
+      throw new NotInRegistryException(moduleType);
     }
 
     return moduleType.cast(modules.remove(moduleType));

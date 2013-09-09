@@ -16,32 +16,10 @@
 
 package org.ratpackframework.registry.internal;
 
-import org.ratpackframework.registry.Registry;
+public interface RegistryEntry<T> {
 
-/**
- * A simple service that
- */
-public class ObjectHoldingChildRegistry<T, L extends T> extends SingleValueChildRegistry<T, L> {
+  Class<T> getType();
 
-  private final L value;
+  T get();
 
-  @SuppressWarnings("unchecked")
-  public ObjectHoldingChildRegistry(Registry<T> parent, L value) {
-    this(parent, (Class<L>) value.getClass(), value);
-  }
-
-  public ObjectHoldingChildRegistry(Registry<T> parent, Class<L> type, L value) {
-    super(parent, type);
-    this.value = value;
-  }
-
-  @Override
-  protected L getObject() {
-    return value;
-  }
-
-  @Override
-  protected String describe() {
-    return "ObjectServiceRegistry{" + value + "}";
-  }
 }

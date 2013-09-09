@@ -42,9 +42,9 @@ public class RegisteringHandler implements Handler {
   @SuppressWarnings("unchecked")
   public void handle(Context context) {
     if (type == null) {
-      context.insert(object, handlers);
+      context.insert(handlers, object);
     } else {
-      context.insert((Class)type, object, handlers);
+      context.insert(handlers, (Class)type, object);
     }
   }
 }

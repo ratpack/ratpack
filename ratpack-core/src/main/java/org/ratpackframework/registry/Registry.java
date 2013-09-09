@@ -26,10 +26,8 @@ import java.util.List;
  * A registry acts as a kind of service locator. A registry can be requested to provide an object of a certain type.
  * <p>
  * Registry objects must be threadsafe.
- *
- * @param <T> the baseline type of objects in this registry
  */
-public interface Registry<T> {
+public interface Registry {
 
   /**
    * Provides an object of the specified type, or throws an exception if no object of that type is available.
@@ -39,7 +37,7 @@ public interface Registry<T> {
    * @return An object of the specified type
    * @throws NotInRegistryException If no object of this type can be returned
    */
-  <O extends T> O get(Class<O> type) throws NotInRegistryException;
+  <O> O get(Class<O> type) throws NotInRegistryException;
 
   /**
    * Does the same thing as {@link #get(Class)}, except returns null instead of throwing an exception.
@@ -49,8 +47,8 @@ public interface Registry<T> {
    * @return An object of the specified type, or null if no object of this type is available.
    */
   @Nullable
-  <O extends T> O maybeGet(Class<O> type);
+  <O> O maybeGet(Class<O> type);
 
-  <O extends T> List<O> getAll(Class<O> type);
+  <O> List<O> getAll(Class<O> type);
 
 }

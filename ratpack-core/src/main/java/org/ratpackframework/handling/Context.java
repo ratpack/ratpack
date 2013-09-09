@@ -25,6 +25,7 @@ import org.ratpackframework.registry.NotInRegistryException;
 import org.ratpackframework.registry.Registry;
 import org.ratpackframework.render.controller.NoSuchRendererException;
 import org.ratpackframework.util.Action;
+import org.ratpackframework.util.Factory;
 import org.ratpackframework.util.ResultAction;
 
 import java.io.File;
@@ -54,7 +55,7 @@ import java.util.List;
  * For example, error handling is based on informing the contextual {@link org.ratpackframework.error.ServerErrorHandler} of exceptions.
  * The error handling strategy for an application can be changed by pushing a new implementation of this interface into the context that is used downstream.
  * <p>
- * See {@link #insert(Class, Object, java.util.List)} for more on how to do this.
+ * See {@link #insert(java.util.List)} for more on how to do this.
  * <h5>Default contextual objects</h5>
  * <p>There is also a set of default objects that are made available via the Ratpack infrastructure:
  * <ul>
@@ -70,7 +71,7 @@ import java.util.List;
  * </ul>
  */
 @SuppressWarnings("UnusedDeclaration")
-public interface Context extends Registry<Object> {
+public interface Context extends Registry {
 
   /**
    * The HTTP request.
@@ -111,11 +112,25 @@ public interface Context extends Registry<Object> {
    * <p>
    * Almost always, the registry should be a super set of the current registry.
    *
-   * @param registry The registry for the inserted handlers
    * @param handlers The handlers to insert
+   * @param registry The registry for the inserted handlers
    */
   @NonBlocking
-  void insert(Registry<Object> registry, List<Handler> handlers);
+  void insert(List<Handler> handlers, Registry registry);
+
+  /**
+   * Inserts some handlers into the pipeline to execute with the given object created by the factory made available, then delegates to the first.
+   * <p>
+   * The given object will take precedence over an existing contextual object advertised by the given advertised type.
+   * <p>
+   * The object will only be retrievable by the type that is given and will be created on demand (once) from the factory.
+   *
+   * @param handlers The handlers to insert
+   * @param publicType The advertised type of the object (i.e. what it is retrievable by)
+   * @param factory The factory that creates the object lazily
+   */
+  @NonBlocking
+  <T> void insert(List<Handler> handlers, Class<T> publicType, Factory<? extends T> factory);
 
   /**
    * Inserts some handlers into the pipeline to execute with the given object made available, then delegates to the first.
@@ -124,25 +139,23 @@ public interface Context extends Registry<Object> {
    * <p>
    * The object will only be retrievable by the type that is given.
    *
-   * @param <P> The public type of the object
-   * @param <T> The concrete type of the object
+   * @param handlers The handlers to insert
    * @param publicType The advertised type of the object (i.e. what it is retrievable by)
    * @param implementation The actual implementation
-   * @param handlers The handlers to insert
    */
   @NonBlocking
-  <P, T extends P> void insert(Class<P> publicType, T implementation, List<Handler> handlers);
+  <P, T extends P> void insert(List<Handler> handlers, Class<P> publicType, T implementation);
 
   /**
    * Inserts some handlers into the pipeline to execute with the the given object added to the service, then delegates to the first.
    * <p>
    * The given object will take precedence over any existing object available via its concrete type.
    *
-   * @param object The object to add to the service for the handlers
    * @param handlers The handlers to insert
+   * @param object The object to add to the service for the handlers
    */
   @NonBlocking
-  void insert(Object object, List<Handler> handlers);
+  void insert(List<Handler> handlers, Object object);
 
   /**
    * Convenience method for delegating to a single handler.

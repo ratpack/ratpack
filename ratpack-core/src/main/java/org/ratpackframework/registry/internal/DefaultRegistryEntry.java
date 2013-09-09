@@ -14,20 +14,25 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.guice;
+package org.ratpackframework.registry.internal;
 
-import com.google.inject.Module;
-import org.ratpackframework.registry.NotInRegistryException;
+public class DefaultRegistryEntry<T> implements RegistryEntry<T> {
 
-/**
- * Thrown when a module is requested that does not exist.
- */
-public class NoSuchModuleException extends NotInRegistryException {
+  private final Class<T> type;
+  private final T object;
 
-  private static final long serialVersionUID = 0;
-
-  public NoSuchModuleException(Class<? extends Module> type) {
-    super(String.format("No module of type '%s' found", type.getName()));
+  public DefaultRegistryEntry(Class<T> type, T object) {
+    this.type = type;
+    this.object = object;
   }
 
+  @Override
+  public Class<T> getType() {
+    return type;
+  }
+
+  @Override
+  public T get() {
+    return object;
+  }
 }

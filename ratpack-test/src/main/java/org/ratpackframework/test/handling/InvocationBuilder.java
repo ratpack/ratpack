@@ -16,7 +16,6 @@
 
 package org.ratpackframework.test.handling;
 
-import com.google.common.collect.ImmutableList;
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpHeaders;
@@ -29,11 +28,12 @@ import org.ratpackframework.http.internal.DefaultRequest;
 import org.ratpackframework.http.internal.DefaultStatus;
 import org.ratpackframework.http.internal.NettyHeadersBackedMutableHeaders;
 import org.ratpackframework.registry.Registry;
-import org.ratpackframework.registry.internal.RootRegistry;
+import org.ratpackframework.registry.RegistryBuilder;
 import org.ratpackframework.test.handling.internal.DefaultInvocation;
 import org.ratpackframework.util.Action;
 
-import static io.netty.buffer.Unpooled.*;
+import static io.netty.buffer.Unpooled.buffer;
+import static io.netty.buffer.Unpooled.unreleasableBuffer;
 
 /**
  * @see #invoke(org.ratpackframework.handling.Handler, org.ratpackframework.util.Action)
@@ -54,7 +54,7 @@ public class InvocationBuilder {
 
   private int timeout = 5;
 
-  private ImmutableList.Builder<Object> registryContents = ImmutableList.builder();
+  private RegistryBuilder registryBuilder = RegistryBuilder.builder();
 
   public InvocationBuilder() {
   }
@@ -64,12 +64,13 @@ public class InvocationBuilder {
    *
    * @param handler The handler to invoke
    * @return A result object indicating what happened
+   *
    * @throws InvocationTimeoutException if the handler takes more than {@link #timeout(int)} seconds to send a response or call {@code next()} on the context
    */
   public Invocation invoke(Handler handler) throws InvocationTimeoutException {
     Request request = new DefaultRequest(requestHeaders, method, uri, requestBody);
 
-    Registry<Object> registry = new RootRegistry<>(registryContents.build());
+    Registry registry = registryBuilder.build();
 
     return new DefaultInvocation(
       request,
@@ -88,6 +89,7 @@ public class InvocationBuilder {
    * @param handler The handler to invoke
    * @param action The configuration of the context for the handler
    * @return A result object indicating what happened
+   *
    * @throws InvocationTimeoutException if the handler takes more than {@link #timeout(int)} seconds to send a response or call {@code next()} on the context
    */
   public static Invocation invoke(Handler handler, Action<? super InvocationBuilder> action) throws InvocationTimeoutException {
@@ -158,7 +160,7 @@ public class InvocationBuilder {
   }
 
   public InvocationBuilder register(Object object) {
-    registryContents.add(object);
+    registryBuilder.add(object);
     return this;
   }
 }

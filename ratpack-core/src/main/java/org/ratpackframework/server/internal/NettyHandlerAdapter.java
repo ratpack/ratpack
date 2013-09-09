@@ -16,20 +16,25 @@
 
 package org.ratpackframework.server.internal;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
 import io.netty.util.CharsetUtil;
+import org.ratpackframework.error.ClientErrorHandler;
+import org.ratpackframework.error.ServerErrorHandler;
 import org.ratpackframework.error.internal.DefaultClientErrorHandler;
 import org.ratpackframework.error.internal.DefaultServerErrorHandler;
 import org.ratpackframework.error.internal.ErrorCatchingHandler;
+import org.ratpackframework.file.FileRenderer;
+import org.ratpackframework.file.FileSystemBinding;
+import org.ratpackframework.file.MimeTypes;
 import org.ratpackframework.file.internal.*;
 import org.ratpackframework.handling.Context;
 import org.ratpackframework.handling.Handler;
-import org.ratpackframework.handling.internal.ClientErrorHandler;
+import org.ratpackframework.handling.Redirector;
+import org.ratpackframework.handling.internal.ClientErrorForwardingHandler;
 import org.ratpackframework.handling.internal.DefaultContext;
 import org.ratpackframework.handling.internal.DefaultRedirector;
 import org.ratpackframework.http.MutableHeaders;
@@ -38,15 +43,15 @@ import org.ratpackframework.http.Response;
 import org.ratpackframework.http.internal.*;
 import org.ratpackframework.launch.LaunchConfig;
 import org.ratpackframework.registry.Registry;
-import org.ratpackframework.registry.internal.RootRegistry;
+import org.ratpackframework.registry.RegistryBuilder;
 import org.ratpackframework.server.BindAddress;
+import org.ratpackframework.server.PublicAddress;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
 import static io.netty.handler.codec.http.HttpHeaders.isKeepAlive;
 import static io.netty.handler.codec.http.HttpResponseStatus.NOT_FOUND;
-import static org.ratpackframework.registry.internal.CachingRegistry.cachingRegistry;
 
 @ChannelHandler.Sharable
 public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpRequest> {
@@ -56,13 +61,13 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
   private final LaunchConfig launchConfig;
   private final ListeningExecutorService blockingExecutorService;
 
-  private Registry<Object> registry;
+  private Registry registry;
 
   public NettyHandlerAdapter(Handler handler, LaunchConfig launchConfig, ListeningExecutorService blockingExecutorService) {
     this.launchConfig = launchConfig;
     this.blockingExecutorService = blockingExecutorService;
     this.handler = new ErrorCatchingHandler(handler);
-    this.return404 = new ClientErrorHandler(NOT_FOUND.code());
+    this.return404 = new ClientErrorForwardingHandler(NOT_FOUND.code());
   }
 
   @Override
@@ -71,25 +76,23 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
     super.channelRegistered(ctx);
   }
 
-  private Registry<Object> createRegistry(Channel channel) {
+  private Registry createRegistry(Channel channel) {
     InetSocketAddress socketAddress = (InetSocketAddress) channel.localAddress();
 
     BindAddress bindAddress = new InetSocketAddressBackedBindAddress(socketAddress);
 
     // If you update this list, update the class level javadoc on Context.
-    return cachingRegistry(new RootRegistry<>(
-      ImmutableList.of(
-        new DefaultFileSystemBinding(launchConfig.getBaseDir()),
-        new ActivationBackedMimeTypes(),
-        bindAddress,
-        new DefaultPublicAddress(launchConfig.getPublicAddress(), bindAddress),
-        new DefaultRedirector(),
-        new DefaultClientErrorHandler(),
-        new DefaultServerErrorHandler(),
-        launchConfig,
-        new DefaultFileRenderer()
-      )
-    ));
+    return RegistryBuilder.builder()
+      .add(FileSystemBinding.class, new DefaultFileSystemBinding(launchConfig.getBaseDir()))
+      .add(MimeTypes.class, new ActivationBackedMimeTypes())
+      .add(BindAddress.class, bindAddress)
+      .add(PublicAddress.class, new DefaultPublicAddress(launchConfig.getPublicAddress(), bindAddress))
+      .add(Redirector.class, new DefaultRedirector())
+      .add(ClientErrorHandler.class, new DefaultClientErrorHandler())
+      .add(ServerErrorHandler.class, new DefaultServerErrorHandler())
+      .add(LaunchConfig.class, launchConfig)
+      .add(FileRenderer.class, new DefaultFileRenderer())
+      .build();
   }
 
   public void channelRead0(final ChannelHandlerContext ctx, final FullHttpRequest nettyRequest) throws Exception {

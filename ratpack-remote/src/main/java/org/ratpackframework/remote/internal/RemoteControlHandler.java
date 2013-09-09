@@ -25,6 +25,7 @@ import org.ratpackframework.handling.Context;
 import org.ratpackframework.handling.Handler;
 import org.ratpackframework.http.Request;
 import org.ratpackframework.registry.Registry;
+import org.ratpackframework.registry.RegistryBuilder;
 
 import java.io.ByteArrayOutputStream;
 
@@ -54,7 +55,7 @@ public class RemoteControlHandler implements Handler {
       context.respond(context.getByContent().type(RESPONSE_CONTENT_TYPE, new Runnable() {
         @Override
         public void run() {
-          Registry<Object> registry = Guice.justInTimeRegistry(context, injector);
+          Registry registry = RegistryBuilder.join(context, Guice.justInTimeRegistry(injector));
           Receiver receiver = new Receiver(ImmutableMap.of("registry", registry));
 
           ByteArrayOutputStream outputStream = new ByteArrayOutputStream();

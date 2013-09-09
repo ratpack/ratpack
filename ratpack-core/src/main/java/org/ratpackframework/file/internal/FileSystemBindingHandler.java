@@ -40,14 +40,14 @@ public class FileSystemBindingHandler implements Handler {
 
   public void handle(Context context) {
     if (absolute) {
-      context.insert(FileSystemBinding.class, absoluteBinding, delegate);
+      context.insert(delegate, FileSystemBinding.class, absoluteBinding);
     } else {
       FileSystemBinding parentBinding = context.maybeGet(FileSystemBinding.class);
       if (parentBinding == null) {
-        context.insert(FileSystemBinding.class, absoluteBinding, delegate);
+        context.insert(delegate, FileSystemBinding.class, absoluteBinding);
       } else {
         FileSystemBinding binding = parentBinding.binding(file.getPath());
-        context.insert(FileSystemBinding.class, binding, delegate);
+        context.insert(delegate, FileSystemBinding.class, binding);
       }
     }
   }

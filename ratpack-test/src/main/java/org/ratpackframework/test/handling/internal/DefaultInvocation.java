@@ -53,7 +53,7 @@ public class DefaultInvocation implements Invocation {
   private File sentFile;
   private Object rendered;
 
-  public DefaultInvocation(Request request, Status status, MutableHeaders responseHeaders, ByteBuf responseBody, Registry<Object> registry, final int timeout, Handler handler) {
+  public DefaultInvocation(Request request, Status status, MutableHeaders responseHeaders, ByteBuf responseBody, Registry registry, final int timeout, Handler handler) {
 
     // There are definitely concurrency bugs in here around timing out
     // ideally we should prevent the stat from changing after a timeout occurs

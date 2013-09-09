@@ -28,11 +28,10 @@ public class NotInRegistryException extends RuntimeException {
   /**
    * Constructs the exception.
    *
-   * @param registry The registry that the object was requested of
    * @param type The requested type of the object
    */
-  public NotInRegistryException(Registry<?> registry, Class<?> type) {
-    super(String.format("No object for type '%s' in registry: %s", type.getName(), registry.toString()));
+  public NotInRegistryException(Class<?> type) {
+    this(String.format("No object for type '%s' in registry", type.getName()));
   }
 
   /**

@@ -25,16 +25,17 @@ public abstract class ServiceExtractor {
   private ServiceExtractor() {
   }
 
-  public static Object[] extract(List<Class<?>> serviceTypes, Registry<Object> registry) {
+  public static Object[] extract(List<Class<?>> serviceTypes, Registry registry) {
     Object[] services = new Object[serviceTypes.size()];
     extract(serviceTypes, registry, services, 0);
     return services;
   }
 
-  public static void extract(List<Class<?>> serviceTypes, Registry<Object> registry, Object[] services, int startIndex) {
+  public static void extract(List<Class<?>> serviceTypes, Registry registry, Object[] services, int startIndex) {
     for (int i = 0; i < serviceTypes.size(); ++i) {
       Class<?> type = serviceTypes.get(i);
-      services[i + startIndex] = registry.get(type);
+      Object service = registry.get(type);
+      services[i + startIndex] = service;
     }
   }
 }

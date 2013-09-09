@@ -34,9 +34,9 @@ public class DefaultChain implements Chain {
 
   private final List<Handler> handlers;
   private final LaunchConfig launchConfig;
-  private final Registry<Object> registry;
+  private final Registry registry;
 
-  public DefaultChain(List<Handler> handlers, LaunchConfig launchConfig, @Nullable Registry<Object> registry) {
+  public DefaultChain(List<Handler> handlers, LaunchConfig launchConfig, @Nullable Registry registry) {
     this.handlers = handlers;
     this.launchConfig = launchConfig;
     this.registry = registry;
@@ -111,7 +111,7 @@ public class DefaultChain implements Chain {
     return handler(Handlers.fileSystem(path, handlers));
   }
 
-  public Registry<Object> getRegistry() {
+  public Registry getRegistry() {
     return registry;
   }
 

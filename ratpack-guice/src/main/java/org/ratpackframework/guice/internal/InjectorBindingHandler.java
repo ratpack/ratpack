@@ -35,6 +35,6 @@ public class InjectorBindingHandler implements Handler {
   }
 
   public void handle(Context context) {
-    context.insert(Guice.registry(context, injector), delegate);
+    context.insert(delegate, Guice.registry(injector));
   }
 }

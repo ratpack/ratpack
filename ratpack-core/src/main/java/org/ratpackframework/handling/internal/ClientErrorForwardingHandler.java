@@ -14,21 +14,21 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.registry.internal
+package org.ratpackframework.handling.internal;
 
-import com.google.common.collect.ImmutableList
-import spock.lang.Specification
+import org.ratpackframework.handling.Context;
+import org.ratpackframework.handling.Handler;
 
-class ObjectHoldingChildRegistrySpec extends Specification {
+public class ClientErrorForwardingHandler implements Handler {
 
-  def "can retrieve successfully"() {
-    given:
-    def r = new ObjectHoldingChildRegistry(new RootRegistry(ImmutableList.of("bar")), String, "foo")
+  private final int statusCode;
 
-    expect:
-    r.get(String) == "foo"
-    r.get(CharSequence) == "bar" // delegating to parent
-    r.getAll(CharSequence) == ["foo", "bar"]
+  public ClientErrorForwardingHandler(int statusCode) {
+    this.statusCode = statusCode;
+  }
+
+  public void handle(Context context) {
+    context.clientError(statusCode);
   }
 
 }
