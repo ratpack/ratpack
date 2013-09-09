@@ -20,13 +20,7 @@ import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
 
-import javax.net.ssl.HostnameVerifier
-import javax.net.ssl.HttpsURLConnection
-import javax.net.ssl.SSLContext
-import javax.net.ssl.SSLSession
-import javax.net.ssl.SSLSocketFactory
-import javax.net.ssl.TrustManager
-import javax.net.ssl.X509TrustManager
+import javax.net.ssl.*
 import java.security.SecureRandom
 import java.security.Security
 import java.security.cert.X509Certificate
@@ -70,7 +64,7 @@ class NonValidatingSSLClientContext implements TestRule {
 
     @Override
     X509Certificate[] getAcceptedIssuers() {
-      null
+      [] as X509Certificate[]
     }
   }
 
@@ -80,7 +74,7 @@ class NonValidatingSSLClientContext implements TestRule {
     private final SSLSocketFactory factory
 
     DummySSLSocketFactory() {
-      sslContext.init null, [TRUST_ALL_TRUST_MANAGER] as TrustManager[], new SecureRandom()
+      sslContext.init(null, [TRUST_ALL_TRUST_MANAGER] as TrustManager[], new SecureRandom())
       factory = sslContext.socketFactory
     }
 
