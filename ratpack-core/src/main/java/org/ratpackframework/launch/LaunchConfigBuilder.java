@@ -23,7 +23,6 @@ import io.netty.buffer.PooledByteBufAllocator;
 import org.ratpackframework.launch.internal.DefaultLaunchConfig;
 import org.ratpackframework.ssl.SSLContextFactory;
 
-import javax.net.ssl.SSLContext;
 import java.io.File;
 import java.net.InetAddress;
 import java.net.URI;

@@ -23,7 +23,6 @@ import org.ratpackframework.launch.HandlerFactory;
 import org.ratpackframework.launch.LaunchConfig;
 import org.ratpackframework.ssl.SSLContextFactory;
 
-import javax.net.ssl.SSLContext;
 import java.io.File;
 import java.net.InetAddress;
 import java.net.URI;
