@@ -19,7 +19,7 @@ See the chapter on “bootstrapping” for more detail. - TODO: write this chapt
 
 In order to have your Ratpack application serve content over HTTPS you need to configure an [`SSLContext`](http://docs.oracle.com/javase/7/docs/api/javax/net/ssl/SSLContext.html) and add it to your launch config. When the application runs it will then accept HTTPS traffic rather than HTTP.
 
-The easiest way to do this is if your SSL context is based on a password protected *.keystore* file. If that is the case you can use the [`LaunchConfigBuilder.ssl`](api/org/ratpackframework/launch/LaunchConfigBuilder.html#ssl) method to tell Ratpack to load the keystore. For example:
+The easiest way to do this is if your SSL context is based on a password protected *.keystore* file. If that is the case you can use the [`LaunchConfigBuilder.ssl`](api/org/ratpackframework/launch/LaunchConfigBuilder.html#ssl%28java.io.File,%20java.lang.String%29) method to tell Ratpack to load the keystore. For example:
 
 ```language-groovy
 launchConfig {
@@ -29,7 +29,7 @@ launchConfig {
 
 The first argument to the `ssl` method can be a `File`, a `URL` (as in the example) or an `InputStream`. The second argument is the password for the keystore.
 
-If you want to configure the SSL context yourself you can use the [`LaunchConfigBuilder.sslContext`](api/org/ratpackframework/launch/LaunchConfigBuilder.html#sslContext) method to add it to your launch config. For example:
+If you want to configure the SSL context yourself you can use the [`LaunchConfigBuilder.sslContext`](api/org/ratpackframework/launch/LaunchConfigBuilder.html#sslContext%28javax.net.ssl.SSLContext%29) method to add it to your launch config. For example:
 
 ```language-groovy
 launchConfig {
