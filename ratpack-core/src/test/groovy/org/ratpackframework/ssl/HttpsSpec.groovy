@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.http
+package org.ratpackframework.ssl
 
 import org.junit.Rule
 import org.ratpackframework.test.internal.RatpackGroovyDslSpec
