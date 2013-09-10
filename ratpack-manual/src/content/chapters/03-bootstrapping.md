@@ -29,6 +29,8 @@ launchConfig {
 
 The first argument to the `ssl` method can be a `File`, a `URL` (as in the example) or an `InputStream`. The second argument is the password for the keystore.
 
+You can also configure a password-protected keystore using a *ratpack.properties* file. Set the path or URI of the keystore file with `ratpack.ssl.keystore.file` and the password with `ratpack.ssl.keystore.password`.
+
 If you want to configure the SSL context yourself you can use the [`LaunchConfigBuilder.sslContext`](api/org/ratpackframework/launch/LaunchConfigBuilder.html#sslContext%28javax.net.ssl.SSLContext%29) method to add it to your launch config. For example:
 
 ```language-groovy

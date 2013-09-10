@@ -286,7 +286,18 @@ public abstract class LaunchConfigFactory {
      */
     public static final String INDEX_FILES = "indexFiles";
 
+    /**
+     * The absolute file path, URI or classpath location of the SSL keystore file.
+     *
+     * @see org.ratpackframework.launch.LaunchConfig#getSSLContext()
+     */
     public static final String SSL_KEYSTORE_FILE = "ssl.keystore.file";
+
+    /**
+     * The password for the SSL keystore file.
+     *
+     * @see org.ratpackframework.launch.LaunchConfig#getSSLContext()
+     */
     public static final String SSL_KEYSTORE_PASSWORD = "ssl.keystore.password";
   }
 }
