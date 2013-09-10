@@ -16,12 +16,11 @@
 
 package org.ratpackframework.launch;
 
-import com.google.common.collect.ImmutableList;
 import org.ratpackframework.api.Nullable;
+import org.ratpackframework.util.internal.TypeCoercingProperties;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.*;
 import java.util.HashMap;
@@ -174,20 +173,22 @@ public abstract class LaunchConfigFactory {
    * @return A launch config
    */
   public static LaunchConfig createWithBaseDir(ClassLoader classLoader, File baseDir, Properties properties) {
+    TypeCoercingProperties props = new TypeCoercingProperties(properties, classLoader);
     try {
-      Class<HandlerFactory> handlerFactoryClass = getPropertyAsClass(properties, Property.HANDLER_FACTORY, HandlerFactory.class, classLoader);
+      Class<HandlerFactory> handlerFactoryClass = null;
+      handlerFactoryClass = props.asClass(Property.HANDLER_FACTORY, HandlerFactory.class);
       if (handlerFactoryClass == null) {
         throw new LaunchException("No handler factory class specified (config property: " + Property.HANDLER_FACTORY + ")");
       }
 
-      int port = getPropertyAsInt(properties, Property.PORT, LaunchConfig.DEFAULT_PORT);
-      InetAddress address = getPropertyAsInetAddress(properties, Property.ADDRESS);
-      URI publicAddress = getPropertyAsUri(properties, Property.PUBLIC_ADDRESS);
-      boolean reloadable = getPropertyAsBoolean(properties, Property.RELOADABLE, false);
-      int mainThreads = getPropertyAsInt(properties, Property.MAIN_THREADS, 0);
-      List<String> indexFiles = getPropertyAsList(properties, Property.INDEX_FILES);
-      InputStream sslKeystore = getPropertyAsStream(properties, Property.SSL_KEYSTORE_FILE, classLoader);
-      String sslKeystorePassword = properties.getProperty(Property.SSL_KEYSTORE_PASSWORD, "");
+      int port = props.asInt(Property.PORT, LaunchConfig.DEFAULT_PORT);
+      InetAddress address = props.asInetAddress(Property.ADDRESS);
+      URI publicAddress = props.asURI(Property.PUBLIC_ADDRESS);
+      boolean reloadable = props.asBoolean(Property.RELOADABLE, false);
+      int mainThreads = props.asInt(Property.MAIN_THREADS, 0);
+      List<String> indexFiles = props.asList(Property.INDEX_FILES);
+      InputStream sslKeystore = props.asStream(Property.SSL_KEYSTORE_FILE);
+      String sslKeystorePassword = props.asString(Property.SSL_KEYSTORE_PASSWORD, "");
 
       Map<String, String> otherProperties = new HashMap<>();
       extractProperties("other.", properties, otherProperties);
@@ -226,90 +227,6 @@ public abstract class LaunchConfigFactory {
     }
   }
 
-  private static InputStream getPropertyAsStream(Properties properties, String key, ClassLoader classLoader) throws IOException {
-    InputStream stream = null;
-    String path = properties.getProperty(key);
-    if (path != null) {
-      // try to treat it as a File path
-      File file = new File(path);
-      if (!file.isFile()) {
-        // try to treat it as a URL
-        try {
-          URL url = new URL(path);
-          stream = url.openStream();
-        } catch (MalformedURLException e) {
-          // try to treat it as a resource path
-          stream = classLoader.getResourceAsStream(path);
-        }
-      } else {
-        stream = new FileInputStream(file);
-      }
-    }
-    return stream;
-  }
-
-  private static List<String> getPropertyAsList(Properties properties, String key) {
-    String delimitedValues = properties.getProperty(key, "");
-    ImmutableList.Builder<String> trimmed = ImmutableList.builder();
-    for (String value : delimitedValues.split(",")) {
-      value = value.trim();
-      if (!value.isEmpty()) {
-        trimmed.add(value);
-      }
-    }
-    return trimmed.build();
-  }
-
-  private static boolean getPropertyAsBoolean(Properties properties, String key, boolean defaultValue) {
-    return Boolean.parseBoolean(properties.getProperty(key, Boolean.toString(defaultValue)));
-  }
-
-  private static URI getPropertyAsUri(Properties properties, String key) {
-    URI uri = null;
-    String uriString = properties.getProperty(key);
-
-    if (uriString != null) {
-      try {
-        uri = new URI(uriString);
-      } catch (URISyntaxException ex) {
-        throw new IllegalStateException("Failed to create URI from: " + uriString, ex);
-      }
-    }
-    return uri;
-  }
-
-  private static InetAddress getPropertyAsInetAddress(Properties properties, String key) throws UnknownHostException {
-    String addressString = properties.getProperty(key);
-    if (addressString == null) {
-      return null;
-    } else {
-      try {
-        InetAddress address = InetAddress.getByName(addressString);
-        return address;
-      } catch (UnknownHostException e) {
-        throw new IllegalStateException("Failed to resolve requested bind address: " + addressString, e);
-      }
-    }
-  }
-
-  private static int getPropertyAsInt(Properties properties, String key, int defaultValue) {
-    return Integer.parseInt(properties.getProperty(key, Integer.toString(defaultValue)));
-  }
-
-  @SuppressWarnings("unchecked")
-  private static <T> Class<T> getPropertyAsClass(Properties properties, String key, Class<T> type, ClassLoader classLoader) throws ClassNotFoundException {
-    String className = properties.getProperty(key);
-    if (className == null) {
-      return null;
-    }
-
-    Class<?> untypedClass = classLoader.loadClass(className);
-    if (!type.isAssignableFrom(untypedClass)) {
-      throw new LaunchException("Class '" + className + "' does not implement '" + type.getName());
-    }
-
-    return (Class<T>) untypedClass;
-  }
 
   /**
    * Constants for meaningful configuration properties.
