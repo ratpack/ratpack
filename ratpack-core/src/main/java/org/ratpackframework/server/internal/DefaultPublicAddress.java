@@ -28,17 +28,16 @@ public class DefaultPublicAddress implements PublicAddress {
 
   private final URI publicAddress;
   private final String uriScheme;
-  private final BindAddress bindAddress;
 
-  public DefaultPublicAddress(URI publicAddress, String uriScheme, BindAddress bindAddress) {
+  public DefaultPublicAddress(URI publicAddress, String uriScheme) {
     this.publicAddress = publicAddress;
     this.uriScheme = uriScheme;
-    this.bindAddress = bindAddress;
   }
 
   public URI getAddress(Context context) {
     URI currentUrl = null;
     if (publicAddress == null) {
+      BindAddress bindAddress = context.getBindAddress();
       try {
         currentUrl = new URI(uriScheme, null, bindAddress.getHost(), bindAddress.getPort(), null, null, null);
       } catch (URISyntaxException e) {

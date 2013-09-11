@@ -30,6 +30,7 @@ import org.ratpackframework.http.*;
 import org.ratpackframework.http.internal.DefaultResponse;
 import org.ratpackframework.registry.Registry;
 import org.ratpackframework.render.controller.NoSuchRendererException;
+import org.ratpackframework.server.BindAddress;
 import org.ratpackframework.test.handling.Invocation;
 import org.ratpackframework.test.handling.InvocationTimeoutException;
 
@@ -88,8 +89,20 @@ public class DefaultInvocation implements Invocation {
       }
     };
 
+    BindAddress bindAddress = new BindAddress() {
+      @Override
+      public int getPort() {
+        return 5050;
+      }
+
+      @Override
+      public String getHost() {
+        return "localhost";
+      }
+    };
+
     Response response = new DefaultResponse(status, responseHeaders, responseBody, fileHttpTransmitter, committer);
-    Context context = new DefaultContext(request, response, registry, mainExecutor, blockingExecutor, next) {
+    Context context = new DefaultContext(request, response, bindAddress, registry, mainExecutor, blockingExecutor, next) {
       @Override
       public void render(Object object) throws NoSuchRendererException {
         rendered = object;

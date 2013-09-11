@@ -20,14 +20,14 @@ import org.ratpackframework.test.internal.RatpackGroovyDslSpec
 
 class BindAddressInContextSpec extends RatpackGroovyDslSpec {
 
-  def "bind address is available in context"() {
+  def "bind address is available via context"() {
     when:
     app {
       handlers {
-        get("port") { BindAddress bindAddress ->
+        get("port") {
           response.send bindAddress.port.toString()
         }
-        get("host") { BindAddress bindAddress ->
+        get("host") {
           response.send bindAddress.host
         }
       }

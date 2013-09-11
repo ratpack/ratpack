@@ -58,36 +58,20 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
 
   private final Handler handler;
   private final Handler return404;
-  private final LaunchConfig launchConfig;
   private final ListeningExecutorService blockingExecutorService;
 
   private Registry registry;
 
   public NettyHandlerAdapter(Handler handler, LaunchConfig launchConfig, ListeningExecutorService blockingExecutorService) {
-    this.launchConfig = launchConfig;
     this.blockingExecutorService = blockingExecutorService;
     this.handler = new ErrorCatchingHandler(handler);
     this.return404 = new ClientErrorForwardingHandler(NOT_FOUND.code());
-  }
 
-  @Override
-  public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
-    registry = createRegistry(ctx.channel());
-    super.channelRegistered(ctx);
-  }
-
-  private Registry createRegistry(Channel channel) {
-    InetSocketAddress socketAddress = (InetSocketAddress) channel.localAddress();
-
-    BindAddress bindAddress = new InetSocketAddressBackedBindAddress(socketAddress);
-    String uriScheme = launchConfig.getSSLContext() == null ? "http" : "https";
-
-    // If you update this list, update the class level javadoc on Context.
-    return RegistryBuilder.builder()
+    this.registry = RegistryBuilder.builder()
+      // If you update this list, update the class level javadoc on Context.
       .add(FileSystemBinding.class, new DefaultFileSystemBinding(launchConfig.getBaseDir()))
       .add(MimeTypes.class, new ActivationBackedMimeTypes())
-      .add(BindAddress.class, bindAddress)
-      .add(PublicAddress.class, new DefaultPublicAddress(launchConfig.getPublicAddress(), uriScheme, bindAddress))
+      .add(PublicAddress.class, new DefaultPublicAddress(launchConfig.getPublicAddress(), launchConfig.getSSLContext() == null ? "http" : "https"))
       .add(Redirector.class, new DefaultRedirector())
       .add(ClientErrorHandler.class, new DefaultClientErrorHandler())
       .add(ServerErrorHandler.class, new DefaultServerErrorHandler())
@@ -132,12 +116,10 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
       }
     });
 
-    if (registry == null) {
-      throw new IllegalStateException("Registry is not set, channel is not registered");
-    }
+    InetSocketAddress socketAddress = (InetSocketAddress) channel.localAddress();
+    BindAddress bindAddress = new InetSocketAddressBackedBindAddress(socketAddress);
 
-    final Context context = new DefaultContext(request, response, registry, ctx.executor(), blockingExecutorService, return404);
-
+    Context context = new DefaultContext(request, response, bindAddress, registry, ctx.executor(), blockingExecutorService, return404);
     handler.handle(context);
   }
 

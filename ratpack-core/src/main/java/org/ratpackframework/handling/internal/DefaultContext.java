@@ -34,6 +34,7 @@ import org.ratpackframework.registry.Registry;
 import org.ratpackframework.registry.RegistryBuilder;
 import org.ratpackframework.render.Renderer;
 import org.ratpackframework.render.controller.NoSuchRendererException;
+import org.ratpackframework.server.BindAddress;
 import org.ratpackframework.util.Action;
 import org.ratpackframework.util.Factory;
 import org.ratpackframework.util.Result;
@@ -56,10 +57,12 @@ public class DefaultContext implements Context {
   private final ListeningExecutorService blockingExecutorService;
   private final Handler next;
   private final Registry registry;
+  private final BindAddress bindAddress;
 
-  public DefaultContext(Request request, Response response, Registry registry, ExecutorService mainExecutorService, ListeningExecutorService blockingExecutorService, Handler next) {
+  public DefaultContext(Request request, Response response, BindAddress bindAddress, Registry registry, ExecutorService mainExecutorService, ListeningExecutorService blockingExecutorService, Handler next) {
     this.request = request;
     this.response = response;
+    this.bindAddress = bindAddress;
     this.registry = registry;
     this.mainExecutorService = mainExecutorService;
     this.blockingExecutorService = blockingExecutorService;
@@ -182,6 +185,11 @@ public class DefaultContext implements Context {
     runnable.run();
   }
 
+  @Override
+  public BindAddress getBindAddress() {
+    return bindAddress;
+  }
+
   public void error(Exception exception) {
     ServerErrorHandler serverErrorHandler = get(ServerErrorHandler.class);
     serverErrorHandler.error(this, exception);
@@ -245,7 +253,7 @@ public class DefaultContext implements Context {
           ((DefaultContext) exchange).doNext(parentContext, registry, handlers, index + 1, exhausted);
         }
       };
-      DefaultContext childExchange = new DefaultContext(request, response, registry, mainExecutorService, blockingExecutorService, nextHandler);
+      DefaultContext childExchange = new DefaultContext(request, response, bindAddress, registry, mainExecutorService, blockingExecutorService, nextHandler);
       try {
         handler.handle(childExchange);
       } catch (Exception e) {

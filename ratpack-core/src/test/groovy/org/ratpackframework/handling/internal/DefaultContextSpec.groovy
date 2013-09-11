@@ -16,11 +16,9 @@
 package org.ratpackframework.handling.internal
 
 import com.jayway.restassured.specification.RequestSpecification
-import org.ratpackframework.groovy.launch.GroovyScriptHandlerFactory
-import org.ratpackframework.launch.LaunchConfigFactory
-import org.ratpackframework.test.internal.RatpackGroovyScriptAppSpec
+import org.ratpackframework.test.internal.RatpackGroovyDslSpec
 
-class DefaultContextSpec extends RatpackGroovyScriptAppSpec {
+class DefaultContextSpec extends RatpackGroovyDslSpec {
 
   Properties properties
 
@@ -34,128 +32,94 @@ class DefaultContextSpec extends RatpackGroovyScriptAppSpec {
     requestSpecification.redirects().follow(false)
   }
 
-  def setup() {
-    properties = new Properties()
-    properties.setProperty(LaunchConfigFactory.Property.HANDLER_FACTORY, GroovyScriptHandlerFactory.name)
-    properties.setProperty(LaunchConfigFactory.Property.RELOADABLE, reloadable.toString())
-    properties.setProperty(LaunchConfigFactory.Property.PORT, "0")
-    properties.setProperty(GroovyScriptHandlerFactory.COMPILE_STATIC_PROPERTY_NAME, compileStatic.toString())
-    properties.setProperty(GroovyScriptHandlerFactory.SCRIPT_PROPERTY_NAME, ratpackFile.name)
-  }
-
   def "Absolute Path Redirect"() {
-    given:
-    app {
-      script """
-        ratpack {
-          handlers {
-            get {
-              redirect("http://www.google.com")
-            }
-          }
-        }
-      """
-    }
     when:
-
-    def resp = get("")
+    app {
+      handlers {
+        get {
+          redirect("http://www.google.com")
+        }
+      }
+    }
 
     then:
+    def resp = get("")
     resp.statusCode == 302
     resp.getHeader("Location") == "http://www.google.com"
   }
 
   def "Server Root Path Redirect no public url"() {
-    given:
-    app {
-      script """
-        ratpack {
-          handlers {
-            get {
-              redirect("/index")
-            }
-          }
-        }
-      """
-    }
     when:
-
-    def resp = get("")
+    app {
+      handlers {
+        get {
+          redirect("/index")
+        }
+      }
+    }
 
     then:
+    def resp = get("")
     resp.statusCode == 302
     resp.getHeader("Location") == "http://${server.bindHost}:${server.bindPort}/index"
   }
 
   def "Server Relative Path Redirect no public url"() {
-    given:
-    app {
-      script """
-        ratpack {
-          handlers {
-            get("index") {
-              redirect("other")
-            }
-          }
-        }
-      """
-    }
     when:
-
-    def resp = get("index")
+    app {
+      handlers {
+        get("index") {
+          redirect("other")
+        }
+      }
+    }
 
     then:
+    def resp = get("index")
     resp.statusCode == 302
     resp.getHeader("Location") == "http://${server.bindHost}:${server.bindPort}/other"
   }
 
   def "Server root path redirect with public url"() {
-    given:
-
+    when:
     def publicUrl = "http://example.com"
-    properties.setProperty(LaunchConfigFactory.Property.PUBLIC_ADDRESS, publicUrl)
+    launchConfig {
+      publicAddress(new URI(publicUrl))
+    }
 
     app {
-      script """
-        ratpack {
-          handlers {
-            get {
-              redirect("/index")
-            }
-          }
+      handlers {
+        get {
+          redirect("/index")
         }
-      """
+      }
     }
 
     when:
-    def resp = get("")
 
     then:
+    def resp = get("")
     resp.statusCode == 302
     resp.getHeader("Location") == publicUrl + "/index"
-
   }
 
   def "Server Relative Path Redirect with public url"() {
-    given:
-    def publicUrl = "http://example.com"
-    properties.setProperty(LaunchConfigFactory.Property.PUBLIC_ADDRESS, publicUrl)
-    app {
-      script """
-        ratpack {
-          handlers {
-            get("index") {
-              redirect("other")
-            }
-          }
-        }
-      """
-    }
     when:
+    def publicUrl = "http://example.com"
+    launchConfig {
+      publicAddress(new URI(publicUrl))
+    }
 
-    def resp = get("index")
+    app {
+      handlers {
+        get("index") {
+          redirect("other")
+        }
+      }
+    }
 
     then:
+    def resp = get("index")
     resp.statusCode == 302
     resp.getHeader("Location") == publicUrl + "/other"
   }
