@@ -296,7 +296,20 @@ public class LaunchConfigBuilder {
     if (blockingExecutorService == null) {
       blockingExecutorService = Executors.newCachedThreadPool(new BlockingThreadFactory());
     }
-    return new DefaultLaunchConfig(baseDir, port, address, reloadable, mainThreads, blockingExecutorService, byteBufAllocator, publicAddress, indexFiles.build(), other.build(), handlerFactory, sslContext);
+    return new DefaultLaunchConfig(
+      baseDir,
+      port,
+      address,
+      reloadable,
+      mainThreads,
+      blockingExecutorService,
+      byteBufAllocator,
+      publicAddress,
+      indexFiles.build(),
+      other.build(),
+      handlerFactory,
+      sslContext
+    );
   }
 
   @SuppressWarnings("NullableProblems")
