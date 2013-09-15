@@ -16,6 +16,12 @@
 
 package org.ratpackframework.http.internal;
 
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
 import io.netty.handler.codec.http.Cookie;
@@ -34,10 +40,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class DefaultRequest implements Request {
 
@@ -151,8 +154,7 @@ public class DefaultRequest implements Request {
 
   public MultiValueMap<String, String> getForm() {
     if (form == null) {
-      QueryStringDecoder formDecoder = new QueryStringDecoder(getText(), false);
-      form = new ImmutableDelegatingMultiValueMap<>(formDecoder.parameters());
+      form = ContentTypeFormDecoderEngine.getForContentType(getContentType().getType(), getText());
     }
     return form;
   }
@@ -207,5 +209,51 @@ public class DefaultRequest implements Request {
   @Override
   public Headers getHeaders() {
     return headers;
+  }
+
+  interface ContentTypeFormDecoder {
+    ImmutableDelegatingMultiValueMap<String, String> decode(String body);
+  }
+
+  private enum ContentTypeFormDecoderEngine implements ContentTypeFormDecoder {
+    FORM(MediaType.APPLICATION_FORM) {
+      @Override
+      public ImmutableDelegatingMultiValueMap<String, String> decode(String body) {
+        QueryStringDecoder formDecoder = new QueryStringDecoder(body, false);
+        return new ImmutableDelegatingMultiValueMap<>(formDecoder.parameters());
+      }
+    }, JSON(MediaType.APPLICATION_JSON) {
+      @Override
+      public ImmutableDelegatingMultiValueMap<String, String> decode(String body) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        TypeReference<HashMap<String, String>>  typeRef = new TypeReference<HashMap<String, String>>() {};
+
+        try {
+          Map<String, String> jsonMap = objectMapper.readValue(body, typeRef);
+          Map<String, List<String>> convertingMap = Maps.newHashMap();
+          for (Map.Entry<String, String> entry : jsonMap.entrySet()) {
+            convertingMap.put(entry.getKey(), Lists.newArrayList(entry.getValue()));
+          }
+          return new ImmutableDelegatingMultiValueMap<>(convertingMap);
+        } catch (IOException e) {
+          return FORM.decode(body);
+        }
+      }
+    };
+
+    String mediaType;
+
+    ContentTypeFormDecoderEngine(String mediaType) {
+      this.mediaType = mediaType;
+    }
+
+    static ImmutableDelegatingMultiValueMap<String, String> getForContentType(String mediaType, String body) {
+      for (ContentTypeFormDecoderEngine decoder : values()) {
+        if (decoder.mediaType.equals(mediaType)) {
+          return decoder.decode(body);
+        }
+      }
+      return FORM.decode(body);
+    }
   }
 }
