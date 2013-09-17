@@ -405,7 +405,7 @@ handlers {
 }
 ```
 
-Notice that the injected dependency is referenced at the handler level adn not in the handlers closure.
+Notice that the injected dependency is referenced at the handler level and not in the handlers closure.
 
 ## Deploying your application to the Cloud
 
