@@ -385,4 +385,22 @@ public interface Chain {
    */
   LaunchConfig getLaunchConfig();
 
+  /**
+   * Adds a {@code Handler} to this {@code Chain} that delegates to the given handler if the {@code request} has a
+   * {@code HTTPHeader} with the given name and a it's value matches the given value exactly.
+   * <p>
+   * See {@link Handlers#header(String, String, Handler)} for more details on the {@code Handler} created.
+   * <pre>
+   *  header("foo", "bar") {
+   *    response.send("Header Handler")
+   *  }
+   * </pre>
+   *
+   * @param headerName the name of the HTTP Header to match on
+   * @param headerValue the value of the HTTP Header to match on
+   * @param handler the handler to delegate to
+   * @return this {@code Chain}
+   */
+  Chain header(String headerName, String headerValue, Handler handler);
+
 }
