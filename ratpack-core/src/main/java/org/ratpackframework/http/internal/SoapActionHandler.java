@@ -16,27 +16,19 @@
 
 package org.ratpackframework.http.internal;
 
-import org.ratpackframework.handling.Context;
 import org.ratpackframework.handling.Handler;
 
-public abstract class HeaderHandler implements Handler {
+public class SoapActionHandler extends HeaderHandler {
 
-  private final String headerValue;
-  private final Handler handler;
+  private static final String SOAP_ACTION_HTTP_HEADER_NAME = "SOAPAction";
 
-  public HeaderHandler(String headerValue, Handler handler) {
-    this.headerValue = headerValue;
-    this.handler = handler;
+  public SoapActionHandler(String headerValue, Handler handler) {
+    super(headerValue, handler);
   }
 
-  public void handle(Context context) {
-    if (context.getRequest().getHeaders().get(getHeaderName()).equals(headerValue)) {
-      handler.handle(context);
-    } else {
-      context.next();
-    }
+  @Override
+  protected String getHeaderName() {
+    return SOAP_ACTION_HTTP_HEADER_NAME;
   }
-
-  protected abstract String getHeaderName();
 
 }

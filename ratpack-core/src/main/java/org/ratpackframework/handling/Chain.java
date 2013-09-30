@@ -403,4 +403,21 @@ public interface Chain {
    */
   Chain header(String headerName, String headerValue, Handler handler);
 
+  /**
+   * Adds a {@code Handler} to this {@code Chain} that delegates to the given handler if the {@code request} has a
+   * {@code SOAPAction} that matches the given value exactly.
+   * <p>
+   * See {@link Handlers#soapAction(String, Handler)} for more details on the {@code Handler} created.
+   * <pre>
+   *  soapAction("foo") {
+   *    response.send("SOAP Action Handler")
+   *  }
+   * </pre>
+   *
+   * @param value the value of the SOAP Action to match on
+   * @param handler the handler to delegate to
+   * @return this {@code Chain}
+   */
+  Chain soapAction(String value, Handler handler);
+
 }

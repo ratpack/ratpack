@@ -48,4 +48,26 @@ class HeaderRoutingSpec extends RatpackGroovyDslSpec {
     "car"       | "Prefix Handler"
   }
 
+  def "can route by soap action header"() {
+    when:
+    app {
+      handlers {
+        soapAction("foo") {
+          response.send("Soap Action Handler")
+        }
+        prefix("abc") {
+          handler {
+            response.send("Prefix Handler")
+          }
+        }
+      }
+    }
+
+    and:
+    request.header "SOAPAction", "foo"
+
+    then:
+    getText("abc/def") == "Soap Action Handler"
+  }
+
 }

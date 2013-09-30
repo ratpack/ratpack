@@ -317,4 +317,22 @@ public interface Chain extends org.ratpackframework.handling.Chain {
    * @return this {@code Chain}
    */
   Chain header(String headerName, String headerValue, @DelegatesTo(value = Context.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  Chain soapAction(String value, Handler handler);
+
+  /**
+   * Adds a {@code Handler} to this {@code Chain} that delegates to the given {@code Closure} as a {@code Handler} if the {@code request}
+   * has a {@code SOAPAction} that matches the given value exactly.
+   * <p>
+   * See {@link Chain#soapAction(String, org.ratpackframework.handling.Handler)} for more details.
+   *
+   * @param value the value of the SOAP Action to match on
+   * @param handler the handler to delegate to
+   * @return this {@code Chain}
+   */
+  Chain soapAction(String value, @DelegatesTo(value = Context.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
 }

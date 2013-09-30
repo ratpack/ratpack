@@ -16,27 +16,20 @@
 
 package org.ratpackframework.http.internal;
 
-import org.ratpackframework.handling.Context;
 import org.ratpackframework.handling.Handler;
 
-public abstract class HeaderHandler implements Handler {
+public class DefaultHeaderHandler extends HeaderHandler {
 
-  private final String headerValue;
-  private final Handler handler;
+  private final String headerName;
 
-  public HeaderHandler(String headerValue, Handler handler) {
-    this.headerValue = headerValue;
-    this.handler = handler;
+  public DefaultHeaderHandler(String headerName, String headerValue, Handler handler) {
+    super(headerValue, handler);
+    this.headerName = headerName;
   }
 
-  public void handle(Context context) {
-    if (context.getRequest().getHeaders().get(getHeaderName()).equals(headerValue)) {
-      handler.handle(context);
-    } else {
-      context.next();
-    }
+  @Override
+  protected String getHeaderName() {
+    return this.headerName;
   }
-
-  protected abstract String getHeaderName();
 
 }

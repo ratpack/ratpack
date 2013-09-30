@@ -180,12 +180,22 @@ public class DefaultChain extends org.ratpackframework.handling.internal.Default
     return fileSystem(path, toHandlerList(handlers));
   }
 
+  @Override
   public Chain header(String headerName, String headerValue, Handler handler) {
     return (Chain) super.header(headerName, headerValue, handler);
   }
 
   public Chain header(String headerName, String headerValue, @DelegatesTo(value = Context.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler) {
     return header(headerName, headerValue, asHandler(handler));
+  }
+
+  @Override
+  public Chain soapAction(String value, Handler handler) {
+    return (Chain) super.soapAction(value, handler);
+  }
+
+  public Chain soapAction(String value, @DelegatesTo(value = Context.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler) {
+    return soapAction(value, asHandler(handler));
   }
 
   private ImmutableList<Handler> toHandlerList(Closure<?> handlers) {

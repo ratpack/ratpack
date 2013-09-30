@@ -21,8 +21,9 @@ import org.ratpackframework.api.Nullable;
 import org.ratpackframework.file.internal.AssetHandler;
 import org.ratpackframework.file.internal.FileSystemBindingHandler;
 import org.ratpackframework.handling.internal.*;
-import org.ratpackframework.http.internal.HeaderHandler;
+import org.ratpackframework.http.internal.DefaultHeaderHandler;
 import org.ratpackframework.http.internal.MethodHandler;
+import org.ratpackframework.http.internal.SoapActionHandler;
 import org.ratpackframework.launch.LaunchConfig;
 import org.ratpackframework.path.PathBinder;
 import org.ratpackframework.path.internal.PathHandler;
@@ -274,7 +275,19 @@ public abstract class Handlers {
    * @return A handler
    */
   public static Handler header(String headerName, String headerValue, Handler handler) {
-    return new HeaderHandler(headerName, headerValue, handler);
+    return new DefaultHeaderHandler(headerName, headerValue, handler);
+  }
+
+  /**
+   * Creates a handler that delegates to the given handler if the {@code request} has a {@code SOAPAction} that matches
+   * the given value exactly.
+   *
+   * @param value the value of the SOAP Action to match on
+   * @param handler the handler to delegate to
+   * @return A handler
+   */
+  public static Handler soapAction(String value, Handler handler) {
+    return new SoapActionHandler(value, handler);
   }
 
 }

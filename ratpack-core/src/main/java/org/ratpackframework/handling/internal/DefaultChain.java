@@ -123,4 +123,8 @@ public class DefaultChain implements Chain {
     return handler(Handlers.header(headerName, headerValue, handler));
   }
 
+  public Chain soapAction(String value, Handler handler) {
+    return handler(Handlers.soapAction(value, handler));
+  }
+
 }
