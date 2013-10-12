@@ -14,38 +14,17 @@
  * limitations under the License.
  */
 
-include \
-    "ratpack-core",
-    "ratpack-manual",
-    "ratpack-site",
-    "ratpack-test",
-    "ratpack-test-internal",
-    "ratpack-groovy",
-    "ratpack-groovy-test",
-    "ratpack-guice",
-    "ratpack-session",
-    "ratpack-gradle",
-    "ratpack-handlebars",
-    "ratpack-remote",
-    "ratpack-jackson",
-    "ratpack-metrics"
+package org.ratpackframework.metrics;
 
-include \
-  "perftest",
-  "perftest:java",
-  "perftest:groovy"
+import com.codahale.metrics.JmxReporter;
+import com.google.inject.AbstractModule;
 
-rootProject.name = 'ratpack'
 
-def setBuildFile(project) {
-  project.buildFileName = "${project.name}.gradle"
-  project.children.each {
-    setBuildFile(it)
+public class MetricsJmxReporterModule extends AbstractModule {
+
+  @Override
+  protected void configure() {
+    bind(JmxReporter.class).toProvider(JmxReporterProvider.class).asEagerSingleton();
   }
-}
 
-setBuildFile(rootProject)
-rootProject.children.each {
-  setBuildFile(it)
 }
-

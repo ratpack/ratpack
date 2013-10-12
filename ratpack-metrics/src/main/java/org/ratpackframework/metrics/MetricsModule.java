@@ -14,38 +14,16 @@
  * limitations under the License.
  */
 
-include \
-    "ratpack-core",
-    "ratpack-manual",
-    "ratpack-site",
-    "ratpack-test",
-    "ratpack-test-internal",
-    "ratpack-groovy",
-    "ratpack-groovy-test",
-    "ratpack-guice",
-    "ratpack-session",
-    "ratpack-gradle",
-    "ratpack-handlebars",
-    "ratpack-remote",
-    "ratpack-jackson",
-    "ratpack-metrics"
+package org.ratpackframework.metrics;
 
-include \
-  "perftest",
-  "perftest:java",
-  "perftest:groovy"
+import com.codahale.metrics.MetricRegistry;
+import com.google.inject.AbstractModule;
 
-rootProject.name = 'ratpack'
+public class MetricsModule extends AbstractModule {
 
-def setBuildFile(project) {
-  project.buildFileName = "${project.name}.gradle"
-  project.children.each {
-    setBuildFile(it)
+  @Override
+  protected void configure() {
+    bind(MetricRegistry.class).toProvider(MetricRegistryProvider.class).asEagerSingleton();
   }
-}
 
-setBuildFile(rootProject)
-rootProject.children.each {
-  setBuildFile(it)
 }
-

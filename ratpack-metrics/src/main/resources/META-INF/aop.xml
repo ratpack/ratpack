@@ -1,0 +1,11 @@
+<!DOCTYPE aspectj PUBLIC "-//AspectJ//DTD//EN" "http://www.eclipse.org/aspectj/dtd/aspectj.dtd">
+
+<aspectj>
+  <weaver>
+    <include within="org.ratpackframework..*"/>
+  </weaver>
+
+  <aspects>
+    <aspect name="org.ratpackframework.metrics.MetricCollectionAspect"/>
+  </aspects>
+</aspectj>
