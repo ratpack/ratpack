@@ -41,6 +41,11 @@ public interface LaunchConfig {
   public static final int DEFAULT_PORT = 5050;
 
   /**
+   * The default max content length
+   */
+  public int DEFAULT_MAX_CONTENT_LENGTH = 65536;
+
+  /**
    * The base dir of the application, which is also the initial {@link org.ratpackframework.file.FileSystemBinding}.
    *
    * @return The base dir of the application.
@@ -146,4 +151,11 @@ public interface LaunchConfig {
    * @return The other property for {@code key}, or the {@code defaultValue} if it is not set
    */
   public String getOther(String key, String defaultValue);
+
+  /**
+   * The max content length to use for the HttpObjectAggregator
+   *
+   * @return The max content length as an int.
+   */
+  public int getMaxContentLength();
 }

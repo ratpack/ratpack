@@ -299,5 +299,12 @@ public abstract class LaunchConfigFactory {
      * @see org.ratpackframework.launch.LaunchConfig#getSSLContext()
      */
     public static final String SSL_KEYSTORE_PASSWORD = "ssl.keystore.password";
+
+    /**
+     * The max conent lenght.
+     *
+     * @see org.ratpackframework.launch.LaunchConfig#getMaxContentLength()
+     */
+    public static final String MAX_CONTENT_LENGTH = "maxContentLength";
   }
 }
