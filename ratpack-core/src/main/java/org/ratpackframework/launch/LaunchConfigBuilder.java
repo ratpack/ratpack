@@ -75,6 +75,7 @@ public class LaunchConfigBuilder {
   private ExecutorService blockingExecutorService;
   private ByteBufAllocator byteBufAllocator = PooledByteBufAllocator.DEFAULT;
   private SSLContext sslContext;
+  private int maxContentLength = LaunchConfig.DEFAULT_MAX_CONTENT_LENGTH;
 
   private LaunchConfigBuilder(File baseDir) {
     this.baseDir = baseDir;
@@ -94,7 +95,7 @@ public class LaunchConfigBuilder {
   /**
    * Sets the port to bind to.
    * <p>
-   * Default value is {@value LaunchConfig#DEFAULT_PORT}.
+   * Default value is {@value org.ratpackframework.launch.LaunchConfig#DEFAULT_PORT}.
    *
    * @param port The port to bind to
    * @see LaunchConfig#getPort()
@@ -186,6 +187,20 @@ public class LaunchConfigBuilder {
    */
   public LaunchConfigBuilder publicAddress(URI publicAddress) {
     this.publicAddress = publicAddress;
+    return this;
+  }
+
+  /**
+   * The max content length.
+   *
+   * Default value is {@value org.ratpackframework.launch.LaunchConfig#DEFAULT_MAX_CONTENT_LENGTH}
+   *
+   * @param maxContentLength The max content length to accept.
+   * @see LaunchConfig#getMaxContentLength()
+   * @return this
+   */
+  public LaunchConfigBuilder maxContentLength(int maxContentLength) {
+    this.maxContentLength = maxContentLength;
     return this;
   }
 
@@ -296,7 +311,7 @@ public class LaunchConfigBuilder {
     if (blockingExecutorService == null) {
       blockingExecutorService = Executors.newCachedThreadPool(new BlockingThreadFactory());
     }
-    return new DefaultLaunchConfig(baseDir, port, address, reloadable, mainThreads, blockingExecutorService, byteBufAllocator, publicAddress, indexFiles.build(), other.build(), handlerFactory, sslContext);
+    return new DefaultLaunchConfig(baseDir, port, address, reloadable, mainThreads, blockingExecutorService, byteBufAllocator, publicAddress, indexFiles.build(), other.build(), handlerFactory, sslContext, maxContentLength);
   }
 
   @SuppressWarnings("NullableProblems")

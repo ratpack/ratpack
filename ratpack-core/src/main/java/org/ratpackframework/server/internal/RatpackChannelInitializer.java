@@ -36,11 +36,13 @@ public class RatpackChannelInitializer extends ChannelInitializer<SocketChannel>
 
   private NettyHandlerAdapter nettyHandlerAdapter;
   private SSLContext sslContext;
+  private int maxContentLength;
 
   public RatpackChannelInitializer(LaunchConfig launchConfig, Handler handler) {
     ListeningExecutorService blockingExecutorService = MoreExecutors.listeningDecorator(launchConfig.getBlockingExecutorService());
     this.nettyHandlerAdapter = new NettyHandlerAdapter(handler, launchConfig, blockingExecutorService);
     this.sslContext = launchConfig.getSSLContext();
+    this.maxContentLength = launchConfig.getMaxContentLength();
   }
 
   public void initChannel(SocketChannel ch) {
@@ -53,7 +55,7 @@ public class RatpackChannelInitializer extends ChannelInitializer<SocketChannel>
     }
 
     pipeline.addLast("decoder", new HttpRequestDecoder());
-    pipeline.addLast("aggregator", new HttpObjectAggregator(65536));
+    pipeline.addLast("aggregator", new HttpObjectAggregator(maxContentLength));
     pipeline.addLast("encoder", new HttpResponseEncoder());
     pipeline.addLast("chunkedWriter", new ChunkedWriteHandler());
     pipeline.addLast("handler", nettyHandlerAdapter);

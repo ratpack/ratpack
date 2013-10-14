@@ -43,8 +43,9 @@ public class DefaultLaunchConfig implements LaunchConfig {
   private final ImmutableList<String> indexFiles;
   private final ImmutableMap<String, String> other;
   private final SSLContext sslContext;
+  private final int maxContentLength;
 
-  public DefaultLaunchConfig(File baseDir, int port, InetAddress address, boolean reloadable, int mainThreads, ExecutorService blockingExecutorService, ByteBufAllocator byteBufAllocator, URI publicAddress, ImmutableList<String> indexFiles, ImmutableMap<String, String> other, HandlerFactory handlerFactory, SSLContext sslContext) {
+  public DefaultLaunchConfig(File baseDir, int port, InetAddress address, boolean reloadable, int mainThreads, ExecutorService blockingExecutorService, ByteBufAllocator byteBufAllocator, URI publicAddress, ImmutableList<String> indexFiles, ImmutableMap<String, String> other, HandlerFactory handlerFactory, SSLContext sslContext, int maxContentLength) {
     this.baseDir = baseDir;
     this.port = port;
     this.address = address;
@@ -57,6 +58,7 @@ public class DefaultLaunchConfig implements LaunchConfig {
     this.other = other;
     this.handlerFactory = handlerFactory;
     this.sslContext = sslContext;
+    this.maxContentLength = maxContentLength;
   }
 
   @Override
@@ -117,5 +119,10 @@ public class DefaultLaunchConfig implements LaunchConfig {
   public String getOther(String key, String defaultValue) {
     String value = other.get(key);
     return value == null ? defaultValue : value;
+  }
+
+  @Override
+  public int getMaxContentLength() {
+    return maxContentLength;
   }
 }
