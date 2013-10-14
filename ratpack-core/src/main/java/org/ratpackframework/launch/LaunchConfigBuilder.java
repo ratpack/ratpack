@@ -46,15 +46,15 @@ import java.util.concurrent.ThreadFactory;
  * import org.ratpackframework.handling.*;
  *
  * LaunchConfig launchConfig = LaunchConfigBuilder.baseDir(new File("some/path")).build(
- *   new HandlerFactory() {
- *     public Handler create(LaunchConfig launchConfig) {
- *       return new Handler() {
- *         public void handle(Context context) {
- *           context.getResponse().send("Hello World!");
- *         }
- *       };
- *     }
- *   }
+ * new HandlerFactory() {
+ * public Handler create(LaunchConfig launchConfig) {
+ * return new Handler() {
+ * public void handle(Context context) {
+ * context.getResponse().send("Hello World!");
+ * }
+ * };
+ * }
+ * }
  * );
  * </pre>
  *
@@ -75,6 +75,7 @@ public class LaunchConfigBuilder {
   private ExecutorService blockingExecutorService;
   private ByteBufAllocator byteBufAllocator = PooledByteBufAllocator.DEFAULT;
   private SSLContext sslContext;
+  private int maxContentLength = LaunchConfig.DEFAULT_MAX_CONTENT_LENGTH;
 
   private LaunchConfigBuilder(File baseDir) {
     this.baseDir = baseDir;
@@ -84,8 +85,9 @@ public class LaunchConfigBuilder {
    * Create a new builder, using the given file as the base dir.
    *
    * @param baseDir The base dir of the launch config
-   * @see org.ratpackframework.launch.LaunchConfig#getBaseDir()
    * @return A new launch config builder
+   *
+   * @see org.ratpackframework.launch.LaunchConfig#getBaseDir()
    */
   public static LaunchConfigBuilder baseDir(File baseDir) {
     return new LaunchConfigBuilder(baseDir);
@@ -94,11 +96,12 @@ public class LaunchConfigBuilder {
   /**
    * Sets the port to bind to.
    * <p>
-   * Default value is {@value LaunchConfig#DEFAULT_PORT}.
+   * Default value is {@value org.ratpackframework.launch.LaunchConfig#DEFAULT_PORT}.
    *
    * @param port The port to bind to
-   * @see LaunchConfig#getPort()
    * @return this
+   *
+   * @see LaunchConfig#getPort()
    */
   public LaunchConfigBuilder port(int port) {
     this.port = port;
@@ -111,8 +114,9 @@ public class LaunchConfigBuilder {
    * Default value is {@code null}.
    *
    * @param address The address to bind to
-   * @see LaunchConfig#getAddress()
    * @return this
+   *
+   * @see LaunchConfig#getAddress()
    */
   public LaunchConfigBuilder address(InetAddress address) {
     this.address = address;
@@ -125,8 +129,9 @@ public class LaunchConfigBuilder {
    * Default value is {@code false}.
    *
    * @param reloadable Whether or not the application is "reloadable".
-   * @see LaunchConfig#isReloadable()
    * @return this
+   *
+   * @see LaunchConfig#isReloadable()
    */
   public LaunchConfigBuilder reloadable(boolean reloadable) {
     this.reloadable = reloadable;
@@ -139,8 +144,9 @@ public class LaunchConfigBuilder {
    * Default value is {@code 0}.
    *
    * @param mainThreads The port to bind to
-   * @see LaunchConfig#getMainThreads()
    * @return this
+   *
+   * @see LaunchConfig#getMainThreads()
    */
   public LaunchConfigBuilder mainThreads(int mainThreads) {
     this.mainThreads = mainThreads;
@@ -153,8 +159,9 @@ public class LaunchConfigBuilder {
    * Default value is {@link Executors#newCachedThreadPool()}.
    *
    * @param executorService The executor service to use for blocking operations
-   * @see LaunchConfig#getBlockingExecutorService()
    * @return this
+   *
+   * @see LaunchConfig#getBlockingExecutorService()
    */
   public LaunchConfigBuilder blockingExecutorService(ExecutorService executorService) {
     this.blockingExecutorService = executorService;
@@ -167,8 +174,9 @@ public class LaunchConfigBuilder {
    * Default value is {@link PooledByteBufAllocator#DEFAULT}.
    *
    * @param byteBufAllocator The allocator to use when creating buffers in the application
-   * @see LaunchConfig#getBufferAllocator()
    * @return this
+   *
+   * @see LaunchConfig#getBufferAllocator()
    */
   public LaunchConfigBuilder bufferAllocator(ByteBufAllocator byteBufAllocator) {
     this.byteBufAllocator = byteBufAllocator;
@@ -181,8 +189,9 @@ public class LaunchConfigBuilder {
    * Default value is {@code null}.
    *
    * @param publicAddress The public address of the application
-   * @see LaunchConfig#getPublicAddress()
    * @return this
+   *
+   * @see LaunchConfig#getPublicAddress()
    */
   public LaunchConfigBuilder publicAddress(URI publicAddress) {
     this.publicAddress = publicAddress;
@@ -190,11 +199,27 @@ public class LaunchConfigBuilder {
   }
 
   /**
+   * The max content length.
+   *
+   * Default value is {@value org.ratpackframework.launch.LaunchConfig#DEFAULT_MAX_CONTENT_LENGTH}
+   *
+   * @param maxContentLength The max content length to accept.
+   * @return this
+   *
+   * @see LaunchConfig#getMaxContentLength()
+   */
+  public LaunchConfigBuilder maxContentLength(int maxContentLength) {
+    this.maxContentLength = maxContentLength;
+    return this;
+  }
+
+  /**
    * Adds the given values as potential index file names.
    *
    * @param indexFiles the potential index file names.
-   * @see LaunchConfig#getIndexFiles()
    * @return this
+   *
+   * @see LaunchConfig#getIndexFiles()
    */
   public LaunchConfigBuilder indexFiles(String... indexFiles) {
     this.indexFiles.add(indexFiles);
@@ -205,8 +230,9 @@ public class LaunchConfigBuilder {
    * Adds the given values as potential index file names.
    *
    * @param indexFiles the potential index file names.
-   * @see LaunchConfig#getIndexFiles()
    * @return this
+   *
+   * @see LaunchConfig#getIndexFiles()
    */
   public LaunchConfigBuilder indexFiles(List<String> indexFiles) {
     this.indexFiles.addAll(indexFiles);
@@ -217,8 +243,9 @@ public class LaunchConfigBuilder {
    * The SSL context to use if the application serves content over HTTPS.
    *
    * @param sslContext the SSL context.
-   * @see LaunchConfig#getSSLContext()
    * @return this
+   *
+   * @see LaunchConfig#getSSLContext()
    */
   public LaunchConfigBuilder sslContext(SSLContext sslContext) {
     this.sslContext = sslContext;
@@ -228,9 +255,10 @@ public class LaunchConfigBuilder {
   /**
    * A convenience method for configuring an SSL context using a password-protected keystore file.
    *
+   * @return this
+   *
    * @see SSLContexts#sslContext(java.io.InputStream, String)
    * @see LaunchConfig#getSSLContext()
-   * @return this
    */
   public LaunchConfigBuilder ssl(InputStream keyStore, String password) throws GeneralSecurityException, IOException {
     return sslContext(SSLContexts.sslContext(keyStore, password));
@@ -239,9 +267,10 @@ public class LaunchConfigBuilder {
   /**
    * A convenience method for configuring an SSL context using a password-protected keystore file.
    *
+   * @return this
+   *
    * @see SSLContexts#sslContext(java.net.URL, String)
    * @see LaunchConfig#getSSLContext()
-   * @return this
    */
   public LaunchConfigBuilder ssl(URL keyStore, String password) throws GeneralSecurityException, IOException {
     return sslContext(SSLContexts.sslContext(keyStore, password));
@@ -250,9 +279,10 @@ public class LaunchConfigBuilder {
   /**
    * A convenience method for configuring an SSL context using a password-protected keystore file.
    *
+   * @return this
+   *
    * @see SSLContexts#sslContext(java.io.File, String)
    * @see LaunchConfig#getSSLContext()
-   * @return this
    */
   public LaunchConfigBuilder ssl(File keyStore, String password) throws GeneralSecurityException, IOException {
     return sslContext(SSLContexts.sslContext(keyStore, password));
@@ -263,8 +293,9 @@ public class LaunchConfigBuilder {
    *
    * @param key The key of the property
    * @param value The value of the property
-   * @see LaunchConfig#getOther(String, String)
    * @return this
+   *
+   * @see LaunchConfig#getOther(String, String)
    */
   public LaunchConfigBuilder other(String key, String value) {
     other.put(key, value);
@@ -275,8 +306,9 @@ public class LaunchConfigBuilder {
    * Add some "other" properties.
    *
    * @param other A map of properties to add to the launch config other properties
-   * @see LaunchConfig#getOther(String, String)
    * @return this
+   *
+   * @see LaunchConfig#getOther(String, String)
    */
   public LaunchConfigBuilder other(Map<String, String> other) {
     for (Map.Entry<String, String> entry : other.entrySet()) {
@@ -308,7 +340,8 @@ public class LaunchConfigBuilder {
       indexFiles.build(),
       other.build(),
       handlerFactory,
-      sslContext
+      sslContext,
+      maxContentLength
     );
   }
 
