@@ -23,6 +23,11 @@ dependencies {
   compile 'org.aspectj:aspectjrt:1.7.3'
   compile 'org.aspectj:aspectjweaver:1.7.3'
 
-  compile 'com.codahale.metrics:metrics-core:3.0.1'
-  compile 'com.codahale.metrics:metrics-jvm:3.0.1'
+  compile ('com.codahale.metrics:metrics-core:3.0.1') {
+    exclude group: 'org.slf4j', module: 'slf4j-api'
+  }
+  compile ('com.codahale.metrics:metrics-jvm:3.0.1') {
+    exclude group: 'org.slf4j', module: 'slf4j-api'
+  }
+  runtime commonDependencies.slf4j
 }
