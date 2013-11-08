@@ -18,11 +18,10 @@ buildscript {
   repositories {
     maven { url "http://dl.bintray.com/robfletcher/gradle-plugins" }
     jcenter()
-    maven { url "https://oss.sonatype.org/content/repositories/snapshots" }
   }
   dependencies {
     classpath 'org.gradle.plugins:gradle-compass:1.0.9'
-    classpath 'org.gebish:geb-gradle:0.9.2-SNAPSHOT'
+    classpath 'org.gebish:geb-gradle:0.9.2'
   }
 }
 
@@ -43,7 +42,6 @@ repositories {
   maven { url "http://repo.springsource.org/repo" } // for springloaded
   maven { url "http://repo.gradle.org/gradle/javascript-public/" } // for coffeescript plugin
   maven { url "http://repository-saucelabs.forge.cloudbees.com/release" }
-  maven { url "https://oss.sonatype.org/content/repositories/snapshots/" } //for geb snapshots
 }
 
 configurations {
@@ -67,7 +65,7 @@ dependencies {
   testCompile commonDependencies.spock
   latestManual project(":ratpack-manual")
 
-  browserTestCompile "org.gebish:geb-spock:0.9.2-SNAPSHOT"
+  browserTestCompile "org.gebish:geb-spock:0.9.2"
   browserTestCompile "org.seleniumhq.selenium:selenium-chrome-driver:2.35.0", {
     exclude module: 'guava'
   }
