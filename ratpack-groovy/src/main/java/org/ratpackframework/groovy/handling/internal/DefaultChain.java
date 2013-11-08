@@ -18,9 +18,11 @@ package org.ratpackframework.groovy.handling.internal;
 
 import com.google.common.collect.ImmutableList;
 import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 import org.ratpackframework.api.Nullable;
 import org.ratpackframework.groovy.Util;
 import org.ratpackframework.groovy.handling.Chain;
+import org.ratpackframework.handling.Context;
 import org.ratpackframework.handling.Handler;
 import org.ratpackframework.handling.internal.ChainBuilder;
 import org.ratpackframework.launch.LaunchConfig;
@@ -176,6 +178,24 @@ public class DefaultChain extends org.ratpackframework.handling.internal.Default
 
   public Chain fileSystem(String path, Closure<?> handlers) {
     return fileSystem(path, toHandlerList(handlers));
+  }
+
+  @Override
+  public Chain header(String headerName, String headerValue, Handler handler) {
+    return (Chain) super.header(headerName, headerValue, handler);
+  }
+
+  public Chain header(String headerName, String headerValue, @DelegatesTo(value = Context.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler) {
+    return header(headerName, headerValue, asHandler(handler));
+  }
+
+  @Override
+  public Chain soapAction(String value, Handler handler) {
+    return (Chain) super.soapAction(value, handler);
+  }
+
+  public Chain soapAction(String value, @DelegatesTo(value = Context.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler) {
+    return soapAction(value, asHandler(handler));
   }
 
   private ImmutableList<Handler> toHandlerList(Closure<?> handlers) {

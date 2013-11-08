@@ -299,4 +299,40 @@ public interface Chain extends org.ratpackframework.handling.Chain {
    */
   Chain fileSystem(String path, @DelegatesTo(value = Chain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handlers);
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  Chain header(String headerName, String headerValue, Handler handler);
+
+  /**
+   * Adds a {@code Handler} to this {@code Chain} that delegates to the given {@code Closure} as a {@code Handler} if the {@code request}
+   * has a {@code HTTPHeader} with the given name and a it's value matches the given value exactly.
+   * <p>
+   * See {@link Chain#header(String, String, org.ratpackframework.handling.Handler)} for more details.
+   *
+   * @param headerName the name of the HTTP Header to match on
+   * @param headerValue the value of the HTTP Header to match on
+   * @param handler the handler to delegate to
+   * @return this {@code Chain}
+   */
+  Chain header(String headerName, String headerValue, @DelegatesTo(value = Context.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  Chain soapAction(String value, Handler handler);
+
+  /**
+   * Adds a {@code Handler} to this {@code Chain} that delegates to the given {@code Closure} as a {@code Handler} if the {@code request}
+   * has a {@code SOAPAction} that matches the given value exactly.
+   * <p>
+   * See {@link Chain#soapAction(String, org.ratpackframework.handling.Handler)} for more details.
+   *
+   * @param value the value of the SOAP Action to match on
+   * @param handler the handler to delegate to
+   * @return this {@code Chain}
+   */
+  Chain soapAction(String value, @DelegatesTo(value = Context.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
 }

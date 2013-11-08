@@ -119,4 +119,12 @@ public class DefaultChain implements Chain {
     return launchConfig;
   }
 
+  public Chain header(String headerName, String headerValue, Handler handler) {
+    return handler(Handlers.header(headerName, headerValue, handler));
+  }
+
+  public Chain soapAction(String value, Handler handler) {
+    return handler(Handlers.soapAction(value, handler));
+  }
+
 }
