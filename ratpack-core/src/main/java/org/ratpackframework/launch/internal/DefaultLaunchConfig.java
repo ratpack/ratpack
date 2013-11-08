@@ -45,7 +45,7 @@ public class DefaultLaunchConfig implements LaunchConfig {
   private final SSLContext sslContext;
   private final int maxContentLength;
 
-  public DefaultLaunchConfig(File baseDir, int port, InetAddress address, boolean reloadable, int mainThreads, ExecutorService blockingExecutorService, ByteBufAllocator byteBufAllocator, URI publicAddress, ImmutableList<String> indexFiles, ImmutableMap<String, String> other, HandlerFactory handlerFactory, SSLContext sslContext, int maxContentLength) {
+  public DefaultLaunchConfig(File baseDir, int port, InetAddress address, boolean reloadable, int mainThreads, ExecutorService blockingExecutorService, ByteBufAllocator byteBufAllocator, URI publicAddress, ImmutableList<String> indexFiles, ImmutableMap<String, String> other, SSLContext sslContext, int maxContentLength, HandlerFactory handlerFactory) {
     this.baseDir = baseDir;
     this.port = port;
     this.address = address;

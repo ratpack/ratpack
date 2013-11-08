@@ -339,9 +339,9 @@ public class LaunchConfigBuilder {
       publicAddress,
       indexFiles.build(),
       other.build(),
-      handlerFactory,
       sslContext,
-      maxContentLength
+      maxContentLength,
+      handlerFactory
     );
   }
 
