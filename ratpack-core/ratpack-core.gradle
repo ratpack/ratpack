@@ -25,6 +25,6 @@ dependencies {
   compile 'io.netty:netty-codec-http:4.0.8.Final'
   compile 'com.google.guava:guava:14.0.1'
   compile 'javax.inject:javax.inject:1'
-
+  compile commonDependencies.jackson
   runtime 'org.javassist:javassist:3.17.1-GA'
 }

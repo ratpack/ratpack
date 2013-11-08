@@ -63,5 +63,12 @@ class RequestParametersSpec extends RatpackGroovyDslSpec {
       param "abc"
     }
     postText() == "[a:[b, c], d:[e], abc:[]]" && resetRequest()
+
+    then:
+    request.with {
+      contentType 'application/json'
+      body '{ "a" : "b" }'
+    }
+    postText() == "[a:[b]]"
   }
 }
