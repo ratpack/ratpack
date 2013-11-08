@@ -19,6 +19,7 @@ package org.ratpackframework.gradle
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.ApplicationPlugin
+import org.gradle.api.plugins.ApplicationPluginConvention
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.SourceSet
@@ -62,10 +63,9 @@ class RatpackPlugin implements Plugin<Project> {
     def testSourceSet = sourceSets[SourceSet.TEST_SOURCE_SET_NAME]
     testSourceSet.resources.srcDir(run.workingDir)
 
-    project.installApp {
-      from run.workingDir, {
-        into "app"
-      }
+    def appPluginConvention = project.getConvention().getPlugin(ApplicationPluginConvention)
+    appPluginConvention.applicationDistribution.from(run.workingDir) {
+      into "app"
     }
 
     CreateStartScripts startScripts = project.startScripts

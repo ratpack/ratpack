@@ -117,7 +117,13 @@ abstract class FunctionalSpec extends Specification {
     assert f.exists()
     f
   }
-  
+
+  File getDistZip() {
+    def f = file("build/distributions/test-app-1.0.zip")
+    assert f.exists()
+    f
+  }
+
   def unpackedWarFile(path) {
     def unpacked = file("build/unpacked-war")
     if (!unpacked.exists()) {
