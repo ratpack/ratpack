@@ -33,7 +33,7 @@ import org.ratpackframework.registry.NotInRegistryException;
 import org.ratpackframework.registry.Registry;
 import org.ratpackframework.registry.RegistryBuilder;
 import org.ratpackframework.render.Renderer;
-import org.ratpackframework.render.controller.NoSuchRendererException;
+import org.ratpackframework.render.NoSuchRendererException;
 import org.ratpackframework.server.BindAddress;
 import org.ratpackframework.util.Action;
 import org.ratpackframework.util.Factory;

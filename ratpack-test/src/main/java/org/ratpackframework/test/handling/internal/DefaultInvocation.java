@@ -29,7 +29,7 @@ import org.ratpackframework.handling.internal.DelegatingHeaders;
 import org.ratpackframework.http.*;
 import org.ratpackframework.http.internal.DefaultResponse;
 import org.ratpackframework.registry.Registry;
-import org.ratpackframework.render.controller.NoSuchRendererException;
+import org.ratpackframework.render.NoSuchRendererException;
 import org.ratpackframework.server.BindAddress;
 import org.ratpackframework.test.handling.Invocation;
 import org.ratpackframework.test.handling.InvocationTimeoutException;

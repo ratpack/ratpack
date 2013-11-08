@@ -23,7 +23,7 @@ import org.ratpackframework.http.Response;
 import org.ratpackframework.path.PathTokens;
 import org.ratpackframework.registry.NotInRegistryException;
 import org.ratpackframework.registry.Registry;
-import org.ratpackframework.render.controller.NoSuchRendererException;
+import org.ratpackframework.render.NoSuchRendererException;
 import org.ratpackframework.server.BindAddress;
 import org.ratpackframework.util.Action;
 import org.ratpackframework.util.Factory;

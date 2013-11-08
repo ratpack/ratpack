@@ -21,7 +21,7 @@ import org.ratpackframework.error.internal.PrintingServerErrorHandler
 import org.ratpackframework.error.ServerErrorHandler
 import org.ratpackframework.handling.Context
 import org.ratpackframework.render.internal.ByTypeRenderer
-import org.ratpackframework.render.controller.NoSuchRendererException
+import org.ratpackframework.render.NoSuchRendererException
 import org.ratpackframework.test.internal.RatpackGroovyDslSpec
 
 class RendererBindingsSpec extends RatpackGroovyDslSpec {

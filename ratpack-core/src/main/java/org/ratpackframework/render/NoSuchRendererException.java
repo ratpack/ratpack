@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.render.controller;
+package org.ratpackframework.render;
 
 /**
  * Thrown when a request is made to render an object, but no suitable renderer can be found.
