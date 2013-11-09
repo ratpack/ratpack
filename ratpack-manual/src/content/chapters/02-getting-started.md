@@ -19,7 +19,7 @@ Open a text file and save it as *ratpack.groovy*.
 @GrabResolver("https://oss.jfrog.org/artifactory/repo") // (1)
 @Grab("org.ratpack-framework:ratpack-groovy:0.9.0-SNAPSHOT") 
 
-import static org.ratpackframework.groovy.RatpackScript.ratpack 
+import static ratpack.groovy.RatpackScript.ratpack
 
 ratpack { // (2)
     handlers { 
@@ -41,7 +41,7 @@ The first time you run the script, it might take a little while as Groovy downlo
 You should see the following output:
 
 ```
-Aug 15, 2013 11:10:06 PM org.ratpackframework.server.internal.NettyRatpackService startUp
+Aug 15, 2013 11:10:06 PM ratpack.server.internal.NettyRatpackService startUp
 INFO: Ratpack started for http://localhost:5050
 ```
 
@@ -193,8 +193,8 @@ So far, we have only been returning text in our application. But Ratpack comes w
 Here is a very simple handler that uses a groovyTemplate:
 
 ```language-groovy
-import static org.ratpackframework.groovy.RatpackScript.ratpack
-import static org.ratpackframework.groovy.Template.groovyTemplate
+import static ratpack.groovy.RatpackScript.ratpack
+import static ratpack.groovy.Template.groovyTemplate
 
 ratpack {
     handlers {
@@ -205,7 +205,7 @@ ratpack {
 }
 ```
 
-Note I added an extra import for `static org.ratpackframework.groovy.Template.groovyTemplate`.
+Note I added an extra import for `static ratpack.groovy.Template.groovyTemplate`.
 
 Let's take a look at the actual rendering function, it takes in a groovyTemplate followed by a map of values.
 
@@ -234,7 +234,7 @@ There is also an implementation of using Handlebars templates by Marcin Erdmann.
 One of the interesting features about Ratpack is the fact that calls are non-blocking by default. However, if you have things that may take a little bit longer but are necessary for your application, you can force them into blocking calls.
 
 ```language-groovy groovy-handlers
-import static org.ratpackframework.groovy.Util.exec
+import static ratpack.groovy.Util.exec
 
 interface DbService {
     // Uses blocking IO
@@ -255,7 +255,7 @@ The `exec` block takes two closures, the first one is the blocking operation, fo
 You can also provide an optional failure condition to the exec blocking operation, as outlined by the following test:
 
 ```language-groovy groovy-handlers
-import static org.ratpackframework.groovy.Util.exec
+import static ratpack.groovy.Util.exec
 
 interface DbService {
     // Uses blocking IO

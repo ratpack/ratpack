@@ -54,7 +54,7 @@ artifactoryPublish {
 
 allprojects {
   group = "org.ratpack-framework"
-  version = rootProject.file("shared-resources/org/ratpackframework/ratpack-version.txt").text.trim()
+  version = rootProject.file("shared-resources/ratpack/ratpack-version.txt").text.trim()
 
   apply plugin: "base"
   apply plugin: "idea"

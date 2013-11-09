@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import org.ratpackframework.gradle.RatpackPlugin
-import org.ratpackframework.gradle.RatpackGroovyPlugin
+import ratpack.gradle.RatpackPlugin
+import ratpack.gradle.RatpackGroovyPlugin
 
 /*
     For projects using the ratpack plugins, replace the module dependencies with project dependencies

@@ -1,0 +1,249 @@
+/*
+ * Copyright 2013 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package ratpack.path
+
+import ratpack.test.internal.RatpackGroovyDslSpec
+import static io.netty.handler.codec.http.HttpResponseStatus.NOT_FOUND
+
+
+class PathRoutingSpec extends RatpackGroovyDslSpec {
+
+  def "can route by prefix"() {
+    when:
+    app {
+      handlers {
+        prefix("abc") {
+          handler {
+            response.send(get(PathBinding).boundTo)
+          }
+        }
+      }
+    }
+
+    then:
+    getText("abc/def") == "abc"
+    getText("abc/ghi") == "abc"
+    getText("abc") == "abc"
+    get("ab/def").statusCode == NOT_FOUND.code()
+  }
+
+  def "can route by nested prefix"() {
+    when:
+    app {
+      handlers {
+        prefix("abc") {
+          prefix("def") {
+            handler {
+              response.send(get(PathBinding).pastBinding)
+            }
+          }
+        }
+      }
+    }
+
+    then:
+    getText("abc/def/ghi") == "ghi"
+    getText("abc/def/jkl") == "jkl"
+    getText("abc/def") == ""
+    get("abc/de/ghi").statusCode == NOT_FOUND.code()
+  }
+
+  def "can route by prefix with tokens"() {
+    when:
+    app {
+      handlers {
+        prefix(":a/:b/:c") {
+          handler {
+            def binding = get(PathBinding)
+            response.send("$binding.tokens - $binding.pastBinding")
+          }
+        }
+      }
+    }
+
+    then:
+    getText("1/2/3/4/5") == "[a:1, b:2, c:3] - 4/5"
+  }
+
+  def "can route by nested prefix with tokens"() {
+    when:
+    app {
+      handlers {
+        prefix(":a/:b") {
+          prefix(":d/:e") {
+            handler {
+              def binding = get(PathBinding)
+              response.send("$binding.tokens - $binding.allTokens - $binding.pastBinding")
+            }
+          }
+        }
+      }
+    }
+
+    then:
+    getText("1/2/3/4/5/6") == "[d:3, e:4] - [a:1, b:2, d:3, e:4] - 5/6"
+  }
+
+  def "can route by exact path"() {
+    when:
+    app {
+      handlers {
+        handler("abc") {
+          response.send(get(PathBinding).boundTo)
+        }
+      }
+    }
+
+    then:
+    getText("abc") == "abc"
+    get("abc/def").statusCode == NOT_FOUND.code()
+    get("ab").statusCode == NOT_FOUND.code()
+  }
+
+  def "can route by nested exact path"() {
+    when:
+    app {
+      handlers {
+        prefix("abc") {
+          handler("def") {
+            response.send(get(PathBinding).boundTo)
+          }
+        }
+      }
+    }
+
+    then:
+    getText("abc/def") == "def"
+    get("abc/def/ghi").statusCode == NOT_FOUND.code()
+    get("abc/de").statusCode == NOT_FOUND.code()
+    get("abc").statusCode == NOT_FOUND.code()
+  }
+
+  def "can route by exact path with tokens"() {
+    when:
+    app {
+      handlers {
+        handler(":a/:b/:c") {
+          def binding = get(PathBinding)
+          response.send("$binding.tokens - $binding.pastBinding")
+        }
+      }
+    }
+
+    then:
+    get("1/2/3/4/5").statusCode == NOT_FOUND.code()
+    getText("1/2/3") == "[a:1, b:2, c:3] - "
+  }
+
+  def "can route by nested exact path with tokens"() {
+    when:
+    app {
+      handlers {
+        prefix(":a/:b") {
+          handler(":d/:e") {
+            def binding = get(PathBinding)
+            response.send("$binding.tokens - $binding.allTokens - $binding.pastBinding")
+          }
+        }
+      }
+    }
+
+    then:
+    getText("1/2/3/4") == "[d:3, e:4] - [a:1, b:2, d:3, e:4] - "
+    get("1/2/3/4/5/6").statusCode == NOT_FOUND.code()
+  }
+
+  def "can use get handler"() {
+    when:
+    app {
+      handlers {
+        get {
+          response.send("root")
+        }
+
+        get("a") {
+          response.send("a")
+        }
+      }
+    }
+
+    then:
+    getText() == "root"
+    getText("a") == "a"
+    get("a/b/c").statusCode == NOT_FOUND.code()
+  }
+
+  def "can use post handler"() {
+    when:
+    app {
+      handlers {
+        post {
+          response.send("root")
+        }
+
+        post("a") {
+          response.send("a")
+        }
+      }
+    }
+
+    then:
+    postText() == "root"
+    postText("a") == "a"
+    post("a/b/c").statusCode == NOT_FOUND.code()
+  }
+
+  def "can use put handler"() {
+    when:
+    app {
+      handlers {
+        put {
+          response.send("root")
+        }
+
+        put("a") {
+          response.send("a")
+        }
+      }
+    }
+
+    then:
+    putText() == "root"
+    putText("a") == "a"
+    put("a/b/c").statusCode == NOT_FOUND.code()
+  }
+
+  def "can use delete handler"() {
+    when:
+    app {
+      handlers {
+        delete {
+          response.send("root")
+        }
+
+        delete("a") {
+          response.send("a")
+        }
+      }
+    }
+
+    then:
+    deleteText() == "root"
+    deleteText("a") == "a"
+    delete("a/b/c/d").statusCode == NOT_FOUND.code()
+  }
+}

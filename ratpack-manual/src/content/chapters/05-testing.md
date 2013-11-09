@@ -18,7 +18,7 @@ Once you have included the *ratpack-groovy* plugin, you can run your Spock tests
 
 ## Unit testing Ratpack handlers
 
-The [`InvocationBuilder`](api/org/ratpackframework/test/handling/InvocationBuilder.html) and [`Invocation`](api/org/ratpackframework/test/handling/Invocation.html) classes in the Ratpack test API allow you to unit test your [`Handler`](api/org/ratpackframework/handling/Handler.html) implementations without starting up a Ratpack server.
+The [`InvocationBuilder`](api/ratpack/test/handling/InvocationBuilder.html) and [`Invocation`](api/ratpack/test/handling/Invocation.html) classes in the Ratpack test API allow you to unit test your [`Handler`](api/ratpack/handling/Handler.html) implementations without starting up a Ratpack server.
 
 Let's assume we have a `Handler` implementation that looks like this:
 
@@ -42,7 +42,7 @@ If we run this handler, we would expect:
 The specification for this handler will look like this:
 
 ```language-groovy
-package org.ratpackframework.test.handling
+package ratpack.test.handling
 
 import spock.lang.Specification
 
@@ -98,10 +98,10 @@ For simpler tests you can use an alternate syntax for handler tests. `Invocation
 The test above could be re-written as:
 
 ```language-groovy
-package org.ratpackframework.test.handling
+package ratpack.test.handling
 
 import spock.lang.Specification
-import static org.ratpackframework.groovy.test.handling.InvocationBuilder.invoke // 1
+import static ratpack.groovy.test.handling.InvocationBuilder.invoke // 1
 
 class MyHandlerSpec extends Specification {
 
@@ -119,7 +119,7 @@ class MyHandlerSpec extends Specification {
 }
 ```
 
-1. First, we import the static form of the `invoke` method from the [`InvocationBuilder`](api/org/ratpackframework/groovy/test/handling/InvocationBuilder.html).
+1. First, we import the static form of the `invoke` method from the [`InvocationBuilder`](api/ratpack/groovy/test/handling/InvocationBuilder.html).
 2. The invoke method in our when block takes in an instance of the handler under test, followed by a closure used for building the handler context. The methods available in the closure are identical to those available directly on `InvocationBuilder`.
 3. The assertions are made in exactly the same way.
 
@@ -168,7 +168,7 @@ def "can unit test a handler that renders a template"() {
 }
 ```
 
-The Invocation interface contains a method `rendered(Class)`. This will return the object the handler rendered. In our example this is a [`Template`](/api/org/ratpackframework/groovy/Template.html) and we then check that the correct id, model and type were used.
+The Invocation interface contains a method `rendered(Class)`. This will return the object the handler rendered. In our example this is a [`Template`](/api/ratpack/groovy/Template.html) and we then check that the correct id, model and type were used.
 
 ### Additional Resources
 

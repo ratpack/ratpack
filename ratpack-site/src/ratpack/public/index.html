@@ -68,14 +68,14 @@
                 <p>
                 Here's a simple executable Groovy script that is a complete Ratpack application …
                 </p>
-                <pre><code class="language-groovy">@GrabResolver("http://oss.jfrog.org/artifactory/libs-snapshot")
-@Grab("org.ratpack-framework:ratpack-groovy:0.9.0-SNAPSHOT")
-import static org.ratpackframework.groovy.RatpackScript.ratpack
+                <pre><code class="language-groovy">@GrabResolver(&quot;http://oss.jfrog.org/artifactory/libs-snapshot&quot;)
+@Grab(&quot;org.ratpack-framework:ratpack-groovy:0.9.0-SNAPSHOT&quot;)
+import static ratpack.groovy.RatpackScript.ratpack
 
 ratpack {
   handlers {
     get {
-      response.send "Hello world!"
+      response.send &quot;Hello world!&quot;
     }
   }
 }</code></pre>
