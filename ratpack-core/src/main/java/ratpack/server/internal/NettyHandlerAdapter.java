@@ -44,6 +44,8 @@ import ratpack.http.internal.*;
 import ratpack.launch.LaunchConfig;
 import ratpack.registry.Registry;
 import ratpack.registry.RegistryBuilder;
+import ratpack.render.CharSequenceRenderer;
+import ratpack.render.internal.DefaultCharSequenceRenderer;
 import ratpack.server.BindAddress;
 import ratpack.server.PublicAddress;
 
@@ -77,6 +79,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
       .add(ServerErrorHandler.class, new DefaultServerErrorHandler())
       .add(LaunchConfig.class, launchConfig)
       .add(FileRenderer.class, new DefaultFileRenderer())
+      .add(CharSequenceRenderer.class, new DefaultCharSequenceRenderer())
       .build();
   }
 

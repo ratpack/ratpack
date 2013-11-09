@@ -14,10 +14,37 @@
  * limitations under the License.
  */
 
-package ratpack.file;
+package ratpack.render
 
-import ratpack.render.Renderer;
+import ratpack.test.internal.RatpackGroovyDslSpec
 
-import java.io.File;
+class CharSequenceRenderingSpec extends RatpackGroovyDslSpec {
 
-public interface FileRenderer extends Renderer<File> {}
+  def "can render string"() {
+    when:
+    app {
+      handlers {
+        get {
+          render "foo"
+        }
+      }
+    }
+
+    then:
+    text == "foo"
+  }
+
+  def "can render gstring"() {
+    when:
+    app {
+      handlers {
+        get {
+          render "${"foo"}"
+        }
+      }
+    }
+
+    then:
+    text == "foo"
+  }
+}

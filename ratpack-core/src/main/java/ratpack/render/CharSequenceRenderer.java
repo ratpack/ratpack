@@ -14,10 +14,7 @@
  * limitations under the License.
  */
 
-package ratpack.file;
+package ratpack.render;
 
-import ratpack.render.Renderer;
-
-import java.io.File;
-
-public interface FileRenderer extends Renderer<File> {}
+public interface CharSequenceRenderer extends Renderer<CharSequence> {
+}

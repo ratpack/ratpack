@@ -14,10 +14,17 @@
  * limitations under the License.
  */
 
-package ratpack.file;
+package ratpack.render.internal;
 
-import ratpack.render.Renderer;
+import ratpack.handling.Context;
+import ratpack.render.CharSequenceRenderer;
+import ratpack.render.RendererSupport;
 
-import java.io.File;
+public class DefaultCharSequenceRenderer extends RendererSupport<CharSequence> implements CharSequenceRenderer {
 
-public interface FileRenderer extends Renderer<File> {}
+  @Override
+  public void render(Context context, CharSequence charSequence) {
+    context.getResponse().send(charSequence.toString());
+  }
+
+}
