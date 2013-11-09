@@ -21,7 +21,7 @@ import ratpack.block.Blocking;
 import ratpack.file.FileRenderer;
 import ratpack.file.MimeTypes;
 import ratpack.handling.Context;
-import ratpack.render.internal.ByTypeRenderer;
+import ratpack.render.RendererSupport;
 import ratpack.util.Action;
 
 import java.io.File;
@@ -34,7 +34,7 @@ import java.util.concurrent.Callable;
 
 import static io.netty.handler.codec.http.HttpResponseStatus.NOT_MODIFIED;
 
-public class DefaultFileRenderer extends ByTypeRenderer<File> implements FileRenderer {
+public class DefaultFileRenderer extends RendererSupport<File> implements FileRenderer {
 
   @Override
   public void render(final Context context, final File targetFile) {

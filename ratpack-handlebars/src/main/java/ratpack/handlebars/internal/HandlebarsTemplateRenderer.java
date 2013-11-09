@@ -20,12 +20,12 @@ import com.github.jknack.handlebars.Handlebars;
 import ratpack.file.MimeTypes;
 import ratpack.handlebars.Template;
 import ratpack.handling.Context;
-import ratpack.render.internal.ByTypeRenderer;
+import ratpack.render.RendererSupport;
 
 import javax.inject.Inject;
 import java.io.IOException;
 
-public class HandlebarsTemplateRenderer extends ByTypeRenderer<Template<?>> {
+public class HandlebarsTemplateRenderer extends RendererSupport<Template<?>> {
 
   private final Handlebars handlebars;
 

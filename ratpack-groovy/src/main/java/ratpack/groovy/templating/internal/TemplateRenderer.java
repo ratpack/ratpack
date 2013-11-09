@@ -20,12 +20,12 @@ import io.netty.buffer.ByteBuf;
 import ratpack.file.MimeTypes;
 import ratpack.groovy.Template;
 import ratpack.handling.Context;
-import ratpack.render.internal.ByTypeRenderer;
+import ratpack.render.RendererSupport;
 import ratpack.util.Action;
 
 import javax.inject.Inject;
 
-public class TemplateRenderer extends ByTypeRenderer<Template> {
+public class TemplateRenderer extends RendererSupport<Template> {
 
   private final GroovyTemplateRenderingEngine engine;
 

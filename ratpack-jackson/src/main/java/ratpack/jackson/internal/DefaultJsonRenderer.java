@@ -21,14 +21,14 @@ import io.netty.buffer.ByteBuf;
 import ratpack.handling.Context;
 import ratpack.jackson.JsonRender;
 import ratpack.jackson.JsonRenderer;
-import ratpack.render.internal.ByTypeRenderer;
+import ratpack.render.RendererSupport;
 import ratpack.util.internal.ByteBufWriteThroughOutputStream;
 
 import javax.inject.Inject;
 import java.io.IOException;
 import java.io.OutputStream;
 
-public class DefaultJsonRenderer extends ByTypeRenderer<JsonRender<?>> implements JsonRenderer {
+public class DefaultJsonRenderer extends RendererSupport<JsonRender<?>> implements JsonRenderer {
 
   private final ObjectWriter defaultObjectWriter;
 

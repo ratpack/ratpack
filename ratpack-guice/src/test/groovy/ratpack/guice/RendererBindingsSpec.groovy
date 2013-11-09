@@ -20,20 +20,20 @@ import com.google.inject.AbstractModule
 import ratpack.error.internal.PrintingServerErrorHandler
 import ratpack.error.ServerErrorHandler
 import ratpack.handling.Context
-import ratpack.render.internal.ByTypeRenderer
 import ratpack.render.NoSuchRendererException
+import ratpack.render.RendererSupport
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 class RendererBindingsSpec extends RatpackGroovyDslSpec {
 
-  static class IntRenderer extends ByTypeRenderer<Integer> {
+  static class IntRenderer extends RendererSupport<Integer> {
     @Override
     void render(Context context, Integer object) {
       context.response.send("text/integer", object.toString())
     }
   }
 
-  static class StringRenderer extends ByTypeRenderer<String> {
+  static class StringRenderer extends RendererSupport<String> {
     @Override
     void render(Context context, String object) {
       context.response.send("text/string", object.toString())
