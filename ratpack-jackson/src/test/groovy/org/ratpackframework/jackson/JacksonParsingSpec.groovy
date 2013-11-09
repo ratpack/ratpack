@@ -14,13 +14,35 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.jackson;
+package org.ratpackframework.jackson
 
-import org.ratpackframework.render.Renderer;
+import org.ratpackframework.test.internal.RatpackGroovyDslSpec
 
-/**
- * Renders {@link JsonRender} objects.
- */
-public interface JsonRenderer extends Renderer<JsonRender<?>> {
+import static org.ratpackframework.jackson.Json.jsonNode
+
+class JacksonParsingSpec extends RatpackGroovyDslSpec {
+
+  def setup() {
+    modules << new JacksonModule()
+  }
+
+  def "can parse json node"() {
+    when:
+    app {
+      handlers {
+        post {
+          def node = parse jsonNode()
+          response.send node.get("value").toString()
+        }
+      }
+    }
+
+    and:
+    request.contentType("application/json").body([value: 3])
+
+    then:
+    postText() == "3"
+  }
+
 
 }

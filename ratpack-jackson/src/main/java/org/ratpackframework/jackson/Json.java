@@ -16,8 +16,12 @@
 
 package org.ratpackframework.jackson;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import org.ratpackframework.api.Nullable;
+import org.ratpackframework.jackson.internal.DefaultJsonRender;
 
 /**
  * Represents some object to be rendered as JSON.
@@ -47,48 +51,8 @@ import org.ratpackframework.api.Nullable;
  * <p>
  * A renderer for this type can be provided by the {@link JacksonModule}.
  * </p>
- *
- * @param <T> The type of the object to render as JSON.
  */
-public class Json<T> {
-
-  private final T object;
-  private final ObjectWriter objectWriter;
-
-  /**
-   * Constructs a JSON wrapper around the given object.
-   * <p>
-   * Generally, use of the {@link #json(Object)} method is preferred over this constructor.
-   * </p>
-   *
-   * @param object The object to render as JSON.
-   * @param objectWriter The writier to use to convert the object to JSON.
-   */
-  public Json(T object, @Nullable ObjectWriter objectWriter) {
-    this.object = object;
-    this.objectWriter = objectWriter;
-  }
-
-  /**
-   * The underlying object to be rendered.
-   *
-   * @return The underlying object to be rendered.
-   */
-  public T getObject() {
-    return object;
-  }
-
-  /**
-   * The object writer to use to render the object as JSON.
-   * <p>
-   * If null, the "default" writer should be used by the renderer.
-   *
-   * @return The object writer to be used.
-   */
-  @Nullable
-  public ObjectWriter getObjectWriter() {
-    return objectWriter;
-  }
+public abstract class Json {
 
   /**
    * Json rendering of the given object, using the default object writer.
@@ -97,8 +61,8 @@ public class Json<T> {
    * @param <T> The type of the object to render as JSON.
    * @return A JSON type wrapper for the given object.
    */
-  public static <T> Json<T> json(T object) {
-    return new Json<>(object, null);
+  public static <T> JsonRender<T> json(T object) {
+    return new DefaultJsonRender<>(object, null);
   }
 
   /**
@@ -109,8 +73,21 @@ public class Json<T> {
    * @param <T> The type of the object to render as JSON.
    * @return A JSON type wrapper for the given object.
    */
-  public static <T> Json<T> json(T object, @Nullable ObjectWriter objectWriter) {
-    return new Json<>(object, objectWriter);
+  public static <T> JsonRender<T> json(T object, @Nullable ObjectWriter objectWriter) {
+    return new DefaultJsonRender<>(object, objectWriter);
   }
 
+  public static JsonParse<JsonNode> jsonNode() {
+    return new JsonParse<JsonNode>() {
+      @Override
+      public Class<JsonNode> getType() {
+        return JsonNode.class;
+      }
+
+      @Override
+      public ObjectReader getObjectReader() {
+        return new ObjectMapper().reader();
+      }
+    };
+  }
 }

@@ -19,7 +19,7 @@ package org.ratpackframework.jackson.internal;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import io.netty.buffer.ByteBuf;
 import org.ratpackframework.handling.Context;
-import org.ratpackframework.jackson.Json;
+import org.ratpackframework.jackson.JsonRender;
 import org.ratpackframework.jackson.JsonRenderer;
 import org.ratpackframework.render.internal.ByTypeRenderer;
 import org.ratpackframework.util.internal.ByteBufWriteThroughOutputStream;
@@ -28,7 +28,7 @@ import javax.inject.Inject;
 import java.io.IOException;
 import java.io.OutputStream;
 
-public class DefaultJsonRenderer extends ByTypeRenderer<Json<?>> implements JsonRenderer {
+public class DefaultJsonRenderer extends ByTypeRenderer<JsonRender<?>> implements JsonRenderer {
 
   private final ObjectWriter defaultObjectWriter;
 
@@ -38,7 +38,7 @@ public class DefaultJsonRenderer extends ByTypeRenderer<Json<?>> implements Json
   }
 
   @Override
-  public void render(final Context context, final Json<?> object) {
+  public void render(final Context context, final JsonRender<?> object) {
     context.respond(context.getByContent().json(new Runnable() {
       @Override
       public void run() {

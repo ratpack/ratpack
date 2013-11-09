@@ -27,13 +27,15 @@ import org.ratpackframework.file.FileSystemBinding;
 import org.ratpackframework.handling.*;
 import org.ratpackframework.http.Request;
 import org.ratpackframework.http.Response;
+import org.ratpackframework.parse.Parse;
+import org.ratpackframework.parse.Parser;
 import org.ratpackframework.path.PathBinding;
 import org.ratpackframework.path.PathTokens;
 import org.ratpackframework.registry.NotInRegistryException;
 import org.ratpackframework.registry.Registry;
 import org.ratpackframework.registry.RegistryBuilder;
-import org.ratpackframework.render.Renderer;
 import org.ratpackframework.render.NoSuchRendererException;
+import org.ratpackframework.render.Renderer;
 import org.ratpackframework.server.BindAddress;
 import org.ratpackframework.util.Action;
 import org.ratpackframework.util.Factory;
@@ -149,6 +151,34 @@ public class DefaultContext implements Context {
       return true;
     } else {
       return false;
+    }
+  }
+
+  @Override
+  public <T> T parse(Parse<T> parse) {
+    @SuppressWarnings("rawtypes")
+    List<Parser> all = registry.getAll(Parser.class);
+    String requestContentType = request.getContentType().getType();
+    if (requestContentType == null) {
+      requestContentType = "text/plain";
+    }
+    T parsed;
+    for (Parser<?, ?> parser : all) {
+      parsed = maybeParse(requestContentType, parse, parser);
+      if (parsed != null) {
+        return parsed;
+      }
+    }
+
+    throw new RuntimeException("No parser for " + parse);
+  }
+
+  private <P, S extends Parse<P>> P maybeParse(String requestContentType, S parseSpec, Parser<?, ?> parser) {
+    if (requestContentType.equalsIgnoreCase(parser.getContentType()) && parser.getParseType().isInstance(parseSpec)) {
+      @SuppressWarnings("unchecked") Parser<P, S> castParser = (Parser<P, S>) parser;
+      return castParser.parse(this, parseSpec);
+    } else {
+      return null;
     }
   }
 

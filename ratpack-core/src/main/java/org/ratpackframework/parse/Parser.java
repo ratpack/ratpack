@@ -14,13 +14,18 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.jackson;
+package org.ratpackframework.parse;
 
-import org.ratpackframework.render.Renderer;
+import org.ratpackframework.handling.Context;
 
-/**
- * Renders {@link JsonRender} objects.
- */
-public interface JsonRenderer extends Renderer<JsonRender<?>> {
+public interface Parser<T, P extends Parse<T>> {
+
+  String getContentType();
+
+  T parse(Context context, P parse);
+
+  Class<P> getParseType();
+
+  Class<T> getParsedType();
 
 }

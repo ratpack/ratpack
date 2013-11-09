@@ -20,6 +20,7 @@ import org.ratpackframework.api.NonBlocking;
 import org.ratpackframework.block.Blocking;
 import org.ratpackframework.http.Request;
 import org.ratpackframework.http.Response;
+import org.ratpackframework.parse.Parse;
 import org.ratpackframework.path.PathTokens;
 import org.ratpackframework.registry.NotInRegistryException;
 import org.ratpackframework.registry.Registry;
@@ -331,4 +332,5 @@ public interface Context extends Registry {
    */
   BindAddress getBindAddress();
 
+  <T> T parse(Parse<T> parse);
 }

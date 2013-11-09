@@ -14,13 +14,23 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.jackson;
+package org.ratpackframework.parse;
 
-import org.ratpackframework.render.Renderer;
+public class NoOptionParse<T> implements Parse<T> {
 
-/**
- * Renders {@link JsonRender} objects.
- */
-public interface JsonRenderer extends Renderer<JsonRender<?>> {
+  private final Class<T> type;
+
+  public NoOptionParse(Class<T> type) {
+    this.type = type;
+  }
+
+  @Override
+  public Class<T> getType() {
+    return type;
+  }
+
+  public static <T> NoOptionParse<T> toType(Class<T> type) {
+    return new NoOptionParse<>(type);
+  }
 
 }

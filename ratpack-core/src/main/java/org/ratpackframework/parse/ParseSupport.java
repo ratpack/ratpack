@@ -14,13 +14,21 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.jackson;
+package org.ratpackframework.parse;
 
-import org.ratpackframework.render.Renderer;
+import org.ratpackframework.util.internal.Types;
 
-/**
- * Renders {@link JsonRender} objects.
- */
-public interface JsonRenderer extends Renderer<JsonRender<?>> {
+public class ParseSupport<T> implements Parse<T> {
+
+  private final Class<T> type;
+
+  protected ParseSupport() {
+    this.type = Types.findImplParameterTypeAtIndex(getClass(), ParseSupport.class, 0);
+  }
+
+  @Override
+  public Class<T> getType() {
+    return type;
+  }
 
 }

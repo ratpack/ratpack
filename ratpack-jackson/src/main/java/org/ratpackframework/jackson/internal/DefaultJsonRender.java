@@ -14,13 +14,27 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.jackson;
+package org.ratpackframework.jackson.internal;
 
-import org.ratpackframework.render.Renderer;
+import com.fasterxml.jackson.databind.ObjectWriter;
+import org.ratpackframework.api.Nullable;
+import org.ratpackframework.jackson.JsonRender;
 
-/**
- * Renders {@link JsonRender} objects.
- */
-public interface JsonRenderer extends Renderer<JsonRender<?>> {
+public class DefaultJsonRender<T> implements JsonRender<T> {
 
+  private final T object;
+  private final ObjectWriter objectWriter;
+
+  public DefaultJsonRender(T object, @Nullable ObjectWriter objectWriter) {
+    this.object = object;
+    this.objectWriter = objectWriter;
+  }
+
+  public T getObject() {
+    return object;
+  }
+
+  public ObjectWriter getObjectWriter() {
+    return objectWriter;
+  }
 }

@@ -16,11 +16,11 @@
 
 package org.ratpackframework.jackson;
 
-import org.ratpackframework.render.Renderer;
+import com.fasterxml.jackson.databind.ObjectReader;
+import org.ratpackframework.parse.Parse;
 
-/**
- * Renders {@link JsonRender} objects.
- */
-public interface JsonRenderer extends Renderer<JsonRender<?>> {
+public interface JsonParse<T> extends Parse<T> {
+
+  ObjectReader getObjectReader();
 
 }

@@ -16,11 +16,26 @@
 
 package org.ratpackframework.jackson;
 
-import org.ratpackframework.render.Renderer;
+import com.fasterxml.jackson.databind.ObjectWriter;
+import org.ratpackframework.api.Nullable;
 
-/**
- * Renders {@link JsonRender} objects.
- */
-public interface JsonRenderer extends Renderer<JsonRender<?>> {
+public interface JsonRender<T> {
+
+  /**
+   * The underlying object to be rendered.
+   *
+   * @return The underlying object to be rendered.
+   */
+  public T getObject();
+
+  /**
+   * The object writer to use to render the object as JSON.
+   * <p>
+   * If null, the "default" writer should be used by the renderer.
+   *
+   * @return The object writer to be used.
+   */
+  @Nullable
+  public ObjectWriter getObjectWriter();
 
 }
