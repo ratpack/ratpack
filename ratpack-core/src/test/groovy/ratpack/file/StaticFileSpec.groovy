@@ -357,6 +357,23 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
     getText() == "bar"
   }
 
+  def "asset handler passes through on not found"() {
+    given:
+    file("public/foo.txt") << "bar"
+
+    when:
+    app {
+      handlers {
+        assets "public"
+        handler { render "after" }
+      }
+    }
+
+    then:
+    getText("foo.txt") == "bar"
+    getText("other") == "after"
+  }
+
   private static Date parseDateHeader(Response response, String name) {
     HttpHeaderDateFormat.get().parse(response.getHeader(name))
   }

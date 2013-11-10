@@ -69,7 +69,7 @@ public class AssetHandler implements Handler {
     readAttributes(context.getBlocking(), file, new Action<BasicFileAttributes>() {
       public void execute(BasicFileAttributes attributes) {
         if (attributes == null) {
-          context.clientError(404);
+          context.next();
         } else if (attributes.isRegularFile()) {
           sendFile(context, file, attributes);
         } else if (attributes.isDirectory()) {
