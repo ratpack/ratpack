@@ -13,39 +13,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+dataSource {
+  url = "jdbc:h2:mem:jdbi"
+  driverClassName = "org.h2.Driver"
+  username = "sa"
+  password = ""
 
-include \
-    "ratpack-core",
-    "ratpack-manual",
-    "ratpack-site",
-    "ratpack-test",
-    "ratpack-test-internal",
-    "ratpack-groovy",
-    "ratpack-groovy-test",
-    "ratpack-guice",
-    "ratpack-session",
-    "ratpack-gradle",
-    "ratpack-handlebars",
-    "ratpack-remote",
-    "ratpack-jackson",
-    "ratpack-jdbi"
-
-include \
-  "perftest",
-  "perftest:java",
-  "perftest:groovy"
-
-rootProject.name = 'ratpack'
-
-def setBuildFile(project) {
-  project.buildFileName = "${project.name}.gradle"
-  project.children.each {
-    setBuildFile(it)
+  pool {
+    maxWait = 60000
+    maxIdle = 5
+    maxActive = 8
   }
+
 }
 
-setBuildFile(rootProject)
-rootProject.children.each {
-  setBuildFile(it)
-}
+dataSources {
 
+  prod {
+    url = "jdbc:h2:mem:jdbi-prod"
+    driverClassName = "org.h2.Driver"
+    username = "sa"
+    password = ""
+
+    pool {
+      maxWait = 60000
+      maxIdle = 5
+      maxActive = 8
+    }
+
+
+  }
+
+
+}
