@@ -9,6 +9,10 @@ ratpack {
   }
   handlers { RatpackVersions versions ->
   	handler {
+      if (request.headers.get("host").endsWith("ratpack-framework.org")) {
+        redirect 301, "http://www.ratpack.io"
+      }
+
       if (request.path.empty || request.path == "index.html") {
         response.headers.set "X-UA-Compatible", "IE=edge,chrome=1"
       }
