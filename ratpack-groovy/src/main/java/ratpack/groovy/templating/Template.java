@@ -14,27 +14,16 @@
  * limitations under the License.
  */
 
-package ratpack.manual.snippets.fixtures
+package ratpack.groovy.templating;
 
-class GroovyRatpackDslFixture implements SnippetFixture {
+import java.util.Map;
 
-  @Override
-  public void setup() {
-  }
+public interface Template {
 
-  @Override
-  public void cleanup() {
-  }
+  String getId();
 
-  @Override
-  public String pre() {
-"""
-def ratpack(@DelegatesTo(value = ratpack.groovy.Groovy.Ratpack, strategy = Closure.DELEGATE_FIRST) Closure closure) { }
-"""
-  }
+  String getType();
 
-  @Override
-  public String post() {
-    ""
-  }
+  Map<String, ?> getModel();
+
 }

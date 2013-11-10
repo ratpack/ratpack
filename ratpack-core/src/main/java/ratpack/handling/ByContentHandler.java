@@ -54,7 +54,6 @@ package ratpack.handling;
  * along with {@code Buildable.with}…
  * <pre class="tested">
  * import ratpack.handling.*
- * import static ratpack.groovy.Util.with
  *
  * class MyHandler implements Handler {
  *   void handle(Context context) {

@@ -14,15 +14,10 @@
  * limitations under the License.
  */
 
-package ratpack.groovy;
+package ratpack.groovy.internal;
 
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
-import ratpack.api.NonBlocking;
-import ratpack.block.Blocking;
-import ratpack.groovy.handling.internal.ClosureBackedHandler;
-import ratpack.handling.Context;
-import ratpack.handling.Handler;
 import ratpack.util.Action;
 
 public abstract class Util {
@@ -69,20 +64,6 @@ public abstract class Util {
   public static Action<Object> action(final Closure<?> closure) {
     final Closure<?> copy = closure.rehydrate(null, closure.getOwner(), closure.getThisObject());
     return new NoDelegateClosureAction(copy);
-  }
-
-  @NonBlocking
-  public static <T> void exec(Blocking blocking, Closure<T> operation, Closure<?> onSuccess) {
-    blocking.exec(operation).then(action(onSuccess));
-  }
-
-  @NonBlocking
-  public static <T> void exec(Blocking blocking, Closure<T> operation, Closure<?> onFailure, Closure<?> onSuccess) {
-    blocking.exec(operation).onError(action(onFailure)).then(action(onSuccess));
-  }
-
-  public static Handler asHandler(@DelegatesTo(value = Context.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) {
-    return new ClosureBackedHandler(closure);
   }
 
   private static class NoDelegateClosureAction implements Action<Object> {

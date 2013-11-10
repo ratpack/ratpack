@@ -52,7 +52,6 @@ package ratpack.handling;
  * If you are using Groovy, you can use closures as the definitions (because closures implement {@link Runnable}).
  * <pre class="tested">
  * import ratpack.handling.*
- * import static ratpack.groovy.Util.with
  *
  * class MyHandler implements Handler {
  *   void handle(Context context) {

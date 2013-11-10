@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableList;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import ratpack.api.Nullable;
-import ratpack.groovy.Util;
+import ratpack.groovy.internal.Util;
 import ratpack.groovy.handling.Chain;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
@@ -31,7 +31,7 @@ import ratpack.util.Action;
 
 import java.util.List;
 
-import static ratpack.groovy.Util.asHandler;
+import static ratpack.groovy.Groovy.asHandler;
 
 public class DefaultChain extends ratpack.handling.internal.DefaultChain implements Chain {
 

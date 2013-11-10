@@ -35,8 +35,8 @@ import ratpack.util.Transformer
 import ratpack.util.internal.ConstantTransformer
 
 import static Handlers.chain
-import static ratpack.groovy.Util.configureDelegateFirst
-import static ratpack.groovy.Util.delegatingAction
+import static ratpack.groovy.internal.Util.configureDelegateFirst
+import static ratpack.groovy.internal.Util.delegatingAction
 
 abstract class DefaultRatpackSpec extends InternalRatpackSpec {
 

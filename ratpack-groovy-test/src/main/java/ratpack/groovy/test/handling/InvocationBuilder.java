@@ -18,7 +18,7 @@ package ratpack.groovy.test.handling;
 
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
-import ratpack.groovy.Util;
+import ratpack.groovy.internal.Util;
 import ratpack.handling.Handler;
 import ratpack.test.handling.Invocation;
 

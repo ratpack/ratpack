@@ -14,33 +14,34 @@
  * limitations under the License.
  */
 
-package ratpack.groovy;
+package ratpack.groovy.templating.internal;
 
 import com.google.common.collect.ImmutableMap;
+import ratpack.groovy.templating.Template;
 
 import java.util.Map;
 
-public class Template {
+public class DefaultTemplate implements Template {
 
   private final String id;
   private final ImmutableMap<String, ?> model;
   private final String type;
 
-  public Template(String id, Map<String, ?> model, String type) {
+  public DefaultTemplate(String id, Map<String, ?> model, String type) {
     this.id = id;
     this.type = type;
     this.model = ImmutableMap.copyOf(model);
   }
 
-  public String getId() {
+  @Override public String getId() {
     return id;
   }
 
-  public String getType() {
+  @Override public String getType() {
     return type;
   }
 
-  public ImmutableMap<String, ?> getModel() {
+  @Override public ImmutableMap<String, ?> getModel() {
     return model;
   }
 
@@ -57,7 +58,7 @@ public class Template {
   }
 
   public static Template groovyTemplate(Map<String, ?> model, String id, String type) {
-    return new Template(id, model, type);
+    return new DefaultTemplate(id, model, type);
   }
 
 }

@@ -20,7 +20,7 @@ import ratpack.error.internal.PrintingServerErrorHandler
 import ratpack.error.ServerErrorHandler
 import ratpack.test.internal.RatpackGroovyDslSpec
 
-import static ratpack.groovy.Util.exec
+import static ratpack.groovy.Groovy.exec
 
 class BlockingSpec extends RatpackGroovyDslSpec {
 

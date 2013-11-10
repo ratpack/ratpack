@@ -17,9 +17,9 @@
 package ratpack.groovy.internal;
 
 import groovy.lang.Closure;
-import ratpack.groovy.Ratpack;
+import ratpack.groovy.Groovy;
 
-public class DefaultRatpack implements Ratpack {
+public class DefaultRatpack implements Groovy.Ratpack {
 
   private Closure<?> modulesConfigurer;
   private Closure<?> handlersConfigurer;

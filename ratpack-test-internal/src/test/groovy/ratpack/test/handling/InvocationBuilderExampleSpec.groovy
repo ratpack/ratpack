@@ -16,7 +16,9 @@
 
 package ratpack.test.handling
 
-import ratpack.groovy.Template
+import DefaultTemplate
+import ratpack.groovy.templating.Template
+import ratpack.groovy.templating.internal.DefaultTemplate
 import ratpack.handling.Context
 import ratpack.handling.Handler
 import spock.lang.Specification
@@ -102,7 +104,7 @@ class InvocationBuilderExampleSpec extends Specification {
   static class RenderingHandler implements Handler {
     @Override
     void handle(Context context) {
-      context.render Template.groovyTemplate("index.html", a: "a")
+      context.render DefaultTemplate.groovyTemplate("index.html", a: "a")
     }
   }
 

@@ -16,7 +16,7 @@
 
 package ratpack.test.internal
 
-import ratpack.groovy.RatpackScript
+import ratpack.groovy.Groovy
 import ratpack.groovy.launch.GroovyScriptHandlerFactory
 import ratpack.launch.LaunchConfig
 import ratpack.launch.LaunchConfigFactory
@@ -37,11 +37,11 @@ abstract class RatpackGroovyScriptAppSpec extends InternalRatpackSpec {
   }
 
   def setup() {
-    ratpackFile << "import static ${RatpackScript.name}.ratpack\n\n"
+    ratpackFile << "import static ${Groovy.name}.ratpack\n\n"
   }
 
   void script(String text) {
-    ratpackFile.text = "import static ${RatpackScript.name}.ratpack\n\n$text"
+    ratpackFile.text = "import static ${Groovy.name}.ratpack\n\n$text"
   }
 
   protected Properties getProperties() {

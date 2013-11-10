@@ -21,7 +21,7 @@ import ratpack.error.internal.DefaultServerErrorHandler
 import ratpack.file.FileSystemBinding
 import ratpack.file.internal.DefaultFileSystemBinding
 import ratpack.test.internal.RatpackGroovyDslSpec
-import static ratpack.groovy.Util.with
+import static ratpack.groovy.internal.Util.with
 
 class BasicGroovyDslSpec extends RatpackGroovyDslSpec {
 

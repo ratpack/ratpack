@@ -19,7 +19,7 @@ package ratpack.groovy.templating
 import ratpack.test.internal.RatpackGroovyDslSpec
 import spock.lang.Unroll
 
-import static ratpack.groovy.Template.groovyTemplate
+import static ratpack.groovy.Groovy.groovyTemplate
 
 class TemplateRenderingSpec extends RatpackGroovyDslSpec {
 

@@ -18,6 +18,7 @@ package ratpack.groovy
 
 import com.google.common.util.concurrent.AbstractIdleService
 import ratpack.groovy.internal.StandaloneScriptBacking
+import ratpack.groovy.internal.Util
 import ratpack.groovy.launch.GroovyScriptHandlerFactory
 import ratpack.launch.LaunchConfigBuilder
 import ratpack.server.RatpackServer

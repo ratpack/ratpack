@@ -60,7 +60,7 @@ import java.util.concurrent.Callable;
  * </pre>
  * Example usage: (Groovy DSL)
  * <pre class="groovy-chain-dsl">
- * import static ratpack.groovy.Util.exec
+ * import static ratpack.groovy.Groovy.exec
  *
  * get("some/path") {
  *   exec getBlocking(), { /* a blocking operation *&#47; 2 }, { Integer result ->
@@ -107,7 +107,7 @@ import java.util.concurrent.Callable;
  * </pre>
  * Example usage: (Groovy DSL)
  * <pre class="groovy-chain-dsl">
- * import static ratpack.groovy.Util.exec
+ * import static ratpack.groovy.Groovy.exec
  *
  * get("some/path") {
  *   exec getBlocking(),

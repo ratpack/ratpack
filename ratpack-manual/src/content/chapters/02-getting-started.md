@@ -234,7 +234,7 @@ There is also an implementation of using Handlebars templates by Marcin Erdmann.
 One of the interesting features about Ratpack is the fact that calls are non-blocking by default. However, if you have things that may take a little bit longer but are necessary for your application, you can force them into blocking calls.
 
 ```language-groovy groovy-handlers
-import static ratpack.groovy.Util.exec
+import static ratpack.groovy.Groovy.exec
 
 interface DbService {
     // Uses blocking IO
@@ -255,7 +255,7 @@ The `exec` block takes two closures, the first one is the blocking operation, fo
 You can also provide an optional failure condition to the exec blocking operation, as outlined by the following test:
 
 ```language-groovy groovy-handlers
-import static ratpack.groovy.Util.exec
+import static ratpack.groovy.Groovy.exec
 
 interface DbService {
     // Uses blocking IO

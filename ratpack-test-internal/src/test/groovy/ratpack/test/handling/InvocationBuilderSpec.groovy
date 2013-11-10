@@ -22,7 +22,7 @@ import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 
-import static ratpack.groovy.Util.asHandler
+import static ratpack.groovy.Groovy.asHandler
 
 class InvocationBuilderSpec extends Specification {
 

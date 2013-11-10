@@ -21,7 +21,6 @@ import com.google.inject.Module;
 import groovy.lang.Closure;
 import groovy.lang.Script;
 import io.netty.buffer.ByteBuf;
-import ratpack.groovy.Util;
 import ratpack.groovy.script.internal.ScriptEngine;
 import ratpack.guice.ModuleRegistry;
 import ratpack.guice.internal.GuiceBackedHandlerFactory;

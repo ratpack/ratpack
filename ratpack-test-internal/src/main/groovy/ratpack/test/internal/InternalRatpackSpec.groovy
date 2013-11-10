@@ -19,7 +19,7 @@ package ratpack.test.internal
 import com.jayway.restassured.specification.RequestSpecification
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
-import ratpack.groovy.Util
+import ratpack.groovy.internal.Util
 import ratpack.groovy.test.TestHttpClient
 import ratpack.server.RatpackServer
 import ratpack.test.ApplicationUnderTest

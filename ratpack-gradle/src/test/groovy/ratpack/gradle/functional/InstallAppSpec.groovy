@@ -23,12 +23,12 @@ class InstallAppSpec extends FunctionalSpec {
   def "everything goes in the right place"() {
     given:
     file("src/ratpack/ratpack.groovy") << """
-      import static ratpack.groovy.RatpackScript.ratpack
+      import static ratpack.groovy.Groovy.*
 
       ratpack {
         handlers {
-          get("") {
-            response.send "foo"
+          get {
+            render "foo"
           }
         }
       }

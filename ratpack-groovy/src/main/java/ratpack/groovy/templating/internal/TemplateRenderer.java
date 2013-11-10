@@ -18,7 +18,7 @@ package ratpack.groovy.templating.internal;
 
 import io.netty.buffer.ByteBuf;
 import ratpack.file.MimeTypes;
-import ratpack.groovy.Template;
+import ratpack.groovy.templating.Template;
 import ratpack.handling.Context;
 import ratpack.render.RendererSupport;
 import ratpack.util.Action;
