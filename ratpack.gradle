@@ -233,7 +233,7 @@ subprojects {
     modifyPom {
       project {
         description "A toolkit for JVM web applications"
-        url "http://www.ratpack-framework.org"
+        url "http://www.ratpack.io"
         licenses {
           license {
             name "The Apache Software License, Version 2.0"

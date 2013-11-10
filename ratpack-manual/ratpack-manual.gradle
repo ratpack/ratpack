@@ -154,7 +154,7 @@ task tokeniseManual(type: Sync) {
       footer: """
         <h2>Ratpack Manual - $version - ${new Date().format("MMMM, yyyy")}</h2>
         <p>
-          <a href="http://www.ratpack-framework.org">www.ratpack-framework.org</a><br>
+          <a href="http://www.ratpack.io">www.ratpack.io</a><br>
           Licensed under the <a href="http://www.apache.org/licenses/LICENSE-2.0">Apache License, Version 2.0</a>
         </p>
       """.toString()
