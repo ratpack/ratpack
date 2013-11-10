@@ -53,6 +53,9 @@ public class DefaultTestHttpClient implements TestHttpClient {
 
   @Override
   public RequestSpecification getRequest() {
+    if (request == null) {
+      request = createRequest();
+    }
     return request;
   }
 
