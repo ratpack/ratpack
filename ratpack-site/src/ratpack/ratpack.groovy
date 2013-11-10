@@ -1,7 +1,7 @@
 import ratpack.site.RatpackVersions
 import ratpack.site.VersionsModule
 
-import static ratpack.groovy.RatpackScript.ratpack
+import static ratpack.groovy.Groovy.*
 
 ratpack {
   modules {
