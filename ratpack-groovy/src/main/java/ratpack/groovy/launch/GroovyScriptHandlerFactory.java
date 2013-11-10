@@ -37,6 +37,13 @@ public class GroovyScriptHandlerFactory implements HandlerFactory {
     String scriptName = launchConfig.getOther(SCRIPT_PROPERTY_NAME, SCRIPT_PROPERTY_DEFAULT);
     File script = new File(launchConfig.getBaseDir(), scriptName);
 
+    if (!script.exists()) {
+      File capitalized = new File(launchConfig.getBaseDir(), scriptName.substring(0, 1).toUpperCase() + scriptName.substring(1));
+      if (capitalized.exists()) {
+        script = capitalized;
+      }
+    }
+
     boolean compileStatic = Boolean.getBoolean(launchConfig.getOther(COMPILE_STATIC_PROPERTY_NAME, COMPILE_STATIC_PROPERTY_DEFAULT));
 
     return new ScriptBackedApp(script, launchConfig, new GroovyKitAppFactory(launchConfig), Guice.newInjectorFactory(), compileStatic, launchConfig.isReloadable());
