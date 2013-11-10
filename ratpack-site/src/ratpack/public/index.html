@@ -79,8 +79,33 @@ ratpack {
     }
   }
 }</code></pre>
+                <p>Here's the equivalent in Java 8 …</p>
+<pre><code class="language-groovy">import ratpack.launch.*;
+import ratpack.server.*;
+import ratpack.handling.*;
+import ratpack.util.Action;
+import static ratpack.handling.Handlers.*;
+import java.io.File;
+
+public class App {
+  public static void main(String[] args) throws Exception {
+    File baseDir = new File(System.getProperty("user.dir"));
+    RatpackServerBuilder.build(
+      LaunchConfigBuilder.
+        baseDir(baseDir).
+        port(5050).
+        build((launchConfig) -> {
+          public Handler create(LaunchConfig launchConfig) {
+            return chain(launchConfig, (Action) (chain) -> {
+              chain.get((context) -> { context.render("Hello World"); });
+            });
+          }
+        })
+   ).start();
+  }
+}</code></pre>
                 <p>That's just the tip of the iceberg.</p>
-                <p>Check out the <a href="/manual/snapshot/">Ratpack Manual</a> for more possibilities.</p>
+                <p>Check out the <a href="/manual/snapshot/">Ratpack Manual</a> for more possibilities, or the <a href="https://github.com/ratpack">example apps on GitHub</a>.</p>
             </article>
         </section>
 
