@@ -21,7 +21,7 @@ import org.gradle.api.artifacts.dsl.DependencyHandler
 
 class RatpackDependencies {
 
-  public static final String GROUP = "org.ratpack-framework"
+  public static final String GROUP = "io.ratpack"
   private final version = getClass().classLoader.getResource("ratpack/ratpack-version.txt").text.trim()
 
   private final DependencyHandler dependencies

@@ -17,7 +17,7 @@ Open a text file and save it as *ratpack.groovy*.
 
 ```language-groovy
 @GrabResolver("https://oss.jfrog.org/artifactory/repo") // (1)
-@Grab("org.ratpack-framework:ratpack-groovy:0.9.0-SNAPSHOT") 
+@Grab("io.ratpack:ratpack-groovy:0.9.0-SNAPSHOT")
 
 import static ratpack.groovy.RatpackScript.ratpack
 

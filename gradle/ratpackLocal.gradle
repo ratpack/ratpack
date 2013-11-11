@@ -24,7 +24,7 @@ import ratpack.gradle.RatpackGroovyPlugin
 
 plugins.matching { it instanceof RatpackPlugin || it instanceof RatpackGroovyPlugin }.all {
   configurations.all { configuration ->
-    def deps = dependencies.toList().findAll { it instanceof ModuleDependency && it.group == "org.ratpack-framework" }
+    def deps = dependencies.toList().findAll { it instanceof ModuleDependency && it.group == "io.ratpack" }
     deps.each { dependency ->
       dependencies.remove(dependency)
       project.dependencies {
