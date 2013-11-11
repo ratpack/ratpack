@@ -89,19 +89,14 @@ import java.io.File;
 
 public class App {
   public static void main(String[] args) throws Exception {
-    File baseDir = new File(System.getProperty("user.dir"));
+    File baseDir = new File("/path/to/app/dir");
     RatpackServerBuilder.build(
-      LaunchConfigBuilder.
-        baseDir(baseDir).
-        port(5050).
-        build((launchConfig) -> {
-          public Handler create(LaunchConfig launchConfig) {
-            return chain(launchConfig, (Action) (chain) -> {
-              chain.get((context) -> { context.render("Hello World"); });
-            });
-          }
-        })
-   ).start();
+      LaunchConfigBuilder.baseDir(baseDir).build((launchConfig) -> {
+        return chain(launchConfig, (Action) (chain) -> {
+          chain.get((context) -> { context.render("Hello World"); });
+        });
+      })
+    ).start();
   }
 }</code></pre>
                 <p>That's just the tip of the iceberg.</p>
