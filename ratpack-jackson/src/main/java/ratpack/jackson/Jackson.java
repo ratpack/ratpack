@@ -17,22 +17,27 @@
 package ratpack.jackson;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.ObjectWriter;
+import com.fasterxml.jackson.databind.ObjectReader;
 import ratpack.api.Nullable;
+import ratpack.jackson.internal.DefaultJsonParse;
 import ratpack.jackson.internal.DefaultJsonRender;
 
 /**
- * Represents some object to be rendered as JSON.
+ * Provides key integration points with the Jackson support for dealing with JSON.
  * <p>
- * Designed to be used with Ratpack's rendering framework.
+ * The {@link ratpack.jackson.JacksonModule} Guice module provides the infrastructure necessary to use these functions.
+ * </p>
+ * <h5>Rendering as JSON</h5>
+ * <p>
+ * The methods that return a {@link JsonRender} are to be used with the {@link ratpack.handling.Context#render(Object)} method for serializing
+ * objects to the response as JSON.
  * </p>
  * <pre class="tested">
  * import ratpack.handling.Handler;
  * import ratpack.handling.Context;
  *
- * import static ratpack.jackson.Json.json;
+ * import static ratpack.jackson.Jackson.json;
  *
  * public class MyHandler implements Handler {
  *   public void handle(Context context) {
@@ -48,14 +53,30 @@ import ratpack.jackson.internal.DefaultJsonRender;
  *   }
  * }
  * </pre>
+ * <h5>Parsing JSON requests</h5>
  * <p>
- * A renderer for this type can be provided by the {@link JacksonModule}.
+ * The methods that return a {@link JsonParse} are to be used with the {@link ratpack.handling.Context#parse(ratpack.parse.Parse)} method for deserializing
+ * request bodies containing JSON.
  * </p>
+ * <pre class="tested">
+ * import ratpack.handling.Handler;
+ * import ratpack.handling.Context;
+ * import com.fasterxml.jackson.databind.JsonNode;
+ *
+ * import static ratpack.jackson.Jackson.jsonNode;
+ *
+ * public class MyHandler implements Handler {
+ *   public void handle(Context context) {
+ *     JsonNode node = context.parse(jsonNode())
+ *     context.render(node.get("someKey"));
+ *   }
+ * }
+ * </pre>
  */
-public abstract class Json {
+public abstract class Jackson {
 
   /**
-   * Json rendering of the given object, using the default object writer.
+   * Jackson rendering of the given object, using the default object writer.
    *
    * @param object The object to render as JSON.
    * @param <T> The type of the object to render as JSON.
@@ -66,7 +87,7 @@ public abstract class Json {
   }
 
   /**
-   * Json rendering of the given object, using the given object writer.
+   * Jackson rendering of the given object, using the given object writer.
    *
    * @param object The object to render as JSON.
    * @param objectWriter The writer to use to render the object as JSON. If null, the default object writer will be used by the renderer.
@@ -78,16 +99,11 @@ public abstract class Json {
   }
 
   public static JsonParse<JsonNode> jsonNode() {
-    return new JsonParse<JsonNode>() {
-      @Override
-      public Class<JsonNode> getType() {
-        return JsonNode.class;
-      }
-
-      @Override
-      public ObjectReader getObjectReader() {
-        return new ObjectMapper().reader();
-      }
-    };
+    return jsonNode(null);
   }
+
+  public static JsonParse<JsonNode> jsonNode(@Nullable ObjectReader objectReader) {
+    return new DefaultJsonParse<>(JsonNode.class, objectReader);
+  }
+
 }

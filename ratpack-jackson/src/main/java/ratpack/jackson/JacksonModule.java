@@ -19,6 +19,7 @@ package ratpack.jackson;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.core.util.MinimalPrettyPrinter;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
@@ -29,7 +30,7 @@ import ratpack.jackson.internal.JsonNodeParser;
 import javax.inject.Singleton;
 
 /**
- * A Guice module that provides an implementation of {@link JsonRenderer}, a renderer for {@link Json} object.
+ * A Guice module that provides an implementation of {@link JsonRenderer}, a renderer for {@link Jackson} object.
  * <p>
  * Also provides a default instance of {@link ObjectMapper}, which is the engine for serialization, and an
  * instance of {@link ObjectWriter} derived from this which is used by the {@link JsonRenderer} implementation.
@@ -79,21 +80,21 @@ public class JacksonModule extends AbstractModule {
 
   @Override
   protected void configure() {
-    bind(JsonRenderer.class).to(DefaultJsonRenderer.class);
     bind(ObjectMapper.class).in(Scopes.SINGLETON);
-    bind(JsonNodeParser.class);
+    bind(JsonNodeParser.class).in(Scopes.SINGLETON);
+    bind(JsonRenderer.class).to(DefaultJsonRenderer.class);
   }
 
-  /**
-   * Creates an object writer based on the bound {@link ObjectMapper} and the {@link #isPrettyPrint()} value.
-   *
-   * @param objectMapper The object mapper.
-   * @return An object writer.
-   */
   @Provides
   @Singleton
-  ObjectWriter objectWriter(ObjectMapper objectMapper) {
+  protected ObjectWriter objectWriter(ObjectMapper objectMapper) {
     return objectMapper.writer(isPrettyPrint() ? new DefaultPrettyPrinter() : new MinimalPrettyPrinter());
+  }
+
+  @Provides
+  @Singleton
+  protected ObjectReader objectReader(ObjectMapper objectMapper) {
+    return objectMapper.reader();
   }
 
 }

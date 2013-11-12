@@ -14,15 +14,28 @@
  * limitations under the License.
  */
 
-package ratpack.jackson;
+package ratpack.jackson.internal;
 
 import com.fasterxml.jackson.databind.ObjectReader;
-import ratpack.api.Nullable;
-import ratpack.parse.Parse;
+import ratpack.jackson.JsonParse;
 
-public interface JsonParse<T> extends Parse<T> {
+public class DefaultJsonParse<T> implements JsonParse<T> {
 
-  @Nullable
-  ObjectReader getObjectReader();
+  private final Class<T> type;
+  private final ObjectReader objectReader;
 
+  public DefaultJsonParse(Class<T> type, ObjectReader objectReader) {
+    this.type = type;
+    this.objectReader = objectReader;
+  }
+
+  @Override
+  public Class<T> getType() {
+    return type;
+  }
+
+  @Override
+  public ObjectReader getObjectReader() {
+    return objectReader;
+  }
 }

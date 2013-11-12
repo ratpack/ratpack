@@ -17,13 +17,23 @@
 package ratpack.jackson.internal;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectReader;
 import ratpack.handling.Context;
 import ratpack.jackson.JsonParse;
 import ratpack.parse.ParserSupport;
 
+import javax.inject.Inject;
 import java.io.IOException;
+import java.io.InputStream;
 
 public class JsonNodeParser extends ParserSupport<JsonNode, JsonParse<JsonNode>> {
+
+  private final ObjectReader objectReader;
+
+  @Inject
+  public JsonNodeParser(ObjectReader objectReader) {
+    this.objectReader = objectReader;
+  }
 
   @Override
   public String getContentType() {
@@ -33,10 +43,15 @@ public class JsonNodeParser extends ParserSupport<JsonNode, JsonParse<JsonNode>>
   @Override
   public JsonNode parse(Context context, JsonParse<JsonNode> parse) {
     try {
-      return parse.getObjectReader().readTree(context.getRequest().getInputStream());
+      InputStream inputStream = context.getRequest().getInputStream();
+      return getObjectReader(parse).readTree(inputStream);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  private ObjectReader getObjectReader(JsonParse<JsonNode> parse) {
+    return parse.getObjectReader() == null ? objectReader : parse.getObjectReader();
   }
 
 }

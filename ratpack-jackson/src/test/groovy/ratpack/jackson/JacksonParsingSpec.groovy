@@ -18,7 +18,7 @@ package ratpack.jackson
 
 import ratpack.test.internal.RatpackGroovyDslSpec
 
-import static ratpack.jackson.Json.jsonNode
+import static Jackson.jsonNode
 
 class JacksonParsingSpec extends RatpackGroovyDslSpec {
 
