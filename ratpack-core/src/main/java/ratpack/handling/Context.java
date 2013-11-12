@@ -164,9 +164,9 @@ public interface Context extends Registry {
    * <p>
    * Designed to be used in conjunction with the {@link #getByMethod()} and {@link #getByContent()} methods.
    *
+   * @param handler The handler to invoke
    * @see ByContentHandler
    * @see ByMethodHandler
-   * @param handler The handler to invoke
    */
   @NonBlocking
   void respond(Handler handler);
@@ -289,8 +289,8 @@ public interface Context extends Registry {
   /**
    * Provides a mechanism for executing blocking IO operations.
    *
-   * @see Blocking
    * @return A new instance of {@link Blocking}
+   * @see Blocking
    */
   Blocking getBlocking();
 
