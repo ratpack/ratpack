@@ -46,7 +46,7 @@ import java.util.concurrent.ThreadFactory;
  * import ratpack.handling.*;
  *
  * LaunchConfig launchConfig = LaunchConfigBuilder.baseDir(new File("some/path")).build(
- *   return new HandlerFactory() {
+ *   new HandlerFactory() {
  *     public Handler create(LaunchConfig launchConfig) {
  *       return new Handler() {
  *         public void handle(Context context) {
