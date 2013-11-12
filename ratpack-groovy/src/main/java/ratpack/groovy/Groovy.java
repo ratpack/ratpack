@@ -19,16 +19,13 @@ package ratpack.groovy;
 import com.google.common.collect.ImmutableMap;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
-import ratpack.api.NonBlocking;
-import ratpack.block.Blocking;
 import ratpack.groovy.handling.Chain;
+import ratpack.groovy.handling.Context;
 import ratpack.groovy.handling.internal.ClosureBackedHandler;
 import ratpack.groovy.internal.RatpackScriptBacking;
-import ratpack.groovy.internal.Util;
 import ratpack.groovy.templating.Template;
 import ratpack.groovy.templating.internal.DefaultTemplate;
 import ratpack.guice.ModuleRegistry;
-import ratpack.handling.Context;
 import ratpack.handling.Handler;
 
 import java.util.Map;
@@ -92,16 +89,6 @@ public abstract class Groovy {
    */
   public static void ratpack(@DelegatesTo(value = Ratpack.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) {
     RatpackScriptBacking.getBacking().execute(closure);
-  }
-
-  @NonBlocking
-  public static <T> void exec(Blocking blocking, Closure<T> operation, Closure<?> onSuccess) {
-    blocking.exec(operation).then(Util.action(onSuccess));
-  }
-
-  @NonBlocking
-  public static <T> void exec(Blocking blocking, Closure<T> operation, Closure<?> onFailure, Closure<?> onSuccess) {
-    blocking.exec(operation).onError(Util.action(onFailure)).then(Util.action(onSuccess));
   }
 
   public static Handler asHandler(@DelegatesTo(value = Context.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) {

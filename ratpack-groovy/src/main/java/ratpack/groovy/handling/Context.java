@@ -14,22 +14,14 @@
  * limitations under the License.
  */
 
-package ratpack.groovy.handling.internal;
+package ratpack.groovy.handling;
 
 import groovy.lang.Closure;
-import ratpack.groovy.internal.ClosureInvoker;
-import ratpack.handling.Context;
-import ratpack.handling.Handler;
 
-public class ClosureBackedHandler implements Handler {
+import static ratpack.groovy.block.Blocking.SuccessOrError;
 
-  private final ClosureInvoker<?, Context> invoker;
+public interface Context extends ratpack.handling.Context {
 
-  public ClosureBackedHandler(Closure<?> closure) {
-    this.invoker = new ClosureInvoker<Object, Context>(closure);
-  }
+  <T> SuccessOrError<T> blocking(Closure<T> operation);
 
-  public void handle(Context context) {
-    invoker.invoke(context, new GroovyContext(context), Closure.DELEGATE_FIRST);
-  }
 }

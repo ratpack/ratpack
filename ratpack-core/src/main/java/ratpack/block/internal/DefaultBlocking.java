@@ -28,7 +28,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 
-public class DefaultBlocking implements Blocking {
+public class  DefaultBlocking implements Blocking {
 
   private final ExecutorService mainExecutor;
   private final ListeningExecutorService blockingExecutor;

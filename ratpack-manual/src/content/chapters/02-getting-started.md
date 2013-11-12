@@ -237,16 +237,18 @@ One of the interesting features about Ratpack is the fact that calls are non-blo
 import static ratpack.groovy.Groovy.exec
 
 interface DbService {
-    // Uses blocking IO
-    String getName(String personId)
+  // Uses blocking IO
+  String getName(String personId)
 }
 
 handlers {
-    get("name/:id") { DbService db ->
-        exec getBlocking(),
-            { db.getName(getPathTokens().id) },
-            { getResponse().send("name is: $it") }
+  get("name/:id") { DbService db ->
+    blocking {
+      db.getName(getPathTokens().id)
+    }.then {
+      getResponse().send("name is: $it")
     }
+  }
 }
 ```
 
@@ -265,12 +267,16 @@ interface DbService {
 }
 
 handlers {
-    get("name/:id") { DbService db ->
-        exec getBlocking(),
-            { db.getName(getPathTokens().id) },
-            { Exception e -> db.logError(e); error(e) },
-            { getResponse().send("name is: $it") }
+  get("name/:id") { DbService db ->
+    blocking {
+      db.getName(getPathTokens().id)
+    }.onError { Exception e ->
+      db.logError(e)
+      error(e)
+    }.then {
+      getResponse().send("name is: $it")
     }
+  }
 }
 ```
 

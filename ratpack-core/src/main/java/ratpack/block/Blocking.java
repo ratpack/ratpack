@@ -63,7 +63,9 @@ import java.util.concurrent.Callable;
  * import static ratpack.groovy.Groovy.exec
  *
  * get("some/path") {
- *   exec getBlocking(), { /* a blocking operation *&#47; 2 }, { Integer result ->
+ *   blocking {
+ *    /* a blocking operation *&#47; 2
+ *   }.then { Integer result ->
  *     getResponse().send result.toString()
  *   }
  * }
@@ -110,10 +112,14 @@ import java.util.concurrent.Callable;
  * import static ratpack.groovy.Groovy.exec
  *
  * get("some/path") {
- *   exec getBlocking(),
- *     { /* a blocking operation *&#47; 2 },
- *     { Exception exception -> /* do something with the exception *&#47; },
- *     { Integer result -> getResponse().send result.toString() }
+ *   blocking {
+ *     /* a blocking operation *&#47;
+ *     2
+ *   }.onError { Exception exception ->
+ *     /* do something with the exception *&#47;
+ *   }.then { Integer result ->
+ *     getResponse().send result.toString()
+ *   }
  * }
  * </pre>
  */

@@ -20,18 +20,20 @@ import ratpack.error.internal.PrintingServerErrorHandler
 import ratpack.error.ServerErrorHandler
 import ratpack.test.internal.RatpackGroovyDslSpec
 
-import static ratpack.groovy.Groovy.exec
-
 class BlockingSpec extends RatpackGroovyDslSpec {
 
-  def "can perform blocking operations"() {
+  def "can perform groovy blocking operations"() {
     when:
     def steps = []
     app {
       handlers {
         get {
           steps << "start"
-          exec blocking, { sleep 300; steps << "operation"; 2 }, { Integer result ->
+          blocking {
+            sleep 300
+            steps << "operation"
+            2
+          }.then { Integer result ->
             steps << "then"
             response.send result.toString()
           }
@@ -53,9 +55,12 @@ class BlockingSpec extends RatpackGroovyDslSpec {
       }
       handlers {
         get {
-          exec blocking,
-              { sleep 300; throw new Exception("!") }, // blocking
-              { /* never called */ } // on success
+          blocking {
+            sleep 300
+            throw new Exception("!")
+          }.then {
+            /* never called */
+          }
         }
       }
     }
@@ -70,10 +75,14 @@ class BlockingSpec extends RatpackGroovyDslSpec {
     app {
       handlers {
         get {
-          exec blocking,
-              { sleep 300; throw new Exception("!") }, // blocking
-              { response.status(210).send("error: $it.message") }, // on error
-              { /* never called */ } // on success
+          blocking {
+            sleep 300
+            throw new Exception("!")
+          }.onError {
+            response.status(210).send("error: $it.message")
+          }.then {
+            // never called
+          }
         }
       }
     }
@@ -91,10 +100,13 @@ class BlockingSpec extends RatpackGroovyDslSpec {
       }
       handlers {
         get {
-          exec blocking,
-              { throw new Exception("!") },
-              { throw new Exception("!!", it) },
-              { /* never called */ }
+          blocking {
+            throw new Exception("!")
+          }.onError {
+            throw new Exception("!!", it)
+          }.then {
+            /* never called */
+          }
         }
       }
     }
@@ -112,10 +124,13 @@ class BlockingSpec extends RatpackGroovyDslSpec {
       }
       handlers {
         get {
-          exec blocking,
-              { 1 },
-              { throw new Exception("!") }, // not expecting this to be called
-              { throw new Exception("success") }
+          blocking {
+            1
+          }.onError {
+            throw new Exception("!")
+          }.then {
+            throw new Exception("success")
+          }
         }
       }
     }
@@ -133,9 +148,11 @@ class BlockingSpec extends RatpackGroovyDslSpec {
       }
       handlers {
         get {
-          exec blocking,
-              { 1 },
-              { List<String> result -> response.send("unexpected") }
+          blocking {
+            1
+          }.then { List<String> result ->
+            response.send("unexpected")
+          }
         }
       }
     }
@@ -153,10 +170,13 @@ class BlockingSpec extends RatpackGroovyDslSpec {
       }
       handlers {
         get {
-          exec blocking,
-              { throw new Exception("!") },
-              { String string -> response.send("unexpected") },
-              { response.send("unexpected - value") }
+          blocking {
+            throw new Exception("!")
+          }.onError { String string ->
+            response.send("unexpected")
+          }.then {
+            response.send("unexpected - value")
+          }
         }
       }
     }
@@ -171,9 +191,9 @@ class BlockingSpec extends RatpackGroovyDslSpec {
     app {
       handlers {
         handler {
-          exec blocking, {
+          blocking {
             [foo: "bar"]
-          }, {
+          }.then {
             response.send it.toString()
           }
         }
