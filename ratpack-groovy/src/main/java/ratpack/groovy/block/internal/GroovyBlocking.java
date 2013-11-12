@@ -19,7 +19,7 @@ package ratpack.groovy.block.internal;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import ratpack.groovy.block.Blocking;
-import ratpack.groovy.handling.Context;
+import ratpack.groovy.handling.GroovyContext;
 import ratpack.groovy.internal.Util;
 import ratpack.util.Action;
 
@@ -27,10 +27,10 @@ import java.util.concurrent.Callable;
 
 public class GroovyBlocking implements Blocking {
 
-  private final Context context;
+  private final GroovyContext context;
   private final ratpack.block.Blocking delegate;
 
-  public GroovyBlocking(Context context, ratpack.block.Blocking delegate) {
+  public GroovyBlocking(GroovyContext context, ratpack.block.Blocking delegate) {
     this.context = context;
     this.delegate = delegate;
   }
@@ -55,7 +55,7 @@ public class GroovyBlocking implements Blocking {
     }
 
     @Override
-    public void then(@DelegatesTo(Context.class) Closure<?> closure) {
+    public void then(@DelegatesTo(GroovyContext.class) Closure<?> closure) {
       then(Util.fixedDelegatingAction(context, closure));
     }
 
@@ -74,7 +74,7 @@ public class GroovyBlocking implements Blocking {
     }
 
     @Override
-    public Success<T> onError(@DelegatesTo(Context.class) Closure<?> closure) {
+    public Success<T> onError(@DelegatesTo(GroovyContext.class) Closure<?> closure) {
       return new SuccessImpl<>(successOrErrorDelegate.onError(Util.action(closure)));
     }
 

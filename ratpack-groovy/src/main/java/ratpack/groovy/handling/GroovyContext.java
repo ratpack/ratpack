@@ -17,10 +17,11 @@
 package ratpack.groovy.handling;
 
 import groovy.lang.Closure;
+import ratpack.handling.Context;
 
 import static ratpack.groovy.block.Blocking.SuccessOrError;
 
-public interface Context extends ratpack.handling.Context {
+public interface GroovyContext extends Context {
 
   <T> SuccessOrError<T> blocking(Closure<T> operation);
 

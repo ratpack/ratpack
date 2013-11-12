@@ -21,7 +21,7 @@ import ratpack.api.NonBlocking;
 import ratpack.api.Nullable;
 import ratpack.block.Blocking;
 import ratpack.groovy.block.internal.GroovyBlocking;
-import ratpack.groovy.handling.Context;
+import ratpack.groovy.handling.GroovyContext;
 import ratpack.handling.ByContentHandler;
 import ratpack.handling.ByMethodHandler;
 import ratpack.handling.Handler;
@@ -41,11 +41,11 @@ import java.io.File;
 import java.util.Date;
 import java.util.List;
 
-public class GroovyContext implements Context {
+public class DefaultGroovyContext implements GroovyContext {
 
   private final ratpack.handling.Context delegate;
 
-  public GroovyContext(ratpack.handling.Context delegate) {
+  public DefaultGroovyContext(ratpack.handling.Context delegate) {
     this.delegate = delegate;
   }
 

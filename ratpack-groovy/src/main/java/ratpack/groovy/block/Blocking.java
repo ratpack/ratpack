@@ -19,7 +19,7 @@ package ratpack.groovy.block;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import ratpack.api.NonBlocking;
-import ratpack.groovy.handling.Context;
+import ratpack.groovy.handling.GroovyContext;
 
 public interface Blocking extends ratpack.block.Blocking {
 
@@ -28,11 +28,11 @@ public interface Blocking extends ratpack.block.Blocking {
   interface Success<T> extends ratpack.block.Blocking.Success<T> {
 
     @NonBlocking
-    void then(@DelegatesTo(Context.class) Closure<?> closure);
+    void then(@DelegatesTo(GroovyContext.class) Closure<?> closure);
   }
 
   interface SuccessOrError<T> extends Success<T>, ratpack.block.Blocking.SuccessOrError<T> {
-    Success<T> onError(@DelegatesTo(Context.class) Closure<?> closure);
+    Success<T> onError(@DelegatesTo(GroovyContext.class) Closure<?> closure);
   }
 
 

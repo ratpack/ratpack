@@ -39,7 +39,7 @@ public interface Chain extends ratpack.handling.Chain {
    * @param handler the {@code Closure} to add
    * @return this {@code Chain}
    */
-  Chain handler(@DelegatesTo(value = Context.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
+  Chain handler(@DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
 
   /**
    * Adds a {@code Handler} to this {@code Chain} that delegates to the given {@code Closure} as a {@code Handler} if the
@@ -51,7 +51,7 @@ public interface Chain extends ratpack.handling.Chain {
    * @param handler the handler to delegate to
    * @return this {@code Chain}
    */
-  Chain handler(String path, @DelegatesTo(value = Context.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
+  Chain handler(String path, @DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
 
   /**
    * {@inheritDoc}
@@ -118,7 +118,7 @@ public interface Chain extends ratpack.handling.Chain {
    * @param handler the handler to delegate to
    * @return this {@code Chain}
    */
-  Chain get(String path, @DelegatesTo(value = Context.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
+  Chain get(String path, @DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
 
   /**
    * Adds a {@code Handler} to this {@code Chain} that delegates to the given {@code Closure} as a {@code Handler}
@@ -129,7 +129,7 @@ public interface Chain extends ratpack.handling.Chain {
    * @param handler the handler to delegate to
    * @return this {@code Chain}
    */
-  Chain get(@DelegatesTo(value = Context.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
+  Chain get(@DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
 
   /**
    * {@inheritDoc}
@@ -147,7 +147,7 @@ public interface Chain extends ratpack.handling.Chain {
    * @param handler the handler to delegate to
    * @return this {@code Chain}
    */
-  Chain post(String path, @DelegatesTo(value = Context.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
+  Chain post(String path, @DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
 
   /**
    * {@inheritDoc}
@@ -164,7 +164,7 @@ public interface Chain extends ratpack.handling.Chain {
    * @param handler the handler to delegate to
    * @return this {@code Chain}
    */
-  Chain post(@DelegatesTo(value = Context.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
+  Chain post(@DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
 
   /**
    * {@inheritDoc}
@@ -188,7 +188,7 @@ public interface Chain extends ratpack.handling.Chain {
    * @param handler the handler to delegate to
    * @return this {@code Chain}
    */
-  Chain put(String path, @DelegatesTo(value = Context.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
+  Chain put(String path, @DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
 
   /**
    * Adds a {@code Handler} to this {@code Chain} that delegates to the given {@code Closure} as a {@code Handler}
@@ -199,7 +199,7 @@ public interface Chain extends ratpack.handling.Chain {
    * @param handler the handler to delegate to
    * @return this {@code Chain}
    */
-  Chain put(@DelegatesTo(value = Context.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
+  Chain put(@DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
 
   /**
    * {@inheritDoc}
@@ -223,7 +223,7 @@ public interface Chain extends ratpack.handling.Chain {
    * @param handler the handler to delegate to
    * @return this {@code Chain}
    */
-  Chain delete(String path, @DelegatesTo(value = Context.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
+  Chain delete(String path, @DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
 
   /**
    * Adds a {@code Handler} to this {@code Chain} that delegates to the given {@code Closure} as a {@code Handler}
@@ -234,7 +234,7 @@ public interface Chain extends ratpack.handling.Chain {
    * @param handler the handler to delegate to
    * @return this {@code Chain}
    */
-  Chain delete(@DelegatesTo(value = Context.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
+  Chain delete(@DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
 
   /**
    * Creates a {@code List} of {@code Handler} from the given {@code Closure} and adds a {@code Handler} to this {@code Chain}
@@ -315,5 +315,5 @@ public interface Chain extends ratpack.handling.Chain {
    * @param handler the handler to delegate to
    * @return this {@code Chain}
    */
-  Chain header(String headerName, String headerValue, @DelegatesTo(value = Context.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
+  Chain header(String headerName, String headerValue, @DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
 }

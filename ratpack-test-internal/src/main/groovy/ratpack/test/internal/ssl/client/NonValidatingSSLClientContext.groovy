@@ -26,7 +26,7 @@ import java.security.Security
 import java.security.cert.X509Certificate
 
 /**
- * A rule that overrides the client SSL context with one that does not validate certificates or hostnames.
+ * A rule that overrides the client SSL groovyContext with one that does not validate certificates or hostnames.
  * That means that any HTTPS connections made by the test are unverified and will work against HTTPS servers
  * running on localhost and/or with invalid certificates.
  */

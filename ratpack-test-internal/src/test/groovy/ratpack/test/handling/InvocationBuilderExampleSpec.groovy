@@ -55,7 +55,7 @@ class InvocationBuilderExampleSpec extends Specification {
   def "can unit test handler"() {
     when:
     def invocation = invoke(new MyHandler()) {
-      // Use the InvocationBuilder DSL in here to set up the context for the handler
+      // Use the InvocationBuilder DSL in here to set up the groovyContext for the handler
       register new LabelProvider("baz")
       header "Test-Header", "foo"
       uri "/bar"

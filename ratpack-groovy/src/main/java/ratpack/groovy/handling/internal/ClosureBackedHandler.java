@@ -17,19 +17,20 @@
 package ratpack.groovy.handling.internal;
 
 import groovy.lang.Closure;
+import ratpack.groovy.handling.GroovyContext;
 import ratpack.groovy.internal.ClosureInvoker;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 
 public class ClosureBackedHandler implements Handler {
 
-  private final ClosureInvoker<?, Context> invoker;
+  private final ClosureInvoker<?, GroovyContext> invoker;
 
   public ClosureBackedHandler(Closure<?> closure) {
-    this.invoker = new ClosureInvoker<Object, Context>(closure);
+    this.invoker = new ClosureInvoker<Object, GroovyContext>(closure);
   }
 
   public void handle(Context context) {
-    invoker.invoke(context, new GroovyContext(context), Closure.DELEGATE_FIRST);
+    invoker.invoke(context, new DefaultGroovyContext(context), Closure.DELEGATE_FIRST);
   }
 }

@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableMap;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import ratpack.groovy.handling.Chain;
-import ratpack.groovy.handling.Context;
+import ratpack.groovy.handling.GroovyContext;
 import ratpack.groovy.handling.internal.ClosureBackedHandler;
 import ratpack.groovy.internal.RatpackScriptBacking;
 import ratpack.groovy.templating.Template;
@@ -91,7 +91,7 @@ public abstract class Groovy {
     RatpackScriptBacking.getBacking().execute(closure);
   }
 
-  public static Handler asHandler(@DelegatesTo(value = Context.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) {
+  public static Handler asHandler(@DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) {
     return new ClosureBackedHandler(closure);
   }
 
