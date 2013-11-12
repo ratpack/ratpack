@@ -9,7 +9,7 @@
       <option name="JD_KEEP_EMPTY_PARAMETER" value="false"/>
       <option name="JD_KEEP_EMPTY_EXCEPTION" value="false"/>
       <option name="JD_KEEP_EMPTY_RETURN" value="false"/>
-      <option name="WRAP_COMMENTS" value="true"/>
+      <option name="WRAP_COMMENTS" value="false"/>
       <option name="IF_BRACE_FORCE" value="3"/>
       <option name="DOWHILE_BRACE_FORCE" value="3"/>
       <option name="WHILE_BRACE_FORCE" value="3"/>
