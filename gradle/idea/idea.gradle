@@ -14,6 +14,30 @@ idea {
         node.component.find { it.'@name' == 'VcsDirectoryMappings' }?.mapping[0].'@vcs' = 'Git'
         node.append(new XmlParser().parse(file("gradle/idea/codeStyle.xml")))
 
+        def nullableManager = node.component.find { it.'@name' == 'NullableNotNullManager' }
+        if (nullableManager) {
+          nullableManager.parent().remove(nullableManager)
+        }
+
+        node.append(new XmlParser().parseText("""
+          <component name="NullableNotNullManager">
+            <option name="myDefaultNullable" value="ratpack.api.Nullable" />
+            <option name="myDefaultNotNull" value="" />
+            <option name="myNullables">
+              <value>
+                <list size="1">
+                  <item index="0" class="java.lang.String" itemvalue="ratpack.api.Nullable" />
+                </list>
+              </value>
+            </option>
+            <option name="myNotNulls">
+              <value>
+                <list size="0" />
+              </value>
+            </option>
+          </component>
+        """))
+
         def copyrightManager = node.component.find { it.'@name' == 'CopyrightManager' }
         copyrightManager.@default = "ASL2"
         def aslCopyright = copyrightManager.copyright.find { it.option.find { it.@name == "myName" }?.@value == "ASL2" }
