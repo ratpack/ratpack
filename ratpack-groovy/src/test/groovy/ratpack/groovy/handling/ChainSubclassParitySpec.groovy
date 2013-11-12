@@ -22,7 +22,7 @@ import spock.lang.Specification
 class ChainSubclassParitySpec extends Specification {
 
   def javaType = ratpack.handling.Chain
-  def groovyType = Chain
+  def groovyType = GroovyChain
 
   def "groovy chain subclass overrides universally overrides return type"() {
     /*
@@ -39,7 +39,7 @@ class ChainSubclassParitySpec extends Specification {
         def override = groovyType.getDeclaredMethod(it.name, it.parameterTypes)
         assert override.returnType == groovyType
       } catch (NoSuchMethodException ignore) {
-        throw new AssertionError("Chain method $it is not overridden in groovy subclass")
+        throw new AssertionError("GroovyChain method $it is not overridden in groovy subclass")
       }
     }
   }
@@ -56,10 +56,10 @@ class ChainSubclassParitySpec extends Specification {
         def paramList = it.parameterTypes.toList()
         paramList[paramList.size() - 1] = Closure
         def override = groovyType.getDeclaredMethod(it.name, (Class[]) paramList.toArray())
-        assert override.returnType == Chain
+        assert override.returnType == GroovyChain
         assert override.returnType == groovyType
       } catch (NoSuchMethodException ignore) {
-        throw new AssertionError("Chain method $it is not overridden in groovy subclass")
+        throw new AssertionError("GroovyChain method $it is not overridden in groovy subclass")
       }
     }
   }

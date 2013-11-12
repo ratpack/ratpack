@@ -18,7 +18,7 @@ package ratpack.groovy.internal;
 
 import com.google.inject.Injector;
 import groovy.lang.Closure;
-import ratpack.groovy.handling.Chain;
+import ratpack.groovy.handling.GroovyChain;
 import ratpack.groovy.handling.internal.GroovyDslChainActionTransformer;
 import ratpack.guice.Guice;
 import ratpack.handling.Handler;
@@ -41,9 +41,9 @@ public class InjectorHandlerTransformer implements Transformer<Injector, Handler
   public Handler transform(Injector injector) {
     final Registry registry = Guice.justInTimeRegistry(injector);
 
-    Action<Chain> chainAction = new Action<Chain>() {
-      public void execute(Chain chain) {
-        ClosureInvoker<Object, Chain> closureInvoker = new ClosureInvoker<>(closure);
+    Action<GroovyChain> chainAction = new Action<GroovyChain>() {
+      public void execute(GroovyChain chain) {
+        ClosureInvoker<Object, GroovyChain> closureInvoker = new ClosureInvoker<>(closure);
         closureInvoker.invoke(registry, chain, Closure.DELEGATE_FIRST);
       }
     };

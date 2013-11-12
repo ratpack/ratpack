@@ -19,7 +19,7 @@ package ratpack.groovy;
 import com.google.common.collect.ImmutableMap;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
-import ratpack.groovy.handling.Chain;
+import ratpack.groovy.handling.GroovyChain;
 import ratpack.groovy.handling.GroovyContext;
 import ratpack.groovy.handling.internal.ClosureBackedHandler;
 import ratpack.groovy.internal.RatpackScriptBacking;
@@ -112,9 +112,9 @@ public abstract class Groovy {
     /**
      * Registers the closure used to build the handler chain of the application.
      *
-     * @param configurer The configuration closure, delegating to {@link ratpack.groovy.handling.Chain}
+     * @param configurer The configuration closure, delegating to {@link ratpack.groovy.handling.GroovyChain}
      */
-    void handlers(@DelegatesTo(value = Chain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer);
+    void handlers(@DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer);
 
   }
 }

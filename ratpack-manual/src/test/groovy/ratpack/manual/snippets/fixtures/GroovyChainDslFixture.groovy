@@ -30,11 +30,11 @@ class GroovyChainDslFixture implements SnippetFixture {
   public String pre() {
 """
 import ratpack.launch.LaunchConfig;
-import ratpack.groovy.handling.Chain;
-import ratpack.groovy.handling.internal.DefaultChain;
+import ratpack.groovy.handling.GroovyChain;
+import ratpack.groovy.handling.internal.DefaultGroovyChain;
 import ratpack.groovy.internal.Util;
 
-Util.configureDelegateOnly((Chain) new DefaultChain([], [:] as LaunchConfig, null)) {
+Util.configureDelegateOnly((GroovyChain) new DefaultGroovyChain([], [:] as LaunchConfig, null)) {
 """
   }
 

@@ -17,7 +17,7 @@
 package ratpack.test.internal
 
 import com.google.inject.Injector
-import ratpack.groovy.handling.Chain
+import ratpack.groovy.handling.GroovyChain
 import ratpack.groovy.internal.InjectorHandlerTransformer
 import ratpack.handling.Handler
 import ratpack.launch.LaunchConfig
@@ -25,7 +25,7 @@ import ratpack.util.Transformer
 
 abstract class RatpackGroovyDslSpec extends DefaultRatpackSpec {
 
-  void handlers(@DelegatesTo(value = Chain, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer) {
+  void handlers(@DelegatesTo(value = GroovyChain, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer) {
     this.handlersClosure = configurer
   }
 

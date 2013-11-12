@@ -29,7 +29,7 @@ class GroovyHandlersFixture implements SnippetFixture {
   @Override
   public String pre() {
 """
-def handlers(@DelegatesTo(value = ratpack.groovy.handling.Chain, strategy = Closure.DELEGATE_FIRST) Closure closure) { }
+def handlers(@DelegatesTo(value = ratpack.groovy.handling.GroovyChain, strategy = Closure.DELEGATE_FIRST) Closure closure) { }
 """
   }
 

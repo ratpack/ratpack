@@ -19,7 +19,7 @@
  * <h4>Key Features</h4>
  * <p>The Groovy support provides the following key features:</p>
  * <ul>
- * <li>A {@link groovy.lang.Closure} based Handler Chain building DSL - see {@link ratpack.groovy.handling.Chain}.</li>
+ * <li>A {@link groovy.lang.Closure} based Handler Chain building DSL - see {@link ratpack.groovy.handling.GroovyChain}.</li>
  * <li>Dynamic templates based on embedded groovy code - see {@link ratpack.groovy.templating.internal.TemplateRenderer}.</li>
  * <li>Defining applications as a single script - see {@link ratpack.groovy.RatpackScript}.</li>
  * </ul>
