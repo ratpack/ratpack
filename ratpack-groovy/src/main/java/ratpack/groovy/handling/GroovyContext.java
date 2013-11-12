@@ -19,7 +19,7 @@ package ratpack.groovy.handling;
 import groovy.lang.Closure;
 import ratpack.handling.Context;
 
-import static ratpack.groovy.block.Blocking.SuccessOrError;
+import static ratpack.groovy.block.GroovyBlocking.SuccessOrError;
 
 public interface GroovyContext extends Context {
 

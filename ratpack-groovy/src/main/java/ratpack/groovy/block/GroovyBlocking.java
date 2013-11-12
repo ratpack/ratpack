@@ -21,7 +21,7 @@ import groovy.lang.DelegatesTo;
 import ratpack.api.NonBlocking;
 import ratpack.groovy.handling.GroovyContext;
 
-public interface Blocking extends ratpack.block.Blocking {
+public interface GroovyBlocking extends ratpack.block.Blocking {
 
   <T> SuccessOrError<T> block(Closure<T> closure);
 

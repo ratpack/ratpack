@@ -20,7 +20,7 @@ import groovy.lang.Closure;
 import ratpack.api.NonBlocking;
 import ratpack.api.Nullable;
 import ratpack.block.Blocking;
-import ratpack.groovy.block.internal.GroovyBlocking;
+import ratpack.groovy.block.internal.DefaultGroovyBlocking;
 import ratpack.groovy.handling.GroovyContext;
 import ratpack.handling.ByContentHandler;
 import ratpack.handling.ByMethodHandler;
@@ -50,8 +50,8 @@ public class DefaultGroovyContext implements GroovyContext {
   }
 
   @Override
-  public <T> ratpack.groovy.block.Blocking.SuccessOrError<T> blocking(Closure<T> operation) {
-    return new GroovyBlocking(this, getBlocking()).block(operation);
+  public <T> ratpack.groovy.block.GroovyBlocking.SuccessOrError<T> blocking(Closure<T> operation) {
+    return new DefaultGroovyBlocking(this, getBlocking()).block(operation);
   }
 
   @Override

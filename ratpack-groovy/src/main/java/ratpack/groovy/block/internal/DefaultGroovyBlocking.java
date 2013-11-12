@@ -18,19 +18,18 @@ package ratpack.groovy.block.internal;
 
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
-import ratpack.groovy.block.Blocking;
 import ratpack.groovy.handling.GroovyContext;
 import ratpack.groovy.internal.Util;
 import ratpack.util.Action;
 
 import java.util.concurrent.Callable;
 
-public class GroovyBlocking implements Blocking {
+public class DefaultGroovyBlocking implements ratpack.groovy.block.GroovyBlocking {
 
   private final GroovyContext context;
   private final ratpack.block.Blocking delegate;
 
-  public GroovyBlocking(GroovyContext context, ratpack.block.Blocking delegate) {
+  public DefaultGroovyBlocking(GroovyContext context, ratpack.block.Blocking delegate) {
     this.context = context;
     this.delegate = delegate;
   }
