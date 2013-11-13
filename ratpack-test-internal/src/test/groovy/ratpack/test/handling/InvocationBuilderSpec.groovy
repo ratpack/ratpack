@@ -22,7 +22,7 @@ import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 
-import static ratpack.groovy.Groovy.asHandler
+import static ratpack.groovy.Groovy.groovyHandler
 
 class InvocationBuilderSpec extends Specification {
 
@@ -32,7 +32,7 @@ class InvocationBuilderSpec extends Specification {
   Invocation invocation
 
   void invoke(@DelegatesTo(Context) Closure handler) {
-    invocation = builder.invoke(asHandler(handler))
+    invocation = builder.invoke(groovyHandler(handler))
   }
 
   def "can test handler that just calls next"() {

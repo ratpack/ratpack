@@ -31,7 +31,7 @@ import ratpack.util.Action;
 
 import java.util.List;
 
-import static ratpack.groovy.Groovy.asHandler;
+import static ratpack.groovy.Groovy.groovyHandler;
 
 public class DefaultGroovyChain extends ratpack.handling.internal.DefaultChain implements GroovyChain {
 
@@ -45,7 +45,7 @@ public class DefaultGroovyChain extends ratpack.handling.internal.DefaultChain i
   }
 
   public GroovyChain handler(Closure<?> handler) {
-    return handler(asHandler(handler));
+    return handler(groovyHandler(handler));
   }
 
   public GroovyChain prefix(String prefix, Closure<?> chain) {
@@ -68,7 +68,7 @@ public class DefaultGroovyChain extends ratpack.handling.internal.DefaultChain i
   }
 
   public GroovyChain handler(String path, Closure<?> handler) {
-    return handler(path, asHandler(handler));
+    return handler(path, groovyHandler(handler));
   }
 
   @Override
@@ -77,7 +77,7 @@ public class DefaultGroovyChain extends ratpack.handling.internal.DefaultChain i
   }
 
   public GroovyChain get(String path, Closure<?> handler) {
-    return get(path, asHandler(handler));
+    return get(path, groovyHandler(handler));
   }
 
   @Override
@@ -100,7 +100,7 @@ public class DefaultGroovyChain extends ratpack.handling.internal.DefaultChain i
   }
 
   public GroovyChain post(String path, Closure<?> handler) {
-    return post(path, asHandler(handler));
+    return post(path, groovyHandler(handler));
   }
 
   @Override
@@ -113,7 +113,7 @@ public class DefaultGroovyChain extends ratpack.handling.internal.DefaultChain i
   }
 
   public GroovyChain put(String path, Closure<?> handler) {
-    return put(path, asHandler(handler));
+    return put(path, groovyHandler(handler));
   }
 
   @Override
@@ -131,7 +131,7 @@ public class DefaultGroovyChain extends ratpack.handling.internal.DefaultChain i
   }
 
   public GroovyChain delete(String path, Closure<?> handler) {
-    return delete(path, asHandler(handler));
+    return delete(path, groovyHandler(handler));
   }
 
   @Override
@@ -185,7 +185,7 @@ public class DefaultGroovyChain extends ratpack.handling.internal.DefaultChain i
   }
 
   public GroovyChain header(String headerName, String headerValue, @DelegatesTo(value = Context.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler) {
-    return header(headerName, headerValue, asHandler(handler));
+    return header(headerName, headerValue, groovyHandler(handler));
   }
 
   private ImmutableList<Handler> toHandlerList(Closure<?> handlers) {

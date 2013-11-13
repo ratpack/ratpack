@@ -36,22 +36,6 @@ public abstract class Groovy {
 
   }
 
-  public static Template groovyTemplate(String id) {
-    return groovyTemplate(id, null);
-  }
-
-  public static Template groovyTemplate(String id, String type) {
-    return groovyTemplate(ImmutableMap.<String, Object>of(), id, type);
-  }
-
-  public static Template groovyTemplate(Map<String, ?> model, String id) {
-    return groovyTemplate(model, id, null);
-  }
-
-  public static Template groovyTemplate(Map<String, ?> model, String id, String type) {
-    return new DefaultTemplate(id, model, type);
-  }
-
   /**
    * Starts a Ratpack app, defined by the given closure.
    * <p>
@@ -91,17 +75,12 @@ public abstract class Groovy {
     RatpackScriptBacking.getBacking().execute(closure);
   }
 
-  public static Handler asHandler(@DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) {
-    return new ClosureBackedHandler(closure);
-  }
-
   /**
    * The definition of a Groovy Ratpack application.
    *
    * @see ratpack.groovy.Groovy#ratpack(groovy.lang.Closure)
    */
   public static interface Ratpack {
-
     /**
      * Registers the closure used to configure the {@link ratpack.guice.ModuleRegistry} that will back the application.
      *
@@ -115,6 +94,26 @@ public abstract class Groovy {
      * @param configurer The configuration closure, delegating to {@link ratpack.groovy.handling.GroovyChain}
      */
     void handlers(@DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer);
-
   }
+
+  public static Template groovyTemplate(String id) {
+    return groovyTemplate(id, null);
+  }
+
+  public static Template groovyTemplate(String id, String type) {
+    return groovyTemplate(ImmutableMap.<String, Object>of(), id, type);
+  }
+
+  public static Template groovyTemplate(Map<String, ?> model, String id) {
+    return groovyTemplate(model, id, null);
+  }
+
+  public static Template groovyTemplate(Map<String, ?> model, String id, String type) {
+    return new DefaultTemplate(id, model, type);
+  }
+
+  public static Handler groovyHandler(@DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) {
+    return new ClosureBackedHandler(closure);
+  }
+
 }
