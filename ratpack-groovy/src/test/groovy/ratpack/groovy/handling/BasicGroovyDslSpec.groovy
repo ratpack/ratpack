@@ -99,13 +99,15 @@ class BasicGroovyDslSpec extends RatpackGroovyDslSpec {
       handlers {
         handler("foo") {
           def prefix = "common"
-          respond byMethod.
-              get {
-                response.send("$prefix: get")
-              }.
-              post {
-                response.send("$prefix: post")
-              }
+          byMethod {
+            get {
+              render "$prefix: get"
+            }
+            post {
+              render "$prefix: post"
+            }
+          }
+
         }
       }
     }

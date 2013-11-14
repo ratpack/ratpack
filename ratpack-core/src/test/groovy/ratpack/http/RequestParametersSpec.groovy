@@ -46,7 +46,7 @@ class RequestParametersSpec extends RatpackGroovyDslSpec {
     app {
       handlers {
         post {
-          response.send request.form.toString()
+          render request.form.toString()
         }
       }
     }

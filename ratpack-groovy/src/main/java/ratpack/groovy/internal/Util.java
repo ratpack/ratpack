@@ -108,4 +108,24 @@ public abstract class Util {
       copy.call(thing);
     }
   }
+
+  private static class DelegatingClosureRunnable<D, A> implements Runnable {
+    private final D delegate;
+    private final A argument;
+    private final Closure<?> closure;
+
+    private DelegatingClosureRunnable(D delegate, A argument, Closure<?> closure) {
+      this.delegate = delegate;
+      this.argument = argument;
+      this.closure = closure;
+    }
+
+    @Override
+    public void run() {
+      configureDelegateFirst(delegate, argument, closure);
+    }
+  }
+  public static <D, A> Runnable delegateFirstRunnable(D delegate, A argument, Closure<?> closure) {
+    return new DelegatingClosureRunnable<>(delegate, argument, closure);
+  }
 }

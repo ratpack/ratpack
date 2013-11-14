@@ -23,6 +23,7 @@ import ratpack.block.Blocking;
 import ratpack.groovy.block.GroovyBlocking;
 import ratpack.groovy.block.internal.DefaultGroovyBlocking;
 import ratpack.groovy.handling.GroovyContext;
+import ratpack.groovy.internal.Util;
 import ratpack.handling.ByContentHandler;
 import ratpack.handling.ByMethodHandler;
 import ratpack.handling.Handler;
@@ -54,6 +55,14 @@ public class DefaultGroovyContext implements GroovyContext {
   @Override
   public <T> GroovyBlocking.GroovySuccessOrError<T> blocking(Closure<T> operation) {
     return new DefaultGroovyBlocking(this, getBlocking()).block(operation);
+  }
+
+  @Override
+  public void byMethod(Closure<?> closure) {
+    ByMethodHandler handler = getByMethod();
+    DefaultGroovyByMethodHandler groovyHandler = new DefaultGroovyByMethodHandler(this, handler);
+    Util.configureDelegateFirst(groovyHandler, closure);
+    handler.handle(this);
   }
 
   @Override

@@ -16,7 +16,6 @@
 
 package ratpack.util.internal
 
-import ratpack.guice.internal.DefaultGuiceBackedHandlerFactory
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject

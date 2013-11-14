@@ -17,6 +17,8 @@
 package ratpack.groovy.handling;
 
 import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
+import ratpack.handling.ByMethodHandler;
 import ratpack.handling.Context;
 
 import static ratpack.groovy.block.GroovyBlocking.GroovySuccessOrError;
@@ -61,5 +63,7 @@ public interface GroovyContext extends Context {
    * @return An object
    */
   <T> GroovySuccessOrError<T> blocking(Closure<T> operation);
+
+  void byMethod(@DelegatesTo(ByMethodHandler.class) Closure<?> closure);
 
 }

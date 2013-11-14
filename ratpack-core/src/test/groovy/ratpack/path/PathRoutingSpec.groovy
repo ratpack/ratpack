@@ -87,7 +87,7 @@ class PathRoutingSpec extends RatpackGroovyDslSpec {
           prefix(":d/:e") {
             handler {
               def binding = get(PathBinding)
-              response.send("$binding.tokens - $binding.allTokens - $binding.pastBinding")
+              render "$binding.tokens - $binding.allTokens - $binding.pastBinding"
             }
           }
         }
