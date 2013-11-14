@@ -24,7 +24,7 @@ import static ratpack.groovy.RatpackScript.ratpack
 ratpack { // (2)
     handlers { 
         get { 
-            response.send "Hello World" // (3)
+            render "Hello World" // (3)
         }
     }
 }
@@ -61,10 +61,10 @@ Let's try adding another handler. Open the *ratpack.groovy* file and add a secon
 ratpack { 
     handlers { 
         get { 
-            getResponse().send "Hello World"
+            render "Hello World"
         }
         get('echo') {             // our new handler
-            getResponse().send "echo"
+            render "echo"
         }
     }
 }
@@ -83,7 +83,7 @@ Let's change our echo handler so it returns what we entered:
 ```language-groovy groovy-handlers
 handlers {
     get('echo/:message') {
-        getResponse().send getPathTokens().message
+        render pathTokens.message
     }
 }
 ```
@@ -105,7 +105,7 @@ This can be done by adding a question mark at the end of the optional parameter.
 ```language-groovy groovy-handlers
 handlers {
     get('echo/:message/:trim?'){
-        getResponse().send getPathTokens().message - getPathTokens().trim
+        render getPathTokens().message - getPathTokens().trim
     }
 }
 ```
@@ -118,7 +118,7 @@ You can have as many optional path tokens as you want as long as they are not fo
 ```language-groovy groovy-handlers
 handlers {
     get('echo/:message/:trim?/:add?') {
-        getResponse().send getPathTokens().message - getPathTokens().trim + ( getPathTokens().add?:'' )
+        render pathTokens.message - pathTokens.trim + ( pathTokens.add?:'' )
     }
 }
 ```
@@ -139,7 +139,7 @@ handlers {
         if (getRequest().queryParams.upper) {
             message = message.toUpperCase()
         }
-        getResponse().send message
+        render message
     }
 }
 ```
@@ -246,7 +246,7 @@ handlers {
     blocking {
       db.getName(getPathTokens().id)
     }.then {
-      getResponse().send("name is: $it")
+      render "name is: $it"
     }
   }
 }
@@ -274,7 +274,7 @@ handlers {
       db.logError(e)
       error(e)
     }.then {
-      getResponse().send("name is: $it")
+      render "name is: $it"
     }
   }
 }
@@ -380,7 +380,7 @@ ratpack {
 
     handlers { MongoService mongoService -> // (1)
         post("some/path") {
-            getResponse().send mongoService.entries.join("\n")
+            render mongoService.entries.join("\n")
         }
     }
 }
@@ -405,8 +405,8 @@ interface PeopleDAO {
 
 handlers {
     post("api/person") { PeopleDAO dao ->
-        dao.save(getRequest().text)
-        getResponse().send "saved"
+        dao.save(request.text)
+        render "saved"
     }
 }
 ```

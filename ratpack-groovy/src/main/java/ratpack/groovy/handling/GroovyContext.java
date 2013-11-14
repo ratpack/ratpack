@@ -51,7 +51,7 @@ public interface GroovyContext extends Context {
    *   }.onError { Exception exception ->
    *     // do something with the exception
    *   }.then { Integer result ->
-   *     getResponse().send result.toString()
+   *     render result.toString()
    *   }
    * }
    * </pre>

@@ -52,7 +52,7 @@ public abstract class Groovy {
    *   handlers {
    *     // define the application handlers
    *     get("foo") {
-   *       getResponse().send "bar"
+   *       render "bar"
    *     }
    *   }
    * }
