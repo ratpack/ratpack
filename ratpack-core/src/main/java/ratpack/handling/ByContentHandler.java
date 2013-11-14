@@ -50,20 +50,20 @@ package ratpack.handling;
  * }
  * </pre>
  * <p>
- * If you are using Groovy, you can use closures as the definitions (because closures implement {@link Runnable}),
- * along with {@code Buildable.with}…
+ * If you are using Groovy, you can use closures as the definitions…
  * <pre class="tested">
- * import ratpack.handling.*
+ * import ratpack.groovy.handling.*
  *
- * class MyHandler implements Handler {
- *   void handle(Context context) {
- *     context.respond context.byContent.
+ * class MyHandler extends GroovyHandler {
+ *   void handle(GroovyContext context) {
+ *     context.byContent {
  *       json {
  *         // JSON handling logic
- *       }.
+ *       }
  *       html {
  *         // HTML handling logic
  *       }
+ *     }
  *   }
  * }
  * </pre>

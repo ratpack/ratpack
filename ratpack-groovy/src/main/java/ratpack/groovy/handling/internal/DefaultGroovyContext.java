@@ -17,11 +17,14 @@
 package ratpack.groovy.handling.internal;
 
 import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 import ratpack.api.NonBlocking;
 import ratpack.api.Nullable;
 import ratpack.block.Blocking;
 import ratpack.groovy.block.GroovyBlocking;
 import ratpack.groovy.block.internal.DefaultGroovyBlocking;
+import ratpack.groovy.handling.GroovyByContentHandler;
+import ratpack.groovy.handling.GroovyByMethodHandler;
 import ratpack.groovy.handling.GroovyContext;
 import ratpack.groovy.internal.Util;
 import ratpack.handling.ByContentHandler;
@@ -60,7 +63,15 @@ public class DefaultGroovyContext implements GroovyContext {
   @Override
   public void byMethod(Closure<?> closure) {
     ByMethodHandler handler = getByMethod();
-    DefaultGroovyByMethodHandler groovyHandler = new DefaultGroovyByMethodHandler(this, handler);
+    GroovyByMethodHandler groovyHandler = new DefaultGroovyByMethodHandler(this, handler);
+    Util.configureDelegateFirst(groovyHandler, closure);
+    handler.handle(this);
+  }
+
+  @Override
+  public void byContent(@DelegatesTo(ByMethodHandler.class) Closure<?> closure) {
+    ByContentHandler handler = getByContent();
+    GroovyByContentHandler groovyHandler = new DefaultGroovyByContentHandler(this, handler);
     Util.configureDelegateFirst(groovyHandler, closure);
     handler.handle(this);
   }

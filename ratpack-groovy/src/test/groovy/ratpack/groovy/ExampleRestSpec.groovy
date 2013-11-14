@@ -54,12 +54,13 @@ class ExampleRestSpec extends RatpackGroovyScriptAppSpec {
               return
             }
 
-            respond byContent.
-              type("application/json") {
+            byContent {
+              json {
                 def json = new JsonSlurper().parseText(request.text)
                 def value = json.value
                 response.send "application/json", JsonOutput.toJson([value: value * 2])
               }
+            }
           }
         }
       }
