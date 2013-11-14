@@ -33,6 +33,7 @@ import ratpack.util.ResultAction;
 import java.io.File;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.Callable;
 
 /**
  * An context represents the context of an individual handler invocation, which is conceptually a reaction to a request.
@@ -293,6 +294,14 @@ public interface Context extends Registry {
    * @see Blocking
    */
   Blocking getBlocking();
+
+  /**
+   * Shorthand for {@code getBlocking().exec(blockingOperation)}.
+   *
+   * @return A builder for specifying the result handling strategy for a blocking operation.
+   * @see #getBlocking()
+   */
+  <T> Blocking.SuccessOrError<T> blocking(Callable<T> blockingOperation);
 
   /**
    * Sends a temporary redirect response (i.e. statusCode 302) to the client using the specified redirect location URL.

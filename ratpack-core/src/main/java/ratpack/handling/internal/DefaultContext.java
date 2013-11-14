@@ -45,6 +45,7 @@ import ratpack.util.ResultAction;
 import java.io.File;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 
 import static io.netty.handler.codec.http.HttpHeaders.Names.IF_MODIFIED_SINCE;
@@ -83,7 +84,7 @@ public class DefaultContext implements Context {
     return registry.get(type);
   }
 
-  public <O extends Object> List<O> getAll(Class<O> type) {
+  public <O> List<O> getAll(Class<O> type) {
     return registry.getAll(type);
   }
 
@@ -185,6 +186,11 @@ public class DefaultContext implements Context {
   @Override
   public Blocking getBlocking() {
     return new DefaultBlocking(mainExecutorService, blockingExecutorService, this);
+  }
+
+  @Override
+  public <T> Blocking.SuccessOrError<T> blocking(Callable<T> blockingOperation) {
+    return getBlocking().exec(blockingOperation);
   }
 
   public void redirect(String location) {

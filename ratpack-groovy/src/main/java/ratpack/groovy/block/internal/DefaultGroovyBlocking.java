@@ -18,38 +18,40 @@ package ratpack.groovy.block.internal;
 
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
+import ratpack.block.Blocking;
+import ratpack.groovy.block.GroovyBlocking;
 import ratpack.groovy.handling.GroovyContext;
 import ratpack.groovy.internal.Util;
 import ratpack.util.Action;
 
 import java.util.concurrent.Callable;
 
-public class DefaultGroovyBlocking implements ratpack.groovy.block.GroovyBlocking {
+public class DefaultGroovyBlocking implements GroovyBlocking {
 
   private final GroovyContext context;
   private final ratpack.block.Blocking delegate;
 
-  public DefaultGroovyBlocking(GroovyContext context, ratpack.block.Blocking delegate) {
+  public DefaultGroovyBlocking(GroovyContext context, Blocking delegate) {
     this.context = context;
     this.delegate = delegate;
   }
 
   @Override
-  public <T> ratpack.block.Blocking.SuccessOrError<T> exec(Callable<T> operation) {
+  public <T> SuccessOrError<T> exec(Callable<T> operation) {
     return delegate.exec(operation);
   }
 
   @Override
-  public <T> SuccessOrError<T> block(Closure<T> closure) {
-    final ratpack.block.Blocking.SuccessOrError<T> successOrErrorDelegate = delegate.exec(Util.delegatingCallable(closure));
-    return new SuccessOrErrorImpl<>(successOrErrorDelegate);
+  public <T> GroovySuccessOrError<T> block(Closure<T> closure) {
+    final SuccessOrError<T> successOrErrorDelegate = delegate.exec(Util.delegatingCallable(closure));
+    return new GroovySuccessOrErrorImpl<>(successOrErrorDelegate);
   }
 
-  private class SuccessImpl<T> implements Success<T> {
+  private class GroovySuccessImpl<T> implements GroovySuccess<T> {
 
-    private final ratpack.block.Blocking.Success<T> successDelegate;
+    private final Success<T> successDelegate;
 
-    private SuccessImpl(ratpack.block.Blocking.Success<T> successDelegate) {
+    private GroovySuccessImpl(Success<T> successDelegate) {
       this.successDelegate = successDelegate;
     }
 
@@ -64,21 +66,21 @@ public class DefaultGroovyBlocking implements ratpack.groovy.block.GroovyBlockin
     }
   }
 
-  private class SuccessOrErrorImpl<T> extends SuccessImpl<T> implements SuccessOrError<T> {
-    private final ratpack.block.Blocking.SuccessOrError<T> successOrErrorDelegate;
+  private class GroovySuccessOrErrorImpl<T> extends GroovySuccessImpl<T> implements GroovySuccessOrError<T> {
+    private final SuccessOrError<T> successOrErrorDelegate;
 
-    public SuccessOrErrorImpl(ratpack.block.Blocking.SuccessOrError<T> successOrErrorDelegate) {
+    public GroovySuccessOrErrorImpl(SuccessOrError<T> successOrErrorDelegate) {
       super(successOrErrorDelegate);
       this.successOrErrorDelegate = successOrErrorDelegate;
     }
 
     @Override
-    public Success<T> onError(@DelegatesTo(GroovyContext.class) Closure<?> closure) {
-      return new SuccessImpl<>(successOrErrorDelegate.onError(Util.action(closure)));
+    public GroovySuccess<T> onError(@DelegatesTo(GroovyContext.class) Closure<?> closure) {
+      return new GroovySuccessImpl<>(successOrErrorDelegate.onError(Util.action(closure)));
     }
 
     @Override
-    public ratpack.block.Blocking.Success<T> onError(Action<? super Throwable> errorHandler) {
+    public Success<T> onError(Action<? super Throwable> errorHandler) {
       return successOrErrorDelegate.onError(errorHandler);
     }
   }

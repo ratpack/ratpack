@@ -19,21 +19,34 @@ package ratpack.groovy.block;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import ratpack.api.NonBlocking;
+import ratpack.block.Blocking;
 import ratpack.groovy.handling.GroovyContext;
 
-public interface GroovyBlocking extends ratpack.block.Blocking {
+/**
+ * A Groovy specific subclass of {@link Blocking} that makes using closures more convenient.
+ */
+public interface GroovyBlocking extends Blocking {
 
-  <T> SuccessOrError<T> block(Closure<T> closure);
+  <T> GroovySuccessOrError<T> block(Closure<T> closure);
 
-  interface Success<T> extends ratpack.block.Blocking.Success<T> {
+  /**
+   * A Groovy specific subclass of {@link ratpack.block.Blocking.Success} that makes using closures more convenient.
+   *
+   * @param <T> The type of object produced by the blocking operation
+   */
+  interface GroovySuccess<T> extends Success<T> {
 
     @NonBlocking
     void then(@DelegatesTo(GroovyContext.class) Closure<?> closure);
   }
 
-  interface SuccessOrError<T> extends Success<T>, ratpack.block.Blocking.SuccessOrError<T> {
-    Success<T> onError(@DelegatesTo(GroovyContext.class) Closure<?> closure);
+  /**
+   * A Groovy specific subclass of {@link ratpack.block.Blocking.SuccessOrError} that makes using closures more convenient.
+   *
+   * @param <T> The type of object produced by the blocking operation
+   */
+  interface GroovySuccessOrError<T> extends GroovySuccess<T>, SuccessOrError<T> {
+    GroovySuccess<T> onError(@DelegatesTo(GroovyContext.class) Closure<?> closure);
   }
-
 
 }

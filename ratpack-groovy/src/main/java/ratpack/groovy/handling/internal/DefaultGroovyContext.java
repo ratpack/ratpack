@@ -20,6 +20,7 @@ import groovy.lang.Closure;
 import ratpack.api.NonBlocking;
 import ratpack.api.Nullable;
 import ratpack.block.Blocking;
+import ratpack.groovy.block.GroovyBlocking;
 import ratpack.groovy.block.internal.DefaultGroovyBlocking;
 import ratpack.groovy.handling.GroovyContext;
 import ratpack.handling.ByContentHandler;
@@ -40,6 +41,7 @@ import ratpack.util.ResultAction;
 import java.io.File;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.Callable;
 
 public class DefaultGroovyContext implements GroovyContext {
 
@@ -50,7 +52,7 @@ public class DefaultGroovyContext implements GroovyContext {
   }
 
   @Override
-  public <T> ratpack.groovy.block.GroovyBlocking.SuccessOrError<T> blocking(Closure<T> operation) {
+  public <T> GroovyBlocking.GroovySuccessOrError<T> blocking(Closure<T> operation) {
     return new DefaultGroovyBlocking(this, getBlocking()).block(operation);
   }
 
@@ -162,6 +164,15 @@ public class DefaultGroovyContext implements GroovyContext {
   @Override
   public Blocking getBlocking() {
     return delegate.getBlocking();
+  }
+
+  @Override
+  public <T> Blocking.SuccessOrError<T> blocking(Callable<T> blockingOperation) {
+    // Only need this because Groovy picks this method over the closure overload
+    if (Closure.class.isInstance(blockingOperation)) {
+      return blocking((Closure<T>) blockingOperation);
+    }
+    return delegate.blocking(blockingOperation);
   }
 
   @Override

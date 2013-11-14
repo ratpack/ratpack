@@ -19,7 +19,7 @@ package ratpack.groovy.handling;
 import groovy.lang.Closure;
 import ratpack.handling.Context;
 
-import static ratpack.groovy.block.GroovyBlocking.SuccessOrError;
+import static ratpack.groovy.block.GroovyBlocking.GroovySuccessOrError;
 
 /**
  * Subclass of {@link ratpack.handling.Context} that adds Groovy friendly variants of methods.
@@ -60,6 +60,6 @@ public interface GroovyContext extends Context {
    * @param <T> The type of the result
    * @return An object
    */
-  <T> SuccessOrError<T> blocking(Closure<T> operation);
+  <T> GroovySuccessOrError<T> blocking(Closure<T> operation);
 
 }
