@@ -24,78 +24,7 @@ import java.util.concurrent.Callable;
 /**
  * Allows blocking operations to be executed off of a main request handling thread.
  * <p>
- * Instances of {@code Blocking} can be obtained via {@link ratpack.handling.Context#getBlocking()}.
- * <p>
- * Ratpack apps typically do not use a large thread pool for handling requests. By default there is one thread per core.
- * This means that blocking IO operations cannot be done on the thread invokes a handler. Blocking IO operations must be
- * offloaded in order to free the request handling thread to handle other requests while the IO operation is performed.
- * The {@code Blocking} type makes it easy to do this.
- * <p>
- * A callable is submitted to the {@link #exec(Callable)} method. The implementation of this callable CAN block.
- * It will be executed on a non request handling thread. It should do not much more than initiate a blocking IO operation.
- * However, the callable is not executed immediately. The return value of {@link #exec(Callable)} must be used to specify
- * how to proceed after the blocking operation. The {@code then()} method must be called for the work to be performed.
- * </p>
- * Example usage (Java):
- * <pre class="tested">
- * import ratpack.handling.Handler;
- * import ratpack.handling.Context;
- * import ratpack.util.Action;
- * import java.util.concurrent.Callable;
- *
- * class MyHandler implements Handler {
- *   void handle(final Context context) {
- *     context.getBlocking().exec(new Callable&lt;String&gt;() {
- *        public String call() {
- *          // perform some kind of blocking IO in here, such as accessing a database
- *          return "foo";
- *        }
- *     }).then(new Action&lt;String&gt;() {
- *       public void execute(String result) {
- *         context.getResponse().send(result);
- *       }
- *     });
- *   }
- * }
- * </pre>
- *
- * <h4>Error Handling</h4>
- * <p>
- * Unless otherwise specified, any exceptions that are raised during the blocking operation callable are forwarded
- * to the {@link ratpack.handling.Context#error(Exception)} method of the current context.
- * Similarly, errors that occur during the result handler are forwarded.
- * </p>
- * <p>
- * To use a custom error handling strategy, use the {@link ratpack.block.Blocking.SuccessOrError#onError(ratpack.util.Action)} method
- * of the return of {@link #exec(java.util.concurrent.Callable)}.
- * </p>
- * <p>
- * Example usage (Java):
- * <pre class="tested">
- * import ratpack.handling.Handler;
- * import ratpack.handling.Context;
- * import ratpack.util.Action;
- * import java.util.concurrent.Callable;
- *
- * class MyHandler implements Handler {
- *   void handle(final Context context) {
- *     context.getBlocking().exec(new Callable&lt;String&gt;() {
- *        public String call() {
- *          // perform some kind of blocking IO in here, such as accessing a database
- *          return "foo";
- *        }
- *     }).onError(new Action&lt;Exception&gt;() {
- *       public void execute(Exception exception) {
- *         // do something with the exception
- *       }
- *     }).then(new Action&lt;String&gt;() {
- *       public void execute(String result) {
- *         context.getResponse().send(result);
- *       }
- *     });
- *   }
- * }
- * </pre>
+ * See {@link ratpack.handling.Context#getBlocking()}.
  */
 public interface Blocking {
 
