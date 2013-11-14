@@ -58,18 +58,7 @@ import java.util.concurrent.Callable;
  *   }
  * }
  * </pre>
- * Example usage: (Groovy DSL)
- * <pre class="groovy-chain-dsl">
- * import static ratpack.groovy.Groovy.exec
  *
- * get("some/path") {
- *   blocking {
- *    /* a blocking operation *&#47; 2
- *   }.then { Integer result ->
- *     getResponse().send result.toString()
- *   }
- * }
- * </pre>
  * <h4>Error Handling</h4>
  * <p>
  * Unless otherwise specified, any exceptions that are raised during the blocking operation callable are forwarded
@@ -104,21 +93,6 @@ import java.util.concurrent.Callable;
  *         context.getResponse().send(result);
  *       }
  *     });
- *   }
- * }
- * </pre>
- * Example usage: (Groovy DSL)
- * <pre class="groovy-chain-dsl">
- * import static ratpack.groovy.Groovy.exec
- *
- * get("some/path") {
- *   blocking {
- *     /* a blocking operation *&#47;
- *     2
- *   }.onError { Exception exception ->
- *     /* do something with the exception *&#47;
- *   }.then { Integer result ->
- *     getResponse().send result.toString()
  *   }
  * }
  * </pre>
