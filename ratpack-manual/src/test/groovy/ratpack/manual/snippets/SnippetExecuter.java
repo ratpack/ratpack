@@ -55,7 +55,7 @@ public class SnippetExecuter {
     String snippetMinusImports = importsAndSnippet.get(1);
 
     SnippetFixture fixture = snippet.getFixture();
-    String fullSnippet = imports + fixture.pre() + snippetMinusImports + fixture.post() + ";0;";
+    String fullSnippet = imports + fixture.pre() + snippetMinusImports + fixture.post();
 
     Script script = groovyShell.parse(fullSnippet, snippet.getClassName());
 

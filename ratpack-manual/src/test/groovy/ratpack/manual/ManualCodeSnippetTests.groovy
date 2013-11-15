@@ -22,6 +22,7 @@ import ratpack.manual.snippets.CodeSnippetTestCase
 import ratpack.manual.snippets.CodeSnippetTests
 import ratpack.manual.snippets.ManualSnippetExtractor
 import ratpack.manual.snippets.TestCodeSnippet
+import ratpack.manual.snippets.fixtures.DoNothingSnippetFixture
 import ratpack.manual.snippets.fixtures.GroovyChainDslFixture
 import ratpack.manual.snippets.fixtures.GroovyHandlersFixture
 import ratpack.manual.snippets.fixtures.GroovyRatpackDslFixture
@@ -47,7 +48,8 @@ class ManualCodeSnippetTests extends CodeSnippetTestCase {
     [
       "language-groovy groovy-chain-dsl": new GroovyChainDslFixture(),
       "language-groovy groovy-ratpack": new GroovyRatpackDslFixture(),
-      "language-groovy groovy-handlers": new GroovyHandlersFixture()
+      "language-groovy groovy-handlers": new GroovyHandlersFixture(),
+      "language-groovy tested": new DoNothingSnippetFixture()
     ].each { selector, fixture ->
       ManualSnippetExtractor.extract(content, selector, fixture).each {
         tests.add(it)

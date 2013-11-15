@@ -16,19 +16,18 @@
 
 package ratpack.test.handling
 
-import DefaultTemplate
 import ratpack.groovy.templating.Template
 import ratpack.groovy.templating.internal.DefaultTemplate
 import ratpack.handling.Context
 import ratpack.handling.Handler
 import spock.lang.Specification
 
-import static ratpack.groovy.test.handling.InvocationBuilder.invoke
-
+import static ratpack.groovy.test.GroovyUnitTest.invoke
+import static ratpack.test.UnitTest.invocationBuilder
 /**
  * This is not so much testing our stuff, but acting as an example of how to use the invocation builder.
  */
-class InvocationBuilderExampleSpec extends Specification {
+class HandlerUnitTestingSpec extends Specification {
 
   static class LabelProvider {
     private final label
@@ -71,7 +70,7 @@ class InvocationBuilderExampleSpec extends Specification {
 
   def "can unit test handler with context builder syntax"() {
     given:
-    def context = new InvocationBuilder()
+    def context = invocationBuilder()
     context.register new LabelProvider("baz")
     context.header "Test-Header", "foo"
     context.uri "/bar"
@@ -88,7 +87,7 @@ class InvocationBuilderExampleSpec extends Specification {
 
   def "can use a fluent style with the context builder"() {
     when:
-    def result = new InvocationBuilder()
+    def result = invocationBuilder()
       .register(new LabelProvider("baz"))
       .header("Test-Header", "foo")
       .uri("/bar")

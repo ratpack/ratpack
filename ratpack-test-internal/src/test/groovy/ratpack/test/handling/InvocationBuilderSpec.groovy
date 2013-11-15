@@ -18,16 +18,19 @@ package ratpack.test.handling
 
 import io.netty.util.CharsetUtil
 import ratpack.handling.Context
+import ratpack.test.UnitTest
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 
 import static ratpack.groovy.Groovy.groovyHandler
+import static ratpack.test.UnitTest.invocationBuilder
 
 class InvocationBuilderSpec extends Specification {
 
   @Subject
-  InvocationBuilder builder = new InvocationBuilder()
+  InvocationBuilder builder = invocationBuilder()
+
   @Delegate
   Invocation invocation
 

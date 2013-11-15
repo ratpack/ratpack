@@ -14,18 +14,25 @@
  * limitations under the License.
  */
 
-package ratpack.groovy.test.handling;
+package ratpack.manual.snippets.fixtures;
 
-import groovy.lang.Closure;
-import groovy.lang.DelegatesTo;
-import ratpack.groovy.internal.Util;
-import ratpack.handling.Handler;
-import ratpack.test.handling.Invocation;
+public class ExecuteAsScriptFixture implements SnippetFixture {
 
-public class InvocationBuilder extends ratpack.test.handling.InvocationBuilder {
-
-  public static Invocation invoke(Handler handler, @DelegatesTo(InvocationBuilder.class) Closure<?> builder) {
-    return invoke(handler, Util.delegatingAction(builder));
+  @Override
+  public void setup() {
   }
 
+  @Override
+  public void cleanup() {
+  }
+
+  @Override
+  public String pre() {
+    return "";
+  }
+
+  @Override
+  public String post() {
+    return "";
+  }
 }

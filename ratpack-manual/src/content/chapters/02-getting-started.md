@@ -105,7 +105,7 @@ This can be done by adding a question mark at the end of the optional parameter.
 ```language-groovy groovy-handlers
 handlers {
     get('echo/:message/:trim?'){
-        render getPathTokens().message - getPathTokens().trim
+        render pathTokens.message - pathTokens.trim
     }
 }
 ```
@@ -135,8 +135,8 @@ In the following example, we capitalize a message if the `upper=true` query para
 ```language-groovy groovy-handlers
 handlers {
     get('echo/:message') {
-        String message = getPathTokens().message
-        if (getRequest().queryParams.upper) {
+        String message = pathTokens.message
+        if (request.queryParams.upper) {
             message = message.toUpperCase()
         }
         render message
@@ -244,7 +244,7 @@ interface DbService {
 handlers {
   get("name/:id") { DbService db ->
     blocking {
-      db.getName(getPathTokens().id)
+      db.getName(pathTokens.id)
     }.then {
       render "name is: $it"
     }
@@ -269,7 +269,7 @@ interface DbService {
 handlers {
   get("name/:id") { DbService db ->
     blocking {
-      db.getName(getPathTokens().id)
+      db.getName(pathTokens.id)
     }.onError { Exception e ->
       db.logError(e)
       error(e)

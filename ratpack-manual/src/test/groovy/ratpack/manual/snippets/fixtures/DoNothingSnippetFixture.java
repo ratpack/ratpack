@@ -33,6 +33,6 @@ public class DoNothingSnippetFixture implements SnippetFixture {
 
   @Override
   public String post() {
-    return "";
+    return ";0;";
   }
 }
