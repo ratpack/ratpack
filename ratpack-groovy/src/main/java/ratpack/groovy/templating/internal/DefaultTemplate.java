@@ -45,20 +45,4 @@ public class DefaultTemplate implements Template {
     return model;
   }
 
-  public static Template groovyTemplate(String id) {
-    return groovyTemplate(id, null);
-  }
-
-  public static Template groovyTemplate(String id, String type) {
-    return groovyTemplate(ImmutableMap.<String, Object>of(), id, type);
-  }
-
-  public static Template groovyTemplate(Map<String, ?> model, String id) {
-    return groovyTemplate(model, id, null);
-  }
-
-  public static Template groovyTemplate(Map<String, ?> model, String id, String type) {
-    return new DefaultTemplate(id, model, type);
-  }
-
 }

@@ -22,8 +22,10 @@ import ratpack.handling.Context
 import ratpack.handling.Handler
 import spock.lang.Specification
 
+import static ratpack.groovy.Groovy.groovyTemplate
 import static ratpack.groovy.test.GroovyUnitTest.invoke
 import static ratpack.test.UnitTest.invocationBuilder
+
 /**
  * This is not so much testing our stuff, but acting as an example of how to use the invocation builder.
  */
@@ -103,7 +105,7 @@ class HandlerUnitTestingSpec extends Specification {
   static class RenderingHandler implements Handler {
     @Override
     void handle(Context context) {
-      context.render DefaultTemplate.groovyTemplate("index.html", a: "a")
+      context.render groovyTemplate("index.html", a: "a")
     }
   }
 
