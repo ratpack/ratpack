@@ -72,7 +72,7 @@ public class LaunchConfigBuilder {
   private URI publicAddress;
   private ImmutableList.Builder<String> indexFiles = ImmutableList.builder();
   private ImmutableMap.Builder<String, String> other = ImmutableMap.builder();
-  private ExecutorService blockingExecutorService;
+  private ExecutorService backgroundExecutorService;
   private ByteBufAllocator byteBufAllocator = PooledByteBufAllocator.DEFAULT;
   private SSLContext sslContext;
   private int maxContentLength = LaunchConfig.DEFAULT_MAX_CONTENT_LENGTH;
@@ -161,10 +161,10 @@ public class LaunchConfigBuilder {
    * @param executorService The executor service to use for blocking operations
    * @return this
    *
-   * @see LaunchConfig#getBlockingExecutorService()
+   * @see LaunchConfig#getBackgroundExecutorService()
    */
   public LaunchConfigBuilder blockingExecutorService(ExecutorService executorService) {
-    this.blockingExecutorService = executorService;
+    this.backgroundExecutorService = executorService;
     return this;
   }
 
@@ -324,9 +324,9 @@ public class LaunchConfigBuilder {
    * @return A newly constructed {@link LaunchConfig} based on this builder's state
    */
   public LaunchConfig build(HandlerFactory handlerFactory) {
-    ExecutorService blockingExecutorService = this.blockingExecutorService;
-    if (blockingExecutorService == null) {
-      blockingExecutorService = Executors.newCachedThreadPool(new BlockingThreadFactory());
+    ExecutorService backgroundExecutorService = this.backgroundExecutorService;
+    if (backgroundExecutorService == null) {
+      backgroundExecutorService = Executors.newCachedThreadPool(new BackgroundThreadFactory());
     }
     return new DefaultLaunchConfig(
       baseDir,
@@ -334,7 +334,7 @@ public class LaunchConfigBuilder {
       address,
       reloadable,
       mainThreads,
-      blockingExecutorService,
+      backgroundExecutorService,
       byteBufAllocator,
       publicAddress,
       indexFiles.build(),
@@ -346,14 +346,14 @@ public class LaunchConfigBuilder {
   }
 
   @SuppressWarnings("NullableProblems")
-  private static class BlockingThreadFactory implements ThreadFactory {
+  private static class BackgroundThreadFactory implements ThreadFactory {
 
-    private final ThreadGroup threadGroup = new ThreadGroup("ratpack-blocking-worker-group");
+    private final ThreadGroup threadGroup = new ThreadGroup("ratpack-background-worker-group");
     private int i;
 
     @Override
     public Thread newThread(Runnable r) {
-      return new Thread(threadGroup, r, "ratpack-blocking-worker-" + i++);
+      return new Thread(threadGroup, r, "ratpack-background-worker-" + i++);
     }
   }
 }

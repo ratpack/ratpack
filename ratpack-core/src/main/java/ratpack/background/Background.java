@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ratpack.block;
+package ratpack.background;
 
 import ratpack.api.NonBlocking;
 import ratpack.util.Action;
@@ -24,9 +24,9 @@ import java.util.concurrent.Callable;
 /**
  * Allows blocking operations to be executed off of a main request handling thread.
  * <p>
- * See {@link ratpack.handling.Context#getBlocking()}.
+ * See {@link ratpack.handling.Context#getBackground()}.
  */
-public interface Blocking {
+public interface Background {
 
   /**
    * Execute the given operation in a background thread pool, avoiding blocking on a request handling thread.

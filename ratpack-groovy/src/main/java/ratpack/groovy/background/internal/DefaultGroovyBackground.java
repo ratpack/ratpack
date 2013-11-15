@@ -14,24 +14,24 @@
  * limitations under the License.
  */
 
-package ratpack.groovy.block.internal;
+package ratpack.groovy.background.internal;
 
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
-import ratpack.block.Blocking;
-import ratpack.groovy.block.GroovyBlocking;
+import ratpack.background.Background;
+import ratpack.groovy.background.GroovyBackground;
 import ratpack.groovy.handling.GroovyContext;
 import ratpack.groovy.internal.Util;
 import ratpack.util.Action;
 
 import java.util.concurrent.Callable;
 
-public class DefaultGroovyBlocking implements GroovyBlocking {
+public class DefaultGroovyBackground implements GroovyBackground {
 
   private final GroovyContext context;
-  private final ratpack.block.Blocking delegate;
+  private final Background delegate;
 
-  public DefaultGroovyBlocking(GroovyContext context, Blocking delegate) {
+  public DefaultGroovyBackground(GroovyContext context, Background delegate) {
     this.context = context;
     this.delegate = delegate;
   }

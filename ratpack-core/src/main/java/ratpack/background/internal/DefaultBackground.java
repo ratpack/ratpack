@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package ratpack.block.internal;
+package ratpack.background.internal;
 
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
-import ratpack.block.Blocking;
+import ratpack.background.Background;
 import ratpack.handling.Context;
 import ratpack.util.Action;
 
@@ -28,15 +28,15 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 
-public class  DefaultBlocking implements Blocking {
+public class DefaultBackground implements Background {
 
   private final ExecutorService mainExecutor;
-  private final ListeningExecutorService blockingExecutor;
+  private final ListeningExecutorService backgroundExecutor;
   private final Context context;
 
-  public DefaultBlocking(ExecutorService mainExecutor, ListeningExecutorService blockingExecutor, Context context) {
+  public DefaultBackground(ExecutorService mainExecutor, ListeningExecutorService backgroundExecutor, Context context) {
     this.mainExecutor = mainExecutor;
-    this.blockingExecutor = blockingExecutor;
+    this.backgroundExecutor = backgroundExecutor;
     this.context = context;
   }
 
@@ -47,15 +47,15 @@ public class  DefaultBlocking implements Blocking {
 
   private class DefaultSuccessOrError<T> implements SuccessOrError<T> {
 
-    private final Callable<T> blockingAction;
+    private final Callable<T> backgroundAction;
 
-    DefaultSuccessOrError(Callable<T> blockingAction) {
-      this.blockingAction = blockingAction;
+    DefaultSuccessOrError(Callable<T> backgroundAction) {
+      this.backgroundAction = backgroundAction;
     }
 
     @Override
     public Success<T> onError(final Action<? super Throwable> errorHandler) {
-      return new DefaultSuccess<>(blockingAction, new Action<Throwable>() {
+      return new DefaultSuccess<>(backgroundAction, new Action<Throwable>() {
         @Override
         public void execute(Throwable t) {
           try {
@@ -69,7 +69,7 @@ public class  DefaultBlocking implements Blocking {
 
     @Override
     public void then(Action<? super T> then) {
-      new DefaultSuccess<>(blockingAction, new ForwardToContextErrorHandler()).then(then);
+      new DefaultSuccess<>(backgroundAction, new ForwardToContextErrorHandler()).then(then);
     }
 
     class ForwardToContextErrorHandler implements Action<Throwable> {
@@ -87,17 +87,17 @@ public class  DefaultBlocking implements Blocking {
 
   private class DefaultSuccess<T> implements Success<T> {
 
-    private final Callable<T> blockingAction;
+    private final Callable<T> backgroundAction;
     private final Action<Throwable> errorHandler;
 
-    DefaultSuccess(Callable<T> blockingAction, Action<Throwable> errorHandler) {
-      this.blockingAction = blockingAction;
+    DefaultSuccess(Callable<T> backgroundAction, Action<Throwable> errorHandler) {
+      this.backgroundAction = backgroundAction;
       this.errorHandler = errorHandler;
     }
 
     @Override
     public void then(final Action<? super T> then) {
-      final ListenableFuture<T> future = blockingExecutor.submit(blockingAction);
+      final ListenableFuture<T> future = backgroundExecutor.submit(backgroundAction);
       Futures.addCallback(future, new FutureCallback<T>() {
         @Override
         public void onSuccess(T result) {

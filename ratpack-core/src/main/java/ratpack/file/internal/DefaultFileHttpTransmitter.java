@@ -18,7 +18,7 @@ package ratpack.file.internal;
 
 import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
-import ratpack.block.Blocking;
+import ratpack.background.Background;
 import ratpack.util.Action;
 
 import java.io.Closeable;
@@ -45,8 +45,8 @@ public class DefaultFileHttpTransmitter implements FileHttpTransmitter {
   }
 
   @Override
-  public void transmit(Blocking blocking, final BasicFileAttributes basicFileAttributes, final File file) {
-    blocking.exec(new Callable<FileChannel>() {
+  public void transmit(Background background, final BasicFileAttributes basicFileAttributes, final File file) {
+    background.exec(new Callable<FileChannel>() {
       public FileChannel call() throws Exception {
         return new FileInputStream(file).getChannel();
       }

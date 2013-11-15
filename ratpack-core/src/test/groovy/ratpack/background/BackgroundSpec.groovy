@@ -14,22 +14,22 @@
  * limitations under the License.
  */
 
-package ratpack.block
+package ratpack.background
 
 import ratpack.error.internal.PrintingServerErrorHandler
 import ratpack.error.ServerErrorHandler
 import ratpack.test.internal.RatpackGroovyDslSpec
 
-class BlockingSpec extends RatpackGroovyDslSpec {
+class BackgroundSpec extends RatpackGroovyDslSpec {
 
-  def "can perform groovy blocking operations"() {
+  def "can perform groovy background operations"() {
     when:
     def steps = []
     app {
       handlers {
         get {
           steps << "start"
-          blocking {
+          background {
             sleep 300
             steps << "operation"
             2
@@ -47,7 +47,7 @@ class BlockingSpec extends RatpackGroovyDslSpec {
     steps == ["start", "end", "operation", "then"]
   }
 
-  def "by default errors during blocking operations are forwarded to server error handler"() {
+  def "by default errors during background operations are forwarded to server error handler"() {
     when:
     app {
       modules {
@@ -55,7 +55,7 @@ class BlockingSpec extends RatpackGroovyDslSpec {
       }
       handlers {
         get {
-          blocking {
+          background {
             sleep 300
             throw new Exception("!")
           }.then {
@@ -75,7 +75,7 @@ class BlockingSpec extends RatpackGroovyDslSpec {
     app {
       handlers {
         get {
-          blocking {
+          background {
             sleep 300
             throw new Exception("!")
           }.onError {
@@ -100,7 +100,7 @@ class BlockingSpec extends RatpackGroovyDslSpec {
       }
       handlers {
         get {
-          blocking {
+          background {
             throw new Exception("!")
           }.onError {
             throw new Exception("!!", it)
@@ -124,7 +124,7 @@ class BlockingSpec extends RatpackGroovyDslSpec {
       }
       handlers {
         get {
-          blocking {
+          background {
             1
           }.onError {
             throw new Exception("!")
@@ -148,7 +148,7 @@ class BlockingSpec extends RatpackGroovyDslSpec {
       }
       handlers {
         get {
-          blocking {
+          background {
             1
           }.then { List<String> result ->
             response.send("unexpected")
@@ -170,7 +170,7 @@ class BlockingSpec extends RatpackGroovyDslSpec {
       }
       handlers {
         get {
-          blocking {
+          background {
             throw new Exception("!")
           }.onError { String string ->
             response.send("unexpected")
@@ -191,7 +191,7 @@ class BlockingSpec extends RatpackGroovyDslSpec {
     app {
       handlers {
         handler {
-          blocking {
+          background {
             [foo: "bar"]
           }.then {
             response.send it.toString()

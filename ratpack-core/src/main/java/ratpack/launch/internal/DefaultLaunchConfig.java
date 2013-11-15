@@ -37,7 +37,7 @@ public class DefaultLaunchConfig implements LaunchConfig {
   private final InetAddress address;
   private final boolean reloadable;
   private final int mainThreads;
-  private final ExecutorService blockingExecutorService;
+  private final ExecutorService backgroundExecutorService;
   private final ByteBufAllocator byteBufAllocator;
   private final URI publicAddress;
   private final ImmutableList<String> indexFiles;
@@ -45,13 +45,13 @@ public class DefaultLaunchConfig implements LaunchConfig {
   private final SSLContext sslContext;
   private final int maxContentLength;
 
-  public DefaultLaunchConfig(File baseDir, int port, InetAddress address, boolean reloadable, int mainThreads, ExecutorService blockingExecutorService, ByteBufAllocator byteBufAllocator, URI publicAddress, ImmutableList<String> indexFiles, ImmutableMap<String, String> other, SSLContext sslContext, int maxContentLength, HandlerFactory handlerFactory) {
+  public DefaultLaunchConfig(File baseDir, int port, InetAddress address, boolean reloadable, int mainThreads, ExecutorService backgroundExecutorService, ByteBufAllocator byteBufAllocator, URI publicAddress, ImmutableList<String> indexFiles, ImmutableMap<String, String> other, SSLContext sslContext, int maxContentLength, HandlerFactory handlerFactory) {
     this.baseDir = baseDir;
     this.port = port;
     this.address = address;
     this.reloadable = reloadable;
     this.mainThreads = mainThreads;
-    this.blockingExecutorService = blockingExecutorService;
+    this.backgroundExecutorService = backgroundExecutorService;
     this.byteBufAllocator = byteBufAllocator;
     this.publicAddress = publicAddress;
     this.indexFiles = indexFiles;
@@ -92,8 +92,8 @@ public class DefaultLaunchConfig implements LaunchConfig {
   }
 
   @Override
-  public ExecutorService getBlockingExecutorService() {
-    return blockingExecutorService;
+  public ExecutorService getBackgroundExecutorService() {
+    return backgroundExecutorService;
   }
 
   @Override

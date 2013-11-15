@@ -20,9 +20,9 @@ import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import ratpack.api.NonBlocking;
 import ratpack.api.Nullable;
-import ratpack.block.Blocking;
-import ratpack.groovy.block.GroovyBlocking;
-import ratpack.groovy.block.internal.DefaultGroovyBlocking;
+import ratpack.background.Background;
+import ratpack.groovy.background.GroovyBackground;
+import ratpack.groovy.background.internal.DefaultGroovyBackground;
 import ratpack.groovy.handling.GroovyByContentHandler;
 import ratpack.groovy.handling.GroovyByMethodHandler;
 import ratpack.groovy.handling.GroovyContext;
@@ -56,8 +56,8 @@ public class DefaultGroovyContext implements GroovyContext {
   }
 
   @Override
-  public <T> GroovyBlocking.GroovySuccessOrError<T> blocking(Closure<T> operation) {
-    return new DefaultGroovyBlocking(this, getBlocking()).block(operation);
+  public <T> GroovyBackground.GroovySuccessOrError<T> background(Closure<T> operation) {
+    return new DefaultGroovyBackground(this, getBackground()).block(operation);
   }
 
   @Override
@@ -182,17 +182,17 @@ public class DefaultGroovyContext implements GroovyContext {
   }
 
   @Override
-  public Blocking getBlocking() {
-    return delegate.getBlocking();
+  public Background getBackground() {
+    return delegate.getBackground();
   }
 
   @Override
-  public <T> Blocking.SuccessOrError<T> blocking(Callable<T> blockingOperation) {
+  public <T> Background.SuccessOrError<T> background(Callable<T> backgroundOperation) {
     // Only need this because Groovy picks this method over the closure overload
-    if (Closure.class.isInstance(blockingOperation)) {
-      return blocking((Closure<T>) blockingOperation);
+    if (Closure.class.isInstance(backgroundOperation)) {
+      return background((Closure<T>) backgroundOperation);
     }
-    return delegate.blocking(blockingOperation);
+    return delegate.background(backgroundOperation);
   }
 
   @Override

@@ -19,8 +19,8 @@ package ratpack.handling.internal;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpResponseStatus;
-import ratpack.block.Blocking;
-import ratpack.block.internal.DefaultBlocking;
+import ratpack.background.Background;
+import ratpack.background.internal.DefaultBackground;
 import ratpack.error.ClientErrorHandler;
 import ratpack.error.ServerErrorHandler;
 import ratpack.file.FileSystemBinding;
@@ -57,18 +57,18 @@ public class DefaultContext implements Context {
   private final Response response;
 
   private final ExecutorService mainExecutorService;
-  private final ListeningExecutorService blockingExecutorService;
+  private final ListeningExecutorService backgroundExecutorService;
   private final Handler next;
   private final Registry registry;
   private final BindAddress bindAddress;
 
-  public DefaultContext(Request request, Response response, BindAddress bindAddress, Registry registry, ExecutorService mainExecutorService, ListeningExecutorService blockingExecutorService, Handler next) {
+  public DefaultContext(Request request, Response response, BindAddress bindAddress, Registry registry, ExecutorService mainExecutorService, ListeningExecutorService backgroundExecutorService, Handler next) {
     this.request = request;
     this.response = response;
     this.bindAddress = bindAddress;
     this.registry = registry;
     this.mainExecutorService = mainExecutorService;
-    this.blockingExecutorService = blockingExecutorService;
+    this.backgroundExecutorService = backgroundExecutorService;
     this.next = next;
   }
 
@@ -184,13 +184,13 @@ public class DefaultContext implements Context {
   }
 
   @Override
-  public Blocking getBlocking() {
-    return new DefaultBlocking(mainExecutorService, blockingExecutorService, this);
+  public Background getBackground() {
+    return new DefaultBackground(mainExecutorService, backgroundExecutorService, this);
   }
 
   @Override
-  public <T> Blocking.SuccessOrError<T> blocking(Callable<T> blockingOperation) {
-    return getBlocking().exec(blockingOperation);
+  public <T> Background.SuccessOrError<T> background(Callable<T> backgroundOperation) {
+    return getBackground().exec(backgroundOperation);
   }
 
   public void redirect(String location) {
@@ -289,7 +289,7 @@ public class DefaultContext implements Context {
           ((DefaultContext) exchange).doNext(parentContext, registry, handlers, index + 1, exhausted);
         }
       };
-      DefaultContext childExchange = new DefaultContext(request, response, bindAddress, registry, mainExecutorService, blockingExecutorService, nextHandler);
+      DefaultContext childExchange = new DefaultContext(request, response, bindAddress, registry, mainExecutorService, backgroundExecutorService, nextHandler);
       try {
         handler.handle(childExchange);
       } catch (Exception e) {

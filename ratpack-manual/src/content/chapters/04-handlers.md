@@ -29,7 +29,7 @@ The context provides:
 1. Mechanisms for delegating to other handlers (i.e. chaining, discussed below)
 1. Means for handlers to communicate (i.e. the registry, discussed below)
 1. Convenience methods for common kinds of handler communications (e.g. [`getPathTokens()`](api/ratpack/handling/Context.html#getPathTokens%28%29))
-1. A mechanism for executing blocking IO operations (i.e. [`getBlocking()`](api/ratpack/handling/Context.html#getBlocking%28%29), discussed below)
+1. A mechanism for executing blocking IO operations (i.e. [`getBackground()`](api/ratpack/handling/Context.html#getBackground%28%29), discussed below)
 1. Various other convenience utilities (e.g. responders)
 
 The context is how the handler interacts with the rest of the application.

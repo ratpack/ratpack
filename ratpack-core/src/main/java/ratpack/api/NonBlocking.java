@@ -21,8 +21,8 @@ import java.lang.annotation.*;
 /**
  * Declares that a method is non blocking, making no guarantees about when it will return.
  * <p>
- * Callers of non blocking methods cannot assume anything about what was done before the method returned. In other words, non blocking methods are free to do their work on other threads and return
- * from the method immediately.
+ * Callers of non blocking methods cannot assume anything about what was done before the method returned.
+ * In other words, non blocking methods are free to do their work on other threads and return from the method immediately.
  */
 @Documented
 @Retention(RetentionPolicy.SOURCE)

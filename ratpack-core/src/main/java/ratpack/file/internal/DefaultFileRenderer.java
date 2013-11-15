@@ -17,7 +17,7 @@
 package ratpack.file.internal;
 
 import io.netty.handler.codec.http.HttpHeaders;
-import ratpack.block.Blocking;
+import ratpack.background.Background;
 import ratpack.file.FileRenderer;
 import ratpack.file.MimeTypes;
 import ratpack.handling.Context;
@@ -38,7 +38,7 @@ public class DefaultFileRenderer extends RendererSupport<File> implements FileRe
 
   @Override
   public void render(final Context context, final File targetFile) {
-    readAttributes(context.getBlocking(), targetFile, new Action<BasicFileAttributes>() {
+    readAttributes(context.getBackground(), targetFile, new Action<BasicFileAttributes>() {
       @Override
       public void execute(BasicFileAttributes attributes) {
         if (attributes == null || !attributes.isRegularFile()) {
@@ -67,13 +67,13 @@ public class DefaultFileRenderer extends RendererSupport<File> implements FileRe
         }
 
         String contentType = context.get(MimeTypes.class).getContentType(file.getName());
-        context.getResponse().sendFile(context.getBlocking(), contentType, attributes, file);
+        context.getResponse().sendFile(context.getBackground(), contentType, attributes, file);
       }
     });
   }
 
-  public static void readAttributes(Blocking blocking, final File file, Action<? super BasicFileAttributes> then) {
-    blocking.exec(new Callable<BasicFileAttributes>() {
+  public static void readAttributes(Background background, final File file, Action<? super BasicFileAttributes> then) {
+    background.exec(new Callable<BasicFileAttributes>() {
       public BasicFileAttributes call() throws Exception {
         Path path = Paths.get(file.toURI());
         if (Files.exists(path)) {

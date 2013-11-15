@@ -39,8 +39,8 @@ public class RatpackChannelInitializer extends ChannelInitializer<SocketChannel>
   private int maxContentLength;
 
   public RatpackChannelInitializer(LaunchConfig launchConfig, Handler handler) {
-    ListeningExecutorService blockingExecutorService = MoreExecutors.listeningDecorator(launchConfig.getBlockingExecutorService());
-    this.nettyHandlerAdapter = new NettyHandlerAdapter(handler, launchConfig, blockingExecutorService);
+    ListeningExecutorService backgroundExecutorService = MoreExecutors.listeningDecorator(launchConfig.getBackgroundExecutorService());
+    this.nettyHandlerAdapter = new NettyHandlerAdapter(handler, launchConfig, backgroundExecutorService);
     this.sslContext = launchConfig.getSSLContext();
     this.maxContentLength = launchConfig.getMaxContentLength();
   }

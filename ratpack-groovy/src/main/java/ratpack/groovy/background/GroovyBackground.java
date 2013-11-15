@@ -14,25 +14,25 @@
  * limitations under the License.
  */
 
-package ratpack.groovy.block;
+package ratpack.groovy.background;
 
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import ratpack.api.NonBlocking;
-import ratpack.block.Blocking;
+import ratpack.background.Background;
 import ratpack.groovy.handling.GroovyContext;
 
 /**
- * A Groovy specific subclass of {@link Blocking} that makes using closures more convenient.
+ * A Groovy specific subclass of {@link ratpack.background.Background} that makes using closures more convenient.
  */
-public interface GroovyBlocking extends Blocking {
+public interface GroovyBackground extends Background {
 
   <T> GroovySuccessOrError<T> block(Closure<T> closure);
 
   /**
-   * A Groovy specific subclass of {@link ratpack.block.Blocking.Success} that makes using closures more convenient.
+   * A Groovy specific subclass of {@link ratpack.background.Background.Success} that makes using closures more convenient.
    *
-   * @param <T> The type of object produced by the blocking operation
+   * @param <T> The type of object produced by the background operation
    */
   interface GroovySuccess<T> extends Success<T> {
 
@@ -41,9 +41,9 @@ public interface GroovyBlocking extends Blocking {
   }
 
   /**
-   * A Groovy specific subclass of {@link ratpack.block.Blocking.SuccessOrError} that makes using closures more convenient.
+   * A Groovy specific subclass of {@link ratpack.background.Background.SuccessOrError} that makes using closures more convenient.
    *
-   * @param <T> The type of object produced by the blocking operation
+   * @param <T> The type of object produced by the background operation
    */
   interface GroovySuccessOrError<T> extends GroovySuccess<T>, SuccessOrError<T> {
     GroovySuccess<T> onError(@DelegatesTo(GroovyContext.class) Closure<?> closure);

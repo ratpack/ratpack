@@ -20,7 +20,7 @@ import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import ratpack.handling.Context;
 
-import static ratpack.groovy.block.GroovyBlocking.GroovySuccessOrError;
+import static ratpack.groovy.background.GroovyBackground.GroovySuccessOrError;
 
 /**
  * Subclass of {@link ratpack.handling.Context} that adds Groovy friendly variants of methods.
@@ -28,16 +28,16 @@ import static ratpack.groovy.block.GroovyBlocking.GroovySuccessOrError;
 public interface GroovyContext extends Context {
 
   /**
-   * Used to perform a blocking operation <b>off</b> the request thread.
+   * Used to perform a background operation <b>off</b> the request thread.
    * <p>
-   * See {@link ratpack.groovy.block.GroovyBlocking} for details.
+   * See {@link ratpack.groovy.background.GroovyBackground} for details.
    * <p>
    * Example usage:
    * <pre class="groovy-chain-dsl">
    * get("some/path") {
-   *   blocking {
-   *    // a blocking operation
-   *    2 // the result of the blocking operation
+   *   background {
+   *    // a blocking/slow operation
+   *    2 // the result
    *   }.then { Integer result ->
    *     render result.toString()
    *   }
@@ -46,9 +46,9 @@ public interface GroovyContext extends Context {
    * With error handling:
    * <pre class="groovy-chain-dsl">
    * get("some/path") {
-   *   blocking {
-   *     // a blocking operation
-   *     2
+   *   background {
+   *     // a blocking/slow operation
+   *     2 // the result
    *   }.onError { Exception exception ->
    *     // do something with the exception
    *   }.then { Integer result ->
@@ -57,11 +57,11 @@ public interface GroovyContext extends Context {
    * }
    * </pre>
    *
-   * @param operation A closure that performs the blocking operation, returning a result
+   * @param operation A closure that performs the background operation, returning a result
    * @param <T> The type of the result
    * @return An object
    */
-  <T> GroovySuccessOrError<T> blocking(Closure<T> operation);
+  <T> GroovySuccessOrError<T> background(Closure<T> operation);
 
   void byMethod(@DelegatesTo(GroovyByMethodHandler.class) Closure<?> closure);
 

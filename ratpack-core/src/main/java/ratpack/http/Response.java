@@ -19,7 +19,7 @@ package ratpack.http;
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.Cookie;
 import ratpack.api.NonBlocking;
-import ratpack.block.Blocking;
+import ratpack.background.Background;
 
 import java.io.File;
 import java.io.IOException;
@@ -204,24 +204,24 @@ public interface Response {
   /**
    * Sends the response, using the given content type and the content of the given type as the response body.
    * <p>
-   * Prefer {@link #sendFile(ratpack.block.Blocking, String, java.nio.file.attribute.BasicFileAttributes, java.io.File)} where
+   * Prefer {@link #sendFile(ratpack.background.Background, String, java.nio.file.attribute.BasicFileAttributes, java.io.File)} where
    * the file attributes have already been retrieved to avoid another IO operation.
    *
-   * @param blocking the blocking operation manager to use
+   * @param background the background operation manager to use
    * @param contentType The value of the {@code Content-Type} header
    * @param file The file whose contents are to be used as the response body
    */
   @NonBlocking
-  void sendFile(Blocking blocking, String contentType, File file);
+  void sendFile(Background background, String contentType, File file);
 
   /**
    * Sends the response, using the given content type and the content of the given type as the response body.
    *
-   * @param blocking the blocking operation manager to use
+   * @param background the background operation manager to use
    * @param contentType The value of the {@code Content-Type} header
    * @param attributes The attributes of the file, used for the headers.
    * @param file The file whose contents are to be used as the response body
    */
   @NonBlocking
-  void sendFile(Blocking blocking, String contentType, BasicFileAttributes attributes, File file);
+  void sendFile(Background background, String contentType, BasicFileAttributes attributes, File file);
 }

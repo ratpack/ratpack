@@ -17,7 +17,7 @@
 package ratpack.handling;
 
 import ratpack.api.NonBlocking;
-import ratpack.block.Blocking;
+import ratpack.background.Background;
 import ratpack.http.Request;
 import ratpack.http.Response;
 import ratpack.parse.Parse;
@@ -291,22 +291,22 @@ public interface Context extends Registry {
    * An object to be used when executing blocking IO, or long operations.
    *
    * @return An object to be used when executing blocking IO, or long operations.
-   * @see #blocking(java.util.concurrent.Callable)
+   * @see #background(java.util.concurrent.Callable)
    */
-  Blocking getBlocking();
+  Background getBackground();
 
   /**
    * Perform a blocking operation, off the request thread.
    * <p>
    * Ratpack apps typically do not use a large thread pool for handling requests. By default there is about one thread per core.
-   * This means that blocking IO operations cannot be done on the thread invokes a handler. Blocking IO operations must be
+   * This means that blocking IO operations cannot be done on the thread invokes a handler. Background IO operations must be
    * offloaded in order to free the request handling thread to handle other requests while the IO operation is performed.
-   * The {@code Blocking} object makes it easy to do this.
+   * The {@code Background} object makes it easy to do this.
    * <p>
-   * A callable is submitted to the {@link Blocking#exec(Callable)} method. The implementation of this callable <b>can</b> block
+   * A callable is submitted to the {@link ratpack.background.Background#exec(Callable)} method. The implementation of this callable <b>can</b> background
    * as it will be executed on a non request handling thread. It should do not much more than initiate a blocking IO operation and return the result.
    * <p>
-   * However, the callable is not executed immediately. The return value of {@link Blocking#exec(Callable)} must be used to specify
+   * However, the callable is not executed immediately. The return value of {@link ratpack.background.Background#exec(Callable)} must be used to specify
    * how to proceed after the blocking operation. The {@code then()} method must be called for the work to be performed.
    * </p>
    * Example usage (Java):
@@ -318,7 +318,7 @@ public interface Context extends Registry {
    *
    * class MyHandler implements Handler {
    *   void handle(final Context context) {
-   *     context.blocking(new Callable&lt;String&gt;() {
+   *     context.background(new Callable&lt;String&gt;() {
    *        public String call() {
    *          // perform some kind of blocking IO in here, such as accessing a database
    *          return "foo";
@@ -339,8 +339,8 @@ public interface Context extends Registry {
    * Similarly, errors that occur during the result handler are forwarded.
    * </p>
    * <p>
-   * To use a custom error handling strategy, use the {@link ratpack.block.Blocking.SuccessOrError#onError(Action)} method
-   * of the return of {@link Blocking#exec(Callable)}.
+   * To use a custom error handling strategy, use the {@link ratpack.background.Background.SuccessOrError#onError(Action)} method
+   * of the return of {@link ratpack.background.Background#exec(Callable)}.
    * </p>
    * <p>
    * Example usage:
@@ -352,7 +352,7 @@ public interface Context extends Registry {
    *
    * class MyHandler implements Handler {
    *   void handle(final Context context) {
-   *     context.blocking(new Callable&lt;String&gt;() {
+   *     context.background(new Callable&lt;String&gt;() {
    *        public String call() {
    *          // perform some kind of blocking IO in here, such as accessing a database
    *          return "foo";
@@ -371,9 +371,9 @@ public interface Context extends Registry {
    * </pre>
    *
    * @return A builder for specifying the result handling strategy for a blocking operation.
-   * @see #getBlocking()
+   * @see #getBackground()
    */
-  <T> Blocking.SuccessOrError<T> blocking(Callable<T> blockingOperation);
+  <T> Background.SuccessOrError<T> background(Callable<T> backgroundOperation);
 
   /**
    * Sends a temporary redirect response (i.e. statusCode 302) to the client using the specified redirect location URL.

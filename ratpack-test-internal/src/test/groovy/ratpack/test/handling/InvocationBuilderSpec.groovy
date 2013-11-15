@@ -18,7 +18,6 @@ package ratpack.test.handling
 
 import io.netty.util.CharsetUtil
 import ratpack.handling.Context
-import ratpack.test.UnitTest
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -81,7 +80,7 @@ class InvocationBuilderSpec extends Specification {
 
   def "can test handler that sends file"() {
     when:
-    invoke { response.sendFile blocking, "text/plain", new File("foo") }
+    invoke { response.sendFile background, "text/plain", new File("foo") }
 
     then:
     bodyText == null

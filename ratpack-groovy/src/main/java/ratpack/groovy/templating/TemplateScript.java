@@ -46,7 +46,7 @@ public interface TemplateScript {
    * <p>
    * The nested template will be rendered directly to the underlying buffer; it is not returned from this method.
    * This method returns an empty string so that it can be used in situations where the return value would have been
-   * included in the output (e.g. a {@code <?= ?>} block).
+   * included in the output (e.g. a {@code <?= ?>} background).
    * <p>
    * The template name is resolved into a template using the same renderer that initiated rendering of this template.
    *

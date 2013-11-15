@@ -16,13 +16,13 @@
 
 package ratpack.file.internal;
 
-import ratpack.block.Blocking;
+import ratpack.background.Background;
 
 import java.io.File;
 import java.nio.file.attribute.BasicFileAttributes;
 
 public interface FileHttpTransmitter {
 
-  void transmit(Blocking blocking, BasicFileAttributes basicFileAttributes, File file);
+  void transmit(Background background, BasicFileAttributes basicFileAttributes, File file);
 
 }

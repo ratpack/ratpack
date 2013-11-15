@@ -21,7 +21,7 @@ import io.netty.handler.codec.http.Cookie;
 import io.netty.handler.codec.http.DefaultCookie;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.ServerCookieEncoder;
-import ratpack.block.Blocking;
+import ratpack.background.Background;
 import ratpack.file.internal.FileHttpTransmitter;
 import ratpack.http.MutableHeaders;
 import ratpack.http.Response;
@@ -227,16 +227,16 @@ public class DefaultResponse implements Response {
   }
 
   @Override
-  public void sendFile(Blocking blocking, String contentType, BasicFileAttributes attributes, File file) {
+  public void sendFile(Background background, String contentType, BasicFileAttributes attributes, File file) {
     contentType(contentType);
     setCookieHeader();
-    fileHttpTransmitter.transmit(blocking, attributes, file);
+    fileHttpTransmitter.transmit(background, attributes, file);
   }
 
-  public void sendFile(final Blocking blocking, final String contentType, final File file) {
-    readAttributes(blocking, file, new Action<BasicFileAttributes>() {
+  public void sendFile(final Background background, final String contentType, final File file) {
+    readAttributes(background, file, new Action<BasicFileAttributes>() {
       public void execute(BasicFileAttributes fileAttributes) {
-        sendFile(blocking, contentType, fileAttributes, file);
+        sendFile(background, contentType, fileAttributes, file);
       }
     });
   }

@@ -90,25 +90,24 @@ public interface LaunchConfig {
   /**
    * The number of threads for handling application requests.
    * <p>
-   * If the value is greater than 0, a thread pool (of this size) will be created for servicing requests. This allows handlers
-   * to perform blocking operations.
+   * If the value is greater than 0, a thread pool (of this size) will be created for servicing requests.
    * <p>
    * If the value is 0 or less, no thread pool will be used to handle requests. This means that the handler will be called on the
-   * same thread that accepted the request. This means that handlers SHOULD NOT block in their operation.
+   * same thread that accepted the request. This means that handlers SHOULD NOT perform blocking IO or long operations in their operation.
    * <p>
-   * The default value for this property is calculated as: {@code Runtime.getRuntime().availableProcessors() * 2}
+   * The default value is 0.
    *
-   * @return The number of threads to use to execute the handler.
+   * @return The size of the request handling thread pool, or 0 if a dedicated thread pool should not be used.
    */
   public int getMainThreads();
 
   /**
-   * The executor service to use to perform blocking IO operations.
+   * The executor service to use to perform background operations.
    *
-   * @see ratpack.handling.Context#getBlocking()
-   * @return The executor service to use to perform blocking IO operations.
+   * @see ratpack.handling.Context#getBackground()
+   * @return The executor service to use to perform background operations.
    */
-  public ExecutorService getBlockingExecutorService();
+  public ExecutorService getBackgroundExecutorService();
 
   /**
    * The allocator for buffers needed by the application.

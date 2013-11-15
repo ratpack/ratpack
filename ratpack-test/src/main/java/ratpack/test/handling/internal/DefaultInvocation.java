@@ -20,7 +20,7 @@ import com.google.common.util.concurrent.ListeningExecutorService;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.util.CharsetUtil;
-import ratpack.block.Blocking;
+import ratpack.background.Background;
 import ratpack.file.internal.FileHttpTransmitter;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
@@ -63,13 +63,13 @@ public class DefaultInvocation implements Invocation {
     this.status = status;
 
     ExecutorService mainExecutor = newSingleThreadExecutor();
-    ListeningExecutorService blockingExecutor = listeningDecorator(newSingleThreadExecutor());
+    ListeningExecutorService backgroundExecutor = listeningDecorator(newSingleThreadExecutor());
 
     final CountDownLatch latch = new CountDownLatch(1);
 
     FileHttpTransmitter fileHttpTransmitter = new FileHttpTransmitter() {
       @Override
-      public void transmit(Blocking blocking, BasicFileAttributes basicFileAttributes, File file) {
+      public void transmit(Background background, BasicFileAttributes basicFileAttributes, File file) {
         sentFile = file;
         latch.countDown();
       }
@@ -102,7 +102,7 @@ public class DefaultInvocation implements Invocation {
     };
 
     Response response = new DefaultResponse(status, responseHeaders, responseBody, fileHttpTransmitter, committer);
-    Context context = new DefaultContext(request, response, bindAddress, registry, mainExecutor, blockingExecutor, next) {
+    Context context = new DefaultContext(request, response, bindAddress, registry, mainExecutor, backgroundExecutor, next) {
       @Override
       public void render(Object object) throws NoSuchRendererException {
         rendered = object;

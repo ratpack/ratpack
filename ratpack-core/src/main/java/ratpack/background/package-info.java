@@ -15,8 +15,8 @@
  */
 
 /**
- * Mechanisms for executing operations that performing blocking (i.e. non-asynchronous) IO.
+ * Mechanisms for executing operations that performing operations in the background (i.e. off request handling threads).
  * <p>
- * See {@link ratpack.block.Blocking}.
+ * See {@link ratpack.background.Background}.
  */
-package ratpack.block;
+package ratpack.background;

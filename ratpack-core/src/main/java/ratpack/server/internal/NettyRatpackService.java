@@ -83,7 +83,7 @@ public class NettyRatpackService extends AbstractIdleService implements RatpackS
 
   private void partialShutdown() {
     group.shutdownGracefully();
-    launchConfig.getBlockingExecutorService().shutdown();
+    launchConfig.getBackgroundExecutorService().shutdown();
   }
 
   @Override

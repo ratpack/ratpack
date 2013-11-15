@@ -66,7 +66,7 @@ public class AssetHandler implements Handler {
   }
 
   private void servePath(final Context context, final File file) {
-    readAttributes(context.getBlocking(), file, new Action<BasicFileAttributes>() {
+    readAttributes(context.getBackground(), file, new Action<BasicFileAttributes>() {
       public void execute(BasicFileAttributes attributes) {
         if (attributes == null) {
           context.next();
@@ -87,7 +87,7 @@ public class AssetHandler implements Handler {
     } else {
       String name = indexFiles.get(i);
       final File indexFile = new File(file, name);
-      readAttributes(context.getBlocking(), indexFile, new Action<BasicFileAttributes>() {
+      readAttributes(context.getBackground(), indexFile, new Action<BasicFileAttributes>() {
         public void execute(BasicFileAttributes attributes) {
           if (attributes != null && attributes.isRegularFile()) {
             sendFile(context, indexFile, attributes);
