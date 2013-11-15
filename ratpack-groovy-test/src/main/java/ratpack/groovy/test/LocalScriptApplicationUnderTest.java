@@ -16,7 +16,7 @@
 
 package ratpack.groovy.test;
 
-import ratpack.groovy.launch.RatpackMain;
+import ratpack.groovy.launch.GroovyRatpackMain;
 import ratpack.test.ServerBackedApplicationUnderTest;
 
 public class LocalScriptApplicationUnderTest extends ServerBackedApplicationUnderTest {
@@ -31,7 +31,7 @@ public class LocalScriptApplicationUnderTest extends ServerBackedApplicationUnde
 
   private static class RatpackMainServerFactory extends ratpack.test.RatpackMainServerFactory {
     public RatpackMainServerFactory() {
-      super(new RatpackMain());
+      super(new GroovyRatpackMain());
     }
   }
 }

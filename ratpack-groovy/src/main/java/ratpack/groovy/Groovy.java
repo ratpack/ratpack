@@ -65,7 +65,7 @@ public abstract class Groovy {
    * <h3>Full Applications</h3>
    * <p>
    * It's also possible to build Groovy Ratpack applications with a traditional class based entry point.
-   * The {@link ratpack.groovy.launch.RatpackMain} class provides such an entry point.
+   * The {@link ratpack.groovy.launch.GroovyRatpackMain} class provides such an entry point.
    * In such a mode, a script like above is still used to define the application, but the script is no longer the entry point.
    * Ratpack will manage the compilation and execution of the script internally.
    *

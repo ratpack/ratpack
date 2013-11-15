@@ -17,16 +17,17 @@
 package ratpack.groovy.launch;
 
 import ratpack.launch.LaunchConfigFactory;
+import ratpack.launch.RatpackMain;
 
 import java.util.Properties;
 
 /**
  * The standard “main” entry point for Groovy script based apps.
  */
-public class RatpackMain extends ratpack.launch.RatpackMain {
+public class GroovyRatpackMain extends RatpackMain {
 
   public static void main(String[] args) throws Exception {
-    new RatpackMain().start();
+    new GroovyRatpackMain().start();
   }
 
   @Override

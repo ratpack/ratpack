@@ -1,49 +1,35 @@
 # Introduction
 
 Ratpack is a toolkit for creating web applications that run on the JVM. 
-It provides a framework in which to structure code that responds to HTTP requests. 
-It is not a full stack framework so does not prescribe the use of any other particular framework for other web application concerns such as security, persistence, marshalling etc. There are however optional modules that integrate specific tools, and integrating a new tool or framework is typically very simple.
+It provides a structure in which to write code that responds to HTTP requests.
+It is not a full stack framework so does not prescribe the use of any other particular framework for other web application concerns such as security, persistence, marshalling etc.
+There are however optional add on libraries that integrate specific tools, and integrating a new tool or framework is typically very simple.
 
-Ratpack applications are not Java Enterprise Edition applications. 
-That is, they do no deploy to Java Application servers and are not based on the Servlet specification.
+Ratpack applications are not Java Servlet applications.
+They do not deploy to Java application servers.
 Ratpack builds on Netty, which is a high performance IO engine.
 Application deployments are self contained JVM applications.
 
-Ratpack is designed to make simple applications trivially simple to write, yet stay supportive and promote productivity as your application inevitably grows in complexity.
+Ratpack tries to strike the balance between provide helpful abstractions and infrastructure, while not being too prescriptive.
+It aims to make it easy to write small applications, yet not get in the way as your application evolves and becomes more complex
 
 ## Highlights
 
-The following section explains some of the key features and characteristics of Ratpack.
+Here are some key highlights:
 
-### High performance
+* High throughput / Asynchronous IO
+* Optimized for Java 8 & Groovy
+* Dependency injection via Google Guice
+* Development time support (reloading and build tooling)
 
-Ratpack is designed for asynchronous IO and is extremely light weight. 
-This means better performance and lower resource overheads than Java Enterprise applications.
-
-### Implemented in Java, optimized for Groovy
-
-Ratpack is implemented in Java 7, and designed around the upcoming Java 8's support for Lambda expressions.
-As such, it is naturally suited to the Groovy language and its Lambda expression like Closures.
-
-There is also a specific Groovy module add-on for Ratpack that utilizes Groovy features such as scripts, templating and closure delegates.
-This module uses the latest Groovy features to provide a clean, concise, closure based DSL that is fully type safe, statically compilable, and IDE friendly.
-
-### Google Guice integration
-
-The Google Guice add-on library provides support for strongly typed dependency injection and modularity.
-It is not required to use Google Guice with Ratpack.
-Integration with other similar technologies is possible.
-
-### Development tooling
-
-Ratpack itself is purely a runtime.
-However, advanced integration is provided with the Gradle build tool and IntelliJ IDEA IDE.
-This integration is purely a development/build time convenience and not a requirement for using Ratpack.
-Ratpack applications are simple Java applications so can be built with any build tool or IDE.
+Read on for details.
 
 ## How to read the documentation
 
-TBD.
+The canonical reference documentation for Ratpack is the [Javadoc](api/).
+This manual acts as a starting point for different aspects of Ratpack and as a mechanism to pull together larger ideas and patterns.
+The manual frequently introduces topics at a high level and links through to the Javadoc for detailed API information.
+Much work goes in to making the Javadoc (hopefully) useful.
 
 ## Project Status
 
