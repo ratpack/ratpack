@@ -135,7 +135,7 @@ In the following example, we capitalize a message if the `upper=true` query para
 ```language-groovy groovy-handlers
 handlers {
     get('echo/:message') {
-        String message = pathTokens.message
+        def message = pathTokens.message
         if (request.queryParams.upper) {
             message = message.toUpperCase()
         }
@@ -192,16 +192,15 @@ So far, we have only been returning text in our application. But Ratpack comes w
 
 Here is a very simple handler that uses a groovyTemplate:
 
-```language-groovy
-import static ratpack.groovy.RatpackScript.ratpack
-import static ratpack.groovy.Template.groovyTemplate
+```language-groovy groovy-ratpack
+import static ratpack.groovy.Groovy.groovyTemplate
 
 ratpack {
-    handlers {
-        get {
-            render groovyTemplate("index.html", title: "My Ratpack App", content: "Saul Goodman is your buddy") // (1)
-        }
+  handlers {
+    get {
+      render groovyTemplate("index.html", title: "My Ratpack App", content: "Saul Goodman is your buddy") // (1)
     }
+  }
 }
 ```
 
@@ -227,58 +226,6 @@ Ratpack will look for the template relative to place where the script is being r
 When we run this, you should get an HTML page where all the values inside `${}` are replaced with the real values.
 
 There is also an implementation of using Handlebars templates by Marcin Erdmann. Look at [the implementation](https://github.com/ratpack/ratpack/tree/master/ratpack-handlebars) for more details.
-
-
-## Blocking Operations
-
-One of the interesting features about Ratpack is the fact that calls are non-blocking by default. However, if you have things that may take a little bit longer but are necessary for your application, you can force them into blocking calls.
-
-```language-groovy groovy-handlers
-import static ratpack.groovy.Groovy.exec
-
-interface DbService {
-  // Uses blocking IO
-  String getName(String personId)
-}
-
-handlers {
-  get("name/:id") { DbService db ->
-    blocking {
-      db.getName(pathTokens.id)
-    }.then {
-      render "name is: $it"
-    }
-  }
-}
-```
-
-The `exec` block takes two closures, the first one is the blocking operation, followed by what needs to happen on success.
-
-You can also provide an optional failure condition to the exec blocking operation, as outlined by the following test:
-
-```language-groovy groovy-handlers
-import static ratpack.groovy.Groovy.exec
-
-interface DbService {
-    // Uses blocking IO
-    String getName(String personId)
-
-    void logError(Exception e)
-}
-
-handlers {
-  get("name/:id") { DbService db ->
-    blocking {
-      db.getName(pathTokens.id)
-    }.onError { Exception e ->
-      db.logError(e)
-      error(e)
-    }.then {
-      render "name is: $it"
-    }
-  }
-}
-```
 
 ## Building a Java-based application with Gradle
 

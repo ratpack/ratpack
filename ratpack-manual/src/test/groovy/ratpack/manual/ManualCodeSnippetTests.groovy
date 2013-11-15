@@ -16,20 +16,13 @@
 
 package ratpack.manual
 
-import org.codehaus.groovy.control.MultipleCompilationErrorsException
-import org.codehaus.groovy.control.messages.SyntaxErrorMessage
 import ratpack.manual.snippets.CodeSnippetTestCase
 import ratpack.manual.snippets.CodeSnippetTests
 import ratpack.manual.snippets.ManualSnippetExtractor
-import ratpack.manual.snippets.TestCodeSnippet
 import ratpack.manual.snippets.fixtures.DoNothingSnippetFixture
 import ratpack.manual.snippets.fixtures.GroovyChainDslFixture
 import ratpack.manual.snippets.fixtures.GroovyHandlersFixture
 import ratpack.manual.snippets.fixtures.GroovyRatpackDslFixture
-import ratpack.manual.snippets.fixtures.SnippetFixture
-import ratpack.util.Transformer
-
-import java.util.regex.Pattern
 
 class ManualCodeSnippetTests extends CodeSnippetTestCase {
 

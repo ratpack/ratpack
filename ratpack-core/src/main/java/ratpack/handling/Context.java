@@ -289,6 +289,14 @@ public interface Context extends Registry {
 
   /**
    * An object to be used when executing blocking IO, or long operations.
+   *
+   * @return An object to be used when executing blocking IO, or long operations.
+   * @see #blocking(java.util.concurrent.Callable)
+   */
+  Blocking getBlocking();
+
+  /**
+   * Perform a blocking operation, off the request thread.
    * <p>
    * Ratpack apps typically do not use a large thread pool for handling requests. By default there is about one thread per core.
    * This means that blocking IO operations cannot be done on the thread invokes a handler. Blocking IO operations must be
@@ -310,7 +318,7 @@ public interface Context extends Registry {
    *
    * class MyHandler implements Handler {
    *   void handle(final Context context) {
-   *     context.getBlocking().exec(new Callable&lt;String&gt;() {
+   *     context.blocking(new Callable&lt;String&gt;() {
    *        public String call() {
    *          // perform some kind of blocking IO in here, such as accessing a database
    *          return "foo";
@@ -361,11 +369,6 @@ public interface Context extends Registry {
    *   }
    * }
    * </pre>
-   */
-  Blocking getBlocking();
-
-  /**
-   * Shorthand for {@code getBlocking().exec(blockingOperation)}.
    *
    * @return A builder for specifying the result handling strategy for a blocking operation.
    * @see #getBlocking()
