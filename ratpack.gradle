@@ -155,9 +155,9 @@ subprojects {
 
     test {
       testLogging {
+        exceptionFormat "full"
         quiet {
           events "failed"
-          exceptionFormat "full"
         }
       }
     }
