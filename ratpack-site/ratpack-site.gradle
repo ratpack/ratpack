@@ -63,6 +63,7 @@ dependencies {
   compile project(":ratpack-groovy")
   testCompile project(":ratpack-groovy-test")
   testCompile commonDependencies.spock
+  testCompile 'org.jsoup:jsoup:1.7.2'
   latestManual project(":ratpack-manual")
 
   browserTestCompile "org.gebish:geb-spock:0.9.2"
