@@ -125,15 +125,20 @@ public class DefaultMediaType implements MediaType {
   }
 
   public boolean isText() {
-    return !isEmpty() && getType().startsWith("text/");
+    return getType() != null && getType().startsWith("text/");
   }
 
   public boolean isJson() {
-    return !isEmpty() && getType().equals(APPLICATION_JSON);
+    return getType() != null && getType().equals(APPLICATION_JSON);
   }
 
   public boolean isForm() {
-    return !isEmpty() && getType().equals(APPLICATION_FORM);
+    return getType() != null && getType().equals(APPLICATION_FORM);
+  }
+
+  @Override
+  public boolean isHtml() {
+    return getType() != null && getType().equals(TEXT_HTML);
   }
 
   public boolean isEmpty() {

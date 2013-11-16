@@ -39,6 +39,11 @@ public interface MediaType {
   String APPLICATION_FORM = "application/x-www-form-urlencoded";
 
   /**
+   * {@value}.
+   */
+  String TEXT_HTML = "text/html";
+
+  /**
    * The type without parameters.
    * <p>
    * Given a mime type of "application/json;charset=utf-8", returns "application/json".
@@ -91,6 +96,13 @@ public interface MediaType {
    * @return True if this type equals {@value #APPLICATION_FORM}.
    */
   boolean isForm();
+
+  /**
+   * True if this type equals {@value #TEXT_HTML}.
+   *
+   * @return True if this type equals {@value #TEXT_HTML}.
+   */
+  boolean isHtml();
 
   /**
    * True if this represents the absence of a value (i.e. no Content-Type header)
