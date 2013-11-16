@@ -216,7 +216,8 @@ public class DefaultTestHttpClient implements TestHttpClient {
       if (new URI(path).isAbsolute()) {
         return path;
       } else {
-        return applicationUnderTest.getAddress() + path;
+        URI address = applicationUnderTest.getAddress();
+        return address.toString() + path;
       }
     } catch (URISyntaxException e) {
       throw new RuntimeException(e);

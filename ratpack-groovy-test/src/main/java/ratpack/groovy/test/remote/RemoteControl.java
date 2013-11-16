@@ -26,7 +26,7 @@ import static ratpack.remote.RemoteControlModule.DEFAULT_REMOTE_CONTROL_PATH;
 public class RemoteControl extends groovyx.remote.client.RemoteControl {
 
   public RemoteControl(ApplicationUnderTest application, String path) {
-    super(new HttpTransport(application.getAddress() + "/" + path));
+    super(new HttpTransport(application.getAddress()  + path));
   }
 
   public RemoteControl(ApplicationUnderTest application) {
