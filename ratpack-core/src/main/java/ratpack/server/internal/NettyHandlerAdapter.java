@@ -99,8 +99,9 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
     final MutableHeaders responseHeaders = new NettyHeadersBackedMutableHeaders(nettyResponse.headers());
     final ByteBuf responseBody = nettyResponse.content();
     FileHttpTransmitter fileHttpTransmitter = new DefaultFileHttpTransmitter(nettyRequest, nettyResponse, channel);
+    final ChannelPromise completePromise = channel.newPromise();
 
-    Response response = new DefaultResponse(responseStatus, responseHeaders, responseBody, fileHttpTransmitter, new Runnable() {
+    Response response = new DefaultResponse(responseStatus, responseHeaders, responseBody, fileHttpTransmitter, completePromise, new Runnable() {
       @Override
       public void run() {
         nettyResponse.setStatus(responseStatus.getResponseStatus());
@@ -112,6 +113,14 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
             shouldClose = false;
           }
           ChannelFuture future = channel.writeAndFlush(nettyResponse);
+
+          future.addListener(new ChannelFutureListener() {
+            @Override
+            public void operationComplete(ChannelFuture future) {
+              completePromise.setSuccess();
+            }
+          });
+
           if (shouldClose) {
             future.addListener(ChannelFutureListener.CLOSE);
           }

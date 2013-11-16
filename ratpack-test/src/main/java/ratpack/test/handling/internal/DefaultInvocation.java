@@ -101,7 +101,7 @@ public class DefaultInvocation implements Invocation {
       }
     };
 
-    Response response = new DefaultResponse(status, responseHeaders, responseBody, fileHttpTransmitter, committer);
+    Response response = new DefaultResponse(status, responseHeaders, responseBody, fileHttpTransmitter, null, committer);
     Context context = new DefaultContext(request, response, bindAddress, registry, mainExecutor, backgroundExecutor, next) {
       @Override
       public void render(Object object) throws NoSuchRendererException {

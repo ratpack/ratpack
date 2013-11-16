@@ -20,6 +20,8 @@ import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.Cookie;
 import ratpack.api.NonBlocking;
 import ratpack.background.Background;
+import ratpack.handling.ContextComplete;
+import ratpack.util.Action;
 
 import java.io.File;
 import java.io.IOException;
@@ -224,4 +226,6 @@ public interface Response {
    */
   @NonBlocking
   void sendFile(Background background, String contentType, BasicFileAttributes attributes, File file);
+
+  void onComplete(Action<ContextComplete> callback);
 }

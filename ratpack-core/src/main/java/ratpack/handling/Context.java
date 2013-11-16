@@ -414,4 +414,6 @@ public interface Context extends Registry {
   BindAddress getBindAddress();
 
   <T> T parse(Parse<T> parse);
+
+  void onResponseComplete(Action<ContextComplete> callback);
 }

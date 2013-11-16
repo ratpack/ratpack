@@ -191,6 +191,11 @@ public class DefaultContext implements Context {
     throw new RuntimeException("No parser for " + parse);
   }
 
+  @Override
+  public void onResponseComplete(Action<ContextComplete> callback) {
+    response.onComplete(callback);
+  }
+
   private <P, S extends Parse<P>> P maybeParse(String requestContentType, S parseSpec, Parser<?, ?> parser) {
     if (requestContentType.equalsIgnoreCase(parser.getContentType()) && parser.getParseType().isInstance(parseSpec)) {
       @SuppressWarnings("unchecked") Parser<P, S> castParser = (Parser<P, S>) parser;

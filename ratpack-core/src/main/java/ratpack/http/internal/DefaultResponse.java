@@ -17,12 +17,16 @@
 package ratpack.http.internal;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelPromise;
 import io.netty.handler.codec.http.Cookie;
 import io.netty.handler.codec.http.DefaultCookie;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.ServerCookieEncoder;
 import ratpack.background.Background;
 import ratpack.file.internal.FileHttpTransmitter;
+import ratpack.handling.ContextComplete;
 import ratpack.http.MutableHeaders;
 import ratpack.http.Response;
 import ratpack.http.Status;
@@ -47,16 +51,18 @@ public class DefaultResponse implements Response {
   private final ByteBuf body;
   private final FileHttpTransmitter fileHttpTransmitter;
   private final Runnable committer;
+  private final ChannelPromise completePromise;
 
   private boolean contentTypeSet;
   private Set<Cookie> cookies;
 
-  public DefaultResponse(Status status, MutableHeaders headers, ByteBuf body, FileHttpTransmitter fileHttpTransmitter, Runnable committer) {
+  public DefaultResponse(Status status, MutableHeaders headers, ByteBuf body, FileHttpTransmitter fileHttpTransmitter, ChannelPromise completePromise, Runnable committer) {
     this.status = status;
     this.fileHttpTransmitter = fileHttpTransmitter;
     this.headers = new MutableHeadersWrapper(headers);
     this.body = body;
     this.committer = committer;
+    this.completePromise = completePromise;
   }
 
   class MutableHeadersWrapper implements MutableHeaders {
@@ -231,6 +237,16 @@ public class DefaultResponse implements Response {
     contentType(contentType);
     setCookieHeader();
     fileHttpTransmitter.transmit(background, attributes, file);
+  }
+
+  @Override
+  public void onComplete(final Action<ContextComplete> callback) {
+    this.completePromise.addListener(new ChannelFutureListener() {
+      @Override
+      public void operationComplete(ChannelFuture future) {
+        callback.execute(new ContextComplete());
+      }
+    });
   }
 
   public void sendFile(final Background background, final String contentType, final File file) {
