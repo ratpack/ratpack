@@ -27,6 +27,8 @@ import ratpack.test.ApplicationUnderTest;
 import ratpack.util.Action;
 
 import java.lang.reflect.Field;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
@@ -210,7 +212,15 @@ public class DefaultTestHttpClient implements TestHttpClient {
   }
 
   private String toAbsolute(String path) {
-    return applicationUnderTest.getAddress() + "/" + path;
+    try {
+      if (new URI(path).isAbsolute()) {
+        return path;
+      } else {
+        return applicationUnderTest.getAddress() + path;
+      }
+    } catch (URISyntaxException e) {
+      throw new RuntimeException(e);
+    }
   }
 
 }
