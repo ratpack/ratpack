@@ -1,0 +1,73 @@
+<% render "head.html" %>
+<section id="promo">
+  <div class="content">
+    <article>
+      <h2>What is Ratpack?</h2>
+      <p>
+        Ratpack is a simple, capable, toolkit for creating high performance web applications.
+      </p>
+      <p>
+        Ratpack is built on Java and the <a href="http://netty.io/">Netty</a> event-driven networking engine.
+        The API is optimized for <a href="http://groovy-lang.org">Groovy</a> and Java 8, though Java 7 can also be used.
+      </p>
+      <p>
+        Optional Google Guice integration provides a foundation for scaling your application in size in a managed way.
+      </p>
+      <p>
+        Optional Gradle build time support makes building and testing applications a breeze.
+      </p>
+    </article>
+      <nav>
+        <h2>Find out more</h2>
+        <ul>
+          <li><a href="/manual/current/">Manual</a></li>
+          <li><a href="/manual/current/api/">API Reference</a></li>
+          <li><a href="https://github.com/ratpack/ratpack/issues" rel="external">Issue Tracker</a></li>
+          <li><a href="http://forum.ratpack.io/">User Forum</a></li>
+        </ul>
+      </nav>
+    </div>
+</section>
+
+<section id="main">
+  <article class="content">
+    <h2>Getting Started</h2>
+    <p>
+    Here's a simple executable Groovy script that is a complete Ratpack application …
+    </p>
+    <pre><code class="language-groovy">@GrabResolver(&quot;http://oss.jfrog.org/artifactory/libs-snapshot&quot;)
+@Grab(&quot;io.ratpack:ratpack-groovy:0.9.0-SNAPSHOT&quot;)
+import static ratpack.groovy.Groovy.*
+
+ratpack {
+  handlers {
+    get {
+      render &quot;Hello world!&quot;
+    }
+  }
+}</code></pre>
+    <p>Here's the equivalent in Java 8 …</p>
+    <pre><code class="language-groovy">import ratpack.launch.*;
+import ratpack.server.*;
+import ratpack.handling.*;
+import ratpack.util.Action;
+import static ratpack.handling.Handlers.*;
+import java.io.File;
+
+public class App {
+  public static void main(String[] args) throws Exception {
+    File baseDir = new File("/path/to/app/dir");
+    RatpackServerBuilder.build(
+      LaunchConfigBuilder.baseDir(baseDir).build((launchConfig) -> {
+        return chain(launchConfig, (Action) (chain) -> {
+          chain.get((context) -> { context.render("Hello World"); });
+        });
+      })
+    ).start();
+  }
+}</code></pre>
+    <p>That's just the tip of the iceberg.</p>
+    <p>Check out the <a href="/manual/snapshot/">Ratpack Manual</a> for more possibilities, or the <a href="https://github.com/ratpack">example apps on GitHub</a>.</p>
+  </article>
+</section>
+<% render "footer.html" %>

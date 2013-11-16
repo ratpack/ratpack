@@ -1,0 +1,46 @@
+<% if (model.nobanner == null) { %>
+<footer id="page-footer">
+
+  <div class="content">
+    <section class="about">
+      <p>Ratpack is free to use, <a href="https://github.com/ratpack/ratpack" rel="external">open source</a>, and licensed under the <a href="http://www.apache.org/licenses/LICENSE-2.0.html" rel="external">Apache License, Version 2.0.</a></p>
+      <p>This site is a Ratpack application running on <a href="https://www.heroku.com/" rel="external">Heroku</a>.</p>
+    </section>
+    <section class="credits">
+      <a href="https://bintray.com/" rel="external"><img src="../images/bintray.png" alt="Bintray logo"></a>
+      <a href="https://github.com/" rel="external"><img src="../images/github.png" alt="Octocat"></a>
+      <a href="http://www.gradle.org/" rel="external"><img src="../images/gradle.png" alt="Gradle logo"></a>
+      <a href="http://groovy.codehaus.org/" rel="external"><img src="../images/groovy.png" alt="Groovy logo"></a>
+      <a href="https://www.heroku.com/" rel="external"><img src="../images/heroku.png" alt="Heroku logo"></a>
+      <a href="http://netty.io/" rel="external"><img src="../images/netty.png" alt="Netty logo"></a>
+    </section>
+  </div>
+</footer>
+<% } %>
+
+<script>
+  WebFontConfig = {
+    google: { families: [ 'Engagement::latin', 'Merriweather:400,400italic,700:latin', 'Merriweather+Sans:700italic,700:latin' ] }
+  };
+  (function() {
+    var wf = document.createElement('script');
+    wf.src = ('https:' == document.location.protocol ? 'https' : 'http') +
+      '://ajax.googleapis.com/ajax/libs/webfont/1/webfont.js';
+    wf.type = 'text/javascript';
+    wf.async = 'true';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(wf, s);
+  })();
+</script>
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-41264608-1', 'ratpack.io');
+  ga('send', 'pageview');
+</script>
+</body>
+</html>

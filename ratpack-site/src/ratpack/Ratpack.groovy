@@ -1,4 +1,7 @@
+import ratpack.error.ClientErrorHandler
+import ratpack.groovy.templating.TemplatingModule
 import ratpack.site.RatpackVersions
+import ratpack.site.SiteErrorHandler
 import ratpack.site.VersionsModule
 
 import static ratpack.groovy.Groovy.*
@@ -6,7 +9,11 @@ import static ratpack.groovy.Groovy.*
 ratpack {
   modules {
     register new VersionsModule(getClass().classLoader)
+    bind ClientErrorHandler, new SiteErrorHandler()
+
+    get(TemplatingModule).staticallyCompile = true
   }
+
   handlers { RatpackVersions versions ->
   	handler {
       if (request.headers.get("host").endsWith("ratpack-framework.org")) {
@@ -17,6 +24,10 @@ ratpack {
         response.headers.set "X-UA-Compatible", "IE=edge,chrome=1"
       }
       next()
+    }
+
+    get {
+      render groovyTemplate("index.html")
     }
 
     prefix("manual/snapshot") {
