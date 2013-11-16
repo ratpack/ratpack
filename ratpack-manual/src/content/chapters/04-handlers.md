@@ -49,7 +49,7 @@ Rather than just delegate to the predefined next handler, handlers can also [`in
 The last inserted handler's next handler becomes the next handler of the handler that performed the insert.
 
 Handler chains can be constructed by using a [`Chain`](api/ratpack/handling/Chain.html), which is really a chain builder.
-You can use [`Handlers.chain()`](pi/org/ratpackframework/handling/Handlers.html#chain%28ratpack.util.Action%29) method to build a handler chain.
+You can use [`Handlers.chain()`](api/ratpack/handling/Handlers.html#chain\(ratpack.launch.LaunchConfig, ratpack.util.Action\)) method to build a handler chain.
 Note that a handler chain is just an implementation of `Handler`.
 A handler chain can actually be composed of other handler chains.
 
@@ -61,16 +61,13 @@ However, a chain is a more useful analogy in practice.
 
 The [`Handlers`](api/ratpack/handling/Handlers.html) class provides static methods to compose standard types of handlers.
 
-As an example, the [`Handlers.post(String path, Handler delegate)`](api/ratpack/handling/Handlers.html#post%28java.lang.String%2C%20ratpack.handling.Handler%29) can be used for creating handlers that respond to HTTP POST requests at a certain path.
-It takes a path and a `Handler`, and returns a `Handler`. 
-
 The static methods of this class form the basis of implementing handlers in Ratpack.
 Typically you will want to write a handler that implements business logic and doesn't contain any _routing_ (e.g. request path, request method etc.) logic.
 A final handler is composed from your business logic handler and the static methods of the [`Handlers`](api/ratpack/handling/Handlers.html) class.
 
 It's worth noting that specifying handlers in a Groovy based Ratpack application is typically a little different.
 In a Groovy application you use a Closure based Domain Specific Language (DSL) to build a composed handler.
-This DSL is provided by the [`Chain`](api/ratpack/groovy/handling/Chain.html) interface of the Groovy module (which extends the interface of the same name in the core module).
+This DSL is provided by the [`Chain`](api/ratpack/groovy/handling/GroovyChain.html) interface of the Groovy module (which extends the interface of the same name in the core module).
 
 ## The context registry
 
@@ -79,7 +76,7 @@ Objects can be retrieved from the registry via type.
 Ratpack pre-populates the context registry with some key services and values. 
 See the [`Context`](api/ratpack/handling/Context.html) documentation for details.
 
-Handlers can also register items with the registry for handlers that they [insert](api/ratpack/handling/Context.html#insert%28java.lang.Object%2C%20java.util.List%29).
+Handlers can also register items with the registry for handlers that they [insert](api/ratpack/handling/Context.html#insert\(java.util.List, java.lang.Object\)).
 This makes new items available from the context, _just_ for the inserted handlers.
 That is, the registration is scope to just those handlers.
 
