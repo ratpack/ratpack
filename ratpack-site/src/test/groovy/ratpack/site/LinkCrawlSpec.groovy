@@ -27,6 +27,7 @@ class LinkCrawlSpec extends Specification {
   def "site has no bad links"() {
     given:
     ApplicationUnderTest aut = new LocalScriptApplicationUnderTest()
+
     def crawler = new Crawler(aut.address.toString()) {
       boolean shouldUseHeadRequest(Link url) {
         return url.uri.host != "bintray.com" && super.shouldUseHeadRequest(url)

@@ -202,7 +202,7 @@ abstract class Crawler {
 
       def sc = SSLContext.getInstance("SSL")
       sc.init([] as KeyManager[], [trustManager] as TrustManager[], new SecureRandom())
-      https.setSSLSocketFactory(sc.socketFactory)
+      https.setSSLSocketFactory(new DelegatingSSLSocketFactory(sc.socketFactory))
     }
     connection
   }
