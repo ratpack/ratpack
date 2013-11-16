@@ -26,6 +26,10 @@ ratpack {
       next()
     }
 
+    get("index.html") {
+      redirect 301, "/"
+    }
+
     get {
       render groovyTemplate("index.html")
     }
