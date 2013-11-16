@@ -156,6 +156,8 @@ subprojects {
     test {
       testLogging {
         exceptionFormat "full"
+        showStackTraces true
+        showCauses true
         quiet {
           events "failed"
         }
