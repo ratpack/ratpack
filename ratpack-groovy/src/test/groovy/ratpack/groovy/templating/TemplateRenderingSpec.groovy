@@ -80,6 +80,23 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     text == "outer: outer, inner: inner"
   }
 
+  def "inner templates are rendered in order"() {
+    given:
+    file("templates/head.html") << "head"
+    file("templates/middle.html") << '<% render "head.html" %>-middle-<% render "footer.html" %>'
+    file("templates/footer.html") << "footer"
+
+    when:
+    app {
+      handlers {
+        get { render groovyTemplate("middle.html") }
+      }
+    }
+
+    then:
+    getText() == "head-middle-footer"
+  }
+
   def "can render inner, inner template"() {
     given:
     file("templates/outer.html") << "outer: \${model.value}, <% render 'inner.html', value: 'inner' %>"
