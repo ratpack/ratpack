@@ -32,7 +32,8 @@ public class HeaderHandler implements Handler {
   }
 
   public void handle(Context context) throws Exception {
-    if (context.getRequest().getHeaders().get(headerName).equals(headerValue)) {
+    String value = context.getRequest().getHeaders().get(headerName);
+    if (value != null && value.equals(headerValue)) {
       handler.handle(context);
     } else {
       context.next();

@@ -36,7 +36,7 @@ class HeaderRoutingSpec extends RatpackGroovyDslSpec {
     }
 
     and:
-    request.header "foo", headerValue
+    if (headerValue) request.header "foo", headerValue
 
     expect:
     def response = getText("abc/def")
@@ -46,6 +46,7 @@ class HeaderRoutingSpec extends RatpackGroovyDslSpec {
     headerValue | expectedResponse
     "bar"       | "Header Handler"
     "car"       | "Prefix Handler"
+    null       | "Prefix Handler"
   }
 
 }
