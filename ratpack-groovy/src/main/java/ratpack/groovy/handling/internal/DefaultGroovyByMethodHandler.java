@@ -108,7 +108,7 @@ public class DefaultGroovyByMethodHandler implements GroovyByMethodHandler {
 
   @Override
   @NonBlocking
-  public void handle(Context context) {
+  public void handle(Context context) throws Exception {
     delegate.handle(context);
   }
 }

@@ -31,7 +31,7 @@ public class HeaderHandler implements Handler {
     this.handler = handler;
   }
 
-  public void handle(Context context) {
+  public void handle(Context context) throws Exception {
     if (context.getRequest().getHeaders().get(headerName).equals(headerValue)) {
       handler.handle(context);
     } else {

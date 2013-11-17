@@ -93,7 +93,11 @@ public class DefaultContext implements Context {
   }
 
   public void next() {
-    next.handle(this);
+    try {
+      next.handle(this);
+    } catch (Exception e) {
+      dispatchException(e);
+    }
   }
 
   public void insert(List<Handler> handlers) {
@@ -118,7 +122,11 @@ public class DefaultContext implements Context {
   }
 
   public void respond(Handler handler) {
-    handler.handle(this);
+    try {
+      handler.handle(this);
+    } catch (Exception e) {
+      dispatchException(e);
+    }
   }
 
   public PathTokens getPathTokens() {
@@ -239,11 +247,15 @@ public class DefaultContext implements Context {
     try {
       runnable.run();
     } catch (Exception e) {
-      if (e instanceof HandlerException) {
-        ((HandlerException) e).getContext().error((Exception) e.getCause());
-      } else {
-        error(e);
-      }
+      dispatchException(e);
+    }
+  }
+
+  private void dispatchException(Exception e) {
+    if (e instanceof HandlerException) {
+      ((HandlerException) e).getContext().error((Exception) e.getCause());
+    } else {
+      error(e);
     }
   }
 
@@ -253,7 +265,7 @@ public class DefaultContext implements Context {
       @Override
       public void execute(Result<T> result) {
         if (result.isFailure()) {
-          error(result.getFailure());
+          dispatchException(result.getFailure());
         } else {
           action.execute(result.getValue());
         }

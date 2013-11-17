@@ -138,8 +138,9 @@ public interface Handler {
    * Handles the context.
    *
    * @param context The context to handle
+   * @throws Exception if anything goes wrong (exception will be implicitly passed to the context's {@link Context#error(Exception)} method)
    */
   @NonBlocking
-  void handle(Context context);
+  void handle(Context context) throws Exception;
 
 }

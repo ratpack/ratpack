@@ -92,7 +92,7 @@ public class ScriptBackedApp implements Handler {
     }).run();
   }
 
-  public void handle(Context context) {
+  public void handle(Context context) throws Exception {
     Handler handler = reloadHandler.create();
     if (handler == null) {
       context.getResponse().send("script file does not exist:" + script.getAbsolutePath());

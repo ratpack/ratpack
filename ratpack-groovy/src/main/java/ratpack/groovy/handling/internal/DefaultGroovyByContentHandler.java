@@ -106,7 +106,7 @@ public class DefaultGroovyByContentHandler implements GroovyByContentHandler {
   }
 
   @Override
-  public void handle(Context context) {
+  public void handle(Context context) throws Exception {
     delegate.handle(context);
   }
 }
