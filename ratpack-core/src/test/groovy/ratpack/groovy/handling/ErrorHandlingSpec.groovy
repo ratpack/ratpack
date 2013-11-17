@@ -165,4 +165,28 @@ class ErrorHandlingSpec extends RatpackGroovyDslSpec {
     text == "Caught: thrown"
   }
 
+  def "exceptions thrown by error handler are dealt with"() {
+    when:
+    app {
+      modules {
+        bind ServerErrorHandler, new ServerErrorHandler() {
+          @Override
+          void error(Context context, Exception exception) {
+            throw new RuntimeException("in error handler")
+          }
+        }
+      }
+
+      handlers {
+        get {
+          throw new RuntimeException("in handler")
+        }
+      }
+    }
+
+    then:
+    text == ""
+    response.statusCode == 500
+  }
+
 }

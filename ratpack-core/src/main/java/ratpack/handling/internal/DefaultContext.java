@@ -43,15 +43,20 @@ import ratpack.util.Result;
 import ratpack.util.ResultAction;
 
 import java.io.File;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
+import java.util.logging.Logger;
 
 import static io.netty.handler.codec.http.HttpHeaders.Names.IF_MODIFIED_SINCE;
 import static io.netty.handler.codec.http.HttpResponseStatus.NOT_MODIFIED;
 
 public class DefaultContext implements Context {
+
+  private final static Logger LOGGER = Logger.getLogger(Context.class.getName());
 
   private final Request request;
   private final Response response;
@@ -236,7 +241,22 @@ public class DefaultContext implements Context {
 
   public void error(Exception exception) {
     ServerErrorHandler serverErrorHandler = get(ServerErrorHandler.class);
-    serverErrorHandler.error(this, exception);
+    try {
+      serverErrorHandler.error(this, exception);
+    } catch (Exception errorHandlerException) {
+      StringWriter stringWriter = new StringWriter();
+      PrintWriter printWriter = new PrintWriter(stringWriter);
+      stringWriter.
+        append("Exception thrown by error handler ").
+        append(serverErrorHandler.toString()).
+        append(" while handling exception\nOriginal exception: ");
+      exception.printStackTrace(printWriter);
+      stringWriter.
+        append("Error handler exception: ");
+      errorHandlerException.printStackTrace(printWriter);
+      LOGGER.warning(stringWriter.toString());
+      response.status(500).send();
+    }
   }
 
   public void clientError(int statusCode) {
