@@ -19,7 +19,6 @@
 package ratpack.site.crawl
 
 import groovy.transform.CompileStatic
-import org.codehaus.groovy.runtime.StackTraceUtils
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
