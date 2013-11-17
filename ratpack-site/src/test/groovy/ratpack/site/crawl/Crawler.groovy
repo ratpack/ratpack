@@ -311,9 +311,10 @@ abstract class Crawler {
     ExceptionError(Throwable exception) { this.exception = deepSanitize(exception) }
 
     String toString() {
-      def b = new PrintWriter(new StringWriter())
-      exception.printStackTrace(b)
-      b.toString()
+      def stringWriter = new StringWriter()
+      def printWriter = new PrintWriter(stringWriter)
+      exception.printStackTrace(printWriter)
+      stringWriter.toString()
     }
   }
 
