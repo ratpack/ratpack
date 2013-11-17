@@ -27,7 +27,8 @@ include \
     "ratpack-gradle",
     "ratpack-handlebars",
     "ratpack-remote",
-    "ratpack-jackson"
+    "ratpack-jackson",
+    "ratpack-datasource"
 
 include \
   "perftest",
