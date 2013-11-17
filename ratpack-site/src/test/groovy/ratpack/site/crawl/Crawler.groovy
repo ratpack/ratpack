@@ -19,6 +19,7 @@
 package ratpack.site.crawl
 
 import groovy.transform.CompileStatic
+import org.codehaus.groovy.runtime.StackTraceUtils
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
@@ -29,6 +30,8 @@ import javax.net.ssl.*
 import java.security.SecureRandom
 import java.security.cert.CertificateException
 import java.security.cert.X509Certificate
+
+import static org.codehaus.groovy.runtime.StackTraceUtils.deepSanitize
 
 @CompileStatic
 abstract class Crawler {
@@ -304,11 +307,15 @@ abstract class Crawler {
   }
 
   static class ExceptionError extends PageError {
-    final Exception exception
+    final Throwable exception
 
-    ExceptionError(Exception exception) { this.exception = exception }
+    ExceptionError(Throwable exception) { this.exception = deepSanitize(exception) }
 
-    String toString() { "Exception: $exception" }
+    String toString() {
+      def b = new PrintWriter(new StringWriter())
+      exception.printStackTrace(b)
+      b.toString()
+    }
   }
 
   static class Link {
