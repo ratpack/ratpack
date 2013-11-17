@@ -25,10 +25,6 @@ public class LocalScriptApplicationUnderTest extends ServerBackedApplicationUnde
     super(new RatpackMainServerFactory());
   }
 
-  public TestHttpClient httpClient() {
-    return TestHttpClients.testHttpClient(this);
-  }
-
   private static class RatpackMainServerFactory extends ratpack.test.RatpackMainServerFactory {
     public RatpackMainServerFactory() {
       super(new GroovyRatpackMain());
