@@ -1,14 +1,21 @@
 # The Ratpack Manual
 
+The manual is the canonical documentation for Ratpack.
+It is both book like documentation _and_ the API reference (i.e. Javadoc).
+
+The chapters provide high level information and link through to the API reference.
+The chapters should not duplicate information that can be found in the API reference.
+
 ## Building the manual
 
-The manual consists of *Markdown* templates and a stylesheet composed with *SASS* and *Compass*. It is built with Gradle.
+The manual consists of *Markdown* templates and a stylesheet composed with *SASS* and *Compass*.
+It is built with Gradle.
 
 The manual is built to `ratpack-manual/build/manual/`.
 
 ### Requirements
 
-The only thing you need to have installed in order to build the manual is a JVM. Although the stylesheet for the manual is composed with Compass the Gradle build handles everything so you do not need Compass or even Ruby installed on your machine.
+The only thing you need to have installed in order to build the manual is a JVM.
 
 ### Commands
 
@@ -20,11 +27,12 @@ All commands can be run from the root of the *ratpack* project.
 
 ## Contributing
 
-### Documentation
+### Chapters
 
-The documentation is in Markdown format and is found in `ratpack-manual/src/content/chapters`. The chapter number is determined by the filename.
+The chapters are in Markdown format and are found in `ratpack-manual/src/content/chapters`.
+The chapter number is determined by the filename.
 
-#### Documentation style
+#### Writing style
 
 If you are contributing documentation please try to stick to the following style guidelines in your markdown.
 
@@ -39,12 +47,10 @@ If you are contributing documentation please try to stick to the following style
 * When discussing classes from the Ratpack API you should make the first reference to the class name a link to the Javadoc API page for that class. Only link the first reference in a chapter not all of them.
 * When talking about common concepts such as Ratpack handlers it's not always necessary to use the class name – too many code blocks can make the text harder to read. e.g. "You can unit test your handler with `InvocationBuilder`" rather than "You can unit test your `Handler` with `InvocationBuilder`.
 
-### Templates and stylesheet
+### API reference
 
-The templates for different types of page are found in `ratpack-manual/src/content/templates`. They are HTML with placeholders from the [*markdown2book*]() Gradle plugin to inject content generated from the markdown files.
+The API reference is pulled from the Javadoc of Ratpack's public API.
 
-The stylesheet is built from *.scss* files found in `ratpack-manual/src/sass`. File names without an underscore are compiled to an equivalently named *.css* file. File names prefixed with an underscore are imported into the main stylesheet.
+#### Writing style
 
-The manual's stylesheet uses *Modernizr* to ensure that appropriate fallbacks are provided for older browsers.
-
-Any 3rd party libraries or images used in the manual should be credited in the *"About this manual"* chapter.
+The same writing style rules apply as per above.
