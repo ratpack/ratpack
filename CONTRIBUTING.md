@@ -1,9 +1,29 @@
 # Contributing to Ratpack
 
 Contributions are always welcome to Ratpack!
-If you'd like to contribute (and we hope you do) please take a look at the following guidelines.
+If you'd like to contribute (and we hope you do) please take a look at the following guidelines and instructions.
 
-The README file at the root of the source tree contains some information on building Ratpack.
+## Building
+
+Ratpack builds with [Gradle](http://gradle.org). 
+You do not need to install Gradle to build the project, as Gradle can install itself.
+
+To build, run this in the checkout:
+
+    ./gradlew check
+
+That will build the entire project and run all the tests.
+
+### IDE import
+
+The project is setup to work with IntelliJ IDEA.
+Run the following in the checkout…
+
+    ./gradlew idea
+
+Then import the project into IDEA or open the `ratpack.ipr` file.
+
+If you use a different IDE or editor you're on your own.    
 
 ## Licensing and attribution
 
@@ -20,7 +40,7 @@ See the README in that directory for instructions on building and authoring the 
 
 ## Code changes
 
-Code can be submitted via GitHub pull requests. If you regularly submit high quality pull requests, you will be given direct commit access.
+Code can be submitted via GitHub pull requests.
 
 ### Proposing new features
 
