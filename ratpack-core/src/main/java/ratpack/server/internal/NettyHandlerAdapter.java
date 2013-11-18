@@ -32,11 +32,10 @@ import ratpack.file.FileSystemBinding;
 import ratpack.file.MimeTypes;
 import ratpack.file.internal.*;
 import ratpack.handling.Context;
+import ratpack.handling.EventHandler;
 import ratpack.handling.Handler;
 import ratpack.handling.Redirector;
-import ratpack.handling.internal.ClientErrorForwardingHandler;
-import ratpack.handling.internal.DefaultContext;
-import ratpack.handling.internal.DefaultRedirector;
+import ratpack.handling.internal.*;
 import ratpack.http.MutableHeaders;
 import ratpack.http.Request;
 import ratpack.http.Response;
@@ -51,6 +50,7 @@ import ratpack.server.PublicAddress;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.Date;
 
 import static io.netty.handler.codec.http.HttpHeaders.isKeepAlive;
 import static io.netty.handler.codec.http.HttpResponseStatus.NOT_FOUND;
@@ -91,7 +91,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
 
     final FullHttpResponse nettyResponse = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
 
-    Request request = new DefaultRequest(new NettyHeadersBackedHeaders(nettyRequest.headers()), nettyRequest.getMethod().name(), nettyRequest.getUri(), nettyRequest.content());
+    final Request request = new DefaultRequest(new NettyHeadersBackedHeaders(nettyRequest.headers()), nettyRequest.getMethod().name(), nettyRequest.getUri(), nettyRequest.content());
 
     final Channel channel = ctx.channel();
 
@@ -99,9 +99,9 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
     final MutableHeaders responseHeaders = new NettyHeadersBackedMutableHeaders(nettyResponse.headers());
     final ByteBuf responseBody = nettyResponse.content();
     FileHttpTransmitter fileHttpTransmitter = new DefaultFileHttpTransmitter(nettyRequest, nettyResponse, channel);
-    final ChannelPromise completePromise = channel.newPromise();
+    final EventHandler<ContextClose> closeEventHandler = new CloseEventHandler(channel);
 
-    Response response = new DefaultResponse(responseStatus, responseHeaders, responseBody, fileHttpTransmitter, completePromise, new Runnable() {
+    Response response = new DefaultResponse(responseStatus, responseHeaders, responseBody, fileHttpTransmitter, new Runnable() {
       @Override
       public void run() {
         nettyResponse.setStatus(responseStatus.getResponseStatus());
@@ -117,7 +117,8 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
           future.addListener(new ChannelFutureListener() {
             @Override
             public void operationComplete(ChannelFuture future) {
-              completePromise.setSuccess();
+              ContextClose eventContext = new ContextClose(new Date(), request, responseStatus);
+              closeEventHandler.notify(eventContext);
             }
           });
 
@@ -131,7 +132,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
     InetSocketAddress socketAddress = (InetSocketAddress) channel.localAddress();
     BindAddress bindAddress = new InetSocketAddressBackedBindAddress(socketAddress);
 
-    Context context = new DefaultContext(request, response, bindAddress, registry, ctx.executor(), blockingExecutorService, return404);
+    Context context = new DefaultContext(request, response, bindAddress, registry, ctx.executor(), blockingExecutorService, return404, closeEventHandler);
     handler.handle(context);
   }
 

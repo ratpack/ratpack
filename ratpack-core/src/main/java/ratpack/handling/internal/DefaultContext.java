@@ -66,8 +66,9 @@ public class DefaultContext implements Context {
   private final Handler next;
   private final Registry registry;
   private final BindAddress bindAddress;
+  private final EventHandler<ContextClose> closeEventHandler;
 
-  public DefaultContext(Request request, Response response, BindAddress bindAddress, Registry registry, ExecutorService mainExecutorService, ListeningExecutorService backgroundExecutorService, Handler next) {
+  public DefaultContext(Request request, Response response, BindAddress bindAddress, Registry registry, ExecutorService mainExecutorService, ListeningExecutorService backgroundExecutorService, Handler next, EventHandler<ContextClose> closeEventHandler) {
     this.request = request;
     this.response = response;
     this.bindAddress = bindAddress;
@@ -75,6 +76,7 @@ public class DefaultContext implements Context {
     this.mainExecutorService = mainExecutorService;
     this.backgroundExecutorService = backgroundExecutorService;
     this.next = next;
+    this.closeEventHandler = closeEventHandler;
   }
 
   public Request getRequest() {
@@ -192,8 +194,8 @@ public class DefaultContext implements Context {
   }
 
   @Override
-  public void onResponseComplete(Action<ContextComplete> callback) {
-    response.onComplete(callback);
+  public void onClose(final Action<ContextClose> callback) {
+    this.closeEventHandler.addListener(callback);
   }
 
   private <P, S extends Parse<P>> P maybeParse(String requestContentType, S parseSpec, Parser<?, ?> parser) {
@@ -330,7 +332,7 @@ public class DefaultContext implements Context {
           ((DefaultContext) exchange).doNext(parentContext, registry, handlers, index + 1, exhausted);
         }
       };
-      DefaultContext childExchange = new DefaultContext(request, response, bindAddress, registry, mainExecutorService, backgroundExecutorService, nextHandler);
+      DefaultContext childExchange = new DefaultContext(request, response, bindAddress, registry, mainExecutorService, backgroundExecutorService, nextHandler, closeEventHandler);
       try {
         handler.handle(childExchange);
       } catch (Exception e) {
