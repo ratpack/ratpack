@@ -16,13 +16,12 @@
 
 package ratpack.groovy.templating.internal;
 
-import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import ratpack.error.ClientErrorHandler;
 import ratpack.handling.Context;
-import ratpack.http.Response;
 import ratpack.util.Action;
 
+import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -43,12 +42,11 @@ public class TemplateRenderingClientErrorHandler implements ClientErrorHandler {
     metadata.put("Request URL", context.getRequest().getUri());
     model.put("metadata", metadata);
 
-    context.getResponse().status(statusCode);
+    context.getResponse().status(statusCode).contentType("text/html");
 
-    renderer.renderError(context.getResponse().getBody(), model, context.resultAction(new Action<ByteBuf>() {
-      public void execute(ByteBuf byteBuf) {
-        Response response = context.getResponse();
-        response.status(statusCode).contentType("text/html").send();
+    renderer.renderError(context.getResponse().getBody(), model, new ErrorTemplateRenderResultAction(context, new Action<PrintWriter>() {
+      public void execute(PrintWriter writer) {
+        writer.append("for client error").append(Integer.toString(statusCode)).append("\n");
       }
     }));
   }

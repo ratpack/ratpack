@@ -16,12 +16,12 @@
 
 package ratpack.groovy.templating.internal;
 
-import io.netty.buffer.ByteBuf;
 import ratpack.error.ServerErrorHandler;
 import ratpack.handling.Context;
 import ratpack.http.Response;
 import ratpack.util.Action;
 
+import java.io.PrintWriter;
 import java.util.Map;
 
 public class TemplateRenderingServerErrorHandler implements ServerErrorHandler {
@@ -29,13 +29,16 @@ public class TemplateRenderingServerErrorHandler implements ServerErrorHandler {
   public void error(final Context context, final Exception exception) {
     GroovyTemplateRenderingEngine renderer = context.get(GroovyTemplateRenderingEngine.class);
     Map<String, ?> model = ExceptionToTemplateModel.transform(context.getRequest(), exception);
-    renderer.renderError(context.getResponse().getBody(), model, context.resultAction(new Action<ByteBuf>() {
-      public void execute(ByteBuf byteBuf) {
-        Response response = context.getResponse();
-        if (response.getStatus().getCode() < 400) {
-          response.status(500);
-        }
-        response.contentType("text/html").send();
+
+    Response response = context.getResponse();
+    if (response.getStatus().getCode() < 400) {
+      response.status(500);
+    }
+
+    renderer.renderError(context.getResponse().getBody(), model, new ErrorTemplateRenderResultAction(context, new Action<PrintWriter>() {
+      public void execute(PrintWriter writer) {
+        writer.append("for server error\n");
+        exception.printStackTrace(writer);
       }
     }));
   }

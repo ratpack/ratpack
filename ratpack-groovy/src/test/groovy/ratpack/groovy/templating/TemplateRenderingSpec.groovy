@@ -354,4 +354,26 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     get("dir/t.xml?type=foo/bar").contentType == "foo/bar"
   }
 
+  def "error in error template produces empty response and right error code"() {
+    given:
+    file("templates/error.html") << "a a a \${-==}" // invalid syntax
+
+    when:
+    app {
+      handlers {
+        get("server") {
+          throw new Exception("!")
+        }
+        get("client") {
+          clientError 400
+        }
+      }
+    }
+
+    then:
+    getText("server") == ""
+    response.statusCode == 500
+    getText("client") == ""
+    response.statusCode == 500
+  }
 }
