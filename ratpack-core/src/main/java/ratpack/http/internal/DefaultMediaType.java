@@ -68,7 +68,7 @@ public class DefaultMediaType implements MediaType {
     }
   }
 
-  private DefaultMediaType(String value, String defaultCharset) {
+  public DefaultMediaType(String value, String defaultCharset) {
     ImmutableMap.Builder<String, String> paramsBuilder = ImmutableMap.builder();
     boolean setCharset = false;
 

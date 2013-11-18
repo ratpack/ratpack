@@ -14,27 +14,10 @@
  * limitations under the License.
  */
 
-package ratpack.render;
+package ratpack.groovy.markup;
 
-import ratpack.handling.Context;
-import ratpack.util.internal.Types;
+import ratpack.render.Renderer;
 
-public abstract class RendererSupport<T> implements Renderer<T> {
-
-  private final Class<T> type;
-
-  protected RendererSupport() {
-    this.type = Types.findImplParameterTypeAtIndex(getClass(), RendererSupport.class, 0);
-  }
-
-  @Override
-  public Class<T> getType() {
-    return type;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  abstract public void render(Context context, T object) throws Exception;
+public interface MarkupRenderer extends Renderer<Markup> {
 
 }

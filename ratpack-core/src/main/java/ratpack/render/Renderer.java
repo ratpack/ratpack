@@ -50,6 +50,6 @@ public interface Renderer<T> {
    * @param object The object to render
    */
   @NonBlocking
-  void render(Context context, T object);
+  void render(Context context, T object) throws Exception;
 
 }

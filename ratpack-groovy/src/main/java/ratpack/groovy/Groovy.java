@@ -19,14 +19,18 @@ package ratpack.groovy;
 import com.google.common.collect.ImmutableMap;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
+import groovy.xml.MarkupBuilder;
 import ratpack.groovy.handling.GroovyChain;
 import ratpack.groovy.handling.GroovyContext;
 import ratpack.groovy.handling.internal.ClosureBackedHandler;
 import ratpack.groovy.internal.RatpackScriptBacking;
+import ratpack.groovy.markup.Markup;
+import ratpack.groovy.markup.internal.DefaultMarkup;
 import ratpack.groovy.templating.Template;
 import ratpack.groovy.templating.internal.DefaultTemplate;
 import ratpack.guice.ModuleRegistry;
 import ratpack.handling.Handler;
+import ratpack.http.MediaType;
 
 import java.util.Map;
 
@@ -114,6 +118,10 @@ public abstract class Groovy {
 
   public static Handler groovyHandler(@DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) {
     return new ClosureBackedHandler(closure);
+  }
+
+  public static Markup htmlBuilder(@DelegatesTo(value = MarkupBuilder.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) {
+    return new DefaultMarkup(MediaType.TEXT_HTML, null, closure);
   }
 
 }
