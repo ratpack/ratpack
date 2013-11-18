@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package ratpack.handling;
+package ratpack.server.internal;
 
 
 import ratpack.util.Action;
 
-public interface EventHandler<T> {
+interface EventHandler<T> {
 
   public void notify(T context);
 
-  public void addListener(Action<T> callback);
+  public void addListener(Action<? super T> callback);
 
 }

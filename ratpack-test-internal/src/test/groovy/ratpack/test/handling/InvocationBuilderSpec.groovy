@@ -18,9 +18,14 @@ package ratpack.test.handling
 
 import io.netty.util.CharsetUtil
 import ratpack.handling.Context
+import ratpack.handling.internal.ContextClose
+import ratpack.util.Action
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
+
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 
 import static ratpack.groovy.Groovy.groovyHandler
 import static ratpack.test.UnitTest.invocationBuilder
@@ -167,6 +172,35 @@ class InvocationBuilderSpec extends Specification {
 
     then:
     bodyText == "Ratpack"
+  }
+
+  def "can test handler with onClose event registered"() {
+    def latch = new CountDownLatch(2)
+
+    when:
+    invoke {
+      onClose(new Action<ContextClose>() {
+        @Override
+        void execute(ContextClose eventContext) {
+          latch.countDown();
+        }
+      })
+
+      onClose(new Action<ContextClose>() {
+        @Override
+        void execute(ContextClose eventContext) {
+          latch.countDown();
+        }
+      })
+
+      response.send "foo"
+    }
+
+    then:
+    latch.await(2, TimeUnit.SECONDS)
+    latch.count == 0
+    bodyText == "foo"
+    sentResponse
   }
 
   @Unroll

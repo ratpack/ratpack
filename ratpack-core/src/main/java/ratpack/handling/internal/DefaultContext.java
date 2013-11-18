@@ -37,6 +37,7 @@ import ratpack.registry.RegistryBuilder;
 import ratpack.render.NoSuchRendererException;
 import ratpack.render.Renderer;
 import ratpack.server.BindAddress;
+import ratpack.server.internal.CloseEventHandler;
 import ratpack.util.Action;
 import ratpack.util.Factory;
 import ratpack.util.Result;
@@ -66,9 +67,9 @@ public class DefaultContext implements Context {
   private final Handler next;
   private final Registry registry;
   private final BindAddress bindAddress;
-  private final EventHandler<ContextClose> closeEventHandler;
+  private final CloseEventHandler closeEventHandler;
 
-  public DefaultContext(Request request, Response response, BindAddress bindAddress, Registry registry, ExecutorService mainExecutorService, ListeningExecutorService backgroundExecutorService, Handler next, EventHandler<ContextClose> closeEventHandler) {
+  public DefaultContext(Request request, Response response, BindAddress bindAddress, Registry registry, ExecutorService mainExecutorService, ListeningExecutorService backgroundExecutorService, Handler next, CloseEventHandler closeEventHandler) {
     this.request = request;
     this.response = response;
     this.bindAddress = bindAddress;
@@ -194,7 +195,7 @@ public class DefaultContext implements Context {
   }
 
   @Override
-  public void onClose(final Action<ContextClose> callback) {
+  public void onClose(final Action<? super ContextClose> callback) {
     this.closeEventHandler.addListener(callback);
   }
 

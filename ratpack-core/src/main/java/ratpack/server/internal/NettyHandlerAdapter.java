@@ -32,10 +32,12 @@ import ratpack.file.FileSystemBinding;
 import ratpack.file.MimeTypes;
 import ratpack.file.internal.*;
 import ratpack.handling.Context;
-import ratpack.handling.EventHandler;
 import ratpack.handling.Handler;
 import ratpack.handling.Redirector;
-import ratpack.handling.internal.*;
+import ratpack.handling.internal.ClientErrorForwardingHandler;
+import ratpack.handling.internal.ContextClose;
+import ratpack.handling.internal.DefaultContext;
+import ratpack.handling.internal.DefaultRedirector;
 import ratpack.http.MutableHeaders;
 import ratpack.http.Request;
 import ratpack.http.Response;
@@ -50,7 +52,6 @@ import ratpack.server.PublicAddress;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.Date;
 
 import static io.netty.handler.codec.http.HttpHeaders.isKeepAlive;
 import static io.netty.handler.codec.http.HttpResponseStatus.NOT_FOUND;
@@ -99,7 +100,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
     final MutableHeaders responseHeaders = new NettyHeadersBackedMutableHeaders(nettyResponse.headers());
     final ByteBuf responseBody = nettyResponse.content();
     FileHttpTransmitter fileHttpTransmitter = new DefaultFileHttpTransmitter(nettyRequest, nettyResponse, channel);
-    final EventHandler<ContextClose> closeEventHandler = new CloseEventHandler(channel);
+    final CloseEventHandler closeEventHandler = new CloseEventHandler(channel.newPromise());
 
     Response response = new DefaultResponse(responseStatus, responseHeaders, responseBody, fileHttpTransmitter, new Runnable() {
       @Override
@@ -117,7 +118,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
           future.addListener(new ChannelFutureListener() {
             @Override
             public void operationComplete(ChannelFuture future) {
-              ContextClose eventContext = new ContextClose(new Date(), request, responseStatus);
+              ContextClose eventContext = new ContextClose(System.currentTimeMillis(), request.getUri(), request.getMethod(), responseHeaders, responseStatus);
               closeEventHandler.notify(eventContext);
             }
           });

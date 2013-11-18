@@ -231,7 +231,7 @@ public class DefaultGroovyContext implements GroovyContext {
   }
 
   @Override
-  public void onClose(Action<ContextClose> callback) {
+  public void onClose(Action<? super ContextClose> callback) {
     delegate.onClose(callback);
   }
 

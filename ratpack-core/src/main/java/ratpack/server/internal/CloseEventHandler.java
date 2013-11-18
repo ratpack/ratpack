@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-package ratpack.handling.internal;
+package ratpack.server.internal;
 
-import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelPromise;
-import ratpack.handling.EventHandler;
+import ratpack.handling.internal.ContextClose;
 import ratpack.util.Action;
 
 public class CloseEventHandler implements EventHandler<ContextClose> {
@@ -28,8 +27,8 @@ public class CloseEventHandler implements EventHandler<ContextClose> {
   final private ChannelPromise closePromise;
   private ContextClose context;
 
-  public CloseEventHandler(Channel channel) {
-    this.closePromise = channel.newPromise();
+  public CloseEventHandler(ChannelPromise closePromise) {
+    this.closePromise = closePromise;
   }
 
   @Override
@@ -39,7 +38,7 @@ public class CloseEventHandler implements EventHandler<ContextClose> {
   }
 
   @Override
-  public void addListener(final Action<ContextClose> callback) {
+  public void addListener(final Action<? super ContextClose> callback) {
     closePromise.addListener(new ChannelFutureListener() {
       @Override
       public void operationComplete(ChannelFuture future) {

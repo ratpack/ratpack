@@ -416,5 +416,5 @@ public interface Context extends Registry {
 
   <T> T parse(Parse<T> parse);
 
-  void onClose(Action<ContextClose> callback);
+  void onClose(Action<? super ContextClose> callback);
 }

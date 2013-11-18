@@ -17,33 +17,43 @@
 package ratpack.handling.internal;
 
 import ratpack.http.Headers;
-import ratpack.http.Request;
+import ratpack.http.HttpMethod;
 import ratpack.http.Status;
-
-import java.util.Date;
 
 public class ContextClose {
 
-  private Headers requestHeaders;
-  private Date closeDate;
+  private String requestUri;
+  private HttpMethod requestMethod;
+  private Headers responseHeaders;
   private Status status;
+  private long closeTime;
 
-  public ContextClose(Date closeDate, Request request, Status status) {
-    this.requestHeaders = request.getHeaders();
-    this.closeDate = closeDate;
+  public ContextClose(long closeTime, String requestUri, HttpMethod requestMethod, Headers responseHeaders, Status status) {
+    this.closeTime = closeTime;
+    this.requestUri = requestUri;
+    this.requestMethod = requestMethod;
+    this.responseHeaders = responseHeaders;
     this.status = status;
   }
 
-  public Headers getRequestHeaders() {
-    return this.requestHeaders;
+  public String getRequestUri() {
+    return requestUri;
   }
 
-  public Date getCloseDate() {
-    return this.closeDate;
+  public HttpMethod getRequestMethod() {
+    return requestMethod;
+  }
+
+  public Headers getResponseHeaders() {
+    return responseHeaders;
   }
 
   public Status getStatus() {
-    return this.status;
+    return status;
+  }
+
+  public long getCloseTime() {
+    return closeTime;
   }
 
 }
