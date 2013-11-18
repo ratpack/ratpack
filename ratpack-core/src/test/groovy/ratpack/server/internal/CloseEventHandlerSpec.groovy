@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ratpack.handling
+package ratpack.server.internal
 
 import ratpack.handling.internal.ContextClose
 import ratpack.test.internal.RatpackGroovyDslSpec
