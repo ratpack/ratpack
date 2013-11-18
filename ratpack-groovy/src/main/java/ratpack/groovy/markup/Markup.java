@@ -17,15 +17,33 @@
 package ratpack.groovy.markup;
 
 import groovy.lang.Closure;
-import ratpack.api.Nullable;
 
+/**
+ * Render type for markup to be built using Groovy's {@link groovy.xml.MarkupBuilder}.
+ *
+ * @see ratpack.groovy.Groovy#markupBuilder(String, String, groovy.lang.Closure)
+ */
 public interface Markup {
 
+  /**
+   * The content type of the markup.
+   *
+   * @return The content type of the markup.
+   */
   String getContentType();
 
-  @Nullable
+  /**
+   * The character encoding of the markup.
+   *
+   * @return The character encoding of the markup.
+   */
   String getEncoding();
 
+  /**
+   * The closure that defines the markup.
+   *
+   * @return The closure that defines the markup.
+   */
   Closure<?> getDefinition();
 
 }

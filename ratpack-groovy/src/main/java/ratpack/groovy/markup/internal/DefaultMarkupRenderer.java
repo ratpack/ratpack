@@ -31,10 +31,8 @@ public class DefaultMarkupRenderer extends RendererSupport<Markup> implements Ma
 
   @Override
   public void render(Context context, Markup markup) throws UnsupportedEncodingException {
-    String encoding = markup.getEncoding() == null ? "UTF-8" : markup.getEncoding();
-
     ByteBufWriteThroughOutputStream out = new ByteBufWriteThroughOutputStream(context.getResponse().getBody());
-    OutputStreamWriter writer = new OutputStreamWriter(out, encoding);
+    OutputStreamWriter writer = new OutputStreamWriter(out, markup.getEncoding());
     MarkupBuilder markupBuilder = new MarkupBuilder(writer);
 
     Util.configureDelegateFirst(markupBuilder, markupBuilder, markup.getDefinition());

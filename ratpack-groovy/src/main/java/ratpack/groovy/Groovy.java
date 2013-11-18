@@ -31,6 +31,7 @@ import ratpack.groovy.templating.internal.DefaultTemplate;
 import ratpack.guice.ModuleRegistry;
 import ratpack.handling.Handler;
 import ratpack.http.MediaType;
+import ratpack.http.internal.DefaultMediaType;
 
 import java.util.Map;
 
@@ -120,8 +121,36 @@ public abstract class Groovy {
     return new ClosureBackedHandler(closure);
   }
 
+  /**
+   * Shorthand for {@link #markupBuilder(String, String, groovy.lang.Closure)} with a content type of {@code "text/html"} and {@code "UTF-8"} encoding
+   *
+   * @param closure The html definition
+   * @return A renderable object (i.e. to be used with the {@link ratpack.handling.Context#render(Object)} method
+   */
   public static Markup htmlBuilder(@DelegatesTo(value = MarkupBuilder.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) {
-    return new DefaultMarkup(MediaType.TEXT_HTML, null, closure);
+    return markupBuilder(MediaType.TEXT_HTML, DefaultMediaType.UTF8, closure);
+  }
+
+  /**
+   * Renderable object for markup built using Groovy's {@link MarkupBuilder}.
+   *
+   * <pre class="groovy-chain-dsl">
+   * import static ratpack.groovy.Groovy.markupBuilder
+   *
+   * get("some/path") {
+   *   render markupBuilder("text/html", "UTF-8") {
+   *     // MarkupBuilder DSL in here
+   *   }
+   * }
+   * </pre>
+   *
+   * @param contentType The content type of the markup
+   * @param encoding The character encoding of the markup
+   * @param closure The definition of the markup
+   * @return A renderable object (i.e. to be used with the {@link ratpack.handling.Context#render(Object)} method
+   */
+  public static Markup markupBuilder(String contentType, String encoding, @DelegatesTo(value = MarkupBuilder.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) {
+    return new DefaultMarkup(contentType, encoding, closure);
   }
 
 }
