@@ -49,7 +49,7 @@ Rather than just delegate to the predefined next handler, handlers can also [`in
 The last inserted handler's next handler becomes the next handler of the handler that performed the insert.
 
 Handler chains can be constructed by using a [`Chain`](api/ratpack/handling/Chain.html), which is really a chain builder.
-You can use [`Handlers.chain()`](api/ratpack/handling/Handlers.html#chain\(ratpack.launch.LaunchConfig, ratpack.util.Action\)) method to build a handler chain.
+You can use [`Handlers.chain()`](api/ratpack/handling/Handlers.html#chain%28ratpack.launch.LaunchConfig,%20ratpack.util.Action%29) method to build a handler chain.
 Note that a handler chain is just an implementation of `Handler`.
 A handler chain can actually be composed of other handler chains.
 
@@ -76,7 +76,7 @@ Objects can be retrieved from the registry via type.
 Ratpack pre-populates the context registry with some key services and values. 
 See the [`Context`](api/ratpack/handling/Context.html) documentation for details.
 
-Handlers can also register items with the registry for handlers that they [insert](api/ratpack/handling/Context.html#insert\(java.util.List, java.lang.Object\)).
+Handlers can also register items with the registry for handlers that they [insert](api/ratpack/handling/Context.html#insert%28java.util.List,%20java.lang.Object%29).
 This makes new items available from the context, _just_ for the inserted handlers.
 That is, the registration is scope to just those handlers.
 
