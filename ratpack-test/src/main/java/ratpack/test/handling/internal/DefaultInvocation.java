@@ -24,6 +24,7 @@ import ratpack.background.Background;
 import ratpack.file.internal.FileHttpTransmitter;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
+import ratpack.handling.internal.ContextClose;
 import ratpack.handling.internal.DefaultContext;
 import ratpack.handling.internal.DelegatingHeaders;
 import ratpack.http.*;
@@ -31,11 +32,15 @@ import ratpack.http.internal.DefaultResponse;
 import ratpack.registry.Registry;
 import ratpack.render.NoSuchRendererException;
 import ratpack.server.BindAddress;
+import ratpack.server.internal.CloseEventHandler;
 import ratpack.test.handling.Invocation;
 import ratpack.test.handling.InvocationTimeoutException;
+import ratpack.util.Action;
 
 import java.io.File;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -54,7 +59,7 @@ public class DefaultInvocation implements Invocation {
   private File sentFile;
   private Object rendered;
 
-  public DefaultInvocation(Request request, Status status, MutableHeaders responseHeaders, ByteBuf responseBody, Registry registry, final int timeout, Handler handler) {
+  public DefaultInvocation(final Request request, final Status status, final MutableHeaders responseHeaders, ByteBuf responseBody, Registry registry, final int timeout, Handler handler) {
 
     // There are definitely concurrency bugs in here around timing out
     // ideally we should prevent the stat from changing after a timeout occurs
@@ -75,9 +80,26 @@ public class DefaultInvocation implements Invocation {
       }
     };
 
+    final CloseEventHandler closeEventHandler = new CloseEventHandler(null) {
+      private List<Action<? super ContextClose>> callbackList = new ArrayList<>();
+
+      @Override
+      public void notify(ContextClose context) {
+        for (Action<? super ContextClose> callback : callbackList) {
+          callback.execute(context);
+        }
+      }
+
+      @Override
+      public void addListener(Action<? super ContextClose> callback) {
+        callbackList.add(callback);
+      }
+    };
+
     Runnable committer = new Runnable() {
       public void run() {
         sentResponse = true;
+        closeEventHandler.notify(new ContextClose(System.currentTimeMillis(), request.getUri(), request.getMethod(), responseHeaders, status));
         latch.countDown();
       }
     };
@@ -102,7 +124,7 @@ public class DefaultInvocation implements Invocation {
     };
 
     Response response = new DefaultResponse(status, responseHeaders, responseBody, fileHttpTransmitter, committer);
-    Context context = new DefaultContext(request, response, bindAddress, registry, mainExecutor, backgroundExecutor, next) {
+    Context context = new DefaultContext(request, response, bindAddress, registry, mainExecutor, backgroundExecutor, next, closeEventHandler) {
       @Override
       public void render(Object object) throws NoSuchRendererException {
         rendered = object;

@@ -30,6 +30,7 @@ import ratpack.groovy.internal.Util;
 import ratpack.handling.ByContentHandler;
 import ratpack.handling.ByMethodHandler;
 import ratpack.handling.Handler;
+import ratpack.handling.internal.ContextClose;
 import ratpack.http.Request;
 import ratpack.http.Response;
 import ratpack.parse.Parse;
@@ -227,6 +228,11 @@ public class DefaultGroovyContext implements GroovyContext {
   @Override
   public <T> T parse(Parse<T> parse) {
     return delegate.parse(parse);
+  }
+
+  @Override
+  public void onClose(Action<? super ContextClose> callback) {
+    delegate.onClose(callback);
   }
 
   @Override
