@@ -16,9 +16,7 @@
 
 package ratpack.server.internal
 
-import ratpack.handling.internal.ContextClose
 import ratpack.test.internal.RatpackGroovyDslSpec
-import ratpack.util.Action
 
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
@@ -30,20 +28,17 @@ class CloseEventHandlerSpec extends RatpackGroovyDslSpec {
 
   def "close on successful request"() {
     def latch = new CountDownLatch(2)
-    def status
+    def status = null
 
     given:
     app {
       handlers {
 
         handler {
-          onClose(new Action<ContextClose>() {
-            @Override
-            void execute(ContextClose eventContext) {
-              status = eventContext.status
-              latch.countDown()
-            }
-          })
+          onClose {
+            status = response.status
+            latch.countDown()
+          }
 
           next()
         }
@@ -52,7 +47,6 @@ class CloseEventHandlerSpec extends RatpackGroovyDslSpec {
           latch.countDown()
           render ""
         }
-
       }
     }
 
@@ -67,21 +61,17 @@ class CloseEventHandlerSpec extends RatpackGroovyDslSpec {
 
   def "close on unsuccessful request"() {
     def latch = new CountDownLatch(1)
-    def status
+    def status = null
 
     given:
     app {
       handlers {
 
         handler {
-          onClose(new Action<ContextClose>() {
-            @Override
-            void execute(ContextClose eventContext) {
-              status = eventContext.status
-              latch.countDown()
-            }
-          })
-
+          onClose {
+            status = response.status
+            latch.countDown()
+          }
           next()
         }
 
@@ -110,21 +100,15 @@ class CloseEventHandlerSpec extends RatpackGroovyDslSpec {
       handlers {
 
         handler {
-          onClose(new Action<ContextClose>() {
-            @Override
-            void execute(ContextClose eventContext) {
-              events << "event1"
-              latch.countDown()
-            }
-          })
+          onClose {
+            events << "event1"
+            latch.countDown()
+          }
 
-          onClose(new Action<ContextClose>() {
-            @Override
-            void execute(ContextClose eventContext) {
-              events << "event2"
-              latch.countDown()
-            }
-          })
+          onClose {
+            events << "event2"
+            latch.countDown()
+          }
 
           next()
         }
@@ -133,7 +117,6 @@ class CloseEventHandlerSpec extends RatpackGroovyDslSpec {
           latch.countDown()
           render ""
         }
-
       }
     }
 
@@ -143,8 +126,6 @@ class CloseEventHandlerSpec extends RatpackGroovyDslSpec {
 
     then:
     latch.count == 0
-    // The onClose executions are off the main thread but all onClose executions happen
-    // on the same background thread.  Therefore order should be guaranteed.
     events == ["event1", "event2"]
   }
 }

@@ -19,6 +19,7 @@ package ratpack.groovy.handling;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import ratpack.handling.Context;
+import ratpack.handling.RequestOutcome;
 
 import static ratpack.groovy.background.GroovyBackground.GroovySuccessOrError;
 
@@ -66,5 +67,7 @@ public interface GroovyContext extends Context {
   void byMethod(@DelegatesTo(GroovyByMethodHandler.class) Closure<?> closure);
 
   void byContent(@DelegatesTo(GroovyByContentHandler.class) Closure<?> closure);
+
+  void onClose(@DelegatesTo(value = RequestOutcome.class, strategy = Closure.DELEGATE_FIRST) Closure<?> callback);
 
 }

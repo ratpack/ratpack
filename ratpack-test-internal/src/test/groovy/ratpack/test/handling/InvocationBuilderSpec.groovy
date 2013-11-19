@@ -18,7 +18,7 @@ package ratpack.test.handling
 
 import io.netty.util.CharsetUtil
 import ratpack.handling.Context
-import ratpack.handling.internal.ContextClose
+import ratpack.handling.RequestOutcome
 import ratpack.util.Action
 import spock.lang.Specification
 import spock.lang.Subject
@@ -179,16 +179,16 @@ class InvocationBuilderSpec extends Specification {
 
     when:
     invoke {
-      onClose(new Action<ContextClose>() {
+      onClose(new Action<RequestOutcome>() {
         @Override
-        void execute(ContextClose eventContext) {
+        void execute(RequestOutcome requestOutcome) {
           latch.countDown();
         }
       })
 
-      onClose(new Action<ContextClose>() {
+      onClose(new Action<RequestOutcome>() {
         @Override
-        void execute(ContextClose eventContext) {
+        void execute(RequestOutcome requestOutcome) {
           latch.countDown();
         }
       })

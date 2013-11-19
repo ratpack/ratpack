@@ -21,27 +21,26 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.util.CharsetUtil;
 import ratpack.background.Background;
+import ratpack.event.internal.DefaultEventController;
+import ratpack.event.internal.EventController;
 import ratpack.file.internal.FileHttpTransmitter;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
-import ratpack.handling.internal.ContextClose;
+import ratpack.handling.RequestOutcome;
 import ratpack.handling.internal.DefaultContext;
+import ratpack.handling.internal.DefaultRequestOutcome;
 import ratpack.handling.internal.DelegatingHeaders;
 import ratpack.http.*;
 import ratpack.http.internal.DefaultResponse;
 import ratpack.registry.Registry;
 import ratpack.render.NoSuchRendererException;
 import ratpack.server.BindAddress;
-import ratpack.server.internal.CloseEventHandler;
 import ratpack.test.handling.Invocation;
 import ratpack.test.handling.InvocationTimeoutException;
 import ratpack.util.Action;
-import ratpack.util.ExceptionUtils;
 
 import java.io.File;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -81,30 +80,12 @@ public class DefaultInvocation implements Invocation {
       }
     };
 
-    final CloseEventHandler closeEventHandler = new CloseEventHandler(null) {
-      private List<Action<? super ContextClose>> callbackList = new ArrayList<>();
+    final EventController<RequestOutcome> eventController = new DefaultEventController<>();
 
-      @Override
-      public void notify(ContextClose context) {
-        for (Action<? super ContextClose> callback : callbackList) {
-          try {
-            callback.execute(context);
-          } catch (Exception e) {
-            throw ExceptionUtils.uncheck(e);
-          }
-        }
-      }
-
-      @Override
-      public void addListener(Action<? super ContextClose> callback) {
-        callbackList.add(callback);
-      }
-    };
-
-    Runnable committer = new Runnable() {
-      public void run() {
+    Action<Response> committer = new Action<Response>() {
+      public void execute(Response response) {
         sentResponse = true;
-        closeEventHandler.notify(new ContextClose(System.currentTimeMillis(), request.getUri(), request.getMethod(), responseHeaders, status));
+        eventController.fire(new DefaultRequestOutcome(request, response, System.currentTimeMillis()));
         latch.countDown();
       }
     };
@@ -129,7 +110,7 @@ public class DefaultInvocation implements Invocation {
     };
 
     Response response = new DefaultResponse(status, responseHeaders, responseBody, fileHttpTransmitter, committer);
-    Context context = new DefaultContext(request, response, bindAddress, registry, mainExecutor, backgroundExecutor, next, closeEventHandler) {
+    Context context = new DefaultContext(request, response, bindAddress, registry, mainExecutor, backgroundExecutor, eventController.getRegistry(), next) {
       @Override
       public void render(Object object) throws NoSuchRendererException {
         rendered = object;

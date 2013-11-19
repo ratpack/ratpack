@@ -27,6 +27,7 @@ import ratpack.http.MutableHeaders;
 import ratpack.http.Response;
 import ratpack.http.Status;
 import ratpack.util.Action;
+import ratpack.util.ExceptionUtils;
 import ratpack.util.internal.IoUtils;
 
 import java.io.File;
@@ -46,12 +47,12 @@ public class DefaultResponse implements Response {
   private final MutableHeaders headers;
   private final ByteBuf body;
   private final FileHttpTransmitter fileHttpTransmitter;
-  private final Runnable committer;
+  private final Action<? super Response> committer;
 
   private boolean contentTypeSet;
   private Set<Cookie> cookies;
 
-  public DefaultResponse(Status status, MutableHeaders headers, ByteBuf body, FileHttpTransmitter fileHttpTransmitter, Runnable committer) {
+  public DefaultResponse(Status status, MutableHeaders headers, ByteBuf body, FileHttpTransmitter fileHttpTransmitter, Action<? super Response> committer) {
     this.status = status;
     this.fileHttpTransmitter = fileHttpTransmitter;
     this.headers = new MutableHeadersWrapper(headers);
@@ -270,6 +271,10 @@ public class DefaultResponse implements Response {
 
   private void commit() {
     setCookieHeader();
-    committer.run();
+    try {
+      committer.execute(this);
+    } catch (Exception e) {
+      throw ExceptionUtils.uncheck(e);
+    }
   }
 }

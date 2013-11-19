@@ -23,9 +23,11 @@ import ratpack.background.Background;
 import ratpack.background.internal.DefaultBackground;
 import ratpack.error.ClientErrorHandler;
 import ratpack.error.ServerErrorHandler;
+import ratpack.event.internal.EventRegistry;
 import ratpack.file.FileSystemBinding;
 import ratpack.handling.*;
 import ratpack.http.Request;
+import ratpack.handling.RequestOutcome;
 import ratpack.http.Response;
 import ratpack.parse.Parse;
 import ratpack.parse.Parser;
@@ -37,7 +39,6 @@ import ratpack.registry.RegistryBuilder;
 import ratpack.render.NoSuchRendererException;
 import ratpack.render.Renderer;
 import ratpack.server.BindAddress;
-import ratpack.server.internal.CloseEventHandler;
 import ratpack.util.Action;
 import ratpack.util.Factory;
 import ratpack.util.Result;
@@ -67,17 +68,18 @@ public class DefaultContext implements Context {
   private final Handler next;
   private final Registry registry;
   private final BindAddress bindAddress;
-  private final CloseEventHandler closeEventHandler;
 
-  public DefaultContext(Request request, Response response, BindAddress bindAddress, Registry registry, ExecutorService mainExecutorService, ListeningExecutorService backgroundExecutorService, Handler next, CloseEventHandler closeEventHandler) {
+  private final EventRegistry<RequestOutcome> onCloseRegistry;
+
+  public DefaultContext(Request request, Response response, BindAddress bindAddress, Registry registry, ExecutorService mainExecutorService, ListeningExecutorService backgroundExecutorService, EventRegistry<RequestOutcome> onCloseRegistry, Handler next) {
     this.request = request;
     this.response = response;
     this.bindAddress = bindAddress;
     this.registry = registry;
     this.mainExecutorService = mainExecutorService;
     this.backgroundExecutorService = backgroundExecutorService;
+    this.onCloseRegistry = onCloseRegistry;
     this.next = next;
-    this.closeEventHandler = closeEventHandler;
   }
 
   public Request getRequest() {
@@ -195,8 +197,8 @@ public class DefaultContext implements Context {
   }
 
   @Override
-  public void onClose(final Action<? super ContextClose> callback) {
-    this.closeEventHandler.addListener(callback);
+  public void onClose(Action<? super RequestOutcome> callback) {
+    this.onCloseRegistry.register(callback);
   }
 
   private <P, S extends Parse<P>> P maybeParse(String requestContentType, S parseSpec, Parser<?, ?> parser) {
@@ -341,7 +343,7 @@ public class DefaultContext implements Context {
           ((DefaultContext) exchange).doNext(parentContext, registry, handlers, index + 1, exhausted);
         }
       };
-      DefaultContext childExchange = new DefaultContext(request, response, bindAddress, registry, mainExecutorService, backgroundExecutorService, nextHandler, closeEventHandler);
+      DefaultContext childExchange = new DefaultContext(request, response, bindAddress, registry, mainExecutorService, backgroundExecutorService, onCloseRegistry, nextHandler);
       try {
         handler.handle(childExchange);
       } catch (Exception e) {
