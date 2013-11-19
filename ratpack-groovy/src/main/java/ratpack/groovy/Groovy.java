@@ -35,6 +35,8 @@ import ratpack.http.internal.DefaultMediaType;
 
 import java.util.Map;
 
+import static ratpack.util.ExceptionUtils.uncheck;
+
 public abstract class Groovy {
 
   private Groovy() {
@@ -77,7 +79,11 @@ public abstract class Groovy {
    * @param closure The definition closure, delegating to {@link ratpack.groovy.Groovy.Ratpack}
    */
   public static void ratpack(@DelegatesTo(value = Ratpack.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) {
-    RatpackScriptBacking.getBacking().execute(closure);
+    try {
+      RatpackScriptBacking.getBacking().execute(closure);
+    } catch (Exception e) {
+      throw uncheck(e);
+    }
   }
 
   /**

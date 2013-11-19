@@ -36,6 +36,6 @@ public interface ServerErrorHandler {
    * @param exception The exception that occurred
    */
   @NonBlocking
-  void error(Context context, Exception exception);
+  void error(Context context, Exception exception) throws Exception;
 
 }

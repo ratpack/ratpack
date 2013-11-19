@@ -26,7 +26,7 @@ import java.util.Map;
 
 public class TemplateRenderingServerErrorHandler implements ServerErrorHandler {
 
-  public void error(final Context context, final Exception exception) {
+  public void error(final Context context, final Exception exception) throws Exception {
     GroovyTemplateRenderingEngine renderer = context.get(GroovyTemplateRenderingEngine.class);
     Map<String, ?> model = ExceptionToTemplateModel.transform(context.getRequest(), exception);
 

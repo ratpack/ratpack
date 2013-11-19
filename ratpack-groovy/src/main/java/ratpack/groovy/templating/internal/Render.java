@@ -30,7 +30,7 @@ public class Render {
   private final LoadingCache<TemplateSource, CompiledTemplate> compiledTemplateCache;
   private final Transformer<String, TemplateSource> includeTransformer;
 
-  public Render(ByteBuf buffer, LoadingCache<TemplateSource, CompiledTemplate> compiledTemplateCache, TemplateSource templateSource, Map<String, ?> model, final Action<Result<ByteBuf>> handler, Transformer<String, TemplateSource> includeTransformer) {
+  public Render(ByteBuf buffer, LoadingCache<TemplateSource, CompiledTemplate> compiledTemplateCache, TemplateSource templateSource, Map<String, ?> model, final Action<Result<ByteBuf>> handler, Transformer<String, TemplateSource> includeTransformer) throws Exception {
     this.compiledTemplateCache = compiledTemplateCache;
     this.includeTransformer = includeTransformer;
 

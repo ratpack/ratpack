@@ -33,6 +33,8 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
+import static ratpack.util.ExceptionUtils.uncheck;
+
 public class DefaultTestHttpClient implements TestHttpClient {
 
   private final ApplicationUnderTest applicationUnderTest;
@@ -177,7 +179,11 @@ public class DefaultTestHttpClient implements TestHttpClient {
   public RequestSpecification createRequest() {
     RequestSpecification request = RestAssured.with().urlEncodingEnabled(false);
     if (requestConfigurer != null) {
-      requestConfigurer.execute(request);
+      try {
+        requestConfigurer.execute(request);
+      } catch (Exception e) {
+        throw uncheck(e);
+      }
     }
     return request;
   }

@@ -33,6 +33,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static ratpack.util.ExceptionUtils.uncheck;
+
 public class DefaultGuiceBackedHandlerFactory implements GuiceBackedHandlerFactory {
 
   private final LaunchConfig launchConfig;
@@ -45,7 +47,11 @@ public class DefaultGuiceBackedHandlerFactory implements GuiceBackedHandlerFacto
     DefaultModuleRegistry moduleRegistry = new DefaultModuleRegistry(launchConfig);
 
     registerDefaultModules(moduleRegistry);
-    modulesAction.execute(moduleRegistry);
+    try {
+      modulesAction.execute(moduleRegistry);
+    } catch (Exception e) {
+      throw uncheck(e);
+    }
 
     Module masterModule = null;
     List<? extends Module> modules = moduleRegistry.getModules();

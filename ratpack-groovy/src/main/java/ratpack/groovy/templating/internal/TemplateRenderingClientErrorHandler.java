@@ -28,7 +28,7 @@ import java.util.Map;
 
 public class TemplateRenderingClientErrorHandler implements ClientErrorHandler {
 
-  public void error(final Context context, final int statusCode) {
+  public void error(final Context context, final int statusCode) throws Exception {
     GroovyTemplateRenderingEngine renderer = context.get(GroovyTemplateRenderingEngine.class);
     Map<String, Object> model = new HashMap<>();
 

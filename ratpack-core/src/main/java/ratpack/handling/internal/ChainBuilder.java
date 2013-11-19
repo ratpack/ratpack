@@ -35,7 +35,11 @@ public class ChainBuilder {
   public <T> ImmutableList<Handler> buildList(Transformer<List<Handler>, ? extends T> transformer, Action<? super T> action) {
     List<Handler> handlers = new LinkedList<>();
     T thing = transformer.transform(handlers);
-    action.execute(thing);
+    try {
+      action.execute(thing);
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
     return ImmutableList.copyOf(handlers);
   }
 

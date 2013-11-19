@@ -78,7 +78,7 @@ allprojects {
 apply from: "gradle/idea/idea.gradle"
 
 ext {
-  groovyVersion = "2.1.9"
+  groovyVersion = "2.2.0"
   isSnapshot = version.endsWith("SNAPSHOT")
 
   commonVersions = [

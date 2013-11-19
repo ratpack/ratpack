@@ -64,12 +64,12 @@ public class GroovyTemplateRenderingEngine {
     templateDir = new File(launchConfig.getBaseDir(), templatingConfig.getTemplatesPath());
   }
 
-  public void renderTemplate(ByteBuf buffer, final String templateId, final Map<String, ?> model, final Action<Result<ByteBuf>> handler) {
+  public void renderTemplate(ByteBuf buffer, final String templateId, final Map<String, ?> model, final Action<Result<ByteBuf>> handler) throws Exception {
     final File templateFile = getTemplateFile(templateId);
     render(buffer, new FileTemplateSource(templateFile, templateId, reloadable), model, handler);
   }
 
-  public void renderError(ByteBuf buffer, Map<String, ?> model, Action<Result<ByteBuf>> handler) {
+  public void renderError(ByteBuf buffer, Map<String, ?> model, Action<Result<ByteBuf>> handler) throws Exception {
     final File errorTemplate = getTemplateFile(ERROR_TEMPLATE);
     if (errorTemplate.exists()) {
       render(buffer, new FileTemplateSource(errorTemplate, ERROR_TEMPLATE, reloadable), model, handler);
@@ -78,7 +78,7 @@ public class GroovyTemplateRenderingEngine {
     }
   }
 
-  private void render(ByteBuf buffer, final TemplateSource templateSource, Map<String, ?> model, Action<Result<ByteBuf>> handler) {
+  private void render(ByteBuf buffer, final TemplateSource templateSource, Map<String, ?> model, Action<Result<ByteBuf>> handler) throws Exception {
     try {
       new Render(buffer, compiledTemplateCache, templateSource, model, handler, new Transformer<String, TemplateSource>() {
         public TemplateSource transform(String templateName) {

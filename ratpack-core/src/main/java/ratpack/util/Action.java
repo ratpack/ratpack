@@ -28,6 +28,6 @@ public interface Action<T> {
    *
    * @param thing The thing to execute the action against.
    */
-  void execute(T thing);
+  void execute(T thing) throws Exception;
 
 }

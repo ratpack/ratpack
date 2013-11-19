@@ -33,6 +33,8 @@ import java.security.ProtectionDomain;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static ratpack.util.ExceptionUtils.uncheck;
+
 public class StandaloneScriptBacking implements Action<Closure<?>> {
 
   private final static AtomicReference<Action<? super RatpackServer>> CAPTURE_ACTION = new AtomicReference<Action<? super RatpackServer>>(null);
@@ -60,7 +62,11 @@ public class StandaloneScriptBacking implements Action<Closure<?>> {
 
     Action<? super RatpackServer> action = CAPTURE_ACTION.getAndSet(null);
     if (action != null) {
-      action.execute(ratpack);
+      try {
+        action.execute(ratpack);
+      } catch (Exception e) {
+        throw uncheck(e);
+      }
     }
 
     try {

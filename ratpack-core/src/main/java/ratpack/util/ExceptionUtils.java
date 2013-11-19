@@ -14,27 +14,16 @@
  * limitations under the License.
  */
 
-package ratpack.error;
+package ratpack.util;
 
-import ratpack.handling.Context;
+public abstract class ExceptionUtils {
 
-/**
- * The client error handler deals with errors that are due to the client doing something wrong.
- * <p>
- * Examples:
- * <ul>
- *   <li>Unsupported media type (415)
- *   <li>Unsupported method (405)
- * </ul>
- */
-public interface ClientErrorHandler {
-
-  /**
-   * Handle a client error.
-   *
-   * @param context The context
-   * @param statusCode The 4xx status code that explains the problem
-   */
-  void error(Context context, int statusCode) throws Exception;
+  public static RuntimeException uncheck(Exception e) {
+    if (e instanceof RuntimeException) {
+      return (RuntimeException) e;
+    } else {
+      return new RuntimeException(e);
+    }
+  }
 
 }

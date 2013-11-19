@@ -29,6 +29,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import static ratpack.util.ExceptionUtils.uncheck;
+
 public class DefaultModuleRegistry implements ModuleRegistry {
 
   private final Map<Class<? extends Module>, Module> modules = new LinkedHashMap<>();
@@ -149,7 +151,11 @@ public class DefaultModuleRegistry implements ModuleRegistry {
     return new Module() {
       public void configure(Binder binder) {
         for (Action<Binder> binderAction : actions.build()) {
-          binderAction.execute(binder);
+          try {
+            binderAction.execute(binder);
+          } catch (Exception e) {
+            throw uncheck(e);
+          }
         }
       }
     };

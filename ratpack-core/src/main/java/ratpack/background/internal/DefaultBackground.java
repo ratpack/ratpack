@@ -110,7 +110,11 @@ public class DefaultBackground implements Background {
 
         @Override
         public void onFailure(Throwable t) {
-          errorHandler.execute(t);
+          try {
+            errorHandler.execute(t);
+          } catch (Exception e) {
+            context.error(e);
+          }
         }
       }, mainExecutor);
     }

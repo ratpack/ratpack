@@ -34,7 +34,7 @@ public class TemplateRenderer extends RendererSupport<Template> {
     this.engine = engine;
   }
 
-  public void render(final Context context, final Template template) {
+  public void render(final Context context, final Template template) throws Exception {
     engine.renderTemplate(context.getResponse().getBody(), template.getId(), template.getModel(), context.resultAction(new Action<ByteBuf>() {
       public void execute(ByteBuf byteBuf) {
         String type = template.getType();

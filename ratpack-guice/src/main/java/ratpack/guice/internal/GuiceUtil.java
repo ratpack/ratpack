@@ -25,6 +25,8 @@ import ratpack.util.Action;
 
 import java.util.Map;
 
+import static ratpack.util.ExceptionUtils.uncheck;
+
 public abstract class GuiceUtil {
 
   private GuiceUtil() {
@@ -37,7 +39,11 @@ public abstract class GuiceUtil {
       if (type.getRawType().isAssignableFrom(rawType)) {
         @SuppressWarnings("unchecked")
         T thing = (T) keyBindingEntry.getValue().getProvider().get();
-        action.execute(thing);
+        try {
+          action.execute(thing);
+        } catch (Exception e) {
+          throw uncheck(e);
+        }
       }
     }
   }

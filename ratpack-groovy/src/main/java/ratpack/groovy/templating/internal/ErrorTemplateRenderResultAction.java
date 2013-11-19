@@ -38,7 +38,7 @@ class ErrorTemplateRenderResultAction implements ResultAction<ByteBuf> {
     this.errorMsgProducer = errorMsgProducer;
   }
 
-  public void execute(Result<ByteBuf> thing) {
+  public void execute(Result<ByteBuf> thing) throws Exception {
     if (thing.isSuccess()) {
       context.getResponse().send();
     } else {

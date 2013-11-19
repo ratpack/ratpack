@@ -264,7 +264,11 @@ public class DefaultContext implements Context {
   }
 
   public void clientError(int statusCode) {
-    get(ClientErrorHandler.class).error(this, statusCode);
+    try {
+      get(ClientErrorHandler.class).error(this, statusCode);
+    } catch (Exception e) {
+      dispatchException(e);
+    }
   }
 
   public void withErrorHandling(Runnable runnable) {
@@ -291,7 +295,11 @@ public class DefaultContext implements Context {
         if (result.isFailure()) {
           dispatchException(result.getFailure());
         } else {
-          action.execute(result.getValue());
+          try {
+            action.execute(result.getValue());
+          } catch (Exception e) {
+            dispatchException(e);
+          }
         }
       }
     };

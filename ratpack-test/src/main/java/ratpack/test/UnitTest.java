@@ -23,6 +23,8 @@ import ratpack.test.handling.InvocationTimeoutException;
 import ratpack.test.handling.internal.DefaultInvocationBuilder;
 import ratpack.util.Action;
 
+import static ratpack.util.ExceptionUtils.uncheck;
+
 public class UnitTest {
 
   /**
@@ -65,7 +67,11 @@ public class UnitTest {
    */
   public static Invocation invoke(Handler handler, Action<? super InvocationBuilder> action) throws InvocationTimeoutException {
     InvocationBuilder builder = invocationBuilder();
-    action.execute(builder);
+    try {
+      action.execute(builder);
+    } catch (Exception e) {
+      throw uncheck(e);
+    }
     return builder.invoke(handler);
   }
 
