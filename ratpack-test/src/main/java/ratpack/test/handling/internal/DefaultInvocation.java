@@ -36,6 +36,7 @@ import ratpack.server.internal.CloseEventHandler;
 import ratpack.test.handling.Invocation;
 import ratpack.test.handling.InvocationTimeoutException;
 import ratpack.util.Action;
+import ratpack.util.ExceptionUtils;
 
 import java.io.File;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -86,7 +87,11 @@ public class DefaultInvocation implements Invocation {
       @Override
       public void notify(ContextClose context) {
         for (Action<? super ContextClose> callback : callbackList) {
-          callback.execute(context);
+          try {
+            callback.execute(context);
+          } catch (Exception e) {
+            throw ExceptionUtils.uncheck(e);
+          }
         }
       }
 

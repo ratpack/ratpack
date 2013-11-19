@@ -22,7 +22,12 @@ import io.netty.channel.ChannelPromise;
 import ratpack.handling.internal.ContextClose;
 import ratpack.util.Action;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 public class CloseEventHandler implements EventHandler<ContextClose> {
+
+  private final static Logger LOGGER = Logger.getLogger(CloseEventHandler.class.getName());
 
   final private ChannelPromise closePromise;
   private ContextClose context;
@@ -42,7 +47,11 @@ public class CloseEventHandler implements EventHandler<ContextClose> {
     closePromise.addListener(new ChannelFutureListener() {
       @Override
       public void operationComplete(ChannelFuture future) {
-        callback.execute(context);
+        try {
+          callback.execute(context);
+        } catch (Exception e) {
+          LOGGER.log(Level.WARNING, "Exception raised by callback: ", e);
+        }
       }
     });
   }
