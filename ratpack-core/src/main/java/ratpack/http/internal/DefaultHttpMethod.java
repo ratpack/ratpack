@@ -50,6 +50,10 @@ public class DefaultHttpMethod implements HttpMethod {
     return name.equals("DELETE");
   }
 
+  public boolean isOptions() {
+    return name.equals("OPTIONS");
+  }
+
   public boolean name(String name) {
     if (name.equalsIgnoreCase("GET")) {
       return isGet();

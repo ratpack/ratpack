@@ -78,4 +78,49 @@ class PathAndMethodRoutingSpec extends RatpackGroovyDslSpec {
     postText("foo") == "common: post"
     put("foo").statusCode == 405
   }
+
+  def "options requests are handled for single method handlers"() {
+    when:
+    app {
+      handlers {
+        get("foo") {
+          render "foo"
+        }
+        post("bar") {
+          render "bar"
+        }
+      }
+    }
+
+    then:
+    options("foo")
+    response.header("Allow") == "GET"
+    response.statusCode == 200
+    options("bar")
+    response.header("Allow") == "POST"
+    response.statusCode == 200
+  }
+
+  def "options requests are handled for multi method handlers"() {
+    when:
+    app {
+      handlers {
+        handler {
+          byMethod {
+            get {
+              render "foo"
+            }
+            post {
+              render "bar"
+            }
+          }
+        }
+
+      }
+    }
+
+    then:
+    options()
+    response.header("Allow") == "GET,POST"
+  }
 }

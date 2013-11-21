@@ -18,6 +18,8 @@ package ratpack.http.internal;
 
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
+import ratpack.http.HttpMethod;
+import ratpack.http.Response;
 
 public class MethodHandler implements Handler {
 
@@ -33,8 +35,13 @@ public class MethodHandler implements Handler {
   }
 
   public void handle(Context context) {
-    if (context.getRequest().getMethod().name(method)) {
+    HttpMethod requestMethod = context.getRequest().getMethod();
+    if (requestMethod.name(method)) {
       context.next();
+    } else if (requestMethod.isOptions()) {
+      Response response = context.getResponse();
+      response.getHeaders().add("Allow", method);
+      response.status(200).send();
     } else {
       context.clientError(405);
     }

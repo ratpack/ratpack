@@ -58,6 +58,13 @@ public interface HttpMethod {
   boolean isDelete();
 
   /**
+   * True if the method is OPTIONS.
+   *
+   * @return True if the method is OPTIONS.
+   */
+  boolean isOptions();
+
+  /**
    * True if the method is HEAD.
    *
    * @return True if the method is HEAD.

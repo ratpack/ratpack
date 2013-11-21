@@ -34,6 +34,10 @@ public interface TestHttpClient {
 
   Response head(String path);
 
+  Response options();
+
+  Response options(String path);
+
   Response get();
 
   Response get(String path);

@@ -16,14 +16,12 @@
 
 package ratpack.handling.internal;
 
+import com.google.common.base.Joiner;
 import ratpack.handling.ByMethodHandler;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static io.netty.handler.codec.http.HttpResponseStatus.METHOD_NOT_ALLOWED;
 
@@ -32,23 +30,23 @@ public class DefaultByMethodHandler implements ByMethodHandler {
   private final Map<String, Runnable> runnables = new LinkedHashMap<>(2);
 
   public ratpack.handling.ByMethodHandler get(Runnable runnable) {
-    return named("get", runnable);
+    return named("GET", runnable);
   }
 
   public ratpack.handling.ByMethodHandler post(Runnable runnable) {
-    return named("post", runnable);
+    return named("POST", runnable);
   }
 
   public ratpack.handling.ByMethodHandler put(Runnable runnable) {
-    return named("put", runnable);
+    return named("PUT", runnable);
   }
 
   public ratpack.handling.ByMethodHandler delete(Runnable runnable) {
-    return named("delete", runnable);
+    return named("DELETE", runnable);
   }
 
   public ratpack.handling.ByMethodHandler named(String methodName, Runnable runnable) {
-    runnables.put(methodName.toLowerCase(), runnable);
+    runnables.put(methodName.toUpperCase(), runnable);
     return this;
   }
 
@@ -71,12 +69,18 @@ public class DefaultByMethodHandler implements ByMethodHandler {
   }
 
   public void handle(Context context) {
-    List<Handler> handlers = new ArrayList<>(runnables.size() + 1);
-    for (Map.Entry<String, Runnable> entry : runnables.entrySet()) {
-      handlers.add(new ByMethodHandler(entry.getKey(), entry.getValue()));
+    if (context.getRequest().getMethod().isOptions()) {
+      String methods = Joiner.on(",").join(runnables.keySet());
+      context.getResponse().getHeaders().add("Allow", methods);
+      context.getResponse().status(200).send();
+    } else {
+      List<Handler> handlers = new ArrayList<>(runnables.size() + 1);
+      for (Map.Entry<String, Runnable> entry : runnables.entrySet()) {
+        handlers.add(new ByMethodHandler(entry.getKey(), entry.getValue()));
+      }
+      handlers.add(new ClientErrorForwardingHandler(METHOD_NOT_ALLOWED.code()));
+      context.insert(handlers);
     }
-    handlers.add(new ClientErrorForwardingHandler(METHOD_NOT_ALLOWED.code()));
-    context.insert(handlers);
   }
 
 }
