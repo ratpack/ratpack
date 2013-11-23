@@ -28,6 +28,9 @@ import static ratpack.groovy.background.GroovyBackground.GroovySuccessOrError;
  */
 public interface GroovyContext extends Context {
 
+  @Override
+  GroovyContext getContext();
+
   /**
    * Used to perform a background operation <b>off</b> the request thread.
    * <p>
