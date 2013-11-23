@@ -40,7 +40,7 @@ public class MetricChannelHandler extends ChannelDuplexHandler {
 
   @Override
   public void flush(ChannelHandlerContext ctx) throws Exception {
-    if (timerContext != null) timerContext.stop();
+    if (timerContext != null) { timerContext.stop(); }
     super.flush(ctx);
   }
 
