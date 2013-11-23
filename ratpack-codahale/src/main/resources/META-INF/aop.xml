@@ -2,10 +2,10 @@
 
 <aspectj>
   <weaver>
-    <include within="org.ratpackframework..*"/>
+    <include within="ratpack..*"/>
   </weaver>
 
   <aspects>
-    <aspect name="org.ratpackframework.metrics.MetricCollectionAspect"/>
+    <aspect name="ratpack.codahale.MetricCollectionAspect"/>
   </aspects>
 </aspectj>

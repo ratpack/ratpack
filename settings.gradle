@@ -29,7 +29,7 @@ include \
     "ratpack-remote",
     "ratpack-jackson",
     "ratpack-reactor",
-    "ratpack-metrics"
+    "ratpack-codahale"
 
 include \
   "perftest",
