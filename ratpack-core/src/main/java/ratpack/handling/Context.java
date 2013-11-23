@@ -106,7 +106,7 @@ public interface Context extends Registry {
    * @param handlers The handlers to insert.
    */
   @NonBlocking
-  void insert(List<Handler> handlers);
+  void insert(List<? extends Handler> handlers);
 
   /**
    * Inserts some handlers into the pipeline to execute with the given registry, then delegates to the first.
@@ -119,7 +119,7 @@ public interface Context extends Registry {
    * @param registry The registry for the inserted handlers
    */
   @NonBlocking
-  void insert(List<Handler> handlers, Registry registry);
+  void insert(List<? extends Handler> handlers, Registry registry);
 
   /**
    * Inserts some handlers into the pipeline to execute with the given object created by the factory made available, then delegates to the first.
@@ -133,7 +133,7 @@ public interface Context extends Registry {
    * @param factory The factory that creates the object lazily
    */
   @NonBlocking
-  <T> void insert(List<Handler> handlers, Class<T> publicType, Factory<? extends T> factory);
+  <T> void insert(List<? extends Handler> handlers, Class<T> publicType, Factory<? extends T> factory);
 
   /**
    * Inserts some handlers into the pipeline to execute with the given object made available, then delegates to the first.
@@ -147,7 +147,7 @@ public interface Context extends Registry {
    * @param implementation The actual implementation
    */
   @NonBlocking
-  <P, T extends P> void insert(List<Handler> handlers, Class<P> publicType, T implementation);
+  <P, T extends P> void insert(List<? extends Handler> handlers, Class<P> publicType, T implementation);
 
   /**
    * Inserts some handlers into the pipeline to execute with the the given object added to the service, then delegates to the first.
@@ -158,7 +158,7 @@ public interface Context extends Registry {
    * @param object The object to add to the service for the handlers
    */
   @NonBlocking
-  void insert(List<Handler> handlers, Object object);
+  void insert(List<? extends Handler> handlers, Object object);
 
   /**
    * Convenience method for delegating to a single handler.

@@ -371,6 +371,7 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
 
     then:
     getText("foo.txt") == "bar"
+    response.statusCode == 200
     getText("other") == "after"
   }
 

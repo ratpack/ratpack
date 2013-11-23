@@ -16,6 +16,7 @@
 
 package ratpack.server.internal;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -138,8 +139,8 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
     InetSocketAddress socketAddress = (InetSocketAddress) channel.localAddress();
     BindAddress bindAddress = new InetSocketAddressBackedBindAddress(socketAddress);
 
-    Context context = new DefaultContext(request, response, bindAddress, registry, ctx.executor(), blockingExecutorService, requestOutcomeEventController.getRegistry(), return404);
-    handler.handle(context);
+    Context context = new DefaultContext(request, response, bindAddress, registry, ctx.executor(), blockingExecutorService, requestOutcomeEventController.getRegistry(), ImmutableList.<Handler>of(handler), 0, return404);
+    context.next();
   }
 
   @Override

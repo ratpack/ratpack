@@ -16,6 +16,7 @@
 
 package ratpack.handling.internal;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpResponseStatus;
@@ -27,7 +28,6 @@ import ratpack.event.internal.EventRegistry;
 import ratpack.file.FileSystemBinding;
 import ratpack.handling.*;
 import ratpack.http.Request;
-import ratpack.handling.RequestOutcome;
 import ratpack.http.Response;
 import ratpack.parse.Parse;
 import ratpack.parse.Parser;
@@ -65,13 +65,21 @@ public class DefaultContext implements Context {
 
   private final ExecutorService mainExecutorService;
   private final ListeningExecutorService backgroundExecutorService;
-  private final Handler next;
   private final Registry registry;
   private final BindAddress bindAddress;
 
   private final EventRegistry<RequestOutcome> onCloseRegistry;
 
-  public DefaultContext(Request request, Response response, BindAddress bindAddress, Registry registry, ExecutorService mainExecutorService, ListeningExecutorService backgroundExecutorService, EventRegistry<RequestOutcome> onCloseRegistry, Handler next) {
+  private final ImmutableList<? extends Handler> nextHandlers;
+  private final int nextIndex;
+
+  private final Handler exhausted;
+
+  public DefaultContext(
+    Request request, Response response, BindAddress bindAddress, Registry registry,
+    ExecutorService mainExecutorService, ListeningExecutorService backgroundExecutorService,
+    EventRegistry<RequestOutcome> onCloseRegistry, ImmutableList<? extends Handler> nextHandlers, int nextIndex,
+    Handler exhausted) {
     this.request = request;
     this.response = response;
     this.bindAddress = bindAddress;
@@ -79,7 +87,9 @@ public class DefaultContext implements Context {
     this.mainExecutorService = mainExecutorService;
     this.backgroundExecutorService = backgroundExecutorService;
     this.onCloseRegistry = onCloseRegistry;
-    this.next = next;
+    this.nextHandlers = nextHandlers;
+    this.nextIndex = nextIndex;
+    this.exhausted = exhausted;
   }
 
   public Request getRequest() {
@@ -103,31 +113,27 @@ public class DefaultContext implements Context {
   }
 
   public void next() {
-    try {
-      next.handle(this);
-    } catch (Exception e) {
-      dispatchException(e);
-    }
+    doNext(this, registry, nextIndex, nextHandlers, exhausted);
   }
 
-  public void insert(List<Handler> handlers) {
-    doNext(this, registry, handlers, 0, next);
+  public void insert(List<? extends Handler> handlers) {
+    doNext(this, registry, 0, ImmutableList.copyOf(handlers), new RejoinHandler());
   }
 
-  public void insert(List<Handler> handlers, Registry registry) {
-    doNext(this, RegistryBuilder.join(this.registry, registry), handlers, 0, next);
+  public void insert(List<? extends Handler> handlers, Registry registry) {
+    doNext(this, RegistryBuilder.join(this.registry, registry), 0, ImmutableList.copyOf(handlers), new RejoinHandler());
   }
 
   @Override
-  public <T> void insert(List<Handler> handlers, Class<T> publicType, Factory<? extends T> factory) {
+  public <T> void insert(List<? extends Handler> handlers, Class<T> publicType, Factory<? extends T> factory) {
     insert(handlers, RegistryBuilder.builder().add(publicType, factory).build());
   }
 
-  public <P, T extends P> void insert(List<Handler> handlers, Class<P> publicType, T implementation) {
+  public <P, T extends P> void insert(List<? extends Handler> handlers, Class<P> publicType, T implementation) {
     insert(handlers, RegistryBuilder.builder().add(publicType, implementation).build());
   }
 
-  public void insert(List<Handler> handlers, Object object) {
+  public void insert(List<? extends Handler> handlers, Object object) {
     insert(handlers, RegistryBuilder.builder().add(object).build());
   }
 
@@ -323,37 +329,36 @@ public class DefaultContext implements Context {
     return new DefaultByContentHandler();
   }
 
-  protected void doNext(final Context parentContext, final Registry registry, final List<Handler> handlers, final int index, final Handler exhausted) {
-    assert registry != null;
-    if (index == handlers.size()) {
-      try {
-        exhausted.handle(parentContext);
-      } catch (Exception e) {
-        if (e instanceof HandlerException) {
-          throw (HandlerException) e;
-        } else {
-          throw new HandlerException(this, e);
-        }
-      }
+  protected void doNext(Context parentContext, final Registry registry, final int nextIndex, final ImmutableList<? extends Handler> nextHandlers, Handler exhausted) {
+    Context context;
+    Handler handler;
 
+    if (nextIndex >= nextHandlers.size()) {
+      context = parentContext;
+      handler = exhausted;
     } else {
-      Handler handler = handlers.get(index);
-      Handler nextHandler = new Handler() {
-        public void handle(Context exchange) {
-          ((DefaultContext) exchange).doNext(parentContext, registry, handlers, index + 1, exhausted);
-        }
-      };
-      DefaultContext childExchange = new DefaultContext(request, response, bindAddress, registry, mainExecutorService, backgroundExecutorService, onCloseRegistry, nextHandler);
-      try {
-        handler.handle(childExchange);
-      } catch (Exception e) {
-        if (e instanceof HandlerException) {
-          throw (HandlerException) e;
-        } else {
-          throw new HandlerException(childExchange, e);
-        }
+      handler = nextHandlers.get(nextIndex);
+      context = createContext(registry, nextHandlers, nextIndex + 1, exhausted);
+    }
+
+    try {
+      handler.handle(context);
+    } catch (Exception e) {
+      if (e instanceof HandlerException) {
+        throw (HandlerException) e;
+      } else {
+        throw new HandlerException(context, e);
       }
     }
   }
 
+  private DefaultContext createContext(Registry registry, ImmutableList<? extends Handler> nextHandlers, int nextIndex, Handler exhausted) {
+    return new DefaultContext(request, response, bindAddress, registry, mainExecutorService, backgroundExecutorService, onCloseRegistry, nextHandlers, nextIndex, exhausted);
+  }
+
+  private class RejoinHandler implements Handler {
+    public void handle(Context context) throws Exception {
+      doNext(DefaultContext.this, registry, nextIndex, nextHandlers, exhausted);
+    }
+  }
 }
