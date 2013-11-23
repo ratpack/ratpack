@@ -116,6 +116,26 @@ public class DefaultContext implements Context {
     doNext(this, registry, nextIndex, nextHandlers, exhausted);
   }
 
+  @Override
+  public void next(Registry registry) {
+    doNext(this, RegistryBuilder.join(this.registry, registry), nextIndex, nextHandlers, exhausted);
+  }
+
+  @Override
+  public <T> void next(Class<T> publicType, Factory<? extends T> factory) {
+    next(RegistryBuilder.builder().add(publicType, factory).build());
+  }
+
+  @Override
+  public void next(Object object) {
+    next(RegistryBuilder.builder().add(object).build());
+  }
+
+  @Override
+  public <T> void next(Class<T> publicType, T impl) {
+    next(RegistryBuilder.builder().add(publicType, impl).build());
+  }
+
   public void insert(List<? extends Handler> handlers) {
     doNext(this, registry, 0, ImmutableList.copyOf(handlers), new RejoinHandler());
   }

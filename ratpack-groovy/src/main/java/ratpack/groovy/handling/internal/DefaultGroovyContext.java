@@ -108,6 +108,29 @@ public class DefaultGroovyContext implements GroovyContext {
 
   @Override
   @NonBlocking
+  public void next(Object object) {
+    delegate.next(object);
+  }
+
+  @Override
+  @NonBlocking
+  public <T> void next(Class<T> publicType, Factory<? extends T> factory) {
+    delegate.next(publicType, factory);
+  }
+
+  @Override
+  @NonBlocking
+  public void next(Registry registry) {
+    delegate.next(registry);
+  }
+
+  @Override
+  public <T> void next(Class<T> publicType, T impl) {
+    delegate.next(publicType, impl);
+  }
+
+  @Override
+  @NonBlocking
   public void insert(List<? extends Handler> handlers) {
     delegate.insert(handlers);
   }

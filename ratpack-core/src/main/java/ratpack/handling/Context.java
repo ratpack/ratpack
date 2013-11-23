@@ -98,6 +98,18 @@ public interface Context extends Registry {
   @NonBlocking
   void next();
 
+  @NonBlocking
+  void next(Registry registry);
+
+  @NonBlocking
+  <T> void next(Class<T> publicType, T implementation);
+
+  @NonBlocking
+  <T> void next(Class<T> publicType, Factory<? extends T> factory);
+
+  @NonBlocking
+  void next(Object object);
+
   /**
    * Inserts some handlers into the pipeline, then delegates to the first.
    * <p>
