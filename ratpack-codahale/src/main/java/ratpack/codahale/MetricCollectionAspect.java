@@ -14,17 +14,22 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.metrics;
+package ratpack.codahale;
 
-import com.codahale.metrics.JmxReporter;
-import com.google.inject.AbstractModule;
+import io.netty.channel.socket.SocketChannel;
+import org.aspectj.lang.annotation.After;
+import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.annotation.Pointcut;
 
+@Aspect
+public class MetricCollectionAspect {
 
-public class MetricsJmxReporterModule extends AbstractModule {
+  @Pointcut("execution(* ratpack.server.internal.RatpackChannelInitializer.initChannel(..))")
+  public void initChannel() {}
 
-  @Override
-  protected void configure() {
-    bind(JmxReporter.class).toProvider(JmxReporterProvider.class).asEagerSingleton();
+  @After(value = "initChannel() && args(ch)")
+  public void addMetricChannelHandler(SocketChannel ch) {
+    ch.pipeline().addBefore("handler", "metricHandler", new MetricChannelHandler());
   }
 
 }

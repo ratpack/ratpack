@@ -14,23 +14,19 @@
  * limitations under the License.
  */
 
-package org.ratpackframework.metrics;
+apply from: "$rootDir/gradle/javaModule.gradle"
 
-import com.codahale.metrics.JmxReporter;
-import com.codahale.metrics.MetricRegistry;
-import com.google.inject.Inject;
-import com.google.inject.Provider;
+dependencies {
+  compile project(":ratpack-core")
+  compile project(":ratpack-guice")
 
-public class JmxReporterProvider implements Provider<JmxReporter> {
+  compile 'org.aspectj:aspectjrt:1.7.3'
+  compile 'org.aspectj:aspectjweaver:1.7.3'
 
-  @Inject
-  private MetricRegistry metric;
+  compile 'com.codahale.metrics:metrics-core:3.0.1'
+  compile 'com.codahale.metrics:metrics-jvm:3.0.1'
+}
 
-  @Override
-  public JmxReporter get() {
-    JmxReporter reporter = JmxReporter.forRegistry(metric).build();
-    reporter.start();
-    return reporter;
-  }
-
+test {
+  jvmArgs "-javaagent:${configurations.runtime.files.find {it.name == 'aspectjweaver-1.7.3.jar'}.path}"
 }
