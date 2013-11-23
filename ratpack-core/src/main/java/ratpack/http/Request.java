@@ -16,6 +16,7 @@
 
 package ratpack.http;
 
+import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.Cookie;
 import ratpack.api.Nullable;
 import ratpack.util.MultiValueMap;
@@ -69,6 +70,8 @@ public interface Request {
    * @return TBD.
    */
   MultiValueMap<String, String> getQueryParams();
+
+  ByteBuf getBuffer();
 
   /**
    * TBD.

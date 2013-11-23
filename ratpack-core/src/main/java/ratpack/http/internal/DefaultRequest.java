@@ -145,7 +145,8 @@ public class DefaultRequest implements Request {
     return new ByteBufInputStream(getBuffer());
   }
 
-  private ByteBuf getBuffer() {
+  @Override
+  public ByteBuf getBuffer() {
     return content;
   }
 
