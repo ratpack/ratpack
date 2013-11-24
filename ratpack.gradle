@@ -82,7 +82,8 @@ ext {
   isSnapshot = version.endsWith("SNAPSHOT")
 
   commonVersions = [
-      remote: "0.5"
+      remote: "0.5",
+      slf4j: "1.7.5"
   ]
 
   commonDependencies = [
@@ -92,12 +93,13 @@ ext {
       groovy: dependencies.create("org.codehaus.groovy:groovy-all:$groovyVersion"),
       remote: "org.codehaus.groovy.modules.remote:remote-core:${commonVersions.remote}",
       "remote-http": "org.codehaus.groovy.modules.remote:remote-transport-http:${commonVersions.remote}",
-      jackson: "com.fasterxml.jackson.core:jackson-databind:2.2.2"
+      jackson: "com.fasterxml.jackson.core:jackson-databind:2.2.2",
+      slf4j: "org.slf4j:slf4j-api:${commonVersions.slf4j}"
   ]
 
   publishedModules = [
       "ratpack-core", "ratpack-groovy", "ratpack-guice", "ratpack-session", "ratpack-test", "ratpack-groovy-test",
-      "ratpack-manual", "ratpack-gradle", "ratpack-handlebars", "ratpack-remote", "ratpack-jackson"
+      "ratpack-manual", "ratpack-gradle", "ratpack-handlebars", "ratpack-remote", "ratpack-jackson", "ratpack-codahale"
   ].collect { project(it) }
 
   apiModules = publishedModules.findAll { !(it.name in ["ratpack-manual", "ratpack-gradle"]) }

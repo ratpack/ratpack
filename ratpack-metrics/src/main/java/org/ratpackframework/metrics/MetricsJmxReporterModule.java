@@ -14,12 +14,17 @@
  * limitations under the License.
  */
 
-apply from: "$rootDir/gradle/javaModule.gradle"
+package org.ratpackframework.metrics;
 
-dependencies {
-  compile project(":ratpack-guice")
-  compile ('com.github.jknack:handlebars:1.1.1'){
-    exclude group: 'org.slf4j', module: 'slf4j-api'
+import com.codahale.metrics.JmxReporter;
+import com.google.inject.AbstractModule;
+
+
+public class MetricsJmxReporterModule extends AbstractModule {
+
+  @Override
+  protected void configure() {
+    bind(JmxReporter.class).toProvider(JmxReporterProvider.class).asEagerSingleton();
   }
-  runtime commonDependencies.slf4j
+
 }

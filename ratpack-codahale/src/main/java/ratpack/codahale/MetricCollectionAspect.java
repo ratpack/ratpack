@@ -14,12 +14,22 @@
  * limitations under the License.
  */
 
-apply from: "$rootDir/gradle/javaModule.gradle"
+package ratpack.codahale;
 
-dependencies {
-  compile project(":ratpack-guice")
-  compile ('com.github.jknack:handlebars:1.1.1'){
-    exclude group: 'org.slf4j', module: 'slf4j-api'
+import io.netty.channel.socket.SocketChannel;
+import org.aspectj.lang.annotation.After;
+import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.annotation.Pointcut;
+
+@Aspect
+public class MetricCollectionAspect {
+
+  @Pointcut("execution(* ratpack.server.internal.RatpackChannelInitializer.initChannel(..))")
+  public void initChannel() {}
+
+  @After(value = "initChannel() && args(ch)")
+  public void addMetricChannelHandler(SocketChannel ch) {
+    ch.pipeline().addBefore("handler", "metricHandler", new MetricChannelHandler());
   }
-  runtime commonDependencies.slf4j
+
 }

@@ -28,7 +28,8 @@ include \
     "ratpack-handlebars",
     "ratpack-remote",
     "ratpack-jackson",
-    "ratpack-reactor"
+    "ratpack-reactor",
+    "ratpack-codahale"
 
 include \
   "perftest",
