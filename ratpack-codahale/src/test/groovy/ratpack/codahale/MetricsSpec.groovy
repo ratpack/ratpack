@@ -20,10 +20,12 @@ import com.codahale.metrics.*
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import ratpack.test.internal.RatpackGroovyDslSpec
+import spock.lang.Stepwise
 
 import java.lang.reflect.Field
 import java.util.concurrent.ExecutorService
 
+@Stepwise // TODO - rewrite these tests so they are not order dependent
 class MetricsSpec extends RatpackGroovyDslSpec {
 
   @Rule TemporaryFolder reportDirectory
