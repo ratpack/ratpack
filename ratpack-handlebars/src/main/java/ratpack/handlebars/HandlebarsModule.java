@@ -42,8 +42,10 @@ import java.io.File;
  * {@code other.handlebars.templatesPath} and {@code other.handlebars.templatesSuffix} configuration properties.
  * </p>
  * <p>
- * Response content type is determined based on the extension of the template file - i.e. for {@code handlebarsTemplate("template.html")}
- * it would be {@code text/html}. It can also be also manually specified if required, i.e. {@code handlebarsTemplate("template", model, "text/html")}
+ * Response content type can be manually specified, i.e. {@code handlebarsTemplate("template", model, "text/html")} or can
+ * be detected based on the template extension. Mapping between file extensions and content types is performed using
+ * {@link ratpack.file.MimeTypes} contextual object so content type for {@code handlebarsTemplate("template.html")}
+ * would be {@code text/html} by default.
  * </p>
  * <p>Custom handlebars helpers can be registered by binding instances of {@link ratpack.handlebars.NamedHelper}.</p>
  *
