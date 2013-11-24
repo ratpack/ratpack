@@ -92,6 +92,11 @@ public class DefaultContext implements Context {
     this.exhausted = exhausted;
   }
 
+  @Override
+  public Context getContext() {
+    return this;
+  }
+
   public Request getRequest() {
     return request;
   }

@@ -77,6 +77,13 @@ import java.util.concurrent.Callable;
 public interface Context extends Registry {
 
   /**
+   * Returns this.
+   *
+   * @return this.
+   */
+  Context getContext();
+
+  /**
    * The HTTP request.
    *
    * @return The HTTP request.

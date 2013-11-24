@@ -57,6 +57,11 @@ public class DefaultGroovyContext implements GroovyContext {
   }
 
   @Override
+  public GroovyContext getContext() {
+    return this;
+  }
+
+  @Override
   public <T> GroovyBackground.GroovySuccessOrError<T> background(Closure<T> operation) {
     return new DefaultGroovyBackground(this, getBackground()).block(operation);
   }
