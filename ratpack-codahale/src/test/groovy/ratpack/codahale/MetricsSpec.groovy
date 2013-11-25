@@ -20,15 +20,19 @@ import com.codahale.metrics.*
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import ratpack.test.internal.RatpackGroovyDslSpec
-import spock.lang.Stepwise
 
 import java.lang.reflect.Field
 import java.util.concurrent.ExecutorService
 
-@Stepwise // TODO - rewrite these tests so they are not order dependent
+import static ratpack.codahale.MetricsModule.registry
+
 class MetricsSpec extends RatpackGroovyDslSpec {
 
   @Rule TemporaryFolder reportDirectory
+
+  def setup() {
+    registry = new MetricRegistry()
+  }
 
   def "can register metrics module"() {
     MetricsModule metricsModule = new MetricsModule()
@@ -64,13 +68,10 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     get()
 
     then:
-    with (metricsModule.registry) {
+    with (registry) {
       listeners.size() == 1
       listeners[0].class.name == 'com.codahale.metrics.JmxReporter$JmxListener'
     }
-
-    cleanup:
-    metricsModule.registry.removeListener(metricsModule.registry.listeners[0])
   }
 
   def "can stop jmx reporter"() {
@@ -91,7 +92,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     get()
 
     then:
-    metricsModule.registry.listeners.size() == 0
+    registry.listeners.size() == 0
   }
 
   def "can register metrics module with csv reporter"() {
@@ -114,7 +115,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     get()
 
     then:
-    metricsModule.registry.listeners.size() == 0
+    registry.listeners.size() == 0
 
     Field field = ScheduledReporter.getDeclaredField("executor");
     field.setAccessible(true);
@@ -168,7 +169,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     get()
 
     then:
-    with (metricsModule.registry) {
+    with (registry) {
       listeners.size() == 1
       listeners[0].class.name == 'com.codahale.metrics.JmxReporter$JmxListener'
     }
@@ -177,9 +178,6 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     field.setAccessible(true);
     ExecutorService executor = field.get(reporter);
     !executor.isShutdown()
-
-    cleanup:
-    metricsModule.registry.removeListener(metricsModule.registry.listeners[0])
   }
 
   def "can collect custom metrics"() {
@@ -192,8 +190,8 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     given:
     app {
       modules {
-        requests = get(MetricsModule).registry.meter("requests")
-        get(MetricsModule).registry.addListener(reporter)
+        requests = registry.meter("requests")
+        registry.addListener(reporter)
       }
 
       handlers { MetricRegistry metrics ->
@@ -221,7 +219,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     given:
     app {
       modules {
-        get(MetricsModule).registry.addListener(reporter)
+        registry.addListener(reporter)
       }
 
       handlers { MetricRegistry metrics ->
