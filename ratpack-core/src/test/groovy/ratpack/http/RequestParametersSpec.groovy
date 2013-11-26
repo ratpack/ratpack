@@ -41,27 +41,4 @@ class RequestParametersSpec extends RatpackGroovyDslSpec {
     getText("?abc") == "[abc:[]]" && resetRequest()
   }
 
-  def "can get form params"() {
-    when:
-    app {
-      handlers {
-        post {
-          render request.form.toString()
-        }
-      }
-    }
-
-    then:
-    postText() == "[:]" && resetRequest()
-    request.with {
-      param "a", "b"
-    }
-    postText() == "[a:[b]]" && resetRequest()
-    request.with {
-      param "a", "b", "c"
-      param "d", "e"
-      param "abc"
-    }
-    postText() == "[a:[b, c], d:[e], abc:[]]" && resetRequest()
-  }
 }
