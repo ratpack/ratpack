@@ -175,7 +175,7 @@ public abstract class LaunchConfigFactory {
   public static LaunchConfig createWithBaseDir(ClassLoader classLoader, File baseDir, Properties properties) {
     TypeCoercingProperties props = new TypeCoercingProperties(properties, classLoader);
     try {
-      Class<HandlerFactory> handlerFactoryClass = null;
+      Class<HandlerFactory> handlerFactoryClass;
       handlerFactoryClass = props.asClass(Property.HANDLER_FACTORY, HandlerFactory.class);
       if (handlerFactoryClass == null) {
         throw new LaunchException("No handler factory class specified (config property: " + Property.HANDLER_FACTORY + ")");
@@ -189,6 +189,7 @@ public abstract class LaunchConfigFactory {
       List<String> indexFiles = props.asList(Property.INDEX_FILES);
       InputStream sslKeystore = props.asStream(Property.SSL_KEYSTORE_FILE);
       String sslKeystorePassword = props.asString(Property.SSL_KEYSTORE_PASSWORD, "");
+      int maxContentLength = props.asInt(Property.MAX_CONTENT_LENGTH, LaunchConfig.DEFAULT_MAX_CONTENT_LENGTH);
 
       Map<String, String> otherProperties = new HashMap<>();
       extractProperties("other.", properties, otherProperties);
@@ -206,6 +207,7 @@ public abstract class LaunchConfigFactory {
         .publicAddress(publicAddress)
         .reloadable(reloadable)
         .mainThreads(mainThreads)
+        .maxContentLength(maxContentLength)
         .indexFiles(indexFiles);
 
       if (sslKeystore != null) {
