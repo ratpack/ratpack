@@ -19,6 +19,7 @@ package ratpack.jackson.internal;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectReader;
 import ratpack.handling.Context;
+import ratpack.http.RequestBody;
 import ratpack.jackson.JsonParse;
 import ratpack.parse.ParserSupport;
 
@@ -41,9 +42,9 @@ public class JsonNodeParser extends ParserSupport<JsonNode, JsonParse<JsonNode>>
   }
 
   @Override
-  public JsonNode parse(Context context, JsonParse<JsonNode> parse) {
+  public JsonNode parse(Context context, RequestBody body, JsonParse<JsonNode> parse) {
     try {
-      InputStream inputStream = context.getRequest().getInputStream();
+      InputStream inputStream = body.getInputStream();
       return getObjectReader(parse).readTree(inputStream);
     } catch (IOException e) {
       throw new RuntimeException(e);

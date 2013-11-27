@@ -14,19 +14,9 @@
  * limitations under the License.
  */
 
-package ratpack.parse;
+package ratpack.form;
 
-import ratpack.handling.Context;
-import ratpack.http.RequestBody;
+import ratpack.parse.Parser;
 
-public interface Parser<T, P extends Parse<T>> {
-
-  String getContentType();
-
-  T parse(Context context, RequestBody requestBody, P parse);
-
-  Class<P> getParseType();
-
-  Class<T> getParsedType();
-
+public interface FormParser extends Parser<Form, FormParse> {
 }

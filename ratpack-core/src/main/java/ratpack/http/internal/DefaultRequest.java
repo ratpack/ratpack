@@ -48,7 +48,6 @@ public class DefaultRequest implements Request {
   private MediaType mediaType;
 
   private ImmutableDelegatingMultiValueMap<String, String> queryParams;
-  private ImmutableDelegatingMultiValueMap<String, String> form;
   private String query;
   private String path;
   private final HttpMethod method;
@@ -148,14 +147,6 @@ public class DefaultRequest implements Request {
   @Override
   public ByteBuf getBuffer() {
     return content;
-  }
-
-  public MultiValueMap<String, String> getForm() {
-    if (form == null) {
-      QueryStringDecoder formDecoder = new QueryStringDecoder(getText(), false);
-      form = new ImmutableDelegatingMultiValueMap<>(formDecoder.parameters());
-    }
-    return form;
   }
 
   public Set<Cookie> getCookies() {

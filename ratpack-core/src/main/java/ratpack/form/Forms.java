@@ -14,19 +14,14 @@
  * limitations under the License.
  */
 
-package ratpack.parse;
+package ratpack.form;
 
-import ratpack.handling.Context;
-import ratpack.http.RequestBody;
+import ratpack.form.internal.DefaultFormParse;
 
-public interface Parser<T, P extends Parse<T>> {
+public class Forms {
 
-  String getContentType();
-
-  T parse(Context context, RequestBody requestBody, P parse);
-
-  Class<P> getParseType();
-
-  Class<T> getParsedType();
+  public static FormParse form() {
+    return new DefaultFormParse();
+  }
 
 }

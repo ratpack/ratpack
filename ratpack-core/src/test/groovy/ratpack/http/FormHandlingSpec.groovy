@@ -16,15 +16,9 @@
 
 package ratpack.http
 
-import io.netty.handler.codec.http.*
-import io.netty.handler.codec.http.multipart.Attribute
-import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder
-import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder.EndOfDataDecoderException
-import io.netty.handler.codec.http.multipart.InterfaceHttpData
-import ratpack.handling.Context
 import ratpack.test.internal.RatpackGroovyDslSpec
-import ratpack.util.MultiValueMap
-import ratpack.util.internal.ImmutableDelegatingMultiValueMap
+
+import static ratpack.form.Forms.form
 
 class FormHandlingSpec extends RatpackGroovyDslSpec {
 
@@ -33,12 +27,14 @@ class FormHandlingSpec extends RatpackGroovyDslSpec {
     app {
       handlers {
         post {
-          render request.form.toString()
+          def form = parse form()
+          render form.toString()
         }
       }
     }
 
     then:
+    request.header("Content-Type", "application/x-www-form-urlencoded")
     postText() == "[:]" && resetRequest()
     request.with {
       param "a", "b"
@@ -47,7 +43,7 @@ class FormHandlingSpec extends RatpackGroovyDslSpec {
     request.with {
       param "a", "b", "c"
       param "d", "e"
-      param "abc"
+      param "abc", ""
     }
     postText() == "[a:[b, c], d:[e], abc:[]]" && resetRequest()
   }
@@ -57,7 +53,8 @@ class FormHandlingSpec extends RatpackGroovyDslSpec {
     app {
       handlers {
         post {
-          render FormDecoder.parseForm(context).toString()
+          def form = parse form()
+          render form.toString()
         }
       }
     }
@@ -65,40 +62,31 @@ class FormHandlingSpec extends RatpackGroovyDslSpec {
     and:
     request.multiPart("foo", "1", "text/plain")
     request.multiPart("bar", "2", "text/plain")
+    request.multiPart("bar", "3", "text/plain")
 
     then:
-    postText() == "[foo:[1], bar:[2]]"
+    postText() == "[foo:[1], bar:[2, 3]]"
   }
 
-  static class FormDecoder {
+  def "can handle file uploads"() {
+    given:
+    def fooFile = file("foo.txt") << "bar"
 
-    static MultiValueMap<String, String> parseForm(Context context) {
-      def method = io.netty.handler.codec.http.HttpMethod.valueOf(context.request.method.name)
-      def nettyRequest = new DefaultHttpRequest(HttpVersion.HTTP_1_1, method, context.request.uri)
-      nettyRequest.headers().add(HttpHeaders.Names.CONTENT_TYPE, context.request.contentType.toString())
-      def decoder = new HttpPostRequestDecoder(nettyRequest)
+    when:
+    app {
+      modules {
 
-      def content = new DefaultHttpContent(context.request.buffer)
-      decoder.offer(content)
-      decoder.offer(LastHttpContent.EMPTY_LAST_CONTENT)
-
-      Map<String, List<String>> backingMap = [:].withDefault { new ArrayList<>(1) }
-
-      InterfaceHttpData data
-      try {
-        while (data = decoder.next()) {
-          if (data.httpDataType == InterfaceHttpData.HttpDataType.Attribute) {
-            backingMap.get(data.name) << ((Attribute) data).value
-          }
-          data.release()
-        }
-      } catch (EndOfDataDecoderException ignore) {
       }
-
-      decoder.destroy()
-
-      new ImmutableDelegatingMultiValueMap<String, String>(backingMap)
+      handlers {
+        post {
+          def form = parse form()
+          render "File content: " + form.file("theFile").text
+        }
+      }
     }
 
+    then:
+    request.multiPart("theFile", fooFile)
+    postText() == "File content: bar"
   }
 }

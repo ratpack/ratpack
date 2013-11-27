@@ -14,19 +14,23 @@
  * limitations under the License.
  */
 
-package ratpack.parse;
+package ratpack.form;
 
-import ratpack.handling.Context;
-import ratpack.http.RequestBody;
+import io.netty.buffer.ByteBuf;
+import ratpack.api.Nullable;
+import ratpack.http.MediaType;
 
-public interface Parser<T, P extends Parse<T>> {
+public interface UploadedFile {
 
-  String getContentType();
+  MediaType getContentType();
 
-  T parse(Context context, RequestBody requestBody, P parse);
+  @Nullable
+  String getFileName();
 
-  Class<P> getParseType();
+  ByteBuf getBuffer();
 
-  Class<T> getParsedType();
+  byte[] getBytes();
+
+  String getText();
 
 }

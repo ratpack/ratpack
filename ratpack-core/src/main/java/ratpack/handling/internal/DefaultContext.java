@@ -28,7 +28,9 @@ import ratpack.event.internal.EventRegistry;
 import ratpack.file.FileSystemBinding;
 import ratpack.handling.*;
 import ratpack.http.Request;
+import ratpack.http.RequestBody;
 import ratpack.http.Response;
+import ratpack.http.internal.ByteBufBackedRequestBody;
 import ratpack.parse.Parse;
 import ratpack.parse.Parser;
 import ratpack.path.PathBinding;
@@ -224,7 +226,7 @@ public class DefaultContext implements Context {
       }
     }
 
-    throw new RuntimeException("No parser for " + parse);
+    throw new RuntimeException("No parser for " + parse + " and content type " + requestContentType);
   }
 
   @Override
@@ -235,7 +237,8 @@ public class DefaultContext implements Context {
   private <P, S extends Parse<P>> P maybeParse(String requestContentType, S parseSpec, Parser<?, ?> parser) {
     if (requestContentType.equalsIgnoreCase(parser.getContentType()) && parser.getParseType().isInstance(parseSpec)) {
       @SuppressWarnings("unchecked") Parser<P, S> castParser = (Parser<P, S>) parser;
-      return castParser.parse(this, parseSpec);
+      RequestBody requestBody = new ByteBufBackedRequestBody(getRequest(), getRequest().getBuffer());
+      return castParser.parse(this, requestBody, parseSpec);
     } else {
       return null;
     }

@@ -14,19 +14,24 @@
  * limitations under the License.
  */
 
-package ratpack.parse;
+package ratpack.http;
 
-import ratpack.handling.Context;
-import ratpack.http.RequestBody;
+import io.netty.buffer.ByteBuf;
 
-public interface Parser<T, P extends Parse<T>> {
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
-  String getContentType();
+public interface RequestBody {
 
-  T parse(Context context, RequestBody requestBody, P parse);
+  String getText();
 
-  Class<P> getParseType();
+  byte[] getBytes();
 
-  Class<T> getParsedType();
+  ByteBuf getBuffer();
 
+  void writeTo(OutputStream outputStream) throws IOException;
+
+  InputStream getInputStream();
 }
+

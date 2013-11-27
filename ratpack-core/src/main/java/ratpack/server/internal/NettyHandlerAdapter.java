@@ -34,6 +34,9 @@ import ratpack.file.FileRenderer;
 import ratpack.file.FileSystemBinding;
 import ratpack.file.MimeTypes;
 import ratpack.file.internal.*;
+import ratpack.form.FormParser;
+import ratpack.form.internal.MultipartFormParser;
+import ratpack.form.internal.UrlEncodedFormParser;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.handling.Redirector;
@@ -86,6 +89,8 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
       .add(LaunchConfig.class, launchConfig)
       .add(FileRenderer.class, new DefaultFileRenderer())
       .add(CharSequenceRenderer.class, new DefaultCharSequenceRenderer())
+      .add(FormParser.class, new UrlEncodedFormParser())
+      .add(FormParser.class, new MultipartFormParser())
       .build();
   }
 

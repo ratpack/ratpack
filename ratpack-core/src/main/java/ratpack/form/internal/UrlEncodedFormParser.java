@@ -14,19 +14,25 @@
  * limitations under the License.
  */
 
-package ratpack.parse;
+package ratpack.form.internal;
 
+import ratpack.form.Form;
+import ratpack.form.FormParse;
+import ratpack.form.FormParser;
 import ratpack.handling.Context;
 import ratpack.http.RequestBody;
+import ratpack.parse.ParserSupport;
 
-public interface Parser<T, P extends Parse<T>> {
+public class UrlEncodedFormParser extends ParserSupport<Form, FormParse> implements FormParser {
 
-  String getContentType();
+  @Override
+  public String getContentType() {
+    return "application/x-www-form-urlencoded";
+  }
 
-  T parse(Context context, RequestBody requestBody, P parse);
-
-  Class<P> getParseType();
-
-  Class<T> getParsedType();
+  @Override
+  public Form parse(Context context, RequestBody requestBody, FormParse parse) {
+    return FormDecoder.parseForm(context, requestBody);
+  }
 
 }

@@ -74,13 +74,6 @@ public interface Request {
   ByteBuf getBuffer();
 
   /**
-   * TBD.
-   *
-   * @return TBD.
-   */
-  MultiValueMap<String, String> getForm();
-
-  /**
    * A structured representation of the "Content-Type" header value of the request.
    *
    * @return A structured representation of the "Content-Type" header value of the request.

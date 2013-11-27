@@ -14,19 +14,18 @@
  * limitations under the License.
  */
 
-package ratpack.parse;
+package ratpack.form;
 
-import ratpack.handling.Context;
-import ratpack.http.RequestBody;
+import ratpack.util.MultiValueMap;
 
-public interface Parser<T, P extends Parse<T>> {
+import java.util.List;
 
-  String getContentType();
+public interface Form extends MultiValueMap<String, String> {
 
-  T parse(Context context, RequestBody requestBody, P parse);
+  UploadedFile file(String name);
 
-  Class<P> getParseType();
+  List<UploadedFile> files(String name);
 
-  Class<T> getParsedType();
+  MultiValueMap<String, UploadedFile> files();
 
 }

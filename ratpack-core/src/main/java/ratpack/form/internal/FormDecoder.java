@@ -1,0 +1,104 @@
+/*
+ * Copyright 2013 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package ratpack.form.internal;
+
+import io.netty.buffer.ByteBuf;
+import io.netty.handler.codec.http.*;
+import io.netty.handler.codec.http.multipart.Attribute;
+import io.netty.handler.codec.http.multipart.FileUpload;
+import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
+import io.netty.handler.codec.http.multipart.InterfaceHttpData;
+import ratpack.form.Form;
+import ratpack.form.UploadedFile;
+import ratpack.handling.Context;
+import ratpack.http.Request;
+import ratpack.http.RequestBody;
+import ratpack.http.internal.DefaultMediaType;
+import ratpack.util.internal.ImmutableDelegatingMultiValueMap;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+import static ratpack.util.ExceptionUtils.uncheck;
+
+public abstract class FormDecoder {
+
+  public static Form parseForm(Context context, RequestBody requestBody) throws RuntimeException {
+    Request request = context.getRequest();
+    HttpMethod method = io.netty.handler.codec.http.HttpMethod.valueOf(request.getMethod().getName());
+    HttpRequest nettyRequest = new DefaultHttpRequest(HttpVersion.HTTP_1_1, method, request.getUri());
+    nettyRequest.headers().add(HttpHeaders.Names.CONTENT_TYPE, request.getContentType().toString());
+    HttpPostRequestDecoder decoder = new HttpPostRequestDecoder(nettyRequest);
+
+    HttpContent content = new DefaultHttpContent(requestBody.getBuffer());
+
+    decoder.offer(content);
+    decoder.offer(LastHttpContent.EMPTY_LAST_CONTENT);
+
+    Map<String, List<String>> attributes = new LinkedHashMap<>();
+    Map<String, List<UploadedFile>> files = new LinkedHashMap<>();
+
+    try {
+      InterfaceHttpData data = decoder.next();
+      while (data != null) {
+        if (data.getHttpDataType().equals(InterfaceHttpData.HttpDataType.Attribute)) {
+          List<String> values = attributes.get(data.getName());
+          if (values == null) {
+            values = new ArrayList<>(1);
+            attributes.put(data.getName(), values);
+          }
+          try {
+            values.add(((Attribute) data).getValue());
+          } catch (IOException e) {
+            throw uncheck(e);
+          } finally {
+            data.release();
+          }
+        } else if (data.getHttpDataType().equals(InterfaceHttpData.HttpDataType.FileUpload)) {
+          List<UploadedFile> values = files.get(data.getName());
+          if (values == null) {
+            values = new ArrayList<>(1);
+            files.put(data.getName(), values);
+          }
+          try {
+            FileUpload nettyFileUpload = (FileUpload) data;
+            ByteBuf byteBuf = nettyFileUpload.getByteBuf();
+
+            UploadedFile fileUpload = new DefaultUploadedFile(DefaultMediaType.get(nettyFileUpload.getContentType()), byteBuf, nettyFileUpload.getFilename());
+
+            values.add(fileUpload);
+          } catch (IOException e) {
+            throw uncheck(e);
+          } finally {
+            data.release();
+          }
+        }
+        data = decoder.next();
+      }
+    } catch (HttpPostRequestDecoder.EndOfDataDecoderException ignore) {
+      // ignore
+    } finally {
+      decoder.destroy();
+    }
+
+    return new DefaultForm(new ImmutableDelegatingMultiValueMap<>(attributes), new ImmutableDelegatingMultiValueMap<>(files));
+  }
+
+}
