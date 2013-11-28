@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ratpack.codahale;
+package ratpack.codahale.internal;
 
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;

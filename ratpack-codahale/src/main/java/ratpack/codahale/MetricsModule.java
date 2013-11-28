@@ -25,6 +25,7 @@ import com.google.inject.Singleton;
 import com.google.inject.name.Names;
 import ratpack.codahale.internal.CsvReporterProvider;
 import ratpack.codahale.internal.JmxReporterProvider;
+import ratpack.codahale.internal.MetricHandler;
 import ratpack.guice.HandlerDecoratingModule;
 import ratpack.handling.Handler;
 
