@@ -21,20 +21,16 @@ import com.codahale.metrics.JmxReporter;
 import com.codahale.metrics.MetricRegistry;
 import com.google.inject.AbstractModule;
 import com.google.inject.Injector;
-import com.google.inject.Provider;
 import com.google.inject.Singleton;
-import com.google.inject.name.Named;
 import com.google.inject.name.Names;
+import ratpack.codahale.internal.CsvReporterProvider;
+import ratpack.codahale.internal.JmxReporterProvider;
 import ratpack.guice.HandlerDecoratingModule;
 import ratpack.handling.Handler;
 
-import javax.inject.Inject;
 import java.io.File;
-import java.util.concurrent.TimeUnit;
 
 public class MetricsModule extends AbstractModule implements HandlerDecoratingModule {
-
-  private static final String CSV_REPORT_DIRECTORY = "ratpack.codahale.MetricsModule.csvReportDirectory";
 
   private boolean reportToJmx;
   private boolean reportToCsv;
@@ -49,7 +45,7 @@ public class MetricsModule extends AbstractModule implements HandlerDecoratingMo
     }
 
     if (reportToCsv) {
-      bind(File.class).annotatedWith(Names.named("ratpack.codahale.MetricsModule.csvReportDirectory")).toInstance(csvReportDirectory);
+      bind(File.class).annotatedWith(Names.named(CsvReporterProvider.CSV_REPORT_DIRECTORY)).toInstance(csvReportDirectory);
       bind(CsvReporter.class).toProvider(CsvReporterProvider.class).asEagerSingleton();
     }
   }
@@ -67,40 +63,6 @@ public class MetricsModule extends AbstractModule implements HandlerDecoratingMo
     this.reportToCsv = true;
     csvReportDirectory = reportDirectory;
     return this;
-  }
-
-  static class JmxReporterProvider implements Provider<JmxReporter> {
-    private final MetricRegistry metricRegistry;
-
-    @Inject
-    JmxReporterProvider(MetricRegistry metricRegistry) {
-      this.metricRegistry = metricRegistry;
-    }
-
-    @Override
-    public JmxReporter get() {
-      JmxReporter reporter = JmxReporter.forRegistry(metricRegistry).build();
-      reporter.start();
-      return reporter;
-    }
-  }
-
-  static class CsvReporterProvider implements Provider<CsvReporter> {
-    private final MetricRegistry metricRegistry;
-    private final File csvReportDirectory;
-
-    @Inject
-    CsvReporterProvider(MetricRegistry metricRegistry, @Named(CSV_REPORT_DIRECTORY) File csvReportDirectory) {
-      this.metricRegistry = metricRegistry;
-      this.csvReportDirectory = csvReportDirectory;
-    }
-
-    @Override
-    public CsvReporter get() {
-      CsvReporter reporter = CsvReporter.forRegistry(metricRegistry).build(csvReportDirectory);
-      reporter.start(1, TimeUnit.SECONDS);
-      return reporter;
-    }
   }
 
   @Override

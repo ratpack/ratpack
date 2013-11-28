@@ -1,3 +1,4 @@
+import ratpack.codahale.MetricsModule
 import ratpack.error.ClientErrorHandler
 import ratpack.groovy.templating.TemplatingModule
 import ratpack.site.RatpackVersions
@@ -8,6 +9,7 @@ import static ratpack.groovy.Groovy.*
 
 ratpack {
   modules {
+    register new MetricsModule().reportToJmx()
     register new VersionsModule(getClass().classLoader)
     bind ClientErrorHandler, new SiteErrorHandler()
 

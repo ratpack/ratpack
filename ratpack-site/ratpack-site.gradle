@@ -61,6 +61,7 @@ sourceSets {
 dependencies {
   springloaded "org.springsource.springloaded:springloaded-core:1.1.1"
   compile project(":ratpack-groovy")
+  compile project(":ratpack-codahale")
   testCompile project(":ratpack-groovy-test")
   testCompile commonDependencies.spock
   testCompile 'org.jsoup:jsoup:1.7.2'
