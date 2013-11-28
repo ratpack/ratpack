@@ -20,13 +20,6 @@ dependencies {
   compile project(":ratpack-core")
   compile project(":ratpack-guice")
 
-  compile 'org.aspectj:aspectjrt:1.7.3'
-  compile 'org.aspectj:aspectjweaver:1.7.3'
-
   compile 'com.codahale.metrics:metrics-core:3.0.1'
   compile 'com.codahale.metrics:metrics-jvm:3.0.1'
-}
-
-test {
-  jvmArgs "-javaagent:${configurations.runtime.files.find {it.name == 'aspectjweaver-1.7.3.jar'}.path}"
 }

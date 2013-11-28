@@ -17,6 +17,7 @@
 package ratpack.codahale
 
 import com.codahale.metrics.*
+import com.google.inject.AbstractModule
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import ratpack.test.internal.RatpackGroovyDslSpec
@@ -28,18 +29,15 @@ import static ratpack.codahale.MetricsModule.registry
 
 class MetricsSpec extends RatpackGroovyDslSpec {
 
-  @Rule TemporaryFolder reportDirectory
-
-  def setup() {
-    registry = new MetricRegistry()
-  }
+  @Rule
+  TemporaryFolder reportDirectory
 
   def "can register metrics module"() {
-    MetricsModule metricsModule = new MetricsModule()
-    modules << metricsModule
-
     when:
     app {
+      modules {
+        register new MetricsModule()
+      }
       handlers { MetricRegistry metrics ->
         handler {
           render metrics.getClass().name
@@ -48,153 +46,49 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    getText() == "com.codahale.metrics.MetricRegistry"
+    text == "com.codahale.metrics.MetricRegistry"
   }
 
-  def "can register metrics module with jmx reporter"() {
-    MetricsModule metricsModule = new MetricsModule().reportToJmx()
-    modules << metricsModule
+  def "can register reporters"() {
+    when:
+    List<MetricRegistryListener> listeners = null
 
-    given:
     app {
+      modules {
+        register new MetricsModule().reportToJmx().reportToCsv(reportDirectory.root)
+      }
       handlers { MetricRegistry metrics ->
         handler {
-          render ""
+          //noinspection GroovyAccessibility
+          listeners = metrics.listeners
+          render "ok"
         }
       }
     }
 
-    when:
-    get()
-
     then:
-    with (registry) {
-      listeners.size() == 1
-      listeners[0].class.name == 'com.codahale.metrics.JmxReporter$JmxListener'
-    }
-  }
-
-  def "can stop jmx reporter"() {
-    MetricsModule metricsModule = new MetricsModule().reportToJmx()
-    modules << metricsModule
-
-    given:
-    app {
-      handlers { MetricRegistry metrics, JmxReporter jmxReporter ->
-        handler {
-          jmxReporter.stop()
-          render ""
-        }
-      }
-    }
-
-    when:
-    get()
-
-    then:
-    registry.listeners.size() == 0
-  }
-
-  def "can register metrics module with csv reporter"() {
-    MetricsModule metricsModule = new MetricsModule().reportToCsv(reportDirectory.root)
-    modules << metricsModule
-    CsvReporter reporter = null
-
-    given:
-    app {
-      handlers { MetricRegistry metrics, CsvReporter csvReporter ->
-        handler {
-          reporter = csvReporter
-          render ""
-        }
-      }
-
-    }
-
-    when:
-    get()
-
-    then:
-    registry.listeners.size() == 0
-
-    Field field = ScheduledReporter.getDeclaredField("executor");
-    field.setAccessible(true);
-    ExecutorService executor = field.get(reporter);
-    !executor.isShutdown()
-  }
-
-  def "can stop csv reporter"() {
-    MetricsModule metricsModule = new MetricsModule().reportToCsv(reportDirectory.root)
-    modules << metricsModule
-    CsvReporter reporter = null
-
-    given:
-    app {
-      handlers { MetricRegistry metrics, CsvReporter csvReporter ->
-        handler {
-          reporter = csvReporter
-          csvReporter.stop()
-          render ""
-        }
-      }
-
-    }
-
-    when:
-    get()
-
-    then:
-    Field field = ScheduledReporter.getDeclaredField("executor");
-    field.setAccessible(true);
-    ExecutorService executor = field.get(reporter);
-    executor.isShutdown()
-  }
-
-  def "can register metrics module with multiple reporters"() {
-    MetricsModule metricsModule = new MetricsModule().reportToCsv(reportDirectory.root).reportToJmx()
-    modules << metricsModule
-    CsvReporter reporter = null
-
-    given:
-    app {
-      handlers { MetricRegistry metrics, CsvReporter csvReporter ->
-        handler {
-          reporter = csvReporter
-          render ""
-        }
-      }
-    }
-
-    when:
-    get()
-
-    then:
-    with (registry) {
-      listeners.size() == 1
-      listeners[0].class.name == 'com.codahale.metrics.JmxReporter$JmxListener'
-    }
-
-    Field field = ScheduledReporter.getDeclaredField("executor");
-    field.setAccessible(true);
-    ExecutorService executor = field.get(reporter);
-    !executor.isShutdown()
+    text == "ok"
+    listeners.size() == 1 // JMX listener
+    sleep 1100 // csv reporter polls every second - TODO use a spin assert
+    reportDirectory.root.listFiles().length > 0
   }
 
   def "can collect custom metrics"() {
-    MetricsModule metricsModule = new MetricsModule()
-    modules << metricsModule
-
-    MetricRegistryListener reporter = Mock()
+    def reporter = Mock(MetricRegistryListener)
     Meter requests = null
 
     given:
     app {
       modules {
-        requests = registry.meter("requests")
-        registry.addListener(reporter)
+        register new MetricsModule()
       }
 
       handlers { MetricRegistry metrics ->
+        // TODO this is a bad place to do this - We should auto register user added MetricRegistryListeners
+        // Also need to consider a more general post startup hook
+        requests = metrics.meter("requests")
+        metrics.addListener(reporter)
+
         handler {
           metrics.meter("requests").mark()
           render ""
@@ -203,7 +97,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     }
 
     when:
-    2.times {get()}
+    2.times { get() }
 
     then:
     1 * reporter.onMeterAdded("requests", !null)
@@ -211,27 +105,25 @@ class MetricsSpec extends RatpackGroovyDslSpec {
   }
 
   def "can collect request timer metrics"() {
-    MetricsModule metricsModule = new MetricsModule()
-    modules << metricsModule
-
-    MetricRegistryListener reporter = Mock()
+    def reporter = Mock(MetricRegistryListener)
 
     given:
     app {
       modules {
-        registry.addListener(reporter)
+        register new MetricsModule()
       }
 
       handlers { MetricRegistry metrics ->
+
+        metrics.addListener(reporter)
+
         handler {
           render ""
         }
-
         prefix("foo") {
           handler("bar") {
             render ""
           }
-
           handler {
             render ""
           }
@@ -240,9 +132,9 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     }
 
     when:
-    2.times {get()}
-    2.times {get("foo")}
-    2.times {get("foo/bar")}
+    2.times { get() }
+    2.times { get("foo") }
+    2.times { get("foo/bar") }
 
     then:
     1 * reporter.onTimerAdded("[root]~GET~Request", !null)
