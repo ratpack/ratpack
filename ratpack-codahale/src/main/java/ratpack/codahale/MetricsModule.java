@@ -19,15 +19,19 @@ package ratpack.codahale;
 import com.codahale.metrics.CsvReporter;
 import com.codahale.metrics.JmxReporter;
 import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.health.HealthCheckRegistry;
 import com.google.inject.AbstractModule;
 import com.google.inject.Injector;
 import com.google.inject.Singleton;
+import com.google.inject.TypeLiteral;
 import com.google.inject.name.Names;
 import ratpack.codahale.internal.CsvReporterProvider;
 import ratpack.codahale.internal.JmxReporterProvider;
 import ratpack.codahale.internal.MetricHandler;
 import ratpack.guice.HandlerDecoratingModule;
+import ratpack.guice.internal.GuiceUtil;
 import ratpack.handling.Handler;
+import ratpack.util.Action;
 
 import java.io.File;
 
@@ -40,6 +44,7 @@ public class MetricsModule extends AbstractModule implements HandlerDecoratingMo
   @Override
   protected void configure() {
     bind(MetricRegistry.class).in(Singleton.class);
+    bind(HealthCheckRegistry.class).in(Singleton.class);
 
     if (reportToJmx) {
       bind(JmxReporter.class).toProvider(JmxReporterProvider.class).asEagerSingleton();
@@ -68,6 +73,13 @@ public class MetricsModule extends AbstractModule implements HandlerDecoratingMo
 
   @Override
   public Handler decorate(Injector injector, Handler handler) {
+    final HealthCheckRegistry registry = injector.getInstance(HealthCheckRegistry.class);
+    GuiceUtil.eachOfType(injector, TypeLiteral.get(NamedHealthCheck.class), new Action<NamedHealthCheck>() {
+      public void execute(NamedHealthCheck healthCheck) throws Exception {
+        registry.register(healthCheck.getName(), healthCheck);
+      }
+    });
+
     return new MetricHandler(handler);
   }
 }
