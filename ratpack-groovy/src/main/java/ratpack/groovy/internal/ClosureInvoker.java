@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import groovy.lang.Closure;
 import ratpack.handling.internal.ServiceExtractor;
 import ratpack.registry.Registry;
+import ratpack.util.Action;
 
 import java.util.Collections;
 import java.util.List;
@@ -56,6 +57,14 @@ public class ClosureInvoker<T, D> {
       Object[] services = ServiceExtractor.extract(parameterTypes, registry);
       return clone.call(services);
     }
+  }
+
+  public Action<D> toAction(final Registry registry, final int resolveStrategy) {
+    return new Action<D>() {
+      public void execute(D delegate) {
+        invoke(registry, delegate, resolveStrategy);
+      }
+    };
   }
 
   private static List<Class<?>> retrieveParameterTypes(Closure<?> closure) {

@@ -16,15 +16,13 @@
 
 package ratpack.groovy.handling.internal;
 
-import com.google.common.collect.ImmutableList;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import ratpack.api.Nullable;
+import ratpack.groovy.Groovy;
 import ratpack.groovy.handling.GroovyChain;
-import ratpack.groovy.internal.Util;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
-import ratpack.handling.internal.ChainBuilder;
 import ratpack.launch.LaunchConfig;
 import ratpack.registry.Registry;
 import ratpack.util.Action;
@@ -188,8 +186,8 @@ public class DefaultGroovyChain extends ratpack.handling.internal.DefaultChain i
     return header(headerName, headerValue, groovyHandler(handler));
   }
 
-  private ImmutableList<Handler> toHandlerList(Closure<?> handlers) {
-    return ChainBuilder.INSTANCE.buildList(new GroovyDslChainActionTransformer(getLaunchConfig(), getRegistry()), Util.delegatingAction(handlers));
+  private List<Handler> toHandlerList(Closure<?> handlers) {
+    return Groovy.chainList(getLaunchConfig(), getRegistry(), handlers);
   }
 
 }

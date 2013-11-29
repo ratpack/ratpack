@@ -1,88 +1,299 @@
 # Handlers
 
-Handlers are the fundamental unit in Ratpack applications.
-The entire request processing mechanism consists solely of invoking handlers.
+This chapter introduces handlers, which are the fundamental components of a Ratpack application.
 
 ## What is a handler?
 
-A handler is a function.
-It operates within a handling _context_, which encompasses the request/response exchange among other things discussed later in this chapter.
- 
-Handlers may send a response back to the client, finalizing processing, or delegate in some way to another handler.
-For example, a handler may inspect the path of the request and delegate to one handler if the path matches a certain value and another handler if it does not.
-Sophisticated processing _pipelines_ can be created just by composing handlers (i.e. functions). 
-The concept of a handler is a rather abstract one.  
-Yet, it offers a simple but powerfully flexible model for defining processing logic.
+Conceptually, a handler ([`Handler`](api/ratpack/handling/Handler.html)) is just a function that acts on a handling context ([`Context`](api/ratpack/handling/Context.html)).
 
-A handler implements the simple [`Handler`](api/ratpack/handling/Handler.html) interface.
-Handlers are typically singletons and operate on many different contexts, potentially concurrently.
+The “hello world” handler looks like this…
 
-## The context
+```language-groovy tested
+import ratpack.handling.Handler;
+import ratpack.handling.Context;
 
-Handlers handle within a context, which is the only argument to the handler's `handle()` method (which is the only method of the interface).
-It is of type [`Context`](api/ratpack/handling/Context.html)
+public class HelloWorld implements Handler {
+  public void handle(Context context) {
+      context.getResponse().send("Hello world!");
+  }
+}
+```
 
-The context provides:
+As we saw in the [previous chapter](launching.html), one of the mandatory launch config properties is the [`HandlerFactory`](api/ratpack/launch/HandlerFactory.html) implementation
+that provides the primary handler.
+The handler that this factory creates is effectively the application.
 
-1. The request/response pair ([`getRequest()`](api/ratpack/handling/Context.html#getRequest%28%29)
-& [`getResponse()`](api/ratpack/handling/Context.html#getResponse%28%29))
-1. Mechanisms for delegating to other handlers (i.e. chaining, discussed below)
-1. Means for handlers to communicate (i.e. the registry, discussed below)
-1. Convenience methods for common kinds of handler communications (e.g. [`getPathTokens()`](api/ratpack/handling/Context.html#getPathTokens%28%29))
-1. A mechanism for executing blocking IO operations (i.e. [`getBackground()`](api/ratpack/handling/Context.html#getBackground%28%29), discussed below)
-1. Various other convenience utilities (e.g. responders)
+This may seem limiting, until we recognise that a handler does not have to be an _endpoint_ (i.e. it can do other things than generate a HTTP response).
+Handlers can also delegate to other handlers in a number of ways, serving more of a _routing_ function.
+The fact that there is no framework level (i.e. type) distinction between a routing step and an endpoint offers much flexibility.
+The implication is that any kind of custom request processing _pipeline_ can be built by _composing_ handlers. 
+This compositional approach is the canonical example of Ratpack's philosophy of being a toolkit instead of a magical framework.
 
-The context is how the handler interacts with the rest of the application.
-Its different functions and uses will be discussed below.
+The rest of this chapter discusses aspects of handlers that are beyond HTTP level concerns (e.g. reading headers, sending responses etc.), which is addressed in the [HTTP chapter](http.html).
 
-## Handler chaining
+## Handler delegation
 
-Most applications are too complex to be specified as a single handler. 
-Instead, the request handling logic is broken up into separate reusable steps that compose together to form the concept of a handler chain.
+If a handler is not going to generate a response, it must delegate to another handler.
+It can either _insert_ one or more handlers, or simply defer to the _next_ handler.
 
-For each invocation of a handler's `handle()` method, the handler is connected to a _next_ handler.
-A handler can pass responsibility on to the next handler in the chain by calling the [`next()`](api/ratpack/handling/Context.html#next%28%29) method of the context.
-This will ultimately invoke the `handle()` method of the next handler in the chain. 
-The very last handler in the chain is _always_ a handler that simply responds to the client with a 404 status code and empty body.
+Consider a handler that routes to one of two different handlers based on the request path. 
+This can be implemented as…
 
-Rather than just delegate to the predefined next handler, handlers can also [`insert()`](api/ratpack/handling/Context.html#insert%28java.util.List%29) one or more handlers into the chain before passing control to the first one that was inserted. The second inserted becomes the next handler of the first inserted and so on.
-The last inserted handler's next handler becomes the next handler of the handler that performed the insert.
+```language-groovy tested
+import ratpack.handling.Handler;
+import ratpack.handling.Context;
 
-Handler chains can be constructed by using a [`Chain`](api/ratpack/handling/Chain.html), which is really a chain builder.
-You can use [`Handlers.chain()`](api/ratpack/handling/Handlers.html#chain%28ratpack.launch.LaunchConfig,%20ratpack.util.Action%29) method to build a handler chain.
-Note that a handler chain is just an implementation of `Handler`.
-A handler chain can actually be composed of other handler chains.
+import static java.util.Collections.singletonList;
 
-The term “chain” is somewhat of an intentional misnomer.
-Most Ratpack applications are really trees or graphs of handlers.
-However, a chain is a more useful analogy in practice.
+public class FooHandler implements Handler {
+  public void handle(Context context) {
+    context.getResponse().send("foo");
+  }
+}
 
-## Built in handlers
+public class BarHandler implements Handler {
+  public void handle(Context context) {
+    context.getResponse().send("bar");
+  }
+}
 
-The [`Handlers`](api/ratpack/handling/Handlers.html) class provides static methods to compose standard types of handlers.
+public class Router implements Handler {
+  private final List<? extends Handler> fooHandler = singletonList(new FooHandler());
+  private final List<? extends Handler> barHandler = singletonList(new BarHandler());
+      
+  public void handle(Context context) {
+    String path = context.getRequest().getPath();
+    if (path.equals("foo")) {
+      context.insert(fooHandler);
+    } else if (path.equals("bar")) {
+      context.insert(barHandler);
+    } else {
+      context.next();
+    } 
+  }    
+}
+```
 
-The static methods of this class form the basis of implementing handlers in Ratpack.
-Typically you will want to write a handler that implements business logic and doesn't contain any _routing_ (e.g. request path, request method etc.) logic.
-A final handler is composed from your business logic handler and the static methods of the [`Handlers`](api/ratpack/handling/Handlers.html) class.
+The key to delegation is the [`context.insert()`](api/ratpack/handling/Context.html#insert\(java.util.List\)) method that passes control to one or more linked handlers.
+The [`context.next()`](api/ratpack/handling/Context.html#next\(\)) method passes control to the next linked handler.
 
-It's worth noting that specifying handlers in a Groovy based Ratpack application is typically a little different.
-In a Groovy application you use a Closure based Domain Specific Language (DSL) to build a composed handler.
-This DSL is provided by the [`Chain`](api/ratpack/groovy/handling/GroovyChain.html) interface of the Groovy module (which extends the interface of the same name in the core module).
+Consider the following…
 
-## The context registry
+```language-groovy tested
+import ratpack.handling.Handler;
+import ratpack.handling.Context;
 
-The handler [context](api/ratpack/handling/Context.html) also serves as a [registry](api/ratpack/registry/Registry.html).
-Objects can be retrieved from the registry via type.
-Ratpack pre-populates the context registry with some key services and values. 
-See the [`Context`](api/ratpack/handling/Context.html) documentation for details.
+import static java.util.Arrays.asList;
 
-Handlers can also register items with the registry for handlers that they [insert](api/ratpack/handling/Context.html#insert%28java.util.List,%20java.lang.Object%29).
-This makes new items available from the context, _just_ for the inserted handlers.
-That is, the registration is scope to just those handlers.
+public class PrintThenNextHandler implements Handler {
+  private final String message;
+  
+  public PrintThenNextHandler(String message) {
+    this.message = message;
+  } 
+  
+  public void handle(Context context) {
+    System.out.println(message);
+    context.next();
+  }
+}
 
+public class Application implements Handler {    
+  public void handle(Context context) {
+    context.insert(asList(
+      new PrintThenNextHandler("a"),
+      new PrintThenNextHandler("b"),
+      new PrintThenNextHandler("c")
+    ));
+  }    
+}
+```
 
-## `HandlerFactory`
+Given that `Application` is the primary handler (i.e. the one returned by the launch config's `HandlerFactory`),
+when this application receives a request the following will be written to `System.out`…
 
-One of the roles of the launch configuration is to provide a [`HandlerFactory`](api/ratpack/launch/HandlerFactory.html) implementation.
-This factory provides a [`Handler`](api/ratpack/handling/Handler.html) that effectively is the Ratpack application.
-Different “modes” of Ratpack applications may not explicitly require a handler factory implementation. For example, the Groovy module supplies a handler factory implementation that delegates to a user provided Groovy script that defines the handler.
+```
+a
+b
+c
+```
+
+And then what?
+What happens when the “c” handler delegates to its next?
+The last handler is _always_ an internal handler that issues a HTTP 404 client error (via `context.clientError(404)` which is discussed later).
+
+Consider that inserted handlers can themselves insert more handlers…
+
+```language-groovy tested
+import ratpack.handling.Handler;
+import ratpack.handling.Context;
+
+import static java.util.Arrays.asList;
+
+public class PrintThenInsertOrNextHandler implements Handler {
+  private final String message;
+  private final List<Handler> handlers;
+
+  public PrintThenInsertOrNextHandler(String message, Handler... handlers) {
+    this.message = message;
+    this.handlers = asList(handlers);
+  }
+
+  public void handle(Context context) {
+    System.out.println(message);
+    if (handlers.isEmpty()) {
+      context.next();
+    } else {
+      context.insert(handlers);
+    }
+  }
+}
+
+public class Application implements Handler {
+  public void handle(Context context) {
+    context.insert(asList(
+      new PrintThenInsertOrNextHandler("a",
+        new PrintThenInsertOrNextHandler("a.1"),
+        new PrintThenInsertOrNextHandler("a.2"),
+      ),
+      new PrintThenInsertOrNextHandler("b",
+        new PrintThenInsertOrNextHandler("b.1",
+          new PrintThenInsertOrNextHandler("b.1.1")
+        ),
+      ),
+      new PrintThenInsertOrNextHandler("c")
+    ));
+  }
+}
+```
+
+This would write the following to `System.out`…
+
+```
+a
+a.1
+a.2
+b
+b.1
+b.1.1
+c
+```
+
+This demonstrates how the _next_ handler of the handler that inserts the handlers becomes the _next_ handler of the last of the inserted handlers.
+You might need to read that sentence more than once.
+
+You should be able to see a certain nesting capability emerge.
+This is important for composibility, and also for scoping which will be important when considering the registry context later in the chapter.
+
+It would be natural at this point to think that it looks like a lot of work to build a handler structure for a typical web application
+(i.e. one that dispatches requests matching certain request paths to endpoints).
+Read on.
+
+## Building handler chains
+
+Ratpack provides a suite of routing type handlers out of the box that make it easy to compose dispatch logic.
+These are available via the static methods of the [`Handlers`](api/ratpack/handling/Handlers.html) class.
+
+For example, the [`path(String, List<Handler>)`](api/ratpack/handling/Handlers.html#path\(java.lang.String, java.util.List\)) method can be used for path based routing.
+
+```language-groovy tested
+import ratpack.handling.Handler;
+import ratpack.handling.Context;
+import ratpack.launch.LaunchConfig;
+import ratpack.launch.HandlerFactory;
+
+import static ratpack.handling.Handlers.path;
+import static ratpack.handling.Handlers.get;
+import static java.util.Arrays.asList;
+
+public class SomeHandler implements Handler {
+  public void handle(Context context) {
+      // do some application work
+  }
+}
+
+public class Application implements HandlerFactory {
+  public Handler create(LaunchConfig launchConfig) {
+    return path("foo/bar", asList(get(), new SomeHandler()));
+  }
+}
+```
+
+Here we have a [`HandlerFactory`](api/ratpack/launch/HandlerFactory.html) that can be used when launching an app (see previous chapter).
+For this “application”:
+
+1. a GET request to `/foo/bar` would be routed to the `SomeHandler`
+2. a non-GET request to `/foo/bar` would produce a HTTP 405 (method not allowed)
+3. anything else would produce a HTTP 404
+
+This is easier than doing it all yourself, but we can do better.
+We can use the [`chain()`](api/ratpack/handling/Handlers.html#chain\(ratpack.launch.LaunchConfig,%20ratpack.util.Action\)) method and the [`Chain`](api/ratpack/handling/Chain.html) DSL.
+
+```language-groovy tested
+import ratpack.handling.Handler;
+import ratpack.handling.Context;
+import ratpack.handling.Chain;
+import ratpack.util.Action;
+import ratpack.launch.LaunchConfig;
+import ratpack.launch.HandlerFactory;
+
+import static ratpack.handling.Handlers.chain;
+
+public class Application implements HandlerFactory {
+  public Handler create(LaunchConfig launchConfig) {
+    return chain(launchConfig, new Action<Chain>() {
+      void execute(Chain chain) {
+        chain.
+          prefix("api", new Action<Chain>() {
+            void execute(Chain apiChain) {
+              apiChain.
+                delete("someResource", new Handler() {
+                  public void handle(Context context) {
+                    // delete the resource
+                  }
+                });
+            }
+          }).
+          assets("public").
+          get("foo/bar", new Handler() {
+            public void handle(Context context) {
+              // do stuff
+            }
+          });
+      }
+    });
+  }
+}
+```
+
+(note: the use of inner classes adds a lot of syntactic bloat here, things are more concise with Java 8 lambdas)
+
+The chain DSL is built on the existing delegation methods that have been presented so far.
+It is merely syntactic sugar.
+The Groovy version of this DSL is extremely sweet…
+
+```language-groovy tested
+import ratpack.handling.Handler
+import ratpack.launch.LaunchConfig
+import ratpack.launch.HandlerFactory
+
+import static ratpack.groovy.Groovy.chain
+
+class Application implements HandlerFactory {
+  Handler create(LaunchConfig launchConfig) {
+    chain(launchConfig) {
+      prefix("api") {
+        delete("someResource") {
+          // delete the resource
+        }
+      }
+      assets("public")
+      get("foo/bar") {
+        // do stuff
+      }
+    }
+  }
+}
+```
+
+See the [chapter on Groovy](groovy.html) for more information on using Groovy with Ratpack.

@@ -20,9 +20,12 @@ import com.google.common.collect.ImmutableMap;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import groovy.xml.MarkupBuilder;
+import ratpack.api.Nullable;
 import ratpack.groovy.handling.GroovyChain;
 import ratpack.groovy.handling.GroovyContext;
 import ratpack.groovy.handling.internal.ClosureBackedHandler;
+import ratpack.groovy.handling.internal.GroovyDslChainActionTransformer;
+import ratpack.groovy.internal.ClosureInvoker;
 import ratpack.groovy.internal.RatpackScriptBacking;
 import ratpack.groovy.markup.Markup;
 import ratpack.groovy.markup.internal.DefaultMarkup;
@@ -30,9 +33,13 @@ import ratpack.groovy.templating.Template;
 import ratpack.groovy.templating.internal.DefaultTemplate;
 import ratpack.guice.ModuleRegistry;
 import ratpack.handling.Handler;
+import ratpack.handling.internal.ChainBuilder;
 import ratpack.http.MediaType;
 import ratpack.http.internal.DefaultMediaType;
+import ratpack.launch.LaunchConfig;
+import ratpack.registry.Registry;
 
+import java.util.List;
 import java.util.Map;
 
 import static ratpack.util.ExceptionUtils.uncheck;
@@ -105,6 +112,57 @@ public abstract class Groovy {
      * @param configurer The configuration closure, delegating to {@link ratpack.groovy.handling.GroovyChain}
      */
     void handlers(@DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer);
+  }
+
+  /**
+   * Builds a handler chain, with no backing registry.
+   *
+   * @param launchConfig The application launch config
+   * @param closure The chain definition
+   * @return A handler
+   */
+  public static Handler chain(LaunchConfig launchConfig, @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) {
+    return chain(launchConfig, null, closure);
+  }
+
+  /**
+   * Builds a chain, backed by the given registry.
+   *
+   * @param launchConfig The application launch config
+   * @param registry The registry.
+   * @param closure The chain building closure.
+   * @return A handler
+   */
+  public static Handler chain(LaunchConfig launchConfig, @Nullable Registry registry, @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) {
+    return ChainBuilder.INSTANCE.buildHandler(
+      new GroovyDslChainActionTransformer(launchConfig, registry),
+      new ClosureInvoker<Object, GroovyChain>(closure).toAction(registry, Closure.DELEGATE_FIRST)
+    );
+  }
+
+  /**
+   * Builds a handler chain, with no backing registry.
+   *
+   * @param launchConfig The application launch config
+   * @param closure The chain definition
+   * @return A handler chain
+   */
+  public static List<Handler> chainList(LaunchConfig launchConfig, @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) {
+    return chainList(launchConfig, null, closure);
+  }
+  /**
+   * Builds a chain, backed by the given registry.
+   *
+   * @param launchConfig The application launch config
+   * @param registry The registry.
+   * @param closure The chain building closure.
+   * @return A handler chain
+   */
+  public static List<Handler> chainList(LaunchConfig launchConfig, @Nullable Registry registry, @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) {
+    return ChainBuilder.INSTANCE.buildList(
+      new GroovyDslChainActionTransformer(launchConfig, registry),
+      new ClosureInvoker<Object, GroovyChain>(closure).toAction(registry, Closure.DELEGATE_FIRST)
+    );
   }
 
   public static Template groovyTemplate(String id) {

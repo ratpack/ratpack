@@ -59,8 +59,7 @@ See the [Jackson package API documentation](api/ratpack/jackson/package-summary.
 
 ## Guice and the context registry
 
-Handlers operate on a context which is also an object registry, as [described in the chapter on handlers](handlers.html#the_context_registry).
-In a Ratpack Guice application, all objects that are known to Guice are retrievable via this mechanism.
+TODO guice backed registry impl
 
 This offers an alternative to dependency injected handlers, as objects can just be retrieved on demand from the context.
 

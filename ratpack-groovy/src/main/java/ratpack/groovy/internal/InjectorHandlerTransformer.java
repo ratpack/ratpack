@@ -18,14 +18,11 @@ package ratpack.groovy.internal;
 
 import com.google.inject.Injector;
 import groovy.lang.Closure;
-import ratpack.groovy.handling.GroovyChain;
-import ratpack.groovy.handling.internal.GroovyDslChainActionTransformer;
+import ratpack.groovy.Groovy;
 import ratpack.guice.Guice;
 import ratpack.handling.Handler;
-import ratpack.handling.internal.ChainBuilder;
 import ratpack.launch.LaunchConfig;
 import ratpack.registry.Registry;
-import ratpack.util.Action;
 import ratpack.util.Transformer;
 
 public class InjectorHandlerTransformer implements Transformer<Injector, Handler> {
@@ -40,15 +37,7 @@ public class InjectorHandlerTransformer implements Transformer<Injector, Handler
 
   public Handler transform(Injector injector) {
     final Registry registry = Guice.justInTimeRegistry(injector);
-
-    Action<GroovyChain> chainAction = new Action<GroovyChain>() {
-      public void execute(GroovyChain chain) {
-        ClosureInvoker<Object, GroovyChain> closureInvoker = new ClosureInvoker<>(closure);
-        closureInvoker.invoke(registry, chain, Closure.DELEGATE_FIRST);
-      }
-    };
-
-    return ChainBuilder.INSTANCE.buildHandler(new GroovyDslChainActionTransformer(launchConfig, registry), chainAction);
+    return Groovy.chain(launchConfig, registry, closure);
   }
 
 }
