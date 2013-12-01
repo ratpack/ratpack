@@ -19,48 +19,30 @@ package ratpack.handling;
 import ratpack.api.NonBlocking;
 
 /**
- * A handler participates in the processing of a request/response pair, operating in a {@link Context}.
+ * A handler participates in the processing of a request/response pair, operating on a {@link Context}.
  * <p>
- * Handlers are the heart and soul of Ratpack applications.
- * The entire request processing logic is defined by chains of handlers.
- * The root handler (defined as part of the {@link ratpack.launch.LaunchConfig}) responds to all requests.
- * A handler can choose to send a response, or delegate to another handler in a few different ways.
+ * Handlers are the key component of Ratpack applications.
+ * A handler either generate a response, or delegate to another handler in some way.
  * </p>
  * <h3>Non blocking/Asynchronous</h3>
  * <p>
- * Handlers are asynchronous, in that they are free to pass control to a different thread.
- * This means that there is no guarantee that the handler is “finished” when its {@link #handle(Context)} method returns.
- * An implication is that handlers <b>must</b> ensure to do <i>something</i> with the response.
- * Where <i>something</i> is either send a response or delegate to another handler.
- * <h3>Handler chains</h3>
+ * Handlers are expected to be asynchronous.
+ * That is, there is no expectation that the handler is “finished” when its {@link #handle(Context)} method returns.
+ * This facilitates the use of non blocking IO without needing to enter some kind of special mode.
+ * An implication is that handlers <b>must</b> ensure that they either send a response or delegate to another handler.
+ * </p>
+ * <h3>Handler pipeline</h3>
  * <p>
- * Handlers are always implicitly connected in a chain like structure.
- * The {@link Context} that the handler operates on provides the {@link Context#next()} method that passes control to the next handler in the chain.
- * The last handler in the chain is always the “404” handler in that it returns an empty body 404 response to the client.
+ * Handlers are always part of a pipeline structure.
+ * The {@link Context} that the handler operates on provides the {@link Context#next()} method that passes control to the next handler in the pipeline.
+ * The last handler in the pipeline is always that generates a {@code 404} client error.
  * <p>
- * Handler chains are built using the {@link Chain} type, typically during application bootstrapping.
- * <h3>Types of handlers</h3>
- * <p>
- * Handlers do not necessarily generate a response to the request, though they can.
- * They may delegate to, or cooperate with other handlers.
- * <p>
- * Handlers can generally speaking do the four following kinds of things:
- * <p>
- * <ol>
- * <li>Send a response back to the client, terminating processing</li>
- * <li>Pass control to the next handler in the pipeline via {@link Context#next()}</li>
- * <li>Insert handlers into the pipeline via {@link Context#insert(java.util.List)} (or related methods) before passing on control</li>
- * <li>Forward the exchange to another handler (that it has a reference to) by directly calling its {@link #handle(Context)} method</li>
- * </ol>
- * <p>
- * A handler can either generate a response, decorate the response (e.g. add a response header) or direct the exchange to different handlers.
- * They are effectively a function that operates on the HTTP exchange.
+ * Handlers can themselves insert other handlers into the pipeline, using the {@link Context#insert(java.util.List)} family of methods.
  * <h3>Examples</h3>
  * While there is no strict taxonomy of handlers, the following are indicative examples of common functions.
  * <p>
  * <pre class="tested">
  * import ratpack.handling.*;
- *
  *
  * // A responder may just return a response to the client…
  *
@@ -70,7 +52,7 @@ import ratpack.api.NonBlocking;
  *   }
  * }
  *
- * // A responder may add a response header, but not the body…
+ * // A responder may add a response header, before delegating to the next in the pipeline…
  *
  * class DecoratingHandler implements Handler {
  *   void handle(Context exchange) {
