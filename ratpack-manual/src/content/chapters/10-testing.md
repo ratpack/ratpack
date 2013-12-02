@@ -19,8 +19,61 @@ However, we strongly recommend using the Groovy based [Spock Framework](http://w
 There is no special setup or teardown required for unit testing Ratpack applications, as by definition they require no server infrastructure.
 
 ## Functional testing
+Functional testing for Ratpack is built up around the [ApplicationUnderTest](api/ratpack/test/ApplicationUnderTest.html).
 
-TODO.
+This interface provides the address of the running application. Implementations of this interface will take care of starting the server for you.
+
+### TestHttpClient
+
+Ratpack provides [TestHttpClient](api/ratpack/groovy/test/TestHttpClient.html) in `ratpack-test-groovy`, this is a client that makes it very simple to test status codes and responses.
+
+Note below we use @Delegate so we just need to call `get()` in the when block instead of `client.get()`.
+
+```language-groovy tested
+
+import ratpack.groovy.test.LocalScriptApplicationUnderTest
+import ratpack.groovy.test.TestHttpClient
+import ratpack.groovy.test.TestHttpClients
+import ratpack.test.ApplicationUnderTest
+
+class SiteSmokeSpec {
+
+  LocalScriptApplicationUnderTest aut = new LocalScriptApplicationUnderTest()
+  @Delegate TestHttpClient client = TestHttpClients.testHttpClient(aut)
+
+  def "Check Site Index"() {
+    get("index.html")
+
+
+    assert response.statusCode == 200
+    assert response.body.asString().contains('<title>Ratpack: A toolkit for JVM web applications</title>')
+
+  }
+
+  def "Check Site Root"() {
+    get()
+
+    assert response.statusCode == 200
+    assert response.body.asString().contains('<title>Ratpack: A toolkit for JVM web applications</title>')
+  }
+
+  def cleanup() {
+    aut.stop()
+  }
+
+}
+``` 
+
+### Geb
+
+[Geb](http://www.gebish.org/) can also be used we just need to set up the correct base URL and make sure the test app is shut down.
+
+To set the correct base URL we will use the ServerBackedApplicationUnderTest instance to get the address and give that to the Geb browser instance.
+
+For shutting down the app we will call stop in the cleanup function.
+
+An example of a Geb based test is available [here](https://github.com/ratpack/ratpack/blob/master/ratpack-site/src/test/groovy/ratpack/site/SiteSmokeSpec.groovy).
+```
 
 ### Application subsets, modules and extensions
 
