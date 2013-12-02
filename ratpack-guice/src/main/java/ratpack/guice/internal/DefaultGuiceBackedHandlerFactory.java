@@ -75,7 +75,7 @@ public class DefaultGuiceBackedHandlerFactory implements GuiceBackedHandlerFacto
       }
     }
 
-    decorated = Handlers.chain(ImmutableList.of(decorateHandler(decorated), new ClientErrorForwardingHandler(404)));
+    decorated = Handlers.chain(decorateHandler(decorated), new ClientErrorForwardingHandler(404));
 
     return new InjectorBindingHandler(injector, decorated);
   }
