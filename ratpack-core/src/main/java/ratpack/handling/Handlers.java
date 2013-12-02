@@ -90,7 +90,7 @@ public abstract class Handlers {
    * @return A handler
    */
   public static Handler chain(LaunchConfig launchConfig, @Nullable Registry registry, Action<? super Chain> action) {
-    return ChainBuilders.build(new ChainActionTransformer(launchConfig, registry), action);
+    return ChainBuilders.build(launchConfig, new ChainActionTransformer(launchConfig, registry), action);
   }
 
   /**

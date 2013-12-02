@@ -134,6 +134,7 @@ public abstract class Groovy {
    */
   public static Handler chain(LaunchConfig launchConfig, @Nullable Registry registry, @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) {
     return ChainBuilders.build(
+      launchConfig,
       new GroovyDslChainActionTransformer(launchConfig, registry),
       new ClosureInvoker<Object, GroovyChain>(closure).toAction(registry, Closure.DELEGATE_FIRST)
     );

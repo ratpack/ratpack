@@ -27,6 +27,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import static ratpack.util.ExceptionUtils.uncheck;
+
 public class ReloadableFileBackedFactory<T> implements Factory<T> {
 
   // Note: we are blocking for IO on the main thread here, but it only really impacts
@@ -62,6 +64,16 @@ public class ReloadableFileBackedFactory<T> implements Factory<T> {
   public T create() {
     if (!reloadable) {
       return delegateHolder.get();
+    }
+
+    // If the file disappeared, wait a little for it to appear
+    int i = 10;
+    while (!file.exists() && --i > 0) {
+      try {
+        Thread.sleep(100);
+      } catch (InterruptedException e) {
+        throw uncheck(e);
+      }
     }
 
     if (!file.exists()) {
