@@ -42,26 +42,26 @@ import java.io.File;
  * import static ratpack.thymeleaf.Template.thymeleafTemplate;
  *
  * class MyHandler implements Handler {
- * void handle(final Context context) {
- * context.render(thymeleafTemplate("my/template/path", key: "it works!"));
- * }
+ *   void handle(final Context context) {
+ *     context.render(thymeleafTemplate("my/template/path", key: "it works!"));
+ *   }
  * }
  *
  * class ModuleBootstrap implements Action&lt;ModuleRegistry&gt; {
- * public void execute(ModuleRegistry modules) {
- * modules.register(new ThymeleafModule());
- * }
+ *   public void execute(ModuleRegistry modules) {
+ *     modules.register(new ThymeleafModule());
+ *   }
  * }
  *
  * LaunchConfig launchConfig = LaunchConfigBuilder.baseDir(new File("appRoot"))
- * .build(new HandlerFactory() {
- * public Handler create(LaunchConfig launchConfig) {
- * return Guice.handler(launchConfig, new ModuleBootstrap(), new Action&lt;Chain&gt;() {
- * public void execute(Chain chain) {
- * chain.handler(chain.getRegistry().get(MyHandler.class));
- * }
- * });
- * }
+ *   .build(new HandlerFactory() {
+ *     public Handler create(LaunchConfig launchConfig) {
+ *       return Guice.handler(launchConfig, new ModuleBootstrap(), new Action&lt;Chain&gt;() {
+ *         public void execute(Chain chain) {
+ *          chain.handler(chain.getRegistry().get(MyHandler.class));
+ *         }
+ *       });
+ *     }
  * });
  * </pre>
  *
@@ -71,14 +71,14 @@ import java.io.File;
  * import static ratpack.thymeleaf.Template.thymeleafTemplate
  *
  * ratpack {
- * modules {
- * register new ThymeleafModule()
- * }
- * handlers {
- * get {
- * render thymeleafTemplate('my/template/path', key: 'it works!')
- * }
- * }
+ *   modules {
+ *     register new ThymeleafModule()
+ *   }
+ *   handlers {
+ *     get {
+ *       render thymeleafTemplate('my/template/path', key: 'it works!')
+ *     }
+ *   }
  * }
  * </pre>
  *

@@ -4,10 +4,10 @@ import org.thymeleaf.context.Context;
 
 import java.util.Map;
 
-public class Template<T> {
+public class Template {
 
   private final String name;
-  private final T model;
+  private final Context model;
 
   private final String contentType;
 
@@ -15,7 +15,7 @@ public class Template<T> {
     return name;
   }
 
-  public T getModel() {
+  public Context getModel() {
     return model;
   }
 
@@ -23,26 +23,26 @@ public class Template<T> {
     return contentType;
   }
 
-  private Template(String name, T model, String contentType) {
+  private Template(String name, Context model, String contentType) {
     this.name = name;
     this.model = model;
     this.contentType = contentType;
   }
 
-  public static Template<Context> thymeleafTemplate(String name) {
+  public static Template thymeleafTemplate(String name) {
     return thymeleafTemplate(null, name);
   }
 
-  public static Template<Context> thymeleafTemplate(Map<String, ?> model, String name) {
+  public static Template thymeleafTemplate(Map<String, ?> model, String name) {
     return thymeleafTemplate(model, name, null);
   }
 
-  public static Template<Context> thymeleafTemplate(Map<String, ?> model, String name, String contentType) {
+  public static Template thymeleafTemplate(Map<String, ?> model, String name, String contentType) {
     Context context = new Context();
     if (model != null) {
       context.setVariables(model);
     }
 
-    return new Template<>(name, context, contentType);
+    return new Template(name, context, contentType);
   }
 }
