@@ -139,7 +139,7 @@ public class DefaultContext implements Context {
   }
 
   @Override
-  public <T> void next(Class<T> publicType, T impl) {
+  public <P, T extends P> void next(Class<P> publicType, T impl) {
     next(RegistryBuilder.builder().add(publicType, impl).build());
   }
 

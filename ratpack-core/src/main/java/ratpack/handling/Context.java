@@ -36,23 +36,20 @@ import java.util.List;
 import java.util.concurrent.Callable;
 
 /**
- * An context represents the context of an individual handler invocation, which is conceptually a reaction to a request.
+ * The context of an individual {@link Handler} invocation.
  * <p>
  * It provides:
  * <ul>
- * <li>Access the HTTP request and response</li>
- * <li>Processing/delegation control (via the {@link #next} and {@link #insert} family of methods)</li>
+ * <li>Access the HTTP {@link #getRequest() request} and {@link #getResponse() response}</li>
+ * <li>Delegation (via the {@link #next} and {@link #insert} family of methods)</li>
  * <li>Access to <i>contextual objects</i> (see below)</li>
- * <li>Convenience mechanism for common handler operations</li>
+ * <li>Convenience for common handler operations</li>
  * </ul>
- * </p>
- * <p>
- * See {@link Handler} for information on how to work with a context object for request processing.
  * </p>
  * <h4>Contextual objects</h4>
  * <p>
  * A context is also a {@link Registry} of objects.
- * Arbitrary objects can be "pushed" into the context by <i>upstream</i> handlers for use by <i>downstream</i> handlers.
+ * Arbitrary objects can be "pushed" into the context for use by <i>downstream</i> handlers.
  * <p>
  * There are some significant contextual objects that drive key infrastructure.
  * For example, error handling is based on informing the contextual {@link ratpack.error.ServerErrorHandler} of exceptions.
@@ -109,7 +106,7 @@ public interface Context extends Registry {
   void next(Registry registry);
 
   @NonBlocking
-  <T> void next(Class<T> publicType, T implementation);
+  <P, T extends P> void next(Class<P> publicType, T implementation);
 
   @NonBlocking
   <T> void next(Class<T> publicType, Factory<? extends T> factory);
@@ -258,7 +255,7 @@ public interface Context extends Registry {
   /**
    * The contextual path tokens of the current {@link ratpack.path.PathBinding}.
    * <p>
-   * Shorthand for {@code getServiceRegistry().get(PathBinding.class).getPathTokens()}.
+   * Shorthand for {@code get(PathBinding.class).getPathTokens()}.
    *
    * @return The contextual path tokens of the current {@link ratpack.path.PathBinding}.
    * @throws NotInRegistryException if there is no {@link ratpack.path.PathBinding} in the current service
@@ -268,7 +265,7 @@ public interface Context extends Registry {
   /**
    * The contextual path tokens of the current {@link ratpack.path.PathBinding}.
    * <p>
-   * Shorthand for {@code getServiceRegistry().get(PathBinding.class).getAllPathTokens()}.
+   * Shorthand for {@code get(PathBinding.class).getAllPathTokens()}.
    *
    * @return The contextual path tokens of the current {@link ratpack.path.PathBinding}.
    * @throws NotInRegistryException if there is no {@link ratpack.path.PathBinding} in the current service
@@ -278,7 +275,7 @@ public interface Context extends Registry {
   /**
    * Gets the file relative to the contextual {@link ratpack.file.FileSystemBinding}.
    * <p>
-   * Shorthand for {@code getServiceRegistry().get(FileSystemBinding.class).file(path)}.
+   * Shorthand for {@code get(FileSystemBinding.class).file(path)}.
    * <p>
    * The default configuration of Ratpack includes a {@link ratpack.file.FileSystemBinding} in all contexts.
    * A {@link ratpack.registry.NotInRegistryException} will only be thrown if a very custom service setup is being used.

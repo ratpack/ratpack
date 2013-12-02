@@ -130,7 +130,7 @@ public class DefaultGroovyContext implements GroovyContext {
   }
 
   @Override
-  public <T> void next(Class<T> publicType, T impl) {
+  public <P, T extends P> void next(Class<P> publicType, T impl) {
     delegate.next(publicType, impl);
   }
 
