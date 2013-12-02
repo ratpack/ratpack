@@ -36,9 +36,6 @@ class RatpackGroovyPlugin implements Plugin<Project> {
       groovy ratpackDependencies.groovy
       testCompile ratpackDependencies.groovyTest
     }
-
-    JavaExec runTask = project.tasks.findByName("run") as JavaExec
-    runTask.systemProperty("ratpack.reloadable", true)
   }
 
 }

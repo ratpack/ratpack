@@ -46,9 +46,11 @@ class RatpackPlugin implements Plugin<Project> {
 
     def configureRun = project.task("configureRun")
     configureRun.doFirst {
-      project.run {
+      JavaExec runTask = project.tasks.findByName("run") as JavaExec
+      runTask.with {
         classpath ratpackApp.springloadedClasspath
         jvmArgs ratpackApp.springloadedJvmArgs
+        systemProperty "ratpack.reloadable", true
       }
     }
 
