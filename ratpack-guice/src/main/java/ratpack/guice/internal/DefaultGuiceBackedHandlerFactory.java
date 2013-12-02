@@ -16,7 +16,6 @@
 
 package ratpack.guice.internal;
 
-import com.google.common.collect.ImmutableList;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.util.Modules;
