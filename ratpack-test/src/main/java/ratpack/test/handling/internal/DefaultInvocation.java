@@ -16,7 +16,6 @@
 
 package ratpack.test.handling.internal;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -111,7 +110,7 @@ public class DefaultInvocation implements Invocation {
     };
 
     Response response = new DefaultResponse(status, responseHeaders, responseBody, fileHttpTransmitter, committer);
-    Context context = new DefaultContext(request, response, bindAddress, registry, mainExecutor, backgroundExecutor, eventController.getRegistry(), ImmutableList.<Handler>of(), 0, next) {
+    Context context = new DefaultContext(request, response, bindAddress, registry, mainExecutor, backgroundExecutor, eventController.getRegistry(), new Handler[0], 0, next) {
       @Override
       public void render(Object object) throws NoSuchRendererException {
         rendered = object;

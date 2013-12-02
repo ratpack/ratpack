@@ -21,8 +21,10 @@ import groovy.lang.DelegatesTo;
 import ratpack.api.Nullable;
 import ratpack.groovy.Groovy;
 import ratpack.groovy.handling.GroovyChain;
+import ratpack.handling.Chain;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
+import ratpack.handling.internal.DefaultChain;
 import ratpack.launch.LaunchConfig;
 import ratpack.registry.Registry;
 import ratpack.util.Action;
@@ -31,7 +33,7 @@ import java.util.List;
 
 import static ratpack.groovy.Groovy.groovyHandler;
 
-public class DefaultGroovyChain extends ratpack.handling.internal.DefaultChain implements GroovyChain {
+public class DefaultGroovyChain extends DefaultChain implements GroovyChain {
 
   public DefaultGroovyChain(List<Handler> handlers, LaunchConfig launchConfig, @Nullable Registry registry) {
     super(handlers, launchConfig, registry);
@@ -42,29 +44,27 @@ public class DefaultGroovyChain extends ratpack.handling.internal.DefaultChain i
     return (GroovyChain) super.handler(handler);
   }
 
+  @Override
   public GroovyChain handler(Closure<?> handler) {
     return handler(groovyHandler(handler));
   }
 
+  @Override
+  public GroovyChain prefix(String prefix, Handler handler) {
+    return (GroovyChain) super.prefix(prefix, handler);
+  }
+
+  @Override
+  public GroovyChain prefix(String prefix, Action<? super Chain> action) {
+    return (GroovyChain) super.prefix(prefix, action);
+  }
+
+  @Override
   public GroovyChain prefix(String prefix, Closure<?> chain) {
-    return prefix(prefix, toHandlerList(chain));
+    return prefix(prefix, toHandler(chain));
   }
 
   @Override
-  public GroovyChain prefix(String prefix, Handler... handlers) {
-    return (GroovyChain) super.prefix(prefix, handlers);
-  }
-
-  @Override
-  public GroovyChain prefix(String prefix, List<Handler> handlers) {
-    return (GroovyChain) super.prefix(prefix, handlers);
-  }
-
-  @Override
-  public GroovyChain prefix(String prefix, Action<? super ratpack.handling.Chain> builder) {
-    return (GroovyChain) super.prefix(prefix, builder);
-  }
-
   public GroovyChain handler(String path, Closure<?> handler) {
     return handler(path, groovyHandler(handler));
   }
@@ -74,6 +74,7 @@ public class DefaultGroovyChain extends ratpack.handling.internal.DefaultChain i
     return (GroovyChain) super.handler(path, handler);
   }
 
+  @Override
   public GroovyChain get(String path, Closure<?> handler) {
     return get(path, groovyHandler(handler));
   }
@@ -88,6 +89,7 @@ public class DefaultGroovyChain extends ratpack.handling.internal.DefaultChain i
     return (GroovyChain) super.get(handler);
   }
 
+  @Override
   public GroovyChain get(Closure<?> handler) {
     return get("", handler);
   }
@@ -97,6 +99,7 @@ public class DefaultGroovyChain extends ratpack.handling.internal.DefaultChain i
     return (GroovyChain) super.post(path, handler);
   }
 
+  @Override
   public GroovyChain post(String path, Closure<?> handler) {
     return post(path, groovyHandler(handler));
   }
@@ -106,10 +109,12 @@ public class DefaultGroovyChain extends ratpack.handling.internal.DefaultChain i
     return (GroovyChain) super.post(handler);
   }
 
+  @Override
   public GroovyChain post(Closure<?> handler) {
     return post("", handler);
   }
 
+  @Override
   public GroovyChain put(String path, Closure<?> handler) {
     return put(path, groovyHandler(handler));
   }
@@ -124,10 +129,12 @@ public class DefaultGroovyChain extends ratpack.handling.internal.DefaultChain i
     return (GroovyChain) super.put(handler);
   }
 
+  @Override
   public GroovyChain put(Closure<?> handler) {
     return put("", handler);
   }
 
+  @Override
   public GroovyChain delete(String path, Closure<?> handler) {
     return delete(path, groovyHandler(handler));
   }
@@ -142,6 +149,7 @@ public class DefaultGroovyChain extends ratpack.handling.internal.DefaultChain i
     return (GroovyChain) super.delete(handler);
   }
 
+  @Override
   public GroovyChain delete(Closure<?> handler) {
     return delete("", handler);
   }
@@ -151,43 +159,63 @@ public class DefaultGroovyChain extends ratpack.handling.internal.DefaultChain i
     return (GroovyChain) super.assets(path, indexFiles);
   }
 
+  @Override
+  public GroovyChain register(Object service, Handler handler) {
+    return (GroovyChain) super.register(service, handler);
+  }
+
+  @Override
+  public GroovyChain register(Object service, Action<? super Chain> action) {
+    return (GroovyChain) super.register(service, action);
+  }
+
+  @Override
   public GroovyChain register(Object service, Closure<?> handlers) {
-    return register(service, toHandlerList(handlers));
+    return register(service, toHandler(handlers));
   }
 
   @Override
-  public GroovyChain register(Object service, List<Handler> handlers) {
-    return (GroovyChain) super.register(service, handlers);
+  public <T> GroovyChain register(Class<? super T> type, T service, Handler handler) {
+    return (GroovyChain) super.register(type, service, handler);
   }
 
+  @Override
+  public <T> GroovyChain register(Class<? super T> type, T service, Action<? super Chain> action) {
+    return (GroovyChain) super.register(type, service, action);
+  }
+
+  @Override
   public <T> GroovyChain register(Class<? super T> type, T service, Closure<?> handlers) {
-    return register(type, service, toHandlerList(handlers));
+    return register(type, service, toHandler(handlers));
   }
 
   @Override
-  public <T> GroovyChain register(Class<? super T> type, T service, List<Handler> handlers) {
-    return (GroovyChain) super.register(type, service, handlers);
+  public GroovyChain fileSystem(String path, Handler handler) {
+    return (GroovyChain) super.fileSystem(path, handler);
   }
 
   @Override
-  public GroovyChain fileSystem(String path, List<Handler> handlers) {
-    return (GroovyChain) super.fileSystem(path, handlers);
+  public GroovyChain fileSystem(String path, Action<? super Chain> action) {
+    return (GroovyChain) super.fileSystem(path, action);
   }
 
+  @Override
   public GroovyChain fileSystem(String path, Closure<?> handlers) {
-    return fileSystem(path, toHandlerList(handlers));
+    return fileSystem(path, toHandler(handlers));
   }
 
+  @Override
   public GroovyChain header(String headerName, String headerValue, Handler handler) {
     return (GroovyChain) super.header(headerName, headerValue, handler);
   }
 
+  @Override
   public GroovyChain header(String headerName, String headerValue, @DelegatesTo(value = Context.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler) {
     return header(headerName, headerValue, groovyHandler(handler));
   }
 
-  private List<Handler> toHandlerList(Closure<?> handlers) {
-    return Groovy.chainList(getLaunchConfig(), getRegistry(), handlers);
+  private Handler toHandler(Closure<?> handlers) {
+    return Groovy.chain(getLaunchConfig(), getRegistry(), handlers);
   }
 
 }

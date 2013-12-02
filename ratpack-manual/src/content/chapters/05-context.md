@@ -111,7 +111,6 @@ import ratpack.launch.LaunchConfig;
 import ratpack.error.ServerErrorHandler;
 
 import static ratpack.handling.Handlers.chain;
-import static ratpack.handling.Handlers.chainList;
 
 public class ApiHandlers implements Action<Chain> {
   public void execute(Chain chain) {
@@ -142,13 +141,13 @@ public class Application implements HandlerFactory {
     return chain(launchConfig, new Action<Chain>() {
       void execute(Chain chain) {
         chain.
-          prefix("api", new Action<Chain>() {
+          prefix("api", chain.chain(new Action<Chain>() {
             void execute(Chain apiChain) {
               apiChain.
-                register(ServerErrorHandler.class, new ApiServerErrorHandler(), chainList(launchConfig, new ApiHandlers()));
+                register(ServerErrorHandler.class, new ApiServerErrorHandler(), new ApiHandlers());
             }
-          }).
-          register(ServerErrorHandler.class, new AppServerErrorHandler(), chainList(launchConfig, new AppHandlers()));
+          })).
+          register(ServerErrorHandler.class, new AppServerErrorHandler(), new AppHandlers());
       }
     });
   }

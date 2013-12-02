@@ -16,38 +16,36 @@
 
 package ratpack.file.internal;
 
-import com.google.common.collect.ImmutableList;
 import ratpack.file.FileSystemBinding;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 
 import java.io.File;
-import java.util.List;
 
 public class FileSystemBindingHandler implements Handler {
 
   private final File file;
-  private final List<Handler> delegate;
+  private final Handler handler;
   private final boolean absolute;
   private final FileSystemBinding absoluteBinding;
 
-  public FileSystemBindingHandler(File file, ImmutableList<Handler> delegate) {
+  public FileSystemBindingHandler(File file, Handler handler) {
     this.file = file;
-    this.delegate = delegate;
+    this.handler = handler;
     this.absolute = file.isAbsolute();
     this.absoluteBinding = new DefaultFileSystemBinding(file.getAbsoluteFile());
   }
 
   public void handle(Context context) {
     if (absolute) {
-      context.insert(delegate, FileSystemBinding.class, absoluteBinding);
+      context.insert(FileSystemBinding.class, absoluteBinding, handler);
     } else {
       FileSystemBinding parentBinding = context.maybeGet(FileSystemBinding.class);
       if (parentBinding == null) {
-        context.insert(delegate, FileSystemBinding.class, absoluteBinding);
+        context.insert(FileSystemBinding.class, absoluteBinding, handler);
       } else {
         FileSystemBinding binding = parentBinding.binding(file.getPath());
-        context.insert(delegate, FileSystemBinding.class, binding);
+        context.insert(FileSystemBinding.class, binding, handler);
       }
     }
   }

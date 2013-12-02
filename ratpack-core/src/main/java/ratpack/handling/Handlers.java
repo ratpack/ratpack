@@ -16,7 +16,6 @@
 
 package ratpack.handling;
 
-import com.google.common.collect.ImmutableList;
 import ratpack.api.Nullable;
 import ratpack.file.internal.AssetHandler;
 import ratpack.file.internal.FileSystemBindingHandler;
@@ -47,15 +46,15 @@ public abstract class Handlers {
    * Creates a handler that inserts the handler chain defined by the builder, with the given service addition.
    * <p>
    * The service object will be available by its concrete type.
-   * To make it available by a different type (perhaps one of its interfaces) use {@link #register(Class, Object, List)}.
+   * To make it available by a different type (perhaps one of its interfaces) use {@link #register(Class, Object, Handler)}.
    *
    * @param object The object to add to the service, only for the handlers defined by {@code builder}
-   * @param handlers The handler to
+   * @param handler The handler to
    * @param <T> The concrete type of the service addition
    * @return A handler
    */
-  public static <T> Handler register(T object, List<? extends Handler> handlers) {
-    return new RegisteringHandler(object, copyOf(handlers));
+  public static <T> Handler register(T object, Handler handler) {
+    return new RegisteringHandler(object, handler);
   }
 
   /**
@@ -63,12 +62,12 @@ public abstract class Handlers {
    *
    * @param type The type by which to make the service addition available
    * @param object The object to add to the service, only for the handlers defined by {@code builder}
-   * @param handlers The handler to
+   * @param handler The handler to
    * @param <T> The concrete type of the service addition
    * @return A handler
    */
-  public static <T> Handler register(Class<? super T> type, T object, List<? extends Handler> handlers) {
-    return new RegisteringHandler(type, object, copyOf(handlers));
+  public static <T> Handler register(Class<? super T> type, T object, Handler handler) {
+    return new RegisteringHandler(type, object, handler);
   }
 
   /**
@@ -97,20 +96,6 @@ public abstract class Handlers {
   /**
    * Builds a list of handlers using the given chain action.
    * <p>
-   * The chain given to the action will have no backing registry.
-   *
-   * @param launchConfig The application launch config
-   * @param action The chain building action
-   * @return The handlers added by the chain action
-   */
-  @SuppressWarnings("UnusedDeclaration")
-  public static List<Handler> chainList(LaunchConfig launchConfig, Action<? super Chain> action) {
-    return chainList(launchConfig, null, action);
-  }
-
-  /**
-   * Builds a list of handlers using the given chain action.
-   * <p>
    * The chain given to the action will have the given backing registry.
    *
    * @param launchConfig The application launch config
@@ -118,7 +103,7 @@ public abstract class Handlers {
    * @param registry The registry to back the chain with
    * @return The handlers added by the chain action
    */
-  public static List<Handler> chainList(LaunchConfig launchConfig, @Nullable Registry registry, Action<? super Chain> action) {
+  public static List<? extends Handler> chainList(LaunchConfig launchConfig, @Nullable Registry registry, Action<? super Chain> action) {
     return ChainBuilder.INSTANCE.buildList(new ChainActionTransformer(launchConfig, registry), action);
   }
 
@@ -139,16 +124,32 @@ public abstract class Handlers {
   }
 
   /**
+   * Creates a handler chain from the given handlers.
+   *
+   * @param handlers The handlers to connect into a chain
+   * @return A new handler that is the given handlers connected into a chain
+   */
+  public static Handler chain(Handler... handlers) {
+    if (handlers.length == 0) {
+      return next();
+    } else if (handlers.length == 1) {
+      return handlers[0];
+    } else {
+      return new ChainHandler(handlers);
+    }
+  }
+
+  /**
    * A handlers that changes the {@link ratpack.file.FileSystemBinding} for the given handlers.
    * <p>
    * The new file system binding will be created by the {@link ratpack.file.FileSystemBinding#binding(String)} method of the contextual binding.
    *
    * @param path The relative path to the new file system binding point
-   * @param handlers The handlers to execute with the new file system binding
+   * @param handler The handler to execute with the new file system binding
    * @return A handler
    */
-  public static Handler fileSystem(String path, List<? extends Handler> handlers) {
-    return new FileSystemBindingHandler(new File(path), copyOf(handlers));
+  public static Handler fileSystem(String path, Handler handler) {
+    return new FileSystemBindingHandler(new File(path), handler);
   }
 
   /**
@@ -171,7 +172,7 @@ public abstract class Handlers {
 
   public static Handler assets(String path, List<String> indexFiles) {
     Handler handler = new AssetHandler(copyOf(indexFiles));
-    return fileSystem(path, ImmutableList.of(handler));
+    return fileSystem(path, handler);
   }
 
   /**
@@ -230,11 +231,11 @@ public abstract class Handlers {
    * using the given prefix as the bind point.
    *
    * @param prefix The path prefix to match
-   * @param handlers The handlers to delegate to
+   * @param handler The handler to delegate to
    * @return A handler
    */
-  public static Handler prefix(String prefix, List<? extends Handler> handlers) {
-    return path(new TokenPathBinder(prefix, false), handlers);
+  public static Handler prefix(String prefix, Handler handler) {
+    return path(new TokenPathBinder(prefix, false), handler);
   }
 
   /**
@@ -246,22 +247,22 @@ public abstract class Handlers {
    * using the given path as the bind point.
    *
    * @param path The exact path to match to
-   * @param handlers The handlers to delegate to if the path matches
+   * @param handler The handlers to delegate to if the path matches
    * @return A handler
    */
-  public static Handler path(String path, List<? extends Handler> handlers) {
-    return path(new TokenPathBinder(path, true), handlers);
+  public static Handler path(String path, Handler handler) {
+    return path(new TokenPathBinder(path, true), handler);
   }
 
   /**
    * Creates a handler that delegates to the given handlers if the request can be bound by the given path binder.
    *
    * @param pathBinder The path binder that may bind to the request path
-   * @param handlers The handlers to delegate to if path binder does bind to the path
+   * @param handler The handlers to delegate to if path binder does bind to the path
    * @return A handler
    */
-  public static Handler path(PathBinder pathBinder, List<? extends Handler> handlers) {
-    return new PathHandler(pathBinder, copyOf(handlers));
+  public static Handler path(PathBinder pathBinder, Handler handler) {
+    return new PathHandler(pathBinder, handler);
   }
 
   /**

@@ -21,7 +21,8 @@ import ratpack.handling.ByMethodHandler;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 
-import java.util.*;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import static io.netty.handler.codec.http.HttpResponseStatus.METHOD_NOT_ALLOWED;
 
@@ -74,11 +75,12 @@ public class DefaultByMethodHandler implements ByMethodHandler {
       context.getResponse().getHeaders().add("Allow", methods);
       context.getResponse().status(200).send();
     } else {
-      List<Handler> handlers = new ArrayList<>(runnables.size() + 1);
+      Handler[] handlers = new Handler[runnables.size() + 1];
+      int i = 0;
       for (Map.Entry<String, Runnable> entry : runnables.entrySet()) {
-        handlers.add(new ByMethodHandler(entry.getKey(), entry.getValue()));
+        handlers[i++] = new ByMethodHandler(entry.getKey(), entry.getValue());
       }
-      handlers.add(new ClientErrorForwardingHandler(METHOD_NOT_ALLOWED.code()));
+      handlers[i] = new ClientErrorForwardingHandler(METHOD_NOT_ALLOWED.code());
       context.insert(handlers);
     }
   }

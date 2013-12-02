@@ -16,7 +16,6 @@
 
 package ratpack.session.store.internal;
 
-import com.google.common.collect.ImmutableList;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.session.Session;
@@ -24,25 +23,23 @@ import ratpack.session.store.SessionStorage;
 import ratpack.session.store.SessionStore;
 import ratpack.util.Factory;
 
-import java.util.List;
-
 public class SessionStorageBindingHandler implements Handler {
 
-  private final List<Handler> handler;
+  private final Handler handler;
 
   public SessionStorageBindingHandler(Handler handler) {
-    this.handler = ImmutableList.of(handler);
+    this.handler = handler;
   }
 
   public void handle(final Context context) {
-    context.insert(handler, SessionStorage.class, new Factory<SessionStorage>() {
+    context.insert(SessionStorage.class, new Factory<SessionStorage>() {
       public SessionStorage create() {
         Session session = context.get(Session.class);
         String id = session.getId();
         SessionStore sessionStore = context.get(SessionStore.class);
         return sessionStore.get(id);
       }
-    });
+    }, handler);
   }
 
 }

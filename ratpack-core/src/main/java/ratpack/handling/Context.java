@@ -32,7 +32,6 @@ import ratpack.util.ResultAction;
 
 import java.io.File;
 import java.util.Date;
-import java.util.List;
 import java.util.concurrent.Callable;
 
 /**
@@ -55,7 +54,7 @@ import java.util.concurrent.Callable;
  * For example, error handling is based on informing the contextual {@link ratpack.error.ServerErrorHandler} of exceptions.
  * The error handling strategy for an application can be changed by pushing a new implementation of this interface into the context that is used downstream.
  * <p>
- * See {@link #insert(java.util.List)} for more on how to do this.
+ * See {@link #insert(Handler...)} for more on how to do this.
  * <h5>Default contextual objects</h5>
  * <p>There is also a set of default objects that are made available via the Ratpack infrastructure:
  * <ul>
@@ -122,7 +121,7 @@ public interface Context extends Registry {
    * @param handlers The handlers to insert.
    */
   @NonBlocking
-  void insert(List<? extends Handler> handlers);
+  void insert(Handler... handlers);
 
   /**
    * Inserts some handlers into the pipeline to execute with the given registry, then delegates to the first.
@@ -135,7 +134,7 @@ public interface Context extends Registry {
    * @param registry The registry for the inserted handlers
    */
   @NonBlocking
-  void insert(List<? extends Handler> handlers, Registry registry);
+  void insert(Registry registry, Handler... handlers);
 
   /**
    * Inserts some handlers into the pipeline to execute with the given object created by the factory made available, then delegates to the first.
@@ -149,7 +148,7 @@ public interface Context extends Registry {
    * @param factory The factory that creates the object lazily
    */
   @NonBlocking
-  <T> void insert(List<? extends Handler> handlers, Class<T> publicType, Factory<? extends T> factory);
+  <T> void insert(Class<T> publicType, Factory<? extends T> factory, Handler... handlers);
 
   /**
    * Inserts some handlers into the pipeline to execute with the given object made available, then delegates to the first.
@@ -163,7 +162,7 @@ public interface Context extends Registry {
    * @param implementation The actual implementation
    */
   @NonBlocking
-  <P, T extends P> void insert(List<? extends Handler> handlers, Class<P> publicType, T implementation);
+  <P, T extends P> void insert(Class<P> publicType, T implementation, Handler... handlers);
 
   /**
    * Inserts some handlers into the pipeline to execute with the the given object added to the service, then delegates to the first.
@@ -174,7 +173,7 @@ public interface Context extends Registry {
    * @param object The object to add to the service for the handlers
    */
   @NonBlocking
-  void insert(List<? extends Handler> handlers, Object object);
+  void insert(Object object, Handler... handlers);
 
   /**
    * Convenience method for delegating to a single handler.

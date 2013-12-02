@@ -91,12 +91,12 @@ class ErrorHandlingSpec extends RatpackGroovyDslSpec {
       handlers {
         get { exchange ->
           withErrorHandling new Thread({
-            insert(Arrays.asList(new Handler() {
+            insert(ServerErrorHandler, errorHandler2, new Handler() {
               @Override
               void handle(Context context) {
                 throw new Exception("down here")
               }
-            }), ServerErrorHandler, errorHandler2)
+            })
           })
         }
       }

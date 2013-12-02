@@ -16,7 +16,6 @@
 
 package ratpack.handling.internal;
 
-import com.google.common.collect.ImmutableList;
 import ratpack.api.Nullable;
 import ratpack.handling.Chain;
 import ratpack.handling.Handler;
@@ -28,7 +27,6 @@ import ratpack.util.Action;
 import java.util.List;
 
 import static com.google.common.collect.ImmutableList.copyOf;
-import static com.google.common.collect.ImmutableList.of;
 
 public class DefaultChain implements Chain {
 
@@ -42,29 +40,33 @@ public class DefaultChain implements Chain {
     this.registry = registry;
   }
 
+  public Registry getRegistry() {
+    return registry;
+  }
+
+  public LaunchConfig getLaunchConfig() {
+    return launchConfig;
+  }
+
   public Chain handler(Handler handler) {
     handlers.add(handler);
     return this;
   }
 
-  public Chain prefix(String prefix, Handler... handlers) {
-    return handler(Handlers.prefix(prefix, ImmutableList.copyOf(handlers)));
-  }
-
-  public Chain prefix(String prefix, List<Handler> handlers) {
-    return handler(Handlers.prefix(prefix, handlers));
-  }
-
-  public Chain prefix(String prefix, Action<? super Chain> builder) {
-    return handler(Handlers.prefix(prefix, Handlers.chainList(launchConfig, getRegistry(), builder)));
-  }
-
   public Chain handler(String path, Handler handler) {
-    return handler(Handlers.path(path, of(handler)));
+    return handler(Handlers.path(path, handler));
+  }
+
+  public Chain prefix(String prefix, Handler handler) {
+    return handler(Handlers.prefix(prefix, handler));
+  }
+
+  public Chain prefix(String prefix, Action<? super Chain> action) {
+    return prefix(prefix, chain(action));
   }
 
   public Chain get(String path, Handler handler) {
-    return handler(Handlers.path(path, of(Handlers.get(), handler)));
+    return handler(Handlers.path(path, Handlers.chain(Handlers.get(), handler)));
   }
 
   public Chain get(Handler handler) {
@@ -72,7 +74,7 @@ public class DefaultChain implements Chain {
   }
 
   public Chain post(String path, Handler handler) {
-    return handler(Handlers.path(path, of(Handlers.post(), handler)));
+    return handler(Handlers.path(path, Handlers.chain(Handlers.post(), handler)));
   }
 
   public Chain post(Handler handler) {
@@ -80,7 +82,7 @@ public class DefaultChain implements Chain {
   }
 
   public Chain put(String path, Handler handler) {
-    return handler(Handlers.path(path, of(Handlers.put(), handler)));
+    return handler(Handlers.path(path, Handlers.chain(Handlers.put(), handler)));
   }
 
   public Chain put(Handler handler) {
@@ -88,7 +90,7 @@ public class DefaultChain implements Chain {
   }
 
   public Chain delete(String path, Handler handler) {
-    return handler(Handlers.path(path, of(Handlers.delete(), handler)));
+    return handler(Handlers.path(path, Handlers.chain(Handlers.delete(), handler)));
   }
 
   public Chain delete(Handler handler) {
@@ -99,28 +101,37 @@ public class DefaultChain implements Chain {
     return handler(Handlers.assets(path, indexFiles.length == 0 ? launchConfig.getIndexFiles() : copyOf(indexFiles)));
   }
 
-  public Chain register(Object service, List<Handler> handlers) {
-    return handler(Handlers.register(service, handlers));
+  public Chain register(Object service, Handler handler) {
+    return handler(Handlers.register(service, handler));
   }
 
-  public <T> Chain register(Class<? super T> type, T service, List<Handler> handlers) {
-    return handler(Handlers.register(type, service, handlers));
+  public Chain register(Object service, Action<? super Chain> action) {
+    return register(service, chain(action));
   }
 
-  public Chain fileSystem(String path, List<Handler> handlers) {
-    return handler(Handlers.fileSystem(path, handlers));
+  public <T> Chain register(Class<? super T> type, T service, Handler handler) {
+    return handler(Handlers.register(type, service, handler));
   }
 
-  public Registry getRegistry() {
-    return registry;
+  public <T> Chain register(Class<? super T> type, T service, Action<? super Chain> action) {
+    return register(type, service, chain(action));
   }
 
-  public LaunchConfig getLaunchConfig() {
-    return launchConfig;
+  public Chain fileSystem(String path, Handler handler) {
+    return handler(Handlers.fileSystem(path, handler));
+  }
+
+  public Chain fileSystem(String path, Action<? super Chain> action) {
+    return handler(Handlers.fileSystem(path, chain(action)));
   }
 
   public Chain header(String headerName, String headerValue, Handler handler) {
     return handler(Handlers.header(headerName, headerValue, handler));
+  }
+
+  @Override
+  public Handler chain(Action<? super Chain> action) {
+    return Handlers.chain(getLaunchConfig(), getRegistry(), action);
   }
 
 }

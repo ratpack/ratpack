@@ -18,10 +18,9 @@ package ratpack.groovy.handling;
 
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
+import ratpack.handling.Chain;
 import ratpack.handling.Handler;
 import ratpack.util.Action;
-
-import java.util.List;
 
 /**
  * A Groovy oriented handler chain builder DSL.
@@ -31,7 +30,7 @@ import java.util.List;
  * <p>
  * These methods are generally shortcuts for {@link #handler(ratpack.handling.Handler)} on this underlying chain.
  */
-public interface GroovyChain extends ratpack.handling.Chain {
+public interface GroovyChain extends Chain {
 
   /**
    * Adds the given {@code Closure} as a {@code Handler} to this {@code GroovyChain}.
@@ -60,35 +59,29 @@ public interface GroovyChain extends ratpack.handling.Chain {
   GroovyChain handler(Handler handler);
 
   /**
+   * {@inheritDoc}
+   */
+  @Override
+  GroovyChain prefix(String prefix, Handler handler);
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  GroovyChain prefix(String prefix, Action<? super Chain> action);
+
+  /**
    * Creates a {@code List} of {@code Handler} from the given {@code Closure} and adds a {@code Handler} to
    * this {@code GroovyChain} that delegates to the {@code Handler} list if the relative path starts with the given
    * {@code prefix}.
    * <p>
-   * See {@link GroovyChain#prefix(String, ratpack.handling.Handler...)} for more details.
+   * See {@link Chain#prefix(String, ratpack.handling.Handler)} for more details.
    *
    * @param prefix the relative path to match on
    * @param chain the definition of the chain to delegate to
    * @return this {@code GroovyChain}
    */
   GroovyChain prefix(String prefix, @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> chain);
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  GroovyChain prefix(String prefix, Handler... handlers);
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  GroovyChain prefix(String prefix, List<Handler> handlers);
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  GroovyChain prefix(String prefix, Action<? super ratpack.handling.Chain> chainAction);
 
   /**
    * {@inheritDoc}
@@ -237,10 +230,22 @@ public interface GroovyChain extends ratpack.handling.Chain {
   GroovyChain delete(@DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
 
   /**
+   * {@inheritDoc}
+   */
+  @Override
+  GroovyChain register(Object object, Handler handler);
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  GroovyChain register(Object service, Action<? super Chain> action);
+
+  /**
    * Creates a {@code List} of {@code Handler} from the given {@code Closure} and adds a {@code Handler} to this {@code GroovyChain}
    * that inserts the {@code Handler} list with the given {@code service} addition.
    * <p>
-   * See {@link GroovyChain#register(Object, java.util.List)} for more details.
+   * See {@link GroovyChain#register(Object, Handler)} for more details.
    *
    * @param service the object to add to the service for the handlers
    * @param handlers the handlers to register the service with
@@ -252,13 +257,16 @@ public interface GroovyChain extends ratpack.handling.Chain {
    * {@inheritDoc}
    */
   @Override
-  GroovyChain register(Object object, List<Handler> handlers);
+  <T> GroovyChain register(Class<? super T> type, T object, Handler handler);
+
+  @Override
+  <T> GroovyChain register(Class<? super T> type, T service, Action<? super Chain> action);
 
   /**
    * Creates a {@code List} of {@code Handler} from the given {@code Closure} and adds a {@code Handler} to this {@code GroovyChain} that
    * inserts the the {@code Handler} list with the given {@code service} addition.
    * <p>
-   * See {@link GroovyChain#register(Class, Object, java.util.List)} for more details.
+   * See {@link GroovyChain#register(Class, Object, Handler)} for more details.
    *
    * @param type the {@code Type} by which to make the service object available
    * @param service the object to add to the service for the handlers
@@ -272,25 +280,22 @@ public interface GroovyChain extends ratpack.handling.Chain {
    * {@inheritDoc}
    */
   @Override
-  <T> GroovyChain register(Class<? super T> type, T object, List<Handler> handlers);
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
   GroovyChain assets(String path, String... indexFiles);
 
   /**
    * {@inheritDoc}
    */
   @Override
-  GroovyChain fileSystem(String path, List<Handler> handlers);
+  GroovyChain fileSystem(String path, Handler handler);
+
+  @Override
+  GroovyChain fileSystem(String path, Action<? super Chain> action);
 
   /**
    * Creates a {@code List} of {@code Handler} from the given {@code Closure} and adds a {@code Handler} to this {@code GroovyChain} that
    * changes the {@link ratpack.file.FileSystemBinding} for the {@code Handler} list.
    * <p>
-   * See {@link GroovyChain#fileSystem(String, java.util.List)} for more details.
+   * See {@link GroovyChain#fileSystem(String, Handler)} for more details.
    *
    * @param path the relative {@code path} to the new file system binding point
    * @param handlers the definition of the handler chain

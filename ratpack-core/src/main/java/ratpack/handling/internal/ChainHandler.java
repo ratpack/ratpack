@@ -16,20 +16,25 @@
 
 package ratpack.handling.internal;
 
-import com.google.common.collect.ImmutableList;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 
+import java.util.List;
+
 public class ChainHandler implements Handler {
 
-  private final ImmutableList<Handler> chain;
+  private final Handler[] handlers;
 
-  public ChainHandler(ImmutableList<Handler> chain) {
-    this.chain = chain;
+  public ChainHandler(List<? extends Handler> handlers) {
+    this.handlers = handlers.toArray(new Handler[handlers.size()]);
+  }
+
+  public ChainHandler(Handler... handlers) {
+    this.handlers = handlers;
   }
 
   public void handle(Context context) {
-    context.insert(chain);
+    context.insert(handlers);
   }
 
 }

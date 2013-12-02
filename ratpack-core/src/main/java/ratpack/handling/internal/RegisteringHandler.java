@@ -16,7 +16,6 @@
 
 package ratpack.handling.internal;
 
-import com.google.common.collect.ImmutableList;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 
@@ -24,27 +23,27 @@ public class RegisteringHandler implements Handler {
 
   private final Class<?> type;
   private final Object object;
-  private final ImmutableList<Handler> handlers;
+  private final Handler handler;
 
   @SuppressWarnings("unchecked")
-  public <T> RegisteringHandler(T object, ImmutableList<Handler> handlers) {
+  public <T> RegisteringHandler(T object, Handler handler) {
     this.type = null;
     this.object = object;
-    this.handlers = handlers;
+    this.handler = handler;
   }
 
-  public <T> RegisteringHandler(Class<? super T> type, T object, ImmutableList<Handler> handlers) {
+  public <T> RegisteringHandler(Class<? super T> type, T object, Handler handler) {
     this.type = type;
     this.object = object;
-    this.handlers = handlers;
+    this.handler = handler;
   }
 
   @SuppressWarnings("unchecked")
   public void handle(Context context) {
     if (type == null) {
-      context.insert(handlers, object);
+      context.insert(object, handler);
     } else {
-      context.insert(handlers, (Class)type, object);
+      context.insert((Class)type, object, handler);
     }
   }
 }

@@ -16,31 +16,28 @@
 
 package ratpack.session.internal;
 
-import com.google.common.collect.ImmutableList;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.session.Session;
 import ratpack.session.SessionManager;
 import ratpack.util.Factory;
 
-import java.util.List;
-
 public class SessionBindingHandler implements Handler {
 
-  private final List<Handler> delegate;
+  private final Handler handler;
 
-  public SessionBindingHandler(Handler delegate) {
-    this.delegate = ImmutableList.of(delegate);
+  public SessionBindingHandler(Handler handler) {
+    this.handler = handler;
   }
 
   public void handle(final Context context) {
-    context.insert(delegate, Session.class, new Factory<Session>() {
+    context.insert(Session.class, new Factory<Session>() {
       public Session create() {
         SessionManager sessionManager = context.get(SessionManager.class);
         final RequestSessionManager requestSessionManager = new RequestSessionManager(context, sessionManager);
         return requestSessionManager.getSession();
       }
-    });
+    }, handler);
   }
 
 }

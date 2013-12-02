@@ -16,7 +16,6 @@
 
 package ratpack.server.internal;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -67,7 +66,7 @@ import static io.netty.handler.codec.http.HttpResponseStatus.NOT_FOUND;
 @ChannelHandler.Sharable
 public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpRequest> {
 
-  private final Handler handler;
+  private final Handler[] handlers;
   private final Handler return404;
   private final ListeningExecutorService blockingExecutorService;
 
@@ -75,7 +74,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
 
   public NettyHandlerAdapter(Handler handler, LaunchConfig launchConfig, ListeningExecutorService blockingExecutorService) {
     this.blockingExecutorService = blockingExecutorService;
-    this.handler = new ErrorCatchingHandler(handler);
+    this.handlers = new Handler[]{new ErrorCatchingHandler(handler)};
     this.return404 = new ClientErrorForwardingHandler(NOT_FOUND.code());
 
     this.registry = RegistryBuilder.builder()
@@ -144,7 +143,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
     InetSocketAddress socketAddress = (InetSocketAddress) channel.localAddress();
     BindAddress bindAddress = new InetSocketAddressBackedBindAddress(socketAddress);
 
-    Context context = new DefaultContext(request, response, bindAddress, registry, ctx.executor(), blockingExecutorService, requestOutcomeEventController.getRegistry(), ImmutableList.<Handler>of(handler), 0, return404);
+    Context context = new DefaultContext(request, response, bindAddress, registry, ctx.executor(), blockingExecutorService, requestOutcomeEventController.getRegistry(), handlers, 0, return404);
     context.next();
   }
 

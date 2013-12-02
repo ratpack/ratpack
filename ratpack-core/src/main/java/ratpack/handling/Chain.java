@@ -21,8 +21,6 @@ import ratpack.launch.LaunchConfig;
 import ratpack.registry.Registry;
 import ratpack.util.Action;
 
-import java.util.List;
-
 /**
  * A chain can be used to build a linked series of handlers.
  * <p>
@@ -47,7 +45,7 @@ import java.util.List;
  *       public void execute(Chain chain) {
  *         chain
  *           .assets("public")
- *           .prefix("api", new Action&lt;Chain&gt;() {
+ *           .prefix("api", chain.chain(new Action&lt;Chain&gt;() {
  *             public void execute(Chain api) {
  *               api
  *                 .get("people", new PeopleHandler())
@@ -55,12 +53,11 @@ import java.util.List;
  *                   public void handle(Context context) {
  *                     // handle
  *                   }
- *                 })
+ *                 });
  *             }
- *           })
+ *           }));
  *       }
  *     });
- *
  *   }
  * }
  *
@@ -83,6 +80,24 @@ import java.util.List;
 public interface Chain {
 
   /**
+   * The registry that backs this {@code GroovyChain}.
+   * <p>
+   * The registry that is available is dependent on how the {@code GroovyChain} was constructed.
+   *
+   * @see Handlers#chain(LaunchConfig, ratpack.registry.Registry, ratpack.util.Action)
+   * @return The registry that backs this {@code GroovyChain}, or {@code null} if this {@code GroovyChain} has no registry.
+   */
+  @Nullable
+  Registry getRegistry();
+
+  /**
+   * The launch config of the application that this chain is being created for.
+   *
+   * @return The launch config of the application that this chain is being created for.
+   */
+  LaunchConfig getLaunchConfig();
+
+  /**
    * Adds the given {@code Handler} to this {@code GroovyChain}.
    *
    * @param handler the {@code Handler} to add
@@ -91,78 +106,11 @@ public interface Chain {
   Chain handler(Handler handler);
 
   /**
-   * Adds a {@code Handler} to this {@code GroovyChain} that delegates to the given handlers if the
-   * relative path starts with the given {@code prefix}.
-   * <p>
-   * All path based handlers become relative to the given {@code prefix}.
-   * <pre class="java-chain-dsl">
-   *   chain
-   *     .prefix("person/:id", new Action&lt;Chain&gt;() {
-   *       public void execute(Chain personChain) {
-   *         personChain
-   *           .get("info", new Handler() {
-   *             public void handle(Context context) {
-   *               // e.g. /person/2/info
-   *             }
-   *           })
-   *           .post("save", new Handler() {
-   *             public void handle(Context context) {
-   *               // e.g. /person/2/save
-   *             }
-   *           })
-   *           .prefix("child/:childId", new Action&lt;Chain&gt;() {
-   *             public void execute(Chain childChain) {
-   *               childChain
-   *                 .get("info", new Handler() {
-   *                   public void handle(Context context) {
-   *                     // e.g. /person/2/child/1/info
-   *                   }
-   *                 });
-   *             }
-   *           });
-   *       }
-   *     });
-   * </pre>
-   * <p>
-   * See {@link ratpack.handling.Handlers#prefix(String, java.util.List)}
-   * for format details on the {@code prefix} string.
-   *
-   * @param prefix the relative path to match on
-   * @param handlers the handlers to delegate to
-   * @return this {@code GroovyChain}
-   */
-  Chain prefix(String prefix, Handler... handlers);
-
-  /**
-   * Adds a {@code Handler} to this {@code GroovyChain} that delegates to the given handlers if the
-   * relative path starts with the given {@code prefix}.
-   * <p>
-   * See {@link Chain#prefix(String, Handler...)} for more details.
-   *
-   * @param prefix the relative path to match on
-   * @param handlers the handlers to delegate to
-   * @return this {@code GroovyChain}
-   */
-  Chain prefix(String prefix, List<Handler> handlers);
-
-  /**
-   * Adds a {@code Handler} to this {@code GroovyChain} that delegates to the given chain if the
-   * relative path starts with the given {@code prefix}.
-   * <p>
-   * See {@link Chain#prefix(String, Handler...)} for more details.
-   *
-   * @param prefix the relative path to match on
-   * @param builder the definition of the chain to delegate to
-   * @return this {@code GroovyChain}
-   */
-  Chain prefix(String prefix, Action<? super Chain> builder);
-
-  /**
    * Adds a {@code Handler} to this {@code GroovyChain} that delegates to the given {@code Handler} if the relative {@code path}
    * matches the given {@code path} exactly.
    * <p>
    * Nesting {@code path} handlers will not work due to the exact matching, use a combination of {@code path}
-   * and {@code prefix} instead.  See {@link Chain#prefix(String, Handler...)} for details.
+   * and {@code prefix} instead.  See {@link Chain#prefix(String, Handler)} for details.
    * <pre>
    *   // this will not work
    *   path("person/:id") {
@@ -179,7 +127,7 @@ public interface Chain {
    *   }
    * </pre>
    * <p>
-   * See {@link Handlers#path(String, List)} for the details on how {@code path} is interpreted.
+   * See {@link Handlers#path(String, Handler)} for the details on how {@code path} is interpreted.
    *
    * @param path the relative path to match exactly on
    * @param handler the handler to delegate to
@@ -190,6 +138,51 @@ public interface Chain {
    * @see Chain#delete(String, Handler)
    */
   Chain handler(String path, Handler handler);
+
+  /**
+   * Adds a {@code Handler} to this {@code GroovyChain} that delegates to the given handlers if the
+   * relative path starts with the given {@code prefix}.
+   * <p>
+   * All path based handlers become relative to the given {@code prefix}.
+   * <pre class="java-chain-dsl">
+   *   chain
+   *     .prefix("person/:id", chain.chain(new Action&lt;Chain&gt;() {
+   *       public void execute(Chain personChain) {
+   *         personChain
+   *           .get("info", new Handler() {
+   *             public void handle(Context context) {
+   *               // e.g. /person/2/info
+   *             }
+   *           })
+   *           .post("save", new Handler() {
+   *             public void handle(Context context) {
+   *               // e.g. /person/2/save
+   *             }
+   *           })
+   *           .prefix("child/:childId", chain.chain(new Action&lt;Chain&gt;() {
+   *             public void execute(Chain childChain) {
+   *               childChain
+   *                 .get("info", new Handler() {
+   *                   public void handle(Context context) {
+   *                     // e.g. /person/2/child/1/info
+   *                   }
+   *                 });
+   *             }
+   *           }));
+   *       }
+   *     }));
+   * </pre>
+   * <p>
+   * See {@link ratpack.handling.Handlers#prefix(String, Handler)}
+   * for format details on the {@code prefix} string.
+   *
+   * @param prefix the relative path to match on
+   * @param handler the handler to delegate to if the prefix matches
+   * @return this {@code GroovyChain}
+   */
+  Chain prefix(String prefix, Handler handler);
+
+  Chain prefix(String prefix, Action<? super Chain> action);
 
   /**
    * Adds a {@code Handler} to this {@code GroovyChain} that delegates to the given {@code Handler}
@@ -307,7 +300,7 @@ public interface Chain {
    * Adds a {@code Handler} to this {@code GroovyChain} that serves static assets at the given file system path,
    * relative to the contextual file system binding.
    * <p>
-   * See {@link Handlers#assets(String, List)} for more details on the {@code Handler} created
+   * See {@link Handlers#assets(String, java.util.List)} for more details on the {@code Handler} created
    * <pre>
    *    prefix("foo") {
    *      assets("d1", "index.html", "index.xhtml")
@@ -326,81 +319,70 @@ public interface Chain {
   Chain assets(String path, String... indexFiles);
 
   /**
-   * Adds a {@code Handler} to this {@code GroovyChain} that inserts the given handlers with the given {@code service} addition.
+   * Adds a {@code Handler} to this {@code GroovyChain} that inserts the given handler with the given {@code service} addition.
    * <p>
    * The {@code service} object will be available by its concrete type.
    * <p>
-   * See {@link Handlers#register(Object, java.util.List)} for more details on the {@code Handler} created
+   * See {@link Handlers#register(Object, Handler)} for more details on the {@code Handler} created
    *
    * @param service the object to add to the service for the handlers
-   * @param handlers the handlers to register the service with
+   * @param handler the handlers to register the service with
    * @return this {@code GroovyChain}
-   * @see Chain#register(Class, Object, java.util.List)
+   * @see Chain#register(Class, Object, Handler)
    */
-  Chain register(Object service, List<Handler> handlers);
+  Chain register(Object service, Handler handler);
+
+  Chain register(Object service, Action<? super Chain> action);
 
   /**
    * Adds a {@code Handler} to this {@code GroovyChain} that inserts the given handlers with the given {@code service} addition.
    * <p>
    * The {@code service} object will be available by the given type.
    * <p>
-   * See {@link Handlers#register(Class, Object, java.util.List)} for more details on the {@code Handler} created
+   * See {@link Handlers#register(Class, Object, Handler)} for more details on the {@code Handler} created
    *
    * @param type the {@code Type} by which to make the service object available
    * @param service the object to add to the service for the handlers
-   * @param handlers the handlers to register the service with
+   * @param handler the handlers to register the service with
    * @param <T> the concrete type of the service addition
    * @return this {@code GroovyChain}
-   * @see Chain#register(Object, java.util.List)
+   * @see Chain#register(Object, Handler)
    */
-  <T> Chain register(Class<? super T> type, T service, List<Handler> handlers);
+  <T> Chain register(Class<? super T> type, T service, Handler handler);
+
+  <T> Chain register(Class<? super T> type, T service, Action<? super Chain> action);
 
   /**
    * Adds a {@code Handler} to this {@code GroovyChain} that changes the {@link ratpack.file.FileSystemBinding}
-   * for the given handlers.
-   * <p>
-   * See {@link Handlers#fileSystem(String, java.util.List)} for more details on the {@code Handler} created
+   * for the given handler.
    *
    * @param path the relative {@code path} to the new file system binding point
-   * @param handlers the definition of the handler chain
+   * @param handler the definition of the handler chain
    * @return this {@code GroovyChain}
    */
-  Chain fileSystem(String path, List<Handler> handlers);
+  Chain fileSystem(String path, Handler handler);
+
+  Chain fileSystem(String path, Action<? super Chain> action);
 
   /**
-   * The registry that backs this {@code GroovyChain}.
-   * <p>
-   * The registry that is available is dependent on how the {@code GroovyChain} was constructed.
+   * Adds a {@code Handler} to the chain that delegates to the given handler if the request has a header with the given name and a its value matches the given value exactly.
    *
-   * @see Handlers#chain(LaunchConfig, ratpack.registry.Registry, ratpack.util.Action)
-   * @return The registry that backs this {@code GroovyChain}, or {@code null} if this {@code GroovyChain} has no registry.
-   */
-  @Nullable
-  Registry getRegistry();
-
-  /**
-   * The launch config of the application that this chain is being created for.
-   *
-   * @return The launch config of the application that this chain is being created for.
-   */
-  LaunchConfig getLaunchConfig();
-
-  /**
-   * Adds a {@code Handler} to this {@code GroovyChain} that delegates to the given handler if the {@code request} has a
-   * {@code HTTPHeader} with the given name and a it's value matches the given value exactly.
-   * <p>
-   * See {@link Handlers#header(String, String, Handler)} for more details on the {@code Handler} created.
-   * <pre>
-   *  header("foo", "bar") {
-   *    response.send("Header Handler")
-   *  }
+   * <pre tested="java-chain-dsl>
+   *  chain.
+   *    header("foo", "bar", new Handler() {
+   *      public void handle(Context context) {
+   *        context.getResponse().send("Header Handler");
+   *      }
+   *    });
    * </pre>
    *
    * @param headerName the name of the HTTP Header to match on
    * @param headerValue the value of the HTTP Header to match on
    * @param handler the handler to delegate to
-   * @return this {@code GroovyChain}
+   * @return this
    */
   Chain header(String headerName, String headerValue, Handler handler);
+
+  Handler chain(Action<? super Chain> action);
 
 }

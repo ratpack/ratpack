@@ -204,7 +204,7 @@ import ratpack.launch.HandlerFactory;
 
 import static ratpack.handling.Handlers.path;
 import static ratpack.handling.Handlers.get;
-import static java.util.Arrays.asList;
+import static ratpack.handling.Handlers.chain;
 
 public class SomeHandler implements Handler {
   public void handle(Context context) {
@@ -214,7 +214,7 @@ public class SomeHandler implements Handler {
 
 public class Application implements HandlerFactory {
   public Handler create(LaunchConfig launchConfig) {
-    return path("foo/bar", asList(get(), new SomeHandler()));
+    return path("foo/bar", chain(get(), new SomeHandler()));
   }
 }
 ```
@@ -244,7 +244,7 @@ public class Application implements HandlerFactory {
     return chain(launchConfig, new Action<Chain>() {
       void execute(Chain chain) {
         chain.
-          prefix("api", new Action<Chain>() {
+          prefix("api", chain.chain(new Action<Chain>() {
             void execute(Chain apiChain) {
               apiChain.
                 delete("someResource", new Handler() {
@@ -253,7 +253,7 @@ public class Application implements HandlerFactory {
                   }
                 });
             }
-          }).
+          })).
           assets("public").
           get("foo/bar", new Handler() {
             public void handle(Context context) {

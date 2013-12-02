@@ -16,26 +16,23 @@
 
 package ratpack.guice.internal;
 
-import com.google.common.collect.ImmutableList;
 import com.google.inject.Injector;
 import ratpack.guice.Guice;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.registry.Registry;
 
-import java.util.List;
-
 public class InjectorBindingHandler implements Handler {
 
-  private final List<Handler> delegate;
+  private final Handler handler;
   private Registry registry;
 
-  public InjectorBindingHandler(Injector injector, Handler delegate) {
+  public InjectorBindingHandler(Injector injector, Handler handler) {
     this.registry = Guice.registry(injector);
-    this.delegate = ImmutableList.of(delegate);
+    this.handler = handler;
   }
 
   public void handle(Context context) {
-    context.insert(delegate, registry);
+    context.insert(registry, handler);
   }
 }

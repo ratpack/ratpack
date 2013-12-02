@@ -74,7 +74,7 @@ public class RemoteControlModule extends AbstractModule implements HandlerDecora
 
     if (enabled) {
       return chain(of(
-        Handlers.path(endpointPath, of(post(), new RemoteControlHandler(injector))),
+        Handlers.path(endpointPath, chain(post(), new RemoteControlHandler(injector))),
         handler
       ));
     } else {

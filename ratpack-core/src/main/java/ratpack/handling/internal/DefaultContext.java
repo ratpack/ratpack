@@ -16,7 +16,6 @@
 
 package ratpack.handling.internal;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpResponseStatus;
@@ -72,7 +71,7 @@ public class DefaultContext implements Context {
 
   private final EventRegistry<RequestOutcome> onCloseRegistry;
 
-  private final ImmutableList<? extends Handler> nextHandlers;
+  private final Handler[] nextHandlers;
   private final int nextIndex;
 
   private final Handler exhausted;
@@ -80,7 +79,7 @@ public class DefaultContext implements Context {
   public DefaultContext(
     Request request, Response response, BindAddress bindAddress, Registry registry,
     ExecutorService mainExecutorService, ListeningExecutorService backgroundExecutorService,
-    EventRegistry<RequestOutcome> onCloseRegistry, ImmutableList<? extends Handler> nextHandlers, int nextIndex,
+    EventRegistry<RequestOutcome> onCloseRegistry, Handler[] nextHandlers, int nextIndex,
     Handler exhausted) {
     this.request = request;
     this.response = response;
@@ -143,25 +142,43 @@ public class DefaultContext implements Context {
     next(RegistryBuilder.builder().add(publicType, impl).build());
   }
 
-  public void insert(List<? extends Handler> handlers) {
-    doNext(this, registry, 0, ImmutableList.copyOf(handlers), new RejoinHandler());
+  public void insert(Handler... handlers) {
+    if (handlers.length == 0) {
+      throw new IllegalArgumentException("handlers is zero length");
+    }
+
+    doNext(this, registry, 0, handlers, new RejoinHandler());
   }
 
-  public void insert(List<? extends Handler> handlers, Registry registry) {
-    doNext(this, RegistryBuilder.join(this.registry, registry), 0, ImmutableList.copyOf(handlers), new RejoinHandler());
+  public void insert(Registry registry, Handler... handlers) {
+    if (handlers.length == 0) {
+      throw new IllegalArgumentException("handlers is zero length");
+    }
+
+    doNext(this, RegistryBuilder.join(this.registry, registry), 0, handlers, new RejoinHandler());
   }
 
   @Override
-  public <T> void insert(List<? extends Handler> handlers, Class<T> publicType, Factory<? extends T> factory) {
-    insert(handlers, RegistryBuilder.builder().add(publicType, factory).build());
+  public <T> void insert(Class<T> publicType, Factory<? extends T> factory, Handler... handlers) {
+    if (handlers.length == 0) {
+      throw new IllegalArgumentException("handlers is zero length");
+    }
+
+    insert(RegistryBuilder.builder().add(publicType, factory).build(), handlers);
   }
 
-  public <P, T extends P> void insert(List<? extends Handler> handlers, Class<P> publicType, T implementation) {
-    insert(handlers, RegistryBuilder.builder().add(publicType, implementation).build());
+  public <P, T extends P> void insert(Class<P> publicType, T implementation, Handler... handlers) {
+    if (handlers.length == 0) {
+      throw new IllegalArgumentException("handlers is zero length");
+    }
+    insert(RegistryBuilder.builder().add(publicType, implementation).build(), handlers);
   }
 
-  public void insert(List<? extends Handler> handlers, Object object) {
-    insert(handlers, RegistryBuilder.builder().add(object).build());
+  public void insert(Object object, Handler... handlers) {
+    if (handlers.length == 0) {
+      throw new IllegalArgumentException("handlers is zero length");
+    }
+    insert(RegistryBuilder.builder().add(object).build(), handlers);
   }
 
   public void respond(Handler handler) {
@@ -357,15 +374,15 @@ public class DefaultContext implements Context {
     return new DefaultByContentHandler();
   }
 
-  protected void doNext(Context parentContext, final Registry registry, final int nextIndex, final ImmutableList<? extends Handler> nextHandlers, Handler exhausted) {
+  protected void doNext(Context parentContext, final Registry registry, final int nextIndex, final Handler[] nextHandlers, Handler exhausted) {
     Context context;
     Handler handler;
 
-    if (nextIndex >= nextHandlers.size()) {
+    if (nextIndex >= nextHandlers.length) {
       context = parentContext;
       handler = exhausted;
     } else {
-      handler = nextHandlers.get(nextIndex);
+      handler = nextHandlers[nextIndex];
       context = createContext(registry, nextHandlers, nextIndex + 1, exhausted);
     }
 
@@ -380,7 +397,7 @@ public class DefaultContext implements Context {
     }
   }
 
-  private DefaultContext createContext(Registry registry, ImmutableList<? extends Handler> nextHandlers, int nextIndex, Handler exhausted) {
+  private DefaultContext createContext(Registry registry, Handler[] nextHandlers, int nextIndex, Handler exhausted) {
     return new DefaultContext(request, response, bindAddress, registry, mainExecutorService, backgroundExecutorService, onCloseRegistry, nextHandlers, nextIndex, exhausted);
   }
 

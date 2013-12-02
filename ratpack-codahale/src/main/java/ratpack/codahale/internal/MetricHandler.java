@@ -18,7 +18,6 @@ package ratpack.codahale.internal;
 
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;
-import com.google.common.collect.ImmutableList;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.handling.RequestOutcome;
@@ -27,10 +26,10 @@ import ratpack.util.Action;
 
 public class MetricHandler implements Handler {
 
-  private final ImmutableList<Handler> rest;
+  private final Handler rest;
 
   public MetricHandler(Handler rest) {
-    this.rest = ImmutableList.of(rest);
+    this.rest = rest;
   }
 
   @Override

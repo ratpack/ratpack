@@ -16,28 +16,25 @@
 
 package ratpack.path.internal;
 
-import com.google.common.collect.ImmutableList;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.path.PathBinder;
 import ratpack.path.PathBinding;
 
-import java.util.List;
-
 public class PathHandler implements Handler {
 
   private final PathBinder binding;
-  private final List<Handler> chain;
+  private final Handler handler;
 
-  public PathHandler(PathBinder binding, ImmutableList<Handler> chain) {
+  public PathHandler(PathBinder binding, Handler handler) {
     this.binding = binding;
-    this.chain = chain;
+    this.handler = handler;
   }
 
   public void handle(Context context) {
     PathBinding childBinding = binding.bind(context.getRequest().getPath(), context.maybeGet(PathBinding.class));
     if (childBinding != null) {
-      context.insert(chain, PathBinding.class, childBinding);
+      context.insert(PathBinding.class, childBinding, handler);
     } else {
       context.next();
     }

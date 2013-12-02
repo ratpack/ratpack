@@ -105,7 +105,7 @@ class ServiceUsingHandlerSpec extends DefaultRatpackSpec {
     when:
     app {
       handlers {
-        handler register(ServerErrorHandler, new MessageServerErrorHandler(), singletonList(new InjectedBadHandler()))
+        handler register(ServerErrorHandler, new MessageServerErrorHandler(), new InjectedBadHandler())
       }
     }
 
