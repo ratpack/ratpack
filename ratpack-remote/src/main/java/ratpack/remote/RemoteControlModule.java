@@ -24,7 +24,6 @@ import ratpack.handling.Handlers;
 import ratpack.launch.LaunchConfig;
 import ratpack.remote.internal.RemoteControlHandler;
 
-import static com.google.common.collect.ImmutableList.of;
 import static ratpack.handling.Handlers.chain;
 import static ratpack.handling.Handlers.post;
 
@@ -73,10 +72,10 @@ public class RemoteControlModule extends AbstractModule implements HandlerDecora
     boolean enabled = Boolean.valueOf(launchConfig.getOther("remoteControl.enabled", "false")) || launchConfig.isReloadable();
 
     if (enabled) {
-      return chain(of(
+      return chain(
         Handlers.path(endpointPath, chain(post(), new RemoteControlHandler(injector))),
         handler
-      ));
+      );
     } else {
       return handler;
     }

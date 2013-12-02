@@ -16,7 +16,6 @@
 
 package ratpack.handling.internal;
 
-import com.google.common.collect.ImmutableList;
 import ratpack.handling.Handler;
 import ratpack.handling.Handlers;
 import ratpack.util.Action;
@@ -25,23 +24,21 @@ import ratpack.util.Transformer;
 import java.util.LinkedList;
 import java.util.List;
 
-public class ChainBuilder {
+import static ratpack.util.ExceptionUtils.uncheck;
 
-  public static final ChainBuilder INSTANCE = new ChainBuilder();
+public class ChainBuilders {
 
-  public <T> Handler buildHandler(Transformer<List<Handler>, ? extends T> transformer, Action<? super T> action) {
-    return Handlers.chain(buildList(transformer, action));
-  }
-
-  public <T> List<? extends Handler> buildList(Transformer<List<Handler>, ? extends T> transformer, Action<? super T> action) {
+  public static <T> Handler build(Transformer<List<Handler>, ? extends T> toChainBuilder, Action<? super T> chainBuilderAction) {
     List<Handler> handlers = new LinkedList<>();
-    T thing = transformer.transform(handlers);
+    T chainBuilder = toChainBuilder.transform(handlers);
+
     try {
-      action.execute(thing);
+      chainBuilderAction.execute(chainBuilder);
     } catch (Exception e) {
-      throw new RuntimeException(e);
+      throw uncheck(e);
     }
-    return ImmutableList.copyOf(handlers);
+
+    return Handlers.chain(handlers.toArray(new Handler[handlers.size()]));
   }
 
 }

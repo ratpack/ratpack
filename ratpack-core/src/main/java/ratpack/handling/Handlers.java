@@ -90,21 +90,7 @@ public abstract class Handlers {
    * @return A handler
    */
   public static Handler chain(LaunchConfig launchConfig, @Nullable Registry registry, Action<? super Chain> action) {
-    return ChainBuilder.INSTANCE.buildHandler(new ChainActionTransformer(launchConfig, registry), action);
-  }
-
-  /**
-   * Builds a list of handlers using the given chain action.
-   * <p>
-   * The chain given to the action will have the given backing registry.
-   *
-   * @param launchConfig The application launch config
-   * @param action The chain building action
-   * @param registry The registry to back the chain with
-   * @return The handlers added by the chain action
-   */
-  public static List<? extends Handler> chainList(LaunchConfig launchConfig, @Nullable Registry registry, Action<? super Chain> action) {
-    return ChainBuilder.INSTANCE.buildList(new ChainActionTransformer(launchConfig, registry), action);
+    return ChainBuilders.build(new ChainActionTransformer(launchConfig, registry), action);
   }
 
   /**
@@ -119,7 +105,7 @@ public abstract class Handlers {
     } else if (handlers.size() == 1) {
       return handlers.get(0);
     } else {
-      return new ChainHandler(copyOf(handlers));
+      return new ChainHandler(handlers);
     }
   }
 

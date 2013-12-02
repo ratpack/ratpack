@@ -33,7 +33,7 @@ import ratpack.groovy.templating.Template;
 import ratpack.groovy.templating.internal.DefaultTemplate;
 import ratpack.guice.ModuleRegistry;
 import ratpack.handling.Handler;
-import ratpack.handling.internal.ChainBuilder;
+import ratpack.handling.internal.ChainBuilders;
 import ratpack.http.MediaType;
 import ratpack.http.internal.DefaultMediaType;
 import ratpack.launch.LaunchConfig;
@@ -133,7 +133,7 @@ public abstract class Groovy {
    * @return A handler
    */
   public static Handler chain(LaunchConfig launchConfig, @Nullable Registry registry, @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) {
-    return ChainBuilder.INSTANCE.buildHandler(
+    return ChainBuilders.build(
       new GroovyDslChainActionTransformer(launchConfig, registry),
       new ClosureInvoker<Object, GroovyChain>(closure).toAction(registry, Closure.DELEGATE_FIRST)
     );
