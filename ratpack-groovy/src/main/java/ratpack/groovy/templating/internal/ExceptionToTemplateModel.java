@@ -61,6 +61,7 @@ public class ExceptionToTemplateModel {
   }
 
   private static void renderFrames(Throwable exception, StackTrace trace) {
+    exception = StackTraceUtils.sanitize(exception);
     for (StackTraceElement ste : exception.getStackTrace()) {
       String className = ste.getClassName();
       if (!StackTraceUtils.isApplicationClass(className)
