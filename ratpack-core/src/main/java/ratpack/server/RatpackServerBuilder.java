@@ -16,15 +16,22 @@
 
 package ratpack.server;
 
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;
 import ratpack.handling.Handler;
+import ratpack.handling.internal.FactoryHandler;
 import ratpack.launch.HandlerFactory;
 import ratpack.launch.LaunchConfig;
 import ratpack.launch.LaunchException;
+import ratpack.reload.internal.ClassUtil;
+import ratpack.reload.internal.ReloadableFileBackedFactory;
 import ratpack.server.internal.NettyRatpackService;
 import ratpack.server.internal.RatpackChannelInitializer;
 import ratpack.server.internal.ServiceBackedServer;
+import ratpack.util.Factory;
+
+import java.io.File;
 
 /**
  * Builds a {@link RatpackServer}.
@@ -53,8 +60,26 @@ public abstract class RatpackServerBuilder {
     return new RatpackChannelInitializer(launchConfig, createHandler(launchConfig));
   }
 
-  private static Handler createHandler(LaunchConfig launchConfig) {
-    HandlerFactory handlerFactory = launchConfig.getHandlerFactory();
+  private static Handler createHandler(final LaunchConfig launchConfig) {
+    final HandlerFactory handlerFactory = launchConfig.getHandlerFactory();
+
+    if (launchConfig.isReloadable()) {
+      File classFile = ClassUtil.getClassFile(handlerFactory);
+      if (classFile != null) {
+        Factory<Handler> factory = new ReloadableFileBackedFactory<>(classFile, true, new ReloadableFileBackedFactory.Producer<Handler>() {
+          @Override
+          public Handler produce(File file, ByteBuf bytes) {
+            return createHandler(launchConfig, handlerFactory);
+          }
+        });
+        return new FactoryHandler(factory);
+      }
+    }
+
+    return createHandler(launchConfig, handlerFactory);
+  }
+
+  private static Handler createHandler(LaunchConfig launchConfig, HandlerFactory handlerFactory) {
     try {
       return handlerFactory.create(launchConfig);
     } catch (Exception e) {

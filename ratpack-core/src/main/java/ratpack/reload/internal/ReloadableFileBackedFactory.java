@@ -36,21 +36,38 @@ public class ReloadableFileBackedFactory<T> implements Factory<T> {
 
   private final File file;
   private final boolean reloadable;
-  private final Delegate<T> delegate;
+  private final Producer<T> producer;
+  private final Releaser<T> releaser;
 
   private final AtomicLong lastModifiedHolder = new AtomicLong(-1);
   private final AtomicReference<ByteBuf> contentHolder = new AtomicReference<>();
   private final AtomicReference<T> delegateHolder = new AtomicReference<>(null);
   private final Lock lock = new ReentrantLock();
 
-  static public interface Delegate<T> {
+  static public interface Producer<T> {
     T produce(File file, ByteBuf bytes);
   }
 
-  public ReloadableFileBackedFactory(File file, boolean reloadable, Delegate<T> delegate) {
+  static public interface Releaser<T> {
+    void release(T thing);
+  }
+
+  private static class NullReleaser<T> implements Releaser<T> {
+    @Override
+    public void release(T thing) {
+
+    }
+  }
+
+  public ReloadableFileBackedFactory(File file, boolean reloadable, Producer<T> producer) {
+    this(file, reloadable, producer, new NullReleaser<T>());
+  }
+
+  public ReloadableFileBackedFactory(File file, boolean reloadable, Producer<T> producer, Releaser<T> releaser) {
     this.file = file;
     this.reloadable = reloadable;
-    this.delegate = delegate;
+    this.producer = producer;
+    this.releaser = releaser;
 
     if (!reloadable) {
       try {
@@ -120,7 +137,11 @@ public class ReloadableFileBackedFactory<T> implements Factory<T> {
         return;
       }
 
-      delegateHolder.set(delegate.produce(file, bytes));
+      T previous = delegateHolder.getAndSet(null);
+      if (previous != null) {
+        releaser.release(previous);
+      }
+      delegateHolder.set(producer.produce(file, bytes));
 
       this.lastModifiedHolder.set(lastModifiedTime);
       this.contentHolder.set(bytes);

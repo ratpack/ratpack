@@ -18,18 +18,19 @@ package ratpack.handling.internal;
 
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
-import ratpack.reload.internal.ReloadableFileBackedFactory;
+import ratpack.util.Factory;
 
-class ReloadingFactoryHandler implements Handler {
+public class FactoryHandler implements Handler {
 
-  private final ReloadableFileBackedFactory<Handler[]> factory;
+  private final Factory<? extends Handler> factory;
 
-  ReloadingFactoryHandler(ReloadableFileBackedFactory<Handler[]> factory) {
+  public FactoryHandler(Factory<? extends Handler> factory) {
     this.factory = factory;
   }
 
   @Override
   public void handle(Context context) throws Exception {
-    context.insert(factory.create());
+    factory.create().handle(context);
   }
+
 }

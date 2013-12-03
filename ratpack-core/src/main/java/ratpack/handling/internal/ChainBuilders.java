@@ -37,20 +37,20 @@ public class ChainBuilders {
     if (launchConfig.isReloadable()) {
       File classFile = ClassUtil.getClassFile(chainBuilderAction);
       if (classFile != null) {
-        ReloadableFileBackedFactory<Handler[]> factory = new ReloadableFileBackedFactory<>(classFile, true, new ReloadableFileBackedFactory.Delegate<Handler[]>() {
+        ReloadableFileBackedFactory<Handler> factory = new ReloadableFileBackedFactory<>(classFile, true, new ReloadableFileBackedFactory.Producer<Handler>() {
           @Override
-          public Handler[] produce(File file, ByteBuf bytes) {
+          public Handler produce(File file, ByteBuf bytes) {
             return create(toChainBuilder, chainBuilderAction);
           }
         });
-        return new ReloadingFactoryHandler(factory);
+        return new FactoryHandler(factory);
       }
     }
 
-    return Handlers.chain(create(toChainBuilder, chainBuilderAction));
+    return create(toChainBuilder, chainBuilderAction);
   }
 
-  private static <T> Handler[] create(Transformer<List<Handler>, ? extends T> toChainBuilder, Action<? super T> chainBuilderAction) {
+  private static <T> Handler create(Transformer<List<Handler>, ? extends T> toChainBuilder, Action<? super T> chainBuilderAction) {
     List<Handler> handlers = new LinkedList<>();
     T chainBuilder = toChainBuilder.transform(handlers);
 
@@ -60,7 +60,7 @@ public class ChainBuilders {
       throw uncheck(e);
     }
 
-    return handlers.toArray(new Handler[handlers.size()]);
+    return Handlers.chain(handlers.toArray(new Handler[handlers.size()]));
   }
 
 }

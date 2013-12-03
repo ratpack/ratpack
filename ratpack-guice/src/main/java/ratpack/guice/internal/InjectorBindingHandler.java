@@ -25,14 +25,15 @@ import ratpack.registry.Registry;
 public class InjectorBindingHandler implements Handler {
 
   private final Handler handler;
-  private Registry registry;
+  private final Registry registry;
 
   public InjectorBindingHandler(Injector injector, Handler handler) {
-    this.registry = Guice.registry(injector);
     this.handler = handler;
+    this.registry = Guice.registry(injector);
   }
 
   public void handle(Context context) {
     context.insert(registry, handler);
   }
+
 }

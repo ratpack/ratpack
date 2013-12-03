@@ -19,15 +19,21 @@ package ratpack.guice.internal;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.util.Modules;
+import io.netty.buffer.ByteBuf;
 import ratpack.guice.HandlerDecoratingModule;
 import ratpack.guice.ModuleRegistry;
 import ratpack.handling.Handler;
 import ratpack.handling.Handlers;
 import ratpack.handling.internal.ClientErrorForwardingHandler;
+import ratpack.handling.internal.FactoryHandler;
 import ratpack.launch.LaunchConfig;
+import ratpack.reload.internal.ClassUtil;
+import ratpack.reload.internal.ReloadableFileBackedFactory;
 import ratpack.util.Action;
+import ratpack.util.Factory;
 import ratpack.util.Transformer;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -42,7 +48,25 @@ public class DefaultGuiceBackedHandlerFactory implements GuiceBackedHandlerFacto
     this.launchConfig = launchConfig;
   }
 
-  public Handler create(Action<? super ModuleRegistry> modulesAction, Transformer<? super Module, ? extends Injector> moduleTransformer, Transformer<? super Injector, ? extends Handler> injectorTransformer) {
+  public Handler create(final Action<? super ModuleRegistry> modulesAction, final Transformer<? super Module, ? extends Injector> moduleTransformer, final Transformer<? super Injector, ? extends Handler> injectorTransformer) {
+    if (launchConfig.isReloadable()) {
+      File classFile = ClassUtil.getClassFile(modulesAction);
+      if (classFile != null) {
+        Factory<InjectorBindingHandler> factory = new ReloadableFileBackedFactory<>(classFile, true, new ReloadableFileBackedFactory.Producer<InjectorBindingHandler>() {
+          @Override
+          public InjectorBindingHandler produce(File file, ByteBuf bytes) {
+            return doCreate(modulesAction, moduleTransformer, injectorTransformer);
+          }
+        });
+
+        return new FactoryHandler(factory);
+      }
+    }
+
+    return doCreate(modulesAction, moduleTransformer, injectorTransformer);
+  }
+
+  private InjectorBindingHandler doCreate(Action<? super ModuleRegistry> modulesAction, Transformer<? super Module, ? extends Injector> moduleTransformer, Transformer<? super Injector, ? extends Handler> injectorTransformer) {
     DefaultModuleRegistry moduleRegistry = new DefaultModuleRegistry(launchConfig);
 
     registerDefaultModules(moduleRegistry);

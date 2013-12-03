@@ -42,7 +42,7 @@ public class ScriptBackedApp implements Handler {
 
   public ScriptBackedApp(File script, final LaunchConfig launchConfig, final GuiceBackedHandlerFactory appFactory, final Transformer<? super Module, ? extends Injector> moduleTransformer, final boolean staticCompile, boolean reloadable) {
     this.script = script;
-    this.reloadHandler = new ReloadableFileBackedFactory<>(script, reloadable, new ReloadableFileBackedFactory.Delegate<Handler>() {
+    this.reloadHandler = new ReloadableFileBackedFactory<>(script, reloadable, new ReloadableFileBackedFactory.Producer<Handler>() {
       public Handler produce(final File file, final ByteBuf bytes) {
         try {
           final String string;
