@@ -99,7 +99,7 @@ ext {
 
   publishedModules = [
       "ratpack-core", "ratpack-groovy", "ratpack-guice", "ratpack-session", "ratpack-test", "ratpack-groovy-test",
-      "ratpack-manual", "ratpack-gradle", "ratpack-handlebars", "ratpack-remote", "ratpack-jackson", "ratpack-codahale"
+      "ratpack-manual", "ratpack-gradle", "ratpack-handlebars", "ratpack-remote", "ratpack-jackson", "ratpack-codahale", "ratpack-h2"
   ].collect { project(it) }
 
   apiModules = publishedModules.findAll { !(it.name in ["ratpack-manual", "ratpack-gradle"]) }
