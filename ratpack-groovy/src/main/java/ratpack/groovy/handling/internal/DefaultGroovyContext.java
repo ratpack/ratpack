@@ -73,7 +73,7 @@ public class DefaultGroovyContext implements GroovyContext {
     GroovyByMethodHandler groovyHandler = new DefaultGroovyByMethodHandler(this, handler);
     Util.configureDelegateFirst(groovyHandler, closure);
     try {
-      handler.handle(this);
+      groovyHandler.handle(this);
     } catch (Exception e) {
       delegate.error(e);
     }
@@ -85,7 +85,7 @@ public class DefaultGroovyContext implements GroovyContext {
     GroovyByContentHandler groovyHandler = new DefaultGroovyByContentHandler(this, handler);
     Util.configureDelegateFirst(groovyHandler, closure);
     try {
-      handler.handle(this);
+      groovyHandler.handle(this);
     } catch (Exception e) {
       delegate.error(e);
     }
