@@ -36,7 +36,7 @@ import ratpack.handling.Handler;
 import ratpack.handling.Context;
 import ratpack.handling.internal.DefaultChain;
 
-Chain chain = new ratpack.handling.internal.DefaultChain([], [:] as LaunchConfig, null)
+Chain chain = new ratpack.handling.internal.DefaultChain([], [isReloadable: { false }] as LaunchConfig, null)
 """
   }
 

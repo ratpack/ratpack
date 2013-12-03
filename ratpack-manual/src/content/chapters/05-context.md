@@ -5,7 +5,7 @@ Handlers operate on a [`Context`](api/ratpack/handling/Context.html).
 It provides:
 
 * Access the HTTP {@link #getRequest() request} and {@link #getResponse() response}
-* Delegation (via the [`next()`](api/ratpack/handling/Context.html#next\(\)) and [`next()`](api/ratpack/handling/Context.html#insert\(java.util.List\)) family of methods)
+* Delegation (via the [`next()`](api/ratpack/handling/Context.html#next\(\)) and [`next()`](api/ratpack/handling/Context.html#insert\(ratpack.handling.Handler...\)) family of methods)
 * Access to _contextual objects_
 * Convenience for common handler operations
 
@@ -94,9 +94,9 @@ This is another example of using the context object mechanism for inter-handler 
 
 The context object mechanism supports partitioning application logic by providing different objects to different partitions.
 This is because objects registered with context are implicitly scoped, depending on how they were registered.
-Objects regsitered with the [`next()`](api/ratpack/handling/Context.html#next(java.lang.Class,%20T)) methods are available to all downstream handlers that
-were part of the same insertion (i.e. [`context.insert()`](api/ratpack/handling/Context.html#insert\(java.util.List\)) including and nested insertions.
-Objects registered with the [`insert()`](api/ratpack/handling/Context.html#insert\(java.util.List,%20java.lang.Class,%20T\)) methods are available to the inserted handlers and
+Objects regis tered with the [`next()`](api/ratpack/handling/Context.html#next(java.lang.Class,%20T)) methods are available to all downstream handlers that
+were part of the same insertion (i.e. [`context.insert()`](api/ratpack/handling/Context.html#insert\(ratpack.handling.Handler...\)) including and nested insertions.
+Objects registered with the [`insert()`](api/ratpack/handling/Context.html#insert\(java.lang.Class,%20T,%20ratpack.handling.Handler...\)) methods are available to the inserted handlers and
 nested insertions.
 
 A typical use for this is using different error handling strategies for different parts of your application.

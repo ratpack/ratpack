@@ -43,8 +43,6 @@ This can be implemented as…
 import ratpack.handling.Handler;
 import ratpack.handling.Context;
 
-import static java.util.Collections.singletonList;
-
 public class FooHandler implements Handler {
   public void handle(Context context) {
     context.getResponse().send("foo");
@@ -58,8 +56,8 @@ public class BarHandler implements Handler {
 }
 
 public class Router implements Handler {
-  private final List<? extends Handler> fooHandler = singletonList(new FooHandler());
-  private final List<? extends Handler> barHandler = singletonList(new BarHandler());
+  private final Handler fooHandler = new FooHandler();
+  private final Handler barHandler = new BarHandler();
       
   public void handle(Context context) {
     String path = context.getRequest().getPath();
@@ -74,7 +72,7 @@ public class Router implements Handler {
 }
 ```
 
-The key to delegation is the [`context.insert()`](api/ratpack/handling/Context.html#insert\(java.util.List\)) method that passes control to one or more linked handlers.
+The key to delegation is the [`context.insert()`](api/ratpack/handling/Context.html#insert\(ratpack.handling.Handler...\)) method that passes control to one or more linked handlers.
 The [`context.next()`](api/ratpack/handling/Context.html#next\(\)) method passes control to the next linked handler.
 
 Consider the following…
@@ -82,8 +80,6 @@ Consider the following…
 ```language-groovy tested
 import ratpack.handling.Handler;
 import ratpack.handling.Context;
-
-import static java.util.Arrays.asList;
 
 public class PrintThenNextHandler implements Handler {
   private final String message;
@@ -100,11 +96,11 @@ public class PrintThenNextHandler implements Handler {
 
 public class Application implements Handler {    
   public void handle(Context context) {
-    context.insert(asList(
+    context.insert(
       new PrintThenNextHandler("a"),
       new PrintThenNextHandler("b"),
       new PrintThenNextHandler("c")
-    ));
+    );
   }    
 }
 ```
@@ -128,20 +124,18 @@ Consider that inserted handlers can themselves insert more handlers…
 import ratpack.handling.Handler;
 import ratpack.handling.Context;
 
-import static java.util.Arrays.asList;
-
 public class PrintThenInsertOrNextHandler implements Handler {
   private final String message;
-  private final List<Handler> handlers;
+  private final Handler[] handlers;
 
   public PrintThenInsertOrNextHandler(String message, Handler... handlers) {
     this.message = message;
-    this.handlers = asList(handlers);
+    this.handlers = handlers;
   }
 
   public void handle(Context context) {
     System.out.println(message);
-    if (handlers.isEmpty()) {
+    if (handlers.length == 0) {
       context.next();
     } else {
       context.insert(handlers);
@@ -151,7 +145,7 @@ public class PrintThenInsertOrNextHandler implements Handler {
 
 public class Application implements Handler {
   public void handle(Context context) {
-    context.insert(asList(
+    context.insert(
       new PrintThenInsertOrNextHandler("a",
         new PrintThenInsertOrNextHandler("a.1"),
         new PrintThenInsertOrNextHandler("a.2"),
@@ -162,7 +156,7 @@ public class Application implements Handler {
         ),
       ),
       new PrintThenInsertOrNextHandler("c")
-    ));
+    );
   }
 }
 ```
@@ -194,7 +188,7 @@ Read on.
 Ratpack provides a suite of routing type handlers out of the box that make it easy to compose dispatch logic.
 These are available via the static methods of the [`Handlers`](api/ratpack/handling/Handlers.html) class.
 
-For example, the [`path(String, List<Handler>)`](api/ratpack/handling/Handlers.html#path\(java.lang.String, java.util.List\)) method can be used for path based routing.
+For example, the [`path(String, Handler)`](api/ratpack/handling/Handlers.html#path\(java.lang.String, ratpack.handling.Handler\)) method can be used for path based routing.
 
 ```language-groovy tested
 import ratpack.handling.Handler;
