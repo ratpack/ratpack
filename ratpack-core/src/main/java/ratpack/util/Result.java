@@ -24,7 +24,7 @@ package ratpack.util;
 @SuppressWarnings("UnusedDeclaration")
 public class Result<T> {
 
-  private final Exception failure;
+  private final Throwable failure;
   private final T value;
 
   /**
@@ -32,7 +32,7 @@ public class Result<T> {
    *
    * @param failure An exception representing the failure
    */
-  public Result(Exception failure) {
+  public Result(Throwable failure) {
     this.failure = failure;
     this.value = null;
   }
@@ -53,7 +53,7 @@ public class Result<T> {
    *
    * @return The failure exception, or null if the result was not failure.
    */
-  public Exception getFailure() {
+  public Throwable getFailure() {
     return failure;
   }
 

@@ -17,6 +17,7 @@
 package ratpack.groovy.templating.internal;
 
 import com.google.common.cache.LoadingCache;
+import com.google.common.util.concurrent.UncheckedExecutionException;
 import io.netty.buffer.ByteBuf;
 import ratpack.util.Action;
 import ratpack.util.Result;
@@ -24,6 +25,7 @@ import ratpack.util.Transformer;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 
 public class Render {
 
@@ -36,6 +38,9 @@ public class Render {
 
     try {
       execute(compiledTemplateCache.get(templateSource), model, buffer);
+    } catch (ExecutionException|UncheckedExecutionException e) {
+      handler.execute(new Result<ByteBuf>(e.getCause()));
+      return;
     } catch (Exception e) {
       handler.execute(new Result<ByteBuf>(e));
       return;
