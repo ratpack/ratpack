@@ -24,6 +24,7 @@ import ratpack.api.Nullable;
 import ratpack.groovy.handling.GroovyChain;
 import ratpack.groovy.handling.GroovyContext;
 import ratpack.groovy.handling.internal.ClosureBackedHandler;
+import ratpack.groovy.handling.internal.DefaultGroovyContext;
 import ratpack.groovy.handling.internal.GroovyDslChainActionTransformer;
 import ratpack.groovy.internal.ClosureInvoker;
 import ratpack.groovy.internal.RatpackScriptBacking;
@@ -32,6 +33,7 @@ import ratpack.groovy.markup.internal.DefaultMarkup;
 import ratpack.groovy.templating.Template;
 import ratpack.groovy.templating.internal.DefaultTemplate;
 import ratpack.guice.ModuleRegistry;
+import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.handling.internal.ChainBuilders;
 import ratpack.http.MediaType;
@@ -98,21 +100,21 @@ public abstract class Groovy {
    * @see ratpack.groovy.Groovy#ratpack(groovy.lang.Closure)
    */
   public static interface Ratpack {
+
     /**
      * Registers the closure used to configure the {@link ratpack.guice.ModuleRegistry} that will back the application.
      *
      * @param configurer The configuration closure, delegating to {@link ratpack.guice.ModuleRegistry}
      */
     void modules(@DelegatesTo(value = ModuleRegistry.class, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer);
-
     /**
      * Registers the closure used to build the handler chain of the application.
      *
      * @param configurer The configuration closure, delegating to {@link ratpack.groovy.handling.GroovyChain}
      */
     void handlers(@DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer);
-  }
 
+  }
   /**
    * Builds a handler chain, with no backing registry.
    *
@@ -122,6 +124,10 @@ public abstract class Groovy {
    */
   public static Handler chain(LaunchConfig launchConfig, @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) {
     return chain(launchConfig, null, closure);
+  }
+
+  public static GroovyContext context(Context context) {
+    return new DefaultGroovyContext(context);
   }
 
   /**

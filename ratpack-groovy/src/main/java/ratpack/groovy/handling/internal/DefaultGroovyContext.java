@@ -29,6 +29,7 @@ import ratpack.groovy.handling.GroovyContext;
 import ratpack.groovy.internal.Util;
 import ratpack.handling.ByContentHandler;
 import ratpack.handling.ByMethodHandler;
+import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.handling.RequestOutcome;
 import ratpack.http.Request;
@@ -50,9 +51,9 @@ import java.util.concurrent.Callable;
 
 public class DefaultGroovyContext implements GroovyContext {
 
-  private final ratpack.handling.Context delegate;
+  private final Context delegate;
 
-  public DefaultGroovyContext(ratpack.handling.Context delegate) {
+  public DefaultGroovyContext(Context delegate) {
     this.delegate = delegate;
   }
 

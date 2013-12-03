@@ -14,31 +14,35 @@
  * limitations under the License.
  */
 
-package ratpack.render;
+package ratpack.groovy.render
 
-import ratpack.handling.Context;
-import ratpack.util.internal.Types;
+import ratpack.groovy.handling.GroovyContext
+import ratpack.test.internal.RatpackGroovyDslSpec
 
-public abstract class RendererSupport<T> implements Renderer<T> {
+class GroovyRendererSupportSpec extends RatpackGroovyDslSpec {
 
-  private final Class<T> type;
-
-  protected RendererSupport() {
-    this(RendererSupport.class);
+  static class IntegerRenderer extends GroovyRendererSupport<Integer> {
+    @Override
+    void render(GroovyContext context, Integer object) throws Exception {
+      context.render(object.toString())
+    }
   }
 
-  protected RendererSupport(Class<?> type) {
-    this.type = Types.findImplParameterTypeAtIndex(getClass(), type, 0);
-  }
+  def "can implement renderer in groovy"() {
+    when:
+    app {
+      modules {
+        bind IntegerRenderer
+      }
+      handlers {
+        get {
+          render 10
+        }
+      }
+    }
 
-  @Override
-  public Class<T> getType() {
-    return type;
+    then:
+    text == "10"
   }
-
-  /**
-   * {@inheritDoc}
-   */
-  abstract public void render(Context context, T object) throws Exception;
 
 }

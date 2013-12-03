@@ -16,7 +16,7 @@
 
 package ratpack.groovy.handling;
 
-import ratpack.groovy.handling.internal.DefaultGroovyContext;
+import ratpack.groovy.Groovy;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 
@@ -26,7 +26,7 @@ public abstract class GroovyHandler implements Handler {
 
   @Override
   public void handle(Context context) {
-    handle(new DefaultGroovyContext(context));
+    handle(Groovy.context(context));
   }
 
 }

@@ -14,31 +14,24 @@
  * limitations under the License.
  */
 
-package ratpack.render;
+package ratpack.groovy.render;
 
+import ratpack.groovy.Groovy;
+import ratpack.groovy.handling.GroovyContext;
 import ratpack.handling.Context;
-import ratpack.util.internal.Types;
+import ratpack.render.RendererSupport;
 
-public abstract class RendererSupport<T> implements Renderer<T> {
+public abstract class GroovyRendererSupport<T> extends RendererSupport<T> {
 
-  private final Class<T> type;
-
-  protected RendererSupport() {
-    this(RendererSupport.class);
-  }
-
-  protected RendererSupport(Class<?> type) {
-    this.type = Types.findImplParameterTypeAtIndex(getClass(), type, 0);
+  protected GroovyRendererSupport() {
+    super(GroovyRendererSupport.class);
   }
 
   @Override
-  public Class<T> getType() {
-    return type;
+  public void render(Context context, T object) throws Exception {
+    render(Groovy.context(context), object);
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  abstract public void render(Context context, T object) throws Exception;
+  public abstract void render(GroovyContext context, T object) throws Exception;
 
 }
