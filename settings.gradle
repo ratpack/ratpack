@@ -29,7 +29,8 @@ include \
     "ratpack-remote",
     "ratpack-jackson",
     "ratpack-reactor",
-    "ratpack-codahale"
+    "ratpack-codahale",
+    "ratpack-h2"
 
 include \
   "perftest",
