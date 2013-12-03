@@ -40,14 +40,12 @@ import ratpack.registry.RegistryBuilder;
 import ratpack.render.NoSuchRendererException;
 import ratpack.render.Renderer;
 import ratpack.server.BindAddress;
-import ratpack.util.Action;
-import ratpack.util.Factory;
-import ratpack.util.Result;
-import ratpack.util.ResultAction;
+import ratpack.util.*;
 
 import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.lang.reflect.UndeclaredThrowableException;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -306,8 +304,11 @@ public class DefaultContext implements Context {
 
   public void error(Exception exception) {
     ServerErrorHandler serverErrorHandler = get(ServerErrorHandler.class);
+
+    Exception unpacked = unpackException(exception);
+
     try {
-      serverErrorHandler.error(this, exception);
+      serverErrorHandler.error(this, unpacked);
     } catch (Exception errorHandlerException) {
       StringWriter stringWriter = new StringWriter();
       PrintWriter printWriter = new PrintWriter(stringWriter);
@@ -315,12 +316,20 @@ public class DefaultContext implements Context {
         append("Exception thrown by error handler ").
         append(serverErrorHandler.toString()).
         append(" while handling exception\nOriginal exception: ");
-      exception.printStackTrace(printWriter);
+      unpacked.printStackTrace(printWriter);
       stringWriter.
         append("Error handler exception: ");
       errorHandlerException.printStackTrace(printWriter);
       LOGGER.warning(stringWriter.toString());
       response.status(500).send();
+    }
+  }
+
+  private Exception unpackException(Exception exception) {
+    if (exception instanceof UndeclaredThrowableException) {
+      return ExceptionUtils.toException(exception.getCause());
+    } else {
+      return exception;
     }
   }
 

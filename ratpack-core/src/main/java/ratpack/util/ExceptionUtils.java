@@ -26,4 +26,12 @@ public abstract class ExceptionUtils {
     }
   }
 
+  public static Exception toException(Throwable exception) {
+    if (exception instanceof Exception) {
+      return (Exception) exception;
+    } else {
+      throw uncheck(exception);
+    }
+  }
+
 }
