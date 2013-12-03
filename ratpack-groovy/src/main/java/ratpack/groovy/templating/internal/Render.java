@@ -27,6 +27,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
+import static ratpack.util.ExceptionUtils.toException;
 import static ratpack.util.ExceptionUtils.uncheck;
 
 public class Render {
@@ -39,15 +40,7 @@ public class Render {
     this.includeTransformer = includeTransformer;
 
     try {
-      execute(compiledTemplateCache.get(templateSource), model, buffer);
-    } catch (ExecutionException | UncheckedExecutionException e) {
-      Throwable cause = e.getCause();
-      if (cause instanceof Exception) {
-        handler.execute(new Result<ByteBuf>((Exception) cause));
-      } else {
-        throw uncheck(cause);
-      }
-      return;
+      execute(getFromCache(compiledTemplateCache, templateSource), model, buffer);
     } catch (Exception e) {
       handler.execute(new Result<ByteBuf>(e));
       return;
@@ -57,10 +50,17 @@ public class Render {
     handler.execute(new Result<ByteBuf>(buffer));
   }
 
+  private CompiledTemplate getFromCache(LoadingCache<TemplateSource, CompiledTemplate> compiledTemplateCache, TemplateSource templateSource) {
+    try {
+      return compiledTemplateCache.get(templateSource);
+    } catch (ExecutionException | UncheckedExecutionException e) {
+      throw uncheck(toException(e.getCause()));
+    }
+  }
 
   private void executeNested(final String templatePath, final Map<String, ?> model, ByteBuf buffer) throws Exception {
     TemplateSource templateSource = includeTransformer.transform(templatePath);
-    CompiledTemplate compiledTemplate = compiledTemplateCache.get(templateSource);
+    CompiledTemplate compiledTemplate = getFromCache(compiledTemplateCache, templateSource);
     execute(compiledTemplate, model, buffer);
   }
 
