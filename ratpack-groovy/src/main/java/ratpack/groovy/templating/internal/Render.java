@@ -27,6 +27,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
+import static ratpack.util.ExceptionUtils.uncheck;
+
 public class Render {
 
   private final LoadingCache<TemplateSource, CompiledTemplate> compiledTemplateCache;
@@ -38,8 +40,13 @@ public class Render {
 
     try {
       execute(compiledTemplateCache.get(templateSource), model, buffer);
-    } catch (ExecutionException|UncheckedExecutionException e) {
-      handler.execute(new Result<ByteBuf>(e.getCause()));
+    } catch (ExecutionException | UncheckedExecutionException e) {
+      Throwable cause = e.getCause();
+      if (cause instanceof Exception) {
+        handler.execute(new Result<ByteBuf>((Exception) cause));
+      } else {
+        throw uncheck(cause);
+      }
       return;
     } catch (Exception e) {
       handler.execute(new Result<ByteBuf>(e));

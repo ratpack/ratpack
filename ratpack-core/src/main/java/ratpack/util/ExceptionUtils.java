@@ -18,7 +18,7 @@ package ratpack.util;
 
 public abstract class ExceptionUtils {
 
-  public static RuntimeException uncheck(Exception e) {
+  public static RuntimeException uncheck(Throwable e) {
     if (e instanceof RuntimeException) {
       return (RuntimeException) e;
     } else {

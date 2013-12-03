@@ -62,7 +62,13 @@ public class ExceptionToTemplateModel {
 
   private static void renderFrames(Throwable exception, StackTrace trace) {
     for (StackTraceElement ste : exception.getStackTrace()) {
-      if (!StackTraceUtils.isApplicationClass(ste.getClassName())) {
+      String className = ste.getClassName();
+      if (!StackTraceUtils.isApplicationClass(className)
+        || (className.startsWith("ratpack.") && className.contains(".internal"))
+        || className.startsWith("io.netty")
+        || className.startsWith("com.google")
+        || className.startsWith("org.springsource.loaded")
+      ) {
         trace.html.append("<span class='stack-thirdparty'>  at ").append(ste.toString()).append("</span>\n");
       } else {
         trace.html.append("  at ").append(ste.toString()).append("\n");
