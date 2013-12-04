@@ -93,11 +93,13 @@ public class ThymeleafModule extends AbstractModule {
   private String templatesMode;
   private String templatesPrefix;
   private String templatesSuffix;
+  private Boolean templatesCacheable;
   private Long cacheTTLMs;
 
   public String getTemplatesMode() {
     return templatesMode;
   }
+
   public void setTemplatesMode(String templatesMode) {
     this.templatesMode = templatesMode;
   }
@@ -105,6 +107,7 @@ public class ThymeleafModule extends AbstractModule {
   public String getTemplatesPrefix() {
     return templatesPrefix;
   }
+
   public void setTemplatesPrefix(String templatesPrefix) {
     this.templatesPrefix = templatesPrefix;
   }
@@ -112,12 +115,26 @@ public class ThymeleafModule extends AbstractModule {
   public String getTemplatesSuffix() {
     return templatesSuffix;
   }
+
   public void setTemplatesSuffix(String templatesSuffix) {
     this.templatesSuffix = templatesSuffix;
   }
 
-  public Long getCacheTTLMs() { return cacheTTLMs; }
-  public void setCacheTTLMs(Long cacheTTLMs) { this.cacheTTLMs = cacheTTLMs; }
+  public Boolean isTemplatesCacheable() {
+    return templatesCacheable;
+  }
+
+  public void setTemplatesCacheable(Boolean templatesCacheable) {
+    this.templatesCacheable = templatesCacheable;
+  }
+
+  public Long getCacheTTLMs() {
+    return cacheTTLMs;
+  }
+
+  public void setCacheTTLMs(Long cacheTTLMs) {
+    this.cacheTTLMs = cacheTTLMs;
+  }
 
   @Override
   protected void configure() {
@@ -133,12 +150,11 @@ public class ThymeleafModule extends AbstractModule {
     String mode = templatesMode == null ? launchConfig.getOther("thymeleaf.templatesMode", DEFAULT_TEMPLATE_MODE) : templatesMode;
     String prefix = templatesPrefix == null ? launchConfig.getOther("thymeleaf.templatesPrefix", DEFAULT_TEMPLATE_PREFIX) : templatesPrefix;
     String suffix = templatesSuffix == null ? launchConfig.getOther("thymeleaf.templatesSuffix", DEFAULT_TEMPLATE_SUFFIX) : templatesSuffix;
+    Boolean cacheable = templatesCacheable == null ? Boolean.valueOf(launchConfig.getOther("thymeleaf.templatesCacheable", "true")) : templatesCacheable;
     Long cacheTTL = cacheTTLMs == null ? Long.valueOf(launchConfig.getOther("thymeleaf.cacheTTLMs", "0")) : cacheTTLMs;
+
     templateResolver.setTemplateMode(mode);
 
-    if (suffix.equalsIgnoreCase("")) {
-      suffix = DEFAULT_TEMPLATE_SUFFIX;
-    }
     File finalPrefixPathFile = new File(launchConfig.getBaseDir(), prefix);
     String path = finalPrefixPathFile.getAbsolutePath();
     if (path.charAt(path.length() - 1) != File.separatorChar) {
@@ -151,9 +167,8 @@ public class ThymeleafModule extends AbstractModule {
     }
     templateResolver.setSuffix(suffix);
 
-    if (cacheTTL != null && cacheTTL > 0) {
-      templateResolver.setCacheTTLMs(cacheTTL);
-    }
+    templateResolver.setCacheable(cacheable != null && cacheable);
+    templateResolver.setCacheTTLMs(cacheTTL != null && cacheTTL > 0 ? cacheTTL : null);
 
     return templateResolver;
   }
