@@ -5,11 +5,13 @@
     </encoder>
   </appender>
 
+  <!--
   <root level="INFO">
       <appender-ref ref="STDOUT"/>
   </root>
+  -->
 
-  <logger name="org.thymeleaf" level="debug">
+  <logger name="org.thymeleaf" level="info">
     <appender-ref ref="STDOUT"/>
   </logger>
 
