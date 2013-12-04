@@ -21,15 +21,13 @@ import java.io.File;
  * </p>
  * <p>
  * By default templates are looked up in the {@code thymeleaf} directory of the application root with a {@code .html} suffix.
- * So {@code thymeleafTemplate("my/template/path")} maps to {@code handlebars/my/template/path.html} in the application root directory.
+ * So {@code thymeleafTemplate("my/template/path")} maps to {@code thymeleaf/my/template/path.html} in the application root directory.
  * This can be configured using {@link #setTemplatesPrefix(String)} and {@link #setTemplatesSuffix(String)} as well as
- * {@code other.thymeleaf.templatesPrefix} and {@code other.handlebars.templatesSuffix} configuration properties.
+ * {@code other.thymeleaf.templatesPrefix} and {@code other.thymeleaf.templatesSuffix} configuration properties.
  * </p>
  * <p>
- * Response content type can be manually specified, i.e. {@code thymeleafTemplate("template", model, "text/html")} or can
- * be detected based on the template extension. Mapping between file extensions and content types is performed using
- * {@link ratpack.file.MimeTypes} contextual object so content type for {@code handlebarsTemplate("template.html")}
- * would be {@code text/html} by default.
+ * Response content type can be manually specified, i.e. {@code thymeleafTemplate("template", model, "text/html")} if
+ * not specified will default to {@code text/html}.
  * </p>
  *
  * Example usage: (Java DSL)
