@@ -248,4 +248,26 @@ class InvocationBuilderSpec extends Specification {
     [[0, 1, 2, 4] as byte[], "image/png"] | "image/png"                | [0, 1, 2, 4] as byte[]
     ["foo", "text/plain"]                 | "text/plain;charset=UTF-8" | "foo".bytes
   }
+
+  def "captures errors"() {
+    when:
+    invoke {
+      error(new RuntimeException("!"))
+    }
+
+    then:
+    exception instanceof RuntimeException
+    exception.message == "!"
+  }
+
+  def "captures client errors"() {
+    when:
+    invoke {
+      clientError 404
+    }
+
+    then:
+    clientError == 404
+
+  }
 }

@@ -30,6 +30,9 @@ public interface Invocation {
   @Nullable
   Exception getException();
 
+  @Nullable
+  Integer getClientError();
+
   Headers getHeaders();
 
   @Nullable

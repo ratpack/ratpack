@@ -20,7 +20,10 @@ import com.google.common.util.concurrent.ListeningExecutorService;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.util.CharsetUtil;
+import ratpack.api.Nullable;
 import ratpack.background.Background;
+import ratpack.error.ClientErrorHandler;
+import ratpack.error.ServerErrorHandler;
 import ratpack.event.internal.DefaultEventController;
 import ratpack.event.internal.EventController;
 import ratpack.file.internal.FileHttpTransmitter;
@@ -33,6 +36,7 @@ import ratpack.handling.internal.DelegatingHeaders;
 import ratpack.http.*;
 import ratpack.http.internal.DefaultResponse;
 import ratpack.registry.Registry;
+import ratpack.registry.RegistryBuilder;
 import ratpack.render.NoSuchRendererException;
 import ratpack.server.BindAddress;
 import ratpack.test.handling.Invocation;
@@ -58,6 +62,7 @@ public class DefaultInvocation implements Invocation {
   private boolean sentResponse;
   private File sentFile;
   private Object rendered;
+  private Integer clientError;
 
   public DefaultInvocation(final Request request, final Status status, final MutableHeaders responseHeaders, ByteBuf responseBody, Registry registry, final int timeout, Handler handler) {
 
@@ -109,8 +114,32 @@ public class DefaultInvocation implements Invocation {
       }
     };
 
+    ClientErrorHandler clientErrorHandler = new ClientErrorHandler() {
+      @Override
+      public void error(Context context, int statusCode) throws Exception {
+        DefaultInvocation.this.clientError = statusCode;
+        latch.countDown();
+      }
+    };
+
+    ServerErrorHandler serverErrorHandler = new ServerErrorHandler() {
+      @Override
+      public void error(Context context, Exception exception) throws Exception {
+        DefaultInvocation.this.exception = exception;
+        latch.countDown();
+      }
+    };
+
+    Registry effectiveRegistry = RegistryBuilder.join(
+      RegistryBuilder.builder().
+        add(ClientErrorHandler.class, clientErrorHandler).
+        add(ServerErrorHandler.class, serverErrorHandler)
+      .build(),
+      registry
+    );
+
     Response response = new DefaultResponse(status, responseHeaders, responseBody, fileHttpTransmitter, committer);
-    Context context = new DefaultContext(request, response, bindAddress, registry, mainExecutor, backgroundExecutor, eventController.getRegistry(), new Handler[0], 0, next) {
+    Context context = new DefaultContext(request, response, bindAddress, effectiveRegistry, mainExecutor, backgroundExecutor, eventController.getRegistry(), new Handler[0], 0, next) {
       @Override
       public void render(Object object) throws NoSuchRendererException {
         rendered = object;
@@ -139,6 +168,12 @@ public class DefaultInvocation implements Invocation {
   @Override
   public Exception getException() {
     return exception;
+  }
+
+  @Nullable
+  @Override
+  public Integer getClientError() {
+    return clientError;
   }
 
   @Override
