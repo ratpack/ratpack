@@ -54,14 +54,14 @@ import java.io.File;
  * }
  *
  * LaunchConfig launchConfig = LaunchConfigBuilder.baseDir(new File("appRoot"))
- *   .build(new HandlerFactory() {
- *     public Handler create(LaunchConfig launchConfig) {
- *       return Guice.handler(launchConfig, new ModuleBootstrap(), new Action&lt;Chain&gt;() {
- *         public void execute(Chain chain) {
- *          chain.handler(chain.getRegistry().get(MyHandler.class));
- *         }
- *       });
- *     }
+ *     .build(new HandlerFactory() {
+ *   public Handler create(LaunchConfig launchConfig) {
+ *     return Guice.handler(launchConfig, new ModuleBootstrap(), new Action&lt;Chain&gt;() {
+ *       public void execute(Chain chain) {
+ *         chain.handler(chain.getRegistry().get(MyHandler.class));
+ *       }
+ *     });
+ *   }
  * });
  * </pre>
  *
