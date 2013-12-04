@@ -136,6 +136,9 @@ public class ThymeleafModule extends AbstractModule {
     Long cacheTTL = cacheTTLMs == null ? Long.valueOf(launchConfig.getOther("thymeleaf.cacheTTLMs", "0")) : cacheTTLMs;
     templateResolver.setTemplateMode(mode);
 
+    if (suffix.equalsIgnoreCase("")) {
+      suffix = DEFAULT_TEMPLATE_SUFFIX;
+    }
     File finalPrefixPathFile = new File(launchConfig.getBaseDir(), prefix);
     templateResolver.setPrefix(finalPrefixPathFile.getAbsolutePath() + File.separator);
     templateResolver.setSuffix(suffix);
