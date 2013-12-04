@@ -140,7 +140,11 @@ public class ThymeleafModule extends AbstractModule {
       suffix = DEFAULT_TEMPLATE_SUFFIX;
     }
     File finalPrefixPathFile = new File(launchConfig.getBaseDir(), prefix);
-    templateResolver.setPrefix(finalPrefixPathFile.getAbsolutePath() + File.separator);
+    String path = finalPrefixPathFile.getAbsolutePath();
+    if (path.charAt(path.length() - 1) != File.separatorChar) {
+      path += File.separator;
+    }
+    templateResolver.setPrefix(path);
     templateResolver.setSuffix(suffix);
 
     if (cacheTTL != null && cacheTTL > 0) {
