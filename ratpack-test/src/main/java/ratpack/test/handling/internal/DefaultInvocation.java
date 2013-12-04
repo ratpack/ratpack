@@ -134,7 +134,7 @@ public class DefaultInvocation implements Invocation {
       RegistryBuilder.builder().
         add(ClientErrorHandler.class, clientErrorHandler).
         add(ServerErrorHandler.class, serverErrorHandler)
-      .build(),
+        .build(),
       registry
     );
 
