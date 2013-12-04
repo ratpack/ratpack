@@ -145,6 +145,10 @@ public class ThymeleafModule extends AbstractModule {
       path += File.separator;
     }
     templateResolver.setPrefix(path);
+
+    if (suffix.equalsIgnoreCase("")) {
+      suffix = DEFAULT_TEMPLATE_SUFFIX;
+    }
     templateResolver.setSuffix(suffix);
 
     if (cacheTTL != null && cacheTTL > 0) {
