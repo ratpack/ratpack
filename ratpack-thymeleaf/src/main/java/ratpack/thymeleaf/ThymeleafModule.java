@@ -86,6 +86,10 @@ import java.io.File;
  */
 public class ThymeleafModule extends AbstractModule {
 
+  private static final String DEFAULT_TEMPLATE_MODE = "XHTML";
+  private static final String DEFAULT_TEMPLATE_PREFIX = "thymeleaf";
+  private static final String DEFAULT_TEMPLATE_SUFFIX = ".html";
+
   private String templatesMode;
   private String templatesPrefix;
   private String templatesSuffix;
@@ -126,9 +130,9 @@ public class ThymeleafModule extends AbstractModule {
   FileTemplateResolver provideITemplateResolver(LaunchConfig launchConfig) {
     final FileTemplateResolver templateResolver = new FileTemplateResolver();
 
-    String mode = templatesMode == null ? launchConfig.getOther("thymeleaf.templatesMode", "XHTML") : templatesMode;
-    String prefix = templatesPrefix == null ? launchConfig.getOther("thymeleaf.templatesPrefix", "thymeleaf") : templatesPrefix;
-    String suffix = templatesSuffix == null ? launchConfig.getOther("thymeleaf.templatesSuffix", ".html") : templatesSuffix;
+    String mode = templatesMode == null ? launchConfig.getOther("thymeleaf.templatesMode", DEFAULT_TEMPLATE_MODE) : templatesMode;
+    String prefix = templatesPrefix == null ? launchConfig.getOther("thymeleaf.templatesPrefix", DEFAULT_TEMPLATE_PREFIX) : templatesPrefix;
+    String suffix = templatesSuffix == null ? launchConfig.getOther("thymeleaf.templatesSuffix", DEFAULT_TEMPLATE_SUFFIX) : templatesSuffix;
     Long cacheTTL = cacheTTLMs == null ? Long.valueOf(launchConfig.getOther("thymeleaf.cacheTTLMs", "0")) : cacheTTLMs;
     templateResolver.setTemplateMode(mode);
 
