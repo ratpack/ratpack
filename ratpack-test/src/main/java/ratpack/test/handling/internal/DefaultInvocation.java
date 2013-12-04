@@ -133,8 +133,8 @@ public class DefaultInvocation implements Invocation {
     Registry effectiveRegistry = RegistryBuilder.join(
       RegistryBuilder.builder().
         add(ClientErrorHandler.class, clientErrorHandler).
-        add(ServerErrorHandler.class, serverErrorHandler)
-        .build(),
+        add(ServerErrorHandler.class, serverErrorHandler).
+        build(),
       registry
     );
 
