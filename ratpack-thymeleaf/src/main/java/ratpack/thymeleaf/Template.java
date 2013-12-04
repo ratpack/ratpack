@@ -8,7 +8,6 @@ public class Template {
 
   private final String name;
   private final Context model;
-
   private final String contentType;
 
   public String getName() {
