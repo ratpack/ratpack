@@ -20,7 +20,7 @@ public class ThymeleafTemplateRenderer extends RendererSupport<Template> {
     @Override
     public void render(Context context, Template template) {
         String contentType = template.getContentType();
-        contentType = contentType == null ? context.get(MimeTypes.class).getContentType(template.getName()) : contentType;
+        contentType = contentType == null ? "text/html" : contentType;
         try {
             context.getResponse().send(contentType, thymeleaf.process(template.getName(), template.getModel()));
         }
