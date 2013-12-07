@@ -1,5 +1,6 @@
 package ratpack.thymeleaf
 
+import org.thymeleaf.TemplateEngine
 import ratpack.test.internal.RatpackGroovyDslSpec
 import spock.lang.Unroll
 
@@ -219,5 +220,50 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
     then:
     get("simple?type=text/html").contentType == "text/html;charset=UTF-8"
     get("simple?type=text/xml").contentType == "text/xml;charset=UTF-8"
+  }
+
+  @Unroll
+  void 'cache settings are correct when #scenario'() {
+    given:
+    file('thymeleaf/simple.html') << 'DUMMY'
+
+    when:
+    def engine
+    app {
+      modules {
+        register new ThymeleafModule(templatesCacheable: templatesCacheable, cacheTTLMs: cacheTTLMs)
+      }
+
+      handlers {
+        handler { TemplateEngine te ->
+          // Get the current engine
+          engine = te
+
+          // Call the renderer to initialize the engine
+          render thymeleafTemplate("simple")
+        }
+      }
+    }
+
+    then:
+    // Initialize the engine
+    get()
+
+    // Be sure the engine is initialized
+    engine.initialized == true
+
+    // Get the resolver
+    def resolver = engine.templateResolvers[0]
+
+    // Checks
+    resolver.cacheable == expectedCacheable
+    resolver.cacheTTLMs == expectedTTL
+
+    where:
+    scenario          | templatesCacheable | cacheTTLMs | expectedCacheable | expectedTTL
+    'default caching' | null               | null       | true              | null
+    'no caching'      | false              | null       | false             | null
+    'cache with LRU'  | true               | 0          | true              | null
+    'cache with TTL'  | true               | 360000L    | true              | 360000L
   }
 }
