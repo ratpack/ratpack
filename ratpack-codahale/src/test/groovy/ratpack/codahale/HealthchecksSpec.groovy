@@ -16,7 +16,6 @@
 
 package ratpack.codahale
 
-import com.codahale.metrics.health.HealthCheck.Result
 import com.codahale.metrics.health.HealthCheckRegistry
 import ratpack.test.internal.RatpackGroovyDslSpec
 
@@ -48,7 +47,7 @@ class HealthchecksSpec extends RatpackGroovyDslSpec {
     when:
     app {
       modules {
-        register new MetricsModule()
+        register new CodaHaleModule().enableHealthChecks()
         bind MyHealthCheck
       }
       handlers { HealthCheckRegistry healthChecks ->

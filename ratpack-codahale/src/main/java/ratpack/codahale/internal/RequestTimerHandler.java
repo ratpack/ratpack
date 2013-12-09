@@ -24,11 +24,11 @@ import ratpack.handling.RequestOutcome;
 import ratpack.http.Request;
 import ratpack.util.Action;
 
-public class MetricHandler implements Handler {
+public class RequestTimerHandler implements Handler {
 
   private final Handler rest;
 
-  public MetricHandler(Handler rest) {
+  public RequestTimerHandler(Handler rest) {
     this.rest = rest;
   }
 
