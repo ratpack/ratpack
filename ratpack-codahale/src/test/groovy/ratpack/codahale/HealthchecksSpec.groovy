@@ -16,6 +16,7 @@
 
 package ratpack.codahale
 
+import com.codahale.metrics.health.HealthCheck.Result
 import com.codahale.metrics.health.HealthCheckRegistry
 import ratpack.test.internal.RatpackGroovyDslSpec
 
