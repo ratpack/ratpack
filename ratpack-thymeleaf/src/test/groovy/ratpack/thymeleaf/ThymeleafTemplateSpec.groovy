@@ -17,7 +17,10 @@
 package ratpack.thymeleaf
 
 import org.thymeleaf.TemplateEngine
+import org.thymeleaf.cache.StandardCacheManager
 import ratpack.test.internal.RatpackGroovyDslSpec
+import spock.lang.Ignore
+import spock.lang.IgnoreRest
 import spock.lang.Unroll
 
 import static Template.thymeleafTemplate
@@ -239,21 +242,23 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
   }
 
   @Unroll
-  void 'cache settings are correct when #scenario'() {
+  void 'can configure templates cache with #scenario'() {
     given:
     file('thymeleaf/simple.html') << 'DUMMY'
 
     when:
     def engine
+    def cacheManager
     app {
       modules {
-        register new ThymeleafModule(templatesCacheable: templatesCacheable, cacheTTLMs: cacheTTLMs)
+        register new ThymeleafModule(templatesCacheSize: templatesCacheSize)
       }
 
       handlers {
-        handler { TemplateEngine te ->
+        handler { TemplateEngine te, StandardCacheManager cm ->
           // Get the current engine
           engine = te
+          cacheManager = cm
 
           // Call the renderer to initialize the engine
           render thymeleafTemplate("simple")
@@ -268,18 +273,17 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
     // Be sure the engine is initialized
     engine.initialized == true
 
-    // Get the resolver
+     // Get the resolver
     def resolver = engine.templateResolvers[0]
 
     // Checks
+    cacheManager.templateCacheMaxSize == expectedSize
     resolver.cacheable == expectedCacheable
-    resolver.cacheTTLMs == expectedTTL
 
     where:
-    scenario          | templatesCacheable | cacheTTLMs | expectedCacheable | expectedTTL
-    'default caching' | null               | null       | true              | null
-    'no caching'      | false              | null       | false             | null
-    'cache with LRU'  | true               | 0          | true              | null
-    'cache with TTL'  | true               | 360000L    | true              | 360000L
+    scenario            | templatesCacheSize | expectedCacheable | expectedSize
+    'default setttings' | null               | false             | 0
+    'zero size'         | 0                  | false             | 0
+    'non zero size'     | 10                 | true              | 10
   }
 }

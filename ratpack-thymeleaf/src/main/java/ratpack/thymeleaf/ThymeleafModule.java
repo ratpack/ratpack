@@ -20,6 +20,8 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.cache.ICacheManager;
+import org.thymeleaf.cache.StandardCacheManager;
 import org.thymeleaf.templateresolver.FileTemplateResolver;
 import org.thymeleaf.templateresolver.ITemplateResolver;
 import ratpack.launch.LaunchConfig;
@@ -107,8 +109,7 @@ public class ThymeleafModule extends AbstractModule {
   private String templatesMode;
   private String templatesPrefix;
   private String templatesSuffix;
-  private Boolean templatesCacheable;
-  private Long cacheTTLMs;
+  private Integer templatesCacheSize;
 
   public String getTemplatesMode() {
     return templatesMode;
@@ -134,38 +135,30 @@ public class ThymeleafModule extends AbstractModule {
     this.templatesSuffix = templatesSuffix;
   }
 
-  public Boolean isTemplatesCacheable() {
-    return templatesCacheable;
+  public Integer getTemplatesCacheSize() {
+    return templatesCacheSize;
   }
 
-  public void setTemplatesCacheable(Boolean templatesCacheable) {
-    this.templatesCacheable = templatesCacheable;
-  }
-
-  public Long getCacheTTLMs() {
-    return cacheTTLMs;
-  }
-
-  public void setCacheTTLMs(Long cacheTTLMs) {
-    this.cacheTTLMs = cacheTTLMs;
+  public void setTemplatesCacheSize(Integer templatesCacheSize) {
+    this.templatesCacheSize = templatesCacheSize;
   }
 
   @Override
   protected void configure() {
     bind(ThymeleafTemplateRenderer.class).in(Singleton.class);
     bind(ITemplateResolver.class).to(FileTemplateResolver.class).in(Singleton.class);
+    bind(ICacheManager.class).to(StandardCacheManager.class).in(Singleton.class);
   }
 
   @SuppressWarnings("UnusedDeclaration")
   @Provides
-  FileTemplateResolver provideITemplateResolver(LaunchConfig launchConfig) {
+  FileTemplateResolver provideTemplateResolver(LaunchConfig launchConfig) {
     final FileTemplateResolver templateResolver = new FileTemplateResolver();
 
     String mode = templatesMode == null ? launchConfig.getOther("thymeleaf.templatesMode", DEFAULT_TEMPLATE_MODE) : templatesMode;
     String prefix = templatesPrefix == null ? launchConfig.getOther("thymeleaf.templatesPrefix", DEFAULT_TEMPLATE_PREFIX) : templatesPrefix;
     String suffix = templatesSuffix == null ? launchConfig.getOther("thymeleaf.templatesSuffix", DEFAULT_TEMPLATE_SUFFIX) : templatesSuffix;
-    Boolean cacheable = templatesCacheable == null ? Boolean.valueOf(launchConfig.getOther("thymeleaf.templatesCacheable", "true")) : templatesCacheable;
-    Long cacheTTL = cacheTTLMs == null ? Long.valueOf(launchConfig.getOther("thymeleaf.cacheTTLMs", "0")) : cacheTTLMs;
+    Integer cacheSize = getCacheSizeSetting(launchConfig);
 
     templateResolver.setTemplateMode(mode);
 
@@ -181,8 +174,10 @@ public class ThymeleafModule extends AbstractModule {
     }
     templateResolver.setSuffix(suffix);
 
-    templateResolver.setCacheable(cacheable != null && cacheable);
-    templateResolver.setCacheTTLMs(cacheTTL != null && cacheTTL > 0 ? cacheTTL : null);
+    templateResolver.setCacheable(cacheSize > 0);
+
+    // Never use TTL expiration
+    templateResolver.setCacheTTLMs(null);
 
     return templateResolver;
   }
@@ -190,9 +185,26 @@ public class ThymeleafModule extends AbstractModule {
   @SuppressWarnings("UnusedDeclaration")
   @Provides
   @Singleton
-  TemplateEngine provideTemplateEngine(ITemplateResolver templateResolver) {
+  StandardCacheManager provideCacheManager(LaunchConfig launchConfig) {
+    Integer cacheSize = getCacheSizeSetting(launchConfig);
+
+    final StandardCacheManager cacheManager = new StandardCacheManager();
+    cacheManager.setTemplateCacheMaxSize(cacheSize);
+    return cacheManager;
+  }
+
+  @SuppressWarnings("UnusedDeclaration")
+  @Provides
+  @Singleton
+  TemplateEngine provideTemplateEngine(ITemplateResolver templateResolver, ICacheManager cacheManager) {
     final TemplateEngine templateEngine = new TemplateEngine();
     templateEngine.setTemplateResolver(templateResolver);
+    templateEngine.setCacheManager(cacheManager);
     return templateEngine;
+  }
+
+  private Integer getCacheSizeSetting(LaunchConfig launchConfig) {
+    Integer cacheSize = templatesCacheSize == null ? Integer.valueOf(launchConfig.getOther("thymeleaf.templatesCacheSize", "0")) : templatesCacheSize;
+    return cacheSize;
   }
 }
