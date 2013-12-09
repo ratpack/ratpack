@@ -27,7 +27,7 @@ import com.google.inject.TypeLiteral;
 import com.google.inject.name.Names;
 import ratpack.codahale.internal.CsvReporterProvider;
 import ratpack.codahale.internal.JmxReporterProvider;
-import ratpack.codahale.internal.RequestTimerHandler;
+import ratpack.codahale.internal.RequestTimingHandler;
 import ratpack.guice.HandlerDecoratingModule;
 import ratpack.guice.internal.GuiceUtil;
 import ratpack.handling.Handler;
@@ -100,7 +100,7 @@ public class CodaHaleModule extends AbstractModule implements HandlerDecoratingM
     }
 
     if (metricsEnabled) {
-      return new RequestTimerHandler(handler);
+      return new RequestTimingHandler(handler);
     } else {
       return handler;
     }
