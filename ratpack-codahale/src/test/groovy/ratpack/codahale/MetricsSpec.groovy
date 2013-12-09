@@ -16,16 +16,12 @@
 
 package ratpack.codahale
 
-import com.codahale.metrics.*
-import com.google.inject.AbstractModule
+import com.codahale.metrics.Meter
+import com.codahale.metrics.MetricRegistry
+import com.codahale.metrics.MetricRegistryListener
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import ratpack.test.internal.RatpackGroovyDslSpec
-
-import java.lang.reflect.Field
-import java.util.concurrent.ExecutorService
-
-import static ratpack.codahale.MetricsModule.registry
 
 class MetricsSpec extends RatpackGroovyDslSpec {
 
@@ -36,7 +32,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     when:
     app {
       modules {
-        register new MetricsModule()
+        register new CodaHaleModule().enableMetrics()
       }
       handlers { MetricRegistry metrics ->
         handler {
@@ -55,7 +51,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
 
     app {
       modules {
-        register new MetricsModule().reportToJmx().reportToCsv(reportDirectory.root)
+        register new CodaHaleModule().enableMetrics().reportMetricsToJmx().reportMetricsToCsv(reportDirectory.root)
       }
       handlers { MetricRegistry metrics ->
         handler {
@@ -80,7 +76,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     given:
     app {
       modules {
-        register new MetricsModule()
+        register new CodaHaleModule().enableMetrics()
       }
 
       handlers { MetricRegistry metrics ->
@@ -110,7 +106,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     given:
     app {
       modules {
-        register new MetricsModule()
+        register new CodaHaleModule().enableMetrics()
       }
 
       handlers { MetricRegistry metrics ->

@@ -1,15 +1,16 @@
-import ratpack.codahale.MetricsModule
+import ratpack.codahale.CodaHaleModule
 import ratpack.error.ClientErrorHandler
 import ratpack.groovy.templating.TemplatingModule
 import ratpack.site.RatpackVersions
 import ratpack.site.SiteErrorHandler
 import ratpack.site.VersionsModule
 
-import static ratpack.groovy.Groovy.*
+import static ratpack.groovy.Groovy.groovyTemplate
+import static ratpack.groovy.Groovy.ratpack
 
 ratpack {
   modules {
-    register new MetricsModule().reportToJmx()
+    register new CodaHaleModule().enableMetrics().reportMetricsToJmx()
     register new VersionsModule(getClass().classLoader)
     bind ClientErrorHandler, new SiteErrorHandler()
 
