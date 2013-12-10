@@ -21,6 +21,7 @@ import org.junit.rules.TemporaryFolder
 import ratpack.launch.HandlerFactory
 import ratpack.launch.LaunchConfigBuilder
 import ratpack.server.RatpackServerBuilder
+import spock.lang.IgnoreIf
 import spock.lang.Specification
 
 import java.util.concurrent.ExecutionException
@@ -29,6 +30,7 @@ class NettyRatpackServiceSpec extends Specification {
 
   @Rule TemporaryFolder temporaryFolder
 
+  @IgnoreIf({ System.getProperty("os.version").startsWith("Windows") }) // Windows allows multiple binds (implicit SO_REUSEPORT)
   def "throws exception if can't bind to port"() {
     given:
     def config1 = LaunchConfigBuilder.baseDir(temporaryFolder.root).port(0).build({} as HandlerFactory)
