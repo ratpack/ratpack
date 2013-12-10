@@ -60,6 +60,13 @@ class JacksonRenderingSpec extends RatpackGroovyDslSpec {
   }
 
   def "can pretty print"() {
+    def lf = System.getProperty("line.separator")
+    def indent = "  "
+    def prettyString = '{' + lf +
+      indent + '"username" : "foo",' + lf +
+      indent + '"password" : "bar"' + lf +
+      '}'
+
     when:
     app {
       modules {
@@ -73,10 +80,7 @@ class JacksonRenderingSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    text == '''{
-  "username" : "foo",
-  "password" : "bar"
-}'''
+    text == prettyString
 
   }
 
