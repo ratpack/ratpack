@@ -16,7 +16,7 @@
 
 package ratpack.codahale
 
-import com.codahale.metrics.health.HealthCheck.Result
+import com.codahale.metrics.health.HealthCheck
 import com.codahale.metrics.health.HealthCheckRegistry
 import ratpack.test.internal.RatpackGroovyDslSpec
 
@@ -35,8 +35,8 @@ class HealthchecksSpec extends RatpackGroovyDslSpec {
     SomeResource resource
 
     @SuppressWarnings("UnnecessaryQualifiedReference")
-    protected Result check() throws Exception {
-      resource.ok ? Result.healthy() : Result.unhealthy("bad!")
+    protected HealthCheck.Result check() throws Exception {
+      resource.ok ? HealthCheck.Result.healthy() : HealthCheck.Result.unhealthy("bad!")
     }
 
     def String getName() {
@@ -48,7 +48,7 @@ class HealthchecksSpec extends RatpackGroovyDslSpec {
     when:
     app {
       modules {
-        register new CodaHaleModule().enableHealthChecks()
+        register new CodaHaleModule()
         bind MyHealthCheck
       }
       handlers { HealthCheckRegistry healthChecks ->

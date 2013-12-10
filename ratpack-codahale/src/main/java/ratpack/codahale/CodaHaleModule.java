@@ -37,22 +37,24 @@ import java.io.File;
 
 public class CodaHaleModule extends AbstractModule implements HandlerDecoratingModule {
 
-  private boolean metricsEnabled;
   private boolean reportMetricsToJmx;
-  private boolean reportMetricsToCsv;
   private File csvReportDirectory;
-  private boolean healthChecksEnabled;
+  private boolean healthChecksEnabled = true;
+
+  private boolean isMetricsEnabled() {
+    return reportMetricsToJmx || csvReportDirectory != null;
+  }
 
   @Override
   protected void configure() {
-    if (metricsEnabled) {
+    if (isMetricsEnabled()) {
       bind(MetricRegistry.class).in(Singleton.class);
 
       if (reportMetricsToJmx) {
         bind(JmxReporter.class).toProvider(JmxReporterProvider.class).asEagerSingleton();
       }
 
-      if (reportMetricsToCsv) {
+      if (csvReportDirectory != null) {
         bind(File.class).annotatedWith(Names.named(CsvReporterProvider.CSV_REPORT_DIRECTORY)).toInstance(csvReportDirectory);
         bind(CsvReporter.class).toProvider(CsvReporterProvider.class).asEagerSingleton();
       }
@@ -63,27 +65,21 @@ public class CodaHaleModule extends AbstractModule implements HandlerDecoratingM
     }
   }
 
-  public CodaHaleModule enableMetrics() {
-    this.metricsEnabled = true;
+  public CodaHaleModule healthChecks(boolean enabled) {
+    this.healthChecksEnabled = enabled;
     return this;
   }
 
-  public CodaHaleModule enableHealthChecks() {
-    this.healthChecksEnabled = true;
+  public CodaHaleModule jmx(boolean enabled) {
+    this.reportMetricsToJmx = enabled;
     return this;
   }
 
-  public CodaHaleModule reportMetricsToJmx() {
-    this.reportMetricsToJmx = true;
-    return this;
-  }
-
-  public CodaHaleModule reportMetricsToCsv(File reportDirectory) {
+  public CodaHaleModule csv(File reportDirectory) {
     if (reportDirectory == null) {
       throw new IllegalArgumentException("reportDirectory cannot be null");
     }
 
-    this.reportMetricsToCsv = true;
     csvReportDirectory = reportDirectory;
     return this;
   }
@@ -99,7 +95,7 @@ public class CodaHaleModule extends AbstractModule implements HandlerDecoratingM
       });
     }
 
-    if (metricsEnabled) {
+    if (isMetricsEnabled()) {
       return new RequestTimingHandler(handler);
     } else {
       return handler;

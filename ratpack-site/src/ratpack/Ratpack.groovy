@@ -10,7 +10,7 @@ import static ratpack.groovy.Groovy.ratpack
 
 ratpack {
   modules {
-    register new CodaHaleModule().enableMetrics().reportMetricsToJmx()
+    register new CodaHaleModule().healthChecks(false)
     register new VersionsModule(getClass().classLoader)
     bind ClientErrorHandler, new SiteErrorHandler()
 
