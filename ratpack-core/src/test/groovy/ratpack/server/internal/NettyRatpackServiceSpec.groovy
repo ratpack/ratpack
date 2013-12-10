@@ -30,7 +30,7 @@ class NettyRatpackServiceSpec extends Specification {
 
   @Rule TemporaryFolder temporaryFolder
 
-  @IgnoreIf({ System.getProperty("os.version").startsWith("Windows") }) // Windows allows multiple binds (implicit SO_REUSEPORT)
+  @IgnoreIf({ System.getProperty("os.name").startsWith("Windows") }) // Windows allows multiple binds (implicit SO_REUSEPORT)
   def "throws exception if can't bind to port"() {
     given:
     def config1 = LaunchConfigBuilder.baseDir(temporaryFolder.root).port(0).build({} as HandlerFactory)
