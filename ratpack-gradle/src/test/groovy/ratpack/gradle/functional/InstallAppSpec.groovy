@@ -32,6 +32,9 @@ class InstallAppSpec extends FunctionalSpec {
             get(Stopper).stop()
             render "foo"
           }
+          get("stop") {
+            get(ratpack.server.Stopper).stop()
+          }
         }
       }
 
@@ -52,6 +55,7 @@ class InstallAppSpec extends FunctionalSpec {
     }
 
     cleanup:
+    url("stop")
     process?.destroy()
     process?.waitFor()
   }
