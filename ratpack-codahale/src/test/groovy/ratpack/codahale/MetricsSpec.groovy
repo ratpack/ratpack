@@ -32,7 +32,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     when:
     app {
       modules {
-        register new CodaHaleModule()
+        register new CodaHaleModule().metrics(true)
       }
       handlers { MetricRegistry metrics ->
         handler {
@@ -76,7 +76,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     given:
     app {
       modules {
-        register new CodaHaleModule()
+        register new CodaHaleModule().metrics(true)
       }
 
       handlers { MetricRegistry metrics ->

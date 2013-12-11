@@ -40,9 +40,10 @@ public class CodaHaleModule extends AbstractModule implements HandlerDecoratingM
   private boolean reportMetricsToJmx;
   private File csvReportDirectory;
   private boolean healthChecksEnabled = true;
+  private boolean metricsEnabled;
 
   private boolean isMetricsEnabled() {
-    return reportMetricsToJmx || csvReportDirectory != null;
+    return metricsEnabled || reportMetricsToJmx || csvReportDirectory != null;
   }
 
   @Override
@@ -63,6 +64,11 @@ public class CodaHaleModule extends AbstractModule implements HandlerDecoratingM
     if (healthChecksEnabled) {
       bind(HealthCheckRegistry.class).in(Singleton.class);
     }
+  }
+
+  public CodaHaleModule metrics(boolean enabled) {
+    this.metricsEnabled = enabled;
+    return this;
   }
 
   public CodaHaleModule healthChecks(boolean enabled) {
