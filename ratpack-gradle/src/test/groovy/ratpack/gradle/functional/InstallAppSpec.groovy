@@ -24,10 +24,12 @@ class InstallAppSpec extends FunctionalSpec {
     given:
     file("src/ratpack/ratpack.groovy") << """
       import static ratpack.groovy.Groovy.*
+      import ratpack.server.Stopper
 
       ratpack {
         handlers {
           get {
+            get(Stopper).stop()
             render "foo"
           }
         }
@@ -37,7 +39,7 @@ class InstallAppSpec extends FunctionalSpec {
     when:
     run "installApp"
 
-    def process = new ProcessBuilder().directory(file("build/install/test-app")).command("bin/test-app").start()
+    def process = new ProcessBuilder().directory(file("build/install/test-app")).command(osSpecificCommand()).start()
     process.consumeProcessOutput(System.out, System.err)
 
     then:
@@ -60,6 +62,15 @@ class InstallAppSpec extends FunctionalSpec {
 
   String urlText(String path = "") {
     new URL("http://localhost:5050/$path").text
+  }
+
+  String osSpecificCommand() {
+    if (System.getProperty("os.name").startsWith("Windows")) {
+      // Windows doesn't take the working directory into account when searching for the command so a relative path won't work.
+      return file("build/install/test-app/bin/test-app.bat").absolutePath
+    } else {
+      return "bin/test-app"
+    }
   }
 
 }
