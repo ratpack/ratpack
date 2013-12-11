@@ -18,8 +18,18 @@ package ratpack.server;
 
 import ratpack.api.NonBlocking;
 
+/**
+ * The mechanism for stopping the application from within the application.
+ * <p>
+ * An implementation of this is always available via the context registry.
+ */
 public interface Stopper {
 
+  /**
+   * Initiates the shutdown process for the running application.
+   * <p>
+   * This method <i>may</i> return before the application is fully shut down.
+   */
   @NonBlocking
   void stop();
 
