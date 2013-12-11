@@ -27,30 +27,48 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import ratpack.launch.LaunchConfig;
+import ratpack.server.Stopper;
+import ratpack.util.Transformer;
 
 import java.net.InetSocketAddress;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import static ratpack.util.ExceptionUtils.uncheck;
 
 public class NettyRatpackService extends AbstractIdleService implements RatpackService {
 
   private final Logger logger = Logger.getLogger(getClass().getName());
 
   private final LaunchConfig launchConfig;
+  private final Transformer<Stopper, ChannelInitializer<SocketChannel>> channelInitializerTransformer;
+
   private InetSocketAddress boundAddress;
-  private final ChannelInitializer<SocketChannel> channelInitializer;
   private Channel channel;
   private EventLoopGroup group;
 
-  public NettyRatpackService(LaunchConfig launchConfig, ChannelInitializer<SocketChannel> channelInitializer) {
+  public NettyRatpackService(LaunchConfig launchConfig, Transformer<Stopper, ChannelInitializer<SocketChannel>> channelInitializerTransformer) {
     this.launchConfig = launchConfig;
-    this.channelInitializer = channelInitializer;
+    this.channelInitializerTransformer = channelInitializerTransformer;
   }
 
   @Override
   protected void startUp() throws Exception {
+    Stopper stopper = new Stopper() {
+      @Override
+      public void stop() {
+        try {
+          NettyRatpackService.this.stop();
+        } catch (Exception e) {
+          throw uncheck(e);
+        }
+      }
+    };
+
     ServerBootstrap bootstrap = new ServerBootstrap();
     group = new NioEventLoopGroup(launchConfig.getMainThreads(), new DefaultThreadFactory("ratpack-group", Thread.MAX_PRIORITY));
+
+    ChannelInitializer<SocketChannel> channelInitializer = channelInitializerTransformer.transform(stopper);
 
     bootstrap
       .group(group)

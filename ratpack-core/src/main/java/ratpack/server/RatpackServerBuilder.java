@@ -30,6 +30,7 @@ import ratpack.server.internal.NettyRatpackService;
 import ratpack.server.internal.RatpackChannelInitializer;
 import ratpack.server.internal.ServiceBackedServer;
 import ratpack.util.Factory;
+import ratpack.util.Transformer;
 
 import java.io.File;
 
@@ -50,14 +51,19 @@ public abstract class RatpackServerBuilder {
    * @return A new, not yet started, Ratpack server.
    */
   public static RatpackServer build(LaunchConfig launchConfig) {
-    ChannelInitializer<SocketChannel> channelInitializer = buildChannelInitializer(launchConfig);
+    Transformer<Stopper, ChannelInitializer<SocketChannel>> channelInitializer = buildChannelInitializer(launchConfig);
     NettyRatpackService service = new NettyRatpackService(launchConfig, channelInitializer);
     return new ServiceBackedServer(service, launchConfig);
   }
 
 
-  private static ChannelInitializer<SocketChannel> buildChannelInitializer(LaunchConfig launchConfig) {
-    return new RatpackChannelInitializer(launchConfig, createHandler(launchConfig));
+  private static Transformer<Stopper, ChannelInitializer<SocketChannel>> buildChannelInitializer(final LaunchConfig launchConfig) {
+    return new Transformer<Stopper, ChannelInitializer<SocketChannel>>() {
+      @Override
+      public ChannelInitializer<SocketChannel> transform(Stopper stopper) {
+        return new RatpackChannelInitializer(launchConfig, createHandler(launchConfig), stopper);
+      }
+    };
   }
 
   private static Handler createHandler(final LaunchConfig launchConfig) {

@@ -53,8 +53,7 @@ import ratpack.registry.Registry;
 import ratpack.registry.RegistryBuilder;
 import ratpack.render.CharSequenceRenderer;
 import ratpack.render.internal.DefaultCharSequenceRenderer;
-import ratpack.server.BindAddress;
-import ratpack.server.PublicAddress;
+import ratpack.server.*;
 import ratpack.util.Action;
 
 import java.io.IOException;
@@ -72,13 +71,14 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
 
   private Registry registry;
 
-  public NettyHandlerAdapter(Handler handler, LaunchConfig launchConfig, ListeningExecutorService blockingExecutorService) {
+  public NettyHandlerAdapter(Stopper stopper, Handler handler, LaunchConfig launchConfig, ListeningExecutorService blockingExecutorService) {
     this.blockingExecutorService = blockingExecutorService;
     this.handlers = new Handler[]{new ErrorCatchingHandler(handler)};
     this.return404 = new ClientErrorForwardingHandler(NOT_FOUND.code());
 
     this.registry = RegistryBuilder.builder()
       // If you update this list, update the class level javadoc on Context.
+      .add(Stopper.class, stopper)
       .add(FileSystemBinding.class, new DefaultFileSystemBinding(launchConfig.getBaseDir()))
       .add(MimeTypes.class, new ActivationBackedMimeTypes())
       .add(PublicAddress.class, new DefaultPublicAddress(launchConfig.getPublicAddress(), launchConfig.getSSLContext() == null ? "http" : "https"))
