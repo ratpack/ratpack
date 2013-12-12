@@ -59,4 +59,20 @@ class HandlersSpec extends RatpackGroovyDslSpec {
     then:
     text == "ok"
   }
+
+  def "can use the compute executor"() {
+    when:
+    app {
+      handlers {
+        get {
+          computationExecutorService.submit {
+            render "ok"
+          }
+        }
+      }
+    }
+
+    then:
+    text == "ok"
+  }
 }

@@ -48,6 +48,7 @@ import java.io.File;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ScheduledExecutorService;
 
 public class DefaultGroovyContext implements GroovyContext {
 
@@ -227,6 +228,11 @@ public class DefaultGroovyContext implements GroovyContext {
   @Override
   public Background getBackground() {
     return delegate.getBackground();
+  }
+
+  @Override
+  public ScheduledExecutorService getComputationExecutorService() {
+    return delegate.getComputationExecutorService();
   }
 
   @Override

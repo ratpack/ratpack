@@ -58,6 +58,7 @@ import ratpack.util.Action;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.concurrent.ScheduledExecutorService;
 
 import static io.netty.handler.codec.http.HttpHeaders.isKeepAlive;
 import static io.netty.handler.codec.http.HttpResponseStatus.NOT_FOUND;
@@ -143,7 +144,8 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
     InetSocketAddress socketAddress = (InetSocketAddress) channel.localAddress();
     BindAddress bindAddress = new InetSocketAddressBackedBindAddress(socketAddress);
 
-    Context context = new DefaultContext(request, response, bindAddress, registry, ctx.executor(), blockingExecutorService, requestOutcomeEventController.getRegistry(), handlers, 0, return404);
+    ScheduledExecutorService computeExecutorService = ctx.executor();
+    Context context = new DefaultContext(request, response, bindAddress, registry, ctx.executor(), blockingExecutorService, computeExecutorService, requestOutcomeEventController.getRegistry(), handlers, 0, return404);
     context.next();
   }
 

@@ -50,6 +50,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.logging.Logger;
 
 import static io.netty.handler.codec.http.HttpHeaders.Names.IF_MODIFIED_SINCE;
@@ -67,6 +68,7 @@ public class DefaultContext implements Context {
   private final Registry registry;
   private final BindAddress bindAddress;
 
+  private final ScheduledExecutorService computeExecutorService;
   private final EventRegistry<RequestOutcome> onCloseRegistry;
 
   private final Handler[] nextHandlers;
@@ -77,7 +79,7 @@ public class DefaultContext implements Context {
   public DefaultContext(
     Request request, Response response, BindAddress bindAddress, Registry registry,
     ExecutorService mainExecutorService, ListeningExecutorService backgroundExecutorService,
-    EventRegistry<RequestOutcome> onCloseRegistry, Handler[] nextHandlers, int nextIndex,
+    ScheduledExecutorService computeExecutorService, EventRegistry<RequestOutcome> onCloseRegistry, Handler[] nextHandlers, int nextIndex,
     Handler exhausted) {
     this.request = request;
     this.response = response;
@@ -85,6 +87,7 @@ public class DefaultContext implements Context {
     this.registry = registry;
     this.mainExecutorService = mainExecutorService;
     this.backgroundExecutorService = backgroundExecutorService;
+    this.computeExecutorService = computeExecutorService;
     this.onCloseRegistry = onCloseRegistry;
     this.nextHandlers = nextHandlers;
     this.nextIndex = nextIndex;
@@ -269,6 +272,11 @@ public class DefaultContext implements Context {
     return getBackground().exec(backgroundOperation);
   }
 
+  @Override
+  public ScheduledExecutorService getComputationExecutorService() {
+    return computeExecutorService;
+  }
+
   public void redirect(String location) {
     redirect(HttpResponseStatus.FOUND.code(), location);
   }
@@ -407,7 +415,7 @@ public class DefaultContext implements Context {
   }
 
   private DefaultContext createContext(Registry registry, Handler[] nextHandlers, int nextIndex, Handler exhausted) {
-    return new DefaultContext(request, response, bindAddress, registry, mainExecutorService, backgroundExecutorService, onCloseRegistry, nextHandlers, nextIndex, exhausted);
+    return new DefaultContext(request, response, bindAddress, registry, mainExecutorService, backgroundExecutorService, computeExecutorService, onCloseRegistry, nextHandlers, nextIndex, exhausted);
   }
 
   private class RejoinHandler implements Handler {

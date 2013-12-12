@@ -33,6 +33,7 @@ import ratpack.util.ResultAction;
 import java.io.File;
 import java.util.Date;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ScheduledExecutorService;
 
 /**
  * The context of an individual {@link Handler} invocation.
@@ -389,6 +390,8 @@ public interface Context extends Registry {
    * @see #getBackground()
    */
   <T> Background.SuccessOrError<T> background(Callable<T> backgroundOperation);
+
+  ScheduledExecutorService getComputationExecutorService();
 
   /**
    * Sends a temporary redirect response (i.e. statusCode 302) to the client using the specified redirect location URL.

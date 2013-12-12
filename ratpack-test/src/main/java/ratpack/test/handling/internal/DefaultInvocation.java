@@ -45,9 +45,7 @@ import ratpack.util.Action;
 
 import java.io.File;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 import static com.google.common.util.concurrent.MoreExecutors.listeningDecorator;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
@@ -74,6 +72,7 @@ public class DefaultInvocation implements Invocation {
 
     ExecutorService mainExecutor = newSingleThreadExecutor();
     ListeningExecutorService backgroundExecutor = listeningDecorator(newSingleThreadExecutor());
+    ScheduledExecutorService computeExecutorService = Executors.newScheduledThreadPool(1);
 
     final CountDownLatch latch = new CountDownLatch(1);
 
@@ -139,7 +138,7 @@ public class DefaultInvocation implements Invocation {
     );
 
     Response response = new DefaultResponse(status, responseHeaders, responseBody, fileHttpTransmitter, committer);
-    Context context = new DefaultContext(request, response, bindAddress, effectiveRegistry, mainExecutor, backgroundExecutor, eventController.getRegistry(), new Handler[0], 0, next) {
+    Context context = new DefaultContext(request, response, bindAddress, effectiveRegistry, mainExecutor, backgroundExecutor, computeExecutorService, eventController.getRegistry(), new Handler[0], 0, next) {
       @Override
       public void render(Object object) throws NoSuchRendererException {
         rendered = object;
