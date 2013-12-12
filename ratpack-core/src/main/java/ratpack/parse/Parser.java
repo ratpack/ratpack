@@ -19,14 +19,46 @@ package ratpack.parse;
 import ratpack.handling.Context;
 import ratpack.http.RequestBody;
 
+/**
+ * A parser is able to deserialize the body of a request into an object representation.
+ * <p>
+ * The {@link ratpack.parse.ParserSupport} class is a convenient base for implementations.
+ *
+ * @param <T> The type that this parser deserializes to
+ * @param <P> The type of the “parse object” which describes how to parse the request
+ */
 public interface Parser<T, P extends Parse<T>> {
 
+  /**
+   * The content type that this parser knows how to deserialize.
+   *
+   * @return The content type that this parser knows how to deserialize.
+   */
   String getContentType();
 
-  T parse(Context context, RequestBody requestBody, P parse);
-
+  /**
+   * The type of the {@link Parse} object for this parser.
+   *
+   * @return The type of the {@link Parse} object for this parser.
+   */
   Class<P> getParseType();
 
+  /**
+   * The type that this parser can deserialize to.
+   *
+   * @return The type that this parser can deserialize to.
+   */
   Class<T> getParsedType();
+
+  /**
+   * Deserializes the request body of the context into an object.
+   *
+   * @param context The context to deserialize
+   * @param requestBody The request body to deserialize
+   * @param parse The description of how to parse the request body
+   * @return The object representation of the request body
+   */
+  T parse(Context context, RequestBody requestBody, P parse);
+
 
 }
