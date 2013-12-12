@@ -49,7 +49,6 @@ import java.lang.reflect.UndeclaredThrowableException;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.logging.Logger;
 
@@ -63,12 +62,11 @@ public class DefaultContext implements Context {
   private final Request request;
   private final Response response;
 
-  private final ExecutorService mainExecutorService;
+  private final ScheduledExecutorService computeExecutorService;
   private final ListeningExecutorService backgroundExecutorService;
   private final Registry registry;
   private final BindAddress bindAddress;
 
-  private final ScheduledExecutorService computeExecutorService;
   private final EventRegistry<RequestOutcome> onCloseRegistry;
 
   private final Handler[] nextHandlers;
@@ -78,14 +76,13 @@ public class DefaultContext implements Context {
 
   public DefaultContext(
     Request request, Response response, BindAddress bindAddress, Registry registry,
-    ExecutorService mainExecutorService, ListeningExecutorService backgroundExecutorService,
-    ScheduledExecutorService computeExecutorService, EventRegistry<RequestOutcome> onCloseRegistry, Handler[] nextHandlers, int nextIndex,
+    ListeningExecutorService backgroundExecutorService, ScheduledExecutorService computeExecutorService,
+    EventRegistry<RequestOutcome> onCloseRegistry, Handler[] nextHandlers, int nextIndex,
     Handler exhausted) {
     this.request = request;
     this.response = response;
     this.bindAddress = bindAddress;
     this.registry = registry;
-    this.mainExecutorService = mainExecutorService;
     this.backgroundExecutorService = backgroundExecutorService;
     this.computeExecutorService = computeExecutorService;
     this.onCloseRegistry = onCloseRegistry;
@@ -264,7 +261,7 @@ public class DefaultContext implements Context {
 
   @Override
   public Background getBackground() {
-    return new DefaultBackground(mainExecutorService, backgroundExecutorService, this);
+    return new DefaultBackground(computeExecutorService, backgroundExecutorService, this);
   }
 
   @Override
@@ -415,7 +412,7 @@ public class DefaultContext implements Context {
   }
 
   private DefaultContext createContext(Registry registry, Handler[] nextHandlers, int nextIndex, Handler exhausted) {
-    return new DefaultContext(request, response, bindAddress, registry, mainExecutorService, backgroundExecutorService, computeExecutorService, onCloseRegistry, nextHandlers, nextIndex, exhausted);
+    return new DefaultContext(request, response, bindAddress, registry, backgroundExecutorService, computeExecutorService, onCloseRegistry, nextHandlers, nextIndex, exhausted);
   }
 
   private class RejoinHandler implements Handler {

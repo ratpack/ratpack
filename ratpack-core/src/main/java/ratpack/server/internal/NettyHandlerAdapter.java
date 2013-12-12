@@ -145,7 +145,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
     BindAddress bindAddress = new InetSocketAddressBackedBindAddress(socketAddress);
 
     ScheduledExecutorService computeExecutorService = ctx.executor();
-    Context context = new DefaultContext(request, response, bindAddress, registry, ctx.executor(), blockingExecutorService, computeExecutorService, requestOutcomeEventController.getRegistry(), handlers, 0, return404);
+    Context context = new DefaultContext(request, response, bindAddress, registry, blockingExecutorService, computeExecutorService, requestOutcomeEventController.getRegistry(), handlers, 0, return404);
     context.next();
   }
 
