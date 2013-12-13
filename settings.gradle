@@ -30,7 +30,8 @@ include \
     "ratpack-jackson",
     "ratpack-reactor",
     "ratpack-codahale",
-    "ratpack-h2"
+    "ratpack-h2",
+    "ratpack-thymeleaf"
 
 include \
   "perftest",
