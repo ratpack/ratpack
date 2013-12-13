@@ -25,6 +25,7 @@ The following people have provided significant contributions.
 * [Rus Hart](https://github.com/rhart)
 * [Tomás Lin](https://github.com/tomaslin)
 * [Kevin Marquardsen](https://github.com/kmarquardsen)
+* [Stefano Gualdi](https://github.com/stefanogualdi)
 
 ### Past project members
 
