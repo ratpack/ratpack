@@ -75,7 +75,7 @@ public class AssetHandler implements Handler {
         } else if (attributes.isDirectory()) {
           maybeSendFile(context, file, 0);
         } else {
-          context.clientError(404);
+          context.next();
         }
       }
     });
@@ -83,7 +83,7 @@ public class AssetHandler implements Handler {
 
   private void maybeSendFile(final Context context, final File file, final int i) {
     if (i == indexFiles.size()) {
-      context.clientError(403);
+      context.next();
     } else {
       String name = indexFiles.get(i);
       final File indexFile = new File(file, name);

@@ -27,7 +27,7 @@ import static io.netty.handler.codec.http.HttpResponseStatus.*
 
 class StaticFileSpec extends RatpackGroovyDslSpec {
 
-  def "root listing disabled"() {
+  def "requesting directory with no index file "() {
     given:
     file("public/static.text") << "hello!"
     file("public/foo/static.text") << "hello!"
@@ -36,13 +36,15 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
     app {
       handlers {
         assets("public")
+        handler {
+          render "after"
+        }
       }
     }
 
     then:
-    get("").statusCode == FORBIDDEN.code()
-    get("foo").statusCode == FORBIDDEN.code()
-    get("foos").statusCode == NOT_FOUND.code()
+    text == "after"
+    getText("foo") == "after"
   }
 
   def "can serve static file"() {
