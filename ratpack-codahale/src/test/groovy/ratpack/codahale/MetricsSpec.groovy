@@ -46,12 +46,16 @@ class MetricsSpec extends RatpackGroovyDslSpec {
   }
 
   def "can register reporters"() {
-    when:
+    given:
     List<MetricRegistryListener> listeners = null
+
+    def printStream = Mock(PrintStream)
+    (1.._) * printStream.println("[root]~GET~Request")
+    System.setOut(printStream)
 
     app {
       modules {
-        register new CodaHaleModule().jmx(true).csv(reportDirectory.root)
+        register new CodaHaleModule().jmx(true).csv(reportDirectory.root).console(true)
       }
       handlers { MetricRegistry metrics ->
         handler {
@@ -62,8 +66,10 @@ class MetricsSpec extends RatpackGroovyDslSpec {
       }
     }
 
+    when:
+    text
+
     then:
-    text == "ok"
     listeners.size() == 1 // JMX listener
     sleep 1100 // csv reporter polls every second - TODO use a spin assert
     reportDirectory.root.listFiles().length > 0
@@ -139,3 +145,4 @@ class MetricsSpec extends RatpackGroovyDslSpec {
   }
 
 }
+

@@ -16,6 +16,7 @@
 
 package ratpack.codahale;
 
+import com.codahale.metrics.ConsoleReporter;
 import com.codahale.metrics.CsvReporter;
 import com.codahale.metrics.JmxReporter;
 import com.codahale.metrics.MetricRegistry;
@@ -25,6 +26,7 @@ import com.google.inject.Injector;
 import com.google.inject.Singleton;
 import com.google.inject.TypeLiteral;
 import com.google.inject.name.Names;
+import ratpack.codahale.internal.ConsoleReporterProvider;
 import ratpack.codahale.internal.CsvReporterProvider;
 import ratpack.codahale.internal.JmxReporterProvider;
 import ratpack.codahale.internal.RequestTimingHandler;
@@ -38,6 +40,7 @@ import java.io.File;
 public class CodaHaleModule extends AbstractModule implements HandlerDecoratingModule {
 
   private boolean reportMetricsToJmx;
+  private boolean reportMetricsToConsole;
   private File csvReportDirectory;
   private boolean healthChecksEnabled = true;
   private boolean metricsEnabled;
@@ -53,6 +56,10 @@ public class CodaHaleModule extends AbstractModule implements HandlerDecoratingM
 
       if (reportMetricsToJmx) {
         bind(JmxReporter.class).toProvider(JmxReporterProvider.class).asEagerSingleton();
+      }
+
+      if (reportMetricsToConsole) {
+        bind(ConsoleReporter.class).toProvider(ConsoleReporterProvider.class).asEagerSingleton();
       }
 
       if (csvReportDirectory != null) {
@@ -78,6 +85,11 @@ public class CodaHaleModule extends AbstractModule implements HandlerDecoratingM
 
   public CodaHaleModule jmx(boolean enabled) {
     this.reportMetricsToJmx = enabled;
+    return this;
+  }
+
+  public CodaHaleModule console(boolean enabled) {
+    this.reportMetricsToConsole = enabled;
     return this;
   }
 
