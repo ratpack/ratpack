@@ -32,7 +32,7 @@ class WebsocketSpec extends RatpackGroovyDslSpec {
     when:
     def closing = new BlockingVariable<WebSocketClose>()
     def serverReceived = new LinkedBlockingQueue<WebSocketFrame>()
-    def ws
+    WebSocket ws
 
     app {
       handlers {
@@ -88,6 +88,7 @@ class WebsocketSpec extends RatpackGroovyDslSpec {
 
     then:
     closing.get().fromClient
+    !ws.open
 
     cleanup:
     client.closeBlocking()

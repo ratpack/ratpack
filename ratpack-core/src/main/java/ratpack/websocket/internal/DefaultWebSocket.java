@@ -25,20 +25,25 @@ import ratpack.util.Action;
 import ratpack.websocket.WebSocket;
 import ratpack.websocket.WebSocketClose;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import static ratpack.util.ExceptionUtils.uncheck;
 
 public class DefaultWebSocket implements WebSocket {
 
   private final Channel channel;
   private final Action<? super WebSocketClose> closeHandler;
+  private final AtomicBoolean open;
 
-  public DefaultWebSocket(Channel channel, Action<? super WebSocketClose> closeHandler) {
+  public DefaultWebSocket(Channel channel, Action<? super WebSocketClose> closeHandler, AtomicBoolean open) {
     this.channel = channel;
     this.closeHandler = closeHandler;
+    this.open = open;
   }
 
   @Override
   public void close() {
+    open.set(false);
     channel.writeAndFlush(new CloseWebSocketFrame());
     channel.close().addListener(new ChannelFutureListener() {
       @Override
@@ -50,6 +55,11 @@ public class DefaultWebSocket implements WebSocket {
         }
       }
     });
+  }
+
+  @Override
+  public boolean isOpen() {
+    return open.get();
   }
 
   @Override

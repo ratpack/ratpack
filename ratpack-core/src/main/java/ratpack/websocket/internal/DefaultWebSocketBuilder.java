@@ -37,6 +37,7 @@ import ratpack.websocket.WebSocketFrame;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static io.netty.handler.codec.http.HttpHeaders.Names.SEC_WEBSOCKET_KEY;
 import static io.netty.handler.codec.http.HttpHeaders.Names.SEC_WEBSOCKET_VERSION;
@@ -113,7 +114,8 @@ public class DefaultWebSocketBuilder implements WebSocketBuilder {
     handshaker.handshake(channel, nettyRequest).addListener(new ChannelFutureListener() {
       public void operationComplete(ChannelFuture future) throws Exception {
         if (future.isSuccess()) {
-          final WebSocket webSocket = new DefaultWebSocket(channel, closeHandler);
+          final AtomicBoolean open = new AtomicBoolean(true);
+          final WebSocket webSocket = new DefaultWebSocket(channel, closeHandler, open);
 
           directChannelAccess.takeOwnership(new Action<Object>() {
             @Override
@@ -121,6 +123,7 @@ public class DefaultWebSocketBuilder implements WebSocketBuilder {
               if (msg instanceof io.netty.handler.codec.http.websocketx.WebSocketFrame) {
                 io.netty.handler.codec.http.websocketx.WebSocketFrame frame = (io.netty.handler.codec.http.websocketx.WebSocketFrame) msg;
                 if (frame instanceof CloseWebSocketFrame) {
+                  open.set(false);
                   handshaker.close(channel, (CloseWebSocketFrame) frame.retain()).addListener(new ChannelFutureListener() {
                     @Override
                     public void operationComplete(ChannelFuture future) throws Exception {

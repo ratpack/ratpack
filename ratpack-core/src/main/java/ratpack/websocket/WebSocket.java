@@ -23,6 +23,8 @@ public interface WebSocket {
   @NonBlocking
   void close();
 
+  boolean isOpen();
+
   @NonBlocking
   void send(String text);
 
