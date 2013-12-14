@@ -22,8 +22,13 @@ import com.codahale.metrics.MetricRegistryListener
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import ratpack.test.internal.RatpackGroovyDslSpec
+import spock.util.concurrent.BlockingVariable
+import spock.util.concurrent.PollingConditions
 
 class MetricsSpec extends RatpackGroovyDslSpec {
+
+  @SuppressWarnings("GroovyUnusedDeclaration")
+  PollingConditions polling = new PollingConditions()
 
   @Rule
   TemporaryFolder reportDirectory
@@ -48,10 +53,10 @@ class MetricsSpec extends RatpackGroovyDslSpec {
   def "can register reporters"() {
     given:
     List<MetricRegistryListener> listeners = null
+    def output = new ByteArrayOutputStream()
 
-    def printStream = Mock(PrintStream)
-    (1.._) * printStream.println("[root]~GET~Request")
-    System.setOut(printStream)
+    def origOut = System.out
+    System.out = new PrintStream(output, true)
 
     app {
       modules {
@@ -71,8 +76,15 @@ class MetricsSpec extends RatpackGroovyDslSpec {
 
     then:
     listeners.size() == 1 // JMX listener
-    sleep 1100 // csv reporter polls every second - TODO use a spin assert
-    reportDirectory.root.listFiles().length > 0
+    polling.within(2) {
+      reportDirectory.root.listFiles().length > 0
+    }
+    polling.within(2) {
+      output.toString().contains("[root]~GET~Request")
+    }
+
+    cleanup:
+    System.out = origOut
   }
 
   def "can collect custom metrics"() {
