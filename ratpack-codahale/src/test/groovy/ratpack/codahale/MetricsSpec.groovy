@@ -32,7 +32,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     when:
     app {
       modules {
-        register new CodaHaleModule().metrics(true)
+        register new CodaHaleModule().metrics()
       }
       handlers { MetricRegistry metrics ->
         handler {
@@ -55,7 +55,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
 
     app {
       modules {
-        register new CodaHaleModule().jmx(true).csv(reportDirectory.root).console(true)
+        register new CodaHaleModule().jmx().csv(reportDirectory.root).console()
       }
       handlers { MetricRegistry metrics ->
         handler {
@@ -82,7 +82,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     given:
     app {
       modules {
-        register new CodaHaleModule().metrics(true)
+        register new CodaHaleModule().metrics()
       }
 
       handlers { MetricRegistry metrics ->
@@ -112,7 +112,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     given:
     app {
       modules {
-        register new CodaHaleModule().jmx(true)
+        register new CodaHaleModule().jmx()
       }
 
       handlers { MetricRegistry metrics ->

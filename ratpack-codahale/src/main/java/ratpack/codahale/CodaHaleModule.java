@@ -73,9 +73,17 @@ public class CodaHaleModule extends AbstractModule implements HandlerDecoratingM
     }
   }
 
+  public CodaHaleModule metrics() {
+    return metrics(true);
+  }
+
   public CodaHaleModule metrics(boolean enabled) {
     this.metricsEnabled = enabled;
     return this;
+  }
+
+  public CodaHaleModule healthChecks() {
+    return healthChecks(true);
   }
 
   public CodaHaleModule healthChecks(boolean enabled) {
@@ -83,9 +91,17 @@ public class CodaHaleModule extends AbstractModule implements HandlerDecoratingM
     return this;
   }
 
+  public CodaHaleModule jmx() {
+    return jmx(true);
+  }
+
   public CodaHaleModule jmx(boolean enabled) {
     this.reportMetricsToJmx = enabled;
     return this;
+  }
+
+  public CodaHaleModule console() {
+    return console(true);
   }
 
   public CodaHaleModule console(boolean enabled) {
