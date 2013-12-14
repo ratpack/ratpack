@@ -27,11 +27,8 @@ import ratpack.groovy.handling.GroovyByContentHandler;
 import ratpack.groovy.handling.GroovyByMethodHandler;
 import ratpack.groovy.handling.GroovyContext;
 import ratpack.groovy.internal.Util;
-import ratpack.handling.ByContentHandler;
-import ratpack.handling.ByMethodHandler;
-import ratpack.handling.Context;
-import ratpack.handling.Handler;
-import ratpack.handling.RequestOutcome;
+import ratpack.handling.*;
+import ratpack.handling.direct.DirectChannelAccess;
 import ratpack.http.Request;
 import ratpack.http.Response;
 import ratpack.parse.Parse;
@@ -61,6 +58,11 @@ public class DefaultGroovyContext implements GroovyContext {
   @Override
   public GroovyContext getContext() {
     return this;
+  }
+
+  @Override
+  public DirectChannelAccess getDirectChannelAccess() {
+    return delegate.getDirectChannelAccess();
   }
 
   @Override

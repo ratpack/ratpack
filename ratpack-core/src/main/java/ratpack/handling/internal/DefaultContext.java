@@ -26,6 +26,7 @@ import ratpack.error.ServerErrorHandler;
 import ratpack.event.internal.EventRegistry;
 import ratpack.file.FileSystemBinding;
 import ratpack.handling.*;
+import ratpack.handling.direct.DirectChannelAccess;
 import ratpack.http.Request;
 import ratpack.http.RequestBody;
 import ratpack.http.Response;
@@ -59,6 +60,7 @@ public class DefaultContext implements Context {
 
   private final static Logger LOGGER = Logger.getLogger(Context.class.getName());
 
+  private final DirectChannelAccess directChannelAccess;
   private final Request request;
   private final Response response;
 
@@ -75,10 +77,11 @@ public class DefaultContext implements Context {
   private final Handler exhausted;
 
   public DefaultContext(
-    Request request, Response response, BindAddress bindAddress, Registry registry,
+    DirectChannelAccess directChannelAccess, Request request, Response response, BindAddress bindAddress, Registry registry,
     ListeningExecutorService backgroundExecutorService, ScheduledExecutorService computeExecutorService,
     EventRegistry<RequestOutcome> onCloseRegistry, Handler[] nextHandlers, int nextIndex,
     Handler exhausted) {
+    this.directChannelAccess = directChannelAccess;
     this.request = request;
     this.response = response;
     this.bindAddress = bindAddress;
@@ -249,6 +252,11 @@ public class DefaultContext implements Context {
     this.onCloseRegistry.register(callback);
   }
 
+  @Override
+  public DirectChannelAccess getDirectChannelAccess() {
+    return directChannelAccess;
+  }
+
   private <P, S extends Parse<P>> P maybeParse(String requestContentType, S parseSpec, Parser<?, ?> parser) {
     if (requestContentType.equalsIgnoreCase(parser.getContentType()) && parser.getParseType().isInstance(parseSpec)) {
       @SuppressWarnings("unchecked") Parser<P, S> castParser = (Parser<P, S>) parser;
@@ -412,7 +420,7 @@ public class DefaultContext implements Context {
   }
 
   private DefaultContext createContext(Registry registry, Handler[] nextHandlers, int nextIndex, Handler exhausted) {
-    return new DefaultContext(request, response, bindAddress, registry, backgroundExecutorService, computeExecutorService, onCloseRegistry, nextHandlers, nextIndex, exhausted);
+    return new DefaultContext(directChannelAccess, request, response, bindAddress, registry, backgroundExecutorService, computeExecutorService, onCloseRegistry, nextHandlers, nextIndex, exhausted);
   }
 
   private class RejoinHandler implements Handler {

@@ -14,18 +14,25 @@
  * limitations under the License.
  */
 
-apply from: "$rootDir/gradle/javaModule.gradle"
+package ratpack.websocket.internal;
 
-ext.apiLinks = [
-    "http://netty.io/4.0/api",
-    "http://docs.oracle.com/javase/7/docs/api"
-]
+import ratpack.websocket.WebSocketClose;
 
-dependencies {
-  compile "io.netty:netty-codec-http:$commonVersions.netty"
-  compile 'com.google.guava:guava:14.0.1'
-  compile 'javax.inject:javax.inject:1'
+public class DefaultWebSocketClose implements WebSocketClose {
 
-  runtime 'org.javassist:javassist:3.17.1-GA'
-  testCompile 'org.java-websocket:Java-WebSocket:1.3.0'
+  private final boolean fromClient;
+
+  public DefaultWebSocketClose(boolean fromClient) {
+    this.fromClient = fromClient;
+  }
+
+  @Override
+  public boolean isFromClient() {
+    return fromClient;
+  }
+
+  @Override
+  public boolean isFromServer() {
+    return !fromClient;
+  }
 }

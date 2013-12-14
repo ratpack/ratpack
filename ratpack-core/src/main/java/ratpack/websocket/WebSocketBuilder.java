@@ -14,18 +14,22 @@
  * limitations under the License.
  */
 
-apply from: "$rootDir/gradle/javaModule.gradle"
+package ratpack.websocket;
 
-ext.apiLinks = [
-    "http://netty.io/4.0/api",
-    "http://docs.oracle.com/javase/7/docs/api"
-]
+import ratpack.api.NonBlocking;
+import ratpack.util.Action;
 
-dependencies {
-  compile "io.netty:netty-codec-http:$commonVersions.netty"
-  compile 'com.google.guava:guava:14.0.1'
-  compile 'javax.inject:javax.inject:1'
+public interface WebSocketBuilder {
 
-  runtime 'org.javassist:javassist:3.17.1-GA'
-  testCompile 'org.java-websocket:Java-WebSocket:1.3.0'
+  WebSocketBuilder path(String path);
+
+  WebSocketBuilder onClose(Action<? super WebSocketClose> action);
+
+  WebSocketBuilder onMessage(Action<? super WebSocketFrame> action);
+
+  WebSocketBuilder maxLength(int maxLength);
+
+  @NonBlocking
+  void connect(Action<? super WebSocket> action);
+
 }

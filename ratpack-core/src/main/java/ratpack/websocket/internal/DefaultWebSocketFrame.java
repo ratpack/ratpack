@@ -14,18 +14,28 @@
  * limitations under the License.
  */
 
-apply from: "$rootDir/gradle/javaModule.gradle"
+package ratpack.websocket.internal;
 
-ext.apiLinks = [
-    "http://netty.io/4.0/api",
-    "http://docs.oracle.com/javase/7/docs/api"
-]
+import ratpack.websocket.WebSocket;
+import ratpack.websocket.WebSocketFrame;
 
-dependencies {
-  compile "io.netty:netty-codec-http:$commonVersions.netty"
-  compile 'com.google.guava:guava:14.0.1'
-  compile 'javax.inject:javax.inject:1'
+public class DefaultWebSocketFrame implements WebSocketFrame {
 
-  runtime 'org.javassist:javassist:3.17.1-GA'
-  testCompile 'org.java-websocket:Java-WebSocket:1.3.0'
+  private final WebSocket webSocket;
+  private final String text;
+
+  public DefaultWebSocketFrame(WebSocket webSocket, String text) {
+    this.webSocket = webSocket;
+    this.text = text;
+  }
+
+  @Override
+  public WebSocket getConnection() {
+    return webSocket;
+  }
+
+  @Override
+  public String getText() {
+    return text;
+  }
 }

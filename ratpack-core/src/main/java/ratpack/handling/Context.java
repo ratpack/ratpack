@@ -18,6 +18,7 @@ package ratpack.handling;
 
 import ratpack.api.NonBlocking;
 import ratpack.background.Background;
+import ratpack.handling.direct.DirectChannelAccess;
 import ratpack.http.Request;
 import ratpack.http.Response;
 import ratpack.parse.Parse;
@@ -434,4 +435,7 @@ public interface Context extends Registry {
   <T> T parse(Parse<T> parse);
 
   void onClose(Action<? super RequestOutcome> onClose);
+
+  DirectChannelAccess getDirectChannelAccess();
+
 }

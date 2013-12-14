@@ -40,6 +40,8 @@ import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.handling.Redirector;
 import ratpack.handling.RequestOutcome;
+import ratpack.handling.direct.DirectChannelAccess;
+import ratpack.handling.direct.internal.DefaultDirectChannelAccess;
 import ratpack.handling.internal.ClientErrorForwardingHandler;
 import ratpack.handling.internal.DefaultContext;
 import ratpack.handling.internal.DefaultRedirector;
@@ -53,11 +55,14 @@ import ratpack.registry.Registry;
 import ratpack.registry.RegistryBuilder;
 import ratpack.render.CharSequenceRenderer;
 import ratpack.render.internal.DefaultCharSequenceRenderer;
-import ratpack.server.*;
+import ratpack.server.BindAddress;
+import ratpack.server.PublicAddress;
+import ratpack.server.Stopper;
 import ratpack.util.Action;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledExecutorService;
 
 import static io.netty.handler.codec.http.HttpHeaders.isKeepAlive;
@@ -69,6 +74,8 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
   private final Handler[] handlers;
   private final Handler return404;
   private final ListeningExecutorService blockingExecutorService;
+
+  private final ConcurrentHashMap<Channel, Action<Object>> channelSubscriptions = new ConcurrentHashMap<>(0);
 
   private Registry registry;
 
@@ -92,6 +99,18 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
       .add(FormParser.class, new UrlEncodedFormParser())
       .add(FormParser.class, new MultipartFormParser())
       .build();
+  }
+
+  @Override
+  public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+    if (!(msg instanceof FullHttpRequest)) {
+      Action<Object> subscriber = channelSubscriptions.get(ctx.channel());
+      if (subscriber != null) {
+        subscriber.execute(msg);
+        return;
+      }
+    }
+    super.channelRead(ctx, msg);
   }
 
   public void channelRead0(final ChannelHandlerContext ctx, final FullHttpRequest nettyRequest) throws Exception {
@@ -144,8 +163,23 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
     InetSocketAddress socketAddress = (InetSocketAddress) channel.localAddress();
     BindAddress bindAddress = new InetSocketAddressBackedBindAddress(socketAddress);
 
+    Action<Action<Object>> subscribeHandler = new Action<Action<Object>>() {
+      @Override
+      public void execute(Action<Object> thing) throws Exception {
+        channelSubscriptions.put(channel, thing);
+        channel.closeFuture().addListener(new ChannelFutureListener() {
+          @Override
+          public void operationComplete(ChannelFuture future) throws Exception {
+            channelSubscriptions.remove(channel);
+          }
+        });
+      }
+    };
+
+    DirectChannelAccess directChannelAccess = new DefaultDirectChannelAccess(channel, subscribeHandler);
+
     ScheduledExecutorService computeExecutorService = ctx.executor();
-    Context context = new DefaultContext(request, response, bindAddress, registry, blockingExecutorService, computeExecutorService, requestOutcomeEventController.getRegistry(), handlers, 0, return404);
+    Context context = new DefaultContext(directChannelAccess, request, response, bindAddress, registry, blockingExecutorService, computeExecutorService, requestOutcomeEventController.getRegistry(), handlers, 0, return404);
     context.next();
   }
 
