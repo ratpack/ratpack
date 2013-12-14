@@ -46,7 +46,7 @@ public class CodaHaleModule extends AbstractModule implements HandlerDecoratingM
   private boolean metricsEnabled;
 
   private boolean isMetricsEnabled() {
-    return metricsEnabled || reportMetricsToJmx || csvReportDirectory != null;
+    return metricsEnabled || reportMetricsToConsole || reportMetricsToJmx || csvReportDirectory != null;
   }
 
   @Override
