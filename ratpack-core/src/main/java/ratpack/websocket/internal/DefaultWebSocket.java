@@ -33,11 +33,13 @@ public class DefaultWebSocket implements WebSocket {
 
   private final Channel channel;
   private final Action<? super WebSocketClose> closeHandler;
+  private final Action<Action<? super WebSocketClose>> closeHandlerAdder;
   private final AtomicBoolean open;
 
-  public DefaultWebSocket(Channel channel, Action<? super WebSocketClose> closeHandler, AtomicBoolean open) {
+  public DefaultWebSocket(Channel channel, Action<? super WebSocketClose> closeHandler, Action<Action<? super WebSocketClose>> closeHandlerAdder, AtomicBoolean open) {
     this.channel = channel;
     this.closeHandler = closeHandler;
+    this.closeHandlerAdder = closeHandlerAdder;
     this.open = open;
   }
 
@@ -55,6 +57,15 @@ public class DefaultWebSocket implements WebSocket {
         }
       }
     });
+  }
+
+  @Override
+  public void onClose(Action<? super WebSocketClose> onClose) {
+    try {
+      closeHandlerAdder.execute(onClose);
+    } catch (Exception e) {
+      throw uncheck(e);
+    }
   }
 
   @Override

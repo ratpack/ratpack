@@ -37,6 +37,8 @@ import ratpack.websocket.WebSocketFrame;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static io.netty.handler.codec.http.HttpHeaders.Names.SEC_WEBSOCKET_KEY;
@@ -51,7 +53,7 @@ public class DefaultWebSocketBuilder implements WebSocketBuilder {
 
   private String path = "/";
   private int maxLength;
-  private Action<? super WebSocketClose> closeHandler;
+  private List<Action<? super WebSocketClose>> closeHandlers = new CopyOnWriteArrayList<>();
   private Action<? super WebSocketFrame> messageHandler;
   private Action<? super WebSocket> handler;
 
@@ -68,7 +70,7 @@ public class DefaultWebSocketBuilder implements WebSocketBuilder {
 
   @Override
   public WebSocketBuilder onClose(Action<? super WebSocketClose> action) {
-    this.closeHandler = action;
+    this.closeHandlers.add(action);
     return this;
   }
 
@@ -111,11 +113,27 @@ public class DefaultWebSocketBuilder implements WebSocketBuilder {
     final DirectChannelAccess directChannelAccess = context.getDirectChannelAccess();
     final Channel channel = directChannelAccess.getChannel();
 
+    final Action<WebSocketClose> closeHandler = new Action<WebSocketClose>() {
+      @Override
+      public void execute(WebSocketClose close) throws Exception {
+        for (Action<? super WebSocketClose> closeHandler : closeHandlers) {
+          closeHandler.execute(close);
+        }
+      }
+    };
+
+    final Action<Action<? super WebSocketClose>> closeHandlerAdder = new Action<Action<? super WebSocketClose>>() {
+      @Override
+      public void execute(Action<? super WebSocketClose> closeHandler) throws Exception {
+        closeHandlers.add(closeHandler);
+      }
+    };
+
     handshaker.handshake(channel, nettyRequest).addListener(new ChannelFutureListener() {
       public void operationComplete(ChannelFuture future) throws Exception {
         if (future.isSuccess()) {
           final AtomicBoolean open = new AtomicBoolean(true);
-          final WebSocket webSocket = new DefaultWebSocket(channel, closeHandler, open);
+          final WebSocket webSocket = new DefaultWebSocket(channel, closeHandler, closeHandlerAdder, open);
 
           directChannelAccess.takeOwnership(new Action<Object>() {
             @Override
