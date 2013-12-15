@@ -18,6 +18,7 @@ package ratpack.guice;
 
 import com.google.inject.Injector;
 import com.google.inject.Module;
+import com.google.inject.Stage;
 import ratpack.guice.internal.DefaultGuiceBackedHandlerFactory;
 import ratpack.guice.internal.InjectorBackedRegistry;
 import ratpack.guice.internal.JustInTimeInjectorRegistry;
@@ -177,7 +178,7 @@ public abstract class Guice {
    * @return A handler that makes all Guice bound objects available to the handlers added to the {@link Chain} given to {@code chainConfigurer}.
    */
   public static Handler handler(LaunchConfig launchConfig, Action<? super ModuleRegistry> moduleConfigurer, final Action<? super Chain> chainConfigurer) {
-    return new DefaultGuiceBackedHandlerFactory(launchConfig).create(moduleConfigurer, newInjectorFactory(), new InjectorHandlerTransformer(launchConfig, chainConfigurer));
+    return new DefaultGuiceBackedHandlerFactory(launchConfig).create(moduleConfigurer, newInjectorFactory(launchConfig), new InjectorHandlerTransformer(launchConfig, chainConfigurer));
   }
 
   /**
@@ -192,7 +193,7 @@ public abstract class Guice {
    * @return A handler that makes all Guice bound objects available to the handlers added to the {@link Chain} given to {@code chainConfigurer}.
    */
   public static Handler handler(LaunchConfig launchConfig, Action<? super ModuleRegistry> moduleConfigurer, Transformer<? super Injector, ? extends Handler> injectorTransformer) {
-    return new DefaultGuiceBackedHandlerFactory(launchConfig).create(moduleConfigurer, newInjectorFactory(), injectorTransformer);
+    return new DefaultGuiceBackedHandlerFactory(launchConfig).create(moduleConfigurer, newInjectorFactory(launchConfig), injectorTransformer);
   }
 
   /**
@@ -260,11 +261,12 @@ public abstract class Guice {
    *
    * @return a transformer that can build an injector from a module
    */
-  public static Transformer<Module, Injector> newInjectorFactory() {
+  public static Transformer<Module, Injector> newInjectorFactory(final LaunchConfig launchConfig) {
+    final Stage stage = launchConfig.isReloadable() ? Stage.DEVELOPMENT : Stage.PRODUCTION;
     return new Transformer<Module, Injector>() {
       @Override
       public Injector transform(Module from) {
-        return from == null ? createInjector() : createInjector(from);
+        return from == null ? createInjector(stage) : createInjector(stage, from);
       }
     };
   }
