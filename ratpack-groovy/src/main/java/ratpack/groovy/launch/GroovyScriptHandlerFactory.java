@@ -53,7 +53,7 @@ public class GroovyScriptHandlerFactory implements HandlerFactory {
 
     boolean compileStatic = Boolean.parseBoolean(launchConfig.getOther(COMPILE_STATIC_PROPERTY_NAME, COMPILE_STATIC_PROPERTY_DEFAULT));
 
-    return new ScriptBackedApp(script, launchConfig, new GroovyKitAppFactory(launchConfig), Guice.newInjectorFactory(), compileStatic, launchConfig.isReloadable());
+    return new ScriptBackedApp(script, launchConfig, new GroovyKitAppFactory(launchConfig), Guice.newInjectorFactory(launchConfig), compileStatic, launchConfig.isReloadable());
   }
 
 }

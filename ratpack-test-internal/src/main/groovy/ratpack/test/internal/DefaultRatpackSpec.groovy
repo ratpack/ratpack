@@ -73,15 +73,15 @@ abstract class DefaultRatpackSpec extends InternalRatpackSpec {
 
     LaunchConfig launchConfig = launchConfigBuilder.build(new HandlerFactory() {
       Handler create(LaunchConfig launchConfig) {
-        createHandlerFactory(launchConfig).create(modulesAction, createInjectorFactory(), createHandlerTransformer(launchConfig))
+        createHandlerFactory(launchConfig).create(modulesAction, createInjectorFactory(launchConfig), createHandlerTransformer(launchConfig))
       }
     })
 
     RatpackServerBuilder.build(launchConfig)
   }
 
-  Transformer<Module, Injector> createInjectorFactory() {
-    Guice.newInjectorFactory()
+  Transformer<Module, Injector> createInjectorFactory(LaunchConfig launchConfig) {
+    Guice.newInjectorFactory(launchConfig)
   }
 
   @SuppressWarnings("GrMethodMayBeStatic")
