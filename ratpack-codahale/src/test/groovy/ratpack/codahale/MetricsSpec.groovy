@@ -156,5 +156,32 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     1 * reporter.onTimerAdded("[foo][bar]~GET~Request", !null)
   }
 
+  def "can collect jvm metrics"() {
+    def reporter = Mock(MetricRegistryListener)
+
+    given:
+    app {
+      modules {
+        register new CodaHaleModule().jvmMetrics()
+      }
+
+      handlers { MetricRegistry metrics ->
+        metrics.addListener(reporter)
+
+        handler {
+          render ""
+        }
+      }
+    }
+
+    when:
+    get()
+
+    then:
+    (1.._) * reporter.onGaugeAdded(!null, { it.class.name.startsWith("com.codahale.metrics.jvm.GarbageCollectorMetricSet") })
+    (1.._) * reporter.onGaugeAdded(!null, { it.class.name.startsWith("com.codahale.metrics.jvm.ThreadStatesGaugeSet") })
+    (1.._) * reporter.onGaugeAdded(!null, { it.class.name.startsWith("com.codahale.metrics.jvm.MemoryUsageGaugeSet") })
+  }
+
 }
 

@@ -21,6 +21,9 @@ import com.codahale.metrics.CsvReporter;
 import com.codahale.metrics.JmxReporter;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.health.HealthCheckRegistry;
+import com.codahale.metrics.jvm.GarbageCollectorMetricSet;
+import com.codahale.metrics.jvm.MemoryUsageGaugeSet;
+import com.codahale.metrics.jvm.ThreadStatesGaugeSet;
 import com.google.inject.AbstractModule;
 import com.google.inject.Injector;
 import com.google.inject.Singleton;
@@ -43,10 +46,11 @@ public class CodaHaleModule extends AbstractModule implements HandlerDecoratingM
   private boolean reportMetricsToConsole;
   private File csvReportDirectory;
   private boolean healthChecksEnabled = true;
+  private boolean jvmMetricsEnabled;
   private boolean metricsEnabled;
 
   private boolean isMetricsEnabled() {
-    return metricsEnabled || reportMetricsToConsole || reportMetricsToJmx || csvReportDirectory != null;
+    return metricsEnabled || jvmMetricsEnabled || reportMetricsToConsole || reportMetricsToJmx || csvReportDirectory != null;
   }
 
   @Override
@@ -91,6 +95,15 @@ public class CodaHaleModule extends AbstractModule implements HandlerDecoratingM
     return this;
   }
 
+  public CodaHaleModule jvmMetrics() {
+    return jvmMetrics(true);
+  }
+
+  public CodaHaleModule jvmMetrics(boolean enabled) {
+    this.jvmMetricsEnabled = enabled;
+    return this;
+  }
+
   public CodaHaleModule jmx() {
     return jmx(true);
   }
@@ -127,6 +140,13 @@ public class CodaHaleModule extends AbstractModule implements HandlerDecoratingM
           registry.register(healthCheck.getName(), healthCheck);
         }
       });
+    }
+
+    if (jvmMetricsEnabled) {
+      final MetricRegistry metricsRegistry = injector.getInstance(MetricRegistry.class);
+      metricsRegistry.registerAll(new GarbageCollectorMetricSet());
+      metricsRegistry.registerAll(new ThreadStatesGaugeSet());
+      metricsRegistry.registerAll(new MemoryUsageGaugeSet());
     }
 
     if (isMetricsEnabled()) {
