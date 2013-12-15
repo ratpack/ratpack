@@ -20,11 +20,15 @@ import com.google.common.base.Optional;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.util.concurrent.UncheckedExecutionException;
 import ratpack.registry.NotInRegistryException;
 import ratpack.registry.Registry;
 
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+
+import static ratpack.util.ExceptionUtils.toException;
+import static ratpack.util.ExceptionUtils.uncheck;
 
 public class CachingRegistry implements Registry {
 
@@ -62,17 +66,8 @@ public class CachingRegistry implements Registry {
     try {
       @SuppressWarnings("unchecked") O o = (O) cache.get(type).orNull();
       return o;
-    } catch (ExecutionException e) {
-      throw exception(e);
-    }
-  }
-
-  private RuntimeException exception(ExecutionException e) {
-    Throwable cause = e.getCause();
-    if (cause instanceof RuntimeException) {
-      return (RuntimeException) cause;
-    } else {
-      return new RuntimeException(cause);
+    } catch (ExecutionException | UncheckedExecutionException e) {
+      throw uncheck(toException(e.getCause()));
     }
   }
 
@@ -81,8 +76,8 @@ public class CachingRegistry implements Registry {
     try {
       @SuppressWarnings("unchecked") List<O> objects = (List<O>) allCache.get(type);
       return objects;
-    } catch (ExecutionException e) {
-      throw exception(e);
+    } catch (ExecutionException | UncheckedExecutionException e) {
+      throw uncheck(toException(e.getCause()));
     }
   }
 

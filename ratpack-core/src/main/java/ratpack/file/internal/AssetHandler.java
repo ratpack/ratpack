@@ -30,6 +30,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 
 import static ratpack.file.internal.DefaultFileRenderer.readAttributes;
 import static ratpack.file.internal.DefaultFileRenderer.sendFile;
+import static ratpack.util.ExceptionUtils.uncheck;
 
 public class AssetHandler implements Handler {
 
@@ -52,7 +53,7 @@ public class AssetHandler implements Handler {
     try {
       path = new URI(path).getPath();
     } catch (URISyntaxException e) {
-      throw new RuntimeException(e);
+      throw uncheck(e);
     }
 
     // Convert file separators.

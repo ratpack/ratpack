@@ -27,6 +27,8 @@ import javax.inject.Inject;
 import java.io.IOException;
 import java.io.InputStream;
 
+import static ratpack.util.ExceptionUtils.uncheck;
+
 public class JsonNodeParser extends ParserSupport<JsonNode, JsonParse<JsonNode>> {
 
   private final ObjectReader objectReader;
@@ -47,7 +49,7 @@ public class JsonNodeParser extends ParserSupport<JsonNode, JsonParse<JsonNode>>
       InputStream inputStream = body.getInputStream();
       return getObjectReader(parse).readTree(inputStream);
     } catch (IOException e) {
-      throw new RuntimeException(e);
+      throw uncheck(e);
     }
   }
 

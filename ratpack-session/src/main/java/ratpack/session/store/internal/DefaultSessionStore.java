@@ -18,11 +18,18 @@ package ratpack.session.store.internal;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.common.util.concurrent.UncheckedExecutionException;
 import ratpack.session.SessionListener;
-import ratpack.session.store.SessionStore;
 import ratpack.session.store.SessionStorage;
+import ratpack.session.store.SessionStore;
 
-import java.util.concurrent.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+
+import static ratpack.util.ExceptionUtils.toException;
+import static ratpack.util.ExceptionUtils.uncheck;
 
 public class DefaultSessionStore implements SessionStore, SessionListener {
 
@@ -30,9 +37,9 @@ public class DefaultSessionStore implements SessionStore, SessionListener {
 
   public DefaultSessionStore(int maxEntries, int ttlMinutes) {
     storage = CacheBuilder.newBuilder()
-        .maximumSize(maxEntries)
-        .expireAfterAccess(ttlMinutes, TimeUnit.MINUTES)
-        .build();
+      .maximumSize(maxEntries)
+      .expireAfterAccess(ttlMinutes, TimeUnit.MINUTES)
+      .build();
   }
 
   public void sessionInitiated(String id) {
@@ -49,8 +56,8 @@ public class DefaultSessionStore implements SessionStore, SessionListener {
           return new DefaultSessionStorage(new ConcurrentHashMap<String, Object>());
         }
       });
-    } catch (ExecutionException e) {
-      throw new RuntimeException(e);
+    } catch (ExecutionException | UncheckedExecutionException e) {
+      throw uncheck(toException(e.getCause()));
     }
   }
 

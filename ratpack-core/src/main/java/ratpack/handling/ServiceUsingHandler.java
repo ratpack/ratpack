@@ -24,6 +24,8 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
 
+import static ratpack.util.ExceptionUtils.uncheck;
+
 /**
  * Convenience handler super class that provides syntactic sugar for accessing contextual objects.
  * <p>
@@ -110,14 +112,10 @@ public abstract class ServiceUsingHandler implements Handler {
     try {
       handleMethod.invoke(this, args);
     } catch (IllegalAccessException e) {
-      throw new RuntimeException(e);
+      throw uncheck(e);
     } catch (InvocationTargetException e) {
       Throwable root = e.getTargetException();
-      if (root instanceof RuntimeException) {
-        throw (RuntimeException) root;
-      } else {
-        throw new RuntimeException(root);
-      }
+      throw uncheck(root);
     }
   }
 
@@ -126,6 +124,7 @@ public abstract class ServiceUsingHandler implements Handler {
    */
   public static class NoSuitableHandleMethodException extends RuntimeException {
     private static final long serialVersionUID = 0;
+
     private NoSuitableHandleMethodException(Class<?> clazz) {
       super("No injectable handle method found for " + clazz.getName());
     }

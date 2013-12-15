@@ -208,7 +208,7 @@ public class DefaultTestHttpClient implements TestHttpClient {
       field.setAccessible(true);
       field.set(request, new Cookies(cookies));
     } catch (Exception e) {
-      throw new RuntimeException(e);
+      throw uncheck(e);
     }
   }
 
@@ -237,7 +237,7 @@ public class DefaultTestHttpClient implements TestHttpClient {
         return address.toString() + path;
       }
     } catch (URISyntaxException e) {
-      throw new RuntimeException(e);
+      throw uncheck(e);
     }
   }
 

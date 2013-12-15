@@ -25,6 +25,8 @@ import ratpack.util.internal.ReleasingAction;
 import java.io.IOException;
 import java.io.InputStream;
 
+import static ratpack.util.ExceptionUtils.uncheck;
+
 /**
  * Provides the version of the Ratpack core at runtime.
  */
@@ -61,7 +63,7 @@ public class RatpackVersion {
         IoUtils.writeTo(resourceAsStream, buffer);
         content = buffer.toString(CharsetUtil.UTF_8);
       } catch (IOException e) {
-        throw new RuntimeException(e);
+        throw uncheck(e);
       }
     }
   }

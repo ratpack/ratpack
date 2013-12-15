@@ -19,12 +19,16 @@ package ratpack.http.internal;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.util.concurrent.UncheckedExecutionException;
 import ratpack.http.MediaType;
 
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
+
+import static ratpack.util.ExceptionUtils.toException;
+import static ratpack.util.ExceptionUtils.uncheck;
 
 public class DefaultMediaType implements MediaType {
 
@@ -63,8 +67,8 @@ public class DefaultMediaType implements MediaType {
           return new DefaultMediaType(finalContentType, defaultCharset);
         }
       });
-    } catch (ExecutionException e) {
-      throw new RuntimeException(e);
+    } catch (ExecutionException | UncheckedExecutionException e) {
+      throw uncheck(toException(e.getCause()));
     }
   }
 

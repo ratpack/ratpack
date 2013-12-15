@@ -105,8 +105,8 @@ public class DefaultFileHttpTransmitter implements FileHttpTransmitter {
   private void closeQuietly(Closeable closeable) {
     try {
       closeable.close();
-    } catch (IOException e1) {
-      throw new RuntimeException(e1);
+    } catch (IOException ignore) {
+      // ignore
     }
   }
 

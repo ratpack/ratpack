@@ -19,6 +19,9 @@ package ratpack.util;
 public abstract class ExceptionUtils {
 
   public static RuntimeException uncheck(Throwable e) {
+    if (e instanceof Error) {
+      throw (Error) e;
+    }
     if (e instanceof RuntimeException) {
       return (RuntimeException) e;
     } else {
@@ -27,6 +30,9 @@ public abstract class ExceptionUtils {
   }
 
   public static Exception toException(Throwable exception) {
+    if (exception instanceof Error) {
+      throw (Error) exception;
+    }
     if (exception instanceof Exception) {
       return (Exception) exception;
     } else {

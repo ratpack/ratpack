@@ -24,6 +24,8 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.Writer;
 
+import static ratpack.util.ExceptionUtils.uncheck;
+
 public class PrintingServerErrorHandler implements ServerErrorHandler {
 
   public void error(Context context, Exception exception) {
@@ -32,7 +34,7 @@ public class PrintingServerErrorHandler implements ServerErrorHandler {
       writer.write(exception.toString());
       exception.printStackTrace(new PrintWriter(writer));
     } catch (IOException e) {
-      throw new RuntimeException(e); // impossible
+      throw uncheck(e); // impossible
     }
 
     context.getResponse().status(500).send(writer.toString());

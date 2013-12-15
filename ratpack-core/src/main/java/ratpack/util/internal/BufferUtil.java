@@ -17,14 +17,14 @@
 package ratpack.util.internal;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufInputStream;
 import ratpack.http.MediaType;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
+
+import static ratpack.util.ExceptionUtils.uncheck;
 
 public abstract class BufferUtil {
 
@@ -44,7 +44,7 @@ public abstract class BufferUtil {
       try {
         writeTo(byteBuf, baos);
       } catch (IOException e) {
-        throw new RuntimeException(e);
+        throw uncheck(e);
       }
       return baos.toByteArray();
     }
@@ -55,7 +55,4 @@ public abstract class BufferUtil {
     byteBuf.readBytes(outputStream, byteBuf.writerIndex());
   }
 
-  public static InputStream getInputStream(ByteBuf byteBuf) {
-    return new ByteBufInputStream(byteBuf);
-  }
 }

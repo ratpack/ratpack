@@ -40,7 +40,7 @@ public class ServerBackedApplicationUnderTest implements ApplicationUnderTest {
       try {
         server.start();
       } catch (Exception e) {
-        throw new RuntimeException(e);
+        throw uncheck(e);
       }
     }
 
@@ -48,7 +48,7 @@ public class ServerBackedApplicationUnderTest implements ApplicationUnderTest {
     try {
       address = new URI(server.getScheme() + "://" + server.getBindHost() + ":" + server.getBindPort() + "/");
     } catch (URISyntaxException e) {
-      throw new RuntimeException(e);
+      throw uncheck(e);
     }
 
     return address;

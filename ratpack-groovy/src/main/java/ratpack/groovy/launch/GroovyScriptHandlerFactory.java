@@ -48,7 +48,7 @@ public class GroovyScriptHandlerFactory implements HandlerFactory {
     try {
       script = script.getCanonicalFile();
     } catch (IOException ignore) {
-
+      // ignore
     }
 
     boolean compileStatic = Boolean.parseBoolean(launchConfig.getOther(COMPILE_STATIC_PROPERTY_NAME, COMPILE_STATIC_PROPERTY_DEFAULT));

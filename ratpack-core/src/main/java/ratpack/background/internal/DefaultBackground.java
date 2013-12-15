@@ -25,8 +25,9 @@ import ratpack.handling.Context;
 import ratpack.util.Action;
 
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
+
+import static ratpack.util.ExceptionUtils.toException;
 
 public class DefaultBackground implements Background {
 
@@ -75,12 +76,7 @@ public class DefaultBackground implements Background {
     class ForwardToContextErrorHandler implements Action<Throwable> {
       @Override
       public void execute(Throwable t) {
-        if (t instanceof Exception) {
-          context.error((Exception) t);
-        } else {
-          // TODO this is not good enough
-          context.error(new ExecutionException(t));
-        }
+        context.error(toException(t));
       }
     }
   }

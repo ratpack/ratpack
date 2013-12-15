@@ -73,7 +73,7 @@ public class ReloadableFileBackedFactory<T> implements Factory<T> {
       try {
         refresh();
       } catch (Exception e) {
-        throw new RuntimeException(e);
+        throw uncheck(e);
       }
     }
   }

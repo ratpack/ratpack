@@ -39,6 +39,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import static ratpack.util.ExceptionUtils.uncheck;
+
 public class DefaultRequest implements Request {
 
   private final Headers headers;
@@ -126,7 +128,7 @@ public class DefaultRequest implements Request {
       try {
         writeBodyTo(baos);
       } catch (IOException e) {
-        throw new RuntimeException(e);
+        throw uncheck(e);
       }
       return baos.toByteArray();
     }

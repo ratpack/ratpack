@@ -45,10 +45,14 @@ import ratpack.util.Action;
 
 import java.io.File;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.concurrent.*;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import static com.google.common.util.concurrent.MoreExecutors.listeningDecorator;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
+import static ratpack.util.ExceptionUtils.uncheck;
 
 public class DefaultInvocation implements Invocation {
 
@@ -157,7 +161,7 @@ public class DefaultInvocation implements Invocation {
         throw new InvocationTimeoutException(this, timeout);
       }
     } catch (InterruptedException e) {
-      throw new RuntimeException(e); // what to do here?
+      throw uncheck(e); // what to do here?
     }
 
     this.body = Unpooled.unmodifiableBuffer(responseBody);

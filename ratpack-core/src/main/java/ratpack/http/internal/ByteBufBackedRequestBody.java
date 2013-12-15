@@ -27,6 +27,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
 
+import static ratpack.util.ExceptionUtils.uncheck;
+
 public class ByteBufBackedRequestBody implements RequestBody {
 
   private final Request request;
@@ -56,7 +58,7 @@ public class ByteBufBackedRequestBody implements RequestBody {
       try {
         writeTo(baos);
       } catch (IOException e) {
-        throw new RuntimeException(e);
+        throw uncheck(e);
       }
       return baos.toByteArray();
     }

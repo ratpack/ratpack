@@ -37,7 +37,7 @@ import static ratpack.util.ExceptionUtils.uncheck;
 
 public class StandaloneScriptBacking implements Action<Closure<?>> {
 
-  private final static AtomicReference<Action<? super RatpackServer>> CAPTURE_ACTION = new AtomicReference<Action<? super RatpackServer>>(null);
+  private final static AtomicReference<Action<? super RatpackServer>> CAPTURE_ACTION = new AtomicReference<>(null);
 
   public static void captureNext(Action<? super RatpackServer> action) {
     CAPTURE_ACTION.set(action);
@@ -90,7 +90,7 @@ public class StandaloneScriptBacking implements Action<Closure<?>> {
     try {
       uri = location.toURI();
     } catch (URISyntaxException e) {
-      throw new RuntimeException(e);
+      throw uncheck(e);
     }
 
     return new File(uri);
