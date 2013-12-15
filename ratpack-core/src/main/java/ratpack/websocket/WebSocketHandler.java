@@ -16,10 +16,12 @@
 
 package ratpack.websocket;
 
-public interface WebSocketFrame {
+public interface WebSocketHandler<T> {
 
-  WebSocket getConnection();
+  T onOpen(WebSocket webSocket);
 
-  String getText();
+  void onClose(WebSocketClose<T> close);
+
+  void onMessage(WebSocketMessage<T> frame);
 
 }

@@ -16,8 +16,6 @@
 
 package ratpack.websocket
 
-import org.java_websocket.client.WebSocketClient
-import org.java_websocket.handshake.ServerHandshake
 import ratpack.test.internal.RatpackGroovyDslSpec
 import spock.util.concurrent.BlockingVariable
 
@@ -30,64 +28,51 @@ class WebsocketSpec extends RatpackGroovyDslSpec {
 
   def "can use websockets"() {
     when:
-    def closing = new BlockingVariable<WebSocketClose>()
-    def serverReceived = new LinkedBlockingQueue<WebSocketFrame>()
+    def closing = new BlockingVariable<WebSocketClose<Integer>>()
+    def serverReceived = new LinkedBlockingQueue<WebSocketMessage<Integer>>()
     WebSocket ws
 
     app {
       handlers {
         get {
-          websocket(context).onClose { WebSocketClose close ->
-            closing.set(close)
-          } onMessage { WebSocketFrame frame ->
-            serverReceived.put frame
-            frame.connection.send(frame.text.toUpperCase())
-          } connect {
+          websocket(context) {
             ws = it
-          }
+            2
+          }.onClose {
+            closing.set(it)
+          }.onMessage {
+            serverReceived.put it
+            it.connection.send(it.text.toUpperCase())
+          }.connect()
         }
       }
     }
 
     and:
     startServerIfNeeded()
-    def client = new WebSocketClient(new URI("ws://localhost:$server.bindPort")) {
-      def received = new LinkedBlockingQueue<String>()
-
-      @Override
-      void onOpen(ServerHandshake handshakedata) {
-
-      }
-
-      @Override
-      void onMessage(String message) {
-        received.put(message)
-      }
-
-      @Override
-      void onClose(int code, String reason, boolean remote) {
-
-      }
-
-      @Override
-      void onError(Exception ex) {
-
-      }
-    }
+    def client = new RecordingWebSocketClient(new URI("ws://localhost:$server.bindPort"))
 
     then:
     client.connectBlocking()
     client.send("foo")
 
     and:
-    serverReceived.poll(5, TimeUnit.SECONDS).text == "foo"
+    with(serverReceived.poll(5, TimeUnit.SECONDS)) {
+      text == "foo"
+      openResult == 2
+    }
     client.received.poll(5, TimeUnit.SECONDS) == "FOO"
 
     when:
     client.closeBlocking()
 
     then:
-    closing.get().fromClient
+    with(closing.get()) {
+      fromClient
+      openResult == 2
+    }
+
+    //noinspection GroovyVariableNotAssigned
     !ws.open
 
     cleanup:

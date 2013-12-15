@@ -14,28 +14,14 @@
  * limitations under the License.
  */
 
-package ratpack.websocket.internal;
+package ratpack.websocket;
 
-import ratpack.websocket.WebSocket;
-import ratpack.websocket.WebSocketFrame;
+public interface WebSocketMessage<T> {
 
-public class DefaultWebSocketFrame implements WebSocketFrame {
+  WebSocket getConnection();
 
-  private final WebSocket webSocket;
-  private final String text;
+  String getText();
 
-  public DefaultWebSocketFrame(WebSocket webSocket, String text) {
-    this.webSocket = webSocket;
-    this.text = text;
-  }
+  T getOpenResult();
 
-  @Override
-  public WebSocket getConnection() {
-    return webSocket;
-  }
-
-  @Override
-  public String getText() {
-    return text;
-  }
 }

@@ -17,21 +17,15 @@
 package ratpack.websocket;
 
 import ratpack.api.NonBlocking;
-import ratpack.util.Action;
 
 public interface WebSocket {
 
   @NonBlocking
   void close();
 
-  void onClose(Action<? super WebSocketClose> onClose);
-
   boolean isOpen();
 
   @NonBlocking
   void send(String text);
-
-  @NonBlocking
-  void send(byte[] bytes);
 
 }

@@ -14,33 +14,40 @@
  * limitations under the License.
  */
 
-package ratpack.websocket.internal;
+package ratpack.websocket
 
-import ratpack.websocket.WebSocketClose;
+import groovy.transform.CompileStatic
+import org.java_websocket.client.WebSocketClient
+import org.java_websocket.handshake.ServerHandshake
 
-public class DefaultWebSocketClose<T> implements WebSocketClose<T> {
+import java.util.concurrent.LinkedBlockingQueue
 
-  private final boolean fromClient;
-  private final T openResult;
+@CompileStatic
+class RecordingWebSocketClient extends WebSocketClient {
 
-  public DefaultWebSocketClose(boolean fromClient, T openResult) {
-    this.fromClient = fromClient;
-    this.openResult = openResult;
+  final LinkedBlockingQueue<String> received = new LinkedBlockingQueue<String>()
+
+  RecordingWebSocketClient(URI serverURI) {
+    super(serverURI)
   }
 
   @Override
-  public boolean isFromClient() {
-    return fromClient;
+  void onOpen(ServerHandshake handshakedata) {
+
   }
 
   @Override
-  public boolean isFromServer() {
-    return !fromClient;
+  void onMessage(String message) {
+    received.put message
   }
 
   @Override
-  public T getOpenResult() {
-    return openResult;
+  void onClose(int code, String reason, boolean remote) {
+
   }
 
+  @Override
+  void onError(Exception ex) {
+
+  }
 }

@@ -16,10 +16,12 @@
 
 package ratpack.websocket;
 
-public interface WebSocketClose {
+public interface WebSocketClose<T> {
 
   boolean isFromClient();
 
   boolean isFromServer();
+
+  T getOpenResult();
 
 }

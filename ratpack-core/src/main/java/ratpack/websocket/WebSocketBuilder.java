@@ -19,17 +19,17 @@ package ratpack.websocket;
 import ratpack.api.NonBlocking;
 import ratpack.util.Action;
 
-public interface WebSocketBuilder {
+public interface WebSocketBuilder<T> {
 
-  WebSocketBuilder path(String path);
+  WebSocketBuilder<T> maxLength(int maxLength);
 
-  WebSocketBuilder onClose(Action<? super WebSocketClose> action);
+  WebSocketBuilder<T> path(String path);
 
-  WebSocketBuilder onMessage(Action<? super WebSocketFrame> action);
+  WebSocketBuilder<T> onClose(Action<WebSocketClose<T>> action);
 
-  WebSocketBuilder maxLength(int maxLength);
+  WebSocketBuilder<T> onMessage(Action<WebSocketMessage<T>> action);
 
   @NonBlocking
-  void connect(Action<? super WebSocket> action);
+  void connect();
 
 }

@@ -16,31 +16,33 @@
 
 package ratpack.websocket.internal;
 
-import ratpack.websocket.WebSocketClose;
+import ratpack.websocket.WebSocket;
+import ratpack.websocket.WebSocketMessage;
 
-public class DefaultWebSocketClose<T> implements WebSocketClose<T> {
+public class DefaultWebSocketMessage<T> implements WebSocketMessage<T> {
 
-  private final boolean fromClient;
+  private final WebSocket webSocket;
+  private final String text;
   private final T openResult;
 
-  public DefaultWebSocketClose(boolean fromClient, T openResult) {
-    this.fromClient = fromClient;
+  public DefaultWebSocketMessage(WebSocket webSocket, String text, T openResult) {
+    this.webSocket = webSocket;
+    this.text = text;
     this.openResult = openResult;
   }
 
   @Override
-  public boolean isFromClient() {
-    return fromClient;
+  public WebSocket getConnection() {
+    return webSocket;
   }
 
   @Override
-  public boolean isFromServer() {
-    return !fromClient;
+  public String getText() {
+    return text;
   }
 
   @Override
   public T getOpenResult() {
     return openResult;
   }
-
 }

@@ -21,25 +21,19 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.handler.codec.http.websocketx.CloseWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
-import ratpack.util.Action;
 import ratpack.websocket.WebSocket;
-import ratpack.websocket.WebSocketClose;
 
 import java.util.concurrent.atomic.AtomicBoolean;
-
-import static ratpack.util.ExceptionUtils.uncheck;
 
 public class DefaultWebSocket implements WebSocket {
 
   private final Channel channel;
-  private final Action<? super WebSocketClose> closeHandler;
-  private final Action<Action<? super WebSocketClose>> closeHandlerAdder;
+  private final Runnable onClose;
   private final AtomicBoolean open;
 
-  public DefaultWebSocket(Channel channel, Action<? super WebSocketClose> closeHandler, Action<Action<? super WebSocketClose>> closeHandlerAdder, AtomicBoolean open) {
+  public DefaultWebSocket(Channel channel, AtomicBoolean open, Runnable onClose) {
     this.channel = channel;
-    this.closeHandler = closeHandler;
-    this.closeHandlerAdder = closeHandlerAdder;
+    this.onClose = onClose;
     this.open = open;
   }
 
@@ -50,22 +44,9 @@ public class DefaultWebSocket implements WebSocket {
     channel.close().addListener(new ChannelFutureListener() {
       @Override
       public void operationComplete(ChannelFuture future) throws Exception {
-        try {
-          closeHandler.execute(new DefaultWebSocketClose(false));
-        } catch (Exception e) {
-          throw uncheck(e);
-        }
+        onClose.run();
       }
     });
-  }
-
-  @Override
-  public void onClose(Action<? super WebSocketClose> onClose) {
-    try {
-      closeHandlerAdder.execute(onClose);
-    } catch (Exception e) {
-      throw uncheck(e);
-    }
   }
 
   @Override
@@ -78,8 +59,4 @@ public class DefaultWebSocket implements WebSocket {
     channel.writeAndFlush(new TextWebSocketFrame(text));
   }
 
-  @Override
-  public void send(byte[] bytes) {
-
-  }
 }
