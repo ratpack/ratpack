@@ -22,7 +22,6 @@ import ratpack.groovy.templating.TemplatingModule;
 import ratpack.guice.ModuleRegistry;
 import ratpack.guice.internal.DefaultGuiceBackedHandlerFactory;
 import ratpack.launch.LaunchConfig;
-import ratpack.session.SessionModule;
 
 public class GroovyKitAppFactory extends DefaultGuiceBackedHandlerFactory {
 
@@ -32,7 +31,6 @@ public class GroovyKitAppFactory extends DefaultGuiceBackedHandlerFactory {
 
   @Override
   protected void registerDefaultModules(ModuleRegistry moduleRegistry) {
-    moduleRegistry.register(new SessionModule());
     moduleRegistry.register(new TemplatingModule());
     moduleRegistry.bind(MarkupRenderer.class, DefaultMarkupRenderer.class);
     super.registerDefaultModules(moduleRegistry);
