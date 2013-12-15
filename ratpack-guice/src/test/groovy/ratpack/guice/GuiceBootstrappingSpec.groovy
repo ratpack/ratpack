@@ -19,6 +19,7 @@ package ratpack.guice
 import com.google.inject.AbstractModule
 import com.google.inject.Injector
 import com.google.inject.Module
+import ratpack.launch.LaunchConfig
 import ratpack.test.internal.RatpackGroovyDslSpec
 import ratpack.util.Transformer
 
@@ -35,7 +36,7 @@ class GuiceBootstrappingSpec extends RatpackGroovyDslSpec {
   }
 
   @Override
-  Transformer<Module, Injector> createInjectorFactory() {
+  Transformer<Module, Injector> createInjectorFactory(LaunchConfig launchConfig) {
     Injector parentInjector = createInjector(new AbstractModule() {
       @Override
       protected void configure() {

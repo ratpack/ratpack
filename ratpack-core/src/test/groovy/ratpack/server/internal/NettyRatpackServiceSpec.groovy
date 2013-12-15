@@ -24,8 +24,6 @@ import ratpack.server.RatpackServerBuilder
 import spock.lang.IgnoreIf
 import spock.lang.Specification
 
-import java.util.concurrent.ExecutionException
-
 class NettyRatpackServiceSpec extends Specification {
 
   @Rule TemporaryFolder temporaryFolder
@@ -43,8 +41,7 @@ class NettyRatpackServiceSpec extends Specification {
     server2.start()
 
     then:
-    def e = thrown(ExecutionException)
-    e.cause instanceof BindException
+    thrown BindException
 
     cleanup:
     [server1, server2].each {
