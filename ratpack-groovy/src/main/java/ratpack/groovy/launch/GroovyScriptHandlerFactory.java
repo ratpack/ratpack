@@ -24,6 +24,7 @@ import ratpack.launch.HandlerFactory;
 import ratpack.launch.LaunchConfig;
 
 import java.io.File;
+import java.io.IOException;
 
 public class GroovyScriptHandlerFactory implements HandlerFactory {
 
@@ -42,6 +43,12 @@ public class GroovyScriptHandlerFactory implements HandlerFactory {
       if (capitalized.exists()) {
         script = capitalized;
       }
+    }
+
+    try {
+      script = script.getCanonicalFile();
+    } catch (IOException ignore) {
+
     }
 
     boolean compileStatic = Boolean.parseBoolean(launchConfig.getOther(COMPILE_STATIC_PROPERTY_NAME, COMPILE_STATIC_PROPERTY_DEFAULT));
