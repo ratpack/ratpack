@@ -80,7 +80,7 @@ public interface ModuleRegistry extends MutableRegistry<Module> {
 
   <T> void bind(Class<T> publicType, Class<? extends T> implType);
 
-  <T> void bind(Class<T> publicType, T instance);
+  <T> void bind(Class<? super T> publicType, T instance);
 
   <T> void bind(T instance);
 

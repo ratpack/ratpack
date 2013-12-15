@@ -62,7 +62,7 @@ public class DefaultModuleRegistry implements ModuleRegistry {
     });
   }
 
-  public <T> void bind(final Class<T> publicType, final T instance) {
+  public <T> void bind(final Class<? super T> publicType, final T instance) {
     actions.add(new Action<Binder>() {
       public void execute(Binder binder) {
         binder.bind(publicType).toInstance(instance);
