@@ -102,7 +102,7 @@ public class ReloadableFileBackedFactory<T> implements Factory<T> {
         refresh();
       }
     } catch (Exception e) {
-      throw new RuntimeException(e);
+      throw uncheck(e);
     }
 
     return delegateHolder.get();

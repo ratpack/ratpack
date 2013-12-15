@@ -22,6 +22,8 @@ import ratpack.util.Factory;
 import java.net.URI;
 import java.net.URISyntaxException;
 
+import static ratpack.util.ExceptionUtils.uncheck;
+
 public class ServerBackedApplicationUnderTest implements ApplicationUnderTest {
 
   private RatpackServer server;
@@ -58,7 +60,7 @@ public class ServerBackedApplicationUnderTest implements ApplicationUnderTest {
         server.stop();
         server = null;
       } catch (Exception e) {
-        throw new RuntimeException(e);
+        throw uncheck(e);
       }
     }
 

@@ -31,9 +31,15 @@ import ratpack.reload.internal.ReloadableFileBackedFactory;
 import ratpack.util.Action;
 import ratpack.util.Factory;
 import ratpack.util.Transformer;
+import ratpack.util.internal.ByteBufWriteThroughOutputStream;
 import ratpack.util.internal.IoUtils;
 
 import java.io.File;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+
+import static ratpack.util.ExceptionUtils.uncheck;
 
 public class ScriptBackedApp implements Handler {
 
@@ -54,8 +60,7 @@ public class ScriptBackedApp implements Handler {
               try {
                 scriptEngine.run(file.getName(), string);
               } catch (Exception e) {
-                e.printStackTrace();
-                throw new RuntimeException(e);
+                throw uncheck(e);
               }
             }
           };
@@ -76,7 +81,7 @@ public class ScriptBackedApp implements Handler {
           return appFactory.create(modulesAction, moduleTransformer, new InjectorHandlerTransformer(launchConfig, handlersConfigurer));
 
         } catch (Exception e) {
-          throw new RuntimeException(e);
+          throw uncheck(e);
         }
       }
     });
@@ -93,7 +98,17 @@ public class ScriptBackedApp implements Handler {
   }
 
   public void handle(Context context) throws Exception {
-    Handler handler = reloadHandler.create();
+    Handler handler;
+    try {
+      handler = reloadHandler.create();
+    } catch (Exception e) {
+      OutputStream outputStream = new ByteBufWriteThroughOutputStream(context.getResponse().getBody());
+      PrintWriter printWriter = new PrintWriter(new OutputStreamWriter(outputStream, "UTF-8"));
+      e.printStackTrace(printWriter);
+      printWriter.flush();
+      context.getResponse().contentType("text/plain").send();
+      return;
+    }
     if (handler == null) {
       context.getResponse().send("script file does not exist:" + script.getAbsolutePath());
     } else {
