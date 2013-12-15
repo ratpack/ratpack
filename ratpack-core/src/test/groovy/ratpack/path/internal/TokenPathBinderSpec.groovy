@@ -37,16 +37,17 @@ class TokenPathBinderSpec extends Specification {
     map(":a/:b?/somepath", "abc/somepath") == [a: "abc"]
     map(":a/:b?/somepath", "abc/def/somepath") == [a: "abc", b: "def"]
     map(":a/:b?/somepath", "abc/def/") == null
-    map(":a/:b?:c?", "abc") == [a: "abc"]
-    map(":a/:b?:c?", "abc/def") == [a: "abc", b: "def"]
-    map(":a/:b?:c?", "abc/def/ghi") == [a: "abc", b: "def", c: "ghi"]
+    map(":a/:b?/:c?", "abc") == [a: "abc"]
+    map(":a/:b?/:c?", "abc/def") == [a: "abc", b: "def"]
+    map(":a/:b?/:c?", "abc/def/ghi") == [a: "abc", b: "def", c: "ghi"]
+    map(":a/:b", "foo") == null
 
     when:
-    map(":a/:b?:c", "abc/def/ghi")
+    map(":a/:b?/:c", "abc/def/ghi")
 
     then:
     def e = thrown(IllegalArgumentException)
-    e.message == "path :a/:b?:c should not define mandatory parameters after an optional parameter"
+    e.message == "path :a/:b?/:c should not define mandatory parameters after an optional parameter"
   }
 
 }
