@@ -33,19 +33,19 @@ class LinkCrawlSpec extends Specification {
         return url.uri.host != "bintray.com" && super.shouldUseHeadRequest(url)
       }
 
-      void pushPageLinks(Response response) {
-        response.document?.select("body a")?.each {
-          def href = it.attr("href")
-          if (href) {
-            push href
-          }
+      List<String> findPageLinks(Response response) {
+        def document = response.document
+        document == null ? [] : document.select("body a").collect {
+          it.attr("href")
+        }.findAll {
+          it
         }
       }
     }
 
     when:
-    crawler.crawl()
-    def errored = new PrettyPrintCollection(crawler.visited.findAll { it.errors.size() > 0 })
+    def visited = crawler.crawl()
+    def errored = new PrettyPrintCollection(visited.findAll { it.errors.size() > 0 })
 
     then:
     errored.empty

@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-
-
 package ratpack.site.crawl
 
 import groovy.transform.CompileStatic
@@ -29,9 +27,12 @@ import javax.net.ssl.*
 import java.security.SecureRandom
 import java.security.cert.CertificateException
 import java.security.cert.X509Certificate
+import java.util.concurrent.*
+import java.util.concurrent.atomic.AtomicInteger
 
 import static org.codehaus.groovy.runtime.StackTraceUtils.deepSanitize
 
+@SuppressWarnings("GrMethodMayBeStatic")
 @CompileStatic
 abstract class Crawler {
 
@@ -40,16 +41,17 @@ abstract class Crawler {
 
   final String startingUrl
 
-  protected String currentUrl
-  protected List<Link> toVisit = []
+  protected final AtomicInteger counter = new AtomicInteger(0)
+  protected final ScheduledExecutorService executorService = Executors.newScheduledThreadPool(8)
 
-  final Set<Link> visited = new LinkedHashSet()
-
-  protected Response lastResponse
+  protected final ConcurrentMap<String, Link> seen = new ConcurrentHashMap<>()
+  protected final Queue<Link> visited = new ConcurrentLinkedQueue<>()
 
   Crawler(String startingUrl) {
     this.startingUrl = startingUrl
   }
+
+  abstract List<String> findPageLinks(Response response)
 
   boolean isCrawlable(Link link) {
     isUnderStartUrl(link) && !link.uri.fragment
@@ -71,16 +73,6 @@ abstract class Crawler {
     downloadableExtensions.any { link.uri.toString().endsWith(".$it") }
   }
 
-  boolean shouldVisit(Link link) {
-    true
-  }
-
-  boolean isExpectedErroredLink(Link erroredLink) {
-    false
-  }
-
-  abstract void pushPageLinks(Response response)
-
   void addPageErrors(Link link, Response response) {
     if (response.statusCode != 200) {
       link.errors << new StatusCodeError(response.statusCode)
@@ -94,26 +86,38 @@ abstract class Crawler {
     }
   }
 
-  void crawl() {
-    toVisit << new Link(startingUrl)
+  List<Link> crawl() {
+    def link = new Link(startingUrl)
+    seen.put(startingUrl, new Link(startingUrl))
+    executorService.execute(toVisit(link))
 
-    def next = nextToVisit
-    while (next != null) {
-      visit(next)
-      next = nextToVisit
+    long startAt = System.currentTimeMillis()
+    long stopAt = startAt + (1000 * 60 * 10) // 10 minutes
+    while (counter.get() > 0 && System.currentTimeMillis() < stopAt) {
+      sleep 100
+    }
+
+    if (counter.get() == 0) {
+      new ArrayList<>(visited)
+    } else {
+      throw new RuntimeException("timeout")
+    }
+  }
+
+  Runnable toVisit(Link link) {
+    counter.incrementAndGet()
+    return {
+      try {
+        visit(link)
+      } catch (e) {
+        link.errors << new ExceptionError(e)
+      } finally {
+        counter.getAndDecrement()
+      }
     }
   }
 
   protected visit(Link link) {
-    currentUrl = link.uri.toString()
-    println "visiting: $link.uri (attempts: $link.attemptCount)"
-    if (link.lastAttemptAt >= 0) {
-      def waitMillis = retryWaitMillis - (System.currentTimeMillis() - link.lastAttemptAt)
-      if (waitMillis > 0) {
-        sleep waitMillis
-      }
-    }
-
     link.attempt()
 
     if (!isDownload(link) && isCrawlable(link)) {
@@ -123,27 +127,25 @@ abstract class Crawler {
     }
     if (link.errors) {
       if (link.attemptCount < retryLimit) {
-        println "attemptCount = $link.attemptCount, putting back on queue"
         link.errors.clear()
-        toVisit << link
+        executorService.schedule(toVisit(link), retryWaitMillis, TimeUnit.MILLISECONDS)
       } else {
-        println "giving up on this link"
+        visited << link
       }
     }
   }
 
   protected visitCrawlable(Link link) {
-    lastResponse = new Response(link.uri, openUrlConnection(link.uri))
+    Response lastResponse = new Response(link.uri, openUrlConnection(link.uri))
 
     addPageErrors(link, lastResponse)
 
-    if (link.errors) {
-      println "has errors: $link.errors"
-    } else {
-      if (lastResponse.contentType.html) {
-        pushPageLinks(lastResponse)
-      } else {
-        println "not finding links, contentType == $lastResponse.contentType"
+    if (!link.errors && lastResponse.contentType.html) {
+      findPageLinks(lastResponse).each { String it ->
+        def newLink = toLink(link.uri, it)
+        if (newLink) {
+          executorService.execute(toVisit(newLink))
+        }
       }
     }
   }
@@ -151,20 +153,17 @@ abstract class Crawler {
   protected visitNonCrawlable(Link link) {
     def connection = openUrlConnection(link.uri)
     def method = shouldUseHeadRequest(link) ? "HEAD" : "GET"
-    println "making direct $method request on non crawlable url $link.uri"
     connection.requestMethod = method
 
     try {
       while (connection.responseCode > 300 && connection.responseCode < 400) {
         def redirectTo = connection.getURL().toURI().resolve(connection.getHeaderField("location")).toString()
-        println "following redirect ($connection.responseCode) to $redirectTo"
         link = new Link(redirectTo)
         connection = openUrlConnection(link.uri)
       }
 
       addPageErrors(link, new Response(link.uri, connection))
     } catch (IOException e) {
-      println "$e making request to $connection.URL"
       link.errors << new ExceptionError(e)
     }
   }
@@ -209,57 +208,25 @@ abstract class Crawler {
     connection
   }
 
-  protected Link getNextToVisit() {
-    if (toVisit) {
-      def next = toVisit.remove(0)
-      visited << next
-      next
-    } else {
-      null
+  protected Link toLink(URI currentUrl, String url) {
+    URI uri = new URI(url.replaceAll("\\s", "%20"))
+    def href = uri.isAbsolute() ? uri.toString() : currentUrl.resolve(uri).toString()
+    href = NormalizeURL.normalize(href)
+    if (isHttpUrl(href)) {
+      assert href.startsWith('http')
+      def newLink = new Link(href)
+      def existing = seen.putIfAbsent(href, newLink)
+      def link = existing ?: newLink
+      link.referrers.add(currentUrl.toString())
+
+      return existing ? null : newLink
     }
-  }
 
-  protected void push(String... urls) {
-    urls.each { String url ->
-
-      URI uri = new URI(url.replaceAll("\\s", "%20"))
-      def href = uri.isAbsolute() ? uri.toString() : new URI(currentUrl).resolve(uri).toString()
-      if (href == null) {
-        return
-      }
-
-      href = NormalizeURL.normalize(href)
-
-      println "inspecting url $url (normalized: $href) on $currentUrl"
-
-      if (isHttpUrl(href)) {
-        assert href.startsWith('http')
-        Link link = new Link(href)
-        link.referrers << lastResponse.uri.toString()
-        if (shouldVisit(link)) {
-          def existingLink = findExistingLinkObject(link)
-          if (existingLink) {
-            existingLink.referrers << currentUrl
-            println "already visited $link or is in toVisit list"
-          } else {
-            println "adding $link to list"
-            toVisit << link
-          }
-        } else {
-          println "not going to visit $href"
-        }
-      } else {
-        println "ignoring $href as it's not a http url"
-      }
-    }
+    null
   }
 
   boolean isHttpUrl(String url) {
-    url==~~/^https?:\/.+/
-  }
-
-  Link findExistingLinkObject(Link link) {
-    visited.find { Link it -> link.uri == it.uri } ?: toVisit.find { Link it -> link.uri == it.uri }
+    url ==~ ~/^https?:\/.+/
   }
 
   class Response {
@@ -325,7 +292,6 @@ abstract class Crawler {
     final List<PageError> errors = []
 
     int attemptCount = 0
-    long lastAttemptAt = 0
 
     Link(String url) {
       this.uri = new URI(url)
@@ -337,7 +303,27 @@ abstract class Crawler {
 
     void attempt() {
       ++attemptCount
-      lastAttemptAt = System.currentTimeMillis()
+    }
+
+    boolean equals(o) {
+      if (this.is(o)) {
+        return true
+      }
+      if (getClass() != o.class) {
+        return false
+      }
+
+      Link link = (Link) o
+
+      if (uri != link.uri) {
+        return false
+      }
+
+      return true
+    }
+
+    int hashCode() {
+      return uri.hashCode()
     }
   }
 }
