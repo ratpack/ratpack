@@ -37,3 +37,7 @@ javadoc {
     }
   }
 }
+
+test {
+  maxParallelForks 2
+}
