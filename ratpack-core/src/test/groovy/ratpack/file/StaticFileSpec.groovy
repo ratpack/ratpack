@@ -86,6 +86,26 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
     getText("dir/") == "bar"
   }
 
+  def "index files are always served from a path with a trailing slash"() {
+    given:
+    file("public/dir/index.html") << "bar"
+    createRequest()
+    request.redirects().follow(false)
+
+    when:
+    app {
+      handlers {
+        assets("public", "index.html")
+      }
+    }
+
+    then:
+    with(get("dir?a=b")) {
+      statusCode == 302
+      getHeader(LOCATION) == "http://${server.bindHost}:${server.bindPort}/dir/?a=b"
+    }
+  }
+
   def "can serve files with query strings"() {
     given:
     file("public/index.html") << "foo"

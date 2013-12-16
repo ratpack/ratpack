@@ -91,13 +91,28 @@ public class AssetHandler implements Handler {
       readAttributes(context.getBackground(), indexFile, new Action<BasicFileAttributes>() {
         public void execute(BasicFileAttributes attributes) {
           if (attributes != null && attributes.isRegularFile()) {
-            sendFile(context, indexFile, attributes);
+            String path = context.getRequest().getPath();
+            if (path.endsWith("/") || path.isEmpty()) {
+              sendFile(context, indexFile, attributes);
+            } else {
+              context.redirect(currentUriWithTrailingSlash(context));
+            }
           } else {
             maybeSendFile(context, file, i + 1);
           }
         }
       });
     }
+  }
+
+  private String currentUriWithTrailingSlash(Context context) {
+    Request request = context.getRequest();
+    String redirectUri = "/" + request.getPath() + "/";
+    String query = request.getQuery();
+    if (!query.isEmpty()) {
+      redirectUri += "?" + query;
+    }
+    return redirectUri;
   }
 
 }
