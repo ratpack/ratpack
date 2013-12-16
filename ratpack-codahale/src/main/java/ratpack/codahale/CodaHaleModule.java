@@ -21,6 +21,7 @@ import com.codahale.metrics.CsvReporter;
 import com.codahale.metrics.JmxReporter;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.health.HealthCheckRegistry;
+import com.codahale.metrics.annotation.Metered;
 import com.codahale.metrics.jvm.GarbageCollectorMetricSet;
 import com.codahale.metrics.jvm.MemoryUsageGaugeSet;
 import com.codahale.metrics.jvm.ThreadStatesGaugeSet;
@@ -28,10 +29,12 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Injector;
 import com.google.inject.Singleton;
 import com.google.inject.TypeLiteral;
+import com.google.inject.matcher.Matchers;
 import com.google.inject.name.Names;
 import ratpack.codahale.internal.ConsoleReporterProvider;
 import ratpack.codahale.internal.CsvReporterProvider;
 import ratpack.codahale.internal.JmxReporterProvider;
+import ratpack.codahale.internal.MeteredMethodInterceptor;
 import ratpack.codahale.internal.RequestTimingHandler;
 import ratpack.guice.HandlerDecoratingModule;
 import ratpack.guice.internal.GuiceUtil;
@@ -57,6 +60,10 @@ public class CodaHaleModule extends AbstractModule implements HandlerDecoratingM
   protected void configure() {
     if (isMetricsEnabled()) {
       bind(MetricRegistry.class).in(Singleton.class);
+
+      MeteredMethodInterceptor meteredMethodInterceptor = new MeteredMethodInterceptor();
+      requestInjection(meteredMethodInterceptor);
+      bindInterceptor(Matchers.any(), Matchers.annotatedWith(Metered.class), meteredMethodInterceptor);
 
       if (reportMetricsToJmx) {
         bind(JmxReporter.class).toProvider(JmxReporterProvider.class).asEagerSingleton();

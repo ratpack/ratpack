@@ -25,4 +25,5 @@ dependencies {
   compile "com.codahale.metrics:metrics-core:$codahaleVersion"
   compile "com.codahale.metrics:metrics-healthchecks:$codahaleVersion"
   compile "com.codahale.metrics:metrics-jvm:$codahaleVersion"
+  compile "com.codahale.metrics:metrics-annotation:$codahaleVersion"
 }

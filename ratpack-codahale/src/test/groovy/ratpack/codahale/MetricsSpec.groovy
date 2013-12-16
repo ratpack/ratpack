@@ -19,6 +19,7 @@ package ratpack.codahale
 import com.codahale.metrics.Meter
 import com.codahale.metrics.MetricRegistry
 import com.codahale.metrics.MetricRegistryListener
+import com.codahale.metrics.annotation.Metered
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import ratpack.test.internal.RatpackGroovyDslSpec
@@ -89,7 +90,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
 
   def "can collect custom metrics"() {
     def reporter = Mock(MetricRegistryListener)
-    Meter requests = null
+    def requestMeter
 
     given:
     app {
@@ -100,7 +101,6 @@ class MetricsSpec extends RatpackGroovyDslSpec {
       handlers { MetricRegistry metrics ->
         // TODO this is a bad place to do this - We should auto register user added MetricRegistryListeners
         // Also need to consider a more general post startup hook
-        requests = metrics.meter("requests")
         metrics.addListener(reporter)
 
         handler {
@@ -114,8 +114,72 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     2.times { get() }
 
     then:
-    1 * reporter.onMeterAdded("requests", !null)
-    requests.count == 2
+    1 * reporter.onMeterAdded("requests", !null) >> { arguments ->
+      requestMeter = arguments[1]
+    }
+    requestMeter.count == 2
+  }
+
+  static class AnnotatedMetricService {
+
+    @Metered(name = 'foo meter', absolute = true)
+    public AnnotatedMetricService triggerMeter1() { this }
+
+    @Metered(name = 'foo meter')
+    public AnnotatedMetricService triggerMeter2() { this }
+
+    @Metered
+    public AnnotatedMetricService triggerMeter3() { this }
+
+  }
+
+  def "can collect annotated metrics"() {
+    def reporter = Mock(MetricRegistryListener)
+    def absoluteNamedMeter
+    def namedMeter
+    def unNamedMeter
+
+    given:
+    app {
+      modules {
+        register new CodaHaleModule().metrics()
+        bind AnnotatedMetricService
+      }
+
+      handlers { MetricRegistry metrics ->
+        metrics.addListener(reporter)
+
+        handler { AnnotatedMetricService service ->
+          service
+            .triggerMeter1()
+            .triggerMeter2()
+            .triggerMeter3()
+            .triggerMeter1()
+
+          render ""
+        }
+      }
+    }
+
+    when:
+    2.times { get() }
+
+    then:
+    1 * reporter.onMeterAdded("foo meter", !null) >> { arguments ->
+      absoluteNamedMeter = arguments[1]
+    }
+
+    1 * reporter.onMeterAdded('ratpack.codahale.MetricsSpec$AnnotatedMetricService.triggerMeter3', !null) >> { arguments ->
+      namedMeter = arguments[1]
+    }
+
+    1 * reporter.onMeterAdded('ratpack.codahale.MetricsSpec$AnnotatedMetricService.foo meter', !null) >> { arguments ->
+      unNamedMeter = arguments[1]
+    }
+
+    absoluteNamedMeter.count == 4
+    namedMeter.count == 2
+    unNamedMeter.count == 2
   }
 
   def "can collect request timer metrics"() {
