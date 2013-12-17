@@ -26,7 +26,7 @@ import static ratpack.websocket.WebSockets.websocket
 
 class WebsocketSpec extends RatpackGroovyDslSpec {
 
-  def "can use websockets"() {
+  def "can send and receive websockets"() {
     when:
     def closing = new BlockingVariable<WebSocketClose<Integer>>()
     def serverReceived = new LinkedBlockingQueue<WebSocketMessage<Integer>>()
@@ -50,7 +50,7 @@ class WebsocketSpec extends RatpackGroovyDslSpec {
 
     and:
     startServerIfNeeded()
-    def client = new RecordingWebSocketClient(new URI("ws://localhost:$server.bindPort"))
+    def client = openWsClient()
 
     then:
     client.connectBlocking()
@@ -77,6 +77,36 @@ class WebsocketSpec extends RatpackGroovyDslSpec {
 
     cleanup:
     client.closeBlocking()
+  }
+
+  def RecordingWebSocketClient openWsClient() {
+    new RecordingWebSocketClient(new URI("ws://localhost:$server.bindPort"))
+  }
+
+  def "client receives error when exception thrown during server open"() {
+    when:
+    app {
+      handlers {
+        get {
+          websocket(context) {
+            throw new Exception("!")
+          }.connect()
+        }
+      }
+    }
+    startServerIfNeeded()
+
+    and:
+    def client = openWsClient()
+    client.connectBlocking()
+
+    then:
+    client.waitForClose()
+    client.closeCode == 1011
+
+    cleanup:
+    client?.closeBlocking()
+
   }
 
 }

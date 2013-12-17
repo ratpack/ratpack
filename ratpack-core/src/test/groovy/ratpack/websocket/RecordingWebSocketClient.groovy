@@ -20,12 +20,20 @@ import groovy.transform.CompileStatic
 import org.java_websocket.client.WebSocketClient
 import org.java_websocket.handshake.ServerHandshake
 
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.LinkedBlockingQueue
+import java.util.concurrent.TimeUnit
 
 @CompileStatic
 class RecordingWebSocketClient extends WebSocketClient {
 
   final LinkedBlockingQueue<String> received = new LinkedBlockingQueue<String>()
+  Exception exception
+  int closeCode
+  String closeReason
+  boolean closeRemote
+
+  private final CountDownLatch closeLatch = new CountDownLatch(1)
 
   RecordingWebSocketClient(URI serverURI) {
     super(serverURI)
@@ -43,11 +51,19 @@ class RecordingWebSocketClient extends WebSocketClient {
 
   @Override
   void onClose(int code, String reason, boolean remote) {
+    this.closeCode = code
+    this.closeReason = reason
+    this.closeRemote = remote
+    closeLatch.countDown()
+  }
 
+  void waitForClose() {
+    assert closeLatch.await(5, TimeUnit.SECONDS) : "websocket connection did not close"
   }
 
   @Override
   void onError(Exception ex) {
+    this.exception = ex
 
   }
 }

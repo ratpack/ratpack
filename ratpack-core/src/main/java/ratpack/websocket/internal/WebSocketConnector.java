@@ -102,12 +102,13 @@ public class WebSocketConnector {
           @Override
           public void execute(Object msg) throws Exception {
             openLatch.await();
-            if (context.getDirectChannelAccess().getChannel().isOpen()) {
+            Channel channel = context.getDirectChannelAccess().getChannel();
+            if (channel.isOpen()) {
               if (msg instanceof WebSocketFrame) {
                 WebSocketFrame frame = (WebSocketFrame) msg;
                 if (frame instanceof CloseWebSocketFrame) {
                   open.set(false);
-                  handshaker.close(context.getDirectChannelAccess().getChannel(), (CloseWebSocketFrame) frame.retain()).addListener(new ChannelFutureListener() {
+                  handshaker.close(channel, (CloseWebSocketFrame) frame.retain()).addListener(new ChannelFutureListener() {
                     @Override
                     public void operationComplete(ChannelFuture future) throws Exception {
                       handler.onClose(new DefaultWebSocketClose<>(true, openResult));
@@ -116,7 +117,7 @@ public class WebSocketConnector {
                   return;
                 }
                 if (frame instanceof PingWebSocketFrame) {
-                  context.getDirectChannelAccess().getChannel().write(new PongWebSocketFrame(frame.content().retain()));
+                  channel.write(new PongWebSocketFrame(frame.content().retain()));
                   return;
                 }
                 if (frame instanceof TextWebSocketFrame) {
@@ -128,7 +129,11 @@ public class WebSocketConnector {
           }
         });
 
-        openResult = handler.onOpen(webSocket);
+        try {
+          openResult = handler.onOpen(webSocket);
+        } catch (Exception e) {
+          handshaker.close(context.getDirectChannelAccess().getChannel(), new CloseWebSocketFrame(1011, e.getMessage()));
+        }
         openLatch.countDown();
       } else {
         context.error(toException(future.cause()));
