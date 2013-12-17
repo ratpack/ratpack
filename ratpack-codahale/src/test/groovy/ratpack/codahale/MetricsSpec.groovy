@@ -19,11 +19,11 @@ package ratpack.codahale
 import com.codahale.metrics.Meter
 import com.codahale.metrics.MetricRegistry
 import com.codahale.metrics.MetricRegistryListener
+import com.codahale.metrics.annotation.Gauge
 import com.codahale.metrics.annotation.Metered
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import ratpack.test.internal.RatpackGroovyDslSpec
-import spock.util.concurrent.BlockingVariable
 import spock.util.concurrent.PollingConditions
 
 class MetricsSpec extends RatpackGroovyDslSpec {
@@ -120,6 +120,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     requestMeter.count == 2
   }
 
+  @com.google.inject.Singleton
   static class AnnotatedMetricService {
 
     @Metered(name = 'foo meter', absolute = true)
@@ -131,9 +132,18 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     @Metered
     public AnnotatedMetricService triggerMeter3() { this }
 
+    @Gauge(name = 'foo gauge', absolute = true)
+    public String triggerGauge1() { "gauge1" }
+
+    @Gauge(name = 'foo gauge')
+    public String triggerGauge2() { "gauge2" }
+
+    @Gauge
+    public String triggerGauge3() { "gauge3" }
+
   }
 
-  def "can collect annotated metrics"() {
+  def "can collect metered annotated metrics"() {
     def reporter = Mock(MetricRegistryListener)
     def absoluteNamedMeter
     def namedMeter
@@ -149,7 +159,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
       handlers { MetricRegistry metrics ->
         metrics.addListener(reporter)
 
-        handler { AnnotatedMetricService service ->
+        handler("meter") { AnnotatedMetricService service ->
           service
             .triggerMeter1()
             .triggerMeter2()
@@ -162,7 +172,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     }
 
     when:
-    2.times { get() }
+    2.times { get("meter") }
 
     then:
     1 * reporter.onMeterAdded("foo meter", !null) >> { arguments ->
@@ -180,6 +190,34 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     absoluteNamedMeter.count == 4
     namedMeter.count == 2
     unNamedMeter.count == 2
+  }
+
+  def "can collect gauge annotated metrics"() {
+    MetricRegistry registry
+
+    given:
+    app {
+      modules {
+        register new CodaHaleModule().metrics()
+        bind AnnotatedMetricService
+      }
+
+      handlers { MetricRegistry metrics ->
+        registry = metrics
+
+        handler("gauge") { AnnotatedMetricService service ->
+          render ""
+        }
+      }
+    }
+
+    when:
+    get("gauge")
+
+    then:
+    "gauge2" == registry.gauges.get('ratpack.codahale.MetricsSpec$AnnotatedMetricService.foo gauge').value
+    "gauge3" == registry.gauges.get('ratpack.codahale.MetricsSpec$AnnotatedMetricService.triggerGauge3').value
+    "gauge1" == registry.gauges.get('foo gauge').value
   }
 
   def "can collect request timer metrics"() {

@@ -33,6 +33,7 @@ import com.google.inject.matcher.Matchers;
 import com.google.inject.name.Names;
 import ratpack.codahale.internal.ConsoleReporterProvider;
 import ratpack.codahale.internal.CsvReporterProvider;
+import ratpack.codahale.internal.GaugeTypeListener;
 import ratpack.codahale.internal.JmxReporterProvider;
 import ratpack.codahale.internal.MeteredMethodInterceptor;
 import ratpack.codahale.internal.RequestTimingHandler;
@@ -59,11 +60,15 @@ public class CodaHaleModule extends AbstractModule implements HandlerDecoratingM
   @Override
   protected void configure() {
     if (isMetricsEnabled()) {
-      bind(MetricRegistry.class).in(Singleton.class);
+      final MetricRegistry metricRegistry = new MetricRegistry();
+      bind(MetricRegistry.class).toInstance(metricRegistry);
 
       MeteredMethodInterceptor meteredMethodInterceptor = new MeteredMethodInterceptor();
       requestInjection(meteredMethodInterceptor);
       bindInterceptor(Matchers.any(), Matchers.annotatedWith(Metered.class), meteredMethodInterceptor);
+
+      GaugeTypeListener gaugeTypeListener = new GaugeTypeListener(metricRegistry);
+      bindListener(Matchers.any(), gaugeTypeListener);
 
       if (reportMetricsToJmx) {
         bind(JmxReporter.class).toProvider(JmxReporterProvider.class).asEagerSingleton();
@@ -150,10 +155,10 @@ public class CodaHaleModule extends AbstractModule implements HandlerDecoratingM
     }
 
     if (jvmMetricsEnabled) {
-      final MetricRegistry metricsRegistry = injector.getInstance(MetricRegistry.class);
-      metricsRegistry.registerAll(new GarbageCollectorMetricSet());
-      metricsRegistry.registerAll(new ThreadStatesGaugeSet());
-      metricsRegistry.registerAll(new MemoryUsageGaugeSet());
+      final MetricRegistry metricRegistry = injector.getInstance(MetricRegistry.class);
+      metricRegistry.registerAll(new GarbageCollectorMetricSet());
+      metricRegistry.registerAll(new ThreadStatesGaugeSet());
+      metricRegistry.registerAll(new MemoryUsageGaugeSet());
     }
 
     if (isMetricsEnabled()) {
