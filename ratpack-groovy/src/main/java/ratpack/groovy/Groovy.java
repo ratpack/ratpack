@@ -127,7 +127,7 @@ public abstract class Groovy {
   }
 
   public static GroovyContext context(Context context) {
-    return new DefaultGroovyContext(context);
+    return context instanceof GroovyContext ? (GroovyContext) context : new DefaultGroovyContext(context);
   }
 
   /**

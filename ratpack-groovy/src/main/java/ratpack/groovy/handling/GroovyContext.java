@@ -21,8 +21,6 @@ import groovy.lang.DelegatesTo;
 import ratpack.handling.Context;
 import ratpack.handling.RequestOutcome;
 
-import static ratpack.groovy.background.GroovyBackground.GroovySuccessOrError;
-
 /**
  * Subclass of {@link ratpack.handling.Context} that adds Groovy friendly variants of methods.
  */
@@ -30,42 +28,6 @@ public interface GroovyContext extends Context {
 
   @Override
   GroovyContext getContext();
-
-  /**
-   * Used to perform a background operation <b>off</b> the request thread.
-   * <p>
-   * See {@link ratpack.groovy.background.GroovyBackground} for details.
-   * <p>
-   * Example usage:
-   * <pre class="groovy-chain-dsl">
-   * get("some/path") {
-   *   background {
-   *    // a blocking/slow operation
-   *    2 // the result
-   *   }.then { Integer result ->
-   *     render result.toString()
-   *   }
-   * }
-   * </pre>
-   * With error handling:
-   * <pre class="groovy-chain-dsl">
-   * get("some/path") {
-   *   background {
-   *     // a blocking/slow operation
-   *     2 // the result
-   *   }.onError { Exception exception ->
-   *     // do something with the exception
-   *   }.then { Integer result ->
-   *     render result.toString()
-   *   }
-   * }
-   * </pre>
-   *
-   * @param operation A closure that performs the background operation, returning a result
-   * @param <T> The type of the result
-   * @return An object
-   */
-  <T> GroovySuccessOrError<T> background(Closure<T> operation);
 
   void byMethod(@DelegatesTo(GroovyByMethodHandler.class) Closure<?> closure);
 

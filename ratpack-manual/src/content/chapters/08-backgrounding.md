@@ -20,6 +20,3 @@ See [the “launching” chapter](launching.html) chapter for details on how to 
 The context object offers the [getBackground()](api/ratpack/handling/Context.html#getBackground\(\)) method that returns a [Background](api/ratpack/background/Background.html) object.
 This gives access to the background thread pool for performing blocking or long operations.
 The [background(Callable)](api/ratpack/handling/Context.html#background\(java.util.concurrent.Callable\)) method provides a more convenient entry point for this API.
-
-The Groovy API offers a more Groovy friendly API via the [background(Closure)](api/ratpack/groovy/handling/GroovyContext.html#background\(groovy.lang.Closure\)) of the
-[GroovyContext](api/ratpack/groovy/handling/GroovyContext.html) type.

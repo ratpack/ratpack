@@ -33,7 +33,7 @@ class BackgroundSpec extends RatpackGroovyDslSpec {
             sleep 300
             steps << "operation"
             2
-          }.then { Integer result ->
+          } then { Integer result ->
             steps << "then"
             response.send result.toString()
           }
@@ -102,9 +102,9 @@ class BackgroundSpec extends RatpackGroovyDslSpec {
         get {
           background {
             throw new Exception("!")
-          }.onError {
-            throw new Exception("!!", it)
-          }.then {
+          } onError { Throwable t ->
+            throw new Exception("!!", t)
+          } then {
             /* never called */
           }
         }
@@ -148,6 +148,7 @@ class BackgroundSpec extends RatpackGroovyDslSpec {
       }
       handlers {
         get {
+          //noinspection GroovyAssignabilityCheck
           background {
             1
           }.then { List<String> result ->
@@ -170,6 +171,7 @@ class BackgroundSpec extends RatpackGroovyDslSpec {
       }
       handlers {
         get {
+          //noinspection GroovyAssignabilityCheck
           background {
             throw new Exception("!")
           }.onError { String string ->
