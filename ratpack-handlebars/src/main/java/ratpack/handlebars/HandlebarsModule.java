@@ -19,9 +19,12 @@ package ratpack.handlebars;
 import com.github.jknack.handlebars.Handlebars;
 import com.github.jknack.handlebars.io.FileTemplateLoader;
 import com.github.jknack.handlebars.io.TemplateLoader;
+import com.google.common.cache.CacheBuilder;
 import com.google.inject.*;
 import ratpack.guice.internal.GuiceUtil;
 import ratpack.handlebars.internal.HandlebarsTemplateRenderer;
+import ratpack.handlebars.internal.RatpackTemplateCache;
+import ratpack.handlebars.internal.TemplateKey;
 import ratpack.launch.LaunchConfig;
 import ratpack.util.Action;
 
@@ -107,6 +110,10 @@ public class HandlebarsModule extends AbstractModule {
 
   private String templatesSuffix;
 
+  private int cacheSize = 100;
+
+  private boolean reloadable;
+
   public String getTemplatesPath() {
     return templatesPath;
   }
@@ -121,6 +128,22 @@ public class HandlebarsModule extends AbstractModule {
 
   public void setTemplatesSuffix(String templatesSuffix) {
     this.templatesSuffix = templatesSuffix;
+  }
+
+  public int getCacheSize() {
+    return cacheSize;
+  }
+
+  public void setCacheSize(int cacheSize) {
+    this.cacheSize = cacheSize;
+  }
+
+  public boolean isReloadable() {
+    return reloadable;
+  }
+
+  public void setReloadable(boolean reloadable) {
+    this.reloadable = reloadable;
   }
 
   @Override
@@ -140,8 +163,10 @@ public class HandlebarsModule extends AbstractModule {
 
   @SuppressWarnings("UnusedDeclaration")
   @Provides @Singleton
-  Handlebars provideHandlebars(Injector injector, TemplateLoader templateLoader) {
-    final Handlebars handlebars = new Handlebars().with(templateLoader);
+  Handlebars provideHandlebars(Injector injector, TemplateLoader templateLoader, LaunchConfig launchConfig) {
+    final Handlebars handlebars = new Handlebars().with(templateLoader)
+      .with(new RatpackTemplateCache(reloadable || launchConfig.isReloadable(),
+        CacheBuilder.newBuilder().maximumSize(cacheSize).<TemplateKey, com.github.jknack.handlebars.Template>build()));
 
     TypeLiteral<NamedHelper<?>> type = new TypeLiteral<NamedHelper<?>>() {
     };

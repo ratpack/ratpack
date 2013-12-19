@@ -23,12 +23,10 @@ import com.google.common.cache.LoadingCache;
 import ratpack.file.MimeTypes;
 import ratpack.handlebars.Template;
 import ratpack.handling.Context;
-import ratpack.launch.LaunchConfig;
 import ratpack.render.RendererSupport;
 
 import javax.inject.Inject;
 import java.io.IOException;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 public class HandlebarsTemplateRenderer extends RendererSupport<Template<?>> {
@@ -51,25 +49,12 @@ public class HandlebarsTemplateRenderer extends RendererSupport<Template<?>> {
       });
   }
 
-  private com.github.jknack.handlebars.Template getTemplate(String templateName, Context context) throws IOException {
-    if(context.get(LaunchConfig.class).isReloadable()) {
-      return handlebars.compile(templateName);
-    } else {
-      try {
-        return templateCache.get(templateName);
-      } catch (ExecutionException e) {
-        throw new IOException("Unable to load cached template: " + templateName, e);
-      }
-    }
-  }
-
   @Override
   public void render(Context context, Template<?> template) {
     String contentType = template.getContentType();
     contentType = contentType == null ? context.get(MimeTypes.class).getContentType(template.getName()) : contentType;
     try {
-      //context.getResponse().send(contentType, handlebars.compile(template.getName()).apply(template.getModel()));
-      context.getResponse().send(contentType, getTemplate(template.getName(), context).apply(template.getModel()));
+      context.getResponse().send(contentType, handlebars.compile(template.getName()).apply(template.getModel()));
     } catch (IOException e) {
       context.error(e);
     }
