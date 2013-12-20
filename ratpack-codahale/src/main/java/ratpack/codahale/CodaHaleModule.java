@@ -20,6 +20,7 @@ import com.codahale.metrics.ConsoleReporter;
 import com.codahale.metrics.CsvReporter;
 import com.codahale.metrics.JmxReporter;
 import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.annotation.Timed;
 import com.codahale.metrics.health.HealthCheckRegistry;
 import com.codahale.metrics.annotation.Metered;
 import com.codahale.metrics.jvm.GarbageCollectorMetricSet;
@@ -37,6 +38,7 @@ import ratpack.codahale.internal.GaugeTypeListener;
 import ratpack.codahale.internal.JmxReporterProvider;
 import ratpack.codahale.internal.MeteredMethodInterceptor;
 import ratpack.codahale.internal.RequestTimingHandler;
+import ratpack.codahale.internal.TimedMethodInterceptor;
 import ratpack.guice.HandlerDecoratingModule;
 import ratpack.guice.internal.GuiceUtil;
 import ratpack.handling.Handler;
@@ -66,6 +68,10 @@ public class CodaHaleModule extends AbstractModule implements HandlerDecoratingM
       MeteredMethodInterceptor meteredMethodInterceptor = new MeteredMethodInterceptor();
       requestInjection(meteredMethodInterceptor);
       bindInterceptor(Matchers.any(), Matchers.annotatedWith(Metered.class), meteredMethodInterceptor);
+
+      TimedMethodInterceptor timedMethodInterceptor = new TimedMethodInterceptor();
+      requestInjection(timedMethodInterceptor);
+      bindInterceptor(Matchers.any(), Matchers.annotatedWith(Timed.class), timedMethodInterceptor);
 
       GaugeTypeListener gaugeTypeListener = new GaugeTypeListener(metricRegistry);
       bindListener(Matchers.any(), gaugeTypeListener);

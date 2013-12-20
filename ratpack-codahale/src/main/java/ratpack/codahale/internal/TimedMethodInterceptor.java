@@ -17,26 +17,32 @@
 package ratpack.codahale.internal;
 
 import com.codahale.metrics.MetricRegistry;
-import com.codahale.metrics.annotation.Metered;
+import com.codahale.metrics.Timer;
+import com.codahale.metrics.annotation.Timed;
 import com.google.inject.Inject;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 
 import java.lang.reflect.Method;
 
-public class MeteredMethodInterceptor implements MethodInterceptor {
+public class TimedMethodInterceptor implements MethodInterceptor {
 
   @Inject
   MetricRegistry metricRegistry;
 
   @Override
   public Object invoke(MethodInvocation invocation) throws Throwable {
-    String meterTag = buildMeterTag(invocation.getMethod().getAnnotation(Metered.class), invocation.getMethod());
-    metricRegistry.meter(meterTag).mark();
-    return invocation.proceed();
+    String timerTag = buildTimerTag(invocation.getMethod().getAnnotation(Timed.class), invocation.getMethod());
+    final Timer.Context timer = metricRegistry.timer(timerTag).time();
+
+    try {
+      return invocation.proceed();
+    } finally {
+      timer.stop();
+    }
   }
 
-  private String buildMeterTag(Metered annotation, Method method) {
+  private String buildTimerTag(Timed annotation, Method method) {
     if (annotation.name().isEmpty()) {
       return MetricRegistry.name(method.getDeclaringClass(), method.getName());
     }

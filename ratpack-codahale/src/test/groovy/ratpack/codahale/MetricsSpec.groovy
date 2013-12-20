@@ -16,11 +16,11 @@
 
 package ratpack.codahale
 
-import com.codahale.metrics.Meter
 import com.codahale.metrics.MetricRegistry
 import com.codahale.metrics.MetricRegistryListener
 import com.codahale.metrics.annotation.Gauge
 import com.codahale.metrics.annotation.Metered
+import com.codahale.metrics.annotation.Timed
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import ratpack.test.internal.RatpackGroovyDslSpec
@@ -141,6 +141,15 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     @Gauge
     public String triggerGauge3() { "gauge3" }
 
+    @Timed(name = 'foo timer', absolute = true)
+    public AnnotatedMetricService triggerTimer1() { this }
+
+    @Timed(name = 'foo timer')
+    public AnnotatedMetricService triggerTimer2() { this }
+
+    @Timed
+    public AnnotatedMetricService triggerTimer3() { this }
+
   }
 
   def "can collect metered annotated metrics"() {
@@ -190,6 +199,55 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     absoluteNamedMeter.count == 4
     namedMeter.count == 2
     unNamedMeter.count == 2
+  }
+
+  def "can collect timed annotated metrics"() {
+    def reporter = Mock(MetricRegistryListener)
+    def absoluteNamedTimer
+    def namedTimer
+    def unNamedTimer
+
+    given:
+    app {
+      modules {
+        register new CodaHaleModule().metrics()
+        bind AnnotatedMetricService
+      }
+
+      handlers { MetricRegistry metrics ->
+        metrics.addListener(reporter)
+
+        handler("timer") { AnnotatedMetricService service ->
+          service
+            .triggerTimer1()
+            .triggerTimer2()
+            .triggerTimer3()
+            .triggerTimer1()
+
+          render ""
+        }
+      }
+    }
+
+    when:
+    2.times { get("timer") }
+
+    then:
+    1 * reporter.onTimerAdded("foo timer", !null) >> { arguments ->
+      absoluteNamedTimer = arguments[1]
+    }
+
+    1 * reporter.onTimerAdded('ratpack.codahale.MetricsSpec$AnnotatedMetricService.triggerTimer3', !null) >> { arguments ->
+      namedTimer = arguments[1]
+    }
+
+    1 * reporter.onTimerAdded('ratpack.codahale.MetricsSpec$AnnotatedMetricService.foo timer', !null) >> { arguments ->
+      unNamedTimer = arguments[1]
+    }
+
+    absoluteNamedTimer.count == 4
+    namedTimer.count == 2
+    unNamedTimer.count == 2
   }
 
   def "can collect gauge annotated metrics"() {
