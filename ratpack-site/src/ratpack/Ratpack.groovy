@@ -21,6 +21,7 @@ ratpack {
   	handler {
       if (request.headers.get("host").endsWith("ratpack-framework.org")) {
         redirect 301, "http://www.ratpack.io"
+        return
       }
 
       if (request.path.empty || request.path == "index.html") {
