@@ -1,18 +1,6 @@
-#!/usr/bin/env bash
-# bin/release <build-dir>
+#!/bin/sh
 
-BUILD_DIR=$1
-
-cat <<EOF
----
-config_vars:
-  JAVA_HOME: .jdk7
-  JAVA_OPTS: -Dfile.encoding=UTF-8 -server -Xmx512m -XX:+UseCompressedOops
-  RATPACK_SITE_OPTS: -Dratpack.port=\$PORT -Dratpack.publicAddress=http://www.ratpack.io
-EOF
-if [ ! -f $BUILD_DIR/Procfile ]; then
 cat <<EOF
 default_process_types:
   web: ratpack-site/build/install/ratpack-site/bin/ratpack-site
 EOF
-fi
