@@ -166,6 +166,7 @@ task compileCoffee(type: CoffeeScriptCompile) {
 processResources.inputs.files compileCoffee, compileSass, prepareContent
 
 compass {
+  gemPath = new File(gradle.gradleUserHomeDir, ".jruby")
   gems = ["compass", "breakpoint"]
   cssDir = file('src/ratpack/public/styles')
   sassDir = file('src/main/static/styles')

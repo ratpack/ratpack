@@ -198,6 +198,7 @@ task compileManual {
 }
 
 compass {
+  gemPath = new File(gradle.gradleUserHomeDir, ".jruby")
   gems = ["compass", "breakpoint"]
   sassDir = file("src/sass")
   cssDir = file("$buildDir/assets/css")
