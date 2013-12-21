@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ratpack.groovy.test.remote
+package ratpack.test.remote
 
 import ratpack.remote.RemoteControlModule
 import ratpack.test.internal.RatpackGroovyDslSpec

@@ -22,14 +22,13 @@ ext.apiLinks = [
 ]
 
 dependencies {
-  compile project(":ratpack-groovy"), project(":ratpack-test"), project(':ratpack-remote')
+  compile project(":ratpack-groovy"), project(":ratpack-test")
   compile "com.jayway.restassured:rest-assured:$restAssuredVersion", {
     exclude module: "groovy"
     exclude group: "org.hamcrest"
     exclude module: "jackson-databind"
   }
   compile commonDependencies.jackson
-  compile commonDependencies."remote-http"
 }
 
 modifyPom {

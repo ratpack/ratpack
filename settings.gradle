@@ -27,6 +27,7 @@ include \
     "ratpack-gradle",
     "ratpack-handlebars",
     "ratpack-remote",
+    "ratpack-remote-test",
     "ratpack-jackson",
     "ratpack-reactor",
     "ratpack-codahale",

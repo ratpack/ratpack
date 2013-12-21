@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ratpack.groovy.test.remote;
+package ratpack.test.remote;
 
 import groovy.lang.GroovySystem;
 import groovy.lang.MetaClass;
