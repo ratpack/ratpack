@@ -148,33 +148,6 @@ class HandlebarsTemplateRenderingSpec extends RatpackGroovyDslSpec {
     get("simple.html?type=application/octet-stream").contentType == "application/octet-stream"
   }
 
-  void 'templates are cached'() {
-    given:
-    file('handlebars/simple.hbs') << '{{this}}'
-
-    when:
-    app {
-      modules {
-        register new HandlebarsModule()
-      }
-      handlers {
-        handler {
-          render handlebarsTemplate('simple')
-        }
-      }
-    }
-    then:
-    timer({ get('simple') }) > timer({ get('simple') })
-  }
-
-  long timer(Closure block)
-  {
-    long start = System.nanoTime()
-    block.call()
-    long end = System.nanoTime()
-    return end - start
-  }
-
   void "templates are reloadable when reloading is enabled"() {
     given:
     file('handlebars/simple.hbs') << 'A'
