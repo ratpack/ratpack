@@ -17,9 +17,6 @@
 package ratpack.handlebars.internal;
 
 import com.github.jknack.handlebars.Handlebars;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 import ratpack.file.MimeTypes;
 import ratpack.handlebars.Template;
 import ratpack.handling.Context;
@@ -27,26 +24,14 @@ import ratpack.render.RendererSupport;
 
 import javax.inject.Inject;
 import java.io.IOException;
-import java.util.concurrent.TimeUnit;
 
 public class HandlebarsTemplateRenderer extends RendererSupport<Template<?>> {
 
   private final Handlebars handlebars;
 
-  private final LoadingCache<String, com.github.jknack.handlebars.Template> templateCache;
-
   @Inject
   public HandlebarsTemplateRenderer(Handlebars handlebars) {
     this.handlebars = handlebars;
-
-    this.templateCache = CacheBuilder.newBuilder()
-      .expireAfterAccess(5, TimeUnit.MINUTES)
-      .build(new CacheLoader<String, com.github.jknack.handlebars.Template>() {
-        @Override
-        public com.github.jknack.handlebars.Template load(String key) throws Exception {
-          return HandlebarsTemplateRenderer.this.handlebars.compile(key);
-        }
-      });
   }
 
   @Override
