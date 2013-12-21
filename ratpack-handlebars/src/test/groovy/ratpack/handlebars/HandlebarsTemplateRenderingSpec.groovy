@@ -159,7 +159,7 @@ class HandlebarsTemplateRenderingSpec extends RatpackGroovyDslSpec {
       }
       handlers {
         handler {
-          render handlebarsTemplate(request.path, 'content types', request.queryParams.type)
+          render handlebarsTemplate('simple')
         }
       }
     }
@@ -173,6 +173,60 @@ class HandlebarsTemplateRenderingSpec extends RatpackGroovyDslSpec {
     block.call()
     long end = System.nanoTime()
     return end - start
+  }
+
+  void "templates are reloadable when reloading is enabled"() {
+    given:
+    file('handlebars/simple.hbs') << 'A'
+
+    when:
+    app {
+      modules {
+        register new HandlebarsModule(reloadable: true)
+      }
+      handlers {
+        get {
+          render handlebarsTemplate('simple')
+        }
+      }
+    }
+
+    then:
+    text == 'A'
+
+    when:
+    sleep 1000 // make sure last modified times are different
+    file('handlebars/simple.hbs').text = 'B'
+
+    then:
+    text == 'B'
+  }
+
+  void "templates are not reloadable when reloading is disabled"() {
+    given:
+    file('handlebars/simple.hbs') << 'A'
+
+    when:
+    app {
+      modules {
+        register new HandlebarsModule(reloadable: false)
+      }
+      handlers {
+        get {
+          render handlebarsTemplate('simple')
+        }
+      }
+    }
+
+    then:
+    text == 'A'
+
+    when:
+    sleep 1000 // make sure last modified times are different
+    file('handlebars/simple.hbs').text = 'B'
+
+    then:
+    text == 'A'
   }
 }
 

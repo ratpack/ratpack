@@ -110,9 +110,9 @@ public class HandlebarsModule extends AbstractModule {
 
   private String templatesSuffix;
 
-  private int cacheSize = 100;
+  private Integer cacheSize;
 
-  private boolean reloadable;
+  private Boolean reloadable;
 
   public String getTemplatesPath() {
     return templatesPath;
@@ -164,8 +164,10 @@ public class HandlebarsModule extends AbstractModule {
   @SuppressWarnings("UnusedDeclaration")
   @Provides @Singleton
   Handlebars provideHandlebars(Injector injector, TemplateLoader templateLoader, LaunchConfig launchConfig) {
+    boolean reloadable = this.reloadable == null ? launchConfig.isReloadable() : this.reloadable;
+    int cacheSize = this.cacheSize == null ? Integer.parseInt(launchConfig.getOther("handlebars.cacheSize", "100")) : this.cacheSize;
     final Handlebars handlebars = new Handlebars().with(templateLoader)
-      .with(new RatpackTemplateCache(reloadable || launchConfig.isReloadable(),
+      .with(new RatpackTemplateCache(reloadable,
         CacheBuilder.newBuilder().maximumSize(cacheSize).<TemplateKey, com.github.jknack.handlebars.Template>build()));
 
     TypeLiteral<NamedHelper<?>> type = new TypeLiteral<NamedHelper<?>>() {

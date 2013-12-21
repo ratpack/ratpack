@@ -49,7 +49,8 @@ public class RatpackTemplateCache implements TemplateCache {
   @Override
   public Template get(final TemplateSource source, final Parser parser) throws IOException {
     try {
-      return cache.get(new TemplateKey(source, reloadable), new Callable<Template>() {
+      TemplateKey key = new TemplateKey(source, reloadable);
+      return cache.get(key, new Callable<Template>() {
         @Override
         public Template call() throws Exception {
           return parser.parse(source);
