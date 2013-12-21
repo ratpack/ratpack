@@ -8,7 +8,7 @@ cat <<EOF
 config_vars:
   JAVA_HOME: .jdk7
   JAVA_OPTS: -Dfile.encoding=UTF-8 -server -Xmx512m -XX:+UseCompressedOops
-  RATPACK_SITE_OPTS: -Dratpack.port=\$PORT
+  RATPACK_SITE_OPTS: -Dratpack.port=\$PORT -Dratpack.publicAddress=http://www.ratpack.io
 EOF
 if [ ! -f $BUILD_DIR/Procfile ]; then
 cat <<EOF
