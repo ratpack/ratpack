@@ -17,6 +17,7 @@
 package ratpack.handlebars;
 
 import com.github.jknack.handlebars.Handlebars;
+import com.github.jknack.handlebars.cache.TemplateCache;
 import com.github.jknack.handlebars.io.FileTemplateLoader;
 import com.github.jknack.handlebars.io.TemplateLoader;
 import com.google.common.cache.CacheBuilder;
@@ -162,13 +163,18 @@ public class HandlebarsModule extends AbstractModule {
   }
 
   @SuppressWarnings("UnusedDeclaration")
-  @Provides @Singleton
-  Handlebars provideHandlebars(Injector injector, TemplateLoader templateLoader, LaunchConfig launchConfig) {
+  @Provides
+  TemplateCache provideTemplateCache(LaunchConfig launchConfig) {
     boolean reloadable = this.reloadable == null ? launchConfig.isReloadable() : this.reloadable;
     int cacheSize = this.cacheSize == null ? Integer.parseInt(launchConfig.getOther("handlebars.cacheSize", "100")) : this.cacheSize;
-    final Handlebars handlebars = new Handlebars().with(templateLoader)
-      .with(new RatpackTemplateCache(reloadable,
-        CacheBuilder.newBuilder().maximumSize(cacheSize).<TemplateKey, com.github.jknack.handlebars.Template>build()));
+    return new RatpackTemplateCache(reloadable, CacheBuilder.newBuilder().maximumSize(cacheSize).<TemplateKey, com.github.jknack.handlebars.Template>build());
+  }
+
+  @SuppressWarnings("UnusedDeclaration")
+  @Provides @Singleton
+  Handlebars provideHandlebars(Injector injector, TemplateLoader templateLoader, TemplateCache templateCache) {
+
+    final Handlebars handlebars = new Handlebars().with(templateLoader).with(templateCache);
 
     TypeLiteral<NamedHelper<?>> type = new TypeLiteral<NamedHelper<?>>() {
     };
