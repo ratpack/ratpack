@@ -3,6 +3,10 @@
 Contributions are always welcome to Ratpack!
 If you'd like to contribute (and we hope you do) please take a look at the following guidelines and instructions.
 
+Please see the “ready” issues on the issue board via the badge below for a list of possible tickets to work on:
+
+[![Stories in Ready](https://badge.waffle.io/ratpack/ratpack.png?label=ready)](http://waffle.io/ratpack/ratpack)
+
 ## Building
 
 Ratpack builds with [Gradle](http://gradle.org). 
