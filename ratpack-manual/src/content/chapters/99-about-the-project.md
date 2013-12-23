@@ -26,6 +26,7 @@ The following people have provided significant contributions.
 * [Tomás Lin](https://github.com/tomaslin)
 * [Kevin Marquardsen](https://github.com/kmarquardsen)
 * [Stefano Gualdi](https://github.com/stefanogualdi)
+* [Ben Navetta](https://github.com/roguePanda)
 
 ### Past project members
 

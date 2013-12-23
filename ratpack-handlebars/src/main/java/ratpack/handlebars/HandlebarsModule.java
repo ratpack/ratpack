@@ -17,11 +17,15 @@
 package ratpack.handlebars;
 
 import com.github.jknack.handlebars.Handlebars;
+import com.github.jknack.handlebars.cache.TemplateCache;
 import com.github.jknack.handlebars.io.FileTemplateLoader;
 import com.github.jknack.handlebars.io.TemplateLoader;
+import com.google.common.cache.CacheBuilder;
 import com.google.inject.*;
 import ratpack.guice.internal.GuiceUtil;
 import ratpack.handlebars.internal.HandlebarsTemplateRenderer;
+import ratpack.handlebars.internal.RatpackTemplateCache;
+import ratpack.handlebars.internal.TemplateKey;
 import ratpack.launch.LaunchConfig;
 import ratpack.util.Action;
 
@@ -107,6 +111,10 @@ public class HandlebarsModule extends AbstractModule {
 
   private String templatesSuffix;
 
+  private Integer cacheSize;
+
+  private Boolean reloadable;
+
   public String getTemplatesPath() {
     return templatesPath;
   }
@@ -121,6 +129,22 @@ public class HandlebarsModule extends AbstractModule {
 
   public void setTemplatesSuffix(String templatesSuffix) {
     this.templatesSuffix = templatesSuffix;
+  }
+
+  public int getCacheSize() {
+    return cacheSize;
+  }
+
+  public void setCacheSize(int cacheSize) {
+    this.cacheSize = cacheSize;
+  }
+
+  public boolean isReloadable() {
+    return reloadable;
+  }
+
+  public void setReloadable(boolean reloadable) {
+    this.reloadable = reloadable;
   }
 
   @Override
@@ -139,9 +163,18 @@ public class HandlebarsModule extends AbstractModule {
   }
 
   @SuppressWarnings("UnusedDeclaration")
+  @Provides
+  TemplateCache provideTemplateCache(LaunchConfig launchConfig) {
+    boolean reloadable = this.reloadable == null ? launchConfig.isReloadable() : this.reloadable;
+    int cacheSize = this.cacheSize == null ? Integer.parseInt(launchConfig.getOther("handlebars.cacheSize", "100")) : this.cacheSize;
+    return new RatpackTemplateCache(reloadable, CacheBuilder.newBuilder().maximumSize(cacheSize).<TemplateKey, com.github.jknack.handlebars.Template>build());
+  }
+
+  @SuppressWarnings("UnusedDeclaration")
   @Provides @Singleton
-  Handlebars provideHandlebars(Injector injector, TemplateLoader templateLoader) {
-    final Handlebars handlebars = new Handlebars().with(templateLoader);
+  Handlebars provideHandlebars(Injector injector, TemplateLoader templateLoader, TemplateCache templateCache) {
+
+    final Handlebars handlebars = new Handlebars().with(templateLoader).with(templateCache);
 
     TypeLiteral<NamedHelper<?>> type = new TypeLiteral<NamedHelper<?>>() {
     };

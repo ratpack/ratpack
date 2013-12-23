@@ -147,6 +147,60 @@ class HandlebarsTemplateRenderingSpec extends RatpackGroovyDslSpec {
     get("simple.html").contentType == "text/html;charset=UTF-8"
     get("simple.html?type=application/octet-stream").contentType == "application/octet-stream"
   }
+
+  void "templates are reloadable when reloading is enabled"() {
+    given:
+    file('handlebars/simple.hbs') << 'A'
+
+    when:
+    app {
+      modules {
+        register new HandlebarsModule(reloadable: true)
+      }
+      handlers {
+        get {
+          render handlebarsTemplate('simple')
+        }
+      }
+    }
+
+    then:
+    text == 'A'
+
+    when:
+    sleep 1000 // make sure last modified times are different
+    file('handlebars/simple.hbs').text = 'B'
+
+    then:
+    text == 'B'
+  }
+
+  void "templates are not reloadable when reloading is disabled"() {
+    given:
+    file('handlebars/simple.hbs') << 'A'
+
+    when:
+    app {
+      modules {
+        register new HandlebarsModule(reloadable: false)
+      }
+      handlers {
+        get {
+          render handlebarsTemplate('simple')
+        }
+      }
+    }
+
+    then:
+    text == 'A'
+
+    when:
+    sleep 1000 // make sure last modified times are different
+    file('handlebars/simple.hbs').text = 'B'
+
+    then:
+    text == 'A'
+  }
 }
 
 class TestHelper implements NamedHelper {
