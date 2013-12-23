@@ -37,35 +37,28 @@ public class TokenPathBinder implements PathBinder {
     ImmutableList.Builder<String> namesBuilder = ImmutableList.builder();
     String pattern = Pattern.quote(path);
 
-    Pattern placeholderPattern = Pattern.compile("(?:^|/)(:(\\w+)\\??)");
+    Pattern placeholderPattern = Pattern.compile("((?:^|/):(\\w+)\\??)");
     Matcher matchResult = placeholderPattern.matcher(path);
 
     boolean hasOptional = false;
-    boolean first = true;
     StringBuilder replacementBuilder = new StringBuilder("\\\\E");
     while (matchResult.find()) {
-      String name = matchResult.group(1);
-      boolean optional = name.endsWith("?");
+      String part = matchResult.group(1);
+      String name = matchResult.group(2);
+      boolean optional = part.endsWith("?");
 
       hasOptional = hasOptional || optional;
       if (hasOptional && !optional) {
         throw new IllegalArgumentException(String.format("path %s should not define mandatory parameters after an optional parameter", path));
       }
 
+      replacementBuilder.append("(?:(?:^|/)([^/?&#]+))");
       if (optional) {
-        replacementBuilder.append("(?:");
-      }
-      if (!first) {
-        replacementBuilder.append("/");
-      }
-      replacementBuilder.append("([^/?&#]+)");
-      if (optional) {
-        replacementBuilder.append(")?");
+        replacementBuilder.append("?");
       }
       replacementBuilder.append("\\\\Q");
-      pattern = pattern.replaceFirst(Pattern.quote(first ? name : "/" + name), replacementBuilder.toString());
-      namesBuilder.add(matchResult.group(2));
-      first = false;
+      pattern = pattern.replaceFirst(Pattern.quote(part), replacementBuilder.toString());
+      namesBuilder.add(name);
       replacementBuilder.delete(3, replacementBuilder.length());
     }
 

@@ -16,38 +16,41 @@
 
 package ratpack.path.internal
 
+import ratpack.path.PathBinding
 import spock.lang.Specification
 
 class TokenPathBinderSpec extends Specification {
 
-  Map<String, String> map(String pattern, String path) {
-    new TokenPathBinder(pattern, true).bind(path, null)?.tokens
+  Map<String, String> bind(String pattern, String path, PathBinding parent = null, boolean exact = true) {
+    new TokenPathBinder(pattern, exact).bind(path, parent)?.tokens
   }
 
-  def "map"() {
+  def bind() {
     expect:
-    map("a", "b") == null
-    map("a", "a") == [:]
-    map("(.+)", "abc") == null
-    map(":a", "abc") == [a: "abc"]
-    map(":a/:b", "abc/def") == [a: "abc", b: "def"]
-    map(":a/:b?", "abc/def") == [a: "abc", b: "def"]
-    map(":a/:b?", "abc") == [a: "abc"]
-    map(":a/:b?/somepath", "abc") == null
-    map(":a/:b?/somepath", "abc/somepath") == [a: "abc"]
-    map(":a/:b?/somepath", "abc/def/somepath") == [a: "abc", b: "def"]
-    map(":a/:b?/somepath", "abc/def/") == null
-    map(":a/:b?/:c?", "abc") == [a: "abc"]
-    map(":a/:b?/:c?", "abc/def") == [a: "abc", b: "def"]
-    map(":a/:b?/:c?", "abc/def/ghi") == [a: "abc", b: "def", c: "ghi"]
-    map(":a/:b", "foo") == null
+    bind("a", "b") == null
+    bind("a", "a") == [:]
+    bind("(.+)", "abc") == null
+    bind(":a", "abc") == [a: "abc"]
+    bind(":a/:b", "abc/def") == [a: "abc", b: "def"]
+    bind(":a/:b?", "abc/def") == [a: "abc", b: "def"]
+    bind(":a/:b?", "abc") == [a: "abc"]
+    bind(":a/:b?/somepath", "abc") == null
+    bind(":a/:b?/somepath", "abc/somepath") == [a: "abc"]
+    bind(":a/:b?/somepath", "abc/def/somepath") == [a: "abc", b: "def"]
+    bind(":a/:b?/somepath", "abc/def/") == null
+    bind(":a/:b?/:c?", "abc") == [a: "abc"]
+    bind(":a/:b?/:c?", "abc/def") == [a: "abc", b: "def"]
+    bind(":a/:b?/:c?", "abc/def/ghi") == [a: "abc", b: "def", c: "ghi"]
+    bind(":a/:b", "foo") == null
+    bind("a/:b?", "a") == [:]
 
     when:
-    map(":a/:b?/:c", "abc/def/ghi")
+    bind(":a/:b?/:c", "abc/def/ghi")
 
     then:
     def e = thrown(IllegalArgumentException)
     e.message == "path :a/:b?/:c should not define mandatory parameters after an optional parameter"
   }
+
 
 }
