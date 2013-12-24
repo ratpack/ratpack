@@ -16,11 +16,11 @@
 
 package ratpack.groovy
 
-import com.google.common.util.concurrent.AbstractIdleService
 import ratpack.groovy.internal.StandaloneScriptBacking
 import ratpack.groovy.internal.Util
 import ratpack.groovy.launch.GroovyScriptHandlerFactory
 import ratpack.launch.LaunchConfigBuilder
+import ratpack.launch.LaunchException
 import ratpack.server.RatpackServer
 import ratpack.server.internal.RatpackService
 import ratpack.server.internal.ServiceBackedServer
@@ -28,11 +28,11 @@ import ratpack.test.internal.RatpackGroovyScriptAppSpec
 
 class StandaloneScriptSpec extends RatpackGroovyScriptAppSpec {
 
-  class ScriptBackedService extends AbstractIdleService implements RatpackService {
+  class ScriptBackedService implements RatpackService {
     RatpackServer server
 
     @Override
-    protected void startUp() throws Exception {
+    void start() throws LaunchException {
       def shell = new GroovyShell(getClass().classLoader)
       def script = shell.parse(StandaloneScriptSpec.this.ratpackFile)
 
@@ -60,8 +60,13 @@ class StandaloneScriptSpec extends RatpackGroovyScriptAppSpec {
     }
 
     @Override
-    protected void shutDown() throws Exception {
+    void stop() throws Exception {
       server?.stop()
+    }
+
+    @Override
+    boolean isRunning() {
+      server.running
     }
 
     @Override

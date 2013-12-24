@@ -16,13 +16,8 @@
 
 package ratpack.server.internal;
 
-import com.google.common.util.concurrent.UncheckedExecutionException;
 import ratpack.launch.LaunchConfig;
 import ratpack.server.RatpackServer;
-
-import java.util.concurrent.ExecutionException;
-
-import static ratpack.util.ExceptionUtils.toException;
 
 public class ServiceBackedServer implements RatpackServer {
 
@@ -43,19 +38,11 @@ public class ServiceBackedServer implements RatpackServer {
   }
 
   public void start() throws Exception {
-    try {
-      ratpackService.start().get();
-    } catch (ExecutionException | UncheckedExecutionException e) {
-      throw toException(e.getCause());
-    }
+    ratpackService.start();
   }
 
   public void stop() throws Exception {
-    try {
-      ratpackService.stop().get();
-    } catch (ExecutionException | UncheckedExecutionException e) {
-      throw toException(e.getCause());
-    }
+    ratpackService.stop();
   }
 
   @Override

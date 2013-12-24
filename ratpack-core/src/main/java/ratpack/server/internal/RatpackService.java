@@ -16,14 +16,20 @@
 
 package ratpack.server.internal;
 
-import com.google.common.util.concurrent.Service;
+import ratpack.launch.LaunchException;
 
-public interface RatpackService extends Service {
+public interface RatpackService {
 
   String getScheme();
 
   int getBindPort();
 
   String getBindHost();
+
+  boolean isRunning();
+
+  void start() throws LaunchException;
+
+  void stop() throws Exception;
 
 }

@@ -16,7 +16,7 @@
 
 package ratpack.server.internal;
 
-import com.google.common.util.concurrent.AbstractIdleService;
+import com.google.common.base.Throwables;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
@@ -27,16 +27,20 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import ratpack.launch.LaunchConfig;
+import ratpack.launch.LaunchException;
 import ratpack.server.Stopper;
 import ratpack.util.Transformer;
 
 import java.net.InetSocketAddress;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static ratpack.util.ExceptionUtils.uncheck;
 
-public class NettyRatpackService extends AbstractIdleService implements RatpackService {
+public class NettyRatpackService implements RatpackService {
 
   private final Logger logger = Logger.getLogger(getClass().getName());
 
@@ -47,56 +51,77 @@ public class NettyRatpackService extends AbstractIdleService implements RatpackS
   private Channel channel;
   private EventLoopGroup group;
 
+  private final Lock lifecycleLock = new ReentrantLock();
+  private final AtomicBoolean running = new AtomicBoolean();
+
   public NettyRatpackService(LaunchConfig launchConfig, Transformer<Stopper, ChannelInitializer<SocketChannel>> channelInitializerTransformer) {
     this.launchConfig = launchConfig;
     this.channelInitializerTransformer = channelInitializerTransformer;
   }
 
   @Override
-  protected void startUp() throws Exception {
-    Stopper stopper = new Stopper() {
-      @Override
-      public void stop() {
-        try {
-          NettyRatpackService.this.stop();
-        } catch (Exception e) {
-          throw uncheck(e);
-        }
-      }
-    };
-
-    ServerBootstrap bootstrap = new ServerBootstrap();
-    group = new NioEventLoopGroup(launchConfig.getMainThreads(), new DefaultThreadFactory("ratpack-group", Thread.MAX_PRIORITY));
-
-    ChannelInitializer<SocketChannel> channelInitializer = channelInitializerTransformer.transform(stopper);
-
-    bootstrap
-      .group(group)
-      .channel(NioServerSocketChannel.class)
-      .childHandler(channelInitializer)
-      .childOption(ChannelOption.ALLOCATOR, launchConfig.getBufferAllocator())
-      .childOption(ChannelOption.TCP_NODELAY, true)
-      .option(ChannelOption.SO_REUSEADDR, true)
-      .option(ChannelOption.SO_BACKLOG, 1024)
-      .option(ChannelOption.ALLOCATOR, launchConfig.getBufferAllocator());
-
+  public void start() throws LaunchException {
+    lifecycleLock.lock();
     try {
-      channel = bootstrap.bind(buildSocketAddress()).sync().channel();
-    } catch (Exception e) {
-      partialShutdown();
-      throw e;
-    }
-    boundAddress = (InetSocketAddress) channel.localAddress();
+      Stopper stopper = new Stopper() {
+        @Override
+        public void stop() {
+          try {
+            NettyRatpackService.this.stop();
+          } catch (Exception e) {
+            throw uncheck(e);
+          }
+        }
+      };
 
-    if (logger.isLoggable(Level.INFO)) {
-      logger.info(String.format("Ratpack started for http://%s:%s", getBindHost(), getBindPort()));
+      ServerBootstrap bootstrap = new ServerBootstrap();
+      group = new NioEventLoopGroup(launchConfig.getMainThreads(), new DefaultThreadFactory("ratpack-group", Thread.MAX_PRIORITY));
+
+      ChannelInitializer<SocketChannel> channelInitializer = channelInitializerTransformer.transform(stopper);
+
+      bootstrap
+        .group(group)
+        .channel(NioServerSocketChannel.class)
+        .childHandler(channelInitializer)
+        .childOption(ChannelOption.ALLOCATOR, launchConfig.getBufferAllocator())
+        .childOption(ChannelOption.TCP_NODELAY, true)
+        .option(ChannelOption.SO_REUSEADDR, true)
+        .option(ChannelOption.SO_BACKLOG, 1024)
+        .option(ChannelOption.ALLOCATOR, launchConfig.getBufferAllocator());
+
+      try {
+        channel = bootstrap.bind(buildSocketAddress()).sync().channel();
+      } catch (Exception e) {
+        Throwables.propagateIfInstanceOf(e, LaunchException.class);
+        throw new LaunchException("Unable to launch due to exception", e);
+      }
+
+      boundAddress = (InetSocketAddress) channel.localAddress();
+
+      if (logger.isLoggable(Level.INFO)) {
+        logger.info(String.format("Ratpack started for http://%s:%s", getBindHost(), getBindPort()));
+      }
+      running.set(true);
+    } finally {
+      lifecycleLock.unlock();
     }
   }
 
   @Override
-  protected void shutDown() throws Exception {
-    channel.close();
-    partialShutdown();
+  public void stop() throws Exception {
+    lifecycleLock.lock();
+    try {
+      channel.close();
+      partialShutdown();
+      running.set(false);
+    } finally {
+      lifecycleLock.unlock();
+    }
+  }
+
+  @Override
+  public boolean isRunning() {
+    return running.get();
   }
 
   private void partialShutdown() {
