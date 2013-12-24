@@ -392,7 +392,7 @@ public interface Context extends Registry {
    */
   <T> Background.SuccessOrError<T> background(Callable<T> backgroundOperation);
 
-  ScheduledExecutorService getComputationExecutorService();
+  ScheduledExecutorService getForegroundExecutorService();
 
   /**
    * Sends a temporary redirect response (i.e. statusCode 302) to the client using the specified redirect location URL.

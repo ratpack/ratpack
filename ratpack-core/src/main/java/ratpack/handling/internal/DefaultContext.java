@@ -64,7 +64,7 @@ public class DefaultContext implements Context {
   private final Request request;
   private final Response response;
 
-  private final ScheduledExecutorService computeExecutorService;
+  private final ScheduledExecutorService foregroundExecutorService;
   private final ListeningExecutorService backgroundExecutorService;
   private final Registry registry;
   private final BindAddress bindAddress;
@@ -78,7 +78,7 @@ public class DefaultContext implements Context {
 
   public DefaultContext(
     DirectChannelAccess directChannelAccess, Request request, Response response, BindAddress bindAddress, Registry registry,
-    ListeningExecutorService backgroundExecutorService, ScheduledExecutorService computeExecutorService,
+    ListeningExecutorService backgroundExecutorService, ScheduledExecutorService foregroundExecutorService,
     EventRegistry<RequestOutcome> onCloseRegistry, Handler[] nextHandlers, int nextIndex,
     Handler exhausted) {
     this.directChannelAccess = directChannelAccess;
@@ -87,7 +87,7 @@ public class DefaultContext implements Context {
     this.bindAddress = bindAddress;
     this.registry = registry;
     this.backgroundExecutorService = backgroundExecutorService;
-    this.computeExecutorService = computeExecutorService;
+    this.foregroundExecutorService = foregroundExecutorService;
     this.onCloseRegistry = onCloseRegistry;
     this.nextHandlers = nextHandlers;
     this.nextIndex = nextIndex;
@@ -269,7 +269,7 @@ public class DefaultContext implements Context {
 
   @Override
   public Background getBackground() {
-    return new DefaultBackground(computeExecutorService, backgroundExecutorService, this);
+    return new DefaultBackground(foregroundExecutorService, backgroundExecutorService, this);
   }
 
   @Override
@@ -278,8 +278,8 @@ public class DefaultContext implements Context {
   }
 
   @Override
-  public ScheduledExecutorService getComputationExecutorService() {
-    return computeExecutorService;
+  public ScheduledExecutorService getForegroundExecutorService() {
+    return foregroundExecutorService;
   }
 
   public void redirect(String location) {
@@ -420,7 +420,7 @@ public class DefaultContext implements Context {
   }
 
   private DefaultContext createContext(Registry registry, Handler[] nextHandlers, int nextIndex, Handler exhausted) {
-    return new DefaultContext(directChannelAccess, request, response, bindAddress, registry, backgroundExecutorService, computeExecutorService, onCloseRegistry, nextHandlers, nextIndex, exhausted);
+    return new DefaultContext(directChannelAccess, request, response, bindAddress, registry, backgroundExecutorService, foregroundExecutorService, onCloseRegistry, nextHandlers, nextIndex, exhausted);
   }
 
   private class RejoinHandler implements Handler {

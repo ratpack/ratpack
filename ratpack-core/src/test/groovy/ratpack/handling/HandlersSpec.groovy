@@ -65,7 +65,7 @@ class HandlersSpec extends RatpackGroovyDslSpec {
     app {
       handlers {
         get {
-          computationExecutorService.submit {
+          foregroundExecutorService.submit {
             render "ok"
           }
         }

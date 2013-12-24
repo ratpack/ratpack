@@ -73,14 +73,14 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
 
   private final Handler[] handlers;
   private final Handler return404;
-  private final ListeningExecutorService blockingExecutorService;
+  private final ListeningExecutorService backgroundExecutorService;
 
   private final ConcurrentHashMap<Channel, Action<Object>> channelSubscriptions = new ConcurrentHashMap<>(0);
 
   private Registry registry;
 
-  public NettyHandlerAdapter(Stopper stopper, Handler handler, LaunchConfig launchConfig, ListeningExecutorService blockingExecutorService) {
-    this.blockingExecutorService = blockingExecutorService;
+  public NettyHandlerAdapter(Stopper stopper, Handler handler, LaunchConfig launchConfig, ListeningExecutorService backgroundExecutorService) {
+    this.backgroundExecutorService = backgroundExecutorService;
     this.handlers = new Handler[]{new ErrorCatchingHandler(handler)};
     this.return404 = new ClientErrorForwardingHandler(NOT_FOUND.code());
 
@@ -182,8 +182,8 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
 
     DirectChannelAccess directChannelAccess = new DefaultDirectChannelAccess(channel, subscribeHandler);
 
-    ScheduledExecutorService computeExecutorService = ctx.executor();
-    Context context = new DefaultContext(directChannelAccess, request, response, bindAddress, registry, blockingExecutorService, computeExecutorService, requestOutcomeEventController.getRegistry(), handlers, 0, return404);
+    ScheduledExecutorService foregroundExecutorService = ctx.executor();
+    Context context = new DefaultContext(directChannelAccess, request, response, bindAddress, registry, backgroundExecutorService, foregroundExecutorService, requestOutcomeEventController.getRegistry(), handlers, 0, return404);
     context.next();
   }
 

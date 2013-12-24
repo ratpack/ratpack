@@ -226,8 +226,8 @@ public class DefaultGroovyContext implements GroovyContext {
   }
 
   @Override
-  public ScheduledExecutorService getComputationExecutorService() {
-    return delegate.getComputationExecutorService();
+  public ScheduledExecutorService getForegroundExecutorService() {
+    return delegate.getForegroundExecutorService();
   }
 
   @Override

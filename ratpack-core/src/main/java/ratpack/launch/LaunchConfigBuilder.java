@@ -163,7 +163,7 @@ public class LaunchConfigBuilder {
    *
    * @see LaunchConfig#getBackgroundExecutorService()
    */
-  public LaunchConfigBuilder blockingExecutorService(ExecutorService executorService) {
+  public LaunchConfigBuilder backgroundExecutorService(ExecutorService executorService) {
     this.backgroundExecutorService = executorService;
     return this;
   }
