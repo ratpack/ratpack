@@ -14,9 +14,7 @@ ratpack {
     register new VersionsModule(getClass().classLoader)
     bind ClientErrorHandler, new SiteErrorHandler()
 
-    config(TemplatingModule) {
-      staticallyCompile = true
-    }
+    get(TemplatingModule).staticallyCompile = true
   }
 
   handlers { RatpackVersions versions ->
@@ -40,12 +38,16 @@ ratpack {
       render groovyTemplate("index.html")
     }
 
-    prefix("manual/snapshot") {
-      assets "public/manual/$versions.snapshot"
-    }
+    prefix("manual") {
+      prefix("snapshot") {
+        assets "manual/$versions.snapshot"
+      }
 
-    prefix("manual/current") {
-      assets "public/manual/$versions.current"
+      prefix("current") {
+        assets "manual/$versions.current"
+      }
+
+      assets "manual"
     }
 
     assets "public"

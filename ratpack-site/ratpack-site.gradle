@@ -76,9 +76,15 @@ dependencies {
 
 task gatherManuals(type: Sync) {
   inputs.files configurations.latestManual
-  into "src/ratpack/public/manual"
+  into "src/ratpack/manual"
   into version, {
     from { zipTree(configurations.latestManual.singleFile) }
+  }
+}
+
+idea {
+  module {
+    excludeDirs += gatherManuals.destinationDir
   }
 }
 
