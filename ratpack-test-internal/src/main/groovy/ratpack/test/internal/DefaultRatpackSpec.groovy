@@ -60,7 +60,7 @@ abstract class DefaultRatpackSpec extends InternalRatpackSpec {
   }
 
   @Override
-  protected RatpackServer createServer() {
+  protected LaunchConfig createLaunchConfig() {
     def modulesAction = createModulesAction()
 
     def launchConfigBuilder = LaunchConfigBuilder
@@ -71,12 +71,15 @@ abstract class DefaultRatpackSpec extends InternalRatpackSpec {
 
     configureDelegateFirst(launchConfigBuilder, launchConfigClosure)
 
-    LaunchConfig launchConfig = launchConfigBuilder.build(new HandlerFactory() {
+    launchConfigBuilder.build(new HandlerFactory() {
       Handler create(LaunchConfig launchConfig) {
         createHandlerFactory(launchConfig).create(modulesAction, createInjectorFactory(launchConfig), createHandlerTransformer(launchConfig))
       }
     })
+  }
 
+  @Override
+  protected RatpackServer createServer(LaunchConfig launchConfig) {
     RatpackServerBuilder.build(launchConfig)
   }
 

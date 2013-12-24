@@ -56,9 +56,12 @@ abstract class RatpackGroovyScriptAppSpec extends InternalRatpackSpec {
   }
 
   @Override
-  protected RatpackServer createServer() {
-    LaunchConfig launchConfig = LaunchConfigFactory.createWithBaseDir(getClass().classLoader, ratpackFile.parentFile, properties)
+  protected RatpackServer createServer(LaunchConfig launchConfig) {
     RatpackServerBuilder.build(launchConfig)
+  }
+
+  protected LaunchConfig createLaunchConfig() {
+    LaunchConfigFactory.createWithBaseDir(getClass().classLoader, ratpackFile.parentFile, properties)
   }
 
 }

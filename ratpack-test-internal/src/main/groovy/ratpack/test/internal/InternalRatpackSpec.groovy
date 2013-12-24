@@ -21,26 +21,33 @@ import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import ratpack.groovy.internal.Util
 import ratpack.groovy.test.TestHttpClient
+import ratpack.launch.LaunchConfig
 import ratpack.server.RatpackServer
 import ratpack.test.ApplicationUnderTest
-import ratpack.util.Action
 import spock.lang.Specification
 
 import static ratpack.groovy.test.TestHttpClients.testHttpClient
 
 abstract class InternalRatpackSpec extends Specification {
 
-  @Rule TemporaryFolder temporaryFolder
+  @Rule
+  TemporaryFolder temporaryFolder
   RatpackServer server
   boolean reloadable
 
-  @Delegate TestHttpClient client = testHttpClient(
-    {
+  @Delegate
+  TestHttpClient client = testHttpClient(new TestApplicationUnderTest()) {
+    configureRequest(it)
+  }
+
+  class TestApplicationUnderTest implements ApplicationUnderTest {
+    @Override
+    URI getAddress() {
       startServerIfNeeded()
+      def server = InternalRatpackSpec.this.server
       new URI("${server.scheme}://${server.bindHost}:${server.bindPort}/")
-    } as ApplicationUnderTest,
-    { configureRequest(it) } as Action<RequestSpecification>
-  )
+    }
+  }
 
   def setup() {
     client.resetRequest()
@@ -50,7 +57,9 @@ abstract class InternalRatpackSpec extends Specification {
     // do nothing
   }
 
-  abstract protected RatpackServer createServer()
+  abstract protected RatpackServer createServer(LaunchConfig launchConfig)
+
+  abstract protected LaunchConfig createLaunchConfig()
 
   File file(String path) {
     prepFile(new File(getDir(), path))
@@ -87,12 +96,11 @@ abstract class InternalRatpackSpec extends Specification {
     stopServer()
   }
 
-  protected startServerIfNeeded() {
+  protected void startServerIfNeeded() {
     if (!server) {
-      server = createServer()
+      server = createServer(createLaunchConfig())
       server.start()
     }
   }
-
 
 }

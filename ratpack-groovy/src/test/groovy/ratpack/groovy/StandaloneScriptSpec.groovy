@@ -16,10 +16,12 @@
 
 package ratpack.groovy
 
+import ratpack.groovy.internal.RatpackScriptBacking
 import ratpack.groovy.internal.StandaloneScriptBacking
-import ratpack.groovy.internal.Util
 import ratpack.groovy.launch.GroovyScriptHandlerFactory
+import ratpack.launch.LaunchConfig
 import ratpack.launch.LaunchConfigBuilder
+import ratpack.launch.LaunchConfigFactory
 import ratpack.launch.LaunchException
 import ratpack.server.RatpackServer
 import ratpack.server.internal.RatpackService
@@ -29,59 +31,65 @@ import ratpack.test.internal.RatpackGroovyScriptAppSpec
 class StandaloneScriptSpec extends RatpackGroovyScriptAppSpec {
 
   class ScriptBackedService implements RatpackService {
-    RatpackServer server
+    volatile RatpackServer nestedServer
 
     @Override
     void start() throws LaunchException {
       def shell = new GroovyShell(getClass().classLoader)
       def script = shell.parse(StandaloneScriptSpec.this.ratpackFile)
 
-      StandaloneScriptBacking.captureNext(Util.delegatingAction {
-        server = it
-      })
+      StandaloneScriptBacking.captureNext { RatpackServer it ->
+        nestedServer = it
+      }
 
       Thread.start {
-        script.run()
+        RatpackScriptBacking.withBacking(new CustomScriptBacking()) {
+          script.run()
+        }
       }
 
       def stopAt = System.currentTimeMillis() + 10000
-      while (System.currentTimeMillis() < stopAt) {
-        if (server != null) {
-          break
-        }
+      while (System.currentTimeMillis() < stopAt && nestedServer == null || !nestedServer.running) {
         sleep 100
       }
 
-      if (!server) {
+      if (!nestedServer) {
         throw new IllegalStateException("Server did not start")
       }
-
-      server.start()
     }
 
     @Override
     void stop() throws Exception {
-      server?.stop()
+      nestedServer?.stop()
     }
 
     @Override
     boolean isRunning() {
-      server.running
+      nestedServer.running
     }
 
     @Override
     String getScheme() {
-      server.scheme
+      nestedServer.scheme
     }
 
     @Override
     int getBindPort() {
-      server.bindPort
+      nestedServer.bindPort
     }
 
     @Override
     String getBindHost() {
-      server.bindHost
+      nestedServer.bindHost
+    }
+  }
+
+  class CustomScriptBacking extends StandaloneScriptBacking {
+    @Override
+    protected Properties createProperties(File scriptFile) {
+      def properties = super.createProperties(scriptFile)
+      properties.setProperty(LaunchConfigFactory.Property.PORT, "0")
+      properties
     }
   }
 
@@ -91,9 +99,14 @@ class StandaloneScriptSpec extends RatpackGroovyScriptAppSpec {
   }
 
   @Override
-  RatpackServer createServer() {
+  protected LaunchConfig createLaunchConfig() {
+    LaunchConfigBuilder.baseDir(ratpackFile.parentFile).build(new GroovyScriptHandlerFactory())
+  }
+
+  @Override
+  RatpackServer createServer(LaunchConfig launchConfig) {
     def service = new ScriptBackedService()
-    new ServiceBackedServer(service, LaunchConfigBuilder.baseDir(ratpackFile.parentFile).build(new GroovyScriptHandlerFactory()))
+    new ServiceBackedServer(service, launchConfig)
   }
 
   def "can execute plain script and reload"() {

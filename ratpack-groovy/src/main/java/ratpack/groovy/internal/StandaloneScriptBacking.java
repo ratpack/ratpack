@@ -49,9 +49,7 @@ public class StandaloneScriptBacking implements Action<Closure<?>> {
     Properties defaultProperties = new Properties();
     defaultProperties.setProperty(LaunchConfigFactory.Property.RELOADABLE, "true");
 
-    Properties properties = LaunchConfigFactory.getDefaultPrefixedProperties();
-    properties.setProperty(LaunchConfigFactory.Property.HANDLER_FACTORY, GroovyScriptHandlerFactory.class.getName());
-    properties.setProperty("other." + GroovyScriptHandlerFactory.SCRIPT_PROPERTY_NAME, scriptFile.getName());
+    Properties properties = createProperties(scriptFile);
 
     File baseDir = scriptFile.getParentFile();
     File configFile = new File(baseDir, LaunchConfigFactory.CONFIG_RESOURCE_DEFAULT);
@@ -74,6 +72,13 @@ public class StandaloneScriptBacking implements Action<Closure<?>> {
     } catch (Exception e) {
       throw new IllegalStateException("Failed to start Ratpack application", e);
     }
+  }
+
+  protected Properties createProperties(File scriptFile) {
+    Properties properties = LaunchConfigFactory.getDefaultPrefixedProperties();
+    properties.setProperty(LaunchConfigFactory.Property.HANDLER_FACTORY, GroovyScriptHandlerFactory.class.getName());
+    properties.setProperty("other." + GroovyScriptHandlerFactory.SCRIPT_PROPERTY_NAME, scriptFile.getName());
+    return properties;
   }
 
   private <T> File findScript(Closure<T> closure) {
