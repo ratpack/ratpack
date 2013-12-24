@@ -18,6 +18,7 @@ package ratpack.guice.internal;
 
 import com.google.common.collect.ImmutableList;
 import com.google.inject.Binder;
+import com.google.inject.Injector;
 import com.google.inject.Module;
 import ratpack.guice.ModuleRegistry;
 import ratpack.launch.LaunchConfig;
@@ -26,6 +27,7 @@ import ratpack.util.Action;
 
 import javax.inject.Provider;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -36,7 +38,7 @@ public class DefaultModuleRegistry implements ModuleRegistry {
   private final Map<Class<? extends Module>, Module> modules = new LinkedHashMap<>();
   private final LaunchConfig launchConfig;
 
-  private final ImmutableList.Builder<Action<Binder>> actions = ImmutableList.builder();
+  private final LinkedList<Action<Binder>> actions = new LinkedList<>();
 
   public DefaultModuleRegistry(LaunchConfig launchConfig) {
     this.launchConfig = launchConfig;
@@ -150,7 +152,7 @@ public class DefaultModuleRegistry implements ModuleRegistry {
   private Module createOverrideModule() {
     return new Module() {
       public void configure(Binder binder) {
-        for (Action<Binder> binderAction : actions.build()) {
+        for (Action<Binder> binderAction : actions) {
           try {
             binderAction.execute(binder);
           } catch (Exception e) {
@@ -161,4 +163,13 @@ public class DefaultModuleRegistry implements ModuleRegistry {
     };
   }
 
+  @Override
+  public void init(Action<Injector> action) {
+
+  }
+
+  @Override
+  public void init(Class<? extends Runnable> runnableClass) {
+
+  }
 }

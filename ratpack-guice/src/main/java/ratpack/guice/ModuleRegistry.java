@@ -16,9 +16,11 @@
 
 package ratpack.guice;
 
+import com.google.inject.Injector;
 import com.google.inject.Module;
 import ratpack.launch.LaunchConfig;
 import ratpack.registry.MutableRegistry;
+import ratpack.util.Action;
 
 import javax.inject.Provider;
 
@@ -85,5 +87,9 @@ public interface ModuleRegistry extends MutableRegistry<Module> {
   <T> void bind(T instance);
 
   <T> void provider(Class<T> publicType, Class<? extends Provider<? extends T>> providerType);
+
+  void init(Action<Injector> action);
+
+  void init(Class<? extends Runnable> runnableClass);
 
 }
