@@ -177,7 +177,7 @@ public abstract class Guice {
    * @param chainConfigurer The configurer that builds the handler chain
    * @return A handler that makes all Guice bound objects available to the handlers added to the {@link Chain} given to {@code chainConfigurer}.
    */
-  public static Handler handler(LaunchConfig launchConfig, Action<? super ModuleRegistry> moduleConfigurer, final Action<? super Chain> chainConfigurer) {
+  public static Handler handler(LaunchConfig launchConfig, Action<? super ModuleRegistry> moduleConfigurer, final Action<? super Chain> chainConfigurer) throws Exception {
     return new DefaultGuiceBackedHandlerFactory(launchConfig).create(moduleConfigurer, newInjectorFactory(launchConfig), new InjectorHandlerTransformer(launchConfig, chainConfigurer));
   }
 
@@ -192,7 +192,7 @@ public abstract class Guice {
    * @param injectorTransformer Takes the final {@link Injector} instance that was created from the modules and returns the {@link Handler} to use
    * @return A handler that makes all Guice bound objects available to the handlers added to the {@link Chain} given to {@code chainConfigurer}.
    */
-  public static Handler handler(LaunchConfig launchConfig, Action<? super ModuleRegistry> moduleConfigurer, Transformer<? super Injector, ? extends Handler> injectorTransformer) {
+  public static Handler handler(LaunchConfig launchConfig, Action<? super ModuleRegistry> moduleConfigurer, Transformer<? super Injector, ? extends Handler> injectorTransformer) throws Exception {
     return new DefaultGuiceBackedHandlerFactory(launchConfig).create(moduleConfigurer, newInjectorFactory(launchConfig), injectorTransformer);
   }
 
@@ -211,7 +211,7 @@ public abstract class Guice {
    * @param chainConfigurer The configurer that builds the handler chain
    * @return A handler that makes all Guice bound objects available to the handlers added to the {@link Chain} given to {@code chainConfigurer}.
    */
-  public static Handler handler(LaunchConfig launchConfig, Injector parentInjector, Action<? super ModuleRegistry> moduleConfigurer, final Action<? super Chain> chainConfigurer) {
+  public static Handler handler(LaunchConfig launchConfig, Injector parentInjector, Action<? super ModuleRegistry> moduleConfigurer, final Action<? super Chain> chainConfigurer) throws Exception {
     return new DefaultGuiceBackedHandlerFactory(launchConfig).create(moduleConfigurer, childInjectorFactory(parentInjector), new InjectorHandlerTransformer(launchConfig, chainConfigurer));
   }
 
@@ -227,7 +227,7 @@ public abstract class Guice {
    * @param injectorTransformer Takes the final {@link Injector} instance that was created from the modules and returns the {@link Handler} to use
    * @return A handler that makes all Guice bound objects available to the handlers added to the {@link Chain} given to {@code chainConfigurer}.
    */
-  public static Handler handler(LaunchConfig launchConfig, Injector parentInjector, Action<? super ModuleRegistry> moduleConfigurer, Transformer<? super Injector, ? extends Handler> injectorTransformer) {
+  public static Handler handler(LaunchConfig launchConfig, Injector parentInjector, Action<? super ModuleRegistry> moduleConfigurer, Transformer<? super Injector, ? extends Handler> injectorTransformer) throws Exception {
     return new DefaultGuiceBackedHandlerFactory(launchConfig).create(moduleConfigurer, childInjectorFactory(parentInjector), injectorTransformer);
   }
 

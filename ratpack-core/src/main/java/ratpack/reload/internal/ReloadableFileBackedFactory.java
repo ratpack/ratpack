@@ -45,7 +45,7 @@ public class ReloadableFileBackedFactory<T> implements Factory<T> {
   private final Lock lock = new ReentrantLock();
 
   static public interface Producer<T> {
-    T produce(File file, ByteBuf bytes);
+    T produce(File file, ByteBuf bytes) throws Exception;
   }
 
   static public interface Releaser<T> {
@@ -127,7 +127,7 @@ public class ReloadableFileBackedFactory<T> implements Factory<T> {
     return (file.lastModified() != lastModifiedHolder.get()) || !isBytesAreSame();
   }
 
-  private void refresh() throws IOException {
+  private void refresh() throws Exception {
     lock.lock();
     try {
       long lastModifiedTime = file.lastModified();

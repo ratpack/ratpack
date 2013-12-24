@@ -25,6 +25,6 @@ import ratpack.util.Transformer;
 
 public interface GuiceBackedHandlerFactory {
 
-  Handler create(Action<? super ModuleRegistry> modulesAction, Transformer<? super Module, ? extends Injector> moduleTransformer, Transformer<? super Injector, ? extends Handler> handler);
+  Handler create(Action<? super ModuleRegistry> modulesAction, Transformer<? super Module, ? extends Injector> moduleTransformer, Transformer<? super Injector, ? extends Handler> handler) throws Exception;
 
 }

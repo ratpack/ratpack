@@ -88,8 +88,22 @@ public interface ModuleRegistry extends MutableRegistry<Module> {
 
   <T> void provider(Class<T> publicType, Class<? extends Provider<? extends T>> providerType);
 
+  /**
+   * Registers an action to operate on the injector when it has been finalized.
+   * <p>
+   * This can be used to do post processing of registered objects or application initialisation.
+   *
+   * @param action The action to execute against the constructed injector
+   */
   void init(Action<Injector> action);
 
-  void init(Class<? extends Runnable> runnableClass);
+  /**
+   * Registers a runnable to instantiated via dependency injection when the injector is created from this module registry.
+   * <p>
+   * This facilitates writing a {@link Runnable} implementation that uses constructor injection to get hold of what it needs to for the initialization.
+   *
+   * @param clazz The class of the runnable to execute as an init action
+   */
+  void init(Class<? extends Runnable> clazz);
 
 }

@@ -48,13 +48,13 @@ public class DefaultGuiceBackedHandlerFactory implements GuiceBackedHandlerFacto
     this.launchConfig = launchConfig;
   }
 
-  public Handler create(final Action<? super ModuleRegistry> modulesAction, final Transformer<? super Module, ? extends Injector> moduleTransformer, final Transformer<? super Injector, ? extends Handler> injectorTransformer) {
+  public Handler create(final Action<? super ModuleRegistry> modulesAction, final Transformer<? super Module, ? extends Injector> moduleTransformer, final Transformer<? super Injector, ? extends Handler> injectorTransformer) throws Exception {
     if (launchConfig.isReloadable()) {
       File classFile = ClassUtil.getClassFile(modulesAction);
       if (classFile != null) {
         Factory<InjectorBindingHandler> factory = new ReloadableFileBackedFactory<>(classFile, true, new ReloadableFileBackedFactory.Producer<InjectorBindingHandler>() {
           @Override
-          public InjectorBindingHandler produce(File file, ByteBuf bytes) {
+          public InjectorBindingHandler produce(File file, ByteBuf bytes) throws Exception {
             return doCreate(modulesAction, moduleTransformer, injectorTransformer);
           }
         });
@@ -66,7 +66,7 @@ public class DefaultGuiceBackedHandlerFactory implements GuiceBackedHandlerFacto
     return doCreate(modulesAction, moduleTransformer, injectorTransformer);
   }
 
-  private InjectorBindingHandler doCreate(Action<? super ModuleRegistry> modulesAction, Transformer<? super Module, ? extends Injector> moduleTransformer, Transformer<? super Injector, ? extends Handler> injectorTransformer) {
+  private InjectorBindingHandler doCreate(Action<? super ModuleRegistry> modulesAction, Transformer<? super Module, ? extends Injector> moduleTransformer, Transformer<? super Injector, ? extends Handler> injectorTransformer) throws Exception {
     DefaultModuleRegistry moduleRegistry = new DefaultModuleRegistry(launchConfig);
 
     registerDefaultModules(moduleRegistry);
@@ -87,6 +87,12 @@ public class DefaultGuiceBackedHandlerFactory implements GuiceBackedHandlerFacto
     }
 
     Injector injector = moduleTransformer.transform(masterModule);
+
+    List<Action<Injector>> init = moduleRegistry.getInit();
+    for (Action<Injector> initAction : init) {
+      initAction.execute(injector);
+    }
+
     Handler decorated = injectorTransformer.transform(injector);
 
     List<Module> modulesReversed = new ArrayList<>(modules);

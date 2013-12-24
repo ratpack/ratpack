@@ -39,6 +39,7 @@ public class DefaultModuleRegistry implements ModuleRegistry {
   private final LaunchConfig launchConfig;
 
   private final LinkedList<Action<Binder>> actions = new LinkedList<>();
+  private final LinkedList<Action<Injector>> init = new LinkedList<>();
 
   public DefaultModuleRegistry(LaunchConfig launchConfig) {
     this.launchConfig = launchConfig;
@@ -165,11 +166,21 @@ public class DefaultModuleRegistry implements ModuleRegistry {
 
   @Override
   public void init(Action<Injector> action) {
+    init.add(action);
+  }
 
+  public List<Action<Injector>> getInit() {
+    return init;
   }
 
   @Override
-  public void init(Class<? extends Runnable> runnableClass) {
-
+  public void init(final Class<? extends Runnable> clazz) {
+    init.add(new Action<Injector>() {
+      @Override
+      public void execute(Injector injector) throws Exception {
+        injector.getInstance(clazz).run();
+      }
+    });
   }
+
 }
