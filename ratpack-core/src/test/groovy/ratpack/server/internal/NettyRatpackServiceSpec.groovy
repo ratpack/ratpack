@@ -20,6 +20,7 @@ import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import ratpack.launch.HandlerFactory
 import ratpack.launch.LaunchConfigBuilder
+import ratpack.launch.LaunchException
 import ratpack.server.RatpackServerBuilder
 import spock.lang.IgnoreIf
 import spock.lang.Specification
@@ -41,7 +42,8 @@ class NettyRatpackServiceSpec extends Specification {
     server2.start()
 
     then:
-    thrown BindException
+    def e = thrown LaunchException
+    e.cause instanceof BindException
 
     cleanup:
     [server1, server2].each {
