@@ -47,15 +47,21 @@ public class DefaultGroovyModuleRegistry implements GroovyModuleRegistry {
 
   @Override
   public void init(final Closure<?> closure) {
-    doInit(closure);
+    doInit(closure, Void.class, Closure.OWNER_ONLY);
   }
 
-  private <T> void doInit(final Closure<T> closure) {
+  @Override
+  public <T> void init(Class<T> clazz, Closure<?> closure) {
+    doInit(closure, clazz, Closure.DELEGATE_FIRST);
+  }
+
+  private <T, N> void doInit(final Closure<T> closure, final Class<N> clazz, final int resolveStrategy) {
     init(new Action<Injector>() {
       @Override
-      public void execute(Injector thing) throws Exception {
-        InjectorBackedRegistry injectorBackedRegistry = new InjectorBackedRegistry(thing);
-        new ClosureInvoker<T, Void>(closure).invoke(injectorBackedRegistry, null, Closure.OWNER_ONLY);
+      public void execute(Injector injector) throws Exception {
+        InjectorBackedRegistry injectorBackedRegistry = new InjectorBackedRegistry(injector);
+        N delegate = clazz.equals(Void.class) ? null : injector.getInstance(clazz);
+        new ClosureInvoker<T, N>(closure).invoke(injectorBackedRegistry, delegate, resolveStrategy);
       }
     });
   }

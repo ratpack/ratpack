@@ -56,6 +56,9 @@ class GuiceInitSpec extends RatpackGroovyDslSpec {
         }
         init ThingInit
         init { Thing thing -> thing.strings << "baz" }
+        init(Thing) {
+          strings << "bat"
+        }
       }
       handlers {
         get { Thing thing ->
@@ -65,7 +68,7 @@ class GuiceInitSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    text == ["foo", "bar", "baz"].toString()
+    text == ["foo", "bar", "baz", "bat"].toString()
   }
 
 }

@@ -30,4 +30,6 @@ public interface GroovyModuleRegistry extends ModuleRegistry {
 
   void init(@DelegatesTo(value = Void.class, strategy = Closure.OWNER_ONLY) Closure<?> closure);
 
+  <T> void init(@DelegatesTo.Target Class<T> clazz, @DelegatesTo(genericTypeIndex = 0, strategy = Closure.DELEGATE_FIRST) Closure<?> closure);
+
 }
