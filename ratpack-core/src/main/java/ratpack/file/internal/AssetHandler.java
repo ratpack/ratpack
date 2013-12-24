@@ -57,10 +57,11 @@ public class AssetHandler implements Handler {
       throw uncheck(e);
     }
 
-    if (getFileSystemBinding(context).inRoot(path)) {
-      servePath(context, context.file(path));
+    File asset = context.file(path);
+    if (asset != null) {
+      servePath(context, asset);
     } else {
-      context.clientError(401);
+      context.clientError(404);
     }
   }
 

@@ -426,7 +426,7 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
     getText("../../../etc/passwd")
 
     then:
-    response.statusCode == 401
+    response.statusCode == 404
   }
 
   private static Date parseDateHeader(Response response, String name) {

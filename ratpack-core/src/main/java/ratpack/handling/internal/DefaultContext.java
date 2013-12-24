@@ -199,7 +199,12 @@ public class DefaultContext implements Context {
   }
 
   public File file(String path) {
-    return get(FileSystemBinding.class).file(path);
+    FileSystemBinding fileSystemBinding = get(FileSystemBinding.class);
+    if (fileSystemBinding.inRoot(path)) {
+      return fileSystemBinding.file(path);
+    } else {
+      return null;
+    }
   }
 
   public void render(Object object) throws NoSuchRendererException {
