@@ -17,15 +17,17 @@
 package ratpack.guice
 
 import com.google.inject.AbstractModule
+import com.google.inject.CreationException
 import com.google.inject.Injector
 import com.google.inject.Module
 import ratpack.launch.LaunchConfig
+import ratpack.launch.LaunchException
 import ratpack.test.internal.RatpackGroovyDslSpec
 import ratpack.util.Transformer
 
 import static com.google.inject.Guice.createInjector
 
-class GuiceBootstrappingSpec extends RatpackGroovyDslSpec {
+class GuiceParentInjectorSpec extends RatpackGroovyDslSpec {
 
   static class ServiceOne {
     String name
@@ -48,7 +50,7 @@ class GuiceBootstrappingSpec extends RatpackGroovyDslSpec {
   }
 
 
-  def "parent injector objects are available"() {
+  def "objects from parent are available"() {
     when:
     app {
       modules {
@@ -63,6 +65,28 @@ class GuiceBootstrappingSpec extends RatpackGroovyDslSpec {
 
     then:
     text == "parent:child"
+  }
+
+  def "fails to override parent binding"() {
+    when:
+    app {
+      modules {
+        bind ServiceOne, new ServiceOne(name: "child")
+      }
+      handlers {
+        get { ServiceOne one ->
+          response.send "$one.name"
+        }
+      }
+    }
+
+    startServerIfNeeded()
+
+    then:
+    def e = thrown LaunchException
+    e.cause instanceof CreationException
+    def creationException = e.cause as CreationException
+    creationException.errorMessages.first().message.contains "A binding to $ServiceOne.name was already configured"
   }
 
 }
