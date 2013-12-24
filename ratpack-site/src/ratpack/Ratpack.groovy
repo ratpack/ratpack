@@ -14,11 +14,13 @@ ratpack {
     register new VersionsModule(getClass().classLoader)
     bind ClientErrorHandler, new SiteErrorHandler()
 
-    get(TemplatingModule).staticallyCompile = true
+    config(TemplatingModule) {
+      staticallyCompile = true
+    }
   }
 
   handlers { RatpackVersions versions ->
-  	handler {
+    handler {
       if (request.headers.get("host").endsWith("ratpack-framework.org")) {
         redirect 301, "http://www.ratpack.io"
         return
