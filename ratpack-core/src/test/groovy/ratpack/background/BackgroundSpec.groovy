@@ -205,4 +205,24 @@ class BackgroundSpec extends RatpackGroovyDslSpec {
     then:
     getText() == [foo: "bar"].toString()
   }
+
+  def "can read request body in background"() {
+    when:
+    app {
+      handlers {
+        handler {
+          background {
+            sleep 1000 // allow the original foreground thread to finish, Netty will reclaim the buffer
+            request.text
+          } then {
+            render it.toString()
+          }
+        }
+      }
+    }
+
+    then:
+    request.content("foo")
+    postText() == "foo"
+  }
 }

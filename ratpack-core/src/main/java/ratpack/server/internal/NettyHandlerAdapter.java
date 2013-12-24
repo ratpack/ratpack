@@ -132,9 +132,13 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
 
     final EventController<RequestOutcome> requestOutcomeEventController = new DefaultEventController<>();
 
+    // We own the lifecycle
+    nettyRequest.content().retain();
+
     final Response response = new DefaultResponse(responseStatus, responseHeaders, responseBody, fileHttpTransmitter, new Action<Response>() {
       @Override
       public void execute(final Response response) {
+        nettyRequest.content().release();
         nettyResponse.setStatus(responseStatus.getResponseStatus());
         responseHeaders.set(HttpHeaders.Names.CONTENT_LENGTH, responseBody.writerIndex());
         boolean shouldClose = true;
