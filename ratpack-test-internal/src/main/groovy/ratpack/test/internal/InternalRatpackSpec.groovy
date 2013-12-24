@@ -19,7 +19,7 @@ package ratpack.test.internal
 import com.jayway.restassured.specification.RequestSpecification
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
-import ratpack.groovy.internal.Util
+import ratpack.groovy.internal.ClosureUtil
 import ratpack.groovy.test.TestHttpClient
 import ratpack.launch.LaunchConfig
 import ratpack.server.RatpackServer
@@ -80,7 +80,7 @@ abstract class InternalRatpackSpec extends Specification {
 
   void app(Closure<?> configurer) {
     stopServer()
-    Util.configureDelegateFirst(this, configurer)
+    ClosureUtil.configureDelegateFirst(this, configurer)
   }
 
   void stopServer() {

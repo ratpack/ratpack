@@ -24,7 +24,7 @@ import ratpack.background.Background;
 import ratpack.groovy.handling.GroovyByContentHandler;
 import ratpack.groovy.handling.GroovyByMethodHandler;
 import ratpack.groovy.handling.GroovyContext;
-import ratpack.groovy.internal.Util;
+import ratpack.groovy.internal.ClosureUtil;
 import ratpack.handling.*;
 import ratpack.handling.direct.DirectChannelAccess;
 import ratpack.http.Request;
@@ -67,7 +67,7 @@ public class DefaultGroovyContext implements GroovyContext {
   public void byMethod(Closure<?> closure) {
     ByMethodHandler handler = getByMethod();
     GroovyByMethodHandler groovyHandler = new DefaultGroovyByMethodHandler(this, handler);
-    Util.configureDelegateFirst(groovyHandler, closure);
+    ClosureUtil.configureDelegateFirst(groovyHandler, closure);
     try {
       groovyHandler.handle(this);
     } catch (Exception e) {
@@ -79,7 +79,7 @@ public class DefaultGroovyContext implements GroovyContext {
   public void byContent(@DelegatesTo(ByMethodHandler.class) Closure<?> closure) {
     ByContentHandler handler = getByContent();
     GroovyByContentHandler groovyHandler = new DefaultGroovyByContentHandler(this, handler);
-    Util.configureDelegateFirst(groovyHandler, closure);
+    ClosureUtil.configureDelegateFirst(groovyHandler, closure);
     try {
       groovyHandler.handle(this);
     } catch (Exception e) {
@@ -89,7 +89,7 @@ public class DefaultGroovyContext implements GroovyContext {
 
   @Override
   public void onClose(Closure<?> callback) {
-    onClose(Util.delegatingAction(callback));
+    onClose(ClosureUtil.delegatingAction(callback));
   }
 
   @Override

@@ -17,7 +17,7 @@
 package ratpack.groovy.markup.internal;
 
 import groovy.xml.MarkupBuilder;
-import ratpack.groovy.internal.Util;
+import ratpack.groovy.internal.ClosureUtil;
 import ratpack.groovy.markup.Markup;
 import ratpack.groovy.markup.MarkupRenderer;
 import ratpack.handling.Context;
@@ -35,7 +35,7 @@ public class DefaultMarkupRenderer extends RendererSupport<Markup> implements Ma
     OutputStreamWriter writer = new OutputStreamWriter(out, markup.getEncoding());
     MarkupBuilder markupBuilder = new MarkupBuilder(writer);
 
-    Util.configureDelegateFirst(markupBuilder, markupBuilder, markup.getDefinition());
+    ClosureUtil.configureDelegateFirst(markupBuilder, markupBuilder, markup.getDefinition());
 
     context.getResponse().contentType(markup.getContentType()).send();
   }

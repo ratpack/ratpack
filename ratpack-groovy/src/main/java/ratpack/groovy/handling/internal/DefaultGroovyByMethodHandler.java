@@ -24,7 +24,7 @@ import ratpack.groovy.handling.GroovyContext;
 import ratpack.handling.ByMethodHandler;
 import ratpack.handling.Context;
 
-import static ratpack.groovy.internal.Util.delegateFirstRunnable;
+import static ratpack.groovy.internal.ClosureUtil.delegateFirstRunnable;
 
 public class DefaultGroovyByMethodHandler implements GroovyByMethodHandler {
 

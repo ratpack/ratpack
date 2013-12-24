@@ -21,6 +21,7 @@ import com.google.inject.Module;
 import groovy.lang.Closure;
 import groovy.lang.Script;
 import io.netty.buffer.ByteBuf;
+import ratpack.groovy.guice.internal.DefaultGroovyModuleRegistry;
 import ratpack.groovy.script.internal.ScriptEngine;
 import ratpack.guice.ModuleRegistry;
 import ratpack.guice.internal.GuiceBackedHandlerFactory;
@@ -68,16 +69,22 @@ public class ScriptBackedApp implements Handler {
           final DefaultRatpack ratpack = new DefaultRatpack();
           Action<Closure<?>> backing = new Action<Closure<?>>() {
             public void execute(Closure<?> configurer) {
-              Util.configureDelegateFirst(ratpack, configurer);
+              ClosureUtil.configureDelegateFirst(ratpack, configurer);
             }
           };
 
           RatpackScriptBacking.withBacking(backing, runScript);
 
-          Closure<?> modulesConfigurer = ratpack.getModulesConfigurer();
+          final Closure<?> modulesConfigurer = ratpack.getModulesConfigurer();
           Closure<?> handlersConfigurer = ratpack.getHandlersConfigurer();
 
-          Action<ModuleRegistry> modulesAction = Util.delegatingAction(ModuleRegistry.class, modulesConfigurer);
+          Action<ModuleRegistry> modulesAction = new Action<ModuleRegistry>() {
+            @Override
+            public void execute(ModuleRegistry thing) throws Exception {
+              ClosureUtil.delegatingAction(modulesConfigurer).execute(new DefaultGroovyModuleRegistry(thing));
+            }
+          };
+
           return appFactory.create(modulesAction, moduleTransformer, new InjectorHandlerTransformer(launchConfig, handlersConfigurer));
 
         } catch (Exception e) {

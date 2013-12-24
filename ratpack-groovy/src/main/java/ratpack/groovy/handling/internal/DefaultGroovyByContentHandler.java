@@ -23,7 +23,7 @@ import ratpack.groovy.handling.GroovyContext;
 import ratpack.handling.ByContentHandler;
 import ratpack.handling.Context;
 
-import static ratpack.groovy.internal.Util.delegateFirstRunnable;
+import static ratpack.groovy.internal.ClosureUtil.delegateFirstRunnable;
 
 public class DefaultGroovyByContentHandler implements GroovyByContentHandler {
 

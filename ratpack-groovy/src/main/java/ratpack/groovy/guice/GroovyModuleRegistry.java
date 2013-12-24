@@ -14,34 +14,20 @@
  * limitations under the License.
  */
 
-package ratpack.manual.snippets.fixtures
+package ratpack.groovy.guice;
 
-class GroovyChainDslFixture implements SnippetFixture {
+import com.google.inject.Module;
+import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
+import ratpack.guice.ModuleRegistry;
 
-  @Override
-  public void setup() {
-  }
+/**
+ * Groovy specific extensions to {@link ratpack.guice.ModuleRegistry}
+ */
+public interface GroovyModuleRegistry extends ModuleRegistry {
 
-  @Override
-  public void cleanup() {
-  }
+  <T extends Module> void config(@DelegatesTo.Target Class<T> moduleType, @DelegatesTo(genericTypeIndex = 0) Closure<?> closure);
 
-  @Override
-  public String pre() {
-"""
-import ratpack.launch.LaunchConfig;
-import ratpack.groovy.handling.GroovyChain;
-import ratpack.groovy.handling.internal.DefaultGroovyChain;
-import ratpack.groovy.internal.ClosureUtil;
+  void init(@DelegatesTo(value = Void.class, strategy = Closure.OWNER_ONLY) Closure<?> closure);
 
-ClosureUtil.configureDelegateOnly((GroovyChain) new DefaultGroovyChain([], [:] as LaunchConfig, null)) {
-"""
-  }
-
-  @Override
-  public String post() {
-"""
-}
-"""
-  }
 }

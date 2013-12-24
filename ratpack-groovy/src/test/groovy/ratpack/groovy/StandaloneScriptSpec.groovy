@@ -16,6 +16,8 @@
 
 package ratpack.groovy
 
+import ratpack.groovy.guice.GroovyModuleRegistry
+import ratpack.groovy.handling.GroovyChain
 import ratpack.groovy.internal.RatpackScriptBacking
 import ratpack.groovy.internal.StandaloneScriptBacking
 import ratpack.groovy.launch.GroovyScriptHandlerFactory
@@ -139,5 +141,25 @@ class StandaloneScriptSpec extends RatpackGroovyScriptAppSpec {
 
     then:
     getText() == "bar"
+  }
+
+  def "types in API are correct"() {
+    when:
+    script """
+      ratpack {
+        modules {
+          assert delegate instanceof $GroovyModuleRegistry.name
+        }
+        handlers {
+          assert delegate instanceof $GroovyChain.name
+          get {
+            render "ok"
+          }
+        }
+      }
+    """
+
+    then:
+    text == "ok"
   }
 }

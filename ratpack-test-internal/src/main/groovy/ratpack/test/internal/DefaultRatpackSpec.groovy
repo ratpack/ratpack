@@ -18,6 +18,8 @@ package ratpack.test.internal
 
 import com.google.inject.Injector
 import com.google.inject.Module
+import ratpack.groovy.guice.GroovyModuleRegistry
+import ratpack.groovy.guice.internal.DefaultGroovyModuleRegistry
 import ratpack.guice.Guice
 import ratpack.guice.ModuleRegistry
 import ratpack.guice.internal.DefaultGuiceBackedHandlerFactory
@@ -35,8 +37,8 @@ import ratpack.util.Transformer
 import ratpack.util.internal.ConstantTransformer
 
 import static Handlers.chain
-import static ratpack.groovy.internal.Util.configureDelegateFirst
-import static ratpack.groovy.internal.Util.delegatingAction
+import static ratpack.groovy.internal.ClosureUtil.configureDelegateFirst
+import static ratpack.groovy.internal.ClosureUtil.delegatingAction
 
 abstract class DefaultRatpackSpec extends InternalRatpackSpec {
 
@@ -51,7 +53,7 @@ abstract class DefaultRatpackSpec extends InternalRatpackSpec {
     this.handlersClosure = configurer
   }
 
-  void modules(@DelegatesTo(ModuleRegistry) Closure<?> configurer) {
+  void modules(@DelegatesTo(GroovyModuleRegistry) Closure<?> configurer) {
     this.modulesClosure = configurer
   }
 
@@ -97,7 +99,7 @@ abstract class DefaultRatpackSpec extends InternalRatpackSpec {
       this.modules.each {
         registry.register(it)
       }
-      configureDelegateFirst(registry, modulesClosure)
+      configureDelegateFirst(new DefaultGroovyModuleRegistry(registry), modulesClosure)
     }
   }
 

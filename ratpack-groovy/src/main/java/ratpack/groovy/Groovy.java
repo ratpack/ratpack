@@ -21,6 +21,7 @@ import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import groovy.xml.MarkupBuilder;
 import ratpack.api.Nullable;
+import ratpack.groovy.guice.GroovyModuleRegistry;
 import ratpack.groovy.handling.GroovyChain;
 import ratpack.groovy.handling.GroovyContext;
 import ratpack.groovy.handling.internal.ClosureBackedHandler;
@@ -32,7 +33,6 @@ import ratpack.groovy.markup.Markup;
 import ratpack.groovy.markup.internal.DefaultMarkup;
 import ratpack.groovy.templating.Template;
 import ratpack.groovy.templating.internal.DefaultTemplate;
-import ratpack.guice.ModuleRegistry;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.handling.internal.ChainBuilders;
@@ -102,19 +102,21 @@ public abstract class Groovy {
   public static interface Ratpack {
 
     /**
-     * Registers the closure used to configure the {@link ratpack.guice.ModuleRegistry} that will back the application.
+     * Registers the closure used to configure the {@link GroovyModuleRegistry} that will back the application.
      *
-     * @param configurer The configuration closure, delegating to {@link ratpack.guice.ModuleRegistry}
+     * @param configurer The configuration closure, delegating to {@link GroovyModuleRegistry}
      */
-    void modules(@DelegatesTo(value = ModuleRegistry.class, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer);
+    void modules(@DelegatesTo(value = GroovyModuleRegistry.class, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer);
+
     /**
      * Registers the closure used to build the handler chain of the application.
      *
-     * @param configurer The configuration closure, delegating to {@link ratpack.groovy.handling.GroovyChain}
+     * @param configurer The configuration closure, delegating to {@link GroovyChain}
      */
     void handlers(@DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer);
 
   }
+
   /**
    * Builds a handler chain, with no backing registry.
    *

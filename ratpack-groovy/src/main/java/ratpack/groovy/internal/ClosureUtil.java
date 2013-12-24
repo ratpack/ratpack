@@ -20,21 +20,14 @@ import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import ratpack.util.Action;
 
-import java.util.concurrent.Callable;
+public abstract class ClosureUtil {
 
-public abstract class Util {
-
-  private Util() {
+  private ClosureUtil() {
   }
 
-  @SuppressWarnings("UnusedDeclaration")
+  @SuppressWarnings("UnusedDeclaration") // used in GroovyChainDslFixture
   public static <D, R> R configureDelegateOnly(@DelegatesTo.Target D delegate, @DelegatesTo(strategy = Closure.DELEGATE_ONLY) Closure<R> configurer) {
     return configure(delegate, delegate, configurer, Closure.DELEGATE_ONLY);
-  }
-
-  @SuppressWarnings("UnusedDeclaration")
-  public static <D, A, R> R configureDelegateOnly(@DelegatesTo.Target D delegate, A argument, @DelegatesTo(strategy = Closure.DELEGATE_FIRST) Closure<R> configurer) {
-    return configure(delegate, argument, configurer, Closure.DELEGATE_ONLY);
   }
 
   public static <D, R> R configureDelegateFirst(@DelegatesTo.Target D delegate, @DelegatesTo(strategy = Closure.DELEGATE_FIRST) Closure<R> configurer) {
@@ -65,23 +58,6 @@ public abstract class Util {
     return new Action<T>() {
       public void execute(T object) {
         configureDelegateFirst(object, configurer);
-      }
-    };
-  }
-
-  // Type token is here for in the future when @DelegatesTo supports this kind of API
-  public static <T, D> Action<T> fixedDelegatingAction(final D delegate, final Closure<?> configurer) {
-    return new Action<T>() {
-      public void execute(T object) {
-        configureDelegateFirst(delegate, object, configurer);
-      }
-    };
-  }
-
-  public static <T> Callable<T> delegatingCallable(final Closure<T> configurer) {
-    return new Callable<T>() {
-      public T call() {
-        return configureDelegateFirst(null, configurer);
       }
     };
   }

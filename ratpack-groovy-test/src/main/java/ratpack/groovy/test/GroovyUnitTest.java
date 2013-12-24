@@ -18,7 +18,7 @@ package ratpack.groovy.test;
 
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
-import ratpack.groovy.internal.Util;
+import ratpack.groovy.internal.ClosureUtil;
 import ratpack.handling.Handler;
 import ratpack.test.UnitTest;
 import ratpack.test.handling.Invocation;
@@ -63,7 +63,7 @@ public abstract class GroovyUnitTest {
    * @throws InvocationTimeoutException if the handler takes more than {@link ratpack.test.handling.InvocationBuilder#timeout(int)} seconds to send a response or call {@code next()} on the context
    */
   public static Invocation invoke(Handler handler, @DelegatesTo(InvocationBuilder.class) Closure<?> builder) throws InvocationTimeoutException {
-    return UnitTest.invoke(handler, Util.delegatingAction(builder));
+    return UnitTest.invoke(handler, ClosureUtil.delegatingAction(builder));
   }
 
 }

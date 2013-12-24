@@ -16,7 +16,9 @@
 
 package ratpack.guice
 
+import com.google.inject.Injector
 import ratpack.test.internal.RatpackGroovyDslSpec
+import ratpack.util.Action
 
 import javax.inject.Inject
 
@@ -46,10 +48,14 @@ class GuiceInitSpec extends RatpackGroovyDslSpec {
     app {
       modules {
         bind Thing
-        init {
-          it.getInstance(Thing).strings << "foo"
+        init new Action<Injector>() {
+          @Override
+          void execute(Injector injector) throws Exception {
+            injector.getInstance(Thing).strings << "foo"
+          }
         }
         init ThingInit
+        init { Thing thing -> thing.strings << "baz" }
       }
       handlers {
         get { Thing thing ->
@@ -59,7 +65,7 @@ class GuiceInitSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    text == ["foo", "bar"].toString()
+    text == ["foo", "bar", "baz"].toString()
   }
 
 }
