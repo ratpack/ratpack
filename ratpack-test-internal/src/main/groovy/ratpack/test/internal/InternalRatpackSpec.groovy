@@ -75,7 +75,11 @@ abstract class InternalRatpackSpec extends Specification {
   }
 
   void stopServer() {
-    server?.stop()
+    try {
+      server?.stop()
+    } catch (ignore) {
+      // ignore
+    }
     server = null
   }
 
