@@ -68,4 +68,12 @@ public interface FileSystemBinding {
    */
   FileSystemBinding binding(File file);
 
+
+  /**
+   * Check is a path is canonically within the binding root.
+   *
+   * @param path The path to the file
+   * @return true/false If the path is within the bound root
+   */
+  boolean inRoot(String path);
 }

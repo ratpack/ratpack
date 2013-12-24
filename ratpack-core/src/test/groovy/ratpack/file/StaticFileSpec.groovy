@@ -401,6 +401,34 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
     getText("other") == "after"
   }
 
+  def "only serve files from within the binding root"() {
+    setup:
+    file("public/foo.txt") << "bar"
+    app {
+      handlers {
+        assets "public"
+      }
+    }
+
+    when:
+    getText("foo.txt")
+
+    then:
+    response.statusCode == 200
+
+    when:
+    getText("bar.txt")
+
+    then:
+    response.statusCode == 404
+
+    when:
+    getText("../../../etc/passwd")
+
+    then:
+    response.statusCode == 401
+  }
+
   private static Date parseDateHeader(Response response, String name) {
     HttpHeaderDateFormat.get().parse(response.getHeader(name))
   }

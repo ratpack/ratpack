@@ -19,6 +19,7 @@ package ratpack.file.internal;
 import ratpack.file.FileSystemBinding;
 
 import java.io.File;
+import java.io.IOException;
 
 public class DefaultFileSystemBinding implements FileSystemBinding {
 
@@ -42,5 +43,14 @@ public class DefaultFileSystemBinding implements FileSystemBinding {
 
   public FileSystemBinding binding(File file) {
     return new DefaultFileSystemBinding(file);
+  }
+
+  public boolean inRoot(String path) {
+    File maybeChild = new File(file, path);
+    try {
+      return maybeChild.getCanonicalPath().startsWith(file.getCanonicalPath());
+    } catch (IOException e) {
+      return false;
+    }
   }
 }
