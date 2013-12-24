@@ -78,14 +78,64 @@ public interface ModuleRegistry extends MutableRegistry<Module> {
    */
   LaunchConfig getLaunchConfig();
 
+  /**
+   * Bind the given type with Guice.
+   * <p>
+   * This can be used to add types to the application without writing a module.
+   * <p>
+   * If the type should be bound as a singleton, annotate it with {@link javax.inject.Singleton}.
+   *
+   * @param type The type to register with Guice.
+   */
   void bind(Class<?> type);
 
+  /**
+   * Bind the given implementation type with Guice, under the given public type.
+   * <p>
+   * This can be used to add types to the application without writing a module.
+   * <p>
+   * If the type should be bound as a singleton, annotate it with {@link javax.inject.Singleton}.
+   *
+   * @param publicType The public type of the binding
+   * @param implType The class implementing the public type
+   * @param <T> The public type of the binding
+   */
   <T> void bind(Class<T> publicType, Class<? extends T> implType);
 
+  /**
+   * Bind the given implementation with Guice, under the given public type.
+   * <p>
+   * This can be used to add types to the application without writing a module.
+   * <p>
+   * If the type should be bound as a singleton, annotate it with {@link javax.inject.Singleton}.
+   *
+   * @param publicType The public type of the binding
+   * @param instance The instance to make available
+   * @param <T> The public type of the binding
+   */
   <T> void bind(Class<? super T> publicType, T instance);
 
+  /**
+   * Bind the given implementation with Guice, under its concrete type.
+   * <p>
+   * This can be used to add types to the application without writing a module.
+   * <p>
+   * If the type should be bound as a singleton, annotate it with {@link javax.inject.Singleton}.
+   *
+   * @param instance The instance to make available
+   * @param <T> The type of the binding
+   */
   <T> void bind(T instance);
 
+  /**
+   * Bind the given provider with Guice, under the given type.
+   * <p>
+   * This can be used to add types to the application without writing a module.
+   *
+   * @param publicType The public type of the object
+   * @param providerType The type of the provider for the object
+   * @param <T> The public type of the object
+   */
   <T> void provider(Class<T> publicType, Class<? extends Provider<? extends T>> providerType);
 
   /**
