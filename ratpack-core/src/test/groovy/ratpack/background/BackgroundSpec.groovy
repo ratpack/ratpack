@@ -58,7 +58,7 @@ class BackgroundSpec extends RatpackGroovyDslSpec {
           background {
             sleep 300
             throw new Exception("!")
-          }.then {
+          } then {
             /* never called */
           }
         }
@@ -78,9 +78,9 @@ class BackgroundSpec extends RatpackGroovyDslSpec {
           background {
             sleep 300
             throw new Exception("!")
-          }.onError {
+          } onError {
             response.status(210).send("error: $it.message")
-          }.then {
+          } then {
             // never called
           }
         }
@@ -126,9 +126,9 @@ class BackgroundSpec extends RatpackGroovyDslSpec {
         get {
           background {
             1
-          }.onError {
+          } onError {
             throw new Exception("!")
-          }.then {
+          } then {
             throw new Exception("success")
           }
         }
@@ -151,7 +151,7 @@ class BackgroundSpec extends RatpackGroovyDslSpec {
           //noinspection GroovyAssignabilityCheck
           background {
             1
-          }.then { List<String> result ->
+          } then { List<String> result ->
             response.send("unexpected")
           }
         }
@@ -174,9 +174,9 @@ class BackgroundSpec extends RatpackGroovyDslSpec {
           //noinspection GroovyAssignabilityCheck
           background {
             throw new Exception("!")
-          }.onError { String string ->
+          } onError { String string ->
             response.send("unexpected")
-          }.then {
+          } then {
             response.send("unexpected - value")
           }
         }
@@ -195,7 +195,7 @@ class BackgroundSpec extends RatpackGroovyDslSpec {
         handler {
           background {
             [foo: "bar"]
-          }.then {
+          } then {
             response.send it.toString()
           }
         }
