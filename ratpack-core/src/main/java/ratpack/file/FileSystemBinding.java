@@ -16,6 +16,8 @@
 
 package ratpack.file;
 
+import ratpack.api.Nullable;
+
 import java.io.File;
 
 /**
@@ -44,6 +46,7 @@ public interface FileSystemBinding {
    * @param path The relative path from this binding to the desired file
    * @return The file
    */
+  @Nullable
   File file(String path);
 
   /**
@@ -68,12 +71,4 @@ public interface FileSystemBinding {
    */
   FileSystemBinding binding(File file);
 
-
-  /**
-   * Check is a path is canonically within the binding root.
-   *
-   * @param path The path to the file
-   * @return true/false If the path is within the bound root
-   */
-  boolean inRoot(String path);
 }

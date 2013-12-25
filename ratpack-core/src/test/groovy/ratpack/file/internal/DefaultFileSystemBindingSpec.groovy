@@ -35,4 +35,9 @@ class DefaultFileSystemBindingSpec extends Specification {
     expect:
     binding.file("/foo") == temporaryFolder.newFile("foo")
   }
+
+  def "files not in binding root returns null"() {
+    expect:
+    binding.file("../../../etc/passwd") == null
+  }
 }

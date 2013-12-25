@@ -34,19 +34,28 @@ public class DefaultFileSystemBinding implements FileSystemBinding {
   }
 
   public File file(String path) {
-    return new File(file, path);
+    if (inRoot(path)) {
+      return new File(file, path);
+    } else {
+      return null;
+    }
   }
 
   public FileSystemBinding binding(String path) {
-    return new DefaultFileSystemBinding(file(path));
+    File binding = file(path);
+    if (binding != null) {
+      return new DefaultFileSystemBinding(binding);
+    } else {
+      return null;
+    }
   }
 
   public FileSystemBinding binding(File file) {
     return new DefaultFileSystemBinding(file);
   }
 
-  public boolean inRoot(String path) {
+  private boolean inRoot(String path) {
     String root = file.getAbsolutePath();
-    return Paths.get(root, path).normalize().startsWith(root);
+    return Paths.get(root, path).toAbsolutePath().normalize().startsWith(root);
   }
 }
