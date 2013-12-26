@@ -19,15 +19,22 @@ package ratpack.groovy.test;
 import ratpack.groovy.launch.GroovyRatpackMain;
 import ratpack.test.ServerBackedApplicationUnderTest;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class LocalScriptApplicationUnderTest extends ServerBackedApplicationUnderTest {
 
   public LocalScriptApplicationUnderTest() {
-    super(new RatpackMainServerFactory());
+    this(new HashMap<String, String>());
+  }
+
+  public LocalScriptApplicationUnderTest(Map<String, String> overriddenProperties) {
+    super(new RatpackMainServerFactory(overriddenProperties));
   }
 
   private static class RatpackMainServerFactory extends ratpack.test.RatpackMainServerFactory {
-    public RatpackMainServerFactory() {
-      super(new GroovyRatpackMain());
+    public RatpackMainServerFactory(Map<String, String> overriddenProperties) {
+      super(new GroovyRatpackMain(), overriddenProperties);
     }
   }
 }

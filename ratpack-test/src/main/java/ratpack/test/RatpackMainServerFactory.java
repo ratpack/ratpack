@@ -20,24 +20,33 @@ import ratpack.launch.RatpackMain;
 import ratpack.server.RatpackServer;
 import ratpack.util.Factory;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 public class RatpackMainServerFactory implements Factory<RatpackServer> {
 
   private final RatpackMain ratpackMain;
+  private final Map<String, String> overriddenProperties;
 
   public RatpackMainServerFactory() {
-    this(new RatpackMain());
+    this(new HashMap<String, String>());
   }
 
-  public RatpackMainServerFactory(RatpackMain ratpackMain) {
+  public RatpackMainServerFactory(Map<String, String> overriddenProperties) {
+    this(new RatpackMain(), overriddenProperties);
+  }
+
+  public RatpackMainServerFactory(RatpackMain ratpackMain, Map<String, String> overriddenProperties) {
     this.ratpackMain = ratpackMain;
+    this.overriddenProperties = overriddenProperties;
   }
 
   @Override
   public RatpackServer create() {
     Properties systemProperties = new Properties(System.getProperties());
     systemProperties.setProperty("ratpack.port", systemProperties.getProperty("ratpack.port", "0"));
+    systemProperties.putAll(overriddenProperties);
     return ratpackMain.server(systemProperties, new Properties());
   }
 

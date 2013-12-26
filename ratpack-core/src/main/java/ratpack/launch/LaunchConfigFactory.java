@@ -119,7 +119,7 @@ public abstract class LaunchConfigFactory {
    */
   public static LaunchConfig createFromProperties(ClassLoader classLoader, Properties overrideProperties, Properties defaultProperties) {
     String configResourceValue = overrideProperties.getProperty(CONFIG_RESOURCE_PROPERTY, CONFIG_RESOURCE_DEFAULT);
-    File configFile = new File(CONFIG_RESOURCE_DEFAULT);
+    File configFile = new File(configResourceValue);
     if (!configFile.exists()) {
       URL configResourceUrl = classLoader.getResource(configResourceValue);
       if (configResourceUrl == null) {
