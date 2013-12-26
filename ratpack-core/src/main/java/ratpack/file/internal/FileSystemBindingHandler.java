@@ -45,7 +45,9 @@ public class FileSystemBindingHandler implements Handler {
         context.insert(FileSystemBinding.class, absoluteBinding, handler);
       } else {
         FileSystemBinding binding = parentBinding.binding(file.getPath());
-        context.insert(FileSystemBinding.class, binding, handler);
+        if (binding != null) {
+          context.insert(FileSystemBinding.class, binding, handler);
+        }
       }
     }
   }
