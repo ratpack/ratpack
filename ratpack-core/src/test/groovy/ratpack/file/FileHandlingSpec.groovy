@@ -22,7 +22,6 @@ class FileHandlingSpec extends RatpackGroovyDslSpec {
 
   void "context resolves files relative to application root"() {
     given:
-    def basePath = file('.').canonicalPath
     app {
       handlers {
         get {
@@ -32,43 +31,25 @@ class FileHandlingSpec extends RatpackGroovyDslSpec {
       }
     }
 
-    expect:
-    getText() == "$basePath/etc/passwd"
+    when:
+    def resp = getText()
+
+    then:
+    resp == "${server.launchConfig.baseDir.canonicalPath}/etc/passwd"
   }
 
-  void "context returns null value for files that cannot be found"() {
+  void "context returns null value for files that cannot be found in the application root"() {
     given:
     app {
       handlers {
         get {
-          def f = file('../ratpack.groovy')
-          if (!f)
-            render "null value"
-          else
-            render "non-null value"
+          def f = file('../')
+          render f ?: "null-value"
         }
       }
     }
 
     expect:
-    getText() == "null value"
+    getText() == "null-value"
   }
-
-  void "unresolved files result in statusCode 404"() {
-    given:
-    app {
-      handlers {
-        get(":path") {
-          render file(pathTokens.path)
-        }
-      }
-    }
-
-    when:
-    getText("../../etc/passwd")
-
-    then:
-    response.statusCode == 404
-  }
-
 }

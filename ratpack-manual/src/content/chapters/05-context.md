@@ -99,11 +99,8 @@ import static ratpack.groovy.Groovy.ratpack
 ratpack {
   handlers {
     get {
-      def f = file('../ratpack.groovy')
-      if (!f)
-        render "null value"
-      else
-        render "non-null value"
+      def f = file('../')
+      render f ?: "null-value"
     }
   }
 }
@@ -112,7 +109,7 @@ ratpack {
 In the above example, the context's [`file()`](api/ratpack/handling/Context.html#file\(\)) method is being called to retrieve a `java.io.File` instance for the provided path.
 The context's `file()` method is a shorthand to retrieve the `FileSystemBinding` object from the registry, and literally is a shorthand to `get(FileSystemBinding.class).file(path/to/file)`.
 The context will always resolve file assets relative to the application root, so in the case where an absolute path is provided, it should be noted that the path to the asset will be prefixed by the path in which the application exists. For example, if your application exists in `/home/ratpack/app` and your handler uses the `file` method to resolve `/etc/passwd`, then the actual path that is resolved will be `/home/ratpack/app/etc/passwd`.
-In the case where a file cannot be resolved from within the application's root, the `file()` method may return a null value, which is demonstrated in the above example. This is generally transparent to developers who are simply streaming a file's contents, but in the case where you need to access metadata for a file, you should explicitly handle the null-value scenario.
+In the case where a file cannot be resolved from within the application's root, the `file()` method may return a null value, which is demonstrated in the above example. The developer is responsible for handling scenarios where accessing a file may return a null object.
 
 ### Partitioning
 
