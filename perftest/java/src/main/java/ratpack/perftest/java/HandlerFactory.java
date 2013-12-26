@@ -26,7 +26,7 @@ import static ratpack.handling.Handlers.chain;
 
 public class HandlerFactory implements ratpack.launch.HandlerFactory {
 
-  public Handler create(LaunchConfig launchConfig) {
+  public Handler create(LaunchConfig launchConfig) throws Exception {
     return chain(launchConfig, new Action<Chain>() {
       public void execute(Chain chain) {
         chain

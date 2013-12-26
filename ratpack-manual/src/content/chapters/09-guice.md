@@ -40,6 +40,7 @@ In Groovy script application this is as easy as:
 ```language-groovy groovy-ratpack
 import ratpack.jackson.JacksonModule
 import static ratpack.jackson.Jackson.json
+import static ratpack.groovy.Groovy.ratpack
 
 ratpack {
   modules {

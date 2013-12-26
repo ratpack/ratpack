@@ -92,7 +92,7 @@ This is another example of using the context object mechanism for inter-handler 
 
 Another example of using contextual objects is the shorthand for accessing files from the file system. Consider the following script, which makes use of the context's `file` method to retrieve a static asset from the file system:
 
-```language-groovy tested
+```language-groovy groovy-ratpack-dsl
 
 import static ratpack.groovy.Groovy.ratpack
 

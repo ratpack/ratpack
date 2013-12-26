@@ -17,7 +17,7 @@
 package ratpack.test.internal
 
 import ratpack.groovy.Groovy
-import ratpack.groovy.launch.GroovyScriptHandlerFactory
+import ratpack.groovy.launch.GroovyScriptFileHandlerFactory
 import ratpack.launch.LaunchConfig
 import ratpack.launch.LaunchConfigFactory
 import ratpack.server.RatpackServer
@@ -46,11 +46,11 @@ abstract class RatpackGroovyScriptAppSpec extends InternalRatpackSpec {
 
   protected Properties getProperties() {
     Properties properties = new Properties()
-    properties.setProperty(LaunchConfigFactory.Property.HANDLER_FACTORY, GroovyScriptHandlerFactory.name)
+    properties.setProperty(LaunchConfigFactory.Property.HANDLER_FACTORY, GroovyScriptFileHandlerFactory.name)
     properties.setProperty(LaunchConfigFactory.Property.RELOADABLE, reloadable.toString())
     properties.setProperty(LaunchConfigFactory.Property.PORT, "0")
-    properties.setProperty("other." + GroovyScriptHandlerFactory.COMPILE_STATIC_PROPERTY_NAME, compileStatic.toString())
-    properties.setProperty("other." + GroovyScriptHandlerFactory.SCRIPT_PROPERTY_NAME, ratpackFile.name)
+    properties.setProperty("other." + GroovyScriptFileHandlerFactory.COMPILE_STATIC_PROPERTY_NAME, compileStatic.toString())
+    properties.setProperty("other." + GroovyScriptFileHandlerFactory.SCRIPT_PROPERTY_NAME, ratpackFile.name)
 
     return properties
   }

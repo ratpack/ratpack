@@ -14,34 +14,16 @@
  * limitations under the License.
  */
 
-package ratpack.manual.snippets.fixtures
+package ratpack.groovy.templating
 
-import ratpack.groovy.internal.RatpackScriptBacking
-import ratpack.util.Action
+import ratpack.groovy.internal.StandaloneScriptBacking
+import ratpack.launch.LaunchConfigFactory;
 
-class GroovyRatpackDslFixture implements SnippetFixture {
-
-  private Action<Closure<?>> previousBacking
-
+class EphemeralPortScriptBacking extends StandaloneScriptBacking {
   @Override
-  public void setup() {
-    previousBacking = RatpackScriptBacking.swapBacking {
-      // do nothing
-    }
-  }
-
-  @Override
-  public void cleanup() {
-    RatpackScriptBacking.swapBacking(previousBacking)
-  }
-
-  @Override
-  public String pre() {
-    ""
-  }
-
-  @Override
-  public String post() {
-    ""
+  protected Properties createProperties(File scriptFile) {
+    def properties = super.createProperties(scriptFile)
+    properties.setProperty(LaunchConfigFactory.Property.PORT, "0")
+    properties
   }
 }

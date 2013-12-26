@@ -68,7 +68,7 @@ public interface GroovyChain extends Chain {
    * {@inheritDoc}
    */
   @Override
-  GroovyChain prefix(String prefix, Action<? super Chain> action);
+  GroovyChain prefix(String prefix, Action<? super Chain> action) throws Exception;
 
   /**
    * Creates a {@code List} of {@code Handler} from the given {@code Closure} and adds a {@code Handler} to
@@ -81,7 +81,7 @@ public interface GroovyChain extends Chain {
    * @param chain the definition of the chain to delegate to
    * @return this {@code GroovyChain}
    */
-  GroovyChain prefix(String prefix, @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> chain);
+  GroovyChain prefix(String prefix, @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> chain) throws Exception;
 
   /**
    * {@inheritDoc}
@@ -239,7 +239,7 @@ public interface GroovyChain extends Chain {
    * {@inheritDoc}
    */
   @Override
-  GroovyChain register(Object service, Action<? super Chain> action);
+  GroovyChain register(Object service, Action<? super Chain> action) throws Exception;
 
   /**
    * Creates a {@code List} of {@code Handler} from the given {@code Closure} and adds a {@code Handler} to this {@code GroovyChain}
@@ -251,7 +251,7 @@ public interface GroovyChain extends Chain {
    * @param handlers the handlers to register the service with
    * @return this {@code GroovyChain}
    */
-  GroovyChain register(Object service, @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handlers);
+  GroovyChain register(Object service, @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handlers) throws Exception;
 
   /**
    * {@inheritDoc}
@@ -260,7 +260,7 @@ public interface GroovyChain extends Chain {
   <T> GroovyChain register(Class<? super T> type, T object, Handler handler);
 
   @Override
-  <T> GroovyChain register(Class<? super T> type, T service, Action<? super Chain> action);
+  <T> GroovyChain register(Class<? super T> type, T service, Action<? super Chain> action) throws Exception;
 
   /**
    * Creates a {@code List} of {@code Handler} from the given {@code Closure} and adds a {@code Handler} to this {@code GroovyChain} that
@@ -274,7 +274,7 @@ public interface GroovyChain extends Chain {
    * @param <T> the concrete type of the service addition
    * @return this {@code GroovyChain}
    */
-  <T> GroovyChain register(Class<? super T> type, T service, @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handlers);
+  <T> GroovyChain register(Class<? super T> type, T service, @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handlers) throws Exception;
 
   /**
    * {@inheritDoc}
@@ -289,7 +289,7 @@ public interface GroovyChain extends Chain {
   GroovyChain fileSystem(String path, Handler handler);
 
   @Override
-  GroovyChain fileSystem(String path, Action<? super Chain> action);
+  GroovyChain fileSystem(String path, Action<? super Chain> action) throws Exception;
 
   /**
    * Creates a {@code List} of {@code Handler} from the given {@code Closure} and adds a {@code Handler} to this {@code GroovyChain} that
@@ -301,7 +301,7 @@ public interface GroovyChain extends Chain {
    * @param handlers the definition of the handler chain
    * @return this {@code GroovyChain}
    */
-  GroovyChain fileSystem(String path, @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handlers);
+  GroovyChain fileSystem(String path, @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handlers) throws Exception;
 
   /**
    * {@inheritDoc}

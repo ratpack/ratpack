@@ -17,9 +17,13 @@
 package ratpack.groovy.internal;
 
 import groovy.lang.Closure;
-import ratpack.groovy.launch.GroovyScriptHandlerFactory;
+import ratpack.api.Nullable;
+import ratpack.groovy.launch.GroovyClosureHandlerFactory;
+import ratpack.groovy.launch.GroovyScriptFileHandlerFactory;
+import ratpack.launch.HandlerFactory;
 import ratpack.launch.LaunchConfig;
 import ratpack.launch.LaunchConfigFactory;
+import ratpack.launch.internal.DelegatingLaunchConfig;
 import ratpack.server.RatpackServer;
 import ratpack.server.RatpackServerBuilder;
 import ratpack.util.Action;
@@ -33,71 +37,89 @@ import java.security.ProtectionDomain;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static ratpack.util.ExceptionUtils.uncheck;
-
 public class StandaloneScriptBacking implements Action<Closure<?>> {
 
   private final static AtomicReference<Action<? super RatpackServer>> CAPTURE_ACTION = new AtomicReference<>(null);
+
 
   public static void captureNext(Action<? super RatpackServer> action) {
     CAPTURE_ACTION.set(action);
   }
 
-  public void execute(Closure<?> closure) {
+  public void execute(final Closure<?> closure) throws Exception {
     File scriptFile = findScript(closure);
 
     Properties defaultProperties = new Properties();
-    defaultProperties.setProperty(LaunchConfigFactory.Property.RELOADABLE, "true");
+    File baseDir;
+
+    if (scriptFile == null) {
+      baseDir = new File(System.getProperty("user.dir"));
+    } else {
+      baseDir = scriptFile.getParentFile();
+    }
 
     Properties properties = createProperties(scriptFile);
 
-    File baseDir = scriptFile.getParentFile();
     File configFile = new File(baseDir, LaunchConfigFactory.CONFIG_RESOURCE_DEFAULT);
-
     LaunchConfig launchConfig = LaunchConfigFactory.createFromFile(closure.getClass().getClassLoader(), baseDir, configFile, properties, defaultProperties);
 
-    RatpackServer ratpack = RatpackServerBuilder.build(launchConfig);
+    if (scriptFile == null) {
+      launchConfig = new DelegatingLaunchConfig(launchConfig) {
+        @Override
+        public HandlerFactory getHandlerFactory() {
+          return new GroovyClosureHandlerFactory(closure);
+        }
+      };
+    }
+
+    RatpackServer server = RatpackServerBuilder.build(launchConfig);
 
     Action<? super RatpackServer> action = CAPTURE_ACTION.getAndSet(null);
     if (action != null) {
-      try {
-        action.execute(ratpack);
-      } catch (Exception e) {
-        throw uncheck(e);
-      }
+      action.execute(server);
     }
+
+    server.start();
 
     try {
-      ratpack.start();
-    } catch (Exception e) {
-      throw new IllegalStateException("Failed to start Ratpack application", e);
+      while (server.isRunning() && !Thread.interrupted()) {
+        Thread.sleep(1000);
+      }
+    } catch (InterruptedException ignore) {
+      // do nothing
     }
+
+    server.stop();
   }
 
-  protected Properties createProperties(File scriptFile) {
+  protected Properties createProperties(@Nullable File scriptFile) {
     Properties properties = LaunchConfigFactory.getDefaultPrefixedProperties();
-    properties.setProperty(LaunchConfigFactory.Property.HANDLER_FACTORY, GroovyScriptHandlerFactory.class.getName());
-    properties.setProperty("other." + GroovyScriptHandlerFactory.SCRIPT_PROPERTY_NAME, scriptFile.getName());
+
+    properties.setProperty(LaunchConfigFactory.Property.HANDLER_FACTORY, GroovyScriptFileHandlerFactory.class.getName());
+    properties.setProperty(LaunchConfigFactory.Property.RELOADABLE, "true");
+
+    if (scriptFile != null) {
+      properties.setProperty("other." + GroovyScriptFileHandlerFactory.SCRIPT_PROPERTY_NAME, scriptFile.getName());
+    }
+
     return properties;
   }
 
-  private <T> File findScript(Closure<T> closure) {
+  private <T> File findScript(Closure<T> closure) throws URISyntaxException {
     Class<?> clazz = closure.getClass();
     ProtectionDomain protectionDomain = clazz.getProtectionDomain();
     CodeSource codeSource = protectionDomain.getCodeSource();
     URL location = codeSource.getLocation();
 
-    if (!location.getProtocol().equals("file")) {
-      throw new IllegalStateException("Can not determine ratpack script from closure " + closure + " as code source location is not a file URL: " + location);
+    URI uri = location.toURI();
+
+    if (uri.getScheme().equals("file")) {
+      File file = new File(uri);
+      if (file.exists()) {
+        return file;
+      }
     }
 
-    URI uri;
-    try {
-      uri = location.toURI();
-    } catch (URISyntaxException e) {
-      throw uncheck(e);
-    }
-
-    return new File(uri);
+    return null;
   }
 }

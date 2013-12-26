@@ -94,7 +94,11 @@ public class WebSocketConnector {
         final WebSocket webSocket = new DefaultWebSocket(context.getDirectChannelAccess().getChannel(), open, new Runnable() {
           @Override
           public void run() {
-            handler.onClose(new DefaultWebSocketClose<>(false, openResult));
+            try {
+              handler.onClose(new DefaultWebSocketClose<>(false, openResult));
+            } catch (Exception e) {
+              throw uncheck(e);
+            }
           }
         });
 

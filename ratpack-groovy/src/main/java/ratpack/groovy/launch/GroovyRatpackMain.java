@@ -32,7 +32,7 @@ public class GroovyRatpackMain extends RatpackMain {
 
   @Override
   protected void addImpliedDefaults(Properties properties) {
-    properties.put(LaunchConfigFactory.Property.HANDLER_FACTORY, GroovyScriptHandlerFactory.class.getName());
-    properties.put(GroovyScriptHandlerFactory.SCRIPT_PROPERTY_NAME, "ratpack.groovy");
+    properties.put(LaunchConfigFactory.Property.HANDLER_FACTORY, GroovyScriptFileHandlerFactory.class.getName());
+    properties.put(GroovyScriptFileHandlerFactory.SCRIPT_PROPERTY_NAME, "ratpack.groovy");
   }
 }

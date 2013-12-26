@@ -19,25 +19,57 @@ package ratpack.groovy.internal;
 import groovy.lang.Closure;
 import ratpack.util.Action;
 
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
 public abstract class RatpackScriptBacking {
 
-  private static final ThreadLocal<Action<Closure<?>>> BACKING_HOLDER = new ThreadLocal<Action<Closure<?>>>() {
+  private static final ThreadLocal<Lock> LOCK_HOLDER = new ThreadLocal<Lock>() {
+    @Override
+    protected Lock initialValue() {
+      return new ReentrantLock();
+    }
+  };
+
+  private static final ThreadLocal<Action<Closure<?>>> BACKING_HOLDER = new InheritableThreadLocal<Action<Closure<?>>>() {
     @Override
     protected Action<Closure<?>> initialValue() {
       return new StandaloneScriptBacking();
     }
   };
 
-  public static Action<Closure<?>> getBacking() {
-    return BACKING_HOLDER.get();
+  public static void withBacking(Action<Closure<?>> backing, Runnable runnable) {
+    LOCK_HOLDER.get().lock();
+    try {
+      Action<Closure<?>> previousBacking = BACKING_HOLDER.get();
+      BACKING_HOLDER.set(backing);
+      try {
+        runnable.run();
+      } finally {
+        BACKING_HOLDER.set(previousBacking);
+      }
+    } finally {
+      LOCK_HOLDER.get().unlock();
+    }
   }
 
-  public static void withBacking(Action<Closure<?>> backing, Runnable runnable) {
-    BACKING_HOLDER.set(backing);
+  public static Action<Closure<?>> swapBacking(Action<Closure<?>> backing) {
+    LOCK_HOLDER.get().lock();
     try {
-      runnable.run();
+      Action<Closure<?>> previousBacking = BACKING_HOLDER.get();
+      BACKING_HOLDER.set(backing);
+      return previousBacking;
     } finally {
-      BACKING_HOLDER.remove();
+      LOCK_HOLDER.get().unlock();
+    }
+  }
+
+  public static void execute(Closure<?> closure) throws Exception {
+    LOCK_HOLDER.get().lock();
+    try {
+      BACKING_HOLDER.get().execute(closure);
+    } finally {
+      LOCK_HOLDER.get().unlock();
     }
   }
 

@@ -90,6 +90,7 @@ import java.io.File;
  * <pre class="groovy-ratpack-dsl">
  * import ratpack.handlebars.HandlebarsModule
  * import static ratpack.handlebars.Template.handlebarsTemplate
+ * import static ratpack.groovy.Groovy.ratpack
  *
  * ratpack {
  *   modules {

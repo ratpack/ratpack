@@ -89,12 +89,7 @@ public class NettyRatpackService implements RatpackService {
         .option(ChannelOption.SO_BACKLOG, 1024)
         .option(ChannelOption.ALLOCATOR, launchConfig.getBufferAllocator());
 
-      try {
-        channel = bootstrap.bind(buildSocketAddress()).sync().channel();
-      } catch (Exception e) {
-        Throwables.propagateIfInstanceOf(e, LaunchException.class);
-        throw new LaunchException("Unable to launch due to exception", e);
-      }
+      channel = bootstrap.bind(buildSocketAddress()).sync().channel();
 
       boundAddress = (InetSocketAddress) channel.localAddress();
 
@@ -102,6 +97,9 @@ public class NettyRatpackService implements RatpackService {
         logger.info(String.format("Ratpack started for http://%s:%s", getBindHost(), getBindPort()));
       }
       running.set(true);
+    } catch (Exception e) {
+      Throwables.propagateIfInstanceOf(e, LaunchException.class);
+      throw new LaunchException("Unable to launch due to exception", e);
     } finally {
       lifecycleLock.unlock();
     }

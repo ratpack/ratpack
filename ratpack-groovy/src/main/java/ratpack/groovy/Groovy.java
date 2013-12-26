@@ -55,14 +55,14 @@ public abstract class Groovy {
    * Starts a Ratpack app, defined by the given closure.
    * <p>
    * This method is used is Ratpack scripts as the entry point.
-   * <pre class="tested">
-   * import ratpack.session.store.MapSessionsModule
+   * <pre class="groovy-ratpack-dsl">
+   * import ratpack.session.SessionModule
    * import static ratpack.groovy.Groovy.*
    *
    * ratpack {
    *   modules {
    *     // example of registering a module
-   *     register(new MapSessionsModule(100, 60))
+   *     register(new SessionModule())
    *   }
    *   handlers {
    *     // define the application handlers
@@ -88,7 +88,7 @@ public abstract class Groovy {
    */
   public static void ratpack(@DelegatesTo(value = Ratpack.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) {
     try {
-      RatpackScriptBacking.getBacking().execute(closure);
+      RatpackScriptBacking.execute(closure);
     } catch (Exception e) {
       throw uncheck(e);
     }
@@ -124,7 +124,7 @@ public abstract class Groovy {
    * @param closure The chain definition
    * @return A handler
    */
-  public static Handler chain(LaunchConfig launchConfig, @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) {
+  public static Handler chain(LaunchConfig launchConfig, @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) throws Exception {
     return chain(launchConfig, null, closure);
   }
 
@@ -140,7 +140,7 @@ public abstract class Groovy {
    * @param closure The chain building closure.
    * @return A handler
    */
-  public static Handler chain(LaunchConfig launchConfig, @Nullable Registry registry, @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) {
+  public static Handler chain(LaunchConfig launchConfig, @Nullable Registry registry, @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) throws Exception {
     return ChainBuilders.build(
       launchConfig,
       new GroovyDslChainActionTransformer(launchConfig, registry),

@@ -182,7 +182,7 @@ public interface Chain {
    */
   Chain prefix(String prefix, Handler handler);
 
-  Chain prefix(String prefix, Action<? super Chain> action);
+  Chain prefix(String prefix, Action<? super Chain> action) throws Exception;
 
   /**
    * Adds a {@code Handler} to this {@code GroovyChain} that delegates to the given {@code Handler}
@@ -332,7 +332,7 @@ public interface Chain {
    */
   Chain register(Object service, Handler handler);
 
-  Chain register(Object service, Action<? super Chain> action);
+  Chain register(Object service, Action<? super Chain> action) throws Exception;
 
   /**
    * Adds a {@code Handler} to this {@code GroovyChain} that inserts the given handlers with the given {@code service} addition.
@@ -350,7 +350,7 @@ public interface Chain {
    */
   <T> Chain register(Class<? super T> type, T service, Handler handler);
 
-  <T> Chain register(Class<? super T> type, T service, Action<? super Chain> action);
+  <T> Chain register(Class<? super T> type, T service, Action<? super Chain> action) throws Exception;
 
   /**
    * Adds a {@code Handler} to this {@code GroovyChain} that changes the {@link ratpack.file.FileSystemBinding}
@@ -362,7 +362,7 @@ public interface Chain {
    */
   Chain fileSystem(String path, Handler handler);
 
-  Chain fileSystem(String path, Action<? super Chain> action);
+  Chain fileSystem(String path, Action<? super Chain> action) throws Exception;
 
   /**
    * Adds a {@code Handler} to the chain that delegates to the given handler if the request has a header with the given name and a its value matches the given value exactly.
@@ -383,6 +383,6 @@ public interface Chain {
    */
   Chain header(String headerName, String headerValue, Handler handler);
 
-  Handler chain(Action<? super Chain> action);
+  Handler chain(Action<? super Chain> action) throws Exception;
 
 }
