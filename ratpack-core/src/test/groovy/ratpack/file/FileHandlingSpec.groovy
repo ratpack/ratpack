@@ -17,6 +17,7 @@
 package ratpack.file
 
 import ratpack.test.internal.RatpackGroovyDslSpec
+import spock.lang.Ignore
 
 class FileHandlingSpec extends RatpackGroovyDslSpec {
 
@@ -51,5 +52,23 @@ class FileHandlingSpec extends RatpackGroovyDslSpec {
 
     expect:
     getText() == "null-value"
+  }
+
+  @Ignore
+  void "unresolved files result in statusCode 404"() {
+    given:
+    app {
+      handlers {
+        get {
+          render file("../../etc/passwd")
+        }
+      }
+    }
+
+    when:
+    getText()
+
+    then:
+    response.statusCode == 404
   }
 }
