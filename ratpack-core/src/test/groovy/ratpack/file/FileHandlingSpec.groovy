@@ -41,13 +41,17 @@ class FileHandlingSpec extends RatpackGroovyDslSpec {
     app {
       handlers {
         get {
-          render "${file('../ratpack.groovy')}"
+          def f = file('../ratpack.groovy')
+          if (!f)
+            render "null value"
+          else
+            render "non-null value"
         }
       }
     }
 
     expect:
-    getText() == "null"
+    getText() == "null value"
   }
 
   void "unresolved files result in statusCode 404"() {
