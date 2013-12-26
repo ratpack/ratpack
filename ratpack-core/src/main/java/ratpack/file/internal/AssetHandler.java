@@ -17,6 +17,7 @@
 package ratpack.file.internal;
 
 import com.google.common.collect.ImmutableList;
+import ratpack.file.FileSystemBinding;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.http.Request;
@@ -56,13 +57,11 @@ public class AssetHandler implements Handler {
       throw uncheck(e);
     }
 
-    // Convert file separators.
-    path = path.replace('/', File.separatorChar);
-
-    if (path.contains(File.separator + '.') || path.contains('.' + File.separator) || path.startsWith(".") || path.endsWith(".")) {
-      context.clientError(404);
+    File asset = context.file(path);
+    if (asset != null) {
+      servePath(context, asset);
     } else {
-      servePath(context, context.file(path));
+      context.clientError(404);
     }
   }
 
@@ -113,6 +112,10 @@ public class AssetHandler implements Handler {
       redirectUri += "?" + query;
     }
     return redirectUri;
+  }
+
+  private FileSystemBinding getFileSystemBinding(Context context) {
+    return context.get(FileSystemBinding.class);
   }
 
 }
