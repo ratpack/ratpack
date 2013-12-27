@@ -17,44 +17,64 @@
 package ratpack.file
 
 import ratpack.test.internal.RatpackGroovyDslSpec
+import spock.lang.FailsWith
 import spock.lang.Ignore
+import spock.lang.Issue
 
 class FileHandlingSpec extends RatpackGroovyDslSpec {
 
   void "context resolves files relative to application root"() {
     given:
+    def fileInsideBaseDir = file("foo")
+
+    when:
     app {
       handlers {
-        get {
-          def f = file("/etc/passwd")
-          render f.canonicalPath
+        get { FileSystemBinding fsBinding ->
+
+          assert file("/foo") == fileInsideBaseDir
+
+          assert fsBinding.binding("/foo").file == fileInsideBaseDir
+          assert fsBinding.file("/foo") == fileInsideBaseDir
+
+          render "ok"
         }
       }
     }
 
-    when:
-    def resp = getText()
-
     then:
-    resp == "${server.launchConfig.baseDir.canonicalPath}/etc/passwd"
+    text == "ok"
   }
 
   void "context returns null value for files that cannot be found in the application root"() {
     given:
+    def path = "../some-file.txt" // outside the base dir
+
+    file(path) << "foo"
+
+    when:
     app {
       handlers {
-        get {
-          def f = file('../')
-          render f ?: "null-value"
+        get { FileSystemBinding fsBinding ->
+
+          assert new File(fsBinding.file, path).exists()
+
+          assert fsBinding.binding(path) == null
+          assert fsBinding.file(path) == null
+
+          assert file(path) == null
+
+          render "ok"
         }
       }
     }
 
-    expect:
-    getText() == "null-value"
+    then:
+    text == "ok"
   }
 
-  @Ignore
+  @FailsWith(AssertionError)
+  @Issue("https://github.com/ratpack/ratpack/issues/215")
   void "unresolved files result in statusCode 404"() {
     given:
     app {
