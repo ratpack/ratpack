@@ -46,8 +46,8 @@ class LocalScriptApplicationUnderTestSpec extends Specification {
       }
     """
     def aut = new LocalScriptApplicationUnderTest(
-      'ratpack.configResource': configResourceAbsolutePath,
-      'ratpack.other.fromLocalScriptApplicationUnderTest': 'some value'
+      configResource: configResourceAbsolutePath,
+      'other.fromLocalScriptApplicationUnderTest': 'some value'
     )
     def client = TestHttpClients.testHttpClient(aut)
 

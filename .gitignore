@@ -18,3 +18,4 @@ gradle.properties
 .jruby/
 ratpack-groovy/Expression$*.class
 /.java-version
+Expression$*.class

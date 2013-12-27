@@ -46,7 +46,9 @@ public class RatpackMainServerFactory implements Factory<RatpackServer> {
   public RatpackServer create() {
     Properties systemProperties = new Properties(System.getProperties());
     systemProperties.setProperty("ratpack.port", systemProperties.getProperty("ratpack.port", "0"));
-    systemProperties.putAll(overriddenProperties);
+    for (Map.Entry<String, String> property : overriddenProperties.entrySet()) {
+      systemProperties.setProperty("ratpack." + property.getKey(), property.getValue());
+    }
     return ratpackMain.server(systemProperties, new Properties());
   }
 
