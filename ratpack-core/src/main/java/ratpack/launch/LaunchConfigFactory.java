@@ -23,6 +23,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.net.*;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -119,7 +120,7 @@ public abstract class LaunchConfigFactory {
    */
   public static LaunchConfig createFromProperties(ClassLoader classLoader, Properties overrideProperties, Properties defaultProperties) {
     String configResourceValue = overrideProperties.getProperty(CONFIG_RESOURCE_PROPERTY, CONFIG_RESOURCE_DEFAULT);
-    File configFile = new File(configResourceValue);
+    File configFile = Paths.get(configResourceValue).toAbsolutePath().normalize().toFile();
     if (!configFile.exists()) {
       URL configResourceUrl = classLoader.getResource(configResourceValue);
       if (configResourceUrl == null) {
@@ -128,7 +129,7 @@ public abstract class LaunchConfigFactory {
 
       try {
         URI uri = configResourceUrl.toURI();
-        configFile = new File(uri);
+        configFile = Paths.get(uri).toAbsolutePath().normalize().toFile();
       } catch (Exception e) {
         throw new LaunchException("Could not get file for config file resource '" + configResourceUrl + "'", e);
       }
