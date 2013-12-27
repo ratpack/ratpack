@@ -29,8 +29,9 @@ import ratpack.launch.HandlerFactory;
 import ratpack.launch.LaunchConfig;
 import ratpack.util.Transformer;
 
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 public class GroovyScriptFileHandlerFactory implements HandlerFactory {
 
@@ -42,17 +43,22 @@ public class GroovyScriptFileHandlerFactory implements HandlerFactory {
 
   public Handler create(LaunchConfig launchConfig) {
     String scriptName = launchConfig.getOther(SCRIPT_PROPERTY_NAME, SCRIPT_PROPERTY_DEFAULT);
-    File script = new File(launchConfig.getBaseDir(), scriptName);
+    Path script = launchConfig.getBaseDir().file(scriptName);
+    if (script == null) {
+      throw new IllegalStateException("scriptName '" + scriptName + "' escapes application base dir");
+    }
 
-    if (!script.exists()) {
-      File capitalized = new File(launchConfig.getBaseDir(), scriptName.substring(0, 1).toUpperCase() + scriptName.substring(1));
-      if (capitalized.exists()) {
-        script = capitalized;
+    if (!Files.exists(script)) {
+      Path capitalized = launchConfig.getBaseDir().file(scriptName.substring(0, 1).toUpperCase() + scriptName.substring(1));
+      if (capitalized != null) {
+        if (Files.exists(capitalized)) {
+          script = capitalized;
+        }
       }
     }
 
     try {
-      script = script.getCanonicalFile();
+      script = script.toRealPath();
     } catch (IOException ignore) {
       // ignore
     }

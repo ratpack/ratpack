@@ -18,31 +18,32 @@ package ratpack.file.internal;
 
 import ratpack.file.FileSystemBinding;
 
-import java.io.File;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public class DefaultFileSystemBinding implements FileSystemBinding {
 
-  private final File file;
+  private final Path binding;
 
-  public DefaultFileSystemBinding(File file) {
-    this.file = file;
+  public DefaultFileSystemBinding(Path binding) {
+    this.binding = binding;
   }
 
-  public File getFile() {
-    return file;
+  public Path getFile() {
+    return binding;
   }
 
-  public File file(String path) {
-    if (inRoot(path)) {
-      return new File(file, path);
+  public Path file(String path) {
+    Path child = Paths.get(binding.toString(), path).normalize();
+    if (child.startsWith(binding)) {
+      return child;
     } else {
       return null;
     }
   }
 
   public FileSystemBinding binding(String path) {
-    File binding = file(path);
+    Path binding = file(path);
     if (binding != null) {
       return new DefaultFileSystemBinding(binding);
     } else {
@@ -50,12 +51,8 @@ public class DefaultFileSystemBinding implements FileSystemBinding {
     }
   }
 
-  public FileSystemBinding binding(File file) {
-    return new DefaultFileSystemBinding(file);
+  public FileSystemBinding binding(Path path) {
+    return new DefaultFileSystemBinding(path);
   }
 
-  private boolean inRoot(String path) {
-    String root = file.getAbsolutePath();
-    return Paths.get(root, path).toAbsolutePath().normalize().startsWith(root);
-  }
 }

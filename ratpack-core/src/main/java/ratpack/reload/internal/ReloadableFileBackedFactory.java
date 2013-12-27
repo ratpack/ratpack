@@ -20,9 +20,10 @@ import io.netty.buffer.ByteBuf;
 import ratpack.util.Factory;
 import ratpack.util.internal.IoUtils;
 
-import java.io.File;
 import java.io.IOException;
-import java.util.concurrent.atomic.AtomicLong;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.attribute.FileTime;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -34,18 +35,18 @@ public class ReloadableFileBackedFactory<T> implements Factory<T> {
   // Note: we are blocking for IO on the main thread here, but it only really impacts
   // reloadable mode so it's not worth the complication of jumping off the main thread
 
-  private final File file;
+  private final Path file;
   private final boolean reloadable;
   private final Producer<T> producer;
   private final Releaser<T> releaser;
 
-  private final AtomicLong lastModifiedHolder = new AtomicLong(-1);
+  private final AtomicReference<FileTime> lastModifiedHolder = new AtomicReference<>(null);
   private final AtomicReference<ByteBuf> contentHolder = new AtomicReference<>();
   private final AtomicReference<T> delegateHolder = new AtomicReference<>(null);
   private final Lock lock = new ReentrantLock();
 
   static public interface Producer<T> {
-    T produce(File file, ByteBuf bytes) throws Exception;
+    T produce(Path file, ByteBuf bytes) throws Exception;
   }
 
   static public interface Releaser<T> {
@@ -59,11 +60,11 @@ public class ReloadableFileBackedFactory<T> implements Factory<T> {
     }
   }
 
-  public ReloadableFileBackedFactory(File file, boolean reloadable, Producer<T> producer) {
+  public ReloadableFileBackedFactory(Path file, boolean reloadable, Producer<T> producer) {
     this(file, reloadable, producer, new NullReleaser<T>());
   }
 
-  public ReloadableFileBackedFactory(File file, boolean reloadable, Producer<T> producer, Releaser<T> releaser) {
+  public ReloadableFileBackedFactory(Path file, boolean reloadable, Producer<T> producer, Releaser<T> releaser) {
     this.file = file;
     this.reloadable = reloadable;
     this.producer = producer;
@@ -85,7 +86,7 @@ public class ReloadableFileBackedFactory<T> implements Factory<T> {
 
     // If the file disappeared, wait a little for it to appear
     int i = 10;
-    while (!file.exists() && --i > 0) {
+    while (!Files.exists(file) && --i > 0) {
       try {
         Thread.sleep(100);
       } catch (InterruptedException e) {
@@ -93,7 +94,7 @@ public class ReloadableFileBackedFactory<T> implements Factory<T> {
       }
     }
 
-    if (!file.exists()) {
+    if (!Files.exists(file)) {
       return null;
     }
 
@@ -117,21 +118,21 @@ public class ReloadableFileBackedFactory<T> implements Factory<T> {
         return false;
       }
 
-      return IoUtils.readFile(file).equals(existing);
+      return IoUtils.read(file).equals(existing);
     } finally {
       lock.unlock();
     }
   }
 
   private boolean refreshNeeded() throws IOException {
-    return (file.lastModified() != lastModifiedHolder.get()) || !isBytesAreSame();
+    return (Files.getLastModifiedTime(file) != lastModifiedHolder.get()) || !isBytesAreSame();
   }
 
   private void refresh() throws Exception {
     lock.lock();
     try {
-      long lastModifiedTime = file.lastModified();
-      ByteBuf bytes = IoUtils.readFile(file);
+      FileTime lastModifiedTime = Files.getLastModifiedTime(file);
+      ByteBuf bytes = IoUtils.read(file);
 
       if (lastModifiedTime == lastModifiedHolder.get() && bytes.equals(contentHolder.get())) {
         return;

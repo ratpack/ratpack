@@ -24,20 +24,18 @@ import ratpack.handling.Context;
 import ratpack.render.RendererSupport;
 import ratpack.util.Action;
 
-import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Date;
 import java.util.concurrent.Callable;
 
 import static io.netty.handler.codec.http.HttpResponseStatus.NOT_MODIFIED;
 
-public class DefaultFileRenderer extends RendererSupport<File> implements FileRenderer {
+public class DefaultFileRenderer extends RendererSupport<Path> implements FileRenderer {
 
   @Override
-  public void render(final Context context, final File targetFile) {
+  public void render(final Context context, final Path targetFile) {
     readAttributes(context.getBackground(), targetFile, new Action<BasicFileAttributes>() {
       @Override
       public void execute(BasicFileAttributes attributes) {
@@ -50,7 +48,7 @@ public class DefaultFileRenderer extends RendererSupport<File> implements FileRe
     });
   }
 
-  public static void sendFile(final Context context, final File file, final BasicFileAttributes attributes) {
+  public static void sendFile(final Context context, final Path file, final BasicFileAttributes attributes) {
     if (!context.getRequest().getMethod().isGet()) {
       context.clientError(405);
       return;
@@ -66,18 +64,17 @@ public class DefaultFileRenderer extends RendererSupport<File> implements FileRe
           return;
         }
 
-        String contentType = context.get(MimeTypes.class).getContentType(file.getName());
+        String contentType = context.get(MimeTypes.class).getContentType(file.getFileName().toString());
         context.getResponse().sendFile(context.getBackground(), contentType, attributes, file);
       }
     });
   }
 
-  public static void readAttributes(Background background, final File file, Action<? super BasicFileAttributes> then) {
+  public static void readAttributes(Background background, final Path file, Action<? super BasicFileAttributes> then) {
     background.exec(new Callable<BasicFileAttributes>() {
       public BasicFileAttributes call() throws Exception {
-        Path path = Paths.get(file.toURI());
-        if (Files.exists(path)) {
-          return Files.readAttributes(path, BasicFileAttributes.class);
+        if (Files.exists(file)) {
+          return Files.readAttributes(file, BasicFileAttributes.class);
         } else {
           return null;
         }

@@ -32,7 +32,10 @@ import ratpack.event.internal.EventController;
 import ratpack.file.FileRenderer;
 import ratpack.file.FileSystemBinding;
 import ratpack.file.MimeTypes;
-import ratpack.file.internal.*;
+import ratpack.file.internal.ActivationBackedMimeTypes;
+import ratpack.file.internal.DefaultFileHttpTransmitter;
+import ratpack.file.internal.DefaultFileRenderer;
+import ratpack.file.internal.FileHttpTransmitter;
 import ratpack.form.FormParser;
 import ratpack.form.internal.MultipartFormParser;
 import ratpack.form.internal.UrlEncodedFormParser;
@@ -87,7 +90,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
     this.registry = RegistryBuilder.builder()
       // If you update this list, update the class level javadoc on Context.
       .add(Stopper.class, stopper)
-      .add(FileSystemBinding.class, new DefaultFileSystemBinding(launchConfig.getBaseDir()))
+      .add(FileSystemBinding.class, launchConfig.getBaseDir())
       .add(MimeTypes.class, new ActivationBackedMimeTypes())
       .add(PublicAddress.class, new DefaultPublicAddress(launchConfig.getPublicAddress(), launchConfig.getSSLContext() == null ? "http" : "https"))
       .add(Redirector.class, new DefaultRedirector())

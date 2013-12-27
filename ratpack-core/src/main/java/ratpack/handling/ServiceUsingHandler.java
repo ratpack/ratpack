@@ -43,13 +43,13 @@ import static ratpack.util.ExceptionUtils.uncheck;
  * public class VerboseHandler implements Handler {
  *   public void handle(Context context) {
  *     FileSystemBinding fileSystemBinding = context.get(FileSystemBinding.class);
- *     context.getResponse().send(fileSystemBinding.getFile().getAbsolutePath());
+ *     context.render(fileSystemBinding.getFile().toString());
  *   }
  * }
  *
  * public class SuccinctHandler extends ServiceUsingHandler {
  *   public void handle(Context context, FileSystemBinding fileSystemBinding) {
- *     context.getResponse().send(fileSystemBinding.getFile().getAbsolutePath());
+ *     context.render(fileSystemBinding.getFile().toString());
  *   }
  * }
  * </pre>

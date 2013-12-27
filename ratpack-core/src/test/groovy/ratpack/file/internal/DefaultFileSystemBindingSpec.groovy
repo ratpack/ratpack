@@ -28,12 +28,12 @@ class DefaultFileSystemBindingSpec extends Specification {
   FileSystemBinding binding
 
   def setup() {
-    binding = new DefaultFileSystemBinding(temporaryFolder.root)
+    binding = new DefaultFileSystemBinding(temporaryFolder.root.toPath())
   }
 
   def "absolute paths are resolved relative"() {
     expect:
-    binding.file("/foo") == temporaryFolder.newFile("foo")
+    binding.file("/foo") == temporaryFolder.newFile("foo").toPath()
   }
 
   def "files not in binding root returns null"() {

@@ -17,16 +17,15 @@
 package ratpack.file.internal;
 
 import com.google.common.collect.ImmutableList;
-import ratpack.file.FileSystemBinding;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.http.Request;
 import ratpack.path.PathBinding;
 import ratpack.util.Action;
 
-import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 
 import static ratpack.file.internal.DefaultFileRenderer.readAttributes;
@@ -57,7 +56,7 @@ public class AssetHandler implements Handler {
       throw uncheck(e);
     }
 
-    File asset = context.file(path);
+    Path asset = context.file(path);
     if (asset != null) {
       servePath(context, asset);
     } else {
@@ -65,7 +64,7 @@ public class AssetHandler implements Handler {
     }
   }
 
-  private void servePath(final Context context, final File file) {
+  private void servePath(final Context context, final Path file) {
     readAttributes(context.getBackground(), file, new Action<BasicFileAttributes>() {
       public void execute(BasicFileAttributes attributes) {
         if (attributes == null) {
@@ -81,12 +80,12 @@ public class AssetHandler implements Handler {
     });
   }
 
-  private void maybeSendFile(final Context context, final File file, final int i) {
+  private void maybeSendFile(final Context context, final Path file, final int i) {
     if (i == indexFiles.size()) {
       context.next();
     } else {
       String name = indexFiles.get(i);
-      final File indexFile = new File(file, name);
+      final Path indexFile = file.resolve(name);
       readAttributes(context.getBackground(), indexFile, new Action<BasicFileAttributes>() {
         public void execute(BasicFileAttributes attributes) {
           if (attributes != null && attributes.isRegularFile()) {
@@ -112,10 +111,6 @@ public class AssetHandler implements Handler {
       redirectUri += "?" + query;
     }
     return redirectUri;
-  }
-
-  private FileSystemBinding getFileSystemBinding(Context context) {
-    return context.get(FileSystemBinding.class);
   }
 
 }

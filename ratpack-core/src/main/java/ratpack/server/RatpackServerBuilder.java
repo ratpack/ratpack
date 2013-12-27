@@ -33,6 +33,7 @@ import ratpack.util.Factory;
 import ratpack.util.Transformer;
 
 import java.io.File;
+import java.nio.file.Path;
 
 /**
  * Builds a {@link RatpackServer}.
@@ -72,9 +73,9 @@ public abstract class RatpackServerBuilder {
     if (launchConfig.isReloadable()) {
       File classFile = ClassUtil.getClassFile(handlerFactory);
       if (classFile != null) {
-        Factory<Handler> factory = new ReloadableFileBackedFactory<>(classFile, true, new ReloadableFileBackedFactory.Producer<Handler>() {
+        Factory<Handler> factory = new ReloadableFileBackedFactory<>(classFile.toPath(), true, new ReloadableFileBackedFactory.Producer<Handler>() {
           @Override
-          public Handler produce(File file, ByteBuf bytes) {
+          public Handler produce(Path file, ByteBuf bytes) {
             return createHandler(launchConfig, handlerFactory);
           }
         });

@@ -18,6 +18,6 @@ package ratpack.file;
 
 import ratpack.render.Renderer;
 
-import java.io.File;
+import java.nio.file.Path;
 
-public interface FileRenderer extends Renderer<File> {}
+public interface FileRenderer extends Renderer<Path> {}

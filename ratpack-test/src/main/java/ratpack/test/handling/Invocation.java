@@ -20,7 +20,7 @@ import ratpack.api.Nullable;
 import ratpack.http.Headers;
 import ratpack.http.Status;
 
-import java.io.File;
+import java.nio.file.Path;
 
 /**
  * Represents the result of invoking a handler.
@@ -48,7 +48,7 @@ public interface Invocation {
   boolean isSentResponse(); // This is not named right, as it doesn't include sending files
 
   @Nullable
-  File getSentFile();
+  Path getSentFile();
 
   @Nullable
   <T> T rendered(Class<T> type);

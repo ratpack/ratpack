@@ -18,14 +18,13 @@ package ratpack.file
 
 import ratpack.test.internal.RatpackGroovyDslSpec
 import spock.lang.FailsWith
-import spock.lang.Ignore
 import spock.lang.Issue
 
 class FileHandlingSpec extends RatpackGroovyDslSpec {
 
   void "context resolves files relative to application root"() {
     given:
-    def fileInsideBaseDir = file("foo")
+    def fileInsideBaseDir = file("foo").toPath()
 
     when:
     app {
@@ -57,7 +56,7 @@ class FileHandlingSpec extends RatpackGroovyDslSpec {
       handlers {
         get { FileSystemBinding fsBinding ->
 
-          assert new File(fsBinding.file, path).exists()
+          assert new File(fsBinding.file.toFile(), path).exists()
 
           assert fsBinding.binding(path) == null
           assert fsBinding.file(path) == null

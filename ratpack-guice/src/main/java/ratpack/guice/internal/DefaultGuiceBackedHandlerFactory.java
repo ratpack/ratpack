@@ -38,6 +38,7 @@ import ratpack.util.Transformer;
 
 import javax.inject.Provider;
 import java.io.File;
+import java.nio.file.Path;
 import java.util.*;
 
 import static ratpack.util.ExceptionUtils.uncheck;
@@ -54,9 +55,9 @@ public class DefaultGuiceBackedHandlerFactory implements GuiceBackedHandlerFacto
     if (launchConfig.isReloadable()) {
       File classFile = ClassUtil.getClassFile(modulesAction);
       if (classFile != null) {
-        Factory<InjectorBindingHandler> factory = new ReloadableFileBackedFactory<>(classFile, true, new ReloadableFileBackedFactory.Producer<InjectorBindingHandler>() {
+        Factory<InjectorBindingHandler> factory = new ReloadableFileBackedFactory<>(classFile.toPath(), true, new ReloadableFileBackedFactory.Producer<InjectorBindingHandler>() {
           @Override
-          public InjectorBindingHandler produce(File file, ByteBuf bytes) throws Exception {
+          public InjectorBindingHandler produce(Path file, ByteBuf bytes) throws Exception {
             return doCreate(modulesAction, moduleTransformer, injectorTransformer);
           }
         });

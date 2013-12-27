@@ -19,19 +19,19 @@ package ratpack.groovy.templating.internal;
 import io.netty.buffer.ByteBuf;
 import ratpack.util.internal.IoUtils;
 
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 
-class FileTemplateSource implements TemplateSource {
+class PathTemplateSource implements TemplateSource {
 
-  private final File file;
-  private final String name;
   private final String id;
+  private final Path path;
+  private final String name;
 
-  public FileTemplateSource(File file, String name, boolean reloadable) {
-    this.file = file;
+  public PathTemplateSource(String id, Path path, String name) {
+    this.path = path;
     this.name = name;
-    this.id = file.getAbsolutePath() + File.separator + (reloadable ? file.lastModified() : 0);
+    this.id = id;
   }
 
   public String getName() {
@@ -39,7 +39,7 @@ class FileTemplateSource implements TemplateSource {
   }
 
   public ByteBuf getContent() throws IOException {
-    return IoUtils.readFile(file);
+    return IoUtils.read(path);
   }
 
   @Override
@@ -51,13 +51,9 @@ class FileTemplateSource implements TemplateSource {
       return false;
     }
 
-    FileTemplateSource that = (FileTemplateSource) o;
+    PathTemplateSource that = (PathTemplateSource) o;
 
-    if (!id.equals(that.id)) {
-      return false;
-    }
-
-    return true;
+    return id.equals(that.id);
   }
 
   @Override

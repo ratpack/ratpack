@@ -18,11 +18,11 @@ package ratpack.file.internal;
 
 import ratpack.background.Background;
 
-import java.io.File;
+import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 
 public interface FileHttpTransmitter {
 
-  void transmit(Background background, BasicFileAttributes basicFileAttributes, File file);
+  void transmit(Background background, BasicFileAttributes basicFileAttributes, Path file);
 
 }

@@ -22,10 +22,11 @@ import ratpack.background.Background;
 import ratpack.util.Action;
 
 import java.io.Closeable;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.concurrent.Callable;
 
@@ -45,16 +46,20 @@ public class DefaultFileHttpTransmitter implements FileHttpTransmitter {
   }
 
   @Override
-  public void transmit(Background background, final BasicFileAttributes basicFileAttributes, final File file) {
-    background.exec(new Callable<FileChannel>() {
-      public FileChannel call() throws Exception {
-        return new FileInputStream(file).getChannel();
-      }
-    }).then(new Action<FileChannel>() {
-      public void execute(FileChannel fileChannel) {
-        transmit(basicFileAttributes, fileChannel);
-      }
-    });
+  public void transmit(Background background, final BasicFileAttributes basicFileAttributes, final Path file) {
+    if (file.getFileSystem().equals(FileSystems.getDefault())) {
+      background.exec(new Callable<FileChannel>() {
+        public FileChannel call() throws Exception {
+          return new FileInputStream(file.toFile()).getChannel();
+        }
+      }).then(new Action<FileChannel>() {
+        public void execute(FileChannel fileChannel) {
+          transmit(basicFileAttributes, fileChannel);
+        }
+      });
+    } else {
+      throw new UnsupportedOperationException("file " + file + " is not part of the default file system");
+    }
   }
 
   private void transmit(BasicFileAttributes basicFileAttributes, final FileChannel fileChannel) {

@@ -20,6 +20,9 @@ import com.jayway.restassured.response.Response
 import ratpack.http.internal.HttpHeaderDateFormat
 import ratpack.test.internal.RatpackGroovyDslSpec
 
+import java.nio.file.Files
+import java.nio.file.Path
+
 import static io.netty.handler.codec.http.HttpHeaders.Names.*
 import static io.netty.handler.codec.http.HttpResponseStatus.NOT_MODIFIED
 import static io.netty.handler.codec.http.HttpResponseStatus.OK
@@ -27,10 +30,10 @@ import static io.netty.handler.codec.http.HttpResponseStatus.OK
 class FileRenderingSpec extends RatpackGroovyDslSpec {
 
   private static final String FILE_CONTENTS = "hello!"
-  private File myFile
+  private Path myFile
 
   def setup() {
-    myFile = file("myFile.text") << FILE_CONTENTS
+    myFile = (file("myFile.text") << FILE_CONTENTS).toPath()
   }
 
   def "can render file"() {
@@ -62,7 +65,7 @@ class FileRenderingSpec extends RatpackGroovyDslSpec {
     }
 
     and:
-    request.header IF_MODIFIED_SINCE, formatDateHeader(myFile.lastModified())
+    request.header IF_MODIFIED_SINCE, formatDateHeader(Files.getLastModifiedTime(myFile).toMillis())
 
     when:
     get("path")
@@ -89,7 +92,7 @@ class FileRenderingSpec extends RatpackGroovyDslSpec {
     with(response) {
       statusCode == OK.code()
       // compare the last modified dates formatted as milliseconds are stripped when added as a response header
-      formatDateHeader(parseDateHeader(response, LAST_MODIFIED)) == formatDateHeader(myFile.lastModified())
+      formatDateHeader(parseDateHeader(response, LAST_MODIFIED)) == formatDateHeader(Files.getLastModifiedTime(myFile).toMillis())
     }
 
   }

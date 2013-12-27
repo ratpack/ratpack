@@ -26,6 +26,7 @@ import ratpack.util.Action;
 import ratpack.util.Transformer;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -35,9 +36,9 @@ public class ChainBuilders {
     if (launchConfig.isReloadable()) {
       File classFile = ClassUtil.getClassFile(chainBuilderAction);
       if (classFile != null) {
-        ReloadableFileBackedFactory<Handler> factory = new ReloadableFileBackedFactory<>(classFile, true, new ReloadableFileBackedFactory.Producer<Handler>() {
+        ReloadableFileBackedFactory<Handler> factory = new ReloadableFileBackedFactory<>(classFile.toPath(), true, new ReloadableFileBackedFactory.Producer<Handler>() {
           @Override
-          public Handler produce(File file, ByteBuf bytes) throws Exception {
+          public Handler produce(Path file, ByteBuf bytes) throws Exception {
             return create(toChainBuilder, chainBuilderAction);
           }
         });

@@ -43,10 +43,10 @@ import ratpack.render.Renderer;
 import ratpack.server.BindAddress;
 import ratpack.util.*;
 
-import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.reflect.UndeclaredThrowableException;
+import java.nio.file.Path;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -198,7 +198,7 @@ public class DefaultContext implements Context {
     return get(PathBinding.class).getAllTokens();
   }
 
-  public File file(String path) {
+  public Path file(String path) {
     return get(FileSystemBinding.class).file(path);
   }
 
@@ -211,7 +211,7 @@ public class DefaultContext implements Context {
       }
     }
 
-    throw new NoSuchRendererException("No renderer for object '" + object + "'");
+    throw new NoSuchRendererException("No renderer for object '" + object + "' of type '" + object.getClass() + "'");
   }
 
   private <T> boolean maybeRender(Object object, Renderer<T> renderer) {

@@ -29,22 +29,22 @@ import ratpack.util.Transformer;
 import ratpack.util.internal.ByteBufWriteThroughOutputStream;
 import ratpack.util.internal.IoUtils;
 
-import java.io.File;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.nio.file.Path;
 
 import static ratpack.util.ExceptionUtils.uncheck;
 
 public class ScriptBackedApp implements Handler {
 
   private final Factory<Handler> reloadHandler;
-  private final File script;
+  private final Path script;
 
-  public ScriptBackedApp(File script, final boolean staticCompile, boolean reloadable, final Transformer<Closure<?>, Handler> closureTransformer) {
+  public ScriptBackedApp(Path script, final boolean staticCompile, boolean reloadable, final Transformer<Closure<?>, Handler> closureTransformer) {
     this.script = script;
     this.reloadHandler = new ReloadableFileBackedFactory<>(script, reloadable, new ReloadableFileBackedFactory.Producer<Handler>() {
-      public Handler produce(final File file, final ByteBuf bytes) {
+      public Handler produce(final Path file, final ByteBuf bytes) {
         try {
           final String string = IoUtils.utf8String(bytes);
           final ScriptEngine<Script> scriptEngine = new ScriptEngine<>(getClass().getClassLoader(), staticCompile, Script.class);
@@ -52,7 +52,7 @@ public class ScriptBackedApp implements Handler {
           Runnable runScript = new Runnable() {
             public void run() {
               try {
-                scriptEngine.run(file.getName(), string);
+                scriptEngine.run(file.getFileName().toString(), string);
               } catch (Exception e) {
                 throw uncheck(e);
               }
@@ -93,7 +93,7 @@ public class ScriptBackedApp implements Handler {
       return;
     }
     if (handler == null) {
-      context.getResponse().send("script file does not exist:" + script.getAbsolutePath());
+      context.getResponse().send("script file does not exist:" + script.toAbsolutePath());
     } else {
       handler.handle(context);
     }

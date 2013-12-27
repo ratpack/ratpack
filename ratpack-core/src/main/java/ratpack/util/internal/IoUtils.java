@@ -25,32 +25,29 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
+import java.nio.channels.SeekableByteChannel;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 public abstract class IoUtils {
 
-  public static ByteBuf readFile(File file) throws IOException {
-    FileInputStream fIn = null;
-    FileChannel fChan = null;
-    long fSize;
-    ByteBuffer mBuf;
-
-    try {
-      fIn = new FileInputStream(file);
-      fChan = fIn.getChannel();
-      fSize = fChan.size();
-      mBuf = ByteBuffer.allocate((int) fSize);
-      fChan.read(mBuf);
-      mBuf.rewind();
-    } finally {
-      if (fChan != null) {
-        fChan.close();
-      }
-      if (fIn != null) {
-        fIn.close();
-      }
+  public static ByteBuf read(Path path) throws IOException {
+    try (SeekableByteChannel seekableByteChannel = Files.newByteChannel(path)) {
+      return read(seekableByteChannel);
     }
+  }
 
+  public static ByteBuf read(File file) throws IOException {
+    try (FileInputStream fIn = new FileInputStream(file)) {
+      return read(fIn.getChannel());
+    }
+  }
+
+  private static ByteBuf read(SeekableByteChannel fChan) throws IOException {
+    long fSize = fChan.size();
+    ByteBuffer mBuf = ByteBuffer.allocate((int) fSize);
+    fChan.read(mBuf);
+    mBuf.rewind();
     return Unpooled.wrappedBuffer(mBuf);
   }
 

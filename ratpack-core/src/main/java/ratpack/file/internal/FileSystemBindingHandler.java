@@ -20,35 +20,26 @@ import ratpack.file.FileSystemBinding;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 
-import java.io.File;
-
 public class FileSystemBindingHandler implements Handler {
 
-  private final File file;
+  private final String path;
   private final Handler handler;
-  private final boolean absolute;
-  private final FileSystemBinding absoluteBinding;
 
-  public FileSystemBindingHandler(File file, Handler handler) {
-    this.file = file;
+  public FileSystemBindingHandler(String path, Handler handler) {
+    this.path = path;
     this.handler = handler;
-    this.absolute = file.isAbsolute();
-    this.absoluteBinding = new DefaultFileSystemBinding(file.getAbsoluteFile());
+
+    // TODO - validate the path isn't escaping up with ../
   }
 
   public void handle(Context context) {
-    if (absolute) {
-      context.insert(FileSystemBinding.class, absoluteBinding, handler);
+    // There is always a binding available
+    FileSystemBinding parentBinding = context.get(FileSystemBinding.class);
+    FileSystemBinding binding = parentBinding.binding(path);
+    if (binding == null) {
+      context.clientError(404);
     } else {
-      FileSystemBinding parentBinding = context.maybeGet(FileSystemBinding.class);
-      if (parentBinding == null) {
-        context.insert(FileSystemBinding.class, absoluteBinding, handler);
-      } else {
-        FileSystemBinding binding = parentBinding.binding(file.getPath());
-        if (binding != null) {
-          context.insert(FileSystemBinding.class, binding, handler);
-        }
-      }
+      context.insert(FileSystemBinding.class, binding, handler);
     }
   }
 }

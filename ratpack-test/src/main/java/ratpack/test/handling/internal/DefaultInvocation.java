@@ -43,7 +43,7 @@ import ratpack.test.handling.Invocation;
 import ratpack.test.handling.InvocationTimeoutException;
 import ratpack.util.Action;
 
-import java.io.File;
+import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
@@ -62,7 +62,7 @@ public class DefaultInvocation implements Invocation {
   private Status status;
   private boolean calledNext;
   private boolean sentResponse;
-  private File sentFile;
+  private Path sentFile;
   private Object rendered;
   private Integer clientError;
 
@@ -81,7 +81,7 @@ public class DefaultInvocation implements Invocation {
 
     FileHttpTransmitter fileHttpTransmitter = new FileHttpTransmitter() {
       @Override
-      public void transmit(Background background, BasicFileAttributes basicFileAttributes, File file) {
+      public void transmit(Background background, BasicFileAttributes basicFileAttributes, Path file) {
         sentFile = file;
         latch.countDown();
       }
@@ -221,7 +221,7 @@ public class DefaultInvocation implements Invocation {
   }
 
   @Override
-  public File getSentFile() {
+  public Path getSentFile() {
     return sentFile;
   }
 

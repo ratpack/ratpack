@@ -77,12 +77,12 @@ class BasicGroovyDslSpec extends RatpackGroovyDslSpec {
       handlers {
         fileSystem("foo") {
           get("foo") {
-            response.send file("file.txt").text
+            render file("file.txt")
           }
         }
         fileSystem("bar") {
           get("bar") {
-            response.send file("file.txt").text
+            render file("file.txt")
           }
         }
       }
@@ -123,10 +123,10 @@ class BasicGroovyDslSpec extends RatpackGroovyDslSpec {
     app {
       handlers {
         get("p1") { FileSystemBinding fileSystemBinding ->
-          response.send fileSystemBinding.class.name
+          render fileSystemBinding.class.name
         }
         get("p2") { FileSystemBinding fileSystemBinding, ServerErrorHandler serverErrorHandler ->
-          response.send serverErrorHandler.class.name
+          render serverErrorHandler.class.name
         }
       }
     }

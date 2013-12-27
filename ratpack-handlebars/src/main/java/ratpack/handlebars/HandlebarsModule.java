@@ -18,18 +18,17 @@ package ratpack.handlebars;
 
 import com.github.jknack.handlebars.Handlebars;
 import com.github.jknack.handlebars.cache.TemplateCache;
-import com.github.jknack.handlebars.io.FileTemplateLoader;
 import com.github.jknack.handlebars.io.TemplateLoader;
 import com.google.common.cache.CacheBuilder;
 import com.google.inject.*;
+import ratpack.file.FileSystemBinding;
 import ratpack.guice.internal.GuiceUtil;
+import ratpack.handlebars.internal.FileSystemBindingTemplateLoader;
 import ratpack.handlebars.internal.HandlebarsTemplateRenderer;
 import ratpack.handlebars.internal.RatpackTemplateCache;
 import ratpack.handlebars.internal.TemplateKey;
 import ratpack.launch.LaunchConfig;
 import ratpack.util.Action;
-
-import java.io.File;
 
 /**
  * An extension module that provides support for Handlebars.java templating engine.
@@ -151,16 +150,17 @@ public class HandlebarsModule extends AbstractModule {
   @Override
   protected void configure() {
     bind(HandlebarsTemplateRenderer.class).in(Singleton.class);
-    bind(TemplateLoader.class).to(FileTemplateLoader.class).in(Singleton.class);
   }
 
   @SuppressWarnings("UnusedDeclaration")
   @Provides
-  FileTemplateLoader provideTemplateLoader(LaunchConfig launchConfig) {
+  @Singleton
+  TemplateLoader provideTemplateLoader(LaunchConfig launchConfig) {
     String path = templatesPath == null ? launchConfig.getOther("handlebars.templatesPath", "handlebars") : templatesPath;
     String suffix = templatesSuffix == null ? launchConfig.getOther("handlebars.templatesSuffix", ".hbs") : templatesSuffix;
-    File templatesPathFile = new File(launchConfig.getBaseDir(), path);
-    return new FileTemplateLoader(templatesPathFile, suffix);
+
+    FileSystemBinding templatesBinding = launchConfig.getBaseDir().binding(path);
+    return new FileSystemBindingTemplateLoader(templatesBinding, suffix);
   }
 
   @SuppressWarnings("UnusedDeclaration")
@@ -172,7 +172,8 @@ public class HandlebarsModule extends AbstractModule {
   }
 
   @SuppressWarnings("UnusedDeclaration")
-  @Provides @Singleton
+  @Provides
+  @Singleton
   Handlebars provideHandlebars(Injector injector, TemplateLoader templateLoader, TemplateCache templateCache) {
 
     final Handlebars handlebars = new Handlebars().with(templateLoader).with(templateCache);

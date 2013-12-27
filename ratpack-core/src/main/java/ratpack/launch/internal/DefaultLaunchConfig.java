@@ -19,11 +19,11 @@ package ratpack.launch.internal;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.netty.buffer.ByteBufAllocator;
+import ratpack.file.FileSystemBinding;
 import ratpack.launch.HandlerFactory;
 import ratpack.launch.LaunchConfig;
 
 import javax.net.ssl.SSLContext;
-import java.io.File;
 import java.net.InetAddress;
 import java.net.URI;
 import java.util.List;
@@ -31,7 +31,7 @@ import java.util.concurrent.ExecutorService;
 
 public class DefaultLaunchConfig implements LaunchConfig {
 
-  private final File baseDir;
+  private final FileSystemBinding baseDir;
   private final HandlerFactory handlerFactory;
   private final int port;
   private final InetAddress address;
@@ -45,7 +45,7 @@ public class DefaultLaunchConfig implements LaunchConfig {
   private final SSLContext sslContext;
   private final int maxContentLength;
 
-  public DefaultLaunchConfig(File baseDir, int port, InetAddress address, boolean reloadable, int mainThreads, ExecutorService backgroundExecutorService, ByteBufAllocator byteBufAllocator, URI publicAddress, ImmutableList<String> indexFiles, ImmutableMap<String, String> other, SSLContext sslContext, int maxContentLength, HandlerFactory handlerFactory) {
+  public DefaultLaunchConfig(FileSystemBinding baseDir, int port, InetAddress address, boolean reloadable, int mainThreads, ExecutorService backgroundExecutorService, ByteBufAllocator byteBufAllocator, URI publicAddress, ImmutableList<String> indexFiles, ImmutableMap<String, String> other, SSLContext sslContext, int maxContentLength, HandlerFactory handlerFactory) {
     this.baseDir = baseDir;
     this.port = port;
     this.address = address;
@@ -62,7 +62,7 @@ public class DefaultLaunchConfig implements LaunchConfig {
   }
 
   @Override
-  public File getBaseDir() {
+  public FileSystemBinding getBaseDir() {
     return baseDir;
   }
 

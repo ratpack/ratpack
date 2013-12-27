@@ -18,9 +18,9 @@ package ratpack.launch;
 
 import io.netty.buffer.ByteBufAllocator;
 import ratpack.api.Nullable;
+import ratpack.file.FileSystemBinding;
 
 import javax.net.ssl.SSLContext;
-import java.io.File;
 import java.net.InetAddress;
 import java.net.URI;
 import java.util.List;
@@ -50,7 +50,7 @@ public interface LaunchConfig {
    *
    * @return The base dir of the application.
    */
-  public File getBaseDir();
+  public FileSystemBinding getBaseDir();
 
   /**
    * The handler factory that can create the root handler for the application.

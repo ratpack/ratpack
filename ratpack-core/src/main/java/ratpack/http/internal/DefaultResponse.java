@@ -30,9 +30,9 @@ import ratpack.util.Action;
 import ratpack.util.ExceptionUtils;
 import ratpack.util.internal.IoUtils;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Date;
 import java.util.HashSet;
@@ -228,13 +228,13 @@ public class DefaultResponse implements Response {
   }
 
   @Override
-  public void sendFile(Background background, String contentType, BasicFileAttributes attributes, File file) {
+  public void sendFile(Background background, String contentType, BasicFileAttributes attributes, Path file) {
     contentType(contentType);
     setCookieHeader();
     fileHttpTransmitter.transmit(background, attributes, file);
   }
 
-  public void sendFile(final Background background, final String contentType, final File file) {
+  public void sendFile(final Background background, final String contentType, final Path file) {
     readAttributes(background, file, new Action<BasicFileAttributes>() {
       public void execute(BasicFileAttributes fileAttributes) {
         sendFile(background, contentType, fileAttributes, file);

@@ -18,7 +18,7 @@ package ratpack.file;
 
 import ratpack.api.Nullable;
 
-import java.io.File;
+import java.nio.file.Path;
 
 /**
  * A file system binding represents a file system location that is used to resolve relative paths.
@@ -36,18 +36,19 @@ public interface FileSystemBinding {
    *
    * @return The actual point on the filesystem that this binding is bound to.
    */
-  File getFile();
+  Path getFile();
 
   /**
    * Creates a file reference relative to the bind point denoted by the given relative path.
    *
    * Absolute paths are resolved relative to the bind point, not the filesystem root.
    *
+   *
    * @param path The relative path from this binding to the desired file
    * @return The file
    */
   @Nullable
-  File file(String path);
+  Path file(String path);
 
   /**
    * Construct a new binding by using the given path as a relative path from this bind point.
@@ -66,9 +67,10 @@ public interface FileSystemBinding {
    *
    * Prefer using {@link ratpack.handling.Context#file(String)}.
    *
-   * @param file The file of the desired binding
+   *
+   * @param path The file of the desired binding
    * @return The binding
    */
-  FileSystemBinding binding(File file);
+  FileSystemBinding binding(Path path);
 
 }

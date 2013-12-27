@@ -18,11 +18,11 @@ package ratpack.launch.internal;
 
 import io.netty.buffer.ByteBufAllocator;
 import ratpack.api.Nullable;
+import ratpack.file.FileSystemBinding;
 import ratpack.launch.HandlerFactory;
 import ratpack.launch.LaunchConfig;
 
 import javax.net.ssl.SSLContext;
-import java.io.File;
 import java.net.InetAddress;
 import java.net.URI;
 import java.util.List;
@@ -37,7 +37,7 @@ public class DelegatingLaunchConfig implements LaunchConfig {
   }
 
   @Override
-  public File getBaseDir() {
+  public FileSystemBinding getBaseDir() {
     return launchConfig.getBaseDir();
   }
 

@@ -31,7 +31,7 @@ import ratpack.util.Action;
 import ratpack.util.Factory;
 import ratpack.util.ResultAction;
 
-import java.io.File;
+import java.nio.file.Path;
 import java.util.Date;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ScheduledExecutorService;
@@ -281,11 +281,12 @@ public interface Context extends Registry {
    * The default configuration of Ratpack includes a {@link ratpack.file.FileSystemBinding} in all contexts.
    * A {@link ratpack.registry.NotInRegistryException} will only be thrown if a very custom service setup is being used.
    *
+   *
    * @param path The path to pass to the {@link ratpack.file.FileSystemBinding#file(String)} method.
    * @return The file relative to the contextual {@link ratpack.file.FileSystemBinding}
    * @throws NotInRegistryException if there is no {@link ratpack.file.FileSystemBinding} in the current service
    */
-  File file(String path) throws NotInRegistryException;
+  Path file(String path) throws NotInRegistryException;
 
   /**
    * Render the given object, using the rendering framework.
@@ -294,7 +295,7 @@ public interface Context extends Registry {
    * <p>
    * This will finalize the response, no further processing should be done.
    * <p>
-   * The default configuration of Ratpack always makes a renderer for {@link File} objects available.
+   * The default configuration of Ratpack always makes a renderer for {@link java.nio.file.Path} objects available.
    * <p>
    * See {@link ratpack.render.Renderer} for more on the rendering framework.
    *

@@ -20,6 +20,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.PooledByteBufAllocator;
+import ratpack.file.FileSystemBinding;
+import ratpack.file.internal.DefaultFileSystemBinding;
 import ratpack.launch.internal.DefaultLaunchConfig;
 import ratpack.ssl.SSLContexts;
 
@@ -30,6 +32,7 @@ import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.URI;
 import java.net.URL;
+import java.nio.file.Path;
 import java.security.GeneralSecurityException;
 import java.util.List;
 import java.util.Map;
@@ -63,7 +66,7 @@ import java.util.concurrent.ThreadFactory;
 @SuppressWarnings("UnusedDeclaration")
 public class LaunchConfigBuilder {
 
-  private final File baseDir;
+  private final FileSystemBinding baseDir;
 
   private int port = LaunchConfig.DEFAULT_PORT;
   private InetAddress address;
@@ -77,8 +80,8 @@ public class LaunchConfigBuilder {
   private SSLContext sslContext;
   private int maxContentLength = LaunchConfig.DEFAULT_MAX_CONTENT_LENGTH;
 
-  private LaunchConfigBuilder(File baseDir) {
-    this.baseDir = baseDir;
+  private LaunchConfigBuilder(Path baseDir) {
+    this.baseDir = new DefaultFileSystemBinding(baseDir);
   }
 
   /**
@@ -90,6 +93,18 @@ public class LaunchConfigBuilder {
    * @see ratpack.launch.LaunchConfig#getBaseDir()
    */
   public static LaunchConfigBuilder baseDir(File baseDir) {
+    return baseDir(baseDir.toPath());
+  }
+
+  /**
+   * Create a new builder, using the given file as the base dir.
+   *
+   * @param baseDir The base dir of the launch config
+   * @return A new launch config builder
+   *
+   * @see ratpack.launch.LaunchConfig#getBaseDir()
+   */
+  public static LaunchConfigBuilder baseDir(Path baseDir) {
     return new LaunchConfigBuilder(baseDir);
   }
 

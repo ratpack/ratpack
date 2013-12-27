@@ -39,7 +39,7 @@ import ratpack.util.Action;
 import ratpack.util.Factory;
 import ratpack.util.ResultAction;
 
-import java.io.File;
+import java.nio.file.Path;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -210,7 +210,7 @@ public class DefaultGroovyContext implements GroovyContext {
   }
 
   @Override
-  public File file(String path) throws NotInRegistryException {
+  public Path file(String path) throws NotInRegistryException {
     return delegate.file(path);
   }
 

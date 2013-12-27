@@ -21,6 +21,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
+import ratpack.file.FileSystemBinding;
 import ratpack.groovy.script.internal.ScriptEngine;
 import ratpack.groovy.templating.TemplatingConfig;
 import ratpack.launch.LaunchConfig;
@@ -29,7 +30,9 @@ import ratpack.util.Result;
 import ratpack.util.Transformer;
 
 import javax.inject.Inject;
-import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Map;
 
 public class GroovyTemplateRenderingEngine {
@@ -39,7 +42,7 @@ public class GroovyTemplateRenderingEngine {
   private final LoadingCache<TemplateSource, CompiledTemplate> compiledTemplateCache;
   private final TemplateCompiler templateCompiler;
   private final boolean reloadable;
-  private final File templateDir;
+  private final FileSystemBinding templateDir;
   private final ByteBufAllocator byteBufAllocator;
 
   @Inject
@@ -61,18 +64,27 @@ public class GroovyTemplateRenderingEngine {
     });
 
     reloadable = templatingConfig.isReloadable();
-    templateDir = new File(launchConfig.getBaseDir(), templatingConfig.getTemplatesPath());
+    String templatesPath = templatingConfig.getTemplatesPath();
+    templateDir = launchConfig.getBaseDir().binding(templatesPath);
+    if (templateDir == null) {
+      throw new IllegalStateException("templatesPath '" + templatesPath + "' is outside the file system binding");
+    }
   }
 
   public void renderTemplate(ByteBuf buffer, final String templateId, final Map<String, ?> model, final Action<Result<ByteBuf>> handler) throws Exception {
-    final File templateFile = getTemplateFile(templateId);
-    render(buffer, new FileTemplateSource(templateFile, templateId, reloadable), model, handler);
+    Path templateFile = getTemplateFile(templateId);
+    render(buffer, toTemplateSource(templateId, templateFile), model, handler);
+  }
+
+  private PathTemplateSource toTemplateSource(String templateId, Path templateFile) throws IOException {
+    String id = templateId + (reloadable ? Files.getLastModifiedTime(templateFile) : "0");
+    return new PathTemplateSource(id, templateFile, templateId);
   }
 
   public void renderError(ByteBuf buffer, Map<String, ?> model, Action<Result<ByteBuf>> handler) throws Exception {
-    final File errorTemplate = getTemplateFile(ERROR_TEMPLATE);
-    if (errorTemplate.exists()) {
-      render(buffer, new FileTemplateSource(errorTemplate, ERROR_TEMPLATE, reloadable), model, handler);
+    final Path errorTemplate = getTemplateFile(ERROR_TEMPLATE);
+    if (Files.exists(errorTemplate)) {
+      render(buffer, toTemplateSource(ERROR_TEMPLATE, errorTemplate), model, handler);
     } else {
       render(buffer, new ResourceTemplateSource(ERROR_TEMPLATE, byteBufAllocator), model, handler);
     }
@@ -81,8 +93,8 @@ public class GroovyTemplateRenderingEngine {
   private void render(ByteBuf buffer, final TemplateSource templateSource, Map<String, ?> model, Action<Result<ByteBuf>> handler) throws Exception {
     try {
       new Render(buffer, compiledTemplateCache, templateSource, model, handler, new Transformer<String, TemplateSource>() {
-        public TemplateSource transform(String templateName) {
-          return new FileTemplateSource(new File(templateDir, templateName), templateName, reloadable);
+        public TemplateSource transform(String templateName) throws IOException {
+          return toTemplateSource(templateName, getTemplateFile(templateName));
         }
       });
     } catch (Exception e) {
@@ -90,8 +102,8 @@ public class GroovyTemplateRenderingEngine {
     }
   }
 
-  private File getTemplateFile(String templateName) {
-    return new File(templateDir, templateName);
+  private Path getTemplateFile(String templateName) {
+    return templateDir.file(templateName);
   }
 
 }

@@ -21,9 +21,9 @@ import io.netty.handler.codec.http.Cookie;
 import ratpack.api.NonBlocking;
 import ratpack.background.Background;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Set;
 
@@ -204,7 +204,7 @@ public interface Response {
   /**
    * Sends the response, using the given content type and the content of the given type as the response body.
    * <p>
-   * Prefer {@link #sendFile(ratpack.background.Background, String, java.nio.file.attribute.BasicFileAttributes, java.io.File)} where
+   * Prefer {@link #sendFile(ratpack.background.Background, String, java.nio.file.attribute.BasicFileAttributes, java.nio.file.Path)} where
    * the file attributes have already been retrieved to avoid another IO operation.
    *
    * @param background the background operation manager to use
@@ -212,7 +212,7 @@ public interface Response {
    * @param file The file whose contents are to be used as the response body
    */
   @NonBlocking
-  void sendFile(Background background, String contentType, File file);
+  void sendFile(Background background, String contentType, Path file);
 
   /**
    * Sends the response, using the given content type and the content of the given type as the response body.
@@ -223,5 +223,5 @@ public interface Response {
    * @param file The file whose contents are to be used as the response body
    */
   @NonBlocking
-  void sendFile(Background background, String contentType, BasicFileAttributes attributes, File file);
+  void sendFile(Background background, String contentType, BasicFileAttributes attributes, Path file);
 }
