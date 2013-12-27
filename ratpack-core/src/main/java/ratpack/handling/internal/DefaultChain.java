@@ -61,7 +61,7 @@ public class DefaultChain implements Chain {
     return handler(Handlers.prefix(prefix, handler));
   }
 
-  public Chain prefix(String prefix, Action<? super Chain> action) {
+  public Chain prefix(String prefix, Action<? super Chain> action) throws Exception {
     return prefix(prefix, chain(action));
   }
 
@@ -105,7 +105,7 @@ public class DefaultChain implements Chain {
     return handler(Handlers.register(service, handler));
   }
 
-  public Chain register(Object service, Action<? super Chain> action) {
+  public Chain register(Object service, Action<? super Chain> action) throws Exception {
     return register(service, chain(action));
   }
 
@@ -113,7 +113,7 @@ public class DefaultChain implements Chain {
     return handler(Handlers.register(type, service, handler));
   }
 
-  public <T> Chain register(Class<? super T> type, T service, Action<? super Chain> action) {
+  public <T> Chain register(Class<? super T> type, T service, Action<? super Chain> action) throws Exception {
     return register(type, service, chain(action));
   }
 
@@ -121,7 +121,7 @@ public class DefaultChain implements Chain {
     return handler(Handlers.fileSystem(path, handler));
   }
 
-  public Chain fileSystem(String path, Action<? super Chain> action) {
+  public Chain fileSystem(String path, Action<? super Chain> action) throws Exception {
     return handler(Handlers.fileSystem(path, chain(action)));
   }
 
@@ -130,7 +130,7 @@ public class DefaultChain implements Chain {
   }
 
   @Override
-  public Handler chain(Action<? super Chain> action) {
+  public Handler chain(Action<? super Chain> action) throws Exception {
     return Handlers.chain(getLaunchConfig(), getRegistry(), action);
   }
 

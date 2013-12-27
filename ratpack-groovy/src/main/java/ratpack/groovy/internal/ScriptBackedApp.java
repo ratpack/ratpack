@@ -16,18 +16,12 @@
 
 package ratpack.groovy.internal;
 
-import com.google.inject.Injector;
-import com.google.inject.Module;
 import groovy.lang.Closure;
 import groovy.lang.Script;
 import io.netty.buffer.ByteBuf;
-import ratpack.groovy.guice.internal.DefaultGroovyModuleRegistry;
 import ratpack.groovy.script.internal.ScriptEngine;
-import ratpack.guice.ModuleRegistry;
-import ratpack.guice.internal.GuiceBackedHandlerFactory;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
-import ratpack.launch.LaunchConfig;
 import ratpack.reload.internal.ReloadableFileBackedFactory;
 import ratpack.util.Action;
 import ratpack.util.Factory;
@@ -47,13 +41,12 @@ public class ScriptBackedApp implements Handler {
   private final Factory<Handler> reloadHandler;
   private final File script;
 
-  public ScriptBackedApp(File script, final LaunchConfig launchConfig, final GuiceBackedHandlerFactory appFactory, final Transformer<? super Module, ? extends Injector> moduleTransformer, final boolean staticCompile, boolean reloadable) {
+  public ScriptBackedApp(File script, final boolean staticCompile, boolean reloadable, final Transformer<Closure<?>, Handler> closureTransformer) {
     this.script = script;
     this.reloadHandler = new ReloadableFileBackedFactory<>(script, reloadable, new ReloadableFileBackedFactory.Producer<Handler>() {
       public Handler produce(final File file, final ByteBuf bytes) {
         try {
-          final String string;
-          string = IoUtils.utf8String(bytes);
+          final String string = IoUtils.utf8String(bytes);
           final ScriptEngine<Script> scriptEngine = new ScriptEngine<>(getClass().getClassLoader(), staticCompile, Script.class);
 
           Runnable runScript = new Runnable() {
@@ -66,27 +59,10 @@ public class ScriptBackedApp implements Handler {
             }
           };
 
-          final DefaultRatpack ratpack = new DefaultRatpack();
-          Action<Closure<?>> backing = new Action<Closure<?>>() {
-            public void execute(Closure<?> configurer) {
-              ClosureUtil.configureDelegateFirst(ratpack, configurer);
-            }
-          };
-
+          ClosureCaptureAction backing = new ClosureCaptureAction();
           RatpackScriptBacking.withBacking(backing, runScript);
 
-          final Closure<?> modulesConfigurer = ratpack.getModulesConfigurer();
-          Closure<?> handlersConfigurer = ratpack.getHandlersConfigurer();
-
-          Action<ModuleRegistry> modulesAction = new Action<ModuleRegistry>() {
-            @Override
-            public void execute(ModuleRegistry thing) throws Exception {
-              ClosureUtil.delegatingAction(modulesConfigurer).execute(new DefaultGroovyModuleRegistry(thing));
-            }
-          };
-
-          return appFactory.create(modulesAction, moduleTransformer, new InjectorHandlerTransformer(launchConfig, handlersConfigurer));
-
+          return closureTransformer.transform(backing.closure);
         } catch (Exception e) {
           throw uncheck(e);
         }
@@ -123,4 +99,11 @@ public class ScriptBackedApp implements Handler {
     }
   }
 
+  private static class ClosureCaptureAction implements Action<Closure<?>> {
+    private Closure<?> closure;
+
+    public void execute(Closure<?> configurer) {
+      closure = configurer;
+    }
+  }
 }

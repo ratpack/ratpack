@@ -77,7 +77,7 @@ public abstract class Handlers {
    * @param action The chain definition
    * @return A handler
    */
-  public static Handler chain(LaunchConfig launchConfig, Action<? super Chain> action) {
+  public static Handler chain(LaunchConfig launchConfig, Action<? super Chain> action) throws Exception {
     return chain(launchConfig, null, action);
   }
 
@@ -89,7 +89,7 @@ public abstract class Handlers {
    * @param action The chain building action.
    * @return A handler
    */
-  public static Handler chain(LaunchConfig launchConfig, @Nullable Registry registry, Action<? super Chain> action) {
+  public static Handler chain(LaunchConfig launchConfig, @Nullable Registry registry, Action<? super Chain> action) throws Exception {
     return ChainBuilders.build(launchConfig, new ChainActionTransformer(launchConfig, registry), action);
   }
 

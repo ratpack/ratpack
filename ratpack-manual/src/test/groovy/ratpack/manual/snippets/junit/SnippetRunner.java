@@ -23,6 +23,8 @@ import org.junit.runner.notification.RunNotifier;
 import ratpack.manual.snippets.SnippetExecuter;
 import ratpack.manual.snippets.TestCodeSnippet;
 
+import static ratpack.util.ExceptionUtils.uncheck;
+
 public class SnippetRunner extends Runner {
 
   private final Description description;
@@ -46,7 +48,13 @@ public class SnippetRunner extends Runner {
       notifier.fireTestStarted(getDescription());
       executer.execute(snippet);
     } catch (Throwable t) {
-      notifier.fireTestFailure(new Failure(getDescription(), snippet.getExceptionTransformer().transform(t)));
+      Throwable transform;
+      try {
+        transform = snippet.getExceptionTransformer().transform(t);
+      } catch (Exception e) {
+        throw uncheck(e);
+      }
+      notifier.fireTestFailure(new Failure(getDescription(), transform));
     } finally {
       notifier.fireTestFinished(getDescription());
     }

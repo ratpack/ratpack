@@ -29,17 +29,15 @@ import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
 
-import static ratpack.util.ExceptionUtils.uncheck;
-
 public class ChainBuilders {
 
-  public static <T> Handler build(LaunchConfig launchConfig, final Transformer<List<Handler>, ? extends T> toChainBuilder, final Action<? super T> chainBuilderAction) {
+  public static <T> Handler build(LaunchConfig launchConfig, final Transformer<List<Handler>, ? extends T> toChainBuilder, final Action<? super T> chainBuilderAction) throws Exception {
     if (launchConfig.isReloadable()) {
       File classFile = ClassUtil.getClassFile(chainBuilderAction);
       if (classFile != null) {
         ReloadableFileBackedFactory<Handler> factory = new ReloadableFileBackedFactory<>(classFile, true, new ReloadableFileBackedFactory.Producer<Handler>() {
           @Override
-          public Handler produce(File file, ByteBuf bytes) {
+          public Handler produce(File file, ByteBuf bytes) throws Exception {
             return create(toChainBuilder, chainBuilderAction);
           }
         });
@@ -50,16 +48,10 @@ public class ChainBuilders {
     return create(toChainBuilder, chainBuilderAction);
   }
 
-  private static <T> Handler create(Transformer<List<Handler>, ? extends T> toChainBuilder, Action<? super T> chainBuilderAction) {
+  private static <T> Handler create(Transformer<List<Handler>, ? extends T> toChainBuilder, Action<? super T> chainBuilderAction) throws Exception {
     List<Handler> handlers = new LinkedList<>();
     T chainBuilder = toChainBuilder.transform(handlers);
-
-    try {
-      chainBuilderAction.execute(chainBuilder);
-    } catch (Exception e) {
-      throw uncheck(e);
-    }
-
+    chainBuilderAction.execute(chainBuilder);
     return Handlers.chain(handlers.toArray(new Handler[handlers.size()]));
   }
 

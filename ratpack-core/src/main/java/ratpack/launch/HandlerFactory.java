@@ -31,6 +31,6 @@ public interface HandlerFactory {
    * @param launchConfig The application launch config
    * @return A handler
    */
-  Handler create(LaunchConfig launchConfig);
+  Handler create(LaunchConfig launchConfig) throws Exception;
 
 }

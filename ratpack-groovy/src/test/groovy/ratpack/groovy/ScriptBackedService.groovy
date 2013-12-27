@@ -1,0 +1,76 @@
+/*
+ * Copyright 2013 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package ratpack.groovy
+
+import ratpack.groovy.internal.StandaloneScriptBacking
+import ratpack.launch.LaunchException
+import ratpack.server.RatpackServer
+import ratpack.server.internal.RatpackService
+
+class ScriptBackedService implements RatpackService {
+
+  private final Runnable starter
+
+  private RatpackServer nestedServer
+
+  ScriptBackedService(Runnable starter) {
+    this.starter = starter
+  }
+
+  @Override
+  void start() throws LaunchException {
+    StandaloneScriptBacking.captureNext { RatpackServer it ->
+      nestedServer = it
+    }
+
+    starter.run()
+
+    def stopAt = System.currentTimeMillis() + 10000
+    while (System.currentTimeMillis() < stopAt && (nestedServer == null || !nestedServer.running)) {
+      sleep 100
+    }
+
+    if (!nestedServer) {
+      throw new IllegalStateException("Server did not start")
+    }
+  }
+
+  @Override
+  void stop() throws Exception {
+    nestedServer?.stop()
+  }
+
+  @Override
+  boolean isRunning() {
+    nestedServer.running
+  }
+
+  @Override
+  String getScheme() {
+    nestedServer.scheme
+  }
+
+  @Override
+  int getBindPort() {
+    nestedServer.bindPort
+  }
+
+  @Override
+  String getBindHost() {
+    nestedServer.bindHost
+  }
+}

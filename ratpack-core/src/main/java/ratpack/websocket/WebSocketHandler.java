@@ -18,10 +18,10 @@ package ratpack.websocket;
 
 public interface WebSocketHandler<T> {
 
-  T onOpen(WebSocket webSocket);
+  T onOpen(WebSocket webSocket) throws Exception;
 
-  void onClose(WebSocketClose<T> close);
+  void onClose(WebSocketClose<T> close) throws Exception;
 
-  void onMessage(WebSocketMessage<T> frame);
+  void onMessage(WebSocketMessage<T> frame) throws Exception;
 
 }

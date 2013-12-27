@@ -30,6 +30,6 @@ public interface Transformer<F, T> {
    * @param from The object to transform
    * @return The transformed object
    */
-  T transform(F from);
+  T transform(F from) throws Exception;
 
 }

@@ -16,34 +16,31 @@
 
 package ratpack.groovy
 
-import ratpack.groovy.guice.GroovyModuleRegistry
-import ratpack.groovy.handling.GroovyChain
 import ratpack.groovy.internal.RatpackScriptBacking
-import ratpack.groovy.launch.GroovyScriptFileHandlerFactory
 import ratpack.groovy.templating.EphemeralPortScriptBacking
 import ratpack.launch.LaunchConfig
 import ratpack.launch.LaunchConfigBuilder
 import ratpack.server.RatpackServer
 import ratpack.server.internal.ServiceBackedServer
-import ratpack.test.internal.RatpackGroovyScriptAppSpec
+import ratpack.test.internal.InternalRatpackSpec
 
-class StandaloneScriptSpec extends RatpackGroovyScriptAppSpec {
+class RuntimeScriptEnvSpec extends InternalRatpackSpec {
 
-  @Override
-  File getRatpackFile() {
-    file("custom.groovy")
+  String script
+
+  void script(String script) {
+    this.script += script
   }
 
   @Override
   protected LaunchConfig createLaunchConfig() {
-    LaunchConfigBuilder.baseDir(ratpackFile.parentFile).build(new GroovyScriptFileHandlerFactory())
+    LaunchConfigBuilder.baseDir(dir).build(null)
   }
 
-  @Override
   RatpackServer createServer(LaunchConfig launchConfig) {
     def service = new ScriptBackedService({
       def shell = new GroovyShell(getClass().classLoader)
-      def script = shell.parse(ratpackFile)
+      def script = shell.parse(script)
       Thread.start {
         RatpackScriptBacking.withBacking(new EphemeralPortScriptBacking()) {
           script.run()
@@ -53,47 +50,13 @@ class StandaloneScriptSpec extends RatpackGroovyScriptAppSpec {
     new ServiceBackedServer(service, launchConfig)
   }
 
-  def "can execute plain script and reload"() {
-    when:
-    app {
-      script """
-        ratpack {
-          handlers {
-            get {
-              response.send "foo"
-            }
-          }
-        }
-      """
-    }
-
-    then:
-    getText() == "foo"
-
+  def "can start a ratpack app via a runtime script"() {
     when:
     script """
+      import static ratpack.groovy.Groovy.ratpack
+
       ratpack {
         handlers {
-          get {
-            response.send "bar"
-          }
-        }
-      }
-    """
-
-    then:
-    getText() == "bar"
-  }
-
-  def "types in API are correct"() {
-    when:
-    script """
-      ratpack {
-        modules {
-          assert delegate instanceof $GroovyModuleRegistry.name
-        }
-        handlers {
-          assert delegate instanceof $GroovyChain.name
           get {
             render "ok"
           }

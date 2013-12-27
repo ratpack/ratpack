@@ -55,12 +55,12 @@ public class DefaultGroovyChain extends DefaultChain implements GroovyChain {
   }
 
   @Override
-  public GroovyChain prefix(String prefix, Action<? super Chain> action) {
+  public GroovyChain prefix(String prefix, Action<? super Chain> action) throws Exception {
     return (GroovyChain) super.prefix(prefix, action);
   }
 
   @Override
-  public GroovyChain prefix(String prefix, Closure<?> chain) {
+  public GroovyChain prefix(String prefix, Closure<?> chain) throws Exception {
     return prefix(prefix, toHandler(chain));
   }
 
@@ -165,12 +165,12 @@ public class DefaultGroovyChain extends DefaultChain implements GroovyChain {
   }
 
   @Override
-  public GroovyChain register(Object service, Action<? super Chain> action) {
+  public GroovyChain register(Object service, Action<? super Chain> action) throws Exception {
     return (GroovyChain) super.register(service, action);
   }
 
   @Override
-  public GroovyChain register(Object service, Closure<?> handlers) {
+  public GroovyChain register(Object service, Closure<?> handlers) throws Exception {
     return register(service, toHandler(handlers));
   }
 
@@ -180,12 +180,12 @@ public class DefaultGroovyChain extends DefaultChain implements GroovyChain {
   }
 
   @Override
-  public <T> GroovyChain register(Class<? super T> type, T service, Action<? super Chain> action) {
+  public <T> GroovyChain register(Class<? super T> type, T service, Action<? super Chain> action) throws Exception {
     return (GroovyChain) super.register(type, service, action);
   }
 
   @Override
-  public <T> GroovyChain register(Class<? super T> type, T service, Closure<?> handlers) {
+  public <T> GroovyChain register(Class<? super T> type, T service, Closure<?> handlers) throws Exception {
     return register(type, service, toHandler(handlers));
   }
 
@@ -195,12 +195,12 @@ public class DefaultGroovyChain extends DefaultChain implements GroovyChain {
   }
 
   @Override
-  public GroovyChain fileSystem(String path, Action<? super Chain> action) {
+  public GroovyChain fileSystem(String path, Action<? super Chain> action) throws Exception {
     return (GroovyChain) super.fileSystem(path, action);
   }
 
   @Override
-  public GroovyChain fileSystem(String path, Closure<?> handlers) {
+  public GroovyChain fileSystem(String path, Closure<?> handlers) throws Exception {
     return fileSystem(path, toHandler(handlers));
   }
 
@@ -214,7 +214,7 @@ public class DefaultGroovyChain extends DefaultChain implements GroovyChain {
     return header(headerName, headerValue, groovyHandler(handler));
   }
 
-  private Handler toHandler(Closure<?> handlers) {
+  private Handler toHandler(Closure<?> handlers) throws Exception {
     return Groovy.chain(getLaunchConfig(), getRegistry(), handlers);
   }
 

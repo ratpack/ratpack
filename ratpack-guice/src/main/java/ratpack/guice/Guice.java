@@ -296,7 +296,7 @@ public abstract class Guice {
       this.action = action;
     }
 
-    public Handler transform(Injector injector) {
+    public Handler transform(Injector injector) throws Exception {
       return chain(launchConfig, justInTimeRegistry(injector), action);
     }
   }

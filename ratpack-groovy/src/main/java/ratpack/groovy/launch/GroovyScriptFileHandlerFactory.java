@@ -16,17 +16,23 @@
 
 package ratpack.groovy.launch;
 
+import com.google.inject.Injector;
+import com.google.inject.Module;
+import groovy.lang.Closure;
+import ratpack.groovy.internal.RatpackDslClosureToHandlerTransformer;
 import ratpack.groovy.internal.ScriptBackedApp;
 import ratpack.groovy.server.internal.GroovyKitAppFactory;
 import ratpack.guice.Guice;
+import ratpack.guice.internal.GuiceBackedHandlerFactory;
 import ratpack.handling.Handler;
 import ratpack.launch.HandlerFactory;
 import ratpack.launch.LaunchConfig;
+import ratpack.util.Transformer;
 
 import java.io.File;
 import java.io.IOException;
 
-public class GroovyScriptHandlerFactory implements HandlerFactory {
+public class GroovyScriptFileHandlerFactory implements HandlerFactory {
 
   public static final String SCRIPT_PROPERTY_NAME = "groovy.script";
   public static final String SCRIPT_PROPERTY_DEFAULT = "ratpack.groovy";
@@ -53,7 +59,11 @@ public class GroovyScriptHandlerFactory implements HandlerFactory {
 
     boolean compileStatic = Boolean.parseBoolean(launchConfig.getOther(COMPILE_STATIC_PROPERTY_NAME, COMPILE_STATIC_PROPERTY_DEFAULT));
 
-    return new ScriptBackedApp(script, launchConfig, new GroovyKitAppFactory(launchConfig), Guice.newInjectorFactory(launchConfig), compileStatic, launchConfig.isReloadable());
+    Transformer<Module, Injector> moduleTransformer = Guice.newInjectorFactory(launchConfig);
+    GuiceBackedHandlerFactory handlerFactory = new GroovyKitAppFactory(launchConfig);
+    Transformer<Closure<?>, Handler> closureTransformer = new RatpackDslClosureToHandlerTransformer(launchConfig, handlerFactory, moduleTransformer);
+
+    return new ScriptBackedApp(script, compileStatic, launchConfig.isReloadable(), closureTransformer);
   }
 
 }

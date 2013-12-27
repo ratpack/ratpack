@@ -85,6 +85,7 @@ import java.io.File;
  * <pre class="groovy-ratpack-dsl">
  * import ratpack.thymeleaf.ThymeleafModule
  * import static ratpack.thymeleaf.Template.thymeleafTemplate
+ * import static ratpack.groovy.Groovy.ratpack
  *
  * ratpack {
  *   modules {
