@@ -20,6 +20,7 @@ import com.google.inject.AbstractModule
 import com.google.inject.CreationException
 import com.google.inject.Injector
 import com.google.inject.Module
+import ratpack.groovy.test.embed.ClosureBackedEmbeddedApplication
 import ratpack.launch.LaunchConfig
 import ratpack.launch.LaunchException
 import ratpack.test.internal.RatpackGroovyDslSpec
@@ -38,17 +39,21 @@ class GuiceParentInjectorSpec extends RatpackGroovyDslSpec {
   }
 
   @Override
-  Transformer<Module, Injector> createInjectorFactory(LaunchConfig launchConfig) {
-    Injector parentInjector = createInjector(new AbstractModule() {
+  ClosureBackedEmbeddedApplication createApplication() {
+    return new ClosureBackedEmbeddedApplication(temporaryFolder.newFolder("app")) {
       @Override
-      protected void configure() {
-        bind(ServiceOne).toInstance(new ServiceOne(name: "parent"))
+      protected Transformer<? super Module, ? extends Injector> createInjectorFactory(LaunchConfig launchConfig) {
+        Injector parentInjector = createInjector(new AbstractModule() {
+          @Override
+          protected void configure() {
+            bind(ServiceOne).toInstance(new ServiceOne(name: "parent"))
+          }
+        })
+
+        Guice.childInjectorFactory(parentInjector)
       }
-    })
-
-    Guice.childInjectorFactory(parentInjector)
+    }
   }
-
 
   def "objects from parent are available"() {
     when:
@@ -80,7 +85,7 @@ class GuiceParentInjectorSpec extends RatpackGroovyDslSpec {
       }
     }
 
-    startServerIfNeeded()
+    server.start()
 
     then:
     def e = thrown LaunchException

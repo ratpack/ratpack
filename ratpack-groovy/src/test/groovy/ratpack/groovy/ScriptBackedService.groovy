@@ -56,7 +56,7 @@ class ScriptBackedService implements RatpackService {
 
   @Override
   boolean isRunning() {
-    nestedServer.running
+    nestedServer != null && nestedServer.running
   }
 
   @Override

@@ -16,28 +16,54 @@
 
 package ratpack.groovy.handling
 
+import ratpack.groovy.launch.GroovyScriptFileHandlerFactory
+import ratpack.launch.LaunchConfig
+import ratpack.launch.LaunchConfigFactory
+import ratpack.test.embed.EmbeddedApplication
+import ratpack.test.embed.LaunchConfigEmbeddedApplication
 import ratpack.test.internal.RatpackGroovyScriptAppSpec
 
 class BasicGroovyScriptAppSpec extends RatpackGroovyScriptAppSpec {
+
+  boolean compileStatic = false
+  boolean reloadable = false
+
+  @Override
+  EmbeddedApplication createApplication() {
+    new LaunchConfigEmbeddedApplication(temporaryFolder.root) {
+      @Override
+      protected LaunchConfig createLaunchConfig() {
+        LaunchConfigFactory.createWithBaseDir(getClass().classLoader, getRatpackFile().parentFile.toPath(), getLaunchConfigProperties())
+      }
+    }
+  }
+
+  protected Properties getLaunchConfigProperties() {
+    Properties properties = new Properties()
+    properties.setProperty(LaunchConfigFactory.Property.HANDLER_FACTORY, GroovyScriptFileHandlerFactory.name)
+    properties.setProperty(LaunchConfigFactory.Property.RELOADABLE, reloadable.toString())
+    properties.setProperty(LaunchConfigFactory.Property.PORT, "0")
+    properties.setProperty("other." + GroovyScriptFileHandlerFactory.COMPILE_STATIC_PROPERTY_NAME, compileStatic.toString())
+    properties.setProperty("other." + GroovyScriptFileHandlerFactory.SCRIPT_PROPERTY_NAME, ratpackFile.name)
+    return properties
+  }
 
   def "can use script app"() {
     given:
     compileStatic = true
 
     when:
-    app {
-      script """
-        ratpack {
-          handlers {
-            get {
-              render "foo"
-            }
+    script """
+      ratpack {
+        handlers {
+          get {
+            render "foo"
           }
         }
-      """
-    }
+      }
+    """
 
     then:
-    getText() == "foo"
+    text == "foo"
   }
 }

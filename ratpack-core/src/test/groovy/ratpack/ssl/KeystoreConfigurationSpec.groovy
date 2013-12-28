@@ -17,84 +17,50 @@
 package ratpack.ssl
 
 import org.junit.Rule
-import ratpack.test.internal.RatpackGroovyScriptAppSpec
-import ratpack.test.internal.ssl.client.NonValidatingSSLClientContext
+import org.junit.rules.TemporaryFolder
+import ratpack.handling.Handler
+import ratpack.launch.HandlerFactory
+import ratpack.launch.LaunchConfig
+import ratpack.launch.LaunchConfigFactory
+import spock.lang.Specification
 import spock.lang.Unroll
 
+import static ratpack.launch.LaunchConfigFactory.Property.HANDLER_FACTORY
 import static ratpack.launch.LaunchConfigFactory.Property.SSL_KEYSTORE_FILE
 import static ratpack.launch.LaunchConfigFactory.Property.SSL_KEYSTORE_PASSWORD
 
-class KeystoreConfigurationSpec extends RatpackGroovyScriptAppSpec {
+class KeystoreConfigurationSpec extends Specification {
 
   private static final String KEYSTORE_PATH = "ratpack/ssl/dummy.keystore"
 
-  Properties properties
+  @Rule TemporaryFolder temporaryFolder
 
-  def setup() {
-    properties = super.getProperties()
+  static class NullHandlerFactory implements HandlerFactory {
+    @Override
+    Handler create(LaunchConfig launchConfig) throws Exception {
+      return null
+    }
   }
-
-  protected Properties getProperties() {
-    properties
-  }
-
-  @Rule
-  NonValidatingSSLClientContext clientContext = new NonValidatingSSLClientContext()
 
   @Unroll
   def "can configure SSL keystore using a keystore file property that is #description"() {
     given:
-    stopServer()
+    Properties properties = new Properties()
     properties.setProperty SSL_KEYSTORE_FILE, keystoreFileProperty
     properties.setProperty SSL_KEYSTORE_PASSWORD, "password"
+    properties.setProperty HANDLER_FACTORY, NullHandlerFactory.name
 
-    and:
-    app {
-      script """
-        ratpack {
-          handlers {
-            get {
-              response.send "trust no one"
-            }
-          }
-        }
-      """
-    }
+    when:
+    def launchConfig = LaunchConfigFactory.createWithBaseDir(getClass().classLoader, temporaryFolder.root.toPath(), properties)
 
-    expect:
-    def address = applicationUnderTest.address
-    address.scheme == "https"
-
-    and:
-    address.toURL().text == "trust no one"
+    then:
+    launchConfig.getSSLContext() != null
 
     where:
     keystoreFileProperty          | description
     resourceAsFile(KEYSTORE_PATH) | "an absolute file path"
     resourceAsURL(KEYSTORE_PATH)  | "a URL"
     KEYSTORE_PATH                 | "a resource path"
-  }
-
-  def "if a keystore is not configured with properties the server will not use SSL"() {
-    given:
-    app {
-      script """
-        ratpack {
-          handlers {
-            get {
-              response.send "go ahead, read my traffic"
-            }
-          }
-        }
-      """
-    }
-
-    expect:
-    def address = applicationUnderTest.address
-    address.scheme == "http"
-
-    and:
-    address.toURL().text == "go ahead, read my traffic"
   }
 
   private String resourceAsURL(String path) {

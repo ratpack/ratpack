@@ -259,7 +259,7 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
 
   def "templates are reloadable in reload mode"() {
     given:
-    reloadable = true
+    launchConfig { reloadable(true) }
     file("templates/t") << "1"
 
     when:
@@ -280,9 +280,9 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     text == "2"
   }
 
-  def "templates are not reloadable in reload mode"() {
+  def "templates are not reloadable in reload false mode"() {
     given:
-    reloadable = false
+    launchConfig { reloadable(false) }
     file("templates/t") << "1"
 
     when:

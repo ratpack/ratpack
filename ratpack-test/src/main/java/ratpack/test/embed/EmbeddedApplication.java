@@ -14,28 +14,19 @@
  * limitations under the License.
  */
 
-package ratpack.test.internal
+package ratpack.test.embed;
 
-import ratpack.groovy.Groovy
-import ratpack.test.embed.EmbeddedApplication
+import ratpack.server.RatpackServer;
+import ratpack.test.ApplicationUnderTest;
 
-abstract class RatpackGroovyScriptAppSpec extends EmbeddedRatpackSpec {
+import java.io.File;
 
-  @Delegate
-  EmbeddedApplication application
+public interface EmbeddedApplication extends ApplicationUnderTest {
 
-  def setup() {
-    application = createApplication()
-  }
+  File getBaseDir();
 
-  abstract EmbeddedApplication createApplication()
+  File file(String path);
 
-  File getRatpackFile() {
-    file("ratpack.groovy")
-  }
-
-  void script(String text) {
-    ratpackFile.text = "import static ${Groovy.name}.ratpack\n\n$text"
-  }
+  RatpackServer getServer();
 
 }

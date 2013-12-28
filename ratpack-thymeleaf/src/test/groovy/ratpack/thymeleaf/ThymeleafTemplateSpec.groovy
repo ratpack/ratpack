@@ -19,8 +19,6 @@ package ratpack.thymeleaf
 import org.thymeleaf.TemplateEngine
 import org.thymeleaf.cache.StandardCacheManager
 import ratpack.test.internal.RatpackGroovyDslSpec
-import spock.lang.Ignore
-import spock.lang.IgnoreRest
 import spock.lang.Unroll
 
 import static Template.thymeleafTemplate
@@ -31,7 +29,7 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
   @Unroll
   void 'can render a thymeleaf template from #scenario'() {
     given:
-    other = otherConfig
+    other.putAll(otherConfig)
     file(filePath) << '<span th:text="${key}"/>'
 
     when:
@@ -61,7 +59,7 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
   @Unroll
   void 'use default suffix if a #scenario suffix is used'() {
     given:
-    other = otherConfig
+    other.putAll(otherConfig)
     file('thymeleaf/simple.html') << '<span th:text="${text}"/>'
 
     when:
@@ -247,8 +245,9 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
     file('thymeleaf/simple.html') << 'DUMMY'
 
     when:
-    def engine
-    def cacheManager
+    TemplateEngine engine = null
+    StandardCacheManager cacheManager = null
+
     app {
       modules {
         register new ThymeleafModule(templatesCacheSize: templatesCacheSize)
@@ -271,9 +270,9 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
     get()
 
     // Be sure the engine is initialized
-    engine.initialized == true
+    engine.initialized
 
-     // Get the resolver
+    // Get the resolver
     def resolver = engine.templateResolvers[0]
 
     // Checks

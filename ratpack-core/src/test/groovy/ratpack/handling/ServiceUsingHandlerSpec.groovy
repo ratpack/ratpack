@@ -20,12 +20,11 @@ import ratpack.error.ServerErrorHandler
 import ratpack.error.internal.DefaultServerErrorHandler
 import ratpack.file.FileSystemBinding
 import ratpack.file.internal.DefaultFileSystemBinding
-import ratpack.test.internal.DefaultRatpackSpec
+import ratpack.test.internal.RatpackGroovyDslSpec
 
-import static java.util.Collections.singletonList
 import static ratpack.handling.Handlers.register
 
-class ServiceUsingHandlerSpec extends DefaultRatpackSpec {
+class ServiceUsingHandlerSpec extends RatpackGroovyDslSpec {
 
   static class NoHandleMethod extends ServiceUsingHandler {}
 

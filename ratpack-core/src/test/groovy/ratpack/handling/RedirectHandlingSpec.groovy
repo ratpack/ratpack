@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ratpack.handling.internal
+package ratpack.handling
 
 import com.jayway.restassured.specification.RequestSpecification
 import ratpack.test.internal.RatpackGroovyDslSpec
 
-class DefaultContextSpec extends RatpackGroovyDslSpec {
+class RedirectHandlingSpec extends RatpackGroovyDslSpec {
 
   Properties properties
 

@@ -41,7 +41,7 @@ class ConcurrentRequestSpec extends RatpackGroovyDslSpec {
       results << null
     }
 
-    startServerIfNeeded()
+    server.start()
 
     threads.times { i ->
       Thread.start {

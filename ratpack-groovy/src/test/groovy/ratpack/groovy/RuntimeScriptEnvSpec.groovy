@@ -22,9 +22,13 @@ import ratpack.launch.LaunchConfig
 import ratpack.launch.LaunchConfigBuilder
 import ratpack.server.RatpackServer
 import ratpack.server.internal.ServiceBackedServer
-import ratpack.test.internal.InternalRatpackSpec
+import ratpack.test.embed.EmbeddedApplication
+import ratpack.test.embed.EmbeddedApplicationSupport
+import ratpack.test.internal.EmbeddedRatpackSpec
 
-class RuntimeScriptEnvSpec extends InternalRatpackSpec {
+class RuntimeScriptEnvSpec extends EmbeddedRatpackSpec {
+
+  EmbeddedApplication application
 
   String script
 
@@ -32,22 +36,22 @@ class RuntimeScriptEnvSpec extends InternalRatpackSpec {
     this.script += script
   }
 
-  @Override
-  protected LaunchConfig createLaunchConfig() {
-    LaunchConfigBuilder.baseDir(dir).build(null)
-  }
-
-  RatpackServer createServer(LaunchConfig launchConfig) {
-    def service = new ScriptBackedService({
-      def shell = new GroovyShell(getClass().classLoader)
-      def script = shell.parse(script)
-      Thread.start {
-        RatpackScriptBacking.withBacking(new EphemeralPortScriptBacking()) {
-          script.run()
-        }
+  def setup() {
+    application = new EmbeddedApplicationSupport(temporaryFolder.root) {
+      @Override
+      RatpackServer createServer() {
+        def service = new ScriptBackedService({
+          def shell = new GroovyShell(getClass().classLoader)
+          def script = shell.parse(script)
+          Thread.start {
+            RatpackScriptBacking.withBacking(new EphemeralPortScriptBacking()) {
+              script.run()
+            }
+          }
+        })
+        new ServiceBackedServer(service, null)
       }
-    })
-    new ServiceBackedServer(service, launchConfig)
+    }
   }
 
   def "can start a ratpack app via a runtime script"() {

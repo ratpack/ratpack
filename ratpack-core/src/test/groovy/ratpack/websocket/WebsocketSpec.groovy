@@ -49,7 +49,7 @@ class WebsocketSpec extends RatpackGroovyDslSpec {
     }
 
     and:
-    startServerIfNeeded()
+    server.start()
     def client = openWsClient()
 
     then:
@@ -76,7 +76,7 @@ class WebsocketSpec extends RatpackGroovyDslSpec {
     !ws.open
 
     cleanup:
-    client.closeBlocking()
+    client?.closeBlocking()
   }
 
   def RecordingWebSocketClient openWsClient() {
@@ -94,7 +94,7 @@ class WebsocketSpec extends RatpackGroovyDslSpec {
         }
       }
     }
-    startServerIfNeeded()
+    server.start()
 
     and:
     def client = openWsClient()

@@ -92,6 +92,7 @@ public class DefaultTestHttpClient implements TestHttpClient {
 
   @Override
   public Response options(String path) {
+    preRequest();
     response = request.options(toAbsolute(path));
     return postRequest();
   }

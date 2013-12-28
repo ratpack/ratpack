@@ -16,15 +16,50 @@
 
 package ratpack.test.internal
 
+import ratpack.groovy.guice.GroovyModuleRegistry
+import ratpack.groovy.handling.GroovyChain
 import ratpack.groovy.server.internal.GroovyKitAppFactory
+import ratpack.groovy.test.embed.ClosureBackedEmbeddedApplication
 import ratpack.guice.internal.GuiceBackedHandlerFactory
 import ratpack.launch.LaunchConfig
+import ratpack.launch.LaunchConfigBuilder
 
-abstract class RatpackGroovyAppSpec extends RatpackGroovyDslSpec {
+abstract class RatpackGroovyAppSpec extends EmbeddedRatpackSpec {
+
+  class GroovyAppEmbeddedApplication extends ClosureBackedEmbeddedApplication {
+    GroovyAppEmbeddedApplication(File baseDir) {
+      super(baseDir)
+    }
+
+    @Override
+    protected GuiceBackedHandlerFactory createHandlerFactory(LaunchConfig launchConfig) {
+      return new GroovyKitAppFactory(launchConfig)
+    }
+
+  }
+
+  @Delegate
+  ClosureBackedEmbeddedApplication application
 
   @Override
-  protected GuiceBackedHandlerFactory createHandlerFactory(LaunchConfig launchConfig) {
-    new GroovyKitAppFactory(launchConfig)
+  def setup() {
+    application = new GroovyAppEmbeddedApplication(temporaryFolder.newFolder("app"))
+  }
+
+  public void handlers(@DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer) {
+    application.handlers(configurer)
+  }
+
+  public void modules(@DelegatesTo(value = GroovyModuleRegistry.class, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer) {
+    application.modules(configurer)
+  }
+
+  public void launchConfig(@DelegatesTo(value = LaunchConfigBuilder.class, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer) {
+    application.launchConfig(configurer)
+  }
+
+  public void app(@DelegatesTo(ClosureBackedEmbeddedApplication.class) Closure<?> closure) {
+    application.app(closure)
   }
 
 }

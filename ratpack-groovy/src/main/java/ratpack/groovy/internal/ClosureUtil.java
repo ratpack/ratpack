@@ -101,7 +101,33 @@ public abstract class ClosureUtil {
       configureDelegateFirst(delegate, argument, closure);
     }
   }
+
   public static <D, A> Runnable delegateFirstRunnable(D delegate, A argument, Closure<?> closure) {
     return new DelegatingClosureRunnable<>(delegate, argument, closure);
+  }
+
+  public static <T> Closure<T> returning(final T thing) {
+    return new PassThroughClosure<>(thing);
+  }
+
+  public static Closure<Void> noop() {
+    return returning((Void) null);
+  }
+
+  private static class PassThroughClosure<T> extends Closure<T> {
+
+    static final long serialVersionUID = 0;
+
+    private final T thing;
+
+    public PassThroughClosure(T thing) {
+      super(null);
+      this.thing = thing;
+    }
+
+    @SuppressWarnings("UnusedDeclaration")
+    protected T doCall() {
+      return thing;
+    }
   }
 }

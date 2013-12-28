@@ -35,13 +35,15 @@ class ShutdownSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    text == "ok"
+    def serverAddress = address.toString()
+    createRequest().get(serverAddress).body.asString() == "ok"
 
     and:
+
     conditions.eventually { !server.running }
 
     when:
-    text == "ok"
+    createRequest().get(serverAddress)
 
     then:
     thrown ConnectException

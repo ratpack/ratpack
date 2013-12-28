@@ -45,7 +45,7 @@ class RemoteControlSpec extends RatpackGroovyDslSpec {
   }
 
   RemoteControl getRemote() {
-    startServerIfNeeded()
+    server.start()
     new RemoteControl(new HttpTransport("http://localhost:${server.bindPort}/$DEFAULT_REMOTE_CONTROL_PATH"))
   }
 
@@ -94,12 +94,11 @@ class RemoteControlSpec extends RatpackGroovyDslSpec {
         register new RemoteControlModule(path: modulePath)
       }
     }
-    other = ['remoteControl.enabled': 'true'] + otherConfig
+    other.putAll(['remoteControl.enabled': 'true'] + otherConfig)
 
     and:
-    startServerIfNeeded()
+    server.start()
     def remoteControl = new RemoteControl(new HttpTransport("http://localhost:${server.bindPort}/$path"))
-
 
     expect:
     remoteControl { 1 + 2 } == 3
@@ -127,7 +126,7 @@ class RemoteControlSpec extends RatpackGroovyDslSpec {
 
   void 'endpoint is also enabled if reloading is enabled'() {
     given:
-    reloadable = true
+    launchConfig { reloadable(true) }
     appWithRemoteControl()
 
     expect:

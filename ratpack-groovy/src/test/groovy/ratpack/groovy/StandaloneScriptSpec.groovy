@@ -19,12 +19,15 @@ package ratpack.groovy
 import ratpack.groovy.guice.GroovyModuleRegistry
 import ratpack.groovy.handling.GroovyChain
 import ratpack.groovy.internal.RatpackScriptBacking
+import ratpack.groovy.internal.StandaloneScriptBacking
 import ratpack.groovy.launch.GroovyScriptFileHandlerFactory
 import ratpack.groovy.templating.EphemeralPortScriptBacking
 import ratpack.launch.LaunchConfig
 import ratpack.launch.LaunchConfigBuilder
 import ratpack.server.RatpackServer
 import ratpack.server.internal.ServiceBackedServer
+import ratpack.test.embed.EmbeddedApplication
+import ratpack.test.embed.EmbeddedApplicationSupport
 import ratpack.test.internal.RatpackGroovyScriptAppSpec
 
 class StandaloneScriptSpec extends RatpackGroovyScriptAppSpec {
@@ -35,40 +38,38 @@ class StandaloneScriptSpec extends RatpackGroovyScriptAppSpec {
   }
 
   @Override
-  protected LaunchConfig createLaunchConfig() {
-    LaunchConfigBuilder.baseDir(ratpackFile.parentFile).build(new GroovyScriptFileHandlerFactory())
-  }
-
-  @Override
-  RatpackServer createServer(LaunchConfig launchConfig) {
-    def service = new ScriptBackedService({
-      def shell = new GroovyShell(getClass().classLoader)
-      def script = shell.parse(ratpackFile)
-      Thread.start {
-        RatpackScriptBacking.withBacking(new EphemeralPortScriptBacking()) {
-          script.run()
-        }
+  EmbeddedApplication createApplication() {
+    new EmbeddedApplicationSupport(temporaryFolder.root) {
+      @Override
+      protected RatpackServer createServer() {
+        def service = new ScriptBackedService({
+          def shell = new GroovyShell(getClass().classLoader)
+          def script = shell.parse(getRatpackFile())
+          Thread.start {
+            RatpackScriptBacking.withBacking(new EphemeralPortScriptBacking()) {
+              script.run()
+            }
+          }
+        })
+        new ServiceBackedServer(service, null)
       }
-    })
-    new ServiceBackedServer(service, launchConfig)
+    }
   }
 
   def "can execute plain script and reload"() {
     when:
-    app {
-      script """
-        ratpack {
-          handlers {
-            get {
-              response.send "foo"
-            }
+    script """
+      ratpack {
+        handlers {
+          get {
+            response.send "foo"
           }
         }
-      """
-    }
+      }
+    """
 
     then:
-    getText() == "foo"
+    text == "foo"
 
     when:
     script """
@@ -82,7 +83,7 @@ class StandaloneScriptSpec extends RatpackGroovyScriptAppSpec {
     """
 
     then:
-    getText() == "bar"
+    text == "bar"
   }
 
   def "types in API are correct"() {

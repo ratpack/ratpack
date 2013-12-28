@@ -63,6 +63,9 @@ public class NettyRatpackService implements RatpackService {
   public void start() throws LaunchException {
     lifecycleLock.lock();
     try {
+      if (isRunning()) {
+        return;
+      }
       Stopper stopper = new Stopper() {
         @Override
         public void stop() {
@@ -109,6 +112,9 @@ public class NettyRatpackService implements RatpackService {
   public void stop() throws Exception {
     lifecycleLock.lock();
     try {
+      if (!isRunning()) {
+        return;
+      }
       channel.close();
       partialShutdown();
       running.set(false);

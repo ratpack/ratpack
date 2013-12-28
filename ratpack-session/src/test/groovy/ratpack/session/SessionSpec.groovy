@@ -108,25 +108,18 @@ class SessionSpec extends RatpackGroovyDslSpec {
     app {
       handlers {
         get {
-          response.send get(SessionStore).size().toString()
+          render get(SessionStore).size().toString()
+        }
+        get("store") {
+          get(SessionStorage)
+          render "ok"
         }
       }
     }
 
     then:
     getText() == "0"
-
-    when:
-    app {
-      handlers {
-        get {
-          get(SessionStorage)
-          response.send get(SessionStore).size().toString()
-        }
-      }
-    }
-
-    then:
+    getText("store") == "ok"
     getText() == "1"
   }
 

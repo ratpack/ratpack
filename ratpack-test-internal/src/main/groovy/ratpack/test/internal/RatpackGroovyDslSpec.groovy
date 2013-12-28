@@ -16,21 +16,39 @@
 
 package ratpack.test.internal
 
-import com.google.inject.Injector
+import ratpack.groovy.guice.GroovyModuleRegistry
 import ratpack.groovy.handling.GroovyChain
-import ratpack.groovy.internal.InjectorHandlerTransformer
-import ratpack.handling.Handler
-import ratpack.launch.LaunchConfig
-import ratpack.util.Transformer
+import ratpack.groovy.test.embed.ClosureBackedEmbeddedApplication
+import ratpack.launch.LaunchConfigBuilder
 
-abstract class RatpackGroovyDslSpec extends DefaultRatpackSpec {
+abstract class RatpackGroovyDslSpec extends EmbeddedRatpackSpec {
 
-  void handlers(@DelegatesTo(value = GroovyChain, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer) {
-    this.handlersClosure = configurer
-  }
+  @Delegate
+  ClosureBackedEmbeddedApplication application
 
   @Override
-  protected Transformer<Injector, Handler> createHandlerTransformer(LaunchConfig launchConfig) {
-    new InjectorHandlerTransformer(launchConfig, handlersClosure);
+  def setup() {
+    application = createApplication()
   }
+
+  def ClosureBackedEmbeddedApplication createApplication() {
+    new ClosureBackedEmbeddedApplication(temporaryFolder.newFolder("app"))
+  }
+
+  public void handlers(@DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer) {
+    application.handlers(configurer)
+  }
+
+  public void modules(@DelegatesTo(value = GroovyModuleRegistry.class, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer) {
+    application.modules(configurer)
+  }
+
+  public void launchConfig(@DelegatesTo(value = LaunchConfigBuilder.class, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer) {
+    application.launchConfig(configurer)
+  }
+
+  public void app(@DelegatesTo(ClosureBackedEmbeddedApplication.class) Closure<?> closure) {
+    application.app(closure)
+  }
+
 }

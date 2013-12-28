@@ -49,22 +49,16 @@ class InjectedHandlersSpec extends RatpackGroovyDslSpec {
     def nameValue = "foo"
 
     when:
-    app {
-      modules {
-
-        assert launchConfig != null
-
-        register(new AbstractModule() {
-          @Override
-          protected void configure() {
-            bind(Injectable).toInstance(new Injectable(name: nameValue))
-          }
-        })
+    modules << new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(Injectable).toInstance(new Injectable(name: nameValue))
+        bind(InjectedHandler)
       }
+    }
 
-      handlers {
-        handler registry.get(InjectedHandler)
-      }
+    handlers {
+      handler registry.get(InjectedHandler)
     }
 
     then:
