@@ -21,9 +21,10 @@ import ratpack.file.MimeTypes;
 import ratpack.handlebars.Template;
 import ratpack.handling.Context;
 import ratpack.render.RendererSupport;
+import ratpack.util.Action;
 
 import javax.inject.Inject;
-import java.io.IOException;
+import java.util.concurrent.Callable;
 
 public class HandlebarsTemplateRenderer extends RendererSupport<Template<?>> {
 
@@ -35,13 +36,17 @@ public class HandlebarsTemplateRenderer extends RendererSupport<Template<?>> {
   }
 
   @Override
-  public void render(Context context, Template<?> template) {
-    String contentType = template.getContentType();
-    contentType = contentType == null ? context.get(MimeTypes.class).getContentType(template.getName()) : contentType;
-    try {
-      context.getResponse().send(contentType, handlebars.compile(template.getName()).apply(template.getModel()));
-    } catch (IOException e) {
-      context.error(e);
-    }
+  public void render(final Context context, final Template<?> template) {
+    String requestedContentType = template.getContentType();
+    final String contentType = requestedContentType == null ? context.get(MimeTypes.class).getContentType(template.getName()) : requestedContentType;
+    context.getBackground().exec(new Callable<com.github.jknack.handlebars.Template>() {
+      public com.github.jknack.handlebars.Template call() throws Exception {
+        return handlebars.compile(template.getName());
+      }
+    }).then(new Action<com.github.jknack.handlebars.Template>() {
+      public void execute(com.github.jknack.handlebars.Template compiledTemplate) throws Exception {
+        context.getResponse().send(contentType, compiledTemplate.apply(template.getModel()));
+      }
+    });
   }
 }
