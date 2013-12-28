@@ -19,7 +19,6 @@ package ratpack.file.internal;
 import ratpack.file.FileSystemBinding;
 
 import java.nio.file.Path;
-import java.nio.file.Paths;
 
 public class DefaultFileSystemBinding implements FileSystemBinding {
 
@@ -34,7 +33,11 @@ public class DefaultFileSystemBinding implements FileSystemBinding {
   }
 
   public Path file(String path) {
-    Path child = Paths.get(binding.toString(), path).normalize();
+    if (path.startsWith("/")) {
+      path = path.substring(1);
+    }
+
+    Path child = binding.resolve(path).normalize();
     if (child.startsWith(binding)) {
       return child;
     } else {

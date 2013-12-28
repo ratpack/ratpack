@@ -44,7 +44,7 @@ class LaunchConfigFactorySpec extends Specification {
   def "can read values from properties"() {
     given:
     def classLoader = this.class.classLoader
-    def baseDir = temporaryFolder.newFolder()
+    def baseDir = temporaryFolder.newFolder().toPath()
     def properties = new Properties()
     properties.setProperty(HANDLER_FACTORY, TestHandlerFactory.name)
 

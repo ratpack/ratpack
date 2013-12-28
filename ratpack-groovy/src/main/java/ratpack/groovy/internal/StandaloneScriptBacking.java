@@ -18,6 +18,7 @@ package ratpack.groovy.internal;
 
 import groovy.lang.Closure;
 import ratpack.api.Nullable;
+import ratpack.file.internal.DefaultFileSystemBinding;
 import ratpack.groovy.launch.GroovyClosureHandlerFactory;
 import ratpack.groovy.launch.GroovyScriptFileHandlerFactory;
 import ratpack.launch.HandlerFactory;
@@ -32,6 +33,9 @@ import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.CodeSource;
 import java.security.ProtectionDomain;
 import java.util.Properties;
@@ -47,20 +51,20 @@ public class StandaloneScriptBacking implements Action<Closure<?>> {
   }
 
   public void execute(final Closure<?> closure) throws Exception {
-    File scriptFile = findScript(closure);
+    Path scriptFile = findScript(closure);
 
     Properties defaultProperties = new Properties();
-    File baseDir;
+    Path baseDir;
 
     if (scriptFile == null) {
-      baseDir = new File(System.getProperty("user.dir"));
+      baseDir = new File(System.getProperty("user.dir")).toPath();
     } else {
-      baseDir = scriptFile.getParentFile();
+      baseDir = scriptFile.getParent();
     }
 
     Properties properties = createProperties(scriptFile);
 
-    File configFile = new File(baseDir, LaunchConfigFactory.CONFIG_RESOURCE_DEFAULT);
+    Path configFile = new DefaultFileSystemBinding(baseDir).file(LaunchConfigFactory.CONFIG_RESOURCE_DEFAULT);
     LaunchConfig launchConfig = LaunchConfigFactory.createFromFile(closure.getClass().getClassLoader(), baseDir, configFile, properties, defaultProperties);
 
     if (scriptFile == null) {
@@ -92,34 +96,30 @@ public class StandaloneScriptBacking implements Action<Closure<?>> {
     server.stop();
   }
 
-  protected Properties createProperties(@Nullable File scriptFile) {
+  protected Properties createProperties(@Nullable Path scriptFile) {
     Properties properties = LaunchConfigFactory.getDefaultPrefixedProperties();
 
     properties.setProperty(LaunchConfigFactory.Property.HANDLER_FACTORY, GroovyScriptFileHandlerFactory.class.getName());
     properties.setProperty(LaunchConfigFactory.Property.RELOADABLE, "true");
 
     if (scriptFile != null) {
-      properties.setProperty("other." + GroovyScriptFileHandlerFactory.SCRIPT_PROPERTY_NAME, scriptFile.getName());
+      properties.setProperty("other." + GroovyScriptFileHandlerFactory.SCRIPT_PROPERTY_NAME, scriptFile.getFileName().toString());
     }
 
     return properties;
   }
 
-  private <T> File findScript(Closure<T> closure) throws URISyntaxException {
+  private <T> Path findScript(Closure<T> closure) throws URISyntaxException {
     Class<?> clazz = closure.getClass();
     ProtectionDomain protectionDomain = clazz.getProtectionDomain();
     CodeSource codeSource = protectionDomain.getCodeSource();
     URL location = codeSource.getLocation();
-
     URI uri = location.toURI();
-
-    if (uri.getScheme().equals("file")) {
-      File file = new File(uri);
-      if (file.exists()) {
-        return file;
-      }
+    Path path = Paths.get(uri);
+    if (Files.exists(path)) {
+      return path;
+    } else {
+      return null;
     }
-
-    return null;
   }
 }

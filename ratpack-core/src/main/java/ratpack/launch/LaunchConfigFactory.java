@@ -16,22 +16,25 @@
 
 package ratpack.launch;
 
+import com.google.common.collect.Iterables;
+import com.sun.nio.zipfs.ZipFileSystemProvider;
 import ratpack.api.Nullable;
 import ratpack.util.internal.TypeCoercingProperties;
 
-import java.io.File;
-import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
-import java.net.*;
-import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.net.InetAddress;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.file.*;
+import java.util.*;
+
+import static ratpack.util.ExceptionUtils.uncheck;
 
 /**
  * Static factory methods for creating {@link LaunchConfig} objects using various strategies. <p> Designed to be used to construct a launch config via a {@link Properties} instance. <p> Most methods
- * eventually delegate to {@link #createWithBaseDir(ClassLoader, java.io.File, java.util.Properties)}. <p> When things go wrong, a {@link LaunchException} will be thrown.
+ * eventually delegate to {@link #createWithBaseDir(ClassLoader, java.nio.file.Path, java.util.Properties)}. <p> When things go wrong, a {@link LaunchException} will be thrown.
  */
 public abstract class LaunchConfigFactory {
 
@@ -107,11 +110,10 @@ public abstract class LaunchConfigFactory {
   }
 
   /**
-   * Delegates to {@link #createFromFile(ClassLoader, java.io.File, java.io.File, java.util.Properties, java.util.Properties)}, after trying to find the config properties file. <p> The {@code
+   * Delegates to {@link #createFromFile(ClassLoader, java.nio.file.Path, java.nio.file.Path, java.util.Properties, java.util.Properties)}, after trying to find the config properties file. <p> The {@code
    * overrideProperties} are queried for the {@link #CONFIG_RESOURCE_PROPERTY} (defaulting to {@link #CONFIG_RESOURCE_DEFAULT}). The {@code classLoader} is asked for the classpath resource with this
-   * name. <p> If the resource DOES NOT exist, {@link #createFromFile(ClassLoader, java.io.File, java.io.File, java.util.Properties, java.util.Properties)} is called with the current JVM user dir as
-   * the {@code baseDir} and {@code null} as the {@code configFile}. <p> If the resource DOES exist, {@link #createFromFile(ClassLoader, java.io.File, java.io.File, java.util.Properties,
-   * java.util.Properties)} is called with that file resource as the {@code configFile}, and its parent directory as the {@code baseDir}.
+   * name. <p> If the resource DOES NOT exist, {@link #createFromFile(ClassLoader, java.nio.file.Path, java.nio.file.Path, java.util.Properties, java.util.Properties)} is called with the current JVM user dir as
+   * the {@code baseDir} and {@code null} as the {@code configFile}. <p> If the resource DOES exist, {@link #createFromFile(ClassLoader, java.nio.file.Path, java.nio.file.Path, java.util.Properties, java.util.Properties)} is called with that file resource as the {@code configFile}, and its parent directory as the {@code baseDir}.
    *
    * @param classLoader The classloader to use to find the properties file
    * @param overrideProperties The properties that provide the path to the config file resource, and any overrides
@@ -120,40 +122,84 @@ public abstract class LaunchConfigFactory {
    */
   public static LaunchConfig createFromProperties(ClassLoader classLoader, Properties overrideProperties, Properties defaultProperties) {
     String configResourceValue = overrideProperties.getProperty(CONFIG_RESOURCE_PROPERTY, CONFIG_RESOURCE_DEFAULT);
-    File configFile = Paths.get(configResourceValue).toAbsolutePath().normalize().toFile();
-    if (!configFile.exists()) {
-      URL configResourceUrl = classLoader.getResource(configResourceValue);
-      if (configResourceUrl == null) {
-        return createFromFile(classLoader, new File(System.getProperty("user.dir")), null, overrideProperties, defaultProperties);
+    URL configResourceUrl = classLoader.getResource(configResourceValue);
+
+    Path configPath;
+    Path baseDir;
+
+    if (configResourceUrl == null) {
+      configPath = Paths.get(configResourceValue);
+      if (!configPath.isAbsolute()) {
+        configPath = Paths.get(System.getProperty("user.dir"), configResourceValue);
       }
 
-      try {
-        URI uri = configResourceUrl.toURI();
-        configFile = Paths.get(uri).toAbsolutePath().normalize().toFile();
-      } catch (Exception e) {
-        throw new LaunchException("Could not get file for config file resource '" + configResourceUrl + "'", e);
+      baseDir = configPath.getParent();
+    } else {
+      configPath = resourceToPath(configResourceUrl);
+      baseDir = configPath.getParent();
+      if (baseDir == null && configPath.getFileSystem().provider() instanceof ZipFileSystemProvider) {
+        baseDir = Iterables.getFirst(configPath.getFileSystem().getRootDirectories(), null);
+      }
+
+      if (baseDir == null) {
+        throw new LaunchException("Cannot determine base dir given config resource: " + configPath);
       }
     }
 
-    return createFromFile(classLoader, configFile.getParentFile(), configFile, overrideProperties, defaultProperties);
+    return createFromFile(classLoader, baseDir, configPath, overrideProperties, defaultProperties);
+  }
+
+  static Path resourceToPath(URL resource) {
+    URI uri = toUri(resource);
+
+    String scheme = uri.getScheme();
+    if (scheme.equals("file")) {
+      return Paths.get(uri);
+    }
+
+    if (!scheme.equals("jar")) {
+      throw new LaunchException("Cannot deal with class path resource url: " + uri);
+    }
+
+    String s = uri.toString();
+    int separator = s.indexOf("!/");
+    String entryName = s.substring(separator + 2);
+    URI fileURI = URI.create(s.substring(0, separator));
+    FileSystem fs;
+    try {
+      fs = FileSystems.newFileSystem(fileURI, Collections.<String, Object>emptyMap());
+    } catch (IOException e) {
+      throw uncheck(e);
+    }
+    return fs.getPath(entryName);
+  }
+
+
+  private static URI toUri(URL url) {
+    try {
+      return url.toURI();
+    } catch (URISyntaxException e) {
+      throw new LaunchException("Could not convert URL '" + url + "' to URI", e);
+    }
   }
 
   /**
-   * Delegates to {@link #createWithBaseDir(ClassLoader, java.io.File, java.util.Properties)}, after merging the properties from {@code configFile} and {@code overrideProperties}. <p> If {@code
+   * Delegates to {@link #createWithBaseDir(ClassLoader, java.nio.file.Path, java.util.Properties)}, after merging the properties from {@code configFile} and {@code overrideProperties}. <p> If {@code
    * configFile} exists and is not null, it is read as a properties file. It is then merged with {@code defaultProperties} & {@code overrideProperties}. The default properties are overridden by values
    * in the properties file, while the override properties will override these properties.
    *
+   *
    * @param classLoader The classloader to use to find the properties file
-   * @param baseDir The {@link ratpack.launch.LaunchConfig#getBaseDir()} of the eventual launch config
+   * @param baseDir The {@link LaunchConfig#getBaseDir()} of the eventual launch config
    * @param configFile The configuration properties file
    * @param overrideProperties The properties that override default and file properties
    * @param defaultProperties The default properties to use when a property is omitted
    * @return a launch config
    */
-  public static LaunchConfig createFromFile(ClassLoader classLoader, File baseDir, @Nullable File configFile, Properties overrideProperties, Properties defaultProperties) {
+  public static LaunchConfig createFromFile(ClassLoader classLoader, Path baseDir, @Nullable Path configFile, Properties overrideProperties, Properties defaultProperties) {
     Properties fileProperties = new Properties(defaultProperties);
-    if (configFile != null && configFile.exists()) {
-      try (InputStream inputStream = new FileInputStream(configFile)) {
+    if (configFile != null && Files.exists(configFile)) {
+      try (InputStream inputStream = Files.newInputStream(configFile)) {
         fileProperties.load(inputStream);
       } catch (Exception e) {
         throw new LaunchException("Could not read config file '" + configFile + "'", e);
@@ -168,12 +214,13 @@ public abstract class LaunchConfigFactory {
   /**
    * Constructs a launch config, based on the given properties. <p> See {@link Property} for details on the valid properties.
    *
-   * @param classLoader The classloader used to load the {@link Property#HANDLER_FACTORY} class
-   * @param baseDir The {@link ratpack.launch.LaunchConfig#getBaseDir()} value
+   *
+   * @param classLoader The classloader used to load the {@link ratpack.launch.LaunchConfigFactory.Property#HANDLER_FACTORY} class
+   * @param baseDir The {@link LaunchConfig#getBaseDir()} value
    * @param properties The values to use to construct the launch config
    * @return A launch config
    */
-  public static LaunchConfig createWithBaseDir(ClassLoader classLoader, File baseDir, Properties properties) {
+  public static LaunchConfig createWithBaseDir(ClassLoader classLoader, Path baseDir, Properties properties) {
     TypeCoercingProperties props = new TypeCoercingProperties(properties, classLoader);
     try {
       Class<HandlerFactory> handlerFactoryClass;

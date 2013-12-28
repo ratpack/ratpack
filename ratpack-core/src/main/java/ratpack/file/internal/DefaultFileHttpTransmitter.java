@@ -18,14 +18,15 @@ package ratpack.file.internal;
 
 import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
+import io.netty.handler.stream.ChunkedNioStream;
 import ratpack.background.Background;
 import ratpack.util.Action;
 
-import java.io.Closeable;
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.nio.channels.FileChannel;
+import java.nio.channels.ReadableByteChannel;
 import java.nio.file.FileSystems;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.concurrent.Callable;
@@ -54,26 +55,28 @@ public class DefaultFileHttpTransmitter implements FileHttpTransmitter {
         }
       }).then(new Action<FileChannel>() {
         public void execute(FileChannel fileChannel) {
-          transmit(basicFileAttributes, fileChannel);
+          FileRegion defaultFileRegion = new DefaultFileRegion(fileChannel, 0, basicFileAttributes.size());
+          transmit(basicFileAttributes, defaultFileRegion);
         }
       });
     } else {
-      throw new UnsupportedOperationException("file " + file + " is not part of the default file system");
+      background.exec(new Callable<ReadableByteChannel>() {
+        public ReadableByteChannel call() throws Exception {
+          return Files.newByteChannel(file);
+        }
+      }).then(new Action<ReadableByteChannel>() {
+        public void execute(ReadableByteChannel fileChannel) {
+          transmit(basicFileAttributes, new ChunkedNioStream(fileChannel));
+        }
+      });
     }
   }
 
-  private void transmit(BasicFileAttributes basicFileAttributes, final FileChannel fileChannel) {
-    long length = basicFileAttributes.size();
-
-    response.headers().set(HttpHeaders.Names.CONTENT_LENGTH, length);
+  private void transmit(BasicFileAttributes basicFileAttributes, final Object message) {
+    response.headers().set(HttpHeaders.Names.CONTENT_LENGTH, basicFileAttributes.size());
 
     if (isKeepAlive(request)) {
       response.headers().set(CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
-    }
-
-    if (!channel.isOpen()) {
-      closeQuietly(fileChannel);
-      return;
     }
 
     HttpResponse minimalResponse = new DefaultHttpResponse(response.getProtocolVersion(), response.getStatus());
@@ -83,18 +86,15 @@ public class DefaultFileHttpTransmitter implements FileHttpTransmitter {
     writeFuture.addListener(new ChannelFutureListener() {
       public void operationComplete(ChannelFuture future) throws Exception {
         if (!future.isSuccess()) {
-          closeQuietly(fileChannel);
           channel.close();
         }
       }
     });
 
-    FileRegion message = new DefaultFileRegion(fileChannel, 0, length);
     writeFuture = channel.write(message);
 
     writeFuture.addListener(new ChannelFutureListener() {
       public void operationComplete(ChannelFuture future) {
-        closeQuietly(fileChannel);
         if (!future.isSuccess()) {
           channel.close();
         }
@@ -104,14 +104,6 @@ public class DefaultFileHttpTransmitter implements FileHttpTransmitter {
     ChannelFuture lastContentFuture = channel.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
     if (!isKeepAlive(response)) {
       lastContentFuture.addListener(ChannelFutureListener.CLOSE);
-    }
-  }
-
-  private void closeQuietly(Closeable closeable) {
-    try {
-      closeable.close();
-    } catch (IOException ignore) {
-      // ignore
     }
   }
 

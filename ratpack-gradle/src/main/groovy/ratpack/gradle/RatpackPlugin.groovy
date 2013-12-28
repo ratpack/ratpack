@@ -18,13 +18,16 @@ package ratpack.gradle
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.file.FileCollection
 import org.gradle.api.plugins.ApplicationPlugin
 import org.gradle.api.plugins.ApplicationPluginConvention
 import org.gradle.api.plugins.JavaPlugin
+import org.gradle.api.tasks.Exec
 import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.application.CreateStartScripts
+import org.gradle.api.tasks.bundling.Jar
 import org.gradle.plugins.ide.idea.IdeaPlugin
 
 class RatpackPlugin implements Plugin<Project> {
@@ -62,6 +65,7 @@ class RatpackPlugin implements Plugin<Project> {
     project.mainClassName = "ratpack.launch.RatpackMain"
 
     SourceSetContainer sourceSets = project.sourceSets
+    def mainSourceSet = sourceSets[SourceSet.MAIN_SOURCE_SET_NAME]
     def testSourceSet = sourceSets[SourceSet.TEST_SOURCE_SET_NAME]
     testSourceSet.resources.srcDir(run.workingDir)
 
@@ -76,6 +80,31 @@ class RatpackPlugin implements Plugin<Project> {
         unixScript.text = unixScript.text.replaceAll('CLASSPATH=.+\n', '$0cd "\\$APP_HOME/app"\n')
         windowsScript.text = windowsScript.text.replaceAll('CLASSPATH=.+\r\n', '$0cd "%APP_HOME%/app"\r\n')
       }
+    }
+
+    FileCollection runtimeDependencies = mainSourceSet.runtimeClasspath
+    def fatJarTask = project.tasks.create("fatJar", Jar)
+    fatJarTask.with {
+      inputs.files(runtimeDependencies)
+      classifier = "fat"
+      from run.workingDir
+      from {
+        runtimeDependencies.collect {
+          if (it.name.endsWith(".zip") || it.name.endsWith(".jar")) {
+            project.zipTree(it)
+          } else {
+            project.files(it)
+          }
+        }
+      }
+      manifest.attributes.put "Main-Class", "${->appPluginConvention.mainClassName}"
+    }
+
+    def runFatJarTask = project.tasks.create("run${fatJarTask.name.capitalize()}", Exec)
+    runFatJarTask.with {
+      dependsOn fatJarTask
+      executable = "java"
+      args "-jar", fatJarTask.archivePath.absolutePath
     }
 
     project.plugins.withType(IdeaPlugin) {

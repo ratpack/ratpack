@@ -110,12 +110,7 @@ abstract class FunctionalSpec extends Specification {
       into destination
     }
   }
-  
-  File getWarFile() {
-    def f = file("build/libs/functional-test-1.0.war")
-    assert f.exists()
-    f
-  }
+
 
   File getDistZip() {
     def f = file("build/distributions/test-app-1.0.zip")
@@ -123,13 +118,10 @@ abstract class FunctionalSpec extends Specification {
     f
   }
 
-  def unpackedWarFile(path) {
-    def unpacked = file("build/unpacked-war")
-    if (!unpacked.exists()) {
-      unzip(warFile, unpacked)
-    }
-
-    new File(unpacked, path)
+  File getFatJar() {
+    def f = file("build/libs/functional-test-1.0-fat.jar")
+    assert f.exists()
+    f
   }
 
   File getLocalRepo() {
