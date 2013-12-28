@@ -23,5 +23,4 @@ ext.apiLinks = [
 dependencies {
   compile project(":ratpack-core")
   compile project(":ratpack-guice")
-  compile project(":ratpack-session")
 }
