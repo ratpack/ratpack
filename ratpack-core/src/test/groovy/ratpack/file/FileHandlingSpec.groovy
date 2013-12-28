@@ -20,6 +20,8 @@ import ratpack.test.internal.RatpackGroovyDslSpec
 import spock.lang.FailsWith
 import spock.lang.Issue
 
+import java.nio.file.Paths
+
 class FileHandlingSpec extends RatpackGroovyDslSpec {
 
   void "context resolves files relative to application root"() {

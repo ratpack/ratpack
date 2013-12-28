@@ -21,6 +21,8 @@ import org.junit.rules.TemporaryFolder
 import ratpack.file.FileSystemBinding
 import spock.lang.Specification
 
+import java.nio.file.Paths
+
 class DefaultFileSystemBindingSpec extends Specification {
 
   @Rule TemporaryFolder temporaryFolder
@@ -39,5 +41,13 @@ class DefaultFileSystemBindingSpec extends Specification {
   def "files not in binding root returns null"() {
     expect:
     binding.file("../../../etc/passwd") == null
+  }
+
+  def "non-absolute binding throws exception"() {
+    when:
+    new DefaultFileSystemBinding(Paths.get("somewhere"))
+
+    then:
+    thrown(IllegalArgumentException)
   }
 }

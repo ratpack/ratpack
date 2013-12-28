@@ -105,7 +105,7 @@ public class LaunchConfigBuilder {
    * @see ratpack.launch.LaunchConfig#getBaseDir()
    */
   public static LaunchConfigBuilder baseDir(Path baseDir) {
-    return new LaunchConfigBuilder(baseDir);
+    return new LaunchConfigBuilder(baseDir.toAbsolutePath().normalize());
   }
 
   /**

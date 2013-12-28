@@ -25,6 +25,9 @@ public class DefaultFileSystemBinding implements FileSystemBinding {
   private final Path binding;
 
   public DefaultFileSystemBinding(Path binding) {
+    if (!binding.isAbsolute()) {
+      throw new IllegalArgumentException("Filesystem binding must be absolute.");
+    }
     this.binding = binding;
   }
 
@@ -52,10 +55,6 @@ public class DefaultFileSystemBinding implements FileSystemBinding {
     } else {
       return null;
     }
-  }
-
-  public FileSystemBinding binding(Path path) {
-    return new DefaultFileSystemBinding(path);
   }
 
 }

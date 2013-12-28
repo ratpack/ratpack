@@ -62,15 +62,4 @@ public interface FileSystemBinding {
    */
   FileSystemBinding binding(String path);
 
-  /**
-   * Construct a new binding at the given file.
-   *
-   * Prefer using {@link ratpack.handling.Context#file(String)}.
-   *
-   *
-   * @param path The file of the desired binding
-   * @return The binding
-   */
-  FileSystemBinding binding(Path path);
-
 }
