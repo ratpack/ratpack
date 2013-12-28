@@ -22,11 +22,9 @@ class DefaultGroovyErrorHandlingSpec extends RatpackGroovyAppSpec {
 
   def "error handler is registered"() {
     given:
-    app {
-      handlers {
-        get {
-          throw new Exception("!")
-        }
+    handlers {
+      get {
+        throw new Exception("!")
       }
     }
 
@@ -40,13 +38,11 @@ class DefaultGroovyErrorHandlingSpec extends RatpackGroovyAppSpec {
 
   def "error handler is registered next() is not called"() {
     given:
-    app {
-      handlers {
-        prefix("foo") {
-          handler {
-            throw new Exception("!")
+    handlers {
+      prefix("foo") {
+        handler {
+          throw new Exception("!")
 
-          }
         }
       }
     }
@@ -61,11 +57,9 @@ class DefaultGroovyErrorHandlingSpec extends RatpackGroovyAppSpec {
 
   def "404 page is used"() {
     given:
-    app {
-      handlers {
-        get("foo") {
-          response.send("foo")
-        }
+    handlers {
+      get("foo") {
+        response.send("foo")
       }
     }
 

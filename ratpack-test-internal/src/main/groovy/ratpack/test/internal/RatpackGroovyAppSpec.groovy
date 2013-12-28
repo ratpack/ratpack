@@ -20,7 +20,7 @@ import ratpack.groovy.guice.GroovyModuleRegistry
 import ratpack.groovy.handling.GroovyChain
 import ratpack.groovy.server.internal.GroovyKitAppFactory
 import ratpack.groovy.test.embed.ClosureBackedEmbeddedApplication
-import ratpack.guice.internal.GuiceBackedHandlerFactory
+import ratpack.guice.GuiceBackedHandlerFactory
 import ratpack.launch.LaunchConfig
 import ratpack.launch.LaunchConfigBuilder
 
@@ -35,7 +35,6 @@ abstract class RatpackGroovyAppSpec extends EmbeddedRatpackSpec {
     protected GuiceBackedHandlerFactory createHandlerFactory(LaunchConfig launchConfig) {
       return new GroovyKitAppFactory(launchConfig)
     }
-
   }
 
   @Delegate
@@ -56,10 +55,6 @@ abstract class RatpackGroovyAppSpec extends EmbeddedRatpackSpec {
 
   public void launchConfig(@DelegatesTo(value = LaunchConfigBuilder.class, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer) {
     application.launchConfig(configurer)
-  }
-
-  public void app(@DelegatesTo(ClosureBackedEmbeddedApplication.class) Closure<?> closure) {
-    application.app(closure)
   }
 
 }

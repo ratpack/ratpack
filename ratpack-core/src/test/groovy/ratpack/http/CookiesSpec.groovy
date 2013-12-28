@@ -22,21 +22,19 @@ class CookiesSpec extends RatpackGroovyDslSpec {
 
   def "can get and set cookies"() {
     given:
-    app {
-      handlers {
-        get("get/:name") {
-          response.send request.oneCookie(pathTokens.name) ?: "null"
-        }
+    handlers {
+      get("get/:name") {
+        response.send request.oneCookie(pathTokens.name) ?: "null"
+      }
 
-        get("set/:name/:value") {
-          response.cookie(pathTokens.name, pathTokens.value)
-          response.send()
-        }
+      get("set/:name/:value") {
+        response.cookie(pathTokens.name, pathTokens.value)
+        response.send()
+      }
 
-        get("clear/:name") {
-          response.expireCookie(pathTokens.name)
-          response.send()
-        }
+      get("clear/:name") {
+        response.expireCookie(pathTokens.name)
+        response.send()
       }
     }
 

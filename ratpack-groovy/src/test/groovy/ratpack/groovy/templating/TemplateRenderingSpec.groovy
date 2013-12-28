@@ -33,11 +33,9 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     file("templates/foo.html") << "a \${model.value} b <% 3.times {  %> a <% } %>"
 
     when:
-    app {
-      handlers {
-        get {
-          render groovyTemplate("foo.html", value: "bar")
-        }
+    handlers {
+      get {
+        render groovyTemplate("foo.html", value: "bar")
       }
     }
 
@@ -48,12 +46,10 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
   def "off thread errors are rendered"() {
     given:
     when:
-    app {
-      handlers {
-        get {
-          withErrorHandling Thread.start {
-            throw new Exception("nested!")
-          }
+    handlers {
+      get {
+        withErrorHandling Thread.start {
+          throw new Exception("nested!")
         }
       }
     }
@@ -68,11 +64,9 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     file("templates/inner.html") << "inner: \${model.value}"
 
     when:
-    app {
-      handlers {
-        get {
-          render groovyTemplate("outer.html", value: "outer")
-        }
+    handlers {
+      get {
+        render groovyTemplate("outer.html", value: "outer")
       }
     }
 
@@ -87,10 +81,8 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     file("templates/footer.html") << "footer"
 
     when:
-    app {
-      handlers {
-        get { render groovyTemplate("middle.html") }
-      }
+    handlers {
+      get { render groovyTemplate("middle.html") }
     }
 
     then:
@@ -104,11 +96,9 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     file("templates/innerInner.html") << "innerInner: \${model.value}"
 
     when:
-    app {
-      handlers {
-        get {
-          render groovyTemplate("outer.html", value: "outer")
-        }
+    handlers {
+      get {
+        render groovyTemplate("outer.html", value: "outer")
       }
     }
 
@@ -123,11 +113,9 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     file("templates/innerInner.html") << "\${throw new Exception(model.value.toString())}"
 
     when:
-    app {
-      handlers {
-        get {
-          render groovyTemplate("outer.html", value: "outer")
-        }
+    handlers {
+      get {
+        render groovyTemplate("outer.html", value: "outer")
       }
     }
 
@@ -142,11 +130,9 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     file("templates/innerInner.html") << "innerInner: \${model.a}\${model.b}"
 
     when:
-    app {
-      handlers {
-        get {
-          render groovyTemplate("outer.html", a: "a", b: "b")
-        }
+    handlers {
+      get {
+        render groovyTemplate("outer.html", a: "a", b: "b")
       }
     }
 
@@ -161,11 +147,9 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     file("templates/foo.html") << "foo"
 
     when:
-    app {
-      handlers {
-        get {
-          render groovyTemplate("outer.html")
-        }
+    handlers {
+      get {
+        render groovyTemplate("outer.html")
       }
     }
 
@@ -184,11 +168,9 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     file("templates/foo.html") << "foo"
 
     when:
-    app {
-      handlers {
-        get {
-          render groovyTemplate("outer.html")
-        }
+    handlers {
+      get {
+        render groovyTemplate("outer.html")
       }
     }
 
@@ -205,15 +187,13 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     file("templates/inner.html") << "inner: \${model.value.toInteger()}"
 
     when:
-    app {
-      modules {
-        get(TemplatingModule).staticallyCompile = true
-      }
+    modules {
+      get(TemplatingModule).staticallyCompile = true
+    }
 
-      handlers {
-        get {
-          render groovyTemplate("outer.html", value: "outer")
-        }
+    handlers {
+      get {
+        render groovyTemplate("outer.html", value: "outer")
       }
     }
 
@@ -226,15 +206,13 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     file("templates/template.html") << "value: \${model.get('value', String).toInteger()}"
 
     when:
-    app {
-      modules {
-        get(TemplatingModule).staticallyCompile = true
-      }
+    modules {
+      get(TemplatingModule).staticallyCompile = true
+    }
 
-      handlers {
-        get {
-          render groovyTemplate("template.html", value: "2")
-        }
+    handlers {
+      get {
+        render groovyTemplate("template.html", value: "2")
       }
     }
 
@@ -244,11 +222,9 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
 
   def "client errors are rendered with the template renderer"() {
     when:
-    app {
-      handlers {
-        handler {
-          clientError(404)
-        }
+    handlers {
+      handler {
+        clientError(404)
       }
     }
 
@@ -263,10 +239,8 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     file("templates/t") << "1"
 
     when:
-    app {
-      handlers {
-        get { render groovyTemplate("t") }
-      }
+    handlers {
+      get { render groovyTemplate("t") }
     }
 
     then:
@@ -286,10 +260,8 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     file("templates/t") << "1"
 
     when:
-    app {
-      handlers {
-        get { render groovyTemplate("t") }
-      }
+    handlers {
+      get { render groovyTemplate("t") }
     }
 
     then:
@@ -307,13 +279,11 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     file("templates/t") << "1"
 
     when:
-    app {
-      modules {
-        get(TemplatingModule).reloadable = true
-      }
-      handlers {
-        get { render groovyTemplate("t") }
-      }
+    modules {
+      get(TemplatingModule).reloadable = true
+    }
+    handlers {
+      get { render groovyTemplate("t") }
     }
 
     then:
@@ -335,11 +305,9 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     file("templates/dir/t.xml") << "1"
     file("templates/dir/t") << "1"
 
-    app {
-      handlers {
-        handler {
-          render groovyTemplate(request.path, request.queryParams.type)
-        }
+    handlers {
+      handler {
+        render groovyTemplate(request.path, request.queryParams.type)
       }
     }
 
@@ -359,14 +327,12 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     file("templates/error.html") << "a a a \${-==}" // invalid syntax
 
     when:
-    app {
-      handlers {
-        get("server") {
-          throw new Exception("!")
-        }
-        get("client") {
-          clientError 400
-        }
+    handlers {
+      get("server") {
+        throw new Exception("!")
+      }
+      get("client") {
+        clientError 400
       }
     }
 

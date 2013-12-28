@@ -22,21 +22,19 @@ class PathAndMethodRoutingSpec extends RatpackGroovyDslSpec {
 
   def "can use path and method routes"() {
     when:
-    app {
-      handlers {
-        get("a/b/c") {
-          response.headers.set("X-value", request.query)
-          response.send request.query
-        }
-        prefix(":a/:b") {
-          handler(":c/:d") {
-            byMethod {
-              post {
-                response.send new LinkedHashMap(allPathTokens).toString()
-              }
-              put {
-                response.send allPathTokens.collectEntries { [it.key.toUpperCase(), it.value.toUpperCase()] }.toString()
-              }
+    handlers {
+      get("a/b/c") {
+        response.headers.set("X-value", request.query)
+        response.send request.query
+      }
+      prefix(":a/:b") {
+        handler(":c/:d") {
+          byMethod {
+            post {
+              response.send new LinkedHashMap(allPathTokens).toString()
+            }
+            put {
+              response.send allPathTokens.collectEntries { [it.key.toUpperCase(), it.value.toUpperCase()] }.toString()
             }
           }
         }
@@ -57,17 +55,15 @@ class PathAndMethodRoutingSpec extends RatpackGroovyDslSpec {
 
   def "can use method chain"() {
     when:
-    app {
-      handlers {
-        handler("foo") {
-          def prefix = "common"
-          byMethod {
-            get {
-              response.send("$prefix: get")
-            }
-            post {
-              response.send("$prefix: post")
-            }
+    handlers {
+      handler("foo") {
+        def prefix = "common"
+        byMethod {
+          get {
+            response.send("$prefix: get")
+          }
+          post {
+            response.send("$prefix: post")
           }
         }
       }
@@ -81,14 +77,12 @@ class PathAndMethodRoutingSpec extends RatpackGroovyDslSpec {
 
   def "options requests are handled for single method handlers"() {
     when:
-    app {
-      handlers {
-        get("foo") {
-          render "foo"
-        }
-        post("bar") {
-          render "bar"
-        }
+    handlers {
+      get("foo") {
+        render "foo"
+      }
+      post("bar") {
+        render "bar"
       }
     }
 
@@ -103,19 +97,16 @@ class PathAndMethodRoutingSpec extends RatpackGroovyDslSpec {
 
   def "options requests are handled for multi method handlers"() {
     when:
-    app {
-      handlers {
-        handler {
-          byMethod {
-            get {
-              render "foo"
-            }
-            post {
-              render "bar"
-            }
+    handlers {
+      handler {
+        byMethod {
+          get {
+            render "foo"
+          }
+          post {
+            render "bar"
           }
         }
-
       }
     }
 

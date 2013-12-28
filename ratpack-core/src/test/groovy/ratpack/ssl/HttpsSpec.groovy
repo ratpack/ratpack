@@ -32,11 +32,9 @@ class HttpsSpec extends RatpackGroovyDslSpec {
     }
 
     and:
-    app {
-      handlers {
-        get {
-          response.send "trust no one"
-        }
+    handlers {
+      get {
+        response.send "trust no one"
       }
     }
 

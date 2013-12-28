@@ -30,30 +30,28 @@ class BasicGroovyDslSpec extends RatpackGroovyDslSpec {
     file("public/foo.txt") << "bar"
 
     when:
-    app {
-      handlers {
-        get("a") {
-          response.send "a handler"
-        }
-        post("b") {
-          response.send "b handler"
-        }
-        put("c") {
-          response.send "c handler"
-        }
-        delete("d") {
-          response.send "d handler"
-        }
-        prefix(":first") {
-          get(":second") {
-            response.send new LinkedHashMap<>(allPathTokens).toString()
-          }
-          handler("c/:second") {
-            response.send new LinkedHashMap<>(allPathTokens).toString()
-          }
-        }
-        assets("public")
+    handlers {
+      get("a") {
+        response.send "a handler"
       }
+      post("b") {
+        response.send "b handler"
+      }
+      put("c") {
+        response.send "c handler"
+      }
+      delete("d") {
+        response.send "d handler"
+      }
+      prefix(":first") {
+        get(":second") {
+          response.send new LinkedHashMap<>(allPathTokens).toString()
+        }
+        handler("c/:second") {
+          response.send new LinkedHashMap<>(allPathTokens).toString()
+        }
+      }
+      assets("public")
     }
 
     then:
@@ -73,17 +71,15 @@ class BasicGroovyDslSpec extends RatpackGroovyDslSpec {
     file("bar/file.txt") << "bar"
 
     when:
-    app {
-      handlers {
-        fileSystem("foo") {
-          get("foo") {
-            render file("file.txt")
-          }
+    handlers {
+      fileSystem("foo") {
+        get("foo") {
+          render file("file.txt")
         }
-        fileSystem("bar") {
-          get("bar") {
-            render file("file.txt")
-          }
+      }
+      fileSystem("bar") {
+        get("bar") {
+          render file("file.txt")
         }
       }
     }
@@ -95,19 +91,16 @@ class BasicGroovyDslSpec extends RatpackGroovyDslSpec {
 
   def "can use method chain"() {
     when:
-    app {
-      handlers {
-        handler("foo") {
-          def prefix = "common"
-          byMethod {
-            get {
-              render "$prefix: get"
-            }
-            post {
-              render "$prefix: post"
-            }
+    handlers {
+      handler("foo") {
+        def prefix = "common"
+        byMethod {
+          get {
+            render "$prefix: get"
           }
-
+          post {
+            render "$prefix: post"
+          }
         }
       }
     }
@@ -120,14 +113,12 @@ class BasicGroovyDslSpec extends RatpackGroovyDslSpec {
 
   def "can inject services via closure params"() {
     when:
-    app {
-      handlers {
-        get("p1") { FileSystemBinding fileSystemBinding ->
-          render fileSystemBinding.class.name
-        }
-        get("p2") { FileSystemBinding fileSystemBinding, ServerErrorHandler serverErrorHandler ->
-          render serverErrorHandler.class.name
-        }
+    handlers {
+      get("p1") { FileSystemBinding fileSystemBinding ->
+        render fileSystemBinding.class.name
+      }
+      get("p2") { FileSystemBinding fileSystemBinding, ServerErrorHandler serverErrorHandler ->
+        render serverErrorHandler.class.name
       }
     }
 

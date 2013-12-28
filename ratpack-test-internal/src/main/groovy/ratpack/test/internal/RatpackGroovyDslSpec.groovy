@@ -47,8 +47,5 @@ abstract class RatpackGroovyDslSpec extends EmbeddedRatpackSpec {
     application.launchConfig(configurer)
   }
 
-  public void app(@DelegatesTo(ClosureBackedEmbeddedApplication.class) Closure<?> closure) {
-    application.app(closure)
-  }
 
 }

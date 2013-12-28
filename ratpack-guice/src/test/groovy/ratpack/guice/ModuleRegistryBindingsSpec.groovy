@@ -24,12 +24,17 @@ import javax.inject.Provider
 class ModuleRegistryBindingsSpec extends RatpackGroovyDslSpec {
 
   static interface Type1 {}
+
   static class Type1Impl1 implements Type1 {}
+
   static class Type1Impl2 implements Type1 {}
 
   static interface Type2 {}
+
   static class Type2Impl1 implements Type2 {}
+
   static class Type2Impl2 implements Type2 {}
+
   static class Type2Provider implements Provider<Type2> {
     Type2 get() {
       new Type2Impl2()
@@ -40,32 +45,30 @@ class ModuleRegistryBindingsSpec extends RatpackGroovyDslSpec {
 
   def "can bind via module registry"() {
     when:
-    app {
-      modules {
-        // direct bindings always override module bindings
-        bind SomeType
-        bind Type1, Type1Impl2
-        provider Type2, Type2Provider
+    modules {
+      // direct bindings always override module bindings
+      bind SomeType
+      bind Type1, Type1Impl2
+      provider Type2, Type2Provider
 
-        // regardless of module registration order
-        register new AbstractModule() {
-          protected void configure() {
-            bind(Type1).to(Type1Impl1)
-            bind(Type2).to(Type2Impl1)
-          }
+      // regardless of module registration order
+      register new AbstractModule() {
+        protected void configure() {
+          bind(Type1).to(Type1Impl1)
+          bind(Type2).to(Type2Impl1)
         }
-
       }
-      handlers {
-        get("classDirect") { SomeType someType ->
-          response.send someType.class.name
-        }
-        get("publicType") { Type1 someType ->
-          response.send someType.class.name
-        }
-        get("provider") { Type2 someType ->
-          response.send someType.class.name
-        }
+
+    }
+    handlers {
+      get("classDirect") { SomeType someType ->
+        response.send someType.class.name
+      }
+      get("publicType") { Type1 someType ->
+        response.send someType.class.name
+      }
+      get("provider") { Type2 someType ->
+        response.send someType.class.name
       }
     }
 

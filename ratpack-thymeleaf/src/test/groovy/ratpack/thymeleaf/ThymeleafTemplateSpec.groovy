@@ -29,18 +29,16 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
   @Unroll
   void 'can render a thymeleaf template from #scenario'() {
     given:
-    other.putAll(otherConfig)
+    launchConfig { other(otherConfig) }
     file(filePath) << '<span th:text="${key}"/>'
 
     when:
-    app {
-      modules {
-        register new ThymeleafModule(templatesPrefix: templatesPrefix)
-      }
-      handlers {
-        get {
-          render thymeleafTemplate(templateName, key: 'it works!')
-        }
+    modules {
+      register new ThymeleafModule(templatesPrefix: templatesPrefix)
+    }
+    handlers {
+      get {
+        render thymeleafTemplate(templateName, key: 'it works!')
       }
     }
 
@@ -59,18 +57,16 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
   @Unroll
   void 'use default suffix if a #scenario suffix is used'() {
     given:
-    other.putAll(otherConfig)
+    launchConfig { other(otherConfig) }
     file('thymeleaf/simple.html') << '<span th:text="${text}"/>'
 
     when:
-    app {
-      modules {
-        register new ThymeleafModule(templatesSuffix: templatesSuffix)
-      }
-      handlers {
-        get {
-          render thymeleafTemplate('simple', text: 'it works!')
-        }
+    modules {
+      register new ThymeleafModule(templatesSuffix: templatesSuffix)
+    }
+    handlers {
+      get {
+        render thymeleafTemplate('simple', text: 'it works!')
       }
     }
 
@@ -89,14 +85,12 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
     file("thymeleaf/simple${templatesSuffix}") << '<span th:text="${text}"/>'
 
     when:
-    app {
-      modules {
-        register new ThymeleafModule(templatesSuffix: templatesSuffix)
-      }
-      handlers {
-        get {
-          render thymeleafTemplate('simple', text: 'it works!')
-        }
+    modules {
+      register new ThymeleafModule(templatesSuffix: templatesSuffix)
+    }
+    handlers {
+      get {
+        render thymeleafTemplate('simple', text: 'it works!')
       }
     }
 
@@ -111,14 +105,12 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
     given:
     file('thymeleaf').mkdir()
 
-    app {
-      modules {
-        register new ThymeleafModule()
-      }
-      handlers {
-        get {
-          render thymeleafTemplate('simple', key: 'it works!')
-        }
+    modules {
+      register new ThymeleafModule()
+    }
+    handlers {
+      get {
+        render thymeleafTemplate('simple', key: 'it works!')
       }
     }
 
@@ -135,14 +127,12 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
     file("thymeleaf/simple.html") << '<span th:text="#{greeting(${name})}"/>'
 
     when:
-    app {
-      modules {
-        register new ThymeleafModule()
-      }
-      handlers {
-        get {
-          render thymeleafTemplate('simple', name: 'John Doe')
-        }
+    modules {
+      register new ThymeleafModule()
+    }
+    handlers {
+      get {
+        render thymeleafTemplate('simple', name: 'John Doe')
       }
     }
 
@@ -156,14 +146,12 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
     file("thymeleaf/page.html") << '<div th:include="footer :: copyright"></div>'
 
     when:
-    app {
-      modules {
-        register new ThymeleafModule()
-      }
-      handlers {
-        get {
-          render thymeleafTemplate('page')
-        }
+    modules {
+      register new ThymeleafModule()
+    }
+    handlers {
+      get {
+        render thymeleafTemplate('page')
       }
     }
 
@@ -176,14 +164,12 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
     file('thymeleaf/simple.html') << '<span th:text="${text}" th:remove="tag"/>'
 
     when:
-    app {
-      modules {
-        register new ThymeleafModule()
-      }
-      handlers {
-        get {
-          render thymeleafTemplate('simple', text: 'it works!')
-        }
+    modules {
+      register new ThymeleafModule()
+    }
+    handlers {
+      get {
+        render thymeleafTemplate('simple', text: 'it works!')
       }
     }
 
@@ -197,14 +183,12 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
     file('thymeleaf/simple.html') << '<span th:text="${text}" th:remove="tag"/>'
 
     when:
-    app {
-      modules {
-        register new ThymeleafModule(templatesPrefix: templatesPrefix)
-      }
-      handlers {
-        get {
-          render thymeleafTemplate('simple', text: 'it works!')
-        }
+    modules {
+      register new ThymeleafModule(templatesPrefix: templatesPrefix)
+    }
+    handlers {
+      get {
+        render thymeleafTemplate('simple', text: 'it works!')
       }
     }
 
@@ -223,14 +207,12 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
     file('thymeleaf/simple.html') << '<span th:text="${text}" th:remove="tag"/>'
 
     when:
-    app {
-      modules {
-        register new ThymeleafModule()
-      }
-      handlers {
-        handler {
-          render thymeleafTemplate(request.path, text: 'content types', request.queryParams.type)
-        }
+    modules {
+      register new ThymeleafModule()
+    }
+    handlers {
+      handler {
+        render thymeleafTemplate(request.path, text: 'content types', request.queryParams.type)
       }
     }
 
@@ -248,20 +230,18 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
     TemplateEngine engine = null
     StandardCacheManager cacheManager = null
 
-    app {
-      modules {
-        register new ThymeleafModule(templatesCacheSize: templatesCacheSize)
-      }
+    modules {
+      register new ThymeleafModule(templatesCacheSize: templatesCacheSize)
+    }
 
-      handlers {
-        handler { TemplateEngine te, StandardCacheManager cm ->
-          // Get the current engine
-          engine = te
-          cacheManager = cm
+    handlers {
+      handler { TemplateEngine te, StandardCacheManager cm ->
+        // Get the current engine
+        engine = te
+        cacheManager = cm
 
-          // Call the renderer to initialize the engine
-          render thymeleafTemplate("simple")
-        }
+        // Call the renderer to initialize the engine
+        render thymeleafTemplate("simple")
       }
     }
 

@@ -22,7 +22,7 @@ import groovy.lang.Closure;
 import ratpack.groovy.Groovy;
 import ratpack.groovy.guice.internal.DefaultGroovyModuleRegistry;
 import ratpack.guice.ModuleRegistry;
-import ratpack.guice.internal.GuiceBackedHandlerFactory;
+import ratpack.guice.GuiceBackedHandlerFactory;
 import ratpack.handling.Handler;
 import ratpack.launch.LaunchConfig;
 import ratpack.util.Action;

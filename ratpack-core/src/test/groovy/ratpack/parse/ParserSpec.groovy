@@ -38,16 +38,14 @@ class ParserSpec extends RatpackGroovyDslSpec {
 
   def "can use parsers"() {
     when:
-    app {
-      modules {
-        bind IntParser
-      }
-      handlers {
-        post {
-          def i = parse toType(Integer)
+    modules {
+      bind IntParser
+    }
+    handlers {
+      post {
+        def i = parse toType(Integer)
 
-          response.send(i.getClass().toString())
-        }
+        response.send(i.getClass().toString())
       }
     }
 

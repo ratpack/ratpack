@@ -16,8 +16,8 @@
 
 package ratpack.background
 
-import ratpack.error.internal.PrintingServerErrorHandler
 import ratpack.error.ServerErrorHandler
+import ratpack.error.internal.PrintingServerErrorHandler
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 class BackgroundSpec extends RatpackGroovyDslSpec {
@@ -25,20 +25,18 @@ class BackgroundSpec extends RatpackGroovyDslSpec {
   def "can perform groovy background operations"() {
     when:
     def steps = []
-    app {
-      handlers {
-        get {
-          steps << "start"
-          background {
-            sleep 300
-            steps << "operation"
-            2
-          } then { Integer result ->
-            steps << "then"
-            response.send result.toString()
-          }
-          steps << "end"
+    handlers {
+      get {
+        steps << "start"
+        background {
+          sleep 300
+          steps << "operation"
+          2
+        } then { Integer result ->
+          steps << "then"
+          response.send result.toString()
         }
+        steps << "end"
       }
     }
 
@@ -49,18 +47,16 @@ class BackgroundSpec extends RatpackGroovyDslSpec {
 
   def "by default errors during background operations are forwarded to server error handler"() {
     when:
-    app {
-      modules {
-        bind ServerErrorHandler, PrintingServerErrorHandler
-      }
-      handlers {
-        get {
-          background {
-            sleep 300
-            throw new Exception("!")
-          } then {
-            /* never called */
-          }
+    modules {
+      bind ServerErrorHandler, PrintingServerErrorHandler
+    }
+    handlers {
+      get {
+        background {
+          sleep 300
+          throw new Exception("!")
+        } then {
+          /* never called */
         }
       }
     }
@@ -72,17 +68,15 @@ class BackgroundSpec extends RatpackGroovyDslSpec {
 
   def "can use custom error handler"() {
     when:
-    app {
-      handlers {
-        get {
-          background {
-            sleep 300
-            throw new Exception("!")
-          } onError {
-            response.status(210).send("error: $it.message")
-          } then {
-            // never called
-          }
+    handlers {
+      get {
+        background {
+          sleep 300
+          throw new Exception("!")
+        } onError {
+          response.status(210).send("error: $it.message")
+        } then {
+          // never called
         }
       }
     }
@@ -94,19 +88,17 @@ class BackgroundSpec extends RatpackGroovyDslSpec {
 
   def "errors in custom error handlers are forwarded to the server error handler"() {
     when:
-    app {
-      modules {
-        bind ServerErrorHandler, PrintingServerErrorHandler
-      }
-      handlers {
-        get {
-          background {
-            throw new Exception("!")
-          } onError { Throwable t ->
-            throw new Exception("!!", t)
-          } then {
-            /* never called */
-          }
+    modules {
+      bind ServerErrorHandler, PrintingServerErrorHandler
+    }
+    handlers {
+      get {
+        background {
+          throw new Exception("!")
+        } onError { Throwable t ->
+          throw new Exception("!!", t)
+        } then {
+          /* never called */
         }
       }
     }
@@ -118,19 +110,17 @@ class BackgroundSpec extends RatpackGroovyDslSpec {
 
   def "errors in success handlers are forwarded to the server error handler"() {
     when:
-    app {
-      modules {
-        bind ServerErrorHandler, PrintingServerErrorHandler
-      }
-      handlers {
-        get {
-          background {
-            1
-          } onError {
-            throw new Exception("!")
-          } then {
-            throw new Exception("success")
-          }
+    modules {
+      bind ServerErrorHandler, PrintingServerErrorHandler
+    }
+    handlers {
+      get {
+        background {
+          1
+        } onError {
+          throw new Exception("!")
+        } then {
+          throw new Exception("success")
         }
       }
     }
@@ -142,18 +132,16 @@ class BackgroundSpec extends RatpackGroovyDslSpec {
 
   def "closure arg type mismatch errors on success handler are handled well"() {
     when:
-    app {
-      modules {
-        bind ServerErrorHandler, PrintingServerErrorHandler
-      }
-      handlers {
-        get {
-          //noinspection GroovyAssignabilityCheck
-          background {
-            1
-          } then { List<String> result ->
-            response.send("unexpected")
-          }
+    modules {
+      bind ServerErrorHandler, PrintingServerErrorHandler
+    }
+    handlers {
+      get {
+        //noinspection GroovyAssignabilityCheck
+        background {
+          1
+        } then { List<String> result ->
+          response.send("unexpected")
         }
       }
     }
@@ -165,20 +153,18 @@ class BackgroundSpec extends RatpackGroovyDslSpec {
 
   def "closure arg type mismatch errors on error handler are handled well"() {
     when:
-    app {
-      modules {
-        bind ServerErrorHandler, PrintingServerErrorHandler
-      }
-      handlers {
-        get {
-          //noinspection GroovyAssignabilityCheck
-          background {
-            throw new Exception("!")
-          } onError { String string ->
-            response.send("unexpected")
-          } then {
-            response.send("unexpected - value")
-          }
+    modules {
+      bind ServerErrorHandler, PrintingServerErrorHandler
+    }
+    handlers {
+      get {
+        //noinspection GroovyAssignabilityCheck
+        background {
+          throw new Exception("!")
+        } onError { String string ->
+          response.send("unexpected")
+        } then {
+          response.send("unexpected - value")
         }
       }
     }
@@ -190,14 +176,12 @@ class BackgroundSpec extends RatpackGroovyDslSpec {
 
   def "delegate in closure actions is no the arg"() {
     when:
-    app {
-      handlers {
-        handler {
-          background {
-            [foo: "bar"]
-          } then {
-            response.send it.toString()
-          }
+    handlers {
+      handler {
+        background {
+          [foo: "bar"]
+        } then {
+          response.send it.toString()
         }
       }
     }
@@ -208,15 +192,13 @@ class BackgroundSpec extends RatpackGroovyDslSpec {
 
   def "can read request body in background"() {
     when:
-    app {
-      handlers {
-        handler {
-          background {
-            sleep 1000 // allow the original foreground thread to finish, Netty will reclaim the buffer
-            request.text
-          } then {
-            render it.toString()
-          }
+    handlers {
+      handler {
+        background {
+          sleep 1000 // allow the original foreground thread to finish, Netty will reclaim the buffer
+          request.text
+        } then {
+          render it.toString()
         }
       }
     }

@@ -22,21 +22,21 @@ class HeaderRoutingSpec extends RatpackGroovyDslSpec {
 
   def "can route by header"() {
     given:
-    app {
-      handlers {
-        header("foo", "bar") {
-          response.send("Header Handler")
-        }
-        prefix("abc") {
-          handler {
-            response.send("Prefix Handler")
-          }
+    handlers {
+      header("foo", "bar") {
+        response.send("Header Handler")
+      }
+      prefix("abc") {
+        handler {
+          response.send("Prefix Handler")
         }
       }
     }
 
     and:
-    if (headerValue) request.header "foo", headerValue
+    if (headerValue) {
+      request.header "foo", headerValue
+    }
 
     expect:
     def response = getText("abc/def")
@@ -46,7 +46,7 @@ class HeaderRoutingSpec extends RatpackGroovyDslSpec {
     headerValue | expectedResponse
     "bar"       | "Header Handler"
     "car"       | "Prefix Handler"
-    null       | "Prefix Handler"
+    null        | "Prefix Handler"
   }
 
 }

@@ -25,15 +25,13 @@ class MarkupRenderingSpec extends RatpackGroovyAppSpec {
 
   def "can render html markup"() {
     when:
-    app {
-      handlers {
-        get {
-          render htmlBuilder {
-            html {
-              head {}
-              body {
-                p "Hello!"
-              }
+    handlers {
+      get {
+        render htmlBuilder {
+          html {
+            head {}
+            body {
+              p "Hello!"
             }
           }
         }

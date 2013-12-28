@@ -33,11 +33,9 @@ class JacksonRenderingSpec extends RatpackGroovyDslSpec {
 
   def "can render custom objects as json"() {
     when:
-    app {
-      handlers {
-        get {
-          render json(new User(username: "foo", password: "bar"))
-        }
+    handlers {
+      get {
+        render json(new User(username: "foo", password: "bar"))
       }
     }
 
@@ -47,11 +45,9 @@ class JacksonRenderingSpec extends RatpackGroovyDslSpec {
 
   def "can render standard objects as json"() {
     when:
-    app {
-      handlers {
-        get {
-          render json(username: "foo", numbers: [1, 2, 3])
-        }
+    handlers {
+      get {
+        render json(username: "foo", numbers: [1, 2, 3])
       }
     }
 
@@ -68,14 +64,12 @@ class JacksonRenderingSpec extends RatpackGroovyDslSpec {
       '}'
 
     when:
-    app {
-      modules {
-        get(JacksonModule).prettyPrint = true
-      }
-      handlers {
-        get {
-          render json(new User(username: "foo", password: "bar"))
-        }
+    modules {
+      get(JacksonModule).prettyPrint = true
+    }
+    handlers {
+      get {
+        render json(new User(username: "foo", password: "bar"))
       }
     }
 

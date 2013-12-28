@@ -25,7 +25,7 @@ class ErrorHandlingSpec extends RatpackGroovyDslSpec {
 
   def "handles 404"() {
     when:
-    app {}
+    handlers {}
 
     then:
     get().statusCode == 404
@@ -33,10 +33,8 @@ class ErrorHandlingSpec extends RatpackGroovyDslSpec {
 
   def "handles internal error"() {
     when:
-    app {
-      handlers {
-        get { throw new RuntimeException('error here') }
-      }
+    handlers {
+      get { throw new RuntimeException('error here') }
     }
 
     then:
@@ -52,16 +50,14 @@ class ErrorHandlingSpec extends RatpackGroovyDslSpec {
     }
 
     when:
-    app {
-      modules {
-        bind ServerErrorHandler, errorHandler
-      }
-      handlers {
-        get {
-          withErrorHandling new Thread({
-            throw new Exception("thrown in forked thread")
-          })
-        }
+    modules {
+      bind ServerErrorHandler, errorHandler
+    }
+    handlers {
+      get {
+        withErrorHandling new Thread({
+          throw new Exception("thrown in forked thread")
+        })
       }
     }
 
@@ -84,21 +80,19 @@ class ErrorHandlingSpec extends RatpackGroovyDslSpec {
     }
 
     when:
-    app {
-      modules {
-        bind ServerErrorHandler, errorHandler1
-      }
-      handlers {
-        get { exchange ->
-          withErrorHandling new Thread({
-            insert(ServerErrorHandler, errorHandler2, new Handler() {
-              @Override
-              void handle(Context context) {
-                throw new Exception("down here")
-              }
-            })
+    modules {
+      bind ServerErrorHandler, errorHandler1
+    }
+    handlers {
+      get { exchange ->
+        withErrorHandling new Thread({
+          insert(ServerErrorHandler, errorHandler2, new Handler() {
+            @Override
+            void handle(Context context) {
+              throw new Exception("down here")
+            }
           })
-        }
+        })
       }
     }
 
@@ -120,19 +114,17 @@ class ErrorHandlingSpec extends RatpackGroovyDslSpec {
     }
 
     when:
-    app {
-      modules {
-        bind ServerErrorHandler, errorHandler1
+    modules {
+      bind ServerErrorHandler, errorHandler1
+    }
+    handlers {
+      register(ServerErrorHandler, errorHandler2) {
+        get("a") {
+          throw new Exception("1")
+        }
       }
-      handlers {
-        register(ServerErrorHandler, errorHandler2) {
-          get("a") {
-            throw new Exception("1")
-          }
-        }
-        get("b") {
-          throw new Exception("2")
-        }
+      get("b") {
+        throw new Exception("2")
       }
     }
 
@@ -150,14 +142,12 @@ class ErrorHandlingSpec extends RatpackGroovyDslSpec {
     }
 
     when:
-    app {
-      modules {
-        bind ServerErrorHandler, errorHandler
-      }
-      handlers {
-        get {
-          throw new Exception("thrown")
-        }
+    modules {
+      bind ServerErrorHandler, errorHandler
+    }
+    handlers {
+      get {
+        throw new Exception("thrown")
       }
     }
 
@@ -167,20 +157,18 @@ class ErrorHandlingSpec extends RatpackGroovyDslSpec {
 
   def "exceptions thrown by error handler are dealt with"() {
     when:
-    app {
-      modules {
-        bind ServerErrorHandler, new ServerErrorHandler() {
-          @Override
-          void error(Context context, Exception exception) {
-            throw new RuntimeException("in error handler")
-          }
+    modules {
+      bind ServerErrorHandler, new ServerErrorHandler() {
+        @Override
+        void error(Context context, Exception exception) {
+          throw new RuntimeException("in error handler")
         }
       }
+    }
 
-      handlers {
-        get {
-          throw new RuntimeException("in handler")
-        }
+    handlers {
+      get {
+        throw new RuntimeException("in handler")
       }
     }
 

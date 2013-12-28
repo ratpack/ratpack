@@ -14,17 +14,10 @@
  * limitations under the License.
  */
 
-package ratpack.guice.internal;
-
-import com.google.inject.Injector;
-import com.google.inject.Module;
-import ratpack.guice.ModuleRegistry;
-import ratpack.handling.Handler;
-import ratpack.util.Action;
-import ratpack.util.Transformer;
-
-public interface GuiceBackedHandlerFactory {
-
-  Handler create(Action<? super ModuleRegistry> modulesAction, Transformer<? super Module, ? extends Injector> moduleTransformer, Transformer<? super Injector, ? extends Handler> handler) throws Exception;
-
-}
+/**
+ * Support for creating embedded applications at test time, for testing Ratpack features and extensions.
+ *
+ * @see ratpack.test.embed.EmbeddedApplication
+ * @see ratpack.test.embed.LaunchConfigEmbeddedApplication
+ */
+package ratpack.test.embed;

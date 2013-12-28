@@ -36,14 +36,12 @@ class MetricsSpec extends RatpackGroovyDslSpec {
 
   def "can register metrics module"() {
     when:
-    app {
-      modules {
-        register new CodaHaleModule().metrics()
-      }
-      handlers { MetricRegistry metrics ->
-        handler {
-          render metrics.getClass().name
-        }
+    modules {
+      register new CodaHaleModule().metrics()
+    }
+    handlers { MetricRegistry metrics ->
+      handler {
+        render metrics.getClass().name
       }
     }
 
@@ -59,16 +57,14 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     def origOut = System.out
     System.out = new PrintStream(output, true)
 
-    app {
-      modules {
-        register new CodaHaleModule().jmx().csv(reportDirectory.root).console()
-      }
-      handlers { MetricRegistry metrics ->
-        handler {
-          //noinspection GroovyAccessibility
-          listeners = metrics.listeners
-          render "ok"
-        }
+    modules {
+      register new CodaHaleModule().jmx().csv(reportDirectory.root).console()
+    }
+    handlers { MetricRegistry metrics ->
+      handler {
+        //noinspection GroovyAccessibility
+        listeners = metrics.listeners
+        render "ok"
       }
     }
 
@@ -93,20 +89,18 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     def requestMeter
 
     given:
-    app {
-      modules {
-        register new CodaHaleModule().metrics()
-      }
+    modules {
+      register new CodaHaleModule().metrics()
+    }
 
-      handlers { MetricRegistry metrics ->
-        // TODO this is a bad place to do this - We should auto register user added MetricRegistryListeners
-        // Also need to consider a more general post startup hook
-        metrics.addListener(reporter)
+    handlers { MetricRegistry metrics ->
+      // TODO this is a bad place to do this - We should auto register user added MetricRegistryListeners
+      // Also need to consider a more general post startup hook
+      metrics.addListener(reporter)
 
-        handler {
-          metrics.meter("requests").mark()
-          render ""
-        }
+      handler {
+        metrics.meter("requests").mark()
+        render ""
       }
     }
 
@@ -159,24 +153,22 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     def unNamedMeter
 
     given:
-    app {
-      modules {
-        register new CodaHaleModule().metrics()
-        bind AnnotatedMetricService
-      }
+    modules {
+      register new CodaHaleModule().metrics()
+      bind AnnotatedMetricService
+    }
 
-      handlers { MetricRegistry metrics ->
-        metrics.addListener(reporter)
+    handlers { MetricRegistry metrics ->
+      metrics.addListener(reporter)
 
-        handler("meter") { AnnotatedMetricService service ->
-          service
-            .triggerMeter1()
-            .triggerMeter2()
-            .triggerMeter3()
-            .triggerMeter1()
+      handler("meter") { AnnotatedMetricService service ->
+        service
+          .triggerMeter1()
+          .triggerMeter2()
+          .triggerMeter3()
+          .triggerMeter1()
 
-          render ""
-        }
+        render ""
       }
     }
 
@@ -208,24 +200,22 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     def unNamedTimer
 
     given:
-    app {
-      modules {
-        register new CodaHaleModule().metrics()
-        bind AnnotatedMetricService
-      }
+    modules {
+      register new CodaHaleModule().metrics()
+      bind AnnotatedMetricService
+    }
 
-      handlers { MetricRegistry metrics ->
-        metrics.addListener(reporter)
+    handlers { MetricRegistry metrics ->
+      metrics.addListener(reporter)
 
-        handler("timer") { AnnotatedMetricService service ->
-          service
-            .triggerTimer1()
-            .triggerTimer2()
-            .triggerTimer3()
-            .triggerTimer1()
+      handler("timer") { AnnotatedMetricService service ->
+        service
+          .triggerTimer1()
+          .triggerTimer2()
+          .triggerTimer3()
+          .triggerTimer1()
 
-          render ""
-        }
+        render ""
       }
     }
 
@@ -254,18 +244,16 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     MetricRegistry registry
 
     given:
-    app {
-      modules {
-        register new CodaHaleModule().metrics()
-        bind AnnotatedMetricService
-      }
+    modules {
+      register new CodaHaleModule().metrics()
+      bind AnnotatedMetricService
+    }
 
-      handlers { MetricRegistry metrics ->
-        registry = metrics
+    handlers { MetricRegistry metrics ->
+      registry = metrics
 
-        handler("gauge") { AnnotatedMetricService service ->
-          render ""
-        }
+      handler("gauge") { AnnotatedMetricService service ->
+        render ""
       }
     }
 
@@ -282,25 +270,23 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     def reporter = Mock(MetricRegistryListener)
 
     given:
-    app {
-      modules {
-        register new CodaHaleModule().jmx()
+    modules {
+      register new CodaHaleModule().jmx()
+    }
+
+    handlers { MetricRegistry metrics ->
+
+      metrics.addListener(reporter)
+
+      handler {
+        render ""
       }
-
-      handlers { MetricRegistry metrics ->
-
-        metrics.addListener(reporter)
-
-        handler {
+      prefix("foo") {
+        handler("bar") {
           render ""
         }
-        prefix("foo") {
-          handler("bar") {
-            render ""
-          }
-          handler {
-            render ""
-          }
+        handler {
+          render ""
         }
       }
     }
@@ -320,17 +306,15 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     def reporter = Mock(MetricRegistryListener)
 
     given:
-    app {
-      modules {
-        register new CodaHaleModule().jvmMetrics()
-      }
+    modules {
+      register new CodaHaleModule().jvmMetrics()
+    }
 
-      handlers { MetricRegistry metrics ->
-        metrics.addListener(reporter)
+    handlers { MetricRegistry metrics ->
+      metrics.addListener(reporter)
 
-        handler {
-          render ""
-        }
+      handler {
+        render ""
       }
     }
 

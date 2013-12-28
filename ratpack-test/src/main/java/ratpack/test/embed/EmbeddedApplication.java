@@ -21,12 +21,47 @@ import ratpack.test.ApplicationUnderTest;
 
 import java.io.File;
 
+/**
+ * An application created at runtime, for testing Ratpack functionality.
+ * <p>
+ * Implementations are typically mutable/buildable or exposes protected hooks for subclassing.
+ * <p>
+ * As embedded applications also implement {@link ratpack.test.ApplicationUnderTest}, they are suitable for use with clients accessing the app via HTTP.
+ * Implementations must ensure that the application is up and receiving request when returning from {@link #getAddress()}.
+ *
+ * @see ratpack.test.embed.LaunchConfigEmbeddedApplication
+ */
 public interface EmbeddedApplication extends ApplicationUnderTest {
 
+  /**
+   * Working space that can be used to support the application.
+   * <p>
+   * This space must be writable, and generally should be based on some unique temporary space.
+   * If using JUnit, the <a href="http://junit.org/javadoc/4.9/org/junit/rules/TemporaryFolder.html">TemporaryFolder</a> rule can be useful.
+   * <p>
+   * This directory often becomes the base dir of the application at runtime, but implementations are free to do otherwise.
+   *
+   * @return Working space for defining the application
+   */
   File getBaseDir();
 
+  /**
+   * Creates a file object at the given path, relative to the {@link #getBaseDir()}.
+   * <p>
+   * Implementations must ensure that the parent file of the return file does exist (creating it if necessary).
+   *
+   * @param path The path to the file, relative to the {@link #getBaseDir()}
+   * @return The file at the given path, relative to the {@link #getBaseDir()}, whose parent file is guaranteed to exist and be a directory
+   */
   File file(String path);
 
+  /**
+   * The server for the application.
+   * <p>
+   * Calling this method does not implicitly start the server.
+   *
+   * @return The server for the application
+   */
   RatpackServer getServer();
 
 }

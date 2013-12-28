@@ -20,8 +20,6 @@ import ratpack.test.internal.RatpackGroovyDslSpec
 import spock.lang.FailsWith
 import spock.lang.Issue
 
-import java.nio.file.Paths
-
 class FileHandlingSpec extends RatpackGroovyDslSpec {
 
   void "context resolves files relative to application root"() {
@@ -29,17 +27,15 @@ class FileHandlingSpec extends RatpackGroovyDslSpec {
     def fileInsideBaseDir = file("foo").toPath()
 
     when:
-    app {
-      handlers {
-        get { FileSystemBinding fsBinding ->
+    handlers {
+      get { FileSystemBinding fsBinding ->
 
-          assert file("/foo") == fileInsideBaseDir
+        assert file("/foo") == fileInsideBaseDir
 
-          assert fsBinding.binding("/foo").file == fileInsideBaseDir
-          assert fsBinding.file("/foo") == fileInsideBaseDir
+        assert fsBinding.binding("/foo").file == fileInsideBaseDir
+        assert fsBinding.file("/foo") == fileInsideBaseDir
 
-          render "ok"
-        }
+        render "ok"
       }
     }
 
@@ -54,19 +50,17 @@ class FileHandlingSpec extends RatpackGroovyDslSpec {
     file(path) << "foo"
 
     when:
-    app {
-      handlers {
-        get { FileSystemBinding fsBinding ->
+    handlers {
+      get { FileSystemBinding fsBinding ->
 
-          assert new File(fsBinding.file.toFile(), path).exists()
+        assert new File(fsBinding.file.toFile(), path).exists()
 
-          assert fsBinding.binding(path) == null
-          assert fsBinding.file(path) == null
+        assert fsBinding.binding(path) == null
+        assert fsBinding.file(path) == null
 
-          assert file(path) == null
+        assert file(path) == null
 
-          render "ok"
-        }
+        render "ok"
       }
     }
 
@@ -78,11 +72,9 @@ class FileHandlingSpec extends RatpackGroovyDslSpec {
   @Issue("https://github.com/ratpack/ratpack/issues/215")
   void "unresolved files result in statusCode 404"() {
     given:
-    app {
-      handlers {
-        get {
-          render file("../../etc/passwd")
-        }
+    handlers {
+      get {
+        render file("../../etc/passwd")
       }
     }
 

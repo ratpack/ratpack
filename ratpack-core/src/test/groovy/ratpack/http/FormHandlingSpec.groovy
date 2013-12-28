@@ -24,12 +24,10 @@ class FormHandlingSpec extends RatpackGroovyDslSpec {
 
   def "can get form params"() {
     when:
-    app {
-      handlers {
-        post {
-          def form = parse form()
-          render form.toString()
-        }
+    handlers {
+      post {
+        def form = parse form()
+        render form.toString()
       }
     }
 
@@ -50,12 +48,10 @@ class FormHandlingSpec extends RatpackGroovyDslSpec {
 
   def "can read multi part forms"() {
     when:
-    app {
-      handlers {
-        post {
-          def form = parse form()
-          render form.toString()
-        }
+    handlers {
+      post {
+        def form = parse form()
+        render form.toString()
       }
     }
 
@@ -73,15 +69,10 @@ class FormHandlingSpec extends RatpackGroovyDslSpec {
     def fooFile = file("foo.txt") << "bar"
 
     when:
-    app {
-      modules {
-
-      }
-      handlers {
-        post {
-          def form = parse form()
-          render "File content: " + form.file("theFile").text
-        }
+    handlers {
+      post {
+        def form = parse form()
+        render "File content: " + form.file("theFile").text
       }
     }
 

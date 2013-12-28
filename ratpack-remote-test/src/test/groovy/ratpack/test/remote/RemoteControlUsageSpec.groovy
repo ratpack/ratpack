@@ -22,7 +22,7 @@ import ratpack.test.internal.RatpackGroovyDslSpec
 class RemoteControlUsageSpec extends RatpackGroovyDslSpec {
 
   def setup() {
-    other.put("remoteControl.enabled", "true")
+    launchConfig { other("remoteControl.enabled": "true") }
   }
 
   @javax.inject.Singleton
@@ -32,11 +32,9 @@ class RemoteControlUsageSpec extends RatpackGroovyDslSpec {
 
   def "can access application internals"() {
     when:
-    app {
-      modules {
-        register new RemoteControlModule()
-        bind ValueHolder
-      }
+    modules {
+      register new RemoteControlModule()
+      bind ValueHolder
     }
     handlers {
       get { ValueHolder valueHolder ->

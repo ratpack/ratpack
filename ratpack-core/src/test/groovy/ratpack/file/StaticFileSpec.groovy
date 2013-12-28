@@ -33,12 +33,10 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
     file("public/foo/static.text") << "hello!"
 
     when:
-    app {
-      handlers {
-        assets("public")
-        handler {
-          render "after"
-        }
+    handlers {
+      assets("public")
+      handler {
+        render "after"
       }
     }
 
@@ -52,10 +50,8 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
     def file = file("public/static.text") << "hello!"
 
     when:
-    app {
-      handlers {
-        assets("public")
-      }
+    handlers {
+      assets("public")
     }
 
     then:
@@ -74,10 +70,8 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
     file("public/dir/index.xhtml") << "bar"
 
     when:
-    app {
-      handlers {
-        assets("public", "index.html", "index.xhtml")
-      }
+    handlers {
+      assets("public", "index.html", "index.xhtml")
     }
 
     then:
@@ -94,10 +88,8 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
     request.redirects().follow(false)
 
     when:
-    app {
-      handlers {
-        assets("public", "index.html")
-      }
+    handlers {
+      assets("public", "index.html")
     }
 
     then:
@@ -115,10 +107,8 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
     file("public/index.html") << "foo"
 
     when:
-    app {
-      handlers {
-        assets("public", "index.html")
-      }
+    handlers {
+      assets("public", "index.html")
     }
 
     then:
@@ -132,14 +122,12 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
     file("d2/f2.txt") << "2"
 
     when:
-    app {
-      handlers {
-        prefix("a") {
-          assets("d1")
-        }
-        prefix("b") {
-          assets("d2")
-        }
+    handlers {
+      prefix("a") {
+        assets("d1")
+      }
+      prefix("b") {
+        assets("d2")
       }
     }
 
@@ -155,10 +143,8 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
     file("d1/path to/some+where/test.txt") << "3"
 
     when:
-    app {
-      handlers {
-        assets("d1")
-      }
+    handlers {
+      assets("d1")
     }
 
     then:
@@ -174,12 +160,10 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
     file("d1/d2/d3/dir/index.html") << "3"
 
     when:
-    app {
-      handlers {
-        fileSystem("d1") {
-          fileSystem("d2") {
-            assets("d3", "index.html")
-          }
+    handlers {
+      fileSystem("d1") {
+        fileSystem("d2") {
+          assets("d3", "index.html")
         }
       }
     }
@@ -193,11 +177,9 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
     file("foo/file.txt") << "file"
 
     when:
-    app {
-      handlers {
-        prefix("bar") {
-          assets("foo")
-        }
+    handlers {
+      prefix("bar") {
+        assets("foo")
       }
     }
 
@@ -211,10 +193,8 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
     def file = file("public/file.txt") << "hello!"
 
     and:
-    app {
-      handlers {
-        assets("public")
-      }
+    handlers {
+      assets("public")
     }
 
     expect:
@@ -229,10 +209,8 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
     file("public/file.txt") << "a"
 
     when:
-    app {
-      handlers {
-        assets("public")
-      }
+    handlers {
+      assets("public")
     }
 
     then:
@@ -248,10 +226,8 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
     def file = file("public/file.txt") << "hello!"
 
     and:
-    app {
-      handlers {
-        assets("public")
-      }
+    handlers {
+      assets("public")
     }
 
     and:
@@ -276,10 +252,8 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
     def file = file("public/index.txt") << "hello!"
 
     and:
-    app {
-      handlers {
-        assets("public", "index.txt")
-      }
+    handlers {
+      assets("public", "index.txt")
     }
 
     and:
@@ -296,10 +270,8 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
     def file = file("public/static.text") << RandomStringUtils.randomAscii(fileSize)
 
     when:
-    app {
-      handlers {
-        assets("public")
-      }
+    handlers {
+      assets("public")
     }
 
     then:
@@ -326,14 +298,12 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
     }
 
     when:
-    app {
-      handlers {
-        prefix("a") {
-          assets("d1")
-        }
-        prefix("b") {
-          assets("d2")
-        }
+    handlers {
+      prefix("a") {
+        assets("d1")
+      }
+      prefix("b") {
+        assets("d2")
       }
     }
 
@@ -353,10 +323,8 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
     }
 
     when:
-    app {
-      handlers {
-        assets("public", "index.html")
-      }
+    handlers {
+      assets("public", "index.html")
     }
 
     then:
@@ -373,10 +341,8 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
     }
 
     when:
-    app {
-      handlers {
-        assets("public")
-      }
+    handlers {
+      assets("public")
     }
 
     then:
@@ -388,11 +354,9 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
     file("public/foo.txt") << "bar"
 
     when:
-    app {
-      handlers {
-        assets "public"
-        handler { render "after" }
-      }
+    handlers {
+      assets "public"
+      handler { render "after" }
     }
 
     then:
@@ -404,10 +368,8 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
   def "only serve files from within the binding root"() {
     setup:
     file("public/foo.txt") << "bar"
-    app {
-      handlers {
-        assets "public"
-      }
+    handlers {
+      assets "public"
     }
 
     when:

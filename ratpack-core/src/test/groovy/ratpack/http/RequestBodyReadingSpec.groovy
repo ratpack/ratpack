@@ -22,11 +22,9 @@ class RequestBodyReadingSpec extends RatpackGroovyDslSpec {
 
   def "can get request body as bytes"() {
     when:
-    app {
-      handlers {
-        post {
-          response.send new String(request.bytes, "utf8")
-        }
+    handlers {
+      post {
+        response.send new String(request.bytes, "utf8")
       }
     }
 
@@ -37,11 +35,9 @@ class RequestBodyReadingSpec extends RatpackGroovyDslSpec {
 
   def "can get request body as input stream"() {
     when:
-    app {
-      handlers {
-        post {
-          response.send new String(request.inputStream.bytes, "utf8")
-        }
+    handlers {
+      post {
+        response.send new String(request.inputStream.bytes, "utf8")
       }
     }
 
@@ -55,11 +51,9 @@ class RequestBodyReadingSpec extends RatpackGroovyDslSpec {
     def string = "a" * 1024 * 9
 
     when:
-    app {
-      handlers {
-        post {
-          response.send new String(request.bytes, "utf8")
-        }
+    handlers {
+      post {
+        response.send new String(request.bytes, "utf8")
       }
     }
 
@@ -70,11 +64,9 @@ class RequestBodyReadingSpec extends RatpackGroovyDslSpec {
 
   def "get bytes on get request"() {
     when:
-    app {
-      handlers {
-        handler {
-          response.send request.bytes.length.toString()
-        }
+    handlers {
+      handler {
+        response.send request.bytes.length.toString()
       }
     }
 

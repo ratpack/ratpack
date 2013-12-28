@@ -26,10 +26,9 @@ import ratpack.groovy.guice.internal.DefaultGroovyModuleRegistry;
 import ratpack.groovy.handling.GroovyChain;
 import ratpack.groovy.internal.ClosureUtil;
 import ratpack.guice.Guice;
+import ratpack.guice.GuiceBackedHandlerFactory;
 import ratpack.guice.ModuleRegistry;
 import ratpack.guice.internal.DefaultGuiceBackedHandlerFactory;
-import ratpack.guice.internal.GuiceBackedHandlerFactory;
-import ratpack.guice.internal.InjectorBackedRegistry;
 import ratpack.handling.Handler;
 import ratpack.launch.HandlerFactory;
 import ratpack.launch.LaunchConfig;
@@ -39,44 +38,111 @@ import ratpack.util.Action;
 import ratpack.util.Transformer;
 
 import java.io.File;
-import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 import static ratpack.groovy.internal.ClosureUtil.configureDelegateFirst;
 
+/**
+ * A highly configurable {@link ratpack.test.embed.EmbeddedApplication} implementation that allows the application to be defined in code at runtime.
+ * <p>
+ * This implementation is usually sufficient for testing Ratpack modules or extensions.
+ * <p>
+ * <pre class="tested">
+ * import ratpack.groovy.test.TestHttpClients
+ * import ratpack.groovy.test.embed.ClosureBackedEmbeddedApplication
+ * import ratpack.session.SessionModule
+ *
+ * import java.nio.file.Files
+ *
+ * def baseDir = Files.createTempDirectory("ratpack-test").toFile()
+ * baseDir.mkdirs()
+ * def application = new ClosureBackedEmbeddedApplication(baseDir)
+ *
+ * application.with {
+ *   // Create a file within the application base dir
+ *   file("public/foo.txt") << "bar"
+ *
+ *   // Configure the launch config
+ *   launchConfig {
+ *     other "some.other.property": "value"
+ *     reloadable true
+ *   }
+ *
+ *   // Configure the module registry
+ *   modules {
+ *     register new SessionModule()
+ *   }
+ *
+ *   // Use the GroovyChain DSL for defining the application handlers
+ *   handlers {
+ *     get {
+ *       render "root"
+ *     }
+ *     assets "public"
+ *   }
+ * }
+ *
+ * // Test the application with the test http client
+ * def client = TestHttpClients.testHttpClient(application)
+ *
+ * assert client.getText() == "root"
+ * assert client.getText("foo.txt") == "bar"
+ *
+ * // Stop the application
+ * application.server.stop()
+ * </pre>
+ */
 public class ClosureBackedEmbeddedApplication extends LaunchConfigEmbeddedApplication {
 
-  protected Closure<?> handlersClosure = ClosureUtil.noop();
-  protected Closure<?> modulesClosure = ClosureUtil.noop();
-  protected Closure<?> launchConfigClosure = ClosureUtil.noop();
+  private Closure<?> handlersClosure = ClosureUtil.noop();
+  private Closure<?> modulesClosure = ClosureUtil.noop();
+  private Closure<?> launchConfigClosure = ClosureUtil.noop();
 
   private final List<Module> modules = new LinkedList<>();
-  private final Map<String, String> other = new LinkedHashMap<>();
 
+  /**
+   * Constructor.
+   *
+   * @param baseDir The base dir
+   */
   public ClosureBackedEmbeddedApplication(File baseDir) {
     super(baseDir);
   }
 
+  /**
+   * A mutable list of modules to use in this application.
+   *
+   * @return A mutable list of modules to use in this application
+   */
   public List<Module> getModules() {
     return modules;
   }
 
-  public Map<String, String> getOther() {
-    return other;
-  }
-
+  /**
+   * Constructs the launch config using the other {@code create*} methods.
+   * <p>
+   * A launch config will be created using {@link LaunchConfigBuilder#baseDir(java.io.File)}, with {@link #getBaseDir()} as the base dir.
+   * The launch config will also default to using a port value of {@code 0} (ephemeral port).
+   * <p>
+   * Register modules and objects using the {@link #modules(groovy.lang.Closure)} method.
+   * <p>
+   * Define the handlers using the {@link #handlers(groovy.lang.Closure)} method.
+   * <p>
+   * Prefer overriding specific {@code create*} methods instead of this one.
+   *
+   * @return The created launch config.
+   */
   @Override
   protected LaunchConfig createLaunchConfig() {
-    final Action<? super ModuleRegistry> modulesAction = createModulesAction();
 
     LaunchConfigBuilder launchConfigBuilder = LaunchConfigBuilder
       .baseDir(getBaseDir())
-      .port(0)
-      .other(other);
+      .port(0);
 
     configureDelegateFirst(launchConfigBuilder, launchConfigClosure);
+
+    final Action<? super ModuleRegistry> modulesAction = createModulesAction();
 
     return launchConfigBuilder.build(new HandlerFactory() {
       public Handler create(LaunchConfig launchConfig) throws Exception {
@@ -89,30 +155,80 @@ public class ClosureBackedEmbeddedApplication extends LaunchConfigEmbeddedApplic
     });
   }
 
-  public void handlers(@DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer) {
-    this.handlersClosure = configurer;
+  /**
+   * Specifies the handlers of the application.
+   * <p>
+   * The given closure will not be executed until this application is started.
+   * <p>
+   * Subsequent calls to this method will <i>replace</i> the previous definition.
+   * Calling this method after the application has started has no effect.
+   *
+   * @param closure The definition of the application handlers
+   */
+  public void handlers(@DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) {
+    this.handlersClosure = closure;
   }
 
-  public void modules(@DelegatesTo(value = GroovyModuleRegistry.class, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer) {
-    this.modulesClosure = configurer;
+  /**
+   * Specifies the modules of the application.
+   * <p>
+   * The given closure will not be executed until this application is started.
+   * <p>
+   * Subsequent calls to this method will <i>replace</i> the previous definition.
+   * Calling this method after the application has started has no effect.
+   *
+   * @param closure The definition of the application handlers
+   */
+  public void modules(@DelegatesTo(value = GroovyModuleRegistry.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) {
+    this.modulesClosure = closure;
   }
 
-  public void launchConfig(@DelegatesTo(value = LaunchConfigBuilder.class, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer) {
-    this.launchConfigClosure = configurer;
+  /**
+   * Modifies the launch config of the application.
+   * <p>
+   * The given closure will not be executed until this application is started.
+   * <p>
+   * Subsequent calls to this method will <i>replace</i> the previous definition.
+   * Calling this method after the application has started has no effect.
+   *
+   * @param closure The definition of the application handlers
+   */
+  public void launchConfig(@DelegatesTo(value = LaunchConfigBuilder.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) {
+    this.launchConfigClosure = closure;
   }
 
-  public void app(@DelegatesTo(ClosureBackedEmbeddedApplication.class) Closure<?> closure) {
-    ClosureUtil.configureDelegateFirst(this, closure);
-  }
-
+  /**
+   * Creates a module to injector transformer based on the given launch config.
+   * <p>
+   * Delegates to {@link Guice#newInjectorFactory(ratpack.launch.LaunchConfig)}.
+   *
+   * @param launchConfig The launch config
+   * @return the result of {@link Guice#newInjectorFactory(ratpack.launch.LaunchConfig)} with the given launch config
+   */
   protected Transformer<? super Module, ? extends Injector> createInjectorFactory(LaunchConfig launchConfig) {
     return Guice.newInjectorFactory(launchConfig);
   }
 
+  /**
+   * Returns the factory to use to create the actual handler.
+   * <p>
+   * This implementation does not add any implicit behaviour.
+   * Subclasses may wish to provide different implementations that do perform implicit behaviour (e.g. implied modules)
+   *
+   * @param launchConfig The launch config
+   * @return The guice handler factory
+   */
   protected GuiceBackedHandlerFactory createHandlerFactory(LaunchConfig launchConfig) {
     return new DefaultGuiceBackedHandlerFactory(launchConfig);
   }
 
+  /**
+   * Provides the module registry configuration action.
+   * <p>
+   * This implementation creates an action that registers {@link #getModules()} in order, then executes the closure given with {@link #modules(groovy.lang.Closure)}.
+   *
+   * @return The module registry configuration action
+   */
   protected Action<? super ModuleRegistry> createModulesAction() {
     return new Action<ModuleRegistry>() {
       @Override
@@ -125,11 +241,20 @@ public class ClosureBackedEmbeddedApplication extends LaunchConfigEmbeddedApplic
     };
   }
 
-  protected Transformer<? super Injector, ? extends Handler> createHandlerTransformer(final LaunchConfig launchConfig) throws Exception {
+  /**
+   * Provides the object that, given the {@link com.google.inject.Injector} created by the module definition, creates the application handler.
+   * <p>
+   * This implementation uses the closure given to {@link #handlers(groovy.lang.Closure)} to build a handler using the {@link Groovy#chain(ratpack.launch.LaunchConfig, ratpack.registry.Registry, groovy.lang.Closure)} method.
+   * An registry based on the injector backs the chain.
+   *
+   * @param launchConfig the launch config
+   * @return A transformer that creates the application handler, given an injector
+   */
+  protected Transformer<? super Injector, ? extends Handler> createHandlerTransformer(final LaunchConfig launchConfig) {
     return new Transformer<Injector, Handler>() {
       @Override
       public Handler transform(Injector injector) throws Exception {
-        return Groovy.chain(launchConfig, new InjectorBackedRegistry(injector), handlersClosure);
+        return Groovy.chain(launchConfig, Guice.registry(injector), handlersClosure);
       }
     };
   }

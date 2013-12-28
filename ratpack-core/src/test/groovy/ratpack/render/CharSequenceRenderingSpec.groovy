@@ -22,11 +22,9 @@ class CharSequenceRenderingSpec extends RatpackGroovyDslSpec {
 
   def "can render string"() {
     when:
-    app {
-      handlers {
-        get {
-          render "foo"
-        }
+    handlers {
+      get {
+        render "foo"
       }
     }
 
@@ -36,11 +34,9 @@ class CharSequenceRenderingSpec extends RatpackGroovyDslSpec {
 
   def "can render gstring"() {
     when:
-    app {
-      handlers {
-        get {
-          render "${"foo"}"
-        }
+    handlers {
+      get {
+        render "${"foo"}"
       }
     }
 

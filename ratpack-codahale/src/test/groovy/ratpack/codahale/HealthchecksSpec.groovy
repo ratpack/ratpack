@@ -46,19 +46,17 @@ class HealthchecksSpec extends RatpackGroovyDslSpec {
 
   def "can register healthcheck"() {
     when:
-    app {
-      modules {
-        register new CodaHaleModule()
-        bind MyHealthCheck
+    modules {
+      register new CodaHaleModule()
+      bind MyHealthCheck
+    }
+    handlers { HealthCheckRegistry healthChecks ->
+      get {
+        render healthChecks.runHealthChecks().toString()
       }
-      handlers { HealthCheckRegistry healthChecks ->
-        get {
-          render healthChecks.runHealthChecks().toString()
-        }
-        post('toggle') {
-          get(SomeResource).with { ok = !ok }
-          response.send()
-        }
+      post('toggle') {
+        get(SomeResource).with { ok = !ok }
+        response.send()
       }
     }
 

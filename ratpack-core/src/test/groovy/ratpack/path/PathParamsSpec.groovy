@@ -22,14 +22,12 @@ class PathParamsSpec extends RatpackGroovyDslSpec {
 
   def "can parse url params"() {
     when:
-    app {
-      handlers {
-        get(":a/:b/:c?") {
-          response.send new LinkedHashMap(pathTokens).toString()
-        }
-        get("foo") {
-          render "foo"
-        }
+    handlers {
+      get(":a/:b/:c?") {
+        response.send new LinkedHashMap(pathTokens).toString()
+      }
+      get("foo") {
+        render "foo"
       }
     }
 

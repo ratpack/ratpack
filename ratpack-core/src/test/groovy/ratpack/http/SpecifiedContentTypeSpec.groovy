@@ -26,12 +26,10 @@ class SpecifiedContentTypeSpec extends RatpackGroovyDslSpec {
 
   def "content type can be specified by handler"() {
     given:
-    app {
-      handlers {
-        get("path") {
-          response.contentType mimeType
-          response.send content
-        }
+    handlers {
+      get("path") {
+        response.contentType mimeType
+        response.send content
       }
     }
 

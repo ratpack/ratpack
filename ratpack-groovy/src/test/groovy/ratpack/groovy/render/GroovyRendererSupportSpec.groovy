@@ -30,14 +30,12 @@ class GroovyRendererSupportSpec extends RatpackGroovyDslSpec {
 
   def "can implement renderer in groovy"() {
     when:
-    app {
-      modules {
-        bind IntegerRenderer
-      }
-      handlers {
-        get {
-          render 10
-        }
+    modules {
+      bind IntegerRenderer
+    }
+    handlers {
+      get {
+        render 10
       }
     }
 

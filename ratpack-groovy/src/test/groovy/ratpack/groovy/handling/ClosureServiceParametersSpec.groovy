@@ -33,15 +33,13 @@ class ClosureServiceParametersSpec extends RatpackGroovyAppSpec {
     when:
     file("templates/foo.html") << "bar"
 
-    app {
-      modules {
-        register(new ThingModule())
-      }
+    modules {
+      register(new ThingModule())
+    }
 
-      handlers { Thing thing ->
-        get {
-          response.send thing.class.name
-        }
+    handlers { Thing thing ->
+      get {
+        response.send thing.class.name
       }
     }
 

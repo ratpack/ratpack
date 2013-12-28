@@ -31,17 +31,12 @@ import static ratpack.remote.RemoteControlModule.DEFAULT_REMOTE_CONTROL_PATH
 
 class RemoteControlSpec extends RatpackGroovyDslSpec {
 
-  void appWithRemoteControl() {
-    app {
-      modules {
-        register new RemoteControlModule()
-      }
-    }
-  }
+  final Map<String, String> enabled = ['remoteControl.enabled': 'true'].asImmutable()
 
-  void appWithEnabledRemoteControl() {
-    other['remoteControl.enabled'] = 'true'
-    appWithRemoteControl()
+  def setup() {
+    modules {
+      register new RemoteControlModule()
+    }
   }
 
   RemoteControl getRemote() {
@@ -50,16 +45,13 @@ class RemoteControlSpec extends RatpackGroovyDslSpec {
   }
 
   void 'by default the endpoint is not enabled'() {
-    given:
-    appWithRemoteControl()
-
     expect:
     post(DEFAULT_REMOTE_CONTROL_PATH).statusCode == NOT_FOUND.code()
   }
 
   void 'only posts are allowed'() {
     given:
-    appWithEnabledRemoteControl()
+    launchConfig { other(enabled) }
 
     expect:
     get(DEFAULT_REMOTE_CONTROL_PATH).statusCode == METHOD_NOT_ALLOWED.code()
@@ -68,7 +60,7 @@ class RemoteControlSpec extends RatpackGroovyDslSpec {
 
   void 'only requests that contain groovy-remote-control-command are allowed'() {
     given:
-    appWithEnabledRemoteControl()
+    launchConfig { other(enabled) }
 
     expect:
     post(DEFAULT_REMOTE_CONTROL_PATH).statusCode == UNSUPPORTED_MEDIA_TYPE.code()
@@ -76,7 +68,7 @@ class RemoteControlSpec extends RatpackGroovyDslSpec {
 
   void 'only requests that accept groovy-remote-control-result are allowed'() {
     given:
-    appWithEnabledRemoteControl()
+    launchConfig { other(enabled) }
 
     when:
     request.header(HttpHeaders.Names.CONTENT_TYPE, RemoteControlHandler.REQUEST_CONTENT_TYPE)
@@ -89,12 +81,10 @@ class RemoteControlSpec extends RatpackGroovyDslSpec {
   @Unroll
   void 'sending a simple command - #scenario'() {
     given:
-    app {
-      modules {
-        register new RemoteControlModule(path: modulePath)
-      }
+    modules {
+      register new RemoteControlModule(path: modulePath)
     }
-    other.putAll(['remoteControl.enabled': 'true'] + otherConfig)
+    launchConfig { other(*: enabled, *: otherConfig) }
 
     and:
     server.start()
@@ -112,8 +102,7 @@ class RemoteControlSpec extends RatpackGroovyDslSpec {
 
   void 'registry is available in command context'() {
     given:
-    appWithEnabledRemoteControl()
-    other.test = 'it works'
+    launchConfig { other(*: enabled, test: 'it works') }
 
     expect:
     //from guice
@@ -126,8 +115,10 @@ class RemoteControlSpec extends RatpackGroovyDslSpec {
 
   void 'endpoint is also enabled if reloading is enabled'() {
     given:
-    launchConfig { reloadable(true) }
-    appWithRemoteControl()
+    launchConfig {
+      other(enabled)
+      reloadable(true)
+    }
 
     expect:
     remote.exec { 1 + 2 } == 3

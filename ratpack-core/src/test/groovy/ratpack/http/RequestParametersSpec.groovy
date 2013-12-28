@@ -22,11 +22,9 @@ class RequestParametersSpec extends RatpackGroovyDslSpec {
 
   def "can get query params"() {
     when:
-    app {
-      handlers {
-        get {
-          response.send request.queryParams.toString()
-        }
+    handlers {
+      get {
+        response.send request.queryParams.toString()
       }
     }
 

@@ -28,18 +28,16 @@ class HandlebarsTemplateRenderingSpec extends RatpackGroovyDslSpec {
   @Unroll
   void 'can render a handlebars template from #scenario'() {
     given:
-    other.putAll(otherConfig)
+    launchConfig { other(otherConfig) }
     file(filePath) << '{{key}}'
 
     when:
-    app {
-      modules {
-        register new HandlebarsModule(templatesPath: templatesPath)
-      }
-      handlers {
-        get {
-          render handlebarsTemplate('simple', key: 'it works!')
-        }
+    modules {
+      register new HandlebarsModule(templatesPath: templatesPath)
+    }
+    handlers {
+      get {
+        render handlebarsTemplate('simple', key: 'it works!')
       }
     }
 
@@ -56,18 +54,16 @@ class HandlebarsTemplateRenderingSpec extends RatpackGroovyDslSpec {
   @Unroll
   void 'can configure loader suffix via #scenario'() {
     given:
-    other.putAll(otherConfig)
+    launchConfig { other(otherConfig) }
     file('handlebars/simple.hbs') << '{{this}}'
 
     when:
-    app {
-      modules {
-        register new HandlebarsModule(templatesSuffix: templatesSuffix)
-      }
-      handlers {
-        get {
-          render handlebarsTemplate('simple.hbs', 'it works!')
-        }
+    modules {
+      register new HandlebarsModule(templatesSuffix: templatesSuffix)
+    }
+    handlers {
+      get {
+        render handlebarsTemplate('simple.hbs', 'it works!')
       }
     }
 
@@ -84,14 +80,12 @@ class HandlebarsTemplateRenderingSpec extends RatpackGroovyDslSpec {
     given:
     file('handlebars').mkdir()
 
-    app {
-      modules {
-        register new HandlebarsModule()
-      }
-      handlers {
-        get {
-          render handlebarsTemplate('simple', key: 'it works!')
-        }
+    modules {
+      register new HandlebarsModule()
+    }
+    handlers {
+      get {
+        render handlebarsTemplate('simple', key: 'it works!')
       }
     }
 
@@ -107,15 +101,13 @@ class HandlebarsTemplateRenderingSpec extends RatpackGroovyDslSpec {
     file('handlebars/helper.hbs') << '{{test}}'
 
     when:
-    app {
-      modules {
-        register new HandlebarsModule()
-        bind TestHelper
-      }
-      handlers {
-        get {
-          render handlebarsTemplate('helper')
-        }
+    modules {
+      register new HandlebarsModule()
+      bind TestHelper
+    }
+    handlers {
+      get {
+        render handlebarsTemplate('helper')
       }
     }
 
@@ -130,14 +122,12 @@ class HandlebarsTemplateRenderingSpec extends RatpackGroovyDslSpec {
     file('handlebars/simple.html.hbs') << '{{this}}'
 
     when:
-    app {
-      modules {
-        register new HandlebarsModule()
-      }
-      handlers {
-        handler {
-          render handlebarsTemplate(request.path, 'content types', request.queryParams.type)
-        }
+    modules {
+      register new HandlebarsModule()
+    }
+    handlers {
+      handler {
+        render handlebarsTemplate(request.path, 'content types', request.queryParams.type)
       }
     }
 
@@ -153,14 +143,12 @@ class HandlebarsTemplateRenderingSpec extends RatpackGroovyDslSpec {
     file('handlebars/simple.hbs') << 'A'
 
     when:
-    app {
-      modules {
-        register new HandlebarsModule(reloadable: true)
-      }
-      handlers {
-        get {
-          render handlebarsTemplate('simple')
-        }
+    modules {
+      register new HandlebarsModule(reloadable: true)
+    }
+    handlers {
+      get {
+        render handlebarsTemplate('simple')
       }
     }
 
@@ -180,14 +168,12 @@ class HandlebarsTemplateRenderingSpec extends RatpackGroovyDslSpec {
     file('handlebars/simple.hbs') << 'A'
 
     when:
-    app {
-      modules {
-        register new HandlebarsModule(reloadable: false)
-      }
-      handlers {
-        get {
-          render handlebarsTemplate('simple')
-        }
+    modules {
+      register new HandlebarsModule(reloadable: false)
+    }
+    handlers {
+      get {
+        render handlebarsTemplate('simple')
       }
     }
 

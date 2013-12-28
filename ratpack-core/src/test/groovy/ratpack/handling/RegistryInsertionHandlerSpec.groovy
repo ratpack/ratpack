@@ -42,24 +42,22 @@ class RegistryInsertionHandlerSpec extends RatpackGroovyDslSpec {
 
   def "can register for downstream with next"() {
     when:
-    app {
-      handlers {
-        prefix("foo") {
-          handler {
-            next(Thing, new ThingImpl("foo"))
-          }
-          get {
-            render get(Thing).value
-          }
-          prefix("bar") {
-            get {
-              render get(Thing).value + ":bar"
-            }
-          }
+    handlers {
+      prefix("foo") {
+        handler {
+          next(Thing, new ThingImpl("foo"))
         }
         get {
-          get(Thing)
+          render get(Thing).value
         }
+        prefix("bar") {
+          get {
+            render get(Thing).value + ":bar"
+          }
+        }
+      }
+      get {
+        get(Thing)
       }
     }
 

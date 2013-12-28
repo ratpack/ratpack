@@ -25,11 +25,9 @@ class ConcurrentRequestSpec extends RatpackGroovyDslSpec {
 
   def "can serve requests concurrently without mixing up params"() {
     when:
-    app {
-      handlers {
-        get(":id") {
-          response.send pathTokens.id + ":" + request.queryParams.id
-        }
+    handlers {
+      get(":id") {
+        response.send pathTokens.id + ":" + request.queryParams.id
       }
     }
 

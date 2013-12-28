@@ -24,24 +24,22 @@ class H2ModuleSpec extends RatpackGroovyDslSpec {
 
   def "can use db"() {
     when:
-    app {
-      modules {
-        register new H2Module()
-        register new SqlModule()
+    modules {
+      register new H2Module()
+      register new SqlModule()
+    }
+
+    handlers { Sql sql ->
+      sql.execute("create table if not exists val(ID INT PRIMARY KEY, val VARCHAR(255));")
+
+      get("get/:id") {
+        def row = sql.firstRow("select val from val where id = ${pathTokens.asInt("id")}")
+        render row.val
       }
 
-      handlers { Sql sql ->
-        sql.execute("create table if not exists val(ID INT PRIMARY KEY, val VARCHAR(255));")
-
-        get("get/:id") {
-          def row = sql.firstRow("select val from val where id = ${pathTokens.asInt("id")}")
-          render row.val
-        }
-
-        post("set/:id/:val") {
-          sql.executeInsert("merge into val (id, val) key(id) values (${pathTokens.asInt("id")}, $pathTokens.val)")
-          response.send()
-        }
+      post("set/:id/:val") {
+        sql.executeInsert("merge into val (id, val) key(id) values (${pathTokens.asInt("id")}, $pathTokens.val)")
+        response.send()
       }
     }
 

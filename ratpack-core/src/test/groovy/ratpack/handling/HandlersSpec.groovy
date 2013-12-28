@@ -29,10 +29,8 @@ class HandlersSpec extends RatpackGroovyDslSpec {
 
   def "empty chain handler"() {
     when:
-    app {
-      handlers {
-        chain([])
-      }
+    handlers {
+      chain([])
     }
 
     then:
@@ -40,19 +38,16 @@ class HandlersSpec extends RatpackGroovyDslSpec {
   }
 
 
-
   def "default services available"() {
     when:
-    app {
-      handlers {
-        handler {
-          get(ServerErrorHandler)
-          get(ClientErrorHandler)
-          get(MimeTypes)
-          get(LaunchConfig)
-          get(FileSystemBinding)
-          response.send "ok"
-        }
+    handlers {
+      handler {
+        get(ServerErrorHandler)
+        get(ClientErrorHandler)
+        get(MimeTypes)
+        get(LaunchConfig)
+        get(FileSystemBinding)
+        response.send "ok"
       }
     }
 
@@ -62,12 +57,10 @@ class HandlersSpec extends RatpackGroovyDslSpec {
 
   def "can use the compute executor"() {
     when:
-    app {
-      handlers {
-        get {
-          foregroundExecutorService.submit {
-            render "ok"
-          }
+    handlers {
+      get {
+        foregroundExecutorService.submit {
+          render "ok"
         }
       }
     }

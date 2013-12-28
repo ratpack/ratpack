@@ -17,8 +17,8 @@
 package ratpack.guice
 
 import com.google.inject.AbstractModule
-import ratpack.error.internal.PrintingServerErrorHandler
 import ratpack.error.ServerErrorHandler
+import ratpack.error.internal.PrintingServerErrorHandler
 import ratpack.handling.Context
 import ratpack.render.NoSuchRendererException
 import ratpack.render.RendererSupport
@@ -42,27 +42,25 @@ class RendererBindingsSpec extends RatpackGroovyDslSpec {
 
   def "bound renderers are usable"() {
     when:
-    app {
-      modules {
-        register new AbstractModule() {
-          protected void configure() {
-            bind(IntRenderer)
-            bind(StringRenderer)
-            bind(ServerErrorHandler).to(PrintingServerErrorHandler)
-          }
+    modules {
+      register new AbstractModule() {
+        protected void configure() {
+          bind(IntRenderer)
+          bind(StringRenderer)
+          bind(ServerErrorHandler).to(PrintingServerErrorHandler)
         }
       }
+    }
 
-      handlers {
-        get("int") {
-          render 1
-        }
-        get("string") {
-          render "abc"
-        }
-        get("none") {
-          render new LinkedList()
-        }
+    handlers {
+      get("int") {
+        render 1
+      }
+      get("string") {
+        render "abc"
+      }
+      get("none") {
+        render new LinkedList()
       }
     }
 

@@ -22,14 +22,12 @@ class BindAddressInContextSpec extends RatpackGroovyDslSpec {
 
   def "bind address is available via context"() {
     when:
-    app {
-      handlers {
-        get("port") {
-          response.send bindAddress.port.toString()
-        }
-        get("host") {
-          response.send bindAddress.host
-        }
+    handlers {
+      get("port") {
+        response.send bindAddress.port.toString()
+      }
+      get("host") {
+        response.send bindAddress.host
       }
     }
 

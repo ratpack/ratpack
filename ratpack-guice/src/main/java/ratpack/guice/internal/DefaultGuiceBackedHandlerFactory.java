@@ -22,6 +22,7 @@ import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.util.Modules;
 import io.netty.buffer.ByteBuf;
+import ratpack.guice.GuiceBackedHandlerFactory;
 import ratpack.guice.HandlerDecoratingModule;
 import ratpack.guice.ModuleRegistry;
 import ratpack.handling.Handler;

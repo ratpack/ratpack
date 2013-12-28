@@ -34,11 +34,9 @@ class RedirectHandlingSpec extends RatpackGroovyDslSpec {
 
   def "Absolute Path Redirect"() {
     when:
-    app {
-      handlers {
-        get {
-          redirect("http://www.google.com")
-        }
+    handlers {
+      get {
+        redirect("http://www.google.com")
       }
     }
 
@@ -50,11 +48,9 @@ class RedirectHandlingSpec extends RatpackGroovyDslSpec {
 
   def "Server Root Path Redirect no public url"() {
     when:
-    app {
-      handlers {
-        get {
-          redirect("/index")
-        }
+    handlers {
+      get {
+        redirect("/index")
       }
     }
 
@@ -66,11 +62,9 @@ class RedirectHandlingSpec extends RatpackGroovyDslSpec {
 
   def "Server Relative Path Redirect no public url"() {
     when:
-    app {
-      handlers {
-        get("index") {
-          redirect("other")
-        }
+    handlers {
+      get("index") {
+        redirect("other")
       }
     }
 
@@ -87,11 +81,9 @@ class RedirectHandlingSpec extends RatpackGroovyDslSpec {
       publicAddress(new URI(publicUrl))
     }
 
-    app {
-      handlers {
-        get {
-          redirect("/index")
-        }
+    handlers {
+      get {
+        redirect("/index")
       }
     }
 
@@ -110,11 +102,9 @@ class RedirectHandlingSpec extends RatpackGroovyDslSpec {
       publicAddress(new URI(publicUrl))
     }
 
-    app {
-      handlers {
-        get("index") {
-          redirect("other")
-        }
+    handlers {
+      get("index") {
+        redirect("other")
       }
     }
 

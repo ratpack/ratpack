@@ -45,25 +45,23 @@ class GuiceInitSpec extends RatpackGroovyDslSpec {
 
   def "can register init callbacks"() {
     when:
-    app {
-      modules {
-        bind Thing
-        init new Action<Injector>() {
-          @Override
-          void execute(Injector injector) throws Exception {
-            injector.getInstance(Thing).strings << "foo"
-          }
-        }
-        init ThingInit
-        init { Thing thing -> thing.strings << "baz" }
-        init(Thing) {
-          strings << "bat"
+    modules {
+      bind Thing
+      init new Action<Injector>() {
+        @Override
+        void execute(Injector injector) throws Exception {
+          injector.getInstance(Thing).strings << "foo"
         }
       }
-      handlers {
-        get { Thing thing ->
-          render thing.strings.toString()
-        }
+      init ThingInit
+      init { Thing thing -> thing.strings << "baz" }
+      init(Thing) {
+        strings << "bat"
+      }
+    }
+    handlers {
+      get { Thing thing ->
+        render thing.strings.toString()
       }
     }
 

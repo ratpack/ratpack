@@ -17,19 +17,17 @@
 package ratpack.path
 
 import ratpack.test.internal.RatpackGroovyDslSpec
-import static io.netty.handler.codec.http.HttpResponseStatus.NOT_FOUND
 
+import static io.netty.handler.codec.http.HttpResponseStatus.NOT_FOUND
 
 class PathRoutingSpec extends RatpackGroovyDslSpec {
 
   def "can route by prefix"() {
     when:
-    app {
-      handlers {
-        prefix("abc") {
-          handler {
-            response.send(get(PathBinding).boundTo)
-          }
+    handlers {
+      prefix("abc") {
+        handler {
+          response.send(get(PathBinding).boundTo)
         }
       }
     }
@@ -43,13 +41,11 @@ class PathRoutingSpec extends RatpackGroovyDslSpec {
 
   def "can route by nested prefix"() {
     when:
-    app {
-      handlers {
-        prefix("abc") {
-          prefix("def") {
-            handler {
-              response.send(get(PathBinding).pastBinding)
-            }
+    handlers {
+      prefix("abc") {
+        prefix("def") {
+          handler {
+            response.send(get(PathBinding).pastBinding)
           }
         }
       }
@@ -64,13 +60,11 @@ class PathRoutingSpec extends RatpackGroovyDslSpec {
 
   def "can route by prefix with tokens"() {
     when:
-    app {
-      handlers {
-        prefix(":a/:b/:c") {
-          handler {
-            def binding = get(PathBinding)
-            response.send("$binding.tokens - $binding.pastBinding")
-          }
+    handlers {
+      prefix(":a/:b/:c") {
+        handler {
+          def binding = get(PathBinding)
+          response.send("$binding.tokens - $binding.pastBinding")
         }
       }
     }
@@ -81,14 +75,12 @@ class PathRoutingSpec extends RatpackGroovyDslSpec {
 
   def "can route by nested prefix with tokens"() {
     when:
-    app {
-      handlers {
-        prefix(":a/:b") {
-          prefix(":d/:e") {
-            handler {
-              def binding = get(PathBinding)
-              render "$binding.tokens - $binding.allTokens - $binding.pastBinding"
-            }
+    handlers {
+      prefix(":a/:b") {
+        prefix(":d/:e") {
+          handler {
+            def binding = get(PathBinding)
+            render "$binding.tokens - $binding.allTokens - $binding.pastBinding"
           }
         }
       }
@@ -100,11 +92,9 @@ class PathRoutingSpec extends RatpackGroovyDslSpec {
 
   def "can route by exact path"() {
     when:
-    app {
-      handlers {
-        handler("abc") {
-          response.send(get(PathBinding).boundTo)
-        }
+    handlers {
+      handler("abc") {
+        response.send(get(PathBinding).boundTo)
       }
     }
 
@@ -116,12 +106,10 @@ class PathRoutingSpec extends RatpackGroovyDslSpec {
 
   def "can route by nested exact path"() {
     when:
-    app {
-      handlers {
-        prefix("abc") {
-          handler("def") {
-            response.send(get(PathBinding).boundTo)
-          }
+    handlers {
+      prefix("abc") {
+        handler("def") {
+          response.send(get(PathBinding).boundTo)
         }
       }
     }
@@ -135,12 +123,10 @@ class PathRoutingSpec extends RatpackGroovyDslSpec {
 
   def "can route by exact path with tokens"() {
     when:
-    app {
-      handlers {
-        handler(":a/:b/:c") {
-          def binding = get(PathBinding)
-          response.send("$binding.tokens - $binding.pastBinding")
-        }
+    handlers {
+      handler(":a/:b/:c") {
+        def binding = get(PathBinding)
+        response.send("$binding.tokens - $binding.pastBinding")
       }
     }
 
@@ -151,13 +137,11 @@ class PathRoutingSpec extends RatpackGroovyDslSpec {
 
   def "can route by nested exact path with tokens"() {
     when:
-    app {
-      handlers {
-        prefix(":a/:b") {
-          handler(":d/:e") {
-            def binding = get(PathBinding)
-            response.send("$binding.tokens - $binding.allTokens - $binding.pastBinding")
-          }
+    handlers {
+      prefix(":a/:b") {
+        handler(":d/:e") {
+          def binding = get(PathBinding)
+          response.send("$binding.tokens - $binding.allTokens - $binding.pastBinding")
         }
       }
     }
@@ -169,15 +153,13 @@ class PathRoutingSpec extends RatpackGroovyDslSpec {
 
   def "can use get handler"() {
     when:
-    app {
-      handlers {
-        get {
-          response.send("root")
-        }
+    handlers {
+      get {
+        response.send("root")
+      }
 
-        get("a") {
-          response.send("a")
-        }
+      get("a") {
+        response.send("a")
       }
     }
 
@@ -189,15 +171,13 @@ class PathRoutingSpec extends RatpackGroovyDslSpec {
 
   def "can use post handler"() {
     when:
-    app {
-      handlers {
-        post {
-          response.send("root")
-        }
+    handlers {
+      post {
+        response.send("root")
+      }
 
-        post("a") {
-          response.send("a")
-        }
+      post("a") {
+        response.send("a")
       }
     }
 
@@ -209,15 +189,13 @@ class PathRoutingSpec extends RatpackGroovyDslSpec {
 
   def "can use put handler"() {
     when:
-    app {
-      handlers {
-        put {
-          response.send("root")
-        }
+    handlers {
+      put {
+        response.send("root")
+      }
 
-        put("a") {
-          response.send("a")
-        }
+      put("a") {
+        response.send("a")
       }
     }
 
@@ -229,15 +207,13 @@ class PathRoutingSpec extends RatpackGroovyDslSpec {
 
   def "can use delete handler"() {
     when:
-    app {
-      handlers {
-        delete {
-          response.send("root")
-        }
+    handlers {
+      delete {
+        response.send("root")
+      }
 
-        delete("a") {
-          response.send("a")
-        }
+      delete("a") {
+        response.send("a")
       }
     }
 

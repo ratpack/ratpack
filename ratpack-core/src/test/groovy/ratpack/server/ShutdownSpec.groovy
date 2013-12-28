@@ -25,12 +25,10 @@ class ShutdownSpec extends RatpackGroovyDslSpec {
 
   def "can invoke shutdown"() {
     when:
-    app {
-      handlers {
-        get {
-          get(Stopper).stop()
-          response.send("ok")
-        }
+    handlers {
+      get {
+        get(Stopper).stop()
+        response.send("ok")
       }
     }
 

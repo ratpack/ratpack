@@ -38,10 +38,8 @@ class FileRenderingSpec extends RatpackGroovyDslSpec {
 
   def "can render file"() {
     given:
-    app {
-      handlers {
-        get("path") { render myFile }
-      }
+    handlers {
+      get("path") { render myFile }
     }
 
     when:
@@ -58,10 +56,8 @@ class FileRenderingSpec extends RatpackGroovyDslSpec {
 
   def "renderer respect if-modified-since header"() {
     given:
-    app {
-      handlers {
-        get("path") { render myFile }
-      }
+    handlers {
+      get("path") { render myFile }
     }
 
     and:
@@ -79,10 +75,8 @@ class FileRenderingSpec extends RatpackGroovyDslSpec {
 
   def "files report a last modified time"() {
     given:
-    app {
-      handlers {
-        get("path") { render myFile }
-      }
+    handlers {
+      get("path") { render myFile }
     }
 
     when:

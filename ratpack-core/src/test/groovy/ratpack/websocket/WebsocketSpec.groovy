@@ -32,19 +32,17 @@ class WebsocketSpec extends RatpackGroovyDslSpec {
     def serverReceived = new LinkedBlockingQueue<WebSocketMessage<Integer>>()
     WebSocket ws
 
-    app {
-      handlers {
-        get {
-          websocket(context) {
-            ws = it
-            2
-          }.onClose {
-            closing.set(it)
-          }.onMessage {
-            serverReceived.put it
-            it.connection.send(it.text.toUpperCase())
-          }.connect()
-        }
+    handlers {
+      get {
+        websocket(context) {
+          ws = it
+          2
+        }.onClose {
+          closing.set(it)
+        }.onMessage {
+          serverReceived.put it
+          it.connection.send(it.text.toUpperCase())
+        }.connect()
       }
     }
 
@@ -85,13 +83,11 @@ class WebsocketSpec extends RatpackGroovyDslSpec {
 
   def "client receives error when exception thrown during server open"() {
     when:
-    app {
-      handlers {
-        get {
-          websocket(context) {
-            throw new Exception("!")
-          }.connect()
-        }
+    handlers {
+      get {
+        websocket(context) {
+          throw new Exception("!")
+        }.connect()
       }
     }
     server.start()

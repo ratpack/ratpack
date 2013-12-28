@@ -14,19 +14,9 @@
  * limitations under the License.
  */
 
-apply from: "$rootDir/gradle/javaModule.gradle"
-
-ext.apiLinks = [
-    "http://netty.io/4.0/api",
-    "http://docs.oracle.com/javase/7/docs/api"
-]
-
-dependencies {
-  compile "io.netty:netty-codec-http:$commonVersions.netty"
-  compile 'com.google.guava:guava:14.0.1'
-  compile 'javax.inject:javax.inject:1'
-  compile 'org.slf4j:slf4j-api:1.7.5'
-
-  runtime 'org.javassist:javassist:3.17.1-GA'
-  testCompile 'org.java-websocket:Java-WebSocket:1.3.0'
-}
+/**
+ * Support for creating Groovy based embedded applications.
+ *
+ * @see ratpack.groovy.test.embed.ClosureBackedEmbeddedApplication
+ */
+package ratpack.groovy.test.embed;

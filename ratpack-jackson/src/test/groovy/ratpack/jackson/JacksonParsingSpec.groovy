@@ -28,12 +28,10 @@ class JacksonParsingSpec extends RatpackGroovyDslSpec {
 
   def "can parse json node"() {
     when:
-    app {
-      handlers {
-        post {
-          def node = parse jsonNode()
-          response.send node.get("value").toString()
-        }
+    handlers {
+      post {
+        def node = parse jsonNode()
+        response.send node.get("value").toString()
       }
     }
 

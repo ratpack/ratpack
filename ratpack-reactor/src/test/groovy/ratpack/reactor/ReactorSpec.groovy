@@ -20,45 +20,40 @@ import ratpack.handling.Context
 import ratpack.test.internal.RatpackGroovyDslSpec
 import reactor.core.Environment
 import reactor.core.Reactor
-import reactor.core.spec.Reactors
-import reactor.event.Event
 import reactor.function.Consumer
 
 import static reactor.core.composable.spec.Promises.defer
-import static reactor.event.selector.Selectors.$
 
 class ReactorSpec extends RatpackGroovyDslSpec {
 
   def "can use reactor"() {
     when:
-    app {
-      modules {
-        def env = new Environment()
-        bind env
-        bind Reactor, env.rootReactor
-      }
+    modules {
+      def env = new Environment()
+      bind env
+      bind Reactor, env.rootReactor
+    }
 
-      handlers {
-        get(":value") { Environment env ->
-          def deferred = defer(env)
-          Context context = delegate
+    handlers {
+      get(":value") { Environment env ->
+        def deferred = defer(env)
+        Context context = context
 
-          deferred.
-            compose().
-            onSuccess(new Consumer<Integer>() {
-              void accept(Integer o) {
-                context.response.send o.toString()
-              }
-            }).
-            onError(new Consumer<Throwable>() {
-              void accept(Throwable o) {
-                context.error new Exception(o)
-              }
-            })
+        deferred.
+          compose().
+          onSuccess(new Consumer<Integer>() {
+            void accept(Integer o) {
+              context.response.send o.toString()
+            }
+          }).
+          onError(new Consumer<Throwable>() {
+            void accept(Throwable o) {
+              context.error new Exception(o)
+            }
+          })
 
-          deferred.accept(4)
+        deferred.accept(4)
 
-        }
       }
     }
 

@@ -30,11 +30,9 @@ class SessionSpec extends RatpackGroovyDslSpec {
 
   def "can use session"() {
     when:
-    app {
-      handlers {
-        get(":v") {
-          response.send get(Session).id
-        }
+    handlers {
+      get(":v") {
+        response.send get(Session).id
       }
     }
 
@@ -44,17 +42,15 @@ class SessionSpec extends RatpackGroovyDslSpec {
 
   def "can store session vars"() {
     when:
-    app {
-      handlers {
-        get("") {
-          def store = get(SessionStorage)
-          response.send store.value.toString()
-        }
-        get("set/:value") {
-          def store = get(SessionStorage)
-          store.value = pathTokens.value
-          response.send store.value.toString()
-        }
+    handlers {
+      get("") {
+        def store = get(SessionStorage)
+        response.send store.value.toString()
+      }
+      get("set/:value") {
+        def store = get(SessionStorage)
+        store.value = pathTokens.value
+        response.send store.value.toString()
       }
     }
 
@@ -67,24 +63,22 @@ class SessionSpec extends RatpackGroovyDslSpec {
 
   def "can invalidate session vars"() {
     when:
-    app {
-      handlers {
-        get("") {
-          def store = get(SessionStorage)
-          response.send store.value ?: "null"
-        }
-        get("set/:value") {
-          def store = get(SessionStorage)
-          store.value = pathTokens.value
-          response.send store.value ?: "null"
-        }
-        get("invalidate") {
-          get(Session).terminate()
-          response.send()
-        }
-        get("size") {
-          response.send get(SessionStore).size().toString()
-        }
+    handlers {
+      get("") {
+        def store = get(SessionStorage)
+        response.send store.value ?: "null"
+      }
+      get("set/:value") {
+        def store = get(SessionStorage)
+        store.value = pathTokens.value
+        response.send store.value ?: "null"
+      }
+      get("invalidate") {
+        get(Session).terminate()
+        response.send()
+      }
+      get("size") {
+        response.send get(SessionStore).size().toString()
       }
     }
 
@@ -105,15 +99,13 @@ class SessionSpec extends RatpackGroovyDslSpec {
 
   def "sessions are created on demand"() {
     when:
-    app {
-      handlers {
-        get {
-          render get(SessionStore).size().toString()
-        }
-        get("store") {
-          get(SessionStorage)
-          render "ok"
-        }
+    handlers {
+      get {
+        render get(SessionStore).size().toString()
+      }
+      get("store") {
+        get(SessionStorage)
+        render "ok"
       }
     }
 
@@ -125,15 +117,13 @@ class SessionSpec extends RatpackGroovyDslSpec {
 
   def "session cookies are only set when needed"() {
     when:
-    app {
-      handlers {
-        get("foo") {
-          response.send("foo")
-        }
-        get("bar") {
-          get(SessionStorage) // just retrieve
-          response.send("bar")
-        }
+    handlers {
+      get("foo") {
+        response.send("foo")
+      }
+      get("bar") {
+        get(SessionStorage) // just retrieve
+        response.send("bar")
       }
     }
 

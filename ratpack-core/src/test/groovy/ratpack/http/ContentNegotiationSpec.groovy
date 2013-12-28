@@ -22,22 +22,19 @@ class ContentNegotiationSpec extends RatpackGroovyDslSpec {
 
   def "can content negotiate"() {
     when:
-    app {
-
-      handlers {
-        get {
-          byContent {
-            json {
-              render "json"
-            }
-            html {
-              render "html"
-            }
+    handlers {
+      get {
+        byContent {
+          json {
+            render "json"
+          }
+          html {
+            render "html"
           }
         }
-        get("noneRegistered") {
-          byContent {}
-        }
+      }
+      get("noneRegistered") {
+        byContent {}
       }
     }
 
@@ -87,15 +84,13 @@ class ContentNegotiationSpec extends RatpackGroovyDslSpec {
 
   def "by accepts responder mime types"() {
     when:
-    app {
-      handlers {
-        get {
-          byContent {
-            json { render "json" }
-            xml { render "xml" }
-            plainText { render "text" }
-            html { render "html" }
-          }
+    handlers {
+      get {
+        byContent {
+          json { render "json" }
+          xml { render "xml" }
+          plainText { render "text" }
+          html { render "html" }
         }
       }
     }

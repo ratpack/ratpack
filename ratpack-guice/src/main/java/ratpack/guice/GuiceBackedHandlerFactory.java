@@ -14,19 +14,16 @@
  * limitations under the License.
  */
 
-apply from: "$rootDir/gradle/javaModule.gradle"
+package ratpack.guice;
 
-ext.apiLinks = [
-    "http://netty.io/4.0/api",
-    "http://docs.oracle.com/javase/7/docs/api"
-]
+import com.google.inject.Injector;
+import com.google.inject.Module;
+import ratpack.handling.Handler;
+import ratpack.util.Action;
+import ratpack.util.Transformer;
 
-dependencies {
-  compile "io.netty:netty-codec-http:$commonVersions.netty"
-  compile 'com.google.guava:guava:14.0.1'
-  compile 'javax.inject:javax.inject:1'
-  compile 'org.slf4j:slf4j-api:1.7.5'
+public interface GuiceBackedHandlerFactory {
 
-  runtime 'org.javassist:javassist:3.17.1-GA'
-  testCompile 'org.java-websocket:Java-WebSocket:1.3.0'
+  Handler create(Action<? super ModuleRegistry> modulesAction, Transformer<? super Module, ? extends Injector> moduleTransformer, Transformer<? super Injector, ? extends Handler> handler) throws Exception;
+
 }

@@ -31,22 +31,20 @@ class CloseEventHandlerSpec extends RatpackGroovyDslSpec {
     def status = null
 
     given:
-    app {
-      handlers {
+    handlers {
 
-        handler {
-          onClose {
-            status = response.status
-            latch.countDown()
-          }
-
-          next()
-        }
-
-        handler("foo") {
+      handler {
+        onClose {
+          status = response.status
           latch.countDown()
-          render ""
         }
+
+        next()
+      }
+
+      handler("foo") {
+        latch.countDown()
+        render ""
       }
     }
 
@@ -64,21 +62,18 @@ class CloseEventHandlerSpec extends RatpackGroovyDslSpec {
     def status = null
 
     given:
-    app {
-      handlers {
+    handlers {
 
-        handler {
-          onClose {
-            status = response.status
-            latch.countDown()
-          }
-          next()
+      handler {
+        onClose {
+          status = response.status
+          latch.countDown()
         }
+        next()
+      }
 
-        handler("foo") {
-          render ""
-        }
-
+      handler("foo") {
+        render ""
       }
     }
 
@@ -96,27 +91,24 @@ class CloseEventHandlerSpec extends RatpackGroovyDslSpec {
     def events = []
 
     given:
-    app {
-      handlers {
-
-        handler {
-          onClose {
-            events << "event1"
-            latch.countDown()
-          }
-
-          onClose {
-            events << "event2"
-            latch.countDown()
-          }
-
-          next()
-        }
-
-        handler("foo") {
+    handlers {
+      handler {
+        onClose {
+          events << "event1"
           latch.countDown()
-          render ""
         }
+
+        onClose {
+          events << "event2"
+          latch.countDown()
+        }
+
+        next()
+      }
+
+      handler("foo") {
+        latch.countDown()
+        render ""
       }
     }
 

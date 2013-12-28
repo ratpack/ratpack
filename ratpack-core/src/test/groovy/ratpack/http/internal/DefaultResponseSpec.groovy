@@ -29,11 +29,9 @@ class DefaultResponseSpec extends RatpackGroovyDslSpec {
 
   def "can send byte array"() {
     given:
-    app {
-      handlers {
-        get() {
-          response.send "text/plain", BODY.bytes
-        }
+    handlers {
+      get() {
+        response.send "text/plain", BODY.bytes
       }
     }
 
@@ -51,12 +49,10 @@ class DefaultResponseSpec extends RatpackGroovyDslSpec {
 
   def "can set content type and override with send byte array"() {
     given:
-    app {
-      handlers {
-        get() {
-          response.headers.set(CONTENT_TYPE, "application/octet-stream")
-          response.send "text/plain", BODY.bytes
-        }
+    handlers {
+      get() {
+        response.headers.set(CONTENT_TYPE, "application/octet-stream")
+        response.send "text/plain", BODY.bytes
       }
     }
 
@@ -74,11 +70,9 @@ class DefaultResponseSpec extends RatpackGroovyDslSpec {
 
   def "can send byte array with default content type"() {
     given:
-    app {
-      handlers {
-        get() {
-          response.send BODY.bytes
-        }
+    handlers {
+      get() {
+        response.send BODY.bytes
       }
     }
 
@@ -96,12 +90,10 @@ class DefaultResponseSpec extends RatpackGroovyDslSpec {
 
   def "can set content type and not override with send byte array"() {
     given:
-    app {
-      handlers {
-        get() {
-          response.headers.set(CONTENT_TYPE, "application/octet-stream")
-          response.send BODY.bytes
-        }
+    handlers {
+      get() {
+        response.headers.set(CONTENT_TYPE, "application/octet-stream")
+        response.send BODY.bytes
       }
     }
 
@@ -122,11 +114,9 @@ class DefaultResponseSpec extends RatpackGroovyDslSpec {
     def bufferedBody = IoUtils.byteBuf(BODY.bytes)
 
     and:
-    app {
-      handlers {
-        get() {
-          response.send "text/plain", bufferedBody
-        }
+    handlers {
+      get() {
+        response.send "text/plain", bufferedBody
       }
     }
 
@@ -147,12 +137,10 @@ class DefaultResponseSpec extends RatpackGroovyDslSpec {
     def bufferedBody = IoUtils.byteBuf(BODY.bytes)
 
     and:
-    app {
-      handlers {
-        get() {
-          response.headers.set(CONTENT_TYPE, "application/octet-stream")
-          response.send "text/plain", bufferedBody
-        }
+    handlers {
+      get() {
+        response.headers.set(CONTENT_TYPE, "application/octet-stream")
+        response.send "text/plain", bufferedBody
       }
     }
 
@@ -173,11 +161,9 @@ class DefaultResponseSpec extends RatpackGroovyDslSpec {
     def bufferedBody = IoUtils.byteBuf(BODY.bytes)
 
     and:
-    app {
-      handlers {
-        get() {
-          response.send bufferedBody
-        }
+    handlers {
+      get() {
+        response.send bufferedBody
       }
     }
 
@@ -198,12 +184,10 @@ class DefaultResponseSpec extends RatpackGroovyDslSpec {
     def bufferedBody = IoUtils.byteBuf(BODY.bytes)
 
     and:
-    app {
-      handlers {
-        get() {
-          response.headers.set(CONTENT_TYPE, "application/foo")
-          response.send bufferedBody
-        }
+    handlers {
+      get() {
+        response.headers.set(CONTENT_TYPE, "application/foo")
+        response.send bufferedBody
       }
     }
 
@@ -221,11 +205,9 @@ class DefaultResponseSpec extends RatpackGroovyDslSpec {
 
   def "can send empty response"() {
     given:
-    app {
-      handlers {
-        get() {
-          response.send()
-        }
+    handlers {
+      get() {
+        response.send()
       }
     }
 
@@ -246,11 +228,9 @@ class DefaultResponseSpec extends RatpackGroovyDslSpec {
     def string = "a" * 1024 * 10
     def bytes = string.getBytes("utf8")
 
-    app {
-      handlers {
-        handler {
-          response.send "text/plain;charset=UTF-8", new ByteArrayInputStream(bytes)
-        }
+    handlers {
+      handler {
+        response.send "text/plain;charset=UTF-8", new ByteArrayInputStream(bytes)
       }
     }
 

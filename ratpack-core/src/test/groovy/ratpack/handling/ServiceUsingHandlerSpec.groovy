@@ -58,10 +58,8 @@ class ServiceUsingHandlerSpec extends RatpackGroovyDslSpec {
 
   def "can inject"() {
     when:
-    app {
-      handlers {
-        handler new InjectedHandler()
-      }
+    handlers {
+      handler new InjectedHandler()
     }
 
     then:
@@ -79,10 +77,8 @@ class ServiceUsingHandlerSpec extends RatpackGroovyDslSpec {
 
   def "can inject more than one"() {
     when:
-    app {
-      handlers {
-        handler new Injected2Handler()
-      }
+    handlers {
+      handler new Injected2Handler()
     }
 
     then:
@@ -102,10 +98,8 @@ class ServiceUsingHandlerSpec extends RatpackGroovyDslSpec {
 
   def "error when cant inject"() {
     when:
-    app {
-      handlers {
-        handler register(ServerErrorHandler, new MessageServerErrorHandler(), new InjectedBadHandler())
-      }
+    handlers {
+      handler register(ServerErrorHandler, new MessageServerErrorHandler(), new InjectedBadHandler())
     }
 
     then:

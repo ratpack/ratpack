@@ -28,6 +28,11 @@ import java.net.URI;
  */
 public interface ApplicationUnderTest {
 
+  /**
+   * The address of the application under test, which is guaranteed to be accepting requests.
+   *
+   * @return The address of the application under test, which is guaranteed to be accepting requests
+   */
   URI getAddress();
 
 }
