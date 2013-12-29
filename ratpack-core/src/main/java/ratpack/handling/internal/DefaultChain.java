@@ -89,6 +89,14 @@ public class DefaultChain implements Chain {
     return put("", handler);
   }
 
+  public Chain patch(String path, Handler handler) {
+    return handler(Handlers.path(path, Handlers.chain(Handlers.patch(), handler)));
+  }
+
+  public Chain patch(Handler handler) {
+    return patch("", handler);
+  }
+
   public Chain delete(String path, Handler handler) {
     return handler(Handlers.path(path, Handlers.chain(Handlers.delete(), handler)));
   }

@@ -201,6 +201,15 @@ public abstract class Handlers {
   }
 
   /**
+   * A handler that delegates to the next handler if the request is PATCH, otherwise raises a 405 client error.
+   *
+   * @return A handler
+   */
+  public static Handler patch() {
+    return MethodHandler.PATCH;
+  }  
+
+  /**
    * A handler that delegates to the next handler if the request is DELETE, otherwise raises a 405 client error.
    *
    * @return A handler

@@ -135,6 +135,26 @@ public class DefaultGroovyChain extends DefaultChain implements GroovyChain {
   }
 
   @Override
+  public GroovyChain patch(String path, Closure<?> handler) {
+    return patch(path, groovyHandler(handler));
+  }
+
+  @Override
+  public GroovyChain patch(String path, Handler handler) {
+    return (GroovyChain) super.patch(path, handler);
+  }
+
+  @Override
+  public GroovyChain patch(Handler handler) {
+    return (GroovyChain) super.patch(handler);
+  }
+
+  @Override
+  public GroovyChain patch(Closure<?> handler) {
+    return patch("", handler);
+  }  
+
+  @Override
   public GroovyChain delete(String path, Closure<?> handler) {
     return delete(path, groovyHandler(handler));
   }

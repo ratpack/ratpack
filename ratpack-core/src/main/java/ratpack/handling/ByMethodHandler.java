@@ -96,6 +96,14 @@ public interface ByMethodHandler extends Handler {
   ByMethodHandler put(Runnable runnable);
 
   /**
+   * Defines the action to to take if the request has a HTTP method of PATCH.
+   *
+   * @param runnable The action to take
+   * @return this
+   */
+  ByMethodHandler patch(Runnable runnable);
+
+  /**
    * Defines the action to to take if the request has a HTTP method of DELETE.
    *
    * @param runnable The action to take

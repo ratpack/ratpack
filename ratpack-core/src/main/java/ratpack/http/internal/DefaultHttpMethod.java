@@ -46,6 +46,10 @@ public class DefaultHttpMethod implements HttpMethod {
     return name.equals("PUT");
   }
 
+  public boolean isPatch() {
+    return name.equals("PATCH");
+  }  
+
   public boolean isDelete() {
     return name.equals("DELETE");
   }

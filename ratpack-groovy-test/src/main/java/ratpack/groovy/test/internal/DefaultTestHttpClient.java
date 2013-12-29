@@ -165,6 +165,29 @@ public class DefaultTestHttpClient implements TestHttpClient {
     return put(path).asString();
   }
 
+
+  @Override
+  public Response patch() {
+    return patch("");
+  }
+
+  @Override
+  public Response patch(String path) {
+    preRequest();
+    response = request.patch(toAbsolute(path));
+    return postRequest();
+  }
+
+  @Override
+  public String patchText() {
+    return patchText("");
+  }
+
+  @Override
+  public String patchText(String path) {
+    return patch(path).asString();
+  }  
+
   @Override
   public Response delete() {
     return delete("");

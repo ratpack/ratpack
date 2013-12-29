@@ -135,6 +135,7 @@ public interface Chain {
    * @see Chain#post(String, Handler)
    * @see Chain#get(String, Handler)
    * @see Chain#put(String, Handler)
+   * @see Chain#patch(String, Handler)
    * @see Chain#delete(String, Handler)
    */
   Chain handler(String path, Handler handler);
@@ -195,6 +196,7 @@ public interface Chain {
    * @return this {@code GroovyChain}
    * @see Chain#post(String, Handler)
    * @see Chain#put(String, Handler)
+   * @see Chain#patch(String, Handler)
    * @see Chain#delete(String, Handler)
    * @see Chain#handler(String, Handler)
    */
@@ -209,6 +211,7 @@ public interface Chain {
    * @return this {@code GroovyChain}
    * @see Chain#post(Handler)
    * @see Chain#put(Handler)
+   * @see Chain#patch(Handler)
    * @see Chain#delete(Handler)
    */
   Chain get(Handler handler);
@@ -224,6 +227,7 @@ public interface Chain {
    * @return this {@code GroovyChain}
    * @see Chain#get(String, Handler)
    * @see Chain#put(String, Handler)
+   * @see Chain#patch(String, Handler)
    * @see Chain#delete(String, Handler)
    * @see Chain#handler(String, Handler)
    */
@@ -238,6 +242,7 @@ public interface Chain {
    * @return this {@code GroovyChain}
    * @see Chain#get(Handler)
    * @see Chain#put(Handler)
+   * @see Chain#patch(Handler)
    * @see Chain#delete(Handler)
    */
   Chain post(Handler handler);
@@ -252,6 +257,7 @@ public interface Chain {
    * @return this {@code GroovyChain}
    * @see Chain#get(String, Handler)
    * @see Chain#post(String, Handler)
+   * @see Chain#patch(String, Handler)
    * @see Chain#delete(String, Handler)
    * @see Chain#handler(String, Handler)
    */
@@ -265,9 +271,39 @@ public interface Chain {
    * @return this {@code GroovyChain}
    * @see Chain#get(Handler)
    * @see Chain#post(Handler)
+   * @see Chain#patch(Handler)
    * @see Chain#delete(Handler)
    */
   Chain put(Handler handler);
+
+  /**
+   * Adds a {@code Handler} to this {@code GroovyChain} that delegates to the given {@code Handler} if
+   * the relative {@code path} matches the given {@code path} and the {@code request} {@code HTTPMethod}
+   * is {@code PATCH}.
+   *
+   * @param path the relative path to match on
+   * @param handler the handler to delegate to
+   * @return this {@code GroovyChain}
+   * @see Chain#get(String, Handler)
+   * @see Chain#post(String, Handler)
+   * @see Chain#put(String, Handler)
+   * @see Chain#delete(String, Handler)
+   * @see Chain#handler(String, Handler)
+   */
+  Chain patch(String path, Handler handler);
+
+  /**
+   * Adds a {@code Handler} to this {@code GroovyChain} that delegates to the given {@code Handler} if
+   * the {@code request} {@code HTTPMethod} is {@code PATCH} and the {@code path} is at the current root.
+   *
+   * @param handler the handler to delegate to
+   * @return this {@code GroovyChain}
+   * @see Chain#get(Handler)
+   * @see Chain#post(Handler)
+   * @see Chain#put(Handler)
+   * @see Chain#delete(Handler)
+   */
+  Chain patch(Handler handler);  
 
   /**
    * Adds a {@code Handler} to this {@code GroovyChain} that delegates to the given {@code Handler} if
@@ -280,6 +316,7 @@ public interface Chain {
    * @see Chain#get(String, Handler)
    * @see Chain#post(String, Handler)
    * @see Chain#put(String, Handler)
+   * @see Chain#patch(String, Handler)
    * @see Chain#handler(String, Handler)
    */
   Chain delete(String path, Handler handler);
@@ -293,6 +330,7 @@ public interface Chain {
    * @see Chain#get(Handler)
    * @see Chain#post(Handler)
    * @see Chain#put(Handler)
+   * @see Chain#patch(Handler)
    */
   Chain delete(Handler handler);
 
