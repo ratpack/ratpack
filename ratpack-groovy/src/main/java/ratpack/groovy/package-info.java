@@ -21,7 +21,7 @@
  * <ul>
  * <li>A {@link groovy.lang.Closure} based Handler Chain building DSL - see {@link ratpack.groovy.handling.GroovyChain}.</li>
  * <li>Dynamic templates based on embedded groovy code - see {@link ratpack.groovy.templating.internal.TemplateRenderer}.</li>
- * <li>Defining applications as a single script - see {@link ratpack.groovy.RatpackScript}.</li>
+ * <li>Defining applications as a single script - see {@link ratpack.groovy.Groovy.Ratpack}.</li>
  * </ul>
  * <h4>Use of <a href="http://groovy.codehaus.org/Closures">closures</a> and {@link groovy.lang.DelegatesTo}</h4>
  * <p>

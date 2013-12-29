@@ -37,7 +37,7 @@ import ratpack.api.NonBlocking;
  * The {@link Context} that the handler operates on provides the {@link Context#next()} method that passes control to the next handler in the pipeline.
  * The last handler in the pipeline is always that generates a {@code 404} client error.
  * <p>
- * Handlers can themselves insert other handlers into the pipeline, using the {@link Context#insert(java.util.List)} family of methods.
+ * Handlers can themselves insert other handlers into the pipeline, using the {@link Context#insert(Handler...)} family of methods.
  * <h3>Examples</h3>
  * While there is no strict taxonomy of handlers, the following are indicative examples of common functions.
  * <p>
