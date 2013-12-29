@@ -85,9 +85,13 @@ task configureApi << {
   }
 }
 
-task api(type: Javadoc, dependsOn: configureApi) {
+task api(type: Javadoc) {
+  dependsOn configureApi, compileSass
   group "manual"
   description "Generates the Javadoc for the entire public API"
+
+  ext.stylesheetFile = file("$buildDir/assets/css/javadoc.css")
+  inputs.file(stylesheetFile)
 
   classpath = files()
   destinationDir = file("$buildDir/api")
@@ -108,6 +112,8 @@ task api(type: Javadoc, dependsOn: configureApi) {
     windowTitle "Ratpack API ($project.version)"
     docTitle "Ratpack API ($project.version)"
   }
+  options.addStringOption "stylesheetfile", stylesheetFile.absolutePath
+
 }
 
 test {

@@ -100,8 +100,3 @@ pre[class*="language-"] {
 .token.entity {
   cursor: help;
 }
-
-div.description li.blockList > pre {
-  font-size: 200%;
-  padding: 0;
-}
