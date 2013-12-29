@@ -129,7 +129,6 @@ public abstract class Handlers {
    * <p>
    * The new file system binding will be created by the {@link ratpack.file.FileSystemBinding#binding(String)} method of the contextual binding.
    *
-   *
    * @param path The relative path to the new file system binding point
    * @param handler The handler to execute with the new file system binding
    * @return A handler
@@ -151,12 +150,10 @@ public abstract class Handlers {
    * <p>
    * If no file can be found to serve, then control will be delegated to the next handler.
    *
-   *
    * @param path The relative path to the location of the assets to serve
    * @param indexFiles The index files to try if the request is for a directory
    * @return A handler
    */
-
   public static Handler assets(String path, List<String> indexFiles) {
     Handler handler = new AssetHandler(copyOf(indexFiles));
     return fileSystem(path, handler);

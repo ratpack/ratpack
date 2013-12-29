@@ -43,7 +43,6 @@ public interface FileSystemBinding {
    *
    * Absolute paths are resolved relative to the bind point, not the filesystem root.
    *
-   *
    * @param path The relative path from this binding to the desired file
    * @return The file
    */
