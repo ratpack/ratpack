@@ -178,6 +178,7 @@ compass {
   sassDir = file('src/main/static/styles')
   imagesDir = file('src/ratpack/public/images')
   importPath = files('../ratpack-stylesheets')
+  fontsDir = file('../ratpack-stylesheets/fonts')
   quiet = true
 }
 

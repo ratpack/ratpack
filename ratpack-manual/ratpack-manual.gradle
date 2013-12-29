@@ -204,6 +204,7 @@ compass {
   cssDir = file("$buildDir/assets/css")
   imagesDir = file("$buildDir/assets/images")
   importPath = files('../ratpack-stylesheets')
+  fontsDir = file('../ratpack-stylesheets/fonts')
   relativeAssets = true
   encoding = 'UTF-8'
   quiet = true

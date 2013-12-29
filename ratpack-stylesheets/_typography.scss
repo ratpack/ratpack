@@ -1,3 +1,10 @@
+@include font-face("Merriweather", inline-font-files("Merriweather-Regular.woff"));
+@include font-face("Merriweather", inline-font-files("Merriweather-Bold.woff"), false, 700);
+@include font-face("Merriweather", inline-font-files("Merriweather-Italic.woff"), false, 400, italic);
+@include font-face("Merriweather Sans", inline-font-files("MerriweatherSans-Bold.woff"), false, 700);
+@include font-face("Merriweather Sans", inline-font-files("MerriweatherSans-BoldItalic.woff"), false, 700, italic);
+@include font-face("Engagement", inline-font-files("Engagement-Regular.woff"));
+
 $sans-font-family: "Merriweather Sans", Futura, "Trebuchet MS", Arial, sans-serif !default;
 $serif-font-family: "Merriweather", Georgia, Times, "Times New Roman", serif !default;
 $mono-font-family: "Courier New", Courier, "Lucida Sans Typewriter", "Lucida Typewriter", monospace !default;
