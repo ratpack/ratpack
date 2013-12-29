@@ -56,7 +56,6 @@ import static ratpack.groovy.internal.ClosureUtil.configureDelegateFirst;
  * import java.nio.file.Files
  *
  * def baseDir = Files.createTempDirectory("ratpack-test").toFile()
- * baseDir.mkdirs()
  * def application = new ClosureBackedEmbeddedApplication(baseDir)
  *
  * application.with {
