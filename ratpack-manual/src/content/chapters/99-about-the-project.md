@@ -9,20 +9,20 @@ Ratpack has been made possible by the following people.
 The following people are currently actively contributing their time to Ratpack.
 
 * [Luke Daley](https://github.com/alkemist)
-* [Rob Fletcher](https://github.com/robfletcher)
-* [Tim Berglund](https://github.com/tlberglund)
-* [Peter Ledbrook](https://github.com/pledbrook)
 * [Marcin Erdmann](https://github.com/erdi)
+* [Rob Fletcher](https://github.com/robfletcher)
+* [Rus Hart](https://github.com/rhart)
+* [Dan Woods](https://github.com/danveloper)
 
 ### Contributors
 
 The following people have provided significant contributions.
 
+* [Tim Berglund](https://github.com/tlberglund)
+* [Peter Ledbrook](https://github.com/pledbrook)
 * [Marco Vermeulen](https://github.com/marcoVermeulen)
 * [Jeff Beck](https://github.com/beckje01)
 * [Paul Fairless](https://github.com/paulfairless)
-* [Dan Woods](https://github.com/danveloper)
-* [Rus Hart](https://github.com/rhart)
 * [Tomás Lin](https://github.com/tomaslin)
 * [Kevin Marquardsen](https://github.com/kmarquardsen)
 * [Stefano Gualdi](https://github.com/stefanogualdi)
