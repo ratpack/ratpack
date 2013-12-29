@@ -26,9 +26,8 @@ import ratpack.launch.LaunchConfig;
 import ratpack.launch.LaunchException;
 import ratpack.reload.internal.ClassUtil;
 import ratpack.reload.internal.ReloadableFileBackedFactory;
-import ratpack.server.internal.NettyRatpackService;
+import ratpack.server.internal.NettyRatpackServer;
 import ratpack.server.internal.RatpackChannelInitializer;
-import ratpack.server.internal.ServiceBackedServer;
 import ratpack.util.Factory;
 import ratpack.util.Transformer;
 
@@ -53,10 +52,8 @@ public abstract class RatpackServerBuilder {
    */
   public static RatpackServer build(LaunchConfig launchConfig) {
     Transformer<Stopper, ChannelInitializer<SocketChannel>> channelInitializer = buildChannelInitializer(launchConfig);
-    NettyRatpackService service = new NettyRatpackService(launchConfig, channelInitializer);
-    return new ServiceBackedServer(service, launchConfig);
+    return new NettyRatpackServer(launchConfig, channelInitializer);
   }
-
 
   private static Transformer<Stopper, ChannelInitializer<SocketChannel>> buildChannelInitializer(final LaunchConfig launchConfig) {
     return new Transformer<Stopper, ChannelInitializer<SocketChannel>>() {

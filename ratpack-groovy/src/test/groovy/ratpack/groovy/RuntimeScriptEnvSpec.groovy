@@ -18,10 +18,7 @@ package ratpack.groovy
 
 import ratpack.groovy.internal.RatpackScriptBacking
 import ratpack.groovy.templating.EphemeralPortScriptBacking
-import ratpack.launch.LaunchConfig
-import ratpack.launch.LaunchConfigBuilder
 import ratpack.server.RatpackServer
-import ratpack.server.internal.ServiceBackedServer
 import ratpack.test.embed.EmbeddedApplication
 import ratpack.test.embed.EmbeddedApplicationSupport
 import ratpack.test.internal.EmbeddedRatpackSpec
@@ -40,7 +37,7 @@ class RuntimeScriptEnvSpec extends EmbeddedRatpackSpec {
     application = new EmbeddedApplicationSupport(temporaryFolder.root) {
       @Override
       RatpackServer createServer() {
-        def service = new ScriptBackedService({
+        new ScriptBackedServer({
           def shell = new GroovyShell(getClass().classLoader)
           def script = shell.parse(script)
           Thread.start {
@@ -49,7 +46,6 @@ class RuntimeScriptEnvSpec extends EmbeddedRatpackSpec {
             }
           }
         })
-        new ServiceBackedServer(service, null)
       }
     }
   }

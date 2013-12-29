@@ -17,18 +17,26 @@
 package ratpack.groovy
 
 import ratpack.groovy.internal.StandaloneScriptBacking
+import ratpack.launch.LaunchConfig
 import ratpack.launch.LaunchException
 import ratpack.server.RatpackServer
-import ratpack.server.internal.RatpackService
 
-class ScriptBackedService implements RatpackService {
+class ScriptBackedServer implements RatpackServer {
 
   private final Runnable starter
 
   private RatpackServer nestedServer
 
-  ScriptBackedService(Runnable starter) {
+  ScriptBackedServer(Runnable starter) {
     this.starter = starter
+  }
+
+  @Override
+  LaunchConfig getLaunchConfig() {
+    if (nestedServer == null) {
+      start()
+    }
+    nestedServer.launchConfig
   }
 
   @Override

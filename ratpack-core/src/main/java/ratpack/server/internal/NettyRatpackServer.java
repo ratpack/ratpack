@@ -28,6 +28,7 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import ratpack.launch.LaunchConfig;
 import ratpack.launch.LaunchException;
+import ratpack.server.RatpackServer;
 import ratpack.server.Stopper;
 import ratpack.util.Transformer;
 
@@ -40,7 +41,7 @@ import java.util.logging.Logger;
 
 import static ratpack.util.ExceptionUtils.uncheck;
 
-public class NettyRatpackService implements RatpackService {
+public class NettyRatpackServer implements RatpackServer {
 
   private final Logger logger = Logger.getLogger(getClass().getName());
 
@@ -54,9 +55,14 @@ public class NettyRatpackService implements RatpackService {
   private final Lock lifecycleLock = new ReentrantLock();
   private final AtomicBoolean running = new AtomicBoolean();
 
-  public NettyRatpackService(LaunchConfig launchConfig, Transformer<Stopper, ChannelInitializer<SocketChannel>> channelInitializerTransformer) {
+  public NettyRatpackServer(LaunchConfig launchConfig, Transformer<Stopper, ChannelInitializer<SocketChannel>> channelInitializerTransformer) {
     this.launchConfig = launchConfig;
     this.channelInitializerTransformer = channelInitializerTransformer;
+  }
+
+  @Override
+  public LaunchConfig getLaunchConfig() {
+    return launchConfig;
   }
 
   @Override
@@ -70,7 +76,7 @@ public class NettyRatpackService implements RatpackService {
         @Override
         public void stop() {
           try {
-            NettyRatpackService.this.stop();
+            NettyRatpackServer.this.stop();
           } catch (Exception e) {
             throw uncheck(e);
           }

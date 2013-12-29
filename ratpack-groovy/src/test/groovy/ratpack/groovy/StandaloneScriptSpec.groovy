@@ -19,13 +19,8 @@ package ratpack.groovy
 import ratpack.groovy.guice.GroovyModuleRegistry
 import ratpack.groovy.handling.GroovyChain
 import ratpack.groovy.internal.RatpackScriptBacking
-import ratpack.groovy.internal.StandaloneScriptBacking
-import ratpack.groovy.launch.GroovyScriptFileHandlerFactory
 import ratpack.groovy.templating.EphemeralPortScriptBacking
-import ratpack.launch.LaunchConfig
-import ratpack.launch.LaunchConfigBuilder
 import ratpack.server.RatpackServer
-import ratpack.server.internal.ServiceBackedServer
 import ratpack.test.embed.EmbeddedApplication
 import ratpack.test.embed.EmbeddedApplicationSupport
 import ratpack.test.internal.RatpackGroovyScriptAppSpec
@@ -42,7 +37,7 @@ class StandaloneScriptSpec extends RatpackGroovyScriptAppSpec {
     new EmbeddedApplicationSupport(temporaryFolder.root) {
       @Override
       protected RatpackServer createServer() {
-        def service = new ScriptBackedService({
+        new ScriptBackedServer({
           def shell = new GroovyShell(getClass().classLoader)
           def script = shell.parse(getRatpackFile())
           Thread.start {
@@ -51,7 +46,6 @@ class StandaloneScriptSpec extends RatpackGroovyScriptAppSpec {
             }
           }
         })
-        new ServiceBackedServer(service, null)
       }
     }
   }
