@@ -57,15 +57,19 @@ ratpack {
     }
 
     prefix("manual") {
-      prefix("snapshot") {
-        assets "manual/$versions.snapshot"
+      handler {
+        response.headers.add("Cache-Control", "max-age=86400, public") // cache for one day
+        next()
       }
-
-      prefix("current") {
-        assets "manual/$versions.current"
+      fileSystem("manual") {
+        prefix("snapshot") {
+          assets versions.snapshot
+        }
+        prefix("current") {
+          assets versions.current
+        }
+        assets ""
       }
-
-      assets "manual"
     }
 
     assets "public"
