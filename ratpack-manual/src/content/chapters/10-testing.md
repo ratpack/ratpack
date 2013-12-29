@@ -22,15 +22,16 @@ There is no special setup or teardown required for unit testing Ratpack applicat
 
 TODO.
 
-## Testing module and extension libraries
+### Application subsets, modules and extensions
 
-Ratpack provides support for testing Ratpack extensions, which are typically [based on Guice modules](guice.html).
+The [`ratpack.test.embed`](api/ratpack/test/embed/package-summary.html) package (provided by the `ratpack-test` library) provides the [`EmbeddedApplication`](api/ratpack/test/embed/EmbeddedApplication.html) interface and implementations.
+These can be used to functionally test features in isolation, by creating small Ratpack apps within test cases and is actually the basis for how Ratpack itself is tested.
+This approach is most commonly used for functionally testing reusable Ratpack components (e.g. [Guice modules](guice.html)) but can also be used for functionally testing a subset of an application.
 
-The `ratpack.test.embed` package (provided by the `ratpack-test` library) provides the [`EmbeddedApplication`](api/ratpack/test/embed/EmbeddedApplication.html) interface and support implementations, for creating small applications programatically.
-These can be used to test features in isolation, by creating small Ratpack apps within test cases.
-This is actually the basis for how Ratpack itself is tested.
-
-The [`LaunchConfigEmbeddedApplication`](api/ratpack/test/embed/LaunchConfigEmbeddedApplication.html) is a convenient abstract super class, where implementors only need to provide a [`LaunchConfig`](api/ratpack/launch/LaunchConfig.html) to define the application to test.
-
-The `ratpack-groovy-test` library provides the [`ClosureBackedEmbeddedApplication`](api/ratpack/groovy/test/embed/ClosureBackedEmbeddedApplication.html) implementation that uses user supplied closures as the basis of the application to test.
+The [`LaunchConfigEmbeddedApplication`](api/ratpack/test/embed/LaunchConfigEmbeddedApplication.html) is a convenient abstract super class,
+where implementors only need to provide a [`LaunchConfig`](api/ratpack/launch/LaunchConfig.html) to define the application to test.
+The [`ratpack.groovy.test.embed`](api/ratpack/groovy/test/embed/package-summary.html) package (provided by the `ratpack-groovy-test` library) provides the [`ClosureBackedEmbeddedApplication`](api/ratpack/groovy/test/embed/ClosureBackedEmbeddedApplication.html) implementation that uses user supplied closures as the basis of the application to test.
 This is the preferred implementation to use as it provides Guice support, flexibility and is easy to use.
+
+The [`EmbeddedApplication`](api/ratpack/test/embed/EmbeddedApplication.html) type extends the [`ApplicationUnderTest`](api/ratpack/test/ApplicationUnderTest.html) type.
+This makes them convenient to use with the [`TestHttpClient`](api/ratpack/groovy/test/TestHttpClients.html) mechanism provided by the `ratpack-groovy-test` library.

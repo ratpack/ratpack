@@ -22,9 +22,12 @@ import ratpack.test.ApplicationUnderTest;
 import java.io.File;
 
 /**
- * An application created at runtime, for testing Ratpack functionality.
+ * An application created and used at runtime, useful for functionally testing subsets of functionality.
  * <p>
- * Implementations are typically mutable/buildable or exposes protected hooks for subclassing.
+ * This mechanism can be used for functionally testing isolated sections of an application,
+ * or for testing general libraries that provide reusable functionality (e.g. Ratpack Guice modules).
+ * <p>
+ * Different implementations expose different API that can be used to define the actual application under test.
  * <p>
  * As embedded applications also implement {@link ratpack.test.ApplicationUnderTest}, they are suitable for use with clients accessing the app via HTTP.
  * Implementations must ensure that the application is up and receiving request when returning from {@link #getAddress()}.
