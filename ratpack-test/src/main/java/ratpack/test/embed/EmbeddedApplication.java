@@ -19,6 +19,7 @@ package ratpack.test.embed;
 import ratpack.server.RatpackServer;
 import ratpack.test.ApplicationUnderTest;
 
+import java.io.Closeable;
 import java.io.File;
 
 /**
@@ -31,10 +32,11 @@ import java.io.File;
  * <p>
  * As embedded applications also implement {@link ratpack.test.ApplicationUnderTest}, they are suitable for use with clients accessing the app via HTTP.
  * Implementations must ensure that the application is up and receiving request when returning from {@link #getAddress()}.
+ * Be sure to {@link #close()} the application after use to free resources.
  *
  * @see ratpack.test.embed.LaunchConfigEmbeddedApplication
  */
-public interface EmbeddedApplication extends ApplicationUnderTest {
+public interface EmbeddedApplication extends ApplicationUnderTest, Closeable {
 
   /**
    * Working space that can be used to support the application.

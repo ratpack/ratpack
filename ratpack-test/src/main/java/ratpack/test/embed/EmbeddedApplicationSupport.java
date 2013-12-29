@@ -111,4 +111,18 @@ public abstract class EmbeddedApplicationSupport implements EmbeddedApplication 
    */
   abstract protected RatpackServer createServer();
 
+  /**
+   * Stops the server returned by {@link #getServer()}.
+   * <p>
+   * Exceptions thrown by calling {@link RatpackServer#stop()} are suppressed and written to {@link System#err System.err}.
+   */
+  @Override
+  public void close() {
+    try {
+      getServer().stop();
+    } catch (Exception e) {
+      e.printStackTrace(System.err);
+    }
+  }
+
 }
