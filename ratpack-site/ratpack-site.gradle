@@ -166,7 +166,7 @@ installApp {
 
 task compileCoffee(type: CoffeeScriptCompile) {
   source fileTree('src/main/static/scripts')
-  destinationDir file('src/ratpack/public/scripts')
+  destinationDir file('src/ratpack/assets/scripts')
 }
 
 processResources.inputs.files compileCoffee, compileSass, prepareContent
@@ -174,9 +174,9 @@ processResources.inputs.files compileCoffee, compileSass, prepareContent
 compass {
   gemPath = new File(gradle.gradleUserHomeDir, ".jruby")
   gems = ["compass", "breakpoint"]
-  cssDir = file('src/ratpack/public/styles')
+  cssDir = file('src/ratpack/assets/styles')
   sassDir = file('src/main/static/styles')
-  imagesDir = file('src/ratpack/public/images')
+  imagesDir = file('src/ratpack/assets/images')
   importPath = files('../ratpack-stylesheets')
   fontsDir = file('../ratpack-stylesheets/fonts')
   quiet = true
@@ -193,7 +193,7 @@ installApp.dependsOn compileSass
 
 task createScriptsDir {
   doLast {
-    mkdir "src/ratpack/public/scripts"
+    mkdir "src/ratpack/assets/scripts"
   }
 }
 configure([watchSass, compileSass]) {

@@ -30,6 +30,24 @@ ratpack {
       next()
     }
 
+    prefix("assets") {
+      handler {
+        response.headers.add("Cache-Control", "max-age=86400, public") // cache for one day
+        next()
+      }
+      assets "assets"
+    }
+
+    // The generated CSS has links to /images, remap
+    // https://github.com/robfletcher/gradle-compass/issues/12
+    prefix("images") {
+      handler {
+        response.headers.add("Cache-Control", "max-age=86400, public") // cache for one day
+        next()
+      }
+      assets "assets/images"
+    }
+
     get("index.html") {
       redirect 301, "/"
     }
