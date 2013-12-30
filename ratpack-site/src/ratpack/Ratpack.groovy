@@ -18,6 +18,9 @@ ratpack {
   }
 
   handlers { RatpackVersions versions ->
+
+    def cacheFor = 60 // one hour
+
     handler {
       if (request.headers.get("host").endsWith("ratpack-framework.org")) {
         redirect 301, "http://www.ratpack.io"
@@ -32,7 +35,7 @@ ratpack {
 
     prefix("assets") {
       handler {
-        response.headers.add("Cache-Control", "max-age=86400, public") // cache for one day
+        response.headers.add("Cache-Control", "max-age=$cacheFor, public")
         next()
       }
       assets "assets"
@@ -42,7 +45,7 @@ ratpack {
     // https://github.com/robfletcher/gradle-compass/issues/12
     prefix("images") {
       handler {
-        response.headers.add("Cache-Control", "max-age=86400, public") // cache for one day
+        response.headers.add("Cache-Control", "max-age=$cacheFor, public")
         next()
       }
       assets "assets/images"
@@ -58,7 +61,7 @@ ratpack {
 
     prefix("manual") {
       handler {
-        response.headers.add("Cache-Control", "max-age=86400, public") // cache for one day
+        response.headers.add("Cache-Control", "max-age=$cacheFor, public")
         next()
       }
       fileSystem("manual") {
