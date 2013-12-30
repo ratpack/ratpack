@@ -88,3 +88,20 @@ pre[class*="language-"] {
 .token.entity {
   cursor: help;
 }
+
+@import "_palette";
+@import "_theme-elements";
+
+pre[class*='language-'] {
+  @include overlay-background($blue);
+  overflow: inherit;
+}
+
+pre code {
+  display: block;
+  overflow: auto;
+}
+
+code[class*='language-'] {
+  @include rem(padding, 1rem);
+}

@@ -5,28 +5,16 @@
 @import "reset";
 @import "utilities";
 @import "typography";
+@import "_prism";
 
 body {
   background-color: #ffffff;
-//  color: #353833;
-//  font-family: Arial, Helvetica, sans-serif;
-//  font-size: 76%;
   margin: 0;
+  font-size: 14px;
 }
 
 a:link, a:visited {
   text-decoration: none;
-  color: #4c6b87;
-}
-
-a:hover, a:focus {
-  text-decoration: none;
-  color: #bb7a2a;
-}
-
-a:active {
-  text-decoration: none;
-  color: #4c6b87;
 }
 
 a[name] {
@@ -72,14 +60,10 @@ Document title and Copyright styles
   margin-left: .5em;
 }
 
-.bar a, .bar a:link, .bar a:visited, .bar a:active {
-  color: #FFFFFF;
-  text-decoration: none;
-}
-
-.bar a:hover, .bar a:focus {
-  color: #bb7a2a;
-}
+//.bar a, .bar a:link, .bar a:visited, .bar a:active {
+//  color: #FFFFFF;
+//  text-decoration: none;
+//}
 
 .tab {
   background-color: $purple;
@@ -101,22 +85,9 @@ Navigation bar styles
   margin: 0;
 }
 
-.topNav {
+.topNav, .bottomNav {
   background-color: $purple;
-  color: #FFFFFF;
-  float: left;
-  padding: 0;
-  width: 100%;
-  clear: right;
-  height: 2.8em;
-  padding-top: 10px;
-  overflow: hidden;
-}
-
-.bottomNav {
-  margin-top: 10px;
-  background-color: $purple;
-  color: #FFFFFF;
+  color: #808080;
   float: left;
   padding: 0;
   width: 100%;
@@ -158,22 +129,20 @@ ul.subNavList li {
   font-size: 90%;
 }
 
-.topNav a:link, .topNav a:active, .topNav a:visited, .bottomNav a:link, .bottomNav a:active, .bottomNav a:visited {
+.topNav a, .topNav a:active, .topNav a:visited, .bottomNav a, .bottomNav a:active, .bottomNav a:visited, .bar a, .bar a:active, .bar a:visited {
   color: #FFFFFF;
   text-decoration: none;
 }
 
-.topNav a:hover, .bottomNav a:hover {
+.topNav a:hover, .bottomNav a:hover, .bar a:hover, .bar a:hover {
+  color: $yellow;
   text-decoration: none;
-  color: #bb7a2a;
 }
 
 .navBarCell1Rev {
-  background-image: url(resources/tab.gif);
-  background-color: #a88834;
-  color: #FFFFFF;
-  margin: auto 5px;
-  border: 1px solid #c9aa44;
+  font-weight: bold;
+  color: #dee3e9;
+  border-radius: 10px;
 }
 
 .skipNav {
@@ -206,7 +175,6 @@ Page header and footer styles
 }
 
 .title {
-  color: #2c4557;
   margin: 10px 0;
 }
 
@@ -416,6 +384,7 @@ Table styles
 .useSummary caption span, .constantsSummary caption span, .deprecatedSummary caption span {
   white-space: nowrap;
   padding-top: 8px;
+  padding-bottom: 4px;
   padding-left: 8px;
   display: inline-block;
   float: left;
@@ -592,4 +561,14 @@ div.description li.blockList > pre {
   font-size: 140%;
   padding: 0;
   line-height: normal;
+}
+
+.blockList h4 {
+  font-family: Monaco;
+  font-style: normal;
+  font-size: 120%;
+}
+
+pre.language-groovy {
+  padding: 1em;
 }

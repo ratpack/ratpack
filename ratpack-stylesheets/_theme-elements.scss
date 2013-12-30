@@ -150,10 +150,10 @@
   }
   &:before {
     background-color: transparentize($color1, 0.9);
-    @include transform(skew(2deg) rotate(-0.5deg));
+    @include translate(2px, 2px);
   }
   &:after {
     background-color: transparentize($color2, 0.9);
-    @include transform(skewY(0.5deg));
+    @include translate(-2px, -2px);
   }
 }
