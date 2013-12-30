@@ -1,5 +1,5 @@
-/src/ratpack/public/scripts/*
-/src/ratpack/public/styles/*
+/src/ratpack/public/assets/scripts/*
+/src/ratpack/public/assets/styles/*
 /src/ratpack/manual/*
 /src/ratpack/*.class
 *.class
