@@ -37,7 +37,7 @@ import ratpack.test.embed.LaunchConfigEmbeddedApplication;
 import ratpack.util.Action;
 import ratpack.util.Transformer;
 
-import java.io.File;
+import java.nio.file.Path;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -55,7 +55,7 @@ import static ratpack.groovy.internal.ClosureUtil.configureDelegateFirst;
  *
  * import java.nio.file.Files
  *
- * def baseDir = Files.createTempDirectory("ratpack-test").toFile()
+ * def baseDir = Files.createTempDirectory("ratpack-test")
  * def application = new ClosureBackedEmbeddedApplication(baseDir)
  *
  * application.with {
@@ -89,7 +89,7 @@ import static ratpack.groovy.internal.ClosureUtil.configureDelegateFirst;
  * assert client.getText("foo.txt") == "bar"
  *
  * // Stop the application
- * application.server.stop()
+ * application.close()
  * </pre>
  */
 public class ClosureBackedEmbeddedApplication extends LaunchConfigEmbeddedApplication {
@@ -105,7 +105,7 @@ public class ClosureBackedEmbeddedApplication extends LaunchConfigEmbeddedApplic
    *
    * @param baseDir The base dir
    */
-  public ClosureBackedEmbeddedApplication(File baseDir) {
+  public ClosureBackedEmbeddedApplication(Path baseDir) {
     super(baseDir);
   }
 

@@ -34,7 +34,7 @@ class RuntimeScriptEnvSpec extends EmbeddedRatpackSpec {
   }
 
   def setup() {
-    application = new EmbeddedApplicationSupport(temporaryFolder.root) {
+    application = new EmbeddedApplicationSupport(temporaryFolder.root.toPath()) {
       @Override
       RatpackServer createServer() {
         new ScriptBackedServer({

@@ -42,7 +42,6 @@ class DefaultGroovyErrorHandlingSpec extends RatpackGroovyAppSpec {
       prefix("foo") {
         handler {
           throw new Exception("!")
-
         }
       }
     }

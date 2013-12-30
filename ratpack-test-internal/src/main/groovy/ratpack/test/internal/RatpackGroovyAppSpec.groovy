@@ -24,10 +24,12 @@ import ratpack.guice.GuiceBackedHandlerFactory
 import ratpack.launch.LaunchConfig
 import ratpack.launch.LaunchConfigBuilder
 
+import java.nio.file.Path
+
 abstract class RatpackGroovyAppSpec extends EmbeddedRatpackSpec {
 
   class GroovyAppEmbeddedApplication extends ClosureBackedEmbeddedApplication {
-    GroovyAppEmbeddedApplication(File baseDir) {
+    GroovyAppEmbeddedApplication(Path baseDir) {
       super(baseDir)
     }
 
@@ -42,7 +44,7 @@ abstract class RatpackGroovyAppSpec extends EmbeddedRatpackSpec {
 
   @Override
   def setup() {
-    application = new GroovyAppEmbeddedApplication(temporaryFolder.newFolder("app"))
+    application = new GroovyAppEmbeddedApplication(temporaryFolder.newFolder("app").toPath())
   }
 
   public void handlers(@DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer) {

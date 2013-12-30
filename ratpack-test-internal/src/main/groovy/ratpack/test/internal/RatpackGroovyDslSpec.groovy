@@ -32,7 +32,7 @@ abstract class RatpackGroovyDslSpec extends EmbeddedRatpackSpec {
   }
 
   def ClosureBackedEmbeddedApplication createApplication() {
-    new ClosureBackedEmbeddedApplication(temporaryFolder.newFolder("app"))
+    new ClosureBackedEmbeddedApplication(temporaryFolder.newFolder("app").toPath())
   }
 
   public void handlers(@DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer) {
@@ -46,6 +46,5 @@ abstract class RatpackGroovyDslSpec extends EmbeddedRatpackSpec {
   public void launchConfig(@DelegatesTo(value = LaunchConfigBuilder.class, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer) {
     application.launchConfig(configurer)
   }
-
 
 }

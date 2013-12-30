@@ -21,6 +21,7 @@ import ratpack.server.RatpackServer;
 import ratpack.server.RatpackServerBuilder;
 
 import java.io.File;
+import java.nio.file.Path;
 
 /**
  * A supporting implementation of {@link EmbeddedApplication} that starts a server based on a subclass provided {@link LaunchConfig}.
@@ -39,8 +40,9 @@ import java.io.File;
  * import java.net.URI;
  * import java.net.URLConnection;
  * import java.nio.file.Files;
+ * import java.nio.file.Path;
  *
- * File baseDir = Files.createTempDirectory("ratpack-test").toFile();
+ * Path baseDir = Files.createTempDirectory("ratpack-test");
  * EmbeddedApplication application = new LaunchConfigEmbeddedApplication(baseDir) {
  *   protected LaunchConfig createLaunchConfig() {
  *     return LaunchConfigBuilder.
@@ -64,7 +66,7 @@ import java.io.File;
  *
  * assert urlConnection.getResponseCode() == 200;
  *
- * application.getServer().stop();
+ * application.close();
  * </pre>
  */
 public abstract class LaunchConfigEmbeddedApplication extends EmbeddedApplicationSupport {
@@ -74,7 +76,7 @@ public abstract class LaunchConfigEmbeddedApplication extends EmbeddedApplicatio
    *
    * @param baseDir The base dir
    */
-  public LaunchConfigEmbeddedApplication(File baseDir) {
+  public LaunchConfigEmbeddedApplication(Path baseDir) {
     super(baseDir);
   }
 

@@ -21,6 +21,7 @@ import ratpack.test.ApplicationUnderTest;
 
 import java.io.Closeable;
 import java.io.File;
+import java.nio.file.Path;
 
 /**
  * An application created and used at runtime, useful for functionally testing subsets of functionality.
@@ -48,17 +49,29 @@ public interface EmbeddedApplication extends ApplicationUnderTest, Closeable {
    *
    * @return Working space for defining the application
    */
-  File getBaseDir();
+  Path getBaseDir();
 
   /**
-   * Creates a file object at the given path, relative to the {@link #getBaseDir()}.
+   * Creates a file object for the given path, relative to the {@link #getBaseDir()}.
    * <p>
-   * Implementations must ensure that the parent file of the return file does exist (creating it if necessary).
+   * Implementations must ensure that the parent file of the returned file does exist (creating it if necessary).
+   * <p>
+   * Is shorthand for {@code this.path(path).toFile()}, so may throw {@link java.lang.UnsupportedOperationException} as per the {@link Path#toFile()} method.
    *
    * @param path The path to the file, relative to the {@link #getBaseDir()}
    * @return The file at the given path, relative to the {@link #getBaseDir()}, whose parent file is guaranteed to exist and be a directory
    */
   File file(String path);
+
+  /**
+   * Creates a path object for the given path, relative to the {@link #getBaseDir()}.
+   * <p>
+   * Implementations must ensure that the parent path of the returned path does exist (creating it if necessary).
+   *
+   * @param path The path to the path, relative to the {@link #getBaseDir()}
+   * @return The path at the given path, relative to the {@link #getBaseDir()}, whose parent path is guaranteed to exist and be a directory
+   */
+  Path path(String path);
 
   /**
    * The server for the application.
