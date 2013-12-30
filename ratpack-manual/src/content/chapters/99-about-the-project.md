@@ -27,6 +27,7 @@ The following people have provided significant contributions.
 * [Kevin Marquardsen](https://github.com/kmarquardsen)
 * [Stefano Gualdi](https://github.com/stefanogualdi)
 * [Ben Navetta](https://github.com/roguePanda)
+* [Bobby Warner](https://github.com/bobbywarner)
 
 ### Past project members
 
