@@ -23,7 +23,7 @@ import ratpack.server.RatpackServerBuilder;
 import java.io.File;
 
 /**
- * A supporting implementation of {@link ratpack.test.embed.EmbeddedApplication} that starts a server based on a subclass provided {@link ratpack.launch.LaunchConfig}.
+ * A supporting implementation of {@link EmbeddedApplication} that starts a server based on a subclass provided {@link LaunchConfig}.
  * <p>
  * <pre class="tested">
  * import ratpack.handling.Context;
@@ -79,7 +79,7 @@ public abstract class LaunchConfigEmbeddedApplication extends EmbeddedApplicatio
   }
 
   /**
-   * Creates a server using {@link ratpack.server.RatpackServerBuilder#build(ratpack.launch.LaunchConfig)}, using the launch config returned by {@link #createLaunchConfig()}.
+   * Creates a server using {@link RatpackServerBuilder#build(LaunchConfig)}, using the launch config returned by {@link #createLaunchConfig()}.
    *
    * @return The server to test
    */
