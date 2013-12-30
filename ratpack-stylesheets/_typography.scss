@@ -4,10 +4,13 @@
 @include font-face("Merriweather Sans", inline-font-files("MerriweatherSans-Bold.woff"), false, 700);
 @include font-face("Merriweather Sans", inline-font-files("MerriweatherSans-BoldItalic.woff"), false, 700, italic);
 @include font-face("Engagement", inline-font-files("Engagement-Regular.woff"));
+@include font-face("Monaco", inline-font-files("Monaco.woff"));
+@include font-face("Monaco", inline-font-files("Monaco-Bold.woff"), false, 700);
 
 $sans-font-family: "Merriweather Sans", Futura, "Trebuchet MS", Arial, sans-serif !default;
 $serif-font-family: "Merriweather", Georgia, Times, "Times New Roman", serif !default;
-$mono-font-family: "Courier New", Courier, "Lucida Sans Typewriter", "Lucida Typewriter", monospace !default;
+$mono-font-family: "Monaco", "Courier New", Courier, "Lucida Sans Typewriter", "Lucida Typewriter", monospace !default;
+$tagline-font-family: "Courier New", Courier, "Lucida Sans Typewriter", "Lucida Typewriter", monospace !default;
 $script-font-family: "Engagement", cursive !default;
 
 $body-font-family: $serif-font-family !default;
@@ -98,6 +101,7 @@ h5 {
 pre, code, tt {
 	font-family: $code-font-family;
 	-webkit-font-smoothing: subpixel-antialiased; // this looks better with Courier New even light on dark
+    font-size: 95%;
 }
 
 pre {
