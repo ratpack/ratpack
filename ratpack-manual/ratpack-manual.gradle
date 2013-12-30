@@ -66,27 +66,13 @@ task configureApi << {
 
       options.group it.name, packages
     }
-
-    options.bottom = "<script src=\"{@docRoot}/ga.js\"></script><script src=\"{@docRoot}/prism.js\" data-manual></script><script src=\"{@docRoot}/highlight.js\"></script><link rel=\"stylesheet\" type=\"text/css\" href=\"{@docRoot}/prism.css\">"
-
-    doLast {
-      copy {
-        into api.destinationDir
-        from "src/assets/js/prism.js"
-        from "src/assets/js/ga.js"
-        from "src/api-assets"
-      }
-    }
-
-    inputs.files files("src/api-assets")
-    inputs.files files("src/assets/js/prism.js")
-    inputs.property "bottom", options.bottom
-    inputs.property "groups", options.groups
   }
 }
 
+// Note: does not build viewable docs.
+// Docs must be viewed within the manual for styling to work
 task api(type: Javadoc) {
-  dependsOn configureApi, compileSass
+  dependsOn configureApi
   group "manual"
   description "Generates the Javadoc for the entire public API"
 
@@ -114,6 +100,15 @@ task api(type: Javadoc) {
   }
   options.addStringOption "stylesheetfile", stylesheetFile.absolutePath
 
+  options.bottom = """
+      <script src=\"{@docRoot}/../js/manual.js\"></script>
+      <script src=\"{@docRoot}/../js/prism.js\" data-manual></script>
+      <script src=\"{@docRoot}/../js/highlight.js\">
+      </script><link rel=\"stylesheet\" type=\"text/css\" href=\"{@docRoot}/../css/prism.css\">
+    """.replaceAll("(^|\\n)\\s*", "")
+
+  inputs.property "bottom", options.bottom
+  inputs.property "groups", options.groups
 }
 
 test {
@@ -258,12 +253,12 @@ task openManual(dependsOn: packageManual) {
   }
 }
 
-task openApi(dependsOn: api) {
+task openApi(dependsOn: packageManual) {
   group "manual"
   description "Builds the API reference, then opens it in your web browser"
 
   doLast {
-    new java.awt.Desktop().browse(file("$api.destinationDir/index.html").toURI())
+    new java.awt.Desktop().browse(file("$packageManual.destinationDir/api/index.html").toURI())
   }
 }
 
