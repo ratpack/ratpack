@@ -57,7 +57,6 @@ import static ratpack.util.ExceptionUtils.uncheck;
  * If the parameters cannot be satisfied, a {@link ratpack.registry.NotInRegistryException} will be thrown.
  * <p>
  * If there is no suitable {@code handle(Context, ...)} method, a {@link NoSuitableHandleMethodException} will be thrown at construction time.
- *
  */
 public abstract class ServiceUsingHandler implements Handler {
 

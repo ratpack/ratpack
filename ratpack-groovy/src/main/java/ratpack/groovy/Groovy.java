@@ -54,7 +54,7 @@ public abstract class Groovy {
   /**
    * Starts a Ratpack app, defined by the given closure.
    * <p>
-   * This method is used is Ratpack scripts as the entry point.
+   * This method is used in Ratpack scripts as the entry point.
    * <pre class="groovy-ratpack-dsl">
    * import ratpack.session.SessionModule
    * import static ratpack.groovy.Groovy.*
@@ -76,7 +76,7 @@ public abstract class Groovy {
    * <p>
    * This method can be used by standalone scripts to start a Ratpack application.
    * That is, you could save the above content in a file named “{@code ratpack.groovy}” (the name is irrelevant),
-   * then start application by running `{@code groovy ratpack.groovy}` on the command line.
+   * then start the application by running `{@code groovy ratpack.groovy}` on the command line.
    * <h3>Full Applications</h3>
    * <p>
    * It's also possible to build Groovy Ratpack applications with a traditional class based entry point.
