@@ -62,6 +62,14 @@ public interface TestHttpClient {
 
   String putText(String path);
 
+  Response patch();
+
+  Response patch(String path);
+
+  String patchText();
+
+  String patchText(String path);
+
   Response delete();
 
   Response delete(String path);

@@ -51,6 +51,13 @@ public interface HttpMethod {
   boolean isPut();
 
   /**
+   * True if the method is PATCH.
+   *
+   * @return True if the method is PATCH.
+   */
+  boolean isPatch();
+
+  /**
    * True if the method is DELETE.
    *
    * @return True if the method is DELETE.

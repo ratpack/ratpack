@@ -50,6 +50,14 @@ public interface GroovyByMethodHandler extends ByMethodHandler {
   GroovyByMethodHandler put(@DelegatesTo(GroovyContext.class) Closure<?> closure);
 
   /**
+   * Defines the action to to take if the request has a HTTP method of PATCH.
+   *
+   * @param closure The action to take
+   * @return this
+   */
+  GroovyByMethodHandler patch(@DelegatesTo(GroovyContext.class) Closure<?> closure);
+
+  /**
    * Defines the action to to take if the request has a HTTP method of DELETE.
    *
    * @param closure The action to take

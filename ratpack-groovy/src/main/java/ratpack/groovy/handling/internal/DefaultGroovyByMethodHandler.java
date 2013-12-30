@@ -55,6 +55,12 @@ public class DefaultGroovyByMethodHandler implements GroovyByMethodHandler {
   }
 
   @Override
+  public GroovyByMethodHandler patch(@DelegatesTo(GroovyContext.class) Closure<?> closure) {
+    patch(delegateFirstRunnable(groovyContext, groovyContext, closure));
+    return this;
+  }  
+
+  @Override
   public GroovyByMethodHandler delete(@DelegatesTo(GroovyContext.class) Closure<?> closure) {
     delete(delegateFirstRunnable(groovyContext, groovyContext, closure));
     return this;
@@ -89,6 +95,14 @@ public class DefaultGroovyByMethodHandler implements GroovyByMethodHandler {
     }
     return delegate.put(runnable);
   }
+
+  @Override
+  public ByMethodHandler patch(Runnable runnable) {
+    if (Closure.class.isInstance(runnable)) {
+      return patch((Closure<?>) runnable);
+    }
+    return delegate.patch(runnable);
+  }  
 
   @Override
   public ByMethodHandler delete(Runnable runnable) {

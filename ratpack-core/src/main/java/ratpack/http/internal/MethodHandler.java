@@ -28,6 +28,7 @@ public class MethodHandler implements Handler {
   public static final Handler GET = new MethodHandler("GET");
   public static final Handler POST = new MethodHandler("POST");
   public static final Handler PUT = new MethodHandler("PUT");
+  public static final Handler PATCH = new MethodHandler("PATCH");
   public static final Handler DELETE = new MethodHandler("DELETE");
 
   public MethodHandler(String method) {

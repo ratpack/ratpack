@@ -198,6 +198,41 @@ public interface GroovyChain extends Chain {
    * {@inheritDoc}
    */
   @Override
+  GroovyChain patch(Handler handler);
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  GroovyChain patch(String path, Handler handler);
+
+  /**
+   * Adds a {@code Handler} to this {@code GroovyChain} that delegates to the given {@code Closure} as a {@code Handler} if the
+   * relative {@code path} matches the given {@code path} and the {@code request} {@code HTTPMethod} is {@code PATCH}.
+   * <p>
+   * See {@link GroovyChain#put(String, ratpack.handling.Handler)} for more details.
+   *
+   * @param path the relative path to match on
+   * @param handler the handler to delegate to
+   * @return this {@code GroovyChain}
+   */
+  GroovyChain patch(String path, @DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
+
+  /**
+   * Adds a {@code Handler} to this {@code GroovyChain} that delegates to the given {@code Closure} as a {@code Handler}
+   * if the {@code request} {@code HTTPMethod} is {@code PATCH} and the {@code path} is at the current root.
+   * <p>
+   * See {@link GroovyChain#put(ratpack.handling.Handler)} for more details.
+   *
+   * @param handler the handler to delegate to
+   * @return this {@code GroovyChain}
+   */
+  GroovyChain patch(@DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   GroovyChain delete(Handler handler);
 
   /**
