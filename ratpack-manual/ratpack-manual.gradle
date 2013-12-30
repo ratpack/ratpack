@@ -72,7 +72,7 @@ task configureApi << {
 // Note: does not build viewable docs.
 // Docs must be viewed within the manual for styling to work
 task api(type: Javadoc) {
-  dependsOn configureApi
+  dependsOn configureApi, compileSass
   group "manual"
   description "Generates the Javadoc for the entire public API"
 
