@@ -103,8 +103,7 @@ task api(type: Javadoc) {
   options.bottom = """
       <script src=\"{@docRoot}/../js/manual.js\"></script>
       <script src=\"{@docRoot}/../js/prism.js\" data-manual></script>
-      <script src=\"{@docRoot}/../js/highlight.js\">
-      </script><link rel=\"stylesheet\" type=\"text/css\" href=\"{@docRoot}/../css/prism.css\">
+      <script src=\"{@docRoot}/../js/highlight.js\"></script>
     """.replaceAll("(^|\\n)\\s*", "")
 
   inputs.property "bottom", options.bottom
