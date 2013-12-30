@@ -60,6 +60,9 @@ ratpack {
     }
 
     prefix("manual") {
+      get {
+        redirect 301, "manual/current/"
+      }
       handler {
         response.headers.add("Cache-Control", "max-age=$cacheFor, public")
         next()
