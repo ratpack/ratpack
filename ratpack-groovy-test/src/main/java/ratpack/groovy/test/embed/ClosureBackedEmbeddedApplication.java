@@ -33,8 +33,10 @@ import ratpack.handling.Handler;
 import ratpack.launch.HandlerFactory;
 import ratpack.launch.LaunchConfig;
 import ratpack.launch.LaunchConfigBuilder;
+import ratpack.test.embed.BaseDirBuilder;
 import ratpack.test.embed.LaunchConfigEmbeddedApplication;
 import ratpack.util.Action;
+import ratpack.util.Factory;
 import ratpack.util.Transformer;
 
 import java.nio.file.Path;
@@ -49,37 +51,38 @@ import static ratpack.groovy.internal.ClosureUtil.configureDelegateFirst;
  * This implementation is usually sufficient for testing Ratpack modules or extensions.
  * <p>
  * <pre class="tested">
+ * import ratpack.test.embed.PathBaseDirBuilder
  * import ratpack.groovy.test.TestHttpClients
  * import ratpack.groovy.test.embed.ClosureBackedEmbeddedApplication
  * import ratpack.session.SessionModule
  *
  * import java.nio.file.Files
  *
- * def baseDir = Files.createTempDirectory("ratpack-test")
+ * def tmp = Files.createTempDirectory("ratpack-test")
+ * def baseDir = new PathBaseDirBuilder(tmp)
+ *
+ * // Create a file within the application base dir
+ * baseDir.file "public/foo.txt", "bar"
+ *
  * def application = new ClosureBackedEmbeddedApplication(baseDir)
  *
- * application.with {
- *   // Create a file within the application base dir
- *   file("public/foo.txt") << "bar"
+ * // Configure the launch config
+ * application.launchConfig {
+ *   other "some.other.property": "value"
+ *   reloadable true
+ * }
  *
- *   // Configure the launch config
- *   launchConfig {
- *     other "some.other.property": "value"
- *     reloadable true
- *   }
+ * // Configure the module registry
+ * application.modules {
+ *   register new SessionModule()
+ * }
  *
- *   // Configure the module registry
- *   modules {
- *     register new SessionModule()
+ * // Use the GroovyChain DSL for defining the application handlers
+ * application.handlers {
+ *   get {
+ *     render "root"
  *   }
- *
- *   // Use the GroovyChain DSL for defining the application handlers
- *   handlers {
- *     get {
- *       render "root"
- *     }
- *     assets "public"
- *   }
+ *   assets "public"
  * }
  *
  * // Test the application with the test http client
@@ -88,9 +91,11 @@ import static ratpack.groovy.internal.ClosureUtil.configureDelegateFirst;
  * assert client.getText() == "root"
  * assert client.getText("foo.txt") == "bar"
  *
- * // Stop the application
+ * // Cleanup
  * application.close()
  * </pre>
+ *
+ * @see ratpack.test.embed.PathBaseDirBuilder
  */
 public class ClosureBackedEmbeddedApplication extends LaunchConfigEmbeddedApplication {
 
@@ -100,13 +105,31 @@ public class ClosureBackedEmbeddedApplication extends LaunchConfigEmbeddedApplic
 
   private final List<Module> modules = new LinkedList<>();
 
+  private final Factory<Path> baseDirFactory;
+
+  /**
+   * Constructor.
+   * <p>
+   * Useful for deferring the base dir determination
+   *
+   * @param baseDirFactory The factory for the base dir
+   */
+  public ClosureBackedEmbeddedApplication(Factory<Path> baseDirFactory) {
+    this.baseDirFactory = baseDirFactory;
+  }
+
   /**
    * Constructor.
    *
-   * @param baseDir The base dir
+   * @param baseDirBuilder the builder whose {@link BaseDirBuilder#build()} method will be called to provide the base dir for this app
    */
-  public ClosureBackedEmbeddedApplication(Path baseDir) {
-    super(baseDir);
+  public ClosureBackedEmbeddedApplication(final BaseDirBuilder baseDirBuilder) {
+    this(new Factory<Path>() {
+      @Override
+      public Path create() {
+        return baseDirBuilder.build();
+      }
+    });
   }
 
   /**
@@ -121,8 +144,8 @@ public class ClosureBackedEmbeddedApplication extends LaunchConfigEmbeddedApplic
   /**
    * Constructs the launch config using the other {@code create*} methods.
    * <p>
-   * A launch config will be created using {@link LaunchConfigBuilder#baseDir(java.io.File)}, with {@link #getBaseDir()} as the base dir.
-   * The launch config will also default to using a port value of {@code 0} (ephemeral port).
+   * A launch config will be created using {@link LaunchConfigBuilder#baseDir(java.io.File)}, with the path returned by the factory given at construction.
+   * The launch config will also default to using a port value of {@code 0} (i.e. an ephemeral port).
    * <p>
    * Register modules and objects using the {@link #modules(groovy.lang.Closure)} method.
    * <p>
@@ -134,9 +157,10 @@ public class ClosureBackedEmbeddedApplication extends LaunchConfigEmbeddedApplic
    */
   @Override
   protected LaunchConfig createLaunchConfig() {
+    Path baseDirPath = baseDirFactory.create();
 
     LaunchConfigBuilder launchConfigBuilder = LaunchConfigBuilder
-      .baseDir(getBaseDir())
+      .baseDir(baseDirPath)
       .port(0);
 
     configureDelegateFirst(launchConfigBuilder, launchConfigClosure);

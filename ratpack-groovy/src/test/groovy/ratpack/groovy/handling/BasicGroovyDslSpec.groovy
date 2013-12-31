@@ -27,7 +27,7 @@ class BasicGroovyDslSpec extends RatpackGroovyDslSpec {
 
   def "can use special Groovy dsl"() {
     given:
-    file("public/foo.txt") << "bar"
+    file "public/foo.txt", "bar"
 
     when:
     handlers {
@@ -67,8 +67,8 @@ class BasicGroovyDslSpec extends RatpackGroovyDslSpec {
 
   def "can use file method to access file contextually"() {
     given:
-    file("foo/file.txt") << "foo"
-    file("bar/file.txt") << "bar"
+    file "foo/file.txt", "foo"
+    file "bar/file.txt", "bar"
 
     when:
     handlers {

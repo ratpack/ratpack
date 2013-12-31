@@ -18,11 +18,7 @@ package ratpack.test.embed;
 
 import ratpack.server.RatpackServer;
 
-import java.io.File;
-import java.io.IOException;
 import java.net.URI;
-import java.nio.file.Files;
-import java.nio.file.Path;
 
 import static ratpack.util.ExceptionUtils.uncheck;
 
@@ -33,56 +29,7 @@ import static ratpack.util.ExceptionUtils.uncheck;
  */
 public abstract class EmbeddedApplicationSupport implements EmbeddedApplication {
 
-  private final Path baseDir;
   private RatpackServer ratpackServer;
-
-  /**
-   * Constructor.
-   *
-   * @param baseDir The base dir
-   */
-  public EmbeddedApplicationSupport(Path baseDir) {
-    if (!Files.exists(baseDir)) {
-      throw new IllegalArgumentException("baseDir path (" + baseDir + ") does not exist");
-    }
-    if (!Files.isDirectory(baseDir)) {
-      throw new IllegalArgumentException("baseDir path (" + baseDir + ") is not a directory");
-    }
-    this.baseDir = baseDir;
-  }
-
-  /**
-   * The {@code baseDir} argument given at construction time.
-   *
-   * @return The {@code baseDir} argument given at construction time
-   */
-  @Override
-  public Path getBaseDir() {
-    return baseDir;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public File file(String path) {
-    return path(path).toFile();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public Path path(String path) {
-    Path file = baseDir.resolve(path);
-    Path parent = file.getParent();
-    try {
-      Files.createDirectories(parent);
-    } catch (IOException e) {
-      throw uncheck(e);
-    }
-    return file;
-  }
 
   /**
    * The server.

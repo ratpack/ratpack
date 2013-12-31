@@ -20,8 +20,6 @@ import ratpack.server.RatpackServer;
 import ratpack.test.ApplicationUnderTest;
 
 import java.io.Closeable;
-import java.io.File;
-import java.nio.file.Path;
 
 /**
  * An application created and used at runtime, useful for functionally testing subsets of functionality.
@@ -38,40 +36,6 @@ import java.nio.file.Path;
  * @see ratpack.test.embed.LaunchConfigEmbeddedApplication
  */
 public interface EmbeddedApplication extends ApplicationUnderTest, Closeable {
-
-  /**
-   * Working space that can be used to support the application.
-   * <p>
-   * This space must be writable, and generally should be based on some unique temporary space.
-   * If using JUnit, the <a href="http://junit.org/javadoc/4.9/org/junit/rules/TemporaryFolder.html">TemporaryFolder</a> rule can be useful.
-   * <p>
-   * This directory often becomes the base dir of the application at runtime, but implementations are free to do otherwise.
-   *
-   * @return Working space for defining the application
-   */
-  Path getBaseDir();
-
-  /**
-   * Creates a file object for the given path, relative to the {@link #getBaseDir()}.
-   * <p>
-   * Implementations must ensure that the parent file of the returned file does exist (creating it if necessary).
-   * <p>
-   * Is shorthand for {@code this.path(path).toFile()}, so may throw {@link java.lang.UnsupportedOperationException} as per the {@link Path#toFile()} method.
-   *
-   * @param path The path to the file, relative to the {@link #getBaseDir()}
-   * @return The file at the given path, relative to the {@link #getBaseDir()}, whose parent file is guaranteed to exist and be a directory
-   */
-  File file(String path);
-
-  /**
-   * Creates a path object for the given path, relative to the {@link #getBaseDir()}.
-   * <p>
-   * Implementations must ensure that the parent path of the returned path does exist (creating it if necessary).
-   *
-   * @param path The path to the path, relative to the {@link #getBaseDir()}
-   * @return The path at the given path, relative to the {@link #getBaseDir()}, whose parent path is guaranteed to exist and be a directory
-   */
-  Path path(String path);
 
   /**
    * The server for the application.

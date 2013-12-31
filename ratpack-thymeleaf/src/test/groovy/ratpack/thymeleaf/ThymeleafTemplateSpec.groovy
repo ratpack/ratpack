@@ -30,7 +30,7 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
   void 'can render a thymeleaf template from #scenario'() {
     given:
     launchConfig { other(otherConfig) }
-    file(filePath) << '<span th:text="${key}"/>'
+    file filePath, '<span th:text="${key}"/>'
 
     when:
     modules {
@@ -58,7 +58,7 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
   void 'use default suffix if a #scenario suffix is used'() {
     given:
     launchConfig { other(otherConfig) }
-    file('thymeleaf/simple.html') << '<span th:text="${text}"/>'
+    file 'thymeleaf/simple.html', '<span th:text="${text}"/>'
 
     when:
     modules {
@@ -82,7 +82,7 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
 
   void 'can handle abitrary suffixes'() {
     given:
-    file("thymeleaf/simple${templatesSuffix}") << '<span th:text="${text}"/>'
+    file "thymeleaf/simple${templatesSuffix}", '<span th:text="${text}"/>'
 
     when:
     modules {
@@ -103,7 +103,7 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
 
   void 'missing templates are handled'() {
     given:
-    file('thymeleaf').mkdir()
+    dir('thymeleaf')
 
     modules {
       register new ThymeleafModule()
@@ -123,8 +123,8 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
 
   void 'can render a thymeleaf template with variables and messages'() {
     given:
-    file("thymeleaf/simple.properties") << 'greeting=Hello {0}'
-    file("thymeleaf/simple.html") << '<span th:text="#{greeting(${name})}"/>'
+    file "thymeleaf/simple.properties", 'greeting=Hello {0}'
+    file "thymeleaf/simple.html", '<span th:text="#{greeting(${name})}"/>'
 
     when:
     modules {
@@ -142,8 +142,8 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
 
   void 'can render a thymeleaf template with fragments'() {
     given:
-    file("thymeleaf/footer.html") << '<div th:fragment="copyright">page footer</div>'
-    file("thymeleaf/page.html") << '<div th:include="footer :: copyright"></div>'
+    file "thymeleaf/footer.html", '<div th:fragment="copyright">page footer</div>'
+    file "thymeleaf/page.html", '<div th:include="footer :: copyright"></div>'
 
     when:
     modules {
@@ -161,7 +161,7 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
 
   void 'surrounding html tags can be removed'() {
     given:
-    file('thymeleaf/simple.html') << '<span th:text="${text}" th:remove="tag"/>'
+    file 'thymeleaf/simple.html', '<span th:text="${text}" th:remove="tag"/>'
 
     when:
     modules {
@@ -180,7 +180,7 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
   @Unroll
   void 'can handle templates prefix with #scenario slash'() {
     given:
-    file('thymeleaf/simple.html') << '<span th:text="${text}" th:remove="tag"/>'
+    file 'thymeleaf/simple.html', '<span th:text="${text}" th:remove="tag"/>'
 
     when:
     modules {
@@ -204,7 +204,7 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
 
   void 'content types can be set'() {
     given:
-    file('thymeleaf/simple.html') << '<span th:text="${text}" th:remove="tag"/>'
+    file 'thymeleaf/simple.html', '<span th:text="${text}" th:remove="tag"/>'
 
     when:
     modules {
@@ -224,7 +224,7 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
   @Unroll
   void 'can configure templates cache with #scenario'() {
     given:
-    file('thymeleaf/simple.html') << 'DUMMY'
+    file 'thymeleaf/simple.html', 'DUMMY'
 
     when:
     TemplateEngine engine = null

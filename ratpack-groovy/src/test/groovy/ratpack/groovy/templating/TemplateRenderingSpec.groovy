@@ -30,7 +30,7 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
   def "can render template"() {
 
     given:
-    file("templates/foo.html") << "a \${model.value} b <% 3.times {  %> a <% } %>"
+    file "templates/foo.html", "a \${model.value} b <% 3.times {  %> a <% } %>"
 
     when:
     handlers {
@@ -60,8 +60,8 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
 
   def "can render inner template"() {
     given:
-    file("templates/outer.html") << "outer: \${model.value}, <% render 'inner.html', value: 'inner' %>"
-    file("templates/inner.html") << "inner: \${model.value}"
+    file "templates/outer.html", "outer: \${model.value}, <% render 'inner.html', value: 'inner' %>"
+    file "templates/inner.html", "inner: \${model.value}"
 
     when:
     handlers {
@@ -76,9 +76,9 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
 
   def "inner templates are rendered in order"() {
     given:
-    file("templates/head.html") << "head"
-    file("templates/middle.html") << '<% render "head.html" %>-middle-<% render "footer.html" %>'
-    file("templates/footer.html") << "footer"
+    file "templates/head.html", "head"
+    file "templates/middle.html", '<% render "head.html" %>-middle-<% render "footer.html" %>'
+    file "templates/footer.html", "footer"
 
     when:
     handlers {
@@ -91,9 +91,9 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
 
   def "can render inner, inner template"() {
     given:
-    file("templates/outer.html") << "outer: \${model.value}, <% render 'inner.html', value: 'inner' %>"
-    file("templates/inner.html") << "inner: \${model.value}, <% render 'innerInner.html', value: 1 %>, <% render 'innerInner.html', value: 2 %>, <% render 'innerInner.html', value: 1 %>"
-    file("templates/innerInner.html") << "innerInner: \${model.value}"
+    file "templates/outer.html", "outer: \${model.value}, <% render 'inner.html', value: 'inner' %>"
+    file "templates/inner.html", "inner: \${model.value}, <% render 'innerInner.html', value: 1 %>, <% render 'innerInner.html', value: 2 %>, <% render 'innerInner.html', value: 1 %>"
+    file "templates/innerInner.html", "innerInner: \${model.value}"
 
     when:
     handlers {
@@ -108,9 +108,9 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
 
   def "inner template exceptions"() {
     given:
-    file("templates/outer.html") << "outer: \${model.value}, <% render 'inner.html', value: 'inner' %>"
-    file("templates/inner.html") << "inner: \${model.value}, <% render 'innerInner.html', value: 1 %>, <% render 'innerInner.html', value: 2 %>, <% render 'innerInner.html', value: 1 %>"
-    file("templates/innerInner.html") << "\${throw new Exception(model.value.toString())}"
+    file "templates/outer.html", "outer: \${model.value}, <% render 'inner.html', value: 'inner' %>"
+    file "templates/inner.html", "inner: \${model.value}, <% render 'innerInner.html', value: 1 %>, <% render 'innerInner.html', value: 2 %>, <% render 'innerInner.html', value: 1 %>"
+    file "templates/innerInner.html", "\${throw new Exception(model.value.toString())}"
 
     when:
     handlers {
@@ -125,9 +125,9 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
 
   def "nested templates inherit the outer model"() {
     given:
-    file("templates/outer.html") << "outer: \${model.a}\${model.b}, <% render 'inner.html', b: 'B' %>"
-    file("templates/inner.html") << "inner: \${model.a}\${model.b}, <% render 'innerInner.html', a: 'A' %>"
-    file("templates/innerInner.html") << "innerInner: \${model.a}\${model.b}"
+    file "templates/outer.html", "outer: \${model.a}\${model.b}, <% render 'inner.html', b: 'B' %>"
+    file "templates/inner.html", "inner: \${model.a}\${model.b}, <% render 'innerInner.html', a: 'A' %>"
+    file "templates/innerInner.html", "innerInner: \${model.a}\${model.b}"
 
     when:
     handlers {
@@ -143,8 +143,8 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
   @Unroll
   "can use render in output section - #template"() {
     given:
-    file("templates/outer.html") << template
-    file("templates/foo.html") << "foo"
+    file "templates/outer.html", template
+    file "templates/foo.html", "foo"
 
     when:
     handlers {
@@ -163,9 +163,9 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
   @Unroll
   "can use render in output section in nested - #template"() {
     given:
-    file("templates/outer.html") << "<% render 'inner.html' %>"
-    file("templates/inner.html") << template
-    file("templates/foo.html") << "foo"
+    file "templates/outer.html", "<% render 'inner.html' %>"
+    file "templates/inner.html", template
+    file "templates/foo.html", "foo"
 
     when:
     handlers {
@@ -183,8 +183,8 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
 
   def "compile error in inner template"() {
     given:
-    file("templates/outer.html") << "outer: \${model.value}, <% render 'inner.html', value: 'inner' %>"
-    file("templates/inner.html") << "inner: \${model.value.toInteger()}"
+    file "templates/outer.html", "outer: \${model.value}, <% render 'inner.html', value: 'inner' %>"
+    file "templates/inner.html", "inner: \${model.value.toInteger()}"
 
     when:
     modules {
@@ -203,7 +203,7 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
 
   def "can get model object via type"() {
     given:
-    file("templates/template.html") << "value: \${model.get('value', String).toInteger()}"
+    file "templates/template.html", "value: \${model.get('value', String).toInteger()}"
 
     when:
     modules {
@@ -236,7 +236,7 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
   def "templates are reloadable in reload mode"() {
     given:
     launchConfig { reloadable(true) }
-    file("templates/t") << "1"
+    file "templates/t", "1"
 
     when:
     handlers {
@@ -248,7 +248,7 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
 
     when:
     sleep 1000
-    file("templates/t").text = "2"
+    file "templates/t", "2"
 
     then:
     text == "2"
@@ -257,7 +257,7 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
   def "templates are not reloadable in reload false mode"() {
     given:
     launchConfig { reloadable(false) }
-    file("templates/t") << "1"
+    file "templates/t", "1"
 
     when:
     handlers {
@@ -268,7 +268,7 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     text == "1"
 
     when:
-    file("templates/t").text = "2"
+    file "templates/t", "2"
 
     then:
     text == "1"
@@ -276,7 +276,7 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
 
   def "templates are reloadable if reloading is forced"() {
     given:
-    file("templates/t") << "1"
+    file "templates/t", "1"
 
     when:
     modules {
@@ -291,7 +291,7 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
 
     when:
     sleep 1000
-    file("templates/t").text = "2"
+    file "templates/t", "2"
 
     then:
     text == "2"
@@ -299,11 +299,11 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
 
   def "content type by template extension"() {
     when:
-    file("templates/t.html") << "1"
-    file("templates/t.xml") << "1"
-    file("templates/dir/t.html") << "1"
-    file("templates/dir/t.xml") << "1"
-    file("templates/dir/t") << "1"
+    file "templates/t.html", "1"
+    file "templates/t.xml", "1"
+    file "templates/dir/t.html", "1"
+    file "templates/dir/t.xml", "1"
+    file "templates/dir/t", "1"
 
     handlers {
       handler {
@@ -324,7 +324,7 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
 
   def "error in error template produces empty response and right error code"() {
     given:
-    file("templates/error.html") << "a a a \${-==}" // invalid syntax
+    file "templates/error.html", "a a a \${-==}" // invalid syntax
 
     when:
     handlers {

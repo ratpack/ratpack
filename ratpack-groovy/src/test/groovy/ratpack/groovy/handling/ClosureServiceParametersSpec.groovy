@@ -31,7 +31,7 @@ class ClosureServiceParametersSpec extends RatpackGroovyAppSpec {
 
   def "can have global services"() {
     when:
-    file("templates/foo.html") << "bar"
+    file "templates/foo.html", "bar"
 
     modules {
       register(new ThingModule())

@@ -40,7 +40,7 @@ class GuiceParentInjectorSpec extends RatpackGroovyDslSpec {
 
   @Override
   ClosureBackedEmbeddedApplication createApplication() {
-    return new ClosureBackedEmbeddedApplication(temporaryFolder.newFolder("app").toPath()) {
+    return new ClosureBackedEmbeddedApplication({ baseDir.build() }) {
       @Override
       protected Transformer<? super Module, ? extends Injector> createInjectorFactory(LaunchConfig launchConfig) {
         Injector parentInjector = createInjector(new AbstractModule() {

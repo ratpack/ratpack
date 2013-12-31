@@ -66,7 +66,7 @@ class FormHandlingSpec extends RatpackGroovyDslSpec {
 
   def "can handle file uploads"() {
     given:
-    def fooFile = file("foo.txt") << "bar"
+    def fooFile = file "foo.txt", "bar"
 
     when:
     handlers {
@@ -77,7 +77,7 @@ class FormHandlingSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    request.multiPart("theFile", fooFile)
+    request.multiPart("theFile", fooFile.toFile())
     postText() == "File content: bar"
   }
 }

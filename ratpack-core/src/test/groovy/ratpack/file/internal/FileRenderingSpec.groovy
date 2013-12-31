@@ -33,7 +33,7 @@ class FileRenderingSpec extends RatpackGroovyDslSpec {
   private Path myFile
 
   def setup() {
-    myFile = (file("myFile.text") << FILE_CONTENTS).toPath()
+    myFile = file("myFile.text",  FILE_CONTENTS)
   }
 
   def "can render file"() {

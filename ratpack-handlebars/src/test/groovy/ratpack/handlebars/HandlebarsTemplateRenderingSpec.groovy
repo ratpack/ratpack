@@ -29,7 +29,7 @@ class HandlebarsTemplateRenderingSpec extends RatpackGroovyDslSpec {
   void 'can render a handlebars template from #scenario'() {
     given:
     launchConfig { other(otherConfig) }
-    file(filePath) << '{{key}}'
+    file filePath, '{{key}}'
 
     when:
     modules {
@@ -55,7 +55,7 @@ class HandlebarsTemplateRenderingSpec extends RatpackGroovyDslSpec {
   void 'can configure loader suffix via #scenario'() {
     given:
     launchConfig { other(otherConfig) }
-    file('handlebars/simple.hbs') << '{{this}}'
+    file('handlebars/simple.hbs', '{{this}}')
 
     when:
     modules {
@@ -78,7 +78,7 @@ class HandlebarsTemplateRenderingSpec extends RatpackGroovyDslSpec {
 
   void 'missing templates are handled'() {
     given:
-    file('handlebars').mkdir()
+    dir('handlebars')
 
     modules {
       register new HandlebarsModule()
@@ -98,7 +98,7 @@ class HandlebarsTemplateRenderingSpec extends RatpackGroovyDslSpec {
 
   void 'helpers can be registered'() {
     given:
-    file('handlebars/helper.hbs') << '{{test}}'
+    file 'handlebars/helper.hbs', '{{test}}'
 
     when:
     modules {
@@ -117,9 +117,9 @@ class HandlebarsTemplateRenderingSpec extends RatpackGroovyDslSpec {
 
   void 'content types are based on file type but can be overriden'() {
     given:
-    file('handlebars/simple.hbs') << '{{this}}'
-    file('handlebars/simple.json.hbs') << '{{this}}'
-    file('handlebars/simple.html.hbs') << '{{this}}'
+    file 'handlebars/simple.hbs', '{{this}}'
+    file 'handlebars/simple.json.hbs', '{{this}}'
+    file 'handlebars/simple.html.hbs', '{{this}}'
 
     when:
     modules {
@@ -140,7 +140,7 @@ class HandlebarsTemplateRenderingSpec extends RatpackGroovyDslSpec {
 
   void "templates are reloadable when reloading is enabled"() {
     given:
-    file('handlebars/simple.hbs') << 'A'
+    file 'handlebars/simple.hbs', 'A'
 
     when:
     modules {
@@ -157,7 +157,7 @@ class HandlebarsTemplateRenderingSpec extends RatpackGroovyDslSpec {
 
     when:
     sleep 1000 // make sure last modified times are different
-    file('handlebars/simple.hbs').text = 'B'
+    file 'handlebars/simple.hbs', 'B'
 
     then:
     text == 'B'
@@ -165,7 +165,7 @@ class HandlebarsTemplateRenderingSpec extends RatpackGroovyDslSpec {
 
   void "templates are not reloadable when reloading is disabled"() {
     given:
-    file('handlebars/simple.hbs') << 'A'
+    file 'handlebars/simple.hbs', 'A'
 
     when:
     modules {
@@ -182,7 +182,7 @@ class HandlebarsTemplateRenderingSpec extends RatpackGroovyDslSpec {
 
     when:
     sleep 1000 // make sure last modified times are different
-    file('handlebars/simple.hbs').text = 'B'
+    file 'handlebars/simple.hbs', 'B'
 
     then:
     text == 'A'

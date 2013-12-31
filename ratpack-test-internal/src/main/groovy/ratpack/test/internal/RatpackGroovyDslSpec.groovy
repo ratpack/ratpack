@@ -21,7 +21,7 @@ import ratpack.groovy.handling.GroovyChain
 import ratpack.groovy.test.embed.ClosureBackedEmbeddedApplication
 import ratpack.launch.LaunchConfigBuilder
 
-abstract class RatpackGroovyDslSpec extends EmbeddedRatpackSpec {
+abstract class RatpackGroovyDslSpec extends EmbeddedBaseDirRatpackSpec {
 
   @Delegate
   ClosureBackedEmbeddedApplication application
@@ -31,8 +31,8 @@ abstract class RatpackGroovyDslSpec extends EmbeddedRatpackSpec {
     application = createApplication()
   }
 
-  def ClosureBackedEmbeddedApplication createApplication() {
-    new ClosureBackedEmbeddedApplication(temporaryFolder.newFolder("app").toPath())
+  protected ClosureBackedEmbeddedApplication createApplication() {
+    new ClosureBackedEmbeddedApplication(baseDirFactory)
   }
 
   public void handlers(@DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer) {

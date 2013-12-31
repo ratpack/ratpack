@@ -29,12 +29,12 @@ class StandaloneScriptSpec extends RatpackGroovyScriptAppSpec {
 
   @Override
   File getRatpackFile() {
-    file("custom.groovy")
+    temporaryFolder.newFile("custom.groovy")
   }
 
   @Override
   EmbeddedApplication createApplication() {
-    new EmbeddedApplicationSupport(temporaryFolder.root.toPath()) {
+    new EmbeddedApplicationSupport() {
       @Override
       protected RatpackServer createServer() {
         new ScriptBackedServer({

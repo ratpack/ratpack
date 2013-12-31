@@ -16,26 +16,33 @@
 
 package ratpack.test.internal
 
-import ratpack.groovy.Groovy
-import ratpack.test.embed.EmbeddedApplication
+import ratpack.test.embed.BaseDirBuilder
+import ratpack.test.embed.PathBaseDirBuilder
+import spock.lang.AutoCleanup
 
-abstract class RatpackGroovyScriptAppSpec extends EmbeddedRatpackSpec {
+import java.nio.file.Path
 
+abstract class EmbeddedBaseDirRatpackSpec extends EmbeddedRatpackSpec {
+
+  @AutoCleanup
   @Delegate
-  EmbeddedApplication application
+  BaseDirBuilder baseDir
 
   def setup() {
-    application = createApplication()
+    baseDir = createBaseDirBuilder()
   }
 
-  abstract EmbeddedApplication createApplication()
-
-  File getRatpackFile() {
-    temporaryFolder.newFile("ratpack.groovy")
+  protected BaseDirBuilder createBaseDirBuilder() {
+    new PathBaseDirBuilder(temporaryFolder.newFolder("app"))
   }
 
-  void script(String text) {
-    ratpackFile.text = "import static ${Groovy.name}.ratpack\n\n$text"
+  protected ratpack.util.Factory<Path> getBaseDirFactory() {
+    new ratpack.util.Factory() {
+      @Override
+      Object create() {
+        getBaseDir().build()
+      }
+    }
   }
 
 }

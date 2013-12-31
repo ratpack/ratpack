@@ -16,47 +16,21 @@
 
 package ratpack.test.internal
 
-import ratpack.groovy.guice.GroovyModuleRegistry
-import ratpack.groovy.handling.GroovyChain
 import ratpack.groovy.server.internal.GroovyKitAppFactory
 import ratpack.groovy.test.embed.ClosureBackedEmbeddedApplication
 import ratpack.guice.GuiceBackedHandlerFactory
 import ratpack.launch.LaunchConfig
-import ratpack.launch.LaunchConfigBuilder
 
-import java.nio.file.Path
-
-abstract class RatpackGroovyAppSpec extends EmbeddedRatpackSpec {
-
-  class GroovyAppEmbeddedApplication extends ClosureBackedEmbeddedApplication {
-    GroovyAppEmbeddedApplication(Path baseDir) {
-      super(baseDir)
-    }
-
-    @Override
-    protected GuiceBackedHandlerFactory createHandlerFactory(LaunchConfig launchConfig) {
-      return new GroovyKitAppFactory(launchConfig)
-    }
-  }
-
-  @Delegate
-  ClosureBackedEmbeddedApplication application
+abstract class RatpackGroovyAppSpec extends RatpackGroovyDslSpec {
 
   @Override
-  def setup() {
-    application = new GroovyAppEmbeddedApplication(temporaryFolder.newFolder("app").toPath())
-  }
-
-  public void handlers(@DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer) {
-    application.handlers(configurer)
-  }
-
-  public void modules(@DelegatesTo(value = GroovyModuleRegistry.class, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer) {
-    application.modules(configurer)
-  }
-
-  public void launchConfig(@DelegatesTo(value = LaunchConfigBuilder.class, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer) {
-    application.launchConfig(configurer)
+  protected ClosureBackedEmbeddedApplication createApplication() {
+    new ClosureBackedEmbeddedApplication(baseDirFactory) {
+      @Override
+      protected GuiceBackedHandlerFactory createHandlerFactory(LaunchConfig launchConfig) {
+        return new GroovyKitAppFactory(launchConfig)
+      }
+    }
   }
 
 }

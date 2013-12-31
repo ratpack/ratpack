@@ -30,7 +30,7 @@ class BasicGroovyScriptAppSpec extends RatpackGroovyScriptAppSpec {
 
   @Override
   EmbeddedApplication createApplication() {
-    new LaunchConfigEmbeddedApplication(temporaryFolder.root.toPath()) {
+    new LaunchConfigEmbeddedApplication() {
       @Override
       protected LaunchConfig createLaunchConfig() {
         LaunchConfigFactory.createWithBaseDir(getClass().classLoader, getRatpackFile().parentFile.toPath(), getLaunchConfigProperties())
