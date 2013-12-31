@@ -2,3 +2,5 @@ language: java
 jdk:
   - oraclejdk7
 script: "./gradlew clean check -q"
+notifications:
+  flowdock: 1e1cbeb62e6b68b5af7540e0e3ac5a0c
