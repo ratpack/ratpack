@@ -52,6 +52,21 @@ artifactoryPublish {
   skip true
 }
 
+ext {
+  groovyVersion = "2.2.1"
+  isSnapshot = version.endsWith("SNAPSHOT")
+
+  publishedModules = [
+    "ratpack-core", "ratpack-groovy", "ratpack-guice", "ratpack-session", "ratpack-test", "ratpack-groovy-test",
+    "ratpack-manual", "ratpack-gradle", "ratpack-handlebars", "ratpack-remote", "ratpack-remote-test", "ratpack-jackson",
+    "ratpack-codahale", "ratpack-h2", "ratpack-thymeleaf"
+  ].collect { project(it) }
+
+  apiModules = publishedModules.findAll { !(it.name in ["ratpack-manual", "ratpack-gradle"]) }
+}
+
+apply from: "gradle/dependencies.gradle"
+
 allprojects {
   group = "io.ratpack"
   version = rootProject.file("shared-resources/ratpack/ratpack-version.txt").text.trim()
@@ -77,35 +92,7 @@ allprojects {
 
 apply from: "gradle/idea/idea.gradle"
 
-ext {
-  groovyVersion = "2.2.1"
-  isSnapshot = version.endsWith("SNAPSHOT")
 
-  commonVersions = [
-      remote: "0.5",
-      slf4j: "1.7.5",
-      netty: "4.0.12.Final"
-  ]
-
-  commonDependencies = [
-      spock: dependencies.create("org.spockframework:spock-core:0.7-groovy-2.0", {
-        exclude module: "groovy-all"
-      }),
-      groovy: dependencies.create("org.codehaus.groovy:groovy-all:$groovyVersion"),
-      remote: "org.codehaus.groovy.modules.remote:remote-core:${commonVersions.remote}",
-      "remote-http": "org.codehaus.groovy.modules.remote:remote-transport-http:${commonVersions.remote}",
-      jackson: "com.fasterxml.jackson.core:jackson-databind:2.2.2",
-      slf4j: "org.slf4j:slf4j-api:${commonVersions.slf4j}"
-  ]
-
-  publishedModules = [
-      "ratpack-core", "ratpack-groovy", "ratpack-guice", "ratpack-session", "ratpack-test", "ratpack-groovy-test",
-      "ratpack-manual", "ratpack-gradle", "ratpack-handlebars", "ratpack-remote", "ratpack-remote-test", "ratpack-jackson",
-      "ratpack-codahale", "ratpack-h2", "ratpack-thymeleaf"
-  ].collect { project(it) }
-
-  apiModules = publishedModules.findAll { !(it.name in ["ratpack-manual", "ratpack-gradle"]) }
-}
 
 
 subprojects {
