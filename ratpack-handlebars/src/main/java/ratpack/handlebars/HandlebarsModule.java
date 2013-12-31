@@ -51,8 +51,9 @@ import ratpack.util.Action;
  * would be {@code text/html} by default.
  * </p>
  * <p>Custom handlebars helpers can be registered by binding instances of {@link ratpack.handlebars.NamedHelper}.</p>
- *
+ * <p>
  * Example usage: (Java DSL)
+ * </p>
  * <pre class="tested">
  * import ratpack.handling.*;
  * import ratpack.guice.*;
@@ -84,8 +85,9 @@ import ratpack.util.Action;
  *     }
  *   });
  * </pre>
- *
+ * <p>
  * Example usage: (Groovy DSL)
+ * </p>
  * <pre class="groovy-ratpack-dsl">
  * import ratpack.handlebars.HandlebarsModule
  * import static ratpack.handlebars.Template.handlebarsTemplate
