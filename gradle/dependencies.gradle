@@ -14,19 +14,21 @@
  * limitations under the License.
  */
 
-commonVersions = [
-  remote: "0.5",
-  slf4j: "1.7.5",
-  netty: "4.0.12.Final"
-]
+ext {
+  commonVersions = [
+    remote: "0.5",
+    slf4j: "1.7.5",
+    netty: "4.0.12.Final"
+  ]
 
-commonDependencies = [
-  spock: dependencies.create("org.spockframework:spock-core:0.7-groovy-2.0", {
-    exclude module: "groovy-all"
-  }),
-  groovy: dependencies.create("org.codehaus.groovy:groovy-all:$groovyVersion"),
-  remote: "org.codehaus.groovy.modules.remote:remote-core:${commonVersions.remote}",
-  "remote-http": "org.codehaus.groovy.modules.remote:remote-transport-http:${commonVersions.remote}",
-  jackson: "com.fasterxml.jackson.core:jackson-databind:2.2.2",
-  slf4j: "org.slf4j:slf4j-api:${commonVersions.slf4j}"
-]
+  commonDependencies = [
+    spock: dependencies.create("org.spockframework:spock-core:0.7-groovy-2.0", {
+      exclude module: "groovy-all"
+    }),
+    groovy: dependencies.create("org.codehaus.groovy:groovy-all:$groovyVersion"),
+    remote: "org.codehaus.groovy.modules.remote:remote-core:${commonVersions.remote}",
+    "remote-http": "org.codehaus.groovy.modules.remote:remote-transport-http:${commonVersions.remote}",
+    jackson: "com.fasterxml.jackson.core:jackson-databind:2.2.2",
+    slf4j: "org.slf4j:slf4j-api:${commonVersions.slf4j}"
+  ]
+}

@@ -52,8 +52,6 @@ artifactoryPublish {
   skip true
 }
 
-apply from: "gradle/dependencies.gradle"
-
 allprojects {
   group = "io.ratpack"
   version = rootProject.file("shared-resources/ratpack/ratpack-version.txt").text.trim()
@@ -91,6 +89,8 @@ ext {
 
   apiModules = publishedModules.findAll { !(it.name in ["ratpack-manual", "ratpack-gradle"]) }
 }
+
+apply from: "gradle/dependencies.gradle"
 
 subprojects {
   tasks.withType(Upload).matching { it.name != "install" }.all {
