@@ -52,19 +52,6 @@ artifactoryPublish {
   skip true
 }
 
-ext {
-  groovyVersion = "2.2.1"
-  isSnapshot = version.endsWith("SNAPSHOT")
-
-  publishedModules = [
-    "ratpack-core", "ratpack-groovy", "ratpack-guice", "ratpack-session", "ratpack-test", "ratpack-groovy-test",
-    "ratpack-manual", "ratpack-gradle", "ratpack-handlebars", "ratpack-remote", "ratpack-remote-test", "ratpack-jackson",
-    "ratpack-codahale", "ratpack-h2", "ratpack-thymeleaf"
-  ].collect { project(it) }
-
-  apiModules = publishedModules.findAll { !(it.name in ["ratpack-manual", "ratpack-gradle"]) }
-}
-
 apply from: "gradle/dependencies.gradle"
 
 allprojects {
@@ -92,8 +79,18 @@ allprojects {
 
 apply from: "gradle/idea/idea.gradle"
 
+ext {
+  groovyVersion = "2.2.1"
+  isSnapshot = version.endsWith("SNAPSHOT")
 
+  publishedModules = [
+    "ratpack-core", "ratpack-groovy", "ratpack-guice", "ratpack-session", "ratpack-test", "ratpack-groovy-test",
+    "ratpack-manual", "ratpack-gradle", "ratpack-handlebars", "ratpack-remote", "ratpack-remote-test", "ratpack-jackson",
+    "ratpack-codahale", "ratpack-h2", "ratpack-thymeleaf"
+  ].collect { project(it) }
 
+  apiModules = publishedModules.findAll { !(it.name in ["ratpack-manual", "ratpack-gradle"]) }
+}
 
 subprojects {
   tasks.withType(Upload).matching { it.name != "install" }.all {
