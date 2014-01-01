@@ -73,17 +73,14 @@ class FileHandlingSpec extends RatpackGroovyDslSpec {
   }
 
   void "unresolved files result in statusCode 404"() {
-    given:
+    when:
     handlers {
       get {
         render file("../../etc/passwd")
       }
     }
 
-    when:
-    getText()
-
     then:
-    response.statusCode == 404
+    get().statusCode == 404
   }
 }
