@@ -140,7 +140,7 @@ task tokeniseManual(type: Sync) {
       "ratpack-version": project.version,
       "ratpack-group": project.group,
       "groovy-version": groovyVersion,
-      "manual-url": "http://oss.jfrog.org/artifactory/repo/org/ratpack-framework/ratpack-manual/$version/ratpack-manual-${version}.zip".toString(),
+      "manual-url": "http://oss.jfrog.org/artifactory/repo/io/ratpack/ratpack-manual/$version/ratpack-manual-${version}.zip".toString(),
       head: """
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
