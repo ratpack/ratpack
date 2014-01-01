@@ -18,6 +18,7 @@ package ratpack.groovy.launch;
 
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
+import ratpack.api.Nullable;
 import ratpack.util.ExceptionUtils;
 
 import java.io.IOException;
@@ -30,9 +31,13 @@ public class GroovyVersionChecker {
   private GroovyVersionChecker() {
   }
 
-  public static void ensureRequiredVersionUsed(String version) {
+  public static void ensureRequiredVersionUsed(String version) throws RuntimeException {
     try {
       String minimumVersion = retrieveMinimumGroovyVersion();
+      if (minimumVersion == null) {
+        // Couldn't find the minimum version, we are in a strange classloader situation, continue
+        return;
+      }
 
       Pattern versionPattern = Pattern.compile("(\\d+)\\.(\\d+)\\.(\\d+).*");
       Matcher minimumVersionMatcher = versionPattern.matcher(minimumVersion);
@@ -55,7 +60,7 @@ public class GroovyVersionChecker {
 
       throw new RuntimeException("Ratpack requires Groovy " + minimumVersion + "+ to run but the version used is " + version);
     } catch (IOException e) {
-      ExceptionUtils.uncheck(e);
+      throw ExceptionUtils.uncheck(e);
     }
   }
 
@@ -63,8 +68,10 @@ public class GroovyVersionChecker {
     return Integer.parseInt(matcher.group(group));
   }
 
+  @Nullable
   private static String retrieveMinimumGroovyVersion() throws IOException {
     URL resource = GroovyVersionChecker.class.getClassLoader().getResource("ratpack/minimum-groovy-version.txt");
-    return Resources.toString(resource, Charsets.UTF_8);
+    return resource == null ? null : Resources.toString(resource, Charsets.UTF_8);
   }
+
 }
