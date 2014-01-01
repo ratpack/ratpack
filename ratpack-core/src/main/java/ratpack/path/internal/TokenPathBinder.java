@@ -40,8 +40,11 @@ public class TokenPathBinder implements PathBinder {
     Pattern placeholderPattern = Pattern.compile("((?:^|/):(\\w+)\\??)");
     Matcher matchResult = placeholderPattern.matcher(path);
 
+    String replacementStart = "\\\\E(?:(?:^|/)([^/?&#]+))";
+    StringBuilder replacementBuilder = new StringBuilder(replacementStart);
+
     boolean hasOptional = false;
-    StringBuilder replacementBuilder = new StringBuilder("\\\\E");
+
     while (matchResult.find()) {
       String part = matchResult.group(1);
       String name = matchResult.group(2);
@@ -52,18 +55,19 @@ public class TokenPathBinder implements PathBinder {
         throw new IllegalArgumentException(String.format("path %s should not define mandatory parameters after an optional parameter", path));
       }
 
-      replacementBuilder.append("(?:(?:^|/)([^/?&#]+))");
       if (optional) {
         replacementBuilder.append("?");
       }
       replacementBuilder.append("\\\\Q");
       pattern = pattern.replaceFirst(Pattern.quote(part), replacementBuilder.toString());
       namesBuilder.add(name);
-      replacementBuilder.delete(3, replacementBuilder.length());
+      replacementBuilder.delete(replacementStart.length(), replacementBuilder.length());
     }
 
     StringBuilder patternBuilder = new StringBuilder("(").append(pattern).append(")");
-    if (!exact) {
+    if (exact) {
+      patternBuilder.append("(?:/|$)");
+    } else {
       patternBuilder.append("(?:/.*)?");
     }
 
