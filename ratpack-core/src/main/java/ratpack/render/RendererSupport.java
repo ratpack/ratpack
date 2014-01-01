@@ -24,6 +24,9 @@ import ratpack.util.internal.Types;
  * <p>
  * Implementations need only to declare the type they render as the value for type variable {@code T} and implement {@link #render(ratpack.handling.Context, Object)}.
  * <pre class="tested">
+ * import ratpack.handling.Context;
+ * import ratpack.render.RendererSupport;
+ *
  * // A type of thing to be rendered
  * public class Thing {
  *   private final String name;
@@ -38,7 +41,7 @@ import ratpack.util.internal.Types;
  * }
  *
  * // Renderer implementation
- * public class ThingRenderer extends RendererSupport&lt;Thing$gt; {
+ * public class ThingRenderer extends RendererSupport&lt;Thing&gt; {
  *   public void render(Context context, Thing thing) {
  *     context.render("Thing: " + thing.getName());
  *   }
