@@ -17,6 +17,7 @@
 package ratpack.test.internal
 
 import ratpack.test.embed.BaseDirBuilder
+import ratpack.test.embed.JarFileBaseDirBuilder
 import ratpack.test.embed.PathBaseDirBuilder
 import spock.lang.AutoCleanup
 
@@ -43,6 +44,10 @@ abstract class EmbeddedBaseDirRatpackSpec extends EmbeddedRatpackSpec {
         getBaseDir().build()
       }
     }
+  }
+
+  void useJarBaseDir() {
+    baseDir = new JarFileBaseDirBuilder(new File(temporaryFolder.newFolder("jar"), "the.jar"))
   }
 
 }

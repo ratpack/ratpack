@@ -24,9 +24,11 @@ import ratpack.handling.Context;
  * A renderer is responsible for rendering an object to the response.
  * <p>
  * Renderers are typically not used directly.
- * Instead, handlers simply call the {@link Context#render(Object)} method which is responsible for
- * finding a suitable renderer for the object.
+ * Instead, they are used via by {@link Context#render(Object)} method.
+ * <p>
+ * See {@link ratpack.render.RendererSupport} for support base class for implementations.
  *
+ * @see ratpack.render.RendererSupport
  * @param <T> The type of object that this renderer knows how to render.
  */
 public interface Renderer<T> {

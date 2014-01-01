@@ -23,12 +23,19 @@ import java.nio.file.Path;
 public class DefaultFileSystemBinding implements FileSystemBinding {
 
   private final Path binding;
+  private final Path dummyNonRootBinding;
 
   public DefaultFileSystemBinding(Path binding) {
     if (!binding.isAbsolute()) {
-      throw new IllegalArgumentException("Filesystem binding must be absolute.");
+      throw new IllegalArgumentException("Filesystem binding must be absolute");
     }
     this.binding = binding;
+
+    if (binding.toString().equals("/")) {
+      dummyNonRootBinding = binding.resolve("dummy");
+    } else {
+      dummyNonRootBinding = null;
+    }
   }
 
   public Path getFile() {
@@ -40,21 +47,34 @@ public class DefaultFileSystemBinding implements FileSystemBinding {
       path = path.substring(1);
     }
 
-    Path child = binding.resolve(path).normalize();
-    if (child.startsWith(binding)) {
-      return child;
+    if (dummyNonRootBinding == null) {
+      Path child = binding.resolve(path).normalize();
+      if (child.startsWith(binding)) {
+        return child;
+      } else {
+        return null;
+      }
     } else {
-      return null;
+      Path child = dummyNonRootBinding.resolve(path).normalize();
+      if (child.startsWith(dummyNonRootBinding)) {
+        return binding.resolve(path).normalize();
+      } else {
+        return null;
+      }
     }
   }
 
   public FileSystemBinding binding(String path) {
-    Path binding = file(path);
-    if (binding != null) {
-      return new DefaultFileSystemBinding(binding);
+    Path file = file(path);
+    if (file != null) {
+      return new DefaultFileSystemBinding(file);
     } else {
       return null;
     }
   }
 
+  @Override
+  public String toString() {
+    return "FileSystemBinding[" + binding + ']';
+  }
 }

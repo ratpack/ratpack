@@ -18,10 +18,8 @@ package ratpack.test.embed;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.nio.file.*;
+import java.nio.file.attribute.FileTime;
 
 import static ratpack.util.ExceptionUtils.uncheck;
 
@@ -65,7 +63,9 @@ public class PathBaseDirBuilder implements BaseDirBuilder {
   public Path file(String path, String content) {
     Path file = file(path);
     try {
-      Files.write(file, content.getBytes());
+      Files.write(file, content.getBytes(), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+      // zip file system doesn't update on write over existing file
+      Files.setLastModifiedTime(file, FileTime.fromMillis(System.currentTimeMillis()));
     } catch (IOException e) {
       throw uncheck(e);
     }

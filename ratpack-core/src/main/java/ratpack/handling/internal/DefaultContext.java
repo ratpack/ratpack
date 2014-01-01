@@ -203,6 +203,11 @@ public class DefaultContext implements Context {
   }
 
   public void render(Object object) throws NoSuchRendererException {
+    if (object == null) {
+      clientError(404);
+      return;
+    }
+
     @SuppressWarnings("rawtypes")
     List<Renderer> all = registry.getAll(Renderer.class);
     for (Renderer<?> renderer : all) {

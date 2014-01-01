@@ -16,32 +16,43 @@
 
 package ratpack.handlebars.internal;
 
-import com.github.jknack.handlebars.io.AbstractTemplateLoader;
 import com.github.jknack.handlebars.io.TemplateSource;
-import ratpack.file.FileSystemBinding;
+import io.netty.util.CharsetUtil;
 
 import java.io.IOException;
+import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-public class FileSystemBindingTemplateLoader extends AbstractTemplateLoader {
+public class PathTemplateSource implements TemplateSource {
 
-  private final FileSystemBinding fileSystemBinding;
+  private final Path path;
 
-  public FileSystemBindingTemplateLoader(FileSystemBinding fileSystemBinding, String suffix) {
-    this.fileSystemBinding = fileSystemBinding;
-    setSuffix(suffix);
+  public PathTemplateSource(Path path) {
+    this.path = path;
   }
 
   @Override
-  public TemplateSource sourceAt(String location) throws IOException {
-    String resolved = resolve(location);
-    Path path = fileSystemBinding.file(resolved);
-    if (path == null || !Files.exists(path)) {
-      throw new IOException("No template at " + resolved + " for binding " + fileSystemBinding);
-    } else {
-      return new PathTemplateSource(path);
-    }
+  public String content() throws IOException {
+    return new String(Files.readAllBytes(path), CharsetUtil.UTF_8);
   }
 
+  @Override
+  public Reader reader() throws IOException {
+    return Files.newBufferedReader(path, CharsetUtil.UTF_8);
+  }
+
+  @Override
+  public String filename() {
+    return path.getFileName().toString();
+  }
+
+  @Override
+  public long lastModified() {
+    try {
+      return Files.getLastModifiedTime(path).toMillis();
+    } catch (IOException e) {
+      return -1;
+    }
+  }
 }

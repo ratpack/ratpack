@@ -29,7 +29,10 @@ class CharSequenceRenderingSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    text == "foo"
+    with(get()) {
+      header("content-type") == "text/plain;charset=UTF-8"
+      body.asString() == "foo"
+    }
   }
 
   def "can render gstring"() {
@@ -41,6 +44,26 @@ class CharSequenceRenderingSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    text == "foo"
+    with(get()) {
+      header("content-type") == "text/plain;charset=UTF-8"
+      body.asString() == "foo"
+    }
   }
+
+  def "can override content type"() {
+    when:
+    handlers {
+      get {
+        response.contentType("application/json")
+        render "${"foo"}"
+      }
+    }
+
+    then:
+    with(get()) {
+      header("content-type") == "application/json"
+      body.asString() == "foo"
+    }
+  }
+
 }
