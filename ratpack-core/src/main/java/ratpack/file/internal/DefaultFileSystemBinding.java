@@ -57,4 +57,8 @@ public class DefaultFileSystemBinding implements FileSystemBinding {
     }
   }
 
+  @Override
+  public String toString() {
+    return "FileSystemBinding[" + binding + ']';
+  }
 }
