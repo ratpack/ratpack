@@ -67,7 +67,7 @@ public abstract class RendererSupport<T> implements Renderer<T> {
    * Constructor.
    * <p>
    * Only necessary for abstract implementations that propagate the generic type {@code T}.
-   * Almost all implementations should use the {@link ratpack.render.RendererSupport() default constructor}.
+   * Almost all implementations should use the {@link #RendererSupport()}  default constructor}.
    *
    * @param type the most specialised parent type of {@code this} that does not have a concrete type for {@code T}
    */

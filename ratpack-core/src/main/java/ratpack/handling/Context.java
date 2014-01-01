@@ -292,7 +292,7 @@ public interface Context extends Registry {
    * Render the given object, using the rendering framework.
    * <p>
    * The first {@link ratpack.render.Renderer}, that is able to render the given object will be delegated to.
-   * If the given argument is {@link null}, this method will have the same effect as {@link #clientError(int) clientError(404)}.
+   * If the given argument is {@code null}, this method will have the same effect as {@link #clientError(int) clientError(404)}.
    * <p>
    * Ratpack has built in support for rendering the following types:
    * <ul>
