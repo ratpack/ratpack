@@ -19,6 +19,7 @@ package ratpack.groovy;
 import com.google.common.collect.ImmutableMap;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
+import groovy.lang.GroovySystem;
 import groovy.xml.MarkupBuilder;
 import ratpack.api.Nullable;
 import ratpack.groovy.guice.GroovyModuleRegistry;
@@ -29,6 +30,7 @@ import ratpack.groovy.handling.internal.DefaultGroovyContext;
 import ratpack.groovy.handling.internal.GroovyDslChainActionTransformer;
 import ratpack.groovy.internal.ClosureInvoker;
 import ratpack.groovy.internal.RatpackScriptBacking;
+import ratpack.groovy.launch.GroovyVersionChecker;
 import ratpack.groovy.markup.Markup;
 import ratpack.groovy.markup.internal.DefaultMarkup;
 import ratpack.groovy.templating.Template;
@@ -87,6 +89,7 @@ public abstract class Groovy {
    * @param closure The definition closure, delegating to {@link ratpack.groovy.Groovy.Ratpack}
    */
   public static void ratpack(@DelegatesTo(value = Ratpack.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) {
+    GroovyVersionChecker.ensureRequiredVersionUsed(GroovySystem.getVersion());
     try {
       RatpackScriptBacking.execute(closure);
     } catch (Exception e) {

@@ -16,6 +16,7 @@
 
 package ratpack.groovy.launch;
 
+import groovy.lang.GroovySystem;
 import ratpack.launch.LaunchConfigFactory;
 import ratpack.launch.RatpackMain;
 
@@ -27,6 +28,7 @@ import java.util.Properties;
 public class GroovyRatpackMain extends RatpackMain {
 
   public static void main(String[] args) throws Exception {
+    GroovyVersionChecker.ensureRequiredVersionUsed(GroovySystem.getVersion());
     new GroovyRatpackMain().start();
   }
 
