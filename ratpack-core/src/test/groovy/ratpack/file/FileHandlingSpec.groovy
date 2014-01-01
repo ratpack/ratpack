@@ -72,8 +72,6 @@ class FileHandlingSpec extends RatpackGroovyDslSpec {
     text == "ok"
   }
 
-  @FailsWith(AssertionError)
-  @Issue("https://github.com/ratpack/ratpack/issues/215")
   void "unresolved files result in statusCode 404"() {
     given:
     handlers {

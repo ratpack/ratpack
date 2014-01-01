@@ -291,13 +291,16 @@ public interface Context extends Registry {
   /**
    * Render the given object, using the rendering framework.
    * <p>
-   * This will retrieve all contextual renderers, and use the first one that can render the object.
+   * The first {@link ratpack.render.Renderer}, that is able to render the given object will be delegated to.
+   * If the given argument is {@link null}, this method will have the same effect as {@link #clientError(int) clientError(404)}.
    * <p>
-   * This will finalize the response, no further processing should be done.
+   * Ratpack has built in support for rendering the following types:
+   * <ul>
+   * <li>{@link java.nio.file.Path} (see {@link ratpack.file.FileRenderer})</li>
+   * <li>{@link java.lang.CharSequence} (see {@link ratpack.render.CharSequenceRenderer})</li>
+   * </ul>
    * <p>
-   * The default configuration of Ratpack always makes a renderer for {@link java.nio.file.Path} objects available.
-   * <p>
-   * See {@link ratpack.render.Renderer} for more on the rendering framework.
+   * See {@link ratpack.render.Renderer} for more on how to contribute to the rendering framework.
    *
    * @param object The object to render
    * @throws NoSuchRendererException If there is no suitable renderer for the object
