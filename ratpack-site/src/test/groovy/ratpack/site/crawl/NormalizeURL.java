@@ -23,7 +23,7 @@ import java.util.*;
 /**
  * - Covert the scheme and host to lowercase (done by java.net.URL)
  * - Normalize the path (done by java.net.URI)
- * - Add the port number.
+ * - Add the port githubNumber.
  * - Remove the fragment (the part after the #).
  * - Remove trailing slash.
  * - Sort the query string params.

@@ -18,19 +18,35 @@ package ratpack.site
 
 import groovy.transform.CompileStatic
 import ratpack.error.ClientErrorHandler
+import ratpack.error.ServerErrorHandler
 import ratpack.handling.Context
 
 import static ratpack.groovy.Groovy.groovyTemplate
 
 @CompileStatic
-class SiteErrorHandler implements ClientErrorHandler {
+class SiteErrorHandler implements ClientErrorHandler, ServerErrorHandler {
 
   @Override
   void error(Context context, int statusCode) {
     context.response.status(statusCode)
-    context.with {
-      def message = statusCode == 404 ? "The page you have requested does not exist." : "The request is invalid (HTTP $statusCode)."
-      render groovyTemplate("error.html", code: statusCode, message: message)
+    message(context, statusCode == 404 ? "The page you have requested does not exist." : "The request is invalid (HTTP $statusCode).")
+    if (statusCode == 404) {
+      new Exception().printStackTrace()
+      println "404 for $context.request.path"
     }
   }
+
+  @Override
+  void error(Context context, Exception exception) throws Exception {
+    context.with {
+      response.status(500)
+      message(context, exception.message ?: "<no message>")
+      background { exception.printStackTrace(System.err) }.then {}
+    }
+  }
+
+  void message(Context context, CharSequence message) {
+    context.render(groovyTemplate("error.html", message: message, statusCode: context.response.status.code))
+  }
+
 }

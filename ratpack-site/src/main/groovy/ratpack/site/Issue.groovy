@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,17 @@
  * limitations under the License.
  */
 
-package ratpack.site.pages
+package ratpack.site
 
-import geb.Page
+class Issue {
+  final int number
+  final String url
+  final String title
 
-class HomePage extends Page {
-
-  static url = "/"
-
-  static at = { title == "Ratpack: A toolkit for JVM web applications" }
-
-  static content = {
-    promoNavLink { text -> $('#promo nav a', text: text) }
-    manualLink(to: ManualToCPage, wait: true) { promoNavLink("Current Manual") }
-    versionsLink(to: VersionsPage, wait: true)  { promoNavLink("All Versions") }
+  Issue(int number, String url, String title) {
+    this.number = number
+    this.url = url
+    this.title = title
   }
+
 }

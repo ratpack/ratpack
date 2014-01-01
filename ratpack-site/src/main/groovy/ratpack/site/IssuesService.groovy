@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,28 @@
  * limitations under the License.
  */
 
-package ratpack.site.pages
+package ratpack.site
 
-import geb.Page
+import javax.inject.Inject
 
-class HomePage extends Page {
+@javax.inject.Singleton
+class IssuesService {
 
-  static url = "/"
+  private final GitHubApi githubApi
 
-  static at = { title == "Ratpack: A toolkit for JVM web applications" }
-
-  static content = {
-    promoNavLink { text -> $('#promo nav a', text: text) }
-    manualLink(to: ManualToCPage, wait: true) { promoNavLink("Current Manual") }
-    versionsLink(to: VersionsPage, wait: true)  { promoNavLink("All Versions") }
+  @Inject
+  IssuesService(GitHubApi githubApi) {
+    this.githubApi = githubApi
   }
+
+  List<Issue> closed(RatpackVersion version) {
+    githubApi.issues(state: "closed", milestone: version.githubNumber.toString(), sort: "number", direction: "asc").collect {
+      new Issue(
+        it.get("number").asInt(),
+        it.get("html_url").asText(),
+        it.get("title").asText()
+      )
+    }
+  }
+
 }

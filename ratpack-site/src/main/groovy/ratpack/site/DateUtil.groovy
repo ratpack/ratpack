@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,16 @@
  * limitations under the License.
  */
 
-package ratpack.site.pages
+package ratpack.site
 
-import geb.Page
+class DateUtil {
 
+  static Date fromGithubDateString(String str) {
+    if (str == null || str.empty) {
+      null
+    } else {
+      Date.parse("yyyy-MM-dd'T'HH:mm:ss'Z'", str)
+    }
+  }
 
-class APIIndexPage extends Page {
-
-  static at = { title.startsWith("Overview (Ratpack API") }
 }

@@ -18,15 +18,8 @@ package ratpack.site.pages
 
 import geb.Page
 
-class HomePage extends Page {
-
-  static url = "/"
-
-  static at = { title == "Ratpack: A toolkit for JVM web applications" }
-
-  static content = {
-    promoNavLink { text -> $('#promo nav a', text: text) }
-    manualLink(to: ManualToCPage, wait: true) { promoNavLink("Current Manual") }
-    versionsLink(to: VersionsPage, wait: true)  { promoNavLink("All Versions") }
+class VersionsPage extends Page {
+  static at = {
+    $("h2")*.text().any { it.equalsIgnoreCase("Released Versions") }
   }
 }

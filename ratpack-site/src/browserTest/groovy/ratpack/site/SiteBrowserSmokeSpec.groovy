@@ -18,12 +18,12 @@ package ratpack.site
 
 import geb.spock.GebReportingSpec
 import ratpack.groovy.test.LocalScriptApplicationUnderTest
-import ratpack.site.pages.APIIndexPage
 import ratpack.site.pages.HomePage
 import ratpack.site.pages.ManualToCPage
+import ratpack.site.pages.VersionsPage
 import ratpack.test.ServerBackedApplicationUnderTest
 
-class SiteManualSpec extends GebReportingSpec {
+class SiteBrowserSmokeSpec extends GebReportingSpec {
 
   private final static ServerBackedApplicationUnderTest applicationUnderTest = new LocalScriptApplicationUnderTest()
 
@@ -47,15 +47,15 @@ class SiteManualSpec extends GebReportingSpec {
     at ManualToCPage
   }
 
-  def "got to current api" () {
+  def "got to versions pages"() {
     given:
     to HomePage
 
     when:
-    apiLink.click()
+    versionsLink.click()
 
     then:
-    at APIIndexPage
+    at VersionsPage
   }
 
 

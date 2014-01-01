@@ -1,0 +1,23 @@
+<% render "head.html" %>
+<% def version = model.get("version") as ratpack.site.RatpackVersion %>
+<section id="main">
+  <article class="content">
+    <h2>Version ${version.version} ${!version.released ? "(unreleased)" : ""}</h2>
+    <p>${version.released ? "Released " : "Due "} on ${version.dueString()}.</p>
+    <% if (version.description) { %>
+      <p>${version.description}</p>
+    <% } %>
+    <h3>Links</h3>
+    <ul>
+      <li><a href="/manual/$version.version/">Manual</a></li>
+      <li><a href="/manual/$version.version/api/">API Reference</a></li>
+    </ul>
+    <h3>Resolved Issues</h3>
+    <ul>
+      <% for (issue in (model.get("issues") as List<ratpack.site.Issue>)) { %>
+        <li>[<a href="$issue.url">${issue.number}</a>] - ${issue.title}</li>
+      <% } %>
+    </ul>
+  </article>
+</section>
+<% render "footer.html" %>

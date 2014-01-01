@@ -1,25 +1,24 @@
 import ratpack.codahale.metrics.CodaHaleMetricsModule
-import ratpack.error.ClientErrorHandler
 import ratpack.groovy.templating.TemplatingModule
-import ratpack.site.RatpackVersions
-import ratpack.site.SiteErrorHandler
-import ratpack.site.VersionsModule
+import ratpack.handling.Handlers
+import ratpack.jackson.JacksonModule
+import ratpack.path.PathBinding
+import ratpack.site.*
 
 import static ratpack.groovy.Groovy.groovyTemplate
 import static ratpack.groovy.Groovy.ratpack
 
 ratpack {
   modules {
-    register new CodaHaleMetricsModule().healthChecks()
-    register new VersionsModule(getClass().classLoader)
-    bind ClientErrorHandler, new SiteErrorHandler()
-
+    register new JacksonModule()
+    register new CodaHaleMetricsModule().metrics()
+    register new SiteModule()
     get(TemplatingModule).staticallyCompile = true
   }
 
-  handlers { RatpackVersions versions ->
+  handlers {
 
-    def cacheFor = 60 // one hour
+    def cacheFor = 60 * 10 // ten mins
 
     handler {
       if (request.headers.get("host").endsWith("ratpack-framework.org")) {
@@ -59,22 +58,78 @@ ratpack {
       render groovyTemplate("index.html")
     }
 
-    prefix("manual") {
-      get {
-        redirect 301, "manual/current/"
-      }
+    post("reset") { GitHubApi gitHubApi ->
+      gitHubApi.invalidateCache()
+      render "ok"
+    }
+
+    prefix("versions") { RatpackVersions versions ->
       handler {
-        response.headers.add("Cache-Control", "max-age=$cacheFor, public")
-        next()
+        if (!request.path.endsWith("/")) {
+          redirect(request.path + "/" + (request.query ? "?$request.query" : ""))
+          return
+        } else {
+          next()
+        }
       }
+
+      get {
+        background {
+          versions.all
+        } then { RatpackVersions.All all ->
+          render groovyTemplate("versions.html", versions: all)
+        }
+      }
+
+      prefix(":version") { IssuesService issuesService ->
+        get {
+          background {
+            versions.all
+          } then { RatpackVersions.All all ->
+            def version = all.find(allPathTokens.version)
+            if (version == null) {
+              clientError(404)
+            } else {
+              background {
+                issuesService.closed(version)
+              } then { List<Issue> issues ->
+                render groovyTemplate("version.html", version: version, issues: issues)
+              }
+            }
+          }
+        }
+      }
+    }
+
+    prefix("manual") { RatpackVersions versions ->
       fileSystem("manual") {
-        prefix("snapshot") {
-          assets versions.snapshot
+        get {
+          redirect 301, "manual/current/"
         }
-        prefix("current") {
-          assets versions.current
+
+        handler {
+          response.headers.add("Cache-Control", "max-age=$cacheFor, public")
+          next()
         }
+
         assets ""
+
+        for (label in ["snapshot", "current"]) {
+          prefix(label) {
+            handler {
+              def snapshot = get(PathBinding).boundTo == "snapshot"
+              println "snapshot: $snapshot"
+              def version = snapshot ? versions.snapshot : versions.current
+              println "version: $version"
+              if (version) {
+                println "responding at $request.path"
+                respond Handlers.assets(version.version, launchConfig.indexFiles)
+              } else {
+                clientError(404)
+              }
+            }
+          }
+        }
       }
     }
 

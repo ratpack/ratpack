@@ -62,6 +62,7 @@ dependencies {
   springloaded "org.springsource.springloaded:springloaded-core:1.1.1"
   compile project(":ratpack-groovy")
   compile project(":ratpack-codahale-metrics")
+  compile project(":ratpack-jackson")
   testCompile project(":ratpack-groovy-test")
   testCompile commonDependencies.spock
   testCompile 'org.jsoup:jsoup:1.7.2'
@@ -77,7 +78,7 @@ dependencies {
 task gatherManuals(type: Sync) {
   inputs.files configurations.latestManual
   into "src/ratpack/manual"
-  into version, {
+  into version - "-SNAPSHOT", {
     from { zipTree(configurations.latestManual.singleFile) }
   }
 }
@@ -90,21 +91,6 @@ idea {
 
 task prepareContent {
   dependsOn gatherManuals
-}
-
-processResources {
-  inputs.property("currentVersion", version)
-  def currentVersionsFile = file("src/main/resources/currentVersion.txt")
-  outputs.file currentVersionsFile
-
-  doFirst {
-    currentVersionsFile.parentFile.mkdirs()
-    currentVersionsFile.text = version
-  }
-}
-
-run {
-  dependsOn configureRun
 }
 
 task downloadChromeDriver {
