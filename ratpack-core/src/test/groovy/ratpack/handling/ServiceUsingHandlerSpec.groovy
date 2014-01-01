@@ -19,7 +19,7 @@ package ratpack.handling
 import ratpack.error.ServerErrorHandler
 import ratpack.error.internal.DefaultServerErrorHandler
 import ratpack.file.FileSystemBinding
-import ratpack.file.internal.DefaultSystemBinding
+import ratpack.file.internal.DefaultFileSystemBinding
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 import static ratpack.handling.Handlers.register
@@ -63,7 +63,7 @@ class ServiceUsingHandlerSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    text == DefaultSystemBinding.class.name
+    text == DefaultFileSystemBinding.class.name
   }
 
   static class Injected2Handler extends ServiceUsingHandler {

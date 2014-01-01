@@ -20,12 +20,12 @@ import ratpack.file.FileSystemBinding;
 
 import java.nio.file.Path;
 
-public class DefaultSystemBinding implements FileSystemBinding {
+public class DefaultFileSystemBinding implements FileSystemBinding {
 
   private final Path binding;
   private final Path dummyNonRootBinding;
 
-  public DefaultSystemBinding(Path binding) {
+  public DefaultFileSystemBinding(Path binding) {
     if (!binding.isAbsolute()) {
       throw new IllegalArgumentException("Filesystem binding must be absolute");
     }
@@ -67,7 +67,7 @@ public class DefaultSystemBinding implements FileSystemBinding {
   public FileSystemBinding binding(String path) {
     Path file = file(path);
     if (file != null) {
-      return new DefaultSystemBinding(file);
+      return new DefaultFileSystemBinding(file);
     } else {
       return null;
     }
