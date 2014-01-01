@@ -62,7 +62,7 @@ allprojects {
   apply from: "$rootDir/gradle/dependencyRules.gradle"
 
   repositories {
-    jcenter()
+    mavenCentral()
   }
 
   def noClover = ["ratpack-site", "ratpack-manual"]
