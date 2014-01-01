@@ -125,7 +125,7 @@ public class ReloadableFileBackedFactory<T> implements Factory<T> {
   }
 
   private boolean refreshNeeded() throws IOException {
-    return (Files.getLastModifiedTime(file) != lastModifiedHolder.get()) || !isBytesAreSame();
+    return (!Files.getLastModifiedTime(file).equals(lastModifiedHolder.get()) || !isBytesAreSame());
   }
 
   private void refresh() throws Exception {
@@ -134,7 +134,7 @@ public class ReloadableFileBackedFactory<T> implements Factory<T> {
       FileTime lastModifiedTime = Files.getLastModifiedTime(file);
       ByteBuf bytes = IoUtils.read(file);
 
-      if (lastModifiedTime == lastModifiedHolder.get() && bytes.equals(contentHolder.get())) {
+      if (lastModifiedTime.equals(lastModifiedHolder.get()) && bytes.equals(contentHolder.get())) {
         return;
       }
 
