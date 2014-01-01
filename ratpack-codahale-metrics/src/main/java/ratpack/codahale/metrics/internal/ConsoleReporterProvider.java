@@ -14,34 +14,28 @@
  * limitations under the License.
  */
 
-package ratpack.codahale.internal;
+package ratpack.codahale.metrics.internal;
 
-import com.codahale.metrics.CsvReporter;
+import com.codahale.metrics.ConsoleReporter;
 import com.codahale.metrics.MetricRegistry;
 import com.google.inject.Provider;
-import com.google.inject.name.Named;
 
 import javax.inject.Inject;
-import java.io.File;
 import java.util.concurrent.TimeUnit;
 
-public class CsvReporterProvider implements Provider<CsvReporter> {
-
-  public static final String CSV_REPORT_DIRECTORY = "ratpack.codahale.internal.CsvReporterProvider.csvReportDirectory";
-
+public class ConsoleReporterProvider implements Provider<ConsoleReporter> {
   private final MetricRegistry metricRegistry;
-  private final File csvReportDirectory;
 
   @Inject
-  public CsvReporterProvider(MetricRegistry metricRegistry, @Named(CsvReporterProvider.CSV_REPORT_DIRECTORY) File csvReportDirectory) {
+  public ConsoleReporterProvider(MetricRegistry metricRegistry) {
     this.metricRegistry = metricRegistry;
-    this.csvReportDirectory = csvReportDirectory;
   }
 
   @Override
-  public CsvReporter get() {
-    CsvReporter reporter = CsvReporter.forRegistry(metricRegistry).build(csvReportDirectory);
+  public ConsoleReporter get() {
+    ConsoleReporter reporter = ConsoleReporter.forRegistry(metricRegistry).build();
     reporter.start(1, TimeUnit.SECONDS);
     return reporter;
   }
 }
+

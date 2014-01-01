@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ratpack.codahale;
+package ratpack.codahale.metrics;
 
 import com.codahale.metrics.ConsoleReporter;
 import com.codahale.metrics.CsvReporter;
@@ -32,13 +32,13 @@ import com.google.inject.Singleton;
 import com.google.inject.TypeLiteral;
 import com.google.inject.matcher.Matchers;
 import com.google.inject.name.Names;
-import ratpack.codahale.internal.ConsoleReporterProvider;
-import ratpack.codahale.internal.CsvReporterProvider;
-import ratpack.codahale.internal.GaugeTypeListener;
-import ratpack.codahale.internal.JmxReporterProvider;
-import ratpack.codahale.internal.MeteredMethodInterceptor;
-import ratpack.codahale.internal.RequestTimingHandler;
-import ratpack.codahale.internal.TimedMethodInterceptor;
+import ratpack.codahale.metrics.internal.ConsoleReporterProvider;
+import ratpack.codahale.metrics.internal.CsvReporterProvider;
+import ratpack.codahale.metrics.internal.GaugeTypeListener;
+import ratpack.codahale.metrics.internal.JmxReporterProvider;
+import ratpack.codahale.metrics.internal.MeteredMethodInterceptor;
+import ratpack.codahale.metrics.internal.RequestTimingHandler;
+import ratpack.codahale.metrics.internal.TimedMethodInterceptor;
 import ratpack.guice.HandlerDecoratingModule;
 import ratpack.guice.internal.GuiceUtil;
 import ratpack.handling.Handler;
@@ -46,7 +46,7 @@ import ratpack.util.Action;
 
 import java.io.File;
 
-public class CodaHaleModule extends AbstractModule implements HandlerDecoratingModule {
+public class CodaHaleMetricsModule extends AbstractModule implements HandlerDecoratingModule {
 
   private boolean reportMetricsToJmx;
   private boolean reportMetricsToConsole;
@@ -95,52 +95,52 @@ public class CodaHaleModule extends AbstractModule implements HandlerDecoratingM
     }
   }
 
-  public CodaHaleModule metrics() {
+  public CodaHaleMetricsModule metrics() {
     return metrics(true);
   }
 
-  public CodaHaleModule metrics(boolean enabled) {
+  public CodaHaleMetricsModule metrics(boolean enabled) {
     this.metricsEnabled = enabled;
     return this;
   }
 
-  public CodaHaleModule healthChecks() {
+  public CodaHaleMetricsModule healthChecks() {
     return healthChecks(true);
   }
 
-  public CodaHaleModule healthChecks(boolean enabled) {
+  public CodaHaleMetricsModule healthChecks(boolean enabled) {
     this.healthChecksEnabled = enabled;
     return this;
   }
 
-  public CodaHaleModule jvmMetrics() {
+  public CodaHaleMetricsModule jvmMetrics() {
     return jvmMetrics(true);
   }
 
-  public CodaHaleModule jvmMetrics(boolean enabled) {
+  public CodaHaleMetricsModule jvmMetrics(boolean enabled) {
     this.jvmMetricsEnabled = enabled;
     return this;
   }
 
-  public CodaHaleModule jmx() {
+  public CodaHaleMetricsModule jmx() {
     return jmx(true);
   }
 
-  public CodaHaleModule jmx(boolean enabled) {
+  public CodaHaleMetricsModule jmx(boolean enabled) {
     this.reportMetricsToJmx = enabled;
     return this;
   }
 
-  public CodaHaleModule console() {
+  public CodaHaleMetricsModule console() {
     return console(true);
   }
 
-  public CodaHaleModule console(boolean enabled) {
+  public CodaHaleMetricsModule console(boolean enabled) {
     this.reportMetricsToConsole = enabled;
     return this;
   }
 
-  public CodaHaleModule csv(File reportDirectory) {
+  public CodaHaleMetricsModule csv(File reportDirectory) {
     if (reportDirectory == null) {
       throw new IllegalArgumentException("reportDirectory cannot be null");
     }

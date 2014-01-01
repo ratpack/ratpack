@@ -14,12 +14,16 @@
  * limitations under the License.
  */
 
-package ratpack.codahale;
+apply from: "$rootDir/gradle/javaModule.gradle"
 
-import com.codahale.metrics.health.HealthCheck;
+dependencies {
+  compile project(":ratpack-core")
+  compile project(":ratpack-guice")
 
-public abstract class NamedHealthCheck extends HealthCheck {
-
-  abstract String getName();
-
+  def codahaleMetricsVersion = "3.0.1"
+  
+  compile "com.codahale.metrics:metrics-core:$codahaleMetricsVersion"
+  compile "com.codahale.metrics:metrics-healthchecks:$codahaleMetricsVersion"
+  compile "com.codahale.metrics:metrics-jvm:$codahaleMetricsVersion"
+  compile "com.codahale.metrics:metrics-annotation:$codahaleMetricsVersion"
 }

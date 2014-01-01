@@ -1,4 +1,4 @@
-import ratpack.codahale.CodaHaleModule
+import ratpack.codahale.metrics.CodaHaleMetricsModule
 import ratpack.error.ClientErrorHandler
 import ratpack.groovy.templating.TemplatingModule
 import ratpack.site.RatpackVersions
@@ -10,7 +10,7 @@ import static ratpack.groovy.Groovy.ratpack
 
 ratpack {
   modules {
-    register new CodaHaleModule().healthChecks()
+    register new CodaHaleMetricsModule().healthChecks()
     register new VersionsModule(getClass().classLoader)
     bind ClientErrorHandler, new SiteErrorHandler()
 

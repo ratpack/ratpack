@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ratpack.codahale
+package ratpack.codahale.metrics
 
 import com.codahale.metrics.MetricRegistry
 import com.codahale.metrics.MetricRegistryListener
@@ -37,7 +37,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
   def "can register metrics module"() {
     when:
     modules {
-      register new CodaHaleModule().metrics()
+      register new CodaHaleMetricsModule().metrics()
     }
     handlers { MetricRegistry metrics ->
       handler {
@@ -58,7 +58,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     System.out = new PrintStream(output, true)
 
     modules {
-      register new CodaHaleModule().jmx().csv(reportDirectory.root).console()
+      register new CodaHaleMetricsModule().jmx().csv(reportDirectory.root).console()
     }
     handlers { MetricRegistry metrics ->
       handler {
@@ -90,7 +90,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
 
     given:
     modules {
-      register new CodaHaleModule().metrics()
+      register new CodaHaleMetricsModule().metrics()
     }
 
     handlers { MetricRegistry metrics ->
@@ -154,7 +154,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
 
     given:
     modules {
-      register new CodaHaleModule().metrics()
+      register new CodaHaleMetricsModule().metrics()
       bind AnnotatedMetricService
     }
 
@@ -180,11 +180,11 @@ class MetricsSpec extends RatpackGroovyDslSpec {
       absoluteNamedMeter = arguments[1]
     }
 
-    1 * reporter.onMeterAdded('ratpack.codahale.MetricsSpec$AnnotatedMetricService.triggerMeter3', !null) >> { arguments ->
+    1 * reporter.onMeterAdded('ratpack.codahale.metrics.MetricsSpec$AnnotatedMetricService.triggerMeter3', !null) >> { arguments ->
       namedMeter = arguments[1]
     }
 
-    1 * reporter.onMeterAdded('ratpack.codahale.MetricsSpec$AnnotatedMetricService.foo meter', !null) >> { arguments ->
+    1 * reporter.onMeterAdded('ratpack.codahale.metrics.MetricsSpec$AnnotatedMetricService.foo meter', !null) >> { arguments ->
       unNamedMeter = arguments[1]
     }
 
@@ -201,7 +201,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
 
     given:
     modules {
-      register new CodaHaleModule().metrics()
+      register new CodaHaleMetricsModule().metrics()
       bind AnnotatedMetricService
     }
 
@@ -227,11 +227,11 @@ class MetricsSpec extends RatpackGroovyDslSpec {
       absoluteNamedTimer = arguments[1]
     }
 
-    1 * reporter.onTimerAdded('ratpack.codahale.MetricsSpec$AnnotatedMetricService.triggerTimer3', !null) >> { arguments ->
+    1 * reporter.onTimerAdded('ratpack.codahale.metrics.MetricsSpec$AnnotatedMetricService.triggerTimer3', !null) >> { arguments ->
       namedTimer = arguments[1]
     }
 
-    1 * reporter.onTimerAdded('ratpack.codahale.MetricsSpec$AnnotatedMetricService.foo timer', !null) >> { arguments ->
+    1 * reporter.onTimerAdded('ratpack.codahale.metrics.MetricsSpec$AnnotatedMetricService.foo timer', !null) >> { arguments ->
       unNamedTimer = arguments[1]
     }
 
@@ -245,7 +245,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
 
     given:
     modules {
-      register new CodaHaleModule().metrics()
+      register new CodaHaleMetricsModule().metrics()
       bind AnnotatedMetricService
     }
 
@@ -261,8 +261,8 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     get("gauge")
 
     then:
-    "gauge2" == registry.gauges.get('ratpack.codahale.MetricsSpec$AnnotatedMetricService.foo gauge').value
-    "gauge3" == registry.gauges.get('ratpack.codahale.MetricsSpec$AnnotatedMetricService.triggerGauge3').value
+    "gauge2" == registry.gauges.get('ratpack.codahale.metrics.MetricsSpec$AnnotatedMetricService.foo gauge').value
+    "gauge3" == registry.gauges.get('ratpack.codahale.metrics.MetricsSpec$AnnotatedMetricService.triggerGauge3').value
     "gauge1" == registry.gauges.get('foo gauge').value
   }
 
@@ -271,7 +271,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
 
     given:
     modules {
-      register new CodaHaleModule().jmx()
+      register new CodaHaleMetricsModule().jmx()
     }
 
     handlers { MetricRegistry metrics ->
@@ -307,7 +307,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
 
     given:
     modules {
-      register new CodaHaleModule().jvmMetrics()
+      register new CodaHaleMetricsModule().jvmMetrics()
     }
 
     handlers { MetricRegistry metrics ->

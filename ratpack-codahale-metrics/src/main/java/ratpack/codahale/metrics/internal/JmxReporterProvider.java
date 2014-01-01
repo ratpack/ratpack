@@ -14,16 +14,26 @@
  * limitations under the License.
  */
 
-apply from: "$rootDir/gradle/javaModule.gradle"
+package ratpack.codahale.metrics.internal;
 
-dependencies {
-  compile project(":ratpack-core")
-  compile project(":ratpack-guice")
+import com.codahale.metrics.JmxReporter;
+import com.codahale.metrics.MetricRegistry;
+import com.google.inject.Provider;
 
-  def codahaleVersion = "3.0.1"
-  
-  compile "com.codahale.metrics:metrics-core:$codahaleVersion"
-  compile "com.codahale.metrics:metrics-healthchecks:$codahaleVersion"
-  compile "com.codahale.metrics:metrics-jvm:$codahaleVersion"
-  compile "com.codahale.metrics:metrics-annotation:$codahaleVersion"
+import javax.inject.Inject;
+
+public class JmxReporterProvider implements Provider<JmxReporter> {
+  private final MetricRegistry metricRegistry;
+
+  @Inject
+  public JmxReporterProvider(MetricRegistry metricRegistry) {
+    this.metricRegistry = metricRegistry;
+  }
+
+  @Override
+  public JmxReporter get() {
+    JmxReporter reporter = JmxReporter.forRegistry(metricRegistry).build();
+    reporter.start();
+    return reporter;
+  }
 }

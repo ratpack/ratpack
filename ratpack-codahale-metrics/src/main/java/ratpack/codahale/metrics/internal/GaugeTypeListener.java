@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ratpack.codahale.internal;
+package ratpack.codahale.metrics.internal;
 
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.annotation.Gauge;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ratpack.codahale
+package ratpack.codahale.metrics
 
 import com.codahale.metrics.health.HealthCheck
 import com.codahale.metrics.health.HealthCheckRegistry
@@ -47,7 +47,7 @@ class HealthchecksSpec extends RatpackGroovyDslSpec {
   def "can register healthcheck"() {
     when:
     modules {
-      register new CodaHaleModule()
+      register new CodaHaleMetricsModule()
       bind MyHealthCheck
     }
     handlers { HealthCheckRegistry healthChecks ->
