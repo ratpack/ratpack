@@ -125,7 +125,7 @@ public class ReloadableFileBackedFactory<T> implements Factory<T> {
   }
 
   private boolean refreshNeeded() throws IOException {
-    return (!Files.getLastModifiedTime(file).equals(lastModifiedHolder.get()) || !isBytesAreSame());
+    return !Files.getLastModifiedTime(file).equals(lastModifiedHolder.get()) || !isBytesAreSame();
   }
 
   private void refresh() throws Exception {
