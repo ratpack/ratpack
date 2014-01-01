@@ -28,8 +28,13 @@ import java.util.Properties;
 public class GroovyRatpackMain extends RatpackMain {
 
   public static void main(String[] args) throws Exception {
-    GroovyVersionChecker.ensureRequiredVersionUsed(GroovySystem.getVersion());
     new GroovyRatpackMain().start();
+  }
+
+  @Override
+  public void start() throws Exception {
+    GroovyVersionChecker.ensureRequiredVersionUsed(GroovySystem.getVersion());
+    super.start();
   }
 
   @Override

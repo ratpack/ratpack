@@ -16,23 +16,55 @@
 
 package ratpack.groovy.launch;
 
+import com.google.common.base.Charsets;
+import com.google.common.io.Resources;
+import ratpack.util.ExceptionUtils;
+
+import java.io.IOException;
+import java.net.URL;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class GroovyVersionChecker {
 
+  private GroovyVersionChecker() {
+  }
+
   public static void ensureRequiredVersionUsed(String version) {
-    Pattern pattern = Pattern.compile("(\\d+)\\.(\\d+)\\..*");
-    Matcher matcher = pattern.matcher(version);
+    try {
+      String minimumVersion = retrieveMinimumGroovyVersion();
 
-    while (matcher.find()) {
-      int major = Integer.parseInt(matcher.group(1));
-      int minor = Integer.parseInt(matcher.group(2));
-      if (major > 2 || (major == 2 && minor >= 2)) {
-        return;
+      Pattern versionPattern = Pattern.compile("(\\d+)\\.(\\d+)\\.(\\d+).*");
+      Matcher minimumVersionMatcher = versionPattern.matcher(minimumVersion);
+      minimumVersionMatcher.find();
+      int minimumMajor = groupAsInt(minimumVersionMatcher, 1);
+      int minimumMinor = groupAsInt(minimumVersionMatcher, 2);
+      int minimumPatch = groupAsInt(minimumVersionMatcher, 3);
+
+      Matcher matcher = versionPattern.matcher(version);
+      if (matcher.find()) {
+        int major = groupAsInt(matcher, 1);
+        int minor = groupAsInt(matcher, 2);
+        int patch = groupAsInt(matcher, 3);
+        if (major > minimumMajor
+          || (major == minimumMajor && minor > minimumMinor)
+          || (major == minimumMajor && minor == minimumMinor && patch >= minimumPatch)) {
+          return;
+        }
       }
-    }
 
-    throw new RuntimeException("Ratpack requires Groovy 2.2+ to run but the version used is " + version);
+      throw new RuntimeException("Ratpack requires Groovy " + minimumVersion + "+ to run but the version used is " + version);
+    } catch (IOException e) {
+      ExceptionUtils.uncheck(e);
+    }
+  }
+
+  private static int groupAsInt(Matcher matcher, int group) {
+    return Integer.parseInt(matcher.group(group));
+  }
+
+  private static String retrieveMinimumGroovyVersion() throws IOException {
+    URL resource = GroovyVersionChecker.class.getClassLoader().getResource("ratpack/minimum-groovy-version.txt");
+    return Resources.toString(resource, Charsets.UTF_8);
   }
 }

@@ -30,7 +30,7 @@ class GroovyVersionCheckerSpec extends Specification {
     notThrown(RuntimeException)
 
     where:
-    version << ['2.2.0', '2.3.1', '2.10.0', '3.0.0']
+    version << ['2.2.1', '2.2.2', '2.3.0', '2.10.0', '3.0.0']
   }
 
   void '#version is not a supported groovy runtime version'() {
@@ -39,9 +39,9 @@ class GroovyVersionCheckerSpec extends Specification {
 
     then:
     def e = thrown(RuntimeException)
-    e.message == "Ratpack requires Groovy 2.2+ to run but the version used is $version"
+    e.message == "Ratpack requires Groovy 2.2.1+ to run but the version used is $version"
 
     where:
-    version << ['1.8.9', '2.1.9']
+    version << ['1.8.9', '2.1.9', '2.2.0']
   }
 }

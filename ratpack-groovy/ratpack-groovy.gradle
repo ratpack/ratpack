@@ -24,3 +24,14 @@ dependencies {
   compile project(":ratpack-core")
   compile project(":ratpack-guice")
 }
+
+processResources {
+  inputs.property("groovyVersion", groovyVersion)
+  def minimumGroovyVersionFile = file("src/main/resources/ratpack/minimum-groovy-version.txt")
+  outputs.file minimumGroovyVersionFile
+
+  doFirst {
+    minimumGroovyVersionFile.parentFile.mkdirs()
+    minimumGroovyVersionFile.text = groovyVersion
+  }
+}
