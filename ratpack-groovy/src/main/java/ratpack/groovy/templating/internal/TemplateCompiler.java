@@ -50,6 +50,7 @@ public class TemplateCompiler {
     parser.parse(templateSource, scriptSource);
 
     String scriptSourceString = scriptSource.toString(CharsetUtil.UTF_8);
+    scriptSource.release();
 
     if (verbose && logger.isLoggable(Level.INFO)) {
       logger.info("\n-- script source --\n" + scriptSourceString + "\n-- script end --\n");
