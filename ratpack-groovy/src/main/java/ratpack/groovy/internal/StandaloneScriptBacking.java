@@ -18,7 +18,7 @@ package ratpack.groovy.internal;
 
 import groovy.lang.Closure;
 import ratpack.api.Nullable;
-import ratpack.file.internal.DefaultFileSystemBinding;
+import ratpack.file.internal.DefaultSystemBinding;
 import ratpack.groovy.launch.GroovyClosureHandlerFactory;
 import ratpack.groovy.launch.GroovyScriptFileHandlerFactory;
 import ratpack.launch.HandlerFactory;
@@ -64,7 +64,7 @@ public class StandaloneScriptBacking implements Action<Closure<?>> {
 
     Properties properties = createProperties(scriptFile);
 
-    Path configFile = new DefaultFileSystemBinding(baseDir).file(LaunchConfigFactory.CONFIG_RESOURCE_DEFAULT);
+    Path configFile = new DefaultSystemBinding(baseDir).file(LaunchConfigFactory.CONFIG_RESOURCE_DEFAULT);
     LaunchConfig launchConfig = LaunchConfigFactory.createFromFile(closure.getClass().getClassLoader(), baseDir, configFile, properties, defaultProperties);
 
     if (scriptFile == null) {

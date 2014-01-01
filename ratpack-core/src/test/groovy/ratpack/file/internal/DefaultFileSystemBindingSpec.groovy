@@ -30,7 +30,7 @@ class DefaultFileSystemBindingSpec extends Specification {
   FileSystemBinding binding
 
   def setup() {
-    binding = new DefaultFileSystemBinding(temporaryFolder.root.toPath())
+    binding = new DefaultSystemBinding(temporaryFolder.root.toPath())
   }
 
   def "absolute paths are resolved relative"() {
@@ -45,7 +45,7 @@ class DefaultFileSystemBindingSpec extends Specification {
 
   def "non-absolute binding throws exception"() {
     when:
-    new DefaultFileSystemBinding(Paths.get("somewhere"))
+    new DefaultSystemBinding(Paths.get("somewhere"))
 
     then:
     thrown(IllegalArgumentException)

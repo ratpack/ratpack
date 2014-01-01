@@ -19,7 +19,7 @@ package ratpack.groovy.handling
 import ratpack.error.ServerErrorHandler
 import ratpack.error.internal.DefaultServerErrorHandler
 import ratpack.file.FileSystemBinding
-import ratpack.file.internal.DefaultFileSystemBinding
+import ratpack.file.internal.DefaultSystemBinding
 import ratpack.test.internal.RatpackGroovyDslSpec
 import static ratpack.groovy.internal.ClosureUtil.with
 
@@ -123,7 +123,7 @@ class BasicGroovyDslSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    getText("p1") == DefaultFileSystemBinding.class.name
+    getText("p1") == DefaultSystemBinding.class.name
     getText("p2") == DefaultServerErrorHandler.class.name
   }
 }

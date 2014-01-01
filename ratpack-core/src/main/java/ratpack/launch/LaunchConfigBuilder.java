@@ -21,7 +21,7 @@ import com.google.common.collect.ImmutableMap;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.PooledByteBufAllocator;
 import ratpack.file.FileSystemBinding;
-import ratpack.file.internal.DefaultFileSystemBinding;
+import ratpack.file.internal.DefaultSystemBinding;
 import ratpack.launch.internal.DefaultLaunchConfig;
 import ratpack.ssl.SSLContexts;
 
@@ -81,7 +81,7 @@ public class LaunchConfigBuilder {
   private int maxContentLength = LaunchConfig.DEFAULT_MAX_CONTENT_LENGTH;
 
   private LaunchConfigBuilder(Path baseDir) {
-    this.baseDir = new DefaultFileSystemBinding(baseDir);
+    this.baseDir = new DefaultSystemBinding(baseDir);
   }
 
   /**

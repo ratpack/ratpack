@@ -20,6 +20,8 @@ import ratpack.test.internal.RatpackGroovyDslSpec
 import spock.lang.FailsWith
 import spock.lang.Issue
 
+import java.nio.file.FileSystems
+
 class FileHandlingSpec extends RatpackGroovyDslSpec {
 
   void "context resolves files relative to application root"() {
@@ -45,7 +47,7 @@ class FileHandlingSpec extends RatpackGroovyDslSpec {
 
   void "context returns null value for files that cannot be found in the application root"() {
     given:
-    def path = "../some-file.txt" // outside the base dir
+    def path = "../../some-file.txt" // outside the base dir
 
     file path, "foo"
 
@@ -53,7 +55,9 @@ class FileHandlingSpec extends RatpackGroovyDslSpec {
     handlers {
       get { FileSystemBinding fsBinding ->
 
-        assert new File(fsBinding.file.toFile(), path).exists()
+        if (fsBinding.file.fileSystem == FileSystems.default) {
+          assert new File(fsBinding.file.toFile(), path).exists()
+        }
 
         assert fsBinding.binding(path) == null
         assert fsBinding.file(path) == null
