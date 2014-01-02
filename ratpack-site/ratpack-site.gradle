@@ -62,6 +62,7 @@ dependencies {
   compile project(":ratpack-groovy")
   compile project(":ratpack-codahale-metrics")
   compile project(":ratpack-jackson")
+  compile 'org.pegdown:pegdown:1.4.1'
   testCompile project(":ratpack-groovy-test")
   testCompile commonDependencies.spock
   testCompile 'org.jsoup:jsoup:1.7.2'

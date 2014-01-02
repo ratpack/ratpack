@@ -18,6 +18,7 @@ package ratpack.site
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.google.common.collect.ImmutableList
+import org.pegdown.PegDownProcessor
 
 class RatpackVersion {
 
@@ -66,5 +67,9 @@ class RatpackVersion {
   String getManualDownloadUrl() {
     def label = released ? version : "$version-SNAPSHOT"
     "http://oss.jfrog.org/artifactory/repo/io/ratpack/ratpack-manual/$label/ratpack-manual-${label}.zip"
+  }
+
+  String getDescriptionHtml() {
+    new PegDownProcessor().markdownToHtml(description)
   }
 }

@@ -5,7 +5,7 @@
     <h2>Version ${version.version} ${!version.released ? "(unreleased)" : ""}</h2>
     <p>${version.released ? "Released " : "Due "} on ${version.dueString()}.</p>
     <% if (version.description) { %>
-      <p>${version.description}</p>
+      <p>${version.descriptionHtml}</p>
     <% } %>
     <h3>Links</h3>
     <ul>
