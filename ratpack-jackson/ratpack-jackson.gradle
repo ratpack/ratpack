@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-apply from: "$rootDir/gradle/javaModule.gradle"
+description = "Support for JSON via the Jackson marshalling library - http://jackson.codehaus.org/"
 
+apply from: "$rootDir/gradle/javaModule.gradle"
 
 ext.apiLinks = [
   "http://fasterxml.github.io/jackson-databind/javadoc/2.2.0"

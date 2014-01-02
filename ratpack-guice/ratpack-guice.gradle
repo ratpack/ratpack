@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+description = "Integration with Google Guice for Ratpack applications - https://code.google.com/p/google-guice/"
+
 apply from: "$rootDir/gradle/javaModule.gradle"
 
 ext.apiLinks = [

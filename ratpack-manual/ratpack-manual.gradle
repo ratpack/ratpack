@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+description = "The manual for Ratpack (documentation & API reference)"
+
 apply from: "$rootDir/gradle/javaModule.gradle"
 configurations.runtime.artifacts.clear()
 configurations.archives.artifacts.clear()

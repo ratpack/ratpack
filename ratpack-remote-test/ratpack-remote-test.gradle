@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+description = "Test time integration with the Groovy Remote Control library for Ratpack applications - http://groovy.codehaus.org/modules/remote/"
+
 apply from: "$rootDir/gradle/groovyModule.gradle"
 
 dependencies {

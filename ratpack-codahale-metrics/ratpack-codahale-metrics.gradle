@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+description = "Provides integration with the Coda Hale Metrics library - http://metrics.codahale.com/"
+
 apply from: "$rootDir/gradle/javaModule.gradle"
 
 dependencies {

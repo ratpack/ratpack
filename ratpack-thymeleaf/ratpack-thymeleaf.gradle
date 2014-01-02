@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+description = "Integration with the Thymeleaf server side template rendering library - http://www.thymeleaf.org/"
+
 apply from: "$rootDir/gradle/javaModule.gradle"
 
 dependencies {

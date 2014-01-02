@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+description = "Integration with the Project Reactor library - https://github.com/reactor/reactor"
+
 apply from: "$rootDir/gradle/javaModule.gradle"
 
 repositories {

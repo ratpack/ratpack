@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-
+description = "Integration with the H2 database for Ratpack - http://www.h2database.com/"
 
 apply from: "$rootDir/gradle/javaModule.gradle"
 

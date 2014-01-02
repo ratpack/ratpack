@@ -16,6 +16,8 @@
 
 apply from: "$rootDir/gradle/javaModule.gradle"
 
+description = "Support for Handlebars server side template rendering in Ratpack - https://github.com/jknack/handlebars.java"
+
 dependencies {
   compile project(":ratpack-guice")
   compile ('com.github.jknack:handlebars:1.1.1'){

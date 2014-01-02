@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+description = "Build time Ratpack support with the Gradle build tool - http://gradle.org"
+
 apply plugin: 'groovy'
 
 dependencies {

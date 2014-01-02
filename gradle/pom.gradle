@@ -15,21 +15,17 @@
  */
 
 ext {
-  ext.poms = []
-  afterEvaluate {
-    poms*.whenConfigured { pom ->
-      pomModifications.each {
-        configure(pom, it)
-      }
-    }
-  }
   pomModifications = []
   modifyPom = { pomModifications << it }
 }
 
 tasks.withType(Upload) {
   repositories.withType(org.gradle.api.artifacts.maven.MavenResolver) {
-    poms << it.pom
+    it.pom.whenConfigured { pom ->
+      pomModifications.each {
+        configure(pom, it)
+      }
+    }
   }
 }
 

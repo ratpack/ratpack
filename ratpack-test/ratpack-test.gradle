@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+description = "Test time support for developing Ratpack applications and extensions"
+
 apply from: "$rootDir/gradle/javaModule.gradle"
 
 dependencies {

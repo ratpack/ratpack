@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+description = "Ratpack integration for the Groovy programmming language - http://groovy-lang.org"
+
 apply from: "$rootDir/gradle/groovyModule.gradle"
 
 ext.apiLinks = [
