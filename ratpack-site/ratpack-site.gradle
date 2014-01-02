@@ -43,10 +43,16 @@ repositories {
   maven { url "http://repository-saucelabs.forge.cloudbees.com/release" }
 }
 
+def manualVersions = ["0.9.0"] // TODO - source this from GitHub
+
 configurations {
   latestManual {}
   browserTestCompile.extendsFrom testCompile
   browserTestRuntime.extendsFrom testRuntime
+
+  manualVersions.each {
+    delegate."manual-$it"
+  }
 }
 
 sourceSets {
@@ -73,6 +79,10 @@ dependencies {
     exclude module: 'guava'
   }
   sauceConnect "com.saucelabs:sauce-connect:3.0.28"
+
+  manualVersions.each {
+    delegate."manual-$it" "io.ratpack:ratpack-manual:$it@zip"
+  }
 }
 
 task gatherManuals(type: Sync) {
@@ -81,6 +91,19 @@ task gatherManuals(type: Sync) {
   into version - "-SNAPSHOT", {
     from { zipTree(configurations.latestManual.singleFile) }
   }
+
+  def configureManualExtraction = { configuration, label ->
+    inputs.files configuration
+    into "src/ratpack/manual"
+    into label, {
+      from { zipTree(configuration.singleFile) }
+    }
+  }
+
+  manualVersions.each {
+    configureManualExtraction(configurations["manual-$it"], it)
+  }
+
 }
 
 idea {
