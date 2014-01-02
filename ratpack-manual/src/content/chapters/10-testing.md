@@ -73,7 +73,6 @@ To set the correct base URL we will use the ServerBackedApplicationUnderTest ins
 For shutting down the app we will call stop in the cleanup function.
 
 An example of a Geb based test is available [here](https://github.com/ratpack/ratpack/blob/master/ratpack-site/src/browserTest/groovy/ratpack/site/SiteBrowserSmokeSpec.groovy).
-```
 
 ### Application subsets, modules and extensions
 
