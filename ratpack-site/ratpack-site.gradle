@@ -17,7 +17,7 @@
 buildscript {
   repositories {
     maven { url "http://dl.bintray.com/robfletcher/gradle-plugins" }
-    mavenCentral()
+    jcenter()
   }
   dependencies {
     classpath 'org.gradle.plugins:gradle-compass:1.0.9'

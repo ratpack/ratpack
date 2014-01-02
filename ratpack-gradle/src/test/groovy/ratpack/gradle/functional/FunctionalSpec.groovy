@@ -98,7 +98,7 @@ abstract class FunctionalSpec extends Specification {
       version = "1.0"
       repositories {
         maven { url "${localRepo.toURI()}" }
-        mavenCentral()
+        jcenter()
       }
     """
   }
