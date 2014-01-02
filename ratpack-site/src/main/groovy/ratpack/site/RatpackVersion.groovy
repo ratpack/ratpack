@@ -62,4 +62,9 @@ class RatpackVersion {
   String dueString() {
     due.format("yyyy-MM-dd")
   }
+
+  String getManualDownloadUrl() {
+    def label = released ? version : "$version-SNAPSHOT"
+    "http://oss.jfrog.org/artifactory/repo/io/ratpack/ratpack-manual/$label/ratpack-manual-${label}.zip"
+  }
 }
