@@ -3,7 +3,10 @@ import ratpack.groovy.templating.TemplatingModule
 import ratpack.handling.Handlers
 import ratpack.jackson.JacksonModule
 import ratpack.path.PathBinding
-import ratpack.site.*
+import ratpack.site.GitHubApi
+import ratpack.site.IssuesService
+import ratpack.site.RatpackVersions
+import ratpack.site.SiteModule
 
 import static ratpack.groovy.Groovy.groovyTemplate
 import static ratpack.groovy.Groovy.ratpack
@@ -58,9 +61,19 @@ ratpack {
       render groovyTemplate("index.html")
     }
 
-    post("reset") { GitHubApi gitHubApi ->
-      gitHubApi.invalidateCache()
-      render "ok"
+    handler("reset") { GitHubApi gitHubApi ->
+      byMethod {
+        if (launchConfig.reloadable) {
+          get {
+            gitHubApi.invalidateCache()
+            render "ok"
+          }
+        }
+        post {
+          gitHubApi.invalidateCache()
+          render "ok"
+        }
+      }
     }
 
     prefix("versions") { RatpackVersions versions ->
@@ -92,7 +105,7 @@ ratpack {
             } else {
               background {
                 issuesService.closed(version)
-              } then { List<Issue> issues ->
+              } then { IssuesService.IssueSet issues ->
                 render groovyTemplate("version.html", version: version, issues: issues)
               }
             }

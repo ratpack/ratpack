@@ -16,6 +16,8 @@
 
 package ratpack.site
 
+import com.google.common.collect.ImmutableList
+
 import javax.inject.Inject
 
 @javax.inject.Singleton
@@ -28,13 +30,60 @@ class IssuesService {
     this.githubApi = githubApi
   }
 
-  List<Issue> closed(RatpackVersion version) {
-    githubApi.issues(state: "closed", milestone: version.githubNumber.toString(), sort: "number", direction: "asc").collect {
-      new Issue(
-        it.get("number").asInt(),
-        it.get("html_url").asText(),
-        it.get("title").asText()
-      )
+  IssueSet closed(RatpackVersion version) {
+    def issues = githubApi.issues(state: "closed", milestone: version.githubNumber.toString(), sort: "number", direction: "asc")
+    def issuesBuilder = ImmutableList.builder()
+    def pullRequestsBuilder = ImmutableList.builder()
+
+    issues.each {
+      def number = it.get("number").asInt()
+      def title = it.get("title").asText()
+      def user = it.get("user")
+      def author = user.get("login").asText()
+      def authorUrl = user.get("html_url").asText()
+
+      def prUrl = it.get("pull_request").get("html_url")
+
+      def url
+      def builder
+
+      if (prUrl.isNull()) {
+        url = it.get("html_url").asText()
+        builder = issuesBuilder
+      } else {
+        url = prUrl.asText()
+        builder = pullRequestsBuilder
+      }
+
+      builder.add(new Issue(number, url, title, author, authorUrl))
+    }
+
+    new IssueSet(issuesBuilder.build(), pullRequestsBuilder.build())
+  }
+
+  static class Issue {
+    final int number
+    final String url
+    final String title
+    final String author
+    final String authorUrl
+
+    Issue(int number, String url, String title, String author, String authorUrl) {
+      this.number = number
+      this.url = url
+      this.title = title
+      this.author = author
+      this.authorUrl = authorUrl
+    }
+  }
+
+  static class IssueSet {
+    final List<Issue> issues
+    final List<Issue> pullRequests
+
+    IssueSet(List<Issue> issues, List<Issue> pullRequests) {
+      this.issues = issues
+      this.pullRequests = pullRequests
     }
   }
 
