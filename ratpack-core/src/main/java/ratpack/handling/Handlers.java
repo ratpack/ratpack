@@ -20,6 +20,8 @@ import ratpack.api.Nullable;
 import ratpack.file.internal.AssetHandler;
 import ratpack.file.internal.FileSystemBindingHandler;
 import ratpack.handling.internal.*;
+import ratpack.http.internal.AcceptsHandler;
+import ratpack.http.internal.ContentTypeHandler;
 import ratpack.http.internal.HeaderHandler;
 import ratpack.http.internal.MethodHandler;
 import ratpack.launch.LaunchConfig;
@@ -189,6 +191,24 @@ public abstract class Handlers {
   }
 
   /**
+   * A handler that delegates to the next handler if the content type of the request is one of the given types, otherwise raises a 415 client error.
+   *
+   * @return A handler
+   */
+  public static Handler contentTypes(String... contentTypes) {
+    return new ContentTypeHandler(contentTypes);
+  }
+
+  /**
+   * A handler that delegates to the next handler if the request claims that it can accept one of the given types, otherwise raises a 406 client error.
+   *
+   * @return A handler
+   */
+  public static Handler accepts(String... contentTypes) {
+    return new AcceptsHandler(contentTypes);
+  }
+
+  /**
    * A handler that delegates to the next handler if the request is PUT, otherwise raises a 405 client error.
    *
    * @return A handler
@@ -204,7 +224,7 @@ public abstract class Handlers {
    */
   public static Handler patch() {
     return MethodHandler.PATCH;
-  }  
+  }
 
   /**
    * A handler that delegates to the next handler if the request is DELETE, otherwise raises a 405 client error.
