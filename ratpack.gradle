@@ -31,26 +31,26 @@ if (jvmEncoding != "UTF-8") {
   throw new IllegalStateException("Build environment must be UTF-8 (it is: $jvmEncoding) - add '-Dfile.encoding=UTF-8' to the GRADLE_OPTS environment variable ")
 }
 
-//apply plugin: 'artifactory'
-//
-//artifactory {
-//  contextUrl = 'http://oss.jfrog.org'
-//}
-//gradle.buildFinished {
-//  // Work around https://www.jfrog.com/jira/browse/GAP-145
-//  [
-//    org.jfrog.gradle.plugin.artifactory.dsl.ArtifactoryPluginConvention,
-//    org.jfrog.build.client.ArtifactoryClientConfiguration.BuildInfoHandler,
-//    org.jfrog.build.client.ArtifactoryClientConfiguration.ProxyHandler,
-//    org.jfrog.gradle.plugin.artifactory.dsl.PublisherConfig
-//  ].each {
-//    GroovySystem.metaClassRegistry.removeMetaClass(it)
-//  }
-//}
-//
-//artifactoryPublish {
-//  skip true
-//}
+apply plugin: 'artifactory'
+
+artifactory {
+  contextUrl = 'http://oss.jfrog.org'
+}
+gradle.buildFinished {
+  // Work around https://www.jfrog.com/jira/browse/GAP-145
+  [
+    org.jfrog.gradle.plugin.artifactory.dsl.ArtifactoryPluginConvention,
+    org.jfrog.build.client.ArtifactoryClientConfiguration.BuildInfoHandler,
+    org.jfrog.build.client.ArtifactoryClientConfiguration.ProxyHandler,
+    org.jfrog.gradle.plugin.artifactory.dsl.PublisherConfig
+  ].each {
+    GroovySystem.metaClassRegistry.removeMetaClass(it)
+  }
+}
+
+artifactoryPublish {
+  skip true
+}
 
 allprojects {
   group = "io.ratpack"
@@ -203,22 +203,22 @@ subprojects {
   }
 
   if (project in publishedModules) {
-//    apply plugin: "artifactory"
-//    artifactoryPublish { task ->
-//      rootProject.artifactory {
-//        publish {
-//          repository {
-//            repoKey = isSnapshot ? 'oss-snapshot-local' : 'oss-release-local'
-//            gradle.taskGraph.whenReady { taskGraph ->
-//              if (taskGraph.hasTask(task)) {
-//                username = ratpackBintrayUser
-//                password = ratpackBintrayApiKey
-//              }
-//            }
-//          }
-//        }
-//      }
-//    }
+    apply plugin: "artifactory"
+    artifactoryPublish { task ->
+      rootProject.artifactory {
+        publish {
+          repository {
+            repoKey = isSnapshot ? 'oss-snapshot-local' : 'oss-release-local'
+            gradle.taskGraph.whenReady { taskGraph ->
+              if (taskGraph.hasTask(task)) {
+                username = ratpackBintrayUser
+                password = ratpackBintrayApiKey
+              }
+            }
+          }
+        }
+      }
+    }
 
     assert description: "Project $project.path is published, must have a description"
 
@@ -243,22 +243,6 @@ subprojects {
           developer {
             id "ratpack"
             name "Team Ratpack"
-          }
-        }
-      }
-    }
-
-    uploadArchives { task ->
-      repositories.mavenDeployer {
-        beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
-        gradle.taskGraph.whenReady { taskGraph ->
-          if (taskGraph.hasTask(task)) {
-            repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
-              authentication(userName: sonatypeOssUsername, password: sonatypeOssPassword)
-            }
-            snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots/") {
-              authentication(userName: sonatypeOssUsername, password: sonatypeOssPassword)
-            }
           }
         }
       }
