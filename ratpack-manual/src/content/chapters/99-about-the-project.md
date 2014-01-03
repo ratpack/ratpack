@@ -29,6 +29,7 @@ The following people have provided significant contributions.
 * [Ben Navetta](https://github.com/roguePanda)
 * [Bobby Warner](https://github.com/bobbywarner)
 * [Jim White](https://github.com/jimwhite)
+* [Dimitris Zavaliadis](https://github.com/dimzava)
 
 ### Past project members
 
