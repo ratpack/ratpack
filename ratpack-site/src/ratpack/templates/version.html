@@ -14,13 +14,13 @@
       <li><a href="https://github.com/ratpack/ratpack/tree/${version.released ? "v$version.version" : "master"}">Source Code</a></li>
     </ul>
     <% def issueSet = model.get("issues") as ratpack.site.IssuesService.IssueSet %>
-    <h3 id="pull-requests">Pull Requests</h3>
+    <h3 id="pull-requests">Pull Requests (${issueSet.pullRequests.size()})</h3>
     <ul>
       <% for (issue in issueSet.pullRequests) { %>
       <li>[<a href="$issue.url">${issue.number}</a>] - ${issue.title} (<a href="${issue.authorUrl}">${issue.author}</a>)</li>
       <% } %>
     </ul>
-    <h3 id="issues">Resolved Issues</h3>
+    <h3 id="issues">Resolved Issues (${issueSet.issues.size()})</h3>
     <ul>
       <% for (issue in issueSet.issues) { %>
         <li>[<a href="$issue.url">${issue.number}</a>] - ${issue.title}</li>
