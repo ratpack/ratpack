@@ -65,5 +65,8 @@ public class DefaultRegistry implements Registry {
     return builder.build();
   }
 
-
+  @Override
+  public boolean isEmpty() {
+    return entries.isEmpty();
+  }
 }

@@ -81,4 +81,8 @@ public class CachingRegistry implements Registry {
     }
   }
 
+  @Override
+  public boolean isEmpty() {
+    return delegate.isEmpty();
+  }
 }

@@ -40,7 +40,7 @@ public class JustInTimeInjectorRegistry implements Registry {
   }
 
   @Override
-  public <O extends Object> List<O> getAll(Class<O> type) {
+  public <O> List<O> getAll(Class<O> type) {
     return GuiceUtil.ofType(injector, type);
   }
 
@@ -52,4 +52,10 @@ public class JustInTimeInjectorRegistry implements Registry {
       throw new NotInRegistryException(type);
     }
   }
+
+  @Override
+  public boolean isEmpty() {
+    return false; // there is always at least the injector
+  }
+
 }

@@ -134,4 +134,9 @@ public class DefaultGroovyModuleRegistry implements GroovyModuleRegistry {
   public <O> List<O> getAll(Class<O> type) {
     return moduleRegistry.getAll(type);
   }
+
+  @Override
+  public boolean isEmpty() {
+    return moduleRegistry.isEmpty();
+  }
 }

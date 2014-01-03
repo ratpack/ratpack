@@ -137,6 +137,11 @@ public class DefaultGuiceBackedHandlerFactory implements GuiceBackedHandlerFacto
       return launchConfig;
     }
 
+    @Override
+    public boolean isEmpty() {
+      return false;
+    }
+
     public void bind(final Class<?> type) {
       actions.add(new Action<Binder>() {
         public void execute(Binder binder) {

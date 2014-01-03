@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableList;
 import ratpack.registry.internal.*;
 import ratpack.util.Factory;
 
-public class RegistryBuilder {
+public class RegistryBuilder implements RegistrySpec {
 
   private final ImmutableList.Builder<RegistryEntry<?>> builder = ImmutableList.builder();
 
@@ -31,17 +31,20 @@ public class RegistryBuilder {
     return new RegistryBuilder();
   }
 
+  @Override
   public <O> RegistryBuilder add(Class<O> type, O object) {
     //noinspection unchecked
     builder.add(new DefaultRegistryEntry<>(type, object));
     return this;
   }
 
+  @Override
   public <O> RegistryBuilder add(O object) {
     @SuppressWarnings("unchecked") Class<O> cast = (Class<O>) object.getClass();
     return add(cast, object);
   }
 
+  @Override
   public <O> RegistryBuilder add(Class<O> type, Factory<? extends O> object) {
     //noinspection unchecked
     builder.add(new LazyRegistryEntry<>(type, object));
