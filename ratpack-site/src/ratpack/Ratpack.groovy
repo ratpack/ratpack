@@ -77,15 +77,6 @@ ratpack {
     }
 
     prefix("versions") { RatpackVersions versions ->
-      handler {
-        if (!request.path.endsWith("/")) {
-          redirect(request.path + "/" + (request.query ? "?$request.query" : ""))
-          return
-        } else {
-          next()
-        }
-      }
-
       get {
         background {
           versions.all

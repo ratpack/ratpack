@@ -11,7 +11,7 @@
     <p>The following are the released versions of Ratpack:</p>
     <ul>
       <% for (version in released) { %>
-      <li><a href="${version.version}/">${version.version} (${version.due.format("yyyy-MM-dd")})</a></li>
+      <li><a href="/versions/${version.version}">${version.version} (${version.due.format("yyyy-MM-dd")})</a></li>
       <% } %>
     </ul>
     <% } else { %>
@@ -23,7 +23,7 @@
     <p>The following are the Ratpack versions currently in development:</p>
     <ul>
       <% for (version in unreleased) { %>
-      <li><a href="${version.version}/">${version.version} (${version.due.format("yyyy-MM-dd")})</a></li>
+      <li><a href="/versions/${version.version}">${version.version} (${version.due.format("yyyy-MM-dd")})</a></li>
       <% } %>
     </ul>
     <% } else { %>

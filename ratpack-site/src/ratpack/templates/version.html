@@ -7,20 +7,20 @@
     <% if (version.description) { %>
       <p>${version.descriptionHtml}</p>
     <% } %>
-    <h3>Links</h3>
+    <h3 id="links">Links</h3>
     <ul>
       <li><a href="/manual/$version.version/">Manual</a> (<a href="$version.manualDownloadUrl">zip</a>)</li>
       <li><a href="/manual/$version.version/api/">API Reference</a></li>
       <li><a href="https://github.com/ratpack/ratpack/tree/${version.released ? "v$version.version" : "master"}">Source Code</a></li>
     </ul>
     <% def issueSet = model.get("issues") as ratpack.site.IssuesService.IssueSet %>
-    <h3>Pull Requests</h3>
+    <h3 id="pull-requests">Pull Requests</h3>
     <ul>
       <% for (issue in issueSet.pullRequests) { %>
       <li>[<a href="$issue.url">${issue.number}</a>] - ${issue.title} (<a href="${issue.authorUrl}">${issue.author}</a>)</li>
       <% } %>
     </ul>
-    <h3>Resolved Issues</h3>
+    <h3 id="issues">Resolved Issues</h3>
     <ul>
       <% for (issue in issueSet.issues) { %>
         <li>[<a href="$issue.url">${issue.number}</a>] - ${issue.title}</li>
