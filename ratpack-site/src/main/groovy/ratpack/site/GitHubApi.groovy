@@ -18,6 +18,7 @@ package ratpack.site
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectReader
+import com.fasterxml.jackson.databind.node.ArrayNode
 import com.google.common.cache.CacheBuilder
 import com.google.common.cache.CacheLoader
 import com.google.common.cache.LoadingCache
@@ -40,10 +41,61 @@ class GitHubApi {
     build(new CacheLoader<String, JsonNode>() {
       @Override
       JsonNode load(String key) throws Exception {
-        def body = new URL(key).text
-        objectReader.readTree(body)
+        HttpURLConnection connection = new URL(key).openConnection() as HttpURLConnection
+        def node = objectReader.readTree(connection.inputStream.text)
+
+        if (node instanceof ArrayNode) {
+          def array = (ArrayNode) node
+          def next = getNextUrl(connection)
+          while (next) {
+            connection = new URL(next).openConnection() as HttpURLConnection
+            def nextArray = objectReader.readTree(connection.inputStream.text) as ArrayNode
+            array.addAll(nextArray)
+            next = getNextUrl(connection)
+          }
+          array
+        } else {
+          node
+        }
       }
     })
+
+  private static String getNextUrl(HttpURLConnection connection) {
+    def header = connection.getHeaderField("Link")
+    if (!header) {
+      return null
+    }
+
+    String[] links = header.split(",")
+    for (String link : links) {
+      String[] segments = link.split(";")
+      if (segments.length < 2) {
+        continue
+      }
+
+      String linkPart = segments[0].trim();
+      if (!linkPart.startsWith("<") || !linkPart.endsWith(">")) {
+        continue
+      }
+      linkPart = linkPart.substring(1, linkPart.length() - 1)
+
+      for (int i = 1; i < segments.length; i++) {
+        String[] rel = segments[i].trim().split("=");
+        if (rel.length < 2 || rel[0] != "rel") {
+          continue
+        }
+
+        String relValue = rel[1];
+        if (relValue.startsWith("\"") && relValue.endsWith("\"")) {
+          relValue = relValue.substring(1, relValue.length() - 1)
+        }
+
+        if (relValue == "next") {
+          return linkPart
+        }
+      }
+    }
+  }
 
   GitHubApi(String api, String authToken, int cacheMins, ObjectReader objectReader) {
     this.api = api
