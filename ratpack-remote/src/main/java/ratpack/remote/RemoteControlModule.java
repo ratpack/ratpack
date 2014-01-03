@@ -21,12 +21,8 @@ import com.google.inject.Injector;
 import ratpack.guice.Guice;
 import ratpack.guice.HandlerDecoratingModule;
 import ratpack.handling.Handler;
-import ratpack.handling.Handlers;
 import ratpack.launch.LaunchConfig;
 import ratpack.remote.internal.RemoteControlHandler;
-
-import static ratpack.handling.Handlers.chain;
-import static ratpack.handling.Handlers.post;
 
 /**
  * An extension module that adds a Groovy Remote Control endpoint.
@@ -73,10 +69,7 @@ public class RemoteControlModule extends AbstractModule implements HandlerDecora
     boolean enabled = Boolean.valueOf(launchConfig.getOther("remoteControl.enabled", "false")) || launchConfig.isReloadable();
 
     if (enabled) {
-      return chain(
-        Handlers.path(endpointPath, chain(post(), new RemoteControlHandler(Guice.justInTimeRegistry(injector)))),
-        handler
-      );
+      return new RemoteControlHandler(endpointPath, Guice.justInTimeRegistry(injector), handler);
     } else {
       return handler;
     }

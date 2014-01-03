@@ -16,17 +16,23 @@
 
 package ratpack.test.remote;
 
+import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 import groovy.lang.GroovySystem;
 import groovy.lang.MetaClass;
+import groovyx.remote.Result;
 import groovyx.remote.transport.http.HttpTransport;
+import ratpack.remote.CommandDelegate;
 import ratpack.test.ApplicationUnderTest;
+
+import java.util.Map;
 
 import static ratpack.remote.RemoteControlModule.DEFAULT_REMOTE_CONTROL_PATH;
 
 public class RemoteControl extends groovyx.remote.client.RemoteControl {
 
   public RemoteControl(ApplicationUnderTest application, String path) {
-    super(new HttpTransport(application.getAddress()  + path));
+    super(new HttpTransport(application.getAddress() + path));
   }
 
   public RemoteControl(ApplicationUnderTest application) {
@@ -56,5 +62,32 @@ public class RemoteControl extends groovyx.remote.client.RemoteControl {
   @Override
   public void setMetaClass(MetaClass metaClass) {
     GroovySystem.getMetaClassRegistry().setMetaClass(getClass(), metaClass);
+  }
+
+  @Override
+  public Object exec(@DelegatesTo(value = CommandDelegate.class, strategy = Closure.DELEGATE_FIRST) Closure... commands) {
+    return super.exec(commands);
+  }
+
+  @Override
+  @SuppressWarnings("rawtypes")
+  public Object exec(Map params, @DelegatesTo(value = CommandDelegate.class, strategy = Closure.DELEGATE_FIRST) Closure... commands) {
+    return super.exec(params, commands);
+  }
+
+  @Override
+  @SuppressWarnings("rawtypes")
+  public Object call(Map params, @DelegatesTo(value = CommandDelegate.class, strategy = Closure.DELEGATE_FIRST) Closure... commands) {
+    return super.call(params, commands);
+  }
+
+  @Override
+  public Object call(@DelegatesTo(value = CommandDelegate.class, strategy = Closure.DELEGATE_FIRST) Closure... commands) {
+    return super.call(commands);
+  }
+
+  @Override
+  protected Object processResult(Result result) {
+    return super.processResult(result);
   }
 }

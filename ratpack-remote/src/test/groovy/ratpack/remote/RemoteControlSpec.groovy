@@ -106,11 +106,11 @@ class RemoteControlSpec extends RatpackGroovyDslSpec {
 
     expect:
     //from guice
-    remote.exec { registry.get(LaunchConfig).other.test } == 'it works'
+    remote.exec { get(LaunchConfig).other.test } == 'it works'
     //from root registry
-    remote.exec { registry.get(FileSystemBinding) != null }
+    remote.exec { get(FileSystemBinding) != null }
     //created just in time
-    remote.exec { registry.get(FileRenderer) != null }
+    remote.exec { get(FileRenderer) != null }
   }
 
   void 'endpoint is also enabled if reloading is enabled'() {

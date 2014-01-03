@@ -21,17 +21,10 @@ import ratpack.test.internal.RatpackGroovyDslSpec
 
 class RemoteControlUsageSpec extends RatpackGroovyDslSpec {
 
+  RemoteControl remoteControl
+
   def setup() {
     launchConfig { other("remoteControl.enabled": "true") }
-  }
-
-  @javax.inject.Singleton
-  static class ValueHolder {
-    String value = "initial"
-  }
-
-  def "can access application internals"() {
-    when:
     modules {
       register new RemoteControlModule()
       bind ValueHolder
@@ -41,18 +34,39 @@ class RemoteControlUsageSpec extends RatpackGroovyDslSpec {
         response.send valueHolder.value
       }
     }
+    remoteControl = new RemoteControl(applicationUnderTest)
+  }
 
-    and:
-    def remote = new RemoteControl(applicationUnderTest)
+  @javax.inject.Singleton
+  static class ValueHolder {
+    String value = "initial"
+  }
 
-    then:
+  def "can access application internals"() {
+    expect:
     text == "initial"
 
     when:
-    remote.exec { registry.get(ValueHolder).value = "changed" }
+    remoteControl.exec { get(ValueHolder).value = "changed" }
 
     then:
     text == "changed"
   }
 
+  def "can override registry entries"() {
+    expect:
+    text == "initial"
+
+    when:
+    remoteControl.exec { add(ValueHolder, new ValueHolder(value: "overridden")) }
+
+    then:
+    text == "overridden"
+
+    when:
+    remoteControl.exec { clearRegistry() }
+
+    then:
+    text == "initial"
+  }
 }
