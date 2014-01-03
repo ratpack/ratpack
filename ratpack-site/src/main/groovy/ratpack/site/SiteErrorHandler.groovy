@@ -31,7 +31,6 @@ class SiteErrorHandler implements ClientErrorHandler, ServerErrorHandler {
     context.response.status(statusCode)
     message(context, statusCode == 404 ? "The page you have requested does not exist." : "The request is invalid (HTTP $statusCode).")
     if (statusCode == 404) {
-      new Exception().printStackTrace()
       println "404 for $context.request.path"
     }
   }

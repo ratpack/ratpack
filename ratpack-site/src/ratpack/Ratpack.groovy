@@ -122,11 +122,8 @@ ratpack {
           prefix(label) {
             handler {
               def snapshot = get(PathBinding).boundTo == "snapshot"
-              println "snapshot: $snapshot"
               def version = snapshot ? versions.snapshot : versions.current
-              println "version: $version"
               if (version) {
-                println "responding at $request.path"
                 respond Handlers.assets(version.version, launchConfig.indexFiles)
               } else {
                 clientError(404)
