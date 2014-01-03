@@ -17,10 +17,8 @@
 package ratpack.remote.internal;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.inject.Injector;
 import groovyx.remote.server.Receiver;
 import io.netty.handler.codec.http.HttpHeaders;
-import ratpack.guice.Guice;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.http.Request;
@@ -36,10 +34,10 @@ public class RemoteControlHandler implements Handler {
   public static final String RESPONSE_CONTENT_TYPE = "application/groovy-remote-control-result";
   public static final String REQUEST_CONTENT_TYPE = "application/groovy-remote-control-command";
 
-  private Injector injector;
+  private final Registry registry;
 
-  public RemoteControlHandler(Injector injector) {
-    this.injector = injector;
+  public RemoteControlHandler(Registry registry) {
+    this.registry = registry;
   }
 
   private boolean validContentType(Request request) {
@@ -55,8 +53,8 @@ public class RemoteControlHandler implements Handler {
       context.respond(context.getByContent().type(RESPONSE_CONTENT_TYPE, new Runnable() {
         @Override
         public void run() {
-          Registry registry = RegistryBuilder.join(context, Guice.justInTimeRegistry(injector));
-          Receiver receiver = new Receiver(ImmutableMap.of("registry", registry));
+          Registry commandRegistry = RegistryBuilder.join(context, registry);
+          Receiver receiver = new Receiver(ImmutableMap.of("registry", commandRegistry));
 
           ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
           receiver.execute(context.getRequest().getInputStream(), outputStream);

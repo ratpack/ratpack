@@ -18,6 +18,7 @@ package ratpack.remote;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Injector;
+import ratpack.guice.Guice;
 import ratpack.guice.HandlerDecoratingModule;
 import ratpack.handling.Handler;
 import ratpack.handling.Handlers;
@@ -73,7 +74,7 @@ public class RemoteControlModule extends AbstractModule implements HandlerDecora
 
     if (enabled) {
       return chain(
-        Handlers.path(endpointPath, chain(post(), new RemoteControlHandler(injector))),
+        Handlers.path(endpointPath, chain(post(), new RemoteControlHandler(Guice.justInTimeRegistry(injector)))),
         handler
       );
     } else {
