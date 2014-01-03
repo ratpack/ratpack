@@ -87,7 +87,7 @@ public class JarFileBaseDirBuilder extends PathBaseDirBuilder {
   }
 
   private static Path getJarPath(File jar) {
-    URI uri = URI.create("jar:file:" + jar.getAbsolutePath());
+    URI uri = URI.create("jar:" + jar.toURI().toString());
     Map<String, String> env = new HashMap<>();
     env.put("create", "true");
     FileSystem fileSystem;
