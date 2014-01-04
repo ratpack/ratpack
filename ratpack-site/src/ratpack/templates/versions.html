@@ -3,7 +3,7 @@
   <article class="content">
     <h2>Released Versions</h2>
     <%
-    def versions = model.get("versions") as ratpack.site.RatpackVersions.All
+    def versions = model.get("versions") as ratpack.site.github.RatpackVersions.All
     def released = versions.released
     def unreleased = versions.unreleased
 

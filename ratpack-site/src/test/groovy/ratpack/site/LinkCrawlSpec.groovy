@@ -16,17 +16,17 @@
 
 package ratpack.site
 
-import ratpack.groovy.test.LocalScriptApplicationUnderTest
 import ratpack.site.crawl.Crawler
 import ratpack.site.crawl.PrettyPrintCollection
-import ratpack.test.ApplicationUnderTest
+import ratpack.test.remote.RemoteControl
 import spock.lang.Specification
 
 class LinkCrawlSpec extends Specification {
 
   def "site has no bad links"() {
     given:
-    ApplicationUnderTest aut = new LocalScriptApplicationUnderTest()
+    def aut = new RatpackSiteUnderTest()
+    aut.mockGithubData()
 
     def crawler = new Crawler(aut.address.toString()) {
       boolean shouldUseHeadRequest(Link url) {

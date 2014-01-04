@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ratpack.site
+package ratpack.site.github
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.google.common.collect.ImmutableList
@@ -49,7 +49,7 @@ class RatpackVersion {
           title - TITLE_PREFIX,
           node.get("number").asInt(),
           node.get("description").asText(),
-          DateUtil.fromGithubDateString(node.get("due_on").asText()),
+          fromGithubDateString(node.get("due_on").asText()),
           node.get("state").asText() == "closed"
         )
 
@@ -71,5 +71,13 @@ class RatpackVersion {
 
   String getDescriptionHtml() {
     new PegDownProcessor().markdownToHtml(description)
+  }
+
+  private static Date fromGithubDateString(String str) {
+    if (str == null || str.empty) {
+      null
+    } else {
+      Date.parse("yyyy-MM-dd'T'HH:mm:ss'Z'", str)
+    }
   }
 }

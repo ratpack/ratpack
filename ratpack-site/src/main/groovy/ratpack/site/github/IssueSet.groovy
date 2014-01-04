@@ -14,16 +14,14 @@
  * limitations under the License.
  */
 
-package ratpack.site
+package ratpack.site.github;
 
-class DateUtil {
+class IssueSet {
+    final List<Issue> issues
+    final List<Issue> pullRequests
 
-  static Date fromGithubDateString(String str) {
-    if (str == null || str.empty) {
-      null
-    } else {
-      Date.parse("yyyy-MM-dd'T'HH:mm:ss'Z'", str)
+    IssueSet(List<Issue> issues, List<Issue> pullRequests) {
+      this.issues = issues
+      this.pullRequests = pullRequests
     }
   }
-
-}

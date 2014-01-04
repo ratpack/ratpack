@@ -1,4 +1,4 @@
-package ratpack.site
+package ratpack.site.github
 
 import groovy.transform.CompileStatic
 
@@ -8,23 +8,15 @@ import javax.inject.Inject
 @javax.inject.Singleton
 class RatpackVersions {
 
-  private final GitHubApi githubApi
+  private final GitHubData gitHubData
 
   @Inject
-  RatpackVersions(GitHubApi githubApi) {
-    this.githubApi = githubApi
-  }
-
-  List<RatpackVersion> getReleasedVersions() {
-    RatpackVersion.fromJson(githubApi.milestones(state: "closed", sort: "due_date"))
-  }
-
-  List<RatpackVersion> getUnreleasedVersions() {
-    RatpackVersion.fromJson(githubApi.milestones(state: "open", sort: "due_date", direction: "asc"))
+  RatpackVersions(GitHubData gitHubData) {
+    this.gitHubData = gitHubData
   }
 
   All getAll() {
-    new All(releasedVersions, unreleasedVersions)
+    new All(gitHubData.releasedVersions, gitHubData.unreleasedVersions)
   }
 
   static class All {
@@ -43,10 +35,11 @@ class RatpackVersions {
   }
 
   RatpackVersion getSnapshot() {
-    unreleasedVersions.empty ? null : unreleasedVersions.first()
+    gitHubData.unreleasedVersions.empty ? null : gitHubData.unreleasedVersions.first()
   }
 
   RatpackVersion getCurrent() {
-    releasedVersions.empty ? null : releasedVersions.first()
+    gitHubData.releasedVersions.empty ? null : gitHubData.releasedVersions.first()
   }
+
 }

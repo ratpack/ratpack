@@ -17,25 +17,27 @@
 package ratpack.site
 
 import geb.spock.GebReportingSpec
-import ratpack.groovy.test.LocalScriptApplicationUnderTest
+import org.junit.Ignore
 import ratpack.site.pages.HomePage
 import ratpack.site.pages.ManualToCPage
 import ratpack.site.pages.VersionsPage
-import ratpack.test.ServerBackedApplicationUnderTest
+import spock.lang.Shared
 
 class SiteBrowserSmokeSpec extends GebReportingSpec {
 
-  private final static ServerBackedApplicationUnderTest applicationUnderTest = new LocalScriptApplicationUnderTest()
+  @Shared
+  def aut = new RatpackSiteUnderTest()
 
   def setup() {
-    URI base = applicationUnderTest.address
+    URI base = aut.address
     browser.baseUrl = base.toString()
   }
 
-  def cleanup() {
-    applicationUnderTest.stop()
+  def setupSpec() {
+    aut.mockGithubData()
   }
 
+  @Ignore("Unsure how to mock out manuals on disk at this time")
   def "go to current manual"() {
     given:
     to HomePage
@@ -58,5 +60,8 @@ class SiteBrowserSmokeSpec extends GebReportingSpec {
     at VersionsPage
   }
 
+  def cleanupSpec() {
+    aut.stop()
+  }
 
 }

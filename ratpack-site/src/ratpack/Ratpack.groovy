@@ -3,10 +3,12 @@ import ratpack.groovy.templating.TemplatingModule
 import ratpack.handling.Handlers
 import ratpack.jackson.JacksonModule
 import ratpack.path.PathBinding
-import ratpack.site.GitHubApi
-import ratpack.site.IssuesService
-import ratpack.site.RatpackVersions
+import ratpack.remote.RemoteControlModule
 import ratpack.site.SiteModule
+import ratpack.site.github.GitHubApi
+import ratpack.site.github.GitHubData
+import ratpack.site.github.IssueSet
+import ratpack.site.github.RatpackVersions
 
 import static ratpack.groovy.Groovy.groovyTemplate
 import static ratpack.groovy.Groovy.ratpack
@@ -15,7 +17,8 @@ ratpack {
   modules {
     register new JacksonModule()
     register new CodaHaleMetricsModule().metrics()
-    register new SiteModule()
+    register new SiteModule(launchConfig)
+    register new RemoteControlModule()
     get(TemplatingModule).staticallyCompile = true
   }
 
@@ -76,8 +79,8 @@ ratpack {
       }
     }
 
-    prefix("versions") { RatpackVersions versions ->
-      get {
+    prefix("versions") {
+      get { RatpackVersions versions ->
         background {
           versions.all
         } then { RatpackVersions.All all ->
@@ -85,8 +88,8 @@ ratpack {
         }
       }
 
-      prefix(":version") { IssuesService issuesService ->
-        get {
+      prefix(":version") {
+        get { RatpackVersions versions, GitHubData gitHubData ->
           background {
             versions.all
           } then { RatpackVersions.All all ->
@@ -95,8 +98,8 @@ ratpack {
               clientError(404)
             } else {
               background {
-                issuesService.closed(version)
-              } then { IssuesService.IssueSet issues ->
+                gitHubData.closed(version)
+              } then { IssueSet issues ->
                 render groovyTemplate("version.html", version: version, issues: issues)
               }
             }
@@ -105,7 +108,7 @@ ratpack {
       }
     }
 
-    prefix("manual") { RatpackVersions versions ->
+    prefix("manual") {
       fileSystem("manual") {
         get {
           redirect 301, "manual/current/"
@@ -120,7 +123,7 @@ ratpack {
 
         for (label in ["snapshot", "current"]) {
           prefix(label) {
-            handler {
+            handler { RatpackVersions versions ->
               def snapshot = get(PathBinding).boundTo == "snapshot"
               def version = snapshot ? versions.snapshot : versions.current
               if (version) {

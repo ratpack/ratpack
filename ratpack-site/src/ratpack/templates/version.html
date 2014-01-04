@@ -1,5 +1,5 @@
 <% render "head.html" %>
-<% def version = model.get("version") as ratpack.site.RatpackVersion %>
+<% def version = model.get("version") as ratpack.site.github.RatpackVersion %>
 <section id="main">
   <article class="content">
     <h2>Version ${version.version} ${!version.released ? "(unreleased)" : ""}</h2>
@@ -13,7 +13,7 @@
       <li><a href="/manual/$version.version/api/">API Reference</a></li>
       <li><a href="https://github.com/ratpack/ratpack/tree/${version.released ? "v$version.version" : "master"}">Source Code</a></li>
     </ul>
-    <% def issueSet = model.get("issues") as ratpack.site.IssuesService.IssueSet %>
+    <% def issueSet = model.get("issues") as ratpack.site.github.IssueSet %>
     <h3 id="pull-requests">Pull Requests (${issueSet.pullRequests.size()})</h3>
     <ul>
       <% for (issue in issueSet.pullRequests) { %>

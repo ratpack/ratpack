@@ -14,28 +14,32 @@
  * limitations under the License.
  */
 
-package ratpack.site
+package ratpack.site.github
 
+import com.fasterxml.jackson.databind.JsonNode
 import com.google.common.collect.ImmutableList
+import groovy.transform.CompileStatic
 
 import javax.inject.Inject
 
-@javax.inject.Singleton
-class IssuesService {
+@CompileStatic
+@com.google.inject.Singleton
+class ApiBackedGitHubData implements GitHubData {
 
-  private final GitHubApi githubApi
+  private final GitHubApi gitHubApi
 
   @Inject
-  IssuesService(GitHubApi githubApi) {
-    this.githubApi = githubApi
+  ApiBackedGitHubData(GitHubApi gitHubApi) {
+    this.gitHubApi = gitHubApi
   }
 
+  @Override
   IssueSet closed(RatpackVersion version) {
-    def issues = githubApi.issues(state: "closed", milestone: version.githubNumber.toString(), sort: "number", direction: "asc")
+    def issues = gitHubApi.issues(state: "closed", milestone: version.githubNumber.toString(), sort: "number", direction: "asc")
     def issuesBuilder = ImmutableList.builder()
     def pullRequestsBuilder = ImmutableList.builder()
 
-    issues.each {
+    issues.each { JsonNode it ->
       def number = it.get("number").asInt()
       def title = it.get("title").asText()
       def user = it.get("user")
@@ -61,30 +65,12 @@ class IssuesService {
     new IssueSet(issuesBuilder.build(), pullRequestsBuilder.build())
   }
 
-  static class Issue {
-    final int number
-    final String url
-    final String title
-    final String author
-    final String authorUrl
-
-    Issue(int number, String url, String title, String author, String authorUrl) {
-      this.number = number
-      this.url = url
-      this.title = title
-      this.author = author
-      this.authorUrl = authorUrl
-    }
+  List<RatpackVersion> getReleasedVersions() {
+    RatpackVersion.fromJson(gitHubApi.milestones(state: "closed", sort: "due_date"))
   }
 
-  static class IssueSet {
-    final List<Issue> issues
-    final List<Issue> pullRequests
-
-    IssueSet(List<Issue> issues, List<Issue> pullRequests) {
-      this.issues = issues
-      this.pullRequests = pullRequests
-    }
+  List<RatpackVersion> getUnreleasedVersions() {
+    RatpackVersion.fromJson(gitHubApi.milestones(state: "open", sort: "due_date", direction: "asc"))
   }
 
 }
