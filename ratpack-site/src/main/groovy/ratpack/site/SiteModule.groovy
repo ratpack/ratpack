@@ -15,6 +15,11 @@ import ratpack.site.github.RatpackVersions
 class SiteModule extends AbstractModule {
 
   public static final String GITHUB_ENABLE = "github.enabled"
+  public static final String GITHUB_AUTH = "github.auth"
+  public static final String GITHUB_TTL = "github.ttl"
+  public static final String GITHUB_TTL_DEFAULT = "5"
+  public static final String GITHUB_URL = "github.url"
+  public static final String GITHUB_URL_DEFAULT = "https://api.github.com/"
 
   private final LaunchConfig launchConfig
 
@@ -45,15 +50,17 @@ class SiteModule extends AbstractModule {
     @Provides
     @com.google.inject.Singleton
     GitHubApi gitHubApi(LaunchConfig launchConfig, ObjectReader reader) {
-      String authToken = launchConfig.getOther("github.auth", null)
+      String authToken = launchConfig.getOther(GITHUB_AUTH, null)
       if (authToken == null) {
         System.err.println("Warning: using anonymous requests to GitHub, may be rate limited (set github.auth other property)")
       }
 
-      String ttlMins = launchConfig.getOther("github.ttl", "5")
+      String ttlMins = launchConfig.getOther(GITHUB_TTL, GITHUB_TTL_DEFAULT)
       def ttlMinsInt = Integer.parseInt(ttlMins)
 
-      new GitHubApi("https://api.github.com/", authToken, ttlMinsInt, reader)
+      String url = launchConfig.getOther(GITHUB_URL, GITHUB_URL_DEFAULT)
+
+      new GitHubApi(url, authToken, ttlMinsInt, reader)
     }
   }
 
