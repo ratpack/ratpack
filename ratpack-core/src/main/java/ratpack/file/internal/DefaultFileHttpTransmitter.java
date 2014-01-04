@@ -36,11 +36,11 @@ import static io.netty.handler.codec.http.HttpHeaders.isKeepAlive;
 
 public class DefaultFileHttpTransmitter implements FileHttpTransmitter {
 
-  private final HttpRequest request;
+  private final FullHttpRequest request;
   private final HttpResponse response;
   private final Channel channel;
 
-  public DefaultFileHttpTransmitter(HttpRequest request, HttpResponse response, Channel channel) {
+  public DefaultFileHttpTransmitter(FullHttpRequest request, HttpResponse response, Channel channel) {
     this.request = request;
     this.response = response;
     this.channel = channel;
@@ -79,7 +79,9 @@ public class DefaultFileHttpTransmitter implements FileHttpTransmitter {
       response.headers().set(CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
     }
 
-    HttpResponse minimalResponse = new DefaultHttpResponse(response.getProtocolVersion(), response.getStatus());
+    request.content().release();
+
+      HttpResponse minimalResponse = new DefaultHttpResponse(response.getProtocolVersion(), response.getStatus());
     minimalResponse.headers().set(response.headers());
     ChannelFuture writeFuture = channel.writeAndFlush(minimalResponse);
 
