@@ -81,7 +81,7 @@ public class DefaultFileHttpTransmitter implements FileHttpTransmitter {
 
     request.content().release();
 
-      HttpResponse minimalResponse = new DefaultHttpResponse(response.getProtocolVersion(), response.getStatus());
+    HttpResponse minimalResponse = new DefaultHttpResponse(response.getProtocolVersion(), response.getStatus());
     minimalResponse.headers().set(response.headers());
     ChannelFuture writeFuture = channel.writeAndFlush(minimalResponse);
 
