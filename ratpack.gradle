@@ -65,7 +65,7 @@ allprojects {
     jcenter()
   }
 
-  def noClover = ["ratpack-site", "ratpack-manual"]
+  def noClover = ["ratpack-site", "ratpack-manual", "ratpack-lazybones"]
   if (project.hasProperty("enableClover") && !noClover.contains(project.name)) {
     project.apply from: rootProject.file("gradle/clover.gradle")
   }

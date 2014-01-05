@@ -19,3 +19,4 @@ gradle.properties
 ratpack-groovy/Expression$*.class
 /.java-version
 Expression$*.class
+ratpack-lazybones/templates/**/VERSION
