@@ -18,76 +18,45 @@ package ratpack.test.remote;
 
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
-import groovy.lang.GroovySystem;
-import groovy.lang.MetaClass;
-import groovyx.remote.Result;
+import groovyx.remote.CommandChain;
+import groovyx.remote.client.CommandGenerator;
+import groovyx.remote.client.RemoteControlSupport;
+import groovyx.remote.client.UnserializableResultStrategy;
+import groovyx.remote.groovy.ClosureCommand;
+import groovyx.remote.groovy.client.ClosureCommandGenerator;
+import groovyx.remote.groovy.client.RawClosureCommand;
 import groovyx.remote.transport.http.HttpTransport;
 import ratpack.remote.CommandDelegate;
 import ratpack.test.ApplicationUnderTest;
 
-import java.util.Map;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
 
 import static ratpack.remote.RemoteControlModule.DEFAULT_REMOTE_CONTROL_PATH;
 
-public class RemoteControl extends groovyx.remote.client.RemoteControl {
+public class RemoteControl {
+
+  private final RemoteControlSupport<ClosureCommand> support;
+  private final CommandGenerator<RawClosureCommand, ClosureCommand> generator = new ClosureCommandGenerator();
 
   public RemoteControl(ApplicationUnderTest application, String path) {
-    super(new HttpTransport(application.getAddress() + path));
+    support = new RemoteControlSupport<>(new HttpTransport(application.getAddress() + path), UnserializableResultStrategy.THROW, getClass().getClassLoader());
   }
 
   public RemoteControl(ApplicationUnderTest application) {
     this(application, DEFAULT_REMOTE_CONTROL_PATH);
   }
 
-  @Override
-  public Object invokeMethod(String name, Object args) {
-    return getMetaClass().invokeMethod(this, name, args);
+  public Object exec(@DelegatesTo(value = CommandDelegate.class, strategy = Closure.DELEGATE_FIRST) Closure<?>... commands) throws IOException {
+    List<ClosureCommand> closureCommands = new LinkedList<>();
+    for (Closure<?> command : commands) {
+      ClosureCommand closureCommand = generator.generate(new RawClosureCommand(command, Collections.<Closure<?>>emptyList()));
+      closureCommands.add(closureCommand);
+    }
+
+    return support.send(CommandChain.of(ClosureCommand.class, closureCommands));
   }
 
-  @Override
-  public Object getProperty(String propertyName) {
-    return getMetaClass().getProperty(this, propertyName);
-  }
-
-  @Override
-  public void setProperty(String propertyName, Object newValue) {
-    getMetaClass().setProperty(this, propertyName, newValue);
-  }
-
-  @Override
-  public MetaClass getMetaClass() {
-    return GroovySystem.getMetaClassRegistry().getMetaClass(getClass());
-  }
-
-  @Override
-  public void setMetaClass(MetaClass metaClass) {
-    GroovySystem.getMetaClassRegistry().setMetaClass(getClass(), metaClass);
-  }
-
-  @Override
-  public Object exec(@DelegatesTo(value = CommandDelegate.class, strategy = Closure.DELEGATE_FIRST) Closure... commands) {
-    return super.exec(commands);
-  }
-
-  @Override
-  @SuppressWarnings("rawtypes")
-  public Object exec(Map params, @DelegatesTo(value = CommandDelegate.class, strategy = Closure.DELEGATE_FIRST) Closure... commands) {
-    return super.exec(params, commands);
-  }
-
-  @Override
-  @SuppressWarnings("rawtypes")
-  public Object call(Map params, @DelegatesTo(value = CommandDelegate.class, strategy = Closure.DELEGATE_FIRST) Closure... commands) {
-    return super.call(params, commands);
-  }
-
-  @Override
-  public Object call(@DelegatesTo(value = CommandDelegate.class, strategy = Closure.DELEGATE_FIRST) Closure... commands) {
-    return super.call(commands);
-  }
-
-  @Override
-  protected Object processResult(Result result) {
-    return super.processResult(result);
-  }
 }

@@ -63,6 +63,7 @@ allprojects {
 
   repositories {
     jcenter()
+    maven { url "https://nexus.codehaus.org/content/repositories/snapshots/" }
   }
 
   def noClover = ["ratpack-site", "ratpack-manual", "ratpack-lazybones"]

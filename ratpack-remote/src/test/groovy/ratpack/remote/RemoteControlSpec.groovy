@@ -16,7 +16,7 @@
 
 package ratpack.remote
 
-import groovyx.remote.client.RemoteControl
+import groovyx.remote.groovy.client.RemoteControl
 import groovyx.remote.transport.http.HttpTransport
 import io.netty.handler.codec.http.HttpHeaders
 import ratpack.file.FileRenderer

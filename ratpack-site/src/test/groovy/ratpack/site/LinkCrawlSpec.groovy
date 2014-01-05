@@ -18,7 +18,6 @@ package ratpack.site
 
 import ratpack.site.crawl.Crawler
 import ratpack.site.crawl.PrettyPrintCollection
-import ratpack.test.remote.RemoteControl
 import spock.lang.Specification
 
 class LinkCrawlSpec extends Specification {

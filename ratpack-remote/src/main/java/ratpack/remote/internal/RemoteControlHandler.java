@@ -17,7 +17,7 @@
 package ratpack.remote.internal;
 
 import groovyx.remote.CommandChain;
-import groovyx.remote.server.ContextFactory;
+import groovyx.remote.groovy.server.ContextFactory;
 import groovyx.remote.server.Receiver;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
@@ -75,7 +75,7 @@ public class RemoteControlHandler implements Handler {
       final Registry commandRegistry = RegistryBuilder.join(context, registry);
       final RegistryBuilder registryBuilder = RegistryBuilder.builder();
 
-      Receiver receiver = new CustomReceiver(new ContextFactory() {
+      Receiver receiver = new RatpackReceiver(new ContextFactory() {
         @Override
         public Object getContext(CommandChain chain) {
           return new DelegatingCommandDelegate(registryBuilder, commandRegistry) {

@@ -110,7 +110,7 @@ task gatherManuals(type: Sync) {
 
 idea {
   module {
-    excludeDirs += gatherManuals.destinationDir
+//    excludeDirs += gatherManuals.destinationDir
   }
 }
 
