@@ -41,6 +41,6 @@ lazybones {
   }
 
   repositoryUrl = "https://api.bintray.com/content/ratpack/lazybones"
-  repositoryUsername = hasProperty('ratpackBintrayUser') ? ratpackBintrayUser : ""
-  repositoryApiKey = hasProperty('ratpackBintrayApiKey') ? ratpackBintrayApiKey : ""
+  repositoryUsername = project.hasProperty('ratpackBintrayUser') ? ratpackBintrayUser : ""
+  repositoryApiKey = project.hasProperty('ratpackBintrayApiKey') ? ratpackBintrayApiKey : ""
 }

@@ -6,7 +6,7 @@ buildscript {
 	  	mavenCentral()
 	}
 	dependencies {
-        classpath "io.ratpack:ratpack-gradle:0.9.0-SNAPSHOT"
+        classpath "io.ratpack:ratpack-gradle:0.9.0"
 	}
 }
 
