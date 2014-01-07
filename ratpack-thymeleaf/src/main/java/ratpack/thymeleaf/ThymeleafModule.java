@@ -190,8 +190,7 @@ public class ThymeleafModule extends AbstractModule {
   @Singleton
   StandardCacheManager provideCacheManager(LaunchConfig launchConfig) {
     Integer cacheSize = getCacheSizeSetting(launchConfig);
-
-    final StandardCacheManager cacheManager = new StandardCacheManager();
+    StandardCacheManager cacheManager = new StandardCacheManager();
     cacheManager.setTemplateCacheMaxSize(cacheSize);
     return cacheManager;
   }
@@ -207,7 +206,6 @@ public class ThymeleafModule extends AbstractModule {
   }
 
   private Integer getCacheSizeSetting(LaunchConfig launchConfig) {
-    Integer cacheSize = templatesCacheSize == null ? Integer.valueOf(launchConfig.getOther("thymeleaf.templatesCacheSize", "0")) : templatesCacheSize;
-    return cacheSize;
+    return templatesCacheSize == null ? Integer.valueOf(launchConfig.getOther("thymeleaf.templatesCacheSize", "0")) : templatesCacheSize;
   }
 }
