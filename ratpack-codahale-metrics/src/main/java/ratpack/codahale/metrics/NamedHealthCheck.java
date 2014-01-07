@@ -20,6 +20,6 @@ import com.codahale.metrics.health.HealthCheck;
 
 public abstract class NamedHealthCheck extends HealthCheck {
 
-  abstract String getName();
+  public abstract String getName();
 
 }
