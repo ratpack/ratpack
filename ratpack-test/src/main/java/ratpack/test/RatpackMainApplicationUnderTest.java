@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,24 @@
  * limitations under the License.
  */
 
-package ratpack.groovy.test;
+package ratpack.test;
 
-import ratpack.groovy.launch.GroovyRatpackMain;
-import ratpack.test.RatpackMainApplicationUnderTest;
+import ratpack.launch.RatpackMain;
 
 import java.util.Collections;
 import java.util.Map;
 
-public class LocalScriptApplicationUnderTest extends RatpackMainApplicationUnderTest {
+public class RatpackMainApplicationUnderTest extends ServerBackedApplicationUnderTest {
 
-  public LocalScriptApplicationUnderTest() {
+  public RatpackMainApplicationUnderTest() {
     this(Collections.<String, String>emptyMap());
   }
 
-  public LocalScriptApplicationUnderTest(Map<String, String> overriddenProperties) {
-    super(new GroovyRatpackMain(), overriddenProperties);
+  public RatpackMainApplicationUnderTest(Map<String, String> overriddenProperties) {
+    this(new RatpackMain(), overriddenProperties);
+  }
+
+  public RatpackMainApplicationUnderTest(RatpackMain ratpackMain, Map<String, String> overriddenProperties) {
+    super(new RatpackMainServerFactory(ratpackMain, overriddenProperties));
   }
 }

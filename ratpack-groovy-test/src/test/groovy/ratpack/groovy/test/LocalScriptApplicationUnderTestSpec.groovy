@@ -32,7 +32,7 @@ class LocalScriptApplicationUnderTestSpec extends Specification {
     tempDir.newFile('ratpack.properties').absolutePath
   }
 
-  void 'properties can be overridden on a per test basis'() {
+  void 'can be used for testing script backed applications'() {
     given:
     applicationScript """
       import static ratpack.groovy.Groovy.*
@@ -40,18 +40,22 @@ class LocalScriptApplicationUnderTestSpec extends Specification {
       ratpack {
         handlers {
           get {
-            render launchConfig.getOther('fromLocalScriptApplicationUnderTest', 'default')
+            render 'from aut'
           }
         }
       }
     """
+
+    when:
     def aut = new LocalScriptApplicationUnderTest(
-      configResource: configResourceAbsolutePath,
-      'other.fromLocalScriptApplicationUnderTest': 'some value'
+      configResource: configResourceAbsolutePath
     )
     def client = TestHttpClients.testHttpClient(aut)
 
-    expect:
-    client.getText() == "some value"
+    then:
+    client.getText() == "from aut"
+
+    cleanup:
+    aut.stop()
   }
 }

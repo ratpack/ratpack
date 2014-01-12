@@ -19,12 +19,14 @@ package ratpack.test;
 import ratpack.server.RatpackServer;
 import ratpack.util.Factory;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
 import static ratpack.util.ExceptionUtils.uncheck;
 
-public class ServerBackedApplicationUnderTest implements ApplicationUnderTest {
+public class ServerBackedApplicationUnderTest implements ApplicationUnderTest, Closeable {
 
   private RatpackServer server;
   private final Factory<RatpackServer> serverFactory;
@@ -64,5 +66,9 @@ public class ServerBackedApplicationUnderTest implements ApplicationUnderTest {
       }
     }
 
+  }
+
+  public void close() throws IOException {
+    stop();
   }
 }
