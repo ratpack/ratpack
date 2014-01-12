@@ -25,6 +25,7 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.util.ResourceLeakDetector;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import ratpack.launch.LaunchConfig;
 import ratpack.launch.LaunchException;
@@ -97,6 +98,10 @@ public class NettyRatpackServer implements RatpackServer {
         .option(ChannelOption.SO_REUSEADDR, true)
         .option(ChannelOption.SO_BACKLOG, 1024)
         .option(ChannelOption.ALLOCATOR, launchConfig.getBufferAllocator());
+
+      if (System.getProperty("io.netty.leakDetectionLevel", null) == null) {
+        ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.DISABLED);
+      }
 
       channel = bootstrap.bind(buildSocketAddress()).sync().channel();
 
