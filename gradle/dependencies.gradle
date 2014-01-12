@@ -18,7 +18,7 @@ ext {
   commonVersions = [
     remote: "0.6-SNAPSHOT",
     slf4j: "1.7.5",
-    netty: "4.0.12.Final"
+    netty: "4.0.14.Final"
   ]
 
   commonDependencies = [
