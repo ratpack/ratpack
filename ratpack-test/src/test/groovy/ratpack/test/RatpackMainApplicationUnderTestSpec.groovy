@@ -19,20 +19,16 @@ package ratpack.test
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import ratpack.groovy.test.TestHttpClients
-import ratpack.guice.ModuleRegistry
-import ratpack.handling.Chain
 import ratpack.handling.Context
 import ratpack.handling.Handler
 import ratpack.launch.HandlerFactory
 import ratpack.launch.LaunchConfig
-import ratpack.util.Action
 import spock.lang.Specification
-
-import static ratpack.guice.Guice.handler
 
 class RatpackMainApplicationUnderTestSpec extends Specification {
 
-  @Rule TemporaryFolder tempDir = new TemporaryFolder()
+  @Rule
+  TemporaryFolder tempDir = new TemporaryFolder()
 
   void 'can be used for testing RatpackMain backed applications'() {
     given:
@@ -50,27 +46,17 @@ class RatpackMainApplicationUnderTestSpec extends Specification {
     client.getText() == 'from aut'
 
     cleanup:
-    aut.stop()
+    aut?.stop()
   }
 }
 
+@SuppressWarnings("GroovyUnusedDeclaration")
 class TestHandlerFactory implements HandlerFactory {
-
   Handler create(LaunchConfig launchConfig) throws Exception {
-    handler(launchConfig,
-      new Action<ModuleRegistry>() {
-        void execute(ModuleRegistry registry) throws Exception {
-        }
-      },
-      new Action<Chain>() {
-        void execute(Chain handlers) throws Exception {
-          handlers.handler(new Handler() {
-            void handle(Context context) throws Exception {
-              context.response.send("from aut")
-            }
-          })
-        }
+    return new Handler() {
+      void handle(Context context) throws Exception {
+        context.response.send("from aut")
       }
-    )
+    };
   }
 }
