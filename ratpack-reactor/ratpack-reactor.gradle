@@ -18,10 +18,6 @@ description = "Integration with the Project Reactor library - https://github.com
 
 apply from: "$rootDir/gradle/javaModule.gradle"
 
-repositories {
-  maven { url "http://repo.spring.io/release" }
-}
-
 dependencies {
   compile project(":ratpack-guice")
   compile "org.projectreactor:reactor-core:1.0.0.RELEASE"
