@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ratpack.groovy.handling
+package ratpack.handling
 
 import ratpack.error.ServerErrorHandler
 import ratpack.handling.Context
