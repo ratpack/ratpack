@@ -28,14 +28,12 @@ import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.stream.ChunkedWriteHandler;
 import ratpack.handling.Handler;
 import ratpack.launch.LaunchConfig;
-import ratpack.server.*;
+import ratpack.server.Stopper;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 
 public class RatpackChannelInitializer extends ChannelInitializer<SocketChannel> {
-
-  private final Stopper stopper;
 
   private NettyHandlerAdapter nettyHandlerAdapter;
   private SSLContext sslContext;
@@ -43,7 +41,6 @@ public class RatpackChannelInitializer extends ChannelInitializer<SocketChannel>
 
   public RatpackChannelInitializer(LaunchConfig launchConfig, Handler handler, Stopper stopper) {
     ListeningExecutorService backgroundExecutorService = MoreExecutors.listeningDecorator(launchConfig.getBackgroundExecutorService());
-    this.stopper = stopper;
     this.nettyHandlerAdapter = new NettyHandlerAdapter(stopper, handler, launchConfig, backgroundExecutorService);
     this.sslContext = launchConfig.getSSLContext();
     this.maxContentLength = launchConfig.getMaxContentLength();
