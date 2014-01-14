@@ -94,9 +94,6 @@ public class NettyRatpackServer implements RatpackServer {
         .channel(NioServerSocketChannel.class)
         .childHandler(channelInitializer)
         .childOption(ChannelOption.ALLOCATOR, launchConfig.getBufferAllocator())
-        .childOption(ChannelOption.TCP_NODELAY, true)
-        .option(ChannelOption.SO_REUSEADDR, true)
-        .option(ChannelOption.SO_BACKLOG, 1024)
         .option(ChannelOption.ALLOCATOR, launchConfig.getBufferAllocator());
 
       if (System.getProperty("io.netty.leakDetectionLevel", null) == null) {
