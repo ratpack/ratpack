@@ -34,11 +34,13 @@ public class DefaultBackground implements Background {
   private final ExecutorService mainExecutor;
   private final ListeningExecutorService backgroundExecutor;
   private final Context context;
+  private final ThreadLocal<Context> contextThreadLocal;
 
-  public DefaultBackground(ExecutorService mainExecutor, ListeningExecutorService backgroundExecutor, Context context) {
+  public DefaultBackground(ExecutorService mainExecutor, ListeningExecutorService backgroundExecutor, Context context, ThreadLocal<Context> contextThreadLocal) {
     this.mainExecutor = mainExecutor;
     this.backgroundExecutor = backgroundExecutor;
     this.context = context;
+    this.contextThreadLocal = contextThreadLocal;
   }
 
   @Override
@@ -93,23 +95,39 @@ public class DefaultBackground implements Background {
 
     @Override
     public void then(final Action<? super T> then) {
-      final ListenableFuture<T> future = backgroundExecutor.submit(backgroundAction);
+      final ListenableFuture<T> future = backgroundExecutor.submit(new Callable<T>() {
+        @Override
+        public T call() throws Exception {
+          contextThreadLocal.set(context);
+          try {
+            return backgroundAction.call();
+          } finally {
+            contextThreadLocal.remove();
+          }
+        }
+      });
       Futures.addCallback(future, new FutureCallback<T>() {
         @Override
         public void onSuccess(T result) {
+          contextThreadLocal.set(context);
           try {
             then.execute(result);
           } catch (Exception e) {
             context.error(e);
+          } finally {
+            contextThreadLocal.remove();
           }
         }
 
         @Override
         public void onFailure(Throwable t) {
+          contextThreadLocal.set(context);
           try {
             errorHandler.execute(t);
           } catch (Exception e) {
             context.error(e);
+          } finally {
+            contextThreadLocal.remove();
           }
         }
       }, mainExecutor);

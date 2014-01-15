@@ -42,7 +42,9 @@ import ratpack.server.BindAddress;
 import ratpack.test.handling.Invocation;
 import ratpack.test.handling.InvocationTimeoutException;
 import ratpack.util.Action;
+import ratpack.util.internal.ThreadLocalBackedProvider;
 
+import javax.inject.Provider;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.concurrent.CountDownLatch;
@@ -141,7 +143,9 @@ public class DefaultInvocation implements Invocation {
     );
 
     Response response = new DefaultResponse(status, responseHeaders, responseBody, fileHttpTransmitter, committer);
-    Context context = new DefaultContext(null, request, response, bindAddress, effectiveRegistry, backgroundExecutorService, foregroundExecutorService, eventController.getRegistry(), new Handler[0], 0, next) {
+    ThreadLocal<Context> contextThreadLocal = new ThreadLocal<>();
+    Provider<Context> contextProvider = new ThreadLocalBackedProvider<>(contextThreadLocal);
+    Context context = new DefaultContext(contextProvider, contextThreadLocal, null, request, response, bindAddress, effectiveRegistry, backgroundExecutorService, foregroundExecutorService, eventController.getRegistry(), new Handler[0], 0, next) {
       @Override
       public void render(Object object) throws NoSuchRendererException {
         rendered = object;
@@ -149,6 +153,7 @@ public class DefaultInvocation implements Invocation {
       }
     };
 
+    contextThreadLocal.set(context);
     try {
       handler.handle(context);
     } catch (Exception e) {

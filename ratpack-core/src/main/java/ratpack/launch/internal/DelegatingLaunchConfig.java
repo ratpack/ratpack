@@ -19,16 +19,18 @@ package ratpack.launch.internal;
 import io.netty.buffer.ByteBufAllocator;
 import ratpack.api.Nullable;
 import ratpack.file.FileSystemBinding;
+import ratpack.handling.Context;
 import ratpack.launch.HandlerFactory;
 import ratpack.launch.LaunchConfig;
 
+import javax.inject.Provider;
 import javax.net.ssl.SSLContext;
 import java.net.InetAddress;
 import java.net.URI;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 
-public class DelegatingLaunchConfig implements LaunchConfig {
+public class DelegatingLaunchConfig implements LaunchConfig, LaunchConfigInternal {
 
   private final LaunchConfig launchConfig;
 
@@ -102,4 +104,15 @@ public class DelegatingLaunchConfig implements LaunchConfig {
   public int getMaxContentLength() {
     return launchConfig.getMaxContentLength();
   }
+
+  @Override
+  public Provider<Context> getContextProvider() {
+    return launchConfig.getContextProvider();
+  }
+
+  @Override
+  public ThreadLocal<Context> getContextThreadLocal() {
+    return ((LaunchConfigInternal) launchConfig).getContextThreadLocal();
+  }
+
 }

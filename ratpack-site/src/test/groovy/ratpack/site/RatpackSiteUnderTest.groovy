@@ -20,7 +20,6 @@ import ratpack.groovy.test.LocalScriptApplicationUnderTest
 import ratpack.site.github.GitHubData
 import ratpack.site.github.MockGithubData
 import ratpack.site.github.RatpackVersion
-import ratpack.site.github.RatpackVersions
 import ratpack.test.remote.RemoteControl
 
 class RatpackSiteUnderTest extends LocalScriptApplicationUnderTest {
@@ -43,9 +42,7 @@ class RatpackSiteUnderTest extends LocalScriptApplicationUnderTest {
       // This will start failing when we release 0.9.2
       data.releasedVersions.add(new RatpackVersion("0.9.0", 1, "foo", new Date(), true))
       data.unreleasedVersions.add(new RatpackVersion("0.9.1", 2, "foo", new Date(), false))
-
       add(GitHubData, data)
-      add(new RatpackVersions(data))
     }
   }
 

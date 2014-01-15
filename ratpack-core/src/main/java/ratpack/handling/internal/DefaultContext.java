@@ -43,6 +43,7 @@ import ratpack.render.Renderer;
 import ratpack.server.BindAddress;
 import ratpack.util.*;
 
+import javax.inject.Provider;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.reflect.UndeclaredThrowableException;
@@ -60,6 +61,8 @@ public class DefaultContext implements Context {
 
   private final static Logger LOGGER = Logger.getLogger(Context.class.getName());
 
+  private final Provider<Context> contextProvider;
+  private final ThreadLocal<Context> contextThreadLocal;
   private final DirectChannelAccess directChannelAccess;
   private final Request request;
   private final Response response;
@@ -77,10 +80,15 @@ public class DefaultContext implements Context {
   private final Handler exhausted;
 
   public DefaultContext(
-    DirectChannelAccess directChannelAccess, Request request, Response response, BindAddress bindAddress, Registry registry,
+    Provider<Context> contextProvider, ThreadLocal<Context> contextThreadLocal,
+    DirectChannelAccess directChannelAccess,
+    Request request, Response response, BindAddress bindAddress, Registry registry,
     ListeningExecutorService backgroundExecutorService, ScheduledExecutorService foregroundExecutorService,
     EventRegistry<RequestOutcome> onCloseRegistry, Handler[] nextHandlers, int nextIndex,
-    Handler exhausted) {
+    Handler exhausted
+  ) {
+    this.contextProvider = contextProvider;
+    this.contextThreadLocal = contextThreadLocal;
     this.directChannelAccess = directChannelAccess;
     this.request = request;
     this.response = response;
@@ -97,6 +105,11 @@ public class DefaultContext implements Context {
   @Override
   public Context getContext() {
     return this;
+  }
+
+  @Override
+  public Provider<Context> getProvider() {
+    return contextProvider;
   }
 
   public Request getRequest() {
@@ -279,7 +292,7 @@ public class DefaultContext implements Context {
 
   @Override
   public Background getBackground() {
-    return new DefaultBackground(foregroundExecutorService, backgroundExecutorService, this);
+    return new DefaultBackground(foregroundExecutorService, backgroundExecutorService, this, contextThreadLocal);
   }
 
   @Override
@@ -418,6 +431,8 @@ public class DefaultContext implements Context {
       context = createContext(registry, nextHandlers, nextIndex + 1, exhausted);
     }
 
+    contextThreadLocal.set(context);
+
     try {
       handler.handle(context);
     } catch (Exception e) {
@@ -430,7 +445,7 @@ public class DefaultContext implements Context {
   }
 
   private DefaultContext createContext(Registry registry, Handler[] nextHandlers, int nextIndex, Handler exhausted) {
-    return new DefaultContext(directChannelAccess, request, response, bindAddress, registry, backgroundExecutorService, foregroundExecutorService, onCloseRegistry, nextHandlers, nextIndex, exhausted);
+    return new DefaultContext(contextProvider, contextThreadLocal, directChannelAccess, request, response, bindAddress, registry, backgroundExecutorService, foregroundExecutorService, onCloseRegistry, nextHandlers, nextIndex, exhausted);
   }
 
   private class RejoinHandler implements Handler {

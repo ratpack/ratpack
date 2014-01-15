@@ -39,6 +39,7 @@ import ratpack.util.Action;
 import ratpack.util.Factory;
 import ratpack.util.ResultAction;
 
+import javax.inject.Provider;
 import java.nio.file.Path;
 import java.util.Date;
 import java.util.List;
@@ -56,6 +57,11 @@ public class DefaultGroovyContext implements GroovyContext {
   @Override
   public GroovyContext getContext() {
     return this;
+  }
+
+  @Override
+  public Provider<Context> getProvider() {
+    return delegate.getProvider();
   }
 
   @Override

@@ -19,7 +19,9 @@ package ratpack.launch;
 import io.netty.buffer.ByteBufAllocator;
 import ratpack.api.Nullable;
 import ratpack.file.FileSystemBinding;
+import ratpack.handling.Context;
 
+import javax.inject.Provider;
 import javax.net.ssl.SSLContext;
 import java.net.InetAddress;
 import java.net.URI;
@@ -157,4 +159,21 @@ public interface LaunchConfig {
    * @return The max content length as an int.
    */
   public int getMaxContentLength();
+
+  /**
+   * A provider that always returns the current context for the current thread.
+   * <p>
+   * This DOES NOT always return <i>this</i> context.
+   * The context returned by this provider is the context being used on the current thread.
+   * That is, it acts like thread local storage of the current context.
+   * Moreover, the provider returned by successive calls to this method on any context instance will provide a functionally identical provider.
+   * <p>
+   * If there is no context bound to the current thread, this will return {@code null}.
+   * <p>
+   * This method is primary provided for integration with dependency injection frameworks.
+   *
+   * @return A provider that always provides the context object for the current thread.
+   */
+  public Provider<Context> getContextProvider();
+
 }

@@ -20,16 +20,19 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.netty.buffer.ByteBufAllocator;
 import ratpack.file.FileSystemBinding;
+import ratpack.handling.Context;
 import ratpack.launch.HandlerFactory;
 import ratpack.launch.LaunchConfig;
+import ratpack.util.internal.ThreadLocalBackedProvider;
 
+import javax.inject.Provider;
 import javax.net.ssl.SSLContext;
 import java.net.InetAddress;
 import java.net.URI;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 
-public class DefaultLaunchConfig implements LaunchConfig {
+public class DefaultLaunchConfig implements LaunchConfig, LaunchConfigInternal {
 
   private final FileSystemBinding baseDir;
   private final HandlerFactory handlerFactory;
@@ -44,6 +47,9 @@ public class DefaultLaunchConfig implements LaunchConfig {
   private final ImmutableMap<String, String> other;
   private final SSLContext sslContext;
   private final int maxContentLength;
+
+  private final ThreadLocal<Context> contextThreadLocal = new ThreadLocal<>();
+  private final Provider<Context> contextProvider = new ThreadLocalBackedProvider<>(contextThreadLocal);
 
   public DefaultLaunchConfig(FileSystemBinding baseDir, int port, InetAddress address, boolean reloadable, int mainThreads, ExecutorService backgroundExecutorService, ByteBufAllocator byteBufAllocator, URI publicAddress, ImmutableList<String> indexFiles, ImmutableMap<String, String> other, SSLContext sslContext, int maxContentLength, HandlerFactory handlerFactory) {
     this.baseDir = baseDir;
@@ -124,5 +130,15 @@ public class DefaultLaunchConfig implements LaunchConfig {
   @Override
   public int getMaxContentLength() {
     return maxContentLength;
+  }
+
+  @Override
+  public Provider<Context> getContextProvider() {
+    return contextProvider;
+  }
+
+  @Override
+  public ThreadLocal<Context> getContextThreadLocal() {
+    return contextThreadLocal;
   }
 }

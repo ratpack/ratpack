@@ -17,6 +17,10 @@
 package ratpack.guice.internal;
 
 import com.google.inject.AbstractModule;
+import com.google.inject.OutOfScopeException;
+import com.google.inject.Provides;
+import ratpack.background.Background;
+import ratpack.handling.Context;
 import ratpack.launch.LaunchConfig;
 
 public class DefaultRatpackModule extends AbstractModule {
@@ -31,4 +35,20 @@ public class DefaultRatpackModule extends AbstractModule {
   protected void configure() {
     bind(LaunchConfig.class).toInstance(launchConfig);
   }
+
+  @Provides
+  Context context(LaunchConfig launchConfig) {
+    Context context = launchConfig.getContextProvider().get();
+    if (context == null) {
+      throw new OutOfScopeException("Cannot provide an instance of " + Context.class.getName() + " as none is bound to the current thread (are you outside of a managed thread?)");
+    } else {
+      return context;
+    }
+  }
+
+  @Provides
+  Background background(Context context) {
+    return context.getBackground();
+  }
+
 }

@@ -8,6 +8,7 @@ import ratpack.site.SiteModule
 import ratpack.site.github.GitHubApi
 import ratpack.site.github.GitHubData
 import ratpack.site.github.IssueSet
+import ratpack.site.github.RatpackVersion
 import ratpack.site.github.RatpackVersions
 
 import static ratpack.groovy.Groovy.groovyTemplate
@@ -81,18 +82,14 @@ ratpack {
 
     prefix("versions") {
       get { RatpackVersions versions ->
-        background {
-          versions.all
-        } then { RatpackVersions.All all ->
+        versions.all.then { RatpackVersions.All all ->
           render groovyTemplate("versions.html", versions: all)
         }
       }
 
       prefix(":version") {
         get { RatpackVersions versions, GitHubData gitHubData ->
-          background {
-            versions.all
-          } then { RatpackVersions.All all ->
+          versions.all.then { RatpackVersions.All all ->
             def version = all.find(allPathTokens.version)
             if (version == null) {
               clientError(404)
@@ -124,12 +121,14 @@ ratpack {
         for (label in ["snapshot", "current"]) {
           prefix(label) {
             handler { RatpackVersions versions ->
+
               def snapshot = get(PathBinding).boundTo == "snapshot"
-              def version = snapshot ? versions.snapshot : versions.current
-              if (version) {
-                respond Handlers.assets(version.version, launchConfig.indexFiles)
-              } else {
-                clientError(404)
+              (snapshot ? versions.snapshot : versions.current).then { RatpackVersion version ->
+                if (version) {
+                  respond Handlers.assets(version.version, launchConfig.indexFiles)
+                } else {
+                  clientError(404)
+                }
               }
             }
           }
