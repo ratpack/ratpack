@@ -25,18 +25,18 @@ class MockGithubData implements GitHubData {
   }
 
   @Override
-  List<RatpackVersion> getReleasedVersions() {
-    released
+  rx.Observable<List<RatpackVersion>> getReleasedVersions() {
+    rx.Observable.from(released).toList()
   }
 
   @Override
-  List<RatpackVersion> getUnreleasedVersions() {
-    unreleased
+  rx.Observable<List<RatpackVersion>> getUnreleasedVersions() {
+    rx.Observable.from(released).toList()
   }
 
   @Override
-  IssueSet closed(RatpackVersion version) {
-    issueSetMap.get(version.version)
+  rx.Observable<IssueSet> closed(RatpackVersion version) {
+    rx.Observable.from(issueSetMap.get(version.version))
   }
 
 }

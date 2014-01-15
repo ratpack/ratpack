@@ -18,8 +18,8 @@ package ratpack.site.github
 
 interface GitHubData {
 
-  List<RatpackVersion> getReleasedVersions()
-  List<RatpackVersion> getUnreleasedVersions()
-  IssueSet closed(RatpackVersion version)
+  rx.Observable<List<RatpackVersion>> getReleasedVersions()
+  rx.Observable<List<RatpackVersion>> getUnreleasedVersions()
+  rx.Observable<IssueSet> closed(RatpackVersion version)
 
 }

@@ -19,6 +19,7 @@ package ratpack.site.github
 import com.fasterxml.jackson.databind.JsonNode
 import com.google.common.collect.ImmutableList
 import groovy.transform.CompileStatic
+import ratpack.rx.RxBackground
 
 import javax.inject.Inject
 
@@ -27,50 +28,63 @@ import javax.inject.Inject
 class ApiBackedGitHubData implements GitHubData {
 
   private final GitHubApi gitHubApi
+  private final RxBackground rxBackground
 
   @Inject
-  ApiBackedGitHubData(GitHubApi gitHubApi) {
+  ApiBackedGitHubData(GitHubApi gitHubApi, RxBackground rxBackground) {
+    this.rxBackground = rxBackground
     this.gitHubApi = gitHubApi
   }
 
   @Override
-  IssueSet closed(RatpackVersion version) {
-    def issues = gitHubApi.issues(state: "closed", milestone: version.githubNumber.toString(), sort: "number", direction: "asc")
-    def issuesBuilder = ImmutableList.builder()
-    def pullRequestsBuilder = ImmutableList.builder()
+  rx.Observable<IssueSet> closed(RatpackVersion version) {
+    rxBackground.exec {
+      gitHubApi.issues(state: "closed", milestone: version.githubNumber.toString(), sort: "number", direction: "asc")
+    } map { JsonNode issues ->
+      def issuesBuilder = ImmutableList.builder()
+      def pullRequestsBuilder = ImmutableList.builder()
 
-    issues.each { JsonNode it ->
-      def number = it.get("number").asInt()
-      def title = it.get("title").asText()
-      def user = it.get("user")
-      def author = user.get("login").asText()
-      def authorUrl = user.get("html_url").asText()
+      issues.each { JsonNode it ->
+        def number = it.get("number").asInt()
+        def title = it.get("title").asText()
+        def user = it.get("user")
+        def author = user.get("login").asText()
+        def authorUrl = user.get("html_url").asText()
 
-      def prUrl = it.get("pull_request").get("html_url")
+        def prUrl = it.get("pull_request").get("html_url")
 
-      def url
-      def builder
+        def url
+        def builder
 
-      if (prUrl.isNull()) {
-        url = it.get("html_url").asText()
-        builder = issuesBuilder
-      } else {
-        url = prUrl.asText()
-        builder = pullRequestsBuilder
+        if (prUrl.isNull()) {
+          url = it.get("html_url").asText()
+          builder = issuesBuilder
+        } else {
+          url = prUrl.asText()
+          builder = pullRequestsBuilder
+        }
+
+        builder.add(new Issue(number, url, title, author, authorUrl))
       }
 
-      builder.add(new Issue(number, url, title, author, authorUrl))
+      new IssueSet(issuesBuilder.build(), pullRequestsBuilder.build())
     }
-
-    new IssueSet(issuesBuilder.build(), pullRequestsBuilder.build())
   }
 
-  List<RatpackVersion> getReleasedVersions() {
-    RatpackVersion.fromJson(gitHubApi.milestones(state: "closed", sort: "due_date"))
+  rx.Observable<List<RatpackVersion>> getReleasedVersions() {
+    rxBackground.exec {
+      gitHubApi.milestones(state: "closed", sort: "due_date")
+    } map {
+      RatpackVersion.fromJson(it as JsonNode) as List
+    }
   }
 
-  List<RatpackVersion> getUnreleasedVersions() {
-    RatpackVersion.fromJson(gitHubApi.milestones(state: "open", sort: "due_date", direction: "asc"))
+  rx.Observable<List<RatpackVersion>> getUnreleasedVersions() {
+    rxBackground.exec {
+      gitHubApi.milestones(state: "open", sort: "due_date", direction: "asc")
+    } map {
+      RatpackVersion.fromJson(it as JsonNode) as List
+    }
   }
 
 }

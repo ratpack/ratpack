@@ -4,10 +4,10 @@ import ratpack.handling.Handlers
 import ratpack.jackson.JacksonModule
 import ratpack.path.PathBinding
 import ratpack.remote.RemoteControlModule
+import ratpack.rx.RxModule
 import ratpack.site.SiteModule
 import ratpack.site.github.GitHubApi
 import ratpack.site.github.GitHubData
-import ratpack.site.github.IssueSet
 import ratpack.site.github.RatpackVersion
 import ratpack.site.github.RatpackVersions
 
@@ -16,6 +16,7 @@ import static ratpack.groovy.Groovy.ratpack
 
 ratpack {
   modules {
+    register new RxModule()
     register new JacksonModule()
     register new CodaHaleMetricsModule().metrics()
     register new SiteModule(launchConfig)
@@ -82,22 +83,20 @@ ratpack {
 
     prefix("versions") {
       get { RatpackVersions versions ->
-        versions.all.then { RatpackVersions.All all ->
+        versions.all.subscribe { RatpackVersions.All all ->
           render groovyTemplate("versions.html", versions: all)
         }
       }
 
       prefix(":version") {
         get { RatpackVersions versions, GitHubData gitHubData ->
-          versions.all.then { RatpackVersions.All all ->
+          versions.all.subscribe { RatpackVersions.All all ->
             def version = all.find(allPathTokens.version)
             if (version == null) {
               clientError(404)
             } else {
-              background {
-                gitHubData.closed(version)
-              } then { IssueSet issues ->
-                render groovyTemplate("version.html", version: version, issues: issues)
+              gitHubData.closed(version).subscribe {
+                render groovyTemplate("version.html", version: version, issues: it)
               }
             }
           }
@@ -123,7 +122,7 @@ ratpack {
             handler { RatpackVersions versions ->
 
               def snapshot = get(PathBinding).boundTo == "snapshot"
-              (snapshot ? versions.snapshot : versions.current).then { RatpackVersion version ->
+              (snapshot ? versions.snapshot : versions.current).subscribe { RatpackVersion version ->
                 if (version) {
                   respond Handlers.assets(version.version, launchConfig.indexFiles)
                 } else {
