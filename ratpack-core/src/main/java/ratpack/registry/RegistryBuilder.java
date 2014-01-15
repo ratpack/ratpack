@@ -60,7 +60,7 @@ public class RegistryBuilder implements RegistrySpec {
   }
 
   public static Registry join(Registry parent, Registry child) {
-    return new CachingRegistry(new HierarchicalRegistry(parent, child));
+    return new HierarchicalRegistry(parent, child);
   }
 
 }
