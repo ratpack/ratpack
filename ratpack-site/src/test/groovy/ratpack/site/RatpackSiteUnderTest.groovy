@@ -16,11 +16,15 @@
 
 package ratpack.site
 
+import com.google.inject.Provider
+import ratpack.background.Background
 import ratpack.groovy.test.LocalScriptApplicationUnderTest
 import ratpack.site.github.GitHubData
 import ratpack.site.github.MockGithubData
 import ratpack.site.github.RatpackVersion
+import ratpack.site.github.RatpackVersions
 import ratpack.test.remote.RemoteControl
+
 
 class RatpackSiteUnderTest extends LocalScriptApplicationUnderTest {
 
@@ -43,6 +47,7 @@ class RatpackSiteUnderTest extends LocalScriptApplicationUnderTest {
       data.releasedVersions.add(new RatpackVersion("0.9.0", 1, "foo", new Date(), true))
       data.unreleasedVersions.add(new RatpackVersion("0.9.1", 2, "foo", new Date(), false))
       add(GitHubData, data)
+      add(new RatpackVersions(data, { get(Background) } as Provider<Background>))
     }
   }
 
