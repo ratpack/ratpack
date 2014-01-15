@@ -20,14 +20,33 @@ import rx.Observable;
 
 import java.util.concurrent.Callable;
 
+/**
+ * Provides static access Rx helper functions.
+ */
 public abstract class Rx {
 
   private static RxBackground rxBackground;
 
+  /**
+   * <b>INTERNAL METHOD</b> - do not call.
+   *
+   * @param rxBackground -
+   */
   public static void setRxBackground(RxBackground rxBackground) {
     Rx.rxBackground = rxBackground;
   }
 
+  /**
+   * Syntactic shorthand for calling {@link RxBackground#exec(Callable)}.
+   * <p>
+   * Usage of this method only works if there is one Ratpack application running in the JVM.
+   * Results are undefined otherwise.
+   * In such a case, use {@link RxBackground} instances directly.
+   *
+   * @param callable A blocking operation
+   * @param <T> The type of value the blocking operation returns
+   * @return An {@link rx.Observable} of the blocking operation
+   */
   public static <T> Observable<T> rxBackground(Callable<T> callable) {
     if (rxBackground == null) {
       throw new IllegalStateException("Not initialized. Did you register the RxModule?");

@@ -14,15 +14,10 @@
  * limitations under the License.
  */
 
-description = "Integration with the RxJava library - https://github.com/Netflix/RxJava"
-
-apply from: "$rootDir/gradle/javaModule.gradle"
-
-ext.apiLinks = [
-  "http://netflix.github.io/RxJava/javadoc"
-]
-
-dependencies {
-  compile project(":ratpack-guice")
-  compile 'com.netflix.rxjava:rxjava-core:0.16.0'
-}
+/**
+ * Provides integration with the <a href="https://github.com/Netflix/RxJava">RxJava</a> library.
+ *
+ * @see ratpack.rx.RxModule
+ * @see ratpack.rx.RxBackground
+ */
+package ratpack.rx;
