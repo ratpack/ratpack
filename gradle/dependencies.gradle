@@ -23,7 +23,7 @@ ext {
 
   commonDependencies = [
     spock: dependencies.create("org.spockframework:spock-core:0.7-groovy-2.0", {
-      exclude module: "groovy-all"
+      exclude group: "org.codehaus.groovy", module: "groovy-all"
     }),
     groovy: dependencies.create("org.codehaus.groovy:groovy-all:$groovyVersion"),
     remote: "org.codehaus.groovy.modules.remote:remote-core:${commonVersions.remote}",
