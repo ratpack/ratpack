@@ -21,8 +21,6 @@ import ratpack.launch.LaunchConfig;
 import ratpack.registry.Registry;
 import ratpack.util.Action;
 
-import java.lang.Exception;
-
 /**
  * A chain can be used to build a linked series of handlers.
  * <p>
