@@ -18,6 +18,11 @@ package ratpack.form;
 
 import ratpack.parse.Parse;
 
+/**
+ * A {@link Parse} for a {@link Form}.
+ *
+ * @see Forms#form()
+ */
 public interface FormParse extends Parse<Form> {
 
 }

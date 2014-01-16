@@ -17,6 +17,7 @@
 package ratpack.form.internal;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.util.CharsetUtil;
 import ratpack.form.UploadedFile;
 import ratpack.http.MediaType;
 import ratpack.util.internal.BufferUtil;
@@ -55,6 +56,10 @@ public class DefaultUploadedFile implements UploadedFile {
 
   @Override
   public String getText() {
-    return BufferUtil.getText(byteBuf, mediaType);
+    if (mediaType == null) {
+      return BufferUtil.getText(byteBuf, CharsetUtil.UTF_8);
+    } else {
+      return BufferUtil.getText(byteBuf, mediaType);
+    }
   }
 }

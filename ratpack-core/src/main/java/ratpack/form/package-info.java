@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,7 @@
  * limitations under the License.
  */
 
-package ratpack.form;
-
-import ratpack.parse.Parser;
-
 /**
- * A {@link Parser} for {@link Form} objects.
- *
- * @see Forms#form()
+ * Support for handling uploaded forms, including file uploads.
  */
-public interface FormParser extends Parser<Form, FormParse> {
-}
+package ratpack.form;

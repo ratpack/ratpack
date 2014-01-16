@@ -26,6 +26,7 @@ import ratpack.form.Form;
 import ratpack.form.UploadedFile;
 import ratpack.handling.Context;
 import ratpack.handling.RequestOutcome;
+import ratpack.http.MediaType;
 import ratpack.http.Request;
 import ratpack.http.RequestBody;
 import ratpack.http.internal.DefaultMediaType;
@@ -90,7 +91,9 @@ public abstract class FormDecoder {
               }
             });
 
-            UploadedFile fileUpload = new DefaultUploadedFile(DefaultMediaType.get(nettyFileUpload.getContentType()), byteBuf, nettyFileUpload.getFilename());
+            String uploadContentType = nettyFileUpload.getContentType();
+            MediaType contentType = uploadContentType == null ? null : DefaultMediaType.utf8(uploadContentType);
+            UploadedFile fileUpload = new DefaultUploadedFile(contentType, byteBuf, nettyFileUpload.getFilename());
 
             values.add(fileUpload);
           } catch (IOException e) {

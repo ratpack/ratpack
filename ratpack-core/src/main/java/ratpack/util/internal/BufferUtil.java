@@ -29,7 +29,11 @@ import static ratpack.util.ExceptionUtils.uncheck;
 public abstract class BufferUtil {
 
   public static String getText(ByteBuf byteBuf, String charset) {
-    return byteBuf.toString(Charset.forName(charset));
+    return getText(byteBuf, Charset.forName(charset));
+  }
+
+  public static String getText(ByteBuf byteBuf, Charset charset) {
+    return byteBuf.toString(charset);
   }
 
   public static String getText(ByteBuf byteBuf, MediaType mediaType) {
