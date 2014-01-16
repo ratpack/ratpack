@@ -31,9 +31,13 @@ public interface ServerErrorHandler {
 
   /**
    * Processes the given exception that occurred processing the given context.
+   * <p>
+   * Implementations should strive to avoid throwing exceptions.
+   * If exceptions are thrown, they will just be logged at a warning level and the response will be finalised with a 500 error code and empty body.
    *
    * @param context The context being processed
    * @param exception The exception that occurred
+   * @throws Exception if something goes wrong handling the error
    */
   @NonBlocking
   void error(Context context, Exception exception) throws Exception;

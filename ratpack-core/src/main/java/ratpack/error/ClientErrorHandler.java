@@ -34,6 +34,7 @@ public interface ClientErrorHandler {
    *
    * @param context The context
    * @param statusCode The 4xx status code that explains the problem
+   * @throws Exception if a problem occurs reacting to the client error (will be forwarded to the server error handler)
    */
   void error(Context context, int statusCode) throws Exception;
 
