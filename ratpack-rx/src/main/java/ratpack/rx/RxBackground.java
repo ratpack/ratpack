@@ -25,7 +25,7 @@ import java.util.concurrent.Callable;
  * Similar to {@link ratpack.background.Background} except that an {@link rx.Observable} for the background result is returned.
  * <p>
  * Use of this class for background operations is superior due to the composable nature of observables.
- * </p>
+ * <p>
  * When the {@link RxModule} has been registered for the application, the rx background can be used like this:
  * </p>
  * <pre class="tested">
