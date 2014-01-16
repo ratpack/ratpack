@@ -21,6 +21,8 @@ import ratpack.launch.LaunchConfig;
 import ratpack.registry.Registry;
 import ratpack.util.Action;
 
+import java.lang.Exception;
+
 /**
  * A chain can be used to build a linked series of handlers.
  * <p>
@@ -80,12 +82,12 @@ import ratpack.util.Action;
 public interface Chain {
 
   /**
-   * The registry that backs this {@code GroovyChain}.
+   * The registry that backs this.
    * <p>
    * The registry that is available is dependent on how the {@code GroovyChain} was constructed.
    *
    * @see Handlers#chain(LaunchConfig, ratpack.registry.Registry, ratpack.util.Action)
-   * @return The registry that backs this {@code GroovyChain}, or {@code null} if this {@code GroovyChain} has no registry.
+   * @return The registry that backs this, or {@code null} if this has no registry.
    */
   @Nullable
   Registry getRegistry();
@@ -98,15 +100,15 @@ public interface Chain {
   LaunchConfig getLaunchConfig();
 
   /**
-   * Adds the given {@code Handler} to this {@code GroovyChain}.
+   * Adds the given handler to this.
    *
-   * @param handler the {@code Handler} to add
-   * @return this {@code GroovyChain}
+   * @param handler the handler to add
+   * @return this
    */
   Chain handler(Handler handler);
 
   /**
-   * Adds a {@code Handler} to this {@code GroovyChain} that delegates to the given {@code Handler} if the relative {@code path}
+   * Adds a handler that delegates to the given handler if the relative {@code path}
    * matches the given {@code path} exactly.
    * <p>
    * Nesting {@code path} handlers will not work due to the exact matching, use a combination of {@code path}
@@ -131,7 +133,7 @@ public interface Chain {
    *
    * @param path the relative path to match exactly on
    * @param handler the handler to delegate to
-   * @return this {@code GroovyChain}
+   * @return this
    * @see Chain#post(String, Handler)
    * @see Chain#get(String, Handler)
    * @see Chain#put(String, Handler)
@@ -141,13 +143,26 @@ public interface Chain {
   Chain handler(String path, Handler handler);
 
   /**
-   * Adds a {@code Handler} to this {@code GroovyChain} that delegates to the given handlers if the
+   * Adds a handler that delegates to the given handler if the relative path starts with the given {@code prefix}.
+   * <p>
+   * All path based handlers become relative to the given {@code prefix}.
+   * <p>
+   * See {@link ratpack.handling.Handlers#prefix(String, Handler)} for format details on the {@code prefix} string.
+   *
+   * @param prefix the relative path to match on
+   * @param handler the handler to delegate to if the prefix matches
+   * @return this
+   */
+  Chain prefix(String prefix, Handler handler);
+
+  /**
+   * Adds a handler that delegates to the given handlers if the
    * relative path starts with the given {@code prefix}.
    * <p>
    * All path based handlers become relative to the given {@code prefix}.
    * <pre class="java-chain-dsl">
    *   chain
-   *     .prefix("person/:id", chain.chain(new Action&lt;Chain&gt;() {
+   *     .prefix("person/:id", new Action&lt;Chain&gt;() {
    *       public void execute(Chain personChain) {
    *         personChain
    *           .get("info", new Handler() {
@@ -160,7 +175,7 @@ public interface Chain {
    *               // e.g. /person/2/save
    *             }
    *           })
-   *           .prefix("child/:childId", chain.chain(new Action&lt;Chain&gt;() {
+   *           .prefix("child/:childId", new Action&lt;Chain&gt;() {
    *             public void execute(Chain childChain) {
    *               childChain
    *                 .get("info", new Handler() {
@@ -169,31 +184,30 @@ public interface Chain {
    *                   }
    *                 });
    *             }
-   *           }));
+   *           });
    *       }
-   *     }));
+   *     });
    * </pre>
    * <p>
    * See {@link ratpack.handling.Handlers#prefix(String, Handler)}
    * for format details on the {@code prefix} string.
    *
    * @param prefix the relative path to match on
-   * @param handler the handler to delegate to if the prefix matches
-   * @return this {@code GroovyChain}
+   * @param action the handler chain to delegate to if the prefix matches
+   * @throws Exception any thrown by {@code action}
+   * @return this
    */
-  Chain prefix(String prefix, Handler handler);
-
   Chain prefix(String prefix, Action<? super Chain> action) throws Exception;
 
   /**
-   * Adds a {@code Handler} to this {@code GroovyChain} that delegates to the given {@code Handler}
+   * Adds a handler that delegates to the given handler
    * if the relative {@code path} matches the given {@code path} and the {@code request}
    * {@code HTTPMethod} is {@code GET}.
    * <p>
    *
    * @param path the relative path to match on
    * @param handler the handler to delegate to
-   * @return this {@code GroovyChain}
+   * @return this
    * @see Chain#post(String, Handler)
    * @see Chain#put(String, Handler)
    * @see Chain#patch(String, Handler)
@@ -203,12 +217,12 @@ public interface Chain {
   Chain get(String path, Handler handler);
 
   /**
-   * Adds a {@code Handler} to this {@code GroovyChain} that delegates to the given {@code Handler}
+   * Adds a handler that delegates to the given handler
    * if the {@code request} {@code HTTPMethod} is {@code GET} and the {@code path} is at the
    * current root.
    *
    * @param handler the handler to delegate to
-   * @return this {@code GroovyChain}
+   * @return this
    * @see Chain#post(Handler)
    * @see Chain#put(Handler)
    * @see Chain#patch(Handler)
@@ -217,14 +231,14 @@ public interface Chain {
   Chain get(Handler handler);
 
   /**
-   * Adds a {@code Handler} to this {@code GroovyChain} that delegates to the given {@code Handler} if
+   * Adds a handler that delegates to the given handler if
    * the relative {@code path} matches the given {@code path} and the {@code request} {@code HTTPMethod}
    * is {@code POST}.
    * <p>
    *
    * @param path the relative path to match on
    * @param handler the handler to delegate to
-   * @return this {@code GroovyChain}
+   * @return this
    * @see Chain#get(String, Handler)
    * @see Chain#put(String, Handler)
    * @see Chain#patch(String, Handler)
@@ -234,12 +248,12 @@ public interface Chain {
   Chain post(String path, Handler handler);
 
   /**
-   * Adds a {@code Handler} to this {@code GroovyChain} that delegates to the given {@code Handler} if
+   * Adds a handler that delegates to the given handler if
    * the {@code request} {@code HTTPMethod} is {@code POST} and the {@code path} is at the current root.
    * <p>
    *
    * @param handler the handler to delegate to
-   * @return this {@code GroovyChain}
+   * @return this
    * @see Chain#get(Handler)
    * @see Chain#put(Handler)
    * @see Chain#patch(Handler)
@@ -248,13 +262,13 @@ public interface Chain {
   Chain post(Handler handler);
 
   /**
-   * Adds a {@code Handler} to this {@code GroovyChain} that delegates to the given {@code Handler} if
+   * Adds a handler that delegates to the given handler if
    * the relative {@code path} matches the given {@code path} and the {@code request} {@code HTTPMethod}
    * is {@code PUT}.
    *
    * @param path the relative path to match on
    * @param handler the handler to delegate to
-   * @return this {@code GroovyChain}
+   * @return this
    * @see Chain#get(String, Handler)
    * @see Chain#post(String, Handler)
    * @see Chain#patch(String, Handler)
@@ -264,11 +278,11 @@ public interface Chain {
   Chain put(String path, Handler handler);
 
   /**
-   * Adds a {@code Handler} to this {@code GroovyChain} that delegates to the given {@code Handler} if
+   * Adds a handler that delegates to the given handler if
    * the {@code request} {@code HTTPMethod} is {@code PUT} and the {@code path} is at the current root.
    *
    * @param handler the handler to delegate to
-   * @return this {@code GroovyChain}
+   * @return this
    * @see Chain#get(Handler)
    * @see Chain#post(Handler)
    * @see Chain#patch(Handler)
@@ -277,13 +291,13 @@ public interface Chain {
   Chain put(Handler handler);
 
   /**
-   * Adds a {@code Handler} to this {@code GroovyChain} that delegates to the given {@code Handler} if
+   * Adds a handler that delegates to the given handler if
    * the relative {@code path} matches the given {@code path} and the {@code request} {@code HTTPMethod}
    * is {@code PATCH}.
    *
    * @param path the relative path to match on
    * @param handler the handler to delegate to
-   * @return this {@code GroovyChain}
+   * @return this
    * @see Chain#get(String, Handler)
    * @see Chain#post(String, Handler)
    * @see Chain#put(String, Handler)
@@ -293,11 +307,11 @@ public interface Chain {
   Chain patch(String path, Handler handler);
 
   /**
-   * Adds a {@code Handler} to this {@code GroovyChain} that delegates to the given {@code Handler} if
+   * Adds a handler that delegates to the given handler if
    * the {@code request} {@code HTTPMethod} is {@code PATCH} and the {@code path} is at the current root.
    *
    * @param handler the handler to delegate to
-   * @return this {@code GroovyChain}
+   * @return this
    * @see Chain#get(Handler)
    * @see Chain#post(Handler)
    * @see Chain#put(Handler)
@@ -306,13 +320,13 @@ public interface Chain {
   Chain patch(Handler handler);  
 
   /**
-   * Adds a {@code Handler} to this {@code GroovyChain} that delegates to the given {@code Handler} if
+   * Adds a handler that delegates to the given handler if
    * the relative {@code path} matches the given {@code path} and the {@code request} {@code HTTPMethod}
    * is {@code DELETE}.
    *
    * @param path the relative path to match on
    * @param handler the handler to delegate to
-   * @return this {@code GroovyChain}
+   * @return this
    * @see Chain#get(String, Handler)
    * @see Chain#post(String, Handler)
    * @see Chain#put(String, Handler)
@@ -322,11 +336,11 @@ public interface Chain {
   Chain delete(String path, Handler handler);
 
   /**
-   * Adds a {@code Handler} to this {@code GroovyChain} that delegates to the given {@code Handler} if
+   * Adds a handler that delegates to the given handler if
    * the {@code request} {@code HTTPMethod} is {@code DELETE} and the {@code path} is at the current root.
    *
    * @param handler the handler to delegate to
-   * @return this {@code GroovyChain}
+   * @return this
    * @see Chain#get(Handler)
    * @see Chain#post(Handler)
    * @see Chain#put(Handler)
@@ -335,10 +349,9 @@ public interface Chain {
   Chain delete(Handler handler);
 
   /**
-   * Adds a {@code Handler} to this {@code GroovyChain} that serves static assets at the given file system path,
-   * relative to the contextual file system binding.
+   * Adds a handler that serves static assets at the given file system path, relative to the contextual file system binding.
    * <p>
-   * See {@link Handlers#assets(String, java.util.List)} for more details on the {@code Handler} created
+   * See {@link Handlers#assets(String, java.util.List)} for more details on the handler created
    * <pre>
    *    prefix("foo") {
    *      assets("d1", "index.html", "index.xhtml")
@@ -352,58 +365,93 @@ public interface Chain {
    *
    * @param path the relative path to the location of the assets to serve
    * @param indexFiles the index files to try if the request is for a directory
-   * @return this {@code GroovyChain}
+   * @return this
    */
   Chain assets(String path, String... indexFiles);
 
   /**
-   * Adds a {@code Handler} to this {@code GroovyChain} that inserts the given handler with the given {@code service} addition.
+   * Adds a handler that inserts the given handler with the given service addition.
    * <p>
-   * The {@code service} object will be available by its concrete type.
+   * The service object will be available by its concrete type.
    * <p>
-   * See {@link Handlers#register(Object, Handler)} for more details on the {@code Handler} created
+   * See {@link Handlers#register(Object, Handler)} for more details on the handler created
    *
    * @param service the object to add to the service for the handlers
    * @param handler the handlers to register the service with
-   * @return this {@code GroovyChain}
+   * @return this
    * @see Chain#register(Class, Object, Handler)
    */
   Chain register(Object service, Handler handler);
 
+  /**
+   * Adds a handler to this chain that inserts the given handler with the given service addition.
+   * <p>
+   * The service object will be available by its concrete type.
+   * <p>
+   * See {@link Handlers#register(Object, Handler)} for more details on the handler created
+   *
+   * @param service the object to add to the service for the handlers
+   * @param action the handlers to register the service with
+   * @throws Exception any thrown by {@code action}
+   * @return this
+   * @see Chain#register(Class, Object, Handler)
+   */
   Chain register(Object service, Action<? super Chain> action) throws Exception;
 
   /**
-   * Adds a {@code Handler} to this {@code GroovyChain} that inserts the given handlers with the given {@code service} addition.
+   * Adds a handler that inserts the given handlers with the given service addition.
    * <p>
-   * The {@code service} object will be available by the given type.
+   * The service object will be available by the given type.
    * <p>
-   * See {@link Handlers#register(Class, Object, Handler)} for more details on the {@code Handler} created
+   * See {@link Handlers#register(Class, Object, Handler)} for more details on the handler created
    *
    * @param type the {@code Type} by which to make the service object available
    * @param service the object to add to the service for the handlers
    * @param handler the handlers to register the service with
    * @param <T> the concrete type of the service addition
-   * @return this {@code GroovyChain}
+   * @return this
    * @see Chain#register(Object, Handler)
    */
   <T> Chain register(Class<? super T> type, T service, Handler handler);
 
+  /**
+   * Adds a handler to this chain that inserts the given handler chain with the given service addition.
+   * <p>
+   * The service object will be available by the given type.
+   * <p>
+   * See {@link Handlers#register(Class, Object, Handler)} for more details on the handler created
+   *
+   * @param type the {@code Type} by which to make the service object available
+   * @param service the object to add to the service for the handlers
+   * @param action the handlers which to register the service for
+   * @param <T> the concrete type of the service addition
+   * @return this
+   * @throws Exception any thrown by {@code action}
+   * @see Chain#register(Object, Handler)
+   */
   <T> Chain register(Class<? super T> type, T service, Action<? super Chain> action) throws Exception;
 
   /**
-   * Adds a {@code Handler} to this {@code GroovyChain} that changes the {@link ratpack.file.FileSystemBinding}
-   * for the given handler.
+   * Adds a handler to this chain that changes the {@link ratpack.file.FileSystemBinding} for the given handler.
    *
-   * @param path the relative {@code path} to the new file system binding point
-   * @param handler the definition of the handler chain
-   * @return this {@code GroovyChain}
+   * @param path the relative path to the new file system binding point
+   * @param handler the handler
+   * @return this}
    */
   Chain fileSystem(String path, Handler handler);
 
+  /**
+   * Adds a handler to this chain that changes the {@link ratpack.file.FileSystemBinding} for the given handler chain.
+   *
+   * @param path the relative path to the new file system binding point
+   * @param action the definition of the handler chain
+   * @return this
+   * @throws Exception any thrown by {@code action}
+   */
   Chain fileSystem(String path, Action<? super Chain> action) throws Exception;
 
   /**
-   * Adds a {@code Handler} to the chain that delegates to the given handler if the request has a header with the given name and a its value matches the given value exactly.
+   * Adds a handler to the chain that delegates to the given handler if the request has a header with the given name and a its value matches the given value exactly.
    *
    * <pre tested="java-chain-dsl>
    *  chain.
@@ -421,6 +469,13 @@ public interface Chain {
    */
   Chain header(String headerName, String headerValue, Handler handler);
 
+  /**
+   * Constructs a handler using the given action to define a chain.
+   *
+   * @param action The action that defines the handler chain
+   * @return A handler representing the chain
+   * @throws Exception any thrown by {@code action}
+   */
   Handler chain(Action<? super Chain> action) throws Exception;
 
 }
