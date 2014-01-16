@@ -21,6 +21,7 @@ import ratpack.background.Background;
 import ratpack.file.FileRenderer;
 import ratpack.file.MimeTypes;
 import ratpack.handling.Context;
+import ratpack.http.Response;
 import ratpack.render.RendererSupport;
 import ratpack.util.Action;
 
@@ -59,13 +60,17 @@ public class DefaultFileRenderer extends RendererSupport<Path> implements FileRe
     context.lastModified(date, new Runnable() {
       public void run() {
         final String ifNoneMatch = context.getRequest().getHeaders().get(HttpHeaders.Names.IF_NONE_MATCH);
+        Response response = context.getResponse();
         if (ifNoneMatch != null && ifNoneMatch.trim().equals("*")) {
-          context.getResponse().status(NOT_MODIFIED.code(), NOT_MODIFIED.reasonPhrase()).send();
+          response.status(NOT_MODIFIED.code(), NOT_MODIFIED.reasonPhrase()).send();
           return;
         }
 
-        String contentType = context.get(MimeTypes.class).getContentType(file.getFileName().toString());
-        context.getResponse().sendFile(context.getBackground(), contentType, attributes, file);
+        if (!response.getHeaders().contains(HttpHeaders.Names.CONTENT_TYPE)) {
+          String contentType = context.get(MimeTypes.class).getContentType(file.getFileName().toString());
+          response.contentType(contentType);
+        }
+        response.sendFile(context.getBackground(), attributes, file);
       }
     });
   }

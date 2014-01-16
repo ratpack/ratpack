@@ -204,24 +204,22 @@ public interface Response {
   /**
    * Sends the response, using the given content type and the content of the given type as the response body.
    * <p>
-   * Prefer {@link #sendFile(ratpack.background.Background, String, java.nio.file.attribute.BasicFileAttributes, java.nio.file.Path)} where
+   * Prefer {@link #sendFile(ratpack.background.Background, java.nio.file.attribute.BasicFileAttributes, java.nio.file.Path)} where
    * the file attributes have already been retrieved to avoid another IO operation.
    *
    * @param background the background operation manager to use
-   * @param contentType The value of the {@code Content-Type} header
    * @param file The file whose contents are to be used as the response body
    */
   @NonBlocking
-  void sendFile(Background background, String contentType, Path file);
+  void sendFile(Background background, Path file);
 
   /**
    * Sends the response, using the given content type and the content of the given type as the response body.
    *
    * @param background the background operation manager to use
-   * @param contentType The value of the {@code Content-Type} header
    * @param attributes The attributes of the file, used for the headers.
    * @param file The file whose contents are to be used as the response body
    */
   @NonBlocking
-  void sendFile(Background background, String contentType, BasicFileAttributes attributes, Path file);
+  void sendFile(Background background, BasicFileAttributes attributes, Path file);
 }

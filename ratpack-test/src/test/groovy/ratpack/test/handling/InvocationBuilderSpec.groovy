@@ -85,7 +85,7 @@ class InvocationBuilderSpec extends Specification {
 
   def "can test handler that sends file"() {
     when:
-    invoke { response.sendFile background, "text/plain", new File("foo").toPath() }
+    invoke { response.contentType("text/plain").sendFile background, new File("foo").toPath() }
 
     then:
     bodyText == null
