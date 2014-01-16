@@ -35,7 +35,7 @@ public abstract class DelegatingCommandDelegate implements CommandDelegate {
     this.registry = registry;
   }
 
-  public <O> RegistrySpec add(Class<O> type, O object) {
+  public <O> RegistrySpec add(Class<? super O> type, O object) {
     return spec.add(type, object);
   }
 

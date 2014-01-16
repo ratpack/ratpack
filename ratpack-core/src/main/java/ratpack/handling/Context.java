@@ -118,15 +118,215 @@ public interface Context extends Registry {
   @NonBlocking
   void next();
 
+  /**
+   * Invokes the next handler, after adding the given registry.
+   * <p>
+   * The given registry is appended to the existing.
+   * This means that it can shadow objects previously available.
+   * <pre class="tested">
+   * import ratpack.handling.Handler;
+   * import ratpack.handling.Handlers;
+   * import ratpack.handling.Chain;
+   * import ratpack.handling.ChainAction;
+   * import ratpack.handling.Context;
+   * import ratpack.launch.HandlerFactory;
+   * import ratpack.launch.LaunchConfig;
+   * import ratpack.launch.LaunchConfigBuilder;
+   * import ratpack.util.Factory;
+   * import ratpack.registry.Registry;
+   * import ratpack.registry.RegistryBuilder;
+   *
+   * public interface SomeThing {}
+   * public class SomeThingImpl implements SomeThing {}
+   *
+   * public class UpstreamHandler implements Handler {
+   *   public void handle(Context context) {
+   *     Registry registry = RegistryBuilder.builder().
+   *       add(SomeThing.class, new SomeThingImpl()).
+   *       build();
+   *
+   *     context.next(registry);
+   *   }
+   * }
+   *
+   * public class DownstreamHandler implements Handler {
+   *   public void handle(Context context) {
+   *     SomeThing someThing = context.get(SomeThing.class); // instance provided upstream
+   *     assert someThing instanceof SomeThingImpl;
+   *     // …
+   *   }
+   * }
+   *
+   * LaunchConfigBuilder.baseDir(new File("base")).build(new HandlerFactory() {
+   *   public Handler create(LaunchConfig launchConfig) {
+   *     return Handlers.chain(launchConfig, new ChainAction() {
+   *       public void execute(Chain chain) {
+   *         chain.handler(new UpstreamHandler());
+   *         chain.handler(new DownstreamHandler());
+   *       }
+   *     });
+   *   }
+   * });
+   * </pre>
+   *
+   * @param registry The registry to make available for subsequent handlers.
+   */
   @NonBlocking
   void next(Registry registry);
 
+  /**
+   * Invokes the next handler, after adding the given object into the registry.
+   * <p>
+   * The object will be available by the given public type.
+   * <pre class="tested">
+   * import ratpack.handling.Handler;
+   * import ratpack.handling.Handlers;
+   * import ratpack.handling.Chain;
+   * import ratpack.handling.ChainAction;
+   * import ratpack.handling.Context;
+   * import ratpack.launch.HandlerFactory;
+   * import ratpack.launch.LaunchConfig;
+   * import ratpack.launch.LaunchConfigBuilder;
+   * import ratpack.util.Factory;
+   *
+   * public interface SomeThing {}
+   * public class SomeThingImpl implements SomeThing {}
+   *
+   * public class UpstreamHandler implements Handler {
+   *   public void handle(Context context) {
+   *     context.next(SomeThing.class, new SomeThingImpl());
+   *   }
+   * }
+   *
+   * public class DownstreamHandler implements Handler {
+   *   public void handle(Context context) {
+   *     SomeThing someThing = context.get(SomeThing.class); // instance provided upstream
+   *     assert someThing instanceof SomeThingImpl;
+   *     // …
+   *   }
+   * }
+   *
+   * LaunchConfigBuilder.baseDir(new File("base")).build(new HandlerFactory() {
+   *   public Handler create(LaunchConfig launchConfig) {
+   *     return Handlers.chain(launchConfig, new ChainAction() {
+   *       public void execute(Chain chain) {
+   *         chain.handler(new UpstreamHandler());
+   *         chain.handler(new DownstreamHandler());
+   *       }
+   *     });
+   *   }
+   * });
+   * </pre>
+   *
+   * @param publicType The public (i.e. advertised) type of the object
+   * @param implementation The implementation object
+   * @param <P> The public (i.e. advertised) type of the object
+   * @param <T> The concrete type of the implementation object
+   */
   @NonBlocking
   <P, T extends P> void next(Class<P> publicType, T implementation);
 
+  /**
+   * Invokes the next handler, after adding the given object into the registry (provided by factory).
+   * <p>
+   * The object will be available by the given public type.
+   * <p>
+   * If an object of the given type is requested, the given factory will be executed to provide the object.
+   * It is guaranteed to only be executed once, and need not be thread safe.
+   * <pre class="tested">
+   * import ratpack.handling.Handler;
+   * import ratpack.handling.Handlers;
+   * import ratpack.handling.Chain;
+   * import ratpack.handling.ChainAction;
+   * import ratpack.handling.Context;
+   * import ratpack.launch.HandlerFactory;
+   * import ratpack.launch.LaunchConfig;
+   * import ratpack.launch.LaunchConfigBuilder;
+   * import ratpack.util.Factory;
+   *
+   * public interface SomeThing {}
+   * public class SomeThingImpl implements SomeThing {}
+   *
+   * public class UpstreamHandler implements Handler {
+   *   public void handle(Context context) {
+   *     context.next(SomeThing.class, new Factory&lt;SomeThing&gt;() {
+   *       public SomeThing create() {
+   *         return new SomeThingImpl();
+   *       }
+   *     });
+   *   }
+   * }
+   *
+   * public class DownstreamHandler implements Handler {
+   *   public void handle(Context context) {
+   *     SomeThing someThing = context.get(SomeThing.class); // instance provided upstream
+   *     assert someThing instanceof SomeThingImpl;
+   *     // …
+   *   }
+   * }
+   *
+   * LaunchConfigBuilder.baseDir(new File("base")).build(new HandlerFactory() {
+   *   public Handler create(LaunchConfig launchConfig) {
+   *     return Handlers.chain(launchConfig, new ChainAction() {
+   *       public void execute(Chain chain) {
+   *         chain.handler(new UpstreamHandler());
+   *         chain.handler(new DownstreamHandler());
+   *       }
+   *     });
+   *   }
+   * });
+   * </pre>
+   *
+   * @param publicType The public (i.e. advertised) type of the object
+   * @param <T> The public (i.e. advertised) type of the object
+   * @param factory The factory that can create the object if it is requested
+   */
   @NonBlocking
   <T> void next(Class<T> publicType, Factory<? extends T> factory);
 
+  /**
+   * Invokes the next handler, after adding the given object into the registry.
+   * <p>
+   * The object will be available only by its concrete type.
+   * <pre class="tested">
+   * import ratpack.handling.Handler;
+   * import ratpack.handling.Handlers;
+   * import ratpack.handling.Chain;
+   * import ratpack.handling.ChainAction;
+   * import ratpack.handling.Context;
+   * import ratpack.launch.HandlerFactory;
+   * import ratpack.launch.LaunchConfig;
+   * import ratpack.launch.LaunchConfigBuilder;
+   *
+   * public class SomeThing {}
+   *
+   * public class UpstreamHandler implements Handler {
+   *   public void handle(Context context) {
+   *     context.next(new SomeThing());
+   *   }
+   * }
+   *
+   * public class DownstreamHandler implements Handler {
+   *   public void handle(Context context) {
+   *     SomeThing someThing = context.get(SomeThing.class); // instance provided upstream
+   *     // …
+   *   }
+   * }
+   *
+   * LaunchConfigBuilder.baseDir(new File("base")).build(new HandlerFactory() {
+   *   public Handler create(LaunchConfig launchConfig) {
+   *     return Handlers.chain(launchConfig, new ChainAction() {
+   *       public void execute(Chain chain) {
+   *         chain.handler(new UpstreamHandler());
+   *         chain.handler(new DownstreamHandler());
+   *       }
+   *     });
+   *   }
+   * });
+   * </pre>
+   *
+   * @param object The object to insert into the registry.
+   */
   @NonBlocking
   void next(Object object);
 
@@ -162,6 +362,7 @@ public interface Context extends Registry {
    *
    * @param handlers The handlers to insert
    * @param publicType The advertised type of the object (i.e. what it is retrievable by)
+   * @param <T> The advertised type of the object (i.e. what it is retrievable by)
    * @param factory The factory that creates the object lazily
    */
   @NonBlocking
@@ -176,6 +377,8 @@ public interface Context extends Registry {
    *
    * @param handlers The handlers to insert
    * @param publicType The advertised type of the object (i.e. what it is retrievable by)
+   * @param <P> The advertised type of the object (i.e. what it is retrievable by)
+   * @param <T> The type of the implementation object
    * @param implementation The actual implementation
    */
   @NonBlocking
@@ -406,11 +609,20 @@ public interface Context extends Registry {
    * }
    * </pre>
    *
+   * @param backgroundOperation The blocking operation to perform off of the request thread
+   * @param <T> The type of object returned by the background operation
    * @return A builder for specifying the result handling strategy for a blocking operation.
    * @see #getBackground()
    */
   <T> Background.SuccessOrError<T> background(Callable<T> backgroundOperation);
 
+  /**
+   * Returns the executor that managed foreground (i.e. request handling) threads.
+   * <p>
+   * Useful for deferring computation work.
+   *
+   * @return the executor that managed foreground (i.e. request handling) threads.
+   */
   ScheduledExecutorService getForegroundExecutorService();
 
   /**
@@ -451,10 +663,30 @@ public interface Context extends Registry {
    */
   BindAddress getBindAddress();
 
+  /**
+   * Parses the request body according to the given {@link Parse} specification.
+   *
+   * @param parse The specification of how to parse the request
+   * @param <T> The type of object the request is parsed into
+   * @return The parsed object
+   * @see ratpack.parse.Parser
+   */
   <T> T parse(Parse<T> parse);
 
+  /**
+   * Registers a callback to be notified when the request for this context is “closed” (i.e. responded to).
+   *
+   * @param onClose A notification callback
+   */
   void onClose(Action<? super RequestOutcome> onClose);
 
+  /**
+   * Provides direct access to the backing Netty channel.
+   * <p>
+   * General only useful for low level extensions. Avoid if possible.
+   *
+   * @return Direct access to the underlying channel.
+   */
   DirectChannelAccess getDirectChannelAccess();
 
 }

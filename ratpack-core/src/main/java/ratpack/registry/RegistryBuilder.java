@@ -32,7 +32,7 @@ public class RegistryBuilder implements RegistrySpec {
   }
 
   @Override
-  public <O> RegistryBuilder add(Class<O> type, O object) {
+  public <O> RegistryBuilder add(Class<? super O> type, O object) {
     //noinspection unchecked
     builder.add(new DefaultRegistryEntry<>(type, object));
     return this;

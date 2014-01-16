@@ -14,19 +14,20 @@
  * limitations under the License.
  */
 
-package ratpack.registry;
+package ratpack.handling;
 
-import ratpack.util.Factory;
+import ratpack.util.Action;
 
 /**
- * An additive specification of a registry.
+ * Convenience subclass for {@link Action Action<Chain>} implementations.
  */
-public interface RegistrySpec {
+public abstract class ChainAction implements Action<Chain> {
 
-  <O> RegistrySpec add(Class<? super O> type, O object);
-
-  <O> RegistrySpec add(O object);
-
-  <O> RegistrySpec add(Class<O> type, Factory<? extends O> object);
+  /**
+   * Adds to the given chain.
+   *
+   * @param chain The chain to add handlers to.
+   */
+  public abstract void execute(Chain chain);
 
 }
