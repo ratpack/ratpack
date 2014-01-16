@@ -19,7 +19,6 @@ package ratpack.form;
 import ratpack.api.Nullable;
 import ratpack.util.MultiValueMap;
 
-import java.lang.UnsupportedOperationException;
 import java.util.List;
 
 /**
