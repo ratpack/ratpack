@@ -59,44 +59,58 @@ import static io.netty.handler.codec.http.HttpResponseStatus.NOT_MODIFIED;
 
 public class DefaultContext implements Context {
 
+  public static class ApplicationConstants {
+    private final ListeningExecutorService backgroundExecutorService;
+    private final Provider<Context> contextProvider;
+    private final ThreadLocal<Context> contextThreadLocal;
+
+    public ApplicationConstants(ListeningExecutorService backgroundExecutorService, Provider<Context> contextProvider, ThreadLocal<Context> contextThreadLocal) {
+      this.backgroundExecutorService = backgroundExecutorService;
+      this.contextProvider = contextProvider;
+      this.contextThreadLocal = contextThreadLocal;
+    }
+  }
+
+  public static class RequestConstants {
+    private final ApplicationConstants applicationConstants;
+
+    private final BindAddress bindAddress;
+    private final Request request;
+    private final Response response;
+
+    private final DirectChannelAccess directChannelAccess;
+    private final EventRegistry<RequestOutcome> onCloseRegistry;
+
+    private final ScheduledExecutorService foregroundExecutorService;
+
+    public RequestConstants(
+      ApplicationConstants applicationConstants, BindAddress bindAddress, Request request, Response response,
+      DirectChannelAccess directChannelAccess, EventRegistry<RequestOutcome> onCloseRegistry,
+      ScheduledExecutorService foregroundExecutorService
+    ) {
+      this.applicationConstants = applicationConstants;
+      this.bindAddress = bindAddress;
+      this.request = request;
+      this.response = response;
+      this.directChannelAccess = directChannelAccess;
+      this.onCloseRegistry = onCloseRegistry;
+      this.foregroundExecutorService = foregroundExecutorService;
+    }
+  }
+
   private final static Logger LOGGER = Logger.getLogger(Context.class.getName());
 
-  private final Provider<Context> contextProvider;
-  private final ThreadLocal<Context> contextThreadLocal;
-  private final DirectChannelAccess directChannelAccess;
-  private final Request request;
-  private final Response response;
+  private final RequestConstants requestConstants;
 
-  private final ScheduledExecutorService foregroundExecutorService;
-  private final ListeningExecutorService backgroundExecutorService;
   private final Registry registry;
-  private final BindAddress bindAddress;
-
-  private final EventRegistry<RequestOutcome> onCloseRegistry;
 
   private final Handler[] nextHandlers;
   private final int nextIndex;
-
   private final Handler exhausted;
 
-  public DefaultContext(
-    Provider<Context> contextProvider, ThreadLocal<Context> contextThreadLocal,
-    DirectChannelAccess directChannelAccess,
-    Request request, Response response, BindAddress bindAddress, Registry registry,
-    ListeningExecutorService backgroundExecutorService, ScheduledExecutorService foregroundExecutorService,
-    EventRegistry<RequestOutcome> onCloseRegistry, Handler[] nextHandlers, int nextIndex,
-    Handler exhausted
-  ) {
-    this.contextProvider = contextProvider;
-    this.contextThreadLocal = contextThreadLocal;
-    this.directChannelAccess = directChannelAccess;
-    this.request = request;
-    this.response = response;
-    this.bindAddress = bindAddress;
+  public DefaultContext(RequestConstants requestConstants, Registry registry, Handler[] nextHandlers, int nextIndex, Handler exhausted) {
+    this.requestConstants = requestConstants;
     this.registry = registry;
-    this.backgroundExecutorService = backgroundExecutorService;
-    this.foregroundExecutorService = foregroundExecutorService;
-    this.onCloseRegistry = onCloseRegistry;
     this.nextHandlers = nextHandlers;
     this.nextIndex = nextIndex;
     this.exhausted = exhausted;
@@ -109,15 +123,15 @@ public class DefaultContext implements Context {
 
   @Override
   public Provider<Context> getProvider() {
-    return contextProvider;
+    return requestConstants.applicationConstants.contextProvider;
   }
 
   public Request getRequest() {
-    return request;
+    return requestConstants.request;
   }
 
   public Response getResponse() {
-    return response;
+    return requestConstants.response;
   }
 
   public <O> O get(Class<O> type) throws NotInRegistryException {
@@ -255,7 +269,7 @@ public class DefaultContext implements Context {
   public <T> T parse(Parse<T> parse) {
     @SuppressWarnings("rawtypes")
     List<Parser> all = registry.getAll(Parser.class);
-    String requestContentType = request.getContentType().getType();
+    String requestContentType = requestConstants.request.getContentType().getType();
     if (requestContentType == null) {
       requestContentType = "text/plain";
     }
@@ -272,12 +286,12 @@ public class DefaultContext implements Context {
 
   @Override
   public void onClose(Action<? super RequestOutcome> callback) {
-    this.onCloseRegistry.register(callback);
+    requestConstants.onCloseRegistry.register(callback);
   }
 
   @Override
   public DirectChannelAccess getDirectChannelAccess() {
-    return directChannelAccess;
+    return requestConstants.directChannelAccess;
   }
 
   private <P, S extends Parse<P>> P maybeParse(String requestContentType, S parseSpec, Parser<?, ?> parser) {
@@ -292,7 +306,7 @@ public class DefaultContext implements Context {
 
   @Override
   public Background getBackground() {
-    return new DefaultBackground(foregroundExecutorService, backgroundExecutorService, this, contextThreadLocal);
+    return new DefaultBackground(requestConstants.foregroundExecutorService, requestConstants.applicationConstants.backgroundExecutorService, this, requestConstants.applicationConstants.contextThreadLocal);
   }
 
   @Override
@@ -302,7 +316,7 @@ public class DefaultContext implements Context {
 
   @Override
   public ScheduledExecutorService getForegroundExecutorService() {
-    return foregroundExecutorService;
+    return requestConstants.foregroundExecutorService;
   }
 
   public void redirect(String location) {
@@ -316,7 +330,7 @@ public class DefaultContext implements Context {
 
   @Override
   public void lastModified(Date date, Runnable runnable) {
-    Date ifModifiedSinceHeader = request.getHeaders().getDate(IF_MODIFIED_SINCE);
+    Date ifModifiedSinceHeader = requestConstants.request.getHeaders().getDate(IF_MODIFIED_SINCE);
     long lastModifiedSecs = date.getTime() / 1000;
 
     if (ifModifiedSinceHeader != null) {
@@ -324,18 +338,18 @@ public class DefaultContext implements Context {
       long ifModifiedSinceSecs = time / 1000;
 
       if (lastModifiedSecs == ifModifiedSinceSecs) {
-        response.status(NOT_MODIFIED.code(), NOT_MODIFIED.reasonPhrase()).send();
+        requestConstants.response.status(NOT_MODIFIED.code(), NOT_MODIFIED.reasonPhrase()).send();
         return;
       }
     }
 
-    response.getHeaders().setDate(HttpHeaders.Names.LAST_MODIFIED, date);
+    requestConstants.response.getHeaders().setDate(HttpHeaders.Names.LAST_MODIFIED, date);
     runnable.run();
   }
 
   @Override
   public BindAddress getBindAddress() {
-    return bindAddress;
+    return requestConstants.bindAddress;
   }
 
   public void error(Exception exception) {
@@ -357,7 +371,7 @@ public class DefaultContext implements Context {
         append("Error handler exception: ");
       errorHandlerException.printStackTrace(printWriter);
       LOGGER.warning(stringWriter.toString());
-      response.status(500).send();
+      requestConstants.response.status(500).send();
     }
   }
 
@@ -431,7 +445,7 @@ public class DefaultContext implements Context {
       context = createContext(registry, nextHandlers, nextIndex + 1, exhausted);
     }
 
-    contextThreadLocal.set(context);
+    requestConstants.applicationConstants.contextThreadLocal.set(context);
 
     try {
       handler.handle(context);
@@ -445,7 +459,7 @@ public class DefaultContext implements Context {
   }
 
   private DefaultContext createContext(Registry registry, Handler[] nextHandlers, int nextIndex, Handler exhausted) {
-    return new DefaultContext(contextProvider, contextThreadLocal, directChannelAccess, request, response, bindAddress, registry, backgroundExecutorService, foregroundExecutorService, onCloseRegistry, nextHandlers, nextIndex, exhausted);
+    return new DefaultContext(requestConstants, registry, nextHandlers, nextIndex, exhausted);
   }
 
   private class RejoinHandler implements Handler {

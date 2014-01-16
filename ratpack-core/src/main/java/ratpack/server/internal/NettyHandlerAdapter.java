@@ -64,7 +64,6 @@ import ratpack.server.PublicAddress;
 import ratpack.server.Stopper;
 import ratpack.util.Action;
 
-import javax.inject.Provider;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.concurrent.ConcurrentHashMap;
@@ -78,27 +77,16 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
 
   private final Handler[] handlers;
   private final Handler return404;
-  private final ListeningExecutorService backgroundExecutorService;
 
   private final ConcurrentHashMap<Channel, Action<Object>> channelSubscriptions = new ConcurrentHashMap<>(0);
-  private final ThreadLocal<Context> contextThreadLocal;
-  private final Provider<Context> contextProvider;
+
+  private final DefaultContext.ApplicationConstants applicationConstants;
 
   private Registry registry;
 
   public NettyHandlerAdapter(Stopper stopper, Handler handler, LaunchConfig launchConfig, ListeningExecutorService backgroundExecutorService) {
-    this.backgroundExecutorService = backgroundExecutorService;
     this.handlers = new Handler[]{new ErrorCatchingHandler(handler)};
     this.return404 = new ClientErrorForwardingHandler(NOT_FOUND.code());
-
-    if (launchConfig instanceof LaunchConfigInternal) {
-      this.contextThreadLocal = ((LaunchConfigInternal) launchConfig).getContextThreadLocal();
-    } else {
-      throw new IllegalArgumentException("launchConfig must implement internal protocol " + LaunchConfigInternal.class.getName());
-    }
-
-    this.contextProvider = launchConfig.getContextProvider();
-
     this.registry = RegistryBuilder.builder()
       // If you update this list, update the class level javadoc on Context.
       .add(Stopper.class, stopper)
@@ -114,6 +102,15 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
       .add(FormParser.class, new UrlEncodedFormParser())
       .add(FormParser.class, new MultipartFormParser())
       .build();
+
+    ThreadLocal<Context> contextThreadLocal;
+    if (launchConfig instanceof LaunchConfigInternal) {
+      contextThreadLocal = ((LaunchConfigInternal) launchConfig).getContextThreadLocal();
+    } else {
+      throw new IllegalArgumentException("launchConfig must implement internal protocol " + LaunchConfigInternal.class.getName());
+    }
+
+    this.applicationConstants = new DefaultContext.ApplicationConstants(backgroundExecutorService, launchConfig.getContextProvider(), contextThreadLocal);
   }
 
   @Override
@@ -198,7 +195,11 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
     DirectChannelAccess directChannelAccess = new DefaultDirectChannelAccess(channel, subscribeHandler);
 
     ScheduledExecutorService foregroundExecutorService = ctx.executor();
-    Context context = new DefaultContext(contextProvider, contextThreadLocal, directChannelAccess, request, response, bindAddress, registry, backgroundExecutorService, foregroundExecutorService, requestOutcomeEventController.getRegistry(), handlers, 0, return404);
+
+    DefaultContext.RequestConstants requestConstants = new DefaultContext.RequestConstants(
+      applicationConstants, bindAddress, request, response, directChannelAccess, requestOutcomeEventController.getRegistry(), foregroundExecutorService
+    );
+    Context context = new DefaultContext(requestConstants, registry, handlers, 0, return404);
     context.next();
   }
 

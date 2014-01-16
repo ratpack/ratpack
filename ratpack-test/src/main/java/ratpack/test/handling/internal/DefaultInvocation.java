@@ -145,7 +145,13 @@ public class DefaultInvocation implements Invocation {
     Response response = new DefaultResponse(status, responseHeaders, responseBody, fileHttpTransmitter, committer);
     ThreadLocal<Context> contextThreadLocal = new ThreadLocal<>();
     Provider<Context> contextProvider = new ThreadLocalBackedProvider<>(contextThreadLocal);
-    Context context = new DefaultContext(contextProvider, contextThreadLocal, null, request, response, bindAddress, effectiveRegistry, backgroundExecutorService, foregroundExecutorService, eventController.getRegistry(), new Handler[0], 0, next) {
+    DefaultContext.ApplicationConstants applicationConstants = new DefaultContext.ApplicationConstants(
+      backgroundExecutorService, contextProvider, contextThreadLocal
+    );
+    DefaultContext.RequestConstants requestConstants = new DefaultContext.RequestConstants(
+      applicationConstants, bindAddress, request, response, null, eventController.getRegistry(), foregroundExecutorService
+    );
+    Context context = new DefaultContext(requestConstants, effectiveRegistry, new Handler[0], 0, next) {
       @Override
       public void render(Object object) throws NoSuchRendererException {
         rendered = object;
