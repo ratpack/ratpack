@@ -34,6 +34,7 @@ import ratpack.util.Action;
 import ratpack.util.internal.ImmutableDelegatingMultiValueMap;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -91,8 +92,19 @@ public abstract class FormDecoder {
               }
             });
 
-            String uploadContentType = nettyFileUpload.getContentType();
-            MediaType contentType = uploadContentType == null ? null : DefaultMediaType.utf8(uploadContentType);
+            MediaType contentType;
+            String rawContentType = nettyFileUpload.getContentType();
+            if (rawContentType == null) {
+              contentType = null;
+            } else {
+              Charset charset = nettyFileUpload.getCharset();
+              if (charset == null) {
+                contentType = DefaultMediaType.utf8(rawContentType);
+              } else {
+                contentType = DefaultMediaType.utf8(rawContentType + ";charset=" + charset);
+              }
+            }
+
             UploadedFile fileUpload = new DefaultUploadedFile(contentType, byteBuf, nettyFileUpload.getFilename());
 
             values.add(fileUpload);

@@ -17,6 +17,7 @@
 package ratpack.http
 
 import ratpack.test.internal.RatpackGroovyDslSpec
+import spock.lang.Ignore
 
 import static ratpack.form.Forms.form
 
@@ -79,5 +80,39 @@ class FormHandlingSpec extends RatpackGroovyDslSpec {
     then:
     request.multiPart("theFile", fooFile.toFile())
     postText() == "File content: bar"
+  }
+
+  def "default encoding is utf-8"() {
+    given:
+    def fooFile = file "foo.txt", "bar"
+
+    when:
+    handlers {
+      post {
+        def form = parse form()
+        render "File type: " + form.file("theFile").contentType
+      }
+    }
+
+    then:
+    request.multiPart("theFile", fooFile.toFile(), "text/plain")
+    postText() == "File type: text/plain;charset=UTF-8"
+  }
+
+  def "respects custom encoding"() {
+    given:
+    def fooFile = file "foo.txt", "bar"
+
+    when:
+    handlers {
+      post {
+        def form = parse form()
+        render "File type: " + form.file("theFile").contentType
+      }
+    }
+
+    then:
+    request.multiPart("theFile", fooFile.toFile(), "text/plain;charset=US-ASCII")
+    postText() == "File type: text/plain;charset=US-ASCII"
   }
 }
