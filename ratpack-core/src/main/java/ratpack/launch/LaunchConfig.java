@@ -43,7 +43,7 @@ public interface LaunchConfig {
   public static final int DEFAULT_PORT = 5050;
 
   /**
-   * The default max content length
+   * The default max content length.
    */
   public int DEFAULT_MAX_CONTENT_LENGTH = 65536;
 
@@ -154,7 +154,7 @@ public interface LaunchConfig {
   public String getOther(String key, String defaultValue);
 
   /**
-   * The max content length to use for the HttpObjectAggregator
+   * The max content length to use for the HttpObjectAggregator.
    *
    * @return The max content length as an int.
    */

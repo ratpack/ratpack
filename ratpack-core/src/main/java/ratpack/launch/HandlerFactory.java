@@ -30,6 +30,7 @@ public interface HandlerFactory {
    *
    * @param launchConfig The application launch config
    * @return A handler
+   * @throws Exception any if the handler cannot be created
    */
   Handler create(LaunchConfig launchConfig) throws Exception;
 
