@@ -28,7 +28,8 @@ import ratpack.handling.Context;
 import ratpack.handling.RequestOutcome;
 import ratpack.http.MediaType;
 import ratpack.http.Request;
-import ratpack.http.RequestBody;
+import ratpack.http.TypedData;
+import ratpack.http.internal.ByteBufBackedTypedData;
 import ratpack.http.internal.DefaultMediaType;
 import ratpack.util.Action;
 import ratpack.util.internal.ImmutableDelegatingMultiValueMap;
@@ -44,7 +45,7 @@ import static ratpack.util.ExceptionUtils.uncheck;
 
 public abstract class FormDecoder {
 
-  public static Form parseForm(Context context, RequestBody requestBody) throws RuntimeException {
+  public static Form parseForm(Context context, TypedData requestBody) throws RuntimeException {
     Request request = context.getRequest();
     HttpMethod method = io.netty.handler.codec.http.HttpMethod.valueOf(request.getMethod().getName());
     HttpRequest nettyRequest = new DefaultHttpRequest(HttpVersion.HTTP_1_1, method, request.getUri());
@@ -105,7 +106,7 @@ public abstract class FormDecoder {
               }
             }
 
-            UploadedFile fileUpload = new DefaultUploadedFile(contentType, byteBuf, nettyFileUpload.getFilename());
+            UploadedFile fileUpload = new DefaultUploadedFile(new ByteBufBackedTypedData(byteBuf, contentType), nettyFileUpload.getFilename());
 
             values.add(fileUpload);
           } catch (IOException e) {

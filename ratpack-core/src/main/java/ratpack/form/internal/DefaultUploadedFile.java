@@ -17,26 +17,27 @@
 package ratpack.form.internal;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.util.CharsetUtil;
 import ratpack.form.UploadedFile;
 import ratpack.http.MediaType;
-import ratpack.util.internal.BufferUtil;
+import ratpack.http.TypedData;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 public class DefaultUploadedFile implements UploadedFile {
 
-  private final MediaType mediaType;
-  private final ByteBuf byteBuf;
+  private final TypedData typedData;
   private final String fileName;
 
-  public DefaultUploadedFile(MediaType mediaType, ByteBuf byteBuf, String fileName) {
-    this.mediaType = mediaType;
-    this.byteBuf = byteBuf;
+  public DefaultUploadedFile(TypedData typedData, String fileName) {
+    this.typedData = typedData;
     this.fileName = fileName;
   }
 
   @Override
   public MediaType getContentType() {
-    return mediaType;
+    return typedData.getContentType();
   }
 
   @Override
@@ -46,20 +47,26 @@ public class DefaultUploadedFile implements UploadedFile {
 
   @Override
   public ByteBuf getBuffer() {
-    return byteBuf;
-  }
-
-  @Override
-  public byte[] getBytes() {
-    return BufferUtil.getBytes(byteBuf);
+    return typedData.getBuffer();
   }
 
   @Override
   public String getText() {
-    if (mediaType == null) {
-      return BufferUtil.getText(byteBuf, CharsetUtil.UTF_8);
-    } else {
-      return BufferUtil.getText(byteBuf, mediaType);
-    }
+    return typedData.getText();
+  }
+
+  @Override
+  public byte[] getBytes() {
+    return typedData.getBytes();
+  }
+
+  @Override
+  public void writeTo(OutputStream outputStream) throws IOException {
+    typedData.writeTo(outputStream);
+  }
+
+  @Override
+  public InputStream getInputStream() {
+    return typedData.getInputStream();
   }
 }

@@ -17,7 +17,7 @@
 package ratpack.parse;
 
 import ratpack.handling.Context;
-import ratpack.http.RequestBody;
+import ratpack.http.TypedData;
 
 /**
  * A parser is able to deserialize the body of a request into an object representation.
@@ -58,7 +58,7 @@ public interface Parser<T, P extends Parse<T>> {
    * @param parse The description of how to parse the request body
    * @return The object representation of the request body
    */
-  T parse(Context context, RequestBody requestBody, P parse);
+  T parse(Context context, TypedData requestBody, P parse);
 
 
 }

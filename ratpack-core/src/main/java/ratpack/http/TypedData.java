@@ -17,18 +17,23 @@
 package ratpack.http;
 
 import io.netty.buffer.ByteBuf;
+import ratpack.api.Nullable;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-public interface RequestBody {
+/**
+ * Data that potentially has a content type.
+ */
+public interface TypedData {
 
   /**
-   * A structured representation of the "Content-Type" header value of the request.
+   * The type of the data.
    *
-   * @return A structured representation of the "Content-Type" header value of the request.
+   * @return The type of the data, or {@code null} if no type was advertised.
    */
+  @Nullable
   MediaType getContentType();
 
   String getText();
@@ -40,5 +45,6 @@ public interface RequestBody {
   void writeTo(OutputStream outputStream) throws IOException;
 
   InputStream getInputStream();
+
 }
 

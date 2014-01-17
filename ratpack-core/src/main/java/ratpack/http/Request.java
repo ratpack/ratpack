@@ -94,7 +94,7 @@ public interface Request {
    *
    * @return the body of the request
    */
-  RequestBody getBody();
+  TypedData getBody();
 
   /**
    * The request headers.

@@ -19,7 +19,7 @@ package ratpack.http.internal;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
 import ratpack.http.MediaType;
-import ratpack.http.RequestBody;
+import ratpack.http.TypedData;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -29,12 +29,12 @@ import java.nio.charset.Charset;
 
 import static ratpack.util.ExceptionUtils.uncheck;
 
-public class ByteBufBackedRequestBody implements RequestBody {
+public class ByteBufBackedTypedData implements TypedData {
 
   private final ByteBuf byteBuf;
   private final MediaType mediaType;
 
-  public ByteBufBackedRequestBody(ByteBuf byteBuf, MediaType mediaType) {
+  public ByteBufBackedTypedData(ByteBuf byteBuf, MediaType mediaType) {
     this.mediaType = mediaType;
     this.byteBuf = byteBuf;
   }

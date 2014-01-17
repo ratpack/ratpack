@@ -17,7 +17,7 @@
 package ratpack.parse
 
 import ratpack.handling.Context
-import ratpack.http.RequestBody
+import ratpack.http.TypedData
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 import static ratpack.parse.NoOptionParse.toType
@@ -31,7 +31,7 @@ class ParserSpec extends RatpackGroovyDslSpec {
     }
 
     @Override
-    Integer parse(Context context, RequestBody body, NoOptionParse<Integer> parse) {
+    Integer parse(Context context, TypedData body, NoOptionParse<Integer> parse) {
       body.text.toInteger()
     }
   }

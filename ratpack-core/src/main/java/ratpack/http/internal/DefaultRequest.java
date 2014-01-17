@@ -24,7 +24,7 @@ import io.netty.handler.codec.http.QueryStringDecoder;
 import ratpack.http.Headers;
 import ratpack.http.HttpMethod;
 import ratpack.http.Request;
-import ratpack.http.RequestBody;
+import ratpack.http.TypedData;
 import ratpack.util.MultiValueMap;
 import ratpack.util.internal.ImmutableDelegatingMultiValueMap;
 
@@ -39,7 +39,7 @@ public class DefaultRequest implements Request {
   private final ByteBuf content;
   private final String uri;
 
-  private RequestBody body;
+  private TypedData body;
 
   private ImmutableDelegatingMultiValueMap<String, String> queryParams;
   private String query;
@@ -147,9 +147,9 @@ public class DefaultRequest implements Request {
   }
 
   @Override
-  public RequestBody getBody() {
+  public TypedData getBody() {
     if (body == null) {
-      body = new ByteBufBackedRequestBody(content, DefaultMediaType.get(headers.get(HttpHeaders.Names.CONTENT_TYPE)));
+      body = new ByteBufBackedTypedData(content, DefaultMediaType.get(headers.get(HttpHeaders.Names.CONTENT_TYPE)));
     }
     return body;
   }

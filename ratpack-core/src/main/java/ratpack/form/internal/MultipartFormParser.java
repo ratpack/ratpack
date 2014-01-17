@@ -20,7 +20,7 @@ import ratpack.form.Form;
 import ratpack.form.FormParse;
 import ratpack.form.FormParser;
 import ratpack.handling.Context;
-import ratpack.http.RequestBody;
+import ratpack.http.TypedData;
 import ratpack.parse.ParserSupport;
 
 public class MultipartFormParser extends ParserSupport<Form, FormParse> implements FormParser {
@@ -31,7 +31,7 @@ public class MultipartFormParser extends ParserSupport<Form, FormParse> implemen
   }
 
   @Override
-  public Form parse(Context context, RequestBody requestBody, FormParse parse) {
+  public Form parse(Context context, TypedData requestBody, FormParse parse) {
     return FormDecoder.parseForm(context, requestBody);
   }
 
