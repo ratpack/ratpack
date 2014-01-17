@@ -18,7 +18,7 @@ package ratpack.http.internal;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
-import ratpack.http.Request;
+import ratpack.http.MediaType;
 import ratpack.http.RequestBody;
 
 import java.io.ByteArrayOutputStream;
@@ -31,12 +31,17 @@ import static ratpack.util.ExceptionUtils.uncheck;
 
 public class ByteBufBackedRequestBody implements RequestBody {
 
-  private final Request request;
   private final ByteBuf byteBuf;
+  private final MediaType mediaType;
 
-  public ByteBufBackedRequestBody(Request request, ByteBuf byteBuf) {
-    this.request = request;
+  public ByteBufBackedRequestBody(ByteBuf byteBuf, MediaType mediaType) {
+    this.mediaType = mediaType;
     this.byteBuf = byteBuf;
+  }
+
+  @Override
+  public MediaType getContentType() {
+    return mediaType;
   }
 
   @Override
@@ -46,7 +51,7 @@ public class ByteBufBackedRequestBody implements RequestBody {
 
   @Override
   public String getText() {
-    return byteBuf.toString(Charset.forName(request.getContentType().getCharset()));
+    return byteBuf.toString(Charset.forName(mediaType.getCharset()));
   }
 
   @Override

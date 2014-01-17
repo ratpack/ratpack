@@ -28,9 +28,7 @@ import ratpack.file.FileSystemBinding;
 import ratpack.handling.*;
 import ratpack.handling.direct.DirectChannelAccess;
 import ratpack.http.Request;
-import ratpack.http.RequestBody;
 import ratpack.http.Response;
-import ratpack.http.internal.ByteBufBackedRequestBody;
 import ratpack.parse.Parse;
 import ratpack.parse.Parser;
 import ratpack.path.PathBinding;
@@ -269,7 +267,7 @@ public class DefaultContext implements Context {
   public <T> T parse(Parse<T> parse) {
     @SuppressWarnings("rawtypes")
     List<Parser> all = registry.getAll(Parser.class);
-    String requestContentType = requestConstants.request.getContentType().getType();
+    String requestContentType = requestConstants.request.getBody().getContentType().getType();
     if (requestContentType == null) {
       requestContentType = "text/plain";
     }
@@ -297,8 +295,7 @@ public class DefaultContext implements Context {
   private <P, S extends Parse<P>> P maybeParse(String requestContentType, S parseSpec, Parser<?, ?> parser) {
     if (requestContentType.equalsIgnoreCase(parser.getContentType()) && parser.getParseType().isInstance(parseSpec)) {
       @SuppressWarnings("unchecked") Parser<P, S> castParser = (Parser<P, S>) parser;
-      RequestBody requestBody = new ByteBufBackedRequestBody(getRequest(), getRequest().getBuffer());
-      return castParser.parse(this, requestBody, parseSpec);
+      return castParser.parse(this, getRequest().getBody(), parseSpec);
     } else {
       return null;
     }

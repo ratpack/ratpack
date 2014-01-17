@@ -196,7 +196,7 @@ class BackgroundSpec extends RatpackGroovyDslSpec {
       handler {
         background {
           sleep 1000 // allow the original foreground thread to finish, Netty will reclaim the buffer
-          request.text
+          request.body.text
         } then {
           render it.toString()
         }

@@ -17,29 +17,21 @@
 package ratpack.http.internal;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufInputStream;
 import io.netty.handler.codec.http.Cookie;
 import io.netty.handler.codec.http.CookieDecoder;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.QueryStringDecoder;
 import ratpack.http.Headers;
 import ratpack.http.HttpMethod;
-import ratpack.http.MediaType;
 import ratpack.http.Request;
+import ratpack.http.RequestBody;
 import ratpack.util.MultiValueMap;
 import ratpack.util.internal.ImmutableDelegatingMultiValueMap;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-
-import static ratpack.util.ExceptionUtils.uncheck;
 
 public class DefaultRequest implements Request {
 
@@ -47,7 +39,7 @@ public class DefaultRequest implements Request {
   private final ByteBuf content;
   private final String uri;
 
-  private MediaType mediaType;
+  private RequestBody body;
 
   private ImmutableDelegatingMultiValueMap<String, String> queryParams;
   private String query;
@@ -57,9 +49,9 @@ public class DefaultRequest implements Request {
 
   public DefaultRequest(Headers headers, String methodName, String uri, ByteBuf content) {
     this.headers = headers;
+    this.content = content;
     this.method = new DefaultHttpMethod(methodName);
     this.uri = uri;
-    this.content = content;
   }
 
   public MultiValueMap<String, String> getQueryParams() {
@@ -68,13 +60,6 @@ public class DefaultRequest implements Request {
       queryParams = new ImmutableDelegatingMultiValueMap<>(queryStringDecoder.parameters());
     }
     return queryParams;
-  }
-
-  public MediaType getContentType() {
-    if (mediaType == null) {
-      mediaType = DefaultMediaType.get(headers.get(HttpHeaders.Names.CONTENT_TYPE));
-    }
-    return mediaType;
   }
 
   public HttpMethod getMethod() {
@@ -112,43 +97,6 @@ public class DefaultRequest implements Request {
     }
 
     return path;
-  }
-
-  public String getText() {
-    return getBuffer().toString(Charset.forName(getContentType().getCharset()));
-  }
-
-  @Override
-  public byte[] getBytes() {
-    ByteBuf buffer = getBuffer();
-    if (buffer.hasArray()) {
-      return buffer.array();
-    } else {
-      ByteArrayOutputStream baos = new ByteArrayOutputStream(buffer.writerIndex());
-      try {
-        writeBodyTo(baos);
-      } catch (IOException e) {
-        throw uncheck(e);
-      }
-      return baos.toByteArray();
-    }
-  }
-
-  @Override
-  public void writeBodyTo(OutputStream destination) throws IOException {
-    ByteBuf buffer = getBuffer();
-    buffer.resetReaderIndex();
-    buffer.readBytes(destination, buffer.writerIndex());
-  }
-
-  @Override
-  public InputStream getInputStream() {
-    return new ByteBufInputStream(getBuffer());
-  }
-
-  @Override
-  public ByteBuf getBuffer() {
-    return content;
   }
 
   public Set<Cookie> getCookies() {
@@ -196,6 +144,14 @@ public class DefaultRequest implements Request {
     } else {
       return found.getValue();
     }
+  }
+
+  @Override
+  public RequestBody getBody() {
+    if (body == null) {
+      body = new ByteBufBackedRequestBody(content, DefaultMediaType.get(headers.get(HttpHeaders.Names.CONTENT_TYPE)));
+    }
+    return body;
   }
 
   @Override

@@ -88,7 +88,7 @@ public class RemoteControlHandler implements Handler {
       });
 
       ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-      receiver.execute(context.getRequest().getInputStream(), outputStream);
+      receiver.execute(context.getRequest().getBody().getInputStream(), outputStream);
 
       Registry newRegistry = registryBuilder.build();
       if (!newRegistry.isEmpty()) {

@@ -16,14 +16,10 @@
 
 package ratpack.http;
 
-import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.Cookie;
 import ratpack.api.Nullable;
 import ratpack.util.MultiValueMap;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.Set;
 
 /**
@@ -72,20 +68,6 @@ public interface Request {
   MultiValueMap<String, String> getQueryParams();
 
   /**
-   * The underlying buffer for the request body.
-   *
-   * @return the underlying buffer for the request body
-   */
-  ByteBuf getBuffer();
-
-  /**
-   * A structured representation of the "Content-Type" header value of the request.
-   *
-   * @return A structured representation of the "Content-Type" header value of the request.
-   */
-  MediaType getContentType();
-
-  /**
    * The cookies that were sent with the request.
    * <p>
    * An empty set will be returned if no cookies were sent.
@@ -106,39 +88,13 @@ public interface Request {
   String oneCookie(String name);
 
   /**
-   * The request body as text.
+   * The body of the request.
    * <p>
-   * The encoding used will be determined by the value of the Content-Type header of the request.
+   * If this request does not have a body, an non null object is still returned but it effectively has no data.
    *
-   * @return The request body as text, or an empty string if the request has no body.
+   * @return the body of the request
    */
-  String getText();
-
-  /**
-   * The request body as bytes.
-   * <p>
-   * If there is no request body, or it is 0 length, an empty byte array will be returned.
-   *
-   * @return The request body as bytes.
-   */
-  byte[] getBytes();
-
-  /**
-   * Writes the request body bytes to the given output stream.
-   * <p>
-   * If there is no request body, or it is 0 length, nothing will be written to the stream.
-   *
-   * @param destination The stream to write the bytes to
-   * @throws IOException If destination throws an exception during writing
-   */
-  void writeBodyTo(OutputStream destination) throws IOException;
-
-  /**
-   * Provides an input stream of the request body.
-   *
-   * @return an input stream of the request body.
-   */
-  InputStream getInputStream();
+  RequestBody getBody();
 
   /**
    * The request headers.

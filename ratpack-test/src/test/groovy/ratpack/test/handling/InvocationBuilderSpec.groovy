@@ -213,7 +213,7 @@ class InvocationBuilderSpec extends Specification {
     invoke {
       response.headers.set "X-Request-Content-Length", request.headers.get("Content-Length")
       response.headers.set "X-Request-Content-Type", request.headers.get("Content-Type")
-      response.send request.bytes
+      response.send request.body.bytes
     }
 
     then:

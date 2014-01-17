@@ -24,6 +24,13 @@ import java.io.OutputStream;
 
 public interface RequestBody {
 
+  /**
+   * A structured representation of the "Content-Type" header value of the request.
+   *
+   * @return A structured representation of the "Content-Type" header value of the request.
+   */
+  MediaType getContentType();
+
   String getText();
 
   byte[] getBytes();
