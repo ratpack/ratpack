@@ -71,6 +71,11 @@ public interface Request {
    */
   MultiValueMap<String, String> getQueryParams();
 
+  /**
+   * The underlying buffer for the request body.
+   *
+   * @return the underlying buffer for the request body
+   */
   ByteBuf getBuffer();
 
   /**

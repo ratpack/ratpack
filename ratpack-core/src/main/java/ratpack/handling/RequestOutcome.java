@@ -19,12 +19,39 @@ package ratpack.handling;
 import ratpack.http.Request;
 import ratpack.http.Response;
 
+/**
+ * The outcome of processing a request.
+ *
+ * @see Context#onClose(ratpack.util.Action)
+ */
+@SuppressWarnings("UnusedDeclaration")
 public interface RequestOutcome {
 
+  /**
+   * The request.
+   *
+   * @return the request
+   */
   Request getRequest();
 
+  /**
+   * The response.
+   * <p>
+   * At this point, the response has been finalised.
+   * Do not attempt to change it via {@link ratpack.http.Response#getHeaders()} or {@link ratpack.http.Response#send} etc.
+   *
+   * @return the response
+   */
   Response getResponse();
 
+  /**
+   * The time at when this request was dealt with from the application's point of view.
+   * <p>
+   * After the request is closed, it may take further time to actually get the response bytes to the client.
+   * This timestamp denotes when application processing of the response finished.
+   *
+   * @return The timestamp of when processing of this request completed
+   */
   long getClosedAt();
 
 }

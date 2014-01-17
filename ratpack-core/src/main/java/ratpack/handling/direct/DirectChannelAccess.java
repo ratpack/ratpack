@@ -19,10 +19,29 @@ package ratpack.handling.direct;
 import io.netty.channel.Channel;
 import ratpack.util.Action;
 
+/**
+ * Provides direct access to the underlying Netty {@link io.netty.channel.Channel}.
+ * <p>
+ * Use of this type is discouraged.
+ * It exists to provide low level integration with Netty for extra protocols to build on, such as the {@link ratpack.websocket} support.
+ */
 public interface DirectChannelAccess {
 
+  /**
+   * The channel.
+   *
+   * @return The backing Netty channel for the request.
+   */
   Channel getChannel();
 
+  /**
+   * Signals that Ratpack should no longer manage this channel.
+   * <p>
+   * All future messages received over the channel will be given to the provided action.
+   * It is the caller of this method's responsibility for closing the channel after it is finished.
+   *
+   * @param messageReceiver the responder to channel messages.
+   */
   void takeOwnership(Action<Object> messageReceiver);
 
 }

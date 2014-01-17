@@ -77,6 +77,7 @@ public abstract class Handlers {
    * @param launchConfig The application launch config
    * @param action The chain definition
    * @return A handler
+   * @throws Exception any thrown by {@code action}
    */
   public static Handler chain(LaunchConfig launchConfig, Action<? super Chain> action) throws Exception {
     return chain(launchConfig, null, action);
@@ -89,6 +90,7 @@ public abstract class Handlers {
    * @param registry The registry.
    * @param action The chain building action.
    * @return A handler
+   * @throws Exception any thrown by {@code action}
    */
   public static Handler chain(LaunchConfig launchConfig, @Nullable Registry registry, Action<? super Chain> action) throws Exception {
     return ChainBuilders.build(launchConfig, new ChainActionTransformer(launchConfig, registry), action);
@@ -193,6 +195,7 @@ public abstract class Handlers {
   /**
    * A handler that delegates to the next handler if the content type of the request is one of the given types, otherwise raises a 415 client error.
    *
+   * @param contentTypes The request content types to require
    * @return A handler
    */
   public static Handler contentTypes(String... contentTypes) {
@@ -202,6 +205,7 @@ public abstract class Handlers {
   /**
    * A handler that delegates to the next handler if the request claims that it can accept one of the given types, otherwise raises a 406 client error.
    *
+   * @param contentTypes The content types to verify that the request can support for the response
    * @return A handler
    */
   public static Handler accepts(String... contentTypes) {
