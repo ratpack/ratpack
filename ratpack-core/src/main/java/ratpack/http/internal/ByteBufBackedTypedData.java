@@ -18,6 +18,8 @@ package ratpack.http.internal;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
+import io.netty.buffer.Unpooled;
+import io.netty.util.CharsetUtil;
 import ratpack.http.MediaType;
 import ratpack.http.TypedData;
 
@@ -46,12 +48,16 @@ public class ByteBufBackedTypedData implements TypedData {
 
   @Override
   public ByteBuf getBuffer() {
-    return byteBuf;
+    return Unpooled.unmodifiableBuffer(byteBuf);
   }
 
   @Override
   public String getText() {
-    return byteBuf.toString(Charset.forName(mediaType.getCharset()));
+    if (mediaType == null) {
+      return byteBuf.toString(CharsetUtil.UTF_8);
+    } else {
+      return byteBuf.toString(Charset.forName(mediaType.getCharset()));
+    }
   }
 
   @Override
