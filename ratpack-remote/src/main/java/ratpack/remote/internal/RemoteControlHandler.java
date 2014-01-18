@@ -21,6 +21,7 @@ import groovyx.remote.groovy.server.ContextFactory;
 import groovyx.remote.server.Receiver;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
+import ratpack.registry.Registries;
 import ratpack.registry.Registry;
 import ratpack.registry.RegistryBuilder;
 
@@ -64,7 +65,7 @@ public class RemoteControlHandler implements Handler {
       if (registryInjection == null) {
         rest.handle(context);
       } else {
-        context.insert(RegistryBuilder.join(context, registryInjection), rest);
+        context.insert(Registries.join(context, registryInjection), rest);
       }
     }
   }
@@ -72,8 +73,8 @@ public class RemoteControlHandler implements Handler {
   private class CommandHandler implements Handler {
     @Override
     public void handle(Context context) throws Exception {
-      final Registry commandRegistry = RegistryBuilder.join(context, registry);
-      final RegistryBuilder registryBuilder = RegistryBuilder.builder();
+      final Registry commandRegistry = Registries.join(context, registry);
+      final RegistryBuilder registryBuilder = Registries.builder();
 
       Receiver receiver = new RatpackReceiver(new ContextFactory() {
         @Override

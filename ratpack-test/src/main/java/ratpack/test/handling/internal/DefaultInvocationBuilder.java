@@ -27,6 +27,7 @@ import ratpack.http.internal.DefaultMediaType;
 import ratpack.http.internal.DefaultRequest;
 import ratpack.http.internal.DefaultStatus;
 import ratpack.http.internal.NettyHeadersBackedMutableHeaders;
+import ratpack.registry.Registries;
 import ratpack.registry.Registry;
 import ratpack.registry.RegistryBuilder;
 import ratpack.test.handling.Invocation;
@@ -55,7 +56,7 @@ public class DefaultInvocationBuilder implements InvocationBuilder {
 
   private int timeout = 5;
 
-  private RegistryBuilder registryBuilder = RegistryBuilder.builder();
+  private RegistryBuilder registryBuilder = Registries.builder();
 
   public DefaultInvocationBuilder() {
   }

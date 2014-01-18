@@ -16,23 +16,36 @@
 
 package ratpack.registry;
 
+import ratpack.registry.internal.DefaultRegistryBuilder;
+import ratpack.registry.internal.HierarchicalRegistry;
 import ratpack.util.Factory;
 
+/**
+ * Static methods for creating and building {@link ratpack.registry.Registry registries}.
+ */
 public abstract class Registries {
 
   private Registries() {
   }
 
   public static <T> Registry registry(Class<? super T> publicType, T implementation) {
-    return RegistryBuilder.builder().add(publicType, implementation).build();
+    return builder().add(publicType, implementation).build();
   }
 
   public static <T> Registry registry(Class<T> publicType, Factory<? extends T> factory) {
-    return RegistryBuilder.builder().add(publicType, factory).build();
+    return builder().add(publicType, factory).build();
   }
 
   public static Registry registry(Object object) {
-    return RegistryBuilder.builder().add(object).build();
+    return builder().add(object).build();
+  }
+
+  public static RegistryBuilder builder() {
+    return new DefaultRegistryBuilder();
+  }
+
+  public static Registry join(Registry parent, Registry child) {
+    return new HierarchicalRegistry(parent, child);
   }
 
 }

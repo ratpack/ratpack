@@ -53,8 +53,8 @@ import ratpack.http.Response;
 import ratpack.http.internal.*;
 import ratpack.launch.LaunchConfig;
 import ratpack.launch.internal.LaunchConfigInternal;
+import ratpack.registry.Registries;
 import ratpack.registry.Registry;
-import ratpack.registry.RegistryBuilder;
 import ratpack.render.CharSequenceRenderer;
 import ratpack.render.internal.DefaultCharSequenceRenderer;
 import ratpack.server.BindAddress;
@@ -85,7 +85,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
   public NettyHandlerAdapter(Stopper stopper, Handler handler, LaunchConfig launchConfig, ListeningExecutorService backgroundExecutorService) {
     this.handlers = new Handler[]{new ErrorCatchingHandler(handler)};
     this.return404 = new ClientErrorForwardingHandler(NOT_FOUND.code());
-    this.registry = RegistryBuilder.builder()
+    this.registry = Registries.builder()
       // If you update this list, update the class level javadoc on Context.
       .add(Stopper.class, stopper)
       .add(FileSystemBinding.class, launchConfig.getBaseDir())

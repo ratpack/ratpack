@@ -194,17 +194,6 @@ public interface Context extends Registry {
   void insert(Registry registry, Handler... handlers);
 
   /**
-   * Inserts some handlers into the pipeline to execute with the the given object added to the service, then delegates to the first.
-   * <p>
-   * The given object will take precedence over any existing object available via its concrete type.
-   *
-   * @param handlers The handlers to insert
-   * @param object The object to add to the service for the handlers
-   */
-  @NonBlocking
-  void insert(Object object, Handler... handlers);
-
-  /**
    * Convenience method for delegating to a single handler.
    * <p>
    * Designed to be used in conjunction with the {@link #getByMethod()} and {@link #getByContent()} methods.

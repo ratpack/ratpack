@@ -35,8 +35,8 @@ import ratpack.handling.internal.DefaultRequestOutcome;
 import ratpack.handling.internal.DelegatingHeaders;
 import ratpack.http.*;
 import ratpack.http.internal.DefaultResponse;
+import ratpack.registry.Registries;
 import ratpack.registry.Registry;
-import ratpack.registry.RegistryBuilder;
 import ratpack.render.NoSuchRendererException;
 import ratpack.server.BindAddress;
 import ratpack.test.handling.Invocation;
@@ -134,8 +134,8 @@ public class DefaultInvocation implements Invocation {
       }
     };
 
-    Registry effectiveRegistry = RegistryBuilder.join(
-      RegistryBuilder.builder().
+    Registry effectiveRegistry = Registries.join(
+      Registries.builder().
         add(ClientErrorHandler.class, clientErrorHandler).
         add(ServerErrorHandler.class, serverErrorHandler).
         build(),

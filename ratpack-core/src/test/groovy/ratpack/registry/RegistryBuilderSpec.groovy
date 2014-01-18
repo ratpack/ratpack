@@ -18,13 +18,16 @@ package ratpack.registry
 
 import spock.lang.Specification
 
+import static ratpack.registry.Registries.join
+import static ratpack.registry.Registries.registry
+
 class RegistryBuilderSpec extends Specification {
 
   def "can retrieve successfully"() {
     given:
-    def c = RegistryBuilder.builder().add(String, "foo").build()
-    def p = RegistryBuilder.builder().add(Integer, 2).build()
-    def n = RegistryBuilder.join(p, c)
+    def c = registry(String, "foo")
+    def p = registry(Integer, 2)
+    def n = join(p, c)
 
     expect:
     n.get(String) == "foo"

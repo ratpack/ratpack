@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,51 +16,21 @@
 
 package ratpack.registry;
 
-import com.google.common.collect.ImmutableList;
-import ratpack.registry.internal.*;
 import ratpack.util.Factory;
 
-public class RegistryBuilder implements RegistrySpec {
-
-  private final ImmutableList.Builder<RegistryEntry<?>> builder = ImmutableList.builder();
-
-  private RegistryBuilder() {
-  }
-
-  public static RegistryBuilder builder() {
-    return new RegistryBuilder();
-  }
+public interface RegistryBuilder extends RegistrySpec {
 
   @Override
-  public <O> RegistryBuilder add(Class<? super O> type, O object) {
-    //noinspection unchecked
-    builder.add(new DefaultRegistryEntry<>(type, object));
-    return this;
-  }
+  <O> RegistryBuilder add(Class<? super O> type, O object);
 
   @Override
-  public <O> RegistryBuilder add(O object) {
-    @SuppressWarnings("unchecked") Class<O> cast = (Class<O>) object.getClass();
-    return add(cast, object);
-  }
+  <O> RegistryBuilder add(O object);
 
   @Override
-  public <O> RegistryBuilder add(Class<O> type, Factory<? extends O> object) {
-    //noinspection unchecked
-    builder.add(new LazyRegistryEntry<>(type, object));
-    return this;
-  }
+  <O> RegistryBuilder add(Class<O> type, Factory<? extends O> object);
 
-  public Registry build() {
-    return new CachingRegistry(new DefaultRegistry(builder.build()));
-  }
+  Registry build();
 
-  public Registry build(Registry parent) {
-    return join(parent, new DefaultRegistry(builder.build()));
-  }
-
-  public static Registry join(Registry parent, Registry child) {
-    return new HierarchicalRegistry(parent, child);
-  }
+  Registry build(Registry parent);
 
 }

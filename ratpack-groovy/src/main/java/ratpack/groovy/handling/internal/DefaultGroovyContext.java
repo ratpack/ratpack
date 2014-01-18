@@ -135,12 +135,6 @@ public class DefaultGroovyContext implements GroovyContext {
 
   @Override
   @NonBlocking
-  public void insert(Object object, Handler... handlers) {
-    delegate.insert(object, handlers);
-  }
-
-  @Override
-  @NonBlocking
   public void respond(Handler handler) {
     delegate.respond(handler);
   }

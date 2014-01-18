@@ -76,9 +76,9 @@ import ratpack.api.NonBlocking;
  * // A handler does not need to participate in the response, but can instead "route" the exchange to different handlers…
  *
  * class RoutingHandler implements Handler {
- *   private final List&lt;Handler&gt; fooHandlers;
+ *   private final Handler[] fooHandlers;
  *
- *   public RoutingHandler(List&lt;Handler&gt; fooHandlers) {
+ *   public RoutingHandler(Handler... fooHandlers) {
  *     this.fooHandlers = fooHandlers;
  *   }
  *

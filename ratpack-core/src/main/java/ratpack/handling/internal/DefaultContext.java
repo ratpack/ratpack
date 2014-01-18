@@ -33,12 +33,15 @@ import ratpack.parse.*;
 import ratpack.path.PathBinding;
 import ratpack.path.PathTokens;
 import ratpack.registry.NotInRegistryException;
+import ratpack.registry.Registries;
 import ratpack.registry.Registry;
-import ratpack.registry.RegistryBuilder;
 import ratpack.render.NoSuchRendererException;
 import ratpack.render.Renderer;
 import ratpack.server.BindAddress;
-import ratpack.util.*;
+import ratpack.util.Action;
+import ratpack.util.ExceptionUtils;
+import ratpack.util.Result;
+import ratpack.util.ResultAction;
 
 import javax.inject.Provider;
 import java.io.PrintWriter;
@@ -154,19 +157,7 @@ public class DefaultContext implements Context {
 
   @Override
   public void next(Registry registry) {
-    doNext(this, RegistryBuilder.join(this.registry, registry), nextIndex, nextHandlers, exhausted);
-  }
-
-  public <T> void next(Class<T> publicType, Factory<? extends T> factory) {
-    next(RegistryBuilder.builder().add(publicType, factory).build());
-  }
-
-  public void next(Object object) {
-    next(RegistryBuilder.builder().add(object).build());
-  }
-
-  public <P, T extends P> void next(Class<P> publicType, T impl) {
-    next(RegistryBuilder.builder().add(publicType, impl).build());
+    doNext(this, Registries.join(this.registry, registry), nextIndex, nextHandlers, exhausted);
   }
 
   public void insert(Handler... handlers) {
@@ -182,29 +173,7 @@ public class DefaultContext implements Context {
       throw new IllegalArgumentException("handlers is zero length");
     }
 
-    doNext(this, RegistryBuilder.join(this.registry, registry), 0, handlers, new RejoinHandler());
-  }
-
-  public <T> void insert(Class<T> publicType, Factory<? extends T> factory, Handler... handlers) {
-    if (handlers.length == 0) {
-      throw new IllegalArgumentException("handlers is zero length");
-    }
-
-    insert(RegistryBuilder.builder().add(publicType, factory).build(), handlers);
-  }
-
-  public <P, T extends P> void insert(Class<P> publicType, T implementation, Handler... handlers) {
-    if (handlers.length == 0) {
-      throw new IllegalArgumentException("handlers is zero length");
-    }
-    insert(RegistryBuilder.builder().add(publicType, implementation).build(), handlers);
-  }
-
-  public void insert(Object object, Handler... handlers) {
-    if (handlers.length == 0) {
-      throw new IllegalArgumentException("handlers is zero length");
-    }
-    insert(RegistryBuilder.builder().add(object).build(), handlers);
+    doNext(this, Registries.join(this.registry, registry), 0, handlers, new RejoinHandler());
   }
 
   public void respond(Handler handler) {

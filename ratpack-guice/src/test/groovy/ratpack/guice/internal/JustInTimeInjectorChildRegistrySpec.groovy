@@ -18,7 +18,7 @@ package ratpack.guice.internal
 
 import com.google.inject.Guice
 import ratpack.launch.LaunchConfig
-import ratpack.registry.RegistryBuilder
+import ratpack.registry.Registries
 import spock.lang.Specification
 
 import static ratpack.guice.Guice.justInTimeRegistry
@@ -30,9 +30,9 @@ class JustInTimeInjectorChildRegistrySpec extends Specification {
   def "delegates to parent when no bound instance"() {
     when:
     def launchConfig = Mock(LaunchConfig)
-    def parent = RegistryBuilder.builder().add(LaunchConfig, launchConfig).build()
+    def parent = Registries.registry(LaunchConfig, launchConfig)
     def injector = Guice.createInjector()
-    def registry = RegistryBuilder.join(parent, justInTimeRegistry(injector))
+    def registry = Registries.join(parent, justInTimeRegistry(injector))
 
     then:
     registry.get(Thing) instanceof Thing
