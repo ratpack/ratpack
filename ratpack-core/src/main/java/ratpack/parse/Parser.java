@@ -22,7 +22,7 @@ import ratpack.http.TypedData;
 /**
  * A parser is able to deserialize the body of a request into an object representation.
  * <p>
- * Parsers power the {@link Context#parse(Parse)} mechanism.
+ * Parses power the {@link Context#parse(Parse)} mechanism.
  * <p>
  * A parser works with requests of a given content type (as advertised by {@link #getContentType()})
  * and with a particular type of {@link Parse} object (as advertised by {@link #getParseType()}),

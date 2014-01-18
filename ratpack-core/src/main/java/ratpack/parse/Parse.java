@@ -25,12 +25,12 @@ package ratpack.parse;
  * Importantly, parse objects are agnostic to the type of the request body.
  * Different {@link Parser} implementations are responsible for converting from different mime types to object types.
  * <p>
- * For no option parse objects, use {@link NoOptionParse}.
+ * For no option parse objects, use {@link NoOptParse}.
  * To implement a custom parse type with objects, see {@link ParseSupport}
  *
  * @param <T> the type of object to parse the request into
  * @see Parser
- * @see NoOptionParse
+ * @see NoOptParse
  * @see ParserSupport
  */
 public interface Parse<T> {

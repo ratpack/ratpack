@@ -17,21 +17,29 @@
 package ratpack.form.internal;
 
 import ratpack.form.Form;
-import ratpack.form.FormParse;
 import ratpack.form.FormParser;
 import ratpack.handling.Context;
 import ratpack.http.TypedData;
-import ratpack.parse.ParserSupport;
+import ratpack.parse.NoOptParse;
+import ratpack.parse.NoOptParserSupport;
 
-public class UrlEncodedFormParser extends ParserSupport<Form, FormParse> implements FormParser {
+public class DefaultFormParser extends NoOptParserSupport<Form> implements FormParser {
 
-  public UrlEncodedFormParser() {
-    super("application/x-www-form-urlencoded");
+  private DefaultFormParser(String contentType) {
+    super(contentType);
   }
 
   @Override
-  public Form parse(Context context, TypedData requestBody, FormParse parse) {
+  public Form parse(Context context, TypedData requestBody, NoOptParse<Form> parse) {
     return FormDecoder.parseForm(context, requestBody);
+  }
+
+  public static FormParser multiPart() {
+    return new DefaultFormParser("multipart/form-data");
+  }
+
+  public static FormParser urlEncoded() {
+    return new DefaultFormParser("application/x-www-form-urlencoded");
   }
 
 }

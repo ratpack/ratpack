@@ -29,8 +29,28 @@ import java.util.List;
  * <p>
  * All instances of this type are <b>immutable</b>.
  * Calling any mutative method of {@link ratpack.util.MultiValueMap} will result in an {@link UnsupportedOperationException}.
+ * <h5>Example usage:</h5>
+ * <pre class="tested">
+ * import ratpack.handling.Handler;
+ * import ratpack.handling.Context;
+ * import ratpack.form.Form;
+ * import ratpack.form.UploadedFile;
+ * import static ratpack.parse.NoOptParse.to;
  *
- * @see Forms#form()
+ * public class FormHandler implements Handler {
+ *   public void handle(Context context) {
+ *     context.getByMethod().post(new Runnable() {
+ *       public void run() {
+ *         Form form = context.parse(to(Form.class));
+ *         UploadedFile file = form.file("someFile.txt");
+ *         String param = form.get("param");
+ *         List&lt;String&gt; multi = form.getAll("multi");
+ *         context.render("form uploaded!");
+ *       }
+ *     });
+ *   }
+ * }
+ * </pre>
  */
 public interface Form extends MultiValueMap<String, String> {
 

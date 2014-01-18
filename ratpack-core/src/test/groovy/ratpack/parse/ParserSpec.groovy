@@ -19,18 +19,17 @@ package ratpack.parse
 import ratpack.handling.Context
 import ratpack.http.TypedData
 import ratpack.test.internal.RatpackGroovyDslSpec
-
-import static ratpack.parse.NoOptionParse.to
+import static ratpack.parse.NoOptParse.to
 
 class ParserSpec extends RatpackGroovyDslSpec {
 
-  static class IntParser extends ParserSupport<Integer, NoOptionParse<Integer>> {
+  static class IntParser extends NoOptParserSupport<Integer> {
     IntParser() {
       super("text/plain")
     }
 
     @Override
-    Integer parse(Context context, TypedData body, NoOptionParse<Integer> parse) {
+    Integer parse(Context context, TypedData body, NoOptParse<Integer> parse) {
       body.text.toInteger()
     }
   }

@@ -690,20 +690,24 @@ public interface Context extends Registry {
    * If the request has no declared content type, {@code text/plain} will be assumed.
    * <h5>Core Parsers</h5>
    * <p>
-   * Ratpack core provides implicit parsers for the following parse types:
+   * Ratpack core provides implicit parsers for the following parse and content types:
    * <ul>
-   * <li>{@link ratpack.form.FormParse}</li>
+   * <li>{@link ratpack.form.Form}</li>
+   * <ul>
+   *   <li>multipart/form-data</li>
+   *   <li>application/x-www-form-urlencoded</li>
+   * </ul>
    * </ul>
    * <h5>Example Usage</h5>
    * <pre class="tested">
    * import ratpack.handling.Handler;
    * import ratpack.handling.Context;
    * import ratpack.form.Form;
-   * import static ratpack.form.Forms.form;
+   * import static ratpack.parse.NoOptParse.to;
    *
    * public class FormHandler implements Handler {
    *   public void handle(Context context) {
-   *     Form form = context.parse(form());
+   *     Form form = context.parse(to(Form.class));
    *     context.render(form.get("someFormParam"));
    *   }
    * }

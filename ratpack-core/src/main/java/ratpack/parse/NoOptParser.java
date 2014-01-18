@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package ratpack.form;
-
-import ratpack.parse.Parse;
+package ratpack.parse;
 
 /**
- * A {@link Parse} for a {@link Form}.
+ * A parser that uses {@link NoOptParse} as its parse type.
+ * <p>
+ * See {@link NoOptParserSupport} for a base class for implementations.
  *
- * @see Forms#form()
+ * @param <T> the type of object to parse to
  */
-public interface FormParse extends Parse<Form> {
+public interface NoOptParser<T> extends Parser<T, NoOptParse<T>> {
 
 }

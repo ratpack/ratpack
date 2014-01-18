@@ -23,21 +23,48 @@ import static ratpack.util.internal.Types.findImplParameterTypeAtIndex;
  * <p>
  * Specializations only need to implement the {@link Parser#parse(ratpack.handling.Context, ratpack.http.TypedData, Parse)} method.
  * <pre class="tested">
- * import ratpack.parse.ParserSupport;
- * import ratpack.parse.Parse;
- * import ratpack.parse.NoOptionParse;
+ * import ratpack.handling.Handler;
  * import ratpack.handling.Context;
  * import ratpack.http.TypedData;
+ * import ratpack.parse.ParseSupport;
+ * import ratpack.parse.ParserSupport;
+ * import ratpack.parse.ParseException;
  *
- * import java.io.UnsupportedEncodingException;
+ * public class MaxLengthStringParse extends ParseSupport&lt;String&gt; {
+ *   private int maxLength;
  *
- * public class JsonStringParser extends ParserSupport&lt;String, NoOptionParse&lt;String&gt;&gt; {
- *   public JsonStringParser() {
- *     super("application/json");
+ *   public MaxLengthStringParse(int maxLength) {
+ *     this.maxLength = maxLength;
  *   }
  *
- *   String parse(Context context, TypedData requestBody, NoOptionParse&lt;String&gt; parse) throws UnsupportedEncodingException {
- *     return new String(requestBody.getBytes(), "UTF-8");
+ *   public int getMaxLength() {
+ *     return maxLength;
+ *   }
+ * }
+ *
+ * // A parser for this parser type…
+ *
+ * public class MaxLengthStringParser extends ParserSupport<String, MaxLengthStringParse> {
+ *   public MaxLengthStringParser() {
+ *     super("text/plain");
+ *   }
+ *
+ *   String parse(Context context, TypedData requestBody, MaxLengthStringParse parse) throws UnsupportedEncodingException {
+ *     String rawString = requestBody.getText();
+ *     if (rawString.length() < parse.getMaxLength()) {
+ *       return rawString;
+ *     } else {
+ *       return rawString.substring(0, parse.getMaxLength());
+ *     }
+ *   }
+ * }
+ *
+ * // Assuming the parser above has been registered upstream…
+ *
+ * public class ExampleHandler implements Handler {
+ *   public void handle(Context context) throws ParseException {
+ *     String string = context.parse(new MaxLengthStringParse(20));
+ *     // …
  *   }
  * }
  * </pre>

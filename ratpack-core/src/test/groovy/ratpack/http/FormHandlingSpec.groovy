@@ -16,10 +16,10 @@
 
 package ratpack.http
 
+import ratpack.form.Form
 import ratpack.test.internal.RatpackGroovyDslSpec
-import spock.lang.Ignore
 
-import static ratpack.form.Forms.form
+import static ratpack.parse.NoOptParse.to
 
 class FormHandlingSpec extends RatpackGroovyDslSpec {
 
@@ -27,7 +27,7 @@ class FormHandlingSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       post {
-        def form = parse form()
+        def form = parse to(Form)
         render form.toString()
       }
     }
@@ -51,7 +51,7 @@ class FormHandlingSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       post {
-        def form = parse form()
+        def form = parse to(Form)
         render form.toString()
       }
     }
@@ -72,7 +72,7 @@ class FormHandlingSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       post {
-        def form = parse form()
+        def form = parse to(Form)
         render "File content: " + form.file("theFile").text
       }
     }
@@ -89,7 +89,7 @@ class FormHandlingSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       post {
-        def form = parse form()
+        def form = parse to(Form)
         render "File type: " + form.file("theFile").contentType
       }
     }
@@ -106,7 +106,7 @@ class FormHandlingSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       post {
-        def form = parse form()
+        def form = parse to(Form)
         render "File type: " + form.file("theFile").contentType
       }
     }

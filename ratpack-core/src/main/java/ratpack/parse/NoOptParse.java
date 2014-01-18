@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,28 +16,19 @@
 
 package ratpack.parse;
 
-import ratpack.util.internal.Types;
-
 /**
- * Convenience base for {@link Parse} implementations.
+ * A generic parse type that can be used when parsers do not need any extra information from parse objects other than type.
  * <p>
- * If implementing a parse type with no “options” beyond the {@link #getType()} method, consider using {@link NoOptParse} instead.
- * <p>
- * If implementing a parse type that does provide extra options to the parser implementation, this class can be used as the base.
- * <p>
- * See {@link ParserSupport} for usage examples.
+ * Use {@link #to(Class)} to create instances.
  *
  * @param <T> The type of object to parse to
  */
-public class ParseSupport<T> implements Parse<T> {
+public final class NoOptParse<T> implements Parse<T> {
 
   private final Class<T> type;
 
-  /**
-   * Constructor.
-   */
-  protected ParseSupport() {
-    this.type = Types.findImplParameterTypeAtIndex(getClass(), ParseSupport.class, 0);
+  private NoOptParse(Class<T> type) {
+    this.type = type;
   }
 
   /**
@@ -46,6 +37,17 @@ public class ParseSupport<T> implements Parse<T> {
   @Override
   public Class<T> getType() {
     return type;
+  }
+
+  /**
+   * Creates a no option parse for the given type.
+   *
+   * @param type The type to parse to
+   * @param <T> The type to parse to
+   * @return An no option parser for the given type
+   */
+  public static <T> NoOptParse<T> to(Class<T> type) {
+    return new NoOptParse<>(type);
   }
 
 }
