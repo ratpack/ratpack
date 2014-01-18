@@ -20,14 +20,13 @@ import ratpack.handling.Context
 import ratpack.http.TypedData
 import ratpack.test.internal.RatpackGroovyDslSpec
 
-import static ratpack.parse.NoOptionParse.toType
+import static ratpack.parse.NoOptionParse.to
 
 class ParserSpec extends RatpackGroovyDslSpec {
 
   static class IntParser extends ParserSupport<Integer, NoOptionParse<Integer>> {
-    @Override
-    String getContentType() {
-      "text/plain"
+    IntParser() {
+      super("text/plain")
     }
 
     @Override
@@ -43,7 +42,7 @@ class ParserSpec extends RatpackGroovyDslSpec {
     }
     handlers {
       post {
-        def i = parse toType(Integer)
+        def i = parse to(Integer)
 
         response.send(i.getClass().toString())
       }

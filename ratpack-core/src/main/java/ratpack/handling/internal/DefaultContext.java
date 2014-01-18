@@ -29,8 +29,10 @@ import ratpack.handling.*;
 import ratpack.handling.direct.DirectChannelAccess;
 import ratpack.http.Request;
 import ratpack.http.Response;
+import ratpack.parse.NoSuchParserException;
 import ratpack.parse.Parse;
 import ratpack.parse.Parser;
+import ratpack.parse.ParserException;
 import ratpack.path.PathBinding;
 import ratpack.path.PathTokens;
 import ratpack.registry.NotInRegistryException;
@@ -264,22 +266,34 @@ public class DefaultContext implements Context {
   }
 
   @Override
-  public <T> T parse(Parse<T> parse) {
+  public <T> T parse(Parse<T> parse) throws ParserException, NoSuchParserException {
     @SuppressWarnings("rawtypes")
     List<Parser> all = registry.getAll(Parser.class);
     String requestContentType = requestConstants.request.getBody().getContentType().getType();
     if (requestContentType == null) {
       requestContentType = "text/plain";
     }
-    T parsed;
     for (Parser<?, ?> parser : all) {
-      parsed = maybeParse(requestContentType, parse, parser);
+      T parsed = maybeParse(requestContentType, parse, parser);
       if (parsed != null) {
         return parsed;
       }
     }
 
-    throw new RuntimeException("No parser for " + parse + " and content type " + requestContentType);
+    throw new NoSuchParserException(parse, requestContentType);
+  }
+
+  private <P, S extends Parse<P>> P maybeParse(String requestContentType, S parseSpec, Parser<?, ?> parser) throws ParserException {
+    if (requestContentType.equalsIgnoreCase(parser.getContentType()) && parser.getParseType().isInstance(parseSpec)) {
+      @SuppressWarnings("unchecked") Parser<P, S> castParser = (Parser<P, S>) parser;
+      try {
+        return castParser.parse(this, getRequest().getBody(), parseSpec);
+      } catch (Exception e) {
+        throw new ParserException(parser, e);
+      }
+    } else {
+      return null;
+    }
   }
 
   @Override
@@ -290,15 +304,6 @@ public class DefaultContext implements Context {
   @Override
   public DirectChannelAccess getDirectChannelAccess() {
     return requestConstants.directChannelAccess;
-  }
-
-  private <P, S extends Parse<P>> P maybeParse(String requestContentType, S parseSpec, Parser<?, ?> parser) {
-    if (requestContentType.equalsIgnoreCase(parser.getContentType()) && parser.getParseType().isInstance(parseSpec)) {
-      @SuppressWarnings("unchecked") Parser<P, S> castParser = (Parser<P, S>) parser;
-      return castParser.parse(this, getRequest().getBody(), parseSpec);
-    } else {
-      return null;
-    }
   }
 
   @Override

@@ -25,9 +25,8 @@ import ratpack.parse.ParserSupport;
 
 public class UrlEncodedFormParser extends ParserSupport<Form, FormParse> implements FormParser {
 
-  @Override
-  public String getContentType() {
-    return "application/x-www-form-urlencoded";
+  public UrlEncodedFormParser() {
+    super("application/x-www-form-urlencoded");
   }
 
   @Override

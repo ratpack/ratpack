@@ -16,8 +16,30 @@
 
 package ratpack.parse;
 
+/**
+ * A parse object is a description of how to parse the request into an object.
+ * <p>
+ * The minimum requirement of a parse object is to specify what the object type should be.
+ * Specialisations of this type may provide more information that can be used in deserialization.
+ * <p>
+ * Importantly, parse objects are agnostic to the type of the request body.
+ * Different {@link Parser} implementations are responsible for converting from different mime types to object types.
+ * <p>
+ * For no option parse objects, use {@link NoOptionParse}.
+ * To implement a custom parse type with objects, see {@link ParseSupport}
+ *
+ * @param <T> the type of object to parse the request into
+ * @see Parser
+ * @see NoOptionParse
+ * @see ParserSupport
+ */
 public interface Parse<T> {
 
+  /**
+   * The type of object to parse to.
+   *
+   * @return the type of object to parse to
+   */
   Class<T> getType();
 
 }

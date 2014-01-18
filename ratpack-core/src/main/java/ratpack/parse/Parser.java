@@ -22,10 +22,20 @@ import ratpack.http.TypedData;
 /**
  * A parser is able to deserialize the body of a request into an object representation.
  * <p>
- * The {@link ratpack.parse.ParserSupport} class is a convenient base for implementations.
+ * Parsers power the {@link Context#parse(Parse)} mechanism.
+ * <p>
+ * A parser works with requests of a given content type (as advertised by {@link #getContentType()})
+ * and with a particular type of {@link Parse} object (as advertised by {@link #getParseType()}),
+ * of a particular final parsed type (as advertised by {@link #getParsedType()}).
+ * <p>
+ * The {@link ParserSupport} class is a convenient base, the documentation
+ * of which contains implementation examples.
  *
  * @param <T> The type that this parser deserializes to
- * @param <P> The type of the “parse object” which describes how to parse the request
+ * @param <P> The type of the {@link Parse parse object}
+ * @see Parse
+ * @see ParserSupport
+ * @see Context#parse(Parse)
  */
 public interface Parser<T, P extends Parse<T>> {
 
@@ -57,8 +67,9 @@ public interface Parser<T, P extends Parse<T>> {
    * @param requestBody The request body to deserialize
    * @param parse The description of how to parse the request body
    * @return The object representation of the request body
+   * @throws Exception if an error occurs parsing the request
    */
-  T parse(Context context, TypedData requestBody, P parse);
+  T parse(Context context, TypedData requestBody, P parse) throws Exception;
 
 
 }

@@ -29,7 +29,9 @@ import ratpack.handling.*;
 import ratpack.handling.direct.DirectChannelAccess;
 import ratpack.http.Request;
 import ratpack.http.Response;
+import ratpack.parse.NoSuchParserException;
 import ratpack.parse.Parse;
+import ratpack.parse.ParserException;
 import ratpack.path.PathTokens;
 import ratpack.registry.NotInRegistryException;
 import ratpack.registry.Registry;
@@ -263,7 +265,7 @@ public class DefaultGroovyContext implements GroovyContext {
   }
 
   @Override
-  public <T> T parse(Parse<T> parse) {
+  public <T> T parse(Parse<T> parse) throws NoSuchParserException, ParserException {
     return delegate.parse(parse);
   }
 

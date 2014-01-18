@@ -25,6 +25,10 @@ import ratpack.parse.ParserSupport;
 
 public class MultipartFormParser extends ParserSupport<Form, FormParse> implements FormParser {
 
+  public MultipartFormParser() {
+    super("multipart/form-data");
+  }
+
   @Override
   public String getContentType() {
     return "multipart/form-data";

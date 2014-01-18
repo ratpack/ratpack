@@ -35,12 +35,8 @@ public class JsonNodeParser extends ParserSupport<JsonNode, JsonParse<JsonNode>>
 
   @Inject
   public JsonNodeParser(ObjectReader objectReader) {
+    super("application/json");
     this.objectReader = objectReader;
-  }
-
-  @Override
-  public String getContentType() {
-    return "application/json";
   }
 
   @Override

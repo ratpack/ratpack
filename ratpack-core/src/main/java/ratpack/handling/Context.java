@@ -21,7 +21,9 @@ import ratpack.background.Background;
 import ratpack.handling.direct.DirectChannelAccess;
 import ratpack.http.Request;
 import ratpack.http.Response;
+import ratpack.parse.NoSuchParserException;
 import ratpack.parse.Parse;
+import ratpack.parse.ParserException;
 import ratpack.path.PathTokens;
 import ratpack.registry.NotInRegistryException;
 import ratpack.registry.Registry;
@@ -669,9 +671,11 @@ public interface Context extends Registry {
    * @param parse The specification of how to parse the request
    * @param <T> The type of object the request is parsed into
    * @return The parsed object
+   * @throws NoSuchParserException if no suitable parser could be found in the registry
+   * @throws ParserException if a suitable parser was found, but it threw an exception while parsing
    * @see ratpack.parse.Parser
    */
-  <T> T parse(Parse<T> parse);
+  <T> T parse(Parse<T> parse) throws NoSuchParserException, ParserException;
 
   /**
    * Registers a callback to be notified when the request for this context is “closed” (i.e. responded to).
