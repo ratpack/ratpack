@@ -29,10 +29,7 @@ import ratpack.handling.*;
 import ratpack.handling.direct.DirectChannelAccess;
 import ratpack.http.Request;
 import ratpack.http.Response;
-import ratpack.parse.NoSuchParserException;
-import ratpack.parse.Parse;
-import ratpack.parse.Parser;
-import ratpack.parse.ParserException;
+import ratpack.parse.*;
 import ratpack.path.PathBinding;
 import ratpack.path.PathTokens;
 import ratpack.registry.NotInRegistryException;
@@ -281,6 +278,11 @@ public class DefaultContext implements Context {
     }
 
     throw new NoSuchParserException(parse, requestContentType);
+  }
+
+  @Override
+  public <T> T parse(Class<T> type) throws NoSuchParserException, ParserException {
+    return parse(NoOptParse.to(type));
   }
 
   private <P, S extends Parse<P>> P maybeParse(String requestContentType, S parseSpec, Parser<?, ?> parser) throws ParserException {

@@ -270,6 +270,11 @@ public class DefaultGroovyContext implements GroovyContext {
   }
 
   @Override
+  public <T> T parse(Class<T> type) throws NoSuchParserException, ParserException {
+    return delegate.parse(type);
+  }
+
+  @Override
   public void onClose(Action<? super RequestOutcome> callback) {
     delegate.onClose(callback);
   }

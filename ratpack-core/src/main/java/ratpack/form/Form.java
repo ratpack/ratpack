@@ -35,13 +35,12 @@ import java.util.List;
  * import ratpack.handling.Context;
  * import ratpack.form.Form;
  * import ratpack.form.UploadedFile;
- * import static ratpack.parse.NoOptParse.to;
  *
  * public class FormHandler implements Handler {
  *   public void handle(Context context) {
  *     context.getByMethod().post(new Runnable() {
  *       public void run() {
- *         Form form = context.parse(to(Form.class));
+ *         Form form = context.parse(Form.class);
  *         UploadedFile file = form.file("someFile.txt");
  *         String param = form.get("param");
  *         List&lt;String&gt; multi = form.getAll("multi");

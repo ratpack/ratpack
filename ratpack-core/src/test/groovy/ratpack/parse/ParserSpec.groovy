@@ -19,7 +19,6 @@ package ratpack.parse
 import ratpack.handling.Context
 import ratpack.http.TypedData
 import ratpack.test.internal.RatpackGroovyDslSpec
-import static ratpack.parse.NoOptParse.to
 
 class ParserSpec extends RatpackGroovyDslSpec {
 
@@ -41,7 +40,7 @@ class ParserSpec extends RatpackGroovyDslSpec {
     }
     handlers {
       post {
-        def i = parse to(Integer)
+        def i = parse Integer
 
         response.send(i.getClass().toString())
       }

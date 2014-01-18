@@ -19,15 +19,13 @@ package ratpack.http
 import ratpack.form.Form
 import ratpack.test.internal.RatpackGroovyDslSpec
 
-import static ratpack.parse.NoOptParse.to
-
 class FormHandlingSpec extends RatpackGroovyDslSpec {
 
   def "can get form params"() {
     when:
     handlers {
       post {
-        def form = parse to(Form)
+        def form = parse Form
         render form.toString()
       }
     }
@@ -51,7 +49,7 @@ class FormHandlingSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       post {
-        def form = parse to(Form)
+        def form = parse Form
         render form.toString()
       }
     }
@@ -72,7 +70,7 @@ class FormHandlingSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       post {
-        def form = parse to(Form)
+        def form = parse Form
         render "File content: " + form.file("theFile").text
       }
     }
@@ -89,7 +87,7 @@ class FormHandlingSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       post {
-        def form = parse to(Form)
+        def form = parse Form
         render "File type: " + form.file("theFile").contentType
       }
     }
@@ -106,7 +104,7 @@ class FormHandlingSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       post {
-        def form = parse to(Form)
+        def form = parse Form
         render "File type: " + form.file("theFile").contentType
       }
     }

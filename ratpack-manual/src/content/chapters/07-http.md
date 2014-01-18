@@ -29,11 +29,9 @@ import ratpack.handling.Context;
 import ratpack.form.Form;
 import ratpack.form.UploadedFile;
 
-import static ratpack.parse.NoOptParse.to;
-
 public class MyHandler implements Handler {
   public void handle(Context context) {
-    Form form = context.parse(to(Form.class));
+    Form form = context.parse(Form.class);
 
     // Get the first attribute sent with name “foo”
     String foo = form.get("foo");

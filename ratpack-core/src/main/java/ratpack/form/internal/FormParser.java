@@ -17,15 +17,14 @@
 package ratpack.form.internal;
 
 import ratpack.form.Form;
-import ratpack.form.FormParser;
 import ratpack.handling.Context;
 import ratpack.http.TypedData;
 import ratpack.parse.NoOptParse;
 import ratpack.parse.NoOptParserSupport;
 
-public class DefaultFormParser extends NoOptParserSupport<Form> implements FormParser {
+public class FormParser extends NoOptParserSupport<Form> {
 
-  private DefaultFormParser(String contentType) {
+  private FormParser(String contentType) {
     super(contentType);
   }
 
@@ -35,11 +34,11 @@ public class DefaultFormParser extends NoOptParserSupport<Form> implements FormP
   }
 
   public static FormParser multiPart() {
-    return new DefaultFormParser("multipart/form-data");
+    return new FormParser("multipart/form-data");
   }
 
   public static FormParser urlEncoded() {
-    return new DefaultFormParser("application/x-www-form-urlencoded");
+    return new FormParser("application/x-www-form-urlencoded");
   }
 
 }

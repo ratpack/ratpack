@@ -722,6 +722,33 @@ public interface Context extends Registry {
   <T> T parse(Parse<T> parse) throws NoSuchParserException, ParserException;
 
   /**
+   * Shorthand for no option parses.
+   * <p>
+   * The code sample is functionally identical to the sample given for the {@link #parse(ratpack.parse.Parse)} variant…
+   * <pre class="tested">
+   * import ratpack.handling.Handler;
+   * import ratpack.handling.Context;
+   * import ratpack.form.Form;
+   *
+   * public class FormHandler implements Handler {
+   *   public void handle(Context context) {
+   *     Form form = context.parse(Form.class);
+   *     context.render(form.get("someFormParam"));
+   *   }
+   * }
+   * </pre>
+   * <p>
+   * That is, it is effectively a convenient wrapper around {@link ratpack.parse.NoOptParse#to(Class)}.
+   *
+   * @param type the type to parse to
+   * @param <T> the type to parse to
+   * @return The parsed object
+   * @throws NoSuchParserException if no suitable parser could be found in the registry
+   * @throws ParserException if a suitable parser was found, but it threw an exception while parsing
+   */
+  <T> T parse(Class<T> type) throws NoSuchParserException, ParserException;
+
+  /**
    * Registers a callback to be notified when the request for this context is “closed” (i.e. responded to).
    *
    * @param onClose A notification callback

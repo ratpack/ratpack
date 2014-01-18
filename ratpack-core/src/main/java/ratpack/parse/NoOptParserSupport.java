@@ -29,8 +29,6 @@ import static ratpack.util.internal.Types.findImplParameterTypeAtIndex;
  * import ratpack.handling.Context;
  * import ratpack.handling.Handler;
  *
- * import static ratpack.parse.NoOptParse.to;
- *
  * public class IntParser extends NoOptParserSupport<Integer> {
  *   public IntParser() {
  *     super("text/plain");
@@ -44,7 +42,7 @@ import static ratpack.util.internal.Types.findImplParameterTypeAtIndex;
  * public class ExampleHandler implements Handler {
  *   public void handle(Context context) {
  *     // assuming IntParser has been registered upstream
- *     Integer integer = context.parse(to(Integer));
+ *     Integer integer = context.parse(Integer);
  *     // …
  *   }
  * }
