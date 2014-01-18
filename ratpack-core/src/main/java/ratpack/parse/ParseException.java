@@ -22,7 +22,7 @@ package ratpack.parse;
  * @see ParserException
  * @see NoSuchParserException
  */
-public abstract class ParseException extends Exception {
+public abstract class ParseException extends RuntimeException {
 
   private static final long serialVersionUID = 0;
 
