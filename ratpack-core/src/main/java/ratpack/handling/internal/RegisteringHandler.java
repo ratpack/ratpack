@@ -19,6 +19,8 @@ package ratpack.handling.internal;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 
+import static ratpack.registry.Registries.registry;
+
 public class RegisteringHandler implements Handler {
 
   private final Class<?> type;
@@ -41,9 +43,9 @@ public class RegisteringHandler implements Handler {
   @SuppressWarnings("unchecked")
   public void handle(Context context) {
     if (type == null) {
-      context.insert(object, handler);
+      context.insert(registry(object), handler);
     } else {
-      context.insert((Class)type, object, handler);
+      context.insert(registry((Class) type, object), handler);
     }
   }
 }

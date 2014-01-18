@@ -20,6 +20,8 @@ import ratpack.file.FileSystemBinding;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 
+import static ratpack.registry.Registries.registry;
+
 public class FileSystemBindingHandler implements Handler {
 
   private final String path;
@@ -39,7 +41,7 @@ public class FileSystemBindingHandler implements Handler {
     if (binding == null) {
       context.clientError(404);
     } else {
-      context.insert(FileSystemBinding.class, binding, handler);
+      context.insert(registry(FileSystemBinding.class, binding), handler);
     }
   }
 }

@@ -29,6 +29,7 @@ import ratpack.util.Action;
 import ratpack.launch.HandlerFactory;
 import ratpack.launch.LaunchConfig;
 
+import static ratpack.registry.Registries.registry
 import static ratpack.handling.Handlers.chain;
 
 // The api of some business object
@@ -54,7 +55,7 @@ public class Application implements HandlerFactory {
                   public void handle(Context context) {
                     String id = context.getPathTokens().get("id"); // (1)
                     Person person = new PersonImpl(id);
-                    context.next(Person.class, person); // (2)
+                    context.next(registry(Person.class, person)); // (2)
                   }
                 }).
                 get("status", new Handler() {

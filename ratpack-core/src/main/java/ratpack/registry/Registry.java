@@ -49,6 +49,13 @@ public interface Registry {
   @Nullable
   <O> O maybeGet(Class<O> type);
 
+  /**
+   * Returns all of the objects whose declared type is assignment compatible with the given type.
+   *
+   * @param type the type of objects to search for
+   * @param <O> the type of objects to search for
+   * @return All objects of the given type
+   */
   <O> List<O> getAll(Class<O> type);
 
   /**

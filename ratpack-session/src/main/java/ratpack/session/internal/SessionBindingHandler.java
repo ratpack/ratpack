@@ -18,6 +18,8 @@ package ratpack.session.internal;
 
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
+import ratpack.registry.Registries;
+import ratpack.registry.Registry;
 import ratpack.session.Session;
 import ratpack.session.SessionManager;
 import ratpack.util.Factory;
@@ -31,13 +33,15 @@ public class SessionBindingHandler implements Handler {
   }
 
   public void handle(final Context context) {
-    context.insert(Session.class, new Factory<Session>() {
+    Registry registry = Registries.registry(Session.class, new Factory<Session>() {
       public Session create() {
         SessionManager sessionManager = context.get(SessionManager.class);
         final RequestSessionManager requestSessionManager = new RequestSessionManager(context, sessionManager);
         return requestSessionManager.getSession();
       }
-    }, handler);
+    });
+
+    context.insert(registry, handler);
   }
 
 }

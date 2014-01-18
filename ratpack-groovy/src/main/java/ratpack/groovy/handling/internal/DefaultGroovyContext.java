@@ -38,7 +38,6 @@ import ratpack.registry.Registry;
 import ratpack.render.NoSuchRendererException;
 import ratpack.server.BindAddress;
 import ratpack.util.Action;
-import ratpack.util.Factory;
 import ratpack.util.ResultAction;
 
 import javax.inject.Provider;
@@ -118,25 +117,8 @@ public class DefaultGroovyContext implements GroovyContext {
 
   @Override
   @NonBlocking
-  public void next(Object object) {
-    delegate.next(object);
-  }
-
-  @Override
-  @NonBlocking
-  public <T> void next(Class<T> publicType, Factory<? extends T> factory) {
-    delegate.next(publicType, factory);
-  }
-
-  @Override
-  @NonBlocking
   public void next(Registry registry) {
     delegate.next(registry);
-  }
-
-  @Override
-  public <P, T extends P> void next(Class<P> publicType, T impl) {
-    delegate.next(publicType, impl);
   }
 
   @Override
@@ -149,18 +131,6 @@ public class DefaultGroovyContext implements GroovyContext {
   @NonBlocking
   public void insert(Registry registry, Handler... handlers) {
     delegate.insert(registry, handlers);
-  }
-
-  @Override
-  @NonBlocking
-  public <T> void insert(Class<T> publicType, Factory<? extends T> factory, Handler... handlers) {
-    delegate.insert(publicType, factory, handlers);
-  }
-
-  @Override
-  @NonBlocking
-  public <P, T extends P> void insert(Class<P> publicType, T implementation, Handler... handlers) {
-    delegate.insert(publicType, implementation, handlers);
   }
 
   @Override

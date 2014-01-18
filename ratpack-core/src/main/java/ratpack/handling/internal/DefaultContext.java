@@ -157,17 +157,14 @@ public class DefaultContext implements Context {
     doNext(this, RegistryBuilder.join(this.registry, registry), nextIndex, nextHandlers, exhausted);
   }
 
-  @Override
   public <T> void next(Class<T> publicType, Factory<? extends T> factory) {
     next(RegistryBuilder.builder().add(publicType, factory).build());
   }
 
-  @Override
   public void next(Object object) {
     next(RegistryBuilder.builder().add(object).build());
   }
 
-  @Override
   public <P, T extends P> void next(Class<P> publicType, T impl) {
     next(RegistryBuilder.builder().add(publicType, impl).build());
   }
@@ -188,7 +185,6 @@ public class DefaultContext implements Context {
     doNext(this, RegistryBuilder.join(this.registry, registry), 0, handlers, new RejoinHandler());
   }
 
-  @Override
   public <T> void insert(Class<T> publicType, Factory<? extends T> factory, Handler... handlers) {
     if (handlers.length == 0) {
       throw new IllegalArgumentException("handlers is zero length");

@@ -22,6 +22,8 @@ import ratpack.error.internal.PrintingServerErrorHandler
 import ratpack.registry.NotInRegistryException
 import ratpack.test.internal.RatpackGroovyDslSpec
 
+import static ratpack.registry.Registries.registry
+
 class RegistryInsertionHandlerSpec extends RatpackGroovyDslSpec {
 
   def setup() {
@@ -45,7 +47,7 @@ class RegistryInsertionHandlerSpec extends RatpackGroovyDslSpec {
     handlers {
       prefix("foo") {
         handler {
-          next(Thing, new ThingImpl("foo"))
+          next(registry(Thing, new ThingImpl("foo")))
         }
         get {
           render get(Thing).value
