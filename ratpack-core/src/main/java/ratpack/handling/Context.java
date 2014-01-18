@@ -666,8 +666,48 @@ public interface Context extends Registry {
   BindAddress getBindAddress();
 
   /**
-   * Parses the request body according to the given {@link Parse} specification.
+   * Parses the request body into an object.
+   * <p>
+   * How to parse the request is controlled by the given {@link Parse} object.
+   * <h5>Parser Resolution</h5>
+   * <p>
+   * Parser resolution happens as follows:
+   * <ol>
+   * <li>All {@link ratpack.parse.Parser parsers} are retrieved from the context registry (i.e. {@link #getAll(Class) getAll(Parser.class)});</li>
+   * <li>Found parsers are checked (in order returned by {@code getAll()}) for compatibility with the given {@code parse} object and the current request content type;</li>
+   * <li>If a parser is found that is compatible, its {@link ratpack.parse.Parser#parse(Context, ratpack.http.TypedData, ratpack.parse.Parse)} method is called, of which the return value is returned by this method;</li>
+   * <li>If no compatible parser could be found, a {@link NoSuchParserException} will be thrown.</li>
+   * </ol>
+   * <h5>Parser Compatibility</h5>
+   * <p>
+   * A parser is compatible if all of the following hold true:
+   * <ul>
+   * <li>Its {@link ratpack.parse.Parser#getContentType()} is exactly equal to {@link ratpack.http.MediaType#getType() getRequest().getBody().getContentType().getType()}</li>
+   * <li>The given {@code parse} object is an {@code instanceof} its {@link ratpack.parse.Parser#getParseType()}</li>
+   * <li>The {@link ratpack.parse.Parser#getParsedType()} is {@link Class#isAssignableFrom(Class)} the {@link Parse#getType()} of the {@code parse} object</li>
+   * </ul>
+   * <p>
+   * If the request has no declared content type, {@code text/plain} will be assumed.
+   * <h5>Core Parsers</h5>
+   * <p>
+   * Ratpack core provides implicit parsers for the following parse types:
+   * <ul>
+   * <li>{@link ratpack.form.FormParse}</li>
+   * </ul>
+   * <h5>Example Usage</h5>
+   * <pre class="tested">
+   * import ratpack.handling.Handler;
+   * import ratpack.handling.Context;
+   * import ratpack.form.Form;
+   * import static ratpack.form.Forms.form;
    *
+   * public class FormHandler implements Handler {
+   *   public void handle(Context context) {
+   *     Form form = context.parse(form());
+   *     context.render(form.get("someFormParam"));
+   *   }
+   * }
+   * </pre>
    * @param parse The specification of how to parse the request
    * @param <T> The type of object the request is parsed into
    * @return The parsed object
