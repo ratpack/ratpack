@@ -17,7 +17,6 @@
 package ratpack.http;
 
 import io.netty.buffer.ByteBuf;
-import ratpack.api.Nullable;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -31,9 +30,8 @@ public interface TypedData {
   /**
    * The type of the data.
    *
-   * @return The type of the data, or {@code null} if no type was advertised.
+   * @return The type of the data.
    */
-  @Nullable
   MediaType getContentType();
 
   /**
