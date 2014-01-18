@@ -150,7 +150,7 @@ public abstract class LaunchConfigFactory {
     return createFromFile(classLoader, baseDir, configPath, overrideProperties, defaultProperties);
   }
 
-  static Path resourceToPath(URL resource) {
+  private static Path resourceToPath(URL resource) {
     URI uri = toUri(resource);
 
     String scheme = uri.getScheme();
