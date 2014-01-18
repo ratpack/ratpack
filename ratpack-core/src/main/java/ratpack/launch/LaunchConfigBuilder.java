@@ -23,17 +23,12 @@ import io.netty.buffer.PooledByteBufAllocator;
 import ratpack.file.FileSystemBinding;
 import ratpack.file.internal.DefaultFileSystemBinding;
 import ratpack.launch.internal.DefaultLaunchConfig;
-import ratpack.ssl.SSLContexts;
 
 import javax.net.ssl.SSLContext;
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.URI;
-import java.net.URL;
 import java.nio.file.Path;
-import java.security.GeneralSecurityException;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -259,48 +254,12 @@ public class LaunchConfigBuilder {
    *
    * @param sslContext the SSL context.
    * @return this
-   *
+   * @see ratpack.ssl.SSLContexts
    * @see LaunchConfig#getSSLContext()
    */
-  public LaunchConfigBuilder sslContext(SSLContext sslContext) {
+  public LaunchConfigBuilder ssl(SSLContext sslContext) {
     this.sslContext = sslContext;
     return this;
-  }
-
-  /**
-   * A convenience method for configuring an SSL context using a password-protected keystore file.
-   *
-   * @return this
-   *
-   * @see SSLContexts#sslContext(java.io.InputStream, String)
-   * @see LaunchConfig#getSSLContext()
-   */
-  public LaunchConfigBuilder ssl(InputStream keyStore, String password) throws GeneralSecurityException, IOException {
-    return sslContext(SSLContexts.sslContext(keyStore, password));
-  }
-
-  /**
-   * A convenience method for configuring an SSL context using a password-protected keystore file.
-   *
-   * @return this
-   *
-   * @see SSLContexts#sslContext(java.net.URL, String)
-   * @see LaunchConfig#getSSLContext()
-   */
-  public LaunchConfigBuilder ssl(URL keyStore, String password) throws GeneralSecurityException, IOException {
-    return sslContext(SSLContexts.sslContext(keyStore, password));
-  }
-
-  /**
-   * A convenience method for configuring an SSL context using a password-protected keystore file.
-   *
-   * @return this
-   *
-   * @see SSLContexts#sslContext(java.io.File, String)
-   * @see LaunchConfig#getSSLContext()
-   */
-  public LaunchConfigBuilder ssl(File keyStore, String password) throws GeneralSecurityException, IOException {
-    return sslContext(SSLContexts.sslContext(keyStore, password));
   }
 
   /**

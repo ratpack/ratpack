@@ -35,8 +35,11 @@ public class SSLContexts {
   /**
    * Creates an SSL context using a password-protected keystore file.
    *
-   * @param keyStoreFile a <code>file://</code> URL referencing a keystore file.
-   * @param password the password for the keystore file.
+   * @param keyStoreFile a <code>file://</code> URL referencing a keystore file
+   * @param password the password for the keystore file
+   * @return A newly created ssl context
+   * @throws GeneralSecurityException if the keystore is invalid, or the password is incorrect
+   * @throws IOException if the url cannot be read
    */
   public static SSLContext sslContext(URL keyStoreFile, String password) throws GeneralSecurityException, IOException {
     try (InputStream stream = keyStoreFile.openStream()) {
@@ -47,8 +50,11 @@ public class SSLContexts {
   /**
    * Creates an SSL context using a password-protected keystore file.
    *
-   * @param keyStoreFile a keystore file.
-   * @param password the password for the keystore file.
+   * @param keyStoreFile a keystore file
+   * @param password the password for the keystore file
+   * @return A newly created ssl context
+   * @throws GeneralSecurityException if the keystore is invalid, or the password is incorrect
+   * @throws IOException if the url cannot be read
    */
   public static SSLContext sslContext(File keyStoreFile, String password) throws GeneralSecurityException, IOException {
     try (InputStream stream = new FileInputStream(keyStoreFile)) {
@@ -59,8 +65,11 @@ public class SSLContexts {
   /**
    * Creates an SSL context using a password-protected keystore file.
    *
-   * @param keyStoreStream an input stream reading a keystore file.
-   * @param password the password for the keystore file.
+   * @param keyStoreStream an input stream reading a keystore file
+   * @param password the password for the keystore file
+   * @return A newly created ssl context
+   * @throws GeneralSecurityException if the keystore is invalid, or the password is incorrect
+   * @throws IOException if the url cannot be read
    */
   public static SSLContext sslContext(InputStream keyStoreStream, String password) throws GeneralSecurityException, IOException {
     return sslContext(keyStoreStream, password.toCharArray());

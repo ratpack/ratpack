@@ -28,7 +28,7 @@ class HttpsSpec extends RatpackGroovyDslSpec {
   def "can serve content over HTTPS"() {
     given:
     launchConfig {
-      ssl HttpsSpec.getResource("dummy.keystore"), "password"
+      ssl SSLContexts.sslContext(HttpsSpec.getResource("dummy.keystore"), "password")
     }
 
     and:

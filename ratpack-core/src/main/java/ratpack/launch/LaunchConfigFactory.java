@@ -19,6 +19,7 @@ package ratpack.launch;
 import com.google.common.collect.Iterables;
 import com.sun.nio.zipfs.ZipFileSystemProvider;
 import ratpack.api.Nullable;
+import ratpack.ssl.SSLContexts;
 import ratpack.util.internal.TypeCoercingProperties;
 
 import java.io.IOException;
@@ -260,7 +261,7 @@ public abstract class LaunchConfigFactory {
 
       if (sslKeystore != null) {
         try (InputStream stream = sslKeystore) {
-          launchConfigBuilder.ssl(stream, sslKeystorePassword);
+          launchConfigBuilder.ssl(SSLContexts.sslContext(stream, sslKeystorePassword));
         }
       }
 
