@@ -40,7 +40,7 @@ import java.util.concurrent.Callable;
  * public class ReactiveHandler implements Handler {
  *   private final RxBackground rxBackground;
  *
- *   @Inject
+ *   {@literal @}Inject
  *   public ReactiveHandler(RxBackground rxBackground) {
  *     this.rxBackground = rxBackground;
  *   }

@@ -23,7 +23,7 @@ import ratpack.util.Action;
  * Provides direct access to the underlying Netty {@link io.netty.channel.Channel}.
  * <p>
  * Use of this type is discouraged.
- * It exists to provide low level integration with Netty for extra protocols to build on, such as the {@link ratpack.websocket} support.
+ * It exists to provide low level integration with Netty for extra protocols to build on, such as the {@link ratpack.websocket.WebSockets} support.
  */
 public interface DirectChannelAccess {
 
