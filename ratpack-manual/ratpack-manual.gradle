@@ -34,10 +34,10 @@ buildscript {
 }
 
 dependencies {
-  testRuntime "org.apache.ant:ant-nodeps:1.8.1"
-
   testCompile apiModules
+  testCompile "org.codehaus.groovy:groovy-ant:$groovyVersion"
 }
+
 apply from: "$rootDir/gradle/markdown2book.gradle"
 
 idea {

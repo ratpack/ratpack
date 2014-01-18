@@ -25,6 +25,8 @@ ext.apiLinks = [
 dependencies {
   compile project(":ratpack-core")
   compile project(":ratpack-guice")
+  compile "org.codehaus.groovy:groovy-xml:$groovyVersion"
+  compile "org.codehaus.groovy:groovy-sql:$groovyVersion"
 }
 
 processResources {
