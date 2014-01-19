@@ -14,8 +14,8 @@ configurations.all { configuration ->
   incoming.afterResolve {
     it.resolutionResult.allDependencies {
       if (it instanceof ResolvedDependencyResult) {
-        if (it.selected.moduleVersion.group == "org.codehaus.groovy" && it.selected.moduleVersion.name == "groovy-all") {
-          throw new InvalidUserDataException("groovy-all in dependency graph of $configuration.name of project $project.name")
+        if (it.selected.moduleVersion.group == "org.codehaus.groovy" && it.selected.moduleVersion.name == "groovy") {
+          throw new InvalidUserDataException("groovy in dependency graph of $configuration.name of project $project.name")
         }
       }
     }
