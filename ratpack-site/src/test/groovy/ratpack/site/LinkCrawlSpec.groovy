@@ -27,9 +27,20 @@ class LinkCrawlSpec extends Specification {
     def aut = new RatpackSiteUnderTest()
     aut.mockGithubData()
 
+    def dontCrawl = ["/manual/current", "/manual/0.9.0"]
+
     def crawler = new Crawler(aut.address.toString()) {
       boolean shouldUseHeadRequest(Link url) {
         return url.uri.host != "bintray.com" && super.shouldUseHeadRequest(url)
+      }
+
+      @Override
+      boolean isCrawlable(Link link) {
+        if (dontCrawl.any { link.uri.path.startsWith(it) }) {
+          false
+        } else {
+          super.isCrawlable(link)
+        }
       }
 
       List<String> findPageLinks(Response response) {
@@ -39,6 +50,14 @@ class LinkCrawlSpec extends Specification {
         }.findAll {
           it
         }
+      }
+
+      @Override
+      void addPageErrors(Link link, Response response) {
+        response.document.text().findAll(~$/\[.+?]\(.+?\(.+?\)\)/$).each {
+          link.errors << new BadMarkdownLinkSyntax(it)
+        }
+        super.addPageErrors(link, response)
       }
     }
 
@@ -51,5 +70,18 @@ class LinkCrawlSpec extends Specification {
 
     cleanup:
     aut.stop()
+  }
+
+  private static class BadMarkdownLinkSyntax extends Crawler.PageError {
+    final String link
+
+    BadMarkdownLinkSyntax(String link) {
+      this.link = link
+    }
+
+    @Override
+    String toString() {
+      "Bad markdown link: $link"
+    }
   }
 }

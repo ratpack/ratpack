@@ -188,7 +188,7 @@ Read on.
 Ratpack provides a suite of routing type handlers out of the box that make it easy to compose dispatch logic.
 These are available via the static methods of the [`Handlers`](api/ratpack/handling/Handlers.html) class.
 
-For example, the [`path(String, Handler)`](api/ratpack/handling/Handlers.html#path\(java.lang.String, ratpack.handling.Handler\)) method can be used for path based routing.
+For example, the [`path(String, Handler)`](api/ratpack/handling/Handlers.html#path\(java.lang.String,%20ratpack.handling.Handler\)) method can be used for path based routing.
 
 ```language-groovy tested
 import ratpack.handling.Handler;
