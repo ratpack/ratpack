@@ -17,7 +17,6 @@
 package ratpack.handling.internal;
 
 import com.google.common.util.concurrent.ListeningExecutorService;
-import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import ratpack.background.Background;
 import ratpack.background.internal.DefaultBackground;
@@ -29,6 +28,7 @@ import ratpack.handling.*;
 import ratpack.handling.direct.DirectChannelAccess;
 import ratpack.http.Request;
 import ratpack.http.Response;
+import ratpack.http.internal.HttpHeaderConstants;
 import ratpack.parse.*;
 import ratpack.path.PathBinding;
 import ratpack.path.PathTokens;
@@ -282,7 +282,7 @@ public class DefaultContext implements Context {
       }
     }
 
-    requestConstants.response.getHeaders().setDate(HttpHeaders.Names.LAST_MODIFIED, date);
+    requestConstants.response.getHeaders().setDate(HttpHeaderConstants.LAST_MODIFIED, date);
     runnable.run();
   }
 

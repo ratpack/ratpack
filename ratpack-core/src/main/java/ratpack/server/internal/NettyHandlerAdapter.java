@@ -145,11 +145,11 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
         final HttpResponse nettyResponse = new CustomHttpResponse(responseStatus.getResponseStatus(), httpHeaders);
 
         nettyRequest.content().release();
-        responseHeaders.set(HttpHeaders.Names.CONTENT_LENGTH, byteBuf.writerIndex());
+        responseHeaders.set(HttpHeaderConstants.CONTENT_LENGTH, byteBuf.writerIndex());
         boolean shouldClose = true;
         if (channel.isOpen()) {
           if (isKeepAlive(nettyRequest)) {
-            responseHeaders.set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
+            responseHeaders.set(HttpHeaderConstants.CONNECTION, HttpHeaderConstants.KEEP_ALIVE);
             shouldClose = false;
           }
 
@@ -214,7 +214,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
   private static void sendError(ChannelHandlerContext ctx, HttpResponseStatus status) {
     FullHttpResponse response = new DefaultFullHttpResponse(
       HttpVersion.HTTP_1_1, status, Unpooled.copiedBuffer("Failure: " + status.toString() + "\r\n", CharsetUtil.UTF_8));
-    response.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/plain; charset=UTF-8");
+    response.headers().set(HttpHeaderConstants.CONTENT_TYPE, "text/plain; charset=UTF-8");
 
     // Close the connection as soon as the error message is sent.
     ctx.write(response).addListener(ChannelFutureListener.CLOSE);

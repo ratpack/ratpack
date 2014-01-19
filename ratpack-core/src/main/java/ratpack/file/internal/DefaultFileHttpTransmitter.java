@@ -21,6 +21,7 @@ import io.netty.handler.codec.http.*;
 import io.netty.handler.stream.ChunkedNioStream;
 import ratpack.background.Background;
 import ratpack.http.internal.CustomHttpResponse;
+import ratpack.http.internal.HttpHeaderConstants;
 import ratpack.util.Action;
 
 import java.io.FileInputStream;
@@ -32,7 +33,6 @@ import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.concurrent.Callable;
 
-import static io.netty.handler.codec.http.HttpHeaders.Names.CONNECTION;
 import static io.netty.handler.codec.http.HttpHeaders.isKeepAlive;
 
 public class DefaultFileHttpTransmitter implements FileHttpTransmitter {
@@ -75,10 +75,10 @@ public class DefaultFileHttpTransmitter implements FileHttpTransmitter {
 
   private void transmit(BasicFileAttributes basicFileAttributes, final Object message) {
     HttpResponse response = new CustomHttpResponse(HttpResponseStatus.OK, httpHeaders);
-    response.headers().set(HttpHeaders.Names.CONTENT_LENGTH, basicFileAttributes.size());
+    response.headers().set(HttpHeaderConstants.CONTENT_LENGTH, basicFileAttributes.size());
 
     if (isKeepAlive(request)) {
-      response.headers().set(CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
+      response.headers().set(HttpHeaderConstants.CONNECTION, HttpHeaderConstants.KEEP_ALIVE);
     }
 
     request.content().release();
