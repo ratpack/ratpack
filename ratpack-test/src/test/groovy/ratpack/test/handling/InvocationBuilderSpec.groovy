@@ -18,6 +18,7 @@ package ratpack.test.handling
 
 import io.netty.util.CharsetUtil
 import ratpack.handling.Context
+import ratpack.handling.Handler
 import ratpack.handling.RequestOutcome
 import ratpack.util.Action
 import spock.lang.Specification
@@ -28,6 +29,7 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
 import static ratpack.groovy.Groovy.groovyHandler
+import static ratpack.handling.Handlers.chain
 import static ratpack.test.UnitTest.invocationBuilder
 
 class InvocationBuilderSpec extends Specification {
@@ -40,6 +42,10 @@ class InvocationBuilderSpec extends Specification {
 
   void invoke(@DelegatesTo(Context) Closure handler) {
     invocation = builder.invoke(groovyHandler(handler))
+  }
+
+  void invoke(Handler handler) {
+    invocation = builder.invoke(handler)
   }
 
   def "can test handler that just calls next"() {
@@ -268,6 +274,13 @@ class InvocationBuilderSpec extends Specification {
 
     then:
     clientError == 404
+  }
 
+  def "rendered downstream objects are captured"() {
+    when:
+    invoke chain({ it.next() } as Handler, { it.render("foo") } as Handler)
+
+    then:
+    rendered(String) == "foo"
   }
 }

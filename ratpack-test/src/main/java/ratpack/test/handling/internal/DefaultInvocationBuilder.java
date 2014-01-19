@@ -56,7 +56,7 @@ public class DefaultInvocationBuilder implements InvocationBuilder {
 
   private int timeout = 5;
 
-  private RegistryBuilder registryBuilder = Registries.builder();
+  private RegistryBuilder registryBuilder = Registries.registry();
 
   public DefaultInvocationBuilder() {
   }
@@ -69,7 +69,8 @@ public class DefaultInvocationBuilder implements InvocationBuilder {
    *
    * @throws ratpack.test.handling.InvocationTimeoutException if the handler takes more than {@link #timeout(int)} seconds to send a response or call {@code next()} on the context
    */
-  @Override public Invocation invoke(Handler handler) throws InvocationTimeoutException {
+  @Override
+  public Invocation invoke(Handler handler) throws InvocationTimeoutException {
     Request request = new DefaultRequest(requestHeaders, method, uri, requestBody);
 
     Registry registry = registryBuilder.build();
@@ -85,38 +86,45 @@ public class DefaultInvocationBuilder implements InvocationBuilder {
     );
   }
 
-  @Override public InvocationBuilder header(String name, String value) {
+  @Override
+  public InvocationBuilder header(String name, String value) {
     requestHeaders.add(name, value);
     return this;
   }
 
-  @Override public InvocationBuilder body(byte[] bytes, String contentType) {
+  @Override
+  public InvocationBuilder body(byte[] bytes, String contentType) {
     requestHeaders.add(HttpHeaders.Names.CONTENT_TYPE, contentType);
     requestHeaders.add(HttpHeaders.Names.CONTENT_LENGTH, bytes.length);
     requestBody.capacity(bytes.length).writeBytes(bytes);
     return this;
   }
 
-  @Override public InvocationBuilder body(String text, String contentType) {
+  @Override
+  public InvocationBuilder body(String text, String contentType) {
     return body(text.getBytes(), DefaultMediaType.utf8(contentType).toString());
   }
 
-  @Override public InvocationBuilder responseHeader(String name, String value) {
+  @Override
+  public InvocationBuilder responseHeader(String name, String value) {
     responseHeaders.add(name, value);
     return this;
   }
 
-  @Override public InvocationBuilder responseBody(byte[] bytes, String contentType) {
+  @Override
+  public InvocationBuilder responseBody(byte[] bytes, String contentType) {
     responseHeaders.add(HttpHeaders.Names.CONTENT_TYPE, contentType);
     responseBody.capacity(bytes.length).writeBytes(bytes);
     return this;
   }
 
-  @Override public InvocationBuilder responseBody(String text, String contentType) {
+  @Override
+  public InvocationBuilder responseBody(String text, String contentType) {
     return responseBody(text.getBytes(), DefaultMediaType.utf8(contentType).toString());
   }
 
-  @Override public InvocationBuilder method(String method) {
+  @Override
+  public InvocationBuilder method(String method) {
     if (method == null) {
       throw new IllegalArgumentException("method must not be null");
     }
@@ -124,7 +132,8 @@ public class DefaultInvocationBuilder implements InvocationBuilder {
     return this;
   }
 
-  @Override public InvocationBuilder uri(String uri) {
+  @Override
+  public InvocationBuilder uri(String uri) {
     if (uri == null) {
       throw new NullPointerException("uri cannot be null");
     }
@@ -136,7 +145,8 @@ public class DefaultInvocationBuilder implements InvocationBuilder {
     return this;
   }
 
-  @Override public InvocationBuilder timeout(int timeout) {
+  @Override
+  public InvocationBuilder timeout(int timeout) {
     if (timeout < 0) {
       throw new IllegalArgumentException("timeout must be > 0");
     }
@@ -144,7 +154,8 @@ public class DefaultInvocationBuilder implements InvocationBuilder {
     return this;
   }
 
-  @Override public InvocationBuilder register(Object object) {
+  @Override
+  public InvocationBuilder register(Object object) {
     registryBuilder.add(object);
     return this;
   }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,20 +17,26 @@
 package ratpack.util;
 
 /**
- * An object that transforms an object into another.
- *
- * @param <F> the type of the input object
- * @param <T> the type of the output (transformed) object
+ * Factories for different {@link Action} implementations.
  */
-public interface Transformer<F, T> {
+public abstract class Actions {
+
+  private Actions() {
+
+  }
 
   /**
-   * Transforms the given object into a different object.
+   * Returns an action that does precisely nothing.
    *
-   * @param from the object to transform
-   * @return the transformed object
-   * @throws Exception if the object cannot be transformed
+   * @param <T> The type of parameter given to the action
+   * @return an action that does precisely nothing
    */
-  T transform(F from) throws Exception;
+  public static <T> Action<T> noop() {
+    return new Action<T>() {
+      @Override
+      public void execute(T thing) throws Exception {
+      }
+    };
+  }
 
 }

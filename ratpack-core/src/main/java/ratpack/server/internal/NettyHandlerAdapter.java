@@ -57,6 +57,7 @@ import ratpack.registry.Registries;
 import ratpack.registry.Registry;
 import ratpack.render.CharSequenceRenderer;
 import ratpack.render.internal.DefaultCharSequenceRenderer;
+import ratpack.render.internal.DefaultRenderController;
 import ratpack.server.BindAddress;
 import ratpack.server.PublicAddress;
 import ratpack.server.Stopper;
@@ -85,7 +86,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
   public NettyHandlerAdapter(Stopper stopper, Handler handler, LaunchConfig launchConfig, ListeningExecutorService backgroundExecutorService) {
     this.handlers = new Handler[]{new ErrorCatchingHandler(handler)};
     this.return404 = new ClientErrorForwardingHandler(NOT_FOUND.code());
-    this.registry = Registries.builder()
+    this.registry = Registries.registry()
       // If you update this list, update the class level javadoc on Context.
       .add(Stopper.class, stopper)
       .add(FileSystemBinding.class, launchConfig.getBaseDir())
@@ -108,7 +109,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
       throw new IllegalArgumentException("launchConfig must implement internal protocol " + LaunchConfigInternal.class.getName());
     }
 
-    this.applicationConstants = new DefaultContext.ApplicationConstants(backgroundExecutorService, launchConfig.getContextProvider(), contextThreadLocal);
+    this.applicationConstants = new DefaultContext.ApplicationConstants(backgroundExecutorService, launchConfig.getContextProvider(), contextThreadLocal, new DefaultRenderController());
   }
 
   @Override

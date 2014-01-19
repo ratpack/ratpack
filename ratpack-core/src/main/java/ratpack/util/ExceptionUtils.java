@@ -16,27 +16,54 @@
 
 package ratpack.util;
 
+/**
+ * Utility methods for dealing with exceptions.
+ */
 public abstract class ExceptionUtils {
 
-  public static RuntimeException uncheck(Throwable e) {
-    if (e instanceof Error) {
-      throw (Error) e;
+  /**
+   * Converts the given throwable to a {@link RuntimeException} if necessary.
+   * <p>
+   * If {@code throwable} is an {@link Error}, it will be thrown.
+   * <p>
+   * If {@code throwable} is a {@link RuntimeException}, it will be returned unchanged.
+   * <p>
+   * If {@code throwable} is not a {@link RuntimeException}, a newly created {@link RuntimeException} will be returned with the original throwable as the cause and with no message.
+   *
+   * @param throwable the throwable to ensure is a runtime exception
+   * @return a runtime throwable
+   */
+  public static RuntimeException uncheck(Throwable throwable) {
+    if (throwable instanceof Error) {
+      throw (Error) throwable;
     }
-    if (e instanceof RuntimeException) {
-      return (RuntimeException) e;
+    if (throwable instanceof RuntimeException) {
+      return (RuntimeException) throwable;
     } else {
-      return new RuntimeException(e);
+      return new RuntimeException(throwable);
     }
   }
 
-  public static Exception toException(Throwable exception) {
-    if (exception instanceof Error) {
-      throw (Error) exception;
+  /**
+   * Converts the given throwable to an {@link Exception} if necessary.
+   * <p>
+   * If {@code throwable} is an {@link Error}, it will be thrown.
+   * <p>
+   * If {@code throwable} is an {@link Exception}, it will be returned unchanged.
+   * <p>
+   * If {@code throwable} is not an {@link Exception}, a newly created {@link Exception} will be returned with the original throwable as the cause and with no message.
+   *
+   * @param throwable the throwable to ensure is an exception
+   * @return a runtime throwable
+   */
+  public static Exception toException(Throwable throwable) {
+    if (throwable instanceof Error) {
+      throw (Error) throwable;
     }
-    if (exception instanceof Exception) {
-      return (Exception) exception;
+    if (throwable instanceof Exception) {
+      return (Exception) throwable;
     } else {
-      throw uncheck(exception);
+      return new Exception(throwable);
     }
   }
 

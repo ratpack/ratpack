@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,23 +14,12 @@
  * limitations under the License.
  */
 
-package ratpack.util;
+package ratpack.render.internal;
 
-/**
- * An object that transforms an object into another.
- *
- * @param <F> the type of the input object
- * @param <T> the type of the output (transformed) object
- */
-public interface Transformer<F, T> {
+import ratpack.handling.Context;
 
-  /**
-   * Transforms the given object into a different object.
-   *
-   * @param from the object to transform
-   * @return the transformed object
-   * @throws Exception if the object cannot be transformed
-   */
-  T transform(F from) throws Exception;
+public interface RenderController {
+
+  void render(Object object, Context context);
 
 }

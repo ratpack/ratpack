@@ -35,7 +35,6 @@ import ratpack.parse.ParserException;
 import ratpack.path.PathTokens;
 import ratpack.registry.NotInRegistryException;
 import ratpack.registry.Registry;
-import ratpack.render.NoSuchRendererException;
 import ratpack.server.BindAddress;
 import ratpack.util.Action;
 import ratpack.util.ResultAction;
@@ -188,7 +187,7 @@ public class DefaultGroovyContext implements GroovyContext {
 
   @Override
   @NonBlocking
-  public void render(Object object) throws NoSuchRendererException {
+  public void render(Object object) {
     delegate.render(object);
   }
 
@@ -257,11 +256,6 @@ public class DefaultGroovyContext implements GroovyContext {
   @Override
   public <O> List<O> getAll(Class<O> type) {
     return delegate.getAll(type);
-  }
-
-  @Override
-  public boolean isEmpty() {
-    return delegate.isEmpty();
   }
 
 }

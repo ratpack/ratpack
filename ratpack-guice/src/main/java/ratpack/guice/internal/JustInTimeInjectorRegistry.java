@@ -53,9 +53,4 @@ public class JustInTimeInjectorRegistry implements Registry {
     }
   }
 
-  @Override
-  public boolean isEmpty() {
-    return false; // there is always at least the injector
-  }
-
 }

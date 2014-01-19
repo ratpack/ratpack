@@ -21,11 +21,55 @@ import ratpack.api.Nullable;
 import java.util.List;
 
 /**
- * An object that can potentially provide objects of given types.
- *
- * A registry acts as a kind of service locator. A registry can be requested to provide an object of a certain type.
+ * An object registry.
  * <p>
- * Registry objects must be threadsafe.
+ * Registries are primarily used for inter {@link ratpack.handling.Handler} communication in request processing.
+ * The {@link ratpack.handling.Context} object that handles operate on implements the {@link ratpack.registry.Registry} interface.
+ * <pre class="tested">
+ * import ratpack.handling.Handler;
+ * import ratpack.handling.Context;
+ * import ratpack.registry.Registry;
+ * import static ratpack.registry.Registries.registry;
+ *
+ * public class Thing {
+ *   private final String name
+ *   public Thing(String name) { this.name = name; }
+ *   public String getName() { return name; }
+ * }
+ *
+ * public class UpstreamHandler implements Handler {
+ *   public void handle(Context context) {
+ *     context.next(registry(new Thing("foo")));
+ *   }
+ * }
+ *
+ * public class DownstreamHandler implements Handler {
+ *   public void handle(Context context) {
+ *     assert context instanceof Registry;
+ *     Thing thing = context.get(Thing.class);
+ *     context.render(thing.getName());
+ *   }
+ * }
+ *
+ * import ratpack.test.handling.Invocation;
+ * import ratpack.test.handling.InvocationBuilder;
+ *
+ * import static ratpack.test.UnitTest.invoke;
+ * import static ratpack.handling.Handlers.chain;
+ * import static ratpack.util.Actions.noop;
+ *
+ * Handler chain = chain(new UpstreamHandler(), new DownstreamHandler());
+ * Invocation result = invoke(chain, noop());
+ *
+ * assert result.rendered(String.class).equals("foo");
+ * </pre>
+ * <h5>Thread safety</h5>
+ * <p>
+ * Registry objects are assumed to be thread safe.
+ * No external synchronization is performed around registry access.
+ * As registry objects may be used across multiple requests, they should be thread safe.
+ * <p>
+ * Registries that are <b>created</b> per request however do not need to be thread safe.
  */
 public interface Registry {
 
@@ -57,16 +101,5 @@ public interface Registry {
    * @return All objects of the given type
    */
   <O> List<O> getAll(Class<O> type);
-
-  /**
-   * Does this registry contain exactly no contents.
-   * <p>
-   * Implementations may return true if they cannot determine if they are empty or not.
-   * That is, this method may return true and yet all of its methods not return anything.
-   * However, implementations that do return true from this method MUST NOT return anything from lookup methods.
-   *
-   * @return true if this registry contains exactly no contents, otherwise false.
-   */
-  boolean isEmpty();
 
 }
