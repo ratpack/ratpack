@@ -233,28 +233,6 @@ class InvocationBuilderSpec extends Specification {
     ["foo", "text/plain"]                 | "text/plain;charset=UTF-8" | "foo".bytes
   }
 
-  @Unroll
-  def "can set response body"() {
-    //noinspection GroovyAssignabilityCheck
-    given:
-    builder.responseBody(* arguments)
-
-    when:
-    invoke {
-      // just pass through the existing response
-      response.send()
-    }
-
-    then:
-    bodyBytes == responseBytes
-    headers.get("Content-Type") == responseContentType
-
-    where:
-    arguments                             | responseContentType        | responseBytes
-    [[0, 1, 2, 4] as byte[], "image/png"] | "image/png"                | [0, 1, 2, 4] as byte[]
-    ["foo", "text/plain"]                 | "text/plain;charset=UTF-8" | "foo".bytes
-  }
-
   def "captures errors"() {
     when:
     invoke {

@@ -26,10 +26,9 @@ import ratpack.reload.internal.ReloadableFileBackedFactory;
 import ratpack.util.Action;
 import ratpack.util.Factory;
 import ratpack.util.Transformer;
-import ratpack.util.internal.ByteBufWriteThroughOutputStream;
 import ratpack.util.internal.IoUtils;
 
-import java.io.OutputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.nio.file.Path;
@@ -85,11 +84,11 @@ public class ScriptBackedApp implements Handler {
     try {
       handler = reloadHandler.create();
     } catch (Exception e) {
-      OutputStream outputStream = new ByteBufWriteThroughOutputStream(context.getResponse().getBody());
+      ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
       PrintWriter printWriter = new PrintWriter(new OutputStreamWriter(outputStream, "UTF-8"));
       e.printStackTrace(printWriter);
       printWriter.flush();
-      context.getResponse().contentType("text/plain").send();
+      context.getResponse().send("text/plain", outputStream.toByteArray());
       return;
     }
     if (handler == null) {

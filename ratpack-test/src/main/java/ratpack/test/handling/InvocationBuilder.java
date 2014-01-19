@@ -35,10 +35,6 @@ public interface InvocationBuilder {
 
   InvocationBuilder responseHeader(String name, String value);
 
-  InvocationBuilder responseBody(byte[] bytes, String contentType);
-
-  InvocationBuilder responseBody(String text, String contentType);
-
   InvocationBuilder method(String method);
 
   InvocationBuilder uri(String uri);

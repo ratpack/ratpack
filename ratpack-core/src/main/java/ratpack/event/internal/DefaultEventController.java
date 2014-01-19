@@ -61,4 +61,8 @@ public class DefaultEventController<T> implements EventController<T> {
     }
   }
 
+  public boolean isHasListeners() {
+    return !handlers.isEmpty();
+  }
+
 }

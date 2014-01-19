@@ -17,7 +17,7 @@
 package ratpack.handling;
 
 import ratpack.http.Request;
-import ratpack.http.Response;
+import ratpack.http.SentResponse;
 
 /**
  * The outcome of processing a request.
@@ -36,13 +36,10 @@ public interface RequestOutcome {
 
   /**
    * The response.
-   * <p>
-   * At this point, the response has been finalised.
-   * Do not attempt to change it via {@link ratpack.http.Response#getHeaders()} or {@link ratpack.http.Response#send} etc.
    *
    * @return the response
    */
-  Response getResponse();
+  SentResponse getResponse();
 
   /**
    * The time at when this request was dealt with from the application's point of view.

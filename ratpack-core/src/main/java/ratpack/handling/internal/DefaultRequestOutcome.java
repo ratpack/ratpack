@@ -16,17 +16,17 @@
 
 package ratpack.handling.internal;
 
-import ratpack.http.Request;
 import ratpack.handling.RequestOutcome;
-import ratpack.http.Response;
+import ratpack.http.Request;
+import ratpack.http.SentResponse;
 
 public class DefaultRequestOutcome implements RequestOutcome {
 
   private final Request request;
-  private final Response response;
+  private final SentResponse response;
   private final long closedAt;
 
-  public DefaultRequestOutcome(Request request, Response response, long closedAt) {
+  public DefaultRequestOutcome(Request request, SentResponse response, long closedAt) {
     this.request = request;
     this.response = response;
     this.closedAt = closedAt;
@@ -38,7 +38,7 @@ public class DefaultRequestOutcome implements RequestOutcome {
   }
 
   @Override
-  public Response getResponse() {
+  public SentResponse getResponse() {
     return response;
   }
 

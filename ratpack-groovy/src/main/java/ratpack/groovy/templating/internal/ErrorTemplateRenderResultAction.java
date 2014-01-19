@@ -40,7 +40,7 @@ class ErrorTemplateRenderResultAction implements ResultAction<ByteBuf> {
 
   public void execute(Result<ByteBuf> thing) throws Exception {
     if (thing.isSuccess()) {
-      context.getResponse().send();
+      context.getResponse().send(thing.getValue());
     } else {
       StringWriter stringWriter = new StringWriter();
       PrintWriter printWriter = new PrintWriter(stringWriter);

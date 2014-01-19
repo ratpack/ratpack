@@ -44,7 +44,7 @@ public class TemplateRenderingClientErrorHandler implements ClientErrorHandler {
 
     context.getResponse().status(statusCode).contentType("text/html");
 
-    renderer.renderError(context.getResponse().getBody(), model, new ErrorTemplateRenderResultAction(context, new Action<PrintWriter>() {
+    renderer.renderError(model, new ErrorTemplateRenderResultAction(context, new Action<PrintWriter>() {
       public void execute(PrintWriter writer) {
         writer.append("for client error").append(Integer.toString(statusCode)).append("\n");
       }

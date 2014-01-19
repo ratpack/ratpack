@@ -16,17 +16,14 @@
 
 package ratpack.jackson.internal;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectWriter;
-import io.netty.buffer.ByteBuf;
 import ratpack.handling.Context;
 import ratpack.jackson.JsonRender;
 import ratpack.jackson.JsonRenderer;
 import ratpack.render.RendererSupport;
-import ratpack.util.internal.ByteBufWriteThroughOutputStream;
 
 import javax.inject.Inject;
-import java.io.IOException;
-import java.io.OutputStream;
 
 public class DefaultJsonRenderer extends RendererSupport<JsonRender<?>> implements JsonRenderer {
 
@@ -42,21 +39,20 @@ public class DefaultJsonRenderer extends RendererSupport<JsonRender<?>> implemen
     context.respond(context.getByContent().json(new Runnable() {
       @Override
       public void run() {
-        final ByteBuf body = context.getResponse().getBody();
-        OutputStream outputStream = new ByteBufWriteThroughOutputStream(body);
-
         ObjectWriter writer = object.getObjectWriter();
         if (writer == null) {
           writer = defaultObjectWriter;
         }
 
+        byte[] bytes;
         try {
-          writer.writeValue(outputStream, object.getObject());
-        } catch (IOException e) {
+          bytes = writer.writeValueAsBytes(object.getObject());
+        } catch (JsonProcessingException e) {
           context.error(e);
+          return;
         }
 
-        context.getResponse().send();
+        context.getResponse().send(bytes);
       }
     }));
   }

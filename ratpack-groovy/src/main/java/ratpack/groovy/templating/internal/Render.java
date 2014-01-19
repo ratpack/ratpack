@@ -19,6 +19,7 @@ package ratpack.groovy.templating.internal;
 import com.google.common.cache.LoadingCache;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
 import ratpack.util.Action;
 import ratpack.util.Result;
 import ratpack.util.Transformer;
@@ -35,19 +36,21 @@ public class Render {
   private final LoadingCache<TemplateSource, CompiledTemplate> compiledTemplateCache;
   private final Transformer<String, TemplateSource> includeTransformer;
 
-  public Render(ByteBuf buffer, LoadingCache<TemplateSource, CompiledTemplate> compiledTemplateCache, TemplateSource templateSource, Map<String, ?> model, final Action<Result<ByteBuf>> handler, Transformer<String, TemplateSource> includeTransformer) throws Exception {
+  public Render(ByteBufAllocator byteBufAllocator, LoadingCache<TemplateSource, CompiledTemplate> compiledTemplateCache, TemplateSource templateSource, Map<String, ?> model, final Action<Result<ByteBuf>> handler, Transformer<String, TemplateSource> includeTransformer) throws Exception {
     this.compiledTemplateCache = compiledTemplateCache;
     this.includeTransformer = includeTransformer;
 
+    ByteBuf byteBuf = byteBufAllocator.buffer();
+
     try {
-      execute(getFromCache(compiledTemplateCache, templateSource), model, buffer);
+      execute(getFromCache(compiledTemplateCache, templateSource), model, byteBuf);
     } catch (Exception e) {
       handler.execute(new Result<ByteBuf>(e));
       return;
     }
 
     //noinspection Convert2Diamond
-    handler.execute(new Result<ByteBuf>(buffer));
+    handler.execute(new Result<ByteBuf>(byteBuf));
   }
 
   private CompiledTemplate getFromCache(LoadingCache<TemplateSource, CompiledTemplate> compiledTemplateCache, TemplateSource templateSource) {

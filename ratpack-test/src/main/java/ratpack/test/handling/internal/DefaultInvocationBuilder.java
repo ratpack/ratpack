@@ -45,8 +45,6 @@ public class DefaultInvocationBuilder implements InvocationBuilder {
 
   private final ByteBuf requestBody = unreleasableBuffer(buffer());
   private final MutableHeaders requestHeaders = new NettyHeadersBackedMutableHeaders(new DefaultHttpHeaders());
-
-  private final ByteBuf responseBody = unreleasableBuffer(buffer());
   private final MutableHeaders responseHeaders = new NettyHeadersBackedMutableHeaders(new DefaultHttpHeaders());
 
   private final Status status = new DefaultStatus();
@@ -79,7 +77,6 @@ public class DefaultInvocationBuilder implements InvocationBuilder {
       request,
       status,
       responseHeaders,
-      responseBody.copy(),
       registry,
       timeout,
       handler
@@ -109,18 +106,6 @@ public class DefaultInvocationBuilder implements InvocationBuilder {
   public InvocationBuilder responseHeader(String name, String value) {
     responseHeaders.add(name, value);
     return this;
-  }
-
-  @Override
-  public InvocationBuilder responseBody(byte[] bytes, String contentType) {
-    responseHeaders.add(HttpHeaders.Names.CONTENT_TYPE, contentType);
-    responseBody.capacity(bytes.length).writeBytes(bytes);
-    return this;
-  }
-
-  @Override
-  public InvocationBuilder responseBody(String text, String contentType) {
-    return responseBody(text.getBytes(), DefaultMediaType.utf8(contentType).toString());
   }
 
   @Override

@@ -71,9 +71,9 @@ public class GroovyTemplateRenderingEngine {
     }
   }
 
-  public void renderTemplate(ByteBuf buffer, final String templateId, final Map<String, ?> model, final Action<Result<ByteBuf>> handler) throws Exception {
+  public void renderTemplate(final String templateId, final Map<String, ?> model, final Action<Result<ByteBuf>> handler) throws Exception {
     Path templateFile = getTemplateFile(templateId);
-    render(buffer, toTemplateSource(templateId, templateFile), model, handler);
+    render(toTemplateSource(templateId, templateFile), model, handler);
   }
 
   private PathTemplateSource toTemplateSource(String templateId, Path templateFile) throws IOException {
@@ -81,18 +81,18 @@ public class GroovyTemplateRenderingEngine {
     return new PathTemplateSource(id, templateFile, templateId);
   }
 
-  public void renderError(ByteBuf buffer, Map<String, ?> model, Action<Result<ByteBuf>> handler) throws Exception {
+  public void renderError(Map<String, ?> model, Action<Result<ByteBuf>> handler) throws Exception {
     final Path errorTemplate = getTemplateFile(ERROR_TEMPLATE);
     if (Files.exists(errorTemplate)) {
-      render(buffer, toTemplateSource(ERROR_TEMPLATE, errorTemplate), model, handler);
+      render(toTemplateSource(ERROR_TEMPLATE, errorTemplate), model, handler);
     } else {
-      render(buffer, new ResourceTemplateSource(ERROR_TEMPLATE, byteBufAllocator), model, handler);
+      render(new ResourceTemplateSource(ERROR_TEMPLATE, byteBufAllocator), model, handler);
     }
   }
 
-  private void render(ByteBuf buffer, final TemplateSource templateSource, Map<String, ?> model, Action<Result<ByteBuf>> handler) throws Exception {
+  private void render(final TemplateSource templateSource, Map<String, ?> model, Action<Result<ByteBuf>> handler) throws Exception {
     try {
-      new Render(buffer, compiledTemplateCache, templateSource, model, handler, new Transformer<String, TemplateSource>() {
+      new Render(byteBufAllocator, compiledTemplateCache, templateSource, model, handler, new Transformer<String, TemplateSource>() {
         public TemplateSource transform(String templateName) throws IOException {
           return toTemplateSource(templateName, getTemplateFile(templateName));
         }

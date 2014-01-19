@@ -19,6 +19,7 @@ package ratpack.test.handling.internal;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import io.netty.buffer.UnpooledByteBufAllocator;
 import io.netty.util.CharsetUtil;
 import ratpack.api.Nullable;
 import ratpack.background.Background;
@@ -60,7 +61,7 @@ public class DefaultInvocation implements Invocation {
 
   private Exception exception;
   private Headers headers;
-  private ByteBuf body;
+  private ByteBuf body = Unpooled.buffer(0, 0);
   private Status status;
   private boolean calledNext;
   private boolean sentResponse;
@@ -68,7 +69,7 @@ public class DefaultInvocation implements Invocation {
   private Object rendered;
   private Integer clientError;
 
-  public DefaultInvocation(final Request request, final Status status, final MutableHeaders responseHeaders, ByteBuf responseBody, Registry registry, final int timeout, Handler handler) {
+  public DefaultInvocation(final Request request, final Status status, final MutableHeaders responseHeaders, Registry registry, final int timeout, Handler handler) {
 
     // There are definitely concurrency bugs in here around timing out
     // ideally we should prevent the stat from changing after a timeout occurs
@@ -91,10 +92,11 @@ public class DefaultInvocation implements Invocation {
 
     final EventController<RequestOutcome> eventController = new DefaultEventController<>();
 
-    Action<Response> committer = new Action<Response>() {
-      public void execute(Response response) {
+    Action<ByteBuf> committer = new Action<ByteBuf>() {
+      public void execute(ByteBuf byteBuf) {
         sentResponse = true;
-        eventController.fire(new DefaultRequestOutcome(request, response, System.currentTimeMillis()));
+        body = byteBuf;
+        eventController.fire(new DefaultRequestOutcome(request, new DefaultSentResponse(headers, status), System.currentTimeMillis()));
         latch.countDown();
       }
     };
@@ -150,7 +152,7 @@ public class DefaultInvocation implements Invocation {
       }
     };
 
-    Response response = new DefaultResponse(status, responseHeaders, responseBody, fileHttpTransmitter, committer);
+    Response response = new DefaultResponse(status, responseHeaders, fileHttpTransmitter, UnpooledByteBufAllocator.DEFAULT, committer);
     ThreadLocal<Context> contextThreadLocal = new ThreadLocal<>();
     Provider<Context> contextProvider = new ThreadLocalBackedProvider<>(contextThreadLocal);
     DefaultContext.ApplicationConstants applicationConstants = new DefaultContext.ApplicationConstants(
@@ -177,8 +179,6 @@ public class DefaultInvocation implements Invocation {
     } catch (InterruptedException e) {
       throw uncheck(e); // what to do here?
     }
-
-    this.body = Unpooled.unmodifiableBuffer(responseBody);
   }
 
   @Override

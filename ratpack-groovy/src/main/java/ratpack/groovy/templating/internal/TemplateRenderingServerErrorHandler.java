@@ -35,7 +35,7 @@ public class TemplateRenderingServerErrorHandler implements ServerErrorHandler {
       response.status(500);
     }
 
-    renderer.renderError(context.getResponse().getBody(), model, new ErrorTemplateRenderResultAction(context, new Action<PrintWriter>() {
+    renderer.renderError(model, new ErrorTemplateRenderResultAction(context, new Action<PrintWriter>() {
       public void execute(PrintWriter writer) {
         writer.append("for server error\n");
         exception.printStackTrace(writer);

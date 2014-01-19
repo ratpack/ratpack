@@ -17,6 +17,7 @@
 package ratpack.http.internal;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
 import io.netty.handler.codec.http.Cookie;
 import io.netty.handler.codec.http.DefaultCookie;
 import io.netty.handler.codec.http.HttpHeaders;
@@ -45,18 +46,19 @@ public class DefaultResponse implements Response {
 
   private final Status status;
   private final MutableHeaders headers;
-  private final ByteBuf body;
   private final FileHttpTransmitter fileHttpTransmitter;
-  private final Action<? super Response> committer;
+  private final Action<? super ByteBuf> committer;
+  private final ByteBufAllocator byteBufAllocator;
 
   private boolean contentTypeSet;
   private Set<Cookie> cookies;
 
-  public DefaultResponse(Status status, MutableHeaders headers, ByteBuf body, FileHttpTransmitter fileHttpTransmitter, Action<? super Response> committer) {
+
+  public DefaultResponse(Status status, MutableHeaders headers, FileHttpTransmitter fileHttpTransmitter, ByteBufAllocator byteBufAllocator, Action<? super ByteBuf> committer) {
     this.status = status;
     this.fileHttpTransmitter = fileHttpTransmitter;
+    this.byteBufAllocator = byteBufAllocator;
     this.headers = new MutableHeadersWrapper(headers);
-    this.body = body;
     this.committer = committer;
   }
 
@@ -156,17 +158,12 @@ public class DefaultResponse implements Response {
   }
 
   @Override
-  public ByteBuf getBody() {
-    return body;
-  }
-
-  @Override
   public MutableHeaders getHeaders() {
     return headers;
   }
 
   public void send() {
-    commit();
+    commit(byteBufAllocator.buffer(0, 0));
   }
 
   @Override
@@ -180,8 +177,7 @@ public class DefaultResponse implements Response {
       contentType("text/plain");
     }
 
-    body.writeBytes(IoUtils.utf8Bytes(text));
-    commit();
+    send(IoUtils.utf8Bytes(text));
   }
 
   public void send(String contentType, String body) {
@@ -194,8 +190,7 @@ public class DefaultResponse implements Response {
       contentType("application/octet-stream");
     }
 
-    body.writeBytes(bytes);
-    commit();
+    commit(byteBufAllocator.buffer(bytes.length).writeBytes(bytes));
   }
 
   public void send(String contentType, byte[] bytes) {
@@ -204,8 +199,7 @@ public class DefaultResponse implements Response {
 
   @Override
   public void send(InputStream inputStream) throws IOException {
-    IoUtils.writeTo(inputStream, body);
-    commit();
+    commit(IoUtils.writeTo(inputStream, byteBufAllocator.buffer()));
   }
 
   @Override
@@ -223,8 +217,7 @@ public class DefaultResponse implements Response {
       contentType("application/octet-stream");
     }
 
-    body.writeBytes(buffer);
-    commit();
+    commit(buffer);
   }
 
   @Override
@@ -268,10 +261,10 @@ public class DefaultResponse implements Response {
     }
   }
 
-  private void commit() {
+  private void commit(ByteBuf byteBuf) {
     setCookieHeader();
     try {
-      committer.execute(this);
+      committer.execute(byteBuf);
     } catch (Exception e) {
       throw ExceptionUtils.uncheck(e);
     }

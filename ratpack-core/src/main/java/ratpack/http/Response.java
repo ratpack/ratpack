@@ -72,13 +72,6 @@ public interface Response {
   MutableHeaders getHeaders();
 
   /**
-   * The (mutable) buffer that is the body to be sent.
-   *
-   * @return The (mutable) buffer that is the body to be sent.
-   */
-  ByteBuf getBody();
-
-  /**
    * Sends the response back to the client, with no body.
    */
   @NonBlocking

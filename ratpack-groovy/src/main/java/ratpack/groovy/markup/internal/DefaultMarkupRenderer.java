@@ -22,8 +22,8 @@ import ratpack.groovy.markup.Markup;
 import ratpack.groovy.markup.MarkupRenderer;
 import ratpack.handling.Context;
 import ratpack.render.RendererSupport;
-import ratpack.util.internal.ByteBufWriteThroughOutputStream;
 
+import java.io.ByteArrayOutputStream;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 
@@ -31,13 +31,13 @@ public class DefaultMarkupRenderer extends RendererSupport<Markup> implements Ma
 
   @Override
   public void render(Context context, Markup markup) throws UnsupportedEncodingException {
-    ByteBufWriteThroughOutputStream out = new ByteBufWriteThroughOutputStream(context.getResponse().getBody());
+    ByteArrayOutputStream out = new ByteArrayOutputStream();
     OutputStreamWriter writer = new OutputStreamWriter(out, markup.getEncoding());
     MarkupBuilder markupBuilder = new MarkupBuilder(writer);
 
     ClosureUtil.configureDelegateFirst(markupBuilder, markupBuilder, markup.getDefinition());
 
-    context.getResponse().contentType(markup.getContentType()).send();
+    context.getResponse().contentType(markup.getContentType()).send(out.toByteArray());
   }
 
 }

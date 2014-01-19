@@ -19,6 +19,7 @@ package ratpack.guice.internal;
 import com.google.inject.AbstractModule;
 import com.google.inject.OutOfScopeException;
 import com.google.inject.Provides;
+import io.netty.buffer.ByteBufAllocator;
 import ratpack.background.Background;
 import ratpack.handling.Context;
 import ratpack.launch.LaunchConfig;
@@ -44,6 +45,11 @@ public class DefaultRatpackModule extends AbstractModule {
     } else {
       return context;
     }
+  }
+
+  @Provides
+  ByteBufAllocator bufferAllocator(LaunchConfig launchConfig) {
+    return launchConfig.getBufferAllocator();
   }
 
   @Provides
