@@ -41,7 +41,7 @@ public class DefaultRegistry implements Registry {
     if (object == null) {
       throw new NotInRegistryException(type);
     } else {
-      return null;
+      return object;
     }
   }
 
