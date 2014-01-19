@@ -57,7 +57,7 @@ public class DefaultRegistryBuilder implements RegistryBuilder {
 
   @Override
   public Registry build() {
-    return new CachingRegistry(new DefaultRegistry(builder.build()));
+    return new DefaultRegistry(builder.build());
   }
 
   @Override
