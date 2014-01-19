@@ -23,10 +23,34 @@ import ratpack.util.Factory;
  */
 public interface RegistrySpec {
 
+  /**
+   * Adds a registry entry that is available by the given type.
+   *
+   * @param type the public type of the registry entry
+   * @param object the actual registry entry
+   * @param <O> the public type of the registry entry
+   * @return this
+   */
   <O> RegistrySpec add(Class<? super O> type, O object);
 
-  <O> RegistrySpec add(O object);
+  /**
+   * Adds a registry entry.
+   *
+   * @param object the object to add to the registry
+   * @return this
+   */
+  RegistrySpec add(Object object);
 
-  <O> RegistrySpec add(Class<O> type, Factory<? extends O> object);
+  /**
+   * Adds a lazily created entry to the registry.
+   * <p>
+   * The factory will be invoked exactly once, when a query is made to the registry of a compatible type of the given type.
+   *
+   * @param type the public type of the registry entry
+   * @param factory the factory for creating the object when needed
+   * @param <O> the public type of the registry entry
+   * @return this
+   */
+  <O> RegistrySpec add(Class<O> type, Factory<? extends O> factory);
 
 }

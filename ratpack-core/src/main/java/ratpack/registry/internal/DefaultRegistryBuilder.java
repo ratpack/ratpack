@@ -29,21 +29,20 @@ public class DefaultRegistryBuilder implements RegistryBuilder {
 
   @Override
   public <O> RegistryBuilder add(Class<? super O> type, O object) {
-    //noinspection unchecked
     builder.add(new DefaultRegistryEntry<>(type, object));
     return this;
   }
 
   @Override
-  public <O> RegistryBuilder add(O object) {
-    @SuppressWarnings("unchecked") Class<O> cast = (Class<O>) object.getClass();
-    return add(cast, object);
+  public RegistryBuilder add(Object object) {
+    @SuppressWarnings("unchecked")
+    Class<? super Object> type = (Class<? super Object>) object.getClass();
+    return add(type, object);
   }
 
   @Override
-  public <O> RegistryBuilder add(Class<O> type, Factory<? extends O> object) {
-    //noinspection unchecked
-    builder.add(new LazyRegistryEntry<>(type, object));
+  public <O> RegistryBuilder add(Class<O> type, Factory<? extends O> factory) {
+    builder.add(new LazyRegistryEntry<>(type, factory));
     return this;
   }
 

@@ -39,11 +39,11 @@ public abstract class DelegatingCommandDelegate implements CommandDelegate {
     return spec.add(type, object);
   }
 
-  public <O> RegistrySpec add(Class<O> type, Factory<? extends O> object) {
-    return spec.add(type, object);
+  public <O> RegistrySpec add(Class<O> type, Factory<? extends O> factory) {
+    return spec.add(type, factory);
   }
 
-  public <O> RegistrySpec add(O object) {
+  public RegistrySpec add(Object object) {
     return spec.add(object);
   }
 

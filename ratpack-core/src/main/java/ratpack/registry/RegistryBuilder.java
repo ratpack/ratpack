@@ -18,19 +18,46 @@ package ratpack.registry;
 
 import ratpack.util.Factory;
 
+/**
+ * A builder of {@link Registry registries}.
+ *
+ * @see Registries#builder()
+ */
 public interface RegistryBuilder extends RegistrySpec {
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   <O> RegistryBuilder add(Class<? super O> type, O object);
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
-  <O> RegistryBuilder add(O object);
+  RegistryBuilder add(Object object);
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
-  <O> RegistryBuilder add(Class<O> type, Factory<? extends O> object);
+  <O> RegistryBuilder add(Class<O> type, Factory<? extends O> factory);
 
+  /**
+   * Builds the registry.
+   *
+   * @return a newly created registry
+   */
   Registry build();
 
+  /**
+   * Builds a registry containing the entries specified by this builder and the given “parent” registry.
+   * <p>
+   * Entries added in this builder will shadow items in the given parent.
+   *
+   * @param parent the parent of the registry to create
+   * @return a newly created registry
+   */
   Registry build(Registry parent);
 
 }
