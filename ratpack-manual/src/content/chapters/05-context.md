@@ -1,11 +1,11 @@
 # Context
 
-Handlers operate on a [`Context`](api/ratpack/handling/Context.html).
+The [`Context`](api/ratpack/handling/Context.html) type is at the core of Ratpack.
 
 It provides:
 
-* Access the HTTP {@link #getRequest() request} and {@link #getResponse() response}
-* Delegation (via the [`next()`](api/ratpack/handling/Context.html#next\(\)) and [`next()`](api/ratpack/handling/Context.html#insert\(ratpack.handling.Handler...\)) family of methods)
+* Access the HTTP [`Request`](api/ratpack/http/Request.html) and [`Response`](api/ratpack/http/Response.html)
+* Delegation and flow control (via the [`next()`](api/ratpack/handling/Context.html#next\(\)) and [`insert()`](api/ratpack/handling/Context.html#insert\(ratpack.handling.Handler...\)) methods)
 * Access to _contextual objects_
 * Convenience for common handler operations
 
