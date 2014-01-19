@@ -17,6 +17,7 @@
 package ratpack.launch;
 
 import io.netty.buffer.ByteBufAllocator;
+import io.netty.channel.EventLoopGroup;
 import ratpack.api.Nullable;
 import ratpack.file.FileSystemBinding;
 import ratpack.handling.Context;
@@ -104,10 +105,17 @@ public interface LaunchConfig {
   public int getMainThreads();
 
   /**
-   * The executor service to use to perform background operations.
+   * The executor service to use to perform foreground computation operations.
+   *
+   * @return the executor service to use to perform foreground computation operations
+   */
+  public EventLoopGroup getEventLoopGroup();
+
+  /**
+   * The executor service to use to perform background blocking operations.
    *
    * @see ratpack.handling.Context#getBackground()
-   * @return The executor service to use to perform background operations.
+   * @return The executor service to use to perform background blocking operations.
    */
   public ExecutorService getBackgroundExecutorService();
 

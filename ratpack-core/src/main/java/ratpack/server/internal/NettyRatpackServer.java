@@ -22,11 +22,9 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
-import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.util.ResourceLeakDetector;
-import io.netty.util.concurrent.DefaultThreadFactory;
 import ratpack.launch.LaunchConfig;
 import ratpack.launch.LaunchException;
 import ratpack.server.RatpackServer;
@@ -85,16 +83,15 @@ public class NettyRatpackServer implements RatpackServer {
       };
 
       ServerBootstrap bootstrap = new ServerBootstrap();
-      group = new NioEventLoopGroup(launchConfig.getMainThreads(), new DefaultThreadFactory("ratpack-group", Thread.MAX_PRIORITY));
+      group = launchConfig.getEventLoopGroup();
 
       ChannelInitializer<SocketChannel> channelInitializer = channelInitializerTransformer.transform(stopper);
 
       bootstrap
         .group(group)
-        .channel(NioServerSocketChannel.class)
         .childHandler(channelInitializer)
-        .childOption(ChannelOption.ALLOCATOR, launchConfig.getBufferAllocator())
-        .option(ChannelOption.ALLOCATOR, launchConfig.getBufferAllocator());
+        .channel(NioServerSocketChannel.class)
+        .childOption(ChannelOption.ALLOCATOR, launchConfig.getBufferAllocator());
 
       if (System.getProperty("io.netty.leakDetectionLevel", null) == null) {
         ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.DISABLED);

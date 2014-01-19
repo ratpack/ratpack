@@ -19,6 +19,9 @@ package ratpack.launch.internal;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.netty.buffer.ByteBufAllocator;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.util.concurrent.DefaultThreadFactory;
 import ratpack.file.FileSystemBinding;
 import ratpack.handling.Context;
 import ratpack.launch.HandlerFactory;
@@ -50,6 +53,7 @@ public class DefaultLaunchConfig implements LaunchConfig, LaunchConfigInternal {
 
   private final ThreadLocal<Context> contextThreadLocal = new ThreadLocal<>();
   private final Provider<Context> contextProvider = new ThreadLocalBackedProvider<>(contextThreadLocal);
+  private final EventLoopGroup eventLoopGroup;
 
   public DefaultLaunchConfig(FileSystemBinding baseDir, int port, InetAddress address, boolean reloadable, int mainThreads, ExecutorService backgroundExecutorService, ByteBufAllocator byteBufAllocator, URI publicAddress, ImmutableList<String> indexFiles, ImmutableMap<String, String> other, SSLContext sslContext, int maxContentLength, HandlerFactory handlerFactory) {
     this.baseDir = baseDir;
@@ -65,6 +69,7 @@ public class DefaultLaunchConfig implements LaunchConfig, LaunchConfigInternal {
     this.handlerFactory = handlerFactory;
     this.sslContext = sslContext;
     this.maxContentLength = maxContentLength;
+    this.eventLoopGroup = new NioEventLoopGroup(mainThreads, new DefaultThreadFactory("ratpack-group"));
   }
 
   @Override
@@ -95,6 +100,11 @@ public class DefaultLaunchConfig implements LaunchConfig, LaunchConfigInternal {
   @Override
   public int getMainThreads() {
     return mainThreads;
+  }
+
+  @Override
+  public EventLoopGroup getEventLoopGroup() {
+    return eventLoopGroup;
   }
 
   @Override

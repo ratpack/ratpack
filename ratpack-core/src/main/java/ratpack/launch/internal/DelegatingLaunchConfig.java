@@ -17,6 +17,7 @@
 package ratpack.launch.internal;
 
 import io.netty.buffer.ByteBufAllocator;
+import io.netty.channel.EventLoopGroup;
 import ratpack.api.Nullable;
 import ratpack.file.FileSystemBinding;
 import ratpack.handling.Context;
@@ -67,6 +68,11 @@ public class DelegatingLaunchConfig implements LaunchConfig, LaunchConfigInterna
   @Override
   public int getMainThreads() {
     return launchConfig.getMainThreads();
+  }
+
+  @Override
+  public EventLoopGroup getEventLoopGroup() {
+    return launchConfig.getEventLoopGroup();
   }
 
   @Override
