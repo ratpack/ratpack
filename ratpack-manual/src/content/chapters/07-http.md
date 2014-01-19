@@ -18,7 +18,7 @@ TODO introduce parsers generally
 
 ### Forms
 
-Ratpack provides a [`FormParser`](api/ratpack/form/FormParser.html) implementation in the core.
+Ratpack provides a parser for [`Form`](api/ratpack/form/Form.html) objects in the core.
 This can be used for reading POST'd (or PUT'd etc. for that matter) forms, both URL encoded and multi part (including file uploads).
 
 Here's an example of using this from Java…
@@ -47,7 +47,7 @@ public class MyHandler implements Handler {
 }
 ```
 
-See [`Form`](api/ratpack/form/Form.html), [`UploadedFile`](api/ratpack/form/UploadedFile.html) and [`Forms`](api/ratpack/form/Forms.html) for more information and examples.
+See [`Form`](api/ratpack/form/Form.html) and [`UploadedFile`](api/ratpack/form/UploadedFile.html) for more information and examples.
 
 ## Sending a response
 
