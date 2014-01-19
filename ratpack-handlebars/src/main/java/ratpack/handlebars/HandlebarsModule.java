@@ -178,7 +178,8 @@ public class HandlebarsModule extends AbstractModule {
   @Singleton
   Handlebars provideHandlebars(Injector injector, TemplateLoader templateLoader, TemplateCache templateCache) {
 
-    final Handlebars handlebars = new Handlebars().with(templateLoader).with(templateCache);
+    final Handlebars handlebars = new Handlebars().with(templateLoader);
+    handlebars.with(templateCache);
 
     TypeLiteral<NamedHelper<?>> type = new TypeLiteral<NamedHelper<?>>() {
     };
