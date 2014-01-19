@@ -55,7 +55,7 @@ public class RatpackChannelInitializer extends ChannelInitializer<SocketChannel>
       pipeline.addLast("ssl", new SslHandler(engine));
     }
 
-    pipeline.addLast("decoder", new HttpRequestDecoder());
+    pipeline.addLast("decoder", new HttpRequestDecoder(4096, 8192, 8192, false));
     pipeline.addLast("aggregator", new HttpObjectAggregator(maxContentLength));
     pipeline.addLast("encoder", new HttpResponseEncoder());
     pipeline.addLast("chunkedWriter", new ChunkedWriteHandler());
