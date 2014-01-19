@@ -20,9 +20,6 @@ class MockGithubData implements GitHubData {
 
   final List<RatpackVersion> released = []
   final List<RatpackVersion> unreleased = []
-  final Map<String, IssueSet> issueSetMap = [:].withDefault {
-    new IssueSet([], [])
-  }
 
   @Override
   rx.Observable<List<RatpackVersion>> getReleasedVersions() {
@@ -31,12 +28,12 @@ class MockGithubData implements GitHubData {
 
   @Override
   rx.Observable<List<RatpackVersion>> getUnreleasedVersions() {
-    rx.Observable.from(released).toList()
+    rx.Observable.from(unreleased).toList()
   }
 
   @Override
   rx.Observable<IssueSet> closed(RatpackVersion version) {
-    rx.Observable.from(issueSetMap.get(version.version))
+    rx.Observable.from(new IssueSet([], []))
   }
 
 }
