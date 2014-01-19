@@ -56,8 +56,4 @@ public class InjectorBackedRegistry implements Registry {
     return GuiceUtil.ofType(injector, type);
   }
 
-  @Override
-  public boolean isEmpty() {
-    return false;
-  }
 }

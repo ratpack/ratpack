@@ -29,6 +29,13 @@ import ratpack.util.Factory;
 public interface RegistryBuilder extends RegistrySpec {
 
   /**
+   * How many entries have been added so far.
+   *
+   * @return how many entries have been added so far.
+   */
+  int size();
+
+  /**
    * {@inheritDoc}
    */
   @Override

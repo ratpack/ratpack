@@ -26,10 +26,17 @@ import static ratpack.registry.Registries.join;
 public class DefaultRegistryBuilder implements RegistryBuilder {
 
   private final ImmutableList.Builder<RegistryEntry<?>> builder = ImmutableList.builder();
+  private int size = 0;
+
+  @Override
+  public int size() {
+    return size;
+  }
 
   @Override
   public <O> RegistryBuilder add(Class<? super O> type, O object) {
     builder.add(new DefaultRegistryEntry<>(type, object));
+    ++size;
     return this;
   }
 
@@ -37,12 +44,14 @@ public class DefaultRegistryBuilder implements RegistryBuilder {
   public RegistryBuilder add(Object object) {
     @SuppressWarnings("unchecked")
     Class<? super Object> type = (Class<? super Object>) object.getClass();
+    ++size;
     return add(type, object);
   }
 
   @Override
   public <O> RegistryBuilder add(Class<O> type, Factory<? extends O> factory) {
     builder.add(new LazyRegistryEntry<>(type, factory));
+    ++size;
     return this;
   }
 

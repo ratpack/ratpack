@@ -258,9 +258,4 @@ public class DefaultGroovyContext implements GroovyContext {
     return delegate.getAll(type);
   }
 
-  @Override
-  public boolean isEmpty() {
-    return delegate.isEmpty();
-  }
-
 }

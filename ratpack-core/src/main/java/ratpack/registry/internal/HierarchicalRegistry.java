@@ -60,9 +60,4 @@ public class HierarchicalRegistry implements Registry {
     return ImmutableList.<O>builder().addAll(childAll).addAll(parentAll).build();
   }
 
-  @Override
-  public boolean isEmpty() {
-    return parent.isEmpty() && child.isEmpty();
-  }
-
 }

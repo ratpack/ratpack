@@ -55,10 +55,6 @@ public abstract class DelegatingCommandDelegate implements CommandDelegate {
     return registry.getAll(type);
   }
 
-  public boolean isEmpty() {
-    return registry.isEmpty();
-  }
-
   @Nullable
   public <O> O maybeGet(Class<O> type) {
     return registry.maybeGet(type);

@@ -102,15 +102,4 @@ public interface Registry {
    */
   <O> List<O> getAll(Class<O> type);
 
-  /**
-   * Does this registry contain exactly no contents.
-   * <p>
-   * Implementations may return true if they cannot determine if they are empty or not.
-   * That is, this method may return true and yet all of its methods not return anything.
-   * However, implementations that do return true from this method MUST NOT return anything from lookup methods.
-   *
-   * @return true if this registry contains exactly no contents, otherwise false.
-   */
-  boolean isEmpty();
-
 }

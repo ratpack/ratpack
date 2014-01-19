@@ -148,11 +148,6 @@ public class DefaultContext implements Context {
     return registry.maybeGet(type);
   }
 
-  @Override
-  public boolean isEmpty() {
-    return registry.isEmpty();
-  }
-
   public void next() {
     doNext(this, registry, nextIndex, nextHandlers, exhausted);
   }
