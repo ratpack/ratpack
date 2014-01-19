@@ -48,8 +48,9 @@ public interface Renderer<T> {
    * <p>
    * Any errors that occur during rendering will be sent to {@link Context#error(Exception)}.
    *
-   * @param context The context for the operation
-   * @param object The object to render
+   * @param context the context for the operation
+   * @param object the object to render
+   * @throws Exception if anything goes wrong while rendering
    */
   @NonBlocking
   void render(Context context, T object) throws Exception;
