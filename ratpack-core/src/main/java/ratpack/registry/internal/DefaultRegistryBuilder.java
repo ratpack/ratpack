@@ -26,7 +26,7 @@ import static ratpack.registry.Registries.join;
 public class DefaultRegistryBuilder implements RegistryBuilder {
 
   private final ImmutableList.Builder<RegistryEntry<?>> builder = ImmutableList.builder();
-  private int size = 0;
+  private int size;
 
   @Override
   public int size() {
