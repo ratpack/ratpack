@@ -35,7 +35,6 @@ buildscript {
 
 dependencies {
   testCompile apiModules
-  testCompile "org.codehaus.groovy:groovy-ant:$groovyVersion"
 }
 
 apply from: "$rootDir/gradle/markdown2book.gradle"
