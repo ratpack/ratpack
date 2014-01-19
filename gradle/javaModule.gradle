@@ -30,7 +30,7 @@ configurations {
       incoming.afterResolve {
         dependencies.withType(ModuleDependency) { dep ->
           excludeRules.each {
-            if ([it.group, it.module].any { it in [null, "*"] }) {
+            if ([it.group, it.module].any { it == null }) {
               throw new InvalidUserDataException(
                 "Partial exclude for dependency '$dep.group:$dep.name:$dep.version' of $project: [group: $it.group, module: $it.module]\n\nExcludes must specify both group and module and neither can be '*'."
               )
