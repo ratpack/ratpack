@@ -27,20 +27,20 @@ public class NettyHeadersBackedMutableHeaders extends NettyHeadersBackedHeaders 
     super(headers);
   }
 
-  public void add(String name, Object value) {
+  public void add(CharSequence name, Object value) {
     headers.add(name, value);
   }
 
-  public void set(String name, Object value) {
+  public void set(CharSequence name, Object value) {
     headers.set(name, value);
   }
 
   @Override
-  public void setDate(String name, Date value) {
+  public void setDate(CharSequence name, Date value) {
     headers.set(name, HttpHeaderDateFormat.get().format(value));
   }
 
-  public void set(String name, Iterable<?> values) {
+  public void set(CharSequence name, Iterable<?> values) {
     headers.set(name, values);
   }
 

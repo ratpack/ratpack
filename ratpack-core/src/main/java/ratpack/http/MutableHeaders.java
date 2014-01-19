@@ -31,7 +31,7 @@ public interface MutableHeaders extends Headers {
    * @param name The name of the header
    * @param value The value of the header
    */
-  void add(String name, Object value);
+  void add(CharSequence name, Object value);
 
   /**
    * Sets the (only) value for the header with the specified name.
@@ -41,7 +41,7 @@ public interface MutableHeaders extends Headers {
    * @param name The name of the header
    * @param value The value of the header
    */
-  void set(String name, Object value);
+  void set(CharSequence name, Object value);
 
   /**
    * Set a header with the given date as the value.
@@ -49,7 +49,7 @@ public interface MutableHeaders extends Headers {
    * @param name The name of the header
    * @param value The date value
    */
-  void setDate(String name, Date value);
+  void setDate(CharSequence name, Date value);
 
   /**
    * Sets a new header with the specified name and values.
@@ -59,7 +59,7 @@ public interface MutableHeaders extends Headers {
    * @param name The name of the header
    * @param values The values of the header
    */
-  void set(String name, Iterable<?> values);
+  void set(CharSequence name, Iterable<?> values);
 
   /**
    * Removes the header with the specified name.

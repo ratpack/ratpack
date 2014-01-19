@@ -71,8 +71,8 @@ public class DefaultResponse implements Response {
     }
 
     @Override
-    public void add(String name, Object value) {
-      if (name.equalsIgnoreCase(HttpHeaders.Names.CONTENT_TYPE)) {
+    public void add(CharSequence name, Object value) {
+      if (!contentTypeSet && name.toString().equalsIgnoreCase(HttpHeaders.Names.CONTENT_TYPE)) {
         contentTypeSet = true;
       }
 
@@ -80,8 +80,8 @@ public class DefaultResponse implements Response {
     }
 
     @Override
-    public void set(String name, Object value) {
-      if (name.equalsIgnoreCase(HttpHeaders.Names.CONTENT_TYPE)) {
+    public void set(CharSequence name, Object value) {
+      if (!contentTypeSet && name.toString().equalsIgnoreCase(HttpHeaders.Names.CONTENT_TYPE)) {
         contentTypeSet = true;
       }
 
@@ -89,13 +89,13 @@ public class DefaultResponse implements Response {
     }
 
     @Override
-    public void setDate(String name, Date value) {
+    public void setDate(CharSequence name, Date value) {
       wrapped.set(name, value);
     }
 
     @Override
-    public void set(String name, Iterable<?> values) {
-      if (name.equalsIgnoreCase(HttpHeaders.Names.CONTENT_TYPE)) {
+    public void set(CharSequence name, Iterable<?> values) {
+      if (!contentTypeSet && name.toString().equalsIgnoreCase(HttpHeaders.Names.CONTENT_TYPE)) {
         contentTypeSet = true;
       }
 
