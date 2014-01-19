@@ -37,7 +37,7 @@ import ratpack.http.*;
 import ratpack.http.internal.DefaultResponse;
 import ratpack.registry.Registries;
 import ratpack.registry.Registry;
-import ratpack.render.NoSuchRendererException;
+import ratpack.render.internal.RenderController;
 import ratpack.server.BindAddress;
 import ratpack.test.handling.Invocation;
 import ratpack.test.handling.InvocationTimeoutException;
@@ -135,29 +135,32 @@ public class DefaultInvocation implements Invocation {
     };
 
     Registry effectiveRegistry = Registries.join(
-      Registries.builder().
+      Registries.registry().
         add(ClientErrorHandler.class, clientErrorHandler).
         add(ServerErrorHandler.class, serverErrorHandler).
         build(),
       registry
     );
 
-    Response response = new DefaultResponse(status, responseHeaders, responseBody, fileHttpTransmitter, committer);
-    ThreadLocal<Context> contextThreadLocal = new ThreadLocal<>();
-    Provider<Context> contextProvider = new ThreadLocalBackedProvider<>(contextThreadLocal);
-    DefaultContext.ApplicationConstants applicationConstants = new DefaultContext.ApplicationConstants(
-      backgroundExecutorService, contextProvider, contextThreadLocal
-    );
-    DefaultContext.RequestConstants requestConstants = new DefaultContext.RequestConstants(
-      applicationConstants, bindAddress, request, response, null, eventController.getRegistry(), foregroundExecutorService
-    );
-    Context context = new DefaultContext(requestConstants, effectiveRegistry, new Handler[0], 0, next) {
+    RenderController renderController = new RenderController() {
       @Override
-      public void render(Object object) throws NoSuchRendererException {
+      public void render(Object object, Context context) {
         rendered = object;
         latch.countDown();
       }
     };
+
+    Response response = new DefaultResponse(status, responseHeaders, responseBody, fileHttpTransmitter, committer);
+    ThreadLocal<Context> contextThreadLocal = new ThreadLocal<>();
+    Provider<Context> contextProvider = new ThreadLocalBackedProvider<>(contextThreadLocal);
+    DefaultContext.ApplicationConstants applicationConstants = new DefaultContext.ApplicationConstants(
+      backgroundExecutorService, contextProvider, contextThreadLocal,
+      renderController);
+    DefaultContext.RequestConstants requestConstants = new DefaultContext.RequestConstants(
+      applicationConstants, bindAddress, request, response, null, eventController.getRegistry(), foregroundExecutorService
+    );
+
+    Context context = new DefaultContext(requestConstants, effectiveRegistry, new Handler[0], 0, next);
 
     contextThreadLocal.set(context);
     try {
@@ -238,6 +241,10 @@ public class DefaultInvocation implements Invocation {
 
   @Override
   public <T> T rendered(Class<T> type) {
+    if (rendered == null) {
+      return null;
+    }
+
     if (type.isAssignableFrom(rendered.getClass())) {
       return type.cast(rendered);
     } else {

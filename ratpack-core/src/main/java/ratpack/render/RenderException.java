@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,19 +17,32 @@
 package ratpack.render;
 
 /**
- * Thrown when a request is made to render an object, but no suitable renderer can be found.
+ * A generic super type for exceptions indicate something when wrong for a render operation.
+ *
+ * @see RendererException
+ * @see NoSuchRendererException
  */
-public class NoSuchRendererException extends RenderException {
+public abstract class RenderException extends RuntimeException {
 
   private static final long serialVersionUID = 0;
 
   /**
    * Constructor.
    *
-   * @param object The object to be rendered.
+   * @param message the exception message.
    */
-  public NoSuchRendererException(Object object) {
-    super("No renderer for object '" + object + "' of type '" + object.getClass() + "'");
+  protected RenderException(String message) {
+    super(message);
+  }
+
+  /**
+   * Constructor.
+   *
+   * @param message the exception message.
+   * @param cause the exception to wrap
+   */
+  protected RenderException(String message, Throwable cause) {
+    super(message, cause);
   }
 
 }

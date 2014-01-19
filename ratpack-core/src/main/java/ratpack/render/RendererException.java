@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,19 +17,24 @@
 package ratpack.render;
 
 /**
- * Thrown when a request is made to render an object, but no suitable renderer can be found.
+ * Wraps an exception thrown by a renderer while rendering.
+ * <p>
+ * The cause of this exception is always the exception thrown by the renderer.
+ *
+ * @see ratpack.handling.Context#render(Object)
  */
-public class NoSuchRendererException extends RenderException {
+public class RendererException extends RenderException {
 
   private static final long serialVersionUID = 0;
 
   /**
    * Constructor.
    *
-   * @param object The object to be rendered.
+   * @param renderer the renderer that failed
+   * @param object the object being rendered
+   * @param cause the exception thrown by the renderer
    */
-  public NoSuchRendererException(Object object) {
-    super("No renderer for object '" + object + "' of type '" + object.getClass() + "'");
+  public RendererException(Renderer<?> renderer, Object object, Throwable cause) {
+    super("Renderer '" + renderer + "' failed to render '" + object + "'", cause);
   }
-
 }

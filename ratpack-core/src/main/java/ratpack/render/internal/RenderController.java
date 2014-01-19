@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,12 @@
  * limitations under the License.
  */
 
-package ratpack.render;
+package ratpack.render.internal;
 
-/**
- * Thrown when a request is made to render an object, but no suitable renderer can be found.
- */
-public class NoSuchRendererException extends RenderException {
+import ratpack.handling.Context;
 
-  private static final long serialVersionUID = 0;
+public interface RenderController {
 
-  /**
-   * Constructor.
-   *
-   * @param object The object to be rendered.
-   */
-  public NoSuchRendererException(Object object) {
-    super("No renderer for object '" + object + "' of type '" + object.getClass() + "'");
-  }
+  void render(Object object, Context context);
 
 }

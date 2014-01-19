@@ -57,6 +57,7 @@ import ratpack.registry.Registries;
 import ratpack.registry.Registry;
 import ratpack.render.CharSequenceRenderer;
 import ratpack.render.internal.DefaultCharSequenceRenderer;
+import ratpack.render.internal.DefaultRenderController;
 import ratpack.server.BindAddress;
 import ratpack.server.PublicAddress;
 import ratpack.server.Stopper;
@@ -108,7 +109,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
       throw new IllegalArgumentException("launchConfig must implement internal protocol " + LaunchConfigInternal.class.getName());
     }
 
-    this.applicationConstants = new DefaultContext.ApplicationConstants(backgroundExecutorService, launchConfig.getContextProvider(), contextThreadLocal);
+    this.applicationConstants = new DefaultContext.ApplicationConstants(backgroundExecutorService, launchConfig.getContextProvider(), contextThreadLocal, new DefaultRenderController());
   }
 
   @Override

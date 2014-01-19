@@ -36,7 +36,7 @@ import ratpack.registry.NotInRegistryException;
 import ratpack.registry.Registries;
 import ratpack.registry.Registry;
 import ratpack.render.NoSuchRendererException;
-import ratpack.render.Renderer;
+import ratpack.render.internal.RenderController;
 import ratpack.server.BindAddress;
 import ratpack.util.Action;
 import ratpack.util.ExceptionUtils;
@@ -63,11 +63,13 @@ public class DefaultContext implements Context {
     private final ListeningExecutorService backgroundExecutorService;
     private final Provider<Context> contextProvider;
     private final ThreadLocal<Context> contextThreadLocal;
+    private final RenderController renderController;
 
-    public ApplicationConstants(ListeningExecutorService backgroundExecutorService, Provider<Context> contextProvider, ThreadLocal<Context> contextThreadLocal) {
+    public ApplicationConstants(ListeningExecutorService backgroundExecutorService, Provider<Context> contextProvider, ThreadLocal<Context> contextThreadLocal, RenderController renderController) {
       this.backgroundExecutorService = backgroundExecutorService;
       this.contextProvider = contextProvider;
       this.contextThreadLocal = contextThreadLocal;
+      this.renderController = renderController;
     }
   }
 
@@ -197,34 +199,7 @@ public class DefaultContext implements Context {
   }
 
   public void render(Object object) throws NoSuchRendererException {
-    if (object == null) {
-      clientError(404);
-      return;
-    }
-
-    @SuppressWarnings("rawtypes")
-    List<Renderer> all = registry.getAll(Renderer.class);
-    for (Renderer<?> renderer : all) {
-      if (maybeRender(object, renderer)) {
-        return;
-      }
-    }
-
-    throw new NoSuchRendererException("No renderer for object '" + object + "' of type '" + object.getClass() + "'");
-  }
-
-  private <T> boolean maybeRender(Object object, Renderer<T> renderer) {
-    if (renderer.getType().isInstance(object)) {
-      @SuppressWarnings("unchecked") T cast = (T) object;
-      try {
-        renderer.render(this, cast);
-      } catch (Exception e) {
-        error(e);
-      }
-      return true;
-    } else {
-      return false;
-    }
+    requestConstants.applicationConstants.renderController.render(object, this);
   }
 
   @Override
