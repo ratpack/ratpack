@@ -20,6 +20,8 @@ import ratpack.util.Factory;
 
 /**
  * An additive specification of a registry.
+ *
+ * @see RegistryBuilder
  */
 public interface RegistrySpec {
 

@@ -28,22 +28,90 @@ public abstract class Registries {
   private Registries() {
   }
 
+  /**
+   * Creates a single entry registry, using {@link RegistryBuilder#add(Class, Object)}.
+   *
+   * @param publicType the public type of the entry
+   * @param implementation the entry object
+   * @param <T> the public type of the entry
+   * @return a new single entry registry
+   * @see RegistryBuilder#add(Class, Object)
+   */
   public static <T> Registry registry(Class<? super T> publicType, T implementation) {
-    return builder().add(publicType, implementation).build();
+    return registry().add(publicType, implementation).build();
   }
 
+  /**
+   * Creates a single lazily created entry registry, using {@link RegistryBuilder#add(Class, Factory)}.
+   *
+   * @param publicType the public type of the entry
+   * @param factory the factory for the object
+   * @param <T> the public type of the entry
+   * @return a new single entry registry
+   * @see RegistryBuilder#add(Class, Factory)
+   */
   public static <T> Registry registry(Class<T> publicType, Factory<? extends T> factory) {
-    return builder().add(publicType, factory).build();
+    return registry().add(publicType, factory).build();
   }
 
+  /**
+   * Creates a single entry registry, using {@link RegistryBuilder#add(Object)}.
+   *
+   * @param object the entry object
+   * @return a new single entry registry
+   * @see RegistryBuilder#add(java.lang.Object)
+   */
   public static Registry registry(Object object) {
-    return builder().add(object).build();
+    return registry().add(object).build();
   }
 
-  public static RegistryBuilder builder() {
+  /**
+   * Creates a new {@link RegistryBuilder registry builder}.
+   *
+   * @return a new registry builder
+   * @see RegistryBuilder
+   */
+  public static RegistryBuilder registry() {
     return new DefaultRegistryBuilder();
   }
 
+  /**
+   * Joins the given registries into a new registry.
+   * <p>
+   * The returned registry is effectively the union of the two registries, with the {@code child} taking precedence.
+   * This means that child entries are effectively “returned first”.
+   * <pre class="tested">
+   * import ratpack.registry.Registry;
+   *
+   * import static ratpack.registry.Registries.registry;
+   * import static ratpack.registry.Registries.join;
+   *
+   * public interface Thing { String getName() }
+   *
+   * public class ThingImpl implements Thing {
+   *   private final String name
+   *   public ThingImpl(String name) { this.name = name; }
+   *   public String getName() { return name; }
+   * }
+   *
+   *
+   * Registry child = registry().add(Thing.class, new ThingImpl("child-1")).add(Thing.class, new ThingImpl("child-2")).build();
+   * Registry parent = registry().add(Thing.class, new ThingImpl("parent-1")).add(Thing.class, new ThingImpl("parent-2")).build();
+   * Registry joined = join(parent, child);
+   *
+   * assert joined.get(Thing.class).getName() == "child-1";
+   *
+   * List&lt;Thing&gt; all = joined.getAll(Thing.class);
+   * assert all.get(0).getName() == "child-1";
+   * assert all.get(1).getName() == "child-2";
+   * assert all.get(2).getName() == "parent-1";
+   * assert all.get(3).getName() == "parent-2";
+   * </pre>
+   *
+   * @param parent the parent registry
+   * @param child the child registry
+   * @return a registry which is the combination of the parent and child
+   */
   public static Registry join(Registry parent, Registry child) {
     return new HierarchicalRegistry(parent, child);
   }

@@ -20,8 +20,11 @@ import ratpack.util.Factory;
 
 /**
  * A builder of {@link Registry registries}.
+ * <p>
+ * For create single entry registries, see the factory methods on {@link Registries}.
+ * A builder can be used for creating an registry with multiple entries.
  *
- * @see Registries#builder()
+ * @see Registries#registry()
  */
 public interface RegistryBuilder extends RegistrySpec {
 
@@ -53,10 +56,11 @@ public interface RegistryBuilder extends RegistrySpec {
   /**
    * Builds a registry containing the entries specified by this builder and the given “parent” registry.
    * <p>
-   * Entries added in this builder will shadow items in the given parent.
+   * This method uses {@link Registries#join(Registry, Registry)}, with this registry as the child argument.
    *
    * @param parent the parent of the registry to create
    * @return a newly created registry
+   * @see Registries#join(Registry, Registry)
    */
   Registry build(Registry parent);
 

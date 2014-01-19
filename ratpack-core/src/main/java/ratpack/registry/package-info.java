@@ -15,13 +15,14 @@
  */
 
 /**
- * Handlers communicate with each other by binding a "service" on to each {@link ratpack.handling.Context}.
- *
- * A service is just an object that may be able to provide an object of a given type. Typically, upstream handlers add
- * objects to the service for downstream handlers to use.
- *
- * This package
+ * Registries hold objects that can be retrieved via type, and are a key aspect of Ratpack applications.
+ * <p>
+ * Registries are primarily used for inter {@link ratpack.handling.Handler} communication in request processing.
+ * The {@link ratpack.handling.Context} object that handles operate on implements the {@link ratpack.registry.Registry} interface.
+ * <p>
+ * See {@link ratpack.registry.Registry} for examples of how registries are used by handlers.
  *
  * @see ratpack.registry.Registry
+ * @see ratpack.registry.Registries
  */
 package ratpack.registry;
