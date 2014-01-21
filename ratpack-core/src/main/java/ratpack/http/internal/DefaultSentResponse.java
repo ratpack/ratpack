@@ -14,7 +14,11 @@
  * limitations under the License.
  */
 
-package ratpack.http;
+package ratpack.http.internal;
+
+import ratpack.http.Headers;
+import ratpack.http.SentResponse;
+import ratpack.http.Status;
 
 public class DefaultSentResponse implements SentResponse {
 
