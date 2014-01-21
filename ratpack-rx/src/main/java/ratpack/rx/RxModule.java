@@ -25,6 +25,8 @@ import ratpack.rx.internal.DefaultRxBackground;
 import ratpack.rx.internal.RatpackRxErrorHandler;
 import rx.plugins.RxJavaPlugins;
 
+import java.lang.reflect.Field;
+
 /**
  * Integrates <a href="https://github.com/Netflix/RxJava">RxJava</a> with the Ratpack application.
  * <p>
@@ -62,9 +64,18 @@ public class RxModule extends AbstractModule implements HandlerDecoratingModule 
     }
 
     RatpackRxErrorHandler.contextProvider = injector.getInstance(LaunchConfig.class).getContextProvider();
-    Rx.setRxBackground(injector.getInstance(RxBackground.class));
-
+    setRxBackground(injector.getInstance(RxBackground.class));
     return handler;
+  }
+
+  private static void setRxBackground(RxBackground rxBackground) {
+    try {
+      Field field = RxRatpack.class.getDeclaredField("rxBackground");
+      field.setAccessible(true);
+      field.set(null, rxBackground);
+    } catch (NoSuchFieldException | IllegalAccessException e) {
+      throw new IllegalStateException("Couldn't set private static field property", e);
+    }
   }
 
 }

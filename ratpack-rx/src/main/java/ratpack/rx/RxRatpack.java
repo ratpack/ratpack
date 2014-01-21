@@ -23,18 +23,10 @@ import java.util.concurrent.Callable;
 /**
  * Provides static access Rx helper functions.
  */
-public abstract class Rx {
+public abstract class RxRatpack {
 
-  private static RxBackground rxBackground;
-
-  /**
-   * <b>INTERNAL METHOD</b> - do not call.
-   *
-   * @param rxBackground -
-   */
-  public static void setRxBackground(RxBackground rxBackground) {
-    Rx.rxBackground = rxBackground;
-  }
+  @SuppressWarnings("UnusedDeclaration")
+  private static RxBackground rxBackground; // set reflectively in RxModule.
 
   /**
    * Syntactic shorthand for calling {@link RxBackground#exec(Callable)}.
@@ -47,7 +39,7 @@ public abstract class Rx {
    * @param <T> The type of value the blocking operation returns
    * @return An {@link rx.Observable} of the blocking operation
    */
-  public static <T> Observable<T> rxBackground(Callable<T> callable) {
+  public static <T> Observable<T> background(Callable<T> callable) {
     if (rxBackground == null) {
       throw new IllegalStateException("Not initialized. Did you register the RxModule?");
     } else {

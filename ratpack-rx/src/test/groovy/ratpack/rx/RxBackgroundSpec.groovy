@@ -20,7 +20,7 @@ import ratpack.error.ServerErrorHandler
 import ratpack.error.internal.PrintingServerErrorHandler
 import ratpack.test.internal.RatpackGroovyDslSpec
 
-import static ratpack.rx.Rx.rxBackground
+import static RxRatpack.background
 
 class RxBackgroundSpec extends RatpackGroovyDslSpec {
 
@@ -32,7 +32,7 @@ class RxBackgroundSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       get(":value") {
-        rxBackground {
+        background {
           pathTokens.value
         } map {
           it * 2
@@ -55,7 +55,7 @@ class RxBackgroundSpec extends RatpackGroovyDslSpec {
     }
     handlers {
       get(":value") {
-        rxBackground {
+        background {
           pathTokens.value
         } map {
           it * 2
