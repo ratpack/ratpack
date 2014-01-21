@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,26 +16,33 @@
 
 package ratpack.http.internal;
 
-import ratpack.http.Status;
+import io.netty.handler.codec.http.HttpResponseStatus;
+import ratpack.http.MutableStatus;
 
-public class DefaultStatus implements Status {
+public class DefaultMutableStatus implements MutableStatus {
 
-  private final int code;
-  private final String message;
-
-  public DefaultStatus(int code, String message) {
-    this.code = code;
-    this.message = message;
-  }
+  private HttpResponseStatus responseStatus = HttpResponseStatus.OK;
 
   @Override
   public int getCode() {
-    return code;
+    return responseStatus.code();
   }
 
   @Override
   public String getMessage() {
-    return message;
+    return responseStatus.reasonPhrase();
+  }
+
+  public void set(int code) {
+    responseStatus = HttpResponseStatus.valueOf(code);
+  }
+
+  public void set(int code, String message) {
+    responseStatus = new HttpResponseStatus(code, message);
+  }
+
+  public HttpResponseStatus getResponseStatus() {
+    return responseStatus;
   }
 
 }

@@ -14,28 +14,26 @@
  * limitations under the License.
  */
 
-package ratpack.http.internal;
+package ratpack.http;
 
-import ratpack.http.Status;
+/**
+ * A status line of a HTTP response.
+ */
+public interface MutableStatus extends Status {
 
-public class DefaultStatus implements Status {
+  /**
+   * Update the status to be the given code, and the default message for that code.
+   *
+   * @param code The status code
+   */
+  void set(int code);
 
-  private final int code;
-  private final String message;
-
-  public DefaultStatus(int code, String message) {
-    this.code = code;
-    this.message = message;
-  }
-
-  @Override
-  public int getCode() {
-    return code;
-  }
-
-  @Override
-  public String getMessage() {
-    return message;
-  }
+  /**
+   * Update the status to be the given code and message.
+   *
+   * @param code The status code
+   * @param message The status message
+   */
+  void set(int code, String message);
 
 }

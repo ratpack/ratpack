@@ -20,6 +20,7 @@ package ratpack.http;
  * A status line of a HTTP response.
  */
 public interface Status {
+
   /**
    * The status code.
    *
@@ -33,20 +34,5 @@ public interface Status {
    * @return The message of the status
    */
   String getMessage();
-
-  /**
-   * Update the status to be the given code, and the default message for that code.
-   *
-   * @param code The status code
-   */
-  void set(int code);
-
-  /**
-   * Update the status to be the given code and message.
-   *
-   * @param code The status code
-   * @param message The status message
-   */
-  void set(int code, String message);
 
 }

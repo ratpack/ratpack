@@ -43,7 +43,7 @@ public interface Response {
    * @return The status that will be part of the response when sent
    * @see #status
    */
-  Status getStatus();
+  MutableStatus getStatus();
 
   /**
    * Sets the status line of the response.

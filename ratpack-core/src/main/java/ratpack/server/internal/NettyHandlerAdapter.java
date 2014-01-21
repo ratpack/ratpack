@@ -129,7 +129,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
 
     final Channel channel = ctx.channel();
 
-    final DefaultStatus responseStatus = new DefaultStatus();
+    final DefaultMutableStatus responseStatus = new DefaultMutableStatus();
     final HttpHeaders httpHeaders = new DefaultHttpHeaders(false);
     final MutableHeaders responseHeaders = new NettyHeadersBackedMutableHeaders(httpHeaders);
     FileHttpTransmitter fileHttpTransmitter = new DefaultFileHttpTransmitter(nettyRequest, httpHeaders, channel);
@@ -158,7 +158,9 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
           ChannelFuture future = channel.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
 
           if (requestOutcomeEventController.isHasListeners()) {
-            SentResponse sentResponse = new DefaultSentResponse(new DelegatingHeaders(responseHeaders), responseStatus);
+            Headers headers = new DelegatingHeaders(responseHeaders);
+            Status status = new DefaultStatus(responseStatus.getCode(), responseStatus.getMessage());
+            SentResponse sentResponse = new DefaultSentResponse(headers, status);
             RequestOutcome requestOutcome = new DefaultRequestOutcome(request, sentResponse, System.currentTimeMillis());
             requestOutcomeEventController.fire(requestOutcome);
           }

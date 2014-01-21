@@ -25,8 +25,8 @@ import io.netty.handler.codec.http.ServerCookieEncoder;
 import ratpack.background.Background;
 import ratpack.file.internal.FileHttpTransmitter;
 import ratpack.http.MutableHeaders;
+import ratpack.http.MutableStatus;
 import ratpack.http.Response;
-import ratpack.http.Status;
 import ratpack.util.Action;
 import ratpack.util.ExceptionUtils;
 import ratpack.util.internal.IoUtils;
@@ -44,7 +44,7 @@ import static ratpack.file.internal.DefaultFileRenderer.readAttributes;
 
 public class DefaultResponse implements Response {
 
-  private final Status status;
+  private final MutableStatus status;
   private final MutableHeaders headers;
   private final FileHttpTransmitter fileHttpTransmitter;
   private final Action<? super ByteBuf> committer;
@@ -54,7 +54,7 @@ public class DefaultResponse implements Response {
   private Set<Cookie> cookies;
 
 
-  public DefaultResponse(Status status, MutableHeaders headers, FileHttpTransmitter fileHttpTransmitter, ByteBufAllocator byteBufAllocator, Action<? super ByteBuf> committer) {
+  public DefaultResponse(MutableStatus status, MutableHeaders headers, FileHttpTransmitter fileHttpTransmitter, ByteBufAllocator byteBufAllocator, Action<? super ByteBuf> committer) {
     this.status = status;
     this.fileHttpTransmitter = fileHttpTransmitter;
     this.byteBufAllocator = byteBufAllocator;
@@ -143,7 +143,7 @@ public class DefaultResponse implements Response {
     }
   }
 
-  public Status getStatus() {
+  public MutableStatus getStatus() {
     return status;
   }
 

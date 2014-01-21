@@ -21,11 +21,12 @@ import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpHeaders;
 import ratpack.handling.Handler;
 import ratpack.http.MutableHeaders;
+import ratpack.http.MutableStatus;
 import ratpack.http.Request;
 import ratpack.http.Status;
 import ratpack.http.internal.DefaultMediaType;
+import ratpack.http.internal.DefaultMutableStatus;
 import ratpack.http.internal.DefaultRequest;
-import ratpack.http.internal.DefaultStatus;
 import ratpack.http.internal.NettyHeadersBackedMutableHeaders;
 import ratpack.registry.Registries;
 import ratpack.registry.Registry;
@@ -47,7 +48,7 @@ public class DefaultInvocationBuilder implements InvocationBuilder {
   private final MutableHeaders requestHeaders = new NettyHeadersBackedMutableHeaders(new DefaultHttpHeaders());
   private final MutableHeaders responseHeaders = new NettyHeadersBackedMutableHeaders(new DefaultHttpHeaders());
 
-  private final Status status = new DefaultStatus();
+  private final MutableStatus status = new DefaultMutableStatus();
 
   private String method = "GET";
   private String uri = "/";

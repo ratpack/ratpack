@@ -36,6 +36,7 @@ import ratpack.handling.internal.DefaultRequestOutcome;
 import ratpack.handling.internal.DelegatingHeaders;
 import ratpack.http.*;
 import ratpack.http.internal.DefaultResponse;
+import ratpack.http.internal.DefaultSentResponse;
 import ratpack.registry.Registries;
 import ratpack.registry.Registry;
 import ratpack.render.internal.RenderController;
@@ -69,7 +70,7 @@ public class DefaultInvocation implements Invocation {
   private Object rendered;
   private Integer clientError;
 
-  public DefaultInvocation(final Request request, final Status status, final MutableHeaders responseHeaders, Registry registry, final int timeout, Handler handler) {
+  public DefaultInvocation(final Request request, final MutableStatus status, final MutableHeaders responseHeaders, Registry registry, final int timeout, Handler handler) {
 
     // There are definitely concurrency bugs in here around timing out
     // ideally we should prevent the stat from changing after a timeout occurs
