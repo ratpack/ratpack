@@ -29,7 +29,7 @@ import static ratpack.util.internal.Types.findImplParameterTypeAtIndex;
  * import ratpack.handling.Context;
  * import ratpack.handling.Handler;
  *
- * public class IntParser extends NoOptParserSupport<Integer> {
+ * public class IntParser extends NoOptParserSupport&lt;Integer&gt; {
  *   public IntParser() {
  *     super("text/plain");
  *   }

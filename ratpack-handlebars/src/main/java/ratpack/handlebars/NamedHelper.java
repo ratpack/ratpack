@@ -31,7 +31,7 @@ import com.github.jknack.handlebars.Helper;
  * import ratpack.util.*;
  * import ratpack.launch.*;
  *
- * public class MultiplyHelper implements NamedHelper<String> {
+ * public class MultiplyHelper implements NamedHelper&lt;String&gt; {
  *
  *   public String getName() {
  *     return "hello";
