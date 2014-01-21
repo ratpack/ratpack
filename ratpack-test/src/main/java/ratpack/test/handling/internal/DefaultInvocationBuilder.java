@@ -23,7 +23,6 @@ import ratpack.handling.Handler;
 import ratpack.http.MutableHeaders;
 import ratpack.http.MutableStatus;
 import ratpack.http.Request;
-import ratpack.http.Status;
 import ratpack.http.internal.DefaultMediaType;
 import ratpack.http.internal.DefaultMutableStatus;
 import ratpack.http.internal.DefaultRequest;
