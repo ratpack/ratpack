@@ -16,10 +16,23 @@
 
 package ratpack.http;
 
+/**
+ * Represents a response that has been committed.
+ */
 public interface SentResponse {
 
-  Headers getHeaders();
-
+  /**
+   * The status line of the response.
+   *
+   * @return the status line of the response.
+   */
   Status getStatus();
+
+  /**
+   * The headers that were sent in the response.
+   *
+   * @return the headers that were sent in the response.
+   */
+  Headers getHeaders();
 
 }
