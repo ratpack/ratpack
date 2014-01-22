@@ -38,7 +38,7 @@ class ApiBackedGitHubData implements GitHubData {
 
   @Override
   rx.Observable<IssueSet> closed(RatpackVersion version) {
-    rxBackground.exec {
+    rxBackground.observe {
       gitHubApi.issues(state: "closed", milestone: version.githubNumber.toString(), sort: "number", direction: "asc")
     } map { JsonNode issues ->
       def issuesBuilder = ImmutableList.builder()
@@ -72,7 +72,7 @@ class ApiBackedGitHubData implements GitHubData {
   }
 
   rx.Observable<List<RatpackVersion>> getReleasedVersions() {
-    rxBackground.exec {
+    rxBackground.observe {
       gitHubApi.milestones(state: "closed", sort: "due_date")
     } map {
       RatpackVersion.fromJson(it as JsonNode) as List
@@ -80,7 +80,7 @@ class ApiBackedGitHubData implements GitHubData {
   }
 
   rx.Observable<List<RatpackVersion>> getUnreleasedVersions() {
-    rxBackground.exec {
+    rxBackground.observe {
       gitHubApi.milestones(state: "open", sort: "due_date", direction: "asc")
     } map {
       RatpackVersion.fromJson(it as JsonNode) as List
@@ -88,3 +88,4 @@ class ApiBackedGitHubData implements GitHubData {
   }
 
 }
+

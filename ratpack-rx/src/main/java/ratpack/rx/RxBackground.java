@@ -46,7 +46,7 @@ import java.util.concurrent.Callable;
  *   }
  *
  *   public void handle(Context context) {
- *     rxBackground.exec(new Callable&lt;String&gt;() {
+ *     rxBackground.observe(new Callable&lt;String&gt;() {
  *       public String call() {
  *         // do some blocking IO here
  *         return "hello world";
@@ -70,7 +70,7 @@ import java.util.concurrent.Callable;
  * import ratpack.rx.RxBackground
  *
  * handler { RxBackground rxBackground ->
- *   rxBackground.exec {
+ *   rxBackground.observe {
  *     // do some blocking IO
  *     "hello world"
  *   } map { String input ->
@@ -82,16 +82,18 @@ import java.util.concurrent.Callable;
  * </pre>
  * <h4>Error handling</h4>
  * <p>
- * The observables returned by {@link #exec(Callable)} are integrated into the error handling mechanism.
+ * The observables returned by {@link #observe(Callable)} are integrated into the error handling mechanism.
  * Any <i>unhandled</i> error that occurs will be forwarded to the error handler of the active context at the time the background was entered into.
  * </p>
  */
 public interface RxBackground {
 
   /**
-   * Executes the given callable in the background, providing an observable for the result.
+   * Creates an {@link Observable} that will execute the given {@link Callable} when an {@link rx.Observer} subscribes to it.
    * <p>
-   * As with {@link ratpack.background.Background#exec(Callable)}, the callable should do little more than calling a blocking operation
+   * The Observer's {@link rx.Observer#onNext onNext} method will be called exactly once with the result of the Callable.
+   * <p>
+   * As with {@link ratpack.background.Background#exec(Callable)}, the Callable should do little more than calling a blocking operation
    * and return the value.
    * <p>
    * See the section describing error handling on {@link RxModule}
@@ -99,7 +101,26 @@ public interface RxBackground {
    * @param callable The blocking operation
    * @param <T> The type of value returned by the blocking operation
    * @return An {@link rx.Observable} of the blocking operation outcome
+   * @see RxBackground#observeEach(java.util.concurrent.Callable)
    */
-  <T> Observable<T> exec(Callable<T> callable);
+  <T> Observable<T> observe(Callable<T> callable);
+
+  /**
+   * Creates an {@link Observable} that will execute the given {@link Callable} when an {@link rx.Observer} subscribes to it.
+   * <p>
+   * The Observer's {@link rx.Observer#onNext onNext} method will be called for each item in the Callable's {@link Iterable} result.
+   * <p>
+   * As with {@link ratpack.background.Background#exec(Callable)}, the Callable should do little more than calling a blocking operation
+   * and return the value.
+   * <p>
+   * See the section describing error handling on {@link RxModule}
+   *
+   * @param callable The blocking operation
+   * @param <I> The Iterable type of the value returned by the blocking operation
+   * @param <T> The type of the Iterable I
+   * @return An {@link rx.Observable} of the blocking operation outcome
+   */
+  <I extends Iterable<T>, T> Observable<T> observeEach(Callable<I> callable);
 
 }
+

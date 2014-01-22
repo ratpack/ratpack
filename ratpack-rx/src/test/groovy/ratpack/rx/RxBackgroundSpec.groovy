@@ -71,4 +71,30 @@ class RxBackgroundSpec extends RatpackGroovyDslSpec {
     getText("a").contains new Exception("!!!!").message
     response.statusCode == 500
   }
+
+  def "can observe the background with an Iterable return type"() {
+    when:
+    handlers {
+      get(":value") { RxBackground rxBackground ->
+        def returnString = ""
+
+        rxBackground.observeEach {
+          pathTokens.value.split(",") as List
+        }
+        .take(2)
+        .map { it.toLowerCase() }
+        .subscribe({
+          returnString += it
+        }, { Throwable error ->
+          throw error
+        }, {
+          render returnString
+        })
+      }
+    }
+
+    then:
+    getText("A,B,C") == "ab"
+  }
 }
+

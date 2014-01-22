@@ -29,7 +29,7 @@ public abstract class RxRatpack {
   private static RxBackground rxBackground; // set reflectively in RxModule.
 
   /**
-   * Syntactic shorthand for calling {@link RxBackground#exec(Callable)}.
+   * Syntactic shorthand for calling {@link RxBackground#observe(Callable)}.
    * <p>
    * Usage of this method only works if there is one Ratpack application running in the JVM.
    * Results are undefined otherwise.
@@ -43,8 +43,9 @@ public abstract class RxRatpack {
     if (rxBackground == null) {
       throw new IllegalStateException("Not initialized. Did you register the RxModule?");
     } else {
-      return rxBackground.exec(callable);
+      return rxBackground.observe(callable);
     }
   }
 
 }
+

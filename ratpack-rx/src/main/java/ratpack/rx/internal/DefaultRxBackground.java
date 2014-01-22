@@ -38,7 +38,7 @@ public class DefaultRxBackground implements RxBackground {
   }
 
   @Override
-  public <T> Observable<T> exec(final Callable<T> callable) {
+  public <T> Observable<T> observe(final Callable<T> callable) {
     return Observable.create(new Observable.OnSubscribeFunc<T>() {
       @Override
       public Subscription onSubscribe(final Observer<? super T> observer) {
@@ -59,4 +59,30 @@ public class DefaultRxBackground implements RxBackground {
     });
   }
 
+  @Override
+  public <I extends Iterable<T>, T> Observable<T> observeEach(final Callable<I> callable) {
+    return Observable.create(new Observable.OnSubscribeFunc<T>() {
+      @Override
+      public Subscription onSubscribe(final Observer<? super T> observer) {
+        backgroundProvider.get().exec(callable).onError(new Action<Throwable>() {
+          @Override
+          public void execute(Throwable thing) throws Exception {
+            observer.onError(thing);
+          }
+        }).then(new Action<I>() {
+          @Override
+          public void execute(I things) throws Exception {
+            for (T thing : things) {
+              observer.onNext(thing);
+            }
+
+            observer.onCompleted();
+          }
+        });
+        return Subscriptions.empty();
+      }
+    });
+  }
+
 }
+
