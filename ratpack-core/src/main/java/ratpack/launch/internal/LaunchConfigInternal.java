@@ -17,9 +17,14 @@
 package ratpack.launch.internal;
 
 import ratpack.handling.Context;
+import ratpack.launch.LaunchConfig;
 
-public interface LaunchConfigInternal {
+import java.util.concurrent.ExecutorService;
+
+public interface LaunchConfigInternal extends LaunchConfig {
 
   ThreadLocal<Context> getContextThreadLocal();
+
+  public ExecutorService getBackgroundExecutorService();
 
 }

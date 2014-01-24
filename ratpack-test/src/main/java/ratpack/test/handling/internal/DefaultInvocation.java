@@ -23,6 +23,7 @@ import io.netty.buffer.UnpooledByteBufAllocator;
 import io.netty.util.CharsetUtil;
 import ratpack.api.Nullable;
 import ratpack.background.Background;
+import ratpack.background.internal.DefaultBackground;
 import ratpack.error.ClientErrorHandler;
 import ratpack.error.ServerErrorHandler;
 import ratpack.event.internal.DefaultEventController;
@@ -156,9 +157,8 @@ public class DefaultInvocation implements Invocation {
     Response response = new DefaultResponse(status, responseHeaders, fileHttpTransmitter, UnpooledByteBufAllocator.DEFAULT, committer);
     ThreadLocal<Context> contextThreadLocal = new ThreadLocal<>();
     Provider<Context> contextProvider = new ThreadLocalBackedProvider<>(contextThreadLocal);
-    DefaultContext.ApplicationConstants applicationConstants = new DefaultContext.ApplicationConstants(
-      backgroundExecutorService, contextProvider, contextThreadLocal,
-      renderController);
+    Background background = new DefaultBackground(Executors.newSingleThreadExecutor(), backgroundExecutorService, contextThreadLocal);
+    DefaultContext.ApplicationConstants applicationConstants = new DefaultContext.ApplicationConstants(contextProvider, contextThreadLocal, renderController, background);
     DefaultContext.RequestConstants requestConstants = new DefaultContext.RequestConstants(
       applicationConstants, bindAddress, request, response, null, eventController.getRegistry(), foregroundExecutorService
     );

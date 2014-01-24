@@ -16,10 +16,8 @@
 
 package ratpack.handling.internal;
 
-import com.google.common.util.concurrent.ListeningExecutorService;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import ratpack.background.Background;
-import ratpack.background.internal.DefaultBackground;
 import ratpack.error.ClientErrorHandler;
 import ratpack.error.ServerErrorHandler;
 import ratpack.event.internal.EventRegistry;
@@ -60,16 +58,16 @@ import static io.netty.handler.codec.http.HttpResponseStatus.NOT_MODIFIED;
 public class DefaultContext implements Context {
 
   public static class ApplicationConstants {
-    private final ListeningExecutorService backgroundExecutorService;
     private final Provider<Context> contextProvider;
     private final ThreadLocal<Context> contextThreadLocal;
     private final RenderController renderController;
+    private final Background background;
 
-    public ApplicationConstants(ListeningExecutorService backgroundExecutorService, Provider<Context> contextProvider, ThreadLocal<Context> contextThreadLocal, RenderController renderController) {
-      this.backgroundExecutorService = backgroundExecutorService;
+    public ApplicationConstants(Provider<Context> contextProvider, ThreadLocal<Context> contextThreadLocal, RenderController renderController, Background background) {
       this.contextProvider = contextProvider;
       this.contextThreadLocal = contextThreadLocal;
       this.renderController = renderController;
+      this.background = background;
     }
   }
 
@@ -245,7 +243,7 @@ public class DefaultContext implements Context {
 
   @Override
   public Background getBackground() {
-    return new DefaultBackground(requestConstants.foregroundExecutorService, requestConstants.applicationConstants.backgroundExecutorService, this, requestConstants.applicationConstants.contextThreadLocal);
+    return requestConstants.applicationConstants.background;
   }
 
   @Override

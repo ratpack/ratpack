@@ -164,23 +164,6 @@ public class LaunchConfigBuilder {
   }
 
   /**
-   * The executor service to use for blocking operations.
-   * <p>
-   * Default value is {@link Executors#newCachedThreadPool()}.
-   *
-   *
-   *
-   * @param executorService The executor service to use for blocking operations
-   * @return this
-   *
-   * @see LaunchConfig#getBackgroundExecutorService()
-   */
-  public LaunchConfigBuilder backgroundExecutorService(ExecutorService executorService) {
-    this.backgroundExecutorService = executorService;
-    return this;
-  }
-
-  /**
    * The allocator to use when creating buffers in the application.
    * <p>
    * Default value is {@link PooledByteBufAllocator#DEFAULT}.

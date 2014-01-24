@@ -33,32 +33,31 @@ public class DefaultBackground implements Background {
 
   private final ExecutorService mainExecutor;
   private final ListeningExecutorService backgroundExecutor;
-  private final Context context;
   private final ThreadLocal<Context> contextThreadLocal;
 
-  public DefaultBackground(ExecutorService mainExecutor, ListeningExecutorService backgroundExecutor, Context context, ThreadLocal<Context> contextThreadLocal) {
+  public DefaultBackground(ExecutorService mainExecutor, ListeningExecutorService backgroundExecutor, ThreadLocal<Context> contextThreadLocal) {
     this.mainExecutor = mainExecutor;
     this.backgroundExecutor = backgroundExecutor;
-    this.context = context;
     this.contextThreadLocal = contextThreadLocal;
   }
 
   @Override
   public <T> SuccessOrError<T> exec(Callable<T> operation) {
-    return new DefaultSuccessOrError<>(operation);
+    return new DefaultSuccessOrError<>(operation, contextThreadLocal.get());
   }
 
   private class DefaultSuccessOrError<T> implements SuccessOrError<T> {
-
     private final Callable<T> backgroundAction;
+    protected final Context context;
 
-    DefaultSuccessOrError(Callable<T> backgroundAction) {
+    DefaultSuccessOrError(Callable<T> backgroundAction, Context context) {
       this.backgroundAction = backgroundAction;
+      this.context = context;
     }
 
     @Override
     public Success<T> onError(final Action<? super Throwable> errorHandler) {
-      return new DefaultSuccess<>(backgroundAction, new Action<Throwable>() {
+      return new DefaultSuccess<>(context, backgroundAction, new Action<Throwable>() {
         @Override
         public void execute(Throwable t) {
           try {
@@ -72,7 +71,7 @@ public class DefaultBackground implements Background {
 
     @Override
     public void then(Action<? super T> then) {
-      new DefaultSuccess<>(backgroundAction, new ForwardToContextErrorHandler()).then(then);
+      new DefaultSuccess<>(context, backgroundAction, new ForwardToContextErrorHandler()).then(then);
     }
 
     class ForwardToContextErrorHandler implements Action<Throwable> {
@@ -85,10 +84,12 @@ public class DefaultBackground implements Background {
 
   private class DefaultSuccess<T> implements Success<T> {
 
+    private final Context context;
     private final Callable<T> backgroundAction;
     private final Action<Throwable> errorHandler;
 
-    DefaultSuccess(Callable<T> backgroundAction, Action<Throwable> errorHandler) {
+    DefaultSuccess(Context context, Callable<T> backgroundAction, Action<Throwable> errorHandler) {
+      this.context = context;
       this.backgroundAction = backgroundAction;
       this.errorHandler = errorHandler;
     }

@@ -16,8 +16,6 @@
 
 package ratpack.server.internal;
 
-import com.google.common.util.concurrent.ListeningExecutorService;
-import com.google.common.util.concurrent.MoreExecutors;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
@@ -40,8 +38,7 @@ public class RatpackChannelInitializer extends ChannelInitializer<SocketChannel>
   private int maxContentLength;
 
   public RatpackChannelInitializer(LaunchConfig launchConfig, Handler handler, Stopper stopper) {
-    ListeningExecutorService backgroundExecutorService = MoreExecutors.listeningDecorator(launchConfig.getBackgroundExecutorService());
-    this.nettyHandlerAdapter = new NettyHandlerAdapter(stopper, handler, launchConfig, backgroundExecutorService);
+    this.nettyHandlerAdapter = new NettyHandlerAdapter(stopper, handler, launchConfig);
     this.sslContext = launchConfig.getSSLContext();
     this.maxContentLength = launchConfig.getMaxContentLength();
   }

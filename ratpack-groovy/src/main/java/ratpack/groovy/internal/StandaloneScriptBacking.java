@@ -27,6 +27,7 @@ import ratpack.launch.HandlerFactory;
 import ratpack.launch.LaunchConfig;
 import ratpack.launch.LaunchConfigFactory;
 import ratpack.launch.internal.DelegatingLaunchConfig;
+import ratpack.launch.internal.LaunchConfigInternal;
 import ratpack.server.RatpackServer;
 import ratpack.server.RatpackServerBuilder;
 import ratpack.util.Action;
@@ -72,7 +73,7 @@ public class StandaloneScriptBacking implements Action<Closure<?>> {
     LaunchConfig launchConfig = LaunchConfigFactory.createFromFile(closure.getClass().getClassLoader(), baseDir, configFile, properties, defaultProperties);
 
     if (scriptFile == null) {
-      launchConfig = new DelegatingLaunchConfig(launchConfig) {
+      launchConfig = new DelegatingLaunchConfig((LaunchConfigInternal) launchConfig) {
         @Override
         public HandlerFactory getHandlerFactory() {
           return new GroovyClosureHandlerFactory(closure);

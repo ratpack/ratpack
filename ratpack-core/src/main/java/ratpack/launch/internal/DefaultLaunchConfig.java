@@ -18,14 +18,17 @@ package ratpack.launch.internal;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.util.concurrent.ListeningExecutorService;
+import com.google.common.util.concurrent.MoreExecutors;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.util.concurrent.DefaultThreadFactory;
+import ratpack.background.Background;
+import ratpack.background.internal.DefaultBackground;
 import ratpack.file.FileSystemBinding;
 import ratpack.handling.Context;
 import ratpack.launch.HandlerFactory;
-import ratpack.launch.LaunchConfig;
 import ratpack.util.internal.ThreadLocalBackedProvider;
 
 import javax.inject.Provider;
@@ -35,7 +38,7 @@ import java.net.URI;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 
-public class DefaultLaunchConfig implements LaunchConfig, LaunchConfigInternal {
+public class DefaultLaunchConfig implements LaunchConfigInternal {
 
   private final FileSystemBinding baseDir;
   private final HandlerFactory handlerFactory;
@@ -43,7 +46,8 @@ public class DefaultLaunchConfig implements LaunchConfig, LaunchConfigInternal {
   private final InetAddress address;
   private final boolean reloadable;
   private final int mainThreads;
-  private final ExecutorService backgroundExecutorService;
+  private final ListeningExecutorService backgroundExecutorService;
+  private final Background background;
   private final ByteBufAllocator byteBufAllocator;
   private final URI publicAddress;
   private final ImmutableList<String> indexFiles;
@@ -61,7 +65,7 @@ public class DefaultLaunchConfig implements LaunchConfig, LaunchConfigInternal {
     this.address = address;
     this.reloadable = reloadable;
     this.mainThreads = mainThreads;
-    this.backgroundExecutorService = backgroundExecutorService;
+    this.backgroundExecutorService = MoreExecutors.listeningDecorator(backgroundExecutorService);
     this.byteBufAllocator = byteBufAllocator;
     this.publicAddress = publicAddress;
     this.indexFiles = indexFiles;
@@ -70,6 +74,7 @@ public class DefaultLaunchConfig implements LaunchConfig, LaunchConfigInternal {
     this.sslContext = sslContext;
     this.maxContentLength = maxContentLength;
     this.eventLoopGroup = new NioEventLoopGroup(mainThreads, new DefaultThreadFactory("ratpack-group"));
+    this.background = new DefaultBackground(eventLoopGroup, this.backgroundExecutorService, contextThreadLocal);
   }
 
   @Override
@@ -105,6 +110,11 @@ public class DefaultLaunchConfig implements LaunchConfig, LaunchConfigInternal {
   @Override
   public EventLoopGroup getEventLoopGroup() {
     return eventLoopGroup;
+  }
+
+  @Override
+  public Background getBackground() {
+    return background;
   }
 
   @Override

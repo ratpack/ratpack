@@ -19,6 +19,7 @@ package ratpack.launch;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.EventLoopGroup;
 import ratpack.api.Nullable;
+import ratpack.background.Background;
 import ratpack.file.FileSystemBinding;
 import ratpack.handling.Context;
 
@@ -27,7 +28,6 @@ import javax.net.ssl.SSLContext;
 import java.net.InetAddress;
 import java.net.URI;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
 
 /**
  * The configuration used to launch a server.
@@ -112,12 +112,12 @@ public interface LaunchConfig {
   public EventLoopGroup getEventLoopGroup();
 
   /**
-   * The executor service to use to perform background blocking operations.
+   * The “background”, for performing blocking operations.
    *
-   * @see ratpack.handling.Context#getBackground()
-   * @return The executor service to use to perform background blocking operations.
+   * @see ratpack.handling.Context#background(java.util.concurrent.Callable)
+   * @return the “background”, for performing blocking operations
    */
-  public ExecutorService getBackgroundExecutorService();
+  public Background getBackground();
 
   /**
    * The allocator for buffers needed by the application.

@@ -16,12 +16,12 @@
 
 package ratpack.server.internal;
 
-import com.google.common.util.concurrent.ListeningExecutorService;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
 import io.netty.util.CharsetUtil;
+import ratpack.background.Background;
 import ratpack.error.ClientErrorHandler;
 import ratpack.error.ServerErrorHandler;
 import ratpack.error.internal.DefaultClientErrorHandler;
@@ -77,11 +77,12 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
 
   private Registry registry;
 
-  public NettyHandlerAdapter(Stopper stopper, Handler handler, LaunchConfig launchConfig, ListeningExecutorService backgroundExecutorService) {
+  public NettyHandlerAdapter(Stopper stopper, Handler handler, LaunchConfig launchConfig) {
     this.handlers = new Handler[]{new ErrorCatchingHandler(handler)};
     this.return404 = new ClientErrorForwardingHandler(NOT_FOUND.code());
     this.registry = Registries.registry()
       // If you update this list, update the class level javadoc on Context.
+      .add(Background.class, launchConfig.getBackground())
       .add(Stopper.class, stopper)
       .add(FileSystemBinding.class, launchConfig.getBaseDir())
       .add(MimeTypes.class, new ActivationBackedMimeTypes())
@@ -103,7 +104,8 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
       throw new IllegalArgumentException("launchConfig must implement internal protocol " + LaunchConfigInternal.class.getName());
     }
 
-    this.applicationConstants = new DefaultContext.ApplicationConstants(backgroundExecutorService, launchConfig.getContextProvider(), contextThreadLocal, new DefaultRenderController());
+
+    this.applicationConstants = new DefaultContext.ApplicationConstants(launchConfig.getContextProvider(), contextThreadLocal, new DefaultRenderController(), launchConfig.getBackground());
   }
 
   @Override
