@@ -34,7 +34,7 @@ class FatJarSpec extends FunctionalSpec {
         handlers {
           assets "public"
           get { Stopper stopper ->
-            stopper.stop()
+            onClose { stopper.stop() }
             render "stopping"
           }
         }
