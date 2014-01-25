@@ -22,6 +22,8 @@ import com.google.inject.Provides;
 import io.netty.buffer.ByteBufAllocator;
 import ratpack.background.Background;
 import ratpack.handling.Context;
+import ratpack.handling.Foreground;
+import ratpack.handling.NoBoundContextException;
 import ratpack.launch.LaunchConfig;
 
 public class DefaultRatpackModule extends AbstractModule {
@@ -38,16 +40,6 @@ public class DefaultRatpackModule extends AbstractModule {
   }
 
   @Provides
-  Context context(LaunchConfig launchConfig) {
-    Context context = launchConfig.getContextProvider().get();
-    if (context == null) {
-      throw new OutOfScopeException("Cannot provide an instance of " + Context.class.getName() + " as none is bound to the current thread (are you outside of a managed thread?)");
-    } else {
-      return context;
-    }
-  }
-
-  @Provides
   ByteBufAllocator bufferAllocator(LaunchConfig launchConfig) {
     return launchConfig.getBufferAllocator();
   }
@@ -55,6 +47,20 @@ public class DefaultRatpackModule extends AbstractModule {
   @Provides
   Background background(LaunchConfig launchConfig) {
     return launchConfig.getBackground();
+  }
+
+  @Provides
+  Foreground foreground(LaunchConfig launchConfig) {
+    return launchConfig.getForeground();
+  }
+
+  @Provides
+  Context context(Foreground foreground) {
+    try {
+      return foreground.getContext();
+    } catch (NoBoundContextException e) {
+      throw new OutOfScopeException("Cannot provide an instance of " + Context.class.getName() + " as none is bound to the current thread (are you outside of a managed thread?)");
+    }
   }
 
 }

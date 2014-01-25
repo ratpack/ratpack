@@ -16,6 +16,7 @@
 
 package ratpack.launch.internal;
 
+import io.netty.channel.EventLoopGroup;
 import ratpack.handling.Context;
 import ratpack.launch.LaunchConfig;
 
@@ -25,6 +26,8 @@ public interface LaunchConfigInternal extends LaunchConfig {
 
   ThreadLocal<Context> getContextThreadLocal();
 
-  public ExecutorService getBackgroundExecutorService();
+  ExecutorService getBackgroundExecutorService();
+
+  EventLoopGroup getEventLoopGroup();
 
 }

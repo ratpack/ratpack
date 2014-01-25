@@ -39,12 +39,10 @@ import ratpack.server.BindAddress;
 import ratpack.util.Action;
 import ratpack.util.ResultAction;
 
-import javax.inject.Provider;
 import java.nio.file.Path;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ScheduledExecutorService;
 
 public class DefaultGroovyContext implements GroovyContext {
 
@@ -57,11 +55,6 @@ public class DefaultGroovyContext implements GroovyContext {
   @Override
   public GroovyContext getContext() {
     return this;
-  }
-
-  @Override
-  public Provider<Context> getProvider() {
-    return delegate.getProvider();
   }
 
   @Override
@@ -197,8 +190,8 @@ public class DefaultGroovyContext implements GroovyContext {
   }
 
   @Override
-  public ScheduledExecutorService getForegroundExecutorService() {
-    return delegate.getForegroundExecutorService();
+  public Foreground getForeground() {
+    return delegate.getForeground();
   }
 
   @Override

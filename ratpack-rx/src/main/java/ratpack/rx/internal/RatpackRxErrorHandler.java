@@ -17,23 +17,25 @@
 package ratpack.rx.internal;
 
 import ratpack.handling.Context;
+import ratpack.handling.Foreground;
+import ratpack.handling.NoBoundContextException;
 import ratpack.util.ExceptionUtils;
 import rx.plugins.RxJavaErrorHandler;
 
-import javax.inject.Provider;
-
 public class RatpackRxErrorHandler extends RxJavaErrorHandler {
 
-  public static Provider<Context> contextProvider;
+  public static Foreground foreground;
 
   @Override
   public void handleError(Throwable e) {
-    Context context = contextProvider.get();
-    if (context == null) {
+    Context context;
+    try {
+      context = foreground.getContext();
+    } catch (NoBoundContextException e1) {
       super.handleError(e);
-    } else {
-      context.error(ExceptionUtils.toException(e));
+      return;
     }
+    context.error(ExceptionUtils.toException(e));
   }
 
 }

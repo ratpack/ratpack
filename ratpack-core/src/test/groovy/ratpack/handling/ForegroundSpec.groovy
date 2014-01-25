@@ -18,9 +18,7 @@ package ratpack.handling
 
 import ratpack.test.internal.RatpackGroovyDslSpec
 
-import javax.inject.Provider
-
-class ContextProviderSpec extends RatpackGroovyDslSpec {
+class ForegroundSpec extends RatpackGroovyDslSpec {
 
   static class Thing {
     String value
@@ -28,30 +26,30 @@ class ContextProviderSpec extends RatpackGroovyDslSpec {
 
   def "can use context provider"() {
     when:
-    Provider<Context> p = null
+    Foreground foreground = null
 
     handlers {
       handler {
-        p = provider
+        foreground = context.foreground
         next()
       }
       register(new Thing(value: "1")) {
         handler {
-          response.headers.set("L1", p.get().get(Thing).value)
+          response.headers.set("L1", foreground.context.get(Thing).value)
           next()
         }
         register(new Thing(value: "2")) {
           handler {
             background {
-              response.headers.set("L2", p.get().get(Thing).value)
+              response.headers.set("L2", foreground.context.get(Thing).value)
             } then {
-              p.get().next()
+              foreground.context.next()
             }
           }
         }
         register(new Thing(value: "3")) {
           get {
-            render p.get().get(Thing).value
+            render foreground.context.get(Thing).value
           }
         }
       }

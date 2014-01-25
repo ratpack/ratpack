@@ -41,7 +41,6 @@ import ratpack.util.ExceptionUtils;
 import ratpack.util.Result;
 import ratpack.util.ResultAction;
 
-import javax.inject.Provider;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.reflect.UndeclaredThrowableException;
@@ -49,7 +48,6 @@ import java.nio.file.Path;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.logging.Logger;
 
 import static io.netty.handler.codec.http.HttpHeaders.Names.IF_MODIFIED_SINCE;
@@ -58,13 +56,13 @@ import static io.netty.handler.codec.http.HttpResponseStatus.NOT_MODIFIED;
 public class DefaultContext implements Context {
 
   public static class ApplicationConstants {
-    private final Provider<Context> contextProvider;
+    private final Foreground foreground;
+    private final Background background;
     private final ThreadLocal<Context> contextThreadLocal;
     private final RenderController renderController;
-    private final Background background;
 
-    public ApplicationConstants(Provider<Context> contextProvider, ThreadLocal<Context> contextThreadLocal, RenderController renderController, Background background) {
-      this.contextProvider = contextProvider;
+    public ApplicationConstants(Foreground foreground, Background background, ThreadLocal<Context> contextThreadLocal, RenderController renderController) {
+      this.foreground = foreground;
       this.contextThreadLocal = contextThreadLocal;
       this.renderController = renderController;
       this.background = background;
@@ -81,12 +79,9 @@ public class DefaultContext implements Context {
     private final DirectChannelAccess directChannelAccess;
     private final EventRegistry<RequestOutcome> onCloseRegistry;
 
-    private final ScheduledExecutorService foregroundExecutorService;
-
     public RequestConstants(
       ApplicationConstants applicationConstants, BindAddress bindAddress, Request request, Response response,
-      DirectChannelAccess directChannelAccess, EventRegistry<RequestOutcome> onCloseRegistry,
-      ScheduledExecutorService foregroundExecutorService
+      DirectChannelAccess directChannelAccess, EventRegistry<RequestOutcome> onCloseRegistry
     ) {
       this.applicationConstants = applicationConstants;
       this.bindAddress = bindAddress;
@@ -94,7 +89,6 @@ public class DefaultContext implements Context {
       this.response = response;
       this.directChannelAccess = directChannelAccess;
       this.onCloseRegistry = onCloseRegistry;
-      this.foregroundExecutorService = foregroundExecutorService;
     }
   }
 
@@ -119,11 +113,6 @@ public class DefaultContext implements Context {
   @Override
   public Context getContext() {
     return this;
-  }
-
-  @Override
-  public Provider<Context> getProvider() {
-    return requestConstants.applicationConstants.contextProvider;
   }
 
   public Request getRequest() {
@@ -247,13 +236,13 @@ public class DefaultContext implements Context {
   }
 
   @Override
-  public <T> Background.SuccessOrError<T> background(Callable<T> backgroundOperation) {
-    return getBackground().exec(backgroundOperation);
+  public Foreground getForeground() {
+    return requestConstants.applicationConstants.foreground;
   }
 
   @Override
-  public ScheduledExecutorService getForegroundExecutorService() {
-    return requestConstants.foregroundExecutorService;
+  public <T> Background.SuccessOrError<T> background(Callable<T> backgroundOperation) {
+    return getBackground().exec(backgroundOperation);
   }
 
   public void redirect(String location) {

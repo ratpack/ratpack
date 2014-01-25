@@ -234,7 +234,7 @@ public abstract class LaunchConfigFactory {
       InetAddress address = props.asInetAddress(Property.ADDRESS);
       URI publicAddress = props.asURI(Property.PUBLIC_ADDRESS);
       boolean reloadable = props.asBoolean(Property.RELOADABLE, false);
-      int mainThreads = props.asInt(Property.MAIN_THREADS, 0);
+      int threads = props.asInt(Property.THREADS, 0);
       List<String> indexFiles = props.asList(Property.INDEX_FILES);
       InputStream sslKeystore = props.asStream(Property.SSL_KEYSTORE_FILE);
       String sslKeystorePassword = props.asString(Property.SSL_KEYSTORE_PASSWORD, "");
@@ -255,7 +255,7 @@ public abstract class LaunchConfigFactory {
         .address(address)
         .publicAddress(publicAddress)
         .reloadable(reloadable)
-        .mainThreads(mainThreads)
+        .threads(threads)
         .maxContentLength(maxContentLength)
         .indexFiles(indexFiles);
 
@@ -318,9 +318,9 @@ public abstract class LaunchConfigFactory {
     /**
      * The number of worker threads to use. Defaults to 0. <p> <b>Value:</b> {@value} - (int)
      *
-     * @see ratpack.launch.LaunchConfig#getMainThreads()
+     * @see ratpack.launch.LaunchConfig#getThreads()
      */
-    public static final String MAIN_THREADS = "mainThreads";
+    public static final String THREADS = "threads";
 
     /**
      * The public address of the site. <p> If the value is not {@code null}, it will converted to an URL. <p> <b>Value:</b> {@value} - (url)

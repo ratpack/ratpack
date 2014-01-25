@@ -59,7 +59,7 @@ class HandlersSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       get {
-        foregroundExecutorService.submit {
+        foreground.executor.submit {
           render "ok"
         }
       }

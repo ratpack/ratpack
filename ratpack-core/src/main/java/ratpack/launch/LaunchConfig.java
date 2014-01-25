@@ -17,13 +17,11 @@
 package ratpack.launch;
 
 import io.netty.buffer.ByteBufAllocator;
-import io.netty.channel.EventLoopGroup;
 import ratpack.api.Nullable;
 import ratpack.background.Background;
 import ratpack.file.FileSystemBinding;
-import ratpack.handling.Context;
+import ratpack.handling.Foreground;
 
-import javax.inject.Provider;
 import javax.net.ssl.SSLContext;
 import java.net.InetAddress;
 import java.net.URI;
@@ -93,23 +91,14 @@ public interface LaunchConfig {
   /**
    * The number of threads for handling application requests.
    * <p>
-   * If the value is greater than 0, a thread pool (of this size) will be created for servicing requests.
+   * If the value is greater than 0, a thread pool (of this size) will be created for servicing requests and doing computation.
+   * If the value is 0 (default) or less, a thread pool of size {@link Runtime#availableProcessors()} {@code * 2} will be used.
    * <p>
-   * If the value is 0 or less, no thread pool will be used to handle requests. This means that the handler will be called on the
-   * same thread that accepted the request. This means that handlers SHOULD NOT perform blocking IO or long operations in their operation.
-   * <p>
-   * The default value is 0.
+   * This effectively sizes the {@link Foreground#getExecutor()} thread pool size.
    *
-   * @return The size of the request handling thread pool, or 0 if a dedicated thread pool should not be used.
+   * @return the number of threads for handling application requests.
    */
-  public int getMainThreads();
-
-  /**
-   * The executor service to use to perform foreground computation operations.
-   *
-   * @return the executor service to use to perform foreground computation operations
-   */
-  public EventLoopGroup getEventLoopGroup();
+  public int getThreads();
 
   /**
    * The “background”, for performing blocking operations.
@@ -118,6 +107,14 @@ public interface LaunchConfig {
    * @return the “background”, for performing blocking operations
    */
   public Background getBackground();
+
+  /**
+   * The application foreground.
+   *
+   * @return the application foreground
+   * @see Foreground
+   */
+  public Foreground getForeground();
 
   /**
    * The allocator for buffers needed by the application.
@@ -167,21 +164,5 @@ public interface LaunchConfig {
    * @return The max content length as an int.
    */
   public int getMaxContentLength();
-
-  /**
-   * A provider that always returns the current context for the current thread.
-   * <p>
-   * This DOES NOT always return <i>this</i> context.
-   * The context returned by this provider is the context being used on the current thread.
-   * That is, it acts like thread local storage of the current context.
-   * Moreover, the provider returned by successive calls to this method on any context instance will provide a functionally identical provider.
-   * <p>
-   * If there is no context bound to the current thread, this will return {@code null}.
-   * <p>
-   * This method is primary provided for integration with dependency injection frameworks.
-   *
-   * @return A provider that always provides the context object for the current thread.
-   */
-  public Provider<Context> getContextProvider();
 
 }

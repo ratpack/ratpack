@@ -22,9 +22,9 @@ import ratpack.api.Nullable;
 import ratpack.background.Background;
 import ratpack.file.FileSystemBinding;
 import ratpack.handling.Context;
+import ratpack.handling.Foreground;
 import ratpack.launch.HandlerFactory;
 
-import javax.inject.Provider;
 import javax.net.ssl.SSLContext;
 import java.net.InetAddress;
 import java.net.URI;
@@ -66,8 +66,8 @@ public class DelegatingLaunchConfig implements LaunchConfigInternal {
   }
 
   @Override
-  public int getMainThreads() {
-    return launchConfig.getMainThreads();
+  public int getThreads() {
+    return launchConfig.getThreads();
   }
 
   @Override
@@ -78,6 +78,11 @@ public class DelegatingLaunchConfig implements LaunchConfigInternal {
   @Override
   public Background getBackground() {
     return launchConfig.getBackground();
+  }
+
+  @Override
+  public Foreground getForeground() {
+    return launchConfig.getForeground();
   }
 
   @Override
@@ -114,11 +119,6 @@ public class DelegatingLaunchConfig implements LaunchConfigInternal {
   @Override
   public int getMaxContentLength() {
     return launchConfig.getMaxContentLength();
-  }
-
-  @Override
-  public Provider<Context> getContextProvider() {
-    return launchConfig.getContextProvider();
   }
 
   @Override

@@ -31,11 +31,9 @@ import ratpack.server.BindAddress;
 import ratpack.util.Action;
 import ratpack.util.ResultAction;
 
-import javax.inject.Provider;
 import java.nio.file.Path;
 import java.util.Date;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ScheduledExecutorService;
 
 /**
  * The context of an individual {@link Handler} invocation.
@@ -80,20 +78,6 @@ public interface Context extends Registry {
    * @return this.
    */
   Context getContext();
-
-  /**
-   * A provider that always returns the current context for the current thread.
-   * <p>
-   * This DOES NOT always return <i>this</i> context.
-   * The context returned by this provider is the context being used on the current thread.
-   * That is, it acts like thread local storage of the current context.
-   * Moreover, the provider returned by successive calls to this method on any context instance will provide a functionally identical provider.
-   * <p>
-   * This method is primary provided for integration with dependency injection frameworks.
-   *
-   * @return A provider that always provides the context object for the current thread.
-   */
-  Provider<Context> getProvider();
 
   /**
    * The HTTP request.
@@ -335,6 +319,14 @@ public interface Context extends Registry {
   Background getBackground();
 
   /**
+   * The application foreground.
+   *
+   * @return the application foreground
+   * @see Foreground
+   */
+  Foreground getForeground();
+
+  /**
    * Perform a blocking operation, off the request thread.
    * <p>
    * Ratpack apps typically do not use a large thread pool for handling requests. By default there is about one thread per core.
@@ -415,15 +407,6 @@ public interface Context extends Registry {
    * @see #getBackground()
    */
   <T> Background.SuccessOrError<T> background(Callable<T> backgroundOperation);
-
-  /**
-   * Returns the executor that managed foreground (i.e. request handling) threads.
-   * <p>
-   * Useful for deferring computation work.
-   *
-   * @return the executor that managed foreground (i.e. request handling) threads.
-   */
-  ScheduledExecutorService getForegroundExecutorService();
 
   /**
    * Sends a temporary redirect response (i.e. statusCode 302) to the client using the specified redirect location URL.

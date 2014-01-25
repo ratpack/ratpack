@@ -28,10 +28,10 @@ import ratpack.background.Background;
 import ratpack.background.internal.DefaultBackground;
 import ratpack.file.FileSystemBinding;
 import ratpack.handling.Context;
+import ratpack.handling.Foreground;
+import ratpack.handling.internal.DefaultForeground;
 import ratpack.launch.HandlerFactory;
-import ratpack.util.internal.ThreadLocalBackedProvider;
 
-import javax.inject.Provider;
 import javax.net.ssl.SSLContext;
 import java.net.InetAddress;
 import java.net.URI;
@@ -45,9 +45,10 @@ public class DefaultLaunchConfig implements LaunchConfigInternal {
   private final int port;
   private final InetAddress address;
   private final boolean reloadable;
-  private final int mainThreads;
+  private final int threads;
   private final ListeningExecutorService backgroundExecutorService;
   private final Background background;
+  private final Foreground foreground;
   private final ByteBufAllocator byteBufAllocator;
   private final URI publicAddress;
   private final ImmutableList<String> indexFiles;
@@ -56,15 +57,14 @@ public class DefaultLaunchConfig implements LaunchConfigInternal {
   private final int maxContentLength;
 
   private final ThreadLocal<Context> contextThreadLocal = new ThreadLocal<>();
-  private final Provider<Context> contextProvider = new ThreadLocalBackedProvider<>(contextThreadLocal);
   private final EventLoopGroup eventLoopGroup;
 
-  public DefaultLaunchConfig(FileSystemBinding baseDir, int port, InetAddress address, boolean reloadable, int mainThreads, ExecutorService backgroundExecutorService, ByteBufAllocator byteBufAllocator, URI publicAddress, ImmutableList<String> indexFiles, ImmutableMap<String, String> other, SSLContext sslContext, int maxContentLength, HandlerFactory handlerFactory) {
+  public DefaultLaunchConfig(FileSystemBinding baseDir, int port, InetAddress address, boolean reloadable, int threads, ExecutorService backgroundExecutorService, ByteBufAllocator byteBufAllocator, URI publicAddress, ImmutableList<String> indexFiles, ImmutableMap<String, String> other, SSLContext sslContext, int maxContentLength, HandlerFactory handlerFactory) {
     this.baseDir = baseDir;
     this.port = port;
     this.address = address;
     this.reloadable = reloadable;
-    this.mainThreads = mainThreads;
+    this.threads = threads;
     this.backgroundExecutorService = MoreExecutors.listeningDecorator(backgroundExecutorService);
     this.byteBufAllocator = byteBufAllocator;
     this.publicAddress = publicAddress;
@@ -73,8 +73,9 @@ public class DefaultLaunchConfig implements LaunchConfigInternal {
     this.handlerFactory = handlerFactory;
     this.sslContext = sslContext;
     this.maxContentLength = maxContentLength;
-    this.eventLoopGroup = new NioEventLoopGroup(mainThreads, new DefaultThreadFactory("ratpack-group"));
+    this.eventLoopGroup = new NioEventLoopGroup(threads, new DefaultThreadFactory("ratpack-group"));
     this.background = new DefaultBackground(eventLoopGroup, this.backgroundExecutorService, contextThreadLocal);
+    this.foreground = new DefaultForeground(contextThreadLocal, MoreExecutors.listeningDecorator(eventLoopGroup));
   }
 
   @Override
@@ -103,13 +104,8 @@ public class DefaultLaunchConfig implements LaunchConfigInternal {
   }
 
   @Override
-  public int getMainThreads() {
-    return mainThreads;
-  }
-
-  @Override
-  public EventLoopGroup getEventLoopGroup() {
-    return eventLoopGroup;
+  public int getThreads() {
+    return threads;
   }
 
   @Override
@@ -118,8 +114,8 @@ public class DefaultLaunchConfig implements LaunchConfigInternal {
   }
 
   @Override
-  public ExecutorService getBackgroundExecutorService() {
-    return backgroundExecutorService;
+  public Foreground getForeground() {
+    return foreground;
   }
 
   @Override
@@ -152,13 +148,20 @@ public class DefaultLaunchConfig implements LaunchConfigInternal {
     return maxContentLength;
   }
 
-  @Override
-  public Provider<Context> getContextProvider() {
-    return contextProvider;
-  }
 
   @Override
   public ThreadLocal<Context> getContextThreadLocal() {
     return contextThreadLocal;
   }
+
+  @Override
+  public EventLoopGroup getEventLoopGroup() {
+    return eventLoopGroup;
+  }
+
+  @Override
+  public ExecutorService getBackgroundExecutorService() {
+    return backgroundExecutorService;
+  }
+
 }

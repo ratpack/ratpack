@@ -31,12 +31,12 @@ import static ratpack.util.ExceptionUtils.toException;
 
 public class DefaultBackground implements Background {
 
-  private final ExecutorService mainExecutor;
+  private final ExecutorService foregroundExecutor;
   private final ListeningExecutorService backgroundExecutor;
   private final ThreadLocal<Context> contextThreadLocal;
 
-  public DefaultBackground(ExecutorService mainExecutor, ListeningExecutorService backgroundExecutor, ThreadLocal<Context> contextThreadLocal) {
-    this.mainExecutor = mainExecutor;
+  public DefaultBackground(ExecutorService foregroundExecutor, ListeningExecutorService backgroundExecutor, ThreadLocal<Context> contextThreadLocal) {
+    this.foregroundExecutor = foregroundExecutor;
     this.backgroundExecutor = backgroundExecutor;
     this.contextThreadLocal = contextThreadLocal;
   }
@@ -131,7 +131,7 @@ public class DefaultBackground implements Background {
             contextThreadLocal.remove();
           }
         }
-      }, mainExecutor);
+      }, foregroundExecutor);
     }
   }
 }

@@ -60,7 +60,6 @@ import ratpack.util.Action;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ScheduledExecutorService;
 
 import static io.netty.handler.codec.http.HttpHeaders.isKeepAlive;
 import static io.netty.handler.codec.http.HttpResponseStatus.NOT_FOUND;
@@ -105,7 +104,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
     }
 
 
-    this.applicationConstants = new DefaultContext.ApplicationConstants(launchConfig.getContextProvider(), contextThreadLocal, new DefaultRenderController(), launchConfig.getBackground());
+    this.applicationConstants = new DefaultContext.ApplicationConstants(launchConfig.getForeground(), launchConfig.getBackground(), contextThreadLocal, new DefaultRenderController());
   }
 
   @Override
@@ -191,10 +190,8 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
 
     DirectChannelAccess directChannelAccess = new DefaultDirectChannelAccess(channel, subscribeHandler);
 
-    ScheduledExecutorService foregroundExecutorService = ctx.executor();
-
     DefaultContext.RequestConstants requestConstants = new DefaultContext.RequestConstants(
-      applicationConstants, bindAddress, request, response, directChannelAccess, requestOutcomeEventController.getRegistry(), foregroundExecutorService
+      applicationConstants, bindAddress, request, response, directChannelAccess, requestOutcomeEventController.getRegistry()
     );
     Context context = new DefaultContext(requestConstants, registry, handlers, 0, return404);
     context.next();

@@ -17,6 +17,7 @@
 package ratpack.test.handling.internal;
 
 import com.google.common.util.concurrent.ListeningExecutorService;
+import com.google.common.util.concurrent.ListeningScheduledExecutorService;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.buffer.UnpooledByteBufAllocator;
@@ -30,9 +31,11 @@ import ratpack.event.internal.DefaultEventController;
 import ratpack.event.internal.EventController;
 import ratpack.file.internal.FileHttpTransmitter;
 import ratpack.handling.Context;
+import ratpack.handling.Foreground;
 import ratpack.handling.Handler;
 import ratpack.handling.RequestOutcome;
 import ratpack.handling.internal.DefaultContext;
+import ratpack.handling.internal.DefaultForeground;
 import ratpack.handling.internal.DefaultRequestOutcome;
 import ratpack.handling.internal.DelegatingHeaders;
 import ratpack.http.*;
@@ -45,14 +48,11 @@ import ratpack.server.BindAddress;
 import ratpack.test.handling.Invocation;
 import ratpack.test.handling.InvocationTimeoutException;
 import ratpack.util.Action;
-import ratpack.util.internal.ThreadLocalBackedProvider;
 
-import javax.inject.Provider;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import static com.google.common.util.concurrent.MoreExecutors.listeningDecorator;
@@ -80,7 +80,7 @@ public class DefaultInvocation implements Invocation {
     this.status = status;
 
     ListeningExecutorService backgroundExecutorService = listeningDecorator(newSingleThreadExecutor());
-    ScheduledExecutorService foregroundExecutorService = Executors.newScheduledThreadPool(1);
+    ListeningScheduledExecutorService foregroundExecutorService = listeningDecorator(Executors.newScheduledThreadPool(1));
 
     final CountDownLatch latch = new CountDownLatch(1);
 
@@ -155,12 +155,14 @@ public class DefaultInvocation implements Invocation {
     };
 
     Response response = new DefaultResponse(status, responseHeaders, fileHttpTransmitter, UnpooledByteBufAllocator.DEFAULT, committer);
+
     ThreadLocal<Context> contextThreadLocal = new ThreadLocal<>();
-    Provider<Context> contextProvider = new ThreadLocalBackedProvider<>(contextThreadLocal);
-    Background background = new DefaultBackground(Executors.newSingleThreadExecutor(), backgroundExecutorService, contextThreadLocal);
-    DefaultContext.ApplicationConstants applicationConstants = new DefaultContext.ApplicationConstants(contextProvider, contextThreadLocal, renderController, background);
+    Foreground foreground = new DefaultForeground(contextThreadLocal, foregroundExecutorService);
+
+    Background background = new DefaultBackground(foregroundExecutorService, backgroundExecutorService, contextThreadLocal);
+    DefaultContext.ApplicationConstants applicationConstants = new DefaultContext.ApplicationConstants(foreground, background, contextThreadLocal, renderController);
     DefaultContext.RequestConstants requestConstants = new DefaultContext.RequestConstants(
-      applicationConstants, bindAddress, request, response, null, eventController.getRegistry(), foregroundExecutorService
+      applicationConstants, bindAddress, request, response, null, eventController.getRegistry()
     );
 
     Context context = new DefaultContext(requestConstants, effectiveRegistry, new Handler[0], 0, next);

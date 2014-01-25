@@ -19,8 +19,8 @@ package ratpack.rx;
 import com.google.inject.AbstractModule;
 import com.google.inject.Injector;
 import ratpack.guice.HandlerDecoratingModule;
+import ratpack.handling.Foreground;
 import ratpack.handling.Handler;
-import ratpack.launch.LaunchConfig;
 import ratpack.rx.internal.DefaultRxBackground;
 import ratpack.rx.internal.RatpackRxErrorHandler;
 import rx.plugins.RxJavaPlugins;
@@ -63,7 +63,7 @@ public class RxModule extends AbstractModule implements HandlerDecoratingModule 
       }
     }
 
-    RatpackRxErrorHandler.contextProvider = injector.getInstance(LaunchConfig.class).getContextProvider();
+    RatpackRxErrorHandler.foreground = injector.getInstance(Foreground.class);
     setRxBackground(injector.getInstance(RxBackground.class));
     return handler;
   }

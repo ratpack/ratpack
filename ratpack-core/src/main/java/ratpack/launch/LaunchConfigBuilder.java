@@ -153,13 +153,12 @@ public class LaunchConfigBuilder {
    * <p>
    * Default value is {@code 0}.
    *
-   * @param mainThreads The port to bind to
+   * @param threads the number of threads for handling application requests
    * @return this
-   *
-   * @see LaunchConfig#getMainThreads()
+   * @see LaunchConfig#getThreads()
    */
-  public LaunchConfigBuilder mainThreads(int mainThreads) {
-    this.mainThreads = mainThreads;
+  public LaunchConfigBuilder threads(int threads) {
+    this.mainThreads = threads;
     return this;
   }
 

@@ -14,21 +14,24 @@
  * limitations under the License.
  */
 
-package ratpack.util.internal;
+package ratpack.handling;
 
-import javax.inject.Provider;
+/**
+ * Thrown when a request is made for the context in a non request handling thread.
+ *
+ * @see Foreground#getContext()
+ */
+public class NoBoundContextException extends RuntimeException {
 
-public class ThreadLocalBackedProvider<T> implements Provider<T> {
+  private static final long serialVersionUID = 0;
 
-  private final ThreadLocal<? extends T> store;
-
-  public ThreadLocalBackedProvider(ThreadLocal<? extends T> store) {
-    this.store = store;
-  }
-
-  @Override
-  public T get() {
-    return store.get();
+  /**
+   * Consructor.
+   *
+   * @param message the exception message
+   */
+  public NoBoundContextException(String message) {
+    super(message);
   }
 
 }
