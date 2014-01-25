@@ -110,6 +110,28 @@ public interface RxBackground {
    * <p>
    * The Observer's {@link rx.Observer#onNext onNext} method will be called for each item in the Callable's {@link Iterable} result.
    * <p>
+   * For example, when a Callable returns a List&lt;String&gt; and a transformation of uppercasing each String in the List is required
+   * then RxBackground can be used like this:
+   * <pre class="groovy-chain-dsl">
+   * import ratpack.rx.RxBackground
+   *
+   * handler { RxBackground rxBackground ->
+   *   rxBackground.observeEach {
+   *     // do some blocking IO and return a List&lt;String&gt;
+   *     // each item in the List is emitted to the next Observable, not the List
+   *     ["a", "b", "c"] as List
+   *   } map { String input ->
+   *     input.toUpperCase()
+   *   } subscribe {
+   *     println it
+   *   }
+   * }
+   * </pre>
+   * The output would be:
+   * <br>A
+   * <br>B
+   * <br>C
+   * <p>
    * As with {@link ratpack.background.Background#exec(Callable)}, the Callable should do little more than calling a blocking operation
    * and return the value.
    * <p>
