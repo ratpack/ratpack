@@ -53,8 +53,8 @@ public class DefaultRatpackModule extends AbstractModule {
   }
 
   @Provides
-  Background background(Context context) {
-    return context.getBackground();
+  Background background(LaunchConfig launchConfig) {
+    return launchConfig.getBackground();
   }
 
 }

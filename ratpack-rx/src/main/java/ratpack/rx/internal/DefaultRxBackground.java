@@ -16,7 +16,6 @@
 
 package ratpack.rx.internal;
 
-import com.google.inject.Provider;
 import ratpack.background.Background;
 import ratpack.rx.RxBackground;
 import ratpack.util.Action;
@@ -30,11 +29,11 @@ import java.util.concurrent.Callable;
 
 public class DefaultRxBackground implements RxBackground {
 
-  private final Provider<Background> backgroundProvider;
+  private final Background background;
 
   @Inject
-  public DefaultRxBackground(Provider<Background> backgroundProvider) {
-    this.backgroundProvider = backgroundProvider;
+  public DefaultRxBackground(Background background) {
+    this.background = background;
   }
 
   @Override
@@ -42,7 +41,7 @@ public class DefaultRxBackground implements RxBackground {
     return Observable.create(new Observable.OnSubscribeFunc<T>() {
       @Override
       public Subscription onSubscribe(final Observer<? super T> observer) {
-        backgroundProvider.get().exec(callable).onError(new Action<Throwable>() {
+        background.exec(callable).onError(new Action<Throwable>() {
           @Override
           public void execute(Throwable thing) throws Exception {
             observer.onError(thing);
@@ -64,7 +63,7 @@ public class DefaultRxBackground implements RxBackground {
     return Observable.create(new Observable.OnSubscribeFunc<T>() {
       @Override
       public Subscription onSubscribe(final Observer<? super T> observer) {
-        backgroundProvider.get().exec(callable).onError(new Action<Throwable>() {
+        background.exec(callable).onError(new Action<Throwable>() {
           @Override
           public void execute(Throwable thing) throws Exception {
             observer.onError(thing);
