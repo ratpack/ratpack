@@ -19,7 +19,7 @@ package ratpack.http;
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.Cookie;
 import ratpack.api.NonBlocking;
-import ratpack.background.Background;
+import ratpack.handling.Background;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -197,7 +197,7 @@ public interface Response {
   /**
    * Sends the response, using the given content type and the content of the given type as the response body.
    * <p>
-   * Prefer {@link #sendFile(ratpack.background.Background, java.nio.file.attribute.BasicFileAttributes, java.nio.file.Path)} where
+   * Prefer {@link #sendFile(ratpack.handling.Background, java.nio.file.attribute.BasicFileAttributes, java.nio.file.Path)} where
    * the file attributes have already been retrieved to avoid another IO operation.
    *
    * @param background the background operation manager to use

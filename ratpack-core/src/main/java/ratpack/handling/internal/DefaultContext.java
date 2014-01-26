@@ -17,7 +17,7 @@
 package ratpack.handling.internal;
 
 import io.netty.handler.codec.http.HttpResponseStatus;
-import ratpack.background.Background;
+import ratpack.handling.Background;
 import ratpack.error.ClientErrorHandler;
 import ratpack.error.ServerErrorHandler;
 import ratpack.event.internal.EventRegistry;
@@ -30,6 +30,7 @@ import ratpack.http.internal.HttpHeaderConstants;
 import ratpack.parse.*;
 import ratpack.path.PathBinding;
 import ratpack.path.PathTokens;
+import ratpack.promise.SuccessOrErrorPromise;
 import ratpack.registry.NotInRegistryException;
 import ratpack.registry.Registries;
 import ratpack.registry.Registry;
@@ -241,7 +242,7 @@ public class DefaultContext implements Context {
   }
 
   @Override
-  public <T> Background.SuccessOrError<T> background(Callable<T> backgroundOperation) {
+  public <T> SuccessOrErrorPromise<T> background(Callable<T> backgroundOperation) {
     return getBackground().exec(backgroundOperation);
   }
 

@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package ratpack.background;
+package ratpack.handling;
 
-import ratpack.api.NonBlocking;
-import ratpack.util.Action;
+import ratpack.promise.SuccessOrErrorPromise;
 
 import java.util.concurrent.Callable;
 
@@ -35,38 +34,6 @@ public interface Background {
    * @param <T> The type of result object that the operation produces
    * @return A fluent style builder for specifying how to process the result and optionally how to deal with errors
    */
-  <T> SuccessOrError<T> exec(Callable<T> operation);
-
-  /**
-   * A builder for specifying the result handling strategy for a blocking operation.
-   *
-   * @param <T> The type of result object that the operation produces
-   */
-  interface SuccessOrError<T> extends Success<T> {
-
-    /**
-     * Specifies the action to take should an error occur during the blocking operation.
-     *
-     * @param errorHandler The action to take
-     * @return A builder for specifying the action to take when the blocking operation succeeds
-     */
-    Success<T> onError(Action<? super Throwable> errorHandler);
-  }
-
-  /**
-   * A builder for specifying the result handling strategy for a blocking operation that succeeds.
-   *
-   * @param <T> The type of result object that the operation produces
-   */
-  interface Success<T> {
-
-    /**
-     * Specifies the success handler, and actually starts the process of having the blocking operation execute.
-     *
-     * @param then The action to process the result of the blocking operation.
-     */
-    @NonBlocking
-    void then(Action<? super T> then);
-  }
+  <T> SuccessOrErrorPromise<T> exec(Callable<T> operation);
 
 }

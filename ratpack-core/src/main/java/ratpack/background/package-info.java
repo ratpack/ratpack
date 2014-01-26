@@ -17,6 +17,6 @@
 /**
  * Mechanisms for executing operations that performing operations in the background (i.e. off request handling threads).
  * <p>
- * See {@link ratpack.background.Background}.
+ * See {@link ratpack.handling.Background}.
  */
 package ratpack.background;

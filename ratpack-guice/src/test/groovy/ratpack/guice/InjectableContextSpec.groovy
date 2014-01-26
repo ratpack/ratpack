@@ -16,7 +16,7 @@
 
 package ratpack.guice
 
-import ratpack.background.Background
+import ratpack.handling.Background
 import ratpack.handling.Context
 import ratpack.handling.ServiceUsingHandler
 import ratpack.test.internal.RatpackGroovyDslSpec

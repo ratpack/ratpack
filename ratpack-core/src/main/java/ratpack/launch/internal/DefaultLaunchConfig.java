@@ -24,7 +24,7 @@ import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.util.concurrent.DefaultThreadFactory;
-import ratpack.background.Background;
+import ratpack.handling.Background;
 import ratpack.background.internal.DefaultBackground;
 import ratpack.file.FileSystemBinding;
 import ratpack.handling.Context;

@@ -22,7 +22,7 @@ import rx.Observable;
 import java.util.concurrent.Callable;
 
 /**
- * Similar to {@link ratpack.background.Background} except that an {@link rx.Observable} for the background result is returned.
+ * Similar to {@link ratpack.handling.Background} except that an {@link rx.Observable} for the background result is returned.
  * <p>
  * Use of this class for background operations is superior due to the composable nature of observables.
  * <p>
@@ -93,7 +93,7 @@ public interface RxBackground {
    * <p>
    * The Observer's {@link rx.Observer#onNext onNext} method will be called exactly once with the result of the Callable.
    * <p>
-   * As with {@link ratpack.background.Background#exec(Callable)}, the Callable should do little more than calling a blocking operation
+   * As with {@link ratpack.handling.Background#exec(Callable)}, the Callable should do little more than calling a blocking operation
    * and return the value.
    * <p>
    * See the section describing error handling on {@link RxModule}
@@ -132,7 +132,7 @@ public interface RxBackground {
    * <br>B
    * <br>C
    * <p>
-   * As with {@link ratpack.background.Background#exec(Callable)}, the Callable should do little more than calling a blocking operation
+   * As with {@link ratpack.handling.Background#exec(Callable)}, the Callable should do little more than calling a blocking operation
    * and return the value.
    * <p>
    * See the section describing error handling on {@link RxModule}

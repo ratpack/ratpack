@@ -42,7 +42,7 @@ import java.lang.reflect.Field;
  * errors to the active thread's context's error handler (via {@link ratpack.handling.Context#error(Exception)}).
  * This means that you do not need to register explicit error handlers for <i>any</i> observable to route to the error handler.
  * <p>
- * If you are observing on a thread that is not managed by Ratpack (i.e. not a request or {@link ratpack.background.Background} thread),
+ * If you are observing on a thread that is not managed by Ratpack (i.e. not a request or {@link ratpack.handling.Background} thread),
  * this error handler is non effectual as there is no error handler to forward to.
  */
 public class RxModule extends AbstractModule implements HandlerDecoratingModule {

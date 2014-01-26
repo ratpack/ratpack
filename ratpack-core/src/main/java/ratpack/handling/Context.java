@@ -17,7 +17,6 @@
 package ratpack.handling;
 
 import ratpack.api.NonBlocking;
-import ratpack.background.Background;
 import ratpack.handling.direct.DirectChannelAccess;
 import ratpack.http.Request;
 import ratpack.http.Response;
@@ -25,6 +24,7 @@ import ratpack.parse.NoSuchParserException;
 import ratpack.parse.Parse;
 import ratpack.parse.ParserException;
 import ratpack.path.PathTokens;
+import ratpack.promise.SuccessOrErrorPromise;
 import ratpack.registry.NotInRegistryException;
 import ratpack.registry.Registry;
 import ratpack.server.BindAddress;
@@ -334,10 +334,10 @@ public interface Context extends Registry {
    * offloaded in order to free the request handling thread to handle other requests while the IO operation is performed.
    * The {@code Background} object makes it easy to do this.
    * <p>
-   * A callable is submitted to the {@link ratpack.background.Background#exec(Callable)} method. The implementation of this callable <b>can</b> background
+   * A callable is submitted to the {@link Background#exec(Callable)} method. The implementation of this callable <b>can</b> background
    * as it will be executed on a non request handling thread. It should do not much more than initiate a blocking IO operation and return the result.
    * <p>
-   * However, the callable is not executed immediately. The return value of {@link ratpack.background.Background#exec(Callable)} must be used to specify
+   * However, the callable is not executed immediately. The return value of {@link Background#exec(Callable)} must be used to specify
    * how to proceed after the blocking operation. The {@code then()} method must be called for the work to be performed.
    * </p>
    * Example usage (Java):
@@ -370,8 +370,8 @@ public interface Context extends Registry {
    * Similarly, errors that occur during the result handler are forwarded.
    * </p>
    * <p>
-   * To use a custom error handling strategy, use the {@link ratpack.background.Background.SuccessOrError#onError(Action)} method
-   * of the return of {@link ratpack.background.Background#exec(Callable)}.
+   * To use a custom error handling strategy, use the {@link ratpack.promise.SuccessOrErrorPromise#onError(Action)} method
+   * of the return of {@link Background#exec(Callable)}.
    * </p>
    * <p>
    * Example usage:
@@ -406,7 +406,7 @@ public interface Context extends Registry {
    * @return A builder for specifying the result handling strategy for a blocking operation.
    * @see #getBackground()
    */
-  <T> Background.SuccessOrError<T> background(Callable<T> backgroundOperation);
+  <T> SuccessOrErrorPromise<T> background(Callable<T> backgroundOperation);
 
   /**
    * Sends a temporary redirect response (i.e. statusCode 302) to the client using the specified redirect location URL.

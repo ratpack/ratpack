@@ -17,6 +17,6 @@ See [the “launching” chapter](launching.html) chapter for details on how to 
 
 ## The Background API
 
-The context object offers the [getBackground()](api/ratpack/handling/Context.html#getBackground\(\)) method that returns a [Background](api/ratpack/background/Background.html) object.
+The context object offers the [getBackground()](api/ratpack/handling/Context.html#getBackground\(\)) method that returns a [Background](api/ratpack/handling/Background.html) object.
 This gives access to the background thread pool for performing blocking or long operations.
 The [background(Callable)](api/ratpack/handling/Context.html#background\(java.util.concurrent.Callable\)) method provides a more convenient entry point for this API.

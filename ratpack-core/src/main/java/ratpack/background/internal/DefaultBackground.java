@@ -20,8 +20,10 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
-import ratpack.background.Background;
+import ratpack.handling.Background;
 import ratpack.handling.Context;
+import ratpack.promise.SuccessOrErrorPromise;
+import ratpack.promise.SuccessPromise;
 import ratpack.util.Action;
 
 import java.util.concurrent.Callable;
@@ -42,22 +44,22 @@ public class DefaultBackground implements Background {
   }
 
   @Override
-  public <T> SuccessOrError<T> exec(Callable<T> operation) {
-    return new DefaultSuccessOrError<>(operation, contextThreadLocal.get());
+  public <T> SuccessOrErrorPromise<T> exec(Callable<T> operation) {
+    return new DefaultSuccessOrErrorPromise<>(operation, contextThreadLocal.get());
   }
 
-  private class DefaultSuccessOrError<T> implements SuccessOrError<T> {
+  private class DefaultSuccessOrErrorPromise<T> implements SuccessOrErrorPromise<T> {
     private final Callable<T> backgroundAction;
     protected final Context context;
 
-    DefaultSuccessOrError(Callable<T> backgroundAction, Context context) {
+    DefaultSuccessOrErrorPromise(Callable<T> backgroundAction, Context context) {
       this.backgroundAction = backgroundAction;
       this.context = context;
     }
 
     @Override
-    public Success<T> onError(final Action<? super Throwable> errorHandler) {
-      return new DefaultSuccess<>(context, backgroundAction, new Action<Throwable>() {
+    public SuccessPromise<T> onError(final Action<? super Throwable> errorHandler) {
+      return new DefaultSuccessPromise<>(context, backgroundAction, new Action<Throwable>() {
         @Override
         public void execute(Throwable t) {
           try {
@@ -71,7 +73,7 @@ public class DefaultBackground implements Background {
 
     @Override
     public void then(Action<? super T> then) {
-      new DefaultSuccess<>(context, backgroundAction, new ForwardToContextErrorHandler()).then(then);
+      new DefaultSuccessPromise<>(context, backgroundAction, new ForwardToContextErrorHandler()).then(then);
     }
 
     class ForwardToContextErrorHandler implements Action<Throwable> {
@@ -82,13 +84,13 @@ public class DefaultBackground implements Background {
     }
   }
 
-  private class DefaultSuccess<T> implements Success<T> {
+  private class DefaultSuccessPromise<T> implements SuccessPromise<T> {
 
     private final Context context;
     private final Callable<T> backgroundAction;
     private final Action<Throwable> errorHandler;
 
-    DefaultSuccess(Context context, Callable<T> backgroundAction, Action<Throwable> errorHandler) {
+    DefaultSuccessPromise(Context context, Callable<T> backgroundAction, Action<Throwable> errorHandler) {
       this.context = context;
       this.backgroundAction = backgroundAction;
       this.errorHandler = errorHandler;

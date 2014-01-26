@@ -20,7 +20,7 @@ import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import ratpack.api.NonBlocking;
 import ratpack.api.Nullable;
-import ratpack.background.Background;
+import ratpack.handling.Background;
 import ratpack.groovy.handling.GroovyByContentHandler;
 import ratpack.groovy.handling.GroovyByMethodHandler;
 import ratpack.groovy.handling.GroovyContext;
@@ -33,6 +33,7 @@ import ratpack.parse.NoSuchParserException;
 import ratpack.parse.Parse;
 import ratpack.parse.ParserException;
 import ratpack.path.PathTokens;
+import ratpack.promise.SuccessOrErrorPromise;
 import ratpack.registry.NotInRegistryException;
 import ratpack.registry.Registry;
 import ratpack.server.BindAddress;
@@ -195,7 +196,7 @@ public class DefaultGroovyContext implements GroovyContext {
   }
 
   @Override
-  public <T> Background.SuccessOrError<T> background(Callable<T> backgroundOperation) {
+  public <T> SuccessOrErrorPromise<T> background(Callable<T> backgroundOperation) {
     return delegate.background(backgroundOperation);
   }
 

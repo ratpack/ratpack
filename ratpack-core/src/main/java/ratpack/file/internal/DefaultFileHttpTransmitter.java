@@ -19,7 +19,7 @@ package ratpack.file.internal;
 import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.stream.ChunkedNioStream;
-import ratpack.background.Background;
+import ratpack.handling.Background;
 import ratpack.http.internal.CustomHttpResponse;
 import ratpack.http.internal.HttpHeaderConstants;
 import ratpack.util.Action;

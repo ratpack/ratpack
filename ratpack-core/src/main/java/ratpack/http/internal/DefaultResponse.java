@@ -22,7 +22,7 @@ import io.netty.handler.codec.http.Cookie;
 import io.netty.handler.codec.http.DefaultCookie;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.ServerCookieEncoder;
-import ratpack.background.Background;
+import ratpack.handling.Background;
 import ratpack.file.internal.FileHttpTransmitter;
 import ratpack.http.MutableHeaders;
 import ratpack.http.MutableStatus;

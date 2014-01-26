@@ -17,7 +17,7 @@
 package ratpack.file.internal;
 
 import io.netty.handler.codec.http.HttpHeaders;
-import ratpack.background.Background;
+import ratpack.handling.Background;
 import ratpack.file.FileRenderer;
 import ratpack.file.MimeTypes;
 import ratpack.handling.Context;

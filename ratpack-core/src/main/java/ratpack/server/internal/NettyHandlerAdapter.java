@@ -21,7 +21,7 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
 import io.netty.util.CharsetUtil;
-import ratpack.background.Background;
+import ratpack.handling.Background;
 import ratpack.error.ClientErrorHandler;
 import ratpack.error.ServerErrorHandler;
 import ratpack.error.internal.DefaultClientErrorHandler;

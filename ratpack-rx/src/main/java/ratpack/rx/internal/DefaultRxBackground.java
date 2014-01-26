@@ -16,7 +16,7 @@
 
 package ratpack.rx.internal;
 
-import ratpack.background.Background;
+import ratpack.handling.Background;
 import ratpack.rx.RxBackground;
 import ratpack.util.Action;
 import rx.Observable;

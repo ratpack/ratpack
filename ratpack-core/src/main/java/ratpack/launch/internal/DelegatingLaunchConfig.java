@@ -19,7 +19,7 @@ package ratpack.launch.internal;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.EventLoopGroup;
 import ratpack.api.Nullable;
-import ratpack.background.Background;
+import ratpack.handling.Background;
 import ratpack.file.FileSystemBinding;
 import ratpack.handling.Context;
 import ratpack.handling.Foreground;

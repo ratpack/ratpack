@@ -23,7 +23,7 @@ import io.netty.buffer.Unpooled;
 import io.netty.buffer.UnpooledByteBufAllocator;
 import io.netty.util.CharsetUtil;
 import ratpack.api.Nullable;
-import ratpack.background.Background;
+import ratpack.handling.Background;
 import ratpack.background.internal.DefaultBackground;
 import ratpack.error.ClientErrorHandler;
 import ratpack.error.ServerErrorHandler;

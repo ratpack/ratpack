@@ -16,8 +16,6 @@
 
 package ratpack.site
 
-import com.google.inject.Provider
-import ratpack.background.Background
 import ratpack.groovy.test.LocalScriptApplicationUnderTest
 import ratpack.site.github.GitHubData
 import ratpack.site.github.MockGithubData
