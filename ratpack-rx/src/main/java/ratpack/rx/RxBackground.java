@@ -119,7 +119,7 @@ public interface RxBackground {
    *   rxBackground.observeEach {
    *     // do some blocking IO and return a List&lt;String&gt;
    *     // each item in the List is emitted to the next Observable, not the List
-   *     ["a", "b", "c"] as List
+   *     ["a", "b", "c"]
    *   } map { String input ->
    *     input.toUpperCase()
    *   } subscribe {
