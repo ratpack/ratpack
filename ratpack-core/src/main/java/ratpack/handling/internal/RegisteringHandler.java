@@ -34,7 +34,7 @@ public class RegisteringHandler implements Handler {
 
   public <T> RegisteringHandler(Class<? super T> type, T object, Handler handler) {
     this.handler = handler;
-    this.registry = registry((Class) type, object);
+    this.registry = registry(type, object);
   }
 
   public void handle(Context context) {
