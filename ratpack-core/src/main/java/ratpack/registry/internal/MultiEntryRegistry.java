@@ -22,11 +22,11 @@ import ratpack.registry.Registry;
 
 import java.util.List;
 
-public class DefaultRegistry implements Registry {
+public class MultiEntryRegistry implements Registry {
 
   private final ImmutableList<RegistryEntry<?>> entries;
 
-  public DefaultRegistry(ImmutableList<RegistryEntry<?>> entries) {
+  public MultiEntryRegistry(ImmutableList<RegistryEntry<?>> entries) {
     this.entries = entries;
   }
 
@@ -74,7 +74,7 @@ public class DefaultRegistry implements Registry {
       return false;
     }
 
-    DefaultRegistry that = (DefaultRegistry) o;
+    MultiEntryRegistry that = (MultiEntryRegistry) o;
 
     return entries.equals(that.entries);
   }

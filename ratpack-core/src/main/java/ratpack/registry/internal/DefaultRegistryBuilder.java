@@ -57,12 +57,17 @@ public class DefaultRegistryBuilder implements RegistryBuilder {
 
   @Override
   public Registry build() {
-    return new DefaultRegistry(builder.build());
+    ImmutableList<RegistryEntry<?>> entries = builder.build();
+    if (entries.size() == 1) {
+      return new SingleEntryRegistry(entries.get(0));
+    } else {
+      return new MultiEntryRegistry(entries);
+    }
   }
 
   @Override
   public Registry build(Registry parent) {
-    return join(parent, new DefaultRegistry(builder.build()));
+    return join(parent, build());
   }
 
 }
