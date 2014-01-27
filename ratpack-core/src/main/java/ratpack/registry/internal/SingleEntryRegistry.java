@@ -44,7 +44,7 @@ public class SingleEntryRegistry implements Registry {
   @Nullable
   @Override
   public <O> O maybeGet(Class<O> type) {
-    if (entry.getType().isAssignableFrom(type)) {
+    if (type.isAssignableFrom(entry.getType())) {
       return type.cast(entry.get());
     } else {
       return null;
