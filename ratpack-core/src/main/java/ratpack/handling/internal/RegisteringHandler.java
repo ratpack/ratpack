@@ -18,34 +18,26 @@ package ratpack.handling.internal;
 
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
+import ratpack.registry.Registry;
 
 import static ratpack.registry.Registries.registry;
 
 public class RegisteringHandler implements Handler {
 
-  private final Class<?> type;
-  private final Object object;
   private final Handler handler;
+  private final Registry registry;
 
-  @SuppressWarnings("unchecked")
   public <T> RegisteringHandler(T object, Handler handler) {
-    this.type = null;
-    this.object = object;
     this.handler = handler;
+    this.registry = registry(object);
   }
 
   public <T> RegisteringHandler(Class<? super T> type, T object, Handler handler) {
-    this.type = type;
-    this.object = object;
     this.handler = handler;
+    this.registry = registry((Class) type, object);
   }
 
-  @SuppressWarnings("unchecked")
   public void handle(Context context) {
-    if (type == null) {
-      context.insert(registry(object), handler);
-    } else {
-      context.insert(registry((Class) type, object), handler);
-    }
+    context.insert(registry, handler);
   }
 }
