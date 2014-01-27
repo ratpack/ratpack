@@ -56,4 +56,23 @@ public class InjectorBackedRegistry implements Registry {
     return GuiceUtil.ofType(injector, type);
   }
 
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    InjectorBackedRegistry that = (InjectorBackedRegistry) o;
+
+    return injector.equals(that.injector);
+  }
+
+  @Override
+  public int hashCode() {
+    return injector.hashCode();
+  }
+
 }

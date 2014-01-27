@@ -65,4 +65,22 @@ public class DefaultRegistry implements Registry {
     return builder.build();
   }
 
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    DefaultRegistry that = (DefaultRegistry) o;
+
+    return entries.equals(that.entries);
+  }
+
+  @Override
+  public int hashCode() {
+    return entries.hashCode();
+  }
 }

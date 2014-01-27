@@ -53,4 +53,22 @@ public class JustInTimeInjectorRegistry implements Registry {
     }
   }
 
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    JustInTimeInjectorRegistry that = (JustInTimeInjectorRegistry) o;
+
+    return injector.equals(that.injector);
+  }
+
+  @Override
+  public int hashCode() {
+    return injector.hashCode();
+  }
 }

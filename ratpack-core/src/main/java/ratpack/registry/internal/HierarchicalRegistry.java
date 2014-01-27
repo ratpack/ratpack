@@ -60,4 +60,24 @@ public class HierarchicalRegistry implements Registry {
     return ImmutableList.<O>builder().addAll(childAll).addAll(parentAll).build();
   }
 
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    HierarchicalRegistry that = (HierarchicalRegistry) o;
+
+    return child.equals(that.child) && parent.equals(that.parent);
+  }
+
+  @Override
+  public int hashCode() {
+    int result = parent.hashCode();
+    result = 31 * result + child.hashCode();
+    return result;
+  }
 }
