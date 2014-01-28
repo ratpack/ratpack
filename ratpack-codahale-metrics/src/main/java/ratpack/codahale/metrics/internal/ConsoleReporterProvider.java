@@ -23,6 +23,9 @@ import com.google.inject.Provider;
 import javax.inject.Inject;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * A Provider implementation that sets up a {@link ConsoleReporter} for a {@link MetricRegistry}.
+ */
 public class ConsoleReporterProvider implements Provider<ConsoleReporter> {
   private final MetricRegistry metricRegistry;
 

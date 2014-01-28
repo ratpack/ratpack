@@ -24,6 +24,31 @@ import ratpack.handling.RequestOutcome;
 import ratpack.http.Request;
 import ratpack.util.Action;
 
+/**
+ * A handler implementation that collects {@link Timer} metrics for a {@link Request}.
+ * <p>
+ * Metrics are grouped by {@link ratpack.http.Request#getUri()} and {@link ratpack.http.Request#getMethod()}.
+ * For example, the following requests...
+ *
+ * <pre>
+ * /
+ * /book
+ * /author/1/books
+ * /js/jquery.min.js
+ * /css/bootstrap.min.css
+ * </pre>
+ *
+ * will be reported as...
+ *
+ * <pre>
+ * [root]~GET~Request
+ * [book]~GET~Request
+ * [author][1][books]~GET~Request
+ * [js][jquery.min.js]~GET~Request
+ * [css][bootstrap.min.css]~GET~Request
+ * </pre>
+ *
+ */
 public class RequestTimingHandler implements Handler {
 
   private final Handler rest;
@@ -54,3 +79,4 @@ public class RequestTimingHandler implements Handler {
   }
 
 }
+

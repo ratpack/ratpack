@@ -25,6 +25,9 @@ import javax.inject.Inject;
 import java.io.File;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * A Provider implementation that sets up a {@link CsvReporter} for a {@link MetricRegistry}.
+ */
 public class CsvReporterProvider implements Provider<CsvReporter> {
 
   public static final String CSV_REPORT_DIRECTORY = "ratpack.codahale.metrics.internal.CsvReporterProvider.csvReportDirectory";
@@ -45,3 +48,4 @@ public class CsvReporterProvider implements Provider<CsvReporter> {
     return reporter;
   }
 }
+

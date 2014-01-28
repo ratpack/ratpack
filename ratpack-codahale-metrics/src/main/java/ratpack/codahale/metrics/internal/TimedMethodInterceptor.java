@@ -25,6 +25,10 @@ import org.aopalliance.intercept.MethodInvocation;
 
 import java.lang.reflect.Method;
 
+/**
+ * An implementation of MethodInterceptor that collects {@link com.codahale.metrics.Timer} metrics for any method
+ * annotated with {@link com.codahale.metrics.annotation.Timed}.
+ */
 public class TimedMethodInterceptor implements MethodInterceptor {
 
   @Inject

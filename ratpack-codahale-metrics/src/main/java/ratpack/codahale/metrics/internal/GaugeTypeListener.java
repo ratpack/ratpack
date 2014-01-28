@@ -27,6 +27,12 @@ import java.lang.reflect.Method;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * An implementation of TypeListener that collects {@link com.codahale.metrics.Gauge} metrics for any valid method
+ * annotated with {@link Gauge}.
+ * <p>
+ * Valid methods are those that have no parameters and a void return type.
+ */
 public class GaugeTypeListener implements TypeListener {
 
   private final static Logger LOGGER = Logger.getLogger(GaugeTypeListener.class.getName());

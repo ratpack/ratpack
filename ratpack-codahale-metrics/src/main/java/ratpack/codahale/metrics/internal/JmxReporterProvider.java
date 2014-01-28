@@ -22,6 +22,9 @@ import com.google.inject.Provider;
 
 import javax.inject.Inject;
 
+/**
+ * A Provider implementation that sets up a {@link JmxReporter} for a {@link MetricRegistry}.
+ */
 public class JmxReporterProvider implements Provider<JmxReporter> {
   private final MetricRegistry metricRegistry;
 
@@ -37,3 +40,4 @@ public class JmxReporterProvider implements Provider<JmxReporter> {
     return reporter;
   }
 }
+

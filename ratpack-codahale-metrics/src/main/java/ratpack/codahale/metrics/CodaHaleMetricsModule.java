@@ -144,8 +144,10 @@ public class CodaHaleMetricsModule extends AbstractModule implements HandlerDeco
    * e.g. {@link ratpack.codahale.metrics.CodaHaleMetricsModule#jmx()}, {@link ratpack.codahale.metrics.CodaHaleMetricsModule#console()}.
    * </p>
    * <p>
-   * By default {@link com.codahale.metrics.Timer} metrics are collected for all requests received.  Please see
-   * {@link RequestTimingHandler} for further details.
+   * By default {@link com.codahale.metrics.Timer} metrics are collected for all requests received.  The module adds a
+   * {@link RequestTimingHandler} to the handler chain <b>before</b> any user handlers.  This means that response times do not take any
+   * framework overhead into account and purely the amount of time spent in handlers.  It is important that the module is
+   * registered first in the modules list to ensure that <b>all</b> handlers are included in the metric.
    * </p>
    * <p>
    * Additional custom metrics can be registered with the provided {@link MetricRegistry} instance
@@ -174,7 +176,6 @@ public class CodaHaleMetricsModule extends AbstractModule implements HandlerDeco
    * <p>
    * Custom metrics can also be added via the Metrics annotations ({@link Metered}, {@link Timed} and {@link com.codahale.metrics.annotation.Gauge}) 
    * to any Guice injected classes.
-   * Please see the <a href="https://github.com/ratpack/example-books" target="_blank">example-books</a> project for an example.
    * </p>
    *
    * @return this {@code CodaHaleMetricsModule}
@@ -208,10 +209,25 @@ public class CodaHaleMetricsModule extends AbstractModule implements HandlerDeco
     return this;
   }
 
+  /**
+   * Enable the collection of JVM metrics.
+   * <p>
+   * The JVM Gauges and Metric Sets provided by Coda Hale's Metrics will be registered to this module's Metric Registry.
+   *
+   * @return this {@code CodaHaleMetricsModule}
+   * @see <a href="http://metrics.codahale.com/manual/jvm/" target="_blank">Coda Hale Metrics - JVM Instrumentation</a>
+   */
   public CodaHaleMetricsModule jvmMetrics() {
     return jvmMetrics(true);
   }
 
+  /**
+   * Enables or disables the collecting of JVM metrics.
+   *
+   * @param enabled If JVM metric collection should be enabled.
+   * @return this {@code CodaHaleMetricsModule}
+   * @see CodaHaleMetricsModule#jvmMetrics()
+   */
   public CodaHaleMetricsModule jvmMetrics(boolean enabled) {
     this.jvmMetricsEnabled = enabled;
     return this;

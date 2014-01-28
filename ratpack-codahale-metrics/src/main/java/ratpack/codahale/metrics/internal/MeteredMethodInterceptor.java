@@ -24,6 +24,10 @@ import org.aopalliance.intercept.MethodInvocation;
 
 import java.lang.reflect.Method;
 
+/**
+ * An implementation of MethodInterceptor that collects {@link com.codahale.metrics.Meter} metrics for any method
+ * annotated with {@link Metered}.
+ */
 public class MeteredMethodInterceptor implements MethodInterceptor {
 
   @Inject
