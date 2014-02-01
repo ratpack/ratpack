@@ -43,7 +43,7 @@ repositories {
   maven { url "http://repository-saucelabs.forge.cloudbees.com/release" }
 }
 
-def manualVersions = ["0.9.0"] // TODO - source this from GitHub
+def manualVersions = ["0.9.0", "0.9.1"] // TODO - source this from GitHub
 
 configurations {
   latestManual {}
