@@ -200,10 +200,71 @@ public class CodaHaleMetricsModule extends AbstractModule implements HandlerDeco
     return this;
   }
 
+  /**
+   * Enables the automatic registering of health checks.
+   * <p>
+   * Health checks verify that application components or responsibilities are performing as expected.
+   * <p>
+   * To create a health check simply create a class that extends {@link NamedHealthCheck} and Bind it with Guice.  When
+   * health checks are enabled then all bound classes of type NamedHealthCheck will automatically be registered with the
+   * {@link HealthCheckRegistry}.  Health checks can then be run using {@link com.codahale.metrics.health.HealthCheckRegistry#runHealthChecks()}.
+   * <p>
+   * Example health checks: (Groovy DSL)
+   * </p>
+   * <pre class="groovy-ratpack-dsl">
+   * import com.codahale.metrics.health.HealthCheck
+   * import com.codahale.metrics.health.HealthCheckRegistry
+   * import ratpack.codahale.metrics.CodaHaleMetricsModule
+   * import ratpack.codahale.metrics.NamedHealthCheck
+   * import static ratpack.groovy.Groovy.ratpack
+   *
+   * class FooHealthCheck extends NamedHealthCheck {
+   *
+   *   protected HealthCheck.Result check() throws Exception {
+   *     // perform the health check logic here and return HealthCheck.Result.healthy() or HealthCheck.Result.unhealthy("Unhealthy message")
+   *     HealthCheck.Result.healthy()
+   *   }
+   *
+   *   def String getName() {
+   *     "foo_health_check"
+   *   }
+   * }
+   *
+   * ratpack {
+   *   modules {
+   *     register new CodaHaleMetricsModule()
+   *     bind FooHealthCheck // if you don't bind the health check with Guice it will not be automatically registered
+   *   }
+   *
+   *   handlers { HealthCheckRegistry healthCheckRegistry ->
+   *     get("healthChecks") {
+   *       render healthCheckRegistry.runHealthChecks().toString()
+   *     }
+   *
+   *     get("healthCheck/:name") {
+   *       render healthCheckRegistry.runHealthCheck(pathTokens.get("name")).toString()
+   *     }
+   *   }
+   * }
+   * </pre>
+   *
+   * @return this {@code CodaHaleMetricsModule}
+   * @see <a href="http://metrics.codahale.com/manual/healthchecks/" target="_blank">Coda Hale Metrics - Health Checks</a>
+   * @see com.codahale.metrics.health.HealthCheckRegistry#runHealthChecks()
+   * @see HealthCheckRegistry#runHealthCheck(String)
+   * @see HealthCheckRegistry#runHealthChecks(java.util.concurrent.ExecutorService)
+   */
   public CodaHaleMetricsModule healthChecks() {
     return healthChecks(true);
   }
 
+  /**
+   * Enables or disables the automatic registering of health checks.
+   *
+   * @param enabled If the automatic registering of health checks should be enabled.
+   * @return this {@code CodaHaleMetricsModule}
+   * @see CodaHaleMetricsModule#healthChecks()
+   */
   public CodaHaleMetricsModule healthChecks(boolean enabled) {
     this.healthChecksEnabled = enabled;
     return this;

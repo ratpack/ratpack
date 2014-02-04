@@ -18,8 +18,21 @@ package ratpack.codahale.metrics;
 
 import com.codahale.metrics.health.HealthCheck;
 
+/**
+ * A named application health check.
+ * <p>
+ * {@link ratpack.codahale.metrics.NamedHealthCheck#getName()} should be used when registering
+ * this health check with {@link com.codahale.metrics.health.HealthCheckRegistry}
+ *
+ * @see ratpack.codahale.metrics.CodaHaleMetricsModule#healthChecks()
+ */
 public abstract class NamedHealthCheck extends HealthCheck {
 
+  /**
+   * The name to register the health check as.
+   * @return the health check name
+   */
   public abstract String getName();
 
 }
+
