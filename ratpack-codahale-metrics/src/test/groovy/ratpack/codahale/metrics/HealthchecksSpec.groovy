@@ -44,6 +44,18 @@ class HealthchecksSpec extends RatpackGroovyDslSpec {
     }
   }
 
+  static class FooHealthCheck extends NamedHealthCheck {
+
+    @SuppressWarnings("UnnecessaryQualifiedReference")
+    protected HealthCheck.Result check() throws Exception {
+      HealthCheck.Result.healthy()
+    }
+
+    def String getName() {
+      "foo"
+    }
+  }
+
   def "can register healthcheck"() {
     when:
     modules {
@@ -68,6 +80,24 @@ class HealthchecksSpec extends RatpackGroovyDslSpec {
 
     then:
     text == "{resource=Result{isHealthy=true}}"
+  }
+
+  def "can use healthcheck endpoint"() {
+    when:
+    modules {
+      register new CodaHaleMetricsModule()
+      bind MyHealthCheck
+      bind FooHealthCheck
+    }
+    handlers {
+      prefix("admin") {
+        handler(registry.get(HealthCheckEndpoint))
+      }
+    }
+
+    then:
+    getText("admin/health-check") == "{foo=Result{isHealthy=true}, resource=Result{isHealthy=false, message=bad!}}"
+    getText("admin/health-check/foo") == "Result{isHealthy=true}"
   }
 
 }
