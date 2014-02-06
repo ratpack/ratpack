@@ -28,7 +28,7 @@ import ratpack.handlebars.internal.HandlebarsTemplateRenderer;
 import ratpack.handlebars.internal.RatpackTemplateCache;
 import ratpack.handlebars.internal.TemplateKey;
 import ratpack.launch.LaunchConfig;
-import ratpack.util.Action;
+import ratpack.func.Action;
 
 /**
  * An extension module that provides support for Handlebars.java templating engine.

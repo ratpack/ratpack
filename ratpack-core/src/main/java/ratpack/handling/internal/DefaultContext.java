@@ -37,7 +37,7 @@ import ratpack.registry.Registry;
 import ratpack.render.NoSuchRendererException;
 import ratpack.render.internal.RenderController;
 import ratpack.server.BindAddress;
-import ratpack.util.Action;
+import ratpack.func.Action;
 import ratpack.util.ExceptionUtils;
 import ratpack.util.Result;
 import ratpack.util.ResultAction;

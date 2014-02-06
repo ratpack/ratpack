@@ -22,7 +22,7 @@ import ratpack.registry.Registries;
 import ratpack.registry.Registry;
 import ratpack.session.Session;
 import ratpack.session.SessionManager;
-import ratpack.util.Factory;
+import ratpack.func.Factory;
 
 public class SessionBindingHandler implements Handler {
 

@@ -29,8 +29,8 @@ import ratpack.reload.internal.ClassUtil;
 import ratpack.reload.internal.ReloadableFileBackedFactory;
 import ratpack.server.internal.NettyRatpackServer;
 import ratpack.server.internal.RatpackChannelInitializer;
-import ratpack.util.Factory;
-import ratpack.util.Transformer;
+import ratpack.func.Factory;
+import ratpack.func.Transformer;
 
 import java.io.File;
 import java.nio.file.Path;

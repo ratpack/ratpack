@@ -18,7 +18,7 @@ package ratpack.test;
 
 import ratpack.launch.RatpackMain;
 import ratpack.server.RatpackServer;
-import ratpack.util.Factory;
+import ratpack.func.Factory;
 
 import java.util.HashMap;
 import java.util.Map;

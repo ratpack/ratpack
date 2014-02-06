@@ -23,7 +23,7 @@ import ratpack.registry.Registry;
 import ratpack.session.Session;
 import ratpack.session.store.SessionStorage;
 import ratpack.session.store.SessionStore;
-import ratpack.util.Factory;
+import ratpack.func.Factory;
 
 public class SessionStorageBindingHandler implements Handler {
 

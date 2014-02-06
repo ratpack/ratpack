@@ -19,8 +19,8 @@ package ratpack.guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import ratpack.handling.Handler;
-import ratpack.util.Action;
-import ratpack.util.Transformer;
+import ratpack.func.Action;
+import ratpack.func.Transformer;
 
 public interface GuiceBackedHandlerFactory {
 

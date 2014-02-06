@@ -37,7 +37,7 @@ import ratpack.promise.SuccessOrErrorPromise;
 import ratpack.registry.NotInRegistryException;
 import ratpack.registry.Registry;
 import ratpack.server.BindAddress;
-import ratpack.util.Action;
+import ratpack.func.Action;
 import ratpack.util.ResultAction;
 
 import java.nio.file.Path;

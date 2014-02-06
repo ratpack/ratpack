@@ -17,7 +17,7 @@
 package ratpack.promise;
 
 import ratpack.api.NonBlocking;
-import ratpack.util.Action;
+import ratpack.func.Action;
 
 /**
  * A promise of a successful outcome.

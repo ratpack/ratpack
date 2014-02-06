@@ -18,7 +18,7 @@ package ratpack.groovy.templating.internal;
 
 import io.netty.buffer.ByteBuf;
 import ratpack.handling.Context;
-import ratpack.util.Action;
+import ratpack.func.Action;
 import ratpack.util.Result;
 import ratpack.util.ResultAction;
 

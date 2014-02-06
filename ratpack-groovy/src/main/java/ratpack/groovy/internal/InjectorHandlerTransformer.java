@@ -23,7 +23,7 @@ import ratpack.guice.Guice;
 import ratpack.handling.Handler;
 import ratpack.launch.LaunchConfig;
 import ratpack.registry.Registry;
-import ratpack.util.Transformer;
+import ratpack.func.Transformer;
 
 public class InjectorHandlerTransformer implements Transformer<Injector, Handler> {
 

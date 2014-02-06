@@ -26,8 +26,8 @@ import ratpack.handling.Chain;
 import ratpack.handling.Handler;
 import ratpack.launch.LaunchConfig;
 import ratpack.registry.Registry;
-import ratpack.util.Action;
-import ratpack.util.Transformer;
+import ratpack.func.Action;
+import ratpack.func.Transformer;
 
 import static com.google.inject.Guice.createInjector;
 import static ratpack.handling.Handlers.chain;
@@ -184,7 +184,7 @@ public abstract class Guice {
   /**
    * Creates a handler that can be used as the entry point for a Guice backed Ratpack app.
    * <p>
-   * This is a lower level version of {@link #handler(ratpack.launch.LaunchConfig, ratpack.util.Action, ratpack.util.Action)}
+   * This is a lower level version of {@link #handler(ratpack.launch.LaunchConfig, ratpack.func.Action, ratpack.func.Action)}
    * that supports a custom final {@link Handler} creation strategy.
    *
    * @param launchConfig The launch config of the server
@@ -199,7 +199,7 @@ public abstract class Guice {
   /**
    * Creates a handler that can be used as the entry point for a Guice backed Ratpack app.
    * <p>
-   * Similar to {@link #handler(ratpack.launch.LaunchConfig, ratpack.util.Action, ratpack.util.Action)},
+   * Similar to {@link #handler(ratpack.launch.LaunchConfig, ratpack.func.Action, ratpack.func.Action)},
    * but provides the opportunity to use a <i>parent</i> injector when creating the injector to use for the application.
    * See Guice documentation for the semantics of parent/child injectors.
    * <p>
@@ -218,7 +218,7 @@ public abstract class Guice {
   /**
    * Creates a handler that can be used as the entry point for a Guice backed Ratpack app.
    * <p>
-   * This is a lower level version of {@link #handler(ratpack.launch.LaunchConfig, com.google.inject.Injector, ratpack.util.Action, ratpack.util.Action)}
+   * This is a lower level version of {@link #handler(ratpack.launch.LaunchConfig, com.google.inject.Injector, ratpack.func.Action, ratpack.func.Action)}
    * that supports a custom final {@link Handler} creation strategy.
    *
    * @param launchConfig The launch config of the server
@@ -234,7 +234,7 @@ public abstract class Guice {
   /**
    * Creates a Ratpack {@link Registry} backed by the given {@link Injector} that will create objects via “just-in-time” binding.
    * <p>
-   * Typically used in conjuction with the {@link ratpack.handling.Handlers#chain(LaunchConfig, ratpack.registry.Registry, ratpack.util.Action)}
+   * Typically used in conjuction with the {@link ratpack.handling.Handlers#chain(LaunchConfig, ratpack.registry.Registry, ratpack.func.Action)}
    * method.
    *
    * @param injector The injector to back the registry

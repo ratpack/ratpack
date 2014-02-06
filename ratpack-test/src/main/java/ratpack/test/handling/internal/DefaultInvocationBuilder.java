@@ -38,7 +38,7 @@ import static io.netty.buffer.Unpooled.buffer;
 import static io.netty.buffer.Unpooled.unreleasableBuffer;
 
 /**
- * @see ratpack.test.UnitTest#invoke(ratpack.handling.Handler, ratpack.util.Action)
+ * @see ratpack.test.UnitTest#invoke(ratpack.handling.Handler, ratpack.func.Action)
  */
 @SuppressWarnings("UnusedDeclaration")
 public class DefaultInvocationBuilder implements InvocationBuilder {

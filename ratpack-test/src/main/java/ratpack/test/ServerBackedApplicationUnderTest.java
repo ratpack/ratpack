@@ -17,7 +17,7 @@
 package ratpack.test;
 
 import ratpack.server.RatpackServer;
-import ratpack.util.Factory;
+import ratpack.func.Factory;
 
 import java.io.Closeable;
 import java.io.IOException;

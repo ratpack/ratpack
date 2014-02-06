@@ -43,7 +43,7 @@ import ratpack.guice.HandlerDecoratingModule;
 import ratpack.guice.internal.GuiceUtil;
 import ratpack.handling.Handler;
 import ratpack.path.internal.TokenPathBinder;
-import ratpack.util.Action;
+import ratpack.func.Action;
 
 import java.io.File;
 

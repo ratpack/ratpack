@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ratpack.util;
+package ratpack.func;
 
 /**
  * An object that transforms an object into another.

@@ -20,7 +20,7 @@ import ratpack.handling.Chain;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.launch.LaunchConfig;
-import ratpack.util.Action;
+import ratpack.func.Action;
 
 import static ratpack.handling.Handlers.chain;
 

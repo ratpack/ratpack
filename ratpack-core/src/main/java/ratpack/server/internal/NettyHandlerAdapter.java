@@ -55,7 +55,7 @@ import ratpack.render.internal.DefaultRenderController;
 import ratpack.server.BindAddress;
 import ratpack.server.PublicAddress;
 import ratpack.server.Stopper;
-import ratpack.util.Action;
+import ratpack.func.Action;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;

@@ -26,7 +26,7 @@ import ratpack.guice.GuiceBackedHandlerFactory;
 import ratpack.handling.Handler;
 import ratpack.launch.HandlerFactory;
 import ratpack.launch.LaunchConfig;
-import ratpack.util.Transformer;
+import ratpack.func.Transformer;
 
 public class GroovyClosureHandlerFactory implements HandlerFactory {
 

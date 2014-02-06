@@ -27,7 +27,7 @@ import ratpack.guice.GuiceBackedHandlerFactory;
 import ratpack.handling.Handler;
 import ratpack.launch.HandlerFactory;
 import ratpack.launch.LaunchConfig;
-import ratpack.util.Transformer;
+import ratpack.func.Transformer;
 
 import java.io.IOException;
 import java.nio.file.Files;

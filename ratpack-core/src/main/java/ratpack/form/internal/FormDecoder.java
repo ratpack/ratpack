@@ -31,7 +31,7 @@ import ratpack.http.Request;
 import ratpack.http.TypedData;
 import ratpack.http.internal.ByteBufBackedTypedData;
 import ratpack.http.internal.DefaultMediaType;
-import ratpack.util.Action;
+import ratpack.func.Action;
 import ratpack.util.internal.ImmutableDelegatingMultiValueMap;
 
 import java.io.IOException;

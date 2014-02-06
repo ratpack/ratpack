@@ -19,7 +19,7 @@ package ratpack.groovy.templating.internal;
 import ratpack.error.ServerErrorHandler;
 import ratpack.handling.Context;
 import ratpack.http.Response;
-import ratpack.util.Action;
+import ratpack.func.Action;
 
 import java.io.PrintWriter;
 import java.util.Map;

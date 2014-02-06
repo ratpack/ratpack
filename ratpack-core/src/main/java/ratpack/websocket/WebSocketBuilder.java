@@ -17,7 +17,7 @@
 package ratpack.websocket;
 
 import ratpack.api.NonBlocking;
-import ratpack.util.Action;
+import ratpack.func.Action;
 
 public interface WebSocketBuilder<T> {
 

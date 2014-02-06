@@ -21,7 +21,7 @@ import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.http.Request;
 import ratpack.path.PathBinding;
-import ratpack.util.Action;
+import ratpack.func.Action;
 
 import java.net.URI;
 import java.net.URISyntaxException;

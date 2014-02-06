@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,7 @@
  * limitations under the License.
  */
 
-package ratpack.util;
-
 /**
- * An object that creates another.
- *
- * Factories are expected to create a new object each time. Implementors should explain there behaviour if they do not do this.
- *
- * @param <T> The type of object that this factory creates.
+ * General functional (i.e. Single Abstract Method) types.
  */
-public interface Factory<T> {
-
-  /**
-   * Creates a new object.
-   *
-   * @return A newly created object.
-   */
-  T create();
-
-}
+package ratpack.func;

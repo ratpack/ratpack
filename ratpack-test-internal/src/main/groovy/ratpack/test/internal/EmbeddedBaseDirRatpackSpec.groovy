@@ -37,8 +37,8 @@ abstract class EmbeddedBaseDirRatpackSpec extends EmbeddedRatpackSpec {
     new PathBaseDirBuilder(temporaryFolder.newFolder("app"))
   }
 
-  protected ratpack.util.Factory<Path> getBaseDirFactory() {
-    new ratpack.util.Factory() {
+  protected ratpack.func.Factory<Path> getBaseDirFactory() {
+    new ratpack.func.Factory() {
       @Override
       Object create() {
         getBaseDir().build()

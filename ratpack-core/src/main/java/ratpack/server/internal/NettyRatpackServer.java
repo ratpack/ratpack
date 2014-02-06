@@ -30,7 +30,7 @@ import ratpack.launch.LaunchException;
 import ratpack.launch.internal.LaunchConfigInternal;
 import ratpack.server.RatpackServer;
 import ratpack.server.Stopper;
-import ratpack.util.Transformer;
+import ratpack.func.Transformer;
 
 import java.net.InetSocketAddress;
 import java.util.concurrent.atomic.AtomicBoolean;

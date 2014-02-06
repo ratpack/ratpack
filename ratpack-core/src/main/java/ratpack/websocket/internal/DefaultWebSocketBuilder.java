@@ -18,8 +18,8 @@ package ratpack.websocket.internal;
 
 import ratpack.handling.Context;
 import ratpack.launch.LaunchConfig;
-import ratpack.util.Action;
-import ratpack.util.Transformer;
+import ratpack.func.Action;
+import ratpack.func.Transformer;
 import ratpack.websocket.WebSocket;
 import ratpack.websocket.WebSocketBuilder;
 import ratpack.websocket.WebSocketClose;

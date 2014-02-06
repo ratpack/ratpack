@@ -21,7 +21,7 @@ import ratpack.file.MimeTypes;
 import ratpack.groovy.templating.Template;
 import ratpack.handling.Context;
 import ratpack.render.RendererSupport;
-import ratpack.util.Action;
+import ratpack.func.Action;
 
 import javax.inject.Inject;
 

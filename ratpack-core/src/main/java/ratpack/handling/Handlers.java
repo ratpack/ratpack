@@ -29,7 +29,7 @@ import ratpack.path.PathBinder;
 import ratpack.path.internal.PathHandler;
 import ratpack.path.internal.TokenPathBinder;
 import ratpack.registry.Registry;
-import ratpack.util.Action;
+import ratpack.func.Action;
 
 import java.util.List;
 

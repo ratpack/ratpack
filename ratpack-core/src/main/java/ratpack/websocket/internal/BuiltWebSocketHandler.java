@@ -16,8 +16,8 @@
 
 package ratpack.websocket.internal;
 
-import ratpack.util.Action;
-import ratpack.util.Transformer;
+import ratpack.func.Action;
+import ratpack.func.Transformer;
 import ratpack.websocket.WebSocket;
 import ratpack.websocket.WebSocketClose;
 import ratpack.websocket.WebSocketMessage;
