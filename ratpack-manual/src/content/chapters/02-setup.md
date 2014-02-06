@@ -26,25 +26,25 @@ Templates are published with each Ratpack release and template versions are alig
 The quickest way to get started with Lazybones is via [GVM](http://gvmtool.net/), the Groovy enVironment Manager.  So first of all we need to download
 GVM using [curl](http://curl.haxx.se/).  Windows users can use [Cygwin](http://www.cygwin.com/) for this.
 
-```
+```language-bash
 curl -s get.gvmtool.net | bash
 ```
 
 We can then install Lazybones with the following command...
 
-```
+```language-bash
 gvm install lazybones
 ```
 
 Lazybones commands are in the format...
 
-```
+```language-bash
 lazybones create <ratpack template> <ratpack version> <app name>
 ```
 
 With Lazybones installed then getting started with Ratpack is as easy as...
 
-```
+```language-bash
 lazybones create ratpack my-ratpack-app
 cd my-ratpack-app
 ./gradlew run
@@ -52,7 +52,7 @@ cd my-ratpack-app
 
 If a specific Ratpack version is required...
 
-```
+```language-bash
 lazybones create ratpack 0.9.0 my-ratpack-app
 cd my-ratpack-app
 ./gradlew run
