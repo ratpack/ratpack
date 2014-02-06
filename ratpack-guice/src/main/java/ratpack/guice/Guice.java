@@ -57,7 +57,7 @@ import static ratpack.handling.Handlers.chain;
  * import ratpack.registry.*;
  * import ratpack.guice.*;
  * import ratpack.launch.*;
- * import ratpack.util.*;
+ * import ratpack.func.*;
  * import com.google.inject.*;
  * import javax.inject.*;
  *
@@ -66,52 +66,52 @@ import static ratpack.handling.Handlers.chain;
  *
  * // A Guice module that provides the service
  * class ServiceModule extends AbstractModule {
- * protected void configure() {
- * bind(SomeService.class);
- * }
+ *   protected void configure() {
+ *     bind(SomeService.class);
+ *   }
  * }
  *
  * // An action that registers the module with the registry, making it part of the application
  * class ModuleBootstrap implements Action&lt;ModuleRegistry&gt; {
- * public void execute(ModuleRegistry modules) {
- * modules.register(new ServiceModule());
- * }
+ *   public void execute(ModuleRegistry modules) {
+ *     modules.register(new ServiceModule());
+ *   }
  * }
  *
  * // A handler implementation that is dependency injected
  * {@literal @}Singleton
  * class InjectedHandler implements Handler {
- * private final SomeService service;
+ *   private final SomeService service;
  *
- * {@literal @}Inject
- * public InjectedHandler(SomeService service) {
- * this.service = service;
- * }
+ *   {@literal @}Inject
+ *   public InjectedHandler(SomeService service) {
+ *     this.service = service;
+ *   }
  *
- * public void handle(Context exchange) {
- * // …
- * }
+ *   public void handle(Context exchange) {
+ *     // …
+ *   }
  * }
  *
  * // A chain configurer that adds a dependency injected handler to the chain
  * class HandlersBootstrap implements Action&lt;Chain&gt; {
- * public void execute(Chain chain) {
+ *   public void execute(Chain chain) {
  *
- * // The registry in a Guice backed chain can be used to retrieve objects that were bound,
- * // or to create objects that are bound “just-in-time”.
- * Registry&lt;Object&gt; registry = chain.getRegistry();
- * Handler injectedHandler = registry.get(InjectedHandler.class);
+ *     // The registry in a Guice backed chain can be used to retrieve objects that were bound,
+ *     // or to create objects that are bound “just-in-time”.
+ *     Registry&lt;Object&gt; registry = chain.getRegistry();
+ *     Handler injectedHandler = registry.get(InjectedHandler.class);
  *
- * // Add the handler into the chain
- * chain.get("some/path", injectedHandler);
- * }
+ *     // Add the handler into the chain
+ *     chain.get("some/path", injectedHandler);
+ *   }
  * }
  *
  * // A HandlerFactory implementation used to bootstrap the application
  * class MyHandlerFactory implements HandlerFactory {
- * public Handler create(LaunchConfig launchConfig) {
- * return Guice.handler(launchConfig, new ModuleBootstrap(), new HandlersBootstrap());
- * }
+ *   public Handler create(LaunchConfig launchConfig) {
+ *     return Guice.handler(launchConfig, new ModuleBootstrap(), new HandlersBootstrap());
+ *   }
  * }
  *
  * // Building a launch config with our handler factory

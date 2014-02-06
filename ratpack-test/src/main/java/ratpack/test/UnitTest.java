@@ -33,7 +33,7 @@ public class UnitTest {
    * Example:
    * <pre class="exec">
    * import ratpack.handling.*;
-   * import ratpack.util.Action;
+   * import ratpack.func.Action;
    * import ratpack.test.handling.Invocation;
    * import ratpack.test.handling.InvocationBuilder;
    *

@@ -39,7 +39,7 @@ import javax.inject.Provider;
  * The modules have have already been registered “upstream”.
  * <pre class="tested">
  * import ratpack.guice.*;
- * import ratpack.util.*;
+ * import ratpack.func.Action;
  * import com.google.inject.AbstractModule;
  *
  * class MyService {

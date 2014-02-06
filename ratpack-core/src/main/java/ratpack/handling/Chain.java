@@ -36,7 +36,7 @@ import ratpack.func.Action;
  * import ratpack.handling.Handler;
  * import ratpack.handling.Handlers;
  * import ratpack.handling.Context;
- * import ratpack.util.Action;
+ * import ratpack.func.Action;
  *
  * public class MyHandlerBootstrap implements HandlerFactory {
  *   public Handler create(LaunchConfig launchConfig) {

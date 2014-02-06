@@ -57,7 +57,7 @@ import ratpack.func.Action;
  * <pre class="tested">
  * import ratpack.handling.*;
  * import ratpack.guice.*;
- * import ratpack.util.*;
+ * import ratpack.func.Action;
  * import ratpack.launch.*;
  * import ratpack.handlebars.HandlebarsModule;
  * import static ratpack.handlebars.Template.handlebarsTemplate;

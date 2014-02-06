@@ -28,7 +28,7 @@ import com.github.jknack.handlebars.Helper;
  * import com.github.jknack.handlebars.Options;
  * import ratpack.handling.*;
  * import ratpack.guice.*;
- * import ratpack.util.*;
+ * import ratpack.func.Action;
  * import ratpack.launch.*;
  *
  * public class MultiplyHelper implements NamedHelper&lt;String&gt; {
