@@ -23,7 +23,7 @@ import ratpack.file.MimeTypes;
 import ratpack.handling.Context;
 import ratpack.http.Response;
 import ratpack.render.RendererSupport;
-import ratpack.util.Action;
+import ratpack.func.Action;
 
 import java.nio.file.Files;
 import java.nio.file.Path;

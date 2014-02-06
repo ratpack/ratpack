@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,29 +14,22 @@
  * limitations under the License.
  */
 
-package ratpack.util;
+package ratpack.func;
 
 /**
- * Factories for different {@link Action} implementations.
+ * An object that creates another.
+ *
+ * Factories are expected to create a new object each time. Implementors should explain there behaviour if they do not do this.
+ *
+ * @param <T> The type of object that this factory creates.
  */
-public abstract class Actions {
-
-  private Actions() {
-
-  }
+public interface Factory<T> {
 
   /**
-   * Returns an action that does precisely nothing.
+   * Creates a new object.
    *
-   * @param <T> The type of parameter given to the action
-   * @return an action that does precisely nothing
+   * @return A newly created object.
    */
-  public static <T> Action<T> noop() {
-    return new Action<T>() {
-      @Override
-      public void execute(T thing) throws Exception {
-      }
-    };
-  }
+  T create();
 
 }

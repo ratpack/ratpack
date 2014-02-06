@@ -20,9 +20,9 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
-import ratpack.util.Action;
+import ratpack.func.Action;
 import ratpack.util.Result;
-import ratpack.util.Transformer;
+import ratpack.func.Transformer;
 
 import java.util.HashMap;
 import java.util.Map;

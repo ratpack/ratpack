@@ -14,20 +14,21 @@
  * limitations under the License.
  */
 
-package ratpack.util.internal;
+package ratpack.func;
 
-import ratpack.util.Transformer;
+/**
+ * A generic type for an object that does some work with a thing.
+ *
+ * @param <T> The type of thing.
+ */
+public interface Action<T> {
 
-public class ConstantTransformer<T> implements Transformer<Object, T> {
-
-  private final T thing;
-
-  public ConstantTransformer(T thing) {
-    this.thing = thing;
-  }
-
-  public T transform(Object from) {
-    return thing;
-  }
+  /**
+   * Executes the action against the given thing.
+   *
+   * @param thing the thing to execute the action against
+   * @throws Exception if anything goes wrong
+   */
+  void execute(T thing) throws Exception;
 
 }

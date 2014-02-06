@@ -16,6 +16,8 @@
 
 package ratpack.util;
 
+import ratpack.func.Action;
+
 /**
  * Convenience subtype for an action that takes a result.
  *

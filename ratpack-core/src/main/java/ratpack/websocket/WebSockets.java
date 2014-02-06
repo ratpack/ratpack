@@ -18,7 +18,7 @@ package ratpack.websocket;
 
 import ratpack.handling.Context;
 import ratpack.launch.LaunchConfig;
-import ratpack.util.Transformer;
+import ratpack.func.Transformer;
 import ratpack.websocket.internal.DefaultWebSocketBuilder;
 import ratpack.websocket.internal.WebSocketConnector;
 

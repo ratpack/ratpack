@@ -25,8 +25,8 @@ import ratpack.guice.ModuleRegistry;
 import ratpack.guice.GuiceBackedHandlerFactory;
 import ratpack.handling.Handler;
 import ratpack.launch.LaunchConfig;
-import ratpack.util.Action;
-import ratpack.util.Transformer;
+import ratpack.func.Action;
+import ratpack.func.Transformer;
 
 public class RatpackDslClosureToHandlerTransformer implements Transformer<Closure<?>, Handler> {
 

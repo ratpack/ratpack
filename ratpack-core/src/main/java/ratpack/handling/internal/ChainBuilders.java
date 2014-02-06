@@ -22,8 +22,8 @@ import ratpack.handling.Handlers;
 import ratpack.launch.LaunchConfig;
 import ratpack.reload.internal.ClassUtil;
 import ratpack.reload.internal.ReloadableFileBackedFactory;
-import ratpack.util.Action;
-import ratpack.util.Transformer;
+import ratpack.func.Action;
+import ratpack.func.Transformer;
 
 import java.io.File;
 import java.nio.file.Path;

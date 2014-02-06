@@ -47,7 +47,7 @@ import ratpack.render.internal.RenderController;
 import ratpack.server.BindAddress;
 import ratpack.test.handling.Invocation;
 import ratpack.test.handling.InvocationTimeoutException;
-import ratpack.util.Action;
+import ratpack.func.Action;
 
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;

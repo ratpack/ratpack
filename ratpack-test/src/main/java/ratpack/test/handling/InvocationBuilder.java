@@ -21,7 +21,7 @@ import ratpack.handling.Handler;
 /**
  * Builds the context fot the invocation of a {@link Handler} (for unit testing handler implementations).
  *
- * @see ratpack.test.UnitTest#invoke(ratpack.handling.Handler, ratpack.util.Action)
+ * @see ratpack.test.UnitTest#invoke(ratpack.handling.Handler, ratpack.func.Action)
  */
 public interface InvocationBuilder {
 

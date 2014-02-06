@@ -19,7 +19,7 @@ package ratpack.registry.internal;
 import com.google.common.collect.ImmutableList;
 import ratpack.registry.Registry;
 import ratpack.registry.RegistryBuilder;
-import ratpack.util.Factory;
+import ratpack.func.Factory;
 
 import static ratpack.registry.Registries.join;
 

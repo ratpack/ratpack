@@ -21,7 +21,7 @@ import ratpack.handling.Chain;
 import ratpack.handling.Handler;
 import ratpack.launch.LaunchConfig;
 import ratpack.registry.Registry;
-import ratpack.util.Transformer;
+import ratpack.func.Transformer;
 
 import java.util.List;
 

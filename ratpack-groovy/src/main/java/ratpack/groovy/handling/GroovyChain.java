@@ -20,7 +20,7 @@ import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import ratpack.handling.Chain;
 import ratpack.handling.Handler;
-import ratpack.util.Action;
+import ratpack.func.Action;
 
 /**
  * A Groovy oriented handler chain builder DSL.

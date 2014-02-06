@@ -29,7 +29,7 @@ class JavaChainDslFixture implements SnippetFixture {
   @Override
   public String pre() {
     """
-import ratpack.util.Action;
+import ratpack.func.Action;
 import ratpack.launch.LaunchConfig;
 import ratpack.handling.Chain;
 import ratpack.handling.Handler;

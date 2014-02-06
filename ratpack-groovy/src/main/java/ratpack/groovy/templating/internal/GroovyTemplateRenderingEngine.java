@@ -25,9 +25,9 @@ import ratpack.file.FileSystemBinding;
 import ratpack.groovy.script.internal.ScriptEngine;
 import ratpack.groovy.templating.TemplatingConfig;
 import ratpack.launch.LaunchConfig;
-import ratpack.util.Action;
+import ratpack.func.Action;
 import ratpack.util.Result;
-import ratpack.util.Transformer;
+import ratpack.func.Transformer;
 
 import javax.inject.Inject;
 import java.io.IOException;

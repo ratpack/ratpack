@@ -20,7 +20,7 @@ import io.netty.util.CharsetUtil
 import ratpack.handling.Context
 import ratpack.handling.Handler
 import ratpack.handling.RequestOutcome
-import ratpack.util.Action
+import ratpack.func.Action
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll

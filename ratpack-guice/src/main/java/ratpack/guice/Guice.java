@@ -26,8 +26,8 @@ import ratpack.handling.Chain;
 import ratpack.handling.Handler;
 import ratpack.launch.LaunchConfig;
 import ratpack.registry.Registry;
-import ratpack.util.Action;
-import ratpack.util.Transformer;
+import ratpack.func.Action;
+import ratpack.func.Transformer;
 
 import static com.google.inject.Guice.createInjector;
 import static ratpack.handling.Handlers.chain;
@@ -57,7 +57,7 @@ import static ratpack.handling.Handlers.chain;
  * import ratpack.registry.*;
  * import ratpack.guice.*;
  * import ratpack.launch.*;
- * import ratpack.util.*;
+ * import ratpack.func.*;
  * import com.google.inject.*;
  * import javax.inject.*;
  *
@@ -66,52 +66,52 @@ import static ratpack.handling.Handlers.chain;
  *
  * // A Guice module that provides the service
  * class ServiceModule extends AbstractModule {
- * protected void configure() {
- * bind(SomeService.class);
- * }
+ *   protected void configure() {
+ *     bind(SomeService.class);
+ *   }
  * }
  *
  * // An action that registers the module with the registry, making it part of the application
  * class ModuleBootstrap implements Action&lt;ModuleRegistry&gt; {
- * public void execute(ModuleRegistry modules) {
- * modules.register(new ServiceModule());
- * }
+ *   public void execute(ModuleRegistry modules) {
+ *     modules.register(new ServiceModule());
+ *   }
  * }
  *
  * // A handler implementation that is dependency injected
  * {@literal @}Singleton
  * class InjectedHandler implements Handler {
- * private final SomeService service;
+ *   private final SomeService service;
  *
- * {@literal @}Inject
- * public InjectedHandler(SomeService service) {
- * this.service = service;
- * }
+ *   {@literal @}Inject
+ *   public InjectedHandler(SomeService service) {
+ *     this.service = service;
+ *   }
  *
- * public void handle(Context exchange) {
- * // …
- * }
+ *   public void handle(Context exchange) {
+ *     // …
+ *   }
  * }
  *
  * // A chain configurer that adds a dependency injected handler to the chain
  * class HandlersBootstrap implements Action&lt;Chain&gt; {
- * public void execute(Chain chain) {
+ *   public void execute(Chain chain) {
  *
- * // The registry in a Guice backed chain can be used to retrieve objects that were bound,
- * // or to create objects that are bound “just-in-time”.
- * Registry&lt;Object&gt; registry = chain.getRegistry();
- * Handler injectedHandler = registry.get(InjectedHandler.class);
+ *     // The registry in a Guice backed chain can be used to retrieve objects that were bound,
+ *     // or to create objects that are bound “just-in-time”.
+ *     Registry&lt;Object&gt; registry = chain.getRegistry();
+ *     Handler injectedHandler = registry.get(InjectedHandler.class);
  *
- * // Add the handler into the chain
- * chain.get("some/path", injectedHandler);
- * }
+ *     // Add the handler into the chain
+ *     chain.get("some/path", injectedHandler);
+ *   }
  * }
  *
  * // A HandlerFactory implementation used to bootstrap the application
  * class MyHandlerFactory implements HandlerFactory {
- * public Handler create(LaunchConfig launchConfig) {
- * return Guice.handler(launchConfig, new ModuleBootstrap(), new HandlersBootstrap());
- * }
+ *   public Handler create(LaunchConfig launchConfig) {
+ *     return Guice.handler(launchConfig, new ModuleBootstrap(), new HandlersBootstrap());
+ *   }
  * }
  *
  * // Building a launch config with our handler factory
@@ -184,7 +184,7 @@ public abstract class Guice {
   /**
    * Creates a handler that can be used as the entry point for a Guice backed Ratpack app.
    * <p>
-   * This is a lower level version of {@link #handler(ratpack.launch.LaunchConfig, ratpack.util.Action, ratpack.util.Action)}
+   * This is a lower level version of {@link #handler(ratpack.launch.LaunchConfig, ratpack.func.Action, ratpack.func.Action)}
    * that supports a custom final {@link Handler} creation strategy.
    *
    * @param launchConfig The launch config of the server
@@ -199,7 +199,7 @@ public abstract class Guice {
   /**
    * Creates a handler that can be used as the entry point for a Guice backed Ratpack app.
    * <p>
-   * Similar to {@link #handler(ratpack.launch.LaunchConfig, ratpack.util.Action, ratpack.util.Action)},
+   * Similar to {@link #handler(ratpack.launch.LaunchConfig, ratpack.func.Action, ratpack.func.Action)},
    * but provides the opportunity to use a <i>parent</i> injector when creating the injector to use for the application.
    * See Guice documentation for the semantics of parent/child injectors.
    * <p>
@@ -218,7 +218,7 @@ public abstract class Guice {
   /**
    * Creates a handler that can be used as the entry point for a Guice backed Ratpack app.
    * <p>
-   * This is a lower level version of {@link #handler(ratpack.launch.LaunchConfig, com.google.inject.Injector, ratpack.util.Action, ratpack.util.Action)}
+   * This is a lower level version of {@link #handler(ratpack.launch.LaunchConfig, com.google.inject.Injector, ratpack.func.Action, ratpack.func.Action)}
    * that supports a custom final {@link Handler} creation strategy.
    *
    * @param launchConfig The launch config of the server
@@ -234,7 +234,7 @@ public abstract class Guice {
   /**
    * Creates a Ratpack {@link Registry} backed by the given {@link Injector} that will create objects via “just-in-time” binding.
    * <p>
-   * Typically used in conjuction with the {@link ratpack.handling.Handlers#chain(LaunchConfig, ratpack.registry.Registry, ratpack.util.Action)}
+   * Typically used in conjuction with the {@link ratpack.handling.Handlers#chain(LaunchConfig, ratpack.registry.Registry, ratpack.func.Action)}
    * method.
    *
    * @param injector The injector to back the registry

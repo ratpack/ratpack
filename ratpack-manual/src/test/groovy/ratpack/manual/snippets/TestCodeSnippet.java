@@ -17,7 +17,7 @@
 package ratpack.manual.snippets;
 
 import ratpack.manual.snippets.fixtures.SnippetFixture;
-import ratpack.util.Transformer;
+import ratpack.func.Transformer;
 
 public class TestCodeSnippet {
 

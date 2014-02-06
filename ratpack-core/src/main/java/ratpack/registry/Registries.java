@@ -18,7 +18,7 @@ package ratpack.registry;
 
 import ratpack.registry.internal.DefaultRegistryBuilder;
 import ratpack.registry.internal.HierarchicalRegistry;
-import ratpack.util.Factory;
+import ratpack.func.Factory;
 
 /**
  * Static methods for creating and building {@link ratpack.registry.Registry registries}.

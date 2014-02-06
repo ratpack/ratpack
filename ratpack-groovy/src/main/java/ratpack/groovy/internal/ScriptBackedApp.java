@@ -23,9 +23,9 @@ import ratpack.groovy.script.internal.ScriptEngine;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.reload.internal.ReloadableFileBackedFactory;
-import ratpack.util.Action;
-import ratpack.util.Factory;
-import ratpack.util.Transformer;
+import ratpack.func.Action;
+import ratpack.func.Factory;
+import ratpack.func.Transformer;
 import ratpack.util.internal.IoUtils;
 
 import java.io.ByteArrayOutputStream;

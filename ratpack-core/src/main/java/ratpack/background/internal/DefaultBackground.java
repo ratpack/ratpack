@@ -24,7 +24,7 @@ import ratpack.handling.Background;
 import ratpack.handling.Context;
 import ratpack.promise.SuccessOrErrorPromise;
 import ratpack.promise.SuccessPromise;
-import ratpack.util.Action;
+import ratpack.func.Action;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;

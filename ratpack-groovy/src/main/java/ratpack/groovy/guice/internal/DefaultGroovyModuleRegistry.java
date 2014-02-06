@@ -27,7 +27,7 @@ import ratpack.guice.ModuleRegistry;
 import ratpack.guice.internal.InjectorBackedRegistry;
 import ratpack.launch.LaunchConfig;
 import ratpack.registry.NotInRegistryException;
-import ratpack.util.Action;
+import ratpack.func.Action;
 
 import javax.inject.Provider;
 import java.util.List;

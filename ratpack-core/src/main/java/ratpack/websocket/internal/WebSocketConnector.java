@@ -28,7 +28,7 @@ import ratpack.handling.Context;
 import ratpack.handling.direct.DirectChannelAccess;
 import ratpack.http.Request;
 import ratpack.server.PublicAddress;
-import ratpack.util.Action;
+import ratpack.func.Action;
 import ratpack.websocket.WebSocket;
 import ratpack.websocket.WebSocketHandler;
 

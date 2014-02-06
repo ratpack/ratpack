@@ -16,7 +16,7 @@
 
 package ratpack.event.internal;
 
-import ratpack.util.Action;
+import ratpack.func.Action;
 
 public interface EventRegistry<T> {
 

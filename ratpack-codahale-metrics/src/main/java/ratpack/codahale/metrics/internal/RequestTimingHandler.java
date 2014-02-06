@@ -22,7 +22,7 @@ import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.handling.RequestOutcome;
 import ratpack.http.Request;
-import ratpack.util.Action;
+import ratpack.func.Action;
 
 /**
  * A handler implementation that collects {@link Timer} metrics for a {@link Request}.

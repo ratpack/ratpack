@@ -23,13 +23,26 @@ for any framework based on pre-defined templates.
 Ratpack's pre-defined templates can be found on [Bintray](https://bintray.com) in the following [repository](https://bintray.com/ratpack/lazybones).
 Templates are published with each Ratpack release and template versions are aligned with Ratpack release versions.
 
+The quickest way to get started with Lazybones is via [GVM](http://gvmtool.net/), the Groovy enVironment Manager.  So first of all we need to download
+GVM using [curl](http://curl.haxx.se/).  Windows users can use [Cygwin](http://www.cygwin.com/) for this.
+
+```
+curl -s get.gvmtool.net | bash
+```
+
+We can then install Lazybones with the following command...
+
+```
+gvm install lazybones
+```
+
 Lazybones commands are in the format...
 
 ```
 lazybones create <ratpack template> <ratpack version> <app name>
 ```
 
-Assuming Lazybones has been installed then getting started with Ratpack is as easy as...
+With Lazybones installed then getting started with Ratpack is as easy as...
 
 ```
 lazybones create ratpack my-ratpack-app
@@ -37,7 +50,7 @@ cd my-ratpack-app
 ./gradlew run
 ```
 
-If a specific version is required...
+If a specific Ratpack version is required...
 
 ```
 lazybones create ratpack 0.9.0 my-ratpack-app
@@ -47,3 +60,4 @@ cd my-ratpack-app
 
 Custom templates can also be defined and published locally or to your own Bintray repository. For more details and further configuration options see the
 Lazybones [README](https://github.com/pledbrook/lazybones/blob/master/README.md) on GitHub.
+

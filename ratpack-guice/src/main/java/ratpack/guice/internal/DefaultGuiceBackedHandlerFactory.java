@@ -33,9 +33,9 @@ import ratpack.launch.LaunchConfig;
 import ratpack.registry.NotInRegistryException;
 import ratpack.reload.internal.ClassUtil;
 import ratpack.reload.internal.ReloadableFileBackedFactory;
-import ratpack.util.Action;
-import ratpack.util.Factory;
-import ratpack.util.Transformer;
+import ratpack.func.Action;
+import ratpack.func.Factory;
+import ratpack.func.Transformer;
 
 import javax.inject.Provider;
 import java.io.File;

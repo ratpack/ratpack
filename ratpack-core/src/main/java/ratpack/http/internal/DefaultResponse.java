@@ -27,7 +27,7 @@ import ratpack.file.internal.FileHttpTransmitter;
 import ratpack.http.MutableHeaders;
 import ratpack.http.MutableStatus;
 import ratpack.http.Response;
-import ratpack.util.Action;
+import ratpack.func.Action;
 import ratpack.util.ExceptionUtils;
 import ratpack.util.internal.IoUtils;
 

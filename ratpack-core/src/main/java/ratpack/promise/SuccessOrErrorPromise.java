@@ -16,7 +16,7 @@
 
 package ratpack.promise;
 
-import ratpack.util.Action;
+import ratpack.func.Action;
 
 /**
  * A promise of an outcome that may be a successful result or an error exception.

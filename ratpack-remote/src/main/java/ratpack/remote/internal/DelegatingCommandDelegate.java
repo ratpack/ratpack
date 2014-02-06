@@ -21,7 +21,7 @@ import ratpack.registry.NotInRegistryException;
 import ratpack.registry.Registry;
 import ratpack.registry.RegistrySpec;
 import ratpack.remote.CommandDelegate;
-import ratpack.util.Factory;
+import ratpack.func.Factory;
 
 import java.util.List;
 
