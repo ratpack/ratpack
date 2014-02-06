@@ -38,12 +38,29 @@ class GenerateBuildpackFiles extends DefaultTask {
     buildpackFilePaths.each { path ->
       def templateReader = new InputStreamReader(getClass().getResourceAsStream("/heroku/$path"))
       def template = engine.createTemplate(templateReader)
-      project.rootProject.file(path).withWriter { writer ->
+      def outputFile = project.rootProject.file(path)
+      outputFile.withWriter { writer ->
         template.make(
           installAppPath: installAppPath,
           relativeRunScriptPath: relativeRunScriptPath
         ).writeTo(writer)
       }
+      setPermissions(outputFile)
     }
   }
+
+  void setPermissions(File file) {
+    if (!windows) {
+      def path = file.canonicalPath
+      if ("chmod 755 ${path}".execute().waitFor() != 0) {
+        throw new RuntimeException("Could not set executable permisions for: $path")
+      }
+    }
+  }
+
+  boolean isWindows() {
+    String osName = System.getProperty("os.name").toLowerCase(Locale.US)
+    osName.indexOf("windows") > -1
+  }
+
 }
