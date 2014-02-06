@@ -19,29 +19,29 @@ package ratpack.groovy.handling.internal;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import ratpack.api.Nullable;
+import ratpack.func.Action;
 import ratpack.groovy.Groovy;
 import ratpack.groovy.handling.GroovyChain;
 import ratpack.handling.Chain;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
-import ratpack.handling.internal.DefaultChain;
 import ratpack.launch.LaunchConfig;
 import ratpack.registry.Registry;
-import ratpack.func.Action;
-
-import java.util.List;
 
 import static ratpack.groovy.Groovy.groovyHandler;
 
-public class DefaultGroovyChain extends DefaultChain implements GroovyChain {
+public class DefaultGroovyChain implements GroovyChain {
 
-  public DefaultGroovyChain(List<Handler> handlers, LaunchConfig launchConfig, @Nullable Registry registry) {
-    super(handlers, launchConfig, registry);
+  private final Chain delegate;
+
+  public DefaultGroovyChain(Chain delegate) {
+    this.delegate = delegate;
   }
 
   @Override
   public GroovyChain handler(Handler handler) {
-    return (GroovyChain) super.handler(handler);
+    delegate.handler(handler);
+    return this;
   }
 
   @Override
@@ -51,12 +51,14 @@ public class DefaultGroovyChain extends DefaultChain implements GroovyChain {
 
   @Override
   public GroovyChain prefix(String prefix, Handler handler) {
-    return (GroovyChain) super.prefix(prefix, handler);
+    delegate.prefix(prefix, handler);
+    return this;
   }
 
   @Override
   public GroovyChain prefix(String prefix, Action<? super Chain> action) throws Exception {
-    return (GroovyChain) super.prefix(prefix, action);
+    delegate.prefix(prefix, action);
+    return this;
   }
 
   @Override
@@ -71,7 +73,8 @@ public class DefaultGroovyChain extends DefaultChain implements GroovyChain {
 
   @Override
   public GroovyChain handler(String path, Handler handler) {
-    return (GroovyChain) super.handler(path, handler);
+    delegate.handler(path, handler);
+    return this;
   }
 
   @Override
@@ -81,12 +84,14 @@ public class DefaultGroovyChain extends DefaultChain implements GroovyChain {
 
   @Override
   public GroovyChain get(String path, Handler handler) {
-    return (GroovyChain) super.get(path, handler);
+    delegate.get(path, handler);
+    return this;
   }
 
   @Override
   public GroovyChain get(Handler handler) {
-    return (GroovyChain) super.get(handler);
+    delegate.get(handler);
+    return this;
   }
 
   @Override
@@ -96,7 +101,8 @@ public class DefaultGroovyChain extends DefaultChain implements GroovyChain {
 
   @Override
   public GroovyChain post(String path, Handler handler) {
-    return (GroovyChain) super.post(path, handler);
+    delegate.post(path, handler);
+    return this;
   }
 
   @Override
@@ -106,7 +112,8 @@ public class DefaultGroovyChain extends DefaultChain implements GroovyChain {
 
   @Override
   public GroovyChain post(Handler handler) {
-    return (GroovyChain) super.post(handler);
+    delegate.post(handler);
+    return this;
   }
 
   @Override
@@ -121,12 +128,14 @@ public class DefaultGroovyChain extends DefaultChain implements GroovyChain {
 
   @Override
   public GroovyChain put(String path, Handler handler) {
-    return (GroovyChain) super.put(path, handler);
+    delegate.put(path, handler);
+    return this;
   }
 
   @Override
   public GroovyChain put(Handler handler) {
-    return (GroovyChain) super.put(handler);
+    delegate.put(handler);
+    return this;
   }
 
   @Override
@@ -141,18 +150,20 @@ public class DefaultGroovyChain extends DefaultChain implements GroovyChain {
 
   @Override
   public GroovyChain patch(String path, Handler handler) {
-    return (GroovyChain) super.patch(path, handler);
+    delegate.patch(path, handler);
+    return this;
   }
 
   @Override
   public GroovyChain patch(Handler handler) {
-    return (GroovyChain) super.patch(handler);
+    delegate.patch(handler);
+    return this;
   }
 
   @Override
   public GroovyChain patch(Closure<?> handler) {
     return patch("", handler);
-  }  
+  }
 
   @Override
   public GroovyChain delete(String path, Closure<?> handler) {
@@ -161,12 +172,14 @@ public class DefaultGroovyChain extends DefaultChain implements GroovyChain {
 
   @Override
   public GroovyChain delete(String path, Handler handler) {
-    return (GroovyChain) super.delete(path, handler);
+    delegate.delete(path, handler);
+    return this;
   }
 
   @Override
   public GroovyChain delete(Handler handler) {
-    return (GroovyChain) super.delete(handler);
+    delegate.delete(handler);
+    return this;
   }
 
   @Override
@@ -176,17 +189,20 @@ public class DefaultGroovyChain extends DefaultChain implements GroovyChain {
 
   @Override
   public GroovyChain assets(String path, String... indexFiles) {
-    return (GroovyChain) super.assets(path, indexFiles);
+    delegate.assets(path, indexFiles);
+    return this;
   }
 
   @Override
   public GroovyChain register(Object service, Handler handler) {
-    return (GroovyChain) super.register(service, handler);
+    delegate.register(service, handler);
+    return this;
   }
 
   @Override
   public GroovyChain register(Object service, Action<? super Chain> action) throws Exception {
-    return (GroovyChain) super.register(service, action);
+    delegate.register(service, action);
+    return this;
   }
 
   @Override
@@ -196,12 +212,14 @@ public class DefaultGroovyChain extends DefaultChain implements GroovyChain {
 
   @Override
   public <T> GroovyChain register(Class<? super T> type, T service, Handler handler) {
-    return (GroovyChain) super.register(type, service, handler);
+    delegate.register(type, service, handler);
+    return this;
   }
 
   @Override
   public <T> GroovyChain register(Class<? super T> type, T service, Action<? super Chain> action) throws Exception {
-    return (GroovyChain) super.register(type, service, action);
+    delegate.register(type, service, action);
+    return this;
   }
 
   @Override
@@ -211,12 +229,14 @@ public class DefaultGroovyChain extends DefaultChain implements GroovyChain {
 
   @Override
   public GroovyChain fileSystem(String path, Handler handler) {
-    return (GroovyChain) super.fileSystem(path, handler);
+    delegate.fileSystem(path, handler);
+    return this;
   }
 
   @Override
   public GroovyChain fileSystem(String path, Action<? super Chain> action) throws Exception {
-    return (GroovyChain) super.fileSystem(path, action);
+    delegate.fileSystem(path, action);
+    return this;
   }
 
   @Override
@@ -226,7 +246,8 @@ public class DefaultGroovyChain extends DefaultChain implements GroovyChain {
 
   @Override
   public GroovyChain header(String headerName, String headerValue, Handler handler) {
-    return (GroovyChain) super.header(headerName, headerValue, handler);
+    delegate.header(headerName, headerValue, handler);
+    return this;
   }
 
   @Override
@@ -238,4 +259,19 @@ public class DefaultGroovyChain extends DefaultChain implements GroovyChain {
     return Groovy.chain(getLaunchConfig(), getRegistry(), handlers);
   }
 
+  @Nullable
+  @Override
+  public Registry getRegistry() {
+    return delegate.getRegistry();
+  }
+
+  @Override
+  public LaunchConfig getLaunchConfig() {
+    return delegate.getLaunchConfig();
+  }
+
+  @Override
+  public Handler chain(Action<? super Chain> action) throws Exception {
+    return delegate.chain(action);
+  }
 }

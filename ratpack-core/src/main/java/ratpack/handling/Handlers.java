@@ -31,6 +31,7 @@ import ratpack.path.internal.TokenPathBinder;
 import ratpack.registry.Registry;
 import ratpack.func.Action;
 
+import java.util.LinkedList;
 import java.util.List;
 
 import static com.google.common.collect.ImmutableList.copyOf;
@@ -93,7 +94,10 @@ public abstract class Handlers {
    * @throws Exception any thrown by {@code action}
    */
   public static Handler chain(LaunchConfig launchConfig, @Nullable Registry registry, Action<? super Chain> action) throws Exception {
-    return ChainBuilders.build(launchConfig, new ChainActionTransformer(launchConfig, registry), action);
+    List<Handler> handlers = new LinkedList<>();
+    Chain chain = new DefaultChain(handlers, launchConfig, registry);
+    action.execute(chain);
+    return chain(handlers.toArray(new Handler[handlers.size()]));
   }
 
   /**
