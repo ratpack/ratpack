@@ -20,7 +20,7 @@ import com.google.inject.Injector;
 import com.google.inject.Module;
 import ratpack.launch.LaunchConfig;
 import ratpack.registry.MutableRegistry;
-import ratpack.util.Action;
+import ratpack.func.Action;
 
 import javax.inject.Provider;
 
@@ -39,7 +39,7 @@ import javax.inject.Provider;
  * The modules have have already been registered “upstream”.
  * <pre class="tested">
  * import ratpack.guice.*;
- * import ratpack.util.*;
+ * import ratpack.func.Action;
  * import com.google.inject.AbstractModule;
  *
  * class MyService {
@@ -66,7 +66,7 @@ import javax.inject.Provider;
  * }
  * </pre>
  *
- * @see Guice#handler(ratpack.launch.LaunchConfig, ratpack.util.Action, ratpack.util.Action)
+ * @see Guice#handler(ratpack.launch.LaunchConfig, ratpack.func.Action, ratpack.func.Action)
  * @see HandlerDecoratingModule
  */
 public interface ModuleRegistry extends MutableRegistry<Module> {

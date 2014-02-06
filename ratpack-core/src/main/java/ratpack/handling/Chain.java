@@ -19,7 +19,7 @@ package ratpack.handling;
 import ratpack.api.Nullable;
 import ratpack.launch.LaunchConfig;
 import ratpack.registry.Registry;
-import ratpack.util.Action;
+import ratpack.func.Action;
 
 /**
  * A chain can be used to build a linked series of handlers.
@@ -27,7 +27,7 @@ import ratpack.util.Action;
  * The {@code GroovyChain} type does not represent the handlers "in action".
  * That is, it is the construction of a handler chain.
  * <p>
- * A chain can be constructed using the {@link Handlers#chain(LaunchConfig, ratpack.util.Action)} like methods.
+ * A chain can be constructed using the {@link Handlers#chain(LaunchConfig, ratpack.func.Action)} like methods.
  * For example, from a {@link ratpack.launch.HandlerFactory} implementation…
  * <pre class="tested">
  * import ratpack.launch.HandlerFactory;
@@ -36,7 +36,7 @@ import ratpack.util.Action;
  * import ratpack.handling.Handler;
  * import ratpack.handling.Handlers;
  * import ratpack.handling.Context;
- * import ratpack.util.Action;
+ * import ratpack.func.Action;
  *
  * public class MyHandlerBootstrap implements HandlerFactory {
  *   public Handler create(LaunchConfig launchConfig) {
@@ -84,7 +84,7 @@ public interface Chain {
    * <p>
    * The registry that is available is dependent on how the {@code GroovyChain} was constructed.
    *
-   * @see Handlers#chain(LaunchConfig, ratpack.registry.Registry, ratpack.util.Action)
+   * @see Handlers#chain(LaunchConfig, ratpack.registry.Registry, ratpack.func.Action)
    * @return The registry that backs this, or {@code null} if this has no registry.
    */
   @Nullable

@@ -221,13 +221,13 @@ For this “application”:
 3. anything else would produce a HTTP 404
 
 This is easier than doing it all yourself, but we can do better.
-We can use the [`chain()`](api/ratpack/handling/Handlers.html#chain\(ratpack.launch.LaunchConfig,%20ratpack.util.Action\)) method and the [`Chain`](api/ratpack/handling/Chain.html) DSL.
+We can use the [`chain()`](api/ratpack/handling/Handlers.html#chain\(ratpack.launch.LaunchConfig,%20ratpack.func.Action\)) method and the [`Chain`](api/ratpack/handling/Chain.html) DSL.
 
 ```language-groovy tested
 import ratpack.handling.Handler;
 import ratpack.handling.Context;
 import ratpack.handling.Chain;
-import ratpack.util.Action;
+import ratpack.func.Action;
 import ratpack.launch.LaunchConfig;
 import ratpack.launch.HandlerFactory;
 

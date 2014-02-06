@@ -16,7 +16,7 @@
 
 package ratpack.event.internal;
 
-import ratpack.util.Action;
+import ratpack.func.Action;
 
 import java.util.LinkedList;
 import java.util.List;

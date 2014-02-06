@@ -16,7 +16,7 @@
 
 package ratpack.handling;
 
-import ratpack.util.Action;
+import ratpack.func.Action;
 
 /**
  * Convenience subclass for {@link Action Action<Chain>} implementations.

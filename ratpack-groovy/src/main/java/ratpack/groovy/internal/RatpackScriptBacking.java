@@ -17,7 +17,7 @@
 package ratpack.groovy.internal;
 
 import groovy.lang.Closure;
-import ratpack.util.Action;
+import ratpack.func.Action;
 
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;

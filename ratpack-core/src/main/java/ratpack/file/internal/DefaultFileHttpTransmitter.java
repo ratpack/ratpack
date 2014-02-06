@@ -22,7 +22,7 @@ import io.netty.handler.stream.ChunkedNioStream;
 import ratpack.handling.Background;
 import ratpack.http.internal.CustomHttpResponse;
 import ratpack.http.internal.HttpHeaderConstants;
-import ratpack.util.Action;
+import ratpack.func.Action;
 
 import java.io.FileInputStream;
 import java.nio.channels.FileChannel;

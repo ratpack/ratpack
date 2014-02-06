@@ -17,7 +17,7 @@
 package ratpack.reload.internal;
 
 import io.netty.buffer.ByteBuf;
-import ratpack.util.Factory;
+import ratpack.func.Factory;
 import ratpack.util.internal.IoUtils;
 
 import java.io.IOException;

@@ -35,9 +35,9 @@ import ratpack.launch.LaunchConfig;
 import ratpack.launch.LaunchConfigBuilder;
 import ratpack.test.embed.BaseDirBuilder;
 import ratpack.test.embed.LaunchConfigEmbeddedApplication;
-import ratpack.util.Action;
-import ratpack.util.Factory;
-import ratpack.util.Transformer;
+import ratpack.func.Action;
+import ratpack.func.Factory;
+import ratpack.func.Transformer;
 
 import java.nio.file.Path;
 import java.util.LinkedList;

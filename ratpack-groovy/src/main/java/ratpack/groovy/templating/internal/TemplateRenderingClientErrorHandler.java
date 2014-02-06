@@ -19,7 +19,7 @@ package ratpack.groovy.templating.internal;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import ratpack.error.ClientErrorHandler;
 import ratpack.handling.Context;
-import ratpack.util.Action;
+import ratpack.func.Action;
 
 import java.io.PrintWriter;
 import java.util.HashMap;

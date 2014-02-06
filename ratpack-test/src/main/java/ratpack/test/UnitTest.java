@@ -21,7 +21,7 @@ import ratpack.test.handling.Invocation;
 import ratpack.test.handling.InvocationBuilder;
 import ratpack.test.handling.InvocationTimeoutException;
 import ratpack.test.handling.internal.DefaultInvocationBuilder;
-import ratpack.util.Action;
+import ratpack.func.Action;
 
 import static ratpack.util.ExceptionUtils.uncheck;
 
@@ -33,7 +33,7 @@ public class UnitTest {
    * Example:
    * <pre class="exec">
    * import ratpack.handling.*;
-   * import ratpack.util.Action;
+   * import ratpack.func.Action;
    * import ratpack.test.handling.Invocation;
    * import ratpack.test.handling.InvocationBuilder;
    *
@@ -78,7 +78,7 @@ public class UnitTest {
   /**
    * Create an invocation builder, for unit testing a {@link Handler}.
    *
-   * @see #invoke(ratpack.handling.Handler, ratpack.util.Action)
+   * @see #invoke(ratpack.handling.Handler, ratpack.func.Action)
    * @return An invocation builder.
    */
   public static InvocationBuilder invocationBuilder() {

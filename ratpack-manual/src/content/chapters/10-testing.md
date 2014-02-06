@@ -8,7 +8,7 @@ Note: The `ratpack` and `ratpack-groovy` Gradle plugins auto configure these lib
 ## Unit testing
 
 The primary integration point between Ratpack and your code is the [`Handler`](api/ratpack/handling/Handler.html) contract.
-Ratpack provides the [`UnitTest.invoke()`](api/ratpack/test/UnitTest.html#invoke\(ratpack.handling.Handler,%20ratpack.util.Action\)) and
+Ratpack provides the [`UnitTest.invoke()`](api/ratpack/test/UnitTest.html#invoke\(ratpack.handling.Handler,%20ratpack.func.Action\)) and
 [`GroovyUnitTest.invoke()`](api/ratpack/groovy/test/GroovyUnitTest.html#invoke\(ratpack.handling.Handler,%20groovy.lang.Closure\)) for contriving the invocation of a handler.
 As the routing of requests is also implemented via handlers in Ratpack, this can also be used to test the routing.
 

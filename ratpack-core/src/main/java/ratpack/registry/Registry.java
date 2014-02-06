@@ -56,7 +56,7 @@ import java.util.List;
  *
  * import static ratpack.test.UnitTest.invoke;
  * import static ratpack.handling.Handlers.chain;
- * import static ratpack.util.Actions.noop;
+ * import static ratpack.func.Actions.noop;
  *
  * Handler chain = chain(new UpstreamHandler(), new DownstreamHandler());
  * Invocation result = invoke(chain, noop());

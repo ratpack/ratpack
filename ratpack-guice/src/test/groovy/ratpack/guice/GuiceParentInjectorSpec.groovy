@@ -24,7 +24,7 @@ import ratpack.groovy.test.embed.ClosureBackedEmbeddedApplication
 import ratpack.launch.LaunchConfig
 import ratpack.launch.LaunchException
 import ratpack.test.internal.RatpackGroovyDslSpec
-import ratpack.util.Transformer
+import ratpack.func.Transformer
 
 import static com.google.inject.Guice.createInjector
 

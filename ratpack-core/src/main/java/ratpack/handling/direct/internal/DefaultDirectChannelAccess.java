@@ -18,7 +18,7 @@ package ratpack.handling.direct.internal;
 
 import io.netty.channel.Channel;
 import ratpack.handling.direct.DirectChannelAccess;
-import ratpack.util.Action;
+import ratpack.func.Action;
 
 import static ratpack.util.ExceptionUtils.uncheck;
 

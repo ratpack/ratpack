@@ -16,7 +16,7 @@
 
 package ratpack.registry;
 
-import ratpack.util.Factory;
+import ratpack.func.Factory;
 
 /**
  * A builder of {@link Registry registries}.

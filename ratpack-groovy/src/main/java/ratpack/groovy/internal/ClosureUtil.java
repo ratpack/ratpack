@@ -18,7 +18,7 @@ package ratpack.groovy.internal;
 
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
-import ratpack.util.Action;
+import ratpack.func.Action;
 
 public abstract class ClosureUtil {
 

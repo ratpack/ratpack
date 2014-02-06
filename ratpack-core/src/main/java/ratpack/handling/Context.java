@@ -28,7 +28,7 @@ import ratpack.promise.SuccessOrErrorPromise;
 import ratpack.registry.NotInRegistryException;
 import ratpack.registry.Registry;
 import ratpack.server.BindAddress;
-import ratpack.util.Action;
+import ratpack.func.Action;
 import ratpack.util.ResultAction;
 
 import java.nio.file.Path;
@@ -115,7 +115,7 @@ public interface Context extends Registry {
    * import ratpack.launch.HandlerFactory;
    * import ratpack.launch.LaunchConfig;
    * import ratpack.launch.LaunchConfigBuilder;
-   * import ratpack.util.Factory;
+   * import ratpack.func.Factory;
    *
    * import static ratpack.registry.Registries.registry;
    *
@@ -344,7 +344,7 @@ public interface Context extends Registry {
    * <pre class="tested">
    * import ratpack.handling.Handler;
    * import ratpack.handling.Context;
-   * import ratpack.util.Action;
+   * import ratpack.func.Action;
    * import java.util.concurrent.Callable;
    *
    * class MyHandler implements Handler {
@@ -378,7 +378,7 @@ public interface Context extends Registry {
    * <pre class="tested">
    * import ratpack.handling.Handler;
    * import ratpack.handling.Context;
-   * import ratpack.util.Action;
+   * import ratpack.func.Action;
    * import java.util.concurrent.Callable;
    *
    * class MyHandler implements Handler {

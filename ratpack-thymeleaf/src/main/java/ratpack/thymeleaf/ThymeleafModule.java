@@ -54,7 +54,7 @@ import java.io.File;
  * <pre class="tested">
  * import ratpack.handling.*;
  * import ratpack.guice.*;
- * import ratpack.util.*;
+ * import ratpack.func.Action;
  * import ratpack.launch.*;
  * import ratpack.thymeleaf.ThymeleafModule;
  * import static ratpack.thymeleaf.Template.thymeleafTemplate;

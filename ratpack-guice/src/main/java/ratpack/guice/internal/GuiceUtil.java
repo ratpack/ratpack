@@ -21,7 +21,7 @@ import com.google.inject.Binding;
 import com.google.inject.Injector;
 import com.google.inject.Key;
 import com.google.inject.TypeLiteral;
-import ratpack.util.Action;
+import ratpack.func.Action;
 
 import java.util.Map;
 

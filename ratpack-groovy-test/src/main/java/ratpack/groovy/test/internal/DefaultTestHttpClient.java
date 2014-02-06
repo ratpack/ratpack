@@ -24,7 +24,7 @@ import com.jayway.restassured.specification.RequestSpecification;
 import ratpack.api.Nullable;
 import ratpack.groovy.test.TestHttpClient;
 import ratpack.test.ApplicationUnderTest;
-import ratpack.util.Action;
+import ratpack.func.Action;
 
 import java.lang.reflect.Field;
 import java.net.URI;

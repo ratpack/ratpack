@@ -22,7 +22,7 @@ import ratpack.handling.Handler;
 import ratpack.handling.Handlers;
 import ratpack.launch.LaunchConfig;
 import ratpack.registry.Registry;
-import ratpack.util.Action;
+import ratpack.func.Action;
 
 import java.util.List;
 

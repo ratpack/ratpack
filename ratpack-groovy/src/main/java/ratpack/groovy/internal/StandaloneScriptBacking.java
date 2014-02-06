@@ -30,7 +30,7 @@ import ratpack.launch.internal.DelegatingLaunchConfig;
 import ratpack.launch.internal.LaunchConfigInternal;
 import ratpack.server.RatpackServer;
 import ratpack.server.RatpackServerBuilder;
-import ratpack.util.Action;
+import ratpack.func.Action;
 
 import java.io.File;
 import java.net.URI;

@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableList;
 import groovy.lang.Closure;
 import ratpack.handling.internal.ServiceExtractor;
 import ratpack.registry.Registry;
-import ratpack.util.Action;
+import ratpack.func.Action;
 
 import java.util.Collections;
 import java.util.List;

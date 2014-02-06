@@ -20,7 +20,7 @@ import com.jayway.restassured.specification.RequestSpecification;
 import ratpack.api.Nullable;
 import ratpack.groovy.test.internal.DefaultTestHttpClient;
 import ratpack.test.ApplicationUnderTest;
-import ratpack.util.Action;
+import ratpack.func.Action;
 
 public abstract class TestHttpClients {
 

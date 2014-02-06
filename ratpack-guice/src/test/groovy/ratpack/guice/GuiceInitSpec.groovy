@@ -18,7 +18,7 @@ package ratpack.guice
 
 import com.google.inject.Injector
 import ratpack.test.internal.RatpackGroovyDslSpec
-import ratpack.util.Action
+import ratpack.func.Action
 
 import javax.inject.Inject
 

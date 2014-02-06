@@ -17,7 +17,7 @@
 package ratpack.util.internal;
 
 import io.netty.util.ReferenceCounted;
-import ratpack.util.Action;
+import ratpack.func.Action;
 
 public abstract class ReleasingAction<T extends ReferenceCounted> implements Action<T> {
 

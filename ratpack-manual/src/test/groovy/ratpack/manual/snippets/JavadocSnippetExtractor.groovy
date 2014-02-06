@@ -20,7 +20,7 @@ import org.apache.commons.lang3.StringEscapeUtils
 import org.codehaus.groovy.control.MultipleCompilationErrorsException
 import org.codehaus.groovy.control.messages.SyntaxErrorMessage
 import ratpack.manual.snippets.fixtures.SnippetFixture
-import ratpack.util.Transformer
+import ratpack.func.Transformer
 
 import java.util.regex.MatchResult
 import java.util.regex.Pattern

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,29 @@
  * limitations under the License.
  */
 
-package ratpack.util;
+package ratpack.func;
 
 /**
- * A generic type for an object that does some work with a thing.
- *
- * @param <T> The type of thing.
+ * Factories for different {@link ratpack.func.Action} implementations.
  */
-public interface Action<T> {
+public abstract class Actions {
+
+  private Actions() {
+
+  }
 
   /**
-   * Executes the action against the given thing.
+   * Returns an action that does precisely nothing.
    *
-   * @param thing the thing to execute the action against
-   * @throws Exception if anything goes wrong
+   * @param <T> The type of parameter given to the action
+   * @return an action that does precisely nothing
    */
-  void execute(T thing) throws Exception;
+  public static <T> Action<T> noop() {
+    return new Action<T>() {
+      @Override
+      public void execute(T thing) throws Exception {
+      }
+    };
+  }
 
 }

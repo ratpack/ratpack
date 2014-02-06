@@ -17,7 +17,7 @@
 package ratpack.manual.snippets.fixtures
 
 import ratpack.groovy.internal.RatpackScriptBacking
-import ratpack.util.Action
+import ratpack.func.Action
 
 class GroovyRatpackDslFixture implements SnippetFixture {
 

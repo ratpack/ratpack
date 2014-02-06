@@ -22,7 +22,7 @@ import ratpack.http.SentResponse;
 /**
  * The outcome of processing a request.
  *
- * @see Context#onClose(ratpack.util.Action)
+ * @see Context#onClose(ratpack.func.Action)
  */
 @SuppressWarnings("UnusedDeclaration")
 public interface RequestOutcome {

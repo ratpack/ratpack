@@ -18,7 +18,7 @@ package ratpack.rx.internal;
 
 import ratpack.handling.Background;
 import ratpack.rx.RxBackground;
-import ratpack.util.Action;
+import ratpack.func.Action;
 import rx.Observable;
 import rx.Observer;
 import rx.Subscription;
