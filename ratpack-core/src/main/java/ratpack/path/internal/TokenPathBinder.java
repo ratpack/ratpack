@@ -22,6 +22,8 @@ import ratpack.path.PathBinder;
 import ratpack.path.PathBinding;
 import ratpack.util.internal.Validations;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -88,7 +90,7 @@ public class TokenPathBinder implements PathBinder {
       for (String name : tokenNames) {
         String value = matchResult.group(i++);
         if (value != null) {
-          paramsBuilder.put(name, value);
+          paramsBuilder.put(name, decodeURIComponent(value));
         }
       }
 
@@ -96,5 +98,15 @@ public class TokenPathBinder implements PathBinder {
     } else {
       return null;
     }
+  }
+
+  private String decodeURIComponent(String s) {
+    String str = null;
+    try {
+      str = URLDecoder.decode(s.replaceAll("\\+", "%2B"), "UTF-8");
+    } catch (UnsupportedEncodingException ignored) {
+      throw new IllegalStateException("UTF-8 decoder should always be available");
+    }
+    return str;
   }
 }

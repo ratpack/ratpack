@@ -30,6 +30,7 @@ The following people have provided significant contributions.
 * [Bobby Warner](https://github.com/bobbywarner)
 * [Jim White](https://github.com/jimwhite)
 * [Dimitris Zavaliadis](https://github.com/dimzava)
+* [David M. Carr](https://github.com/davidmc24)
 
 ### Past project members
 
