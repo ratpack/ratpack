@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,12 @@
  * limitations under the License.
  */
 
-description = "Integration with Google Guice for Ratpack applications - https://code.google.com/p/google-guice/"
+package ratpack.thymeleaf
 
-apply from: "$rootDir/gradle/javaModule.gradle"
+import org.thymeleaf.dialect.AbstractDialect
+import org.thymeleaf.processor.IProcessor
 
-ext.apiLinks = [
-    "http://google-guice.googlecode.com/git/javadoc"
-]
-
-configurations {
-  all*.exclude group: 'org.sonatype.sisu.inject', module: "cglib"
-}
-
-dependencies {
-  compile project(":ratpack-core")
-  compile 'com.google.inject:guice:3.0'
-  compile 'com.google.inject.extensions:guice-multibindings:3.0'
+class HelloDialect extends AbstractDialect {
+  String prefix = 'hello'
+  Set<IProcessor> processors = [new SayToAttrProcessor()] as Set
 }

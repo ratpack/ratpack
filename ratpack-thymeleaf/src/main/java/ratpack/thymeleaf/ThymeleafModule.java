@@ -19,9 +19,11 @@ package ratpack.thymeleaf;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
+import com.google.inject.multibindings.Multibinder;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.cache.ICacheManager;
 import org.thymeleaf.cache.StandardCacheManager;
+import org.thymeleaf.dialect.IDialect;
 import org.thymeleaf.resourceresolver.IResourceResolver;
 import org.thymeleaf.templateresolver.ITemplateResolver;
 import org.thymeleaf.templateresolver.TemplateResolver;
@@ -30,6 +32,7 @@ import ratpack.thymeleaf.internal.FileSystemBindingThymeleafResourceResolver;
 import ratpack.thymeleaf.internal.ThymeleafTemplateRenderer;
 
 import java.io.File;
+import java.util.Set;
 
 /**
  * An extension module that provides support for Thymeleaf templating engine.
@@ -101,7 +104,60 @@ import java.io.File;
  * }
  * </pre>
  *
+ * <p>
+ * To register dialects, use Guice Multibindings to bind an implementation of {@code IDialect} in a module.
+ * </p>
+ *
+ * Example usage: (Groovy DSL)
+ * <pre class="groovy-ratpack-dsl">
+ * import com.google.inject.AbstractModule
+ * import com.google.inject.multibindings.Multibinder
+ * import org.thymeleaf.Arguments
+ * import org.thymeleaf.dialect.AbstractDialect
+ * import org.thymeleaf.dialect.IDialect
+ * import org.thymeleaf.dom.Element
+ * import org.thymeleaf.processor.IProcessor
+ * import org.thymeleaf.processor.attr.AbstractTextChildModifierAttrProcessor
+ * import ratpack.thymeleaf.ThymeleafModule
+ * import static ratpack.groovy.Groovy.ratpack
+ * import static ratpack.thymeleaf.Template.thymeleafTemplate
+ *
+ * class SayToAttrProcessor extends AbstractTextChildModifierAttrProcessor {
+ *   int precedence = 10000
+ *   SayToAttrProcessor() {
+ *     super('sayto')
+ *   }
+ *   protected String getText(Arguments arguments, Element element, String attributeName) {
+ *     return "Hello, ${element.getAttributeValue(attributeName)}!"
+ *   }
+ * }
+ *
+ * class HelloDialect extends AbstractDialect {
+ *   String prefix = 'hello'
+ *   Set&lt;IProcessor&gt; processors = [new SayToAttrProcessor()] as Set
+ * }
+ *
+ * class HelloDialectModule extends AbstractModule {
+ *   protected void configure() {
+ *     Multibinder.newSetBinder(binder(), IDialect).addBinding().to(HelloDialect)
+ *   }
+ * }
+ *
+ * ratpack {
+ *   modules {
+ *     register new ThymeleafModule()
+ *     register new HelloDialectModule()
+ *   }
+ *   handlers {
+ *     get {
+ *       render thymeleafTemplate('my/template/path', key: 'it works!')
+ *     }
+ *   }
+ * }
+ * </pre>
+ *
  * @see <a href="http://www.thymeleaf.org/" target="_blank">Thymeleaf</a>
+ * @see <a href="https://code.google.com/p/google-guice/wiki/Multibindings" target="_blank">Guice Multibindings</a>
  */
 public class ThymeleafModule extends AbstractModule {
 
@@ -148,6 +204,7 @@ public class ThymeleafModule extends AbstractModule {
 
   @Override
   protected void configure() {
+    Multibinder.newSetBinder(binder(), IDialect.class);
     bind(ThymeleafTemplateRenderer.class).in(Singleton.class);
     bind(ICacheManager.class).to(StandardCacheManager.class).in(Singleton.class);
   }
@@ -198,10 +255,13 @@ public class ThymeleafModule extends AbstractModule {
   @SuppressWarnings("UnusedDeclaration")
   @Provides
   @Singleton
-  TemplateEngine provideTemplateEngine(ITemplateResolver templateResolver, ICacheManager cacheManager) {
+  TemplateEngine provideTemplateEngine(ITemplateResolver templateResolver, ICacheManager cacheManager, Set<IDialect> dialects) {
     final TemplateEngine templateEngine = new TemplateEngine();
     templateEngine.setTemplateResolver(templateResolver);
     templateEngine.setCacheManager(cacheManager);
+    for (IDialect dialect : dialects) {
+      templateEngine.addDialect(dialect);
+    }
     return templateEngine;
   }
 

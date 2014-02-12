@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,18 @@
  * limitations under the License.
  */
 
-description = "Integration with Google Guice for Ratpack applications - https://code.google.com/p/google-guice/"
+package ratpack.thymeleaf
 
-apply from: "$rootDir/gradle/javaModule.gradle"
+import org.thymeleaf.Arguments
+import org.thymeleaf.dom.Element
+import org.thymeleaf.processor.attr.AbstractTextChildModifierAttrProcessor
 
-ext.apiLinks = [
-    "http://google-guice.googlecode.com/git/javadoc"
-]
-
-configurations {
-  all*.exclude group: 'org.sonatype.sisu.inject', module: "cglib"
-}
-
-dependencies {
-  compile project(":ratpack-core")
-  compile 'com.google.inject:guice:3.0'
-  compile 'com.google.inject.extensions:guice-multibindings:3.0'
+class SayToAttrProcessor extends AbstractTextChildModifierAttrProcessor {
+  int precedence = 10000
+  SayToAttrProcessor() {
+    super('sayto')
+  }
+  protected String getText(Arguments arguments, Element element, String attributeName) {
+    return "Hello, ${element.getAttributeValue(attributeName)}!"
+  }
 }
