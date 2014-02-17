@@ -1,6 +1,6 @@
 language: java
 jdk:
   - oraclejdk7
-script: "./gradlew clean check -q"
+script: "TERM=dumb ./gradlew clean check"
 notifications:
   flowdock: fade1ed957bb480563651bb41c357002
