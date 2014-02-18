@@ -35,7 +35,9 @@ import ratpack.launch.HandlerFactory;
 import javax.net.ssl.SSLContext;
 import java.net.InetAddress;
 import java.net.URI;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 
 public class DefaultLaunchConfig implements LaunchConfigInternal {
@@ -141,6 +143,19 @@ public class DefaultLaunchConfig implements LaunchConfigInternal {
   public String getOther(String key, String defaultValue) {
     String value = other.get(key);
     return value == null ? defaultValue : value;
+  }
+
+  @Override
+  public Map<String, String> getOtherPrefixedWith(String prefix) {
+    Map<String, String> result = new LinkedHashMap<>();
+    int prefixLength = prefix.length();
+    for (Map.Entry<String, String> property : other.entrySet()) {
+      String key = property.getKey();
+      if (key.startsWith(prefix) && key.length() > prefixLength) {
+        result.put(key.substring(prefixLength), property.getValue());
+      }
+    }
+    return result;
   }
 
   @Override

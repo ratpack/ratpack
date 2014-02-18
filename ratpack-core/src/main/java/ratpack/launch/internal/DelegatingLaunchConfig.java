@@ -29,6 +29,7 @@ import javax.net.ssl.SSLContext;
 import java.net.InetAddress;
 import java.net.URI;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 
 public class DelegatingLaunchConfig implements LaunchConfigInternal {
@@ -114,6 +115,11 @@ public class DelegatingLaunchConfig implements LaunchConfigInternal {
   @Override
   public String getOther(String key, String defaultValue) {
     return launchConfig.getOther(key, defaultValue);
+  }
+
+  @Override
+  public Map<String, String> getOtherPrefixedWith(String prefix) {
+    return launchConfig.getOtherPrefixedWith(prefix);
   }
 
   @Override

@@ -1,0 +1,10 @@
+description = "Integration with the HikariCP JDBC connection pool for Ratpack - http://brettwooldridge.github.io/HikariCP/"
+
+apply from: "$rootDir/gradle/javaModule.gradle"
+
+dependencies {
+  compile project(":ratpack-guice")
+  compile "com.zaxxer:HikariCP:1.2.8"
+
+  testCompile commonDependencies.h2
+}

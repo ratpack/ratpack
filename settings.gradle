@@ -34,7 +34,8 @@ include \
     "ratpack-codahale-metrics",
     "ratpack-h2",
     "ratpack-thymeleaf",
-    "ratpack-lazybones"
+    "ratpack-lazybones",
+    "ratpack-hikari"
 
 include \
   "perftest",

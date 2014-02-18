@@ -26,6 +26,7 @@ import javax.net.ssl.SSLContext;
 import java.net.InetAddress;
 import java.net.URI;
 import java.util.List;
+import java.util.Map;
 
 /**
  * The configuration used to launch a server.
@@ -157,6 +158,17 @@ public interface LaunchConfig {
    * @return The other property for {@code key}, or the {@code defaultValue} if it is not set
    */
   public String getOther(String key, String defaultValue);
+
+
+  /**
+   * Provides access to all "other" properties whose name starts with a given prefix.
+   * <p>
+   * The prefix is removed from keys of the result map.
+   *
+   * @param prefix Property name prefix that should be used for filtering
+   * @return A map of all "other" properties whose name starts with the prefix with the prefix removed from key names
+   */
+  public Map<String, String> getOtherPrefixedWith(String prefix);
 
   /**
    * The max content length to use for the HttpObjectAggregator.
