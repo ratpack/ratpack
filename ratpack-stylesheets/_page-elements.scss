@@ -14,20 +14,20 @@ $footer-font-size: 14px !default;
   position: relative;
 	@include rhythm($padding-leader: 1, $trailer: 1);
   @include clearfix;
-  @include breakpoint(max-width ($tablet-portrait - 1px)) {
+  @media (max-width: $tablet-portrait - 1px) {
     text-align: center;
   }
 
 	.ratpack-logo {
 		@include rem(font-size, $logo-font-size-small);
 		&:not(.small) {
-			@include breakpoint($phone-landscape) {
+			@media (min-width: $phone-landscape) {
 				@include rem(font-size, $logo-font-size-medium);
 			}
-      @include breakpoint($tablet-portrait) {
+      @media (min-width: $tablet-portrait) {
         @include rem(font-size, 0.75rem);
       }
-			@include breakpoint($tablet-landscape) {
+			@media (min-width: $tablet-landscape) {
         @include rem(font-size, $logo-font-size-large);
 			}
 		}

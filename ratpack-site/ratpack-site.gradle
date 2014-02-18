@@ -185,7 +185,6 @@ processResources.inputs.files compileCoffee, compileSass, prepareContent
 
 compass {
   gemPath = new File(gradle.gradleUserHomeDir, ".jruby")
-  gems = ["compass", "breakpoint"]
   cssDir = file('src/ratpack/assets/styles')
   sassDir = file('src/main/static/styles')
   imagesDir = file('src/ratpack/assets/images')

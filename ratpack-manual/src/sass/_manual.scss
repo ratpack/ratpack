@@ -21,13 +21,13 @@ $pagination-background: $purple;
 
 		&.prev {
 			text-align: left;
-      @include breakpoint($tablet-portrait) {
+      @media (min-width: $tablet-portrait) {
 			  padding-left: 1em;
       }
 		}
 		&.next {
 			text-align: right;
-      @include breakpoint($tablet-portrait) {
+      @media (min-width: $tablet-portrait) {
   			padding-right: 1em;
       }
 		}
@@ -120,13 +120,13 @@ $pagination-background: $purple;
       @include link-colors(contrast-color($pagination-background), $yellow);
 
       &.download {
-        @include breakpoint(max-width ($tablet-portrait - 1)) {
+        @media (max-width: $tablet-portrait - 1) {
           display: none;
         }
       }
 		}
 
-		@include breakpoint($tablet-portrait) {
+		@media (min-width: $tablet-portrait) {
 			h2 {
         display: block;
 				float: right;
@@ -170,7 +170,7 @@ $pagination-background: $purple;
 		text-transform: uppercase;
 	}
 
-	@include breakpoint($tablet-portrait) {
+	@media (min-width: $tablet-portrait) {
 		h2, p {
 			width: $column-width * 6;
 			float: left;
