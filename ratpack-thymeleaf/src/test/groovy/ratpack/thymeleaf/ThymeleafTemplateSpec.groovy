@@ -265,4 +265,23 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
     'zero size'         | 0                  | false             | 0
     'non zero size'     | 10                 | true              | 10
   }
+
+  void 'can register a custom dialect'() {
+    given:
+    file 'thymeleaf/simple.html', '<p hello:sayto="World">Hi ya!</p>'
+
+    when:
+    modules {
+      register new ThymeleafModule()
+      register new HelloDialectModule()
+    }
+    handlers {
+      handler {
+        render thymeleafTemplate('simple')
+      }
+    }
+
+    then:
+    text == '<p>Hello, World!</p>'
+  }
 }
