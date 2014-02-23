@@ -35,7 +35,7 @@ import ratpack.func.Action;
 public interface SuccessPromise<T> {
 
   /**
-   * Specifies what should be done with the promised object when it is ready
+   * Specifies what should be done with the promised object when it is ready.
    *
    * @param then the action to forward the promised object on to
    */
