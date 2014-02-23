@@ -20,9 +20,9 @@ import groovy.lang.Closure;
 import groovy.lang.GroovySystem;
 import ratpack.api.Nullable;
 import ratpack.file.internal.DefaultFileSystemBinding;
-import ratpack.groovy.launch.GroovyClosureHandlerFactory;
-import ratpack.groovy.launch.GroovyScriptFileHandlerFactory;
-import ratpack.groovy.launch.GroovyVersionChecker;
+import ratpack.groovy.launch.internal.GroovyClosureHandlerFactory;
+import ratpack.groovy.launch.internal.GroovyScriptFileHandlerFactory;
+import ratpack.groovy.launch.internal.GroovyVersionCheck;
 import ratpack.launch.HandlerFactory;
 import ratpack.launch.LaunchConfig;
 import ratpack.launch.LaunchConfigFactory;
@@ -54,7 +54,7 @@ public class StandaloneScriptBacking implements Action<Closure<?>> {
   }
 
   public void execute(final Closure<?> closure) throws Exception {
-    GroovyVersionChecker.ensureRequiredVersionUsed(GroovySystem.getVersion());
+    GroovyVersionCheck.ensureRequiredVersionUsed(GroovySystem.getVersion());
 
     Path scriptFile = findScript(closure);
 

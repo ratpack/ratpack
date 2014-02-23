@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-package ratpack.groovy.launch
+package ratpack.groovy.launch.internal
 
 import spock.lang.Specification
 import spock.lang.Unroll
 
 @Unroll
-class GroovyVersionCheckerSpec extends Specification {
+class GroovyVersionCheckSpec extends Specification {
 
   void '#version is a supported groovy runtime version'() {
     when:
-    GroovyVersionChecker.ensureRequiredVersionUsed(version)
+    GroovyVersionCheck.ensureRequiredVersionUsed(version, "2.2.1")
 
     then:
     notThrown(RuntimeException)
@@ -35,7 +35,7 @@ class GroovyVersionCheckerSpec extends Specification {
 
   void '#version is not a supported groovy runtime version'() {
     when:
-    GroovyVersionChecker.ensureRequiredVersionUsed(version)
+    GroovyVersionCheck.ensureRequiredVersionUsed(version, "2.2.1")
 
     then:
     def e = thrown(RuntimeException)
