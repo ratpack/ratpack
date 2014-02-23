@@ -29,9 +29,9 @@ class GroovyChainDslFixture implements SnippetFixture {
   @Override
   public String pre() {
 """
-import ratpack.launch.LaunchConfig;
+import ratpack.launch.LaunchConfig
 
-ratpack.groovy.Groovy.chain([:] as LaunchConfig, null) {
+ratpack.groovy.Groovy.chain([isReloadable: { false }] as LaunchConfig, null) {
 """
   }
 

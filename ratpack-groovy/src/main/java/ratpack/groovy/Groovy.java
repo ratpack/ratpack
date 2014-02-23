@@ -25,26 +25,22 @@ import ratpack.groovy.guice.GroovyModuleRegistry;
 import ratpack.groovy.handling.GroovyChain;
 import ratpack.groovy.handling.GroovyContext;
 import ratpack.groovy.handling.internal.ClosureBackedHandler;
-import ratpack.groovy.handling.internal.DefaultGroovyChain;
 import ratpack.groovy.handling.internal.DefaultGroovyContext;
+import ratpack.groovy.handling.internal.GroovyDslChainActionTransformer;
 import ratpack.groovy.internal.ClosureInvoker;
 import ratpack.groovy.internal.RatpackScriptBacking;
 import ratpack.groovy.markup.Markup;
 import ratpack.groovy.markup.internal.DefaultMarkup;
 import ratpack.groovy.templating.Template;
 import ratpack.groovy.templating.internal.DefaultTemplate;
-import ratpack.handling.Chain;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
-import ratpack.handling.Handlers;
-import ratpack.handling.internal.DefaultChain;
+import ratpack.handling.internal.ChainBuilders;
 import ratpack.http.MediaType;
 import ratpack.http.internal.DefaultMediaType;
 import ratpack.launch.LaunchConfig;
 import ratpack.registry.Registry;
 
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 
 import static ratpack.util.ExceptionUtils.uncheck;
@@ -144,20 +140,12 @@ public abstract class Groovy {
    * @param closure The chain building closure.
    * @return A handler
    */
-  public static Handler chain(LaunchConfig launchConfig, @Nullable Registry registry, @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) throws Exception {
-    List<Handler> handlers = new LinkedList<>();
-    Chain chain = new DefaultChain(handlers, launchConfig, registry);
-    chain(chain, closure);
-    return Handlers.chain(handlers.toArray(new Handler[handlers.size()]));
-  }
-
-  public static void chain(Chain chain, @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) throws Exception {
-    GroovyChain groovyChain = chain(chain);
-    new ClosureInvoker<Object, GroovyChain>(closure).invoke(chain.getRegistry(), groovyChain, Closure.DELEGATE_FIRST);
-  }
-
-  public static GroovyChain chain(Chain chain) {
-    return new DefaultGroovyChain(chain);
+  public static Handler chain(@Nullable LaunchConfig launchConfig, @Nullable Registry registry, @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) throws Exception {
+    return ChainBuilders.build(
+      launchConfig != null && launchConfig.isReloadable(),
+      new GroovyDslChainActionTransformer(launchConfig, registry),
+      new ClosureInvoker<Object, GroovyChain>(closure).toAction(registry, Closure.DELEGATE_FIRST)
+    );
   }
 
   public static Template groovyTemplate(String id) {

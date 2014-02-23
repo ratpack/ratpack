@@ -19,6 +19,7 @@ package ratpack.handling;
 import ratpack.api.Nullable;
 import ratpack.file.internal.AssetHandler;
 import ratpack.file.internal.FileSystemBindingHandler;
+import ratpack.func.Action;
 import ratpack.handling.internal.*;
 import ratpack.http.internal.AcceptsHandler;
 import ratpack.http.internal.ContentTypeHandler;
@@ -29,9 +30,7 @@ import ratpack.path.PathBinder;
 import ratpack.path.internal.PathHandler;
 import ratpack.path.internal.TokenPathBinder;
 import ratpack.registry.Registry;
-import ratpack.func.Action;
 
-import java.util.LinkedList;
 import java.util.List;
 
 import static com.google.common.collect.ImmutableList.copyOf;
@@ -93,11 +92,8 @@ public abstract class Handlers {
    * @return A handler
    * @throws Exception any thrown by {@code action}
    */
-  public static Handler chain(LaunchConfig launchConfig, @Nullable Registry registry, Action<? super Chain> action) throws Exception {
-    List<Handler> handlers = new LinkedList<>();
-    Chain chain = new DefaultChain(handlers, launchConfig, registry);
-    action.execute(chain);
-    return chain(handlers.toArray(new Handler[handlers.size()]));
+  public static Handler chain(@Nullable LaunchConfig launchConfig, @Nullable Registry registry, Action<? super Chain> action) throws Exception {
+    return ChainBuilders.build(launchConfig != null && launchConfig.isReloadable(), new ChainActionTransformer(launchConfig, registry), action);
   }
 
   /**
