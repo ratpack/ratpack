@@ -45,6 +45,9 @@ import java.util.Map;
 
 import static ratpack.util.ExceptionUtils.uncheck;
 
+/**
+ * Static methods for specialized Groovy integration.
+ */
 public abstract class Groovy {
 
   private Groovy() {
@@ -123,11 +126,18 @@ public abstract class Groovy {
    * @param launchConfig The application launch config
    * @param closure The chain definition
    * @return A handler
+   * @throws Exception any exception thrown by the given closure
    */
   public static Handler chain(LaunchConfig launchConfig, @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) throws Exception {
     return chain(launchConfig, null, closure);
   }
 
+  /**
+   * Creates a specialized Groovy context.
+   *
+   * @param context The context to convert to a Groovy context
+   * @return The original context wrapped in a Groovy context
+   */
   public static GroovyContext context(Context context) {
     return context instanceof GroovyContext ? (GroovyContext) context : new DefaultGroovyContext(context);
   }
@@ -139,6 +149,7 @@ public abstract class Groovy {
    * @param registry The registry.
    * @param closure The chain building closure.
    * @return A handler
+   * @throws Exception any exception thrown by the given closure
    */
   public static Handler chain(@Nullable LaunchConfig launchConfig, @Nullable Registry registry, @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) throws Exception {
     return ChainBuilders.build(
@@ -148,28 +159,62 @@ public abstract class Groovy {
     );
   }
 
+  /**
+   * Creates a {@link ratpack.handling.Context#render(Object) renderable} Groovy based template, using no model and the default content type.
+   *
+   * @param id The id/name of the template
+   * @return a template
+   */
   public static Template groovyTemplate(String id) {
     return groovyTemplate(id, null);
   }
 
+  /**
+   * Creates a {@link ratpack.handling.Context#render(Object) renderable} Groovy based template, using no model.
+   *
+   * @param id The id/name of the template
+   * @param type The content type of template
+   * @return a template
+   */
   public static Template groovyTemplate(String id, String type) {
     return groovyTemplate(ImmutableMap.<String, Object>of(), id, type);
   }
 
+  /**
+   * Creates a {@link ratpack.handling.Context#render(Object) renderable} Groovy based template, using the default content type.
+   *
+   * @param model The template model
+   * @param id The id/name of the template
+   * @return a template
+   */
   public static Template groovyTemplate(Map<String, ?> model, String id) {
     return groovyTemplate(model, id, null);
   }
 
+  /**
+   * Creates a {@link ratpack.handling.Context#render(Object) renderable} Groovy based template.
+   *
+   * @param model The template model
+   * @param id The id/name of the template
+   * @param type The content type of template
+   * @return a template
+   */
   public static Template groovyTemplate(Map<String, ?> model, String id, String type) {
     return new DefaultTemplate(id, model, type);
   }
 
+  /**
+   * Creates a handler instance from a closure.
+   *
+   * @param closure The closure to convert to a handler
+   * @return The created handler
+   */
   public static Handler groovyHandler(@DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) {
     return new ClosureBackedHandler(closure);
   }
 
   /**
-   * Shorthand for {@link #markupBuilder(String, String, groovy.lang.Closure)} with a content type of {@code "text/html"} and {@code "UTF-8"} encoding
+   * Shorthand for {@link #markupBuilder(String, String, groovy.lang.Closure)} with a content type of {@code "text/html"} and {@code "UTF-8"} encoding.
    *
    * @param closure The html definition
    * @return A renderable object (i.e. to be used with the {@link ratpack.handling.Context#render(Object)} method
