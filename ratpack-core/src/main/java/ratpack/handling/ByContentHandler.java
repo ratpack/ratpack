@@ -79,8 +79,8 @@ public interface ByContentHandler extends Handler {
   /**
    * Register how to respond with the given mime type.
    *
-   * @param mimeType The mime type to register for.
-   * @param runnable The action to take if the client wants to given type.
+   * @param mimeType The mime type to register for
+   * @param runnable The action to take if the client wants the given type
    * @return this
    */
   ByContentHandler type(String mimeType, Runnable runnable);
@@ -88,7 +88,7 @@ public interface ByContentHandler extends Handler {
   /**
    * Convenience method to respond with "text/plain" mime type.
    *
-   * @param runnable the action to take if the client wants plain text.
+   * @param runnable the action to take if the client wants plain text
    * @return this
    */
   ByContentHandler plainText(Runnable runnable);
@@ -96,7 +96,7 @@ public interface ByContentHandler extends Handler {
   /**
    * Convenience method to respond with "text/html" mime type.
    *
-   * @param runnable the action to take if the client wants html.
+   * @param runnable the action to take if the client wants html
    * @return this
    */
   ByContentHandler html(Runnable runnable);
@@ -104,7 +104,7 @@ public interface ByContentHandler extends Handler {
   /**
    * Convenience method to respond with "application/json" mime type.
    *
-   * @param runnable the action to take if the client wants json.
+   * @param runnable the action to take if the client wants json
    * @return this
    */
   ByContentHandler json(Runnable runnable);
@@ -112,7 +112,7 @@ public interface ByContentHandler extends Handler {
   /**
    * Convenience method to respond with "application/xml" mime type.
    *
-   * @param runnable the action to take if the client wants xml.
+   * @param runnable the action to take if the client wants xml
    * @return this
    */
   ByContentHandler xml(Runnable runnable);

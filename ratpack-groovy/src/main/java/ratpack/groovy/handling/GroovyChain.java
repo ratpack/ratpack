@@ -80,6 +80,7 @@ public interface GroovyChain extends Chain {
    * @param prefix the relative path to match on
    * @param chain the definition of the chain to delegate to
    * @return this {@code GroovyChain}
+   * @throws Exception any exception thrown by the given closure
    */
   GroovyChain prefix(String prefix, @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> chain) throws Exception;
 
@@ -285,6 +286,7 @@ public interface GroovyChain extends Chain {
    * @param service the object to add to the service for the handlers
    * @param handlers the handlers to register the service with
    * @return this {@code GroovyChain}
+   * @throws Exception any exception thrown by the given closure
    */
   GroovyChain register(Object service, @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handlers) throws Exception;
 
@@ -308,6 +310,7 @@ public interface GroovyChain extends Chain {
    * @param handlers the handlers to register the service with
    * @param <T> the concrete type of the service addition
    * @return this {@code GroovyChain}
+   * @throws Exception any exception thrown by the given closure
    */
   <T> GroovyChain register(Class<? super T> type, T service, @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handlers) throws Exception;
 
@@ -335,6 +338,7 @@ public interface GroovyChain extends Chain {
    * @param path the relative {@code path} to the new file system binding point
    * @param handlers the definition of the handler chain
    * @return this {@code GroovyChain}
+   * @throws Exception any exception thrown by the given closure
    */
   GroovyChain fileSystem(String path, @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handlers) throws Exception;
 

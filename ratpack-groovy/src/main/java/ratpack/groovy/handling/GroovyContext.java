@@ -26,13 +26,31 @@ import ratpack.handling.RequestOutcome;
  */
 public interface GroovyContext extends Context {
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   GroovyContext getContext();
 
+  /**
+   * Responds based on HTTP method.
+   *
+   * @param closure defines the action to take for different HTTP methods
+   */
   void byMethod(@DelegatesTo(GroovyByMethodHandler.class) Closure<?> closure);
 
+  /**
+   * Responds based on the client's preferred response content type (i.e. content negotiation).
+   *
+   * @param closure defines the action to take for the different content types
+   */
   void byContent(@DelegatesTo(GroovyByContentHandler.class) Closure<?> closure);
 
-  void onClose(@DelegatesTo(value = RequestOutcome.class, strategy = Closure.DELEGATE_FIRST) Closure<?> callback);
+  /**
+   * Adds a request close handler.
+   *
+   * @param closure A closure to call when the request is closed
+   */
+  void onClose(@DelegatesTo(value = RequestOutcome.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure);
 
 }

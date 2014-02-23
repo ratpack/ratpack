@@ -20,12 +20,25 @@ import ratpack.groovy.Groovy;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 
+/**
+ * A handler subclass that makes a {@link GroovyContext} available.
+ */
 public abstract class GroovyHandler implements Handler {
 
+  /**
+   * The handle method to implement.
+   *
+   * @param context The context
+   */
   protected abstract void handle(GroovyContext context);
 
+  /**
+   * Delegates to {@link #handle(GroovyContext)}.
+   *
+   * @param context The context
+   */
   @Override
-  public void handle(Context context) {
+  public final void handle(Context context) {
     handle(Groovy.context(context));
   }
 

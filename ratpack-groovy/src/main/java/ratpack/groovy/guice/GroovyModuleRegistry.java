@@ -21,12 +21,18 @@ import groovy.lang.DelegatesTo;
 import ratpack.guice.ModuleRegistry;
 
 /**
- * Groovy specific extensions to {@link ratpack.guice.ModuleRegistry}
+ * Groovy specific extensions to {@link ratpack.guice.ModuleRegistry}.
  */
 public interface GroovyModuleRegistry extends ModuleRegistry {
 
+  /**
+   * Adds a closure based application initializer.
+   * <p>
+   * The closure can declare parameters, that will be injected.
+   * That is, parameters must be typed and implementations of such types must be provided by the modules.
+   *
+   * @param closure The initializer
+   */
   void init(@DelegatesTo(value = Void.class, strategy = Closure.OWNER_ONLY) Closure<?> closure);
-
-  <T> void init(@DelegatesTo.Target Class<T> clazz, @DelegatesTo(genericTypeIndex = 0, strategy = Closure.DELEGATE_FIRST) Closure<?> closure);
 
 }

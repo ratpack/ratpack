@@ -20,14 +20,13 @@ import com.google.inject.Injector;
 import com.google.inject.Module;
 import groovy.lang.Closure;
 import ratpack.api.Nullable;
+import ratpack.func.Action;
 import ratpack.groovy.guice.GroovyModuleRegistry;
 import ratpack.groovy.internal.ClosureInvoker;
-import ratpack.groovy.internal.ClosureUtil;
 import ratpack.guice.ModuleRegistry;
 import ratpack.guice.internal.InjectorBackedRegistry;
 import ratpack.launch.LaunchConfig;
 import ratpack.registry.NotInRegistryException;
-import ratpack.func.Action;
 
 import javax.inject.Provider;
 import java.util.List;
@@ -43,11 +42,6 @@ public class DefaultGroovyModuleRegistry implements GroovyModuleRegistry {
   @Override
   public void init(final Closure<?> closure) {
     doInit(closure, Void.class, Closure.OWNER_ONLY);
-  }
-
-  @Override
-  public <T> void init(Class<T> clazz, Closure<?> closure) {
-    doInit(closure, clazz, Closure.DELEGATE_FIRST);
   }
 
   private <T, N> void doInit(final Closure<T> closure, final Class<N> clazz, final int resolveStrategy) {

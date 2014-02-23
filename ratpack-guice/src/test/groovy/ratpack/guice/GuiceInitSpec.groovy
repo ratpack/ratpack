@@ -17,8 +17,8 @@
 package ratpack.guice
 
 import com.google.inject.Injector
-import ratpack.test.internal.RatpackGroovyDslSpec
 import ratpack.func.Action
+import ratpack.test.internal.RatpackGroovyDslSpec
 
 import javax.inject.Inject
 
@@ -55,9 +55,6 @@ class GuiceInitSpec extends RatpackGroovyDslSpec {
       }
       init ThingInit
       init { Thing thing -> thing.strings << "baz" }
-      init(Thing) {
-        strings << "bat"
-      }
     }
     handlers {
       get { Thing thing ->
