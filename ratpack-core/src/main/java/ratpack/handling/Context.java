@@ -17,23 +17,17 @@
 package ratpack.handling;
 
 import ratpack.api.NonBlocking;
+import ratpack.func.Action;
 import ratpack.handling.direct.DirectChannelAccess;
-import ratpack.http.Request;
 import ratpack.http.Response;
 import ratpack.parse.NoSuchParserException;
 import ratpack.parse.Parse;
 import ratpack.parse.ParserException;
-import ratpack.path.PathTokens;
-import ratpack.promise.SuccessOrErrorPromise;
 import ratpack.registry.NotInRegistryException;
 import ratpack.registry.Registry;
-import ratpack.server.BindAddress;
-import ratpack.func.Action;
 import ratpack.util.ResultAction;
 
-import java.nio.file.Path;
 import java.util.Date;
-import java.util.concurrent.Callable;
 
 /**
  * The context of an individual {@link Handler} invocation.
@@ -70,7 +64,7 @@ import java.util.concurrent.Callable;
  * <li>A {@link Redirector}</li>
  * </ul>
  */
-public interface Context extends Registry {
+public interface Context extends MinimalContext {
 
   /**
    * Returns this.
@@ -78,13 +72,6 @@ public interface Context extends Registry {
    * @return this.
    */
   Context getContext();
-
-  /**
-   * The HTTP request.
-   *
-   * @return The HTTP request.
-   */
-  Request getRequest();
 
   /**
    * The HTTP response.
@@ -206,18 +193,6 @@ public interface Context extends Registry {
   // Shorthands for common service lookups
 
   /**
-   * Forwards the exception to the {@link ratpack.error.ServerErrorHandler} in this service.
-   * <p>
-   * The default configuration of Ratpack includes a {@link ratpack.error.ServerErrorHandler} in all contexts.
-   * A {@link ratpack.registry.NotInRegistryException} will only be thrown if a very custom service setup is being used.
-   *
-   * @param exception The exception that occurred
-   * @throws NotInRegistryException if no {@link ratpack.error.ServerErrorHandler} can be found in the service
-   */
-  @NonBlocking
-  void error(Exception exception) throws NotInRegistryException;
-
-  /**
    * Forwards the error to the {@link ratpack.error.ClientErrorHandler} in this service.
    *
    * The default configuration of Ratpack includes a {@link ratpack.error.ClientErrorHandler} in all contexts.
@@ -253,41 +228,6 @@ public interface Context extends Registry {
   <T> ResultAction<T> resultAction(Action<T> action);
 
   /**
-   * The contextual path tokens of the current {@link ratpack.path.PathBinding}.
-   * <p>
-   * Shorthand for {@code get(PathBinding.class).getPathTokens()}.
-   *
-   * @return The contextual path tokens of the current {@link ratpack.path.PathBinding}.
-   * @throws NotInRegistryException if there is no {@link ratpack.path.PathBinding} in the current service
-   */
-  PathTokens getPathTokens() throws NotInRegistryException;
-
-  /**
-   * The contextual path tokens of the current {@link ratpack.path.PathBinding}.
-   * <p>
-   * Shorthand for {@code get(PathBinding.class).getAllPathTokens()}.
-   *
-   * @return The contextual path tokens of the current {@link ratpack.path.PathBinding}.
-   * @throws NotInRegistryException if there is no {@link ratpack.path.PathBinding} in the current service
-   */
-  PathTokens getAllPathTokens() throws NotInRegistryException;
-
-  /**
-   * Gets the file relative to the contextual {@link ratpack.file.FileSystemBinding}.
-   * <p>
-   * Shorthand for {@code get(FileSystemBinding.class).file(path)}.
-   * <p>
-   * The default configuration of Ratpack includes a {@link ratpack.file.FileSystemBinding} in all contexts.
-   * A {@link ratpack.registry.NotInRegistryException} will only be thrown if a very custom service setup is being used.
-   *
-   *
-   * @param path The path to pass to the {@link ratpack.file.FileSystemBinding#file(String)} method.
-   * @return The file relative to the contextual {@link ratpack.file.FileSystemBinding}
-   * @throws NotInRegistryException if there is no {@link ratpack.file.FileSystemBinding} in the current service
-   */
-  Path file(String path) throws NotInRegistryException;
-
-  /**
    * Render the given object, using the rendering framework.
    * <p>
    * The first {@link ratpack.render.Renderer}, that is able to render the given object will be delegated to.
@@ -309,104 +249,6 @@ public interface Context extends Registry {
    */
   @NonBlocking
   void render(Object object);
-
-  /**
-   * An object to be used when executing blocking IO, or long operations.
-   *
-   * @return An object to be used when executing blocking IO, or long operations.
-   * @see #background(java.util.concurrent.Callable)
-   */
-  Background getBackground();
-
-  /**
-   * The application foreground.
-   *
-   * @return the application foreground
-   * @see Foreground
-   */
-  Foreground getForeground();
-
-  /**
-   * Perform a blocking operation, off the request thread.
-   * <p>
-   * Ratpack apps typically do not use a large thread pool for handling requests. By default there is about one thread per core.
-   * This means that blocking IO operations cannot be done on the thread invokes a handler. Background IO operations must be
-   * offloaded in order to free the request handling thread to handle other requests while the IO operation is performed.
-   * The {@code Background} object makes it easy to do this.
-   * <p>
-   * A callable is submitted to the {@link Background#exec(Callable)} method. The implementation of this callable <b>can</b> background
-   * as it will be executed on a non request handling thread. It should do not much more than initiate a blocking IO operation and return the result.
-   * <p>
-   * However, the callable is not executed immediately. The return value of {@link Background#exec(Callable)} must be used to specify
-   * how to proceed after the blocking operation. The {@code then()} method must be called for the work to be performed.
-   * </p>
-   * Example usage (Java):
-   * <pre class="tested">
-   * import ratpack.handling.Handler;
-   * import ratpack.handling.Context;
-   * import ratpack.func.Action;
-   * import java.util.concurrent.Callable;
-   *
-   * class MyHandler implements Handler {
-   *   void handle(final Context context) {
-   *     context.background(new Callable&lt;String&gt;() {
-   *        public String call() {
-   *          // perform some kind of blocking IO in here, such as accessing a database
-   *          return "foo";
-   *        }
-   *     }).then(new Action&lt;String&gt;() {
-   *       public void execute(String result) {
-   *         context.getResponse().send(result);
-   *       }
-   *     });
-   *   }
-   * }
-   * </pre>
-   *
-   * <h4>Error Handling</h4>
-   * <p>
-   * Unless otherwise specified, any exceptions that are raised during the blocking operation callable are forwarded
-   * to the {@link ratpack.handling.Context#error(Exception)} method of the current context.
-   * Similarly, errors that occur during the result handler are forwarded.
-   * </p>
-   * <p>
-   * To use a custom error handling strategy, use the {@link ratpack.promise.SuccessOrErrorPromise#onError(Action)} method
-   * of the return of {@link Background#exec(Callable)}.
-   * </p>
-   * <p>
-   * Example usage:
-   * <pre class="tested">
-   * import ratpack.handling.Handler;
-   * import ratpack.handling.Context;
-   * import ratpack.func.Action;
-   * import java.util.concurrent.Callable;
-   *
-   * class MyHandler implements Handler {
-   *   void handle(final Context context) {
-   *     context.background(new Callable&lt;String&gt;() {
-   *        public String call() {
-   *          // perform some kind of blocking IO in here, such as accessing a database
-   *          return "foo";
-   *        }
-   *     }).onError(new Action&lt;Exception&gt;() {
-   *       public void execute(Exception exception) {
-   *         // do something with the exception
-   *       }
-   *     }).then(new Action&lt;String&gt;() {
-   *       public void execute(String result) {
-   *         context.getResponse().send(result);
-   *       }
-   *     });
-   *   }
-   * }
-   * </pre>
-   *
-   * @param backgroundOperation The blocking operation to perform off of the request thread
-   * @param <T> The type of object returned by the background operation
-   * @return A builder for specifying the result handling strategy for a blocking operation.
-   * @see #getBackground()
-   */
-  <T> SuccessOrErrorPromise<T> background(Callable<T> backgroundOperation);
 
   /**
    * Sends a temporary redirect response (i.e. statusCode 302) to the client using the specified redirect location URL.
@@ -438,13 +280,6 @@ public interface Context extends Registry {
    */
   @NonBlocking
   void lastModified(Date date, Runnable runnable);
-
-  /**
-   * The address that this request was received on.
-   *
-   * @return The address that this request was received on.
-   */
-  BindAddress getBindAddress();
 
   /**
    * Parses the request body into an object.
@@ -528,13 +363,6 @@ public interface Context extends Registry {
    * @throws ParserException if a suitable parser was found, but it threw an exception while parsing
    */
   <T> T parse(Class<T> type) throws NoSuchParserException, ParserException;
-
-  /**
-   * Registers a callback to be notified when the request for this context is “closed” (i.e. responded to).
-   *
-   * @param onClose A notification callback
-   */
-  void onClose(Action<? super RequestOutcome> onClose);
 
   /**
    * Provides direct access to the backing Netty channel.

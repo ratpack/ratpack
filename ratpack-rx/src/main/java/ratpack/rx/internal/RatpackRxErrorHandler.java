@@ -16,8 +16,8 @@
 
 package ratpack.rx.internal;
 
-import ratpack.handling.Context;
 import ratpack.handling.Foreground;
+import ratpack.handling.MinimalContext;
 import ratpack.handling.NoBoundContextException;
 import ratpack.util.ExceptionUtils;
 import rx.plugins.RxJavaErrorHandler;
@@ -28,7 +28,7 @@ public class RatpackRxErrorHandler extends RxJavaErrorHandler {
 
   @Override
   public void handleError(Throwable e) {
-    Context context;
+    MinimalContext context;
     try {
       context = foreground.getContext();
     } catch (NoBoundContextException e1) {
