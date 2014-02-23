@@ -21,10 +21,14 @@ import com.codahale.metrics.MetricRegistryListener
 import com.codahale.metrics.annotation.Gauge
 import com.codahale.metrics.annotation.Metered
 import com.codahale.metrics.annotation.Timed
+import groovy.json.JsonSlurper
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import ratpack.test.internal.RatpackGroovyDslSpec
+import ratpack.websocket.RecordingWebSocketClient
 import spock.util.concurrent.PollingConditions
+
+import java.util.concurrent.TimeUnit
 
 class MetricsSpec extends RatpackGroovyDslSpec {
 
@@ -325,6 +329,44 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     (1.._) * reporter.onGaugeAdded(!null, { it.class.name.startsWith("com.codahale.metrics.jvm.GarbageCollectorMetricSet") })
     (1.._) * reporter.onGaugeAdded(!null, { it.class.name.startsWith("com.codahale.metrics.jvm.ThreadStatesGaugeSet") })
     (1.._) * reporter.onGaugeAdded(!null, { it.class.name.startsWith("com.codahale.metrics.jvm.MemoryUsageGaugeSet") })
+  }
+
+  def "can use metrics endpoint"() {
+    given:
+    modules {
+      register new CodaHaleMetricsModule().websocketMetrics()
+    }
+    handlers {
+      get {
+        render "foo"
+      }
+      prefix("admin") {
+        handler(registry.get(MetricsEndpoint))
+      }
+    }
+
+    and:
+    server.start()
+    2.times { getText() }
+
+    when:
+    def client = openWsClient()
+    client.connectBlocking()
+
+    then:
+    def response = new JsonSlurper().parseText(client.received.poll(1, TimeUnit.SECONDS))
+    response.timers.size() == 2
+    response.timers[0].name == "[admin][metrics-report]~GET~Request"
+    response.timers[0].count == 0
+    response.timers[1].name == "[root]~GET~Request"
+    response.timers[1].count == 2
+
+    cleanup:
+    client?.closeBlocking()
+  }
+
+  def RecordingWebSocketClient openWsClient() {
+    new RecordingWebSocketClient(new URI("ws://localhost:$server.bindPort/admin/metrics-report"))
   }
 
 }

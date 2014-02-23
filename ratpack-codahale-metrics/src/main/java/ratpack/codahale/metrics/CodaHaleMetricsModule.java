@@ -26,19 +26,10 @@ import com.codahale.metrics.annotation.Metered;
 import com.codahale.metrics.jvm.GarbageCollectorMetricSet;
 import com.codahale.metrics.jvm.MemoryUsageGaugeSet;
 import com.codahale.metrics.jvm.ThreadStatesGaugeSet;
-import com.google.inject.AbstractModule;
-import com.google.inject.Injector;
-import com.google.inject.Singleton;
-import com.google.inject.TypeLiteral;
+import com.google.inject.*;
 import com.google.inject.matcher.Matchers;
 import com.google.inject.name.Names;
-import ratpack.codahale.metrics.internal.ConsoleReporterProvider;
-import ratpack.codahale.metrics.internal.CsvReporterProvider;
-import ratpack.codahale.metrics.internal.GaugeTypeListener;
-import ratpack.codahale.metrics.internal.JmxReporterProvider;
-import ratpack.codahale.metrics.internal.MeteredMethodInterceptor;
-import ratpack.codahale.metrics.internal.RequestTimingHandler;
-import ratpack.codahale.metrics.internal.TimedMethodInterceptor;
+import ratpack.codahale.metrics.internal.*;
 import ratpack.guice.HandlerDecoratingModule;
 import ratpack.guice.internal.GuiceUtil;
 import ratpack.handling.Handler;
@@ -96,10 +87,11 @@ public class CodaHaleMetricsModule extends AbstractModule implements HandlerDeco
   private File csvReportDirectory;
   private boolean healthChecksEnabled = true;
   private boolean jvmMetricsEnabled;
+  private boolean websocketMetricsEnabled;
   private boolean metricsEnabled;
 
   private boolean isMetricsEnabled() {
-    return metricsEnabled || jvmMetricsEnabled || reportMetricsToConsole || reportMetricsToJmx || csvReportDirectory != null;
+    return metricsEnabled || jvmMetricsEnabled || reportMetricsToConsole || websocketMetricsEnabled || reportMetricsToJmx || csvReportDirectory != null;
   }
 
   @Override
@@ -130,6 +122,13 @@ public class CodaHaleMetricsModule extends AbstractModule implements HandlerDeco
       if (csvReportDirectory != null) {
         bind(File.class).annotatedWith(Names.named(CsvReporterProvider.CSV_REPORT_DIRECTORY)).toInstance(csvReportDirectory);
         bind(CsvReporter.class).toProvider(CsvReporterProvider.class).asEagerSingleton();
+      }
+
+      if (websocketMetricsEnabled) {
+        MetricsBroadcaster broadcaster = new MetricsBroadcaster();
+        bind(MetricsBroadcaster.class).toInstance(broadcaster);
+        bind(WebSocketReporter.class).asEagerSingleton();
+        bind(MetricsEndpoint.class).toInstance(new MetricsEndpoint(new TokenPathBinder("metrics-report", true), broadcaster));
       }
     }
 
@@ -308,6 +307,15 @@ public class CodaHaleMetricsModule extends AbstractModule implements HandlerDeco
    */
   public CodaHaleMetricsModule jvmMetrics(boolean enabled) {
     this.jvmMetricsEnabled = enabled;
+    return this;
+  }
+
+  public CodaHaleMetricsModule websocketMetrics() {
+    return websocketMetrics(true);
+  }
+
+  public CodaHaleMetricsModule websocketMetrics(boolean enabled) {
+    this.websocketMetricsEnabled = enabled;
     return this;
   }
 

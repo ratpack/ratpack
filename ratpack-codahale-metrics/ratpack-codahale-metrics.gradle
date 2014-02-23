@@ -28,4 +28,8 @@ dependencies {
   compile "com.codahale.metrics:metrics-healthchecks:$codahaleMetricsVersion"
   compile "com.codahale.metrics:metrics-jvm:$codahaleMetricsVersion"
   compile "com.codahale.metrics:metrics-annotation:$codahaleMetricsVersion"
+  compile commonDependencies.jackson
+
+  testCompile project (path: ":ratpack-core", configuration: 'testArtifacts')
 }
+
