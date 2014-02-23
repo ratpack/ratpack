@@ -41,11 +41,6 @@ public class DefaultGroovyModuleRegistry implements GroovyModuleRegistry {
   }
 
   @Override
-  public <T extends Module> void config(Class<T> moduleType, Closure<?> closure) {
-    ClosureUtil.configureDelegateFirst(moduleRegistry.get(moduleType), closure);
-  }
-
-  @Override
   public void init(final Closure<?> closure) {
     doInit(closure, Void.class, Closure.OWNER_ONLY);
   }

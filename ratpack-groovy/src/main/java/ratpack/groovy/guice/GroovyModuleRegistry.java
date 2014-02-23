@@ -16,7 +16,6 @@
 
 package ratpack.groovy.guice;
 
-import com.google.inject.Module;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import ratpack.guice.ModuleRegistry;
@@ -25,8 +24,6 @@ import ratpack.guice.ModuleRegistry;
  * Groovy specific extensions to {@link ratpack.guice.ModuleRegistry}
  */
 public interface GroovyModuleRegistry extends ModuleRegistry {
-
-  <T extends Module> void config(@DelegatesTo.Target Class<T> moduleType, @DelegatesTo(genericTypeIndex = 0, strategy = Closure.DELEGATE_FIRST) Closure<?> closure);
 
   void init(@DelegatesTo(value = Void.class, strategy = Closure.OWNER_ONLY) Closure<?> closure);
 
