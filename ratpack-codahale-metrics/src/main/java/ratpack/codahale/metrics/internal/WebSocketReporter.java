@@ -56,7 +56,7 @@ public class WebSocketReporter extends ScheduledReporter {
       JsonGenerator json = factory.createGenerator(out);
 
       json.writeStartObject();
-      json.writeNumberField("timestamp", TimeUnit.MILLISECONDS.toSeconds(clock.getTime()));
+      json.writeNumberField("timestamp", clock.getTime());
       writeTimers(json, timers);
       json.writeEndObject();
 
