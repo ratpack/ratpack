@@ -61,6 +61,12 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     def origOut = System.out
     System.out = new PrintStream(output, true)
 
+    and:
+    launchConfig {
+      other("metrics.scheduledreporter.interval", "1")
+    }
+
+    and:
     modules {
       register new CodaHaleMetricsModule().jmx().csv(reportDirectory.root).console()
     }
@@ -333,6 +339,11 @@ class MetricsSpec extends RatpackGroovyDslSpec {
 
   def "can use metrics endpoint"() {
     given:
+    launchConfig {
+      other("metrics.scheduledreporter.interval", "1")
+    }
+
+    and:
     modules {
       register new CodaHaleMetricsModule().websocketMetrics()
     }

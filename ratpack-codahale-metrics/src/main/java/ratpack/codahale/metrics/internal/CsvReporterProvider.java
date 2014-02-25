@@ -20,6 +20,7 @@ import com.codahale.metrics.CsvReporter;
 import com.codahale.metrics.MetricRegistry;
 import com.google.inject.Provider;
 import com.google.inject.name.Named;
+import ratpack.launch.LaunchConfig;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -34,17 +35,20 @@ public class CsvReporterProvider implements Provider<CsvReporter> {
 
   private final MetricRegistry metricRegistry;
   private final File csvReportDirectory;
+  private final LaunchConfig launchConfig;
 
   @Inject
-  public CsvReporterProvider(MetricRegistry metricRegistry, @Named(CsvReporterProvider.CSV_REPORT_DIRECTORY) File csvReportDirectory) {
+  public CsvReporterProvider(MetricRegistry metricRegistry, @Named(CsvReporterProvider.CSV_REPORT_DIRECTORY) File csvReportDirectory, LaunchConfig launchConfig) {
     this.metricRegistry = metricRegistry;
     this.csvReportDirectory = csvReportDirectory;
+    this.launchConfig = launchConfig;
   }
 
   @Override
   public CsvReporter get() {
     CsvReporter reporter = CsvReporter.forRegistry(metricRegistry).build(csvReportDirectory);
-    reporter.start(1, TimeUnit.SECONDS);
+    String interval = launchConfig.getOther("metrics.scheduledreporter.interval", "30");
+    reporter.start(Long.parseLong(interval), TimeUnit.SECONDS);
     return reporter;
   }
 }

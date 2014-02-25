@@ -20,6 +20,7 @@ import com.codahale.metrics.*;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.google.inject.Inject;
+import ratpack.launch.LaunchConfig;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -38,10 +39,11 @@ public class WebSocketReporter extends ScheduledReporter {
   private final JsonFactory factory = new JsonFactory();
 
   @Inject
-  public WebSocketReporter(MetricRegistry registry, MetricsBroadcaster metricsBroadcaster) {
+  public WebSocketReporter(MetricRegistry registry, MetricsBroadcaster metricsBroadcaster, LaunchConfig launchConfig) {
     super(registry, "websocket-reporter", MetricFilter.ALL, TimeUnit.SECONDS, TimeUnit.MILLISECONDS);
     this.metricsBroadcaster = metricsBroadcaster;
-    this.start(1, TimeUnit.SECONDS);
+    String interval = launchConfig.getOther("metrics.scheduledreporter.interval", "30");
+    this.start(Long.valueOf(interval), TimeUnit.SECONDS);
   }
 
   @Override
