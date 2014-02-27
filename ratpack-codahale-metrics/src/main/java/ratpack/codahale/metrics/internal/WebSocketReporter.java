@@ -60,6 +60,7 @@ public class WebSocketReporter extends ScheduledReporter {
       json.writeStartObject();
       json.writeNumberField("timestamp", clock.getTime());
       writeTimers(json, timers);
+      writeGauges(json, gauges);
       json.writeEndObject();
 
       json.flush();
@@ -95,6 +96,20 @@ public class WebSocketReporter extends ScheduledReporter {
       json.writeNumberField("98thPercentile", convertDuration(snapshot.get98thPercentile()));
       json.writeNumberField("99thPercentile", convertDuration(snapshot.get99thPercentile()));
       json.writeNumberField("999thPercentile", convertDuration(snapshot.get999thPercentile()));
+      json.writeEndObject();
+    }
+    json.writeEndArray();
+  }
+
+  @SuppressWarnings("rawtypes")
+  private void writeGauges(JsonGenerator json, SortedMap<String, Gauge> gauges) throws IOException {
+    json.writeArrayFieldStart("gauges");
+    for (Map.Entry<String, Gauge> entry : gauges.entrySet()) {
+      Gauge gauge = entry.getValue();
+
+      json.writeStartObject();
+      json.writeStringField("name", entry.getKey());
+      json.writeObjectField("value", gauge.getValue());
       json.writeEndObject();
     }
     json.writeEndArray();

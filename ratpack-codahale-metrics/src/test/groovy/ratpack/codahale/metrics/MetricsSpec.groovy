@@ -347,10 +347,19 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     modules {
       register new CodaHaleMetricsModule().websocketMetrics()
     }
-    handlers {
+    handlers { MetricRegistry metrics ->
+
+      metrics.register("fooGauge", new com.codahale.metrics.Gauge<Integer>() {
+        @Override
+        public Integer getValue() {
+          2
+        }
+      });
+
       get {
         render "foo"
       }
+
       prefix("admin") {
         handler(registry.get(MetricsEndpoint))
       }
@@ -365,12 +374,16 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     client.connectBlocking()
 
     then:
-    def response = new JsonSlurper().parseText(client.received.poll(1, TimeUnit.SECONDS))
+    def response = new JsonSlurper().parseText(client.received.poll(2, TimeUnit.SECONDS))
     response.timers.size() == 2
     response.timers[0].name == "[admin][metrics-report]~GET~Request"
     response.timers[0].count == 0
     response.timers[1].name == "[root]~GET~Request"
     response.timers[1].count == 2
+
+    response.gauges.size() == 1
+    response.gauges[0].name == "fooGauge"
+    response.gauges[0].value == 2
 
     cleanup:
     client?.closeBlocking()
