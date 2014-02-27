@@ -345,7 +345,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
 
     and:
     modules {
-      register new CodaHaleMetricsModule().websocketMetrics()
+      register new CodaHaleMetricsModule().websocket()
     }
     handlers { MetricRegistry metrics ->
 

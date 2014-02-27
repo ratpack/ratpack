@@ -87,11 +87,11 @@ public class CodaHaleMetricsModule extends AbstractModule implements HandlerDeco
   private File csvReportDirectory;
   private boolean healthChecksEnabled = true;
   private boolean jvmMetricsEnabled;
-  private boolean websocketMetricsEnabled;
+  private boolean reportMetricsToWebsocket;
   private boolean metricsEnabled;
 
   private boolean isMetricsEnabled() {
-    return metricsEnabled || jvmMetricsEnabled || reportMetricsToConsole || websocketMetricsEnabled || reportMetricsToJmx || csvReportDirectory != null;
+    return metricsEnabled || jvmMetricsEnabled || reportMetricsToConsole || reportMetricsToWebsocket || reportMetricsToJmx || csvReportDirectory != null;
   }
 
   @Override
@@ -124,7 +124,7 @@ public class CodaHaleMetricsModule extends AbstractModule implements HandlerDeco
         bind(CsvReporter.class).toProvider(CsvReporterProvider.class).asEagerSingleton();
       }
 
-      if (websocketMetricsEnabled) {
+      if (reportMetricsToWebsocket) {
         MetricsBroadcaster broadcaster = new MetricsBroadcaster();
         bind(MetricsBroadcaster.class).toInstance(broadcaster);
         bind(WebSocketReporter.class).asEagerSingleton();
@@ -310,12 +310,12 @@ public class CodaHaleMetricsModule extends AbstractModule implements HandlerDeco
     return this;
   }
 
-  public CodaHaleMetricsModule websocketMetrics() {
-    return websocketMetrics(true);
+  public CodaHaleMetricsModule websocket() {
+    return websocket(true);
   }
 
-  public CodaHaleMetricsModule websocketMetrics(boolean enabled) {
-    this.websocketMetricsEnabled = enabled;
+  public CodaHaleMetricsModule websocket(boolean enabled) {
+    this.reportMetricsToWebsocket = enabled;
     return this;
   }
 

@@ -109,8 +109,15 @@ public class WebSocketReporter extends ScheduledReporter {
 
       json.writeStartObject();
       json.writeStringField("name", entry.getKey());
-      json.writeObjectField("value", gauge.getValue());
+      try {
+        json.writeFieldName("value");
+        json.writeObject(gauge.getValue());
+      } catch (Exception e) {
+        LOGGER.log(Level.WARNING, "Exception encountered while reporting [" + entry.getKey() + "]: " + e.getLocalizedMessage());
+        json.writeNull();
+      }
       json.writeEndObject();
+
     }
     json.writeEndArray();
   }
