@@ -63,7 +63,7 @@ class GuiceInitSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    text == ["foo", "bar", "baz", "bat"].toString()
+    text == ["foo", "bar", "baz"].toString()
   }
 
 }
