@@ -357,6 +357,9 @@ class MetricsSpec extends RatpackGroovyDslSpec {
       });
 
       get {
+        metrics.meter("fooMeter").mark()
+        metrics.counter("fooCounter").inc()
+        metrics.histogram("fooHistogram").update(metrics.counter("fooCounter").count)
         render "foo"
       }
 
@@ -384,6 +387,18 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     response.gauges.size() == 1
     response.gauges[0].name == "fooGauge"
     response.gauges[0].value == 2
+
+    response.meters.size() == 1
+    response.meters[0].name == "fooMeter"
+    response.meters[0].count == 2
+
+    response.counters.size() == 1
+    response.counters[0].name == "fooCounter"
+    response.counters[0].count == 2
+
+    response.histograms.size() == 1
+    response.histograms[0].name == "fooHistogram"
+    response.histograms[0].count == 2
 
     cleanup:
     client?.closeBlocking()

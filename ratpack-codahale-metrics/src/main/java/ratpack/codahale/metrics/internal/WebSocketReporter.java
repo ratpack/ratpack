@@ -61,6 +61,9 @@ public class WebSocketReporter extends ScheduledReporter {
       json.writeNumberField("timestamp", clock.getTime());
       writeTimers(json, timers);
       writeGauges(json, gauges);
+      writeMeters(json, meters);
+      writeCounters(json, counters);
+      writeHistograms(json, histograms);
       json.writeEndObject();
 
       json.flush();
@@ -70,6 +73,61 @@ public class WebSocketReporter extends ScheduledReporter {
     } catch (IOException e) {
       LOGGER.log(Level.WARNING, "Exception encountered while reporting metrics: " + e.getLocalizedMessage());
     }
+  }
+
+  private void writeHistograms(JsonGenerator json, SortedMap<String, Histogram> histograms) throws IOException {
+    json.writeArrayFieldStart("histograms");
+    for (Map.Entry<String, Histogram> entry : histograms.entrySet()) {
+      Histogram histogram = entry.getValue();
+
+      json.writeStartObject();
+      json.writeStringField("name", entry.getKey());
+      json.writeNumberField("count", histogram.getCount());
+
+      Snapshot snapshot = histogram.getSnapshot();
+      json.writeNumberField("min", convertDuration(snapshot.getMin()));
+      json.writeNumberField("max", convertDuration(snapshot.getMax()));
+      json.writeNumberField("mean", convertDuration(snapshot.getMean()));
+      json.writeNumberField("stdDev", convertDuration(snapshot.getStdDev()));
+      json.writeNumberField("50thPercentile", convertDuration(snapshot.getMedian()));
+      json.writeNumberField("75thPercentile", convertDuration(snapshot.get75thPercentile()));
+      json.writeNumberField("95thPercentile", convertDuration(snapshot.get95thPercentile()));
+      json.writeNumberField("98thPercentile", convertDuration(snapshot.get98thPercentile()));
+      json.writeNumberField("99thPercentile", convertDuration(snapshot.get99thPercentile()));
+      json.writeNumberField("999thPercentile", convertDuration(snapshot.get999thPercentile()));
+      json.writeEndObject();
+    }
+    json.writeEndArray();
+  }
+
+  private void writeCounters(JsonGenerator json, SortedMap<String, Counter> counters) throws IOException {
+    json.writeArrayFieldStart("counters");
+    for (Map.Entry<String, Counter> entry : counters.entrySet()) {
+      Counter counter = entry.getValue();
+
+      json.writeStartObject();
+      json.writeStringField("name", entry.getKey());
+      json.writeNumberField("count", counter.getCount());
+      json.writeEndObject();
+    }
+    json.writeEndArray();
+  }
+
+  private void writeMeters(JsonGenerator json, SortedMap<String, Meter> meters) throws IOException {
+    json.writeArrayFieldStart("meters");
+    for (Map.Entry<String, Meter> entry : meters.entrySet()) {
+      Meter meter = entry.getValue();
+
+      json.writeStartObject();
+      json.writeStringField("name", entry.getKey());
+      json.writeNumberField("count", meter.getCount());
+      json.writeNumberField("meanRate", convertRate(meter.getMeanRate()));
+      json.writeNumberField("oneMinuteRate", convertRate(meter.getOneMinuteRate()));
+      json.writeNumberField("fiveMinuteRate", convertRate(meter.getFiveMinuteRate()));
+      json.writeNumberField("fifteenMinuteRate", convertRate(meter.getFifteenMinuteRate()));
+      json.writeEndObject();
+    }
+    json.writeEndArray();
   }
 
   private void writeTimers(JsonGenerator json, SortedMap<String, Timer> timers) throws IOException {
@@ -113,7 +171,7 @@ public class WebSocketReporter extends ScheduledReporter {
         json.writeFieldName("value");
         json.writeObject(gauge.getValue());
       } catch (Exception e) {
-        LOGGER.log(Level.WARNING, "Exception encountered while reporting [" + entry.getKey() + "]: " + e.getLocalizedMessage());
+        LOGGER.log(Level.FINE, "Exception encountered while reporting [" + entry.getKey() + "]: " + e.getLocalizedMessage());
         json.writeNull();
       }
       json.writeEndObject();
