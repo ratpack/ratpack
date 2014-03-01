@@ -88,7 +88,7 @@ The [`prefix()`](api/ratpack/handling/Chain.html#prefix\(java.lang.String,%20rat
 If the binding is successful, a [`PathBinding`](api/ratpack/path/PathBinding.html) object is registered with the context that describes the binding result.
 This includes any path tokens that were captured as part of the binding.
 In the case above, we are capturing the second path component as the `id`.
-The [`getPathTokens()`](api/ratpack/handling/Context.html#getPathTokens\(\)) method on a context is literally shorthand for `get(PathBinding.class).getPathTokens()` on the same context.
+The [`getPathTokens()`](api/ratpack/handling/MinimalContext.html#getPathTokens\(\)) method on a context is literally shorthand for `get(PathBinding.class).getPathTokens()` on the same context.
 This is another example of using the context object mechanism for inter-handler communication.
 
 Another example of using contextual objects is the shorthand for accessing files from the file system. Consider the following script, which makes use of the context's `file` method to retrieve a static asset from the file system:
@@ -107,7 +107,7 @@ ratpack {
 }
 ```
 
-In the above example, the context's [`file()`](api/ratpack/handling/Context.html#file\(java.lang.String\)) method is being called to retrieve a `java.io.File` instance for the provided path.
+In the above example, the context's [`file()`](api/ratpack/handling/MinimalContext.html#file\(java.lang.String\)) method is being called to retrieve a `java.io.File` instance for the provided path.
 The context's `file()` method is a shorthand to retrieve the `FileSystemBinding` object from the registry, and literally is a shorthand to `get(FileSystemBinding.class).file(path/to/file)`.
 The context will always resolve file assets relative to the application root, so in the case where an absolute path is provided, it should be noted that the path to the asset will be prefixed by the path in which the application exists. For example, if your application exists in `/home/ratpack/app` and your handler uses the `file` method to resolve `/etc/passwd`, then the actual path that is resolved will be `/home/ratpack/app/etc/passwd`.
 In the case where a file cannot be resolved from within the application's root, the `file()` method may return a null value, which is demonstrated in the above example. The developer is responsible for handling scenarios where accessing a file may return a null object.
