@@ -38,6 +38,14 @@ dependencies {
   testRuntime "org.apache.ant:ant-nodeps:1.8.1"
 }
 
+def projectDependencies = configurations.testCompile.dependencies.withType(ProjectDependency)
+assert projectDependencies.any { it.dependencyProject.path == ":ratpack-hikari" }  // Hikari creates a clash on commons logging
+projectDependencies.findAll {
+  it.dependencyProject.path in [":ratpack-groovy-test", ":ratpack-test-internal"]
+}.each {
+  it.exclude group: "commons-logging", module: "commons-logging"
+}
+
 apply from: "$rootDir/gradle/markdown2book.gradle"
 
 idea {
