@@ -22,7 +22,7 @@ dependencies {
   compile project(":ratpack-core")
   compile project(":ratpack-guice")
 
-  def codahaleMetricsVersion = "3.0.1"
+  def codahaleMetricsVersion = "3.0.2"
   
   compile "com.codahale.metrics:metrics-core:$codahaleMetricsVersion"
   compile "com.codahale.metrics:metrics-healthchecks:$codahaleMetricsVersion"
