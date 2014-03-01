@@ -49,5 +49,9 @@ public class MetricsBroadcaster {
     }
   }
 
+  public boolean isHasListeners() {
+    return !listeners.isEmpty();
+  }
+
 }
 

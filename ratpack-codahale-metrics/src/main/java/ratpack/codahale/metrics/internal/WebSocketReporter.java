@@ -47,6 +47,13 @@ public class WebSocketReporter extends ScheduledReporter {
   }
 
   @Override
+  public void report() {
+    if (metricsBroadcaster.isHasListeners()) {
+      super.report();
+    }
+  }
+
+  @Override
   @SuppressWarnings("rawtypes")
   public void report(SortedMap<String, Gauge> gauges,
                               SortedMap<String, Counter> counters,
