@@ -136,6 +136,9 @@ public class CodaHaleMetricsModule extends AbstractModule implements HandlerDeco
       bind(HealthCheckRegistry.class).in(Singleton.class);
       bind(HealthCheckEndpoint.class).toInstance(new HealthCheckEndpoint(new TokenPathBinder("health-check/:name?", true)));
     }
+
+    bind(HealthCheckResultRenderer.class).in(Singleton.class);
+    bind(HealthCheckResultsRenderer.class).in(Singleton.class);
   }
 
   /**

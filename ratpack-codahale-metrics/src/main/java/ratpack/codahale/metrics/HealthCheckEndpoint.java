@@ -17,6 +17,7 @@
 package ratpack.codahale.metrics;
 
 import com.codahale.metrics.health.HealthCheckRegistry;
+import ratpack.codahale.metrics.internal.DefaultHealthCheckResults;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.path.PathBinder;
@@ -51,9 +52,9 @@ public class HealthCheckEndpoint extends PathHandler {
               String healthCheckName = context.getPathTokens().get("name");
 
               if (healthCheckName != null) {
-                context.render(registry.runHealthCheck(healthCheckName).toString());
+                context.render(registry.runHealthCheck(healthCheckName));
               } else {
-                context.render(registry.runHealthChecks().toString());
+                context.render(new DefaultHealthCheckResults(registry.runHealthChecks()));
               }
             }
           })

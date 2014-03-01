@@ -18,9 +18,14 @@ package ratpack.codahale.metrics
 
 import com.codahale.metrics.health.HealthCheck
 import com.codahale.metrics.health.HealthCheckRegistry
+import ratpack.handling.Context
+import ratpack.jackson.JacksonModule
+import ratpack.render.RendererSupport
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 import javax.inject.Inject
+
+import static ratpack.jackson.Jackson.json
 
 class HealthchecksSpec extends RatpackGroovyDslSpec {
 
@@ -98,6 +103,40 @@ class HealthchecksSpec extends RatpackGroovyDslSpec {
     then:
     getText("admin/health-check") == "{foo=Result{isHealthy=true}, resource=Result{isHealthy=false, message=bad!}}"
     getText("admin/health-check/foo") == "Result{isHealthy=true}"
+  }
+
+  static class HealthCheckJsonRenderer extends RendererSupport<HealthCheck.Result> {
+    @Override
+    void render(Context context, HealthCheck.Result object) throws Exception {
+      context.render(json(object))
+    }
+  }
+
+  static class HealthChecksJsonRenderer extends RendererSupport<HealthCheckResults> {
+    @Override
+    void render(Context context, HealthCheckResults object) throws Exception {
+      context.render(json(object.getResults()))
+    }
+  }
+  def "can use healthcheck endpoint with custom renderer"() {
+    when:
+    modules {
+      register new CodaHaleMetricsModule()
+      register new JacksonModule()
+      bind MyHealthCheck
+      bind FooHealthCheck
+      bind HealthCheckJsonRenderer
+      bind HealthChecksJsonRenderer
+    }
+    handlers {
+      prefix("admin") {
+        handler(registry.get(HealthCheckEndpoint))
+      }
+    }
+
+    then:
+    getText("admin/health-check") == '{"foo":{"healthy":true,"message":null,"error":null},"resource":{"healthy":false,"message":"bad!","error":null}}'
+    getText("admin/health-check/foo") == '{"healthy":true,"message":null,"error":null}'
   }
 
 }
