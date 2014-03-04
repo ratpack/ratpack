@@ -363,9 +363,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
         render "foo"
       }
 
-      prefix("admin") {
-        handler(registry.get(MetricsEndpoint))
-      }
+      get("admin/metrics-report", new MetricsHandler())
     }
 
     and:

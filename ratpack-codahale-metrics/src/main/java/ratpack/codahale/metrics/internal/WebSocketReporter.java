@@ -31,9 +31,19 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * A {@link ScheduledReporter} that outputs measurements to a {@link MetricsBroadcaster} in JSON format.
+ * <p>
+ * The reporting interval, in seconds, can be specified by setting a configuration property with the name <code>metrics.scheduledreporter.interval</code>.
+ * If no interval is specified a default interval will be used which is defined by {@link #DEFAULT_INTERVAL}.
+ */
 public class WebSocketReporter extends ScheduledReporter {
 
   private final static Logger LOGGER = Logger.getLogger(WebSocketReporter.class.getName());
+  /**
+   * The default reporting interval.
+   */
+  private final static String DEFAULT_INTERVAL = "30";
   private final MetricsBroadcaster metricsBroadcaster;
   private final Clock clock = Clock.defaultClock();
   private final JsonFactory factory = new JsonFactory();
@@ -42,7 +52,7 @@ public class WebSocketReporter extends ScheduledReporter {
   public WebSocketReporter(MetricRegistry registry, MetricsBroadcaster metricsBroadcaster, LaunchConfig launchConfig) {
     super(registry, "websocket-reporter", MetricFilter.ALL, TimeUnit.SECONDS, TimeUnit.MILLISECONDS);
     this.metricsBroadcaster = metricsBroadcaster;
-    String interval = launchConfig.getOther("metrics.scheduledreporter.interval", "30");
+    String interval = launchConfig.getOther("metrics.scheduledreporter.interval", DEFAULT_INTERVAL);
     this.start(Long.valueOf(interval), TimeUnit.SECONDS);
   }
 

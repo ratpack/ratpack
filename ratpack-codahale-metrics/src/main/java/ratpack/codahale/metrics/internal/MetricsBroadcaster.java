@@ -23,6 +23,9 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * A message broadcaster for sending metrics to it's subscribers.
+ */
 public class MetricsBroadcaster {
 
   private final static Logger LOGGER = Logger.getLogger(MetricsBroadcaster.class.getName());

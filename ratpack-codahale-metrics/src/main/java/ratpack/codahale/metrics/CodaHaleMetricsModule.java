@@ -37,7 +37,6 @@ import ratpack.func.Action;
 import ratpack.guice.HandlerDecoratingModule;
 import ratpack.guice.internal.GuiceUtil;
 import ratpack.handling.Handler;
-import ratpack.path.internal.TokenPathBinder;
 
 import java.io.File;
 
@@ -128,10 +127,8 @@ public class CodaHaleMetricsModule extends AbstractModule implements HandlerDeco
       }
 
       if (reportMetricsToWebsocket) {
-        MetricsBroadcaster broadcaster = new MetricsBroadcaster();
-        bind(MetricsBroadcaster.class).toInstance(broadcaster);
+        bind(MetricsBroadcaster.class).in(Singleton.class);
         bind(WebSocketReporter.class).asEagerSingleton();
-        bind(MetricsEndpoint.class).toInstance(new MetricsEndpoint(new TokenPathBinder("metrics-report", true), broadcaster));
       }
     }
 
@@ -306,10 +303,27 @@ public class CodaHaleMetricsModule extends AbstractModule implements HandlerDeco
     return this;
   }
 
+  /**
+   * Enable the reporting of metrics via web sockets.  The collecting of metrics will also be enabled.
+   * <p>
+   * To broadcast metrics within an application see {@link MetricsHandler}.
+   *
+   * @return this {@code CodaHaleMetricsModule}
+   * @see #console()
+   * @see #csv(java.io.File)
+   * @see #jmx()
+   */
   public CodaHaleMetricsModule websocket() {
     return websocket(true);
   }
 
+  /**
+   * Enables or disables the reporting of metrics via web sockets.
+   *
+   * @param enabled If web socket metric reporting should be enabled.
+   * @return this {@code CodaHaleMetricsModule}
+   * @see #websocket()
+   */
   public CodaHaleMetricsModule websocket(boolean enabled) {
     this.reportMetricsToWebsocket = enabled;
     return this;
@@ -320,8 +334,9 @@ public class CodaHaleMetricsModule extends AbstractModule implements HandlerDeco
    *
    * @return this {@code CodaHaleMetricsModule}
    * @see <a href="http://metrics.codahale.com/getting-started/#reporting-via-jmx" target="_blank">Coda Hale Metrics - Reporting Via JMX</a>
-   * @see ratpack.codahale.metrics.CodaHaleMetricsModule#console()
-   * @see CodaHaleMetricsModule#csv(java.io.File)
+   * @see #console()
+   * @see #csv(java.io.File)
+   * @see #websocket()
    */
   public CodaHaleMetricsModule jmx() {
     return jmx(true);
@@ -332,7 +347,7 @@ public class CodaHaleMetricsModule extends AbstractModule implements HandlerDeco
    *
    * @param enabled If JMX metric reporting should be enabled.
    * @return this {@code CodaHaleMetricsModule}
-   * @see CodaHaleMetricsModule#jmx()
+   * @see #jmx()
    */
   public CodaHaleMetricsModule jmx(boolean enabled) {
     this.reportMetricsToJmx = enabled;
@@ -344,8 +359,9 @@ public class CodaHaleMetricsModule extends AbstractModule implements HandlerDeco
    *
    * @return this {@code CodaHaleMetricsModule}
    * @see <a href="http://metrics.codahale.com/manual/core/#man-core-reporters-console" target="_blank">Coda Hale Metrics - Console Reporting</a>
-   * @see ratpack.codahale.metrics.CodaHaleMetricsModule#jmx()
-   * @see CodaHaleMetricsModule#csv(java.io.File)
+   * @see #jmx()
+   * @see #csv(java.io.File)
+   * @see #websocket()
    */
   public CodaHaleMetricsModule console() {
     return console(true);
@@ -356,7 +372,7 @@ public class CodaHaleMetricsModule extends AbstractModule implements HandlerDeco
    *
    * @param enabled If Console metric reporting should be enabled.
    * @return this {@code CodaHaleMetricsModule}
-   * @see ratpack.codahale.metrics.CodaHaleMetricsModule#console()
+   * @see #console()
    */
   public CodaHaleMetricsModule console(boolean enabled) {
     this.reportMetricsToConsole = enabled;
@@ -369,8 +385,9 @@ public class CodaHaleMetricsModule extends AbstractModule implements HandlerDeco
    * @param reportDirectory The directory in which to create the CSV report files.
    * @return this {@code CodaHaleMetricsModule}
    * @see <a href="http://metrics.codahale.com/manual/core/#man-core-reporters-csv" target="_blank">Coda Hale Metrics - CSV Reporting</a>
-   * @see ratpack.codahale.metrics.CodaHaleMetricsModule#jmx()
-   * @see ratpack.codahale.metrics.CodaHaleMetricsModule#console()
+   * @see #jmx()
+   * @see #console()
+   * @see #websocket()
    */
   public CodaHaleMetricsModule csv(File reportDirectory) {
     if (reportDirectory == null) {
