@@ -95,14 +95,28 @@ class HealthchecksSpec extends RatpackGroovyDslSpec {
       bind FooHealthCheck
     }
     handlers {
-      prefix("admin") {
-        handler(registry.get(HealthCheckEndpoint))
-      }
+      get("admin/health-check/:name?", new HealthCheckHandler())
     }
 
     then:
     getText("admin/health-check") == "{foo=Result{isHealthy=true}, resource=Result{isHealthy=false, message=bad!}}"
     getText("admin/health-check/foo") == "Result{isHealthy=true}"
+  }
+
+  def "non existent health check returns 404"() {
+    when:
+    modules {
+      register new CodaHaleMetricsModule()
+      bind MyHealthCheck
+      bind FooHealthCheck
+    }
+    handlers {
+      get("admin/health-check/:name?", new HealthCheckHandler())
+    }
+
+    then:
+    get("admin/health-check/bar")
+    response.statusCode == 404
   }
 
   static class HealthCheckJsonRenderer extends RendererSupport<HealthCheck.Result> {
@@ -118,6 +132,7 @@ class HealthchecksSpec extends RatpackGroovyDslSpec {
       context.render(json(object.getResults()))
     }
   }
+
   def "can use healthcheck endpoint with custom renderer"() {
     when:
     modules {
@@ -129,9 +144,7 @@ class HealthchecksSpec extends RatpackGroovyDslSpec {
       bind HealthChecksJsonRenderer
     }
     handlers {
-      prefix("admin") {
-        handler(registry.get(HealthCheckEndpoint))
-      }
+      get("admin/health-check/:name?", new HealthCheckHandler())
     }
 
     then:

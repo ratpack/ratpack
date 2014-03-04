@@ -20,21 +20,24 @@ import com.codahale.metrics.ConsoleReporter;
 import com.codahale.metrics.CsvReporter;
 import com.codahale.metrics.JmxReporter;
 import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.annotation.Metered;
 import com.codahale.metrics.annotation.Timed;
 import com.codahale.metrics.health.HealthCheckRegistry;
-import com.codahale.metrics.annotation.Metered;
 import com.codahale.metrics.jvm.GarbageCollectorMetricSet;
 import com.codahale.metrics.jvm.MemoryUsageGaugeSet;
 import com.codahale.metrics.jvm.ThreadStatesGaugeSet;
-import com.google.inject.*;
+import com.google.inject.AbstractModule;
+import com.google.inject.Injector;
+import com.google.inject.Singleton;
+import com.google.inject.TypeLiteral;
 import com.google.inject.matcher.Matchers;
 import com.google.inject.name.Names;
 import ratpack.codahale.metrics.internal.*;
+import ratpack.func.Action;
 import ratpack.guice.HandlerDecoratingModule;
 import ratpack.guice.internal.GuiceUtil;
 import ratpack.handling.Handler;
 import ratpack.path.internal.TokenPathBinder;
-import ratpack.func.Action;
 
 import java.io.File;
 
@@ -134,7 +137,6 @@ public class CodaHaleMetricsModule extends AbstractModule implements HandlerDeco
 
     if (healthChecksEnabled) {
       bind(HealthCheckRegistry.class).in(Singleton.class);
-      bind(HealthCheckEndpoint.class).toInstance(new HealthCheckEndpoint(new TokenPathBinder("health-check/:name?", true)));
     }
 
     bind(HealthCheckResultRenderer.class).in(Singleton.class);
@@ -209,13 +211,13 @@ public class CodaHaleMetricsModule extends AbstractModule implements HandlerDeco
    * <p>
    * Health checks verify that application components or responsibilities are performing as expected.
    * <p>
-   * To create a health check simply create a class that extends {@link NamedHealthCheck} and Bind it with Guice.  When
-   * health checks are enabled then all bound classes of type NamedHealthCheck will automatically be registered with the
-   * {@link HealthCheckRegistry}.
+   * To create a health check simply create a class that extends {@link NamedHealthCheck} and bind it with Guice.
+   * This will automatically add it to the application wide {@link HealthCheckRegistry}.
    * <p>
-   * Health checks can be run using {@link com.codahale.metrics.health.HealthCheckRegistry#runHealthChecks()}
-   * or by using the provided {@link HealthCheckEndpoint}.  Using HealthCheckEndpoint provides {@link ratpack.path.internal.PathHandler}
-   * handlers with paths /health-check and /health-check/:name that can be inserted anywhere in the handler chain.
+   * Health checks can be run by obtaining the {@link HealthCheckRegistry} via dependency injection or context registry lookup,
+   * then calling {@link HealthCheckRegistry#runHealthChecks()}.
+   * <p>
+   * To expose the health check status over HTTP, see {@link HealthCheckHandler}.
    * <p>
    * Example health checks: (Groovy DSL)
    * </p>
@@ -223,7 +225,7 @@ public class CodaHaleMetricsModule extends AbstractModule implements HandlerDeco
    * import com.codahale.metrics.health.HealthCheck
    * import com.codahale.metrics.health.HealthCheckRegistry
    * import ratpack.codahale.metrics.CodaHaleMetricsModule
-   * import ratpack.codahale.metrics.HealthCheckEndpoint
+   * import ratpack.codahale.metrics.HealthCheckHandler
    * import ratpack.codahale.metrics.NamedHealthCheck
    * import static ratpack.groovy.Groovy.ratpack
    *
@@ -241,26 +243,17 @@ public class CodaHaleMetricsModule extends AbstractModule implements HandlerDeco
    *
    * ratpack {
    *   modules {
-   *     register new CodaHaleMetricsModule()
+   *     register new CodaHaleMetricsModule().healthChecks()
    *     bind FooHealthCheck // if you don't bind the health check with Guice it will not be automatically registered
    *   }
    *
    *   handlers {
-   *     // Use the default health check handler to run health checks.  /health-check will run all health checks and /health-check/:name will run individual checks
-   *     handler(registry.get(HealthCheckEndpoint))
+   *     // Using the provided handler…
+   *     get("health-check/:name", new HealthCheckHandler())
    *
-   *     // Use the default health check handler wrapped in a Prefix to run health checks.  Health checks can be run using /admin/health-check and /admin/health-check/:name
-   *     prefix("admin") {
-   *       handler(registry.get(HealthCheckEndpoint))
-   *     }
-   *
-   *     // Use your own handlers to run health checks
-   *     get("healthChecks") { HealthCheckRegistry healthCheckRegistry ->
+   *     // Using a custom handler to run all health checks…
+   *     get("healthChecks-custom") { HealthCheckRegistry healthCheckRegistry ->
    *       render healthCheckRegistry.runHealthChecks().toString()
-   *     }
-   *
-   *     get("healthCheck/:name") { HealthCheckRegistry healthCheckRegistry ->
-   *       render healthCheckRegistry.runHealthCheck(pathTokens.get("name")).toString()
    *     }
    *   }
    * }
@@ -268,7 +261,7 @@ public class CodaHaleMetricsModule extends AbstractModule implements HandlerDeco
    *
    * @return this {@code CodaHaleMetricsModule}
    * @see <a href="http://metrics.codahale.com/manual/healthchecks/" target="_blank">Coda Hale Metrics - Health Checks</a>
-   * @see HealthCheckEndpoint
+   * @see HealthCheckHandler
    * @see com.codahale.metrics.health.HealthCheckRegistry#runHealthChecks()
    * @see HealthCheckRegistry#runHealthCheck(String)
    * @see HealthCheckRegistry#runHealthChecks(java.util.concurrent.ExecutorService)
