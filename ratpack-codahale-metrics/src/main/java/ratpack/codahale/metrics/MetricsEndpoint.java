@@ -19,12 +19,13 @@ package ratpack.codahale.metrics;
 import com.google.inject.Inject;
 import ratpack.codahale.metrics.internal.MetricsBroadcaster;
 import ratpack.func.Action;
-import ratpack.func.CloseableTransformer;
+import ratpack.func.Transformer;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.path.PathBinder;
 import ratpack.path.internal.PathHandler;
 import ratpack.websocket.WebSocket;
+import ratpack.websocket.WebSocketClose;
 
 import static ratpack.websocket.WebSockets.websocket;
 
@@ -38,9 +39,9 @@ public class MetricsEndpoint extends PathHandler {
       public void handle(final Context context) throws Exception {
         context.respond(context.getByMethod().get(new Runnable() {
           public void run() {
-            websocket(context, new CloseableTransformer<WebSocket, AutoCloseable>() {
+            websocket(context, new Transformer<WebSocket, AutoCloseable>() {
               @Override
-              public AutoCloseable transform(final WebSocket webSocket) {
+              public AutoCloseable transform(final WebSocket webSocket) throws Exception {
                 return broadcaster.register(new Action<String>() {
                   @Override
                   public void execute(String msg) throws Exception {
@@ -48,7 +49,12 @@ public class MetricsEndpoint extends PathHandler {
                   }
                 });
               }
-            });
+            }).onClose(new Action<WebSocketClose<AutoCloseable>>() {
+              @Override
+              public void execute(WebSocketClose<AutoCloseable> close) throws Exception {
+                close.getOpenResult().close();
+              }
+            }).connect();
           }
         }));
       }

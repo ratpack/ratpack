@@ -16,11 +16,9 @@
 
 package ratpack.websocket;
 
-import ratpack.func.Action;
-import ratpack.func.CloseableTransformer;
-import ratpack.func.Transformer;
 import ratpack.handling.Context;
 import ratpack.launch.LaunchConfig;
+import ratpack.func.Transformer;
 import ratpack.websocket.internal.DefaultWebSocketBuilder;
 import ratpack.websocket.internal.WebSocketConnector;
 
@@ -28,20 +26,6 @@ public abstract class WebSockets {
 
   public static <T> WebSocketBuilder<T> websocket(Context context, Transformer<WebSocket, T> openAction) {
     return new DefaultWebSocketBuilder<>(context, openAction);
-  }
-
-  public static <T extends AutoCloseable> WebSocketBuilder<T> websocket(Context context, final CloseableTransformer<WebSocket, T> openAction) {
-    return new DefaultWebSocketBuilder<>(context, new Transformer<WebSocket, T>() {
-      @Override
-      public T transform(WebSocket from) throws Exception {
-        return openAction.transform(from);
-      }
-    }).onClose(new Action<WebSocketClose<T>>() {
-      @Override
-      public void execute(WebSocketClose<T> thing) throws Exception {
-        thing.getOpenResult().close();
-      }
-    });
   }
 
   public static void websocket(Context context, WebSocketHandler<?> handler) {
