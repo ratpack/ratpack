@@ -48,7 +48,7 @@ public class MetricsEndpoint extends PathHandler {
                   }
                 });
               }
-            }).connect();
+            });
           }
         }));
       }
