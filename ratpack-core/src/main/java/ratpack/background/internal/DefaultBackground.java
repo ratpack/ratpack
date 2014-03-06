@@ -20,12 +20,14 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
+import ratpack.func.Action;
 import ratpack.handling.Background;
+import ratpack.handling.BackgroundInterceptor;
 import ratpack.handling.Context;
 import ratpack.promise.SuccessOrErrorPromise;
 import ratpack.promise.SuccessPromise;
-import ratpack.func.Action;
 
+import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 
@@ -98,23 +100,83 @@ public class DefaultBackground implements Background {
 
     @Override
     public void then(final Action<? super T> then) {
+      final List<BackgroundInterceptor> interceptors = context.getAll(BackgroundInterceptor.class);
+
       final ListenableFuture<T> future = backgroundExecutor.submit(new Callable<T>() {
+
+        private Exception exception;
+        private T result;
+        private int i;
+
         @Override
         public T call() throws Exception {
           contextThreadLocal.set(context);
           try {
-            return backgroundAction.call();
+            if (interceptors.isEmpty()) {
+              return backgroundAction.call();
+            } else {
+              nextInterceptor();
+              if (exception != null) {
+                throw exception;
+              } else {
+                return result;
+              }
+            }
           } finally {
             contextThreadLocal.remove();
           }
         }
+
+        private void nextInterceptor() {
+          if (i < interceptors.size()) {
+            BackgroundInterceptor interceptor = interceptors.get(i++);
+            Runnable continuation = new Runnable() {
+              @Override
+              public void run() {
+                try {
+                  nextInterceptor();
+                } catch (Exception ignore) {
+                  // do nothing
+                }
+              }
+            };
+            interceptor.toBackground(context, continuation);
+          } else {
+            try {
+              result = backgroundAction.call();
+            } catch (Exception e) {
+              exception = e;
+            }
+          }
+        }
       });
+
       Futures.addCallback(future, new FutureCallback<T>() {
+
+        private Exception exception;
+        int i = interceptors.size() - 1;
+
         @Override
-        public void onSuccess(T result) {
+        public void onSuccess(final T result) {
           contextThreadLocal.set(context);
           try {
-            then.execute(result);
+            if (interceptors.isEmpty()) {
+              then.execute(result);
+            } else {
+              nextInterceptor(new Runnable() {
+                @Override
+                public void run() {
+                  try {
+                    then.execute(result);
+                  } catch (Exception e) {
+                    exception = e;
+                  }
+                }
+              });
+              if (exception != null) {
+                throw exception;
+              }
+            }
           } catch (Exception e) {
             context.error(e);
           } finally {
@@ -123,16 +185,52 @@ public class DefaultBackground implements Background {
         }
 
         @Override
-        public void onFailure(Throwable t) {
+        public void onFailure(final Throwable t) {
           contextThreadLocal.set(context);
           try {
-            errorHandler.execute(t);
+            if (interceptors.isEmpty()) {
+              errorHandler.execute(t);
+            } else {
+              nextInterceptor(new Runnable() {
+                @Override
+                public void run() {
+                  try {
+                    errorHandler.execute(t);
+                  } catch (Exception e) {
+                    exception = e;
+                  }
+                }
+              });
+              if (exception != null) {
+                throw exception;
+              }
+            }
           } catch (Exception e) {
             context.error(e);
           } finally {
             contextThreadLocal.remove();
           }
         }
+
+        private void nextInterceptor(final Runnable action) {
+          if (i >= 0) {
+            BackgroundInterceptor interceptor = interceptors.get(i--);
+            Runnable continuation = new Runnable() {
+              @Override
+              public void run() {
+                try {
+                  nextInterceptor(action);
+                } catch (Exception ignore) {
+                  // do nothing
+                }
+              }
+            };
+            interceptor.toForeground(context, continuation);
+          } else {
+            action.run();
+          }
+        }
+
       }, foregroundExecutor);
     }
   }
