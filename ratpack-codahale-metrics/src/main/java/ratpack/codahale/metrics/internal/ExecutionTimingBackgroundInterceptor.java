@@ -20,22 +20,40 @@ import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;
 import ratpack.handling.BackgroundInterceptor;
 import ratpack.handling.Context;
+import ratpack.http.Request;
 
 /**
  * A {@link ratpack.handling.BackgroundInterceptor} implementation that collects {@link Timer} metrics
  * for {@link ratpack.handling.Background} executions.
  * <p>
- * Metrics will be recorded under the name {@link #METRIC_NAME}
+ * Metrics are grouped by {@link ratpack.http.Request#getUri()} and {@link ratpack.http.Request#getMethod()}.
+ * For example, the following requests with background tasks...
+ *
+ * <pre>
+ * /
+ * /book
+ * /author/1/books
+ * </pre>
+ *
+ * will be reported as...
+ *
+ * <pre>
+ * [root]~GET~Background
+ * [book]~GET~Background
+ * [author][1][books]~GET~Background
+ * </pre>
  */
 public class ExecutionTimingBackgroundInterceptor implements BackgroundInterceptor {
 
-  private static final String METRIC_NAME = "background";
   private Timer.Context timer;
 
   @Override
   public void toBackground(Context context, Runnable continuation) {
     MetricRegistry metricRegistry = context.get(MetricRegistry.class);
-    timer = metricRegistry.timer(METRIC_NAME).time();
+    Request request = context.getRequest();
+
+    String tag = buildBackgroundTimerTag(request.getUri(), request.getMethod().getName());
+    timer = metricRegistry.timer(tag).time();
     continuation.run();
   }
 
@@ -43,6 +61,10 @@ public class ExecutionTimingBackgroundInterceptor implements BackgroundIntercept
   public void toForeground(Context context, Runnable continuation) {
     timer.stop();
     continuation.run();
+  }
+
+  private String buildBackgroundTimerTag(String requestUri, String requestMethod) {
+    return (requestUri.equals("/") ? "[root" : requestUri.replaceFirst("/", "[").replace("/", "][")) + "]~" + requestMethod + "~Background";
   }
 
 }

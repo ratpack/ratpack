@@ -418,7 +418,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     handlers {MetricRegistry metrics ->
       metrics.addListener(reporter)
 
-      handler {
+      handler("foo") {
         background {
           2
         } then {
@@ -428,10 +428,10 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     }
 
     when:
-    2.times { getText() }
+    2.times { get("foo") }
 
     then:
-    1 * reporter.onTimerAdded("background", !null) >> { arguments ->
+    1 * reporter.onTimerAdded("[foo]~GET~Background", !null) >> { arguments ->
       backgroundTimer = arguments[1]
     }
     backgroundTimer.count == 2
