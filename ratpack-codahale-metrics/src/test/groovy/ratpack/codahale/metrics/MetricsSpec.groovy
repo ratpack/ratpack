@@ -406,5 +406,34 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     new RecordingWebSocketClient(new URI("ws://localhost:$server.bindPort/admin/metrics-report"))
   }
 
-}
+  def "can collect background metrics"() {
+    def reporter = Mock(MetricRegistryListener)
+    def backgroundTimer
 
+    given:
+    modules {
+      register new CodaHaleMetricsModule().metrics()
+    }
+
+    handlers {MetricRegistry metrics ->
+      metrics.addListener(reporter)
+
+      handler {
+        background {
+          2
+        } then {
+          render ""
+        }
+      }
+    }
+
+    when:
+    2.times { getText() }
+
+    then:
+    1 * reporter.onTimerAdded("background", !null) >> { arguments ->
+      backgroundTimer = arguments[1]
+    }
+    backgroundTimer.count == 2
+  }
+}

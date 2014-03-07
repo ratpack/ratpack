@@ -101,6 +101,7 @@ public class CodaHaleMetricsModule extends AbstractModule implements HandlerDeco
     if (isMetricsEnabled()) {
       final MetricRegistry metricRegistry = new MetricRegistry();
       bind(MetricRegistry.class).toInstance(metricRegistry);
+      bind(ExecutionTimingBackgroundInterceptor.class);
 
       MeteredMethodInterceptor meteredMethodInterceptor = new MeteredMethodInterceptor();
       requestInjection(meteredMethodInterceptor);
@@ -423,4 +424,3 @@ public class CodaHaleMetricsModule extends AbstractModule implements HandlerDeco
     }
   }
 }
-
