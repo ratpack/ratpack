@@ -178,13 +178,13 @@ subprojects {
       }
     }
 
-//    install {
-//      repositories {
-//        mavenDeployer {
-//          repository(url: "file://${rootProject.buildDir.absolutePath}/localrepo")
-//        }
-//      }
-//    }
+    install {
+      repositories {
+        mavenDeployer {
+          repository(url: "file://${rootProject.buildDir.absolutePath}/localrepo")
+        }
+      }
+    }
 
     install.repositories["mavenInstaller"].beforeDeployment { deployment ->
       if (!isSnapshot) {
