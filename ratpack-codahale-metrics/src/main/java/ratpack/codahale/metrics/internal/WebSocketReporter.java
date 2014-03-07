@@ -58,7 +58,7 @@ public class WebSocketReporter extends ScheduledReporter {
 
   @Override
   public void report() {
-    if (metricsBroadcaster.isHasListeners()) {
+    if (metricsBroadcaster.hasListeners()) {
       super.report();
     }
   }
@@ -198,4 +198,3 @@ public class WebSocketReporter extends ScheduledReporter {
   }
 
 }
-

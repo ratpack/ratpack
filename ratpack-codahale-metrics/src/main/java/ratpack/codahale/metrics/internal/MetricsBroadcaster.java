@@ -52,9 +52,8 @@ public class MetricsBroadcaster {
     }
   }
 
-  public boolean isHasListeners() {
+  public boolean hasListeners() {
     return !listeners.isEmpty();
   }
 
 }
-
