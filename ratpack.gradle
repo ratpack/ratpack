@@ -85,7 +85,7 @@ ext {
   publishedModules = [
     "ratpack-core", "ratpack-groovy", "ratpack-guice", "ratpack-session", "ratpack-test", "ratpack-groovy-test",
     "ratpack-manual", "ratpack-gradle", "ratpack-handlebars", "ratpack-remote", "ratpack-remote-test", "ratpack-jackson",
-    "ratpack-codahale-metrics", "ratpack-h2", "ratpack-thymeleaf", "ratpack-rx", "ratpack-hikari"
+    "ratpack-codahale-metrics", "ratpack-h2", "ratpack-thymeleaf", "ratpack-rx", "ratpack-hikari", "ratpack-newrelic"
   ].collect { project(it) }
 
   apiModules = publishedModules.findAll { !(it.name in ["ratpack-manual", "ratpack-gradle"]) }
@@ -178,13 +178,13 @@ subprojects {
       }
     }
 
-    install {
-      repositories {
-        mavenDeployer {
-          repository(url: "file://${rootProject.buildDir.absolutePath}/localrepo")
-        }
-      }
-    }
+//    install {
+//      repositories {
+//        mavenDeployer {
+//          repository(url: "file://${rootProject.buildDir.absolutePath}/localrepo")
+//        }
+//      }
+//    }
 
     install.repositories["mavenInstaller"].beforeDeployment { deployment ->
       if (!isSnapshot) {
