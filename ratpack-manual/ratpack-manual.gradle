@@ -35,6 +35,11 @@ buildscript {
 
 dependencies {
   testCompile apiModules
+  testCompile("org.pac4j:pac4j-openid:1.4.1") { // used by ratpack-pac4j's code snippets
+    exclude group: "org.slf4j", module: "slf4j-api"
+    exclude group: "com.google.inject", module: "guice"
+    exclude group: "org.apache.httpcomponents", module: "httpclient"
+  }
   testRuntime "org.apache.ant:ant-nodeps:1.8.1"
 }
 

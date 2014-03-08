@@ -36,7 +36,8 @@ include \
     "ratpack-thymeleaf",
     "ratpack-lazybones",
     "ratpack-hikari",
-    "ratpack-newrelic"
+    "ratpack-newrelic",
+    "ratpack-pac4j"
 
 include \
   "perftest",
