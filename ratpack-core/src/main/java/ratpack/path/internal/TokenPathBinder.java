@@ -52,6 +52,11 @@ public class TokenPathBinder implements PathBinder {
       String name = matchResult.group(2);
       boolean optional = part.endsWith("?");
 
+      if (!hasOptional && optional) {
+        int contentQuantifierIndex = replacementStart.indexOf("+");
+        replacementBuilder.replace(contentQuantifierIndex, contentQuantifierIndex + 1, "*");
+      }
+
       hasOptional = hasOptional || optional;
       if (hasOptional && !optional) {
         throw new IllegalArgumentException(String.format("path %s should not define mandatory parameters after an optional parameter", path));

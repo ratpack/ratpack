@@ -240,4 +240,31 @@ class PathRoutingSpec extends RatpackGroovyDslSpec {
     deleteText("a") == "a"
     delete("a/b/c/d").statusCode == NOT_FOUND.code()
   }
+
+  def "double-slashes in paths are not de-duped"() {
+    when:
+    handlers {
+      get("a/b") {
+        response.send "de-dup"
+      }
+      get("a//b") {
+        response.send "no de-dup"
+      }
+    }
+
+    then:
+    getText("a//b") == "no de-dup"
+  }
+
+  def "double-slashes from empty path tokens are allowed"() {
+    when:
+    handlers {
+      get(":a/:b?/:c?") {
+        response.send "a=${pathTokens.a},b=${pathTokens.b},c=${pathTokens.c}"
+      }
+    }
+
+    then:
+    getText("1//3") == "a=1,b=,c=3"
+  }
 }

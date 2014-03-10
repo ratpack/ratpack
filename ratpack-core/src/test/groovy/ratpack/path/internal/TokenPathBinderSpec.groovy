@@ -48,6 +48,12 @@ class TokenPathBinderSpec extends Specification {
     bind(":a", "foo%20bar") == [a: "foo bar"]
     bind(":a", "foo%2Bbar") == [a: "foo+bar"]
     bind(":a", "foo+bar") == [a: "foo+bar"]
+    bind(":a?", "") == [a: ""]
+    bind(":a?/b", "/b") == [a: ""]
+    bind(":a?/b/:c?", "/b/3") == [a: "", c: "3"]
+    bind("a/:b?", "a") == [:]
+    bind("a/:b?", "a/") == [b: ""]
+    bind(":a/:b?/:c?", "1//3") == [a: "1", b: "", c: "3"]
 
     when:
     bind(":a/:b?/:c", "abc/def/ghi")
