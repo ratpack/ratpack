@@ -64,7 +64,7 @@ import java.util.Date;
  * <li>A {@link Redirector}</li>
  * </ul>
  */
-public interface Context extends MinimalContext {
+public interface Context extends ReadOnlyContext {
 
   /**
    * Returns this.

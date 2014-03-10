@@ -31,7 +31,7 @@ public interface Foreground {
    * @return the current context on the current thread
    * @throws NoBoundContextException if this method is called from a thread that is not performing request processing
    */
-  MinimalContext getContext() throws NoBoundContextException;
+  ReadOnlyContext getContext() throws NoBoundContextException;
 
   /**
    * The executor that manages foreground work.

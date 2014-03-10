@@ -19,7 +19,7 @@ package ratpack.handling.internal;
 import com.google.common.util.concurrent.ListeningScheduledExecutorService;
 import ratpack.handling.Context;
 import ratpack.handling.Foreground;
-import ratpack.handling.MinimalContext;
+import ratpack.handling.ReadOnlyContext;
 import ratpack.handling.NoBoundContextException;
 
 public class DefaultForeground implements Foreground {
@@ -33,7 +33,7 @@ public class DefaultForeground implements Foreground {
   }
 
   @Override
-  public MinimalContext getContext() throws NoBoundContextException {
+  public ReadOnlyContext getContext() throws NoBoundContextException {
     Context context = contextThreadLocal.get();
     if (context == null) {
       throw new NoBoundContextException("No context is bound to the current thread (are you calling this from the background?)");

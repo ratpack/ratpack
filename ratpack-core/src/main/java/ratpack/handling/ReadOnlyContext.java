@@ -31,14 +31,14 @@ import java.util.concurrent.Callable;
 /**
  * A context that does not provide access to the {@link ratpack.http.Response} or flow control methods.
  */
-public interface MinimalContext extends Registry {
+public interface ReadOnlyContext extends Registry {
 
   /**
    * Returns this.
    *
    * @return this.
    */
-  MinimalContext getContext();
+  ReadOnlyContext getContext();
 
   /**
    * The HTTP request.

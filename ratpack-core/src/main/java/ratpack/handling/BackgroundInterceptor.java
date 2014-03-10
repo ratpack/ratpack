@@ -16,6 +16,9 @@
 
 package ratpack.handling;
 
+/**
+ *
+ */
 public interface BackgroundInterceptor {
 
   /**
