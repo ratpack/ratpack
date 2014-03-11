@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import ratpack.path.PathBinder;
 import ratpack.path.PathBinding;
-import ratpack.util.internal.Validations;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
@@ -34,8 +33,6 @@ public class TokenPathBinder implements PathBinder {
   private final Pattern regex;
 
   public TokenPathBinder(String path, boolean exact) {
-    Validations.noLeadingForwardSlash(path, "token path");
-
     ImmutableList.Builder<String> namesBuilder = ImmutableList.builder();
     String pattern = Pattern.quote(path);
 

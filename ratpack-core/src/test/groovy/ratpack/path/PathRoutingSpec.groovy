@@ -267,4 +267,24 @@ class PathRoutingSpec extends RatpackGroovyDslSpec {
     then:
     getText("1//3") == "a=1,b=,c=3"
   }
+
+  def "leading slashes in the path are matched as-is after skipping the first"() {
+    when:
+    handlers {
+      get("bar") {
+        response.send "0"
+      }
+      get("/bar") {
+        response.send "1"
+      }
+      get("//bar") {
+        response.send "2"
+      }
+    }
+
+    then:
+    new URL("${applicationUnderTest.address}bar").text == "0"
+    new URL("${applicationUnderTest.address}/bar").text == "1"
+    new URL("${applicationUnderTest.address}//bar").text == "2"
+  }
 }
