@@ -21,10 +21,15 @@ import io.netty.handler.codec.http.Cookie;
 import io.netty.handler.codec.http.CookieDecoder;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.QueryStringDecoder;
+import ratpack.api.Nullable;
+import ratpack.func.Factory;
 import ratpack.http.Headers;
 import ratpack.http.HttpMethod;
 import ratpack.http.Request;
 import ratpack.http.TypedData;
+import ratpack.registry.MutableRegistry;
+import ratpack.registry.NotInRegistryException;
+import ratpack.registry.internal.SimpleMutableRegistry;
 import ratpack.util.MultiValueMap;
 import ratpack.util.internal.ImmutableDelegatingMultiValueMap;
 
@@ -34,6 +39,8 @@ import java.util.List;
 import java.util.Set;
 
 public class DefaultRequest implements Request {
+
+  private final MutableRegistry<Object> registry = new SimpleMutableRegistry<>();
 
   private final Headers headers;
   private final ByteBuf content;
@@ -157,5 +164,41 @@ public class DefaultRequest implements Request {
   @Override
   public Headers getHeaders() {
     return headers;
+  }
+
+  @Override
+  public <O> void register(Class<O> type, O object) {
+    registry.register(type, object);
+  }
+
+  @Override
+  public void register(Object object) {
+    registry.register(object);
+  }
+
+  @Override
+  public <O> void registerLazy(Class<O> type, Factory<? extends O> factory) {
+    registry.registerLazy(type, factory);
+  }
+
+  @Override
+  public <O> void remove(Class<O> type) throws NotInRegistryException {
+    registry.remove(type);
+  }
+
+  @Override
+  public <O> O get(Class<O> type) throws NotInRegistryException {
+    return registry.get(type);
+  }
+
+  @Override
+  @Nullable
+  public <O> O maybeGet(Class<O> type) {
+    return registry.maybeGet(type);
+  }
+
+  @Override
+  public <O> List<O> getAll(Class<O> type) {
+    return registry.getAll(type);
   }
 }

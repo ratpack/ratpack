@@ -16,6 +16,8 @@
 
 package ratpack.registry;
 
+import ratpack.func.Factory;
+
 /**
  * A {@link Registry} that is also mutable.
  *
@@ -40,13 +42,23 @@ public interface MutableRegistry<T> extends Registry {
   void register(T object);
 
   /**
+   * Registers a lazily created entry to the registry.
+   * <p>
+   * The factory will be invoked exactly once, when a query is made to the registry of a compatible type of the given type.
+   *
+   * @param type the public type of the registry entry
+   * @param factory the factory for creating the object when needed
+   * @param <O> the public type of the registry entry
+   */
+  <O extends T> void registerLazy(Class<O> type, Factory<? extends O> factory);
+
+  /**
    * Remove the registration for the given type.
    *
    * @param type The type of the thing to remove
    * @param <O> The type of the thing to remove
-   * @return The removed object
    * @throws NotInRegistryException if there is nothing registered by that type
    */
-  <O extends T> O remove(Class<O> type) throws NotInRegistryException;
+  <O extends T> void remove(Class<O> type) throws NotInRegistryException;
 
 }

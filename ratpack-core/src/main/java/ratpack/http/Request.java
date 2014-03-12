@@ -18,6 +18,7 @@ package ratpack.http;
 
 import io.netty.handler.codec.http.Cookie;
 import ratpack.api.Nullable;
+import ratpack.registry.MutableRegistry;
 import ratpack.util.MultiValueMap;
 
 import java.util.Set;
@@ -26,7 +27,7 @@ import java.util.Set;
  * A request to be handled.
  */
 @SuppressWarnings("UnusedDeclaration")
-public interface Request {
+public interface Request extends MutableRegistry<Object> {
 
   /**
    * The method of the request.

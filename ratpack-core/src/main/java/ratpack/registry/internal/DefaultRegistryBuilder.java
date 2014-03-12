@@ -61,7 +61,7 @@ public class DefaultRegistryBuilder implements RegistryBuilder {
     if (entries.size() == 1) {
       return new SingleEntryRegistry(entries.get(0));
     } else {
-      return new MultiEntryRegistry(entries);
+      return new MultiEntryRegistry<>(entries);
     }
   }
 

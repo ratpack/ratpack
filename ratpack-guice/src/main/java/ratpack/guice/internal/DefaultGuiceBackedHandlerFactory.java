@@ -22,6 +22,9 @@ import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.util.Modules;
 import io.netty.buffer.ByteBuf;
+import ratpack.func.Action;
+import ratpack.func.Factory;
+import ratpack.func.Transformer;
 import ratpack.guice.GuiceBackedHandlerFactory;
 import ratpack.guice.HandlerDecoratingModule;
 import ratpack.guice.ModuleRegistry;
@@ -33,9 +36,6 @@ import ratpack.launch.LaunchConfig;
 import ratpack.registry.NotInRegistryException;
 import ratpack.reload.internal.ClassUtil;
 import ratpack.reload.internal.ReloadableFileBackedFactory;
-import ratpack.func.Action;
-import ratpack.func.Factory;
-import ratpack.func.Transformer;
 
 import javax.inject.Provider;
 import java.io.File;
@@ -184,6 +184,11 @@ public class DefaultGuiceBackedHandlerFactory implements GuiceBackedHandlerFacto
       register((Class<Module>) module.getClass(), module);
     }
 
+    @Override
+    public <O extends Module> void registerLazy(Class<O> type, Factory<? extends O> factory) {
+      register(type, factory.create());
+    }
+
     public <O extends Module> void register(Class<O> type, O module) {
       if (modules.containsKey(type)) {
         Object existing = modules.get(type);
@@ -223,12 +228,12 @@ public class DefaultGuiceBackedHandlerFactory implements GuiceBackedHandlerFacto
       return type.cast(module);
     }
 
-    public <T extends Module> T remove(Class<T> moduleType) {
+    public <T extends Module> void remove(Class<T> moduleType) {
       if (!modules.containsKey(moduleType)) {
         throw new NotInRegistryException(moduleType);
       }
 
-      return moduleType.cast(modules.remove(moduleType));
+      modules.remove(moduleType);
     }
 
     private List<Module> getModules() {

@@ -21,6 +21,7 @@ import com.google.inject.Module;
 import groovy.lang.Closure;
 import ratpack.api.Nullable;
 import ratpack.func.Action;
+import ratpack.func.Factory;
 import ratpack.groovy.guice.GroovyModuleRegistry;
 import ratpack.groovy.internal.ClosureInvoker;
 import ratpack.guice.ModuleRegistry;
@@ -99,13 +100,17 @@ public class DefaultGroovyModuleRegistry implements GroovyModuleRegistry {
     moduleRegistry.register(type, object);
   }
 
+  public <O extends Module> void registerLazy(Class<O> type, Factory<? extends O> factory) {
+    moduleRegistry.registerLazy(type, factory);
+  }
+
   @Override
   public void register(Module object) {
     moduleRegistry.register(object);
   }
 
-  public <O extends Module> O remove(Class<O> type) throws NotInRegistryException {
-    return moduleRegistry.remove(type);
+  public <O extends Module> void remove(Class<O> type) throws NotInRegistryException {
+    moduleRegistry.remove(type);
   }
 
   @Override
