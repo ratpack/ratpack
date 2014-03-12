@@ -101,6 +101,11 @@ subprojects {
     }
   }
 
+  // CodeNarc appears to hang in drone.io
+  tasks.withType(CodeNarc) {
+    onlyIf { !rootProject.hasProperty("ciBuild") }
+  }
+
   tasks.withType(Test) {
     allprojects {
       mustRunAfter tasks.withType(Checkstyle)
