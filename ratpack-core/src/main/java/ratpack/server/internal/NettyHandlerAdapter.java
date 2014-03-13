@@ -21,7 +21,6 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
 import io.netty.util.CharsetUtil;
-import ratpack.handling.Background;
 import ratpack.error.ClientErrorHandler;
 import ratpack.error.ServerErrorHandler;
 import ratpack.error.internal.DefaultClientErrorHandler;
@@ -36,10 +35,8 @@ import ratpack.file.internal.DefaultFileHttpTransmitter;
 import ratpack.file.internal.DefaultFileRenderer;
 import ratpack.file.internal.FileHttpTransmitter;
 import ratpack.form.internal.FormParser;
-import ratpack.handling.Context;
-import ratpack.handling.Handler;
-import ratpack.handling.Redirector;
-import ratpack.handling.RequestOutcome;
+import ratpack.func.Action;
+import ratpack.handling.*;
 import ratpack.handling.direct.DirectChannelAccess;
 import ratpack.handling.direct.internal.DefaultDirectChannelAccess;
 import ratpack.handling.internal.*;
@@ -55,7 +52,6 @@ import ratpack.render.internal.DefaultRenderController;
 import ratpack.server.BindAddress;
 import ratpack.server.PublicAddress;
 import ratpack.server.Stopper;
-import ratpack.func.Action;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -73,6 +69,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
   private final ConcurrentHashMap<Channel, Action<Object>> channelSubscriptions = new ConcurrentHashMap<>(0);
 
   private final DefaultContext.ApplicationConstants applicationConstants;
+  private final FinishedOnThreadCallbackManager finishedOnThreadCallbackManager = new FinishedOnThreadCallbackManager();
 
   private Registry registry;
 
@@ -82,6 +79,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
     this.registry = Registries.registry()
       // If you update this list, update the class level javadoc on Context.
       .add(Background.class, launchConfig.getBackground())
+      .add(finishedOnThreadCallbackManager)
       .add(Stopper.class, stopper)
       .add(FileSystemBinding.class, launchConfig.getBaseDir())
       .add(MimeTypes.class, new ActivationBackedMimeTypes())
@@ -195,6 +193,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
     );
     Context context = new DefaultContext(requestConstants, registry, handlers, 0, return404);
     context.next();
+    finishedOnThreadCallbackManager.fire();
   }
 
   @Override

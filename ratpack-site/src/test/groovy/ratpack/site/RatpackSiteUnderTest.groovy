@@ -39,7 +39,7 @@ class RatpackSiteUnderTest extends LocalScriptApplicationUnderTest {
     remote.exec {
       def data = new MockGithubData()
 
-      // This is a temporary measure, as we are hard coding the state of the github data at the time of writing this test.
+      // This is a temporary measure, as we are hard coding the type of the github data at the time of writing this test.
       // We need to sync up some kind of strategy with what manuals have actually been put in place by the build.
       data.released.add(new RatpackVersion("0.9.0", 1, "foo", new Date(), true))
       data.released.add(new RatpackVersion("0.9.1", 2, "foo", new Date(), true))

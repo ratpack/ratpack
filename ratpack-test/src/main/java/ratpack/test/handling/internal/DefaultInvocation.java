@@ -34,10 +34,7 @@ import ratpack.handling.Context;
 import ratpack.handling.Foreground;
 import ratpack.handling.Handler;
 import ratpack.handling.RequestOutcome;
-import ratpack.handling.internal.DefaultContext;
-import ratpack.handling.internal.DefaultForeground;
-import ratpack.handling.internal.DefaultRequestOutcome;
-import ratpack.handling.internal.DelegatingHeaders;
+import ratpack.handling.internal.*;
 import ratpack.http.*;
 import ratpack.http.internal.DefaultResponse;
 import ratpack.http.internal.DefaultSentResponse;
@@ -70,6 +67,8 @@ public class DefaultInvocation implements Invocation {
   private Path sentFile;
   private Object rendered;
   private Integer clientError;
+
+  private final FinishedOnThreadCallbackManager finishedOnThreadCallbackManager = new FinishedOnThreadCallbackManager();
 
   public DefaultInvocation(final Request request, final MutableStatus status, final MutableHeaders responseHeaders, Registry registry, final int timeout, Handler handler) {
 
@@ -142,6 +141,7 @@ public class DefaultInvocation implements Invocation {
       Registries.registry().
         add(ClientErrorHandler.class, clientErrorHandler).
         add(ServerErrorHandler.class, serverErrorHandler).
+        add(finishedOnThreadCallbackManager).
         build(),
       registry
     );
@@ -170,6 +170,7 @@ public class DefaultInvocation implements Invocation {
     contextThreadLocal.set(context);
     try {
       handler.handle(context);
+      finishedOnThreadCallbackManager.fire();
     } catch (Exception e) {
       exception = e;
       latch.countDown();

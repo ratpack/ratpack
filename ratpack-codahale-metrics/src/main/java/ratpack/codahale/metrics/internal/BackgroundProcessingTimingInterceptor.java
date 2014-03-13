@@ -18,12 +18,12 @@ package ratpack.codahale.metrics.internal;
 
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;
-import ratpack.handling.BackgroundInterceptor;
 import ratpack.handling.Context;
+import ratpack.handling.ProcessingInterceptor;
 import ratpack.http.Request;
 
 /**
- * A {@link ratpack.handling.BackgroundInterceptor} implementation that collects {@link Timer} metrics
+ * A {@link ratpack.handling.ProcessingInterceptor} implementation that collects {@link Timer} metrics
  * for {@link ratpack.handling.Background} executions.
  * <p>
  * Metrics are grouped by {@link ratpack.http.Request#getUri()} and {@link ratpack.http.Request#getMethod()}.
@@ -43,24 +43,26 @@ import ratpack.http.Request;
  * [author][1][books]~GET~Background
  * </pre>
  */
-public class ExecutionTimingBackgroundInterceptor implements BackgroundInterceptor {
-
-  private Timer.Context timer;
+public class BackgroundProcessingTimingInterceptor implements ProcessingInterceptor {
 
   @Override
-  public void toBackground(Context context, Runnable continuation) {
-    MetricRegistry metricRegistry = context.get(MetricRegistry.class);
-    Request request = context.getRequest();
-
-    String tag = buildBackgroundTimerTag(request.getUri(), request.getMethod().getName());
-    timer = metricRegistry.timer(tag).time();
-    continuation.run();
+  public void init(Context context) {
+    // do nothing
   }
 
   @Override
-  public void toForeground(Context context, Runnable continuation) {
-    timer.stop();
-    continuation.run();
+  public void intercept(Type type, Context context, Runnable continuation) {
+    if (type == Type.BACKGROUND) {
+      MetricRegistry metricRegistry = context.get(MetricRegistry.class);
+      Request request = context.getRequest();
+
+      String tag = buildBackgroundTimerTag(request.getUri(), request.getMethod().getName());
+      Timer.Context timer = metricRegistry.timer(tag).time();
+      continuation.run();
+      timer.stop();
+    } else {
+      continuation.run();
+    }
   }
 
   private String buildBackgroundTimerTag(String requestUri, String requestMethod) {

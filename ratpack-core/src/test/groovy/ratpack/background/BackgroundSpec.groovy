@@ -207,4 +207,40 @@ class BackgroundSpec extends RatpackGroovyDslSpec {
     request.content("foo")
     postText() == "foo"
   }
+
+  def "background processing does not start until foreground processing has unwound"() {
+    given:
+    def events = []
+
+    when:
+    handlers {
+      handler {
+        next()
+        events << "foreground"
+      }
+      handler {
+        background {
+          events << "background"
+        } then {
+          background {
+            events << "inner background"
+          } then {
+            render "ok"
+          }
+          sleep 500
+          events << "inner foreground"
+        }
+        sleep 500
+      }
+    }
+
+    and:
+    get()
+
+    then:
+    events == ["foreground", "background", "inner foreground", "inner background"]
+  }
+
+
+
 }

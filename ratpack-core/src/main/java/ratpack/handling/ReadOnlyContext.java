@@ -205,4 +205,5 @@ public interface ReadOnlyContext extends Registry {
    * @param onClose A notification callback
    */
   void onClose(Action<? super RequestOutcome> onClose);
+
 }

@@ -17,27 +17,22 @@
 package ratpack.newrelic.internal;
 
 import com.newrelic.api.agent.Trace;
+import ratpack.handling.ProcessingInterceptor;
 import ratpack.handling.Context;
-import ratpack.handling.Handler;
 import ratpack.newrelic.NewRelicTransaction;
-import ratpack.registry.Registries;
-import ratpack.registry.Registry;
 
-public class NewRelicHandler implements Handler {
+public class NewRelicProcessingInterceptor implements ProcessingInterceptor {
 
-  private final Handler rest;
-
-  public NewRelicHandler(Handler rest) {
-    this.rest = rest;
+  @Override
+  public void init(Context context) {
+    context.getRequest().register(NewRelicTransaction.class, new DefaultNewRelicTransaction(context));
   }
 
   @Override
-  @Trace(dispatcher = true, metricName = "foreground")
-  public void handle(Context context) throws Exception {
-    NewRelicTransaction transaction = new DefaultNewRelicTransaction(context);
-    transaction.init();
-    Registry registry = Registries.registry(NewRelicTransaction.class, transaction);
-    context.insert(registry, rest);
+  @Trace(dispatcher = true)
+  public void intercept(Type type, Context context, Runnable continuation) {
+    context.get(NewRelicTransaction.class).init();
+    continuation.run();
   }
 
 }

@@ -17,11 +17,11 @@
 package ratpack.handling.internal;
 
 import io.netty.handler.codec.http.HttpResponseStatus;
-import ratpack.handling.Background;
 import ratpack.error.ClientErrorHandler;
 import ratpack.error.ServerErrorHandler;
 import ratpack.event.internal.EventRegistry;
 import ratpack.file.FileSystemBinding;
+import ratpack.func.Action;
 import ratpack.handling.*;
 import ratpack.handling.direct.DirectChannelAccess;
 import ratpack.http.Request;
@@ -37,7 +37,6 @@ import ratpack.registry.Registry;
 import ratpack.render.NoSuchRendererException;
 import ratpack.render.internal.RenderController;
 import ratpack.server.BindAddress;
-import ratpack.func.Action;
 import ratpack.util.ExceptionUtils;
 import ratpack.util.Result;
 import ratpack.util.ResultAction;
@@ -142,7 +141,17 @@ public class DefaultContext implements Context {
 
   @Override
   public void next(Registry registry) {
-    doNext(this, Registries.join(this.registry, registry), nextIndex, nextHandlers, exhausted);
+    List<ProcessingInterceptor> interceptors = registry.getAll(ProcessingInterceptor.class);
+    for (ProcessingInterceptor interceptor : interceptors) {
+      interceptor.init(this);
+    }
+    final Registry joinedRegistry = Registries.join(DefaultContext.this.registry, registry);
+    new InterceptedOperation(ProcessingInterceptor.Type.FOREGROUND, interceptors, this) {
+      @Override
+      protected void performOperation() {
+        doNext(DefaultContext.this, joinedRegistry, nextIndex, nextHandlers, new RejoinHandler());
+      }
+    }.run();
   }
 
   public void insert(Handler... handlers) {
@@ -153,12 +162,23 @@ public class DefaultContext implements Context {
     doNext(this, registry, 0, handlers, new RejoinHandler());
   }
 
-  public void insert(Registry registry, Handler... handlers) {
+  public void insert(final Registry registry, final Handler... handlers) {
     if (handlers.length == 0) {
       throw new IllegalArgumentException("handlers is zero length");
     }
 
-    doNext(this, Registries.join(this.registry, registry), 0, handlers, new RejoinHandler());
+    List<ProcessingInterceptor> interceptors = registry.getAll(ProcessingInterceptor.class);
+    for (ProcessingInterceptor interceptor : interceptors) {
+      interceptor.init(this);
+    }
+
+    final Registry joinedRegistry = Registries.join(DefaultContext.this.registry, registry);
+    new InterceptedOperation(ProcessingInterceptor.Type.FOREGROUND, interceptors, this) {
+      @Override
+      protected void performOperation() {
+        doNext(DefaultContext.this, joinedRegistry, 0, handlers, new RejoinHandler());
+      }
+    }.run();
   }
 
   public void respond(Handler handler) {
