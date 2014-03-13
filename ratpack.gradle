@@ -157,6 +157,7 @@ subprojects {
           events "failed"
         }
       }
+      jvmArgs "-Xss320k"
     }
 
     sourceCompatibility = "1.7"
