@@ -4,7 +4,7 @@ This chapter introduces how to deal with basic HTTP concerns such as parsing req
 
 ## Request & Response
 
-The context object that a handler operates on provides the ([`getRequest()`](api/ratpack/handling/MinimalContext.html#getRequest\(\))
+The context object that a handler operates on provides the ([`getRequest()`](api/ratpack/handling/ReadOnlyContext.html#getRequest\(\))
 & [`getResponse()`](api/ratpack/handling/Context.html#getResponse\(\)) methods for accessing the [`Request`](api/ratpack/http/Request.html) and [`Response`](api/ratpack/http/Response.html) respectively.
 These objects provide more or less what you would expect. 
 
