@@ -43,20 +43,33 @@ package ratpack.handling;
  * import java.util.concurrent.atomic.AtomicLong
  *
  * class Timer {
- *   private final AtomicLong total = new AtomicLong()
+ *   private final AtomicLong totalForeground = new AtomicLong()
+ *   private final AtomicLong totalBackground = new AtomicLong()
+ *
+ *   private boolean background
+ *
  *   private final ThreadLocal&lt;Long&gt; startedAt = new ThreadLocal() {
  *     protected Long initialValue() { 0 }
  *   }
  *
- *   long start() {
+ *   void start(boolean background) {
+ *     this.background = background
  *     startedAt.set(System.currentTimeMillis())
- *     total.get()
  *   }
  *
- *   long stop() {
+ *   void stop() {
  *     def startedAtTime = startedAt.get()
  *     startedAt.remove()
- *     total.addAndGet(startedAtTime > 0 ? System.currentTimeMillis() - startedAtTime : 0)
+ *     def counter = background ? totalBackground : totalForeground
+ *     counter.addAndGet(startedAtTime > 0 ? System.currentTimeMillis() - startedAtTime : 0)
+ *   }
+ *
+ *   long getBackgroundTime() {
+ *     totalBackground.get()
+ *   }
+ *
+ *   long getForegroundTime() {
+ *     totalForeground.get()
  *   }
  * }
  *
@@ -66,8 +79,8 @@ package ratpack.handling;
  *   }
  *
  *   void intercept(ProcessingInterceptor.Type type, Context context, Runnable continuation) {
- *     def timer = context.request.get(Timer).with {
- *       start()
+ *     context.request.get(Timer).with {
+ *       start(type == ProcessingInterceptor.Type.BACKGROUND)
  *       continuation.run()
  *       stop()
  *     }
@@ -93,7 +106,9 @@ package ratpack.handling;
  *             background {
  *               sleep 100
  *             } then {
- *               render request.get(Timer).stop().toString()
+ *               def timer = request.get(Timer)
+ *               timer.stop()
+ *               render "$timer.foregroundTime:$timer.backgroundTime"
  *             }
  *           }
  *         }
@@ -103,7 +118,12 @@ package ratpack.handling;
  *
  * def client = testHttpClient(application)
  *
- * assert client.getText().toInteger() > 300
+ * def times = client.getText().split(":")*.toInteger()
+ * int foregroundTime = times[0]
+ * int backgroundTime = times[1]
+ *
+ * assert foregroundTime > 200
+ * assert backgroundTime > 100
  *
  * application.close()
  * </pre>
