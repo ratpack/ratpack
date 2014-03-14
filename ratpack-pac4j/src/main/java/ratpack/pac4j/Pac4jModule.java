@@ -50,7 +50,7 @@ import org.pac4j.core.profile.UserProfile;
  *
  * class MyHandler implements Handler {
  *   public void handle(final Context context) {
- *     context.getResponse().send("Authenticated as " + context.get(GoogleOpenIdProfile.class).getDisplayName());
+ *     context.getResponse().send("Authenticated as " + context.getRequest().get(GoogleOpenIdProfile.class).getDisplayName());
  *   }
  * }
  *
@@ -98,7 +98,8 @@ import org.pac4j.core.profile.UserProfile;
  *     register new Pac4jModule&lt;&gt;(new GoogleOpenIdClient(), new AuthenticateAllAuthorizer())
  *   }
  *   handlers {
- *     get { GoogleOpenIdProfile userProfile -&gt;
+ *     get {
+ *       def userProfile = request.get(GoogleOpenIdProfile)
  *       response.send "Authenticated as ${userProfile.displayName}"
  *     }
  *   }

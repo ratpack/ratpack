@@ -19,7 +19,6 @@ package ratpack.pac4j;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import org.pac4j.core.profile.UserProfile;
 import ratpack.handling.Context;
-import ratpack.registry.Registry;
 
 /**
  * An abstract implementation of {@link ratpack.pac4j.Authorizer} that provides sensible defaults.
@@ -34,13 +33,12 @@ public abstract class AbstractAuthorizer<U extends UserProfile> implements Autho
    * Unless overridden, all authenticated requests will be considered authorized.
    *
    * @param context The context to handle
-   * @param registry A registry containing the parent registry, in addition to the user profile; this registry should be made available to subsequent handlers
    * @param userProfile The authenticated user profile
    * @throws Exception if anything goes wrong (exception will be implicitly passed to the context's {@link Context#error(Exception)} method)
    */
   @Override
-  public void handleAuthorization(Context context, Registry registry, U userProfile) throws Exception {
-    context.next(registry);
+  public void handleAuthorization(Context context, U userProfile) throws Exception {
+    context.next();
   }
 
   /**

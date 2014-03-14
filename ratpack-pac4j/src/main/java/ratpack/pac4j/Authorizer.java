@@ -18,7 +18,6 @@ package ratpack.pac4j;
 
 import org.pac4j.core.profile.UserProfile;
 import ratpack.handling.Context;
-import ratpack.registry.Registry;
 
 /**
  * An authorization strategy for integration with pac4j.
@@ -45,17 +44,16 @@ public interface Authorizer<U extends UserProfile> {
    * Handles authorization for the given context.
    * <p>
    * This method is only called for requests that require authentication.
-   * If the request is properly authorized, it's sufficient to call {@link ratpack.handling.Context#next(ratpack.registry.Registry)}.
+   * If the request is properly authorized, it's sufficient to call {@link ratpack.handling.Context#next()}.
    * If the request is not properly authorized, it is this method's responsibility to either return an appropriate error response, or redirect to an error page.
    * </p>
    *
    * @param context The context to handle
-   * @param registry A registry containing the parent registry, in addition to the user profile; this registry should be made available to subsequent handlers
    * @param userProfile The authenticated user profile
    * @throws Exception if anything goes wrong (exception will be implicitly passed to the context's {@link Context#error(Exception)} method)
    * @see #isAuthenticationRequired(ratpack.handling.Context)
    */
-  void handleAuthorization(Context context, Registry registry, U userProfile) throws Exception;
+  void handleAuthorization(Context context, U userProfile) throws Exception;
 
   /**
    * Handles a failure to perform authentication.

@@ -39,10 +39,11 @@ class RatpackOpenIdTestApplication extends ClosureBackedEmbeddedApplication {
     }
     handlers {
       get("noauth") {
-        def userProfile = maybeGet(GoogleOpenIdProfile)
+        def userProfile = request.maybeGet(GoogleOpenIdProfile)
         response.send "noauth:${userProfile?.email}"
       }
-      get("auth") { GoogleOpenIdProfile userProfile ->
+      get("auth") {
+        def userProfile = request.maybeGet(GoogleOpenIdProfile)
         response.send "auth:${userProfile.email}"
       }
       get("error") {

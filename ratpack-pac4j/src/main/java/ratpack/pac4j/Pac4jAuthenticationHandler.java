@@ -23,8 +23,6 @@ import org.pac4j.core.profile.UserProfile;
 import ratpack.func.Action;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
-import ratpack.registry.Registries;
-import ratpack.registry.Registry;
 import ratpack.server.PublicAddress;
 import ratpack.session.store.SessionStorage;
 
@@ -64,8 +62,8 @@ class Pac4jAuthenticationHandler<C extends Credentials, U extends UserProfile> i
       initiateAuthentication(context);
     } else {
       if (userProfile != null) {
-        Registry registry = Registries.registry(userProfile);
-        authorizer.handleAuthorization(context, registry, userProfile);
+        context.getRequest().register(userProfile);
+        authorizer.handleAuthorization(context, userProfile);
       } else {
         context.next();
       }
