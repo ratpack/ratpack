@@ -68,8 +68,6 @@ public class DefaultInvocation implements Invocation {
   private Object rendered;
   private Integer clientError;
 
-  private final FinishedOnThreadCallbackManager finishedOnThreadCallbackManager = new FinishedOnThreadCallbackManager();
-
   public DefaultInvocation(final Request request, final MutableStatus status, final MutableHeaders responseHeaders, Registry registry, final int timeout, Handler handler) {
 
     // There are definitely concurrency bugs in here around timing out
@@ -136,6 +134,8 @@ public class DefaultInvocation implements Invocation {
         latch.countDown();
       }
     };
+
+    FinishedOnThreadCallbackManager finishedOnThreadCallbackManager = new FinishedOnThreadCallbackManager();
 
     Registry effectiveRegistry = Registries.join(
       Registries.registry().
