@@ -24,7 +24,7 @@ import java.util.List;
  * An object registry.
  * <p>
  * Registries are primarily used for inter {@link ratpack.handling.Handler} communication in request processing.
- * The {@link ratpack.handling.Context} object that handles operate on implements the {@link ratpack.registry.Registry} interface.
+ * The {@link ratpack.handling.Context} object that handlers operate on implements the {@link ratpack.registry.Registry} interface.
  * <pre class="tested">
  * import ratpack.handling.Handler;
  * import ratpack.handling.Context;
