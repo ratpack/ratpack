@@ -28,10 +28,12 @@ import static org.openid4java.message.ax.AxMessage.OPENID_NS_AX
 import static org.pac4j.openid.profile.google.GoogleOpenIdAttributesDefinition.EMAIL
 
 class OpenIdTestClient extends BaseOpenIdClient<GoogleOpenIdProfile> {
-  private final int providerPort;
+  final boolean directRedirection = true
+
+  private final int providerPort
 
   OpenIdTestClient(int providerPort) {
-    this.providerPort = providerPort;
+    this.providerPort = providerPort
   }
 
   @Override
@@ -59,10 +61,5 @@ class OpenIdTestClient extends BaseOpenIdClient<GoogleOpenIdProfile> {
   @Override
   protected BaseClient newClient() {
     return new OpenIdTestClient(providerPort)
-  }
-
-  @Override
-  protected boolean isDirectRedirection() {
-    return false
   }
 }

@@ -23,8 +23,8 @@ import ratpack.session.SessionModule
 import ratpack.session.store.MapSessionsModule
 import ratpack.test.embed.BaseDirBuilder
 
-class RatpackOpenIdUnderTest extends ClosureBackedEmbeddedApplication {
-  RatpackOpenIdUnderTest(int consumerPort, BaseDirBuilder baseDirBuilder, Module... additionalModules) {
+class RatpackOpenIdTestApplication extends ClosureBackedEmbeddedApplication {
+  RatpackOpenIdTestApplication(int consumerPort, BaseDirBuilder baseDirBuilder, Module... additionalModules) {
     super(baseDirBuilder)
     launchConfig {
       port(consumerPort)

@@ -24,10 +24,12 @@ import org.openid4java.message.ParameterList
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
+import static io.netty.handler.codec.http.HttpResponseStatus.OK
+
 class EmbeddedProvider implements Closeable {
-  Queue<Map> results = new LinkedList<>()
-  Server server
-  PatchedSampleServer sampleServer
+  private final Queue<Map> results = new LinkedList<>()
+  private Server server
+  private PatchedSampleServer sampleServer
 
   void addResult(Boolean authenticatedAndApproved, String email) {
     results << [authenticatedAndApproved:authenticatedAndApproved, email:email]
@@ -54,7 +56,7 @@ class EmbeddedProvider implements Closeable {
       }
 
       String processDiscovery(HttpServletResponse response) {
-        response.setStatus(200)
+        response.setStatus(OK.code())
         response.addHeader("Content-Type", "application/xrds+xml")
         response.outputStream.withWriter {
           it.write("""\
@@ -89,5 +91,9 @@ class EmbeddedProvider implements Closeable {
   @Override
   void close() {
     server.stop()
+  }
+
+  void clear() {
+    results.clear()
   }
 }
