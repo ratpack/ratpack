@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ratpack.pac4j;
+package ratpack.pac4j.internal;
 
 /**
  * Constants for session variables used by the pac4j integration.

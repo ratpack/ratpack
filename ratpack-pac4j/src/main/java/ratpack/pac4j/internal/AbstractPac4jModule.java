@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ratpack.pac4j;
+package ratpack.pac4j.internal;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Injector;
@@ -25,6 +25,7 @@ import ratpack.guice.HandlerDecoratingModule;
 import ratpack.handling.Handler;
 import ratpack.handling.Handlers;
 import ratpack.launch.LaunchConfig;
+import ratpack.pac4j.Authorizer;
 
 /**
  * Base class for pac4j integration modules.
@@ -32,7 +33,7 @@ import ratpack.launch.LaunchConfig;
  * @param <C> The {@link org.pac4j.core.credentials.Credentials} type
  * @param <U> The {@link org.pac4j.core.profile.UserProfile} type
  */
-abstract class AbstractPac4jModule<C extends Credentials, U extends UserProfile> extends AbstractModule implements HandlerDecoratingModule {
+public abstract class AbstractPac4jModule<C extends Credentials, U extends UserProfile> extends AbstractModule implements HandlerDecoratingModule {
   private static final String DEFAULT_CALLBACK_PATH = "pac4j-callback";
 
   private String callbackPath;
@@ -58,7 +59,7 @@ abstract class AbstractPac4jModule<C extends Credentials, U extends UserProfile>
    * @param injector The injector created from all the application modules
    * @return The callback path
    */
-  String getCallbackPath(Injector injector) {
+  private String getCallbackPath(Injector injector) {
     LaunchConfig launchConfig = injector.getInstance(LaunchConfig.class);
     return callbackPath == null ? launchConfig.getOther("pac4j.callbackPath", DEFAULT_CALLBACK_PATH) : callbackPath;
   }
@@ -69,7 +70,7 @@ abstract class AbstractPac4jModule<C extends Credentials, U extends UserProfile>
    * @param injector The injector created from all the application modules
    * @return The client
    */
-  abstract Client<C, U> getClient(Injector injector);
+  protected abstract Client<C, U> getClient(Injector injector);
 
   /**
    * Returns the authorizer to use for authorization.
@@ -77,7 +78,7 @@ abstract class AbstractPac4jModule<C extends Credentials, U extends UserProfile>
    * @param injector The injector created from all the application modules
    * @return The authorizer
    */
-  abstract Authorizer<U> getAuthorizer(Injector injector);
+  protected abstract Authorizer<U> getAuthorizer(Injector injector);
 
   @Override
   public Handler decorate(Injector injector, Handler handler) {

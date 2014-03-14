@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ratpack.pac4j;
+package ratpack.pac4j.internal;
 
 import org.pac4j.core.client.BaseClient;
 import org.pac4j.core.client.Client;
@@ -23,13 +23,14 @@ import org.pac4j.core.profile.UserProfile;
 import ratpack.func.Action;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
+import ratpack.pac4j.Authorizer;
 import ratpack.server.PublicAddress;
 import ratpack.session.store.SessionStorage;
 
 import java.util.concurrent.Callable;
 
-import static ratpack.pac4j.SessionConstants.SAVED_URI;
-import static ratpack.pac4j.SessionConstants.USER_PROFILE;
+import static ratpack.pac4j.internal.SessionConstants.SAVED_URI;
+import static ratpack.pac4j.internal.SessionConstants.USER_PROFILE;
 
 /**
  * Filters requests to apply authentication and authorization as required.
@@ -37,7 +38,7 @@ import static ratpack.pac4j.SessionConstants.USER_PROFILE;
  * @param <C> The {@link org.pac4j.core.credentials.Credentials} type
  * @param <U> The {@link org.pac4j.core.profile.UserProfile} type
  */
-class Pac4jAuthenticationHandler<C extends Credentials, U extends UserProfile> implements Handler {
+public class Pac4jAuthenticationHandler<C extends Credentials, U extends UserProfile> implements Handler {
   private final Client<C, U> client;
   private final Authorizer<U> authorizer;
   private final String callbackPath;
@@ -49,7 +50,7 @@ class Pac4jAuthenticationHandler<C extends Credentials, U extends UserProfile> i
    * @param authorizer The authorizer to user for authorization
    * @param callbackPath the path to use for callbacks from the identity provider
    */
-  Pac4jAuthenticationHandler(Client<C, U> client, Authorizer<U> authorizer, String callbackPath) {
+  public Pac4jAuthenticationHandler(Client<C, U> client, Authorizer<U> authorizer, String callbackPath) {
     this.client = client;
     this.authorizer = authorizer;
     this.callbackPath = callbackPath;

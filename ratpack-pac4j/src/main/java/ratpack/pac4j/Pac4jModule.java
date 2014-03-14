@@ -20,6 +20,7 @@ import com.google.inject.Injector;
 import org.pac4j.core.client.Client;
 import org.pac4j.core.credentials.Credentials;
 import org.pac4j.core.profile.UserProfile;
+import ratpack.pac4j.internal.AbstractPac4jModule;
 
 /**
  * An extension module that provides support for authentication via pac4j.
@@ -125,12 +126,12 @@ public final class Pac4jModule<C extends Credentials, U extends UserProfile> ext
   }
 
   @Override
-  Client<C, U> getClient(Injector injector) {
+  protected Client<C, U> getClient(Injector injector) {
     return client;
   }
 
   @Override
-  Authorizer<U> getAuthorizer(Injector injector) {
+  protected Authorizer<U> getAuthorizer(Injector injector) {
     return authorizer;
   }
 }

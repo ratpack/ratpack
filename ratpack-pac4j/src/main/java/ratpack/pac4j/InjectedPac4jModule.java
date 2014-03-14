@@ -22,6 +22,7 @@ import com.google.inject.util.Types;
 import org.pac4j.core.client.Client;
 import org.pac4j.core.credentials.Credentials;
 import org.pac4j.core.profile.UserProfile;
+import ratpack.pac4j.internal.AbstractPac4jModule;
 
 import java.lang.reflect.Type;
 

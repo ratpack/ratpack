@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ratpack.pac4j;
+package ratpack.pac4j.internal;
 
 import org.pac4j.core.client.Client;
 import org.pac4j.core.credentials.Credentials;
@@ -24,12 +24,13 @@ import org.pac4j.core.profile.UserProfile;
 import ratpack.func.Action;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
+import ratpack.pac4j.Authorizer;
 import ratpack.session.store.SessionStorage;
 
 import java.util.concurrent.Callable;
 
-import static ratpack.pac4j.SessionConstants.SAVED_URI;
-import static ratpack.pac4j.SessionConstants.USER_PROFILE;
+import static ratpack.pac4j.internal.SessionConstants.SAVED_URI;
+import static ratpack.pac4j.internal.SessionConstants.USER_PROFILE;
 
 /**
  * Handles callback requests from identity providers.
@@ -37,7 +38,7 @@ import static ratpack.pac4j.SessionConstants.USER_PROFILE;
  * @param <C> The {@link org.pac4j.core.credentials.Credentials} type
  * @param <U> The {@link org.pac4j.core.profile.UserProfile} type
  */
-class Pac4jCallbackHandler<C extends Credentials, U extends UserProfile> implements Handler {
+public class Pac4jCallbackHandler<C extends Credentials, U extends UserProfile> implements Handler {
   private static final String DEFAULT_REDIRECT_URI = "/";
 
   private final Client<C, U> client;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ratpack.pac4j;
+package ratpack.pac4j.internal;
 
 import org.pac4j.core.context.WebContext;
 import ratpack.handling.Context;
