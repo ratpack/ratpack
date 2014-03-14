@@ -122,8 +122,8 @@ package ratpack.handling;
  * int foregroundTime = times[0]
  * int backgroundTime = times[1]
  *
- * assert foregroundTime > 200
- * assert backgroundTime > 100
+ * assert foregroundTime >= 200
+ * assert backgroundTime >= 100
  *
  * application.close()
  * </pre>
