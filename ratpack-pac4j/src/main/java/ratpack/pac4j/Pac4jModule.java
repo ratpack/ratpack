@@ -51,7 +51,7 @@ import ratpack.pac4j.internal.AbstractPac4jModule;
  *
  * class MyHandler implements Handler {
  *   public void handle(final Context context) {
- *     context.getResponse().send("Authenticated as " + context.getRequest().get(GoogleOpenIdProfile.class).getDisplayName());
+ *     context.render("Authenticated as " + context.getRequest().get(GoogleOpenIdProfile.class).getDisplayName());
  *   }
  * }
  *
@@ -87,8 +87,8 @@ import ratpack.pac4j.internal.AbstractPac4jModule;
  * import static ratpack.groovy.Groovy.ratpack
  *
  * class AuthenticateAllAuthorizer extends AbstractAuthorizer&lt;GoogleOpenIdProfile&gt; {
- *   public boolean isAuthenticationRequired(Context context) {
- *     return true
+ *   boolean isAuthenticationRequired(Context context) {
+ *     true // authenticate every request
  *   }
  * }
  *
@@ -101,7 +101,7 @@ import ratpack.pac4j.internal.AbstractPac4jModule;
  *   handlers {
  *     get {
  *       def userProfile = request.get(GoogleOpenIdProfile)
- *       response.send "Authenticated as ${userProfile.displayName}"
+ *       render "Authenticated as ${userProfile.displayName}"
  *     }
  *   }
  * }
