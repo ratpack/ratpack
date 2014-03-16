@@ -47,3 +47,6 @@
 [page-option]: pages.html#page
 [switch-frame-and-page]: pages.html#switching_pages_and_frames_at_once
 [groovy-truth]: http://docs.codehaus.org/display/GROOVY/Groovy+Truth
+[git]: http://git-scm.com/
+[gradle]: http://www.gradle.org/
+[heroku]: https://www.heroku.com/

@@ -20,6 +20,7 @@ import org.codehaus.groovy.control.MultipleCompilationErrorsException
 import org.codehaus.groovy.control.messages.SyntaxErrorMessage
 import ratpack.manual.snippets.fixtures.SnippetFixture
 import ratpack.func.Transformer
+import ratpack.util.RatpackVersion
 
 import java.util.regex.Pattern
 
@@ -65,7 +66,7 @@ class ManualSnippetExtractor {
     snippetBlocks.each { block ->
       codeIndex = source.indexOf(block, codeIndex)
       def lineNumber = source.substring(0, codeIndex).readLines().size() + 1
-      snippetBlocksByLine.put(lineNumber, extractSnippetFromBlock(block))
+      snippetBlocksByLine.put(lineNumber, performSubstitutions(extractSnippetFromBlock(block)))
       codeIndex += block.size()
     }
 
@@ -74,6 +75,13 @@ class ManualSnippetExtractor {
 
   private static String extractSnippetFromBlock(String tag) {
     tag.substring(tag.indexOf("\n") + 1, tag.lastIndexOf("\n"))
+  }
+
+  /**
+   * Perform the substitutions that {@code :ratpack-manual:tokeniseManual} would perform, as required by tested snippets.
+   */
+  private static String performSubstitutions(String snippet) {
+    return snippet.replaceAll("@ratpack-version@", RatpackVersion.version)
   }
 
   private static TestCodeSnippet createSnippet(String sourceClassName, File sourceFile, int lineNumber, String snippet, SnippetFixture fixture) {
