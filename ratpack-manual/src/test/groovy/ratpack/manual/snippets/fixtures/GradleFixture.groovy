@@ -37,13 +37,15 @@ def script = '''
 
   @Override
   String post() {
+    def rootProjectDir = new File("..")
+    def localRepoPath = new File(rootProjectDir, "build/localrepo").canonicalPath
 """
 '''
-def dir = File.createTempDir()
-def buildFile = new File(dir, "build.gradle")
+def projectDir = File.createTempDir()
+def buildFile = new File(projectDir, "build.gradle")
 try {
-  buildFile.text = script
-  def connector = GradleConnector.newConnector().forProjectDirectory(dir).useGradleVersion("1.11")
+  buildFile.text = 'buildscript { repositories { maven { url "file://${localRepoPath}" } } }\\n' + script
+  def connector = GradleConnector.newConnector().useGradleVersion("1.11").forProjectDirectory(projectDir)
   def connection = connector.connect()
   try {
     connection.getModel(GradleProject)
@@ -51,7 +53,7 @@ try {
     connection.close()
   }
 } finally {
-  dir.deleteDir()
+  projectDir.deleteDir()
 }
 """
   }

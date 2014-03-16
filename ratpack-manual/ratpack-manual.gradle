@@ -127,6 +127,7 @@ task api(type: Javadoc) {
 }
 
 test {
+  dependsOn ":ratpack-gradle:install" // used in gradle snippets
   apiModules.each {
     inputs.files apiModules.sourceSets.main.allSource
   }
