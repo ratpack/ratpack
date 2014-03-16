@@ -10,7 +10,7 @@ Install the plugin in your build file.  You will likely want to use it in conjun
 
 For example:
 
-```language-groovy
+```language-groovy gradle
 buildscript {
     repositories {
         jcenter()
