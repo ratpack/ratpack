@@ -213,8 +213,7 @@ public abstract class LaunchConfigFactory {
   }
 
   /**
-   * Constructs a launch config, based on the given properties. <p> See {@link Property} for details on the valid properties.
-   *
+   * Delegates to {@link #createWithBaseDir(ClassLoader, java.nio.file.Path, java.util.Properties, java.util.Map)}, using {@link System#getenv()} as the environment variables.
    *
    * @param classLoader The classloader used to load the {@link ratpack.launch.LaunchConfigFactory.Property#HANDLER_FACTORY} class
    * @param baseDir The {@link LaunchConfig#getBaseDir()} value
@@ -222,6 +221,21 @@ public abstract class LaunchConfigFactory {
    * @return A launch config
    */
   public static LaunchConfig createWithBaseDir(ClassLoader classLoader, Path baseDir, Properties properties) {
+    return createWithBaseDir(classLoader, baseDir, properties, System.getenv());
+  }
+
+  /**
+   * Constructs a launch config, based on the given properties and environment variables.
+   * <p>
+   * See {@link Property} for details on the valid properties.
+   *
+   * @param classLoader The classloader used to load the {@link ratpack.launch.LaunchConfigFactory.Property#HANDLER_FACTORY} class
+   * @param baseDir The {@link LaunchConfig#getBaseDir()} value
+   * @param properties The values to use to construct the launch config
+   * @param envVars The environment variables to use to construct the launch config
+   * @return A launch config
+   */
+  public static LaunchConfig createWithBaseDir(ClassLoader classLoader, Path baseDir, Properties properties, Map<String, String> envVars) {
     TypeCoercingProperties props = new TypeCoercingProperties(properties, classLoader);
     try {
       Class<HandlerFactory> handlerFactoryClass;
@@ -230,7 +244,17 @@ public abstract class LaunchConfigFactory {
         throw new LaunchException("No handler factory class specified (config property: " + Property.HANDLER_FACTORY + ")");
       }
 
-      int port = props.asInt(Property.PORT, LaunchConfig.DEFAULT_PORT);
+      int defaultPort = LaunchConfig.DEFAULT_PORT;
+      if (envVars.containsKey("PORT")) {
+        try {
+          String stringValue = envVars.get("PORT");
+          defaultPort = Integer.valueOf(stringValue);
+        } catch (NumberFormatException e) {
+          throw new LaunchException("Environment var 'PORT' is not an integer", e);
+        }
+      }
+
+      int port = props.asInt(Property.PORT, defaultPort);
       InetAddress address = props.asInetAddress(Property.ADDRESS);
       URI publicAddress = props.asURI(Property.PUBLIC_ADDRESS);
       boolean reloadable = props.asBoolean(Property.RELOADABLE, false);
@@ -287,7 +311,15 @@ public abstract class LaunchConfigFactory {
     }
 
     /**
-     * The port to listen for requests on. Defaults to {@link LaunchConfig#DEFAULT_PORT}. <p> <b>Value:</b> {@value}
+     * The port to listen for requests on.
+     * <p>
+     * It is also possible to set this property via an environment variable named {@code PORT}.
+     * This makes deploying on cloud platforms such as Heroku more convenient.
+     * If the environment variable and the system property are set, the system property takes precedence.
+     * <p>
+     * Defaults to {@link LaunchConfig#DEFAULT_PORT}.
+     * <p>
+     * <b>Value:</b> {@value}
      *
      * @see ratpack.launch.LaunchConfig#getPort()
      */

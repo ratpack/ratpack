@@ -22,13 +22,22 @@ import ratpack.handling.Context
 import ratpack.handling.Handler
 import spock.lang.Specification
 
+import java.nio.file.Path
+
+import static ratpack.launch.LaunchConfig.DEFAULT_MAX_CONTENT_LENGTH
+import static ratpack.launch.LaunchConfig.DEFAULT_PORT
 import static ratpack.launch.LaunchConfigFactory.Property.HANDLER_FACTORY
 import static ratpack.launch.LaunchConfigFactory.Property.MAX_CONTENT_LENGTH
+import static ratpack.launch.LaunchConfigFactory.createWithBaseDir
 
-// TODO: this test is well underdone, quick fix for issue #190 atm.
 class LaunchConfigFactorySpec extends Specification {
 
-  @Rule TemporaryFolder temporaryFolder
+  @Rule
+  TemporaryFolder temporaryFolder
+
+  Path baseDir
+  def classLoader = this.class.classLoader
+  def properties = new Properties()
 
   static class TestHandlerFactory implements HandlerFactory {
     @Override
@@ -41,25 +50,44 @@ class LaunchConfigFactorySpec extends Specification {
     }
   }
 
-  def "can read values from properties"() {
-    given:
-    def classLoader = this.class.classLoader
-    def baseDir = temporaryFolder.newFolder().toPath()
-    def properties = new Properties()
+  def setup() {
+    baseDir = temporaryFolder.newFolder().toPath()
     properties.setProperty(HANDLER_FACTORY, TestHandlerFactory.name)
+  }
 
+  def "can read values from properties"() {
     when:
-    def launchConfig = LaunchConfigFactory.createWithBaseDir(classLoader, baseDir, properties)
+    def launchConfig = createWithBaseDir(classLoader, baseDir, properties)
 
     then:
-    launchConfig.maxContentLength == LaunchConfig.DEFAULT_MAX_CONTENT_LENGTH
+    launchConfig.maxContentLength == DEFAULT_MAX_CONTENT_LENGTH
 
     when:
     properties.setProperty(MAX_CONTENT_LENGTH, "20")
-    launchConfig = LaunchConfigFactory.createWithBaseDir(classLoader, baseDir, properties)
+    launchConfig = createWithBaseDir(classLoader, baseDir, properties)
 
     then:
     launchConfig.maxContentLength == 20
+  }
+
+  def "PORT env var is respected"() {
+    expect:
+    createWithBaseDir(classLoader, baseDir, properties, [:]).port == DEFAULT_PORT
+    createWithBaseDir(classLoader, baseDir, properties, [PORT: "1234"]).port == 1234
+    createWithBaseDir(classLoader, baseDir, p("port": "5678"), [PORT: "1234"]).port == 5678
+
+    when:
+    createWithBaseDir(classLoader, baseDir, properties, [PORT: "abc"])
+
+    then:
+    def e = thrown LaunchException
+    e.cause instanceof NumberFormatException
+  }
+
+  Properties p(Map<Object, Object> m) {
+    def p = new Properties(properties)
+    p.putAll(m)
+    p
   }
 
 }
