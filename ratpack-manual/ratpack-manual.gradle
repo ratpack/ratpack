@@ -40,7 +40,7 @@ dependencies {
     exclude group: "com.google.inject", module: "guice"
     exclude group: "org.apache.httpcomponents", module: "httpclient"
   }
-  testRuntime("org.gradle:gradle-tooling-api:1.11") // used by gradle snippet fixture
+  testRuntime("org.gradle:gradle-tooling-api:${gradle.gradleVersion}") // used by gradle snippet fixture
   testRuntime "org.apache.ant:ant-nodeps:1.8.1"
 }
 
@@ -131,6 +131,8 @@ test {
   apiModules.each {
     inputs.files apiModules.sourceSets.main.allSource
   }
+  environment "GRADLE_USER_HOME", gradle.gradleUserHomeDir.absolutePath
+  environment "GRADLE_HOME", gradle.gradleHomeDir.absolutePath
 }
 
 task checkApi(type: Checkstyle) {

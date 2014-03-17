@@ -45,7 +45,17 @@ def projectDir = File.createTempDir()
 def buildFile = new File(projectDir, "build.gradle")
 try {
   buildFile.text = 'buildscript { repositories { maven { url "file://${localRepoPath}" } } }\\n' + script
-  def connector = GradleConnector.newConnector().useGradleVersion("1.11").forProjectDirectory(projectDir)
+  def connector = GradleConnector.newConnector().forProjectDirectory(projectDir)
+  def gradleUserHome = System.getenv()["GRADLE_USER_HOME"]
+  if (gradleUserHome) {
+    connector.useGradleUserHomeDir(new File(gradleUserHome))
+  }
+
+  def gradleHome = System.getenv()["GRADLE_HOME"]
+  if (gradleHome) {
+    connector.useInstallation(new File(gradleHome))
+  }
+
   def connection = connector.connect()
   try {
     connection.getModel(GradleProject)
