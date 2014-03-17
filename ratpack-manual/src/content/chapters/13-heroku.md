@@ -34,7 +34,7 @@ buildscript {
 
 apply plugin: "ratpack"
 
-task stage() {
+task stage {
   dependsOn installApp
 }
 ```
