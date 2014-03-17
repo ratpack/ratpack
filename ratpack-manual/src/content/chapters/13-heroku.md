@@ -1,24 +1,41 @@
 # Heroku
 
-[Heroku][] is a polyglot cloud application platform.
+[Heroku][] is a scalable polyglot cloud application platform.
 It allows you to focus on writing applications in the language of your choice, and then easily deploy them to the cloud without having to manually manage servers, load balancing, log aggregation, etc.
+Heroku does not have, nor does it need, any special Ratpack support above its [generic support for JVM apps](http://java.heroku.com).
+Heroku is a ruch platform, with many [Add-ons](https://addons.heroku.com) such as Postgres, Redis, Memcache, RabbitMQ, New Relic etc.
+It is a compelling option for serving Ratpack applications.
 
-Ratpack applications can be deployed to Heroku easily using the default Gradle [buildpack](https://devcenter.heroku.com/articles/buildpacks).
-To integrate with Heroku, we're going to declare that Heroku should call the `installApp` build target to install the application locally and use the generated start script to run the application.
+Deployments to Heroku are typically in source form.
+Deploying is as simple as performing a Git push at the end of your CI pipeline.
+Many popular cloud CI tools such as [drone.io](https://drone.io/) and [Travis-CI](https://travis-ci.org) (among others) have convenient support for pushing to Heroku.
 
-## settings.gradle
+It is recommended to read the [Heroku Quickstart](https://devcenter.heroku.com/articles/quickstart) and [Buildpack](https://devcenter.heroku.com/articles/buildpacks) documentation if you are new to Heroku.
+The rest of this chapter outlines the requirements and necessary configuration for deploying Ratpack apps to Heroku.
 
-By default, Gradle uses the project's directory name as the project's name.
-In Heroku (and some CI servers), the project is built in a temporary directory with a randomly assigned name.
-To ensure that the project uses a consistent name, add a declaration to `settings.gradle` in the root of your project (substituting your app name):
+## Gradle based builds
 
-```language-groovy
-rootProject.name = "my-ratpack-app"
+Ratpack apps can be built by any build system, but the Ratpack team recommends [Gradle](http://gradle.org).
+Heroku has native support for Gradle via the [Gradle buildpack](https://devcenter.heroku.com/articles/buildpacks), which works well with the Ratpack Gradle plugin(s).
+
+All Gradle projects should use the [Gradle Wrapper](http://www.gradle.org/docs/current/userguide/gradle_wrapper.html).
+If the wrapper scripts are present in your project, Heroku will detect that your project is built with Gradle.
+
+### Java Version
+
+Heroku allows the required Java version to be set via `system.properties` file in the root of the source tree.
+
+```language-java
+java.runtime.version=1.7
 ```
 
-## build.gradle
+At the time of writing, this file is required as Heroku defaults to Java 6 and Ratpack requires Java 7.
 
-The [Gradle buildpack](https://github.com/heroku/heroku-buildpack-gradle) calls the `stage` target on your build, so define one that depends on `installApp`.
+### Building
+
+The Gradle buildpack will invoke `./gradlew stage`.
+The Ratpack Gradle plugins do not add a `stage` task to your build, so you need to add it yourself and make it build your app.
+The simplest way to do this is make the `stage` task depend on the `installApp` task which _is_ added by the Ratpack Gradle plugins.
 
 A minimalistic `build.gradle` looks like this:
 
@@ -39,30 +56,74 @@ task stage {
 }
 ```
 
-## Procfile
+This will build your application and install it into the directory `build/install/«project name»`.
 
-Heroku uses [`Procfile`](https://devcenter.heroku.com/articles/procfile) to declare what commands are run by your application.
-In this file, add a declaration that the `web` process type should run your Ratpack application (substituting your app name).
+#### Setting the project name
+
+By default, Gradle uses the project's directory name as the project's name.
+In Heroku (and some CI servers), the project is built in a temporary directory with a randomly assigned name.
+To ensure that the project uses a consistent name, add a declaration to `settings.gradle` in the root of your project:
+
+```language-groovy
+rootProject.name = "«project name»"
+```
+This is a good practice for any Gradle project.
+
+### Running (Procfile)
+
+The `Procfile` lives at the root of your application and specifies the command that Heroku should use to start your application.
+In this file, add a declaration that Heroku should start a `web` process by executing the launch script created by the build.
 
 ```language-bash
-web: build/install/my-ratpack-app/bin/my-ratpack-app
+web: build/install/«project name»/bin/«project name»
 ```
 
-## system.properties
+### Configuration
 
-Specify your desired Java version in `system.properties`:
+There are several ways to configure the environment for applications deployed to Heroku.
+At the minimum, you will have to use one of these mechanisms to tell Ratpack which port to listen for requests on, as Heroku assigns your application a random port to use.
+You can optionally set other environment variables and/or JVM system properties to configure your application.
 
-```language-java
-java.runtime.version=1.7
-```
+The application entry points that are used when using the `ratpack` and `ratpack-groovy` Gradle plugins support using
+JVM system properties to contribute to the [`LaunchConfig`](api/ratpack/launch/LaunchConfig.html) (see the [launching chapter](launching.html) chapter for more detail).
+This means that the listening port can be set by setting the `ratpack.port` JVM system property.
+The port to use that Heroku has assigned for your application is available as the `PORT` environment variable.
 
-## Application creation
+The starter scripts created by the Ratpack Gradle plugins, support the standard `JAVA_OPTS` environment variable and an app specific `«PROJECT_NAME»_OPTS` environment variable.
+If your application name was `foo-Bar`, then the environment variable would be named `FOO_BAR_OPTS`.
 
-The application is now ready for creation.
-Commit any remaining files to [Git][], then run the following commands (substituting your app name):
+One way to bring this all together is to launch your application via `env`:
 
 ```language-bash
-heroku create my-ratpack-app
-heroku config:set MY_RATPACK_APP_OPTS='-Dratpack.port=$PORT -Dratpack.publicAddress=http://my-ratpack-app.herokuapp.com'
-git push heroku master:master
+web: env "FOO_BAR_OPTS=-Dratpack.port=$PORT" build/install/«project name»/bin/«project name»
 ```
+
+It is generally preferable to not use `JAVA_OPTS` as Heroku sets this to [useful defaults](https://devcenter.heroku.com/articles/java-support#environment) for the platform.
+
+Another approach is to use [config vars](https://devcenter.heroku.com/articles/config-vars).
+The benefit of setting the environment via the Procfile is that this information is in your versioned source tree.
+The benefit of using config vars is that they are only available to those with permissions to view/change them with Heroku.
+It is possible to combine both approaches by setting config vars for values that should be secret (like passwords) and referencing them in your Procfile.
+
+```language-bash
+web: env "FOO_BAR_OPTS=-Dratpack.port=$PORT -Dratpack.other.dbPassword=$SECRET_DB_PASSWORD" build/install/«project name»/bin/«project name»
+```
+
+Now it is easy to see which properties and environment variables are set in the source tree, but sensitive values are only visible via the Heroku management tools.
+
+>> You may want to also consider setting `-Dratpack.publicAddress` to the public name of your application so that application redirects work as expected.
+See [`redirect()`](api/ratpack/handling/Context.html#redirect\(java.lang.String\)) for more details.
+
+## Other build tools and binary deployments
+
+The Ratpack project does not provide any “official” integration with other build tools.
+However, it is quite possible to use whatever tool you like to build a Ratpack application for Heroku or even to deploy in binary form.
+
+Once you have a compiled Ratpack application in the Heroku environment (either through building with another build tool or by binary deployment),
+you can simply start the application by using `java` directly.
+
+````language-bash
+ web: java -Dratpack.port=$PORT ratpack.groovy.launch.GroovyRatpackMain
+```
+
+See the [launching chapter](launching.html) chapter for more detail on starting Ratpack applications.
