@@ -1,4 +1,4 @@
-# Heroku
+# Deploying to Heroku
 
 [Heroku][] is a scalable polyglot cloud application platform.
 It allows you to focus on writing applications in the language of your choice, and then easily deploy them to the cloud without having to manually manage servers, load balancing, log aggregation, etc.
