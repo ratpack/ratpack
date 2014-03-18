@@ -31,7 +31,7 @@ public class NewRelicProcessingInterceptor implements ProcessingInterceptor {
   @Override
   @Trace(dispatcher = true)
   public void intercept(Type type, Context context, Runnable continuation) {
-    context.get(NewRelicTransaction.class).init();
+    context.getRequest().get(NewRelicTransaction.class).init();
     continuation.run();
   }
 
