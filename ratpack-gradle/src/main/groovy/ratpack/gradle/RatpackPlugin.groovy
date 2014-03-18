@@ -69,10 +69,19 @@ class RatpackPlugin implements Plugin<Project> {
     def testSourceSet = sourceSets[SourceSet.TEST_SOURCE_SET_NAME]
     testSourceSet.resources.srcDir(run.workingDir)
 
+    def prepareBaseDirTask = project.tasks.create("prepareBaseDir")
+    prepareBaseDirTask.with {
+      group = "Ratpack"
+      description = "Lifecycle task for all tasks that contribute content to 'src/ratpack' (add dependencies to this task)"
+    }
+
     def appPluginConvention = project.getConvention().getPlugin(ApplicationPluginConvention)
     appPluginConvention.applicationDistribution.from(run.workingDir) {
       into "app"
     }
+
+    appPluginConvention.applicationDistribution.from prepareBaseDirTask.taskDependencies
+    run.dependsOn prepareBaseDirTask
 
     CreateStartScripts startScripts = project.startScripts
     startScripts.with {

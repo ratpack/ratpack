@@ -115,10 +115,6 @@ idea {
   }
 }
 
-task prepareContent {
-  dependsOn gatherManuals
-}
-
 task downloadChromeDriver {
   def webdriverOs
   if (IS_OS_MAC) {
@@ -171,17 +167,14 @@ if (project.hasProperty("ciBuild")) {
   check.dependsOn allSauceTests
 }
 
-installApp {
-  dependsOn prepareContent
-  from run.workingDir
-}
-
 task compileCoffee(type: CoffeeScriptCompile) {
   source fileTree('src/main/static/scripts')
   destinationDir file('src/ratpack/assets/scripts')
 }
 
-processResources.inputs.files compileCoffee, compileSass, prepareContent
+prepareBaseDir {
+  dependsOn gatherManuals, compileCoffee, compileSass
+}
 
 compass {
   gemPath = new File(gradle.gradleUserHomeDir, ".jruby")
