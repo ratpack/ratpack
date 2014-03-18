@@ -85,6 +85,8 @@ class RatpackPlugin implements Plugin<Project> {
     FileCollection runtimeDependencies = mainSourceSet.runtimeClasspath
     def fatJarTask = project.tasks.create("fatJar", Jar)
     fatJarTask.with {
+      group = "ratpack"
+      description = "Builds the Ratpack as a single executable JAR"
       inputs.files(runtimeDependencies)
       classifier = "fat"
       from run.workingDir
@@ -102,6 +104,8 @@ class RatpackPlugin implements Plugin<Project> {
 
     def runFatJarTask = project.tasks.create("run${fatJarTask.name.capitalize()}", Exec)
     runFatJarTask.with {
+      group = "ratpack"
+      description = "Executes the fat JAR built by the ${fatJarTask.name} task"
       dependsOn fatJarTask
       executable = "java"
       args "-jar", fatJarTask.archivePath.absolutePath
