@@ -37,21 +37,22 @@ def script = '''
 
   @Override
   String post() {
-    def rootProjectDir = new File("..")
-    def localRepoPath = new File(rootProjectDir, "build/localrepo").canonicalPath
-"""
+    String localRepo = System.getProperty("localRepo", "build/localRepo")
+    def localRepoPath = new File(localRepo).canonicalPath
+    """
 '''
 def projectDir = File.createTempDir()
 def buildFile = new File(projectDir, "build.gradle")
 try {
   buildFile.text = 'buildscript { repositories { maven { url "file://${localRepoPath}" } } }\\n' + script
   def connector = GradleConnector.newConnector().forProjectDirectory(projectDir)
-  def gradleUserHome = System.getenv()["GRADLE_USER_HOME"]
+
+  def gradleUserHome = System.getProperty("gradleUserHome")
   if (gradleUserHome) {
     connector.useGradleUserHomeDir(new File(gradleUserHome))
   }
 
-  def gradleHome = System.getenv()["GRADLE_HOME"]
+  def gradleHome = System.getProperty("gradleHome")
   if (gradleHome) {
     connector.useInstallation(new File(gradleHome))
   }

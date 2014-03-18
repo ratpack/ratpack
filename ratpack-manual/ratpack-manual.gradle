@@ -131,8 +131,9 @@ test {
   apiModules.each {
     inputs.files apiModules.sourceSets.main.allSource
   }
-  environment "GRADLE_USER_HOME", gradle.gradleUserHomeDir.absolutePath
-  environment "GRADLE_HOME", gradle.gradleHomeDir.absolutePath
+  systemProperty "localRepo", rootProject.file("build/localRepo").absolutePath
+  systemProperty "gradleUserHome", gradle.gradleUserHomeDir.absolutePath
+  systemProperty "gradleHome", gradle.gradleHomeDir.absolutePath
 }
 
 task checkApi(type: Checkstyle) {
