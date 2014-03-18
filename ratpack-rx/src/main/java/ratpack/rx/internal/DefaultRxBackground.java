@@ -16,13 +16,12 @@
 
 package ratpack.rx.internal;
 
+import ratpack.func.Action;
 import ratpack.handling.Background;
 import ratpack.rx.RxBackground;
-import ratpack.func.Action;
 import rx.Observable;
-import rx.Observer;
-import rx.Subscription;
-import rx.subscriptions.Subscriptions;
+import rx.Subscriber;
+import rx.functions.Action2;
 
 import javax.inject.Inject;
 import java.util.concurrent.Callable;
@@ -38,50 +37,52 @@ public class DefaultRxBackground implements RxBackground {
 
   @Override
   public <T> Observable<T> observe(final Callable<T> callable) {
-    return Observable.create(new Observable.OnSubscribeFunc<T>() {
+    return Observable.create(new OnSubscribe<>(callable, new Action2<T, Subscriber<? super T>>() {
       @Override
-      public Subscription onSubscribe(final Observer<? super T> observer) {
-        background.exec(callable).onError(new Action<Throwable>() {
-          @Override
-          public void execute(Throwable thing) throws Exception {
-            observer.onError(thing);
-          }
-        }).then(new Action<T>() {
-          @Override
-          public void execute(T thing) throws Exception {
-            observer.onNext(thing);
-            observer.onCompleted();
-          }
-        });
-        return Subscriptions.empty();
+      public void call(T thing, Subscriber<? super T> subscriber) {
+        subscriber.onNext(thing);
       }
-    });
+    }));
   }
 
   @Override
   public <I extends Iterable<T>, T> Observable<T> observeEach(final Callable<I> callable) {
-    return Observable.create(new Observable.OnSubscribeFunc<T>() {
+    return Observable.create(new OnSubscribe<>(callable, new Action2<I, Subscriber<? super T>>() {
       @Override
-      public Subscription onSubscribe(final Observer<? super T> observer) {
-        background.exec(callable).onError(new Action<Throwable>() {
-          @Override
-          public void execute(Throwable thing) throws Exception {
-            observer.onError(thing);
-          }
-        }).then(new Action<I>() {
-          @Override
-          public void execute(I things) throws Exception {
-            for (T thing : things) {
-              observer.onNext(thing);
-            }
-
-            observer.onCompleted();
-          }
-        });
-        return Subscriptions.empty();
+      public void call(I things, Subscriber<? super T> subscriber) {
+        for (T thing : things) {
+          subscriber.onNext(thing);
+        }
       }
-    });
+    }));
   }
 
+  private class OnSubscribe<T, S> implements Observable.OnSubscribe<S> {
+    private final Callable<T> callable;
+    private final Action2<T, Subscriber<? super S>> emitter;
+
+    public OnSubscribe(Callable<T> callable, Action2<T, Subscriber<? super S>> emitter) {
+      this.callable = callable;
+      this.emitter = emitter;
+    }
+
+    @Override
+    public void call(final Subscriber<? super S> subscriber) {
+      background.exec(callable)
+        .onError(new Action<Throwable>() {
+          @Override
+          public void execute(Throwable throwable) throws Exception {
+            subscriber.onError(throwable);
+          }
+        })
+        .then(new Action<T>() {
+          @Override
+          public void execute(T thing) throws Exception {
+            emitter.call(thing, subscriber);
+            subscriber.onCompleted();
+          }
+        });
+    }
+  }
 }
 
