@@ -17,10 +17,10 @@
 package ratpack.site
 
 import geb.spock.GebReportingSpec
-import org.junit.Ignore
 import ratpack.site.pages.HomePage
 import ratpack.site.pages.ManualToCPage
 import ratpack.site.pages.VersionsPage
+import spock.lang.Ignore
 import spock.lang.Shared
 
 class SiteBrowserSmokeSpec extends GebReportingSpec {
