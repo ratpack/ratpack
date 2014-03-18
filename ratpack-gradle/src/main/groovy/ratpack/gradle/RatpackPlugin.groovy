@@ -82,6 +82,7 @@ class RatpackPlugin implements Plugin<Project> {
 
     appPluginConvention.applicationDistribution.from prepareBaseDirTask.taskDependencies
     run.dependsOn prepareBaseDirTask
+    project.tasks.getByName("test").dependsOn prepareBaseDirTask
 
     CreateStartScripts startScripts = project.startScripts
     startScripts.with {
