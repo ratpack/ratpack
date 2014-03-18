@@ -49,6 +49,7 @@ repositories {
 The `'ratpack'` plugin applies the core Gradle [`'java'` plugin](http://www.gradle.org/docs/current/userguide/java_plugin.html).
 The `'ratpack-groovy'` plugin applies the core Gradle [`'groovy'` plugin](http://www.gradle.org/docs/current/userguide/groovy_plugin.html).
 This means that you can start adding code and dependencies to your app like a standard Gradle based project (e.g. putting source in `src/main/[groovy|java]`).
+Note that the `'ratpack-groovy'` plugin implicitly applies the `'ratpack'` plugin.
 
 ## Ratpack dependencies
 
@@ -168,12 +169,120 @@ Making `'prepareBaseDir'` depend on your generation task ensures that it is invo
 
 ## Running the application
 
-TODO: discuss the 'run' task
+The `'application'` plugin provides the `'run'` task for starting the Ratpack application.
+This is a task of the core Gradle [`JavaExec`](http://www.gradle.org/docs/current/dsl/org.gradle.api.tasks.JavaExec.html) type.
+The `'ratpack'` plugin configures this `'run'` task to start the process in `src/ratpack` and to launch with the system property `'ratpack.reloadable'` set to `true` (which enables development time code reloading).
+
+If you wish to set extra system properties for development time execution, you can configure this task…
+
+```language-groovy gradle
+buildscript {
+  repositories {
+    jcenter()
+  }
+  dependencies {
+    classpath "io.ratpack:ratpack-gradle:@ratpack-version@"
+  }
+}
+
+apply plugin: "ratpack"
+
+repositories {
+  jcenter()
+}
+
+run {
+  systemProperty "ratpack.other.dbPassword", "secret"
+}
+```
 
 ## Class reloading via SpringLoaded
 
-TODO: discuss spring loaded, with example of required build configuration to enable
+With a little extra configuration, you can enable reloading of changed classes at development time without restarting the server.
+This is achieved by leveraging [SpringLoaded, by Pivotal Labs](https://github.com/spring-projects/spring-loaded).
+To use SpringLoaded in your Ratpack project, you need to add a dependency on the SpringLoaded agent.
+
+```language-groovy gradle
+buildscript {
+  repositories {
+    jcenter()
+  }
+  dependencies {
+    classpath "io.ratpack:ratpack-gradle:@ratpack-version@"
+  }
+}
+
+apply plugin: "ratpack"
+
+repositories {
+  jcenter()
+  maven { url "http://repo.springsource.org/repo" } // for springloaded
+}
+
+dependencies {
+  springloaded "org.springsource.loaded:springloaded:1.1.5.RELEASE"
+}
+```
+
+Reloading is now enabled for your application.
+SpringLoaded will detect changed _class files_ while your application is running and patch the code in memory.
+
+An effective workflow is to open to terminal windows.
+In the first, execute…
+
+```language-bash
+./gradlew run
+```
+
+In the second, run the following after making a code change…
+
+```language-bash
+./gradlew classes
+```
+
+If you'd like to have Gradle automatically compile changes as they happen, you can use the [Gradle Watch](https://github.com/bluepapa32/gradle-watch-plugin) plugin.
+
+Note: You do not need SpringLoaded support for reloading changes to the `src/ratpack/Ratpack.groovy` file when using `'ratpack-groovy'`, nor do you need to have Gradle recompile the code.
+The reloading of this file is handled at runtime in reloadable mode.
 
 ## IntelliJ IDEA support
 
-TODO: discuss IDEA support - run configuration, reloading, testing
+The `'ratpack'` Gradle plugin integrates with the [core `'idea'` Gradle plugin](http://www.gradle.org/docs/current/userguide/idea_plugin.html).
+A [“Run Configuration”](https://www.jetbrains.com/idea/webhelp/run-debug-configuration.html) is automatically created, making it easy to start your application from within IDEA.
+The run configuration mimics the configuration of the `'run'` Gradle task, including integration with SpringLoaded.
+
+To use the integration, you need to apply the `'idea'` plugin to your build.
+
+```language-groovy gradle
+buildscript {
+  repositories {
+    jcenter()
+  }
+  dependencies {
+    classpath "io.ratpack:ratpack-gradle:@ratpack-version@"
+  }
+}
+
+apply plugin: "ratpack"
+apply plugin: "idea"
+
+repositories {
+  jcenter()
+}
+```
+
+You can now have the build generate metadata that allows the project to be opened in IDEA, by running…
+
+```language-bash
+./gradlew idea
+```
+
+This will generate a `«project name».ipr` file, which can be opened with IDEA.
+Once the project is opened, you will see a “Run Configuration” named “Ratpack Run” that can be used to start the application.
+
+### Reloading
+
+If you have configured your build to use SpringLoaded, it will also be used by IDEA.
+However, IDEA will not automatically recompile code while there is an active run configuration.
+This means that after making a code change (to anything other than `src/ratpack/Ratpack.groovy`) you need to click “Make Project” in the “Build” menu (or use the corresponding key shortcut).
+
