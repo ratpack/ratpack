@@ -33,7 +33,9 @@ public class ErrorCatchingHandler implements Handler {
       handler.handle(context);
     } catch (Exception exception) {
       if (exception instanceof HandlerException) {
-        ((HandlerException) exception).getContext().error((Exception) exception.getCause());
+        Context exceptionContext = ((HandlerException) exception).getContext();
+        Exception cause = (Exception) exception.getCause();
+        exceptionContext.error(cause);
       } else {
         context.error(exception);
       }

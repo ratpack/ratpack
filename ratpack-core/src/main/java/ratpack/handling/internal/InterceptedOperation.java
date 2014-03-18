@@ -26,28 +26,33 @@ public abstract class InterceptedOperation {
   private final List<ProcessingInterceptor> interceptors;
   private final Context context;
 
+  private int i;
+
   public InterceptedOperation(ProcessingInterceptor.Type type, List<ProcessingInterceptor> interceptors, Context context) {
     this.type = type;
     this.interceptors = interceptors;
     this.context = context;
+    i = interceptors.size() - 1;
   }
 
   public void run() {
     if (interceptors.isEmpty()) {
       performOperation();
     } else {
-      nextInterceptor(interceptors.size() - 1);
+      nextInterceptor();
     }
   }
 
-  private void nextInterceptor(final int i) {
+  private void nextInterceptor() {
     if (i >= 0) {
+      int iAtStart = i;
       ProcessingInterceptor interceptor = interceptors.get(i);
       Runnable continuation = new Runnable() {
         @Override
         public void run() {
           try {
-            nextInterceptor(i - 1);
+            i -= 1;
+            nextInterceptor();
           } catch (Exception ignore) {
             // do nothing
           }
@@ -57,6 +62,9 @@ public abstract class InterceptedOperation {
         interceptor.intercept(type, context, continuation);
       } catch (Throwable e) {
         e.printStackTrace();
+        if (i == iAtStart) {
+          continuation.run();
+        }
       }
     } else {
       performOperation();

@@ -16,6 +16,7 @@
 
 package ratpack.handling
 
+import ratpack.error.ServerErrorHandler
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 import static ratpack.registry.Registries.registry
@@ -72,6 +73,96 @@ class ProcessingInterceptionSpec extends RatpackGroovyDslSpec {
 
     then:
     record == ["1:init", "1:FOREGROUND", "2:init", "2:FOREGROUND", "1:BACKGROUND", "2:BACKGROUND", "1:FOREGROUND", "2:FOREGROUND"]
+  }
+
+  class ErroringInterceptor extends RecordingInterceptor {
+
+    ErroringInterceptor(String id) {
+      super(id)
+    }
+
+    @Override
+    void intercept(ProcessingInterceptor.Type type, Context context, Runnable continuation) {
+      super.intercept(type, context, continuation)
+      throw new RuntimeException("$type:$id")
+    }
+  }
+
+  def "errors thrown by interceptors are ignored"() {
+    given:
+    def interceptor1 = new ErroringInterceptor("1")
+    def interceptor2 = new ErroringInterceptor("2")
+
+    modules {
+      bind interceptor1
+    }
+
+    handlers {
+      handler {
+        next(registry(interceptor2))
+      }
+      get(":path") {
+        background {
+          2
+        } then {
+          render pathTokens.path
+        }
+      }
+    }
+
+    when:
+    get("1")
+
+    then:
+    record == ["1:init", "1:FOREGROUND", "2:init", "2:FOREGROUND", "1:BACKGROUND", "2:BACKGROUND", "1:FOREGROUND", "2:FOREGROUND"]
+  }
+
+  static class SimpleErrorHandler implements ServerErrorHandler {
+    @Override
+    void error(Context context, Exception exception) throws Exception {
+      context.response.status(500).send(exception.message)
+    }
+  }
+
+  static class ErrorInInitInterceptor implements ProcessingInterceptor {
+    @Override
+    void init(Context context) {
+      throw new RuntimeException("error in init")
+    }
+
+    @Override
+    void intercept(ProcessingInterceptor.Type type, Context context, Runnable continuation) {
+
+    }
+  }
+
+  def "error in init on insert halts pipeline"() {
+    when:
+    modules {
+      bind new ErrorInInitInterceptor()
+      bind ServerErrorHandler, new SimpleErrorHandler()
+    }
+    handlers { handler { render "ok" } }
+
+    then:
+    with(get()) {
+      statusCode == 500
+      text == "error in init"
+    }
+  }
+
+  def "error in init on next halts pipeline"() {
+    when:
+    handlers {
+      handler { next(registry().add(ServerErrorHandler, new SimpleErrorHandler()).add(new ErrorInInitInterceptor()).build()) }
+      handler { render "ok" }
+    }
+
+    then:
+    with(get()) {
+      statusCode == 500
+      text == "error in init"
+    }
   }
 
 }

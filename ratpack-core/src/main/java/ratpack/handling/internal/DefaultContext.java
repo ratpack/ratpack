@@ -142,10 +142,15 @@ public class DefaultContext implements Context {
   @Override
   public void next(Registry registry) {
     List<ProcessingInterceptor> interceptors = registry.getAll(ProcessingInterceptor.class);
-    for (ProcessingInterceptor interceptor : interceptors) {
-      interceptor.init(this);
-    }
     final Registry joinedRegistry = Registries.join(DefaultContext.this.registry, registry);
+    for (ProcessingInterceptor interceptor : interceptors) {
+      try {
+        interceptor.init(this);
+      } catch (final Exception e) {
+        Context context = createContext(joinedRegistry, nextHandlers, nextIndex, exhausted);
+        throw new HandlerException(context, e);
+      }
+    }
     new InterceptedOperation(ProcessingInterceptor.Type.FOREGROUND, interceptors, this) {
       @Override
       protected void performOperation() {
@@ -167,12 +172,18 @@ public class DefaultContext implements Context {
       throw new IllegalArgumentException("handlers is zero length");
     }
 
+    final Registry joinedRegistry = Registries.join(DefaultContext.this.registry, registry);
+
     List<ProcessingInterceptor> interceptors = registry.getAll(ProcessingInterceptor.class);
     for (ProcessingInterceptor interceptor : interceptors) {
-      interceptor.init(this);
+      try {
+        interceptor.init(this);
+      } catch (final Exception e) {
+        Context context = createContext(joinedRegistry, nextHandlers, nextIndex, exhausted);
+        throw new HandlerException(context, e);
+      }
     }
 
-    final Registry joinedRegistry = Registries.join(DefaultContext.this.registry, registry);
     new InterceptedOperation(ProcessingInterceptor.Type.FOREGROUND, interceptors, this) {
       @Override
       protected void performOperation() {
