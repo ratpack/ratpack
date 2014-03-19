@@ -18,7 +18,7 @@ package ratpack.groovy.internal;
 
 import com.google.common.collect.ImmutableList;
 import groovy.lang.Closure;
-import ratpack.handling.internal.ServiceExtractor;
+import ratpack.handling.internal.Extractions;
 import ratpack.registry.Registry;
 import ratpack.func.Action;
 
@@ -54,7 +54,7 @@ public class ClosureInvoker<T, D> {
         return clone.call();
       }
     } else {
-      Object[] services = ServiceExtractor.extract(parameterTypes, registry);
+      Object[] services = Extractions.extract(parameterTypes, registry);
       return clone.call(services);
     }
   }

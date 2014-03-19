@@ -20,20 +20,20 @@ import ratpack.registry.Registry;
 
 import java.util.List;
 
-public abstract class ServiceExtractor {
+public abstract class Extractions {
 
-  private ServiceExtractor() {
+  private Extractions() {
   }
 
-  public static Object[] extract(List<Class<?>> serviceTypes, Registry registry) {
-    Object[] services = new Object[serviceTypes.size()];
-    extract(serviceTypes, registry, services, 0);
+  public static Object[] extract(List<Class<?>> types, Registry registry) {
+    Object[] services = new Object[types.size()];
+    extract(types, registry, services, 0);
     return services;
   }
 
-  public static void extract(List<Class<?>> serviceTypes, Registry registry, Object[] services, int startIndex) {
-    for (int i = 0; i < serviceTypes.size(); ++i) {
-      Class<?> type = serviceTypes.get(i);
+  public static void extract(List<Class<?>> types, Registry registry, Object[] services, int startIndex) {
+    for (int i = 0; i < types.size(); ++i) {
+      Class<?> type = types.get(i);
       Object service = registry.get(type);
       services[i + startIndex] = service;
     }

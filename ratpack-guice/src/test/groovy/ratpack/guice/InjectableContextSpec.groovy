@@ -19,7 +19,7 @@ package ratpack.guice
 import ratpack.handling.Background
 import ratpack.handling.Context
 import ratpack.handling.ReadOnlyContext
-import ratpack.handling.ServiceUsingHandler
+import ratpack.handling.InjectionHandler
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 import javax.inject.Inject
@@ -43,7 +43,7 @@ class InjectableContextSpec extends RatpackGroovyDslSpec {
       bind ContextScopeService
     }
     handlers {
-      handler new ServiceUsingHandler() {
+      handler new InjectionHandler() {
         void handle(Context context, ContextScopeService service) {
           assert service.context.is(context)
           context.render "ok"

@@ -24,19 +24,19 @@ import ratpack.test.internal.RatpackGroovyDslSpec
 
 import static ratpack.handling.Handlers.register
 
-class ServiceUsingHandlerSpec extends RatpackGroovyDslSpec {
+class InjectionHandlerSpec extends RatpackGroovyDslSpec {
 
-  static class NoHandleMethod extends ServiceUsingHandler {}
+  static class NoHandleMethod extends InjectionHandler {}
 
   def "must have handle method"() {
     when:
     new NoHandleMethod()
 
     then:
-    thrown ServiceUsingHandler.NoSuitableHandleMethodException
+    thrown InjectionHandler.NoSuitableHandleMethodException
   }
 
-  static class NoHandleMethodWithContextAsFirstParam extends ServiceUsingHandler {
+  static class NoHandleMethodWithContextAsFirstParam extends InjectionHandler {
     void handle(String foo) {}
   }
 
@@ -45,10 +45,10 @@ class ServiceUsingHandlerSpec extends RatpackGroovyDslSpec {
     new NoHandleMethodWithContextAsFirstParam()
 
     then:
-    thrown ServiceUsingHandler.NoSuitableHandleMethodException
+    thrown InjectionHandler.NoSuitableHandleMethodException
   }
 
-  static class InjectedHandler extends ServiceUsingHandler {
+  static class InjectedHandler extends InjectionHandler {
     @SuppressWarnings(["GrMethodMayBeStatic", "GroovyUnusedDeclaration"])
     protected handle(Context exchange, FileSystemBinding fileSystemBinding) {
       assert fileSystemBinding.is(exchange.get(FileSystemBinding))
@@ -66,7 +66,7 @@ class ServiceUsingHandlerSpec extends RatpackGroovyDslSpec {
     text == DefaultFileSystemBinding.class.name
   }
 
-  static class Injected2Handler extends ServiceUsingHandler {
+  static class Injected2Handler extends InjectionHandler {
     @SuppressWarnings(["GrMethodMayBeStatic", "GroovyUnusedDeclaration"])
     protected handle(Context exchange, FileSystemBinding fileSystemBinding, ServerErrorHandler serverErrorHandler) {
       assert fileSystemBinding.is(exchange.get(FileSystemBinding))
@@ -85,7 +85,7 @@ class ServiceUsingHandlerSpec extends RatpackGroovyDslSpec {
     text == DefaultServerErrorHandler.class.name
   }
 
-  static class InjectedBadHandler extends ServiceUsingHandler {
+  static class InjectedBadHandler extends InjectionHandler {
     @SuppressWarnings(["GrMethodMayBeStatic", "GroovyUnusedDeclaration"])
     protected handle(Context exchange, FileSystemBinding fileSystemBinding, Exception notInRegistry) {}
   }

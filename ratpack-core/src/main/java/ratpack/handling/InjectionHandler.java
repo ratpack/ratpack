@@ -17,7 +17,7 @@
 package ratpack.handling;
 
 import com.google.common.collect.ImmutableList;
-import ratpack.handling.internal.ServiceExtractor;
+import ratpack.handling.internal.Extractions;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -27,13 +27,13 @@ import java.util.List;
 import static ratpack.util.ExceptionUtils.uncheck;
 
 /**
- * Convenience handler super class that provides syntactic sugar for accessing contextual objects.
+ * A super class that removes the boiler plate of retrieving objects from the context registry by injecting them based on a method signature.
  * <p>
  * Subclasses must implement exactly one method named {@code "handle"} that accepts a {@link Context} as the first parameter,
  * and at least one other parameter of any type.
  * <p>
- * Each parameter after the first {@link Context} parameter is expected to be a contextual object.
- * It's value will be the result of calling {@link Context#get(Class)} with the parameter type.
+ * The {@code handle(Context)} method of this class will delegate to the subclass handle method, supplying values for each parameter
+ * by retrieving the contextual registry object of that type (i.e. via {@link Context#get(Class)}).
  * <p>
  * The following two handlers are functionally equivalent:
  * <pre class="tested">
@@ -47,7 +47,7 @@ import static ratpack.util.ExceptionUtils.uncheck;
  *   }
  * }
  *
- * public class SuccinctHandler extends ServiceUsingHandler {
+ * public class SuccinctHandler extends InjectionHandler {
  *   public void handle(Context context, FileSystemBinding fileSystemBinding) {
  *     context.render(fileSystemBinding.getFile().toString());
  *   }
@@ -58,9 +58,9 @@ import static ratpack.util.ExceptionUtils.uncheck;
  * <p>
  * If there is no suitable {@code handle(Context, ...)} method, a {@link NoSuitableHandleMethodException} will be thrown at construction time.
  */
-public abstract class ServiceUsingHandler implements Handler {
+public abstract class InjectionHandler implements Handler {
 
-  private final List<Class<?>> serviceTypes;
+  private final List<Class<?>> types;
   private final Method handleMethod;
 
   /**
@@ -68,7 +68,7 @@ public abstract class ServiceUsingHandler implements Handler {
    *
    * @throws NoSuitableHandleMethodException if this class doesn't provide a suitable handle method.
    */
-  protected ServiceUsingHandler() throws NoSuitableHandleMethodException {
+  protected InjectionHandler() throws NoSuitableHandleMethodException {
     Class<?> thisClass = this.getClass();
 
     Method handleMethod = null;
@@ -96,7 +96,7 @@ public abstract class ServiceUsingHandler implements Handler {
 
     this.handleMethod = handleMethod;
     Class<?>[] parameterTypes = handleMethod.getParameterTypes();
-    this.serviceTypes = ImmutableList.copyOf(Arrays.asList(parameterTypes).subList(1, parameterTypes.length));
+    this.types = ImmutableList.copyOf(Arrays.asList(parameterTypes).subList(1, parameterTypes.length));
   }
 
   /**
@@ -105,9 +105,9 @@ public abstract class ServiceUsingHandler implements Handler {
    * @param context The context to handle
    */
   public final void handle(Context context) {
-    Object[] args = new Object[serviceTypes.size() + 1];
+    Object[] args = new Object[types.size() + 1];
     args[0] = context;
-    ServiceExtractor.extract(serviceTypes, context, args, 1);
+    Extractions.extract(types, context, args, 1);
     try {
       handleMethod.invoke(this, args);
     } catch (IllegalAccessException e) {
