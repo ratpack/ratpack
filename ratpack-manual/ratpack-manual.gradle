@@ -118,8 +118,6 @@ task api(type: Javadoc) {
 
   options.bottom = """
       <script src=\"{@docRoot}/../js/manual.js\"></script>
-      <script src=\"{@docRoot}/../js/prism.js\" data-manual></script>
-      <script src=\"{@docRoot}/../js/highlight.js\"></script>
     """.replaceAll("(^|\\n)\\s*", "")
 
   inputs.property "bottom", options.bottom
@@ -166,8 +164,6 @@ task tokeniseManual(type: Sync) {
         <link href="css/normalize.css" rel="stylesheet" type="text/css">
         <!--[if lt IE 8]><link href="css/minimal.css" rel="stylesheet" type="text/css"><![endif]-->
         <!--[if gt IE 7]><!--><link href="css/stylesheet.css" rel="stylesheet" type="text/css"><!--<![endif]-->
-        <script src="js/modernizr.js"></script>
-        <script src="js/prism.js"></script>
         <script src="js/manual.js"></script>
       """,
       footer: """
