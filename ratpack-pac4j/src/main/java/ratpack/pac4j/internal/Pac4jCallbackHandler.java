@@ -74,7 +74,7 @@ public class Pac4jCallbackHandler<C extends Credentials, U extends UserProfile> 
     }).then(new Action<UserProfile>() {
       @Override
       public void execute(UserProfile profile) {
-        SessionStorage sessionStorage = context.get(SessionStorage.class);
+        SessionStorage sessionStorage = context.getRequest().get(SessionStorage.class);
         saveUserProfileInSession(sessionStorage, profile);
         if (profile == null) {
           authorizer.handleAuthenticationFailure(context);

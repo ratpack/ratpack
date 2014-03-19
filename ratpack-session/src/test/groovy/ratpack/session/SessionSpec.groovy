@@ -16,6 +16,8 @@
 
 package ratpack.session
 
+import ratpack.error.ServerErrorHandler
+import ratpack.error.internal.PrintingServerErrorHandler
 import ratpack.session.store.MapSessionsModule
 import ratpack.session.store.SessionStorage
 import ratpack.session.store.SessionStore
@@ -26,13 +28,16 @@ class SessionSpec extends RatpackGroovyDslSpec {
   def setup() {
     modules << new SessionModule()
     modules << new MapSessionsModule(10, 5)
+    modules {
+      bind ServerErrorHandler, new PrintingServerErrorHandler()
+    }
   }
 
   def "can use session"() {
     when:
     handlers {
-      get(":v") {
-        response.send get(Session).id
+      get(":v") { Session session ->
+        render session.id
       }
     }
 
@@ -43,14 +48,12 @@ class SessionSpec extends RatpackGroovyDslSpec {
   def "can store session vars"() {
     when:
     handlers {
-      get("") {
-        def store = get(SessionStorage)
-        response.send store.value.toString()
+      get("") { SessionStorage storage ->
+        render storage.value.toString()
       }
-      get("set/:value") {
-        def store = get(SessionStorage)
-        store.value = pathTokens.value
-        response.send store.value.toString()
+      get("set/:value") { SessionStorage storage ->
+        storage.value = pathTokens.value
+        render storage.value.toString()
       }
     }
 
@@ -64,21 +67,19 @@ class SessionSpec extends RatpackGroovyDslSpec {
   def "can invalidate session vars"() {
     when:
     handlers {
-      get("") {
-        def store = get(SessionStorage)
-        response.send store.value ?: "null"
+      get("") { SessionStorage storage ->
+        render storage.value ?: "null"
       }
-      get("set/:value") {
-        def store = get(SessionStorage)
-        store.value = pathTokens.value
-        response.send store.value ?: "null"
+      get("set/:value") { SessionStorage storage ->
+        storage.value = pathTokens.value
+        render storage.value ?: "null"
       }
-      get("invalidate") {
-        get(Session).terminate()
+      get("invalidate") { Session session ->
+        session.terminate()
         response.send()
       }
-      get("size") {
-        response.send get(SessionStore).size().toString()
+      get("size") { SessionStore store ->
+        render store.size().toString()
       }
     }
 
@@ -100,11 +101,10 @@ class SessionSpec extends RatpackGroovyDslSpec {
   def "sessions are created on demand"() {
     when:
     handlers {
-      get {
-        render get(SessionStore).size().toString()
+      get { SessionStore store ->
+        render store.size().toString()
       }
-      get("store") {
-        get(SessionStorage)
+      get("store") { SessionStorage storage ->
         render "ok"
       }
     }
@@ -121,8 +121,7 @@ class SessionSpec extends RatpackGroovyDslSpec {
       get("foo") {
         response.send("foo")
       }
-      get("bar") {
-        get(SessionStorage) // just retrieve
+      get("bar") { SessionStorage store ->
         response.send("bar")
       }
     }

@@ -73,7 +73,7 @@ public class Pac4jAuthenticationHandler<C extends Credentials, U extends UserPro
 
   @SuppressWarnings("unchecked")
   private U getUserProfile(Context context) {
-    return (U) context.get(SessionStorage.class).get(USER_PROFILE);
+    return (U) context.getRequest().get(SessionStorage.class).get(USER_PROFILE);
   }
 
   private void initiateAuthentication(final Context context) {
@@ -90,7 +90,7 @@ public class Pac4jAuthenticationHandler<C extends Credentials, U extends UserPro
     }).then(new Action<String>() {
       @Override
       public void execute(String redirectionUrl) {
-        SessionStorage sessionStorage = context.get(SessionStorage.class);
+        SessionStorage sessionStorage = context.getRequest().get(SessionStorage.class);
         sessionStorage.put(SAVED_URI, context.getRequest().getUri());
         context.redirect(redirectionUrl);
       }

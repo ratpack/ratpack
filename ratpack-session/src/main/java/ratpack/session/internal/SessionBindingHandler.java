@@ -16,13 +16,11 @@
 
 package ratpack.session.internal;
 
+import ratpack.func.Factory;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
-import ratpack.registry.Registries;
-import ratpack.registry.Registry;
 import ratpack.session.Session;
 import ratpack.session.SessionManager;
-import ratpack.func.Factory;
 
 public class SessionBindingHandler implements Handler {
 
@@ -33,7 +31,7 @@ public class SessionBindingHandler implements Handler {
   }
 
   public void handle(final Context context) {
-    Registry registry = Registries.registry(Session.class, new Factory<Session>() {
+    context.getRequest().registerLazy(Session.class, new Factory<Session>() {
       public Session create() {
         SessionManager sessionManager = context.get(SessionManager.class);
         final RequestSessionManager requestSessionManager = new RequestSessionManager(context, sessionManager);
@@ -41,7 +39,7 @@ public class SessionBindingHandler implements Handler {
       }
     });
 
-    context.insert(registry, handler);
+    context.insert(handler);
   }
 
 }

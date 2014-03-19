@@ -63,12 +63,12 @@ class RatpackWebContext implements WebContext {
 
   @Override
   public void setSessionAttribute(String name, Object value) {
-    context.get(SessionStorage.class).put(name, value);
+    context.getRequest().get(SessionStorage.class).put(name, value);
   }
 
   @Override
   public Object getSessionAttribute(String name) {
-    return context.get(SessionStorage.class).get(name);
+    return context.getRequest().get(SessionStorage.class).get(name);
   }
 
   @Override
