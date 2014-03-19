@@ -2,8 +2,8 @@
 
 [Heroku][] is a scalable polyglot cloud application platform.
 It allows you to focus on writing applications in the language of your choice, and then easily deploy them to the cloud without having to manually manage servers, load balancing, log aggregation, etc.
-Heroku does not have, nor does it need, any special Ratpack support above its [generic support for JVM apps](http://java.heroku.com).
-Heroku is a ruch platform, with many [Add-ons](https://addons.heroku.com) such as Postgres, Redis, Memcache, RabbitMQ, New Relic etc.
+Heroku does not have, nor does it need, any special Ratpack support above its [generic support for JVM applications](http://java.heroku.com).
+Heroku is a rich platform, with many [add-ons](https://addons.heroku.com) such as Postgres, Redis, Memcache, RabbitMQ, New Relic, etc.
 It is a compelling option for serving Ratpack applications.
 
 Deployments to Heroku are typically in source form.
@@ -11,12 +11,12 @@ Deploying is as simple as performing a Git push at the end of your CI pipeline.
 Many popular cloud CI tools such as [drone.io](https://drone.io/) and [Travis-CI](https://travis-ci.org) (among others) have convenient support for pushing to Heroku.
 
 It is recommended to read the [Heroku Quickstart](https://devcenter.heroku.com/articles/quickstart) and [Buildpack](https://devcenter.heroku.com/articles/buildpacks) documentation if you are new to Heroku.
-The rest of this chapter outlines the requirements and necessary configuration for deploying Ratpack apps to Heroku.
+The rest of this chapter outlines the requirements and necessary configuration for deploying Ratpack applications to Heroku.
 
 ## Gradle based builds
 
-Ratpack apps can be built by any build system, but the Ratpack team recommends [Gradle](http://gradle.org).
-Heroku has native support for Gradle via the [Gradle buildpack](https://devcenter.heroku.com/articles/buildpacks), which works well with the Ratpack Gradle plugin(s).
+Ratpack applications can be built by any build system, but the Ratpack team recommends [Gradle](http://gradle.org).
+Heroku has native support for Gradle via the [Gradle buildpack](https://devcenter.heroku.com/articles/buildpacks), which works well with the Ratpack Gradle plugins.
 
 All Gradle projects should use the [Gradle Wrapper](http://www.gradle.org/docs/current/userguide/gradle_wrapper.html).
 If the wrapper scripts are present in your project, Heroku will detect that your project is built with Gradle.
@@ -34,7 +34,7 @@ At the time of writing, this file is required as Heroku defaults to Java 6 and R
 ### Building
 
 The Gradle buildpack will invoke `./gradlew stage`.
-The Ratpack Gradle plugins do not add a `stage` task to your build, so you need to add it yourself and make it build your app.
+The Ratpack Gradle plugins do not add a `stage` task to your build, so you need to add it yourself and make it build your application.
 The simplest way to do this is make the `stage` task depend on the `installApp` task which _is_ added by the Ratpack Gradle plugins.
 
 A minimalistic `build.gradle` looks like this:
@@ -115,8 +115,8 @@ However, it is quite possible to use whatever tool you like to build a Ratpack a
 Once you have a compiled Ratpack application in the Heroku environment (either through building with another build tool or by binary deployment),
 you can simply start the application by using `java` directly.
 
-````language-bash
- web: java ratpack.groovy.launch.GroovyRatpackMain
+```language-bash
+web: java ratpack.groovy.launch.GroovyRatpackMain
 ```
 
 See the [launching chapter](launching.html) chapter for more detail on starting Ratpack applications.
@@ -128,5 +128,5 @@ See the [launching chapter](launching.html) chapter for more detail on starting 
 You may want to consider setting `-Dratpack.publicAddress` to the public name of your application so that application redirects work as expected.
 See [`redirect()`](api/ratpack/handling/Context.html#redirect\(java.lang.String\)) for more details.
 
-Heroku assigns each application and ephemeral port number, made available by the `PORT` environment variable.
-The [`RatpackMain`](api/ratpack/launch/RatpackMain.html) entry points implicitly support this environment variable if there is no `ratpack.port` system property set.
+Heroku assigns each application an ephemeral port number, made available by the `PORT` environment variable.
+The [`RatpackMain`](api/ratpack/launch/RatpackMain.html) entry point implicitly supports this environment variable if the `ratpack.port` system property is not set.
