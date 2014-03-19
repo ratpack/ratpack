@@ -75,6 +75,14 @@ class InjectionHandlerSpec extends RatpackGroovyDslSpec {
     }
   }
 
+  static class InjectedPrimitivesHandler extends InjectionHandler {
+    @SuppressWarnings(["GrMethodMayBeStatic", "GroovyUnusedDeclaration"])
+    protected handle(Context context, Integer integer, String string) {
+      context.render("$integer:$string")
+    }
+  }
+
+
   def "can inject more than one"() {
     when:
     handlers {
@@ -105,4 +113,40 @@ class InjectionHandlerSpec extends RatpackGroovyDslSpec {
     then:
     text =~ "No object for type 'java.lang.Exception' in registry"
   }
+
+  def "can inject from request registry"() {
+    when:
+    modules {
+      bind 10
+    }
+    handlers {
+      handler {
+        request.register("foo")
+        next()
+      }
+      handler new InjectedPrimitivesHandler()
+    }
+
+    then:
+    text == "10:foo"
+  }
+
+  def "context registry shadows request registry"() {
+    when:
+    modules {
+      bind 10
+      bind "bar"
+    }
+    handlers {
+      handler {
+        request.register("foo")
+        next()
+      }
+      handler new InjectedPrimitivesHandler()
+    }
+
+    then:
+    text == "10:bar"
+  }
+
 }

@@ -16,35 +16,65 @@
 
 package ratpack.groovy.handling
 
-import com.google.inject.AbstractModule
-import ratpack.test.internal.RatpackGroovyAppSpec
+import ratpack.test.internal.RatpackGroovyDslSpec
 
-class ClosureServiceParametersSpec extends RatpackGroovyAppSpec {
+class ClosureParamInjectionSpec extends RatpackGroovyDslSpec {
 
   static class Thing {}
-
-  static class ThingModule extends AbstractModule {
-    protected void configure() {
-      bind(Thing)
-    }
-  }
 
   def "can have global services"() {
     when:
     file "templates/foo.html", "bar"
 
     modules {
-      register(new ThingModule())
+      bind new Thing()
     }
 
     handlers { Thing thing ->
       get {
-        response.send thing.class.name
+        render thing.class.name
       }
     }
 
     then:
     text == Thing.class.name
+  }
+
+  def "can inject request scoped objects"() {
+    when:
+    handlers {
+      handler {
+        request.register(new Thing())
+        next()
+      }
+      get { Thing thing ->
+        render thing.class.name
+      }
+    }
+
+    then:
+    text == Thing.class.name
+  }
+
+  def "context scope shadows request scope for handlers"() {
+    when:
+    modules {
+      bind "bar"
+      bind new Thing()
+    }
+
+    handlers {
+      handler {
+        request.register("foo")
+        next()
+      }
+      get { Thing thing, String string ->
+        render "${thing.class.name} $string"
+      }
+    }
+
+    then:
+    text == "${Thing.class.name} bar"
   }
 
 }

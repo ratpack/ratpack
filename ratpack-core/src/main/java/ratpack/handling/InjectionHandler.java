@@ -18,6 +18,7 @@ package ratpack.handling;
 
 import com.google.common.collect.ImmutableList;
 import ratpack.handling.internal.Extractions;
+import ratpack.registry.Registries;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -33,7 +34,9 @@ import static ratpack.util.ExceptionUtils.uncheck;
  * and at least one other parameter of any type.
  * <p>
  * The {@code handle(Context)} method of this class will delegate to the subclass handle method, supplying values for each parameter
- * by retrieving the contextual registry object of that type (i.e. via {@link Context#get(Class)}).
+ * by retrieving objects from the context and request (which are registries).
+ * The context takes precedence over the request.
+ * That is, if the context provides a value for the requested type it will be used regardless of whether the request also provides this type.
  * <p>
  * The following two handlers are functionally equivalent:
  * <pre class="tested">
@@ -107,7 +110,7 @@ public abstract class InjectionHandler implements Handler {
   public final void handle(Context context) {
     Object[] args = new Object[types.size() + 1];
     args[0] = context;
-    Extractions.extract(types, context, args, 1);
+    Extractions.extract(types, Registries.join(context.getRequest(), context), args, 1);
     try {
       handleMethod.invoke(this, args);
     } catch (IllegalAccessException e) {
