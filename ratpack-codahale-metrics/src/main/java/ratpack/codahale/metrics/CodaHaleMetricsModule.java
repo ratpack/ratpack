@@ -72,22 +72,103 @@ import java.io.File;
  * }
  * </pre>
  * <p>
- * This module supports both metric collection and health checks.  For further details on both please see
- * {@link ratpack.codahale.metrics.CodaHaleMetricsModule#metrics()} and {@link ratpack.codahale.metrics.CodaHaleMetricsModule#healthChecks()}
- * respectively.  By default metric collection is not enabled but health checks are.
+ * This module supports both metric collection and health checks.
  * </p>
  * <p>
- * <b>It is important that this module is registered first in the modules list to ensure that request metrics are as accurate as possible.</b>
+ * By default {@link com.codahale.metrics.Timer} metrics are collected for all requests received.  The module adds a
+ * {@link RequestTimingHandler} to the handler chain <b>before</b> any user handlers.  This means that response times do not take any
+ * framework overhead into account and purely the amount of time spent in handlers.  It is important that the module is
+ * registered first in the modules list to ensure that <b>all</b> handlers are included in the metric.
  * </p>
+ * <p>
+ * Additional custom metrics can be registered with the provided {@link MetricRegistry} instance
+ * </p>
+ * <p>
+ * Example custom metrics: (Groovy DSL)
+ * </p>
+ * <pre class="groovy-ratpack-dsl">
+ * import ratpack.codahale.metrics.CodaHaleMetricsModule
+ * import com.codahale.metrics.MetricRegistry
+ * import static ratpack.groovy.Groovy.ratpack
+ *
+ * ratpack {
+ *   modules {
+ *     register new CodaHaleMetricsModule().jmx()
+ *   }
+ *
+ *   handlers { MetricRegistry metricRegistry ->
+ *     handler {
+ *       metricRegistry.meter("my custom meter").mark()
+ *       render ""
+ *     }
+ *   }
+ * }
+ * </pre>
+ * <p>
+ * Custom metrics can also be added via the Metrics annotations ({@link Metered}, {@link Timed} and {@link com.codahale.metrics.annotation.Gauge})
+ * to any Guice injected classes.
+ * </p>
+ * <p>
+ * Health checks verify that application components or responsibilities are performing as expected.
+ * </p>
+ * <p>
+ * To create a health check simply create a class that extends {@link NamedHealthCheck} and bind it with Guice.
+ * This will automatically add it to the application wide {@link HealthCheckRegistry}.
+ * <p>
+ * Health checks can be run by obtaining the {@link HealthCheckRegistry} via dependency injection or context registry lookup,
+ * then calling {@link HealthCheckRegistry#runHealthChecks()}.
+ * <p>
+ * To expose the health check status over HTTP, see {@link HealthCheckHandler}.
+ * <p>
+ * Example health checks: (Groovy DSL)
+ * </p>
+ * <pre class="groovy-ratpack-dsl">
+ * import com.codahale.metrics.health.HealthCheck
+ * import com.codahale.metrics.health.HealthCheckRegistry
+ * import ratpack.codahale.metrics.CodaHaleMetricsModule
+ * import ratpack.codahale.metrics.HealthCheckHandler
+ * import ratpack.codahale.metrics.NamedHealthCheck
+ * import static ratpack.groovy.Groovy.ratpack
+ *
+ * class FooHealthCheck extends NamedHealthCheck {
+ *
+ *   protected HealthCheck.Result check() throws Exception {
+ *     // perform the health check logic here and return HealthCheck.Result.healthy() or HealthCheck.Result.unhealthy("Unhealthy message")
+ *     HealthCheck.Result.healthy()
+ *   }
+ *
+ *   def String getName() {
+ *     "foo_health_check"
+ *   }
+ * }
+ *
+ * ratpack {
+ *   modules {
+ *     register new CodaHaleMetricsModule().healthChecks()
+ *     bind FooHealthCheck // if you don't bind the health check with Guice it will not be automatically registered
+ *   }
+ *
+ *   handlers {
+ *     // Using the provided handler…
+ *     get("health-check/:name", new HealthCheckHandler())
+ *
+ *     // Using a custom handler to run all health checks…
+ *     get("healthChecks-custom") { HealthCheckRegistry healthCheckRegistry ->
+ *       render healthCheckRegistry.runHealthChecks().toString()
+ *     }
+ *   }
+ * }
+ * </pre>
  *
  * @see <a href="http://metrics.codahale.com/" target="_blank">Coda Hale's Metrics</a>
+ * @see <a href="http://metrics.codahale.com/manual/healthchecks/" target="_blank">Coda Hale Metrics - Health Checks</a>
  */
 public class CodaHaleMetricsModule extends AbstractModule implements HandlerDecoratingModule {
 
   private boolean reportMetricsToJmx;
   private boolean reportMetricsToConsole;
   private File csvReportDirectory;
-  private boolean healthChecksEnabled = true;
+  private boolean healthChecksEnabled;
   private boolean jvmMetricsEnabled;
   private boolean reportMetricsToWebsocket;
   private boolean metricsEnabled;
@@ -143,119 +224,21 @@ public class CodaHaleMetricsModule extends AbstractModule implements HandlerDeco
 
   /**
    * Enables the collection of metrics.
-   * <p>
-   * To enable one of the built in metric reporters please chain the relevant reporter configuration
-   * e.g. {@link ratpack.codahale.metrics.CodaHaleMetricsModule#jmx()}, {@link ratpack.codahale.metrics.CodaHaleMetricsModule#console()}.
-   * </p>
-   * <p>
-   * By default {@link com.codahale.metrics.Timer} metrics are collected for all requests received.  The module adds a
-   * {@link RequestTimingHandler} to the handler chain <b>before</b> any user handlers.  This means that response times do not take any
-   * framework overhead into account and purely the amount of time spent in handlers.  It is important that the module is
-   * registered first in the modules list to ensure that <b>all</b> handlers are included in the metric.
-   * </p>
-   * <p>
-   * Additional custom metrics can be registered with the provided {@link MetricRegistry} instance
-   * </p>
-   * <p>
-   * Example custom metrics: (Groovy DSL)
-   * </p>
-   * <pre class="groovy-ratpack-dsl">
-   * import ratpack.codahale.metrics.CodaHaleMetricsModule
-   * import com.codahale.metrics.MetricRegistry
-   * import static ratpack.groovy.Groovy.ratpack
-   *
-   * ratpack {
-   *   modules {
-   *     register new CodaHaleMetricsModule().jmx()
-   *   }
-   *
-   *   handlers { MetricRegistry metricRegistry ->
-   *     handler {
-   *       metricRegistry.meter("my custom meter").mark()
-   *       render ""
-   *     }
-   *   }
-   * }
-   * </pre>
-   * <p>
-   * Custom metrics can also be added via the Metrics annotations ({@link Metered}, {@link Timed} and {@link com.codahale.metrics.annotation.Gauge}) 
-   * to any Guice injected classes.
-   * </p>
    *
    * @return this {@code CodaHaleMetricsModule}
    * @see <a href="http://metrics.codahale.com/getting-started/" target="_blank">Coda Hale Metrics - Getting Started</a>
-   * @see ratpack.codahale.metrics.CodaHaleMetricsModule#jmx()
-   * @see ratpack.codahale.metrics.CodaHaleMetricsModule#console()
-   * @see CodaHaleMetricsModule#csv(java.io.File)
+   * @see #jmx()
+   * @see #console()
+   * @see #csv(java.io.File)
+   * @see #websocket()
    */
   public CodaHaleMetricsModule metrics() {
-    return metrics(true);
-  }
-
-  /**
-   * Enables or disables the collecting of metrics.
-   *
-   * @param enabled If the metric collection should be enabled.
-   * @return this {@code CodaHaleMetricsModule}
-   * @see ratpack.codahale.metrics.CodaHaleMetricsModule#metrics()
-   */
-  public CodaHaleMetricsModule metrics(boolean enabled) {
-    this.metricsEnabled = enabled;
+    this.metricsEnabled = true;
     return this;
   }
 
   /**
    * Enables the automatic registering of health checks.
-   * <p>
-   * Health checks verify that application components or responsibilities are performing as expected.
-   * <p>
-   * To create a health check simply create a class that extends {@link NamedHealthCheck} and bind it with Guice.
-   * This will automatically add it to the application wide {@link HealthCheckRegistry}.
-   * <p>
-   * Health checks can be run by obtaining the {@link HealthCheckRegistry} via dependency injection or context registry lookup,
-   * then calling {@link HealthCheckRegistry#runHealthChecks()}.
-   * <p>
-   * To expose the health check status over HTTP, see {@link HealthCheckHandler}.
-   * <p>
-   * Example health checks: (Groovy DSL)
-   * </p>
-   * <pre class="groovy-ratpack-dsl">
-   * import com.codahale.metrics.health.HealthCheck
-   * import com.codahale.metrics.health.HealthCheckRegistry
-   * import ratpack.codahale.metrics.CodaHaleMetricsModule
-   * import ratpack.codahale.metrics.HealthCheckHandler
-   * import ratpack.codahale.metrics.NamedHealthCheck
-   * import static ratpack.groovy.Groovy.ratpack
-   *
-   * class FooHealthCheck extends NamedHealthCheck {
-   *
-   *   protected HealthCheck.Result check() throws Exception {
-   *     // perform the health check logic here and return HealthCheck.Result.healthy() or HealthCheck.Result.unhealthy("Unhealthy message")
-   *     HealthCheck.Result.healthy()
-   *   }
-   *
-   *   def String getName() {
-   *     "foo_health_check"
-   *   }
-   * }
-   *
-   * ratpack {
-   *   modules {
-   *     register new CodaHaleMetricsModule().healthChecks()
-   *     bind FooHealthCheck // if you don't bind the health check with Guice it will not be automatically registered
-   *   }
-   *
-   *   handlers {
-   *     // Using the provided handler…
-   *     get("health-check/:name", new HealthCheckHandler())
-   *
-   *     // Using a custom handler to run all health checks…
-   *     get("healthChecks-custom") { HealthCheckRegistry healthCheckRegistry ->
-   *       render healthCheckRegistry.runHealthChecks().toString()
-   *     }
-   *   }
-   * }
-   * </pre>
    *
    * @return this {@code CodaHaleMetricsModule}
    * @see <a href="http://metrics.codahale.com/manual/healthchecks/" target="_blank">Coda Hale Metrics - Health Checks</a>
@@ -265,18 +248,7 @@ public class CodaHaleMetricsModule extends AbstractModule implements HandlerDeco
    * @see HealthCheckRegistry#runHealthChecks(java.util.concurrent.ExecutorService)
    */
   public CodaHaleMetricsModule healthChecks() {
-    return healthChecks(true);
-  }
-
-  /**
-   * Enables or disables the automatic registering of health checks.
-   *
-   * @param enabled If the automatic registering of health checks should be enabled.
-   * @return this {@code CodaHaleMetricsModule}
-   * @see CodaHaleMetricsModule#healthChecks()
-   */
-  public CodaHaleMetricsModule healthChecks(boolean enabled) {
-    this.healthChecksEnabled = enabled;
+    this.healthChecksEnabled = true;
     return this;
   }
 
@@ -289,18 +261,7 @@ public class CodaHaleMetricsModule extends AbstractModule implements HandlerDeco
    * @see <a href="http://metrics.codahale.com/manual/jvm/" target="_blank">Coda Hale Metrics - JVM Instrumentation</a>
    */
   public CodaHaleMetricsModule jvmMetrics() {
-    return jvmMetrics(true);
-  }
-
-  /**
-   * Enables or disables the collecting of JVM metrics.
-   *
-   * @param enabled If JVM metric collection should be enabled.
-   * @return this {@code CodaHaleMetricsModule}
-   * @see CodaHaleMetricsModule#jvmMetrics()
-   */
-  public CodaHaleMetricsModule jvmMetrics(boolean enabled) {
-    this.jvmMetricsEnabled = enabled;
+    this.jvmMetricsEnabled = true;
     return this;
   }
 
@@ -315,18 +276,7 @@ public class CodaHaleMetricsModule extends AbstractModule implements HandlerDeco
    * @see #jmx()
    */
   public CodaHaleMetricsModule websocket() {
-    return websocket(true);
-  }
-
-  /**
-   * Enables or disables the reporting of metrics via web sockets.
-   *
-   * @param enabled If web socket metric reporting should be enabled.
-   * @return this {@code CodaHaleMetricsModule}
-   * @see #websocket()
-   */
-  public CodaHaleMetricsModule websocket(boolean enabled) {
-    this.reportMetricsToWebsocket = enabled;
+    this.reportMetricsToWebsocket = true;
     return this;
   }
 
@@ -340,18 +290,7 @@ public class CodaHaleMetricsModule extends AbstractModule implements HandlerDeco
    * @see #websocket()
    */
   public CodaHaleMetricsModule jmx() {
-    return jmx(true);
-  }
-
-  /**
-   * Enables or disables the reporting of metrics via JMX.
-   *
-   * @param enabled If JMX metric reporting should be enabled.
-   * @return this {@code CodaHaleMetricsModule}
-   * @see #jmx()
-   */
-  public CodaHaleMetricsModule jmx(boolean enabled) {
-    this.reportMetricsToJmx = enabled;
+    this.reportMetricsToJmx = true;
     return this;
   }
 
@@ -365,18 +304,7 @@ public class CodaHaleMetricsModule extends AbstractModule implements HandlerDeco
    * @see #websocket()
    */
   public CodaHaleMetricsModule console() {
-    return console(true);
-  }
-
-  /**
-   * Enables or disables the reporting of metrics to the Console.
-   *
-   * @param enabled If Console metric reporting should be enabled.
-   * @return this {@code CodaHaleMetricsModule}
-   * @see #console()
-   */
-  public CodaHaleMetricsModule console(boolean enabled) {
-    this.reportMetricsToConsole = enabled;
+    this.reportMetricsToConsole = true;
     return this;
   }
 
