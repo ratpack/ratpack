@@ -16,7 +16,7 @@
 
 package ratpack.groovy.handling
 
-import ratpack.groovy.launch.internal.GroovyScriptFileHandlerFactory
+import ratpack.groovy.launch.GroovyScriptFileHandlerFactory
 import ratpack.launch.LaunchConfig
 import ratpack.launch.LaunchConfigFactory
 import ratpack.test.embed.EmbeddedApplication

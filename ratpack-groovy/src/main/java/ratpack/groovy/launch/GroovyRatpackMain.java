@@ -17,7 +17,6 @@
 package ratpack.groovy.launch;
 
 import groovy.lang.GroovySystem;
-import ratpack.groovy.launch.internal.GroovyScriptFileHandlerFactory;
 import ratpack.groovy.launch.internal.GroovyVersionCheck;
 import ratpack.launch.LaunchConfigFactory;
 import ratpack.launch.RatpackMain;

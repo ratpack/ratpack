@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ratpack.groovy.launch.internal;
+package ratpack.groovy.launch;
 
 import com.google.inject.Injector;
 import com.google.inject.Module;
