@@ -31,22 +31,22 @@ class RatpackDependencies {
   }
 
   Dependency getCore() {
-    dependency("ratpack-core")
+    dependency("core")
   }
 
   Dependency getGroovy() {
-    dependency("ratpack-groovy")
+    dependency("groovy")
   }
 
   Dependency getTest() {
-    dependency("ratpack-test")
+    dependency("test")
   }
 
   Dependency getGroovyTest() {
-    dependency("ratpack-groovy-test")
+    dependency("groovy-test")
   }
 
   Dependency dependency(String name) {
-    dependencies.create("${GROUP}:${name}:${version}")
+    dependencies.create("${GROUP}:ratpack-${name}:${version}")
   }
 }
