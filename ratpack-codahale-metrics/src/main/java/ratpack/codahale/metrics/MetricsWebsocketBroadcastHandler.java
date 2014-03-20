@@ -31,13 +31,13 @@ import static ratpack.websocket.WebSockets.websocket;
  * <p>
  * This handler should be bound to an application path, and most likely only for the GET method…
  * <pre class="java-chain-dsl">
- * import ratpack.codahale.metrics.MetricsHandler;
+ * import ratpack.codahale.metrics.MetricsWebsocketBroadcastHandler;
  *
  * chain instanceof ratpack.handling.Chain;
- * chain.get("admin/metrics", new MetricsHandler());
+ * chain.get("admin/metrics", new MetricsWebsocketBroadcastHandler());
  * </pre>
  */
-public class MetricsHandler implements Handler {
+public class MetricsWebsocketBroadcastHandler implements Handler {
 
   @Override
   public void handle(Context context) throws Exception {

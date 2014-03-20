@@ -363,7 +363,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
         render "foo"
       }
 
-      get("admin/metrics-report", new MetricsHandler())
+      get("admin/metrics-report", new MetricsWebsocketBroadcastHandler())
     }
 
     and:

@@ -307,7 +307,7 @@ public class CodaHaleMetricsModule extends AbstractModule implements HandlerDeco
   /**
    * Enable the reporting of metrics via web sockets.  The collecting of metrics will also be enabled.
    * <p>
-   * To broadcast metrics within an application see {@link MetricsHandler}.
+   * To broadcast metrics within an application see {@link MetricsWebsocketBroadcastHandler}.
    *
    * @return this {@code CodaHaleMetricsModule}
    * @see #console()
