@@ -1,0 +1,6 @@
+#!/bin/sh
+
+cat <<EOF
+default_process_types:
+  web: ratpack-site/build/install/ratpack-site/bin/ratpack-site
+EOF

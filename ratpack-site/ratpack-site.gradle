@@ -213,7 +213,3 @@ idea {
     scopes.TEST.plus += configurations.browserTestCompile
   }
 }
-
-task stage {
-  dependsOn installApp
-}

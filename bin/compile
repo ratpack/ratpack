@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+# bin/compile <build-dir> <cache-dir>
+
+# fail fast
+set -e
+
+BIN_DIR=$(cd $(dirname $0); pwd) # absolute path
+
+# parse args
+BUILD_DIR=$1
+CACHE_DIR=$2
+
+#env variables
+JAVA_DIST="openjdk1.7.0_21"
+JDK7_URL="https://s3.amazonaws.com/heroku-jdk/${JAVA_DIST}.tar.gz"
+
+#create the cache dir if it doesn't exist
+mkdir -p $CACHE_DIR
+
+cd "$BUILD_DIR"
+
+#jdk7
+if [ -d .jdk7 ]; then
+  echo ".jdk7 folder found, moving along."
+
+else
+  echo -n ".jdk7 folder not found! "
+  if [[ -d "$CACHE_DIR/.jdk7" ]]; then
+    echo -n "Copying jdk from cache to app... "
+    cp -r "$CACHE_DIR/.jdk7" "$BUILD_DIR"
+    echo "Done!"
+
+  else
+    echo "-----> Installing ${JAVA_DIST} build (to .jdk7)....."
+    mkdir "$BUILD_DIR/.jdk7"
+    cd "$BUILD_DIR/.jdk7"
+    curl --max-time 180 --location "$JDK7_URL" | tar xz
+    cd "$BUILD_DIR"
+    echo "Done!"
+  fi
+fi
+
+cd $BUILD_DIR
+
+export JAVA_HOME="$BUILD_DIR/.jdk7"
+export PATH="$JAVA_HOME/bin:$PATH"
+
+echo ""
+echo "-----> Building project with Gradle wrapper:"
+echo "       ./gradlew clean installApp"
+export GRADLE_OPTS="-Dfile.encoding=UTF-8 -server -Xmx512m -XX:+UseCompressedOops"
+export GRADLE_USER_HOME="$CACHE_DIR/.gradle"
+
+./gradlew clean ratpack-site:installApp
+
+rm -rf "$CACHE_DIR/.jdk7"
+cp -r .jdk7 "$CACHE_DIR/.jdk7"
