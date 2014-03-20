@@ -163,6 +163,12 @@ nav.all-toc > ul > li:first-child > {
   em, :not(pre) > code {
     @include hyphenation;
   }
+
+  blockquote {
+    background-color: lightgrey;
+    padding: 0.1em 1em;
+    border-radius: 4px;
+  }
 }
 
 #page-footer {
