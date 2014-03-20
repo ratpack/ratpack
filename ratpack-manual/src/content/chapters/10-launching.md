@@ -14,11 +14,17 @@ See the [chapter on handlers](handlers.html) for more details.
 One option for building a `LaunchConfig` is to use the [`LaunchConfigBuilder`](api/ratpack/launch/LaunchConfig.html).
 Another option is to use the [`LaunchConfigFactory`](api/ratpack/launch/LaunchConfigFactory.html) which is able to build a launch config from system properties and a properties file.
 
-## Main classes
+## RatpackMain
 
-Ratpack also provides some ready to use “main” classes that can be used to start the application.
-These main classes build on top of `LaunchConfigFactory`.
+The [`RatpackMain`](api/ratpack/launch/RatpackMain.html) class is a convenient entry point (i.e. main class) that bootstraps a Ratpack application.
+When [building with Gradle](gradle.html), this is the default main class.
 
-The [`RatpackMain`](api/ratpack/launch/RatpackMain.html) is a bare bones entry point and is suitable for use in most cases.
+The minimum requirement for launching a `RatpackMain` based application, is to ensure there is a `ratpack.properties` file on the JVM classpath that indicates the application [`HandlerFactory`](api/ratpack/launch/HandlerFactory.html)…
 
-The [`GroovyRatpackMain`](api/ratpack/groovy/launch/GroovyRatpackMain.html) entry point configures a Groovy based application to be launched.
+```
+handlerFactory=org.my.HandlerFactory
+```
+
+All aspects of the LaunchConfig can be specified in this properties file.
+Aspects can also be environmentally overridden by JVM system properties.
+See [`RatpackMain`](api/ratpack/launch/RatpackMain.html) for details.
