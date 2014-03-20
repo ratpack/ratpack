@@ -142,6 +142,14 @@ $pagination-background: $purple;
 	}
 }
 
+nav.all-toc > ul > li:first-child > {
+ a:first-of-type, span:first-of-type {
+    font-size: 120%;
+    font-weight: bold;
+    margin-bottom: 0.2em;
+ }
+}
+
 .manual {
 	@include margin-leader(1);
 	@include margin-trailer(2);
