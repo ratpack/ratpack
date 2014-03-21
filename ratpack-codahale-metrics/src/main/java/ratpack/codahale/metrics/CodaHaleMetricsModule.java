@@ -74,6 +74,7 @@ import java.io.File;
  * <p>
  * This module supports both metric collection and health checks.
  * </p>
+ * <h5>Metrics</h5>
  * <p>
  * By default {@link com.codahale.metrics.Timer} metrics are collected for all requests received.  The module adds a
  * {@link RequestTimingHandler} to the handler chain <b>before</b> any user handlers.  This means that response times do not take any
@@ -108,6 +109,7 @@ import java.io.File;
  * Custom metrics can also be added via the Metrics annotations ({@link Metered}, {@link Timed} and {@link com.codahale.metrics.annotation.Gauge})
  * to any Guice injected classes.
  * </p>
+ * <h5>Health checks</h5>
  * <p>
  * Health checks verify that application components or responsibilities are performing as expected.
  * </p>
