@@ -160,12 +160,6 @@ subprojects {
       jvmArgs "-Xss320k"
     }
 
-    tasks.withType(JavaExec) {
-      systemProperty "localRepo", rootProject.file("build/localrepo").absolutePath
-      systemProperty "gradleUserHome", gradle.gradleUserHomeDir.absolutePath
-      systemProperty "gradleHome", gradle.gradleHomeDir.absolutePath
-    }
-
     sourceCompatibility = "1.7"
     targetCompatibility = "1.7"
 

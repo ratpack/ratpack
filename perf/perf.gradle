@@ -79,4 +79,7 @@ run {
   dependsOn createApps
   main "ratpack.perf.Harness"
   systemProperty "appsBaseDir", file("build/apps").absolutePath
+  systemProperty "localRepo", rootProject.file("build/localrepo").absolutePath
+  systemProperty "gradleUserHome", gradle.gradleUserHomeDir.absolutePath
+  systemProperty "gradleHome", gradle.gradleHomeDir.absolutePath
 }
