@@ -19,8 +19,8 @@ package ratpack.perf.support
 import groovy.transform.CompileStatic
 
 @CompileStatic
-class RoundResults {
+class SessionResults {
 
-  List<BigDecimal> batches = []
+  final Map<String /* endpoint name */, EndpointResults> endpoints = [:].withDefault { new EndpointResults() }
 
 }

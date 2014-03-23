@@ -16,11 +16,32 @@
 
 apply from: "$rootDir/gradle/groovyModule.gradle"
 apply plugin: "application"
+apply plugin: 'javascript-base'
+
+configurations {
+  reports
+}
+
+repositories {
+  javaScript.googleApis()
+}
 
 dependencies {
+  reports "jquery:jquery.min:1.8.0@js"
+  reports "flot:flot:0.8.1:min@js"
+
   compile commonDependencies.groovy
   compile "org.gradle:gradle-tooling-api:${gradle.gradleVersion}"
 }
+
+ext.generatedResourcesDir = file("$buildDir/generated-resources/main")
+
+task reportResources(type: Copy) {
+  from configurations.reports
+  into "$generatedResourcesDir/ratpack/perf/report"
+}
+
+sourceSets.main.output.dir generatedResourcesDir, builtBy: reportResources
 
 task createApps {
   inputs.files "src/apps"
@@ -78,8 +99,9 @@ version = "$params.version"
 run {
   dependsOn createApps
   main "ratpack.perf.Harness"
-  systemProperty "appsBaseDir", file("build/apps").absolutePath
+  systemProperty "appsBaseDir", file("$buildDir/apps").absolutePath
   systemProperty "localRepo", rootProject.file("build/localrepo").absolutePath
   systemProperty "gradleUserHome", gradle.gradleUserHomeDir.absolutePath
   systemProperty "gradleHome", gradle.gradleHomeDir.absolutePath
+  systemProperty "resultsDir", file("$buildDir/results/${new Date().format("yyyyMMddHHmmss")}")
 }

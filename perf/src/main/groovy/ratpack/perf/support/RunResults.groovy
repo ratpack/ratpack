@@ -18,12 +18,10 @@ package ratpack.perf.support
 
 import groovy.transform.CompileStatic
 
-import java.util.concurrent.ConcurrentLinkedQueue
-
 @CompileStatic
 class RunResults {
 
-  final ConcurrentLinkedQueue<RoundResults> rounds = new ConcurrentLinkedQueue<>()
+  final List<RoundResults> rounds = []
 
   BigDecimal getAverageBatchTime() {
     BigDecimal total = new BigDecimal(0)

@@ -16,12 +16,14 @@
 
 package ratpack.perf
 
+import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
 import groovy.transform.CompileStatic
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
 import ratpack.perf.support.LatchResultHandler
 import ratpack.perf.support.Requester
+import ratpack.perf.support.SessionResults
 
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
@@ -43,12 +45,21 @@ class Harness {
     def appsBaseDir = new File(System.getProperty("appsBaseDir", "perf/build/apps")).absoluteFile
     assert appsBaseDir.exists()
 
+    def resultsDir = new File(System.getProperty("resultsDir", "perf/build/results/${new Date().format("yyyyMMddHHmmss")}")).absoluteFile
+    if (resultsDir.exists()) {
+      throw new IllegalStateException("Results dir $resultsDir exists")
+    }
+
+    assert resultsDir.mkdirs()
+
     List<String> apps = appsBaseDir.listFiles().findAll { File it -> it.directory && (!it.name.startsWith(".")) }.collect { File it -> it.name } as List<String>
 
-    def concurrency = Runtime.runtime.availableProcessors()
+    def concurrency = Math.ceil(Runtime.runtime.availableProcessors() / 2).toInteger()
     println "Request concurrency: $concurrency"
-    def executor = Executors.newFixedThreadPool(Math.ceil(concurrency / 2).toInteger())
+    def executor = Executors.newFixedThreadPool(concurrency)
     def requester = new Requester("http://localhost:5050")
+
+    def sessionResults = new SessionResults()
 
     apps.each { String appName ->
       def dir = new File(appsBaseDir, appName)
@@ -66,6 +77,9 @@ class Harness {
           endpoints.each { String endpoint ->
             println "Testing endpoint: $endpoint"
 
+            def endpointName = "$appName:$endpoint"
+            def versionName = version
+
             println "starting app…"
             startApp(connection)
             println "app started"
@@ -82,6 +96,8 @@ class Harness {
             def cooldown = 3
             def results = requester.run("real", batchSize, batches, rounds, cooldown, executor, endpoint)
 
+            sessionResults.endpoints[endpointName].results[versionName] = results
+
             println "Average batch ($batchSize requests) time: " + results.averageBatchTime + " ms"
 
             println "stopping..."
@@ -93,6 +109,8 @@ class Harness {
           println "Closing connection to $versionDir"
           connection.close()
         }
+
+        new File(resultsDir, "results.json").text = JsonOutput.prettyPrint(JsonOutput.toJson(sessionResults))
       }
     }
   }
