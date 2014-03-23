@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,14 @@
  * limitations under the License.
  */
 
-apply plugin: "ratpack-groovy"
+package ratpack.perf.support
 
-run {
-  systemProperty "ratpack.reloadable", "false"
+import groovy.transform.CompileStatic
+
+@CompileStatic
+class RequestResult {
+
+  final long duration
+
+
 }

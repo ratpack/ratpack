@@ -1,0 +1,145 @@
+/*
+ * Copyright 2014 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package ratpack.perf
+
+import groovy.json.JsonSlurper
+import groovy.transform.CompileStatic
+import org.gradle.tooling.GradleConnector
+import org.gradle.tooling.ProjectConnection
+import ratpack.perf.support.LatchResultHandler
+import ratpack.perf.support.Requester
+
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.Executors
+
+@CompileStatic
+class Harness {
+
+  static void main(String[] args) {
+    try {
+      run()
+      System.exit(0)
+    } catch (Throwable e) {
+      e.printStackTrace()
+      System.exit(1)
+    }
+  }
+
+  def static void run() {
+    def appsBaseDir = new File(System.getProperty("appsBaseDir", "perf/build/apps")).absoluteFile
+    assert appsBaseDir.exists()
+
+    List<String> apps = appsBaseDir.listFiles().findAll { File it -> it.directory && (!it.name.startsWith(".")) }.collect { File it -> it.name } as List<String>
+
+    def concurrency = Runtime.runtime.availableProcessors()
+    println "Request concurrency: $concurrency"
+    def executor = Executors.newFixedThreadPool(Math.ceil(concurrency / 2).toInteger())
+    def requester = new Requester("http://localhost:5050")
+
+    apps.each { String appName ->
+      def dir = new File(appsBaseDir, appName)
+      ["base", "head"].each { String version ->
+        def versionDir = new File(dir, version)
+
+        List<String> endpoints = new JsonSlurper().parse(new File(versionDir, "endpoints.json")) as List<String>
+
+        println "Connecting to $versionDir..."
+        def connection = openConnection(versionDir)
+        try {
+          println "compiling…"
+          connection.newBuild().withArguments("-u", "classes").run()
+
+          endpoints.each { String endpoint ->
+            println "Testing endpoint: $endpoint"
+
+            println "starting app…"
+            startApp(connection)
+            println "app started"
+
+            def warmupBatchSize = 100
+            def warmupBatches = 10
+            def warmupRounds = 3
+            def warmupCooldown = 1
+            requester.run("warmup", warmupBatchSize, warmupBatches, warmupRounds, warmupCooldown, executor, endpoint)
+
+            def batchSize = 300
+            def batches = 1000
+            def rounds = 10
+            def cooldown = 3
+            def results = requester.run("real", batchSize, batches, rounds, cooldown, executor, endpoint)
+
+            println "Average batch ($batchSize requests) time: " + results.averageBatchTime + " ms"
+
+            println "stopping..."
+            requester.stopApp()
+          }
+
+          println "Done testing"
+        } finally {
+          println "Closing connection to $versionDir"
+          connection.close()
+        }
+      }
+    }
+  }
+
+  private static void startApp(ProjectConnection connection) {
+    def output = new ByteArrayOutputStream()
+    def latch = new CountDownLatch(1)
+    def resultHandler = new LatchResultHandler(latch)
+
+    connection.newBuild().withArguments("-u", "run").setStandardOutput(output).setStandardError(output).run(resultHandler)
+
+    def timeoutMins = 5
+    def retryMs = 500
+    def startAt = System.currentTimeMillis()
+    def stopAt = startAt + (timeoutMins * 60 * 1000)
+
+    while (latch.count && System.currentTimeMillis() < stopAt) {
+      if (output.toString().lastIndexOf("Ratpack started for http://localhost:") > -1) {
+        latch.countDown()
+      }
+      sleep retryMs
+    }
+
+    if (resultHandler.complete) {
+      throw new Exception("Build finished early: ${output.toString()}")
+    }
+
+    if (resultHandler.failure) {
+      throw new Exception("Build failed: ${output.toString()}", resultHandler.failure)
+    }
+  }
+
+  private static ProjectConnection openConnection(File dir) {
+    def connector = GradleConnector.newConnector().forProjectDirectory(dir)
+
+    def gradleUserHome = System.getProperty("gradleUserHome")
+    if (gradleUserHome) {
+      connector.useGradleUserHomeDir(new File(gradleUserHome))
+    }
+
+    def gradleHome = System.getProperty("gradleHome")
+    if (gradleHome) {
+      connector.useInstallation(new File(gradleHome))
+    }
+
+    connector.connect()
+  }
+
+
+}

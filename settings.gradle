@@ -39,10 +39,7 @@ include \
     "ratpack-newrelic",
     "ratpack-pac4j"
 
-include \
-  "perftest",
-  "perftest:java",
-  "perftest:groovy"
+include "perf"
 
 rootProject.name = 'ratpack'
 

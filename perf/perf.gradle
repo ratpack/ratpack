@@ -1,0 +1,82 @@
+/*
+ * Copyright 2014 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+apply from: "$rootDir/gradle/groovyModule.gradle"
+apply plugin: "application"
+
+dependencies {
+  compile commonDependencies.groovy
+  compile "org.gradle:gradle-tooling-api:${gradle.gradleVersion}"
+}
+
+task createApps {
+  inputs.files "src/apps"
+  inputs.files "src/common"
+  inputs.property "version", version
+  outputs.dir "$buildDir/apps"
+
+  doLast {
+    def (int major, int minor, int patch) = (version - "-SNAPSHOT").split("\\.")*.toInteger()
+
+    def head = [
+      label: "head", version: version, major: major, minor: minor, patch: patch, snapshot: version.endsWith("-SNAPSHOT")
+    ]
+
+    def base = head + [label: "base", patch: head.patch - 1, snapshot: false, version: "${major}.${minor}.${patch - 1}"]
+
+    file("src/apps").eachDir { source ->
+      [base, head].each { params ->
+        def destination = file("$buildDir/apps/$source.name/$params.label")
+        copy {
+          from "src/common"
+          from source
+          into destination
+          expand params
+        }
+
+        def buildScript = """
+buildscript {
+  repositories {
+    maven { url "file://$rootDir/build/localrepo" }
+    jcenter()
+  }
+  dependencies {
+    classpath "io.ratpack:ratpack-gradle:$version"
+  }
+}
+
+apply plugin: "ratpack-groovy"
+
+repositories {
+  maven { url "file://$rootDir/build/localrepo" }
+  jcenter()
+}
+
+version = "$params.version"
+"""
+
+        def buildFile = file("$destination/build.gradle")
+        buildFile.text = buildScript + buildFile.text
+      }
+    }
+  }
+}
+
+run {
+  dependsOn createApps
+  main "ratpack.perf.Harness"
+  systemProperty "appsBaseDir", file("build/apps").absolutePath
+}
