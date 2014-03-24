@@ -54,6 +54,7 @@ class RatpackPlugin implements Plugin<Project> {
         classpath ratpackApp.springloadedClasspath
         jvmArgs ratpackApp.springloadedJvmArgs
         systemProperty "ratpack.reloadable", true
+        debug = Boolean.valueOf(System.getProperty("run.debug", "false"))
       }
     }
 
