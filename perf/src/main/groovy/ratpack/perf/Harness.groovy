@@ -26,7 +26,8 @@ import ratpack.perf.support.LatchResultHandler
 import ratpack.perf.support.Requester
 import ratpack.perf.support.SessionResults
 
-import java.awt.Desktop
+import java.awt.*
+import java.util.List
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
 
@@ -61,21 +62,35 @@ class Harness {
     def executor = Executors.newFixedThreadPool(concurrency)
     def requester = new Requester("http://localhost:5050")
 
+    // Make sure we can compile each of the apps…
+
+    apps.each { String appName ->
+      def dir = new File(appsBaseDir, appName)
+      ["base", "head"].each { String version ->
+        def versionDir = new File(dir, version)
+        println "Connecting to $versionDir..."
+        def connection = openConnection(versionDir)
+        try {
+          println "compiling…"
+          connection.newBuild().withArguments("-u", "classes").run()
+        } finally {
+          connection.close()
+        }
+      }
+    }
+
+    // Start testing…
+
     def sessionResults = new SessionResults()
 
     apps.each { String appName ->
       def dir = new File(appsBaseDir, appName)
       ["base", "head"].each { String version ->
         def versionDir = new File(dir, version)
-
-        List<String> endpoints = new JsonSlurper().parse(new File(versionDir, "endpoints.json")) as List<String>
-
         println "Connecting to $versionDir..."
         def connection = openConnection(versionDir)
         try {
-          println "compiling…"
-          connection.newBuild().withArguments("-u", "classes").run()
-
+          List<String> endpoints = new JsonSlurper().parse(new File(versionDir, "endpoints.json")) as List<String>
           endpoints.each { String endpoint ->
             println "Testing endpoint: $endpoint"
 
@@ -117,8 +132,9 @@ class Harness {
     def jsonResults = JsonOutput.prettyPrint(JsonOutput.toJson(sessionResults))
     new File(resultsDir, "results.json").text = jsonResults
     def htmlResults = new File(resultsDir, "results.html")
-    htmlResults.withOutputStream { OutputStream out ->
-      HtmlReportGenerator.generate(new ByteArrayInputStream(jsonResults.bytes), out)
+    htmlResults.withOutputStream {
+      OutputStream out ->
+        HtmlReportGenerator.generate(new ByteArrayInputStream(jsonResults.bytes), out)
     }
 
     Desktop.desktop.open(htmlResults)
@@ -167,6 +183,4 @@ class Harness {
 
     connector.connect()
   }
-
-
 }
