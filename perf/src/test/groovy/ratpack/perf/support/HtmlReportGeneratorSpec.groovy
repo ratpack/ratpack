@@ -22,12 +22,11 @@ class HtmlReportGeneratorSpec extends Specification {
 
   def "can generate report"() {
     given:
-    def json = new File("perf/build/results/20140324092624/results.json").newInputStream()
+    def json = new ByteArrayInputStream("{}".bytes)
     def html = new ByteArrayOutputStream()
 
     when:
     HtmlReportGenerator.generate(json, html)
-    new File("out.html").text = html.toString()
 
     then:
     html.toString().contains("foo")
