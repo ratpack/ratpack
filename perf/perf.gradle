@@ -60,7 +60,7 @@ buildscript {
     jcenter()
   }
   dependencies {
-    classpath "io.ratpack:ratpack-gradle:$version"
+    classpath "io.ratpack:ratpack-gradle:$params.version"
   }
 }
 
@@ -72,6 +72,10 @@ repositories {
 }
 
 version = "$params.version"
+
+run {
+  systemProperty "ratpack.reloadable", "false"
+}
 """
 
         def buildFile = file("$destination/build.gradle")
@@ -82,7 +86,7 @@ version = "$params.version"
 }
 
 run {
-  dependsOn createApps
+  dependsOn createApps, { apiModules*.install }
   main "ratpack.perf.Harness"
   systemProperty "appsBaseDir", file("$buildDir/apps").absolutePath
   systemProperty "localRepo", rootProject.file("build/localrepo").absolutePath

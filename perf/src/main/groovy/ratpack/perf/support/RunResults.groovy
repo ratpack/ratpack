@@ -21,17 +21,10 @@ import groovy.transform.CompileStatic
 @CompileStatic
 class RunResults {
 
-  final List<RoundResults> rounds = []
+  final BigDecimal requestsPerSecond
 
-  BigDecimal getAverageBatchTime() {
-    BigDecimal total = new BigDecimal(0)
-    for (RoundResults round : rounds) {
-      for (BigDecimal time : round.batches) {
-        total = total.add(time)
-      }
-    }
-    def totalBatches = rounds.sum(0) { RoundResults it -> it.batches.size() } as Integer
-    total.divide(new BigDecimal(totalBatches))
+  RunResults(BigDecimal requestsPerSecond) {
+    this.requestsPerSecond = requestsPerSecond
   }
 
 }

@@ -18,8 +18,11 @@ package ratpack.perf.support
 
 import groovy.transform.CompileStatic
 
+import java.math.MathContext
+import java.math.RoundingMode
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.ExecutorService
+import java.util.concurrent.atomic.AtomicLong
 
 @CompileStatic
 class Requester {
@@ -30,40 +33,45 @@ class Requester {
     this.baseUrl = baseUrl
   }
 
-  RunResults run(String name, int batchSize, int batches, int rounds, int cooldown, ExecutorService executor, String endpoint) {
-    def results = new RunResults()
-    println "starting $name... ($batches batches of $batchSize requests)"
+  RunResults run(String name, int numRequests, int rounds, int cooldown, ExecutorService executor, String endpoint) {
+    List<BigDecimal> roundResults = []
+    println "starting $name... ($numRequests requests per round)"
     rounds.times { int it ->
       println "  round ${it + 1} of $rounds"
-      results.rounds << runRound(batchSize, batches, executor, endpoint)
+      roundResults << runRound(numRequests, executor, endpoint)
       println "  cooldown"
-      sleep (cooldown * 1000)
+      sleep(cooldown * 1000)
     }
     println "done"
-    results
+
+    def result = (roundResults.sum(0) as BigDecimal) / rounds
+    result = result.setScale(2, RoundingMode.HALF_UP)
+    new RunResults(result)
   }
 
-  private RoundResults runRound(int batchSize, int batches, ExecutorService executor, String endpoint) {
-    def results = new RoundResults()
-    batches.times {
-      def latch = new CountDownLatch(batchSize)
-
-      def start = System.nanoTime()
-      batchSize.times {
-        executor.submit {
-          try {
-            new URL("$baseUrl/$endpoint").openConnection().inputStream.close()
-          } finally {
-            latch.countDown()
-          }
+  private BigDecimal runRound(int numRequests, ExecutorService executor, String endpoint) {
+    def url = new URL("$baseUrl/$endpoint")
+    def latch = new CountDownLatch(numRequests)
+    def counter = new AtomicLong(0)
+    numRequests.times {
+      executor.submit {
+        try {
+          def start = System.nanoTime()
+          url.openConnection().inputStream.close()
+          def stop = System.nanoTime()
+          def time = stop - start
+          counter.addAndGet(time)
+        } finally {
+          latch.countDown()
         }
       }
-      latch.await()
-      def stop = System.nanoTime()
-      results.batches << ((stop - start) / 1000000)
     }
-
-    results
+    latch.await()
+    def averageNanosPerRequest = counter.get() / numRequests
+    def averageMillisPerRequest = averageNanosPerRequest / new BigDecimal(1000000)
+    def millisPerSecond = new BigDecimal(1000)
+    def requestsPerSecond = millisPerSecond / averageMillisPerRequest
+    requestsPerSecond
   }
 
   void stopApp() {

@@ -21,6 +21,10 @@ import groovy.transform.CompileStatic
 @CompileStatic
 class RoundResults {
 
-  List<BigDecimal> batches = []
+  final BigDecimal requestsPerSecond
+
+  RoundResults(BigDecimal requestsPerSecond) {
+    this.requestsPerSecond = requestsPerSecond
+  }
 
 }

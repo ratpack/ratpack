@@ -86,21 +86,19 @@ class Harness {
             startApp(connection)
             println "app started"
 
-            def warmupBatchSize = 100
-            def warmupBatches = 10
+            def warmupRequestsPerRound = 10000
             def warmupRounds = 3
             def warmupCooldown = 1
-            requester.run("warmup", warmupBatchSize, warmupBatches, warmupRounds, warmupCooldown, executor, endpoint)
+            requester.run("warmup", warmupRequestsPerRound, warmupRounds, warmupCooldown, executor, endpoint)
 
-            def batchSize = 300
-            def batches = 1000
+            def requestsPerRound = 100000
             def rounds = 10
-            def cooldown = 3
-            def results = requester.run("real", batchSize, batches, rounds, cooldown, executor, endpoint)
+            def cooldown = 1
+            def results = requester.run("real", requestsPerRound, rounds, cooldown, executor, endpoint)
 
             sessionResults.endpoints[endpointName].results[versionName] = results
 
-            println "Average batch ($batchSize requests) time: " + results.averageBatchTime + " ms"
+            println "Requests per second average: " + results.requestsPerSecond
 
             println "stopping..."
             requester.stopApp()

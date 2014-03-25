@@ -77,7 +77,7 @@ abstract class HtmlReportGenerator {
               $.each(versions, function(index, version) {
                 var num = 0;
                 if (results.hasOwnProperty(version)) {
-                  num = results[version].averageBatchTime;
+                  num = results[version].requestsPerSecond;
                 }
 
                 $("tbody tr.version." + version).append("<td>" + num + "</td>");
@@ -117,7 +117,7 @@ abstract class HtmlReportGenerator {
                   pad: 1.2,
                   min: 0,
                   tickOptions: {
-                    formatString: '%.5f\'
+                    formatString: '%.2f\'
                   }
                 }
               },
