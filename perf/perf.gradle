@@ -56,7 +56,7 @@ task createApps {
         def buildScript = """
 buildscript {
   repositories {
-    maven { url "file://$rootDir/build/localrepo" }
+    maven { url "${rootDir.toURI()}build/localrepo" }
     jcenter()
   }
   dependencies {
@@ -67,7 +67,7 @@ buildscript {
 apply plugin: "ratpack-groovy"
 
 repositories {
-  maven { url "file://$rootDir/build/localrepo" }
+  maven { url "${rootDir.toURI()}build/localrepo" }
   jcenter()
 }
 
