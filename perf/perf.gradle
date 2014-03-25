@@ -73,11 +73,10 @@ repositories {
 
 version = "$params.version"
 
-run {
-  systemProperty "ratpack.reloadable", "false"
+configureRun.doLast {
+  run.systemProperty "ratpack.reloadable", "false"
 }
 """
-
         def buildFile = file("$destination/build.gradle")
         buildFile.text = buildScript + buildFile.text
       }
