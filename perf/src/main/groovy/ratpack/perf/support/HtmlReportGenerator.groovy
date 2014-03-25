@@ -37,51 +37,131 @@ abstract class HtmlReportGenerator {
         mkp.yieldUnescaped("\n//<![CDATA[\n$ResourceLoader.jquery\n//]]>\n")
       }
       script(type: "text/javascript") {
-        mkp.yieldUnescaped("\n//<![CDATA[\n$ResourceLoader.tableBarChartJs\n//]]>\n")
+        mkp.yieldUnescaped("\n//<![CDATA[\n$ResourceLoader.jqPlotJs\n//]]>\n")
       }
       style {
-        mkp.yieldUnescaped("\n$ResourceLoader.tableBarChartCss\n")
+        mkp.yieldUnescaped("\n$ResourceLoader.jqplotCss\n")
       }
       script(type: "text/javascript") {
         mkp.yieldUnescaped("\n//<![CDATA[\nvar resultData = ${resultsJson.text}\n//]]>\n")
       }
       script(type: "text/javascript") {
         mkp.yieldUnescaped('''\n//<![CDATA[\n
+           var chartData = [];
+
           $(function() {
             var tableBody = $("table#data tbody");
             var endpoints = resultData.endpoints;
-            $.each(endpoints, function(name, data) {
-              var results = data.results;
-              var baseNum = (results.base.averageBatchTime).toFixed(5);
-              var headNum = (results.head.averageBatchTime).toFixed(5);
-              var diff = (headNum - baseNum).toFixed(5)
 
-              $("<tr>")
-                .append("<th>" + name + "</th>")
-                .append("<td>" + baseNum + "</td>")
-                .append("<td>" + headNum + "</td>")
-                .appendTo(tableBody);
+            var endpointNames = [];
+            var versions = [];
+            var labels = [];
+
+            $.each(endpoints, function(name, data) {
+              endpointNames.push(name);
+              $.each(data.results, function(version, data) {
+                if ($.inArray(version, versions) < 0) {
+                  versions.push(version);
+                  chartData.push([]);
+                  labels.push({label: version});
+                  $("<tr class='version " + version + "'>").appendTo(tableBody).append("<th>" + version + "</th>");
+                }
+              });
             });
 
-            $('#data').tableBarChart('#chart', 'Performance', true);
+            $.each(endpoints, function(endpoint, data) {
+              var results = data.results;
+
+              $("thead tr").append("<th>" + endpoint + "</td>");
+
+              $.each(versions, function(index, version) {
+                var num = 0;
+                if (results.hasOwnProperty(version)) {
+                  num = results[version].averageBatchTime;
+                }
+
+                $("tbody tr.version." + version).append("<td>" + num + "</td>");
+
+                chartData[index].push(num);
+              });
+            });
+
+            $("#chart").css({width: (56 + (endpointNames.length * 231) + 2 + 10) + "px"});
+
+            $.jqplot('chart', chartData, {
+              seriesDefaults: {
+                renderer: $.jqplot.BarRenderer,
+                pointLabels: {
+                  show: true,
+                  location: 'n',
+                  edgeTolerance: -15
+                },
+                rendererOptions: {
+                  fillToZero: true
+                }
+              },
+              axesDefaults: {
+              },
+              series: labels,
+              legend: {
+                show: true,
+                location: 'nw',
+              },
+              axes: {
+                xaxis: {
+                  show: true,
+                  renderer: $.jqplot.CategoryAxisRenderer,
+                  ticks: endpointNames
+                },
+                yaxis: {
+                  pad: 1.2,
+                  min: 0,
+                  tickOptions: {
+                    formatString: '%.5f\'
+                  }
+                }
+              },
+            });
           });
         //]]>\n''')
+      }
+      style {
+        mkp.yieldUnescaped("""
+          table#data {
+            margin-top: 2em;
+            border-spacing: 0;
+            border-collapse: collapse;
+            font-family: monospace;
+          }
+          table#data td, table#data th {
+            padding: 5px 0;
+            border: 1px solid black;
+          }
+          table#data th {
+            background-color: lightgrey;
+          }
+          table#data tbody td {
+            width: 220px;
+            padding-left: 10px;
+          }
+          table#data tbody tr.version th {
+            width: 56px;
+          }
+        """)
       }
     }
   }
 
   static doBody(MarkupBuilder builder) {
     builder.body {
-      div(id: "chart", style: "width: 800px; height: 400px;", "")
-      table(id: 'data') {
-        thead {
-          tr {
-            th ""
-            th "Base"
-            th "Head"
+      div(id: "chart", style: "height: 400px;", "")
+      div {
+        table(id: 'data') {
+          thead {
+            tr { th "" }
           }
+          tbody("")
         }
-        tbody {}
       }
     }
   }

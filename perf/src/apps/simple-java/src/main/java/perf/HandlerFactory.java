@@ -27,6 +27,20 @@ public class HandlerFactory implements ratpack.launch.HandlerFactory {
           }
         });
 
+        for (int i = 0; i < 100; ++ i) {
+          chain.handler("handler" + i, new Handler() {
+            public void handle(Context context) {
+              throw new RuntimeException("unexpected");
+            }
+          });
+        }
+
+        chain.handler("manyHandlers", new Handler() {
+          public void handle(Context context) {
+            context.getResponse().send();
+          }
+        });
+
       }
     });
   }

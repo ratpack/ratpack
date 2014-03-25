@@ -22,12 +22,12 @@ abstract class ResourceLoader {
     getResource("jquery.js")
   }
 
-  static String getTableBarChartJs() {
-    getResource("TableBarChart.js")
+  static String getJqPlotJs() {
+    getResource("jquery.jqplot.js")
   }
 
-  static String getTableBarChartCss() {
-    getResource("TableBarChart.css")
+  static String getJqplotCss() {
+    getResource("jquery.jplot.css")
   }
 
   static private String getResource(String resourceName) {
