@@ -21,10 +21,12 @@ import groovy.json.JsonSlurper
 import groovy.transform.CompileStatic
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
+import ratpack.perf.support.HtmlReportGenerator
 import ratpack.perf.support.LatchResultHandler
 import ratpack.perf.support.Requester
 import ratpack.perf.support.SessionResults
 
+import java.awt.Desktop
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
 
@@ -109,10 +111,19 @@ class Harness {
           println "Closing connection to $versionDir"
           connection.close()
         }
-
-        new File(resultsDir, "results.json").text = JsonOutput.prettyPrint(JsonOutput.toJson(sessionResults))
       }
     }
+
+    println "Generating results..."
+
+    def jsonResults = JsonOutput.prettyPrint(JsonOutput.toJson(sessionResults))
+    new File(resultsDir, "results.json").text = jsonResults
+    def htmlResults = new File(resultsDir, "results.html")
+    htmlResults.withOutputStream { OutputStream out ->
+      HtmlReportGenerator.generate(new ByteArrayInputStream(jsonResults.bytes), out)
+    }
+
+    Desktop.desktop.open(htmlResults)
   }
 
   private static void startApp(ProjectConnection connection) {

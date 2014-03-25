@@ -22,26 +22,11 @@ configurations {
   reports
 }
 
-repositories {
-  javaScript.googleApis()
-}
-
 dependencies {
-  reports "jquery:jquery.min:1.8.0@js"
-  reports "flot:flot:0.8.1:min@js"
-
   compile commonDependencies.groovy
   compile "org.gradle:gradle-tooling-api:${gradle.gradleVersion}"
+  testCompile commonDependencies.spock
 }
-
-ext.generatedResourcesDir = file("$buildDir/generated-resources/main")
-
-task reportResources(type: Copy) {
-  from configurations.reports
-  into "$generatedResourcesDir/ratpack/perf/report"
-}
-
-sourceSets.main.output.dir generatedResourcesDir, builtBy: reportResources
 
 task createApps {
   inputs.files "src/apps"

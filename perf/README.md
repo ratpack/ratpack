@@ -46,7 +46,6 @@ Currently, `endpoints.json` must be an array of strings where each string is the
 ### TODO
 
 1. Provide a way to easily run up an app for manually testing the functionality (probably a gradle task)
-1. Aggregate complete tests results and output as html file with comparison graph
 1. Add 'head' commit id to reports
 1. Collect some kind of memory statistics (e.g. memory after gc after cooldown) - at least to catch leaks, hopefully to catch peak usage regressions
 1. Count/check errored requests (i.e. status 500)
