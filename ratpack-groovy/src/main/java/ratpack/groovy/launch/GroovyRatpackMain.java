@@ -28,8 +28,8 @@ import java.util.Properties;
  */
 public class GroovyRatpackMain extends RatpackMain {
 
-  public static void main(String[] args) throws Exception {
-    new GroovyRatpackMain().start();
+  public static void main(String[] args) {
+    new GroovyRatpackMain().startOrExit();
   }
 
   @Override

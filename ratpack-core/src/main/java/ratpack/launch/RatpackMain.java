@@ -29,13 +29,14 @@ import java.util.Properties;
 public class RatpackMain {
 
   /**
-   * Starts a Ratpack application, by creating a new instance of this class and calling {@link #start()}.
+   * Starts a Ratpack application, by creating a new instance of this class and calling {@link #startOrExit()}.
+   * <p>
+   * If the application fails to start, the JVM will exit via {@code System.exit(1)}.
    *
    * @param args ignored
-   * @throws Exception if the application cannot be started
    */
-  public static void main(String[] args) throws Exception {
-    new RatpackMain().start();
+  public static void main(String[] args) {
+    new RatpackMain().startOrExit();
   }
 
   /**
@@ -62,6 +63,18 @@ public class RatpackMain {
    */
   public void start() throws Exception {
     server(System.getProperties(), new Properties()).start();
+  }
+
+  /**
+   * Starts the server via {@link #start()}, exiting via {@code System.exit(1)} if that method throws an exception.
+   */
+  public void startOrExit() {
+    try {
+      start();
+    } catch (Exception e) {
+      e.printStackTrace();
+      System.exit(1);
+    }
   }
 
   /**
