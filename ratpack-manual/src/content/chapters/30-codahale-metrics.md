@@ -2,15 +2,14 @@
 
 The `ratpack-codahale-metrics` jar provides integration with [Coda Hale's Metrics library](http://metrics.codahale.com/).
 
-Coda Hale Metrics is one of the best metrics libraries out there for the JVM.  It provides a toolkit of metric types and metric reporters that will give a deep insight
-into your application's performance.  Whether that be at development time or real time in production.
-It allows you to easily capture statistics like the number of requests served or response times.  But also more generic information like the state of your internal collections,
-queues or how many times some portion of code is being executed.
+Coda Hale Metrics is one of the best metrics libraries out there for the JVM.
+It provides a toolkit of metric types and metric reporters that will give a deep insight into your application's performance.
+Whether that be at development time or real time in production.
+It allows you to easily capture statistics like the number of requests served or response times, and also more generic information like the state of your internal collections, queues or how many times some portion of code is being executed.
 By measuring your code you will know exactly what your code is doing when it runs and be able to make informed optimization decisions.
 
 Ratpack's integration with Coda Hale Metrics means that many of these key metrics are captured already for you, simply by registering the Guice module.
-Should you require further insight then Ratpack also makes it easy for you to capture additional metrics using the library's many metric types and then report all of these metrics
-to your required output using the library's metric reporters.
+Should you require further insight then Ratpack also makes it easy for you to capture additional metrics using the library's many metric types and then report all of these metrics to your required output using the library's metric reporters.
 
 See [`CodaHaleMetricsModule`](api/ratpack/codahale/metrics/CodaHaleMetricsModule.html) for detailed usage information.
 
@@ -24,7 +23,8 @@ Ratpack has built-in metric collectors for:
 * Request timing
 * Background operation timing
 
-Ratpack also has support for Coda Hale Metric's JVM instrumentation.  See [`CodaHaleMetricsModule.jvmMetrics()`](api/ratpack/codahale/metrics/CodaHaleMetricsModule.html#jvmMetrics\(\)) for usage information.
+Ratpack also has support for Coda Hale Metric's JVM instrumentation.
+See [`CodaHaleMetricsModule.jvmMetrics()`](api/ratpack/codahale/metrics/CodaHaleMetricsModule.html#jvmMetrics\(\)) for usage information.
 
 ## Custom metrics
 
