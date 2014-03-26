@@ -40,11 +40,13 @@ public class DefaultFileHttpTransmitter implements FileHttpTransmitter {
   private final FullHttpRequest request;
   private final HttpHeaders httpHeaders;
   private final Channel channel;
+  private final long startTime;
 
-  public DefaultFileHttpTransmitter(FullHttpRequest request, HttpHeaders httpHeaders, Channel channel) {
+  public DefaultFileHttpTransmitter(FullHttpRequest request, HttpHeaders httpHeaders, Channel channel, long startTime) {
     this.request = request;
     this.httpHeaders = httpHeaders;
     this.channel = channel;
+    this.startTime = startTime;
   }
 
   @Override
@@ -85,6 +87,12 @@ public class DefaultFileHttpTransmitter implements FileHttpTransmitter {
 
     HttpResponse minimalResponse = new DefaultHttpResponse(response.getProtocolVersion(), response.getStatus());
     minimalResponse.headers().set(response.headers());
+    long stopTime = System.currentTimeMillis();
+
+    if (startTime > 0) {
+      minimalResponse.headers().set("X-Response-Time", Long.toString(stopTime - startTime));
+    }
+
     ChannelFuture writeFuture = channel.writeAndFlush(minimalResponse);
 
     writeFuture.addListener(new ChannelFutureListener() {

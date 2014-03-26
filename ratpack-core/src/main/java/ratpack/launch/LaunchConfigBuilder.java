@@ -74,6 +74,7 @@ public class LaunchConfigBuilder {
   private ByteBufAllocator byteBufAllocator = PooledByteBufAllocator.DEFAULT;
   private SSLContext sslContext;
   private int maxContentLength = LaunchConfig.DEFAULT_MAX_CONTENT_LENGTH;
+  private boolean timeResponses;
 
   private LaunchConfigBuilder(Path baseDir) {
     this.baseDir = new DefaultFileSystemBinding(baseDir);
@@ -84,8 +85,7 @@ public class LaunchConfigBuilder {
    *
    * @param baseDir The base dir of the launch config
    * @return A new launch config builder
-   *
-   * @see ratpack.launch.LaunchConfig#getBaseDir()
+   * @see LaunchConfig#getBaseDir()
    */
   public static LaunchConfigBuilder baseDir(File baseDir) {
     return baseDir(baseDir.toPath());
@@ -96,8 +96,7 @@ public class LaunchConfigBuilder {
    *
    * @param baseDir The base dir of the launch config
    * @return A new launch config builder
-   *
-   * @see ratpack.launch.LaunchConfig#getBaseDir()
+   * @see LaunchConfig#getBaseDir()
    */
   public static LaunchConfigBuilder baseDir(Path baseDir) {
     return new LaunchConfigBuilder(baseDir.toAbsolutePath().normalize());
@@ -106,11 +105,10 @@ public class LaunchConfigBuilder {
   /**
    * Sets the port to bind to.
    * <p>
-   * Default value is {@value ratpack.launch.LaunchConfig#DEFAULT_PORT}.
+   * Default value is {@value LaunchConfig#DEFAULT_PORT}.
    *
    * @param port The port to bind to
    * @return this
-   *
    * @see LaunchConfig#getPort()
    */
   public LaunchConfigBuilder port(int port) {
@@ -125,7 +123,6 @@ public class LaunchConfigBuilder {
    *
    * @param address The address to bind to
    * @return this
-   *
    * @see LaunchConfig#getAddress()
    */
   public LaunchConfigBuilder address(InetAddress address) {
@@ -140,7 +137,6 @@ public class LaunchConfigBuilder {
    *
    * @param reloadable Whether or not the application is "reloadable".
    * @return this
-   *
    * @see LaunchConfig#isReloadable()
    */
   public LaunchConfigBuilder reloadable(boolean reloadable) {
@@ -169,7 +165,6 @@ public class LaunchConfigBuilder {
    *
    * @param byteBufAllocator The allocator to use when creating buffers in the application
    * @return this
-   *
    * @see LaunchConfig#getBufferAllocator()
    */
   public LaunchConfigBuilder bufferAllocator(ByteBufAllocator byteBufAllocator) {
@@ -184,7 +179,6 @@ public class LaunchConfigBuilder {
    *
    * @param publicAddress The public address of the application
    * @return this
-   *
    * @see LaunchConfig#getPublicAddress()
    */
   public LaunchConfigBuilder publicAddress(URI publicAddress) {
@@ -195,11 +189,10 @@ public class LaunchConfigBuilder {
   /**
    * The max content length.
    *
-   * Default value is {@value ratpack.launch.LaunchConfig#DEFAULT_MAX_CONTENT_LENGTH}
+   * Default value is {@value LaunchConfig#DEFAULT_MAX_CONTENT_LENGTH}
    *
    * @param maxContentLength The max content length to accept.
    * @return this
-   *
    * @see LaunchConfig#getMaxContentLength()
    */
   public LaunchConfigBuilder maxContentLength(int maxContentLength) {
@@ -208,11 +201,24 @@ public class LaunchConfigBuilder {
   }
 
   /**
+   * Whether to time responses.
+   *
+   * Default value is {@code false}.
+   *
+   * @param timeResponses Whether to time responses
+   * @return this
+   * @see LaunchConfig#isTimeResponses()
+   */
+  public LaunchConfigBuilder timeResponses(boolean timeResponses) {
+    this.timeResponses = timeResponses;
+    return this;
+  }
+
+  /**
    * Adds the given values as potential index file names.
    *
    * @param indexFiles the potential index file names.
    * @return this
-   *
    * @see LaunchConfig#getIndexFiles()
    */
   public LaunchConfigBuilder indexFiles(String... indexFiles) {
@@ -225,7 +231,6 @@ public class LaunchConfigBuilder {
    *
    * @param indexFiles the potential index file names.
    * @return this
-   *
    * @see LaunchConfig#getIndexFiles()
    */
   public LaunchConfigBuilder indexFiles(List<String> indexFiles) {
@@ -252,7 +257,6 @@ public class LaunchConfigBuilder {
    * @param key The key of the property
    * @param value The value of the property
    * @return this
-   *
    * @see LaunchConfig#getOther(String, String)
    */
   public LaunchConfigBuilder other(String key, String value) {
@@ -265,7 +269,6 @@ public class LaunchConfigBuilder {
    *
    * @param other A map of properties to add to the launch config other properties
    * @return this
-   *
    * @see LaunchConfig#getOther(String, String)
    */
   public LaunchConfigBuilder other(Map<String, String> other) {
@@ -299,6 +302,7 @@ public class LaunchConfigBuilder {
       other.build(),
       sslContext,
       maxContentLength,
+      timeResponses,
       handlerFactory
     );
   }

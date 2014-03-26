@@ -57,16 +57,18 @@ public class DefaultLaunchConfig implements LaunchConfigInternal {
   private final ImmutableMap<String, String> other;
   private final SSLContext sslContext;
   private final int maxContentLength;
+  private final boolean timeResponses;
 
   private final ThreadLocal<Context> contextThreadLocal = new ThreadLocal<>();
   private final EventLoopGroup eventLoopGroup;
 
-  public DefaultLaunchConfig(FileSystemBinding baseDir, int port, InetAddress address, boolean reloadable, int threads, ExecutorService backgroundExecutorService, ByteBufAllocator byteBufAllocator, URI publicAddress, ImmutableList<String> indexFiles, ImmutableMap<String, String> other, SSLContext sslContext, int maxContentLength, HandlerFactory handlerFactory) {
+  public DefaultLaunchConfig(FileSystemBinding baseDir, int port, InetAddress address, boolean reloadable, int threads, ExecutorService backgroundExecutorService, ByteBufAllocator byteBufAllocator, URI publicAddress, ImmutableList<String> indexFiles, ImmutableMap<String, String> other, SSLContext sslContext, int maxContentLength, boolean timeResponses, HandlerFactory handlerFactory) {
     this.baseDir = baseDir;
     this.port = port;
     this.address = address;
     this.reloadable = reloadable;
     this.threads = threads;
+    this.timeResponses = timeResponses;
     this.backgroundExecutorService = MoreExecutors.listeningDecorator(backgroundExecutorService);
     this.byteBufAllocator = byteBufAllocator;
     this.publicAddress = publicAddress;
@@ -163,6 +165,10 @@ public class DefaultLaunchConfig implements LaunchConfigInternal {
     return maxContentLength;
   }
 
+  @Override
+  public boolean isTimeResponses() {
+    return timeResponses;
+  }
 
   @Override
   public ThreadLocal<Context> getContextThreadLocal() {

@@ -73,6 +73,8 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
 
   private Registry registry;
 
+  private final boolean addResponseTimeHeader;
+
   public NettyHandlerAdapter(Stopper stopper, Handler handler, LaunchConfig launchConfig) {
     this.handlers = new Handler[]{new ErrorCatchingHandler(handler)};
     this.return404 = new ClientErrorForwardingHandler(NOT_FOUND.code());
@@ -101,7 +103,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
       throw new IllegalArgumentException("launchConfig must implement internal protocol " + LaunchConfigInternal.class.getName());
     }
 
-
+    this.addResponseTimeHeader = launchConfig.isTimeResponses();
     this.applicationConstants = new DefaultContext.ApplicationConstants(launchConfig.getForeground(), launchConfig.getBackground(), contextThreadLocal, new DefaultRenderController());
   }
 
@@ -123,6 +125,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
       return;
     }
 
+    final long startTime = System.currentTimeMillis();
 
     final Request request = new DefaultRequest(new NettyHeadersBackedHeaders(nettyRequest.headers()), nettyRequest.getMethod().name(), nettyRequest.getUri(), nettyRequest.content());
 
@@ -131,7 +134,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
     final DefaultMutableStatus responseStatus = new DefaultMutableStatus();
     final HttpHeaders httpHeaders = new DefaultHttpHeaders(false);
     final MutableHeaders responseHeaders = new NettyHeadersBackedMutableHeaders(httpHeaders);
-    FileHttpTransmitter fileHttpTransmitter = new DefaultFileHttpTransmitter(nettyRequest, httpHeaders, channel);
+    FileHttpTransmitter fileHttpTransmitter = new DefaultFileHttpTransmitter(nettyRequest, httpHeaders, channel, addResponseTimeHeader ? startTime : -1);
 
     final DefaultEventController<RequestOutcome> requestOutcomeEventController = new DefaultEventController<>();
 
@@ -150,6 +153,13 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
           if (isKeepAlive(nettyRequest)) {
             responseHeaders.set(HttpHeaderConstants.CONNECTION, HttpHeaderConstants.KEEP_ALIVE);
             shouldClose = false;
+          }
+
+          long stopTime = System.currentTimeMillis();
+          long responseTime = stopTime - startTime;
+
+          if (addResponseTimeHeader) {
+            responseHeaders.set("X-Response-Time", Long.toString(responseTime));
           }
 
           channel.writeAndFlush(nettyResponse);

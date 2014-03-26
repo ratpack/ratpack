@@ -189,7 +189,6 @@ public abstract class LaunchConfigFactory {
    * configFile} exists and is not null, it is read as a properties file. It is then merged with {@code defaultProperties} & {@code overrideProperties}. The default properties are overridden by values
    * in the properties file, while the override properties will override these properties.
    *
-   *
    * @param classLoader The classloader to use to find the properties file
    * @param baseDir The {@link LaunchConfig#getBaseDir()} of the eventual launch config
    * @param configFile The configuration properties file
@@ -263,6 +262,7 @@ public abstract class LaunchConfigFactory {
       InputStream sslKeystore = props.asStream(Property.SSL_KEYSTORE_FILE);
       String sslKeystorePassword = props.asString(Property.SSL_KEYSTORE_PASSWORD, "");
       int maxContentLength = props.asInt(Property.MAX_CONTENT_LENGTH, LaunchConfig.DEFAULT_MAX_CONTENT_LENGTH);
+      boolean timeResponses = props.asBoolean(Property.TIME_RESPONSES, false);
 
       Map<String, String> otherProperties = new HashMap<>();
       extractProperties("other.", properties, otherProperties);
@@ -281,6 +281,7 @@ public abstract class LaunchConfigFactory {
         .reloadable(reloadable)
         .threads(threads)
         .maxContentLength(maxContentLength)
+        .timeResponses(timeResponses)
         .indexFiles(indexFiles);
 
       if (sslKeystore != null) {
@@ -389,5 +390,14 @@ public abstract class LaunchConfigFactory {
      * @see ratpack.launch.LaunchConfig#getMaxContentLength()
      */
     public static final String MAX_CONTENT_LENGTH = "maxContentLength";
+
+    /**
+     * Whether to time responses.
+     * <p>
+     * The value of this property will be converted to a boolean by {@link Boolean#valueOf(String)}.
+     *
+     * @see LaunchConfig#isTimeResponses()
+     */
+    public static final String TIME_RESPONSES = "timeResponses";
   }
 }

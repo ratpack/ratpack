@@ -128,6 +128,11 @@ public class DelegatingLaunchConfig implements LaunchConfigInternal {
   }
 
   @Override
+  public boolean isTimeResponses() {
+    return launchConfig.isTimeResponses();
+  }
+
+  @Override
   public ThreadLocal<Context> getContextThreadLocal() {
     return launchConfig.getContextThreadLocal();
   }

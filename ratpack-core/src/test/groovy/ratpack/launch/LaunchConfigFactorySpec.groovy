@@ -84,6 +84,17 @@ class LaunchConfigFactorySpec extends Specification {
     e.cause instanceof NumberFormatException
   }
 
+  def "timeResponses is respected"() {
+    expect:
+    !createWithBaseDir(classLoader, baseDir, properties, [:]).timeResponses
+
+    when:
+    properties.timeResponses = "true"
+
+    then:
+    createWithBaseDir(classLoader, baseDir, properties, [:]).timeResponses
+  }
+
   Properties p(Map<Object, Object> m) {
     def p = new Properties(properties)
     p.putAll(m)
