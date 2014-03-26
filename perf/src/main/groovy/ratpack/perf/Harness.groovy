@@ -113,7 +113,7 @@ class Harness {
 
             sessionResults.endpoints[endpointName].results[versionName] = results
 
-            println "Requests per second average: " + results.requestsPerSecond
+            println "Average ms per request: " + results.msPerRequest
 
             println "stopping..."
             requester.stopApp()

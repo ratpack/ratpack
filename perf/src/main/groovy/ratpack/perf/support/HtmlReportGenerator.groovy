@@ -77,7 +77,7 @@ abstract class HtmlReportGenerator {
               $.each(versions, function(index, version) {
                 var num = 0;
                 if (results.hasOwnProperty(version)) {
-                  num = results[version].requestsPerSecond;
+                  num = results[version].msPerRequest;
                 }
 
                 $("tbody tr.version." + version).append("<td>" + num + "</td>");

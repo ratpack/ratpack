@@ -18,7 +18,6 @@ package ratpack.perf.support
 
 import groovy.transform.CompileStatic
 
-import java.math.MathContext
 import java.math.RoundingMode
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.ExecutorService
@@ -56,22 +55,26 @@ class Requester {
     numRequests.times {
       executor.submit {
         try {
-          def start = System.nanoTime()
-          url.openConnection().inputStream.close()
-          def stop = System.nanoTime()
-          def time = stop - start
-          counter.addAndGet(time)
+          def connection = url.openConnection()
+          connection.inputStream.close()
+
+          def responseHeaderValue = connection.getHeaderField("X-Response-Time")
+          def responseMs = new BigDecimal(responseHeaderValue)
+
+          // Adjust to long for atomic long
+          def adjusted = responseMs.multiply(1000).toBigDecimal().unscaledValue().longValue() // keep 3 decimal points of accuracy
+
+          counter.addAndGet(adjusted)
+        } catch (Exception e) {
+          e.printStackTrace()
         } finally {
           latch.countDown()
         }
       }
     }
     latch.await()
-    def averageNanosPerRequest = counter.get() / numRequests
-    def averageMillisPerRequest = averageNanosPerRequest / new BigDecimal(1000000)
-    def millisPerSecond = new BigDecimal(1000)
-    def requestsPerSecond = millisPerSecond / averageMillisPerRequest
-    requestsPerSecond
+
+    counter.get() / 1000 / numRequests
   }
 
   void stopApp() {

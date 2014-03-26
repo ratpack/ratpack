@@ -21,10 +21,10 @@ import groovy.transform.CompileStatic
 @CompileStatic
 class RunResults {
 
-  final BigDecimal requestsPerSecond
+  final BigDecimal msPerRequest
 
-  RunResults(BigDecimal requestsPerSecond) {
-    this.requestsPerSecond = requestsPerSecond
+  RunResults(BigDecimal msPerRequest) {
+    this.msPerRequest = msPerRequest
   }
 
 }
