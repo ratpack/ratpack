@@ -26,6 +26,9 @@ import java.util.concurrent.atomic.AtomicLong
 @CompileStatic
 class Requester {
 
+  private final static int DECIMAL_ACCURACY = 5
+
+
   private final String baseUrl
 
   Requester(String baseUrl) {
@@ -44,27 +47,25 @@ class Requester {
     println "done"
 
     def result = (roundResults.sum(0) as BigDecimal) / rounds
-    result = result.setScale(2, RoundingMode.HALF_UP)
-    new RunResults(result)
+    new RunResults(result.setScale(DECIMAL_ACCURACY))
   }
 
   private BigDecimal runRound(int numRequests, ExecutorService executor, String endpoint) {
     def url = new URL("$baseUrl/$endpoint")
     def latch = new CountDownLatch(numRequests)
     def counter = new AtomicLong(0)
-    numRequests.times {
+    numRequests.times { int requestNum ->
       executor.submit {
         try {
           def connection = url.openConnection()
           connection.inputStream.close()
 
           def responseHeaderValue = connection.getHeaderField("X-Response-Time")
-          def responseMs = new BigDecimal(responseHeaderValue)
 
           // Adjust to long for atomic long
-          def adjusted = responseMs.multiply(1000).toBigDecimal().unscaledValue().longValue() // keep 3 decimal points of accuracy
+          long value = new BigDecimal(responseHeaderValue).setScale(DECIMAL_ACCURACY).unscaledValue().longValue()
 
-          counter.addAndGet(adjusted)
+          counter.addAndGet(value)
         } catch (Exception e) {
           e.printStackTrace()
         } finally {
@@ -74,7 +75,10 @@ class Requester {
     }
     latch.await()
 
-    counter.get() / 1000 / numRequests
+    def whole = new BigDecimal(counter.get())
+    def millis = whole.divide(Math.pow(10, DECIMAL_ACCURACY).toBigDecimal())
+    def average = millis.divide(numRequests.toBigDecimal())
+    average.setScale(DECIMAL_ACCURACY, RoundingMode.HALF_UP)
   }
 
   void stopApp() {

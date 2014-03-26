@@ -47,6 +47,7 @@ abstract class HtmlReportGenerator {
       }
       script(type: "text/javascript") {
         mkp.yieldUnescaped('''\n//<![CDATA[\n
+
            var chartData = [];
 
           $(function() {
@@ -69,6 +70,7 @@ abstract class HtmlReportGenerator {
               });
             });
 
+            var maxTime = 0;
             $.each(endpoints, function(endpoint, data) {
               var results = data.results;
 
@@ -82,11 +84,14 @@ abstract class HtmlReportGenerator {
 
                 $("tbody tr.version." + version).append("<td>" + num + "</td>");
 
+                maxTime = Math.max(maxTime, num);
                 chartData[index].push(num);
               });
             });
 
             $("#chart").css({width: (56 + (endpointNames.length * 231) + 2 + 10) + "px"});
+
+            var scaleIncrement = 0.25;
 
             $.jqplot('chart', chartData, {
               seriesDefaults: {
@@ -116,8 +121,9 @@ abstract class HtmlReportGenerator {
                 yaxis: {
                   pad: 1.2,
                   min: 0,
+                  max: (Math.ceil(maxTime * (1 / scaleIncrement)) * scaleIncrement),
                   tickOptions: {
-                    formatString: '%.2f\'
+                    formatString: '%.5f'
                   }
                 }
               },
