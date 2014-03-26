@@ -101,22 +101,27 @@ class Harness {
             startApp(connection)
             println "app started"
 
-            def warmupRequestsPerRound = 10000
-            def warmupRounds = 3
-            def warmupCooldown = 1
-            requester.run("warmup", warmupRequestsPerRound, warmupRounds, warmupCooldown, executor, endpoint)
+            try {
+              def warmupRequestsPerRound = 10000
+              def warmupRounds = 3
+              def warmupCooldown = 1
+              requester.run("warmup", warmupRequestsPerRound, warmupRounds, warmupCooldown, executor, endpoint)
 
-            def requestsPerRound = 100000
-            def rounds = 10
-            def cooldown = 1
-            def results = requester.run("real", requestsPerRound, rounds, cooldown, executor, endpoint)
+              def requestsPerRound = 100000
+              def rounds = 10
+              def cooldown = 1
+              def results = requester.run("real", requestsPerRound, rounds, cooldown, executor, endpoint)
 
-            sessionResults.endpoints[endpointName].results[versionName] = results
+              sessionResults.endpoints[endpointName].results[versionName] = results
 
-            println "Average ms per request: " + results.msPerRequest
-
-            println "stopping..."
-            requester.stopApp()
+              println "Average ms per request: " + results.msPerRequest
+            } catch (Throwable e) {
+              println "Exception while testing app"
+              e.printStackTrace()
+            } finally {
+              println "stopping..."
+              requester.stopApp()
+            }
           }
 
           println "Done testing"
@@ -147,24 +152,29 @@ class Harness {
 
     connection.newBuild().withArguments("-u", "run").setStandardOutput(output).setStandardError(output).run(resultHandler)
 
-    def timeoutMins = 5
+    def timeoutMins = 1
     def retryMs = 500
     def startAt = System.currentTimeMillis()
     def stopAt = startAt + (timeoutMins * 60 * 1000)
 
+    String outputString = ""
     while (latch.count && System.currentTimeMillis() < stopAt) {
-      if (output.toString().lastIndexOf("Ratpack started for http://localhost:") > -1) {
+      outputString = output.toString()
+      if (outputString.lastIndexOf("Ratpack started for http://localhost:") > -1) {
         latch.countDown()
+      }
+      if (outputString.contains("ratpack.launch.LaunchException")) {
+        throw new RuntimeException("App failed to launch: $outputString")
       }
       sleep retryMs
     }
 
     if (resultHandler.complete) {
-      throw new Exception("Build finished early: ${output.toString()}")
+      throw new Exception("Build finished early: ${outputString}")
     }
 
     if (resultHandler.failure) {
-      throw new Exception("Build failed: ${output.toString()}", resultHandler.failure)
+      throw new Exception("Build failed: ${outputString}", resultHandler.failure)
     }
   }
 
