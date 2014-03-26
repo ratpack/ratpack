@@ -16,10 +16,12 @@
 
 package ratpack.gradle.functional
 
+import org.gradle.internal.exceptions.LocationAwareException
+
 class FailsToStartSpec extends FunctionalSpec {
 
   def "process does not hang if it fails to start"() {
-    when:
+    given:
     buildFile << """
       configureRun.doLast { run.systemProperty "ratpack.reloadable", false }
     """
@@ -38,8 +40,11 @@ class FailsToStartSpec extends FunctionalSpec {
       }
     """
 
-    then:
+    when:
     run("run").failure
+
+    then:
+    thrown LocationAwareException
   }
 
 }
