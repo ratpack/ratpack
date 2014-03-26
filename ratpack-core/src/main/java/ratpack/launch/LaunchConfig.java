@@ -178,7 +178,7 @@ public interface LaunchConfig {
   public int getMaxContentLength();
 
   /**
-   * Indicates whether responses should include a 'X-Response-Time' header with the number of milliseconds (to 3 decimal places) it took to process the request.
+   * Indicates whether responses should include a 'X-Response-Time' header with the number of milliseconds (to 5 decimal places) it took to process the request.
    * <p>
    * Timing starts when processing of the request starts.
    * That is, the number of milliseconds it took to determine the response to send to the client.

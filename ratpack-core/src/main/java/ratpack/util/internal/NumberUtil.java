@@ -28,7 +28,7 @@ public abstract class NumberUtil {
   }
 
   public static String toMillisDiffString(long startNanos, long stopNanos) {
-    return convertNanoDiff(startNanos, stopNanos, TimeUnit.MILLISECONDS).setScale(3, RoundingMode.UP).toString();
+    return convertNanoDiff(startNanos, stopNanos, TimeUnit.MILLISECONDS).setScale(5, RoundingMode.UP).toString();
   }
 
 }
