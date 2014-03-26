@@ -28,7 +28,6 @@ class Requester {
 
   private final static int DECIMAL_ACCURACY = 5
 
-
   private final String baseUrl
 
   Requester(String baseUrl) {
@@ -47,14 +46,14 @@ class Requester {
     println "done"
 
     def result = (roundResults.sum(0) as BigDecimal) / rounds
-    new RunResults(result.setScale(DECIMAL_ACCURACY))
+    new RunResults(result.setScale(DECIMAL_ACCURACY, RoundingMode.HALF_UP))
   }
 
   private BigDecimal runRound(int numRequests, ExecutorService executor, String endpoint) {
     def url = new URL("$baseUrl/$endpoint")
     def latch = new CountDownLatch(numRequests)
     def counter = new AtomicLong(0)
-    numRequests.times { int requestNum ->
+    numRequests.times {
       executor.submit {
         try {
           def connection = url.openConnection()
