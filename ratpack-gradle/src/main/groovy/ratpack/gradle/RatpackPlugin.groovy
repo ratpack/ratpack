@@ -38,7 +38,7 @@ class RatpackPlugin implements Plugin<Project> {
 
     project.configurations { springloaded }
 
-    def ratpackApp = new SpringloadedUtil(project.configurations['springloaded'])
+    def ratpackApp = new SpringloadedUtil(project, project.configurations['springloaded'])
 
     def ratpackDependencies = project.extensions.create("ratpack", RatpackDependencies, project.dependencies)
 

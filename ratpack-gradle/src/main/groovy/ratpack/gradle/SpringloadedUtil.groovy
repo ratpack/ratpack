@@ -16,6 +16,7 @@
 
 package ratpack.gradle
 
+import org.gradle.api.Project
 import org.gradle.api.file.FileCollection
 
 class SpringloadedUtil {
@@ -24,8 +25,10 @@ class SpringloadedUtil {
 
   private boolean lookedForSpringloaded
   private File springloadedJar
+  private final Project project
 
-  SpringloadedUtil(FileCollection springloadedClasspath) {
+  SpringloadedUtil(Project project, FileCollection springloadedClasspath) {
+    this.project = project
     this.springloadedClasspath = springloadedClasspath
   }
 
@@ -40,10 +43,17 @@ class SpringloadedUtil {
   List<String> getSpringloadedJvmArgs() {
     def jarFile = getSpringloadedJar()
     if (jarFile) {
-      [String.format("-javaagent:%s", jarFile.absolutePath), "-noverify"]
+      [String.format("-javaagent:%s", jarFile.absolutePath), "-noverify", "-Dspringloaded=${springLoadedConfig.collect { "$it.key=$it.value" }.join(";")}"]
     } else {
       Collections.emptyList()
     }
+  }
+
+  private Map<String, String> getSpringLoadedConfig() {
+    [
+      caching: "true",
+      cacheDir: new File(project.buildDir, "springloaded-cache/${System.getProperty("java.version")}")
+    ]
   }
 
 }
