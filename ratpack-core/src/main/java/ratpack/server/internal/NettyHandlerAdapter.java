@@ -52,8 +52,10 @@ import ratpack.render.internal.DefaultRenderController;
 import ratpack.server.BindAddress;
 import ratpack.server.PublicAddress;
 import ratpack.server.Stopper;
+import ratpack.util.internal.NumberUtil;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.net.InetSocketAddress;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -125,7 +127,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
       return;
     }
 
-    final long startTime = System.currentTimeMillis();
+    final long startTime = System.nanoTime();
 
     final Request request = new DefaultRequest(new NettyHeadersBackedHeaders(nettyRequest.headers()), nettyRequest.getMethod().name(), nettyRequest.getUri(), nettyRequest.content());
 
@@ -155,11 +157,9 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
             shouldClose = false;
           }
 
-          long stopTime = System.currentTimeMillis();
-          long responseTime = stopTime - startTime;
-
+          long stopTime = System.nanoTime();
           if (addResponseTimeHeader) {
-            responseHeaders.set("X-Response-Time", Long.toString(responseTime));
+            responseHeaders.set("X-Response-Time", NumberUtil.toMillisDiffString(startTime, stopTime));
           }
 
           channel.writeAndFlush(nettyResponse);

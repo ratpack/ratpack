@@ -20,6 +20,8 @@ import ratpack.test.internal.RatpackGroovyDslSpec
 
 class ResponseTimeSpec extends RatpackGroovyDslSpec {
 
+  public static final String DECIMAL_NUMBER = ~/\d+\.\d+/
+
   def "does not contain response time header by default"() {
     when:
     handlers {
@@ -45,7 +47,7 @@ class ResponseTimeSpec extends RatpackGroovyDslSpec {
 
     then:
     with(get()) {
-      headers.get("X-Response-Time").value ==~ /\d+/
+      headers.get("X-Response-Time").value ==~ DECIMAL_NUMBER
     }
   }
 
@@ -64,7 +66,7 @@ class ResponseTimeSpec extends RatpackGroovyDslSpec {
 
     then:
     with(get()) {
-      headers.get("X-Response-Time").value ==~ /\d+/
+      headers.get("X-Response-Time").value ==~ DECIMAL_NUMBER
     }
   }
 
@@ -101,7 +103,7 @@ class ResponseTimeSpec extends RatpackGroovyDslSpec {
     then:
     with(get("foo.txt")) {
       body.asString() == "foo"
-      headers.get("X-Response-Time").value ==~ /\d+/
+      headers.get("X-Response-Time").value ==~ DECIMAL_NUMBER
     }
   }
 

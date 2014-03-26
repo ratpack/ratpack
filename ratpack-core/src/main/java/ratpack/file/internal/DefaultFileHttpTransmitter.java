@@ -23,6 +23,7 @@ import ratpack.handling.Background;
 import ratpack.http.internal.CustomHttpResponse;
 import ratpack.http.internal.HttpHeaderConstants;
 import ratpack.func.Action;
+import ratpack.util.internal.NumberUtil;
 
 import java.io.FileInputStream;
 import java.nio.channels.FileChannel;
@@ -87,10 +88,10 @@ public class DefaultFileHttpTransmitter implements FileHttpTransmitter {
 
     HttpResponse minimalResponse = new DefaultHttpResponse(response.getProtocolVersion(), response.getStatus());
     minimalResponse.headers().set(response.headers());
-    long stopTime = System.currentTimeMillis();
+    long stopTime = System.nanoTime();
 
     if (startTime > 0) {
-      minimalResponse.headers().set("X-Response-Time", Long.toString(stopTime - startTime));
+      minimalResponse.headers().set("X-Response-Time", NumberUtil.toMillisDiffString(startTime, stopTime));
     }
 
     ChannelFuture writeFuture = channel.writeAndFlush(minimalResponse);
