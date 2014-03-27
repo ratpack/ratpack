@@ -18,7 +18,10 @@ package ratpack.jackson
 
 import ratpack.test.internal.RatpackGroovyDslSpec
 
+import spock.lang.Unroll
+
 import static Jackson.jsonNode
+import static Jackson.fromJson
 
 class JacksonParsingSpec extends RatpackGroovyDslSpec {
 
@@ -40,6 +43,31 @@ class JacksonParsingSpec extends RatpackGroovyDslSpec {
 
     then:
     postText() == "3"
+  }
+
+  @Unroll("can parse json as #classType")
+  def "can parse json as object"() {
+    when:
+    handlers {
+      post {
+        def object = parse fromJson(classType)
+        response.send "${object.value}:${object.foo?.value}"
+      }
+
+    }
+
+    and:
+    request.contentType("application/json").body([value: 1, foo: [value: 2]])
+
+    then:
+    postText() == "1:2"
+
+    where:
+    classType   | _
+    HashMap     | _
+    Map         | _
+    Object      | _
+    Pogo        | _
   }
 
 
