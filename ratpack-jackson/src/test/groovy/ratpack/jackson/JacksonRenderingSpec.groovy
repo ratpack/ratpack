@@ -28,7 +28,7 @@ class JacksonRenderingSpec extends RatpackGroovyDslSpec {
   }
 
   def setup() {
-    modules << new JacksonModule()
+    modules << new JacksonModule().noPrettyPrint()
   }
 
   def "can render custom objects as json"() {
@@ -64,9 +64,10 @@ class JacksonRenderingSpec extends RatpackGroovyDslSpec {
       '}'
 
     when:
-    modules {
-      get(JacksonModule).prettyPrint = true
-    }
+    modules.clear()
+    modules << new JacksonModule()
+
+    and:
     handlers {
       get {
         render json(new User(username: "foo", password: "bar"))
@@ -75,7 +76,6 @@ class JacksonRenderingSpec extends RatpackGroovyDslSpec {
 
     then:
     text == prettyString
-
   }
 
 }

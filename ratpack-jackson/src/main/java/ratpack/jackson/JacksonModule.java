@@ -39,43 +39,18 @@ import javax.inject.Singleton;
 @SuppressWarnings("UnusedDeclaration")
 public class JacksonModule extends AbstractModule {
 
-  boolean prettyPrint;
+  private boolean prettyPrint = true;
 
   /**
-   * Constructor.
-   */
-  public JacksonModule() {
-  }
-
-  /**
-   * Constructor.
-   *
-   * @param prettyPrint initial pretty print value.
-   */
-  public JacksonModule(boolean prettyPrint) {
-    this.prettyPrint = prettyPrint;
-  }
-
-  /**
-   * Should the JSON be pretty printed.
+   * Disables pretty printing by default whe rendering JSON.
    * <p>
-   * Default is {@code false}.
+   * Pretty printing is enabled by default.
    *
-   * @return Should the JSON be pretty printed.
+   * @return this.
    */
-  public boolean isPrettyPrint() {
-    return prettyPrint;
-  }
-
-  /**
-   * Sets if the JSON should be pretty printed.
-   * <p>
-   * See {@link DefaultPrettyPrinter} for formatting details.
-   *
-   * @param prettyPrint If the JSON should be pretty printed
-   */
-  public void setPrettyPrint(boolean prettyPrint) {
-    this.prettyPrint = prettyPrint;
+  public JacksonModule noPrettyPrint() {
+    prettyPrint = false;
+    return this;
   }
 
   @Override
@@ -88,7 +63,7 @@ public class JacksonModule extends AbstractModule {
   @Provides
   @Singleton
   protected ObjectWriter objectWriter(ObjectMapper objectMapper) {
-    return objectMapper.writer(isPrettyPrint() ? new DefaultPrettyPrinter() : new MinimalPrettyPrinter());
+    return objectMapper.writer(prettyPrint ? new DefaultPrettyPrinter() : new MinimalPrettyPrinter());
   }
 
   @Provides
