@@ -29,7 +29,7 @@ public interface PathBinding {
    * Some bindings are "prefix" bindings, in which case they will not have bound to the whole path.
    * The bound path is always absolute.
    * <p>
-   * If a prefix binder for path "/a/b/c" created a binding for path "/a/b/c/d/e", the "bound to" value would be "/a/b/c".
+   * If a prefix binder for path "a/b/c" created a binding for path "a/b/c/d/e", the "bound to" value would be "a/b/c".
    *
    * @return The path of the request path that was bound to.
    */
@@ -40,7 +40,7 @@ public interface PathBinding {
    * <p>
    * Strict bindings may bind to an exact path, therefore there is nothing "past" what they bind to.
    * <p>
-   * If a prefix binder for path "/a/b/c" created a binding for path "/a/b/c/d/e", the "past binding" value would be "d/e".
+   * If a prefix binder for path "a/b/c" created a binding for path "a/b/c/d/e", the "past binding" value would be "d/e".
    *
    * @return The part of the path bound to that is past where the binding bound to. May be an empty string if the exact path was bound to.
    */
@@ -49,7 +49,7 @@ public interface PathBinding {
   /**
    * Constructs a new path using the {@link #getBoundTo()} value of this binding and the given path.
    * <p>
-   * For a binding with a "bound to" value of "/a/b/c", calling join("d/e") will return "/a/b/c/d/e".
+   * For a binding with a "bound to" value of "a/b/c", calling childPath("d/e") will return "a/b/c/d/e".
    * It is invalid to call this method with an absolute path.
    *
    * @param path The path to use to construct a new child path from the bind point of this binding

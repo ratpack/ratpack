@@ -21,42 +21,56 @@ import spock.lang.Specification
 
 class TokenPathBinderSpec extends Specification {
 
-  Map<String, String> bind(String pattern, String path, PathBinding parent = null, boolean exact = true) {
-    new TokenPathBinder(pattern, exact).bind(path, parent)?.tokens
+  PathBinding bind(String pattern, String path, boolean exact = false, PathBinding parent = null) {
+    new TokenPathBinder(pattern, exact).bind(path, parent)
   }
 
-  def bind() {
+  Map<String, String> tokens(String pattern, String path, boolean exact = false, PathBinding parent = null) {
+    bind(pattern, path, exact, parent)?.tokens
+  }
+
+  def "binding parts"() {
+    when:
+    true
+
+    then:
+    bind("a/b", "a/b/c").boundTo == "a/b"
+    bind("a/b", "a/b/c").pastBinding == "c"
+    bind("a/b", "a/b/c").childPath("f") == "a/b/f"
+  }
+
+  def tokens() {
     expect:
-    bind("a", "b") == null
-    bind("a", "a") == [:]
-    bind("(.+)", "abc") == null
-    bind(":a", "abc") == [a: "abc"]
-    bind(":a", "abc/") == [a: "abc"]
-    bind(":a/:b", "abc/def") == [a: "abc", b: "def"]
-    bind(":a/:b?", "abc/def") == [a: "abc", b: "def"]
-    bind(":a/:b?", "abc") == [a: "abc"]
-    bind(":a/:b?/somepath", "abc") == null
-    bind(":a/:b?/somepath", "abc/somepath") == [a: "abc"]
-    bind(":a/:b?/somepath", "abc/def/somepath") == [a: "abc", b: "def"]
-    bind(":a/:b?/somepath", "abc/def/") == null
-    bind(":a/:b?/:c?", "abc") == [a: "abc"]
-    bind(":a/:b?/:c?", "abc/def") == [a: "abc", b: "def"]
-    bind(":a/:b?/:c?", "abc/def/ghi") == [a: "abc", b: "def", c: "ghi"]
-    bind(":a/:b", "foo") == null
-    bind("a/:b?", "a") == [:]
-    bind(":a", "%231") == [a: "#1"]
-    bind(":a", "foo%20bar") == [a: "foo bar"]
-    bind(":a", "foo%2Bbar") == [a: "foo+bar"]
-    bind(":a", "foo+bar") == [a: "foo+bar"]
-    bind(":a?", "") == [a: ""]
-    bind(":a?/b", "/b") == [a: ""]
-    bind(":a?/b/:c?", "/b/3") == [a: "", c: "3"]
-    bind("a/:b?", "a") == [:]
-    bind("a/:b?", "a/") == [b: ""]
-    bind(":a/:b?/:c?", "1//3") == [a: "1", b: "", c: "3"]
+    tokens("a", "b") == null
+    tokens("a", "a") == [:]
+    tokens("(.+)", "abc") == null
+    tokens(":a", "abc") == [a: "abc"]
+    tokens(":a", "abc/") == [a: "abc"]
+    tokens(":a/:b", "abc/def") == [a: "abc", b: "def"]
+    tokens(":a/:b?", "abc/def") == [a: "abc", b: "def"]
+    tokens(":a/:b?", "abc") == [a: "abc"]
+    tokens(":a/:b?/somepath", "abc") == null
+    tokens(":a/:b?/somepath", "abc/somepath") == [a: "abc"]
+    tokens(":a/:b?/somepath", "abc/def/somepath") == [a: "abc", b: "def"]
+    tokens(":a/:b?/somepath", "abc/def/") == null
+    tokens(":a/:b?/:c?", "abc") == [a: "abc"]
+    tokens(":a/:b?/:c?", "abc/def") == [a: "abc", b: "def"]
+    tokens(":a/:b?/:c?", "abc/def/ghi") == [a: "abc", b: "def", c: "ghi"]
+    tokens(":a/:b", "foo") == null
+    tokens("a/:b?", "a") == [:]
+    tokens(":a", "%231") == [a: "#1"]
+    tokens(":a", "foo%20bar") == [a: "foo bar"]
+    tokens(":a", "foo%2Bbar") == [a: "foo+bar"]
+    tokens(":a", "foo+bar") == [a: "foo+bar"]
+    tokens(":a?", "") == [a: ""]
+    tokens(":a?/b", "/b") == [a: ""]
+    tokens(":a?/b/:c?", "/b/3") == [a: "", c: "3"]
+    tokens("a/:b?", "a") == [:]
+    tokens("a/:b?", "a/") == [b: ""]
+    tokens(":a/:b?/:c?", "1//3") == [a: "1", b: "", c: "3"]
 
     when:
-    bind(":a/:b?/:c", "abc/def/ghi")
+    tokens(":a/:b?/:c", "abc/def/ghi")
 
     then:
     def e = thrown(IllegalArgumentException)
