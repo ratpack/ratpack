@@ -1,7 +1,7 @@
 language: java
 jdk:
   - oraclejdk7
-before_script:
+before_install:
   - ulimit -a
   - ./gradlew assemble
 script:
