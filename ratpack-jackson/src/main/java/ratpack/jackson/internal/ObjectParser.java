@@ -21,7 +21,6 @@ import com.google.inject.Inject;
 import ratpack.handling.Context;
 
 import ratpack.http.TypedData;
-import ratpack.jackson.ObjectParse;
 import ratpack.parse.ParserSupport;
 
 import java.io.IOException;

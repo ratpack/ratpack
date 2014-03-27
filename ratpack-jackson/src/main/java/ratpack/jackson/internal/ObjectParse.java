@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ratpack.jackson;
+package ratpack.jackson.internal;
 
 import ratpack.parse.Parse;
 
