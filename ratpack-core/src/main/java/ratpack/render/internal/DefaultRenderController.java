@@ -44,7 +44,7 @@ public class DefaultRenderController implements RenderController {
       }
     }
 
-    context.error(new NoSuchRendererException("No renderer for object '" + object + "' of type '" + object.getClass() + "'"));
+    context.error(new NoSuchRendererException(object));
   }
 
   private <T> boolean maybeRender(Object object, Renderer<T> renderer, Context context) throws Exception {
