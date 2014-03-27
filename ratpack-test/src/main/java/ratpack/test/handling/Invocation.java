@@ -19,6 +19,7 @@ package ratpack.test.handling;
 import ratpack.api.Nullable;
 import ratpack.http.Headers;
 import ratpack.http.Status;
+import ratpack.registry.Registry;
 
 import java.nio.file.Path;
 
@@ -52,5 +53,9 @@ public interface Invocation {
 
   @Nullable
   <T> T rendered(Class<T> type);
+
+  Registry getRegistry();
+
+  Registry getRequestRegistry();
 
 }

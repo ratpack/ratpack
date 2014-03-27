@@ -14,20 +14,16 @@
  * limitations under the License.
  */
 
-package ratpack.launch.internal;
+package ratpack.handling.internal;
 
-import io.netty.channel.EventLoopGroup;
-import ratpack.handling.internal.ContextStorage;
-import ratpack.launch.LaunchConfig;
+import ratpack.handling.Context;
 
-import java.util.concurrent.ExecutorService;
+public interface ContextStorage {
 
-public interface LaunchConfigInternal extends LaunchConfig {
+  Context get();
 
-  ContextStorage getContextStorage();
+  void set(Context context);
 
-  ExecutorService getBackgroundExecutorService();
-
-  EventLoopGroup getEventLoopGroup();
+  void remove();
 
 }

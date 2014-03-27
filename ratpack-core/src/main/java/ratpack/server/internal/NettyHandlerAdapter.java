@@ -97,15 +97,15 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
       .add(FormParser.class, FormParser.urlEncoded())
       .build();
 
-    ThreadLocal<Context> contextThreadLocal;
+    ContextStorage contextStorage;
     if (launchConfig instanceof LaunchConfigInternal) {
-      contextThreadLocal = ((LaunchConfigInternal) launchConfig).getContextThreadLocal();
+      contextStorage = ((LaunchConfigInternal) launchConfig).getContextStorage();
     } else {
       throw new IllegalArgumentException("launchConfig must implement internal protocol " + LaunchConfigInternal.class.getName());
     }
 
     this.addResponseTimeHeader = launchConfig.isTimeResponses();
-    this.applicationConstants = new DefaultContext.ApplicationConstants(launchConfig.getForeground(), launchConfig.getBackground(), contextThreadLocal, new DefaultRenderController());
+    this.applicationConstants = new DefaultContext.ApplicationConstants(launchConfig.getForeground(), launchConfig.getBackground(), contextStorage, new DefaultRenderController());
   }
 
   @Override

@@ -24,6 +24,7 @@ import ratpack.func.Action;
 import ratpack.handling.Background;
 import ratpack.handling.Context;
 import ratpack.handling.ProcessingInterceptor;
+import ratpack.handling.internal.ContextStorage;
 import ratpack.handling.internal.FinishedOnThreadCallbackManager;
 import ratpack.handling.internal.InterceptedOperation;
 import ratpack.promise.SuccessOrErrorPromise;
@@ -39,17 +40,17 @@ public class DefaultBackground implements Background {
 
   private final ExecutorService foregroundExecutor;
   private final ListeningExecutorService backgroundExecutor;
-  private final ThreadLocal<Context> contextThreadLocal;
+  private final ContextStorage contextStorage;
 
-  public DefaultBackground(ExecutorService foregroundExecutor, ListeningExecutorService backgroundExecutor, ThreadLocal<Context> contextThreadLocal) {
+  public DefaultBackground(ExecutorService foregroundExecutor, ListeningExecutorService backgroundExecutor, ContextStorage contextStorage) {
     this.foregroundExecutor = foregroundExecutor;
     this.backgroundExecutor = backgroundExecutor;
-    this.contextThreadLocal = contextThreadLocal;
+    this.contextStorage = contextStorage;
   }
 
   @Override
   public <T> SuccessOrErrorPromise<T> exec(Callable<T> operation) {
-    return new DefaultSuccessOrErrorPromise<>(operation, contextThreadLocal.get());
+    return new DefaultSuccessOrErrorPromise<>(operation, contextStorage.get());
   }
 
   private class DefaultSuccessOrErrorPromise<T> implements SuccessOrErrorPromise<T> {
@@ -125,7 +126,7 @@ public class DefaultBackground implements Background {
 
       @Override
       public T call() throws Exception {
-        contextThreadLocal.set(context);
+        contextStorage.set(context);
         try {
           run();
           if (exception != null) {
@@ -134,7 +135,7 @@ public class DefaultBackground implements Background {
             return result;
           }
         } finally {
-          contextThreadLocal.remove();
+          contextStorage.remove();
         }
       }
 
@@ -161,7 +162,7 @@ public class DefaultBackground implements Background {
 
       @Override
       public void onSuccess(final T result) {
-        contextThreadLocal.set(context);
+        contextStorage.set(context);
         try {
           new InterceptedOperation(ProcessingInterceptor.Type.FOREGROUND, interceptors, context) {
             @Override
@@ -180,13 +181,14 @@ public class DefaultBackground implements Background {
         } catch (Exception e) {
           context.error(e);
         } finally {
-          contextThreadLocal.remove();
+          contextStorage.remove();
         }
       }
 
+      @SuppressWarnings("NullableProblems")
       @Override
       public void onFailure(final Throwable t) {
-        contextThreadLocal.set(context);
+        contextStorage.set(context);
         try {
           new InterceptedOperation(ProcessingInterceptor.Type.FOREGROUND, interceptors, context) {
             @Override
@@ -205,7 +207,7 @@ public class DefaultBackground implements Background {
         } catch (Exception e) {
           context.error(e);
         } finally {
-          contextThreadLocal.remove();
+          contextStorage.remove();
         }
       }
     }

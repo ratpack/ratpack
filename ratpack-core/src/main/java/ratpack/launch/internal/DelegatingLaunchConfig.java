@@ -19,10 +19,10 @@ package ratpack.launch.internal;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.EventLoopGroup;
 import ratpack.api.Nullable;
-import ratpack.handling.Background;
 import ratpack.file.FileSystemBinding;
-import ratpack.handling.Context;
+import ratpack.handling.Background;
 import ratpack.handling.Foreground;
+import ratpack.handling.internal.ContextStorage;
 import ratpack.launch.HandlerFactory;
 
 import javax.net.ssl.SSLContext;
@@ -133,8 +133,8 @@ public class DelegatingLaunchConfig implements LaunchConfigInternal {
   }
 
   @Override
-  public ThreadLocal<Context> getContextThreadLocal() {
-    return launchConfig.getContextThreadLocal();
+  public ContextStorage getContextStorage() {
+    return launchConfig.getContextStorage();
   }
 
 }

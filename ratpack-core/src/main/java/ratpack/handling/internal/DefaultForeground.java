@@ -19,22 +19,22 @@ package ratpack.handling.internal;
 import com.google.common.util.concurrent.ListeningScheduledExecutorService;
 import ratpack.handling.Context;
 import ratpack.handling.Foreground;
-import ratpack.handling.ReadOnlyContext;
 import ratpack.handling.NoBoundContextException;
+import ratpack.handling.ReadOnlyContext;
 
 public class DefaultForeground implements Foreground {
 
-  private final ThreadLocal<Context> contextThreadLocal;
+  private final ContextStorage contextStorage;
   private final ListeningScheduledExecutorService listeningScheduledExecutorService;
 
-  public DefaultForeground(ThreadLocal<Context> contextThreadLocal, ListeningScheduledExecutorService listeningScheduledExecutorService) {
-    this.contextThreadLocal = contextThreadLocal;
+  public DefaultForeground(ContextStorage contextStorage, ListeningScheduledExecutorService listeningScheduledExecutorService) {
+    this.contextStorage = contextStorage;
     this.listeningScheduledExecutorService = listeningScheduledExecutorService;
   }
 
   @Override
   public ReadOnlyContext getContext() throws NoBoundContextException {
-    Context context = contextThreadLocal.get();
+    Context context = contextStorage.get();
     if (context == null) {
       throw new NoBoundContextException("No context is bound to the current thread (are you calling this from the background?)");
     } else {

@@ -14,20 +14,27 @@
  * limitations under the License.
  */
 
-package ratpack.launch.internal;
+package ratpack.handling.internal;
 
-import io.netty.channel.EventLoopGroup;
-import ratpack.handling.internal.ContextStorage;
-import ratpack.launch.LaunchConfig;
+import ratpack.handling.Context;
 
-import java.util.concurrent.ExecutorService;
+public class ThreadLocalContextStorage implements ContextStorage {
 
-public interface LaunchConfigInternal extends LaunchConfig {
+  private final ThreadLocal<Context> threadLocal = new ThreadLocal<>();
 
-  ContextStorage getContextStorage();
+  @Override
+  public Context get() {
+    return threadLocal.get();
+  }
 
-  ExecutorService getBackgroundExecutorService();
+  @Override
+  public void set(Context context) {
+    threadLocal.set(context);
+  }
 
-  EventLoopGroup getEventLoopGroup();
+  @Override
+  public void remove() {
+    threadLocal.remove();
+  }
 
 }

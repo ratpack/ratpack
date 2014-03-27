@@ -24,12 +24,13 @@ import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.util.concurrent.DefaultThreadFactory;
-import ratpack.handling.Background;
 import ratpack.background.internal.DefaultBackground;
 import ratpack.file.FileSystemBinding;
-import ratpack.handling.Context;
+import ratpack.handling.Background;
 import ratpack.handling.Foreground;
+import ratpack.handling.internal.ContextStorage;
 import ratpack.handling.internal.DefaultForeground;
+import ratpack.handling.internal.ThreadLocalContextStorage;
 import ratpack.launch.HandlerFactory;
 
 import javax.net.ssl.SSLContext;
@@ -59,7 +60,7 @@ public class DefaultLaunchConfig implements LaunchConfigInternal {
   private final int maxContentLength;
   private final boolean timeResponses;
 
-  private final ThreadLocal<Context> contextThreadLocal = new ThreadLocal<>();
+  private final ContextStorage contextStorage = new ThreadLocalContextStorage();
   private final EventLoopGroup eventLoopGroup;
 
   public DefaultLaunchConfig(FileSystemBinding baseDir, int port, InetAddress address, boolean reloadable, int threads, ExecutorService backgroundExecutorService, ByteBufAllocator byteBufAllocator, URI publicAddress, ImmutableList<String> indexFiles, ImmutableMap<String, String> other, SSLContext sslContext, int maxContentLength, boolean timeResponses, HandlerFactory handlerFactory) {
@@ -78,8 +79,8 @@ public class DefaultLaunchConfig implements LaunchConfigInternal {
     this.sslContext = sslContext;
     this.maxContentLength = maxContentLength;
     this.eventLoopGroup = new NioEventLoopGroup(threads, new DefaultThreadFactory("ratpack-group"));
-    this.background = new DefaultBackground(eventLoopGroup, this.backgroundExecutorService, contextThreadLocal);
-    this.foreground = new DefaultForeground(contextThreadLocal, MoreExecutors.listeningDecorator(eventLoopGroup));
+    this.background = new DefaultBackground(eventLoopGroup, this.backgroundExecutorService, contextStorage);
+    this.foreground = new DefaultForeground(contextStorage, MoreExecutors.listeningDecorator(eventLoopGroup));
   }
 
   @Override
@@ -171,8 +172,8 @@ public class DefaultLaunchConfig implements LaunchConfigInternal {
   }
 
   @Override
-  public ThreadLocal<Context> getContextThreadLocal() {
-    return contextThreadLocal;
+  public ContextStorage getContextStorage() {
+    return contextStorage;
   }
 
   @Override

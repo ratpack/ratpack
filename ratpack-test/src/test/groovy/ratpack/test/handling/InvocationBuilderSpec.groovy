@@ -24,6 +24,7 @@ import ratpack.groovy.test.handling.GroovyInvocationBuilder
 import ratpack.handling.Context
 import ratpack.handling.Handler
 import ratpack.handling.RequestOutcome
+import ratpack.registry.Registries
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -300,4 +301,34 @@ class InvocationBuilderSpec extends Specification {
     then:
     rendered(String) == [a: "1", b: "2"].toString()
   }
+
+  @Unroll
+  def "can access things inserted into registry"() {
+    when:
+    invoke {
+      insert(Registries.registry("foo"), groovyHandler {
+        background {
+
+        } then {
+          context.insert(Registries.registry("bar"), groovyHandler {
+            context.request.register(Number, 4)
+            function(context)
+          })
+        }
+      })
+    }
+
+    then:
+    registry.getAll(String) == ["bar", "foo"]
+    requestRegistry.get(Number) == 4
+
+    where:
+    function << [
+      { Context it -> it.render "ok" },
+      { Context it -> it.response.send() },
+      { Context it -> it.error(new Exception()) },
+      { Context it -> it.clientError(404) },
+    ]
+  }
+
 }

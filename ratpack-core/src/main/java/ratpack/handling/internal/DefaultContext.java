@@ -58,12 +58,12 @@ public class DefaultContext implements Context {
   public static class ApplicationConstants {
     private final Foreground foreground;
     private final Background background;
-    private final ThreadLocal<Context> contextThreadLocal;
+    private final ContextStorage contextStorage;
     private final RenderController renderController;
 
-    public ApplicationConstants(Foreground foreground, Background background, ThreadLocal<Context> contextThreadLocal, RenderController renderController) {
+    public ApplicationConstants(Foreground foreground, Background background, ContextStorage contextStorage, RenderController renderController) {
       this.foreground = foreground;
-      this.contextThreadLocal = contextThreadLocal;
+      this.contextStorage = contextStorage;
       this.renderController = renderController;
       this.background = background;
     }
@@ -128,7 +128,8 @@ public class DefaultContext implements Context {
   }
 
   public <O> List<O> getAll(Class<O> type) {
-    return registry.getAll(type);
+    List<O> all = registry.getAll(type);
+    return all;
   }
 
   public <O> O maybeGet(Class<O> type) {
@@ -403,7 +404,7 @@ public class DefaultContext implements Context {
       context = createContext(registry, nextHandlers, nextIndex + 1, exhausted);
     }
 
-    requestConstants.applicationConstants.contextThreadLocal.set(context);
+    requestConstants.applicationConstants.contextStorage.set(context);
 
     try {
       handler.handle(context);

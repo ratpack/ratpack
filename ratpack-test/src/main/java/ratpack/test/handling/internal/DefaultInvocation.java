@@ -19,21 +19,17 @@ package ratpack.test.handling.internal;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.ListeningScheduledExecutorService;
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import io.netty.buffer.UnpooledByteBufAllocator;
 import io.netty.util.CharsetUtil;
 import ratpack.api.Nullable;
-import ratpack.handling.Background;
 import ratpack.background.internal.DefaultBackground;
 import ratpack.error.ClientErrorHandler;
 import ratpack.error.ServerErrorHandler;
 import ratpack.event.internal.DefaultEventController;
 import ratpack.event.internal.EventController;
 import ratpack.file.internal.FileHttpTransmitter;
-import ratpack.handling.Context;
-import ratpack.handling.Foreground;
-import ratpack.handling.Handler;
-import ratpack.handling.RequestOutcome;
+import ratpack.func.Action;
+import ratpack.handling.*;
 import ratpack.handling.internal.*;
 import ratpack.http.*;
 import ratpack.http.internal.DefaultResponse;
@@ -44,10 +40,10 @@ import ratpack.render.internal.RenderController;
 import ratpack.server.BindAddress;
 import ratpack.test.handling.Invocation;
 import ratpack.test.handling.InvocationTimeoutException;
-import ratpack.func.Action;
 
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.Stack;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -60,13 +56,32 @@ public class DefaultInvocation implements Invocation {
 
   private Exception exception;
   private Headers headers;
-  private ByteBuf body = Unpooled.buffer(0, 0);
+  private byte[] body = new byte[0];
   private Status status;
   private boolean calledNext;
   private boolean sentResponse;
   private Path sentFile;
   private Object rendered;
   private Integer clientError;
+
+  private final ContextStorage contextStorage = new ContextStorage() {
+    final Stack<Context> contextStack = new Stack<>();
+
+    @Override
+    public Context get() {
+      return contextStack.peek();
+    }
+
+    @Override
+    public void set(Context context) {
+      contextStack.push(context);
+    }
+
+    @Override
+    public void remove() {
+      // no op
+    }
+  };
 
   public DefaultInvocation(final Request request, final MutableStatus status, final MutableHeaders responseHeaders, Registry registry, final int timeout, Handler handler) {
 
@@ -94,7 +109,9 @@ public class DefaultInvocation implements Invocation {
     Action<ByteBuf> committer = new Action<ByteBuf>() {
       public void execute(ByteBuf byteBuf) {
         sentResponse = true;
-        body = byteBuf;
+        body = new byte[byteBuf.readableBytes()];
+        byteBuf.readBytes(body);
+        byteBuf.release();
         eventController.fire(new DefaultRequestOutcome(request, new DefaultSentResponse(headers, status), System.currentTimeMillis()));
         latch.countDown();
       }
@@ -154,20 +171,20 @@ public class DefaultInvocation implements Invocation {
       }
     };
 
+
     Response response = new DefaultResponse(status, responseHeaders, fileHttpTransmitter, UnpooledByteBufAllocator.DEFAULT, committer);
 
-    ThreadLocal<Context> contextThreadLocal = new ThreadLocal<>();
-    Foreground foreground = new DefaultForeground(contextThreadLocal, foregroundExecutorService);
+    Foreground foreground = new DefaultForeground(contextStorage, foregroundExecutorService);
 
-    Background background = new DefaultBackground(foregroundExecutorService, backgroundExecutorService, contextThreadLocal);
-    DefaultContext.ApplicationConstants applicationConstants = new DefaultContext.ApplicationConstants(foreground, background, contextThreadLocal, renderController);
+    Background background = new DefaultBackground(foregroundExecutorService, backgroundExecutorService, contextStorage);
+    DefaultContext.ApplicationConstants applicationConstants = new DefaultContext.ApplicationConstants(foreground, background, contextStorage, renderController);
     DefaultContext.RequestConstants requestConstants = new DefaultContext.RequestConstants(
       applicationConstants, bindAddress, request, response, null, eventController.getRegistry()
     );
 
     Context context = new DefaultContext(requestConstants, effectiveRegistry, new Handler[0], 0, next);
 
-    contextThreadLocal.set(context);
+    contextStorage.set(context);
     try {
       handler.handle(context);
       finishedOnThreadCallbackManager.fire();
@@ -183,6 +200,16 @@ public class DefaultInvocation implements Invocation {
     } catch (InterruptedException e) {
       throw uncheck(e); // what to do here?
     }
+  }
+
+  @Override
+  public Registry getRegistry() {
+    return contextStorage.get();
+  }
+
+  @Override
+  public Registry getRequestRegistry() {
+    return contextStorage.get().getRequest();
   }
 
   @Override
@@ -204,8 +231,7 @@ public class DefaultInvocation implements Invocation {
   @Override
   public String getBodyText() {
     if (sentResponse) {
-      body.resetReaderIndex();
-      return body.toString(CharsetUtil.UTF_8);
+      return new String(body, CharsetUtil.UTF_8);
     } else {
       return null;
     }
@@ -214,10 +240,7 @@ public class DefaultInvocation implements Invocation {
   @Override
   public byte[] getBodyBytes() {
     if (sentResponse) {
-      body.resetReaderIndex();
-      byte[] bytes = new byte[body.writerIndex()];
-      body.readBytes(bytes, 0, bytes.length);
-      return bytes;
+      return body;
     } else {
       return null;
     }
