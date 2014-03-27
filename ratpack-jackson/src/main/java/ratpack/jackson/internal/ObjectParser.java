@@ -43,8 +43,7 @@ public class ObjectParser extends ParserSupport<Object, ObjectParse> {
     try {
       InputStream inputStream = body.getInputStream();
       return objectMapper.readValue(inputStream, parse.getType());
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       throw uncheck(e);
     }
   }
