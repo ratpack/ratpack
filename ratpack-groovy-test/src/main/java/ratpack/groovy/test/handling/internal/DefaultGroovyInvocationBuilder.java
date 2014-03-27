@@ -27,6 +27,8 @@ import ratpack.test.handling.Invocation;
 import ratpack.test.handling.InvocationBuilder;
 import ratpack.test.handling.InvocationTimeoutException;
 
+import java.util.Map;
+
 public class DefaultGroovyInvocationBuilder implements GroovyInvocationBuilder {
 
   private final InvocationBuilder delegate;
@@ -104,4 +106,17 @@ public class DefaultGroovyInvocationBuilder implements GroovyInvocationBuilder {
     delegate.register(object);
     return this;
   }
+
+  @Override
+  public GroovyInvocationBuilder pathBinding(Map<String, String> pathTokens) {
+    delegate.pathBinding(pathTokens);
+    return this;
+  }
+
+  @Override
+  public GroovyInvocationBuilder pathBinding(String boundTo, String pastBinding, Map<String, String> pathTokens) {
+    delegate.pathBinding(boundTo, pastBinding, pathTokens);
+    return this;
+  }
+
 }

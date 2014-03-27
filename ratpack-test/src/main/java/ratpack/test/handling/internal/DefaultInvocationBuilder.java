@@ -16,6 +16,7 @@
 
 package ratpack.test.handling.internal;
 
+import com.google.common.collect.ImmutableMap;
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpHeaders;
@@ -28,12 +29,16 @@ import ratpack.http.internal.DefaultMediaType;
 import ratpack.http.internal.DefaultMutableStatus;
 import ratpack.http.internal.DefaultRequest;
 import ratpack.http.internal.NettyHeadersBackedMutableHeaders;
+import ratpack.path.PathBinding;
+import ratpack.path.internal.DefaultPathBinding;
 import ratpack.registry.Registries;
 import ratpack.registry.Registry;
 import ratpack.registry.RegistryBuilder;
 import ratpack.test.handling.Invocation;
 import ratpack.test.handling.InvocationBuilder;
 import ratpack.test.handling.InvocationTimeoutException;
+
+import java.util.Map;
 
 import static io.netty.buffer.Unpooled.buffer;
 import static io.netty.buffer.Unpooled.unreleasableBuffer;
@@ -56,9 +61,6 @@ public class DefaultInvocationBuilder implements InvocationBuilder {
   private int timeout = 5;
 
   private RegistryBuilder registryBuilder = Registries.registry();
-
-  public DefaultInvocationBuilder() {
-  }
 
   /**
    * Invokes a handler in a controlled way, allowing it to be tested.
@@ -153,6 +155,17 @@ public class DefaultInvocationBuilder implements InvocationBuilder {
   @Override
   public InvocationBuilder register(Object object) {
     registryBuilder.add(object);
+    return this;
+  }
+
+  @Override
+  public InvocationBuilder pathBinding(Map<String, String> pathTokens) {
+    return pathBinding("", "", pathTokens);
+  }
+
+  @Override
+  public InvocationBuilder pathBinding(String boundTo, String pastBinding, Map<String, String> pathTokens) {
+    registryBuilder.add(PathBinding.class, new DefaultPathBinding(boundTo, pastBinding, ImmutableMap.copyOf(pathTokens), null));
     return this;
   }
 

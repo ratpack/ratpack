@@ -20,6 +20,8 @@ import ratpack.func.Action;
 import ratpack.handling.Handler;
 import ratpack.registry.RegistryBuilder;
 
+import java.util.Map;
+
 /**
  * Builds the context fot the invocation of a {@link Handler} (for unit testing handler implementations).
  *
@@ -48,5 +50,9 @@ public interface InvocationBuilder {
   InvocationBuilder registry(Action<? super RegistryBuilder> action) throws Exception;
 
   InvocationBuilder register(Object object);
+
+  InvocationBuilder pathBinding(Map<String, String> pathTokens);
+
+  InvocationBuilder pathBinding(String boundTo, String pastBinding, Map<String, String> pathTokens);
 
 }

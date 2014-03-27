@@ -285,4 +285,19 @@ class InvocationBuilderSpec extends Specification {
     then:
     rendered(String) == "foo,bar"
   }
+
+  def "can easily add path tokens for unit tests"() {
+    given:
+    builder {
+      pathBinding a: "1", b: "2"
+    }
+
+    when:
+    invoke {
+      render pathTokens.toString()
+    }
+
+    then:
+    rendered(String) == [a: "1", b: "2"].toString()
+  }
 }

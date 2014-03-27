@@ -25,6 +25,8 @@ import ratpack.test.handling.Invocation;
 import ratpack.test.handling.InvocationBuilder;
 import ratpack.test.handling.InvocationTimeoutException;
 
+import java.util.Map;
+
 public interface GroovyInvocationBuilder extends InvocationBuilder {
 
   GroovyInvocationBuilder registry(@DelegatesTo(value = RegistryBuilder.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure);
@@ -59,4 +61,9 @@ public interface GroovyInvocationBuilder extends InvocationBuilder {
   @Override
   GroovyInvocationBuilder register(Object object);
 
+  @Override
+  GroovyInvocationBuilder pathBinding(Map<String, String> pathTokens);
+
+  @Override
+  GroovyInvocationBuilder pathBinding(String boundTo, String pastBinding, Map<String, String> pathTokens);
 }
