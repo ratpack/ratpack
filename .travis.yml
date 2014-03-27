@@ -3,6 +3,7 @@ jdk:
   - oraclejdk7
 before_install:
   - ulimit -a
+install: true
 script:
   - ./gradlew clean check
 env:
