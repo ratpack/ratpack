@@ -28,6 +28,7 @@ class LinkCrawlSpec extends Specification {
     aut.mockGithubData()
 
     def dontCrawl = ["/manual/current", "/manual/0.9.0"]
+    def allowBroken = ["http://www.astigmatic.com", "https://drone.io", "http://search.maven.org"]
 
     def crawler = new Crawler(aut.address.toString()) {
       boolean shouldUseHeadRequest(Link url) {
@@ -54,7 +55,7 @@ class LinkCrawlSpec extends Specification {
 
       @Override
       void addPageErrors(Link link, Response response) {
-        response.document.text().findAll(~$/\[.+?]\(.+?\(.+?\)\)/$).each {
+        response.document?.text()?.findAll(~$/\[.+?]\(.+?\(.+?\)\)/$)?.each {
           link.errors << new BadMarkdownLinkSyntax(it)
         }
         super.addPageErrors(link, response)
@@ -63,7 +64,13 @@ class LinkCrawlSpec extends Specification {
 
     when:
     def visited = crawler.crawl()
-    def errored = new PrettyPrintCollection(visited.findAll { it.errors.size() > 0 })
+    def broken = visited.findAll {it.errors.size() > 0 }
+    def brokenByLevel = broken.groupBy { link -> allowBroken.any { link.uri.toString().startsWith(it) } ? "warn" : "error" }
+    def errored = new PrettyPrintCollection(brokenByLevel["error"] ?: [])
+    def warned = new PrettyPrintCollection(brokenByLevel["warn"] ?: [])
+    if (!warned.empty) {
+      println "WARN: ${warned}"
+    }
 
     then:
     errored.empty

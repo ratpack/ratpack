@@ -298,7 +298,7 @@ abstract class Crawler {
     }
 
     String toString() {
-      "$uri (referrers: $referrers, errors: $errors, attemps: $attemptCount)"
+      "$uri (referrers: $referrers, errors: $errors, attempts: $attemptCount)"
     }
 
     void attempt() {
