@@ -19,9 +19,13 @@ package ratpack.jackson;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.ObjectReader;
+
 import ratpack.api.Nullable;
 import ratpack.jackson.internal.DefaultJsonParse;
 import ratpack.jackson.internal.DefaultJsonRender;
+import ratpack.jackson.internal.ObjectParse;
+import ratpack.parse.Parse;
+
 
 /**
  * Provides key integration points with the Jackson support for dealing with JSON.
@@ -104,6 +108,14 @@ public abstract class Jackson {
 
   public static JsonParse<JsonNode> jsonNode(@Nullable ObjectReader objectReader) {
     return new DefaultJsonParse<>(JsonNode.class, objectReader);
+  }
+
+  public static Parse<Object> fromJson() {
+    return fromJson(Object.class);
+  }
+
+  public static Parse<Object> fromJson(Class<Object> type) {
+    return new ObjectParse(type);
   }
 
 }

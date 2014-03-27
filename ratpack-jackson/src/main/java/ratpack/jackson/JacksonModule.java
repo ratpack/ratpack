@@ -26,6 +26,7 @@ import com.google.inject.Provides;
 import com.google.inject.Scopes;
 import ratpack.jackson.internal.DefaultJsonRenderer;
 import ratpack.jackson.internal.JsonNodeParser;
+import ratpack.jackson.internal.ObjectParser;
 
 import javax.inject.Singleton;
 
@@ -57,6 +58,7 @@ public class JacksonModule extends AbstractModule {
   protected void configure() {
     bind(ObjectMapper.class).in(Scopes.SINGLETON);
     bind(JsonNodeParser.class).in(Scopes.SINGLETON);
+    bind(ObjectParser.class).in(Scopes.SINGLETON);
     bind(JsonRenderer.class).to(DefaultJsonRenderer.class);
   }
 
