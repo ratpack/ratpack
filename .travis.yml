@@ -1,6 +1,9 @@
 language: java
 jdk:
   - oraclejdk7
+before_script:
+  - ulimit -a
+  - ./gradlew assemble
 script:
   - ./gradlew clean check
 env:
