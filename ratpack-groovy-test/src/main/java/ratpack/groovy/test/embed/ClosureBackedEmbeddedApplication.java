@@ -20,6 +20,9 @@ import com.google.inject.Injector;
 import com.google.inject.Module;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
+import ratpack.func.Action;
+import ratpack.func.Factory;
+import ratpack.func.Transformer;
 import ratpack.groovy.Groovy;
 import ratpack.groovy.guice.GroovyModuleRegistry;
 import ratpack.groovy.guice.internal.DefaultGroovyModuleRegistry;
@@ -35,9 +38,6 @@ import ratpack.launch.LaunchConfig;
 import ratpack.launch.LaunchConfigBuilder;
 import ratpack.test.embed.BaseDirBuilder;
 import ratpack.test.embed.LaunchConfigEmbeddedApplication;
-import ratpack.func.Action;
-import ratpack.func.Factory;
-import ratpack.func.Transformer;
 
 import java.nio.file.Path;
 import java.util.LinkedList;
@@ -173,7 +173,8 @@ public class ClosureBackedEmbeddedApplication extends LaunchConfigEmbeddedApplic
         Transformer<? super Module, ? extends Injector> injectorFactory = createInjectorFactory(launchConfig);
         Transformer<? super Injector, ? extends Handler> handlerTransformer = createHandlerTransformer(launchConfig);
 
-        return handlerFactory.create(modulesAction, injectorFactory, handlerTransformer);
+        Handler handler = handlerFactory.create(modulesAction, injectorFactory, handlerTransformer);
+        return handler;
       }
     });
   }

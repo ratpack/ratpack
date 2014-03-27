@@ -46,6 +46,10 @@ This extends from [`RatpackMain`](launching.html#ratpackmain), but forces the [h
 
 > TODO: introduce the `GroovyChain` DSL, and closures as handlers
 
+## GroovyChainAction
+
+> TODO: Point out the existence of [GroovyChainAction](api/ratpack/groovy/handling/GroovyChainAction.html)
+
 ## Testing
 
 > TODO: Discuss Groovy testing specifics (might move some content from the testing chapter)
