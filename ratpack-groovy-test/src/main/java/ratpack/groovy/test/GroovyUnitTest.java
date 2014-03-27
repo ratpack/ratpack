@@ -18,7 +18,10 @@ package ratpack.groovy.test;
 
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
+import ratpack.func.Action;
 import ratpack.groovy.internal.ClosureUtil;
+import ratpack.groovy.test.handling.GroovyInvocationBuilder;
+import ratpack.groovy.test.handling.internal.DefaultGroovyInvocationBuilder;
 import ratpack.handling.Handler;
 import ratpack.test.UnitTest;
 import ratpack.test.handling.Invocation;
@@ -58,12 +61,36 @@ public abstract class GroovyUnitTest {
    * </pre>
    *
    * @param handler The handler to unit test
-   * @param builder The closure that configures
+   * @param closure The closure that configures the invocation builder
    * @return The result of the invocation
-   * @throws InvocationTimeoutException if the handler takes more than {@link ratpack.test.handling.InvocationBuilder#timeout(int)} seconds to send a response or call {@code next()} on the context
+   * @throws InvocationTimeoutException if the handler takes more than {@link InvocationBuilder#timeout(int)} seconds to send a response or call {@code next()} on the context
    */
-  public static Invocation invoke(Handler handler, @DelegatesTo(InvocationBuilder.class) Closure<?> builder) throws InvocationTimeoutException {
-    return UnitTest.invoke(handler, ClosureUtil.delegatingAction(builder));
+  public static Invocation invoke(Handler handler, @DelegatesTo(GroovyInvocationBuilder.class) final Closure<?> closure) throws InvocationTimeoutException {
+    return UnitTest.invoke(handler, new Action<InvocationBuilder>() {
+      @Override
+      public void execute(InvocationBuilder builder) throws Exception {
+        GroovyInvocationBuilder groovyBuilder = new DefaultGroovyInvocationBuilder(builder);
+        ClosureUtil.configureDelegateFirst(groovyBuilder, closure);
+      }
+    });
+  }
+
+  /**
+   * Create a Groovy invocation builder, for unit testing a {@link Handler}.
+   *
+   * @return An invocation builder.
+   */
+  public static GroovyInvocationBuilder invocationBuilder() {
+    return invocationBuilder(UnitTest.invocationBuilder());
+  }
+
+  /**
+   * Create a Groovy invocation builder, for unit testing a {@link Handler}, by wrapping the given {@link InvocationBuilder}.
+   *
+   * @return An invocation builder.
+   */
+  public static GroovyInvocationBuilder invocationBuilder(InvocationBuilder invocationBuilder) {
+    return new DefaultGroovyInvocationBuilder(invocationBuilder);
   }
 
 }

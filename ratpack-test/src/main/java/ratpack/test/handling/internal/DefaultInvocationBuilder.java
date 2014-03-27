@@ -19,6 +19,7 @@ package ratpack.test.handling.internal;
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpHeaders;
+import ratpack.func.Action;
 import ratpack.handling.Handler;
 import ratpack.http.MutableHeaders;
 import ratpack.http.MutableStatus;
@@ -64,7 +65,6 @@ public class DefaultInvocationBuilder implements InvocationBuilder {
    *
    * @param handler The handler to invoke
    * @return A result object indicating what happened
-   *
    * @throws ratpack.test.handling.InvocationTimeoutException if the handler takes more than {@link #timeout(int)} seconds to send a response or call {@code next()} on the context
    */
   @Override
@@ -140,8 +140,20 @@ public class DefaultInvocationBuilder implements InvocationBuilder {
   }
 
   @Override
+  public RegistryBuilder getRegistry() {
+    return registryBuilder;
+  }
+
+  @Override
+  public InvocationBuilder registry(Action<? super RegistryBuilder> action) throws Exception {
+    action.execute(registryBuilder);
+    return this;
+  }
+
+  @Override
   public InvocationBuilder register(Object object) {
     registryBuilder.add(object);
     return this;
   }
+
 }

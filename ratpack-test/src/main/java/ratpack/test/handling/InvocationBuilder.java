@@ -16,7 +16,9 @@
 
 package ratpack.test.handling;
 
+import ratpack.func.Action;
 import ratpack.handling.Handler;
+import ratpack.registry.RegistryBuilder;
 
 /**
  * Builds the context fot the invocation of a {@link Handler} (for unit testing handler implementations).
@@ -41,5 +43,10 @@ public interface InvocationBuilder {
 
   InvocationBuilder timeout(int timeout);
 
+  RegistryBuilder getRegistry();
+
+  InvocationBuilder registry(Action<? super RegistryBuilder> action) throws Exception;
+
   InvocationBuilder register(Object object);
+
 }

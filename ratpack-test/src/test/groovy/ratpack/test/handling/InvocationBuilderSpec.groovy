@@ -17,10 +17,13 @@
 package ratpack.test.handling
 
 import io.netty.util.CharsetUtil
+import ratpack.func.Action
+import ratpack.groovy.internal.ClosureUtil
+import ratpack.groovy.test.GroovyUnitTest
+import ratpack.groovy.test.handling.GroovyInvocationBuilder
 import ratpack.handling.Context
 import ratpack.handling.Handler
 import ratpack.handling.RequestOutcome
-import ratpack.func.Action
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -30,18 +33,21 @@ import java.util.concurrent.TimeUnit
 
 import static ratpack.groovy.Groovy.groovyHandler
 import static ratpack.handling.Handlers.chain
-import static ratpack.test.UnitTest.invocationBuilder
 
 class InvocationBuilderSpec extends Specification {
 
   @Subject
-  InvocationBuilder builder = invocationBuilder()
+  GroovyInvocationBuilder builder = GroovyUnitTest.invocationBuilder()
 
   @Delegate
   Invocation invocation
 
   void invoke(@DelegatesTo(Context) Closure handler) {
     invocation = builder.invoke(groovyHandler(handler))
+  }
+
+  void builder(@DelegatesTo(GroovyInvocationBuilder) Closure config) {
+    ClosureUtil.configureDelegateFirst(builder, config)
   }
 
   void invoke(Handler handler) {
@@ -213,7 +219,7 @@ class InvocationBuilderSpec extends Specification {
   def "can set request body"() {
     //noinspection GroovyAssignabilityCheck
     given:
-    builder.body(* arguments)
+    builder.body(*arguments)
 
     when:
     invoke {
@@ -228,7 +234,7 @@ class InvocationBuilderSpec extends Specification {
     headers.get("X-Request-Content-Length") == "$responseBytes.length"
 
     where:
-    arguments                             | responseContentType        | responseBytes
+    arguments | responseContentType | responseBytes
     [[0, 1, 2, 4] as byte[], "image/png"] | "image/png"                | [0, 1, 2, 4] as byte[]
     ["foo", "text/plain"]                 | "text/plain;charset=UTF-8" | "foo".bytes
   }
@@ -260,5 +266,23 @@ class InvocationBuilderSpec extends Specification {
 
     then:
     rendered(String) == "foo"
+  }
+
+  def "can register object via builder"() {
+    given:
+    builder {
+      registry {
+        add("foo")
+        add("bar")
+      }
+    }
+
+    when:
+    invoke {
+      render getAll(String).join(",")
+    }
+
+    then:
+    rendered(String) == "foo,bar"
   }
 }
