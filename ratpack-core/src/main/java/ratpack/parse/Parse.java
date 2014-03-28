@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,30 +16,30 @@
 
 package ratpack.parse;
 
-/**
- * A parse object is a description of how to parse the request into an object.
- * <p>
- * The minimum requirement of a parse object is to specify what the object type should be.
- * Specialisations of this type may provide more information that can be used in deserialization.
- * <p>
- * Importantly, parse objects are agnostic to the type of the request body.
- * Different {@link Parser} implementations are responsible for converting from different mime types to object types.
- * <p>
- * For no option parse objects, use {@link NoOptParse}.
- * To implement a custom parse type with objects, see {@link ParseSupport}
- *
- * @param <T> the type of object to parse the request into
- * @see Parser
- * @see NoOptParse
- * @see ParserSupport
- */
-public interface Parse<T> {
+public class Parse<T, O> {
 
-  /**
-   * The type of object to parse to.
-   *
-   * @return the type of object to parse to
-   */
-  Class<T> getType();
+  private final Class<T> type;
+  private final O opts;
+
+  private Parse(Class<T> type, O opts) {
+    this.type = type;
+    this.opts = opts;
+  }
+
+  public Class<T> getType() {
+    return type;
+  }
+
+  public O getOpts() {
+    return opts;
+  }
+
+  public static <T, O> Parse<T, O> of(Class<T> type, O opts) {
+    return new Parse<>(type, opts);
+  }
+
+  public static <T> Parse<T, NullParseOpts> of(Class<T> type) {
+    return of(type, NullParseOpts.INSTANCE);
+  }
 
 }

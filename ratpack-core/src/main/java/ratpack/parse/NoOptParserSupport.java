@@ -16,26 +16,24 @@
 
 package ratpack.parse;
 
-import static ratpack.util.internal.Types.findImplParameterTypeAtIndex;
-
 /**
- * A convenience base for {@link ratpack.parse.NoOptParser} implementations.
+ * A convenience base for parsers that don't require options.
  * <p>
  * The following is an example of an implementation that parses to an {@code Integer}.
  * <pre class="tested">
- * import ratpack.parse.NoOptParse;
+ * import ratpack.parse.NullParseOpts;
  * import ratpack.parse.NoOptParserSupport;
  * import ratpack.http.TypedData;
  * import ratpack.handling.Context;
  * import ratpack.handling.Handler;
  *
- * public class IntParser extends NoOptParserSupport&lt;Integer&gt; {
+ * public class IntParser extends NoOptParserSupport {
  *   public IntParser() {
  *     super("text/plain");
  *   }
  *
- *   public Integer parse(Context context, TypedData body, NoOptParse&lt;Integer&gt; parse) {
- *     return Integer.valueOf(body.getText());
+ *   public &lt;T&gt; T parse(Context context, TypedData body, NullParseOpts opts, Class&lt;T&gt; type) {
+ *     return type.cast(Integer.valueOf(body.getText()));
  *   }
  * }
  *
@@ -47,14 +45,8 @@ import static ratpack.util.internal.Types.findImplParameterTypeAtIndex;
  *   }
  * }
  * </pre>
- *
- * @param <T> the type of object to parse to
  */
-public abstract class NoOptParserSupport<T> implements NoOptParser<T> {
-
-  private final Class<NoOptParse<T>> parseType;
-  private final Class<T> parsedType;
-  private final String contentType;
+public abstract class NoOptParserSupport extends ParserSupport<NullParseOpts> {
 
   /**
    * Constructor.
@@ -62,34 +54,7 @@ public abstract class NoOptParserSupport<T> implements NoOptParser<T> {
    * @param contentType the type of request this parser can handle
    */
   protected NoOptParserSupport(String contentType) {
-    this.contentType = contentType;
-    this.parsedType = findImplParameterTypeAtIndex(getClass(), NoOptParserSupport.class, 0);
-    @SuppressWarnings("unchecked") Class<NoOptParse<T>> cast = (Class<NoOptParse<T>>) NoOptParse.to(parsedType).getClass();
-    this.parseType = cast;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public String getContentType() {
-    return contentType;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public Class<NoOptParse<T>> getParseType() {
-    return parseType;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public Class<T> getParsedType() {
-    return parsedType;
+    super(contentType);
   }
 
 }

@@ -20,7 +20,7 @@ import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import ratpack.api.NonBlocking;
 import ratpack.api.Nullable;
-import ratpack.handling.Background;
+import ratpack.func.Action;
 import ratpack.groovy.handling.GroovyByContentHandler;
 import ratpack.groovy.handling.GroovyByMethodHandler;
 import ratpack.groovy.handling.GroovyContext;
@@ -37,7 +37,6 @@ import ratpack.promise.SuccessOrErrorPromise;
 import ratpack.registry.NotInRegistryException;
 import ratpack.registry.Registry;
 import ratpack.server.BindAddress;
-import ratpack.func.Action;
 import ratpack.util.ResultAction;
 
 import java.nio.file.Path;
@@ -222,13 +221,18 @@ public class DefaultGroovyContext implements GroovyContext {
   }
 
   @Override
-  public <T> T parse(Parse<T> parse) throws NoSuchParserException, ParserException {
-    return delegate.parse(parse);
+  public <T> T parse(Class<T> type) throws NoSuchParserException, ParserException {
+    return delegate.parse(type);
   }
 
   @Override
-  public <T> T parse(Class<T> type) throws NoSuchParserException, ParserException {
-    return delegate.parse(type);
+  public <T, O> T parse(Class<T> type, O options) throws NoSuchParserException, ParserException {
+    return delegate.parse(type, options);
+  }
+
+  @Override
+  public <T, O> T parse(Parse<T, O> parse) {
+    return delegate.parse(parse);
   }
 
   @Override

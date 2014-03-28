@@ -22,14 +22,18 @@ import ratpack.test.internal.RatpackGroovyDslSpec
 
 class ParserSpec extends RatpackGroovyDslSpec {
 
-  static class IntParser extends NoOptParserSupport<Integer> {
+  static class IntParser extends NoOptParserSupport {
     IntParser() {
       super("text/plain")
     }
 
     @Override
-    Integer parse(Context context, TypedData body, NoOptParse<Integer> parse) {
-      body.text.toInteger()
+    def <T> T parse(Context context, TypedData requestBody, NullParseOpts options, Class<T> type) throws Exception {
+      if (type == Integer) {
+        context.request.body.text.toInteger()
+      } else {
+        return null
+      }
     }
   }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,14 @@
  * limitations under the License.
  */
 
-package ratpack.jackson.internal;
+package ratpack.jackson;
 
-import ratpack.parse.Parse;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import ratpack.api.Nullable;
 
-public class ObjectParse implements Parse<Object> {
+public interface JsonParseOpts {
 
-  private final Class<Object> type;
-
-  public ObjectParse(Class<Object> type) {
-    this.type = type;
-  }
-
-  @Override
-  public Class<Object> getType() {
-    return type;
-  }
+  @Nullable
+  ObjectMapper getObjectMapper();
 
 }

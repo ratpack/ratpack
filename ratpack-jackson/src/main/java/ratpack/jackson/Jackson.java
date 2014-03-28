@@ -17,13 +17,11 @@
 package ratpack.jackson;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
-import com.fasterxml.jackson.databind.ObjectReader;
-
 import ratpack.api.Nullable;
-import ratpack.jackson.internal.DefaultJsonParse;
+import ratpack.jackson.internal.DefaultJsonParseOpts;
 import ratpack.jackson.internal.DefaultJsonRender;
-import ratpack.jackson.internal.ObjectParse;
 import ratpack.parse.Parse;
 
 
@@ -59,7 +57,7 @@ import ratpack.parse.Parse;
  * </pre>
  * <h5>Parsing JSON requests</h5>
  * <p>
- * The methods that return a {@link JsonParse} are to be used with the {@link ratpack.handling.Context#parse(ratpack.parse.Parse)} method for deserializing
+ * The methods that return a {@link JsonParseOpts} are to be used with the {@link ratpack.handling.Context#parse(ratpack.parse.Parse)} method for deserializing
  * request bodies containing JSON.
  * </p>
  * <pre class="tested">
@@ -102,20 +100,20 @@ public abstract class Jackson {
     return new DefaultJsonRender<>(object, objectWriter);
   }
 
-  public static JsonParse<JsonNode> jsonNode() {
+  public static Parse<JsonNode, JsonParseOpts> jsonNode() {
     return jsonNode(null);
   }
 
-  public static JsonParse<JsonNode> jsonNode(@Nullable ObjectReader objectReader) {
-    return new DefaultJsonParse<>(JsonNode.class, objectReader);
+  public static Parse<JsonNode, JsonParseOpts> jsonNode(@Nullable ObjectMapper objectMapper) {
+    return fromJson(JsonNode.class, objectMapper);
   }
 
-  public static Parse<Object> fromJson() {
-    return fromJson(Object.class);
+  public static <T> Parse<T, JsonParseOpts> fromJson(Class<T> type) {
+    return fromJson(type, null);
   }
 
-  public static Parse<Object> fromJson(Class<Object> type) {
-    return new ObjectParse(type);
+  public static <T> Parse<T, JsonParseOpts> fromJson(Class<T> type, @Nullable ObjectMapper objectMapper) {
+    return Parse.<T, JsonParseOpts>of(type, new DefaultJsonParseOpts(objectMapper));
   }
 
 }

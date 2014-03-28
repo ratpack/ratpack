@@ -33,7 +33,7 @@ public class ParserException extends ParseException {
    * @param parser the parser that failed
    * @param cause the exception thrown by the parser
    */
-  public ParserException(Parser<?, ?> parser, Throwable cause) {
+  public ParserException(Parser<?> parser, Throwable cause) {
     super("Parser '" + parser + "' failed to parse the request", cause);
   }
 

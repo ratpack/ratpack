@@ -16,12 +16,11 @@
 
 package ratpack.jackson
 
+import com.fasterxml.jackson.databind.JsonNode
 import ratpack.test.internal.RatpackGroovyDslSpec
-
 import spock.lang.Unroll
 
 import static Jackson.jsonNode
-import static Jackson.fromJson
 
 class JacksonParsingSpec extends RatpackGroovyDslSpec {
 
@@ -45,13 +44,21 @@ class JacksonParsingSpec extends RatpackGroovyDslSpec {
     postText() == "3"
   }
 
+  static class Pogo {
+    String value
+    def foo = [:]
+  }
+
   @Unroll("can parse json as #classType")
   def "can parse json as object"() {
     when:
+    Class returnedType
+
     handlers {
       post {
-        def object = parse fromJson(classType)
-        response.send "${object.value}:${object.foo?.value}"
+        def object = parse classType
+        returnedType = object.getClass()
+        render "${object.value}:${object.foo?.value}"
       }
 
     }
@@ -61,14 +68,10 @@ class JacksonParsingSpec extends RatpackGroovyDslSpec {
 
     then:
     postText() == "1:2"
+    classType.isAssignableFrom(returnedType)
 
     where:
-    classType   | _
-    HashMap     | _
-    Map         | _
-    Object      | _
-    Pogo        | _
+    classType << [HashMap, Map, Object, Pogo, JsonNode]
   }
-
 
 }

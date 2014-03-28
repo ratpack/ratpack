@@ -32,12 +32,11 @@ import ratpack.http.TypedData;
  * of which contains implementation examples.
  *
  * @param <T> The type that this parser deserializes to
- * @param <P> The type of the {@link Parse parse object}
  * @see Parse
  * @see ParserSupport
  * @see Context#parse(Parse)
  */
-public interface Parser<T, P extends Parse<T>> {
+public interface Parser<O> {
 
   /**
    * The content type that this parser knows how to deserialize.
@@ -46,19 +45,7 @@ public interface Parser<T, P extends Parse<T>> {
    */
   String getContentType();
 
-  /**
-   * The type of the {@link Parse} object for this parser.
-   *
-   * @return The type of the {@link Parse} object for this parser.
-   */
-  Class<P> getParseType();
-
-  /**
-   * The type that this parser can deserialize to.
-   *
-   * @return The type that this parser can deserialize to.
-   */
-  Class<T> getParsedType();
+  Class<O> getOptsType();
 
   /**
    * Deserializes the request body of the context into an object.
@@ -69,7 +56,6 @@ public interface Parser<T, P extends Parse<T>> {
    * @return The object representation of the request body
    * @throws Exception if an error occurs parsing the request
    */
-  T parse(Context context, TypedData requestBody, P parse) throws Exception;
-
+  <T> T parse(Context context, TypedData requestBody, O options, Class<T> type) throws Exception;
 
 }

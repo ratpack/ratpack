@@ -128,8 +128,7 @@ public class DefaultContext implements Context {
   }
 
   public <O> List<O> getAll(Class<O> type) {
-    List<O> all = registry.getAll(type);
-    return all;
+    return registry.getAll(type);
   }
 
   public <O> O maybeGet(Class<O> type) {
@@ -218,33 +217,41 @@ public class DefaultContext implements Context {
   }
 
   @Override
-  public <T> T parse(Parse<T> parse) throws ParserException, NoSuchParserException {
+  public <T, O> T parse(Parse<T, O> parse) throws ParserException, NoSuchParserException {
+    return parse(parse.getType(), parse.getOpts());
+  }
+
+
+  @Override
+  public <T> T parse(Class<T> type) throws NoSuchParserException, ParserException {
+    return parse(type, NullParseOpts.INSTANCE);
+  }
+
+  public <T, O> T parse(Class<T> type, O opts) {
     @SuppressWarnings("rawtypes")
     List<Parser> all = registry.getAll(Parser.class);
     String requestContentType = requestConstants.request.getBody().getContentType().getType();
     if (requestContentType == null) {
       requestContentType = "text/plain";
     }
-    for (Parser<?, ?> parser : all) {
-      T parsed = maybeParse(requestContentType, parse, parser);
+    for (Parser<?> parser : all) {
+      T parsed = maybeParse(requestContentType, parser, opts, type);
       if (parsed != null) {
         return parsed;
       }
     }
 
-    throw new NoSuchParserException(parse, requestContentType);
+    throw new NoSuchParserException(type, opts, requestContentType);
   }
 
-  @Override
-  public <T> T parse(Class<T> type) throws NoSuchParserException, ParserException {
-    return parse(NoOptParse.to(type));
-  }
+  private <T, O> T maybeParse(String requestContentType, Parser<?> parser, O opts, Class<T> type) throws ParserException {
+    Class<?> optsType = parser.getOptsType();
+    String contentType = parser.getContentType();
 
-  private <P, S extends Parse<P>> P maybeParse(String requestContentType, S parseSpec, Parser<?, ?> parser) throws ParserException {
-    if (requestContentType.equalsIgnoreCase(parser.getContentType()) && parser.getParseType().isInstance(parseSpec)) {
-      @SuppressWarnings("unchecked") Parser<P, S> castParser = (Parser<P, S>) parser;
+    if (requestContentType.equalsIgnoreCase(contentType) && optsType.isInstance(opts)) {
+      @SuppressWarnings("unchecked") Parser<O> castParser = (Parser<O>) parser;
       try {
-        return castParser.parse(this, getRequest().getBody(), parseSpec);
+        return castParser.parse(this, getRequest().getBody(), opts, type);
       } catch (Exception e) {
         throw new ParserException(parser, e);
       }

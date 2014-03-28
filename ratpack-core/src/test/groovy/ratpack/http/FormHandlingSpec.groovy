@@ -16,11 +16,18 @@
 
 package ratpack.http
 
+import ratpack.error.ServerErrorHandler
+import ratpack.error.internal.PrintingServerErrorHandler
 import ratpack.form.Form
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 class FormHandlingSpec extends RatpackGroovyDslSpec {
 
+  def setup() {
+    modules {
+      bind ServerErrorHandler, new PrintingServerErrorHandler()
+    }
+  }
   def "can get form params"() {
     when:
     handlers {

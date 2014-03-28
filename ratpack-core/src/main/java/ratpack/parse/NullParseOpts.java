@@ -18,36 +18,12 @@ package ratpack.parse;
 
 /**
  * A generic parse type that can be used when parsers do not need any extra information from parse objects other than type.
- * <p>
- * Use {@link #to(Class)} to create instances.
- *
- * @param <T> The type of object to parse to
  */
-public final class NoOptParse<T> implements Parse<T> {
+public final class NullParseOpts {
 
-  private final Class<T> type;
+  public static final NullParseOpts INSTANCE = new NullParseOpts();
 
-  private NoOptParse(Class<T> type) {
-    this.type = type;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public Class<T> getType() {
-    return type;
-  }
-
-  /**
-   * Creates a no option parse for the given type.
-   *
-   * @param type The type to parse to
-   * @param <T> The type to parse to
-   * @return An no option parser for the given type
-   */
-  public static <T> NoOptParse<T> to(Class<T> type) {
-    return new NoOptParse<>(type);
+  private NullParseOpts() {
   }
 
 }

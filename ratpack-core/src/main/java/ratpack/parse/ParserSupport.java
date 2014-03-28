@@ -21,19 +21,18 @@ import static ratpack.util.internal.Types.findImplParameterTypeAtIndex;
 /**
  * A convenience superclass of {@link Parser} that implements the type methods based on the implementation.
  * <p>
- * Specializations only need to implement the {@link Parser#parse(ratpack.handling.Context, ratpack.http.TypedData, Parse)} method.
+ * Specializations only need to implement the {@link Parser#parse(ratpack.handling.Context, ratpack.http.TypedData, Object, Class)} method.
  * <pre class="tested">
  * import ratpack.handling.Handler;
  * import ratpack.handling.Context;
  * import ratpack.http.TypedData;
- * import ratpack.parse.ParseSupport;
  * import ratpack.parse.ParserSupport;
  * import ratpack.parse.ParseException;
  *
- * public class MaxLengthStringParse extends ParseSupport&lt;String&gt; {
+ * public class StringParseOpts {
  *   private int maxLength;
  *
- *   public MaxLengthStringParse(int maxLength) {
+ *   public StringParseOpts(int maxLength) {
  *     this.maxLength = maxLength;
  *   }
  *
@@ -44,17 +43,21 @@ import static ratpack.util.internal.Types.findImplParameterTypeAtIndex;
  *
  * // A parser for this parser type…
  *
- * public class MaxLengthStringParser extends ParserSupport<String, MaxLengthStringParse> {
+ * public class MaxLengthStringParser extends ParserSupport<StringParseOpts> {
  *   public MaxLengthStringParser() {
  *     super("text/plain");
  *   }
  *
- *   String parse(Context context, TypedData requestBody, MaxLengthStringParse parse) throws UnsupportedEncodingException {
+ *   public &lt;T&gt; T parse(Context context, TypedData requestBody, StringParseOpts opts, Class&lt;T&gt; type) throws UnsupportedEncodingException {
+ *     if (!type.equals(String.class)) {
+ *       return null;
+ *     }
+ *
  *     String rawString = requestBody.getText();
- *     if (rawString.length() < parse.getMaxLength()) {
- *       return rawString;
+ *     if (rawString.length() < opts.getMaxLength()) {
+ *       return type.cast(rawString);
  *     } else {
- *       return rawString.substring(0, parse.getMaxLength());
+ *       return type.cast(rawString.substring(0, opts.getMaxLength()));
  *     }
  *   }
  * }
@@ -63,19 +66,17 @@ import static ratpack.util.internal.Types.findImplParameterTypeAtIndex;
  *
  * public class ExampleHandler implements Handler {
  *   public void handle(Context context) throws ParseException {
- *     String string = context.parse(new MaxLengthStringParse(20));
+ *     String string = context.parse(String.class, new StringParseOpts(20));
  *     // …
  *   }
  * }
  * </pre>
  *
- * @param <T> the type of object this parser parses to
- * @param <P> the type of parse object this parser can handle
+ * @param <O> the type of option object this parser accepts
  */
-abstract public class ParserSupport<T, P extends Parse<T>> implements Parser<T, P> {
+abstract public class ParserSupport<O> implements Parser<O> {
 
-  private final Class<P> parseType;
-  private final Class<T> parsedType;
+  private final Class<O> optsType;
   private final String contentType;
 
   /**
@@ -85,8 +86,7 @@ abstract public class ParserSupport<T, P extends Parse<T>> implements Parser<T, 
    */
   protected ParserSupport(String contentType) {
     this.contentType = contentType;
-    this.parsedType = findImplParameterTypeAtIndex(getClass(), ParserSupport.class, 0);
-    this.parseType = findImplParameterTypeAtIndex(getClass(), ParserSupport.class, 1);
+    this.optsType = findImplParameterTypeAtIndex(getClass(), ParserSupport.class, 0);
   }
 
   /**
@@ -101,16 +101,8 @@ abstract public class ParserSupport<T, P extends Parse<T>> implements Parser<T, 
    * {@inheritDoc}
    */
   @Override
-  public Class<P> getParseType() {
-    return parseType;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public Class<T> getParsedType() {
-    return parsedType;
+  public Class<O> getOptsType() {
+    return optsType;
   }
 
 }

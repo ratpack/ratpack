@@ -17,10 +17,10 @@
 package ratpack.jackson.internal;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectReader;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import ratpack.handling.Context;
 import ratpack.http.TypedData;
-import ratpack.jackson.JsonParse;
+import ratpack.jackson.JsonParseOpts;
 import ratpack.parse.ParserSupport;
 
 import javax.inject.Inject;
@@ -29,28 +29,33 @@ import java.io.InputStream;
 
 import static ratpack.util.ExceptionUtils.uncheck;
 
-public class JsonNodeParser extends ParserSupport<JsonNode, JsonParse<JsonNode>> {
+public class JsonParser extends ParserSupport<JsonParseOpts> {
 
-  private final ObjectReader objectReader;
+  private final ObjectMapper objectMapper;
 
   @Inject
-  public JsonNodeParser(ObjectReader objectReader) {
+  public JsonParser(ObjectMapper objectMapper) {
     super("application/json");
-    this.objectReader = objectReader;
+    this.objectMapper = objectMapper;
   }
 
   @Override
-  public JsonNode parse(Context context, TypedData body, JsonParse<JsonNode> parse) {
+  public <T> T parse(Context context, TypedData body, JsonParseOpts opts, Class<T> type) {
+    ObjectMapper objectMapper = getObjectMapper(opts);
     try {
       InputStream inputStream = body.getInputStream();
-      return getObjectReader(parse).readTree(inputStream);
+      if (type.equals(JsonNode.class)) {
+        return type.cast(objectMapper.readTree(inputStream));
+      } else {
+        return objectMapper.readValue(inputStream, type);
+      }
     } catch (IOException e) {
       throw uncheck(e);
     }
   }
 
-  private ObjectReader getObjectReader(JsonParse<JsonNode> parse) {
-    return parse.getObjectReader() == null ? objectReader : parse.getObjectReader();
+  private ObjectMapper getObjectMapper(JsonParseOpts opts) {
+    return opts.getObjectMapper() == null ? objectMapper : opts.getObjectMapper();
   }
 
 }

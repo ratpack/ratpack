@@ -25,28 +25,40 @@ public class NoSuchParserException extends ParseException {
 
   private static final long serialVersionUID = 0;
 
-  private final Parse<?> parse;
+  private final Class<?> type;
+  private final Object opts;
   private final String contentType;
 
   /**
    * Constructor.
    *
-   * @param parse The parse object
+   * @param type the target type
+   * @param opts the parse options
    * @param contentType The content type of the request
    */
-  public NoSuchParserException(Parse<?> parse, String contentType) {
-    super("Could not find parser for parse '" + parse + "' and content type '" + contentType + "'");
-    this.parse = parse;
+  public NoSuchParserException(Class<?> type, Object opts, String contentType) {
+    super("Could not find parser content type '" + contentType + "', target type type '" + type.getName() + "' and options '" + opts);
+    this.type = type;
+    this.opts = opts;
     this.contentType = contentType;
   }
 
   /**
-   * The parse object.
+   * The target type.
    *
-   * @return the parse object
+   * @return the target type
    */
-  public Parse<?> getParse() {
-    return parse;
+  public Class<?> getType() {
+    return type;
+  }
+
+  /**
+   * The parse opts.
+   *
+   * @return the parse opts
+   */
+  public Object getOpts() {
+    return opts;
   }
 
   /**

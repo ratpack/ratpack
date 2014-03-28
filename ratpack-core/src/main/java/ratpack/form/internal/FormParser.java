@@ -19,18 +19,22 @@ package ratpack.form.internal;
 import ratpack.form.Form;
 import ratpack.handling.Context;
 import ratpack.http.TypedData;
-import ratpack.parse.NoOptParse;
 import ratpack.parse.NoOptParserSupport;
+import ratpack.parse.NullParseOpts;
 
-public class FormParser extends NoOptParserSupport<Form> {
+public class FormParser extends NoOptParserSupport {
 
   private FormParser(String contentType) {
     super(contentType);
   }
 
   @Override
-  public Form parse(Context context, TypedData requestBody, NoOptParse<Form> parse) {
-    return FormDecoder.parseForm(context, requestBody);
+  public <T> T parse(Context context, TypedData requestBody, NullParseOpts options, Class<T> type) throws Exception {
+    if (type.equals(Form.class)) {
+      return type.cast(FormDecoder.parseForm(context, requestBody));
+    } else {
+      return null;
+    }
   }
 
   public static FormParser multiPart() {

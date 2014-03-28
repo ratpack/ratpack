@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,23 @@
  * limitations under the License.
  */
 
-package ratpack.jackson;
+package ratpack.jackson.internal;
 
-import com.fasterxml.jackson.databind.ObjectReader;
-import ratpack.api.Nullable;
-import ratpack.parse.Parse;
+import ratpack.handling.Context;
+import ratpack.http.TypedData;
+import ratpack.jackson.Jackson;
+import ratpack.parse.NoOptParserSupport;
+import ratpack.parse.NullParseOpts;
 
-public interface JsonParse<T> extends Parse<T> {
+public class JsonNoOptParser extends NoOptParserSupport {
 
-  @Nullable
-  ObjectReader getObjectReader();
+  public JsonNoOptParser() {
+    super("application/json");
+  }
+
+  @Override
+  public <T> T parse(Context context, TypedData requestBody, NullParseOpts options, Class<T> type) throws Exception {
+    return context.parse(Jackson.fromJson(type));
+  }
 
 }
