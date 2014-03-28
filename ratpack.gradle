@@ -22,7 +22,7 @@ buildscript {
 
   dependencies {
     classpath "org.gradle.api.plugins:gradle-clover-plugin:0.6.1"
-    classpath "org.jfrog.buildinfo:build-info-extractor-gradle:2.1.x-SNAPSHOT"
+    classpath "org.jfrog.buildinfo:build-info-extractor-gradle:2.2.3"
   }
 }
 
@@ -35,17 +35,6 @@ apply plugin: 'artifactory'
 
 artifactory {
   contextUrl = 'http://oss.jfrog.org'
-}
-gradle.buildFinished {
-  // Work around https://www.jfrog.com/jira/browse/GAP-145
-  [
-    org.jfrog.gradle.plugin.artifactory.dsl.ArtifactoryPluginConvention,
-    org.jfrog.build.client.ArtifactoryClientConfiguration.BuildInfoHandler,
-    org.jfrog.build.client.ArtifactoryClientConfiguration.ProxyHandler,
-    org.jfrog.gradle.plugin.artifactory.dsl.PublisherConfig
-  ].each {
-    GroovySystem.metaClassRegistry.removeMetaClass(it)
-  }
 }
 
 artifactoryPublish {
