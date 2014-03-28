@@ -16,9 +16,10 @@
 
 package ratpack.remote.internal;
 
-import groovyx.remote.CommandChain;
-import groovyx.remote.groovy.server.ContextFactory;
-import groovyx.remote.server.Receiver;
+import io.remotecontrol.CommandChain;
+import io.remotecontrol.groovy.ContentType;
+import io.remotecontrol.groovy.server.ContextFactory;
+import io.remotecontrol.server.Receiver;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.registry.Registries;
@@ -31,9 +32,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import static ratpack.handling.Handlers.*;
 
 public class RemoteControlHandler implements Handler {
-
-  public static final String RESPONSE_CONTENT_TYPE = "application/groovy-remote-control-result";
-  public static final String REQUEST_CONTENT_TYPE = "application/groovy-remote-control-command";
 
   private final Registry registry;
   private final Handler rest;
@@ -49,8 +47,8 @@ public class RemoteControlHandler implements Handler {
         endpointPath,
         chain(
           post(),
-          contentTypes(REQUEST_CONTENT_TYPE),
-          accepts(RESPONSE_CONTENT_TYPE),
+          contentTypes(ContentType.COMMAND.getValue()),
+          accepts(ContentType.RESULT.getValue()),
           new CommandHandler()
         )
       ),
@@ -96,7 +94,7 @@ public class RemoteControlHandler implements Handler {
         registryReference.set(newRegistry);
       }
 
-      context.getResponse().send(RESPONSE_CONTENT_TYPE, outputStream.toByteArray());
+      context.getResponse().send(ContentType.RESULT.getValue(), outputStream.toByteArray());
     }
   }
 

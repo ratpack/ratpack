@@ -16,12 +16,12 @@
 
 package ratpack.remote.internal;
 
-import groovyx.remote.groovy.server.ClosureCommandRunner;
-import groovyx.remote.groovy.server.ContextFactory;
-import groovyx.remote.result.Result;
-import groovyx.remote.result.impl.DefaultResultFactory;
-import groovyx.remote.server.MultiTypeReceiver;
-import groovyx.remote.server.Receiver;
+import io.remotecontrol.groovy.server.ClosureCommandRunner;
+import io.remotecontrol.groovy.server.ContextFactory;
+import io.remotecontrol.result.Result;
+import io.remotecontrol.result.impl.DefaultResultFactory;
+import io.remotecontrol.server.MultiTypeReceiver;
+import io.remotecontrol.server.Receiver;
 import ratpack.registry.RegistrySpec;
 
 import java.io.IOException;

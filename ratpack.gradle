@@ -51,7 +51,7 @@ allprojects {
 
   repositories {
     jcenter()
-    maven { url "https://nexus.codehaus.org/content/repositories/snapshots/" }
+    maven { url 'http://oss.jfrog.org/artifactory/repo' }
   }
 
   def noClover = ["ratpack-site", "ratpack-manual", "ratpack-lazybones"]

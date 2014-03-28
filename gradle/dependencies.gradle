@@ -27,8 +27,8 @@ ext {
       exclude group: "org.codehaus.groovy", module: "groovy-all"
     }),
     groovy: "org.codehaus.groovy:groovy-all:${commonVersions.groovy}",
-    remote: "org.codehaus.groovy.modules.remote:remote-core:${commonVersions.remote}",
-    "remote-http": "org.codehaus.groovy.modules.remote:remote-transport-http:${commonVersions.remote}",
+    remote: "io.remotecontrol:remote-core:${commonVersions.remote}",
+    "remote-http": "io.remotecontrol:remote-transport-http:${commonVersions.remote}",
     jackson: "com.fasterxml.jackson.core:jackson-databind:2.3.1",
     slf4j: "org.slf4j:slf4j-api:${commonVersions.slf4j}",
     h2: "com.h2database:h2:1.3.174"

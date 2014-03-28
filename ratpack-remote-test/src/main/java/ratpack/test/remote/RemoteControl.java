@@ -18,14 +18,14 @@ package ratpack.test.remote;
 
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
-import groovyx.remote.CommandChain;
-import groovyx.remote.client.CommandGenerator;
-import groovyx.remote.client.RemoteControlSupport;
-import groovyx.remote.client.UnserializableResultStrategy;
-import groovyx.remote.groovy.ClosureCommand;
-import groovyx.remote.groovy.client.ClosureCommandGenerator;
-import groovyx.remote.groovy.client.RawClosureCommand;
-import groovyx.remote.transport.http.HttpTransport;
+import io.remotecontrol.CommandChain;
+import io.remotecontrol.client.CommandGenerator;
+import io.remotecontrol.client.RemoteControlSupport;
+import io.remotecontrol.client.UnserializableResultStrategy;
+import io.remotecontrol.groovy.ClosureCommand;
+import io.remotecontrol.groovy.client.ClosureCommandGenerator;
+import io.remotecontrol.groovy.client.RawClosureCommand;
+import io.remotecontrol.transport.http.HttpTransport;
 import ratpack.remote.CommandDelegate;
 import ratpack.test.ApplicationUnderTest;
 

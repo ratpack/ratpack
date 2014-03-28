@@ -16,9 +16,10 @@
 
 package ratpack.remote
 
-import groovyx.remote.groovy.client.RemoteControl
-import groovyx.remote.transport.http.HttpTransport
 import io.netty.handler.codec.http.HttpHeaders
+import io.remotecontrol.groovy.ContentType
+import io.remotecontrol.groovy.client.RemoteControl
+import io.remotecontrol.transport.http.HttpTransport
 import ratpack.file.FileRenderer
 import ratpack.file.FileSystemBinding
 import ratpack.launch.LaunchConfig
@@ -71,7 +72,7 @@ class RemoteControlSpec extends RatpackGroovyDslSpec {
     launchConfig { other(enabled) }
 
     when:
-    request.header(HttpHeaders.Names.CONTENT_TYPE, RemoteControlHandler.REQUEST_CONTENT_TYPE)
+    request.header(HttpHeaders.Names.CONTENT_TYPE, ContentType.COMMAND.value)
     request.header(HttpHeaders.Names.ACCEPT, 'text/html')
 
     then:
@@ -94,10 +95,10 @@ class RemoteControlSpec extends RatpackGroovyDslSpec {
     remoteControl { 1 + 2 } == 3
 
     where:
-    scenario             | path                        | modulePath | otherConfig
-    'default path'       | DEFAULT_REMOTE_CONTROL_PATH | null       | [:]
-    'path set in module' | 'custom'                    | 'custom'   | [:]
-    'path set in config' | 'fromConfig'                | null       | ['remoteControl.path': 'fromConfig']
+    scenario | path | modulePath | otherConfig
+    'default path'       | DEFAULT_REMOTE_CONTROL_PATH | null     | [:]
+    'path set in module' | 'custom'                    | 'custom' | [:]
+    'path set in config' | 'fromConfig'                | null     | ['remoteControl.path': 'fromConfig']
   }
 
   void 'registry is available in command context'() {
