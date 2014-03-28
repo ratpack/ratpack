@@ -157,7 +157,7 @@ task tokeniseManual(type: Sync) {
       tagline: "A toolkit for JVM web applications",
       "ratpack-version": project.version,
       "ratpack-group": project.group,
-      "groovy-version": groovyVersion,
+      "groovy-version": commonVersions.groovy,
       head: """
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">

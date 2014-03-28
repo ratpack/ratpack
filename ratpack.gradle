@@ -17,7 +17,6 @@
 buildscript {
   repositories {
     jcenter()
-    maven { url 'http://repo.jfrog.org/artifactory/libs-snapshots-local' }
   }
 
   dependencies {
@@ -68,7 +67,6 @@ allprojects {
 apply from: "gradle/idea/idea.gradle"
 
 ext {
-  groovyVersion = "2.2.1"
   isSnapshot = version.endsWith("SNAPSHOT")
 
   publishedModules = [

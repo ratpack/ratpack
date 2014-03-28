@@ -18,14 +18,15 @@ ext {
   commonVersions = [
     remote: "0.6-SNAPSHOT",
     slf4j: "1.7.5",
-    netty: "4.0.17.Final"
+    netty: "4.0.17.Final",
+    groovy: "2.2.1"
   ]
 
   commonDependencies = [
     spock: dependencies.create("org.spockframework:spock-core:0.7-groovy-2.0", {
       exclude group: "org.codehaus.groovy", module: "groovy-all"
     }),
-    groovy: "org.codehaus.groovy:groovy-all:$groovyVersion",
+    groovy: "org.codehaus.groovy:groovy-all:${commonVersions.groovy}",
     remote: "org.codehaus.groovy.modules.remote:remote-core:${commonVersions.remote}",
     "remote-http": "org.codehaus.groovy.modules.remote:remote-transport-http:${commonVersions.remote}",
     jackson: "com.fasterxml.jackson.core:jackson-databind:2.3.1",

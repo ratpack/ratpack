@@ -28,12 +28,12 @@ dependencies {
 }
 
 processResources {
-  inputs.property("groovyVersion", groovyVersion)
+  inputs.property("groovyVersion", commonVersions.groovy)
   def minimumGroovyVersionFile = file("src/main/resources/ratpack/minimum-groovy-version.txt")
   outputs.file minimumGroovyVersionFile
 
   doFirst {
     minimumGroovyVersionFile.parentFile.mkdirs()
-    minimumGroovyVersionFile.text = groovyVersion
+    minimumGroovyVersionFile.text = commonVersions.groovy
   }
 }
