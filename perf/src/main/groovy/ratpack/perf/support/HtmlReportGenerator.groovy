@@ -26,7 +26,7 @@ abstract class HtmlReportGenerator {
     def builder = new MarkupBuilder(out)
     builder.html {
       doHead(delegate as MarkupBuilder, resultsJson)
-      doBody(delegate as MarkupBuilder)
+      body {}
     }
   }
 
@@ -47,13 +47,16 @@ abstract class HtmlReportGenerator {
       }
       script(type: "text/javascript") {
         mkp.yieldUnescaped('''\n//<![CDATA[\n
-
-           var chartData = [];
-
           $(function() {
+            $("body").children().remove();
+            $("body").append("<div id='chart'/>");
+            $("body").append("<table id='data'><thead><tr><th/></tr><tbody/></table>");
+
             var tableBody = $("table#data tbody");
+
             var endpoints = resultData.endpoints;
 
+            var chartData = [];
             var endpointNames = [];
             var versions = [];
             var labels = [];
@@ -89,7 +92,9 @@ abstract class HtmlReportGenerator {
               });
             });
 
-            $("#chart").css({width: (56 + (endpointNames.length * 231) + 2 + 10) + "px"});
+            var width = (56 + (endpointNames.length * 231) + 2 + 10) + "px";
+            $("#chart").css({width: width});
+            $("#data").css({width: width});
 
             var scaleIncrement = 0.25;
 
@@ -123,7 +128,7 @@ abstract class HtmlReportGenerator {
                   min: 0,
                   max: (Math.ceil(maxTime * (1 / scaleIncrement)) * scaleIncrement),
                   tickOptions: {
-                    formatString: '%.5f'
+                    formatString: '%.5f\'
                   }
                 }
               },
@@ -158,18 +163,5 @@ abstract class HtmlReportGenerator {
     }
   }
 
-  static doBody(MarkupBuilder builder) {
-    builder.body {
-      div(id: "chart", style: "height: 400px;", "")
-      div {
-        table(id: 'data') {
-          thead {
-            tr { th "" }
-          }
-          tbody("")
-        }
-      }
-    }
-  }
 
 }

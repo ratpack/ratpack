@@ -54,7 +54,7 @@ class Harness {
 
     assert resultsDir.mkdirs()
 
-    List<String> apps = appsBaseDir.listFiles().findAll { File it -> it.directory && (!it.name.startsWith(".")) }.collect { File it -> it.name } as List<String>
+    LinkedList<String> apps = appsBaseDir.listFiles().findAll { File it -> it.directory && (!it.name.startsWith(".")) }.collect { File it -> it.name } as LinkedList<String>
 
     def concurrency = Math.ceil(Runtime.runtime.availableProcessors() / 2).toInteger()
     println "Request concurrency: $concurrency"
@@ -89,7 +89,7 @@ class Harness {
         println "Connecting to $versionDir..."
         def connection = openConnection(versionDir)
         try {
-          List<String> endpoints = new JsonSlurper().parse(new File(versionDir, "endpoints.json")) as List<String>
+          def endpoints = new JsonSlurper().parse(new File(versionDir, "endpoints.json")) as java.util.List<String>
           endpoints.each { String endpoint ->
             println "Testing endpoint: $endpoint"
 
