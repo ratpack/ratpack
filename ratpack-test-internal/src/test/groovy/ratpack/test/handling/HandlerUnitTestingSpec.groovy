@@ -17,7 +17,6 @@
 package ratpack.test.handling
 
 import ratpack.groovy.templating.Template
-import ratpack.groovy.templating.internal.DefaultTemplate
 import ratpack.handling.Context
 import ratpack.handling.Handler
 import spock.lang.Specification

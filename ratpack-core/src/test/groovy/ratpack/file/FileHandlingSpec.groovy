@@ -17,8 +17,6 @@
 package ratpack.file
 
 import ratpack.test.internal.RatpackGroovyDslSpec
-import spock.lang.FailsWith
-import spock.lang.Issue
 
 import java.nio.file.FileSystems
 

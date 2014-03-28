@@ -17,11 +17,8 @@
 package ratpack.handlebars
 
 import com.github.jknack.handlebars.Options
-import ratpack.test.embed.JarFileBaseDirBuilder
 import ratpack.test.internal.RatpackGroovyDslSpec
 import spock.lang.Unroll
-
-import java.nio.file.Files
 
 import static Template.handlebarsTemplate
 import static io.netty.handler.codec.http.HttpResponseStatus.INTERNAL_SERVER_ERROR

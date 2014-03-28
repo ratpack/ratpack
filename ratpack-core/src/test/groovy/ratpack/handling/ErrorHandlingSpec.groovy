@@ -17,9 +17,6 @@
 package ratpack.handling
 
 import ratpack.error.ServerErrorHandler
-import ratpack.handling.Context
-import ratpack.handling.Handler
-import ratpack.registry.Registries
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 import static ratpack.registry.Registries.registry

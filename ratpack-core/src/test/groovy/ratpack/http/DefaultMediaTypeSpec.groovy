@@ -34,7 +34,7 @@ class DefaultMediaTypeSpec extends Specification {
 
   }
 
-  def "tostring"() {
+  def "to string"() {
     expect:
     cts("") == ""
     cts("  application/json   ") == "application/json"

@@ -5,10 +5,10 @@ dependencies {
 }
 
 codenarc {
-  configFile rootProject.file('gradle/codenarc/ruleset.groovy')
+  configFile rootProject.file('gradle/codenarc/codenarc.xml')
 }
 
 codenarcTest {
-  configFile rootProject.file('gradle/codenarc/testRuleset.groovy')
+  configFile rootProject.file('gradle/codenarc/codenarcTest.xml')
 }
 

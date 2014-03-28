@@ -27,7 +27,6 @@ import ratpack.perf.support.Requester
 import ratpack.perf.support.SessionResults
 
 import java.awt.*
-import java.util.List
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
 

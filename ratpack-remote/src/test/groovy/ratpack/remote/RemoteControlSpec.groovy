@@ -23,7 +23,6 @@ import io.remotecontrol.transport.http.HttpTransport
 import ratpack.file.FileRenderer
 import ratpack.file.FileSystemBinding
 import ratpack.launch.LaunchConfig
-import ratpack.remote.internal.RemoteControlHandler
 import ratpack.test.internal.RatpackGroovyDslSpec
 import spock.lang.Unroll
 
