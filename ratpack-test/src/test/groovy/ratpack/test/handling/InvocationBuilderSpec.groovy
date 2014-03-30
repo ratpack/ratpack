@@ -338,7 +338,7 @@ class InvocationBuilderSpec extends Specification {
     def errorHandler = new ServerErrorHandler() {
       @Override
       void error(Context context, Exception exception) throws Exception {
-        context.render("!")
+        context.render(exception.message)
       }
     }
 

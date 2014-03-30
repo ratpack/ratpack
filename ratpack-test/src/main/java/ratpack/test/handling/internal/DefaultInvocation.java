@@ -190,7 +190,7 @@ public class DefaultInvocation implements Invocation {
       try {
         context.next();
       } catch (HandlerException e) {
-        e.getContext().error(ExceptionUtils.toException(e));
+        e.getContext().error(ExceptionUtils.toException(e.getCause()));
       }
       finishedOnThreadCallbackManager.fire();
     } catch (Exception e) {
