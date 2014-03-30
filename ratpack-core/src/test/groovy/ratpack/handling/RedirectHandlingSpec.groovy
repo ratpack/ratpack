@@ -15,15 +15,9 @@
  */
 package ratpack.handling
 
-import com.jayway.restassured.specification.RequestSpecification
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 class RedirectHandlingSpec extends RatpackGroovyDslSpec {
-
-  @Override
-  void configureRequest(RequestSpecification requestSpecification) {
-    requestSpecification.redirects().follow(false)
-  }
 
   def "Absolute Path Redirect"() {
     when:
@@ -36,7 +30,7 @@ class RedirectHandlingSpec extends RatpackGroovyDslSpec {
     then:
     def resp = get("")
     resp.statusCode == 302
-    resp.getHeader("Location") == "http://www.google.com"
+    resp.headers.get("Location") == "http://www.google.com"
   }
 
   def "Server Root Path Redirect no public url"() {
@@ -50,7 +44,7 @@ class RedirectHandlingSpec extends RatpackGroovyDslSpec {
     then:
     def resp = get("")
     resp.statusCode == 302
-    resp.getHeader("Location") == "http://${server.bindHost}:${server.bindPort}/index"
+    resp.headers.get("Location") == "http://${server.bindHost}:${server.bindPort}/index"
   }
 
   def "Server Relative Path Redirect no public url"() {
@@ -64,7 +58,7 @@ class RedirectHandlingSpec extends RatpackGroovyDslSpec {
     then:
     def resp = get("index")
     resp.statusCode == 302
-    resp.getHeader("Location") == "http://${server.bindHost}:${server.bindPort}/other"
+    resp.headers.get("Location") == "http://${server.bindHost}:${server.bindPort}/other"
   }
 
   def "Server root path redirect with public url"() {
@@ -85,7 +79,7 @@ class RedirectHandlingSpec extends RatpackGroovyDslSpec {
     then:
     def resp = get("")
     resp.statusCode == 302
-    resp.getHeader("Location") == publicUrl + "/index"
+    resp.headers.get("Location") == publicUrl + "/index"
   }
 
   def "Server Relative Path Redirect with public url"() {
@@ -104,7 +98,7 @@ class RedirectHandlingSpec extends RatpackGroovyDslSpec {
     then:
     def resp = get("index")
     resp.statusCode == 302
-    resp.getHeader("Location") == publicUrl + "/other"
+    resp.headers.get("Location") == publicUrl + "/other"
   }
 
 }

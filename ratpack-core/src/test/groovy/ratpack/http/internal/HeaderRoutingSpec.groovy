@@ -35,7 +35,7 @@ class HeaderRoutingSpec extends RatpackGroovyDslSpec {
 
     and:
     if (headerValue) {
-      request.header "foo", headerValue
+      requestSpec { it.headers.add("foo", headerValue) }
     }
 
     expect:

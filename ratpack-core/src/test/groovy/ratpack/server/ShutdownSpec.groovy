@@ -34,16 +34,17 @@ class ShutdownSpec extends RatpackGroovyDslSpec {
 
     then:
     def serverAddress = address.toString()
-    createRequest().get(serverAddress).body.asString() == "ok"
+    getText(serverAddress) == "ok"
 
     and:
 
     conditions.eventually { !server.running }
 
     when:
-    createRequest().get(serverAddress)
+    get(serverAddress)
 
     then:
+    //TODO Not currently throwing exceptions from the defaulthttpclient just returnning null consider solutions
     thrown ConnectException
   }
 

@@ -51,7 +51,7 @@ class ParserSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    request.body("123")
+    requestSpec { it.body.stream { it << "123" } }
     postText() == Integer.toString()
   }
 

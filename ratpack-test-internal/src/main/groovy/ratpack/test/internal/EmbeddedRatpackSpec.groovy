@@ -16,10 +16,10 @@
 
 package ratpack.test.internal
 
-import com.jayway.restassured.specification.RequestSpecification
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import ratpack.groovy.test.TestHttpClient
+import ratpack.http.client.RequestSpec
 import ratpack.test.embed.EmbeddedApplication
 import spock.lang.Specification
 
@@ -35,7 +35,7 @@ abstract class EmbeddedRatpackSpec extends Specification {
 
   abstract EmbeddedApplication getApplication()
 
-  void configureRequest(RequestSpecification requestSpecification) {
+  void configureRequest(RequestSpec requestSpecification) {
     // do nothing
   }
 
@@ -45,6 +45,7 @@ abstract class EmbeddedRatpackSpec extends Specification {
 
   def cleanup() {
     application.server.stop()
+    client.close()
   }
 
 }

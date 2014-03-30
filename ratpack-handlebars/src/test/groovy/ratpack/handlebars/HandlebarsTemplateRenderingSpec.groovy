@@ -21,6 +21,7 @@ import ratpack.test.internal.RatpackGroovyDslSpec
 import spock.lang.Unroll
 
 import static Template.handlebarsTemplate
+import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_TYPE
 import static io.netty.handler.codec.http.HttpResponseStatus.INTERNAL_SERVER_ERROR
 
 class HandlebarsTemplateRenderingSpec extends RatpackGroovyDslSpec {
@@ -132,10 +133,10 @@ class HandlebarsTemplateRenderingSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    get("simple").contentType == "application/octet-stream"
-    get("simple.json").contentType == "application/json"
-    get("simple.html").contentType == "text/html;charset=UTF-8"
-    get("simple.html?type=application/octet-stream").contentType == "application/octet-stream"
+    get("simple").header(CONTENT_TYPE) == "application/octet-stream"
+    get("simple.json").header(CONTENT_TYPE) == "application/json"
+    get("simple.html").header(CONTENT_TYPE) == "text/html;charset=UTF-8"
+    get("simple.html?type=application/octet-stream").header(CONTENT_TYPE) == "application/octet-stream"
   }
 
   void "templates are reloadable when reloading is enabled"() {

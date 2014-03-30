@@ -16,6 +16,7 @@
 
 package ratpack.http
 
+import ratpack.http.client.RequestSpec
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 class RequestBodyReadingSpec extends RatpackGroovyDslSpec {
@@ -29,7 +30,7 @@ class RequestBodyReadingSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    request.body("foo".getBytes("utf8"))
+    requestSpec { RequestSpec requestSpec -> requestSpec.body.stream({ it << "foo" }) }
     postText() == "foo"
   }
 
@@ -42,7 +43,7 @@ class RequestBodyReadingSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    request.body("foo".getBytes("utf8"))
+    requestSpec { it.body.stream { it << "foo".getBytes("utf8") } }
     postText() == "foo"
   }
 
@@ -58,8 +59,10 @@ class RequestBodyReadingSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    request.body(string.getBytes("utf8"))
-    postText() == string
+    requestSpec { requestSpec ->
+      requestSpec.body.stream({ it << string.getBytes("utf8") })
+      postText() == string
+    }
   }
 
   def "get bytes on get request"() {

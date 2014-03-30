@@ -71,8 +71,8 @@ class RemoteControlSpec extends RatpackGroovyDslSpec {
     launchConfig { other(enabled) }
 
     when:
-    request.header(HttpHeaders.Names.CONTENT_TYPE, ContentType.COMMAND.value)
-    request.header(HttpHeaders.Names.ACCEPT, 'text/html')
+    requestSpec.header(HttpHeaders.Names.CONTENT_TYPE, ContentType.COMMAND.value)
+    requestSpec.header(HttpHeaders.Names.ACCEPT, 'text/html')
 
     then:
     post(DEFAULT_REMOTE_CONTROL_PATH).statusCode == NOT_ACCEPTABLE.code()

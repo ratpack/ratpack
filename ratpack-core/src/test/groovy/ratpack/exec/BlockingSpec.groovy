@@ -18,6 +18,7 @@ package ratpack.exec
 
 import ratpack.error.ServerErrorHandler
 import ratpack.error.DebugErrorHandler
+import ratpack.http.client.RequestSpec
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 class BlockingSpec extends RatpackGroovyDslSpec {
@@ -203,9 +204,16 @@ class BlockingSpec extends RatpackGroovyDslSpec {
       }
     }
 
+    and:
+    println "starting post test"
+    requestSpec { RequestSpec request ->
+      request.body.type("text/plain").stream { it << "foo" }
+    }
+
     then:
-    request.content("foo")
+    println "after request body before post "
     postText() == "foo"
+    println "after post"
   }
 
   def "blocking processing does not start until compute processing has unwound"() {
@@ -240,7 +248,6 @@ class BlockingSpec extends RatpackGroovyDslSpec {
     then:
     events == ["compute", "blocking", "inner compute", "inner blocking"]
   }
-
 
 
 }

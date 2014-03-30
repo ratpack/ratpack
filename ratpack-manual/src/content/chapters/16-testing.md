@@ -46,7 +46,7 @@ class SiteSmokeSpec {
 
 
     assert response.statusCode == 200
-    assert response.body.asString().contains('<title>Ratpack: A toolkit for JVM web applications</title>')
+    assert response.body.contains('<title>Ratpack: A toolkit for JVM web applications</title>')
 
   }
 
@@ -54,7 +54,7 @@ class SiteSmokeSpec {
     get()
 
     assert response.statusCode == 200
-    assert response.body.asString().contains('<title>Ratpack: A toolkit for JVM web applications</title>')
+    assert response.body.contains('<title>Ratpack: A toolkit for JVM web applications</title>')
   }
 
   def cleanup() {

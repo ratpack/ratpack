@@ -19,6 +19,7 @@ package ratpack.http
 import ratpack.error.ServerErrorHandler
 import ratpack.error.DebugErrorHandler
 import ratpack.form.Form
+import ratpack.http.client.RequestSpec
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 class FormHandlingSpec extends RatpackGroovyDslSpec {
@@ -28,6 +29,7 @@ class FormHandlingSpec extends RatpackGroovyDslSpec {
       bind ServerErrorHandler, new DebugErrorHandler()
     }
   }
+
   def "can get form params"() {
     when:
     handlers {
@@ -38,18 +40,25 @@ class FormHandlingSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    request.header("Content-Type", "application/x-www-form-urlencoded")
-    postText() == "[:]" && resetRequest()
-    request.with {
+    requestSpec { it.headers.add("Content-Type", "application/x-www-form-urlencoded") }
+    postText() == "[:]"
+    when:
+    resetRequest()
+    requestSpec { RequestSpec requestSpec ->
+      //TODO Easy way to add params
       param "a", "b"
     }
-    postText() == "[a:[b]]" && resetRequest()
-    request.with {
+    then:
+    postText() == "[a:[b]]"
+    when:
+    resetRequest()
+    requestSpec.with {
       param "a", "b", "c"
       param "d", "e"
       param "abc", ""
     }
-    postText() == "[a:[b, c], d:[e], abc:[]]" && resetRequest()
+    then:
+    postText() == "[a:[b, c], d:[e], abc:[]]"
   }
 
   def "can read multi part forms"() {
@@ -62,9 +71,9 @@ class FormHandlingSpec extends RatpackGroovyDslSpec {
     }
 
     and:
-    request.multiPart("foo", "1", "text/plain")
-    request.multiPart("bar", "2", "text/plain")
-    request.multiPart("bar", "3", "text/plain")
+    requestSpec.multiPart("foo", "1", "text/plain")
+    requestSpec.multiPart("bar", "2", "text/plain")
+    requestSpec.multiPart("bar", "3", "text/plain")
 
     then:
     postText() == "[foo:[1], bar:[2, 3]]"
@@ -83,7 +92,7 @@ class FormHandlingSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    request.multiPart("theFile", fooFile.toFile())
+    requestSpec.multiPart("theFile", fooFile.toFile())
     postText() == "File content: bar"
   }
 
@@ -100,7 +109,7 @@ class FormHandlingSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    request.multiPart("theFile", fooFile.toFile(), "text/plain")
+    requestSpec.multiPart("theFile", fooFile.toFile(), "text/plain")
     postText() == "File type: text/plain;charset=UTF-8"
   }
 
@@ -117,7 +126,7 @@ class FormHandlingSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    request.multiPart("theFile", fooFile.toFile(), "text/plain;charset=US-ASCII")
+    requestSpec.multiPart("theFile", fooFile.toFile(), "text/plain;charset=US-ASCII")
     postText() == "File type: text/plain;charset=US-ASCII"
   }
 }

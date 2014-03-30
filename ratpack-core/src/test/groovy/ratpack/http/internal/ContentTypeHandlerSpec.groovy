@@ -34,13 +34,19 @@ class ContentTypeHandlerSpec extends RatpackGroovyDslSpec {
     }
 
     and:
-    request.contentType("text/plain").content("foo")
+    requestSpec {
+      it.headers.add("Content-Type", "text/plain")
+      it.body.stream({ it << "foo" })
+    }
 
     then:
     post().statusCode == 415
 
     when:
-    request.contentType(APPLICATION_JSON).content([])
+    requestSpec {
+      it.headers.add("Content-Type", APPLICATION_JSON)
+      it.body.stream({ it << "[]" })
+    }
 
     then:
     postText() == "ok"
@@ -48,7 +54,7 @@ class ContentTypeHandlerSpec extends RatpackGroovyDslSpec {
 
     when:
     resetRequest()
-    request.formParams([foo: "bar"])
+    requestSpec { it.formParams([foo: "bar"]) } //TODO Fix this isn't a supported method yet
 
     then:
     postText() == "ok"

@@ -31,9 +31,10 @@ class SiteSmokeSpec extends Specification {
     get("index.html")
 
     then:
-    response.statusCode == 200
-    response.body.asString().contains('<title>Ratpack: Simple, lean & powerful HTTP apps</title>')
-
+//    response.statusCode == 200
+//    response.body.text.contains('<title>Ratpack: Simple, lean & powerful HTTP apps</title>')
+    response.statusCode == 301
+    response.headers.get("Location") ==~ "http://localhost:\\d+/"
   }
 
   def "Check Site /"() {
@@ -42,11 +43,12 @@ class SiteSmokeSpec extends Specification {
 
     then:
     response.statusCode == 200
-    response.body.asString().contains('<title>Ratpack: Simple, lean & powerful HTTP apps</title>')
+    response.body.text.contains('<title>Ratpack: Simple, lean & powerful HTTP apps</title>')
   }
 
   def cleanup() {
     aut.stop()
+    client.close()
   }
 
 }

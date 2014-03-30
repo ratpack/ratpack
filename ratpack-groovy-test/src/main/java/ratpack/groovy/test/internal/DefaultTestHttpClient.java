@@ -16,39 +16,40 @@
 
 package ratpack.groovy.test.internal;
 
-import com.jayway.restassured.RestAssured;
-import com.jayway.restassured.response.Cookie;
-import com.jayway.restassured.response.Cookies;
-import com.jayway.restassured.response.Response;
-import com.jayway.restassured.specification.RequestSpecification;
+
 import ratpack.api.Nullable;
+import ratpack.func.Actions;
 import ratpack.groovy.test.TestHttpClient;
+import ratpack.http.client.ReceivedResponse;
+import ratpack.http.client.RequestSpec;
 import ratpack.test.ApplicationUnderTest;
 import ratpack.func.Action;
+import ratpack.test.internal.BlockingHttpClient;
 
-import java.lang.reflect.Field;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Date;
-import java.util.LinkedList;
-import java.util.List;
 
 import static ratpack.util.ExceptionUtils.uncheck;
 
 public class DefaultTestHttpClient implements TestHttpClient {
 
   private final ApplicationUnderTest applicationUnderTest;
-  private final Action<RequestSpecification> requestConfigurer;
+  private Action<? super RequestSpec> request = Actions.noop();
+  private BlockingHttpClient client = new BlockingHttpClient();
+  private ReceivedResponse response;
+  private Action<RequestSpec> requestConfigurer;
 
-  public DefaultTestHttpClient(ApplicationUnderTest applicationUnderTest, @Nullable Action<RequestSpecification> requestConfigurer) {
+  public DefaultTestHttpClient(ApplicationUnderTest applicationUnderTest, @Nullable Action<RequestSpec> requestConfigurer) {
     this.applicationUnderTest = applicationUnderTest;
-    this.requestConfigurer = requestConfigurer;
+    if (requestConfigurer != null) {
+      this.requestConfigurer = requestConfigurer;
+    } else {
+      this.requestConfigurer = Actions.noop();
+    }
+
+    request = requestConfigurer;
+
   }
-
-  private RequestSpecification request;
-
-  private Response response;
-  private List<Cookie> cookies = new LinkedList<>();
 
   @Override
   public ApplicationUnderTest getApplicationUnderTest() {
@@ -56,57 +57,55 @@ public class DefaultTestHttpClient implements TestHttpClient {
   }
 
   @Override
-  public RequestSpecification getRequest() {
-    if (request == null) {
-      request = createRequest();
+  public void requestSpec(Action<? super RequestSpec> requestAction) {
+    if (requestAction != null) {
+      request = Actions.join(requestConfigurer, requestAction);
     }
-    return request;
   }
 
   @Override
-  public Response getResponse() {
+  public void resetRequest() {
+    request = requestConfigurer;
+  }
+
+  @Override
+  public ReceivedResponse getResponse() {
     return response;
   }
 
   @Override
-  public RequestSpecification resetRequest() {
-    request = createRequest();
-    return request;
-  }
-
-  @Override
-  public Response head() {
+  public ReceivedResponse head() {
     return head("");
   }
 
   @Override
-  public Response head(String path) {
+  public ReceivedResponse head(String path) {
     preRequest();
-    response = request.head(toAbsolute(path));
+    response = sendRequest("HEAD", path);
     return postRequest();
   }
 
   @Override
-  public Response options() {
+  public ReceivedResponse options() {
     return options("");
   }
 
   @Override
-  public Response options(String path) {
+  public ReceivedResponse options(String path) {
     preRequest();
-    response = request.options(toAbsolute(path));
+    response = sendRequest("OPTIONS", path);
     return postRequest();
   }
 
   @Override
-  public Response get() {
+  public ReceivedResponse get() {
     return get("");
   }
 
   @Override
-  public Response get(String path) {
+  public ReceivedResponse get(String path) {
     preRequest();
-    response = request.get(toAbsolute(path));
+    response = sendRequest("GET", path);
     return postRequest();
   }
 
@@ -117,19 +116,18 @@ public class DefaultTestHttpClient implements TestHttpClient {
 
   @Override
   public String getText(String path) {
-    get(path);
-    return response.asString();
+    return get(path).getBody().getText();
   }
 
   @Override
-  public Response post() {
+  public ReceivedResponse post() {
     return post("");
   }
 
   @Override
-  public Response post(String path) {
+  public ReceivedResponse post(String path) {
     preRequest();
-    response = request.post(toAbsolute(path));
+    response = sendRequest("POST", path);
     return postRequest();
   }
 
@@ -141,18 +139,18 @@ public class DefaultTestHttpClient implements TestHttpClient {
   @Override
   public String postText(String path) {
     post(path);
-    return response.asString();
+    return response.getBody().getText();
   }
 
   @Override
-  public Response put() {
+  public ReceivedResponse put() {
     return put("");
   }
 
   @Override
-  public Response put(String path) {
+  public ReceivedResponse put(String path) {
     preRequest();
-    response = request.put(toAbsolute(path));
+    response = sendRequest("PUT", path);
     return postRequest();
   }
 
@@ -163,19 +161,19 @@ public class DefaultTestHttpClient implements TestHttpClient {
 
   @Override
   public String putText(String path) {
-    return put(path).asString();
+    return put(path).getBody().getText();
   }
 
 
   @Override
-  public Response patch() {
+  public ReceivedResponse patch() {
     return patch("");
   }
 
   @Override
-  public Response patch(String path) {
+  public ReceivedResponse patch(String path) {
     preRequest();
-    response = request.patch(toAbsolute(path));
+    response = sendRequest("PATCH", path);
     return postRequest();
   }
 
@@ -186,18 +184,18 @@ public class DefaultTestHttpClient implements TestHttpClient {
 
   @Override
   public String patchText(String path) {
-    return patch(path).asString();
-  }  
+    return patch(path).getBody().getText();
+  }
 
   @Override
-  public Response delete() {
+  public ReceivedResponse delete() {
     return delete("");
   }
 
   @Override
-  public Response delete(String path) {
+  public ReceivedResponse delete(String path) {
     preRequest();
-    response = request.delete(toAbsolute(path));
+    response = sendRequest("DELETE", path);
     return postRequest();
   }
 
@@ -208,49 +206,45 @@ public class DefaultTestHttpClient implements TestHttpClient {
 
   @Override
   public String deleteText(String path) {
-    return delete(path).asString();
-  }
-
-  @Override
-  public RequestSpecification createRequest() {
-    RequestSpecification request = RestAssured.with().urlEncodingEnabled(false);
-    if (requestConfigurer != null) {
-      try {
-        requestConfigurer.execute(request);
-      } catch (Exception e) {
-        throw uncheck(e);
-      }
-    }
-    return request;
+    return delete(path).getBody().getText();
   }
 
   private void preRequest() {
-    if (request == null) {
-      request = createRequest();
-    }
-    try {
-      Field field = request.getClass().getDeclaredField("cookies");
-      field.setAccessible(true);
-      field.set(request, new Cookies(cookies));
-    } catch (Exception e) {
-      throw uncheck(e);
-    }
+    //TODO Consider Removal
   }
 
-  private Response postRequest() {
-    for (Cookie setCookie : response.getDetailedCookies()) {
-      Date date = setCookie.getExpiryDate();
-      for (Cookie priorCookie : new LinkedList<>(cookies)) {
-        if (priorCookie.getName().equals(setCookie.getName())) {
-          cookies.remove(priorCookie);
-        }
-      }
-      if (date == null || date.compareTo(new Date()) > 0) {
-        cookies.add(setCookie);
-      }
-    }
+  private ReceivedResponse postRequest() {
 
     return response;
+  }
+
+  private ReceivedResponse sendRequest(final String method, String path) {
+
+    ReceivedResponse receivedResponse = null;
+
+
+    try {
+      receivedResponse = client.request(toAbsolute(path), Actions.join(request, new SetMethod(method)));
+    } catch (Throwable throwable) {
+      throwable.printStackTrace();
+
+    }
+
+    response = receivedResponse;
+    return receivedResponse;
+  }
+
+  private static class SetMethod implements Action<RequestSpec> {
+    private String method;
+
+    public SetMethod(String method) {
+      this.method = method;
+    }
+
+    @Override
+    public void execute(RequestSpec requestSpec) throws Exception {
+      requestSpec.method(method);
+    }
   }
 
   private String toAbsolute(String path) {
@@ -266,4 +260,8 @@ public class DefaultTestHttpClient implements TestHttpClient {
     }
   }
 
+  @Override
+  public void close() {
+    client.close();
+  }
 }

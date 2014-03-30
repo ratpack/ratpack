@@ -39,7 +39,7 @@ class JacksonParsingSpec extends RatpackGroovyDslSpec {
     }
 
     and:
-    request.contentType("application/json").body([value: 3])
+    requestSpec.contentType("application/json").body([value: 3])
 
     then:
     postText() == "3"
@@ -64,7 +64,7 @@ class JacksonParsingSpec extends RatpackGroovyDslSpec {
     }
 
     and:
-    request.contentType("application/json").body([value: 1, foo: [value: 2]])
+    requestSpec.contentType("application/json").body([value: 1, foo: [value: 2]])
 
     then:
     postText() == "1:2"
@@ -84,7 +84,7 @@ class JacksonParsingSpec extends RatpackGroovyDslSpec {
     }
 
     and:
-    request.contentType("application/json").body([1])
+    requestSpec.contentType("application/json").body([1])
 
     then:
     postText() == "[java.lang.Integer]"

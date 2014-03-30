@@ -44,9 +44,9 @@ class DefaultResponseSpec extends RatpackGroovyDslSpec {
     then:
     with(response) {
       statusCode == OK.code()
-      body.asString().equals(BODY)
-      contentType.equals("text/plain;charset=UTF-8")
-      header(CONTENT_LENGTH).toInteger() == BODY.length()
+      body.text.equals(BODY)
+      headers.get(CONTENT_TYPE) == "text/plain;charset=UTF-8"
+      headers.get(CONTENT_LENGTH).toInteger() == BODY.length()
     }
   }
 
@@ -65,9 +65,9 @@ class DefaultResponseSpec extends RatpackGroovyDslSpec {
     then:
     with(response) {
       statusCode == OK.code()
-      body.asString().equals(BODY)
-      contentType.equals("text/plain;charset=UTF-8")
-      header(CONTENT_LENGTH).toInteger() == BODY.length()
+      body.text.equals(BODY)
+      headers.get(CONTENT_TYPE) == "text/plain;charset=UTF-8"
+      headers.get(CONTENT_LENGTH).toInteger() == BODY.length()
     }
   }
 
@@ -85,9 +85,9 @@ class DefaultResponseSpec extends RatpackGroovyDslSpec {
     then:
     with(response) {
       statusCode == OK.code()
-      body.asString().equals(BODY)
-      contentType.equals("application/octet-stream")
-      header(CONTENT_LENGTH).toInteger() == BODY.length()
+      body.text.equals(BODY)
+      headers.get(CONTENT_TYPE) == "application/octet-stream"
+      headers.get(CONTENT_LENGTH).toInteger() == BODY.length()
     }
   }
 
@@ -106,9 +106,9 @@ class DefaultResponseSpec extends RatpackGroovyDslSpec {
     then:
     with(response) {
       statusCode == OK.code()
-      body.asString().equals(BODY)
-      contentType.equals("application/octet-stream")
-      header(CONTENT_LENGTH).toInteger() == BODY.length()
+      body.text.equals(BODY)
+      headers.get(CONTENT_TYPE) == "application/octet-stream"
+      headers.get(CONTENT_LENGTH).toInteger() == BODY.length()
     }
   }
 
@@ -129,9 +129,9 @@ class DefaultResponseSpec extends RatpackGroovyDslSpec {
     then:
     with(response) {
       statusCode == OK.code()
-      body.asString().equals(BODY)
-      contentType.equals("text/plain;charset=UTF-8")
-      header(CONTENT_LENGTH).toInteger() == BODY.length()
+      body.text.equals(BODY)
+      headers.get(CONTENT_TYPE) == "text/plain;charset=UTF-8"
+      headers.get(CONTENT_LENGTH).toInteger() == BODY.length()
     }
   }
 
@@ -153,9 +153,9 @@ class DefaultResponseSpec extends RatpackGroovyDslSpec {
     then:
     with(response) {
       statusCode == OK.code()
-      body.asString().equals(BODY)
-      contentType.equals("text/plain;charset=UTF-8")
-      header(CONTENT_LENGTH).toInteger() == BODY.length()
+      body.text.equals(BODY)
+      headers.get(CONTENT_TYPE) == "text/plain;charset=UTF-8"
+      headers.get(CONTENT_LENGTH).toInteger() == BODY.length()
     }
   }
 
@@ -176,9 +176,9 @@ class DefaultResponseSpec extends RatpackGroovyDslSpec {
     then:
     with(response) {
       statusCode == OK.code()
-      body.asString().equals(BODY)
-      contentType.equals("application/octet-stream")
-      header(CONTENT_LENGTH).toInteger() == BODY.length()
+      body.text.equals(BODY)
+      headers.get(CONTENT_TYPE) == "application/octet-stream"
+      headers.get(CONTENT_LENGTH).toInteger() == BODY.length()
     }
   }
 
@@ -200,9 +200,9 @@ class DefaultResponseSpec extends RatpackGroovyDslSpec {
     then:
     with(response) {
       statusCode == OK.code()
-      body.asString().equals(BODY)
-      contentType.equals("application/foo")
-      header(CONTENT_LENGTH).toInteger() == BODY.length()
+      body.text.equals(BODY)
+      headers.get(CONTENT_TYPE) == "application/foo"
+      headers.get(CONTENT_LENGTH).toInteger() == BODY.length()
     }
   }
 
@@ -220,9 +220,9 @@ class DefaultResponseSpec extends RatpackGroovyDslSpec {
     then:
     with(response) {
       statusCode == OK.code()
-      body.asString().empty
-      contentType.equals("")
-      header(CONTENT_LENGTH).toInteger() == 0
+      body.text.empty
+      !headers.get(CONTENT_TYPE)
+      headers.get(CONTENT_LENGTH).toInteger() == 0
     }
   }
 

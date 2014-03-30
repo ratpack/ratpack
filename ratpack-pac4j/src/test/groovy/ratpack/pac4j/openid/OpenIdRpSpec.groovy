@@ -99,7 +99,7 @@ class OpenIdRpSpec extends Specification {
     def response = client.get("noauth")
 
     then: "the page is returned without any redirects, and without authentication"
-    response.asString() == "noauth:null:null"
+    response.body == "noauth:null:null"
 
     where:
     aut << [autConstructed, autInjected]

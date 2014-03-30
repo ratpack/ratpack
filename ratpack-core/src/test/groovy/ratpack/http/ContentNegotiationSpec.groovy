@@ -16,6 +16,7 @@
 
 package ratpack.http
 
+import ratpack.http.client.RequestSpec
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 class ContentNegotiationSpec extends RatpackGroovyDslSpec {
@@ -38,42 +39,49 @@ class ContentNegotiationSpec extends RatpackGroovyDslSpec {
       }
     }
 
+    and:
+    requestSpec { RequestSpec requestSpec -> requestSpec.headers.add("Accept", "application/json;q=0.5,text/html;q=1") }
     then:
-    request.header("Accept", "application/json;q=0.5,text/html;q=1")
     text == "html"
-    response.header("Content-Type") == "text/html;charset=UTF-8"
+    response.headers.get("Content-Type") == "text/html;charset=UTF-8"
     response.statusCode == 200
 
-    then:
+    when:
     resetRequest()
-    request.header("Accept", "application/json,text/html")
+    requestSpec { RequestSpec requestSpec -> requestSpec.headers.add("Accept", "application/json,text/html") }
+    then:
     text == "json"
-    response.header("Content-Type") == "application/json"
+    response.headers.get("Content-Type") == "application/json"
     response.statusCode == 200
 
-    then:
+    when:
     resetRequest()
-    request.header("Accept", "*")
+    requestSpec { RequestSpec requestSpec -> requestSpec.headers.add("Accept", "*") }
+    then:
     text == "json"
 
-    then:
+    when:
     resetRequest()
-    request.header("Accept", "*/*")
+    requestSpec { RequestSpec requestSpec -> requestSpec.headers.add("Accept", "*/*") }
+    then:
     text == "json"
 
-    then:
+    when:
     resetRequest()
-    request.header("Accept", "text/*")
+    requestSpec { RequestSpec requestSpec -> requestSpec.headers.add("Accept", "text/*") }
+    then:
     text == "html"
 
-    then:
+    when:
     resetRequest()
-    request.header("Accept", "")
+    requestSpec { RequestSpec requestSpec -> requestSpec.headers.add("Accept", "") }
+    then:
     text == "json"
 
-    then:
+    when:
     resetRequest()
-    request.header("Accept", "some/nonsense")
+    requestSpec { RequestSpec requestSpec -> requestSpec.headers.add("Accept", "some/nonsense") }
+    then:
     text == ""
     response.statusCode == 406
 
@@ -95,23 +103,27 @@ class ContentNegotiationSpec extends RatpackGroovyDslSpec {
       }
     }
 
+    and:
+    requestSpec { RequestSpec requestSpec -> requestSpec.headers.add("Accept", "application/json") }
     then:
-    request.header("Accept", "application/json")
     text == "json"
 
-    then:
+    when:
     resetRequest()
-    request.header("Accept", "application/xml")
+    requestSpec { RequestSpec requestSpec -> requestSpec.headers.add("Accept", "application/xml") }
+    then:
     text == "xml"
 
-    then:
+    when:
     resetRequest()
-    request.header("Accept", "text/plain")
+    requestSpec { RequestSpec requestSpec -> requestSpec.headers.add("Accept", "text/plain") }
+    then:
     text == "text"
 
-    then:
+    when:
     resetRequest()
-    request.header("Accept", "text/html")
+    requestSpec { RequestSpec requestSpec -> requestSpec.headers.add("Accept", "text/html") }
+    then:
     text == "html"
   }
 }

@@ -16,9 +16,9 @@
 
 package ratpack.groovy.test;
 
-import com.jayway.restassured.specification.RequestSpecification;
 import ratpack.api.Nullable;
 import ratpack.groovy.test.internal.DefaultTestHttpClient;
+import ratpack.http.client.RequestSpec;
 import ratpack.test.ApplicationUnderTest;
 import ratpack.func.Action;
 
@@ -28,7 +28,7 @@ public abstract class TestHttpClients {
     return testHttpClient(applicationUnderTest, null);
   }
 
-  public static TestHttpClient testHttpClient(ApplicationUnderTest applicationUnderTest, @Nullable Action<RequestSpecification> requestConfigurer) {
+  public static TestHttpClient testHttpClient(ApplicationUnderTest applicationUnderTest, @Nullable Action<RequestSpec> requestConfigurer) {
     return new DefaultTestHttpClient(applicationUnderTest, requestConfigurer);
   }
 

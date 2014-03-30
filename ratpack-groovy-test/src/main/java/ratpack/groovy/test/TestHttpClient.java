@@ -16,67 +16,68 @@
 
 package ratpack.groovy.test;
 
-import com.jayway.restassured.response.Response;
-import com.jayway.restassured.specification.RequestSpecification;
+import ratpack.func.Action;
+import ratpack.http.client.ReceivedResponse;
+import ratpack.http.client.RequestSpec;
 import ratpack.test.ApplicationUnderTest;
 
-public interface TestHttpClient {
+public interface TestHttpClient extends AutoCloseable {
 
   ApplicationUnderTest getApplicationUnderTest();
 
-  RequestSpecification getRequest();
+  void requestSpec(Action<? super RequestSpec> requestAction);
 
-  Response getResponse();
+  void resetRequest();
 
-  RequestSpecification resetRequest();
+  ReceivedResponse getResponse();
 
-  Response head();
+  ReceivedResponse head();
 
-  Response head(String path);
+  ReceivedResponse head(String path);
 
-  Response options();
+  ReceivedResponse options();
 
-  Response options(String path);
+  ReceivedResponse options(String path);
 
-  Response get();
+  ReceivedResponse get();
 
-  Response get(String path);
+  ReceivedResponse get(String path);
 
   String getText();
 
   String getText(String path);
 
-  Response post();
+  ReceivedResponse post();
 
-  Response post(String path);
+  ReceivedResponse post(String path);
 
   String postText();
 
   String postText(String path);
 
-  Response put();
+  ReceivedResponse put();
 
-  Response put(String path);
+  ReceivedResponse put(String path);
 
   String putText();
 
   String putText(String path);
 
-  Response patch();
+  ReceivedResponse patch();
 
-  Response patch(String path);
+  ReceivedResponse patch(String path);
 
   String patchText();
 
   String patchText(String path);
 
-  Response delete();
+  ReceivedResponse delete();
 
-  Response delete(String path);
+  ReceivedResponse delete(String path);
 
   String deleteText();
 
   String deleteText(String path);
 
-  RequestSpecification createRequest();
+  void close();
 }

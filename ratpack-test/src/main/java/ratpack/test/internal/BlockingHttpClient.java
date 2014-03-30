@@ -29,7 +29,7 @@ import ratpack.util.ExceptionUtils;
 
 import java.util.concurrent.CountDownLatch;
 
-public class BlockingHttpClient {
+public class BlockingHttpClient implements AutoCloseable {
 
   private final LaunchConfig launchConfig;
 
@@ -94,4 +94,8 @@ public class BlockingHttpClient {
     }
   }
 
+  @Override
+  public void close() {
+    launchConfig.getExecController().close();
+  }
 }
