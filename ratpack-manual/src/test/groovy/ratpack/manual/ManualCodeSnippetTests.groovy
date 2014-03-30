@@ -24,8 +24,17 @@ import ratpack.manual.snippets.fixtures.GradleFixture
 import ratpack.manual.snippets.fixtures.GroovyChainDslFixture
 import ratpack.manual.snippets.fixtures.GroovyHandlersFixture
 import ratpack.manual.snippets.fixtures.GroovyRatpackDslFixture
+import ratpack.manual.snippets.fixtures.SnippetFixture
 
 class ManualCodeSnippetTests extends CodeSnippetTestCase {
+
+  public static final LinkedHashMap<String, SnippetFixture> FIXTURES = [
+    "language-groovy groovy-chain-dsl": new GroovyChainDslFixture(),
+    "language-groovy groovy-ratpack"  : new GroovyRatpackDslFixture(),
+    "language-groovy groovy-handlers" : new GroovyHandlersFixture(),
+    "language-groovy gradle"          : new GradleFixture(),
+    "language-groovy tested"          : new DoNothingSnippetFixture()
+  ]
 
   @Override
   protected void addTests(CodeSnippetTests tests) {
@@ -39,13 +48,7 @@ class ManualCodeSnippetTests extends CodeSnippetTestCase {
 
     def content = new File(root, "ratpack-manual/src/content/chapters")
 
-    [
-      "language-groovy groovy-chain-dsl": new GroovyChainDslFixture(),
-      "language-groovy groovy-ratpack": new GroovyRatpackDslFixture(),
-      "language-groovy groovy-handlers": new GroovyHandlersFixture(),
-      "language-groovy gradle": new GradleFixture(),
-      "language-groovy tested": new DoNothingSnippetFixture()
-    ].each { selector, fixture ->
+    FIXTURES.each { selector, fixture ->
       ManualSnippetExtractor.extract(content, selector, fixture).each {
         tests.add(it)
       }
