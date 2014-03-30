@@ -54,5 +54,5 @@ javadoc {
 }
 
 test {
-  maxParallelForks System.getenv("TRAVIS") ? 1 : 2
+  maxParallelForks isTravis ? 1 : 2
 }
