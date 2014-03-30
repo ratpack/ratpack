@@ -38,7 +38,7 @@ class DebugErrorHandlerSpec extends RatpackGroovyDslSpec {
     then:
     with(get("client")) {
       statusCode == 404
-      body.asString() == "Client error 404"
+      body == "Client error 404"
     }
 
     def str = new StringWriter().with {
@@ -48,7 +48,7 @@ class DebugErrorHandlerSpec extends RatpackGroovyDslSpec {
 
     with(get("server")) {
       statusCode == 500
-      body.asString() == str
+      body == str
     }
   }
 }

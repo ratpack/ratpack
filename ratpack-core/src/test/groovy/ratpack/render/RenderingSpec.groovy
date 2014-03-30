@@ -69,7 +69,7 @@ class RenderingSpec extends RatpackGroovyDslSpec {
     getText() == "thing: foo"
     with(get("not-registered")) {
       statusCode == 500
-      body.asString().contains NoSuchRendererException.name
+      body.contains NoSuchRendererException.name
     }
   }
 

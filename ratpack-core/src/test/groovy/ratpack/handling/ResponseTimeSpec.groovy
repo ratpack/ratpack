@@ -30,7 +30,7 @@ class ResponseTimeSpec extends RatpackGroovyDslSpec {
 
     then:
     with(get()) {
-      headers.get("X-Response-Time") == null
+      header("X-Response-Time") == null
     }
   }
 
@@ -47,7 +47,7 @@ class ResponseTimeSpec extends RatpackGroovyDslSpec {
 
     then:
     with(get()) {
-      headers.get("X-Response-Time").value ==~ DECIMAL_NUMBER
+      header("X-Response-Time") ==~ DECIMAL_NUMBER
     }
   }
 
@@ -66,7 +66,7 @@ class ResponseTimeSpec extends RatpackGroovyDslSpec {
 
     then:
     with(get()) {
-      headers.get("X-Response-Time").value ==~ DECIMAL_NUMBER
+      header("X-Response-Time") ==~ DECIMAL_NUMBER
     }
   }
 
@@ -81,8 +81,8 @@ class ResponseTimeSpec extends RatpackGroovyDslSpec {
 
     then:
     with(get("foo.txt")) {
-      body.asString() == "foo"
-      headers.get("X-Response-Time") == null
+      body == "foo"
+      header("X-Response-Time") == null
     }
   }
 
@@ -102,8 +102,8 @@ class ResponseTimeSpec extends RatpackGroovyDslSpec {
 
     then:
     with(get("foo.txt")) {
-      body.asString() == "foo"
-      headers.get("X-Response-Time").value ==~ DECIMAL_NUMBER
+      body == "foo"
+      header("X-Response-Time") ==~ DECIMAL_NUMBER
     }
   }
 
