@@ -87,7 +87,7 @@ The `'ratpack'` plugin adds the following implicit dependencies:
 The `'ratpack-groovy'` plugin adds the following implicit dependencies:
 
 * `ratpack-groovy` - _compile_ (depends on `ratpack-core`)
-* `ratpack-groovy-test` - _testCompile_ (depends on `ratpack-testing`)
+* `ratpack-groovy-test` - _testCompile_ (depends on `ratpack-test`)
 
 The available libraries can be [browsed via Bintray](https://bintray.com/ratpack/maven/ratpack/view/files/io/ratpack).
 All Ratpack jars are published to both [Bintray's JCenter](https://bintray.com/bintray/jcenter) and [Maven Central](http://search.maven.org).
