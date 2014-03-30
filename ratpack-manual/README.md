@@ -99,7 +99,7 @@ To add content simply work with these comments on the source.
 * Headings should be in title case, e.g. "Unit testing handlers" rather than "Unit Testing Handlers".
 * Proper names should be capitalized, e.g. "You can test Ratpack with Groovy and Spock" rather than "You can test ratpack with groovy and spock".
 * File or directory names and literal URLs should be in code blocks (via \`\`), e.g. "The handler renders a template called `index.html`", "Point your browser at `http://localhost:5050/`".
-* Library names should be italicized, e.g. "Groovy support is included in the `ratpack-groovy` package".
+* Library names should be in code blocks, e.g. "Groovy support is included in the `ratpack-groovy` package".
 * Class, variable and method names should be rendered as code, e.g. "The `Handler` interface has a single method – `handle(Context)`".
 * Literal values such as `true`, `false`, `null` or `"a string"` should be code blocks.
 * Multi line code blocks should be written as [fenced code blocks](https://help.github.com/articles/github-flavored-markdown#fenced-code-blocks)
