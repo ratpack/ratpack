@@ -201,7 +201,7 @@ class Generator {
         content << "'>"
         content << prefix
         content << "</span> "
-        content << heading.title
+        content << "[$heading.title](#$id)"
         content << "\n"
 
         lastLevel = heading.level
