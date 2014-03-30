@@ -142,18 +142,19 @@ Both of these tests can be run within IDEA, iteratively while writing code snipp
 
 Chapter code snippets are written as fenced code blocks…
 
-<code><pre>```language-groovy groovy-chain-dsl
-«code snippet»
-```</code></pre>
+    ```language-groovy groovy-chain-dsl
+    «code snippet»
+    ```
 
 API reference code snippets are written as `<pre>` tags
 
-<code><pre>/**
-*
-* <pre class="groovy-chain-dsl">
-* «code snippet»
-* </pre>
-*/</code></pre>
+    /**
+     * Some description here.
+     *
+     * <pre class="groovy-chain-dsl">
+     * «code snippet»
+     * </pre>
+     */
 
 The code is simply executed.
 Because it is statically compiled, it guarantees type and symbol name correctness.
