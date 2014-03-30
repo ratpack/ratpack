@@ -64,7 +64,7 @@ class KeystoreConfigurationSpec extends Specification {
   }
 
   private String resourceAsURL(String path) {
-    getClass().getClassLoader().getResource(path).toString();
+    getClass().getClassLoader().getResource(path).toString()
   }
 
   private String resourceAsFile(String path) {

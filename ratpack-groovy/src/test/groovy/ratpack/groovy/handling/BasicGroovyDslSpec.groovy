@@ -123,7 +123,7 @@ class BasicGroovyDslSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    getText("p1") == DefaultFileSystemBinding.class.name
-    getText("p2") == DefaultServerErrorHandler.class.name
+    getText("p1") == DefaultFileSystemBinding.name
+    getText("p2") == DefaultServerErrorHandler.name
   }
 }

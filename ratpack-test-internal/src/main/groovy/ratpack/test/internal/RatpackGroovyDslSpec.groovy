@@ -35,15 +35,15 @@ abstract class RatpackGroovyDslSpec extends EmbeddedBaseDirRatpackSpec {
     new ClosureBackedEmbeddedApplication(baseDirFactory)
   }
 
-  public void handlers(@DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer) {
+  void handlers(@DelegatesTo(value = GroovyChain, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer) {
     application.handlers(configurer)
   }
 
-  public void modules(@DelegatesTo(value = GroovyModuleRegistry.class, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer) {
+  void modules(@DelegatesTo(value = GroovyModuleRegistry, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer) {
     application.modules(configurer)
   }
 
-  public void launchConfig(@DelegatesTo(value = LaunchConfigBuilder.class, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer) {
+  void launchConfig(@DelegatesTo(value = LaunchConfigBuilder, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer) {
     application.launchConfig(configurer)
   }
 

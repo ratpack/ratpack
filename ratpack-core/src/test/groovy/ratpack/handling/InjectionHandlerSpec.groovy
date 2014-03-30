@@ -63,7 +63,7 @@ class InjectionHandlerSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    text == DefaultFileSystemBinding.class.name
+    text == DefaultFileSystemBinding.name
   }
 
   static class Injected2Handler extends InjectionHandler {
@@ -90,7 +90,7 @@ class InjectionHandlerSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    text == DefaultServerErrorHandler.class.name
+    text == DefaultServerErrorHandler.name
   }
 
   static class InjectedBadHandler extends InjectionHandler {

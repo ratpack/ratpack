@@ -37,7 +37,7 @@ class ClosureParamInjectionSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    text == Thing.class.name
+    text == Thing.name
   }
 
   def "can inject request scoped objects"() {
@@ -53,7 +53,7 @@ class ClosureParamInjectionSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    text == Thing.class.name
+    text == Thing.name
   }
 
   def "context scope shadows request scope for handlers"() {
@@ -74,7 +74,7 @@ class ClosureParamInjectionSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    text == "${Thing.class.name} bar"
+    text == "${Thing.name} bar"
   }
 
 }

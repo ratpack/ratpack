@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package ratpack.hikari;
+package ratpack.hikari
 
-import groovy.sql.Sql;
-import ratpack.groovy.sql.SqlModule;
+import groovy.sql.Sql
+import ratpack.groovy.sql.SqlModule
 import ratpack.test.internal.RatpackGroovyDslSpec
-import spock.lang.Unroll;
+import spock.lang.Unroll
 
 public class HikariModuleSpec extends RatpackGroovyDslSpec {
 

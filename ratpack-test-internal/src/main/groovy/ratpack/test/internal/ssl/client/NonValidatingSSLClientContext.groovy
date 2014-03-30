@@ -48,14 +48,14 @@ class NonValidatingSSLClientContext implements TestRule {
     } as Statement
   }
 
-  public static final HostnameVerifier ALLOW_ALL_HOSTNAME_VERIFIER = new HostnameVerifier() {
+  static final HostnameVerifier ALLOW_ALL_HOSTNAME_VERIFIER = new HostnameVerifier() {
     @Override
     boolean verify(String s, SSLSession sslSession) {
       return true
     }
   }
 
-  public static final TrustManager TRUST_ALL_TRUST_MANAGER = new X509TrustManager() {
+  static final TrustManager TRUST_ALL_TRUST_MANAGER = new X509TrustManager() {
     @Override
     void checkClientTrusted(X509Certificate[] chain, String authType) {}
 
@@ -68,7 +68,7 @@ class NonValidatingSSLClientContext implements TestRule {
     }
   }
 
-  public static class DummySSLSocketFactory extends SSLSocketFactory {
+  static class DummySSLSocketFactory extends SSLSocketFactory {
 
     private final SSLContext sslContext = SSLContext.getInstance("TLS")
     private final SSLSocketFactory factory

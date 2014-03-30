@@ -17,21 +17,31 @@
  * Copyright 2006-2008 Sxip Identity Corporation
  */
 
-package ratpack.pac4j.openid
+package ratpack.pac4j.openid;
 
-import org.openid4java.message.*
-import org.openid4java.message.ax.AxMessage
-import org.openid4java.message.ax.FetchRequest
-import org.openid4java.message.ax.FetchResponse
-import org.openid4java.message.sreg.SRegMessage
-import org.openid4java.message.sreg.SRegRequest
-import org.openid4java.message.sreg.SRegResponse
-import org.openid4java.server.ServerException
-import org.openid4java.server.ServerManager
+import org.openid4java.message.AuthRequest;
+import org.openid4java.message.AuthSuccess;
+import org.openid4java.message.MessageExtension;
+import org.openid4java.message.ParameterList;
+import org.openid4java.message.Message;
+import org.openid4java.message.DirectError;
+import org.openid4java.message.ax.AxMessage;
+import org.openid4java.message.ax.FetchRequest;
+import org.openid4java.message.ax.FetchResponse;
+import org.openid4java.message.sreg.SRegMessage;
+import org.openid4java.message.sreg.SRegRequest;
+import org.openid4java.message.sreg.SRegResponse;
+import org.openid4java.server.ServerException;
+import org.openid4java.server.ServerManager;
 
-import javax.servlet.ServletOutputStream
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.ServletOutputStream;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.io.IOException;
 
 /**
  * Sample Server (OpenID Provider) implementation.
@@ -68,7 +78,7 @@ public class PatchedSampleServer {
       responseText = response.keyValueFormEncoding();
     } else if ("checkid_setup".equals(mode) || "checkid_immediate".equals(mode)) {
       // interact with the user and obtain data needed to continue
-      List userData = userInteraction(request);
+      List<?> userData = userInteraction(request);
 
       String userSelectedClaimedId = (String) userData.get(0);
       Boolean authenticatedAndApproved = (Boolean) userData.get(1);
@@ -76,28 +86,19 @@ public class PatchedSampleServer {
 
       // --- process an authentication request ---
       AuthRequest authReq = AuthRequest.createAuthRequest(request, manager.getRealmVerifier());
-
-      String opLocalId = null;
-      // if the user chose a different claimed_id than the one in request
-      if (userSelectedClaimedId != null &&
-        userSelectedClaimedId.equals(authReq.getClaimed())) {
-        //opLocalId = lookupLocalId(userSelectedClaimedId);
-      }
-
-      // Sign after we added extensions.
-      response = manager.authResponse(request, opLocalId, userSelectedClaimedId, authenticatedAndApproved.booleanValue(), false);
+      response = manager.authResponse(request, null, userSelectedClaimedId, authenticatedAndApproved, false); // Sign after we added extensions.
 
       if (response instanceof DirectError) {
-        return directResponse(httpResp, response.keyValueFormEncoding())
+        return directResponse(httpResp, response.keyValueFormEncoding());
       } else {
         if (authReq.hasExtension(AxMessage.OPENID_NS_AX)) {
           MessageExtension ext = authReq.getExtension(AxMessage.OPENID_NS_AX);
           if (ext instanceof FetchRequest) {
             FetchRequest fetchReq = (FetchRequest) ext;
-            Map required = fetchReq.getAttributes(true);
+            Map<?, ?> required = fetchReq.getAttributes(true);
             //Map optional = fetchReq.getAttributes(false);
             if (required.containsKey("email")) {
-              Map userDataExt = new HashMap();
+              Map<Object, Object> userDataExt = new HashMap<>();
               //userDataExt.put("email", userData.get(3));
 
               FetchResponse fetchResp = FetchResponse.createFetchResponse(fetchReq, userDataExt);
@@ -105,8 +106,7 @@ public class PatchedSampleServer {
               fetchResp.addAttribute("email", "http://schema.openid.net/contact/email", email);
               response.addExtension(fetchResp);
             }
-          } else //if (ext instanceof StoreRequest)
-          {
+          } else {
             throw new UnsupportedOperationException("TODO");
           }
         }
@@ -114,11 +114,11 @@ public class PatchedSampleServer {
           MessageExtension ext = authReq.getExtension(SRegMessage.OPENID_NS_SREG);
           if (ext instanceof SRegRequest) {
             SRegRequest sregReq = (SRegRequest) ext;
-            List required = sregReq.getAttributes(true);
+            List<?> required = sregReq.getAttributes(true);
             //List optional = sregReq.getAttributes(false);
             if (required.contains("email")) {
               // data released by the user
-              Map userDataSReg = new HashMap();
+              Map<Object, Object> userDataSReg = new HashMap<>();
               //userData.put("email", "user@example.com");
 
               SRegResponse sregResp = SRegResponse.createSRegResponse(sregReq, userDataSReg);
@@ -163,7 +163,7 @@ public class PatchedSampleServer {
     return responseText;
   }
 
-  protected List userInteraction(ParameterList request) throws ServerException {
+  protected List<?> userInteraction(ParameterList request) throws ServerException {
     throw new ServerException("User-interaction not implemented.");
   }
 

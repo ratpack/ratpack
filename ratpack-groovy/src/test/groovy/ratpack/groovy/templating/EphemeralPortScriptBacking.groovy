@@ -19,7 +19,7 @@ package ratpack.groovy.templating
 import ratpack.groovy.internal.StandaloneScriptBacking
 import ratpack.launch.LaunchConfigFactory
 
-import java.nio.file.Path;
+import java.nio.file.Path
 
 class EphemeralPortScriptBacking extends StandaloneScriptBacking {
   @Override

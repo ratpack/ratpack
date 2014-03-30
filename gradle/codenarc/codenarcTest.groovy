@@ -371,30 +371,29 @@ ruleset {
   */
 
   // rulesets/unnecessary.xml
-  /*
   AddEmptyString
   ConsecutiveLiteralAppends
   ConsecutiveStringConcatenation
   UnnecessaryBigDecimalInstantiation
   UnnecessaryBigIntegerInstantiation
-  UnnecessaryBooleanExpression
+//  UnnecessaryBooleanExpression
   UnnecessaryBooleanInstantiation
-  UnnecessaryCallForLastElement
+//  UnnecessaryCallForLastElement
   UnnecessaryCallToSubstring
   UnnecessaryCatchBlock
-  UnnecessaryCollectCall
+//  UnnecessaryCollectCall
   UnnecessaryCollectionCall
   UnnecessaryConstructor
   UnnecessaryDefInFieldDeclaration
-  UnnecessaryDefInMethodDeclaration
+//  UnnecessaryDefInMethodDeclaration
   UnnecessaryDefInVariableDeclaration
   UnnecessaryDotClass
   UnnecessaryDoubleInstantiation
   UnnecessaryElseStatement
   UnnecessaryFinalOnPrivateMethod
   UnnecessaryFloatInstantiation
-  UnnecessaryGString
-  UnnecessaryGetter
+//  UnnecessaryGString
+//  UnnecessaryGetter
   UnnecessaryIfStatement
   UnnecessaryInstanceOfCheck
   UnnecessaryInstantiationToGetClass
@@ -405,26 +404,23 @@ ruleset {
   UnnecessaryNullCheckBeforeInstanceOf
   UnnecessaryObjectReferences
   UnnecessaryOverridingMethod
-  UnnecessaryPackageReference
+//  UnnecessaryPackageReference
   UnnecessaryParenthesesForMethodCallWithClosure
-  UnnecessaryPublicModifier
-  UnnecessaryReturnKeyword
-  UnnecessarySelfAssignment
+//  UnnecessaryPublicModifier
+//  UnnecessaryReturnKeyword
+//  UnnecessarySelfAssignment
   UnnecessarySemicolon
   UnnecessaryStringInstantiation
-  UnnecessarySubstring
+//  UnnecessarySubstring
   UnnecessaryTernaryExpression
   UnnecessaryTransientModifier
-  */
 
   // rulesets/unused.xml
-  /*
   UnusedArray
-  UnusedMethodParameter
-  UnusedObject
+//  UnusedMethodParameter
+//  UnusedObject
   UnusedPrivateField
   UnusedPrivateMethod
   UnusedPrivateMethodParameter
   UnusedVariable
-  */
 }

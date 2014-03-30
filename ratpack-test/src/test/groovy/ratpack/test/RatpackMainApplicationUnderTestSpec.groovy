@@ -57,6 +57,6 @@ class TestHandlerFactory implements HandlerFactory {
       void handle(Context context) throws Exception {
         context.response.send("from aut")
       }
-    };
+    }
   }
 }

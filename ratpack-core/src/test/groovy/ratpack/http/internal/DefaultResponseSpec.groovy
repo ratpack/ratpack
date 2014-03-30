@@ -30,7 +30,7 @@ class DefaultResponseSpec extends RatpackGroovyDslSpec {
   def "can send byte array"() {
     given:
     handlers {
-      get() {
+      get {
         response.send "text/plain", BODY.bytes
       }
     }
@@ -50,7 +50,7 @@ class DefaultResponseSpec extends RatpackGroovyDslSpec {
   def "can set content type and override with send byte array"() {
     given:
     handlers {
-      get() {
+      get {
         response.headers.set(CONTENT_TYPE, "application/octet-stream")
         response.send "text/plain", BODY.bytes
       }
@@ -71,7 +71,7 @@ class DefaultResponseSpec extends RatpackGroovyDslSpec {
   def "can send byte array with default content type"() {
     given:
     handlers {
-      get() {
+      get {
         response.send BODY.bytes
       }
     }
@@ -91,7 +91,7 @@ class DefaultResponseSpec extends RatpackGroovyDslSpec {
   def "can set content type and not override with send byte array"() {
     given:
     handlers {
-      get() {
+      get {
         response.headers.set(CONTENT_TYPE, "application/octet-stream")
         response.send BODY.bytes
       }
@@ -115,7 +115,7 @@ class DefaultResponseSpec extends RatpackGroovyDslSpec {
 
     and:
     handlers {
-      get() {
+      get {
         response.send "text/plain", bufferedBody
       }
     }
@@ -138,7 +138,7 @@ class DefaultResponseSpec extends RatpackGroovyDslSpec {
 
     and:
     handlers {
-      get() {
+      get {
         response.headers.set(CONTENT_TYPE, "application/octet-stream")
         response.send "text/plain", bufferedBody
       }
@@ -162,7 +162,7 @@ class DefaultResponseSpec extends RatpackGroovyDslSpec {
 
     and:
     handlers {
-      get() {
+      get {
         response.send bufferedBody
       }
     }
@@ -185,7 +185,7 @@ class DefaultResponseSpec extends RatpackGroovyDslSpec {
 
     and:
     handlers {
-      get() {
+      get {
         response.headers.set(CONTENT_TYPE, "application/foo")
         response.send bufferedBody
       }
@@ -206,7 +206,7 @@ class DefaultResponseSpec extends RatpackGroovyDslSpec {
   def "can send empty response"() {
     given:
     handlers {
-      get() {
+      get {
         response.send()
       }
     }

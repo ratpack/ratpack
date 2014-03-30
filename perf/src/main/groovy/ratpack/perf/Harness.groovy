@@ -43,7 +43,7 @@ class Harness {
     }
   }
 
-  def static void run() {
+  static void run() {
     def appsBaseDir = new File(System.getProperty("appsBaseDir", "perf/build/apps")).absoluteFile
     assert appsBaseDir.exists()
 

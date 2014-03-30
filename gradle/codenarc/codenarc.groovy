@@ -371,7 +371,6 @@ ruleset {
   */
 
   // rulesets/unnecessary.xml
-  /*
   AddEmptyString
   ConsecutiveLiteralAppends
   ConsecutiveStringConcatenation
@@ -379,10 +378,10 @@ ruleset {
   UnnecessaryBigIntegerInstantiation
   UnnecessaryBooleanExpression
   UnnecessaryBooleanInstantiation
-  UnnecessaryCallForLastElement
+//  UnnecessaryCallForLastElement
   UnnecessaryCallToSubstring
   UnnecessaryCatchBlock
-  UnnecessaryCollectCall
+//  UnnecessaryCollectCall
   UnnecessaryCollectionCall
   UnnecessaryConstructor
   UnnecessaryDefInFieldDeclaration
@@ -393,8 +392,8 @@ ruleset {
   UnnecessaryElseStatement
   UnnecessaryFinalOnPrivateMethod
   UnnecessaryFloatInstantiation
-  UnnecessaryGString
-  UnnecessaryGetter
+//  UnnecessaryGString
+//  UnnecessaryGetter
   UnnecessaryIfStatement
   UnnecessaryInstanceOfCheck
   UnnecessaryInstantiationToGetClass
@@ -405,26 +404,23 @@ ruleset {
   UnnecessaryNullCheckBeforeInstanceOf
   UnnecessaryObjectReferences
   UnnecessaryOverridingMethod
-  UnnecessaryPackageReference
+//  UnnecessaryPackageReference
   UnnecessaryParenthesesForMethodCallWithClosure
   UnnecessaryPublicModifier
-  UnnecessaryReturnKeyword
-  UnnecessarySelfAssignment
+//  UnnecessaryReturnKeyword
+//  UnnecessarySelfAssignment
   UnnecessarySemicolon
   UnnecessaryStringInstantiation
-  UnnecessarySubstring
+//  UnnecessarySubstring
   UnnecessaryTernaryExpression
   UnnecessaryTransientModifier
-  */
 
   // rulesets/unused.xml
-  /*
   UnusedArray
-  UnusedMethodParameter
+//  UnusedMethodParameter
   UnusedObject
   UnusedPrivateField
   UnusedPrivateMethod
   UnusedPrivateMethodParameter
   UnusedVariable
-  */
 }

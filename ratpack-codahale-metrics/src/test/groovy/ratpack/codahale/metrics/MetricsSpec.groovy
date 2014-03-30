@@ -354,7 +354,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
         public Integer getValue() {
           2
         }
-      });
+      })
 
       get {
         metrics.meter("fooMeter").mark()
