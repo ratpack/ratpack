@@ -63,7 +63,7 @@ function anchor_highlight(anchor) {
         } else {
             elem = byName.next(":header");
             if (elem.length == 0) {
-                elem = byName.next().find(":header");
+                elem = byName.next().find(":header").first();
                 if (elem.length == 0) {
                     return;
                 }
