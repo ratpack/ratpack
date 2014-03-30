@@ -21,6 +21,7 @@ import groovy.lang.DelegatesTo;
 import ratpack.func.Action;
 import ratpack.handling.Handler;
 import ratpack.registry.RegistryBuilder;
+import ratpack.registry.RegistrySpec;
 import ratpack.test.handling.Invocation;
 import ratpack.test.handling.InvocationBuilder;
 import ratpack.test.handling.InvocationTimeoutException;
@@ -56,7 +57,7 @@ public interface GroovyInvocationBuilder extends InvocationBuilder {
   GroovyInvocationBuilder timeout(int timeout);
 
   @Override
-  GroovyInvocationBuilder registry(Action<? super RegistryBuilder> action) throws Exception;
+  GroovyInvocationBuilder registry(Action<? super RegistrySpec> action) throws Exception;
 
   @Override
   GroovyInvocationBuilder register(Object object);

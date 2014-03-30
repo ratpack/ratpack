@@ -34,6 +34,7 @@ import ratpack.path.internal.DefaultPathBinding;
 import ratpack.registry.Registries;
 import ratpack.registry.Registry;
 import ratpack.registry.RegistryBuilder;
+import ratpack.registry.RegistrySpec;
 import ratpack.test.handling.Invocation;
 import ratpack.test.handling.InvocationBuilder;
 import ratpack.test.handling.InvocationTimeoutException;
@@ -142,12 +143,12 @@ public class DefaultInvocationBuilder implements InvocationBuilder {
   }
 
   @Override
-  public RegistryBuilder getRegistry() {
+  public RegistrySpec getRegistry() {
     return registryBuilder;
   }
 
   @Override
-  public InvocationBuilder registry(Action<? super RegistryBuilder> action) throws Exception {
+  public InvocationBuilder registry(Action<? super RegistrySpec> action) throws Exception {
     action.execute(registryBuilder);
     return this;
   }

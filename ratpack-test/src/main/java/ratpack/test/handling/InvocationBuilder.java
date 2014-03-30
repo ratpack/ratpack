@@ -19,6 +19,7 @@ package ratpack.test.handling;
 import ratpack.func.Action;
 import ratpack.handling.Handler;
 import ratpack.registry.RegistryBuilder;
+import ratpack.registry.RegistrySpec;
 
 import java.util.Map;
 
@@ -45,9 +46,9 @@ public interface InvocationBuilder {
 
   InvocationBuilder timeout(int timeout);
 
-  RegistryBuilder getRegistry();
+  RegistrySpec getRegistry();
 
-  InvocationBuilder registry(Action<? super RegistryBuilder> action) throws Exception;
+  InvocationBuilder registry(Action<? super RegistrySpec> action) throws Exception;
 
   InvocationBuilder register(Object object);
 

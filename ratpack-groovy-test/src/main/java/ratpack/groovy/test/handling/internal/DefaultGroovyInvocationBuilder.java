@@ -23,6 +23,7 @@ import ratpack.groovy.internal.ClosureUtil;
 import ratpack.groovy.test.handling.GroovyInvocationBuilder;
 import ratpack.handling.Handler;
 import ratpack.registry.RegistryBuilder;
+import ratpack.registry.RegistrySpec;
 import ratpack.test.handling.Invocation;
 import ratpack.test.handling.InvocationBuilder;
 import ratpack.test.handling.InvocationTimeoutException;
@@ -91,12 +92,12 @@ public class DefaultGroovyInvocationBuilder implements GroovyInvocationBuilder {
   }
 
   @Override
-  public RegistryBuilder getRegistry() {
+  public RegistrySpec getRegistry() {
     return delegate.getRegistry();
   }
 
   @Override
-  public GroovyInvocationBuilder registry(Action<? super RegistryBuilder> action) throws Exception {
+  public GroovyInvocationBuilder registry(Action<? super RegistrySpec> action) throws Exception {
     delegate.registry(action);
     return this;
   }
