@@ -21,7 +21,7 @@ package ratpack.parse;
  */
 public final class NullParseOpts {
 
-  public static final NullParseOpts INSTANCE = new NullParseOpts();
+  static final NullParseOpts INSTANCE = new NullParseOpts();
 
   private NullParseOpts() {
   }

@@ -16,24 +16,24 @@
 
 package ratpack.parse;
 
+import ratpack.api.Nullable;
 import ratpack.handling.Context;
 import ratpack.http.TypedData;
 
 /**
- * A parser is able to deserialize the body of a request into an object representation.
+ * A parser converts a request body into an object.
  * <p>
- * Parses power the {@link Context#parse(Parse)} mechanism.
+ * Parsers power the {@link Context#parse(Parse)} mechanism.
  * <p>
- * A parser works with requests of a given content type (as advertised by {@link #getContentType()})
- * and with a particular type of {@link Parse} object (as advertised by {@link #getParseType()}),
- * of a particular final parsed type (as advertised by {@link #getParsedType()}).
+ * An individual parser parses requests of a certain content type (as advertised by {@link #getContentType()})
+ * and with a particular type of object that provides any parsing options (as advertised by {@link #getOptsType()}).
  * <p>
- * The {@link ParserSupport} class is a convenient base, the documentation
- * of which contains implementation examples.
+ * The {@link ParserSupport} class is a convenient base; the documentation of which contains implementation examples.
  *
- * @param <T> The type that this parser deserializes to
+ * @param <O> the type of option object this parser accepts
  * @see Parse
  * @see ParserSupport
+ * @see NoOptParserSupport
  * @see Context#parse(Parse)
  */
 public interface Parser<O> {
@@ -45,6 +45,12 @@ public interface Parser<O> {
    */
   String getContentType();
 
+  /**
+   * The type of option object that this parser accepts.
+   *
+   * @see ParserSupport
+   * @return The type of option object that this parser accepts
+   */
   Class<O> getOptsType();
 
   /**
@@ -53,9 +59,11 @@ public interface Parser<O> {
    * @param context The context to deserialize
    * @param requestBody The request body to deserialize
    * @param parse The description of how to parse the request body
-   * @return The object representation of the request body
+   * @param <T> the type of object to construct from the request body
+   * @return The object representation of the request body, or {@code null} if this parser cannot parse to the requested type
    * @throws Exception if an error occurs parsing the request
    */
-  <T> T parse(Context context, TypedData requestBody, O options, Class<T> type) throws Exception;
+  @Nullable
+  <T> T parse(Context context, TypedData requestBody, Parse<T, O> parse) throws Exception;
 
 }

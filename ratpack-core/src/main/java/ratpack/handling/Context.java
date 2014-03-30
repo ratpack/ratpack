@@ -298,7 +298,7 @@ public interface Context extends ReadOnlyContext {
    * }
    * </pre>
    * <p>
-   * That is, it is a convenient form of {@code parse(T, NullParseOpts.INSTANCE)}.
+   * That is, it is a convenient form of {@code parse(Parse.of(T))}.
    *
    * @param type the type to parse to
    * @param <T> the type to parse to
@@ -312,26 +312,26 @@ public interface Context extends ReadOnlyContext {
    * Constructs a {@link Parse} from the given args and delegates to {@link #parse(Parse)}.
    *
    * @param type The type to parse to
-   * @param options The parse optinns
+   * @param options The parse options
    * @param <T> The type to parse to
    * @param <O> The type of the parse opts
    * @return The parsed object
-   * @throws NoSuchParserException
-   * @throws ParserException
+   * @throws NoSuchParserException if no suitable parser could be found in the registry
+   * @throws ParserException if a suitable parser was found, but it threw an exception while parsing
    */
   <T, O> T parse(Class<T> type, O options) throws NoSuchParserException, ParserException;
 
   /**
    * Parses the request body into an object.
    * <p>
-   * How to parse the request is controlled by the given {@link Parse} object.
+   * How to parse the request is determined by the given {@link Parse} object.
    * <h5>Parser Resolution</h5>
    * <p>
    * Parser resolution happens as follows:
    * <ol>
    * <li>All {@link ratpack.parse.Parser parsers} are retrieved from the context registry (i.e. {@link #getAll(Class) getAll(Parser.class)});</li>
    * <li>Found parsers are checked (in order returned by {@code getAll()}) for compatibility with the current request content type and options type;</li>
-   * <li>If a parser is found that is compatible, its {@link ratpack.parse.Parser#parse(Context, ratpack.http.TypedData, Object, Class)} method is called;</li>
+   * <li>If a parser is found that is compatible, its {@link ratpack.parse.Parser#parse(Context, ratpack.http.TypedData, Parse)} method is called;</li>
    * <li>If the parser returns {@code null} the next parser will be tried, if it returns a value it will be returned by this method;</li>
    * <li>If no compatible parser could be found, a {@link NoSuchParserException} will be thrown.</li>
    * </ol>
@@ -341,13 +341,13 @@ public interface Context extends ReadOnlyContext {
    * <ul>
    * <li>Its {@link ratpack.parse.Parser#getContentType()} is exactly equal to {@link ratpack.http.MediaType#getType() getRequest().getBody().getContentType().getType()}</li>
    * <li>The opts of the given {@code parse} object is an {@code instanceof} its {@link ratpack.parse.Parser#getOptsType()} ()}</li>
-   * <li>The {@link ratpack.parse.Parser#parse(Context, ratpack.http.TypedData, Object, Class)} method returns a non null value.</li>
+   * <li>The {@link ratpack.parse.Parser#parse(Context, ratpack.http.TypedData, Parse)} method returns a non null value.</li>
    * </ul>
    * <p>
    * If the request has no declared content type, {@code text/plain} will be assumed.
    * <h5>Core Parsers</h5>
    * <p>
-   * Ratpack core provides implicit no opt parsers for the following types and content types:
+   * Ratpack core provides implicit {@link ratpack.parse.NoOptParserSupport no opt parsers} for the following types and content types:
    * <ul>
    * <li>{@link ratpack.form.Form}</li>
    * <ul>
@@ -365,19 +365,22 @@ public interface Context extends ReadOnlyContext {
    *
    * public class FormHandler implements Handler {
    *   public void handle(Context context) {
-   *     Form form = context.parse(Parse.of(Form.class, NullParseOpts.INSTANCE));
+   *     Form form = context.parse(Parse.of(Form.class));
    *     context.render(form.get("someFormParam"));
    *   }
    * }
    * </pre>
    * @param parse The specification of how to parse the request
    * @param <T> The type of object the request is parsed into
+   * @param <O> the type of the parse options object
    * @return The parsed object
    * @throws NoSuchParserException if no suitable parser could be found in the registry
    * @throws ParserException if a suitable parser was found, but it threw an exception while parsing
+   * @see #parse(Class)
+   * @see #parse(Class, Object)
    * @see ratpack.parse.Parser
    */
-  <T, O> T parse(Parse<T, O> parse);
+  <T, O> T parse(Parse<T, O> parse) throws NoSuchParserException, ParserException;
 
   /**
    * Provides direct access to the backing Netty channel.

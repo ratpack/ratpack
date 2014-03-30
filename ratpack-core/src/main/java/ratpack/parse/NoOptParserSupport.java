@@ -16,6 +16,9 @@
 
 package ratpack.parse;
 
+import ratpack.handling.Context;
+import ratpack.http.TypedData;
+
 /**
  * A convenience base for parsers that don't require options.
  * <p>
@@ -32,7 +35,7 @@ package ratpack.parse;
  *     super("text/plain");
  *   }
  *
- *   public &lt;T&gt; T parse(Context context, TypedData body, NullParseOpts opts, Class&lt;T&gt; type) {
+ *   public &lt;T&gt; T parse(Context context, TypedData body, Class&lt;T&gt; type) {
  *     return type.cast(Integer.valueOf(body.getText()));
  *   }
  * }
@@ -56,5 +59,32 @@ public abstract class NoOptParserSupport extends ParserSupport<NullParseOpts> {
   protected NoOptParserSupport(String contentType) {
     super(contentType);
   }
+
+  /**
+   * Delegates to {@link #parse(ratpack.handling.Context, ratpack.http.TypedData, Class)}, discarding the {@code} opts object of the given {@code parse}.
+   *
+   * @param context The context to deserialize
+   * @param requestBody The request body to deserialize
+   * @param parse The description of how to parse the request body
+   * @param <T> the type of object to construct from the request body
+   * @return the result of calling {@link #parse(ratpack.handling.Context, ratpack.http.TypedData, Class)}
+   * @throws Exception any exception thrown by {@link #parse(ratpack.handling.Context, ratpack.http.TypedData, Class)}
+   */
+  @Override
+  public final <T> T parse(Context context, TypedData requestBody, Parse<T, NullParseOpts> parse) throws Exception {
+    return parse(context, requestBody, parse.getType());
+  }
+
+  /**
+   * The parser implementation.
+   *
+   * @param context The context to deserialize
+   * @param requestBody The request body to deserialize
+   * @param type the type of object to construct from the request body
+   * @param <T> the type of object to construct from the request body
+   * @return an instance of {@code T} if this parser can construct this type, otherwise {@code null}
+   * @throws Exception any exception thrown while parsing
+   */
+  abstract protected <T> T parse(Context context, TypedData requestBody, Class<T> type) throws Exception;
 
 }

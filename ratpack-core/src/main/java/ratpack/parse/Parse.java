@@ -16,6 +16,17 @@
 
 package ratpack.parse;
 
+/**
+ * The specification of a particular parse.
+ * <p>
+ * Construct instances via the {@link #of} methods.
+ *
+ * @param <T> the type of object to construct from the request body
+ * @param <O> the type of object that provides options/configuration for the parsing
+ * @see ratpack.handling.Context#parse(Parse)
+ * @see Parser
+ * @see ParserSupport
+ */
 public class Parse<T, O> {
 
   private final Class<T> type;
@@ -26,18 +37,44 @@ public class Parse<T, O> {
     this.opts = opts;
   }
 
+  /**
+   * The type of object to construct from the request body.
+   *
+   * @return the type of object to construct from the request body
+   */
   public Class<T> getType() {
     return type;
   }
 
+  /**
+   * The type of object that provides options/configuration for the parsing.
+   *
+   * @return the type of object that provides options/configuration for the parsing
+   */
   public O getOpts() {
     return opts;
   }
 
+  /**
+   * Creates a parse object.
+   *
+   * @param type the type of object to construct from the request body
+   * @param opts the options object
+   * @param <T> the type of object to construct from the request body
+   * @param <O> the type of object that provides options/configuration for the parsing
+   * @return a parse instance from the given arguments
+   */
   public static <T, O> Parse<T, O> of(Class<T> type, O opts) {
     return new Parse<>(type, opts);
   }
 
+  /**
+   * Creates a parse object, with a {@link NullParseOpts} options object.
+   *
+   * @param type the type of object to construct from the request body
+   * @param <T> the type of object to construct from the request body
+   * @return a parse instance to the given type
+   */
   public static <T> Parse<T, NullParseOpts> of(Class<T> type) {
     return of(type, NullParseOpts.INSTANCE);
   }

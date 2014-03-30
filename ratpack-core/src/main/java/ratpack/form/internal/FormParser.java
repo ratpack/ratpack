@@ -20,7 +20,6 @@ import ratpack.form.Form;
 import ratpack.handling.Context;
 import ratpack.http.TypedData;
 import ratpack.parse.NoOptParserSupport;
-import ratpack.parse.NullParseOpts;
 
 public class FormParser extends NoOptParserSupport {
 
@@ -29,7 +28,7 @@ public class FormParser extends NoOptParserSupport {
   }
 
   @Override
-  public <T> T parse(Context context, TypedData requestBody, NullParseOpts options, Class<T> type) throws Exception {
+  public <T> T parse(Context context, TypedData requestBody, Class<T> type) throws Exception {
     if (type.equals(Form.class)) {
       return type.cast(FormDecoder.parseForm(context, requestBody));
     } else {

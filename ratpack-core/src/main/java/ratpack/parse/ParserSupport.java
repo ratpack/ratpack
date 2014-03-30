@@ -19,13 +19,14 @@ package ratpack.parse;
 import static ratpack.util.internal.Types.findImplParameterTypeAtIndex;
 
 /**
- * A convenience superclass of {@link Parser} that implements the type methods based on the implementation.
+ * A convenience superclass for {@link Parser} implementations.
  * <p>
- * Specializations only need to implement the {@link Parser#parse(ratpack.handling.Context, ratpack.http.TypedData, Object, Class)} method.
+ * Specializations only need to implement the {@link Parser#parse(ratpack.handling.Context, ratpack.http.TypedData, Parse)} method.
  * <pre class="tested">
  * import ratpack.handling.Handler;
  * import ratpack.handling.Context;
  * import ratpack.http.TypedData;
+ * import ratpack.parse.Parse;
  * import ratpack.parse.ParserSupport;
  * import ratpack.parse.ParseException;
  *
@@ -48,16 +49,16 @@ import static ratpack.util.internal.Types.findImplParameterTypeAtIndex;
  *     super("text/plain");
  *   }
  *
- *   public &lt;T&gt; T parse(Context context, TypedData requestBody, StringParseOpts opts, Class&lt;T&gt; type) throws UnsupportedEncodingException {
- *     if (!type.equals(String.class)) {
+ *   public &lt;T&gt; T parse(Context context, TypedData requestBody, Parse&lt;T, StringParseOpts&gt; parse) throws UnsupportedEncodingException {
+ *     if (!parse.getType().equals(String.class)) {
  *       return null;
  *     }
  *
  *     String rawString = requestBody.getText();
- *     if (rawString.length() < opts.getMaxLength()) {
- *       return type.cast(rawString);
+ *     if (rawString.length() < parse.getOpts().getMaxLength()) {
+ *       return parse.getType().cast(rawString);
  *     } else {
- *       return type.cast(rawString.substring(0, opts.getMaxLength()));
+ *       return parse.getType().cast(rawString.substring(0, parse.getOpts().getMaxLength()));
  *     }
  *   }
  * }
@@ -72,6 +73,7 @@ import static ratpack.util.internal.Types.findImplParameterTypeAtIndex;
  * }
  * </pre>
  *
+ * @see NoOptParserSupport
  * @param <O> the type of option object this parser accepts
  */
 abstract public class ParserSupport<O> implements Parser<O> {
@@ -93,7 +95,7 @@ abstract public class ParserSupport<O> implements Parser<O> {
    * {@inheritDoc}
    */
   @Override
-  public String getContentType() {
+  public final String getContentType() {
     return contentType;
   }
 
@@ -101,7 +103,7 @@ abstract public class ParserSupport<O> implements Parser<O> {
    * {@inheritDoc}
    */
   @Override
-  public Class<O> getOptsType() {
+  public final Class<O> getOptsType() {
     return optsType;
   }
 

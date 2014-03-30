@@ -20,7 +20,6 @@ import ratpack.handling.Context;
 import ratpack.http.TypedData;
 import ratpack.jackson.Jackson;
 import ratpack.parse.NoOptParserSupport;
-import ratpack.parse.NullParseOpts;
 
 public class JsonNoOptParser extends NoOptParserSupport {
 
@@ -29,7 +28,7 @@ public class JsonNoOptParser extends NoOptParserSupport {
   }
 
   @Override
-  public <T> T parse(Context context, TypedData requestBody, NullParseOpts options, Class<T> type) throws Exception {
+  public <T> T parse(Context context, TypedData requestBody, Class<T> type) throws Exception {
     return context.parse(Jackson.fromJson(type));
   }
 

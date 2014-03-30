@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import ratpack.handling.Context;
 import ratpack.http.TypedData;
 import ratpack.jackson.JsonParseOpts;
+import ratpack.parse.Parse;
 import ratpack.parse.ParserSupport;
 
 import javax.inject.Inject;
@@ -40,7 +41,10 @@ public class JsonParser extends ParserSupport<JsonParseOpts> {
   }
 
   @Override
-  public <T> T parse(Context context, TypedData body, JsonParseOpts opts, Class<T> type) {
+  public <T> T parse(Context context, TypedData body, Parse<T, JsonParseOpts> parse) {
+    JsonParseOpts opts = parse.getOpts();
+    Class<T> type = parse.getType();
+
     ObjectMapper objectMapper = getObjectMapper(opts);
     try {
       InputStream inputStream = body.getInputStream();
