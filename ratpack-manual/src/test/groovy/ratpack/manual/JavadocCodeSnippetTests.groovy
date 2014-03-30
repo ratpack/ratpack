@@ -24,8 +24,17 @@ import ratpack.manual.snippets.fixtures.ExecuteAsScriptFixture
 import ratpack.manual.snippets.fixtures.GroovyChainDslFixture
 import ratpack.manual.snippets.fixtures.GroovyRatpackDslFixture
 import ratpack.manual.snippets.fixtures.JavaChainDslFixture
+import ratpack.manual.snippets.fixtures.SnippetFixture
 
 class JavadocCodeSnippetTests extends CodeSnippetTestCase {
+
+  public static final LinkedHashMap<String, SnippetFixture> FIXTURES = [
+    "tested"            : new DoNothingSnippetFixture(),
+    "java-chain-dsl"    : new JavaChainDslFixture(),
+    "groovy-chain-dsl"  : new GroovyChainDslFixture(),
+    "groovy-ratpack-dsl": new GroovyRatpackDslFixture(),
+    "exec"              : new ExecuteAsScriptFixture()
+  ]
 
   @Override
   protected void addTests(CodeSnippetTests tests) {
@@ -40,13 +49,7 @@ class JavadocCodeSnippetTests extends CodeSnippetTestCase {
     root.eachDirMatch(~/ratpack-.+/) {
       def mainSrc = new File(it, "src/main")
       if (mainSrc.exists()) {
-        [
-          "tested": new DoNothingSnippetFixture(),
-          "java-chain-dsl": new JavaChainDslFixture(),
-          "groovy-chain-dsl": new GroovyChainDslFixture(),
-          "groovy-ratpack-dsl": new GroovyRatpackDslFixture(),
-          "exec": new ExecuteAsScriptFixture()
-        ].each { selector, snippetFixture ->
+        FIXTURES.each { selector, snippetFixture ->
           JavadocSnippetExtractor.extract(mainSrc, "**/*.java", selector, snippetFixture).each {
             tests.add(it)
           }
