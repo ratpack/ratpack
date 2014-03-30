@@ -40,6 +40,7 @@ import ratpack.render.internal.RenderController;
 import ratpack.server.BindAddress;
 import ratpack.test.handling.Invocation;
 import ratpack.test.handling.InvocationTimeoutException;
+import ratpack.util.ExceptionUtils;
 
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -182,11 +183,15 @@ public class DefaultInvocation implements Invocation {
       applicationConstants, bindAddress, request, response, null, eventController.getRegistry()
     );
 
-    Context context = new DefaultContext(requestConstants, effectiveRegistry, new Handler[0], 0, next);
+    Context context = new DefaultContext(requestConstants, effectiveRegistry, new Handler[]{handler}, 0, next);
 
     contextStorage.set(context);
     try {
-      handler.handle(context);
+      try {
+        context.next();
+      } catch (HandlerException e) {
+        e.getContext().error(ExceptionUtils.toException(e));
+      }
       finishedOnThreadCallbackManager.fire();
     } catch (Exception e) {
       exception = e;

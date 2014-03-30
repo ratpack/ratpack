@@ -18,7 +18,6 @@ package ratpack.test.handling;
 
 import ratpack.func.Action;
 import ratpack.handling.Handler;
-import ratpack.registry.RegistryBuilder;
 import ratpack.registry.RegistrySpec;
 
 import java.util.Map;

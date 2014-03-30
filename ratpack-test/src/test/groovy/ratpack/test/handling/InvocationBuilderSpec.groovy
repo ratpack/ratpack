@@ -17,6 +17,7 @@
 package ratpack.test.handling
 
 import io.netty.util.CharsetUtil
+import ratpack.error.ServerErrorHandler
 import ratpack.func.Action
 import ratpack.groovy.internal.ClosureUtil
 import ratpack.groovy.test.GroovyUnitTest
@@ -329,6 +330,32 @@ class InvocationBuilderSpec extends Specification {
       { Context it -> it.error(new Exception()) },
       { Context it -> it.clientError(404) },
     ]
+  }
+
+  def "custom error handler receives errors"() {
+    given:
+    def thrown = new RuntimeException("!")
+    def errorHandler = new ServerErrorHandler() {
+      @Override
+      void error(Context context, Exception exception) throws Exception {
+        context.render("!")
+      }
+    }
+
+    when:
+    builder {
+      registry {
+        add(ServerErrorHandler, errorHandler)
+      }
+    }
+
+    and:
+    invoke {
+      throw thrown
+    }
+
+    then:
+    rendered(String) == "!"
   }
 
 }
