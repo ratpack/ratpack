@@ -17,6 +17,7 @@
 package ratpack.handling
 
 import ratpack.error.ServerErrorHandler
+import ratpack.error.internal.PrintingServerErrorHandler
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 import static ratpack.registry.Registries.registry
@@ -163,6 +164,22 @@ class ProcessingInterceptionSpec extends RatpackGroovyDslSpec {
       statusCode == 500
       text == "error in init"
     }
+  }
+
+  def "intercepted handlers can throw exceptions"() {
+    given:
+    modules {
+      bind new RecordingInterceptor("id") // just need any interceptor
+      bind ServerErrorHandler, new PrintingServerErrorHandler()
+    }
+
+    when:
+    handlers {
+      handler { throw new RuntimeException("!") }
+    }
+
+    then:
+    get().statusCode == 500
   }
 
 }

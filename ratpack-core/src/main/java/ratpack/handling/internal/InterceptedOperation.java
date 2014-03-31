@@ -18,6 +18,7 @@ package ratpack.handling.internal;
 
 import ratpack.handling.Context;
 import ratpack.handling.ProcessingInterceptor;
+import ratpack.util.ExceptionUtils;
 
 import java.util.List;
 
@@ -25,6 +26,7 @@ public abstract class InterceptedOperation {
   private final ProcessingInterceptor.Type type;
   private final List<ProcessingInterceptor> interceptors;
   private final Context context;
+  private Throwable thrown;
 
   private int i;
 
@@ -40,6 +42,9 @@ public abstract class InterceptedOperation {
       performOperation();
     } else {
       nextInterceptor();
+      if (thrown != null) {
+        throw ExceptionUtils.uncheck(thrown);
+      }
     }
   }
 
@@ -67,7 +72,11 @@ public abstract class InterceptedOperation {
         }
       }
     } else {
-      performOperation();
+      try {
+        performOperation();
+      } catch (Throwable e) {
+        thrown = e;
+      }
     }
   }
 
