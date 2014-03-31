@@ -1,7 +1,6 @@
 buildscript {
   repositories {
-    maven { url "http://oss.jfrog.org/repo" }
-    mavenCentral()
+    jcenter()
   }
   dependencies {
     classpath "io.ratpack:ratpack-gradle:0.9.2"
@@ -13,7 +12,6 @@ apply plugin: "idea"
 apply plugin: "eclipse"
 
 repositories {
-  maven { url "http://oss.jfrog.org/repo" }
   jcenter()
   maven { url "http://repo.springsource.org/repo" } // for springloaded
 }

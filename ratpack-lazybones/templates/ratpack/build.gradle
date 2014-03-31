@@ -1,7 +1,6 @@
 buildscript {
   repositories {
-    maven { url "http://oss.jfrog.org/repo" }
-    mavenCentral()
+    jcenter()
   }
   dependencies {
     classpath "io.ratpack:ratpack-gradle:0.9.2"
@@ -13,19 +12,14 @@ apply plugin: "idea"
 apply plugin: "eclipse"
 
 repositories {
-  maven { url "http://oss.jfrog.org/repo" }
   jcenter()
   maven { url "http://repo.springsource.org/repo" } // for springloaded
 }
 
 dependencies {
-  testCompile "org.spockframework:spock-core:0.7-groovy-2.0"
-
   // SpringLoaded enables runtime hot reloading.
   // It is not part of the app runtime and is not shipped in the distribution.
-  springloaded "org.springsource.springloaded:springloaded-core:1.1.4"
-}
+  springloaded "org.springsource.loaded:springloaded:1.1.5.RELEASE"
 
-task wrapper(type: Wrapper) {
-  gradleVersion = "1.11"
+  testCompile "org.spockframework:spock-core:0.7-groovy-2.0"
 }
