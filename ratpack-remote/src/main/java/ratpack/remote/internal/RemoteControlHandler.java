@@ -63,7 +63,7 @@ public class RemoteControlHandler implements Handler {
       if (registryInjection == null) {
         rest.handle(context);
       } else {
-        context.insert(Registries.join(context, registryInjection), rest);
+        context.insert(registryInjection, rest);
       }
     }
   }

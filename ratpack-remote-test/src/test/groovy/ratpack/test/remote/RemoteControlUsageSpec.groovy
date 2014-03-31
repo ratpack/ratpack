@@ -30,8 +30,8 @@ class RemoteControlUsageSpec extends RatpackGroovyDslSpec {
       bind ValueHolder
     }
     handlers {
-      get { ValueHolder valueHolder ->
-        response.send valueHolder.value
+      get {
+        render getAll(ValueHolder)*.value.join(":")
       }
     }
     remoteControl = new RemoteControl(applicationUnderTest)
@@ -61,7 +61,7 @@ class RemoteControlUsageSpec extends RatpackGroovyDslSpec {
     remoteControl.exec { add(ValueHolder, new ValueHolder(value: "overridden")) }
 
     then:
-    text == "overridden"
+    text == "overridden:initial"
 
     when:
     remoteControl.exec { clearRegistry() }
