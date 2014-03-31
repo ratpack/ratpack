@@ -1,0 +1,3 @@
+dependencies {
+  compile ratpack.dependency("codahale-metrics")
+}

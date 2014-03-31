@@ -76,12 +76,6 @@ repositories {
   jcenter()
 }
 
-dependencies {
-  compile "io.ratpack:ratpack-codahale-metrics:$params.version"
-  compile "io.ratpack:ratpack-handlebars:$params.version"
-  compile "io.ratpack:ratpack-thymeleaf:$params.version"
-}
-
 version = "$params.version"
 
 configureRun.doLast {
