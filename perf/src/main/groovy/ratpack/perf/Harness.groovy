@@ -141,7 +141,11 @@ class Harness {
         HtmlReportGenerator.generate(new ByteArrayInputStream(jsonResults.bytes), out)
     }
 
-    Desktop.desktop.open(htmlResults)
+    if (Desktop.isDesktopSupported()) {
+      Desktop.desktop.open(htmlResults)
+    } else {
+      println "Results available at file://${htmlResults.absolutePath}"
+    }
   }
 
   private static void startApp(ProjectConnection connection) {
