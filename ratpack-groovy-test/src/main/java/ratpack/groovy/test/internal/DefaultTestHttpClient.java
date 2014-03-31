@@ -81,6 +81,7 @@ public class DefaultTestHttpClient implements TestHttpClient {
 
   @Override
   public Response head(String path) {
+    preRequest();
     response = request.head(toAbsolute(path));
     return postRequest();
   }
