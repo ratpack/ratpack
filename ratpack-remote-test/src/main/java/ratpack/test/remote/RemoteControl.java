@@ -59,4 +59,9 @@ public class RemoteControl {
     return support.send(CommandChain.of(ClosureCommand.class, closureCommands));
   }
 
+  public static Closure<?> command(@DelegatesTo(value = CommandDelegate.class, strategy = Closure.DELEGATE_FIRST) Closure<?> command) {
+    return command.dehydrate();
+  }
+
+
 }

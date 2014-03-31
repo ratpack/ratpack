@@ -19,6 +19,8 @@ package ratpack.test.remote
 import ratpack.remote.RemoteControlModule
 import ratpack.test.internal.RatpackGroovyDslSpec
 
+import static ratpack.test.remote.RemoteControl.command
+
 class RemoteControlUsageSpec extends RatpackGroovyDslSpec {
 
   RemoteControl remoteControl
@@ -69,4 +71,16 @@ class RemoteControlUsageSpec extends RatpackGroovyDslSpec {
     then:
     text == "initial"
   }
+
+  def "can use command method to create detached command"() {
+    given:
+    def command = command { add(ValueHolder, new ValueHolder(value: "command")) }
+
+    when:
+    remoteControl.exec command, { add(ValueHolder, new ValueHolder(value: "overridden")) }
+
+    then:
+    text == "command:overridden:initial"
+  }
+
 }
