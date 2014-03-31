@@ -19,6 +19,8 @@ package ratpack.test.remote
 import ratpack.remote.RemoteControlModule
 import ratpack.test.internal.RatpackGroovyDslSpec
 
+import static ratpack.test.remote.RemoteControl.command
+
 class RemoteControlUsageSpec extends RatpackGroovyDslSpec {
 
   RemoteControl remoteControl
@@ -30,8 +32,8 @@ class RemoteControlUsageSpec extends RatpackGroovyDslSpec {
       bind ValueHolder
     }
     handlers {
-      get { ValueHolder valueHolder ->
-        response.send valueHolder.value
+      get {
+        render getAll(ValueHolder)*.value.join(":")
       }
     }
     remoteControl = new RemoteControl(applicationUnderTest)
@@ -61,7 +63,7 @@ class RemoteControlUsageSpec extends RatpackGroovyDslSpec {
     remoteControl.exec { add(ValueHolder, new ValueHolder(value: "overridden")) }
 
     then:
-    text == "overridden"
+    text == "overridden:initial"
 
     when:
     remoteControl.exec { clearRegistry() }
@@ -69,4 +71,16 @@ class RemoteControlUsageSpec extends RatpackGroovyDslSpec {
     then:
     text == "initial"
   }
+
+  def "can use command method to create detached command"() {
+    given:
+    def command = command { add(ValueHolder, new ValueHolder(value: "command")) }
+
+    when:
+    remoteControl.exec command, { add(ValueHolder, new ValueHolder(value: "overridden")) }
+
+    then:
+    text == "command:overridden:initial"
+  }
+
 }
