@@ -41,20 +41,50 @@ import static ratpack.util.ExceptionUtils.uncheck;
  * The following two handlers are functionally equivalent:
  * <pre class="tested">
  * import ratpack.handling.*;
- * import ratpack.file.FileSystemBinding;
+ *
+ * // Some thing that handlers use…
+ * public class Thing {
+ *   public final name;
+ *   public Thing(String name) {
+ *     this.name = name;
+ *   }
+ * }
  *
  * public class VerboseHandler implements Handler {
  *   public void handle(Context context) {
- *     FileSystemBinding fileSystemBinding = context.get(FileSystemBinding.class);
- *     context.render(fileSystemBinding.getFile().toString());
+ *     Thing thing = context.get(Thing.class);
+ *     context.render(thing.name);
  *   }
  * }
  *
  * public class SuccinctHandler extends InjectionHandler {
- *   public void handle(Context context, FileSystemBinding fileSystemBinding) {
- *     context.render(fileSystemBinding.getFile().toString());
+ *   public void handle(Context context, Thing thing) {
+ *     context.render(thing.name);
  *   }
  * }
+ *
+ * // Test (Groovy) …
+ *
+ * import ratpack.test.embed.PathBaseDirBuilder
+ * import ratpack.groovy.test.TestHttpClients
+ * import ratpack.groovy.test.embed.ClosureBackedEmbeddedApplication
+ *
+ * def baseDir = new PathBaseDirBuilder(new File("some/path"))
+ * def app = new ClosureBackedEmbeddedApplication(baseDir)
+ *
+ * app.handlers {
+ *   register(new Thing("foo")) {
+ *     get("verbose", new VerboseHandler())
+ *     get("succinct", new SuccinctHandler())
+ *   }
+ * }
+ *
+ * def client = TestHttpClients.testHttpClient(app)
+ *
+ * assert client.getText("verbose") == "foo"
+ * assert client.getText("succinct") == "foo"
+ *
+ * app.close()
  * </pre>
  * <p>
  * If the parameters cannot be satisfied, a {@link ratpack.registry.NotInRegistryException} will be thrown.
