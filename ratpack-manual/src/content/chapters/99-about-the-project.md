@@ -31,6 +31,7 @@ The following people have provided significant contributions.
 * [Bobby Warner](https://github.com/bobbywarner)
 * [Jim White](https://github.com/jimwhite)
 * [Dimitris Zavaliadis](https://github.com/dimzava)
+* [Craig Burke](https://github.com/craigburke)
 
 ### Past project members
 
