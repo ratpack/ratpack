@@ -43,11 +43,6 @@ task createApps {
 
     def base = head + [label: "base", patch: head.patch - 1, snapshot: false, version: "${major}.${minor}.${patch - 1}"]
 
-    // Only head supports the required 'X-Response-Time' header, can't use base
-    // TODO Remove this once 0.9.3 is released.
-    base = head + [:]
-    base.label = "base"
-
     file("src/apps").eachDir { source ->
       [base, head].each { params ->
         def destination = file("$buildDir/apps/$source.name/$params.label")
