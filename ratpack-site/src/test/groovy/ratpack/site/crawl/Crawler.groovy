@@ -288,8 +288,8 @@ abstract class Crawler {
   static class Link {
     final URI uri
 
-    final Set<String> referrers = []
-    final List<PageError> errors = []
+    final Set<String> referrers =  new HashSet().asSynchronized()
+    final List<PageError> errors = [].asSynchronized()
 
     int attemptCount = 0
 
