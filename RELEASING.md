@@ -21,6 +21,7 @@ Write the content, but don't close the milestone yet.
 ## Go time…
 
 1. (a) Update `shared-resources/ratpack/ratpack-version.txt` (i.e. drop the -SNAPSHOT)
+1. (a) Update `ratpack-lazybones/templates/*/build.gradle` (i.e. drop the -SNAPSHOT)
 1. Ensure the the build is still passing (i.e. run `./gradlew clean build`) - really isn't needed, but doesn't hurt
 1. Commit with message “Version «number»”
 2. Tag commit with name “v«number»” (don't push yet)
@@ -36,10 +37,12 @@ Write the content, but don't close the milestone yet.
         1. Enter your user/pass
         1. Click “Close repository when done”
         1. Click “Sync”
+1. Publish Lazybones templates to Bintray: `./gradlew publishAllTemplates` - See below for credential requirements
 
 ## Post
 
 1. (a) Update `shared-resources/ratpack/ratpack-version.txt` (i.e. increment the patch number and add -SNAPSHOT)
+1. (a) Update `ratpack-lazybones/templates/*/build.gradle` (i.e. increment the patch number and add -SNAPSHOT)
 1. Update the `manualVersions` list in `ratpack-site.gradle` so the new manual is included in the site
 1. Update the `RatpackSiteUnderTest` class to include the next development version, and mark the just released version as released
 1. Update the `ratpack-site/src/ratpack/templates/index.html` file to use the new version number for the Groovy example
@@ -58,3 +61,6 @@ Write the content, but don't close the milestone yet.
     1. The sync from Bintray to Central requires an account with oss.sonatype.org
     1. See [the docs](https://docs.sonatype.org/display/Repository/Sonatype+OSS+Maven+Repository+Usage+Guide#SonatypeOSSMavenRepositoryUsageGuide-2.Signup) for creating an account here
     1. Add a comment to [this JIRA ticket](https://issues.sonatype.org/browse/OSSRH-8283) with your new account, asking for permission to publish to `io.ratpack`.
+1. Bintray credentials/config
+    1. Lazybones templates are published to Bintray using your Bintray account.  You need to be a member of the Ratpack organization with permission to publish to the Lazybones repo.
+    1. Create a gradle.properties file in the root of the Ratpack project and add properties for `ratpackBintrayUser` and `ratpackBintrayApiKey` with your Bintray details.  This file does not get committed.
