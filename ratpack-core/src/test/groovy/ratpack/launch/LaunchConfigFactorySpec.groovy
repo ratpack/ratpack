@@ -95,6 +95,17 @@ class LaunchConfigFactorySpec extends Specification {
     createWithBaseDir(classLoader, baseDir, properties, [:]).timeResponses
   }
 
+  def "compressResponses is respected"() {
+    expect:
+    !createWithBaseDir(classLoader, baseDir, properties, [:]).compressResponses
+
+    when:
+    properties.compressResponses = "true"
+
+    then:
+    createWithBaseDir(classLoader, baseDir, properties, [:]).compressResponses
+  }
+
   Properties p(Map<Object, Object> m) {
     def p = new Properties(properties)
     p.putAll(m)

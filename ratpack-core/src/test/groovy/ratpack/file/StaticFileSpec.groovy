@@ -238,7 +238,9 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
     expect:
     def response = get("file.txt")
     response.statusCode == statusCode.code()
-    response.getHeader(CONTENT_LENGTH).toInteger() == contentLength
+    if (!application.server.launchConfig.compressResponses) {
+      assert response.getHeader(CONTENT_LENGTH).toInteger() == contentLength
+    }
 
     where:
     ifModifiedSince | statusCode   | contentLength
@@ -264,7 +266,10 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
     expect:
     def response = get("")
     response.statusCode == NOT_MODIFIED.code()
-    response.getHeader(CONTENT_LENGTH).toInteger() == 0
+    if (!application.server.launchConfig.compressResponses) {
+      assert response.getHeader(CONTENT_LENGTH).toInteger() == 0
+    }
+
   }
 
   def "can serve large static file"() {
@@ -282,7 +287,9 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
     with(head("static.text")) {
       statusCode == OK.code()
       asByteArray().length == 0
-      getHeader("content-length") == size(file).toString()
+      if (!application.server.launchConfig.compressResponses) {
+        assert getHeader("content-length") == size(file).toString()
+      }
     }
 
     where:

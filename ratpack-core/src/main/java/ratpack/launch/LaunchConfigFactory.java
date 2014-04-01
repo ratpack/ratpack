@@ -263,6 +263,7 @@ public abstract class LaunchConfigFactory {
       String sslKeystorePassword = props.asString(Property.SSL_KEYSTORE_PASSWORD, "");
       int maxContentLength = props.asInt(Property.MAX_CONTENT_LENGTH, LaunchConfig.DEFAULT_MAX_CONTENT_LENGTH);
       boolean timeResponses = props.asBoolean(Property.TIME_RESPONSES, false);
+      boolean compressResponses = props.asBoolean(Property.COMPRESS_RESPONSES, false);
 
       Map<String, String> otherProperties = new HashMap<>();
       extractProperties("other.", properties, otherProperties);
@@ -282,6 +283,7 @@ public abstract class LaunchConfigFactory {
         .threads(threads)
         .maxContentLength(maxContentLength)
         .timeResponses(timeResponses)
+        .compressResponses(compressResponses)
         .indexFiles(indexFiles);
 
       if (sslKeystore != null) {
@@ -322,7 +324,7 @@ public abstract class LaunchConfigFactory {
      * <p>
      * <b>Value:</b> {@value}
      *
-     * @see ratpack.launch.LaunchConfig#getPort()
+     * @see LaunchConfig#getPort()
      */
     public static final String PORT = "port";
 
@@ -330,35 +332,35 @@ public abstract class LaunchConfigFactory {
      * The address to bind to. Defaults to {@code null} (all addresses). <p> If the value is not {@code null}, it will converted to an Inet Address via {@link java.net.InetAddress#getByName(String)}.
      * <p> <b>Value:</b> {@value} - (inet address)
      *
-     * @see ratpack.launch.LaunchConfig#getAddress()
+     * @see LaunchConfig#getAddress()
      */
     public static final String ADDRESS = "address";
 
     /**
      * Whether to reload the application if the script changes at runtime. Defaults to {@code false}. <p> <b>Value:</b> {@value} - (boolean)
      *
-     * @see ratpack.launch.LaunchConfig#isReloadable()
+     * @see LaunchConfig#isReloadable()
      */
     public static final String RELOADABLE = "reloadable";
 
     /**
      * The full qualified classname of the handler factory (required). <p> This class MUST implement {@link HandlerFactory} and have a public no-arg constructor. <p> <b>Value:</b> {@value} - (string)
      *
-     * @see ratpack.launch.LaunchConfig#getHandlerFactory()
+     * @see LaunchConfig#getHandlerFactory()
      */
     public static final String HANDLER_FACTORY = "handlerFactory";
 
     /**
      * The number of worker threads to use. Defaults to 0. <p> <b>Value:</b> {@value} - (int)
      *
-     * @see ratpack.launch.LaunchConfig#getThreads()
+     * @see LaunchConfig#getThreads()
      */
     public static final String THREADS = "threads";
 
     /**
      * The public address of the site. <p> If the value is not {@code null}, it will converted to an URL. <p> <b>Value:</b> {@value} - (url)
      *
-     * @see ratpack.launch.LaunchConfig#getPublicAddress()
+     * @see LaunchConfig#getPublicAddress()
      */
     public static final String PUBLIC_ADDRESS = "publicAddress";
 
@@ -366,28 +368,28 @@ public abstract class LaunchConfigFactory {
      * The comma separated list of file names of files that can be served in place of a directory. <p> If the value is not {@code null}, it will be converted to a string list by splitting on ",". <p>
      * <b>Value:</b> {@value} - (comma separated string list)
      *
-     * @see ratpack.launch.LaunchConfig#getIndexFiles()
+     * @see LaunchConfig#getIndexFiles()
      */
     public static final String INDEX_FILES = "indexFiles";
 
     /**
      * The absolute file path, URI or classpath location of the SSL keystore file.
      *
-     * @see ratpack.launch.LaunchConfig#getSSLContext()
+     * @see LaunchConfig#getSSLContext()
      */
     public static final String SSL_KEYSTORE_FILE = "ssl.keystore.file";
 
     /**
      * The password for the SSL keystore file.
      *
-     * @see ratpack.launch.LaunchConfig#getSSLContext()
+     * @see LaunchConfig#getSSLContext()
      */
     public static final String SSL_KEYSTORE_PASSWORD = "ssl.keystore.password";
 
     /**
      * The max conent lenght.
      *
-     * @see ratpack.launch.LaunchConfig#getMaxContentLength()
+     * @see LaunchConfig#getMaxContentLength()
      */
     public static final String MAX_CONTENT_LENGTH = "maxContentLength";
 
@@ -399,5 +401,14 @@ public abstract class LaunchConfigFactory {
      * @see LaunchConfig#isTimeResponses()
      */
     public static final String TIME_RESPONSES = "timeResponses";
+
+    /**
+     * Whether to compress responses.
+     * <p>
+     * The value of this property will be converted to a boolean by {@link Boolean#valueOf(String)}.
+     *
+     * @see LaunchConfig#isCompressResponses()
+     */
+    public static final String COMPRESS_RESPONSES = "compressResponses";
   }
 }

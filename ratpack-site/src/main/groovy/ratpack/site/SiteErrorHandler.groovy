@@ -45,7 +45,7 @@ class SiteErrorHandler implements ClientErrorHandler, ServerErrorHandler {
   }
 
   void message(Context context, CharSequence message) {
-    context.render(groovyTemplate("error.html", message: message, statusCode: context.response.status.code))
+    context.render(groovyTemplate("error.html", message: message.toString(), statusCode: context.response.status.code))
   }
 
 }

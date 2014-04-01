@@ -28,5 +28,6 @@ public abstract class HttpHeaderConstants {
   public static final CharSequence LAST_MODIFIED = HttpHeaders.newEntity(HttpHeaders.Names.LAST_MODIFIED);
   public static final CharSequence CONNECTION = HttpHeaders.newEntity(HttpHeaders.Names.CONNECTION);
   public static final CharSequence KEEP_ALIVE = HttpHeaders.newEntity(HttpHeaders.Values.KEEP_ALIVE);
+  public static final CharSequence CONTENT_ENCODING = HttpHeaders.newEntity(HttpHeaders.Names.CONTENT_ENCODING);
 
 }

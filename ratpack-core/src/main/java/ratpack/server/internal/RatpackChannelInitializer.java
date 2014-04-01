@@ -24,6 +24,7 @@ import io.netty.handler.codec.http.HttpRequestDecoder;
 import io.netty.handler.codec.http.HttpResponseEncoder;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.stream.ChunkedWriteHandler;
+import ratpack.file.internal.SmartHttpContentCompressor;
 import ratpack.handling.Handler;
 import ratpack.launch.LaunchConfig;
 import ratpack.server.Stopper;
@@ -33,6 +34,7 @@ import javax.net.ssl.SSLEngine;
 
 public class RatpackChannelInitializer extends ChannelInitializer<SocketChannel> {
 
+  private final boolean compressResponses;
   private NettyHandlerAdapter nettyHandlerAdapter;
   private SSLContext sslContext;
   private int maxContentLength;
@@ -41,6 +43,7 @@ public class RatpackChannelInitializer extends ChannelInitializer<SocketChannel>
     this.nettyHandlerAdapter = new NettyHandlerAdapter(stopper, handler, launchConfig);
     this.sslContext = launchConfig.getSSLContext();
     this.maxContentLength = launchConfig.getMaxContentLength();
+    this.compressResponses = launchConfig.isCompressResponses();
   }
 
   public void initChannel(SocketChannel ch) {
@@ -55,6 +58,9 @@ public class RatpackChannelInitializer extends ChannelInitializer<SocketChannel>
     pipeline.addLast("decoder", new HttpRequestDecoder(4096, 8192, 8192, false));
     pipeline.addLast("aggregator", new HttpObjectAggregator(maxContentLength));
     pipeline.addLast("encoder", new HttpResponseEncoder());
+    if (compressResponses) {
+      pipeline.addLast("deflater", new SmartHttpContentCompressor());
+    }
     pipeline.addLast("chunkedWriter", new ChunkedWriteHandler());
     pipeline.addLast("handler", nettyHandlerAdapter);
   }

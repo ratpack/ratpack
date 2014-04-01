@@ -186,4 +186,11 @@ public interface LaunchConfig {
    */
   public boolean isTimeResponses();
 
+  /**
+   * Whether or not responses should be compressed.
+   *
+   * @return whether or not responses should be compressed.
+   */
+  public boolean isCompressResponses();
+
 }

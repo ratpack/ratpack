@@ -19,10 +19,10 @@ package ratpack.file.internal;
 import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.stream.ChunkedNioStream;
+import ratpack.func.Action;
 import ratpack.handling.Background;
 import ratpack.http.internal.CustomHttpResponse;
 import ratpack.http.internal.HttpHeaderConstants;
-import ratpack.func.Action;
 import ratpack.util.internal.NumberUtil;
 
 import java.io.FileInputStream;
@@ -41,18 +41,31 @@ public class DefaultFileHttpTransmitter implements FileHttpTransmitter {
   private final FullHttpRequest request;
   private final HttpHeaders httpHeaders;
   private final Channel channel;
+  private final boolean compress;
   private final long startTime;
 
-  public DefaultFileHttpTransmitter(FullHttpRequest request, HttpHeaders httpHeaders, Channel channel, long startTime) {
+  public DefaultFileHttpTransmitter(FullHttpRequest request, HttpHeaders httpHeaders, Channel channel, boolean compress, long startTime) {
     this.request = request;
     this.httpHeaders = httpHeaders;
     this.channel = channel;
+    this.compress = compress;
     this.startTime = startTime;
+  }
+
+  private static boolean isNotNullAndStartsWith(String value, String prefix) {
+    return value != null && value.startsWith(prefix);
   }
 
   @Override
   public void transmit(Background background, final BasicFileAttributes basicFileAttributes, final Path file) {
-    if (file.getFileSystem().equals(FileSystems.getDefault())) {
+    final boolean compressThis = compress && basicFileAttributes.size() > 1024 && isNotNullAndStartsWith(httpHeaders.get(HttpHeaderConstants.CONTENT_TYPE), "text/");
+
+    if (compress && !compressThis) {
+      // Signal to the compressor not to compress this
+      httpHeaders.set(HttpHeaderConstants.CONTENT_ENCODING, HttpHeaders.Values.IDENTITY);
+    }
+
+    if (file.getFileSystem().equals(FileSystems.getDefault()) && !compressThis) {
       background.exec(new Callable<FileChannel>() {
         public FileChannel call() throws Exception {
           return new FileInputStream(file.toFile()).getChannel();
@@ -70,7 +83,7 @@ public class DefaultFileHttpTransmitter implements FileHttpTransmitter {
         }
       }).then(new Action<ReadableByteChannel>() {
         public void execute(ReadableByteChannel fileChannel) {
-          transmit(basicFileAttributes, new ChunkedNioStream(fileChannel));
+          transmit(basicFileAttributes, new ChunkedInputAdapter(new ChunkedNioStream(fileChannel)));
         }
       });
     }

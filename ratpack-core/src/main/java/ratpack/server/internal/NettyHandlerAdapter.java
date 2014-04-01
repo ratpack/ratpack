@@ -75,6 +75,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
   private Registry registry;
 
   private final boolean addResponseTimeHeader;
+  private final boolean compressResponses;
 
   public NettyHandlerAdapter(Stopper stopper, Handler handler, LaunchConfig launchConfig) {
     this.handlers = new Handler[]{new ErrorCatchingHandler(handler)};
@@ -105,6 +106,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
     }
 
     this.addResponseTimeHeader = launchConfig.isTimeResponses();
+    this.compressResponses = launchConfig.isCompressResponses();
     this.applicationConstants = new DefaultContext.ApplicationConstants(launchConfig.getForeground(), launchConfig.getBackground(), contextStorage, new DefaultRenderController());
   }
 
@@ -135,7 +137,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
     final DefaultMutableStatus responseStatus = new DefaultMutableStatus();
     final HttpHeaders httpHeaders = new DefaultHttpHeaders(false);
     final MutableHeaders responseHeaders = new NettyHeadersBackedMutableHeaders(httpHeaders);
-    FileHttpTransmitter fileHttpTransmitter = new DefaultFileHttpTransmitter(nettyRequest, httpHeaders, channel, addResponseTimeHeader ? startTime : -1);
+    FileHttpTransmitter fileHttpTransmitter = new DefaultFileHttpTransmitter(nettyRequest, httpHeaders, channel, compressResponses, addResponseTimeHeader ? startTime : -1);
 
     final DefaultEventController<RequestOutcome> requestOutcomeEventController = new DefaultEventController<>();
 
@@ -162,7 +164,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
           }
 
           channel.writeAndFlush(nettyResponse);
-          channel.write(byteBuf);
+          channel.write(new DefaultHttpContent(byteBuf));
           ChannelFuture future = channel.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
 
           if (requestOutcomeEventController.isHasListeners()) {

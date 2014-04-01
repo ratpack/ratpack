@@ -75,6 +75,7 @@ public class LaunchConfigBuilder {
   private SSLContext sslContext;
   private int maxContentLength = LaunchConfig.DEFAULT_MAX_CONTENT_LENGTH;
   private boolean timeResponses;
+  private boolean compressResponses;
 
   private LaunchConfigBuilder(Path baseDir) {
     this.baseDir = new DefaultFileSystemBinding(baseDir);
@@ -215,6 +216,20 @@ public class LaunchConfigBuilder {
   }
 
   /**
+   * Whether to compress responses.
+   *
+   * Default value is {@code false}.
+   *
+   * @param compressResponses Whether to compress responses
+   * @return this
+   * @see LaunchConfig#isCompressResponses() ()
+   */
+  public LaunchConfigBuilder compressResponses(boolean compressResponses) {
+    this.compressResponses = compressResponses;
+    return this;
+  }
+
+  /**
    * Adds the given values as potential index file names.
    *
    * @param indexFiles the potential index file names.
@@ -303,6 +318,7 @@ public class LaunchConfigBuilder {
       sslContext,
       maxContentLength,
       timeResponses,
+      compressResponses,
       handlerFactory
     );
   }

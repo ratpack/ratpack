@@ -133,6 +133,11 @@ public class DelegatingLaunchConfig implements LaunchConfigInternal {
   }
 
   @Override
+  public boolean isCompressResponses() {
+    return launchConfig.isCompressResponses();
+  }
+
+  @Override
   public ContextStorage getContextStorage() {
     return launchConfig.getContextStorage();
   }
