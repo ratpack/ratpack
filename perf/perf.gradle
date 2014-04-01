@@ -16,7 +16,6 @@
 
 apply from: "$rootDir/gradle/groovyModule.gradle"
 apply plugin: "application"
-apply plugin: 'javascript-base'
 
 configurations {
   reports
