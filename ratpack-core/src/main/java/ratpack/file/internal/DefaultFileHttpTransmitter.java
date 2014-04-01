@@ -52,13 +52,22 @@ public class DefaultFileHttpTransmitter implements FileHttpTransmitter {
     this.startTime = startTime;
   }
 
-  private static boolean isNotNullAndStartsWith(String value, String prefix) {
-    return value != null && value.startsWith(prefix);
+  private static boolean isNotNullAndStartsWith(String value, String... prefixes) {
+    if (value == null) {
+      return false;
+    }
+    for (String prefix : prefixes) {
+      if (value.startsWith(prefix)) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   @Override
   public void transmit(Background background, final BasicFileAttributes basicFileAttributes, final Path file) {
-    final boolean compressThis = compress && basicFileAttributes.size() > 1024 && isNotNullAndStartsWith(httpHeaders.get(HttpHeaderConstants.CONTENT_TYPE), "text/");
+    final boolean compressThis = compress && basicFileAttributes.size() > 1024 && isNotNullAndStartsWith(httpHeaders.get(HttpHeaderConstants.CONTENT_TYPE), "text/", "application/");
 
     if (compress && !compressThis) {
       // Signal to the compressor not to compress this
