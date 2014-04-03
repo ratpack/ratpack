@@ -40,7 +40,7 @@ public class RatpackMain {
   }
 
   /**
-   * Builds a server by calling {@link LaunchConfigFactory#createFromGlobalProperties(ClassLoader, java.util.Properties, java.util.Properties)}.
+   * Builds a server by calling {@link LaunchConfigs#createFromGlobalProperties(ClassLoader, java.util.Properties, java.util.Properties)}.
    * <p>
    * Uses this class's classloader as the classloader.
    *
@@ -50,7 +50,7 @@ public class RatpackMain {
    */
   public RatpackServer server(Properties overrideProperties, Properties defaultProperties) {
     addImpliedDefaults(defaultProperties);
-    LaunchConfig launchConfig = LaunchConfigFactory.createFromGlobalProperties(RatpackMain.class.getClassLoader(), overrideProperties, defaultProperties);
+    LaunchConfig launchConfig = LaunchConfigs.createFromGlobalProperties(RatpackMain.class.getClassLoader(), overrideProperties, defaultProperties);
     return RatpackServerBuilder.build(launchConfig);
   }
 

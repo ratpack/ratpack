@@ -18,7 +18,7 @@ package ratpack.groovy.launch;
 
 import groovy.lang.GroovySystem;
 import ratpack.groovy.launch.internal.GroovyVersionCheck;
-import ratpack.launch.LaunchConfigFactory;
+import ratpack.launch.LaunchConfigs;
 import ratpack.launch.RatpackMain;
 
 import java.util.Properties;
@@ -40,7 +40,7 @@ public class GroovyRatpackMain extends RatpackMain {
 
   @Override
   protected void addImpliedDefaults(Properties properties) {
-    properties.put(LaunchConfigFactory.Property.HANDLER_FACTORY, GroovyScriptFileHandlerFactory.class.getName());
+    properties.put(LaunchConfigs.Property.HANDLER_FACTORY, GroovyScriptFileHandlerFactory.class.getName());
     properties.put(GroovyScriptFileHandlerFactory.SCRIPT_PROPERTY_NAME, "ratpack.groovy");
   }
 }

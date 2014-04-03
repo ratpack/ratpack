@@ -17,7 +17,7 @@
 package ratpack.groovy.templating
 
 import ratpack.groovy.internal.StandaloneScriptBacking
-import ratpack.launch.LaunchConfigFactory
+import ratpack.launch.LaunchConfigs
 
 import java.nio.file.Path
 
@@ -25,7 +25,7 @@ class EphemeralPortScriptBacking extends StandaloneScriptBacking {
   @Override
   protected Properties createProperties(Path scriptFile) {
     def properties = super.createProperties(scriptFile)
-    properties.setProperty(LaunchConfigFactory.Property.PORT, "0")
+    properties.setProperty(LaunchConfigs.Property.PORT, "0")
     properties
   }
 }

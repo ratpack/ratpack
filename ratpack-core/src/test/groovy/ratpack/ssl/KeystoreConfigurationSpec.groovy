@@ -21,13 +21,13 @@ import org.junit.rules.TemporaryFolder
 import ratpack.handling.Handler
 import ratpack.launch.HandlerFactory
 import ratpack.launch.LaunchConfig
-import ratpack.launch.LaunchConfigFactory
+import ratpack.launch.LaunchConfigs
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import static ratpack.launch.LaunchConfigFactory.Property.HANDLER_FACTORY
-import static ratpack.launch.LaunchConfigFactory.Property.SSL_KEYSTORE_FILE
-import static ratpack.launch.LaunchConfigFactory.Property.SSL_KEYSTORE_PASSWORD
+import static ratpack.launch.LaunchConfigs.Property.HANDLER_FACTORY
+import static ratpack.launch.LaunchConfigs.Property.SSL_KEYSTORE_FILE
+import static ratpack.launch.LaunchConfigs.Property.SSL_KEYSTORE_PASSWORD
 
 class KeystoreConfigurationSpec extends Specification {
 
@@ -51,7 +51,7 @@ class KeystoreConfigurationSpec extends Specification {
     properties.setProperty HANDLER_FACTORY, NullHandlerFactory.name
 
     when:
-    def launchConfig = LaunchConfigFactory.createWithBaseDir(getClass().classLoader, temporaryFolder.root.toPath(), properties)
+    def launchConfig = LaunchConfigs.createWithBaseDir(getClass().classLoader, temporaryFolder.root.toPath(), properties)
 
     then:
     launchConfig.getSSLContext() != null

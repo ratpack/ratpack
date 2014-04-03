@@ -25,7 +25,7 @@ import ratpack.groovy.launch.GroovyScriptFileHandlerFactory;
 import ratpack.groovy.launch.internal.GroovyVersionCheck;
 import ratpack.launch.HandlerFactory;
 import ratpack.launch.LaunchConfig;
-import ratpack.launch.LaunchConfigFactory;
+import ratpack.launch.LaunchConfigs;
 import ratpack.launch.internal.DelegatingLaunchConfig;
 import ratpack.launch.internal.LaunchConfigInternal;
 import ratpack.server.RatpackServer;
@@ -69,8 +69,8 @@ public class StandaloneScriptBacking implements Action<Closure<?>> {
 
     Properties properties = createProperties(scriptFile);
 
-    Path configFile = new DefaultFileSystemBinding(baseDir).file(LaunchConfigFactory.CONFIG_RESOURCE_DEFAULT);
-    LaunchConfig launchConfig = LaunchConfigFactory.createFromFile(closure.getClass().getClassLoader(), baseDir, configFile, properties, defaultProperties);
+    Path configFile = new DefaultFileSystemBinding(baseDir).file(LaunchConfigs.CONFIG_RESOURCE_DEFAULT);
+    LaunchConfig launchConfig = LaunchConfigs.createFromFile(closure.getClass().getClassLoader(), baseDir, configFile, properties, defaultProperties);
 
     if (scriptFile == null) {
       launchConfig = new DelegatingLaunchConfig((LaunchConfigInternal) launchConfig) {
@@ -102,10 +102,10 @@ public class StandaloneScriptBacking implements Action<Closure<?>> {
   }
 
   protected Properties createProperties(@Nullable Path scriptFile) {
-    Properties properties = LaunchConfigFactory.getDefaultPrefixedProperties();
+    Properties properties = LaunchConfigs.getDefaultPrefixedProperties();
 
-    properties.setProperty(LaunchConfigFactory.Property.HANDLER_FACTORY, GroovyScriptFileHandlerFactory.class.getName());
-    properties.setProperty(LaunchConfigFactory.Property.RELOADABLE, "true");
+    properties.setProperty(LaunchConfigs.Property.HANDLER_FACTORY, GroovyScriptFileHandlerFactory.class.getName());
+    properties.setProperty(LaunchConfigs.Property.RELOADABLE, "true");
 
     if (scriptFile != null) {
       properties.setProperty("other." + GroovyScriptFileHandlerFactory.SCRIPT_PROPERTY_NAME, scriptFile.getFileName().toString());

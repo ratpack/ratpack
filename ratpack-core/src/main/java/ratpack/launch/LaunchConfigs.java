@@ -37,7 +37,7 @@ import static ratpack.util.ExceptionUtils.uncheck;
  * Static factory methods for creating {@link LaunchConfig} objects using various strategies. <p> Designed to be used to construct a launch config via a {@link Properties} instance. <p> Most methods
  * eventually delegate to {@link #createWithBaseDir(ClassLoader, java.nio.file.Path, java.util.Properties)}. <p> When things go wrong, a {@link LaunchException} will be thrown.
  */
-public abstract class LaunchConfigFactory {
+public abstract class LaunchConfigs {
 
   /**
    * Value: {@value}.
@@ -56,7 +56,7 @@ public abstract class LaunchConfigFactory {
   public static final String CONFIG_RESOURCE_PROPERTY = "configResource";
   public static final String CONFIG_RESOURCE_DEFAULT = "ratpack.properties";
 
-  private LaunchConfigFactory() {
+  private LaunchConfigs() {
   }
 
   /**
@@ -214,7 +214,7 @@ public abstract class LaunchConfigFactory {
   /**
    * Delegates to {@link #createWithBaseDir(ClassLoader, java.nio.file.Path, java.util.Properties, java.util.Map)}, using {@link System#getenv()} as the environment variables.
    *
-   * @param classLoader The classloader used to load the {@link ratpack.launch.LaunchConfigFactory.Property#HANDLER_FACTORY} class
+   * @param classLoader The classloader used to load the {@link LaunchConfigs.Property#HANDLER_FACTORY} class
    * @param baseDir The {@link LaunchConfig#getBaseDir()} value
    * @param properties The values to use to construct the launch config
    * @return A launch config
@@ -228,7 +228,7 @@ public abstract class LaunchConfigFactory {
    * <p>
    * See {@link Property} for details on the valid properties.
    *
-   * @param classLoader The classloader used to load the {@link ratpack.launch.LaunchConfigFactory.Property#HANDLER_FACTORY} class
+   * @param classLoader The classloader used to load the {@link LaunchConfigs.Property#HANDLER_FACTORY} class
    * @param baseDir The {@link LaunchConfig#getBaseDir()} value
    * @param properties The values to use to construct the launch config
    * @param envVars The environment variables to use to construct the launch config

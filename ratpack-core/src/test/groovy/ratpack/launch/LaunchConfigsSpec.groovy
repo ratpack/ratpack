@@ -26,11 +26,11 @@ import java.nio.file.Path
 
 import static ratpack.launch.LaunchConfig.DEFAULT_MAX_CONTENT_LENGTH
 import static ratpack.launch.LaunchConfig.DEFAULT_PORT
-import static ratpack.launch.LaunchConfigFactory.Property.HANDLER_FACTORY
-import static ratpack.launch.LaunchConfigFactory.Property.MAX_CONTENT_LENGTH
-import static ratpack.launch.LaunchConfigFactory.createWithBaseDir
+import static ratpack.launch.LaunchConfigs.Property.HANDLER_FACTORY
+import static ratpack.launch.LaunchConfigs.Property.MAX_CONTENT_LENGTH
+import static ratpack.launch.LaunchConfigs.createWithBaseDir
 
-class LaunchConfigFactorySpec extends Specification {
+class LaunchConfigsSpec extends Specification {
 
   @Rule
   TemporaryFolder temporaryFolder

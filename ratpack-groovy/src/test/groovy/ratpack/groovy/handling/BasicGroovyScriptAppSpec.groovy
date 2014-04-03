@@ -18,7 +18,7 @@ package ratpack.groovy.handling
 
 import ratpack.groovy.launch.GroovyScriptFileHandlerFactory
 import ratpack.launch.LaunchConfig
-import ratpack.launch.LaunchConfigFactory
+import ratpack.launch.LaunchConfigs
 import ratpack.test.embed.EmbeddedApplication
 import ratpack.test.embed.LaunchConfigEmbeddedApplication
 import ratpack.test.internal.RatpackGroovyScriptAppSpec
@@ -33,16 +33,16 @@ class BasicGroovyScriptAppSpec extends RatpackGroovyScriptAppSpec {
     new LaunchConfigEmbeddedApplication() {
       @Override
       protected LaunchConfig createLaunchConfig() {
-        LaunchConfigFactory.createWithBaseDir(getClass().classLoader, getRatpackFile().parentFile.toPath(), getLaunchConfigProperties())
+        LaunchConfigs.createWithBaseDir(getClass().classLoader, getRatpackFile().parentFile.toPath(), getLaunchConfigProperties())
       }
     }
   }
 
   protected Properties getLaunchConfigProperties() {
     Properties properties = new Properties()
-    properties.setProperty(LaunchConfigFactory.Property.HANDLER_FACTORY, GroovyScriptFileHandlerFactory.name)
-    properties.setProperty(LaunchConfigFactory.Property.RELOADABLE, reloadable.toString())
-    properties.setProperty(LaunchConfigFactory.Property.PORT, "0")
+    properties.setProperty(LaunchConfigs.Property.HANDLER_FACTORY, GroovyScriptFileHandlerFactory.name)
+    properties.setProperty(LaunchConfigs.Property.RELOADABLE, reloadable.toString())
+    properties.setProperty(LaunchConfigs.Property.PORT, "0")
     properties.setProperty("other." + GroovyScriptFileHandlerFactory.COMPILE_STATIC_PROPERTY_NAME, compileStatic.toString())
     properties.setProperty("other." + GroovyScriptFileHandlerFactory.SCRIPT_PROPERTY_NAME, ratpackFile.name)
     return properties

@@ -11,8 +11,8 @@ Note that one of the `LaunchConfig` object's responsibilities is to provide a [`
 This factory is responsible for creating the handler that is effectively the Ratpack application.
 See the [chapter on handlers](handlers.html) for more details.
 
-One option for building a `LaunchConfig` is to use the [`LaunchConfigBuilder`](api/ratpack/launch/LaunchConfig.html).
-Another option is to use the [`LaunchConfigFactory`](api/ratpack/launch/LaunchConfigFactory.html) which is able to build a launch config from system properties and a properties file.
+One option for building a `LaunchConfig` is to use the [`LaunchConfigBuilder`](api/ratpack/launch/LaunchConfigBuilder.html).
+Another option is to use [`LaunchConfigs`](api/ratpack/launch/LaunchConfigs.html) which is able to build a launch config from system properties and a properties file.
 
 ## RatpackMain
 

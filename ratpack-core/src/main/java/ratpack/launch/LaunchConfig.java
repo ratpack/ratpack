@@ -32,7 +32,7 @@ import java.util.Map;
  * The configuration used to launch a server.
  *
  * @see LaunchConfigBuilder
- * @see LaunchConfigFactory
+ * @see LaunchConfigs
  * @see ratpack.server.RatpackServerBuilder#build(LaunchConfig)
  */
 public interface LaunchConfig {
