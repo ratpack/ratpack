@@ -20,13 +20,6 @@ import ratpack.test.internal.RatpackGroovyDslSpec
 
 class RedirectHandlingSpec extends RatpackGroovyDslSpec {
 
-  Properties properties
-
-  @Override
-  protected Properties getProperties() {
-    return properties
-  }
-
   @Override
   void configureRequest(RequestSpecification requestSpecification) {
     requestSpecification.redirects().follow(false)
