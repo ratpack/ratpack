@@ -20,7 +20,8 @@ import ratpack.error.ServerErrorHandler
 import ratpack.error.internal.PrintingServerErrorHandler
 import ratpack.test.internal.RatpackGroovyDslSpec
 
-import static RxRatpack.background
+import static ratpack.rx.RxRatpack.observe
+import static ratpack.rx.RxRatpack.observeEach
 
 class RxBackgroundSpec extends RatpackGroovyDslSpec {
 
@@ -32,9 +33,9 @@ class RxBackgroundSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       get(":value") {
-        background {
+        observe(background {
           pathTokens.value
-        } map {
+        }) map {
           it * 2
         } map {
           it.toUpperCase()
@@ -55,9 +56,9 @@ class RxBackgroundSpec extends RatpackGroovyDslSpec {
     }
     handlers {
       get(":value") {
-        background {
+        observe(background {
           pathTokens.value
-        } map {
+        }) map {
           it * 2
         } map {
           throw new Exception("!!!!")
@@ -75,15 +76,15 @@ class RxBackgroundSpec extends RatpackGroovyDslSpec {
   def "can observe the background with an Iterable return type"() {
     when:
     handlers {
-      get(":value") { RxBackground rxBackground ->
+      get(":value") {
         def returnString = ""
 
-        rxBackground.observeEach {
+        observeEach(background {
           pathTokens.value.split(",") as List
-        }
-        .take(2)
-        .map { it.toLowerCase() }
-        .subscribe({
+        })
+          .take(2)
+          .map { it.toLowerCase() }
+          .subscribe({
           returnString += it
         }, { Throwable error ->
           throw error
