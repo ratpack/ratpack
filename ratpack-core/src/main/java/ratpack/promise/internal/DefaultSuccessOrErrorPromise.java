@@ -18,6 +18,7 @@ package ratpack.promise.internal;
 
 import ratpack.func.Action;
 import ratpack.handling.Context;
+import ratpack.handling.internal.ContextStorage;
 import ratpack.promise.Fulfiller;
 import ratpack.promise.SuccessOrErrorPromise;
 import ratpack.promise.SuccessPromise;
@@ -27,15 +28,17 @@ import static ratpack.util.ExceptionUtils.toException;
 public class DefaultSuccessOrErrorPromise<T> implements SuccessOrErrorPromise<T> {
   private final Context context;
   private final Action<? super Fulfiller<T>> action;
+  private final ContextStorage contextStorage;
 
-  public DefaultSuccessOrErrorPromise(Context context, Action<? super Fulfiller<T>> action) {
+  public DefaultSuccessOrErrorPromise(Context context, Action<? super Fulfiller<T>> action, ContextStorage contextStorage) {
     this.context = context;
     this.action = action;
+    this.contextStorage = contextStorage;
   }
 
   @Override
   public SuccessPromise<T> onError(final Action<? super Throwable> errorHandler) {
-    return new DefaultSuccessPromise<>(action, new ForwardToContextErrorHandler(), new Action<Throwable>() {
+    return new DefaultSuccessPromise<>(contextStorage, action, new ForwardToContextErrorHandler(), new Action<Throwable>() {
       @Override
       public void execute(Throwable t) {
         try {
@@ -49,7 +52,7 @@ public class DefaultSuccessOrErrorPromise<T> implements SuccessOrErrorPromise<T>
 
   @Override
   public void then(Action<? super T> then) throws Exception {
-    new DefaultSuccessPromise<>(action, new ForwardToContextErrorHandler()).then(then);
+    new DefaultSuccessPromise<>(contextStorage, action, new ForwardToContextErrorHandler()).then(then);
   }
 
   private class ForwardToContextErrorHandler implements Action<Throwable> {

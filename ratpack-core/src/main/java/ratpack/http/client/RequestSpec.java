@@ -16,13 +16,10 @@
 
 package ratpack.http.client;
 
-import ratpack.func.Action;
-import ratpack.promise.SuccessOrErrorPromise;
+import ratpack.http.MutableHeaders;
 
-public interface HttpClient {
+public interface RequestSpec {
 
-  SuccessOrErrorPromise<RequestResult> get(String httpUrl);
-
-  SuccessOrErrorPromise<RequestResult> get(String httpUrl, Action<? super RequestSpec> action);
+  MutableHeaders getHeaders();
 
 }

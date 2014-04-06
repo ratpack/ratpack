@@ -19,6 +19,7 @@ package ratpack.handling;
 import ratpack.api.NonBlocking;
 import ratpack.func.Action;
 import ratpack.http.Request;
+import ratpack.http.client.HttpClient;
 import ratpack.path.PathTokens;
 import ratpack.promise.Fulfiller;
 import ratpack.promise.SuccessOrErrorPromise;
@@ -210,5 +211,7 @@ public interface ReadOnlyContext extends Registry {
    * @param onClose A notification callback
    */
   void onClose(Action<? super RequestOutcome> onClose);
+
+  HttpClient getHttpClient();
 
 }

@@ -20,7 +20,6 @@ import ratpack.api.NonBlocking;
 import ratpack.func.Action;
 import ratpack.handling.direct.DirectChannelAccess;
 import ratpack.http.Response;
-import ratpack.http.client.HttpClient;
 import ratpack.parse.NoSuchParserException;
 import ratpack.parse.Parse;
 import ratpack.parse.ParserException;
@@ -391,7 +390,5 @@ public interface Context extends ReadOnlyContext {
    * @return Direct access to the underlying channel.
    */
   DirectChannelAccess getDirectChannelAccess();
-
-  HttpClient getHttpClient();
 
 }

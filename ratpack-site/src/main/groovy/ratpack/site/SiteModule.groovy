@@ -5,6 +5,7 @@ import com.google.inject.AbstractModule
 import com.google.inject.Provides
 import ratpack.error.ClientErrorHandler
 import ratpack.error.ServerErrorHandler
+import ratpack.handling.Foreground
 import ratpack.launch.LaunchConfig
 import ratpack.site.github.ApiBackedGitHubData
 import ratpack.site.github.GitHubApi
@@ -49,7 +50,7 @@ class SiteModule extends AbstractModule {
 
     @Provides
     @com.google.inject.Singleton
-    GitHubApi gitHubApi(LaunchConfig launchConfig, ObjectReader reader) {
+    GitHubApi gitHubApi(LaunchConfig launchConfig, ObjectReader reader, Foreground foreground) {
       String authToken = launchConfig.getOther(GITHUB_AUTH, null)
       if (authToken == null) {
         System.err.println("Warning: using anonymous requests to GitHub, may be rate limited (set github.auth other property)")
@@ -60,7 +61,7 @@ class SiteModule extends AbstractModule {
 
       String url = launchConfig.getOther(GITHUB_URL, GITHUB_URL_DEFAULT)
 
-      new GitHubApi(url, authToken, ttlMinsInt, reader)
+      new GitHubApi(url, authToken, ttlMinsInt, reader, foreground)
     }
   }
 

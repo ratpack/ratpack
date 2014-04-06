@@ -23,6 +23,7 @@ import com.google.common.cache.CacheBuilder
 import com.google.common.cache.CacheLoader
 import com.google.common.cache.LoadingCache
 import groovy.transform.CompileStatic
+import ratpack.handling.Foreground
 
 import java.util.concurrent.TimeUnit
 
@@ -32,87 +33,33 @@ class GitHubApi {
 
   private final String api
   private final String authToken
-  private final int cacheMins
-  private final ObjectReader objectReader
 
-  private final LoadingCache<String, JsonNode> cache = CacheBuilder.newBuilder().
-    initialCapacity(30).
-    expireAfterWrite(cacheMins, TimeUnit.MINUTES).
-    build(new CacheLoader<String, JsonNode>() {
-      @Override
-      JsonNode load(String key) throws Exception {
-        HttpURLConnection connection = new URL(key).openConnection() as HttpURLConnection
-        def node = objectReader.readTree(connection.inputStream.text)
+  private final LoadingCache<String, rx.Observable<ArrayNode>> cache
 
-        if (node instanceof ArrayNode) {
-          def array = (ArrayNode) node
-          def next = getNextUrl(connection)
-          while (next) {
-            connection = new URL(next).openConnection() as HttpURLConnection
-            def nextArray = objectReader.readTree(connection.inputStream.text) as ArrayNode
-            array.addAll(nextArray)
-            next = getNextUrl(connection)
-          }
-          array
-        } else {
-          node
-        }
-      }
-    })
-
-  private static String getNextUrl(HttpURLConnection connection) {
-    def header = connection.getHeaderField("Link")
-    if (!header) {
-      return null
-    }
-
-    String[] links = header.split(",")
-    for (String link : links) {
-      String[] segments = link.split(";")
-      if (segments.length < 2) {
-        continue
-      }
-
-      String linkPart = segments[0].trim();
-      if (!linkPart.startsWith("<") || !linkPart.endsWith(">")) {
-        continue
-      }
-      linkPart = linkPart.substring(1, linkPart.length() - 1)
-
-      for (int i = 1; i < segments.length; i++) {
-        String[] rel = segments[i].trim().split("=");
-        if (rel.length < 2 || rel[0] != "rel") {
-          continue
-        }
-
-        String relValue = rel[1];
-        if (relValue.startsWith("\"") && relValue.endsWith("\"")) {
-          relValue = relValue.substring(1, relValue.length() - 1)
-        }
-
-        if (relValue == "next") {
-          return linkPart
-        }
-      }
-    }
-  }
-
-  GitHubApi(String api, String authToken, int cacheMins, ObjectReader objectReader) {
+  GitHubApi(String api, String authToken, int cacheMins, ObjectReader objectReader, Foreground foreground) {
     this.api = api
     this.authToken = authToken
-    this.cacheMins = cacheMins
-    this.objectReader = objectReader
+
+    def requester = new GithubRequester(objectReader, foreground)
+    this.cache = CacheBuilder.newBuilder().
+      initialCapacity(30).
+      expireAfterWrite(cacheMins, TimeUnit.MINUTES).
+      build(new CacheLoader<String, rx.Observable<ArrayNode>>() {
+        rx.Observable<ArrayNode> load(String key) throws Exception {
+          requester.request(key)
+        }
+      })
   }
 
-  private JsonNode get(String path, Map<String, String> params) {
+  private rx.Observable<JsonNode> get(String path, Map<String, String> params) {
     cache.get(api + path + toQueryString(params))
   }
 
-  JsonNode milestones(Map<String, String> params) {
+  rx.Observable<JsonNode> milestones(Map<String, String> params) {
     get("repos/ratpack/ratpack/milestones", params)
   }
 
-  JsonNode issues(Map<String, String> params) {
+  rx.Observable<JsonNode> issues(Map<String, String> params) {
     get("repos/ratpack/ratpack/issues", params)
   }
 

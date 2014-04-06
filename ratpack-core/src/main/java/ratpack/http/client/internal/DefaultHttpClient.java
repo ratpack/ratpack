@@ -21,25 +21,26 @@ import io.netty.channel.*;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.http.*;
+import io.netty.handler.ssl.SslHandler;
 import ratpack.func.Action;
+import ratpack.func.Actions;
 import ratpack.handling.ReadOnlyContext;
 import ratpack.http.Headers;
-import ratpack.http.TypedData;
+import ratpack.http.MutableHeaders;
 import ratpack.http.client.HttpClient;
 import ratpack.http.client.ReceivedResponse;
 import ratpack.http.client.RequestResult;
-import ratpack.http.internal.ByteBufBackedTypedData;
-import ratpack.http.internal.DefaultMediaType;
-import ratpack.http.internal.HttpHeaderConstants;
-import ratpack.http.internal.NettyHeadersBackedHeaders;
+import ratpack.http.client.RequestSpec;
+import ratpack.http.internal.*;
 import ratpack.launch.LaunchConfig;
 import ratpack.launch.internal.LaunchConfigInternal;
 import ratpack.promise.Fulfiller;
 import ratpack.promise.SuccessOrErrorPromise;
 
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLEngine;
 import java.net.URI;
 import java.net.URISyntaxException;
-
 
 public class DefaultHttpClient implements HttpClient {
 
@@ -51,6 +52,11 @@ public class DefaultHttpClient implements HttpClient {
 
   @Override
   public SuccessOrErrorPromise<RequestResult> get(String httpUrl) {
+    return get(httpUrl, Actions.noop());
+  }
+
+  @Override
+  public SuccessOrErrorPromise<RequestResult> get(String httpUrl, final Action<? super RequestSpec> requestConfigurer) {
     final URI uri;
     try {
       uri = new URI(httpUrl);
@@ -59,13 +65,16 @@ public class DefaultHttpClient implements HttpClient {
     }
 
     String scheme = uri.getScheme();
-    if (!scheme.equals("http")) {
-      throw new IllegalArgumentException("URL is not a http url");
+    boolean useSsl = false;
+    if (scheme.equals("https")) {
+      useSsl = true;
+    } else if (!scheme.equals("http")) {
+      throw new IllegalArgumentException(String.format("URL '%s' is not a http url", httpUrl));
     }
+    final boolean finalUseSsl = useSsl;
 
     final String host = uri.getHost();
-    final int port = uri.getPort() < 0 ? 80 : uri.getPort();
-
+    final int port = uri.getPort() < 0 ? (useSsl ? 443 : 80) : uri.getPort();
 
     return context.promise(new Action<Fulfiller<RequestResult>>() {
       @Override
@@ -77,6 +86,13 @@ public class DefaultHttpClient implements HttpClient {
             @Override
             protected void initChannel(SocketChannel ch) throws Exception {
               ChannelPipeline p = ch.pipeline();
+
+              if (finalUseSsl) {
+                SSLEngine engine = SSLContext.getDefault().createSSLEngine();
+                engine.setUseClientMode(true);
+                p.addLast("ssl", new SslHandler(engine));
+              }
+
               p.addLast("codec", new HttpClientCodec());
               p.addLast("aggregator", new HttpObjectAggregator(1048576));
               p.addLast("handler", new SimpleChannelInboundHandler<HttpObject>() {
@@ -91,17 +107,7 @@ public class DefaultHttpClient implements HttpClient {
                     fulfiller.success(new RequestResult() {
                       @Override
                       public ReceivedResponse getResponse() {
-                        return new ReceivedResponse() {
-                          @Override
-                          public Headers getHeaders() {
-                            return headers;
-                          }
-
-                          @Override
-                          public TypedData getBody() {
-                            return typedData;
-                          }
-                        };
+                        return new DefaultReceivedResponse(headers, typedData);
                       }
                     });
                   }
@@ -120,9 +126,20 @@ public class DefaultHttpClient implements HttpClient {
           @Override
           public void operationComplete(ChannelFuture future) throws Exception {
             if (future.isSuccess()) {
-              HttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, uri.getRawPath());
-              request.headers().set(HttpHeaders.Names.HOST, host);
-              request.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.CLOSE);
+
+              String fullPath = getFullPath(uri);
+              HttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, fullPath);
+              final MutableHeaders headers = new NettyHeadersBackedMutableHeaders(request.headers());
+
+              requestConfigurer.execute(new RequestSpec() {
+                @Override
+                public MutableHeaders getHeaders() {
+                  return headers;
+                }
+              });
+
+              headers.set(HttpHeaders.Names.HOST, host);
+              headers.set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.CLOSE);
 
               future.channel().writeAndFlush(request).addListener(new ChannelFutureListener() {
                 @Override
@@ -145,6 +162,16 @@ public class DefaultHttpClient implements HttpClient {
 
   protected EventLoopGroup getEventLoopGroup(ReadOnlyContext context) {
     return ((LaunchConfigInternal) context.get(LaunchConfig.class)).getEventLoopGroup();
+  }
+
+  private static String getFullPath(URI uri) {
+    StringBuilder sb = new StringBuilder(uri.getRawPath());
+    String query = uri.getRawQuery();
+    if (query != null) {
+      sb.append("?").append(query);
+    }
+
+    return sb.toString();
   }
 
 }

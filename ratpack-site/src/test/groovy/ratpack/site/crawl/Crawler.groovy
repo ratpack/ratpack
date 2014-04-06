@@ -280,6 +280,7 @@ abstract class Crawler {
     String toString() {
       def stringWriter = new StringWriter()
       def printWriter = new PrintWriter(stringWriter)
+      printWriter.println(exception.message)
       exception.printStackTrace(printWriter)
       stringWriter.toString()
     }

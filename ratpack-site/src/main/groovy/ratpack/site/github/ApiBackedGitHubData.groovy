@@ -19,7 +19,6 @@ package ratpack.site.github
 import com.fasterxml.jackson.databind.JsonNode
 import com.google.common.collect.ImmutableList
 import groovy.transform.CompileStatic
-import ratpack.rx.RxBackground
 
 import javax.inject.Inject
 
@@ -28,19 +27,15 @@ import javax.inject.Inject
 class ApiBackedGitHubData implements GitHubData {
 
   private final GitHubApi gitHubApi
-  private final RxBackground rxBackground
 
   @Inject
-  ApiBackedGitHubData(GitHubApi gitHubApi, RxBackground rxBackground) {
-    this.rxBackground = rxBackground
+  ApiBackedGitHubData(GitHubApi gitHubApi) {
     this.gitHubApi = gitHubApi
   }
 
   @Override
   rx.Observable<IssueSet> closed(RatpackVersion version) {
-    rxBackground.observe {
-      gitHubApi.issues(state: "closed", milestone: version.githubNumber.toString(), sort: "number", direction: "asc")
-    } map { JsonNode issues ->
+    gitHubApi.issues(state: "closed", milestone: version.githubNumber.toString(), sort: "number", direction: "asc").map { JsonNode issues ->
       def issuesBuilder = ImmutableList.builder()
       def pullRequestsBuilder = ImmutableList.builder()
 
@@ -72,17 +67,13 @@ class ApiBackedGitHubData implements GitHubData {
   }
 
   rx.Observable<List<RatpackVersion>> getReleasedVersions() {
-    rxBackground.observe {
-      gitHubApi.milestones(state: "closed", sort: "due_date")
-    } map {
+    gitHubApi.milestones(state: "closed", sort: "due_date").map {
       RatpackVersion.fromJson(it as JsonNode) as List
     }
   }
 
   rx.Observable<List<RatpackVersion>> getUnreleasedVersions() {
-    rxBackground.observe {
-      gitHubApi.milestones(state: "open", sort: "due_date", direction: "asc")
-    } map {
+    gitHubApi.milestones(state: "open", sort: "due_date", direction: "asc").map {
       RatpackVersion.fromJson(it as JsonNode) as List
     }
   }

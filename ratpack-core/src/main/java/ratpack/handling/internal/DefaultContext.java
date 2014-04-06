@@ -299,7 +299,7 @@ public class DefaultContext implements Context {
 
   @Override
   public <T> SuccessOrErrorPromise<T> promise(Action<? super Fulfiller<T>> action) {
-    return new DefaultSuccessOrErrorPromise<>(this, action);
+    return new DefaultSuccessOrErrorPromise<>(this, action, requestConstants.applicationConstants.contextStorage);
   }
 
   public void redirect(String location) {
