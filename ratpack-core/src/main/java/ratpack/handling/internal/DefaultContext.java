@@ -34,6 +34,8 @@ import ratpack.parse.ParserException;
 import ratpack.path.PathBinding;
 import ratpack.path.PathTokens;
 import ratpack.promise.SuccessOrErrorPromise;
+import ratpack.promise.internal.DefaultSuccessOrErrorPromise;
+import ratpack.promise.Fulfiller;
 import ratpack.registry.NotInRegistryException;
 import ratpack.registry.Registries;
 import ratpack.registry.Registry;
@@ -286,6 +288,11 @@ public class DefaultContext implements Context {
   @Override
   public <T> SuccessOrErrorPromise<T> background(Callable<T> backgroundOperation) {
     return getBackground().exec(backgroundOperation);
+  }
+
+  @Override
+  public <T> SuccessOrErrorPromise<T> promise(Action<? super Fulfiller<? super T>> action) {
+    return new DefaultSuccessOrErrorPromise<>(this, action);
   }
 
   public void redirect(String location) {

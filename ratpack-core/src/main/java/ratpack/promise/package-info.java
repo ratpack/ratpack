@@ -17,7 +17,7 @@
 /**
  * Promises are strategy builders for the result of async operations.
  *
- * @see ratpack.handling.Background#exec(java.util.concurrent.Callable)
+ * @see ratpack.handling.Context#promise(ratpack.func.Action)
  * @see ratpack.promise.SuccessPromise
  * @see ratpack.promise.SuccessOrErrorPromise
  */

@@ -17,6 +17,7 @@
 package ratpack.promise.internal;
 
 import ratpack.func.Action;
+import ratpack.promise.Fulfiller;
 import ratpack.promise.SuccessPromise;
 
 public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
@@ -39,15 +40,15 @@ public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
   public void then(final Action<? super T> then) throws Exception {
     action.execute(new Fulfiller<T>() {
       @Override
-      public void onError(Throwable t) {
+      public void error(Throwable throwable) {
         try {
-          operationErrorHandler.execute(t);
+          operationErrorHandler.execute(throwable);
         } catch (Throwable e) {
           if (operationErrorHandler == globalErrorHandler) {
             e.printStackTrace();
           } else {
             try {
-              globalErrorHandler.execute(t);
+              globalErrorHandler.execute(throwable);
             } catch (Exception e1) {
               e1.printStackTrace();
             }
@@ -56,9 +57,9 @@ public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
       }
 
       @Override
-      public void onSuccess(T thing) {
+      public void success(T value) {
         try {
-          then.execute(thing);
+          then.execute(value);
         } catch (Throwable e) {
           try {
             globalErrorHandler.execute(e);

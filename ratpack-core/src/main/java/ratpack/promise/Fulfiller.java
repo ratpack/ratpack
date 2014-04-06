@@ -14,12 +14,28 @@
  * limitations under the License.
  */
 
-package ratpack.promise.internal;
+package ratpack.promise;
 
+/**
+ * An object that is used to fulfill a promise.
+ *
+ * @param <T> the type of value that was promised.
+ * @see ratpack.handling.Context#promise(ratpack.func.Action)
+ */
 public interface Fulfiller<T> {
 
-  void onError(Throwable t);
+  /**
+   * Fulfills the promise with an error result.
+   *
+   * @param throwable the error result
+   */
+  void error(Throwable throwable);
 
-  void onSuccess(T thing);
+  /**
+   * Fulfills the promise with the given value.
+   *
+   * @param value the value to provide to the promise subscriber
+   */
+  void success(T value);
 
 }

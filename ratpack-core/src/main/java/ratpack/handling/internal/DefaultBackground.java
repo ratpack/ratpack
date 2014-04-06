@@ -25,9 +25,7 @@ import ratpack.handling.Background;
 import ratpack.handling.Context;
 import ratpack.handling.ProcessingInterceptor;
 import ratpack.promise.SuccessOrErrorPromise;
-import ratpack.promise.internal.DefaultPromiseFactory;
-import ratpack.promise.internal.Fulfiller;
-import ratpack.promise.internal.PromiseFactory;
+import ratpack.promise.Fulfiller;
 
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -38,7 +36,6 @@ public class DefaultBackground implements Background {
   private final ExecutorService foregroundExecutor;
   private final ListeningExecutorService backgroundExecutor;
   private final ContextStorage contextStorage;
-  private final PromiseFactory promiseFactory = new DefaultPromiseFactory();
 
   public DefaultBackground(ExecutorService foregroundExecutor, ListeningExecutorService backgroundExecutor, ContextStorage contextStorage) {
     this.foregroundExecutor = foregroundExecutor;
@@ -50,7 +47,7 @@ public class DefaultBackground implements Background {
   public <T> SuccessOrErrorPromise<T> exec(final Callable<T> operation) {
     final Context context = contextStorage.get();
     final FinishedOnThreadCallbackManager finishedOnThreadCallbackManager = context.get(FinishedOnThreadCallbackManager.class);
-    return promiseFactory.promise(contextStorage.get(), new Action<Fulfiller<? super T>>() {
+    return context.promise(new Action<Fulfiller<? super T>>() {
       @Override
       public void execute(final Fulfiller<? super T> fulfiller) throws Exception {
         finishedOnThreadCallbackManager.register(new Runnable() {
@@ -115,7 +112,7 @@ public class DefaultBackground implements Background {
               @Override
               protected void performOperation() {
                 try {
-                  fulfiller.onSuccess(result);
+                  fulfiller.success(result);
                   finishedOnThreadCallbackManager.fire();
                 } catch (Exception e) {
                   exception = e;
@@ -141,7 +138,7 @@ public class DefaultBackground implements Background {
               @Override
               protected void performOperation() {
                 try {
-                  fulfiller.onError(t);
+                  fulfiller.error(t);
                   finishedOnThreadCallbackManager.fire();
                 } catch (Exception e) {
                   exception = e;

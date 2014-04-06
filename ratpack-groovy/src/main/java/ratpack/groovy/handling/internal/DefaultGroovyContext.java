@@ -33,6 +33,7 @@ import ratpack.parse.NoSuchParserException;
 import ratpack.parse.Parse;
 import ratpack.parse.ParserException;
 import ratpack.path.PathTokens;
+import ratpack.promise.Fulfiller;
 import ratpack.promise.SuccessOrErrorPromise;
 import ratpack.registry.NotInRegistryException;
 import ratpack.registry.Registry;
@@ -197,6 +198,11 @@ public class DefaultGroovyContext implements GroovyContext {
   @Override
   public <T> SuccessOrErrorPromise<T> background(Callable<T> backgroundOperation) {
     return delegate.background(backgroundOperation);
+  }
+
+  @Override
+  public <T> SuccessOrErrorPromise<T> promise(Action<? super Fulfiller<? super T>> action) {
+    return delegate.promise(action);
   }
 
   @Override
