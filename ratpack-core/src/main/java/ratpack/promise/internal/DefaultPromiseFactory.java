@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,17 @@
  * limitations under the License.
  */
 
-package ratpack.file.internal;
+package ratpack.promise.internal;
 
-import ratpack.handling.Background;
+import ratpack.func.Action;
+import ratpack.handling.Context;
+import ratpack.promise.SuccessOrErrorPromise;
 
-import java.nio.file.Path;
-import java.nio.file.attribute.BasicFileAttributes;
+public class DefaultPromiseFactory implements PromiseFactory {
+  @Override
 
-public interface FileHttpTransmitter {
-
-  void transmit(Background background, BasicFileAttributes basicFileAttributes, Path file) throws Exception;
+  public <T> SuccessOrErrorPromise<T> promise(Context context, Action<? super Fulfiller<? super T>> action) {
+    return new DefaultSuccessOrErrorPromise<>(context, action);
+  }
 
 }

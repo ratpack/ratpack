@@ -56,7 +56,7 @@ public class Pac4jCallbackHandler<C extends Credentials, U extends UserProfile> 
   }
 
   @Override
-  public void handle(final Context context) {
+  public void handle(final Context context) throws Exception {
     context.background(new Callable<UserProfile>() {
       @Override
       public UserProfile call() throws RequiresHttpAction {

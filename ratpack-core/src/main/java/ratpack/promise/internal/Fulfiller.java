@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,12 @@
  * limitations under the License.
  */
 
-/**
- * Mechanisms for executing operations that performing operations in the background (i.e. off request handling threads).
- * <p>
- * See {@link ratpack.handling.Background}.
- */
-package ratpack.background;
+package ratpack.promise.internal;
+
+public interface Fulfiller<T> {
+
+  void onError(Throwable t);
+
+  void onSuccess(T thing);
+
+}

@@ -17,13 +17,13 @@
 package ratpack.file.internal;
 
 import io.netty.handler.codec.http.HttpHeaders;
-import ratpack.handling.Background;
 import ratpack.file.FileRenderer;
 import ratpack.file.MimeTypes;
+import ratpack.func.Action;
+import ratpack.handling.Background;
 import ratpack.handling.Context;
 import ratpack.http.Response;
 import ratpack.render.RendererSupport;
-import ratpack.func.Action;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -36,7 +36,7 @@ import static io.netty.handler.codec.http.HttpResponseStatus.NOT_MODIFIED;
 public class DefaultFileRenderer extends RendererSupport<Path> implements FileRenderer {
 
   @Override
-  public void render(final Context context, final Path targetFile) {
+  public void render(final Context context, final Path targetFile) throws Exception {
     readAttributes(context.getBackground(), targetFile, new Action<BasicFileAttributes>() {
       @Override
       public void execute(BasicFileAttributes attributes) {
@@ -70,12 +70,16 @@ public class DefaultFileRenderer extends RendererSupport<Path> implements FileRe
           String contentType = context.get(MimeTypes.class).getContentType(file.getFileName().toString());
           response.contentType(contentType);
         }
-        response.sendFile(context.getBackground(), attributes, file);
+        try {
+          response.sendFile(context.getBackground(), attributes, file);
+        } catch (Exception e) {
+          context.error(e);
+        }
       }
     });
   }
 
-  public static void readAttributes(Background background, final Path file, Action<? super BasicFileAttributes> then) {
+  public static void readAttributes(Background background, final Path file, Action<? super BasicFileAttributes> then) throws Exception {
     background.exec(new Callable<BasicFileAttributes>() {
       public BasicFileAttributes call() throws Exception {
         if (Files.exists(file)) {

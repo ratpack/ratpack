@@ -76,7 +76,7 @@ public class Pac4jAuthenticationHandler<C extends Credentials, U extends UserPro
     return (U) context.getRequest().get(SessionStorage.class).get(USER_PROFILE);
   }
 
-  private void initiateAuthentication(final Context context) {
+  private void initiateAuthentication(final Context context) throws Exception {
     context.background(new Callable<String>() {
       @Override
       public String call() {

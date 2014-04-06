@@ -66,7 +66,7 @@ public class DefaultFileHttpTransmitter implements FileHttpTransmitter {
   }
 
   @Override
-  public void transmit(Background background, final BasicFileAttributes basicFileAttributes, final Path file) {
+  public void transmit(Background background, final BasicFileAttributes basicFileAttributes, final Path file) throws Exception {
     final boolean compressThis = compress && basicFileAttributes.size() > 1024 && isNotNullAndStartsWith(httpHeaders.get(HttpHeaderConstants.CONTENT_TYPE), "text/", "application/");
 
     if (compress && !compressThis) {

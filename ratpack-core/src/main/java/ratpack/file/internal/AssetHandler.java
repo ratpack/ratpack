@@ -17,11 +17,11 @@
 package ratpack.file.internal;
 
 import com.google.common.collect.ImmutableList;
+import ratpack.func.Action;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.http.Request;
 import ratpack.path.PathBinding;
-import ratpack.func.Action;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -58,15 +58,19 @@ public class AssetHandler implements Handler {
 
     Path asset = context.file(path);
     if (asset != null) {
-      servePath(context, asset);
+      try {
+        servePath(context, asset);
+      } catch (Exception e) {
+        context.error(e);
+      }
     } else {
       context.clientError(404);
     }
   }
 
-  private void servePath(final Context context, final Path file) {
+  private void servePath(final Context context, final Path file) throws Exception {
     readAttributes(context.getBackground(), file, new Action<BasicFileAttributes>() {
-      public void execute(BasicFileAttributes attributes) {
+      public void execute(BasicFileAttributes attributes) throws Exception {
         if (attributes == null) {
           context.next();
         } else if (attributes.isRegularFile()) {
@@ -80,14 +84,14 @@ public class AssetHandler implements Handler {
     });
   }
 
-  private void maybeSendFile(final Context context, final Path file, final int i) {
+  private void maybeSendFile(final Context context, final Path file, final int i) throws Exception {
     if (i == indexFiles.size()) {
       context.next();
     } else {
       String name = indexFiles.get(i);
       final Path indexFile = file.resolve(name);
       readAttributes(context.getBackground(), indexFile, new Action<BasicFileAttributes>() {
-        public void execute(BasicFileAttributes attributes) {
+        public void execute(BasicFileAttributes attributes) throws Exception {
           if (attributes != null && attributes.isRegularFile()) {
             String path = context.getRequest().getPath();
             if (path.endsWith("/") || path.isEmpty()) {

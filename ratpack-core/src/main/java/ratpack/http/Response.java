@@ -204,7 +204,7 @@ public interface Response {
    * @param file The file whose contents are to be used as the response body
    */
   @NonBlocking
-  void sendFile(Background background, Path file);
+  void sendFile(Background background, Path file) throws Exception;
 
   /**
    * Sends the response, using the given content type and the content of the given type as the response body.
@@ -214,5 +214,5 @@ public interface Response {
    * @param file The file whose contents are to be used as the response body
    */
   @NonBlocking
-  void sendFile(Background background, BasicFileAttributes attributes, Path file);
+  void sendFile(Background background, BasicFileAttributes attributes, Path file) throws Exception;
 }

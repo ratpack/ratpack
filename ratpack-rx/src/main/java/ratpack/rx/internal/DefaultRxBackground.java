@@ -19,6 +19,7 @@ package ratpack.rx.internal;
 import ratpack.func.Action;
 import ratpack.handling.Background;
 import ratpack.rx.RxBackground;
+import ratpack.util.ExceptionUtils;
 import rx.Observable;
 import rx.Subscriber;
 import rx.functions.Action2;
@@ -68,20 +69,24 @@ public class DefaultRxBackground implements RxBackground {
 
     @Override
     public void call(final Subscriber<? super S> subscriber) {
-      background.exec(callable)
-        .onError(new Action<Throwable>() {
-          @Override
-          public void execute(Throwable throwable) throws Exception {
-            subscriber.onError(throwable);
-          }
-        })
-        .then(new Action<T>() {
-          @Override
-          public void execute(T thing) throws Exception {
-            emitter.call(thing, subscriber);
-            subscriber.onCompleted();
-          }
-        });
+      try {
+        background.exec(callable)
+          .onError(new Action<Throwable>() {
+            @Override
+            public void execute(Throwable throwable) throws Exception {
+              subscriber.onError(throwable);
+            }
+          })
+          .then(new Action<T>() {
+            @Override
+            public void execute(T thing) throws Exception {
+              emitter.call(thing, subscriber);
+              subscriber.onCompleted();
+            }
+          });
+      } catch (Exception e) {
+        throw ExceptionUtils.uncheck(e);
+      }
     }
   }
 }

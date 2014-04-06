@@ -38,8 +38,9 @@ public interface SuccessPromise<T> {
    * Specifies what should be done with the promised object when it is ready.
    *
    * @param then the action to forward the promised object on to
+   * @throws java.lang.Exception if the the promise cannot be "started"
    */
   @NonBlocking
-  void then(Action<? super T> then);
+  void then(Action<? super T> then) throws Exception;
 
 }

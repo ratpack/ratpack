@@ -221,14 +221,14 @@ public class DefaultResponse implements Response {
   }
 
   @Override
-  public void sendFile(Background background, BasicFileAttributes attributes, Path file) {
+  public void sendFile(Background background, BasicFileAttributes attributes, Path file) throws Exception {
     setCookieHeader();
     fileHttpTransmitter.transmit(background, attributes, file);
   }
 
-  public void sendFile(final Background background, final Path file) {
+  public void sendFile(final Background background, final Path file) throws Exception {
     readAttributes(background, file, new Action<BasicFileAttributes>() {
-      public void execute(BasicFileAttributes fileAttributes) {
+      public void execute(BasicFileAttributes fileAttributes) throws Exception {
         sendFile(background, fileAttributes, file);
       }
     });
