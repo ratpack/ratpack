@@ -22,17 +22,17 @@ import ratpack.promise.SuccessPromise;
 
 public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
 
-  private final Action<? super Fulfiller<? super T>> action;
+  private final Action<? super Fulfiller<T>> action;
   private final Action<? super Throwable> operationErrorHandler;
   private final Action<? super Throwable> globalErrorHandler;
 
-  public DefaultSuccessPromise(Action<? super Fulfiller<? super T>> action, Action<? super Throwable> globalErrorHandler, Action<? super Throwable> operationErrorHandler) {
+  public DefaultSuccessPromise(Action<? super Fulfiller<T>> action, Action<? super Throwable> globalErrorHandler, Action<? super Throwable> operationErrorHandler) {
     this.action = action;
     this.operationErrorHandler = operationErrorHandler;
     this.globalErrorHandler = globalErrorHandler;
   }
 
-  public DefaultSuccessPromise(Action<? super Fulfiller<? super T>> action, Action<? super Throwable> errorHandler) {
+  public DefaultSuccessPromise(Action<? super Fulfiller<T>> action, Action<? super Throwable> errorHandler) {
     this(action, errorHandler, errorHandler);
   }
 

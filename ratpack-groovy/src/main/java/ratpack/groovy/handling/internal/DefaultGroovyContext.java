@@ -29,6 +29,7 @@ import ratpack.handling.*;
 import ratpack.handling.direct.DirectChannelAccess;
 import ratpack.http.Request;
 import ratpack.http.Response;
+import ratpack.http.client.HttpClient;
 import ratpack.parse.NoSuchParserException;
 import ratpack.parse.Parse;
 import ratpack.parse.ParserException;
@@ -201,7 +202,7 @@ public class DefaultGroovyContext implements GroovyContext {
   }
 
   @Override
-  public <T> SuccessOrErrorPromise<T> promise(Action<? super Fulfiller<? super T>> action) {
+  public <T> SuccessOrErrorPromise<T> promise(Action<? super Fulfiller<T>> action) {
     return delegate.promise(action);
   }
 
@@ -260,6 +261,11 @@ public class DefaultGroovyContext implements GroovyContext {
   @Override
   public <O> List<O> getAll(Class<O> type) {
     return delegate.getAll(type);
+  }
+
+  @Override
+  public HttpClient getHttpClient() {
+    return delegate.getHttpClient();
   }
 
 }

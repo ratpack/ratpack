@@ -26,6 +26,8 @@ import ratpack.handling.*;
 import ratpack.handling.direct.DirectChannelAccess;
 import ratpack.http.Request;
 import ratpack.http.Response;
+import ratpack.http.client.HttpClient;
+import ratpack.http.client.HttpClients;
 import ratpack.http.internal.HttpHeaderConstants;
 import ratpack.parse.NoSuchParserException;
 import ratpack.parse.Parse;
@@ -276,6 +278,11 @@ public class DefaultContext implements Context {
   }
 
   @Override
+  public HttpClient getHttpClient() {
+    return HttpClients.httpClient(this);
+  }
+
+  @Override
   public Background getBackground() {
     return requestConstants.applicationConstants.background;
   }
@@ -291,7 +298,7 @@ public class DefaultContext implements Context {
   }
 
   @Override
-  public <T> SuccessOrErrorPromise<T> promise(Action<? super Fulfiller<? super T>> action) {
+  public <T> SuccessOrErrorPromise<T> promise(Action<? super Fulfiller<T>> action) {
     return new DefaultSuccessOrErrorPromise<>(this, action);
   }
 

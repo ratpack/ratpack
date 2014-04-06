@@ -26,9 +26,9 @@ import static ratpack.util.ExceptionUtils.toException;
 
 public class DefaultSuccessOrErrorPromise<T> implements SuccessOrErrorPromise<T> {
   private final Context context;
-  private final Action<? super Fulfiller<? super T>> action;
+  private final Action<? super Fulfiller<T>> action;
 
-  public DefaultSuccessOrErrorPromise(Context context, Action<? super Fulfiller<? super T>> action) {
+  public DefaultSuccessOrErrorPromise(Context context, Action<? super Fulfiller<T>> action) {
     this.context = context;
     this.action = action;
   }

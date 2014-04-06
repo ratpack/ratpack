@@ -195,7 +195,7 @@ public interface ReadOnlyContext extends Registry {
    * </pre>
    * @param <T> the type of value promised
    */
-  <T> SuccessOrErrorPromise<T> promise(Action<? super Fulfiller<? super T>> action);
+  <T> SuccessOrErrorPromise<T> promise(Action<? super Fulfiller<T>> action);
 
   /**
    * The address that this request was received on.
