@@ -17,7 +17,6 @@
 /**
  * Provides integration with the <a href="https://github.com/Netflix/RxJava">RxJava</a> library.
  *
- * @see ratpack.rx.RxModule
- * @see ratpack.rx.RxBackground
+ * @see ratpack.rx.RxRatpack
  */
 package ratpack.rx;

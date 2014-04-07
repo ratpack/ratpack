@@ -23,6 +23,6 @@ ext.apiLinks = [
 ]
 
 dependencies {
-  compile project(":ratpack-guice")
+  compile project(":ratpack-core")
   compile 'com.netflix.rxjava:rxjava-core:0.17.1'
 }

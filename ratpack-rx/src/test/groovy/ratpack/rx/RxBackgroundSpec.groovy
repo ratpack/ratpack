@@ -16,18 +16,14 @@
 
 package ratpack.rx
 
-import ratpack.error.ServerErrorHandler
 import ratpack.error.DebugErrorHandler
+import ratpack.error.ServerErrorHandler
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 import static ratpack.rx.RxRatpack.observe
 import static ratpack.rx.RxRatpack.observeEach
 
 class RxBackgroundSpec extends RatpackGroovyDslSpec {
-
-  def setup() {
-    modules.add(new RxModule())
-  }
 
   def "can observe the background"() {
     when:

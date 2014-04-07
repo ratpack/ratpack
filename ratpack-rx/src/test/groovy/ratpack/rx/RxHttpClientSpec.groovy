@@ -29,7 +29,6 @@ class RxHttpClientSpec extends HttpClientSpec {
     }
 
     when:
-    modules << new RxModule()
     handlers {
       get {
         observe(httpClient.get(otherAppUrl("foo"))) map {

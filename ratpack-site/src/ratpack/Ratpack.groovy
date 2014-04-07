@@ -4,7 +4,6 @@ import ratpack.handling.Handlers
 import ratpack.jackson.JacksonModule
 import ratpack.path.PathBinding
 import ratpack.remote.RemoteControlModule
-import ratpack.rx.RxModule
 import ratpack.site.SiteModule
 import ratpack.site.github.GitHubApi
 import ratpack.site.github.GitHubData
@@ -16,7 +15,6 @@ import static ratpack.groovy.Groovy.ratpack
 
 ratpack {
   modules {
-    register new RxModule()
     register new JacksonModule()
     register new CodaHaleMetricsModule().metrics()
     register new SiteModule(launchConfig)

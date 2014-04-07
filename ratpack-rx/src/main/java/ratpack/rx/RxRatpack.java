@@ -23,34 +23,10 @@ import rx.Observable;
 import rx.Subscriber;
 import rx.functions.Action2;
 
-import java.util.concurrent.Callable;
-
 /**
  * Provides static access Rx helper functions.
  */
 public abstract class RxRatpack {
-
-  @SuppressWarnings("UnusedDeclaration")
-  private static RxBackground rxBackground; // set reflectively in RxModule.
-
-  /**
-   * Syntactic shorthand for calling {@link RxBackground#observe(Callable)}.
-   * <p>
-   * Usage of this method only works if there is one Ratpack application running in the JVM.
-   * Results are undefined otherwise.
-   * In such a case, use {@link RxBackground} instances directly.
-   *
-   * @param callable A blocking operation
-   * @param <T> The type of value the blocking operation returns
-   * @return An {@link rx.Observable} of the blocking operation
-   */
-  public static <T> Observable<T> background(Callable<T> callable) {
-    if (rxBackground == null) {
-      throw new IllegalStateException("Not initialized. Did you register the RxModule?");
-    } else {
-      return rxBackground.observe(callable);
-    }
-  }
 
   /**
    * Converts a Ratpack promise into an Rx observable.
