@@ -18,7 +18,7 @@ package ratpack.error
 
 import ratpack.test.internal.RatpackGroovyDslSpec
 
-class DebugErrorHandlerTest extends RatpackGroovyDslSpec {
+class DebugErrorHandlerSpec extends RatpackGroovyDslSpec {
 
   def "debug error handler prints info"() {
     given:
