@@ -93,7 +93,7 @@ class Harness {
           endpoints.each { String endpoint ->
             println "Testing endpoint: $endpoint"
 
-            def endpointName = "$appName:$endpoint"
+            String endpointName = "$appName:$endpoint"
             def versionName = version
 
             println "starting app…"
