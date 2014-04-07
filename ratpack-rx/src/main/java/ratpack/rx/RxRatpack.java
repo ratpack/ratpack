@@ -21,6 +21,7 @@ import ratpack.promise.SuccessOrErrorPromise;
 import ratpack.util.ExceptionUtils;
 import rx.Observable;
 import rx.Subscriber;
+import rx.exceptions.OnErrorNotImplementedException;
 import rx.functions.Action2;
 
 /**
@@ -79,14 +80,22 @@ public abstract class RxRatpack {
           .onError(new Action<Throwable>() {
             @Override
             public void execute(Throwable throwable) throws Exception {
-              subscriber.onError(throwable);
+              try {
+                subscriber.onError(throwable);
+              } catch (OnErrorNotImplementedException e) {
+                throw ExceptionUtils.toException(e.getCause());
+              }
             }
           })
           .then(new Action<T>() {
             @Override
             public void execute(T thing) throws Exception {
-              emitter.call(thing, subscriber);
-              subscriber.onCompleted();
+              try {
+                emitter.call(thing, subscriber);
+                subscriber.onCompleted();
+              } catch (OnErrorNotImplementedException e) {
+                throw ExceptionUtils.toException(e.getCause());
+              }
             }
           });
       } catch (Exception e) {
