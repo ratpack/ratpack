@@ -28,6 +28,7 @@ import ratpack.func.Actions;
 import ratpack.handling.ReadOnlyContext;
 import ratpack.http.Headers;
 import ratpack.http.MutableHeaders;
+import ratpack.http.Status;
 import ratpack.http.client.HttpClient;
 import ratpack.http.client.ReceivedResponse;
 import ratpack.http.client.RequestSpec;
@@ -124,7 +125,8 @@ public class DefaultHttpClient implements HttpClient {
                     String contentType = headers.get(HttpHeaderConstants.CONTENT_TYPE.toString());
                     final ByteBufBackedTypedData typedData = new ByteBufBackedTypedData(response.content(), DefaultMediaType.get(contentType));
 
-                    fulfiller.success(new DefaultReceivedResponse(headers, typedData));
+                    final Status status = new DefaultStatus(response.getStatus().code(), response.getStatus().reasonPhrase());
+                    fulfiller.success(new DefaultReceivedResponse(status, headers, typedData));
                   }
                 }
 

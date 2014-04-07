@@ -17,9 +17,14 @@
 package ratpack.http.client;
 
 import ratpack.http.Headers;
+import ratpack.http.Status;
 import ratpack.http.TypedData;
 
 public interface ReceivedResponse {
+
+  Status getStatus();
+
+  int getStatusCode();
 
   Headers getHeaders();
 

@@ -17,17 +17,31 @@
 package ratpack.http.client.internal;
 
 import ratpack.http.Headers;
+import ratpack.http.Status;
 import ratpack.http.TypedData;
 import ratpack.http.client.ReceivedResponse;
 import ratpack.http.internal.ByteBufBackedTypedData;
 
 class DefaultReceivedResponse implements ReceivedResponse {
+
+  private final Status status;
   private final Headers headers;
   private final ByteBufBackedTypedData typedData;
 
-  public DefaultReceivedResponse(Headers headers, ByteBufBackedTypedData typedData) {
+  public DefaultReceivedResponse(Status status, Headers headers, ByteBufBackedTypedData typedData) {
+    this.status = status;
     this.headers = headers;
     this.typedData = typedData;
+  }
+
+  @Override
+  public Status getStatus() {
+    return status;
+  }
+
+  @Override
+  public int getStatusCode() {
+    return status.getCode();
   }
 
   @Override
