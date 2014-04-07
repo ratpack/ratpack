@@ -29,7 +29,6 @@ import ratpack.http.Headers;
 import ratpack.http.MutableHeaders;
 import ratpack.http.client.HttpClient;
 import ratpack.http.client.ReceivedResponse;
-import ratpack.http.client.RequestResult;
 import ratpack.http.client.RequestSpec;
 import ratpack.http.internal.*;
 import ratpack.launch.LaunchConfig;
@@ -51,12 +50,12 @@ public class DefaultHttpClient implements HttpClient {
   }
 
   @Override
-  public SuccessOrErrorPromise<RequestResult> get(String httpUrl) {
+  public SuccessOrErrorPromise<ReceivedResponse> get(String httpUrl) {
     return get(httpUrl, Actions.noop());
   }
 
   @Override
-  public SuccessOrErrorPromise<RequestResult> get(String httpUrl, final Action<? super RequestSpec> requestConfigurer) {
+  public SuccessOrErrorPromise<ReceivedResponse> get(String httpUrl, final Action<? super RequestSpec> requestConfigurer) {
     final URI uri;
     try {
       uri = new URI(httpUrl);
@@ -76,9 +75,9 @@ public class DefaultHttpClient implements HttpClient {
     final String host = uri.getHost();
     final int port = uri.getPort() < 0 ? (useSsl ? 443 : 80) : uri.getPort();
 
-    return context.promise(new Action<Fulfiller<RequestResult>>() {
+    return context.promise(new Action<Fulfiller<ReceivedResponse>>() {
       @Override
-      public void execute(final Fulfiller<RequestResult> fulfiller) throws Exception {
+      public void execute(final Fulfiller<ReceivedResponse> fulfiller) throws Exception {
         final Bootstrap b = new Bootstrap();
         b.group(getEventLoopGroup(context))
           .channel(NioSocketChannel.class)
@@ -104,12 +103,7 @@ public class DefaultHttpClient implements HttpClient {
                     String contentType = headers.get(HttpHeaderConstants.CONTENT_TYPE.toString());
                     final ByteBufBackedTypedData typedData = new ByteBufBackedTypedData(response.content(), DefaultMediaType.get(contentType));
 
-                    fulfiller.success(new RequestResult() {
-                      @Override
-                      public ReceivedResponse getResponse() {
-                        return new DefaultReceivedResponse(headers, typedData);
-                      }
-                    });
+                    fulfiller.success(new DefaultReceivedResponse(headers, typedData));
                   }
                 }
 

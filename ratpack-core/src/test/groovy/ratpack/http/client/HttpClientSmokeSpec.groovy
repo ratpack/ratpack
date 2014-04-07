@@ -27,8 +27,8 @@ class HttpClientSmokeSpec extends HttpClientSpec {
     when:
     handlers {
       get {
-        httpClient.get(otherAppUrl("foo")) then { RequestResult result ->
-          render result.response.body.text
+        httpClient.get(otherAppUrl("foo")) then { ReceivedResponse response ->
+          render response.body.text
         }
       }
     }

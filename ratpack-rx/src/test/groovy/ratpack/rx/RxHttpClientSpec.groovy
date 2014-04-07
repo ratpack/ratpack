@@ -33,7 +33,7 @@ class RxHttpClientSpec extends HttpClientSpec {
     handlers {
       get {
         observe(httpClient.get(otherAppUrl("foo"))) map {
-          it.response.body.text.toUpperCase()
+          it.body.text.toUpperCase()
         } subscribe {
           render it
         }

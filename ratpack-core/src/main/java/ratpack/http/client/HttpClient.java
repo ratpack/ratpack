@@ -21,8 +21,8 @@ import ratpack.promise.SuccessOrErrorPromise;
 
 public interface HttpClient {
 
-  SuccessOrErrorPromise<RequestResult> get(String httpUrl);
+  SuccessOrErrorPromise<ReceivedResponse> get(String httpUrl);
 
-  SuccessOrErrorPromise<RequestResult> get(String httpUrl, Action<? super RequestSpec> action);
+  SuccessOrErrorPromise<ReceivedResponse> get(String httpUrl, Action<? super RequestSpec> action);
 
 }

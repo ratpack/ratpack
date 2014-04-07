@@ -20,7 +20,7 @@ import com.fasterxml.jackson.databind.ObjectReader
 import com.fasterxml.jackson.databind.node.ArrayNode
 import ratpack.handling.Foreground
 import ratpack.http.client.HttpClient
-import ratpack.http.client.RequestResult
+import ratpack.http.client.ReceivedResponse
 import ratpack.http.client.RequestSpec
 import rx.Observable
 import rx.Subscriber
@@ -53,11 +53,11 @@ class GithubRequester {
       it.headers.set("User-Agent", "http://www.ratpack.io")
     }
 
-    observe(promise).subscribe { RequestResult result ->
-      def node = objectReader.readTree(result.response.body.text)
+    observe(promise).subscribe { ReceivedResponse response ->
+      def node = objectReader.readTree(response.body.text)
       if (node instanceof ArrayNode) {
         pagingSubscription.onNext((ArrayNode) node)
-        def linkHeaderValue = result.response.headers.get("Link")
+        def linkHeaderValue = response.headers.get("Link")
         def next = getNextUrl(linkHeaderValue)
         if (next) {
           getPage(httpClient, next, pagingSubscription)
