@@ -17,7 +17,7 @@
 package ratpack.rx
 
 import ratpack.error.ServerErrorHandler
-import ratpack.error.internal.PrintingServerErrorHandler
+import ratpack.error.DebugErrorHandler
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 import static ratpack.rx.RxRatpack.observe
@@ -52,7 +52,7 @@ class RxBackgroundSpec extends RatpackGroovyDslSpec {
   def "background errors are sent to the context renderer"() {
     when:
     modules {
-      bind ServerErrorHandler, new PrintingServerErrorHandler()
+      bind ServerErrorHandler, new DebugErrorHandler()
     }
     handlers {
       get(":value") {

@@ -17,7 +17,7 @@
 package ratpack.background
 
 import ratpack.error.ServerErrorHandler
-import ratpack.error.internal.PrintingServerErrorHandler
+import ratpack.error.DebugErrorHandler
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 class BackgroundSpec extends RatpackGroovyDslSpec {
@@ -48,7 +48,7 @@ class BackgroundSpec extends RatpackGroovyDslSpec {
   def "by default errors during background operations are forwarded to server error handler"() {
     when:
     modules {
-      bind ServerErrorHandler, PrintingServerErrorHandler
+      bind ServerErrorHandler, DebugErrorHandler
     }
     handlers {
       get {
@@ -89,7 +89,7 @@ class BackgroundSpec extends RatpackGroovyDslSpec {
   def "errors in custom error handlers are forwarded to the server error handler"() {
     when:
     modules {
-      bind ServerErrorHandler, PrintingServerErrorHandler
+      bind ServerErrorHandler, DebugErrorHandler
     }
     handlers {
       get {
@@ -111,7 +111,7 @@ class BackgroundSpec extends RatpackGroovyDslSpec {
   def "errors in success handlers are forwarded to the server error handler"() {
     when:
     modules {
-      bind ServerErrorHandler, PrintingServerErrorHandler
+      bind ServerErrorHandler, DebugErrorHandler
     }
     handlers {
       get {
@@ -133,7 +133,7 @@ class BackgroundSpec extends RatpackGroovyDslSpec {
   def "closure arg type mismatch errors on success handler are handled well"() {
     when:
     modules {
-      bind ServerErrorHandler, PrintingServerErrorHandler
+      bind ServerErrorHandler, DebugErrorHandler
     }
     handlers {
       get {
@@ -154,7 +154,7 @@ class BackgroundSpec extends RatpackGroovyDslSpec {
   def "closure arg type mismatch errors on error handler are handled well"() {
     when:
     modules {
-      bind ServerErrorHandler, PrintingServerErrorHandler
+      bind ServerErrorHandler, DebugErrorHandler
     }
     handlers {
       get {

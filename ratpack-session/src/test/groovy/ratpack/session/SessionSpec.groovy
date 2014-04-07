@@ -17,7 +17,7 @@
 package ratpack.session
 
 import ratpack.error.ServerErrorHandler
-import ratpack.error.internal.PrintingServerErrorHandler
+import ratpack.error.DebugErrorHandler
 import ratpack.session.store.MapSessionsModule
 import ratpack.session.store.SessionStorage
 import ratpack.session.store.SessionStore
@@ -29,7 +29,7 @@ class SessionSpec extends RatpackGroovyDslSpec {
     modules << new SessionModule()
     modules << new MapSessionsModule(10, 5)
     modules {
-      bind ServerErrorHandler, new PrintingServerErrorHandler()
+      bind ServerErrorHandler, new DebugErrorHandler()
     }
   }
 

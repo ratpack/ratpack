@@ -17,7 +17,7 @@
 package ratpack.handling
 
 import ratpack.error.ServerErrorHandler
-import ratpack.error.internal.PrintingServerErrorHandler
+import ratpack.error.DebugErrorHandler
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 import static ratpack.registry.Registries.registry
@@ -170,7 +170,7 @@ class ProcessingInterceptionSpec extends RatpackGroovyDslSpec {
     given:
     modules {
       bind new RecordingInterceptor("id") // just need any interceptor
-      bind ServerErrorHandler, new PrintingServerErrorHandler()
+      bind ServerErrorHandler, new DebugErrorHandler()
     }
 
     when:
