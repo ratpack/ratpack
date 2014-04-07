@@ -16,10 +16,27 @@
 
 package ratpack.http.client;
 
+import ratpack.func.Action;
 import ratpack.http.MutableHeaders;
+
+import java.io.OutputStream;
 
 public interface RequestSpec {
 
   MutableHeaders getHeaders();
+
+  RequestSpec method(String method);
+
+  Body getBody();
+
+  RequestSpec body(Action<? super Body> action) throws Exception;
+
+  interface Body {
+
+    Body type(String contentType);
+
+    Body stream(Action<? super OutputStream> action) throws Exception;
+
+  }
 
 }

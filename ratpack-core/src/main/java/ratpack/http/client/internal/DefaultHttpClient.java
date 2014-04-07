@@ -17,6 +17,7 @@
 package ratpack.http.client.internal;
 
 import io.netty.bootstrap.Bootstrap;
+import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.*;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
@@ -55,7 +56,23 @@ public class DefaultHttpClient implements HttpClient {
   }
 
   @Override
-  public SuccessOrErrorPromise<ReceivedResponse> get(String httpUrl, final Action<? super RequestSpec> requestConfigurer) {
+  public SuccessOrErrorPromise<ReceivedResponse> get(String httpUrl, Action<? super RequestSpec> requestConfigurer) {
+    return request(httpUrl, requestConfigurer);
+  }
+
+  private static class Post implements Action<RequestSpec> {
+    @Override
+    public void execute(RequestSpec requestSpec) throws Exception {
+      requestSpec.method("POST");
+    }
+  }
+
+  public SuccessOrErrorPromise<ReceivedResponse> post(String httpUrl, Action<? super RequestSpec> action) {
+    return request(httpUrl, Actions.join(new Post(), action));
+  }
+
+  @Override
+  public SuccessOrErrorPromise<ReceivedResponse> request(String httpUrl, final Action<? super RequestSpec> requestConfigurer) {
     final URI uri;
     try {
       uri = new URI(httpUrl);
@@ -75,11 +92,15 @@ public class DefaultHttpClient implements HttpClient {
     final String host = uri.getHost();
     final int port = uri.getPort() < 0 ? (useSsl ? 443 : 80) : uri.getPort();
 
+    LaunchConfig launchConfig = context.get(LaunchConfig.class);
+    final EventLoopGroup eventLoopGroup = ((LaunchConfigInternal) launchConfig).getEventLoopGroup();
+    final ByteBufAllocator byteBufAllocator = launchConfig.getBufferAllocator();
+
     return context.promise(new Action<Fulfiller<ReceivedResponse>>() {
       @Override
       public void execute(final Fulfiller<ReceivedResponse> fulfiller) throws Exception {
         final Bootstrap b = new Bootstrap();
-        b.group(getEventLoopGroup(context))
+        b.group(eventLoopGroup)
           .channel(NioSocketChannel.class)
           .handler(new ChannelInitializer<SocketChannel>() {
             @Override
@@ -122,18 +143,22 @@ public class DefaultHttpClient implements HttpClient {
             if (future.isSuccess()) {
 
               String fullPath = getFullPath(uri);
-              HttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, fullPath);
+              FullHttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, fullPath, byteBufAllocator.buffer(0));
+
               final MutableHeaders headers = new NettyHeadersBackedMutableHeaders(request.headers());
 
-              requestConfigurer.execute(new RequestSpec() {
-                @Override
-                public MutableHeaders getHeaders() {
-                  return headers;
-                }
-              });
+              RequestSpecBacking requestSpecBacking = new RequestSpecBacking(headers, request.content());
+              requestConfigurer.execute(requestSpecBacking.asSpec());
 
               headers.set(HttpHeaders.Names.HOST, host);
               headers.set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.CLOSE);
+
+              request.setMethod(HttpMethod.valueOf(requestSpecBacking.getMethod()));
+
+              int contentLength = request.content().readableBytes();
+              if (contentLength > 0) {
+                headers.set(HttpHeaders.Names.CONTENT_LENGTH, Integer.toString(contentLength, 10));
+              }
 
               future.channel().writeAndFlush(request).addListener(new ChannelFutureListener() {
                 @Override
@@ -152,10 +177,6 @@ public class DefaultHttpClient implements HttpClient {
         });
       }
     });
-  }
-
-  protected EventLoopGroup getEventLoopGroup(ReadOnlyContext context) {
-    return ((LaunchConfigInternal) context.get(LaunchConfig.class)).getEventLoopGroup();
   }
 
   private static String getFullPath(URI uri) {

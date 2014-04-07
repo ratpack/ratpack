@@ -25,4 +25,8 @@ public interface HttpClient {
 
   SuccessOrErrorPromise<ReceivedResponse> get(String httpUrl, Action<? super RequestSpec> action);
 
+  SuccessOrErrorPromise<ReceivedResponse> post(String httpUrl, Action<? super RequestSpec> action);
+
+  SuccessOrErrorPromise<ReceivedResponse> request(String httpUrl, Action<? super RequestSpec> action);
+
 }

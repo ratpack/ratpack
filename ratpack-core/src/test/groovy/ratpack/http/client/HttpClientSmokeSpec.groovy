@@ -18,7 +18,7 @@ package ratpack.http.client
 
 class HttpClientSmokeSpec extends HttpClientSpec {
 
-  def "can use http client"() {
+  def "can make simple get request"() {
     given:
     otherApp {
       get("foo") { render "bar" }
@@ -34,7 +34,30 @@ class HttpClientSmokeSpec extends HttpClientSpec {
     }
 
     then:
-    getText() == "bar"
+    text == "bar"
+  }
+
+  def "can make post request"() {
+    given:
+    otherApp {
+      post("foo") {
+        render request.body.text
+      }
+    }
+
+    when:
+    handlers {
+      get {
+        httpClient.post(otherAppUrl("foo")) { RequestSpec request ->
+          request.body.type("text/plain").stream { it << "bar" }
+        } then { ReceivedResponse response ->
+          render response.body.text
+        }
+      }
+    }
+
+    then:
+    text == "bar"
   }
 
 }

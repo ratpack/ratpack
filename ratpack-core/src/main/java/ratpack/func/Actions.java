@@ -39,4 +39,22 @@ public abstract class Actions {
     };
   }
 
+  /**
+   * Returns a new action that executes the given actions in order
+   * @param actions the actions to join into one action
+   * @param <T> the type of object the action accepts
+   * @return the newly created aggregate action
+   */
+  @SafeVarargs
+  public static <T> Action<T> join(final Action<? super T>... actions) {
+    return new Action<T>() {
+      @Override
+      public void execute(T thing) throws Exception {
+        for (Action<? super T> action : actions) {
+          action.execute(thing);
+        }
+      }
+    };
+  }
+
 }
