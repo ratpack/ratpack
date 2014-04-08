@@ -18,8 +18,6 @@ package ratpack.handling;
 
 import ratpack.func.Action;
 
-import java.lang.Exception;
-
 /**
  * Convenience subclass for {@link Action Action<Chain>} implementations.
  */
