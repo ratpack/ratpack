@@ -20,6 +20,7 @@ import com.google.common.base.Joiner;
 import ratpack.handling.ByMethodHandler;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
+import ratpack.handling.Handlers;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -84,7 +85,7 @@ public class DefaultByMethodHandler implements ByMethodHandler {
       for (Map.Entry<String, Runnable> entry : runnables.entrySet()) {
         handlers[i++] = new ByMethodHandler(entry.getKey(), entry.getValue());
       }
-      handlers[i] = new ClientErrorForwardingHandler(METHOD_NOT_ALLOWED.code());
+      handlers[i] = Handlers.clientError(METHOD_NOT_ALLOWED.code());
       context.insert(handlers);
     }
   }

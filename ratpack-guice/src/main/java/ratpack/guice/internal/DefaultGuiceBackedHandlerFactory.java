@@ -30,7 +30,6 @@ import ratpack.guice.HandlerDecoratingModule;
 import ratpack.guice.ModuleRegistry;
 import ratpack.handling.Handler;
 import ratpack.handling.Handlers;
-import ratpack.handling.internal.ClientErrorForwardingHandler;
 import ratpack.handling.internal.FactoryHandler;
 import ratpack.launch.LaunchConfig;
 import ratpack.registry.NotInRegistryException;
@@ -108,7 +107,7 @@ public class DefaultGuiceBackedHandlerFactory implements GuiceBackedHandlerFacto
       }
     }
 
-    decorated = Handlers.chain(decorateHandler(decorated), new ClientErrorForwardingHandler(404));
+    decorated = Handlers.chain(decorateHandler(decorated), Handlers.clientError(404));
 
     return new InjectorBindingHandler(injector, decorated);
   }

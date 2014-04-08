@@ -295,4 +295,14 @@ public abstract class Handlers {
     return new HeaderHandler(headerName, headerValue, handler);
   }
 
+  /**
+   * Simply calls {@link Context#clientError(int)} with the given status code.
+   *
+   * @param statusCode The 4xx client error status code
+   * @return A handler
+   */
+  public static Handler clientError(int statusCode) {
+    return new ClientErrorForwardingHandler(statusCode);
+  }
+
 }
