@@ -18,6 +18,8 @@ package ratpack.handling;
 
 import ratpack.func.Action;
 
+import java.lang.Exception;
+
 /**
  * Convenience subclass for {@link Action Action<Chain>} implementations.
  */
@@ -26,8 +28,9 @@ public abstract class ChainAction implements Action<Chain> {
   /**
    * Adds to the given chain.
    *
-   * @param chain The chain to add handlers to.
+   * @param chain The chain to add handlers to
+   * @throws Exception any exception thrown while trying to add handlers to the chain
    */
-  public abstract void execute(Chain chain);
+  public abstract void execute(Chain chain) throws Exception;
 
 }
