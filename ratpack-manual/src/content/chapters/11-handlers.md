@@ -226,7 +226,7 @@ We can use the [`chain()`](api/ratpack/handling/Handlers.html#chain\(ratpack.lau
 ```language-groovy tested
 import ratpack.handling.Handler;
 import ratpack.handling.Context;
-import ratpack.handling.Chain;
+import ratpack.handling.ChainAction;
 import ratpack.func.Action;
 import ratpack.launch.LaunchConfig;
 import ratpack.launch.HandlerFactory;
@@ -235,25 +235,25 @@ import static ratpack.handling.Handlers.chain;
 
 public class Application implements HandlerFactory {
   public Handler create(LaunchConfig launchConfig) {
-    return chain(launchConfig, new Action<Chain>() {
-      void execute(Chain chain) {
-        chain.
-          prefix("api", chain.chain(new Action<Chain>() {
-            void execute(Chain apiChain) {
-              apiChain.
-                delete("someResource", new Handler() {
-                  public void handle(Context context) {
-                    // delete the resource
-                  }
-                });
-            }
-          })).
-          assets("public").
-          get("foo/bar", new Handler() {
-            public void handle(Context context) {
-              // do stuff
-            }
-          });
+    return chain(launchConfig, new ChainAction() {
+      protected void execute() {
+        prefix("api", new ChainAction() {
+          protected void execute() {
+            delete("someResource", new Handler() {
+              public void handle(Context context) {
+                // delete the resource
+              }
+            });
+          }
+        });
+
+        assets("public");
+
+        get("foo/bar", new Handler() {
+          public void handle(Context context) {
+            // do stuff
+          }
+        });
       }
     });
   }

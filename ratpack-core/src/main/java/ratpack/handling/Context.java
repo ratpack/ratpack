@@ -126,9 +126,9 @@ public interface Context extends ReadOnlyContext {
    * LaunchConfigBuilder.baseDir(new File("base")).build(new HandlerFactory() {
    *   public Handler create(LaunchConfig launchConfig) {
    *     return Handlers.chain(launchConfig, new ChainAction() {
-   *       public void execute(Chain chain) {
-   *         chain.handler(new UpstreamHandler());
-   *         chain.handler(new DownstreamHandler());
+   *       protected void execute() {
+   *         handler(new UpstreamHandler());
+   *         handler(new DownstreamHandler());
    *       }
    *     });
    *   }

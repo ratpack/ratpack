@@ -24,8 +24,7 @@ Consider the following example:
 ```language-groovy tested
 import ratpack.handling.Handler;
 import ratpack.handling.Context;
-import ratpack.handling.Chain;
-import ratpack.func.Action;
+import ratpack.handling.ChainAction;
 import ratpack.launch.HandlerFactory;
 import ratpack.launch.LaunchConfig;
 
@@ -45,33 +44,31 @@ public class PersonImpl implements Person {
 
 public class Application implements HandlerFactory {
   public Handler create(LaunchConfig launchConfig) {
-    return chain(launchConfig, new Action<Chain>() {
-      void execute(Chain chain) {
-        chain.
-          prefix("person/:id", new Action<Chain>() {
-            void execute(Chain personChain) {
-              personChain.
-                handler(new Handler() {
-                  public void handle(Context context) {
-                    String id = context.getPathTokens().get("id"); // (1)
-                    Person person = new PersonImpl(id);
-                    context.next(registry(Person.class, person)); // (2)
-                  }
-                }).
-                get("status", new Handler() {
-                  public void handle(Context context) {
-                    Person person = context.get(Person.class); // (3)
-                    // show the person's status
-                  }
-                }).
-                get("age", new Handler() {
-                  public void handle(Context context) {
-                    Person person = context.get(Person.class); // (4)
-                    // show the person's age
-                  }
-                });
-            }
-          });
+    return chain(launchConfig, new ChainAction() {
+      protected void execute() {
+        prefix("person/:id", new ChainAction() {
+          protected void execute() {
+            handler(new Handler() {
+              public void handle(Context context) {
+                String id = context.getPathTokens().get("id"); // (1)
+                Person person = new PersonImpl(id);
+                context.next(registry(Person.class, person)); // (2)
+              }
+            });
+            get("status", new Handler() {
+              public void handle(Context context) {
+                Person person = context.get(Person.class); // (3)
+                // show the person's status
+              }
+            });
+            get("age", new Handler() {
+              public void handle(Context context) {
+                Person person = context.get(Person.class); // (4)
+                // show the person's age
+              }
+            });
+          }
+        });
       }
     });
   }
@@ -126,16 +123,15 @@ A typical use for this is using different error handling strategies for differen
 ```language-groovy tested
 import ratpack.handling.Handler;
 import ratpack.handling.Context;
-import ratpack.handling.Chain;
-import ratpack.func.Action;
+import ratpack.handling.ChainAction;
 import ratpack.launch.HandlerFactory;
 import ratpack.launch.LaunchConfig;
 import ratpack.error.ServerErrorHandler;
 
 import static ratpack.handling.Handlers.chain;
 
-public class ApiHandlers implements Action<Chain> {
-  public void execute(Chain chain) {
+public class ApiHandlers extends ChainAction {
+  protected void execute() {
     // add api handlers
   }
 }
@@ -146,8 +142,8 @@ public class ApiServerErrorHandler implements ServerErrorHandler {
   }
 }
 
-public class AppHandlers implements Action<Chain> {
-  public void execute(Chain chain) {
+public class AppHandlers extends ChainAction {
+  protected void execute() {
     // add normal app handlers
   }
 }
@@ -160,16 +156,14 @@ public class AppServerErrorHandler implements ServerErrorHandler {
 
 public class Application implements HandlerFactory {
   public Handler create(final LaunchConfig launchConfig) {
-    return chain(launchConfig, new Action<Chain>() {
-      void execute(Chain chain) {
-        chain.
-          prefix("api", chain.chain(new Action<Chain>() {
-            void execute(Chain apiChain) {
-              apiChain.
-                register(ServerErrorHandler.class, new ApiServerErrorHandler(), new ApiHandlers());
-            }
-          })).
-          register(ServerErrorHandler.class, new AppServerErrorHandler(), new AppHandlers());
+    return chain(launchConfig, new ChainAction() {
+      protected void execute() {
+        prefix("api", new ChainAction() {
+          protected void execute() {
+            register(ServerErrorHandler.class, new ApiServerErrorHandler(), new ApiHandlers());
+          }
+        });
+        register(ServerErrorHandler.class, new AppServerErrorHandler(), new AppHandlers());
       }
     });
   }
