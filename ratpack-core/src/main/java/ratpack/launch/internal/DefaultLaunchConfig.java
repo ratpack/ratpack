@@ -24,14 +24,15 @@ import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.util.concurrent.DefaultThreadFactory;
-import ratpack.handling.internal.DefaultBackground;
 import ratpack.file.FileSystemBinding;
 import ratpack.handling.Background;
 import ratpack.handling.Foreground;
 import ratpack.handling.internal.ContextStorage;
+import ratpack.handling.internal.DefaultBackground;
 import ratpack.handling.internal.DefaultForeground;
 import ratpack.handling.internal.ThreadLocalContextStorage;
 import ratpack.launch.HandlerFactory;
+import ratpack.launch.NoBaseDirException;
 
 import javax.net.ssl.SSLContext;
 import java.net.InetAddress;
@@ -86,8 +87,12 @@ public class DefaultLaunchConfig implements LaunchConfigInternal {
   }
 
   @Override
-  public FileSystemBinding getBaseDir() {
-    return baseDir;
+  public FileSystemBinding getBaseDir() throws NoBaseDirException {
+    if (baseDir != null) {
+      return baseDir;
+    } else {
+      throw new NoBaseDirException("No base dir has been set");
+    }
   }
 
   @Override

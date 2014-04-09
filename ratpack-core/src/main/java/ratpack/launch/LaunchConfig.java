@@ -18,8 +18,8 @@ package ratpack.launch;
 
 import io.netty.buffer.ByteBufAllocator;
 import ratpack.api.Nullable;
-import ratpack.handling.Background;
 import ratpack.file.FileSystemBinding;
+import ratpack.handling.Background;
 import ratpack.handling.Foreground;
 
 import javax.net.ssl.SSLContext;
@@ -51,8 +51,9 @@ public interface LaunchConfig {
    * The base dir of the application, which is also the initial {@link ratpack.file.FileSystemBinding}.
    *
    * @return The base dir of the application.
+   * @throws NoBaseDirException if this launch config has no base dir set.
    */
-  public FileSystemBinding getBaseDir();
+  public FileSystemBinding getBaseDir() throws NoBaseDirException;
 
   /**
    * The handler factory that can create the root handler for the application.

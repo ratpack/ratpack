@@ -23,6 +23,7 @@ import ratpack.handling.Background;
 import ratpack.handling.Foreground;
 import ratpack.launch.HandlerFactory;
 import ratpack.launch.LaunchConfig;
+import ratpack.launch.NoBaseDirException;
 
 import javax.net.ssl.SSLContext;
 import java.net.InetAddress;
@@ -46,7 +47,7 @@ public class MockLaunchConfig implements LaunchConfig {
    * @return n/a.
    */
   @Override
-  public FileSystemBinding getBaseDir() {
+  public FileSystemBinding getBaseDir() throws NoBaseDirException {
     throw new UnsupportedOperationException();
   }
 

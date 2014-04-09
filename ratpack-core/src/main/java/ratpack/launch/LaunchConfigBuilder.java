@@ -61,7 +61,7 @@ import java.util.concurrent.ThreadFactory;
 @SuppressWarnings("UnusedDeclaration")
 public class LaunchConfigBuilder {
 
-  private final FileSystemBinding baseDir;
+  private FileSystemBinding baseDir;
 
   private int port = LaunchConfig.DEFAULT_PORT;
   private InetAddress address;
@@ -77,8 +77,19 @@ public class LaunchConfigBuilder {
   private boolean timeResponses;
   private boolean compressResponses;
 
+  private LaunchConfigBuilder() { }
+
   private LaunchConfigBuilder(Path baseDir) {
     this.baseDir = new DefaultFileSystemBinding(baseDir);
+  }
+
+  /**
+   * Create a new builder, with no base dir.
+   *
+   * @return A new launch config builder
+   */
+  public static LaunchConfigBuilder noBaseDir() {
+    return new LaunchConfigBuilder();
   }
 
   /**
