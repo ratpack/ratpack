@@ -39,7 +39,9 @@ public class DebugErrorHandler implements ServerErrorHandler, ClientErrorHandler
   public void error(Context context, Exception exception) {
     Writer writer = new StringWriter();
     exception.printStackTrace(new PrintWriter(writer));
-    context.getResponse().status(500).send(writer.toString());
+    String stackTrace = writer.toString();
+    System.err.println(stackTrace);
+    context.getResponse().status(500).send(stackTrace);
   }
 
   /**
