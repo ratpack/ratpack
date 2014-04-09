@@ -105,7 +105,26 @@ public class ClosureBackedEmbeddedApplication extends LaunchConfigEmbeddedApplic
 
   private final List<Module> modules = new LinkedList<>();
 
-  private final Factory<Path> baseDirFactory;
+  private Factory<Path> baseDirFactory;
+
+  public static ClosureBackedEmbeddedApplication embeddedApp(@DelegatesTo(value = ClosureBackedEmbeddedApplication.class, strategy = Closure.DELEGATE_FIRST) Closure<?> config) {
+    return embeddedApp(null, config);
+  }
+
+  public static ClosureBackedEmbeddedApplication embeddedApp(BaseDirBuilder baseDir, @DelegatesTo(value = ClosureBackedEmbeddedApplication.class, strategy = Closure.DELEGATE_FIRST) Closure<?> config) {
+    ClosureBackedEmbeddedApplication app;
+    if (baseDir != null) {
+      app = new ClosureBackedEmbeddedApplication(baseDir);
+    } else {
+      app = new ClosureBackedEmbeddedApplication();
+    }
+    config.setResolveStrategy(Closure.DELEGATE_FIRST);
+    config.setDelegate(app);
+    config.call(app);
+    return app;
+  }
+
+  public ClosureBackedEmbeddedApplication() { }
 
   /**
    * Constructor.
@@ -157,11 +176,18 @@ public class ClosureBackedEmbeddedApplication extends LaunchConfigEmbeddedApplic
    */
   @Override
   protected LaunchConfig createLaunchConfig() {
-    Path baseDirPath = baseDirFactory.create();
+    LaunchConfigBuilder launchConfigBuilder;
+    if (this.baseDirFactory != null) {
+      Path baseDirPath = baseDirFactory.create();
 
-    LaunchConfigBuilder launchConfigBuilder = LaunchConfigBuilder
-      .baseDir(baseDirPath)
-      .port(0);
+      launchConfigBuilder = LaunchConfigBuilder
+        .baseDir(baseDirPath)
+        .port(0);
+    } else {
+      launchConfigBuilder = LaunchConfigBuilder
+        .noBaseDir()
+        .port(0);
+    }
 
     configureDelegateFirst(launchConfigBuilder, launchConfigClosure);
 
