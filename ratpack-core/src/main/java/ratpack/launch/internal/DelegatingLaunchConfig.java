@@ -24,7 +24,6 @@ import ratpack.handling.Background;
 import ratpack.handling.Foreground;
 import ratpack.handling.internal.ContextStorage;
 import ratpack.launch.HandlerFactory;
-import ratpack.launch.NoBaseDirException;
 
 import javax.net.ssl.SSLContext;
 import java.net.InetAddress;
@@ -42,7 +41,7 @@ public class DelegatingLaunchConfig implements LaunchConfigInternal {
   }
 
   @Override
-  public FileSystemBinding getBaseDir() throws NoBaseDirException {
+  public FileSystemBinding getBaseDir() {
     return launchConfig.getBaseDir();
   }
 

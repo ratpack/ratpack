@@ -87,11 +87,11 @@ public class DefaultLaunchConfig implements LaunchConfigInternal {
   }
 
   @Override
-  public FileSystemBinding getBaseDir() throws NoBaseDirException {
-    if (baseDir != null) {
-      return baseDir;
-    } else {
+  public FileSystemBinding getBaseDir() {
+    if (baseDir == null) {
       throw new NoBaseDirException("No base dir has been set");
+    } else {
+      return baseDir;
     }
   }
 
