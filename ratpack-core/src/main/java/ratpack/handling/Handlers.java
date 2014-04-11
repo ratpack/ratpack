@@ -297,13 +297,22 @@ public abstract class Handlers {
   }
 
   /**
-   * Simply calls {@link Context#clientError(int)} with the given status code.
+   * A handler that simply calls {@link Context#clientError(int)} with the given status code.
    *
    * @param statusCode The 4xx client error status code
    * @return A handler
    */
   public static Handler clientError(int statusCode) {
     return new ClientErrorForwardingHandler(statusCode);
+  }
+
+  /**
+   * Convenience for {@link #clientError(int) clientError(404)}.
+   *
+   * @return A handler
+   */
+  public static Handler notFound() {
+    return ClientErrorForwardingHandler.NOT_FOUND;
   }
 
   /**

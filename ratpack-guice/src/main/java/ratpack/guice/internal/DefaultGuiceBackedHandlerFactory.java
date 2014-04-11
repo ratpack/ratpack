@@ -107,7 +107,7 @@ public class DefaultGuiceBackedHandlerFactory implements GuiceBackedHandlerFacto
       }
     }
 
-    decorated = Handlers.chain(decorateHandler(decorated), Handlers.clientError(404));
+    decorated = Handlers.chain(decorateHandler(decorated), Handlers.notFound());
 
     return new InjectorBindingHandler(injector, decorated);
   }

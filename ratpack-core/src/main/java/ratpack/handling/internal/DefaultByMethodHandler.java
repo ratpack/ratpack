@@ -45,7 +45,7 @@ public class DefaultByMethodHandler implements ByMethodHandler {
 
   public ratpack.handling.ByMethodHandler patch(Runnable runnable) {
     return named("PATCH", runnable);
-  }  
+  }
 
   public ratpack.handling.ByMethodHandler delete(Runnable runnable) {
     return named("DELETE", runnable);

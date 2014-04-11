@@ -21,6 +21,8 @@ import ratpack.handling.Handler;
 
 public class ClientErrorForwardingHandler implements Handler {
 
+  public static final Handler NOT_FOUND = new ClientErrorForwardingHandler(404);
+
   private final int statusCode;
 
   public ClientErrorForwardingHandler(int statusCode) {

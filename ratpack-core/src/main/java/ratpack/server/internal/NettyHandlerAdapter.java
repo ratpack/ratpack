@@ -59,7 +59,6 @@ import java.net.InetSocketAddress;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static io.netty.handler.codec.http.HttpHeaders.isKeepAlive;
-import static io.netty.handler.codec.http.HttpResponseStatus.NOT_FOUND;
 
 @ChannelHandler.Sharable
 public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpRequest> {
@@ -79,7 +78,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
 
   public NettyHandlerAdapter(Stopper stopper, Handler handler, LaunchConfig launchConfig) {
     this.handlers = new Handler[]{new ErrorCatchingHandler(handler)};
-    this.return404 = Handlers.clientError(NOT_FOUND.code());
+    this.return404 = Handlers.notFound();
     this.registry = Registries.registry()
       // If you update this list, update the class level javadoc on Context.
       .add(Background.class, launchConfig.getBackground())
