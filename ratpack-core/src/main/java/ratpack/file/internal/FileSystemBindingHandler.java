@@ -16,6 +16,7 @@
 
 package ratpack.file.internal;
 
+import ratpack.file.BaseDirRequiredException;
 import ratpack.file.FileSystemBinding;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
@@ -35,13 +36,16 @@ public class FileSystemBindingHandler implements Handler {
   }
 
   public void handle(Context context) {
-    // There is always a binding available
-    FileSystemBinding parentBinding = context.get(FileSystemBinding.class);
-    FileSystemBinding binding = parentBinding.binding(path);
-    if (binding == null) {
-      context.clientError(404);
+    FileSystemBinding parentBinding = context.maybeGet(FileSystemBinding.class);
+    if (parentBinding == null) {
+      context.error(new BaseDirRequiredException("An application base directory is required to use this handler"));
     } else {
-      context.insert(registry(FileSystemBinding.class, binding), handler);
+      FileSystemBinding binding = parentBinding.binding(path);
+      if (binding == null) {
+        context.clientError(404);
+      } else {
+        context.insert(registry(FileSystemBinding.class, binding), handler);
+      }
     }
   }
 }

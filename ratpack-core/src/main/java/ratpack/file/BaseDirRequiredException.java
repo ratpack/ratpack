@@ -14,15 +14,12 @@
  * limitations under the License.
  */
 
-package ratpack.launch;
+package ratpack.file;
 
 /**
- * Thrown when a request is made for the base directory of the application in an application
- * launch config where no base directory has been set.
- *
- * @see LaunchConfig#getBaseDir()
+ * Thrown when the base directory of the application has not been set but is required.
  */
-public class NoBaseDirException extends RuntimeException {
+public class BaseDirRequiredException extends RuntimeException {
 
   private static final long serialVersionUID = 0;
 
@@ -31,7 +28,7 @@ public class NoBaseDirException extends RuntimeException {
    *
    * @param message the exception message
    */
-  public NoBaseDirException(String message) {
+  public BaseDirRequiredException(String message) {
     super(message);
   }
 }

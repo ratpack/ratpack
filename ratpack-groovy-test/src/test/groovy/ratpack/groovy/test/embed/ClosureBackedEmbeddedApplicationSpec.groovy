@@ -18,14 +18,13 @@ package ratpack.groovy.test.embed
 
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
-import ratpack.launch.LaunchException
 import ratpack.test.embed.BaseDirBuilder
 import ratpack.test.embed.PathBaseDirBuilder
 import spock.lang.AutoCleanup
 import spock.lang.Specification
 
-import static ClosureBackedEmbeddedApplication.embeddedApp
 import static ratpack.groovy.test.TestHttpClients.testHttpClient
+import static ratpack.groovy.test.embed.EmbeddedApplications.embeddedApp
 
 class ClosureBackedEmbeddedApplicationSpec extends Specification {
 
@@ -41,19 +40,19 @@ class ClosureBackedEmbeddedApplicationSpec extends Specification {
 
   def "embedded app with base dir"() {
     given:
-    def myapp = embeddedApp(baseDir, {
+    def myapp = embeddedApp(baseDir) {
         handlers {
           handler {
             render "foo"
           }
         }
-    })
+    }
 
     when:
     myapp.server.start()
 
     then:
-    testHttpClient({ myapp.getAddress() }).getText() == "foo"
+    testHttpClient(myapp).getText() == "foo"
   }
 
   def "embedded app without base dir"() {
@@ -70,7 +69,24 @@ class ClosureBackedEmbeddedApplicationSpec extends Specification {
     myapp.server.start()
 
     then:
-    thrown(LaunchException)
+    testHttpClient(myapp).getText() == "foo"
+  }
+
+  def "asset serving embedded app without base dir"() {
+    given:
+    baseDir.file("public/static.text", "hello!")
+    and:
+    def myapp = embeddedApp {
+      handlers {
+        assets("public")
+      }
+    }
+
+    when:
+    myapp.server.start()
+
+    then:
+    testHttpClient(myapp).get("static.text").statusCode == 500
   }
 
 }

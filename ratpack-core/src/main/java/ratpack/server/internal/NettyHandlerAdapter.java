@@ -43,9 +43,11 @@ import ratpack.handling.internal.*;
 import ratpack.http.*;
 import ratpack.http.internal.*;
 import ratpack.launch.LaunchConfig;
+import ratpack.launch.NoBaseDirException;
 import ratpack.launch.internal.LaunchConfigInternal;
 import ratpack.registry.Registries;
 import ratpack.registry.Registry;
+import ratpack.registry.RegistryBuilder;
 import ratpack.render.CharSequenceRenderer;
 import ratpack.render.internal.DefaultCharSequenceRenderer;
 import ratpack.render.internal.DefaultRenderController;
@@ -57,11 +59,13 @@ import ratpack.util.internal.NumberUtil;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Logger;
 
 import static io.netty.handler.codec.http.HttpHeaders.isKeepAlive;
 
 @ChannelHandler.Sharable
 public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpRequest> {
+  private final static Logger LOGGER = Logger.getLogger(NettyHandlerAdapter.class.getName());
 
   private final Handler[] handlers;
   private final Handler return404;
@@ -79,12 +83,11 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
   public NettyHandlerAdapter(Stopper stopper, Handler handler, LaunchConfig launchConfig) {
     this.handlers = new Handler[]{new ErrorCatchingHandler(handler)};
     this.return404 = Handlers.notFound();
-    this.registry = Registries.registry()
+    RegistryBuilder registryBuilder = Registries.registry()
       // If you update this list, update the class level javadoc on Context.
       .add(Background.class, launchConfig.getBackground())
       .add(finishedOnThreadCallbackManager)
       .add(Stopper.class, stopper)
-      .add(FileSystemBinding.class, launchConfig.getBaseDir())
       .add(MimeTypes.class, new ActivationBackedMimeTypes())
       .add(PublicAddress.class, new DefaultPublicAddress(launchConfig.getPublicAddress(), launchConfig.getSSLContext() == null ? "http" : "https"))
       .add(Redirector.class, new DefaultRedirector())
@@ -94,8 +97,15 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
       .add(FileRenderer.class, new DefaultFileRenderer())
       .add(CharSequenceRenderer.class, new DefaultCharSequenceRenderer())
       .add(FormParser.class, FormParser.multiPart())
-      .add(FormParser.class, FormParser.urlEncoded())
-      .build();
+      .add(FormParser.class, FormParser.urlEncoded());
+
+    try {
+      registryBuilder.add(FileSystemBinding.class, launchConfig.getBaseDir());
+    } catch (NoBaseDirException e) {
+      LOGGER.warning("No base directory has been set for this application");
+    }
+
+    this.registry = registryBuilder.build();
 
     ContextStorage contextStorage;
     if (launchConfig instanceof LaunchConfigInternal) {

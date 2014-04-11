@@ -107,23 +107,9 @@ public class ClosureBackedEmbeddedApplication extends LaunchConfigEmbeddedApplic
 
   private Factory<Path> baseDirFactory;
 
-  public static ClosureBackedEmbeddedApplication embeddedApp(@DelegatesTo(value = ClosureBackedEmbeddedApplication.class, strategy = Closure.DELEGATE_FIRST) Closure<?> config) {
-    return embeddedApp(null, config);
-  }
-
-  public static ClosureBackedEmbeddedApplication embeddedApp(BaseDirBuilder baseDir, @DelegatesTo(value = ClosureBackedEmbeddedApplication.class, strategy = Closure.DELEGATE_FIRST) Closure<?> config) {
-    ClosureBackedEmbeddedApplication app;
-    if (baseDir != null) {
-      app = new ClosureBackedEmbeddedApplication(baseDir);
-    } else {
-      app = new ClosureBackedEmbeddedApplication();
-    }
-    config.setResolveStrategy(Closure.DELEGATE_FIRST);
-    config.setDelegate(app);
-    config.call(app);
-    return app;
-  }
-
+  /**
+   * Constructor.
+   */
   public ClosureBackedEmbeddedApplication() { }
 
   /**
