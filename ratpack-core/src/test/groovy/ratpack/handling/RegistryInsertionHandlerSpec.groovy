@@ -69,4 +69,31 @@ class RegistryInsertionHandlerSpec extends RatpackGroovyDslSpec {
     getText().startsWith "$NotInRegistryException.name: No object for type '$Thing.name'"
     response.statusCode == 500
   }
+
+  def "can use static register handler method that takes registry"() {
+    when:
+    handlers {
+      handler Handlers.register(registry(Thing, new ThingImpl("foo")))
+      handler {
+        render get(Thing).value
+      }
+    }
+
+    then:
+    text == "foo"
+  }
+
+  def "can use static register handler method that takes registry builder"() {
+    when:
+    handlers {
+      handler Handlers.register(registry().add(Thing, new ThingImpl("foo")))
+      handler {
+        render get(Thing).value
+      }
+    }
+
+    then:
+    text == "foo"
+  }
+
 }

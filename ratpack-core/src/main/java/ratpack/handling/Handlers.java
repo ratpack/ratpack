@@ -30,6 +30,7 @@ import ratpack.path.PathBinder;
 import ratpack.path.internal.PathHandler;
 import ratpack.path.internal.TokenPathBinder;
 import ratpack.registry.Registry;
+import ratpack.registry.RegistryBuilder;
 
 import java.util.List;
 
@@ -303,6 +304,28 @@ public abstract class Handlers {
    */
   public static Handler clientError(int statusCode) {
     return new ClientErrorForwardingHandler(statusCode);
+  }
+
+  /**
+   * A handler that simply calls {@link Context#next(ratpack.registry.Registry)} with the given registry.
+   *
+   * @param registry The registry to make available to the next handlers
+   * @return A handler
+   * @see Context#next(ratpack.registry.Registry)
+   */
+  public static Handler register(Registry registry) {
+    return new RegisterForNextHandler(registry);
+  }
+
+  /**
+   * Returns the result of calling {@link #register(ratpack.registry.Registry)} with the result of {@link RegistryBuilder#build()} of the argument.
+   *
+   * @param registryBuilder a registry builder that builds a registry to make available to the next handlers
+   * @return A handler
+   * @see #register(ratpack.registry.Registry)
+   */
+  public static Handler register(RegistryBuilder registryBuilder) {
+    return register(registryBuilder.build());
   }
 
 }
