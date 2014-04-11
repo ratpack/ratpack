@@ -216,7 +216,7 @@ public abstract class Groovy {
   }
 
   /**
-   * Immediately executes the given {@code closure} against the given {@code chain, as a {@link GroovyChain}.
+   * Immediately executes the given {@code closure} against the given {@code chain}, as a {@link GroovyChain}.
    *
    * @param chain the chain to add handlers to
    * @param closure the definition of handlers to add

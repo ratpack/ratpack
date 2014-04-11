@@ -117,7 +117,7 @@ public class LaunchConfigBuilder {
   /**
    * Sets the port to bind to.
    * <p>
-   * Default value is {@value LaunchConfig#DEFAULT_PORT}.
+   * Default value is {@value ratpack.launch.LaunchConfig#DEFAULT_PORT}.
    *
    * @param port The port to bind to
    * @return this
@@ -201,7 +201,7 @@ public class LaunchConfigBuilder {
   /**
    * The max content length.
    *
-   * Default value is {@value LaunchConfig#DEFAULT_MAX_CONTENT_LENGTH}
+   * Default value is {@value ratpack.launch.LaunchConfig#DEFAULT_MAX_CONTENT_LENGTH}
    *
    * @param maxContentLength The max content length to accept.
    * @return this
