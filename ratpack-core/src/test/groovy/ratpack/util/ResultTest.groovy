@@ -1,0 +1,56 @@
+/*
+ * Copyright 2014 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package ratpack.util
+
+import ratpack.test.internal.RatpackGroovyDslSpec
+
+class ResultSpec extends RatpackGroovyDslSpec {
+
+  def "can block on a promise"() {
+    when:
+    handlers {
+      get {
+        def promise = promise { f ->
+          Thread.start { f.success("foo") }
+        }
+
+        def result = Result.from(promise)
+        render result.value
+      }
+    }
+
+    then:
+    text == "foo"
+  }
+
+  def "can block on a failed promise"() {
+    when:
+    handlers {
+      get {
+        def promise = promise { f ->
+          Thread.start { f.error(new Exception("!")) }
+        }
+
+        def result = Result.from(promise)
+        render result.getFailure().message
+      }
+    }
+
+    then:
+    text == "!"
+  }
+}
