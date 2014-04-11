@@ -127,6 +127,12 @@ public abstract class InjectionHandler implements Handler {
       throw new NoSuitableHandleMethodException(thisClass);
     }
 
+    try {
+      handleMethod.setAccessible(true);
+    } catch (SecurityException e) {
+      throw new NoSuitableHandleMethodException(thisClass, e);
+    }
+
     this.handleMethod = handleMethod;
     Class<?>[] parameterTypes = handleMethod.getParameterTypes();
     this.types = ImmutableList.copyOf(Arrays.asList(parameterTypes).subList(1, parameterTypes.length));
@@ -159,6 +165,10 @@ public abstract class InjectionHandler implements Handler {
 
     private NoSuitableHandleMethodException(Class<?> clazz) {
       super("No injectable handle method found for " + clazz.getName());
+    }
+
+    public NoSuitableHandleMethodException(Class<?> clazz, SecurityException cause) {
+      super("Unable to make handle method accessible for " + clazz.getName(), cause);
     }
   }
 

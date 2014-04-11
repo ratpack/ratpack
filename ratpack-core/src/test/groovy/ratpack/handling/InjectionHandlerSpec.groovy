@@ -16,13 +16,13 @@
 
 package ratpack.handling
 
+import ratpack.error.DebugErrorHandler
 import ratpack.error.ServerErrorHandler
 import ratpack.error.internal.DefaultServerErrorHandler
 import ratpack.file.FileSystemBinding
 import ratpack.file.internal.DefaultFileSystemBinding
 import ratpack.test.internal.RatpackGroovyDslSpec
-
-import static ratpack.handling.Handlers.register
+import spock.lang.Unroll
 
 class InjectionHandlerSpec extends RatpackGroovyDslSpec {
 
@@ -98,16 +98,10 @@ class InjectionHandlerSpec extends RatpackGroovyDslSpec {
     protected handle(Context exchange, FileSystemBinding fileSystemBinding, Exception notInRegistry) {}
   }
 
-  static class MessageServerErrorHandler implements ServerErrorHandler {
-    void error(Context exchange, Exception exception) {
-      exchange.response.status(500).send(exception.message)
-    }
-  }
-
   def "error when cant inject"() {
     when:
     handlers {
-      handler register(ServerErrorHandler, new MessageServerErrorHandler(), new InjectedBadHandler())
+      register(ServerErrorHandler, new DebugErrorHandler(), new InjectedBadHandler())
     }
 
     then:
@@ -147,6 +141,25 @@ class InjectionHandlerSpec extends RatpackGroovyDslSpec {
 
     then:
     text == "10:bar"
+  }
+
+  @Unroll
+  def "injection handler accessibility #injectionHandler.class"() {
+    when:
+    handlers {
+      handler injectionHandler
+    }
+
+    then:
+    text == "ok"
+
+    where:
+    injectionHandler << [
+      new TestInjectionHandlers.MethodIsProtected(),
+      new TestInjectionHandlers.MethodIsPrivate(),
+      new TestInjectionHandlers().publicInnerWithPrivate(),
+      new TestInjectionHandlers().privateInnerWithPrivate()
+    ]
   }
 
 }
