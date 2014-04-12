@@ -18,7 +18,7 @@ package ratpack.http
 
 import ratpack.test.internal.RatpackGroovyDslSpec
 
-class RequestParametersSpec extends RatpackGroovyDslSpec {
+class RequestMethodsSpec extends RatpackGroovyDslSpec {
 
   def "can get query params"() {
     when:

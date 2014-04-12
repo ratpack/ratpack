@@ -14,15 +14,27 @@
  * limitations under the License.
  */
 
-package ratpack.http.client;
+package ratpack.handling
 
-import ratpack.handling.BaseContext;
-import ratpack.http.client.internal.DefaultHttpClient;
+import spock.lang.Specification
 
-public abstract class HttpClients {
+class ContextSpec extends Specification {
 
-  public static HttpClient httpClient(BaseContext context) {
-    return new DefaultHttpClient(context);
+  def "context interface redeclares all inherited methods"() {
+    // This is such a key type, that we should make it easier for people to read the docs by having all its methods present as first class
+    when:
+    checkMethods(Context.interfaces)
+
+    then:
+    noExceptionThrown()
   }
 
+  void checkMethods(Class<?>[] interfaces) {
+    interfaces.each {
+      it.declaredMethods.each {
+        Context.getDeclaredMethod(it.name, it.parameterTypes)
+      }
+      checkMethods(it.interfaces)
+    }
+  }
 }

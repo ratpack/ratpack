@@ -52,7 +52,7 @@ public class DefaultRatpackModule extends AbstractModule {
   }
 
   @Provides
-  ReadOnlyContext context(Foreground foreground) {
+  BaseContext context(Foreground foreground) {
     try {
       return foreground.getContext();
     } catch (NoBoundContextException e) {

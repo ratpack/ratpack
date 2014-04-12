@@ -18,7 +18,7 @@ package ratpack.guice
 
 import ratpack.handling.Background
 import ratpack.handling.Context
-import ratpack.handling.ReadOnlyContext
+import ratpack.handling.BaseContext
 import ratpack.handling.InjectionHandler
 import ratpack.test.internal.RatpackGroovyDslSpec
 
@@ -27,11 +27,11 @@ import javax.inject.Inject
 class InjectableContextSpec extends RatpackGroovyDslSpec {
 
   static class ContextScopeService {
-    final ReadOnlyContext context
+    final BaseContext context
     final Background background
 
     @Inject
-    ContextScopeService(ReadOnlyContext context, Background background) {
+    ContextScopeService(BaseContext context, Background background) {
       this.context = context
       this.background = background
     }

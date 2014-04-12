@@ -25,7 +25,7 @@ import io.netty.handler.codec.http.*;
 import io.netty.handler.ssl.SslHandler;
 import ratpack.func.Action;
 import ratpack.func.Actions;
-import ratpack.handling.ReadOnlyContext;
+import ratpack.handling.BaseContext;
 import ratpack.http.Headers;
 import ratpack.http.MutableHeaders;
 import ratpack.http.Status;
@@ -45,9 +45,9 @@ import java.net.URISyntaxException;
 
 public class DefaultHttpClient implements HttpClient {
 
-  private final ReadOnlyContext context;
+  private final BaseContext context;
 
-  public DefaultHttpClient(ReadOnlyContext context) {
+  public DefaultHttpClient(BaseContext context) {
     this.context = context;
   }
 

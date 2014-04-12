@@ -17,17 +17,27 @@
 package ratpack.handling;
 
 import ratpack.api.NonBlocking;
+import ratpack.api.Nullable;
 import ratpack.func.Action;
 import ratpack.handling.direct.DirectChannelAccess;
+import ratpack.http.Request;
 import ratpack.http.Response;
+import ratpack.http.client.HttpClient;
 import ratpack.parse.NoSuchParserException;
 import ratpack.parse.Parse;
 import ratpack.parse.ParserException;
+import ratpack.path.PathTokens;
+import ratpack.promise.Fulfiller;
+import ratpack.promise.SuccessOrErrorPromise;
 import ratpack.registry.NotInRegistryException;
 import ratpack.registry.Registry;
+import ratpack.server.BindAddress;
 import ratpack.util.ResultAction;
 
+import java.nio.file.Path;
 import java.util.Date;
+import java.util.List;
+import java.util.concurrent.Callable;
 
 /**
  * The context of an individual {@link Handler} invocation.
@@ -64,7 +74,7 @@ import java.util.Date;
  * <li>A {@link Redirector}</li>
  * </ul>
  */
-public interface Context extends ReadOnlyContext {
+public interface Context extends BaseContext {
 
   /**
    * Returns this.
@@ -72,6 +82,13 @@ public interface Context extends ReadOnlyContext {
    * @return this.
    */
   Context getContext();
+
+  /**
+   * The HTTP request.
+   *
+   * @return The HTTP request.
+   */
+  Request getRequest();
 
   /**
    * The HTTP response.
@@ -191,6 +208,107 @@ public interface Context extends ReadOnlyContext {
 
 
   // Shorthands for common service lookups
+
+  /**
+   * Forwards the exception to the {@link ratpack.error.ServerErrorHandler} in this service.
+   * <p>
+   * The default configuration of Ratpack includes a {@link ratpack.error.ServerErrorHandler} in all contexts.
+   * A {@link NotInRegistryException} will only be thrown if a very custom service setup is being used.
+   *
+   * @param exception The exception that occurred
+   * @throws NotInRegistryException if no {@link ratpack.error.ServerErrorHandler} can be found in the service
+   */
+  @Override
+  @NonBlocking
+  void error(Exception exception) throws NotInRegistryException;
+
+  /**
+   * Performs the given {@code callable} in a non request thread so that it can perform blocking IO.
+   * <p>
+   * This method is merely a convenience for calling {@link #getBackground() getBackground()}.{@link Background#exec(Callable) exec(callable)}.
+   *
+   * @param backgroundOperation The blocking operation to perform in the background
+   * @param <T> The type of object returned by the background operation
+   * @return A promise for the result of the background operation
+   * @see Background
+   */
+  @Override
+  <T> SuccessOrErrorPromise<T> background(Callable<T> backgroundOperation);
+
+  /**
+   * Creates a promise of a value that will made available asynchronously.
+   * <p>
+   * The {@code action} given to this method receives a {@link Fulfiller}, which can be used to fulfill the promise at any time in the future.
+   * The {@code action} is not required to fulfill the promise during the execution of the {@code execute()} method (i.e. it can be asynchronous).
+   * The {@code action} MUST call one of the fulfillment methods.
+   * Otherwise, the promise will go unfulfilled.
+   * There is no time limit or timeout on fulfillment.
+   * <p>
+   * The promise returned has a default error handling strategy of forwarding exceptions to {@link #error(Exception)} of this context.
+   * To use a different error strategy, supply it to the {@link SuccessOrErrorPromise#onError(Action)} method.
+   * <p>
+   * <pre class="tested">
+   * import ratpack.handling.*;
+   * import ratpack.promise.Fulfiller;
+   * import ratpack.func.Action;
+   *
+   * import java.util.concurrent.TimeUnit;
+   *
+   * public class PromiseUsingJavaHandler implements Handler {
+   *   public void handle(final Context context) {
+   *     context.promise(new Action&lt;Fulfiller&lt;String&gt;&gt;() {
+   *       public void execute(final Fulfiller&lt;String&gt; fulfiller) {
+   *         context.getForeground().getExecutor().schedule(new Runnable() {
+   *           public void run() {
+   *             fulfiller.success("hello world!");
+   *           }
+   *         }, 200, TimeUnit.MILLISECONDS);
+   *       }
+   *     }).then(new Action&lt;String&gt;() {
+   *       public void execute(String string) {
+   *         context.render(string);
+   *       }
+   *     });
+   *   }
+   * }
+   *
+   * class PromiseUsingGroovyHandler implements Handler {
+   *   void handle(Context context) {
+   *     context.promise { Fulfiller&lt;String&gt; fulfiller ->
+   *       context.foreground.executor.schedule({
+   *         fulfiller.success("hello world!")
+   *       }, 200, TimeUnit.MILLISECONDS)
+   *     } then { String string ->
+   *       context.render(string)
+   *     }
+   *   }
+   * }
+   *
+   * // Test (Groovy) &hellip;
+   *
+   * import ratpack.test.embed.PathBaseDirBuilder
+   * import ratpack.groovy.test.TestHttpClients
+   * import ratpack.groovy.test.embed.ClosureBackedEmbeddedApplication
+   *
+   * def baseDir = new PathBaseDirBuilder(new File("some/path"))
+   * def app = new ClosureBackedEmbeddedApplication(baseDir)
+   *
+   * app.handlers {
+   *   get("java", new PromiseUsingJavaHandler())
+   *   get("groovy", new PromiseUsingGroovyHandler())
+   * }
+   *
+   * def client = TestHttpClients.testHttpClient(app)
+   *
+   * assert client.getText("java") == "hello world!"
+   * assert client.getText("groovy") == "hello world!"
+   *
+   * app.close()
+   * </pre>
+   * @param <T> the type of value promised
+   */
+  @Override
+  <T> SuccessOrErrorPromise<T> promise(Action<? super Fulfiller<T>> action);
 
   /**
    * Forwards the error to the {@link ratpack.error.ClientErrorHandler} in this service.
@@ -390,5 +508,73 @@ public interface Context extends ReadOnlyContext {
    * @return Direct access to the underlying channel.
    */
   DirectChannelAccess getDirectChannelAccess();
+
+  /**
+   * The address that this request was received on.
+   *
+   * @return The address that this request was received on.
+   */
+  BindAddress getBindAddress();
+
+  /**
+   * The contextual path tokens of the current {@link ratpack.path.PathBinding}.
+   * <p>
+   * Shorthand for {@code get(PathBinding.class).getPathTokens()}.
+   *
+   * @return The contextual path tokens of the current {@link ratpack.path.PathBinding}.
+   * @throws NotInRegistryException if there is no {@link ratpack.path.PathBinding} in the current service
+   */
+  PathTokens getPathTokens() throws NotInRegistryException;
+
+  /**
+   * The contextual path tokens of the current {@link ratpack.path.PathBinding}.
+   * <p>
+   * Shorthand for {@code get(PathBinding.class).getAllPathTokens()}.
+   *
+   * @return The contextual path tokens of the current {@link ratpack.path.PathBinding}.
+   * @throws NotInRegistryException if there is no {@link ratpack.path.PathBinding} in the current service
+   */
+  PathTokens getAllPathTokens() throws NotInRegistryException;
+
+  /**
+   * Registers a callback to be notified when the request for this context is “closed” (i.e. responded to).
+   *
+   * @param onClose A notification callback
+   */
+  void onClose(Action<? super RequestOutcome> onClose);
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  Path file(String path) throws NotInRegistryException;
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  Background getBackground();
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  Foreground getForeground();
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  HttpClient getHttpClient();
+
+  @Override
+  <O> O get(Class<O> type) throws NotInRegistryException;
+
+  @Nullable
+  @Override
+  <O> O maybeGet(Class<O> type);
+
+  @Override
+ <O> List<O> getAll(Class<O> type);
 
 }
