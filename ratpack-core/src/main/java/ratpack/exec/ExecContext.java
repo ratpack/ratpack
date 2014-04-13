@@ -18,7 +18,6 @@ package ratpack.exec;
 
 import ratpack.api.NonBlocking;
 import ratpack.func.Action;
-import ratpack.func.Supplier;
 import ratpack.http.client.HttpClient;
 import ratpack.launch.LaunchConfig;
 import ratpack.promise.Fulfiller;
@@ -40,7 +39,32 @@ public interface ExecContext {
    */
   ExecContext getContext();
 
-  Supplier<? extends ExecContext> getSupplier();
+  /**
+   * Supplies the current active context at any given time.
+   * <p>
+   * During execution, the context may change.
+   * This supplier always returns the current context.
+   * <p>
+   * This is rarely, if ever, needed in application code.
+   * It is used internally by Ratpack to handle contexts jumping across threads.
+   */
+  interface Supplier {
+
+    /**
+     * The current active context.
+     *
+     * @return the current active context.
+     */
+    ExecContext get();
+  }
+
+  /**
+   * A context supplier.
+   *
+   * @return a context supplier
+   * @see ExecContext.Supplier
+   */
+  Supplier getSupplier();
 
   LaunchConfig getLaunchConfig();
 
