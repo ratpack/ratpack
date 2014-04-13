@@ -56,6 +56,8 @@ public abstract class EmbeddedApplicationSupport implements EmbeddedApplication 
     try {
       if (!server.isRunning()) {
         server.start();
+        // Work around a race condition with binding, that so far we've only seen on David Carr's laptop when running the tests.
+        Thread.sleep(5); // XXX: remove this pause when we identify a fix for the race condition
       }
       return new URI(server.getScheme(), null, server.getBindHost(), server.getBindPort(), "/", null, null);
     } catch (Exception e) {
