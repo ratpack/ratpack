@@ -10,9 +10,14 @@ public class HandlerFactory implements ratpack.launch.HandlerFactory {
 
   public Handler create(LaunchConfig launchConfig) throws Exception {
     return Handlers.chain(launchConfig, new ChainAction() {
+      <% if (patch < 4) { %>
       public void execute(Chain chain) {
         chain.
-
+      <% } else { %>
+      protected void execute() {
+         Chain chain = getChain();
+         chain.
+      <% } %>
         handler("stop", new StopHandler()).
 
         handler("render", new Handler() {
