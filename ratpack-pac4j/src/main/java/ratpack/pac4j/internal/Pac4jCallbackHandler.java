@@ -19,15 +19,11 @@ package ratpack.pac4j.internal;
 import org.pac4j.core.client.Client;
 import org.pac4j.core.credentials.Credentials;
 import org.pac4j.core.exception.RequiresHttpAction;
-import org.pac4j.core.exception.TechnicalException;
 import org.pac4j.core.profile.UserProfile;
-import ratpack.func.Action;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.pac4j.Authorizer;
 import ratpack.session.store.SessionStorage;
-
-import java.util.concurrent.Callable;
 
 import static ratpack.pac4j.internal.SessionConstants.SAVED_URI;
 import static ratpack.pac4j.internal.SessionConstants.USER_PROFILE;
@@ -56,33 +52,21 @@ public class Pac4jCallbackHandler<C extends Credentials, U extends UserProfile> 
   }
 
   @Override
-  public void handle(final Context context) throws Exception {
-    context.background(new Callable<UserProfile>() {
-      @Override
-      public UserProfile call() throws RequiresHttpAction {
-        return client.getUserProfile(client.getCredentials(new RatpackWebContext(context)));
+  public void handle(final Context context) {
+    SessionStorage sessionStorage = context.getRequest().get(SessionStorage.class);
+    RatpackWebContext webContext = new RatpackWebContext(context);
+    try {
+      C credentials = client.getCredentials(webContext);
+      U profile = client.getUserProfile(credentials, webContext);
+      saveUserProfileInSession(sessionStorage, profile);
+      if (profile == null) {
+        authorizer.handleAuthenticationFailure(context);
+      } else {
+        context.redirect(getSavedUri(sessionStorage));
       }
-    }).onError(new Action<Throwable>() {
-      @Override
-      public void execute(Throwable error) {
-        if (error instanceof RequiresHttpAction) {
-          context.getResponse().send();
-        } else {
-          throw new TechnicalException("Failed to get user profile", error);
-        }
-      }
-    }).then(new Action<UserProfile>() {
-      @Override
-      public void execute(UserProfile profile) {
-        SessionStorage sessionStorage = context.getRequest().get(SessionStorage.class);
-        saveUserProfileInSession(sessionStorage, profile);
-        if (profile == null) {
-          authorizer.handleAuthenticationFailure(context);
-        } else {
-          context.redirect(getSavedUri(sessionStorage));
-        }
-      }
-    });
+    } catch (RequiresHttpAction action) {
+      webContext.sendResponse(action);
+    }
   }
 
   private static void saveUserProfileInSession(SessionStorage sessionStorage, UserProfile profile) {

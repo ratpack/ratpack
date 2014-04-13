@@ -30,12 +30,12 @@ configurations {
 
 dependencies {
   compile project(":ratpack-session")
-  compile("org.pac4j:pac4j-core:1.4.1") {
+  compile("org.pac4j:pac4j-core:${commonVersions.pac4j}") {
     exclude group: "org.slf4j", module: "slf4j-api"
     exclude group: "com.google.inject", module: "guice"
   }
 
-  testCompile("org.pac4j:pac4j-openid:1.4.1") {
+  testCompile("org.pac4j:pac4j-openid:${commonVersions.pac4j}") {
     exclude group: "org.slf4j", module: "slf4j-api"
     exclude group: "com.google.inject", module: "guice"
   }

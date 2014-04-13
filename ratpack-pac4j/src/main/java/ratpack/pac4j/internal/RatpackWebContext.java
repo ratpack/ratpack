@@ -17,10 +17,14 @@
 package ratpack.pac4j.internal;
 
 import org.pac4j.core.context.WebContext;
+import org.pac4j.core.exception.RequiresHttpAction;
 import ratpack.handling.Context;
+import ratpack.http.MediaType;
+import ratpack.server.PublicAddress;
 import ratpack.session.store.SessionStorage;
 import ratpack.util.MultiValueMap;
 
+import java.net.URI;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,6 +34,8 @@ import java.util.Map;
  */
 class RatpackWebContext implements WebContext {
   private final Context context;
+  private boolean responseSent;
+  private String responseContent = "";
 
   /**
    * Constructs a new instance.
@@ -63,12 +69,16 @@ class RatpackWebContext implements WebContext {
 
   @Override
   public void setSessionAttribute(String name, Object value) {
-    context.getRequest().get(SessionStorage.class).put(name, value);
+    if (value == null) {
+      getSessionStorage().remove(name);
+    } else {
+      getSessionStorage().put(name, value);
+    }
   }
 
   @Override
   public Object getSessionAttribute(String name) {
-    return context.getRequest().get(SessionStorage.class).get(name);
+    return getSessionStorage().get(name);
   }
 
   @Override
@@ -77,17 +87,66 @@ class RatpackWebContext implements WebContext {
   }
 
   @Override
-  public void writeResponseContent(String content) {
-    context.getResponse().send(content);
+  public void writeResponseContent(String responseContent) {
+    this.responseContent = responseContent;
   }
 
   @Override
   public void setResponseStatus(int code) {
-    context.getResponse().getStatus().set(code);
+    context.getResponse().status(code);
   }
 
   @Override
   public void setResponseHeader(String name, String value) {
     context.getResponse().getHeaders().set(name, value);
+  }
+
+  @Override
+  public String getServerName() {
+    return getAddress().getHost();
+  }
+
+  @Override
+  public int getServerPort() {
+    return getAddress().getPort();
+  }
+
+  @Override
+  public String getScheme() {
+    return getAddress().getScheme();
+  }
+
+  @Override
+  public String getFullRequestURL() {
+    return context.getRequest().getUri();
+  }
+
+  @Override
+  public void sendRedirect(String location) {
+    context.redirect(location);
+    responseSent = true;
+  }
+
+  void sendResponse(RequiresHttpAction action) {
+    context.getResponse().status(action.getCode(), action.getMessage());
+    sendResponse();
+  }
+
+  /**
+   * Sends any pending response.
+   */
+  void sendResponse() {
+    if (!responseSent) {
+      context.getResponse().send(MediaType.TEXT_HTML, responseContent);
+      responseSent = true;
+    }
+  }
+
+  private SessionStorage getSessionStorage() {
+    return context.getRequest().get(SessionStorage.class);
+  }
+
+  private URI getAddress() {
+    return context.get(PublicAddress.class).getAddress(context);
   }
 }

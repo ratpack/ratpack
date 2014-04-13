@@ -19,7 +19,8 @@ ext {
     remote: "0.6-SNAPSHOT",
     slf4j: "1.7.5",
     netty: "4.0.18.Final",
-    groovy: "2.2.1"
+    groovy: "2.2.1",
+    pac4j: "1.5.0"
   ]
 
   commonDependencies = [

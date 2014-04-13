@@ -19,15 +19,13 @@ package ratpack.pac4j.internal;
 import org.pac4j.core.client.BaseClient;
 import org.pac4j.core.client.Client;
 import org.pac4j.core.credentials.Credentials;
+import org.pac4j.core.exception.RequiresHttpAction;
 import org.pac4j.core.profile.UserProfile;
-import ratpack.func.Action;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.pac4j.Authorizer;
 import ratpack.server.PublicAddress;
 import ratpack.session.store.SessionStorage;
-
-import java.util.concurrent.Callable;
 
 import static ratpack.pac4j.internal.SessionConstants.SAVED_URI;
 import static ratpack.pac4j.internal.SessionConstants.USER_PROFILE;
@@ -76,24 +74,19 @@ public class Pac4jAuthenticationHandler<C extends Credentials, U extends UserPro
     return (U) context.getRequest().get(SessionStorage.class).get(USER_PROFILE);
   }
 
-  private void initiateAuthentication(final Context context) throws Exception {
-    context.background(new Callable<String>() {
-      @Override
-      public String call() {
-        if (client instanceof BaseClient) {
-          PublicAddress publicAddress = context.get(PublicAddress.class);
-          String callbackUrl = publicAddress.getAddress(context).toString() + "/" + callbackPath;
-          ((BaseClient) client).setCallbackUrl(callbackUrl);
-        }
-        return client.getRedirectionUrl(new RatpackWebContext(context));
-      }
-    }).then(new Action<String>() {
-      @Override
-      public void execute(String redirectionUrl) {
-        SessionStorage sessionStorage = context.getRequest().get(SessionStorage.class);
-        sessionStorage.put(SAVED_URI, context.getRequest().getUri());
-        context.redirect(redirectionUrl);
-      }
-    });
+  private void initiateAuthentication(final Context context) {
+    context.getRequest().get(SessionStorage.class).put(SAVED_URI, context.getRequest().getUri());
+    if (client instanceof BaseClient) {
+      PublicAddress publicAddress = context.get(PublicAddress.class);
+      String callbackUrl = publicAddress.getAddress(context).toString() + "/" + callbackPath;
+      ((BaseClient) client).setCallbackUrl(callbackUrl);
+    }
+    RatpackWebContext webContext = new RatpackWebContext(context);
+    try {
+      client.redirect(webContext, false, false);
+      webContext.sendResponse();
+    } catch (RequiresHttpAction action) {
+      webContext.sendResponse(action);
+    }
   }
 }
