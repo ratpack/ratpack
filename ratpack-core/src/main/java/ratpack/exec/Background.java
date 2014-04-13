@@ -16,6 +16,7 @@
 
 package ratpack.exec;
 
+import com.google.common.util.concurrent.ListeningExecutorService;
 import ratpack.promise.SuccessOrErrorPromise;
 
 import java.util.concurrent.Callable;
@@ -99,5 +100,7 @@ public interface Background {
    * @return a promise for the return value of the callable.
    */
   <T> SuccessOrErrorPromise<T> exec(Callable<T> operation);
+
+  ListeningExecutorService getExecutor();
 
 }

@@ -20,22 +20,30 @@ import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.ListeningScheduledExecutorService;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.UnpooledByteBufAllocator;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.util.CharsetUtil;
+import io.netty.util.concurrent.DefaultThreadFactory;
 import ratpack.api.Nullable;
-import ratpack.exec.Background;
-import ratpack.exec.Foreground;
-import ratpack.exec.internal.ContextStorage;
-import ratpack.exec.internal.DefaultForeground;
-import ratpack.exec.internal.DefaultBackground;
 import ratpack.error.ClientErrorHandler;
 import ratpack.error.ServerErrorHandler;
 import ratpack.event.internal.DefaultEventController;
 import ratpack.event.internal.EventController;
+import ratpack.exec.Background;
+import ratpack.exec.Foreground;
+import ratpack.exec.internal.ContextStorage;
+import ratpack.exec.internal.DefaultBackground;
+import ratpack.exec.internal.DefaultForeground;
 import ratpack.exec.internal.FinishedOnThreadCallbackManager;
 import ratpack.file.internal.FileHttpTransmitter;
 import ratpack.func.Action;
-import ratpack.handling.*;
-import ratpack.handling.internal.*;
+import ratpack.handling.Context;
+import ratpack.handling.Handler;
+import ratpack.handling.RequestOutcome;
+import ratpack.handling.internal.DefaultContext;
+import ratpack.handling.internal.DefaultRequestOutcome;
+import ratpack.handling.internal.DelegatingHeaders;
+import ratpack.handling.internal.HandlerException;
 import ratpack.http.*;
 import ratpack.http.internal.DefaultResponse;
 import ratpack.http.internal.DefaultSentResponse;
@@ -179,10 +187,10 @@ public class DefaultInvocation implements Invocation {
       }
     };
 
-
+    EventLoopGroup eventLoopGroup = new NioEventLoopGroup(4, new DefaultThreadFactory("ratpack-group"));
     Response response = new DefaultResponse(status, responseHeaders, fileHttpTransmitter, UnpooledByteBufAllocator.DEFAULT, committer);
 
-    final Foreground foreground = new DefaultForeground(contextStorage, foregroundExecutorService);
+    final Foreground foreground = new DefaultForeground(contextStorage, foregroundExecutorService, eventLoopGroup);
     final Background background = new DefaultBackground(foregroundExecutorService, backgroundExecutorService, contextStorage);
 
     LaunchConfig launchConfig = new MockLaunchConfig() {

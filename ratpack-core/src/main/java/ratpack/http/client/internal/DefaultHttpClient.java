@@ -34,7 +34,6 @@ import ratpack.http.client.ReceivedResponse;
 import ratpack.http.client.RequestSpec;
 import ratpack.http.internal.*;
 import ratpack.launch.LaunchConfig;
-import ratpack.launch.internal.LaunchConfigInternal;
 import ratpack.promise.Fulfiller;
 import ratpack.promise.SuccessOrErrorPromise;
 
@@ -93,8 +92,8 @@ public class DefaultHttpClient implements HttpClient {
     final String host = uri.getHost();
     final int port = uri.getPort() < 0 ? (useSsl ? 443 : 80) : uri.getPort();
 
-    LaunchConfig launchConfig = context.get(LaunchConfig.class);
-    final EventLoopGroup eventLoopGroup = ((LaunchConfigInternal) launchConfig).getEventLoopGroup();
+    LaunchConfig launchConfig = context.getLaunchConfig();
+    final EventLoopGroup eventLoopGroup = launchConfig.getForeground().getEventLoopGroup();
     final ByteBufAllocator byteBufAllocator = launchConfig.getBufferAllocator();
 
     return context.promise(new Action<Fulfiller<ReceivedResponse>>() {

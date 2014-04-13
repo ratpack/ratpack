@@ -16,18 +16,11 @@
 
 package ratpack.launch.internal;
 
-import io.netty.channel.EventLoopGroup;
 import ratpack.exec.internal.ContextStorage;
 import ratpack.launch.LaunchConfig;
-
-import java.util.concurrent.ExecutorService;
 
 public interface LaunchConfigInternal extends LaunchConfig {
 
   ContextStorage getContextStorage();
-
-  ExecutorService getBackgroundExecutorService();
-
-  EventLoopGroup getEventLoopGroup();
 
 }

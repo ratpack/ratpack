@@ -17,6 +17,7 @@
 package ratpack.exec.internal;
 
 import com.google.common.util.concurrent.ListeningScheduledExecutorService;
+import io.netty.channel.EventLoopGroup;
 import ratpack.exec.ExecContext;
 import ratpack.exec.Foreground;
 import ratpack.exec.NoBoundContextException;
@@ -26,10 +27,12 @@ public class DefaultForeground implements Foreground {
 
   private final ContextStorage contextStorage;
   private final ListeningScheduledExecutorService listeningScheduledExecutorService;
+  private final EventLoopGroup eventLoopGroup;
 
-  public DefaultForeground(ContextStorage contextStorage, ListeningScheduledExecutorService listeningScheduledExecutorService) {
+  public DefaultForeground(ContextStorage contextStorage, ListeningScheduledExecutorService listeningScheduledExecutorService, EventLoopGroup eventLoopGroup) {
     this.contextStorage = contextStorage;
     this.listeningScheduledExecutorService = listeningScheduledExecutorService;
+    this.eventLoopGroup = eventLoopGroup;
   }
 
   @Override
@@ -45,5 +48,10 @@ public class DefaultForeground implements Foreground {
   @Override
   public ListeningScheduledExecutorService getExecutor() {
     return listeningScheduledExecutorService;
+  }
+
+  @Override
+  public EventLoopGroup getEventLoopGroup() {
+    return eventLoopGroup;
   }
 }

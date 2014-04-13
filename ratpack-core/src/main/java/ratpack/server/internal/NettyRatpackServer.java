@@ -25,12 +25,11 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.util.ResourceLeakDetector;
+import ratpack.func.Transformer;
 import ratpack.launch.LaunchConfig;
 import ratpack.launch.LaunchException;
-import ratpack.launch.internal.LaunchConfigInternal;
 import ratpack.server.RatpackServer;
 import ratpack.server.Stopper;
-import ratpack.func.Transformer;
 
 import java.net.InetSocketAddress;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -45,7 +44,7 @@ public class NettyRatpackServer implements RatpackServer {
 
   private final Logger logger = Logger.getLogger(getClass().getName());
 
-  private final LaunchConfigInternal launchConfig;
+  private final LaunchConfig launchConfig;
   private final Transformer<Stopper, ChannelInitializer<SocketChannel>> channelInitializerTransformer;
 
   private InetSocketAddress boundAddress;
@@ -55,7 +54,7 @@ public class NettyRatpackServer implements RatpackServer {
   private final Lock lifecycleLock = new ReentrantLock();
   private final AtomicBoolean running = new AtomicBoolean();
 
-  public NettyRatpackServer(LaunchConfigInternal launchConfig, Transformer<Stopper, ChannelInitializer<SocketChannel>> channelInitializerTransformer) {
+  public NettyRatpackServer(LaunchConfig launchConfig, Transformer<Stopper, ChannelInitializer<SocketChannel>> channelInitializerTransformer) {
     this.launchConfig = launchConfig;
     this.channelInitializerTransformer = channelInitializerTransformer;
   }
@@ -84,7 +83,7 @@ public class NettyRatpackServer implements RatpackServer {
       };
 
       ServerBootstrap bootstrap = new ServerBootstrap();
-      group = launchConfig.getEventLoopGroup();
+      group = launchConfig.getForeground().getEventLoopGroup();
 
       ChannelInitializer<SocketChannel> channelInitializer = channelInitializerTransformer.transform(stopper);
 
@@ -136,7 +135,7 @@ public class NettyRatpackServer implements RatpackServer {
 
   private void partialShutdown() {
     group.shutdownGracefully();
-    launchConfig.getBackgroundExecutorService().shutdown();
+    launchConfig.getBackground().getExecutor().shutdown();
   }
 
   @Override

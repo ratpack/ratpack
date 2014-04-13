@@ -24,13 +24,13 @@ import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.util.concurrent.DefaultThreadFactory;
-import ratpack.file.FileSystemBinding;
 import ratpack.exec.Background;
 import ratpack.exec.Foreground;
 import ratpack.exec.internal.ContextStorage;
 import ratpack.exec.internal.DefaultBackground;
 import ratpack.exec.internal.DefaultForeground;
 import ratpack.exec.internal.ThreadLocalContextStorage;
+import ratpack.file.FileSystemBinding;
 import ratpack.launch.HandlerFactory;
 import ratpack.launch.NoBaseDirException;
 
@@ -50,7 +50,6 @@ public class DefaultLaunchConfig implements LaunchConfigInternal {
   private final InetAddress address;
   private final boolean reloadable;
   private final int threads;
-  private final ListeningExecutorService backgroundExecutorService;
   private final Background background;
   private final Foreground foreground;
   private final ByteBufAllocator byteBufAllocator;
@@ -63,7 +62,6 @@ public class DefaultLaunchConfig implements LaunchConfigInternal {
   private final boolean compressResponses;
 
   private final ContextStorage contextStorage = new ThreadLocalContextStorage();
-  private final EventLoopGroup eventLoopGroup;
 
   public DefaultLaunchConfig(FileSystemBinding baseDir, int port, InetAddress address, boolean reloadable, int threads, ExecutorService backgroundExecutorService, ByteBufAllocator byteBufAllocator, URI publicAddress, ImmutableList<String> indexFiles, ImmutableMap<String, String> other, SSLContext sslContext, int maxContentLength, boolean timeResponses, boolean compressResponses, HandlerFactory handlerFactory) {
     this.baseDir = baseDir;
@@ -73,7 +71,6 @@ public class DefaultLaunchConfig implements LaunchConfigInternal {
     this.threads = threads;
     this.timeResponses = timeResponses;
     this.compressResponses = compressResponses;
-    this.backgroundExecutorService = MoreExecutors.listeningDecorator(backgroundExecutorService);
     this.byteBufAllocator = byteBufAllocator;
     this.publicAddress = publicAddress;
     this.indexFiles = indexFiles;
@@ -81,9 +78,11 @@ public class DefaultLaunchConfig implements LaunchConfigInternal {
     this.handlerFactory = handlerFactory;
     this.sslContext = sslContext;
     this.maxContentLength = maxContentLength;
-    this.eventLoopGroup = new NioEventLoopGroup(threads, new DefaultThreadFactory("ratpack-group"));
-    this.background = new DefaultBackground(eventLoopGroup, this.backgroundExecutorService, contextStorage);
-    this.foreground = new DefaultForeground(contextStorage, MoreExecutors.listeningDecorator(eventLoopGroup));
+
+    ListeningExecutorService listeningBackgroundExecutorService = MoreExecutors.listeningDecorator(backgroundExecutorService);
+    EventLoopGroup eventLoopGroup = new NioEventLoopGroup(threads, new DefaultThreadFactory("ratpack-group"));
+    this.background = new DefaultBackground(eventLoopGroup, listeningBackgroundExecutorService, contextStorage);
+    this.foreground = new DefaultForeground(contextStorage, MoreExecutors.listeningDecorator(eventLoopGroup), eventLoopGroup);
   }
 
   @Override
@@ -186,16 +185,6 @@ public class DefaultLaunchConfig implements LaunchConfigInternal {
   @Override
   public ContextStorage getContextStorage() {
     return contextStorage;
-  }
-
-  @Override
-  public EventLoopGroup getEventLoopGroup() {
-    return eventLoopGroup;
-  }
-
-  @Override
-  public ExecutorService getBackgroundExecutorService() {
-    return backgroundExecutorService;
   }
 
 }

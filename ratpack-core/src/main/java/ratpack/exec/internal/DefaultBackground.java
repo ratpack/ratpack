@@ -16,17 +16,14 @@
 
 package ratpack.exec.internal;
 
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.ListeningExecutorService;
-import ratpack.func.Action;
+import com.google.common.util.concurrent.*;
 import ratpack.exec.Background;
+import ratpack.func.Action;
 import ratpack.handling.Context;
 import ratpack.handling.ProcessingInterceptor;
 import ratpack.handling.internal.InterceptedOperation;
-import ratpack.promise.SuccessOrErrorPromise;
 import ratpack.promise.Fulfiller;
+import ratpack.promise.SuccessOrErrorPromise;
 
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -157,5 +154,10 @@ public class DefaultBackground implements Background {
         }
       }
     });
+  }
+
+  @Override
+  public ListeningExecutorService getExecutor() {
+    return backgroundExecutor;
   }
 }

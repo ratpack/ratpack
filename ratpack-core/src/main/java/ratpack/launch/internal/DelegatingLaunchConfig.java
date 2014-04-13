@@ -17,12 +17,11 @@
 package ratpack.launch.internal;
 
 import io.netty.buffer.ByteBufAllocator;
-import io.netty.channel.EventLoopGroup;
 import ratpack.api.Nullable;
-import ratpack.file.FileSystemBinding;
 import ratpack.exec.Background;
 import ratpack.exec.Foreground;
 import ratpack.exec.internal.ContextStorage;
+import ratpack.file.FileSystemBinding;
 import ratpack.launch.HandlerFactory;
 
 import javax.net.ssl.SSLContext;
@@ -30,7 +29,6 @@ import java.net.InetAddress;
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
 
 public class DelegatingLaunchConfig implements LaunchConfigInternal {
 
@@ -72,11 +70,6 @@ public class DelegatingLaunchConfig implements LaunchConfigInternal {
   }
 
   @Override
-  public EventLoopGroup getEventLoopGroup() {
-    return launchConfig.getEventLoopGroup();
-  }
-
-  @Override
   public Background getBackground() {
     return launchConfig.getBackground();
   }
@@ -84,11 +77,6 @@ public class DelegatingLaunchConfig implements LaunchConfigInternal {
   @Override
   public Foreground getForeground() {
     return launchConfig.getForeground();
-  }
-
-  @Override
-  public ExecutorService getBackgroundExecutorService() {
-    return launchConfig.getBackgroundExecutorService();
   }
 
   @Override

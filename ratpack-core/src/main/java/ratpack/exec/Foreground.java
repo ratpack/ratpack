@@ -17,6 +17,7 @@
 package ratpack.exec;
 
 import com.google.common.util.concurrent.ListeningScheduledExecutorService;
+import io.netty.channel.EventLoopGroup;
 
 /**
  * The foreground represents the request processing, and computation handling, aspect of an application.
@@ -43,5 +44,8 @@ public interface Foreground {
    * @return the executor that manages foreground work.
    */
   ListeningScheduledExecutorService getExecutor();
+
+
+  EventLoopGroup getEventLoopGroup();
 
 }
