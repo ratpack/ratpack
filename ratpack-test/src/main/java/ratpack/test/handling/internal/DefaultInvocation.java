@@ -17,7 +17,6 @@
 package ratpack.test.handling.internal;
 
 import com.google.common.util.concurrent.ListeningExecutorService;
-import com.google.common.util.concurrent.ListeningScheduledExecutorService;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.UnpooledByteBufAllocator;
 import io.netty.channel.EventLoopGroup;
@@ -29,21 +28,20 @@ import ratpack.error.ClientErrorHandler;
 import ratpack.error.ServerErrorHandler;
 import ratpack.event.internal.DefaultEventController;
 import ratpack.event.internal.EventController;
-import ratpack.exec.Background;
+import ratpack.exec.ExecContext;
 import ratpack.exec.Foreground;
-import ratpack.exec.internal.ContextStorage;
+import ratpack.exec.internal.Background;
 import ratpack.exec.internal.DefaultBackground;
 import ratpack.exec.internal.DefaultForeground;
-import ratpack.exec.internal.FinishedOnThreadCallbackManager;
 import ratpack.file.internal.FileHttpTransmitter;
 import ratpack.func.Action;
 import ratpack.handling.Context;
+import ratpack.exec.ExecInterceptor;
 import ratpack.handling.Handler;
 import ratpack.handling.RequestOutcome;
 import ratpack.handling.internal.DefaultContext;
 import ratpack.handling.internal.DefaultRequestOutcome;
 import ratpack.handling.internal.DelegatingHeaders;
-import ratpack.handling.internal.HandlerException;
 import ratpack.http.*;
 import ratpack.http.internal.DefaultResponse;
 import ratpack.http.internal.DefaultSentResponse;
@@ -55,13 +53,11 @@ import ratpack.server.BindAddress;
 import ratpack.test.MockLaunchConfig;
 import ratpack.test.handling.Invocation;
 import ratpack.test.handling.InvocationTimeoutException;
-import ratpack.util.ExceptionUtils;
 
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.Stack;
+import java.util.Collections;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import static com.google.common.util.concurrent.MoreExecutors.listeningDecorator;
@@ -79,25 +75,7 @@ public class DefaultInvocation implements Invocation {
   private Path sentFile;
   private Object rendered;
   private Integer clientError;
-
-  private final ContextStorage contextStorage = new ContextStorage() {
-    final Stack<Context> contextStack = new Stack<>();
-
-    @Override
-    public Context get() {
-      return contextStack.peek();
-    }
-
-    @Override
-    public void set(Context context) {
-      contextStack.push(context);
-    }
-
-    @Override
-    public void remove() {
-      // no op
-    }
-  };
+  private final DefaultContext.RequestConstants requestConstants;
 
   public DefaultInvocation(final Request request, final MutableStatus status, final MutableHeaders responseHeaders, Registry registry, final int timeout, Handler handler) {
 
@@ -108,13 +86,12 @@ public class DefaultInvocation implements Invocation {
     this.status = status;
 
     ListeningExecutorService backgroundExecutorService = listeningDecorator(newSingleThreadExecutor());
-    ListeningScheduledExecutorService foregroundExecutorService = listeningDecorator(Executors.newScheduledThreadPool(1));
 
     final CountDownLatch latch = new CountDownLatch(1);
 
     FileHttpTransmitter fileHttpTransmitter = new FileHttpTransmitter() {
       @Override
-      public void transmit(Background background, BasicFileAttributes basicFileAttributes, Path file) {
+      public void transmit(ExecContext execContext, BasicFileAttributes basicFileAttributes, Path file) {
         sentFile = file;
         latch.countDown();
       }
@@ -168,13 +145,11 @@ public class DefaultInvocation implements Invocation {
       }
     };
 
-    FinishedOnThreadCallbackManager finishedOnThreadCallbackManager = new FinishedOnThreadCallbackManager();
 
     Registry effectiveRegistry = Registries.join(
       Registries.registry().
         add(ClientErrorHandler.class, clientErrorHandler).
         add(ServerErrorHandler.class, serverErrorHandler).
-        add(finishedOnThreadCallbackManager).
         build(),
       registry
     );
@@ -190,8 +165,8 @@ public class DefaultInvocation implements Invocation {
     EventLoopGroup eventLoopGroup = new NioEventLoopGroup(4, new DefaultThreadFactory("ratpack-group"));
     Response response = new DefaultResponse(status, responseHeaders, fileHttpTransmitter, UnpooledByteBufAllocator.DEFAULT, committer);
 
-    final Foreground foreground = new DefaultForeground(contextStorage, foregroundExecutorService, eventLoopGroup);
-    final Background background = new DefaultBackground(foregroundExecutorService, backgroundExecutorService, contextStorage);
+    final Foreground foreground = new DefaultForeground(eventLoopGroup);
+    final Background background = new DefaultBackground(foreground, backgroundExecutorService);
 
     LaunchConfig launchConfig = new MockLaunchConfig() {
       @Override
@@ -205,21 +180,20 @@ public class DefaultInvocation implements Invocation {
       }
     };
 
-    DefaultContext.ApplicationConstants applicationConstants = new DefaultContext.ApplicationConstants(launchConfig, contextStorage, renderController);
-    DefaultContext.RequestConstants requestConstants = new DefaultContext.RequestConstants(
+    DefaultContext.ApplicationConstants applicationConstants = new DefaultContext.ApplicationConstants(launchConfig, renderController);
+    requestConstants = new DefaultContext.RequestConstants(
       applicationConstants, bindAddress, request, response, null, eventController.getRegistry()
     );
 
-    Context context = new DefaultContext(requestConstants, effectiveRegistry, new Handler[]{handler}, 0, next);
+    final Context context = new DefaultContext(requestConstants, effectiveRegistry, new Handler[]{handler}, 0, next);
 
-    contextStorage.set(context);
     try {
-      try {
-        context.next();
-      } catch (HandlerException e) {
-        e.getContext().error(ExceptionUtils.toException(e.getCause()));
-      }
-      finishedOnThreadCallbackManager.fire();
+      foreground.exec(context.getSupplier(), Collections.<ExecInterceptor>emptyList(), ExecInterceptor.ExecType.FOREGROUND, new Action<ExecContext>() {
+        @Override
+        public void execute(ExecContext thing) throws Exception {
+          context.next();
+        }
+      });
     } catch (Exception e) {
       exception = e;
       latch.countDown();
@@ -236,12 +210,12 @@ public class DefaultInvocation implements Invocation {
 
   @Override
   public Registry getRegistry() {
-    return contextStorage.get();
+    return requestConstants.context;
   }
 
   @Override
   public Registry getRequestRegistry() {
-    return contextStorage.get().getRequest();
+    return requestConstants.context.getRequest();
   }
 
   @Override

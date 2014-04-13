@@ -16,49 +16,45 @@
 
 package ratpack.promise.internal;
 
+import ratpack.exec.ExecContext;
+import ratpack.exec.Foreground;
 import ratpack.func.Action;
-import ratpack.handling.Context;
-import ratpack.exec.internal.ContextStorage;
+import ratpack.exec.ExecInterceptor;
 import ratpack.promise.Fulfiller;
 import ratpack.promise.SuccessOrErrorPromise;
 import ratpack.promise.SuccessPromise;
 
+import java.util.List;
+
 import static ratpack.util.ExceptionUtils.toException;
 
 public class DefaultSuccessOrErrorPromise<T> implements SuccessOrErrorPromise<T> {
-  private final Context context;
+  private final ExecContext context;
+  private final Foreground foreground;
+  private final List<ExecInterceptor> interceptors;
   private final Action<? super Fulfiller<T>> action;
-  private final ContextStorage contextStorage;
 
-  public DefaultSuccessOrErrorPromise(Context context, Action<? super Fulfiller<T>> action, ContextStorage contextStorage) {
+  public DefaultSuccessOrErrorPromise(ExecContext context, Foreground foreground, List<ExecInterceptor> interceptors, Action<? super Fulfiller<T>> action) {
     this.context = context;
+    this.foreground = foreground;
+    this.interceptors = interceptors;
+
     this.action = action;
-    this.contextStorage = contextStorage;
   }
 
   @Override
   public SuccessPromise<T> onError(final Action<? super Throwable> errorHandler) {
-    return new DefaultSuccessPromise<>(contextStorage, action, new ForwardToContextErrorHandler(), new Action<Throwable>() {
-      @Override
-      public void execute(Throwable t) {
-        try {
-          errorHandler.execute(t);
-        } catch (Throwable errorHandlerError) {
-          new ForwardToContextErrorHandler().execute(errorHandlerError);
-        }
-      }
-    });
+    return new DefaultSuccessPromise<>(context, foreground, interceptors, action, errorHandler);
   }
 
   @Override
-  public void then(Action<? super T> then) throws Exception {
-    new DefaultSuccessPromise<>(contextStorage, action, new ForwardToContextErrorHandler()).then(then);
+  public void then(Action<? super T> then) {
+    onError(new Action<Throwable>() {
+      @Override
+      public void execute(Throwable t) {
+        context.error(toException(t));
+      }
+    }).then(then);
   }
 
-  private class ForwardToContextErrorHandler implements Action<Throwable> {
-    @Override
-    public void execute(Throwable t) {
-      context.error(toException(t));
-    }
-  }
 }

@@ -18,44 +18,22 @@ package ratpack.codahale.metrics.internal;
 
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;
-import ratpack.handling.Context;
-import ratpack.handling.ProcessingInterceptor;
+import ratpack.exec.ExecInterceptor;
 import ratpack.http.Request;
 
-/**
- * A {@link ratpack.handling.ProcessingInterceptor} implementation that collects {@link Timer} metrics
- * for {@link ratpack.exec.Background} executions.
- * <p>
- * Metrics are grouped by {@link ratpack.http.Request#getUri()} and {@link ratpack.http.Request#getMethod()}.
- * For example, the following requests with background tasks...
- *
- * <pre>
- * /
- * /book
- * /author/1/books
- * </pre>
- *
- * will be reported as...
- *
- * <pre>
- * [root]~GET~Background
- * [book]~GET~Background
- * [author][1][books]~GET~Background
- * </pre>
- */
-public class BackgroundProcessingTimingInterceptor implements ProcessingInterceptor {
+public class BackgroundExecTimingInterceptor implements ExecInterceptor {
 
-  @Override
-  public void init(Context context) {
-    // do nothing
+  private final MetricRegistry metricRegistry;
+  private final Request request;
+
+  public BackgroundExecTimingInterceptor(MetricRegistry metricRegistry, Request request) {
+    this.metricRegistry = metricRegistry;
+    this.request = request;
   }
 
   @Override
-  public void intercept(Type type, Context context, Runnable continuation) {
-    if (type == Type.BACKGROUND) {
-      MetricRegistry metricRegistry = context.get(MetricRegistry.class);
-      Request request = context.getRequest();
-
+  public void intercept(ExecType type, Runnable continuation) {
+    if (type == ExecType.BACKGROUND) {
       String tag = buildBackgroundTimerTag(request.getUri(), request.getMethod().getName());
       Timer.Context timer = metricRegistry.timer(tag).time();
       continuation.run();

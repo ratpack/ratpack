@@ -17,13 +17,20 @@
 package ratpack.newrelic;
 
 import com.google.inject.AbstractModule;
-import ratpack.newrelic.internal.NewRelicProcessingInterceptor;
+import com.google.inject.Injector;
+import ratpack.guice.HandlerDecoratingModule;
+import ratpack.handling.Handler;
+import ratpack.newrelic.internal.NewRelicInterceptorBindingHandler;
 
-public class NewRelicModule extends AbstractModule {
+public class NewRelicModule extends AbstractModule implements HandlerDecoratingModule {
 
   @Override
   protected void configure() {
-    bind(NewRelicProcessingInterceptor.class);
+
   }
 
+  @Override
+  public Handler decorate(Injector injector, Handler handler) {
+    return new NewRelicInterceptorBindingHandler(handler);
+  }
 }

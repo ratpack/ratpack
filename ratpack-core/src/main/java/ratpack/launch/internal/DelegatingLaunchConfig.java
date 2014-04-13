@@ -18,11 +18,11 @@ package ratpack.launch.internal;
 
 import io.netty.buffer.ByteBufAllocator;
 import ratpack.api.Nullable;
-import ratpack.exec.Background;
 import ratpack.exec.Foreground;
-import ratpack.exec.internal.ContextStorage;
+import ratpack.exec.internal.Background;
 import ratpack.file.FileSystemBinding;
 import ratpack.launch.HandlerFactory;
+import ratpack.launch.LaunchConfig;
 
 import javax.net.ssl.SSLContext;
 import java.net.InetAddress;
@@ -30,11 +30,11 @@ import java.net.URI;
 import java.util.List;
 import java.util.Map;
 
-public class DelegatingLaunchConfig implements LaunchConfigInternal {
+public class DelegatingLaunchConfig implements LaunchConfig {
 
-  private final LaunchConfigInternal launchConfig;
+  private final LaunchConfig launchConfig;
 
-  public DelegatingLaunchConfig(LaunchConfigInternal launchConfig) {
+  public DelegatingLaunchConfig(LaunchConfig launchConfig) {
     this.launchConfig = launchConfig;
   }
 
@@ -123,11 +123,6 @@ public class DelegatingLaunchConfig implements LaunchConfigInternal {
   @Override
   public boolean isCompressResponses() {
     return launchConfig.isCompressResponses();
-  }
-
-  @Override
-  public ContextStorage getContextStorage() {
-    return launchConfig.getContextStorage();
   }
 
 }

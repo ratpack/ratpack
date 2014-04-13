@@ -18,6 +18,10 @@ package ratpack.exec;
 
 import com.google.common.util.concurrent.ListeningScheduledExecutorService;
 import io.netty.channel.EventLoopGroup;
+import ratpack.func.Action;
+import ratpack.func.Supplier;
+
+import java.util.List;
 
 /**
  * The foreground represents the request processing, and computation handling, aspect of an application.
@@ -45,7 +49,10 @@ public interface Foreground {
    */
   ListeningScheduledExecutorService getExecutor();
 
-
   EventLoopGroup getEventLoopGroup();
+
+  void exec(Supplier<? extends ExecContext> execContextFactory, List<ExecInterceptor> interceptors, ExecInterceptor.ExecType execType, Action<? super ExecContext> action);
+
+  void onExecFinish(Runnable runnable);
 
 }

@@ -16,28 +16,25 @@
 
 package ratpack.handling.internal;
 
-import ratpack.handling.Context;
-import ratpack.handling.ProcessingInterceptor;
+import ratpack.exec.ExecInterceptor;
 import ratpack.util.ExceptionUtils;
 
 import java.util.List;
 
 public abstract class InterceptedOperation {
-  private final ProcessingInterceptor.Type type;
-  private final List<ProcessingInterceptor> interceptors;
-  private final Context context;
+  private final ExecInterceptor.ExecType type;
+  private final List<ExecInterceptor> interceptors;
   private Throwable thrown;
 
   private int i;
 
-  public InterceptedOperation(ProcessingInterceptor.Type type, List<ProcessingInterceptor> interceptors, Context context) {
+  public InterceptedOperation(ExecInterceptor.ExecType type, List<ExecInterceptor> interceptors) {
     this.type = type;
     this.interceptors = interceptors;
-    this.context = context;
-    i = interceptors.size() - 1;
+    i = 0;
   }
 
-  public void run() {
+  public void run() throws Exception {
     if (interceptors.isEmpty()) {
       performOperation();
     } else {
@@ -49,14 +46,14 @@ public abstract class InterceptedOperation {
   }
 
   private void nextInterceptor() {
-    if (i >= 0) {
+    if (i < interceptors.size()) {
       int iAtStart = i;
-      ProcessingInterceptor interceptor = interceptors.get(i);
+      ExecInterceptor interceptor = interceptors.get(i);
       Runnable continuation = new Runnable() {
         @Override
         public void run() {
           try {
-            i -= 1;
+            ++i;
             nextInterceptor();
           } catch (Exception ignore) {
             // do nothing
@@ -64,7 +61,7 @@ public abstract class InterceptedOperation {
         }
       };
       try {
-        interceptor.intercept(type, context, continuation);
+        interceptor.intercept(type, continuation);
       } catch (Throwable e) {
         e.printStackTrace();
         if (i == iAtStart) {
@@ -80,6 +77,6 @@ public abstract class InterceptedOperation {
     }
   }
 
-  abstract protected void performOperation();
+  abstract protected void performOperation() throws Exception;
 
 }

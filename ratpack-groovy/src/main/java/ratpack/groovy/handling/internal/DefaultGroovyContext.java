@@ -20,9 +20,11 @@ import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import ratpack.api.NonBlocking;
 import ratpack.api.Nullable;
-import ratpack.exec.Background;
+import ratpack.exec.ExecContext;
+import ratpack.exec.ExecInterceptor;
 import ratpack.exec.Foreground;
 import ratpack.func.Action;
+import ratpack.func.Supplier;
 import ratpack.groovy.handling.GroovyByContentHandler;
 import ratpack.groovy.handling.GroovyByMethodHandler;
 import ratpack.groovy.handling.GroovyContext;
@@ -63,6 +65,11 @@ public class DefaultGroovyContext implements GroovyContext {
   }
 
   @Override
+  public Supplier<? extends ExecContext> getSupplier() {
+    return delegate.getSupplier();
+  }
+
+  @Override
   public LaunchConfig getLaunchConfig() {
     return delegate.getLaunchConfig();
   }
@@ -71,6 +78,12 @@ public class DefaultGroovyContext implements GroovyContext {
   public DirectChannelAccess getDirectChannelAccess() {
     return delegate.getDirectChannelAccess();
   }
+
+  @Override
+  public void addExecInterceptor(ExecInterceptor execInterceptor, Action<? super Context> action) throws Exception {
+    delegate.addExecInterceptor(execInterceptor, action);
+  }
+
 
   @Override
   public void byMethod(Closure<?> closure) {
@@ -192,11 +205,6 @@ public class DefaultGroovyContext implements GroovyContext {
   @NonBlocking
   public void render(Object object) {
     delegate.render(object);
-  }
-
-  @Override
-  public Background getBackground() {
-    return delegate.getBackground();
   }
 
   @Override

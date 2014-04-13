@@ -19,8 +19,8 @@ package ratpack.file.internal;
 import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.stream.ChunkedNioStream;
+import ratpack.exec.ExecContext;
 import ratpack.func.Action;
-import ratpack.exec.Background;
 import ratpack.http.internal.CustomHttpResponse;
 import ratpack.http.internal.HttpHeaderConstants;
 import ratpack.util.internal.NumberUtil;
@@ -66,7 +66,7 @@ public class DefaultFileHttpTransmitter implements FileHttpTransmitter {
   }
 
   @Override
-  public void transmit(Background background, final BasicFileAttributes basicFileAttributes, final Path file) throws Exception {
+  public void transmit(ExecContext execContext, final BasicFileAttributes basicFileAttributes, final Path file) throws Exception {
     final boolean compressThis = compress && basicFileAttributes.size() > 1024 && isNotNullAndStartsWith(httpHeaders.get(HttpHeaderConstants.CONTENT_TYPE), "text/", "application/");
 
     if (compress && !compressThis) {
@@ -75,7 +75,7 @@ public class DefaultFileHttpTransmitter implements FileHttpTransmitter {
     }
 
     if (file.getFileSystem().equals(FileSystems.getDefault()) && !compressThis) {
-      background.exec(new Callable<FileChannel>() {
+      execContext.background(new Callable<FileChannel>() {
         public FileChannel call() throws Exception {
           return new FileInputStream(file.toFile()).getChannel();
         }
@@ -86,7 +86,7 @@ public class DefaultFileHttpTransmitter implements FileHttpTransmitter {
         }
       });
     } else {
-      background.exec(new Callable<ReadableByteChannel>() {
+      execContext.background(new Callable<ReadableByteChannel>() {
         public ReadableByteChannel call() throws Exception {
           return Files.newByteChannel(file);
         }

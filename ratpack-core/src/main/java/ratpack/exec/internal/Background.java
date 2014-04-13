@@ -14,15 +14,20 @@
  * limitations under the License.
  */
 
-package ratpack.file.internal;
+package ratpack.exec.internal;
 
+import com.google.common.util.concurrent.ListeningExecutorService;
 import ratpack.exec.ExecContext;
+import ratpack.exec.ExecInterceptor;
+import ratpack.promise.SuccessOrErrorPromise;
 
-import java.nio.file.Path;
-import java.nio.file.attribute.BasicFileAttributes;
+import java.util.List;
+import java.util.concurrent.Callable;
 
-public interface FileHttpTransmitter {
+public interface Background {
 
-  void transmit(ExecContext execContext, BasicFileAttributes basicFileAttributes, Path file) throws Exception;
+  <T> SuccessOrErrorPromise<T> exec(ExecContext context, Callable<T> operation, List<ExecInterceptor> execInterceptors);
+
+  ListeningExecutorService getExecutor();
 
 }

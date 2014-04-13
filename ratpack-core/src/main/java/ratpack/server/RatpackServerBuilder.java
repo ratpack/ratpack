@@ -19,18 +19,17 @@ package ratpack.server;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;
+import ratpack.func.Factory;
+import ratpack.func.Transformer;
 import ratpack.handling.Handler;
 import ratpack.handling.internal.FactoryHandler;
 import ratpack.launch.HandlerFactory;
 import ratpack.launch.LaunchConfig;
 import ratpack.launch.LaunchException;
-import ratpack.launch.internal.LaunchConfigInternal;
 import ratpack.reload.internal.ClassUtil;
 import ratpack.reload.internal.ReloadableFileBackedFactory;
 import ratpack.server.internal.NettyRatpackServer;
 import ratpack.server.internal.RatpackChannelInitializer;
-import ratpack.func.Factory;
-import ratpack.func.Transformer;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -53,8 +52,7 @@ public abstract class RatpackServerBuilder {
    */
   public static RatpackServer build(LaunchConfig launchConfig) {
     Transformer<Stopper, ChannelInitializer<SocketChannel>> channelInitializer = buildChannelInitializer(launchConfig);
-    LaunchConfigInternal launchConfigInternal = (LaunchConfigInternal) launchConfig;
-    return new NettyRatpackServer(launchConfigInternal, channelInitializer);
+    return new NettyRatpackServer(launchConfig, channelInitializer);
   }
 
   private static Transformer<Stopper, ChannelInitializer<SocketChannel>> buildChannelInitializer(final LaunchConfig launchConfig) {

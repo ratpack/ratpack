@@ -20,11 +20,13 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 import ratpack.error.ClientErrorHandler;
 import ratpack.error.ServerErrorHandler;
 import ratpack.event.internal.EventRegistry;
-import ratpack.exec.Background;
+import ratpack.exec.ExecContext;
+import ratpack.exec.ExecInterceptor;
 import ratpack.exec.Foreground;
-import ratpack.exec.internal.ContextStorage;
+import ratpack.exec.internal.AbstractExecContext;
 import ratpack.file.FileSystemBinding;
 import ratpack.func.Action;
+import ratpack.func.Supplier;
 import ratpack.handling.*;
 import ratpack.handling.direct.DirectChannelAccess;
 import ratpack.http.Request;
@@ -39,9 +41,6 @@ import ratpack.parse.Parser;
 import ratpack.parse.ParserException;
 import ratpack.path.PathBinding;
 import ratpack.path.PathTokens;
-import ratpack.promise.Fulfiller;
-import ratpack.promise.SuccessOrErrorPromise;
-import ratpack.promise.internal.DefaultSuccessOrErrorPromise;
 import ratpack.registry.NotInRegistryException;
 import ratpack.registry.Registries;
 import ratpack.registry.Registry;
@@ -56,23 +55,22 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.reflect.UndeclaredThrowableException;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.Callable;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Logger;
 
 import static io.netty.handler.codec.http.HttpHeaders.Names.IF_MODIFIED_SINCE;
 import static io.netty.handler.codec.http.HttpResponseStatus.NOT_MODIFIED;
 
-public class DefaultContext implements Context {
+public class DefaultContext extends AbstractExecContext implements Context {
 
   public static class ApplicationConstants {
     private final LaunchConfig launchConfig;
-    private final ContextStorage contextStorage;
     private final RenderController renderController;
 
-    public ApplicationConstants(LaunchConfig launchConfig, ContextStorage contextStorage, RenderController renderController) {
-      this.contextStorage = contextStorage;
+    public ApplicationConstants(LaunchConfig launchConfig, RenderController renderController) {
       this.renderController = renderController;
       this.launchConfig = launchConfig;
     }
@@ -87,6 +85,10 @@ public class DefaultContext implements Context {
 
     private final DirectChannelAccess directChannelAccess;
     private final EventRegistry<RequestOutcome> onCloseRegistry;
+
+    private final List<ExecInterceptor> interceptors = new CopyOnWriteArrayList<>();
+
+    public Context context;
 
     public RequestConstants(
       ApplicationConstants applicationConstants, BindAddress bindAddress, Request request, Response response,
@@ -112,16 +114,29 @@ public class DefaultContext implements Context {
   private final Handler exhausted;
 
   public DefaultContext(RequestConstants requestConstants, Registry registry, Handler[] nextHandlers, int nextIndex, Handler exhausted) {
+    super(requestConstants.applicationConstants.launchConfig.getForeground(), requestConstants.applicationConstants.launchConfig.getBackground());
+
     this.requestConstants = requestConstants;
     this.registry = registry;
     this.nextHandlers = nextHandlers;
     this.nextIndex = nextIndex;
     this.exhausted = exhausted;
+    requestConstants.context = this;
   }
 
   @Override
   public Context getContext() {
     return this;
+  }
+
+  @Override
+  public Supplier<? extends ExecContext> getSupplier() {
+    return new Supplier<ExecContext>() {
+      @Override
+      public ExecContext get() {
+        return requestConstants.context;
+      }
+    };
   }
 
   @Override
@@ -145,6 +160,21 @@ public class DefaultContext implements Context {
     return registry.getAll(type);
   }
 
+  @Override
+  public void addExecInterceptor(final ExecInterceptor execInterceptor, final Action<? super Context> action) throws Exception {
+    getExecInterceptors().add(execInterceptor);
+    new InterceptedOperation(ExecInterceptor.ExecType.FOREGROUND, Arrays.asList(execInterceptor)) {
+      @Override
+      protected void performOperation() throws Exception {
+        action.execute(DefaultContext.this);
+      }
+    }.run();
+  }
+
+  protected List<ExecInterceptor> getExecInterceptors() {
+    return requestConstants.interceptors;
+  }
+
   public <O> O maybeGet(Class<O> type) {
     return registry.maybeGet(type);
   }
@@ -155,22 +185,8 @@ public class DefaultContext implements Context {
 
   @Override
   public void next(Registry registry) {
-    List<ProcessingInterceptor> interceptors = registry.getAll(ProcessingInterceptor.class);
-    final Registry joinedRegistry = Registries.join(DefaultContext.this.registry, registry);
-    for (ProcessingInterceptor interceptor : interceptors) {
-      try {
-        interceptor.init(this);
-      } catch (final Exception e) {
-        Context context = createContext(joinedRegistry, nextHandlers, nextIndex, exhausted);
-        throw new HandlerException(context, e);
-      }
-    }
-    new InterceptedOperation(ProcessingInterceptor.Type.FOREGROUND, interceptors, this) {
-      @Override
-      protected void performOperation() {
-        doNext(DefaultContext.this, joinedRegistry, nextIndex, nextHandlers, new RejoinHandler());
-      }
-    }.run();
+    Registry joinedRegistry = Registries.join(DefaultContext.this.registry, registry);
+    doNext(DefaultContext.this, joinedRegistry, nextIndex, nextHandlers, new RejoinHandler());
   }
 
   public void insert(Handler... handlers) {
@@ -187,23 +203,7 @@ public class DefaultContext implements Context {
     }
 
     final Registry joinedRegistry = Registries.join(DefaultContext.this.registry, registry);
-
-    List<ProcessingInterceptor> interceptors = registry.getAll(ProcessingInterceptor.class);
-    for (ProcessingInterceptor interceptor : interceptors) {
-      try {
-        interceptor.init(this);
-      } catch (final Exception e) {
-        Context context = createContext(joinedRegistry, nextHandlers, nextIndex, exhausted);
-        throw new HandlerException(context, e);
-      }
-    }
-
-    new InterceptedOperation(ProcessingInterceptor.Type.FOREGROUND, interceptors, this) {
-      @Override
-      protected void performOperation() {
-        doNext(DefaultContext.this, joinedRegistry, 0, handlers, new RejoinHandler());
-      }
-    }.run();
+    doNext(DefaultContext.this, joinedRegistry, 0, handlers, new RejoinHandler());
   }
 
   public void respond(Handler handler) {
@@ -290,23 +290,8 @@ public class DefaultContext implements Context {
   }
 
   @Override
-  public Background getBackground() {
-    return requestConstants.applicationConstants.launchConfig.getBackground();
-  }
-
-  @Override
   public Foreground getForeground() {
     return requestConstants.applicationConstants.launchConfig.getForeground();
-  }
-
-  @Override
-  public <T> SuccessOrErrorPromise<T> background(Callable<T> backgroundOperation) {
-    return getBackground().exec(backgroundOperation);
-  }
-
-  @Override
-  public <T> SuccessOrErrorPromise<T> promise(Action<? super Fulfiller<T>> action) {
-    return new DefaultSuccessOrErrorPromise<>(this, action, requestConstants.applicationConstants.contextStorage);
   }
 
   public void redirect(String location) {
@@ -434,8 +419,6 @@ public class DefaultContext implements Context {
       handler = nextHandlers[nextIndex];
       context = createContext(registry, nextHandlers, nextIndex + 1, exhausted);
     }
-
-    requestConstants.applicationConstants.contextStorage.set(context);
 
     try {
       handler.handle(context);

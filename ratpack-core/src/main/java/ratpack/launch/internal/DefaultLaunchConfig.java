@@ -24,14 +24,13 @@ import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.util.concurrent.DefaultThreadFactory;
-import ratpack.exec.Background;
 import ratpack.exec.Foreground;
-import ratpack.exec.internal.ContextStorage;
+import ratpack.exec.internal.Background;
 import ratpack.exec.internal.DefaultBackground;
 import ratpack.exec.internal.DefaultForeground;
-import ratpack.exec.internal.ThreadLocalContextStorage;
 import ratpack.file.FileSystemBinding;
 import ratpack.launch.HandlerFactory;
+import ratpack.launch.LaunchConfig;
 import ratpack.launch.NoBaseDirException;
 
 import javax.net.ssl.SSLContext;
@@ -42,7 +41,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 
-public class DefaultLaunchConfig implements LaunchConfigInternal {
+public class DefaultLaunchConfig implements LaunchConfig {
 
   private final FileSystemBinding baseDir;
   private final HandlerFactory handlerFactory;
@@ -60,8 +59,6 @@ public class DefaultLaunchConfig implements LaunchConfigInternal {
   private final int maxContentLength;
   private final boolean timeResponses;
   private final boolean compressResponses;
-
-  private final ContextStorage contextStorage = new ThreadLocalContextStorage();
 
   public DefaultLaunchConfig(FileSystemBinding baseDir, int port, InetAddress address, boolean reloadable, int threads, ExecutorService backgroundExecutorService, ByteBufAllocator byteBufAllocator, URI publicAddress, ImmutableList<String> indexFiles, ImmutableMap<String, String> other, SSLContext sslContext, int maxContentLength, boolean timeResponses, boolean compressResponses, HandlerFactory handlerFactory) {
     this.baseDir = baseDir;
@@ -81,8 +78,8 @@ public class DefaultLaunchConfig implements LaunchConfigInternal {
 
     ListeningExecutorService listeningBackgroundExecutorService = MoreExecutors.listeningDecorator(backgroundExecutorService);
     EventLoopGroup eventLoopGroup = new NioEventLoopGroup(threads, new DefaultThreadFactory("ratpack-group"));
-    this.background = new DefaultBackground(eventLoopGroup, listeningBackgroundExecutorService, contextStorage);
-    this.foreground = new DefaultForeground(contextStorage, MoreExecutors.listeningDecorator(eventLoopGroup), eventLoopGroup);
+    this.foreground = new DefaultForeground(eventLoopGroup);
+    this.background = new DefaultBackground(foreground, listeningBackgroundExecutorService);
   }
 
   @Override
@@ -182,9 +179,5 @@ public class DefaultLaunchConfig implements LaunchConfigInternal {
     return compressResponses;
   }
 
-  @Override
-  public ContextStorage getContextStorage() {
-    return contextStorage;
-  }
 
 }

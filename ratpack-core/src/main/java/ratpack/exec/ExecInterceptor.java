@@ -14,16 +14,10 @@
  * limitations under the License.
  */
 
-package ratpack.handling;
+package ratpack.exec;
 
 /**
- * Intercepts the processing of the request, primarily for traceability and recording metrics.
- * <p>
- * Interceptors are automatically detected and initialised when they are added to the context registry
- * (via {@link Context#next(ratpack.registry.Registry)} or {@link Context#insert(ratpack.registry.Registry, Handler...)}).
- * When they are detected, their {@link #init(Context)} method is called with the context they were registered with.
- * Immediately after, their {@link #intercept(ratpack.handling.ProcessingInterceptor.Type, Context, Runnable)} method will be called
- * (with a {@code type} of {@link ratpack.handling.ProcessingInterceptor.Type#FOREGROUND FOREGROUND}).
+ * Intercepts execution, primarily for traceability and recording metrics.
  * <p>
  * The interception methods <i>wrap</i> the rest of the execution.
  * They receive a <i>continuation</i> (as a {@link Runnable}) that <b>must</b> be called in order for processing to proceed.
@@ -33,10 +27,10 @@ package ratpack.handling;
  * import ratpack.launch.LaunchConfig
  * import ratpack.launch.LaunchConfigBuilder
  * import ratpack.handling.Context
- * import ratpack.handling.ProcessingInterceptor
+ * import ratpack.http.Request
+ * import ratpack.exec.ExecInterceptor
  * import ratpack.test.embed.LaunchConfigEmbeddedApplication
  *
- * import static ratpack.registry.Registries.registry
  * import static ratpack.groovy.Groovy.chain
  * import static ratpack.groovy.test.TestHttpClients.testHttpClient
  *
@@ -73,21 +67,24 @@ package ratpack.handling;
  *   }
  * }
  *
- * class ProcessingTimingInterceptor implements ProcessingInterceptor {
- *   void init(Context context) {
- *     context.request.register(new Timer())
+ * class ProcessingTimingInterceptor implements ExecInterceptor {
+ *
+ *   final Request request
+ *
+ *   ProcessingTimingInterceptor(Request request) {
+ *     this.request = request
+ *     request.register(new Timer())
  *   }
  *
- *   void intercept(ProcessingInterceptor.Type type, Context context, Runnable continuation) {
- *     context.request.get(Timer).with {
- *       start(type == ProcessingInterceptor.Type.BACKGROUND)
+ *   void intercept(ExecInterceptor.ExecType type, Runnable continuation) {
+ *     request.get(Timer).with {
+ *       start(type == ExecInterceptor.ExecType.BACKGROUND)
  *       continuation.run()
  *       stop()
  *     }
  *   }
  * }
  *
- * def interceptor = new ProcessingTimingInterceptor()
  * def application = new LaunchConfigEmbeddedApplication() {
  *   protected LaunchConfig createLaunchConfig() {
  *     LaunchConfigBuilder.
@@ -95,7 +92,9 @@ package ratpack.handling;
  *       build { LaunchConfig config ->
  *         chain(config) {
  *           handler {
- *             next(registry(interceptor))
+ *             addExecInterceptor(new ProcessingTimingInterceptor(request)) {
+ *               next()
+ *             }
  *           }
  *           handler {
  *             sleep 100
@@ -128,12 +127,12 @@ package ratpack.handling;
  * application.close()
  * </pre>
  */
-public interface ProcessingInterceptor {
+public interface ExecInterceptor {
 
   /**
    * The processing type (i.e. type of thread).
    */
-  enum Type {
+  enum ExecType {
     /**
      * A thread from the background (i.e. blocking operation) pool.
      */
@@ -146,35 +145,18 @@ public interface ProcessingInterceptor {
   }
 
   /**
-   * Called once per request when the interceptor is registered with the context.
-   * <p>
-   * A typical thing to do in this method is register some kind of object with the request registry
-   * that is retrieved later in {@link #intercept(ratpack.handling.ProcessingInterceptor.Type, Context, Runnable)}.
-   * <p>
-   * The {@link #intercept(ratpack.handling.ProcessingInterceptor.Type, Context, Runnable)} method will be called immediately
-   * after this method so the rest of the processing can be intercepted.
-   * <p>
-   * All exceptions thrown by this method will be forwarded to {@link Context#error(Exception)} and will effectively halt processing.
-   *
-   * @param context The context at the time when the interceptor is registered.
-   */
-  void init(Context context);
-
-  /**
    * Wraps the “rest” of the processing on the current thread.
    * <p>
    * The given {@code Runnable} argument represents the rest of the processing to occur on this thread.
    * This does not necessarily mean the rest of the processing until the rest of the response is determined or sent.
-   * Request processing may involve multiple parallel (but not concurrent) threads of execution because of {@link ratpack.exec.Background} processing.
+   * Request processing may involve multiple parallel (but not concurrent) threads of execution because of {@link ratpack.exec.internal.Background} processing.
    * Moreover, the continuation includes all of the code that is executed after the response is determined (which ideally is just unravelling the call stack).
    * As such, when intercepting foreground execution that generates a response, the continuation may be returning <b>after</b> the response has been sent.
    * <p>
    * All exceptions thrown by this method will be <b>ignored</b>.
-   *
-   * @param type indicates whether this is a foreground (i.e. request handling) or background (i.e. blocking operation) thread
-   * @param context the context at the time of interception
+   *  @param execType indicates whether this is a foreground (i.e. request handling) or background (i.e. blocking operation) thread
    * @param continuation the “rest” of the processing
    */
-  void intercept(Type type, Context context, Runnable continuation);
+  void intercept(ExecType execType, Runnable continuation);
 
 }

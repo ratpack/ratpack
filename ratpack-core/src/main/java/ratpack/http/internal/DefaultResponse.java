@@ -22,12 +22,12 @@ import io.netty.handler.codec.http.Cookie;
 import io.netty.handler.codec.http.DefaultCookie;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.ServerCookieEncoder;
-import ratpack.exec.Background;
+import ratpack.exec.ExecContext;
 import ratpack.file.internal.FileHttpTransmitter;
+import ratpack.func.Action;
 import ratpack.http.MutableHeaders;
 import ratpack.http.MutableStatus;
 import ratpack.http.Response;
-import ratpack.func.Action;
 import ratpack.util.ExceptionUtils;
 import ratpack.util.internal.IoUtils;
 
@@ -221,15 +221,15 @@ public class DefaultResponse implements Response {
   }
 
   @Override
-  public void sendFile(Background background, BasicFileAttributes attributes, Path file) throws Exception {
+  public void sendFile(ExecContext execContext, BasicFileAttributes attributes, Path file) throws Exception {
     setCookieHeader();
-    fileHttpTransmitter.transmit(background, attributes, file);
+    fileHttpTransmitter.transmit(execContext, attributes, file);
   }
 
-  public void sendFile(final Background background, final Path file) throws Exception {
-    readAttributes(background, file, new Action<BasicFileAttributes>() {
+  public void sendFile(final ExecContext execContext, final Path file) throws Exception {
+    readAttributes(execContext, file, new Action<BasicFileAttributes>() {
       public void execute(BasicFileAttributes fileAttributes) throws Exception {
-        sendFile(background, fileAttributes, file);
+        sendFile(execContext, fileAttributes, file);
       }
     });
   }

@@ -20,7 +20,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.OutOfScopeException;
 import com.google.inject.Provides;
 import io.netty.buffer.ByteBufAllocator;
-import ratpack.exec.Background;
+import ratpack.exec.internal.Background;
 import ratpack.exec.ExecContext;
 import ratpack.exec.Foreground;
 import ratpack.exec.NoBoundContextException;

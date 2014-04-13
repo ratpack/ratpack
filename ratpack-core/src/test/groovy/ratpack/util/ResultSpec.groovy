@@ -17,7 +17,9 @@
 package ratpack.util
 
 import ratpack.test.internal.RatpackGroovyDslSpec
+import spock.lang.Ignore
 
+@Ignore
 class ResultSpec extends RatpackGroovyDslSpec {
 
   def "can block on a promise"() {

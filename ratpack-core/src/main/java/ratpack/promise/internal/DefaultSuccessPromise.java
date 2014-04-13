@@ -16,78 +16,60 @@
 
 package ratpack.promise.internal;
 
+import ratpack.exec.ExecContext;
+import ratpack.exec.Foreground;
 import ratpack.func.Action;
-import ratpack.handling.Context;
-import ratpack.exec.internal.ContextStorage;
+import ratpack.exec.ExecInterceptor;
 import ratpack.promise.Fulfiller;
 import ratpack.promise.SuccessPromise;
 
+import java.util.List;
+
 public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
 
-  private final ContextStorage contextStorage;
+  private final ExecContext context;
+  private final Foreground foreground;
+  private final List<ExecInterceptor> interceptors;
   private final Action<? super Fulfiller<T>> action;
   private final Action<? super Throwable> operationErrorHandler;
-  private final Action<? super Throwable> globalErrorHandler;
 
-  public DefaultSuccessPromise(ContextStorage contextStorage, Action<? super Fulfiller<T>> action, Action<? super Throwable> globalErrorHandler, Action<? super Throwable> operationErrorHandler) {
-    this.contextStorage = contextStorage;
+  public DefaultSuccessPromise(ExecContext context, Foreground foreground, List<ExecInterceptor> interceptors, Action<? super Fulfiller<T>> action, Action<? super Throwable> operationErrorHandler) {
+    this.context = context;
+    this.foreground = foreground;
+    this.interceptors = interceptors;
     this.action = action;
     this.operationErrorHandler = operationErrorHandler;
-    this.globalErrorHandler = globalErrorHandler;
-  }
-
-  public DefaultSuccessPromise(ContextStorage contextStorage, Action<? super Fulfiller<T>> action, Action<? super Throwable> errorHandler) {
-    this(contextStorage, action, errorHandler, errorHandler);
   }
 
   @Override
-  public void then(final Action<? super T> then) throws Exception {
-    final Context context = contextStorage.get();
-
-    action.execute(new Fulfiller<T>() {
+  public void then(final Action<? super T> then) {
+    foreground.onExecFinish(new Runnable() {
       @Override
-      public void error(Throwable throwable) {
-        boolean contextStorageBound = contextStorage.get() != null;
+      public void run() {
         try {
-          if (!contextStorageBound) {
-            contextStorage.set(context);
-          }
-          operationErrorHandler.execute(throwable);
-        } catch (Throwable e) {
-          if (operationErrorHandler == globalErrorHandler) {
-            e.printStackTrace();
-          } else {
-            try {
-              globalErrorHandler.execute(throwable);
-            } catch (Exception e1) {
-              e1.printStackTrace();
+          action.execute(new Fulfiller<T>() {
+            @Override
+            public void error(final Throwable throwable) {
+              foreground.exec(context.getSupplier(), interceptors, ExecInterceptor.ExecType.FOREGROUND, new Action<ExecContext>() {
+                @Override
+                public void execute(ExecContext context) throws Exception {
+                  operationErrorHandler.execute(throwable);
+                }
+              });
             }
-          }
-        } finally {
-          if (!contextStorageBound) {
-            contextStorage.remove();
-          }
-        }
-      }
 
-      @Override
-      public void success(T value) {
-        boolean contextStorageBound = contextStorage.get() != null;
-        if (!contextStorageBound) {
-          contextStorage.set(context);
-        }
-        try {
-          then.execute(value);
-        } catch (Throwable e) {
-          try {
-            globalErrorHandler.execute(e);
-          } catch (Throwable e1) {
-            e1.printStackTrace();
-          }
-        } finally {
-          if (!contextStorageBound) {
-            contextStorage.remove();
-          }
+            @Override
+            public void success(final T value) {
+              foreground.exec(context.getSupplier(), interceptors, ExecInterceptor.ExecType.FOREGROUND, new Action<ExecContext>() {
+                @Override
+                public void execute(ExecContext context) throws Exception {
+                  then.execute(value);
+                }
+              });
+            }
+          });
+        } catch (Exception e) {
+          context.error(e);
         }
       }
     });

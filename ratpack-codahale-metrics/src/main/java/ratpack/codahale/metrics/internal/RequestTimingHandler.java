@@ -18,11 +18,11 @@ package ratpack.codahale.metrics.internal;
 
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;
+import ratpack.func.Action;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.handling.RequestOutcome;
 import ratpack.http.Request;
-import ratpack.func.Action;
 
 /**
  * A handler implementation that collects {@link Timer} metrics for a {@link Request}.
@@ -58,20 +58,24 @@ public class RequestTimingHandler implements Handler {
   }
 
   @Override
-  public void handle(Context context) throws Exception {
-    Request request = context.getRequest();
-    String tag = buildRequestTimerTag(request.getUri(), request.getMethod().getName());
+  public void handle(final Context context) throws Exception {
+    final MetricRegistry metricRegistry = context.get(MetricRegistry.class);
+    final Request request = context.getRequest();
+    BackgroundExecTimingInterceptor backgroundExecTimingInterceptor = new BackgroundExecTimingInterceptor(metricRegistry, request);
 
-    MetricRegistry metricRegistry = context.get(MetricRegistry.class);
-    final Timer.Context timer = metricRegistry.timer(tag).time();
-
-    context.onClose(new Action<RequestOutcome>() {
-      public void execute(RequestOutcome thing) throws Exception {
-        timer.stop();
+    context.addExecInterceptor(backgroundExecTimingInterceptor, new Action<Context>() {
+      @Override
+      public void execute(Context context) throws Exception {
+        String tag = buildRequestTimerTag(request.getUri(), request.getMethod().getName());
+        final Timer.Context timer = metricRegistry.timer(tag).time();
+        context.onClose(new Action<RequestOutcome>() {
+          public void execute(RequestOutcome thing) throws Exception {
+            timer.stop();
+          }
+        });
+        context.insert(rest);
       }
     });
-
-    context.insert(rest);
   }
 
   private String buildRequestTimerTag(String requestUri, String requestMethod) {

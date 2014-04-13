@@ -16,141 +16,80 @@
 
 package ratpack.exec.internal;
 
-import com.google.common.util.concurrent.*;
-import ratpack.exec.Background;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.ListeningExecutorService;
+import ratpack.exec.ExecContext;
+import ratpack.exec.Foreground;
 import ratpack.func.Action;
-import ratpack.handling.Context;
-import ratpack.handling.ProcessingInterceptor;
-import ratpack.handling.internal.InterceptedOperation;
+import ratpack.exec.ExecInterceptor;
 import ratpack.promise.Fulfiller;
 import ratpack.promise.SuccessOrErrorPromise;
 
 import java.util.List;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
 
 public class DefaultBackground implements Background {
 
-  private final ExecutorService foregroundExecutor;
+  private final Foreground foreground;
   private final ListeningExecutorService backgroundExecutor;
-  private final ContextStorage contextStorage;
 
-  public DefaultBackground(ExecutorService foregroundExecutor, ListeningExecutorService backgroundExecutor, ContextStorage contextStorage) {
-    this.foregroundExecutor = foregroundExecutor;
+  public DefaultBackground(Foreground foreground, ListeningExecutorService backgroundExecutor) {
+    this.foreground = foreground;
     this.backgroundExecutor = backgroundExecutor;
-    this.contextStorage = contextStorage;
   }
 
   @Override
-  public <T> SuccessOrErrorPromise<T> exec(final Callable<T> operation) {
-    final Context context = contextStorage.get();
-    final FinishedOnThreadCallbackManager finishedOnThreadCallbackManager = context.get(FinishedOnThreadCallbackManager.class);
+  public <T> SuccessOrErrorPromise<T> exec(final ExecContext context, final Callable<T> operation, final List<ExecInterceptor> interceptors) {
     return context.promise(new Action<Fulfiller<? super T>>() {
       @Override
       public void execute(final Fulfiller<? super T> fulfiller) throws Exception {
-        finishedOnThreadCallbackManager.register(new Runnable() {
-          @Override
-          public void run() {
-            List<ProcessingInterceptor> interceptors = context.getAll(ProcessingInterceptor.class);
-            ListenableFuture<T> future = backgroundExecutor.submit(new BackgroundOperation(interceptors));
-            Futures.addCallback(future, new ForegroundResume(interceptors, fulfiller), foregroundExecutor);
-          }
-        });
+        ListenableFuture<T> future = backgroundExecutor.submit(new BackgroundOperation());
+        Futures.addCallback(future, new ForegroundResume(fulfiller), foreground.getExecutor());
       }
 
-      class BackgroundOperation extends InterceptedOperation implements Callable<T> {
+      class BackgroundOperation implements Callable<T> {
         private Exception exception;
         private T result;
 
-        public BackgroundOperation(List<ProcessingInterceptor> interceptors) {
-          super(ProcessingInterceptor.Type.BACKGROUND, interceptors, context);
-        }
-
         @Override
         public T call() throws Exception {
-          contextStorage.set(context);
-          try {
-            run();
-            if (exception != null) {
-              throw exception;
-            } else {
-              return result;
+          foreground.exec(context.getSupplier(), interceptors, ExecInterceptor.ExecType.BACKGROUND, new Action<ExecContext>() {
+            @Override
+            public void execute(ExecContext thing) throws Exception {
+              try {
+                result = operation.call();
+              } catch (Exception e) {
+                exception = e;
+              }
             }
-          } finally {
-            contextStorage.remove();
-          }
-        }
+          });
 
-        @Override
-        protected void performOperation() {
-          try {
-            result = operation.call();
-          } catch (Exception e) {
-            exception = e;
+          if (exception != null) {
+            throw exception;
+          } else {
+            return result;
           }
         }
       }
 
       class ForegroundResume implements FutureCallback<T> {
-
-        private final List<ProcessingInterceptor> interceptors;
         private final Fulfiller<? super T> fulfiller;
-        private Exception exception;
 
-        public ForegroundResume(List<ProcessingInterceptor> interceptors, Fulfiller<? super T> fulfiller) {
-          this.interceptors = interceptors;
+        public ForegroundResume(Fulfiller<? super T> fulfiller) {
           this.fulfiller = fulfiller;
         }
 
         @Override
         public void onSuccess(final T result) {
-          contextStorage.set(context);
-          try {
-            new InterceptedOperation(ProcessingInterceptor.Type.FOREGROUND, interceptors, context) {
-              @Override
-              protected void performOperation() {
-                try {
-                  fulfiller.success(result);
-                  finishedOnThreadCallbackManager.fire();
-                } catch (Exception e) {
-                  exception = e;
-                }
-              }
-            }.run();
-            if (exception != null) {
-              throw exception;
-            }
-          } catch (Exception e) {
-            context.error(e);
-          } finally {
-            contextStorage.remove();
-          }
+          fulfiller.success(result);
         }
 
         @SuppressWarnings("NullableProblems")
         @Override
         public void onFailure(final Throwable t) {
-          contextStorage.set(context);
-          try {
-            new InterceptedOperation(ProcessingInterceptor.Type.FOREGROUND, interceptors, context) {
-              @Override
-              protected void performOperation() {
-                try {
-                  fulfiller.error(t);
-                  finishedOnThreadCallbackManager.fire();
-                } catch (Exception e) {
-                  exception = e;
-                }
-              }
-            }.run();
-            if (exception != null) {
-              throw exception;
-            }
-          } catch (Exception e) {
-            context.error(e);
-          } finally {
-            contextStorage.remove();
-          }
+          fulfiller.error(t);
         }
       }
     });

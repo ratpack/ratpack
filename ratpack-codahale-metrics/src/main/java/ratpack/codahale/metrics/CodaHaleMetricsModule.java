@@ -184,7 +184,6 @@ public class CodaHaleMetricsModule extends AbstractModule implements HandlerDeco
     if (isMetricsEnabled()) {
       final MetricRegistry metricRegistry = new MetricRegistry();
       bind(MetricRegistry.class).toInstance(metricRegistry);
-      bind(BackgroundProcessingTimingInterceptor.class);
 
       MeteredMethodInterceptor meteredMethodInterceptor = new MeteredMethodInterceptor();
       requestInjection(meteredMethodInterceptor);

@@ -16,7 +16,7 @@
 
 package ratpack.guice
 
-import ratpack.exec.Background
+import ratpack.exec.internal.Background
 import ratpack.handling.Context
 import ratpack.exec.ExecContext
 import ratpack.handling.InjectionHandler

@@ -69,7 +69,7 @@ public class AssetHandler implements Handler {
   }
 
   private void servePath(final Context context, final Path file) throws Exception {
-    readAttributes(context.getBackground(), file, new Action<BasicFileAttributes>() {
+    readAttributes(context, file, new Action<BasicFileAttributes>() {
       public void execute(BasicFileAttributes attributes) throws Exception {
         if (attributes == null) {
           context.next();
@@ -90,7 +90,7 @@ public class AssetHandler implements Handler {
     } else {
       String name = indexFiles.get(i);
       final Path indexFile = file.resolve(name);
-      readAttributes(context.getBackground(), indexFile, new Action<BasicFileAttributes>() {
+      readAttributes(context, indexFile, new Action<BasicFileAttributes>() {
         public void execute(BasicFileAttributes attributes) throws Exception {
           if (attributes != null && attributes.isRegularFile()) {
             String path = context.getRequest().getPath();

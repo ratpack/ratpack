@@ -14,19 +14,17 @@
  * limitations under the License.
  */
 
-package ratpack.handling
+package ratpack.exec
 
-import ratpack.error.ServerErrorHandler
 import ratpack.error.DebugErrorHandler
+import ratpack.error.ServerErrorHandler
 import ratpack.test.internal.RatpackGroovyDslSpec
 
-import static ratpack.registry.Registries.registry
-
-class ProcessingInterceptionSpec extends RatpackGroovyDslSpec {
+class ExecInterceptionSpec extends RatpackGroovyDslSpec {
 
   def record = []
 
-  class RecordingInterceptor implements ProcessingInterceptor {
+  class RecordingInterceptor implements ExecInterceptor {
 
     final String id
 
@@ -35,13 +33,7 @@ class ProcessingInterceptionSpec extends RatpackGroovyDslSpec {
     }
 
     @Override
-    void init(Context context) {
-      record << "$id:init"
-
-    }
-
-    @Override
-    void intercept(ProcessingInterceptor.Type type, Context context, Runnable continuation) {
+    void intercept(ExecInterceptor.ExecType type, Runnable continuation) {
       record << "$id:$type"
       continuation.run()
     }
@@ -52,13 +44,13 @@ class ProcessingInterceptionSpec extends RatpackGroovyDslSpec {
     def interceptor1 = new RecordingInterceptor("1")
     def interceptor2 = new RecordingInterceptor("2")
 
-    modules {
-      bind interceptor1
-    }
-
     handlers {
       handler {
-        next(registry(interceptor2))
+        addExecInterceptor(interceptor1) {
+          addExecInterceptor(interceptor2) {
+            next()
+          }
+        }
       }
       get(":path") {
         background {
@@ -73,7 +65,7 @@ class ProcessingInterceptionSpec extends RatpackGroovyDslSpec {
     get("1")
 
     then:
-    record == ["1:init", "1:FOREGROUND", "2:init", "2:FOREGROUND", "1:BACKGROUND", "2:BACKGROUND", "1:FOREGROUND", "2:FOREGROUND"]
+    record == ["1:FOREGROUND", "2:FOREGROUND", "1:BACKGROUND", "2:BACKGROUND", "1:FOREGROUND", "2:FOREGROUND"]
   }
 
   class ErroringInterceptor extends RecordingInterceptor {
@@ -83,8 +75,8 @@ class ProcessingInterceptionSpec extends RatpackGroovyDslSpec {
     }
 
     @Override
-    void intercept(ProcessingInterceptor.Type type, Context context, Runnable continuation) {
-      super.intercept(type, context, continuation)
+    void intercept(ExecInterceptor.ExecType type, Runnable continuation) {
+      super.intercept(type, continuation)
       throw new RuntimeException("$type:$id")
     }
   }
@@ -94,13 +86,13 @@ class ProcessingInterceptionSpec extends RatpackGroovyDslSpec {
     def interceptor1 = new ErroringInterceptor("1")
     def interceptor2 = new ErroringInterceptor("2")
 
-    modules {
-      bind interceptor1
-    }
-
     handlers {
       handler {
-        next(registry(interceptor2))
+        addExecInterceptor(interceptor1) {
+          addExecInterceptor(interceptor2) {
+            next()
+          }
+        }
       }
       get(":path") {
         background {
@@ -115,55 +107,7 @@ class ProcessingInterceptionSpec extends RatpackGroovyDslSpec {
     get("1")
 
     then:
-    record == ["1:init", "1:FOREGROUND", "2:init", "2:FOREGROUND", "1:BACKGROUND", "2:BACKGROUND", "1:FOREGROUND", "2:FOREGROUND"]
-  }
-
-  static class SimpleErrorHandler implements ServerErrorHandler {
-    @Override
-    void error(Context context, Exception exception) throws Exception {
-      context.response.status(500).send(exception.message)
-    }
-  }
-
-  static class ErrorInInitInterceptor implements ProcessingInterceptor {
-    @Override
-    void init(Context context) {
-      throw new RuntimeException("error in init")
-    }
-
-    @Override
-    void intercept(ProcessingInterceptor.Type type, Context context, Runnable continuation) {
-
-    }
-  }
-
-  def "error in init on insert halts pipeline"() {
-    when:
-    modules {
-      bind new ErrorInInitInterceptor()
-      bind ServerErrorHandler, new SimpleErrorHandler()
-    }
-    handlers { handler { render "ok" } }
-
-    then:
-    with(get()) {
-      statusCode == 500
-      text == "error in init"
-    }
-  }
-
-  def "error in init on next halts pipeline"() {
-    when:
-    handlers {
-      handler { next(registry().add(ServerErrorHandler, new SimpleErrorHandler()).add(new ErrorInInitInterceptor()).build()) }
-      handler { render "ok" }
-    }
-
-    then:
-    with(get()) {
-      statusCode == 500
-      text == "error in init"
-    }
+    record == ["1:FOREGROUND", "2:FOREGROUND", "1:BACKGROUND", "2:BACKGROUND", "1:FOREGROUND", "2:FOREGROUND"]
   }
 
   def "intercepted handlers can throw exceptions"() {

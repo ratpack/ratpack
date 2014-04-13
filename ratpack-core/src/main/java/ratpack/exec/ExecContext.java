@@ -18,12 +18,12 @@ package ratpack.exec;
 
 import ratpack.api.NonBlocking;
 import ratpack.func.Action;
+import ratpack.func.Supplier;
 import ratpack.http.client.HttpClient;
 import ratpack.launch.LaunchConfig;
 import ratpack.promise.Fulfiller;
 import ratpack.promise.SuccessOrErrorPromise;
 import ratpack.registry.NotInRegistryException;
-import ratpack.registry.Registry;
 
 import java.nio.file.Path;
 import java.util.concurrent.Callable;
@@ -31,7 +31,7 @@ import java.util.concurrent.Callable;
 /**
  * An execution context.
  */
-public interface ExecContext extends Registry {
+public interface ExecContext {
 
   /**
    * Returns this.
@@ -39,6 +39,8 @@ public interface ExecContext extends Registry {
    * @return this.
    */
   ExecContext getContext();
+
+  Supplier<? extends ExecContext> getSupplier();
 
   LaunchConfig getLaunchConfig();
 
@@ -58,14 +60,6 @@ public interface ExecContext extends Registry {
    * @throws NotInRegistryException if there is no {@link ratpack.file.FileSystemBinding} in the current service
    */
   Path file(String path) throws NotInRegistryException;
-
-  /**
-   * An object to be used when executing blocking IO, or long operations.
-   *
-   * @return An object to be used when executing blocking IO, or long operations.
-   * @see #background(Callable)
-   */
-  Background getBackground();
 
   /**
    * The application foreground.

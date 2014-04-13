@@ -18,10 +18,11 @@ package ratpack.handling;
 
 import ratpack.api.NonBlocking;
 import ratpack.api.Nullable;
-import ratpack.exec.Background;
 import ratpack.exec.ExecContext;
+import ratpack.exec.ExecInterceptor;
 import ratpack.exec.Foreground;
 import ratpack.func.Action;
+import ratpack.func.Supplier;
 import ratpack.handling.direct.DirectChannelAccess;
 import ratpack.http.Request;
 import ratpack.http.Response;
@@ -78,7 +79,7 @@ import java.util.concurrent.Callable;
  * <li>A {@link Redirector}</li>
  * </ul>
  */
-public interface Context extends ExecContext {
+public interface Context extends ExecContext, Registry {
 
   /**
    * Returns this.
@@ -86,6 +87,13 @@ public interface Context extends ExecContext {
    * @return this.
    */
   Context getContext();
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  Supplier<? extends ExecContext> getSupplier();
 
   /**
    * {@inheritDoc}
@@ -233,17 +241,74 @@ public interface Context extends ExecContext {
   void error(Exception exception) throws NotInRegistryException;
 
   /**
-   * Performs the given {@code callable} in a non request thread so that it can perform blocking IO.
+   * Execute the given operation in the background, returning a promise for its result.
    * <p>
-   * This method is merely a convenience for calling {@link #getBackground() getBackground()}.{@link ratpack.exec.Background#exec(Callable) exec(callable)}.
+   * This method executes asynchronously, in that it does not invoke the {@code operation} before returning the promise.
+   * When the returned promise is subscribed to (i.e. its {@link ratpack.promise.SuccessPromise#then(ratpack.func.Action)} method is called),
+   * the given {@code operation} will be submitted to a thread pool that is different to the request handling thread pool.
+   * Therefore, if the returned promise is never subscribed to, the {@code operation} will never be initiated.
+   * <p>
+   * The promise returned by this method, have the same default error handling strategy as those returned by {@link ratpack.handling.Context#promise(ratpack.func.Action)}.
+   * <p>
+   * <pre class="tested">
+   * import ratpack.handling.*;
+   * import ratpack.func.Action;
+
+   * import java.util.concurrent.Callable;
    *
-   * @param backgroundOperation The blocking operation to perform in the background
-   * @param <T> The type of object returned by the background operation
-   * @return A promise for the result of the background operation
-   * @see ratpack.exec.Background
+   * public class BackgroundUsingJavaHandler implements Handler {
+   *   void handle(final Context context) {
+   *     context.background(new Callable&lt;String&gt;() {
+   *        public String call() {
+   *          // perform some kind of blocking IO in here, such as accessing a database
+   *          return "hello world, from the background!";
+   *        }
+   *     }).then(new Action&lt;String&gt;() {
+   *       public void execute(String result) {
+   *         context.render(result);
+   *       }
+   *     });
+   *   }
+   * }
+   *
+   * public class BackgroundUsingGroovyHandler implements Handler {
+   *   void handle(final Context context) {
+   *     context.background {
+   *       "hello world, from the background!"
+   *     } then { String result ->
+   *       context.render(result)
+   *     }
+   *   }
+   * }
+   *
+   * // Test (Groovy) &hellip;
+   *
+   * import ratpack.test.embed.PathBaseDirBuilder
+   * import ratpack.groovy.test.TestHttpClients
+   * import ratpack.groovy.test.embed.ClosureBackedEmbeddedApplication
+   *
+   * def baseDir = new PathBaseDirBuilder(new File("some/path"))
+   * def app = new ClosureBackedEmbeddedApplication(baseDir)
+   *
+   * app.handlers {
+   *   get("java", new BackgroundUsingJavaHandler())
+   *   get("groovy", new BackgroundUsingGroovyHandler())
+   * }
+   *
+   * def client = TestHttpClients.testHttpClient(app)
+   *
+   * assert client.getText("java") == "hello world, from the background!"
+   * assert client.getText("groovy") == "hello world, from the background!"
+   *
+   * app.close()
+   * </pre>
+   *
+   * @param operation The operation to perform
+   * @param <T> The type of result object that the operation produces
+   * @return a promise for the return value of the callable.
    */
   @Override
-  <T> SuccessOrErrorPromise<T> background(Callable<T> backgroundOperation);
+  <T> SuccessOrErrorPromise<T> background(Callable<T> operation);
 
   /**
    * Creates a promise of a value that will made available asynchronously.
@@ -563,12 +628,6 @@ public interface Context extends ExecContext {
    * {@inheritDoc}
    */
   @Override
-  Background getBackground();
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
   Foreground getForeground();
 
   /**
@@ -585,6 +644,8 @@ public interface Context extends ExecContext {
   <O> O maybeGet(Class<O> type);
 
   @Override
- <O> List<O> getAll(Class<O> type);
+  <O> List<O> getAll(Class<O> type);
+
+  void addExecInterceptor(ExecInterceptor execInterceptor, Action<? super Context> action) throws Exception;
 
 }

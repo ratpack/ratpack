@@ -27,9 +27,10 @@ import ratpack.error.internal.DefaultClientErrorHandler;
 import ratpack.error.internal.DefaultServerErrorHandler;
 import ratpack.error.internal.ErrorCatchingHandler;
 import ratpack.event.internal.DefaultEventController;
-import ratpack.exec.Background;
-import ratpack.exec.internal.ContextStorage;
-import ratpack.exec.internal.FinishedOnThreadCallbackManager;
+import ratpack.exec.ExecContext;
+import ratpack.exec.ExecInterceptor;
+import ratpack.exec.Foreground;
+import ratpack.exec.internal.Background;
 import ratpack.file.FileRenderer;
 import ratpack.file.FileSystemBinding;
 import ratpack.file.MimeTypes;
@@ -42,12 +43,14 @@ import ratpack.func.Action;
 import ratpack.handling.*;
 import ratpack.handling.direct.DirectChannelAccess;
 import ratpack.handling.direct.internal.DefaultDirectChannelAccess;
-import ratpack.handling.internal.*;
+import ratpack.handling.internal.DefaultContext;
+import ratpack.handling.internal.DefaultRedirector;
+import ratpack.handling.internal.DefaultRequestOutcome;
+import ratpack.handling.internal.DelegatingHeaders;
 import ratpack.http.*;
 import ratpack.http.internal.*;
 import ratpack.launch.LaunchConfig;
 import ratpack.launch.NoBaseDirException;
-import ratpack.launch.internal.LaunchConfigInternal;
 import ratpack.registry.Registries;
 import ratpack.registry.Registry;
 import ratpack.registry.RegistryBuilder;
@@ -61,6 +64,7 @@ import ratpack.util.internal.NumberUtil;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.Collections;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
@@ -76,7 +80,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
   private final ConcurrentHashMap<Channel, Action<Object>> channelSubscriptions = new ConcurrentHashMap<>(0);
 
   private final DefaultContext.ApplicationConstants applicationConstants;
-  private final FinishedOnThreadCallbackManager finishedOnThreadCallbackManager = new FinishedOnThreadCallbackManager();
+  private final Foreground foreground;
 
   private Registry registry;
 
@@ -89,7 +93,6 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
     RegistryBuilder registryBuilder = Registries.registry()
       // If you update this list, update the class level javadoc on Context.
       .add(Background.class, launchConfig.getBackground())
-      .add(finishedOnThreadCallbackManager)
       .add(Stopper.class, stopper)
       .add(MimeTypes.class, new ActivationBackedMimeTypes())
       .add(PublicAddress.class, new DefaultPublicAddress(launchConfig.getPublicAddress(), launchConfig.getSSLContext() == null ? "http" : "https"))
@@ -110,16 +113,10 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
 
     this.registry = registryBuilder.build();
 
-    ContextStorage contextStorage;
-    if (launchConfig instanceof LaunchConfigInternal) {
-      contextStorage = ((LaunchConfigInternal) launchConfig).getContextStorage();
-    } else {
-      throw new IllegalArgumentException("launchConfig must implement internal protocol " + LaunchConfigInternal.class.getName());
-    }
-
     this.addResponseTimeHeader = launchConfig.isTimeResponses();
     this.compressResponses = launchConfig.isCompressResponses();
-    this.applicationConstants = new DefaultContext.ApplicationConstants(launchConfig, contextStorage, new DefaultRenderController());
+    this.applicationConstants = new DefaultContext.ApplicationConstants(launchConfig, new DefaultRenderController());
+    this.foreground = launchConfig.getForeground();
   }
 
   @Override
@@ -214,9 +211,14 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
     DefaultContext.RequestConstants requestConstants = new DefaultContext.RequestConstants(
       applicationConstants, bindAddress, request, response, directChannelAccess, requestOutcomeEventController.getRegistry()
     );
-    Context context = new DefaultContext(requestConstants, registry, handlers, 0, return404);
-    context.next();
-    finishedOnThreadCallbackManager.fire();
+
+    final Context context = new DefaultContext(requestConstants, registry, handlers, 0, return404);
+    foreground.exec(context.getSupplier(), Collections.<ExecInterceptor>emptyList(), ExecInterceptor.ExecType.FOREGROUND, new Action<ExecContext>() {
+      @Override
+      public void execute(ExecContext thing) throws Exception {
+        context.next();
+      }
+    });
   }
 
   @Override

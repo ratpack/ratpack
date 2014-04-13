@@ -14,13 +14,20 @@
  * limitations under the License.
  */
 
-package ratpack.launch.internal;
+package ratpack.func;
 
-import ratpack.exec.internal.ContextStorage;
-import ratpack.launch.LaunchConfig;
+public abstract class Suppliers {
 
-public interface LaunchConfigInternal extends LaunchConfig {
+  private Suppliers() {
+  }
 
-  ContextStorage getContextStorage();
+  public static <T> Supplier<T> constant(final T thing) {
+    return new Supplier<T>() {
+      @Override
+      public T get() {
+        return thing;
+      }
+    };
+  }
 
 }

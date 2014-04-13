@@ -20,17 +20,16 @@ import groovy.lang.Closure;
 import groovy.lang.GroovySystem;
 import ratpack.api.Nullable;
 import ratpack.file.internal.DefaultFileSystemBinding;
-import ratpack.groovy.launch.internal.GroovyClosureHandlerFactory;
+import ratpack.func.Action;
 import ratpack.groovy.launch.GroovyScriptFileHandlerFactory;
+import ratpack.groovy.launch.internal.GroovyClosureHandlerFactory;
 import ratpack.groovy.launch.internal.GroovyVersionCheck;
 import ratpack.launch.HandlerFactory;
 import ratpack.launch.LaunchConfig;
 import ratpack.launch.LaunchConfigs;
 import ratpack.launch.internal.DelegatingLaunchConfig;
-import ratpack.launch.internal.LaunchConfigInternal;
 import ratpack.server.RatpackServer;
 import ratpack.server.RatpackServerBuilder;
-import ratpack.func.Action;
 
 import java.io.File;
 import java.net.URI;
@@ -73,7 +72,7 @@ public class StandaloneScriptBacking implements Action<Closure<?>> {
     LaunchConfig launchConfig = LaunchConfigs.createFromFile(closure.getClass().getClassLoader(), baseDir, configFile, properties, defaultProperties);
 
     if (scriptFile == null) {
-      launchConfig = new DelegatingLaunchConfig((LaunchConfigInternal) launchConfig) {
+      launchConfig = new DelegatingLaunchConfig(launchConfig) {
         @Override
         public HandlerFactory getHandlerFactory() {
           return new GroovyClosureHandlerFactory(closure);
