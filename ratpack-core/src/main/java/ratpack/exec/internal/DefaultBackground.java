@@ -14,16 +14,17 @@
  * limitations under the License.
  */
 
-package ratpack.handling.internal;
+package ratpack.exec.internal;
 
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import ratpack.func.Action;
-import ratpack.handling.Background;
+import ratpack.exec.Background;
 import ratpack.handling.Context;
 import ratpack.handling.ProcessingInterceptor;
+import ratpack.handling.internal.InterceptedOperation;
 import ratpack.promise.SuccessOrErrorPromise;
 import ratpack.promise.Fulfiller;
 

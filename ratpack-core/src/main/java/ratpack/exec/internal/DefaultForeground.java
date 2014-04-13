@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package ratpack.handling.internal;
+package ratpack.exec.internal;
 
 import com.google.common.util.concurrent.ListeningScheduledExecutorService;
-import ratpack.handling.BaseContext;
+import ratpack.exec.ExecContext;
+import ratpack.exec.Foreground;
+import ratpack.exec.NoBoundContextException;
 import ratpack.handling.Context;
-import ratpack.handling.Foreground;
-import ratpack.handling.NoBoundContextException;
 
 public class DefaultForeground implements Foreground {
 
@@ -33,7 +33,7 @@ public class DefaultForeground implements Foreground {
   }
 
   @Override
-  public BaseContext getContext() throws NoBoundContextException {
+  public ExecContext getContext() throws NoBoundContextException {
     Context context = contextStorage.get();
     if (context == null) {
       throw new NoBoundContextException("No context is bound to the current thread (are you calling this from the background?)");

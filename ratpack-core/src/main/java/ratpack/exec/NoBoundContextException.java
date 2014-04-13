@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package ratpack.handling;
+package ratpack.exec;
 
 /**
  * Thrown when a request is made for the context in a non request handling thread.
  *
- * @see Foreground#getContext()
+ * @see ratpack.exec.Foreground#getContext()
  */
 public class NoBoundContextException extends RuntimeException {
 

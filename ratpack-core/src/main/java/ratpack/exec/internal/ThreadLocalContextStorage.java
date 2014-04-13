@@ -14,16 +14,27 @@
  * limitations under the License.
  */
 
-package ratpack.handling.internal;
+package ratpack.exec.internal;
 
 import ratpack.handling.Context;
 
-public interface ContextStorage {
+public class ThreadLocalContextStorage implements ContextStorage {
 
-  Context get();
+  private final ThreadLocal<Context> threadLocal = new ThreadLocal<>();
 
-  void set(Context context);
+  @Override
+  public Context get() {
+    return threadLocal.get();
+  }
 
-  void remove();
+  @Override
+  public void set(Context context) {
+    threadLocal.set(context);
+  }
+
+  @Override
+  public void remove() {
+    threadLocal.remove();
+  }
 
 }

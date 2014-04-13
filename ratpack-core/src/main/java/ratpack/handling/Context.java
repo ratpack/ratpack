@@ -18,11 +18,15 @@ package ratpack.handling;
 
 import ratpack.api.NonBlocking;
 import ratpack.api.Nullable;
+import ratpack.exec.Background;
+import ratpack.exec.ExecContext;
+import ratpack.exec.Foreground;
 import ratpack.func.Action;
 import ratpack.handling.direct.DirectChannelAccess;
 import ratpack.http.Request;
 import ratpack.http.Response;
 import ratpack.http.client.HttpClient;
+import ratpack.launch.LaunchConfig;
 import ratpack.parse.NoSuchParserException;
 import ratpack.parse.Parse;
 import ratpack.parse.ParserException;
@@ -74,7 +78,7 @@ import java.util.concurrent.Callable;
  * <li>A {@link Redirector}</li>
  * </ul>
  */
-public interface Context extends BaseContext {
+public interface Context extends ExecContext {
 
   /**
    * Returns this.
@@ -82,6 +86,12 @@ public interface Context extends BaseContext {
    * @return this.
    */
   Context getContext();
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  LaunchConfig getLaunchConfig();
 
   /**
    * The HTTP request.
@@ -225,12 +235,12 @@ public interface Context extends BaseContext {
   /**
    * Performs the given {@code callable} in a non request thread so that it can perform blocking IO.
    * <p>
-   * This method is merely a convenience for calling {@link #getBackground() getBackground()}.{@link Background#exec(Callable) exec(callable)}.
+   * This method is merely a convenience for calling {@link #getBackground() getBackground()}.{@link ratpack.exec.Background#exec(Callable) exec(callable)}.
    *
    * @param backgroundOperation The blocking operation to perform in the background
    * @param <T> The type of object returned by the background operation
    * @return A promise for the result of the background operation
-   * @see Background
+   * @see ratpack.exec.Background
    */
   @Override
   <T> SuccessOrErrorPromise<T> background(Callable<T> backgroundOperation);

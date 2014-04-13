@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ratpack.handling.internal;
+package ratpack.exec.internal;
 
 import java.util.ArrayList;
 import java.util.List;

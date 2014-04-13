@@ -20,6 +20,8 @@ import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import ratpack.api.NonBlocking;
 import ratpack.api.Nullable;
+import ratpack.exec.Background;
+import ratpack.exec.Foreground;
 import ratpack.func.Action;
 import ratpack.groovy.handling.GroovyByContentHandler;
 import ratpack.groovy.handling.GroovyByMethodHandler;
@@ -30,6 +32,7 @@ import ratpack.handling.direct.DirectChannelAccess;
 import ratpack.http.Request;
 import ratpack.http.Response;
 import ratpack.http.client.HttpClient;
+import ratpack.launch.LaunchConfig;
 import ratpack.parse.NoSuchParserException;
 import ratpack.parse.Parse;
 import ratpack.parse.ParserException;
@@ -57,6 +60,11 @@ public class DefaultGroovyContext implements GroovyContext {
   @Override
   public GroovyContext getContext() {
     return this;
+  }
+
+  @Override
+  public LaunchConfig getLaunchConfig() {
+    return delegate.getLaunchConfig();
   }
 
   @Override

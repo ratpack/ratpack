@@ -17,7 +17,7 @@
 package ratpack.launch.internal;
 
 import io.netty.channel.EventLoopGroup;
-import ratpack.handling.internal.ContextStorage;
+import ratpack.exec.internal.ContextStorage;
 import ratpack.launch.LaunchConfig;
 
 import java.util.concurrent.ExecutorService;

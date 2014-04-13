@@ -20,6 +20,9 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 import ratpack.error.ClientErrorHandler;
 import ratpack.error.ServerErrorHandler;
 import ratpack.event.internal.EventRegistry;
+import ratpack.exec.Background;
+import ratpack.exec.Foreground;
+import ratpack.exec.internal.ContextStorage;
 import ratpack.file.FileSystemBinding;
 import ratpack.func.Action;
 import ratpack.handling.*;
@@ -29,15 +32,16 @@ import ratpack.http.Response;
 import ratpack.http.client.HttpClient;
 import ratpack.http.client.HttpClients;
 import ratpack.http.internal.HttpHeaderConstants;
+import ratpack.launch.LaunchConfig;
 import ratpack.parse.NoSuchParserException;
 import ratpack.parse.Parse;
 import ratpack.parse.Parser;
 import ratpack.parse.ParserException;
 import ratpack.path.PathBinding;
 import ratpack.path.PathTokens;
+import ratpack.promise.Fulfiller;
 import ratpack.promise.SuccessOrErrorPromise;
 import ratpack.promise.internal.DefaultSuccessOrErrorPromise;
-import ratpack.promise.Fulfiller;
 import ratpack.registry.NotInRegistryException;
 import ratpack.registry.Registries;
 import ratpack.registry.Registry;
@@ -63,16 +67,14 @@ import static io.netty.handler.codec.http.HttpResponseStatus.NOT_MODIFIED;
 public class DefaultContext implements Context {
 
   public static class ApplicationConstants {
-    private final Foreground foreground;
-    private final Background background;
+    private final LaunchConfig launchConfig;
     private final ContextStorage contextStorage;
     private final RenderController renderController;
 
-    public ApplicationConstants(Foreground foreground, Background background, ContextStorage contextStorage, RenderController renderController) {
-      this.foreground = foreground;
+    public ApplicationConstants(LaunchConfig launchConfig, ContextStorage contextStorage, RenderController renderController) {
       this.contextStorage = contextStorage;
       this.renderController = renderController;
-      this.background = background;
+      this.launchConfig = launchConfig;
     }
   }
 
@@ -120,6 +122,11 @@ public class DefaultContext implements Context {
   @Override
   public Context getContext() {
     return this;
+  }
+
+  @Override
+  public LaunchConfig getLaunchConfig() {
+    return requestConstants.applicationConstants.launchConfig;
   }
 
   public Request getRequest() {
@@ -284,12 +291,12 @@ public class DefaultContext implements Context {
 
   @Override
   public Background getBackground() {
-    return requestConstants.applicationConstants.background;
+    return requestConstants.applicationConstants.launchConfig.getBackground();
   }
 
   @Override
   public Foreground getForeground() {
-    return requestConstants.applicationConstants.foreground;
+    return requestConstants.applicationConstants.launchConfig.getForeground();
   }
 
   @Override

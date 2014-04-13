@@ -165,7 +165,7 @@ public interface ProcessingInterceptor {
    * <p>
    * The given {@code Runnable} argument represents the rest of the processing to occur on this thread.
    * This does not necessarily mean the rest of the processing until the rest of the response is determined or sent.
-   * Request processing may involve multiple parallel (but not concurrent) threads of execution because of {@link ratpack.handling.Background} processing.
+   * Request processing may involve multiple parallel (but not concurrent) threads of execution because of {@link ratpack.exec.Background} processing.
    * Moreover, the continuation includes all of the code that is executed after the response is determined (which ideally is just unravelling the call stack).
    * As such, when intercepting foreground execution that generates a response, the continuation may be returning <b>after</b> the response has been sent.
    * <p>

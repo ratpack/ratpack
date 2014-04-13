@@ -22,11 +22,16 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.UnpooledByteBufAllocator;
 import io.netty.util.CharsetUtil;
 import ratpack.api.Nullable;
-import ratpack.handling.internal.DefaultBackground;
+import ratpack.exec.Background;
+import ratpack.exec.Foreground;
+import ratpack.exec.internal.ContextStorage;
+import ratpack.exec.internal.DefaultForeground;
+import ratpack.exec.internal.DefaultBackground;
 import ratpack.error.ClientErrorHandler;
 import ratpack.error.ServerErrorHandler;
 import ratpack.event.internal.DefaultEventController;
 import ratpack.event.internal.EventController;
+import ratpack.exec.internal.FinishedOnThreadCallbackManager;
 import ratpack.file.internal.FileHttpTransmitter;
 import ratpack.func.Action;
 import ratpack.handling.*;
@@ -34,10 +39,12 @@ import ratpack.handling.internal.*;
 import ratpack.http.*;
 import ratpack.http.internal.DefaultResponse;
 import ratpack.http.internal.DefaultSentResponse;
+import ratpack.launch.LaunchConfig;
 import ratpack.registry.Registries;
 import ratpack.registry.Registry;
 import ratpack.render.internal.RenderController;
 import ratpack.server.BindAddress;
+import ratpack.test.MockLaunchConfig;
 import ratpack.test.handling.Invocation;
 import ratpack.test.handling.InvocationTimeoutException;
 import ratpack.util.ExceptionUtils;
@@ -175,10 +182,22 @@ public class DefaultInvocation implements Invocation {
 
     Response response = new DefaultResponse(status, responseHeaders, fileHttpTransmitter, UnpooledByteBufAllocator.DEFAULT, committer);
 
-    Foreground foreground = new DefaultForeground(contextStorage, foregroundExecutorService);
+    final Foreground foreground = new DefaultForeground(contextStorage, foregroundExecutorService);
+    final Background background = new DefaultBackground(foregroundExecutorService, backgroundExecutorService, contextStorage);
 
-    Background background = new DefaultBackground(foregroundExecutorService, backgroundExecutorService, contextStorage);
-    DefaultContext.ApplicationConstants applicationConstants = new DefaultContext.ApplicationConstants(foreground, background, contextStorage, renderController);
+    LaunchConfig launchConfig = new MockLaunchConfig() {
+      @Override
+      public Background getBackground() {
+        return background;
+      }
+
+      @Override
+      public Foreground getForeground() {
+        return foreground;
+      }
+    };
+
+    DefaultContext.ApplicationConstants applicationConstants = new DefaultContext.ApplicationConstants(launchConfig, contextStorage, renderController);
     DefaultContext.RequestConstants requestConstants = new DefaultContext.RequestConstants(
       applicationConstants, bindAddress, request, response, null, eventController.getRegistry()
     );

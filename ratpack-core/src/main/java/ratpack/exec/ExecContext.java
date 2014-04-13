@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package ratpack.handling;
+package ratpack.exec;
 
 import ratpack.api.NonBlocking;
 import ratpack.func.Action;
 import ratpack.http.client.HttpClient;
+import ratpack.launch.LaunchConfig;
 import ratpack.promise.Fulfiller;
 import ratpack.promise.SuccessOrErrorPromise;
 import ratpack.registry.NotInRegistryException;
@@ -30,14 +31,16 @@ import java.util.concurrent.Callable;
 /**
  * An execution context.
  */
-public interface BaseContext extends Registry {
+public interface ExecContext extends Registry {
 
   /**
    * Returns this.
    *
    * @return this.
    */
-  BaseContext getContext();
+  ExecContext getContext();
+
+  LaunchConfig getLaunchConfig();
 
   @NonBlocking
   void error(Exception exception) throws NotInRegistryException;
@@ -68,7 +71,7 @@ public interface BaseContext extends Registry {
    * The application foreground.
    *
    * @return the application foreground
-   * @see ratpack.handling.Foreground
+   * @see ratpack.exec.Foreground
    */
   Foreground getForeground();
 

@@ -24,7 +24,7 @@ import ratpack.http.Request;
 
 /**
  * A {@link ratpack.handling.ProcessingInterceptor} implementation that collects {@link Timer} metrics
- * for {@link ratpack.handling.Background} executions.
+ * for {@link ratpack.exec.Background} executions.
  * <p>
  * Metrics are grouped by {@link ratpack.http.Request#getUri()} and {@link ratpack.http.Request#getMethod()}.
  * For example, the following requests with background tasks...

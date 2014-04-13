@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ratpack.handling;
+package ratpack.exec;
 
 import ratpack.promise.SuccessOrErrorPromise;
 
@@ -23,11 +23,11 @@ import java.util.concurrent.Callable;
 /**
  * The background execution space for blocking operations.
  * <p>
- * The background is implicitly bound to the currently in use {@link Context} on the current thread.
+ * The background is implicitly bound to the currently in use {@link ratpack.handling.Context} on the current thread.
  *
  * @see #exec(Callable)
- * @see Context#background(Callable)
- * @see Context#getBackground()
+ * @see ratpack.handling.Context#background(Callable)
+ * @see ratpack.handling.Context#getBackground()
  */
 public interface Background {
 
@@ -39,7 +39,7 @@ public interface Background {
    * the given {@code operation} will be submitted to a thread pool that is different to the request handling thread pool.
    * Therefore, if the returned promise is never subscribed to, the {@code operation} will never be initiated.
    * <p>
-   * The promise returned by this method, have the same default error handling strategy as those returned by {@link Context#promise(ratpack.func.Action)}.
+   * The promise returned by this method, have the same default error handling strategy as those returned by {@link ratpack.handling.Context#promise(ratpack.func.Action)}.
    * <p>
    * <pre class="tested">
    * import ratpack.handling.*;

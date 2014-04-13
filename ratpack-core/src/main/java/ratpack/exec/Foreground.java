@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ratpack.handling;
+package ratpack.exec;
 
 import com.google.common.util.concurrent.ListeningScheduledExecutorService;
 
@@ -31,7 +31,7 @@ public interface Foreground {
    * @return the current context on the current thread
    * @throws NoBoundContextException if this method is called from a thread that is not performing request processing
    */
-  BaseContext getContext() throws NoBoundContextException;
+  ExecContext getContext() throws NoBoundContextException;
 
   /**
    * The executor that manages foreground work.

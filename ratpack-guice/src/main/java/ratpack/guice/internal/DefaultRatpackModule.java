@@ -20,6 +20,10 @@ import com.google.inject.AbstractModule;
 import com.google.inject.OutOfScopeException;
 import com.google.inject.Provides;
 import io.netty.buffer.ByteBufAllocator;
+import ratpack.exec.Background;
+import ratpack.exec.ExecContext;
+import ratpack.exec.Foreground;
+import ratpack.exec.NoBoundContextException;
 import ratpack.handling.*;
 import ratpack.launch.LaunchConfig;
 
@@ -52,7 +56,7 @@ public class DefaultRatpackModule extends AbstractModule {
   }
 
   @Provides
-  BaseContext context(Foreground foreground) {
+  ExecContext context(Foreground foreground) {
     try {
       return foreground.getContext();
     } catch (NoBoundContextException e) {

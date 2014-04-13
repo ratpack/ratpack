@@ -20,7 +20,7 @@ import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.stream.ChunkedNioStream;
 import ratpack.func.Action;
-import ratpack.handling.Background;
+import ratpack.exec.Background;
 import ratpack.http.internal.CustomHttpResponse;
 import ratpack.http.internal.HttpHeaderConstants;
 import ratpack.util.internal.NumberUtil;

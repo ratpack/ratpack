@@ -20,7 +20,7 @@ import io.netty.handler.codec.http.HttpHeaders;
 import ratpack.file.FileRenderer;
 import ratpack.file.MimeTypes;
 import ratpack.func.Action;
-import ratpack.handling.Background;
+import ratpack.exec.Background;
 import ratpack.handling.Context;
 import ratpack.http.Response;
 import ratpack.render.RendererSupport;

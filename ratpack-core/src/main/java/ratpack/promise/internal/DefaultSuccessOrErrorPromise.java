@@ -18,7 +18,7 @@ package ratpack.promise.internal;
 
 import ratpack.func.Action;
 import ratpack.handling.Context;
-import ratpack.handling.internal.ContextStorage;
+import ratpack.exec.internal.ContextStorage;
 import ratpack.promise.Fulfiller;
 import ratpack.promise.SuccessOrErrorPromise;
 import ratpack.promise.SuccessPromise;

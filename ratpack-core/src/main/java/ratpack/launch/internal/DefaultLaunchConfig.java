@@ -25,12 +25,12 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import ratpack.file.FileSystemBinding;
-import ratpack.handling.Background;
-import ratpack.handling.Foreground;
-import ratpack.handling.internal.ContextStorage;
-import ratpack.handling.internal.DefaultBackground;
-import ratpack.handling.internal.DefaultForeground;
-import ratpack.handling.internal.ThreadLocalContextStorage;
+import ratpack.exec.Background;
+import ratpack.exec.Foreground;
+import ratpack.exec.internal.ContextStorage;
+import ratpack.exec.internal.DefaultBackground;
+import ratpack.exec.internal.DefaultForeground;
+import ratpack.exec.internal.ThreadLocalContextStorage;
 import ratpack.launch.HandlerFactory;
 import ratpack.launch.NoBaseDirException;
 

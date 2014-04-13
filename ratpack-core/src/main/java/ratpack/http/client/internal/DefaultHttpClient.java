@@ -23,9 +23,9 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.ssl.SslHandler;
+import ratpack.exec.ExecContext;
 import ratpack.func.Action;
 import ratpack.func.Actions;
-import ratpack.handling.BaseContext;
 import ratpack.http.Headers;
 import ratpack.http.MutableHeaders;
 import ratpack.http.Status;
@@ -45,9 +45,9 @@ import java.net.URISyntaxException;
 
 public class DefaultHttpClient implements HttpClient {
 
-  private final BaseContext context;
+  private final ExecContext context;
 
-  public DefaultHttpClient(BaseContext context) {
+  public DefaultHttpClient(ExecContext context) {
     this.context = context;
   }
 

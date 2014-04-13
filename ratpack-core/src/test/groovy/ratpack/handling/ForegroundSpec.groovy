@@ -16,6 +16,7 @@
 
 package ratpack.handling
 
+import ratpack.exec.Foreground
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 class ForegroundSpec extends RatpackGroovyDslSpec {

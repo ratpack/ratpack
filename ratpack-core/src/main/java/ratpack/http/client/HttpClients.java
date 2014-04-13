@@ -16,12 +16,12 @@
 
 package ratpack.http.client;
 
-import ratpack.handling.BaseContext;
+import ratpack.exec.ExecContext;
 import ratpack.http.client.internal.DefaultHttpClient;
 
 public abstract class HttpClients {
 
-  public static HttpClient httpClient(BaseContext context) {
+  public static HttpClient httpClient(ExecContext context) {
     return new DefaultHttpClient(context);
   }
 

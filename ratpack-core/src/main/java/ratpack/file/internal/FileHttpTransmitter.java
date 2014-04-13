@@ -16,7 +16,7 @@
 
 package ratpack.file.internal;
 
-import ratpack.handling.Background;
+import ratpack.exec.Background;
 
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;

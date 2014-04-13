@@ -5,7 +5,7 @@ import com.google.inject.AbstractModule
 import com.google.inject.Provides
 import ratpack.error.ClientErrorHandler
 import ratpack.error.ServerErrorHandler
-import ratpack.handling.Foreground
+import ratpack.exec.Foreground
 import ratpack.launch.LaunchConfig
 import ratpack.site.github.ApiBackedGitHubData
 import ratpack.site.github.GitHubApi

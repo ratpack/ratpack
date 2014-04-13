@@ -23,7 +23,7 @@ import com.google.common.cache.CacheBuilder
 import com.google.common.cache.CacheLoader
 import com.google.common.cache.LoadingCache
 import groovy.transform.CompileStatic
-import ratpack.handling.Foreground
+import ratpack.exec.Foreground
 
 import java.util.concurrent.TimeUnit
 

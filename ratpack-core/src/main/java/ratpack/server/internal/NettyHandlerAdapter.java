@@ -27,6 +27,9 @@ import ratpack.error.internal.DefaultClientErrorHandler;
 import ratpack.error.internal.DefaultServerErrorHandler;
 import ratpack.error.internal.ErrorCatchingHandler;
 import ratpack.event.internal.DefaultEventController;
+import ratpack.exec.Background;
+import ratpack.exec.internal.ContextStorage;
+import ratpack.exec.internal.FinishedOnThreadCallbackManager;
 import ratpack.file.FileRenderer;
 import ratpack.file.FileSystemBinding;
 import ratpack.file.MimeTypes;
@@ -116,7 +119,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
 
     this.addResponseTimeHeader = launchConfig.isTimeResponses();
     this.compressResponses = launchConfig.isCompressResponses();
-    this.applicationConstants = new DefaultContext.ApplicationConstants(launchConfig.getForeground(), launchConfig.getBackground(), contextStorage, new DefaultRenderController());
+    this.applicationConstants = new DefaultContext.ApplicationConstants(launchConfig, contextStorage, new DefaultRenderController());
   }
 
   @Override
