@@ -20,11 +20,9 @@ import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import ratpack.api.NonBlocking;
 import ratpack.api.Nullable;
-import ratpack.exec.ExecContext;
 import ratpack.exec.ExecInterceptor;
 import ratpack.exec.Foreground;
 import ratpack.func.Action;
-import ratpack.func.Supplier;
 import ratpack.groovy.handling.GroovyByContentHandler;
 import ratpack.groovy.handling.GroovyByMethodHandler;
 import ratpack.groovy.handling.GroovyContext;
@@ -65,7 +63,7 @@ public class DefaultGroovyContext implements GroovyContext {
   }
 
   @Override
-  public Supplier<? extends ExecContext> getSupplier() {
+  public Supplier getSupplier() {
     return delegate.getSupplier();
   }
 

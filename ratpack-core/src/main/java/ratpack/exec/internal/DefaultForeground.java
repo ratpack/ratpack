@@ -24,7 +24,6 @@ import ratpack.exec.ExecInterceptor;
 import ratpack.exec.Foreground;
 import ratpack.exec.NoBoundContextException;
 import ratpack.func.Action;
-import ratpack.func.Supplier;
 import ratpack.handling.Context;
 import ratpack.handling.internal.HandlerException;
 import ratpack.handling.internal.InterceptedOperation;
@@ -34,7 +33,7 @@ import java.util.List;
 
 public class DefaultForeground implements Foreground {
 
-  private final ThreadLocal<Supplier<? extends ExecContext>> contextFactoryThreadLocal = new ThreadLocal<>();
+  private final ThreadLocal<ExecContext.Supplier> contextSupplierThreadLocal = new ThreadLocal<>();
   private final ThreadLocal<Runnable> onExecFinish = new ThreadLocal<>();
 
   private final ListeningScheduledExecutorService listeningScheduledExecutorService;
@@ -47,11 +46,11 @@ public class DefaultForeground implements Foreground {
 
   @Override
   public ExecContext getContext() throws NoBoundContextException {
-    Supplier<? extends ExecContext> contextFactory = contextFactoryThreadLocal.get();
-    if (contextFactory == null) {
+    ExecContext.Supplier contextSupplier = contextSupplierThreadLocal.get();
+    if (contextSupplier == null) {
       throw new NoBoundContextException("No context is bound to the current thread (are you calling this from the background?)");
     } else {
-      return contextFactory.get();
+      return contextSupplier.get();
     }
   }
 
@@ -66,10 +65,10 @@ public class DefaultForeground implements Foreground {
   }
 
   @Override
-  public void exec(Supplier<? extends ExecContext> execContextSupplier, List<ExecInterceptor> interceptors, final ExecInterceptor.ExecType execType, final Action<? super ExecContext> action) {
+  public void exec(ExecContext.Supplier execContextSupplier, List<ExecInterceptor> interceptors, final ExecInterceptor.ExecType execType, final Action<? super ExecContext> action) {
 
     try {
-      contextFactoryThreadLocal.set(execContextSupplier);
+      contextSupplierThreadLocal.set(execContextSupplier);
       new InterceptedOperation(execType, interceptors) {
         @Override
         protected void performOperation() throws Exception {
@@ -89,7 +88,7 @@ public class DefaultForeground implements Foreground {
         getContext().error(e);
       }
     } finally {
-      contextFactoryThreadLocal.remove();
+      contextSupplierThreadLocal.remove();
     }
   }
 

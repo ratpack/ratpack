@@ -19,7 +19,6 @@ package ratpack.exec;
 import com.google.common.util.concurrent.ListeningScheduledExecutorService;
 import io.netty.channel.EventLoopGroup;
 import ratpack.func.Action;
-import ratpack.func.Supplier;
 
 import java.util.List;
 
@@ -51,7 +50,7 @@ public interface Foreground {
 
   EventLoopGroup getEventLoopGroup();
 
-  void exec(Supplier<? extends ExecContext> execContextFactory, List<ExecInterceptor> interceptors, ExecInterceptor.ExecType execType, Action<? super ExecContext> action);
+  void exec(ExecContext.Supplier execContextSupplier, List<ExecInterceptor> interceptors, ExecInterceptor.ExecType execType, Action<? super ExecContext> action);
 
   void onExecFinish(Runnable runnable);
 

@@ -26,7 +26,6 @@ import ratpack.exec.Foreground;
 import ratpack.exec.internal.AbstractExecContext;
 import ratpack.file.FileSystemBinding;
 import ratpack.func.Action;
-import ratpack.func.Supplier;
 import ratpack.handling.*;
 import ratpack.handling.direct.DirectChannelAccess;
 import ratpack.http.Request;
@@ -130,8 +129,8 @@ public class DefaultContext extends AbstractExecContext implements Context {
   }
 
   @Override
-  public Supplier<? extends ExecContext> getSupplier() {
-    return new Supplier<ExecContext>() {
+  public Supplier getSupplier() {
+    return new Supplier() {
       @Override
       public ExecContext get() {
         return requestConstants.context;

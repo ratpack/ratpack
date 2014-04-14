@@ -22,7 +22,6 @@ import ratpack.exec.ExecContext;
 import ratpack.exec.ExecInterceptor;
 import ratpack.exec.Foreground;
 import ratpack.func.Action;
-import ratpack.func.Supplier;
 import ratpack.handling.direct.DirectChannelAccess;
 import ratpack.http.Request;
 import ratpack.http.Response;
@@ -93,7 +92,7 @@ public interface Context extends ExecContext, Registry {
    * {@inheritDoc}
    */
   @Override
-  Supplier<? extends ExecContext> getSupplier();
+  Supplier getSupplier();
 
   /**
    * {@inheritDoc}
