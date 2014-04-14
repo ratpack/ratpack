@@ -29,8 +29,10 @@ import ratpack.launch.LaunchConfig;
 import ratpack.path.PathBinder;
 import ratpack.path.internal.PathHandler;
 import ratpack.path.internal.TokenPathBinder;
+import ratpack.registry.Registries;
 import ratpack.registry.Registry;
 import ratpack.registry.RegistryBuilder;
+import ratpack.registry.RegistrySpec;
 
 import java.util.List;
 
@@ -335,6 +337,19 @@ public abstract class Handlers {
    */
   public static Handler register(RegistryBuilder registryBuilder) {
     return register(registryBuilder.build());
+  }
+
+  /**
+   * Creates a handler by calling {@link #register(ratpack.registry.Registry)} with registry defined by the given action.
+   *
+   * @param action the definition of the registry to add
+   * @return A handler
+   * @see Context#next(ratpack.registry.Registry)
+   */
+  public static Handler register(Action<? super RegistrySpec> action) throws Exception {
+    RegistryBuilder builder = Registries.registry();
+    action.execute(builder);
+    return builder.size() == 0 ? next() : register(builder.build());
   }
 
 }

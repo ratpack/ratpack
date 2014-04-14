@@ -18,9 +18,12 @@ package ratpack.groovy.handling;
 
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
+import ratpack.func.Action;
 import ratpack.handling.Chain;
 import ratpack.handling.Handler;
-import ratpack.func.Action;
+import ratpack.registry.Registry;
+import ratpack.registry.RegistryBuilder;
+import ratpack.registry.RegistrySpec;
 
 /**
  * A Groovy oriented handler chain builder DSL.
@@ -300,6 +303,26 @@ public interface GroovyChain extends Chain {
   <T> GroovyChain register(Class<? super T> type, T service, Action<? super Chain> action) throws Exception;
 
   /**
+   * {@inheritDoc}
+   */
+  @Override
+  GroovyChain register(Registry registry);
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  GroovyChain register(RegistryBuilder registryBuilder);
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  GroovyChain register(Action<? super RegistrySpec> action) throws Exception;
+
+  GroovyChain register(@DelegatesTo(value = RegistrySpec.class, strategy = Closure.DELEGATE_FIRST) Closure<?> action) throws Exception;
+
+  /**
    * Creates a {@code List} of {@code Handler} from the given {@code Closure} and adds a {@code Handler} to this {@code GroovyChain} that
    * inserts the the {@code Handler} list with the given {@code service} addition.
    * <p>
@@ -326,6 +349,9 @@ public interface GroovyChain extends Chain {
   @Override
   GroovyChain fileSystem(String path, Handler handler);
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   GroovyChain fileSystem(String path, Action<? super Chain> action) throws Exception;
 

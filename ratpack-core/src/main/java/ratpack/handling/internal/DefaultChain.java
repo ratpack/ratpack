@@ -17,12 +17,14 @@
 package ratpack.handling.internal;
 
 import ratpack.api.Nullable;
+import ratpack.func.Action;
 import ratpack.handling.Chain;
 import ratpack.handling.Handler;
 import ratpack.handling.Handlers;
 import ratpack.launch.LaunchConfig;
 import ratpack.registry.Registry;
-import ratpack.func.Action;
+import ratpack.registry.RegistryBuilder;
+import ratpack.registry.RegistrySpec;
 
 import java.util.List;
 
@@ -63,6 +65,20 @@ public class DefaultChain implements Chain {
 
   public Chain prefix(String prefix, Action<? super Chain> action) throws Exception {
     return prefix(prefix, chain(action));
+  }
+
+  @Override
+  public Chain register(Registry registry) {
+    return handler(Handlers.register(registry));
+  }
+
+  public Chain register(RegistryBuilder registryBuilder) {
+    return handler(Handlers.register(registryBuilder));
+  }
+
+  @Override
+  public Chain register(Action<? super RegistrySpec> action) throws Exception {
+    return handler(Handlers.register(action));
   }
 
   public Chain get(String path, Handler handler) {

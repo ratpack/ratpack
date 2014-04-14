@@ -22,11 +22,14 @@ import ratpack.api.Nullable;
 import ratpack.func.Action;
 import ratpack.groovy.Groovy;
 import ratpack.groovy.handling.GroovyChain;
+import ratpack.groovy.internal.ClosureUtil;
 import ratpack.handling.Chain;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.launch.LaunchConfig;
 import ratpack.registry.Registry;
+import ratpack.registry.RegistryBuilder;
+import ratpack.registry.RegistrySpec;
 
 import static ratpack.groovy.Groovy.groovyHandler;
 
@@ -58,6 +61,30 @@ public class DefaultGroovyChain implements GroovyChain {
   @Override
   public GroovyChain prefix(String prefix, Action<? super Chain> action) throws Exception {
     delegate.prefix(prefix, action);
+    return this;
+  }
+
+  @Override
+  public GroovyChain register(RegistryBuilder registryBuilder) {
+    delegate.register(registryBuilder);
+    return this;
+  }
+
+  @Override
+  public GroovyChain register(Registry registry) {
+    delegate.register(registry);
+    return this;
+  }
+
+  @Override
+  public GroovyChain register(Action<? super RegistrySpec> action) throws Exception {
+    delegate.register(action);
+    return this;
+  }
+
+  @Override
+  public GroovyChain register(@DelegatesTo(value = RegistrySpec.class, strategy = Closure.DELEGATE_FIRST) Closure<?> action) throws Exception {
+    delegate.register(ClosureUtil.delegatingAction(action));
     return this;
   }
 

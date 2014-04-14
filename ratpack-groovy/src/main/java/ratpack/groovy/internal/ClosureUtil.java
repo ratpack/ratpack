@@ -62,8 +62,9 @@ public abstract class ClosureUtil {
     };
   }
 
-  public static Action<Object> delegatingAction(final Closure<?> configurer) {
-    return delegatingAction(Object.class, configurer);
+  @SuppressWarnings("unchecked")
+  public static <T> Action<T> delegatingAction(final Closure<?> configurer) {
+    return (Action<T>) delegatingAction(Object.class, configurer);
   }
 
   public static Action<Object> action(final Closure<?> closure) {

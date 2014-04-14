@@ -20,6 +20,8 @@ import ratpack.api.Nullable;
 import ratpack.func.Action;
 import ratpack.launch.LaunchConfig;
 import ratpack.registry.Registry;
+import ratpack.registry.RegistryBuilder;
+import ratpack.registry.RegistrySpec;
 
 /**
  * Convenient super class for packaging up Groovy handler chain logic.
@@ -236,6 +238,21 @@ public abstract class ChainAction implements Action<Chain>, Chain {
   @Override
   public <T> Chain register(Class<? super T> type, T service, Action<? super Chain> action) throws Exception {
     return getChain().register(type, service, action);
+  }
+
+  @Override
+  public Chain register(Registry registry) {
+    return getChain().register(registry);
+  }
+
+  @Override
+  public Chain register(RegistryBuilder registryBuilder) {
+    return getChain().register(registryBuilder);
+  }
+
+  @Override
+  public Chain register(Action<? super RegistrySpec> action) throws Exception {
+    return getChain().register(action);
   }
 
   @Override

@@ -25,6 +25,8 @@ import ratpack.handling.Chain;
 import ratpack.handling.Handler;
 import ratpack.launch.LaunchConfig;
 import ratpack.registry.Registry;
+import ratpack.registry.RegistryBuilder;
+import ratpack.registry.RegistrySpec;
 
 /**
  * Convenient super class for packaging up Groovy handler chain logic.
@@ -258,6 +260,26 @@ public abstract class GroovyChainAction implements Action<Chain>, GroovyChain {
   @Override
   public GroovyChain delete(@DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler) {
     return getChain().delete(handler);
+  }
+
+  @Override
+  public GroovyChain register(Registry registry) {
+    return chain.register(registry);
+  }
+
+  @Override
+  public GroovyChain register(RegistryBuilder registryBuilder) {
+    return chain.register(registryBuilder);
+  }
+
+  @Override
+  public GroovyChain register(Action<? super RegistrySpec> action) throws Exception {
+    return chain.register(action);
+  }
+
+  @Override
+  public GroovyChain register(@DelegatesTo(value = RegistrySpec.class, strategy = Closure.DELEGATE_FIRST) Closure<?> action) throws Exception {
+    return chain.register(action);
   }
 
   @Override

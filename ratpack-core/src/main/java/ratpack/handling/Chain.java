@@ -17,9 +17,11 @@
 package ratpack.handling;
 
 import ratpack.api.Nullable;
+import ratpack.func.Action;
 import ratpack.launch.LaunchConfig;
 import ratpack.registry.Registry;
-import ratpack.func.Action;
+import ratpack.registry.RegistryBuilder;
+import ratpack.registry.RegistrySpec;
 
 /**
  * A chain can be used to build a linked series of handlers.
@@ -84,7 +86,7 @@ public interface Chain {
    * <p>
    * The registry that is available is dependent on how the {@code GroovyChain} was constructed.
    *
-   * @see Handlers#chain(LaunchConfig, ratpack.registry.Registry, ratpack.func.Action)
+   * @see Handlers#chain(LaunchConfig, Registry, ratpack.func.Action)
    * @return The registry that backs this, or {@code null} if this has no registry.
    */
   @Nullable
@@ -196,6 +198,33 @@ public interface Chain {
    * @return this
    */
   Chain prefix(String prefix, Action<? super Chain> action) throws Exception;
+
+  /**
+   * Makes the contents of the given registry available for downstream handlers of the same nesting level.
+   * <p>
+   * The registry is inserted via the {@link ratpack.handling.Context#next(Registry)} method.
+   *
+   * @param registry the registry whose contents should be made available to downstream handlers
+   * @return this
+   */
+  Chain register(Registry registry);
+
+  /**
+   * {@link RegistryBuilder#build() Builds} the registry, then delegates to {@link #register(Registry)} with it.
+   *
+   * @param registryBuilder the registry builder that builds a registry whose contents should be made available to downstream handlers
+   * @return this
+   */
+  Chain register(RegistryBuilder registryBuilder);
+
+  /**
+   * Builds a new registry via the given action, then registers it via {@link #register(Registry)}
+   *
+   * @param action the definition of a registry
+   * @return this
+   * @throws Exception any thrown by {@code action}
+   */
+  Chain register(Action<? super RegistrySpec> action) throws Exception;
 
   /**
    * Adds a handler that delegates to the given handler
@@ -315,7 +344,7 @@ public interface Chain {
    * @see Chain#put(Handler)
    * @see Chain#delete(Handler)
    */
-  Chain patch(Handler handler);  
+  Chain patch(Handler handler);
 
   /**
    * Adds a handler that delegates to the given handler if
