@@ -16,41 +16,44 @@
 
 package ratpack.handling
 
-import ratpack.exec.Foreground
+import ratpack.exec.ExecController
 import ratpack.test.internal.RatpackGroovyDslSpec
 
-class ForegroundSpec extends RatpackGroovyDslSpec {
+/**
+ * Tests that ExecController.getContext() supplies the right value during request processing.
+ */
+class ExecContextBindingSpec extends RatpackGroovyDslSpec {
 
   static class Thing {
     String value
   }
 
-  def "can use context provider"() {
+  def "exec controller provides right context"() {
     when:
-    Foreground foreground = null
+    ExecController controller = null
 
     handlers {
       handler {
-        foreground = context.foreground
+        controller = context.execController
         next()
       }
       register(new Thing(value: "1")) {
         handler {
-          response.headers.set("L1", foreground.context.get(Thing).value)
+          response.headers.set("L1", controller.context.get(Thing).value)
           next()
         }
         register(new Thing(value: "2")) {
           handler {
             background {
-              response.headers.set("L2", foreground.context.get(Thing).value)
+              response.headers.set("L2", controller.context.get(Thing).value)
             } then {
-              foreground.context.next()
+              controller.context.next()
             }
           }
         }
         register(new Thing(value: "3")) {
           get {
-            render foreground.context.get(Thing).value
+            render controller.context.get(Thing).value
           }
         }
       }

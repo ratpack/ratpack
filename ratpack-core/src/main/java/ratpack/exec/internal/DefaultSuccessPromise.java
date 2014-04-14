@@ -14,53 +14,48 @@
  * limitations under the License.
  */
 
-package ratpack.promise.internal;
+package ratpack.exec.internal;
 
 import ratpack.exec.ExecContext;
-import ratpack.exec.Foreground;
+import ratpack.exec.ExecController;
 import ratpack.func.Action;
-import ratpack.exec.ExecInterceptor;
-import ratpack.promise.Fulfiller;
-import ratpack.promise.SuccessPromise;
-
-import java.util.List;
+import ratpack.exec.Fulfiller;
+import ratpack.exec.SuccessPromise;
 
 public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
 
   private final ExecContext context;
-  private final Foreground foreground;
-  private final List<ExecInterceptor> interceptors;
+  private final ExecController execController;
   private final Action<? super Fulfiller<T>> action;
-  private final Action<? super Throwable> operationErrorHandler;
+  private final Action<? super Throwable> errorHandler;
 
-  public DefaultSuccessPromise(ExecContext context, Foreground foreground, List<ExecInterceptor> interceptors, Action<? super Fulfiller<T>> action, Action<? super Throwable> operationErrorHandler) {
+  public DefaultSuccessPromise(ExecContext context, ExecController execController, Action<? super Fulfiller<T>> action, Action<? super Throwable> errorHandler) {
     this.context = context;
-    this.foreground = foreground;
-    this.interceptors = interceptors;
+    this.execController = execController;
     this.action = action;
-    this.operationErrorHandler = operationErrorHandler;
+    this.errorHandler = errorHandler;
   }
 
   @Override
   public void then(final Action<? super T> then) {
-    foreground.onExecFinish(new Runnable() {
+    execController.onExecFinish(new Runnable() {
       @Override
       public void run() {
         try {
           action.execute(new Fulfiller<T>() {
             @Override
             public void error(final Throwable throwable) {
-              foreground.exec(context.getSupplier(), interceptors, ExecInterceptor.ExecType.FOREGROUND, new Action<ExecContext>() {
+              execController.exec(context.getSupplier(), new Action<ExecContext>() {
                 @Override
                 public void execute(ExecContext context) throws Exception {
-                  operationErrorHandler.execute(throwable);
+                  errorHandler.execute(throwable);
                 }
               });
             }
 
             @Override
             public void success(final T value) {
-              foreground.exec(context.getSupplier(), interceptors, ExecInterceptor.ExecType.FOREGROUND, new Action<ExecContext>() {
+              execController.exec(context.getSupplier(), new Action<ExecContext>() {
                 @Override
                 public void execute(ExecContext context) throws Exception {
                   then.execute(value);

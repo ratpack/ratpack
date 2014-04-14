@@ -18,8 +18,7 @@ package ratpack.launch.internal;
 
 import io.netty.buffer.ByteBufAllocator;
 import ratpack.api.Nullable;
-import ratpack.exec.Foreground;
-import ratpack.exec.internal.Background;
+import ratpack.exec.ExecController;
 import ratpack.file.FileSystemBinding;
 import ratpack.launch.HandlerFactory;
 import ratpack.launch.LaunchConfig;
@@ -70,13 +69,8 @@ public class DelegatingLaunchConfig implements LaunchConfig {
   }
 
   @Override
-  public Background getBackground() {
-    return launchConfig.getBackground();
-  }
-
-  @Override
-  public Foreground getForeground() {
-    return launchConfig.getForeground();
+  public ExecController getExecController() {
+    return launchConfig.getExecController();
   }
 
   @Override

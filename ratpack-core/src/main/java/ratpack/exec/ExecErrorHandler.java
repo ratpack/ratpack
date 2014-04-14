@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-/**
- * Promises are strategy builders for the result of async operations.
- *
- * @see ratpack.handling.Context#promise(ratpack.func.Action)
- * @see ratpack.promise.SuccessPromise
- * @see ratpack.promise.SuccessOrErrorPromise
- */
-package ratpack.promise;
+package ratpack.exec;
+
+public interface ExecErrorHandler {
+
+  void error(ExecContext execContext, Exception exception);
+
+}

@@ -20,12 +20,12 @@ import com.google.common.util.concurrent.ListeningScheduledExecutorService;
 import io.netty.channel.EventLoopGroup;
 import ratpack.func.Action;
 
-import java.util.List;
+import java.util.concurrent.Callable;
 
 /**
- * The foreground represents the request processing, and computation handling, aspect of an application.
+ * The exec controller manages the execution of operations.
  */
-public interface Foreground {
+public interface ExecController {
 
   /**
    * Provides the current context on the current thread.
@@ -38,20 +38,22 @@ public interface Foreground {
   ExecContext getContext() throws NoBoundContextException;
 
   /**
-   * The executor that manages foreground work.
-   * <p>
-   * Can be used for scheduling or performing computation.
-   * This is the same executor that is managing request handling threads.
-   * Blocking operations should not be performed by tasks of this executor.
+   * The executor that performs computation.
    *
-   * @return the executor that manages foreground work.
+   * @return the executor that performs computation.
    */
   ListeningScheduledExecutorService getExecutor();
 
   EventLoopGroup getEventLoopGroup();
 
-  void exec(ExecContext.Supplier execContextSupplier, List<ExecInterceptor> interceptors, ExecInterceptor.ExecType execType, Action<? super ExecContext> action);
+  void exec(ExecContext.Supplier execContextSupplier, Action<? super ExecContext> action);
+
+  <T> SuccessOrErrorPromise<T> blocking(Callable<T> callable);
+
+  <T> SuccessOrErrorPromise<T> promise(Action<? super Fulfiller<T>> action);
 
   void onExecFinish(Runnable runnable);
+
+  void shutdown() throws Exception;
 
 }

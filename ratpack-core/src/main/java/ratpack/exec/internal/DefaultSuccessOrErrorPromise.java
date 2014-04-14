@@ -14,37 +14,28 @@
  * limitations under the License.
  */
 
-package ratpack.promise.internal;
+package ratpack.exec.internal;
 
-import ratpack.exec.ExecContext;
-import ratpack.exec.Foreground;
+import ratpack.exec.*;
 import ratpack.func.Action;
-import ratpack.exec.ExecInterceptor;
-import ratpack.promise.Fulfiller;
-import ratpack.promise.SuccessOrErrorPromise;
-import ratpack.promise.SuccessPromise;
-
-import java.util.List;
 
 import static ratpack.util.ExceptionUtils.toException;
 
 public class DefaultSuccessOrErrorPromise<T> implements SuccessOrErrorPromise<T> {
   private final ExecContext context;
-  private final Foreground foreground;
-  private final List<ExecInterceptor> interceptors;
+  private final ExecController execController;
   private final Action<? super Fulfiller<T>> action;
 
-  public DefaultSuccessOrErrorPromise(ExecContext context, Foreground foreground, List<ExecInterceptor> interceptors, Action<? super Fulfiller<T>> action) {
+  public DefaultSuccessOrErrorPromise(ExecContext context, ExecController execController, Action<? super Fulfiller<T>> action) {
     this.context = context;
-    this.foreground = foreground;
-    this.interceptors = interceptors;
+    this.execController = execController;
 
     this.action = action;
   }
 
   @Override
   public SuccessPromise<T> onError(final Action<? super Throwable> errorHandler) {
-    return new DefaultSuccessPromise<>(context, foreground, interceptors, action, errorHandler);
+    return new DefaultSuccessPromise<>(context, execController, action, errorHandler);
   }
 
   @Override

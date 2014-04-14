@@ -20,7 +20,7 @@ import com.google.inject.AbstractModule
 import ratpack.error.ServerErrorHandler
 import ratpack.groovy.internal.ClosureUtil
 import ratpack.handling.Context
-import ratpack.promise.Fulfiller
+import ratpack.exec.Fulfiller
 import ratpack.test.internal.RatpackGroovyDslSpec
 import rx.exceptions.CompositeException
 
@@ -150,7 +150,7 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
   }
 
   void defer(object, @DelegatesTo(Fulfiller) Closure<?> closure) {
-    application.server.launchConfig.foreground.executor.schedule({ ClosureUtil.configureDelegateFirst(object, closure) }, 1, TimeUnit.MILLISECONDS)
+    application.server.launchConfig.execController.executor.schedule({ ClosureUtil.configureDelegateFirst(object, closure) }, 1, TimeUnit.MILLISECONDS)
   }
 
 }

@@ -20,11 +20,8 @@ import ratpack.api.NonBlocking;
 import ratpack.func.Action;
 import ratpack.http.client.HttpClient;
 import ratpack.launch.LaunchConfig;
-import ratpack.promise.Fulfiller;
-import ratpack.promise.SuccessOrErrorPromise;
-import ratpack.registry.NotInRegistryException;
 
-import java.nio.file.Path;
+import java.util.List;
 import java.util.concurrent.Callable;
 
 /**
@@ -66,32 +63,19 @@ public interface ExecContext {
    */
   Supplier getSupplier();
 
-  LaunchConfig getLaunchConfig();
-
   @NonBlocking
-  void error(Exception exception) throws NotInRegistryException;
+  void error(Exception exception);
 
   /**
-   * Gets the file relative to the contextual {@link ratpack.file.FileSystemBinding}.
-   * <p>
-   * Shorthand for {@code get(FileSystemBinding.class).file(path)}.
-   * <p>
-   * The default configuration of Ratpack includes a {@link ratpack.file.FileSystemBinding} in all contexts.
-   * A {@link NotInRegistryException} will only be thrown if a very custom service setup is being used.
+   * The execution controller.
    *
-   * @param path The path to pass to the {@link ratpack.file.FileSystemBinding#file(String)} method.
-   * @return The file relative to the contextual {@link ratpack.file.FileSystemBinding}
-   * @throws NotInRegistryException if there is no {@link ratpack.file.FileSystemBinding} in the current service
+   * @return the execution controller
    */
-  Path file(String path) throws NotInRegistryException;
+  ExecController getExecController();
 
-  /**
-   * The application foreground.
-   *
-   * @return the application foreground
-   * @see ratpack.exec.Foreground
-   */
-  Foreground getForeground();
+  List<ExecInterceptor> getInterceptors();
+
+  LaunchConfig getLaunchConfig();
 
   <T> SuccessOrErrorPromise<T> background(Callable<T> backgroundOperation);
 

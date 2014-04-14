@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ratpack.promise;
+package ratpack.exec;
 
 /**
  * An object that is used to fulfill a promise.

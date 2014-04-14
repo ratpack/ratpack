@@ -18,16 +18,12 @@ package ratpack.launch.internal;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.util.concurrent.ListeningExecutorService;
-import com.google.common.util.concurrent.MoreExecutors;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.util.concurrent.DefaultThreadFactory;
-import ratpack.exec.Foreground;
-import ratpack.exec.internal.Background;
-import ratpack.exec.internal.DefaultBackground;
-import ratpack.exec.internal.DefaultForeground;
+import ratpack.exec.ExecController;
+import ratpack.exec.internal.DefaultExecController;
 import ratpack.file.FileSystemBinding;
 import ratpack.launch.HandlerFactory;
 import ratpack.launch.LaunchConfig;
@@ -39,7 +35,6 @@ import java.net.URI;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
 
 public class DefaultLaunchConfig implements LaunchConfig {
 
@@ -49,8 +44,7 @@ public class DefaultLaunchConfig implements LaunchConfig {
   private final InetAddress address;
   private final boolean reloadable;
   private final int threads;
-  private final Background background;
-  private final Foreground foreground;
+  private final ExecController execController;
   private final ByteBufAllocator byteBufAllocator;
   private final URI publicAddress;
   private final ImmutableList<String> indexFiles;
@@ -60,7 +54,7 @@ public class DefaultLaunchConfig implements LaunchConfig {
   private final boolean timeResponses;
   private final boolean compressResponses;
 
-  public DefaultLaunchConfig(FileSystemBinding baseDir, int port, InetAddress address, boolean reloadable, int threads, ExecutorService backgroundExecutorService, ByteBufAllocator byteBufAllocator, URI publicAddress, ImmutableList<String> indexFiles, ImmutableMap<String, String> other, SSLContext sslContext, int maxContentLength, boolean timeResponses, boolean compressResponses, HandlerFactory handlerFactory) {
+  public DefaultLaunchConfig(FileSystemBinding baseDir, int port, InetAddress address, boolean reloadable, int threads, ByteBufAllocator byteBufAllocator, URI publicAddress, ImmutableList<String> indexFiles, ImmutableMap<String, String> other, SSLContext sslContext, int maxContentLength, boolean timeResponses, boolean compressResponses, HandlerFactory handlerFactory) {
     this.baseDir = baseDir;
     this.port = port;
     this.address = address;
@@ -76,10 +70,8 @@ public class DefaultLaunchConfig implements LaunchConfig {
     this.sslContext = sslContext;
     this.maxContentLength = maxContentLength;
 
-    ListeningExecutorService listeningBackgroundExecutorService = MoreExecutors.listeningDecorator(backgroundExecutorService);
     EventLoopGroup eventLoopGroup = new NioEventLoopGroup(threads, new DefaultThreadFactory("ratpack-group"));
-    this.foreground = new DefaultForeground(eventLoopGroup);
-    this.background = new DefaultBackground(foreground, listeningBackgroundExecutorService);
+    this.execController = new DefaultExecController(eventLoopGroup);
   }
 
   @Override
@@ -117,13 +109,8 @@ public class DefaultLaunchConfig implements LaunchConfig {
   }
 
   @Override
-  public Background getBackground() {
-    return background;
-  }
-
-  @Override
-  public Foreground getForeground() {
-    return foreground;
+  public ExecController getExecController() {
+    return execController;
   }
 
   @Override

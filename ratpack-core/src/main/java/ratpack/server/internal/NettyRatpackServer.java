@@ -21,7 +21,6 @@ import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
-import io.netty.channel.EventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.util.ResourceLeakDetector;
@@ -49,7 +48,6 @@ public class NettyRatpackServer implements RatpackServer {
 
   private InetSocketAddress boundAddress;
   private Channel channel;
-  private EventLoopGroup group;
 
   private final Lock lifecycleLock = new ReentrantLock();
   private final AtomicBoolean running = new AtomicBoolean();
@@ -83,12 +81,11 @@ public class NettyRatpackServer implements RatpackServer {
       };
 
       ServerBootstrap bootstrap = new ServerBootstrap();
-      group = launchConfig.getForeground().getEventLoopGroup();
 
       ChannelInitializer<SocketChannel> channelInitializer = channelInitializerTransformer.transform(stopper);
 
       bootstrap
-        .group(group)
+        .group(launchConfig.getExecController().getEventLoopGroup())
         .childHandler(channelInitializer)
         .channel(NioServerSocketChannel.class)
         .childOption(ChannelOption.ALLOCATOR, launchConfig.getBufferAllocator());
@@ -133,9 +130,8 @@ public class NettyRatpackServer implements RatpackServer {
     return running.get();
   }
 
-  private void partialShutdown() {
-    group.shutdownGracefully();
-    launchConfig.getBackground().getExecutor().shutdown();
+  private void partialShutdown() throws Exception {
+    launchConfig.getExecController().shutdown();
   }
 
   @Override

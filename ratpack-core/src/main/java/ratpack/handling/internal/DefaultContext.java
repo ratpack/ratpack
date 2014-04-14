@@ -21,8 +21,8 @@ import ratpack.error.ClientErrorHandler;
 import ratpack.error.ServerErrorHandler;
 import ratpack.event.internal.EventRegistry;
 import ratpack.exec.ExecContext;
+import ratpack.exec.ExecController;
 import ratpack.exec.ExecInterceptor;
-import ratpack.exec.Foreground;
 import ratpack.exec.internal.AbstractExecContext;
 import ratpack.file.FileSystemBinding;
 import ratpack.func.Action;
@@ -30,8 +30,6 @@ import ratpack.handling.*;
 import ratpack.handling.direct.DirectChannelAccess;
 import ratpack.http.Request;
 import ratpack.http.Response;
-import ratpack.http.client.HttpClient;
-import ratpack.http.client.HttpClients;
 import ratpack.http.internal.HttpHeaderConstants;
 import ratpack.launch.LaunchConfig;
 import ratpack.parse.NoSuchParserException;
@@ -54,7 +52,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.reflect.UndeclaredThrowableException;
 import java.nio.file.Path;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -66,8 +64,8 @@ import static io.netty.handler.codec.http.HttpResponseStatus.NOT_MODIFIED;
 public class DefaultContext extends AbstractExecContext implements Context {
 
   public static class ApplicationConstants {
-    private final LaunchConfig launchConfig;
     private final RenderController renderController;
+    private final LaunchConfig launchConfig;
 
     public ApplicationConstants(LaunchConfig launchConfig, RenderController renderController) {
       this.renderController = renderController;
@@ -113,8 +111,6 @@ public class DefaultContext extends AbstractExecContext implements Context {
   private final Handler exhausted;
 
   public DefaultContext(RequestConstants requestConstants, Registry registry, Handler[] nextHandlers, int nextIndex, Handler exhausted) {
-    super(requestConstants.applicationConstants.launchConfig.getForeground(), requestConstants.applicationConstants.launchConfig.getBackground());
-
     this.requestConstants = requestConstants;
     this.registry = registry;
     this.nextHandlers = nextHandlers;
@@ -161,8 +157,8 @@ public class DefaultContext extends AbstractExecContext implements Context {
 
   @Override
   public void addExecInterceptor(final ExecInterceptor execInterceptor, final Action<? super Context> action) throws Exception {
-    getExecInterceptors().add(execInterceptor);
-    new InterceptedOperation(ExecInterceptor.ExecType.FOREGROUND, Arrays.asList(execInterceptor)) {
+    requestConstants.interceptors.add(execInterceptor);
+    new InterceptedOperation(ExecInterceptor.ExecType.COMPUTE, Collections.singletonList(execInterceptor)) {
       @Override
       protected void performOperation() throws Exception {
         action.execute(DefaultContext.this);
@@ -170,7 +166,7 @@ public class DefaultContext extends AbstractExecContext implements Context {
     }.run();
   }
 
-  protected List<ExecInterceptor> getExecInterceptors() {
+  public List<ExecInterceptor> getInterceptors() {
     return requestConstants.interceptors;
   }
 
@@ -284,13 +280,8 @@ public class DefaultContext extends AbstractExecContext implements Context {
   }
 
   @Override
-  public HttpClient getHttpClient() {
-    return HttpClients.httpClient(this);
-  }
-
-  @Override
-  public Foreground getForeground() {
-    return requestConstants.applicationConstants.launchConfig.getForeground();
+  public ExecController getExecController() {
+    return requestConstants.applicationConstants.launchConfig.getExecController();
   }
 
   public void redirect(String location) {

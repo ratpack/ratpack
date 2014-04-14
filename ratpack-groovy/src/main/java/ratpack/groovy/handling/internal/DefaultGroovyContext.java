@@ -20,8 +20,8 @@ import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import ratpack.api.NonBlocking;
 import ratpack.api.Nullable;
+import ratpack.exec.ExecController;
 import ratpack.exec.ExecInterceptor;
-import ratpack.exec.Foreground;
 import ratpack.func.Action;
 import ratpack.groovy.handling.GroovyByContentHandler;
 import ratpack.groovy.handling.GroovyByMethodHandler;
@@ -37,8 +37,8 @@ import ratpack.parse.NoSuchParserException;
 import ratpack.parse.Parse;
 import ratpack.parse.ParserException;
 import ratpack.path.PathTokens;
-import ratpack.promise.Fulfiller;
-import ratpack.promise.SuccessOrErrorPromise;
+import ratpack.exec.Fulfiller;
+import ratpack.exec.SuccessOrErrorPromise;
 import ratpack.registry.NotInRegistryException;
 import ratpack.registry.Registry;
 import ratpack.server.BindAddress;
@@ -82,6 +82,10 @@ public class DefaultGroovyContext implements GroovyContext {
     delegate.addExecInterceptor(execInterceptor, action);
   }
 
+  @Override
+  public List<ExecInterceptor> getInterceptors() {
+    return delegate.getInterceptors();
+  }
 
   @Override
   public void byMethod(Closure<?> closure) {
@@ -206,8 +210,8 @@ public class DefaultGroovyContext implements GroovyContext {
   }
 
   @Override
-  public Foreground getForeground() {
-    return delegate.getForeground();
+  public ExecController getExecController() {
+    return delegate.getExecController();
   }
 
   @Override

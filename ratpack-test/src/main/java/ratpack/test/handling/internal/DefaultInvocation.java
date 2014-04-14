@@ -16,7 +16,6 @@
 
 package ratpack.test.handling.internal;
 
-import com.google.common.util.concurrent.ListeningExecutorService;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.UnpooledByteBufAllocator;
 import io.netty.channel.EventLoopGroup;
@@ -29,14 +28,11 @@ import ratpack.error.ServerErrorHandler;
 import ratpack.event.internal.DefaultEventController;
 import ratpack.event.internal.EventController;
 import ratpack.exec.ExecContext;
-import ratpack.exec.Foreground;
-import ratpack.exec.internal.Background;
-import ratpack.exec.internal.DefaultBackground;
-import ratpack.exec.internal.DefaultForeground;
+import ratpack.exec.ExecController;
+import ratpack.exec.internal.DefaultExecController;
 import ratpack.file.internal.FileHttpTransmitter;
 import ratpack.func.Action;
 import ratpack.handling.Context;
-import ratpack.exec.ExecInterceptor;
 import ratpack.handling.Handler;
 import ratpack.handling.RequestOutcome;
 import ratpack.handling.internal.DefaultContext;
@@ -56,12 +52,9 @@ import ratpack.test.handling.InvocationTimeoutException;
 
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.Collections;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import static com.google.common.util.concurrent.MoreExecutors.listeningDecorator;
-import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static ratpack.util.ExceptionUtils.uncheck;
 
 public class DefaultInvocation implements Invocation {
@@ -84,8 +77,6 @@ public class DefaultInvocation implements Invocation {
 
     this.headers = new DelegatingHeaders(responseHeaders);
     this.status = status;
-
-    ListeningExecutorService backgroundExecutorService = listeningDecorator(newSingleThreadExecutor());
 
     final CountDownLatch latch = new CountDownLatch(1);
 
@@ -165,18 +156,13 @@ public class DefaultInvocation implements Invocation {
     EventLoopGroup eventLoopGroup = new NioEventLoopGroup(4, new DefaultThreadFactory("ratpack-group"));
     Response response = new DefaultResponse(status, responseHeaders, fileHttpTransmitter, UnpooledByteBufAllocator.DEFAULT, committer);
 
-    final Foreground foreground = new DefaultForeground(eventLoopGroup);
-    final Background background = new DefaultBackground(foreground, backgroundExecutorService);
+    final ExecController execController = new DefaultExecController(eventLoopGroup);
 
     LaunchConfig launchConfig = new MockLaunchConfig() {
-      @Override
-      public Background getBackground() {
-        return background;
-      }
 
       @Override
-      public Foreground getForeground() {
-        return foreground;
+      public ExecController getExecController() {
+        return execController;
       }
     };
 
@@ -188,7 +174,7 @@ public class DefaultInvocation implements Invocation {
     final Context context = new DefaultContext(requestConstants, effectiveRegistry, new Handler[]{handler}, 0, next);
 
     try {
-      foreground.exec(context.getSupplier(), Collections.<ExecInterceptor>emptyList(), ExecInterceptor.ExecType.FOREGROUND, new Action<ExecContext>() {
+      execController.exec(context.getSupplier(), new Action<ExecContext>() {
         @Override
         public void execute(ExecContext thing) throws Exception {
           context.next();

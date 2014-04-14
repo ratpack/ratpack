@@ -23,7 +23,9 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.ssl.SslHandler;
-import ratpack.exec.ExecContext;
+import ratpack.exec.ExecController;
+import ratpack.exec.Fulfiller;
+import ratpack.exec.SuccessOrErrorPromise;
 import ratpack.func.Action;
 import ratpack.func.Actions;
 import ratpack.http.Headers;
@@ -34,8 +36,6 @@ import ratpack.http.client.ReceivedResponse;
 import ratpack.http.client.RequestSpec;
 import ratpack.http.internal.*;
 import ratpack.launch.LaunchConfig;
-import ratpack.promise.Fulfiller;
-import ratpack.promise.SuccessOrErrorPromise;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
@@ -44,10 +44,10 @@ import java.net.URISyntaxException;
 
 public class DefaultHttpClient implements HttpClient {
 
-  private final ExecContext context;
+  private final LaunchConfig launchConfig;
 
-  public DefaultHttpClient(ExecContext context) {
-    this.context = context;
+  public DefaultHttpClient(LaunchConfig launchConfig) {
+    this.launchConfig = launchConfig;
   }
 
   @Override
@@ -92,11 +92,11 @@ public class DefaultHttpClient implements HttpClient {
     final String host = uri.getHost();
     final int port = uri.getPort() < 0 ? (useSsl ? 443 : 80) : uri.getPort();
 
-    LaunchConfig launchConfig = context.getLaunchConfig();
-    final EventLoopGroup eventLoopGroup = launchConfig.getForeground().getEventLoopGroup();
-    final ByteBufAllocator byteBufAllocator = launchConfig.getBufferAllocator();
+    final ExecController execController = launchConfig.getExecController();
+    final EventLoopGroup eventLoopGroup = execController.getEventLoopGroup();
+    final ByteBufAllocator bufferAllocator = launchConfig.getBufferAllocator();
 
-    return context.promise(new Action<Fulfiller<ReceivedResponse>>() {
+    return execController.promise(new Action<Fulfiller<ReceivedResponse>>() {
       @Override
       public void execute(final Fulfiller<ReceivedResponse> fulfiller) throws Exception {
         final Bootstrap b = new Bootstrap();
@@ -144,7 +144,7 @@ public class DefaultHttpClient implements HttpClient {
             if (future.isSuccess()) {
 
               String fullPath = getFullPath(uri);
-              FullHttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, fullPath, byteBufAllocator.buffer(0));
+              FullHttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, fullPath, bufferAllocator.buffer());
 
               final MutableHeaders headers = new NettyHeadersBackedMutableHeaders(request.headers());
 

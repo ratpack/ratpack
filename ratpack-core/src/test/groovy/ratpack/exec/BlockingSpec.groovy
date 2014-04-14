@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package ratpack.background
+package ratpack.exec
 
 import ratpack.error.ServerErrorHandler
 import ratpack.error.DebugErrorHandler
 import ratpack.test.internal.RatpackGroovyDslSpec
 
-class BackgroundSpec extends RatpackGroovyDslSpec {
+class BlockingSpec extends RatpackGroovyDslSpec {
 
-  def "can perform groovy background operations"() {
+  def "can perform groovy blocking operations"() {
     when:
     def steps = []
     handlers {
@@ -45,7 +45,7 @@ class BackgroundSpec extends RatpackGroovyDslSpec {
     steps == ["start", "end", "operation", "then"]
   }
 
-  def "by default errors during background operations are forwarded to server error handler"() {
+  def "by default errors during blocking operations are forwarded to server error handler"() {
     when:
     modules {
       bind ServerErrorHandler, DebugErrorHandler
@@ -195,7 +195,7 @@ class BackgroundSpec extends RatpackGroovyDslSpec {
     handlers {
       handler {
         background {
-          sleep 1000 // allow the original foreground thread to finish, Netty will reclaim the buffer
+          sleep 1000 // allow the original compute thread to finish, Netty will reclaim the buffer
           request.body.text
         } then {
           render it.toString()
@@ -208,7 +208,7 @@ class BackgroundSpec extends RatpackGroovyDslSpec {
     postText() == "foo"
   }
 
-  def "background processing does not start until foreground processing has unwound"() {
+  def "background processing does not start until compute processing has unwound"() {
     given:
     def events = []
 
@@ -216,19 +216,19 @@ class BackgroundSpec extends RatpackGroovyDslSpec {
     handlers {
       handler {
         next()
-        events << "foreground"
+        events << "compute"
       }
       handler {
         background {
-          events << "background"
+          events << "blocking"
         } then {
           background {
-            events << "inner background"
+            events << "inner blocking"
           } then {
             render "ok"
           }
           sleep 500
-          events << "inner foreground"
+          events << "inner compute"
         }
         sleep 500
       }
@@ -238,7 +238,7 @@ class BackgroundSpec extends RatpackGroovyDslSpec {
     get()
 
     then:
-    events == ["foreground", "background", "inner foreground", "inner background"]
+    events == ["compute", "blocking", "inner compute", "inner blocking"]
   }
 
 

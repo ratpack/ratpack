@@ -33,7 +33,7 @@ public class BackgroundExecTimingInterceptor implements ExecInterceptor {
 
   @Override
   public void intercept(ExecType type, Runnable continuation) {
-    if (type == ExecType.BACKGROUND) {
+    if (type == ExecType.BLOCKING) {
       String tag = buildBackgroundTimerTag(request.getUri(), request.getMethod().getName());
       Timer.Context timer = metricRegistry.timer(tag).time();
       continuation.run();

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ratpack.promise;
+package ratpack.exec;
 
 import ratpack.api.NonBlocking;
 import ratpack.func.Action;

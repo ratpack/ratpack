@@ -14,15 +14,23 @@
  * limitations under the License.
  */
 
-package ratpack.http.client;
+package ratpack.exec;
 
-import ratpack.exec.ExecContext;
-import ratpack.http.client.internal.DefaultHttpClient;
+import ratpack.func.Action;
 
-public abstract class HttpClients {
+/**
+ * A promise of an outcome that may be a successful result or an error exception.
+ *
+ * @param <T> The type of result object that the operation produces
+ */
+public interface SuccessOrErrorPromise<T> extends SuccessPromise<T> {
 
-  public static HttpClient httpClient(ExecContext context) {
-    return new DefaultHttpClient(context);
-  }
+  /**
+   * Specifies the action to take if the an error occurs trying to produce the promised value.
+   *
+   * @param errorHandler the action to take if an error occurs
+   * @return A promise for the successful result
+   */
+  SuccessPromise<T> onError(Action<? super Throwable> errorHandler);
 
 }

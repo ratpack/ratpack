@@ -19,7 +19,7 @@ package ratpack.exec;
 /**
  * Thrown when a request is made for the context in a non request handling thread.
  *
- * @see ratpack.exec.Foreground#getContext()
+ * @see ExecController#getContext()
  */
 public class NoBoundContextException extends RuntimeException {
 

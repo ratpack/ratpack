@@ -14,23 +14,19 @@
  * limitations under the License.
  */
 
-package ratpack.promise;
+package ratpack.launch;
 
-import ratpack.func.Action;
+public class NoHandlerFactoryException extends RuntimeException {
 
-/**
- * A promise of an outcome that may be a successful result or an error exception.
- *
- * @param <T> The type of result object that the operation produces
- */
-public interface SuccessOrErrorPromise<T> extends SuccessPromise<T> {
+  private static final long serialVersionUID = 0;
 
   /**
-   * Specifies the action to take if the an error occurs trying to produce the promised value.
+   * Constructor.
    *
-   * @param errorHandler the action to take if an error occurs
-   * @return A promise for the successful result
+   * @param message the exception message
    */
-  SuccessPromise<T> onError(Action<? super Throwable> errorHandler);
+  public NoHandlerFactoryException(String message) {
+    super(message);
+  }
 
 }

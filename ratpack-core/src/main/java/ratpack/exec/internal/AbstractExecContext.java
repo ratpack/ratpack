@@ -17,27 +17,16 @@
 package ratpack.exec.internal;
 
 import ratpack.exec.ExecContext;
-import ratpack.exec.ExecInterceptor;
-import ratpack.exec.Foreground;
+import ratpack.exec.ExecController;
+import ratpack.exec.Fulfiller;
+import ratpack.exec.SuccessOrErrorPromise;
 import ratpack.func.Action;
 import ratpack.http.client.HttpClient;
-import ratpack.http.client.HttpClients;
-import ratpack.promise.Fulfiller;
-import ratpack.promise.SuccessOrErrorPromise;
-import ratpack.promise.internal.DefaultSuccessOrErrorPromise;
+import ratpack.http.client.internal.DefaultHttpClient;
 
-import java.util.List;
 import java.util.concurrent.Callable;
 
 public abstract class AbstractExecContext implements ExecContext {
-
-  private final Foreground foreground;
-  private final Background background;
-
-  protected AbstractExecContext(Foreground foreground, Background background) {
-    this.foreground = foreground;
-    this.background = background;
-  }
 
   @Override
   public ExecContext getContext() {
@@ -45,24 +34,23 @@ public abstract class AbstractExecContext implements ExecContext {
   }
 
   @Override
-  public Foreground getForeground() {
-    return foreground;
+  public ExecController getExecController() {
+    return getLaunchConfig().getExecController();
   }
 
   @Override
   public <T> SuccessOrErrorPromise<T> background(Callable<T> backgroundOperation) {
-    return background.exec(this, backgroundOperation, getExecInterceptors());
+    return getExecController().blocking(backgroundOperation);
   }
-
-  abstract protected List<ExecInterceptor> getExecInterceptors();
 
   @Override
   public <T> SuccessOrErrorPromise<T> promise(Action<? super Fulfiller<T>> action) {
-    return new DefaultSuccessOrErrorPromise<>(this, getForeground(), getExecInterceptors(), action);
+    return getExecController().promise(action);
   }
 
   @Override
   public HttpClient getHttpClient() {
-    return HttpClients.httpClient(this);
+    return new DefaultHttpClient(getLaunchConfig());
   }
+
 }

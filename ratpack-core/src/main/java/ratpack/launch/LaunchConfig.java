@@ -18,9 +18,8 @@ package ratpack.launch;
 
 import io.netty.buffer.ByteBufAllocator;
 import ratpack.api.Nullable;
+import ratpack.exec.ExecController;
 import ratpack.file.FileSystemBinding;
-import ratpack.exec.internal.Background;
-import ratpack.exec.Foreground;
 
 import javax.net.ssl.SSLContext;
 import java.net.InetAddress;
@@ -59,8 +58,9 @@ public interface LaunchConfig {
    * The handler factory that can create the root handler for the application.
    *
    * @return The handler factory that can create the root handler for the application.
+   * @throws NoHandlerFactoryException if no handler factory was defined (i.e. this launch config isn't used for a HTTP server)
    */
-  public HandlerFactory getHandlerFactory();
+  public HandlerFactory getHandlerFactory() throws NoHandlerFactoryException;
 
   /**
    * The port that the application should listen to requests on.
@@ -96,27 +96,18 @@ public interface LaunchConfig {
    * If the value is greater than 0, a thread pool (of this size) will be created for servicing requests and doing computation.
    * If the value is 0 (default) or less, a thread pool of size {@link Runtime#availableProcessors()} {@code * 2} will be used.
    * <p>
-   * This effectively sizes the {@link Foreground#getExecutor()} thread pool size.
+   * This effectively sizes the {@link ratpack.exec.ExecController#getExecutor()} thread pool size.
    *
    * @return the number of threads for handling application requests.
    */
   public int getThreads();
 
   /**
-   * The “background”, for performing blocking operations.
+   * The execution controller.
    *
-   * @see ratpack.handling.Context#background(java.util.concurrent.Callable)
-   * @return the “background”, for performing blocking operations
+   * @return the execution controller
    */
-  public Background getBackground();
-
-  /**
-   * The application foreground.
-   *
-   * @return the application foreground
-   * @see Foreground
-   */
-  public Foreground getForeground();
+  public ExecController getExecController();
 
   /**
    * The allocator for buffers needed by the application.

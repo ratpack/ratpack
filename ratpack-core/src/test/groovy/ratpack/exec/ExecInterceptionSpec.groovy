@@ -65,7 +65,7 @@ class ExecInterceptionSpec extends RatpackGroovyDslSpec {
     get("1")
 
     then:
-    record == ["1:FOREGROUND", "2:FOREGROUND", "1:BACKGROUND", "2:BACKGROUND", "1:FOREGROUND", "2:FOREGROUND"]
+    record == ["1:COMPUTE", "2:COMPUTE", "1:BLOCKING", "2:BLOCKING", "1:COMPUTE", "2:COMPUTE"]
   }
 
   class ErroringInterceptor extends RecordingInterceptor {
@@ -107,7 +107,7 @@ class ExecInterceptionSpec extends RatpackGroovyDslSpec {
     get("1")
 
     then:
-    record == ["1:FOREGROUND", "2:FOREGROUND", "1:BACKGROUND", "2:BACKGROUND", "1:FOREGROUND", "2:FOREGROUND"]
+    record == ["1:COMPUTE", "2:COMPUTE", "1:BLOCKING", "2:BLOCKING", "1:COMPUTE", "2:COMPUTE"]
   }
 
   def "intercepted handlers can throw exceptions"() {

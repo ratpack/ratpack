@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.PooledByteBufAllocator;
+import ratpack.api.Nullable;
 import ratpack.file.FileSystemBinding;
 import ratpack.file.internal.DefaultFileSystemBinding;
 import ratpack.launch.internal.DefaultLaunchConfig;
@@ -31,9 +32,6 @@ import java.net.URI;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
 
 /**
  * A builder for {@link LaunchConfig} objects.
@@ -70,14 +68,14 @@ public class LaunchConfigBuilder {
   private URI publicAddress;
   private ImmutableList.Builder<String> indexFiles = ImmutableList.builder();
   private ImmutableMap.Builder<String, String> other = ImmutableMap.builder();
-  private ExecutorService backgroundExecutorService;
   private ByteBufAllocator byteBufAllocator = PooledByteBufAllocator.DEFAULT;
   private SSLContext sslContext;
   private int maxContentLength = LaunchConfig.DEFAULT_MAX_CONTENT_LENGTH;
   private boolean timeResponses;
   private boolean compressResponses;
 
-  private LaunchConfigBuilder() { }
+  private LaunchConfigBuilder() {
+  }
 
   private LaunchConfigBuilder(Path baseDir) {
     this.baseDir = new DefaultFileSystemBinding(baseDir);
@@ -306,22 +304,20 @@ public class LaunchConfigBuilder {
 
   /**
    * Builds the launch config, based on the current state and the handler factory.
+   * <p>
+   * Supplying {@code null} for the {@code handlerFactory} will result in a launch config that can't be used to start a server.
+   * This is the same as calling {@link #build()}.
    *
-   * @param handlerFactory The handler factory for the application.
+   * @param handlerFactory The handler factory for the application
    * @return A newly constructed {@link LaunchConfig} based on this builder's state
    */
-  public LaunchConfig build(HandlerFactory handlerFactory) {
-    ExecutorService backgroundExecutorService = this.backgroundExecutorService;
-    if (backgroundExecutorService == null) {
-      backgroundExecutorService = Executors.newCachedThreadPool(new BackgroundThreadFactory());
-    }
+  public LaunchConfig build(@Nullable HandlerFactory handlerFactory) {
     return new DefaultLaunchConfig(
       baseDir,
       port,
       address,
       reloadable,
       mainThreads,
-      backgroundExecutorService,
       byteBufAllocator,
       publicAddress,
       indexFiles.build(),
@@ -334,15 +330,15 @@ public class LaunchConfigBuilder {
     );
   }
 
-  @SuppressWarnings("NullableProblems")
-  private static class BackgroundThreadFactory implements ThreadFactory {
-
-    private final ThreadGroup threadGroup = new ThreadGroup("ratpack-background-worker-group");
-    private int i;
-
-    @Override
-    public Thread newThread(Runnable r) {
-      return new Thread(threadGroup, r, "ratpack-background-worker-" + i++);
-    }
+  /**
+   * Builds the launch config, based on the current state and WITHOUT handler factory.
+   * <p>
+   * This variant is really only useful for using the resultant launch config for testing purposes.
+   *
+   * @return A newly constructed {@link LaunchConfig} based on this builder's state
+   */
+  public LaunchConfig build() {
+    return build(null);
   }
+
 }

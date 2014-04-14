@@ -28,9 +28,7 @@ import ratpack.error.internal.DefaultServerErrorHandler;
 import ratpack.error.internal.ErrorCatchingHandler;
 import ratpack.event.internal.DefaultEventController;
 import ratpack.exec.ExecContext;
-import ratpack.exec.ExecInterceptor;
-import ratpack.exec.Foreground;
-import ratpack.exec.internal.Background;
+import ratpack.exec.ExecController;
 import ratpack.file.FileRenderer;
 import ratpack.file.FileSystemBinding;
 import ratpack.file.MimeTypes;
@@ -64,7 +62,6 @@ import ratpack.util.internal.NumberUtil;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.Collections;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
@@ -80,7 +77,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
   private final ConcurrentHashMap<Channel, Action<Object>> channelSubscriptions = new ConcurrentHashMap<>(0);
 
   private final DefaultContext.ApplicationConstants applicationConstants;
-  private final Foreground foreground;
+  private final ExecController execController;
 
   private Registry registry;
 
@@ -92,7 +89,6 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
     this.return404 = Handlers.notFound();
     RegistryBuilder registryBuilder = Registries.registry()
       // If you update this list, update the class level javadoc on Context.
-      .add(Background.class, launchConfig.getBackground())
       .add(Stopper.class, stopper)
       .add(MimeTypes.class, new ActivationBackedMimeTypes())
       .add(PublicAddress.class, new DefaultPublicAddress(launchConfig.getPublicAddress(), launchConfig.getSSLContext() == null ? "http" : "https"))
@@ -116,7 +112,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
     this.addResponseTimeHeader = launchConfig.isTimeResponses();
     this.compressResponses = launchConfig.isCompressResponses();
     this.applicationConstants = new DefaultContext.ApplicationConstants(launchConfig, new DefaultRenderController());
-    this.foreground = launchConfig.getForeground();
+    this.execController = launchConfig.getExecController();
   }
 
   @Override
@@ -213,7 +209,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
     );
 
     final Context context = new DefaultContext(requestConstants, registry, handlers, 0, return404);
-    foreground.exec(context.getSupplier(), Collections.<ExecInterceptor>emptyList(), ExecInterceptor.ExecType.FOREGROUND, new Action<ExecContext>() {
+    execController.exec(context.getSupplier(), new Action<ExecContext>() {
       @Override
       public void execute(ExecContext thing) throws Exception {
         context.next();

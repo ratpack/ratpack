@@ -17,7 +17,7 @@
 package ratpack.http.client;
 
 import ratpack.func.Action;
-import ratpack.promise.SuccessOrErrorPromise;
+import ratpack.exec.SuccessOrErrorPromise;
 
 public interface HttpClient {
 

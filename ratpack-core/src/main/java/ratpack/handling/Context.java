@@ -18,9 +18,7 @@ package ratpack.handling;
 
 import ratpack.api.NonBlocking;
 import ratpack.api.Nullable;
-import ratpack.exec.ExecContext;
-import ratpack.exec.ExecInterceptor;
-import ratpack.exec.Foreground;
+import ratpack.exec.*;
 import ratpack.func.Action;
 import ratpack.handling.direct.DirectChannelAccess;
 import ratpack.http.Request;
@@ -31,8 +29,6 @@ import ratpack.parse.NoSuchParserException;
 import ratpack.parse.Parse;
 import ratpack.parse.ParserException;
 import ratpack.path.PathTokens;
-import ratpack.promise.Fulfiller;
-import ratpack.promise.SuccessOrErrorPromise;
 import ratpack.registry.NotInRegistryException;
 import ratpack.registry.Registry;
 import ratpack.server.BindAddress;
@@ -94,10 +90,6 @@ public interface Context extends ExecContext, Registry {
   @Override
   Supplier getSupplier();
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override
   LaunchConfig getLaunchConfig();
 
   /**
@@ -243,7 +235,7 @@ public interface Context extends ExecContext, Registry {
    * Execute the given operation in the background, returning a promise for its result.
    * <p>
    * This method executes asynchronously, in that it does not invoke the {@code operation} before returning the promise.
-   * When the returned promise is subscribed to (i.e. its {@link ratpack.promise.SuccessPromise#then(ratpack.func.Action)} method is called),
+   * When the returned promise is subscribed to (i.e. its {@link ratpack.exec.SuccessPromise#then(ratpack.func.Action)} method is called),
    * the given {@code operation} will be submitted to a thread pool that is different to the request handling thread pool.
    * Therefore, if the returned promise is never subscribed to, the {@code operation} will never be initiated.
    * <p>
@@ -323,7 +315,7 @@ public interface Context extends ExecContext, Registry {
    * <p>
    * <pre class="tested">
    * import ratpack.handling.*;
-   * import ratpack.promise.Fulfiller;
+   * import ratpack.exec.Fulfiller;
    * import ratpack.func.Action;
    *
    * import java.util.concurrent.TimeUnit;
@@ -332,7 +324,7 @@ public interface Context extends ExecContext, Registry {
    *   public void handle(final Context context) {
    *     context.promise(new Action&lt;Fulfiller&lt;String&gt;&gt;() {
    *       public void execute(final Fulfiller&lt;String&gt; fulfiller) {
-   *         context.getForeground().getExecutor().schedule(new Runnable() {
+   *         context.getExecController().getExecutor().schedule(new Runnable() {
    *           public void run() {
    *             fulfiller.success("hello world!");
    *           }
@@ -349,7 +341,7 @@ public interface Context extends ExecContext, Registry {
    * class PromiseUsingGroovyHandler implements Handler {
    *   void handle(Context context) {
    *     context.promise { Fulfiller&lt;String&gt; fulfiller ->
-   *       context.foreground.executor.schedule({
+   *       context.execController.executor.schedule({
    *         fulfiller.success("hello world!")
    *       }, 200, TimeUnit.MILLISECONDS)
    *     } then { String string ->
@@ -618,16 +610,30 @@ public interface Context extends ExecContext, Registry {
   void onClose(Action<? super RequestOutcome> onClose);
 
   /**
-   * {@inheritDoc}
+   * Gets the file relative to the contextual {@link ratpack.file.FileSystemBinding}.
+   * <p>
+   * Shorthand for {@code get(FileSystemBinding.class).file(path)}.
+   * <p>
+   * The default configuration of Ratpack includes a {@link ratpack.file.FileSystemBinding} in all contexts.
+   * A {@link NotInRegistryException} will only be thrown if a very custom service setup is being used.
+   *
+   * @param path The path to pass to the {@link ratpack.file.FileSystemBinding#file(String)} method.
+   * @return The file relative to the contextual {@link ratpack.file.FileSystemBinding}
+   * @throws NotInRegistryException if there is no {@link ratpack.file.FileSystemBinding} in the current service
    */
-  @Override
   Path file(String path) throws NotInRegistryException;
 
   /**
    * {@inheritDoc}
    */
   @Override
-  Foreground getForeground();
+  ExecController getExecController();
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  List<ExecInterceptor> getInterceptors();
 
   /**
    * {@inheritDoc}

@@ -18,9 +18,8 @@ package ratpack.test;
 
 import io.netty.buffer.ByteBufAllocator;
 import ratpack.api.Nullable;
+import ratpack.exec.ExecController;
 import ratpack.file.FileSystemBinding;
-import ratpack.exec.internal.Background;
-import ratpack.exec.Foreground;
 import ratpack.launch.HandlerFactory;
 import ratpack.launch.LaunchConfig;
 
@@ -107,17 +106,7 @@ public class MockLaunchConfig implements LaunchConfig {
    * @return n/a.
    */
   @Override
-  public Background getBackground() {
-    return null;
-  }
-
-  /**
-   * Throws {@link java.lang.UnsupportedOperationException}
-   *
-   * @return n/a.
-   */
-  @Override
-  public Foreground getForeground() {
+  public ExecController getExecController() {
     return null;
   }
 

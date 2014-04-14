@@ -17,7 +17,7 @@
 package ratpack.util;
 
 import ratpack.func.Action;
-import ratpack.promise.SuccessOrErrorPromise;
+import ratpack.exec.SuccessOrErrorPromise;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
@@ -100,7 +100,7 @@ public class Result<T> {
    * @param promise the promise to convert into a result
    * @param <T> the type of promised object
    * @return a result
-   * @throws Exception any exception thrown by the promise's {@link ratpack.promise.SuccessPromise#then(ratpack.func.Action)} method
+   * @throws Exception any exception thrown by the promise's {@link ratpack.exec.SuccessPromise#then(ratpack.func.Action)} method
    */
   public static <T> Result<T> from(SuccessOrErrorPromise<T> promise) throws Exception {
     final CountDownLatch latch = new CountDownLatch(1);

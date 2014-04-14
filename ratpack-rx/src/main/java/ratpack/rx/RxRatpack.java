@@ -17,7 +17,7 @@
 package ratpack.rx;
 
 import ratpack.func.Action;
-import ratpack.promise.SuccessOrErrorPromise;
+import ratpack.exec.SuccessOrErrorPromise;
 import ratpack.util.ExceptionUtils;
 import rx.Observable;
 import rx.Subscriber;
