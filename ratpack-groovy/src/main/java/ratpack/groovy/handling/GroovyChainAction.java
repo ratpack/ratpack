@@ -35,18 +35,17 @@ import ratpack.registry.RegistrySpec;
  * import ratpack.groovy.handling.GroovyChainAction
  * import ratpack.test.embed.PathBaseDirBuilder
  * import ratpack.groovy.test.TestHttpClients
- * import ratpack.groovy.test.embed.ClosureBackedEmbeddedApplication
+ * import static ratpack.groovy.test.embed.EmbeddedApplications.embeddedApp
  *
- * def baseDir = new PathBaseDirBuilder(new File("some/dir"))
- * def app = new ClosureBackedEmbeddedApplication(baseDir)
+ * def app = embeddedApp {
+ *   handlers {
+ *     get("someHandler") {
+ *       render "someHandler"
+ *     }
  *
- * app.handlers {
- *   get("someHandler") {
- *     render "someHandler"
+ *     // Include the handlers defined in OtherHandlers
+ *     handler chain(new OtherHandlers())
  *   }
- *
- *   // Include the handlers defined in OtherHandlers
- *   handler chain(new OtherHandlers())
  * }
  *
  * // In another file…

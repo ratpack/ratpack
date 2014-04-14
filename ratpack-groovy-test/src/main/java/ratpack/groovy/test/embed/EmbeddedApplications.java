@@ -44,7 +44,7 @@ public abstract class EmbeddedApplications {
    * Constructs a closure backed embedded application with a base dir.
    * @param baseDir the builder whose {@link BaseDirBuilder#build()} method will be called to provide the base dir for this app
    * @param config the definition of the application
-   * @return
+   * @return an embedded application
    */
   public static EmbeddedApplication embeddedApp(BaseDirBuilder baseDir, @DelegatesTo(value = ClosureBackedEmbeddedApplication.class, strategy = Closure.DELEGATE_FIRST) Closure<?> config) {
     ClosureBackedEmbeddedApplication app;

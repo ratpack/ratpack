@@ -276,14 +276,13 @@ public interface Context extends ExecContext, Registry {
    *
    * import ratpack.test.embed.PathBaseDirBuilder
    * import ratpack.groovy.test.TestHttpClients
-   * import ratpack.groovy.test.embed.ClosureBackedEmbeddedApplication
+   * import static ratpack.groovy.test.embed.EmbeddedApplications.embeddedApp
    *
-   * def baseDir = new PathBaseDirBuilder(new File("some/path"))
-   * def app = new ClosureBackedEmbeddedApplication(baseDir)
-   *
-   * app.handlers {
-   *   get("java", new BackgroundUsingJavaHandler())
-   *   get("groovy", new BackgroundUsingGroovyHandler())
+   * def app = embeddedApp {
+   *   handlers {
+   *     get("java", new BackgroundUsingJavaHandler())
+   *     get("groovy", new BackgroundUsingGroovyHandler())
+   *   }
    * }
    *
    * def client = TestHttpClients.testHttpClient(app)
@@ -354,14 +353,13 @@ public interface Context extends ExecContext, Registry {
    *
    * import ratpack.test.embed.PathBaseDirBuilder
    * import ratpack.groovy.test.TestHttpClients
-   * import ratpack.groovy.test.embed.ClosureBackedEmbeddedApplication
+   * import static ratpack.groovy.test.embed.EmbeddedApplications.embeddedApp
    *
-   * def baseDir = new PathBaseDirBuilder(new File("some/path"))
-   * def app = new ClosureBackedEmbeddedApplication(baseDir)
-   *
-   * app.handlers {
-   *   get("java", new PromiseUsingJavaHandler())
-   *   get("groovy", new PromiseUsingGroovyHandler())
+   * def app = embeddedApp {
+   *   handlers {
+   *     get("java", new PromiseUsingJavaHandler())
+   *     get("groovy", new PromiseUsingGroovyHandler())
+   *   }
    * }
    *
    * def client = TestHttpClients.testHttpClient(app)

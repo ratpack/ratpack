@@ -53,10 +53,11 @@ import static ratpack.groovy.internal.ClosureUtil.configureDelegateFirst;
  * <pre class="tested">
  * import ratpack.test.embed.PathBaseDirBuilder
  * import ratpack.groovy.test.TestHttpClients
- * import ratpack.groovy.test.embed.ClosureBackedEmbeddedApplication
  * import ratpack.session.SessionModule
  *
  * import java.nio.file.Files
+ *
+ * import static ratpack.groovy.test.embed.EmbeddedApplications.embeddedApp
  *
  * def tmp = Files.createTempDirectory("ratpack-test")
  * def baseDir = new PathBaseDirBuilder(tmp)
@@ -64,35 +65,35 @@ import static ratpack.groovy.internal.ClosureUtil.configureDelegateFirst;
  * // Create a file within the application base dir
  * baseDir.file "public/foo.txt", "bar"
  *
- * def application = new ClosureBackedEmbeddedApplication(baseDir)
- *
- * // Configure the launch config
- * application.launchConfig {
- *   other "some.other.property": "value"
- *   reloadable true
- * }
- *
- * // Configure the module registry
- * application.modules {
- *   register new SessionModule()
- * }
- *
- * // Use the GroovyChain DSL for defining the application handlers
- * application.handlers {
- *   get {
- *     render "root"
+ * def app = embeddedApp(baseDir) {
+ *   // Configure the launch config
+ *   launchConfig {
+ *     other "some.other.property": "value"
+ *     reloadable true
  *   }
- *   assets "public"
+ *
+ *   // Configure the module registry
+ *   modules {
+ *     register new SessionModule()
+ *   }
+ *
+ *   // Use the GroovyChain DSL for defining the application handlers
+ *   handlers {
+ *     get {
+ *       render "root"
+ *     }
+ *     assets "public"
+ *   }
  * }
  *
  * // Test the application with the test http client
- * def client = TestHttpClients.testHttpClient(application)
+ * def client = TestHttpClients.testHttpClient(app)
  *
  * assert client.getText() == "root"
  * assert client.getText("foo.txt") == "bar"
  *
  * // Cleanup
- * application.close()
+ * app.close()
  * </pre>
  *
  * @see ratpack.test.embed.PathBaseDirBuilder

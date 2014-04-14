@@ -50,15 +50,14 @@ import ratpack.registry.RegistrySpec;
  *
  * import ratpack.test.embed.PathBaseDirBuilder
  * import ratpack.groovy.test.TestHttpClients
- * import ratpack.groovy.test.embed.ClosureBackedEmbeddedApplication
+ * import static ratpack.groovy.test.embed.EmbeddedApplications.embeddedApp
  *
- * def baseDir = new PathBaseDirBuilder(new File("some/dir"))
- * def app = new ClosureBackedEmbeddedApplication(baseDir)
- *
- * app.handlers {
- *   handler chain(new MyHandlers())
+ * def app = embeddedApp {
+ *   handlers {
+ *     handler chain(new MyHandlers())
+ *   }
  * }
-
+ *
  * def client = TestHttpClients.testHttpClient(app)
  *
  * assert client.getText("foo") == "foo"

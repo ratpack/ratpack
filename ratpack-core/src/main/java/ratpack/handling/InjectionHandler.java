@@ -67,16 +67,15 @@ import static ratpack.util.ExceptionUtils.uncheck;
  *
  * import ratpack.test.embed.PathBaseDirBuilder
  * import ratpack.groovy.test.TestHttpClients
- * import ratpack.groovy.test.embed.ClosureBackedEmbeddedApplication
  * import static ratpack.registry.Registries.just
+ * import static ratpack.groovy.test.embed.EmbeddedApplications.embeddedApp
  *
- * def baseDir = new PathBaseDirBuilder(new File("some/path"))
- * def app = new ClosureBackedEmbeddedApplication(baseDir)
- *
- * app.handlers {
- *   register(just(new Thing("foo"))) {
- *     get("verbose", new VerboseHandler())
- *     get("succinct", new SuccinctHandler())
+ * def app = embeddedApp {
+ *   handlers {
+ *     register(just(new Thing("foo"))) {
+ *       get("verbose", new VerboseHandler())
+ *       get("succinct", new SuccinctHandler())
+ *     }
  *   }
  * }
  *
