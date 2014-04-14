@@ -119,4 +119,9 @@ public class DelegatingLaunchConfig implements LaunchConfig {
     return launchConfig.isCompressResponses();
   }
 
+  @Override
+  public boolean hasBaseDir() {
+    return launchConfig.hasBaseDir();
+  }
+
 }

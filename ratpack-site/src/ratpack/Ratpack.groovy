@@ -122,7 +122,7 @@ ratpack {
               def snapshot = get(PathBinding).boundTo == "snapshot"
               (snapshot ? versions.snapshot : versions.current).subscribe { RatpackVersion version ->
                 if (version) {
-                  respond Handlers.assets(version.version, launchConfig.indexFiles)
+                  respond Handlers.assets(launchConfig, version.version, launchConfig.indexFiles)
                 } else {
                   clientError(404)
                 }

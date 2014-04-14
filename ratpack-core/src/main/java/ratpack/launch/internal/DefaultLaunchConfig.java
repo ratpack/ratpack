@@ -166,5 +166,10 @@ public class DefaultLaunchConfig implements LaunchConfig {
     return compressResponses;
   }
 
+  @Override
+  public boolean hasBaseDir() {
+    return baseDir != null;
+  }
+
 
 }

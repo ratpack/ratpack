@@ -185,4 +185,11 @@ public interface LaunchConfig {
    */
   public boolean isCompressResponses();
 
+  /**
+   * Whether or not the base dir of the application has been set.
+   *
+   * @return whether or not the base dir of the application has been set.
+   */
+  public boolean hasBaseDir();
+
 }

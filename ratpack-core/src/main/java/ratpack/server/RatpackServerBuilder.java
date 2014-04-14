@@ -16,9 +16,11 @@
 
 package ratpack.server;
 
+import com.google.common.base.Throwables;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;
+import ratpack.file.BaseDirRequiredException;
 import ratpack.func.Factory;
 import ratpack.func.Transformer;
 import ratpack.handling.Handler;
@@ -87,6 +89,7 @@ public abstract class RatpackServerBuilder {
     try {
       return handlerFactory.create(launchConfig);
     } catch (Exception e) {
+      Throwables.propagateIfInstanceOf(e, BaseDirRequiredException.class);
       throw new LaunchException("Could not create handler via handler factory: " + handlerFactory.getClass().getName(), e);
     }
   }

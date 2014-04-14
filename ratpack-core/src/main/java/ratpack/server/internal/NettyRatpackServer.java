@@ -24,6 +24,7 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.util.ResourceLeakDetector;
+import ratpack.file.BaseDirRequiredException;
 import ratpack.func.Transformer;
 import ratpack.launch.LaunchConfig;
 import ratpack.launch.LaunchException;
@@ -103,6 +104,7 @@ public class NettyRatpackServer implements RatpackServer {
       }
       running.set(true);
     } catch (Exception e) {
+      Throwables.propagateIfInstanceOf(e, BaseDirRequiredException.class);
       Throwables.propagateIfInstanceOf(e, LaunchException.class);
       throw new LaunchException("Unable to launch due to exception", e);
     } finally {

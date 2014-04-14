@@ -43,7 +43,7 @@ public class DefaultChain implements Chain {
   }
 
   public Chain assets(String path, String... indexFiles) {
-    return handler(Handlers.assets(path, indexFiles.length == 0 ? launchConfig.getIndexFiles() : copyOf(indexFiles)));
+    return handler(Handlers.assets(getLaunchConfig(), path, indexFiles.length == 0 ? launchConfig.getIndexFiles() : copyOf(indexFiles)));
   }
 
   @Override
@@ -60,11 +60,11 @@ public class DefaultChain implements Chain {
   }
 
   public Chain fileSystem(String path, Handler handler) {
-    return handler(Handlers.fileSystem(path, handler));
+    return handler(Handlers.fileSystem(getLaunchConfig(), path, handler));
   }
 
   public Chain fileSystem(String path, Action<? super Chain> action) throws Exception {
-    return handler(Handlers.fileSystem(path, chain(action)));
+    return handler(Handlers.fileSystem(getLaunchConfig(), path, chain(action)));
   }
 
   public Chain get(String path, Handler handler) {

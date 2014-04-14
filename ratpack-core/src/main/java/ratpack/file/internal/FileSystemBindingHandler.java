@@ -20,6 +20,7 @@ import ratpack.file.BaseDirRequiredException;
 import ratpack.file.FileSystemBinding;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
+import ratpack.launch.LaunchConfig;
 import ratpack.registry.Registries;
 
 public class FileSystemBindingHandler implements Handler {
@@ -27,24 +28,24 @@ public class FileSystemBindingHandler implements Handler {
   private final String path;
   private final Handler handler;
 
-  public FileSystemBindingHandler(String path, Handler handler) {
-    this.path = path;
-    this.handler = handler;
+  public FileSystemBindingHandler(LaunchConfig launchConfig, String path, Handler handler) {
+    if (launchConfig.hasBaseDir()) {
+      this.path = path;
+      this.handler = handler;
+    } else {
+      throw new BaseDirRequiredException("An application base directory is required to use this handler");
+    }
 
     // TODO - validate the path isn't escaping up with ../
   }
 
   public void handle(Context context) {
     FileSystemBinding parentBinding = context.maybeGet(FileSystemBinding.class);
-    if (parentBinding == null) {
-      context.error(new BaseDirRequiredException("An application base directory is required to use this handler"));
+    FileSystemBinding binding = parentBinding.binding(path);
+    if (binding == null) {
+      context.clientError(404);
     } else {
-      FileSystemBinding binding = parentBinding.binding(path);
-      if (binding == null) {
-        context.clientError(404);
-      } else {
-        context.insert(Registries.just(FileSystemBinding.class, binding), handler);
-      }
+      context.insert(Registries.just(FileSystemBinding.class, binding), handler);
     }
   }
 }

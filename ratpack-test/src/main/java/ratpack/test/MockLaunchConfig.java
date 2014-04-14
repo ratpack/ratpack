@@ -208,4 +208,14 @@ public class MockLaunchConfig implements LaunchConfig {
     return false;
   }
 
+  /**
+   * Returns false.
+   *
+   * @return false
+   */
+  @Override
+  public boolean hasBaseDir() {
+    return false;
+  }
+
 }

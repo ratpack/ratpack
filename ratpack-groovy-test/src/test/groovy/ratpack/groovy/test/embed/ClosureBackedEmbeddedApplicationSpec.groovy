@@ -18,6 +18,7 @@ package ratpack.groovy.test.embed
 
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
+import ratpack.file.BaseDirRequiredException
 import ratpack.test.embed.BaseDirBuilder
 import ratpack.test.embed.PathBaseDirBuilder
 import spock.lang.AutoCleanup
@@ -86,7 +87,7 @@ class ClosureBackedEmbeddedApplicationSpec extends Specification {
     myapp.server.start()
 
     then:
-    testHttpClient(myapp).get("static.text").statusCode == 500
+    thrown(BaseDirRequiredException)
   }
 
 }
