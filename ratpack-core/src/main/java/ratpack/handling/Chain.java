@@ -20,7 +20,6 @@ import ratpack.api.Nullable;
 import ratpack.func.Action;
 import ratpack.launch.LaunchConfig;
 import ratpack.registry.Registry;
-import ratpack.registry.RegistryBuilder;
 import ratpack.registry.RegistrySpec;
 
 /**
@@ -82,6 +81,122 @@ import ratpack.registry.RegistrySpec;
 public interface Chain {
 
   /**
+   * Adds a handler that serves static assets at the given file system path, relative to the contextual file system binding.
+   * <p>
+   * See {@link Handlers#assets(String, java.util.List)} for more details on the handler created
+   * <pre>
+   *    prefix("foo") {
+   *      assets("d1", "index.html", "index.xhtml")
+   *    }
+   * </pre>
+   * In the above configuration a request like "/foo/app.js" will return the static file "app.js" that is
+   * located in the directory "d1".
+   * <p>
+   * If the request matches a directory e.g. "/foo", an index file may be served.  The {@code indexFiles}
+   * array specifies the names of files to look for in order to serve.
+   *
+   * @param path the relative path to the location of the assets to serve
+   * @param indexFiles the index files to try if the request is for a directory
+   * @return this
+   */
+  Chain assets(String path, String... indexFiles);
+
+  /**
+   * Constructs a handler using the given action to define a chain.
+   *
+   * @param action The action that defines the handler chain
+   * @return A handler representing the chain
+   * @throws Exception any thrown by {@code action}
+   */
+  Handler chain(Action<? super Chain> action) throws Exception;
+
+  /**
+   * Adds a handler that delegates to the given handler if
+   * the relative {@code path} matches the given {@code path} and the {@code request} {@code HTTPMethod}
+   * is {@code DELETE}.
+   *
+   * @param path the relative path to match on
+   * @param handler the handler to delegate to
+   * @return this
+   * @see Chain#get(String, Handler)
+   * @see Chain#post(String, Handler)
+   * @see Chain#put(String, Handler)
+   * @see Chain#patch(String, Handler)
+   * @see Chain#handler(String, Handler)
+   */
+  Chain delete(String path, Handler handler);
+
+  /**
+   * Adds a handler that delegates to the given handler if
+   * the {@code request} {@code HTTPMethod} is {@code DELETE} and the {@code path} is at the current root.
+   *
+   * @param handler the handler to delegate to
+   * @return this
+   * @see Chain#get(Handler)
+   * @see Chain#post(Handler)
+   * @see Chain#put(Handler)
+   * @see Chain#patch(Handler)
+   */
+  Chain delete(Handler handler);
+
+  /**
+   * Adds a handler to this chain that changes the {@link ratpack.file.FileSystemBinding} for the given handler.
+   *
+   * @param path the relative path to the new file system binding point
+   * @param handler the handler
+   * @return this}
+   */
+  Chain fileSystem(String path, Handler handler);
+
+  /**
+   * Adds a handler to this chain that changes the {@link ratpack.file.FileSystemBinding} for the given handler chain.
+   *
+   * @param path the relative path to the new file system binding point
+   * @param action the definition of the handler chain
+   * @return this
+   * @throws Exception any thrown by {@code action}
+   */
+  Chain fileSystem(String path, Action<? super Chain> action) throws Exception;
+
+  /**
+   * Adds a handler that delegates to the given handler
+   * if the relative {@code path} matches the given {@code path} and the {@code request}
+   * {@code HTTPMethod} is {@code GET}.
+   * <p>
+   *
+   * @param path the relative path to match on
+   * @param handler the handler to delegate to
+   * @return this
+   * @see Chain#post(String, Handler)
+   * @see Chain#put(String, Handler)
+   * @see Chain#patch(String, Handler)
+   * @see Chain#delete(String, Handler)
+   * @see Chain#handler(String, Handler)
+   */
+  Chain get(String path, Handler handler);
+
+  /**
+   * Adds a handler that delegates to the given handler
+   * if the {@code request} {@code HTTPMethod} is {@code GET} and the {@code path} is at the
+   * current root.
+   *
+   * @param handler the handler to delegate to
+   * @return this
+   * @see Chain#post(Handler)
+   * @see Chain#put(Handler)
+   * @see Chain#patch(Handler)
+   * @see Chain#delete(Handler)
+   */
+  Chain get(Handler handler);
+
+  /**
+   * The launch config of the application that this chain is being created for.
+   *
+   * @return The launch config of the application that this chain is being created for.
+   */
+  LaunchConfig getLaunchConfig();
+
+  /**
    * The registry that backs this.
    * <p>
    * The registry that is available is dependent on how the {@code GroovyChain} was constructed.
@@ -91,13 +206,6 @@ public interface Chain {
    */
   @Nullable
   Registry getRegistry();
-
-  /**
-   * The launch config of the application that this chain is being created for.
-   *
-   * @return The launch config of the application that this chain is being created for.
-   */
-  LaunchConfig getLaunchConfig();
 
   /**
    * Adds the given handler to this.
@@ -141,6 +249,85 @@ public interface Chain {
    * @see Chain#delete(String, Handler)
    */
   Chain handler(String path, Handler handler);
+
+  /**
+   * Adds a handler to the chain that delegates to the given handler if the request has a header with the given name and a its value matches the given value exactly.
+   *
+   * <pre tested="java-chain-dsl>
+   *  chain.
+   *    header("foo", "bar", new Handler() {
+   *      public void handle(Context context) {
+   *        context.getResponse().send("Header Handler");
+   *      }
+   *    });
+   * </pre>
+   *
+   * @param headerName the name of the HTTP Header to match on
+   * @param headerValue the value of the HTTP Header to match on
+   * @param handler the handler to delegate to
+   * @return this
+   */
+  Chain header(String headerName, String headerValue, Handler handler);
+
+  /**
+   * Adds a handler that delegates to the given handler if
+   * the relative {@code path} matches the given {@code path} and the {@code request} {@code HTTPMethod}
+   * is {@code PATCH}.
+   *
+   * @param path the relative path to match on
+   * @param handler the handler to delegate to
+   * @return this
+   * @see Chain#get(String, Handler)
+   * @see Chain#post(String, Handler)
+   * @see Chain#put(String, Handler)
+   * @see Chain#delete(String, Handler)
+   * @see Chain#handler(String, Handler)
+   */
+  Chain patch(String path, Handler handler);
+
+  /**
+   * Adds a handler that delegates to the given handler if
+   * the {@code request} {@code HTTPMethod} is {@code PATCH} and the {@code path} is at the current root.
+   *
+   * @param handler the handler to delegate to
+   * @return this
+   * @see Chain#get(Handler)
+   * @see Chain#post(Handler)
+   * @see Chain#put(Handler)
+   * @see Chain#delete(Handler)
+   */
+  Chain patch(Handler handler);
+
+  /**
+   * Adds a handler that delegates to the given handler if
+   * the relative {@code path} matches the given {@code path} and the {@code request} {@code HTTPMethod}
+   * is {@code POST}.
+   * <p>
+   *
+   * @param path the relative path to match on
+   * @param handler the handler to delegate to
+   * @return this
+   * @see Chain#get(String, Handler)
+   * @see Chain#put(String, Handler)
+   * @see Chain#patch(String, Handler)
+   * @see Chain#delete(String, Handler)
+   * @see Chain#handler(String, Handler)
+   */
+  Chain post(String path, Handler handler);
+
+  /**
+   * Adds a handler that delegates to the given handler if
+   * the {@code request} {@code HTTPMethod} is {@code POST} and the {@code path} is at the current root.
+   * <p>
+   *
+   * @param handler the handler to delegate to
+   * @return this
+   * @see Chain#get(Handler)
+   * @see Chain#put(Handler)
+   * @see Chain#patch(Handler)
+   * @see Chain#delete(Handler)
+   */
+  Chain post(Handler handler);
 
   /**
    * Adds a handler that delegates to the given handler if the relative path starts with the given {@code prefix}.
@@ -200,95 +387,6 @@ public interface Chain {
   Chain prefix(String prefix, Action<? super Chain> action) throws Exception;
 
   /**
-   * Makes the contents of the given registry available for downstream handlers of the same nesting level.
-   * <p>
-   * The registry is inserted via the {@link ratpack.handling.Context#next(Registry)} method.
-   *
-   * @param registry the registry whose contents should be made available to downstream handlers
-   * @return this
-   */
-  Chain register(Registry registry);
-
-  /**
-   * {@link RegistryBuilder#build() Builds} the registry, then delegates to {@link #register(Registry)} with it.
-   *
-   * @param registryBuilder the registry builder that builds a registry whose contents should be made available to downstream handlers
-   * @return this
-   */
-  Chain register(RegistryBuilder registryBuilder);
-
-  /**
-   * Builds a new registry via the given action, then registers it via {@link #register(Registry)}
-   *
-   * @param action the definition of a registry
-   * @return this
-   * @throws Exception any thrown by {@code action}
-   */
-  Chain register(Action<? super RegistrySpec> action) throws Exception;
-
-  /**
-   * Adds a handler that delegates to the given handler
-   * if the relative {@code path} matches the given {@code path} and the {@code request}
-   * {@code HTTPMethod} is {@code GET}.
-   * <p>
-   *
-   * @param path the relative path to match on
-   * @param handler the handler to delegate to
-   * @return this
-   * @see Chain#post(String, Handler)
-   * @see Chain#put(String, Handler)
-   * @see Chain#patch(String, Handler)
-   * @see Chain#delete(String, Handler)
-   * @see Chain#handler(String, Handler)
-   */
-  Chain get(String path, Handler handler);
-
-  /**
-   * Adds a handler that delegates to the given handler
-   * if the {@code request} {@code HTTPMethod} is {@code GET} and the {@code path} is at the
-   * current root.
-   *
-   * @param handler the handler to delegate to
-   * @return this
-   * @see Chain#post(Handler)
-   * @see Chain#put(Handler)
-   * @see Chain#patch(Handler)
-   * @see Chain#delete(Handler)
-   */
-  Chain get(Handler handler);
-
-  /**
-   * Adds a handler that delegates to the given handler if
-   * the relative {@code path} matches the given {@code path} and the {@code request} {@code HTTPMethod}
-   * is {@code POST}.
-   * <p>
-   *
-   * @param path the relative path to match on
-   * @param handler the handler to delegate to
-   * @return this
-   * @see Chain#get(String, Handler)
-   * @see Chain#put(String, Handler)
-   * @see Chain#patch(String, Handler)
-   * @see Chain#delete(String, Handler)
-   * @see Chain#handler(String, Handler)
-   */
-  Chain post(String path, Handler handler);
-
-  /**
-   * Adds a handler that delegates to the given handler if
-   * the {@code request} {@code HTTPMethod} is {@code POST} and the {@code path} is at the current root.
-   * <p>
-   *
-   * @param handler the handler to delegate to
-   * @return this
-   * @see Chain#get(Handler)
-   * @see Chain#put(Handler)
-   * @see Chain#patch(Handler)
-   * @see Chain#delete(Handler)
-   */
-  Chain post(Handler handler);
-
-  /**
    * Adds a handler that delegates to the given handler if
    * the relative {@code path} matches the given {@code path} and the {@code request} {@code HTTPMethod}
    * is {@code PUT}.
@@ -318,191 +416,58 @@ public interface Chain {
   Chain put(Handler handler);
 
   /**
-   * Adds a handler that delegates to the given handler if
-   * the relative {@code path} matches the given {@code path} and the {@code request} {@code HTTPMethod}
-   * is {@code PATCH}.
-   *
-   * @param path the relative path to match on
-   * @param handler the handler to delegate to
-   * @return this
-   * @see Chain#get(String, Handler)
-   * @see Chain#post(String, Handler)
-   * @see Chain#put(String, Handler)
-   * @see Chain#delete(String, Handler)
-   * @see Chain#handler(String, Handler)
-   */
-  Chain patch(String path, Handler handler);
-
-  /**
-   * Adds a handler that delegates to the given handler if
-   * the {@code request} {@code HTTPMethod} is {@code PATCH} and the {@code path} is at the current root.
-   *
-   * @param handler the handler to delegate to
-   * @return this
-   * @see Chain#get(Handler)
-   * @see Chain#post(Handler)
-   * @see Chain#put(Handler)
-   * @see Chain#delete(Handler)
-   */
-  Chain patch(Handler handler);
-
-  /**
-   * Adds a handler that delegates to the given handler if
-   * the relative {@code path} matches the given {@code path} and the {@code request} {@code HTTPMethod}
-   * is {@code DELETE}.
-   *
-   * @param path the relative path to match on
-   * @param handler the handler to delegate to
-   * @return this
-   * @see Chain#get(String, Handler)
-   * @see Chain#post(String, Handler)
-   * @see Chain#put(String, Handler)
-   * @see Chain#patch(String, Handler)
-   * @see Chain#handler(String, Handler)
-   */
-  Chain delete(String path, Handler handler);
-
-  /**
-   * Adds a handler that delegates to the given handler if
-   * the {@code request} {@code HTTPMethod} is {@code DELETE} and the {@code path} is at the current root.
-   *
-   * @param handler the handler to delegate to
-   * @return this
-   * @see Chain#get(Handler)
-   * @see Chain#post(Handler)
-   * @see Chain#put(Handler)
-   * @see Chain#patch(Handler)
-   */
-  Chain delete(Handler handler);
-
-  /**
-   * Adds a handler that serves static assets at the given file system path, relative to the contextual file system binding.
+   * Makes the contents of the given registry available for downstream handlers of the same nesting level.
    * <p>
-   * See {@link Handlers#assets(String, java.util.List)} for more details on the handler created
-   * <pre>
-   *    prefix("foo") {
-   *      assets("d1", "index.html", "index.xhtml")
-   *    }
-   * </pre>
-   * In the above configuration a request like "/foo/app.js" will return the static file "app.js" that is
-   * located in the directory "d1".
-   * <p>
-   * If the request matches a directory e.g. "/foo", an index file may be served.  The {@code indexFiles}
-   * array specifies the names of files to look for in order to serve.
+   * The registry is inserted via the {@link ratpack.handling.Context#next(Registry)} method.
    *
-   * @param path the relative path to the location of the assets to serve
-   * @param indexFiles the index files to try if the request is for a directory
+   * @param registry the registry whose contents should be made available to downstream handlers
    * @return this
    */
-  Chain assets(String path, String... indexFiles);
+  Chain register(Registry registry);
 
   /**
-   * Adds a handler that inserts the given handler with the given service addition.
-   * <p>
-   * The service object will be available by its concrete type.
-   * <p>
-   * See {@link Handlers#register(Object, Handler)} for more details on the handler created
+   * Builds a new registry via the given action, then registers it via {@link #register(Registry)}
    *
-   * @param service the object to add to the service for the handlers
-   * @param handler the handlers to register the service with
-   * @return this
-   * @see Chain#register(Class, Object, Handler)
-   */
-  Chain register(Object service, Handler handler);
-
-  /**
-   * Adds a handler to this chain that inserts the given handler with the given service addition.
-   * <p>
-   * The service object will be available by its concrete type.
-   * <p>
-   * See {@link Handlers#register(Object, Handler)} for more details on the handler created
-   *
-   * @param service the object to add to the service for the handlers
-   * @param action the handlers to register the service with
-   * @throws Exception any thrown by {@code action}
-   * @return this
-   * @see Chain#register(Class, Object, Handler)
-   */
-  Chain register(Object service, Action<? super Chain> action) throws Exception;
-
-  /**
-   * Adds a handler that inserts the given handlers with the given service addition.
-   * <p>
-   * The service object will be available by the given type.
-   * <p>
-   * See {@link Handlers#register(Class, Object, Handler)} for more details on the handler created
-   *
-   * @param type the {@code Type} by which to make the service object available
-   * @param service the object to add to the service for the handlers
-   * @param handler the handlers to register the service with
-   * @param <T> the concrete type of the service addition
-   * @return this
-   * @see Chain#register(Object, Handler)
-   */
-  <T> Chain register(Class<? super T> type, T service, Handler handler);
-
-  /**
-   * Adds a handler to this chain that inserts the given handler chain with the given service addition.
-   * <p>
-   * The service object will be available by the given type.
-   * <p>
-   * See {@link Handlers#register(Class, Object, Handler)} for more details on the handler created
-   *
-   * @param type the {@code Type} by which to make the service object available
-   * @param service the object to add to the service for the handlers
-   * @param action the handlers which to register the service for
-   * @param <T> the concrete type of the service addition
+   * @param action the definition of a registry
    * @return this
    * @throws Exception any thrown by {@code action}
-   * @see Chain#register(Object, Handler)
    */
-  <T> Chain register(Class<? super T> type, T service, Action<? super Chain> action) throws Exception;
+  Chain register(Action<? super RegistrySpec> action) throws Exception;
 
   /**
-   * Adds a handler to this chain that changes the {@link ratpack.file.FileSystemBinding} for the given handler.
+   * Adds a handler that inserts the given handler with the given registry via {@link Context#insert(ratpack.registry.Registry, Handler...)}.
    *
-   * @param path the relative path to the new file system binding point
-   * @param handler the handler
-   * @return this}
+   * @param registry the registry to insert
+   * @param handler the handler to insert
+   * @return this
    */
-  Chain fileSystem(String path, Handler handler);
+  Chain register(Registry registry, Handler handler);
 
   /**
-   * Adds a handler to this chain that changes the {@link ratpack.file.FileSystemBinding} for the given handler chain.
+   * Adds a handler that inserts the given handler chain with the given registry via {@link Context#insert(ratpack.registry.Registry, Handler...)}.
    *
-   * @param path the relative path to the new file system binding point
+   * @param registry the registry to insert
    * @param action the definition of the handler chain
    * @return this
-   * @throws Exception any thrown by {@code action}
    */
-  Chain fileSystem(String path, Action<? super Chain> action) throws Exception;
+  Chain register(Registry registry, Action<? super Chain> action) throws Exception;
 
   /**
-   * Adds a handler to the chain that delegates to the given handler if the request has a header with the given name and a its value matches the given value exactly.
+   * Adds a handler that inserts the given handler with the a registry built by the given action via {@link Context#insert(ratpack.registry.Registry, Handler...)}.
    *
-   * <pre tested="java-chain-dsl>
-   *  chain.
-   *    header("foo", "bar", new Handler() {
-   *      public void handle(Context context) {
-   *        context.getResponse().send("Header Handler");
-   *      }
-   *    });
-   * </pre>
-   *
-   * @param headerName the name of the HTTP Header to match on
-   * @param headerValue the value of the HTTP Header to match on
-   * @param handler the handler to delegate to
+   * @param registryAction the definition of the registry to insert
+   * @param handler the handler to insert
    * @return this
    */
-  Chain header(String headerName, String headerValue, Handler handler);
+  Chain register(Action<? super RegistrySpec> registryAction, Handler handler) throws Exception;
 
   /**
-   * Constructs a handler using the given action to define a chain.
+   * Adds a handler that inserts the given handler chain with a registry built by the given action via {@link Context#insert(ratpack.registry.Registry, Handler...)}.
    *
-   * @param action The action that defines the handler chain
-   * @return A handler representing the chain
-   * @throws Exception any thrown by {@code action}
+   * @param registryAction the definition of the registry to insert]
+   * @param action the definition of the handler chain
+   * @return this
    */
-  Handler chain(Action<? super Chain> action) throws Exception;
+  Chain register(Action<? super RegistrySpec> registryAction, Action<? super Chain> action) throws Exception;
 
 }

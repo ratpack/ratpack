@@ -20,7 +20,6 @@ import ratpack.api.Nullable;
 import ratpack.func.Action;
 import ratpack.launch.LaunchConfig;
 import ratpack.registry.Registry;
-import ratpack.registry.RegistryBuilder;
 import ratpack.registry.RegistrySpec;
 
 /**
@@ -103,11 +102,24 @@ public abstract class ChainAction implements Action<Chain>, Chain {
 
   private Chain chain;
 
-  protected Chain getChain() throws IllegalStateException {
-    if (chain == null) {
-      throw new IllegalStateException("no chain set - Chain methods should only be called during execute()");
-    }
-    return chain;
+  @Override
+  public Chain assets(String path, String... indexFiles) {
+    return getChain().assets(path, indexFiles);
+  }
+
+  @Override
+  public Handler chain(Action<? super Chain> action) throws Exception {
+    return getChain().chain(action);
+  }
+
+  @Override
+  public Chain delete(String path, Handler handler) {
+    return getChain().delete(path, handler);
+  }
+
+  @Override
+  public Chain delete(Handler handler) {
+    return getChain().delete(handler);
   }
 
   /**
@@ -135,14 +147,41 @@ public abstract class ChainAction implements Action<Chain>, Chain {
   protected abstract void execute() throws Exception;
 
   @Override
-  @Nullable
-  public Registry getRegistry() {
-    return getChain().getRegistry();
+  public Chain fileSystem(String path, Handler handler) {
+    return getChain().fileSystem(path, handler);
+  }
+
+  @Override
+  public Chain fileSystem(String path, Action<? super Chain> action) throws Exception {
+    return getChain().fileSystem(path, action);
+  }
+
+  @Override
+  public Chain get(String path, Handler handler) {
+    return getChain().get(path, handler);
+  }
+
+  @Override
+  public Chain get(Handler handler) {
+    return getChain().get(handler);
+  }
+
+  protected Chain getChain() throws IllegalStateException {
+    if (chain == null) {
+      throw new IllegalStateException("no chain set - Chain methods should only be called during execute()");
+    }
+    return chain;
   }
 
   @Override
   public LaunchConfig getLaunchConfig() {
     return getChain().getLaunchConfig();
+  }
+
+  @Override
+  @Nullable
+  public Registry getRegistry() {
+    return getChain().getRegistry();
   }
 
   @Override
@@ -156,43 +195,8 @@ public abstract class ChainAction implements Action<Chain>, Chain {
   }
 
   @Override
-  public Chain prefix(String prefix, Handler handler) {
-    return getChain().prefix(prefix, handler);
-  }
-
-  @Override
-  public Chain prefix(String prefix, Action<? super Chain> action) throws Exception {
-    return getChain().prefix(prefix, action);
-  }
-
-  @Override
-  public Chain get(String path, Handler handler) {
-    return getChain().get(path, handler);
-  }
-
-  @Override
-  public Chain get(Handler handler) {
-    return getChain().get(handler);
-  }
-
-  @Override
-  public Chain post(String path, Handler handler) {
-    return getChain().post(path, handler);
-  }
-
-  @Override
-  public Chain post(Handler handler) {
-    return getChain().post(handler);
-  }
-
-  @Override
-  public Chain put(String path, Handler handler) {
-    return getChain().put(path, handler);
-  }
-
-  @Override
-  public Chain put(Handler handler) {
-    return getChain().put(handler);
+  public Chain header(String headerName, String headerValue, Handler handler) {
+    return getChain().header(headerName, headerValue, handler);
   }
 
   @Override
@@ -206,38 +210,53 @@ public abstract class ChainAction implements Action<Chain>, Chain {
   }
 
   @Override
-  public Chain delete(String path, Handler handler) {
-    return getChain().delete(path, handler);
+  public Chain post(String path, Handler handler) {
+    return getChain().post(path, handler);
   }
 
   @Override
-  public Chain delete(Handler handler) {
-    return getChain().delete(handler);
+  public Chain post(Handler handler) {
+    return getChain().post(handler);
   }
 
   @Override
-  public Chain assets(String path, String... indexFiles) {
-    return getChain().assets(path, indexFiles);
+  public Chain prefix(String prefix, Handler handler) {
+    return getChain().prefix(prefix, handler);
   }
 
   @Override
-  public Chain register(Object service, Handler handler) {
-    return getChain().register(service, handler);
+  public Chain prefix(String prefix, Action<? super Chain> action) throws Exception {
+    return getChain().prefix(prefix, action);
   }
 
   @Override
-  public Chain register(Object service, Action<? super Chain> action) throws Exception {
-    return getChain().register(service, action);
+  public Chain put(String path, Handler handler) {
+    return getChain().put(path, handler);
   }
 
   @Override
-  public <T> Chain register(Class<? super T> type, T service, Handler handler) {
-    return getChain().register(type, service, handler);
+  public Chain put(Handler handler) {
+    return getChain().put(handler);
   }
 
   @Override
-  public <T> Chain register(Class<? super T> type, T service, Action<? super Chain> action) throws Exception {
-    return getChain().register(type, service, action);
+  public Chain register(Registry registry, Handler handler) {
+    return getChain().register(registry, handler);
+  }
+
+  @Override
+  public Chain register(Registry registry, Action<? super Chain> action) throws Exception {
+    return getChain().register(registry, action);
+  }
+
+  @Override
+  public Chain register(Action<? super RegistrySpec> registryAction, Handler handler) throws Exception {
+    return getChain().register(registryAction, handler);
+  }
+
+  @Override
+  public Chain register(Action<? super RegistrySpec> registryAction, Action<? super Chain> action) throws Exception {
+    return getChain().register(registryAction, action);
   }
 
   @Override
@@ -246,33 +265,8 @@ public abstract class ChainAction implements Action<Chain>, Chain {
   }
 
   @Override
-  public Chain register(RegistryBuilder registryBuilder) {
-    return getChain().register(registryBuilder);
-  }
-
-  @Override
   public Chain register(Action<? super RegistrySpec> action) throws Exception {
     return getChain().register(action);
-  }
-
-  @Override
-  public Chain fileSystem(String path, Handler handler) {
-    return getChain().fileSystem(path, handler);
-  }
-
-  @Override
-  public Chain fileSystem(String path, Action<? super Chain> action) throws Exception {
-    return getChain().fileSystem(path, action);
-  }
-
-  @Override
-  public Chain header(String headerName, String headerValue, Handler handler) {
-    return getChain().header(headerName, headerValue, handler);
-  }
-
-  @Override
-  public Handler chain(Action<? super Chain> action) throws Exception {
-    return getChain().chain(action);
   }
 
 }

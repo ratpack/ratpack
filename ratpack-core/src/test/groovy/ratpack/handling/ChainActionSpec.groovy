@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,25 +14,29 @@
  * limitations under the License.
  */
 
-package ratpack.registry
+package ratpack.handling
 
-import spock.lang.Specification
+import ratpack.test.internal.RatpackGroovyDslSpec
 
-import static ratpack.registry.Registries.join
-import static ratpack.registry.Registries.just
+class ChainActionSpec extends RatpackGroovyDslSpec {
 
-class RegistryBuilderSpec extends Specification {
-
-  def "can retrieve successfully"() {
+  def "can use ChainAction"() {
     given:
-    def c = just(String, "foo")
-    def p = just(Integer, 2)
-    def n = join(p, c)
+    def c = new ChainAction() {
+      @Override
+      protected void execute() throws Exception {
+        get("foo") { it.render "foo" }
+        get("bar") { it.render "bar" }
+      }
+    }
 
-    expect:
-    n.get(String) == "foo"
-    n.get(Number) == 2 // delegating to parent
-    n.getAll(Object) == ["foo", 2]
+    when:
+    handlers {
+      handler chain(c)
+    }
+
+    then:
+    getText("foo") == "foo"
+    getText("bar") == "bar"
   }
-
 }

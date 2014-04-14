@@ -307,11 +307,11 @@ class InvocationBuilderSpec extends Specification {
   def "can access things inserted into registry"() {
     when:
     invoke {
-      insert(Registries.registry("foo"), groovyHandler {
+      insert(Registries.just("foo"), groovyHandler {
         background {
 
         } then {
-          context.insert(Registries.registry("bar"), groovyHandler {
+          context.insert(Registries.just("bar"), groovyHandler {
             context.request.register(Number, 4)
             function(context)
           })

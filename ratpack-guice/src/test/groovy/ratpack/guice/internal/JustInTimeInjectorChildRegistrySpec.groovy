@@ -30,7 +30,7 @@ class JustInTimeInjectorChildRegistrySpec extends Specification {
   def "delegates to parent when no bound instance"() {
     when:
     def launchConfig = Mock(LaunchConfig)
-    def parent = Registries.registry(LaunchConfig, launchConfig)
+    def parent = Registries.just(LaunchConfig, launchConfig)
     def injector = Guice.createInjector()
     def registry = Registries.join(parent, justInTimeRegistry(injector))
 

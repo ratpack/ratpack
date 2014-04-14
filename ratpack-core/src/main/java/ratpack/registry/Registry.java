@@ -29,7 +29,7 @@ import java.util.List;
  * import ratpack.handling.Handler;
  * import ratpack.handling.Context;
  * import ratpack.registry.Registry;
- * import static ratpack.registry.Registries.registry;
+ * import static ratpack.registry.Registries.just;
  *
  * public class Thing {
  *   private final String name
@@ -39,7 +39,7 @@ import java.util.List;
  *
  * public class UpstreamHandler implements Handler {
  *   public void handle(Context context) {
- *     context.next(registry(new Thing("foo")));
+ *     context.next(just(new Thing("foo")));
  *   }
  * }
  *

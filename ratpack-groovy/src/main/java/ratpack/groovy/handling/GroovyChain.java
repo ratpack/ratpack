@@ -22,7 +22,6 @@ import ratpack.func.Action;
 import ratpack.handling.Chain;
 import ratpack.handling.Handler;
 import ratpack.registry.Registry;
-import ratpack.registry.RegistryBuilder;
 import ratpack.registry.RegistrySpec;
 
 /**
@@ -36,202 +35,10 @@ import ratpack.registry.RegistrySpec;
 public interface GroovyChain extends Chain {
 
   /**
-   * Adds the given {@code Closure} as a {@code Handler} to this {@code GroovyChain}.
-   *
-   * @param handler the {@code Closure} to add
-   * @return this {@code GroovyChain}
-   */
-  GroovyChain handler(@DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
-
-  /**
-   * Adds a {@code Handler} to this {@code GroovyChain} that delegates to the given {@code Closure} as a {@code Handler} if the
-   * relative {@code path} matches the given {@code path} exactly.
-   * <p>
-   * See {@link GroovyChain#handler(String, ratpack.handling.Handler)} for more details.
-   *
-   * @param path the relative path to match exactly on
-   * @param handler the handler to delegate to
-   * @return this {@code GroovyChain}
-   */
-  GroovyChain handler(String path, @DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
-
-  /**
    * {@inheritDoc}
    */
   @Override
-  GroovyChain handler(Handler handler);
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  GroovyChain prefix(String prefix, Handler handler);
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  GroovyChain prefix(String prefix, Action<? super Chain> action) throws Exception;
-
-  /**
-   * Creates a {@code List} of {@code Handler} from the given {@code Closure} and adds a {@code Handler} to
-   * this {@code GroovyChain} that delegates to the {@code Handler} list if the relative path starts with the given
-   * {@code prefix}.
-   * <p>
-   * See {@link Chain#prefix(String, ratpack.handling.Handler)} for more details.
-   *
-   * @param prefix the relative path to match on
-   * @param chain the definition of the chain to delegate to
-   * @return this {@code GroovyChain}
-   * @throws Exception any exception thrown by the given closure
-   */
-  GroovyChain prefix(String prefix, @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> chain) throws Exception;
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  GroovyChain handler(String path, Handler handler);
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  GroovyChain get(Handler handler);
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  GroovyChain get(String path, Handler handler);
-
-  /**
-   * Adds a {@code Handler} to this {@code GroovyChain} that delegates to the given {@code Closure} as a {@code Handler} if the
-   * relative {@code path} matches the given {@code path} and the {@code request} {@code HTTPMethod} is {@code GET}.
-   * <p>
-   * See {@link GroovyChain#get(String, ratpack.handling.Handler)} for more details.
-   *
-   * @param path the relative path to match on
-   * @param handler the handler to delegate to
-   * @return this {@code GroovyChain}
-   */
-  GroovyChain get(String path, @DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
-
-  /**
-   * Adds a {@code Handler} to this {@code GroovyChain} that delegates to the given {@code Closure} as a {@code Handler}
-   * if the {@code request} {@code HTTPMethod} is {@code GET} and the {@code path} is at the current root.
-   * <p>
-   * See {@link GroovyChain#get(ratpack.handling.Handler)} for more details.
-   *
-   * @param handler the handler to delegate to
-   * @return this {@code GroovyChain}
-   */
-  GroovyChain get(@DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  GroovyChain post(String path, Handler handler);
-
-  /**
-   * Adds a {@code Handler} to this {@code GroovyChain} that delegates to the given {@code Closure} as a {@code Handler} if the
-   * relative {@code path} matches the given {@code path} and the {@code request} {@code HTTPMethod} is {@code POST}.
-   * <p>
-   * See {@link GroovyChain#post(String, ratpack.handling.Handler)} for more details.
-   *
-   * @param path the relative path to match on
-   * @param handler the handler to delegate to
-   * @return this {@code GroovyChain}
-   */
-  GroovyChain post(String path, @DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  GroovyChain post(Handler handler);
-
-  /**
-   * Adds a {@code Handler} to this {@code GroovyChain} that delegates to the given {@code Closure} as a {@code Handler}
-   * if the {@code request} {@code HTTPMethod} is {@code POST} and the {@code path} is at the current root.
-   * <p>
-   * See {@link GroovyChain#post(ratpack.handling.Handler)} for more details.
-   *
-   * @param handler the handler to delegate to
-   * @return this {@code GroovyChain}
-   */
-  GroovyChain post(@DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  GroovyChain put(Handler handler);
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  GroovyChain put(String path, Handler handler);
-
-  /**
-   * Adds a {@code Handler} to this {@code GroovyChain} that delegates to the given {@code Closure} as a {@code Handler} if the
-   * relative {@code path} matches the given {@code path} and the {@code request} {@code HTTPMethod} is {@code PUT}.
-   * <p>
-   * See {@link GroovyChain#put(String, ratpack.handling.Handler)} for more details.
-   *
-   * @param path the relative path to match on
-   * @param handler the handler to delegate to
-   * @return this {@code GroovyChain}
-   */
-  GroovyChain put(String path, @DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
-
-  /**
-   * Adds a {@code Handler} to this {@code GroovyChain} that delegates to the given {@code Closure} as a {@code Handler}
-   * if the {@code request} {@code HTTPMethod} is {@code PUT} and the {@code path} is at the current root.
-   * <p>
-   * See {@link GroovyChain#put(ratpack.handling.Handler)} for more details.
-   *
-   * @param handler the handler to delegate to
-   * @return this {@code GroovyChain}
-   */
-  GroovyChain put(@DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  GroovyChain patch(Handler handler);
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  GroovyChain patch(String path, Handler handler);
-
-  /**
-   * Adds a {@code Handler} to this {@code GroovyChain} that delegates to the given {@code Closure} as a {@code Handler} if the
-   * relative {@code path} matches the given {@code path} and the {@code request} {@code HTTPMethod} is {@code PATCH}.
-   * <p>
-   * See {@link GroovyChain#put(String, ratpack.handling.Handler)} for more details.
-   *
-   * @param path the relative path to match on
-   * @param handler the handler to delegate to
-   * @return this {@code GroovyChain}
-   */
-  GroovyChain patch(String path, @DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
-
-  /**
-   * Adds a {@code Handler} to this {@code GroovyChain} that delegates to the given {@code Closure} as a {@code Handler}
-   * if the {@code request} {@code HTTPMethod} is {@code PATCH} and the {@code path} is at the current root.
-   * <p>
-   * See {@link GroovyChain#put(ratpack.handling.Handler)} for more details.
-   *
-   * @param handler the handler to delegate to
-   * @return this {@code GroovyChain}
-   */
-  GroovyChain patch(@DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
+  GroovyChain assets(String path, String... indexFiles);
 
   /**
    * {@inheritDoc}
@@ -272,81 +79,6 @@ public interface GroovyChain extends Chain {
    * {@inheritDoc}
    */
   @Override
-  GroovyChain register(Object object, Handler handler);
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  GroovyChain register(Object service, Action<? super Chain> action) throws Exception;
-
-  /**
-   * Creates a {@code List} of {@code Handler} from the given {@code Closure} and adds a {@code Handler} to this {@code GroovyChain}
-   * that inserts the {@code Handler} list with the given {@code service} addition.
-   * <p>
-   * See {@link GroovyChain#register(Object, Handler)} for more details.
-   *
-   * @param service the object to add to the service for the handlers
-   * @param handlers the handlers to register the service with
-   * @return this {@code GroovyChain}
-   * @throws Exception any exception thrown by the given closure
-   */
-  GroovyChain register(Object service, @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handlers) throws Exception;
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  <T> GroovyChain register(Class<? super T> type, T object, Handler handler);
-
-  @Override
-  <T> GroovyChain register(Class<? super T> type, T service, Action<? super Chain> action) throws Exception;
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  GroovyChain register(Registry registry);
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  GroovyChain register(RegistryBuilder registryBuilder);
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  GroovyChain register(Action<? super RegistrySpec> action) throws Exception;
-
-  GroovyChain register(@DelegatesTo(value = RegistrySpec.class, strategy = Closure.DELEGATE_FIRST) Closure<?> action) throws Exception;
-
-  /**
-   * Creates a {@code List} of {@code Handler} from the given {@code Closure} and adds a {@code Handler} to this {@code GroovyChain} that
-   * inserts the the {@code Handler} list with the given {@code service} addition.
-   * <p>
-   * See {@link GroovyChain#register(Class, Object, Handler)} for more details.
-   *
-   * @param type the {@code Type} by which to make the service object available
-   * @param service the object to add to the service for the handlers
-   * @param handlers the handlers to register the service with
-   * @param <T> the concrete type of the service addition
-   * @return this {@code GroovyChain}
-   * @throws Exception any exception thrown by the given closure
-   */
-  <T> GroovyChain register(Class<? super T> type, T service, @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handlers) throws Exception;
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  GroovyChain assets(String path, String... indexFiles);
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
   GroovyChain fileSystem(String path, Handler handler);
 
   /**
@@ -372,6 +104,73 @@ public interface GroovyChain extends Chain {
    * {@inheritDoc}
    */
   @Override
+  GroovyChain get(Handler handler);
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  GroovyChain get(String path, Handler handler);
+
+  /**
+   * Adds a {@code Handler} to this {@code GroovyChain} that delegates to the given {@code Closure} as a {@code Handler} if the
+   * relative {@code path} matches the given {@code path} and the {@code request} {@code HTTPMethod} is {@code GET}.
+   * <p>
+   * See {@link GroovyChain#get(String, ratpack.handling.Handler)} for more details.
+   *
+   * @param path the relative path to match on
+   * @param handler the handler to delegate to
+   * @return this {@code GroovyChain}
+   */
+  GroovyChain get(String path, @DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
+
+  /**
+   * Adds a {@code Handler} to this {@code GroovyChain} that delegates to the given {@code Closure} as a {@code Handler}
+   * if the {@code request} {@code HTTPMethod} is {@code GET} and the {@code path} is at the current root.
+   * <p>
+   * See {@link GroovyChain#get(ratpack.handling.Handler)} for more details.
+   *
+   * @param handler the handler to delegate to
+   * @return this {@code GroovyChain}
+   */
+  GroovyChain get(@DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
+
+  /**
+   * Adds the given {@code Closure} as a {@code Handler} to this {@code GroovyChain}.
+   *
+   * @param handler the {@code Closure} to add
+   * @return this {@code GroovyChain}
+   */
+  GroovyChain handler(@DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
+
+  /**
+   * Adds a {@code Handler} to this {@code GroovyChain} that delegates to the given {@code Closure} as a {@code Handler} if the
+   * relative {@code path} matches the given {@code path} exactly.
+   * <p>
+   * See {@link GroovyChain#handler(String, ratpack.handling.Handler)} for more details.
+   *
+   * @param path the relative path to match exactly on
+   * @param handler the handler to delegate to
+   * @return this {@code GroovyChain}
+   */
+  GroovyChain handler(String path, @DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  GroovyChain handler(Handler handler);
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  GroovyChain handler(String path, Handler handler);
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   GroovyChain header(String headerName, String headerValue, Handler handler);
 
   /**
@@ -386,4 +185,179 @@ public interface GroovyChain extends Chain {
    * @return this {@code GroovyChain}
    */
   GroovyChain header(String headerName, String headerValue, @DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  GroovyChain patch(Handler handler);
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  GroovyChain patch(String path, Handler handler);
+
+  /**
+   * Adds a {@code Handler} to this {@code GroovyChain} that delegates to the given {@code Closure} as a {@code Handler} if the
+   * relative {@code path} matches the given {@code path} and the {@code request} {@code HTTPMethod} is {@code PATCH}.
+   * <p>
+   * See {@link GroovyChain#put(String, ratpack.handling.Handler)} for more details.
+   *
+   * @param path the relative path to match on
+   * @param handler the handler to delegate to
+   * @return this {@code GroovyChain}
+   */
+  GroovyChain patch(String path, @DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
+
+  /**
+   * Adds a {@code Handler} to this {@code GroovyChain} that delegates to the given {@code Closure} as a {@code Handler}
+   * if the {@code request} {@code HTTPMethod} is {@code PATCH} and the {@code path} is at the current root.
+   * <p>
+   * See {@link GroovyChain#put(ratpack.handling.Handler)} for more details.
+   *
+   * @param handler the handler to delegate to
+   * @return this {@code GroovyChain}
+   */
+  GroovyChain patch(@DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  GroovyChain post(String path, Handler handler);
+
+  /**
+   * Adds a {@code Handler} to this {@code GroovyChain} that delegates to the given {@code Closure} as a {@code Handler} if the
+   * relative {@code path} matches the given {@code path} and the {@code request} {@code HTTPMethod} is {@code POST}.
+   * <p>
+   * See {@link GroovyChain#post(String, ratpack.handling.Handler)} for more details.
+   *
+   * @param path the relative path to match on
+   * @param handler the handler to delegate to
+   * @return this {@code GroovyChain}
+   */
+  GroovyChain post(String path, @DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  GroovyChain post(Handler handler);
+
+  /**
+   * Adds a {@code Handler} to this {@code GroovyChain} that delegates to the given {@code Closure} as a {@code Handler}
+   * if the {@code request} {@code HTTPMethod} is {@code POST} and the {@code path} is at the current root.
+   * <p>
+   * See {@link GroovyChain#post(ratpack.handling.Handler)} for more details.
+   *
+   * @param handler the handler to delegate to
+   * @return this {@code GroovyChain}
+   */
+  GroovyChain post(@DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  GroovyChain prefix(String prefix, Handler handler);
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  GroovyChain prefix(String prefix, Action<? super Chain> action) throws Exception;
+
+  /**
+   * Creates a {@code List} of {@code Handler} from the given {@code Closure} and adds a {@code Handler} to
+   * this {@code GroovyChain} that delegates to the {@code Handler} list if the relative path starts with the given
+   * {@code prefix}.
+   * <p>
+   * See {@link Chain#prefix(String, ratpack.handling.Handler)} for more details.
+   *
+   * @param prefix the relative path to match on
+   * @param chain the definition of the chain to delegate to
+   * @return this {@code GroovyChain}
+   * @throws Exception any exception thrown by the given closure
+   */
+  GroovyChain prefix(String prefix, @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> chain) throws Exception;
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  GroovyChain put(Handler handler);
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  GroovyChain put(String path, Handler handler);
+
+  /**
+   * Adds a {@code Handler} to this {@code GroovyChain} that delegates to the given {@code Closure} as a {@code Handler} if the
+   * relative {@code path} matches the given {@code path} and the {@code request} {@code HTTPMethod} is {@code PUT}.
+   * <p>
+   * See {@link GroovyChain#put(String, ratpack.handling.Handler)} for more details.
+   *
+   * @param path the relative path to match on
+   * @param handler the handler to delegate to
+   * @return this {@code GroovyChain}
+   */
+  GroovyChain put(String path, @DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
+
+  /**
+   * Adds a {@code Handler} to this {@code GroovyChain} that delegates to the given {@code Closure} as a {@code Handler}
+   * if the {@code request} {@code HTTPMethod} is {@code PUT} and the {@code path} is at the current root.
+   * <p>
+   * See {@link GroovyChain#put(ratpack.handling.Handler)} for more details.
+   *
+   * @param handler the handler to delegate to
+   * @return this {@code GroovyChain}
+   */
+  GroovyChain put(@DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  GroovyChain register(Registry registry, Handler handler);
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  GroovyChain register(Registry registry, Action<? super Chain> action) throws Exception;
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  GroovyChain register(Action<? super RegistrySpec> registryAction, Handler handler) throws Exception;
+
+  GroovyChain register(Action<? super RegistrySpec> registryAction, @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler) throws Exception;
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  GroovyChain register(Action<? super RegistrySpec> registryAction, Action<? super Chain> chainAction) throws Exception;
+
+  GroovyChain register(Registry registry, @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handlers) throws Exception;
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  GroovyChain register(Registry registry);
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  GroovyChain register(Action<? super RegistrySpec> action) throws Exception;
+
+  GroovyChain register(@DelegatesTo(value = RegistrySpec.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) throws Exception;
+
+
 }

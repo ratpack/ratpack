@@ -101,11 +101,14 @@ class InjectionHandlerSpec extends RatpackGroovyDslSpec {
   def "error when cant inject"() {
     when:
     handlers {
-      register(ServerErrorHandler, new DebugErrorHandler(), new InjectedBadHandler())
+      register {
+        add ServerErrorHandler, new DebugErrorHandler()
+      }
+      handler new InjectedBadHandler()
     }
 
     then:
-    text =~ "No object for type 'java.lang.Exception' in registry"
+    text =~ "No object for type 'java\\.lang\\.Exception' in registry"
   }
 
   def "can inject from request registry"() {

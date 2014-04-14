@@ -20,8 +20,7 @@ import ratpack.file.BaseDirRequiredException;
 import ratpack.file.FileSystemBinding;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
-
-import static ratpack.registry.Registries.registry;
+import ratpack.registry.Registries;
 
 public class FileSystemBindingHandler implements Handler {
 
@@ -44,7 +43,7 @@ public class FileSystemBindingHandler implements Handler {
       if (binding == null) {
         context.clientError(404);
       } else {
-        context.insert(registry(FileSystemBinding.class, binding), handler);
+        context.insert(Registries.just(FileSystemBinding.class, binding), handler);
       }
     }
   }

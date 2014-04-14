@@ -19,7 +19,7 @@ package ratpack.handling
 import ratpack.error.ServerErrorHandler
 import ratpack.test.internal.RatpackGroovyDslSpec
 
-import static ratpack.registry.Registries.registry
+import static ratpack.registry.Registries.just
 
 class ErrorHandlingSpec extends RatpackGroovyDslSpec {
 
@@ -86,7 +86,7 @@ class ErrorHandlingSpec extends RatpackGroovyDslSpec {
     handlers {
       get { exchange ->
         withErrorHandling new Thread({
-          insert(registry(ServerErrorHandler, errorHandler2), new Handler() {
+          insert(just(ServerErrorHandler, errorHandler2), new Handler() {
             @Override
             void handle(Context context) {
               throw new Exception("down here")
@@ -118,7 +118,7 @@ class ErrorHandlingSpec extends RatpackGroovyDslSpec {
       bind ServerErrorHandler, errorHandler1
     }
     handlers {
-      register(ServerErrorHandler, errorHandler2) {
+      register(just(errorHandler2)) {
         get("a") {
           throw new Exception("1")
         }

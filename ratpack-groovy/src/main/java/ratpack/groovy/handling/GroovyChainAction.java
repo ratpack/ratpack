@@ -25,7 +25,6 @@ import ratpack.handling.Chain;
 import ratpack.handling.Handler;
 import ratpack.launch.LaunchConfig;
 import ratpack.registry.Registry;
-import ratpack.registry.RegistryBuilder;
 import ratpack.registry.RegistrySpec;
 
 /**
@@ -95,11 +94,34 @@ public abstract class GroovyChainAction implements Action<Chain>, GroovyChain {
 
   private GroovyChain chain;
 
-  protected GroovyChain getChain() throws IllegalStateException {
-    if (chain == null) {
-      throw new IllegalStateException("no chain set - GroovyChain methods should only be called during execute()");
-    }
-    return chain;
+  @Override
+  public GroovyChain assets(String path, String... indexFiles) {
+    return getChain().assets(path, indexFiles);
+  }
+
+  @Override
+  public Handler chain(Action<? super Chain> action) throws Exception {
+    return getChain().chain(action);
+  }
+
+  @Override
+  public GroovyChain delete(Handler handler) {
+    return getChain().delete(handler);
+  }
+
+  @Override
+  public GroovyChain delete(String path, Handler handler) {
+    return getChain().delete(path, handler);
+  }
+
+  @Override
+  public GroovyChain delete(String path, @DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler) {
+    return getChain().delete(path, handler);
+  }
+
+  @Override
+  public GroovyChain delete(@DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler) {
+    return getChain().delete(handler);
   }
 
   /**
@@ -128,38 +150,18 @@ public abstract class GroovyChainAction implements Action<Chain>, GroovyChain {
   abstract protected void execute() throws Exception;
 
   @Override
-  public GroovyChain handler(@DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler) {
-    return getChain().handler(handler);
+  public GroovyChain fileSystem(String path, Handler handler) {
+    return getChain().fileSystem(path, handler);
   }
 
   @Override
-  public GroovyChain handler(String path, @DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler) {
-    return getChain().handler(path, handler);
+  public GroovyChain fileSystem(String path, Action<? super Chain> action) throws Exception {
+    return getChain().fileSystem(path, action);
   }
 
   @Override
-  public GroovyChain handler(Handler handler) {
-    return getChain().handler(handler);
-  }
-
-  @Override
-  public GroovyChain prefix(String prefix, Handler handler) {
-    return getChain().prefix(prefix, handler);
-  }
-
-  @Override
-  public GroovyChain prefix(String prefix, Action<? super Chain> action) throws Exception {
-    return getChain().prefix(prefix, action);
-  }
-
-  @Override
-  public GroovyChain prefix(String prefix, @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> chain) throws Exception {
-    return getChain().prefix(prefix, chain);
-  }
-
-  @Override
-  public GroovyChain handler(String path, Handler handler) {
-    return getChain().handler(path, handler);
+  public GroovyChain fileSystem(String path, @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handlers) throws Exception {
+    return getChain().fileSystem(path, handlers);
   }
 
   @Override
@@ -182,44 +184,52 @@ public abstract class GroovyChainAction implements Action<Chain>, GroovyChain {
     return getChain().get(handler);
   }
 
-  @Override
-  public GroovyChain post(String path, Handler handler) {
-    return getChain().post(path, handler);
+  protected GroovyChain getChain() throws IllegalStateException {
+    if (chain == null) {
+      throw new IllegalStateException("no chain set - GroovyChain methods should only be called during execute()");
+    }
+    return chain;
   }
 
   @Override
-  public GroovyChain post(String path, @DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler) {
-    return getChain().post(path, handler);
+  public LaunchConfig getLaunchConfig() {
+    return getChain().getLaunchConfig();
   }
 
   @Override
-  public GroovyChain post(Handler handler) {
-    return getChain().post(handler);
+  @Nullable
+  public Registry getRegistry() {
+    return getChain().getRegistry();
   }
 
   @Override
-  public GroovyChain post(@DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler) {
-    return getChain().post(handler);
+  public GroovyChain handler(@DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler) {
+    return getChain().handler(handler);
   }
 
   @Override
-  public GroovyChain put(Handler handler) {
-    return getChain().put(handler);
+  public GroovyChain handler(String path, @DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler) {
+    return getChain().handler(path, handler);
   }
 
   @Override
-  public GroovyChain put(String path, Handler handler) {
-    return getChain().put(path, handler);
+  public GroovyChain handler(Handler handler) {
+    return getChain().handler(handler);
   }
 
   @Override
-  public GroovyChain put(String path, @DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler) {
-    return getChain().put(path, handler);
+  public GroovyChain handler(String path, Handler handler) {
+    return getChain().handler(path, handler);
   }
 
   @Override
-  public GroovyChain put(@DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler) {
-    return getChain().put(handler);
+  public GroovyChain header(String headerName, String headerValue, Handler handler) {
+    return getChain().header(headerName, headerValue, handler);
+  }
+
+  @Override
+  public GroovyChain header(String headerName, String headerValue, @DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler) {
+    return getChain().header(headerName, headerValue, handler);
   }
 
   @Override
@@ -243,23 +253,58 @@ public abstract class GroovyChainAction implements Action<Chain>, GroovyChain {
   }
 
   @Override
-  public GroovyChain delete(Handler handler) {
-    return getChain().delete(handler);
+  public GroovyChain post(String path, Handler handler) {
+    return getChain().post(path, handler);
   }
 
   @Override
-  public GroovyChain delete(String path, Handler handler) {
-    return getChain().delete(path, handler);
+  public GroovyChain post(String path, @DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler) {
+    return getChain().post(path, handler);
   }
 
   @Override
-  public GroovyChain delete(String path, @DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler) {
-    return getChain().delete(path, handler);
+  public GroovyChain post(Handler handler) {
+    return getChain().post(handler);
   }
 
   @Override
-  public GroovyChain delete(@DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler) {
-    return getChain().delete(handler);
+  public GroovyChain post(@DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler) {
+    return getChain().post(handler);
+  }
+
+  @Override
+  public GroovyChain prefix(String prefix, Handler handler) {
+    return getChain().prefix(prefix, handler);
+  }
+
+  @Override
+  public GroovyChain prefix(String prefix, Action<? super Chain> action) throws Exception {
+    return getChain().prefix(prefix, action);
+  }
+
+  @Override
+  public GroovyChain prefix(String prefix, @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> chain) throws Exception {
+    return getChain().prefix(prefix, chain);
+  }
+
+  @Override
+  public GroovyChain put(Handler handler) {
+    return getChain().put(handler);
+  }
+
+  @Override
+  public GroovyChain put(String path, Handler handler) {
+    return getChain().put(path, handler);
+  }
+
+  @Override
+  public GroovyChain put(String path, @DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler) {
+    return getChain().put(path, handler);
+  }
+
+  @Override
+  public GroovyChain put(@DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler) {
+    return getChain().put(handler);
   }
 
   @Override
@@ -268,93 +313,42 @@ public abstract class GroovyChainAction implements Action<Chain>, GroovyChain {
   }
 
   @Override
-  public GroovyChain register(RegistryBuilder registryBuilder) {
-    return chain.register(registryBuilder);
-  }
-
-  @Override
   public GroovyChain register(Action<? super RegistrySpec> action) throws Exception {
     return chain.register(action);
   }
 
   @Override
-  public GroovyChain register(@DelegatesTo(value = RegistrySpec.class, strategy = Closure.DELEGATE_FIRST) Closure<?> action) throws Exception {
-    return chain.register(action);
+  public GroovyChain register(Registry registry, Handler handler) {
+    return getChain().register(registry, handler);
   }
 
   @Override
-  public GroovyChain register(Object object, Handler handler) {
-    return getChain().register(object, handler);
+  public GroovyChain register(Registry registry, Action<? super Chain> action) throws Exception {
+    return getChain().register(registry, action);
   }
 
   @Override
-  public GroovyChain register(Object service, Action<? super Chain> action) throws Exception {
-    return getChain().register(service, action);
+  public GroovyChain register(Action<? super RegistrySpec> registryAction, Handler handler) throws Exception {
+    return getChain().register(registryAction, handler);
   }
 
   @Override
-  public GroovyChain register(Object service, @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handlers) throws Exception {
-    return getChain().register(service, handlers);
+  public GroovyChain register(Action<? super RegistrySpec> registryAction, Action<? super Chain> chainAction) throws Exception {
+    return getChain().register(registryAction, chainAction);
   }
 
   @Override
-  public <T> GroovyChain register(Class<? super T> type, T object, Handler handler) {
-    return getChain().register(type, object, handler);
+  public GroovyChain register(Registry registry, @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handlers) throws Exception {
+    return getChain().register(registry, handlers);
   }
 
   @Override
-  public <T> GroovyChain register(Class<? super T> type, T service, Action<? super Chain> action) throws Exception {
-    return getChain().register(type, service, action);
+  public GroovyChain register(@DelegatesTo(value = RegistrySpec.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) throws Exception {
+    return getChain().register(closure);
   }
 
   @Override
-  public <T> GroovyChain register(Class<? super T> type, T service, @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handlers) throws Exception {
-    return getChain().register(type, service, handlers);
-  }
-
-  @Override
-  public GroovyChain assets(String path, String... indexFiles) {
-    return getChain().assets(path, indexFiles);
-  }
-
-  @Override
-  public GroovyChain fileSystem(String path, Handler handler) {
-    return getChain().fileSystem(path, handler);
-  }
-
-  @Override
-  public GroovyChain fileSystem(String path, Action<? super Chain> action) throws Exception {
-    return getChain().fileSystem(path, action);
-  }
-
-  @Override
-  public GroovyChain fileSystem(String path, @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handlers) throws Exception {
-    return getChain().fileSystem(path, handlers);
-  }
-
-  @Override
-  public GroovyChain header(String headerName, String headerValue, Handler handler) {
-    return getChain().header(headerName, headerValue, handler);
-  }
-
-  @Override
-  public GroovyChain header(String headerName, String headerValue, @DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler) {
-    return getChain().header(headerName, headerValue, handler);
-  }
-
-  @Override
-  @Nullable
-  public Registry getRegistry() {
-    return getChain().getRegistry();
-  }
-
-  @Override
-  public LaunchConfig getLaunchConfig() {
-    return getChain().getLaunchConfig();
-  }
-
-  @Override
-  public Handler chain(Action<? super Chain> action) throws Exception {
-    return getChain().chain(action);
+  public GroovyChain register(Action<? super RegistrySpec> registryAction, @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler) throws Exception {
+    return getChain().register(registryAction, handler);
   }
 }

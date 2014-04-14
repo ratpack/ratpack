@@ -130,14 +130,14 @@ public interface Context extends ExecContext, Registry {
    * import ratpack.launch.LaunchConfigBuilder;
    * import ratpack.func.Factory;
    *
-   * import static ratpack.registry.Registries.registry;
+   * import static ratpack.registry.Registries.just;
    *
    * public interface SomeThing {}
    * public class SomeThingImpl implements SomeThing {}
    *
    * public class UpstreamHandler implements Handler {
    *   public void handle(Context context) {
-   *     context.next(registry(SomeThing.class, new SomeThingImpl()));
+   *     context.next(just(SomeThing.class, new SomeThingImpl()));
    *   }
    * }
    *

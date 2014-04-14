@@ -28,7 +28,7 @@ import ratpack.handling.ChainAction;
 import ratpack.launch.HandlerFactory;
 import ratpack.launch.LaunchConfig;
 
-import static ratpack.registry.Registries.registry
+import static ratpack.registry.Registries.just
 import static ratpack.handling.Handlers.chain;
 
 // The api of some business object
@@ -52,7 +52,7 @@ public class Application implements HandlerFactory {
               public void handle(Context context) {
                 String id = context.getPathTokens().get("id"); // (1)
                 Person person = new PersonImpl(id);
-                context.next(registry(Person.class, person)); // (2)
+                context.next(just(Person.class, person)); // (2)
               }
             });
             get("status", new Handler() {
@@ -129,6 +129,7 @@ import ratpack.launch.LaunchConfig;
 import ratpack.error.ServerErrorHandler;
 
 import static ratpack.handling.Handlers.chain;
+import static ratpack.registry.Registries.just;
 
 public class ApiHandlers extends ChainAction {
   protected void execute() {
@@ -160,10 +161,10 @@ public class Application implements HandlerFactory {
       protected void execute() {
         prefix("api", new ChainAction() {
           protected void execute() {
-            register(ServerErrorHandler.class, new ApiServerErrorHandler(), new ApiHandlers());
+            register(just(ServerErrorHandler.class, new ApiServerErrorHandler()), new ApiHandlers());
           }
         });
-        register(ServerErrorHandler.class, new AppServerErrorHandler(), new AppHandlers());
+        register(just(ServerErrorHandler.class, new AppServerErrorHandler()), new AppHandlers());
       }
     });
   }

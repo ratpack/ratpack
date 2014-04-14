@@ -23,7 +23,7 @@ import ratpack.registry.NotInRegistryException
 import ratpack.registry.RegistrySpecAction
 import ratpack.test.internal.RatpackGroovyDslSpec
 
-import static ratpack.registry.Registries.registry
+import static ratpack.registry.Registries.just
 
 class RegistryInsertionHandlerSpec extends RatpackGroovyDslSpec {
 
@@ -74,20 +74,7 @@ class RegistryInsertionHandlerSpec extends RatpackGroovyDslSpec {
   def "can use static register handler method that takes registry"() {
     when:
     handlers {
-      register registry(Thing, new ThingImpl("foo"))
-      handler {
-        render get(Thing).value
-      }
-    }
-
-    then:
-    text == "foo"
-  }
-
-  def "can use static register handler method that takes registry builder"() {
-    when:
-    handlers {
-      register registry().add(Thing, new ThingImpl("foo"))
+      register just(Thing, new ThingImpl("foo"))
       handler {
         render get(Thing).value
       }

@@ -16,9 +16,10 @@
 
 package ratpack.registry;
 
+import ratpack.func.Action;
+import ratpack.func.Factory;
 import ratpack.registry.internal.DefaultRegistryBuilder;
 import ratpack.registry.internal.HierarchicalRegistry;
-import ratpack.func.Factory;
 
 /**
  * Static methods for creating and building {@link ratpack.registry.Registry registries}.
@@ -29,50 +30,39 @@ public abstract class Registries {
   }
 
   /**
-   * Creates a single entry registry, using {@link RegistryBuilder#add(Class, Object)}.
+   * Adds a registry entry that is available by the given type.
    *
-   * @param publicType the public type of the entry
-   * @param implementation the entry object
-   * @param <T> the public type of the entry
-   * @return a new single entry registry
-   * @see RegistryBuilder#add(Class, Object)
+   * @param type the public type of the registry entry
+   * @param object the actual registry entry
+   * @param <O> the public type of the registry entry
+   * @return this
    */
-  public static <T> Registry registry(Class<? super T> publicType, T implementation) {
-    return registry().add(publicType, implementation).build();
+  public static <O> RegistryBuilder add(Class<? super O> type, O object) {
+    return registry().add(type, object);
   }
 
   /**
-   * Creates a single lazily created entry registry, using {@link RegistryBuilder#add(Class, Factory)}.
+   * Adds a registry entry.
    *
-   * @param publicType the public type of the entry
-   * @param factory the factory for the object
-   * @param <T> the public type of the entry
-   * @return a new single entry registry
-   * @see RegistryBuilder#add(Class, Factory)
+   * @param object the object to add to the registry
+   * @return this
    */
-  public static <T> Registry registry(Class<T> publicType, Factory<? extends T> factory) {
-    return registry().add(publicType, factory).build();
+  public static RegistryBuilder add(Object object) {
+    return registry().add(object);
   }
 
   /**
-   * Creates a single entry registry, using {@link RegistryBuilder#add(Object)}.
+   * Adds a lazily created entry to the registry.
+   * <p>
+   * The factory will be invoked exactly once, when a query is made to the registry of a compatible type of the given type.
    *
-   * @param object the entry object
-   * @return a new single entry registry
-   * @see RegistryBuilder#add(java.lang.Object)
+   * @param type the public type of the registry entry
+   * @param factory the factory for creating the object when needed
+   * @param <O> the public type of the registry entry
+   * @return this
    */
-  public static Registry registry(Object object) {
-    return registry().add(object).build();
-  }
-
-  /**
-   * Creates a new {@link RegistryBuilder registry builder}.
-   *
-   * @return a new registry builder
-   * @see RegistryBuilder
-   */
-  public static RegistryBuilder registry() {
-    return new DefaultRegistryBuilder();
+  public static <O> RegistryBuilder add(Class<O> type, Factory<? extends O> factory) {
+    return registry().add(type, factory);
   }
 
   /**
@@ -114,6 +104,67 @@ public abstract class Registries {
    */
   public static Registry join(Registry parent, Registry child) {
     return new HierarchicalRegistry(parent, child);
+  }
+
+  /**
+   * Creates a single lazily created entry registry, using {@link RegistryBuilder#add(Class, Factory)}.
+   *
+   * @param publicType the public type of the entry
+   * @param factory the factory for the object
+   * @param <T> the public type of the entry
+   * @return a new single entry registry
+   * @see RegistryBuilder#add(Class, Factory)
+   */
+  public static <T> Registry just(Class<T> publicType, Factory<? extends T> factory) {
+    return registry().add(publicType, factory).build();
+  }
+
+  /**
+   * Creates a single entry registry, using {@link RegistryBuilder#add(Object)}.
+   *
+   * @param object the entry object
+   * @return a new single entry registry
+   * @see RegistryBuilder#add(java.lang.Object)
+   */
+  public static Registry just(Object object) {
+    return registry().add(object).build();
+  }
+
+  /**
+   * Creates a single entry registry, using {@link RegistryBuilder#add(Class, Object)}.
+   *
+   * @param publicType the public type of the entry
+   * @param implementation the entry object
+   * @param <T> the public type of the entry
+   * @return a new single entry registry
+   * @see RegistryBuilder#add(Class, Object)
+   */
+  public static <T> Registry just(Class<? super T> publicType, T implementation) {
+    return registry().add(publicType, implementation).build();
+  }
+
+  /**
+   * Creates a new {@link RegistryBuilder registry builder}.
+   *
+   * @return a new registry builder
+   * @see RegistryBuilder
+   */
+  public static RegistryBuilder registry() {
+    return new DefaultRegistryBuilder();
+  }
+
+  /**
+   * Builds a registry from the given action.
+   *
+   * @param action the action that defines the registry
+   * @return a registry created by the given action
+   * @throws Exception any thrown by the action
+   * @see RegistrySpecAction
+   */
+  public static Registry registry(Action<? super RegistrySpec> action) throws Exception {
+    RegistryBuilder builder = Registries.registry();
+    action.execute(builder);
+    return builder.build();
   }
 
 }

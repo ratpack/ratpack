@@ -29,10 +29,7 @@ import ratpack.launch.LaunchConfig;
 import ratpack.path.PathBinder;
 import ratpack.path.internal.PathHandler;
 import ratpack.path.internal.TokenPathBinder;
-import ratpack.registry.Registries;
 import ratpack.registry.Registry;
-import ratpack.registry.RegistryBuilder;
-import ratpack.registry.RegistrySpec;
 
 import java.util.List;
 
@@ -47,31 +44,35 @@ public abstract class Handlers {
   }
 
   /**
-   * Creates a handler that inserts the handler chain defined by the builder, with the given service addition.
-   * <p>
-   * The service object will be available by its concrete type.
-   * To make it available by a different type (perhaps one of its interfaces) use {@link #register(Class, Object, Handler)}.
+   * A handler that delegates to the next handler if the request claims that it can accept one of the given types, otherwise raises a 406 client error.
    *
-   * @param object The object to add to the service, only for the handlers defined by {@code builder}
-   * @param handler The handler to
-   * @param <T> The concrete type of the service addition
+   * @param contentTypes The content types to verify that the request can support for the response
    * @return A handler
    */
-  public static <T> Handler register(T object, Handler handler) {
-    return new RegisteringHandler(object, handler);
+  public static Handler accepts(String... contentTypes) {
+    return new AcceptsHandler(contentTypes);
   }
 
   /**
-   * Creates a handler that inserts the handler chain defined by the builder, with the given service addition.
+   * A handler that serves static assets at the given file system path, relative to the contextual file system binding.
+   * <p>
+   * The file to serve is calculated based on the contextual {@link ratpack.file.FileSystemBinding} and the
+   * contextual {@link ratpack.path.PathBinding}.
+   * The {@link ratpack.path.PathBinding#getPastBinding()} of the contextual path binding is used to find a file/directory
+   * relative to the contextual file system binding.
+   * <p>
+   * If the request matches a directory, an index file may be served.
+   * The {@code indexFiles} array specifies the names of files to look for in order to serve.
+   * <p>
+   * If no file can be found to serve, then control will be delegated to the next handler.
    *
-   * @param type The type by which to make the service addition available
-   * @param object The object to add to the service, only for the handlers defined by {@code builder}
-   * @param handler The handler to
-   * @param <T> The concrete type of the service addition
+   * @param path The relative path to the location of the assets to serve
+   * @param indexFiles The index files to try if the request is for a directory
    * @return A handler
    */
-  public static <T> Handler register(Class<? super T> type, T object, Handler handler) {
-    return new RegisteringHandler(type, object, handler);
+  public static Handler assets(String path, List<String> indexFiles) {
+    Handler handler = new AssetHandler(copyOf(indexFiles));
+    return fileSystem(path, handler);
   }
 
   /**
@@ -132,6 +133,35 @@ public abstract class Handlers {
   }
 
   /**
+   * A handler that simply calls {@link Context#clientError(int)} with the given status code.
+   *
+   * @param statusCode The 4xx client error status code
+   * @return A handler
+   */
+  public static Handler clientError(int statusCode) {
+    return new ClientErrorForwardingHandler(statusCode);
+  }
+
+  /**
+   * A handler that delegates to the next handler if the content type of the request is one of the given types, otherwise raises a 415 client error.
+   *
+   * @param contentTypes The request content types to require
+   * @return A handler
+   */
+  public static Handler contentTypes(String... contentTypes) {
+    return new ContentTypeHandler(contentTypes);
+  }
+
+  /**
+   * A handler that delegates to the next handler if the request is DELETE, otherwise raises a 405 client error.
+   *
+   * @return A handler
+   */
+  public static Handler delete() {
+    return MethodHandler.DELETE;
+  }
+
+  /**
    * A handlers that changes the {@link ratpack.file.FileSystemBinding} for the given handlers.
    * <p>
    * The new file system binding will be created by the {@link ratpack.file.FileSystemBinding#binding(String)} method of the contextual binding.
@@ -145,25 +175,25 @@ public abstract class Handlers {
   }
 
   /**
-   * A handler that serves static assets at the given file system path, relative to the contextual file system binding.
-   * <p>
-   * The file to serve is calculated based on the contextual {@link ratpack.file.FileSystemBinding} and the
-   * contextual {@link ratpack.path.PathBinding}.
-   * The {@link ratpack.path.PathBinding#getPastBinding()} of the contextual path binding is used to find a file/directory
-   * relative to the contextual file system binding.
-   * <p>
-   * If the request matches a directory, an index file may be served.
-   * The {@code indexFiles} array specifies the names of files to look for in order to serve.
-   * <p>
-   * If no file can be found to serve, then control will be delegated to the next handler.
+   * A handler that delegates to the next handler if the request is GET, otherwise raises a 405 client error.
    *
-   * @param path The relative path to the location of the assets to serve
-   * @param indexFiles The index files to try if the request is for a directory
    * @return A handler
    */
-  public static Handler assets(String path, List<String> indexFiles) {
-    Handler handler = new AssetHandler(copyOf(indexFiles));
-    return fileSystem(path, handler);
+  public static Handler get() {
+    return MethodHandler.GET;
+  }
+
+  /**
+   * Creates a handler that delegates to the given handler if the {@code request} has a {@code HTTPHeader} with the
+   * given name and a it's value matches the given value exactly.
+   *
+   * @param headerName the name of the HTTP Header to match on
+   * @param headerValue the value of the HTTP Header to match on
+   * @param handler the handler to delegate to
+   * @return A handler
+   */
+  public static Handler header(String headerName, String headerValue, Handler handler) {
+    return new HeaderHandler(headerName, headerValue, handler);
   }
 
   /**
@@ -178,50 +208,12 @@ public abstract class Handlers {
   }
 
   /**
-   * A handler that delegates to the next handler if the request is GET, otherwise raises a 405 client error.
+   * Convenience for {@link #clientError(int) clientError(404)}.
    *
    * @return A handler
    */
-  public static Handler get() {
-    return MethodHandler.GET;
-  }
-
-  /**
-   * A handler that delegates to the next handler if the request is POST, otherwise raises a 405 client error.
-   *
-   * @return A handler
-   */
-  public static Handler post() {
-    return MethodHandler.POST;
-  }
-
-  /**
-   * A handler that delegates to the next handler if the content type of the request is one of the given types, otherwise raises a 415 client error.
-   *
-   * @param contentTypes The request content types to require
-   * @return A handler
-   */
-  public static Handler contentTypes(String... contentTypes) {
-    return new ContentTypeHandler(contentTypes);
-  }
-
-  /**
-   * A handler that delegates to the next handler if the request claims that it can accept one of the given types, otherwise raises a 406 client error.
-   *
-   * @param contentTypes The content types to verify that the request can support for the response
-   * @return A handler
-   */
-  public static Handler accepts(String... contentTypes) {
-    return new AcceptsHandler(contentTypes);
-  }
-
-  /**
-   * A handler that delegates to the next handler if the request is PUT, otherwise raises a 405 client error.
-   *
-   * @return A handler
-   */
-  public static Handler put() {
-    return MethodHandler.PUT;
+  public static Handler notFound() {
+    return ClientErrorForwardingHandler.NOT_FOUND;
   }
 
   /**
@@ -231,31 +223,6 @@ public abstract class Handlers {
    */
   public static Handler patch() {
     return MethodHandler.PATCH;
-  }
-
-  /**
-   * A handler that delegates to the next handler if the request is DELETE, otherwise raises a 405 client error.
-   *
-   * @return A handler
-   */
-  public static Handler delete() {
-    return MethodHandler.DELETE;
-  }
-
-  /**
-   * Creates a handler that delegates to the given handlers if the request path starts with the given prefix.
-   * <p>
-   * The {@code prefix} is relative to the contextual {@link ratpack.path.PathBinding} of the exchange.
-   * <p>
-   * A new contextual {@link ratpack.path.PathBinding} will be established for the given handlers,
-   * using the given prefix as the bind point.
-   *
-   * @param prefix The path prefix to match
-   * @param handler The handler to delegate to
-   * @return A handler
-   */
-  public static Handler prefix(String prefix, Handler handler) {
-    return path(new TokenPathBinder(prefix, false), handler);
   }
 
   /**
@@ -286,70 +253,59 @@ public abstract class Handlers {
   }
 
   /**
-   * Creates a handler that delegates to the given handler if the {@code request} has a {@code HTTPHeader} with the
-   * given name and a it's value matches the given value exactly.
-   *
-   * @param headerName the name of the HTTP Header to match on
-   * @param headerValue the value of the HTTP Header to match on
-   * @param handler the handler to delegate to
-   * @return A handler
-   */
-  public static Handler header(String headerName, String headerValue, Handler handler) {
-    return new HeaderHandler(headerName, headerValue, handler);
-  }
-
-  /**
-   * A handler that simply calls {@link Context#clientError(int)} with the given status code.
-   *
-   * @param statusCode The 4xx client error status code
-   * @return A handler
-   */
-  public static Handler clientError(int statusCode) {
-    return new ClientErrorForwardingHandler(statusCode);
-  }
-
-  /**
-   * Convenience for {@link #clientError(int) clientError(404)}.
+   * A handler that delegates to the next handler if the request is POST, otherwise raises a 405 client error.
    *
    * @return A handler
    */
-  public static Handler notFound() {
-    return ClientErrorForwardingHandler.NOT_FOUND;
+  public static Handler post() {
+    return MethodHandler.POST;
   }
 
   /**
-   * A handler that simply calls {@link Context#next(ratpack.registry.Registry)} with the given registry.
+   * Creates a handler that delegates to the given handlers if the request path starts with the given prefix.
+   * <p>
+   * The {@code prefix} is relative to the contextual {@link ratpack.path.PathBinding} of the exchange.
+   * <p>
+   * A new contextual {@link ratpack.path.PathBinding} will be established for the given handlers,
+   * using the given prefix as the bind point.
+   *
+   * @param prefix The path prefix to match
+   * @param handler The handler to delegate to
+   * @return A handler
+   */
+  public static Handler prefix(String prefix, Handler handler) {
+    return path(new TokenPathBinder(prefix, false), handler);
+  }
+
+  /**
+   * A handler that delegates to the next handler if the request is PUT, otherwise raises a 405 client error.
+   *
+   * @return A handler
+   */
+  public static Handler put() {
+    return MethodHandler.PUT;
+  }
+
+  /**
+   * A handler that simply calls {@link Context#insert(Registry, Handler...)} with the given registry and handler.
+   *
+   * @param registry the registry to insert
+   * @param handler The handler to insert
+   * @return A handler
+   */
+  public static Handler register(Registry registry, Handler handler) {
+    return new RegistryInsertHandler(registry, handler);
+  }
+
+  /**
+   * A handler that simply calls {@link Context#next(Registry)} with the given registry.
    *
    * @param registry The registry to make available to the next handlers
    * @return A handler
-   * @see Context#next(ratpack.registry.Registry)
+   * @see Context#next(Registry)
    */
   public static Handler register(Registry registry) {
-    return new RegisterForNextHandler(registry);
-  }
-
-  /**
-   * Returns the result of calling {@link #register(ratpack.registry.Registry)} with the result of {@link RegistryBuilder#build()} of the argument.
-   *
-   * @param registryBuilder a registry builder that builds a registry to make available to the next handlers
-   * @return A handler
-   * @see #register(ratpack.registry.Registry)
-   */
-  public static Handler register(RegistryBuilder registryBuilder) {
-    return register(registryBuilder.build());
-  }
-
-  /**
-   * Creates a handler by calling {@link #register(ratpack.registry.Registry)} with registry defined by the given action.
-   *
-   * @param action the definition of the registry to add
-   * @return A handler
-   * @see Context#next(ratpack.registry.Registry)
-   */
-  public static Handler register(Action<? super RegistrySpec> action) throws Exception {
-    RegistryBuilder builder = Registries.registry();
-    action.execute(builder);
-    return builder.size() == 0 ? next() : register(builder.build());
+    return new RegistryNextHandler(registry);
   }
 
 }

@@ -19,6 +19,8 @@ package ratpack.handling
 import ratpack.exec.ExecController
 import ratpack.test.internal.RatpackGroovyDslSpec
 
+import static ratpack.registry.Registries.just
+
 /**
  * Tests that ExecController.getContext() supplies the right value during request processing.
  */
@@ -37,12 +39,12 @@ class ExecContextBindingSpec extends RatpackGroovyDslSpec {
         controller = context.execController
         next()
       }
-      register(new Thing(value: "1")) {
+      register(just(new Thing(value: "1"))) {
         handler {
           response.headers.set("L1", controller.context.get(Thing).value)
           next()
         }
-        register(new Thing(value: "2")) {
+        register(just(new Thing(value: "2"))) {
           handler {
             background {
               response.headers.set("L2", controller.context.get(Thing).value)
@@ -51,7 +53,7 @@ class ExecContextBindingSpec extends RatpackGroovyDslSpec {
             }
           }
         }
-        register(new Thing(value: "3")) {
+        register(just(new Thing(value: "3"))) {
           get {
             render controller.context.get(Thing).value
           }

@@ -22,8 +22,8 @@ import ratpack.handling.Chain;
 import ratpack.handling.Handler;
 import ratpack.handling.Handlers;
 import ratpack.launch.LaunchConfig;
+import ratpack.registry.Registries;
 import ratpack.registry.Registry;
-import ratpack.registry.RegistryBuilder;
 import ratpack.registry.RegistrySpec;
 
 import java.util.List;
@@ -42,12 +42,45 @@ public class DefaultChain implements Chain {
     this.registry = registry;
   }
 
-  public Registry getRegistry() {
-    return registry;
+  public Chain assets(String path, String... indexFiles) {
+    return handler(Handlers.assets(path, indexFiles.length == 0 ? launchConfig.getIndexFiles() : copyOf(indexFiles)));
+  }
+
+  @Override
+  public Handler chain(Action<? super Chain> action) throws Exception {
+    return Handlers.chain(getLaunchConfig(), getRegistry(), action);
+  }
+
+  public Chain delete(String path, Handler handler) {
+    return handler(Handlers.path(path, Handlers.chain(Handlers.delete(), handler)));
+  }
+
+  public Chain delete(Handler handler) {
+    return delete("", handler);
+  }
+
+  public Chain fileSystem(String path, Handler handler) {
+    return handler(Handlers.fileSystem(path, handler));
+  }
+
+  public Chain fileSystem(String path, Action<? super Chain> action) throws Exception {
+    return handler(Handlers.fileSystem(path, chain(action)));
+  }
+
+  public Chain get(String path, Handler handler) {
+    return handler(Handlers.path(path, Handlers.chain(Handlers.get(), handler)));
+  }
+
+  public Chain get(Handler handler) {
+    return get("", handler);
   }
 
   public LaunchConfig getLaunchConfig() {
     return launchConfig;
+  }
+
+  public Registry getRegistry() {
+    return registry;
   }
 
   public Chain handler(Handler handler) {
@@ -59,50 +92,8 @@ public class DefaultChain implements Chain {
     return handler(Handlers.path(path, handler));
   }
 
-  public Chain prefix(String prefix, Handler handler) {
-    return handler(Handlers.prefix(prefix, handler));
-  }
-
-  public Chain prefix(String prefix, Action<? super Chain> action) throws Exception {
-    return prefix(prefix, chain(action));
-  }
-
-  @Override
-  public Chain register(Registry registry) {
-    return handler(Handlers.register(registry));
-  }
-
-  public Chain register(RegistryBuilder registryBuilder) {
-    return handler(Handlers.register(registryBuilder));
-  }
-
-  @Override
-  public Chain register(Action<? super RegistrySpec> action) throws Exception {
-    return handler(Handlers.register(action));
-  }
-
-  public Chain get(String path, Handler handler) {
-    return handler(Handlers.path(path, Handlers.chain(Handlers.get(), handler)));
-  }
-
-  public Chain get(Handler handler) {
-    return get("", handler);
-  }
-
-  public Chain post(String path, Handler handler) {
-    return handler(Handlers.path(path, Handlers.chain(Handlers.post(), handler)));
-  }
-
-  public Chain post(Handler handler) {
-    return post("", handler);
-  }
-
-  public Chain put(String path, Handler handler) {
-    return handler(Handlers.path(path, Handlers.chain(Handlers.put(), handler)));
-  }
-
-  public Chain put(Handler handler) {
-    return put("", handler);
+  public Chain header(String headerName, String headerValue, Handler handler) {
+    return handler(Handlers.header(headerName, headerValue, handler));
   }
 
   public Chain patch(String path, Handler handler) {
@@ -113,49 +104,55 @@ public class DefaultChain implements Chain {
     return patch("", handler);
   }
 
-  public Chain delete(String path, Handler handler) {
-    return handler(Handlers.path(path, Handlers.chain(Handlers.delete(), handler)));
+  public Chain post(String path, Handler handler) {
+    return handler(Handlers.path(path, Handlers.chain(Handlers.post(), handler)));
   }
 
-  public Chain delete(Handler handler) {
-    return delete("", handler);
+  public Chain post(Handler handler) {
+    return post("", handler);
   }
 
-  public Chain assets(String path, String... indexFiles) {
-    return handler(Handlers.assets(path, indexFiles.length == 0 ? launchConfig.getIndexFiles() : copyOf(indexFiles)));
+  public Chain prefix(String prefix, Handler handler) {
+    return handler(Handlers.prefix(prefix, handler));
   }
 
-  public Chain register(Object service, Handler handler) {
-    return handler(Handlers.register(service, handler));
+  public Chain prefix(String prefix, Action<? super Chain> action) throws Exception {
+    return prefix(prefix, chain(action));
   }
 
-  public Chain register(Object service, Action<? super Chain> action) throws Exception {
-    return register(service, chain(action));
+  public Chain put(String path, Handler handler) {
+    return handler(Handlers.path(path, Handlers.chain(Handlers.put(), handler)));
   }
 
-  public <T> Chain register(Class<? super T> type, T service, Handler handler) {
-    return handler(Handlers.register(type, service, handler));
-  }
-
-  public <T> Chain register(Class<? super T> type, T service, Action<? super Chain> action) throws Exception {
-    return register(type, service, chain(action));
-  }
-
-  public Chain fileSystem(String path, Handler handler) {
-    return handler(Handlers.fileSystem(path, handler));
-  }
-
-  public Chain fileSystem(String path, Action<? super Chain> action) throws Exception {
-    return handler(Handlers.fileSystem(path, chain(action)));
-  }
-
-  public Chain header(String headerName, String headerValue, Handler handler) {
-    return handler(Handlers.header(headerName, headerValue, handler));
+  public Chain put(Handler handler) {
+    return put("", handler);
   }
 
   @Override
-  public Handler chain(Action<? super Chain> action) throws Exception {
-    return Handlers.chain(getLaunchConfig(), getRegistry(), action);
+  public Chain register(Registry registry) {
+    return handler(Handlers.register(registry));
   }
 
+  @Override
+  public Chain register(Action<? super RegistrySpec> action) throws Exception {
+    return handler(Handlers.register(Registries.registry(action)));
+  }
+
+  public Chain register(Registry registry, Handler handler) {
+    return handler(Handlers.register(registry, handler));
+  }
+
+  public Chain register(Action<? super RegistrySpec> registryAction, Action<? super Chain> chainAction) throws Exception {
+    return register(Registries.registry(registryAction), chainAction);
+  }
+
+  @Override
+  public Chain register(Registry registry, Action<? super Chain> action) throws Exception {
+    return register(registry, chain(action));
+  }
+
+  @Override
+  public Chain register(Action<? super RegistrySpec> registryAction, Handler handler) throws Exception {
+    return register(Registries.registry(registryAction), handler);
+  }
 }

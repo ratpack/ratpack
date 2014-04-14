@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,24 +20,17 @@ import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.registry.Registry;
 
-import static ratpack.registry.Registries.registry;
+public class RegistryNextHandler implements Handler {
 
-public class RegisteringHandler implements Handler {
-
-  private final Handler handler;
   private final Registry registry;
 
-  public <T> RegisteringHandler(T object, Handler handler) {
-    this.handler = handler;
-    this.registry = registry(object);
+  public RegistryNextHandler(Registry registry) {
+    this.registry = registry;
   }
 
-  public <T> RegisteringHandler(Class<? super T> type, T object, Handler handler) {
-    this.handler = handler;
-    this.registry = registry(type, object);
+  @Override
+  public void handle(Context context) throws Exception {
+    context.next(registry);
   }
 
-  public void handle(Context context) {
-    context.insert(registry, handler);
-  }
 }
