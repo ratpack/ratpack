@@ -32,7 +32,7 @@ import java.util.Map;
 /**
  * Adapts a {@link ratpack.handling.Context} object to be usable as a {@link org.pac4j.core.context.WebContext}.
  */
-class RatpackWebContext implements WebContext {
+public class RatpackWebContext implements WebContext {
   private final Context context;
   private boolean responseSent;
   private String responseContent = "";
@@ -42,7 +42,7 @@ class RatpackWebContext implements WebContext {
    *
    * @param context The context to adapt
    */
-  RatpackWebContext(Context context) {
+  public RatpackWebContext(Context context) {
     this.context = context;
   }
 
@@ -127,7 +127,7 @@ class RatpackWebContext implements WebContext {
     responseSent = true;
   }
 
-  void sendResponse(RequiresHttpAction action) {
+  public void sendResponse(RequiresHttpAction action) {
     context.getResponse().status(action.getCode(), action.getMessage());
     sendResponse();
   }
@@ -135,7 +135,7 @@ class RatpackWebContext implements WebContext {
   /**
    * Sends any pending response.
    */
-  void sendResponse() {
+  public void sendResponse() {
     if (!responseSent) {
       context.getResponse().send(MediaType.TEXT_HTML, responseContent);
       responseSent = true;
