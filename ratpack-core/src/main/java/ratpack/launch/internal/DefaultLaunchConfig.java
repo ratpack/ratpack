@@ -167,7 +167,7 @@ public class DefaultLaunchConfig implements LaunchConfig {
   }
 
   @Override
-  public boolean hasBaseDir() {
+  public boolean isHasBaseDir() {
     return baseDir != null;
   }
 

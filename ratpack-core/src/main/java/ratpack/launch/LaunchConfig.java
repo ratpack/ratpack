@@ -190,6 +190,6 @@ public interface LaunchConfig {
    *
    * @return whether or not the base dir of the application has been set.
    */
-  public boolean hasBaseDir();
+  public boolean isHasBaseDir();
 
 }

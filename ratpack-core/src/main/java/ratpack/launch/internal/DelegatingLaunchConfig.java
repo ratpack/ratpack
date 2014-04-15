@@ -120,8 +120,8 @@ public class DelegatingLaunchConfig implements LaunchConfig {
   }
 
   @Override
-  public boolean hasBaseDir() {
-    return launchConfig.hasBaseDir();
+  public boolean isHasBaseDir() {
+    return launchConfig.isHasBaseDir();
   }
 
 }

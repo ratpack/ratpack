@@ -214,7 +214,7 @@ public class MockLaunchConfig implements LaunchConfig {
    * @return false
    */
   @Override
-  public boolean hasBaseDir() {
+  public boolean isHasBaseDir() {
     return false;
   }
 

@@ -96,7 +96,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
       .add(FormParser.class, FormParser.multiPart())
       .add(FormParser.class, FormParser.urlEncoded());
 
-    if (launchConfig.hasBaseDir()) {
+    if (launchConfig.isHasBaseDir()) {
       registryBuilder.add(FileSystemBinding.class, launchConfig.getBaseDir());
     }
 

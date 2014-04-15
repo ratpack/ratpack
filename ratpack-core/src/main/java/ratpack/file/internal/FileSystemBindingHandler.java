@@ -29,7 +29,7 @@ public class FileSystemBindingHandler implements Handler {
   private final Handler handler;
 
   public FileSystemBindingHandler(LaunchConfig launchConfig, String path, Handler handler) {
-    if (launchConfig.hasBaseDir()) {
+    if (launchConfig.isHasBaseDir()) {
       this.path = path;
       this.handler = handler;
     } else {
