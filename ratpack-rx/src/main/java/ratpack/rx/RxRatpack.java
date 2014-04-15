@@ -16,13 +16,18 @@
 
 package ratpack.rx;
 
-import ratpack.func.Action;
+import ratpack.exec.ExecContext;
+import ratpack.exec.ExecException;
 import ratpack.exec.SuccessOrErrorPromise;
+import ratpack.func.Action;
 import ratpack.util.ExceptionUtils;
 import rx.Observable;
 import rx.Subscriber;
 import rx.exceptions.OnErrorNotImplementedException;
+import rx.functions.Action1;
 import rx.functions.Action2;
+
+import static ratpack.util.ExceptionUtils.toException;
 
 /**
  * Provides static access Rx helper functions.
@@ -62,6 +67,76 @@ public abstract class RxRatpack {
         }
       }
     }));
+  }
+
+  /**
+   * An error handler suitable for use with {@link Observable#subscribe(Action1, Action1)}.
+   * <pre class="tested">
+   * import ratpack.handling.*;
+   * import ratpack.func.Action;
+   * import rx.Observable;
+   * import rx.functions.Action1;
+   *
+   * import java.util.concurrent.Callable;
+   *
+   * import static ratpack.rx.RxRatpack.errorHandler;
+   *
+   * public class RenderAction implements Action1&lt;String&gt; {
+   *   private final Context context;
+   *
+   *   public RenderAction(Context context) {
+   *     this.context = context;
+   *   }
+   *
+   *   public void call(String string) {
+   *     context.render(string);
+   *   }
+   * }
+   *
+   * public class TheHandler implements Handler {
+   *   void handle(final Context context) {
+   *     Observable.&lt;String&gt;error(new Exception("bang!")).subscribe(new RenderAction(context), errorHandler(context));
+   *   }
+   * }
+   *
+   * // Test (Groovy) &hellip;
+   *
+   * import ratpack.test.embed.PathBaseDirBuilder
+   * import ratpack.groovy.test.TestHttpClients
+   * import ratpack.error.ServerErrorHandler
+   * import ratpack.error.DebugErrorHandler
+   * import static ratpack.groovy.test.embed.EmbeddedApplications.embeddedApp
+   * import static ratpack.registry.Registries.just
+   *
+   * def app = embeddedApp {
+   *   handlers {
+   *     register just(ServerErrorHandler, { Context context, Exception error -> context.render("error!") } as ServerErrorHandler)
+   *     get("errorHandler", new TheHandler())
+   *   }
+   * }
+   *
+   * def client = TestHttpClients.testHttpClient(app)
+   *
+   * assert client.getText("errorHandler") == "error!"
+   *
+   * app.close()
+   * </pre>
+   *
+   * @param context the exec context
+   * @return an error handler
+   */
+  public static Action1<Throwable> errorHandler(final ExecContext context) {
+    return new Action1<Throwable>() {
+      @Override
+      public void call(Throwable throwable) {
+        if (throwable instanceof ExecException) {
+          ExecException execException = (ExecException) throwable;
+          execException.getContext().error(toException(execException.getCause()));
+        } else {
+          context.error(toException(throwable));
+        }
+      }
+    };
   }
 
   private static class PromiseSubscribe<T, S> implements Observable.OnSubscribe<S> {
