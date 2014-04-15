@@ -20,8 +20,6 @@ import com.google.common.util.concurrent.*;
 import io.netty.channel.EventLoopGroup;
 import ratpack.exec.*;
 import ratpack.func.Action;
-import ratpack.handling.Context;
-import ratpack.handling.internal.HandlerException;
 import ratpack.handling.internal.InterceptedOperation;
 import ratpack.util.ExceptionUtils;
 
@@ -92,8 +90,9 @@ public class DefaultExecController implements ExecController {
       }.run();
 
     } catch (Exception e) {
-      if (e instanceof HandlerException) {
-        Context context = ((HandlerException) e).getContext();
+      if (e instanceof ExecException) {
+        ExecContext context = ((ExecException) e).getContext();
+        // TODO - need to deal with fatal Errors here (e.g. out of memory)
         context.error(ExceptionUtils.toException(e.getCause()));
       } else {
         getContext().error(e);

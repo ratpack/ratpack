@@ -25,7 +25,6 @@ import ratpack.error.ClientErrorHandler;
 import ratpack.error.ServerErrorHandler;
 import ratpack.error.internal.DefaultClientErrorHandler;
 import ratpack.error.internal.DefaultServerErrorHandler;
-import ratpack.error.internal.ErrorCatchingHandler;
 import ratpack.event.internal.DefaultEventController;
 import ratpack.exec.ExecContext;
 import ratpack.exec.ExecController;
@@ -81,7 +80,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
   private final boolean compressResponses;
 
   public NettyHandlerAdapter(Stopper stopper, Handler handler, LaunchConfig launchConfig) {
-    this.handlers = new Handler[]{new ErrorCatchingHandler(handler)};
+    this.handlers = new Handler[]{handler};
     this.return404 = Handlers.notFound();
     RegistryBuilder registryBuilder = Registries.registry()
       // If you update this list, update the class level javadoc on Context.

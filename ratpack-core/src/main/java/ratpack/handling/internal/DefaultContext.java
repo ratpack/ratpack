@@ -20,9 +20,7 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 import ratpack.error.ClientErrorHandler;
 import ratpack.error.ServerErrorHandler;
 import ratpack.event.internal.EventRegistry;
-import ratpack.exec.ExecContext;
-import ratpack.exec.ExecController;
-import ratpack.exec.ExecInterceptor;
+import ratpack.exec.*;
 import ratpack.exec.internal.AbstractExecContext;
 import ratpack.file.FileSystemBinding;
 import ratpack.func.Action;
@@ -45,7 +43,6 @@ import ratpack.render.NoSuchRendererException;
 import ratpack.render.internal.RenderController;
 import ratpack.server.BindAddress;
 import ratpack.util.ExceptionUtils;
-import ratpack.exec.Result;
 import ratpack.util.ResultAction;
 
 import java.io.PrintWriter;
@@ -204,8 +201,8 @@ public class DefaultContext extends AbstractExecContext implements Context {
   public void respond(Handler handler) {
     try {
       handler.handle(this);
-    } catch (Exception e) {
-      dispatchException(e);
+    } catch (Throwable e) {
+      throw ExecException.wrap(this, e);
     }
   }
 
@@ -351,24 +348,16 @@ public class DefaultContext extends AbstractExecContext implements Context {
   public void clientError(int statusCode) {
     try {
       get(ClientErrorHandler.class).error(this, statusCode);
-    } catch (Exception e) {
-      dispatchException(e);
+    } catch (Throwable e) {
+      throw ExecException.wrap(this, e);
     }
   }
 
   public void withErrorHandling(Runnable runnable) {
     try {
       runnable.run();
-    } catch (Exception e) {
-      dispatchException(e);
-    }
-  }
-
-  private void dispatchException(Exception e) {
-    if (e instanceof HandlerException) {
-      ((HandlerException) e).getContext().error((Exception) e.getCause());
-    } else {
-      error(e);
+    } catch (Throwable e) {
+      throw ExecException.wrap(this, e);
     }
   }
 
@@ -378,12 +367,12 @@ public class DefaultContext extends AbstractExecContext implements Context {
       @Override
       public void execute(Result<T> result) {
         if (result.isFailure()) {
-          dispatchException(ExceptionUtils.toException(result.getFailure()));
+          throw ExecException.wrap(DefaultContext.this, result.getFailure());
         } else {
           try {
             action.execute(result.getValue());
-          } catch (Exception e) {
-            dispatchException(e);
+          } catch (Throwable e) {
+            throw ExecException.wrap(DefaultContext.this, e);
           }
         }
       }
@@ -412,12 +401,8 @@ public class DefaultContext extends AbstractExecContext implements Context {
 
     try {
       handler.handle(context);
-    } catch (Exception e) {
-      if (e instanceof HandlerException) {
-        throw (HandlerException) e;
-      } else {
-        throw new HandlerException(context, e);
-      }
+    } catch (Throwable e) {
+      throw ExecException.wrap(context, e);
     }
   }
 
