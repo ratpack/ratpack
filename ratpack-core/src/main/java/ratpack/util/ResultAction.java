@@ -16,6 +16,7 @@
 
 package ratpack.util;
 
+import ratpack.exec.Result;
 import ratpack.func.Action;
 
 /**

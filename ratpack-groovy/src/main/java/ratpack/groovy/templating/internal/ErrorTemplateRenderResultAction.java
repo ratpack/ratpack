@@ -17,9 +17,9 @@
 package ratpack.groovy.templating.internal;
 
 import io.netty.buffer.ByteBuf;
-import ratpack.handling.Context;
+import ratpack.exec.Result;
 import ratpack.func.Action;
-import ratpack.util.Result;
+import ratpack.handling.Context;
 import ratpack.util.ResultAction;
 
 import java.io.PrintWriter;
@@ -50,7 +50,7 @@ class ErrorTemplateRenderResultAction implements ResultAction<ByteBuf> {
       errorMsgProducer.execute(printWriter);
 
       @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
-      Exception failure = thing.getFailure();
+      Throwable failure = thing.getFailure();
       failure.printStackTrace(printWriter);
 
       LOGGER.warning(stringWriter.toString());

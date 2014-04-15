@@ -45,7 +45,7 @@ import ratpack.render.NoSuchRendererException;
 import ratpack.render.internal.RenderController;
 import ratpack.server.BindAddress;
 import ratpack.util.ExceptionUtils;
-import ratpack.util.Result;
+import ratpack.exec.Result;
 import ratpack.util.ResultAction;
 
 import java.io.PrintWriter;
@@ -378,7 +378,7 @@ public class DefaultContext extends AbstractExecContext implements Context {
       @Override
       public void execute(Result<T> result) {
         if (result.isFailure()) {
-          dispatchException(result.getFailure());
+          dispatchException(ExceptionUtils.toException(result.getFailure()));
         } else {
           try {
             action.execute(result.getValue());

@@ -26,7 +26,7 @@ import ratpack.groovy.script.internal.ScriptEngine;
 import ratpack.groovy.templating.TemplatingConfig;
 import ratpack.launch.LaunchConfig;
 import ratpack.func.Action;
-import ratpack.util.Result;
+import ratpack.exec.Result;
 import ratpack.func.Transformer;
 
 import javax.inject.Inject;
@@ -51,6 +51,7 @@ public class GroovyTemplateRenderingEngine {
 
     ScriptEngine<DefaultTemplateScript> scriptEngine = new ScriptEngine<>(getClass().getClassLoader(), templatingConfig.isStaticallyCompile(), DefaultTemplateScript.class);
     templateCompiler = new TemplateCompiler(scriptEngine, byteBufAllocator);
+    //noinspection NullableProblems
     this.compiledTemplateCache = CacheBuilder.newBuilder().maximumSize(templatingConfig.getCacheSize()).build(new CacheLoader<TemplateSource, CompiledTemplate>() {
       @Override
       public CompiledTemplate load(TemplateSource templateSource) throws Exception {
@@ -98,7 +99,7 @@ public class GroovyTemplateRenderingEngine {
         }
       });
     } catch (Exception e) {
-      handler.execute(new Result<ByteBuf>(e));
+      handler.execute(Result.<ByteBuf>failure(e));
     }
   }
 

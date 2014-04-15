@@ -14,45 +14,25 @@
  * limitations under the License.
  */
 
-package ratpack.util
+package ratpack.groovy.test.internal
 
 import ratpack.test.internal.RatpackGroovyDslSpec
-import spock.lang.Ignore
 
-@Ignore
-class ResultSpec extends RatpackGroovyDslSpec {
+class BlockingHttpClientSpec extends RatpackGroovyDslSpec {
 
-  def "can block on a promise"() {
+  def "can use blocking http client"() {
     when:
     handlers {
       get {
-        def promise = promise { f ->
-          Thread.start { f.success("foo") }
-        }
-
-        def result = Result.from(promise)
-        render result.value
+        render "ok"
       }
     }
 
-    then:
-    text == "foo"
-  }
-
-  def "can block on a failed promise"() {
-    when:
-    handlers {
-      get {
-        def promise = promise { f ->
-          Thread.start { f.error(new Exception("!")) }
-        }
-
-        def result = Result.from(promise)
-        render result.getFailure().message
-      }
-    }
+    and:
+    def client = new BlockingHttpClient()
 
     then:
-    text == "!"
+    client.request(applicationUnderTest.address.toString(), {}).body.text == "ok"
   }
+
 }

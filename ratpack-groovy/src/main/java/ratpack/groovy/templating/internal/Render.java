@@ -20,8 +20,8 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
+import ratpack.exec.Result;
 import ratpack.func.Action;
-import ratpack.util.Result;
 import ratpack.func.Transformer;
 
 import java.util.HashMap;
@@ -45,12 +45,11 @@ public class Render {
     try {
       execute(getFromCache(compiledTemplateCache, templateSource), model, byteBuf);
     } catch (Exception e) {
-      handler.execute(new Result<ByteBuf>(e));
+      handler.execute(Result.<ByteBuf>failure(e));
       return;
     }
 
-    //noinspection Convert2Diamond
-    handler.execute(new Result<ByteBuf>(byteBuf));
+    handler.execute(Result.success(byteBuf));
   }
 
   private CompiledTemplate getFromCache(LoadingCache<TemplateSource, CompiledTemplate> compiledTemplateCache, TemplateSource templateSource) {
