@@ -77,7 +77,7 @@ public interface ExecContext {
 
   LaunchConfig getLaunchConfig();
 
-  <T> SuccessOrErrorPromise<T> background(Callable<T> backgroundOperation);
+  <T> SuccessOrErrorPromise<T> blocking(Callable<T> blockingOperation);
 
   <T> SuccessOrErrorPromise<T> promise(Action<? super Fulfiller<T>> action);
 

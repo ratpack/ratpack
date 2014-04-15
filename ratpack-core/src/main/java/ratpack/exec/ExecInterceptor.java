@@ -100,7 +100,7 @@ package ratpack.exec;
  *     }
  *     get {
  *       sleep 100
- *       background {
+ *       blocking {
  *         sleep 100
  *       } then {
  *         def timer = request.get(Timer)

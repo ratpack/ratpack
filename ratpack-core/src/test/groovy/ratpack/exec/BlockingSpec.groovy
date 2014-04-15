@@ -28,7 +28,7 @@ class BlockingSpec extends RatpackGroovyDslSpec {
     handlers {
       get {
         steps << "start"
-        background {
+        blocking {
           sleep 300
           steps << "operation"
           2
@@ -52,7 +52,7 @@ class BlockingSpec extends RatpackGroovyDslSpec {
     }
     handlers {
       get {
-        background {
+        blocking {
           sleep 300
           throw new Exception("!")
         } then {
@@ -70,7 +70,7 @@ class BlockingSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       get {
-        background {
+        blocking {
           sleep 300
           throw new Exception("!")
         } onError {
@@ -93,7 +93,7 @@ class BlockingSpec extends RatpackGroovyDslSpec {
     }
     handlers {
       get {
-        background {
+        blocking {
           throw new Exception("!")
         } onError { Throwable t ->
           throw new Exception("!!", t)
@@ -115,7 +115,7 @@ class BlockingSpec extends RatpackGroovyDslSpec {
     }
     handlers {
       get {
-        background {
+        blocking {
           1
         } onError {
           throw new Exception("!")
@@ -138,7 +138,7 @@ class BlockingSpec extends RatpackGroovyDslSpec {
     handlers {
       get {
         //noinspection GroovyAssignabilityCheck
-        background {
+        blocking {
           1
         } then { List<String> result ->
           response.send("unexpected")
@@ -159,7 +159,7 @@ class BlockingSpec extends RatpackGroovyDslSpec {
     handlers {
       get {
         //noinspection GroovyAssignabilityCheck
-        background {
+        blocking {
           throw new Exception("!")
         } onError { String string ->
           response.send("unexpected")
@@ -178,7 +178,7 @@ class BlockingSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       handler {
-        background {
+        blocking {
           [foo: "bar"]
         } then {
           response.send it.toString()
@@ -190,11 +190,11 @@ class BlockingSpec extends RatpackGroovyDslSpec {
     getText() == [foo: "bar"].toString()
   }
 
-  def "can read request body in background"() {
+  def "can read request body in blocking operation"() {
     when:
     handlers {
       handler {
-        background {
+        blocking {
           sleep 1000 // allow the original compute thread to finish, Netty will reclaim the buffer
           request.body.text
         } then {
@@ -208,7 +208,7 @@ class BlockingSpec extends RatpackGroovyDslSpec {
     postText() == "foo"
   }
 
-  def "background processing does not start until compute processing has unwound"() {
+  def "blocking processing does not start until compute processing has unwound"() {
     given:
     def events = []
 
@@ -219,10 +219,10 @@ class BlockingSpec extends RatpackGroovyDslSpec {
         events << "compute"
       }
       handler {
-        background {
+        blocking {
           events << "blocking"
         } then {
-          background {
+          blocking {
             events << "inner blocking"
           } then {
             render "ok"

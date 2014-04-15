@@ -51,7 +51,7 @@ class ResponseTimeSpec extends RatpackGroovyDslSpec {
     }
   }
 
-  def "does contain response time header when background used"() {
+  def "does contain response time header when blocking operation used"() {
     given:
     launchConfig {
       timeResponses true
@@ -60,7 +60,7 @@ class ResponseTimeSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       handler {
-        background { sleep 100 } then { response.send() }
+        blocking { sleep 100 } then { response.send() }
       }
     }
 

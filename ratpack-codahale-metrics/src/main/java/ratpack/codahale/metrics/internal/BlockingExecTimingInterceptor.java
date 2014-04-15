@@ -21,12 +21,12 @@ import com.codahale.metrics.Timer;
 import ratpack.exec.ExecInterceptor;
 import ratpack.http.Request;
 
-public class BackgroundExecTimingInterceptor implements ExecInterceptor {
+public class BlockingExecTimingInterceptor implements ExecInterceptor {
 
   private final MetricRegistry metricRegistry;
   private final Request request;
 
-  public BackgroundExecTimingInterceptor(MetricRegistry metricRegistry, Request request) {
+  public BlockingExecTimingInterceptor(MetricRegistry metricRegistry, Request request) {
     this.metricRegistry = metricRegistry;
     this.request = request;
   }
@@ -34,7 +34,7 @@ public class BackgroundExecTimingInterceptor implements ExecInterceptor {
   @Override
   public void intercept(ExecType type, Runnable continuation) {
     if (type == ExecType.BLOCKING) {
-      String tag = buildBackgroundTimerTag(request.getUri(), request.getMethod().getName());
+      String tag = buildBlockingTimerTag(request.getUri(), request.getMethod().getName());
       Timer.Context timer = metricRegistry.timer(tag).time();
       continuation.run();
       timer.stop();
@@ -43,8 +43,8 @@ public class BackgroundExecTimingInterceptor implements ExecInterceptor {
     }
   }
 
-  private String buildBackgroundTimerTag(String requestUri, String requestMethod) {
-    return (requestUri.equals("/") ? "[root" : requestUri.replaceFirst("/", "[").replace("/", "][")) + "]~" + requestMethod + "~Background";
+  private String buildBlockingTimerTag(String requestUri, String requestMethod) {
+    return (requestUri.equals("/") ? "[root" : requestUri.replaceFirst("/", "[").replace("/", "][")) + "]~" + requestMethod + "~Blocking";
   }
 
 }

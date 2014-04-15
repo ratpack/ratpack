@@ -61,9 +61,9 @@ public class RequestTimingHandler implements Handler {
   public void handle(final Context context) throws Exception {
     final MetricRegistry metricRegistry = context.get(MetricRegistry.class);
     final Request request = context.getRequest();
-    BackgroundExecTimingInterceptor backgroundExecTimingInterceptor = new BackgroundExecTimingInterceptor(metricRegistry, request);
+    BlockingExecTimingInterceptor blockingExecTimingInterceptor = new BlockingExecTimingInterceptor(metricRegistry, request);
 
-    context.addExecInterceptor(backgroundExecTimingInterceptor, new Action<Context>() {
+    context.addExecInterceptor(blockingExecTimingInterceptor, new Action<Context>() {
       @Override
       public void execute(Context context) throws Exception {
         String tag = buildRequestTimerTag(request.getUri(), request.getMethod().getName());

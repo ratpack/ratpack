@@ -232,14 +232,14 @@ public interface Context extends ExecContext, Registry {
   void error(Exception exception) throws NotInRegistryException;
 
   /**
-   * Execute the given operation in the background, returning a promise for its result.
+   * Executes a blocking operation, returning a promise for its result.
    * <p>
    * This method executes asynchronously, in that it does not invoke the {@code operation} before returning the promise.
-   * When the returned promise is subscribed to (i.e. its {@link ratpack.exec.SuccessPromise#then(ratpack.func.Action)} method is called),
+   * When the returned promise is subscribed to (i.e. its {@link ratpack.exec.SuccessPromise#then(Action)} method is called),
    * the given {@code operation} will be submitted to a thread pool that is different to the request handling thread pool.
    * Therefore, if the returned promise is never subscribed to, the {@code operation} will never be initiated.
    * <p>
-   * The promise returned by this method, have the same default error handling strategy as those returned by {@link ratpack.handling.Context#promise(ratpack.func.Action)}.
+   * The promise returned by this method, has the same default error handling strategy as those returned by {@link Context#promise(Action)}.
    * <p>
    * <pre class="tested">
    * import ratpack.handling.*;
@@ -247,12 +247,12 @@ public interface Context extends ExecContext, Registry {
 
    * import java.util.concurrent.Callable;
    *
-   * public class BackgroundUsingJavaHandler implements Handler {
+   * public class BlockingJavaHandler implements Handler {
    *   void handle(final Context context) {
-   *     context.background(new Callable&lt;String&gt;() {
+   *     context.blocking(new Callable&lt;String&gt;() {
    *        public String call() {
    *          // perform some kind of blocking IO in here, such as accessing a database
-   *          return "hello world, from the background!";
+   *          return "hello world!";
    *        }
    *     }).then(new Action&lt;String&gt;() {
    *       public void execute(String result) {
@@ -262,10 +262,10 @@ public interface Context extends ExecContext, Registry {
    *   }
    * }
    *
-   * public class BackgroundUsingGroovyHandler implements Handler {
+   * public class BlockingGroovyHandler implements Handler {
    *   void handle(final Context context) {
-   *     context.background {
-   *       "hello world, from the background!"
+   *     context.blocking {
+   *       "hello world!"
    *     } then { String result ->
    *       context.render(result)
    *     }
@@ -280,25 +280,25 @@ public interface Context extends ExecContext, Registry {
    *
    * def app = embeddedApp {
    *   handlers {
-   *     get("java", new BackgroundUsingJavaHandler())
-   *     get("groovy", new BackgroundUsingGroovyHandler())
+   *     get("java", new BlockingJavaHandler())
+   *     get("groovy", new BlockingGroovyHandler())
    *   }
    * }
    *
    * def client = TestHttpClients.testHttpClient(app)
    *
-   * assert client.getText("java") == "hello world, from the background!"
-   * assert client.getText("groovy") == "hello world, from the background!"
+   * assert client.getText("java") == "hello world!"
+   * assert client.getText("groovy") == "hello world!"
    *
    * app.close()
    * </pre>
    *
-   * @param operation The operation to perform
+   * @param blockingOperation The operation to perform
    * @param <T> The type of result object that the operation produces
    * @return a promise for the return value of the callable.
    */
   @Override
-  <T> SuccessOrErrorPromise<T> background(Callable<T> operation);
+  <T> SuccessOrErrorPromise<T> blocking(Callable<T> blockingOperation);
 
   /**
    * Creates a promise of a value that will made available asynchronously.

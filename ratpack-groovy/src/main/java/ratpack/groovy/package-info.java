@@ -29,7 +29,7 @@
  * Namely, the {@link groovy.lang.DelegatesTo} annotation.
  * On all parts of the API where a {@link groovy.lang.Closure} is being accepted as a method parameter, the parameter will be
  * annotated with this annotation. This specifies the type of the closure <i>delegate</i> object during execution.
- * For background information on closure delegates, see <a href="http://mrhaki.blogspot.co.uk/2009/11/groovy-goodness-setting-closures.html">this article</a>.
+ * For more information on closure delegates, see <a href="http://mrhaki.blogspot.co.uk/2009/11/groovy-goodness-setting-closures.html">this article</a>.
  * <p>
  * When reading the API reference, it's important to take note of the {@link groovy.lang.DelegatesTo} annotation on closure parameters.
  * This parameter indicates what type to look at for information on what the closure can do.

@@ -53,7 +53,7 @@ class ExecInterceptionSpec extends RatpackGroovyDslSpec {
         }
       }
       get(":path") {
-        background {
+        blocking {
           2
         } then {
           render pathTokens.path
@@ -95,7 +95,7 @@ class ExecInterceptionSpec extends RatpackGroovyDslSpec {
         }
       }
       get(":path") {
-        background {
+        blocking {
           2
         } then {
           render pathTokens.path

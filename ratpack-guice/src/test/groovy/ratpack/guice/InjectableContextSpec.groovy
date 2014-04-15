@@ -34,7 +34,7 @@ class InjectableContextSpec extends RatpackGroovyDslSpec {
     }
   }
 
-  def "can inject context and background"() {
+  def "can inject context"() {
     when:
     modules {
       bind ContextScopeService

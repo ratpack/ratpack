@@ -40,7 +40,7 @@ class SiteErrorHandler implements ClientErrorHandler, ServerErrorHandler {
     context.with {
       response.status(500)
       message(context, exception.message ?: "<no message>")
-      background { exception.printStackTrace(System.err) }.then {}
+      blocking { exception.printStackTrace(System.err) }.then {}
     }
   }
 

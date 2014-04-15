@@ -308,7 +308,7 @@ class InvocationBuilderSpec extends Specification {
     when:
     invoke {
       insert(Registries.just("foo"), groovyHandler {
-        background {
+        blocking {
 
         } then {
           context.insert(Registries.just("bar"), groovyHandler {

@@ -215,8 +215,8 @@ public class DefaultGroovyContext implements GroovyContext {
   }
 
   @Override
-  public <T> SuccessOrErrorPromise<T> background(Callable<T> backgroundOperation) {
-    return delegate.background(backgroundOperation);
+  public <T> SuccessOrErrorPromise<T> blocking(Callable<T> blockingOperation) {
+    return delegate.blocking(blockingOperation);
   }
 
   @Override

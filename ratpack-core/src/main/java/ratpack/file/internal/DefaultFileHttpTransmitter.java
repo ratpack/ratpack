@@ -75,7 +75,7 @@ public class DefaultFileHttpTransmitter implements FileHttpTransmitter {
     }
 
     if (file.getFileSystem().equals(FileSystems.getDefault()) && !compressThis) {
-      execContext.background(new Callable<FileChannel>() {
+      execContext.blocking(new Callable<FileChannel>() {
         public FileChannel call() throws Exception {
           return new FileInputStream(file.toFile()).getChannel();
         }
@@ -86,7 +86,7 @@ public class DefaultFileHttpTransmitter implements FileHttpTransmitter {
         }
       });
     } else {
-      execContext.background(new Callable<ReadableByteChannel>() {
+      execContext.blocking(new Callable<ReadableByteChannel>() {
         public ReadableByteChannel call() throws Exception {
           return Files.newByteChannel(file);
         }

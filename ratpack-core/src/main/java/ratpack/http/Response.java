@@ -200,7 +200,7 @@ public interface Response {
    * Prefer {@link #sendFile(ratpack.exec.ExecContext, java.nio.file.attribute.BasicFileAttributes, java.nio.file.Path)} where
    * the file attributes have already been retrieved to avoid another IO operation.
    *
-   * @param execContext the background operation manager to use
+   * @param execContext the execution context to perform any blocking operations with
    * @param file The file whose contents are to be used as the response body
    */
   @NonBlocking
@@ -209,8 +209,8 @@ public interface Response {
   /**
    * Sends the response, using the given content type and the content of the given type as the response body.
    *
-   * @param execContext the background operation manager to use
-   * @param attributes The attributes of the file, used for the headers.
+   * @param execContext the execution context to perform any blocking operations with
+   * @param attributes The attributes of the file, used for the headers
    * @param file The file whose contents are to be used as the response body
    */
   @NonBlocking

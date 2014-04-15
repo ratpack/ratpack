@@ -39,8 +39,8 @@ public abstract class AbstractExecContext implements ExecContext {
   }
 
   @Override
-  public <T> SuccessOrErrorPromise<T> background(Callable<T> backgroundOperation) {
-    return getExecController().blocking(backgroundOperation);
+  public <T> SuccessOrErrorPromise<T> blocking(Callable<T> blockingOperation) {
+    return getExecController().blocking(blockingOperation);
   }
 
   @Override

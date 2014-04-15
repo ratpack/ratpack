@@ -23,13 +23,13 @@ import ratpack.test.internal.RatpackGroovyDslSpec
 import static ratpack.rx.RxRatpack.observe
 import static ratpack.rx.RxRatpack.observeEach
 
-class RxBackgroundSpec extends RatpackGroovyDslSpec {
+class RxBlockingSpec extends RatpackGroovyDslSpec {
 
-  def "can observe the background"() {
+  def "can observe the blocking"() {
     when:
     handlers {
       get(":value") {
-        observe(background {
+        observe(blocking {
           pathTokens.value
         }) map {
           it * 2
@@ -45,14 +45,14 @@ class RxBackgroundSpec extends RatpackGroovyDslSpec {
     getText("a") == "AA"
   }
 
-  def "background errors are sent to the context renderer"() {
+  def "blocking errors are sent to the context renderer"() {
     when:
     modules {
       bind ServerErrorHandler, new DebugErrorHandler()
     }
     handlers {
       get(":value") {
-        observe(background {
+        observe(blocking {
           pathTokens.value
         }) map {
           it * 2
@@ -69,13 +69,13 @@ class RxBackgroundSpec extends RatpackGroovyDslSpec {
     response.statusCode == 500
   }
 
-  def "can observe the background with an Iterable return type"() {
+  def "can observe the blocking operation with an Iterable return type"() {
     when:
     handlers {
       get(":value") {
         def returnString = ""
 
-        observeEach(background {
+        observeEach(blocking {
           pathTokens.value.split(",") as List
         })
           .take(2)

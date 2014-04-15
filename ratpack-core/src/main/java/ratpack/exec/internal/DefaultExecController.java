@@ -60,7 +60,7 @@ public class DefaultExecController implements ExecController {
   public ExecContext getContext() throws NoBoundContextException {
     ExecContext.Supplier contextSupplier = contextSupplierThreadLocal.get();
     if (contextSupplier == null) {
-      throw new NoBoundContextException("No context is bound to the current thread (are you calling this from the background?)");
+      throw new NoBoundContextException("No context is bound to the current thread (are you calling this from a blocking operation?)");
     } else {
       return contextSupplier.get();
     }

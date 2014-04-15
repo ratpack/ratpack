@@ -46,7 +46,7 @@ class ExecContextBindingSpec extends RatpackGroovyDslSpec {
         }
         register(just(new Thing(value: "2"))) {
           handler {
-            background {
+            blocking {
               response.headers.set("L2", controller.context.get(Thing).value)
             } then {
               controller.context.next()

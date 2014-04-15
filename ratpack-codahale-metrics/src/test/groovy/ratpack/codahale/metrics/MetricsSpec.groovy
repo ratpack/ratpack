@@ -406,9 +406,9 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     new RecordingWebSocketClient(new URI("ws://localhost:$server.bindPort/admin/metrics-report"))
   }
 
-  def "can collect background metrics"() {
+  def "can collect blocking metrics"() {
     def reporter = Mock(MetricRegistryListener)
-    def backgroundTimer
+    def blockingTimer
 
     given:
     modules {
@@ -419,7 +419,7 @@ class MetricsSpec extends RatpackGroovyDslSpec {
       metrics.addListener(reporter)
 
       handler("foo") {
-        background {
+        blocking {
           2
         } then {
           render ""
@@ -431,9 +431,9 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     2.times { get("foo") }
 
     then:
-    1 * reporter.onTimerAdded("[foo]~GET~Background", !null) >> { arguments ->
-      backgroundTimer = arguments[1]
+    1 * reporter.onTimerAdded("[foo]~GET~Blocking", !null) >> { arguments ->
+      blockingTimer = arguments[1]
     }
-    backgroundTimer.count == 2
+    blockingTimer.count == 2
   }
 }
