@@ -17,6 +17,7 @@
 package ratpack.pac4j.openid
 
 import com.google.inject.Module
+import org.pac4j.core.profile.UserProfile
 import org.pac4j.openid.profile.google.GoogleOpenIdProfile
 import ratpack.groovy.test.embed.ClosureBackedEmbeddedApplication
 import ratpack.session.SessionModule
@@ -39,12 +40,14 @@ class RatpackOpenIdTestApplication extends ClosureBackedEmbeddedApplication {
     }
     handlers {
       get("noauth") {
-        def userProfile = request.maybeGet(GoogleOpenIdProfile)
-        response.send "noauth:${userProfile?.email}"
+        def typedUserProfile = request.maybeGet(GoogleOpenIdProfile)
+        def genericUserProfile = request.maybeGet(UserProfile)
+        response.send "noauth:${typedUserProfile?.email}:${genericUserProfile?.attributes?.email}"
       }
       get("auth") {
-        def userProfile = request.maybeGet(GoogleOpenIdProfile)
-        response.send "auth:${userProfile.email}"
+        def typedUserProfile = request.maybeGet(GoogleOpenIdProfile)
+        def genericUserProfile = request.maybeGet(UserProfile)
+        response.send "auth:${typedUserProfile.email}:${genericUserProfile?.attributes?.email}"
       }
       get("error") {
         response.send "An error was encountered."

@@ -66,6 +66,7 @@ public class Pac4jAuthenticationHandler<C extends Credentials, U extends UserPro
     } else {
       if (userProfile != null) {
         context.getRequest().register(userProfile);
+        context.getRequest().register(UserProfile.class, userProfile);
         authorizer.handleAuthorization(context, userProfile);
       } else {
         context.next();

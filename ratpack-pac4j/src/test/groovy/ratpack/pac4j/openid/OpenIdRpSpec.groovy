@@ -99,7 +99,7 @@ class OpenIdRpSpec extends Specification {
     def response = client.get("noauth")
 
     then: "the page is returned without any redirects, and without authentication"
-    response.asString() == "noauth:null"
+    response.asString() == "noauth:null:null"
 
     where:
     aut << [autConstructed, autInjected]
@@ -136,13 +136,13 @@ class OpenIdRpSpec extends Specification {
     def response4 = client.createRequest().cookies(response1.cookies).get(response3.header(LOCATION))
 
     then: "the original page is returned"
-    response4.asString() == "auth:${EMAIL}"
+    response4.asString() == "auth:${EMAIL}:${EMAIL}"
 
     when: "request a page that doesn't require authentication after authenticating"
     def response5 = client.createRequest().cookies(response1.cookies).get("noauth")
 
     then: "authentication information is still available"
-    response5.asString() == "noauth:${EMAIL}"
+    response5.asString() == "noauth:${EMAIL}:${EMAIL}"
 
     where:
     aut << [autConstructed, autInjected]
