@@ -16,7 +16,6 @@
 
 package ratpack.groovy.test;
 
-import com.jayway.restassured.response.Response;
 import com.jayway.restassured.specification.RequestSpecification;
 import ratpack.test.ApplicationUnderTest;
 
@@ -26,53 +25,53 @@ public interface TestHttpClient {
 
   RequestSpecification getRequest();
 
-  Response getResponse();
+  HttpResponse getResponse();
 
   RequestSpecification resetRequest();
 
-  Response head();
+  HttpResponse head();
 
-  Response head(String path);
+  HttpResponse head(String path);
 
-  Response options();
+  HttpResponse options();
 
-  Response options(String path);
+  HttpResponse options(String path);
 
-  Response get();
+  HttpResponse get();
 
-  Response get(String path);
+  HttpResponse get(String path);
 
   String getText();
 
   String getText(String path);
 
-  Response post();
+  HttpResponse post();
 
-  Response post(String path);
+  HttpResponse post(String path);
 
   String postText();
 
   String postText(String path);
 
-  Response put();
+  HttpResponse put();
 
-  Response put(String path);
+  HttpResponse put(String path);
 
   String putText();
 
   String putText(String path);
 
-  Response patch();
+  HttpResponse patch();
 
-  Response patch(String path);
+  HttpResponse patch(String path);
 
   String patchText();
 
   String patchText(String path);
 
-  Response delete();
+  HttpResponse delete();
 
-  Response delete(String path);
+  HttpResponse delete(String path);
 
   String deleteText();
 

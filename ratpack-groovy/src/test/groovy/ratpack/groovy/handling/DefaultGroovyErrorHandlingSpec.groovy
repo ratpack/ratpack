@@ -33,7 +33,7 @@ class DefaultGroovyErrorHandlingSpec extends RatpackGroovyAppSpec {
 
     then:
     response.statusCode == 500
-    response.body.asString().contains "html"
+    response.body.contains "html"
   }
 
   def "error handler is registered next() is not called"() {
@@ -51,7 +51,7 @@ class DefaultGroovyErrorHandlingSpec extends RatpackGroovyAppSpec {
 
     then:
     response.statusCode == 500
-    response.body.asString().contains "html"
+    response.body.contains "html"
   }
 
   def "404 page is used"() {
@@ -67,7 +67,7 @@ class DefaultGroovyErrorHandlingSpec extends RatpackGroovyAppSpec {
 
     then:
     response.statusCode == 404
-    response.body.asString().contains "html"
+    response.body.contains "html"
   }
 
 }

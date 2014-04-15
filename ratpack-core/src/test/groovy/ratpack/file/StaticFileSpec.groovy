@@ -18,6 +18,7 @@ package ratpack.file
 
 import com.jayway.restassured.response.Response
 import org.apache.commons.lang3.RandomStringUtils
+import ratpack.groovy.test.HttpResponse
 import ratpack.http.internal.HttpHeaderDateFormat
 import ratpack.test.internal.RatpackGroovyDslSpec
 import spock.lang.Unroll
@@ -400,7 +401,7 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
     response.statusCode == 404
   }
 
-  private static Date parseDateHeader(Response response, String name) {
+  private static Date parseDateHeader(HttpResponse response, String name) {
     HttpHeaderDateFormat.get().parse(response.getHeader(name))
   }
 

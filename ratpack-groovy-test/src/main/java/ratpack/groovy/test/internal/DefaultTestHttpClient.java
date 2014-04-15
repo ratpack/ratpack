@@ -22,6 +22,7 @@ import com.jayway.restassured.response.Cookies;
 import com.jayway.restassured.response.Response;
 import com.jayway.restassured.specification.RequestSpecification;
 import ratpack.api.Nullable;
+import ratpack.groovy.test.HttpResponse;
 import ratpack.groovy.test.TestHttpClient;
 import ratpack.test.ApplicationUnderTest;
 import ratpack.func.Action;
@@ -64,8 +65,8 @@ public class DefaultTestHttpClient implements TestHttpClient {
   }
 
   @Override
-  public Response getResponse() {
-    return response;
+  public HttpResponse getResponse() {
+    return new RestassuredHttpResponse(response);
   }
 
   @Override
@@ -75,39 +76,39 @@ public class DefaultTestHttpClient implements TestHttpClient {
   }
 
   @Override
-  public Response head() {
+  public HttpResponse head() {
     return head("");
   }
 
   @Override
-  public Response head(String path) {
+  public HttpResponse head(String path) {
     preRequest();
     response = request.head(toAbsolute(path));
-    return postRequest();
+    return new RestassuredHttpResponse(postRequest());
   }
 
   @Override
-  public Response options() {
+  public HttpResponse options() {
     return options("");
   }
 
   @Override
-  public Response options(String path) {
+  public HttpResponse options(String path) {
     preRequest();
     response = request.options(toAbsolute(path));
-    return postRequest();
+    return new RestassuredHttpResponse(postRequest());
   }
 
   @Override
-  public Response get() {
+  public HttpResponse get() {
     return get("");
   }
 
   @Override
-  public Response get(String path) {
+  public HttpResponse get(String path) {
     preRequest();
     response = request.get(toAbsolute(path));
-    return postRequest();
+    return new RestassuredHttpResponse(postRequest());
   }
 
   @Override
@@ -122,15 +123,15 @@ public class DefaultTestHttpClient implements TestHttpClient {
   }
 
   @Override
-  public Response post() {
+  public HttpResponse post() {
     return post("");
   }
 
   @Override
-  public Response post(String path) {
+  public HttpResponse post(String path) {
     preRequest();
     response = request.post(toAbsolute(path));
-    return postRequest();
+    return new RestassuredHttpResponse(postRequest());
   }
 
   @Override
@@ -145,15 +146,15 @@ public class DefaultTestHttpClient implements TestHttpClient {
   }
 
   @Override
-  public Response put() {
+  public HttpResponse put() {
     return put("");
   }
 
   @Override
-  public Response put(String path) {
+  public HttpResponse put(String path) {
     preRequest();
     response = request.put(toAbsolute(path));
-    return postRequest();
+    return new RestassuredHttpResponse(postRequest());
   }
 
   @Override
@@ -163,20 +164,20 @@ public class DefaultTestHttpClient implements TestHttpClient {
 
   @Override
   public String putText(String path) {
-    return put(path).asString();
+    return put(path).getBody();
   }
 
 
   @Override
-  public Response patch() {
+  public HttpResponse patch() {
     return patch("");
   }
 
   @Override
-  public Response patch(String path) {
+  public HttpResponse patch(String path) {
     preRequest();
     response = request.patch(toAbsolute(path));
-    return postRequest();
+    return new RestassuredHttpResponse(postRequest());
   }
 
   @Override
@@ -186,19 +187,19 @@ public class DefaultTestHttpClient implements TestHttpClient {
 
   @Override
   public String patchText(String path) {
-    return patch(path).asString();
+    return patch(path).getBody();
   }  
 
   @Override
-  public Response delete() {
+  public HttpResponse delete() {
     return delete("");
   }
 
   @Override
-  public Response delete(String path) {
+  public HttpResponse delete(String path) {
     preRequest();
     response = request.delete(toAbsolute(path));
-    return postRequest();
+    return new RestassuredHttpResponse(postRequest());
   }
 
   @Override
@@ -208,7 +209,7 @@ public class DefaultTestHttpClient implements TestHttpClient {
 
   @Override
   public String deleteText(String path) {
-    return delete(path).asString();
+    return delete(path).getBody();
   }
 
   @Override

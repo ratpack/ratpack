@@ -19,6 +19,7 @@ package ratpack.groovy.templating
 import ratpack.test.internal.RatpackGroovyDslSpec
 import spock.lang.Unroll
 
+import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_TYPE
 import static ratpack.groovy.Groovy.groovyTemplate
 
 class TemplateRenderingSpec extends RatpackGroovyDslSpec {
@@ -297,14 +298,14 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    get("t.html").contentType == "text/html;charset=UTF-8"
-    get("t.xml").contentType == "application/xml"
-    get("dir/t.html").contentType == "text/html;charset=UTF-8"
-    get("dir/t.xml").contentType == "application/xml"
-    get("dir/t").contentType == "application/octet-stream"
+    get("t.html").header(CONTENT_TYPE) == "text/html;charset=UTF-8"
+    get("t.xml").header(CONTENT_TYPE) == "application/xml"
+    get("dir/t.html").header(CONTENT_TYPE) == "text/html;charset=UTF-8"
+    get("dir/t.xml").header(CONTENT_TYPE) == "application/xml"
+    get("dir/t").header(CONTENT_TYPE) == "application/octet-stream"
 
-    get("t.xml?type=foo/bar").contentType == "foo/bar"
-    get("dir/t.xml?type=foo/bar").contentType == "foo/bar"
+    get("t.xml?type=foo/bar").header(CONTENT_TYPE) == "foo/bar"
+    get("dir/t.xml?type=foo/bar").header(CONTENT_TYPE) == "foo/bar"
   }
 
   def "error in error template produces empty response and right error code"() {

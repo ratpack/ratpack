@@ -24,6 +24,8 @@ import ratpack.render.NoSuchRendererException
 import ratpack.render.RendererSupport
 import ratpack.test.internal.RatpackGroovyDslSpec
 
+import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_TYPE
+
 class RendererBindingsSpec extends RatpackGroovyDslSpec {
 
   static class IntRenderer extends RendererSupport<Integer> {
@@ -66,16 +68,16 @@ class RendererBindingsSpec extends RatpackGroovyDslSpec {
 
     then:
     with(get("int")) {
-      body.asString() == "1"
-      contentType == "text/integer;charset=UTF-8"
+      body == "1"
+      header(CONTENT_TYPE) == "text/integer;charset=UTF-8"
     }
     with(get("string")) {
-      body.asString() == "abc"
-      contentType == "text/string;charset=UTF-8"
+      body == "abc"
+      header(CONTENT_TYPE) == "text/string;charset=UTF-8"
     }
     with(get("none")) {
       statusCode == 500
-      body.asString().contains(NoSuchRendererException.name)
+      body.contains(NoSuchRendererException.name)
     }
   }
 
