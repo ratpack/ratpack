@@ -94,6 +94,7 @@ task api(type: Javadoc) {
 
   ext.stylesheetFile = file("$buildDir/assets/css/javadoc.css")
   inputs.file(stylesheetFile)
+  inputs.property("links") { options.links }
 
   classpath = files()
   destinationDir = file("$buildDir/api")

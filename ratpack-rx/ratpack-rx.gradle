@@ -18,10 +18,9 @@ description = "Integration with the RxJava library - https://github.com/Netflix/
 
 apply from: "$rootDir/gradle/javaModule.gradle"
 
-// https://github.com/Netflix/RxJava/issues/1039
-//ext.apiLinks = [
-//  "http://netflix.github.io/RxJava/javadoc"
-//]
+ext.apiLinks = [
+  "http://netflix.github.io/RxJava/javadoc"
+]
 
 dependencies {
   compile project(":ratpack-core")
