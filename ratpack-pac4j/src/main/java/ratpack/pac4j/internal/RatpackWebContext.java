@@ -31,11 +31,13 @@ import java.util.Map;
 
 /**
  * Adapts a {@link ratpack.handling.Context} object to be usable as a {@link org.pac4j.core.context.WebContext}.
+ * In order to separate foreground from background operations, methods that are part of {@code WebContext} should not
+ * send the response; instead, they should store the information and only send the response as part of {@link #sendResponse()}.
  */
 public class RatpackWebContext implements WebContext {
   private final Context context;
-  private boolean responseSent;
   private String responseContent = "";
+  private String redirectLocation;
 
   /**
    * Constructs a new instance.
@@ -123,8 +125,7 @@ public class RatpackWebContext implements WebContext {
 
   @Override
   public void sendRedirect(String location) {
-    context.redirect(location);
-    responseSent = true;
+    this.redirectLocation = location;
   }
 
   public void sendResponse(RequiresHttpAction action) {
@@ -132,13 +133,11 @@ public class RatpackWebContext implements WebContext {
     sendResponse();
   }
 
-  /**
-   * Sends any pending response.
-   */
   public void sendResponse() {
-    if (!responseSent) {
+    if (redirectLocation != null) {
+      context.redirect(redirectLocation);
+    } else {
       context.getResponse().send(MediaType.TEXT_HTML, responseContent);
-      responseSent = true;
     }
   }
 
