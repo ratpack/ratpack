@@ -59,7 +59,7 @@ public class Pac4jCallbackHandler<C extends Credentials, U extends UserProfile> 
   public void handle(final Context context) {
     final SessionStorage sessionStorage = context.getRequest().get(SessionStorage.class);
     final RatpackWebContext webContext = new RatpackWebContext(context);
-    context.background(new Callable<U>() {
+    context.blocking(new Callable<U>() {
       @Override
       public U call() throws Exception {
         C credentials = client.getCredentials(webContext);

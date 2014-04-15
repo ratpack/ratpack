@@ -86,7 +86,7 @@ public class Pac4jAuthenticationHandler<C extends Credentials, U extends UserPro
       ((BaseClient) client).setCallbackUrl(callbackUrl);
     }
     final RatpackWebContext webContext = new RatpackWebContext(context);
-    context.background(new Callable<Void>() {
+    context.blocking(new Callable<Void>() {
       @Override
       public Void call() throws Exception {
         client.redirect(webContext, false, false);
