@@ -144,7 +144,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
 
     final Response response = new DefaultResponse(responseStatus, responseHeaders, fileHttpTransmitter, ctx.alloc(), new Action<ByteBuf>() {
       @Override
-      public void execute(final ByteBuf byteBuf) {
+      public void execute(final ByteBuf byteBuf) throws Exception {
         final HttpResponse nettyResponse = new CustomHttpResponse(responseStatus.getResponseStatus(), httpHeaders);
 
         nettyRequest.content().release();

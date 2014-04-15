@@ -44,7 +44,11 @@ public class RatpackVersion {
     ClassLoader classLoader = RatpackVersion.class.getClassLoader();
     final InputStream resourceAsStream = classLoader.getResourceAsStream("ratpack/ratpack-version.txt");
     ReadAction action = new ReadAction(resourceAsStream);
-    action.execute(Unpooled.buffer());
+    try {
+      action.execute(Unpooled.buffer());
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
     return action.content;
   }
 

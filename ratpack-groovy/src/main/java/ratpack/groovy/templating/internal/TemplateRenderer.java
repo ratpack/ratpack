@@ -17,32 +17,45 @@
 package ratpack.groovy.templating.internal;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
 import ratpack.file.MimeTypes;
+import ratpack.func.Action;
 import ratpack.groovy.templating.Template;
 import ratpack.handling.Context;
 import ratpack.render.RendererSupport;
-import ratpack.func.Action;
 
 import javax.inject.Inject;
+
+import static ratpack.util.ExceptionUtils.toException;
 
 public class TemplateRenderer extends RendererSupport<Template> {
 
   private final GroovyTemplateRenderingEngine engine;
+  private final ByteBufAllocator byteBufAllocator;
 
   @Inject
-  public TemplateRenderer(GroovyTemplateRenderingEngine engine) {
+  public TemplateRenderer(GroovyTemplateRenderingEngine engine, ByteBufAllocator byteBufAllocator) {
     this.engine = engine;
+    this.byteBufAllocator = byteBufAllocator;
   }
 
   public void render(final Context context, final Template template) throws Exception {
-    engine.renderTemplate(template.getId(), template.getModel(), context.resultAction(new Action<ByteBuf>() {
-      public void execute(ByteBuf byteBuf) {
+    final ByteBuf buffer = byteBufAllocator.buffer();
+    engine.renderTemplate(context, buffer, template.getId(), template.getModel()).onError(new Action<Throwable>() {
+      @Override
+      public void execute(Throwable thing) throws Exception {
+        buffer.release();
+        throw toException(thing);
+      }
+    }).then(new Action<ByteBuf>() {
+      @Override
+      public void execute(ByteBuf byteBuf) throws Exception {
         String type = template.getType();
         if (type == null) {
           type = context.get(MimeTypes.class).getContentType(template.getId());
         }
         context.getResponse().contentType(type).send(byteBuf);
       }
-    }));
+    });
   }
 }

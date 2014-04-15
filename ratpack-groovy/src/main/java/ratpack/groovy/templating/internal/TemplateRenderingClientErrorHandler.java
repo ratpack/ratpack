@@ -16,20 +16,32 @@
 
 package ratpack.groovy.templating.internal;
 
+import com.google.inject.Inject;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import ratpack.error.ClientErrorHandler;
-import ratpack.handling.Context;
 import ratpack.func.Action;
+import ratpack.handling.Context;
 
-import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import static ratpack.util.ExceptionUtils.toException;
+
 public class TemplateRenderingClientErrorHandler implements ClientErrorHandler {
 
+  private final ByteBufAllocator byteBufAllocator;
+  private final GroovyTemplateRenderingEngine renderer;
+
+  @Inject
+  public TemplateRenderingClientErrorHandler(ByteBufAllocator byteBufAllocator, GroovyTemplateRenderingEngine renderer) {
+    this.byteBufAllocator = byteBufAllocator;
+    this.renderer = renderer;
+  }
+
   public void error(final Context context, final int statusCode) throws Exception {
-    GroovyTemplateRenderingEngine renderer = context.get(GroovyTemplateRenderingEngine.class);
     Map<String, Object> model = new HashMap<>();
 
     HttpResponseStatus status = HttpResponseStatus.valueOf(statusCode);
@@ -44,11 +56,21 @@ public class TemplateRenderingClientErrorHandler implements ClientErrorHandler {
 
     context.getResponse().status(statusCode).contentType("text/html");
 
-    renderer.renderError(model, new ErrorTemplateRenderResultAction(context, new Action<PrintWriter>() {
-      public void execute(PrintWriter writer) {
-        writer.append("for client error").append(Integer.toString(statusCode)).append("\n");
-      }
-    }));
+    final ByteBuf byteBuf = byteBufAllocator.buffer();
+    renderer.renderError(context, byteBuf, model)
+      .onError(new Action<Throwable>() {
+        @Override
+        public void execute(Throwable throwable) throws Exception {
+          byteBuf.release();
+          throw toException(throwable);
+        }
+      })
+      .then(new Action<ByteBuf>() {
+        @Override
+        public void execute(ByteBuf byteBuf) throws Exception {
+          context.getResponse().send(byteBuf);
+        }
+      });
   }
 
 }

@@ -80,7 +80,7 @@ public class DefaultFileHttpTransmitter implements FileHttpTransmitter {
           return new FileInputStream(file.toFile()).getChannel();
         }
       }).then(new Action<FileChannel>() {
-        public void execute(FileChannel fileChannel) {
+        public void execute(FileChannel fileChannel) throws Exception {
           FileRegion defaultFileRegion = new DefaultFileRegion(fileChannel, 0, basicFileAttributes.size());
           transmit(basicFileAttributes, defaultFileRegion);
         }
@@ -91,7 +91,7 @@ public class DefaultFileHttpTransmitter implements FileHttpTransmitter {
           return Files.newByteChannel(file);
         }
       }).then(new Action<ReadableByteChannel>() {
-        public void execute(ReadableByteChannel fileChannel) {
+        public void execute(ReadableByteChannel fileChannel) throws Exception {
           transmit(basicFileAttributes, new ChunkedInputAdapter(new ChunkedNioStream(fileChannel)));
         }
       });

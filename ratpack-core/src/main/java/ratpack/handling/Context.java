@@ -32,7 +32,6 @@ import ratpack.path.PathTokens;
 import ratpack.registry.NotInRegistryException;
 import ratpack.registry.Registry;
 import ratpack.server.BindAddress;
-import ratpack.util.ResultAction;
 
 import java.nio.file.Path;
 import java.util.Date;
@@ -229,7 +228,7 @@ public interface Context extends ExecContext, Registry {
    */
   @Override
   @NonBlocking
-  void error(Exception exception) throws NotInRegistryException;
+  void error(Exception exception);
 
   /**
    * Executes a blocking operation, returning a promise for its result.
@@ -385,29 +384,6 @@ public interface Context extends ExecContext, Registry {
    */
   @NonBlocking
   void clientError(int statusCode) throws NotInRegistryException;
-
-  /**
-   * Executes the given runnable in a try/catch, where exceptions are given to {@link #error(Exception)}.
-   * <p>
-   * This can be used by handlers when they are jumping off thread.
-   * Exceptions raised on the thread that called the handler's {@linkplain Handler#handle(Context) handle} will always be caught.
-   * If the handler “moves” to another thread, it should call this method no the new thread to ensure that any thrown exceptions
-   * are caught and forwarded appropriately.
-   *
-   * @param runnable The code to surround with error handling
-   */
-  void withErrorHandling(Runnable runnable);
-
-  /**
-   * Creates a result action that uses the contextual error handler if the result is failure.
-   * <p>
-   * The given action is invoked if the result is successful.
-   *
-   * @param action The action to invoke on a successful result.
-   * @param <T> The type of the successful result value
-   * @return An action that takes {@code Result<T>}
-   */
-  <T> ResultAction<T> resultAction(Action<T> action);
 
   /**
    * Render the given object, using the rendering framework.

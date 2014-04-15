@@ -42,7 +42,6 @@ import ratpack.exec.SuccessOrErrorPromise;
 import ratpack.registry.NotInRegistryException;
 import ratpack.registry.Registry;
 import ratpack.server.BindAddress;
-import ratpack.util.ResultAction;
 
 import java.nio.file.Path;
 import java.util.Date;
@@ -176,16 +175,6 @@ public class DefaultGroovyContext implements GroovyContext {
   @NonBlocking
   public void clientError(int statusCode) throws NotInRegistryException {
     delegate.clientError(statusCode);
-  }
-
-  @Override
-  public void withErrorHandling(Runnable runnable) {
-    delegate.withErrorHandling(runnable);
-  }
-
-  @Override
-  public <T> ResultAction<T> resultAction(Action<T> action) {
-    return delegate.resultAction(action);
   }
 
   @Override

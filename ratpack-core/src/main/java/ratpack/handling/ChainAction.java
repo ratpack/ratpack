@@ -95,7 +95,7 @@ import ratpack.registry.RegistrySpec;
  * </pre>
  * <p>
  * This class implements the {@link Chain} interface by delegating each method to the chain returned by {@link #getChain()}.
- * This method only returns a value during execution of {@link #execute(Chain)}, which is the given chain.
+ * This method only returns a value during execution of {@link Action#execute(Object)}, which is the given chain.
  */
 public abstract class ChainAction implements Action<Chain>, Chain {
 

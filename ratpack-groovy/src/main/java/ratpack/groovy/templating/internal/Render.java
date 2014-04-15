@@ -19,8 +19,9 @@ package ratpack.groovy.templating.internal;
 import com.google.common.cache.LoadingCache;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufAllocator;
-import ratpack.exec.Result;
+import ratpack.exec.ExecContext;
+import ratpack.exec.Fulfiller;
+import ratpack.exec.SuccessOrErrorPromise;
 import ratpack.func.Action;
 import ratpack.func.Transformer;
 
@@ -33,23 +34,35 @@ import static ratpack.util.ExceptionUtils.uncheck;
 
 public class Render {
 
+  private final ExecContext execContext;
+  private final ByteBuf byteBuf;
   private final LoadingCache<TemplateSource, CompiledTemplate> compiledTemplateCache;
+  private final TemplateSource templateSource;
+  private final Map<String, ?> model;
   private final Transformer<String, TemplateSource> includeTransformer;
 
-  public Render(ByteBufAllocator byteBufAllocator, LoadingCache<TemplateSource, CompiledTemplate> compiledTemplateCache, TemplateSource templateSource, Map<String, ?> model, final Action<Result<ByteBuf>> handler, Transformer<String, TemplateSource> includeTransformer) throws Exception {
+  public Render(ExecContext execContext, ByteBuf byteBuf, LoadingCache<TemplateSource, CompiledTemplate> compiledTemplateCache, TemplateSource templateSource, final Map<String, ?> model, Transformer<String, TemplateSource> includeTransformer) {
+    this.execContext = execContext;
+    this.byteBuf = byteBuf;
     this.compiledTemplateCache = compiledTemplateCache;
+    this.templateSource = templateSource;
+    this.model = model;
     this.includeTransformer = includeTransformer;
+  }
 
-    ByteBuf byteBuf = byteBufAllocator.buffer();
-
-    try {
-      execute(getFromCache(compiledTemplateCache, templateSource), model, byteBuf);
-    } catch (Exception e) {
-      handler.execute(Result.<ByteBuf>failure(e));
-      return;
-    }
-
-    handler.execute(Result.success(byteBuf));
+  private SuccessOrErrorPromise<ByteBuf> invoke() {
+    return execContext.promise(new Action<Fulfiller<ByteBuf>>() {
+      @Override
+      public void execute(Fulfiller<ByteBuf> fulfiller) throws Exception {
+        try {
+          CompiledTemplate fromCache = getFromCache(compiledTemplateCache, templateSource);
+          Render.this.execute(fromCache, model, byteBuf);
+          fulfiller.success(byteBuf);
+        } catch (Throwable e) {
+          fulfiller.error(e);
+        }
+      }
+    });
   }
 
   private CompiledTemplate getFromCache(LoadingCache<TemplateSource, CompiledTemplate> compiledTemplateCache, TemplateSource templateSource) {
@@ -76,4 +89,7 @@ public class Render {
     });
   }
 
+  public static SuccessOrErrorPromise<ByteBuf> render(ExecContext execContext, ByteBuf byteBuf, LoadingCache<TemplateSource, CompiledTemplate> compiledTemplateCache, TemplateSource templateSource, Map<String, ?> model, Transformer<String, TemplateSource> includeTransformer) throws Exception {
+    return new Render(execContext, byteBuf, compiledTemplateCache, templateSource, model, includeTransformer).invoke();
+  }
 }

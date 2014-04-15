@@ -21,13 +21,13 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
+import ratpack.exec.ExecContext;
+import ratpack.exec.SuccessOrErrorPromise;
 import ratpack.file.FileSystemBinding;
+import ratpack.func.Transformer;
 import ratpack.groovy.script.internal.ScriptEngine;
 import ratpack.groovy.templating.TemplatingConfig;
 import ratpack.launch.LaunchConfig;
-import ratpack.func.Action;
-import ratpack.exec.Result;
-import ratpack.func.Transformer;
 
 import javax.inject.Inject;
 import java.io.IOException;
@@ -72,9 +72,9 @@ public class GroovyTemplateRenderingEngine {
     }
   }
 
-  public void renderTemplate(final String templateId, final Map<String, ?> model, final Action<Result<ByteBuf>> handler) throws Exception {
+  public SuccessOrErrorPromise<ByteBuf> renderTemplate(ExecContext execContext, ByteBuf byteBuf, final String templateId, final Map<String, ?> model) throws Exception {
     Path templateFile = getTemplateFile(templateId);
-    render(toTemplateSource(templateId, templateFile), model, handler);
+    return render(execContext, byteBuf, toTemplateSource(templateId, templateFile), model);
   }
 
   private PathTemplateSource toTemplateSource(String templateId, Path templateFile) throws IOException {
@@ -82,25 +82,21 @@ public class GroovyTemplateRenderingEngine {
     return new PathTemplateSource(id, templateFile, templateId);
   }
 
-  public void renderError(Map<String, ?> model, Action<Result<ByteBuf>> handler) throws Exception {
+  public SuccessOrErrorPromise<ByteBuf> renderError(ExecContext execContext, ByteBuf byteBuf, Map<String, ?> model) throws Exception {
     final Path errorTemplate = getTemplateFile(ERROR_TEMPLATE);
     if (Files.exists(errorTemplate)) {
-      render(toTemplateSource(ERROR_TEMPLATE, errorTemplate), model, handler);
+      return render(execContext, byteBuf, toTemplateSource(ERROR_TEMPLATE, errorTemplate), model);
     } else {
-      render(new ResourceTemplateSource(ERROR_TEMPLATE, byteBufAllocator), model, handler);
+      return render(execContext, byteBuf, new ResourceTemplateSource(ERROR_TEMPLATE, byteBufAllocator), model);
     }
   }
 
-  private void render(final TemplateSource templateSource, Map<String, ?> model, Action<Result<ByteBuf>> handler) throws Exception {
-    try {
-      new Render(byteBufAllocator, compiledTemplateCache, templateSource, model, handler, new Transformer<String, TemplateSource>() {
-        public TemplateSource transform(String templateName) throws IOException {
-          return toTemplateSource(templateName, getTemplateFile(templateName));
-        }
-      });
-    } catch (Exception e) {
-      handler.execute(Result.<ByteBuf>failure(e));
-    }
+  private SuccessOrErrorPromise<ByteBuf> render(ExecContext execContext, ByteBuf byteBuf, final TemplateSource templateSource, Map<String, ?> model) throws Exception {
+    return Render.render(execContext, byteBuf, compiledTemplateCache, templateSource, model, new Transformer<String, TemplateSource>() {
+      public TemplateSource transform(String templateName) throws IOException {
+        return toTemplateSource(templateName, getTemplateFile(templateName));
+      }
+    });
   }
 
   private Path getTemplateFile(String templateName) {

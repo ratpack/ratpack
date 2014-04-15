@@ -61,7 +61,7 @@ public class ClosureInvoker<T, D> {
 
   public Action<D> toAction(final Registry registry, final int resolveStrategy) {
     return new Action<D>() {
-      public void execute(D delegate) {
+      public void execute(D delegate) throws Exception {
         invoke(registry, delegate, resolveStrategy);
       }
     };

@@ -195,14 +195,14 @@ class InvocationBuilderSpec extends Specification {
     invoke {
       onClose(new Action<RequestOutcome>() {
         @Override
-        void execute(RequestOutcome requestOutcome) {
+        void execute(RequestOutcome requestOutcome) throws Exception {
           latch.countDown()
         }
       })
 
       onClose(new Action<RequestOutcome>() {
         @Override
-        void execute(RequestOutcome requestOutcome) {
+        void execute(RequestOutcome requestOutcome) throws Exception {
           latch.countDown()
         }
       })

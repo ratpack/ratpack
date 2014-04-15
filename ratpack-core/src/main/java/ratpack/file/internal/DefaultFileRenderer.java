@@ -24,6 +24,7 @@ import ratpack.func.Action;
 import ratpack.handling.Context;
 import ratpack.http.Response;
 import ratpack.render.RendererSupport;
+import ratpack.util.ExceptionUtils;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -39,7 +40,7 @@ public class DefaultFileRenderer extends RendererSupport<Path> implements FileRe
   public void render(final Context context, final Path targetFile) throws Exception {
     readAttributes(context, targetFile, new Action<BasicFileAttributes>() {
       @Override
-      public void execute(BasicFileAttributes attributes) {
+      public void execute(BasicFileAttributes attributes) throws Exception {
         if (attributes == null || !attributes.isRegularFile()) {
           context.clientError(404);
         } else {
@@ -70,10 +71,11 @@ public class DefaultFileRenderer extends RendererSupport<Path> implements FileRe
           String contentType = context.get(MimeTypes.class).getContentType(file.getFileName().toString());
           response.contentType(contentType);
         }
+
         try {
           response.sendFile(context, attributes, file);
         } catch (Exception e) {
-          context.error(e);
+          throw ExceptionUtils.uncheck(e);
         }
       }
     });

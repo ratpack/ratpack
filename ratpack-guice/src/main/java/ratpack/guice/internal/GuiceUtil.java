@@ -56,7 +56,7 @@ public abstract class GuiceUtil {
   public static <T> ImmutableList<T> ofType(Injector injector, TypeLiteral<T> type) {
     final ImmutableList.Builder<T> listBuilder = ImmutableList.builder();
     eachOfType(injector, type, new Action<T>() {
-      public void execute(T thing) {
+      public void execute(T thing) throws Exception {
         listBuilder.add(thing);
       }
     });

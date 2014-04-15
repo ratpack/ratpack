@@ -25,7 +25,6 @@ import ratpack.handling.Context;
  * Typically retrieved from the exchange service.
  *
  * @see ratpack.handling.Context#error(Exception)
- * @see ratpack.handling.Context#withErrorHandling(Runnable)
  */
 public interface ServerErrorHandler {
 

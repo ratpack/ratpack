@@ -22,7 +22,7 @@ import ratpack.func.Action;
 public abstract class ReleasingAction<T extends ReferenceCounted> implements Action<T> {
 
   @Override
-  public void execute(T thing) {
+  public void execute(T thing) throws Exception {
     try {
       doExecute(thing);
     } finally {

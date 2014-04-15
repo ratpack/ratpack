@@ -41,65 +41,6 @@ class ErrorHandlingSpec extends RatpackGroovyDslSpec {
     get().statusCode == 500
   }
 
-  def "can handle errors on forked threads"() {
-    given:
-    def errorHandler = new ServerErrorHandler() {
-      void error(Context exchange, Exception exception) {
-        exchange.response.send("Caught: $exception.message")
-      }
-    }
-
-    when:
-    modules {
-      bind ServerErrorHandler, errorHandler
-    }
-    handlers {
-      get {
-        withErrorHandling new Thread({
-          throw new Exception("thrown in forked thread")
-        })
-      }
-    }
-
-    then:
-    text == "Caught: thrown in forked thread"
-  }
-
-  def "can use service on forked threads"() {
-    given:
-    def errorHandler1 = new ServerErrorHandler() {
-      void error(Context exchange, Exception exception) {
-        exchange.response.send("1: $exception.message")
-      }
-    }
-
-    def errorHandler2 = new ServerErrorHandler() {
-      void error(Context exchange, Exception exception) {
-        exchange.response.send("2: $exception.message")
-      }
-    }
-
-    when:
-    modules {
-      bind ServerErrorHandler, errorHandler1
-    }
-    handlers {
-      get { exchange ->
-        withErrorHandling new Thread({
-          insert(just(ServerErrorHandler, errorHandler2), new Handler() {
-            @Override
-            void handle(Context context) {
-              throw new Exception("down here")
-            }
-          })
-        })
-      }
-    }
-
-    then:
-    text == "2: down here"
-  }
-
   def "can segment error handlers"() {
     given:
     def errorHandler1 = new ServerErrorHandler() {

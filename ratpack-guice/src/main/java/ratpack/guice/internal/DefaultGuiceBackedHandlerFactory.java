@@ -138,7 +138,7 @@ public class DefaultGuiceBackedHandlerFactory implements GuiceBackedHandlerFacto
 
     public void bind(final Class<?> type) {
       actions.add(new Action<Binder>() {
-        public void execute(Binder binder) {
+        public void execute(Binder binder) throws Exception {
           binder.bind(type);
         }
       });
@@ -146,7 +146,7 @@ public class DefaultGuiceBackedHandlerFactory implements GuiceBackedHandlerFacto
 
     public <T> void bind(final Class<T> publicType, final Class<? extends T> implType) {
       actions.add(new Action<Binder>() {
-        public void execute(Binder binder) {
+        public void execute(Binder binder) throws Exception {
           binder.bind(publicType).to(implType);
         }
       });
@@ -154,7 +154,7 @@ public class DefaultGuiceBackedHandlerFactory implements GuiceBackedHandlerFacto
 
     public <T> void bind(final Class<? super T> publicType, final T instance) {
       actions.add(new Action<Binder>() {
-        public void execute(Binder binder) {
+        public void execute(Binder binder) throws Exception {
           binder.bind(publicType).toInstance(instance);
         }
       });
@@ -164,7 +164,7 @@ public class DefaultGuiceBackedHandlerFactory implements GuiceBackedHandlerFacto
       @SuppressWarnings("unchecked") final
       Class<T> type = (Class<T>) instance.getClass();
       actions.add(new Action<Binder>() {
-        public void execute(Binder binder) {
+        public void execute(Binder binder) throws Exception {
           binder.bind(type).toInstance(instance);
         }
       });
@@ -172,7 +172,7 @@ public class DefaultGuiceBackedHandlerFactory implements GuiceBackedHandlerFacto
 
     public <T> void provider(final Class<T> publicType, final Class<? extends Provider<? extends T>> providerType) {
       actions.add(new Action<Binder>() {
-        public void execute(Binder binder) {
+        public void execute(Binder binder) throws Exception {
           binder.bind(publicType).toProvider(providerType);
         }
       });

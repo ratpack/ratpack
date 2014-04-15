@@ -91,7 +91,7 @@ public class DefaultInvocation implements Invocation {
     final EventController<RequestOutcome> eventController = new DefaultEventController<>();
 
     Action<ByteBuf> committer = new Action<ByteBuf>() {
-      public void execute(ByteBuf byteBuf) {
+      public void execute(ByteBuf byteBuf) throws Exception {
         sentResponse = true;
         body = new byte[byteBuf.readableBytes()];
         byteBuf.readBytes(body);
@@ -194,14 +194,18 @@ public class DefaultInvocation implements Invocation {
     }
   }
 
+  private Context getContext() {
+    return (Context) requestConstants.context;
+  }
+
   @Override
   public Registry getRegistry() {
-    return requestConstants.context;
+    return getContext();
   }
 
   @Override
   public Registry getRequestRegistry() {
-    return requestConstants.context.getRequest();
+    return getContext().getRequest();
   }
 
   @Override

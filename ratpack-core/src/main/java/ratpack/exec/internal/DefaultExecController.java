@@ -88,24 +88,27 @@ public class DefaultExecController implements ExecController {
           action.execute(getContext());
         }
       }.run();
-
     } catch (Exception e) {
+      onExecFinish.get().clear();
+      Exception effectiveException;
+      ExecContext execContext;
       if (e instanceof ExecException) {
-        ExecContext context = ((ExecException) e).getContext();
-        // TODO - need to deal with fatal Errors here (e.g. out of memory)
-        context.error(ExceptionUtils.toException(e.getCause()));
+        execContext = ((ExecException) e).getContext();
+        effectiveException = ExceptionUtils.toException(e.getCause());
       } else {
-        getContext().error(e);
+        execContext = getContext();
+        effectiveException = e;
       }
+
+      execContext.error(effectiveException);
     } finally {
       contextSupplierThreadLocal.remove();
     }
 
     List<Runnable> runnables = onExecFinish.get();
-    for (Runnable runnable : runnables) {
-      runnable.run();
+    while (!runnables.isEmpty()) {
+      runnables.remove(0).run();
     }
-    runnables.clear();
   }
 
   @Override

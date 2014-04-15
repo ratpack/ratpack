@@ -42,7 +42,7 @@ public class DefaultSuccessOrErrorPromise<T> implements SuccessOrErrorPromise<T>
   public void then(Action<? super T> then) {
     onError(new Action<Throwable>() {
       @Override
-      public void execute(Throwable t) {
+      public void execute(Throwable t) throws Exception {
         context.error(toException(t));
       }
     }).then(then);

@@ -101,7 +101,7 @@ public class ScriptBackedApp implements Handler {
   private static class ClosureCaptureAction implements Action<Closure<?>> {
     private Closure<?> closure;
 
-    public void execute(Closure<?> configurer) {
+    public void execute(Closure<?> configurer) throws Exception {
       closure = configurer;
     }
   }

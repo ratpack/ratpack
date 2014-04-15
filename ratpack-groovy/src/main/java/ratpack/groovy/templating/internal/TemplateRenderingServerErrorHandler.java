@@ -16,18 +16,30 @@
 
 package ratpack.groovy.templating.internal;
 
+import com.google.inject.Inject;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
 import ratpack.error.ServerErrorHandler;
+import ratpack.func.Action;
 import ratpack.handling.Context;
 import ratpack.http.Response;
-import ratpack.func.Action;
 
-import java.io.PrintWriter;
 import java.util.Map;
+
+import static ratpack.util.ExceptionUtils.toException;
 
 public class TemplateRenderingServerErrorHandler implements ServerErrorHandler {
 
+  private final ByteBufAllocator byteBufAllocator;
+  private final GroovyTemplateRenderingEngine renderer;
+
+  @Inject
+  public TemplateRenderingServerErrorHandler(ByteBufAllocator byteBufAllocator, GroovyTemplateRenderingEngine renderer) {
+    this.byteBufAllocator = byteBufAllocator;
+    this.renderer = renderer;
+  }
+
   public void error(final Context context, final Exception exception) throws Exception {
-    GroovyTemplateRenderingEngine renderer = context.get(GroovyTemplateRenderingEngine.class);
     Map<String, ?> model = ExceptionToTemplateModel.transform(context.getRequest(), exception);
 
     Response response = context.getResponse();
@@ -35,12 +47,19 @@ public class TemplateRenderingServerErrorHandler implements ServerErrorHandler {
       response.status(500);
     }
 
-    renderer.renderError(model, new ErrorTemplateRenderResultAction(context, new Action<PrintWriter>() {
-      public void execute(PrintWriter writer) {
-        writer.append("for server error\n");
-        exception.printStackTrace(writer);
+    final ByteBuf byteBuf = byteBufAllocator.buffer();
+    renderer.renderError(context, byteBuf, model).onError(new Action<Throwable>() {
+      @Override
+      public void execute(Throwable thing) throws Exception {
+        byteBuf.release();
+        throw toException(thing);
       }
-    }));
+    }).then(new Action<ByteBuf>() {
+      @Override
+      public void execute(ByteBuf byteBuf) throws Exception {
+        context.getResponse().send(byteBuf);
+      }
+    });
   }
 
 }

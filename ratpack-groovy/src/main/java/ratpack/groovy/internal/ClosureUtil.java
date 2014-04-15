@@ -56,7 +56,7 @@ public abstract class ClosureUtil {
   // Type token is here for in the future when @DelegatesTo supports this kind of API
   public static <T> Action<T> delegatingAction(@SuppressWarnings("UnusedParameters") Class<T> type, final Closure<?> configurer) {
     return new Action<T>() {
-      public void execute(T object) {
+      public void execute(T object) throws Exception {
         configureDelegateFirst(object, configurer);
       }
     };
@@ -81,7 +81,7 @@ public abstract class ClosureUtil {
     }
 
     @Override
-    public void execute(Object thing) {
+    public void execute(Object thing) throws Exception {
       copy.call(thing);
     }
   }

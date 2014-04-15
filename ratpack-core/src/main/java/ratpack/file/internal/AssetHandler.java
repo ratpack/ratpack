@@ -40,7 +40,7 @@ public class AssetHandler implements Handler {
     this.indexFiles = indexFiles;
   }
 
-  public void handle(Context context) {
+  public void handle(Context context) throws Exception {
     Request request = context.getRequest();
 
     String path = request.getPath();
@@ -58,11 +58,7 @@ public class AssetHandler implements Handler {
 
     Path asset = context.file(path);
     if (asset != null) {
-      try {
-        servePath(context, asset);
-      } catch (Exception e) {
-        context.error(e);
-      }
+      servePath(context, asset);
     } else {
       context.clientError(404);
     }

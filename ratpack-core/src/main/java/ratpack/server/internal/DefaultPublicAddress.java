@@ -20,6 +20,7 @@ package ratpack.server.internal;
 import ratpack.handling.Context;
 import ratpack.server.BindAddress;
 import ratpack.server.PublicAddress;
+import ratpack.util.ExceptionUtils;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -35,13 +36,13 @@ public class DefaultPublicAddress implements PublicAddress {
   }
 
   public URI getAddress(Context context) {
-    URI currentUrl = null;
+    URI currentUrl;
     if (publicAddress == null) {
       BindAddress bindAddress = context.getBindAddress();
       try {
         currentUrl = new URI(uriScheme, null, bindAddress.getHost(), bindAddress.getPort(), null, null, null);
       } catch (URISyntaxException e) {
-        context.error(e);
+        throw ExceptionUtils.uncheck(e);
       }
     } else {
       currentUrl = publicAddress;

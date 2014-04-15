@@ -40,11 +40,11 @@ public class DefaultRenderController implements RenderController {
           return;
         }
       } catch (Exception e) {
-        context.error(new RendererException(renderer, object, e));
+        throw new RendererException(renderer, object, e);
       }
     }
 
-    context.error(new NoSuchRendererException(object));
+    throw new NoSuchRendererException(object);
   }
 
   private <T> boolean maybeRender(Object object, Renderer<T> renderer, Context context) throws Exception {
