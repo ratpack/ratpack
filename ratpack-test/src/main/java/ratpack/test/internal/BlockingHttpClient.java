@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ratpack.groovy.test.internal;
+package ratpack.test.internal;
 
 import io.netty.buffer.UnpooledByteBufAllocator;
 import ratpack.exec.ExecContext;

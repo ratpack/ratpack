@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-package ratpack.groovy.test.internal
-
-import ratpack.test.internal.RatpackGroovyDslSpec
+package ratpack.test.internal
 
 class BlockingHttpClientSpec extends RatpackGroovyDslSpec {
 
