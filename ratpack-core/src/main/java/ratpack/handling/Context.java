@@ -273,8 +273,7 @@ public interface Context extends ExecContext, Registry {
    *
    * // Test (Groovy) &hellip;
    *
-   * import ratpack.test.embed.PathBaseDirBuilder
-   * import ratpack.groovy.test.TestHttpClients
+   * import static ratpack.groovy.test.TestHttpClients.testHttpClient
    * import static ratpack.groovy.test.embed.EmbeddedApplications.embeddedApp
    *
    * def app = embeddedApp {
@@ -284,7 +283,7 @@ public interface Context extends ExecContext, Registry {
    *   }
    * }
    *
-   * def client = TestHttpClients.testHttpClient(app)
+   * def client = testHttpClient(app)
    *
    * assert client.getText("java") == "hello world!"
    * assert client.getText("groovy") == "hello world!"
@@ -350,8 +349,7 @@ public interface Context extends ExecContext, Registry {
    *
    * // Test (Groovy) &hellip;
    *
-   * import ratpack.test.embed.PathBaseDirBuilder
-   * import ratpack.groovy.test.TestHttpClients
+   * import static ratpack.groovy.test.TestHttpClients.testHttpClient
    * import static ratpack.groovy.test.embed.EmbeddedApplications.embeddedApp
    *
    * def app = embeddedApp {
@@ -361,7 +359,7 @@ public interface Context extends ExecContext, Registry {
    *   }
    * }
    *
-   * def client = TestHttpClients.testHttpClient(app)
+   * def client = testHttpClient(app)
    *
    * assert client.getText("java") == "hello world!"
    * assert client.getText("groovy") == "hello world!"

@@ -33,8 +33,7 @@ import ratpack.registry.RegistrySpec;
  * Implementations can naturally use the {@link GroovyChain} DSL in their implementation of {@link #execute()}.
  * <pre class="tested">
  * import ratpack.groovy.handling.GroovyChainAction
- * import ratpack.test.embed.PathBaseDirBuilder
- * import ratpack.groovy.test.TestHttpClients
+ * import static ratpack.groovy.test.TestHttpClients.testHttpClient
  * import static ratpack.groovy.test.embed.EmbeddedApplications.embeddedApp
  *
  * def app = embeddedApp {
@@ -65,7 +64,7 @@ import ratpack.registry.RegistrySpec;
  *
  * // Functionally test the whole app…
  *
- * def client = TestHttpClients.testHttpClient(app)
+ * def client = testHttpClient(app)
  *
  * assert client.getText("someHandler") == "someHandler"
  * assert client.getText("foo") == "foo"

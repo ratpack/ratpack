@@ -97,6 +97,7 @@ import static ratpack.groovy.internal.ClosureUtil.configureDelegateFirst;
  * </pre>
  *
  * @see ratpack.test.embed.PathBaseDirBuilder
+ * @see ratpack.groovy.test.embed.EmbeddedApplications
  */
 public class ClosureBackedEmbeddedApplication extends LaunchConfigEmbeddedApplication {
 
@@ -186,8 +187,7 @@ public class ClosureBackedEmbeddedApplication extends LaunchConfigEmbeddedApplic
         Transformer<? super Module, ? extends Injector> injectorFactory = createInjectorFactory(launchConfig);
         Transformer<? super Injector, ? extends Handler> handlerTransformer = createHandlerTransformer(launchConfig);
 
-        Handler handler = handlerFactory.create(modulesAction, injectorFactory, handlerTransformer);
-        return handler;
+        return handlerFactory.create(modulesAction, injectorFactory, handlerTransformer);
       }
     });
   }

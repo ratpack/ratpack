@@ -48,8 +48,7 @@ import ratpack.registry.RegistrySpec;
  *
  * // Tests (Groovy) …
  *
- * import ratpack.test.embed.PathBaseDirBuilder
- * import ratpack.groovy.test.TestHttpClients
+ * import static ratpack.groovy.test.TestHttpClients.testHttpClient
  * import static ratpack.groovy.test.embed.EmbeddedApplications.embeddedApp
  *
  * def app = embeddedApp {
@@ -58,7 +57,7 @@ import ratpack.registry.RegistrySpec;
  *   }
  * }
  *
- * def client = TestHttpClients.testHttpClient(app)
+ * def client = testHttpClient(app)
  *
  * assert client.getText("foo") == "foo"
  * assert client.getText("bar") == "bar"

@@ -65,9 +65,8 @@ import static ratpack.util.ExceptionUtils.uncheck;
  *
  * // Test (Groovy) …
  *
- * import ratpack.test.embed.PathBaseDirBuilder
- * import ratpack.groovy.test.TestHttpClients
  * import static ratpack.registry.Registries.just
+ * import static ratpack.groovy.test.TestHttpClients.testHttpClient
  * import static ratpack.groovy.test.embed.EmbeddedApplications.embeddedApp
  *
  * def app = embeddedApp {
@@ -79,7 +78,7 @@ import static ratpack.util.ExceptionUtils.uncheck;
  *   }
  * }
  *
- * def client = TestHttpClients.testHttpClient(app)
+ * def client = testHttpClient(app)
  *
  * assert client.getText("verbose") == "foo"
  * assert client.getText("succinct") == "foo"

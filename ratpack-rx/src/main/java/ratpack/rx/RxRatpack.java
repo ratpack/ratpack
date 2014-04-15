@@ -101,10 +101,9 @@ public abstract class RxRatpack {
    *
    * // Test (Groovy) &hellip;
    *
-   * import ratpack.test.embed.PathBaseDirBuilder
-   * import ratpack.groovy.test.TestHttpClients
    * import ratpack.error.ServerErrorHandler
    * import ratpack.error.DebugErrorHandler
+   * import static ratpack.groovy.test.TestHttpClients.testHttpClient
    * import static ratpack.groovy.test.embed.EmbeddedApplications.embeddedApp
    * import static ratpack.registry.Registries.just
    *
@@ -115,7 +114,7 @@ public abstract class RxRatpack {
    *   }
    * }
    *
-   * def client = TestHttpClients.testHttpClient(app)
+   * def client = testHttpClient(app)
    *
    * assert client.getText("errorHandler") == "error!"
    *
