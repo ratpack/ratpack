@@ -46,17 +46,17 @@ class ApiBackedGitHubData implements GitHubData {
         def author = user.get("login").asText()
         def authorUrl = user.get("html_url").asText()
 
-        def prUrl = it.get("pull_request").get("html_url")
+        def prUrl = it.get("pull_request")?.get("html_url")
 
         def url
         def builder
 
-        if (prUrl.isNull()) {
-          url = it.get("html_url").asText()
-          builder = issuesBuilder
-        } else {
+        if (prUrl && !prUrl.isNull()) {
           url = prUrl.asText()
           builder = pullRequestsBuilder
+        } else {
+          url = it.get("html_url").asText()
+          builder = issuesBuilder
         }
 
         builder.add(new Issue(number, url, title, author, authorUrl))
