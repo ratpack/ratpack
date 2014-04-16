@@ -63,7 +63,12 @@ public abstract class RxRatpack {
 
             @Override
             public void onNext(T t) {
-              subscriber.onNext(t);
+              try {
+                subscriber.onNext(t);
+              } catch (OnErrorNotImplementedException onErrorNotImplementedException) {
+                Exception exception = toException(onErrorNotImplementedException.getCause());
+                execController.getContext().error(exception);
+              }
             }
           });
         }

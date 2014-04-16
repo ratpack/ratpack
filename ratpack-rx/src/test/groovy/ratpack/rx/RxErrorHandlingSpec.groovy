@@ -175,4 +175,38 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
     thrownException == e
   }
 
+  def "subscriber can throw"() {
+    given:
+    def e = new Exception("!")
+
+    when:
+    handlers {
+      get {
+        Observable.just("foo").subscribe {
+          throw e
+        }
+      }
+    }
+
+    then:
+    get()
+    thrownException == e
+  }
+
+  def "on complete can throw"() {
+    given:
+    def e = new Exception("!")
+
+    when:
+    handlers {
+      get {
+        Observable.just("foo").subscribe({}, { error(it as Exception) }, { throw e })
+      }
+    }
+
+    then:
+    get()
+    thrownException == e
+  }
+
 }
