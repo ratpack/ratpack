@@ -4,6 +4,7 @@ import ratpack.handling.Handlers
 import ratpack.jackson.JacksonModule
 import ratpack.path.PathBinding
 import ratpack.remote.RemoteControlModule
+import ratpack.rx.RxRatpack
 import ratpack.site.SiteModule
 import ratpack.site.github.GitHubApi
 import ratpack.site.github.GitHubData
@@ -20,6 +21,8 @@ ratpack {
     register new SiteModule(launchConfig)
     register new RemoteControlModule()
     get(TemplatingModule).staticallyCompile = true
+
+    RxRatpack.install(launchConfig.execController)
   }
 
   handlers {
