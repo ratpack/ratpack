@@ -24,6 +24,7 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import ratpack.exec.ExecController;
 import ratpack.exec.internal.DefaultExecController;
+import ratpack.exec.internal.ExecControllers;
 import ratpack.file.FileSystemBinding;
 import ratpack.launch.HandlerFactory;
 import ratpack.launch.LaunchConfig;
@@ -70,7 +71,19 @@ public class DefaultLaunchConfig implements LaunchConfig {
     this.sslContext = sslContext;
     this.maxContentLength = maxContentLength;
 
-    EventLoopGroup eventLoopGroup = new NioEventLoopGroup(threads, new DefaultThreadFactory("ratpack-group"));
+    EventLoopGroup eventLoopGroup = new NioEventLoopGroup(DefaultLaunchConfig.this.threads, new DefaultThreadFactory("ratpack-group") {
+      @Override
+      public Thread newThread(final Runnable r) {
+        return super.newThread(new Runnable() {
+          @Override
+          public void run() {
+            ExecControllers.STORAGE.set(execController);
+            r.run();
+          }
+        });
+      }
+    });
+
     this.execController = new DefaultExecController(eventLoopGroup);
   }
 
@@ -170,6 +183,4 @@ public class DefaultLaunchConfig implements LaunchConfig {
   public boolean isHasBaseDir() {
     return baseDir != null;
   }
-
-
 }

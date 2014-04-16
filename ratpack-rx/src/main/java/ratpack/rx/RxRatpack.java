@@ -16,8 +16,9 @@
 
 package ratpack.rx;
 
-import ratpack.exec.ExecController;
+import ratpack.exec.ExecContext;
 import ratpack.exec.Promise;
+import ratpack.exec.internal.ExecControllers;
 import ratpack.func.Action;
 import ratpack.util.ExceptionUtils;
 import rx.Observable;
@@ -33,17 +34,20 @@ import static ratpack.util.ExceptionUtils.toException;
 /**
  * Provides integration with <a href="https://github.com/Netflix/RxJava">RxJava</a>.
  * <p>
- * <b>IMPORTANT:</b> the {@link #install(ratpack.exec.ExecController)} method must be called during application bootstrap to fully enable integration.
+ * <b>IMPORTANT:</b> the {@link #install()} method must be called to fully enable integration.
  */
 public abstract class RxRatpack {
 
   private static class ExecutionHook extends RxJavaObservableExecutionHook {
 
-    private ExecController execController;
-
     @Override
     public <T> Observable.OnSubscribe<T> onSubscribeStart(Observable<? extends T> observableInstance, final Observable.OnSubscribe<T> onSubscribe) {
       return new Observable.OnSubscribe<T>() {
+
+        private ExecContext getContext() {
+          return ExecControllers.STORAGE.get().getContext();
+        }
+
         @Override
         public void call(final Subscriber<? super T> subscriber) {
           onSubscribe.call(new Subscriber<T>() {
@@ -61,7 +65,7 @@ public abstract class RxRatpack {
                   throw onErrorNotImplementedException.getCause();
                 }
               } catch (Throwable throwable) {
-                wrapAndForward(execController.getContext(), throwable);
+                wrapAndForward(getContext(), throwable);
               }
             }
 
@@ -74,7 +78,7 @@ public abstract class RxRatpack {
                   throw onErrorNotImplementedException.getCause();
                 }
               } catch (Throwable throwable) {
-                wrapAndForward(execController.getContext(), throwable);
+                wrapAndForward(getContext(), throwable);
               }
             }
           });
@@ -86,7 +90,10 @@ public abstract class RxRatpack {
   /**
    * Registers an {@link RxJavaObservableExecutionHook} with RxJava that provides a default error handling strategy of {@link ratpack.exec.ExecContext#error(Exception) forwarding exceptions to the exec context}.
    * <p>
-   * For a Java application, it can be called by the initial handler factory.
+   * This method is idempotent.
+   * It only needs to be called once per JVM, regardless of how many Ratpack applications are running within the JVM.
+   * <p>
+   * For a Java application, a convenient place to call this is in the handler factory implementation.
    * <pre class="tested">
    * import ratpack.launch.HandlerFactory;
    * import ratpack.launch.LaunchConfig;
@@ -104,7 +111,7 @@ public abstract class RxRatpack {
    *   public Handler create(LaunchConfig launchConfig) {
    *
    *     // Enable Rx integration
-   *     RxRatpack.install(launchConfig.getExecController());
+   *     RxRatpack.install();
    *
    *     return Handlers.chain(launchConfig, new ChainAction() {
    *       public void execute() {
@@ -165,7 +172,7 @@ public abstract class RxRatpack {
    * def app = embeddedApp {
    *   modules {
    *     // Enable Rx integration
-   *     RxRatpack.install(launchConfig.execController)
+   *     RxRatpack.install()
    *
    *     bind ServerErrorHandler, new ServerErrorHandler() {
    *       void error(Context context, Exception exception) {
@@ -193,24 +200,18 @@ public abstract class RxRatpack {
    *   app.close()
    * }
    * </pre>
-   *
-   * @param controller The execution controller of the application
    */
-  public static void install(ExecController controller) {
+  public static void install() {
     RxJavaPlugins plugins = RxJavaPlugins.getInstance();
     ExecutionHook ourHook = new ExecutionHook();
     try {
       plugins.registerObservableExecutionHook(ourHook);
     } catch (IllegalStateException e) {
       RxJavaObservableExecutionHook existingHook = plugins.getObservableExecutionHook();
-      if (existingHook instanceof ExecutionHook) {
-        ourHook = (ExecutionHook) existingHook;
-      } else {
+      if (!(existingHook instanceof ExecutionHook)) {
         throw new IllegalStateException("Cannot install RxJava integration because another execution hook (" + existingHook.getClass() + ") is already installed");
       }
     }
-
-    ourHook.execController = controller;
   }
 
   /**

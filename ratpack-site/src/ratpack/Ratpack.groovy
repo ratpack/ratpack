@@ -22,7 +22,7 @@ ratpack {
     register new RemoteControlModule()
     get(TemplatingModule).staticallyCompile = true
 
-    RxRatpack.install(launchConfig.execController)
+    RxRatpack.install()
   }
 
   handlers {

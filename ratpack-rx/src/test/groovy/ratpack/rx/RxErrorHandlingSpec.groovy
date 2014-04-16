@@ -22,6 +22,8 @@ import ratpack.test.internal.RatpackGroovyDslSpec
 import rx.Observable
 import rx.exceptions.CompositeException
 
+import static ratpack.groovy.test.TestHttpClients.testHttpClient
+import static ratpack.groovy.test.embed.EmbeddedApplications.embeddedApp
 import static ratpack.rx.RxRatpack.observe
 
 class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
@@ -40,8 +42,8 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
   def error = new RuntimeException("!")
 
   def setup() {
+    RxRatpack.install()
     modules {
-      RxRatpack.install(launchConfig.execController)
       bind ServerErrorHandler, errorHandler
     }
   }
@@ -228,6 +230,44 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
     then:
     get()
     thrownException == e
+  }
+
+  def "can use two different rx ratpack apps in same jvm"() {
+    when:
+    def app1 = embeddedApp {
+      modules {
+        bind ServerErrorHandler, new ServerErrorHandler() {
+          @Override
+          void error(Context context, Exception exception) throws Exception {
+            context.render "app1"
+          }
+        }
+      }
+      handlers {
+        get { Observable.error(new Exception("1")).subscribe() }
+      }
+    }
+    def client1 = testHttpClient(app1)
+    def app2 = embeddedApp {
+      modules {
+        bind ServerErrorHandler, new ServerErrorHandler() {
+          @Override
+          void error(Context context, Exception exception) throws Exception {
+            context.render "app2"
+          }
+        }
+      }
+      handlers {
+        get { Observable.error(new Exception("2")).subscribe() }
+      }
+    }
+    def client2 = testHttpClient(app2)
+
+    app2.server.start()
+
+    then:
+    client1.text == "app1"
+    client2.text == "app2"
   }
 
 }

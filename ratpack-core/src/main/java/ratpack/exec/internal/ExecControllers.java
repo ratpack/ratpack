@@ -14,37 +14,12 @@
  * limitations under the License.
  */
 
-package ratpack.rx
+package ratpack.exec.internal;
 
-import ratpack.http.client.HttpClientSpec
+import ratpack.exec.ExecController;
 
-import static ratpack.rx.RxRatpack.observe
+public abstract class ExecControllers {
 
-class RxHttpClientSpec extends HttpClientSpec {
-
-  def setup() {
-    RxRatpack.install()
-  }
-
-  def "can use rx with http client"() {
-    given:
-    otherApp {
-      get("foo") { render "bar" }
-    }
-
-    when:
-    handlers {
-      get {
-        observe(httpClient.get(otherAppUrl("foo"))) map {
-          it.body.text.toUpperCase()
-        } subscribe {
-          render it
-        }
-      }
-    }
-
-    then:
-    text == "BAR"
-  }
+  public static final InheritableThreadLocal<ExecController> STORAGE = new InheritableThreadLocal<>();
 
 }
