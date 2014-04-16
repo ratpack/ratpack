@@ -22,8 +22,6 @@ import ratpack.launch.LaunchConfig;
 import ratpack.registry.Registry;
 import ratpack.registry.RegistrySpec;
 
-import java.util.List;
-
 /**
  * A chain can be used to build a linked series of handlers.
  * <p>
@@ -85,7 +83,7 @@ public interface Chain {
   /**
    * Adds a handler that serves static assets at the given file system path, relative to the contextual file system binding.
    * <p>
-   * See {@link Handlers#assets(LaunchConfig, String, List)} for more details on the handler created
+   * See {@link Handlers#assets(LaunchConfig, String, java.util.List)} for more details on the handler created
    * <pre>
    *    prefix("foo") {
    *      assets("d1", "index.html", "index.xhtml")
