@@ -27,6 +27,7 @@ import rx.functions.Action2;
 import rx.plugins.RxJavaObservableExecutionHook;
 import rx.plugins.RxJavaPlugins;
 
+import static ratpack.exec.ExecException.wrapAndForward;
 import static ratpack.util.ExceptionUtils.toException;
 
 /**
@@ -54,20 +55,26 @@ public abstract class RxRatpack {
             @Override
             public void onError(Throwable e) {
               try {
-                subscriber.onError(e);
-              } catch (OnErrorNotImplementedException onErrorNotImplementedException) {
-                Exception exception = toException(onErrorNotImplementedException.getCause());
-                execController.getContext().error(exception);
+                try {
+                  subscriber.onError(e);
+                } catch (OnErrorNotImplementedException onErrorNotImplementedException) {
+                  throw onErrorNotImplementedException.getCause();
+                }
+              } catch (Throwable throwable) {
+                wrapAndForward(execController.getContext(), throwable);
               }
             }
 
             @Override
             public void onNext(T t) {
               try {
-                subscriber.onNext(t);
-              } catch (OnErrorNotImplementedException onErrorNotImplementedException) {
-                Exception exception = toException(onErrorNotImplementedException.getCause());
-                execController.getContext().error(exception);
+                try {
+                  subscriber.onNext(t);
+                } catch (OnErrorNotImplementedException onErrorNotImplementedException) {
+                  throw onErrorNotImplementedException.getCause();
+                }
+              } catch (Throwable throwable) {
+                wrapAndForward(execController.getContext(), throwable);
               }
             }
           });

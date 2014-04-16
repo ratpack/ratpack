@@ -209,4 +209,25 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
     thrownException == e
   }
 
+  def "downstream handler can error"() {
+    given:
+    def e = new Exception("!")
+
+    when:
+    handlers {
+      get {
+        Observable.just("foo").subscribe {
+          next()
+        }
+      }
+      handler {
+        throw e
+      }
+    }
+
+    then:
+    get()
+    thrownException == e
+  }
+
 }

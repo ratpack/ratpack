@@ -21,7 +21,6 @@ import io.netty.channel.EventLoopGroup;
 import ratpack.exec.*;
 import ratpack.func.Action;
 import ratpack.handling.internal.InterceptedOperation;
-import ratpack.util.ExceptionUtils;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -88,19 +87,9 @@ public class DefaultExecController implements ExecController {
           action.execute(getContext());
         }
       }.run();
-    } catch (Exception e) {
+    } catch (Throwable e) {
       onExecFinish.get().clear();
-      Exception effectiveException;
-      ExecContext execContext;
-      if (e instanceof ExecException) {
-        execContext = ((ExecException) e).getContext();
-        effectiveException = ExceptionUtils.toException(e.getCause());
-      } else {
-        execContext = getContext();
-        effectiveException = e;
-      }
-
-      execContext.error(effectiveException);
+      ExecException.wrapAndForward(getContext(), e);
     } finally {
       contextSupplierThreadLocal.remove();
     }

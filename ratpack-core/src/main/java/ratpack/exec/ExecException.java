@@ -16,6 +16,8 @@
 
 package ratpack.exec;
 
+import static ratpack.util.ExceptionUtils.toException;
+
 /**
  * Wraps an exception thrown during an execution.
  * <p>
@@ -72,6 +74,24 @@ public class ExecException extends RuntimeException {
     } else {
       return new ExecException(context, throwable);
     }
+  }
+
+  /**
+   * Route the exception the the context.
+   */
+  public void forward() {
+    context.error(toException(getCause()));
+  }
+
+  /**
+   * Calls {@link #wrap(ExecContext, Throwable)} then {@link #forward()}.
+   *
+   * @param context the execution context at the
+   * @param throwable the exception to possibly wrap
+   */
+  public static void wrapAndForward(ExecContext context, Throwable throwable) {
+    //noinspection ThrowableResultOfMethodCallIgnored
+    wrap(context, throwable).forward();
   }
 
 }
