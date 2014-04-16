@@ -25,22 +25,26 @@ import java.util.List;
 import java.util.concurrent.Callable;
 
 /**
- * An execution context.
+ * The context of an execution.
+ * <p>
+ * An “execution” is a <i>logical</i> unit of work (e.g. handling a request, performing a background job).
+ * As execution in Ratpack is asynchronous, the execution may actually span multiple threads.
+ * This type provides control primitives (i.e. {@link #blocking(Callable)}, {@link #promise(Action)}) that facilitate a logical execution executing asynchronously.
  */
 public interface ExecContext {
 
   /**
-   * Returns this.
+   * Returns {@code this}.
    *
-   * @return this.
+   * @return {@code this}.
    */
   ExecContext getContext();
 
   /**
-   * Supplies the current active context at any given time.
+   * Supplies the current effective context of the execution at any given time.
    * <p>
-   * During execution, the context may change.
-   * This supplier always returns the current context.
+   * An exec context may provide ways to change the exec context for part of an execution.
+   * This supplier always returns the effective context, which might not be {@code this}.
    * <p>
    * This is rarely, if ever, needed in application code.
    * It is used internally by Ratpack to handle contexts jumping across threads.
@@ -48,21 +52,32 @@ public interface ExecContext {
   interface Supplier {
 
     /**
-     * The current active context.
+     * The current effective execution context.
      *
-     * @return the current active context.
+     * @return the current effective execution context
      */
     ExecContext get();
   }
 
   /**
-   * A context supplier.
+   * The supplier of the effective context for the current execution.
    *
-   * @return a context supplier
+   * @return the supplier of the effective context for the current execution
    * @see ExecContext.Supplier
    */
   Supplier getSupplier();
 
+  /**
+   * Terminate this execution with the given exception.
+   * <p>
+   * Generally, it is preferable to just throw an exception rather than using this method.
+   * Such an exception will be caught by the infrastructure, then forwarded to this method.
+   * <p>
+   * This method MUST NOT throw exceptions.
+   * Care should be taken to ensure that any exceptions are dealt with.
+   *
+   * @param exception the exception that should terminate the execution
+   */
   @NonBlocking
   void error(Exception exception);
 
@@ -73,13 +88,39 @@ public interface ExecContext {
    */
   ExecController getExecController();
 
+  /**
+   * The execution interceptors.
+   *
+   * @return the execution interceptors
+   */
   List<ExecInterceptor> getInterceptors();
 
+  /**
+   * The application launch config.
+   *
+   * @return the application launch config
+   */
   LaunchConfig getLaunchConfig();
 
-  <T> SuccessOrErrorPromise<T> blocking(Callable<T> blockingOperation);
+  /**
+   * Performs a blocking operation on a separate thread, returning a promise for its value.
+   *
+   * @param blockingOperation the operation to perform that performs blocking IO
+   * @param <T> the type of value created by the operation
+   * @return a promise for the return value of the given blocking operation
+   */
+  <T> Promise<T> blocking(Callable<T> blockingOperation);
 
-  <T> SuccessOrErrorPromise<T> promise(Action<? super Fulfiller<T>> action);
+  /**
+   * Creates a promise for an asynchronously created value.
+   * <p>
+   * Asynchronous APIs should be
+   *
+   * @param action
+   * @param <T>
+   * @return
+   */
+  <T> Promise<T> promise(Action<? super Fulfiller<T>> action);
 
   HttpClient getHttpClient();
 

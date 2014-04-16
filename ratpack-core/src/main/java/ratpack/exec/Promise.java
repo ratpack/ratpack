@@ -23,7 +23,7 @@ import ratpack.func.Action;
  *
  * @param <T> The type of result object that the operation produces
  */
-public interface SuccessOrErrorPromise<T> extends SuccessPromise<T> {
+public interface Promise<T> extends SuccessPromise<T> {
 
   /**
    * Specifies the action to take if the an error occurs trying to produce the promised value.

@@ -112,7 +112,7 @@ public class DefaultExecController implements ExecController {
   }
 
   @Override
-  public <T> SuccessOrErrorPromise<T> blocking(final Callable<T> operation) {
+  public <T> Promise<T> blocking(final Callable<T> operation) {
     final ExecContext context = getContext();
     return context.promise(new Action<Fulfiller<? super T>>() {
       @Override
@@ -168,7 +168,7 @@ public class DefaultExecController implements ExecController {
   }
 
   @Override
-  public <T> SuccessOrErrorPromise<T> promise(Action<? super Fulfiller<T>> action) {
+  public <T> Promise<T> promise(Action<? super Fulfiller<T>> action) {
     return new DefaultSuccessOrErrorPromise<>(getContext(), this, action);
   }
 

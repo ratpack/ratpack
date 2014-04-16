@@ -21,7 +21,7 @@ import com.google.common.util.concurrent.UncheckedExecutionException;
 import io.netty.buffer.ByteBuf;
 import ratpack.exec.ExecContext;
 import ratpack.exec.Fulfiller;
-import ratpack.exec.SuccessOrErrorPromise;
+import ratpack.exec.Promise;
 import ratpack.func.Action;
 import ratpack.func.Transformer;
 
@@ -50,7 +50,7 @@ public class Render {
     this.includeTransformer = includeTransformer;
   }
 
-  private SuccessOrErrorPromise<ByteBuf> invoke() {
+  private Promise<ByteBuf> invoke() {
     return execContext.promise(new Action<Fulfiller<ByteBuf>>() {
       @Override
       public void execute(Fulfiller<ByteBuf> fulfiller) throws Exception {
@@ -89,7 +89,7 @@ public class Render {
     });
   }
 
-  public static SuccessOrErrorPromise<ByteBuf> render(ExecContext execContext, ByteBuf byteBuf, LoadingCache<TemplateSource, CompiledTemplate> compiledTemplateCache, TemplateSource templateSource, Map<String, ?> model, Transformer<String, TemplateSource> includeTransformer) throws Exception {
+  public static Promise<ByteBuf> render(ExecContext execContext, ByteBuf byteBuf, LoadingCache<TemplateSource, CompiledTemplate> compiledTemplateCache, TemplateSource templateSource, Map<String, ?> model, Transformer<String, TemplateSource> includeTransformer) throws Exception {
     return new Render(execContext, byteBuf, compiledTemplateCache, templateSource, model, includeTransformer).invoke();
   }
 }

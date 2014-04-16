@@ -48,9 +48,9 @@ public interface ExecController {
 
   void exec(ExecContext.Supplier execContextSupplier, Action<? super ExecContext> action);
 
-  <T> SuccessOrErrorPromise<T> blocking(Callable<T> callable);
+  <T> Promise<T> blocking(Callable<T> callable);
 
-  <T> SuccessOrErrorPromise<T> promise(Action<? super Fulfiller<T>> action);
+  <T> Promise<T> promise(Action<? super Fulfiller<T>> action);
 
   void onExecFinish(Runnable runnable);
 

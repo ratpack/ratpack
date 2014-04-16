@@ -17,7 +17,7 @@
 package ratpack.rx;
 
 import ratpack.exec.ExecController;
-import ratpack.exec.SuccessOrErrorPromise;
+import ratpack.exec.Promise;
 import ratpack.func.Action;
 import ratpack.util.ExceptionUtils;
 import rx.Observable;
@@ -210,7 +210,7 @@ public abstract class RxRatpack {
    * <pre class="tested">
    * import ratpack.handling.Handler;
    * import ratpack.handling.Context;
-   * import ratpack.exec.SuccessOrErrorPromise;
+   * import ratpack.exec.Promise;
    * import java.util.concurrent.Callable;
    * import rx.util.functions.Func1;
    * import rx.util.functions.Action1;
@@ -219,7 +219,7 @@ public abstract class RxRatpack {
    *
    * public class ReactiveHandler implements Handler {
    *   public void handle(Context context) {
-   *     SuccessOrErrorPromise&lt;String&gt; promise = context.blocking(new Callable&lt;String&gt;() {
+   *     Promise&lt;String&gt; promise = context.blocking(new Callable&lt;String&gt;() {
    *       public String call() {
    *         // do some blocking IO here
    *         return "hello world";
@@ -260,7 +260,7 @@ public abstract class RxRatpack {
    * @param <T> the type of value promised
    * @return an observable for the promised value
    */
-  public static <T> Observable<T> observe(SuccessOrErrorPromise<T> promise) {
+  public static <T> Observable<T> observe(Promise<T> promise) {
     return Observable.create(new PromiseSubscribe<>(promise, new Action2<T, Subscriber<? super T>>() {
       @Override
       public void call(T thing, Subscriber<? super T> subscriber) {
@@ -299,9 +299,9 @@ public abstract class RxRatpack {
    * @param <T> the element type of the promised iterable
    * @param <I> the type of iterable
    * @return an observable for each element of the promised iterable
-   * @see #observe(SuccessOrErrorPromise)
+   * @see #observe(ratpack.exec.Promise)
    */
-  public static <T, I extends Iterable<T>> Observable<T> observeEach(SuccessOrErrorPromise<I> promise) {
+  public static <T, I extends Iterable<T>> Observable<T> observeEach(Promise<I> promise) {
     return Observable.create(new PromiseSubscribe<>(promise, new Action2<I, Subscriber<? super T>>() {
       @Override
       public void call(I things, Subscriber<? super T> subscriber) {
@@ -313,10 +313,10 @@ public abstract class RxRatpack {
   }
 
   private static class PromiseSubscribe<T, S> implements Observable.OnSubscribe<S> {
-    private final SuccessOrErrorPromise<T> promise;
+    private final Promise<T> promise;
     private final Action2<T, Subscriber<? super S>> emitter;
 
-    public PromiseSubscribe(SuccessOrErrorPromise<T> promise, Action2<T, Subscriber<? super S>> emitter) {
+    public PromiseSubscribe(Promise<T> promise, Action2<T, Subscriber<? super S>> emitter) {
       this.promise = promise;
       this.emitter = emitter;
     }

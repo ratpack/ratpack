@@ -25,7 +25,7 @@ import io.netty.handler.codec.http.*;
 import io.netty.handler.ssl.SslHandler;
 import ratpack.exec.ExecController;
 import ratpack.exec.Fulfiller;
-import ratpack.exec.SuccessOrErrorPromise;
+import ratpack.exec.Promise;
 import ratpack.func.Action;
 import ratpack.func.Actions;
 import ratpack.http.Headers;
@@ -51,12 +51,12 @@ public class DefaultHttpClient implements HttpClient {
   }
 
   @Override
-  public SuccessOrErrorPromise<ReceivedResponse> get(String httpUrl) {
+  public Promise<ReceivedResponse> get(String httpUrl) {
     return get(httpUrl, Actions.noop());
   }
 
   @Override
-  public SuccessOrErrorPromise<ReceivedResponse> get(String httpUrl, Action<? super RequestSpec> requestConfigurer) {
+  public Promise<ReceivedResponse> get(String httpUrl, Action<? super RequestSpec> requestConfigurer) {
     return request(httpUrl, requestConfigurer);
   }
 
@@ -67,12 +67,12 @@ public class DefaultHttpClient implements HttpClient {
     }
   }
 
-  public SuccessOrErrorPromise<ReceivedResponse> post(String httpUrl, Action<? super RequestSpec> action) {
+  public Promise<ReceivedResponse> post(String httpUrl, Action<? super RequestSpec> action) {
     return request(httpUrl, Actions.join(new Post(), action));
   }
 
   @Override
-  public SuccessOrErrorPromise<ReceivedResponse> request(String httpUrl, final Action<? super RequestSpec> requestConfigurer) {
+  public Promise<ReceivedResponse> request(String httpUrl, final Action<? super RequestSpec> requestConfigurer) {
     final URI uri;
     try {
       uri = new URI(httpUrl);

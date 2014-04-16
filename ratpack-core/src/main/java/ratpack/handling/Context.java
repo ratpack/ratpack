@@ -296,7 +296,7 @@ public interface Context extends ExecContext, Registry {
    * @return a promise for the return value of the callable.
    */
   @Override
-  <T> SuccessOrErrorPromise<T> blocking(Callable<T> blockingOperation);
+  <T> Promise<T> blocking(Callable<T> blockingOperation);
 
   /**
    * Creates a promise of a value that will made available asynchronously.
@@ -308,7 +308,7 @@ public interface Context extends ExecContext, Registry {
    * There is no time limit or timeout on fulfillment.
    * <p>
    * The promise returned has a default error handling strategy of forwarding exceptions to {@link #error(Exception)} of this context.
-   * To use a different error strategy, supply it to the {@link SuccessOrErrorPromise#onError(Action)} method.
+   * To use a different error strategy, supply it to the {@link ratpack.exec.Promise#onError(Action)} method.
    * <p>
    * <pre class="tested">
    * import ratpack.handling.*;
@@ -369,7 +369,7 @@ public interface Context extends ExecContext, Registry {
    * @param <T> the type of value promised
    */
   @Override
-  <T> SuccessOrErrorPromise<T> promise(Action<? super Fulfiller<T>> action);
+  <T> Promise<T> promise(Action<? super Fulfiller<T>> action);
 
   /**
    * Forwards the error to the {@link ratpack.error.ClientErrorHandler} in this service.

@@ -28,7 +28,7 @@ import ratpack.func.Action;
  * Ratpack promises are <b>not thread safe</b>.
  * Instances should not be used concurrently.
  * <p>
- * Async operations will typically return the subclass of the {@link SuccessPromise}, the {@link SuccessOrErrorPromise} which allows an error handling strategy to be specified.
+ * Async operations will typically return the subclass of the {@link SuccessPromise}, the {@link Promise} which allows an error handling strategy to be specified.
  *
  * @param <T> the type of the outcome object
  */

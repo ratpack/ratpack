@@ -16,17 +16,17 @@
 
 package ratpack.http.client;
 
+import ratpack.exec.Promise;
 import ratpack.func.Action;
-import ratpack.exec.SuccessOrErrorPromise;
 
 public interface HttpClient {
 
-  SuccessOrErrorPromise<ReceivedResponse> get(String httpUrl);
+  Promise<ReceivedResponse> get(String httpUrl);
 
-  SuccessOrErrorPromise<ReceivedResponse> get(String httpUrl, Action<? super RequestSpec> action);
+  Promise<ReceivedResponse> get(String httpUrl, Action<? super RequestSpec> action);
 
-  SuccessOrErrorPromise<ReceivedResponse> post(String httpUrl, Action<? super RequestSpec> action);
+  Promise<ReceivedResponse> post(String httpUrl, Action<? super RequestSpec> action);
 
-  SuccessOrErrorPromise<ReceivedResponse> request(String httpUrl, Action<? super RequestSpec> action);
+  Promise<ReceivedResponse> request(String httpUrl, Action<? super RequestSpec> action);
 
 }

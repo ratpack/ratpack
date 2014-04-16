@@ -19,7 +19,7 @@ package ratpack.exec.internal;
 import ratpack.exec.ExecContext;
 import ratpack.exec.ExecController;
 import ratpack.exec.Fulfiller;
-import ratpack.exec.SuccessOrErrorPromise;
+import ratpack.exec.Promise;
 import ratpack.func.Action;
 import ratpack.http.client.HttpClient;
 import ratpack.http.client.internal.DefaultHttpClient;
@@ -39,12 +39,12 @@ public abstract class AbstractExecContext implements ExecContext {
   }
 
   @Override
-  public <T> SuccessOrErrorPromise<T> blocking(Callable<T> blockingOperation) {
+  public <T> Promise<T> blocking(Callable<T> blockingOperation) {
     return getExecController().blocking(blockingOperation);
   }
 
   @Override
-  public <T> SuccessOrErrorPromise<T> promise(Action<? super Fulfiller<T>> action) {
+  public <T> Promise<T> promise(Action<? super Fulfiller<T>> action) {
     return getExecController().promise(action);
   }
 

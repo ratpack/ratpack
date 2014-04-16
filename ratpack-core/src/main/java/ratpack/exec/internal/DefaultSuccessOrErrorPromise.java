@@ -21,7 +21,7 @@ import ratpack.func.Action;
 
 import static ratpack.util.ExceptionUtils.toException;
 
-public class DefaultSuccessOrErrorPromise<T> implements SuccessOrErrorPromise<T> {
+public class DefaultSuccessOrErrorPromise<T> implements Promise<T> {
   private final ExecContext context;
   private final ExecController execController;
   private final Action<? super Fulfiller<T>> action;

@@ -22,6 +22,7 @@ import ratpack.api.NonBlocking;
 import ratpack.api.Nullable;
 import ratpack.exec.ExecController;
 import ratpack.exec.ExecInterceptor;
+import ratpack.exec.Promise;
 import ratpack.func.Action;
 import ratpack.groovy.handling.GroovyByContentHandler;
 import ratpack.groovy.handling.GroovyByMethodHandler;
@@ -38,7 +39,6 @@ import ratpack.parse.Parse;
 import ratpack.parse.ParserException;
 import ratpack.path.PathTokens;
 import ratpack.exec.Fulfiller;
-import ratpack.exec.SuccessOrErrorPromise;
 import ratpack.registry.NotInRegistryException;
 import ratpack.registry.Registry;
 import ratpack.server.BindAddress;
@@ -204,12 +204,12 @@ public class DefaultGroovyContext implements GroovyContext {
   }
 
   @Override
-  public <T> SuccessOrErrorPromise<T> blocking(Callable<T> blockingOperation) {
+  public <T> Promise<T> blocking(Callable<T> blockingOperation) {
     return delegate.blocking(blockingOperation);
   }
 
   @Override
-  public <T> SuccessOrErrorPromise<T> promise(Action<? super Fulfiller<T>> action) {
+  public <T> Promise<T> promise(Action<? super Fulfiller<T>> action) {
     return delegate.promise(action);
   }
 
