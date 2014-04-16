@@ -18,6 +18,8 @@ package ratpack.exec.internal;
 
 import com.google.common.util.concurrent.*;
 import io.netty.channel.EventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.util.concurrent.DefaultThreadFactory;
 import ratpack.exec.*;
 import ratpack.func.Action;
 import ratpack.handling.internal.InterceptedOperation;
@@ -26,9 +28,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
 
 public class DefaultExecController implements ExecController {
+
+  private static final ThreadLocal<ExecController> THREAD_BINDING = new ThreadLocal<>();
 
   private final ThreadLocal<ExecContext.Supplier> contextSupplierThreadLocal = new ThreadLocal<>();
   private final ThreadLocal<List<Runnable>> onExecFinish = new ThreadLocal<List<Runnable>>() {
@@ -42,10 +45,18 @@ public class DefaultExecController implements ExecController {
   private final ListeningExecutorService blockingExecutor;
   private final EventLoopGroup eventLoopGroup;
 
-  public DefaultExecController(EventLoopGroup eventLoopGroup) {
-    this.eventLoopGroup = eventLoopGroup;
+  public DefaultExecController(int numThreads) {
+    this.eventLoopGroup = new NioEventLoopGroup(numThreads, new ExecControllerBindingThreadFactory("ratpack-compute", Thread.MAX_PRIORITY));
     this.computeExecutor = MoreExecutors.listeningDecorator(eventLoopGroup);
-    this.blockingExecutor = MoreExecutors.listeningDecorator(Executors.newCachedThreadPool(new BlockingIoThreadFactory()));
+    this.blockingExecutor = MoreExecutors.listeningDecorator(Executors.newCachedThreadPool(new ExecControllerBindingThreadFactory("ratpack-blocking", Thread.NORM_PRIORITY)));
+  }
+
+  public static ExecController getThreadBoundController() {
+    return THREAD_BINDING.get();
+  }
+
+  public static ExecContext getThreadBoundContext() {
+    return getThreadBoundController().getContext();
   }
 
   public void shutdown() throws Exception {
@@ -166,15 +177,20 @@ public class DefaultExecController implements ExecController {
     onExecFinish.get().add(runnable);
   }
 
-  private static class BlockingIoThreadFactory implements ThreadFactory {
-    private final ThreadGroup threadGroup = new ThreadGroup("ratpack-blocking-io-group");
-    volatile private int i;
+  private class ExecControllerBindingThreadFactory extends DefaultThreadFactory {
+    public ExecControllerBindingThreadFactory(String name, int priority) {
+      super(name, priority);
+    }
 
-    @SuppressWarnings("NullableProblems")
     @Override
-    public Thread newThread(Runnable r) {
-      return new Thread(threadGroup, r, "ratpack-blocking-io-worker-" + i++);
+    public Thread newThread(final Runnable r) {
+      return super.newThread(new Runnable() {
+        @Override
+        public void run() {
+          THREAD_BINDING.set(DefaultExecController.this);
+          r.run();
+        }
+      });
     }
   }
-
 }

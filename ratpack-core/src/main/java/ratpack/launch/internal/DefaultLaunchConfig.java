@@ -19,12 +19,8 @@ package ratpack.launch.internal;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.netty.buffer.ByteBufAllocator;
-import io.netty.channel.EventLoopGroup;
-import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.util.concurrent.DefaultThreadFactory;
 import ratpack.exec.ExecController;
 import ratpack.exec.internal.DefaultExecController;
-import ratpack.exec.internal.ExecControllers;
 import ratpack.file.FileSystemBinding;
 import ratpack.launch.HandlerFactory;
 import ratpack.launch.LaunchConfig;
@@ -70,21 +66,7 @@ public class DefaultLaunchConfig implements LaunchConfig {
     this.handlerFactory = handlerFactory;
     this.sslContext = sslContext;
     this.maxContentLength = maxContentLength;
-
-    EventLoopGroup eventLoopGroup = new NioEventLoopGroup(DefaultLaunchConfig.this.threads, new DefaultThreadFactory("ratpack-group") {
-      @Override
-      public Thread newThread(final Runnable r) {
-        return super.newThread(new Runnable() {
-          @Override
-          public void run() {
-            ExecControllers.STORAGE.set(execController);
-            r.run();
-          }
-        });
-      }
-    });
-
-    this.execController = new DefaultExecController(eventLoopGroup);
+    this.execController = new DefaultExecController(this.threads);
   }
 
   @Override

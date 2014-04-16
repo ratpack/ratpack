@@ -18,7 +18,7 @@ package ratpack.rx;
 
 import ratpack.exec.ExecContext;
 import ratpack.exec.Promise;
-import ratpack.exec.internal.ExecControllers;
+import ratpack.exec.internal.DefaultExecController;
 import ratpack.func.Action;
 import ratpack.util.ExceptionUtils;
 import rx.Observable;
@@ -45,7 +45,7 @@ public abstract class RxRatpack {
       return new Observable.OnSubscribe<T>() {
 
         private ExecContext getContext() {
-          return ExecControllers.STORAGE.get().getContext();
+          return DefaultExecController.getThreadBoundContext();
         }
 
         @Override
