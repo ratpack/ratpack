@@ -16,7 +16,6 @@
 
 package ratpack.rx
 
-import com.google.inject.AbstractModule
 import ratpack.http.client.HttpClientSpec
 
 import static ratpack.rx.RxRatpack.observe
