@@ -22,12 +22,14 @@ import ratpack.func.Action;
 import ratpack.groovy.internal.ClosureUtil;
 import ratpack.groovy.test.handling.GroovyInvocationBuilder;
 import ratpack.handling.Handler;
+import ratpack.launch.LaunchConfigBuilder;
 import ratpack.registry.RegistryBuilder;
 import ratpack.registry.RegistrySpec;
 import ratpack.test.handling.Invocation;
 import ratpack.test.handling.InvocationBuilder;
 import ratpack.test.handling.InvocationTimeoutException;
 
+import java.nio.file.Path;
 import java.util.Map;
 
 public class DefaultGroovyInvocationBuilder implements GroovyInvocationBuilder {
@@ -120,4 +122,15 @@ public class DefaultGroovyInvocationBuilder implements GroovyInvocationBuilder {
     return this;
   }
 
+  @Override
+  public GroovyInvocationBuilder launchConfig(Path baseDir, Action<? super LaunchConfigBuilder> action) throws Exception {
+    delegate.launchConfig(baseDir, action);
+    return this;
+  }
+
+  @Override
+  public GroovyInvocationBuilder launchConfig(Action<? super LaunchConfigBuilder> action) throws Exception {
+    delegate.launchConfig(action);
+    return this;
+  }
 }

@@ -17,19 +17,13 @@
 package ratpack.test.handling.internal;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.UnpooledByteBufAllocator;
-import io.netty.channel.EventLoopGroup;
-import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.util.CharsetUtil;
-import io.netty.util.concurrent.DefaultThreadFactory;
 import ratpack.api.Nullable;
 import ratpack.error.ClientErrorHandler;
 import ratpack.error.ServerErrorHandler;
 import ratpack.event.internal.DefaultEventController;
 import ratpack.event.internal.EventController;
 import ratpack.exec.ExecContext;
-import ratpack.exec.ExecController;
-import ratpack.exec.internal.DefaultExecController;
 import ratpack.file.internal.FileHttpTransmitter;
 import ratpack.func.Action;
 import ratpack.handling.Context;
@@ -42,11 +36,11 @@ import ratpack.http.*;
 import ratpack.http.internal.DefaultResponse;
 import ratpack.http.internal.DefaultSentResponse;
 import ratpack.launch.LaunchConfig;
+import ratpack.launch.LaunchConfigBuilder;
 import ratpack.registry.Registries;
 import ratpack.registry.Registry;
 import ratpack.render.internal.RenderController;
 import ratpack.server.BindAddress;
-import ratpack.test.MockLaunchConfig;
 import ratpack.test.handling.Invocation;
 import ratpack.test.handling.InvocationTimeoutException;
 
@@ -70,7 +64,7 @@ public class DefaultInvocation implements Invocation {
   private Integer clientError;
   private final DefaultContext.RequestConstants requestConstants;
 
-  public DefaultInvocation(final Request request, final MutableStatus status, final MutableHeaders responseHeaders, Registry registry, final int timeout, Handler handler) {
+  public DefaultInvocation(final Request request, final MutableStatus status, final MutableHeaders responseHeaders, Registry registry, final int timeout, LaunchConfigBuilder launchConfigBuilder, final Handler handler) {
 
     // There are definitely concurrency bugs in here around timing out
     // ideally we should prevent the stat from changing after a timeout occurs
@@ -101,7 +95,7 @@ public class DefaultInvocation implements Invocation {
       }
     };
 
-    Handler next = new Handler() {
+    final Handler next = new Handler() {
       public void handle(Context context) {
         calledNext = true;
         latch.countDown();
@@ -153,19 +147,9 @@ public class DefaultInvocation implements Invocation {
       }
     };
 
-    EventLoopGroup eventLoopGroup = new NioEventLoopGroup(4, new DefaultThreadFactory("ratpack-group"));
-    Response response = new DefaultResponse(status, responseHeaders, fileHttpTransmitter, UnpooledByteBufAllocator.DEFAULT, committer);
+    final LaunchConfig launchConfig = launchConfigBuilder.build();
 
-    final ExecController execController = new DefaultExecController(eventLoopGroup);
-
-    LaunchConfig launchConfig = new MockLaunchConfig() {
-
-      @Override
-      public ExecController getExecController() {
-        return execController;
-      }
-    };
-
+    Response response = new DefaultResponse(status, responseHeaders, fileHttpTransmitter, launchConfig.getBufferAllocator(), committer);
     DefaultContext.ApplicationConstants applicationConstants = new DefaultContext.ApplicationConstants(launchConfig, renderController);
     requestConstants = new DefaultContext.RequestConstants(
       applicationConstants, bindAddress, request, response, null, eventController.getRegistry()
@@ -173,17 +157,22 @@ public class DefaultInvocation implements Invocation {
 
     final Context context = new DefaultContext(requestConstants, effectiveRegistry, new Handler[]{handler}, 0, next);
 
-    try {
-      execController.exec(context.getSupplier(), new Action<ExecContext>() {
-        @Override
-        public void execute(ExecContext thing) throws Exception {
-          context.next();
+    launchConfig.getExecController().getEventLoopGroup().submit(new Runnable() {
+      @Override
+      public void run() {
+        try {
+          launchConfig.getExecController().exec(context.getSupplier(), new Action<ExecContext>() {
+            @Override
+            public void execute(ExecContext thing) throws Exception {
+              context.next();
+            }
+          });
+        } catch (Exception e) {
+          exception = e;
+          latch.countDown();
         }
-      });
-    } catch (Exception e) {
-      exception = e;
-      latch.countDown();
-    }
+      }
+    });
 
     try {
       if (!latch.await(timeout, TimeUnit.SECONDS)) {

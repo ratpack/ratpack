@@ -17,6 +17,7 @@
 package ratpack.rx
 
 import ratpack.error.ServerErrorHandler
+import ratpack.groovy.test.GroovyUnitTest
 import ratpack.handling.Context
 import ratpack.test.internal.RatpackGroovyDslSpec
 import rx.Observable
@@ -268,6 +269,19 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
     then:
     client1.text == "app1"
     client2.text == "app2"
+  }
+
+  def "can use rx in a unit test"() {
+    given:
+    def e = new Exception("!")
+
+    when:
+    def result = GroovyUnitTest.invoke({ Observable.error(e).subscribe() }) {
+
+    }
+
+    then:
+    result.exception == e
   }
 
 }

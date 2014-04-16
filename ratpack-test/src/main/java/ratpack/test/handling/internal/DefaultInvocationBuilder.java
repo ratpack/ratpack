@@ -29,6 +29,7 @@ import ratpack.http.internal.DefaultMediaType;
 import ratpack.http.internal.DefaultMutableStatus;
 import ratpack.http.internal.DefaultRequest;
 import ratpack.http.internal.NettyHeadersBackedMutableHeaders;
+import ratpack.launch.LaunchConfigBuilder;
 import ratpack.path.PathBinding;
 import ratpack.path.internal.DefaultPathBinding;
 import ratpack.registry.Registries;
@@ -39,6 +40,7 @@ import ratpack.test.handling.Invocation;
 import ratpack.test.handling.InvocationBuilder;
 import ratpack.test.handling.InvocationTimeoutException;
 
+import java.nio.file.Path;
 import java.util.Map;
 
 import static io.netty.buffer.Unpooled.buffer;
@@ -63,6 +65,8 @@ public class DefaultInvocationBuilder implements InvocationBuilder {
 
   private RegistryBuilder registryBuilder = Registries.registry();
 
+  private LaunchConfigBuilder launchConfigBuilder = LaunchConfigBuilder.noBaseDir();
+
   /**
    * Invokes a handler in a controlled way, allowing it to be tested.
    *
@@ -82,6 +86,7 @@ public class DefaultInvocationBuilder implements InvocationBuilder {
       responseHeaders,
       registry,
       timeout,
+      launchConfigBuilder,
       handler
     );
   }
@@ -167,6 +172,20 @@ public class DefaultInvocationBuilder implements InvocationBuilder {
   @Override
   public InvocationBuilder pathBinding(String boundTo, String pastBinding, Map<String, String> pathTokens) {
     registryBuilder.add(PathBinding.class, new DefaultPathBinding(boundTo, pastBinding, ImmutableMap.copyOf(pathTokens), null));
+    return this;
+  }
+
+  @Override
+  public InvocationBuilder launchConfig(Action<? super LaunchConfigBuilder> action) throws Exception {
+    launchConfigBuilder = LaunchConfigBuilder.noBaseDir();
+    action.execute(launchConfigBuilder);
+    return this;
+  }
+
+  @Override
+  public InvocationBuilder launchConfig(Path baseDir, Action<? super LaunchConfigBuilder> action) throws Exception {
+    launchConfigBuilder = LaunchConfigBuilder.baseDir(baseDir);
+    action.execute(launchConfigBuilder);
     return this;
   }
 

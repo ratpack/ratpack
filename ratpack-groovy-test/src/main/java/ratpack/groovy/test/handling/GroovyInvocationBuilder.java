@@ -20,12 +20,14 @@ import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import ratpack.func.Action;
 import ratpack.handling.Handler;
+import ratpack.launch.LaunchConfigBuilder;
 import ratpack.registry.RegistryBuilder;
 import ratpack.registry.RegistrySpec;
 import ratpack.test.handling.Invocation;
 import ratpack.test.handling.InvocationBuilder;
 import ratpack.test.handling.InvocationTimeoutException;
 
+import java.nio.file.Path;
 import java.util.Map;
 
 public interface GroovyInvocationBuilder extends InvocationBuilder {
@@ -67,4 +69,10 @@ public interface GroovyInvocationBuilder extends InvocationBuilder {
 
   @Override
   GroovyInvocationBuilder pathBinding(String boundTo, String pastBinding, Map<String, String> pathTokens);
+
+  @Override
+  GroovyInvocationBuilder launchConfig(Path baseDir, Action<? super LaunchConfigBuilder> action) throws Exception;
+
+  @Override
+  GroovyInvocationBuilder launchConfig(Action<? super LaunchConfigBuilder> action) throws Exception;
 }

@@ -18,8 +18,10 @@ package ratpack.test.handling;
 
 import ratpack.func.Action;
 import ratpack.handling.Handler;
+import ratpack.launch.LaunchConfigBuilder;
 import ratpack.registry.RegistrySpec;
 
+import java.nio.file.Path;
 import java.util.Map;
 
 /**
@@ -54,5 +56,9 @@ public interface InvocationBuilder {
   InvocationBuilder pathBinding(Map<String, String> pathTokens);
 
   InvocationBuilder pathBinding(String boundTo, String pastBinding, Map<String, String> pathTokens);
+
+  InvocationBuilder launchConfig(Path baseDir, Action<? super LaunchConfigBuilder> action) throws Exception;
+
+  InvocationBuilder launchConfig(Action<? super LaunchConfigBuilder> action) throws Exception;
 
 }
