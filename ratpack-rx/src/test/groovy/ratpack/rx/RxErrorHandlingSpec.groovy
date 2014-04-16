@@ -16,15 +16,11 @@
 
 package ratpack.rx
 
-import com.google.inject.AbstractModule
 import ratpack.error.ServerErrorHandler
-import ratpack.groovy.internal.ClosureUtil
 import ratpack.handling.Context
-import ratpack.exec.Fulfiller
 import ratpack.test.internal.RatpackGroovyDslSpec
+import rx.Observable
 import rx.exceptions.CompositeException
-
-import java.util.concurrent.TimeUnit
 
 import static ratpack.rx.RxRatpack.observe
 
@@ -44,11 +40,9 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
   def error = new RuntimeException("!")
 
   def setup() {
-    modules << new AbstractModule() {
-      @Override
-      protected void configure() {
-        bind(ServerErrorHandler).toInstance(errorHandler)
-      }
+    modules {
+      RxRatpack.install(launchConfig.execController)
+      bind ServerErrorHandler, errorHandler
     }
   }
 
@@ -62,7 +56,7 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
     handlers {
       get {
         observe(promise({
-          defer it, { error(error) }
+          it.error(error)
         })) subscribe {
           render "got to end"
         }
@@ -78,7 +72,7 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
     handlers {
       get {
         observe(promise({
-          defer it, { success("") }
+          it.success("")
         })) subscribe {
           throw error
         }
@@ -94,10 +88,10 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
     handlers {
       get {
         observe(promise({
-          defer it, { success("") }
+          it.success("")
         })) subscribe {
           observe(promise({
-            defer it, { error(error) }
+            it.error(error)
           })) subscribe {
             render "got to end"
           }
@@ -114,10 +108,10 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
     handlers {
       get {
         observe(promise({
-          defer it, { success("") }
+          it.success("")
         })) subscribe {
           observe(promise({
-            defer it, { success("") }
+            it.success("")
           })) subscribe {
             throw error
           }
@@ -134,7 +128,7 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
     handlers {
       get {
         observe(promise({
-          defer it, { error(error) }
+          it.error(error)
         })) subscribe({
           render "success"
         }, {
@@ -149,8 +143,36 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
     cause.exceptions == [error, error]
   }
 
-  void defer(object, @DelegatesTo(Fulfiller) Closure<?> closure) {
-    application.server.launchConfig.execController.executor.schedule({ ClosureUtil.configureDelegateFirst(object, closure) }, 1, TimeUnit.MILLISECONDS)
+  def "subscription without error handler results in error forwarded to context error handler"() {
+    given:
+    def e = new Exception("!")
+
+    when:
+    handlers {
+      get {
+        Observable.error(e).subscribe()
+      }
+    }
+
+    then:
+    get()
+    thrownException == e
+  }
+
+  def "observer can be complex"() {
+    given:
+    def e = new Exception("!")
+
+    when:
+    handlers {
+      get {
+        Observable.error(e).map { 2 }.subscribe()
+      }
+    }
+
+    then:
+    get()
+    thrownException == e
   }
 
 }
