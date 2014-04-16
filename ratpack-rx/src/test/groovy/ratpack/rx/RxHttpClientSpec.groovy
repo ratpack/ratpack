@@ -16,11 +16,18 @@
 
 package ratpack.rx
 
+import com.google.inject.AbstractModule
 import ratpack.http.client.HttpClientSpec
 
 import static ratpack.rx.RxRatpack.observe
 
 class RxHttpClientSpec extends HttpClientSpec {
+
+  def setup() {
+    modules {
+      RxRatpack.install(launchConfig.execController)
+    }
+  }
 
   def "can use rx with http client"() {
     given:

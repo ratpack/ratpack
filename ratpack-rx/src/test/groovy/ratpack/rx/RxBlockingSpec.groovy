@@ -25,6 +25,12 @@ import static ratpack.rx.RxRatpack.observeEach
 
 class RxBlockingSpec extends RatpackGroovyDslSpec {
 
+  def setup() {
+    modules {
+      RxRatpack.install(launchConfig.execController)
+    }
+  }
+
   def "can observe the blocking"() {
     when:
     handlers {
@@ -48,6 +54,7 @@ class RxBlockingSpec extends RatpackGroovyDslSpec {
   def "blocking errors are sent to the context renderer"() {
     when:
     modules {
+      RxRatpack.install(launchConfig.execController)
       bind ServerErrorHandler, new DebugErrorHandler()
     }
     handlers {
@@ -65,7 +72,7 @@ class RxBlockingSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    getText("a").contains new Exception("!!!!").message
+    getText("a").startsWith new Exception("!!!!").toString()
     response.statusCode == 500
   }
 
