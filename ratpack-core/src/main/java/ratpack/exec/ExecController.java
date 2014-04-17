@@ -18,6 +18,7 @@ package ratpack.exec;
 
 import com.google.common.util.concurrent.ListeningScheduledExecutorService;
 import io.netty.channel.EventLoopGroup;
+import ratpack.api.NonBlocking;
 import ratpack.func.Action;
 
 import java.util.concurrent.Callable;
@@ -46,9 +47,17 @@ public interface ExecController {
 
   EventLoopGroup getEventLoopGroup();
 
+  @NonBlocking
   void exec(ExecContext.Supplier execContextSupplier, Action<? super ExecContext> action);
 
   <T> Promise<T> blocking(Callable<T> callable);
+
+  /**
+   * Indicates whether the current thread is managed by this execution controller.
+   *
+   * @return true if the current thread is managed by this execution controller
+   */
+  boolean isManagedThread();
 
   <T> Promise<T> promise(Action<? super Fulfiller<T>> action);
 

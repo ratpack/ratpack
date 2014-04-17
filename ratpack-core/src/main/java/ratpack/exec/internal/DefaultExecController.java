@@ -88,8 +88,20 @@ public class DefaultExecController implements ExecController {
     exec(execContextSupplier, ExecInterceptor.ExecType.COMPUTE, action);
   }
 
-  private void exec(ExecContext.Supplier execContextSupplier, final ExecInterceptor.ExecType execType, final Action<? super ExecContext> action) {
+  private void exec(final ExecContext.Supplier execContextSupplier, final ExecInterceptor.ExecType execType, final Action<? super ExecContext> action) {
+    if (isManagedThread()) {
+      doExec(execContextSupplier, execType, action);
+    } else {
+      eventLoopGroup.execute(new Runnable() {
+        @Override
+        public void run() {
+          doExec(execContextSupplier, execType, action);
+        }
+      });
+    }
+  }
 
+  private void doExec(ExecContext.Supplier execContextSupplier, final ExecInterceptor.ExecType execType, final Action<? super ExecContext> action) {
     try {
       contextSupplierThreadLocal.set(execContextSupplier);
       new InterceptedOperation(execType, getContext().getInterceptors()) {
@@ -192,5 +204,11 @@ public class DefaultExecController implements ExecController {
         }
       });
     }
+  }
+
+  @Override
+  public boolean isManagedThread() {
+    ExecController threadBoundController = getThreadBoundController();
+    return threadBoundController != null && threadBoundController == this;
   }
 }
