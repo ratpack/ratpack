@@ -34,20 +34,13 @@ class RatpackVersions {
       def cl = { RatpackVersion it -> it.version == version }
       released.find(cl) ?: unreleased.find(cl)
     }
-  }
 
-  rx.Observable<RatpackVersion> getSnapshot() {
-    firstOr(gitHubData.unreleasedVersions, null)
-  }
+    RatpackVersion getSnapshot() {
+      unreleased ? unreleased.first() : null
+    }
 
-  rx.Observable<RatpackVersion> getCurrent() {
-    firstOr(gitHubData.releasedVersions, null)
-  }
-
-  private static <T> rx.Observable<T> firstOr(rx.Observable<? extends Collection<T>> observable, T defaultValue) {
-    observable.map {
-      Collection<T> collection = it as Collection<T>
-      collection.empty ? defaultValue : collection.first()
+    RatpackVersion getCurrent() {
+      released ? released.first() : null
     }
   }
 

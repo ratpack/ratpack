@@ -1,18 +1,17 @@
 import ratpack.codahale.metrics.CodaHaleMetricsModule
+import ratpack.file.internal.DefaultFileSystemBinding
 import ratpack.groovy.templating.TemplatingModule
-import ratpack.handling.Handlers
 import ratpack.jackson.JacksonModule
-import ratpack.path.PathBinding
 import ratpack.remote.RemoteControlModule
 import ratpack.rx.RxRatpack
 import ratpack.site.SiteModule
 import ratpack.site.github.GitHubApi
 import ratpack.site.github.GitHubData
-import ratpack.site.github.RatpackVersion
 import ratpack.site.github.RatpackVersions
 
 import static ratpack.groovy.Groovy.groovyTemplate
 import static ratpack.groovy.Groovy.ratpack
+import static ratpack.registry.Registries.just
 
 ratpack {
   modules {
@@ -27,7 +26,8 @@ ratpack {
 
   handlers {
 
-    def cacheFor = 60 * 10 // ten mins
+    def longCache = 60 * 60 * 24 * 365
+    def shortCache = 60 * 10 // ten mins
 
     handler {
       if (request.headers.get("host").endsWith("ratpack-framework.org")) {
@@ -38,12 +38,13 @@ ratpack {
       if (request.path.empty || request.path == "index.html") {
         response.headers.set "X-UA-Compatible", "IE=edge,chrome=1"
       }
+
       next()
     }
 
     prefix("assets") {
       handler {
-        response.headers.add("Cache-Control", "max-age=$cacheFor, public")
+        response.headers.add("Cache-Control", "max-age=$shortCache, public")
         next()
       }
       assets "assets"
@@ -53,7 +54,7 @@ ratpack {
     // https://github.com/robfletcher/gradle-compass/issues/12
     prefix("images") {
       handler {
-        response.headers.add("Cache-Control", "max-age=$cacheFor, public")
+        response.headers.add("Cache-Control", "max-age=$shortCache, public")
         next()
       }
       assets "assets/images"
@@ -111,27 +112,34 @@ ratpack {
           redirect 301, "manual/current/"
         }
 
-        handler {
-          response.headers.add("Cache-Control", "max-age=$cacheFor, public")
-          next()
-        }
+        prefix(":label") {
+          handler { RatpackVersions versions ->
+            def label = pathTokens.label
 
-        assets ""
+            versions.all.subscribe { RatpackVersions.All allVersions ->
+              if (label == "current" || label in allVersions.released.version) {
+                response.headers.add("Cache-Control", "max-age=$longCache, public")
+              } else if (label == "snapshot" || label in allVersions.unreleased.version) {
+                response.headers.add("Cache-Control", "max-age=$shortCache, public")
+              }
 
-        for (label in ["snapshot", "current"]) {
-          prefix(label) {
-            handler { RatpackVersions versions ->
-
-              def snapshot = get(PathBinding).boundTo == "snapshot"
-              (snapshot ? versions.snapshot : versions.current).subscribe { RatpackVersion version ->
-                if (version) {
-                  respond Handlers.assets(launchConfig, version.version, launchConfig.indexFiles)
-                } else {
-                  clientError(404)
+              def version
+              if (label == "current") {
+                version = allVersions.current
+              } else if (label == "snapshot") {
+                version = allVersions.snapshot
+              } else {
+                version = allVersions.find(label)
+                if (version == null) {
+                  clientError 404
+                  return
                 }
               }
+
+              next(just(new DefaultFileSystemBinding(file(version.version))))
             }
           }
+          assets ""
         }
       }
     }
