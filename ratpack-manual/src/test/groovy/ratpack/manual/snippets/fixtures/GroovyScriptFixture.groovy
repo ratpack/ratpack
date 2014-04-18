@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,17 @@
  * limitations under the License.
  */
 
-package ratpack.manual.snippets.fixtures;
+package ratpack.manual.snippets.fixtures
 
-public class ExecuteAsScriptFixture implements SnippetFixture {
+import ratpack.manual.snippets.GroovySnippetExecuter
+import ratpack.manual.snippets.SnippetExecuter
+
+class GroovyScriptFixture implements SnippetFixture {
+
+  @Override
+  SnippetExecuter getExecuter() {
+    return new GroovySnippetExecuter()
+  }
 
   @Override
   public void setup() {
@@ -33,6 +41,7 @@ public class ExecuteAsScriptFixture implements SnippetFixture {
 
   @Override
   public String post() {
-    return "";
+    return "\n;0;";
   }
+
 }

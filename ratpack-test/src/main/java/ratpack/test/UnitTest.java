@@ -31,7 +31,7 @@ public class UnitTest {
    * Unit test a {@link Handler}.
    * <p>
    * Example:
-   * <pre class="exec">
+   * <pre class="tested">
    * import ratpack.handling.*;
    * import ratpack.func.Action;
    * import ratpack.test.handling.Invocation;

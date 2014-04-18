@@ -16,7 +16,7 @@
 
 package ratpack.manual.snippets.fixtures
 
-class GroovyChainDslFixture implements SnippetFixture {
+class GroovyChainDslFixture extends GroovyScriptFixture {
 
   @Override
   public void setup() {
@@ -28,7 +28,7 @@ class GroovyChainDslFixture implements SnippetFixture {
 
   @Override
   public String pre() {
-"""
+    """
 import ratpack.launch.LaunchConfig
 
 ratpack.groovy.Groovy.chain([isReloadable: { false }] as LaunchConfig, null) {
@@ -37,7 +37,7 @@ ratpack.groovy.Groovy.chain([isReloadable: { false }] as LaunchConfig, null) {
 
   @Override
   public String post() {
-"""
+    """
 }
 """
   }

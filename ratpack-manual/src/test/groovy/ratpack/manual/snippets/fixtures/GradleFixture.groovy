@@ -16,7 +16,7 @@
 
 package ratpack.manual.snippets.fixtures
 
-class GradleFixture implements SnippetFixture {
+class GradleFixture extends GroovyScriptFixture {
   @Override
   void setup() {
   }
@@ -27,7 +27,7 @@ class GradleFixture implements SnippetFixture {
 
   @Override
   String pre() {
-"""
+    """
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.model.GradleProject
 

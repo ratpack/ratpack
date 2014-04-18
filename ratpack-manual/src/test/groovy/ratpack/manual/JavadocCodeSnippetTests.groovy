@@ -19,21 +19,15 @@ package ratpack.manual
 import ratpack.manual.snippets.CodeSnippetTestCase
 import ratpack.manual.snippets.CodeSnippetTests
 import ratpack.manual.snippets.JavadocSnippetExtractor
-import ratpack.manual.snippets.fixtures.DoNothingSnippetFixture
-import ratpack.manual.snippets.fixtures.ExecuteAsScriptFixture
-import ratpack.manual.snippets.fixtures.GroovyChainDslFixture
-import ratpack.manual.snippets.fixtures.GroovyRatpackDslFixture
-import ratpack.manual.snippets.fixtures.JavaChainDslFixture
-import ratpack.manual.snippets.fixtures.SnippetFixture
+import ratpack.manual.snippets.fixtures.*
 
 class JavadocCodeSnippetTests extends CodeSnippetTestCase {
 
   public static final LinkedHashMap<String, SnippetFixture> FIXTURES = [
-    "tested"            : new DoNothingSnippetFixture(),
+    "tested"            : new GroovyScriptFixture(),
     "java-chain-dsl"    : new JavaChainDslFixture(),
     "groovy-chain-dsl"  : new GroovyChainDslFixture(),
     "groovy-ratpack-dsl": new GroovyRatpackDslFixture(),
-    "exec"              : new ExecuteAsScriptFixture()
   ]
 
   @Override

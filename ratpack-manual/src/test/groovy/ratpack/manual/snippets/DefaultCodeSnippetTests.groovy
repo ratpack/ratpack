@@ -30,7 +30,7 @@ class DefaultCodeSnippetTests implements CodeSnippetTests {
   }
 
   public void add(TestCodeSnippet snippet) {
-    runners.add(new SnippetRunner(clazz, new SnippetExecuter(), snippet))
+    runners.add(new SnippetRunner(clazz, snippet))
   }
 
 }

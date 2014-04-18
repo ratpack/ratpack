@@ -20,7 +20,6 @@ import org.junit.runner.Description;
 import org.junit.runner.Runner;
 import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunNotifier;
-import ratpack.manual.snippets.SnippetExecuter;
 import ratpack.manual.snippets.TestCodeSnippet;
 
 import static ratpack.util.ExceptionUtils.uncheck;
@@ -28,12 +27,10 @@ import static ratpack.util.ExceptionUtils.uncheck;
 public class SnippetRunner extends Runner {
 
   private final Description description;
-  private final SnippetExecuter executer;
   private final TestCodeSnippet snippet;
 
-  public SnippetRunner(Class<?> testClass, SnippetExecuter executer, TestCodeSnippet snippet) {
+  public SnippetRunner(Class<?> testClass, TestCodeSnippet snippet) {
     this.description = Description.createTestDescription(testClass, snippet.getTestName());
-    this.executer = executer;
     this.snippet = snippet;
   }
 
@@ -46,7 +43,7 @@ public class SnippetRunner extends Runner {
   public void run(RunNotifier notifier) {
     try {
       notifier.fireTestStarted(getDescription());
-      executer.execute(snippet);
+      snippet.getFixture().getExecuter().execute(snippet);
     } catch (Throwable t) {
       Throwable transform;
       try {

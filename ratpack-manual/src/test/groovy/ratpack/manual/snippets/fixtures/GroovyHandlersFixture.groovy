@@ -16,7 +16,7 @@
 
 package ratpack.manual.snippets.fixtures
 
-class GroovyHandlersFixture implements SnippetFixture {
+class GroovyHandlersFixture extends GroovyScriptFixture {
 
   @Override
   public void setup() {

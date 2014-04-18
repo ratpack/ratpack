@@ -19,7 +19,7 @@ package ratpack.manual.snippets.fixtures
 import ratpack.groovy.internal.RatpackScriptBacking
 import ratpack.func.Action
 
-class GroovyRatpackDslFixture implements SnippetFixture {
+class GroovyRatpackDslFixture  extends GroovyScriptFixture {
 
   private Action<Closure<?>> previousBacking
 

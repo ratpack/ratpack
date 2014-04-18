@@ -16,6 +16,8 @@
 
 package ratpack.manual.snippets.fixtures;
 
+import ratpack.manual.snippets.SnippetExecuter;
+
 public interface SnippetFixture {
 
   void setup();
@@ -25,5 +27,7 @@ public interface SnippetFixture {
   String pre();
 
   String post();
+
+  SnippetExecuter getExecuter();
 
 }

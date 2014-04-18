@@ -34,7 +34,7 @@ public abstract class GroovyUnitTest {
    * Unit test a {@link Handler}.
    * <p>
    * Example:
-   * <pre class="exec">
+   * <pre class="tested">
    * import ratpack.handling.*
    * import static ratpack.groovy.test.GroovyUnitTest.invoke
    *

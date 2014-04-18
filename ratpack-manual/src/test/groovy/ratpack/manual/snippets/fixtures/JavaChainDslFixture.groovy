@@ -16,7 +16,7 @@
 
 package ratpack.manual.snippets.fixtures
 
-class JavaChainDslFixture implements SnippetFixture {
+class JavaChainDslFixture extends GroovyScriptFixture {
 
   @Override
   public void setup() {
