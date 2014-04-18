@@ -310,22 +310,21 @@ public interface Context extends ExecContext, Registry {
    * The promise returned has a default error handling strategy of forwarding exceptions to {@link #error(Exception)} of this context.
    * To use a different error strategy, supply it to the {@link ratpack.exec.Promise#onError(Action)} method.
    * <p>
+   * The promise will always be fulfilled on a thread managed by Ratpack.
    * <pre class="tested">
    * import ratpack.handling.*;
    * import ratpack.exec.Fulfiller;
    * import ratpack.func.Action;
    *
-   * import java.util.concurrent.TimeUnit;
-   *
    * public class PromiseUsingJavaHandler implements Handler {
    *   public void handle(final Context context) {
    *     context.promise(new Action&lt;Fulfiller&lt;String&gt;&gt;() {
    *       public void execute(final Fulfiller&lt;String&gt; fulfiller) {
-   *         context.getExecController().getExecutor().schedule(new Runnable() {
+   *         new Thread(new Runnable() {
    *           public void run() {
    *             fulfiller.success("hello world!");
    *           }
-   *         }, 200, TimeUnit.MILLISECONDS);
+   *         }).start();
    *       }
    *     }).then(new Action&lt;String&gt;() {
    *       public void execute(String string) {
@@ -338,9 +337,9 @@ public interface Context extends ExecContext, Registry {
    * class PromiseUsingGroovyHandler implements Handler {
    *   void handle(Context context) {
    *     context.promise { Fulfiller&lt;String&gt; fulfiller ->
-   *       context.execController.executor.schedule({
+   *       Thread.start {
    *         fulfiller.success("hello world!")
-   *       }, 200, TimeUnit.MILLISECONDS)
+   *       }
    *     } then { String string ->
    *       context.render(string)
    *     }

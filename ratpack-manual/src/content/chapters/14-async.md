@@ -138,9 +138,63 @@ See the [Context#blocking(Callable)](api/ratpack/handling/Context.html#blocking\
 
 ## Performing async operations
 
-TBD - demonstrate use of [Context#promise(Action<Fulfiller\<T>>)](api/ratpack/handling/Context.html#promise\(ratpack.func.Action\)) for integrating with async APIs.
+The [Context#promise(Action<Fulfiller\<T>>)](api/ratpack/handling/Context.html#promise\(ratpack.func.Action\)) for integrating with async APIs.
+It is essentially a mechanism for adapting 3rd party APIs to Ratpack's promise type.
+
+```language-groovy tested
+import ratpack.handling.*;
+import ratpack.exec.Fulfiller;
+import ratpack.func.Action;
+
+public class PromiseUsingJavaHandler implements Handler {
+  public void handle(final Context context) {
+    context.promise(new Action&lt;Fulfiller&lt;String&gt;&gt;() {
+      public void execute(final Fulfiller&lt;String&gt; fulfiller) {
+        new Thread(new Runnable() {
+          public void run() {
+            fulfiller.success("hello world!");
+          }
+        }).start();
+      }
+    }).then(new Action&lt;String&gt;() {
+      public void execute(String string) {
+        context.render(string);
+      }
+    });
+  }
+}
+
+class PromiseUsingGroovyHandler implements Handler {
+  void handle(Context context) {
+    context.promise { Fulfiller<String> fulfiller ->
+      Thread.start {
+        fulfiller.success("hello world!")
+      }
+    } then { String string ->
+      context.render(string)
+    }
+  }
+}
+
+// Or when using the handlers dsl
+handlers {
+  get {
+    promise { Fulfiller<String> fulfiller ->
+      Thread.start {
+        fulfiller.success("hello world!")
+      }
+    } then {
+      render(it)
+    }
+  }
+}
+```
+
+It is important to note that the promise is always fulfilled on a compute thread managed by Ratpack.
+When the “fulfiller” is invoked from a non Ratpack thread (perhaps it's a thread managed by the 3rd party async API) the promise subscriber will be invoked on a Ratpack thread.
 
 ## Functional composition with RxJava
 
 TBD - discuss using RxJava for async operation composition (see: [RxRatpack](api/ratpack/rx/RxRatpack.html)).
+
 
