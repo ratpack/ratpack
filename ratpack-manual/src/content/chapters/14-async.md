@@ -141,22 +141,22 @@ See the [Context#blocking(Callable)](api/ratpack/handling/Context.html#blocking\
 The [Context#promise(Action<Fulfiller\<T>>)](api/ratpack/handling/Context.html#promise\(ratpack.func.Action\)) for integrating with async APIs.
 It is essentially a mechanism for adapting 3rd party APIs to Ratpack's promise type.
 
-```language-groovy tested
+```language-groovy groovy-handlers
 import ratpack.handling.*;
 import ratpack.exec.Fulfiller;
 import ratpack.func.Action;
 
 public class PromiseUsingJavaHandler implements Handler {
   public void handle(final Context context) {
-    context.promise(new Action&lt;Fulfiller&lt;String&gt;&gt;() {
-      public void execute(final Fulfiller&lt;String&gt; fulfiller) {
+    context.promise(new Action<Fulfiller<String>>() {
+      public void execute(final Fulfiller<String> fulfiller) {
         new Thread(new Runnable() {
           public void run() {
             fulfiller.success("hello world!");
           }
         }).start();
       }
-    }).then(new Action&lt;String&gt;() {
+    }).then(new Action<String>() {
       public void execute(String string) {
         context.render(string);
       }

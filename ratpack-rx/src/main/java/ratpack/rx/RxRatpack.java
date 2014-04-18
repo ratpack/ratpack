@@ -102,7 +102,7 @@ public abstract class RxRatpack {
    * import ratpack.handling.Context;
    * import ratpack.handling.ChainAction;
    * import ratpack.error.ServerErrorHandler;
-   * import ratpack.registry.Registries;
+   * import ratpack.registry.RegistrySpecAction;
    * import ratpack.rx.RxRatpack;
    * import rx.Observable;
    * import rx.functions.Action1;
@@ -115,11 +115,15 @@ public abstract class RxRatpack {
    *
    *     return Handlers.chain(launchConfig, new ChainAction() {
    *       public void execute() {
-   *         register(Registries.just(ServerErrorHandler, new ServerErrorHandler() {
-   *           public void error(Context context, Exception exception) {
-   *             context.render("caught by error handler!");
+   *         register(new RegistrySpecAction() { // register a custom error handler
+   *           public void execute() {
+   *             add(ServerErrorHandler, new ServerErrorHandler() {
+   *               public void error(Context context, Exception exception) {
+   *                 context.render("caught by error handler!");
+   *               }
+   *             })
    *           }
-   *         }));
+   *         });
    *
    *         get(new Handler() {
    *           public void handle(Context context) {
