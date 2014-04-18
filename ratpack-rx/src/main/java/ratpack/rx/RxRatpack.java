@@ -34,7 +34,7 @@ import static ratpack.util.ExceptionUtils.toException;
 /**
  * Provides integration with <a href="https://github.com/Netflix/RxJava">RxJava</a>.
  * <p>
- * <b>IMPORTANT:</b> the {@link #install()} method must be called to fully enable integration.
+ * <b>IMPORTANT:</b> the {@link #initialize()} method must be called to fully enable integration.
  */
 public abstract class RxRatpack {
 
@@ -111,7 +111,7 @@ public abstract class RxRatpack {
    *   public Handler create(LaunchConfig launchConfig) {
    *
    *     // Enable Rx integration
-   *     RxRatpack.install();
+   *     RxRatpack.initialize();
    *
    *     return Handlers.chain(launchConfig, new ChainAction() {
    *       public void execute() {
@@ -172,7 +172,7 @@ public abstract class RxRatpack {
    * def app = embeddedApp {
    *   modules {
    *     // Enable Rx integration
-   *     RxRatpack.install()
+   *     RxRatpack.initialize()
    *
    *     bind ServerErrorHandler, new ServerErrorHandler() {
    *       void error(Context context, Exception exception) {
@@ -201,7 +201,7 @@ public abstract class RxRatpack {
    * }
    * </pre>
    */
-  public static void install() {
+  public static void initialize() {
     RxJavaPlugins plugins = RxJavaPlugins.getInstance();
     ExecutionHook ourHook = new ExecutionHook();
     try {

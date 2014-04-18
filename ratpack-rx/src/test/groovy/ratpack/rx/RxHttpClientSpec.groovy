@@ -23,7 +23,7 @@ import static ratpack.rx.RxRatpack.observe
 class RxHttpClientSpec extends HttpClientSpec {
 
   def setup() {
-    RxRatpack.install()
+    RxRatpack.initialize()
   }
 
   def "can use rx with http client"() {

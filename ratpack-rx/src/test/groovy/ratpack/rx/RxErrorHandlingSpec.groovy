@@ -43,7 +43,7 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
   def error = new RuntimeException("!")
 
   def setup() {
-    RxRatpack.install()
+    RxRatpack.initialize()
     modules {
       bind ServerErrorHandler, errorHandler
     }

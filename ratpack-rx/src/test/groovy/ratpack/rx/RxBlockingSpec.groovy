@@ -26,7 +26,7 @@ import static ratpack.rx.RxRatpack.observeEach
 class RxBlockingSpec extends RatpackGroovyDslSpec {
 
   def setup() {
-    RxRatpack.install()
+    RxRatpack.initialize()
   }
 
   def "can observe the blocking"() {
