@@ -193,8 +193,14 @@ handlers {
 It is important to note that the promise is always fulfilled on a compute thread managed by Ratpack.
 When the “fulfiller” is invoked from a non Ratpack thread (perhaps it's a thread managed by the 3rd party async API) the promise subscriber will be invoked on a Ratpack thread.
 
-## Functional composition with RxJava
+## Async composition and avoiding callback hell
 
-TBD - discuss using RxJava for async operation composition (see: [RxRatpack](api/ratpack/rx/RxRatpack.html)).
+One of the challenges of asynchronous programming lies in composition.
+Non trivial asynchronous programming can quickly descend into a phenomenon known as “callback hell”, which is the term used to describe the incomprehensibility of many layers of nested callbacks.
 
+Elegantly and cleanly composing async operations together into complex workflows is an area of rapid innovation at this time.
+Ratpack does not attempt to provide a framework for asynchronous composition.
+Instead, it aims to integrate and provide adapters to specialised tools for this task.
+An example of this approach is [Ratpack's integration with RxJava](rxjava.html).
 
+In general, integration is a matter of adapting Ratpack's [`Promise`](api/ratpack/exec/Promise.html) type with the composition primitive of the target framework.
