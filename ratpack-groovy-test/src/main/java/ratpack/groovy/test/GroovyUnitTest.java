@@ -94,6 +94,7 @@ public abstract class GroovyUnitTest {
    *     handler {
    *       def outputHeaderValue = request.headers.get("input-value") + ":bar"
    *       response.headers.set("output-value", outputHeaderValue)
+   *       next()
    *     }
    *     handler {
    *       render "received: " + request.path
