@@ -276,7 +276,7 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
     def e = new Exception("!")
 
     when:
-    def result = GroovyUnitTest.invoke({ Observable.error(e).subscribe() }) {
+    def result = GroovyUnitTest.handle({ Observable.error(e).subscribe() }) {
 
     }
 

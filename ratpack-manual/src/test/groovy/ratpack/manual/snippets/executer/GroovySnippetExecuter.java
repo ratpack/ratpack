@@ -22,11 +22,10 @@ import groovy.transform.CompileStatic;
 import org.codehaus.groovy.ast.AnnotationNode;
 import org.codehaus.groovy.ast.ClassNode;
 import org.codehaus.groovy.classgen.GeneratorContext;
-import org.codehaus.groovy.control.CompilationFailedException;
-import org.codehaus.groovy.control.CompilePhase;
-import org.codehaus.groovy.control.CompilerConfiguration;
-import org.codehaus.groovy.control.SourceUnit;
+import org.codehaus.groovy.control.*;
 import org.codehaus.groovy.control.customizers.CompilationCustomizer;
+import org.codehaus.groovy.control.messages.Message;
+import org.codehaus.groovy.control.messages.SyntaxErrorMessage;
 import ratpack.manual.snippets.TestCodeSnippet;
 import ratpack.manual.snippets.fixture.SnippetFixture;
 
@@ -59,7 +58,19 @@ public class GroovySnippetExecuter implements SnippetExecuter {
     SnippetFixture fixture = snippet.getFixture();
     String fullSnippet = imports + fixture.pre() + snippetMinusImports + fixture.post();
 
-    Script script = groovyShell.parse(fullSnippet, snippet.getClassName());
+
+    Script script;
+    try {
+      script = groovyShell.parse(fullSnippet, snippet.getClassName());
+    } catch (MultipleCompilationErrorsException e) {
+      Message error = e.getErrorCollector().getError(0);
+      if (error instanceof SyntaxErrorMessage) {
+        //noinspection ThrowableResultOfMethodCallIgnored
+        throw new CompileException(e, ((SyntaxErrorMessage) error).getCause().getLine());
+      } else {
+        throw e;
+      }
+    }
 
     fixture.setup();
     try {

@@ -21,7 +21,10 @@ import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpHeaders;
 import ratpack.func.Action;
+import ratpack.handling.Chain;
+import ratpack.handling.Context;
 import ratpack.handling.Handler;
+import ratpack.handling.Handlers;
 import ratpack.http.MutableHeaders;
 import ratpack.http.MutableStatus;
 import ratpack.http.Request;
@@ -36,9 +39,9 @@ import ratpack.registry.Registries;
 import ratpack.registry.Registry;
 import ratpack.registry.RegistryBuilder;
 import ratpack.registry.RegistrySpec;
-import ratpack.test.handling.Invocation;
-import ratpack.test.handling.InvocationBuilder;
-import ratpack.test.handling.InvocationTimeoutException;
+import ratpack.test.handling.HandlerTimeoutException;
+import ratpack.test.handling.HandlingResult;
+import ratpack.test.handling.RequestFixture;
 
 import java.nio.file.Path;
 import java.util.Map;
@@ -47,10 +50,10 @@ import static io.netty.buffer.Unpooled.buffer;
 import static io.netty.buffer.Unpooled.unreleasableBuffer;
 
 /**
- * @see ratpack.test.UnitTest#invoke(ratpack.handling.Handler, ratpack.func.Action)
+ * @see ratpack.test.UnitTest#handle(ratpack.handling.Handler, ratpack.func.Action)
  */
 @SuppressWarnings("UnusedDeclaration")
-public class DefaultInvocationBuilder implements InvocationBuilder {
+public class DefaultRequestFixture implements RequestFixture {
 
   private final ByteBuf requestBody = unreleasableBuffer(buffer());
   private final MutableHeaders requestHeaders = new NettyHeadersBackedMutableHeaders(new DefaultHttpHeaders());
@@ -72,15 +75,15 @@ public class DefaultInvocationBuilder implements InvocationBuilder {
    *
    * @param handler The handler to invoke
    * @return A result object indicating what happened
-   * @throws ratpack.test.handling.InvocationTimeoutException if the handler takes more than {@link #timeout(int)} seconds to send a response or call {@code next()} on the context
+   * @throws ratpack.test.handling.HandlerTimeoutException if the handler takes more than {@link #timeout(int)} seconds to send a response or call {@code next()} on the context
    */
   @Override
-  public Invocation invoke(Handler handler) throws InvocationTimeoutException {
+  public HandlingResult handle(Handler handler) throws HandlerTimeoutException {
     Request request = new DefaultRequest(requestHeaders, method, uri, requestBody);
 
     Registry registry = registryBuilder.build();
 
-    return new DefaultInvocation(
+    return new DefaultHandlingResult(
       request,
       status,
       responseHeaders,
@@ -92,13 +95,23 @@ public class DefaultInvocationBuilder implements InvocationBuilder {
   }
 
   @Override
-  public InvocationBuilder header(String name, String value) {
+  public HandlingResult handle(final Action<? super Chain> chainAction) throws HandlerTimeoutException {
+    return handle(new Handler() {
+      @Override
+      public void handle(Context context) throws Exception {
+        Handlers.chain(context.getLaunchConfig(), chainAction).handle(context);
+      }
+    });
+  }
+
+  @Override
+  public RequestFixture header(String name, String value) {
     requestHeaders.add(name, value);
     return this;
   }
 
   @Override
-  public InvocationBuilder body(byte[] bytes, String contentType) {
+  public RequestFixture body(byte[] bytes, String contentType) {
     requestHeaders.add(HttpHeaders.Names.CONTENT_TYPE, contentType);
     requestHeaders.add(HttpHeaders.Names.CONTENT_LENGTH, bytes.length);
     requestBody.capacity(bytes.length).writeBytes(bytes);
@@ -106,18 +119,18 @@ public class DefaultInvocationBuilder implements InvocationBuilder {
   }
 
   @Override
-  public InvocationBuilder body(String text, String contentType) {
+  public RequestFixture body(String text, String contentType) {
     return body(text.getBytes(), DefaultMediaType.utf8(contentType).toString());
   }
 
   @Override
-  public InvocationBuilder responseHeader(String name, String value) {
+  public RequestFixture responseHeader(String name, String value) {
     responseHeaders.add(name, value);
     return this;
   }
 
   @Override
-  public InvocationBuilder method(String method) {
+  public RequestFixture method(String method) {
     if (method == null) {
       throw new IllegalArgumentException("method must not be null");
     }
@@ -126,7 +139,7 @@ public class DefaultInvocationBuilder implements InvocationBuilder {
   }
 
   @Override
-  public InvocationBuilder uri(String uri) {
+  public RequestFixture uri(String uri) {
     if (uri == null) {
       throw new NullPointerException("uri cannot be null");
     }
@@ -139,11 +152,11 @@ public class DefaultInvocationBuilder implements InvocationBuilder {
   }
 
   @Override
-  public InvocationBuilder timeout(int timeout) {
-    if (timeout < 0) {
+  public RequestFixture timeout(int timeoutSeconds) {
+    if (timeoutSeconds < 0) {
       throw new IllegalArgumentException("timeout must be > 0");
     }
-    this.timeout = timeout;
+    this.timeout = timeoutSeconds;
     return this;
   }
 
@@ -153,37 +166,31 @@ public class DefaultInvocationBuilder implements InvocationBuilder {
   }
 
   @Override
-  public InvocationBuilder registry(Action<? super RegistrySpec> action) throws Exception {
+  public RequestFixture registry(Action<? super RegistrySpec> action) throws Exception {
     action.execute(registryBuilder);
     return this;
   }
 
   @Override
-  public InvocationBuilder register(Object object) {
-    registryBuilder.add(object);
-    return this;
-  }
-
-  @Override
-  public InvocationBuilder pathBinding(Map<String, String> pathTokens) {
+  public RequestFixture pathBinding(Map<String, String> pathTokens) {
     return pathBinding("", "", pathTokens);
   }
 
   @Override
-  public InvocationBuilder pathBinding(String boundTo, String pastBinding, Map<String, String> pathTokens) {
+  public RequestFixture pathBinding(String boundTo, String pastBinding, Map<String, String> pathTokens) {
     registryBuilder.add(PathBinding.class, new DefaultPathBinding(boundTo, pastBinding, ImmutableMap.copyOf(pathTokens), null));
     return this;
   }
 
   @Override
-  public InvocationBuilder launchConfig(Action<? super LaunchConfigBuilder> action) throws Exception {
+  public RequestFixture launchConfig(Action<? super LaunchConfigBuilder> action) throws Exception {
     launchConfigBuilder = LaunchConfigBuilder.noBaseDir();
     action.execute(launchConfigBuilder);
     return this;
   }
 
   @Override
-  public InvocationBuilder launchConfig(Path baseDir, Action<? super LaunchConfigBuilder> action) throws Exception {
+  public RequestFixture launchConfig(Path baseDir, Action<? super LaunchConfigBuilder> action) throws Exception {
     launchConfigBuilder = LaunchConfigBuilder.baseDir(baseDir);
     action.execute(launchConfigBuilder);
     return this;

@@ -75,14 +75,10 @@ import ratpack.registry.RegistrySpec;
  * // Factoring out into GroovyChainAction implementations mean they can be unit tested in isolation…
  *
  * import ratpack.handling.Handlers
- * import ratpack.test.MockLaunchConfig
- * import static ratpack.groovy.test.GroovyUnitTest.invoke
+ * import static ratpack.groovy.test.GroovyUnitTest.handle
  *
- * def launchConfig = new MockLaunchConfig()
- * def handler = Handlers.chain(launchConfig, new OtherHandlers())
- *
- * assert invoke(handler) { uri "bar" }.rendered(String) == "bar"
- * assert invoke(handler) { uri "foo" }.rendered(String) == "foo"
+ * assert handle(new OtherHandlers()) { uri "bar" }.rendered(String) == "bar"
+ * assert handle(new OtherHandlers()) { uri "foo" }.rendered(String) == "foo"
  * </pre>
  * <p>
  * This class implements the {@link GroovyChain} interface by delegating each method to the chain returned by {@link #getChain()}.

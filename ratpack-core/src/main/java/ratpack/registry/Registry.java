@@ -51,15 +51,15 @@ import java.util.List;
  *   }
  * }
  *
- * import ratpack.test.handling.Invocation;
- * import ratpack.test.handling.InvocationBuilder;
+ * import ratpack.test.handling.HandlingResult;
+ * import ratpack.test.handling.RequestFixture;
  *
- * import static ratpack.test.UnitTest.invoke;
+ * import static ratpack.test.UnitTest.handle;
  * import static ratpack.handling.Handlers.chain;
  * import static ratpack.func.Actions.noop;
  *
  * Handler chain = chain(new UpstreamHandler(), new DownstreamHandler());
- * Invocation result = invoke(chain, noop());
+ * HandlingResult result = handle(chain, noop());
  *
  * assert result.rendered(String.class).equals("foo");
  * </pre>

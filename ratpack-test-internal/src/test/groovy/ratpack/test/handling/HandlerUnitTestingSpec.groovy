@@ -17,16 +17,17 @@
 package ratpack.test.handling
 
 import ratpack.groovy.templating.Template
+import ratpack.groovy.test.GroovyUnitTest
 import ratpack.handling.Context
 import ratpack.handling.Handler
 import spock.lang.Specification
 
 import static ratpack.groovy.Groovy.groovyTemplate
-import static ratpack.groovy.test.GroovyUnitTest.invoke
-import static ratpack.test.UnitTest.invocationBuilder
+import static ratpack.groovy.test.GroovyUnitTest.handle
+import static ratpack.test.UnitTest.requestFixture
 
 /**
- * This is not so much testing our stuff, but acting as an example of how to use the invocation builder.
+ * This is not so much testing our stuff, but acting as an example of how to use the result fixture.
  */
 class HandlerUnitTestingSpec extends Specification {
 
@@ -54,15 +55,15 @@ class HandlerUnitTestingSpec extends Specification {
 
   def "can unit test handler"() {
     when:
-    def invocation = invoke(new MyHandler()) {
-      // Use the InvocationBuilder DSL in here to set up the groovyContext for the handler
-      register new LabelProvider("baz")
+    def invocation = handle(new MyHandler()) {
+      // Use the RequestFixture DSL in here to set up the groovyContext for the handler
+      registry.add new LabelProvider("baz")
       header "Test-Header", "foo"
       uri "/bar"
     }
 
     then:
-    // The invocation object gives you insight on what the handler did
+    // The result object gives you insight on what the handler did
     with(invocation) {
       bodyText == "baz: foo:/bar"
       headers.get("set-header") == "set"
@@ -71,13 +72,13 @@ class HandlerUnitTestingSpec extends Specification {
 
   def "can unit test handler with context builder syntax"() {
     given:
-    def context = invocationBuilder()
-    context.register new LabelProvider("baz")
+    def context = requestFixture()
+    context.registry.add new LabelProvider("baz")
     context.header "Test-Header", "foo"
     context.uri "/bar"
 
     when:
-    def result = context.invoke(new MyHandler())
+    def result = context.handle(new MyHandler())
 
     then:
     with(result) {
@@ -88,11 +89,11 @@ class HandlerUnitTestingSpec extends Specification {
 
   def "can use a fluent style with the context builder"() {
     when:
-    def result = invocationBuilder()
-      .register(new LabelProvider("baz"))
+    def result = GroovyUnitTest.requestFixture()
+      .registry { add(new LabelProvider("baz")) }
       .header("Test-Header", "foo")
       .uri("/bar")
-      .invoke(new MyHandler())
+      .handle(new MyHandler())
 
     then:
     with(result) {
@@ -110,7 +111,7 @@ class HandlerUnitTestingSpec extends Specification {
 
   def "can unit test a handler that renders a template"() {
     when:
-    def invocation = invoke(new RenderingHandler()) {}
+    def invocation = handle(new RenderingHandler()) {}
 
     then:
     with(invocation) {

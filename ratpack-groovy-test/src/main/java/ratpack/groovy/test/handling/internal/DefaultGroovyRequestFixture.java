@@ -20,76 +20,82 @@ import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import ratpack.func.Action;
 import ratpack.groovy.internal.ClosureUtil;
-import ratpack.groovy.test.handling.GroovyInvocationBuilder;
+import ratpack.groovy.test.handling.GroovyRequestFixture;
+import ratpack.handling.Chain;
 import ratpack.handling.Handler;
 import ratpack.launch.LaunchConfigBuilder;
 import ratpack.registry.RegistryBuilder;
 import ratpack.registry.RegistrySpec;
-import ratpack.test.handling.Invocation;
-import ratpack.test.handling.InvocationBuilder;
-import ratpack.test.handling.InvocationTimeoutException;
+import ratpack.test.handling.HandlingResult;
+import ratpack.test.handling.RequestFixture;
+import ratpack.test.handling.HandlerTimeoutException;
 
 import java.nio.file.Path;
 import java.util.Map;
 
-public class DefaultGroovyInvocationBuilder implements GroovyInvocationBuilder {
+public class DefaultGroovyRequestFixture implements GroovyRequestFixture {
 
-  private final InvocationBuilder delegate;
+  private final RequestFixture delegate;
 
   @Override
-  public GroovyInvocationBuilder registry(@DelegatesTo(value = RegistryBuilder.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) {
+  public GroovyRequestFixture registry(@DelegatesTo(value = RegistryBuilder.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) {
     ClosureUtil.configureDelegateFirst(getRegistry(), closure);
     return this;
   }
 
-  public DefaultGroovyInvocationBuilder(InvocationBuilder delegate) {
+  public DefaultGroovyRequestFixture(RequestFixture delegate) {
     this.delegate = delegate;
   }
 
   @Override
-  public Invocation invoke(Handler handler) throws InvocationTimeoutException {
-    return delegate.invoke(handler);
+  public HandlingResult handle(Handler handler) throws HandlerTimeoutException {
+    return delegate.handle(handler);
   }
 
   @Override
-  public GroovyInvocationBuilder header(String name, String value) {
+  public HandlingResult handle(Action<? super Chain> chainAction) throws HandlerTimeoutException {
+    return delegate.handle(chainAction);
+  }
+
+  @Override
+  public GroovyRequestFixture header(String name, String value) {
     delegate.header(name, value);
     return this;
   }
 
   @Override
-  public GroovyInvocationBuilder body(byte[] bytes, String contentType) {
+  public GroovyRequestFixture body(byte[] bytes, String contentType) {
     delegate.body(bytes, contentType);
     return this;
   }
 
   @Override
-  public GroovyInvocationBuilder body(String text, String contentType) {
+  public GroovyRequestFixture body(String text, String contentType) {
     delegate.body(text, contentType);
     return this;
   }
 
   @Override
-  public GroovyInvocationBuilder responseHeader(String name, String value) {
+  public GroovyRequestFixture responseHeader(String name, String value) {
     delegate.responseHeader(name, value);
     return this;
   }
 
   @Override
-  public GroovyInvocationBuilder method(String method) {
+  public GroovyRequestFixture method(String method) {
     delegate.method(method);
     return this;
   }
 
   @Override
-  public GroovyInvocationBuilder uri(String uri) {
+  public GroovyRequestFixture uri(String uri) {
     delegate.uri(uri);
     return this;
   }
 
   @Override
-  public GroovyInvocationBuilder timeout(int timeout) {
-    delegate.timeout(timeout);
+  public GroovyRequestFixture timeout(int timeoutSeconds) {
+    delegate.timeout(timeoutSeconds);
     return this;
   }
 
@@ -99,37 +105,31 @@ public class DefaultGroovyInvocationBuilder implements GroovyInvocationBuilder {
   }
 
   @Override
-  public GroovyInvocationBuilder registry(Action<? super RegistrySpec> action) throws Exception {
+  public GroovyRequestFixture registry(Action<? super RegistrySpec> action) throws Exception {
     delegate.registry(action);
     return this;
   }
 
   @Override
-  public GroovyInvocationBuilder register(Object object) {
-    delegate.register(object);
-    return this;
-  }
-
-  @Override
-  public GroovyInvocationBuilder pathBinding(Map<String, String> pathTokens) {
+  public GroovyRequestFixture pathBinding(Map<String, String> pathTokens) {
     delegate.pathBinding(pathTokens);
     return this;
   }
 
   @Override
-  public GroovyInvocationBuilder pathBinding(String boundTo, String pastBinding, Map<String, String> pathTokens) {
+  public GroovyRequestFixture pathBinding(String boundTo, String pastBinding, Map<String, String> pathTokens) {
     delegate.pathBinding(boundTo, pastBinding, pathTokens);
     return this;
   }
 
   @Override
-  public GroovyInvocationBuilder launchConfig(Path baseDir, Action<? super LaunchConfigBuilder> action) throws Exception {
+  public GroovyRequestFixture launchConfig(Path baseDir, Action<? super LaunchConfigBuilder> action) throws Exception {
     delegate.launchConfig(baseDir, action);
     return this;
   }
 
   @Override
-  public GroovyInvocationBuilder launchConfig(Action<? super LaunchConfigBuilder> action) throws Exception {
+  public GroovyRequestFixture launchConfig(Action<? super LaunchConfigBuilder> action) throws Exception {
     delegate.launchConfig(action);
     return this;
   }

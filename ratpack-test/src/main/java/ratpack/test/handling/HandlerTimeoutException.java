@@ -16,13 +16,24 @@
 
 package ratpack.test.handling;
 
-public class InvocationTimeoutException extends RuntimeException {
+/**
+ * Thrown when a handler under test takes too long to produce a result.
+ *
+ * @see RequestFixture#handle(ratpack.handling.Handler)
+ */
+public class HandlerTimeoutException extends RuntimeException {
 
   private static final long serialVersionUID = 0;
 
-  public InvocationTimeoutException(Invocation invocation, int timeout) {
-    // need to ensure invocation has a good toString()
-    super(String.format("handler took more than %s seconds to delegate to the next handler or send a response (result: %s)", timeout, invocation));
+  /**
+   * Constructor.
+   *
+   * @param handlingResult the handling result at the time of the timeout
+   * @param timeoutSecs the allowed time in seconds
+   */
+  public HandlerTimeoutException(HandlingResult handlingResult, int timeoutSecs) {
+    // need to ensure handlingResult has a good toString()
+    super(String.format("handler took more than %s seconds to delegate to the next handler or send a response (result: %s)", timeoutSecs, handlingResult));
   }
 
 }

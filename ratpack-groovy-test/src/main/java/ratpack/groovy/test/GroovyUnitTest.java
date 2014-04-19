@@ -20,77 +20,127 @@ import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import ratpack.func.Action;
 import ratpack.groovy.internal.ClosureUtil;
-import ratpack.groovy.test.handling.GroovyInvocationBuilder;
-import ratpack.groovy.test.handling.internal.DefaultGroovyInvocationBuilder;
+import ratpack.groovy.test.handling.GroovyRequestFixture;
+import ratpack.groovy.test.handling.internal.DefaultGroovyRequestFixture;
+import ratpack.handling.Chain;
 import ratpack.handling.Handler;
 import ratpack.test.UnitTest;
-import ratpack.test.handling.Invocation;
-import ratpack.test.handling.InvocationBuilder;
-import ratpack.test.handling.InvocationTimeoutException;
+import ratpack.test.handling.HandlerTimeoutException;
+import ratpack.test.handling.HandlingResult;
+import ratpack.test.handling.RequestFixture;
 
+/**
+ * Static, Groovy friendly, methods for the unit testing of handlers.
+ */
 public abstract class GroovyUnitTest {
+
+  private GroovyUnitTest() {
+  }
 
   /**
    * Unit test a {@link Handler}.
    * <p>
    * Example:
    * <pre class="tested">
-   * import ratpack.handling.*
-   * import static ratpack.groovy.test.GroovyUnitTest.invoke
+   * import ratpack.groovy.handling.GroovyHandler
+   * import ratpack.groovy.handling.GroovyContext
+   * import ratpack.groovy.test.GroovyUnitTest
    *
-   * class MyHandler implements Handler {
-   *   void handle(Context context) {
+   * class MyHandler extends GroovyHandler {
+   *   void handle(GroovyContext context) {
    *     context.with {
    *       def outputHeaderValue = request.headers.get("input-value") + ":bar"
-   *
    *       response.headers.set("output-value", outputHeaderValue)
    *       render "received: " + request.path
    *     }
    *   }
    * }
    *
-   * // The following code unit tests MyHandler, typically it would be written inside a test framework.
-   *
-   * def invocation = invoke(new MyHandler()) {
+   * def result = GroovyUnitTest.handle(new MyHandler()) {
    *   header "input-value", "foo"
    *   uri "some/path"
    * }
    *
-   * assert invocation.rendered(String) == "received: some/path"
-   * assert invocation.headers.get("output-value") == "foo:bar"
+   * assert result.rendered(String) == "received: some/path"
+   * assert result.headers.get("output-value") == "foo:bar"
    * </pre>
    *
-   * @param handler The handler to unit test
-   * @param closure The closure that configures the invocation builder
+   * @param handler the handler to test
+   * @param closure the configuration of the request fixture
    * @return The result of the invocation
-   * @throws InvocationTimeoutException if the handler takes more than {@link InvocationBuilder#timeout(int)} seconds to send a response or call {@code next()} on the context
+   * @throws HandlerTimeoutException if the handler takes more than {@link RequestFixture#timeout(int)} seconds to send a response or call {@code next()} on the context
    */
-  public static Invocation invoke(Handler handler, @DelegatesTo(GroovyInvocationBuilder.class) final Closure<?> closure) throws InvocationTimeoutException {
-    return UnitTest.invoke(handler, new Action<InvocationBuilder>() {
+  public static HandlingResult handle(Handler handler, @DelegatesTo(GroovyRequestFixture.class) final Closure<?> closure) throws HandlerTimeoutException {
+    return UnitTest.handle(handler, new Action<RequestFixture>() {
       @Override
-      public void execute(InvocationBuilder builder) throws Exception {
-        GroovyInvocationBuilder groovyBuilder = new DefaultGroovyInvocationBuilder(builder);
+      public void execute(RequestFixture builder) throws Exception {
+        GroovyRequestFixture groovyBuilder = new DefaultGroovyRequestFixture(builder);
+        ClosureUtil.configureDelegateFirst(groovyBuilder, closure);
+      }
+    });
+  }
+
+
+  /**
+   * Unit test a chain of {@link Handler handlers}.
+   * <p>
+   * Example:
+   * <pre class="tested">
+   * import ratpack.groovy.handling.GroovyChainAction
+   * import ratpack.groovy.test.GroovyUnitTest
+   *
+   * class MyHandlers extends GroovyChainAction {
+   *   protected void execute() {
+   *     handler {
+   *       def outputHeaderValue = request.headers.get("input-value") + ":bar"
+   *       response.headers.set("output-value", outputHeaderValue)
+   *     }
+   *     handler {
+   *       render "received: " + request.path
+   *     }
+   *   }
+   * }
+   *
+   * def result = GroovyUnitTest.handle(new MyHandlers()) {
+   *   header "input-value", "foo"
+   *   uri "some/path"
+   * }
+   *
+   * assert result.rendered(String) == "received: some/path"
+   * assert result.headers.get("output-value") == "foo:bar"
+   * </pre>
+   *
+   * @param handlers the handlers to test
+   * @param closure the configuration of the request fixture
+   * @return The result of the invocation
+   * @throws HandlerTimeoutException if the handler takes more than {@link RequestFixture#timeout(int)} seconds to send a response or call {@code next()} on the context
+   */
+  public static HandlingResult handle(Action<? super Chain> handlers, @DelegatesTo(GroovyRequestFixture.class) final Closure<?> closure) throws HandlerTimeoutException {
+    return UnitTest.handle(handlers, new Action<RequestFixture>() {
+      @Override
+      public void execute(RequestFixture builder) throws Exception {
+        GroovyRequestFixture groovyBuilder = new DefaultGroovyRequestFixture(builder);
         ClosureUtil.configureDelegateFirst(groovyBuilder, closure);
       }
     });
   }
 
   /**
-   * Create a Groovy invocation builder, for unit testing a {@link Handler}.
+   * Create a Groovy request fixture, for unit testing a {@link Handler}.
    *
-   * @return An invocation builder.
+   * @return a Groovy request fixture
    */
-  public static GroovyInvocationBuilder invocationBuilder() {
-    return invocationBuilder(UnitTest.invocationBuilder());
+  public static GroovyRequestFixture requestFixture() {
+    return requestFixture(UnitTest.requestFixture());
   }
 
   /**
-   * Create a Groovy invocation builder, for unit testing a {@link Handler}, by wrapping the given {@link InvocationBuilder}.
+   * Create a Groovy request fixture, for unit testing a {@link Handler}, by wrapping the given {@link RequestFixture}.
    *
-   * @return An invocation builder.
+   * @return a Groovy request fixture
    */
-  public static GroovyInvocationBuilder invocationBuilder(InvocationBuilder invocationBuilder) {
-    return new DefaultGroovyInvocationBuilder(invocationBuilder);
+  public static GroovyRequestFixture requestFixture(RequestFixture requestFixture) {
+    return new DefaultGroovyRequestFixture(requestFixture);
   }
 
 }

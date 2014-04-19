@@ -16,11 +16,9 @@
 
 package ratpack.manual.snippets.extractor
 
-import org.codehaus.groovy.control.MultipleCompilationErrorsException
-import org.codehaus.groovy.control.messages.SyntaxErrorMessage
 import ratpack.manual.snippets.TestCodeSnippet
+import ratpack.manual.snippets.executer.ExceptionTransformer
 import ratpack.manual.snippets.fixture.SnippetFixture
-import ratpack.func.Transformer
 import ratpack.util.RatpackVersion
 
 import java.util.regex.Pattern
@@ -86,34 +84,7 @@ class ManualSnippetExtractor {
   }
 
   private static TestCodeSnippet createSnippet(String sourceClassName, File sourceFile, int lineNumber, String snippet, SnippetFixture fixture) {
-    new TestCodeSnippet(snippet, sourceClassName, sourceClassName + ":$lineNumber", fixture, new Transformer<Throwable, Throwable>() {
-      @Override
-      Throwable transform(Throwable t) {
-        def errorLine = 0
-
-        if (t instanceof MultipleCompilationErrorsException) {
-          def compilationException = t as MultipleCompilationErrorsException
-          def error = compilationException.errorCollector.getError(0)
-          if (error instanceof SyntaxErrorMessage) {
-            errorLine = error.cause.line
-          }
-        } else {
-          def frame = t.getStackTrace().find { it.fileName == sourceClassName }
-          if (frame) {
-            errorLine = frame.lineNumber
-          }
-        }
-        errorLine = errorLine - fixture.pre().split("\n").size()
-        StackTraceElement[] stack = t.getStackTrace()
-        List<StackTraceElement> newStack = new ArrayList<StackTraceElement>(stack.length + 1)
-        newStack.add(new StackTraceElement(sourceClassName, "javadoc", sourceFile.name, lineNumber + errorLine))
-        newStack.addAll(stack)
-        t.setStackTrace(newStack as StackTraceElement[])
-
-        t
-      }
-    })
-
+    new TestCodeSnippet(snippet, sourceClassName, sourceClassName + ":$lineNumber", fixture, new ExceptionTransformer(sourceClassName, fixture.pre(), sourceFile.name, lineNumber))
   }
 
 }

@@ -16,72 +16,145 @@
 
 package ratpack.test;
 
-import ratpack.handling.Handler;
-import ratpack.test.handling.Invocation;
-import ratpack.test.handling.InvocationBuilder;
-import ratpack.test.handling.InvocationTimeoutException;
-import ratpack.test.handling.internal.DefaultInvocationBuilder;
 import ratpack.func.Action;
+import ratpack.handling.Chain;
+import ratpack.handling.Handler;
+import ratpack.test.handling.HandlerTimeoutException;
+import ratpack.test.handling.HandlingResult;
+import ratpack.test.handling.RequestFixture;
+import ratpack.test.handling.RequestFixtureAction;
+import ratpack.test.handling.internal.DefaultRequestFixture;
 
 import static ratpack.util.ExceptionUtils.uncheck;
 
-public class UnitTest {
+/**
+ * Static methods for the unit testing of handlers.
+ */
+public abstract class UnitTest {
+
+  private UnitTest() {
+  }
 
   /**
-   * Unit test a {@link Handler}.
+   * Unit test a single {@link Handler}.
    * <p>
-   * Example:
-   * <pre class="tested">
-   * import ratpack.handling.*;
-   * import ratpack.func.Action;
-   * import ratpack.test.handling.Invocation;
-   * import ratpack.test.handling.InvocationBuilder;
+   * <pre class="java">
+   * import ratpack.handling.Handler;
+   * import ratpack.handling.Context;
+   * import ratpack.test.handling.HandlingResult;
+   * import ratpack.test.handling.RequestFixture;
+   * import ratpack.test.handling.RequestFixtureAction;
+   * import ratpack.test.UnitTest;
    *
-   * import static ratpack.test.UnitTest.invoke;
+   * public class Example {
    *
-   * public class MyHandler implements Handler {
-   *   public void handle(Context context) {
-   *     String outputHeaderValue = context.getRequest().getHeaders().get("input-value") + ":bar";
-   *     context.getResponse().getHeaders().set("output-value", outputHeaderValue);
-   *     context.render("received: " + context.getRequest().getPath());
+   *   public static class MyHandler implements Handler {
+   *     public void handle(Context context) {
+   *       String outputHeaderValue = context.getRequest().getHeaders().get("input-value") + ":bar";
+   *       context.getResponse().getHeaders().set("output-value", outputHeaderValue);
+   *       context.render("received: " + context.getRequest().getPath());
+   *     }
+   *   }
+   *
+   *   public static void main(String[] args) {
+   *     HandlingResult result = UnitTest.handle(new MyHandler(), new RequestFixtureAction() {
+   *       public void execute() {
+   *         header("input-value", "foo");
+   *         uri("some/path");
+   *       }
+   *     });
+   *
+   *     assert result.rendered(String.class).equals("received: some/path");
+   *     assert result.getHeaders().get("output-value").equals("foo:bar");
    *   }
    * }
-   *
-   * // The following code unit tests MyHandler, typically it would be written inside a test framework.
-   *
-   * Invocation invocation = invoke(new MyHandler(), new Action&lt;InvocationBuilder&gt;() {
-   *   public void execute(InvocationBuilder builder) {
-   *     builder.header("input-value", "foo");
-   *     builder.uri("some/path");
-   *   }
-   * });
-   *
-   * assert invocation.rendered(String).equals("received: some/path");
-   * assert invocation.headers.get("output-value").equals("foo:bar");
    * </pre>
    *
    * @param handler The handler to invoke
    * @param action The configuration of the context for the handler
    * @return A result object indicating what happened
-   * @throws InvocationTimeoutException if the handler takes more than {@link ratpack.test.handling.InvocationBuilder#timeout(int)} seconds to send a response or call {@code next()} on the context
+   * @throws HandlerTimeoutException if the handler takes more than {@link ratpack.test.handling.RequestFixture#timeout(int)} seconds to send a response or call {@code next()} on the context
+   * @see #handle(Action, Action)
+   * @see RequestFixtureAction
    */
-  public static Invocation invoke(Handler handler, Action<? super InvocationBuilder> action) throws InvocationTimeoutException {
-    InvocationBuilder builder = invocationBuilder();
-    try {
-      action.execute(builder);
-    } catch (Exception e) {
-      throw uncheck(e);
-    }
-    return builder.invoke(handler);
+  public static HandlingResult handle(Handler handler, Action<? super RequestFixture> action) throws HandlerTimeoutException {
+    return buildFixture(action).handle(handler);
   }
 
   /**
-   * Create an invocation builder, for unit testing a {@link Handler}.
+   * Unit test a {@link Handler} chain.
+   * <p>
+   * <pre class="java">
+   * import ratpack.handling.Context;
+   * import ratpack.handling.Handler;
+   * import ratpack.handling.ChainAction;
+   * import ratpack.test.handling.HandlingResult;
+   * import ratpack.test.handling.RequestFixtureAction;
+   * import ratpack.test.UnitTest;
    *
-   * @see #invoke(ratpack.handling.Handler, ratpack.func.Action)
-   * @return An invocation builder.
+   * public class Example {
+   *
+   *   public static class MyHandlers extends ChainAction {
+   *     protected void execute() {
+   *       handler(new Handler() {
+   *         public void handle(Context context) {
+   *           String outputHeaderValue = context.getRequest().getHeaders().get("input-value") + ":bar";
+   *           context.getResponse().getHeaders().set("output-value", outputHeaderValue);
+   *           context.next();
+   *         }
+   *       });
+   *       handler(new Handler() {
+   *         public void handle(Context context) {
+   *           context.render("received: " + context.getRequest().getPath());
+   *         }
+   *       });
+   *     }
+   *   }
+   *
+   *   public static void main(String[] args) {
+   *     HandlingResult result = UnitTest.handle(new MyHandlers(), new RequestFixtureAction() {
+   *       public void execute() {
+   *         header("input-value", "foo");
+   *         uri("some/path");
+   *       }
+   *     });
+   *
+   *     assert result.rendered(String.class).equals("received: some/path");
+   *     assert result.getHeaders().get("output-value").equals("foo:bar");
+   *   }
+   * }
+   * </pre>
+   *
+   * @param chainAction the definition of a handler chain to test
+   * @param requestFixtureAction the configuration of the request fixture
+   * @return a result object indicating what happened
+   * @throws HandlerTimeoutException if the handler takes more than {@link ratpack.test.handling.RequestFixture#timeout(int)} seconds to send a response or call {@code next()} on the context
+   * @see #handle(Handler, Action)
+   * @see RequestFixtureAction
    */
-  public static InvocationBuilder invocationBuilder() {
-    return new DefaultInvocationBuilder();
+  public static HandlingResult handle(Action<? super Chain> chainAction, Action<? super RequestFixture> requestFixtureAction) throws HandlerTimeoutException {
+    return buildFixture(requestFixtureAction).handle(chainAction);
   }
+
+  /**
+   * Create a request fixture, for unit testing of {@link Handler handlers}.
+   *
+   * @see #handle(Handler, Action)
+   * @see #handle(Action, Action)
+   * @return a request fixture
+   */
+  public static RequestFixture requestFixture() {
+    return new DefaultRequestFixture();
+  }
+
+  private static RequestFixture buildFixture(Action<? super RequestFixture> action) {
+    RequestFixture fixture = requestFixture();
+    try {
+      action.execute(fixture);
+    } catch (Exception e) {
+      throw uncheck(e);
+    }
+    return fixture;
+  }
+
 }

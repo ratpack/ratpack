@@ -41,8 +41,8 @@ import ratpack.registry.Registries;
 import ratpack.registry.Registry;
 import ratpack.render.internal.RenderController;
 import ratpack.server.BindAddress;
-import ratpack.test.handling.Invocation;
-import ratpack.test.handling.InvocationTimeoutException;
+import ratpack.test.handling.HandlerTimeoutException;
+import ratpack.test.handling.HandlingResult;
 
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -51,7 +51,7 @@ import java.util.concurrent.TimeUnit;
 
 import static ratpack.util.ExceptionUtils.uncheck;
 
-public class DefaultInvocation implements Invocation {
+public class DefaultHandlingResult implements HandlingResult {
 
   private Exception exception;
   private Headers headers;
@@ -64,7 +64,7 @@ public class DefaultInvocation implements Invocation {
   private Integer clientError;
   private final DefaultContext.RequestConstants requestConstants;
 
-  public DefaultInvocation(final Request request, final MutableStatus status, final MutableHeaders responseHeaders, Registry registry, final int timeout, LaunchConfigBuilder launchConfigBuilder, final Handler handler) {
+  public DefaultHandlingResult(final Request request, final MutableStatus status, final MutableHeaders responseHeaders, Registry registry, final int timeout, LaunchConfigBuilder launchConfigBuilder, final Handler handler) {
 
     // There are definitely concurrency bugs in here around timing out
     // ideally we should prevent the stat from changing after a timeout occurs
@@ -117,7 +117,7 @@ public class DefaultInvocation implements Invocation {
     ClientErrorHandler clientErrorHandler = new ClientErrorHandler() {
       @Override
       public void error(Context context, int statusCode) throws Exception {
-        DefaultInvocation.this.clientError = statusCode;
+        DefaultHandlingResult.this.clientError = statusCode;
         latch.countDown();
       }
     };
@@ -125,7 +125,7 @@ public class DefaultInvocation implements Invocation {
     ServerErrorHandler serverErrorHandler = new ServerErrorHandler() {
       @Override
       public void error(Context context, Exception exception) throws Exception {
-        DefaultInvocation.this.exception = exception;
+        DefaultHandlingResult.this.exception = exception;
         latch.countDown();
       }
     };
@@ -176,7 +176,7 @@ public class DefaultInvocation implements Invocation {
 
     try {
       if (!latch.await(timeout, TimeUnit.SECONDS)) {
-        throw new InvocationTimeoutException(this, timeout);
+        throw new HandlerTimeoutException(this, timeout);
       }
     } catch (InterruptedException e) {
       throw uncheck(e); // what to do here?

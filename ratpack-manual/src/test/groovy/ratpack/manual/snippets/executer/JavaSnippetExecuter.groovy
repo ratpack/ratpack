@@ -20,6 +20,7 @@ import groovy.transform.CompileStatic
 import ratpack.manual.snippets.TestCodeSnippet
 
 import javax.tools.*
+import java.lang.reflect.InvocationTargetException
 
 @CompileStatic
 public class JavaSnippetExecuter implements SnippetExecuter {
@@ -41,12 +42,16 @@ public class JavaSnippetExecuter implements SnippetExecuter {
 
     def task = compiler.getTask(null, fileManager, diagnostics, null, null, Arrays.asList(source))
     def result = task.call()
+    fileManager.close()
 
     for (Diagnostic<? extends JavaFileObject> it : diagnostics.diagnostics) {
       System.err.println("$it.kind: ${it.getMessage(null)}")
     }
 
-    fileManager.close()
+    if (diagnostics.diagnostics) {
+      def first = diagnostics.diagnostics.first()
+      throw new CompileException(new AssertionError("$first.kind: ${first.getMessage(null)}", null), first.lineNumber.toInteger())
+    }
 
     if (!result) {
       throw new AssertionError("Compilation failed", null)
@@ -63,6 +68,8 @@ public class JavaSnippetExecuter implements SnippetExecuter {
       mainMethod.invoke(null, [[] as String[]] as Object[])
     } catch (NoSuchMethodException ignore) {
       // Class has no test method
+    } catch (InvocationTargetException e) {
+     throw e.cause
     }
   }
 

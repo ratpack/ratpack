@@ -21,7 +21,7 @@ import ratpack.error.ServerErrorHandler
 import ratpack.func.Action
 import ratpack.groovy.internal.ClosureUtil
 import ratpack.groovy.test.GroovyUnitTest
-import ratpack.groovy.test.handling.GroovyInvocationBuilder
+import ratpack.groovy.test.handling.GroovyRequestFixture
 import ratpack.handling.Context
 import ratpack.handling.Handler
 import ratpack.handling.RequestOutcome
@@ -36,29 +36,29 @@ import java.util.concurrent.TimeUnit
 import static ratpack.groovy.Groovy.groovyHandler
 import static ratpack.handling.Handlers.chain
 
-class InvocationBuilderSpec extends Specification {
+class RequestFixtureSpec extends Specification {
 
   @Subject
-  GroovyInvocationBuilder builder = GroovyUnitTest.invocationBuilder()
+  GroovyRequestFixture fixture = GroovyUnitTest.requestFixture()
 
   @Delegate
-  Invocation invocation
+  HandlingResult result
 
-  void invoke(@DelegatesTo(Context) Closure handler) {
-    invocation = builder.invoke(groovyHandler(handler))
+  void handle(@DelegatesTo(Context) Closure handler) {
+    result = fixture.handle(groovyHandler(handler))
   }
 
-  void builder(@DelegatesTo(GroovyInvocationBuilder) Closure config) {
-    ClosureUtil.configureDelegateFirst(builder, config)
+  void fixture(@DelegatesTo(GroovyRequestFixture) Closure config) {
+    ClosureUtil.configureDelegateFirst(fixture, config)
   }
 
   void invoke(Handler handler) {
-    invocation = builder.invoke(handler)
+    result = fixture.handle(handler)
   }
 
   def "can test handler that just calls next"() {
     when:
-    invoke { next() }
+    handle { next() }
 
     then:
     bodyText == null
@@ -71,7 +71,7 @@ class InvocationBuilderSpec extends Specification {
 
   def "can test handler that sends string"() {
     when:
-    invoke { response.send "foo" }
+    handle { response.send "foo" }
 
     then:
     bodyText == "foo"
@@ -85,7 +85,7 @@ class InvocationBuilderSpec extends Specification {
 
   def "can test handler that sends bytes"() {
     when:
-    invoke { response.send "foo".getBytes(CharsetUtil.UTF_8) }
+    handle { response.send "foo".getBytes(CharsetUtil.UTF_8) }
 
     then:
     bodyText == "foo"
@@ -99,7 +99,7 @@ class InvocationBuilderSpec extends Specification {
 
   def "can test handler that sends file"() {
     when:
-    invoke { response.contentType("text/plain").sendFile context, new File("foo").toPath() }
+    handle { response.contentType("text/plain").sendFile context, new File("foo").toPath() }
 
     then:
     bodyText == null
@@ -113,10 +113,10 @@ class InvocationBuilderSpec extends Specification {
 
   def "can register things"() {
     given:
-    builder.register "foo"
+    fixture.registry.add "foo"
 
     when:
-    invoke { response.send get(String) }
+    handle { response.send get(String) }
 
     then:
     bodyText == "foo"
@@ -124,10 +124,10 @@ class InvocationBuilderSpec extends Specification {
 
   def "can test async handlers"() {
     given:
-    builder.timeout 3
+    fixture.timeout 3
 
     when:
-    invoke { Thread.start { sleep 1000; next() } }
+    handle { Thread.start { sleep 1000; next() } }
 
     then:
     calledNext
@@ -135,21 +135,21 @@ class InvocationBuilderSpec extends Specification {
 
   def "will throw if handler takes too long"() {
     given:
-    builder.timeout 1
+    fixture.timeout 1
 
     when:
-    invoke { Thread.start { sleep 2000; next() } }
+    handle { Thread.start { sleep 2000; next() } }
 
     then:
-    thrown InvocationTimeoutException
+    thrown HandlerTimeoutException
   }
 
   def "can set uri"() {
     given:
-    builder.uri "foo"
+    fixture.uri "foo"
 
     when:
-    invoke { response.send request.uri }
+    handle { response.send request.uri }
 
     then:
     bodyText == "/foo"
@@ -157,10 +157,10 @@ class InvocationBuilderSpec extends Specification {
 
   def "can set request method"() {
     given:
-    builder.method "PUT"
+    fixture.method "PUT"
 
     when:
-    invoke { response.send request.method.name }
+    handle { response.send request.method.name }
 
     then:
     bodyText == "PUT"
@@ -168,10 +168,10 @@ class InvocationBuilderSpec extends Specification {
 
   def "can set request headers"() {
     given:
-    builder.header "X-Requested-With", "Spock"
+    fixture.header "X-Requested-With", "Spock"
 
     when:
-    invoke { response.send request.headers.get("X-Requested-With") }
+    handle { response.send request.headers.get("X-Requested-With") }
 
     then:
     bodyText == "Spock"
@@ -179,10 +179,10 @@ class InvocationBuilderSpec extends Specification {
 
   def "can set response headers"() {
     given:
-    builder.responseHeader "Via", "Ratpack"
+    fixture.responseHeader "Via", "Ratpack"
 
     when:
-    invoke { response.send response.headers.get("Via") }
+    handle { response.send response.headers.get("Via") }
 
     then:
     bodyText == "Ratpack"
@@ -192,7 +192,7 @@ class InvocationBuilderSpec extends Specification {
     def latch = new CountDownLatch(2)
 
     when:
-    invoke {
+    handle {
       onClose(new Action<RequestOutcome>() {
         @Override
         void execute(RequestOutcome requestOutcome) throws Exception {
@@ -221,10 +221,10 @@ class InvocationBuilderSpec extends Specification {
   def "can set request body"() {
     //noinspection GroovyAssignabilityCheck
     given:
-    builder.body(*arguments)
+    fixture.body(*arguments)
 
     when:
-    invoke {
+    handle {
       response.headers.set "X-Request-Content-Length", request.headers.get("Content-Length")
       response.headers.set "X-Request-Content-Type", request.headers.get("Content-Type")
       response.send request.body.bytes
@@ -243,7 +243,7 @@ class InvocationBuilderSpec extends Specification {
 
   def "captures errors"() {
     when:
-    invoke {
+    handle {
       error(new RuntimeException("!"))
     }
 
@@ -254,7 +254,7 @@ class InvocationBuilderSpec extends Specification {
 
   def "captures client errors"() {
     when:
-    invoke {
+    handle {
       clientError 404
     }
 
@@ -272,7 +272,7 @@ class InvocationBuilderSpec extends Specification {
 
   def "can register object via builder"() {
     given:
-    builder {
+    fixture {
       registry {
         add("foo")
         add("bar")
@@ -280,7 +280,7 @@ class InvocationBuilderSpec extends Specification {
     }
 
     when:
-    invoke {
+    handle {
       render getAll(String).join(",")
     }
 
@@ -290,12 +290,12 @@ class InvocationBuilderSpec extends Specification {
 
   def "can easily add path tokens for unit tests"() {
     given:
-    builder {
+    fixture {
       pathBinding a: "1", b: "2"
     }
 
     when:
-    invoke {
+    handle {
       render pathTokens.toString()
     }
 
@@ -306,7 +306,7 @@ class InvocationBuilderSpec extends Specification {
   @Unroll
   def "can access things inserted into registry"() {
     when:
-    invoke {
+    handle {
       insert(Registries.just("foo"), groovyHandler {
         blocking {
 
@@ -343,14 +343,14 @@ class InvocationBuilderSpec extends Specification {
     }
 
     when:
-    builder {
+    fixture {
       registry {
         add(ServerErrorHandler, errorHandler)
       }
     }
 
     and:
-    invoke {
+    handle {
       throw thrown
     }
 

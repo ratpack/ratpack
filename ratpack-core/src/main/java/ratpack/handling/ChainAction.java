@@ -66,31 +66,24 @@ import ratpack.registry.RegistrySpec;
  *
  * // Factoring out into ChainAction implementations means they can be unit tested in isolation…
  *
- * import ratpack.handling.Handlers;
- * import ratpack.test.MockLaunchConfig;
- * import ratpack.launch.LaunchConfig;
- * import ratpack.test.handling.Invocation;
- * import ratpack.test.handling.InvocationBuilder;
- * import ratpack.func.Action;
+ * import ratpack.test.handling.HandlingResult;
+ * import ratpack.test.handling.RequestFixtureAction;
  *
- * import static ratpack.test.UnitTest.invoke;
+ * import static ratpack.test.UnitTest.handle;
  *
- * LaunchConfig launchConfig = new MockLaunchConfig();
- * Handler handler = Handlers.chain(launchConfig, new MyHandlers());
- *
- * Invocation invocation = invoke(handler, new Action&lt;InvocationBuilder&gt;() {
- *   public void execute(InvocationBuilder builder) {
- *     builder.uri("foo");
+ * HandlingResult result = handle(new MyHandlers(), new RequestFixtureAction() {
+ *   protected void execute() {
+ *     uri("foo");
  *   }
  * });
- * assert invocation.rendered(String.class).equals("foo");
+ * assert result.rendered(String.class).equals("foo");
  *
- * invocation = invoke(handler, new Action&lt;InvocationBuilder&gt;() {
- *   public void execute(InvocationBuilder builder) {
- *     builder.uri("bar");
+ * result = handle(new MyHandlers(), new RequestFixtureAction() {
+ *   protected void execute() {
+ *     uri("bar");
  *   }
  * });
- * assert invocation.rendered(String.class).equals("bar");
+ * assert result.rendered(String.class).equals("bar");
  * </pre>
  * <p>
  * This class implements the {@link Chain} interface by delegating each method to the chain returned by {@link #getChain()}.
