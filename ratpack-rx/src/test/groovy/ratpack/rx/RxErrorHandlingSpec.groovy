@@ -19,6 +19,7 @@ package ratpack.rx
 import ratpack.error.ServerErrorHandler
 import ratpack.groovy.test.GroovyUnitTest
 import ratpack.handling.Context
+import ratpack.handling.Handler
 import ratpack.test.internal.RatpackGroovyDslSpec
 import rx.Observable
 import rx.exceptions.CompositeException
@@ -276,7 +277,7 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
     def e = new Exception("!")
 
     when:
-    def result = GroovyUnitTest.handle({ Observable.error(e).subscribe() }) {
+    def result = GroovyUnitTest.handle({ Observable.error(e).subscribe() } as Handler) {
 
     }
 
