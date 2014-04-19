@@ -16,8 +16,6 @@
 
 package ratpack.manual.snippets.executer
 
-import org.codehaus.groovy.control.MultipleCompilationErrorsException
-import org.codehaus.groovy.control.messages.SyntaxErrorMessage
 import ratpack.func.Transformer
 
 class ExceptionTransformer implements Transformer<Throwable, Throwable> {
@@ -39,7 +37,7 @@ class ExceptionTransformer implements Transformer<Throwable, Throwable> {
     def errorLine = 0
 
     if (throwable instanceof CompileException) {
-        errorLine = throwable.lineNo
+      errorLine = throwable.lineNo
     } else {
       def frame = throwable.getStackTrace().find { it.fileName == sourceClassName }
       if (frame) {

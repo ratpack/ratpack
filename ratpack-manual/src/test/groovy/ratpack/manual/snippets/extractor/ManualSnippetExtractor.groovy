@@ -64,7 +64,7 @@ class ManualSnippetExtractor {
     int codeIndex = 0
     snippetBlocks.each { block ->
       codeIndex = source.indexOf(block, codeIndex)
-      def lineNumber = source.substring(0, codeIndex).readLines().size() + 1
+      def lineNumber = source.substring(0, codeIndex).readLines().size() + 2
       snippetBlocksByLine.put(lineNumber, performSubstitutions(extractSnippetFromBlock(block)))
       codeIndex += block.size()
     }
