@@ -70,6 +70,24 @@ public class DefaultRequestFixture implements RequestFixture {
 
   private LaunchConfigBuilder launchConfigBuilder = LaunchConfigBuilder.noBaseDir();
 
+  @Override
+  public RequestFixture body(byte[] bytes, String contentType) {
+    requestHeaders.add(HttpHeaders.Names.CONTENT_TYPE, contentType);
+    requestHeaders.add(HttpHeaders.Names.CONTENT_LENGTH, bytes.length);
+    requestBody.capacity(bytes.length).writeBytes(bytes);
+    return this;
+  }
+
+  @Override
+  public RequestFixture body(String text, String contentType) {
+    return body(text.getBytes(), DefaultMediaType.utf8(contentType).toString());
+  }
+
+  @Override
+  public RegistrySpec getRegistry() {
+    return registryBuilder;
+  }
+
   /**
    * Invokes a handler in a controlled way, allowing it to be tested.
    *
@@ -111,21 +129,16 @@ public class DefaultRequestFixture implements RequestFixture {
   }
 
   @Override
-  public RequestFixture body(byte[] bytes, String contentType) {
-    requestHeaders.add(HttpHeaders.Names.CONTENT_TYPE, contentType);
-    requestHeaders.add(HttpHeaders.Names.CONTENT_LENGTH, bytes.length);
-    requestBody.capacity(bytes.length).writeBytes(bytes);
+  public RequestFixture launchConfig(Action<? super LaunchConfigBuilder> action) throws Exception {
+    launchConfigBuilder = LaunchConfigBuilder.noBaseDir();
+    action.execute(launchConfigBuilder);
     return this;
   }
 
   @Override
-  public RequestFixture body(String text, String contentType) {
-    return body(text.getBytes(), DefaultMediaType.utf8(contentType).toString());
-  }
-
-  @Override
-  public RequestFixture responseHeader(String name, String value) {
-    responseHeaders.add(name, value);
+  public RequestFixture launchConfig(Path baseDir, Action<? super LaunchConfigBuilder> action) throws Exception {
+    launchConfigBuilder = LaunchConfigBuilder.baseDir(baseDir);
+    action.execute(launchConfigBuilder);
     return this;
   }
 
@@ -135,39 +148,6 @@ public class DefaultRequestFixture implements RequestFixture {
       throw new IllegalArgumentException("method must not be null");
     }
     this.method = method.toUpperCase();
-    return this;
-  }
-
-  @Override
-  public RequestFixture uri(String uri) {
-    if (uri == null) {
-      throw new NullPointerException("uri cannot be null");
-    }
-    if (!uri.startsWith("/")) {
-      uri = "/" + uri;
-    }
-
-    this.uri = uri;
-    return this;
-  }
-
-  @Override
-  public RequestFixture timeout(int timeoutSeconds) {
-    if (timeoutSeconds < 0) {
-      throw new IllegalArgumentException("timeout must be > 0");
-    }
-    this.timeout = timeoutSeconds;
-    return this;
-  }
-
-  @Override
-  public RegistrySpec getRegistry() {
-    return registryBuilder;
-  }
-
-  @Override
-  public RequestFixture registry(Action<? super RegistrySpec> action) throws Exception {
-    action.execute(registryBuilder);
     return this;
   }
 
@@ -183,16 +163,36 @@ public class DefaultRequestFixture implements RequestFixture {
   }
 
   @Override
-  public RequestFixture launchConfig(Action<? super LaunchConfigBuilder> action) throws Exception {
-    launchConfigBuilder = LaunchConfigBuilder.noBaseDir();
-    action.execute(launchConfigBuilder);
+  public RequestFixture registry(Action<? super RegistrySpec> action) throws Exception {
+    action.execute(registryBuilder);
     return this;
   }
 
   @Override
-  public RequestFixture launchConfig(Path baseDir, Action<? super LaunchConfigBuilder> action) throws Exception {
-    launchConfigBuilder = LaunchConfigBuilder.baseDir(baseDir);
-    action.execute(launchConfigBuilder);
+  public RequestFixture responseHeader(String name, String value) {
+    responseHeaders.add(name, value);
+    return this;
+  }
+
+  @Override
+  public RequestFixture timeout(int timeoutSeconds) {
+    if (timeoutSeconds < 0) {
+      throw new IllegalArgumentException("timeout must be > 0");
+    }
+    this.timeout = timeoutSeconds;
+    return this;
+  }
+
+  @Override
+  public RequestFixture uri(String uri) {
+    if (uri == null) {
+      throw new NullPointerException("uri cannot be null");
+    }
+    if (!uri.startsWith("/")) {
+      uri = "/" + uri;
+    }
+
+    this.uri = uri;
     return this;
   }
 

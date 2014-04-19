@@ -41,6 +41,39 @@ import java.util.Map;
 public interface RequestFixture {
 
   /**
+   * Sets the request body to be the given bytes, and adds a {@code Content-Type} request header of the given value.
+   * <p>
+   * By default the body is empty.
+   *
+   * @param bytes the request body in bytes
+   * @param contentType the content type of the request body
+   * @return this
+   */
+  RequestFixture body(byte[] bytes, String contentType);
+
+  /**
+   * Sets the request body to be the given string in utf8 bytes, and adds a {@code Content-Type} request header of the given value.
+   * <p>
+   * By default the body is empty.
+   *
+   * @param text the request body as a string
+   * @param contentType the content type of the request body
+   * @return this
+   */
+  RequestFixture body(String text, String contentType);
+
+  /**
+   * A specification of the context registry.
+   * <p>
+   * Can be used to make objects (e.g. support services) available via context registry lookup.
+   * <p>
+   * By default, only a {@link ratpack.error.ServerErrorHandler} and {@link ratpack.error.ClientErrorHandler} are in the context registry.
+   *
+   * @return a specification of the context registry
+   */
+  RegistrySpec getRegistry();
+
+  /**
    * Invokes the given handler with a newly created {@link ratpack.handling.Context} based on the state of this fixture.
    * <p>
    * The return value can be used to examine the effective result of the handler.
@@ -89,114 +122,6 @@ public interface RequestFixture {
   RequestFixture header(String name, String value);
 
   /**
-   * Sets the request body to be the given bytes, and adds a {@code Content-Type} request header of the given value.
-   * <p>
-   * By default the body is empty.
-   *
-   * @param bytes the request body in bytes
-   * @param contentType the content type of the request body
-   * @return this
-   */
-  RequestFixture body(byte[] bytes, String contentType);
-
-  /**
-   * Sets the request body to be the given string in utf8 bytes, and adds a {@code Content-Type} request header of the given value.
-   * <p>
-   * By default the body is empty.
-   *
-   * @param text the request body as a string
-   * @param contentType the content type of the request body
-   * @return this
-   */
-  RequestFixture body(String text, String contentType);
-
-
-  /**
-   * Set a response header value.
-   * <p>
-   * Can be used to simulate the setting of a response header by an upstream handler.
-   * <p>
-   * By default there are no request headers.
-   *
-   * @param name the header name
-   * @param value the header value
-   * @return this
-   */
-  RequestFixture responseHeader(String name, String value);
-
-  /**
-   * Set the request method (case insensitive).
-   * <p>
-   * The default method is {@code "GET"}.
-   *
-   * @param method the request method
-   * @return this
-   */
-  RequestFixture method(String method);
-
-  /**
-   * The URI of the request.
-   * <p>
-   * No encoding is performed on the given value.
-   * It is expected to be a well formed URI path string (potentially including query and fragment strings)
-   *
-   * @param uri the URI of the request
-   * @return this
-   */
-  RequestFixture uri(String uri);
-
-  /**
-   * Sets the maximum time to allow the handler under test to produce a result.
-   * <p>
-   * As handlers may execute asynchronously, a maximum time limit must be used to guard against never ending handlers.
-   *
-   * @param timeoutSeconds the maximum number of seconds to allow the handler(s) under test to produce a result
-   * @return this
-   */
-  RequestFixture timeout(int timeoutSeconds);
-
-  /**
-   * A specification of the context registry.
-   * <p>
-   * Can be used to make objects (e.g. support services) available via context registry lookup.
-   * <p>
-   * By default, only a {@link ratpack.error.ServerErrorHandler} and {@link ratpack.error.ClientErrorHandler} are in the context registry.
-   *
-   * @return a specification of the context registry
-   */
-  RegistrySpec getRegistry();
-
-  /**
-   * Configures the context registry.
-   *
-   * @param action a registry specification action
-   * @return this
-   * @throws Exception any thrown by {@code action}
-   */
-  RequestFixture registry(Action<? super RegistrySpec> action) throws Exception;
-
-  /**
-   * Adds a path binding, with the given path tokens.
-   * <p>
-   * By default, there are no path tokens and no path binding.
-   *
-   * @param pathTokens the path tokens to make available to the handler(s) under test
-   * @return this
-   */
-  RequestFixture pathBinding(Map<String, String> pathTokens);
-
-
-  /**
-   * Adds a path binding, with the given path tokens and parts.
-   * <p>
-   * By default, there are no path tokens and no path binding.
-   *
-   * @param pathTokens the path tokens and binding to make available to the handler(s) under test
-   * @return this
-   */
-  RequestFixture pathBinding(String boundTo, String pastBinding, Map<String, String> pathTokens);
-
-  /**
    * Configures the launch config to have the given base dir and given configuration.
    * <p>
    * By default the launch config is equivalent to {@link ratpack.launch.LaunchConfigBuilder#noBaseDir() LaunchConfigBuilder.noBaseDir()}.{@link ratpack.launch.LaunchConfigBuilder#build() build()}.
@@ -218,5 +143,78 @@ public interface RequestFixture {
    * @throws Exception any thrown by {@code action}
    */
   RequestFixture launchConfig(Action<? super LaunchConfigBuilder> action) throws Exception;
+
+  /**
+   * Set the request method (case insensitive).
+   * <p>
+   * The default method is {@code "GET"}.
+   *
+   * @param method the request method
+   * @return this
+   */
+  RequestFixture method(String method);
+
+  /**
+   * Adds a path binding, with the given path tokens.
+   * <p>
+   * By default, there are no path tokens and no path binding.
+   *
+   * @param pathTokens the path tokens to make available to the handler(s) under test
+   * @return this
+   */
+  RequestFixture pathBinding(Map<String, String> pathTokens);
+
+  /**
+   * Adds a path binding, with the given path tokens and parts.
+   * <p>
+   * By default, there are no path tokens and no path binding.
+   *
+   * @param pathTokens the path tokens and binding to make available to the handler(s) under test
+   * @return this
+   */
+  RequestFixture pathBinding(String boundTo, String pastBinding, Map<String, String> pathTokens);
+
+  /**
+   * Configures the context registry.
+   *
+   * @param action a registry specification action
+   * @return this
+   * @throws Exception any thrown by {@code action}
+   */
+  RequestFixture registry(Action<? super RegistrySpec> action) throws Exception;
+
+  /**
+   * Set a response header value.
+   * <p>
+   * Can be used to simulate the setting of a response header by an upstream handler.
+   * <p>
+   * By default there are no request headers.
+   *
+   * @param name the header name
+   * @param value the header value
+   * @return this
+   */
+  RequestFixture responseHeader(String name, String value);
+
+  /**
+   * Sets the maximum time to allow the handler under test to produce a result.
+   * <p>
+   * As handlers may execute asynchronously, a maximum time limit must be used to guard against never ending handlers.
+   *
+   * @param timeoutSeconds the maximum number of seconds to allow the handler(s) under test to produce a result
+   * @return this
+   */
+  RequestFixture timeout(int timeoutSeconds);
+
+  /**
+   * The URI of the request.
+   * <p>
+   * No encoding is performed on the given value.
+   * It is expected to be a well formed URI path string (potentially including query and fragment strings)
+   *
+   * @param uri the URI of the request
+   * @return this
+   */
+  RequestFixture uri(String uri);
 
 }

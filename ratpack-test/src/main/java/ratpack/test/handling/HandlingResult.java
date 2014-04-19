@@ -32,17 +32,26 @@ import java.nio.file.Path;
 public interface HandlingResult {
 
   /**
-   * The exception thrown or given to {@link ratpack.handling.Context#error(Exception)}, unless a custom error handler is in use.
+   * The response body, as bytes.
    * <p>
-   * If no exception was “raised”, will be {@code null}.
-   * <p>
-   * If a custom error handler is used (either by specification in the request fixture or insertion by an upstream handler), this will always be {@code null}.
-   * In such a case, this result effectively indicates what the custom error handler did as its implementation.
+   * This does not include file or rendered responses.
+   * See {@link #getSentFile()} and {@link #rendered(Class)}.
    *
-   * @return the “unhandled” exception that occurred, or {@code null}
+   * @return the response body, as bytes, or {@code null} if no response was sent.
    */
   @Nullable
-  Exception getException();
+  byte[] getBodyBytes();
+
+  /**
+   * The response body, interpreted as a utf8 string.
+   * <p>
+   * This does not include file or rendered responses.
+   * See {@link #getSentFile()} and {@link #rendered(Class)}.
+   *
+   * @return the response body, interpreted as a utf8 string, or {@code null} if no response was sent.
+   */
+  @Nullable
+  String getBodyText();
 
   /**
    * The client error raised if any, unless a custom client error handler is in use.
@@ -58,6 +67,19 @@ public interface HandlingResult {
   Integer getClientError();
 
   /**
+   * The exception thrown or given to {@link ratpack.handling.Context#error(Exception)}, unless a custom error handler is in use.
+   * <p>
+   * If no exception was “raised”, will be {@code null}.
+   * <p>
+   * If a custom error handler is used (either by specification in the request fixture or insertion by an upstream handler), this will always be {@code null}.
+   * In such a case, this result effectively indicates what the custom error handler did as its implementation.
+   *
+   * @return the “unhandled” exception that occurred, or {@code null}
+   */
+  @Nullable
+  Exception getException();
+
+  /**
    * The final response headers.
    *
    * @return the final response headers
@@ -65,33 +87,28 @@ public interface HandlingResult {
   Headers getHeaders();
 
   /**
-   * The response body, interpreted as a utf8 string.
-   * <p>
-   * This does not include file or rendered responses.
-   * See {@link #getSentFile()} and {@link #rendered(Class)}.
+   * The final state of the context registry.
    *
-   * @return the response body, interpreted as a utf8 string, or {@code null} if no response was sent.
+   * @return the final state of the context registry
    */
-  @Nullable
-  String getBodyText();
+  Registry getRegistry();
 
   /**
-   * The response body, as bytes.
-   * <p>
-   * This does not include file or rendered responses.
-   * See {@link #getSentFile()} and {@link #rendered(Class)}.
+   * The final state of the request registry.
    *
-   * @return the response body, as bytes, or {@code null} if no response was sent.
+   * @return the final state of the reqest registry
    */
-  @Nullable
-  byte[] getBodyBytes();
+  Registry getRequestRegistry();
 
   /**
-   * Indicates the the handler(s) invoked one of the {@link ratpack.http.Response#send} methods.
+   * Indicates whether the result of invoking the handler was that it invoked one of the {@link ratpack.http.Response#sendFile} methods.
+   * <p>
+   * This does not include files rendered with {@link ratpack.handling.Context#render(Object)}.
    *
-   * @return whether one of the {@link ratpack.http.Response#send} methods was invoked
+   * @return the file given to one of the {@link ratpack.http.Response#sendFile} methods, or {@code null} if none of these methods were called
    */
-  boolean isSentResponse(); // This is not named right, as it doesn't include sending files
+  @Nullable
+  Path getSentFile();
 
   /**
    * The response status information.
@@ -111,14 +128,11 @@ public interface HandlingResult {
   boolean isCalledNext();
 
   /**
-   * Indicates whether the result of invoking the handler was that it invoked one of the {@link ratpack.http.Response#sendFile} methods.
-   * <p>
-   * This does not include files rendered with {@link ratpack.handling.Context#render(Object)}.
+   * Indicates the the handler(s) invoked one of the {@link ratpack.http.Response#send} methods.
    *
-   * @return the file given to one of the {@link ratpack.http.Response#sendFile} methods, or {@code null} if none of these methods were called
+   * @return whether one of the {@link ratpack.http.Response#send} methods was invoked
    */
-  @Nullable
-  Path getSentFile();
+  boolean isSentResponse(); // This is not named right, as it doesn't include sending files
 
   /**
    * The object that was rendered to the response.
@@ -134,19 +148,5 @@ public interface HandlingResult {
    */
   @Nullable
   <T> T rendered(Class<T> type) throws AssertionError;
-
-  /**
-   * The final state of the context registry.
-   *
-   * @return the final state of the context registry
-   */
-  Registry getRegistry();
-
-  /**
-   * The final state of the request registry.
-   *
-   * @return the final state of the reqest registry
-   */
-  Registry getRequestRegistry();
 
 }

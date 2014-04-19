@@ -27,39 +27,36 @@ import java.util.Map;
 
 /**
  * Convenient super class for {@link RequestFixture} configuration actions.
+ *
+ * @see #execute()
  */
 public abstract class RequestFixtureAction implements Action<RequestFixture>, RequestFixture {
 
   private RequestFixture requestFixture;
 
   /**
-   * Delegates to {@link #execute()}, using the given {@code requestFixture} for delegation.
-   *
-   * @param requestFixture the request fixture to configure
-   * @throws Exception Any thrown by {@link #execute()}
+   * {@inheritDoc}
    */
-  public final void execute(RequestFixture requestFixture) throws Exception {
-    try {
-      this.requestFixture = requestFixture;
-      execute();
-    } finally {
-      this.requestFixture = null;
-    }
-  }
-
-  protected RequestFixture getRequestFixture() throws IllegalStateException {
-    if (requestFixture == null) {
-      throw new IllegalStateException("no requestFixture set - RequestFixture methods should only be called during execute()");
-    }
-    return requestFixture;
+  @Override
+  public RequestFixture body(byte[] bytes, String contentType) {
+    return getRequestFixture().body(bytes, contentType);
   }
 
   /**
-   * Implementations can naturally use the {@link RequestFixture} DSL for the duration of this method.
-   *
-   * @throws Exception and exception thrown while configuring the request fixture
+   * {@inheritDoc}
    */
-  protected abstract void execute() throws Exception;
+  @Override
+  public RequestFixture body(String text, String contentType) {
+    return getRequestFixture().body(text, contentType);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public RegistrySpec getRegistry() {
+    return getRequestFixture().getRegistry();
+  }
 
   /**
    * {@inheritDoc}
@@ -89,24 +86,16 @@ public abstract class RequestFixtureAction implements Action<RequestFixture>, Re
    * {@inheritDoc}
    */
   @Override
-  public RequestFixture body(byte[] bytes, String contentType) {
-    return getRequestFixture().body(bytes, contentType);
+  public RequestFixture launchConfig(Path baseDir, Action<? super LaunchConfigBuilder> action) throws Exception {
+    return getRequestFixture().launchConfig(baseDir, action);
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public RequestFixture body(String text, String contentType) {
-    return getRequestFixture().body(text, contentType);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public RequestFixture responseHeader(String name, String value) {
-    return getRequestFixture().responseHeader(name, value);
+  public RequestFixture launchConfig(Action<? super LaunchConfigBuilder> action) throws Exception {
+    return getRequestFixture().launchConfig(action);
   }
 
   /**
@@ -115,38 +104,6 @@ public abstract class RequestFixtureAction implements Action<RequestFixture>, Re
   @Override
   public RequestFixture method(String method) {
     return getRequestFixture().method(method);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public RequestFixture uri(String uri) {
-    return getRequestFixture().uri(uri);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public RequestFixture timeout(int timeoutSeconds) {
-    return getRequestFixture().timeout(timeoutSeconds);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public RegistrySpec getRegistry() {
-    return getRequestFixture().getRegistry();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public RequestFixture registry(Action<? super RegistrySpec> action) throws Exception {
-    return getRequestFixture().registry(action);
   }
 
   /**
@@ -169,15 +126,60 @@ public abstract class RequestFixtureAction implements Action<RequestFixture>, Re
    * {@inheritDoc}
    */
   @Override
-  public RequestFixture launchConfig(Path baseDir, Action<? super LaunchConfigBuilder> action) throws Exception {
-    return getRequestFixture().launchConfig(baseDir, action);
+  public RequestFixture registry(Action<? super RegistrySpec> action) throws Exception {
+    return getRequestFixture().registry(action);
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public RequestFixture launchConfig(Action<? super LaunchConfigBuilder> action) throws Exception {
-    return getRequestFixture().launchConfig(action);
+  public RequestFixture responseHeader(String name, String value) {
+    return getRequestFixture().responseHeader(name, value);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public RequestFixture timeout(int timeoutSeconds) {
+    return getRequestFixture().timeout(timeoutSeconds);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public RequestFixture uri(String uri) {
+    return getRequestFixture().uri(uri);
+  }
+
+  /**
+   * Delegates to {@link #execute()}, using the given {@code requestFixture} for delegation.
+   *
+   * @param requestFixture the request fixture to configure
+   * @throws Exception Any thrown by {@link #execute()}
+   */
+  public final void execute(RequestFixture requestFixture) throws Exception {
+    try {
+      this.requestFixture = requestFixture;
+      execute();
+    } finally {
+      this.requestFixture = null;
+    }
+  }
+
+  /**
+   * Implementations can naturally use the {@link RequestFixture} DSL for the duration of this method.
+   *
+   * @throws Exception and exception thrown while configuring the request fixture
+   */
+  protected abstract void execute() throws Exception;
+
+  protected RequestFixture getRequestFixture() throws IllegalStateException {
+    if (requestFixture == null) {
+      throw new IllegalStateException("no requestFixture set - RequestFixture methods should only be called during execute()");
+    }
+    return requestFixture;
   }
 }

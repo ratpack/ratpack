@@ -53,6 +53,7 @@ import static ratpack.util.ExceptionUtils.uncheck;
 
 public class DefaultHandlingResult implements HandlingResult {
 
+  private final DefaultContext.RequestConstants requestConstants;
   private Exception exception;
   private Headers headers;
   private byte[] body = new byte[0];
@@ -62,7 +63,6 @@ public class DefaultHandlingResult implements HandlingResult {
   private Path sentFile;
   private Object rendered;
   private Integer clientError;
-  private final DefaultContext.RequestConstants requestConstants;
 
   public DefaultHandlingResult(final Request request, final MutableStatus status, final MutableHeaders responseHeaders, Registry registry, final int timeout, LaunchConfigBuilder launchConfigBuilder, final Handler handler) {
 
@@ -104,13 +104,13 @@ public class DefaultHandlingResult implements HandlingResult {
 
     BindAddress bindAddress = new BindAddress() {
       @Override
-      public int getPort() {
-        return 5050;
+      public String getHost() {
+        return "localhost";
       }
 
       @Override
-      public String getHost() {
-        return "localhost";
+      public int getPort() {
+        return 5050;
       }
     };
 
@@ -183,8 +183,42 @@ public class DefaultHandlingResult implements HandlingResult {
     }
   }
 
+  @Override
+  public byte[] getBodyBytes() {
+    if (sentResponse) {
+      return body;
+    } else {
+      return null;
+    }
+  }
+
+  @Override
+  public String getBodyText() {
+    if (sentResponse) {
+      return new String(body, CharsetUtil.UTF_8);
+    } else {
+      return null;
+    }
+  }
+
+  @Nullable
+  @Override
+  public Integer getClientError() {
+    return clientError;
+  }
+
   private Context getContext() {
     return (Context) requestConstants.context;
+  }
+
+  @Override
+  public Exception getException() {
+    return exception;
+  }
+
+  @Override
+  public Headers getHeaders() {
+    return headers;
   }
 
   @Override
@@ -198,37 +232,8 @@ public class DefaultHandlingResult implements HandlingResult {
   }
 
   @Override
-  public Exception getException() {
-    return exception;
-  }
-
-  @Nullable
-  @Override
-  public Integer getClientError() {
-    return clientError;
-  }
-
-  @Override
-  public Headers getHeaders() {
-    return headers;
-  }
-
-  @Override
-  public String getBodyText() {
-    if (sentResponse) {
-      return new String(body, CharsetUtil.UTF_8);
-    } else {
-      return null;
-    }
-  }
-
-  @Override
-  public byte[] getBodyBytes() {
-    if (sentResponse) {
-      return body;
-    } else {
-      return null;
-    }
+  public Path getSentFile() {
+    return sentFile;
   }
 
   @Override
@@ -244,11 +249,6 @@ public class DefaultHandlingResult implements HandlingResult {
   @Override
   public boolean isSentResponse() {
     return sentResponse;
-  }
-
-  @Override
-  public Path getSentFile() {
-    return sentFile;
   }
 
   @Override
