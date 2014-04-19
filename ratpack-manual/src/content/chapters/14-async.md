@@ -69,7 +69,13 @@ Instead, we need to use the “blocking” API…
 import ratpack.handling.InjectionHandler;
 import ratpack.handling.Context;
 import ratpack.func.Action;
+
+import ratpack.test.UnitTest;
+import ratpack.test.handling.HandlingResult;
+import ratpack.test.handling.RequestFixtureAction;
+
 import java.util.concurrent.Callable;
+import java.util.Collections;
 import java.io.IOException;
 
 public class Example {
@@ -93,6 +99,22 @@ public class Example {
         }
       });
     }
+  }
+
+  // Unit test
+  public static void main(String[] args) {
+    HandlingResult result = UnitTest.handle(new DeletingHandler(), new RequestFixtureAction() {
+      protected void execute() {
+        pathBinding(Collections.singletonMap("days", "10"));
+        getRegistry().add(Datastore.class, new Datastore() {
+          public int deleteOlderThan(int days) throws IOException {
+            return days;
+          }
+        });
+      }
+    });
+
+    assert result.rendered(String.class).equals("10 records deleted");
   }
 }
 ```
