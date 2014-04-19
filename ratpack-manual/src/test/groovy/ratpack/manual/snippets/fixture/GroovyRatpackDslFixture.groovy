@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,34 +14,34 @@
  * limitations under the License.
  */
 
-package ratpack.manual.snippets.fixtures
+package ratpack.manual.snippets.fixture
 
-import ratpack.manual.snippets.GroovySnippetExecuter
-import ratpack.manual.snippets.SnippetExecuter
+import ratpack.groovy.internal.RatpackScriptBacking
+import ratpack.func.Action
 
-class GroovyScriptFixture implements SnippetFixture {
+class GroovyRatpackDslFixture  extends GroovyScriptFixture {
 
-  @Override
-  SnippetExecuter getExecuter() {
-    return new GroovySnippetExecuter()
-  }
+  private Action<Closure<?>> previousBacking
 
   @Override
   public void setup() {
+    previousBacking = RatpackScriptBacking.swapBacking {
+      // do nothing
+    }
   }
 
   @Override
   public void cleanup() {
+    RatpackScriptBacking.swapBacking(previousBacking)
   }
 
   @Override
   public String pre() {
-    return "";
+    ""
   }
 
   @Override
   public String post() {
-    return "\n;0;";
+    ""
   }
-
 }

@@ -65,28 +65,34 @@ It is conceivable that communication with the actual data store requires IO (or 
 The API methods cannot be called on a request processing thread because they will block.
 Instead, we need to use the “blocking” API…
 
-```language-groovy tested
+```language-java
 import ratpack.handling.InjectionHandler;
 import ratpack.handling.Context;
 import ratpack.func.Action;
 import java.util.concurrent.Callable;
+import java.io.IOException;
 
-public interface Datastore {
-  int deleteOlderThan(int days) throws IOException;
-}
+public class Example {
 
-public class DeletingHandler extends InjectionHandler {
-  void handle(final Context context, final Datastore datastore) {
-    final int days = context.getPathTokens().asInt("days");
-    context.blocking(new Callable<Integer>() {
-      public Integer call() {
-        return datastore.deleteOlderThan(days);
-      }
-    }).then(new Action<Integer>() {
-      public void execute(Integer result) {
-        context.render(result + " records deleted");
-      }
-    });
+  // Some API that performs blocking operations
+  public static interface Datastore {
+    int deleteOlderThan(int days) throws IOException;
+  }
+
+  // A handler that uses the API
+  public static class DeletingHandler extends InjectionHandler {
+    void handle(final Context context, final Datastore datastore) {
+      final int days = context.getPathTokens().asInt("days");
+      context.blocking(new Callable<Integer>() {
+        public Integer call() throws IOException {
+          return datastore.deleteOlderThan(days);
+        }
+      }).then(new Action<Integer>() {
+        public void execute(Integer result) {
+          context.render(result + " records deleted");
+        }
+      });
+    }
   }
 }
 ```

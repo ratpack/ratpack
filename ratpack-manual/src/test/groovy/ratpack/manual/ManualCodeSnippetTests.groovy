@@ -18,8 +18,8 @@ package ratpack.manual
 
 import ratpack.manual.snippets.CodeSnippetTestCase
 import ratpack.manual.snippets.CodeSnippetTests
-import ratpack.manual.snippets.ManualSnippetExtractor
-import ratpack.manual.snippets.fixtures.*
+import ratpack.manual.snippets.extractor.ManualSnippetExtractor
+import ratpack.manual.snippets.fixture.*
 
 class ManualCodeSnippetTests extends CodeSnippetTestCase {
 
@@ -28,7 +28,8 @@ class ManualCodeSnippetTests extends CodeSnippetTestCase {
     "language-groovy groovy-ratpack"  : new GroovyRatpackDslFixture(),
     "language-groovy groovy-handlers" : new GroovyHandlersFixture(),
     "language-groovy gradle"          : new GradleFixture(),
-    "language-groovy tested"          : new GroovyScriptFixture()
+    "language-groovy tested"          : new GroovyScriptFixture(),
+    "language-java"                   : new JavaExampleClassFixture()
   ]
 
   @Override

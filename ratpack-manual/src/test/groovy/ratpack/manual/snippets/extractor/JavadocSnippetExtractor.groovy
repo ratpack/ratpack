@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package ratpack.manual.snippets
+package ratpack.manual.snippets.extractor
 
 import org.apache.commons.lang3.StringEscapeUtils
 import org.codehaus.groovy.control.MultipleCompilationErrorsException
 import org.codehaus.groovy.control.messages.SyntaxErrorMessage
-import ratpack.manual.snippets.fixtures.SnippetFixture
+import ratpack.manual.snippets.TestCodeSnippet
+import ratpack.manual.snippets.fixture.SnippetFixture
 import ratpack.func.Transformer
 
 import java.util.regex.MatchResult

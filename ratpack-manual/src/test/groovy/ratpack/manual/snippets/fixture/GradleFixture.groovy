@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ratpack.manual.snippets.fixtures
+package ratpack.manual.snippets.fixture
 
 class GradleFixture extends GroovyScriptFixture {
   @Override

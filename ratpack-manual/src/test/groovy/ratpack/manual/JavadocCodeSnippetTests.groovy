@@ -18,8 +18,8 @@ package ratpack.manual
 
 import ratpack.manual.snippets.CodeSnippetTestCase
 import ratpack.manual.snippets.CodeSnippetTests
-import ratpack.manual.snippets.JavadocSnippetExtractor
-import ratpack.manual.snippets.fixtures.*
+import ratpack.manual.snippets.extractor.JavadocSnippetExtractor
+import ratpack.manual.snippets.fixture.*
 
 class JavadocCodeSnippetTests extends CodeSnippetTestCase {
 

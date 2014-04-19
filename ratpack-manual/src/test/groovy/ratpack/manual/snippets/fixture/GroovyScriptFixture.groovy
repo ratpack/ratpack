@@ -14,10 +14,21 @@
  * limitations under the License.
  */
 
-package ratpack.manual.snippets;
+package ratpack.manual.snippets.fixture
 
-public interface SnippetExecuter {
+import ratpack.manual.snippets.executer.GroovySnippetExecuter
+import ratpack.manual.snippets.executer.SnippetExecuter
 
-  void execute(TestCodeSnippet snippet);
+class GroovyScriptFixture extends SnippetFixture {
+
+  @Override
+  SnippetExecuter getExecuter() {
+    new GroovySnippetExecuter()
+  }
+
+  @Override
+  public String post() {
+    "\n;0;"
+  }
 
 }

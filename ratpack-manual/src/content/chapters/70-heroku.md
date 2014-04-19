@@ -25,7 +25,7 @@ If the wrapper scripts are present in your project, Heroku will detect that your
 
 Heroku allows the required Java version to be set via `system.properties` file in the root of the source tree.
 
-```language-java
+```
 java.runtime.version=1.7
 ```
 

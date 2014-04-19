@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,27 +14,16 @@
  * limitations under the License.
  */
 
-package ratpack.manual.snippets.fixtures
+package ratpack.manual.snippets.fixture;
 
-class GroovyHandlersFixture extends GroovyScriptFixture {
+import ratpack.manual.snippets.executer.JavaSnippetExecuter;
+import ratpack.manual.snippets.executer.SnippetExecuter;
 
-  @Override
-  public void setup() {
-  }
-
-  @Override
-  public void cleanup() {
-  }
+public class JavaExampleClassFixture extends SnippetFixture {
 
   @Override
-  public String pre() {
-"""
-def handlers(@DelegatesTo(value = ratpack.groovy.handling.GroovyChain, strategy = Closure.DELEGATE_FIRST) Closure closure) { }
-"""
+  public SnippetExecuter getExecuter() {
+    return new JavaSnippetExecuter();
   }
 
-  @Override
-  public String post() {
-    ""
-  }
 }

@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package ratpack.manual.snippets.fixtures
+package ratpack.manual.snippets.fixture
 
-class GroovyChainDslFixture extends GroovyScriptFixture {
+class JavaChainDslFixture extends GroovyScriptFixture {
 
   @Override
   public void setup() {
@@ -29,16 +29,19 @@ class GroovyChainDslFixture extends GroovyScriptFixture {
   @Override
   public String pre() {
     """
-import ratpack.launch.LaunchConfig
+import ratpack.func.Action;
+import ratpack.launch.LaunchConfig;
+import ratpack.handling.Chain;
+import ratpack.handling.Handler;
+import ratpack.handling.Context;
+import ratpack.handling.internal.DefaultChain;
 
-ratpack.groovy.Groovy.chain([isReloadable: { false }] as LaunchConfig, null) {
+Chain chain = new ratpack.handling.internal.DefaultChain([], [isReloadable: { false }] as LaunchConfig, null)
 """
   }
 
   @Override
   public String post() {
-    """
-}
-"""
+    ""
   }
 }

@@ -14,30 +14,23 @@
  * limitations under the License.
  */
 
-package ratpack.manual.snippets.fixtures
+package ratpack.manual.snippets.fixture
 
-import ratpack.groovy.internal.RatpackScriptBacking
-import ratpack.func.Action
-
-class GroovyRatpackDslFixture  extends GroovyScriptFixture {
-
-  private Action<Closure<?>> previousBacking
+class GroovyHandlersFixture extends GroovyScriptFixture {
 
   @Override
   public void setup() {
-    previousBacking = RatpackScriptBacking.swapBacking {
-      // do nothing
-    }
   }
 
   @Override
   public void cleanup() {
-    RatpackScriptBacking.swapBacking(previousBacking)
   }
 
   @Override
   public String pre() {
-    ""
+"""
+def handlers(@DelegatesTo(value = ratpack.groovy.handling.GroovyChain, strategy = Closure.DELEGATE_FIRST) Closure closure) { }
+"""
   }
 
   @Override

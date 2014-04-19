@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ratpack.manual.snippets;
+package ratpack.manual.snippets.executer;
 
 import groovy.lang.GroovyShell;
 import groovy.lang.Script;
@@ -27,7 +27,8 @@ import org.codehaus.groovy.control.CompilePhase;
 import org.codehaus.groovy.control.CompilerConfiguration;
 import org.codehaus.groovy.control.SourceUnit;
 import org.codehaus.groovy.control.customizers.CompilationCustomizer;
-import ratpack.manual.snippets.fixtures.SnippetFixture;
+import ratpack.manual.snippets.TestCodeSnippet;
+import ratpack.manual.snippets.fixture.SnippetFixture;
 
 import java.util.Arrays;
 import java.util.List;

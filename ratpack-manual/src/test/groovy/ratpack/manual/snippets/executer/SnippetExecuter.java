@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,12 @@
  * limitations under the License.
  */
 
-package ratpack.manual.snippets.fixtures;
+package ratpack.manual.snippets.executer;
 
-import ratpack.manual.snippets.SnippetExecuter;
+import ratpack.manual.snippets.TestCodeSnippet;
 
-public interface SnippetFixture {
+public interface SnippetExecuter {
 
-  void setup();
-
-  void cleanup();
-
-  String pre();
-
-  String post();
-
-  SnippetExecuter getExecuter();
+  void execute(TestCodeSnippet snippet);
 
 }
