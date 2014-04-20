@@ -18,35 +18,47 @@ These methods adapt Ratpack's promise type into an observable, which can then be
 
 For example, blocking operations can be easily observed.
 
-```language-groovy tested
+```language-java
 import ratpack.handling.Handler;
 import ratpack.handling.Context;
 import ratpack.exec.Promise;
 import java.util.concurrent.Callable;
-import rx.util.functions.Func1;
-import rx.util.functions.Action1;
+import rx.functions.Func1;
+import rx.functions.Action1;
+
+import ratpack.test.UnitTest;
+import ratpack.test.handling.HandlingResult;
+import ratpack.func.Actions;
 
 import static ratpack.rx.RxRatpack.observe;
 
-public class ReactiveHandler implements Handler {
-  public void handle(Context context) {
-    Promise<String> promise = context.blocking(new Callable<String>() {
-      public String call() {
-        // do some blocking IO here
-        return "hello world";
-      }
-    });
+public class Example {
 
-    observe(promise).map(new Func1<String, String>() {
-      public String call(String input) {
-        return input.toUpperCase();
-      }
-    }).subscribe(new Action1<String>() {
-      public void call(String str) {
-        context.render(str); // renders: HELLO WORLD
-      }
-    });
+  public static class ReactiveHandler implements Handler {
+    public void handle(final Context context) {
+      Promise<String> promise = context.blocking(new Callable<String>() {
+        public String call() {
+          return "hello world";
+        }
+      });
+
+      observe(promise).map(new Func1<String, String>() {
+        public String call(String input) {
+          return input.toUpperCase();
+        }
+      }).subscribe(new Action1<String>() {
+        public void call(String str) {
+          context.render(str);
+        }
+      });
+    }
   }
+
+  public static void main(String[] args) {
+    HandlingResult result = UnitTest.handle(new ReactiveHandler(), Actions.noop());
+    assert result.rendered(String.class).equals("HELLO WORLD");
+  }
+
 }
 ```
 
@@ -75,28 +87,41 @@ A key feature of the RxJava integration is the implicit error handling.
 All observable sequences have an implicit default error handling strategy of forwarding the exception to the execution context error handler.
 In practice, this means that error handlers rarely need to be defined for observable sequences.
 
-```language-groovy tested
+```language-java
 import ratpack.handling.Handler;
 import ratpack.handling.Context;
 import ratpack.exec.Promise;
 import rx.functions.Action1;
 import java.util.concurrent.Callable;
 
+import ratpack.test.UnitTest;
+import ratpack.test.handling.HandlingResult;
+import ratpack.func.Actions;
+
 import static ratpack.rx.RxRatpack.observe;
 
-class ReactiveHandler implements Handler {
-  public void handle(Context context) {
-    Promise<String> promise = context.blocking(new Callable<String>() {
-      public String call() throws Exception {
-        throw new IOException("error!");
-      }
-    });
+import java.io.IOException;
 
-    observe(promise).subscribe(new Action1<String>() {
-      public void call(String str) {
-        // will never be called because of error
-      }
-    });
+public class Example {
+  public static class ReactiveHandler implements Handler {
+    public void handle(Context context) {
+      Promise<String> promise = context.blocking(new Callable<String>() {
+        public String call() throws Exception {
+          throw new IOException("error!");
+        }
+      });
+
+      observe(promise).subscribe(new Action1<String>() {
+        public void call(String str) {
+          // will never be called because of error
+        }
+      });
+    }
+  }
+
+  public static void main(String[] args) {
+    HandlingResult result = UnitTest.handle(new ReactiveHandler(), Actions.noop());
+    assert result.getException().getMessage().equals("error!");
   }
 }
 ```
