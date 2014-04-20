@@ -22,7 +22,6 @@ import ratpack.handling.Handler;
 import ratpack.test.handling.HandlerTimeoutException;
 import ratpack.test.handling.HandlingResult;
 import ratpack.test.handling.RequestFixture;
-import ratpack.test.handling.RequestFixtureAction;
 import ratpack.test.handling.internal.DefaultRequestFixture;
 
 import static ratpack.util.ExceptionUtils.uncheck;
@@ -75,7 +74,7 @@ public abstract class UnitTest {
    * @return A result object indicating what happened
    * @throws HandlerTimeoutException if the handler takes more than {@link ratpack.test.handling.RequestFixture#timeout(int)} seconds to send a response or call {@code next()} on the context
    * @see #handle(Action, Action)
-   * @see RequestFixtureAction
+   * @see ratpack.test.handling.RequestFixtureAction
    */
   public static HandlingResult handle(Handler handler, Action<? super RequestFixture> action) throws HandlerTimeoutException {
     return buildFixture(action).handle(handler);
@@ -130,7 +129,7 @@ public abstract class UnitTest {
    * @return a result object indicating what happened
    * @throws HandlerTimeoutException if the handler takes more than {@link ratpack.test.handling.RequestFixture#timeout(int)} seconds to send a response or call {@code next()} on the context
    * @see #handle(Handler, Action)
-   * @see RequestFixtureAction
+   * @see ratpack.test.handling.RequestFixtureAction
    */
   public static HandlingResult handle(Action<? super Chain> chainAction, Action<? super RequestFixture> requestFixtureAction) throws HandlerTimeoutException {
     return buildFixture(requestFixtureAction).handle(chainAction);

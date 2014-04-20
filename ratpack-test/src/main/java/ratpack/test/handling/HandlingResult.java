@@ -21,7 +21,6 @@ import ratpack.http.Headers;
 import ratpack.http.Status;
 import ratpack.registry.Registry;
 
-import java.lang.AssertionError;
 import java.nio.file.Path;
 
 /**
