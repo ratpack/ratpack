@@ -21,8 +21,10 @@ import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import groovy.xml.MarkupBuilder;
 import ratpack.api.Nullable;
+import ratpack.func.Action;
 import ratpack.groovy.guice.GroovyModuleRegistry;
 import ratpack.groovy.handling.GroovyChain;
+import ratpack.groovy.handling.GroovyChainAction;
 import ratpack.groovy.handling.GroovyContext;
 import ratpack.groovy.handling.internal.ClosureBackedHandler;
 import ratpack.groovy.handling.internal.DefaultGroovyChain;
@@ -225,6 +227,21 @@ public abstract class Groovy {
   public static void chain(Chain chain, @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) throws Exception {
     GroovyChain groovyChain = chain instanceof GroovyChain ? (GroovyChain) chain : new DefaultGroovyChain(chain);
     new ClosureInvoker<Object, GroovyChain>(closure).invoke(chain.getRegistry(), groovyChain, Closure.DELEGATE_FIRST);
+  }
+
+  /**
+   * Creates a chain action implementation from the given closure.
+   *
+   * @param closure the definition of handlers to add
+   * @throws Exception any exception thrown by {@code closure}
+   */
+  public static Action<Chain> chain(@DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) final Closure<?> closure) throws Exception {
+    return new GroovyChainAction() {
+      @Override
+      protected void execute() throws Exception {
+        Groovy.chain(getChain(), closure);
+      }
+    };
   }
 
   /**

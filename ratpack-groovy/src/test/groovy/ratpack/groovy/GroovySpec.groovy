@@ -22,7 +22,7 @@ import ratpack.test.internal.RatpackGroovyDslSpec
 
 class GroovySpec extends RatpackGroovyDslSpec {
 
-  def "can use chain method"() {
+  def "can use chain method to wrap chain"() {
     when:
     handlers {
       handler chain(new Action<Chain>() {
@@ -32,6 +32,18 @@ class GroovySpec extends RatpackGroovyDslSpec {
             get("foo") { render "bar" }
           }
         }
+      })
+    }
+
+    then:
+    getText("foo") == "bar"
+  }
+
+  def "can use chain method to create action"() {
+    when:
+    handlers {
+      handler chain(Groovy.chain {
+        get("foo") { render "bar" }
       })
     }
 
