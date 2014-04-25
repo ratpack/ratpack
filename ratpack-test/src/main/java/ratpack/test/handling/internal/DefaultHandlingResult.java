@@ -180,6 +180,12 @@ public class DefaultHandlingResult implements HandlingResult {
       }
     } catch (InterruptedException e) {
       throw uncheck(e); // what to do here?
+    } finally {
+      try {
+        launchConfig.getExecController().shutdown();
+      } catch (Exception ignore) {
+        // swallow
+      }
     }
   }
 
