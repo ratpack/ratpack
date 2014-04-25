@@ -151,6 +151,51 @@ class PathRoutingSpec extends RatpackGroovyDslSpec {
     get("1/2/3/4/5/6").statusCode == NOT_FOUND.code()
   }
 
+  def "can route by nested exact path with regular expression tokens"() {
+    when:
+    handlers {
+      prefix(":a:[a-c]{1,3}/:b") {
+        handler(":d/:e?:4") {
+          def binding = get(PathBinding)
+          response.send("$binding.tokens - $binding.allTokens - $binding.pastBinding")
+        }
+      }
+    }
+
+    then:
+    getText("a/2/3/4") == "[d:3, e:4] - [a:a, b:2, d:3, e:4] - "
+    getText("aa/2/3/4") == "[d:3, e:4] - [a:aa, b:2, d:3, e:4] - "
+    getText("aaa/2/3/4") == "[d:3, e:4] - [a:aaa, b:2, d:3, e:4] - "
+    getText("b/2/3/4") == "[d:3, e:4] - [a:b, b:2, d:3, e:4] - "
+    getText("c/2/3/4") == "[d:3, e:4] - [a:c, b:2, d:3, e:4] - "
+    
+    getText("c/2/3") == "[d:3] - [a:c, b:2, d:3] - "
+
+    get("d/2/3/4").statusCode == NOT_FOUND.code()
+    get("1/2/3/4").statusCode == NOT_FOUND.code()
+    get("aaaa/2/3/4").statusCode == NOT_FOUND.code()
+    get("a/2/3/5").statusCode == NOT_FOUND.code()
+  }
+
+  def "can route by nested exact path with regular expression tokens and regular expression literals"() {
+    when:
+    handlers {
+      prefix(":a:[a-c]{1,3}/:b") {
+        handler("::[a-z]{3}/:c?:4") {
+          def binding = get(PathBinding)
+          response.send("$binding.tokens - $binding.allTokens - $binding.pastBinding")
+        }
+      }
+    }
+
+    then:
+    getText("a/2/abc/4") == "[c:4] - [a:a, b:2, c:4] - "
+
+    getText("c/2/abc") == "[:] - [a:c, b:2] - "
+
+    get("a/2/123/4").statusCode == NOT_FOUND.code()
+  }
+
   def "can use get handler"() {
     when:
     handlers {
