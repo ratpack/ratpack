@@ -30,6 +30,10 @@ if (jvmEncoding != "UTF-8") {
   throw new IllegalStateException("Build environment must be UTF-8 (it is: $jvmEncoding) - add '-Dfile.encoding=UTF-8' to the GRADLE_OPTS environment variable ")
 }
 
+if (!JavaVersion.current().java7Compatible) {
+  throw new IllegalStateException("Must be built with Java 7 or higher")
+}
+
 apply plugin: 'artifactory'
 
 artifactory {
