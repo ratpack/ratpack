@@ -17,6 +17,8 @@
 package ratpack.registry.internal;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.reflect.TypeToken;
+import ratpack.api.Nullable;
 import ratpack.registry.NotInRegistryException;
 import ratpack.registry.Registry;
 
@@ -34,6 +36,11 @@ public class HierarchicalRegistry implements Registry {
 
   @Override
   public <O> O get(Class<O> type) throws NotInRegistryException {
+    return get(TypeToken.of(type));
+  }
+
+  @Override
+  public <O> O get(TypeToken<O> type) throws NotInRegistryException {
     O object = maybeGet(type);
 
     if (object == null) {
@@ -45,6 +52,12 @@ public class HierarchicalRegistry implements Registry {
 
   @Override
   public <O> O maybeGet(Class<O> type) {
+    return maybeGet(TypeToken.of(type));
+  }
+
+  @Nullable
+  @Override
+  public <O> O maybeGet(TypeToken<O> type) {
     O object = child.maybeGet(type);
     if (object == null) {
       object = parent.maybeGet(type);
@@ -55,6 +68,11 @@ public class HierarchicalRegistry implements Registry {
 
   @Override
   public <O> List<O> getAll(Class<O> type) {
+    return getAll(TypeToken.of(type));
+  }
+
+  @Override
+  public <O> List<O> getAll(TypeToken<O> type) {
     List<O> childAll = child.getAll(type);
     List<O> parentAll = parent.getAll(type);
     return ImmutableList.<O>builder().addAll(childAll).addAll(parentAll).build();

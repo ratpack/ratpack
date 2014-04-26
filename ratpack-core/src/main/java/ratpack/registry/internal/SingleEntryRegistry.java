@@ -17,6 +17,7 @@
 package ratpack.registry.internal;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.reflect.TypeToken;
 import ratpack.api.Nullable;
 import ratpack.registry.NotInRegistryException;
 import ratpack.registry.Registry;
@@ -33,6 +34,11 @@ public class SingleEntryRegistry implements Registry {
 
   @Override
   public <O> O get(Class<O> type) throws NotInRegistryException {
+    return get(TypeToken.of(type));
+  }
+
+  @Override
+  public <O> O get(TypeToken<O> type) throws NotInRegistryException {
     O value = maybeGet(type);
     if (value == null) {
       throw new NotInRegistryException(type);
@@ -41,11 +47,19 @@ public class SingleEntryRegistry implements Registry {
     }
   }
 
+
   @Nullable
   @Override
   public <O> O maybeGet(Class<O> type) {
+    return maybeGet(TypeToken.of(type));
+  }
+
+  @Nullable
+  @Override
+  public <O> O maybeGet(TypeToken<O> type) {
     if (type.isAssignableFrom(entry.getType())) {
-      return type.cast(entry.get());
+      @SuppressWarnings("unchecked") O cast = (O) entry.get();
+      return cast;
     } else {
       return null;
     }
@@ -53,6 +67,11 @@ public class SingleEntryRegistry implements Registry {
 
   @Override
   public <O> List<O> getAll(Class<O> type) {
+    return getAll(TypeToken.of(type));
+  }
+
+  @Override
+  public <O> List<O> getAll(TypeToken<O> type) {
     O value = maybeGet(type);
     if (value == null) {
       return ImmutableList.of();

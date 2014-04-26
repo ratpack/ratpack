@@ -16,9 +16,11 @@
 
 package ratpack.registry.internal;
 
+import com.google.common.reflect.TypeToken;
+
 public interface RegistryEntry<T> {
 
-  Class<T> getType();
+  TypeToken<T> getType();
 
   T get();
 

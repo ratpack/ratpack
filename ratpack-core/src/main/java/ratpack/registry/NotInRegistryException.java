@@ -16,6 +16,8 @@
 
 package ratpack.registry;
 
+import com.google.common.reflect.TypeToken;
+
 /**
  * Thrown when a request is made for an object that a registry cannot provide.
  *
@@ -30,8 +32,8 @@ public class NotInRegistryException extends RuntimeException {
    *
    * @param type The requested type of the object
    */
-  public NotInRegistryException(Class<?> type) {
-    this(String.format("No object for type '%s' in registry", type.getName()));
+  public NotInRegistryException(TypeToken<?> type) {
+    this(String.format("No object for type '%s' in registry", type));
   }
 
   /**

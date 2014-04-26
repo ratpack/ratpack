@@ -16,6 +16,7 @@
 
 package ratpack.registry.internal;
 
+import com.google.common.reflect.TypeToken;
 import ratpack.func.Factory;
 
 import java.util.concurrent.locks.Lock;
@@ -23,19 +24,19 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class LazyRegistryEntry<T> implements RegistryEntry<T> {
 
-  private final Class<T> type;
+  private final TypeToken<T> type;
   private final Factory<? extends T> factory;
   private final Lock lock = new ReentrantLock();
 
   private T object;
 
-  public LazyRegistryEntry(Class<T> type, Factory<? extends T> factory) {
+  public LazyRegistryEntry(TypeToken<T> type, Factory<? extends T> factory) {
     this.type = type;
     this.factory = factory;
   }
 
   @Override
-  public Class<T> getType() {
+  public TypeToken<T> getType() {
     return type;
   }
 

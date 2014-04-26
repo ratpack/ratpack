@@ -16,12 +16,14 @@
 
 package ratpack.groovy.handling.internal;
 
+import com.google.common.reflect.TypeToken;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import ratpack.api.NonBlocking;
 import ratpack.api.Nullable;
 import ratpack.exec.ExecController;
 import ratpack.exec.ExecInterceptor;
+import ratpack.exec.Fulfiller;
 import ratpack.exec.Promise;
 import ratpack.func.Action;
 import ratpack.groovy.handling.GroovyByContentHandler;
@@ -38,7 +40,6 @@ import ratpack.parse.NoSuchParserException;
 import ratpack.parse.Parse;
 import ratpack.parse.ParserException;
 import ratpack.path.PathTokens;
-import ratpack.exec.Fulfiller;
 import ratpack.registry.NotInRegistryException;
 import ratpack.registry.Registry;
 import ratpack.server.BindAddress;
@@ -275,4 +276,19 @@ public class DefaultGroovyContext implements GroovyContext {
     return delegate.getHttpClient();
   }
 
+  @Override
+  public <O> O get(TypeToken<O> type) throws NotInRegistryException {
+    return delegate.get(type);
+  }
+
+  @Override
+  @Nullable
+  public <O> O maybeGet(TypeToken<O> type) {
+    return delegate.maybeGet(type);
+  }
+
+  @Override
+  public <O> List<O> getAll(TypeToken<O> type) {
+    return delegate.getAll(type);
+  }
 }

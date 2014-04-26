@@ -16,18 +16,20 @@
 
 package ratpack.registry.internal;
 
+import com.google.common.reflect.TypeToken;
+
 public class DefaultRegistryEntry<T> implements RegistryEntry<T> {
 
-  private final Class<T> type;
+  private final TypeToken<T> type;
   private final T object;
 
-  public DefaultRegistryEntry(Class<T> type, T object) {
+  public DefaultRegistryEntry(TypeToken<T> type, T object) {
     this.type = type;
     this.object = object;
   }
 
   @Override
-  public Class<T> getType() {
+  public TypeToken<T> getType() {
     return type;
   }
 

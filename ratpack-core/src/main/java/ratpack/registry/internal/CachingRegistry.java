@@ -20,6 +20,7 @@ import com.google.common.base.Optional;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.reflect.TypeToken;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import ratpack.registry.NotInRegistryException;
 import ratpack.registry.Registry;
@@ -34,15 +35,15 @@ public class CachingRegistry implements Registry {
 
   private final Registry delegate;
 
-  private final LoadingCache<Class<?>, ? extends Optional<?>> cache = CacheBuilder.newBuilder().build(new CacheLoader<Class<?>, Optional<?>>() {
-    public Optional<?> load(Class<?> key) throws Exception {
+  private final LoadingCache<TypeToken<?>, ? extends Optional<?>> cache = CacheBuilder.newBuilder().build(new CacheLoader<TypeToken<?>, Optional<?>>() {
+    public Optional<?> load(TypeToken<?> key) throws Exception {
       Object nullableReference = delegate.maybeGet(key);
       return Optional.fromNullable(nullableReference);
     }
   });
 
-  private final LoadingCache<Class<?>, List<?>> allCache = CacheBuilder.newBuilder().build(new CacheLoader<Class<?>, List<?>>() {
-    public List<?> load(Class<?> key) throws Exception {
+  private final LoadingCache<TypeToken<?>, List<?>> allCache = CacheBuilder.newBuilder().build(new CacheLoader<TypeToken<?>, List<?>>() {
+    public List<?> load(TypeToken<?> key) throws Exception {
       return delegate.getAll(key);
     }
   });
@@ -53,6 +54,11 @@ public class CachingRegistry implements Registry {
 
   @Override
   public <O> O get(Class<O> type) throws NotInRegistryException {
+    return get(TypeToken.of(type));
+  }
+
+  @Override
+  public <O> O get(TypeToken<O> type) throws NotInRegistryException {
     O o = maybeGet(type);
     if (o == null) {
       throw new NotInRegistryException(type);
@@ -63,6 +69,11 @@ public class CachingRegistry implements Registry {
 
   @Override
   public <O> O maybeGet(Class<O> type) {
+    return maybeGet(TypeToken.of(type));
+  }
+
+  @Override
+  public <O> O maybeGet(TypeToken<O> type) {
     try {
       @SuppressWarnings("unchecked") O o = (O) cache.get(type).orNull();
       return o;
@@ -73,6 +84,11 @@ public class CachingRegistry implements Registry {
 
   @Override
   public <O> List<O> getAll(Class<O> type) {
+    return getAll(TypeToken.of(type));
+  }
+
+  @Override
+  public <O> List<O> getAll(TypeToken<O> type) {
     try {
       @SuppressWarnings("unchecked") List<O> objects = (List<O>) allCache.get(type);
       return objects;

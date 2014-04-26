@@ -16,7 +16,9 @@
 
 package ratpack.handling.internal;
 
+import com.google.common.reflect.TypeToken;
 import io.netty.handler.codec.http.HttpResponseStatus;
+import ratpack.api.Nullable;
 import ratpack.error.ClientErrorHandler;
 import ratpack.error.ServerErrorHandler;
 import ratpack.event.internal.EventRegistry;
@@ -380,6 +382,22 @@ public class DefaultContext extends AbstractExecContext implements Context {
     } catch (Throwable e) {
       throw ExecException.wrap(context, e);
     }
+  }
+
+  @Override
+  public <O> O get(TypeToken<O> type) throws NotInRegistryException {
+    return registry.get(type);
+  }
+
+  @Override
+  @Nullable
+  public <O> O maybeGet(TypeToken<O> type) {
+    return registry.maybeGet(type);
+  }
+
+  @Override
+  public <O> List<O> getAll(TypeToken<O> type) {
+    return registry.getAll(type);
   }
 
   private DefaultContext createContext(Registry registry, Handler[] nextHandlers, int nextIndex, Handler exhausted) {

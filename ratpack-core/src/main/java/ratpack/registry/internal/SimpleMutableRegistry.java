@@ -16,6 +16,7 @@
 
 package ratpack.registry.internal;
 
+import com.google.common.reflect.TypeToken;
 import ratpack.api.Nullable;
 import ratpack.func.Factory;
 import ratpack.registry.MutableRegistry;
@@ -33,19 +34,20 @@ public class SimpleMutableRegistry<T> implements MutableRegistry<T> {
 
   @Override
   public <O extends T> void register(Class<O> type, O object) {
-    entries.add(new DefaultRegistryEntry<>(type, object));
+    entries.add(new DefaultRegistryEntry<>(TypeToken.of(type), object));
   }
 
   @Override
   public void register(T object) {
     @SuppressWarnings("unchecked")
     Class<T> type = (Class<T>) object.getClass();
-    entries.add(new DefaultRegistryEntry<>(type, object));
+    TypeToken<T> typeToken = TypeToken.of(type);
+    entries.add(new DefaultRegistryEntry<>(typeToken, object));
   }
 
   @Override
   public <O extends T> void registerLazy(Class<O> type, Factory<? extends O> factory) {
-    entries.add(new LazyRegistryEntry<>(type, factory));
+    entries.add(new LazyRegistryEntry<>(TypeToken.of(type), factory));
   }
 
   @Override
@@ -71,6 +73,22 @@ public class SimpleMutableRegistry<T> implements MutableRegistry<T> {
 
   @Override
   public <O> List<O> getAll(Class<O> type) {
+    return registry.getAll(type);
+  }
+
+  @Override
+  public <O> O get(TypeToken<O> type) throws NotInRegistryException {
+    return registry.get(type);
+  }
+
+  @Override
+  @Nullable
+  public <O> O maybeGet(TypeToken<O> type) {
+    return registry.maybeGet(type);
+  }
+
+  @Override
+  public <O> List<O> getAll(TypeToken<O> type) {
     return registry.getAll(type);
   }
 }

@@ -17,6 +17,7 @@
 package ratpack.guice.internal;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.reflect.TypeToken;
 import com.google.inject.Binder;
 import com.google.inject.Injector;
 import com.google.inject.Module;
@@ -122,7 +123,7 @@ public class DefaultGuiceBackedHandlerFactory implements GuiceBackedHandlerFacto
 
   private static class DefaultModuleRegistry implements ModuleRegistry {
 
-    private final Map<Class<? extends Module>, Module> modules = new LinkedHashMap<>();
+    private final Map<TypeToken<? extends Module>, Module> modules = new LinkedHashMap<>();
     private final LaunchConfig launchConfig;
 
     private final LinkedList<Action<Binder>> actions = new LinkedList<>();
@@ -189,28 +190,39 @@ public class DefaultGuiceBackedHandlerFactory implements GuiceBackedHandlerFacto
     }
 
     public <O extends Module> void register(Class<O> type, O module) {
-      if (modules.containsKey(type)) {
-        Object existing = modules.get(type);
+      TypeToken<O> typeToken = TypeToken.of(type);
+      if (modules.containsKey(typeToken)) {
+        Object existing = modules.get(typeToken);
         throw new IllegalArgumentException(String.format("Module '%s' is already registered with type '%s' (attempting to register '%s')", existing, type, module));
       }
 
-      modules.put(type, module);
+      modules.put(typeToken, module);
     }
 
     public <T> T get(Class<T> moduleType) {
+      return get(TypeToken.of(moduleType));
+    }
+
+    public <T> T get(TypeToken<T> moduleType) {
       @SuppressWarnings("SuspiciousMethodCalls") Module module = modules.get(moduleType);
       if (module == null) {
         throw new NotInRegistryException(moduleType);
       }
 
-      return moduleType.cast(module);
+      @SuppressWarnings("unchecked") T cast = (T) module;
+      return cast;
     }
 
     @Override
     public <O> List<O> getAll(Class<O> type) {
+      return getAll(TypeToken.of(type));
+    }
+
+    @Override
+    public <O> List<O> getAll(TypeToken<O> type) {
       ImmutableList.Builder<O> builder = ImmutableList.builder();
       for (Module module : modules.values()) {
-        if (type.isInstance(module)) {
+        if (type.getRawType().isInstance(module)) {
           @SuppressWarnings("unchecked") O cast = (O) module;
           builder.add(cast);
         }
@@ -219,20 +231,26 @@ public class DefaultGuiceBackedHandlerFactory implements GuiceBackedHandlerFacto
     }
 
     public <O> O maybeGet(Class<O> type) {
+      return maybeGet(TypeToken.of(type));
+    }
+
+    public <O> O maybeGet(TypeToken<O> type) {
       @SuppressWarnings("SuspiciousMethodCalls") Module module = modules.get(type);
       if (module == null) {
         return null;
       }
 
-      return type.cast(module);
+      @SuppressWarnings("unchecked") O cast = (O) module;
+      return cast;
     }
 
     public <T extends Module> void remove(Class<T> moduleType) {
-      if (!modules.containsKey(moduleType)) {
-        throw new NotInRegistryException(moduleType);
+      TypeToken<T> typeToken = TypeToken.of(moduleType);
+      if (!modules.containsKey(typeToken)) {
+        throw new NotInRegistryException(typeToken);
       }
 
-      modules.remove(moduleType);
+      modules.remove(typeToken);
     }
 
     private List<Module> getModules() {

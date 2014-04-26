@@ -16,8 +16,11 @@
 
 package ratpack.guice.internal;
 
+import com.google.common.reflect.TypeToken;
 import com.google.inject.ConfigurationException;
 import com.google.inject.Injector;
+import com.google.inject.Key;
+import com.google.inject.TypeLiteral;
 import ratpack.registry.NotInRegistryException;
 import ratpack.registry.Registry;
 
@@ -32,8 +35,13 @@ public class JustInTimeInjectorRegistry implements Registry {
   }
 
   public <T> T maybeGet(Class<T> type) {
+    return maybeGet(TypeToken.of(type));
+  }
+
+  public <T> T maybeGet(TypeToken<T> type) {
+    @SuppressWarnings("unchecked") TypeLiteral<T> typeLiteral = (TypeLiteral<T>) TypeLiteral.get(type.getType());
     try {
-      return injector.getInstance(type);
+      return injector.getInstance(Key.get(typeLiteral));
     } catch (ConfigurationException e) {
       return null;
     }
@@ -41,13 +49,25 @@ public class JustInTimeInjectorRegistry implements Registry {
 
   @Override
   public <O> List<O> getAll(Class<O> type) {
-    return GuiceUtil.ofType(injector, type);
+    return getAll(TypeToken.of(type));
+  }
+
+  @Override
+  public <O> List<O> getAll(TypeToken<O> type) {
+    @SuppressWarnings("unchecked") TypeLiteral<O> typeLiteral = (TypeLiteral<O>) TypeLiteral.get(type.getType());
+    return GuiceUtil.ofType(injector, typeLiteral);
   }
 
   @Override
   public <O> O get(Class<O> type) throws NotInRegistryException {
+    return get(TypeToken.of(type));
+  }
+
+  @Override
+  public <O> O get(TypeToken<O> type) throws NotInRegistryException {
+    @SuppressWarnings("unchecked") TypeLiteral<O> typeLiteral = (TypeLiteral<O>) TypeLiteral.get(type.getType());
     try {
-      return injector.getInstance(type);
+      return injector.getInstance(Key.get(typeLiteral));
     } catch (ConfigurationException e) {
       throw new NotInRegistryException(type);
     }

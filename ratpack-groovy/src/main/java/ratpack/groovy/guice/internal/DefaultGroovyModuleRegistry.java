@@ -16,6 +16,7 @@
 
 package ratpack.groovy.guice.internal;
 
+import com.google.common.reflect.TypeToken;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import groovy.lang.Closure;
@@ -129,4 +130,19 @@ public class DefaultGroovyModuleRegistry implements GroovyModuleRegistry {
     return moduleRegistry.getAll(type);
   }
 
+  @Override
+  public <O> O get(TypeToken<O> type) throws NotInRegistryException {
+    return moduleRegistry.get(type);
+  }
+
+  @Override
+  @Nullable
+  public <O> O maybeGet(TypeToken<O> type) {
+    return moduleRegistry.maybeGet(type);
+  }
+
+  @Override
+  public <O> List<O> getAll(TypeToken<O> type) {
+    return moduleRegistry.getAll(type);
+  }
 }

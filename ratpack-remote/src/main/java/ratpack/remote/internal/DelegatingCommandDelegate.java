@@ -16,6 +16,7 @@
 
 package ratpack.remote.internal;
 
+import com.google.common.reflect.TypeToken;
 import ratpack.api.Nullable;
 import ratpack.registry.NotInRegistryException;
 import ratpack.registry.Registry;
@@ -60,4 +61,19 @@ public abstract class DelegatingCommandDelegate implements CommandDelegate {
     return registry.maybeGet(type);
   }
 
+  @Override
+  public <O> O get(TypeToken<O> type) throws NotInRegistryException {
+    return registry.get(type);
+  }
+
+  @Override
+  @Nullable
+  public <O> O maybeGet(TypeToken<O> type) {
+    return registry.maybeGet(type);
+  }
+
+  @Override
+  public <O> List<O> getAll(TypeToken<O> type) {
+    return registry.getAll(type);
+  }
 }

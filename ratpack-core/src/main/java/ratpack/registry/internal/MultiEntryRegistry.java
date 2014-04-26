@@ -17,6 +17,7 @@
 package ratpack.registry.internal;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.reflect.TypeToken;
 import ratpack.registry.NotInRegistryException;
 import ratpack.registry.Registry;
 
@@ -37,6 +38,11 @@ public class MultiEntryRegistry<T> implements Registry {
 
   @Override
   public <O> O get(Class<O> type) throws NotInRegistryException {
+    return get(TypeToken.of(type));
+  }
+
+  @Override
+  public <O> O get(TypeToken<O> type) throws NotInRegistryException {
     O object = maybeGet(type);
     if (object == null) {
       throw new NotInRegistryException(type);
@@ -46,9 +52,14 @@ public class MultiEntryRegistry<T> implements Registry {
   }
 
   public <O> O maybeGet(Class<O> type) {
+    return maybeGet(TypeToken.of(type));
+  }
+
+  public <O> O maybeGet(TypeToken<O> type) {
     for (RegistryEntry<?> entry : entries) {
       if (type.isAssignableFrom(entry.getType())) {
-        return type.cast(entry.get());
+        @SuppressWarnings("unchecked") O cast = (O) entry.get();
+        return cast;
       }
     }
 
@@ -56,10 +67,15 @@ public class MultiEntryRegistry<T> implements Registry {
   }
 
   public <O> List<O> getAll(Class<O> type) {
+    return getAll(TypeToken.of(type));
+  }
+
+  public <O> List<O> getAll(TypeToken<O> type) {
     ImmutableList.Builder<O> builder = ImmutableList.builder();
     for (RegistryEntry<?> entry : entries) {
       if (type.isAssignableFrom(entry.getType())) {
-        builder.add(type.cast(entry.get()));
+        @SuppressWarnings("unchecked") O cast = (O) entry.get();
+        builder.add(cast);
       }
     }
     return builder.build();

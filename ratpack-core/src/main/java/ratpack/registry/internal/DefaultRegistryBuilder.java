@@ -17,9 +17,10 @@
 package ratpack.registry.internal;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.reflect.TypeToken;
+import ratpack.func.Factory;
 import ratpack.registry.Registry;
 import ratpack.registry.RegistryBuilder;
-import ratpack.func.Factory;
 
 import static ratpack.registry.Registries.join;
 
@@ -35,7 +36,7 @@ public class DefaultRegistryBuilder implements RegistryBuilder {
 
   @Override
   public <O> RegistryBuilder add(Class<? super O> type, O object) {
-    builder.add(new DefaultRegistryEntry<>(type, object));
+    builder.add(new DefaultRegistryEntry<>(TypeToken.of(type), object));
     ++size;
     return this;
   }
@@ -50,7 +51,7 @@ public class DefaultRegistryBuilder implements RegistryBuilder {
 
   @Override
   public <O> RegistryBuilder add(Class<O> type, Factory<? extends O> factory) {
-    builder.add(new LazyRegistryEntry<>(type, factory));
+    builder.add(new LazyRegistryEntry<>(TypeToken.of(type), factory));
     ++size;
     return this;
   }

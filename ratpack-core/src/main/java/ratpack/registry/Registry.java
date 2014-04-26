@@ -16,6 +16,7 @@
 
 package ratpack.registry;
 
+import com.google.common.reflect.TypeToken;
 import ratpack.api.Nullable;
 
 import java.util.List;
@@ -84,6 +85,16 @@ public interface Registry {
   <O> O get(Class<O> type) throws NotInRegistryException;
 
   /**
+   * Provides an object of the specified type, or throws an exception if no object of that type is available.
+   *
+   * @param type The type of the object to provide
+   * @param <O> The type of the object to provide
+   * @return An object of the specified type
+   * @throws NotInRegistryException If no object of this type can be returned
+   */
+  <O> O get(TypeToken<O> type) throws NotInRegistryException;
+
+  /**
    * Does the same thing as {@link #get(Class)}, except returns null instead of throwing an exception.
    *
    * @param type The type of the object to provide
@@ -94,6 +105,16 @@ public interface Registry {
   <O> O maybeGet(Class<O> type);
 
   /**
+   * Does the same thing as {@link #get(Class)}, except returns null instead of throwing an exception.
+   *
+   * @param type The type of the object to provide
+   * @param <O> The type of the object to provide
+   * @return An object of the specified type, or null if no object of this type is available.
+   */
+  @Nullable
+  <O> O maybeGet(TypeToken<O> type);
+
+  /**
    * Returns all of the objects whose declared type is assignment compatible with the given type.
    *
    * @param type the type of objects to search for
@@ -101,5 +122,16 @@ public interface Registry {
    * @return All objects of the given type
    */
   <O> List<O> getAll(Class<O> type);
+
+  /**
+   * Returns all of the objects whose declared type is assignment compatible with the given type.
+   *
+   * @param type the type of objects to search for
+   * @param <O> the type of objects to search for
+   * @return All objects of the given type
+   */
+  <O> List<O> getAll(TypeToken<O> type);
+
+
 
 }

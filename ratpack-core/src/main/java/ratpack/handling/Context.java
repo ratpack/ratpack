@@ -16,6 +16,7 @@
 
 package ratpack.handling;
 
+import com.google.common.reflect.TypeToken;
 import ratpack.api.NonBlocking;
 import ratpack.api.Nullable;
 import ratpack.exec.*;
@@ -612,15 +613,43 @@ public interface Context extends ExecContext, Registry {
   @Override
   HttpClient getHttpClient();
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   <O> O get(Class<O> type) throws NotInRegistryException;
 
+  /**
+   * {@inheritDoc}
+   */
   @Nullable
   @Override
   <O> O maybeGet(Class<O> type);
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   <O> List<O> getAll(Class<O> type);
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  <O> O get(TypeToken<O> type) throws NotInRegistryException;
+
+  /**
+   * {@inheritDoc}
+   */
+  @Nullable
+  @Override
+  <O> O maybeGet(TypeToken<O> type);
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  <O> List<O> getAll(TypeToken<O> type);
 
   void addExecInterceptor(ExecInterceptor execInterceptor, Action<? super Context> action) throws Exception;
 

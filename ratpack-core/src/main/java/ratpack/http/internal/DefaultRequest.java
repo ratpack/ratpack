@@ -16,6 +16,7 @@
 
 package ratpack.http.internal;
 
+import com.google.common.reflect.TypeToken;
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.Cookie;
 import io.netty.handler.codec.http.CookieDecoder;
@@ -199,6 +200,22 @@ public class DefaultRequest implements Request {
 
   @Override
   public <O> List<O> getAll(Class<O> type) {
+    return registry.getAll(type);
+  }
+
+  @Override
+  public <O> O get(TypeToken<O> type) throws NotInRegistryException {
+    return registry.get(type);
+  }
+
+  @Override
+  @Nullable
+  public <O> O maybeGet(TypeToken<O> type) {
+    return registry.maybeGet(type);
+  }
+
+  @Override
+  public <O> List<O> getAll(TypeToken<O> type) {
     return registry.getAll(type);
   }
 }
