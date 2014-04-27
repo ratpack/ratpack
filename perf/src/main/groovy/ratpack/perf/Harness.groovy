@@ -18,7 +18,6 @@ package ratpack.perf
 
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
-import groovy.transform.CompileStatic
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
 import ratpack.perf.support.HtmlReportGenerator
@@ -51,14 +50,17 @@ class Harness {
       throw new IllegalStateException("Results dir $resultsDir exists")
     }
 
+    def filters = new Filters([:])
     def filterString = System.getProperty("filter", "")
-    def filtersList = filterString.split(",")
-    def filtersData = filtersList.groupBy { it.split(":")[0] }.collectEntries {
-      [it.key, it.value.collect { it.split(":")[1] }]
-    }
+    if (filterString) {
+      def filtersList = filterString.split(",")
+      def filtersData = filtersList.groupBy { it.split(":")[0] }.collectEntries {
+        [it.key, it.value.collect { it.split(":")[1] }]
+      }
 
-    def cast = (Map<String, List<String>>) filtersData
-    def filters = new Filters(cast)
+      def cast = (Map<String, List<String>>) filtersData
+      filters = new Filters(cast)
+    }
 
     assert resultsDir.mkdirs()
 
