@@ -54,7 +54,7 @@ public class InjectorBackedRegistry implements Registry {
   }
 
   public <T> T maybeGet(TypeToken<T> type) {
-    TypeLiteral<?> typeLiteral = TypeLiteral.get(type.getType());
+    TypeLiteral<?> typeLiteral = GuiceUtil.toTypeLiteral(type);
     @SuppressWarnings("unchecked") Binding<T> existingBinding = (Binding<T>) injector.getExistingBinding(Key.get(typeLiteral));
     if (existingBinding == null) {
       return null;
@@ -70,8 +70,7 @@ public class InjectorBackedRegistry implements Registry {
 
   @Override
   public <O> List<O> getAll(TypeToken<O> type) {
-    @SuppressWarnings("unchecked") TypeLiteral<O> typeLiteral = (TypeLiteral<O>) TypeLiteral.get(type.getType());
-    return GuiceUtil.ofType(injector, typeLiteral);
+    return GuiceUtil.ofType(injector, GuiceUtil.toTypeLiteral(type));
   }
 
   @Override

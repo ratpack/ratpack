@@ -17,6 +17,7 @@
 package ratpack.guice.internal;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.reflect.TypeToken;
 import com.google.inject.Binding;
 import com.google.inject.Injector;
 import com.google.inject.Key;
@@ -63,4 +64,8 @@ public abstract class GuiceUtil {
     return listBuilder.build();
   }
 
+  static <T> TypeLiteral<T> toTypeLiteral(TypeToken<T> type) {
+    @SuppressWarnings("unchecked") TypeLiteral<T> typeLiteral = (TypeLiteral<T>) TypeLiteral.get(type.getType());
+    return typeLiteral;
+  }
 }
