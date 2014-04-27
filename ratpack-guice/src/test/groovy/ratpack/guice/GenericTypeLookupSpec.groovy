@@ -66,4 +66,26 @@ class GenericTypeLookupSpec extends RatpackGroovyDslSpec {
     then:
     text == "a:b"
   }
+
+  def "can retrieve all via supertype type tokens"() {
+    given:
+    modules << new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(new TypeLiteral<List<String>>() {}).annotatedWith(Names.named("a"))toInstance(["a"])
+        bind(new TypeLiteral<List<String>>() {}).annotatedWith(Names.named("b"))toInstance(["b"])
+      }
+    }
+
+    when:
+    handlers {
+      get {
+        def strings = getAll(new TypeToken<List<? extends CharSequence>>() {})
+        render strings.collect { it[0] }.join(":")
+      }
+    }
+
+    then:
+    text == "a:b"
+  }
 }

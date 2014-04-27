@@ -23,6 +23,7 @@ import com.google.inject.Injector;
 import com.google.inject.Key;
 import com.google.inject.TypeLiteral;
 import ratpack.func.Action;
+import ratpack.func.Transformer;
 
 import java.util.Map;
 
@@ -33,39 +34,68 @@ public abstract class GuiceUtil {
   private GuiceUtil() {
   }
 
-  public static <T> void eachOfType(Injector injector, TypeLiteral<T> type, Action<T> action) {
+  public static <T> void search(Injector injector, TypeToken<T> type, Transformer<T, Boolean> transformer) {
     Map<Key<?>, Binding<?>> allBindings = injector.getAllBindings();
     for (Map.Entry<Key<?>, Binding<?>> keyBindingEntry : allBindings.entrySet()) {
-      Class<?> rawType = keyBindingEntry.getKey().getTypeLiteral().getRawType();
-      if (type.getRawType().isAssignableFrom(rawType)) {
+      TypeLiteral<?> bindingType = keyBindingEntry.getKey().getTypeLiteral();
+      if (type.isAssignableFrom(toTypeToken(bindingType))) {
         @SuppressWarnings("unchecked")
         T thing = (T) keyBindingEntry.getValue().getProvider().get();
         try {
-          action.execute(thing);
+          if (!transformer.transform(thing)) {
+            return;
+          }
         } catch (Exception e) {
           throw uncheck(e);
         }
       }
     }
+    Injector parent = injector.getParent();
+    if (parent != null) {
+      search(parent, type, transformer);
+    }
   }
 
-  public static <T> ImmutableList<T> ofType(Injector injector, Class<T> type) {
-    return ofType(injector, TypeLiteral.get(type));
+  public static <T> void eachOfType(Injector injector, TypeToken<T> type, final Action<? super T> action) {
+    search(injector, type, new Transformer<T, Boolean>() {
+      @Override
+      public Boolean transform(T from) throws Exception {
+        action.execute(from);
+        return true;
+      }
+    });
   }
 
-  // CAREFUL: Does not validate compatibility of generic types.
-  public static <T> ImmutableList<T> ofType(Injector injector, TypeLiteral<T> type) {
+  public static <T> ImmutableList<T> allOfType(Injector injector, TypeToken<T> type) {
     final ImmutableList.Builder<T> listBuilder = ImmutableList.builder();
-    eachOfType(injector, type, new Action<T>() {
-      public void execute(T thing) throws Exception {
-        listBuilder.add(thing);
+    search(injector, type, new Transformer<T, Boolean>() {
+      @Override
+      public Boolean transform(T from) throws Exception {
+        listBuilder.add(from);
+        return true;
       }
     });
     return listBuilder.build();
   }
 
-  static <T> TypeLiteral<T> toTypeLiteral(TypeToken<T> type) {
-    @SuppressWarnings("unchecked") TypeLiteral<T> typeLiteral = (TypeLiteral<T>) TypeLiteral.get(type.getType());
-    return typeLiteral;
+  public static <T> T firstOfType(Injector injector, TypeToken<T> type) {
+    Catcher<T> catcher = new Catcher<>();
+    search(injector, type, catcher);
+    return catcher.value;
+  }
+
+  public static <T> TypeToken<T> toTypeToken(TypeLiteral<T> type) {
+    @SuppressWarnings("unchecked") TypeToken<T> typeToken = (TypeToken<T>) TypeToken.of(type.getType());
+    return typeToken;
+  }
+
+  private static class Catcher<T> implements Transformer<T, Boolean> {
+    public T value;
+
+    @Override
+    public Boolean transform(T from) throws Exception {
+      value = from;
+      return false;
+    }
   }
 }

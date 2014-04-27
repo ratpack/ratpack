@@ -26,10 +26,10 @@ import com.codahale.metrics.health.HealthCheckRegistry;
 import com.codahale.metrics.jvm.GarbageCollectorMetricSet;
 import com.codahale.metrics.jvm.MemoryUsageGaugeSet;
 import com.codahale.metrics.jvm.ThreadStatesGaugeSet;
+import com.google.common.reflect.TypeToken;
 import com.google.inject.AbstractModule;
 import com.google.inject.Injector;
 import com.google.inject.Singleton;
-import com.google.inject.TypeLiteral;
 import com.google.inject.matcher.Matchers;
 import com.google.inject.name.Names;
 import ratpack.codahale.metrics.internal.*;
@@ -332,7 +332,7 @@ public class CodaHaleMetricsModule extends AbstractModule implements HandlerDeco
   public Handler decorate(Injector injector, Handler handler) {
     if (healthChecksEnabled) {
       final HealthCheckRegistry registry = injector.getInstance(HealthCheckRegistry.class);
-      GuiceUtil.eachOfType(injector, TypeLiteral.get(NamedHealthCheck.class), new Action<NamedHealthCheck>() {
+      GuiceUtil.eachOfType(injector, TypeToken.of(NamedHealthCheck.class), new Action<NamedHealthCheck>() {
         public void execute(NamedHealthCheck healthCheck) throws Exception {
           registry.register(healthCheck.getName(), healthCheck);
         }

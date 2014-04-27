@@ -54,8 +54,7 @@ public class JustInTimeInjectorRegistry implements Registry {
 
   @Override
   public <O> List<O> getAll(TypeToken<O> type) {
-    @SuppressWarnings("unchecked") TypeLiteral<O> typeLiteral = (TypeLiteral<O>) TypeLiteral.get(type.getType());
-    return GuiceUtil.ofType(injector, typeLiteral);
+    return GuiceUtil.allOfType(injector, type);
   }
 
   @Override

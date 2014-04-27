@@ -20,15 +20,19 @@ import com.github.jknack.handlebars.Handlebars;
 import com.github.jknack.handlebars.cache.TemplateCache;
 import com.github.jknack.handlebars.io.TemplateLoader;
 import com.google.common.cache.CacheBuilder;
-import com.google.inject.*;
+import com.google.common.reflect.TypeToken;
+import com.google.inject.AbstractModule;
+import com.google.inject.Injector;
+import com.google.inject.Provides;
+import com.google.inject.Singleton;
 import ratpack.file.FileSystemBinding;
+import ratpack.func.Action;
 import ratpack.guice.internal.GuiceUtil;
 import ratpack.handlebars.internal.FileSystemBindingTemplateLoader;
 import ratpack.handlebars.internal.HandlebarsTemplateRenderer;
 import ratpack.handlebars.internal.RatpackTemplateCache;
 import ratpack.handlebars.internal.TemplateKey;
 import ratpack.launch.LaunchConfig;
-import ratpack.func.Action;
 
 /**
  * An extension module that provides support for Handlebars.java templating engine.
@@ -181,7 +185,8 @@ public class HandlebarsModule extends AbstractModule {
     final Handlebars handlebars = new Handlebars().with(templateLoader);
     handlebars.with(templateCache);
 
-    TypeLiteral<NamedHelper<?>> type = new TypeLiteral<NamedHelper<?>>() {
+    TypeToken<NamedHelper<?>> type = new TypeToken<NamedHelper<?>>() {
+      private static final long serialVersionUID = 0;
     };
 
     GuiceUtil.eachOfType(injector, type, new Action<NamedHelper<?>>() {

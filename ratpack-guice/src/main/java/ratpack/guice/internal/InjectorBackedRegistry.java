@@ -17,10 +17,7 @@
 package ratpack.guice.internal;
 
 import com.google.common.reflect.TypeToken;
-import com.google.inject.Binding;
 import com.google.inject.Injector;
-import com.google.inject.Key;
-import com.google.inject.TypeLiteral;
 import ratpack.registry.NotInRegistryException;
 import ratpack.registry.Registry;
 
@@ -54,13 +51,7 @@ public class InjectorBackedRegistry implements Registry {
   }
 
   public <T> T maybeGet(TypeToken<T> type) {
-    TypeLiteral<?> typeLiteral = GuiceUtil.toTypeLiteral(type);
-    @SuppressWarnings("unchecked") Binding<T> existingBinding = (Binding<T>) injector.getExistingBinding(Key.get(typeLiteral));
-    if (existingBinding == null) {
-      return null;
-    } else {
-      return existingBinding.getProvider().get();
-    }
+    return GuiceUtil.firstOfType(injector, type);
   }
 
   @Override
@@ -70,7 +61,7 @@ public class InjectorBackedRegistry implements Registry {
 
   @Override
   public <O> List<O> getAll(TypeToken<O> type) {
-    return GuiceUtil.ofType(injector, GuiceUtil.toTypeLiteral(type));
+    return GuiceUtil.allOfType(injector, type);
   }
 
   @Override
