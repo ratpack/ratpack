@@ -16,6 +16,7 @@
 
 package ratpack.handling.internal;
 
+import com.google.common.reflect.TypeToken;
 import ratpack.registry.Registry;
 
 import java.util.List;
@@ -25,15 +26,15 @@ public abstract class Extractions {
   private Extractions() {
   }
 
-  public static Object[] extract(List<Class<?>> types, Registry registry) {
+  public static Object[] extract(List<TypeToken<?>> types, Registry registry) {
     Object[] services = new Object[types.size()];
     extract(types, registry, services, 0);
     return services;
   }
 
-  public static void extract(List<Class<?>> types, Registry registry, Object[] services, int startIndex) {
+  public static void extract(List<TypeToken<?>> types, Registry registry, Object[] services, int startIndex) {
     for (int i = 0; i < types.size(); ++i) {
-      Class<?> type = types.get(i);
+      TypeToken<?> type = types.get(i);
       Object service = registry.get(type);
       services[i + startIndex] = service;
     }

@@ -16,6 +16,8 @@
 
 package ratpack.handling
 
+import com.google.inject.AbstractModule
+import com.google.inject.TypeLiteral
 import ratpack.error.DebugErrorHandler
 import ratpack.error.ServerErrorHandler
 import ratpack.error.internal.DefaultServerErrorHandler
@@ -163,6 +165,30 @@ class InjectionHandlerSpec extends RatpackGroovyDslSpec {
       new TestInjectionHandlers().publicInnerWithPrivate(),
       new TestInjectionHandlers().privateInnerWithPrivate()
     ]
+  }
+
+  static class GenericInjectionHandler extends InjectionHandler {
+    protected handle(Context context, List<String> strings) {
+      context.render(strings.join(":"))
+    }
+  }
+
+  def "can inject generic type"() {
+    when:
+    modules << new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(new TypeLiteral<List<String>>() {}).toInstance(["foo", "bar"])
+      }
+    }
+
+    and:
+    handlers {
+      handler new GenericInjectionHandler()
+    }
+
+    then:
+    text == "foo:bar"
   }
 
 }

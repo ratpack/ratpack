@@ -16,13 +16,14 @@
 
 package ratpack.handling;
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.reflect.TypeToken;
 import ratpack.handling.internal.Extractions;
 import ratpack.registry.Registries;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Arrays;
+import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.List;
 
 import static ratpack.util.ExceptionUtils.uncheck;
@@ -92,7 +93,7 @@ import static ratpack.util.ExceptionUtils.uncheck;
  */
 public abstract class InjectionHandler implements Handler {
 
-  private final List<Class<?>> types;
+  private final List<TypeToken<?>> types;
   private final Method handleMethod;
 
   /**
@@ -133,8 +134,13 @@ public abstract class InjectionHandler implements Handler {
     }
 
     this.handleMethod = handleMethod;
-    Class<?>[] parameterTypes = handleMethod.getParameterTypes();
-    this.types = ImmutableList.copyOf(Arrays.asList(parameterTypes).subList(1, parameterTypes.length));
+
+    Type[] parameterTypes = handleMethod.getGenericParameterTypes();
+    this.types = new ArrayList<>(parameterTypes.length - 1);
+
+    for (int i = 1; i < parameterTypes.length; ++i) {
+      this.types.add(TypeToken.of(parameterTypes[i]));
+    }
   }
 
   /**

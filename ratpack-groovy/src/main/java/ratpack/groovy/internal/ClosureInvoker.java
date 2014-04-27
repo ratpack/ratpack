@@ -16,11 +16,14 @@
 
 package ratpack.groovy.internal;
 
+import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
+import com.google.common.reflect.TypeToken;
 import groovy.lang.Closure;
+import ratpack.func.Action;
 import ratpack.handling.internal.Extractions;
 import ratpack.registry.Registry;
-import ratpack.func.Action;
 
 import java.util.Collections;
 import java.util.List;
@@ -28,7 +31,7 @@ import java.util.List;
 public class ClosureInvoker<T, D> {
 
   private final Closure<T> closure;
-  private final List<Class<?>> parameterTypes;
+  private final List<TypeToken<?>> parameterTypes;
   private final boolean hasDefaultParam;
 
 
@@ -41,7 +44,7 @@ public class ClosureInvoker<T, D> {
     this.parameterTypes = retrieveParameterTypes(this.closure);
   }
 
-  public <T> T invoke(Registry registry, D delegate, int resolveStrategy) {
+  public T invoke(Registry registry, D delegate, int resolveStrategy) {
     @SuppressWarnings("unchecked")
     Closure<T> clone = (Closure<T>) closure.clone();
     clone.setDelegate(delegate);
@@ -67,7 +70,7 @@ public class ClosureInvoker<T, D> {
     };
   }
 
-  private static List<Class<?>> retrieveParameterTypes(Closure<?> closure) {
+  private static List<TypeToken<?>> retrieveParameterTypes(Closure<?> closure) {
     Class[] parameterTypes = closure.getParameterTypes();
     if (parameterTypes.length == 1 && parameterTypes[0].equals(Object.class)) {
       return Collections.emptyList();
@@ -78,7 +81,12 @@ public class ClosureInvoker<T, D> {
         }
       }
 
-      return ImmutableList.<Class<?>>copyOf(parameterTypes);
+      return Lists.transform(ImmutableList.<Class<?>>copyOf(parameterTypes), new Function<Class<?>, TypeToken<?>>() {
+        @Override
+        public TypeToken<?> apply(Class<?> input) {
+          return TypeToken.of(input);
+        }
+      });
     }
   }
 }
