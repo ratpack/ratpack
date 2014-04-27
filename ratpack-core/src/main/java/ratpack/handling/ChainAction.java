@@ -260,4 +260,8 @@ public abstract class ChainAction implements Action<Chain>, Chain {
     return getChain().register(action);
   }
 
+  @Override
+  public Chain insert(Action<? super Chain> action) throws Exception {
+    return getChain().insert(action);
+  }
 }

@@ -470,4 +470,15 @@ public interface Chain {
    */
   Chain register(Action<? super RegistrySpec> registryAction, Action<? super Chain> action) throws Exception;
 
+  /**
+   * Inserts the given nested handler chain.
+   * <p>
+   * Shorter form of {@link #handler(Handler)} handler}({@link #chain(ratpack.func.Action) chain}({@code action}).
+   *
+   * @param action the handler chain to insert
+   * @return this
+   * @throws Exception any thrown by {@code action}
+   */
+  Chain insert(Action<? super Chain> action) throws Exception;
+
 }

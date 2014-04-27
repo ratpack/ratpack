@@ -359,5 +359,30 @@ public interface GroovyChain extends Chain {
 
   GroovyChain register(@DelegatesTo(value = RegistrySpec.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) throws Exception;
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  GroovyChain insert(Action<? super Chain> action) throws Exception;
+
+  /**
+   * Creates a handler from the given closure.
+   *
+   * @param closure a chain definition
+   * @return a new handler
+   * @throws Exception any thrown by {@code closure}
+   */
+  Handler chain(@DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) throws Exception;
+
+  /**
+   * Inserts the given nested handler chain.
+   * <p>
+   * Shorter form of {@link #handler(Handler)} handler}({@link #chain(groovy.lang.Closure) chain}({@code closure}).
+   *
+   * @param closure the handler chain to insert
+   * @return this
+   * @throws Exception any thrown by {@code closure}
+   */
+  GroovyChain insert(@DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) throws Exception;
 
 }

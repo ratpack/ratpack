@@ -126,4 +126,30 @@ class BasicGroovyDslSpec extends RatpackGroovyDslSpec {
     getText("p1") == DefaultFileSystemBinding.name
     getText("p2") == DefaultServerErrorHandler.name
   }
+
+  def "can nest"() {
+    when:
+    handlers {
+      register {
+        add(String, "bar")
+      }
+      insert {
+        register {
+          add(String, "foo")
+        }
+        get("foo") {
+          render get(String)
+        }
+      }
+      get("bar") {
+        render get(String)
+      }
+    }
+
+    then:
+    getText("foo") == "foo"
+    getText("bar") == "bar"
+  }
+
+
 }

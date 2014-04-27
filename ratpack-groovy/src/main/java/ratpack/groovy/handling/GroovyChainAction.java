@@ -345,4 +345,19 @@ public abstract class GroovyChainAction implements Action<Chain>, GroovyChain {
   public GroovyChain register(Action<? super RegistrySpec> registryAction, @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler) throws Exception {
     return getChain().register(registryAction, handler);
   }
+
+  @Override
+  public GroovyChain insert(Action<? super Chain> action) throws Exception {
+    return getChain().insert(action);
+  }
+
+  @Override
+  public Handler chain(@DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) throws Exception {
+    return getChain().chain(closure);
+  }
+
+  @Override
+  public GroovyChain insert(@DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) throws Exception {
+    return getChain().insert(closure);
+  }
 }

@@ -293,4 +293,21 @@ public class DefaultGroovyChain implements GroovyChain {
   private Handler toHandler(Closure<?> handlers) throws Exception {
     return Groovy.chain(getLaunchConfig(), getRegistry(), handlers);
   }
+
+  @Override
+  public GroovyChain insert(Action<? super Chain> action) throws Exception {
+    delegate.insert(action);
+    return this;
+  }
+
+  @Override
+  public Handler chain(@DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) throws Exception {
+    return chain(Groovy.chain(closure));
+  }
+
+  @Override
+  public GroovyChain insert(@DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) throws Exception {
+    insert(Groovy.chain(closure));
+    return this;
+  }
 }

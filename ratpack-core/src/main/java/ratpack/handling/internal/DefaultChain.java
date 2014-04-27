@@ -155,4 +155,10 @@ public class DefaultChain implements Chain {
   public Chain register(Action<? super RegistrySpec> registryAction, Handler handler) throws Exception {
     return register(Registries.registry(registryAction), handler);
   }
+
+  @Override
+  public Chain insert(Action<? super Chain> action) throws Exception {
+    return handler(chain(action));
+  }
+
 }
