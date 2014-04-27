@@ -26,7 +26,6 @@ import ratpack.perf.support.LatchResultHandler
 import ratpack.perf.support.Requester
 import ratpack.perf.support.SessionResults
 
-import java.awt.*
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
 
@@ -52,6 +51,15 @@ class Harness {
       throw new IllegalStateException("Results dir $resultsDir exists")
     }
 
+    def filterString = System.getProperty("filter", "")
+    def filtersList = filterString.split(",")
+    def filtersData = filtersList.groupBy { it.split(":")[0] }.collectEntries {
+      [it.key, it.value.collect { it.split(":")[1] }]
+    }
+
+    def cast = (Map<String, List<String>>) filtersData
+    def filters = new Filters(cast)
+
     assert resultsDir.mkdirs()
 
     LinkedList<String> apps = appsBaseDir.listFiles().findAll { File it -> it.directory && (!it.name.startsWith(".")) }.collect { File it -> it.name } as LinkedList<String>
@@ -64,6 +72,10 @@ class Harness {
     // Make sure we can compile each of the apps…
 
     apps.each { String appName ->
+      if (!filters.testApp(appName)) {
+        println "skipping $appName as it is filtered out"
+        return
+      }
       def dir = new File(appsBaseDir, appName)
       ["base", "head"].each { String version ->
         def versionDir = new File(dir, version)
@@ -83,14 +95,25 @@ class Harness {
     def sessionResults = new SessionResults()
 
     apps.each { String appName ->
+      if (!filters.testApp(appName)) {
+        println "skipping $appName as it is filtered out"
+        return
+      }
+
       def dir = new File(appsBaseDir, appName)
       ["base", "head"].each { String version ->
         def versionDir = new File(dir, version)
         println "Connecting to $versionDir..."
         def connection = openConnection(versionDir)
         try {
-          def endpoints = new JsonSlurper().parse(new File(versionDir, "endpoints.json")) as java.util.List<String>
+          def endpoints = new JsonSlurper().parse(new File(versionDir, "endpoints.json")) as List<String>
           endpoints.each { String endpoint ->
+            if (!filters.testEndpoint(appName, endpoint)) {
+              println "skipping $appName:$endpoint as it is filtered out"
+              return
+            }
+
+
             println "Testing endpoint: $endpoint"
 
             String endpointName = "$appName:$endpoint"
@@ -141,8 +164,10 @@ class Harness {
         HtmlReportGenerator.generate(new ByteArrayInputStream(jsonResults.bytes), out)
     }
 
-    if (Desktop.isDesktopSupported()) {
-      Desktop.desktop.open(htmlResults)
+    //noinspection UnnecessaryQualifiedReference
+    if (java.awt.Desktop.isDesktopSupported()) {
+      //noinspection UnnecessaryQualifiedReference
+      java.awt.Desktop.desktop.open(htmlResults)
     } else {
       println "Results available at file://${htmlResults.absolutePath}"
     }
@@ -196,4 +221,23 @@ class Harness {
 
     connector.connect()
   }
+}
+
+class Filters {
+
+  private final Map<String, List<String>> data
+
+  Filters(Map<String, List<String>> data) {
+    this.data = data
+    println data
+  }
+
+  boolean testApp(String appName) {
+    data.isEmpty() || appName in data.keySet()
+  }
+
+  boolean testEndpoint(String appName, String endpointName) {
+    data.isEmpty() || (testApp(appName) && endpointName in data[appName])
+  }
+
 }
