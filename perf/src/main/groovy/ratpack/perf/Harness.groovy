@@ -29,7 +29,7 @@ import ratpack.perf.support.SessionResults
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
 
-@CompileStatic
+//@CompileStatic
 class Harness {
 
   static void main(String[] args) {
