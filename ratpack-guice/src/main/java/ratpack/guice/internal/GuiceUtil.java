@@ -18,10 +18,7 @@ package ratpack.guice.internal;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.reflect.TypeToken;
-import com.google.inject.Binding;
-import com.google.inject.Injector;
-import com.google.inject.Key;
-import com.google.inject.TypeLiteral;
+import com.google.inject.*;
 import ratpack.func.Action;
 import ratpack.func.Transformer;
 
@@ -34,15 +31,14 @@ public abstract class GuiceUtil {
   private GuiceUtil() {
   }
 
-  public static <T> void search(Injector injector, TypeToken<T> type, Transformer<T, Boolean> transformer) {
+  public static <T> void search(Injector injector, TypeToken<T> type, Transformer<Provider<? extends T>, Boolean> transformer) {
     Map<Key<?>, Binding<?>> allBindings = injector.getAllBindings();
     for (Map.Entry<Key<?>, Binding<?>> keyBindingEntry : allBindings.entrySet()) {
       TypeLiteral<?> bindingType = keyBindingEntry.getKey().getTypeLiteral();
       if (type.isAssignableFrom(toTypeToken(bindingType))) {
-        @SuppressWarnings("unchecked")
-        T thing = (T) keyBindingEntry.getValue().getProvider().get();
+        @SuppressWarnings("unchecked") Provider<? extends T> provider = (Provider<? extends T>) keyBindingEntry.getValue().getProvider();
         try {
-          if (!transformer.transform(thing)) {
+          if (!transformer.transform(provider)) {
             return;
           }
         } catch (Exception e) {
@@ -57,9 +53,19 @@ public abstract class GuiceUtil {
   }
 
   public static <T> void eachOfType(Injector injector, TypeToken<T> type, final Action<? super T> action) {
-    search(injector, type, new Transformer<T, Boolean>() {
+    search(injector, type, new Transformer<Provider<? extends T>, Boolean>() {
       @Override
-      public Boolean transform(T from) throws Exception {
+      public Boolean transform(Provider<? extends T> from) throws Exception {
+        action.execute(from.get());
+        return true;
+      }
+    });
+  }
+
+  public static <T> void eachProviderOfType(Injector injector, TypeToken<T> type, final Action<? super Provider<? extends T>> action) {
+    search(injector, type, new Transformer<Provider<? extends T>, Boolean>() {
+      @Override
+      public Boolean transform(Provider<? extends T> from) throws Exception {
         action.execute(from);
         return true;
       }
@@ -68,20 +74,24 @@ public abstract class GuiceUtil {
 
   public static <T> ImmutableList<T> allOfType(Injector injector, TypeToken<T> type) {
     final ImmutableList.Builder<T> listBuilder = ImmutableList.builder();
-    search(injector, type, new Transformer<T, Boolean>() {
+    eachOfType(injector, type, new Action<T>() {
       @Override
-      public Boolean transform(T from) throws Exception {
-        listBuilder.add(from);
-        return true;
+      public void execute(T thing) throws Exception {
+        listBuilder.add(thing);
       }
     });
     return listBuilder.build();
   }
 
-  public static <T> T firstOfType(Injector injector, TypeToken<T> type) {
-    Catcher<T> catcher = new Catcher<>();
-    search(injector, type, catcher);
-    return catcher.value;
+  public static <T> ImmutableList<Provider<? extends T>> allProvidersOfType(Injector injector, TypeToken<T> type) {
+    final ImmutableList.Builder<Provider<? extends T>> listBuilder = ImmutableList.builder();
+    eachProviderOfType(injector, type, new Action<Provider<? extends T>>() {
+      @Override
+      public void execute(Provider<? extends T> thing) throws Exception {
+        listBuilder.add(thing);
+      }
+    });
+    return listBuilder.build();
   }
 
   public static <T> TypeToken<T> toTypeToken(TypeLiteral<T> type) {
@@ -89,13 +99,4 @@ public abstract class GuiceUtil {
     return typeToken;
   }
 
-  private static class Catcher<T> implements Transformer<T, Boolean> {
-    public T value;
-
-    @Override
-    public Boolean transform(T from) throws Exception {
-      value = from;
-      return false;
-    }
-  }
 }

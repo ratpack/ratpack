@@ -16,12 +16,22 @@
 
 package ratpack.guice.internal;
 
+import com.google.common.base.Function;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+import com.google.common.collect.Lists;
 import com.google.common.reflect.TypeToken;
 import com.google.inject.Injector;
+import com.google.inject.Provider;
 import ratpack.registry.NotInRegistryException;
 import ratpack.registry.Registry;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
+
+import static ratpack.util.ExceptionUtils.uncheck;
 
 public class InjectorBackedRegistry implements Registry {
 
@@ -30,6 +40,15 @@ public class InjectorBackedRegistry implements Registry {
   public InjectorBackedRegistry(Injector injector) {
     this.injector = injector;
   }
+
+  private final LoadingCache<TypeToken<?>, List<Provider<?>>> cache = CacheBuilder.newBuilder().build(new CacheLoader<TypeToken<?>, List<Provider<?>>>() {
+    @Override
+    public List<Provider<?>> load(@SuppressWarnings("NullableProblems") TypeToken<?> key) throws Exception {
+      @SuppressWarnings({"unchecked", "RedundantCast"})
+      List<Provider<?>> providers = (List<Provider<?>>) GuiceUtil.allProvidersOfType(injector, key);
+      return providers;
+    }
+  });
 
   @Override
   public <O> O get(Class<O> type) throws NotInRegistryException {
@@ -51,7 +70,21 @@ public class InjectorBackedRegistry implements Registry {
   }
 
   public <T> T maybeGet(TypeToken<T> type) {
-    return GuiceUtil.firstOfType(injector, type);
+    List<Provider<?>> providers = getProviders(type);
+    if (providers.isEmpty()) {
+      return null;
+    } else {
+      @SuppressWarnings("unchecked") T cast = (T) providers.get(0).get();
+      return cast;
+    }
+  }
+
+  private <T> List<Provider<?>> getProviders(TypeToken<T> type) {
+    try {
+      return cache.get(type);
+    } catch (ExecutionException e) {
+      throw uncheck(e);
+    }
   }
 
   @Override
@@ -61,7 +94,18 @@ public class InjectorBackedRegistry implements Registry {
 
   @Override
   public <O> List<O> getAll(TypeToken<O> type) {
-    return GuiceUtil.allOfType(injector, type);
+    List<Provider<?>> providers = getProviders(type);
+    if (providers.isEmpty()) {
+      return Collections.emptyList();
+    } else {
+      return Lists.transform(providers, new Function<Provider<?>, O>() {
+        @Override
+        public O apply(Provider<?> input) {
+          @SuppressWarnings("unchecked") O cast = (O) input.get();
+          return cast;
+        }
+      });
+    }
   }
 
   @Override
