@@ -90,6 +90,18 @@ class Harness {
       }
     }
 
+    def warmup = new Settings(10000, 3, 1)
+    def real = new Settings(100000, 10, 1)
+
+    if (Boolean.getBoolean("smoke")) {
+      warmup = new Settings(10, 1, 1)
+      real = warmup
+    }
+
+    if (Boolean.getBoolean("quick")) {
+      real = new Settings(10000, 5, 1)
+    }
+
     // Start testing…
 
     def sessionResults = new SessionResults()
@@ -124,15 +136,8 @@ class Harness {
             println "app started"
 
             try {
-              def warmupRequestsPerRound = 10000
-              def warmupRounds = 3
-              def warmupCooldown = 1
-              requester.run("warmup", warmupRequestsPerRound, warmupRounds, warmupCooldown, executor, endpoint)
-
-              def requestsPerRound = 100000
-              def rounds = 10
-              def cooldown = 1
-              def results = requester.run("real", requestsPerRound, rounds, cooldown, executor, endpoint)
+              requester.run("warmup", warmup, executor, endpoint)
+              def results = requester.run("real", real, executor, endpoint)
 
               sessionResults.endpoints[endpointName].results[versionName] = results
 
@@ -223,21 +228,3 @@ class Harness {
   }
 }
 
-class Filters {
-
-  private final Map<String, List<String>> data
-
-  Filters(Map<String, List<String>> data) {
-    this.data = data
-    println data
-  }
-
-  boolean testApp(String appName) {
-    data.isEmpty() || appName in data.keySet()
-  }
-
-  boolean testEndpoint(String appName, String endpointName) {
-    data.isEmpty() || (testApp(appName) && endpointName in data[appName])
-  }
-
-}

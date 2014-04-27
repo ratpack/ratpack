@@ -17,6 +17,7 @@
 package ratpack.perf.support
 
 import groovy.transform.CompileStatic
+import ratpack.perf.Settings
 
 import java.math.RoundingMode
 import java.util.concurrent.CountDownLatch
@@ -34,18 +35,18 @@ class Requester {
     this.baseUrl = baseUrl
   }
 
-  RunResults run(String name, int numRequests, int rounds, int cooldown, ExecutorService executor, String endpoint) {
+  RunResults run(String name, Settings settings, ExecutorService executor, String endpoint) {
     List<BigDecimal> roundResults = []
-    println "starting $name... ($numRequests requests per round)"
-    rounds.times { int it ->
-      println "  round ${it + 1} of $rounds"
-      roundResults << runRound(numRequests, executor, endpoint)
+    println "starting $name... ($settings.numRequests requests per round)"
+    settings.rounds.times { int it ->
+      println "  round ${it + 1} of $settings.rounds"
+      roundResults << runRound(settings.numRequests, executor, endpoint)
       println "  cooldown"
-      sleep(cooldown * 1000)
+      sleep(settings.cooldown * 1000)
     }
     println "done"
 
-    def result = (roundResults.sum(0) as BigDecimal) / rounds
+    def result = (roundResults.sum(0) as BigDecimal) / settings.rounds
     new RunResults(result.setScale(DECIMAL_ACCURACY, RoundingMode.HALF_UP))
   }
 
