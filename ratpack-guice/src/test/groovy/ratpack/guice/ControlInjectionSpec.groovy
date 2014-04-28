@@ -17,7 +17,6 @@
 package ratpack.guice
 
 import ratpack.exec.ExecControl
-import ratpack.exec.Fulfillment
 import ratpack.exec.Promise
 import ratpack.test.internal.RatpackGroovyDslSpec
 
@@ -34,12 +33,9 @@ class ControlInjectionSpec extends RatpackGroovyDslSpec {
     }
 
     Promise<String> toUpper(String lower) {
-      control.promise(new Fulfillment<String>() {
-        @Override
-        protected void execute() throws Exception {
-          success(lower.toUpperCase())
-        }
-      })
+      control.promise {
+        it.success(lower.toUpperCase())
+      }
     }
   }
 
