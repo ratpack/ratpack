@@ -33,4 +33,10 @@ public interface Promise<T> extends SuccessPromise<T> {
    */
   SuccessPromise<T> onError(Action<? super Throwable> errorHandler);
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  void then(Action<? super T> then);
+
 }

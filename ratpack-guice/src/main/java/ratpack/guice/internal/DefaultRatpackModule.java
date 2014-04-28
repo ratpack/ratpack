@@ -21,6 +21,7 @@ import com.google.inject.OutOfScopeException;
 import com.google.inject.Provides;
 import io.netty.buffer.ByteBufAllocator;
 import ratpack.exec.ExecContext;
+import ratpack.exec.ExecControl;
 import ratpack.exec.ExecController;
 import ratpack.exec.NoBoundContextException;
 import ratpack.handling.Context;
@@ -47,6 +48,11 @@ public class DefaultRatpackModule extends AbstractModule {
   @Provides
   ExecController execController(LaunchConfig launchConfig) {
     return launchConfig.getExecController();
+  }
+
+  @Provides
+  ExecControl execControlr(ExecController execController) {
+    return execController.getControl();
   }
 
   @Provides

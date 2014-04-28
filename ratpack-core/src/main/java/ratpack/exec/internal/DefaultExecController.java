@@ -45,11 +45,13 @@ public class DefaultExecController implements ExecController {
   private final ListeningScheduledExecutorService computeExecutor;
   private final ListeningExecutorService blockingExecutor;
   private final EventLoopGroup eventLoopGroup;
+  private final ExecControl control;
 
   public DefaultExecController(int numThreads) {
     this.eventLoopGroup = new NioEventLoopGroup(numThreads, new ExecControllerBindingThreadFactory("ratpack-compute", Thread.MAX_PRIORITY));
     this.computeExecutor = MoreExecutors.listeningDecorator(eventLoopGroup);
     this.blockingExecutor = MoreExecutors.listeningDecorator(Executors.newCachedThreadPool(new ExecControllerBindingThreadFactory("ratpack-blocking", Thread.NORM_PRIORITY)));
+    this.control = new Control();
   }
 
   public static ExecController getThreadBoundController() {
@@ -124,65 +126,72 @@ public class DefaultExecController implements ExecController {
     }
   }
 
-  @Override
-  public <T> Promise<T> blocking(final Callable<T> operation) {
-    final ExecContext context = getContext();
-    return context.promise(new Action<Fulfiller<? super T>>() {
-      @Override
-      public void execute(final Fulfiller<? super T> fulfiller) throws Exception {
-        ListenableFuture<T> future = blockingExecutor.submit(new BlockingOperation());
-        Futures.addCallback(future, new ComputeResume(fulfiller), computeExecutor);
-      }
-
-      class BlockingOperation implements Callable<T> {
-        private Exception exception;
-        private T result;
-
+  private class Control implements ExecControl {
+    @Override
+    public <T> Promise<T> blocking(final Callable<T> operation) {
+      final ExecContext context = getContext();
+      return context.promise(new Action<Fulfiller<? super T>>() {
         @Override
-        public T call() throws Exception {
-          exec(context.getSupplier(), ExecInterceptor.ExecType.BLOCKING, new Action<ExecContext>() {
-            @Override
-            public void execute(ExecContext thing) throws Exception {
-              try {
-                result = operation.call();
-              } catch (Exception e) {
-                exception = e;
-              }
-            }
-          });
+        public void execute(final Fulfiller<? super T> fulfiller) throws Exception {
+          ListenableFuture<T> future = blockingExecutor.submit(new BlockingOperation());
+          Futures.addCallback(future, new ComputeResume(fulfiller), computeExecutor);
+        }
 
-          if (exception != null) {
-            throw exception;
-          } else {
-            return result;
+        class BlockingOperation implements Callable<T> {
+          private Exception exception;
+          private T result;
+
+          @Override
+          public T call() throws Exception {
+            exec(context.getSupplier(), ExecInterceptor.ExecType.BLOCKING, new Action<ExecContext>() {
+              @Override
+              public void execute(ExecContext thing) throws Exception {
+                try {
+                  result = operation.call();
+                } catch (Exception e) {
+                  exception = e;
+                }
+              }
+            });
+
+            if (exception != null) {
+              throw exception;
+            } else {
+              return result;
+            }
           }
         }
-      }
 
-      class ComputeResume implements FutureCallback<T> {
-        private final Fulfiller<? super T> fulfiller;
+        class ComputeResume implements FutureCallback<T> {
+          private final Fulfiller<? super T> fulfiller;
 
-        public ComputeResume(Fulfiller<? super T> fulfiller) {
-          this.fulfiller = fulfiller;
+          public ComputeResume(Fulfiller<? super T> fulfiller) {
+            this.fulfiller = fulfiller;
+          }
+
+          @Override
+          public void onSuccess(final T result) {
+            fulfiller.success(result);
+          }
+
+          @SuppressWarnings("NullableProblems")
+          @Override
+          public void onFailure(final Throwable t) {
+            fulfiller.error(t);
+          }
         }
+      });
+    }
 
-        @Override
-        public void onSuccess(final T result) {
-          fulfiller.success(result);
-        }
-
-        @SuppressWarnings("NullableProblems")
-        @Override
-        public void onFailure(final Throwable t) {
-          fulfiller.error(t);
-        }
-      }
-    });
+    @Override
+    public <T> Promise<T> promise(Action<? super Fulfiller<T>> action) {
+      return new DefaultSuccessOrErrorPromise<>(getContext(), DefaultExecController.this, action);
+    }
   }
 
   @Override
-  public <T> Promise<T> promise(Action<? super Fulfiller<T>> action) {
-    return new DefaultSuccessOrErrorPromise<>(getContext(), this, action);
+  public ExecControl getControl() {
+    return control;
   }
 
   @Override

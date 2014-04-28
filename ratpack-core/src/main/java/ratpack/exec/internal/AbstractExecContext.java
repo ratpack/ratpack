@@ -40,12 +40,12 @@ public abstract class AbstractExecContext implements ExecContext {
 
   @Override
   public <T> Promise<T> blocking(Callable<T> blockingOperation) {
-    return getExecController().blocking(blockingOperation);
+    return getExecController().getControl().blocking(blockingOperation);
   }
 
   @Override
   public <T> Promise<T> promise(Action<? super Fulfiller<T>> action) {
-    return getExecController().promise(action);
+    return getExecController().getControl().promise(action);
   }
 
   @Override

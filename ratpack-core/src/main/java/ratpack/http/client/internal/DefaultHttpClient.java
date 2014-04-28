@@ -96,7 +96,7 @@ public class DefaultHttpClient implements HttpClient {
     final EventLoopGroup eventLoopGroup = execController.getEventLoopGroup();
     final ByteBufAllocator bufferAllocator = launchConfig.getBufferAllocator();
 
-    return execController.promise(new Action<Fulfiller<ReceivedResponse>>() {
+    return execController.getControl().promise(new Action<Fulfiller<ReceivedResponse>>() {
       @Override
       public void execute(final Fulfiller<ReceivedResponse> fulfiller) throws Exception {
         final Bootstrap b = new Bootstrap();

@@ -21,8 +21,6 @@ import io.netty.channel.EventLoopGroup;
 import ratpack.api.NonBlocking;
 import ratpack.func.Action;
 
-import java.util.concurrent.Callable;
-
 /**
  * The exec controller manages the execution of operations.
  */
@@ -39,6 +37,15 @@ public interface ExecController {
   ExecContext getContext() throws NoBoundContextException;
 
   /**
+   * A singleton that can be used from any managed thread to perform asynchronous or blocking operations.
+   * <p>
+   * The control can be used by support services that need to perform such operations, of which they can return the promise.
+   *
+   * @return the execution control.
+   */
+  ExecControl getControl();
+
+  /**
    * The executor that performs computation.
    *
    * @return the executor that performs computation.
@@ -50,16 +57,12 @@ public interface ExecController {
   @NonBlocking
   void exec(ExecContext.Supplier execContextSupplier, Action<? super ExecContext> action);
 
-  <T> Promise<T> blocking(Callable<T> callable);
-
   /**
    * Indicates whether the current thread is managed by this execution controller.
    *
    * @return true if the current thread is managed by this execution controller
    */
   boolean isManagedThread();
-
-  <T> Promise<T> promise(Action<? super Fulfiller<T>> action);
 
   void onExecFinish(Runnable runnable);
 

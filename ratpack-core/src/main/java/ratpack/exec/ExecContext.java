@@ -31,7 +31,7 @@ import java.util.concurrent.Callable;
  * As execution in Ratpack is asynchronous, the execution may actually span multiple threads.
  * This type provides control primitives (i.e. {@link #blocking(Callable)}, {@link #promise(Action)}) that facilitate a logical execution executing asynchronously.
  */
-public interface ExecContext {
+public interface ExecContext extends ExecControl {
 
   /**
    * Returns {@code this}.
@@ -103,23 +103,15 @@ public interface ExecContext {
   LaunchConfig getLaunchConfig();
 
   /**
-   * Performs a blocking operation on a separate thread, returning a promise for its value.
-   *
-   * @param blockingOperation the operation to perform that performs blocking IO
-   * @param <T> the type of value created by the operation
-   * @return a promise for the return value of the given blocking operation
+   * {@inheritDoc}
    */
+  @Override
   <T> Promise<T> blocking(Callable<T> blockingOperation);
 
   /**
-   * Creates a promise for an asynchronously created value.
-   * <p>
-   * Asynchronous APIs should be
-   *
-   * @param action
-   * @param <T>
-   * @return
+   * {@inheritDoc}
    */
+  @Override
   <T> Promise<T> promise(Action<? super Fulfiller<T>> action);
 
   HttpClient getHttpClient();

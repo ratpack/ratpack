@@ -70,6 +70,7 @@ import ratpack.api.NonBlocking;
  * @param <T> the type of value that was promised.
  * @see ratpack.handling.Context#promise(ratpack.func.Action)
  * @see Promise
+ * @see Fulfillment
  */
 public interface Fulfiller<T> {
 
