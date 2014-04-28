@@ -28,6 +28,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 public class DefaultExecController implements ExecController {
 
@@ -60,7 +61,7 @@ public class DefaultExecController implements ExecController {
   }
 
   public void shutdown() throws Exception {
-    eventLoopGroup.shutdownGracefully();
+    eventLoopGroup.shutdownGracefully(0, 0, TimeUnit.SECONDS);
     blockingExecutor.shutdown();
   }
 
