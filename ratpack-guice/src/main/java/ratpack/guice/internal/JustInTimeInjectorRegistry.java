@@ -16,15 +16,21 @@
 
 package ratpack.guice.internal;
 
+import com.google.common.base.Predicate;
+import com.google.common.collect.ImmutableList;
 import com.google.common.reflect.TypeToken;
 import com.google.inject.ConfigurationException;
 import com.google.inject.Injector;
 import com.google.inject.Key;
 import com.google.inject.TypeLiteral;
+import ratpack.api.Nullable;
+import ratpack.func.Action;
 import ratpack.registry.NotInRegistryException;
 import ratpack.registry.Registry;
 
 import java.util.List;
+
+import static ratpack.util.ExceptionUtils.uncheck;
 
 public class JustInTimeInjectorRegistry implements Registry {
 
@@ -55,6 +61,71 @@ public class JustInTimeInjectorRegistry implements Registry {
   @Override
   public <O> List<O> getAll(TypeToken<O> type) {
     return GuiceUtil.allOfType(injector, type);
+  }
+
+  @Nullable
+  @Override
+  public <T> T first(TypeToken<T> type, Predicate<? super T> predicate) {
+    @SuppressWarnings("unchecked") TypeLiteral<T> typeLiteral = (TypeLiteral<T>) TypeLiteral.get(type.getType());
+    try {
+      T object = injector.getInstance(Key.get(typeLiteral));
+      if (predicate.apply(object)) {
+        return object;
+      } else {
+        return null;
+      }
+    } catch (ConfigurationException e) {
+      return null;
+    }
+  }
+
+  @Override
+  public <T> List<? extends T> all(TypeToken<T> type, final Predicate<? super T> predicate) {
+    final ImmutableList.Builder<T> builder = ImmutableList.builder();
+    GuiceUtil.eachOfType(injector, type, new Action<T>() {
+      @Override
+      public void execute(T thing) throws Exception {
+        if (predicate.apply(thing)) {
+          builder.add(thing);
+        }
+      }
+    });
+    return builder.build();
+  }
+
+  @Override
+  public <T> boolean first(TypeToken<T> type, Predicate<? super T> predicate, Action<? super T> action) {
+    @SuppressWarnings("unchecked") TypeLiteral<T> typeLiteral = (TypeLiteral<T>) TypeLiteral.get(type.getType());
+    try {
+      T object = injector.getInstance(Key.get(typeLiteral));
+      if (predicate.apply(object)) {
+        try {
+          action.execute(object);
+          return true;
+        } catch (Exception e) {
+          throw uncheck(e);
+        }
+      } else {
+        return false;
+      }
+    } catch (ConfigurationException e) {
+      return false;
+    }
+  }
+
+  @Override
+  public <T> boolean each(TypeToken<T> type, final Predicate<? super T> predicate, final Action<? super T> action) {
+    final boolean[] foundMatch = new boolean[1]; // workaround for anonymous inner classes not being closures
+    GuiceUtil.eachOfType(injector, type, new Action<T>() {
+      @Override
+      public void execute(T thing) throws Exception {
+        if (predicate.apply(thing)) {
+          action.execute(thing);
+          foundMatch[0] = true;
+        }
+      }
+    });
+    return foundMatch[0];
   }
 
   @Override

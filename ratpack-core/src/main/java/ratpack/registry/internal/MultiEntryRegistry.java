@@ -16,10 +16,15 @@
 
 package ratpack.registry.internal;
 
+import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.reflect.TypeToken;
+import ratpack.api.Nullable;
+import ratpack.func.Action;
 import ratpack.registry.NotInRegistryException;
 import ratpack.registry.Registry;
+
+import static ratpack.util.ExceptionUtils.uncheck;
 
 import java.util.List;
 
@@ -79,6 +84,71 @@ public class MultiEntryRegistry<T> implements Registry {
       }
     }
     return builder.build();
+  }
+
+  @Nullable
+  @Override
+  public <T> T first(TypeToken<T> type, Predicate<? super T> predicate) {
+    for (RegistryEntry<?> entry : entries) {
+      if (type.isAssignableFrom(entry.getType())) {
+        @SuppressWarnings("unchecked") T cast = (T) entry.get();
+        if (predicate.apply(cast)) {
+          return cast;
+        }
+      }
+    }
+    return null;
+  }
+
+  @Override
+  public <T> List<? extends T> all(TypeToken<T> type, Predicate<? super T> predicate) {
+    ImmutableList.Builder<T> builder = ImmutableList.builder();
+    for (RegistryEntry<?> entry : entries) {
+      if (type.isAssignableFrom(entry.getType())) {
+        @SuppressWarnings("unchecked") T cast = (T) entry.get();
+        if (predicate.apply(cast)) {
+          builder.add(cast);
+        }
+      }
+    }
+    return builder.build();
+  }
+
+  @Override
+  public <T> boolean first(TypeToken<T> type, Predicate<? super T> predicate, Action<? super T> action) {
+    for (RegistryEntry<?> entry : entries) {
+      if (type.isAssignableFrom(entry.getType())) {
+        @SuppressWarnings("unchecked") T cast = (T) entry.get();
+        if (predicate.apply(cast)) {
+          try {
+            action.execute(cast);
+          } catch(Exception e) {
+            throw uncheck(e);
+          }
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  @Override
+  public <T> boolean each(TypeToken<T> type, Predicate<? super T> predicate, Action<? super T> action) {
+    boolean foundMatch = false;
+    for (RegistryEntry<?> entry : entries) {
+      if (type.isAssignableFrom(entry.getType())) {
+        @SuppressWarnings("unchecked") T cast = (T) entry.get();
+        if (predicate.apply(cast)) {
+          try {
+            action.execute(cast);
+            foundMatch = true;
+          } catch(Exception e) {
+            throw uncheck(e);
+          }
+        }
+      }
+    }
+    return foundMatch;
   }
 
   @Override

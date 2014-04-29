@@ -17,13 +17,17 @@
 package ratpack.guice.internal;
 
 import com.google.common.base.Function;
+import com.google.common.base.Predicate;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.reflect.TypeToken;
 import com.google.inject.Injector;
 import com.google.inject.Provider;
+import ratpack.api.Nullable;
+import ratpack.func.Action;
 import ratpack.registry.NotInRegistryException;
 import ratpack.registry.Registry;
 
@@ -106,6 +110,63 @@ public class InjectorBackedRegistry implements Registry {
         }
       });
     }
+  }
+
+  @Nullable
+  @Override
+  public <T> T first(TypeToken<T> type, Predicate<? super T> predicate) {
+    T object = maybeGet(type);
+    if (object != null && predicate.apply(object)) {
+      return object;
+    } else {
+      return null;
+    }
+  }
+
+  @Override
+  public <T> List<? extends T> all(TypeToken<T> type, Predicate<? super T> predicate) {
+    ImmutableList.Builder<T> builder = ImmutableList.builder();
+    // no efficient Lists.filter() - http://stackoverflow.com/questions/8458663/guava-why-is-there-no-lists-filter-function
+    for (T object : getAll(type)) {
+      if (predicate.apply(object)) {
+        builder.add(object);
+      }
+    }
+    return builder.build();
+  }
+
+  @Override
+  public <T> boolean first(TypeToken<T> type, Predicate<? super T> predicate, Action<? super T> action) {
+    T object = maybeGet(type);
+    if (object != null && predicate.apply(object)) {
+      try {
+        action.execute(object);
+        return true;
+      } catch (Exception e) {
+        throw uncheck(e);
+      }
+    } else {
+      return false;
+    }
+
+  }
+
+  @Override
+  public <T> boolean each(TypeToken<T> type, Predicate<? super T> predicate, Action<? super T> action) {
+    boolean foundMatch = false;
+    List<Provider<?>> providers = getProviders(type);
+    for (Provider<?> provider : providers) {
+      @SuppressWarnings("unchecked") T cast = (T) provider.get();
+      if (predicate.apply(cast)) {
+        try {
+          action.execute(cast);
+          foundMatch = true;
+        } catch (Exception e) {
+          throw uncheck(e);
+        }
+      }
+    }
+    return foundMatch;
   }
 
   @Override
