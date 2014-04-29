@@ -32,14 +32,8 @@ class RatpackGroovyPlugin implements Plugin<Project> {
 
     def ratpackDependencies = new RatpackDependencies(project.dependencies)
 
-    def gradleVersions = project.gradle.gradleVersion.split('\\.').collect { it.isInteger() ? it.toInteger() : 0 }
-
     project.dependencies {
-      if ((gradleVersions[0] >= 1) && (gradleVersions[1] >= 4)) {
-        compile ratpackDependencies.groovy
-      } else {
-        groovy ratpackDependencies.groovy        
-      }
+      compile ratpackDependencies.groovy
       testCompile ratpackDependencies.groovyTest
     }
   }
