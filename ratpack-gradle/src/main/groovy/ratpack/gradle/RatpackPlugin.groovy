@@ -16,6 +16,7 @@
 
 package ratpack.gradle
 
+import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.file.FileCollection
@@ -33,6 +34,13 @@ import org.gradle.plugins.ide.idea.IdeaPlugin
 class RatpackPlugin implements Plugin<Project> {
 
   void apply(Project project) {
+    
+    def gradleVersions = project.gradle.gradleVersion.split('\\.').collect { it.isInteger() ? it.toInteger() : 0 }
+
+    if (!((gradleVersions[0] >= 1) && (gradleVersions[1] >= 6))) {
+      throw new GradleException("Ratpack expects Gradle version 1.6 or later")
+    }
+
     project.plugins.apply(JavaPlugin)
     project.plugins.apply(ApplicationPlugin)
 
