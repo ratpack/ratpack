@@ -229,8 +229,8 @@ public abstract class RxRatpack {
    * import ratpack.handling.Context;
    * import ratpack.exec.Promise;
    * import java.util.concurrent.Callable;
-   * import rx.util.functions.Func1;
-   * import rx.util.functions.Action1;
+   * import rx.functions.Func1;
+   * import rx.functions.Action1;
    *
    * import static ratpack.rx.RxRatpack.observe;
    *

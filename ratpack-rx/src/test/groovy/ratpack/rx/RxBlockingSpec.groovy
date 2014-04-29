@@ -19,6 +19,7 @@ package ratpack.rx
 import ratpack.error.DebugErrorHandler
 import ratpack.error.ServerErrorHandler
 import ratpack.test.internal.RatpackGroovyDslSpec
+import rx.functions.Action0
 
 import static ratpack.rx.RxRatpack.observe
 import static ratpack.rx.RxRatpack.observeEach
@@ -90,7 +91,7 @@ class RxBlockingSpec extends RatpackGroovyDslSpec {
           throw error
         }, {
           render returnString
-        })
+        } as Action0)
       }
     }
 

@@ -23,6 +23,8 @@ import ratpack.handling.Handler
 import ratpack.test.internal.RatpackGroovyDslSpec
 import rx.Observable
 import rx.exceptions.CompositeException
+import rx.functions.Action0
+import rx.functions.Action1
 
 import static ratpack.groovy.test.TestHttpClients.testHttpClient
 import static ratpack.groovy.test.embed.EmbeddedApplications.embeddedApp
@@ -137,7 +139,7 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
           render "success"
         }, {
           throw error
-        })
+        } as Action1)
       }
     }
 
@@ -204,7 +206,7 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       get {
-        Observable.just("foo").subscribe({}, { error(it as Exception) }, { throw e })
+        Observable.just("foo").subscribe({}, { error(it as Exception) }, { throw e } as Action0)
       }
     }
 
