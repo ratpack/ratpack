@@ -22,7 +22,7 @@ import spock.lang.Specification
 class TokenPathBinderSpec extends Specification {
 
   PathBinding bind(String pattern, String path, boolean exact = false, PathBinding parent = null) {
-    new TokenPathBinder(pattern, exact).bind(path, parent)
+    TokenPathBinder.build(pattern, exact).bind(path, parent)
   }
 
   Map<String, String> tokens(String pattern, String path, boolean exact = false, PathBinding parent = null) {
@@ -74,7 +74,7 @@ class TokenPathBinderSpec extends Specification {
 
     then:
     def e = thrown(IllegalArgumentException)
-    e.message == "path :a/:b?/:c should not define mandatory parameters after an optional parameter"
+    e.message == "Cannot add mandatory parameter c after optional parameters"
   }
 
 

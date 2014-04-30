@@ -240,7 +240,7 @@ public abstract class Handlers {
    * @return A handler
    */
   public static Handler path(String path, Handler handler) {
-    return path(new TokenPathBinder(path, true), handler);
+    return path(TokenPathBinder.build(path, true), handler);
   }
 
   /**
@@ -276,7 +276,7 @@ public abstract class Handlers {
    * @return A handler
    */
   public static Handler prefix(String prefix, Handler handler) {
-    return path(new TokenPathBinder(prefix, false), handler);
+    return path(TokenPathBinder.build(prefix, false), handler);
   }
 
   /**
