@@ -115,17 +115,9 @@ public class JustInTimeInjectorRegistry implements Registry {
 
   @Override
   public <T> boolean each(TypeToken<T> type, final Predicate<? super T> predicate, final Action<? super T> action) {
-    final boolean[] foundMatch = new boolean[1]; // workaround for anonymous inner classes not being closures
-    GuiceUtil.eachOfType(injector, type, new Action<T>() {
-      @Override
-      public void execute(T thing) throws Exception {
-        if (predicate.apply(thing)) {
-          action.execute(thing);
-          foundMatch[0] = true;
-        }
-      }
-    });
-    return foundMatch[0];
+    SearchAction<T> searchAction = new SearchAction<>(predicate, action);
+    GuiceUtil.eachOfType(injector, type, searchAction);
+    return searchAction.foundMatch;
   }
 
   @Override
@@ -160,5 +152,24 @@ public class JustInTimeInjectorRegistry implements Registry {
   @Override
   public int hashCode() {
     return injector.hashCode();
+  }
+
+  private static final class SearchAction<T> implements Action<T> {
+    final Predicate<? super T> predicate;
+    final Action<? super T> delegate;
+    boolean foundMatch;
+
+    SearchAction(Predicate<? super T> predicate, Action<? super T> delegate) {
+      this.predicate = predicate;
+      this.delegate = delegate;
+    }
+
+    @Override
+    public void execute(T thing) throws Exception {
+      if (predicate.apply(thing)) {
+        delegate.execute(thing);
+        foundMatch = true;
+      }
+    }
   }
 }
