@@ -671,11 +671,11 @@ public interface Context extends ExecContext, Registry {
    * {@inheritDoc}
    */
   @Override
-  <T> boolean first(TypeToken<T> type, Predicate<? super T> predicate, Action<? super T> action);
+  <T> boolean first(TypeToken<T> type, Predicate<? super T> predicate, Action<? super T> action) throws Exception;
 
   /**
    * {@inheritDoc}
    */
   @Override
-  <T> boolean each(TypeToken<T> type, Predicate<? super T> predicate, Action<? super T> action);
+  <T> boolean each(TypeToken<T> type, Predicate<? super T> predicate, Action<? super T> action) throws Exception;
 }

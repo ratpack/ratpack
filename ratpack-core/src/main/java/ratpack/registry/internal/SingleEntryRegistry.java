@@ -26,8 +26,6 @@ import ratpack.registry.Registry;
 
 import java.util.List;
 
-import static ratpack.util.ExceptionUtils.uncheck;
-
 public class SingleEntryRegistry implements Registry {
 
   private final RegistryEntry<?> entry;
@@ -106,20 +104,16 @@ public class SingleEntryRegistry implements Registry {
   }
 
   @Override
-  public <T> boolean first(TypeToken<T> type, Predicate<? super T> predicate, Action<? super T> action) {
+  public <T> boolean first(TypeToken<T> type, Predicate<? super T> predicate, Action<? super T> action) throws Exception {
     T value = first(type, predicate);
     if (value != null) {
-      try {
-        action.execute(value);
-      } catch (Exception e) {
-        throw uncheck(e);
-      }
+      action.execute(value);
     }
     return value != null;
   }
 
   @Override
-  public <T> boolean each(TypeToken<T> type, Predicate<? super T> predicate, Action<? super T> action) {
+  public <T> boolean each(TypeToken<T> type, Predicate<? super T> predicate, Action<? super T> action) throws Exception {
     return first(type, predicate, action);
   }
 

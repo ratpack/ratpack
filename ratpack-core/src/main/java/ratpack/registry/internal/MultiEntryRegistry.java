@@ -24,8 +24,6 @@ import ratpack.func.Action;
 import ratpack.registry.NotInRegistryException;
 import ratpack.registry.Registry;
 
-import static ratpack.util.ExceptionUtils.uncheck;
-
 import java.util.List;
 
 public class MultiEntryRegistry<T> implements Registry {
@@ -115,16 +113,12 @@ public class MultiEntryRegistry<T> implements Registry {
   }
 
   @Override
-  public <T> boolean first(TypeToken<T> type, Predicate<? super T> predicate, Action<? super T> action) {
+  public <T> boolean first(TypeToken<T> type, Predicate<? super T> predicate, Action<? super T> action) throws Exception {
     for (RegistryEntry<?> entry : entries) {
       if (type.isAssignableFrom(entry.getType())) {
         @SuppressWarnings("unchecked") T cast = (T) entry.get();
         if (predicate.apply(cast)) {
-          try {
-            action.execute(cast);
-          } catch(Exception e) {
-            throw uncheck(e);
-          }
+          action.execute(cast);
           return true;
         }
       }
@@ -133,18 +127,14 @@ public class MultiEntryRegistry<T> implements Registry {
   }
 
   @Override
-  public <T> boolean each(TypeToken<T> type, Predicate<? super T> predicate, Action<? super T> action) {
+  public <T> boolean each(TypeToken<T> type, Predicate<? super T> predicate, Action<? super T> action) throws Exception {
     boolean foundMatch = false;
     for (RegistryEntry<?> entry : entries) {
       if (type.isAssignableFrom(entry.getType())) {
         @SuppressWarnings("unchecked") T cast = (T) entry.get();
         if (predicate.apply(cast)) {
-          try {
-            action.execute(cast);
-            foundMatch = true;
-          } catch(Exception e) {
-            throw uncheck(e);
-          }
+          action.execute(cast);
+          foundMatch = true;
         }
       }
     }

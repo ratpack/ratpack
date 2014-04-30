@@ -30,8 +30,6 @@ import ratpack.registry.Registry;
 
 import java.util.List;
 
-import static ratpack.util.ExceptionUtils.uncheck;
-
 public class JustInTimeInjectorRegistry implements Registry {
 
   private final Injector injector;
@@ -94,17 +92,13 @@ public class JustInTimeInjectorRegistry implements Registry {
   }
 
   @Override
-  public <T> boolean first(TypeToken<T> type, Predicate<? super T> predicate, Action<? super T> action) {
+  public <T> boolean first(TypeToken<T> type, Predicate<? super T> predicate, Action<? super T> action) throws Exception {
     @SuppressWarnings("unchecked") TypeLiteral<T> typeLiteral = (TypeLiteral<T>) TypeLiteral.get(type.getType());
     try {
       T object = injector.getInstance(Key.get(typeLiteral));
       if (predicate.apply(object)) {
-        try {
-          action.execute(object);
-          return true;
-        } catch (Exception e) {
-          throw uncheck(e);
-        }
+        action.execute(object);
+        return true;
       } else {
         return false;
       }
@@ -115,6 +109,7 @@ public class JustInTimeInjectorRegistry implements Registry {
 
   @Override
   public <T> boolean each(TypeToken<T> type, final Predicate<? super T> predicate, final Action<? super T> action) {
+    // Don't throw exception since GuiceUtil unchecks it
     SearchAction<T> searchAction = new SearchAction<>(predicate, action);
     GuiceUtil.eachOfType(injector, type, searchAction);
     return searchAction.foundMatch;

@@ -258,17 +258,13 @@ public class DefaultGuiceBackedHandlerFactory implements GuiceBackedHandlerFacto
     }
 
     @Override
-    public <T> boolean first(TypeToken<T> type, Predicate<? super T> predicate, Action<? super T> action) {
+    public <T> boolean first(TypeToken<T> type, Predicate<? super T> predicate, Action<? super T> action) throws Exception {
       for (Module module : modules.values()) {
         if (type.getRawType().isInstance(module)) {
           @SuppressWarnings("unchecked") T cast = (T) module;
           if (predicate.apply(cast)) {
-            try {
-              action.execute(cast);
-              return true;
-            } catch(Exception e) {
-              throw uncheck(e);
-            }
+            action.execute(cast);
+            return true;
           }
         }
       }
@@ -276,18 +272,14 @@ public class DefaultGuiceBackedHandlerFactory implements GuiceBackedHandlerFacto
     }
 
     @Override
-    public <T> boolean each(TypeToken<T> type, Predicate<? super T> predicate, Action<? super T> action) {
+    public <T> boolean each(TypeToken<T> type, Predicate<? super T> predicate, Action<? super T> action) throws Exception {
       boolean foundMatch = false;
       for (Module module : modules.values()) {
         if (type.getRawType().isInstance(module)) {
           @SuppressWarnings("unchecked") T cast = (T) module;
           if (predicate.apply(cast)) {
-            try {
-              action.execute(cast);
-              foundMatch = true;
-            } catch (Exception e) {
-              throw uncheck(e);
-            }
+            action.execute(cast);
+            foundMatch = true;
           }
         }
       }

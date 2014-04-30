@@ -136,15 +136,11 @@ public class InjectorBackedRegistry implements Registry {
   }
 
   @Override
-  public <T> boolean first(TypeToken<T> type, Predicate<? super T> predicate, Action<? super T> action) {
+  public <T> boolean first(TypeToken<T> type, Predicate<? super T> predicate, Action<? super T> action) throws Exception {
     T object = maybeGet(type);
     if (object != null && predicate.apply(object)) {
-      try {
-        action.execute(object);
-        return true;
-      } catch (Exception e) {
-        throw uncheck(e);
-      }
+      action.execute(object);
+      return true;
     } else {
       return false;
     }
@@ -152,18 +148,14 @@ public class InjectorBackedRegistry implements Registry {
   }
 
   @Override
-  public <T> boolean each(TypeToken<T> type, Predicate<? super T> predicate, Action<? super T> action) {
+  public <T> boolean each(TypeToken<T> type, Predicate<? super T> predicate, Action<? super T> action) throws Exception {
     boolean foundMatch = false;
     List<Provider<?>> providers = getProviders(type);
     for (Provider<?> provider : providers) {
       @SuppressWarnings("unchecked") T cast = (T) provider.get();
       if (predicate.apply(cast)) {
-        try {
-          action.execute(cast);
-          foundMatch = true;
-        } catch (Exception e) {
-          throw uncheck(e);
-        }
+        action.execute(cast);
+        foundMatch = true;
       }
     }
     return foundMatch;
