@@ -23,7 +23,7 @@ In a web application context, this usually means that each request is bound to a
 
 The benefit of this model is that synchronous programming is unarguably “simpler”.
 The drawback of this model, opposed to a non blocking model, is that it demands greater resource usage and yields lower throughput.
-In order to server more requests in parallel, the size of the thread pool has to be increased.
+In order to serve more requests in parallel, the size of the thread pool has to be increased.
 This creates more contention for compute resources and more cycles are lost to managing the scheduling of these threads, not to mention the increased memory consumption.
 Modern operating systems, and the JVM, are very good at managing this contention; however, it is still a scaling bottleneck.
 Moreover, it demands greater resource allocation, which is a serious consideration for modern pay-for-what-you-use deployment environments.
@@ -43,7 +43,7 @@ Ratpack is fundamentally asynchronous in two key ways…
 1. HTTP IO is event driven / non blocking (thanks to [Netty](http://netty.io/))
 2. Request handling is organised as a pipeline of asynchronous functions
 
-The HTTP IO being event driver is largely transparent when using Ratpack.
+The HTTP IO being event driven is largely transparent when using Ratpack.
 Netty just does its thing.
 
 The second point is _the_ key characteristic of Ratpack.
