@@ -18,7 +18,7 @@ ext {
   commonVersions = [
     remote: "0.6-SNAPSHOT",
     slf4j: "1.7.5",
-    netty: "4.0.18.Final",
+    netty: "4.0.19.Final",
     groovy: "2.3.0-rc-2",
     pac4j: "1.5.0",
     rxjava: "0.18.1"
