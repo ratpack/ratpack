@@ -20,12 +20,17 @@ import org.junit.runner.RunWith;
 import org.junit.runner.Runner;
 import ratpack.manual.snippets.junit.DelegatingTestRunner;
 import ratpack.manual.snippets.junit.RunnerProvider;
+import ratpack.rx.RxRatpack;
 
 import java.util.LinkedList;
 import java.util.List;
 
 @RunWith(DelegatingTestRunner.class)
 abstract public class CodeSnippetTestCase implements RunnerProvider {
+
+  static {
+    RxRatpack.initialize();
+  }
 
   protected abstract void addTests(CodeSnippetTests tests);
 
