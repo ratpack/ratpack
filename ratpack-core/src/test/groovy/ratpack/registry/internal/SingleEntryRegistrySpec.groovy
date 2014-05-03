@@ -24,8 +24,8 @@ import spock.lang.Specification
 class SingleEntryRegistrySpec extends Specification {
 
   def r
-  def sameType = TypeToken.of(String.class)
-  def differentType = TypeToken.of(Number.class)
+  def sameType = TypeToken.of(String)
+  def differentType = TypeToken.of(Number)
   def value = "Something"
 
   def setup() {

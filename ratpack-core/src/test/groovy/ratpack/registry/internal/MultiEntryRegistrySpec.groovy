@@ -28,31 +28,31 @@ class MultiEntryRegistrySpec extends Specification {
   def "search empty registry"() {
     given:
     def r = new MultiEntryRegistry(ImmutableList.of())
-    Action action = Mock() {
+    Action action = Mock {
       0 * execute(_)
     }
 
     expect:
-    r.first(TypeToken.of(Object.class), Predicates.alwaysTrue()) == null
-    r.first(TypeToken.of(Object.class), Predicates.alwaysFalse()) == null
-    r.all(TypeToken.of(Object.class), Predicates.alwaysTrue()) == []
-    r.all(TypeToken.of(Object.class), Predicates.alwaysFalse()) == []
+    r.first(TypeToken.of(Object), Predicates.alwaysTrue()) == null
+    r.first(TypeToken.of(Object), Predicates.alwaysFalse()) == null
+    r.all(TypeToken.of(Object), Predicates.alwaysTrue()) == []
+    r.all(TypeToken.of(Object), Predicates.alwaysFalse()) == []
 
-    r.first(TypeToken.of(Object.class), Predicates.alwaysTrue(), action) == false
-    r.first(TypeToken.of(Object.class), Predicates.alwaysFalse(), action) == false
-    r.each(TypeToken.of(Object.class), Predicates.alwaysTrue(), action) == false
-    r.each(TypeToken.of(Object.class), Predicates.alwaysFalse(), action) == false
+    r.first(TypeToken.of(Object), Predicates.alwaysTrue(), action) == false
+    r.first(TypeToken.of(Object), Predicates.alwaysFalse(), action) == false
+    r.each(TypeToken.of(Object), Predicates.alwaysTrue(), action) == false
+    r.each(TypeToken.of(Object), Predicates.alwaysFalse(), action) == false
   }
 
   def "search with one item"() {
     given:
-    TypeToken type = TypeToken.of(String.class)
-    TypeToken other = TypeToken.of(Number.class)
+    TypeToken type = TypeToken.of(String)
+    TypeToken other = TypeToken.of(Number)
     def value = "Something"
 
     def r = new MultiEntryRegistry(ImmutableList.of(new DefaultRegistryEntry(type, value)))
 
-    Action action = Mock() {
+    Action action = Mock {
       2 * execute(value)
     }
 
@@ -80,8 +80,8 @@ class MultiEntryRegistrySpec extends Specification {
 
   def "search with multiple items"() {
     given:
-    TypeToken string = TypeToken.of(String.class)
-    TypeToken number = TypeToken.of(Number.class)
+    TypeToken string = TypeToken.of(String)
+    TypeToken number = TypeToken.of(Number)
     def a = "A"
     def b = "B"
     def c = 42
@@ -89,7 +89,7 @@ class MultiEntryRegistrySpec extends Specification {
     def r = new MultiEntryRegistry(ImmutableList.of(new DefaultRegistryEntry(string, a), new DefaultRegistryEntry(string, b),
       new DefaultRegistryEntry(number, c), new DefaultRegistryEntry(number, d)))
 
-    Action action = Mock() {
+    Action action = Mock {
       2 * execute(a)
       1 * execute(b)
       1 * execute(c)
