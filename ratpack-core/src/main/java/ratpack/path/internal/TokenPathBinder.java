@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,9 @@ package ratpack.path.internal;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import ratpack.path.PathBinder;
 import ratpack.path.PathBinding;
+import ratpack.path.PathBinder;
+import ratpack.path.PathBuilder;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
@@ -29,54 +30,96 @@ import java.util.regex.Pattern;
 
 public class TokenPathBinder implements PathBinder {
 
+  private interface TokenProcessor {
+    void process(Matcher matcher, PathBuilder builder);
+  }
+
+  private enum TokenType implements TokenProcessor {
+    OPTIONAL_TOKEN_WITH_PATTERN("/?:(\\w*)\\?:(.+)") {
+      public void process(Matcher matcher, PathBuilder builder) {
+        builder.optionalTokenWithPattern(matcher.group(1), matcher.group(2));
+      }
+    },
+    LITERAL_WITH_PATTERN("/?::(.+)") {
+      public void process(Matcher matcher, PathBuilder builder) {
+        builder.literalPattern(matcher.group(1));
+      }
+    },
+    TOKEN_WITH_PATTERN("/?:(\\w*):(.+)") {
+      public void process(Matcher matcher, PathBuilder builder) {
+        builder.tokenWithPattern(matcher.group(1), matcher.group(2));
+      }
+    },
+    TOKEN("/?:(\\w*)") {
+      public void process(Matcher matcher, PathBuilder builder) {
+        builder.token(matcher.group(1));
+      }
+    },
+    OPTIONAL_TOKEN("/?:(\\w*)\\?") {
+      public void process(Matcher matcher, PathBuilder builder) {
+        builder.optionalToken(matcher.group(1));
+      }
+    };
+
+    boolean match(String component, PathBuilder builder) {
+      Matcher matcher = pattern.matcher(component);
+      if (matcher.matches()) {
+        process(matcher, builder);
+        return true;
+      }
+      return false;
+    }
+
+    private Pattern pattern;
+
+    TokenType(String pattern) {
+      this.pattern = Pattern.compile(pattern);
+    }
+  }
+
   private final ImmutableList<String> tokenNames;
   private final Pattern regex;
 
-  public TokenPathBinder(String path, boolean exact) {
-    ImmutableList.Builder<String> namesBuilder = ImmutableList.builder();
-    String pattern = Pattern.quote(path);
+  private static final Pattern PLACEHOLDER = Pattern.compile("((?:^|/):(\\w+)\\??:([^/])+)|((?:^|/)::([^/])+)|((?:^|/):(\\w+)\\??)");
 
-    Pattern placeholderPattern = Pattern.compile("((?:^|/):(\\w+)\\??)");
-    Matcher matchResult = placeholderPattern.matcher(path);
+  protected TokenPathBinder(ImmutableList<String> tokenNames, Pattern regex) {
+    this.tokenNames = tokenNames;
+    this.regex = regex;
+  }
 
-    String replacementStart = "\\\\E(?:(?:^|/)([^/?&#]+))";
-    StringBuilder replacementBuilder = new StringBuilder(replacementStart);
+  public static PathBinder build(String path, boolean exact) {
+    PathBuilder pathBuilder = new DefaultPathBuilder();
 
-    boolean hasOptional = false;
+    Matcher matchResult = PLACEHOLDER.matcher(path);
 
-    while (matchResult.find()) {
-      String part = matchResult.group(1);
-      String name = matchResult.group(2);
-      boolean optional = part.endsWith("?");
+    int lastIndex = 0;
 
-      if (!hasOptional && optional) {
-        int contentQuantifierIndex = replacementStart.indexOf("+");
-        replacementBuilder.replace(contentQuantifierIndex, contentQuantifierIndex + 1, "*");
+    if (matchResult.find()) {
+      do {
+        int thisIndex = matchResult.start();
+        if (thisIndex != lastIndex) {
+          pathBuilder.literal(path.substring(lastIndex, thisIndex));
+        }
+        lastIndex = matchResult.end();
+        String component = matchResult.group(0);
+        boolean found = false;
+        for (TokenType type : TokenType.values()) {
+          if (type.match(component, pathBuilder)) {
+            found = true;
+            break;
+          }
+        }
+        if (!found) {
+          throw new IllegalArgumentException(String.format("Cannot match path %s (%s)", path, component));
+        }
+      } while (matchResult.find());
+      if (lastIndex < path.length()) {
+        pathBuilder.literal(path.substring(lastIndex));
       }
-
-      hasOptional = hasOptional || optional;
-      if (hasOptional && !optional) {
-        throw new IllegalArgumentException(String.format("path %s should not define mandatory parameters after an optional parameter", path));
-      }
-
-      if (optional) {
-        replacementBuilder.append("?");
-      }
-      replacementBuilder.append("\\\\Q");
-      pattern = pattern.replaceFirst(Pattern.quote(part), replacementBuilder.toString());
-      namesBuilder.add(name);
-      replacementBuilder.delete(replacementStart.length(), replacementBuilder.length());
-    }
-
-    StringBuilder patternBuilder = new StringBuilder("(").append(pattern).append(")");
-    if (exact) {
-      patternBuilder.append("(?:/|$)");
     } else {
-      patternBuilder.append("(?:/.*)?");
+      pathBuilder.literal(path);
     }
-
-    this.regex = Pattern.compile(patternBuilder.toString());
-    this.tokenNames = namesBuilder.build();
+    return pathBuilder.build(exact);
   }
 
   public PathBinding bind(String path, PathBinding parentBinding) {

@@ -32,7 +32,11 @@ The following people have provided significant contributions.
 * [Jim White](https://github.com/jimwhite)
 * [Dimitris Zavaliadis](https://github.com/dimzava)
 * [Craig Burke](https://github.com/craigburke)
+<<<<<<< HEAD
 * [Andrey Adamovich](https://github.com/aadamovich)
+=======
+* [Tim Yates](https://github.com/timyates)
+>>>>>>> 812f7fe222d8168c9ad2a0728f379e6ecea47672
 
 ### Past project members
 
