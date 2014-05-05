@@ -17,7 +17,6 @@
 package ratpack.path.internal;
 
 import com.google.common.collect.ImmutableList;
-
 import ratpack.path.PathBinder;
 import ratpack.path.PathBuilder;
 
@@ -76,10 +75,8 @@ public class DefaultPathBuilder implements PathBuilder {
   }
 
   public PathBinder build(boolean exact) {
-    StringBuilder output = new StringBuilder().append(addedToken ? "(\\Q\\E" : "(")
-                          .append(pattern)
-                          .append(addedToken ? "\\Q\\E)" : ")")
-                          .append(exact ? "(?:/|$)" : "(?:/.*)?");
-    return new TokenPathBinder(tokensBuilder.build(), Pattern.compile(output.toString()));
+    String regex = (addedToken ? "(\\Q\\E" : "(") + pattern + (addedToken ? "\\Q\\E)" : ")") + (exact ? "(?:/|$)" : "(?:/.*)?");
+    Pattern compiled = Pattern.compile(regex);
+    return new TokenPathBinder(tokensBuilder.build(), compiled);
   }
 }
