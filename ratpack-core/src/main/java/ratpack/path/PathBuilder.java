@@ -17,67 +17,64 @@
 package ratpack.path;
 
 /**
- * A builder to generate a PathBinder from a list of tokens and literals (with and
- * without regular expression patterns)
- *
- * @see PathBinder
+ * A builder to generate a {@link PathBinder} from a list of tokens and literals.
  */
 public interface PathBuilder {
   /**
    * Add a regular expression parameterized named token to the path.
    *
-   * @param token The name of the token
-   * @param pattern The valid regex pattern
-   * @return The builder
+   * @param token the name of the token
+   * @param pattern the valid regex pattern
+   * @return this
    */
   PathBuilder tokenWithPattern(String token, String pattern);
 
   /**
    * Add a regular expression parameterized named optional token to the path.
    *
-   * @param token The name of the optional token
-   * @param pattern The valid regex pattern
-   * @return The builder
+   * @param token the name of the optional token
+   * @param pattern the valid regex pattern
+   * @return this
    */
   PathBuilder optionalTokenWithPattern(String token, String pattern);
 
   /**
    * Add a token to the path.
    *
-   * @param token The name of the token
-   * @return The builder
+   * @param token the name of the token
+   * @return this
    */
   PathBuilder token(String token);
 
   /**
    * Add an optional token to the path.
    *
-   * @param token The name of the optional token
-   * @return The builder
+   * @param token the name of the optional token
+   * @return this
    */
   PathBuilder optionalToken(String token);
 
   /**
    * Add a regular expression parameterized literal element to the path.
    *
-   * @param pattern The valid regex pattern
-   * @return The builder
+   * @param pattern the valid regex pattern
+   * @return this
    */
   PathBuilder literalPattern(String pattern);
 
   /**
    * Add a literal to the path.
    *
-   * @param literal The literal path component
-   * @return The builder
+   * @param literal the literal path component
+   * @return this
    */
   PathBuilder literal(String literal);
 
   /**
    * Generate a {@link PathBinder} from the contents of the builder.
    *
-   * @param exact Whether this path should be an exact match
-   * @return A PathBinder instance
+   * @param exact whether this path should be an exact match
+   * @return a new {@link PathBinder} based on the state of this builder
    */
-  PathBinder  build(boolean exact);
+  PathBinder build(boolean exact);
 }
