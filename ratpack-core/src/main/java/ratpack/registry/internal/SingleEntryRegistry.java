@@ -16,9 +16,11 @@
 
 package ratpack.registry.internal;
 
+import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.reflect.TypeToken;
 import ratpack.api.Nullable;
+import ratpack.func.Action;
 import ratpack.registry.NotInRegistryException;
 import ratpack.registry.Registry;
 
@@ -78,6 +80,41 @@ public class SingleEntryRegistry implements Registry {
     } else {
       return ImmutableList.of(value);
     }
+  }
+
+  @Nullable
+  @Override
+  public <T> T first(TypeToken<T> type, Predicate<? super T> predicate) {
+    T value = maybeGet(type);
+    if (value != null && predicate.apply(value)) {
+      return value;
+    } else {
+      return null;
+    }
+  }
+
+  @Override
+  public <T> List<? extends T> all(TypeToken<T> type, Predicate<? super T> predicate) {
+    T value = first(type, predicate);
+    if (value != null) {
+      return ImmutableList.of(value);
+    } else {
+      return ImmutableList.of();
+    }
+  }
+
+  @Override
+  public <T> boolean first(TypeToken<T> type, Predicate<? super T> predicate, Action<? super T> action) throws Exception {
+    T value = first(type, predicate);
+    if (value != null) {
+      action.execute(value);
+    }
+    return value != null;
+  }
+
+  @Override
+  public <T> boolean each(TypeToken<T> type, Predicate<? super T> predicate, Action<? super T> action) throws Exception {
+    return first(type, predicate, action);
   }
 
   @Override

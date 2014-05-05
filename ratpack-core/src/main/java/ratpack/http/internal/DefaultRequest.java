@@ -16,6 +16,7 @@
 
 package ratpack.http.internal;
 
+import com.google.common.base.Predicate;
 import com.google.common.reflect.TypeToken;
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.Cookie;
@@ -23,6 +24,7 @@ import io.netty.handler.codec.http.CookieDecoder;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.QueryStringDecoder;
 import ratpack.api.Nullable;
+import ratpack.func.Action;
 import ratpack.func.Factory;
 import ratpack.http.Headers;
 import ratpack.http.HttpMethod;
@@ -217,5 +219,26 @@ public class DefaultRequest implements Request {
   @Override
   public <O> List<O> getAll(TypeToken<O> type) {
     return registry.getAll(type);
+  }
+
+  @Nullable
+  @Override
+  public <T> T first(TypeToken<T> type, Predicate<? super T> predicate) {
+    return registry.first(type, predicate);
+  }
+
+  @Override
+  public <T> List<? extends T> all(TypeToken<T> type, Predicate<? super T> predicate) {
+    return registry.all(type, predicate);
+  }
+
+  @Override
+  public <T> boolean first(TypeToken<T> type, Predicate<? super T> predicate, Action<? super T> action) throws Exception {
+    return registry.first(type, predicate, action);
+  }
+
+  @Override
+  public <T> boolean each(TypeToken<T> type, Predicate<? super T> predicate, Action<? super T> action) throws Exception {
+    return registry.each(type, predicate, action);
   }
 }

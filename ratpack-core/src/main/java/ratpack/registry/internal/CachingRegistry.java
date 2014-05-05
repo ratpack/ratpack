@@ -17,11 +17,14 @@
 package ratpack.registry.internal;
 
 import com.google.common.base.Optional;
+import com.google.common.base.Predicate;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.reflect.TypeToken;
 import com.google.common.util.concurrent.UncheckedExecutionException;
+import ratpack.api.Nullable;
+import ratpack.func.Action;
 import ratpack.registry.NotInRegistryException;
 import ratpack.registry.Registry;
 
@@ -95,6 +98,29 @@ public class CachingRegistry implements Registry {
     } catch (ExecutionException | UncheckedExecutionException e) {
       throw uncheck(toException(e.getCause()));
     }
+  }
+
+  // No caching of searches until the details of predicate equality are worked out
+
+  @Nullable
+  @Override
+  public <T> T first(TypeToken<T> type, Predicate<? super T> predicate) {
+    return delegate.first(type, predicate);
+  }
+
+  @Override
+  public <T> List<? extends T> all(TypeToken<T> type, Predicate<? super T> predicate) {
+    return delegate.all(type, predicate);
+  }
+
+  @Override
+  public <T> boolean first(TypeToken<T> type, Predicate<? super T> predicate, Action<? super T> action) throws Exception {
+    return delegate.first(type, predicate, action);
+  }
+
+  @Override
+  public <T> boolean each(TypeToken<T> type, Predicate<? super T> predicate, Action<? super T> action) throws Exception {
+    return delegate.each(type, predicate, action);
   }
 
 }

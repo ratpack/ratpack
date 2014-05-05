@@ -16,6 +16,7 @@
 
 package ratpack.groovy.guice.internal;
 
+import com.google.common.base.Predicate;
 import com.google.common.reflect.TypeToken;
 import com.google.inject.Injector;
 import com.google.inject.Module;
@@ -144,5 +145,26 @@ public class DefaultGroovyModuleRegistry implements GroovyModuleRegistry {
   @Override
   public <O> List<O> getAll(TypeToken<O> type) {
     return moduleRegistry.getAll(type);
+  }
+
+  @Nullable
+  @Override
+  public <T> T first(TypeToken<T> type, Predicate<? super T> predicate) {
+    return moduleRegistry.first(type, predicate);
+  }
+
+  @Override
+  public <T> List<? extends T> all(TypeToken<T> type, Predicate<? super T> predicate) {
+    return moduleRegistry.all(type, predicate);
+  }
+
+  @Override
+  public <T> boolean first(TypeToken<T> type, Predicate<? super T> predicate, Action<? super T> action) throws Exception {
+    return moduleRegistry.first(type, predicate, action);
+  }
+
+  @Override
+  public <T> boolean each(TypeToken<T> type, Predicate<? super T> predicate, Action<? super T> action) throws Exception {
+    return moduleRegistry.each(type, predicate, action);
   }
 }

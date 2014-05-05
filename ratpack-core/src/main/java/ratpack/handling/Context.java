@@ -16,6 +16,7 @@
 
 package ratpack.handling;
 
+import com.google.common.base.Predicate;
 import com.google.common.reflect.TypeToken;
 import ratpack.api.NonBlocking;
 import ratpack.api.Nullable;
@@ -653,4 +654,28 @@ public interface Context extends ExecContext, Registry {
 
   void addExecInterceptor(ExecInterceptor execInterceptor, Action<? super Context> action) throws Exception;
 
+  /**
+   * {@inheritDoc}
+   */
+  @Nullable
+  @Override
+  <T> T first(TypeToken<T> type, Predicate<? super T> predicate);
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  <T> List<? extends T> all(TypeToken<T> type, Predicate<? super T> predicate);
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  <T> boolean first(TypeToken<T> type, Predicate<? super T> predicate, Action<? super T> action) throws Exception;
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  <T> boolean each(TypeToken<T> type, Predicate<? super T> predicate, Action<? super T> action) throws Exception;
 }

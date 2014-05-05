@@ -16,8 +16,10 @@
 
 package ratpack.remote.internal;
 
+import com.google.common.base.Predicate;
 import com.google.common.reflect.TypeToken;
 import ratpack.api.Nullable;
+import ratpack.func.Action;
 import ratpack.registry.NotInRegistryException;
 import ratpack.registry.Registry;
 import ratpack.registry.RegistrySpec;
@@ -75,5 +77,26 @@ public abstract class DelegatingCommandDelegate implements CommandDelegate {
   @Override
   public <O> List<O> getAll(TypeToken<O> type) {
     return registry.getAll(type);
+  }
+
+  @Nullable
+  @Override
+  public <T> T first(TypeToken<T> type, Predicate<? super T> predicate) {
+    return registry.first(type, predicate);
+  }
+
+  @Override
+  public <T> List<? extends T> all(TypeToken<T> type, Predicate<? super T> predicate) {
+    return registry.all(type, predicate);
+  }
+
+  @Override
+  public <T> boolean first(TypeToken<T> type, Predicate<? super T> predicate, Action<? super T> action) throws Exception {
+    return registry.first(type, predicate, action);
+  }
+
+  @Override
+  public <T> boolean each(TypeToken<T> type, Predicate<? super T> predicate, Action<? super T> action) throws Exception {
+    return registry.each(type, predicate, action);
   }
 }

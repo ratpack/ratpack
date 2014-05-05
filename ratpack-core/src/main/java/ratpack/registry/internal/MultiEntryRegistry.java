@@ -16,8 +16,11 @@
 
 package ratpack.registry.internal;
 
+import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.reflect.TypeToken;
+import ratpack.api.Nullable;
+import ratpack.func.Action;
 import ratpack.registry.NotInRegistryException;
 import ratpack.registry.Registry;
 
@@ -79,6 +82,63 @@ public class MultiEntryRegistry<T> implements Registry {
       }
     }
     return builder.build();
+  }
+
+  @Nullable
+  @Override
+  public <T> T first(TypeToken<T> type, Predicate<? super T> predicate) {
+    for (RegistryEntry<?> entry : entries) {
+      if (type.isAssignableFrom(entry.getType())) {
+        @SuppressWarnings("unchecked") T cast = (T) entry.get();
+        if (predicate.apply(cast)) {
+          return cast;
+        }
+      }
+    }
+    return null;
+  }
+
+  @Override
+  public <T> List<? extends T> all(TypeToken<T> type, Predicate<? super T> predicate) {
+    ImmutableList.Builder<T> builder = ImmutableList.builder();
+    for (RegistryEntry<?> entry : entries) {
+      if (type.isAssignableFrom(entry.getType())) {
+        @SuppressWarnings("unchecked") T cast = (T) entry.get();
+        if (predicate.apply(cast)) {
+          builder.add(cast);
+        }
+      }
+    }
+    return builder.build();
+  }
+
+  @Override
+  public <T> boolean first(TypeToken<T> type, Predicate<? super T> predicate, Action<? super T> action) throws Exception {
+    for (RegistryEntry<?> entry : entries) {
+      if (type.isAssignableFrom(entry.getType())) {
+        @SuppressWarnings("unchecked") T cast = (T) entry.get();
+        if (predicate.apply(cast)) {
+          action.execute(cast);
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  @Override
+  public <T> boolean each(TypeToken<T> type, Predicate<? super T> predicate, Action<? super T> action) throws Exception {
+    boolean foundMatch = false;
+    for (RegistryEntry<?> entry : entries) {
+      if (type.isAssignableFrom(entry.getType())) {
+        @SuppressWarnings("unchecked") T cast = (T) entry.get();
+        if (predicate.apply(cast)) {
+          action.execute(cast);
+          foundMatch = true;
+        }
+      }
+    }
+    return foundMatch;
   }
 
   @Override

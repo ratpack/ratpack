@@ -16,6 +16,7 @@
 
 package ratpack.guice.internal;
 
+import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.reflect.TypeToken;
 import com.google.inject.Binder;
@@ -23,6 +24,7 @@ import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.util.Modules;
 import io.netty.buffer.ByteBuf;
+import ratpack.api.Nullable;
 import ratpack.func.Action;
 import ratpack.func.Factory;
 import ratpack.func.Transformer;
@@ -228,6 +230,60 @@ public class DefaultGuiceBackedHandlerFactory implements GuiceBackedHandlerFacto
         }
       }
       return builder.build();
+    }
+
+    @Nullable
+    @Override
+    public <T> T first(TypeToken<T> type, Predicate<? super T> predicate) {
+      T module = maybeGet(type);
+      if (predicate.apply(module)) {
+        return module;
+      } else {
+        return null;
+      }
+    }
+
+    @Override
+    public <T> List<? extends T> all(TypeToken<T> type, Predicate<? super T> predicate) {
+      ImmutableList.Builder<T> builder = ImmutableList.builder();
+      for (Module module : modules.values()) {
+        if (type.getRawType().isInstance(module)) {
+          @SuppressWarnings("unchecked") T cast = (T) module;
+          if (predicate.apply(cast)) {
+            builder.add(cast);
+          }
+        }
+      }
+      return builder.build();
+    }
+
+    @Override
+    public <T> boolean first(TypeToken<T> type, Predicate<? super T> predicate, Action<? super T> action) throws Exception {
+      for (Module module : modules.values()) {
+        if (type.getRawType().isInstance(module)) {
+          @SuppressWarnings("unchecked") T cast = (T) module;
+          if (predicate.apply(cast)) {
+            action.execute(cast);
+            return true;
+          }
+        }
+      }
+      return false;
+    }
+
+    @Override
+    public <T> boolean each(TypeToken<T> type, Predicate<? super T> predicate, Action<? super T> action) throws Exception {
+      boolean foundMatch = false;
+      for (Module module : modules.values()) {
+        if (type.getRawType().isInstance(module)) {
+          @SuppressWarnings("unchecked") T cast = (T) module;
+          if (predicate.apply(cast)) {
+            action.execute(cast);
+            foundMatch = true;
+          }
+        }
+      }
+      return foundMatch;
     }
 
     public <O> O maybeGet(Class<O> type) {

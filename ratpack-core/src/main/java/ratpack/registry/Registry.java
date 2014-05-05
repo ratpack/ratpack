@@ -16,8 +16,10 @@
 
 package ratpack.registry;
 
+import com.google.common.base.Predicate;
 import com.google.common.reflect.TypeToken;
 import ratpack.api.Nullable;
+import ratpack.func.Action;
 
 import java.util.List;
 
@@ -132,6 +134,47 @@ public interface Registry {
    */
   <O> List<O> getAll(TypeToken<O> type);
 
+  /**
+   * Returns the first object whose declared type is assignment compatible with the given type and who satisfies the given predicate.
+   *
+   * @param type the type of object to search for
+   * @param predicate a predicate to check objects against
+   * @param <T> the type of the object to search for
+   * @return An object of the specified type that satisfied the specified predicate, or null if no such object is available.
+   */
+  @Nullable
+  <T> T first(TypeToken<T> type, Predicate<? super T> predicate);
 
+  /**
+   * Returns all of the objects whose declared type is assignment compatible with the given type and who satisfy the given predicate.
+   *
+   * @param type the type of objects to search for
+   * @param predicate a predicate to check objects against
+   * @param <T> the type of objects to search for
+   * @return All objects of the given type that satisfy the specified predicate
+   */
+  <T> List<? extends T> all(TypeToken<T> type, Predicate<? super T> predicate);
+
+  /**
+   * Calls the given action with the first object whose declared type is assignment compatible with the given type and who satisfies the given predicate.
+   *
+   * @param type the type of object to search for
+   * @param predicate a predicate to check objects against
+   * @param action an action to call with the first matching object
+   * @param <T> the type of object to search for
+   * @return true if the predicate ever returned true
+   */
+  <T> boolean first(TypeToken<T> type, Predicate<? super T> predicate, Action<? super T> action) throws Exception;
+
+  /**
+   * Calls the given action with each object whose declared type is assignment compatible with the given type and who satisfies the given predicate.
+   *
+   * @param type the type of object to search for
+   * @param predicate a predicate to check objects against
+   * @param action an action to call with each matching object
+   * @param <T> the type of object to search for
+   * @return true if the predicate ever returned true
+   */
+  <T> boolean each(TypeToken<T> type, Predicate<? super T> predicate, Action<? super T> action) throws Exception;
 
 }

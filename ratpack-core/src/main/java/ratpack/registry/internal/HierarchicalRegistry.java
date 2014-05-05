@@ -16,9 +16,11 @@
 
 package ratpack.registry.internal;
 
+import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.reflect.TypeToken;
 import ratpack.api.Nullable;
+import ratpack.func.Action;
 import ratpack.registry.NotInRegistryException;
 import ratpack.registry.Registry;
 
@@ -76,6 +78,39 @@ public class HierarchicalRegistry implements Registry {
     List<O> childAll = child.getAll(type);
     List<O> parentAll = parent.getAll(type);
     return ImmutableList.<O>builder().addAll(childAll).addAll(parentAll).build();
+  }
+
+  @Nullable
+  @Override
+  public <T> T first(TypeToken<T> type, Predicate<? super T> predicate) {
+    T first = child.first(type, predicate);
+    if (first == null) {
+      first = parent.first(type, predicate);
+    }
+    return first;
+  }
+
+  @Override
+  public <T> List<? extends T> all(TypeToken<T> type, Predicate<? super T> predicate) {
+    List<? extends T> childAll = child.all(type, predicate);
+    List<? extends T> parentAll = parent.all(type, predicate);
+    return ImmutableList.<T>builder().addAll(childAll).addAll(parentAll).build();
+  }
+
+  @Override
+  public <T> boolean first(TypeToken<T> type, Predicate<? super T> predicate, Action<? super T> action) throws Exception {
+    boolean found = child.first(type, predicate, action);
+    if (!found) {
+      found = parent.first(type, predicate, action);
+    }
+    return found;
+  }
+
+  @Override
+  public <T> boolean each(TypeToken<T> type, Predicate<? super T> predicate, Action<? super T> action) throws Exception {
+    boolean childFound = child.each(type, predicate, action);
+    boolean parentFound = parent.each(type, predicate, action);
+    return childFound || parentFound;
   }
 
   @Override
