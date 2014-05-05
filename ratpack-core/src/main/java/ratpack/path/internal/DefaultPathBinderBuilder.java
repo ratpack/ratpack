@@ -18,17 +18,17 @@ package ratpack.path.internal;
 
 import com.google.common.collect.ImmutableList;
 import ratpack.path.PathBinder;
-import ratpack.path.PathBuilder;
+import ratpack.path.PathBinderBuilder;
 
 import java.util.regex.Pattern;
 
-public class DefaultPathBuilder implements PathBuilder {
+public class DefaultPathBinderBuilder implements PathBinderBuilder {
   private ImmutableList.Builder<String> tokensBuilder = ImmutableList.builder();
   private StringBuilder pattern = new StringBuilder();
   private boolean addedOptional;
   private boolean addedToken;
 
-  public PathBuilder tokenWithPattern(String token, String pattern) {
+  public PathBinderBuilder tokenWithPattern(String token, String pattern) {
     if (addedOptional) {
       throw new IllegalArgumentException(String.format("Cannot add mandatory parameter %s after optional parameters", token));
     }
@@ -38,7 +38,7 @@ public class DefaultPathBuilder implements PathBuilder {
     return this;
   }
 
-  public PathBuilder optionalTokenWithPattern(String token, String pattern) {
+  public PathBinderBuilder optionalTokenWithPattern(String token, String pattern) {
     addedOptional = true;
     addedToken = true;
     tokensBuilder.add(token);
@@ -46,7 +46,7 @@ public class DefaultPathBuilder implements PathBuilder {
     return this;
   }
 
-  public PathBuilder token(String token) {
+  public PathBinderBuilder token(String token) {
     if (addedOptional) {
       throw new IllegalArgumentException(String.format("Cannot add mandatory parameter %s after optional parameters", token));
     }
@@ -56,7 +56,7 @@ public class DefaultPathBuilder implements PathBuilder {
     return this;
   }
 
-  public PathBuilder optionalToken(String token) {
+  public PathBinderBuilder optionalToken(String token) {
     addedOptional = true;
     addedToken = true;
     tokensBuilder.add(token);
@@ -64,12 +64,12 @@ public class DefaultPathBuilder implements PathBuilder {
     return this;
   }
 
-  public PathBuilder literalPattern(String pattern) {
+  public PathBinderBuilder literalPattern(String pattern) {
     this.pattern.append(String.format("(?:%s)", pattern));
     return this;
   }
 
-  public PathBuilder literal(String literal) {
+  public PathBinderBuilder literal(String literal) {
     this.pattern.append(String.format("\\Q%s\\E", literal));
     return this;
   }

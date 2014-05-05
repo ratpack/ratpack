@@ -19,7 +19,7 @@ package ratpack.path;
 /**
  * A builder to generate a {@link PathBinder} from a list of tokens and literals.
  */
-public interface PathBuilder {
+public interface PathBinderBuilder {
   /**
    * Add a regular expression parameterized named token to the path.
    *
@@ -27,7 +27,7 @@ public interface PathBuilder {
    * @param pattern the valid regex pattern
    * @return this
    */
-  PathBuilder tokenWithPattern(String token, String pattern);
+  PathBinderBuilder tokenWithPattern(String token, String pattern);
 
   /**
    * Add a regular expression parameterized named optional token to the path.
@@ -36,7 +36,7 @@ public interface PathBuilder {
    * @param pattern the valid regex pattern
    * @return this
    */
-  PathBuilder optionalTokenWithPattern(String token, String pattern);
+  PathBinderBuilder optionalTokenWithPattern(String token, String pattern);
 
   /**
    * Add a token to the path.
@@ -44,7 +44,7 @@ public interface PathBuilder {
    * @param token the name of the token
    * @return this
    */
-  PathBuilder token(String token);
+  PathBinderBuilder token(String token);
 
   /**
    * Add an optional token to the path.
@@ -52,7 +52,7 @@ public interface PathBuilder {
    * @param token the name of the optional token
    * @return this
    */
-  PathBuilder optionalToken(String token);
+  PathBinderBuilder optionalToken(String token);
 
   /**
    * Add a regular expression parameterized literal element to the path.
@@ -60,7 +60,7 @@ public interface PathBuilder {
    * @param pattern the valid regex pattern
    * @return this
    */
-  PathBuilder literalPattern(String pattern);
+  PathBinderBuilder literalPattern(String pattern);
 
   /**
    * Add a literal to the path.
@@ -68,7 +68,7 @@ public interface PathBuilder {
    * @param literal the literal path component
    * @return this
    */
-  PathBuilder literal(String literal);
+  PathBinderBuilder literal(String literal);
 
   /**
    * Generate a {@link PathBinder} from the contents of the builder.
