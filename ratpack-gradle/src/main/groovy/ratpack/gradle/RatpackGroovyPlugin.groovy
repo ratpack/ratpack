@@ -33,7 +33,7 @@ class RatpackGroovyPlugin implements Plugin<Project> {
     def ratpackDependencies = new RatpackDependencies(project.dependencies)
 
     project.dependencies {
-      groovy ratpackDependencies.groovy
+      compile ratpackDependencies.groovy
       testCompile ratpackDependencies.groovyTest
     }
   }
