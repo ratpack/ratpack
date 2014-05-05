@@ -146,7 +146,7 @@ public class TokenPathBinder implements PathBinder {
   }
 
   private String decodeURIComponent(String s) {
-    String str = null;
+    String str;
     try {
       str = URLDecoder.decode(s.replaceAll("\\+", "%2B"), "UTF-8");
     } catch (UnsupportedEncodingException ignored) {
