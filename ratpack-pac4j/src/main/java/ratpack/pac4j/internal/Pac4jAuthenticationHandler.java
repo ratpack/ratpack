@@ -16,17 +16,15 @@
 
 package ratpack.pac4j.internal;
 
-import org.pac4j.core.client.BaseClient;
-import org.pac4j.core.client.Client;
-import org.pac4j.core.credentials.Credentials;
+import org.pac4j.core.client.Clients;
 import org.pac4j.core.exception.RequiresHttpAction;
 import org.pac4j.core.exception.TechnicalException;
 import org.pac4j.core.profile.UserProfile;
+
 import ratpack.func.Action;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.pac4j.Authorizer;
-import ratpack.server.PublicAddress;
 import ratpack.session.store.SessionStorage;
 
 import java.util.concurrent.Callable;
@@ -37,25 +35,24 @@ import static ratpack.pac4j.internal.SessionConstants.USER_PROFILE;
 /**
  * Filters requests to apply authentication and authorization as required.
  *
- * @param <C> The {@link org.pac4j.core.credentials.Credentials} type
  * @param <U> The {@link org.pac4j.core.profile.UserProfile} type
  */
-public class Pac4jAuthenticationHandler<C extends Credentials, U extends UserProfile> implements Handler {
-  private final Client<C, U> client;
+public class Pac4jAuthenticationHandler<U extends UserProfile> implements Handler {
+  private final Clients clients;
+  private final String name;
   private final Authorizer<U> authorizer;
-  private final String callbackPath;
 
   /**
    * Constructs a new instance.
    *
-   * @param client The client to use for authentication
+   * @param clients The defined clients
+   * @param name The name of the client to use for authentication
    * @param authorizer The authorizer to user for authorization
-   * @param callbackPath the path to use for callbacks from the identity provider
    */
-  public Pac4jAuthenticationHandler(Client<C, U> client, Authorizer<U> authorizer, String callbackPath) {
-    this.client = client;
+  public Pac4jAuthenticationHandler(Clients clients, String name, Authorizer<U> authorizer) {
+    this.clients = clients;
+    this.name = name;
     this.authorizer = authorizer;
-    this.callbackPath = callbackPath;
   }
 
   @Override
@@ -81,16 +78,11 @@ public class Pac4jAuthenticationHandler<C extends Credentials, U extends UserPro
 
   private void initiateAuthentication(final Context context) {
     context.getRequest().get(SessionStorage.class).put(SAVED_URI, context.getRequest().getUri());
-    if (client instanceof BaseClient) {
-      PublicAddress publicAddress = context.get(PublicAddress.class);
-      String callbackUrl = publicAddress.getAddress(context).toString() + "/" + callbackPath;
-      ((BaseClient) client).setCallbackUrl(callbackUrl);
-    }
     final RatpackWebContext webContext = new RatpackWebContext(context);
     context.blocking(new Callable<Void>() {
       @Override
       public Void call() throws Exception {
-        client.redirect(webContext, false, false);
+        clients.findClient(name).redirect(webContext, true, false);
         return null;
       }
     }).onError(new Action<Throwable>() {
