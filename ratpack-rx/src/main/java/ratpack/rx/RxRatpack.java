@@ -240,14 +240,14 @@ public abstract class RxRatpack {
    * A similar example in the Groovy DSL would look like:
    * </p>
    * <pre class="groovy-chain-dsl">
-   * import static ratpack.rx.RxRatpack.observe;
+   * import static ratpack.rx.RxRatpack.observe
    *
    * handler {
    *   observe(blocking {
    *     // do some blocking IO
    *     "hello world"
-   *   }) map { String input ->
-   *     input.toUpperCase()
+   *   }) map {
+   *     it.toUpperCase()
    *   } subscribe {
    *     render it // renders: HELLO WORLD
    *   }
