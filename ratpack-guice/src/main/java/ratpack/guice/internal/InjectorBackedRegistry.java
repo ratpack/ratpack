@@ -137,14 +137,15 @@ public class InjectorBackedRegistry implements Registry {
 
   @Override
   public <T> boolean first(TypeToken<T> type, Predicate<? super T> predicate, Action<? super T> action) throws Exception {
-    T object = maybeGet(type);
-    if (object != null && predicate.apply(object)) {
-      action.execute(object);
-      return true;
-    } else {
-      return false;
+    List<Provider<?>> providers = getProviders(type);
+    for(Provider<?> provider : providers) {
+      @SuppressWarnings("unchecked") T cast = (T) provider.get();
+      if (predicate.apply(cast)) {
+        action.execute(cast);
+        return true;
+      }
     }
-
+    return false;
   }
 
   @Override
