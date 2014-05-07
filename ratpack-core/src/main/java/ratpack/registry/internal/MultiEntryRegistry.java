@@ -86,10 +86,10 @@ public class MultiEntryRegistry<T> implements Registry {
 
   @Nullable
   @Override
-  public <T> T first(TypeToken<T> type, Predicate<? super T> predicate) {
+  public <O> O first(TypeToken<O> type, Predicate<? super O> predicate) {
     for (RegistryEntry<?> entry : entries) {
       if (type.isAssignableFrom(entry.getType())) {
-        @SuppressWarnings("unchecked") T cast = (T) entry.get();
+        @SuppressWarnings("unchecked") O cast = (O) entry.get();
         if (predicate.apply(cast)) {
           return cast;
         }
@@ -99,11 +99,11 @@ public class MultiEntryRegistry<T> implements Registry {
   }
 
   @Override
-  public <T> List<? extends T> all(TypeToken<T> type, Predicate<? super T> predicate) {
-    ImmutableList.Builder<T> builder = ImmutableList.builder();
+  public <O> List<? extends O> all(TypeToken<O> type, Predicate<? super O> predicate) {
+    ImmutableList.Builder<O> builder = ImmutableList.builder();
     for (RegistryEntry<?> entry : entries) {
       if (type.isAssignableFrom(entry.getType())) {
-        @SuppressWarnings("unchecked") T cast = (T) entry.get();
+        @SuppressWarnings("unchecked") O cast = (O) entry.get();
         if (predicate.apply(cast)) {
           builder.add(cast);
         }
@@ -113,10 +113,10 @@ public class MultiEntryRegistry<T> implements Registry {
   }
 
   @Override
-  public <T> boolean first(TypeToken<T> type, Predicate<? super T> predicate, Action<? super T> action) throws Exception {
+  public <O> boolean first(TypeToken<O> type, Predicate<? super O> predicate, Action<? super O> action) throws Exception {
     for (RegistryEntry<?> entry : entries) {
       if (type.isAssignableFrom(entry.getType())) {
-        @SuppressWarnings("unchecked") T cast = (T) entry.get();
+        @SuppressWarnings("unchecked") O cast = (O) entry.get();
         if (predicate.apply(cast)) {
           action.execute(cast);
           return true;
@@ -127,11 +127,11 @@ public class MultiEntryRegistry<T> implements Registry {
   }
 
   @Override
-  public <T> boolean each(TypeToken<T> type, Predicate<? super T> predicate, Action<? super T> action) throws Exception {
+  public <O> boolean each(TypeToken<O> type, Predicate<? super O> predicate, Action<? super O> action) throws Exception {
     boolean foundMatch = false;
     for (RegistryEntry<?> entry : entries) {
       if (type.isAssignableFrom(entry.getType())) {
-        @SuppressWarnings("unchecked") T cast = (T) entry.get();
+        @SuppressWarnings("unchecked") O cast = (O) entry.get();
         if (predicate.apply(cast)) {
           action.execute(cast);
           foundMatch = true;
