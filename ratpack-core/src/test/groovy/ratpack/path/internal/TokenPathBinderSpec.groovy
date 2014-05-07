@@ -17,12 +17,13 @@
 package ratpack.path.internal
 
 import ratpack.path.PathBinding
+import ratpack.path.PathBinders
 import spock.lang.Specification
 
 class TokenPathBinderSpec extends Specification {
 
   PathBinding bind(String pattern, String path, boolean exact = false, PathBinding parent = null) {
-    TokenPathBinder.build(pattern, exact).bind(path, parent)
+    PathBinders.parse(pattern, exact).bind(path, parent)
   }
 
   Map<String, String> tokens(String pattern, String path, boolean exact = false, PathBinding parent = null) {

@@ -27,8 +27,8 @@ import ratpack.http.internal.HeaderHandler;
 import ratpack.http.internal.MethodHandler;
 import ratpack.launch.LaunchConfig;
 import ratpack.path.PathBinder;
+import ratpack.path.PathBinders;
 import ratpack.path.internal.PathHandler;
-import ratpack.path.internal.TokenPathBinder;
 import ratpack.registry.Registry;
 
 import java.util.List;
@@ -240,7 +240,7 @@ public abstract class Handlers {
    * @return A handler
    */
   public static Handler path(String path, Handler handler) {
-    return path(TokenPathBinder.build(path, true), handler);
+    return path(PathBinders.parse(path, true), handler);
   }
 
   /**
@@ -276,7 +276,7 @@ public abstract class Handlers {
    * @return A handler
    */
   public static Handler prefix(String prefix, Handler handler) {
-    return path(TokenPathBinder.build(prefix, false), handler);
+    return path(PathBinders.parse(prefix, false), handler);
   }
 
   /**
