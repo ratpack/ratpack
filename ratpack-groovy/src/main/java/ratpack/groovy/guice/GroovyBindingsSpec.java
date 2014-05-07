@@ -18,12 +18,12 @@ package ratpack.groovy.guice;
 
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
-import ratpack.guice.ModuleRegistry;
+import ratpack.guice.BindingsSpec;
 
 /**
- * Groovy specific extensions to {@link ratpack.guice.ModuleRegistry}.
+ * Groovy specific extensions to {@link ratpack.guice.BindingsSpec}.
  */
-public interface GroovyModuleRegistry extends ModuleRegistry {
+public interface GroovyBindingsSpec extends BindingsSpec {
 
   /**
    * Adds a closure based application initializer.

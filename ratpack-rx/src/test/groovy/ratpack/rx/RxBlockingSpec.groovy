@@ -52,7 +52,7 @@ class RxBlockingSpec extends RatpackGroovyDslSpec {
 
   def "blocking errors are sent to the context renderer"() {
     when:
-    modules {
+    bindings {
       bind ServerErrorHandler, new DebugErrorHandler()
     }
     handlers {

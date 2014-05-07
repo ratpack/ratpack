@@ -34,8 +34,8 @@ class RemoteControlSpec extends RatpackGroovyDslSpec {
   final Map<String, String> enabled = ['remoteControl.enabled': 'true'].asImmutable()
 
   def setup() {
-    modules {
-      register new RemoteControlModule()
+    bindings {
+      add new RemoteControlModule()
     }
   }
 
@@ -81,8 +81,8 @@ class RemoteControlSpec extends RatpackGroovyDslSpec {
   @Unroll
   void 'sending a simple command - #scenario'() {
     given:
-    modules {
-      register new RemoteControlModule(path: modulePath)
+    bindings {
+      add new RemoteControlModule(path: modulePath)
     }
     launchConfig { other(*: enabled, *: otherConfig) }
 

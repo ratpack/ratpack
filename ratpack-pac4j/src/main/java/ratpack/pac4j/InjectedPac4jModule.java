@@ -63,26 +63,28 @@ import java.lang.reflect.Type;
  *   }
  * }
  *
- * class ModuleBootstrap implements Action&lt;ModuleRegistry&gt; {
- *   public void execute(ModuleRegistry modules) {
- *     modules.register(new SessionModule());
- *     modules.register(new MapSessionsModule(10, 5));
- *     modules.register(new InjectedPac4jModule&lt;&gt;(OpenIdCredentials.class, GoogleOpenIdProfile.class));
- *     modules.register(new AbstractModule() {
- *       protected void configure() {
- *         bind(new TypeLiteral&lt;Client&lt;OpenIdCredentials, GoogleOpenIdProfile&gt;&gt;() {}).to(GoogleOpenIdClient.class);
- *         bind(new TypeLiteral&lt;Authorizer&lt;GoogleOpenIdProfile&gt;&gt;() {}).to(AuthenticateAllAuthorizer.class);
+ * class Bindings implements Action&lt;BindingsSpec&gt; {
+ *   public void execute(BindingsSpec bindings) {
+ *     bindings.add(
+ *       new SessionModule(),
+ *       new MapSessionsModule(10, 5),
+ *       new InjectedPac4jModule&lt;&gt;(OpenIdCredentials.class, GoogleOpenIdProfile.class),
+ *       new AbstractModule() {
+ *         protected void configure() {
+ *           bind(new TypeLiteral&lt;Client&lt;OpenIdCredentials, GoogleOpenIdProfile&gt;&gt;() {}).to(GoogleOpenIdClient.class);
+ *           bind(new TypeLiteral&lt;Authorizer&lt;GoogleOpenIdProfile&gt;&gt;() {}).to(AuthenticateAllAuthorizer.class);
+ *         }
  *       }
- *     });
+ *     );
  *   }
  * }
  *
  * LaunchConfig launchConfig = LaunchConfigBuilder.baseDir(new File("appRoot"))
  *   .build(new HandlerFactory() {
  *     public Handler create(LaunchConfig launchConfig) throws Exception {
- *       return Guice.handler(launchConfig, new ModuleBootstrap(), new Action&lt;Chain&gt;() {
- *         public void execute(Chain chain) {
- *           chain.handler(new MyHandler());
+ *       return Guice.handler(launchConfig, new Bindings(), new ChainAction() {
+ *         protected void execute() {
+ *           handler(new MyHandler());
  *         }
  *       });
  *     }
@@ -110,16 +112,16 @@ import java.lang.reflect.Type;
  * }
  *
  * ratpack {
- *   modules {
- *     register new SessionModule()
- *     register new MapSessionsModule(10, 5)
- *     register new InjectedPac4jModule&lt;&gt;(OpenIdCredentials, GoogleOpenIdProfile)
- *     register new AbstractModule() {
- *       protected void configure() {
- *         bind(new TypeLiteral&lt;Client&lt;OpenIdCredentials, GoogleOpenIdProfile&gt;&gt;() {}).to(GoogleOpenIdClient)
- *         bind(new TypeLiteral&lt;Authorizer&lt;GoogleOpenIdProfile&gt;&gt;() {}).to(AuthenticateAllAuthorizer)
- *       }
- *     }
+ *   bindings {
+ *     add new SessionModule(),
+ *         new MapSessionsModule(10, 5),
+ *         new InjectedPac4jModule&lt;&gt;(OpenIdCredentials, GoogleOpenIdProfile),
+ *         new AbstractModule() {
+ *           protected void configure() {
+ *             bind(new TypeLiteral&lt;Client&lt;OpenIdCredentials, GoogleOpenIdProfile&gt;&gt;() {}).to(GoogleOpenIdClient)
+ *             bind(new TypeLiteral&lt;Authorizer&lt;GoogleOpenIdProfile&gt;&gt;() {}).to(AuthenticateAllAuthorizer)
+ *           }
+ *         }
  *   }
  *   handlers {
  *     get {

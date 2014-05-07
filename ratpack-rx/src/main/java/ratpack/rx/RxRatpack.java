@@ -155,7 +155,7 @@ public abstract class RxRatpack {
    * import static ratpack.groovy.test.TestHttpClients.testHttpClient
    *
    * def app = embeddedApp {
-   *   modules {
+   *   bindings {
    *     // Enable Rx integration
    *     RxRatpack.initialize()
    *

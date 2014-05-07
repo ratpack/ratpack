@@ -25,7 +25,7 @@ class DebugErrorHandlerSpec extends RatpackGroovyDslSpec {
     def e = new RuntimeException("!")
 
     when:
-    modules {
+    bindings {
       bind ServerErrorHandler, new DebugErrorHandler()
       bind ClientErrorHandler, new DebugErrorHandler()
     }

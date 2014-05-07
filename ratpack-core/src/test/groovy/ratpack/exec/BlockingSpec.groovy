@@ -47,7 +47,7 @@ class BlockingSpec extends RatpackGroovyDslSpec {
 
   def "by default errors during blocking operations are forwarded to server error handler"() {
     when:
-    modules {
+    bindings {
       bind ServerErrorHandler, DebugErrorHandler
     }
     handlers {
@@ -88,7 +88,7 @@ class BlockingSpec extends RatpackGroovyDslSpec {
 
   def "errors in custom error handlers are forwarded to the server error handler"() {
     when:
-    modules {
+    bindings {
       bind ServerErrorHandler, DebugErrorHandler
     }
     handlers {
@@ -110,7 +110,7 @@ class BlockingSpec extends RatpackGroovyDslSpec {
 
   def "errors in success handlers are forwarded to the server error handler"() {
     when:
-    modules {
+    bindings {
       bind ServerErrorHandler, DebugErrorHandler
     }
     handlers {
@@ -132,7 +132,7 @@ class BlockingSpec extends RatpackGroovyDslSpec {
 
   def "closure arg type mismatch errors on success handler are handled well"() {
     when:
-    modules {
+    bindings {
       bind ServerErrorHandler, DebugErrorHandler
     }
     handlers {
@@ -153,7 +153,7 @@ class BlockingSpec extends RatpackGroovyDslSpec {
 
   def "closure arg type mismatch errors on error handler are handled well"() {
     when:
-    modules {
+    bindings {
       bind ServerErrorHandler, DebugErrorHandler
     }
     handlers {

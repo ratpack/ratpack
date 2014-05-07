@@ -24,13 +24,13 @@ import ratpack.func.Action;
 import ratpack.func.Factory;
 import ratpack.func.Transformer;
 import ratpack.groovy.Groovy;
-import ratpack.groovy.guice.GroovyModuleRegistry;
-import ratpack.groovy.guice.internal.DefaultGroovyModuleRegistry;
+import ratpack.groovy.guice.GroovyBindingsSpec;
+import ratpack.groovy.guice.internal.DefaultGroovyBindingsSpec;
 import ratpack.groovy.handling.GroovyChain;
 import ratpack.groovy.internal.ClosureUtil;
+import ratpack.guice.BindingsSpec;
 import ratpack.guice.Guice;
 import ratpack.guice.GuiceBackedHandlerFactory;
-import ratpack.guice.ModuleRegistry;
 import ratpack.guice.internal.DefaultGuiceBackedHandlerFactory;
 import ratpack.handling.Handler;
 import ratpack.launch.HandlerFactory;
@@ -73,8 +73,8 @@ import static ratpack.groovy.internal.ClosureUtil.configureDelegateFirst;
  *   }
  *
  *   // Configure the module registry
- *   modules {
- *     register new SessionModule()
+ *   bindings {
+ *     add new SessionModule()
  *   }
  *
  *   // Use the GroovyChain DSL for defining the application handlers
@@ -102,7 +102,7 @@ import static ratpack.groovy.internal.ClosureUtil.configureDelegateFirst;
 public class ClosureBackedEmbeddedApplication extends LaunchConfigEmbeddedApplication {
 
   private Closure<?> handlersClosure = ClosureUtil.noop();
-  private Closure<?> modulesClosure = ClosureUtil.noop();
+  private Closure<?> bindingsClosure = ClosureUtil.noop();
   private Closure<?> launchConfigClosure = ClosureUtil.noop();
 
   private final List<Module> modules = new LinkedList<>();
@@ -112,7 +112,8 @@ public class ClosureBackedEmbeddedApplication extends LaunchConfigEmbeddedApplic
   /**
    * Constructor.
    */
-  public ClosureBackedEmbeddedApplication() { }
+  public ClosureBackedEmbeddedApplication() {
+  }
 
   /**
    * Constructor.
@@ -154,7 +155,7 @@ public class ClosureBackedEmbeddedApplication extends LaunchConfigEmbeddedApplic
    * A launch config will be created using {@link LaunchConfigBuilder#baseDir(java.io.File)}, with the path returned by the factory given at construction.
    * The launch config will also default to using a port value of {@code 0} (i.e. an ephemeral port).
    * <p>
-   * Register modules and objects using the {@link #modules(groovy.lang.Closure)} method.
+   * Register modules and objects using the {@link #bindings(groovy.lang.Closure)} method.
    * <p>
    * Define the handlers using the {@link #handlers(groovy.lang.Closure)} method.
    * <p>
@@ -179,7 +180,7 @@ public class ClosureBackedEmbeddedApplication extends LaunchConfigEmbeddedApplic
 
     configureDelegateFirst(launchConfigBuilder, launchConfigClosure);
 
-    final Action<? super ModuleRegistry> modulesAction = createModulesAction();
+    final Action<? super BindingsSpec> bindingsAction = createBindingsAction();
 
     return launchConfigBuilder.build(new HandlerFactory() {
       public Handler create(LaunchConfig launchConfig) throws Exception {
@@ -187,7 +188,7 @@ public class ClosureBackedEmbeddedApplication extends LaunchConfigEmbeddedApplic
         Transformer<? super Module, ? extends Injector> injectorFactory = createInjectorFactory(launchConfig);
         Transformer<? super Injector, ? extends Handler> handlerTransformer = createHandlerTransformer(launchConfig);
 
-        return handlerFactory.create(modulesAction, injectorFactory, handlerTransformer);
+        return handlerFactory.create(bindingsAction, injectorFactory, handlerTransformer);
       }
     });
   }
@@ -207,7 +208,7 @@ public class ClosureBackedEmbeddedApplication extends LaunchConfigEmbeddedApplic
   }
 
   /**
-   * Specifies the modules of the application.
+   * Specifies the bindings of the application.
    * <p>
    * The given closure will not be executed until this application is started.
    * <p>
@@ -216,8 +217,8 @@ public class ClosureBackedEmbeddedApplication extends LaunchConfigEmbeddedApplic
    *
    * @param closure The definition of the application handlers
    */
-  public void modules(@DelegatesTo(value = GroovyModuleRegistry.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) {
-    this.modulesClosure = closure;
+  public void bindings(@DelegatesTo(value = GroovyBindingsSpec.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) {
+    this.bindingsClosure = closure;
   }
 
   /**
@@ -262,18 +263,16 @@ public class ClosureBackedEmbeddedApplication extends LaunchConfigEmbeddedApplic
   /**
    * Provides the module registry configuration action.
    * <p>
-   * This implementation creates an action that registers {@link #getModules()} in order, then executes the closure given with {@link #modules(groovy.lang.Closure)}.
+   * This implementation creates an action that registers {@link #getModules()} in order, then executes the closure given with {@link #bindings(groovy.lang.Closure)}.
    *
    * @return The module registry configuration action
    */
-  protected Action<? super ModuleRegistry> createModulesAction() {
-    return new Action<ModuleRegistry>() {
+  protected Action<? super BindingsSpec> createBindingsAction() {
+    return new Action<BindingsSpec>() {
       @Override
-      public void execute(ModuleRegistry moduleRegistry) throws Exception {
-        for (Module module : modules) {
-          moduleRegistry.register(module);
-        }
-        configureDelegateFirst(new DefaultGroovyModuleRegistry(moduleRegistry), modulesClosure);
+      public void execute(BindingsSpec bindingsSpec) throws Exception {
+        bindingsSpec.add(modules);
+        configureDelegateFirst(new DefaultGroovyBindingsSpec(bindingsSpec), bindingsClosure);
       }
     };
   }

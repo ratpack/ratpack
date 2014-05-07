@@ -41,7 +41,7 @@ class ControlInjectionSpec extends RatpackGroovyDslSpec {
 
   def "support services can have control injected"() {
     when:
-    modules {
+    bindings {
       bind SupportService
     }
 

@@ -68,18 +68,18 @@ import java.util.Set;
  *   }
  * }
  *
- * class ModuleBootstrap implements Action&lt;ModuleRegistry&gt; {
- *   public void execute(ModuleRegistry modules) {
- *     modules.register(new ThymeleafModule());
+ * class Bindings implements Action&lt;BindingsSpec&gt; {
+ *   public void execute(BindingsSpec bindings) {
+ *     bindings.add(new ThymeleafModule());
  *   }
  * }
  *
  * LaunchConfig launchConfig = LaunchConfigBuilder.baseDir(new File("appRoot"))
  *     .build(new HandlerFactory() {
  *   public Handler create(LaunchConfig launchConfig) {
- *     return Guice.handler(launchConfig, new ModuleBootstrap(), new Action&lt;Chain&gt;() {
- *       public void execute(Chain chain) {
- *         chain.handler(chain.getRegistry().get(MyHandler.class));
+ *     return Guice.handler(launchConfig, new Bindings(), new ChainAction() {
+ *       protected void execute() {
+ *         handler(chain.getRegistry().get(MyHandler.class));
  *       }
  *     });
  *   }
@@ -93,8 +93,8 @@ import java.util.Set;
  * import static ratpack.groovy.Groovy.ratpack
  *
  * ratpack {
- *   modules {
- *     register new ThymeleafModule()
+ *   bindings {
+ *     add new ThymeleafModule()
  *   }
  *   handlers {
  *     get {
@@ -144,9 +144,9 @@ import java.util.Set;
  * }
  *
  * ratpack {
- *   modules {
- *     register new ThymeleafModule()
- *     register new HelloDialectModule()
+ *   bindings {
+ *     add new ThymeleafModule(),
+ *         new HelloDialectModule()
  *   }
  *   handlers {
  *     get {

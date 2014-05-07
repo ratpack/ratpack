@@ -55,20 +55,22 @@ import ratpack.pac4j.internal.AbstractPac4jModule;
  *   }
  * }
  *
- * class ModuleBootstrap implements Action&lt;ModuleRegistry&gt; {
- *   public void execute(ModuleRegistry modules) {
- *     modules.register(new SessionModule());
- *     modules.register(new MapSessionsModule(10, 5));
- *     modules.register(new Pac4jModule&lt;&gt;(new GoogleOpenIdClient(), new AuthenticateAllAuthorizer()));
+ * class Bindings implements Action&lt;BindingsSpec&gt; {
+ *   public void execute(BindingsSpec bindings) {
+ *     bindings.add(
+ *       new SessionModule(),
+ *       new MapSessionsModule(10, 5),
+ *       new Pac4jModule&lt;&gt;(new GoogleOpenIdClient(), new AuthenticateAllAuthorizer())
+ *     );
  *   }
  * }
  *
  * LaunchConfig launchConfig = LaunchConfigBuilder.baseDir(new File("appRoot"))
  *   .build(new HandlerFactory() {
  *     public Handler create(LaunchConfig launchConfig) throws Exception {
- *       return Guice.handler(launchConfig, new ModuleBootstrap(), new Action&lt;Chain&gt;() {
- *         public void execute(Chain chain) {
- *           chain.handler(new MyHandler());
+ *       return Guice.handler(launchConfig, new Bindings(), new ChainAction() {
+ *         protected void execute() {
+ *           handler(new MyHandler());
  *         }
  *       });
  *     }
@@ -93,10 +95,10 @@ import ratpack.pac4j.internal.AbstractPac4jModule;
  * }
  *
  * ratpack {
- *   modules {
- *     register new SessionModule()
- *     register new MapSessionsModule(10, 5)
- *     register new Pac4jModule&lt;&gt;(new GoogleOpenIdClient(), new AuthenticateAllAuthorizer())
+ *   bindings {
+ *     add new SessionModule(),
+ *         new MapSessionsModule(10, 5),
+ *         new Pac4jModule&lt;&gt;(new GoogleOpenIdClient(), new AuthenticateAllAuthorizer())
  *   }
  *   handlers {
  *     get {

@@ -14,12 +14,14 @@ import static ratpack.groovy.Groovy.ratpack
 import static ratpack.registry.Registries.just
 
 ratpack {
-  modules {
-    register new JacksonModule()
-    register new CodaHaleMetricsModule().metrics()
-    register new SiteModule(launchConfig)
-    register new RemoteControlModule()
-    get(TemplatingModule).staticallyCompile = true
+  bindings {
+    add \
+      new JacksonModule(),
+      new CodaHaleMetricsModule().metrics(),
+      new SiteModule(launchConfig),
+      new RemoteControlModule()
+
+    config(TemplatingModule).staticallyCompile = true
 
     RxRatpack.initialize()
   }

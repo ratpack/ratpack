@@ -16,7 +16,7 @@
 
 package ratpack.groovy
 
-import ratpack.groovy.guice.GroovyModuleRegistry
+import ratpack.groovy.guice.GroovyBindingsSpec
 import ratpack.groovy.handling.GroovyChain
 import ratpack.groovy.internal.RatpackScriptBacking
 import ratpack.groovy.templating.EphemeralPortScriptBacking
@@ -84,8 +84,8 @@ class StandaloneScriptSpec extends RatpackGroovyScriptAppSpec {
     when:
     script """
       ratpack {
-        modules {
-          assert delegate instanceof $GroovyModuleRegistry.name
+        bindings {
+          assert delegate instanceof $GroovyBindingsSpec.name
         }
         handlers {
           assert delegate instanceof $GroovyChain.name

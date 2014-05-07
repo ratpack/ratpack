@@ -63,8 +63,8 @@ class HealthchecksSpec extends RatpackGroovyDslSpec {
 
   def "can register healthcheck"() {
     when:
-    modules {
-      register new CodaHaleMetricsModule().healthChecks()
+    bindings {
+      add new CodaHaleMetricsModule().healthChecks()
       bind MyHealthCheck
     }
     handlers { HealthCheckRegistry healthChecks ->
@@ -89,8 +89,8 @@ class HealthchecksSpec extends RatpackGroovyDslSpec {
 
   def "can use healthcheck endpoint"() {
     when:
-    modules {
-      register new CodaHaleMetricsModule().healthChecks()
+    bindings {
+      add new CodaHaleMetricsModule().healthChecks()
       bind MyHealthCheck
       bind FooHealthCheck
     }
@@ -105,8 +105,8 @@ class HealthchecksSpec extends RatpackGroovyDslSpec {
 
   def "non existent health check returns 404"() {
     when:
-    modules {
-      register new CodaHaleMetricsModule().healthChecks()
+    bindings {
+      add new CodaHaleMetricsModule().healthChecks()
       bind MyHealthCheck
       bind FooHealthCheck
     }
@@ -135,9 +135,8 @@ class HealthchecksSpec extends RatpackGroovyDslSpec {
 
   def "can use healthcheck endpoint with custom renderer"() {
     when:
-    modules {
-      register new CodaHaleMetricsModule().healthChecks()
-      register new JacksonModule().noPrettyPrint()
+    bindings {
+      add new CodaHaleMetricsModule().healthChecks(), new JacksonModule().noPrettyPrint()
       bind MyHealthCheck
       bind FooHealthCheck
       bind HealthCheckJsonRenderer

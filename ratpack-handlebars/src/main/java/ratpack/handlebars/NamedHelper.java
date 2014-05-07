@@ -42,9 +42,9 @@ import com.github.jknack.handlebars.Helper;
  *   }
  * }
  *
- * class ModuleBootstrap implements Action&lt;ModuleRegistry&gt; {
- *   public void execute(ModuleRegistry modules) {
- *     modules.bind(MultiplyHelper.class)
+ * class ModuleBootstrap implements Action&lt;BindingsSpec&gt; {
+ *   public void execute(BindingsSpec bindings) {
+ *     bindings.bind(MultiplyHelper.class)
  *   }
  * }
  *
@@ -61,7 +61,7 @@ import com.github.jknack.handlebars.Helper;
  *
  * Example usage: (Groovy DSL)
  * <pre>
- * modules {
+ * bindings {
  *   bind MultiplyHelper
  * }
  * </pre>
