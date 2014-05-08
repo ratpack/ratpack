@@ -26,6 +26,7 @@ import com.google.common.util.concurrent.UncheckedExecutionException;
 import ratpack.api.Nullable;
 import ratpack.func.Action;
 import ratpack.registry.NotInRegistryException;
+import ratpack.registry.PredicateCacheability;
 import ratpack.registry.Registry;
 
 import java.util.List;
@@ -48,6 +49,17 @@ public class CachingRegistry implements Registry {
   private final LoadingCache<TypeToken<?>, List<?>> allCache = CacheBuilder.newBuilder().build(new CacheLoader<TypeToken<?>, List<?>>() {
     public List<?> load(TypeToken<?> key) throws Exception {
       return delegate.getAll(key);
+    }
+  });
+
+  private LoadingCache<PredicateCacheability.CacheKey<?>, List<?>> predicateCache = CacheBuilder.newBuilder().build(new CacheLoader<PredicateCacheability.CacheKey<?>, List<?>>() {
+    @Override
+    public List<?> load(@SuppressWarnings("NullableProblems") PredicateCacheability.CacheKey<?> key) throws Exception {
+      return getAll(key);
+    }
+
+    private <T> List<? extends T> getAll(PredicateCacheability.CacheKey<T> key) {
+      return delegate.all(key.type, key.predicate);
     }
   });
 
@@ -100,27 +112,57 @@ public class CachingRegistry implements Registry {
     }
   }
 
-  // No caching of searches until the details of predicate equality are worked out
+  private <T> List<T> getFromPredicateCache(TypeToken<T> type, Predicate<? super T> predicate) {
+    try {
+      @SuppressWarnings("unchecked") List<T> objects = (List<T>) predicateCache.get(new PredicateCacheability.CacheKey<T>(type, predicate));
+      return objects;
+    } catch (ExecutionException | UncheckedExecutionException e) {
+      throw uncheck(toException(e.getCause()));
+    }
+  }
 
   @Nullable
   @Override
   public <T> T first(TypeToken<T> type, Predicate<? super T> predicate) {
-    return delegate.first(type, predicate);
+    if (PredicateCacheability.isCacheable(predicate)) {
+      List<T> objects = getFromPredicateCache(type, predicate);
+      if (objects.isEmpty()) {
+        return null;
+      } else {
+        return objects.get(0);
+      }
+    } else {
+      return delegate.first(type, predicate);
+    }
   }
 
   @Override
   public <T> List<? extends T> all(TypeToken<T> type, Predicate<? super T> predicate) {
-    return delegate.all(type, predicate);
+    if (PredicateCacheability.isCacheable(predicate)) {
+      return getFromPredicateCache(type, predicate);
+    } else {
+      return delegate.all(type, predicate);
+    }
   }
 
   @Override
   public <T> boolean first(TypeToken<T> type, Predicate<? super T> predicate, Action<? super T> action) throws Exception {
-    return delegate.first(type, predicate, action);
+    T first = first(type, predicate);
+    if (first == null) {
+      return false;
+    } else {
+      action.execute(first);
+      return true;
+    }
   }
 
   @Override
   public <T> boolean each(TypeToken<T> type, Predicate<? super T> predicate, Action<? super T> action) throws Exception {
-    return delegate.each(type, predicate, action);
+    List<? extends T> all = all(type, predicate);
+    for (T item : all) {
+      action.execute(item);
+    }
+    return !all.isEmpty();
   }
 
 }
