@@ -16,35 +16,50 @@
 
 package ratpack.render.internal;
 
+import com.google.common.base.Predicate;
+import com.google.common.reflect.TypeToken;
+import ratpack.func.Action;
 import ratpack.handling.Context;
 import ratpack.render.NoSuchRendererException;
 import ratpack.render.Renderer;
 import ratpack.render.RendererException;
 
-import java.util.List;
+import static ratpack.util.ExceptionUtils.uncheck;
 
 public class DefaultRenderController implements RenderController {
 
   @Override
-  public void render(Object object, Context context) {
+  public void render(final Object object, final Context context) {
     if (object == null) {
       context.clientError(404);
       return;
     }
 
-    @SuppressWarnings("rawtypes")
-    List<Renderer> all = context.getAll(Renderer.class);
-    for (Renderer<?> renderer : all) {
-      try {
-        if (maybeRender(object, renderer, context)) {
-          return;
+    try {
+      @SuppressWarnings("rawtypes")
+      boolean found = context.first(TypeToken.of(Renderer.class), new Predicate<Renderer>() {
+        @Override
+        public boolean apply(Renderer renderer) {
+          return renderer.getType().isInstance(object);
         }
-      } catch (Exception e) {
-        throw new RendererException(renderer, object, e);
-      }
-    }
+      }, new Action<Renderer>() {
+        @Override
+        public void execute(Renderer renderer) throws Exception {
+          try {
+            maybeRender(object, (Renderer<?>) renderer, context);
+          } catch (Exception e) {
+            throw new RendererException(renderer, object, e);
+          }
+        }
+      });
 
-    throw new NoSuchRendererException(object);
+      if (!found) {
+        throw new NoSuchRendererException(object);
+      }
+
+    } catch (Exception e) {
+      throw uncheck(e);
+    }
   }
 
   private <T> boolean maybeRender(Object object, Renderer<T> renderer, Context context) throws Exception {
