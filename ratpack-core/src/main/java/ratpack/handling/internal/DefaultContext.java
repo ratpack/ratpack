@@ -224,7 +224,13 @@ public class DefaultContext extends AbstractExecContext implements Context {
   }
 
   public void render(Object object) throws NoSuchRendererException {
-    requestConstants.applicationConstants.renderController.render(object, this);
+    try {
+      requestConstants.applicationConstants.renderController.render(object, this);
+    } catch (NoSuchRendererException e) {
+      throw e;
+    } catch (Exception e) {
+      error(e);
+    }
   }
 
   @Override

@@ -17,7 +17,6 @@
 package ratpack.render;
 
 import ratpack.api.NonBlocking;
-import ratpack.api.Nullable;
 import ratpack.handling.Context;
 
 /**
@@ -38,7 +37,6 @@ public interface Renderer<T> {
    *
    * @return The type of object that this renderer can render.
    */
-  @Nullable
   Class<T> getType();
 
   /**

@@ -20,6 +20,6 @@ import ratpack.handling.Context;
 
 public interface RenderController {
 
-  void render(Object object, Context context);
+  void render(Object object, Context context) throws Exception;
 
 }

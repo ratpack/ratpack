@@ -24,52 +24,69 @@ import ratpack.render.NoSuchRendererException;
 import ratpack.render.Renderer;
 import ratpack.render.RendererException;
 
-import static ratpack.util.ExceptionUtils.uncheck;
-
 public class DefaultRenderController implements RenderController {
 
+  private static final TypeToken<Renderer<?>> RENDERER_TYPE_TOKEN = new TypeToken<Renderer<?>>() {
+    private static final long serialVersionUID = 0;
+  };
+
   @Override
-  public void render(final Object object, final Context context) {
-    if (object == null) {
+  public void render(final Object toRender, final Context context) throws Exception {
+    if (toRender == null) {
       context.clientError(404);
       return;
     }
 
-    try {
-      @SuppressWarnings("rawtypes")
-      boolean found = context.first(TypeToken.of(Renderer.class), new Predicate<Renderer>() {
-        @Override
-        public boolean apply(Renderer renderer) {
-          return renderer.getType().isInstance(object);
+    boolean found = context.first(RENDERER_TYPE_TOKEN, new RendererForTypePredicate(toRender.getClass()), new Action<Renderer<?>>() {
+      @Override
+      public void execute(Renderer<?> renderer) throws Exception {
+        try {
+          doRender(toRender, renderer, context);
+        } catch (Exception e) {
+          throw new RendererException(renderer, toRender, e);
         }
-      }, new Action<Renderer>() {
-        @Override
-        public void execute(Renderer renderer) throws Exception {
-          try {
-            maybeRender(object, (Renderer<?>) renderer, context);
-          } catch (Exception e) {
-            throw new RendererException(renderer, object, e);
-          }
-        }
-      });
-
-      if (!found) {
-        throw new NoSuchRendererException(object);
       }
 
-    } catch (Exception e) {
-      throw uncheck(e);
+      private <T> void doRender(Object object, Renderer<T> renderer, Context context) throws Exception {
+        @SuppressWarnings("unchecked") T cast = (T) object;
+        renderer.render(context, cast);
+      }
+    });
+
+    if (!found) {
+      throw new NoSuchRendererException(toRender);
     }
   }
 
-  private <T> boolean maybeRender(Object object, Renderer<T> renderer, Context context) throws Exception {
-    if (renderer.getType().isInstance(object)) {
-      @SuppressWarnings("unchecked") T cast = (T) object;
-      renderer.render(context, cast);
-      return true;
-    } else {
-      return false;
+  private static class RendererForTypePredicate implements Predicate<Renderer<?>> {
+    private final Class<?> toRenderType;
+
+    public RendererForTypePredicate(Class<?> toRenderType) {
+      this.toRenderType = toRenderType;
+    }
+
+    @Override
+    public boolean apply(Renderer<?> renderer) {
+      return renderer.getType().isAssignableFrom(toRenderType);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
+
+      RendererForTypePredicate that = (RendererForTypePredicate) o;
+
+      return toRenderType.equals(that.toRenderType);
+    }
+
+    @Override
+    public int hashCode() {
+      return toRenderType.hashCode();
     }
   }
-
 }
