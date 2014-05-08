@@ -65,6 +65,10 @@ import static io.netty.handler.codec.http.HttpResponseStatus.NOT_MODIFIED;
 
 public class DefaultContext extends AbstractExecContext implements Context {
 
+  private static final TypeToken<Parser<?>> PARSER_TYPE_TOKEN = new TypeToken<Parser<?>>() {
+    private static final long serialVersionUID = 0;
+  };
+
   public static class ApplicationConstants {
     private final RenderController renderController;
     private final LaunchConfig launchConfig;
@@ -235,22 +239,25 @@ public class DefaultContext extends AbstractExecContext implements Context {
 
   @Override
   public <T, O> T parse(Parse<T, O> parse) throws ParserException, NoSuchParserException {
-    @SuppressWarnings("rawtypes")
-    List<Parser> all = registry.getAll(Parser.class);
     String requestContentType = requestConstants.request.getBody().getContentType().getType();
     if (requestContentType == null) {
       requestContentType = "text/plain";
     }
-    for (Parser<?> parser : all) {
-      T parsed = maybeParse(requestContentType, parser, parse);
-      if (parsed != null) {
-        return parsed;
+
+    // Don't use an action since the parse result has to be returned
+    Parser<?> parser = registry.first(PARSER_TYPE_TOKEN, new ParserForParsePredicate(parse, requestContentType));
+
+    if (parser != null) {
+      @SuppressWarnings("unchecked") Parser<O> castParser = (Parser<O>) parser;
+      try {
+        return castParser.parse(this, getRequest().getBody(), parse);
+      } catch (Exception e) {
+        throw new ParserException(parser, e);
       }
+    } else {
+      throw new NoSuchParserException(parse.getType(), parse.getOpts(), requestContentType);
     }
-
-    throw new NoSuchParserException(parse.getType(), parse.getOpts(), requestContentType);
   }
-
 
   @Override
   public <T> T parse(Class<T> type) throws NoSuchParserException, ParserException {
@@ -259,22 +266,6 @@ public class DefaultContext extends AbstractExecContext implements Context {
 
   public <T, O> T parse(Class<T> type, O opts) {
     return parse(Parse.of(type, opts));
-  }
-
-  private <T, O> T maybeParse(String requestContentType, Parser<?> parser, Parse<T, O> parse) throws ParserException {
-    Class<?> optsType = parser.getOptsType();
-    String contentType = parser.getContentType();
-
-    if (requestContentType.equalsIgnoreCase(contentType) && optsType.isInstance(parse.getOpts())) {
-      @SuppressWarnings("unchecked") Parser<O> castParser = (Parser<O>) parser;
-      try {
-        return castParser.parse(this, getRequest().getBody(), parse);
-      } catch (Exception e) {
-        throw new ParserException(parser, e);
-      }
-    } else {
-      return null;
-    }
   }
 
   @Override
@@ -435,6 +426,41 @@ public class DefaultContext extends AbstractExecContext implements Context {
   private class RejoinHandler implements Handler {
     public void handle(Context context) throws Exception {
       doNext(DefaultContext.this, registry, nextIndex, nextHandlers, exhausted);
+    }
+  }
+
+  private static class ParserForParsePredicate implements Predicate<Parser<?>> {
+    private final Parse<?, ?> parse;
+    private final String contentType;
+
+    private ParserForParsePredicate(Parse<?, ?> parse, String contentType) {
+      this.parse = parse;
+      this.contentType = contentType;
+    }
+
+    @Override
+    public boolean apply(Parser<?> parser) {
+      return contentType.equalsIgnoreCase(parser.getContentType()) && parser.getOptsType().isInstance(parse.getOpts());
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
+
+      ParserForParsePredicate that = (ParserForParsePredicate) o;
+      return contentType.equalsIgnoreCase(that.contentType) && parse.equals(that.parse);
+    }
+
+    @Override
+    public int hashCode() {
+      int result = contentType.hashCode();
+      result = 31 * result + parse.hashCode();
+      return result;
     }
   }
 }
