@@ -234,8 +234,10 @@ public abstract class Guice {
   /**
    * Creates a Ratpack {@link Registry} backed by the given {@link Injector} that will create objects via “just-in-time” binding.
    * <p>
-   * Typically used in conjuction with the {@link ratpack.handling.Handlers#chain(LaunchConfig, ratpack.registry.Registry, ratpack.func.Action)}
-   * method.
+   * The returned registry differs from the registry returned by {@link #registry(com.google.inject.Injector)} in that it may return objects that were not explicitly bound,
+   * via Guice's “just-in-time” binding mechanism.
+   * This only applies to the {@link Registry#get(Class)} and {@link Registry#maybeGet(Class)} (for all overloads).
+   * All other methods do not perform any just in time bindings.
    *
    * @param injector The injector to back the registry
    * @return A registry that wraps the injector
