@@ -113,20 +113,6 @@ public class MultiEntryRegistry<T> implements Registry {
   }
 
   @Override
-  public <O> boolean first(TypeToken<O> type, Predicate<? super O> predicate, Action<? super O> action) throws Exception {
-    for (RegistryEntry<?> entry : entries) {
-      if (type.isAssignableFrom(entry.getType())) {
-        @SuppressWarnings("unchecked") O cast = (O) entry.get();
-        if (predicate.apply(cast)) {
-          action.execute(cast);
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
-  @Override
   public <O> boolean each(TypeToken<O> type, Predicate<? super O> predicate, Action<? super O> action) throws Exception {
     boolean foundMatch = false;
     for (RegistryEntry<?> entry : entries) {

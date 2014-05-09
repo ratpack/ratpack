@@ -305,11 +305,6 @@ public class DefaultGroovyContext implements GroovyContext {
   }
 
   @Override
-  public <T> boolean first(TypeToken<T> type, Predicate<? super T> predicate, Action<? super T> action) throws Exception {
-    return delegate.first(type, predicate, action);
-  }
-
-  @Override
   public <T> boolean each(TypeToken<T> type, Predicate<? super T> predicate, Action<? super T> action) throws Exception {
     return delegate.each(type, predicate, action);
   }

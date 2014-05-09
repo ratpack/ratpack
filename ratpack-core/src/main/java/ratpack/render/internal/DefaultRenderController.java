@@ -18,7 +18,6 @@ package ratpack.render.internal;
 
 import com.google.common.base.Predicate;
 import com.google.common.reflect.TypeToken;
-import ratpack.func.Action;
 import ratpack.handling.Context;
 import ratpack.render.NoSuchRendererException;
 import ratpack.render.Renderer;
@@ -37,25 +36,21 @@ public class DefaultRenderController implements RenderController {
       return;
     }
 
-    boolean found = context.first(RENDERER_TYPE_TOKEN, new RendererForTypePredicate(toRender.getClass()), new Action<Renderer<?>>() {
-      @Override
-      public void execute(Renderer<?> renderer) throws Exception {
-        try {
-          doRender(toRender, renderer, context);
-        } catch (Exception e) {
-          throw new RendererException(renderer, toRender, e);
-        }
-      }
-
-      private <T> void doRender(Object object, Renderer<T> renderer, Context context) throws Exception {
-        @SuppressWarnings("unchecked") T cast = (T) object;
-        renderer.render(context, cast);
-      }
-    });
-
-    if (!found) {
+    Renderer<?> renderer = context.first(RENDERER_TYPE_TOKEN, new RendererForTypePredicate(toRender.getClass()));
+    if (renderer == null) {
       throw new NoSuchRendererException(toRender);
+    } else {
+      try {
+        doRender(toRender, renderer, context);
+      } catch (Exception e) {
+        throw new RendererException(renderer, toRender, e);
+      }
     }
+  }
+
+  private <T> void doRender(Object object, Renderer<T> renderer, Context context) throws Exception {
+    @SuppressWarnings("unchecked") T cast = (T) object;
+    renderer.render(context, cast);
   }
 
   private static class RendererForTypePredicate implements Predicate<Renderer<?>> {

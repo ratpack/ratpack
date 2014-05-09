@@ -19,29 +19,18 @@ package ratpack.registry.internal
 import com.google.common.base.Predicates
 import com.google.common.collect.ImmutableList
 import com.google.common.reflect.TypeToken
-import ratpack.func.Action
 import spock.lang.Specification
-
-import javax.sql.rowset.Predicate
 
 class MultiEntryRegistrySpec extends Specification {
   def "search empty registry"() {
     given:
     def r = new MultiEntryRegistry(ImmutableList.of())
-    Action action = Mock {
-      0 * execute(_)
-    }
 
     expect:
     r.first(TypeToken.of(Object), Predicates.alwaysTrue()) == null
     r.first(TypeToken.of(Object), Predicates.alwaysFalse()) == null
     r.all(TypeToken.of(Object), Predicates.alwaysTrue()) == []
     r.all(TypeToken.of(Object), Predicates.alwaysFalse()) == []
-
-    r.first(TypeToken.of(Object), Predicates.alwaysTrue(), action) == false
-    r.first(TypeToken.of(Object), Predicates.alwaysFalse(), action) == false
-    r.each(TypeToken.of(Object), Predicates.alwaysTrue(), action) == false
-    r.each(TypeToken.of(Object), Predicates.alwaysFalse(), action) == false
   }
 
   def "search with one item"() {
@@ -51,10 +40,6 @@ class MultiEntryRegistrySpec extends Specification {
     def value = "Something"
 
     def r = new MultiEntryRegistry(ImmutableList.of(new DefaultRegistryEntry(type, value)))
-
-    Action action = Mock {
-      2 * execute(value)
-    }
 
     expect:
     r.first(type, Predicates.alwaysTrue()) == value
@@ -66,16 +51,6 @@ class MultiEntryRegistrySpec extends Specification {
     r.all(type, Predicates.alwaysFalse()) == []
     r.all(other, Predicates.alwaysTrue()) == []
     r.all(other, Predicates.alwaysFalse()) == []
-
-    r.first(type, Predicates.alwaysTrue(), action) == true
-    r.first(type, Predicates.alwaysFalse(), action) == false
-    r.first(other, Predicates.alwaysTrue(), action) == false
-    r.first(other, Predicates.alwaysFalse(), action) == false
-
-    r.each(type, Predicates.alwaysTrue(), action) == true
-    r.each(type, Predicates.alwaysFalse(), action) == false
-    r.each(other, Predicates.alwaysTrue(), action) == false
-    r.each(other, Predicates.alwaysFalse(), action) == false
   }
 
   def "search with multiple items"() {
@@ -89,30 +64,15 @@ class MultiEntryRegistrySpec extends Specification {
     def r = new MultiEntryRegistry(ImmutableList.of(new DefaultRegistryEntry(string, a), new DefaultRegistryEntry(string, b),
       new DefaultRegistryEntry(number, c), new DefaultRegistryEntry(number, d)))
 
-    Action action = Mock {
-      2 * execute(a)
-      1 * execute(b)
-      1 * execute(c)
-      1 * execute(d)
-    }
-
     expect:
     r.first(string, Predicates.alwaysTrue()) == a
-    r.first(string, {s -> s.startsWith('B')}) == b
+    r.first(string, { s -> s.startsWith('B') }) == b
     r.first(number, Predicates.alwaysTrue()) == c
-    r.first(number, {n -> n < 20}) == d
+    r.first(number, { n -> n < 20 }) == d
 
     r.all(string, Predicates.alwaysTrue()) == [a, b]
-    r.all(string, {s -> s.startsWith('B')}) == [b]
-    r.all(number, {n -> n < 50}) == [c, d]
+    r.all(string, { s -> s.startsWith('B') }) == [b]
+    r.all(number, { n -> n < 50 }) == [c, d]
     r.all(number, Predicates.alwaysFalse()) == []
-
-    r.first(string, Predicates.alwaysTrue(), action) == true
-    r.first(number, {n -> n > 20}, action) == true
-    r.first(string, Predicates.alwaysFalse(), action) == false
-
-    r.each(string, Predicates.alwaysTrue(), action) == true
-    r.each(number, {n -> n < 30}, action) == true
-    r.each(string, Predicates.alwaysFalse(), action) == false
   }
 }

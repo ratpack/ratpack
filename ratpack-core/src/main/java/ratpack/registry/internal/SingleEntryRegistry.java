@@ -104,17 +104,14 @@ public class SingleEntryRegistry implements Registry {
   }
 
   @Override
-  public <T> boolean first(TypeToken<T> type, Predicate<? super T> predicate, Action<? super T> action) throws Exception {
-    T value = first(type, predicate);
-    if (value != null) {
-      action.execute(value);
-    }
-    return value != null;
-  }
-
-  @Override
   public <T> boolean each(TypeToken<T> type, Predicate<? super T> predicate, Action<? super T> action) throws Exception {
-    return first(type, predicate, action);
+    T first = first(type, predicate);
+    if (first == null) {
+      return false;
+    } else {
+      action.execute(first);
+      return true;
+    }
   }
 
   @Override
