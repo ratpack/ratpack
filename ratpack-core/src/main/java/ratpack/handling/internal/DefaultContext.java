@@ -244,9 +244,7 @@ public class DefaultContext extends AbstractExecContext implements Context {
       requestContentType = "text/plain";
     }
 
-    // Don't use an action since the parse result has to be returned
     Parser<?> parser = registry.first(PARSER_TYPE_TOKEN, new ParserForParsePredicate(parse, requestContentType));
-
     if (parser != null) {
       @SuppressWarnings("unchecked") Parser<O> castParser = (Parser<O>) parser;
       try {
