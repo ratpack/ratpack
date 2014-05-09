@@ -21,6 +21,7 @@ import com.google.common.base.Predicate;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.collect.Lists;
 import com.google.common.reflect.TypeToken;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import ratpack.api.Nullable;
@@ -40,25 +41,25 @@ public class CachingRegistry implements Registry {
   private final Registry delegate;
 
   private final LoadingCache<TypeToken<?>, ? extends Optional<?>> cache = CacheBuilder.newBuilder().build(new CacheLoader<TypeToken<?>, Optional<?>>() {
-    public Optional<?> load(TypeToken<?> key) throws Exception {
+    public Optional<?> load(@SuppressWarnings("NullableProblems") TypeToken<?> key) throws Exception {
       Object nullableReference = delegate.maybeGet(key);
       return Optional.fromNullable(nullableReference);
     }
   });
 
   private final LoadingCache<TypeToken<?>, List<?>> allCache = CacheBuilder.newBuilder().build(new CacheLoader<TypeToken<?>, List<?>>() {
-    public List<?> load(TypeToken<?> key) throws Exception {
-      return delegate.getAll(key);
+    public List<?> load(@SuppressWarnings("NullableProblems") TypeToken<?> key) throws Exception {
+      return Lists.newArrayList(delegate.getAll(key));
     }
   });
 
   private LoadingCache<PredicateCacheability.CacheKey<?>, List<?>> predicateCache = CacheBuilder.newBuilder().build(new CacheLoader<PredicateCacheability.CacheKey<?>, List<?>>() {
     @Override
     public List<?> load(@SuppressWarnings("NullableProblems") PredicateCacheability.CacheKey<?> key) throws Exception {
-      return getAll(key);
+      return Lists.newArrayList(getAll(key));
     }
 
-    private <T> List<? extends T> getAll(PredicateCacheability.CacheKey<T> key) {
+    private <T> Iterable<? extends T> getAll(PredicateCacheability.CacheKey<T> key) {
       return delegate.all(key.type, key.predicate);
     }
   });
@@ -114,7 +115,7 @@ public class CachingRegistry implements Registry {
 
   private <T> List<T> getFromPredicateCache(TypeToken<T> type, Predicate<? super T> predicate) {
     try {
-      @SuppressWarnings("unchecked") List<T> objects = (List<T>) predicateCache.get(new PredicateCacheability.CacheKey<T>(type, predicate));
+      @SuppressWarnings("unchecked") List<T> objects = (List<T>) predicateCache.get(new PredicateCacheability.CacheKey<>(type, predicate));
       return objects;
     } catch (ExecutionException | UncheckedExecutionException e) {
       throw uncheck(toException(e.getCause()));
@@ -137,7 +138,7 @@ public class CachingRegistry implements Registry {
   }
 
   @Override
-  public <T> List<? extends T> all(TypeToken<T> type, Predicate<? super T> predicate) {
+  public <T> Iterable<? extends T> all(TypeToken<T> type, Predicate<? super T> predicate) {
     if (PredicateCacheability.isCacheable(predicate)) {
       return getFromPredicateCache(type, predicate);
     } else {
@@ -147,11 +148,14 @@ public class CachingRegistry implements Registry {
 
   @Override
   public <T> boolean each(TypeToken<T> type, Predicate<? super T> predicate, Action<? super T> action) throws Exception {
-    List<? extends T> all = all(type, predicate);
+    Iterable<? extends T> all = all(type, predicate);
+    boolean any = false;
     for (T item : all) {
+      any = true;
       action.execute(item);
     }
-    return !all.isEmpty();
+
+    return any;
   }
 
 }

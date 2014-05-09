@@ -32,7 +32,7 @@ class RegistryBuilderSpec extends Specification {
     expect:
     n.get(String) == "foo"
     n.get(Number) == 2 // delegating to parent
-    n.getAll(Object) == ["foo", 2]
+    n.getAll(Object).toList() == ["foo", 2]
   }
 
 }

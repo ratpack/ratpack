@@ -22,7 +22,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
+import com.google.common.collect.Iterables;
 import com.google.common.reflect.TypeToken;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import com.google.inject.Injector;
@@ -121,17 +121,17 @@ public class InjectorBackedRegistry implements Registry {
   }
 
   @Override
-  public <O> List<O> getAll(Class<O> type) {
+  public <O> Iterable<? extends O> getAll(Class<O> type) {
     return getAll(TypeToken.of(type));
   }
 
   @Override
-  public <O> List<O> getAll(TypeToken<O> type) {
-    List<Provider<?>> providers = getProviders(type);
+  public <O> Iterable<? extends O> getAll(TypeToken<O> type) {
+    final List<Provider<?>> providers = getProviders(type);
     if (providers.isEmpty()) {
       return Collections.emptyList();
     } else {
-      return Lists.transform(providers, new Function<Provider<?>, O>() {
+      return Iterables.transform(providers, new Function<Provider<?>, O>() {
         @Override
         public O apply(Provider<?> input) {
           @SuppressWarnings("unchecked") O cast = (O) input.get();
@@ -171,35 +171,25 @@ public class InjectorBackedRegistry implements Registry {
   }
 
   @Override
-  public <T> List<? extends T> all(TypeToken<T> type, Predicate<? super T> predicate) {
+  public <T> Iterable<? extends T> all(TypeToken<T> type, Predicate<? super T> predicate) {
     if (PredicateCacheability.isCacheable(predicate)) {
-      List<Provider<?>> all = getAll(type, predicate);
-      @SuppressWarnings("unchecked") List<? extends T> cast = (List<? extends T>) all;
+      @SuppressWarnings("unchecked") List<? extends T> cast = (List<? extends T>) getAll(type, predicate);
       return cast;
     } else {
-      ImmutableList.Builder<T> builder = ImmutableList.builder();
-      // no efficient Lists.filter() - http://stackoverflow.com/questions/8458663/guava-why-is-there-no-lists-filter-function
-      for (T object : getAll(type)) {
-        if (predicate.apply(object)) {
-          builder.add(object);
-        }
-      }
-      return builder.build();
+      return Iterables.filter(getAll(type), predicate);
     }
   }
 
   @Override
   public <T> boolean each(TypeToken<T> type, Predicate<? super T> predicate, Action<? super T> action) throws Exception {
     if (PredicateCacheability.isCacheable(predicate)) {
-      List<? extends T> all = all(type, predicate);
-      if (all.isEmpty()) {
-        return false;
-      } else {
-        for (T t : all) {
-          action.execute(t);
-        }
-        return true;
+      Iterable<? extends T> all = all(type, predicate);
+      boolean any = false;
+      for (T t : all) {
+        any = true;
+        action.execute(t);
       }
+      return any;
     } else {
       boolean foundMatch = false;
       List<Provider<?>> providers = getProviders(type);

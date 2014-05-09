@@ -24,7 +24,7 @@ import ratpack.func.Action;
 import ratpack.registry.NotInRegistryException;
 import ratpack.registry.Registry;
 
-import java.util.List;
+import java.util.Collections;
 
 public class SingleEntryRegistry implements Registry {
 
@@ -68,17 +68,17 @@ public class SingleEntryRegistry implements Registry {
   }
 
   @Override
-  public <O> List<O> getAll(Class<O> type) {
+  public <O> Iterable<? extends O> getAll(Class<O> type) {
     return getAll(TypeToken.of(type));
   }
 
   @Override
-  public <O> List<O> getAll(TypeToken<O> type) {
+  public <O> Iterable<? extends O> getAll(TypeToken<O> type) {
     O value = maybeGet(type);
     if (value == null) {
-      return ImmutableList.of();
+      return Collections.emptyList();
     } else {
-      return ImmutableList.of(value);
+      return Collections.singleton(value);
     }
   }
 
@@ -94,7 +94,7 @@ public class SingleEntryRegistry implements Registry {
   }
 
   @Override
-  public <T> List<? extends T> all(TypeToken<T> type, Predicate<? super T> predicate) {
+  public <T> Iterable<? extends T> all(TypeToken<T> type, Predicate<? super T> predicate) {
     T value = first(type, predicate);
     if (value != null) {
       return ImmutableList.of(value);

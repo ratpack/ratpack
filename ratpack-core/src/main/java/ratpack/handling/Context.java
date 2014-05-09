@@ -633,7 +633,7 @@ public interface Context extends ExecContext, Registry {
    * {@inheritDoc}
    */
   @Override
-  <O> List<O> getAll(Class<O> type);
+  <O> Iterable<? extends O> getAll(Class<O> type);
 
   /**
    * {@inheritDoc}
@@ -652,7 +652,7 @@ public interface Context extends ExecContext, Registry {
    * {@inheritDoc}
    */
   @Override
-  <O> List<O> getAll(TypeToken<O> type);
+  <O> Iterable<? extends O> getAll(TypeToken<O> type);
 
   void addExecInterceptor(ExecInterceptor execInterceptor, Action<? super Context> action) throws Exception;
 
@@ -667,7 +667,7 @@ public interface Context extends ExecContext, Registry {
    * {@inheritDoc}
    */
   @Override
-  <T> List<? extends T> all(TypeToken<T> type, Predicate<? super T> predicate);
+  <T> Iterable<? extends T> all(TypeToken<T> type, Predicate<? super T> predicate);
 
   /**
    * {@inheritDoc}

@@ -157,7 +157,7 @@ public class DefaultContext extends AbstractExecContext implements Context {
     return registry.get(type);
   }
 
-  public <O> List<O> getAll(Class<O> type) {
+  public <O> Iterable<? extends O> getAll(Class<O> type) {
     return registry.getAll(type);
   }
 
@@ -392,7 +392,7 @@ public class DefaultContext extends AbstractExecContext implements Context {
   }
 
   @Override
-  public <O> List<O> getAll(TypeToken<O> type) {
+  public <O> Iterable<? extends O> getAll(TypeToken<O> type) {
     return registry.getAll(type);
   }
 
@@ -403,7 +403,7 @@ public class DefaultContext extends AbstractExecContext implements Context {
   }
 
   @Override
-  public <T> List<? extends T> all(TypeToken<T> type, Predicate<? super T> predicate) {
+  public <T> Iterable<? extends T> all(TypeToken<T> type, Predicate<? super T> predicate) {
     return registry.all(type, predicate);
   }
 

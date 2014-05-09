@@ -268,7 +268,7 @@ public class DefaultGroovyContext implements GroovyContext {
   }
 
   @Override
-  public <O> List<O> getAll(Class<O> type) {
+  public <O> Iterable<? extends O> getAll(Class<O> type) {
     return delegate.getAll(type);
   }
 
@@ -289,7 +289,7 @@ public class DefaultGroovyContext implements GroovyContext {
   }
 
   @Override
-  public <O> List<O> getAll(TypeToken<O> type) {
+  public <O> Iterable<? extends O> getAll(TypeToken<O> type) {
     return delegate.getAll(type);
   }
 
@@ -300,7 +300,7 @@ public class DefaultGroovyContext implements GroovyContext {
   }
 
   @Override
-  public <T> List<? extends T> all(TypeToken<T> type, Predicate<? super T> predicate) {
+  public <T> Iterable<? extends T> all(TypeToken<T> type, Predicate<? super T> predicate) {
     return delegate.all(type, predicate);
   }
 

@@ -77,6 +77,7 @@ public abstract class Registries {
    * import static ratpack.registry.Registries.join;
    *
    * import java.util.List;
+   * import com.google.common.collect.Lists;
    *
    * public class Example {
    *
@@ -102,7 +103,7 @@ public abstract class Registries {
    *     Registry joined = join(parent, child);
    *
    *     assert joined.get(Thing.class).getName() == "child-1";
-   *     List&lt;Thing&gt; all = joined.getAll(Thing.class);
+   *     List&lt;Thing&gt; all = Lists.newArrayList(joined.getAll(Thing.class));
    *     assert all.get(0).getName() == "child-1";
    *     assert all.get(1).getName() == "child-2";
    *     assert all.get(2).getName() == "parent-1";

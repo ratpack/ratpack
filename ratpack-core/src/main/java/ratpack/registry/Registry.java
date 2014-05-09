@@ -21,8 +21,6 @@ import com.google.common.reflect.TypeToken;
 import ratpack.api.Nullable;
 import ratpack.func.Action;
 
-import java.util.List;
-
 /**
  * An object registry.
  * <p>
@@ -123,7 +121,7 @@ public interface Registry {
    * @param <O> the type of objects to search for
    * @return All objects of the given type
    */
-  <O> List<O> getAll(Class<O> type);
+  <O> Iterable<? extends O> getAll(Class<O> type);
 
   /**
    * Returns all of the objects whose declared type is assignment compatible with the given type.
@@ -132,7 +130,7 @@ public interface Registry {
    * @param <O> the type of objects to search for
    * @return All objects of the given type
    */
-  <O> List<O> getAll(TypeToken<O> type);
+  <O> Iterable<? extends O> getAll(TypeToken<O> type);
 
   /**
    * Returns the first object whose declared type is assignment compatible with the given type and who satisfies the given predicate.
@@ -153,7 +151,7 @@ public interface Registry {
    * @param <T> the type of objects to search for
    * @return All objects of the given type that satisfy the specified predicate
    */
-  <T> List<? extends T> all(TypeToken<T> type, Predicate<? super T> predicate);
+  <T> Iterable<? extends T> all(TypeToken<T> type, Predicate<? super T> predicate);
 
   /**
    * Calls the given action with each object whose declared type is assignment compatible with the given type and who satisfies the given predicate.
