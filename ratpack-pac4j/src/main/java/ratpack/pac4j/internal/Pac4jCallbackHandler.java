@@ -26,7 +26,6 @@ import org.pac4j.core.profile.UserProfile;
 import ratpack.func.Action;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
-import ratpack.pac4j.Authorizer;
 import ratpack.session.store.SessionStorage;
 
 import java.util.concurrent.Callable;
@@ -36,35 +35,30 @@ import static ratpack.pac4j.internal.SessionConstants.USER_PROFILE;
 
 /**
  * Handles callback requests from identity providers.
- *
- * @param <U> The {@link org.pac4j.core.profile.UserProfile} type
  */
-public class Pac4jCallbackHandler<U extends UserProfile> implements Handler {
+public class Pac4jCallbackHandler implements Handler {
   private static final String DEFAULT_REDIRECT_URI = "/";
 
   private final Clients clients;
-  private final Authorizer<U> authorizer;
 
   /**
    * Constructs a new instance.
    *
    * @param clients The clients to use for authentication
-   * @param authorizer The authorizer to user for authorization
    */
-  public Pac4jCallbackHandler(Clients clients, Authorizer<U> authorizer) {
+  public Pac4jCallbackHandler(Clients clients) {
     this.clients = clients;
-    this.authorizer = authorizer;
   }
 
   @Override
   public void handle(final Context context) {
     final SessionStorage sessionStorage = context.getRequest().get(SessionStorage.class);
     final RatpackWebContext webContext = new RatpackWebContext(context);
-    context.blocking(new Callable<U>() {
+    context.blocking(new Callable<UserProfile>() {
       @Override
-      public U call() throws Exception {
+      public UserProfile call() throws Exception {
         @SuppressWarnings("unchecked")
-        Client<Credentials, U> client = clients.findClient(webContext);
+        Client<Credentials, UserProfile> client = clients.findClient(webContext);
         Credentials credentials = client.getCredentials(webContext);
         return client.getUserProfile(credentials, webContext);
       }
@@ -77,9 +71,9 @@ public class Pac4jCallbackHandler<U extends UserProfile> implements Handler {
           throw new TechnicalException("Failed to get user profile", ex);
         }
       }
-    }).then(new Action<U>() {
+    }).then(new Action<UserProfile>() {
       @Override
-      public void execute(U profile) throws Exception {
+      public void execute(UserProfile profile) throws Exception {
         saveUserProfileInSession(sessionStorage, profile);
         context.redirect(getSavedUri(sessionStorage));
       }

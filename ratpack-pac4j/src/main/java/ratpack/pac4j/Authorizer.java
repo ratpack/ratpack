@@ -25,10 +25,9 @@ import ratpack.handling.Context;
  * In particular, this allows control over which requests require authentication, the mechanism for performing access control, and the handling of authentication failures.
  * </p>
  *
- * @param <U> The {@link org.pac4j.core.profile.UserProfile} type
  * @see ratpack.pac4j.AbstractAuthorizer
  */
-public interface Authorizer<U extends UserProfile> {
+public interface Authorizer {
   /**
    * Determines whether authentication is required for a given context.
    * <p>
@@ -53,15 +52,5 @@ public interface Authorizer<U extends UserProfile> {
    * @throws Exception if anything goes wrong (exception will be implicitly passed to the context's {@link Context#error(Exception)} method)
    * @see #isAuthenticationRequired(ratpack.handling.Context)
    */
-  void handleAuthorization(Context context, U userProfile) throws Exception;
-
-  /**
-   * Handles a failure to perform authentication.
-   * <p>
-   * This will usually involve either directly sending some form of error response, forwarding the error to the client error handler, or redirecting the user to an error page.
-   * </p>
-   *
-   * @param context The context to handle
-   */
-  void handleAuthenticationFailure(Context context);
+  void handleAuthorization(Context context, UserProfile userProfile) throws Exception;
 }

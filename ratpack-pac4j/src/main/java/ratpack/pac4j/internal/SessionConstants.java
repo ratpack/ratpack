@@ -19,7 +19,7 @@ package ratpack.pac4j.internal;
 /**
  * Constants for session variables used by the pac4j integration.
  */
-public final class SessionConstants {
-  public static final String USER_PROFILE = "ratpack.pac4j-user-profile";
+final class SessionConstants {
+  static final String USER_PROFILE = "ratpack.pac4j-user-profile";
   static final String SAVED_URI = "ratpack.pac4j-saved-uri";
 }

@@ -23,24 +23,20 @@ import org.pac4j.core.profile.UserProfile;
 
 import ratpack.func.Action;
 import ratpack.handling.Context;
-import ratpack.handling.Handler;
 import ratpack.pac4j.Authorizer;
 import ratpack.session.store.SessionStorage;
 
 import java.util.concurrent.Callable;
 
 import static ratpack.pac4j.internal.SessionConstants.SAVED_URI;
-import static ratpack.pac4j.internal.SessionConstants.USER_PROFILE;
 
 /**
  * Filters requests to apply authentication and authorization as required.
- *
- * @param <U> The {@link org.pac4j.core.profile.UserProfile} type
  */
-public class Pac4jAuthenticationHandler<U extends UserProfile> implements Handler {
+public class Pac4jAuthenticationHandler extends Pac4jProfileHandler {
   private final Clients clients;
   private final String name;
-  private final Authorizer<U> authorizer;
+  private final Authorizer authorizer;
 
   /**
    * Constructs a new instance.
@@ -49,7 +45,7 @@ public class Pac4jAuthenticationHandler<U extends UserProfile> implements Handle
    * @param name The name of the client to use for authentication
    * @param authorizer The authorizer to user for authorization
    */
-  public Pac4jAuthenticationHandler(Clients clients, String name, Authorizer<U> authorizer) {
+  public Pac4jAuthenticationHandler(Clients clients, String name, Authorizer authorizer) {
     this.clients = clients;
     this.name = name;
     this.authorizer = authorizer;
@@ -57,7 +53,7 @@ public class Pac4jAuthenticationHandler<U extends UserProfile> implements Handle
 
   @Override
   public void handle(final Context context) throws Exception {
-    U userProfile = getUserProfile(context);
+    UserProfile userProfile = getUserProfile(context);
     if (authorizer.isAuthenticationRequired(context) && userProfile == null) {
       initiateAuthentication(context);
     } else {
@@ -69,11 +65,6 @@ public class Pac4jAuthenticationHandler<U extends UserProfile> implements Handle
         context.next();
       }
     }
-  }
-
-  @SuppressWarnings("unchecked")
-  private U getUserProfile(Context context) {
-    return (U) context.getRequest().get(SessionStorage.class).get(USER_PROFILE);
   }
 
   private void initiateAuthentication(final Context context) {

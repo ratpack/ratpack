@@ -16,7 +16,6 @@
 
 package ratpack.pac4j;
 
-import io.netty.handler.codec.http.HttpResponseStatus;
 import org.pac4j.core.profile.UserProfile;
 import ratpack.handling.Context;
 
@@ -25,10 +24,8 @@ import ratpack.handling.Context;
  * <p>
  * Unless overridden, all authenticated requests will be considered authorized and authentication failures will be handled with the default client error handling for status {@code 403 Forbidden}.
  * </p>
- *
- * @param <U> The {@link org.pac4j.core.profile.UserProfile} type
  */
-public abstract class AbstractAuthorizer<U extends UserProfile> implements Authorizer<U> {
+public abstract class AbstractAuthorizer implements Authorizer {
   /**
    * Unless overridden, all authenticated requests will be considered authorized.
    *
@@ -37,17 +34,7 @@ public abstract class AbstractAuthorizer<U extends UserProfile> implements Autho
    * @throws Exception if anything goes wrong (exception will be implicitly passed to the context's {@link Context#error(Exception)} method)
    */
   @Override
-  public void handleAuthorization(Context context, U userProfile) throws Exception {
+  public void handleAuthorization(Context context, UserProfile userProfile) throws Exception {
     context.next();
-  }
-
-  /**
-   * Unless overridden, all authentication failures will be handled with the default client error handling for status {@code 403 Forbidden}.
-   *
-   * @param context The context to handle
-   */
-  @Override
-  public void handleAuthenticationFailure(Context context) {
-    context.clientError(HttpResponseStatus.FORBIDDEN.code());
   }
 }

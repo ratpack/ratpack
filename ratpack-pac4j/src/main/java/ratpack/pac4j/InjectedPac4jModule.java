@@ -51,7 +51,7 @@ import java.lang.reflect.Type;
  * import ratpack.session.SessionModule;
  * import ratpack.session.store.MapSessionsModule;
  *
- * class AuthenticateAllAuthorizer extends AbstractAuthorizer&lt;GoogleOpenIdProfile&gt; {
+ * class AuthenticateAllAuthorizer extends AbstractAuthorizer {
  *   public boolean isAuthenticationRequired(Context context) {
  *     return true;
  *   }
@@ -72,7 +72,7 @@ import java.lang.reflect.Type;
  *       new AbstractModule() {
  *         protected void configure() {
  *           bind(new TypeLiteral&lt;Client&lt;OpenIdCredentials, GoogleOpenIdProfile&gt;&gt;() {}).to(GoogleOpenIdClient.class);
- *           bind(new TypeLiteral&lt;Authorizer&lt;GoogleOpenIdProfile&gt;&gt;() {}).to(AuthenticateAllAuthorizer.class);
+ *           bind(new TypeLiteral&lt;Authorizer&gt;() {}).to(AuthenticateAllAuthorizer.class);
  *         }
  *       }
  *     );
@@ -105,7 +105,7 @@ import java.lang.reflect.Type;
  *
  * import static ratpack.groovy.Groovy.ratpack
  *
- * class AuthenticateAllAuthorizer extends AbstractAuthorizer&lt;GoogleOpenIdProfile&gt; {
+ * class AuthenticateAllAuthorizer extends AbstractAuthorizer {
  *   boolean isAuthenticationRequired(Context context) {
  *     true
  *   }
@@ -119,7 +119,7 @@ import java.lang.reflect.Type;
  *         new AbstractModule() {
  *           protected void configure() {
  *             bind(new TypeLiteral&lt;Client&lt;OpenIdCredentials, GoogleOpenIdProfile&gt;&gt;() {}).to(GoogleOpenIdClient)
- *             bind(new TypeLiteral&lt;Authorizer&lt;GoogleOpenIdProfile&gt;&gt;() {}).to(AuthenticateAllAuthorizer)
+ *             bind(new TypeLiteral&lt;Authorizer&gt;() {}).to(AuthenticateAllAuthorizer)
  *           }
  *         }
  *   }
@@ -156,7 +156,7 @@ public final class InjectedPac4jModule<C extends Credentials, U extends UserProf
   }
 
   @Override
-  protected Authorizer<U> getAuthorizer(Injector injector) {
+  protected Authorizer getAuthorizer(Injector injector) {
     return injector.getInstance(getAuthorizerKey());
   }
 
@@ -166,7 +166,7 @@ public final class InjectedPac4jModule<C extends Credentials, U extends UserProf
   }
 
   @SuppressWarnings("unchecked")
-  private Key<Authorizer<U>> getAuthorizerKey() {
-    return (Key<Authorizer<U>>) Key.get(Types.newParameterizedType(Authorizer.class, userProfileType));
+  private Key<Authorizer> getAuthorizerKey() {
+    return (Key<Authorizer>) Key.get(Types.newParameterizedType(Authorizer.class, userProfileType));
   }
 }

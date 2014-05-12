@@ -81,18 +81,18 @@ public abstract class AbstractPac4jModule<C extends Credentials, U extends UserP
    * @param injector The injector created from all the application modules
    * @return The authorizer
    */
-  protected abstract Authorizer<U> getAuthorizer(Injector injector);
+  protected abstract Authorizer getAuthorizer(Injector injector);
 
   @Override
   public Handler decorate(Injector injector, Handler handler) {
     final String callbackPath = getCallbackPath(injector);
     final Client<C, U> client = getClient(injector);
-    final Authorizer<U> authorizer = getAuthorizer(injector);
+    final Authorizer authorizer = getAuthorizer(injector);
     final LaunchConfig launchConfig = injector.getInstance(LaunchConfig.class);
     final String callbackUrl = launchConfig.getPublicAddress().toString() + "/" + callbackPath;
     final Clients clients = new Clients(callbackUrl, client);
-    final Pac4jCallbackHandler<U> callbackHandler = new Pac4jCallbackHandler<>(clients, authorizer);
-    final Pac4jAuthenticationHandler<U> authenticationHandler = new Pac4jAuthenticationHandler<>(clients, client.getName(), authorizer);
+    final Pac4jCallbackHandler callbackHandler = new Pac4jCallbackHandler(clients);
+    final Pac4jAuthenticationHandler authenticationHandler = new Pac4jAuthenticationHandler(clients, client.getName(), authorizer);
     return Handlers.chain(Handlers.path(callbackPath, callbackHandler), authenticationHandler, handler);
   }
 }
