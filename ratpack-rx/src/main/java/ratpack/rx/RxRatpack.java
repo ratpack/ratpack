@@ -94,7 +94,7 @@ public abstract class RxRatpack {
    * It only needs to be called once per JVM, regardless of how many Ratpack applications are running within the JVM.
    * <p>
    * For a Java application, a convenient place to call this is in the handler factory implementation.
-   * <pre class="tested">
+   * <pre class="java">
    * import ratpack.launch.HandlerFactory;
    * import ratpack.launch.LaunchConfig;
    * import ratpack.handling.Handler;
@@ -107,59 +107,40 @@ public abstract class RxRatpack {
    * import rx.Observable;
    * import rx.functions.Action1;
    *
-   * public class MyHandlerFactory implements HandlerFactory {
-   *   public Handler create(LaunchConfig launchConfig) {
+   * public class Example {
+   *   public static class MyHandlerFactory implements HandlerFactory {
+   *     public Handler create(LaunchConfig launchConfig) throws Exception {
    *
-   *     // Enable Rx integration
-   *     RxRatpack.initialize();
+   *       // Enable Rx integration
+   *       RxRatpack.initialize();
    *
-   *     return Handlers.chain(launchConfig, new ChainAction() {
-   *       public void execute() {
-   *         register(new RegistrySpecAction() { // register a custom error handler
-   *           public void execute() {
-   *             add(ServerErrorHandler, new ServerErrorHandler() {
-   *               public void error(Context context, Exception exception) {
-   *                 context.render("caught by error handler!");
-   *               }
-   *             })
-   *           }
-   *         });
+   *       return Handlers.chain(launchConfig, new ChainAction() {
+   *         public void execute() throws Exception {
+   *           register(new RegistrySpecAction() { // register a custom error handler
+   *             public void execute() {
+   *               add(ServerErrorHandler.class, new ServerErrorHandler() {
+   *                 public void error(Context context, Exception exception) {
+   *                   context.render("caught by error handler!");
+   *                 }
+   *               });
+   *             }
+   *           });
    *
-   *         get(new Handler() {
-   *           public void handle(Context context) {
-   *             // An observable sequence with no defined error handler
-   *             // The error will be propagated to context error handler implicitly
-   *             Observable.&lt;String&gt;error(new Exception("!")).subscribe(new Action1&lt;String&gt;() {
-   *               public void call(String str) {
-   *                 // will never be called
-   *               }
-   *             });
-   *           }
-   *         });
-   *       }
-   *     });
+   *           get(new Handler() {
+   *             public void handle(Context context) {
+   *               // An observable sequence with no defined error handler
+   *               // The error will be propagated to context error handler implicitly
+   *               Observable.&lt;String&gt;error(new Exception("!")).subscribe(new Action1&lt;String&gt;() {
+   *                 public void call(String str) {
+   *                   // will never be called
+   *                 }
+   *               });
+   *             }
+   *           });
+   *         }
+   *       });
+   *     }
    *   }
-   * }
-   *
-   * // Test (Groovy) &hellip;
-   *
-   * import ratpack.test.embed.LaunchConfigEmbeddedApplication
-   * import ratpack.launch.LaunchConfigBuilder
-   *
-   * import static ratpack.groovy.test.TestHttpClients.testHttpClient
-   *
-   * def app = new LaunchConfigEmbeddedApplication() {
-   *   protected LaunchConfig createLaunchConfig() {
-   *     LaunchConfigBuilder.noBaseDir().build(new MyHandlerFactory());
-   *   }
-   * }
-   *
-   * def client = testHttpClient(app)
-   *
-   * try {
-   *   client.getText() == "caught by error handler!"
-   * } finally {
-   *   app.close()
    * }
    * </pre>
    * <p>
@@ -174,7 +155,7 @@ public abstract class RxRatpack {
    * import static ratpack.groovy.test.TestHttpClients.testHttpClient
    *
    * def app = embeddedApp {
-   *   modules {
+   *   bindings {
    *     // Enable Rx integration
    *     RxRatpack.initialize()
    *
@@ -259,14 +240,14 @@ public abstract class RxRatpack {
    * A similar example in the Groovy DSL would look like:
    * </p>
    * <pre class="groovy-chain-dsl">
-   * import static ratpack.rx.RxRatpack.observe;
+   * import static ratpack.rx.RxRatpack.observe
    *
    * handler {
    *   observe(blocking {
    *     // do some blocking IO
    *     "hello world"
-   *   }) map { String input ->
-   *     input.toUpperCase()
+   *   }) map {
+   *     it.toUpperCase()
    *   } subscribe {
    *     render it // renders: HELLO WORLD
    *   }

@@ -33,8 +33,8 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
     file filePath, '<span th:text="${key}"/>'
 
     when:
-    modules {
-      register new ThymeleafModule(templatesPrefix: templatesPrefix)
+    bindings {
+      add new ThymeleafModule(templatesPrefix: templatesPrefix)
     }
     handlers {
       get {
@@ -61,8 +61,8 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
     file 'thymeleaf/simple.html', '<span th:text="${text}"/>'
 
     when:
-    modules {
-      register new ThymeleafModule(templatesSuffix: templatesSuffix)
+    bindings {
+      add new ThymeleafModule(templatesSuffix: templatesSuffix)
     }
     handlers {
       get {
@@ -85,8 +85,8 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
     file "thymeleaf/simple${templatesSuffix}", '<span th:text="${text}"/>'
 
     when:
-    modules {
-      register new ThymeleafModule(templatesSuffix: templatesSuffix)
+    bindings {
+      add new ThymeleafModule(templatesSuffix: templatesSuffix)
     }
     handlers {
       get {
@@ -105,8 +105,8 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
     given:
     dir('thymeleaf')
 
-    modules {
-      register new ThymeleafModule()
+    bindings {
+      add new ThymeleafModule()
     }
     handlers {
       get {
@@ -127,8 +127,8 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
     file "thymeleaf/simple.html", '<span th:text="#{greeting(${name})}"/>'
 
     when:
-    modules {
-      register new ThymeleafModule()
+    bindings {
+      add new ThymeleafModule()
     }
     handlers {
       get {
@@ -146,8 +146,8 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
     file "thymeleaf/page.html", '<div th:include="footer :: copyright"></div>'
 
     when:
-    modules {
-      register new ThymeleafModule()
+    bindings {
+      add new ThymeleafModule()
     }
     handlers {
       get {
@@ -164,8 +164,8 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
     file 'thymeleaf/simple.html', '<span th:text="${text}" th:remove="tag"/>'
 
     when:
-    modules {
-      register new ThymeleafModule()
+    bindings {
+      add new ThymeleafModule()
     }
     handlers {
       get {
@@ -183,8 +183,8 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
     file 'thymeleaf/simple.html', '<span th:text="${text}" th:remove="tag"/>'
 
     when:
-    modules {
-      register new ThymeleafModule(templatesPrefix: templatesPrefix)
+    bindings {
+      add new ThymeleafModule(templatesPrefix: templatesPrefix)
     }
     handlers {
       get {
@@ -207,8 +207,8 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
     file 'thymeleaf/simple.html', '<span th:text="${text}" th:remove="tag"/>'
 
     when:
-    modules {
-      register new ThymeleafModule()
+    bindings {
+      add new ThymeleafModule()
     }
     handlers {
       handler {
@@ -230,8 +230,8 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
     TemplateEngine engine = null
     StandardCacheManager cacheManager = null
 
-    modules {
-      register new ThymeleafModule(templatesCacheSize: templatesCacheSize)
+    bindings {
+      add new ThymeleafModule(templatesCacheSize: templatesCacheSize)
     }
 
     handlers {
@@ -271,9 +271,9 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
     file 'thymeleaf/simple.html', '<p hello:sayto="World">Hi ya!</p>'
 
     when:
-    modules {
-      register new ThymeleafModule()
-      register new HelloDialectModule()
+    bindings {
+      add new ThymeleafModule()
+      add new HelloDialectModule()
     }
     handlers {
       handler {

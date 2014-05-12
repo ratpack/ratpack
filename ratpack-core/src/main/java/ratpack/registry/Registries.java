@@ -70,32 +70,46 @@ public abstract class Registries {
    * <p>
    * The returned registry is effectively the union of the two registries, with the {@code child} taking precedence.
    * This means that child entries are effectively “returned first”.
-   * <pre class="tested">
+   * <pre class="java">
    * import ratpack.registry.Registry;
    *
    * import static ratpack.registry.Registries.registry;
    * import static ratpack.registry.Registries.join;
    *
-   * public interface Thing { String getName() }
+   * import java.util.List;
+   * import com.google.common.collect.Lists;
    *
-   * public class ThingImpl implements Thing {
-   *   private final String name
-   *   public ThingImpl(String name) { this.name = name; }
-   *   public String getName() { return name; }
+   * public class Example {
+   *
+   *   public static interface Thing {
+   *     String getName();
+   *   }
+   *
+   *   public static class ThingImpl implements Thing {
+   *     private final String name;
+   *
+   *     public ThingImpl(String name) {
+   *       this.name = name;
+   *     }
+   *
+   *     public String getName() {
+   *       return name;
+   *     }
+   *   }
+   *
+   *   public static void main(String[] args) {
+   *     Registry child = registry().add(Thing.class, new ThingImpl("child-1")).add(Thing.class, new ThingImpl("child-2")).build();
+   *     Registry parent = registry().add(Thing.class, new ThingImpl("parent-1")).add(Thing.class, new ThingImpl("parent-2")).build();
+   *     Registry joined = join(parent, child);
+   *
+   *     assert joined.get(Thing.class).getName() == "child-1";
+   *     List&lt;Thing&gt; all = Lists.newArrayList(joined.getAll(Thing.class));
+   *     assert all.get(0).getName() == "child-1";
+   *     assert all.get(1).getName() == "child-2";
+   *     assert all.get(2).getName() == "parent-1";
+   *     assert all.get(3).getName() == "parent-2";
+   *   }
    * }
-   *
-   *
-   * Registry child = registry().add(Thing.class, new ThingImpl("child-1")).add(Thing.class, new ThingImpl("child-2")).build();
-   * Registry parent = registry().add(Thing.class, new ThingImpl("parent-1")).add(Thing.class, new ThingImpl("parent-2")).build();
-   * Registry joined = join(parent, child);
-   *
-   * assert joined.get(Thing.class).getName() == "child-1";
-   *
-   * List&lt;Thing&gt; all = joined.getAll(Thing.class);
-   * assert all.get(0).getName() == "child-1";
-   * assert all.get(1).getName() == "child-2";
-   * assert all.get(2).getName() == "parent-1";
-   * assert all.get(3).getName() == "parent-2";
    * </pre>
    *
    * @param parent the parent registry

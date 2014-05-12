@@ -20,13 +20,11 @@ import com.google.common.base.Predicate;
 import com.google.common.reflect.TypeToken;
 import ratpack.api.Nullable;
 import ratpack.func.Action;
+import ratpack.func.Factory;
 import ratpack.registry.NotInRegistryException;
 import ratpack.registry.Registry;
 import ratpack.registry.RegistrySpec;
 import ratpack.remote.CommandDelegate;
-import ratpack.func.Factory;
-
-import java.util.List;
 
 public abstract class DelegatingCommandDelegate implements CommandDelegate {
 
@@ -54,7 +52,7 @@ public abstract class DelegatingCommandDelegate implements CommandDelegate {
     return registry.get(type);
   }
 
-  public <O> List<O> getAll(Class<O> type) {
+  public <O> Iterable<? extends O> getAll(Class<O> type) {
     return registry.getAll(type);
   }
 
@@ -75,7 +73,7 @@ public abstract class DelegatingCommandDelegate implements CommandDelegate {
   }
 
   @Override
-  public <O> List<O> getAll(TypeToken<O> type) {
+  public <O> Iterable<? extends O> getAll(TypeToken<O> type) {
     return registry.getAll(type);
   }
 
@@ -86,13 +84,8 @@ public abstract class DelegatingCommandDelegate implements CommandDelegate {
   }
 
   @Override
-  public <T> List<? extends T> all(TypeToken<T> type, Predicate<? super T> predicate) {
+  public <T> Iterable<? extends T> all(TypeToken<T> type, Predicate<? super T> predicate) {
     return registry.all(type, predicate);
-  }
-
-  @Override
-  public <T> boolean first(TypeToken<T> type, Predicate<? super T> predicate, Action<? super T> action) throws Exception {
-    return registry.first(type, predicate, action);
   }
 
   @Override

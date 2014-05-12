@@ -54,10 +54,10 @@ import java.util.Properties;
  * import ratpack.hikari.HikariModule;
  * import com.google.common.collect.ImmutableMap;
  *
- * class ModuleBootstrap implements Action&lt;ModuleRegistry&gt; {
- *   public void execute(ModuleRegistry modules) {
+ * class ModuleBootstrap implements Action&lt;BindingsSpec&gt; {
+ *   public void execute(BindingsSpec bindings) {
  *     Map dataSourceProperties = ImmutableMap.of("URL", "jdbc:h2:mem:dev");
- *     modules.register(new HikariModule(dataSourceProperties, "org.h2.jdbcx.JdbcDataSource"));
+ *     bindings.add(new HikariModule(dataSourceProperties, "org.h2.jdbcx.JdbcDataSource"));
  *   }
  * }
  *
@@ -82,9 +82,9 @@ import java.util.Properties;
  * import static ratpack.groovy.Groovy.ratpack
  *
  * ratpack {
- *   modules {
- *     register new SqlModule()
- *     register new HikariModule("org.h2.jdbcx.JdbcDataSource", URL: "jdbc:h2:mem:dev", user: 'user', password: 'pass')
+ *   bindings {
+ *     add new SqlModule(),
+ *             new HikariModule("org.h2.jdbcx.JdbcDataSource", URL: "jdbc:h2:mem:dev", user: 'user', password: 'pass')
  *   }
  *
  *   handlers { Sql sql ->

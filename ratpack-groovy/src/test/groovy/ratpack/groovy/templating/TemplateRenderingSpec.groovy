@@ -172,8 +172,8 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     file "templates/inner.html", "inner: \${model.value.toInteger()}"
 
     when:
-    modules {
-      get(TemplatingModule).staticallyCompile = true
+    bindings {
+      config(TemplatingModule).staticallyCompile = true
     }
 
     handlers {
@@ -191,8 +191,8 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     file "templates/template.html", "value: \${model.get('value', String).toInteger()}"
 
     when:
-    modules {
-      get(TemplatingModule).staticallyCompile = true
+    bindings {
+      config(TemplatingModule).staticallyCompile = true
     }
 
     handlers {
@@ -264,8 +264,8 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     file "templates/t", "1"
 
     when:
-    modules {
-      get(TemplatingModule).reloadable = true
+    bindings {
+      config(TemplatingModule).reloadable = true
     }
     handlers {
       get { render groovyTemplate("t") }

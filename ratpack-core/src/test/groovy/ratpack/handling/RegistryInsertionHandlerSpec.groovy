@@ -28,7 +28,7 @@ import static ratpack.registry.Registries.just
 class RegistryInsertionHandlerSpec extends RatpackGroovyDslSpec {
 
   def setup() {
-    modules {
+    bindings {
       bind ServerErrorHandler, new DebugErrorHandler()
     }
   }

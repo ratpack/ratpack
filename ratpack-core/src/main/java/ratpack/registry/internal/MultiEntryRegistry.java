@@ -24,13 +24,14 @@ import ratpack.func.Action;
 import ratpack.registry.NotInRegistryException;
 import ratpack.registry.Registry;
 
+import java.util.Iterator;
 import java.util.List;
 
-public class MultiEntryRegistry<T> implements Registry {
+public class MultiEntryRegistry implements Registry {
 
-  private final List<RegistryEntry<? extends T>> entries;
+  private final List<? extends RegistryEntry<?>> entries;
 
-  public MultiEntryRegistry(List<RegistryEntry<? extends T>> entries) {
+  public MultiEntryRegistry(List<? extends RegistryEntry<?>> entries) {
     this.entries = entries;
   }
 
@@ -69,27 +70,59 @@ public class MultiEntryRegistry<T> implements Registry {
     return null;
   }
 
-  public <O> List<O> getAll(Class<O> type) {
+  public <O> Iterable<? extends O> getAll(Class<O> type) {
     return getAll(TypeToken.of(type));
   }
 
-  public <O> List<O> getAll(TypeToken<O> type) {
-    ImmutableList.Builder<O> builder = ImmutableList.builder();
-    for (RegistryEntry<?> entry : entries) {
-      if (type.isAssignableFrom(entry.getType())) {
-        @SuppressWarnings("unchecked") O cast = (O) entry.get();
-        builder.add(cast);
+  public <O> Iterable<? extends O> getAll(final TypeToken<O> type) {
+    return new Iterable<O>() {
+      @Override
+      public Iterator<O> iterator() {
+        return new Iterator<O>() {
+
+          final Iterator<? extends RegistryEntry<?>> delegate = entries.iterator();
+          O next;
+
+          @Override
+          public boolean hasNext() {
+            if (next != null) {
+              return true;
+            }
+
+            while (delegate.hasNext()) {
+              RegistryEntry<?> entry = delegate.next();
+              if (type.isAssignableFrom(entry.getType())) {
+                @SuppressWarnings("unchecked") O cast = (O) entry.get();
+                next = cast;
+                return true;
+              }
+            }
+
+            return false;
+          }
+
+          @Override
+          public O next() {
+            O nextCopy = next;
+            next = null;
+            return nextCopy;
+          }
+
+          @Override
+          public void remove() {
+            throw new UnsupportedOperationException();
+          }
+        };
       }
-    }
-    return builder.build();
+    };
   }
 
   @Nullable
   @Override
-  public <T> T first(TypeToken<T> type, Predicate<? super T> predicate) {
+  public <O> O first(TypeToken<O> type, Predicate<? super O> predicate) {
     for (RegistryEntry<?> entry : entries) {
       if (type.isAssignableFrom(entry.getType())) {
-        @SuppressWarnings("unchecked") T cast = (T) entry.get();
+        @SuppressWarnings("unchecked") O cast = (O) entry.get();
         if (predicate.apply(cast)) {
           return cast;
         }
@@ -99,11 +132,12 @@ public class MultiEntryRegistry<T> implements Registry {
   }
 
   @Override
-  public <T> List<? extends T> all(TypeToken<T> type, Predicate<? super T> predicate) {
-    ImmutableList.Builder<T> builder = ImmutableList.builder();
+  public <O> Iterable<? extends O> all(TypeToken<O> type, Predicate<? super O> predicate) {
+
+    ImmutableList.Builder<O> builder = ImmutableList.builder();
     for (RegistryEntry<?> entry : entries) {
       if (type.isAssignableFrom(entry.getType())) {
-        @SuppressWarnings("unchecked") T cast = (T) entry.get();
+        @SuppressWarnings("unchecked") O cast = (O) entry.get();
         if (predicate.apply(cast)) {
           builder.add(cast);
         }
@@ -113,25 +147,11 @@ public class MultiEntryRegistry<T> implements Registry {
   }
 
   @Override
-  public <T> boolean first(TypeToken<T> type, Predicate<? super T> predicate, Action<? super T> action) throws Exception {
-    for (RegistryEntry<?> entry : entries) {
-      if (type.isAssignableFrom(entry.getType())) {
-        @SuppressWarnings("unchecked") T cast = (T) entry.get();
-        if (predicate.apply(cast)) {
-          action.execute(cast);
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
-  @Override
-  public <T> boolean each(TypeToken<T> type, Predicate<? super T> predicate, Action<? super T> action) throws Exception {
+  public <O> boolean each(TypeToken<O> type, Predicate<? super O> predicate, Action<? super O> action) throws Exception {
     boolean foundMatch = false;
     for (RegistryEntry<?> entry : entries) {
       if (type.isAssignableFrom(entry.getType())) {
-        @SuppressWarnings("unchecked") T cast = (T) entry.get();
+        @SuppressWarnings("unchecked") O cast = (O) entry.get();
         if (predicate.apply(cast)) {
           action.execute(cast);
           foundMatch = true;
@@ -150,7 +170,7 @@ public class MultiEntryRegistry<T> implements Registry {
       return false;
     }
 
-    MultiEntryRegistry<?> that = (MultiEntryRegistry) o;
+    MultiEntryRegistry that = (MultiEntryRegistry) o;
 
     return entries.equals(that.entries);
   }

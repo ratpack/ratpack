@@ -9,11 +9,19 @@ import static ratpack.handlebars.Template.handlebarsTemplate
 import static ratpack.thymeleaf.Template.thymeleafTemplate
 
 ratpack {
-  modules {
-    get(TemplatingModule).staticallyCompile = true
-    register new HandlebarsModule()
-    register new ThymeleafModule()
-  }
+  <% if (patch < 5) { %>
+    modules {
+      get(TemplatingModule).staticallyCompile = true
+      register new HandlebarsModule()
+      register new ThymeleafModule()
+    }
+  <% } else { %>
+    bindings {
+      config(TemplatingModule).staticallyCompile = true
+      add new HandlebarsModule()
+      add new ThymeleafModule()
+    }
+  <% } %>
 
   handlers {
     handler("stop", new StopHandler())

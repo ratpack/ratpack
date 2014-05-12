@@ -26,9 +26,8 @@ public class HikariModuleSpec extends RatpackGroovyDslSpec {
   @Unroll
   def "can use db when module #scenario"() {
     when:
-    modules {
-      register new SqlModule()
-      register new HikariModule(* moduleConstructorArgs)
+    bindings {
+      add new SqlModule(), new HikariModule(*moduleConstructorArgs)
 
       init { Sql sql ->
         sql.execute("create table if not exists val(ID INT PRIMARY KEY, val VARCHAR(255));")

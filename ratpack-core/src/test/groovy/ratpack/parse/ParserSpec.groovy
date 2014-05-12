@@ -39,7 +39,7 @@ class ParserSpec extends RatpackGroovyDslSpec {
 
   def "can use parsers"() {
     when:
-    modules {
+    bindings {
       bind IntParser
     }
     handlers {

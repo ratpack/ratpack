@@ -42,8 +42,8 @@ class RendererBindingsSpec extends RatpackGroovyDslSpec {
 
   def "bound renderers are usable"() {
     when:
-    modules {
-      register new AbstractModule() {
+    bindings {
+      add new AbstractModule() {
         protected void configure() {
           bind(IntRenderer)
           bind(StringRenderer)

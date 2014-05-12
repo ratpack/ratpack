@@ -320,7 +320,7 @@ class RequestFixtureSpec extends Specification {
     }
 
     then:
-    registry.getAll(String) == ["bar", "foo"]
+    registry.getAll(String).toList() == ["bar", "foo"]
     requestRegistry.get(Number) == 4
 
     where:

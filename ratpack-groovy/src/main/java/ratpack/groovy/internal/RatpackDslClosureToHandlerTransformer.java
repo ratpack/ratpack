@@ -19,14 +19,14 @@ package ratpack.groovy.internal;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import groovy.lang.Closure;
+import ratpack.func.Action;
+import ratpack.func.Transformer;
 import ratpack.groovy.Groovy;
-import ratpack.groovy.guice.internal.DefaultGroovyModuleRegistry;
-import ratpack.guice.ModuleRegistry;
+import ratpack.groovy.guice.internal.DefaultGroovyBindingsSpec;
+import ratpack.guice.BindingsSpec;
 import ratpack.guice.GuiceBackedHandlerFactory;
 import ratpack.handling.Handler;
 import ratpack.launch.LaunchConfig;
-import ratpack.func.Action;
-import ratpack.func.Transformer;
 
 public class RatpackDslClosureToHandlerTransformer implements Transformer<Closure<?>, Handler> {
 
@@ -45,27 +45,27 @@ public class RatpackDslClosureToHandlerTransformer implements Transformer<Closur
     final RatpackImpl ratpack = new RatpackImpl();
     ClosureUtil.configureDelegateFirst(ratpack, closure);
 
-    final Closure<?> modulesConfigurer = ratpack.modulesConfigurer;
+    final Closure<?> bindingsConfigurer = ratpack.bindingsConfigurer;
     Closure<?> handlersConfigurer = ratpack.handlersConfigurer;
 
-    Action<ModuleRegistry> modulesAction = new Action<ModuleRegistry>() {
+    Action<BindingsSpec> bindingsAction = new Action<BindingsSpec>() {
       @Override
-      public void execute(ModuleRegistry thing) throws Exception {
-        ClosureUtil.delegatingAction(modulesConfigurer).execute(new DefaultGroovyModuleRegistry(thing));
+      public void execute(BindingsSpec thing) throws Exception {
+        ClosureUtil.delegatingAction(bindingsConfigurer).execute(new DefaultGroovyBindingsSpec(thing));
       }
     };
 
 
-    return handlerFactory.create(modulesAction, moduleTransformer, new InjectorHandlerTransformer(launchConfig, handlersConfigurer));
+    return handlerFactory.create(bindingsAction, moduleTransformer, new InjectorHandlerTransformer(launchConfig, handlersConfigurer));
   }
 
   static class RatpackImpl implements Groovy.Ratpack {
 
-    private Closure<?> modulesConfigurer;
+    private Closure<?> bindingsConfigurer;
     private Closure<?> handlersConfigurer;
 
-    public void modules(Closure<?> modulesConfigurer) {
-      this.modulesConfigurer = modulesConfigurer;
+    public void bindings(Closure<?> bindingsConfigurer) {
+      this.bindingsConfigurer = bindingsConfigurer;
     }
 
     public void handlers(Closure<?> handlersConfigurer) {

@@ -40,8 +40,8 @@ class MetricsSpec extends RatpackGroovyDslSpec {
 
   def "can register metrics module"() {
     when:
-    modules {
-      register new CodaHaleMetricsModule().metrics()
+    bindings {
+      add new CodaHaleMetricsModule().metrics()
     }
     handlers { MetricRegistry metrics ->
       handler {
@@ -67,8 +67,8 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     }
 
     and:
-    modules {
-      register new CodaHaleMetricsModule().jmx().csv(reportDirectory.root).console()
+    bindings {
+      add new CodaHaleMetricsModule().jmx().csv(reportDirectory.root).console()
     }
     handlers { MetricRegistry metrics ->
       handler {
@@ -99,8 +99,8 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     def requestMeter
 
     given:
-    modules {
-      register new CodaHaleMetricsModule().metrics()
+    bindings {
+      add new CodaHaleMetricsModule().metrics()
     }
 
     handlers { MetricRegistry metrics ->
@@ -163,8 +163,8 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     def unNamedMeter
 
     given:
-    modules {
-      register new CodaHaleMetricsModule().metrics()
+    bindings {
+      add new CodaHaleMetricsModule().metrics()
       bind AnnotatedMetricService
     }
 
@@ -210,8 +210,8 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     def unNamedTimer
 
     given:
-    modules {
-      register new CodaHaleMetricsModule().metrics()
+    bindings {
+      add new CodaHaleMetricsModule().metrics()
       bind AnnotatedMetricService
     }
 
@@ -254,8 +254,8 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     MetricRegistry registry
 
     given:
-    modules {
-      register new CodaHaleMetricsModule().metrics()
+    bindings {
+      add new CodaHaleMetricsModule().metrics()
       bind AnnotatedMetricService
     }
 
@@ -280,8 +280,8 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     def reporter = Mock(MetricRegistryListener)
 
     given:
-    modules {
-      register new CodaHaleMetricsModule().jmx()
+    bindings {
+      add new CodaHaleMetricsModule().jmx()
     }
 
     handlers { MetricRegistry metrics ->
@@ -316,8 +316,8 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     def reporter = Mock(MetricRegistryListener)
 
     given:
-    modules {
-      register new CodaHaleMetricsModule().jvmMetrics()
+    bindings {
+      add new CodaHaleMetricsModule().jvmMetrics()
     }
 
     handlers { MetricRegistry metrics ->
@@ -344,8 +344,8 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     }
 
     and:
-    modules {
-      register new CodaHaleMetricsModule().websocket()
+    bindings {
+      add new CodaHaleMetricsModule().websocket()
     }
     handlers { MetricRegistry metrics ->
 
@@ -411,8 +411,8 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     def blockingTimer
 
     given:
-    modules {
-      register new CodaHaleMetricsModule().metrics()
+    bindings {
+      add new CodaHaleMetricsModule().metrics()
     }
 
     handlers {MetricRegistry metrics ->

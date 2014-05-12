@@ -33,6 +33,7 @@ import ratpack.parse.ParserException;
 import ratpack.path.PathTokens;
 import ratpack.registry.NotInRegistryException;
 import ratpack.registry.Registry;
+import ratpack.render.NoSuchRendererException;
 import ratpack.server.BindAddress;
 
 import java.nio.file.Path;
@@ -390,7 +391,7 @@ public interface Context extends ExecContext, Registry {
    * The first {@link ratpack.render.Renderer}, that is able to render the given object will be delegated to.
    * If the given argument is {@code null}, this method will have the same effect as {@link #clientError(int) clientError(404)}.
    * <p>
-   * If no renderer can be found for the given type, a {@link ratpack.render.NoSuchRendererException} will be given to {@link #error(Exception)}.
+   * If no renderer can be found for the given type, a {@link NoSuchRendererException} will be given to {@link #error(Exception)}.
    * <p>
    * If a renderer throws an exception during its execution it will be wrapped in a {@link ratpack.render.RendererException} and given to {@link #error(Exception)}.
    * <p>
@@ -403,9 +404,10 @@ public interface Context extends ExecContext, Registry {
    * See {@link ratpack.render.Renderer} for more on how to contribute to the rendering framework.
    *
    * @param object The object to render
+   * @throws NoSuchRendererException if no suitable renderer can be found
    */
   @NonBlocking
-  void render(Object object);
+  void render(Object object) throws NoSuchRendererException;
 
   /**
    * Sends a temporary redirect response (i.e. statusCode 302) to the client using the specified redirect location URL.
@@ -631,7 +633,7 @@ public interface Context extends ExecContext, Registry {
    * {@inheritDoc}
    */
   @Override
-  <O> List<O> getAll(Class<O> type);
+  <O> Iterable<? extends O> getAll(Class<O> type);
 
   /**
    * {@inheritDoc}
@@ -650,7 +652,7 @@ public interface Context extends ExecContext, Registry {
    * {@inheritDoc}
    */
   @Override
-  <O> List<O> getAll(TypeToken<O> type);
+  <O> Iterable<? extends O> getAll(TypeToken<O> type);
 
   void addExecInterceptor(ExecInterceptor execInterceptor, Action<? super Context> action) throws Exception;
 
@@ -665,13 +667,7 @@ public interface Context extends ExecContext, Registry {
    * {@inheritDoc}
    */
   @Override
-  <T> List<? extends T> all(TypeToken<T> type, Predicate<? super T> predicate);
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  <T> boolean first(TypeToken<T> type, Predicate<? super T> predicate, Action<? super T> action) throws Exception;
+  <T> Iterable<? extends T> all(TypeToken<T> type, Predicate<? super T> predicate);
 
   /**
    * {@inheritDoc}

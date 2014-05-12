@@ -32,7 +32,7 @@ import java.util.List;
 public class SimpleMutableRegistry<T> implements MutableRegistry<T> {
 
   private final List<RegistryEntry<? extends T>> entries = new LinkedList<>();
-  private final Registry registry = new MultiEntryRegistry<>(entries);
+  private final Registry registry = new MultiEntryRegistry(entries);
 
   @Override
   public <O extends T> void register(Class<O> type, O object) {
@@ -74,7 +74,7 @@ public class SimpleMutableRegistry<T> implements MutableRegistry<T> {
   }
 
   @Override
-  public <O> List<O> getAll(Class<O> type) {
+  public <O> Iterable<? extends O> getAll(Class<O> type) {
     return registry.getAll(type);
   }
 
@@ -90,28 +90,23 @@ public class SimpleMutableRegistry<T> implements MutableRegistry<T> {
   }
 
   @Override
-  public <O> List<O> getAll(TypeToken<O> type) {
+  public <O> Iterable<? extends O> getAll(TypeToken<O> type) {
     return registry.getAll(type);
   }
 
   @Nullable
   @Override
-  public <T> T first(TypeToken<T> type, Predicate<? super T> predicate) {
+  public <O> O first(TypeToken<O> type, Predicate<? super O> predicate) {
     return registry.first(type, predicate);
   }
 
   @Override
-  public <T> List<? extends T> all(TypeToken<T> type, Predicate<? super T> predicate) {
+  public <O> Iterable<? extends O> all(TypeToken<O> type, Predicate<? super O> predicate) {
     return registry.all(type, predicate);
   }
 
   @Override
-  public <T> boolean first(TypeToken<T> type, Predicate<? super T> predicate, Action<? super T> action) throws Exception {
-    return registry.first(type, predicate, action);
-  }
-
-  @Override
-  public <T> boolean each(TypeToken<T> type, Predicate<? super T> predicate, Action<? super T> action) throws Exception {
-    return registry.first(type, predicate, action);
+  public <O> boolean each(TypeToken<O> type, Predicate<? super O> predicate, Action<? super O> action) throws Exception {
+    return registry.each(type, predicate, action);
   }
 }

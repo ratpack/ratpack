@@ -28,7 +28,7 @@ class SessionSpec extends RatpackGroovyDslSpec {
   def setup() {
     modules << new SessionModule()
     modules << new MapSessionsModule(10, 5)
-    modules {
+    bindings {
       bind ServerErrorHandler, new DebugErrorHandler()
     }
   }

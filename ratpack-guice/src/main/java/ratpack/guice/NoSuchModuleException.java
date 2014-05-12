@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,22 @@
 
 package ratpack.guice;
 
-import com.google.inject.Injector;
 import com.google.inject.Module;
-import ratpack.handling.Handler;
-import ratpack.func.Action;
-import ratpack.func.Transformer;
 
-public interface GuiceBackedHandlerFactory {
+/**
+ * Thrown by {@link ratpack.guice.BindingsSpec#config(Class)} when attempt to retrieve a module that doesn't exist.
+ */
+public class NoSuchModuleException extends RuntimeException {
 
-  Handler create(Action<? super BindingsSpec> modulesAction, Transformer<? super Module, ? extends Injector> moduleTransformer, Transformer<? super Injector, ? extends Handler> handler) throws Exception;
+  private static final long serialVersionUID = 0;
+
+  /**
+   * Constructor.
+   *
+   * @param moduleType the module type that doesn't exist
+   */
+  public NoSuchModuleException(Class<? extends Module> moduleType) {
+    super(String.format("No module with type %s has been added", moduleType.getName()));
+  }
 
 }

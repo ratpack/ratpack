@@ -52,8 +52,8 @@ import java.io.File;
  * import static ratpack.groovy.Groovy.ratpack
  *
  * ratpack {
- *   modules {
- *     register new CodaHaleMetricsModule().jmx()
+ *   bindings {
+ *     add new CodaHaleMetricsModule().jmx()
  *   }
  * }
  * </pre>
@@ -66,8 +66,8 @@ import java.io.File;
  * import static ratpack.groovy.Groovy.ratpack
  *
  * ratpack {
- *   modules {
- *     register new CodaHaleMetricsModule().jmx().console()
+ *   bindings {
+ *     add new CodaHaleMetricsModule().jmx().console()
  *   }
  * }
  * </pre>
@@ -93,8 +93,8 @@ import java.io.File;
  * import static ratpack.groovy.Groovy.ratpack
  *
  * ratpack {
- *   modules {
- *     register new CodaHaleMetricsModule().jmx()
+ *   bindings {
+ *     add new CodaHaleMetricsModule().jmx()
  *   }
  *
  *   handlers { MetricRegistry metricRegistry ->
@@ -145,8 +145,8 @@ import java.io.File;
  * }
  *
  * ratpack {
- *   modules {
- *     register new CodaHaleMetricsModule().healthChecks()
+ *   bindings {
+ *     add new CodaHaleMetricsModule().healthChecks()
  *     bind FooHealthCheck // if you don't bind the health check with Guice it will not be automatically registered
  *   }
  *

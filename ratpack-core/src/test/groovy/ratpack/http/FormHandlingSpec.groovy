@@ -24,7 +24,7 @@ import ratpack.test.internal.RatpackGroovyDslSpec
 class FormHandlingSpec extends RatpackGroovyDslSpec {
 
   def setup() {
-    modules {
+    bindings {
       bind ServerErrorHandler, new DebugErrorHandler()
     }
   }

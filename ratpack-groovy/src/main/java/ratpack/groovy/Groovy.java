@@ -22,7 +22,7 @@ import groovy.lang.DelegatesTo;
 import groovy.xml.MarkupBuilder;
 import ratpack.api.Nullable;
 import ratpack.func.Action;
-import ratpack.groovy.guice.GroovyModuleRegistry;
+import ratpack.groovy.guice.GroovyBindingsSpec;
 import ratpack.groovy.handling.GroovyChain;
 import ratpack.groovy.handling.GroovyChainAction;
 import ratpack.groovy.handling.GroovyContext;
@@ -67,9 +67,9 @@ public abstract class Groovy {
    * import static ratpack.groovy.Groovy.*
    *
    * ratpack {
-   *   modules {
+   *   bindings {
    *     // example of registering a module
-   *     register(new SessionModule())
+   *     add(new SessionModule())
    *   }
    *   handlers {
    *     // define the application handlers
@@ -109,11 +109,11 @@ public abstract class Groovy {
   public static interface Ratpack {
 
     /**
-     * Registers the closure used to configure the {@link GroovyModuleRegistry} that will back the application.
+     * Registers the closure used to configure the {@link ratpack.groovy.guice.GroovyBindingsSpec} that will back the application.
      *
-     * @param configurer The configuration closure, delegating to {@link GroovyModuleRegistry}
+     * @param configurer The configuration closure, delegating to {@link ratpack.groovy.guice.GroovyBindingsSpec}
      */
-    void modules(@DelegatesTo(value = GroovyModuleRegistry.class, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer);
+    void bindings(@DelegatesTo(value = GroovyBindingsSpec.class, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer);
 
     /**
      * Registers the closure used to build the handler chain of the application.

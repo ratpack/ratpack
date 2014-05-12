@@ -16,18 +16,25 @@
 
 package ratpack.pac4j.internal;
 
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import org.pac4j.core.context.WebContext;
 import org.pac4j.core.exception.RequiresHttpAction;
+import ratpack.form.Form;
 import ratpack.handling.Context;
+import ratpack.http.HttpMethod;
 import ratpack.http.MediaType;
+import ratpack.http.Request;
 import ratpack.server.PublicAddress;
 import ratpack.session.store.SessionStorage;
 import ratpack.util.MultiValueMap;
 
 import java.net.URI;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Adapts a {@link ratpack.handling.Context} object to be usable as a {@link org.pac4j.core.context.WebContext}.
@@ -38,6 +45,7 @@ public class RatpackWebContext implements WebContext {
   private final Context context;
   private String responseContent = "";
   private String redirectLocation;
+  private Form form;
 
   /**
    * Constructs a new instance.
@@ -50,18 +58,20 @@ public class RatpackWebContext implements WebContext {
 
   @Override
   public String getRequestParameter(String name) {
-    return context.getRequest().getQueryParams().get(name);
+    String value = context.getRequest().getQueryParams().get(name);
+    if (value == null && isFormAvailable()) {
+      value = getForm().get(name);
+    }
+    return value;
   }
 
   @Override
   public Map<String, String[]> getRequestParameters() {
-    MultiValueMap<String, String> ratpackParams = context.getRequest().getQueryParams();
-    Map<String, String[]> requestParameters = new HashMap<>();
-    for (String key : ratpackParams.keySet()) {
-      List<String> values = ratpackParams.getAll(key);
-      requestParameters.put(key, values.toArray(new String[values.size()]));
+    if (isFormAvailable()) {
+      return flattenMap(combineMaps(context.getRequest().getQueryParams(), getForm()));
+    } else {
+      return flattenMap(context.getRequest().getQueryParams().getAll());
     }
-    return requestParameters;
   }
 
   @Override
@@ -147,5 +157,35 @@ public class RatpackWebContext implements WebContext {
 
   private URI getAddress() {
     return context.get(PublicAddress.class).getAddress(context);
+  }
+
+  private boolean isFormAvailable() {
+    Request request = context.getRequest();
+    HttpMethod method = request.getMethod();
+    return request.getBody().getContentType().isForm() && (method.isPost() || method.isPut());
+  }
+
+  private Form getForm() {
+    if (form == null) {
+      form = context.parse(Form.class);
+    }
+    return form;
+  }
+
+  private Map<String, List<String>> combineMaps(MultiValueMap<String, String> first, MultiValueMap<String, String> second) {
+    Map<String, List<String>> result = Maps.newLinkedHashMap();
+    Set<String> keys = Sets.newLinkedHashSet(Iterables.concat(first.keySet(), second.keySet()));
+    for (String key : keys) {
+      result.put(key, Lists.newArrayList(Iterables.concat(first.getAll(key), second.getAll(key))));
+    }
+    return result;
+  }
+
+  private Map<String, String[]> flattenMap(Map<String, List<String>> map) {
+    Map<String, String[]> result = Maps.newLinkedHashMap();
+    for (String key : map.keySet()) {
+      result.put(key, Iterables.toArray(map.get(key), String.class));
+    }
+    return result;
   }
 }

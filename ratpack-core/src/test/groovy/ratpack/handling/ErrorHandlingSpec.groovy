@@ -55,7 +55,7 @@ class ErrorHandlingSpec extends RatpackGroovyDslSpec {
     }
 
     when:
-    modules {
+    bindings {
       bind ServerErrorHandler, errorHandler1
     }
     handlers {
@@ -83,7 +83,7 @@ class ErrorHandlingSpec extends RatpackGroovyDslSpec {
     }
 
     when:
-    modules {
+    bindings {
       bind ServerErrorHandler, errorHandler
     }
     handlers {
@@ -98,7 +98,7 @@ class ErrorHandlingSpec extends RatpackGroovyDslSpec {
 
   def "exceptions thrown by error handler are dealt with"() {
     when:
-    modules {
+    bindings {
       bind ServerErrorHandler, new ServerErrorHandler() {
         @Override
         void error(Context context, Exception exception) {

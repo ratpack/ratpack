@@ -72,9 +72,9 @@ import ratpack.launch.LaunchConfig;
  *   }
  * }
  *
- * class ModuleBootstrap implements Action&lt;ModuleRegistry&gt; {
- *   public void execute(ModuleRegistry modules) {
- *     modules.register(new HandlebarsModule());
+ * class ModuleBootstrap implements Action&lt;BindingsSpec&gt; {
+ *   public void execute(BindingsSpec bindings) {
+ *     bindings.add(new HandlebarsModule());
  *   }
  * }
  *
@@ -98,8 +98,8 @@ import ratpack.launch.LaunchConfig;
  * import static ratpack.groovy.Groovy.ratpack
  *
  * ratpack {
- *   modules {
- *     register new HandlebarsModule()
+ *   bindings {
+ *     add new HandlebarsModule()
  *   }
  *   handlers {
  *     get {

@@ -48,30 +48,6 @@ class SingleEntryRegistrySpec extends Specification {
     r.all(differentType, Predicates.alwaysFalse()) == []
   }
 
-  def "first with action"() {
-    given:
-    Action action = Mock()
-
-    when:
-    r.first(sameType, Predicates.alwaysTrue(), action)
-
-    then:
-    1 * action.execute(value)
-
-    when:
-    r.first(sameType, Predicates.alwaysFalse(), action)
-
-    then:
-    0 * action.execute(_)
-
-    when:
-    r.first(differentType, Predicates.alwaysTrue(), action)
-    r.first(differentType, Predicates.alwaysFalse(), action)
-
-    then:
-    0 * action.execute(_)
-  }
-
   def "each with action"() {
     given:
     Action action = Mock()

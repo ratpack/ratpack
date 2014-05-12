@@ -38,12 +38,12 @@ import java.util.Map;
 public interface MultiValueMap<K, V> extends Map<K, V> {
 
   /**
-   * All of the values for the given key. An empty map if there are no values for the key.
+   * All of the values for the given key. An empty list if there are no values for the key.
    * <p>
    * The returned list is immutable.
    *
    * @param key The key to return all values of
-   * @return all of the values for the given key, or an empty map if there are no values for the key.
+   * @return all of the values for the given key, or an empty list if there are no values for the key.
    */
   public List<V> getAll(K key);
 

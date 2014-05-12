@@ -42,8 +42,8 @@ class SimpleMutableRegistrySpec extends Specification {
     then:
     r.get(String) == "foo"
     r.get(CharSequence) == "foo"
-    r.getAll(String) == ["foo"]
-    r.getAll(CharSequence) == ["foo"]
+    r.getAll(String).toList() == ["foo"]
+    r.getAll(CharSequence).toList() == ["foo"]
 
     when:
     r.remove(String)
@@ -65,8 +65,8 @@ class SimpleMutableRegistrySpec extends Specification {
     then:
     r.get(String) == "foo"
     r.get(CharSequence) == "foo"
-    r.getAll(String) == ["foo", "bar"]
-    r.getAll(CharSequence) == ["foo", "bar"]
+    r.getAll(String).toList() == ["foo", "bar"]
+    r.getAll(CharSequence).toList() == ["foo", "bar"]
 
     when:
     r.remove(String)

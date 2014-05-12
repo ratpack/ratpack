@@ -11,8 +11,7 @@ See the [Guice package API documentation](api/ratpack/guice/package-summary.html
 Guice provides the concept of a module, which is a kind of recipe for providing objects.
 See Guice's [“Getting Started”](https://code.google.com/p/google-guice/wiki/GettingStarted) documentation for details.
 
-The `ratpack-guice` library provides the [`ModuleRegistry`](api/ratpack/guice/ModuleRegistry.html) type for registering
-modules to be used.
+The `ratpack-guice` library provides the [`BindingsSpec`](api/ratpack/guice/BindingsSpec.html) type for specifying the bindings for the application.
 
 ## Dependency injected handlers
 
@@ -43,8 +42,8 @@ import static ratpack.jackson.Jackson.json
 import static ratpack.groovy.Groovy.ratpack
 
 ratpack {
-  modules {
-    register new JacksonModule()
+  bindings {
+    add new JacksonModule()
   }
   handlers {
     get("some-json") {

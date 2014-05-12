@@ -14,46 +14,30 @@
  * limitations under the License.
  */
 
-package ratpack.guice
+package ratpack.exec
 
-import ratpack.exec.ExecControl
-import ratpack.exec.Promise
 import ratpack.test.internal.RatpackGroovyDslSpec
 
-import javax.inject.Inject
+class ExecContextThreadBindingSpec extends RatpackGroovyDslSpec {
 
-class ControlInjectionSpec extends RatpackGroovyDslSpec {
-
-  static class SupportService {
-    private ExecControl control
-
-    @Inject
-    SupportService(ExecControl control) {
-      this.control = control
-    }
-
-    Promise<String> toUpper(String lower) {
-      control.promise {
-        it.success(lower.toUpperCase())
-      }
-    }
-  }
-
-  def "support services can have control injected"() {
+  def "context is bound for promise fulfillment"() {
     when:
-    bindings {
-      bind SupportService
-    }
-
     handlers {
-      get { SupportService service ->
-        service.toUpper("foo") then {
+      get {
+        promise { f ->
+          assert execController.context
+          Thread.start {
+            assert !execController.managedThread
+            f.success('foo')
+          }
+        } then {
+          assert execController.managedThread
           render it
         }
       }
     }
 
     then:
-    text == "FOO"
+    text == "foo"
   }
 }

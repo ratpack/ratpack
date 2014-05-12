@@ -47,7 +47,7 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
 
   def setup() {
     RxRatpack.initialize()
-    modules {
+    bindings {
       bind ServerErrorHandler, errorHandler
     }
   }
@@ -239,7 +239,7 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
   def "can use two different rx ratpack apps in same jvm"() {
     when:
     def app1 = embeddedApp {
-      modules {
+      bindings {
         bind ServerErrorHandler, new ServerErrorHandler() {
           @Override
           void error(Context context, Exception exception) throws Exception {
@@ -253,7 +253,7 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
     }
     def client1 = testHttpClient(app1)
     def app2 = embeddedApp {
-      modules {
+      bindings {
         bind ServerErrorHandler, new ServerErrorHandler() {
           @Override
           void error(Context context, Exception exception) throws Exception {

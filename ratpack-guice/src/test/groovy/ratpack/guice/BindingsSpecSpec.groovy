@@ -21,7 +21,7 @@ import ratpack.test.internal.RatpackGroovyDslSpec
 
 import javax.inject.Provider
 
-class ModuleRegistryBindingsSpec extends RatpackGroovyDslSpec {
+class BindingsSpecSpec extends RatpackGroovyDslSpec {
 
   static interface Type1 {}
 
@@ -45,14 +45,14 @@ class ModuleRegistryBindingsSpec extends RatpackGroovyDslSpec {
 
   def "can bind via module registry"() {
     when:
-    modules {
+    bindings {
       // direct bindings always override module bindings
       bind SomeType
       bind Type1, Type1Impl2
       provider Type2, Type2Provider
 
       // regardless of module registration order
-      register new AbstractModule() {
+      add new AbstractModule() {
         protected void configure() {
           bind(Type1).to(Type1Impl1)
           bind(Type2).to(Type2Impl1)

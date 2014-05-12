@@ -16,7 +16,7 @@
 
 package ratpack.test.internal
 
-import ratpack.groovy.guice.GroovyModuleRegistry
+import ratpack.groovy.guice.GroovyBindingsSpec
 import ratpack.groovy.handling.GroovyChain
 import ratpack.groovy.test.embed.ClosureBackedEmbeddedApplication
 import ratpack.launch.LaunchConfigBuilder
@@ -39,8 +39,8 @@ abstract class RatpackGroovyDslSpec extends EmbeddedBaseDirRatpackSpec {
     application.handlers(configurer)
   }
 
-  void modules(@DelegatesTo(value = GroovyModuleRegistry, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer) {
-    application.modules(configurer)
+  void bindings(@DelegatesTo(value = GroovyBindingsSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer) {
+    application.bindings(configurer)
   }
 
   void launchConfig(@DelegatesTo(value = LaunchConfigBuilder, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer) {

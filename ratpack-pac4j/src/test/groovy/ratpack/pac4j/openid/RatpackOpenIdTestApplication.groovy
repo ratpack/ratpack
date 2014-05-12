@@ -31,13 +31,15 @@ class RatpackOpenIdTestApplication extends ClosureBackedEmbeddedApplication {
       port(consumerPort)
       publicAddress(new URI("http://localhost:${consumerPort}"))
     }
-    modules {
-      register new SessionModule()
-      register new MapSessionsModule(10, 5)
-      for (module in additionalModules) {
-        register module
-      }
+
+    bindings {
+      add \
+        new SessionModule(),
+        new MapSessionsModule(10, 5)
+
+      add additionalModules
     }
+
     handlers {
       get("noauth") {
         def typedUserProfile = request.maybeGet(GoogleOpenIdProfile)

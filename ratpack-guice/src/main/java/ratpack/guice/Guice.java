@@ -72,9 +72,9 @@ import static ratpack.handling.Handlers.chain;
  * }
  *
  * // An action that registers the module with the registry, making it part of the application
- * class ModuleBootstrap implements Action&lt;ModuleRegistry&gt; {
- *   public void execute(ModuleRegistry modules) {
- *     modules.register(new ServiceModule());
+ * class Bindings implements Action&lt;BindingsSpec&gt; {
+ *   public void execute(BindingsSpec bindings) {
+ *     bindings.add(new ServiceModule());
  *   }
  * }
  *
@@ -110,7 +110,7 @@ import static ratpack.handling.Handlers.chain;
  * // A HandlerFactory implementation used to bootstrap the application
  * class MyHandlerFactory implements HandlerFactory {
  *   public Handler create(LaunchConfig launchConfig) {
- *     return Guice.handler(launchConfig, new ModuleBootstrap(), new HandlersBootstrap());
+ *     return Guice.handler(launchConfig, new Bindings(), new HandlersBootstrap());
  *   }
  * }
  *
@@ -149,7 +149,7 @@ import static ratpack.handling.Handlers.chain;
  * Add on Ratpack functionality is typically provided via Guice modules.
  * For example, the <a href="https://github.com/FasterXML/jackson-databind">Jackson</a> integration for JSON serialisation
  * is provided by the {@code ratpack-jackson} add-on which ships a Guice module.
- * To use its functionality simply register the module it provides with the {@link ModuleRegistry} used to bootstrap the application.
+ * To use its functionality simply register the module it provides with the {@link BindingsSpec} used to bootstrap the application.
  * </p>
  * <h4>Groovy Applications</h4>
  * <p>
@@ -173,11 +173,11 @@ public abstract class Guice {
    * This injector is available to the given handler via service lookup.
    *
    * @param launchConfig The launch config of the server
-   * @param moduleConfigurer The configurer of the {@link ModuleRegistry} to back the created handler
+   * @param moduleConfigurer The configurer of the {@link BindingsSpec} to back the created handler
    * @param chainConfigurer The configurer that builds the handler chain
    * @return A handler that makes all Guice bound objects available to the handlers added to the {@link Chain} given to {@code chainConfigurer}.
    */
-  public static Handler handler(LaunchConfig launchConfig, Action<? super ModuleRegistry> moduleConfigurer, final Action<? super Chain> chainConfigurer) throws Exception {
+  public static Handler handler(LaunchConfig launchConfig, Action<? super BindingsSpec> moduleConfigurer, final Action<? super Chain> chainConfigurer) throws Exception {
     return new DefaultGuiceBackedHandlerFactory(launchConfig).create(moduleConfigurer, newInjectorFactory(launchConfig), new InjectorHandlerTransformer(launchConfig, chainConfigurer));
   }
 
@@ -188,11 +188,11 @@ public abstract class Guice {
    * that supports a custom final {@link Handler} creation strategy.
    *
    * @param launchConfig The launch config of the server
-   * @param moduleConfigurer The configurer of the {@link ModuleRegistry} to back the created handler
+   * @param moduleConfigurer The configurer of the {@link BindingsSpec} to back the created handler
    * @param injectorTransformer Takes the final {@link Injector} instance that was created from the modules and returns the {@link Handler} to use
    * @return A handler that makes all Guice bound objects available to the handlers added to the {@link Chain} given to {@code chainConfigurer}.
    */
-  public static Handler handler(LaunchConfig launchConfig, Action<? super ModuleRegistry> moduleConfigurer, Transformer<? super Injector, ? extends Handler> injectorTransformer) throws Exception {
+  public static Handler handler(LaunchConfig launchConfig, Action<? super BindingsSpec> moduleConfigurer, Transformer<? super Injector, ? extends Handler> injectorTransformer) throws Exception {
     return new DefaultGuiceBackedHandlerFactory(launchConfig).create(moduleConfigurer, newInjectorFactory(launchConfig), injectorTransformer);
   }
 
@@ -207,11 +207,11 @@ public abstract class Guice {
    *
    * @param launchConfig The launch config of the server
    * @param parentInjector The injector to use as a parent of the injector to be created
-   * @param moduleConfigurer The configurer of the {@link ModuleRegistry} to back the created handler
+   * @param moduleConfigurer The configurer of the {@link BindingsSpec} to back the created handler
    * @param chainConfigurer The configurer that builds the handler chain
    * @return A handler that makes all Guice bound objects available to the handlers added to the {@link Chain} given to {@code chainConfigurer}.
    */
-  public static Handler handler(LaunchConfig launchConfig, Injector parentInjector, Action<? super ModuleRegistry> moduleConfigurer, final Action<? super Chain> chainConfigurer) throws Exception {
+  public static Handler handler(LaunchConfig launchConfig, Injector parentInjector, Action<? super BindingsSpec> moduleConfigurer, final Action<? super Chain> chainConfigurer) throws Exception {
     return new DefaultGuiceBackedHandlerFactory(launchConfig).create(moduleConfigurer, childInjectorFactory(parentInjector), new InjectorHandlerTransformer(launchConfig, chainConfigurer));
   }
 
@@ -223,19 +223,21 @@ public abstract class Guice {
    *
    * @param launchConfig The launch config of the server
    * @param parentInjector The injector to use as a parent of the injector to be created
-   * @param moduleConfigurer The configurer of the {@link ModuleRegistry} to back the created handler
+   * @param moduleConfigurer The configurer of the {@link BindingsSpec} to back the created handler
    * @param injectorTransformer Takes the final {@link Injector} instance that was created from the modules and returns the {@link Handler} to use
    * @return A handler that makes all Guice bound objects available to the handlers added to the {@link Chain} given to {@code chainConfigurer}.
    */
-  public static Handler handler(LaunchConfig launchConfig, Injector parentInjector, Action<? super ModuleRegistry> moduleConfigurer, Transformer<? super Injector, ? extends Handler> injectorTransformer) throws Exception {
+  public static Handler handler(LaunchConfig launchConfig, Injector parentInjector, Action<? super BindingsSpec> moduleConfigurer, Transformer<? super Injector, ? extends Handler> injectorTransformer) throws Exception {
     return new DefaultGuiceBackedHandlerFactory(launchConfig).create(moduleConfigurer, childInjectorFactory(parentInjector), injectorTransformer);
   }
 
   /**
    * Creates a Ratpack {@link Registry} backed by the given {@link Injector} that will create objects via “just-in-time” binding.
    * <p>
-   * Typically used in conjuction with the {@link ratpack.handling.Handlers#chain(LaunchConfig, ratpack.registry.Registry, ratpack.func.Action)}
-   * method.
+   * The returned registry differs from the registry returned by {@link #registry(com.google.inject.Injector)} in that it may return objects that were not explicitly bound,
+   * via Guice's “just-in-time” binding mechanism.
+   * This only applies to the {@link Registry#get(Class)} and {@link Registry#maybeGet(Class)} (for all overloads).
+   * All other methods do not perform any just in time bindings.
    *
    * @param injector The injector to back the registry
    * @return A registry that wraps the injector

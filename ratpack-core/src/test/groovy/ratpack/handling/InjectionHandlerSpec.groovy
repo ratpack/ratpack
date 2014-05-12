@@ -115,7 +115,7 @@ class InjectionHandlerSpec extends RatpackGroovyDslSpec {
 
   def "can inject from request registry"() {
     when:
-    modules {
+    bindings {
       bind 10
     }
     handlers {
@@ -132,7 +132,7 @@ class InjectionHandlerSpec extends RatpackGroovyDslSpec {
 
   def "context registry shadows request registry"() {
     when:
-    modules {
+    bindings {
       bind 10
       bind "bar"
     }

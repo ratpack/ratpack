@@ -32,8 +32,8 @@ class HandlebarsTemplateRenderingSpec extends RatpackGroovyDslSpec {
     file filePath, '{{key}}'
 
     when:
-    modules {
-      register new HandlebarsModule(templatesPath: templatesPath)
+    bindings {
+      add new HandlebarsModule(templatesPath: templatesPath)
     }
     handlers {
       get {
@@ -58,8 +58,8 @@ class HandlebarsTemplateRenderingSpec extends RatpackGroovyDslSpec {
     file('handlebars/simple.hbs', '{{this}}')
 
     when:
-    modules {
-      register new HandlebarsModule(templatesSuffix: templatesSuffix)
+    bindings {
+      add new HandlebarsModule(templatesSuffix: templatesSuffix)
     }
     handlers {
       get {
@@ -80,8 +80,8 @@ class HandlebarsTemplateRenderingSpec extends RatpackGroovyDslSpec {
     given:
     dir('handlebars')
 
-    modules {
-      register new HandlebarsModule()
+    bindings {
+      add new HandlebarsModule()
     }
     handlers {
       get {
@@ -101,8 +101,8 @@ class HandlebarsTemplateRenderingSpec extends RatpackGroovyDslSpec {
     file 'handlebars/helper.hbs', '{{test}}'
 
     when:
-    modules {
-      register new HandlebarsModule()
+    bindings {
+      add new HandlebarsModule()
       bind TestHelper
     }
     handlers {
@@ -122,8 +122,8 @@ class HandlebarsTemplateRenderingSpec extends RatpackGroovyDslSpec {
     file 'handlebars/simple.html.hbs', '{{this}}'
 
     when:
-    modules {
-      register new HandlebarsModule()
+    bindings {
+      add new HandlebarsModule()
     }
     handlers {
       handler {
@@ -143,8 +143,8 @@ class HandlebarsTemplateRenderingSpec extends RatpackGroovyDslSpec {
     file 'handlebars/simple.hbs', 'A'
 
     when:
-    modules {
-      register new HandlebarsModule(reloadable: true)
+    bindings {
+      add new HandlebarsModule(reloadable: true)
     }
     handlers {
       get {
@@ -168,8 +168,8 @@ class HandlebarsTemplateRenderingSpec extends RatpackGroovyDslSpec {
     file 'handlebars/simple.hbs', 'A'
 
     when:
-    modules {
-      register new HandlebarsModule(reloadable: false)
+    bindings {
+      add new HandlebarsModule(reloadable: false)
     }
     handlers {
       get {
