@@ -23,7 +23,7 @@ import com.google.common.cache.CacheBuilder
 import com.google.common.cache.CacheLoader
 import com.google.common.cache.LoadingCache
 import groovy.transform.CompileStatic
-import ratpack.exec.ExecController
+import ratpack.http.client.HttpClient
 
 import java.util.concurrent.TimeUnit
 
@@ -36,11 +36,11 @@ class GitHubApi {
 
   private final LoadingCache<String, rx.Observable<ArrayNode>> cache
 
-  GitHubApi(String api, String authToken, int cacheMins, ObjectReader objectReader, ExecController execController) {
+  GitHubApi(String api, String authToken, int cacheMins, ObjectReader objectReader, HttpClient httpClient) {
     this.api = api
     this.authToken = authToken
 
-    def requester = new GithubRequester(objectReader, execController)
+    def requester = new GithubRequester(objectReader, httpClient)
     this.cache = CacheBuilder.newBuilder().
       initialCapacity(30).
       expireAfterWrite(cacheMins, TimeUnit.MINUTES).
