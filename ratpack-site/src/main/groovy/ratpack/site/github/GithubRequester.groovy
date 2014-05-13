@@ -18,7 +18,6 @@ package ratpack.site.github
 
 import com.fasterxml.jackson.databind.ObjectReader
 import com.fasterxml.jackson.databind.node.ArrayNode
-import ratpack.exec.ExecController
 import ratpack.http.client.HttpClient
 import ratpack.http.client.ReceivedResponse
 import ratpack.http.client.RequestSpec
@@ -30,17 +29,14 @@ import static ratpack.rx.RxRatpack.observe
 class GithubRequester {
 
   private final ObjectReader objectReader
-  private final ExecController execController
+  private final HttpClient httpClient
 
-  GithubRequester(ObjectReader objectReader, ExecController execController) {
+  GithubRequester(ObjectReader objectReader, HttpClient httpClient) {
+    this.httpClient = httpClient
     this.objectReader = objectReader
-    this.execController = execController
   }
 
   Observable<ArrayNode> request(String url) {
-    def context = execController.context
-    def httpClient = context.httpClient
-
     Observable.create({ Subscriber<ArrayNode> it ->
       getPage(httpClient, url, it)
     } as Observable.OnSubscribe<ArrayNode>).reduce { ArrayNode a, ArrayNode b ->

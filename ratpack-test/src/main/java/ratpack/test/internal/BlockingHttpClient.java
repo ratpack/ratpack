@@ -22,9 +22,9 @@ import ratpack.exec.ExecErrorHandler;
 import ratpack.exec.Result;
 import ratpack.exec.internal.DefaultExecContext;
 import ratpack.func.Action;
+import ratpack.http.client.HttpClients;
 import ratpack.http.client.ReceivedResponse;
 import ratpack.http.client.RequestSpec;
-import ratpack.http.client.internal.DefaultHttpClient;
 import ratpack.launch.LaunchConfig;
 import ratpack.launch.LaunchConfigBuilder;
 import ratpack.util.ExceptionUtils;
@@ -81,7 +81,7 @@ public class BlockingHttpClient {
 
     @Override
     public void execute(ExecContext execContext) throws Exception {
-      new DefaultHttpClient(execContext.getLaunchConfig()).request(httpUrl, action)
+      HttpClients.httpClient(execContext.getLaunchConfig()).request(httpUrl, action)
         .onError(new Action<Throwable>() {
           @Override
           public void execute(Throwable exception) throws Exception {

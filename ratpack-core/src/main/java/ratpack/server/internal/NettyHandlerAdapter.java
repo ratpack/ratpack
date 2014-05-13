@@ -45,6 +45,8 @@ import ratpack.handling.internal.DefaultRedirector;
 import ratpack.handling.internal.DefaultRequestOutcome;
 import ratpack.handling.internal.DelegatingHeaders;
 import ratpack.http.*;
+import ratpack.http.client.HttpClient;
+import ratpack.http.client.HttpClients;
 import ratpack.http.internal.*;
 import ratpack.launch.LaunchConfig;
 import ratpack.registry.Registries;
@@ -94,7 +96,8 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
       .add(FileRenderer.class, new DefaultFileRenderer())
       .add(CharSequenceRenderer.class, new DefaultCharSequenceRenderer())
       .add(FormParser.class, FormParser.multiPart())
-      .add(FormParser.class, FormParser.urlEncoded());
+      .add(FormParser.class, FormParser.urlEncoded())
+      .add(HttpClient.class, HttpClients.httpClient(launchConfig));
 
     if (launchConfig.isHasBaseDir()) {
       registryBuilder.add(FileSystemBinding.class, launchConfig.getBaseDir());

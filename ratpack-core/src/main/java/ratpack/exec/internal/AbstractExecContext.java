@@ -21,8 +21,6 @@ import ratpack.exec.ExecController;
 import ratpack.exec.Fulfiller;
 import ratpack.exec.Promise;
 import ratpack.func.Action;
-import ratpack.http.client.HttpClient;
-import ratpack.http.client.internal.DefaultHttpClient;
 
 import java.util.concurrent.Callable;
 
@@ -46,11 +44,6 @@ public abstract class AbstractExecContext implements ExecContext {
   @Override
   public <T> Promise<T> promise(Action<? super Fulfiller<T>> action) {
     return getExecController().getControl().promise(action);
-  }
-
-  @Override
-  public HttpClient getHttpClient() {
-    return new DefaultHttpClient(getLaunchConfig());
   }
 
 }

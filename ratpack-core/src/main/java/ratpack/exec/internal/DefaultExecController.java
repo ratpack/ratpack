@@ -115,8 +115,8 @@ public class DefaultExecController implements ExecController {
       }.run();
     } catch (Throwable e) {
       onExecFinish.get().clear();
-      contextSupplierThreadLocal.remove();
       ExecException.wrapAndForward(getContext(), e);
+      contextSupplierThreadLocal.remove();
     }
 
     try {

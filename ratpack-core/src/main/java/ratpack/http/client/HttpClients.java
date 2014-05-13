@@ -14,38 +14,18 @@
  * limitations under the License.
  */
 
-package ratpack.rx
+package ratpack.http.client;
 
-import ratpack.http.client.HttpClient
-import ratpack.http.client.HttpClientSpec
+import ratpack.http.client.internal.DefaultHttpClient;
+import ratpack.launch.LaunchConfig;
 
-import static ratpack.rx.RxRatpack.observe
+public abstract class HttpClients {
 
-class RxHttpClientSpec extends HttpClientSpec {
-
-  def setup() {
-    RxRatpack.initialize()
+  private HttpClients() {
   }
 
-  def "can use rx with http client"() {
-    given:
-    otherApp {
-      get("foo") { render "bar" }
-    }
-
-    when:
-    handlers {
-      get { HttpClient httpClient ->
-        observe(httpClient.get(otherAppUrl("foo"))) map {
-          it.body.text.toUpperCase()
-        } subscribe {
-          render it
-        }
-      }
-    }
-
-    then:
-    text == "BAR"
+  public static HttpClient httpClient(LaunchConfig launchConfig) {
+    return new DefaultHttpClient(launchConfig);
   }
 
 }

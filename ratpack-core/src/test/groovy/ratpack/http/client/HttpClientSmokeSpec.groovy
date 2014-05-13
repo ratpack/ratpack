@@ -26,7 +26,7 @@ class HttpClientSmokeSpec extends HttpClientSpec {
 
     when:
     handlers {
-      get {
+      get { HttpClient httpClient ->
         httpClient.get(otherAppUrl("foo")) then { ReceivedResponse response ->
           render response.body.text
         }
@@ -47,7 +47,7 @@ class HttpClientSmokeSpec extends HttpClientSpec {
 
     when:
     handlers {
-      get {
+      get { HttpClient httpClient ->
         httpClient.post(otherAppUrl("foo")) { RequestSpec request ->
           request.body.type("text/plain").stream { it << "bar" }
         } then { ReceivedResponse response ->
