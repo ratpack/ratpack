@@ -35,7 +35,6 @@ import ratpack.handling.*;
 import ratpack.handling.direct.DirectChannelAccess;
 import ratpack.http.Request;
 import ratpack.http.Response;
-import ratpack.http.client.HttpClient;
 import ratpack.launch.LaunchConfig;
 import ratpack.parse.NoSuchParserException;
 import ratpack.parse.Parse;
@@ -270,11 +269,6 @@ public class DefaultGroovyContext implements GroovyContext {
   @Override
   public <O> Iterable<? extends O> getAll(Class<O> type) {
     return delegate.getAll(type);
-  }
-
-  @Override
-  public HttpClient getHttpClient() {
-    return delegate.getHttpClient();
   }
 
   @Override

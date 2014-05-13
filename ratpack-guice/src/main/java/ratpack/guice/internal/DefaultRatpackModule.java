@@ -25,6 +25,8 @@ import ratpack.exec.ExecControl;
 import ratpack.exec.ExecController;
 import ratpack.exec.NoBoundContextException;
 import ratpack.handling.Context;
+import ratpack.http.client.HttpClient;
+import ratpack.http.client.HttpClients;
 import ratpack.launch.LaunchConfig;
 
 public class DefaultRatpackModule extends AbstractModule {
@@ -53,6 +55,11 @@ public class DefaultRatpackModule extends AbstractModule {
   @Provides
   ExecControl execControlr(ExecController execController) {
     return execController.getControl();
+  }
+
+  @Provides
+  HttpClient httpClient(LaunchConfig launchConfig) {
+    return HttpClients.httpClient(launchConfig);
   }
 
   @Provides

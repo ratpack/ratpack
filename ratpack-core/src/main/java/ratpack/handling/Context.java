@@ -25,7 +25,6 @@ import ratpack.func.Action;
 import ratpack.handling.direct.DirectChannelAccess;
 import ratpack.http.Request;
 import ratpack.http.Response;
-import ratpack.http.client.HttpClient;
 import ratpack.launch.LaunchConfig;
 import ratpack.parse.NoSuchParserException;
 import ratpack.parse.Parse;
@@ -609,12 +608,6 @@ public interface Context extends ExecContext, Registry {
    */
   @Override
   List<ExecInterceptor> getInterceptors();
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  HttpClient getHttpClient();
 
   /**
    * {@inheritDoc}

@@ -18,7 +18,6 @@ package ratpack.exec;
 
 import ratpack.api.NonBlocking;
 import ratpack.func.Action;
-import ratpack.http.client.HttpClient;
 import ratpack.launch.LaunchConfig;
 
 import java.util.List;
@@ -113,7 +112,5 @@ public interface ExecContext extends ExecControl {
    */
   @Override
   <T> Promise<T> promise(Action<? super Fulfiller<T>> action);
-
-  HttpClient getHttpClient();
 
 }
