@@ -16,26 +16,26 @@
 
 package ratpack.exec.internal;
 
-import ratpack.exec.*;
+import ratpack.exec.ExecContext;
+import ratpack.exec.Fulfiller;
+import ratpack.exec.Promise;
+import ratpack.exec.SuccessPromise;
 import ratpack.func.Action;
 
 import static ratpack.util.ExceptionUtils.toException;
 
-public class DefaultSuccessOrErrorPromise<T> implements Promise<T> {
+public class DefaultPromise<T> implements Promise<T> {
   private final ExecContext context;
-  private final ExecController execController;
-  private final Action<? super Fulfiller<T>> action;
+  private final Action<? super Fulfiller<T>> fulfillment;
 
-  public DefaultSuccessOrErrorPromise(ExecContext context, ExecController execController, Action<? super Fulfiller<T>> action) {
+  public DefaultPromise(ExecContext context, Action<? super Fulfiller<T>> fulfillment) {
     this.context = context;
-    this.execController = execController;
-
-    this.action = action;
+    this.fulfillment = fulfillment;
   }
 
   @Override
   public SuccessPromise<T> onError(final Action<? super Throwable> errorHandler) {
-    return new DefaultSuccessPromise<>(context, execController, action, errorHandler);
+    return new DefaultSuccessPromise<>(context, fulfillment, errorHandler);
   }
 
   @Override

@@ -187,9 +187,10 @@ public class DefaultExecController implements ExecController {
     }
 
     @Override
-    public <T> Promise<T> promise(Action<? super Fulfiller<T>> action) {
-      return new DefaultSuccessOrErrorPromise<>(getContext(), DefaultExecController.this, action);
+    public <T> Promise<T> promise(final Action<? super Fulfiller<T>> action) {
+      return new DefaultPromise<>(getContext(), action);
     }
+
   }
 
   @Override
