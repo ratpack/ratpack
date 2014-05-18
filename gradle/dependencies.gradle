@@ -21,7 +21,8 @@ ext {
     netty: "4.0.19.Final",
     groovy: "2.3.0",
     pac4j: "1.5.0",
-    rxjava: "0.18.1"
+    rxjava: "0.18.1",
+    hystrix: "1.4.0-RC3"
   ]
 
   commonDependencies = [

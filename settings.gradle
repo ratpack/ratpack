@@ -37,7 +37,8 @@ include \
     "ratpack-lazybones",
     "ratpack-hikari",
     "ratpack-newrelic",
-    "ratpack-pac4j"
+    "ratpack-pac4j",
+    "ratpack-hystrix"
 
 include "perf"
 
