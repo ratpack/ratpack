@@ -19,9 +19,11 @@ package ratpack.hystrix
 import com.netflix.hystrix.strategy.HystrixPlugins
 import com.netflix.hystrix.strategy.concurrency.HystrixConcurrencyStrategy
 import ratpack.test.internal.RatpackGroovyDslSpec
+import spock.lang.Ignore
 
 class InitializeSpec extends RatpackGroovyDslSpec {
 
+  @Ignore
   def "initialize when another concurrency strategy is already registered with Hystrix"() {
     given:
     def mockConcurrencyStrategy = Mock(HystrixConcurrencyStrategy)
