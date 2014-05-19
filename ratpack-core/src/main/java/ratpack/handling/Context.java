@@ -240,7 +240,7 @@ public interface Context extends ExecContext, Registry {
    * the given {@code operation} will be submitted to a thread pool that is different to the request handling thread pool.
    * Therefore, if the returned promise is never subscribed to, the {@code operation} will never be initiated.
    * <p>
-   * The promise returned by this method, has the same default error handling strategy as those returned by {@link Context#promise(Action)}.
+   * The promise returned by this method, has the same default error handling strategy as those returned by {@link ratpack.exec.ExecControl#promise(ratpack.func.Action)}.
    * <p>
    * <pre class="tested">
    * import ratpack.handling.*;

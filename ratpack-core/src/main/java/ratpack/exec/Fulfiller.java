@@ -68,7 +68,7 @@ import ratpack.api.NonBlocking;
  * That is, the promise subscription my be invoked in a separate thread.
  *
  * @param <T> the type of value that was promised.
- * @see ratpack.handling.Context#promise(ratpack.func.Action)
+ * @see ExecControl#promise(ratpack.func.Action)
  * @see Promise
  * @see Fulfillment
  */

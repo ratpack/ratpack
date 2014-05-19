@@ -28,7 +28,7 @@ import java.util.concurrent.Callable;
  * <p>
  * An “execution” is a <i>logical</i> unit of work (e.g. handling a request, performing a background job).
  * As execution in Ratpack is asynchronous, the execution may actually span multiple threads.
- * This type provides control primitives (i.e. {@link #blocking(Callable)}, {@link #promise(Action)}) that facilitate a logical execution executing asynchronously.
+ * This type provides control primitives (i.e. {@link #blocking(Callable)}, {@link ExecControl#promise(ratpack.func.Action)}) that facilitate a logical execution executing asynchronously.
  */
 public interface ExecContext extends ExecControl {
 
