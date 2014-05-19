@@ -133,11 +133,6 @@ public class RatpackWebContext implements WebContext {
     return context.getRequest().getUri();
   }
 
-  @Override
-  public void sendRedirect(String location) {
-    this.redirectLocation = location;
-  }
-
   public void sendResponse(RequiresHttpAction action) {
     context.getResponse().status(action.getCode(), action.getMessage());
     sendResponse();
