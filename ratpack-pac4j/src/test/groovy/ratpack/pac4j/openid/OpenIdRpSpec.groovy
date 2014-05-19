@@ -74,7 +74,7 @@ class OpenIdRpSpec extends Specification {
     provider = new EmbeddedProvider()
     provider.open(providerPort)
     baseDir = new PathBaseDirBuilder(temporaryFolder.newFolder("app"))
-    autConstructed = new RatpackOpenIdTestApplication(allocatePort(), baseDir, new Pac4jModule<>(new OpenIdTestClient(providerPort), new AuthPathAuthorizer<>()))
+    autConstructed = new RatpackOpenIdTestApplication(allocatePort(), baseDir, new Pac4jModule<>(new OpenIdTestClient(providerPort), new AuthPathAuthorizer()))
     autInjected = new RatpackOpenIdTestApplication(allocatePort(), baseDir, new InjectedPac4jModule<>(OpenIdCredentials, GoogleOpenIdProfile), new OpenIdTestModule(providerPort))
   }
 

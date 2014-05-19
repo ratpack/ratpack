@@ -17,14 +17,15 @@
 package ratpack.pac4j.internal;
 
 import org.pac4j.core.client.Client;
+import org.pac4j.core.client.Clients;
 import org.pac4j.core.credentials.Credentials;
 import org.pac4j.core.exception.RequiresHttpAction;
 import org.pac4j.core.exception.TechnicalException;
 import org.pac4j.core.profile.UserProfile;
+
 import ratpack.func.Action;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
-import ratpack.pac4j.Authorizer;
 import ratpack.session.store.SessionStorage;
 
 import java.util.concurrent.Callable;
@@ -34,35 +35,31 @@ import static ratpack.pac4j.internal.SessionConstants.USER_PROFILE;
 
 /**
  * Handles callback requests from identity providers.
- *
- * @param <C> The {@link org.pac4j.core.credentials.Credentials} type
- * @param <U> The {@link org.pac4j.core.profile.UserProfile} type
  */
-public class Pac4jCallbackHandler<C extends Credentials, U extends UserProfile> implements Handler {
+public class Pac4jCallbackHandler implements Handler {
   private static final String DEFAULT_REDIRECT_URI = "/";
 
-  private final Client<C, U> client;
-  private final Authorizer<U> authorizer;
+  private final Clients clients;
 
   /**
    * Constructs a new instance.
    *
-   * @param client The client to use for authentication
-   * @param authorizer The authorizer to user for authorization
+   * @param clients The clients to use for authentication
    */
-  public Pac4jCallbackHandler(Client<C, U> client, Authorizer<U> authorizer) {
-    this.client = client;
-    this.authorizer = authorizer;
+  public Pac4jCallbackHandler(Clients clients) {
+    this.clients = clients;
   }
 
   @Override
   public void handle(final Context context) {
     final SessionStorage sessionStorage = context.getRequest().get(SessionStorage.class);
     final RatpackWebContext webContext = new RatpackWebContext(context);
-    context.blocking(new Callable<U>() {
+    context.blocking(new Callable<UserProfile>() {
       @Override
-      public U call() throws Exception {
-        C credentials = client.getCredentials(webContext);
+      public UserProfile call() throws Exception {
+        @SuppressWarnings("unchecked")
+        Client<Credentials, UserProfile> client = clients.findClient(webContext);
+        Credentials credentials = client.getCredentials(webContext);
         return client.getUserProfile(credentials, webContext);
       }
     }).onError(new Action<Throwable>() {
@@ -74,15 +71,11 @@ public class Pac4jCallbackHandler<C extends Credentials, U extends UserProfile> 
           throw new TechnicalException("Failed to get user profile", ex);
         }
       }
-    }).then(new Action<U>() {
+    }).then(new Action<UserProfile>() {
       @Override
-      public void execute(U profile) throws Exception {
+      public void execute(UserProfile profile) throws Exception {
         saveUserProfileInSession(sessionStorage, profile);
-        if (profile == null) {
-          authorizer.handleAuthenticationFailure(context);
-        } else {
-          context.redirect(getSavedUri(sessionStorage));
-        }
+        context.redirect(getSavedUri(sessionStorage));
       }
     });
   }
@@ -90,8 +83,6 @@ public class Pac4jCallbackHandler<C extends Credentials, U extends UserProfile> 
   private static void saveUserProfileInSession(SessionStorage sessionStorage, UserProfile profile) {
     if (profile != null) {
       sessionStorage.put(USER_PROFILE, profile);
-    } else {
-      sessionStorage.remove(USER_PROFILE);
     }
   }
 
