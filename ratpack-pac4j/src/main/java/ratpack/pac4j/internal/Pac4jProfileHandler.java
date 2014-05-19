@@ -42,7 +42,12 @@ public class Pac4jProfileHandler implements Handler {
     context.next();
   }
 
-  protected UserProfile getUserProfile(Context context) {
+  protected void removeUserProfile(final Context context) {
+    final SessionStorage sessionStorage = context.getRequest().get(SessionStorage.class);
+    sessionStorage.remove(SessionConstants.USER_PROFILE);
+  }
+
+  protected UserProfile getUserProfile(final Context context) {
     return (UserProfile) context.getRequest().get(SessionStorage.class).get(USER_PROFILE);
   }
 }

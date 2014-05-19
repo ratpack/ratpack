@@ -33,6 +33,6 @@ class OpenIdTestModule extends AbstractModule {
   @Override
   protected void configure() {
     bind(new TypeLiteral<Client<OpenIdCredentials, GoogleOpenIdProfile>>() {}).toInstance(new OpenIdTestClient(providerPort))
-    bind(new TypeLiteral<Authorizer<GoogleOpenIdProfile>>() {}).toInstance(new AuthPathAuthorizer<GoogleOpenIdProfile>())
+    bind(new TypeLiteral<Authorizer>() {}).toInstance(new AuthPathAuthorizer())
   }
 }
