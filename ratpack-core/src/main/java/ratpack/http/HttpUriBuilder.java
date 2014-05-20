@@ -33,7 +33,7 @@ public interface HttpUriBuilder {
   HttpUriBuilder port(int port);
   HttpUriBuilder path(String path); // encodes all except / (i.e. can be multiple path components)
   HttpUriBuilder pathComponent(String pathComponent); // encodes all incl. / (i.e. single path component)
-  HttpUriBuilder params(Action<? super Multimap<String, String>> params);
+  HttpUriBuilder params(Action<? super Multimap<String, String>> params) throws Exception;
 
   URI build() throws URISyntaxException, MalformedURLException;
 }

@@ -25,21 +25,21 @@ import ratpack.test.internal.RatpackGroovyDslSpec
 class BuildsEncodedUri extends RatpackGroovyDslSpec {
 
   def "builds and encodes uri with all parameters correctly"() {
-    String value;
+    String value
     when:
       HttpUriBuilder builder = new DefaultHttpUriBuilder()
-      value = builder.secure().host("foo.com").port(1234).path("foo/bar").pathComponent("foo/bar").build().toString();
+      value = builder.secure().host("foo.com").port(1234).path("foo/bar").pathComponent("foo/bar").build().toString()
 
     then:
-      value ==  "https://foo.com:1234/foo/bar/foo%2Fbar";
+      value ==  "https://foo.com:1234/foo/bar/foo%2Fbar"
   }
 
   def "builds and encodes uri when missing parmeters"(){
-    String value;
+    String value
     when:
-    value = new DefaultHttpUriBuilder().secure().host("foo.com").path("foo").pathComponent("foo/bar").build().toString();
+      value = new DefaultHttpUriBuilder().secure().host("foo.com").path("foo").pathComponent("foo/bar").build().toString()
 
     then:
-    value ==  "https://foo.com/foo/foo%2Fbar";
+      value ==  "https://foo.com/foo/foo%2Fbar"
   }
 }

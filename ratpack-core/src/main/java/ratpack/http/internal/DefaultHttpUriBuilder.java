@@ -19,11 +19,9 @@ package ratpack.http.internal;
 import com.google.common.collect.Multimap;
 import com.google.common.escape.Escaper;
 import com.google.common.net.UrlEscapers;
-import com.sun.jndi.toolkit.url.Uri;
 import ratpack.func.Action;
 import ratpack.http.HttpUriBuilder;
 
-import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
@@ -63,14 +61,14 @@ public class DefaultHttpUriBuilder implements HttpUriBuilder {
 
   @Override
   public HttpUriBuilder port(int port) {
-    this.port = String.format("%s%d%s",":",port,"/");
+    this.port = String.format("%s%d", ":", port);
     return this;
   }
 
   @Override
   public HttpUriBuilder path(String path) {
     escaper = UrlEscapers.urlFragmentEscaper();
-    this.path = escaper.escape(path).concat("/");
+    this.path = String.format("/%s/", escaper.escape(path));
     return this;
   }
 
@@ -82,8 +80,9 @@ public class DefaultHttpUriBuilder implements HttpUriBuilder {
   }
 
   @Override
-  public HttpUriBuilder params(Action<? super Multimap<String, String>> params) {
+  public HttpUriBuilder params(Action<? super Multimap<String, String>> params) throws Exception {
     this.params = params;
+    //TODO: implement parameter builder
     return this;
   }
 
