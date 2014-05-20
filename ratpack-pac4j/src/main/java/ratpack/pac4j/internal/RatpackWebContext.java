@@ -138,7 +138,12 @@ public class RatpackWebContext implements WebContext {
   }
 
   public void sendResponse() {
-    context.getResponse().send(MediaType.TEXT_HTML, responseContent);
+    int statusCode = context.getResponse().getStatus().getCode();
+    if (statusCode >= 400) {
+      context.clientError(statusCode);
+    } else {
+      context.getResponse().send(MediaType.TEXT_HTML, responseContent);
+    }
   }
 
   private SessionStorage getSessionStorage() {
