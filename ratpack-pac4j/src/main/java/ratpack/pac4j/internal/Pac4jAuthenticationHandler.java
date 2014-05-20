@@ -58,8 +58,7 @@ public class Pac4jAuthenticationHandler extends Pac4jProfileHandler {
       initiateAuthentication(context);
     } else {
       if (userProfile != null) {
-        context.getRequest().register(userProfile);
-        context.getRequest().register(UserProfile.class, userProfile);
+        registerUserProfile(context, userProfile);
         authorizer.handleAuthorization(context, userProfile);
       } else {
         context.next();

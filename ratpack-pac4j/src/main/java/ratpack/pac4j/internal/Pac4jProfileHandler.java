@@ -29,17 +29,18 @@ import static ratpack.pac4j.internal.SessionConstants.USER_PROFILE;
  * and push it into the request.
  */
 public class Pac4jProfileHandler implements Handler {
-
   @Override
   public void handle(final Context context) throws Exception {
     UserProfile userProfile = getUserProfile(context);
-    
     if (userProfile != null) {
-      context.getRequest().register(userProfile);
-      context.getRequest().register(UserProfile.class, userProfile);
+      registerUserProfile(context, userProfile);
     }
-    
     context.next();
+  }
+
+  protected void registerUserProfile(final Context context, UserProfile userProfile) {
+    context.getRequest().register(userProfile);
+    context.getRequest().register(UserProfile.class, userProfile);
   }
 
   protected void removeUserProfile(final Context context) {
