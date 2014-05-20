@@ -44,7 +44,6 @@ import java.util.Set;
 public class RatpackWebContext implements WebContext {
   private final Context context;
   private String responseContent = "";
-  private String redirectLocation;
   private Form form;
 
   /**
@@ -139,11 +138,7 @@ public class RatpackWebContext implements WebContext {
   }
 
   public void sendResponse() {
-    if (redirectLocation != null) {
-      context.redirect(redirectLocation);
-    } else {
-      context.getResponse().send(MediaType.TEXT_HTML, responseContent);
-    }
+    context.getResponse().send(MediaType.TEXT_HTML, responseContent);
   }
 
   private SessionStorage getSessionStorage() {
