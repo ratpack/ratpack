@@ -24,7 +24,7 @@ import java.util.concurrent.TimeUnit
 
 import static ratpack.websocket.WebSockets.websocket
 
-class WebsocketSpec extends RatpackGroovyDslSpec {
+class WebSocketTestSpec extends RatpackGroovyDslSpec {
 
   def "can send and receive websockets"() {
     when:
@@ -37,12 +37,14 @@ class WebsocketSpec extends RatpackGroovyDslSpec {
         websocket(context) {
           ws = it
           2
-        }.onClose {
-          closing.set(it)
-        }.onMessage {
-          serverReceived.put it
-          it.connection.send(it.text.toUpperCase())
-        }.connect()
+        } connect {
+          it.onClose {
+            closing.set(it)
+          } onMessage {
+            serverReceived.put it
+            it.connection.send(it.text.toUpperCase())
+          }
+        }
       }
     }
 
@@ -87,7 +89,7 @@ class WebsocketSpec extends RatpackGroovyDslSpec {
       get {
         websocket(context) {
           throw new Exception("!")
-        }.connect()
+        }.connect {}
       }
     }
     server.start()

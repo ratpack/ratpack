@@ -16,20 +16,10 @@
 
 package ratpack.websocket;
 
-import ratpack.api.NonBlocking;
 import ratpack.func.Action;
 
-public interface WebSocketBuilder<T> {
+public interface WebSocketConnector<T> {
 
-  WebSocketBuilder<T> maxLength(int maxLength);
-
-  WebSocketBuilder<T> path(String path);
-
-  WebSocketBuilder<T> onClose(Action<WebSocketClose<T>> action);
-
-  WebSocketBuilder<T> onMessage(Action<WebSocketMessage<T>> action);
-
-  @NonBlocking
-  void connect();
+  void connect(Action<? super WebSocketSpec<T>> specAction) throws Exception;
 
 }

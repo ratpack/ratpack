@@ -18,11 +18,10 @@ package ratpack.codahale.metrics;
 
 import ratpack.codahale.metrics.internal.MetricsBroadcaster;
 import ratpack.func.Action;
-import ratpack.func.Transformer;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
+import ratpack.websocket.AutoCloseWebSocketHandler;
 import ratpack.websocket.WebSocket;
-import ratpack.websocket.WebSocketClose;
 
 import static ratpack.websocket.WebSockets.websocket;
 
@@ -43,22 +42,17 @@ public class MetricsWebsocketBroadcastHandler implements Handler {
   public void handle(Context context) throws Exception {
     final MetricsBroadcaster broadcaster = context.get(MetricsBroadcaster.class);
 
-    websocket(context, new Transformer<WebSocket, AutoCloseable>() {
+    websocket(context, new AutoCloseWebSocketHandler<AutoCloseable>() {
       @Override
-      public AutoCloseable transform(final WebSocket webSocket) throws Exception {
+      public AutoCloseable onOpen(final WebSocket webSocket) throws Exception {
         return broadcaster.register(new Action<String>() {
           @Override
-          public void execute(String msg) throws Exception {
-            webSocket.send(msg);
+          public void execute(String message) throws Exception {
+            webSocket.send(message);
           }
         });
       }
-    }).onClose(new Action<WebSocketClose<AutoCloseable>>() {
-      @Override
-      public void execute(WebSocketClose<AutoCloseable> close) throws Exception {
-        close.getOpenResult().close();
-      }
-    }).connect();
+    });
   }
 
 }

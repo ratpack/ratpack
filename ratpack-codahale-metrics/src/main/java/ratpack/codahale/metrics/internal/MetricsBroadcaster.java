@@ -24,7 +24,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * A message broadcaster for sending metrics to it's subscribers.
+ * A message broadcaster for sending metrics to its subscribers.
  */
 public class MetricsBroadcaster {
 
@@ -43,7 +43,7 @@ public class MetricsBroadcaster {
   }
 
   public void broadcast(String message) {
-    for (Action<String> listener: listeners) {
+    for (Action<String> listener : listeners) {
       try {
         listener.execute(message);
       } catch (Exception e) {

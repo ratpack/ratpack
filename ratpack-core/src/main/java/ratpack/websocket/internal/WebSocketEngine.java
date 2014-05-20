@@ -43,7 +43,7 @@ import static io.netty.handler.codec.http.HttpMethod.valueOf;
 import static ratpack.util.ExceptionUtils.toException;
 import static ratpack.util.ExceptionUtils.uncheck;
 
-public class WebSocketConnector {
+public class WebSocketEngine {
 
   public static <T> void connect(final Context context, String path, int maxLength, final WebSocketHandler<T> handler) {
     PublicAddress publicAddress = context.get(PublicAddress.class);

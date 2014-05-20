@@ -19,17 +19,17 @@ package ratpack.websocket;
 import ratpack.handling.Context;
 import ratpack.launch.LaunchConfig;
 import ratpack.func.Transformer;
-import ratpack.websocket.internal.DefaultWebSocketBuilder;
-import ratpack.websocket.internal.WebSocketConnector;
+import ratpack.websocket.internal.DefaultWebSocketConnector;
+import ratpack.websocket.internal.WebSocketEngine;
 
 public abstract class WebSockets {
 
-  public static <T> WebSocketBuilder<T> websocket(Context context, Transformer<WebSocket, T> openAction) {
-    return new DefaultWebSocketBuilder<>(context, openAction);
+  public static <T> WebSocketConnector<T> websocket(Context context, Transformer<WebSocket, T> openAction) {
+    return new DefaultWebSocketConnector<>(context, openAction);
   }
 
   public static void websocket(Context context, WebSocketHandler<?> handler) {
-    WebSocketConnector.connect(context, "/", context.get(LaunchConfig.class).getMaxContentLength(), handler);
+    WebSocketEngine.connect(context, "/", context.get(LaunchConfig.class).getMaxContentLength(), handler);
   }
 
 }
