@@ -18,9 +18,12 @@ package ratpack.pac4j.internal;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Injector;
+
 import org.pac4j.core.client.Client;
+import org.pac4j.core.client.Clients;
 import org.pac4j.core.credentials.Credentials;
 import org.pac4j.core.profile.UserProfile;
+
 import ratpack.guice.HandlerDecoratingModule;
 import ratpack.handling.Handler;
 import ratpack.handling.Handlers;
@@ -78,15 +81,18 @@ public abstract class AbstractPac4jModule<C extends Credentials, U extends UserP
    * @param injector The injector created from all the application modules
    * @return The authorizer
    */
-  protected abstract Authorizer<U> getAuthorizer(Injector injector);
+  protected abstract Authorizer getAuthorizer(Injector injector);
 
   @Override
   public Handler decorate(Injector injector, Handler handler) {
-    String callbackPath = getCallbackPath(injector);
-    Client<C, U> client = getClient(injector);
-    Authorizer<U> authorizer = getAuthorizer(injector);
-    Pac4jCallbackHandler<C, U> callbackHandler = new Pac4jCallbackHandler<>(client, authorizer);
-    Pac4jAuthenticationHandler<C, U> authenticationHandler = new Pac4jAuthenticationHandler<>(client, authorizer, callbackPath);
+    final String callbackPath = getCallbackPath(injector);
+    final Client<C, U> client = getClient(injector);
+    final Authorizer authorizer = getAuthorizer(injector);
+    final LaunchConfig launchConfig = injector.getInstance(LaunchConfig.class);
+    final String callbackUrl = launchConfig.getPublicAddress().toString() + "/" + callbackPath;
+    final Clients clients = new Clients(callbackUrl, client);
+    final Pac4jCallbackHandler callbackHandler = new Pac4jCallbackHandler(clients);
+    final Pac4jAuthenticationHandler authenticationHandler = new Pac4jAuthenticationHandler(clients, client.getName(), authorizer);
     return Handlers.chain(Handlers.path(callbackPath, callbackHandler), authenticationHandler, handler);
   }
 }

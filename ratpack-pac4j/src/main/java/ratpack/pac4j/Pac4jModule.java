@@ -43,7 +43,7 @@ import ratpack.pac4j.internal.AbstractPac4jModule;
  * import ratpack.session.SessionModule;
  * import ratpack.session.store.MapSessionsModule;
  *
- * class AuthenticateAllAuthorizer extends AbstractAuthorizer&lt;GoogleOpenIdProfile&gt; {
+ * class AuthenticateAllAuthorizer extends AbstractAuthorizer {
  *   public boolean isAuthenticationRequired(Context context) {
  *     return true;
  *   }
@@ -88,7 +88,7 @@ import ratpack.pac4j.internal.AbstractPac4jModule;
  *
  * import static ratpack.groovy.Groovy.ratpack
  *
- * class AuthenticateAllAuthorizer extends AbstractAuthorizer&lt;GoogleOpenIdProfile&gt; {
+ * class AuthenticateAllAuthorizer extends AbstractAuthorizer {
  *   boolean isAuthenticationRequired(Context context) {
  *     true // authenticate every request
  *   }
@@ -114,7 +114,7 @@ import ratpack.pac4j.internal.AbstractPac4jModule;
  */
 public final class Pac4jModule<C extends Credentials, U extends UserProfile> extends AbstractPac4jModule<C, U> {
   private final Client<C, U> client;
-  private final Authorizer<U> authorizer;
+  private final Authorizer authorizer;
 
   /**
    * Constructs a new instance.
@@ -122,7 +122,7 @@ public final class Pac4jModule<C extends Credentials, U extends UserProfile> ext
    * @param client The pac4j client to use for authentication
    * @param authorizer The strategy to use for authorization
    */
-  public Pac4jModule(Client<C, U> client, Authorizer<U> authorizer) {
+  public Pac4jModule(Client<C, U> client, Authorizer authorizer) {
     this.client = client;
     this.authorizer = authorizer;
   }
@@ -133,7 +133,7 @@ public final class Pac4jModule<C extends Credentials, U extends UserProfile> ext
   }
 
   @Override
-  protected Authorizer<U> getAuthorizer(Injector injector) {
+  protected Authorizer getAuthorizer(Injector injector) {
     return authorizer;
   }
 }

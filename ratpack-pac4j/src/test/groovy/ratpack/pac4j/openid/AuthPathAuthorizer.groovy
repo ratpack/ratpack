@@ -16,18 +16,12 @@
 
 package ratpack.pac4j.openid
 
-import org.pac4j.core.profile.UserProfile
 import ratpack.handling.Context
 import ratpack.pac4j.AbstractAuthorizer
 
-class AuthPathAuthorizer<U extends UserProfile> extends AbstractAuthorizer<U> {
+class AuthPathAuthorizer extends AbstractAuthorizer {
   @Override
   boolean isAuthenticationRequired(Context context) {
     return context.request.uri == "/auth"
-  }
-
-  @Override
-  void handleAuthenticationFailure(Context context) {
-    context.redirect("/error")
   }
 }

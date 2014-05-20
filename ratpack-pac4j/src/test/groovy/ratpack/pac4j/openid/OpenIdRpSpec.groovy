@@ -74,7 +74,7 @@ class OpenIdRpSpec extends Specification {
     provider = new EmbeddedProvider()
     provider.open(providerPort)
     baseDir = new PathBaseDirBuilder(temporaryFolder.newFolder("app"))
-    autConstructed = new RatpackOpenIdTestApplication(allocatePort(), baseDir, new Pac4jModule<>(new OpenIdTestClient(providerPort), new AuthPathAuthorizer<>()))
+    autConstructed = new RatpackOpenIdTestApplication(allocatePort(), baseDir, new Pac4jModule<>(new OpenIdTestClient(providerPort), new AuthPathAuthorizer()))
     autInjected = new RatpackOpenIdTestApplication(allocatePort(), baseDir, new InjectedPac4jModule<>(OpenIdCredentials, GoogleOpenIdProfile), new OpenIdTestModule(providerPort))
   }
 
@@ -143,43 +143,6 @@ class OpenIdRpSpec extends Specification {
 
     then: "authentication information is still available"
     response5.asString() == "noauth:${EMAIL}:${EMAIL}"
-
-    where:
-    aut << [autConstructed, autInjected]
-  }
-
-  @Unroll
-  def "test failed auth"(RatpackOpenIdTestApplication aut) {
-    setup:
-    def client = newClient(aut)
-    provider.addResult(false, EMAIL)
-
-    when: "request a page that requires authentication"
-    def response1 = client.get("auth")
-
-    then: "the request is redirected to the openid provider"
-    response1.statusCode == FOUND.code()
-    response1.header(LOCATION).contains("/openid_provider")
-
-    when: "following the redirect"
-    def response2 = client.get(response1.header(LOCATION))
-
-    then: "the response is redirected to the callback"
-    response2.statusCode == FOUND.code()
-    response2.header(LOCATION).contains("/pac4j-callback")
-
-    when: "following the redirect"
-    def response3 = client.createRequest().cookies(response1.cookies).get(response2.header(LOCATION))
-
-    then: "the response is redirected to the error page"
-    response3.statusCode == FOUND.code()
-    response3.header(LOCATION).contains("/error")
-
-    when: "following the redirect"
-    def response4 = client.createRequest().cookies(response1.cookies).get(response3.header(LOCATION))
-
-    then: "the error page is returned"
-    response4.asString() == "An error was encountered."
 
     where:
     aut << [autConstructed, autInjected]
