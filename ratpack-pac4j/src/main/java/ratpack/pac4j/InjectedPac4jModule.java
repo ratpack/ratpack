@@ -72,7 +72,7 @@ import java.lang.reflect.Type;
  *       new AbstractModule() {
  *         protected void configure() {
  *           bind(new TypeLiteral&lt;Client&lt;OpenIdCredentials, GoogleOpenIdProfile&gt;&gt;() {}).to(GoogleOpenIdClient.class);
- *           bind(new TypeLiteral&lt;Authorizer&gt;() {}).to(AuthenticateAllAuthorizer.class);
+ *           bind(Authorizer.class).to(AuthenticateAllAuthorizer.class);
  *         }
  *       }
  *     );
@@ -119,7 +119,7 @@ import java.lang.reflect.Type;
  *         new AbstractModule() {
  *           protected void configure() {
  *             bind(new TypeLiteral&lt;Client&lt;OpenIdCredentials, GoogleOpenIdProfile&gt;&gt;() {}).to(GoogleOpenIdClient)
- *             bind(new TypeLiteral&lt;Authorizer&gt;() {}).to(AuthenticateAllAuthorizer)
+ *             bind(Authorizer).to(AuthenticateAllAuthorizer)
  *           }
  *         }
  *   }
@@ -157,16 +157,11 @@ public final class InjectedPac4jModule<C extends Credentials, U extends UserProf
 
   @Override
   protected Authorizer getAuthorizer(Injector injector) {
-    return injector.getInstance(getAuthorizerKey());
+    return injector.getInstance(Authorizer.class);
   }
 
   @SuppressWarnings("unchecked")
   private Key<Client<C, U>> getClientKey() {
     return (Key<Client<C, U>>) Key.get(Types.newParameterizedType(Client.class, credentialsType, userProfileType));
-  }
-
-  @SuppressWarnings("unchecked")
-  private Key<Authorizer> getAuthorizerKey() {
-    return (Key<Authorizer>) Key.get(Types.newParameterizedType(Authorizer.class, userProfileType));
   }
 }
