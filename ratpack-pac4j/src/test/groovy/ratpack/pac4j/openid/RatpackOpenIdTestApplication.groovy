@@ -51,9 +51,6 @@ class RatpackOpenIdTestApplication extends ClosureBackedEmbeddedApplication {
         def genericUserProfile = request.maybeGet(UserProfile)
         response.send "auth:${typedUserProfile.email}:${genericUserProfile?.attributes?.email}"
       }
-      get("error") {
-        response.send "An error was encountered."
-      }
     }
   }
 }
