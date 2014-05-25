@@ -26,9 +26,9 @@ public interface Action<T> {
   /**
    * Executes the action against the given thing.
    *
-   * @param thing the thing to execute the action against
+   * @param t the thing to execute the action against
    * @throws Exception if anything goes wrong
    */
-  void execute(T thing) throws Exception;
+  void execute(T t) throws Exception;
 
 }
