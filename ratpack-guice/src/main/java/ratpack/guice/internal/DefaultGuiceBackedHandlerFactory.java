@@ -24,7 +24,7 @@ import com.google.inject.util.Modules;
 import io.netty.buffer.ByteBuf;
 import ratpack.func.Action;
 import ratpack.func.Factory;
-import ratpack.func.Transformer;
+import ratpack.func.Function;
 import ratpack.guice.BindingsSpec;
 import ratpack.guice.GuiceBackedHandlerFactory;
 import ratpack.guice.HandlerDecoratingModule;
@@ -53,7 +53,7 @@ public class DefaultGuiceBackedHandlerFactory implements GuiceBackedHandlerFacto
     this.launchConfig = launchConfig;
   }
 
-  public Handler create(final Action<? super BindingsSpec> modulesAction, final Transformer<? super Module, ? extends Injector> moduleTransformer, final Transformer<? super Injector, ? extends Handler> injectorTransformer) throws Exception {
+  public Handler create(final Action<? super BindingsSpec> modulesAction, final Function<? super Module, ? extends Injector> moduleTransformer, final Function<? super Injector, ? extends Handler> injectorTransformer) throws Exception {
     if (launchConfig.isReloadable()) {
       File classFile = ClassUtil.getClassFile(modulesAction);
       if (classFile != null) {
@@ -71,7 +71,7 @@ public class DefaultGuiceBackedHandlerFactory implements GuiceBackedHandlerFacto
     return doCreate(modulesAction, moduleTransformer, injectorTransformer);
   }
 
-  private InjectorBindingHandler doCreate(Action<? super BindingsSpec> modulesAction, Transformer<? super Module, ? extends Injector> moduleTransformer, Transformer<? super Injector, ? extends Handler> injectorTransformer) throws Exception {
+  private InjectorBindingHandler doCreate(Action<? super BindingsSpec> modulesAction, Function<? super Module, ? extends Injector> moduleTransformer, Function<? super Injector, ? extends Handler> injectorTransformer) throws Exception {
     DefaultBindingsSpec moduleRegistry = new DefaultBindingsSpec(launchConfig);
 
     registerDefaultModules(moduleRegistry);

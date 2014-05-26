@@ -18,7 +18,7 @@ package ratpack.websocket.internal;
 
 import ratpack.func.Action;
 import ratpack.func.Actions;
-import ratpack.func.Transformer;
+import ratpack.func.Function;
 import ratpack.handling.Context;
 import ratpack.launch.LaunchConfig;
 import ratpack.websocket.*;
@@ -26,7 +26,7 @@ import ratpack.websocket.*;
 public class DefaultWebSocketConnector<T> implements WebSocketConnector<T> {
 
   private final Context context;
-  private final Transformer<WebSocket, T> open;
+  private final Function<WebSocket, T> open;
 
   private class Spec implements WebSocketSpec<T> {
     private Action<? super WebSocketMessage<T>> messageHandler = Actions.noop();
@@ -64,7 +64,7 @@ public class DefaultWebSocketConnector<T> implements WebSocketConnector<T> {
     }
   }
 
-  public DefaultWebSocketConnector(Context context, Transformer<WebSocket, T> open) {
+  public DefaultWebSocketConnector(Context context, Function<WebSocket, T> open) {
     this.context = context;
     this.open = open;
   }

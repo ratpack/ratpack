@@ -24,7 +24,7 @@ import io.netty.buffer.ByteBufAllocator;
 import ratpack.exec.ExecContext;
 import ratpack.exec.Promise;
 import ratpack.file.FileSystemBinding;
-import ratpack.func.Transformer;
+import ratpack.func.Function;
 import ratpack.groovy.script.internal.ScriptEngine;
 import ratpack.groovy.templating.TemplatingConfig;
 import ratpack.launch.LaunchConfig;
@@ -92,7 +92,7 @@ public class GroovyTemplateRenderingEngine {
   }
 
   private Promise<ByteBuf> render(ExecContext execContext, ByteBuf byteBuf, final TemplateSource templateSource, Map<String, ?> model) throws Exception {
-    return Render.render(execContext, byteBuf, compiledTemplateCache, templateSource, model, new Transformer<String, TemplateSource>() {
+    return Render.render(execContext, byteBuf, compiledTemplateCache, templateSource, model, new Function<String, TemplateSource>() {
       public TemplateSource transform(String templateName) throws IOException {
         return toTemplateSource(templateName, getTemplateFile(templateName));
       }

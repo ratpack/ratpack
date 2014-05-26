@@ -17,7 +17,7 @@
 package ratpack.websocket.internal;
 
 import ratpack.func.Action;
-import ratpack.func.Transformer;
+import ratpack.func.Function;
 import ratpack.websocket.WebSocket;
 import ratpack.websocket.WebSocketClose;
 import ratpack.websocket.WebSocketMessage;
@@ -27,11 +27,11 @@ import static ratpack.util.ExceptionUtils.uncheck;
 
 public class BuiltWebSocketHandler<T> implements WebSocketHandler<T> {
 
-  private final Transformer<? super WebSocket, T> open;
+  private final Function<? super WebSocket, T> open;
   private final Action<? super WebSocketClose<T>> close;
   private final Action<? super WebSocketMessage<T>> message;
 
-  public BuiltWebSocketHandler(Transformer<? super WebSocket, T> open, Action<? super WebSocketClose<T>> close, Action<? super WebSocketMessage<T>> message) {
+  public BuiltWebSocketHandler(Function<? super WebSocket, T> open, Action<? super WebSocketClose<T>> close, Action<? super WebSocketMessage<T>> message) {
     this.open = open;
     this.close = close;
     this.message = message;

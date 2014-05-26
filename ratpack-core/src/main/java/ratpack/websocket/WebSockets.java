@@ -16,15 +16,15 @@
 
 package ratpack.websocket;
 
+import ratpack.func.Function;
 import ratpack.handling.Context;
 import ratpack.launch.LaunchConfig;
-import ratpack.func.Transformer;
 import ratpack.websocket.internal.DefaultWebSocketConnector;
 import ratpack.websocket.internal.WebSocketEngine;
 
 public abstract class WebSockets {
 
-  public static <T> WebSocketConnector<T> websocket(Context context, Transformer<WebSocket, T> openAction) {
+  public static <T> WebSocketConnector<T> websocket(Context context, Function<WebSocket, T> openAction) {
     return new DefaultWebSocketConnector<>(context, openAction);
   }
 

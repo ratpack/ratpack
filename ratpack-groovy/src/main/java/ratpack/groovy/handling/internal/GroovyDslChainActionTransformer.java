@@ -17,7 +17,7 @@
 package ratpack.groovy.handling.internal;
 
 import ratpack.api.Nullable;
-import ratpack.func.Transformer;
+import ratpack.func.Function;
 import ratpack.groovy.handling.GroovyChain;
 import ratpack.handling.Handler;
 import ratpack.handling.internal.DefaultChain;
@@ -26,7 +26,7 @@ import ratpack.registry.Registry;
 
 import java.util.List;
 
-public class GroovyDslChainActionTransformer implements Transformer<List<Handler>, GroovyChain> {
+public class GroovyDslChainActionTransformer implements Function<List<Handler>, GroovyChain> {
 
   private final LaunchConfig launchConfig;
   private final Registry registry;

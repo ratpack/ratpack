@@ -19,6 +19,7 @@ package ratpack.groovy.launch.internal;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import groovy.lang.Closure;
+import ratpack.func.Function;
 import ratpack.groovy.internal.RatpackDslClosureToHandlerTransformer;
 import ratpack.groovy.server.internal.GroovyKitAppFactory;
 import ratpack.guice.Guice;
@@ -26,7 +27,6 @@ import ratpack.guice.GuiceBackedHandlerFactory;
 import ratpack.handling.Handler;
 import ratpack.launch.HandlerFactory;
 import ratpack.launch.LaunchConfig;
-import ratpack.func.Transformer;
 
 public class GroovyClosureHandlerFactory implements HandlerFactory {
 
@@ -39,8 +39,8 @@ public class GroovyClosureHandlerFactory implements HandlerFactory {
   @Override
   public Handler create(LaunchConfig launchConfig) throws Exception {
     GuiceBackedHandlerFactory guiceHandlerFactory = new GroovyKitAppFactory(launchConfig);
-    Transformer<Module, Injector> moduleInjectorTransformer = Guice.newInjectorFactory(launchConfig);
-    Transformer<Closure<?>, Handler> handlerTransformer = new RatpackDslClosureToHandlerTransformer(launchConfig, guiceHandlerFactory, moduleInjectorTransformer);
+    Function<Module, Injector> moduleInjectorTransformer = Guice.newInjectorFactory(launchConfig);
+    Function<Closure<?>, Handler> handlerTransformer = new RatpackDslClosureToHandlerTransformer(launchConfig, guiceHandlerFactory, moduleInjectorTransformer);
     return handlerTransformer.transform(ratpackClosure);
   }
 

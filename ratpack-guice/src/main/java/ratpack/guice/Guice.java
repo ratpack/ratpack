@@ -19,6 +19,7 @@ package ratpack.guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.Stage;
+import ratpack.func.Function;
 import ratpack.guice.internal.DefaultGuiceBackedHandlerFactory;
 import ratpack.guice.internal.InjectorBackedRegistry;
 import ratpack.guice.internal.JustInTimeInjectorRegistry;
@@ -27,7 +28,6 @@ import ratpack.handling.Handler;
 import ratpack.launch.LaunchConfig;
 import ratpack.registry.Registry;
 import ratpack.func.Action;
-import ratpack.func.Transformer;
 
 import static com.google.inject.Guice.createInjector;
 import static ratpack.handling.Handlers.chain;
@@ -192,7 +192,7 @@ public abstract class Guice {
    * @param injectorTransformer Takes the final {@link Injector} instance that was created from the modules and returns the {@link Handler} to use
    * @return A handler that makes all Guice bound objects available to the handlers added to the {@link Chain} given to {@code chainConfigurer}.
    */
-  public static Handler handler(LaunchConfig launchConfig, Action<? super BindingsSpec> moduleConfigurer, Transformer<? super Injector, ? extends Handler> injectorTransformer) throws Exception {
+  public static Handler handler(LaunchConfig launchConfig, Action<? super BindingsSpec> moduleConfigurer, Function<? super Injector, ? extends Handler> injectorTransformer) throws Exception {
     return new DefaultGuiceBackedHandlerFactory(launchConfig).create(moduleConfigurer, newInjectorFactory(launchConfig), injectorTransformer);
   }
 
@@ -227,7 +227,7 @@ public abstract class Guice {
    * @param injectorTransformer Takes the final {@link Injector} instance that was created from the modules and returns the {@link Handler} to use
    * @return A handler that makes all Guice bound objects available to the handlers added to the {@link Chain} given to {@code chainConfigurer}.
    */
-  public static Handler handler(LaunchConfig launchConfig, Injector parentInjector, Action<? super BindingsSpec> moduleConfigurer, Transformer<? super Injector, ? extends Handler> injectorTransformer) throws Exception {
+  public static Handler handler(LaunchConfig launchConfig, Injector parentInjector, Action<? super BindingsSpec> moduleConfigurer, Function<? super Injector, ? extends Handler> injectorTransformer) throws Exception {
     return new DefaultGuiceBackedHandlerFactory(launchConfig).create(moduleConfigurer, childInjectorFactory(parentInjector), injectorTransformer);
   }
 
@@ -263,9 +263,9 @@ public abstract class Guice {
    *
    * @return a transformer that can build an injector from a module
    */
-  public static Transformer<Module, Injector> newInjectorFactory(final LaunchConfig launchConfig) {
+  public static Function<Module, Injector> newInjectorFactory(final LaunchConfig launchConfig) {
     final Stage stage = launchConfig.isReloadable() ? Stage.DEVELOPMENT : Stage.PRODUCTION;
-    return new Transformer<Module, Injector>() {
+    return new Function<Module, Injector>() {
       @Override
       public Injector transform(Module from) {
         return from == null ? createInjector(stage) : createInjector(stage, from);
@@ -280,8 +280,8 @@ public abstract class Guice {
    *
    * @return a transformer that can build an injector from a module, as a child of the given parent.
    */
-  public static Transformer<Module, Injector> childInjectorFactory(final Injector parent) {
-    return new Transformer<Module, Injector>() {
+  public static Function<Module, Injector> childInjectorFactory(final Injector parent) {
+    return new Function<Module, Injector>() {
       @Override
       public Injector transform(Module from) {
         return from == null ? parent.createChildInjector() : parent.createChildInjector(from);
@@ -289,7 +289,7 @@ public abstract class Guice {
     };
   }
 
-  private static class InjectorHandlerTransformer implements Transformer<Injector, Handler> {
+  private static class InjectorHandlerTransformer implements Function<Injector, Handler> {
     private final LaunchConfig launchConfig;
     private final Action<? super Chain> action;
 

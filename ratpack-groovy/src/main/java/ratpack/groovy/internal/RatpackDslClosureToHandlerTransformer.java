@@ -20,7 +20,7 @@ import com.google.inject.Injector;
 import com.google.inject.Module;
 import groovy.lang.Closure;
 import ratpack.func.Action;
-import ratpack.func.Transformer;
+import ratpack.func.Function;
 import ratpack.groovy.Groovy;
 import ratpack.groovy.guice.internal.DefaultGroovyBindingsSpec;
 import ratpack.guice.BindingsSpec;
@@ -28,13 +28,13 @@ import ratpack.guice.GuiceBackedHandlerFactory;
 import ratpack.handling.Handler;
 import ratpack.launch.LaunchConfig;
 
-public class RatpackDslClosureToHandlerTransformer implements Transformer<Closure<?>, Handler> {
+public class RatpackDslClosureToHandlerTransformer implements Function<Closure<?>, Handler> {
 
   private final LaunchConfig launchConfig;
   private final GuiceBackedHandlerFactory handlerFactory;
-  private final Transformer<? super Module, ? extends Injector> moduleTransformer;
+  private final Function<? super Module, ? extends Injector> moduleTransformer;
 
-  public RatpackDslClosureToHandlerTransformer(LaunchConfig launchConfig, GuiceBackedHandlerFactory handlerFactory, Transformer<? super Module, ? extends Injector> moduleTransformer) {
+  public RatpackDslClosureToHandlerTransformer(LaunchConfig launchConfig, GuiceBackedHandlerFactory handlerFactory, Function<? super Module, ? extends Injector> moduleTransformer) {
     this.launchConfig = launchConfig;
     this.handlerFactory = handlerFactory;
     this.moduleTransformer = moduleTransformer;

@@ -18,14 +18,14 @@ package ratpack.groovy.internal;
 
 import com.google.inject.Injector;
 import groovy.lang.Closure;
+import ratpack.func.Function;
 import ratpack.groovy.Groovy;
 import ratpack.guice.Guice;
 import ratpack.handling.Handler;
 import ratpack.launch.LaunchConfig;
 import ratpack.registry.Registry;
-import ratpack.func.Transformer;
 
-public class InjectorHandlerTransformer implements Transformer<Injector, Handler> {
+public class InjectorHandlerTransformer implements Function<Injector, Handler> {
 
   private final LaunchConfig launchConfig;
   private final Closure<?> closure;

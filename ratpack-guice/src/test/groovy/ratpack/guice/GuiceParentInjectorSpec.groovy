@@ -24,7 +24,7 @@ import ratpack.groovy.test.embed.ClosureBackedEmbeddedApplication
 import ratpack.launch.LaunchConfig
 import ratpack.launch.LaunchException
 import ratpack.test.internal.RatpackGroovyDslSpec
-import ratpack.func.Transformer
+import ratpack.func.Function
 
 import static com.google.inject.Guice.createInjector
 
@@ -42,7 +42,7 @@ class GuiceParentInjectorSpec extends RatpackGroovyDslSpec {
   ClosureBackedEmbeddedApplication createApplication() {
     return new ClosureBackedEmbeddedApplication({ baseDir.build() }) {
       @Override
-      protected Transformer<? super Module, ? extends Injector> createInjectorFactory(LaunchConfig launchConfig) {
+      protected Function<? super Module, ? extends Injector> createInjectorFactory(LaunchConfig launchConfig) {
         Injector parentInjector = createInjector(new AbstractModule() {
           @Override
           protected void configure() {

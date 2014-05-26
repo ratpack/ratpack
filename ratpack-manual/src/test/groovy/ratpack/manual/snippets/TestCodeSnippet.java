@@ -16,8 +16,8 @@
 
 package ratpack.manual.snippets;
 
+import ratpack.func.Function;
 import ratpack.manual.snippets.fixture.SnippetFixture;
-import ratpack.func.Transformer;
 
 public class TestCodeSnippet {
 
@@ -25,9 +25,9 @@ public class TestCodeSnippet {
   private final String className;
   private final String testName;
   private final SnippetFixture fixture;
-  private final Transformer<Throwable, Throwable> exceptionTransformer;
+  private final Function<Throwable, Throwable> exceptionTransformer;
 
-  public TestCodeSnippet(String snippet, String className, String testName, SnippetFixture fixture, Transformer<Throwable, Throwable> exceptionTransformer) {
+  public TestCodeSnippet(String snippet, String className, String testName, SnippetFixture fixture, Function<Throwable, Throwable> exceptionTransformer) {
     this.snippet = snippet;
     this.className = className;
     this.testName = testName;
@@ -55,7 +55,7 @@ public class TestCodeSnippet {
     return fixture.pre() + snippet + fixture.post();
   }
 
-  public Transformer<Throwable, Throwable> getExceptionTransformer() {
+  public Function<Throwable, Throwable> getExceptionTransformer() {
     return exceptionTransformer;
   }
 

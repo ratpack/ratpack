@@ -23,7 +23,7 @@ import ratpack.exec.ExecContext;
 import ratpack.exec.Fulfiller;
 import ratpack.exec.Promise;
 import ratpack.func.Action;
-import ratpack.func.Transformer;
+import ratpack.func.Function;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -39,9 +39,9 @@ public class Render {
   private final LoadingCache<TemplateSource, CompiledTemplate> compiledTemplateCache;
   private final TemplateSource templateSource;
   private final Map<String, ?> model;
-  private final Transformer<String, TemplateSource> includeTransformer;
+  private final Function<String, TemplateSource> includeTransformer;
 
-  public Render(ExecContext execContext, ByteBuf byteBuf, LoadingCache<TemplateSource, CompiledTemplate> compiledTemplateCache, TemplateSource templateSource, final Map<String, ?> model, Transformer<String, TemplateSource> includeTransformer) {
+  public Render(ExecContext execContext, ByteBuf byteBuf, LoadingCache<TemplateSource, CompiledTemplate> compiledTemplateCache, TemplateSource templateSource, final Map<String, ?> model, Function<String, TemplateSource> includeTransformer) {
     this.execContext = execContext;
     this.byteBuf = byteBuf;
     this.compiledTemplateCache = compiledTemplateCache;
@@ -89,7 +89,7 @@ public class Render {
     });
   }
 
-  public static Promise<ByteBuf> render(ExecContext execContext, ByteBuf byteBuf, LoadingCache<TemplateSource, CompiledTemplate> compiledTemplateCache, TemplateSource templateSource, Map<String, ?> model, Transformer<String, TemplateSource> includeTransformer) throws Exception {
+  public static Promise<ByteBuf> render(ExecContext execContext, ByteBuf byteBuf, LoadingCache<TemplateSource, CompiledTemplate> compiledTemplateCache, TemplateSource templateSource, Map<String, ?> model, Function<String, TemplateSource> includeTransformer) throws Exception {
     return new Render(execContext, byteBuf, compiledTemplateCache, templateSource, model, includeTransformer).invoke();
   }
 }

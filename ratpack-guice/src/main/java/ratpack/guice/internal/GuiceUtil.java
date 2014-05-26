@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.reflect.TypeToken;
 import com.google.inject.*;
 import ratpack.func.Action;
-import ratpack.func.Transformer;
+import ratpack.func.Function;
 
 import java.util.Map;
 
@@ -31,7 +31,7 @@ public abstract class GuiceUtil {
   private GuiceUtil() {
   }
 
-  public static <T> void search(Injector injector, TypeToken<T> type, Transformer<Provider<? extends T>, Boolean> transformer) {
+  public static <T> void search(Injector injector, TypeToken<T> type, Function<Provider<? extends T>, Boolean> transformer) {
     Map<Key<?>, Binding<?>> allBindings = injector.getAllBindings();
     for (Map.Entry<Key<?>, Binding<?>> keyBindingEntry : allBindings.entrySet()) {
       TypeLiteral<?> bindingType = keyBindingEntry.getKey().getTypeLiteral();
@@ -53,7 +53,7 @@ public abstract class GuiceUtil {
   }
 
   public static <T> void eachOfType(Injector injector, TypeToken<T> type, final Action<? super T> action) {
-    search(injector, type, new Transformer<Provider<? extends T>, Boolean>() {
+    search(injector, type, new Function<Provider<? extends T>, Boolean>() {
       @Override
       public Boolean transform(Provider<? extends T> from) throws Exception {
         action.execute(from.get());
@@ -63,7 +63,7 @@ public abstract class GuiceUtil {
   }
 
   public static <T> void eachProviderOfType(Injector injector, TypeToken<T> type, final Action<? super Provider<? extends T>> action) {
-    search(injector, type, new Transformer<Provider<? extends T>, Boolean>() {
+    search(injector, type, new Function<Provider<? extends T>, Boolean>() {
       @Override
       public Boolean transform(Provider<? extends T> from) throws Exception {
         action.execute(from);

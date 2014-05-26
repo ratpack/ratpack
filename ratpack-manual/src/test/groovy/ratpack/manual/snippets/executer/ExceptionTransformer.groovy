@@ -16,9 +16,9 @@
 
 package ratpack.manual.snippets.executer
 
-import ratpack.func.Transformer
+import ratpack.func.Function
 
-class ExceptionTransformer implements Transformer<Throwable, Throwable> {
+class ExceptionTransformer implements Function<Throwable, Throwable> {
 
   final String sourceClassName
   final String pre

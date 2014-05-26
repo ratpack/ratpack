@@ -18,7 +18,7 @@ package ratpack.handling.internal;
 
 import io.netty.buffer.ByteBuf;
 import ratpack.func.Action;
-import ratpack.func.Transformer;
+import ratpack.func.Function;
 import ratpack.handling.Handler;
 import ratpack.handling.Handlers;
 import ratpack.reload.internal.ClassUtil;
@@ -31,7 +31,7 @@ import java.util.List;
 
 public class ChainBuilders {
 
-  public static <T> Handler build(boolean reloadable, final Transformer<List<Handler>, ? extends T> toChainBuilder, final Action<? super T> chainBuilderAction) throws Exception {
+  public static <T> Handler build(boolean reloadable, final Function<List<Handler>, ? extends T> toChainBuilder, final Action<? super T> chainBuilderAction) throws Exception {
     if (reloadable) {
       File classFile = ClassUtil.getClassFile(chainBuilderAction);
       if (classFile != null) {
@@ -48,7 +48,7 @@ public class ChainBuilders {
     return create(toChainBuilder, chainBuilderAction);
   }
 
-  private static <T> Handler create(Transformer<List<Handler>, ? extends T> toChainBuilder, Action<? super T> chainBuilderAction) throws Exception {
+  private static <T> Handler create(Function<List<Handler>, ? extends T> toChainBuilder, Action<? super T> chainBuilderAction) throws Exception {
     List<Handler> handlers = new LinkedList<>();
     T chainBuilder = toChainBuilder.transform(handlers);
     chainBuilderAction.execute(chainBuilder);

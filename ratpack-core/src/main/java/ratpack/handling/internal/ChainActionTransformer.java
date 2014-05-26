@@ -17,15 +17,15 @@
 package ratpack.handling.internal;
 
 import ratpack.api.Nullable;
+import ratpack.func.Function;
 import ratpack.handling.Chain;
 import ratpack.handling.Handler;
 import ratpack.launch.LaunchConfig;
 import ratpack.registry.Registry;
-import ratpack.func.Transformer;
 
 import java.util.List;
 
-public class ChainActionTransformer implements Transformer<List<Handler>, Chain> {
+public class ChainActionTransformer implements Function<List<Handler>, Chain> {
 
   private final LaunchConfig launchConfig;
   private final Registry registry;

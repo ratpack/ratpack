@@ -22,7 +22,7 @@ import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;
 import ratpack.file.BaseDirRequiredException;
 import ratpack.func.Factory;
-import ratpack.func.Transformer;
+import ratpack.func.Function;
 import ratpack.handling.Handler;
 import ratpack.handling.internal.FactoryHandler;
 import ratpack.launch.HandlerFactory;
@@ -53,12 +53,12 @@ public abstract class RatpackServerBuilder {
    * @return A new, not yet started, Ratpack server.
    */
   public static RatpackServer build(LaunchConfig launchConfig) {
-    Transformer<Stopper, ChannelInitializer<SocketChannel>> channelInitializer = buildChannelInitializer(launchConfig);
+    Function<Stopper, ChannelInitializer<SocketChannel>> channelInitializer = buildChannelInitializer(launchConfig);
     return new NettyRatpackServer(launchConfig, channelInitializer);
   }
 
-  private static Transformer<Stopper, ChannelInitializer<SocketChannel>> buildChannelInitializer(final LaunchConfig launchConfig) {
-    return new Transformer<Stopper, ChannelInitializer<SocketChannel>>() {
+  private static Function<Stopper, ChannelInitializer<SocketChannel>> buildChannelInitializer(final LaunchConfig launchConfig) {
+    return new Function<Stopper, ChannelInitializer<SocketChannel>>() {
       @Override
       public ChannelInitializer<SocketChannel> transform(Stopper stopper) {
         return new RatpackChannelInitializer(launchConfig, createHandler(launchConfig), stopper);

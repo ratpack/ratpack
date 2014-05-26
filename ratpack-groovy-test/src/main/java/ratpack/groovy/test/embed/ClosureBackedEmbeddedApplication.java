@@ -22,7 +22,7 @@ import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import ratpack.func.Action;
 import ratpack.func.Factory;
-import ratpack.func.Transformer;
+import ratpack.func.Function;
 import ratpack.groovy.Groovy;
 import ratpack.groovy.guice.GroovyBindingsSpec;
 import ratpack.groovy.guice.internal.DefaultGroovyBindingsSpec;
@@ -185,8 +185,8 @@ public class ClosureBackedEmbeddedApplication extends LaunchConfigEmbeddedApplic
     return launchConfigBuilder.build(new HandlerFactory() {
       public Handler create(LaunchConfig launchConfig) throws Exception {
         GuiceBackedHandlerFactory handlerFactory = createHandlerFactory(launchConfig);
-        Transformer<? super Module, ? extends Injector> injectorFactory = createInjectorFactory(launchConfig);
-        Transformer<? super Injector, ? extends Handler> handlerTransformer = createHandlerTransformer(launchConfig);
+        Function<? super Module, ? extends Injector> injectorFactory = createInjectorFactory(launchConfig);
+        Function<? super Injector, ? extends Handler> handlerTransformer = createHandlerTransformer(launchConfig);
 
         return handlerFactory.create(bindingsAction, injectorFactory, handlerTransformer);
       }
@@ -243,7 +243,7 @@ public class ClosureBackedEmbeddedApplication extends LaunchConfigEmbeddedApplic
    * @param launchConfig The launch config
    * @return the result of {@link Guice#newInjectorFactory(ratpack.launch.LaunchConfig)} with the given launch config
    */
-  protected Transformer<? super Module, ? extends Injector> createInjectorFactory(LaunchConfig launchConfig) {
+  protected Function<? super Module, ? extends Injector> createInjectorFactory(LaunchConfig launchConfig) {
     return Guice.newInjectorFactory(launchConfig);
   }
 
@@ -286,8 +286,8 @@ public class ClosureBackedEmbeddedApplication extends LaunchConfigEmbeddedApplic
    * @param launchConfig the launch config
    * @return A transformer that creates the application handler, given an injector
    */
-  protected Transformer<? super Injector, ? extends Handler> createHandlerTransformer(final LaunchConfig launchConfig) {
-    return new Transformer<Injector, Handler>() {
+  protected Function<? super Injector, ? extends Handler> createHandlerTransformer(final LaunchConfig launchConfig) {
+    return new Function<Injector, Handler>() {
       @Override
       public Handler transform(Injector injector) throws Exception {
         return Groovy.chain(launchConfig, Guice.registry(injector), handlersClosure);

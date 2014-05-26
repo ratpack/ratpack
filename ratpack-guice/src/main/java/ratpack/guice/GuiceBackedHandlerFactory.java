@@ -18,12 +18,12 @@ package ratpack.guice;
 
 import com.google.inject.Injector;
 import com.google.inject.Module;
+import ratpack.func.Function;
 import ratpack.handling.Handler;
 import ratpack.func.Action;
-import ratpack.func.Transformer;
 
 public interface GuiceBackedHandlerFactory {
 
-  Handler create(Action<? super BindingsSpec> modulesAction, Transformer<? super Module, ? extends Injector> moduleTransformer, Transformer<? super Injector, ? extends Handler> handler) throws Exception;
+  Handler create(Action<? super BindingsSpec> modulesAction, Function<? super Module, ? extends Injector> moduleTransformer, Function<? super Injector, ? extends Handler> handler) throws Exception;
 
 }

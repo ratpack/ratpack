@@ -25,7 +25,7 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.util.ResourceLeakDetector;
 import ratpack.file.BaseDirRequiredException;
-import ratpack.func.Transformer;
+import ratpack.func.Function;
 import ratpack.launch.LaunchConfig;
 import ratpack.launch.LaunchException;
 import ratpack.server.RatpackServer;
@@ -45,7 +45,7 @@ public class NettyRatpackServer implements RatpackServer {
   private final Logger logger = Logger.getLogger(getClass().getName());
 
   private final LaunchConfig launchConfig;
-  private final Transformer<Stopper, ChannelInitializer<SocketChannel>> channelInitializerTransformer;
+  private final Function<Stopper, ChannelInitializer<SocketChannel>> channelInitializerTransformer;
 
   private InetSocketAddress boundAddress;
   private Channel channel;
@@ -53,7 +53,7 @@ public class NettyRatpackServer implements RatpackServer {
   private final Lock lifecycleLock = new ReentrantLock();
   private final AtomicBoolean running = new AtomicBoolean();
 
-  public NettyRatpackServer(LaunchConfig launchConfig, Transformer<Stopper, ChannelInitializer<SocketChannel>> channelInitializerTransformer) {
+  public NettyRatpackServer(LaunchConfig launchConfig, Function<Stopper, ChannelInitializer<SocketChannel>> channelInitializerTransformer) {
     this.launchConfig = launchConfig;
     this.channelInitializerTransformer = channelInitializerTransformer;
   }

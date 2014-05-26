@@ -19,13 +19,13 @@ package ratpack.groovy.internal;
 import groovy.lang.Closure;
 import groovy.lang.Script;
 import io.netty.buffer.ByteBuf;
+import ratpack.func.Function;
 import ratpack.groovy.script.internal.ScriptEngine;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.reload.internal.ReloadableFileBackedFactory;
 import ratpack.func.Action;
 import ratpack.func.Factory;
-import ratpack.func.Transformer;
 import ratpack.util.internal.IoUtils;
 
 import java.io.ByteArrayOutputStream;
@@ -40,7 +40,7 @@ public class ScriptBackedApp implements Handler {
   private final Factory<Handler> reloadHandler;
   private final Path script;
 
-  public ScriptBackedApp(Path script, final boolean staticCompile, boolean reloadable, final Transformer<Closure<?>, Handler> closureTransformer) {
+  public ScriptBackedApp(Path script, final boolean staticCompile, boolean reloadable, final Function<Closure<?>, Handler> closureTransformer) {
     this.script = script;
     this.reloadHandler = new ReloadableFileBackedFactory<>(script, reloadable, new ReloadableFileBackedFactory.Producer<Handler>() {
       public Handler produce(final Path file, final ByteBuf bytes) {
