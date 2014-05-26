@@ -74,7 +74,7 @@ public class Render {
   }
 
   private void executeNested(final String templatePath, final Map<String, ?> model, ByteBuf buffer) throws Exception {
-    TemplateSource templateSource = includeTransformer.transform(templatePath);
+    TemplateSource templateSource = includeTransformer.apply(templatePath);
     CompiledTemplate compiledTemplate = getFromCache(compiledTemplateCache, templateSource);
     execute(compiledTemplate, model, buffer);
   }

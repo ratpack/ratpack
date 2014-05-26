@@ -83,7 +83,7 @@ public class NettyRatpackServer implements RatpackServer {
 
       ServerBootstrap bootstrap = new ServerBootstrap();
 
-      ChannelInitializer<SocketChannel> channelInitializer = channelInitializerTransformer.transform(stopper);
+      ChannelInitializer<SocketChannel> channelInitializer = channelInitializerTransformer.apply(stopper);
 
       bootstrap
         .group(launchConfig.getExecController().getEventLoopGroup())

@@ -33,7 +33,7 @@ class ExceptionTransformer implements Function<Throwable, Throwable> {
   }
 
   @Override
-  Throwable transform(Throwable throwable) throws Exception {
+  Throwable apply(Throwable throwable) throws Exception {
     def errorLine = 0
 
     if (throwable instanceof CompileException) {

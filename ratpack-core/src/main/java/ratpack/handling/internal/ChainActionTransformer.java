@@ -35,7 +35,7 @@ public class ChainActionTransformer implements Function<List<Handler>, Chain> {
     this.registry = registry;
   }
 
-  public Chain transform(List<Handler> handlers) {
+  public Chain apply(List<Handler> handlers) {
     return new DefaultChain(handlers, launchConfig, registry);
   }
 

@@ -35,7 +35,7 @@ public class InjectorHandlerTransformer implements Function<Injector, Handler> {
     this.closure = closure;
   }
 
-  public Handler transform(Injector injector) throws Exception {
+  public Handler apply(Injector injector) throws Exception {
     final Registry registry = Guice.justInTimeRegistry(injector);
     return Groovy.chain(launchConfig, registry, closure);
   }

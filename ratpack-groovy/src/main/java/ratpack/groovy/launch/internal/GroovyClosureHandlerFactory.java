@@ -41,7 +41,7 @@ public class GroovyClosureHandlerFactory implements HandlerFactory {
     GuiceBackedHandlerFactory guiceHandlerFactory = new GroovyKitAppFactory(launchConfig);
     Function<Module, Injector> moduleInjectorTransformer = Guice.newInjectorFactory(launchConfig);
     Function<Closure<?>, Handler> handlerTransformer = new RatpackDslClosureToHandlerTransformer(launchConfig, guiceHandlerFactory, moduleInjectorTransformer);
-    return handlerTransformer.transform(ratpackClosure);
+    return handlerTransformer.apply(ratpackClosure);
   }
 
 }

@@ -36,7 +36,7 @@ public class GroovyDslChainActionTransformer implements Function<List<Handler>, 
     this.registry = registry;
   }
 
-  public GroovyChain transform(List<Handler> storage) {
+  public GroovyChain apply(List<Handler> storage) {
     return new DefaultGroovyChain(new DefaultChain(storage, launchConfig, registry));
   }
 

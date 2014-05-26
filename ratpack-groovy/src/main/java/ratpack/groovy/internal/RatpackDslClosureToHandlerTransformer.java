@@ -41,7 +41,7 @@ public class RatpackDslClosureToHandlerTransformer implements Function<Closure<?
   }
 
   @Override
-  public Handler transform(Closure<?> closure) throws Exception {
+  public Handler apply(Closure<?> closure) throws Exception {
     final RatpackImpl ratpack = new RatpackImpl();
     ClosureUtil.configureDelegateFirst(ratpack, closure);
 

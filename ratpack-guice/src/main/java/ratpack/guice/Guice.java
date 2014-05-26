@@ -267,7 +267,7 @@ public abstract class Guice {
     final Stage stage = launchConfig.isReloadable() ? Stage.DEVELOPMENT : Stage.PRODUCTION;
     return new Function<Module, Injector>() {
       @Override
-      public Injector transform(Module from) {
+      public Injector apply(Module from) {
         return from == null ? createInjector(stage) : createInjector(stage, from);
       }
     };
@@ -283,7 +283,7 @@ public abstract class Guice {
   public static Function<Module, Injector> childInjectorFactory(final Injector parent) {
     return new Function<Module, Injector>() {
       @Override
-      public Injector transform(Module from) {
+      public Injector apply(Module from) {
         return from == null ? parent.createChildInjector() : parent.createChildInjector(from);
       }
     };
@@ -298,7 +298,7 @@ public abstract class Guice {
       this.action = action;
     }
 
-    public Handler transform(Injector injector) throws Exception {
+    public Handler apply(Injector injector) throws Exception {
       return chain(launchConfig, justInTimeRegistry(injector), action);
     }
   }

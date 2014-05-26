@@ -289,7 +289,7 @@ public class ClosureBackedEmbeddedApplication extends LaunchConfigEmbeddedApplic
   protected Function<? super Injector, ? extends Handler> createHandlerTransformer(final LaunchConfig launchConfig) {
     return new Function<Injector, Handler>() {
       @Override
-      public Handler transform(Injector injector) throws Exception {
+      public Handler apply(Injector injector) throws Exception {
         return Groovy.chain(launchConfig, Guice.registry(injector), handlersClosure);
       }
     };

@@ -38,7 +38,7 @@ public abstract class GuiceUtil {
       if (type.isAssignableFrom(toTypeToken(bindingType))) {
         @SuppressWarnings("unchecked") Provider<? extends T> provider = (Provider<? extends T>) keyBindingEntry.getValue().getProvider();
         try {
-          if (!transformer.transform(provider)) {
+          if (!transformer.apply(provider)) {
             return;
           }
         } catch (Exception e) {
@@ -55,7 +55,7 @@ public abstract class GuiceUtil {
   public static <T> void eachOfType(Injector injector, TypeToken<T> type, final Action<? super T> action) {
     search(injector, type, new Function<Provider<? extends T>, Boolean>() {
       @Override
-      public Boolean transform(Provider<? extends T> from) throws Exception {
+      public Boolean apply(Provider<? extends T> from) throws Exception {
         action.execute(from.get());
         return true;
       }
@@ -65,7 +65,7 @@ public abstract class GuiceUtil {
   public static <T> void eachProviderOfType(Injector injector, TypeToken<T> type, final Action<? super Provider<? extends T>> action) {
     search(injector, type, new Function<Provider<? extends T>, Boolean>() {
       @Override
-      public Boolean transform(Provider<? extends T> from) throws Exception {
+      public Boolean apply(Provider<? extends T> from) throws Exception {
         action.execute(from);
         return true;
       }

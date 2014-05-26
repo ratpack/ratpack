@@ -47,7 +47,7 @@ public class SnippetRunner extends Runner {
     } catch (Throwable t) {
       Throwable transform;
       try {
-        transform = snippet.getExceptionTransformer().transform(t);
+        transform = snippet.getExceptionTransformer().apply(t);
       } catch (Exception e) {
         throw uncheck(e);
       }

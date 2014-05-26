@@ -31,6 +31,6 @@ public interface Function<INPUT, OUTPUT> {
    * @return the output of the function
    * @throws Exception any
    */
-  OUTPUT transform(INPUT input) throws Exception;
+  OUTPUT apply(INPUT input) throws Exception;
 
 }

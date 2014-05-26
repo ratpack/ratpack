@@ -50,7 +50,7 @@ public class ChainBuilders {
 
   private static <T> Handler create(Function<List<Handler>, ? extends T> toChainBuilder, Action<? super T> chainBuilderAction) throws Exception {
     List<Handler> handlers = new LinkedList<>();
-    T chainBuilder = toChainBuilder.transform(handlers);
+    T chainBuilder = toChainBuilder.apply(handlers);
     chainBuilderAction.execute(chainBuilder);
     return Handlers.chain(handlers.toArray(new Handler[handlers.size()]));
   }

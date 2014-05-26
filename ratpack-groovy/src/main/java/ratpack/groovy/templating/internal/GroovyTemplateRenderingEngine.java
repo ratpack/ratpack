@@ -93,7 +93,7 @@ public class GroovyTemplateRenderingEngine {
 
   private Promise<ByteBuf> render(ExecContext execContext, ByteBuf byteBuf, final TemplateSource templateSource, Map<String, ?> model) throws Exception {
     return Render.render(execContext, byteBuf, compiledTemplateCache, templateSource, model, new Function<String, TemplateSource>() {
-      public TemplateSource transform(String templateName) throws IOException {
+      public TemplateSource apply(String templateName) throws IOException {
         return toTemplateSource(templateName, getTemplateFile(templateName));
       }
     });

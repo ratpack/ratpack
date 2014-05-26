@@ -39,7 +39,7 @@ public class BuiltWebSocketHandler<T> implements WebSocketHandler<T> {
 
   @Override
   public T onOpen(WebSocket webSocket) throws Exception {
-    return open.transform(webSocket);
+    return open.apply(webSocket);
   }
 
   @Override

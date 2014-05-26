@@ -91,14 +91,14 @@ public class DefaultGuiceBackedHandlerFactory implements GuiceBackedHandlerFacto
       }
     }
 
-    Injector injector = moduleTransformer.transform(masterModule);
+    Injector injector = moduleTransformer.apply(masterModule);
 
     List<Action<Injector>> init = moduleRegistry.init;
     for (Action<Injector> initAction : init) {
       initAction.execute(injector);
     }
 
-    Handler decorated = injectorTransformer.transform(injector);
+    Handler decorated = injectorTransformer.apply(injector);
 
     List<Module> modulesReversed = new ArrayList<>(modules);
     Collections.reverse(modulesReversed);

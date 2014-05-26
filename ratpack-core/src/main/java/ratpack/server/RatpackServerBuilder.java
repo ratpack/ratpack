@@ -60,7 +60,7 @@ public abstract class RatpackServerBuilder {
   private static Function<Stopper, ChannelInitializer<SocketChannel>> buildChannelInitializer(final LaunchConfig launchConfig) {
     return new Function<Stopper, ChannelInitializer<SocketChannel>>() {
       @Override
-      public ChannelInitializer<SocketChannel> transform(Stopper stopper) {
+      public ChannelInitializer<SocketChannel> apply(Stopper stopper) {
         return new RatpackChannelInitializer(launchConfig, createHandler(launchConfig), stopper);
       }
     };

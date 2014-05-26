@@ -61,7 +61,7 @@ public class ScriptBackedApp implements Handler {
           ClosureCaptureAction backing = new ClosureCaptureAction();
           RatpackScriptBacking.withBacking(backing, runScript);
 
-          return closureTransformer.transform(backing.closure);
+          return closureTransformer.apply(backing.closure);
         } catch (Exception e) {
           throw uncheck(e);
         }
