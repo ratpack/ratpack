@@ -21,10 +21,12 @@ import groovy.lang.DelegatesTo;
 import io.remotecontrol.CommandChain;
 import io.remotecontrol.client.CommandGenerator;
 import io.remotecontrol.client.RemoteControlSupport;
+import io.remotecontrol.client.Transport;
 import io.remotecontrol.client.UnserializableResultStrategy;
 import io.remotecontrol.groovy.ClosureCommand;
 import io.remotecontrol.groovy.client.ClosureCommandGenerator;
 import io.remotecontrol.groovy.client.RawClosureCommand;
+import io.remotecontrol.result.Result;
 import io.remotecontrol.transport.http.HttpTransport;
 import ratpack.remote.CommandDelegate;
 import ratpack.test.ApplicationUnderTest;
@@ -41,8 +43,24 @@ public class RemoteControl {
   private final RemoteControlSupport<ClosureCommand> support;
   private final CommandGenerator<RawClosureCommand, ClosureCommand> generator = new ClosureCommandGenerator();
 
+  private final static class DelegatingTransport implements Transport {
+
+    private final ApplicationUnderTest applicationUnderTest;
+    private final String path;
+
+    private DelegatingTransport(ApplicationUnderTest applicationUnderTest, String path) {
+      this.applicationUnderTest = applicationUnderTest;
+      this.path = path;
+    }
+
+    @Override
+    public Result send(CommandChain<?> commandChain) throws IOException {
+      return new HttpTransport(applicationUnderTest.getAddress() + path).send(commandChain);
+    }
+  }
+
   public RemoteControl(ApplicationUnderTest application, String path) {
-    support = new RemoteControlSupport<>(new HttpTransport(application.getAddress() + path), UnserializableResultStrategy.THROW, getClass().getClassLoader());
+    support = new RemoteControlSupport<>(new DelegatingTransport(application, path), UnserializableResultStrategy.THROW, getClass().getClassLoader());
   }
 
   public RemoteControl(ApplicationUnderTest application) {
