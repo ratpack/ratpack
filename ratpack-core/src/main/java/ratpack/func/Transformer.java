@@ -19,18 +19,18 @@ package ratpack.func;
 /**
  * An object that transforms an object into another.
  *
- * @param <F> the type of the input object
- * @param <T> the type of the output (transformed) object
+ * @param <INPUT> the type of the input object
+ * @param <OUTPUT> the type of the output (transformed) object
  */
-public interface Transformer<F, T> {
+public interface Transformer<INPUT, OUTPUT> {
 
   /**
    * Transforms the given object into a different object.
    *
-   * @param from the object to transform
+   * @param input the object to transform
    * @return the transformed object
    * @throws Exception if the object cannot be transformed
    */
-  T transform(F from) throws Exception;
+  OUTPUT transform(INPUT input) throws Exception;
 
 }
