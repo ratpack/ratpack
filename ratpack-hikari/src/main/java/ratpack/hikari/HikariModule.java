@@ -36,11 +36,11 @@ import java.util.Properties;
  * </p>
  * <p>
  * Different constructor variants allow you to configure {@code dataSourceClassName} (note that HikariCP uses {@code javax.sql.DataSource} instances
- * instead of {@code java.sql.Driver} used by other connection pools), {@code minimumPoolSize} and {@code maximumPoolSize} as well as {@code dataSourceProperties}.
+ * instead of {@code java.sql.Driver} used by other connection pools), {@code minimumIdle} and {@code maximumPoolSize} as well as {@code dataSourceProperties}.
  * </p>
  * <p>
  * If you wish to configure the module using configuration properties you should use the following property names: {@code other.hikari.dataSourceClassName},
- * {@code other.hikari.minimumPoolSize} and {@code other.hikari.maximumPoolSize}. All configuration properties prefixed with {@code other.hikari.dataSourceProperties} will
+ * {@code other.hikari.minimumIdle} and {@code other.hikari.maximumPoolSize}. All configuration properties prefixed with {@code other.hikari.dataSourceProperties} will
  * be used as data source properties - e.g. {@code other.hikari.URL} will be used to set {@code URL} property on the data source.
  * </p>
  * <p>
@@ -101,10 +101,10 @@ import java.util.Properties;
  */
 public class HikariModule extends AbstractModule {
 
-  private final static String DEFAULT_MIN_POOL_SIZE = "10";
+  private final static String DEFAULT_MIN_IDLE_SIZE = "10";
   private final static String DEFAULT_MAX_POOL_SIZE = "60";
 
-  private Integer minimumPoolSize;
+  private Integer minimumIdleSize;
   private Integer maximumPoolSize;
   private String dataSourceClassName;
   private Map<String, String> dataSourceProperties;
@@ -117,10 +117,10 @@ public class HikariModule extends AbstractModule {
     this(dataSourceProperties, dataSourceClassName, null, null);
   }
 
-  public HikariModule(Map<String, String> dataSourceProperties, String dataSourceClassName, Integer minimumPoolSize, Integer maximumPoolSize) {
+  public HikariModule(Map<String, String> dataSourceProperties, String dataSourceClassName, Integer minimumIdleSize, Integer maximumPoolSize) {
     this.dataSourceProperties =dataSourceProperties;
     this.dataSourceClassName = dataSourceClassName;
-    this.minimumPoolSize = minimumPoolSize;
+    this.minimumIdleSize = minimumIdleSize;
     this.maximumPoolSize = maximumPoolSize;
   }
 
@@ -132,7 +132,7 @@ public class HikariModule extends AbstractModule {
   @Singleton
   public HikariConfig hikariConfig(LaunchConfig launchConfig) {
     int maxSize = maximumPoolSize == null ? Integer.parseInt(launchConfig.getOther("hikari.maximumPoolSize", DEFAULT_MAX_POOL_SIZE)) : maximumPoolSize;
-    int minSize = minimumPoolSize == null ? Integer.parseInt(launchConfig.getOther("hikari.minimumPoolSize", DEFAULT_MIN_POOL_SIZE)) : minimumPoolSize;
+    int minSize = minimumIdleSize == null ? Integer.parseInt(launchConfig.getOther("hikari.minimumIdle", DEFAULT_MIN_IDLE_SIZE)) : minimumIdleSize;
     String className = dataSourceClassName == null ? launchConfig.getOther("hikari.dataSourceClassName", null) : dataSourceClassName;
 
     Properties properties = new Properties();
@@ -141,7 +141,7 @@ public class HikariModule extends AbstractModule {
 
     HikariConfig config = new HikariConfig();
     config.setMaximumPoolSize(maxSize);
-    config.setMinimumPoolSize(minSize);
+    config.setMinimumIdle(minSize);
     config.setDataSourceClassName(className);
     config.setDataSourceProperties(properties);
     return config;
