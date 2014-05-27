@@ -65,7 +65,7 @@ abstract class CommandFactory {
       @Override
       protected rx.Observable<String> run() {
         assert Thread.currentThread().name.startsWith("ratpack-compute-")
-        return observe(DefaultExecController.threadBoundController.control.blocking {
+        return observe(DefaultExecController.threadBoundController.get().control.blocking {
           assert Thread.currentThread().name.startsWith("ratpack-blocking-")
           return requestNumber
         })
