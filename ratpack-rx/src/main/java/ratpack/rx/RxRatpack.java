@@ -50,6 +50,7 @@ public abstract class RxRatpack {
 
         @Override
         public void call(final Subscriber<? super T> subscriber) {
+          final ExecContext context = getContext();
           onSubscribe.call(new Subscriber<T>() {
             @Override
             public void onCompleted() {
@@ -65,7 +66,7 @@ public abstract class RxRatpack {
                   throw onErrorNotImplementedException.getCause();
                 }
               } catch (Throwable throwable) {
-                wrapAndForward(getContext(), throwable);
+                wrapAndForward(context, throwable);
               }
             }
 
@@ -78,7 +79,7 @@ public abstract class RxRatpack {
                   throw onErrorNotImplementedException.getCause();
                 }
               } catch (Throwable throwable) {
-                wrapAndForward(getContext(), throwable);
+                wrapAndForward(context, throwable);
               }
             }
           });

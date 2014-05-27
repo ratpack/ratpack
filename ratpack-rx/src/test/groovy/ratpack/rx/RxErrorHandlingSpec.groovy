@@ -17,11 +17,13 @@
 package ratpack.rx
 
 import ratpack.error.ServerErrorHandler
+import ratpack.exec.ExecController
 import ratpack.groovy.test.GroovyUnitTest
 import ratpack.handling.Context
 import ratpack.handling.Handler
 import ratpack.test.internal.RatpackGroovyDslSpec
 import rx.Observable
+import rx.Subscriber
 import rx.exceptions.CompositeException
 import rx.functions.Action0
 import rx.functions.Action1
@@ -285,6 +287,30 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
 
     then:
     result.exception == e
+  }
+
+  def "error handler is invoked even when error occurs on different thread"() {
+    given:
+    handlers {
+      get { ExecController execController ->
+        Observable.create(new Observable.OnSubscribe<String>() {
+          @Override
+          void call(Subscriber<? super String> subscriber) {
+            execController.executor.execute {
+              subscriber.onError(error)
+            }
+          }
+        }).subscribe {
+          context.render("unexpected")
+        }
+      }
+    }
+
+    when:
+    get()
+
+    then:
+    errorHandler.errors == [error]
   }
 
 }
