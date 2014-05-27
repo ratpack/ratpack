@@ -30,6 +30,7 @@ import rx.functions.Action1
 
 import static ratpack.groovy.test.TestHttpClients.testHttpClient
 import static ratpack.groovy.test.embed.EmbeddedApplications.embeddedApp
+import static ratpack.rx.RxRatpack.contextualize
 import static ratpack.rx.RxRatpack.observe
 
 class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
@@ -311,6 +312,32 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
 
     then:
     errorHandler.errors == [error]
+  }
+
+  def "subscription can occur on non managed thread when contextualize is used"() {
+    given:
+    handlers {
+      get { ExecController execController ->
+        Observable.create(new Observable.OnSubscribe<String>() {
+          @Override
+          void call(Subscriber<? super String> subscriber) {
+            def s = contextualize(subscriber)
+            execController.executor.execute {
+              Observable.error(error).subscribe(s)
+            }
+          }
+        }).subscribe {
+          context.render("unexpected")
+        }
+      }
+    }
+
+    when:
+    get()
+
+    then:
+    errorHandler.errors == [error]
+
   }
 
 }
