@@ -23,6 +23,7 @@ import org.pac4j.core.profile.UserProfile;
 
 import ratpack.func.Action;
 import ratpack.handling.Context;
+import ratpack.http.Request;
 import ratpack.pac4j.Authorizer;
 import ratpack.session.store.SessionStorage;
 
@@ -34,19 +35,16 @@ import static ratpack.pac4j.internal.SessionConstants.SAVED_URI;
  * Filters requests to apply authentication and authorization as required.
  */
 public class Pac4jAuthenticationHandler extends Pac4jProfileHandler {
-  private final Clients clients;
   private final String name;
   private final Authorizer authorizer;
 
   /**
    * Constructs a new instance.
    *
-   * @param clients The defined clients
    * @param name The name of the client to use for authentication
    * @param authorizer The authorizer to user for authorization
    */
-  public Pac4jAuthenticationHandler(Clients clients, String name, Authorizer authorizer) {
-    this.clients = clients;
+  public Pac4jAuthenticationHandler(String name, Authorizer authorizer) {
     this.name = name;
     this.authorizer = authorizer;
   }
@@ -67,7 +65,9 @@ public class Pac4jAuthenticationHandler extends Pac4jProfileHandler {
   }
 
   private void initiateAuthentication(final Context context) {
-    context.getRequest().get(SessionStorage.class).put(SAVED_URI, context.getRequest().getUri());
+    final Request request = context.getRequest();
+    request.get(SessionStorage.class).put(SAVED_URI, request.getUri());
+    final Clients clients = request.get(Clients.class);
     final RatpackWebContext webContext = new RatpackWebContext(context);
     context.blocking(new Callable<Void>() {
       @Override

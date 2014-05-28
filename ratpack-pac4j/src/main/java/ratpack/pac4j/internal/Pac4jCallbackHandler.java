@@ -26,6 +26,7 @@ import org.pac4j.core.profile.UserProfile;
 import ratpack.func.Action;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
+import ratpack.http.Request;
 import ratpack.session.store.SessionStorage;
 
 import java.util.concurrent.Callable;
@@ -39,20 +40,11 @@ import static ratpack.pac4j.internal.SessionConstants.USER_PROFILE;
 public class Pac4jCallbackHandler implements Handler {
   private static final String DEFAULT_REDIRECT_URI = "/";
 
-  private final Clients clients;
-
-  /**
-   * Constructs a new instance.
-   *
-   * @param clients The clients to use for authentication
-   */
-  public Pac4jCallbackHandler(Clients clients) {
-    this.clients = clients;
-  }
-
   @Override
   public void handle(final Context context) {
-    final SessionStorage sessionStorage = context.getRequest().get(SessionStorage.class);
+    final Request request = context.getRequest();
+    final SessionStorage sessionStorage = request.get(SessionStorage.class);
+    final Clients clients = request.get(Clients.class);
     final RatpackWebContext webContext = new RatpackWebContext(context);
     context.blocking(new Callable<UserProfile>() {
       @Override

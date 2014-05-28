@@ -20,7 +20,6 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Injector;
 
 import org.pac4j.core.client.Client;
-import org.pac4j.core.client.Clients;
 import org.pac4j.core.credentials.Credentials;
 import org.pac4j.core.profile.UserProfile;
 
@@ -88,11 +87,9 @@ public abstract class AbstractPac4jModule<C extends Credentials, U extends UserP
     final String callbackPath = getCallbackPath(injector);
     final Client<C, U> client = getClient(injector);
     final Authorizer authorizer = getAuthorizer(injector);
-    final LaunchConfig launchConfig = injector.getInstance(LaunchConfig.class);
-    final String callbackUrl = launchConfig.getPublicAddress().toString() + "/" + callbackPath;
-    final Clients clients = new Clients(callbackUrl, client);
-    final Pac4jCallbackHandler callbackHandler = new Pac4jCallbackHandler(clients);
-    final Pac4jAuthenticationHandler authenticationHandler = new Pac4jAuthenticationHandler(clients, client.getName(), authorizer);
-    return Handlers.chain(Handlers.path(callbackPath, callbackHandler), authenticationHandler, handler);
+    final Pac4jClientsHandler clientsHandler = new Pac4jClientsHandler(callbackPath, client);
+    final Pac4jCallbackHandler callbackHandler = new Pac4jCallbackHandler();
+    final Pac4jAuthenticationHandler authenticationHandler = new Pac4jAuthenticationHandler(client.getName(), authorizer);
+    return Handlers.chain(clientsHandler, Handlers.path(callbackPath, callbackHandler), authenticationHandler, handler);
   }
 }
