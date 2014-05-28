@@ -34,6 +34,7 @@ The following people have provided significant contributions.
 * [Craig Burke](https://github.com/craigburke)
 * [Andrey Adamovich](https://github.com/aadamovich)
 * [Tim Yates](https://github.com/timyates)
+* [Brett Wooldridge](https://github.com/brettwooldridge)
 
 ### Past project members
 
