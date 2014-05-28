@@ -327,4 +327,19 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     getText("client") == ""
     response.statusCode == 500
   }
+
+  def "can escape in template"() {
+    given:
+    file "templates/tpl.html", "\${html '<>'}"
+
+    when:
+    handlers {
+      get {
+        render groovyTemplate("tpl.html")
+      }
+    }
+
+    then:
+    text == "&lt;&gt;"
+  }
 }

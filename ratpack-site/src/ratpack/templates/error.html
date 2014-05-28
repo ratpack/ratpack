@@ -1,5 +1,5 @@
 <% render "head.html" %>
-<p class="http-status-code" style="display: none">$model.code</p>
+<p class="http-status-code" style="display: none">${html model.code}</p>
 <section id="main">
   <article class="content">
     <h3>Oops!</h3>
@@ -7,7 +7,7 @@
       def message = model.get("message", String)
       if (message) {
     %>
-      <p>$message</p>
+      <p>${html message}</p>
     <% } else { %>
       <p>Something appears to have gone wrong. Sorry about that.</p>
     <% } %>

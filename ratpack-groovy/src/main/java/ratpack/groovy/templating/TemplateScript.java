@@ -56,4 +56,13 @@ public interface TemplateScript {
    */
   String render(Map<String, ?> model, String templateName) throws Exception;
 
+  /**
+   * Escapes the toString() value of the given object, by way of {@link com.google.common.html.HtmlEscapers}.
+   *
+   * @param value the value to escape
+   * @return a minimally escaped version of the given value
+   */
+  String html(Object value);
+
+
 }

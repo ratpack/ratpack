@@ -16,6 +16,8 @@
 
 package ratpack.groovy.templating.internal;
 
+import com.google.common.escape.Escaper;
+import com.google.common.html.HtmlEscapers;
 import groovy.lang.Script;
 import io.netty.buffer.ByteBuf;
 import ratpack.groovy.templating.TemplateModel;
@@ -26,6 +28,8 @@ import java.util.Collections;
 import java.util.Map;
 
 public abstract class DefaultTemplateScript extends Script implements TemplateScript {
+
+  private static final Escaper ESCAPER = HtmlEscapers.htmlEscaper();
 
   private final TemplateModel model;
   private final NestedRenderer renderer;
@@ -48,6 +52,11 @@ public abstract class DefaultTemplateScript extends Script implements TemplateSc
   public String render(Map<String, ?> model, String templateName) throws Exception {
     renderer.render(templateName, model);
     return "";
+  }
+
+  @Override
+  public String html(Object value) {
+    return ESCAPER.escape(value.toString());
   }
 
   //CHECKSTYLE:OFF

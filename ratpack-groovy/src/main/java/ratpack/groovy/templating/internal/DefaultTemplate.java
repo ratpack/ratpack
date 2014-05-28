@@ -33,15 +33,18 @@ public class DefaultTemplate implements Template {
     this.model = ImmutableMap.copyOf(model);
   }
 
-  @Override public String getId() {
+  @Override
+  public String getId() {
     return id;
   }
 
-  @Override public String getType() {
+  @Override
+  public String getType() {
     return type;
   }
 
-  @Override public ImmutableMap<String, ?> getModel() {
+  @Override
+  public ImmutableMap<String, ?> getModel() {
     return model;
   }
 

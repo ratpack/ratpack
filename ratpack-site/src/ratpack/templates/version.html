@@ -2,28 +2,28 @@
 <% def version = model.get("version") as ratpack.site.github.RatpackVersion %>
 <section id="main">
   <article class="content">
-    <h2>Version ${version.version} ${!version.released ? "(unreleased)" : ""}</h2>
-    <p>${version.released ? "Released " : "Due "} on ${version.dueString()}.</p>
+    <h2>Version ${html version.version} ${html(!version.released ? "(unreleased)" : "")}</h2>
+    <p>${html(version.released ? "Released " : "Due ")} on ${html version.dueString()}.</p>
     <% if (version.description) { %>
       <p>${version.descriptionHtml}</p>
     <% } %>
     <h3 id="links">Links</h3>
     <ul>
-      <li><a href="/manual/$version.version/">Manual</a> (<a href="$version.manualDownloadUrl">zip</a>)</li>
+      <li><a href="/manual/$version.version/">Manual</a> (<a href="${html version.manualDownloadUrl}">zip</a>)</li>
       <li><a href="/manual/$version.version/api/">API Reference</a></li>
-      <li><a href="https://github.com/ratpack/ratpack/tree/${version.released ? "v$version.version" : "master"}">Source Code</a></li>
+      <li><a href="https://github.com/ratpack/ratpack/tree/${html(version.released ? "v$version.version" : "master")}">Source Code</a></li>
     </ul>
     <% def issueSet = model.get("issues") as ratpack.site.github.IssueSet %>
-    <h3 id="pull-requests">Pull Requests (${issueSet.pullRequests.size()})</h3>
+    <h3 id="pull-requests">Pull Requests (${html issueSet.pullRequests.size()})</h3>
     <ul>
       <% for (issue in issueSet.pullRequests) { %>
-      <li>[<a href="$issue.url">${issue.number}</a>] - ${issue.title} (<a href="${issue.authorUrl}">${issue.author}</a>)</li>
+      <li>[<a href="$issue.url">${html issue.number}</a>] - ${html issue.title} (<a href="${html issue.authorUrl}">${html issue.author}</a>)</li>
       <% } %>
     </ul>
-    <h3 id="issues">Resolved Issues (${issueSet.issues.size()})</h3>
+    <h3 id="issues">Resolved Issues (${html issueSet.issues.size()})</h3>
     <ul>
       <% for (issue in issueSet.issues) { %>
-        <li>[<a href="$issue.url">${issue.number}</a>] - ${issue.title}</li>
+        <li>[<a href="${html issue.url}">${html issue.number}</a>] - ${html issue.title}</li>
       <% } %>
     </ul>
   </article>
