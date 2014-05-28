@@ -23,7 +23,6 @@ configurations {
     getByName(configurationName).resolutionStrategy {
       force "org.apache.httpcomponents:httpclient:4.3.1", "org.apache.httpcomponents:httpmime:4.3.1"
       force "com.google.guava:guava:16.0"
-      force "commons-logging:commons-logging:1.1.3"
     }
   }
 }
