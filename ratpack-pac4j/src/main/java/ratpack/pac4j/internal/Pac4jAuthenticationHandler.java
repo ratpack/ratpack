@@ -23,6 +23,7 @@ import org.pac4j.core.profile.UserProfile;
 
 import ratpack.func.Action;
 import ratpack.handling.Context;
+import ratpack.http.Request;
 import ratpack.pac4j.Authorizer;
 import ratpack.session.store.SessionStorage;
 
@@ -64,8 +65,9 @@ public class Pac4jAuthenticationHandler extends Pac4jProfileHandler {
   }
 
   private void initiateAuthentication(final Context context) {
-    context.getRequest().get(SessionStorage.class).put(SAVED_URI, context.getRequest().getUri());
-    final Clients clients = context.get(Clients.class);
+    final Request request = context.getRequest();
+    request.get(SessionStorage.class).put(SAVED_URI, request.getUri());
+    final Clients clients = request.get(Clients.class);
     final RatpackWebContext webContext = new RatpackWebContext(context);
     context.blocking(new Callable<Void>() {
       @Override

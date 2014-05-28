@@ -26,6 +26,7 @@ import org.pac4j.core.profile.UserProfile;
 import ratpack.func.Action;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
+import ratpack.http.Request;
 import ratpack.session.store.SessionStorage;
 
 import java.util.concurrent.Callable;
@@ -41,8 +42,9 @@ public class Pac4jCallbackHandler implements Handler {
 
   @Override
   public void handle(final Context context) {
-    final SessionStorage sessionStorage = context.getRequest().get(SessionStorage.class);
-    final Clients clients = context.get(Clients.class);
+    final Request request = context.getRequest();
+    final SessionStorage sessionStorage = request.get(SessionStorage.class);
+    final Clients clients = request.get(Clients.class);
     final RatpackWebContext webContext = new RatpackWebContext(context);
     context.blocking(new Callable<UserProfile>() {
       @Override

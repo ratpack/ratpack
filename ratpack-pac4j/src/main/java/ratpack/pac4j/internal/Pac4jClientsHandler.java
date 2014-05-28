@@ -21,7 +21,6 @@ import org.pac4j.core.client.Client;
 import org.pac4j.core.client.Clients;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
-import ratpack.registry.Registries;
 import ratpack.server.PublicAddress;
 
 import java.util.List;
@@ -44,6 +43,7 @@ public class Pac4jClientsHandler implements Handler {
   @Override
   public void handle(Context context) throws Exception {
     String callbackUrl = context.get(PublicAddress.class).getAddress(context).toString() + "/" + callbackPath;
-    context.next(Registries.just(new Clients(callbackUrl, clients)));
+    context.getRequest().register(new Clients(callbackUrl, clients));
+    context.next();
   }
 }
