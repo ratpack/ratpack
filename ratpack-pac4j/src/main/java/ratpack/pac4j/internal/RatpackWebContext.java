@@ -129,7 +129,7 @@ public class RatpackWebContext implements WebContext {
 
   @Override
   public String getFullRequestURL() {
-    return context.getRequest().getUri();
+    return getAddress().toString() + context.getRequest().getUri();
   }
 
   public void sendResponse(RequiresHttpAction action) {
