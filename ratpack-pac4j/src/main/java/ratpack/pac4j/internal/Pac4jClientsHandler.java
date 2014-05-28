@@ -16,6 +16,7 @@
 
 package ratpack.pac4j.internal;
 
+import com.google.common.collect.ImmutableList;
 import org.pac4j.core.client.Client;
 import org.pac4j.core.client.Clients;
 import ratpack.handling.Context;
@@ -23,7 +24,6 @@ import ratpack.handling.Handler;
 import ratpack.registry.Registries;
 import ratpack.server.PublicAddress;
 
-import java.util.Arrays;
 import java.util.List;
 
 @SuppressWarnings("rawtypes")
@@ -32,12 +32,13 @@ public class Pac4jClientsHandler implements Handler {
   private final List<Client> clients;
 
   public Pac4jClientsHandler(String callbackPath, Client... clients) {
-    this(callbackPath, Arrays.asList(clients));
+    this.callbackPath = callbackPath;
+    this.clients = ImmutableList.copyOf(clients);
   }
 
   public Pac4jClientsHandler(String callbackPath, List<Client> clients) {
     this.callbackPath = callbackPath;
-    this.clients = clients;
+    this.clients = ImmutableList.copyOf(clients);
   }
 
   @Override
