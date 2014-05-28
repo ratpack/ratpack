@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ratpack.file.internal;
+package ratpack.server.internal;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.HttpContentCompressor;

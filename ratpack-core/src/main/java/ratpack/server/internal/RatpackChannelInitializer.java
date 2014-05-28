@@ -24,7 +24,6 @@ import io.netty.handler.codec.http.HttpRequestDecoder;
 import io.netty.handler.codec.http.HttpResponseEncoder;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.stream.ChunkedWriteHandler;
-import ratpack.file.internal.SmartHttpContentCompressor;
 import ratpack.handling.Handler;
 import ratpack.launch.LaunchConfig;
 import ratpack.server.Stopper;
