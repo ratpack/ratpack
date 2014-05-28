@@ -10,6 +10,4 @@ dependencies {
 
 configurations.testCompile.dependencies.withType(ProjectDependency).matching {
   it.dependencyProject == project(":ratpack-test-internal")
-}.all {
-  it.exclude group: "commons-logging", module: "commons-logging"
 }
