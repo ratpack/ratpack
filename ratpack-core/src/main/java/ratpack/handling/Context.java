@@ -467,6 +467,34 @@ public interface Context extends ExecContext, Registry {
   <T> T parse(Class<T> type) throws NoSuchParserException, ParserException;
 
   /**
+   * Parse the request into the given type, using no options (or more specifically an instance of {@link ratpack.parse.NullParseOpts} as the options).
+   * <p>
+   * The code sample is functionally identical to the sample given for the {@link #parse(Parse)} variant…
+   * <pre class="tested">
+   * import ratpack.handling.Handler;
+   * import ratpack.handling.Context;
+   * import ratpack.form.Form;
+   * import com.google.common.reflect.TypeToken;
+   *
+   * public class FormHandler implements Handler {
+   *   public void handle(Context context) {
+   *     Form form = context.parse(new TypeToken&lt;Form&gt;() {});
+   *     context.render(form.get("someFormParam"));
+   *   }
+   * }
+   * </pre>
+   * <p>
+   * That is, it is a convenient form of {@code parse(Parse.of(T))}.
+   *
+   * @param type the type to parse to
+   * @param <T> the type to parse to
+   * @return The parsed object
+   * @throws NoSuchParserException if no suitable parser could be found in the registry
+   * @throws ParserException if a suitable parser was found, but it threw an exception while parsing
+   */
+  <T> T parse(TypeToken<T> type) throws NoSuchParserException, ParserException;
+
+  /**
    * Constructs a {@link Parse} from the given args and delegates to {@link #parse(Parse)}.
    *
    * @param type The type to parse to
@@ -478,6 +506,19 @@ public interface Context extends ExecContext, Registry {
    * @throws ParserException if a suitable parser was found, but it threw an exception while parsing
    */
   <T, O> T parse(Class<T> type, O options) throws NoSuchParserException, ParserException;
+
+  /**
+   * Constructs a {@link Parse} from the given args and delegates to {@link #parse(Parse)}.
+   *
+   * @param type The type to parse to
+   * @param options The parse options
+   * @param <T> The type to parse to
+   * @param <O> The type of the parse opts
+   * @return The parsed object
+   * @throws NoSuchParserException if no suitable parser could be found in the registry
+   * @throws ParserException if a suitable parser was found, but it threw an exception while parsing
+   */
+  <T, O> T parse(TypeToken<T> type, O options) throws NoSuchParserException, ParserException;
 
   /**
    * Parses the request body into an object.

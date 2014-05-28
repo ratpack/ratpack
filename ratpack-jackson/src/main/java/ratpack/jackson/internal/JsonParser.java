@@ -16,8 +16,10 @@
 
 package ratpack.jackson.internal;
 
+import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.reflect.TypeToken;
 import ratpack.handling.Context;
 import ratpack.http.TypedData;
 import ratpack.jackson.JsonParseOpts;
@@ -29,8 +31,11 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import static ratpack.util.ExceptionUtils.uncheck;
+import static ratpack.util.Types.cast;
 
 public class JsonParser extends ParserSupport<JsonParseOpts> {
+
+  private static final TypeToken<JsonNode> JSON_NODE_TYPE = TypeToken.of(JsonNode.class);
 
   private final ObjectMapper objectMapper;
 
@@ -43,19 +48,23 @@ public class JsonParser extends ParserSupport<JsonParseOpts> {
   @Override
   public <T> T parse(Context context, TypedData body, Parse<T, JsonParseOpts> parse) {
     JsonParseOpts opts = parse.getOpts();
-    Class<T> type = parse.getType();
+    TypeToken<T> type = parse.getType();
 
     ObjectMapper objectMapper = getObjectMapper(opts);
     try {
       InputStream inputStream = body.getInputStream();
-      if (type.equals(JsonNode.class)) {
-        return type.cast(objectMapper.readTree(inputStream));
+      if (type.equals(JSON_NODE_TYPE)) {
+        return cast(objectMapper.readTree(inputStream));
       } else {
-        return objectMapper.readValue(inputStream, type);
+        return objectMapper.readValue(inputStream, toJavaType(type, objectMapper));
       }
     } catch (IOException e) {
       throw uncheck(e);
     }
+  }
+
+  private <T> JavaType toJavaType(TypeToken<T> type, ObjectMapper objectMapper) {
+    return objectMapper.getTypeFactory().constructType(type.getType());
   }
 
   private ObjectMapper getObjectMapper(JsonParseOpts opts) {

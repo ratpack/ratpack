@@ -16,6 +16,7 @@
 
 package ratpack.parse;
 
+import com.google.common.reflect.TypeToken;
 import ratpack.handling.Context;
 import ratpack.http.TypedData;
 
@@ -23,29 +24,61 @@ import ratpack.http.TypedData;
  * A convenience base for parsers that don't require options.
  * <p>
  * The following is an example of an implementation that parses to an {@code Integer}.
- * <pre class="tested">
+ * <pre class="java">
  * import ratpack.parse.NullParseOpts;
  * import ratpack.parse.NoOptParserSupport;
  * import ratpack.http.TypedData;
  * import ratpack.handling.Context;
  * import ratpack.handling.Handler;
+ * import ratpack.util.Types;
+ * import ratpack.func.Action;
+ * import ratpack.registry.RegistrySpec;
  *
- * public class IntParser extends NoOptParserSupport {
- *   public IntParser() {
- *     super("text/plain");
+ * import com.google.common.reflect.TypeToken;
+ *
+ * import ratpack.test.UnitTest;
+ * import ratpack.test.handling.HandlingResult;
+ * import ratpack.test.handling.RequestFixture;
+ *
+ * public class Example {
+ *   public static class IntParser extends NoOptParserSupport {
+ *     public IntParser() {
+ *       super("text/plain");
+ *     }
+ *
+ *     public &lt;T&gt; T parse(Context context, TypedData body, TypeToken&lt;T&gt; type) {
+ *       if (type.getRawType().equals(Integer.class)) {
+ *         return Types.cast(Integer.valueOf(body.getText()));
+ *       } else {
+ *         return null;
+ *       }
+ *     }
  *   }
  *
- *   public &lt;T&gt; T parse(Context context, TypedData body, Class&lt;T&gt; type) {
- *     return type.cast(Integer.valueOf(body.getText()));
+ *   public static class ExampleHandler implements Handler {
+ *     public void handle(Context context) {
+ *       Integer integer = context.parse(Integer.class);
+ *       context.render(integer.toString());
+ *     }
  *   }
- * }
  *
- * public class ExampleHandler implements Handler {
- *   public void handle(Context context) {
- *     // assuming IntParser has been registered upstream
- *     Integer integer = context.parse(Integer.class);
- *     // …
+ *   // unit test
+ *   public static void main(String[] args) {
+ *     HandlingResult result = UnitTest.handle(new ExampleHandler(), new Action&lt;RequestFixture&gt;() {
+ *       public void execute(RequestFixture fixture) throws Exception {
+ *         fixture
+ *           .body("10", "text/plain")
+ *           .registry(new Action&lt;RegistrySpec&gt;() {
+ *             public void execute(RegistrySpec registry) {
+ *               registry.add(new IntParser());
+ *             }
+ *           });
+ *       }
+ *     });
+ *
+ *     assert result.rendered(String.class).equals("10");
  *   }
+ *
  * }
  * </pre>
  */
@@ -61,14 +94,14 @@ public abstract class NoOptParserSupport extends ParserSupport<NullParseOpts> {
   }
 
   /**
-   * Delegates to {@link #parse(ratpack.handling.Context, ratpack.http.TypedData, Class)}, discarding the {@code} opts object of the given {@code parse}.
+   * Delegates to {@link #parse(ratpack.handling.Context, ratpack.http.TypedData, TypeToken)}, discarding the {@code} opts object of the given {@code parse}.
    *
    * @param context The context to deserialize
    * @param requestBody The request body to deserialize
    * @param parse The description of how to parse the request body
    * @param <T> the type of object to construct from the request body
-   * @return the result of calling {@link #parse(ratpack.handling.Context, ratpack.http.TypedData, Class)}
-   * @throws Exception any exception thrown by {@link #parse(ratpack.handling.Context, ratpack.http.TypedData, Class)}
+   * @return the result of calling {@link #parse(ratpack.handling.Context, ratpack.http.TypedData, TypeToken)}
+   * @throws Exception any exception thrown by {@link #parse(ratpack.handling.Context, ratpack.http.TypedData, TypeToken)}
    */
   @Override
   public final <T> T parse(Context context, TypedData requestBody, Parse<T, NullParseOpts> parse) throws Exception {
@@ -85,6 +118,6 @@ public abstract class NoOptParserSupport extends ParserSupport<NullParseOpts> {
    * @return an instance of {@code T} if this parser can construct this type, otherwise {@code null}
    * @throws Exception any exception thrown while parsing
    */
-  abstract protected <T> T parse(Context context, TypedData requestBody, Class<T> type) throws Exception;
+  abstract protected <T> T parse(Context context, TypedData requestBody, TypeToken<T> type) throws Exception;
 
 }
