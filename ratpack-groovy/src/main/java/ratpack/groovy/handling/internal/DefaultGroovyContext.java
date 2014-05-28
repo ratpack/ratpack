@@ -241,6 +241,16 @@ public class DefaultGroovyContext implements GroovyContext {
   }
 
   @Override
+  public <T> T parse(TypeToken<T> type) throws NoSuchParserException, ParserException {
+    return delegate.parse(type);
+  }
+
+  @Override
+  public <T, O> T parse(TypeToken<T> type, O options) throws NoSuchParserException, ParserException {
+    return delegate.parse(type, options);
+  }
+
+  @Override
   public <T, O> T parse(Class<T> type, O options) throws NoSuchParserException, ParserException {
     return delegate.parse(type, options);
   }

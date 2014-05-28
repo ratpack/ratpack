@@ -16,6 +16,8 @@
 
 package ratpack.parse;
 
+import com.google.common.reflect.TypeToken;
+
 /**
  * The specification of a particular parse.
  * <p>
@@ -29,10 +31,10 @@ package ratpack.parse;
  */
 public class Parse<T, O> {
 
-  private final Class<T> type;
+  private final TypeToken<T> type;
   private final O opts;
 
-  private Parse(Class<T> type, O opts) {
+  private Parse(TypeToken<T> type, O opts) {
     this.type = type;
     this.opts = opts;
   }
@@ -42,7 +44,7 @@ public class Parse<T, O> {
    *
    * @return the type of object to construct from the request body
    */
-  public Class<T> getType() {
+  public TypeToken<T> getType() {
     return type;
   }
 
@@ -64,8 +66,32 @@ public class Parse<T, O> {
    * @param <O> the type of object that provides options/configuration for the parsing
    * @return a parse instance from the given arguments
    */
-  public static <T, O> Parse<T, O> of(Class<T> type, O opts) {
+  public static <T, O> Parse<T, O> of(TypeToken<T> type, O opts) {
     return new Parse<>(type, opts);
+  }
+
+  /**
+   * Creates a parse object, with a {@link NullParseOpts} options object.
+   *
+   * @param type the type of object to construct from the request body
+   * @param <T> the type of object to construct from the request body
+   * @return a parse instance to the given type
+   */
+  public static <T> Parse<T, NullParseOpts> of(TypeToken<T> type) {
+    return of(type, NullParseOpts.INSTANCE);
+  }
+
+  /**
+   * Creates a parse object.
+   *
+   * @param type the type of object to construct from the request body
+   * @param opts the options object
+   * @param <T> the type of object to construct from the request body
+   * @param <O> the type of object that provides options/configuration for the parsing
+   * @return a parse instance from the given arguments
+   */
+  public static <T, O> Parse<T, O> of(Class<T> type, O opts) {
+    return new Parse<>(TypeToken.of(type), opts);
   }
 
   /**

@@ -16,7 +16,10 @@
 
 package ratpack.rx;
 
+import com.google.common.base.Optional;
 import ratpack.exec.ExecContext;
+import ratpack.exec.ExecController;
+import ratpack.exec.NoBoundContextException;
 import ratpack.exec.Promise;
 import ratpack.exec.internal.DefaultExecController;
 import ratpack.func.Action;
@@ -37,56 +40,6 @@ import static ratpack.util.ExceptionUtils.toException;
  * <b>IMPORTANT:</b> the {@link #initialize()} method must be called to fully enable integration.
  */
 public abstract class RxRatpack {
-
-  private static class ExecutionHook extends RxJavaObservableExecutionHook {
-
-    @Override
-    public <T> Observable.OnSubscribe<T> onSubscribeStart(Observable<? extends T> observableInstance, final Observable.OnSubscribe<T> onSubscribe) {
-      return new Observable.OnSubscribe<T>() {
-
-        private ExecContext getContext() {
-          return DefaultExecController.getThreadBoundContext();
-        }
-
-        @Override
-        public void call(final Subscriber<? super T> subscriber) {
-          final ExecContext context = getContext();
-          onSubscribe.call(new Subscriber<T>() {
-            @Override
-            public void onCompleted() {
-              subscriber.onCompleted();
-            }
-
-            @Override
-            public void onError(Throwable e) {
-              try {
-                try {
-                  subscriber.onError(e);
-                } catch (OnErrorNotImplementedException onErrorNotImplementedException) {
-                  throw onErrorNotImplementedException.getCause();
-                }
-              } catch (Throwable throwable) {
-                wrapAndForward(context, throwable);
-              }
-            }
-
-            @Override
-            public void onNext(T t) {
-              try {
-                try {
-                  subscriber.onNext(t);
-                } catch (OnErrorNotImplementedException onErrorNotImplementedException) {
-                  throw onErrorNotImplementedException.getCause();
-                }
-              } catch (Throwable throwable) {
-                wrapAndForward(context, throwable);
-              }
-            }
-          });
-        }
-      };
-    }
-  }
 
   /**
    * Registers an {@link RxJavaObservableExecutionHook} with RxJava that provides a default error handling strategy of {@link ratpack.exec.ExecContext#error(Exception) forwarding exceptions to the exec context}.
@@ -197,6 +150,24 @@ public abstract class RxRatpack {
       if (!(existingHook instanceof ExecutionHook)) {
         throw new IllegalStateException("Cannot install RxJava integration because another execution hook (" + existingHook.getClass() + ") is already installed");
       }
+    }
+  }
+
+  /**
+   * Decorates the given subscriber so that unhandled errors are delegated to the current exec context.
+   *
+   * TODO: better description
+   *
+   * @param subscriber
+   * @param <T>
+   * @return
+   */
+  public static <T> Subscriber<T> contextualize(Subscriber<T> subscriber) {
+    Optional<ExecController> threadBoundController = DefaultExecController.getThreadBoundController();
+    if (threadBoundController.isPresent()) {
+      return new ContextBackedSubscriber<>(subscriber, threadBoundController.get().getContext());
+    } else {
+      return subscriber;
     }
   }
 
@@ -312,6 +283,7 @@ public abstract class RxRatpack {
   }
 
   private static class PromiseSubscribe<T, S> implements Observable.OnSubscribe<S> {
+
     private final Promise<T> promise;
     private final Action2<T, Subscriber<? super S>> emitter;
 
@@ -349,7 +321,75 @@ public abstract class RxRatpack {
         throw ExceptionUtils.uncheck(e);
       }
     }
+
   }
 
+  private static class ExecutionHook extends RxJavaObservableExecutionHook {
+
+    @Override
+    public <T> Observable.OnSubscribe<T> onSubscribeStart(Observable<? extends T> observableInstance, final Observable.OnSubscribe<T> onSubscribe) {
+      final Optional<ExecController> threadBoundController = DefaultExecController.getThreadBoundController();
+      if (threadBoundController.isPresent()) {
+        return new Observable.OnSubscribe<T>() {
+          @Override
+          public void call(final Subscriber<? super T> subscriber) {
+            ExecContext context = null;
+            try {
+              context = threadBoundController.get().getContext();
+            } catch (NoBoundContextException e) {
+              onSubscribe.call(subscriber);
+            }
+            if (context != null) {
+              onSubscribe.call(new ContextBackedSubscriber<>(subscriber, context));
+            }
+          }
+        };
+      } else {
+        return onSubscribe;
+      }
+    }
+
+  }
+
+  private static class ContextBackedSubscriber<T> extends Subscriber<T> {
+    private final Subscriber<? super T> subscriber;
+    private final ExecContext context;
+
+    public ContextBackedSubscriber(Subscriber<? super T> subscriber, ExecContext context) {
+      this.subscriber = subscriber;
+      this.context = context;
+    }
+
+    @Override
+    public void onCompleted() {
+      subscriber.onCompleted();
+    }
+
+    @Override
+    public void onError(Throwable e) {
+      try {
+        try {
+          subscriber.onError(e);
+        } catch (OnErrorNotImplementedException onErrorNotImplementedException) {
+          throw onErrorNotImplementedException.getCause();
+        }
+      } catch (Throwable throwable) {
+        wrapAndForward(context, throwable);
+      }
+    }
+
+    @Override
+    public void onNext(T t) {
+      try {
+        try {
+          subscriber.onNext(t);
+        } catch (OnErrorNotImplementedException onErrorNotImplementedException) {
+          throw onErrorNotImplementedException.getCause();
+        }
+      } catch (Throwable throwable) {
+        wrapAndForward(context, throwable);
+      }
+    }
+  }
 }
 

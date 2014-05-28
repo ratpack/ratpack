@@ -262,7 +262,16 @@ public class DefaultContext extends AbstractExecContext implements Context {
     return parse(Parse.of(type));
   }
 
+  @Override
+  public <T> T parse(TypeToken<T> type) throws NoSuchParserException, ParserException {
+    return parse(Parse.of(type));
+  }
+
   public <T, O> T parse(Class<T> type, O opts) {
+    return parse(Parse.of(type, opts));
+  }
+
+  public <T, O> T parse(TypeToken<T> type, O opts) {
     return parse(Parse.of(type, opts));
   }
 

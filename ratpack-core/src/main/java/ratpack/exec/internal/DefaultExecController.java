@@ -16,6 +16,7 @@
 
 package ratpack.exec.internal;
 
+import com.google.common.base.Optional;
 import com.google.common.util.concurrent.*;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -54,12 +55,12 @@ public class DefaultExecController implements ExecController {
     this.control = new Control();
   }
 
-  public static ExecController getThreadBoundController() {
-    return THREAD_BINDING.get();
+  public static Optional<ExecController> getThreadBoundController() {
+    return Optional.fromNullable(THREAD_BINDING.get());
   }
 
   public static ExecContext getThreadBoundContext() {
-    return getThreadBoundController().getContext();
+    return getThreadBoundController().get().getContext();
   }
 
   public void shutdown() throws Exception {
@@ -222,7 +223,8 @@ public class DefaultExecController implements ExecController {
 
   @Override
   public boolean isManagedThread() {
-    ExecController threadBoundController = getThreadBoundController();
-    return threadBoundController != null && threadBoundController == this;
+    Optional<ExecController> threadBoundController = getThreadBoundController();
+    return threadBoundController.isPresent() && threadBoundController.get().equals(this);
   }
+
 }

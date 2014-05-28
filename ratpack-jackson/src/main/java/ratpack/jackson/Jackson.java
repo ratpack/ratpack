@@ -19,6 +19,7 @@ package ratpack.jackson;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
+import com.google.common.reflect.TypeToken;
 import ratpack.api.Nullable;
 import ratpack.jackson.internal.DefaultJsonParseOpts;
 import ratpack.jackson.internal.DefaultJsonRender;
@@ -112,7 +113,15 @@ public abstract class Jackson {
     return fromJson(type, null);
   }
 
+  public static <T> Parse<T, JsonParseOpts> fromJson(TypeToken<T> type) {
+    return fromJson(type, null);
+  }
+
   public static <T> Parse<T, JsonParseOpts> fromJson(Class<T> type, @Nullable ObjectMapper objectMapper) {
+    return Parse.<T, JsonParseOpts>of(type, new DefaultJsonParseOpts(objectMapper));
+  }
+
+  public static <T> Parse<T, JsonParseOpts> fromJson(TypeToken<T> type, @Nullable ObjectMapper objectMapper) {
     return Parse.<T, JsonParseOpts>of(type, new DefaultJsonParseOpts(objectMapper));
   }
 

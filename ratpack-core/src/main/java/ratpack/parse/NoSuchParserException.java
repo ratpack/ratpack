@@ -16,6 +16,8 @@
 
 package ratpack.parse;
 
+import com.google.common.reflect.TypeToken;
+
 /**
  * Thrown when a request is made to parse the request, but no suitable parser was found that matched the content type and parse object.
  *
@@ -25,7 +27,7 @@ public class NoSuchParserException extends ParseException {
 
   private static final long serialVersionUID = 0;
 
-  private final Class<?> type;
+  private final TypeToken<?> type;
   private final Object opts;
   private final String contentType;
 
@@ -36,8 +38,8 @@ public class NoSuchParserException extends ParseException {
    * @param opts the parse options
    * @param contentType The content type of the request
    */
-  public NoSuchParserException(Class<?> type, Object opts, String contentType) {
-    super("Could not find parser content type '" + contentType + "', target type type '" + type.getName() + "' and options '" + opts);
+  public NoSuchParserException(TypeToken<?> type, Object opts, String contentType) {
+    super("Could not find parser content type '" + contentType + "', target type type '" + type + "' and options '" + opts);
     this.type = type;
     this.opts = opts;
     this.contentType = contentType;
@@ -48,7 +50,7 @@ public class NoSuchParserException extends ParseException {
    *
    * @return the target type
    */
-  public Class<?> getType() {
+  public TypeToken<?> getType() {
     return type;
   }
 

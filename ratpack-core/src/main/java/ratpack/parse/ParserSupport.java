@@ -22,53 +22,80 @@ import static ratpack.util.internal.Types.findImplParameterTypeAtIndex;
  * A convenience superclass for {@link Parser} implementations.
  * <p>
  * Specializations only need to implement the {@link Parser#parse(ratpack.handling.Context, ratpack.http.TypedData, Parse)} method.
- * <pre class="tested">
+ * <pre class="java">
  * import ratpack.handling.Handler;
  * import ratpack.handling.Context;
  * import ratpack.http.TypedData;
  * import ratpack.parse.Parse;
  * import ratpack.parse.ParserSupport;
  * import ratpack.parse.ParseException;
+ * import ratpack.util.Types;
+ * import ratpack.func.Action;
+ * import ratpack.registry.RegistrySpec;
  *
- * public class StringParseOpts {
- *   private int maxLength;
+ * import java.io.UnsupportedEncodingException;
  *
- *   public StringParseOpts(int maxLength) {
- *     this.maxLength = maxLength;
- *   }
+ * import ratpack.test.UnitTest;
+ * import ratpack.test.handling.HandlingResult;
+ * import ratpack.test.handling.RequestFixture;
  *
- *   public int getMaxLength() {
- *     return maxLength;
- *   }
- * }
+ * public class Example {
  *
- * // A parser for this parser type…
+ *   // The parse options
+ *   public static class StringParseOpts {
+ *     private int maxLength;
  *
- * public class MaxLengthStringParser extends ParserSupport<StringParseOpts> {
- *   public MaxLengthStringParser() {
- *     super("text/plain");
- *   }
- *
- *   public &lt;T&gt; T parse(Context context, TypedData requestBody, Parse&lt;T, StringParseOpts&gt; parse) throws UnsupportedEncodingException {
- *     if (!parse.getType().equals(String.class)) {
- *       return null;
+ *     public StringParseOpts(int maxLength) {
+ *       this.maxLength = maxLength;
  *     }
  *
- *     String rawString = requestBody.getText();
- *     if (rawString.length() < parse.getOpts().getMaxLength()) {
- *       return parse.getType().cast(rawString);
- *     } else {
- *       return parse.getType().cast(rawString.substring(0, parse.getOpts().getMaxLength()));
+ *     public int getMaxLength() {
+ *       return maxLength;
  *     }
  *   }
- * }
  *
- * // Assuming the parser above has been registered upstream…
+ *   // A parser for this type
+ *   public static class MaxLengthStringParser extends ParserSupport<StringParseOpts> {
+ *     public MaxLengthStringParser() {
+ *       super("text/plain");
+ *     }
  *
- * public class ExampleHandler implements Handler {
- *   public void handle(Context context) throws ParseException {
- *     String string = context.parse(String.class, new StringParseOpts(20));
- *     // …
+ *     public &lt;T&gt; T parse(Context context, TypedData requestBody, Parse&lt;T, StringParseOpts&gt; parse) throws UnsupportedEncodingException {
+ *       if (!parse.getType().getRawType().equals(String.class)) {
+ *         return null;
+ *       }
+ *
+ *       String rawString = requestBody.getText();
+ *       if (rawString.length() < parse.getOpts().getMaxLength()) {
+ *         return Types.cast(rawString);
+ *       } else {
+ *         return Types.cast(rawString.substring(0, parse.getOpts().getMaxLength()));
+ *       }
+ *     }
+ *   }
+ *
+ *   public static class ToUpperCaseHandler implements Handler {
+ *     public void handle(Context context) throws ParseException {
+ *       String string = context.parse(String.class, new StringParseOpts(5));
+ *       context.render(string);
+ *     }
+ *   }
+ *
+ *   // unit test
+ *   public static void main(String[] args) {
+ *     HandlingResult result = UnitTest.handle(new ToUpperCaseHandler(), new Action&lt;RequestFixture&gt;() {
+ *       public void execute(RequestFixture fixture) throws Exception {
+ *         fixture
+ *           .body("123456", "text/plain")
+ *           .registry(new Action&lt;RegistrySpec&gt;() {
+ *             public void execute(RegistrySpec registry) {
+ *               registry.add(new MaxLengthStringParser());
+ *             }
+ *           });
+ *       }
+ *     });
+ *
+ *     assert result.rendered(String.class).equals("12345");
  *   }
  * }
  * </pre>

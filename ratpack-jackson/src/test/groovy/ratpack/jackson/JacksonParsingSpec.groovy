@@ -17,6 +17,7 @@
 package ratpack.jackson
 
 import com.fasterxml.jackson.databind.JsonNode
+import com.google.common.reflect.TypeToken
 import ratpack.test.internal.RatpackGroovyDslSpec
 import spock.lang.Unroll
 
@@ -60,7 +61,6 @@ class JacksonParsingSpec extends RatpackGroovyDslSpec {
         returnedType = object.getClass()
         render "${object.value}:${object.foo?.value}"
       }
-
     }
 
     and:
@@ -72,6 +72,22 @@ class JacksonParsingSpec extends RatpackGroovyDslSpec {
 
     where:
     classType << [HashMap, Map, Object, Pogo, JsonNode]
+  }
+
+  def "can parse generic type"() {
+    when:
+    handlers {
+      post {
+        def body = parse(new TypeToken<List<Integer>>() {})
+        render body.collect { it.getClass().name }.toString()
+      }
+    }
+
+    and:
+    request.contentType("application/json").body([1])
+
+    then:
+    postText() == "[java.lang.Integer]"
   }
 
 }

@@ -14,23 +14,29 @@
  * limitations under the License.
  */
 
-package ratpack.jackson.internal;
+package ratpack.util;
 
-import com.google.common.reflect.TypeToken;
-import ratpack.handling.Context;
-import ratpack.http.TypedData;
-import ratpack.jackson.Jackson;
-import ratpack.parse.NoOptParserSupport;
 
-public class JsonNoOptParser extends NoOptParserSupport {
+/**
+ * Static utility methods for dealing with types.
+ */
+public abstract class Types {
 
-  public JsonNoOptParser() {
-    super("application/json");
+  private Types() {
   }
 
-  @Override
-  public <T> T parse(Context context, TypedData requestBody, TypeToken<T> type) throws Exception {
-    return context.parse(Jackson.fromJson(type));
+  /**
+   * Simply casts the argument to {@code T}.
+   * <p>
+   * This method will throw {@link ClassCastException} if {@code o} is not compatible with {@code T}.
+   *
+   * @param o the object to cast
+   * @param <T> the target type
+   * @return the input object cast to the target type
+   */
+  public static <T> T cast(Object o) {
+    @SuppressWarnings("unchecked") T cast = (T) o;
+    return cast;
   }
 
 }
