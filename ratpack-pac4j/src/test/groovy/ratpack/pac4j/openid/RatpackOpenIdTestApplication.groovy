@@ -29,7 +29,6 @@ class RatpackOpenIdTestApplication extends ClosureBackedEmbeddedApplication {
     super(baseDirBuilder)
     launchConfig {
       port(consumerPort)
-      publicAddress(new URI("http://localhost:${consumerPort}"))
     }
 
     bindings {
