@@ -43,7 +43,7 @@ import java.util.Set;
 
 public class DefaultRequest implements Request {
 
-  private final MutableRegistry<Object> registry = new SimpleMutableRegistry<>();
+  private final MutableRegistry registry = new SimpleMutableRegistry();
 
   private final Headers headers;
   private final ByteBuf content;

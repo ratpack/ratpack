@@ -27,7 +27,7 @@ import java.util.Set;
  * A request to be handled.
  */
 @SuppressWarnings("UnusedDeclaration")
-public interface Request extends MutableRegistry<Object> {
+public interface Request extends MutableRegistry {
 
   /**
    * The method of the request.

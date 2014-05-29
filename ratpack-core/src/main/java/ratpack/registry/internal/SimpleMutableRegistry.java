@@ -29,32 +29,37 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
-public class SimpleMutableRegistry<T> implements MutableRegistry<T> {
+import static ratpack.util.Types.cast;
 
-  private final List<RegistryEntry<? extends T>> entries = new LinkedList<>();
+public class SimpleMutableRegistry implements MutableRegistry {
+
+  private final List<RegistryEntry<?>> entries = new LinkedList<>();
   private final Registry registry = new MultiEntryRegistry(entries);
 
   @Override
-  public <O extends T> void register(Class<O> type, O object) {
+  public <T> void register(Class<T> type, T object) {
     entries.add(new DefaultRegistryEntry<>(TypeToken.of(type), object));
   }
 
   @Override
-  public void register(T object) {
-    @SuppressWarnings("unchecked")
-    Class<T> type = (Class<T>) object.getClass();
+  public void register(Object object) {
+    doRegister(object);
+  }
+
+  private <T> void doRegister(T object) {
+    Class<T> type = cast(object.getClass());
     TypeToken<T> typeToken = TypeToken.of(type);
     entries.add(new DefaultRegistryEntry<>(typeToken, object));
   }
 
   @Override
-  public <O extends T> void registerLazy(Class<O> type, Factory<? extends O> factory) {
+  public <T> void registerLazy(Class<T> type, Factory<? extends T> factory) {
     entries.add(new LazyRegistryEntry<>(TypeToken.of(type), factory));
   }
 
   @Override
-  public <O extends T> void remove(Class<O> type) throws NotInRegistryException {
-    Iterator<? extends RegistryEntry<? extends T>> iterator = entries.iterator();
+  public <T> void remove(Class<T> type) throws NotInRegistryException {
+    Iterator<? extends RegistryEntry<?>> iterator = entries.iterator();
     while (iterator.hasNext()) {
       if (iterator.next().getType().isAssignableFrom(type)) {
         iterator.remove();
@@ -63,50 +68,50 @@ public class SimpleMutableRegistry<T> implements MutableRegistry<T> {
   }
 
   @Override
-  public <O> O get(Class<O> type) throws NotInRegistryException {
+  public <T> T get(Class<T> type) throws NotInRegistryException {
     return registry.get(type);
   }
 
   @Nullable
   @Override
-  public <O> O maybeGet(Class<O> type) {
+  public <T> T maybeGet(Class<T> type) {
     return registry.maybeGet(type);
   }
 
   @Override
-  public <O> Iterable<? extends O> getAll(Class<O> type) {
+  public <T> Iterable<? extends T> getAll(Class<T> type) {
     return registry.getAll(type);
   }
 
   @Override
-  public <O> O get(TypeToken<O> type) throws NotInRegistryException {
+  public <T> T get(TypeToken<T> type) throws NotInRegistryException {
     return registry.get(type);
   }
 
   @Override
   @Nullable
-  public <O> O maybeGet(TypeToken<O> type) {
+  public <T> T maybeGet(TypeToken<T> type) {
     return registry.maybeGet(type);
   }
 
   @Override
-  public <O> Iterable<? extends O> getAll(TypeToken<O> type) {
+  public <T> Iterable<? extends T> getAll(TypeToken<T> type) {
     return registry.getAll(type);
   }
 
   @Nullable
   @Override
-  public <O> O first(TypeToken<O> type, Predicate<? super O> predicate) {
+  public <T> T first(TypeToken<T> type, Predicate<? super T> predicate) {
     return registry.first(type, predicate);
   }
 
   @Override
-  public <O> Iterable<? extends O> all(TypeToken<O> type, Predicate<? super O> predicate) {
+  public <T> Iterable<? extends T> all(TypeToken<T> type, Predicate<? super T> predicate) {
     return registry.all(type, predicate);
   }
 
   @Override
-  public <O> boolean each(TypeToken<O> type, Predicate<? super O> predicate, Action<? super O> action) throws Exception {
+  public <T> boolean each(TypeToken<T> type, Predicate<? super T> predicate, Action<? super T> action) throws Exception {
     return registry.each(type, predicate, action);
   }
 }
