@@ -23,11 +23,7 @@ import ratpack.api.Nullable;
 import ratpack.error.ClientErrorHandler;
 import ratpack.error.ServerErrorHandler;
 import ratpack.event.internal.EventRegistry;
-import ratpack.exec.ExecContext;
-import ratpack.exec.ExecController;
-import ratpack.exec.ExecException;
-import ratpack.exec.ExecInterceptor;
-import ratpack.exec.internal.AbstractExecContext;
+import ratpack.exec.*;
 import ratpack.file.FileSystemBinding;
 import ratpack.func.Action;
 import ratpack.handling.*;
@@ -54,16 +50,14 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.reflect.UndeclaredThrowableException;
 import java.nio.file.Path;
-import java.util.Collections;
 import java.util.Date;
-import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.Callable;
 import java.util.logging.Logger;
 
 import static io.netty.handler.codec.http.HttpHeaders.Names.IF_MODIFIED_SINCE;
 import static io.netty.handler.codec.http.HttpResponseStatus.NOT_MODIFIED;
 
-public class DefaultContext extends AbstractExecContext implements Context {
+public class DefaultContext implements Context {
 
   private static final TypeToken<Parser<?>> PARSER_TYPE_TOKEN = new TypeToken<Parser<?>>() {
     private static final long serialVersionUID = 0;
@@ -72,10 +66,12 @@ public class DefaultContext extends AbstractExecContext implements Context {
   public static class ApplicationConstants {
     private final RenderController renderController;
     private final LaunchConfig launchConfig;
+    private final ExecControl execControl;
 
     public ApplicationConstants(LaunchConfig launchConfig, RenderController renderController) {
       this.renderController = renderController;
       this.launchConfig = launchConfig;
+      this.execControl = launchConfig.getExecController().getControl();
     }
   }
 
@@ -89,13 +85,12 @@ public class DefaultContext extends AbstractExecContext implements Context {
     private final DirectChannelAccess directChannelAccess;
     private final EventRegistry<RequestOutcome> onCloseRegistry;
 
-    private final List<ExecInterceptor> interceptors = new CopyOnWriteArrayList<>();
-
-    public ExecContext context;
+    public Execution execution;
+    public Context context;
 
     public RequestConstants(
       ApplicationConstants applicationConstants, BindAddress bindAddress, Request request, Response response,
-      DirectChannelAccess directChannelAccess, EventRegistry<RequestOutcome> onCloseRegistry
+      DirectChannelAccess directChannelAccess, EventRegistry<RequestOutcome> onCloseRegistry, Execution execution
     ) {
       this.applicationConstants = applicationConstants;
       this.bindAddress = bindAddress;
@@ -103,6 +98,14 @@ public class DefaultContext extends AbstractExecContext implements Context {
       this.response = response;
       this.directChannelAccess = directChannelAccess;
       this.onCloseRegistry = onCloseRegistry;
+      this.execution = execution;
+
+      this.execution.setErrorHandler(new Action<Throwable>() {
+        @Override
+        public void execute(Throwable throwable) throws Exception {
+          context.error(ExceptionUtils.toException(throwable));
+        }
+      });
     }
   }
 
@@ -122,7 +125,8 @@ public class DefaultContext extends AbstractExecContext implements Context {
     this.nextHandlers = nextHandlers;
     this.nextIndex = nextIndex;
     this.exhausted = exhausted;
-    requestConstants.context = this;
+
+    this.requestConstants.context = this;
   }
 
   @Override
@@ -131,13 +135,18 @@ public class DefaultContext extends AbstractExecContext implements Context {
   }
 
   @Override
-  public Supplier getSupplier() {
-    return new Supplier() {
-      @Override
-      public ExecContext get() {
-        return requestConstants.context;
-      }
-    };
+  public Execution getExecution() {
+    return requestConstants.execution;
+  }
+
+  @Override
+  public <T> Promise<T> blocking(Callable<T> blockingOperation) {
+    return requestConstants.applicationConstants.execControl.blocking(blockingOperation);
+  }
+
+  @Override
+  public <T> Promise<T> promise(Action<? super Fulfiller<T>> action) {
+    return requestConstants.applicationConstants.execControl.promise(action);
   }
 
   @Override
@@ -163,17 +172,12 @@ public class DefaultContext extends AbstractExecContext implements Context {
 
   @Override
   public void addExecInterceptor(final ExecInterceptor execInterceptor, final Action<? super Context> action) throws Exception {
-    requestConstants.interceptors.add(execInterceptor);
-    new InterceptedOperation(ExecInterceptor.ExecType.COMPUTE, Collections.singletonList(execInterceptor)) {
+    requestConstants.execution.addInterceptor(execInterceptor, new Action<Execution>() {
       @Override
-      protected void performOperation() throws Exception {
+      public void execute(Execution execution) throws Exception {
         action.execute(DefaultContext.this);
       }
-    }.run();
-  }
-
-  public List<ExecInterceptor> getInterceptors() {
-    return requestConstants.interceptors;
+    });
   }
 
   public <O> O maybeGet(Class<O> type) {
@@ -211,7 +215,7 @@ public class DefaultContext extends AbstractExecContext implements Context {
     try {
       handler.handle(this);
     } catch (Throwable e) {
-      throw ExecException.wrap(this, e);
+      error(ExceptionUtils.toException(e));
     }
   }
 
@@ -285,11 +289,6 @@ public class DefaultContext extends AbstractExecContext implements Context {
     return requestConstants.directChannelAccess;
   }
 
-  @Override
-  public ExecController getExecController() {
-    return requestConstants.applicationConstants.launchConfig.getExecController();
-  }
-
   public void redirect(String location) {
     redirect(HttpResponseStatus.FOUND.code(), location);
   }
@@ -358,7 +357,7 @@ public class DefaultContext extends AbstractExecContext implements Context {
     try {
       get(ClientErrorHandler.class).error(this, statusCode);
     } catch (Throwable e) {
-      throw ExecException.wrap(this, e);
+      error(ExceptionUtils.toException(e));
     }
   }
 
@@ -385,7 +384,7 @@ public class DefaultContext extends AbstractExecContext implements Context {
     try {
       handler.handle(context);
     } catch (Throwable e) {
-      throw ExecException.wrap(context, e);
+      context.error(ExceptionUtils.toException(e));
     }
   }
 

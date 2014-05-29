@@ -43,12 +43,16 @@ class ReactorSpec extends RatpackGroovyDslSpec {
           compose().
           onSuccess(new Consumer<Integer>() {
             void accept(Integer o) {
-              context.response.send o.toString()
+              context.execution.resume {
+                context.response.send o.toString()
+              }
             }
           }).
           onError(new Consumer<Throwable>() {
             void accept(Throwable o) {
-              context.error new Exception(o)
+              context.execution.resume {
+                context.error new Exception(o)
+              }
             }
           })
 

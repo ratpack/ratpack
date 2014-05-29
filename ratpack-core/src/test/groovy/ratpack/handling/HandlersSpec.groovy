@@ -18,6 +18,7 @@ package ratpack.handling
 
 import ratpack.error.ClientErrorHandler
 import ratpack.error.ServerErrorHandler
+import ratpack.exec.ExecController
 import ratpack.file.FileSystemBinding
 import ratpack.file.MimeTypes
 import ratpack.launch.LaunchConfig
@@ -58,8 +59,8 @@ class HandlersSpec extends RatpackGroovyDslSpec {
   def "can use the compute executor"() {
     when:
     handlers {
-      get {
-        execController.executor.submit {
+      get { ExecController execController ->
+        execution.resume {
           render "ok"
         }
       }

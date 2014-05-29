@@ -21,7 +21,7 @@ import ratpack.api.NonBlocking;
 /**
  * A fulfiller of an asynchronous promise.
  * <p>
- * This type is used to integrate with asynchronous APIs, via the {@link ExecContext#promise(ratpack.func.Action)} method.
+ * This type is used to integrate with asynchronous APIs, via the {@link ExecControl#promise(ratpack.func.Action)} method.
  * The following example shows usage during request processing.
  * <pre class="tested">
  * import ratpack.handling.InjectionHandler;

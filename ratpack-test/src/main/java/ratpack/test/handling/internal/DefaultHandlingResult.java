@@ -23,7 +23,8 @@ import ratpack.error.ClientErrorHandler;
 import ratpack.error.ServerErrorHandler;
 import ratpack.event.internal.DefaultEventController;
 import ratpack.event.internal.EventController;
-import ratpack.exec.ExecContext;
+import ratpack.exec.ExecControl;
+import ratpack.exec.Execution;
 import ratpack.file.internal.FileHttpTransmitter;
 import ratpack.func.Action;
 import ratpack.handling.Context;
@@ -53,7 +54,7 @@ import static ratpack.util.ExceptionUtils.uncheck;
 
 public class DefaultHandlingResult implements HandlingResult {
 
-  private final DefaultContext.RequestConstants requestConstants;
+  private DefaultContext.RequestConstants requestConstants;
   private Exception exception;
   private Headers headers;
   private byte[] body = new byte[0];
@@ -74,9 +75,9 @@ public class DefaultHandlingResult implements HandlingResult {
 
     final CountDownLatch latch = new CountDownLatch(1);
 
-    FileHttpTransmitter fileHttpTransmitter = new FileHttpTransmitter() {
+    final FileHttpTransmitter fileHttpTransmitter = new FileHttpTransmitter() {
       @Override
-      public void transmit(ExecContext execContext, BasicFileAttributes basicFileAttributes, Path file) {
+      public void transmit(ExecControl execContext, BasicFileAttributes basicFileAttributes, Path file) {
         sentFile = file;
         latch.countDown();
       }
@@ -84,7 +85,7 @@ public class DefaultHandlingResult implements HandlingResult {
 
     final EventController<RequestOutcome> eventController = new DefaultEventController<>();
 
-    Action<ByteBuf> committer = new Action<ByteBuf>() {
+    final Action<ByteBuf> committer = new Action<ByteBuf>() {
       public void execute(ByteBuf byteBuf) throws Exception {
         sentResponse = true;
         body = new byte[byteBuf.readableBytes()];
@@ -102,7 +103,7 @@ public class DefaultHandlingResult implements HandlingResult {
       }
     };
 
-    BindAddress bindAddress = new BindAddress() {
+    final BindAddress bindAddress = new BindAddress() {
       @Override
       public String getHost() {
         return "localhost";
@@ -131,7 +132,7 @@ public class DefaultHandlingResult implements HandlingResult {
     };
 
 
-    Registry effectiveRegistry = Registries.join(
+    final Registry effectiveRegistry = Registries.join(
       Registries.registry().
         add(ClientErrorHandler.class, clientErrorHandler).
         add(ServerErrorHandler.class, serverErrorHandler).
@@ -139,7 +140,7 @@ public class DefaultHandlingResult implements HandlingResult {
       registry
     );
 
-    RenderController renderController = new RenderController() {
+    final RenderController renderController = new RenderController() {
       @Override
       public void render(Object object, Context context) {
         rendered = object;
@@ -149,30 +150,20 @@ public class DefaultHandlingResult implements HandlingResult {
 
     final LaunchConfig launchConfig = launchConfigBuilder.build();
 
-    Response response = new DefaultResponse(status, responseHeaders, fileHttpTransmitter, launchConfig.getBufferAllocator(), committer);
-    DefaultContext.ApplicationConstants applicationConstants = new DefaultContext.ApplicationConstants(launchConfig, renderController);
-    requestConstants = new DefaultContext.RequestConstants(
-      applicationConstants, bindAddress, request, response, null, eventController.getRegistry()
-    );
-
-    final Context context = new DefaultContext(requestConstants, effectiveRegistry, new Handler[]{handler}, 0, next);
-
-    launchConfig.getExecController().getEventLoopGroup().submit(new Runnable() {
+    launchConfig.getExecController().start(new Action<Execution>() {
       @Override
-      public void run() {
-        try {
-          launchConfig.getExecController().exec(context.getSupplier(), new Action<ExecContext>() {
-            @Override
-            public void execute(ExecContext thing) throws Exception {
-              context.next();
-            }
-          });
-        } catch (Exception e) {
-          exception = e;
-          latch.countDown();
-        }
+      public void execute(Execution execution) throws Exception {
+        Response response = new DefaultResponse(status, responseHeaders, fileHttpTransmitter, launchConfig.getBufferAllocator(), committer);
+        DefaultContext.ApplicationConstants applicationConstants = new DefaultContext.ApplicationConstants(launchConfig, renderController);
+        requestConstants = new DefaultContext.RequestConstants(
+          applicationConstants, bindAddress, request, response, null, eventController.getRegistry(), execution
+        );
+
+        Context context = new DefaultContext(requestConstants, effectiveRegistry, new Handler[]{handler}, 0, next);
+        context.next();
       }
     });
+
 
     try {
       if (!latch.await(timeout, TimeUnit.SECONDS)) {
@@ -214,7 +205,7 @@ public class DefaultHandlingResult implements HandlingResult {
   }
 
   private Context getContext() {
-    return (Context) requestConstants.context;
+    return requestConstants.context;
   }
 
   @Override

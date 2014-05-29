@@ -37,7 +37,6 @@ import ratpack.server.BindAddress;
 
 import java.nio.file.Path;
 import java.util.Date;
-import java.util.List;
 import java.util.concurrent.Callable;
 
 /**
@@ -75,7 +74,7 @@ import java.util.concurrent.Callable;
  * <li>A {@link Redirector}</li>
  * </ul>
  */
-public interface Context extends ExecContext, Registry {
+public interface Context extends ExecControl, Registry {
 
   /**
    * Returns this.
@@ -84,12 +83,12 @@ public interface Context extends ExecContext, Registry {
    */
   Context getContext();
 
-
   /**
-   * {@inheritDoc}
+   * The execution of handling this request.
+   *
+   * @return the execution of handling this request
    */
-  @Override
-  Supplier getSupplier();
+  Execution getExecution();
 
   LaunchConfig getLaunchConfig();
 
@@ -228,7 +227,6 @@ public interface Context extends ExecContext, Registry {
    * @param exception The exception that occurred
    * @throws NotInRegistryException if no {@link ratpack.error.ServerErrorHandler} can be found in the service
    */
-  @Override
   @NonBlocking
   void error(Exception exception);
 
@@ -637,18 +635,6 @@ public interface Context extends ExecContext, Registry {
    * @throws NotInRegistryException if there is no {@link ratpack.file.FileSystemBinding} in the current service
    */
   Path file(String path) throws NotInRegistryException;
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  ExecController getExecController();
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  List<ExecInterceptor> getInterceptors();
 
   /**
    * {@inheritDoc}

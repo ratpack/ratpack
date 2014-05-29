@@ -26,8 +26,8 @@ import ratpack.error.ServerErrorHandler;
 import ratpack.error.internal.DefaultClientErrorHandler;
 import ratpack.error.internal.DefaultServerErrorHandler;
 import ratpack.event.internal.DefaultEventController;
-import ratpack.exec.ExecContext;
 import ratpack.exec.ExecController;
+import ratpack.exec.Execution;
 import ratpack.file.FileRenderer;
 import ratpack.file.FileSystemBinding;
 import ratpack.file.MimeTypes;
@@ -37,7 +37,10 @@ import ratpack.file.internal.DefaultFileRenderer;
 import ratpack.file.internal.FileHttpTransmitter;
 import ratpack.form.internal.FormParser;
 import ratpack.func.Action;
-import ratpack.handling.*;
+import ratpack.handling.Handler;
+import ratpack.handling.Handlers;
+import ratpack.handling.Redirector;
+import ratpack.handling.RequestOutcome;
 import ratpack.handling.direct.DirectChannelAccess;
 import ratpack.handling.direct.internal.DefaultDirectChannelAccess;
 import ratpack.handling.internal.DefaultContext;
@@ -164,6 +167,8 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
             responseHeaders.set("X-Response-Time", NumberUtil.toMillisDiffString(startTime, stopTime));
           }
 
+          execController.getExecution().complete();
+
           channel.writeAndFlush(nettyResponse);
           channel.write(new DefaultHttpContent(byteBuf));
           ChannelFuture future = channel.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
@@ -183,7 +188,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
     });
 
     InetSocketAddress socketAddress = (InetSocketAddress) channel.localAddress();
-    BindAddress bindAddress = new InetSocketAddressBackedBindAddress(socketAddress);
+    final BindAddress bindAddress = new InetSocketAddressBackedBindAddress(socketAddress);
 
     Action<Action<Object>> subscribeHandler = new Action<Action<Object>>() {
       @Override
@@ -198,17 +203,16 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
       }
     };
 
-    DirectChannelAccess directChannelAccess = new DefaultDirectChannelAccess(channel, subscribeHandler);
+    final DirectChannelAccess directChannelAccess = new DefaultDirectChannelAccess(channel, subscribeHandler);
 
-    DefaultContext.RequestConstants requestConstants = new DefaultContext.RequestConstants(
-      applicationConstants, bindAddress, request, response, directChannelAccess, requestOutcomeEventController.getRegistry()
-    );
-
-    final Context context = new DefaultContext(requestConstants, registry, handlers, 0, return404);
-    execController.exec(context.getSupplier(), new Action<ExecContext>() {
+    execController.start(new Action<Execution>() {
       @Override
-      public void execute(ExecContext thing) throws Exception {
-        context.next();
+      public void execute(Execution execution) throws Exception {
+        DefaultContext.RequestConstants requestConstants = new DefaultContext.RequestConstants(
+          applicationConstants, bindAddress, request, response, directChannelAccess, requestOutcomeEventController.getRegistry(), execution
+        );
+
+        new DefaultContext(requestConstants, registry, handlers, 0, return404).next();
       }
     });
   }

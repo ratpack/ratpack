@@ -16,8 +16,20 @@
 
 package ratpack.exec;
 
-public interface ExecErrorHandler {
+/**
+ * Thrown when an execution sequence is invalid.
+ */
+public class ExecutionException extends RuntimeException {
 
-  void error(ExecContext execContext, Exception exception);
+  private static final long serialVersionUID = 0;
+
+  /**
+   * Consructor.
+   *
+   * @param message the exception message
+   */
+  public ExecutionException(String message) {
+    super(message);
+  }
 
 }

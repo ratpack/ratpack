@@ -19,7 +19,7 @@ package ratpack.groovy.templating.internal;
 import com.google.common.cache.LoadingCache;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import io.netty.buffer.ByteBuf;
-import ratpack.exec.ExecContext;
+import ratpack.exec.ExecControl;
 import ratpack.exec.Fulfiller;
 import ratpack.exec.Promise;
 import ratpack.func.Action;
@@ -34,15 +34,15 @@ import static ratpack.util.ExceptionUtils.uncheck;
 
 public class Render {
 
-  private final ExecContext execContext;
+  private final ExecControl execControl;
   private final ByteBuf byteBuf;
   private final LoadingCache<TemplateSource, CompiledTemplate> compiledTemplateCache;
   private final TemplateSource templateSource;
   private final Map<String, ?> model;
   private final Function<String, TemplateSource> includeTransformer;
 
-  public Render(ExecContext execContext, ByteBuf byteBuf, LoadingCache<TemplateSource, CompiledTemplate> compiledTemplateCache, TemplateSource templateSource, final Map<String, ?> model, Function<String, TemplateSource> includeTransformer) {
-    this.execContext = execContext;
+  public Render(ExecControl execControl, ByteBuf byteBuf, LoadingCache<TemplateSource, CompiledTemplate> compiledTemplateCache, TemplateSource templateSource, final Map<String, ?> model, Function<String, TemplateSource> includeTransformer) {
+    this.execControl = execControl;
     this.byteBuf = byteBuf;
     this.compiledTemplateCache = compiledTemplateCache;
     this.templateSource = templateSource;
@@ -51,7 +51,7 @@ public class Render {
   }
 
   private Promise<ByteBuf> invoke() {
-    return execContext.promise(new Action<Fulfiller<ByteBuf>>() {
+    return execControl.promise(new Action<Fulfiller<ByteBuf>>() {
       @Override
       public void execute(Fulfiller<ByteBuf> fulfiller) throws Exception {
         try {
@@ -89,7 +89,7 @@ public class Render {
     });
   }
 
-  public static Promise<ByteBuf> render(ExecContext execContext, ByteBuf byteBuf, LoadingCache<TemplateSource, CompiledTemplate> compiledTemplateCache, TemplateSource templateSource, Map<String, ?> model, Function<String, TemplateSource> includeTransformer) throws Exception {
-    return new Render(execContext, byteBuf, compiledTemplateCache, templateSource, model, includeTransformer).invoke();
+  public static Promise<ByteBuf> render(ExecControl execControl, ByteBuf byteBuf, LoadingCache<TemplateSource, CompiledTemplate> compiledTemplateCache, TemplateSource templateSource, Map<String, ?> model, Function<String, TemplateSource> includeTransformer) throws Exception {
+    return new Render(execControl, byteBuf, compiledTemplateCache, templateSource, model, includeTransformer).invoke();
   }
 }

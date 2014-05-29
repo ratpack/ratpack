@@ -17,21 +17,28 @@
 package ratpack.exec;
 
 /**
- * Thrown when a request is made for the context in a non request handling thread.
- *
- * @see ExecController#getContext()
+ * An instance of this exception will be logged when execution overlaps.
  */
-public class NoBoundContextException extends RuntimeException {
+public class OverlappingExecutionException extends RuntimeException {
 
   private static final long serialVersionUID = 0;
 
   /**
-   * Consructor.
+   * Constructor.
    *
-   * @param message the exception message
+   * @param message exception message
    */
-  public NoBoundContextException(String message) {
+  public OverlappingExecutionException(String message) {
     super(message);
   }
 
+  /**
+   * Constructor.
+   *
+   * @param message exception message
+   * @param cause the exception thrown during overlapping execution
+   */
+  public OverlappingExecutionException(String message, Throwable cause) {
+    super(message, cause);
+  }
 }

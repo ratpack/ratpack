@@ -19,7 +19,7 @@ package ratpack.http;
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.Cookie;
 import ratpack.api.NonBlocking;
-import ratpack.exec.ExecContext;
+import ratpack.exec.ExecControl;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -197,14 +197,14 @@ public interface Response {
   /**
    * Sends the response, using the given content type and the content of the given type as the response body.
    * <p>
-   * Prefer {@link #sendFile(ratpack.exec.ExecContext, java.nio.file.attribute.BasicFileAttributes, java.nio.file.Path)} where
+   * Prefer {@link #sendFile(ratpack.exec.ExecControl, java.nio.file.attribute.BasicFileAttributes, java.nio.file.Path)} where
    * the file attributes have already been retrieved to avoid another IO operation.
    *
    * @param execContext the execution context to perform any blocking operations with
    * @param file The file whose contents are to be used as the response body
    */
   @NonBlocking
-  void sendFile(ExecContext execContext, Path file) throws Exception;
+  void sendFile(ExecControl execContext, Path file) throws Exception;
 
   /**
    * Sends the response, using the given content type and the content of the given type as the response body.
@@ -214,5 +214,5 @@ public interface Response {
    * @param file The file whose contents are to be used as the response body
    */
   @NonBlocking
-  void sendFile(ExecContext execContext, BasicFileAttributes attributes, Path file) throws Exception;
+  void sendFile(ExecControl execContext, BasicFileAttributes attributes, Path file) throws Exception;
 }

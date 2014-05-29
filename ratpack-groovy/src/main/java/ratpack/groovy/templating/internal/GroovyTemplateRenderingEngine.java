@@ -21,7 +21,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
-import ratpack.exec.ExecContext;
+import ratpack.exec.ExecControl;
 import ratpack.exec.Promise;
 import ratpack.file.FileSystemBinding;
 import ratpack.func.Function;
@@ -44,9 +44,11 @@ public class GroovyTemplateRenderingEngine {
   private final boolean reloadable;
   private final FileSystemBinding templateDir;
   private final ByteBufAllocator byteBufAllocator;
+  private final ExecControl execControl;
 
   @Inject
-  public GroovyTemplateRenderingEngine(LaunchConfig launchConfig, TemplatingConfig templatingConfig) {
+  public GroovyTemplateRenderingEngine(LaunchConfig launchConfig, TemplatingConfig templatingConfig, ExecControl execControl) {
+    this.execControl = execControl;
     this.byteBufAllocator = launchConfig.getBufferAllocator();
 
     ScriptEngine<DefaultTemplateScript> scriptEngine = new ScriptEngine<>(getClass().getClassLoader(), templatingConfig.isStaticallyCompile(), DefaultTemplateScript.class);
@@ -72,9 +74,9 @@ public class GroovyTemplateRenderingEngine {
     }
   }
 
-  public Promise<ByteBuf> renderTemplate(ExecContext execContext, ByteBuf byteBuf, final String templateId, final Map<String, ?> model) throws Exception {
+  public Promise<ByteBuf> renderTemplate(ByteBuf byteBuf, final String templateId, final Map<String, ?> model) throws Exception {
     Path templateFile = getTemplateFile(templateId);
-    return render(execContext, byteBuf, toTemplateSource(templateId, templateFile), model);
+    return render(byteBuf, toTemplateSource(templateId, templateFile), model);
   }
 
   private PathTemplateSource toTemplateSource(String templateId, Path templateFile) throws IOException {
@@ -82,17 +84,17 @@ public class GroovyTemplateRenderingEngine {
     return new PathTemplateSource(id, templateFile, templateId);
   }
 
-  public Promise<ByteBuf> renderError(ExecContext execContext, ByteBuf byteBuf, Map<String, ?> model) throws Exception {
+  public Promise<ByteBuf> renderError(ByteBuf byteBuf, Map<String, ?> model) throws Exception {
     final Path errorTemplate = getTemplateFile(ERROR_TEMPLATE);
     if (Files.exists(errorTemplate)) {
-      return render(execContext, byteBuf, toTemplateSource(ERROR_TEMPLATE, errorTemplate), model);
+      return render(byteBuf, toTemplateSource(ERROR_TEMPLATE, errorTemplate), model);
     } else {
-      return render(execContext, byteBuf, new ResourceTemplateSource(ERROR_TEMPLATE, byteBufAllocator), model);
+      return render(byteBuf, new ResourceTemplateSource(ERROR_TEMPLATE, byteBufAllocator), model);
     }
   }
 
-  private Promise<ByteBuf> render(ExecContext execContext, ByteBuf byteBuf, final TemplateSource templateSource, Map<String, ?> model) throws Exception {
-    return Render.render(execContext, byteBuf, compiledTemplateCache, templateSource, model, new Function<String, TemplateSource>() {
+  private Promise<ByteBuf> render(ByteBuf byteBuf, final TemplateSource templateSource, Map<String, ?> model) throws Exception {
+    return Render.render(execControl, byteBuf, compiledTemplateCache, templateSource, model, new Function<String, TemplateSource>() {
       public TemplateSource apply(String templateName) throws IOException {
         return toTemplateSource(templateName, getTemplateFile(templateName));
       }

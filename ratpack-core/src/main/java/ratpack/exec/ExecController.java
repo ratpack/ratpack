@@ -18,7 +18,6 @@ package ratpack.exec;
 
 import com.google.common.util.concurrent.ListeningScheduledExecutorService;
 import io.netty.channel.EventLoopGroup;
-import ratpack.api.NonBlocking;
 import ratpack.func.Action;
 
 /**
@@ -26,15 +25,17 @@ import ratpack.func.Action;
  */
 public interface ExecController {
 
+  void start(Action<? super Execution> action);
+
   /**
    * Provides the current context on the current thread.
    * <p>
    * This method is primarily provided for integration with dependency injection frameworks.
    *
    * @return the current context on the current thread
-   * @throws NoBoundContextException if this method is called from a thread that is not performing request processing
+   * @throws ExecutionException if this method is called from a thread that is not performing request processing
    */
-  ExecContext getContext() throws NoBoundContextException;
+  Execution getExecution() throws ExecutionException;
 
   /**
    * A singleton that can be used from any managed thread to perform asynchronous or blocking operations.
@@ -52,10 +53,14 @@ public interface ExecController {
    */
   ListeningScheduledExecutorService getExecutor();
 
+  /**
+   * The event loop group used by Netty for this application.
+   * <p>
+   * Generally there is no need to access this unless you are doing something directly with Netty.
+   *
+   * @return the event loop group
+   */
   EventLoopGroup getEventLoopGroup();
-
-  @NonBlocking
-  void exec(ExecContext.Supplier execContextSupplier, Action<? super ExecContext> action);
 
   /**
    * Indicates whether the current thread is managed by this execution controller.

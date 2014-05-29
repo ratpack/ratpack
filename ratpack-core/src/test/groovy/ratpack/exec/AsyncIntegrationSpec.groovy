@@ -23,7 +23,7 @@ class AsyncIntegrationSpec extends RatpackGroovyDslSpec {
   def "async api that uses own threads can integrate via promise"() {
     when:
     handlers {
-      get {
+      get { ExecController execController ->
         promise { f ->
           Thread.start {
             assert !execController.managedThread
@@ -43,7 +43,7 @@ class AsyncIntegrationSpec extends RatpackGroovyDslSpec {
   def "async api that produces exception on own threads can integrate via promise"() {
     when:
     handlers {
-      get {
+      get { ExecController execController ->
         promise { f ->
           Thread.start {
             assert !execController.managedThread

@@ -14,41 +14,30 @@
  * limitations under the License.
  */
 
-package ratpack.guice
+package ratpack.exec
 
-import ratpack.exec.ExecContext
-import ratpack.handling.Context
-import ratpack.handling.InjectionHandler
 import ratpack.test.internal.RatpackGroovyDslSpec
 
-import javax.inject.Inject
+class ExecutionThreadBindingSpec extends RatpackGroovyDslSpec {
 
-class InjectableContextSpec extends RatpackGroovyDslSpec {
-
-  static class ContextScopeService {
-    final ExecContext context
-
-    @Inject
-    ContextScopeService(ExecContext context) {
-      this.context = context
-    }
-  }
-
-  def "can inject context"() {
+  def "context is bound for promise fulfillment"() {
     when:
-    bindings {
-      bind ContextScopeService
-    }
     handlers {
-      handler new InjectionHandler() {
-        void handle(Context context, ContextScopeService service) {
-          assert service.context.is(context)
-          context.render "ok"
+      get { ExecController execController ->
+        promise { f ->
+          assert execController.execution
+          Thread.start {
+            assert !execController.managedThread
+            f.success('foo')
+          }
+        } then {
+          assert execController.managedThread
+          render it
         }
       }
     }
 
     then:
-    text == "ok"
+    text == "foo"
   }
 }

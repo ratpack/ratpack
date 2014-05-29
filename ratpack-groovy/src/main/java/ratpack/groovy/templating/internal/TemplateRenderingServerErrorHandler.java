@@ -48,7 +48,7 @@ public class TemplateRenderingServerErrorHandler implements ServerErrorHandler {
     }
 
     final ByteBuf byteBuf = byteBufAllocator.buffer();
-    renderer.renderError(context, byteBuf, model).onError(new Action<Throwable>() {
+    renderer.renderError(byteBuf, model).onError(new Action<Throwable>() {
       @Override
       public void execute(Throwable thing) throws Exception {
         byteBuf.release();

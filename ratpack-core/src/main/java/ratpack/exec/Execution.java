@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,23 @@
  * limitations under the License.
  */
 
-package ratpack.file.internal;
+package ratpack.exec;
 
-import ratpack.exec.ExecControl;
+import ratpack.func.Action;
+import ratpack.registry.MutableRegistry;
 
-import java.nio.file.Path;
-import java.nio.file.attribute.BasicFileAttributes;
+public interface Execution extends MutableRegistry {
 
-public interface FileHttpTransmitter {
+  void setErrorHandler(Action<? super Throwable> errorHandler);
 
-  void transmit(ExecControl execContext, BasicFileAttributes basicFileAttributes, Path file) throws Exception;
+  void addInterceptor(ExecInterceptor execInterceptor, Action<? super Execution> continuation) throws Exception;
+
+  void error(Throwable throwable);
+
+  ExecController getController();
+
+  void resume(Action<? super Execution> continuation);
+
+  void complete();
 
 }

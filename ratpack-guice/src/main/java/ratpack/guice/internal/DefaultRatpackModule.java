@@ -20,11 +20,10 @@ import com.google.inject.AbstractModule;
 import com.google.inject.OutOfScopeException;
 import com.google.inject.Provides;
 import io.netty.buffer.ByteBufAllocator;
-import ratpack.exec.ExecContext;
 import ratpack.exec.ExecControl;
 import ratpack.exec.ExecController;
-import ratpack.exec.NoBoundContextException;
-import ratpack.handling.Context;
+import ratpack.exec.Execution;
+import ratpack.exec.ExecutionException;
 import ratpack.http.client.HttpClient;
 import ratpack.http.client.HttpClients;
 import ratpack.launch.LaunchConfig;
@@ -63,11 +62,11 @@ public class DefaultRatpackModule extends AbstractModule {
   }
 
   @Provides
-  ExecContext context(ExecController execController) {
+  Execution execution(ExecController execController) {
     try {
-      return execController.getContext();
-    } catch (NoBoundContextException e) {
-      throw new OutOfScopeException("Cannot provide an instance of " + Context.class.getName() + " as none is bound to the current thread (are you outside of a managed thread?)");
+      return execController.getExecution();
+    } catch (ExecutionException e) {
+      throw new OutOfScopeException("Cannot provide an instance of " + Execution.class.getName() + " as none is bound to the current thread (are you outside of a managed thread?)");
     }
   }
 

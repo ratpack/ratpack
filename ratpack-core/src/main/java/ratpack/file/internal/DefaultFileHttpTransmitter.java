@@ -19,7 +19,7 @@ package ratpack.file.internal;
 import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.stream.ChunkedNioStream;
-import ratpack.exec.ExecContext;
+import ratpack.exec.ExecControl;
 import ratpack.func.Action;
 import ratpack.http.internal.CustomHttpResponse;
 import ratpack.http.internal.HttpHeaderConstants;
@@ -66,7 +66,7 @@ public class DefaultFileHttpTransmitter implements FileHttpTransmitter {
   }
 
   @Override
-  public void transmit(ExecContext execContext, final BasicFileAttributes basicFileAttributes, final Path file) throws Exception {
+  public void transmit(ExecControl execContext, final BasicFileAttributes basicFileAttributes, final Path file) throws Exception {
     final boolean compressThis = compress && basicFileAttributes.size() > 1024 && isNotNullAndStartsWith(httpHeaders.get(HttpHeaderConstants.CONTENT_TYPE), "text/", "application/");
 
     if (compress && !compressThis) {

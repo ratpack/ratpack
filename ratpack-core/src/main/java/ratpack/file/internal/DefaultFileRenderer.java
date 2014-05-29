@@ -17,7 +17,7 @@
 package ratpack.file.internal;
 
 import io.netty.handler.codec.http.HttpHeaders;
-import ratpack.exec.ExecContext;
+import ratpack.exec.ExecControl;
 import ratpack.file.FileRenderer;
 import ratpack.file.MimeTypes;
 import ratpack.func.Action;
@@ -81,7 +81,7 @@ public class DefaultFileRenderer extends RendererSupport<Path> implements FileRe
     });
   }
 
-  public static void readAttributes(ExecContext execContext, final Path file, Action<? super BasicFileAttributes> then) throws Exception {
+  public static void readAttributes(ExecControl execContext, final Path file, Action<? super BasicFileAttributes> then) throws Exception {
     execContext.blocking(new Callable<BasicFileAttributes>() {
       public BasicFileAttributes call() throws Exception {
         if (Files.exists(file)) {

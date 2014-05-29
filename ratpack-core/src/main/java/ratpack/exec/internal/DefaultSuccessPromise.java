@@ -16,41 +16,48 @@
 
 package ratpack.exec.internal;
 
-import ratpack.exec.ExecContext;
-import ratpack.exec.ExecController;
 import ratpack.exec.Fulfiller;
+import ratpack.exec.OverlappingExecutionException;
 import ratpack.exec.SuccessPromise;
+import ratpack.exec.internal.DefaultExecController.Execution;
 import ratpack.func.Action;
 import ratpack.util.internal.InternalRatpackError;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
 
-  private final ExecContext context;
+  private final Execution execution;
   private final Action<? super Fulfiller<T>> action;
   private final Action<? super Throwable> errorHandler;
-  private final Action<? super Runnable> resumeHandler;
 
-  public DefaultSuccessPromise(ExecContext context, Action<? super Fulfiller<T>> action, Action<? super Throwable> errorHandler, Action<? super Runnable> resumeHandler) {
-    this.context = context;
+  public DefaultSuccessPromise(Execution execution, Action<? super Fulfiller<T>> action, Action<? super Throwable> errorHandler) {
+    this.execution = execution;
     this.action = action;
     this.errorHandler = errorHandler;
-    this.resumeHandler = resumeHandler;
   }
 
   @Override
   public void then(final Action<? super T> then) {
-    final ExecController execController = context.getExecController();
     try {
-      resumeHandler.execute(new Runnable() {
+      execution.continueVia(new Runnable() {
+
+        private final AtomicBoolean fulfilled = new AtomicBoolean();
+
         @Override
         public void run() {
           try {
             action.execute(new Fulfiller<T>() {
               @Override
               public void error(final Throwable throwable) {
-                execController.exec(context.getSupplier(), new Action<ExecContext>() {
+                if (!fulfilled.compareAndSet(false, true)) {
+                  new OverlappingExecutionException("promise already fulfilled").printStackTrace();
+                  return;
+                }
+
+                execution.join(new Action<ratpack.exec.Execution>() {
                   @Override
-                  public void execute(ExecContext context) throws Exception {
+                  public void execute(ratpack.exec.Execution execution) throws Exception {
                     errorHandler.execute(throwable);
                   }
                 });
@@ -58,16 +65,30 @@ public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
 
               @Override
               public void success(final T value) {
-                execController.exec(context.getSupplier(), new Action<ExecContext>() {
+                if (!fulfilled.compareAndSet(false, true)) {
+                  new OverlappingExecutionException("promise already fulfilled").printStackTrace();
+                  return;
+                }
+
+                execution.join(new Action<ratpack.exec.Execution>() {
                   @Override
-                  public void execute(ExecContext context) throws Exception {
+                  public void execute(ratpack.exec.Execution execution) throws Exception {
                     then.execute(value);
                   }
                 });
               }
             });
-          } catch (Exception e) {
-            context.error(e);
+          } catch (final Exception e) {
+            if (!fulfilled.compareAndSet(false, true)) {
+              new OverlappingExecutionException("exception thrown after promise was fulfilled", e).printStackTrace();
+            } else {
+              execution.join(new Action<ratpack.exec.Execution>() {
+                @Override
+                public void execute(ratpack.exec.Execution execution) throws Exception {
+                  execution.error(e);
+                }
+              });
+            }
           }
         }
       });

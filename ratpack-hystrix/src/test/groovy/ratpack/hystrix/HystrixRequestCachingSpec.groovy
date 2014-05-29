@@ -16,18 +16,26 @@
 
 package ratpack.hystrix
 
+import com.google.inject.Inject
+import com.netflix.hystrix.HystrixCommand
+import com.netflix.hystrix.HystrixCommandGroupKey
+import com.netflix.hystrix.HystrixObservableCommand
+import ratpack.exec.internal.DefaultExecController
+import ratpack.http.client.HttpClient
 import ratpack.http.client.HttpClientSpec
 import ratpack.http.client.ReceivedResponse
 import ratpack.rx.RxRatpack
 import spock.lang.Unroll
 
-import static ratpack.hystrix.CommandFactory.*
-
+@SuppressWarnings("GrMethodMayBeStatic")
 class HystrixRequestCachingSpec extends HttpClientSpec {
 
   def setup() {
     RxRatpack.initialize()
     HystrixRatpack.initialize()
+    bindings {
+      bind(CommandFactory)
+    }
   }
 
   @Unroll
@@ -38,13 +46,13 @@ class HystrixRequestCachingSpec extends HttpClientSpec {
     }
 
     and:
-    handlers {
+    handlers { CommandFactory factory ->
       handler("blocking") {
-        def firstCall = hystrixCommand("1").queue()
+        def firstCall = factory.hystrixCommand("1").queue()
         blocking {
           firstCall.get()
         } then {
-          def secondCall = hystrixCommand("2").queue()
+          def secondCall = factory.hystrixCommand("2").queue()
           blocking {
             secondCall.get()
           } then {
@@ -54,24 +62,24 @@ class HystrixRequestCachingSpec extends HttpClientSpec {
       }
 
       handler("observable") {
-        hystrixObservableCommand("1").flatMap {
-          hystrixObservableCommand("2")
+        factory.hystrixObservableCommand("1").flatMap {
+          factory.hystrixObservableCommand("2")
         } subscribe {
           render it
         }
       }
 
       handler("blocking-observable") {
-        hystrixBlockingObservableCommand("1").flatMap {
-          hystrixBlockingObservableCommand("2")
+        factory.hystrixBlockingObservableCommand("1").flatMap {
+          factory.hystrixBlockingObservableCommand("2")
         } subscribe {
           render it
         }
       }
 
       handler("http-observable") {
-        hystrixObservableHttpCommand(otherAppUrl("foo/1")).flatMap {
-          hystrixObservableHttpCommand(otherAppUrl("foo/2")).map { ReceivedResponse resp ->
+        factory.hystrixObservableHttpCommand(otherAppUrl("foo/1")).flatMap {
+          factory.hystrixObservableHttpCommand(otherAppUrl("foo/2")).map { ReceivedResponse resp ->
             return resp.body.text
           }
         } subscribe {
@@ -87,4 +95,80 @@ class HystrixRequestCachingSpec extends HttpClientSpec {
     executionType << ["blocking", "observable", "blocking-observable", "http-observable"]
   }
 
+  static class CommandFactory {
+
+    private final HttpClient httpClient
+
+    @Inject
+    CommandFactory(HttpClient httpClient) {
+      this.httpClient = httpClient
+    }
+
+    HystrixCommand<String> hystrixCommand(final String requestNumber) {
+      new HystrixCommand<String>(HystrixCommandGroupKey.Factory.asKey("hystrix-command")) {
+
+        @Override
+        protected String run() throws Exception {
+          assert Thread.currentThread().name.startsWith("hystrix-${getCacheKey()}-")
+          requestNumber
+        }
+
+        @Override
+        protected String getCacheKey() {
+          return "hystrix-command"
+        }
+      }
+    }
+
+    rx.Observable<String> hystrixObservableCommand(final String requestNumber) {
+      new HystrixObservableCommand<String>(HystrixCommandGroupKey.Factory.asKey("hystrix-observable-command")) {
+
+        @Override
+        protected rx.Observable<String> run() {
+          assert Thread.currentThread().name.startsWith("ratpack-compute-")
+          return rx.Observable.just(requestNumber)
+        }
+
+        @Override
+        protected String getCacheKey() {
+          return "hystrix-observable-command"
+        }
+      }.toObservable()
+    }
+
+    rx.Observable<String> hystrixBlockingObservableCommand(final String requestNumber) {
+      new HystrixObservableCommand<String>(HystrixCommandGroupKey.Factory.asKey("hystrix-blocking-observable-command")) {
+
+        @Override
+        protected rx.Observable<String> run() {
+          assert Thread.currentThread().name.startsWith("ratpack-compute-")
+          return RxRatpack.observe(DefaultExecController.threadBoundController.get().control.blocking {
+            assert Thread.currentThread().name.startsWith("ratpack-blocking-")
+            return requestNumber
+          })
+        }
+
+        @Override
+        protected String getCacheKey() {
+          return "hystrix-blocking-observable-command"
+        }
+      }.toObservable()
+    }
+
+    rx.Observable<ReceivedResponse> hystrixObservableHttpCommand(final String otherAppUrl) {
+      new HystrixObservableCommand<String>(HystrixCommandGroupKey.Factory.asKey("hystrix-observable-http-command")) {
+
+        @Override
+        protected rx.Observable<ReceivedResponse> run() {
+          assert Thread.currentThread().name.startsWith("ratpack-compute-")
+          return RxRatpack.observe(httpClient.get(otherAppUrl))
+        }
+
+        @Override
+        protected String getCacheKey() {
+          return "hystrix-http-observable-command"
+        }
+      }.toObservable()
+    }
+  }
 }

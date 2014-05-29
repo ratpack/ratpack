@@ -41,7 +41,7 @@ public class TemplateRenderer extends RendererSupport<Template> {
 
   public void render(final Context context, final Template template) throws Exception {
     final ByteBuf buffer = byteBufAllocator.buffer();
-    engine.renderTemplate(context, buffer, template.getId(), template.getModel()).onError(new Action<Throwable>() {
+    engine.renderTemplate(buffer, template.getId(), template.getModel()).onError(new Action<Throwable>() {
       @Override
       public void execute(Throwable thing) throws Exception {
         buffer.release();

@@ -18,8 +18,8 @@ package ratpack.hystrix.internal;
 
 import com.netflix.hystrix.strategy.concurrency.HystrixRequestVariable;
 import com.netflix.hystrix.strategy.concurrency.HystrixRequestVariableLifecycle;
+import ratpack.exec.Execution;
 import ratpack.exec.internal.DefaultExecController;
-import ratpack.handling.Context;
 
 class HystrixRegistryBackedRequestVariable<T> implements HystrixRequestVariable<T> {
 
@@ -32,11 +32,12 @@ class HystrixRegistryBackedRequestVariable<T> implements HystrixRequestVariable<
   @Override
   @SuppressWarnings("unchecked")
   public T get() {
-    HystrixCommandCache commandCache = getContext().getRequest().maybeGet(HystrixCommandCache.class);
+    Execution execution = getExecution();
+    HystrixCommandCache commandCache = execution.maybeGet(HystrixCommandCache.class);
 
     if (commandCache == null) {
       commandCache = new HystrixCommandCache();
-      getContext().getRequest().register(commandCache);
+      execution.register(commandCache);
     }
 
     Object command = commandCache.get(this);
@@ -48,8 +49,8 @@ class HystrixRegistryBackedRequestVariable<T> implements HystrixRequestVariable<
     return (T) command;
   }
 
-  private Context getContext() {
-    return (Context) DefaultExecController.getThreadBoundContext();
+  private Execution getExecution() {
+    return DefaultExecController.getThreadBoundController().get().getExecution();
   }
 
   @Override

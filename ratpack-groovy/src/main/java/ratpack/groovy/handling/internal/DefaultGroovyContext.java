@@ -22,8 +22,8 @@ import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import ratpack.api.NonBlocking;
 import ratpack.api.Nullable;
-import ratpack.exec.ExecController;
 import ratpack.exec.ExecInterceptor;
+import ratpack.exec.Execution;
 import ratpack.exec.Fulfiller;
 import ratpack.exec.Promise;
 import ratpack.func.Action;
@@ -46,7 +46,6 @@ import ratpack.server.BindAddress;
 
 import java.nio.file.Path;
 import java.util.Date;
-import java.util.List;
 import java.util.concurrent.Callable;
 
 public class DefaultGroovyContext implements GroovyContext {
@@ -63,8 +62,8 @@ public class DefaultGroovyContext implements GroovyContext {
   }
 
   @Override
-  public Supplier getSupplier() {
-    return delegate.getSupplier();
+  public Execution getExecution() {
+    return delegate.getExecution();
   }
 
   @Override
@@ -80,11 +79,6 @@ public class DefaultGroovyContext implements GroovyContext {
   @Override
   public void addExecInterceptor(ExecInterceptor execInterceptor, Action<? super Context> action) throws Exception {
     delegate.addExecInterceptor(execInterceptor, action);
-  }
-
-  @Override
-  public List<ExecInterceptor> getInterceptors() {
-    return delegate.getInterceptors();
   }
 
   @Override
@@ -197,11 +191,6 @@ public class DefaultGroovyContext implements GroovyContext {
   @NonBlocking
   public void render(Object object) {
     delegate.render(object);
-  }
-
-  @Override
-  public ExecController getExecController() {
-    return delegate.getExecController();
   }
 
   @Override

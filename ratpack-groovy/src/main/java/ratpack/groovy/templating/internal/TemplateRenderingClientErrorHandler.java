@@ -57,7 +57,7 @@ public class TemplateRenderingClientErrorHandler implements ClientErrorHandler {
     context.getResponse().status(statusCode).contentType("text/html");
 
     final ByteBuf byteBuf = byteBufAllocator.buffer();
-    renderer.renderError(context, byteBuf, model)
+    renderer.renderError(byteBuf, model)
       .onError(new Action<Throwable>() {
         @Override
         public void execute(Throwable throwable) throws Exception {

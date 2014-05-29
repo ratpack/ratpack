@@ -17,9 +17,9 @@
 package ratpack.rx;
 
 import com.google.common.base.Optional;
-import ratpack.exec.ExecContext;
 import ratpack.exec.ExecController;
-import ratpack.exec.NoBoundContextException;
+import ratpack.exec.Execution;
+import ratpack.exec.ExecutionException;
 import ratpack.exec.Promise;
 import ratpack.exec.internal.DefaultExecController;
 import ratpack.func.Action;
@@ -31,7 +31,6 @@ import rx.functions.Action2;
 import rx.plugins.RxJavaObservableExecutionHook;
 import rx.plugins.RxJavaPlugins;
 
-import static ratpack.exec.ExecException.wrapAndForward;
 import static ratpack.util.ExceptionUtils.toException;
 
 /**
@@ -42,7 +41,7 @@ import static ratpack.util.ExceptionUtils.toException;
 public abstract class RxRatpack {
 
   /**
-   * Registers an {@link RxJavaObservableExecutionHook} with RxJava that provides a default error handling strategy of {@link ratpack.exec.ExecContext#error(Exception) forwarding exceptions to the exec context}.
+   * Registers an {@link RxJavaObservableExecutionHook} with RxJava that provides a default error handling strategy of {@link ratpack.exec.Execution#error(Throwable) forwarding exceptions to the execution}.
    * <p>
    * This method is idempotent.
    * It only needs to be called once per JVM, regardless of how many Ratpack applications are running within the JVM.
@@ -165,7 +164,7 @@ public abstract class RxRatpack {
   public static <T> Subscriber<T> contextualize(Subscriber<T> subscriber) {
     Optional<ExecController> threadBoundController = DefaultExecController.getThreadBoundController();
     if (threadBoundController.isPresent()) {
-      return new ContextBackedSubscriber<>(subscriber, threadBoundController.get().getContext());
+      return new ExecutionBackedSubscriber<>(subscriber, threadBoundController.get().getExecution());
     } else {
       return subscriber;
     }
@@ -333,14 +332,14 @@ public abstract class RxRatpack {
         return new Observable.OnSubscribe<T>() {
           @Override
           public void call(final Subscriber<? super T> subscriber) {
-            ExecContext context = null;
+            Execution execution = null;
             try {
-              context = threadBoundController.get().getContext();
-            } catch (NoBoundContextException e) {
+              execution = threadBoundController.get().getExecution();
+            } catch (ExecutionException e) {
               onSubscribe.call(subscriber);
             }
-            if (context != null) {
-              onSubscribe.call(new ContextBackedSubscriber<>(subscriber, context));
+            if (execution != null) {
+              onSubscribe.call(new ExecutionBackedSubscriber<>(subscriber, execution));
             }
           }
         };
@@ -351,13 +350,13 @@ public abstract class RxRatpack {
 
   }
 
-  private static class ContextBackedSubscriber<T> extends Subscriber<T> {
+  private static class ExecutionBackedSubscriber<T> extends Subscriber<T> {
     private final Subscriber<? super T> subscriber;
-    private final ExecContext context;
+    private final Execution execution;
 
-    public ContextBackedSubscriber(Subscriber<? super T> subscriber, ExecContext context) {
+    public ExecutionBackedSubscriber(Subscriber<? super T> subscriber, Execution execution) {
       this.subscriber = subscriber;
-      this.context = context;
+      this.execution = execution;
     }
 
     @Override
@@ -373,8 +372,13 @@ public abstract class RxRatpack {
         } catch (OnErrorNotImplementedException onErrorNotImplementedException) {
           throw onErrorNotImplementedException.getCause();
         }
-      } catch (Throwable throwable) {
-        wrapAndForward(context, throwable);
+      } catch (final Throwable throwable) {
+        execution.resume(new Action<Execution>() {
+          @Override
+          public void execute(Execution execution) throws Exception {
+            execution.error(throwable);
+          }
+        });
       }
     }
 
@@ -387,7 +391,7 @@ public abstract class RxRatpack {
           throw onErrorNotImplementedException.getCause();
         }
       } catch (Throwable throwable) {
-        wrapAndForward(context, throwable);
+        execution.error(throwable);
       }
     }
   }
