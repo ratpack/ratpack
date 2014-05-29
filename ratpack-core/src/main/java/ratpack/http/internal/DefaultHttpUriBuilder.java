@@ -16,6 +16,7 @@
 
 package ratpack.http.internal;
 
+import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.escape.Escaper;
 import com.google.common.net.UrlEscapers;
@@ -24,6 +25,7 @@ import ratpack.http.HttpUriBuilder;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Set;
 
 public class DefaultHttpUriBuilder implements HttpUriBuilder {
 
@@ -31,9 +33,11 @@ public class DefaultHttpUriBuilder implements HttpUriBuilder {
   private String path;
   private String pathComponent;
   private String protocol;
-  private String port;
+  private String queryParams;
 
-  private Action<? super  Multimap<String, String>> params;
+  private int port;
+
+  private Multimap<String, String> params;
 
   private Escaper escaper;
 
@@ -42,7 +46,9 @@ public class DefaultHttpUriBuilder implements HttpUriBuilder {
     this.protocol = "http://";
     this.path = "";
     this.pathComponent = "";
-    this.port = "";
+    this.port = -1;
+    this.params = ArrayListMultimap.create();
+    this.queryParams = "";
   }
 
 
@@ -61,29 +67,52 @@ public class DefaultHttpUriBuilder implements HttpUriBuilder {
 
   @Override
   public HttpUriBuilder port(int port) {
-    this.port = String.format("%s%d", ":", port);
+    this.port = port;
     return this;
   }
 
   @Override
   public HttpUriBuilder path(String path) {
     escaper = UrlEscapers.urlFragmentEscaper();
-    this.path = String.format("/%s/", escaper.escape(path));
+    this.path +=  "/"+escaper.escape(path);
     return this;
   }
 
   @Override
   public HttpUriBuilder pathComponent(String pathComponent) {
     escaper = UrlEscapers.urlPathSegmentEscaper();
-    this.pathComponent = escaper.escape(pathComponent);
+
+    if(!this.pathComponent.isEmpty()) {
+      this.pathComponent += escaper.escape("/"+pathComponent);
+    }else{
+      this.pathComponent += String.format("/%s", escaper.escape(pathComponent));
+    }
     return this;
   }
 
   @Override
   public HttpUriBuilder params(Action<? super Multimap<String, String>> params) throws Exception {
-    this.params = params;
-    //TODO: implement parameter builder
+    params.execute(this.params);
+    buildParameterString();
     return this;
+  }
+
+  private void buildParameterString() {
+    Set<String> keySet = this.params.keySet();
+
+    for(String key : keySet){
+
+      Object[] paramValues = this.params.get(key).toArray();
+      for(Object param : paramValues){
+        if(queryParams.equals("")){
+          queryParams = String.format("?%s=%s", key, param);
+        }else{
+          queryParams += String.format("&%s=%s", key, param);
+        }
+      }
+    }
+    escaper = UrlEscapers.urlFormParameterEscaper();
+    queryParams = escaper.escape(queryParams);
   }
 
   @Override
@@ -94,6 +123,11 @@ public class DefaultHttpUriBuilder implements HttpUriBuilder {
 
   @Override
   public String toString() {
-    return protocol + host + port + path + pathComponent;
+
+    String uri = protocol + host;
+    uri += port != -1  ?  String.format("%s%d", ":", port) : "";
+    uri += path + pathComponent + queryParams;
+
+    return uri;
   }
 }

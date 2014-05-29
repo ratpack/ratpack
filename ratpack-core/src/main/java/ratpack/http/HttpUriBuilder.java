@@ -23,9 +23,6 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-/**
- * Created by roy on 17/05/14.
- */
 public interface HttpUriBuilder {
 
   HttpUriBuilder secure();
