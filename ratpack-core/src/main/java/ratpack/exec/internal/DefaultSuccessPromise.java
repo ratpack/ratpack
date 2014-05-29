@@ -21,52 +21,59 @@ import ratpack.exec.ExecController;
 import ratpack.exec.Fulfiller;
 import ratpack.exec.SuccessPromise;
 import ratpack.func.Action;
+import ratpack.util.internal.InternalRatpackError;
 
 public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
 
   private final ExecContext context;
   private final Action<? super Fulfiller<T>> action;
   private final Action<? super Throwable> errorHandler;
+  private final Action<? super Runnable> resumeHandler;
 
-  public DefaultSuccessPromise(ExecContext context, Action<? super Fulfiller<T>> action, Action<? super Throwable> errorHandler) {
+  public DefaultSuccessPromise(ExecContext context, Action<? super Fulfiller<T>> action, Action<? super Throwable> errorHandler, Action<? super Runnable> resumeHandler) {
     this.context = context;
     this.action = action;
     this.errorHandler = errorHandler;
+    this.resumeHandler = resumeHandler;
   }
 
   @Override
   public void then(final Action<? super T> then) {
     final ExecController execController = context.getExecController();
-    execController.onExecFinish(new Runnable() {
-      @Override
-      public void run() {
-        try {
-          action.execute(new Fulfiller<T>() {
-            @Override
-            public void error(final Throwable throwable) {
-              execController.exec(context.getSupplier(), new Action<ExecContext>() {
-                @Override
-                public void execute(ExecContext context) throws Exception {
-                  errorHandler.execute(throwable);
-                }
-              });
-            }
+    try {
+      resumeHandler.execute(new Runnable() {
+        @Override
+        public void run() {
+          try {
+            action.execute(new Fulfiller<T>() {
+              @Override
+              public void error(final Throwable throwable) {
+                execController.exec(context.getSupplier(), new Action<ExecContext>() {
+                  @Override
+                  public void execute(ExecContext context) throws Exception {
+                    errorHandler.execute(throwable);
+                  }
+                });
+              }
 
-            @Override
-            public void success(final T value) {
-              execController.exec(context.getSupplier(), new Action<ExecContext>() {
-                @Override
-                public void execute(ExecContext context) throws Exception {
-                  then.execute(value);
-                }
-              });
-            }
-          });
-        } catch (Exception e) {
-          context.error(e);
+              @Override
+              public void success(final T value) {
+                execController.exec(context.getSupplier(), new Action<ExecContext>() {
+                  @Override
+                  public void execute(ExecContext context) throws Exception {
+                    then.execute(value);
+                  }
+                });
+              }
+            });
+          } catch (Exception e) {
+            context.error(e);
+          }
         }
-      }
-    });
+      });
+    } catch (Exception e) {
+      throw new InternalRatpackError("failed to add promise resume action");
+    }
   }
 
 }

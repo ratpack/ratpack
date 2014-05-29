@@ -189,7 +189,12 @@ public class DefaultExecController implements ExecController {
 
     @Override
     public <T> Promise<T> promise(final Action<? super Fulfiller<T>> action) {
-      return new DefaultPromise<>(getContext(), action);
+      return new DefaultPromise<>(getContext(), action, new Action<Runnable>() {
+        @Override
+        public void execute(Runnable runnable) throws Exception {
+          onExecFinish.get().add(runnable);
+        }
+      });
     }
 
   }
@@ -197,11 +202,6 @@ public class DefaultExecController implements ExecController {
   @Override
   public ExecControl getControl() {
     return control;
-  }
-
-  @Override
-  public void onExecFinish(Runnable runnable) {
-    onExecFinish.get().add(runnable);
   }
 
   private class ExecControllerBindingThreadFactory extends DefaultThreadFactory {

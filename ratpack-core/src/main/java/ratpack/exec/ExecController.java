@@ -64,8 +64,6 @@ public interface ExecController {
    */
   boolean isManagedThread();
 
-  void onExecFinish(Runnable runnable);
-
   void shutdown() throws Exception;
 
 }

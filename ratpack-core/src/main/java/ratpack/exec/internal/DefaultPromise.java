@@ -27,15 +27,17 @@ import static ratpack.util.ExceptionUtils.toException;
 public class DefaultPromise<T> implements Promise<T> {
   private final ExecContext context;
   private final Action<? super Fulfiller<T>> fulfillment;
+  private final Action<? super Runnable> resumeHandler;
 
-  public DefaultPromise(ExecContext context, Action<? super Fulfiller<T>> fulfillment) {
+  public DefaultPromise(ExecContext context, Action<? super Fulfiller<T>> fulfillment, Action<? super Runnable> resumeHandler) {
     this.context = context;
     this.fulfillment = fulfillment;
+    this.resumeHandler = resumeHandler;
   }
 
   @Override
   public SuccessPromise<T> onError(final Action<? super Throwable> errorHandler) {
-    return new DefaultSuccessPromise<>(context, fulfillment, errorHandler);
+    return new DefaultSuccessPromise<>(context, fulfillment, errorHandler, resumeHandler);
   }
 
   @Override
