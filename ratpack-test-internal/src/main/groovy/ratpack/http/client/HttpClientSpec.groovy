@@ -32,7 +32,7 @@ abstract class HttpClientSpec extends RatpackGroovyDslSpec {
     otherApp.server.start()
   }
 
-  String otherAppUrl(String path) {
+  String otherAppUrl(String path = "") {
     "http://$otherApp.server.bindHost:$otherApp.server.bindPort/$path"
   }
 

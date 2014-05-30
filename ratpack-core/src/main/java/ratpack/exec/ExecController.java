@@ -18,13 +18,19 @@ package ratpack.exec;
 
 import com.google.common.util.concurrent.ListeningScheduledExecutorService;
 import io.netty.channel.EventLoopGroup;
+import ratpack.api.NonBlocking;
 import ratpack.func.Action;
 
 /**
  * The exec controller manages the execution of operations.
  */
-public interface ExecController {
+public interface ExecController extends AutoCloseable {
 
+  /**
+   *
+   * @param action
+   */
+  @NonBlocking
   void start(Action<? super Execution> action);
 
   /**
@@ -69,6 +75,7 @@ public interface ExecController {
    */
   boolean isManagedThread();
 
-  void shutdown() throws Exception;
+  @Override
+  void close();
 
 }

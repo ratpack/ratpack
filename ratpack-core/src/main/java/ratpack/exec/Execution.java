@@ -19,18 +19,24 @@ package ratpack.exec;
 import ratpack.func.Action;
 import ratpack.registry.MutableRegistry;
 
-public interface Execution extends MutableRegistry {
+/**
+ * Represents the logical execution of task, started by {@link ExecController#start(ratpack.func.Action)}.
+ * <p>
+ * The handling of a request is an example of a logical execution.
+ * <p>
+ * An execution can be asynchronous, and may be executed by more than one thread, but never in parallel.
+ * Ratpack serializes the execution segments of an execution.
+ */
+public interface Execution extends MutableRegistry, ExecControl {
 
   void setErrorHandler(Action<? super Throwable> errorHandler);
 
   void addInterceptor(ExecInterceptor execInterceptor, Action<? super Execution> continuation) throws Exception;
 
-  void error(Throwable throwable);
-
   ExecController getController();
 
-  void resume(Action<? super Execution> continuation);
-
   void complete();
+
+  void onComplete(Runnable runnable);
 
 }

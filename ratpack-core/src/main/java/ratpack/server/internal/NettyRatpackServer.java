@@ -133,7 +133,7 @@ public class NettyRatpackServer implements RatpackServer {
   }
 
   private void partialShutdown() throws Exception {
-    launchConfig.getExecController().shutdown();
+    launchConfig.getExecController().close();
   }
 
   @Override

@@ -43,7 +43,7 @@ public class DefaultPromise<T> implements Promise<T> {
     onError(new Action<Throwable>() {
       @Override
       public void execute(Throwable t) throws Exception {
-        execution.error(toException(t));
+        throw toException(t);
       }
     }).then(then);
   }

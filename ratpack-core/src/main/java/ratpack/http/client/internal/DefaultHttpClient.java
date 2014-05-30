@@ -17,6 +17,7 @@
 package ratpack.http.client.internal;
 
 import io.netty.bootstrap.Bootstrap;
+import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.*;
 import io.netty.channel.socket.SocketChannel;
@@ -24,6 +25,7 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.ssl.SslHandler;
 import ratpack.exec.ExecController;
+import ratpack.exec.Execution;
 import ratpack.exec.Fulfiller;
 import ratpack.exec.Promise;
 import ratpack.func.Action;
@@ -93,6 +95,7 @@ public class DefaultHttpClient implements HttpClient {
     final int port = uri.getPort() < 0 ? (useSsl ? 443 : 80) : uri.getPort();
 
     final ExecController execController = launchConfig.getExecController();
+    final Execution execution = execController.getExecution();
     final EventLoopGroup eventLoopGroup = execController.getEventLoopGroup();
     final ByteBufAllocator bufferAllocator = launchConfig.getBufferAllocator();
 
@@ -122,7 +125,8 @@ public class DefaultHttpClient implements HttpClient {
                     final FullHttpResponse response = (FullHttpResponse) msg;
                     final Headers headers = new NettyHeadersBackedHeaders(response.headers());
                     String contentType = headers.get(HttpHeaderConstants.CONTENT_TYPE.toString());
-                    final ByteBufBackedTypedData typedData = new ByteBufBackedTypedData(response.content(), DefaultMediaType.get(contentType));
+                    ByteBuf responseBuffer = initBufferReleaseOnExecutionClose(response.content(), execution);
+                    final ByteBufBackedTypedData typedData = new ByteBufBackedTypedData(responseBuffer, DefaultMediaType.get(contentType));
 
                     final Status status = new DefaultStatus(response.getStatus().code(), response.getStatus().reasonPhrase());
                     fulfiller.success(new DefaultReceivedResponse(status, headers, typedData));
@@ -178,6 +182,16 @@ public class DefaultHttpClient implements HttpClient {
         });
       }
     });
+  }
+
+  private static ByteBuf initBufferReleaseOnExecutionClose(final ByteBuf responseBuffer, Execution execution) {
+    execution.onComplete(new Runnable() {
+      @Override
+      public void run() {
+        responseBuffer.release();
+      }
+    });
+    return responseBuffer.retain();
   }
 
   private static String getFullPath(URI uri) {

@@ -22,19 +22,14 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import ratpack.exec.*;
+import ratpack.exec.ExecutionException;
 import ratpack.func.Action;
 import ratpack.handling.internal.InterceptedOperation;
 import ratpack.registry.internal.SimpleMutableRegistry;
 import ratpack.util.ExceptionUtils;
 
-import java.util.Collections;
-import java.util.Deque;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ConcurrentLinkedDeque;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.*;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class DefaultExecController implements ExecController {
@@ -59,7 +54,7 @@ public class DefaultExecController implements ExecController {
     return Optional.fromNullable(THREAD_BINDING.get());
   }
 
-  public void shutdown() throws Exception {
+  public void close() {
     eventLoopGroup.shutdownGracefully(0, 0, TimeUnit.SECONDS);
     blockingExecutor.shutdown();
   }
@@ -85,28 +80,23 @@ public class DefaultExecController implements ExecController {
   }
 
   @Override
-  public void start(Action<? super ratpack.exec.Execution> action) {
-    new Execution().resume(action);
-  }
-
-  private static class ErrorContext {
-    private final Throwable error;
-    private final Action<? super Throwable> handler;
-
-    private ErrorContext(Throwable error, Action<? super Throwable> handler) {
-      this.error = error;
-      this.handler = handler;
+  public void start(final Action<? super ratpack.exec.Execution> action) {
+    if (!isManagedThread() || executionHolder.get() != null) {
+      computeExecutor.submit(new Runnable() {
+        @Override
+        public void run() {
+          start(action);
+        }
+      });
+    } else {
+      new Execution(action);
     }
-
-    public void apply() throws Exception {
-      handler.execute(error);
-    }
-
   }
 
   public class Execution extends SimpleMutableRegistry implements ratpack.exec.Execution {
     private final List<ExecInterceptor> interceptors = new LinkedList<>();
     private final Deque<Runnable> segments = new ConcurrentLinkedDeque<>();
+    private final Queue<Runnable> onCompletes = new ConcurrentLinkedQueue<>();
 
     private Action<? super Throwable> errorHandler = new Action<Throwable>() {
       @Override
@@ -114,11 +104,25 @@ public class DefaultExecController implements ExecController {
         throw ExceptionUtils.toException(throwable);
       }
     };
-    private ErrorContext errorContext;
 
     private final AtomicBoolean active = new AtomicBoolean();
     private boolean waiting;
     private boolean done;
+
+    public Execution(Action<? super ratpack.exec.Execution> action) {
+      segments.addLast(new UserCodeSegment(action));
+      tryDrain();
+    }
+
+    @Override
+    public <T> Promise<T> blocking(Callable<T> blockingOperation) {
+      return control.blocking(blockingOperation);
+    }
+
+    @Override
+    public <T> Promise<T> promise(Action<? super Fulfiller<T>> action) {
+      return control.promise(action);
+    }
 
     @Override
     public void setErrorHandler(Action<? super Throwable> errorHandler) {
@@ -131,30 +135,14 @@ public class DefaultExecController implements ExecController {
       intercept(ExecInterceptor.ExecType.COMPUTE, Collections.singletonList(execInterceptor), continuation);
     }
 
-    private void assertBound() {
-      if (getExecution() != this) {
-        throw new ExecutionException("execution overlap");
-      }
-    }
-
-    @Override
-    public void error(Throwable throwable) {
-      assertBound();
-      errorContext = new ErrorContext(throwable, errorHandler);
-    }
-
     @Override
     public ExecController getController() {
       return DefaultExecController.this;
     }
 
-    public void resume(final Action<? super ratpack.exec.Execution> action) {
-      segments.addLast(new ComputeRunnable(action));
-      tryDrain();
-    }
 
     public void join(final Action<? super ratpack.exec.Execution> action) {
-      segments.addFirst(new ComputeRunnable(action));
+      segments.addFirst(new UserCodeSegment(action));
       waiting = false;
       tryDrain();
     }
@@ -173,6 +161,22 @@ public class DefaultExecController implements ExecController {
       if (!done && !waiting && !segments.isEmpty()) {
         if (active.compareAndSet(false, true)) {
           drain();
+          if (done) {
+            runOnCompletes();
+          }
+        }
+      }
+    }
+
+    private void runOnCompletes() {
+      Runnable onComplete = onCompletes.poll();
+      while (onComplete != null) {
+        try {
+          onComplete.run();
+        } catch (Exception e) {
+          e.printStackTrace();
+        } finally {
+          onComplete = onCompletes.poll();
         }
       }
     }
@@ -194,13 +198,13 @@ public class DefaultExecController implements ExecController {
           executionHolder.remove();
           active.set(false);
         }
-
         tryDrain();
       } else {
+        active.set(false);
         eventLoopGroup.submit(new Runnable() {
           @Override
           public void run() {
-            drain();
+            tryDrain();
           }
         });
       }
@@ -209,6 +213,11 @@ public class DefaultExecController implements ExecController {
     @Override
     public void complete() {
       done = true;
+    }
+
+    @Override
+    public void onComplete(Runnable runnable) {
+      onCompletes.add(runnable);
     }
 
     public void intercept(final ExecInterceptor.ExecType execType, final List<ExecInterceptor> interceptors, final Action<? super Execution> action) throws Exception {
@@ -220,34 +229,41 @@ public class DefaultExecController implements ExecController {
       }.run();
     }
 
-    private class ComputeRunnable implements Runnable {
+    /**
+     * An execution segment that executes “user code” (i.e. not execution management infrastructure)
+     */
+    private class UserCodeSegment implements Runnable {
       private final Action<? super ratpack.exec.Execution> action;
 
-      public ComputeRunnable(Action<? super ratpack.exec.Execution> action) {
+      public UserCodeSegment(Action<? super ratpack.exec.Execution> action) {
         this.action = action;
       }
 
       @Override
       public void run() {
         try {
-          intercept(ExecInterceptor.ExecType.COMPUTE, interceptors, action);
-        } catch (Throwable e) {
-          error(e);
-        }
-
-        if (errorContext != null) {
           try {
-            segments.addLast(new Runnable() {
-              @Override
-              public void run() {
-                done = true;
-              }
-            });
-            errorContext.apply();
-          } catch (Throwable e) {
-            // TODO - error was unhandled, have to deal with it somehow
-            e.printStackTrace();
+            intercept(ExecInterceptor.ExecType.COMPUTE, interceptors, action);
+          } catch (ExecutionSegmentTerminationError e) {
+            throw e.getCause();
           }
+        } catch (final Throwable e) {
+          segments.clear();
+          segments.addFirst(new Runnable() {
+            @Override
+            public void run() {
+              try {
+                errorHandler.execute(e);
+              } catch (final Throwable e) {
+                segments.addFirst(new UserCodeSegment(new Action<ratpack.exec.Execution>() {
+                  @Override
+                  public void execute(ratpack.exec.Execution execution) throws Exception {
+                    throw e;
+                  }
+                }));
+              }
+            }
+          });
         }
       }
     }

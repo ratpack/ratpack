@@ -21,6 +21,7 @@ import ratpack.exec.OverlappingExecutionException;
 import ratpack.exec.SuccessPromise;
 import ratpack.exec.internal.DefaultExecController.Execution;
 import ratpack.func.Action;
+import ratpack.util.ExceptionUtils;
 import ratpack.util.internal.InternalRatpackError;
 
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -85,7 +86,7 @@ public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
               execution.join(new Action<ratpack.exec.Execution>() {
                 @Override
                 public void execute(ratpack.exec.Execution execution) throws Exception {
-                  execution.error(e);
+                  throw ExceptionUtils.toException(e);
                 }
               });
             }

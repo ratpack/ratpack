@@ -23,15 +23,14 @@ import ratpack.handling.Context
 import ratpack.handling.Handler
 import ratpack.test.internal.RatpackGroovyDslSpec
 import rx.Observable
-import rx.Subscriber
 import rx.exceptions.CompositeException
 import rx.functions.Action0
 import rx.functions.Action1
 
 import static ratpack.groovy.test.TestHttpClients.testHttpClient
 import static ratpack.groovy.test.embed.EmbeddedApplications.embeddedApp
-import static ratpack.rx.RxRatpack.contextualize
 import static ratpack.rx.RxRatpack.observe
+import static ratpack.rx.RxRatpack.subscriber
 
 class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
 
@@ -294,50 +293,22 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
     given:
     handlers {
       get { ExecController execController ->
-        Observable.create(new Observable.OnSubscribe<String>() {
-          @Override
-          void call(Subscriber<? super String> subscriber) {
-            execController.executor.execute {
-              subscriber.onError(error)
-            }
+        promise { f ->
+          execController.executor.execute {
+            Observable.error(error).subscribe(subscriber(f))
           }
-        }).subscribe {
-          context.render("unexpected")
+        } then {
+          render "unexpected"
         }
       }
     }
+
 
     when:
     get()
 
     then:
     errorHandler.errors == [error]
-  }
-
-  def "subscription can occur on non managed thread when contextualize is used"() {
-    given:
-    handlers {
-      get { ExecController execController ->
-        Observable.create(new Observable.OnSubscribe<String>() {
-          @Override
-          void call(Subscriber<? super String> subscriber) {
-            def s = contextualize(subscriber)
-            execController.executor.execute {
-              Observable.error(error).subscribe(s)
-            }
-          }
-        }).subscribe {
-          context.render("unexpected")
-        }
-      }
-    }
-
-    when:
-    get()
-
-    then:
-    errorHandler.errors == [error]
-
   }
 
 }

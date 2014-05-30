@@ -17,10 +17,7 @@
 package ratpack.rx;
 
 import com.google.common.base.Optional;
-import ratpack.exec.ExecController;
-import ratpack.exec.Execution;
-import ratpack.exec.ExecutionException;
-import ratpack.exec.Promise;
+import ratpack.exec.*;
 import ratpack.exec.internal.DefaultExecController;
 import ratpack.func.Action;
 import ratpack.util.ExceptionUtils;
@@ -28,6 +25,7 @@ import rx.Observable;
 import rx.Subscriber;
 import rx.exceptions.OnErrorNotImplementedException;
 import rx.functions.Action2;
+import rx.operators.OperatorSingle;
 import rx.plugins.RxJavaObservableExecutionHook;
 import rx.plugins.RxJavaPlugins;
 
@@ -41,7 +39,7 @@ import static ratpack.util.ExceptionUtils.toException;
 public abstract class RxRatpack {
 
   /**
-   * Registers an {@link RxJavaObservableExecutionHook} with RxJava that provides a default error handling strategy of {@link ratpack.exec.Execution#error(Throwable) forwarding exceptions to the execution}.
+   * Registers an {@link RxJavaObservableExecutionHook} with RxJava that provides a default error handling strategy of {@link ratpack.exec.Execution#setErrorHandler(ratpack.func.Action)} forwarding exceptions to the execution}.
    * <p>
    * This method is idempotent.
    * It only needs to be called once per JVM, regardless of how many Ratpack applications are running within the JVM.
@@ -149,24 +147,6 @@ public abstract class RxRatpack {
       if (!(existingHook instanceof ExecutionHook)) {
         throw new IllegalStateException("Cannot install RxJava integration because another execution hook (" + existingHook.getClass() + ") is already installed");
       }
-    }
-  }
-
-  /**
-   * Decorates the given subscriber so that unhandled errors are delegated to the current exec context.
-   *
-   * TODO: better description
-   *
-   * @param subscriber
-   * @param <T>
-   * @return
-   */
-  public static <T> Subscriber<T> contextualize(Subscriber<T> subscriber) {
-    Optional<ExecController> threadBoundController = DefaultExecController.getThreadBoundController();
-    if (threadBoundController.isPresent()) {
-      return new ExecutionBackedSubscriber<>(subscriber, threadBoundController.get().getExecution());
-    } else {
-      return subscriber;
     }
   }
 
@@ -281,6 +261,26 @@ public abstract class RxRatpack {
     }));
   }
 
+
+  public static <T> Subscriber<? super T> subscriber(final Fulfiller<T> fulfiller) {
+    return new OperatorSingle<T>().call(new Subscriber<T>() {
+      @Override
+      public void onCompleted() {
+
+      }
+
+      @Override
+      public void onError(Throwable e) {
+        fulfiller.error(e);
+      }
+
+      @Override
+      public void onNext(T t) {
+        fulfiller.success(t);
+      }
+    });
+  }
+
   private static class PromiseSubscribe<T, S> implements Observable.OnSubscribe<S> {
 
     private final Promise<T> promise;
@@ -325,22 +325,27 @@ public abstract class RxRatpack {
 
   private static class ExecutionHook extends RxJavaObservableExecutionHook {
 
+    private Optional<Execution> getExecution() {
+      Optional<ExecController> threadBoundController = DefaultExecController.getThreadBoundController();
+      if (threadBoundController.isPresent()) {
+        try {
+          return Optional.of(threadBoundController.get().getExecution());
+        } catch (ExecutionException e) {
+          return Optional.absent();
+        }
+      } else {
+        return Optional.absent();
+      }
+    }
+
     @Override
     public <T> Observable.OnSubscribe<T> onSubscribeStart(Observable<? extends T> observableInstance, final Observable.OnSubscribe<T> onSubscribe) {
-      final Optional<ExecController> threadBoundController = DefaultExecController.getThreadBoundController();
-      if (threadBoundController.isPresent()) {
+      final Optional<Execution> execution = getExecution();
+      if (execution.isPresent()) {
         return new Observable.OnSubscribe<T>() {
           @Override
           public void call(final Subscriber<? super T> subscriber) {
-            Execution execution = null;
-            try {
-              execution = threadBoundController.get().getExecution();
-            } catch (ExecutionException e) {
-              onSubscribe.call(subscriber);
-            }
-            if (execution != null) {
-              onSubscribe.call(new ExecutionBackedSubscriber<>(subscriber, execution));
-            }
+            onSubscribe.call(new ExecutionBackedSubscriber<>(subscriber));
           }
         };
       } else {
@@ -348,15 +353,24 @@ public abstract class RxRatpack {
       }
     }
 
+    @Override
+    public <T> Throwable onSubscribeError(Throwable e) {
+      if (e instanceof ExecutionSegmentTerminationError) {
+        throw (ExecutionSegmentTerminationError) e;
+      } else if (e.getClass().equals(RuntimeException.class) || e.getCause() instanceof ExecutionSegmentTerminationError) {
+        throw (ExecutionSegmentTerminationError) e.getCause();
+      } else {
+        return e;
+      }
+    }
   }
+
 
   private static class ExecutionBackedSubscriber<T> extends Subscriber<T> {
     private final Subscriber<? super T> subscriber;
-    private final Execution execution;
 
-    public ExecutionBackedSubscriber(Subscriber<? super T> subscriber, Execution execution) {
+    public ExecutionBackedSubscriber(Subscriber<? super T> subscriber) {
       this.subscriber = subscriber;
-      this.execution = execution;
     }
 
     @Override
@@ -366,6 +380,10 @@ public abstract class RxRatpack {
 
     @Override
     public void onError(Throwable e) {
+      if (e instanceof ExecutionSegmentTerminationError) {
+        throw (ExecutionSegmentTerminationError) e;
+      }
+
       try {
         try {
           subscriber.onError(e);
@@ -373,12 +391,7 @@ public abstract class RxRatpack {
           throw onErrorNotImplementedException.getCause();
         }
       } catch (final Throwable throwable) {
-        execution.resume(new Action<Execution>() {
-          @Override
-          public void execute(Execution execution) throws Exception {
-            execution.error(throwable);
-          }
-        });
+        throw new ExecutionSegmentTerminationError(throwable);
       }
     }
 
@@ -391,9 +404,11 @@ public abstract class RxRatpack {
           throw onErrorNotImplementedException.getCause();
         }
       } catch (Throwable throwable) {
-        execution.error(throwable);
+        throw new ExecutionSegmentTerminationError(throwable);
       }
     }
   }
+
+
 }
 

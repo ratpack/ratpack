@@ -16,11 +16,10 @@
 
 package ratpack.reactor
 
-import ratpack.handling.Context
+import ratpack.exec.ExecController
 import ratpack.test.internal.RatpackGroovyDslSpec
 import reactor.core.Environment
 import reactor.core.Reactor
-import reactor.function.Consumer
 
 import static reactor.core.composable.spec.Promises.defer
 
@@ -35,34 +34,25 @@ class ReactorSpec extends RatpackGroovyDslSpec {
     }
 
     handlers {
-      get(":value") { Environment env ->
+      get(":value") { ExecController execController, Environment env ->
+
+        // Create a reactor deferred
         def deferred = defer(env)
-        Context context = context
 
-        deferred.
-          compose().
-          onSuccess(new Consumer<Integer>() {
-            void accept(Integer o) {
-              context.execution.resume {
-                context.response.send o.toString()
-              }
-            }
-          }).
-          onError(new Consumer<Throwable>() {
-            void accept(Throwable o) {
-              context.execution.resume {
-                context.error new Exception(o)
-              }
-            }
-          })
+        // Bridge the reactor deferred so that the value is consumed in the Ratpack event loop and execution is rejoined
+        RatpackReactor.consume(context, deferred) then {
+          render it
+        }
 
-        deferred.accept(4)
-
+        // Supply the value asynchronously
+        execController.executor.submit {
+          deferred.accept(pathTokens.value)
+        }
       }
     }
 
     then:
-    getText("2") == "4"
+    getText("2") == "2"
   }
 
 

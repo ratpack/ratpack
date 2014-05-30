@@ -60,8 +60,12 @@ class HandlersSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       get { ExecController execController ->
-        execution.resume {
-          render "ok"
+        promise { f ->
+          execController.start {
+            f.success("ok")
+          }
+        } then {
+          render it
         }
       }
     }

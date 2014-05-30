@@ -60,4 +60,35 @@ class HttpClientSmokeSpec extends HttpClientSpec {
     text == "bar"
   }
 
+  def "client response buffer is retained for the execution"() {
+    given:
+    otherApp {
+      get {
+        render "foo"
+      }
+    }
+
+    when:
+    handlers {
+      get { HttpClient httpClient ->
+
+        httpClient.get(otherAppUrl()).then {
+          def buffer = it.body.buffer
+          assert buffer.refCnt() == 2
+          blocking { 2 } then {
+            assert buffer.refCnt() == 1
+            render "bar"
+          }
+
+          execution.onComplete {
+            assert buffer.refCnt() == 0
+          }
+        }
+      }
+    }
+
+    then:
+    text == "bar"
+  }
+
 }

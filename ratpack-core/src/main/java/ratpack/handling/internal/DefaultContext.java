@@ -103,7 +103,7 @@ public class DefaultContext implements Context {
       this.execution.setErrorHandler(new Action<Throwable>() {
         @Override
         public void execute(Throwable throwable) throws Exception {
-          context.error(ExceptionUtils.toException(throwable));
+          context.error(ExceptionUtils.toException(throwable instanceof HandlerException ? throwable.getCause() : throwable));
         }
       });
     }
@@ -384,7 +384,19 @@ public class DefaultContext implements Context {
     try {
       handler.handle(context);
     } catch (Throwable e) {
-      context.error(ExceptionUtils.toException(e));
+      if (e instanceof HandlerException) {
+        throw (HandlerException) e;
+      } else {
+        throw new HandlerException(e);
+      }
+    }
+  }
+
+  private static class HandlerException extends Error {
+    private static final long serialVersionUID = 0;
+
+    private HandlerException(Throwable cause) {
+      super(cause);
     }
   }
 
