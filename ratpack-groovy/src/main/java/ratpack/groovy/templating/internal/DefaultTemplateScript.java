@@ -56,7 +56,7 @@ public abstract class DefaultTemplateScript extends Script implements TemplateSc
 
   @Override
   public String html(Object value) {
-    return ESCAPER.escape(value.toString());
+    return value == null ? "" : ESCAPER.escape(value.toString());
   }
 
   //CHECKSTYLE:OFF
