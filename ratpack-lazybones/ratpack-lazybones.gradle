@@ -20,7 +20,7 @@ buildscript {
   }
 
   dependencies {
-    classpath "uk.co.cacoethes:lazybones-gradle:1.0.2"
+    classpath "uk.co.cacoethes:lazybones-gradle:1.0.3"
   }
 }
 
@@ -43,4 +43,5 @@ lazybones {
   repositoryUrl = "https://api.bintray.com/content/ratpack/lazybones"
   repositoryUsername = project.hasProperty('ratpackBintrayUser') ? ratpackBintrayUser : ""
   repositoryApiKey = project.hasProperty('ratpackBintrayApiKey') ? ratpackBintrayApiKey : ""
+  publish = true
 }
