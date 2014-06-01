@@ -51,7 +51,7 @@ class ApiBackedGitHubData implements GitHubData {
         def url
         def builder
 
-        if (prUrl && !prUrl.isNull()) {
+        if (prUrl != null && !prUrl.isNull()) {
           url = prUrl.asText()
           builder = pullRequestsBuilder
         } else {
