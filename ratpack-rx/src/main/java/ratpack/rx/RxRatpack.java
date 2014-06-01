@@ -105,16 +105,18 @@ public abstract class RxRatpack {
    * import static ratpack.groovy.test.embed.EmbeddedApplications.embeddedApp
    * import static ratpack.groovy.test.TestHttpClients.testHttpClient
    *
+   * class CustomErrorHandler implements ServerErrorHandler {
+   *   void error(Context context, Exception exception) {
+   *     context.render("caught by error handler!")
+   *   }
+   * }
+   *
    * def app = embeddedApp {
    *   bindings {
    *     // Enable Rx integration
    *     RxRatpack.initialize()
    *
-   *     bind ServerErrorHandler, new ServerErrorHandler() {
-   *       void error(Context context, Exception exception) {
-   *         context.render("caught by error handler!")
-   *       }
-   *     }
+   *     bind ServerErrorHandler, CustomErrorHandler
    *   }
    *
    *   handlers {
@@ -354,7 +356,7 @@ public abstract class RxRatpack {
     }
 
     @Override
-    public <T> Throwable onSubscribeError(Throwable e) {
+    public Throwable onSubscribeError(Throwable e) {
       if (e instanceof ExecutionSegmentTerminationError) {
         throw (ExecutionSegmentTerminationError) e;
       } else if (e.getClass().equals(RuntimeException.class) || e.getCause() instanceof ExecutionSegmentTerminationError) {

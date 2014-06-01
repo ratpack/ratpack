@@ -111,17 +111,19 @@ import java.lang.reflect.Type;
  *   }
  * }
  *
+ * class SecurityModule extends AbstractModule {
+ *   protected void configure() {
+ *     bind(new TypeLiteral&lt;Client&lt;OpenIdCredentials, GoogleOpenIdProfile&gt;&gt;() {}).to(GoogleOpenIdClient)
+ *     bind(Authorizer).to(AuthenticateAllAuthorizer)
+ *   }
+ * }
+ *
  * ratpack {
  *   bindings {
  *     add new SessionModule(),
  *         new MapSessionsModule(10, 5),
  *         new InjectedPac4jModule&lt;&gt;(OpenIdCredentials, GoogleOpenIdProfile),
- *         new AbstractModule() {
- *           protected void configure() {
- *             bind(new TypeLiteral&lt;Client&lt;OpenIdCredentials, GoogleOpenIdProfile&gt;&gt;() {}).to(GoogleOpenIdClient)
- *             bind(Authorizer).to(AuthenticateAllAuthorizer)
- *           }
- *         }
+ *         new SecurityModule()
  *   }
  *   handlers {
  *     get {
