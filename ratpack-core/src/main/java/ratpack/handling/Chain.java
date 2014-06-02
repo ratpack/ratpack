@@ -481,6 +481,6 @@ public interface Chain {
    */
   Chain insert(Action<? super Chain> action) throws Exception;
 
-  Chain redirect(String location, int code) throws Exception;
+  Chain redirect(String location, int code, Handler handler) throws Exception;
 
 }

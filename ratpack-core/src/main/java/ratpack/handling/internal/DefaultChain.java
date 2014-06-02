@@ -162,6 +162,6 @@ public class DefaultChain implements Chain {
   }
 
   @Override
-  public Chain redirect(String location, int code) throws Exception { return handler(Handlers.redirect(location, code)); }
+  public Chain redirect(String location, int code, Handler handler) throws Exception { return handler(Handlers.redirect(location, code)); }
 
 }

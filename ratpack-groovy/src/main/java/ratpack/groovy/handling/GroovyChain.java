@@ -385,4 +385,9 @@ public interface GroovyChain extends Chain {
    */
   GroovyChain insert(@DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) throws Exception;
 
+  GroovyChain redirect(String location, int code, Handler handler) throws Exception;
+
+  GroovyChain redirect(String location, int code, @DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler) throws Exception;
+
+
 }
