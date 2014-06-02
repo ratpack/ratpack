@@ -21,10 +21,7 @@ import ratpack.file.internal.AssetHandler;
 import ratpack.file.internal.FileSystemBindingHandler;
 import ratpack.func.Action;
 import ratpack.handling.internal.*;
-import ratpack.http.internal.AcceptsHandler;
-import ratpack.http.internal.ContentTypeHandler;
-import ratpack.http.internal.HeaderHandler;
-import ratpack.http.internal.MethodHandler;
+import ratpack.http.internal.*;
 import ratpack.launch.LaunchConfig;
 import ratpack.path.PathBinder;
 import ratpack.path.PathBinders;
@@ -309,5 +306,8 @@ public abstract class Handlers {
   public static Handler register(Registry registry) {
     return new RegistryNextHandler(registry);
   }
+
+
+  public static Handler redirect(String location, int code) { return new RedirectionHandler(location, code); }
 
 }
