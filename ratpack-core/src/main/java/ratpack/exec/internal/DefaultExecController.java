@@ -42,8 +42,10 @@ public class DefaultExecController implements ExecController {
   private final ListeningExecutorService blockingExecutor;
   private final EventLoopGroup eventLoopGroup;
   private final ExecControl control;
+  private final int numThreads;
 
   public DefaultExecController(int numThreads) {
+    this.numThreads = numThreads;
     this.eventLoopGroup = new NioEventLoopGroup(numThreads, new ExecControllerBindingThreadFactory("ratpack-compute", Thread.MAX_PRIORITY));
     this.computeExecutor = MoreExecutors.listeningDecorator(eventLoopGroup);
     this.blockingExecutor = MoreExecutors.listeningDecorator(Executors.newCachedThreadPool(new ExecControllerBindingThreadFactory("ratpack-blocking", Thread.NORM_PRIORITY)));
@@ -360,6 +362,11 @@ public class DefaultExecController implements ExecController {
   public boolean isManagedThread() {
     Optional<ExecController> threadBoundController = getThreadBoundController();
     return threadBoundController.isPresent() && threadBoundController.get() == this;
+  }
+
+  @Override
+  public int getNumThreads() {
+    return numThreads;
   }
 
 }

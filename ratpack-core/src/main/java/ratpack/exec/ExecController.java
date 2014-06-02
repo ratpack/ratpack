@@ -75,6 +75,8 @@ public interface ExecController extends AutoCloseable {
    */
   boolean isManagedThread();
 
+  int getNumThreads();
+
   @Override
   void close();
 
