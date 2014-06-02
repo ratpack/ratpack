@@ -24,6 +24,7 @@ import io.netty.util.concurrent.DefaultThreadFactory;
 import ratpack.exec.*;
 import ratpack.exec.ExecutionException;
 import ratpack.func.Action;
+import ratpack.func.Factory;
 import ratpack.handling.internal.InterceptedOperation;
 import ratpack.registry.internal.SimpleMutableRegistry;
 import ratpack.util.ExceptionUtils;
@@ -52,15 +53,16 @@ public class DefaultExecController implements ExecController {
     this.control = new DynamicExecControl();
   }
 
-  private class DynamicExecControl implements ExecControl {
-    @Override
-    public <T> Promise<T> blocking(Callable<T> blockingOperation) {
-      return getExecution().blocking(blockingOperation);
-    }
+  private class DynamicExecControl extends FactoryBackedExecControl {
 
     @Override
-    public <T> Promise<T> promise(Action<? super Fulfiller<T>> action) {
-      return getExecution().promise(action);
+    protected Factory<Execution> getExecutionFactory() {
+      return new Factory<Execution>() {
+        @Override
+        public Execution create() {
+          return getExecution();
+        }
+      };
     }
   }
 
@@ -107,47 +109,36 @@ public class DefaultExecController implements ExecController {
     }
   }
 
-  public class Execution extends SimpleMutableRegistry implements ratpack.exec.Execution {
-    private final List<ExecInterceptor> interceptors = new LinkedList<>();
-    private final Deque<Runnable> segments = new ConcurrentLinkedDeque<>();
-    private final Queue<Runnable> onCompletes = new ConcurrentLinkedQueue<>();
+  private abstract class FactoryBackedExecControl implements ExecControl {
 
-    private Action<? super Throwable> errorHandler = new Action<Throwable>() {
-      @Override
-      public void execute(Throwable throwable) throws Exception {
-        throw ExceptionUtils.toException(throwable);
-      }
-    };
-
-    private final AtomicBoolean active = new AtomicBoolean();
-    private boolean waiting;
-    private boolean done;
-
-    public Execution(Action<? super ratpack.exec.Execution> action) {
-      segments.addLast(new UserCodeSegment(action));
-      tryDrain();
-    }
+    protected abstract Factory<Execution> getExecutionFactory();
 
     @Override
-    public <T> Promise<T> blocking(final Callable<T> operation) {
+    public <T> Promise<T> blocking(final Callable<T> blockingOperation) {
       return promise(new Action<Fulfiller<? super T>>() {
         @Override
         public void execute(final Fulfiller<? super T> fulfiller) throws Exception {
-          ListenableFuture<T> future = blockingExecutor.submit(new BlockingOperation());
+          final Execution execution = getExecutionFactory().create();
+          ListenableFuture<T> future = blockingExecutor.submit(new BlockingOperation(execution));
           Futures.addCallback(future, new ComputeResume(fulfiller), computeExecutor);
         }
 
         class BlockingOperation implements Callable<T> {
+          private final Execution execution;
           private Exception exception;
           private T result;
 
+          public BlockingOperation(Execution execution) {
+            this.execution = execution;
+          }
+
           @Override
           public T call() throws Exception {
-            intercept(ExecInterceptor.ExecType.BLOCKING, interceptors, new Action<Execution>() {
+            execution.intercept(ExecInterceptor.ExecType.BLOCKING, execution.interceptors, new Action<Execution>() {
               @Override
               public void execute(Execution execution) throws Exception {
                 try {
-                  result = operation.call();
+                  result = blockingOperation.call();
                 } catch (Exception e) {
                   exception = e;
                 }
@@ -181,11 +172,56 @@ public class DefaultExecController implements ExecController {
           }
         }
       });
+
     }
 
     @Override
+    public <T> Promise<T> promise(Action<? super Fulfiller<T>> action) {
+      return new DefaultPromise<>(getExecutionFactory(), action);
+    }
+  }
+
+  public class Execution extends SimpleMutableRegistry implements ratpack.exec.Execution {
+    private final List<ExecInterceptor> interceptors = new LinkedList<>();
+    private final Deque<Runnable> segments = new ConcurrentLinkedDeque<>();
+    private final Queue<Runnable> onCompletes = new ConcurrentLinkedQueue<>();
+    private final ExecControl execControl = new FactoryBackedExecControl() {
+      @Override
+      protected Factory<Execution> getExecutionFactory() {
+        return new Factory<Execution>() {
+          @Override
+          public Execution create() {
+            return Execution.this;
+          }
+        };
+      }
+    };
+
+    private Action<? super Throwable> errorHandler = new Action<Throwable>() {
+      @Override
+      public void execute(Throwable throwable) throws Exception {
+        throw ExceptionUtils.toException(throwable);
+      }
+    };
+
+    private final AtomicBoolean active = new AtomicBoolean();
+    private boolean waiting;
+    private boolean done;
+
+    public Execution(Action<? super ratpack.exec.Execution> action) {
+      segments.addLast(new UserCodeSegment(action));
+      tryDrain();
+    }
+
+    @Override
+    public <T> Promise<T> blocking(final Callable<T> operation) {
+      return execControl.blocking(operation);
+    }
+
+
+    @Override
     public <T> Promise<T> promise(final Action<? super Fulfiller<T>> action) {
-      return new DefaultPromise<>(getExecution(), action);
+      return execControl.promise(action);
     }
 
     @Override
@@ -276,7 +312,13 @@ public class DefaultExecController implements ExecController {
 
     @Override
     public void complete() {
-      done = true;
+      continueVia(new Runnable() {
+        @Override
+        public void run() {
+          done = true;
+        }
+      });
+      tryDrain();
     }
 
     @Override

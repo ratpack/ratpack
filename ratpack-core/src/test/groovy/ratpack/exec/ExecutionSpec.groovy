@@ -126,5 +126,32 @@ class ExecutionSpec extends Specification {
     events == ["e1", "e2"]
   }
 
+  def "promise is bound to subscribing execution"() {
+    when:
+    exec { e1 ->
+      def p = deferredPromise { it.success(2) }
 
+      e1.controller.start { e2 ->
+        e2.onComplete {
+          e1.complete()
+        }
+        p.then {
+          assert e2.controller.execution == e2
+          events << "then"
+          e2.complete()
+        }
+      }
+    }
+
+    then:
+    events == ["then"]
+  }
+
+  def <T> Promise<T> deferredPromise(Action<Fulfiller<T>> action) {
+    controller.control.promise { f ->
+      Thread.start {
+        action.execute(f)
+      }
+    }
+  }
 }

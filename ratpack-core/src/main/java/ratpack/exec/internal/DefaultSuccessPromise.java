@@ -21,6 +21,7 @@ import ratpack.exec.OverlappingExecutionException;
 import ratpack.exec.SuccessPromise;
 import ratpack.exec.internal.DefaultExecController.Execution;
 import ratpack.func.Action;
+import ratpack.func.Factory;
 import ratpack.util.ExceptionUtils;
 import ratpack.util.internal.InternalRatpackError;
 
@@ -28,12 +29,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
 
-  private final Execution execution;
+  private final Factory<Execution> executionFactory;
   private final Action<? super Fulfiller<T>> action;
   private final Action<? super Throwable> errorHandler;
 
-  public DefaultSuccessPromise(Execution execution, Action<? super Fulfiller<T>> action, Action<? super Throwable> errorHandler) {
-    this.execution = execution;
+  public DefaultSuccessPromise(Factory<Execution> executionFactory, Action<? super Fulfiller<T>> action, Action<? super Throwable> errorHandler) {
+    this.executionFactory = executionFactory;
     this.action = action;
     this.errorHandler = errorHandler;
   }
@@ -41,6 +42,7 @@ public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
   @Override
   public void then(final Action<? super T> then) {
     try {
+      final Execution execution = executionFactory.create();
       execution.continueVia(new Runnable() {
 
         private final AtomicBoolean fulfilled = new AtomicBoolean();

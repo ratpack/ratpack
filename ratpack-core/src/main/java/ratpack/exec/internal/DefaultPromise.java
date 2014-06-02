@@ -21,14 +21,15 @@ import ratpack.exec.Promise;
 import ratpack.exec.SuccessPromise;
 import ratpack.exec.internal.DefaultExecController.Execution;
 import ratpack.func.Action;
+import ratpack.func.Factory;
 
 import static ratpack.util.ExceptionUtils.toException;
 
 public class DefaultPromise<T> implements Promise<T> {
   private final Action<? super Fulfiller<T>> fulfillment;
-  private final Execution execution;
+  private final Factory<Execution> execution;
 
-  public DefaultPromise(Execution execution, Action<? super Fulfiller<T>> fulfillment) {
+  public DefaultPromise(Factory<Execution> execution, Action<? super Fulfiller<T>> fulfillment) {
     this.execution = execution;
     this.fulfillment = fulfillment;
   }
