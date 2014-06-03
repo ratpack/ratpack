@@ -30,42 +30,6 @@ public abstract class Registries {
   }
 
   /**
-   * Adds a registry entry that is available by the given type.
-   *
-   * @param type the public type of the registry entry
-   * @param object the actual registry entry
-   * @param <O> the public type of the registry entry
-   * @return this
-   */
-  public static <O> RegistryBuilder add(Class<? super O> type, O object) {
-    return registry().add(type, object);
-  }
-
-  /**
-   * Adds a registry entry.
-   *
-   * @param object the object to add to the registry
-   * @return this
-   */
-  public static RegistryBuilder add(Object object) {
-    return registry().add(object);
-  }
-
-  /**
-   * Adds a lazily created entry to the registry.
-   * <p>
-   * The factory will be invoked exactly once, when a query is made to the registry of a compatible type of the given type.
-   *
-   * @param type the public type of the registry entry
-   * @param factory the factory for creating the object when needed
-   * @param <O> the public type of the registry entry
-   * @return this
-   */
-  public static <O> RegistryBuilder add(Class<O> type, Factory<? extends O> factory) {
-    return registry().add(type, factory);
-  }
-
-  /**
    * Joins the given registries into a new registry.
    * <p>
    * The returned registry is effectively the union of the two registries, with the {@code child} taking precedence.
