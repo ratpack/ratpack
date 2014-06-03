@@ -35,4 +35,21 @@ class RedirectionHandleSpec extends RatpackGroovyDslSpec {
     response.header('Location') == 'http://www.ratpack.io'
   }
 
+  def "it checks that the desired status code is a 3XX one"() {
+    given:
+    handlers {
+      handler(Handlers.redirect('http://www.ratpack.io', statusCode))
+    }
+
+    when:
+    get()
+
+    then:
+    response.statusCode == 500
+
+    where:
+    statusCode << [299, 400]
+
+  }
+
 }

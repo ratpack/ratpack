@@ -307,7 +307,12 @@ public abstract class Handlers {
     return new RegistryNextHandler(registry);
   }
 
-
+  /**
+   * Creates a handler that sends an HTTP redirect to the specified location with the given HTTP status code
+   * @param location the URL to set in the Location response header
+   * @param code the 3XX HTTP status code
+   * @return a handler
+   */
   public static Handler redirect(String location, int code) { return new RedirectionHandler(location, code); }
 
 }

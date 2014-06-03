@@ -32,6 +32,10 @@ public class RedirectionHandler implements Handler {
   }
 
   public void handle(Context context) {
-    context.get(Redirector.class).redirect(context, location, code);
+    if (code < 300 || code >= 400) {
+      context.error(new Exception("HTTP status code has to be >= 300 and <= 399"));
+    } else {
+      context.get(Redirector.class).redirect(context, location, code);
+    }
   }
 }
