@@ -35,8 +35,6 @@ public interface Execution extends MutableRegistry, ExecControl {
 
   ExecController getController();
 
-  void complete();
-
   void onComplete(Runnable runnable);
 
 }

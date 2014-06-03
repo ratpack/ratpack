@@ -167,8 +167,6 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
             responseHeaders.set("X-Response-Time", NumberUtil.toMillisDiffString(startTime, stopTime));
           }
 
-          execController.getExecution().complete();
-
           channel.writeAndFlush(nettyResponse);
           channel.write(new DefaultHttpContent(byteBuf));
           ChannelFuture future = channel.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
