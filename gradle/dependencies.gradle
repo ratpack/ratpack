@@ -21,7 +21,7 @@ ext {
     netty: "4.0.19.Final",
     groovy: "2.3.2",
     pac4j: "1.5.1",
-    rxjava: "0.18.1",
+    rxjava: "0.19.0",
     hystrix: "1.4.0-RC4"
   ]
 

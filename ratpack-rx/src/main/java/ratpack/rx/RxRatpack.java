@@ -25,7 +25,7 @@ import rx.Observable;
 import rx.Subscriber;
 import rx.exceptions.OnErrorNotImplementedException;
 import rx.functions.Action2;
-import rx.operators.OperatorSingle;
+import rx.internal.operators.OperatorSingle;
 import rx.plugins.RxJavaObservableExecutionHook;
 import rx.plugins.RxJavaPlugins;
 
@@ -37,6 +37,20 @@ import static ratpack.util.ExceptionUtils.toException;
  * <b>IMPORTANT:</b> the {@link #initialize()} method must be called to fully enable integration.
  */
 public abstract class RxRatpack {
+
+  private static boolean isDuringExecution() {
+    Optional<ExecController> threadBoundController = DefaultExecController.getThreadBoundController();
+    if (threadBoundController.isPresent()) {
+      try {
+        threadBoundController.get().getExecution();
+        return true;
+      } catch (ExecutionException e) {
+        return false;
+      }
+    } else {
+      return false;
+    }
+  }
 
   /**
    * Registers an {@link RxJavaObservableExecutionHook} with RxJava that provides a default error handling strategy of {@link ratpack.exec.Execution#setErrorHandler(ratpack.func.Action)} forwarding exceptions to the execution}.
@@ -263,7 +277,6 @@ public abstract class RxRatpack {
     }));
   }
 
-
   public static <T> Subscriber<? super T> subscriber(final Fulfiller<T> fulfiller) {
     return new OperatorSingle<T>().call(new Subscriber<T>() {
       @Override
@@ -327,23 +340,9 @@ public abstract class RxRatpack {
 
   private static class ExecutionHook extends RxJavaObservableExecutionHook {
 
-    private Optional<Execution> getExecution() {
-      Optional<ExecController> threadBoundController = DefaultExecController.getThreadBoundController();
-      if (threadBoundController.isPresent()) {
-        try {
-          return Optional.of(threadBoundController.get().getExecution());
-        } catch (ExecutionException e) {
-          return Optional.absent();
-        }
-      } else {
-        return Optional.absent();
-      }
-    }
-
     @Override
     public <T> Observable.OnSubscribe<T> onSubscribeStart(Observable<? extends T> observableInstance, final Observable.OnSubscribe<T> onSubscribe) {
-      final Optional<Execution> execution = getExecution();
-      if (execution.isPresent()) {
+      if (isDuringExecution()) {
         return new Observable.OnSubscribe<T>() {
           @Override
           public void call(final Subscriber<? super T> subscriber) {
@@ -366,7 +365,6 @@ public abstract class RxRatpack {
       }
     }
   }
-
 
   private static class ExecutionBackedSubscriber<T> extends Subscriber<T> {
     private final Subscriber<? super T> subscriber;
