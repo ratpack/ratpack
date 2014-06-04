@@ -330,7 +330,7 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
 
   def "can escape in template"() {
     given:
-    file "templates/tpl.html", "\${html '<>'}"
+    file "templates/tpl.html", "\${html '<>'} \${urlPathSegment 'a/b'} \${urlParam 'a b'}"
 
     when:
     handlers {
@@ -340,6 +340,6 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    text == "&lt;&gt;"
+    text == "&lt;&gt; a%2Fb a+b"
   }
 }

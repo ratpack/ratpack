@@ -64,5 +64,20 @@ public interface TemplateScript {
    */
   String html(Object value);
 
+  /**
+   * Escapes the toString() value of the given object, by way of {@link com.google.common.net.UrlEscapers#urlFormParameterEscaper()}.
+   *
+   * @param value the value to escape
+   * @return an escaped version of the given value
+   */
+  String urlParam(Object value);
+
+  /**
+   * Escapes the toString() value of the given object, by way of {@link com.google.common.net.UrlEscapers#urlPathSegmentEscaper()}.
+   *
+   * @param value the value to escape
+   * @return an escaped version of the given value
+   */
+  String urlPathSegment(Object value);
 
 }
