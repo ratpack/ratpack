@@ -16,11 +16,14 @@
 
 package ratpack.groovy.templating.internal;
 
+import com.google.common.reflect.TypeToken;
 import ratpack.groovy.templating.TemplateModel;
 
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
+
+import static ratpack.util.Types.cast;
 
 public class MapBackedTemplateModel implements TemplateModel {
 
@@ -98,14 +101,19 @@ public class MapBackedTemplateModel implements TemplateModel {
   }
 
   public <T> T get(String key, Class<T> type) {
+    return get(key, TypeToken.of(type));
+  }
+
+  @Override
+  public <T> T get(String key, TypeToken<T> type) {
     Object value = get(key);
     if (value == null) {
       return null;
     } else {
-      if (type.isInstance(value)) {
-        return type.cast(value);
+      if (type.getRawType().isInstance(value)) {
+        return cast(value);
       } else {
-        throw new RuntimeException(String.format("Template model object with key %s is of type %s, not requested %s (toString: %s)", key, type, value.getClass().getName(), value));
+        throw new IllegalArgumentException(String.format("Template model object with key '%s' is of type '%s', not requested '%s' (toString: %s)", key, value.getClass().getName(), type, value));
       }
     }
   }
