@@ -64,7 +64,7 @@ public class LaunchConfigBuilder {
   private int port = LaunchConfig.DEFAULT_PORT;
   private InetAddress address;
   private boolean reloadable;
-  private int mainThreads = Runtime.getRuntime().availableProcessors() * 2; // same default as Netty
+  private int threads = LaunchConfig.DEFAULT_THREADS;
   private URI publicAddress;
   private ImmutableList.Builder<String> indexFiles = ImmutableList.builder();
   private ImmutableMap.Builder<String, String> other = ImmutableMap.builder();
@@ -115,7 +115,7 @@ public class LaunchConfigBuilder {
   /**
    * Sets the port to bind to.
    * <p>
-   * Default value is {@value ratpack.launch.LaunchConfig#DEFAULT_PORT}.
+   * Default value is {@value LaunchConfig#DEFAULT_PORT}.
    *
    * @param port The port to bind to
    * @return this
@@ -157,7 +157,7 @@ public class LaunchConfigBuilder {
   /**
    * The number of threads to use.
    * <p>
-   * Default value is {@code Runtime.getRuntime().availableProcessors() * 2}.
+   * Defaults to {@link LaunchConfig#DEFAULT_THREADS}
    *
    * @param threads the size of the event loop thread pool
    * @return this
@@ -165,9 +165,9 @@ public class LaunchConfigBuilder {
    */
   public LaunchConfigBuilder threads(int threads) {
     if (threads < 1) {
-      throw new IllegalArgumentException("'threads' must be > 1");
+      throw new IllegalArgumentException("'threads' must be > 0");
     }
-    this.mainThreads = threads;
+    this.threads = threads;
     return this;
   }
 
@@ -202,7 +202,7 @@ public class LaunchConfigBuilder {
   /**
    * The max content length.
    *
-   * Default value is {@value ratpack.launch.LaunchConfig#DEFAULT_MAX_CONTENT_LENGTH}
+   * Default value is {@value LaunchConfig#DEFAULT_MAX_CONTENT_LENGTH}
    *
    * @param maxContentLength The max content length to accept.
    * @return this
@@ -320,7 +320,7 @@ public class LaunchConfigBuilder {
       port,
       address,
       reloadable,
-      mainThreads,
+      threads,
       byteBufAllocator,
       publicAddress,
       indexFiles.build(),

@@ -257,7 +257,7 @@ public abstract class LaunchConfigs {
       InetAddress address = props.asInetAddress(Property.ADDRESS);
       URI publicAddress = props.asURI(Property.PUBLIC_ADDRESS);
       boolean reloadable = props.asBoolean(Property.RELOADABLE, false);
-      int threads = props.asInt(Property.THREADS, 0);
+      int threads = props.asInt(Property.THREADS, LaunchConfig.DEFAULT_THREADS);
       List<String> indexFiles = props.asList(Property.INDEX_FILES);
       InputStream sslKeystore = props.asStream(Property.SSL_KEYSTORE_FILE);
       String sslKeystorePassword = props.asString(Property.SSL_KEYSTORE_PASSWORD, "");

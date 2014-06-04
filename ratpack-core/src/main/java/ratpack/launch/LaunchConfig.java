@@ -47,6 +47,13 @@ public interface LaunchConfig {
   public int DEFAULT_MAX_CONTENT_LENGTH = 65536;
 
   /**
+   * The default number of threads an application should use.
+   *
+   * Calculated as {@code Runtime.getRuntime().availableProcessors() * 2}.
+   */
+  public int DEFAULT_THREADS = Runtime.getRuntime().availableProcessors() * 2;
+
+  /**
    * The base dir of the application, which is also the initial {@link ratpack.file.FileSystemBinding}.
    *
    * @return The base dir of the application.
