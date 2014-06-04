@@ -37,7 +37,7 @@ Write the content, but don't close the milestone yet.
         1. Enter your user/pass
         1. Click “Close repository when done”
         1. Click “Sync”
-1. Publish Lazybones templates to Bintray: `./gradlew publishAllTemplates` - See below for credential requirements
+1. Publish Lazybones templates to Bintray: `./gradlew publishAllTemplates` - See below for credential requirements.  If you run this task more than once you may need to delete the published templates in Bintray first.
 
 ## Post
 
