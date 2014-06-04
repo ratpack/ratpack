@@ -64,7 +64,7 @@ public class LaunchConfigBuilder {
   private int port = LaunchConfig.DEFAULT_PORT;
   private InetAddress address;
   private boolean reloadable;
-  private int mainThreads;
+  private int mainThreads = Runtime.getRuntime().availableProcessors() * 2; // same default as Netty
   private URI publicAddress;
   private ImmutableList.Builder<String> indexFiles = ImmutableList.builder();
   private ImmutableMap.Builder<String, String> other = ImmutableMap.builder();
@@ -155,15 +155,18 @@ public class LaunchConfigBuilder {
   }
 
   /**
-   * How many request handling threads to use.
+   * The number of threads to use.
    * <p>
-   * Default value is {@code 0}.
+   * Default value is {@code Runtime.getRuntime().availableProcessors() * 2}.
    *
-   * @param threads the number of threads for handling application requests
+   * @param threads the size of the event loop thread pool
    * @return this
    * @see LaunchConfig#getThreads()
    */
   public LaunchConfigBuilder threads(int threads) {
+    if (threads < 1) {
+      throw new IllegalArgumentException("'threads' must be > 1");
+    }
     this.mainThreads = threads;
     return this;
   }
