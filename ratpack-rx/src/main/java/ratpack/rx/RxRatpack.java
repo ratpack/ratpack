@@ -20,14 +20,20 @@ import com.google.common.base.Optional;
 import ratpack.exec.*;
 import ratpack.exec.internal.DefaultExecController;
 import ratpack.func.Action;
+import ratpack.rx.internal.DefaultSchedulers;
+import ratpack.rx.internal.ExecControllerBackedScheduler;
 import ratpack.util.ExceptionUtils;
 import rx.Observable;
+import rx.Scheduler;
 import rx.Subscriber;
 import rx.exceptions.OnErrorNotImplementedException;
 import rx.functions.Action2;
 import rx.internal.operators.OperatorSingle;
+import rx.plugins.RxJavaDefaultSchedulers;
 import rx.plugins.RxJavaObservableExecutionHook;
 import rx.plugins.RxJavaPlugins;
+
+import java.util.List;
 
 import static ratpack.util.ExceptionUtils.toException;
 
@@ -155,6 +161,7 @@ public abstract class RxRatpack {
    */
   public static void initialize() {
     RxJavaPlugins plugins = RxJavaPlugins.getInstance();
+
     ExecutionHook ourHook = new ExecutionHook();
     try {
       plugins.registerObservableExecutionHook(ourHook);
@@ -164,6 +171,68 @@ public abstract class RxRatpack {
         throw new IllegalStateException("Cannot install RxJava integration because another execution hook (" + existingHook.getClass() + ") is already installed");
       }
     }
+
+    System.setProperty("rxjava.plugin." + RxJavaDefaultSchedulers.class.getSimpleName() + ".implementation", DefaultSchedulers.class.getName());
+    RxJavaDefaultSchedulers existingSchedulers = plugins.getDefaultSchedulers();
+    if (!(existingSchedulers instanceof DefaultSchedulers)) {
+      throw new IllegalStateException("Cannot install RxJava integration because another set of default schedulers (" + existingSchedulers.getClass() + ") is already installed");
+    }
+  }
+
+  /**
+   * A scheduler that uses the application event loop and initialises each job as an {@link ratpack.exec.Execution} (via {@link ratpack.exec.ExecController#start(ratpack.func.Action)}).
+   *
+   * @param execController the execution controller to back the scheduler
+   * @return a scheduler
+   */
+  public static Scheduler scheduler(final ExecController execController) {
+    return new ExecControllerBackedScheduler(execController);
+  }
+
+  /**
+   * Forks the current execution in order to subscribe to the given source, then joining the original execution with the source values.
+   * <p>
+   * This method supports parallelism in the observable stream.
+   * <p>
+   * This method uses {@link rx.Observable#toList()} on the given source to collect all values before returning control to the original execution.
+   * As such, {@code source} should not be an infinite or extremely large stream.
+   *
+   * @param execControl the execution control
+   * @param source the observable source
+   * @param <T> the type of item observed
+   * @return an observable stream equivalent to the given source
+   */
+  public static <T> Observable<T> forkAndJoin(final ExecControl execControl, final Observable<T> source) {
+    Promise<List<T>> promise = execControl.promise(new Action<Fulfiller<List<T>>>() {
+      @Override
+      public void execute(final Fulfiller<List<T>> fulfiller) throws Exception {
+        execControl.fork(new Action<Execution>() {
+          @Override
+          public void execute(Execution execution) throws Exception {
+            source
+              .toList()
+              .subscribe(new Subscriber<List<T>>() {
+                @Override
+                public void onCompleted() {
+
+                }
+
+                @Override
+                public void onError(Throwable e) {
+                  fulfiller.error(e);
+                }
+
+                @Override
+                public void onNext(List<T> ts) {
+                  fulfiller.success(ts);
+                }
+              });
+          }
+        });
+      }
+    });
+
+    return observeEach(promise);
   }
 
   /**
