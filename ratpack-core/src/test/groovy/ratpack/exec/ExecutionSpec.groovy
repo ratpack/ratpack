@@ -54,7 +54,7 @@ class ExecutionSpec extends Specification {
 
       e.promise { f ->
         events << "action"
-        controller.executor.submit {
+        e.fork {
           f.success(1)
         }
       } then {
@@ -127,12 +127,12 @@ class ExecutionSpec extends Specification {
 
     exec { e1 ->
       def p = e1.promise { f ->
-        Thread.start {
+        e1.fork {
           f.success(2)
         }
       }
 
-      e1.controller.start { e2 ->
+      e1.fork { e2 ->
         p.then {
           assert e2.controller.execution == e2
           events << "then"

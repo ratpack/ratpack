@@ -119,4 +119,16 @@ public interface ExecControl {
    */
   <T> Promise<T> promise(Action<? super Fulfiller<T>> action);
 
+  /**
+   * Forks a new execution on a separate thread.
+   * <p>
+   * This is similar to using {@code new Thread().run()} except that the action will be executed
+   * on a Ratpack managed thread, and will use Ratpack's execution semantics.
+   * <p>
+   * This is functionally equivalent to {@link ExecController#start(ratpack.func.Action)}.
+   *
+   * @param action the initial execution segment
+   */
+  void fork(Action<? super Execution> action);
+
 }

@@ -171,6 +171,11 @@ public class DefaultExecController implements ExecController {
     public <T> Promise<T> promise(Action<? super Fulfiller<T>> action) {
       return new DefaultPromise<>(executionFactory, action);
     }
+
+    @Override
+    public void fork(Action<? super ratpack.exec.Execution> action) {
+      start(action);
+    }
   }
 
   public class Execution extends SimpleMutableRegistry implements ratpack.exec.Execution {
@@ -203,6 +208,11 @@ public class DefaultExecController implements ExecController {
     @Override
     public <T> Promise<T> promise(final Action<? super Fulfiller<T>> action) {
       return control.promise(action);
+    }
+
+    @Override
+    public void fork(Action<? super ratpack.exec.Execution> action) {
+      control.fork(action);
     }
 
     @Override

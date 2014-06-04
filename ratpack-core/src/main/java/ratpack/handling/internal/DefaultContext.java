@@ -17,6 +17,7 @@
 package ratpack.handling.internal;
 
 import com.google.common.base.Predicate;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.reflect.TypeToken;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import ratpack.api.Nullable;
@@ -38,6 +39,7 @@ import ratpack.parse.Parser;
 import ratpack.parse.ParserException;
 import ratpack.path.PathBinding;
 import ratpack.path.PathTokens;
+import ratpack.path.internal.DefaultPathTokens;
 import ratpack.registry.NotInRegistryException;
 import ratpack.registry.Registries;
 import ratpack.registry.Registry;
@@ -150,6 +152,11 @@ public class DefaultContext implements Context {
   }
 
   @Override
+  public void fork(Action<? super Execution> action) {
+    requestConstants.applicationConstants.execControl.fork(action);
+  }
+
+  @Override
   public LaunchConfig getLaunchConfig() {
     return requestConstants.applicationConstants.launchConfig;
   }
@@ -220,7 +227,12 @@ public class DefaultContext implements Context {
   }
 
   public PathTokens getPathTokens() {
-    return get(PathBinding.class).getTokens();
+    PathBinding pathBinding = maybeGet(PathBinding.class);
+    if (pathBinding == null) {
+      return new DefaultPathTokens(ImmutableMap.<String, String>of());
+    } else {
+      return pathBinding.getTokens();
+    }
   }
 
   public PathTokens getAllPathTokens() {
