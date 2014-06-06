@@ -167,6 +167,11 @@ public class DefaultContext implements Context {
   }
 
   @Override
+  public <T> void subscribe(Publisher<T> publisher, Subscriber<T> subscriber) {
+    requestConstants.applicationConstants.execControl.subscribe(publisher, subscriber);
+  }
+
+  @Override
   public LaunchConfig getLaunchConfig() {
     return requestConstants.applicationConstants.launchConfig;
   }
