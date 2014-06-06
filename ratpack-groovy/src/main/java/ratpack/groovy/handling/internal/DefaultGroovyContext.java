@@ -19,6 +19,8 @@ package ratpack.groovy.handling.internal;
 import com.google.common.base.Predicate;
 import com.google.common.reflect.TypeToken;
 import groovy.lang.Closure;
+import org.reactivestreams.spi.Publisher;
+import org.reactivestreams.spi.Subscriber;
 import ratpack.api.NonBlocking;
 import ratpack.api.Nullable;
 import ratpack.exec.ExecInterceptor;
@@ -199,6 +201,11 @@ public class DefaultGroovyContext implements GroovyContext {
   @Override
   public void fork(Action<? super Execution> action) {
     delegate.fork(action);
+  }
+
+  @Override
+  public <T> void subscribe(Publisher<T> publisher, Subscriber<T> subscriber) {
+    delegate.subscribe(publisher, subscriber);
   }
 
   @Override

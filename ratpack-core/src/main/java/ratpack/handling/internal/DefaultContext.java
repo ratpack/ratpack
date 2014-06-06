@@ -22,6 +22,8 @@ import com.google.common.reflect.TypeToken;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.reactivestreams.spi.Publisher;
+import org.reactivestreams.spi.Subscriber;
 import ratpack.api.Nullable;
 import ratpack.error.ClientErrorHandler;
 import ratpack.error.ServerErrorHandler;
@@ -157,6 +159,11 @@ public class DefaultContext implements Context {
   @Override
   public void fork(Action<? super Execution> action) {
     requestConstants.applicationConstants.execControl.fork(action);
+  }
+
+  @Override
+  public <T> void subscribe(Publisher<T> publisher, Subscriber<T> subscriber) {
+    requestConstants.applicationConstants.execControl.subscribe(publisher, subscriber);
   }
 
   @Override

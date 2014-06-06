@@ -21,6 +21,9 @@ import com.google.common.util.concurrent.*;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.util.concurrent.DefaultThreadFactory;
+import org.reactivestreams.spi.Publisher;
+import org.reactivestreams.spi.Subscriber;
+import org.reactivestreams.spi.Subscription;
 import ratpack.exec.*;
 import ratpack.exec.ExecutionException;
 import ratpack.func.Action;
@@ -180,6 +183,53 @@ public class DefaultExecController implements ExecController {
     public void fork(Action<? super ratpack.exec.Execution> action) {
       start(action);
     }
+
+    @Override
+    public <T> void subscribe(Publisher<T> publisher, final Subscriber<T> subscriber) {
+      publisher.subscribe(new Subscriber<T>() {
+        final Execution execution = getExecution();
+
+        @Override
+        public void onSubscribe(final Subscription subscription) {
+          this.execution.continueVia(new Runnable() {
+            @Override
+            public void run() {
+              subscriber.onSubscribe(subscription);
+            }
+          });
+        }
+
+        @Override
+        public void onNext(final T element) {
+          this.execution.continueExecutionAndWait(new Action<ratpack.exec.Execution>() {
+            @Override
+            public void execute(ratpack.exec.Execution execution) throws Exception {
+              subscriber.onNext(element);
+            }
+          });
+        }
+
+        @Override
+        public void onComplete() {
+          this.execution.joinExecutionEnd(new Action<ratpack.exec.Execution>() {
+            @Override
+            public void execute(ratpack.exec.Execution execution) throws Exception {
+              subscriber.onComplete();
+            }
+          });
+        }
+
+        @Override
+        public void onError(final Throwable cause) {
+          this.execution.joinExecutionEnd(new Action<ratpack.exec.Execution>() {
+            @Override
+            public void execute(ratpack.exec.Execution execution) throws Exception {
+              subscriber.onError(cause);
+            }
+          });
+        }
+      });
+    }
   }
 
   public class Execution extends SimpleMutableRegistry implements ratpack.exec.Execution {
@@ -220,6 +270,11 @@ public class DefaultExecController implements ExecController {
     }
 
     @Override
+    public <T> void subscribe(Publisher<T> publisher, Subscriber<T> subscriber) {
+      control.subscribe(publisher, subscriber);
+    }
+
+    @Override
     public void setErrorHandler(Action<? super Throwable> errorHandler) {
       this.errorHandler = errorHandler;
     }
@@ -240,6 +295,19 @@ public class DefaultExecController implements ExecController {
       segments.addFirst(new UserCodeSegment(action));
       waiting = false;
       tryDrain();
+    }
+
+    public void joinExecutionEnd(final Action<? super ratpack.exec.Execution> action) {
+      segments.addLast(new UserCodeSegment(action));
+      waiting = false;
+      tryDrain();
+    }
+
+    public void continueExecutionAndWait(final Action<? super ratpack.exec.Execution> action) {
+      segments.add(new UserCodeSegment(action));
+      waiting = false;
+      tryDrain();
+      waiting = true;
     }
 
     public void continueVia(final Runnable runnable) {

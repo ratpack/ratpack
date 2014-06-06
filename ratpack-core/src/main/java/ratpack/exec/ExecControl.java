@@ -16,6 +16,8 @@
 
 package ratpack.exec;
 
+import org.reactivestreams.spi.Publisher;
+import org.reactivestreams.spi.Subscriber;
 import ratpack.func.Action;
 
 import java.util.concurrent.Callable;
@@ -178,4 +180,5 @@ public interface ExecControl {
    */
   void fork(Action<? super Execution> action);
 
+  <T> void subscribe(Publisher<T> publisher, Subscriber<T> subscriber);
 }
