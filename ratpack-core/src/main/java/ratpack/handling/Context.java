@@ -18,6 +18,8 @@ package ratpack.handling;
 
 import com.google.common.base.Predicate;
 import com.google.common.reflect.TypeToken;
+import org.reactivestreams.spi.Publisher;
+import org.reactivestreams.spi.Subscriber;
 import ratpack.api.NonBlocking;
 import ratpack.api.Nullable;
 import ratpack.exec.*;
@@ -471,6 +473,8 @@ public interface Context extends ExecControl, Registry {
    */
   @Override
   void fork(Action<? super Execution> action);
+
+  <T> void subscribe(Publisher<T> publisher, Subscriber<T> subscriber);
 
   /**
    * Forwards the error to the {@link ratpack.error.ClientErrorHandler} in this service.
