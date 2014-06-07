@@ -34,6 +34,7 @@ import rx.plugins.RxJavaObservableExecutionHook;
 import rx.plugins.RxJavaPlugins;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static ratpack.util.ExceptionUtils.toException;
 
@@ -344,6 +345,137 @@ public abstract class RxRatpack {
         }
       }
     }));
+  }
+
+  /**
+   * An operator to parallelize an observable stream by forking a new execution for each omitted item.
+   * This allows downstream processing to occur in concurrent executions.
+   * <p>
+   * To be used with the {@link rx.Observable#lift(rx.Observable.Operator)} method.
+   * <p>
+   * The {@code onCompleted()} or {@code onError()} downstream methods are guaranteed to be called <strong>after</strong> the last item has been given to the downstream {@code onNext()} method.
+   * That is, the last invocation of the downstream {@code onNext()} will have returned before {@code onCompleted()} or {@code onError()} are invoked.
+   * <p>
+   * This is generally a more performant alternative to using {@link rx.Observable#parallel} due to Ratpack's {@link ratpack.exec.Execution} semantics and use of Netty's event loop to schedule work.
+   * <pre class="java">
+   * import ratpack.rx.RxRatpack;
+   * import ratpack.exec.ExecController;
+   * import ratpack.launch.LaunchConfigBuilder;
+   *
+   * import rx.Observable;
+   * import rx.functions.Func1;
+   * import rx.functions.Action1;
+   *
+   * import java.util.List;
+   * import java.util.Arrays;
+   * import java.util.concurrent.CyclicBarrier;
+   * import java.util.concurrent.BrokenBarrierException;
+   *
+   * public class Example {
+   *
+   *   public static void main(String[] args) throws Exception {
+   *     RxRatpack.initialize();
+   *
+   *     final CyclicBarrier barrier = new CyclicBarrier(5);
+   *     final ExecController execController = LaunchConfigBuilder.noBaseDir().build().getExecController();
+   *
+   *     Observable&lt;Integer&gt; source = Observable.from(1, 2, 3, 4, 5);
+   *     List&lt;Integer&gt; doubledAndSorted = source
+   *       .lift(RxRatpack.&lt;Integer&gt;forkOnNext(execController.getControl()))
+   *       .map(new Func1&lt;Integer, Integer&gt;() {
+   *         public Integer call(Integer integer) {
+   *           try {
+   *             barrier.await(); // prove stream is processed concurrently
+   *           } catch (InterruptedException | BrokenBarrierException e) {
+   *             throw new RuntimeException(e);
+   *           }
+   *           return integer.intValue() * 2;
+   *         }
+   *       })
+   *       .toSortedList()
+   *       .toBlocking()
+   *       .first();
+   *
+   *     try {
+   *       assert doubledAndSorted.equals(Arrays.asList(2, 4, 6, 8, 10));
+   *     } finally {
+   *       execController.close();
+   *     }
+   *   }
+   * }
+   * </pre>
+   *
+   * @param execControl The execution control to use to fork executions.
+   * @param <T> The type of item in the stream
+   * @return an observable operator
+   */
+  public static <T> Observable.Operator<T, T> forkOnNext(final ExecControl execControl) {
+    return new Observable.Operator<T, T>() {
+
+      @Override
+      public Subscriber<? super T> call(final Subscriber<? super T> downstream) {
+        return new Subscriber<T>(downstream) {
+
+          private final AtomicInteger wip = new AtomicInteger(1);
+
+          private volatile Runnable onDone;
+
+          @Override
+          public void onCompleted() {
+            onDone = new Runnable() {
+              @Override
+              public void run() {
+                downstream.onCompleted();
+              }
+            };
+            maybeDone();
+          }
+
+          @Override
+          public void onError(final Throwable e) {
+            onDone = new Runnable() {
+              @Override
+              public void run() {
+                downstream.onError(e);
+              }
+            };
+            maybeDone();
+          }
+
+          private void maybeDone() {
+            if (wip.decrementAndGet() == 0) {
+              onDone.run();
+            }
+          }
+
+          @Override
+          public void onNext(final T t) {
+            // Avoid the overhead of creating executions if downstream is no longer interested
+            if (isUnsubscribed()) {
+              return;
+            }
+
+            wip.incrementAndGet();
+            execControl.fork(new Action<Execution>() {
+              @Override
+              public void execute(Execution execution) throws Exception {
+                execution.setErrorHandler(new Action<Throwable>() {
+                  @Override
+                  public void execute(Throwable throwable) throws Exception {
+                    onError(throwable);
+                  }
+                });
+                try {
+                  downstream.onNext(t);
+                } finally {
+                  maybeDone();
+                }
+              }
+            });
+          }
+        };
+      }
+    };
   }
 
   public static <T> Subscriber<? super T> subscriber(final Fulfiller<T> fulfiller) {

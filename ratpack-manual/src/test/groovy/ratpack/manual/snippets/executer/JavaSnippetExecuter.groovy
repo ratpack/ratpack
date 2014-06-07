@@ -40,7 +40,7 @@ public class JavaSnippetExecuter implements SnippetExecuter {
 
     def source = new StringJavaSource("Example", snippet.completeSnippet)
 
-    def task = compiler.getTask(null, fileManager, diagnostics, null, null, Arrays.asList(source))
+    def task = compiler.getTask(null, fileManager, diagnostics, ["-Xlint:deprecation"], null, Arrays.asList(source))
     def result = task.call()
     fileManager.close()
 
