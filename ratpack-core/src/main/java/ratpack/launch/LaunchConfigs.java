@@ -264,6 +264,9 @@ public abstract class LaunchConfigs {
       int maxContentLength = props.asInt(Property.MAX_CONTENT_LENGTH, LaunchConfig.DEFAULT_MAX_CONTENT_LENGTH);
       boolean timeResponses = props.asBoolean(Property.TIME_RESPONSES, false);
       boolean compressResponses = props.asBoolean(Property.COMPRESS_RESPONSES, false);
+      long compressionMinSize = props.asLong(Property.COMPRESSION_MIN_SIZE, LaunchConfig.DEFAULT_COMPRESSION_MIN_SIZE);
+      List<String> compressionMimeTypeWhiteList = props.asList(Property.COMPRESSION_MIME_TYPE_WHITE_LIST);
+      List<String> compressionMimeTypeBlackList = props.asList(Property.COMPRESSION_MIME_TYPE_BLACK_LIST);
 
       Map<String, String> otherProperties = new HashMap<>();
       extractProperties("other.", properties, otherProperties);
@@ -284,6 +287,9 @@ public abstract class LaunchConfigs {
         .maxContentLength(maxContentLength)
         .timeResponses(timeResponses)
         .compressResponses(compressResponses)
+        .compressionMinSize(compressionMinSize)
+        .compressionWhiteListMimeTypes(compressionMimeTypeWhiteList)
+        .compressionBlackListMimeTypes(compressionMimeTypeBlackList)
         .indexFiles(indexFiles);
 
       if (sslKeystore != null) {
@@ -387,7 +393,7 @@ public abstract class LaunchConfigs {
     public static final String SSL_KEYSTORE_PASSWORD = "ssl.keystore.password";
 
     /**
-     * The max conent lenght.
+     * The max content length.
      *
      * @see LaunchConfig#getMaxContentLength()
      */
@@ -410,5 +416,34 @@ public abstract class LaunchConfigs {
      * @see LaunchConfig#isCompressResponses()
      */
     public static final String COMPRESS_RESPONSES = "compressResponses";
+
+    /**
+     * The minimum size at which responses should be compressed, in bytes.
+     *
+     * @see LaunchConfig#getCompressionMinSize()
+     */
+    public static final String COMPRESSION_MIN_SIZE = "compression.minSize";
+
+    /**
+     * The comma separated list of response mime types which should be compressed.
+     * <p>
+     * If the value is not {@code null}, it will be converted to a string list by splitting on ",".
+     * <p>
+     * <b>Value:</b> {@value} - (comma separated string list)
+     *
+     * @see LaunchConfig#getCompressionMimeTypeWhiteList()
+     */
+    public static final String COMPRESSION_MIME_TYPE_WHITE_LIST = "compression.mimeType.whiteList";
+
+    /**
+     * The comma separated list of response mime types which should not be compressed.
+     * <p>
+     * If the value is not {@code null}, it will be converted to a string list by splitting on ",".
+     * <p>
+     * <b>Value:</b> {@value} - (comma separated string list)
+     *
+     * @see LaunchConfig#getCompressionMimeTypeBlackList()
+     */
+    public static final String COMPRESSION_MIME_TYPE_BLACK_LIST = "compression.mimeType.blackList";
   }
 }

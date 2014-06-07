@@ -77,6 +77,17 @@ public class TypeCoercingProperties {
   }
 
   /**
+   * Gets a property value as an long, substituting a default if the property does not exist.
+   *
+   * @param key the property key.
+   * @param defaultValue the value to use if the property does not exist.
+   * @return the property value coerced to an long as specified by {@link Long#parseLong(String)} or <code>defaultValue</code> if it does not exist.
+   */
+  public long asLong(String key, long defaultValue) {
+    return Long.parseLong(delegate.getProperty(key, Long.toString(defaultValue)));
+  }
+
+  /**
    * Gets a property value as a URI.
    *
    * @param key the property key.
