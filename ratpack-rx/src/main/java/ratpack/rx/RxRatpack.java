@@ -355,6 +355,55 @@ public abstract class RxRatpack {
    * <p>
    * The {@code onCompleted()} or {@code onError()} downstream methods are guaranteed to be called <strong>after</strong> the last item has been given to the downstream {@code onNext()} method.
    * That is, the last invocation of the downstream {@code onNext()} will have returned before {@code onCompleted()} or {@code onError()} are invoked.
+   * <p>
+   * This is generally a more performant alternative to using {@link rx.Observable#parallel} due to Ratpack's {@link ratpack.exec.Execution} semantics and use of Netty's event loop to schedule work.
+   * <pre class="java">
+   * import ratpack.rx.RxRatpack;
+   * import ratpack.exec.ExecController;
+   * import ratpack.launch.LaunchConfigBuilder;
+   *
+   * import rx.Observable;
+   * import rx.functions.Func1;
+   * import rx.functions.Action1;
+   *
+   * import java.util.List;
+   * import java.util.Arrays;
+   * import java.util.concurrent.CyclicBarrier;
+   * import java.util.concurrent.BrokenBarrierException;
+   *
+   * public class Example {
+   *
+   *   public static void main(String[] args) throws Exception {
+   *     RxRatpack.initialize();
+   *
+   *     final CyclicBarrier barrier = new CyclicBarrier(5);
+   *     final ExecController execController = LaunchConfigBuilder.noBaseDir().build().getExecController();
+   *
+   *     Observable&lt;Integer&gt; source = Observable.from(1, 2, 3, 4, 5);
+   *     List&lt;Integer&gt; doubledAndSorted = source
+   *       .lift(RxRatpack.&lt;Integer&gt;forkOnNext(execController.getControl()))
+   *       .map(new Func1&lt;Integer, Integer&gt;() {
+   *         public Integer call(Integer integer) {
+   *           try {
+   *             barrier.await(); // prove stream is processed concurrently
+   *           } catch (InterruptedException | BrokenBarrierException e) {
+   *             throw new RuntimeException(e);
+   *           }
+   *           return integer.intValue() * 2;
+   *         }
+   *       })
+   *       .toSortedList()
+   *       .toBlocking()
+   *       .first();
+   *
+   *     try {
+   *       assert doubledAndSorted.equals(Arrays.asList(2, 4, 6, 8, 10));
+   *     } finally {
+   *       execController.close();
+   *     }
+   *   }
+   * }
+   * </pre>
    *
    * @param execControl The execution control to use to fork executions.
    * @param <T> The type of item in the stream
@@ -373,27 +422,23 @@ public abstract class RxRatpack {
 
           @Override
           public void onCompleted() {
-            System.out.println("complete");
             onDone = new Runnable() {
               @Override
               public void run() {
                 downstream.onCompleted();
               }
             };
-
             maybeDone();
           }
 
           @Override
           public void onError(final Throwable e) {
-            e.printStackTrace();
             onDone = new Runnable() {
               @Override
               public void run() {
                 downstream.onError(e);
               }
             };
-
             maybeDone();
           }
 
@@ -420,7 +465,6 @@ public abstract class RxRatpack {
                     onError(throwable);
                   }
                 });
-
                 try {
                   downstream.onNext(t);
                 } finally {
