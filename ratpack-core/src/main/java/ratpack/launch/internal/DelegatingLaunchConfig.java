@@ -16,6 +16,7 @@
 
 package ratpack.launch.internal;
 
+import com.google.common.collect.ImmutableSet;
 import io.netty.buffer.ByteBufAllocator;
 import ratpack.api.Nullable;
 import ratpack.exec.ExecController;
@@ -117,6 +118,23 @@ public class DelegatingLaunchConfig implements LaunchConfig {
   @Override
   public boolean isCompressResponses() {
     return launchConfig.isCompressResponses();
+  }
+
+  @Override
+  public long getCompressionMinSize() {
+    return launchConfig.getCompressionMinSize();
+  }
+
+  @Override
+  @Nullable
+  public ImmutableSet<String> getCompressionMimeTypeWhiteList() {
+    return launchConfig.getCompressionMimeTypeWhiteList();
+  }
+
+  @Override
+  @Nullable
+  public ImmutableSet<String> getCompressionMimeTypeBlackList() {
+    return launchConfig.getCompressionMimeTypeBlackList();
   }
 
   @Override

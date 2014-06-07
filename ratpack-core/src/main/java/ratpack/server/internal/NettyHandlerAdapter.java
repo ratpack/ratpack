@@ -16,6 +16,7 @@
 
 package ratpack.server.internal;
 
+import com.google.common.collect.ImmutableSet;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
@@ -83,6 +84,9 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
 
   private final boolean addResponseTimeHeader;
   private final boolean compressResponses;
+  private final long compressionMinSize;
+  private final ImmutableSet<String> compressionMimeTypeWhiteList;
+  private final ImmutableSet<String> compressionMimeTypeBlackList;
 
   public NettyHandlerAdapter(Stopper stopper, Handler handler, LaunchConfig launchConfig) {
     this.handlers = new Handler[]{handler};
@@ -110,6 +114,9 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
 
     this.addResponseTimeHeader = launchConfig.isTimeResponses();
     this.compressResponses = launchConfig.isCompressResponses();
+    this.compressionMinSize = launchConfig.getCompressionMinSize();
+    this.compressionMimeTypeWhiteList = launchConfig.getCompressionMimeTypeWhiteList();
+    this.compressionMimeTypeBlackList = launchConfig.getCompressionMimeTypeBlackList();
     this.applicationConstants = new DefaultContext.ApplicationConstants(launchConfig, new DefaultRenderController());
     this.execController = launchConfig.getExecController();
   }
@@ -141,7 +148,9 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
     final DefaultMutableStatus responseStatus = new DefaultMutableStatus();
     final HttpHeaders httpHeaders = new DefaultHttpHeaders(false);
     final MutableHeaders responseHeaders = new NettyHeadersBackedMutableHeaders(httpHeaders);
-    FileHttpTransmitter fileHttpTransmitter = new DefaultFileHttpTransmitter(nettyRequest, httpHeaders, channel, compressResponses, addResponseTimeHeader ? startTime : -1);
+    final MimeTypes mimeTypes = registry.get(MimeTypes.class);
+    FileHttpTransmitter fileHttpTransmitter = new DefaultFileHttpTransmitter(nettyRequest, httpHeaders, channel, mimeTypes,
+      compressResponses, compressionMinSize, compressionMimeTypeWhiteList, compressionMimeTypeBlackList, addResponseTimeHeader ? startTime : -1);
 
     final DefaultEventController<RequestOutcome> requestOutcomeEventController = new DefaultEventController<>();
 

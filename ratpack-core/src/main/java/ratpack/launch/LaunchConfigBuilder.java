@@ -18,6 +18,7 @@ package ratpack.launch;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.PooledByteBufAllocator;
 import ratpack.api.Nullable;
@@ -73,6 +74,9 @@ public class LaunchConfigBuilder {
   private int maxContentLength = LaunchConfig.DEFAULT_MAX_CONTENT_LENGTH;
   private boolean timeResponses;
   private boolean compressResponses;
+  private long compressionMinSize = LaunchConfig.DEFAULT_COMPRESSION_MIN_SIZE;
+  private ImmutableSet.Builder<String> compressionMimeTypeWhiteList;
+  private ImmutableSet.Builder<String> compressionMimeTypeBlackList;
 
   private LaunchConfigBuilder() {
   }
@@ -234,10 +238,82 @@ public class LaunchConfigBuilder {
    *
    * @param compressResponses Whether to compress responses
    * @return this
-   * @see LaunchConfig#isCompressResponses() ()
+   * @see LaunchConfig#isCompressResponses()
    */
   public LaunchConfigBuilder compressResponses(boolean compressResponses) {
     this.compressResponses = compressResponses;
+    return this;
+  }
+
+  /**
+   * The minimum size at which responses should be compressed, in bytes.
+   *
+   * @param compressionMinSize The minimum size at which responses should be compressed, in bytes
+   * @return this
+   * @see LaunchConfig#getCompressionMinSize()
+   */
+  public LaunchConfigBuilder compressionMinSize(long compressionMinSize) {
+    this.compressionMinSize = compressionMinSize;
+    return this;
+  }
+
+  /**
+   * Adds the given values as compressible mime types.
+   *
+   * @param mimeTypes the compressible mime types.
+   * @return this
+   * @see LaunchConfig#getCompressionMimeTypeWhiteList()
+   */
+  public LaunchConfigBuilder compressionWhiteListMimeTypes(String... mimeTypes) {
+    if (this.compressionMimeTypeWhiteList == null) {
+      this.compressionMimeTypeWhiteList = ImmutableSet.builder();
+    }
+    this.compressionMimeTypeWhiteList.add(mimeTypes);
+    return this;
+  }
+
+  /**
+   * Adds the given values as compressible mime types.
+   *
+   * @param mimeTypes the compressible mime types.
+   * @return this
+   * @see LaunchConfig#getCompressionMimeTypeWhiteList()
+   */
+  public LaunchConfigBuilder compressionWhiteListMimeTypes(List<String> mimeTypes) {
+    if (this.compressionMimeTypeWhiteList == null) {
+      this.compressionMimeTypeWhiteList = ImmutableSet.builder();
+    }
+    this.compressionMimeTypeWhiteList.addAll(mimeTypes);
+    return this;
+  }
+
+  /**
+   * Adds the given values as non-compressible mime types.
+   *
+   * @param mimeTypes the non-compressible mime types.
+   * @return this
+   * @see LaunchConfig#getCompressionMimeTypeBlackList()
+   */
+  public LaunchConfigBuilder compressionBlackListMimeTypes(String... mimeTypes) {
+    if (this.compressionMimeTypeBlackList == null) {
+      this.compressionMimeTypeBlackList = ImmutableSet.builder();
+    }
+    this.compressionMimeTypeBlackList.add(mimeTypes);
+    return this;
+  }
+
+  /**
+   * Adds the given values as non-compressible mime types.
+   *
+   * @param mimeTypes the non-compressible mime types.
+   * @return this
+   * @see LaunchConfig#getCompressionMimeTypeBlackList()
+   */
+  public LaunchConfigBuilder compressionBlackListMimeTypes(List<String> mimeTypes) {
+    if (this.compressionMimeTypeBlackList == null) {
+      this.compressionMimeTypeBlackList = ImmutableSet.builder();
+    }
+    this.compressionMimeTypeBlackList.addAll(mimeTypes);
     return this;
   }
 
@@ -329,6 +405,9 @@ public class LaunchConfigBuilder {
       maxContentLength,
       timeResponses,
       compressResponses,
+      compressionMinSize,
+      compressionMimeTypeWhiteList != null ? compressionMimeTypeWhiteList.build() : null,
+      compressionMimeTypeBlackList != null ? compressionMimeTypeBlackList.build() : null,
       handlerFactory
     );
   }
