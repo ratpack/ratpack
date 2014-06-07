@@ -23,6 +23,7 @@ import spock.lang.Specification
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.CyclicBarrier
 
+import static ratpack.rx.RxRatpack.forkOnNext
 import static ratpack.rx.RxRatpack.observe
 
 class RxParallelSpec extends Specification {
@@ -46,9 +47,9 @@ class RxParallelSpec extends Specification {
         .parallel { it.map { received << it; barrier.await(); it } }
         .subscribe()
     }
+    barrier.await()
 
     then:
-    barrier.await()
     received.sort() == (0..9).toList()
   }
 
@@ -68,10 +69,10 @@ class RxParallelSpec extends Specification {
       }
       .subscribe()
     }
+    barrier.await()
 
 
     then:
-    barrier.await()
     received.sort() == (0..9).toList()
   }
 
@@ -105,6 +106,39 @@ class RxParallelSpec extends Specification {
     then:
     latch.await()
     nums.sort() == [2, 4, 6, 8, 10]
+  }
+
+  def "can use fork on next to fan out"() {
+    given:
+    def sequence = rx.Observable.from(1, 2, 3, 4, 5)
+    def barrier = new CyclicBarrier(6)
+    def received = [].asSynchronized()
+
+    when:
+    sequence.lift(forkOnNext(control)).subscribe {
+      received << it
+      barrier.await()
+    }
+    barrier.await()
+
+    then:
+    received.sort() == [1, 2, 3, 4, 5]
+  }
+
+  def "errors are collected when using fork on next"() {
+    given:
+    def sequence = rx.Observable.from(1, 2, 3, 4, 5)
+    def barrier = new CyclicBarrier(2)
+    Throwable e = null
+
+    when:
+    sequence.lift(forkOnNext(control)).subscribe({
+      throw new RuntimeException("!")
+    }, { e = it; barrier.await() })
+    barrier.await()
+
+    then:
+    e.message == "!"
   }
 
 }

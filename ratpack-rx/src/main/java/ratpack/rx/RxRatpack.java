@@ -34,6 +34,7 @@ import rx.plugins.RxJavaObservableExecutionHook;
 import rx.plugins.RxJavaPlugins;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static ratpack.util.ExceptionUtils.toException;
 
@@ -344,6 +345,93 @@ public abstract class RxRatpack {
         }
       }
     }));
+  }
+
+  /**
+   * An operator to parallelize an observable stream by forking a new execution for each omitted item.
+   * This allows downstream processing to occur in concurrent executions.
+   * <p>
+   * To be used with the {@link rx.Observable#lift(rx.Observable.Operator)} method.
+   * <p>
+   * The {@code onCompleted()} or {@code onError()} downstream methods are guaranteed to be called <strong>after</strong> the last item has been given to the downstream {@code onNext()} method.
+   * That is, the last invocation of the downstream {@code onNext()} will have returned before {@code onCompleted()} or {@code onError()} are invoked.
+   *
+   * @param execControl The execution control to use to fork executions.
+   * @param <T> The type of item in the stream
+   * @return an observable operator
+   */
+  public static <T> Observable.Operator<T, T> forkOnNext(final ExecControl execControl) {
+    return new Observable.Operator<T, T>() {
+
+      @Override
+      public Subscriber<? super T> call(final Subscriber<? super T> downstream) {
+        return new Subscriber<T>(downstream) {
+
+          private final AtomicInteger wip = new AtomicInteger(1);
+
+          private volatile Runnable onDone;
+
+          @Override
+          public void onCompleted() {
+            System.out.println("complete");
+            onDone = new Runnable() {
+              @Override
+              public void run() {
+                downstream.onCompleted();
+              }
+            };
+
+            maybeDone();
+          }
+
+          @Override
+          public void onError(final Throwable e) {
+            e.printStackTrace();
+            onDone = new Runnable() {
+              @Override
+              public void run() {
+                downstream.onError(e);
+              }
+            };
+
+            maybeDone();
+          }
+
+          private void maybeDone() {
+            if (wip.decrementAndGet() == 0) {
+              onDone.run();
+            }
+          }
+
+          @Override
+          public void onNext(final T t) {
+            // Avoid the overhead of creating executions if downstream is no longer interested
+            if (isUnsubscribed()) {
+              return;
+            }
+
+            wip.incrementAndGet();
+            execControl.fork(new Action<Execution>() {
+              @Override
+              public void execute(Execution execution) throws Exception {
+                execution.setErrorHandler(new Action<Throwable>() {
+                  @Override
+                  public void execute(Throwable throwable) throws Exception {
+                    onError(throwable);
+                  }
+                });
+
+                try {
+                  downstream.onNext(t);
+                } finally {
+                  maybeDone();
+                }
+              }
+            });
+          }
+        };
+      }
+    };
   }
 
   public static <T> Subscriber<? super T> subscriber(final Fulfiller<T> fulfiller) {
