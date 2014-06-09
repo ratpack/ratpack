@@ -21,10 +21,8 @@ import ratpack.func.Action;
 import java.util.concurrent.Callable;
 
 /**
- * The execution control can be used by supporting services to perform asynchronous or blocking operations.
- * <p>
- * There is a single instance for an entire application.
- * It can therefore be constructor injected into services that scope several requests (i.e. execution contexts).
+ * Provides methods for controlling execution(i.e. blocking, forking and calling async API), independent of the current execution.
+ *
  * <pre class="java">
  * import ratpack.exec.ExecControl;
  * import ratpack.exec.Promise;
@@ -97,8 +95,57 @@ public interface ExecControl {
 
   /**
    * Performs a blocking operation on a separate thread, returning a promise for its value.
+   * <p>
+   * This method should be used to perform blocking IO, or to perform any operation that synchronously waits for something to happen.
+   * The given {@code blockingOperation} will be performed on a thread from a special thread pool for such operations
+   * (i.e. not a thread from the main compute event loop).
+   * <p>
+   * The operation should do as little computation as possible.
+   * It should just perform the blocking operation and immediately return the result.
+   * Performing computation during the operation will degrade performance.
+   * <p>
+   * This method is just a specialization of {@link #promise}, and shares all of the same semantics with regard to
+   * execution binding and execution-on-promise-subscription.
+   * <pre class="java">
+   * import ratpack.launch.LaunchConfigBuilder;
+   * import ratpack.func.Action;
+   * import ratpack.exec.Execution;
+   * import ratpack.exec.ExecController;
    *
-   * @param blockingOperation the operation to perform that performs blocking IO
+   * import java.util.concurrent.Callable;
+   * import java.util.concurrent.CountDownLatch;
+   *
+   * public class Example {
+   *
+   *   public static void main(String[] args) throws InterruptedException {
+   *     ExecController controller = LaunchConfigBuilder.noBaseDir().build().getExecController();
+   *
+   *     final CountDownLatch latch = new CountDownLatch(1);
+   *
+   *     controller.start(new Action&lt;Execution&gt;() {
+   *       public void execute(Execution execution) {
+   *         execution
+   *           .blocking(new Callable&lt;String&gt;() {
+   *             public String call() {
+   *               // perform a blocking op, e.g. a database call, filesystem read etc.
+   *               return "foo";
+   *             }
+   *           })
+   *           .then(new Action&lt;String&gt;() {
+   *             public void execute(String string) {
+   *               // do something with the value that was obtained from a blocking operation
+   *               latch.countDown();
+   *             }
+   *           });
+   *       }
+   *     });
+   *
+   *     latch.await();
+   *   }
+   * }
+   * </pre>
+   *
+   * @param blockingOperation the operation that blocks
    * @param <T> the type of value created by the operation
    * @return a promise for the return value of the given blocking operation
    */
