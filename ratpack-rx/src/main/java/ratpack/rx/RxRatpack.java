@@ -392,9 +392,10 @@ public abstract class RxRatpack {
    *           return integer.intValue() * 2;
    *         }
    *       })
+   *       .serialize()
    *       .toSortedList()
    *       .toBlocking()
-   *       .first();
+   *       .single();
    *
    *     try {
    *       assert doubledAndSorted.equals(Arrays.asList(2, 4, 6, 8, 10));
