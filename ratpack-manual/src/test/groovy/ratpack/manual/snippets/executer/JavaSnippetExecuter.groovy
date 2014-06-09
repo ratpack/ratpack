@@ -40,7 +40,7 @@ public class JavaSnippetExecuter implements SnippetExecuter {
 
     def source = new StringJavaSource("Example", snippet.completeSnippet)
 
-    def task = compiler.getTask(null, fileManager, diagnostics, ["-Xlint:deprecation"], null, Arrays.asList(source))
+    def task = compiler.getTask(null, fileManager, diagnostics, ["-Xlint:deprecation", "-Xlint:unchecked"], null, Arrays.asList(source))
     def result = task.call()
     fileManager.close()
 
@@ -50,7 +50,7 @@ public class JavaSnippetExecuter implements SnippetExecuter {
 
     if (diagnostics.diagnostics) {
       def first = diagnostics.diagnostics.first()
-      throw new CompileException(new AssertionError("$first.kind: ${first.getMessage(null)}", null), first.lineNumber.toInteger())
+      throw new CompileException(new AssertionError("$first.kind: ${first.getMessage(null)} ($first.lineNumber:$first.columnNumber)", null), first.lineNumber.toInteger())
     }
 
     if (!result) {

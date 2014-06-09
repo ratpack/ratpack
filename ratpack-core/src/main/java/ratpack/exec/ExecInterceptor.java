@@ -22,107 +22,124 @@ package ratpack.exec;
  * The interception methods <i>wrap</i> the rest of the execution.
  * They receive a <i>continuation</i> (as a {@link Runnable}) that <b>must</b> be called in order for processing to proceed.
  * <p>
- * The following example (in Groovy) demonstrates using a processing interceptor to time processing.
- * <pre class="tested">
- * import ratpack.launch.LaunchConfig
- * import ratpack.launch.LaunchConfigBuilder
- * import ratpack.handling.Context
- * import ratpack.http.Request
- * import ratpack.exec.ExecInterceptor
- * import ratpack.test.embed.LaunchConfigEmbeddedApplication
+ * Request handling execution can be intercepted by the {@link ratpack.handling.Context#addExecInterceptor(ExecInterceptor, ratpack.func.Action)} method.
+ * <pre class="java">
+ * import ratpack.launch.LaunchConfig;
+ * import ratpack.launch.LaunchConfigBuilder;
+ * import ratpack.handling.Context;
+ * import ratpack.handling.Handler;
+ * import ratpack.handling.Chain;
+ * import ratpack.handling.ChainAction;
+ * import ratpack.http.Request;
+ * import ratpack.exec.ExecInterceptor;
+ * import ratpack.exec.ExecInterceptor;
+ * import ratpack.func.Action;
+ * import ratpack.func.Actions;
  *
- * import static ratpack.groovy.Groovy.chain
- * import static ratpack.groovy.test.TestHttpClients.testHttpClient
+ * import ratpack.test.UnitTest;
+ * import ratpack.test.handling.HandlingResult;
  *
- * import java.util.concurrent.atomic.AtomicLong
+ * import java.util.concurrent.Callable;
+ * import java.util.concurrent.atomic.AtomicLong;
  *
- * class Timer {
- *   private final AtomicLong totalCompute = new AtomicLong()
- *   private final AtomicLong totalBlocking = new AtomicLong()
+ * public class Example {
  *
- *   private boolean blocking
+ *   public static class Timer {
+ *     private final AtomicLong totalCompute = new AtomicLong();
+ *     private final AtomicLong totalBlocking = new AtomicLong();
+ *     private boolean blocking;
  *
- *   private final ThreadLocal&lt;Long&gt; startedAt = new ThreadLocal() {
- *     protected Long initialValue() { 0 }
- *   }
- *
- *   void start(boolean blocking) {
- *     this.blocking = blocking
- *     startedAt.set(System.currentTimeMillis())
- *   }
- *
- *   void stop() {
- *     def startedAtTime = startedAt.get()
- *     startedAt.remove()
- *     def counter = blocking ? totalBlocking : totalCompute
- *     counter.addAndGet(startedAtTime > 0 ? System.currentTimeMillis() - startedAtTime : 0)
- *   }
- *
- *   long getBlockingTime() {
- *     totalBlocking.get()
- *   }
- *
- *   long getComputeTime() {
- *     totalCompute.get()
- *   }
- * }
- *
- * class ProcessingTimingInterceptor implements ExecInterceptor {
- *
- *   final Request request
- *
- *   ProcessingTimingInterceptor(Request request) {
- *     this.request = request
- *     request.register(new Timer())
- *   }
- *
- *   void intercept(ExecInterceptor.ExecType type, Runnable continuation) {
- *     request.get(Timer).with {
- *       start(type == ExecInterceptor.ExecType.BLOCKING)
- *       continuation.run()
- *       stop()
- *     }
- *   }
- * }
- *
- * import static ratpack.groovy.test.embed.EmbeddedApplications.embeddedApp
- *
- * def app = embeddedApp {
- *   handlers {
- *     handler {
- *       addExecInterceptor(new ProcessingTimingInterceptor(request)) {
- *         next()
+ *     private final ThreadLocal&lt;Long&gt; startedAt = new ThreadLocal&lt;Long&gt;() {
+ *       protected Long initialValue() {
+ *         return 0l;
  *       }
+ *     };
+ *
+ *     public void start(boolean blocking) {
+ *       this.blocking = blocking;
+ *       startedAt.set(System.currentTimeMillis());
  *     }
- *     handler {
- *       sleep 100
- *       next()
+ *
+ *     public void stop() {
+ *       long startedAtTime = startedAt.get();
+ *       startedAt.remove();
+ *       AtomicLong counter = blocking ? totalBlocking : totalCompute;
+ *       counter.addAndGet(startedAtTime > 0 ? System.currentTimeMillis() - startedAtTime : 0);
  *     }
- *     get {
- *       sleep 100
- *       blocking {
- *         sleep 100
- *       } then {
- *         def timer = request.get(Timer)
- *         timer.stop()
- *         render "$timer.computeTime:$timer.blockingTime"
- *       }
+ *
+ *     public long getBlockingTime() {
+ *       return totalBlocking.get();
+ *     }
+ *
+ *     public long getComputeTime() {
+ *       return totalCompute.get();
  *     }
  *   }
- * }
  *
- * def client = testHttpClient(app)
- * try {
- *   def times = client.getText().split(":")*.toInteger()
- *   int computeTime = times[0]
- *   int blockingTime = times[1]
+ *   public static class ProcessingTimingInterceptor implements ExecInterceptor {
+ *     private final Request request;
  *
- *   assert computeTime >= 200
- *   assert blockingTime >= 100
- * } finally {
- *   app.close()
+ *     public ProcessingTimingInterceptor(Request request) {
+ *       this.request = request;
+ *       request.register(new Timer());
+ *     }
+ *
+ *     public void intercept(ExecInterceptor.ExecType type, Runnable continuation) {
+ *       Timer timer = request.get(Timer.class);
+ *       timer.start(type.equals(ExecInterceptor.ExecType.BLOCKING));
+ *       continuation.run();
+ *       timer.stop();
+ *     }
+ *   }
+ *
+ *   public static void main(String[] args) {
+ *     Action&lt;Chain&gt; handlers = new ChainAction() {
+ *       protected void execute() {
+ *         handler(new Handler() {
+ *           public void handle(Context context) throws Exception {
+ *             context.addExecInterceptor(new ProcessingTimingInterceptor(context.getRequest()), new Action&lt;Context&gt;() {
+ *               public void execute(Context context) {
+ *                 context.next();
+ *               }
+ *             });
+ *           }
+ *         });
+ *
+ *         handler(new Handler() {
+ *           public void handle(final Context context) throws Exception {
+ *             Thread.currentThread().sleep(100);
+ *             context
+ *               .blocking(new Callable&lt;String&gt;() {
+ *                 public String call() throws Exception {
+ *                   Thread.currentThread().sleep(100);
+ *                   return "foo";
+ *                 }
+ *               })
+ *               .then(new Action&lt;String&gt;() {
+ *                 public void execute(String string)  throws Exception {
+ *                   Thread.currentThread().sleep(100);
+ *                   context.render(string);
+ *                 }
+ *               });
+ *           }
+ *         });
+ *       }
+ *     };
+ *
+ *     HandlingResult result = UnitTest.handle(handlers, Actions.noop());
+ *
+ *     assert result.rendered(String.class).equals("foo");
+ *
+ *     Timer timer = result.getRequestRegistry().get(Timer.class);
+ *     assert timer.getBlockingTime() >= 100;
+ *     assert timer.getComputeTime() >= 200;
+ *   }
  * }
  * </pre>
+ * For other types of executions (e.g. background jobs), the interceptor can be registered via {@link Execution#addInterceptor(ExecInterceptor, ratpack.func.Action)}.
+ *
+ * @see Execution
+ * @see Execution#addInterceptor(ExecInterceptor, ratpack.func.Action)
  */
 public interface ExecInterceptor {
 
