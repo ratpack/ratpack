@@ -181,7 +181,7 @@ public class DefaultExecController implements ExecController {
     }
 
     @Override
-    public <T> void subscribe(Publisher<T> publisher, final Subscriber<T> subscriber) {
+    public <T> void stream(Publisher<T> publisher, final Subscriber<T> subscriber) {
       publisher.subscribe(new Subscriber<T>() {
         final Execution execution = getExecution();
 
@@ -266,8 +266,8 @@ public class DefaultExecController implements ExecController {
     }
 
     @Override
-    public <T> void subscribe(Publisher<T> publisher, Subscriber<T> subscriber) {
-      control.subscribe(publisher, subscriber);
+    public <T> void stream(Publisher<T> publisher, Subscriber<T> subscriber) {
+      control.stream(publisher, subscriber);
     }
 
     @Override
@@ -301,9 +301,8 @@ public class DefaultExecController implements ExecController {
 
     public void continueExecutionAndWait(final Action<? super ratpack.exec.Execution> action) {
       segments.add(new UserCodeSegment(action));
-      waiting = false;
-      tryDrain();
       waiting = true;
+      tryDrain();
     }
 
     public void continueVia(final Runnable runnable) {
@@ -318,7 +317,7 @@ public class DefaultExecController implements ExecController {
 
     private void tryDrain() {
       assertNotDone();
-      if (!done && !waiting && !segments.isEmpty()) {
+      if (!segments.isEmpty()) {
         if (active.compareAndSet(false, true)) {
           drain();
         }
