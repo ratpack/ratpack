@@ -305,9 +305,8 @@ public class DefaultExecController implements ExecController {
 
     public void continueExecutionAndWait(final Action<? super ratpack.exec.Execution> action) {
       segments.add(new UserCodeSegment(action));
-      waiting = false;
-      tryDrain();
       waiting = true;
+      tryDrain();
     }
 
     public void joinExecutionEnd(final Action<? super ratpack.exec.Execution> action) {

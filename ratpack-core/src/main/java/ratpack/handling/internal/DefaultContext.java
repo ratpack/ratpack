@@ -162,8 +162,8 @@ public class DefaultContext implements Context {
   }
 
   @Override
-  public <T> void subscribe(Publisher<T> publisher, Subscriber<T> subscriber) {
-    requestConstants.applicationConstants.execControl.subscribe(publisher, subscriber);
+  public <T> void stream(Publisher<T> publisher, Subscriber<T> subscriber) {
+    requestConstants.applicationConstants.execControl.stream(publisher, subscriber);
   }
 
   @Override
