@@ -204,8 +204,8 @@ public class DefaultGroovyContext implements GroovyContext {
   }
 
   @Override
-  public <T> void subscribe(Publisher<T> publisher, Subscriber<T> subscriber) {
-    delegate.subscribe(publisher, subscriber);
+  public <T> void stream(Publisher<T> publisher, Subscriber<T> subscriber) {
+    delegate.stream(publisher, subscriber);
   }
 
   @Override

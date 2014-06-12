@@ -180,5 +180,5 @@ public interface ExecControl {
    */
   void fork(Action<? super Execution> action);
 
-  <T> void subscribe(Publisher<T> publisher, Subscriber<T> subscriber);
+  <T> void stream(Publisher<T> publisher, Subscriber<T> subscriber);
 }

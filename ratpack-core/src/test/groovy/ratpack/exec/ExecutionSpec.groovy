@@ -152,15 +152,18 @@ class ExecutionSpec extends Specification {
 
   def "subscriber callbacks are bound to execution"() {
     when:
-    def publisherEvents = []
-    def subscribeEvents = []
+    def streamEvents = []
     def innerLatch = new CountDownLatch(3)
 
     exec { e1 ->
-      e1.subscribe(new Publisher<String>() {
+      controller.execution.onComplete {
+        streamEvents << "execution-complete"
+      }
+
+      e1.stream(new Publisher<String>() {
         @Override
         void subscribe(Subscriber subscriber) {
-          publisherEvents << "publisher-subscribe"
+          streamEvents << "publisher-subscribe"
           final AtomicInteger i = new AtomicInteger()
 
           Subscription subscription = new Subscription() {
@@ -175,7 +178,7 @@ class ExecutionSpec extends Specification {
             @Override
             void requestMore(int elements) {
               assert e1.controller.managedThread
-              publisherEvents << "publisher-requestMore"
+              streamEvents << "publisher-requestMore"
               if (capacity.getAndAdd(elements) == 0) {
                 // start sending again if it wasn't already running
                 send()
@@ -183,18 +186,16 @@ class ExecutionSpec extends Specification {
             }
 
             private void send() {
-              new Thread(new Runnable() {
-                public void run() {
-                  while (capacity.getAndDecrement() > 0) {
-                    assert !e1.controller.managedThread
-                    publisherEvents << "publisher-send"
-                    subscriber.onNext('foo' + i.incrementAndGet())
-                    Thread.sleep(500)
-                  }
-
-                  cancel()
+              Thread.start {
+                while (capacity.getAndDecrement() > 0) {
+                  assert !e1.controller.managedThread
+                  streamEvents << "publisher-send"
+                  subscriber.onNext('foo' + i.incrementAndGet())
+                  Thread.sleep(500)
                 }
-              }).start()
+
+                cancel()
+              }
             }
           }
 
@@ -204,21 +205,21 @@ class ExecutionSpec extends Specification {
         @Override
         void onSubscribe(Subscription subscription) {
           assert e1.controller.managedThread
-          subscribeEvents << "subscriber-onSubscribe"
+          streamEvents << "subscriber-onSubscribe"
           subscription.requestMore(2)
         }
 
         @Override
         void onNext(String element) {
           assert e1.controller.managedThread
-          subscribeEvents << "subscriber-onNext:$element"
+          streamEvents << "subscriber-onNext:$element"
           innerLatch.countDown()
         }
 
         @Override
         void onComplete() {
           assert e1.controller.managedThread
-          subscribeEvents << "subscriber-onComplete"
+          streamEvents << "subscriber-onComplete"
           innerLatch.countDown()
         }
 
@@ -231,8 +232,8 @@ class ExecutionSpec extends Specification {
 
     then:
     innerLatch.await()
-    publisherEvents == ["publisher-subscribe", "publisher-requestMore", "publisher-send", "publisher-send"]
-    subscribeEvents == ["subscriber-onSubscribe", "subscriber-onNext:foo1", "subscriber-onNext:foo2", "subscriber-onComplete"]
+    streamEvents == ["publisher-subscribe", "subscriber-onSubscribe", "publisher-requestMore", "publisher-send", "subscriber-onNext:foo1",
+                     "publisher-send", "subscriber-onNext:foo2", "subscriber-onComplete", "execution-complete"]
   }
 
 }
