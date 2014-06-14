@@ -21,7 +21,9 @@ import ratpack.manual.snippets.TestCodeSnippet
 
 import javax.tools.*
 import java.lang.reflect.InvocationTargetException
+import groovy.util.logging.Slf4j
 
+@Slf4j
 @CompileStatic
 public class JavaSnippetExecuter implements SnippetExecuter {
   @Override
@@ -45,7 +47,7 @@ public class JavaSnippetExecuter implements SnippetExecuter {
     fileManager.close()
 
     for (Diagnostic<? extends JavaFileObject> it : diagnostics.diagnostics) {
-      System.err.println("$it.kind: ${it.getMessage(null)}")
+      log.error "$it.kind: ${it.getMessage(null)}"
     }
 
     if (diagnostics.diagnostics) {

@@ -26,12 +26,15 @@ import ratpack.util.ExceptionUtils;
 import ratpack.util.internal.InternalRatpackError;
 
 import java.util.concurrent.atomic.AtomicBoolean;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
 
   private final Factory<Execution> executionFactory;
   private final Action<? super Fulfiller<T>> action;
   private final Action<? super Throwable> errorHandler;
+  private final static Logger LOGGER = LoggerFactory.getLogger(DefaultSuccessPromise.class);
 
   public DefaultSuccessPromise(Factory<Execution> executionFactory, Action<? super Fulfiller<T>> action, Action<? super Throwable> errorHandler) {
     this.executionFactory = executionFactory;
@@ -54,7 +57,7 @@ public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
               @Override
               public void error(final Throwable throwable) {
                 if (!fulfilled.compareAndSet(false, true)) {
-                  new OverlappingExecutionException("promise already fulfilled").printStackTrace();
+                  LOGGER.error("", new OverlappingExecutionException("promise already fulfilled"));
                   return;
                 }
 
@@ -69,7 +72,7 @@ public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
               @Override
               public void success(final T value) {
                 if (!fulfilled.compareAndSet(false, true)) {
-                  new OverlappingExecutionException("promise already fulfilled").printStackTrace();
+                  LOGGER.error("", new OverlappingExecutionException("promise already fulfilled"));
                   return;
                 }
 
@@ -83,7 +86,7 @@ public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
             });
           } catch (final Exception e) {
             if (!fulfilled.compareAndSet(false, true)) {
-              new OverlappingExecutionException("exception thrown after promise was fulfilled", e).printStackTrace();
+              LOGGER.error("", new OverlappingExecutionException("exception thrown after promise was fulfilled", e));
             } else {
               execution.join(new Action<ratpack.exec.Execution>() {
                 @Override

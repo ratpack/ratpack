@@ -23,7 +23,9 @@ import java.math.RoundingMode
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.atomic.AtomicLong
+import groovy.util.logging.Slf4j
 
+@Slf4j
 @CompileStatic
 class Requester {
 
@@ -37,14 +39,14 @@ class Requester {
 
   RunResults run(String name, Settings settings, ExecutorService executor, String endpoint) {
     List<BigDecimal> roundResults = []
-    println "starting $name... ($settings.numRequests requests per round)"
+    log.info "starting $name... ($settings.numRequests requests per round)"
     settings.rounds.times { int it ->
-      println "  round ${it + 1} of $settings.rounds"
+      log.debug "  round ${it + 1} of $settings.rounds"
       roundResults << runRound(settings.numRequests, executor, endpoint)
-      println "  cooldown"
+      log.debug "  cooldown"
       sleep(settings.cooldown * 1000)
     }
-    println "done"
+    log.info "done"
 
     def result = (roundResults.sum(0) as BigDecimal) / settings.rounds
     new RunResults(result.setScale(DECIMAL_ACCURACY, RoundingMode.HALF_UP))
@@ -67,7 +69,7 @@ class Requester {
 
           counter.addAndGet(value)
         } catch (Exception e) {
-          e.printStackTrace()
+          log.error "", e
         } finally {
           latch.countDown()
         }

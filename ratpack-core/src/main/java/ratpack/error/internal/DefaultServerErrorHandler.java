@@ -18,12 +18,15 @@ package ratpack.error.internal;
 
 import ratpack.error.ServerErrorHandler;
 import ratpack.handling.Context;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class DefaultServerErrorHandler implements ServerErrorHandler {
 
+  private final static Logger LOGGER = LoggerFactory.getLogger(DefaultServerErrorHandler.class);
+
   public void error(Context context, Exception exception) {
-    System.err.println("UNHANDLED EXCEPTION: " + context.getRequest().getUri());
-    exception.printStackTrace(System.err);
+    LOGGER.error("UNHANDLED EXCEPTION: " + context.getRequest().getUri(), exception);
     context.getResponse().status(500).send();
   }
 

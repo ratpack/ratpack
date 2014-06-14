@@ -69,9 +69,13 @@ import java.net.InetSocketAddress;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static io.netty.handler.codec.http.HttpHeaders.isKeepAlive;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @ChannelHandler.Sharable
 public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpRequest> {
+  private final static Logger LOGGER = LoggerFactory.getLogger(SimpleChannelInboundHandler.class);
+
   private final Handler[] handlers;
   private final Handler return404;
 
@@ -227,7 +231,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
   @Override
   public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
     if (!isIgnorableException(cause)) {
-      cause.printStackTrace();
+      LOGGER.error("", cause);
       if (ctx.channel().isActive()) {
         sendError(ctx, HttpResponseStatus.INTERNAL_SERVER_ERROR);
       }

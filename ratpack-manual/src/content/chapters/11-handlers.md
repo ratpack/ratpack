@@ -80,16 +80,20 @@ Consider the following…
 ```language-groovy tested
 import ratpack.handling.Handler;
 import ratpack.handling.Context;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class PrintThenNextHandler implements Handler {
   private final String message;
+  private final static Logger LOGGER = LoggerFactory.getLogger(PrintThenNextHandler.class);
+
   
   public PrintThenNextHandler(String message) {
     this.message = message;
   } 
   
   public void handle(Context context) {
-    System.out.println(message);
+    LOGGER.info(message);
     context.next();
   }
 }
@@ -123,10 +127,13 @@ Consider that inserted handlers can themselves insert more handlers…
 ```language-groovy tested
 import ratpack.handling.Handler;
 import ratpack.handling.Context;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class PrintThenInsertOrNextHandler implements Handler {
   private final String message;
   private final Handler[] handlers;
+  private final static Logger LOGGER = LoggerFactory.getLogger(PrintThenInsertOrNextHandler.class);
 
   public PrintThenInsertOrNextHandler(String message, Handler... handlers) {
     this.message = message;
@@ -134,7 +141,7 @@ public class PrintThenInsertOrNextHandler implements Handler {
   }
 
   public void handle(Context context) {
-    System.out.println(message);
+    LOGGER.info(message);
     if (handlers.length == 0) {
       context.next();
     } else {

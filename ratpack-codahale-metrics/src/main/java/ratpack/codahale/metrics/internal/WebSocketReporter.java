@@ -28,8 +28,8 @@ import java.io.OutputStream;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A {@link ScheduledReporter} that outputs measurements to a {@link MetricsBroadcaster} in JSON format.
@@ -39,7 +39,7 @@ import java.util.logging.Logger;
  */
 public class WebSocketReporter extends ScheduledReporter {
 
-  private final static Logger LOGGER = Logger.getLogger(WebSocketReporter.class.getName());
+  private final static Logger LOGGER = LoggerFactory.getLogger(WebSocketReporter.class);
   /**
    * The default reporting interval.
    */
@@ -88,7 +88,7 @@ public class WebSocketReporter extends ScheduledReporter {
 
       metricsBroadcaster.broadcast(out.toString());
     } catch (IOException e) {
-      LOGGER.log(Level.WARNING, "Exception encountered while reporting metrics: " + e.getLocalizedMessage());
+      LOGGER.warn("Exception encountered while reporting metrics: " + e.getLocalizedMessage());
     }
   }
 
@@ -188,7 +188,7 @@ public class WebSocketReporter extends ScheduledReporter {
         json.writeFieldName("value");
         json.writeObject(gauge.getValue());
       } catch (Exception e) {
-        LOGGER.log(Level.FINE, "Exception encountered while reporting [" + entry.getKey() + "]: " + e.getLocalizedMessage());
+        LOGGER.debug("Exception encountered while reporting [" + entry.getKey() + "]: " + e.getLocalizedMessage());
         json.writeNull();
       }
       json.writeEndObject();

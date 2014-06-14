@@ -22,7 +22,9 @@ import ratpack.error.ServerErrorHandler
 import ratpack.handling.Context
 
 import static ratpack.groovy.Groovy.groovyTemplate
+import groovy.util.logging.Slf4j
 
+@Slf4j
 @CompileStatic
 class SiteErrorHandler implements ClientErrorHandler, ServerErrorHandler {
 
@@ -31,7 +33,7 @@ class SiteErrorHandler implements ClientErrorHandler, ServerErrorHandler {
     context.response.status(statusCode)
     message(context, statusCode == 404 ? "The page you have requested does not exist." : "The request is invalid (HTTP $statusCode).")
     if (statusCode == 404) {
-      println "404 for $context.request.path"
+      log.error "404 for $context.request.path"
     }
   }
 
@@ -40,7 +42,7 @@ class SiteErrorHandler implements ClientErrorHandler, ServerErrorHandler {
     context.with {
       response.status(500)
       message(context, exception.message ?: "<no message>")
-      blocking { exception.printStackTrace(System.err) }.then {}
+      blocking { log.error "", exception }.then {}
     }
   }
 

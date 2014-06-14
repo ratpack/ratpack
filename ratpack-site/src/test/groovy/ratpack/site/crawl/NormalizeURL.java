@@ -19,6 +19,8 @@ package ratpack.site.crawl;
 import java.io.UnsupportedEncodingException;
 import java.net.*;
 import java.util.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * - Covert the scheme and host to lowercase (done by java.net.URL)
@@ -30,6 +32,8 @@ import java.util.*;
  * - Remove some query string params like "utm_*" and "*session*".
  */
 public class NormalizeURL {
+  private final static Logger LOGGER = LoggerFactory.getLogger(NormalizeURL.class);
+
   public static String normalize(final String taintedURL) throws MalformedURLException {
     final URL url;
     try {
@@ -91,7 +95,7 @@ public class NormalizeURL {
         try {
           tokens[j] = URLDecoder.decode(tokens[j], "UTF-8");
         } catch (UnsupportedEncodingException ex) {
-          ex.printStackTrace();
+          LOGGER.error("", ex);
         }
       }
       switch (tokens.length) {
