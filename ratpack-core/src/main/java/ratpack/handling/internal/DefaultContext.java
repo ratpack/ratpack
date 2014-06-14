@@ -48,8 +48,6 @@ import ratpack.render.internal.RenderController;
 import ratpack.server.BindAddress;
 import ratpack.util.ExceptionUtils;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.lang.reflect.UndeclaredThrowableException;
 import java.nio.file.Path;
 import java.util.Date;
@@ -59,8 +57,6 @@ import org.slf4j.LoggerFactory;
 
 import static io.netty.handler.codec.http.HttpHeaders.Names.IF_MODIFIED_SINCE;
 import static io.netty.handler.codec.http.HttpResponseStatus.NOT_MODIFIED;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class DefaultContext implements Context {
 
@@ -115,8 +111,6 @@ public class DefaultContext implements Context {
       });
     }
   }
-
-  private final static Logger LOGGER = LoggerFactory.getLogger(Context.class);
 
   private final RequestConstants requestConstants;
 
@@ -347,8 +341,9 @@ public class DefaultContext implements Context {
     try {
       serverErrorHandler.error(this, unpacked);
     } catch (Exception errorHandlerException) {
-      LOGGER.error("Exception thrown by error handler " + serverErrorHandler.toString() +
-        " while handling exception\nOriginal exception: ", unpacked);
+      LOGGER.error("Exception thrown by error handler "
+        + serverErrorHandler.toString()
+        + " while handling exception\nOriginal exception: ", unpacked);
 
       LOGGER.error("Error handler exception: ", errorHandlerException);
 

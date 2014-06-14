@@ -312,9 +312,7 @@ public abstract class RxRatpack {
    * For example, this can be used to observe background operations that produce some kind of iterable&hellip;
    * <pre class="groovy-chain-dsl">
    * import static ratpack.rx.RxRatpack.observeEach
-   * import groovy.util.logging.Slf4j
    *
-   * @Slf4j
    * handler {
    *   observeEach(blocking {
    *     // do some blocking IO and return a List&lt;String&gt;
@@ -323,7 +321,7 @@ public abstract class RxRatpack {
    *   }) map { String input ->
    *     input.toUpperCase()
    *   } subscribe {
-   *     log.debug it
+   *     println it
    *   }
    * }
    * </pre>
