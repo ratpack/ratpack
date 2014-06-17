@@ -16,6 +16,10 @@
 
 apply plugin: 'groovy'
 
+repositories {
+  jcenter()
+}
+
 dependencies {
   groovy localGroovy()
   compile gradleApi()
