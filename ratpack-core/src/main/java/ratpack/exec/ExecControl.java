@@ -180,5 +180,16 @@ public interface ExecControl {
    */
   void fork(Action<? super Execution> action);
 
+  /**
+   * Process streams of data asynchronously with non-blocking back pressure.
+   * <p>
+   * This method allows the processing of elements (onNext) or termination signals (onError, onComplete) to happen outside of the execution stack of the Publisher.
+   * In other words these "events" are executed asynchronously, on a Ratpack managed thread, without blocking the Publisher.
+   *
+   * @param publisher the provider of a potentially unbounded number of sequenced elements, publishing them according to the demand
+   * received from its Subscriber(s)
+   * @param subscriber a component that accepts a sequenced stream of elements provided by a Publisher
+   * @param <T> the type of streamed elements
+   */
   <T> void stream(Publisher<T> publisher, Subscriber<T> subscriber);
 }
