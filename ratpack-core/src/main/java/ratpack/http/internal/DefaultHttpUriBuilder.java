@@ -42,7 +42,7 @@ public class DefaultHttpUriBuilder implements HttpUriBuilder {
   private Escaper escaper;
 
 
-  public DefaultHttpUriBuilder(){
+  public DefaultHttpUriBuilder() {
     this.protocol = "http://";
     this.path = "";
     this.pathComponent = "";
@@ -74,7 +74,7 @@ public class DefaultHttpUriBuilder implements HttpUriBuilder {
   @Override
   public HttpUriBuilder path(String path) {
     escaper = UrlEscapers.urlFragmentEscaper();
-    this.path +=  "/"+escaper.escape(path);
+    this.path += "/" + escaper.escape(path);
     return this;
   }
 
@@ -82,9 +82,9 @@ public class DefaultHttpUriBuilder implements HttpUriBuilder {
   public HttpUriBuilder pathComponent(String pathComponent) {
     escaper = UrlEscapers.urlPathSegmentEscaper();
 
-    if(!this.pathComponent.isEmpty()) {
-      this.pathComponent += escaper.escape("/"+pathComponent);
-    }else{
+    if (!this.pathComponent.isEmpty()) {
+      this.pathComponent += escaper.escape("/" + pathComponent);
+    } else {
       this.pathComponent += String.format("/%s", escaper.escape(pathComponent));
     }
     return this;
@@ -100,13 +100,13 @@ public class DefaultHttpUriBuilder implements HttpUriBuilder {
   private void buildParameterString() {
     Set<String> keySet = this.params.keySet();
 
-    for(String key : keySet){
+    for (String key : keySet) {
 
       Object[] paramValues = this.params.get(key).toArray();
-      for(Object param : paramValues){
-        if(queryParams.equals("")){
+      for (Object param : paramValues) {
+        if (queryParams.equals("")) {
           queryParams = String.format("?%s=%s", key, param);
-        }else{
+        } else {
           queryParams += String.format("&%s=%s", key, param);
         }
       }
@@ -125,7 +125,7 @@ public class DefaultHttpUriBuilder implements HttpUriBuilder {
   public String toString() {
 
     String uri = protocol + host;
-    uri += port != -1  ?  String.format("%s%d", ":", port) : "";
+    uri += port != -1 ? String.format("%s%d", ":", port) : "";
     uri += path + pathComponent + queryParams;
 
     return uri;
