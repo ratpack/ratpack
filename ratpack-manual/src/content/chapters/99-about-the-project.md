@@ -34,7 +34,11 @@ The following people have provided significant contributions.
 * [Craig Burke](https://github.com/craigburke)
 * [Andrey Adamovich](https://github.com/aadamovich)
 * [Tim Yates](https://github.com/timyates)
+<<<<<<< HEAD
 * [Brett Wooldridge](https://github.com/brettwooldridge)
+=======
+* [Roy Schumacher](https://github.com/rjschu)
+>>>>>>> e05939524775c11ccc8ef188e2f9b519ecec7d60
 
 ### Past project members
 
