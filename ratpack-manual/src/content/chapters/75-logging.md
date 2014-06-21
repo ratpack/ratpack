@@ -12,7 +12,7 @@ Library options include:
 * Jakarta Commons Logging
 
 Simply add <em>one</em> logging library as a dependency and use slf4j syntax to log.
-If you are using another logging library, SLF4J provides a [migration tool](http://www.slf4j.org/migrator.html).  
+If you are currently using another logging library, SLF4J provides a [migration tool](http://www.slf4j.org/migrator.html) to automate the transition.  
 Examples for Java and Groovy are below and more details can be found in the [SLF4J manual](http://www.slf4j.org/manual.html).
 
 ## Java
@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory;
 
 public class LogExample {
   private final static Logger LOGGER = LoggerFactory.getLogger(LogExample.class);
-  
+    
   public void log() {
     LOGGER.info("Start logging");
     LOGGER.warn("Logging with a {} or {}", "parameter", "two");
