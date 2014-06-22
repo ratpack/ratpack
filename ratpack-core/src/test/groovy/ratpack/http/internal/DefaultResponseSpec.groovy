@@ -248,8 +248,8 @@ class DefaultResponseSpec extends RatpackGroovyDslSpec {
     file << "abcd".bytes
     def path = file.toPath()
     handlers {
-      get { ExecControl execControl ->
-        response.sendFile execControl, Files.readAttributes(path, BasicFileAttributes), path
+      get {
+        response.sendFile context, Files.readAttributes(path, BasicFileAttributes), path
       }
     }
 
