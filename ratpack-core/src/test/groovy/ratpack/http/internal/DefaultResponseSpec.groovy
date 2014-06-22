@@ -16,8 +16,12 @@
 
 package ratpack.http.internal
 
+import ratpack.exec.ExecControl
 import ratpack.test.internal.RatpackGroovyDslSpec
 import ratpack.util.internal.IoUtils
+
+import java.nio.file.Files
+import java.nio.file.attribute.BasicFileAttributes
 
 import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_LENGTH
 import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_TYPE
@@ -236,5 +240,23 @@ class DefaultResponseSpec extends RatpackGroovyDslSpec {
 
     then:
     text == string
+  }
+
+  def "can send files"() {
+    given:
+    def file = File.createTempFile("ratpackTest", "jpg")
+    file << "abcd".bytes
+    def path = file.toPath()
+    handlers {
+      get { ExecControl execControl ->
+        response.sendFile execControl, Files.readAttributes(path, BasicFileAttributes), path
+      }
+    }
+
+    when:
+    get()
+
+    then:
+    text == "abcd"
   }
 }
