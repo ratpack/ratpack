@@ -45,7 +45,7 @@ public interface LaunchConfig {
   /**
    * The default max content length.
    */
-  public int DEFAULT_MAX_CONTENT_LENGTH = 65536;
+  public int DEFAULT_MAX_CONTENT_LENGTH = 1048576;
 
   /**
    * The default number of threads an application should use.
