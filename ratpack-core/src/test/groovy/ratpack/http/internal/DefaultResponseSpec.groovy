@@ -16,7 +16,6 @@
 
 package ratpack.http.internal
 
-import ratpack.exec.ExecControl
 import ratpack.test.internal.RatpackGroovyDslSpec
 import ratpack.util.internal.IoUtils
 
