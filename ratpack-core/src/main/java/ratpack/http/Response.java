@@ -18,6 +18,7 @@ package ratpack.http;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.Cookie;
+import org.reactivestreams.spi.Publisher;
 import ratpack.api.NonBlocking;
 import ratpack.exec.ExecControl;
 
@@ -157,6 +158,9 @@ public interface Response {
    */
   @NonBlocking
   void send(String contentType, ByteBuf buffer);
+
+  @NonBlocking
+  void send(ExecControl execContext, Publisher<HttpResponseChunk> stream);
 
   /**
    * Sets the response {@code Content-Type} header.
