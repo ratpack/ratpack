@@ -151,13 +151,14 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
     final MimeTypes mimeTypes = registry.get(MimeTypes.class);
     FileHttpTransmitter fileHttpTransmitter = new DefaultFileHttpTransmitter(nettyRequest, httpHeaders, channel, mimeTypes,
       compressResponses, compressionMinSize, compressionMimeTypeWhiteList, compressionMimeTypeBlackList, addResponseTimeHeader ? startTime : -1);
+    ChunkedResponseTransmitter chunkedResponseTransmitter = new DefaultChunkedResponseTransmitter(nettyRequest, httpHeaders, channel);
 
     final DefaultEventController<RequestOutcome> requestOutcomeEventController = new DefaultEventController<>();
 
     // We own the lifecycle
     nettyRequest.content().retain();
 
-    final Response response = new DefaultResponse(responseStatus, responseHeaders, fileHttpTransmitter, ctx.alloc(), new Action<ByteBuf>() {
+    final Response response = new DefaultResponse(responseStatus, responseHeaders, fileHttpTransmitter, chunkedResponseTransmitter, ctx.alloc(), new Action<ByteBuf>() {
       @Override
       public void execute(final ByteBuf byteBuf) throws Exception {
         final HttpResponse nettyResponse = new CustomHttpResponse(responseStatus.getResponseStatus(), httpHeaders);
