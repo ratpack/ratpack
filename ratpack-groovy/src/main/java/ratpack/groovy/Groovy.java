@@ -34,6 +34,7 @@ import ratpack.groovy.internal.ClosureInvoker;
 import ratpack.groovy.internal.RatpackScriptBacking;
 import ratpack.groovy.markup.Markup;
 import ratpack.groovy.markup.internal.DefaultMarkup;
+import ratpack.groovy.markuptemplates.MarkupTemplate;
 import ratpack.groovy.templating.Template;
 import ratpack.groovy.templating.internal.DefaultTemplate;
 import ratpack.handling.Chain;
@@ -174,6 +175,16 @@ public abstract class Groovy {
   }
 
   /**
+   * Creates a {@link ratpack.handling.Context#render(Object) renderable} Groovy based markup template, using no model and the default content type.
+   *
+   * @param id The id/name of the template
+   * @return a template
+   */
+  public static MarkupTemplate groovyMarkupTemplate(String id) {
+    return groovyMarkupTemplate(id, null);
+  }
+
+  /**
    * Creates a {@link ratpack.handling.Context#render(Object) renderable} Groovy based template, using no model.
    *
    * @param id The id/name of the template
@@ -182,6 +193,17 @@ public abstract class Groovy {
    */
   public static Template groovyTemplate(String id, String type) {
     return groovyTemplate(ImmutableMap.<String, Object>of(), id, type);
+  }
+
+  /**
+   * Creates a {@link ratpack.handling.Context#render(Object) renderable} Groovy based markup template, using no model.
+   *
+   * @param id The id/name of the template
+   * @param type The content type of template
+   * @return a template
+   */
+  public static MarkupTemplate groovyMarkupTemplate(String id, String type) {
+    return groovyMarkupTemplate(ImmutableMap.<String, Object>of(), id, type);
   }
 
   /**
@@ -196,6 +218,17 @@ public abstract class Groovy {
   }
 
   /**
+   * Creates a {@link ratpack.handling.Context#render(Object) renderable} Groovy based markup template, using the default content type.
+   *
+   * @param model The template model
+   * @param id The id/name of the template
+   * @return a template
+   */
+  public static MarkupTemplate groovyMarkupTemplate(Map<String, ?> model, String id) {
+    return groovyMarkupTemplate(model, id, null);
+  }
+
+  /**
    * Creates a {@link ratpack.handling.Context#render(Object) renderable} Groovy based template.
    *
    * @param model The template model
@@ -205,6 +238,18 @@ public abstract class Groovy {
    */
   public static Template groovyTemplate(Map<String, ?> model, String id, String type) {
     return new DefaultTemplate(id, model, type);
+  }
+
+  /**
+   * Creates a {@link ratpack.handling.Context#render(Object) renderable} Groovy based template.
+   *
+   * @param model The template model
+   * @param id The id/name of the template
+   * @param type The content type of template
+   * @return a template
+   */
+  public static MarkupTemplate groovyMarkupTemplate(Map<String, ?> model, String id, String type) {
+    return new MarkupTemplate(id, type, model);
   }
 
   /**
