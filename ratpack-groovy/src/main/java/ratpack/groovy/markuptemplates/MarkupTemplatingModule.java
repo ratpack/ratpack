@@ -36,7 +36,7 @@ import javax.inject.Singleton;
  * By default templates are looked up in the {@code templates} directory of the application root.
  * So {@code groovyMarkupTemplate("my/template/path.gtpl")} maps to {@code tempaltes/my/template/path.gtpl} in the application root directory.
  * <p>
- * The template engine can be configured using the {@link #templateConfiguration template configuration}. In particular, it is possible to configure
+ * The template engine can be configured using the {@link #getTemplateConfiguration() template configuration}. In particular, it is possible to configure
  * things like automatic indentation.
  * </p>
  * <p>
