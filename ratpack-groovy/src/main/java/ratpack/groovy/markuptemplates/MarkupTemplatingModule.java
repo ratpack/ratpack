@@ -79,7 +79,8 @@ import javax.inject.Singleton;
  *
  * Example usage: (Groovy DSL)
  * <pre class="groovy-ratpack-dsl">
-  * import ratpack.groovy.markuptemplates.MarkupTemplatingModule
+ * import ratpack.groovy.markuptemplates.MarkupTemplatingModule
+ * import static ratpack.groovy.Groovy.groovyMarkupTemplate
  * import static ratpack.groovy.Groovy.ratpack
  *
  * ratpack {
