@@ -204,6 +204,11 @@ public class DefaultGroovyContext implements GroovyContext {
   }
 
   @Override
+  public void fork(Action<? super Execution> action) {
+    delegate.fork(action);
+  }
+
+  @Override
   public void redirect(String location) throws NotInRegistryException {
     delegate.redirect(location);
   }

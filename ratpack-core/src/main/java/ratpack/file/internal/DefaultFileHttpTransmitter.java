@@ -16,10 +16,14 @@
 
 package ratpack.file.internal;
 
+import com.google.common.base.Predicate;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.stream.ChunkedNioStream;
 import ratpack.exec.ExecControl;
+import ratpack.file.MimeTypes;
 import ratpack.func.Action;
 import ratpack.http.internal.CustomHttpResponse;
 import ratpack.http.internal.HttpHeaderConstants;
@@ -43,13 +47,34 @@ public class DefaultFileHttpTransmitter implements FileHttpTransmitter {
   private final Channel channel;
   private final boolean compress;
   private final long startTime;
+  private final long compressionMinSize;
+  private final ImmutableSet<String> compressionMimeTypeWhiteList;
+  private final ImmutableSet<String> compressionMimeTypeBlackList;
 
-  public DefaultFileHttpTransmitter(FullHttpRequest request, HttpHeaders httpHeaders, Channel channel, boolean compress, long startTime) {
+  public DefaultFileHttpTransmitter(FullHttpRequest request, HttpHeaders httpHeaders, Channel channel, MimeTypes mimeTypes, boolean compress, Long compressionMinSize,
+                                      ImmutableSet<String> compressionMimeTypeWhiteList, ImmutableSet<String> compressionMimeTypeBlackList, long startTime) {
     this.request = request;
     this.httpHeaders = httpHeaders;
     this.channel = channel;
     this.compress = compress;
     this.startTime = startTime;
+    this.compressionMinSize = compressionMinSize;
+    this.compressionMimeTypeWhiteList = compressionMimeTypeWhiteList;
+    this.compressionMimeTypeBlackList = compressionMimeTypeBlackList != null ? compressionMimeTypeBlackList : defaultExcludedMimeTypes(mimeTypes);
+  }
+
+  private static ImmutableSet<String> defaultExcludedMimeTypes(MimeTypes mimeTypes) {
+    return ImmutableSet.copyOf(
+      Iterables.concat(
+        Iterables.filter(mimeTypes.getKnownMimeTypes(), new Predicate<String>() {
+          @Override
+          public boolean apply(String type) {
+            return (type.startsWith("image/") || type.startsWith("audio/") || type.startsWith("video/")) && !type.endsWith("+xml");
+          }
+        }),
+        ImmutableSet.of("application/compress", "application/zip", "application/gzip")
+      )
+    );
   }
 
   private static boolean isNotNullAndStartsWith(String value, String... prefixes) {
@@ -67,7 +92,7 @@ public class DefaultFileHttpTransmitter implements FileHttpTransmitter {
 
   @Override
   public void transmit(ExecControl execContext, final BasicFileAttributes basicFileAttributes, final Path file) throws Exception {
-    final boolean compressThis = compress && basicFileAttributes.size() > 1024 && isNotNullAndStartsWith(httpHeaders.get(HttpHeaderConstants.CONTENT_TYPE), "text/", "application/");
+    final boolean compressThis = compress && basicFileAttributes.size() > compressionMinSize && isContentTypeCompressible();
 
     if (compress && !compressThis) {
       // Signal to the compressor not to compress this
@@ -139,6 +164,26 @@ public class DefaultFileHttpTransmitter implements FileHttpTransmitter {
     ChannelFuture lastContentFuture = channel.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
     if (!isKeepAlive(response)) {
       lastContentFuture.addListener(ChannelFutureListener.CLOSE);
+    }
+  }
+
+  private boolean isContentTypeCompressible() {
+    final String contentType = httpHeaders.get(HttpHeaderConstants.CONTENT_TYPE);
+    Predicate<String> contentTypeMatch = new PrefixMatchPredicate(contentType);
+    return (compressionMimeTypeWhiteList == null || (contentType != null && Iterables.any(compressionMimeTypeWhiteList, contentTypeMatch)))
+      && (contentType == null || !Iterables.any(compressionMimeTypeBlackList, contentTypeMatch));
+  }
+
+  private static class PrefixMatchPredicate implements Predicate<String> {
+    private final String value;
+
+    PrefixMatchPredicate(String value) {
+      this.value = value;
+    }
+
+    @Override
+    public boolean apply(String possiblePrefix) {
+      return value.startsWith(possiblePrefix);
     }
   }
 

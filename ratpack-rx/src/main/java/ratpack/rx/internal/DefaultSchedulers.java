@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 
-description = "Integration with the RxJava library - https://github.com/Netflix/RxJava"
+package ratpack.rx.internal;
 
-apply from: "$rootDir/gradle/javaModule.gradle"
+import rx.Scheduler;
+import rx.plugins.RxJavaDefaultSchedulersDefault;
 
-ext.apiLinks = [
-  "http://netflix.github.io/RxJava/javadoc/${commonVersions.rxjava.split("\\.", 3)[0..1].join(".")}"
-]
+public class DefaultSchedulers extends RxJavaDefaultSchedulersDefault {
+  private Scheduler computationScheduler = new MultiExecControllerBackedScheduler();
 
-dependencies {
-  compile project(":ratpack-core")
-  compile "com.netflix.rxjava:rxjava-core:$commonVersions.rxjava"
+  @Override
+  public Scheduler getComputationScheduler() {
+    return computationScheduler;
+  }
 }

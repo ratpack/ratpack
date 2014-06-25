@@ -35,6 +35,7 @@ The following people have provided significant contributions.
 * [Andrey Adamovich](https://github.com/aadamovich)
 * [Tim Yates](https://github.com/timyates)
 * [Brett Wooldridge](https://github.com/brettwooldridge)
+* [Roy Schumacher](https://github.com/rjschu)
 
 ### Past project members
 

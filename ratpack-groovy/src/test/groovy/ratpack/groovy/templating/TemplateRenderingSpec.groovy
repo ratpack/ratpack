@@ -205,6 +205,31 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     text.contains "value: 2"
   }
 
+  def "can get model object via generic type"() {
+    given:
+    file "templates/template.html", "value: \${model.get('value', new com.google.common.reflect.TypeToken<List<Integer>>() {})}"
+
+    when:
+    bindings {
+      config(TemplatingModule).staticallyCompile = true
+    }
+
+    handlers {
+      get {
+        render groovyTemplate("template.html", value: [1, 2])
+      }
+    }
+
+    then:
+    text.contains "value: [1, 2]"
+
+    when:
+    file "templates/template.html", "value: \${model.get('value', new com.google.common.reflect.TypeToken<List<Thread>>() {})}"
+
+    then:
+    text.contains "value: [1, 2]" // thank you erasure
+  }
+
   def "client errors are rendered with the template renderer"() {
     when:
     handlers {
@@ -330,7 +355,7 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
 
   def "can escape in template"() {
     given:
-    file "templates/tpl.html", "\${html '<>'}"
+    file "templates/tpl.html", "\${html '<>'} \${urlPathSegment 'a/b'} \${urlParam 'a b'}"
 
     when:
     handlers {
@@ -340,6 +365,6 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    text == "&lt;&gt;"
+    text == "&lt;&gt; a%2Fb a+b"
   }
 }

@@ -20,14 +20,21 @@ import com.google.common.base.Optional;
 import ratpack.exec.*;
 import ratpack.exec.internal.DefaultExecController;
 import ratpack.func.Action;
+import ratpack.rx.internal.DefaultSchedulers;
+import ratpack.rx.internal.ExecControllerBackedScheduler;
 import ratpack.util.ExceptionUtils;
 import rx.Observable;
+import rx.Scheduler;
 import rx.Subscriber;
 import rx.exceptions.OnErrorNotImplementedException;
 import rx.functions.Action2;
-import rx.operators.OperatorSingle;
+import rx.internal.operators.OperatorSingle;
+import rx.plugins.RxJavaDefaultSchedulers;
 import rx.plugins.RxJavaObservableExecutionHook;
 import rx.plugins.RxJavaPlugins;
+
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static ratpack.util.ExceptionUtils.toException;
 
@@ -37,6 +44,20 @@ import static ratpack.util.ExceptionUtils.toException;
  * <b>IMPORTANT:</b> the {@link #initialize()} method must be called to fully enable integration.
  */
 public abstract class RxRatpack {
+
+  private static boolean isDuringExecution() {
+    Optional<ExecController> threadBoundController = DefaultExecController.getThreadBoundController();
+    if (threadBoundController.isPresent()) {
+      try {
+        threadBoundController.get().getExecution();
+        return true;
+      } catch (ExecutionException e) {
+        return false;
+      }
+    } else {
+      return false;
+    }
+  }
 
   /**
    * Registers an {@link RxJavaObservableExecutionHook} with RxJava that provides a default error handling strategy of {@link ratpack.exec.Execution#setErrorHandler(ratpack.func.Action)} forwarding exceptions to the execution}.
@@ -141,6 +162,7 @@ public abstract class RxRatpack {
    */
   public static void initialize() {
     RxJavaPlugins plugins = RxJavaPlugins.getInstance();
+
     ExecutionHook ourHook = new ExecutionHook();
     try {
       plugins.registerObservableExecutionHook(ourHook);
@@ -150,6 +172,68 @@ public abstract class RxRatpack {
         throw new IllegalStateException("Cannot install RxJava integration because another execution hook (" + existingHook.getClass() + ") is already installed");
       }
     }
+
+    System.setProperty("rxjava.plugin." + RxJavaDefaultSchedulers.class.getSimpleName() + ".implementation", DefaultSchedulers.class.getName());
+    RxJavaDefaultSchedulers existingSchedulers = plugins.getDefaultSchedulers();
+    if (!(existingSchedulers instanceof DefaultSchedulers)) {
+      throw new IllegalStateException("Cannot install RxJava integration because another set of default schedulers (" + existingSchedulers.getClass() + ") is already installed");
+    }
+  }
+
+  /**
+   * A scheduler that uses the application event loop and initialises each job as an {@link ratpack.exec.Execution} (via {@link ratpack.exec.ExecController#start(ratpack.func.Action)}).
+   *
+   * @param execController the execution controller to back the scheduler
+   * @return a scheduler
+   */
+  public static Scheduler scheduler(final ExecController execController) {
+    return new ExecControllerBackedScheduler(execController);
+  }
+
+  /**
+   * Forks the current execution in order to subscribe to the given source, then joining the original execution with the source values.
+   * <p>
+   * This method supports parallelism in the observable stream.
+   * <p>
+   * This method uses {@link rx.Observable#toList()} on the given source to collect all values before returning control to the original execution.
+   * As such, {@code source} should not be an infinite or extremely large stream.
+   *
+   * @param execControl the execution control
+   * @param source the observable source
+   * @param <T> the type of item observed
+   * @return an observable stream equivalent to the given source
+   */
+  public static <T> Observable<T> forkAndJoin(final ExecControl execControl, final Observable<T> source) {
+    Promise<List<T>> promise = execControl.promise(new Action<Fulfiller<List<T>>>() {
+      @Override
+      public void execute(final Fulfiller<List<T>> fulfiller) throws Exception {
+        execControl.fork(new Action<Execution>() {
+          @Override
+          public void execute(Execution execution) throws Exception {
+            source
+              .toList()
+              .subscribe(new Subscriber<List<T>>() {
+                @Override
+                public void onCompleted() {
+
+                }
+
+                @Override
+                public void onError(Throwable e) {
+                  fulfiller.error(e);
+                }
+
+                @Override
+                public void onNext(List<T> ts) {
+                  fulfiller.success(ts);
+                }
+              });
+          }
+        });
+      }
+    });
+
+    return observeEach(promise);
   }
 
   /**
@@ -263,6 +347,137 @@ public abstract class RxRatpack {
     }));
   }
 
+  /**
+   * An operator to parallelize an observable stream by forking a new execution for each omitted item.
+   * This allows downstream processing to occur in concurrent executions.
+   * <p>
+   * To be used with the {@link rx.Observable#lift(rx.Observable.Operator)} method.
+   * <p>
+   * The {@code onCompleted()} or {@code onError()} downstream methods are guaranteed to be called <strong>after</strong> the last item has been given to the downstream {@code onNext()} method.
+   * That is, the last invocation of the downstream {@code onNext()} will have returned before {@code onCompleted()} or {@code onError()} are invoked.
+   * <p>
+   * This is generally a more performant alternative to using {@link rx.Observable#parallel} due to Ratpack's {@link ratpack.exec.Execution} semantics and use of Netty's event loop to schedule work.
+   * <pre class="java">
+   * import ratpack.rx.RxRatpack;
+   * import ratpack.exec.ExecController;
+   * import ratpack.launch.LaunchConfigBuilder;
+   *
+   * import rx.Observable;
+   * import rx.functions.Func1;
+   * import rx.functions.Action1;
+   *
+   * import java.util.List;
+   * import java.util.Arrays;
+   * import java.util.concurrent.CyclicBarrier;
+   * import java.util.concurrent.BrokenBarrierException;
+   *
+   * public class Example {
+   *
+   *   public static void main(String[] args) throws Exception {
+   *     RxRatpack.initialize();
+   *
+   *     final CyclicBarrier barrier = new CyclicBarrier(5);
+   *     final ExecController execController = LaunchConfigBuilder.noBaseDir().build().getExecController();
+   *
+   *     Observable&lt;Integer&gt; source = Observable.from(1, 2, 3, 4, 5);
+   *     List&lt;Integer&gt; doubledAndSorted = source
+   *       .lift(RxRatpack.&lt;Integer&gt;forkOnNext(execController.getControl()))
+   *       .map(new Func1&lt;Integer, Integer&gt;() {
+   *         public Integer call(Integer integer) {
+   *           try {
+   *             barrier.await(); // prove stream is processed concurrently
+   *           } catch (InterruptedException | BrokenBarrierException e) {
+   *             throw new RuntimeException(e);
+   *           }
+   *           return integer.intValue() * 2;
+   *         }
+   *       })
+   *       .serialize()
+   *       .toSortedList()
+   *       .toBlocking()
+   *       .single();
+   *
+   *     try {
+   *       assert doubledAndSorted.equals(Arrays.asList(2, 4, 6, 8, 10));
+   *     } finally {
+   *       execController.close();
+   *     }
+   *   }
+   * }
+   * </pre>
+   *
+   * @param execControl The execution control to use to fork executions.
+   * @param <T> The type of item in the stream
+   * @return an observable operator
+   */
+  public static <T> Observable.Operator<T, T> forkOnNext(final ExecControl execControl) {
+    return new Observable.Operator<T, T>() {
+
+      @Override
+      public Subscriber<? super T> call(final Subscriber<? super T> downstream) {
+        return new Subscriber<T>(downstream) {
+
+          private final AtomicInteger wip = new AtomicInteger(1);
+
+          private volatile Runnable onDone;
+
+          @Override
+          public void onCompleted() {
+            onDone = new Runnable() {
+              @Override
+              public void run() {
+                downstream.onCompleted();
+              }
+            };
+            maybeDone();
+          }
+
+          @Override
+          public void onError(final Throwable e) {
+            onDone = new Runnable() {
+              @Override
+              public void run() {
+                downstream.onError(e);
+              }
+            };
+            maybeDone();
+          }
+
+          private void maybeDone() {
+            if (wip.decrementAndGet() == 0) {
+              onDone.run();
+            }
+          }
+
+          @Override
+          public void onNext(final T t) {
+            // Avoid the overhead of creating executions if downstream is no longer interested
+            if (isUnsubscribed()) {
+              return;
+            }
+
+            wip.incrementAndGet();
+            execControl.fork(new Action<Execution>() {
+              @Override
+              public void execute(Execution execution) throws Exception {
+                execution.setErrorHandler(new Action<Throwable>() {
+                  @Override
+                  public void execute(Throwable throwable) throws Exception {
+                    onError(throwable);
+                  }
+                });
+                try {
+                  downstream.onNext(t);
+                } finally {
+                  maybeDone();
+                }
+              }
+            });
+          }
+        };
+      }
+    };
+  }
 
   public static <T> Subscriber<? super T> subscriber(final Fulfiller<T> fulfiller) {
     return new OperatorSingle<T>().call(new Subscriber<T>() {
@@ -327,23 +542,9 @@ public abstract class RxRatpack {
 
   private static class ExecutionHook extends RxJavaObservableExecutionHook {
 
-    private Optional<Execution> getExecution() {
-      Optional<ExecController> threadBoundController = DefaultExecController.getThreadBoundController();
-      if (threadBoundController.isPresent()) {
-        try {
-          return Optional.of(threadBoundController.get().getExecution());
-        } catch (ExecutionException e) {
-          return Optional.absent();
-        }
-      } else {
-        return Optional.absent();
-      }
-    }
-
     @Override
     public <T> Observable.OnSubscribe<T> onSubscribeStart(Observable<? extends T> observableInstance, final Observable.OnSubscribe<T> onSubscribe) {
-      final Optional<Execution> execution = getExecution();
-      if (execution.isPresent()) {
+      if (isDuringExecution()) {
         return new Observable.OnSubscribe<T>() {
           @Override
           public void call(final Subscriber<? super T> subscriber) {
@@ -366,7 +567,6 @@ public abstract class RxRatpack {
       }
     }
   }
-
 
   private static class ExecutionBackedSubscriber<T> extends Subscriber<T> {
     private final Subscriber<? super T> subscriber;

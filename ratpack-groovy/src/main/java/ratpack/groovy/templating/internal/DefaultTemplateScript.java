@@ -18,6 +18,7 @@ package ratpack.groovy.templating.internal;
 
 import com.google.common.escape.Escaper;
 import com.google.common.html.HtmlEscapers;
+import com.google.common.net.UrlEscapers;
 import groovy.lang.Script;
 import io.netty.buffer.ByteBuf;
 import ratpack.groovy.templating.TemplateModel;
@@ -29,7 +30,9 @@ import java.util.Map;
 
 public abstract class DefaultTemplateScript extends Script implements TemplateScript {
 
-  private static final Escaper ESCAPER = HtmlEscapers.htmlEscaper();
+  private static final Escaper HTML_ESCAPER = HtmlEscapers.htmlEscaper();
+  private static final Escaper URL_PATH_SEGMENT_ESCAPER = UrlEscapers.urlPathSegmentEscaper();
+  private static final Escaper URL_PARAM_ESCAPER = UrlEscapers.urlFormParameterEscaper();
 
   private final TemplateModel model;
   private final NestedRenderer renderer;
@@ -56,7 +59,17 @@ public abstract class DefaultTemplateScript extends Script implements TemplateSc
 
   @Override
   public String html(Object value) {
-    return value == null ? "" : ESCAPER.escape(value.toString());
+    return value == null ? "" : HTML_ESCAPER.escape(value.toString());
+  }
+
+  @Override
+  public String urlPathSegment(Object value) {
+    return value == null ? "" : URL_PATH_SEGMENT_ESCAPER.escape(value.toString());
+  }
+
+  @Override
+  public String urlParam(Object value) {
+    return value == null ? "" : URL_PARAM_ESCAPER.escape(value.toString());
   }
 
   //CHECKSTYLE:OFF

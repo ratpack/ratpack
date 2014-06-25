@@ -18,7 +18,9 @@ package ratpack.launch.internal;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import io.netty.buffer.ByteBufAllocator;
+import ratpack.api.Nullable;
 import ratpack.exec.ExecController;
 import ratpack.exec.internal.DefaultExecController;
 import ratpack.file.FileSystemBinding;
@@ -50,8 +52,11 @@ public class DefaultLaunchConfig implements LaunchConfig {
   private final int maxContentLength;
   private final boolean timeResponses;
   private final boolean compressResponses;
+  private final long compressionMinSize;
+  private final ImmutableSet<String> compressionMimeTypeWhiteList;
+  private final ImmutableSet<String> compressionMimeTypeBlackList;
 
-  public DefaultLaunchConfig(FileSystemBinding baseDir, int port, InetAddress address, boolean reloadable, int threads, ByteBufAllocator byteBufAllocator, URI publicAddress, ImmutableList<String> indexFiles, ImmutableMap<String, String> other, SSLContext sslContext, int maxContentLength, boolean timeResponses, boolean compressResponses, HandlerFactory handlerFactory) {
+  public DefaultLaunchConfig(FileSystemBinding baseDir, int port, InetAddress address, boolean reloadable, int threads, ByteBufAllocator byteBufAllocator, URI publicAddress, ImmutableList<String> indexFiles, ImmutableMap<String, String> other, SSLContext sslContext, int maxContentLength, boolean timeResponses, boolean compressResponses, long compressionMinSize, ImmutableSet<String> compressionMimeTypeWhiteList, ImmutableSet<String> compressionMimeTypeBlackList, HandlerFactory handlerFactory) {
     this.baseDir = baseDir;
     this.port = port;
     this.address = address;
@@ -59,6 +64,9 @@ public class DefaultLaunchConfig implements LaunchConfig {
     this.threads = threads;
     this.timeResponses = timeResponses;
     this.compressResponses = compressResponses;
+    this.compressionMinSize = compressionMinSize;
+    this.compressionMimeTypeWhiteList = compressionMimeTypeWhiteList;
+    this.compressionMimeTypeBlackList = compressionMimeTypeBlackList;
     this.byteBufAllocator = byteBufAllocator;
     this.publicAddress = publicAddress;
     this.indexFiles = indexFiles;
@@ -159,6 +167,23 @@ public class DefaultLaunchConfig implements LaunchConfig {
   @Override
   public boolean isCompressResponses() {
     return compressResponses;
+  }
+
+  @Override
+  public long getCompressionMinSize() {
+    return compressionMinSize;
+  }
+
+  @Override
+  @Nullable
+  public ImmutableSet<String> getCompressionMimeTypeWhiteList() {
+    return compressionMimeTypeWhiteList;
+  }
+
+  @Override
+  @Nullable
+  public ImmutableSet<String> getCompressionMimeTypeBlackList() {
+    return compressionMimeTypeBlackList;
   }
 
   @Override

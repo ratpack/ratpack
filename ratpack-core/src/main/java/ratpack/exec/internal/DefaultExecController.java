@@ -50,20 +50,7 @@ public class DefaultExecController implements ExecController {
     this.eventLoopGroup = new NioEventLoopGroup(numThreads, new ExecControllerBindingThreadFactory("ratpack-compute", Thread.MAX_PRIORITY));
     this.computeExecutor = MoreExecutors.listeningDecorator(eventLoopGroup);
     this.blockingExecutor = MoreExecutors.listeningDecorator(Executors.newCachedThreadPool(new ExecControllerBindingThreadFactory("ratpack-blocking", Thread.NORM_PRIORITY)));
-    this.control = new DynamicExecControl();
-  }
-
-  private class DynamicExecControl extends FactoryBackedExecControl {
-
-    @Override
-    protected Factory<Execution> getExecutionFactory() {
-      return new Factory<Execution>() {
-        @Override
-        public Execution create() {
-          return getExecution();
-        }
-      };
-    }
+    this.control = new FactoryBackedExecControl();
   }
 
   public static Optional<ExecController> getThreadBoundController() {
@@ -109,16 +96,21 @@ public class DefaultExecController implements ExecController {
     }
   }
 
-  private abstract class FactoryBackedExecControl implements ExecControl {
+  private class FactoryBackedExecControl implements ExecControl {
 
-    protected abstract Factory<Execution> getExecutionFactory();
+    private final Factory<Execution> executionFactory = new Factory<Execution>() {
+      @Override
+      public Execution create() {
+        return getExecution();
+      }
+    };
 
     @Override
     public <T> Promise<T> blocking(final Callable<T> blockingOperation) {
       return promise(new Action<Fulfiller<? super T>>() {
         @Override
         public void execute(final Fulfiller<? super T> fulfiller) throws Exception {
-          final Execution execution = getExecutionFactory().create();
+          final Execution execution = getExecution();
           ListenableFuture<T> future = blockingExecutor.submit(new BlockingOperation(execution));
           Futures.addCallback(future, new ComputeResume(fulfiller), computeExecutor);
         }
@@ -177,7 +169,12 @@ public class DefaultExecController implements ExecController {
 
     @Override
     public <T> Promise<T> promise(Action<? super Fulfiller<T>> action) {
-      return new DefaultPromise<>(getExecutionFactory(), action);
+      return new DefaultPromise<>(executionFactory, action);
+    }
+
+    @Override
+    public void fork(Action<? super ratpack.exec.Execution> action) {
+      start(action);
     }
   }
 
@@ -185,17 +182,6 @@ public class DefaultExecController implements ExecController {
     private final List<ExecInterceptor> interceptors = new LinkedList<>();
     private final Deque<Runnable> segments = new ConcurrentLinkedDeque<>();
     private final Queue<Runnable> onCompletes = new ConcurrentLinkedQueue<>();
-    private final ExecControl execControl = new FactoryBackedExecControl() {
-      @Override
-      protected Factory<Execution> getExecutionFactory() {
-        return new Factory<Execution>() {
-          @Override
-          public Execution create() {
-            return Execution.this;
-          }
-        };
-      }
-    };
 
     private Action<? super Throwable> errorHandler = new Action<Throwable>() {
       @Override
@@ -215,13 +201,18 @@ public class DefaultExecController implements ExecController {
 
     @Override
     public <T> Promise<T> blocking(final Callable<T> operation) {
-      return execControl.blocking(operation);
+      return control.blocking(operation);
     }
 
 
     @Override
     public <T> Promise<T> promise(final Action<? super Fulfiller<T>> action) {
-      return execControl.promise(action);
+      return control.promise(action);
+    }
+
+    @Override
+    public void fork(Action<? super ratpack.exec.Execution> action) {
+      control.fork(action);
     }
 
     @Override
@@ -258,12 +249,10 @@ public class DefaultExecController implements ExecController {
     }
 
     private void tryDrain() {
+      assertNotDone();
       if (!done && !waiting && !segments.isEmpty()) {
         if (active.compareAndSet(false, true)) {
           drain();
-          if (done) {
-            runOnCompletes();
-          }
         }
       }
     }
@@ -288,17 +277,23 @@ public class DefaultExecController implements ExecController {
           Runnable segment = segments.poll();
           while (segment != null) {
             segment.run();
-            if (done) {
-              return;
+            if (waiting) { // the segment initiated an async op
+              break;
             } else {
-              segment = waiting ? null : segments.poll();
+              segment = segments.poll();
+              if (segment == null) { // not waiting and no more segments, we are done
+                done = true;
+                runOnCompletes();
+              }
             }
           }
         } finally {
           executionHolder.remove();
           active.set(false);
         }
-        tryDrain();
+        if (waiting) {
+          tryDrain();
+        }
       } else {
         active.set(false);
         eventLoopGroup.submit(new Runnable() {
@@ -311,19 +306,15 @@ public class DefaultExecController implements ExecController {
     }
 
     @Override
-    public void complete() {
-      continueVia(new Runnable() {
-        @Override
-        public void run() {
-          done = true;
-        }
-      });
-      tryDrain();
+    public void onComplete(Runnable runnable) {
+      assertNotDone();
+      onCompletes.add(runnable);
     }
 
-    @Override
-    public void onComplete(Runnable runnable) {
-      onCompletes.add(runnable);
+    private void assertNotDone() {
+      if (done) {
+        throw new ExecutionException("execution is complete");
+      }
     }
 
     public void intercept(final ExecInterceptor.ExecType execType, final List<ExecInterceptor> interceptors, final Action<? super Execution> action) throws Exception {

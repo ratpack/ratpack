@@ -371,6 +371,108 @@ public interface Context extends ExecControl, Registry {
   <T> Promise<T> promise(Action<? super Fulfiller<T>> action);
 
   /**
+   * Forks a new execution, detached from the current.
+   * <p>
+   * This can be used to launch a one time background job during request processing.
+   * The forked execution does not inherit anything from the current execution.
+   * <p>
+   * Forked executions MUST NOT write to the response or participate in the handler pipeline at all.
+   * That is, they should not call methods like {@link #next()} or {@link #insert(Handler...)}.
+   * <p>
+   * When using forking to process work in parallel, use {@link #promise(ratpack.func.Action)} to continue request handling when the parallel work is done.
+   *
+   * <p>
+   * <pre class="java">
+   * import ratpack.handling.Handler;
+   * import ratpack.handling.Context;
+   * import ratpack.func.Action;
+   * import ratpack.func.Actions;
+   * import ratpack.exec.Execution;
+   * import ratpack.exec.Fulfiller;
+   *
+   * import java.util.Collections;
+   * import java.util.concurrent.atomic.AtomicInteger;
+   * import java.util.concurrent.atomic.AtomicReference;
+   *
+   * import ratpack.test.UnitTest;
+   * import ratpack.test.handling.HandlingResult;
+   * import ratpack.test.handling.RequestFixture;
+   *
+   * public class Example {
+   *   public static class ForkingHandler implements Handler {
+   *     public void handle(final Context context) {
+   *       final int numJobs = 3;
+   *       final Integer failOnIteration = context.getPathTokens().asInt("failOn");
+   *
+   *       context.promise(new Action&lt;Fulfiller&lt;Integer&gt;&gt;() {
+   *         private final AtomicInteger counter = new AtomicInteger();
+   *         private final AtomicReference&lt;Throwable&gt; error = new AtomicReference&lt;&gt;();
+   *
+   *         public void execute(final Fulfiller&lt;Integer&gt; fulfiller) {
+   *           for (int i = 0; i < numJobs; ++i) {
+   *             final int iteration = i;
+   *
+   *             context.fork(new Action&lt;Execution&gt;() {
+   *               public void execute(Execution execution) throws Exception {
+   *
+   *                 // Important to set a error handler that somehow signals completion so the request processing can continue
+   *                 // (the error handler is invoked if an exception is uncaught during the execution)
+   *                 execution.setErrorHandler(new Action&lt;Throwable&gt;() {
+   *                   public void execute(Throwable throwable) {
+   *                     error.compareAndSet(null, throwable); // just take the first error
+   *                     completeJob();
+   *                   }
+   *                 });
+   *
+   *                 if (failOnIteration != null && failOnIteration.intValue() == iteration) {
+   *                   throw new Exception("bang!");
+   *                 } else {
+   *                   completeJob();
+   *                 }
+   *               }
+   *
+   *               private void completeJob() {
+   *                 if (counter.incrementAndGet() == numJobs) {
+   *                   Throwable throwable = error.get();
+   *                   if (throwable == null) {
+   *                     fulfiller.success(numJobs);
+   *                   } else {
+   *                     fulfiller.error(throwable);
+   *                   }
+   *                 }
+   *               }
+   *             });
+   *           }
+   *         }
+   *       }).then(new Action&lt;Integer&gt;() {
+   *         public void execute(Integer integer) {
+   *           context.render(integer.toString());
+   *         }
+   *       });
+   *     }
+   *   }
+   *
+   *   public static void main(String[] args) {
+   *     HandlingResult result = UnitTest.handle(new ForkingHandler(), Actions.noop());
+   *     assert result.rendered(String.class).equals("3");
+   *
+   *     result = UnitTest.handle(new ForkingHandler(), new Action&lt;RequestFixture&gt;() {
+   *       public void execute(RequestFixture fixture) {
+   *         fixture.pathBinding(Collections.singletonMap("failOn", "2"));
+   *       }
+   *     });
+   *
+   *     assert result.getException().getMessage().equals("bang!");
+   *   }
+   * }
+   * </pre>
+   *
+   * @param action the initial execution segment
+   */
+  @Override
+  void fork(Action<? super Execution> action);
+
+  /**
    * Forwards the error to the {@link ratpack.error.ClientErrorHandler} in this service.
    *
    * The default configuration of Ratpack includes a {@link ratpack.error.ClientErrorHandler} in all contexts.
@@ -467,7 +569,7 @@ public interface Context extends ExecControl, Registry {
   /**
    * Parse the request into the given type, using no options (or more specifically an instance of {@link ratpack.parse.NullParseOpts} as the options).
    * <p>
-   * The code sample is functionally identical to the sample given for the {@link #parse(Parse)} variant…
+   * The code sample is functionally identical to the sample given for the {@link #parse(Parse)} variant&hellip;
    * <pre class="tested">
    * import ratpack.handling.Handler;
    * import ratpack.handling.Context;

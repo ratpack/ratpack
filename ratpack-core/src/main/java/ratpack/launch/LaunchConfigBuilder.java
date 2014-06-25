@@ -18,6 +18,7 @@ package ratpack.launch;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.PooledByteBufAllocator;
 import ratpack.api.Nullable;
@@ -64,7 +65,7 @@ public class LaunchConfigBuilder {
   private int port = LaunchConfig.DEFAULT_PORT;
   private InetAddress address;
   private boolean reloadable;
-  private int mainThreads;
+  private int threads = LaunchConfig.DEFAULT_THREADS;
   private URI publicAddress;
   private ImmutableList.Builder<String> indexFiles = ImmutableList.builder();
   private ImmutableMap.Builder<String, String> other = ImmutableMap.builder();
@@ -73,6 +74,9 @@ public class LaunchConfigBuilder {
   private int maxContentLength = LaunchConfig.DEFAULT_MAX_CONTENT_LENGTH;
   private boolean timeResponses;
   private boolean compressResponses;
+  private long compressionMinSize = LaunchConfig.DEFAULT_COMPRESSION_MIN_SIZE;
+  private ImmutableSet.Builder<String> compressionMimeTypeWhiteList;
+  private ImmutableSet.Builder<String> compressionMimeTypeBlackList;
 
   private LaunchConfigBuilder() {
   }
@@ -115,7 +119,7 @@ public class LaunchConfigBuilder {
   /**
    * Sets the port to bind to.
    * <p>
-   * Default value is {@value ratpack.launch.LaunchConfig#DEFAULT_PORT}.
+   * Default value is {@value LaunchConfig#DEFAULT_PORT}.
    *
    * @param port The port to bind to
    * @return this
@@ -155,16 +159,19 @@ public class LaunchConfigBuilder {
   }
 
   /**
-   * How many request handling threads to use.
+   * The number of threads to use.
    * <p>
-   * Default value is {@code 0}.
+   * Defaults to {@link LaunchConfig#DEFAULT_THREADS}
    *
-   * @param threads the number of threads for handling application requests
+   * @param threads the size of the event loop thread pool
    * @return this
    * @see LaunchConfig#getThreads()
    */
   public LaunchConfigBuilder threads(int threads) {
-    this.mainThreads = threads;
+    if (threads < 1) {
+      throw new IllegalArgumentException("'threads' must be > 0");
+    }
+    this.threads = threads;
     return this;
   }
 
@@ -199,7 +206,7 @@ public class LaunchConfigBuilder {
   /**
    * The max content length.
    *
-   * Default value is {@value ratpack.launch.LaunchConfig#DEFAULT_MAX_CONTENT_LENGTH}
+   * Default value is {@value LaunchConfig#DEFAULT_MAX_CONTENT_LENGTH}
    *
    * @param maxContentLength The max content length to accept.
    * @return this
@@ -231,10 +238,82 @@ public class LaunchConfigBuilder {
    *
    * @param compressResponses Whether to compress responses
    * @return this
-   * @see LaunchConfig#isCompressResponses() ()
+   * @see LaunchConfig#isCompressResponses()
    */
   public LaunchConfigBuilder compressResponses(boolean compressResponses) {
     this.compressResponses = compressResponses;
+    return this;
+  }
+
+  /**
+   * The minimum size at which responses should be compressed, in bytes.
+   *
+   * @param compressionMinSize The minimum size at which responses should be compressed, in bytes
+   * @return this
+   * @see LaunchConfig#getCompressionMinSize()
+   */
+  public LaunchConfigBuilder compressionMinSize(long compressionMinSize) {
+    this.compressionMinSize = compressionMinSize;
+    return this;
+  }
+
+  /**
+   * Adds the given values as compressible mime types.
+   *
+   * @param mimeTypes the compressible mime types.
+   * @return this
+   * @see LaunchConfig#getCompressionMimeTypeWhiteList()
+   */
+  public LaunchConfigBuilder compressionWhiteListMimeTypes(String... mimeTypes) {
+    if (this.compressionMimeTypeWhiteList == null) {
+      this.compressionMimeTypeWhiteList = ImmutableSet.builder();
+    }
+    this.compressionMimeTypeWhiteList.add(mimeTypes);
+    return this;
+  }
+
+  /**
+   * Adds the given values as compressible mime types.
+   *
+   * @param mimeTypes the compressible mime types.
+   * @return this
+   * @see LaunchConfig#getCompressionMimeTypeWhiteList()
+   */
+  public LaunchConfigBuilder compressionWhiteListMimeTypes(List<String> mimeTypes) {
+    if (this.compressionMimeTypeWhiteList == null) {
+      this.compressionMimeTypeWhiteList = ImmutableSet.builder();
+    }
+    this.compressionMimeTypeWhiteList.addAll(mimeTypes);
+    return this;
+  }
+
+  /**
+   * Adds the given values as non-compressible mime types.
+   *
+   * @param mimeTypes the non-compressible mime types.
+   * @return this
+   * @see LaunchConfig#getCompressionMimeTypeBlackList()
+   */
+  public LaunchConfigBuilder compressionBlackListMimeTypes(String... mimeTypes) {
+    if (this.compressionMimeTypeBlackList == null) {
+      this.compressionMimeTypeBlackList = ImmutableSet.builder();
+    }
+    this.compressionMimeTypeBlackList.add(mimeTypes);
+    return this;
+  }
+
+  /**
+   * Adds the given values as non-compressible mime types.
+   *
+   * @param mimeTypes the non-compressible mime types.
+   * @return this
+   * @see LaunchConfig#getCompressionMimeTypeBlackList()
+   */
+  public LaunchConfigBuilder compressionBlackListMimeTypes(List<String> mimeTypes) {
+    if (this.compressionMimeTypeBlackList == null) {
+      this.compressionMimeTypeBlackList = ImmutableSet.builder();
+    }
+    this.compressionMimeTypeBlackList.addAll(mimeTypes);
     return this;
   }
 
@@ -317,7 +396,7 @@ public class LaunchConfigBuilder {
       port,
       address,
       reloadable,
-      mainThreads,
+      threads,
       byteBufAllocator,
       publicAddress,
       indexFiles.build(),
@@ -326,6 +405,9 @@ public class LaunchConfigBuilder {
       maxContentLength,
       timeResponses,
       compressResponses,
+      compressionMinSize,
+      compressionMimeTypeWhiteList != null ? compressionMimeTypeWhiteList.build() : null,
+      compressionMimeTypeBlackList != null ? compressionMimeTypeBlackList.build() : null,
       handlerFactory
     );
   }

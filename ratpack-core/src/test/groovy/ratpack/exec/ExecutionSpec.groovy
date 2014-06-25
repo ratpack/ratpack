@@ -50,17 +50,15 @@ class ExecutionSpec extends Specification {
     exec { e ->
       e.setErrorHandler {
         events << "error"
-        e.complete()
       }
 
       e.promise { f ->
         events << "action"
-        controller.executor.submit {
+        e.fork {
           f.success(1)
         }
       } then {
         events << "then"
-        e.complete()
       }
 
       throw new RuntimeException("!")
@@ -74,7 +72,7 @@ class ExecutionSpec extends Specification {
     when:
     exec { e ->
       e.setErrorHandler {
-        e.blocking { 2 } then { events << "error"; e.complete() }
+        e.blocking { 2 } then { events << "error" }
       }
 
       throw new RuntimeException("!")
@@ -95,7 +93,6 @@ class ExecutionSpec extends Specification {
             2
           } then {
             events << "error"
-            e.complete()
           }
         }
       }
@@ -112,9 +109,7 @@ class ExecutionSpec extends Specification {
     exec { e ->
       e.setErrorHandler {
         events << "e$it.message".toString()
-        if ("e2" in events) {
-          e.complete()
-        } else {
+        if (!("e2" in events)) {
           throw new RuntimeException("2")
         }
       }
@@ -128,30 +123,27 @@ class ExecutionSpec extends Specification {
 
   def "promise is bound to subscribing execution"() {
     when:
-    exec { e1 ->
-      def p = deferredPromise { it.success(2) }
+    def innerLatch = new CountDownLatch(1)
 
-      e1.controller.start { e2 ->
-        e2.onComplete {
-          e1.complete()
+    exec { e1 ->
+      def p = e1.promise { f ->
+        e1.fork {
+          f.success(2)
         }
+      }
+
+      e1.fork { e2 ->
         p.then {
           assert e2.controller.execution == e2
           events << "then"
-          e2.complete()
+          innerLatch.countDown()
         }
       }
     }
 
     then:
+    innerLatch.await()
     events == ["then"]
   }
 
-  def <T> Promise<T> deferredPromise(Action<Fulfiller<T>> action) {
-    controller.control.promise { f ->
-      Thread.start {
-        action.execute(f)
-      }
-    }
-  }
 }

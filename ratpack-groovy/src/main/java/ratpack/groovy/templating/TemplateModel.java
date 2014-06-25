@@ -16,6 +16,8 @@
 
 package ratpack.groovy.templating;
 
+import com.google.common.reflect.TypeToken;
+
 import java.util.Map;
 
 public interface TemplateModel extends Map<String, Object> {
@@ -24,6 +26,40 @@ public interface TemplateModel extends Map<String, Object> {
 
   Map<String, Object> map(String key);
 
+  /**
+   * Retrieve the given model item, of the given type.
+   * <p>
+   * If there is no model item with the given key, {@code null} is returned.
+   * <p>
+   * If the model item with the given key is assignment compatible with the given type it is returned.
+   * <p>
+   * If the model item is NOT assignment compatible with the given type, an {@link IllegalArgumentException} will be thrown.
+   * <p>
+   * Note: generic types are completely ignored for assignment compatiblity, due to Java's type erasure.
+   *
+   * @param key the model item key
+   * @param type the target type of the model item
+   * @param <T> the target type of the model item
+   * @return the model item
+   */
   <T> T get(String key, Class<T> type);
+
+  /**
+   * Retrieve the given model item, of the given type.
+   * <p>
+   * If there is no model item with the given key, {@code null} is returned.
+   * <p>
+   * If the model item with the given key is assignment compatible with the given type it is returned.
+   * <p>
+   * If the model item is NOT assignment compatible with the given type, an {@link IllegalArgumentException} will be thrown.
+   * <p>
+   * Note: generic types are completely ignored for assignment compatiblity, due to Java's type erasure.
+   *
+   * @param key the model item key
+   * @param type the target type of the model item
+   * @param <T> the target type of the model item
+   * @return the model item
+   */
+  <T> T get(String key, TypeToken<T> type);
 
 }

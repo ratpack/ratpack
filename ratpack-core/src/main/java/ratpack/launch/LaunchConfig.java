@@ -16,6 +16,7 @@
 
 package ratpack.launch;
 
+import com.google.common.collect.ImmutableSet;
 import io.netty.buffer.ByteBufAllocator;
 import ratpack.api.Nullable;
 import ratpack.exec.ExecController;
@@ -44,7 +45,19 @@ public interface LaunchConfig {
   /**
    * The default max content length.
    */
-  public int DEFAULT_MAX_CONTENT_LENGTH = 65536;
+  public int DEFAULT_MAX_CONTENT_LENGTH = 1048576;
+
+  /**
+   * The default number of threads an application should use.
+   *
+   * Calculated as {@code Runtime.getRuntime().availableProcessors() * 2}.
+   */
+  public int DEFAULT_THREADS = Runtime.getRuntime().availableProcessors() * 2;
+
+  /**
+   * The default compression minimum size in bytes, {@value}.
+   */
+  public long DEFAULT_COMPRESSION_MIN_SIZE = 1024;
 
   /**
    * The base dir of the application, which is also the initial {@link ratpack.file.FileSystemBinding}.
@@ -184,6 +197,33 @@ public interface LaunchConfig {
    * @return whether or not responses should be compressed.
    */
   public boolean isCompressResponses();
+
+  /**
+   * The minimum size at which responses should be compressed, in bytes.
+   *
+   * @return the minimum size at which responses should be compressed.
+   */
+  public long getCompressionMinSize();
+
+  /**
+   * The response mime types which should be compressed.
+   * <p>
+   * If {@code null}, defaults to all mime types not on the black list.
+   *
+   * @return the response mime types which should be compressed.
+   */
+  @Nullable
+  public ImmutableSet<String> getCompressionMimeTypeWhiteList();
+
+  /**
+   * The response mime types which should not be compressed.
+   * <p>
+   * If {@code null}, uses a default that excludes many commonly used compressed types.
+   *
+   * @return the response mime types which should not be compressed.
+   */
+  @Nullable
+  public ImmutableSet<String> getCompressionMimeTypeBlackList();
 
   /**
    * Whether or not the base dir of the application has been set.
