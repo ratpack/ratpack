@@ -48,13 +48,12 @@ import ratpack.render.internal.RenderController;
 import ratpack.server.BindAddress;
 import ratpack.util.ExceptionUtils;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.lang.reflect.UndeclaredThrowableException;
 import java.nio.file.Path;
 import java.util.Date;
 import java.util.concurrent.Callable;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static io.netty.handler.codec.http.HttpHeaders.Names.IF_MODIFIED_SINCE;
 import static io.netty.handler.codec.http.HttpResponseStatus.NOT_MODIFIED;
@@ -64,6 +63,8 @@ public class DefaultContext implements Context {
   private static final TypeToken<Parser<?>> PARSER_TYPE_TOKEN = new TypeToken<Parser<?>>() {
     private static final long serialVersionUID = 0;
   };
+
+  private final static Logger LOGGER = LoggerFactory.getLogger(DefaultContext.class);
 
   public static class ApplicationConstants {
     private final RenderController renderController;
@@ -110,8 +111,6 @@ public class DefaultContext implements Context {
       });
     }
   }
-
-  private final static Logger LOGGER = Logger.getLogger(Context.class.getName());
 
   private final RequestConstants requestConstants;
 
@@ -342,17 +341,12 @@ public class DefaultContext implements Context {
     try {
       serverErrorHandler.error(this, unpacked);
     } catch (Exception errorHandlerException) {
-      StringWriter stringWriter = new StringWriter();
-      PrintWriter printWriter = new PrintWriter(stringWriter);
-      stringWriter.
-        append("Exception thrown by error handler ").
-        append(serverErrorHandler.toString()).
-        append(" while handling exception\nOriginal exception: ");
-      unpacked.printStackTrace(printWriter);
-      stringWriter.
-        append("Error handler exception: ");
-      errorHandlerException.printStackTrace(printWriter);
-      LOGGER.warning(stringWriter.toString());
+      LOGGER.error("Exception thrown by error handler "
+        + serverErrorHandler.toString()
+        + " while handling exception\nOriginal exception: ", unpacked);
+
+      LOGGER.error("Error handler exception: ", errorHandlerException);
+
       requestConstants.response.status(500).send();
     }
   }

@@ -35,14 +35,14 @@ import java.net.InetSocketAddress;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static ratpack.util.ExceptionUtils.uncheck;
 
 public class NettyRatpackServer implements RatpackServer {
 
-  private final Logger logger = Logger.getLogger(getClass().getName());
+  private final Logger logger = LoggerFactory.getLogger(getClass().getName());
 
   private final LaunchConfig launchConfig;
   private final Function<Stopper, ChannelInitializer<SocketChannel>> channelInitializerTransformer;
@@ -99,7 +99,7 @@ public class NettyRatpackServer implements RatpackServer {
 
       boundAddress = (InetSocketAddress) channel.localAddress();
 
-      if (logger.isLoggable(Level.INFO)) {
+      if (logger.isInfoEnabled()) {
         logger.info(String.format("Ratpack started for http://%s:%s", getBindHost(), getBindPort()));
       }
       running.set(true);

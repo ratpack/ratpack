@@ -27,8 +27,10 @@ import ratpack.perf.support.SessionResults
 
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
+import groovy.util.logging.Slf4j
 
 //@CompileStatic
+@Slf4j
 class Harness {
 
   static void main(String[] args) {
@@ -36,7 +38,7 @@ class Harness {
       run()
       System.exit(0)
     } catch (Throwable e) {
-      e.printStackTrace()
+      log.error "", e
       System.exit(1)
     }
   }
@@ -67,7 +69,7 @@ class Harness {
     LinkedList<String> apps = appsBaseDir.listFiles().findAll { File it -> it.directory && (!it.name.startsWith(".")) }.collect { File it -> it.name } as LinkedList<String>
 
     def concurrency = Math.ceil(Runtime.runtime.availableProcessors() / 2).toInteger()
-    println "Request concurrency: $concurrency"
+    log.debug "Request concurrency: $concurrency"
     def executor = Executors.newFixedThreadPool(concurrency)
     def requester = new Requester("http://localhost:5050")
 
@@ -75,16 +77,16 @@ class Harness {
 
     apps.each { String appName ->
       if (!filters.testApp(appName)) {
-        println "skipping $appName as it is filtered out"
+        log.debug "skipping $appName as it is filtered out"
         return
       }
       def dir = new File(appsBaseDir, appName)
       ["base", "head"].each { String version ->
         def versionDir = new File(dir, version)
-        println "Connecting to $versionDir..."
+        log.debug "Connecting to $versionDir..."
         def connection = openConnection(versionDir)
         try {
-          println "compiling…"
+          log.info "compiling…"
           connection.newBuild().withArguments("-u", "classes").run()
         } finally {
           connection.close()
@@ -110,32 +112,32 @@ class Harness {
 
     apps.each { String appName ->
       if (!filters.testApp(appName)) {
-        println "skipping $appName as it is filtered out"
+        log.debug "skipping $appName as it is filtered out"
         return
       }
 
       def dir = new File(appsBaseDir, appName)
       ["base", "head"].each { String version ->
         def versionDir = new File(dir, version)
-        println "Connecting to $versionDir..."
+        log.debug "Connecting to $versionDir..."
         def connection = openConnection(versionDir)
         try {
           def endpoints = new JsonSlurper().parse(new File(versionDir, "endpoints.json")) as List<String>
           endpoints.each { String endpoint ->
             if (!filters.testEndpoint(appName, endpoint)) {
-              println "skipping $appName:$endpoint as it is filtered out"
+              log.debug "skipping $appName:$endpoint as it is filtered out"
               return
             }
 
 
-            println "Testing endpoint: $endpoint"
+            log.info "Testing endpoint: $endpoint"
 
             String endpointName = "$appName:$endpoint"
             def versionName = version
 
-            println "starting app…"
+            log.info "starting app…"
             startApp(connection)
-            println "app started"
+            log.info "app started"
 
             try {
               requester.run("warmup", warmup, executor, endpoint)
@@ -143,25 +145,24 @@ class Harness {
 
               sessionResults.endpoints[endpointName].results[versionName] = results
 
-              println "Average ms per request: " + results.msPerRequest
+              log.info "Average ms per request: " + results.msPerRequest
             } catch (Throwable e) {
-              println "Exception while testing app"
-              e.printStackTrace()
+              log.error "Exception while testing app", e
             } finally {
-              println "stopping..."
+              log.info "stopping..."
               requester.stopApp()
             }
           }
 
-          println "Done testing"
+          log.info "Done testing"
         } finally {
-          println "Closing connection to $versionDir"
+          log.debug "Closing connection to $versionDir"
           connection.close()
         }
       }
     }
 
-    println "Generating results..."
+    log.info "Generating results..."
 
     def jsonResults = JsonOutput.prettyPrint(JsonOutput.toJson(sessionResults))
     new File(resultsDir, "results.json").text = jsonResults
@@ -176,7 +177,7 @@ class Harness {
       //noinspection UnnecessaryQualifiedReference
       java.awt.Desktop.desktop.open(htmlResults)
     } else {
-      println "Results available at file://${htmlResults.absolutePath}"
+      log.info "Results available at file://${htmlResults.absolutePath}"
     }
   }
 

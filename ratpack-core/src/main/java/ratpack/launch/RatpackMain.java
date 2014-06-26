@@ -20,6 +20,8 @@ import ratpack.server.RatpackServer;
 import ratpack.server.RatpackServerBuilder;
 
 import java.util.Properties;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * An application entry point for starting a Ratpack application.
@@ -27,6 +29,7 @@ import java.util.Properties;
  * This class is designed to be subclassable.
  */
 public class RatpackMain {
+  private final static Logger LOGGER = LoggerFactory.getLogger(RatpackMain.class);
 
   /**
    * Starts a Ratpack application, by creating a new instance of this class and calling {@link #startOrExit()}.
@@ -72,7 +75,7 @@ public class RatpackMain {
     try {
       start();
     } catch (Exception e) {
-      e.printStackTrace();
+      LOGGER.error("", e);
       System.exit(1);
     }
   }

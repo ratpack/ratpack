@@ -11,6 +11,7 @@ import ratpack.site.github.ApiBackedGitHubData
 import ratpack.site.github.GitHubApi
 import ratpack.site.github.GitHubData
 import ratpack.site.github.RatpackVersions
+import groovy.util.logging.Slf4j
 
 @SuppressWarnings(["GrMethodMayBeStatic", "GroovyUnusedDeclaration"])
 class SiteModule extends AbstractModule {
@@ -41,6 +42,7 @@ class SiteModule extends AbstractModule {
     }
   }
 
+  @Slf4j
   static class ApiModule extends AbstractModule {
 
     @Override
@@ -53,7 +55,7 @@ class SiteModule extends AbstractModule {
     GitHubApi gitHubApi(LaunchConfig launchConfig, ObjectReader reader, HttpClient httpClient) {
       String authToken = launchConfig.getOther(GITHUB_AUTH, null)
       if (authToken == null) {
-        System.err.println("Warning: using anonymous requests to GitHub, may be rate limited (set github.auth other property)")
+        log.warn "Using anonymous requests to GitHub, may be rate limited (set github.auth other property)"
       }
 
       String ttlMins = launchConfig.getOther(GITHUB_TTL, GITHUB_TTL_DEFAULT)

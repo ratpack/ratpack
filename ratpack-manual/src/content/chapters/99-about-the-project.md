@@ -36,6 +36,7 @@ The following people have provided significant contributions.
 * [Tim Yates](https://github.com/timyates)
 * [Brett Wooldridge](https://github.com/brettwooldridge)
 * [Roy Schumacher](https://github.com/rjschu)
+* [Chip McCormick](https://github.com/chipmccormick)
 
 ### Past project members
 

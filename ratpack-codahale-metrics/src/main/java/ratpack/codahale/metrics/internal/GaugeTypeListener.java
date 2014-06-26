@@ -24,8 +24,8 @@ import com.google.inject.spi.TypeEncounter;
 import com.google.inject.spi.TypeListener;
 
 import java.lang.reflect.Method;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * An implementation of TypeListener that collects {@link com.codahale.metrics.Gauge} metrics for any valid method
@@ -35,7 +35,7 @@ import java.util.logging.Logger;
  */
 public class GaugeTypeListener implements TypeListener {
 
-  private final static Logger LOGGER = Logger.getLogger(GaugeTypeListener.class.getName());
+  private final static Logger LOGGER = LoggerFactory.getLogger(GaugeTypeListener.class);
   private final MetricRegistry metricRegistry;
 
   public GaugeTypeListener(MetricRegistry metricRegistry) {
@@ -105,7 +105,7 @@ public class GaugeTypeListener implements TypeListener {
           }
         });
       } else {
-        LOGGER.log(Level.WARNING, "Cannot register metric gauge, already registered: " + gaugeTag);
+        LOGGER.warn("Cannot register metric gauge, already registered: " + gaugeTag);
       }
     }
 

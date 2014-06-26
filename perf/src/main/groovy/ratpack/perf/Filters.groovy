@@ -16,13 +16,16 @@
 
 package ratpack.perf
 
+import groovy.util.logging.Slf4j
+
+@Slf4j
 class Filters {
 
   private final Map<String, List<String>> data
 
   Filters(Map<String, List<String>> data) {
     this.data = data
-    println data
+    log.debug data
   }
 
   boolean testApp(String appName) {
