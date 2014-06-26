@@ -32,10 +32,14 @@ import ratpack.util.ExceptionUtils;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class DefaultExecController implements ExecController {
 
   private static final ThreadLocal<ExecController> THREAD_BINDING = new ThreadLocal<>();
+
+  private final static Logger LOGGER = LoggerFactory.getLogger(DefaultExecController.class);
 
   private final ThreadLocal<Execution> executionHolder = new ThreadLocal<>();
 
@@ -263,7 +267,7 @@ public class DefaultExecController implements ExecController {
         try {
           onComplete.run();
         } catch (Exception e) {
-          e.printStackTrace();
+          LOGGER.warn("", e);
         } finally {
           onComplete = onCompletes.poll();
         }

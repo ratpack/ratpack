@@ -20,15 +20,15 @@ import ratpack.func.Action;
 
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A message broadcaster for sending metrics to its subscribers.
  */
 public class MetricsBroadcaster {
 
-  private final static Logger LOGGER = Logger.getLogger(MetricsBroadcaster.class.getName());
+  private final static Logger LOGGER = LoggerFactory.getLogger(MetricsBroadcaster.class);
   private final List<Action<String>> listeners = new CopyOnWriteArrayList<>();
 
   public AutoCloseable register(final Action<String> subscriber) {
@@ -47,7 +47,7 @@ public class MetricsBroadcaster {
       try {
         listener.execute(message);
       } catch (Exception e) {
-        LOGGER.log(Level.WARNING, "Exception encountered while broadcasting metrics: " + e.getLocalizedMessage());
+        LOGGER.warn("Exception encountered while broadcasting metrics: " + e.getLocalizedMessage());
       }
     }
   }

@@ -20,8 +20,12 @@ import ratpack.exec.ExecInterceptor;
 import ratpack.util.ExceptionUtils;
 
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public abstract class InterceptedOperation {
+  private final static Logger LOGGER = LoggerFactory.getLogger(InterceptedOperation.class);
+
   private final ExecInterceptor.ExecType type;
   private final List<ExecInterceptor> interceptors;
   private Throwable thrown;
@@ -63,7 +67,7 @@ public abstract class InterceptedOperation {
       try {
         interceptor.intercept(type, continuation);
       } catch (Throwable e) {
-        e.printStackTrace();
+        LOGGER.error("", e);
         if (i == iAtStart) {
           continuation.run();
         }

@@ -21,6 +21,8 @@ import ratpack.server.RatpackServer;
 import java.net.URI;
 
 import static ratpack.util.ExceptionUtils.uncheck;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A support implementation that handles the file system and {@link ratpack.test.ApplicationUnderTest} requirements.
@@ -28,6 +30,7 @@ import static ratpack.util.ExceptionUtils.uncheck;
  * Implementations just need to implement {@link #createServer()}.
  */
 public abstract class EmbeddedApplicationSupport implements EmbeddedApplication {
+  private final static Logger LOGGER = LoggerFactory.getLogger(EmbeddedApplicationSupport.class);
 
   private RatpackServer ratpackServer;
 
@@ -82,7 +85,7 @@ public abstract class EmbeddedApplicationSupport implements EmbeddedApplication 
     try {
       getServer().stop();
     } catch (Exception e) {
-      e.printStackTrace(System.err);
+      LOGGER.error("", e);
     }
   }
 

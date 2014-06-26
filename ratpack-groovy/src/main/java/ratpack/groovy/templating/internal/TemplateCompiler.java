@@ -23,12 +23,12 @@ import org.codehaus.groovy.control.CompilationFailedException;
 import ratpack.groovy.script.internal.ScriptEngine;
 
 import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class TemplateCompiler {
 
-  private final Logger logger = Logger.getLogger(getClass().getName());
+  private final Logger logger = LoggerFactory.getLogger(getClass());
   private final ByteBufAllocator byteBufAllocator;
 
   private boolean verbose;
@@ -52,7 +52,7 @@ public class TemplateCompiler {
     String scriptSourceString = scriptSource.toString(CharsetUtil.UTF_8);
     scriptSource.release();
 
-    if (verbose && logger.isLoggable(Level.INFO)) {
+    if (verbose && logger.isInfoEnabled()) {
       logger.info("\n-- script source --\n" + scriptSourceString + "\n-- script end --\n");
     }
 

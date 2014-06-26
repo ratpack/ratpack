@@ -21,6 +21,8 @@ import ratpack.handling.Context;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.Writer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A simple server and client error handler that prints out information in plain text to the response.
@@ -28,6 +30,8 @@ import java.io.Writer;
  * <b>This is not suitable for use in production</b> as it exposes internal information about your application via stack traces.
  */
 public class DebugErrorHandler implements ServerErrorHandler, ClientErrorHandler {
+
+  private final static Logger LOGGER = LoggerFactory.getLogger(DebugErrorHandler.class);
 
   /**
    * {@link Exception#printStackTrace() Prints the stacktrace} of the given exception to the response with a 500 status.
@@ -40,7 +44,7 @@ public class DebugErrorHandler implements ServerErrorHandler, ClientErrorHandler
     Writer writer = new StringWriter();
     exception.printStackTrace(new PrintWriter(writer));
     String stackTrace = writer.toString();
-    System.err.println(stackTrace);
+    LOGGER.error(stackTrace);
     context.getResponse().status(500).send(stackTrace);
   }
 

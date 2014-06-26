@@ -19,7 +19,9 @@ package ratpack.site
 import ratpack.site.crawl.Crawler
 import ratpack.site.crawl.PrettyPrintCollection
 import spock.lang.Specification
+import groovy.util.logging.Slf4j
 
+@Slf4j
 class LinkCrawlSpec extends Specification {
 
   def "site has no bad links"() {
@@ -69,7 +71,7 @@ class LinkCrawlSpec extends Specification {
     def errored = new PrettyPrintCollection(brokenByLevel["error"] ?: [])
     def warned = new PrettyPrintCollection(brokenByLevel["warn"] ?: [])
     if (!warned.empty) {
-      println "WARN: ${warned}"
+      log.warn "${warned}"
     }
 
     then:

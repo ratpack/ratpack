@@ -20,12 +20,12 @@ import ratpack.func.Action;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class DefaultEventController<T> implements EventController<T> {
 
-  private final static Logger LOGGER = Logger.getLogger(DefaultEventController.class.getName());
+  private final static Logger LOGGER = LoggerFactory.getLogger(DefaultEventController.class);
 
   private final List<Action<? super T>> handlers = new LinkedList<>();
 
@@ -37,7 +37,7 @@ public class DefaultEventController<T> implements EventController<T> {
       @Override
       public void register(Action<? super T> eventHandler) {
         if (fired) {
-          LOGGER.log(Level.WARNING, "Cannot register event listener as event has been fired: " + eventHandler, new Exception());
+          LOGGER.warn("Cannot register event listener as event has been fired: " + eventHandler, new Exception());
         } else {
           handlers.add(eventHandler);
         }
@@ -48,14 +48,14 @@ public class DefaultEventController<T> implements EventController<T> {
   @Override
   public void fire(T payload) {
     if (fired) {
-      LOGGER.log(Level.WARNING, "Cannot fire event with payload as event has been fired: " + payload, new Exception());
+      LOGGER.warn("Cannot fire event with payload as event has been fired: " + payload, new Exception());
     } else {
       fired = true;
       for (Action<? super T> handler : handlers) {
         try {
           handler.execute(payload);
         } catch (Exception e) {
-          LOGGER.log(Level.WARNING, "Ignoring exception thrown by event handler when receiving payload: " + payload, e);
+          LOGGER.warn("Ignoring exception thrown by event handler when receiving payload: " + payload, e);
         }
       }
     }

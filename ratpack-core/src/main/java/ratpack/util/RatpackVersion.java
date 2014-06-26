@@ -26,11 +26,14 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import static ratpack.util.ExceptionUtils.uncheck;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Provides the version of the Ratpack core at runtime.
  */
 public class RatpackVersion {
+  private final static Logger LOGGER = LoggerFactory.getLogger(RatpackVersion.class);
 
   private RatpackVersion() {
   }
@@ -47,7 +50,7 @@ public class RatpackVersion {
     try {
       action.execute(Unpooled.buffer());
     } catch (Exception e) {
-      e.printStackTrace();
+      LOGGER.error("", e);
     }
     return action.content;
   }
