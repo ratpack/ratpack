@@ -19,6 +19,9 @@ package ratpack.http.internal
 import ratpack.test.internal.RatpackGroovyDslSpec
 import ratpack.util.internal.IoUtils
 
+import java.nio.file.Files
+import java.nio.file.attribute.BasicFileAttributes
+
 import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_LENGTH
 import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_TYPE
 import static io.netty.handler.codec.http.HttpResponseStatus.OK
@@ -236,5 +239,23 @@ class DefaultResponseSpec extends RatpackGroovyDslSpec {
 
     then:
     text == string
+  }
+
+  def "can send files"() {
+    given:
+    def file = File.createTempFile("ratpackTest", "jpg")
+    file << "abcd".bytes
+    def path = file.toPath()
+    handlers {
+      get {
+        response.sendFile context, Files.readAttributes(path, BasicFileAttributes), path
+      }
+    }
+
+    when:
+    get()
+
+    then:
+    text == "abcd"
   }
 }
