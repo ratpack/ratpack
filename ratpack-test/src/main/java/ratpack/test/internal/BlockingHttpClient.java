@@ -28,6 +28,7 @@ import ratpack.launch.LaunchConfigBuilder;
 import ratpack.util.ExceptionUtils;
 
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 public class BlockingHttpClient implements AutoCloseable {
 
@@ -56,7 +57,7 @@ public class BlockingHttpClient implements AutoCloseable {
     });
 
     try {
-      requestAction.latch.await();
+      requestAction.latch.await(5, TimeUnit.SECONDS); //TODO make this timeout configurable
     } catch (InterruptedException e) {
       throw ExceptionUtils.uncheck(e);
     }
