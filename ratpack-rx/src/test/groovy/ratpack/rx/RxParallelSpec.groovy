@@ -64,7 +64,10 @@ class RxParallelSpec extends Specification {
       rx.Observable.from((0..9).toList())
         .parallel { i ->
         i.flatMap { n ->
-          observe(control.blocking { received << n; barrier.await(); it })
+          observe(control.blocking { it }).map {
+            received << n
+            barrier.await()
+          }
         }
       }
       .subscribe()
