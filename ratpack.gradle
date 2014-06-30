@@ -73,6 +73,7 @@ apply from: "gradle/idea/idea.gradle"
 ext {
   isSnapshot = version.endsWith("SNAPSHOT")
   isTravis = System.getenv("TRAVIS") != null
+  isDrone = System.getenv("DRONE") != null
 
   publishedModules = [
     "ratpack-core", "ratpack-groovy", "ratpack-guice", "ratpack-session", "ratpack-test", "ratpack-groovy-test",
