@@ -24,6 +24,7 @@ configurations {
 dependencies {
   compile commonDependencies.groovy
   compile "org.gradle:gradle-tooling-api:${gradle.gradleVersion}"
+  compile 'org.slf4j:slf4j-simple:1.7.7'
   testCompile commonDependencies.spock
 }
 
@@ -70,6 +71,10 @@ repositories {
   jcenter()
 }
 
+dependencies {
+  compile 'org.slf4j:slf4j-simple:1.7.7'
+}
+
 version = "$params.version"
 
 configureRun.doLast {
@@ -87,7 +92,7 @@ configureRun.doLast {
 }
 
 task run(type: PerfTestRun, overwrite: true) {
-  dependsOn createApps, { apiModules*.install }
+  dependsOn createApps, { apiModules*.install }, ":ratpack-gradle:install"
   main "ratpack.perf.Harness"
   classpath = sourceSets.main.runtimeClasspath
   systemProperty "appsBaseDir", file("$buildDir/apps").absolutePath
