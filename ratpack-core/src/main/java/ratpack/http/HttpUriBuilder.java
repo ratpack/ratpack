@@ -17,20 +17,28 @@
 package ratpack.http;
 
 import com.google.common.collect.Multimap;
-import ratpack.func.Action;
 
-import java.net.MalformedURLException;
 import java.net.URI;
-import java.net.URISyntaxException;
+import java.util.Map;
 
 public interface HttpUriBuilder {
 
   HttpUriBuilder secure();
-  HttpUriBuilder host(String host); // encodes host name
-  HttpUriBuilder port(int port);
-  HttpUriBuilder path(String path); // encodes all except / (i.e. can be multiple path components)
-  HttpUriBuilder pathComponent(String pathComponent); // encodes all incl. / (i.e. single path component)
-  HttpUriBuilder params(Action<? super Multimap<String, String>> params) throws Exception;
 
-  URI build() throws URISyntaxException, MalformedURLException;
+  HttpUriBuilder host(String host);
+
+  HttpUriBuilder port(int port);
+
+  HttpUriBuilder path(String path);
+
+  HttpUriBuilder pathSegment(String pathComponent);
+
+  HttpUriBuilder params(String... params);
+
+  HttpUriBuilder params(Map<String, String> params);
+
+  HttpUriBuilder params(Multimap<String, String> params);
+
+  URI build();
+
 }
