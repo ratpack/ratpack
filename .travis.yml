@@ -5,7 +5,7 @@ before_install:
   - ulimit -a
 install: true
 script:
-  - ./gradlew clean check
+  - ./gradlew clean check -i
 env:
   - TERM=dumb
 notifications:
