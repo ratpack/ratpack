@@ -48,6 +48,7 @@ Write the content, but don't close the milestone yet.
 1. Update the `ratpack-site/src/ratpack/templates/index.html` file to use the new version number for the Groovy example
 1. Commit with message 'Begin version «version»', and push (make sure you push the tag)
 1. Close the Milestone on GitHub
+1. Copy the release announcement to the GitHub tag description on the[GitHub releases page](https://github.com/ratpack/ratpack/releases) and publish the release
 1. Get a tweet out about the release
 
 ## Credentials needed
