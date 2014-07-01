@@ -43,11 +43,12 @@ class RatpackSiteUnderTest extends LocalScriptApplicationUnderTest {
       // We need to sync up some kind of strategy with what manuals have actually been put in place by the build.
       data.released.add(new RatpackVersion("0.9.0", 1, "foo", new Date(), true))
       data.released.add(new RatpackVersion("0.9.1", 2, "foo", new Date(), true))
-      data.unreleased.add(new RatpackVersion("0.9.2", 3, "foo", new Date(), true))
-      data.unreleased.add(new RatpackVersion("0.9.3", 4, "foo", new Date(), true))
-      data.unreleased.add(new RatpackVersion("0.9.4", 5, "foo", new Date(), true))
-      data.unreleased.add(new RatpackVersion("0.9.5", 6, "foo", new Date(), true))
-      data.unreleased.add(new RatpackVersion("0.9.6", 7, "foo", new Date(), false))
+      data.released.add(new RatpackVersion("0.9.2", 3, "foo", new Date(), true))
+      data.released.add(new RatpackVersion("0.9.3", 4, "foo", new Date(), true))
+      data.released.add(new RatpackVersion("0.9.4", 5, "foo", new Date(), true))
+      data.released.add(new RatpackVersion("0.9.5", 6, "foo", new Date(), true))
+      data.released.add(new RatpackVersion("0.9.6", 7, "foo", new Date(), true))
+      data.unreleased.add(new RatpackVersion("0.9.7", 8, "foo", new Date(), false))
       add(GitHubData, data)
       add(new RatpackVersions(data))
     }
