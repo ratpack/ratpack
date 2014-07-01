@@ -25,7 +25,6 @@ class Filters {
 
   Filters(Map<String, List<String>> data) {
     this.data = data
-    log.debug data
   }
 
   boolean testApp(String appName) {
