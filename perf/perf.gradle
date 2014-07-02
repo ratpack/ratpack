@@ -81,6 +81,7 @@ configureRun.doLast {
   run {
     systemProperty "ratpack.reloadable", "false"
     systemProperty "ratpack.timeResponses", "true"
+    systemProperty "endpoint", project.endpoint
   }
 }
 """

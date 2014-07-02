@@ -18,6 +18,7 @@ package ratpack.perf
 
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
+import groovy.util.logging.Slf4j
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
 import ratpack.perf.support.HtmlReportGenerator
@@ -27,7 +28,6 @@ import ratpack.perf.support.SessionResults
 
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
-import groovy.util.logging.Slf4j
 
 //@CompileStatic
 @Slf4j
@@ -136,7 +136,7 @@ class Harness {
             def versionName = version
 
             log.info "starting app…"
-            startApp(connection)
+            startApp(connection, endpoint)
             log.info "app started"
 
             try {
@@ -181,12 +181,12 @@ class Harness {
     }
   }
 
-  private static void startApp(ProjectConnection connection) {
+  private static void startApp(ProjectConnection connection, String endpoint) {
     def output = new ByteArrayOutputStream()
     def latch = new CountDownLatch(1)
     def resultHandler = new LatchResultHandler(latch)
 
-    connection.newBuild().withArguments("-u", "run").setStandardOutput(output).setStandardError(output).run(resultHandler)
+    connection.newBuild().withArguments("-u", "run", "-Pendpoint=$endpoint").setStandardOutput(output).setStandardError(output).run(resultHandler)
 
     def timeoutMins = 1
     def retryMs = 500
