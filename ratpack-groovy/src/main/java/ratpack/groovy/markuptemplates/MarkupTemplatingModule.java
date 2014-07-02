@@ -23,6 +23,12 @@ import ratpack.groovy.markuptemplates.internal.MarkupTemplateRenderer;
 import ratpack.launch.LaunchConfig;
 
 import javax.inject.Singleton;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * An extension module that provides support for the Groovy markup template engine.
@@ -130,6 +136,42 @@ public class MarkupTemplatingModule extends AbstractModule {
     if (launchConfig.isReloadable()) {
       templateConfiguration.setCacheTemplates(false);
     }
-    return new MarkupTemplateEngine(getClass().getClassLoader(), launchConfig.getBaseDir().file(templatesDirectory).toFile(), templateConfiguration);
+    ClassLoader parent = getClass().getClassLoader();
+    try {
+      parent = new URLClassLoader(new URL[]{launchConfig.getBaseDir().file(templatesDirectory).toFile().toURI().toURL()}, parent);
+    } catch (MalformedURLException e) {
+      parent = getClass().getClassLoader();
+    }
+    return new MarkupTemplateEngine(parent, templateConfiguration, new CachingTemplateResolver());
+  }
+
+  /**
+   * A template resolver which avoids calling {@link ClassLoader#getResource(String)} if a template path already has
+   * been queried before. This improves performance if caching is enabled in the configuration.
+   */
+  private static class CachingTemplateResolver extends MarkupTemplateEngine.DefaultTemplateResolver {
+    private final Map<String, URL> cachedResources = new ConcurrentHashMap<>();
+    private boolean cache;
+
+    @Override
+    public void configure(ClassLoader templateClassLoader, TemplateConfiguration configuration) {
+      super.configure(templateClassLoader, configuration);
+      cache = configuration.isCacheTemplates();
+    }
+
+    @Override
+    public URL resolveTemplate(String templatePath) throws IOException {
+      if (cache) {
+        URL url = cachedResources.get(templatePath);
+        if (url!=null) {
+          return url;
+        }
+      }
+      URL url = super.resolveTemplate(templatePath);
+      if (cache) {
+        cachedResources.put(templatePath, url);
+      }
+      return url;
+    }
   }
 }
