@@ -27,7 +27,6 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
   }
 
   def "can render template"() {
-
     given:
     file "templates/foo.gtpl", "yield 'a '; yield value; yield ' b '; 3.times {  yield ' a ' }"
 
@@ -43,7 +42,6 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
   }
 
   def "can render template with builder syntax"() {
-
     given:
     file "templates/foo.gtpl", "div { p(value) }"
 
