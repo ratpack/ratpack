@@ -32,7 +32,7 @@ class Filters {
   }
 
   boolean testEndpoint(String appName, String endpointName) {
-    data.isEmpty() || (testApp(appName) && endpointName in data[appName])
+    data.isEmpty() || (testApp(appName) && (endpointName in data[appName] || "*" in data[appName]))
   }
 
 }
