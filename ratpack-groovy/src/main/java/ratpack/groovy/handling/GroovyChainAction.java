@@ -360,4 +360,12 @@ public abstract class GroovyChainAction implements Action<Chain>, GroovyChain {
   public GroovyChain insert(@DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) throws Exception {
     return getChain().insert(closure);
   }
+
+  @Override
+  public GroovyChain redirect(String location, int code, Handler handler) throws Exception { return getChain().redirect(location, code, handler); }
+
+  @Override
+  public GroovyChain redirect(String location, int code, @DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler) throws Exception {
+    return getChain().redirect(location, code, handler);
+  }
 }

@@ -481,4 +481,14 @@ public interface Chain {
    */
   Chain insert(Action<? super Chain> action) throws Exception;
 
+  /**
+   * Sends an HTTP redirect to the specified location
+   *
+   * @param location the URL to set in the Location response header
+   * @param code the 3XX HTTP status code.
+   * @param handler the handler to delegate to
+   * @return this
+   */
+  Chain redirect(String location, int code, Handler handler) throws Exception;
+
 }
