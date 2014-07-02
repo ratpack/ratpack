@@ -19,7 +19,6 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import groovy.text.markup.MarkupTemplateEngine;
 import groovy.text.markup.TemplateConfiguration;
-import groovy.text.markup.TemplateResolver;
 import ratpack.groovy.markuptemplates.internal.MarkupTemplateRenderer;
 import ratpack.launch.LaunchConfig;
 
@@ -151,7 +150,7 @@ public class MarkupTemplatingModule extends AbstractModule {
    * been queried before. This improves performance if caching is enabled in the configuration.
    */
   private static class CachingTemplateResolver extends MarkupTemplateEngine.DefaultTemplateResolver {
-    private final Map<String,URL> cachedResources = new ConcurrentHashMap<>();
+    private final Map<String, URL> cachedResources = new ConcurrentHashMap<>();
     private boolean cache;
 
     @Override
