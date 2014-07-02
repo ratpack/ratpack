@@ -38,6 +38,7 @@ The following people have provided significant contributions.
 * [Roy Schumacher](https://github.com/rjschu)
 * [Chip McCormick](https://github.com/chipmccormick)
 * [Álvaro Sánchez-Mariscal](https://github.com/alvarosanchez)
+* [Cihat Keser](https://github.com/kramer)
 
 ### Past project members
 

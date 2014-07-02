@@ -34,11 +34,13 @@ import org.gradle.plugins.ide.idea.IdeaPlugin
 class RatpackPlugin implements Plugin<Project> {
 
   void apply(Project project) {
-    
-    def gradleVersion = project.gradle.gradleVersion.split('\\.').collect({ it.isInteger() ? it.toInteger() : 0 }).join()
 
-    if (gradleVersion[0] == '0' || (gradleVersion as Integer) < 16) {
-      throw new GradleException("Ratpack expects Gradle version 1.6 or later")
+    def gradleVersions = project.gradle.gradleVersion.split('\\.').collect { it.isInteger() ? it.toInteger() : 0 }
+    def major = gradleVersions[0]
+    def minor = gradleVersions[1]
+
+    if (major < 1 || (major == 1 && minor < 6)) {
+      throw new GradleException("Ratpack requires Gradle version 1.6 or later")
     }
 
     project.plugins.apply(JavaPlugin)
