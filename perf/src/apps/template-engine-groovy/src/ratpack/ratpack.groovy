@@ -9,33 +9,33 @@ import static ratpack.handlebars.Template.handlebarsTemplate
 import static ratpack.thymeleaf.Template.thymeleafTemplate
 
 ratpack {
-  <% if (patch < 5) { %>
-    modules {
-      get(TemplatingModule).staticallyCompile = true
-      register new HandlebarsModule()
-      register new ThymeleafModule()
-    }
-  <% } else { %>
-    bindings {
-      config(TemplatingModule).staticallyCompile = true
-      add new HandlebarsModule()
-      add new ThymeleafModule()
-    }
-  <% } %>
+  bindings {
+    config(TemplatingModule).staticallyCompile = true
+    add new HandlebarsModule()
+    add new ThymeleafModule()
+  }
 
   handlers {
     handler("stop", new StopHandler())
 
-    handler("groovy-template") {
-      render groovyTemplate("index.html", message: "Hello World!")
+    def endpoint = System.getProperty("endpoint")
+
+    if (endpoint == "groovy-template") {
+      handler("groovy-template") {
+        render groovyTemplate("index.html", message: "Hello World!")
+      }
     }
 
-    handler("handlebars") {
-      render handlebarsTemplate('index.html', message: "Hello World!")
+    if (endpoint == "handlebars") {
+      handler("handlebars") {
+        render handlebarsTemplate('index.html', message: "Hello World!")
+      }
     }
 
-    handler("thymeleaf") {
-      render thymeleafTemplate('index', message: "Hello World!")
+    if (endpoint == "thymeleaf") {
+      handler("thymeleaf") {
+        render thymeleafTemplate('index', message: "Hello World!")
+      }
     }
   }
 }
