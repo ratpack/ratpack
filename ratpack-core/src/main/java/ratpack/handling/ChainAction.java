@@ -266,5 +266,5 @@ public abstract class ChainAction implements Action<Chain>, Chain {
   }
 
   @Override
-  public Chain redirect(String location, int code, Handler handler) throws Exception { return getChain().redirect(location, code, handler); }
+  public Chain redirect(int code, String location) { return getChain().redirect(code, location); }
 }

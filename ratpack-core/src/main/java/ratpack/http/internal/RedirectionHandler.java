@@ -18,8 +18,6 @@ package ratpack.http.internal;
 
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
-import ratpack.handling.Redirector;
-
 
 public class RedirectionHandler implements Handler {
 
@@ -28,14 +26,13 @@ public class RedirectionHandler implements Handler {
 
   public RedirectionHandler(String location, int code) {
     this.location = location;
+    if (code < 300 || code >= 400) {
+      throw new IllegalArgumentException("redirect code must be 3xx, value is " + code);
+    }
     this.code = code;
   }
 
   public void handle(Context context) {
-    if (code < 300 || code >= 400) {
-      context.error(new Exception("HTTP status code has to be >= 300 and <= 399"));
-    } else {
-      context.get(Redirector.class).redirect(context, location, code);
-    }
+    context.redirect(code, location);
   }
 }

@@ -16,7 +16,7 @@
 
 package ratpack.http.internal
 
-import ratpack.handling.Handlers
+import ratpack.launch.LaunchException
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 class RedirectionHandleSpec extends RatpackGroovyDslSpec {
@@ -24,7 +24,7 @@ class RedirectionHandleSpec extends RatpackGroovyDslSpec {
   def "ok for valid"() {
     given:
     handlers {
-      handler(Handlers.redirect('http://www.ratpack.io', 310))
+      redirect(310, 'http://www.ratpack.io')
     }
 
     when:
@@ -38,18 +38,18 @@ class RedirectionHandleSpec extends RatpackGroovyDslSpec {
   def "it checks that the desired status code is a 3XX one"() {
     given:
     handlers {
-      handler(Handlers.redirect('http://www.ratpack.io', statusCode))
+      redirect(statusCode, 'http://www.ratpack.io')
     }
 
     when:
     get()
 
     then:
-    response.statusCode == 500
+    def launchException = thrown LaunchException
+    launchException.cause instanceof IllegalArgumentException
 
     where:
     statusCode << [299, 400]
-
   }
 
 }

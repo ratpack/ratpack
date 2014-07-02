@@ -388,18 +388,6 @@ public interface GroovyChain extends Chain {
   /**
    * {@inheritDoc}
    */
-  GroovyChain redirect(String location, int code, Handler handler) throws Exception;
-
-  /**
-   * Sends an HTTP redirect to the specified location
-   *
-   * @param location the URL to set in the Location response header
-   * @param code the 3XX HTTP status code.
-   * @param closure the handler chain to insert
-   * @return this
-   * @throws Exception
-   */
-  GroovyChain redirect(String location, int code, @DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) throws Exception;
-
+  GroovyChain redirect(int code, String location);
 
 }

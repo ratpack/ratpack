@@ -482,13 +482,15 @@ public interface Chain {
   Chain insert(Action<? super Chain> action) throws Exception;
 
   /**
-   * Sends an HTTP redirect to the specified location
+   * Sends an HTTP redirect to the specified location.
+   * <p>
+   * The handler to add is created via {@link Handlers#redirect(int, String)}.
    *
-   * @param location the URL to set in the Location response header
    * @param code the 3XX HTTP status code.
-   * @param handler the handler to delegate to
+   * @param location the URL to set in the Location response header
    * @return this
+   * @see Handlers#redirect(int, String)
    */
-  Chain redirect(String location, int code, Handler handler) throws Exception;
+  Chain redirect(int code, String location);
 
 }

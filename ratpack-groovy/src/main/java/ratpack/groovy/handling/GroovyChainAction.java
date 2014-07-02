@@ -362,10 +362,6 @@ public abstract class GroovyChainAction implements Action<Chain>, GroovyChain {
   }
 
   @Override
-  public GroovyChain redirect(String location, int code, Handler handler) throws Exception { return getChain().redirect(location, code, handler); }
+  public GroovyChain redirect(int code, String location) { return getChain().redirect(code, location); }
 
-  @Override
-  public GroovyChain redirect(String location, int code, @DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler) throws Exception {
-    return getChain().redirect(location, code, handler);
-  }
 }

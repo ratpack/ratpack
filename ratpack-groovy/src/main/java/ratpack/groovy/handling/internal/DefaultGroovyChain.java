@@ -22,7 +22,6 @@ import ratpack.api.Nullable;
 import ratpack.func.Action;
 import ratpack.groovy.Groovy;
 import ratpack.groovy.handling.GroovyChain;
-import ratpack.groovy.handling.GroovyContext;
 import ratpack.groovy.internal.ClosureUtil;
 import ratpack.handling.Chain;
 import ratpack.handling.Context;
@@ -313,13 +312,9 @@ public class DefaultGroovyChain implements GroovyChain {
   }
 
   @Override
-  public GroovyChain redirect(String location, int code, Handler handler) throws Exception {
-    delegate.redirect(location, code, handler);
+  public GroovyChain redirect(int code, String location) {
+    delegate.redirect(code, location);
     return this;
   }
 
-  @Override
-  public GroovyChain redirect(String location, int code, @DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler) throws Exception {
-    return  redirect(location, code, groovyHandler(handler));
-  }
 }
