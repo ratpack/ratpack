@@ -39,6 +39,7 @@ The following people have provided significant contributions.
 * [Chip McCormick](https://github.com/chipmccormick)
 * [Álvaro Sánchez-Mariscal](https://github.com/alvarosanchez)
 * [Cihat Keser](https://github.com/kramer)
+* [Cédric Champeau](https://github.com/melix)
 
 ### Past project members
 
