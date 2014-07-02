@@ -37,6 +37,7 @@ The following people have provided significant contributions.
 * [Brett Wooldridge](https://github.com/brettwooldridge)
 * [Roy Schumacher](https://github.com/rjschu)
 * [Chip McCormick](https://github.com/chipmccormick)
+* [Álvaro Sánchez-Mariscal](https://github.com/alvarosanchez)
 
 ### Past project members
 
