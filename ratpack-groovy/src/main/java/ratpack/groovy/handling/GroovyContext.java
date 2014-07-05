@@ -65,6 +65,7 @@ public interface GroovyContext extends Context {
    * </pre>
    *
    * @param closure defines the action to take for different HTTP methods
+   * @throws Exception any thrown by the closure
    */
   void byMethod(@DelegatesTo(GroovyByMethodSpec.class) Closure<?> closure) throws Exception;
 
@@ -103,6 +104,7 @@ public interface GroovyContext extends Context {
    * </pre>
    *
    * @param closure defines the action to take for the different content types
+   * @throws Exception any thrown by the closure
    */
   void byContent(@DelegatesTo(GroovyByContentSpec.class) Closure<?> closure) throws Exception;
 
