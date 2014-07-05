@@ -19,7 +19,6 @@ package ratpack.groovy.handling.internal;
 import com.google.common.base.Predicate;
 import com.google.common.reflect.TypeToken;
 import groovy.lang.Closure;
-import groovy.lang.DelegatesTo;
 import ratpack.api.NonBlocking;
 import ratpack.api.Nullable;
 import ratpack.exec.ExecInterceptor;
@@ -27,14 +26,18 @@ import ratpack.exec.Execution;
 import ratpack.exec.Fulfiller;
 import ratpack.exec.Promise;
 import ratpack.func.Action;
-import ratpack.groovy.handling.GroovyByContentHandler;
-import ratpack.groovy.handling.GroovyByMethodHandler;
+import ratpack.groovy.handling.GroovyByContentSpec;
+import ratpack.groovy.handling.GroovyByMethodSpec;
 import ratpack.groovy.handling.GroovyContext;
 import ratpack.groovy.internal.ClosureUtil;
 import ratpack.handling.*;
 import ratpack.handling.direct.DirectChannelAccess;
+import ratpack.handling.internal.DefaultByContentSpec;
+import ratpack.handling.internal.DefaultByMethodSpec;
 import ratpack.http.Request;
 import ratpack.http.Response;
+import ratpack.http.internal.ContentNegotiationHandler;
+import ratpack.http.internal.MultiMethodHandler;
 import ratpack.launch.LaunchConfig;
 import ratpack.parse.NoSuchParserException;
 import ratpack.parse.Parse;
@@ -46,6 +49,8 @@ import ratpack.server.BindAddress;
 
 import java.nio.file.Path;
 import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.concurrent.Callable;
 
 public class DefaultGroovyContext implements GroovyContext {
@@ -82,27 +87,21 @@ public class DefaultGroovyContext implements GroovyContext {
   }
 
   @Override
-  public void byMethod(Closure<?> closure) {
-    ByMethodHandler handler = getByMethod();
-    GroovyByMethodHandler groovyHandler = new DefaultGroovyByMethodHandler(this, handler);
-    ClosureUtil.configureDelegateFirst(groovyHandler, closure);
-    try {
-      groovyHandler.handle(this);
-    } catch (Exception e) {
-      delegate.error(e);
-    }
+  public void byMethod(Closure<?> closure) throws Exception {
+    Map<String, Handler> handlers = new LinkedHashMap<>(2);
+    ByMethodSpec delegate = new DefaultByMethodSpec(handlers);
+    GroovyByMethodSpec spec = new DefaultGroovyByMethodSpec(delegate);
+    ClosureUtil.configureDelegateFirst(spec, closure);
+    new MultiMethodHandler(handlers).handle(this);
   }
 
   @Override
-  public void byContent(@DelegatesTo(ByMethodHandler.class) Closure<?> closure) {
-    ByContentHandler handler = getByContent();
-    GroovyByContentHandler groovyHandler = new DefaultGroovyByContentHandler(this, handler);
-    ClosureUtil.configureDelegateFirst(groovyHandler, closure);
-    try {
-      groovyHandler.handle(this);
-    } catch (Exception e) {
-      delegate.error(e);
-    }
+  public void byContent(Closure<?> closure) throws Exception {
+    Map<String, Handler> handlers = new LinkedHashMap<>(2);
+    ByContentSpec delegate = new DefaultByContentSpec(handlers);
+    GroovyByContentSpec spec = new DefaultGroovyByContentSpec(delegate);
+    ClosureUtil.configureDelegateFirst(spec, closure);
+    new ContentNegotiationHandler(handlers).handle(this);
   }
 
   @Override
@@ -145,19 +144,13 @@ public class DefaultGroovyContext implements GroovyContext {
   }
 
   @Override
-  @NonBlocking
-  public void respond(Handler handler) {
-    delegate.respond(handler);
+  public void byMethod(Action<? super ByMethodSpec> action) throws Exception {
+    delegate.byMethod(action);
   }
 
   @Override
-  public ByMethodHandler getByMethod() {
-    return delegate.getByMethod();
-  }
-
-  @Override
-  public ByContentHandler getByContent() {
-    return delegate.getByContent();
+  public void byContent(Action<? super ByContentSpec> action) throws Exception {
+    delegate.byContent(action);
   }
 
   @Override

@@ -18,7 +18,10 @@ package ratpack.jackson.internal;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectWriter;
+import ratpack.func.Action;
+import ratpack.handling.ByContentSpec;
 import ratpack.handling.Context;
+import ratpack.handling.Handler;
 import ratpack.jackson.JsonRender;
 import ratpack.jackson.JsonRenderer;
 import ratpack.render.RendererSupport;
@@ -35,26 +38,31 @@ public class DefaultJsonRenderer extends RendererSupport<JsonRender<?>> implemen
   }
 
   @Override
-  public void render(final Context context, final JsonRender<?> object) {
-    context.respond(context.getByContent().json(new Runnable() {
+  public void render(final Context context, final JsonRender<?> object) throws Exception {
+    context.byContent(new Action<ByContentSpec>() {
       @Override
-      public void run() {
-        ObjectWriter writer = object.getObjectWriter();
-        if (writer == null) {
-          writer = defaultObjectWriter;
-        }
+      public void execute(ByContentSpec byContentSpec) throws Exception {
+        byContentSpec.json(new Handler() {
+          @Override
+          public void handle(Context context) {
+            ObjectWriter writer = object.getObjectWriter();
+            if (writer == null) {
+              writer = defaultObjectWriter;
+            }
 
-        byte[] bytes;
-        try {
-          bytes = writer.writeValueAsBytes(object.getObject());
-        } catch (JsonProcessingException e) {
-          context.error(e);
-          return;
-        }
+            byte[] bytes;
+            try {
+              bytes = writer.writeValueAsBytes(object.getObject());
+            } catch (JsonProcessingException e) {
+              context.error(e);
+              return;
+            }
 
-        context.getResponse().send(bytes);
+            context.getResponse().send(bytes);
+          }
+        });
       }
-    }));
+    });
   }
 
 }

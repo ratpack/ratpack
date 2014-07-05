@@ -18,12 +18,14 @@ package ratpack.groovy.handling;
 
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
-import ratpack.handling.ByMethodHandler;
+import ratpack.handling.ByMethodSpec;
 
 /**
- * A Groovy specific subclass of {@link ByMethodHandler} that makes using closures more convenient.
+ * Closure overloads of methods from {@link ratpack.handling.ByContentSpec}.
+ *
+ * @see ratpack.groovy.handling.GroovyContext#byMethod(groovy.lang.Closure)
  */
-public interface GroovyByMethodHandler extends ByMethodHandler {
+public interface GroovyByMethodSpec extends ByMethodSpec {
 
   /**
    * Defines the action to to take if the request has a HTTP method of GET.
@@ -31,7 +33,7 @@ public interface GroovyByMethodHandler extends ByMethodHandler {
    * @param closure The action to take
    * @return this
    */
-  GroovyByMethodHandler get(@DelegatesTo(GroovyContext.class) Closure<?> closure);
+  GroovyByMethodSpec get(@DelegatesTo(GroovyContext.class) Closure<?> closure);
 
   /**
    * Defines the action to to take if the request has a HTTP method of POST.
@@ -39,7 +41,7 @@ public interface GroovyByMethodHandler extends ByMethodHandler {
    * @param closure The action to take
    * @return this
    */
-  GroovyByMethodHandler post(@DelegatesTo(GroovyContext.class) Closure<?> closure);
+  GroovyByMethodSpec post(@DelegatesTo(GroovyContext.class) Closure<?> closure);
 
   /**
    * Defines the action to to take if the request has a HTTP method of PUT.
@@ -47,7 +49,7 @@ public interface GroovyByMethodHandler extends ByMethodHandler {
    * @param closure The action to take
    * @return this
    */
-  GroovyByMethodHandler put(@DelegatesTo(GroovyContext.class) Closure<?> closure);
+  GroovyByMethodSpec put(@DelegatesTo(GroovyContext.class) Closure<?> closure);
 
   /**
    * Defines the action to to take if the request has a HTTP method of PATCH.
@@ -55,7 +57,7 @@ public interface GroovyByMethodHandler extends ByMethodHandler {
    * @param closure The action to take
    * @return this
    */
-  GroovyByMethodHandler patch(@DelegatesTo(GroovyContext.class) Closure<?> closure);
+  GroovyByMethodSpec patch(@DelegatesTo(GroovyContext.class) Closure<?> closure);
 
   /**
    * Defines the action to to take if the request has a HTTP method of DELETE.
@@ -63,7 +65,7 @@ public interface GroovyByMethodHandler extends ByMethodHandler {
    * @param closure The action to take
    * @return this
    */
-  GroovyByMethodHandler delete(@DelegatesTo(GroovyContext.class) Closure<?> closure);
+  GroovyByMethodSpec delete(@DelegatesTo(GroovyContext.class) Closure<?> closure);
 
   /**
    * Defines the action to to take if the request has a HTTP method of {@code methodName}.
@@ -74,6 +76,6 @@ public interface GroovyByMethodHandler extends ByMethodHandler {
    * @param closure The action to take
    * @return this
    */
-  GroovyByMethodHandler named(String methodName, @DelegatesTo(GroovyContext.class) Closure<?> closure);
+  GroovyByMethodSpec named(String methodName, @DelegatesTo(GroovyContext.class) Closure<?> closure);
 
 }

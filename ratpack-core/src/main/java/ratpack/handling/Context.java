@@ -190,31 +190,150 @@ public interface Context extends ExecControl, Registry {
   void insert(Registry registry, Handler... handlers);
 
   /**
-   * Convenience method for delegating to a single handler.
+   * Respond to the request based on the request method.
    * <p>
-   * Designed to be used in conjunction with the {@link #getByMethod()} and {@link #getByContent()} methods.
+   * <pre class="java">
+   * import ratpack.handling.Handler;
+   * import ratpack.handling.Context;
+   * import ratpack.handling.ByMethodSpec;
+   * import ratpack.func.Action;
    *
-   * @param handler The handler to invoke
-   * @see ByContentHandler
-   * @see ByMethodHandler
+   * import ratpack.test.UnitTest;
+   * import ratpack.test.handling.HandlingResult;
+   * import ratpack.test.handling.RequestFixture;
+   *
+   * public class Example {
+   *
+   *   public static class MultiMethodHandler implements Handler {
+   *     public void handle(final Context context) throws Exception {
+   *       final String message = "hello!";
+   *
+   *       context.byMethod(new Action&lt;ByMethodSpec&gt;() {
+   *         public void execute(ByMethodSpec spec) {
+   *           spec.get(new Handler() {
+   *             public void handle(Context context) {
+   *               context.render(message + " from GET request");
+   *             }
+   *           }).
+   *           post(new Handler() {
+   *             public void handle(Context context) {
+   *               context.render(message + " from POST request");
+   *             }
+   *           });
+   *         }
+   *       });
+   *     }
+   *   }
+   *
+   *   public static void main(String[] args) {
+   *     Handler handler = new MultiMethodHandler();
+   *
+   *     HandlingResult result = UnitTest.handle(handler, new Action&lt;RequestFixture&gt;() {
+   *       public void execute(RequestFixture fixture) {
+   *         fixture.method("get");
+   *       }
+   *     });
+   *     assert result.rendered(String.class).equals("hello! from GET request");
+   *
+   *     result = UnitTest.handle(handler, new Action&lt;RequestFixture&gt;() {
+   *       public void execute(RequestFixture fixture) {
+   *         fixture.method("post");
+   *       }
+   *     });
+   *     assert result.rendered(String.class).equals("hello! from POST request");
+   *   }
+   *
+   * }
+   * </pre>
+   * </p>
+   * <p>
+   * Only the last added handler for a method will be used.
+   * Adding a subsequent handler for the same method will replace the previous.
+   * </p>
+   * <p>
+   * If no handler has been registered for the actual request method, a {@code 405} will be issued by {@link #clientError(int)})
+   * <p>
+   * If the handler only needs to respond to one HTTP method it can be more convenient to use {@link Chain#get(Handler)} and friends.
+   *
+   * @param action the specification of how to handle the request based on the request method
+   * @throws Exception any thrown by action
    */
   @NonBlocking
-  void respond(Handler handler);
+  void byMethod(Action<? super ByMethodSpec> action) throws Exception;
 
   /**
-   * A buildable handler for conditional processing based on the HTTP request method.
+   * Respond to the request based on the requested content type (i.e. the request Accept header).
+   * <p>
+   * This is useful when a given handler can provide content of more than one type (i.e. <a href="http://en.wikipedia.org/wiki/Content_negotiation"></a>content negotiation</a>).
+   * <p>
+   * The handler to use will be selected based on parsing the "Accepts" header, respecting quality weighting and wildcard matching.
+   * The order that types are specified is significant for wildcard matching.
+   * The earliest registered type that matches the wildcard will be used.
+   * <p>
+   * <pre class="java">
+   * import ratpack.handling.Handler;
+   * import ratpack.handling.Context;
+   * import ratpack.handling.ByContentSpec;
+   * import ratpack.func.Action;
    *
-   * @return A buildable handler for conditional processing based on the HTTP request method.
-   */
-  ByMethodHandler getByMethod();
-
-  /**
-   * A buildable handler useful for performing content negotiation.
+   * import ratpack.test.UnitTest;
+   * import ratpack.test.handling.HandlingResult;
+   * import ratpack.test.handling.RequestFixture;
    *
-   * @return A buildable handler useful for performing content negotiation.
+   * public class Example {
+   *
+   *   public static class ContentNegotiatingHandler implements Handler {
+   *     public void handle(final Context context) throws Exception {
+   *       final String message = "hello!";
+   *
+   *       context.byContent(new Action&lt;ByContentSpec&gt;() {
+   *         public void execute(ByContentSpec spec) {
+   *           spec.json(new Handler() {
+   *             public void handle(Context context) {
+   *               context.render("{\"msg\": \"" + message + "\"}");
+   *             }
+   *           }).
+   *           html(new Handler() {
+   *             public void handle(Context context) {
+   *               context.render("<p>" + message + "</p>");
+   *             }
+   *           });
+   *         }
+   *       });
+   *     }
+   *   }
+   *
+   *   public static void main(String[] args) {
+   *     Handler handler = new ContentNegotiatingHandler();
+   *
+   *     HandlingResult result = UnitTest.handle(handler, new Action&lt;RequestFixture&gt;() {
+   *       public void execute(RequestFixture fixture) {
+   *         fixture.header("Accept", "application/json");
+   *       }
+   *     });
+   *     assert result.rendered(String.class).equals("{\"msg\": \"hello!\"}");
+   *     assert result.getHeaders().get("Content-Type").equals("application/json");
+   *
+   *     result = UnitTest.handle(handler, new Action&lt;RequestFixture&gt;() {
+   *       public void execute(RequestFixture fixture) {
+   *         fixture.header("Accept", "text/plain; q=1.0, text/html; q=0.8, application/json; q=0.7");
+   *       }
+   *     });
+   *     assert result.rendered(String.class).equals("<p>hello!</p>");
+   *     assert result.getHeaders().get("content-type").equals("text/html;charset=UTF-8");
+   *   }
+   *
+   * }
+   * </pre>
+   * If there is no type registered, or if the client does not accept any of the given types, a {@code 406} will be issued with {@link Context#clientError(int)}.
+   * <p>
+   * Only the last specified handler for a type will be used.
+   * That is, adding a subsequent handler for the same type will replace the previous.
+   *
+   * @param action the specification of how to handle the request based on the clients preference of content type
+   * @throws Exception any thrown by action
    */
-  ByContentHandler getByContent();
-
+  void byContent(Action<? super ByContentSpec> action) throws Exception;
 
   // Shorthands for common service lookups
 

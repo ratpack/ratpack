@@ -20,6 +20,8 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.reflect.TypeToken;
 import io.netty.handler.codec.http.HttpResponseStatus;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ratpack.api.Nullable;
 import ratpack.error.ClientErrorHandler;
 import ratpack.error.ServerErrorHandler;
@@ -31,7 +33,9 @@ import ratpack.handling.*;
 import ratpack.handling.direct.DirectChannelAccess;
 import ratpack.http.Request;
 import ratpack.http.Response;
+import ratpack.http.internal.ContentNegotiationHandler;
 import ratpack.http.internal.HttpHeaderConstants;
+import ratpack.http.internal.MultiMethodHandler;
 import ratpack.launch.LaunchConfig;
 import ratpack.parse.NoSuchParserException;
 import ratpack.parse.Parse;
@@ -51,9 +55,9 @@ import ratpack.util.ExceptionUtils;
 import java.lang.reflect.UndeclaredThrowableException;
 import java.nio.file.Path;
 import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.concurrent.Callable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import static io.netty.handler.codec.http.HttpHeaders.Names.IF_MODIFIED_SINCE;
 import static io.netty.handler.codec.http.HttpResponseStatus.NOT_MODIFIED;
@@ -217,14 +221,6 @@ public class DefaultContext implements Context {
     doNext(DefaultContext.this, joinedRegistry, 0, handlers, new RejoinHandler());
   }
 
-  public void respond(Handler handler) {
-    try {
-      handler.handle(this);
-    } catch (Throwable e) {
-      error(ExceptionUtils.toException(e));
-    }
-  }
-
   public PathTokens getPathTokens() {
     PathBinding pathBinding = maybeGet(PathBinding.class);
     if (pathBinding == null) {
@@ -367,12 +363,18 @@ public class DefaultContext implements Context {
     }
   }
 
-  public ByMethodHandler getByMethod() {
-    return new DefaultByMethodHandler();
+  public void byMethod(Action<? super ByMethodSpec> action) throws Exception {
+    Map<String, Handler> handlers = new LinkedHashMap<>(2);
+    DefaultByMethodSpec spec = new DefaultByMethodSpec(handlers);
+    action.execute(spec);
+    new MultiMethodHandler(handlers).handle(this);
   }
 
-  public ByContentHandler getByContent() {
-    return new DefaultByContentHandler();
+  public void byContent(Action<? super ByContentSpec> action) throws Exception {
+    Map<String, Handler> handlers = new LinkedHashMap<>(2);
+    DefaultByContentSpec spec = new DefaultByContentSpec(handlers);
+    action.execute(spec);
+    new ContentNegotiationHandler(handlers).handle(this);
   }
 
   protected void doNext(Context parentContext, final Registry registry, final int nextIndex, final Handler[] nextHandlers, Handler exhausted) {

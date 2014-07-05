@@ -18,12 +18,14 @@ package ratpack.groovy.handling;
 
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
-import ratpack.handling.ByContentHandler;
+import ratpack.handling.ByContentSpec;
 
 /**
- * Closure overloads of methods from {@link ratpack.handling.ByContentHandler}.
+ * Closure overloads of methods from {@link ratpack.handling.ByContentSpec}.
+ *
+ * @see ratpack.groovy.handling.GroovyContext#byContent(groovy.lang.Closure)
  */
-public interface GroovyByContentHandler extends ByContentHandler {
+public interface GroovyByContentSpec extends ByContentSpec {
 
   /**
    * Register how to respond with the given mime type.
@@ -32,7 +34,7 @@ public interface GroovyByContentHandler extends ByContentHandler {
    * @param closure The action to take if the client wants to given type
    * @return this
    */
-  GroovyByContentHandler type(String mimeType, @DelegatesTo(GroovyContext.class) Closure<?> closure);
+  GroovyByContentSpec type(String mimeType, @DelegatesTo(GroovyContext.class) Closure<?> closure);
 
   /**
    * Convenience method to respond with "text/plain" mime type.
@@ -40,7 +42,7 @@ public interface GroovyByContentHandler extends ByContentHandler {
    * @param closure the action to take if the client wants plain text
    * @return this
    */
-  GroovyByContentHandler plainText(@DelegatesTo(GroovyContext.class) Closure<?> closure);
+  GroovyByContentSpec plainText(@DelegatesTo(GroovyContext.class) Closure<?> closure);
 
   /**
    * Convenience method to respond with "text/html" mime type.
@@ -48,7 +50,7 @@ public interface GroovyByContentHandler extends ByContentHandler {
    * @param closure the action to take if the client wants html
    * @return this
    */
-  GroovyByContentHandler html(@DelegatesTo(GroovyContext.class) Closure<?> closure);
+  GroovyByContentSpec html(@DelegatesTo(GroovyContext.class) Closure<?> closure);
 
   /**
    * Convenience method to respond with "application/json" mime type.
@@ -56,7 +58,7 @@ public interface GroovyByContentHandler extends ByContentHandler {
    * @param closure the action to take if the client wants json
    * @return this
    */
-  GroovyByContentHandler json(@DelegatesTo(GroovyContext.class) Closure<?> closure);
+  GroovyByContentSpec json(@DelegatesTo(GroovyContext.class) Closure<?> closure);
 
   /**
    * Convenience method to respond with "application/xml" mime type.
@@ -64,6 +66,6 @@ public interface GroovyByContentHandler extends ByContentHandler {
    * @param closure the action to take if the client wants xml
    * @return this
    */
-  GroovyByContentHandler xml(@DelegatesTo(GroovyContext.class) Closure<?> closure);
+  GroovyByContentSpec xml(@DelegatesTo(GroovyContext.class) Closure<?> closure);
 
 }

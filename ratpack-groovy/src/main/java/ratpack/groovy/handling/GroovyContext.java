@@ -33,18 +33,78 @@ public interface GroovyContext extends Context {
   GroovyContext getContext();
 
   /**
-   * Responds based on HTTP method.
+   * Groovy friendly overload of {@link #byMethod(ratpack.func.Action)}.
+   *
+   * <pre class="tested">
+   * import ratpack.groovy.test.GroovyUnitTest
+   * import static ratpack.groovy.Groovy.groovyHandler
+   *
+   * def handler = groovyHandler {
+   *   byMethod {
+   *     def message = "hello!"
+   *     get {
+   *       render "$message from GET request"
+   *     }
+   *     post {
+   *       render "$message from POST request"
+   *     }
+   *   }
+   * }
+   *
+   * def result = GroovyUnitTest.handle(handler) {
+   *   method "get"
+   * }
+   *
+   * assert result.rendered(CharSequence) == "hello! from GET request"
+   *
+   * result = GroovyUnitTest.handle(handler) {
+   *   method "post"
+   * }
+   *
+   * assert result.rendered(CharSequence) == "hello! from POST request"
+   * </pre>
    *
    * @param closure defines the action to take for different HTTP methods
    */
-  void byMethod(@DelegatesTo(GroovyByMethodHandler.class) Closure<?> closure);
+  void byMethod(@DelegatesTo(GroovyByMethodSpec.class) Closure<?> closure) throws Exception;
 
   /**
-   * Responds based on the client's preferred response content type (i.e. content negotiation).
+   * Groovy friendly overload of {@link #byContent(ratpack.func.Action)}.
+   *
+   * <pre class="tested">
+   * import ratpack.groovy.test.GroovyUnitTest
+   * import static ratpack.groovy.Groovy.groovyHandler
+   *
+   * def handler = groovyHandler {
+   *   byContent {
+   *     def message = "hello!"
+   *     json {
+   *       render "{\"msg\": \"$message\"}"
+   *     }
+   *     html {
+   *       render "<p>$message</p>"
+   *     }
+   *   }
+   * }
+   *
+   * def result = GroovyUnitTest.handle(handler) {
+   *   header("Accept", "application/json");
+   * }
+   *
+   * assert result.rendered(CharSequence) == "{\"msg\": \"hello!\"}"
+   * assert result.headers.get("content-type") == "application/json"
+   *
+   * result = GroovyUnitTest.handle(handler) {
+   *   header("Accept", "text/plain; q=1.0, text/html; q=0.8, application/json; q=0.7");
+   * }
+   *
+   * assert result.rendered(CharSequence) == "<p>hello!</p>";
+   * assert result.headers.get("content-type") == "text/html;charset=UTF-8";
+   * </pre>
    *
    * @param closure defines the action to take for the different content types
    */
-  void byContent(@DelegatesTo(GroovyByContentHandler.class) Closure<?> closure);
+  void byContent(@DelegatesTo(GroovyByContentSpec.class) Closure<?> closure) throws Exception;
 
   /**
    * Adds a request close handler.
