@@ -251,7 +251,7 @@ public interface Context extends ExecControl, Registry {
    * Adding a subsequent handler for the same method will replace the previous.
    * </p>
    * <p>
-   * If no handler has been registered for the actual request method, a {@code 405} will be issued by {@link #clientError(int)})
+   * If no handler has been registered for the actual request method, a {@code 405} will be issued by {@link #clientError(int)}.
    * <p>
    * If the handler only needs to respond to one HTTP method it can be more convenient to use {@link Chain#get(Handler)} and friends.
    *
