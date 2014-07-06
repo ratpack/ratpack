@@ -244,12 +244,12 @@ public abstract class LaunchConfigs {
       }
 
       int defaultPort = LaunchConfig.DEFAULT_PORT;
-      if (envVars.containsKey("PORT")) {
+      if (envVars.containsKey(Environment.PORT)) {
         try {
-          String stringValue = envVars.get("PORT");
+          String stringValue = envVars.get(Environment.PORT);
           defaultPort = Integer.valueOf(stringValue);
         } catch (NumberFormatException e) {
-          throw new LaunchException("Environment var 'PORT' is not an integer", e);
+          throw new LaunchException("Environment var '" + Environment.PORT + "' is not an integer", e);
         }
       }
 
@@ -311,6 +311,27 @@ public abstract class LaunchConfigs {
     }
   }
 
+  /**
+   * Constants for meaningful configuration environment variables.
+   */
+  public final class Environment {
+    private Environment() {
+    }
+
+    /**
+     * The port to listen for requests on.
+     * <p>
+     * It is also possible to set this via property {@link ratpack.launch.LaunchConfigs.Property#PORT}.
+     * If the environment variable and the system property are set, the system property takes precedence.
+     * <p>
+     * Defaults to {@link LaunchConfig#DEFAULT_PORT}.
+     * <p>
+     * <b>Value:</b> {@value}
+     *
+     * @see LaunchConfig#getPort()
+     */
+    public static final String PORT = "PORT";
+  }
 
   /**
    * Constants for meaningful configuration properties.
@@ -322,7 +343,7 @@ public abstract class LaunchConfigs {
     /**
      * The port to listen for requests on.
      * <p>
-     * It is also possible to set this property via an environment variable named {@code PORT}.
+     * It is also possible to set this property via an environment variable {@link ratpack.launch.LaunchConfigs.Environment#PORT}.
      * This makes deploying on cloud platforms such as Heroku more convenient.
      * If the environment variable and the system property are set, the system property takes precedence.
      * <p>
