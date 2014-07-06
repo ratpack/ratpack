@@ -21,6 +21,7 @@ import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 
+@Subject(TypeCoercingProperties)
 @Unroll
 class TypeCoercingPropertiesSpec extends Specification {
 
@@ -54,6 +55,23 @@ class TypeCoercingPropertiesSpec extends Specification {
 
     expect:
     properties.asInt("key", defaultValue) == expected
+
+    where:
+    propertyValue | defaultValue | expected
+    "1"           | -1           | 1
+    "0"           | -1           | 0
+    null          | -1           | -1
+    "010"         | -1           | 10
+  }
+
+  def "can get a property as an long"() {
+    given:
+    if (propertyValue) {
+      delegateProperties.setProperty("key", propertyValue)
+    }
+
+    expect:
+    properties.asLong("key", defaultValue) == expected
 
     where:
     propertyValue | defaultValue | expected
