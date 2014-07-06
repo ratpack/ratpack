@@ -32,6 +32,7 @@ import java.nio.file.*;
 import java.util.*;
 
 import static ratpack.util.ExceptionUtils.uncheck;
+import static ratpack.util.internal.PropertiesUtil.extractProperties;
 
 /**
  * Static factory methods for creating {@link LaunchConfig} objects using various strategies. <p> Designed to be used to construct a launch config via a {@link Properties} instance. <p> Most methods
@@ -100,14 +101,6 @@ public abstract class LaunchConfigs {
     Properties deprefixed = new Properties();
     extractProperties(SYSPROP_PREFIX_DEFAULT, System.getProperties(), deprefixed);
     return deprefixed;
-  }
-
-  private static void extractProperties(String propertyPrefix, Properties properties, Map<? super String, ? super String> destination) {
-    for (String propertyName : properties.stringPropertyNames()) {
-      if (propertyName.startsWith(propertyPrefix)) {
-        destination.put(propertyName.substring(propertyPrefix.length()), properties.getProperty(propertyName));
-      }
-    }
   }
 
   /**
