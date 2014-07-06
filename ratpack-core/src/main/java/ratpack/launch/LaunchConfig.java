@@ -188,6 +188,8 @@ public interface LaunchConfig {
    * Timing starts when processing of the request starts.
    * That is, the number of milliseconds it took to determine the response to send to the client.
    * It does not include the time taken to send the response over the wire.
+   *
+   * @return whether or not responses should be timed.
    */
   public boolean isTimeResponses();
 
