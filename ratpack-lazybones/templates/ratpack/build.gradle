@@ -3,7 +3,7 @@ buildscript {
     jcenter()
   }
   dependencies {
-    classpath "io.ratpack:ratpack-gradle:0.9.7-SNAPSHOT
+    classpath "io.ratpack:ratpack-gradle:0.9.7-SNAPSHOT"
   }
 }
 
