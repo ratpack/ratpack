@@ -30,7 +30,6 @@ import java.nio.file.Path
 import static ratpack.launch.LaunchConfig.*
 import static ratpack.launch.LaunchConfigs.Environment.PORT as E_PORT
 import static ratpack.launch.LaunchConfigs.Property.*
-import static ratpack.launch.LaunchConfigs.createWithBaseDir
 
 @Subject(LaunchConfigs)
 class LaunchConfigsSpec extends Specification {
@@ -64,7 +63,7 @@ class LaunchConfigsSpec extends Specification {
     properties.remove(HANDLER_FACTORY)
 
     when:
-    createWithBaseDir(classLoader, baseDir, properties, env)
+    createWithBaseDir()
 
     then:
     thrown(LaunchException)
@@ -72,27 +71,27 @@ class LaunchConfigsSpec extends Specification {
 
   def "creating a LaunchConfig with no port setting uses default port"() {
     expect:
-    createWithBaseDir(classLoader, baseDir, properties, env).port == DEFAULT_PORT
+    createWithBaseDir().port == DEFAULT_PORT
   }
 
   def "creating a LaunchConfig with only PORT env var specified uses it"() {
     expect:
-    createWithBaseDir(classLoader, baseDir, properties, e(E_PORT, "1234")).port == 1234
+    createWithBaseDir(properties, e(E_PORT, "1234")).port == 1234
   }
 
   def "creating a LaunchConfig with only port property specified uses it"() {
     expect:
-    createWithBaseDir(classLoader, baseDir, p(PORT, "5678"), env).port == 5678
+    createWithBaseDir(p(PORT, "5678")).port == 5678
   }
 
   def "creating a LaunchConfig with both PORT env var and port property specified uses the property"() {
     expect:
-    createWithBaseDir(classLoader, baseDir, p(PORT, "5678"), e(E_PORT, "1234")).port == 5678
+    createWithBaseDir(p(PORT, "5678"), e(E_PORT, "1234")).port == 5678
   }
 
   def "creating a LaunchConfig with a non-numeric PORT env var throws an exception"() {
     when:
-    createWithBaseDir(classLoader, baseDir, properties, e(E_PORT, "abc"))
+    createWithBaseDir(properties, e(E_PORT, "abc"))
 
     then:
     def ex = thrown(LaunchException)
@@ -101,7 +100,7 @@ class LaunchConfigsSpec extends Specification {
 
   def "creating a LaunchConfig with a non-numeric port property throws an exception"() {
     when:
-    createWithBaseDir(classLoader, baseDir, p(PORT, "abc"), env)
+    createWithBaseDir(p(PORT, "abc"))
 
     then:
     def ex = thrown(LaunchException)
@@ -113,8 +112,8 @@ class LaunchConfigsSpec extends Specification {
     def address = "10.11.12.13"
 
     expect:
-    !createWithBaseDir(classLoader, baseDir, properties, env).address
-    createWithBaseDir(classLoader, baseDir, p(ADDRESS, address), env).address.hostAddress == address
+    !createWithBaseDir().address
+    createWithBaseDir(p(ADDRESS, address)).address.hostAddress == address
   }
 
   def "publicAddress is respected"() {
@@ -122,14 +121,14 @@ class LaunchConfigsSpec extends Specification {
     def url = "http://app.example.com"
 
     expect:
-    !createWithBaseDir(classLoader, baseDir, properties, env).publicAddress
-    createWithBaseDir(classLoader, baseDir, p(PUBLIC_ADDRESS, url), env).publicAddress.toString() == url
+    !createWithBaseDir().publicAddress
+    createWithBaseDir(p(PUBLIC_ADDRESS, url)).publicAddress.toString() == url
   }
 
   def "reloadable is respected"() {
     expect:
-    !createWithBaseDir(classLoader, baseDir, properties, env).reloadable
-    createWithBaseDir(classLoader, baseDir, p(RELOADABLE, "true"), env).reloadable
+    !createWithBaseDir().reloadable
+    createWithBaseDir(p(RELOADABLE, "true")).reloadable
   }
 
   def "threads is respected"() {
@@ -137,33 +136,33 @@ class LaunchConfigsSpec extends Specification {
     def threads = 10
 
     expect:
-    createWithBaseDir(classLoader, baseDir, properties, env).threads == DEFAULT_THREADS
-    createWithBaseDir(classLoader, baseDir, p(THREADS, threads.toString()), env).threads == threads
+    createWithBaseDir().threads == DEFAULT_THREADS
+    createWithBaseDir(p(THREADS, threads.toString())).threads == threads
   }
 
   def "indexFiles is respected"() {
     expect:
-    createWithBaseDir(classLoader, baseDir, properties, env).indexFiles.empty
-    createWithBaseDir(classLoader, baseDir, p(INDEX_FILES, "index.html"), env).indexFiles == ["index.html"]
-    createWithBaseDir(classLoader, baseDir, p(INDEX_FILES, "index.html, index.htm, index.txt"), env).indexFiles == ["index.html", "index.htm", "index.txt"]
+    createWithBaseDir().indexFiles.empty
+    createWithBaseDir(p(INDEX_FILES, "index.html")).indexFiles == ["index.html"]
+    createWithBaseDir(p(INDEX_FILES, "index.html, index.htm, index.txt")).indexFiles == ["index.html", "index.htm", "index.txt"]
   }
 
   def "maxContentLength is respected"() {
     expect:
-    createWithBaseDir(classLoader, baseDir, properties, env).maxContentLength == DEFAULT_MAX_CONTENT_LENGTH
-    createWithBaseDir(classLoader, baseDir, p(MAX_CONTENT_LENGTH, "20"), env).maxContentLength == 20
+    createWithBaseDir().maxContentLength == DEFAULT_MAX_CONTENT_LENGTH
+    createWithBaseDir(p(MAX_CONTENT_LENGTH, "20")).maxContentLength == 20
   }
 
   def "timeResponses is respected"() {
     expect:
-    !createWithBaseDir(classLoader, baseDir, properties, env).timeResponses
-    createWithBaseDir(classLoader, baseDir, p(TIME_RESPONSES, "true"), env).timeResponses
+    !createWithBaseDir().timeResponses
+    createWithBaseDir(p(TIME_RESPONSES, "true")).timeResponses
   }
 
   def "compressResponses is respected"() {
     expect:
-    !createWithBaseDir(classLoader, baseDir, properties, env).compressResponses
-    createWithBaseDir(classLoader, baseDir, p(COMPRESS_RESPONSES, "true"), env).compressResponses
+    !createWithBaseDir().compressResponses
+    createWithBaseDir(p(COMPRESS_RESPONSES, "true")).compressResponses
   }
 
   def "compressionMinSize is respected"() {
@@ -171,36 +170,36 @@ class LaunchConfigsSpec extends Specification {
     def minSize = 12345L
 
     expect:
-    createWithBaseDir(classLoader, baseDir, properties, env).compressionMinSize == DEFAULT_COMPRESSION_MIN_SIZE
-    createWithBaseDir(classLoader, baseDir, p(COMPRESSION_MIN_SIZE, minSize.toString()), env).compressionMinSize == minSize
+    createWithBaseDir().compressionMinSize == DEFAULT_COMPRESSION_MIN_SIZE
+    createWithBaseDir(p(COMPRESSION_MIN_SIZE, minSize.toString())).compressionMinSize == minSize
   }
 
   def "compressionMimeTypeWhiteList is respected"() {
     expect:
-    createWithBaseDir(classLoader, baseDir, properties, env).compressionMimeTypeWhiteList.empty
-    createWithBaseDir(classLoader, baseDir, p(COMPRESSION_MIME_TYPE_WHITE_LIST, "text/plain")).compressionMimeTypeWhiteList == ImmutableSet.of("text/plain")
-    createWithBaseDir(classLoader, baseDir, p(COMPRESSION_MIME_TYPE_WHITE_LIST, "text/plain, text/html, application/json")).compressionMimeTypeWhiteList == ImmutableSet.of("text/plain", "text/html", "application/json")
+    createWithBaseDir().compressionMimeTypeWhiteList.empty
+    createWithBaseDir(p(COMPRESSION_MIME_TYPE_WHITE_LIST, "text/plain")).compressionMimeTypeWhiteList == ImmutableSet.of("text/plain")
+    createWithBaseDir(p(COMPRESSION_MIME_TYPE_WHITE_LIST, "text/plain, text/html, application/json")).compressionMimeTypeWhiteList == ImmutableSet.of("text/plain", "text/html", "application/json")
   }
 
   def "compressionMimeTypeBlackList is respected"() {
     expect:
-    createWithBaseDir(classLoader, baseDir, properties, env).compressionMimeTypeBlackList.empty
-    createWithBaseDir(classLoader, baseDir, p(COMPRESSION_MIME_TYPE_BLACK_LIST, "application/gzip")).compressionMimeTypeBlackList == ImmutableSet.of("application/gzip")
-    createWithBaseDir(classLoader, baseDir, p(COMPRESSION_MIME_TYPE_BLACK_LIST, "application/compress, application/zip, application/gzip")).compressionMimeTypeBlackList == ImmutableSet.of("application/compress", "application/zip", "application/gzip")
+    createWithBaseDir().compressionMimeTypeBlackList.empty
+    createWithBaseDir(p(COMPRESSION_MIME_TYPE_BLACK_LIST, "application/gzip")).compressionMimeTypeBlackList == ImmutableSet.of("application/gzip")
+    createWithBaseDir(p(COMPRESSION_MIME_TYPE_BLACK_LIST, "application/compress, application/zip, application/gzip")).compressionMimeTypeBlackList == ImmutableSet.of("application/compress", "application/zip", "application/gzip")
   }
 
   def "ssl properties are respected"() {
     expect:
-    !createWithBaseDir(classLoader, baseDir, properties, env).SSLContext
-    createWithBaseDir(classLoader, baseDir, p((SSL_KEYSTORE_FILE): "ratpack/launch/keystore.jks", (SSL_KEYSTORE_PASSWORD): "password")).SSLContext
+    !createWithBaseDir().SSLContext
+    createWithBaseDir(p((SSL_KEYSTORE_FILE): "ratpack/launch/keystore.jks", (SSL_KEYSTORE_PASSWORD): "password")).SSLContext
   }
 
   def "other properties are supported"() {
     expect:
-    createWithBaseDir(classLoader, baseDir, properties, env).getOtherPrefixedWith("") == [:]
+    createWithBaseDir().getOtherPrefixedWith("") == [:]
 
     when:
-    def config = createWithBaseDir(classLoader, baseDir, p("other.db.username": "myuser", "other.db.password": "mypass", "other.servicea.url": "http://servicea.example.com"), env)
+    def config = createWithBaseDir(p("other.db.username": "myuser", "other.db.password": "mypass", "other.servicea.url": "http://servicea.example.com"))
 
     then:
     config.getOtherPrefixedWith("") == ["db.username": "myuser", "db.password": "mypass", "servicea.url": "http://servicea.example.com"]
@@ -209,6 +208,11 @@ class LaunchConfigsSpec extends Specification {
     config.getOther("db.username", null) == "myuser"
     config.getOther("db.password", null) == "mypass"
     config.getOther("servicea.url", null) == "http://servicea.example.com"
+  }
+
+  def "baseDir is passed on to LaunchConfig"() {
+    expect:
+    createWithBaseDir().baseDir.file == baseDir
   }
 
   Properties p(String key, String value) {
@@ -225,6 +229,10 @@ class LaunchConfigsSpec extends Specification {
 
   Map<String, String> e(String key, String value) {
     return ImmutableMap.builder().putAll(env).put(key, value).build()
+  }
+
+  LaunchConfig createWithBaseDir(Properties p = properties, Map<String, String> e = env) {
+    return LaunchConfigs.createWithBaseDir(classLoader, baseDir, p, e)
   }
 
 }
