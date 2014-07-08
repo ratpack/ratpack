@@ -18,7 +18,7 @@ package ratpack.http;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.Cookie;
-import org.reactivestreams.spi.Publisher;
+import org.reactivestreams.Publisher;
 import ratpack.api.NonBlocking;
 import ratpack.exec.ExecControl;
 
