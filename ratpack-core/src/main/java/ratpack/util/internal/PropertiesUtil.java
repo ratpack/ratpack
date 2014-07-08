@@ -16,6 +16,7 @@
 
 package ratpack.util.internal;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Properties;
 
@@ -26,5 +27,17 @@ public class PropertiesUtil {
         destination.put(propertyName.substring(propertyPrefix.length()), properties.getProperty(propertyName));
       }
     }
+  }
+
+  public static boolean flatEquals(Properties a, Properties b) {
+    return (a == b) || (a != null && flatten(a).equals(flatten(b)));
+  }
+
+  private static Map<String, String> flatten(Properties properties) {
+    Map<String, String> flat = new LinkedHashMap<>();
+    for (String key : properties.stringPropertyNames()) {
+      flat.put(key, properties.getProperty(key));
+    }
+    return flat;
   }
 }

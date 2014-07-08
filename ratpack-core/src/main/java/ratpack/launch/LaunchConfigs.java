@@ -16,22 +16,14 @@
 
 package ratpack.launch;
 
-import com.google.common.collect.Iterables;
-import com.sun.nio.zipfs.ZipFileSystemProvider;
 import ratpack.api.Nullable;
-import ratpack.ssl.SSLContexts;
-import ratpack.util.internal.TypeCoercingProperties;
+import ratpack.launch.internal.LaunchConfigsInternal;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.InetAddress;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.nio.file.*;
-import java.util.*;
+import java.nio.file.Path;
+import java.util.Map;
+import java.util.Properties;
 
-import static ratpack.util.ExceptionUtils.uncheck;
+import static ratpack.launch.internal.LaunchConfigsInternal.createLaunchConfig;
 import static ratpack.util.internal.PropertiesUtil.extractProperties;
 
 /**
@@ -71,8 +63,7 @@ public abstract class LaunchConfigs {
    * @return A launch config
    */
   public static LaunchConfig createFromGlobalProperties(ClassLoader classLoader, Properties globalProperties, Properties defaultProperties) {
-    String propertyPrefix = globalProperties.getProperty(SYSPROP_PREFIX_PROPERTY, SYSPROP_PREFIX_DEFAULT);
-    return createFromGlobalProperties(classLoader, propertyPrefix, globalProperties, defaultProperties);
+    return createLaunchConfig(LaunchConfigsInternal.createFromGlobalProperties(classLoader, globalProperties, defaultProperties));
   }
 
   /**
@@ -87,9 +78,7 @@ public abstract class LaunchConfigs {
    * @return A launch config
    */
   public static LaunchConfig createFromGlobalProperties(ClassLoader classLoader, String propertyPrefix, Properties globalProperties, Properties defaultProperties) {
-    Properties deprefixed = new Properties();
-    extractProperties(propertyPrefix, globalProperties, deprefixed);
-    return createFromProperties(classLoader, deprefixed, defaultProperties);
+    return createLaunchConfig(LaunchConfigsInternal.createFromGlobalProperties(classLoader, propertyPrefix, globalProperties, defaultProperties));
   }
 
   /**
@@ -115,66 +104,7 @@ public abstract class LaunchConfigs {
    * @return A launch config
    */
   public static LaunchConfig createFromProperties(ClassLoader classLoader, Properties overrideProperties, Properties defaultProperties) {
-    String configResourceValue = overrideProperties.getProperty(CONFIG_RESOURCE_PROPERTY, CONFIG_RESOURCE_DEFAULT);
-    URL configResourceUrl = classLoader.getResource(configResourceValue);
-
-    Path configPath;
-    Path baseDir;
-
-    if (configResourceUrl == null) {
-      configPath = Paths.get(configResourceValue);
-      if (!configPath.isAbsolute()) {
-        configPath = Paths.get(System.getProperty("user.dir"), configResourceValue);
-      }
-
-      baseDir = configPath.getParent();
-    } else {
-      configPath = resourceToPath(configResourceUrl);
-      baseDir = configPath.getParent();
-      if (baseDir == null && configPath.getFileSystem().provider() instanceof ZipFileSystemProvider) {
-        baseDir = Iterables.getFirst(configPath.getFileSystem().getRootDirectories(), null);
-      }
-
-      if (baseDir == null) {
-        throw new LaunchException("Cannot determine base dir given config resource: " + configPath);
-      }
-    }
-
-    return createFromFile(classLoader, baseDir, configPath, overrideProperties, defaultProperties);
-  }
-
-  private static Path resourceToPath(URL resource) {
-    URI uri = toUri(resource);
-
-    String scheme = uri.getScheme();
-    if (scheme.equals("file")) {
-      return Paths.get(uri);
-    }
-
-    if (!scheme.equals("jar")) {
-      throw new LaunchException("Cannot deal with class path resource url: " + uri);
-    }
-
-    String s = uri.toString();
-    int separator = s.indexOf("!/");
-    String entryName = s.substring(separator + 2);
-    URI fileURI = URI.create(s.substring(0, separator));
-    FileSystem fs;
-    try {
-      fs = FileSystems.newFileSystem(fileURI, Collections.<String, Object>emptyMap());
-    } catch (IOException e) {
-      throw uncheck(e);
-    }
-    return fs.getPath(entryName);
-  }
-
-
-  private static URI toUri(URL url) {
-    try {
-      return url.toURI();
-    } catch (URISyntaxException e) {
-      throw new LaunchException("Could not convert URL '" + url + "' to URI", e);
-    }
+    return createLaunchConfig(LaunchConfigsInternal.createFromProperties(classLoader, overrideProperties, defaultProperties));
   }
 
   /**
@@ -190,18 +120,7 @@ public abstract class LaunchConfigs {
    * @return a launch config
    */
   public static LaunchConfig createFromFile(ClassLoader classLoader, Path baseDir, @Nullable Path configFile, Properties overrideProperties, Properties defaultProperties) {
-    Properties fileProperties = new Properties(defaultProperties);
-    if (configFile != null && Files.exists(configFile)) {
-      try (InputStream inputStream = Files.newInputStream(configFile)) {
-        fileProperties.load(inputStream);
-      } catch (Exception e) {
-        throw new LaunchException("Could not read config file '" + configFile + "'", e);
-      }
-    }
-
-    fileProperties.putAll(overrideProperties);
-
-    return createWithBaseDir(classLoader, baseDir, fileProperties);
+    return createLaunchConfig(LaunchConfigsInternal.createFromFile(classLoader, baseDir, configFile, overrideProperties, defaultProperties));
   }
 
   /**
@@ -213,7 +132,7 @@ public abstract class LaunchConfigs {
    * @return A launch config
    */
   public static LaunchConfig createWithBaseDir(ClassLoader classLoader, Path baseDir, Properties properties) {
-    return createWithBaseDir(classLoader, baseDir, properties, System.getenv());
+    return createLaunchConfig(LaunchConfigsInternal.createWithBaseDir(classLoader, baseDir, properties));
   }
 
   /**
@@ -228,80 +147,7 @@ public abstract class LaunchConfigs {
    * @return A launch config
    */
   public static LaunchConfig createWithBaseDir(ClassLoader classLoader, Path baseDir, Properties properties, Map<String, String> envVars) {
-    TypeCoercingProperties props = new TypeCoercingProperties(properties, classLoader);
-    try {
-      Class<HandlerFactory> handlerFactoryClass;
-      handlerFactoryClass = props.asClass(Property.HANDLER_FACTORY, HandlerFactory.class);
-      if (handlerFactoryClass == null) {
-        throw new LaunchException("No handler factory class specified (config property: " + Property.HANDLER_FACTORY + ")");
-      }
-
-      int defaultPort = LaunchConfig.DEFAULT_PORT;
-      if (envVars.containsKey(Environment.PORT)) {
-        try {
-          String stringValue = envVars.get(Environment.PORT);
-          defaultPort = Integer.valueOf(stringValue);
-        } catch (NumberFormatException e) {
-          throw new LaunchException("Environment var '" + Environment.PORT + "' is not an integer", e);
-        }
-      }
-
-      int port = props.asInt(Property.PORT, defaultPort);
-      InetAddress address = props.asInetAddress(Property.ADDRESS);
-      URI publicAddress = props.asURI(Property.PUBLIC_ADDRESS);
-      boolean reloadable = props.asBoolean(Property.RELOADABLE, false);
-      int threads = props.asInt(Property.THREADS, LaunchConfig.DEFAULT_THREADS);
-      List<String> indexFiles = props.asList(Property.INDEX_FILES);
-      InputStream sslKeystore = props.asStream(Property.SSL_KEYSTORE_FILE);
-      String sslKeystorePassword = props.asString(Property.SSL_KEYSTORE_PASSWORD, "");
-      int maxContentLength = props.asInt(Property.MAX_CONTENT_LENGTH, LaunchConfig.DEFAULT_MAX_CONTENT_LENGTH);
-      boolean timeResponses = props.asBoolean(Property.TIME_RESPONSES, false);
-      boolean compressResponses = props.asBoolean(Property.COMPRESS_RESPONSES, false);
-      long compressionMinSize = props.asLong(Property.COMPRESSION_MIN_SIZE, LaunchConfig.DEFAULT_COMPRESSION_MIN_SIZE);
-      List<String> compressionMimeTypeWhiteList = props.asList(Property.COMPRESSION_MIME_TYPE_WHITE_LIST);
-      List<String> compressionMimeTypeBlackList = props.asList(Property.COMPRESSION_MIME_TYPE_BLACK_LIST);
-
-      Map<String, String> otherProperties = new HashMap<>();
-      extractProperties("other.", properties, otherProperties);
-
-      HandlerFactory handlerFactory;
-      try {
-        handlerFactory = handlerFactoryClass.newInstance();
-      } catch (Exception e) {
-        throw new LaunchException("Could not instantiate handler factory: " + handlerFactoryClass.getName(), e);
-      }
-
-      LaunchConfigBuilder launchConfigBuilder = LaunchConfigBuilder.baseDir(baseDir)
-        .port(port)
-        .address(address)
-        .publicAddress(publicAddress)
-        .reloadable(reloadable)
-        .threads(threads)
-        .maxContentLength(maxContentLength)
-        .timeResponses(timeResponses)
-        .compressResponses(compressResponses)
-        .compressionMinSize(compressionMinSize)
-        .compressionWhiteListMimeTypes(compressionMimeTypeWhiteList)
-        .compressionBlackListMimeTypes(compressionMimeTypeBlackList)
-        .indexFiles(indexFiles);
-
-      if (sslKeystore != null) {
-        try (InputStream stream = sslKeystore) {
-          launchConfigBuilder.ssl(SSLContexts.sslContext(stream, sslKeystorePassword));
-        }
-      }
-
-      return launchConfigBuilder
-        .other(otherProperties)
-        .build(handlerFactory);
-
-    } catch (Exception e) {
-      if (e instanceof LaunchException) {
-        throw (LaunchException) e;
-      } else {
-        throw new LaunchException("Failed to create launch config with properties: " + properties.toString(), e);
-      }
-    }
+    return createLaunchConfig(LaunchConfigsInternal.createWithBaseDir(classLoader, baseDir, properties, envVars));
   }
 
   /**
