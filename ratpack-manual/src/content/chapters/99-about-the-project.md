@@ -40,6 +40,7 @@ The following people have provided significant contributions.
 * [Álvaro Sánchez-Mariscal](https://github.com/alvarosanchez)
 * [Cihat Keser](https://github.com/kramer)
 * [Cédric Champeau](https://github.com/melix)
+* [Kevin Greene](https://github.com/KevinGreene)
 
 ### Past project members
 
