@@ -25,6 +25,29 @@ ext {
     hystrix: "1.4.0-RC4"
   ]
 
+  if (System.getenv('CI_GROOVY_VERSION')) {
+    // When this environment variable is set, it means Ratpack is compiled on the Groovy CI server
+    // which tests latest versions of Groovy against widely used community projects
+    commonVersions.groovy = System.getenv('CI_GROOVY_VERSION')
+    if (commonVersions.groovy.endsWith('-SNAPSHOT')) {
+      allprojects {
+        repositories {
+          // uncomment this if you want to test with a local version of Groovy
+          /*
+          def local = mavenLocal()
+          remove local
+          addFirst local
+          */
+          maven {
+            name 'JFrog OSS snapshot repo'
+            url 'https://oss.jfrog.org/oss-snapshot-local/'
+          }
+        }
+      }
+    }
+    logger.info "Detected joint build CI environment. Overriden Groovy dependency to use ${commonVersions.groovy}"
+  }
+
   commonDependencies = [
     spock: dependencies.create("org.spockframework:spock-core:0.7-groovy-2.0", {
       exclude group: "org.codehaus.groovy", module: "groovy-all"

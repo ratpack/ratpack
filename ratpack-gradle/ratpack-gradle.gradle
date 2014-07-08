@@ -28,6 +28,7 @@ dependencies {
 
 test {
   dependsOn { apiModules*.install }
+  onlyIf { !System.getenv('CI_GROOVY_VERSION') }
   allprojects {
     if (it == project) {
       return
