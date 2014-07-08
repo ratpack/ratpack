@@ -16,7 +16,7 @@
 
 package ratpack.http;
 
-import org.reactivestreams.spi.Publisher;
+import org.reactivestreams.Publisher;
 import ratpack.exec.ExecControl;
 
 

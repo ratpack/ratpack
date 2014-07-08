@@ -16,8 +16,8 @@
 
 package ratpack.exec;
 
-import org.reactivestreams.spi.Publisher;
-import org.reactivestreams.spi.Subscriber;
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
 import ratpack.func.Action;
 
 import java.util.concurrent.Callable;

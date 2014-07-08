@@ -22,7 +22,7 @@ import io.netty.handler.codec.http.Cookie;
 import io.netty.handler.codec.http.DefaultCookie;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.ServerCookieEncoder;
-import org.reactivestreams.spi.Publisher;
+import org.reactivestreams.Publisher;
 import ratpack.exec.ExecControl;
 import ratpack.file.internal.FileHttpTransmitter;
 import ratpack.func.Action;

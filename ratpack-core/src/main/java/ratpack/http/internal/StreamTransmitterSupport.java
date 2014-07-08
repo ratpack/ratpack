@@ -20,9 +20,9 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.handler.codec.http.*;
-import org.reactivestreams.spi.Publisher;
-import org.reactivestreams.spi.Subscriber;
-import org.reactivestreams.spi.Subscription;
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 import ratpack.exec.ExecControl;
 import ratpack.http.StreamElement;
 import ratpack.http.StreamTransmitter;
@@ -66,7 +66,7 @@ abstract class StreamTransmitterSupport<T extends StreamElement> implements Stre
       @Override
       public void onSubscribe(Subscription subscription) {
         this.subscription = subscription;
-        this.subscription.requestMore(Integer.MAX_VALUE);
+        this.subscription.request(Integer.MAX_VALUE);
       }
 
       @Override
@@ -79,7 +79,7 @@ abstract class StreamTransmitterSupport<T extends StreamElement> implements Stre
             }
           }
         });
-        this.subscription.requestMore(1); //TODO: request Integer.MAX again when a threshold is reached
+        this.subscription.request(1); //TODO: request Integer.MAX again when a threshold is reached
       }
 
       @Override

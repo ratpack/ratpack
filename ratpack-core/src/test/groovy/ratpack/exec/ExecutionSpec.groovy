@@ -16,9 +16,9 @@
 
 package ratpack.exec
 
-import org.reactivestreams.spi.Publisher
-import org.reactivestreams.spi.Subscriber
-import org.reactivestreams.spi.Subscription
+import org.reactivestreams.Publisher
+import org.reactivestreams.Subscriber
+import org.reactivestreams.Subscription
 import ratpack.func.Action
 import ratpack.launch.LaunchConfigBuilder
 import spock.lang.AutoCleanup
@@ -176,9 +176,9 @@ class ExecutionSpec extends Specification {
             }
 
             @Override
-            void requestMore(int elements) {
+            void request(int elements) {
               assert e1.controller.managedThread
-              streamEvents << "publisher-requestMore"
+              streamEvents << "publisher-request"
               if (capacity.getAndAdd(elements) == 0) {
                 // start sending again if it wasn't already running
                 send()
@@ -206,7 +206,7 @@ class ExecutionSpec extends Specification {
         void onSubscribe(Subscription subscription) {
           assert e1.controller.managedThread
           streamEvents << "subscriber-onSubscribe"
-          subscription.requestMore(2)
+          subscription.request(2)
         }
 
         @Override
@@ -232,7 +232,7 @@ class ExecutionSpec extends Specification {
 
     then:
     innerLatch.await()
-    streamEvents == ["publisher-subscribe", "subscriber-onSubscribe", "publisher-requestMore", "publisher-send", "subscriber-onNext:foo1",
+    streamEvents == ["publisher-subscribe", "subscriber-onSubscribe", "publisher-request", "publisher-send", "subscriber-onNext:foo1",
                      "publisher-send", "subscriber-onNext:foo2", "subscriber-onComplete", "execution-complete"]
   }
 

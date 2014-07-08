@@ -16,9 +16,9 @@
 
 package ratpack.http.internal
 
-import org.reactivestreams.spi.Publisher
-import org.reactivestreams.spi.Subscriber
-import org.reactivestreams.spi.Subscription
+import org.reactivestreams.Publisher
+import org.reactivestreams.Subscriber
+import org.reactivestreams.Subscription
 import ratpack.http.HttpResponseChunk
 import ratpack.test.internal.RatpackGroovyDslSpec
 import ratpack.util.internal.IoUtils
@@ -276,7 +276,7 @@ class DefaultResponseSpec extends RatpackGroovyDslSpec {
         void cancel() {}
 
         @Override
-        void requestMore(int elements) {
+        void request(int elements) {
           if (!started) {
             started = true
             Thread.start {
