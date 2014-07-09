@@ -56,6 +56,39 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     text == "<div><p>bar</p></div>"
   }
 
+  def "templates are auto-escaped by default"() {
+    given:
+    file "templates/foo.gtpl", "div(value)"
+
+    when:
+    handlers {
+      get {
+        render groovyMarkupTemplate("foo.gtpl", value: "<bar>")
+      }
+    }
+
+    then:
+    text == "<div>&lt;bar&gt;</div>"
+  }
+
+  def "auto-escaping can be turned off"() {
+    given:
+    file "templates/foo.gtpl", "div(value)"
+    launchConfig {
+      other("markuptemplate.config.autoEscape", "false")
+    }
+
+    when:
+    handlers {
+      get{
+        render groovyMarkupTemplate("foo.gtpl", value: "<bar>")
+      }
+    }
+
+    then:
+    text == "<div><bar></div>"
+  }
+
   def "can include another template"() {
     given:
     file "templates/foo.gtpl", "div { include template:'bar.gtpl' }"

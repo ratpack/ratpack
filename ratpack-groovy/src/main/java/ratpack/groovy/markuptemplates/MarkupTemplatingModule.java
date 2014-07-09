@@ -136,6 +136,11 @@ public class MarkupTemplatingModule extends AbstractModule {
     if (launchConfig.isReloadable()) {
       templateConfiguration.setCacheTemplates(false);
     }
+
+    Map<String, String> overrideValues = launchConfig.getOtherPrefixedWith("markuptemplate.config.");
+    Boolean autoEscape = new Boolean(overrideValues.containsKey("autoEscape") ? overrideValues.get("autoEscape") : "true");
+
+    templateConfiguration.setAutoEscape(autoEscape);
     ClassLoader parent = getClass().getClassLoader();
     try {
       parent = new URLClassLoader(new URL[]{launchConfig.getBaseDir().file(templatesDirectory).toFile().toURI().toURL()}, parent);
