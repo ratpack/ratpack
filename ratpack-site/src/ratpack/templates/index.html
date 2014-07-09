@@ -3,70 +3,62 @@
   <div class="content">
     <article>
       <h2>What is Ratpack?</h2>
+
       <p>
-        Ratpack is a simple, capable, toolkit for creating high performance web applications.
+        Ratpack is a set of Java libraries that facilitate fast, efficient, evolvable and well tested HTTP applications.
       </p>
+
       <p>
-        Ratpack is built on Java and the <a href="http://netty.io/">Netty</a> event-driven networking engine.
-        The API is optimized for <a href="http://groovy-lang.org">Groovy</a> and Java 8, though Java 7 can also be used.
+        It is built on the highly performant and efficient <a href="http://netty.io/">Netty</a> event-driven networking engine.
       </p>
+
       <p>
-        Optional Google Guice integration provides a foundation for scaling your application in size in a managed way.
-      </p>
-      <p>
-        Optional Gradle build time support makes building and testing applications a breeze.
+        Ratpack focuses on allowing HTTP applications to be efficient, modular, adaptive to new requirements and technologies, and well tested over time.
       </p>
     </article>
-      <nav>
-        <h2>Quick Links</h2>
-        <ul>
-          <li><a href="/manual/current/">Current Manual</a></li>
-          <li><a href="/versions">All Versions</a></li>
-          <li><a href="https://github.com/ratpack/ratpack/issues" rel="external">Issue Tracker</a></li>
-          <li><a href="http://forum.ratpack.io/">User Forum</a></li>
-        </ul>
-      </nav>
-    </div>
+    <nav>
+      <h2>Quick Links</h2>
+      <ul>
+        <li><a href="/manual/current/">Current Manual</a></li>
+        <li><a href="/versions">All Versions</a></li>
+        <li><a href="https://github.com/ratpack/ratpack/issues" rel="external">Issue Tracker</a></li>
+        <li><a href="http://forum.ratpack.io/">User Forum</a></li>
+      </ul>
+    </nav>
+  </div>
 </section>
 
 <section id="main">
   <article class="content">
-    <h2>Getting Started</h2>
     <p>
-    Here's a simple executable Groovy script that is a complete Ratpack application …
+      The core of Ratpack is made up of only <a href="http://netty.io">Netty</a> and <a href="https://code.google.com/p/guava-libraries/">Google Guava</a>.
+      Currently, the APIs are based on Java 7 but will soon fully embrace Java 8.
     </p>
-    <pre><code class="language-groovy">@Grab(&quot;io.ratpack:ratpack-groovy:0.9.6&quot;)
-import static ratpack.groovy.Groovy.*
-
-ratpack {
-  handlers {
-    get {
-      render &quot;Hello world!&quot;
-    }
-  }
-}</code></pre>
-    <p>Here's the equivalent in Java 8 …</p>
-    <pre><code class="language-groovy">import ratpack.launch.*;
-import ratpack.server.*;
-import ratpack.handling.*;
-import ratpack.util.Action;
-import static ratpack.handling.Handlers.*;
-import java.io.File;
-
-public class App {
-  public static void main(String[] args) throws Exception {
-    File baseDir = new File("/path/to/app/dir");
-    RatpackServerBuilder.build(
-      LaunchConfigBuilder.baseDir(baseDir).build((launchConfig) -> {
-        return chain(launchConfig, (Action) (chain) -> {
-          chain.get((context) -> { context.render("Hello World"); });
-        });
-      })
-    ).start();
-  }
-}</code></pre>
-    <p>That's just the tip of the iceberg.</p>
-    <p>Check out the <a href="/manual/current/">Ratpack Manual</a> for more possibilities, or the <a href="https://github.com/ratpack">example apps on GitHub</a>.</p>
+    <p>
+      You can write Ratpack applications in Java or any alternative JVM language that plays well with Java.
+      Specific support for the <a href="http://www.groovy-lang.org">Groovy</a> language is provided, utilising the latest static compilation and typing features.
+    </p>
+    <p>
+      Ratpack does not take a heavily opinionated approach as to what libraries and tools you should use to compose your application.
+      As the developer of the application, <strong>you</strong> are in control.
+      Direct integration of tools and libraries is favored over generic abstractions.
+    </p>
+    <p>
+      Ratpack is for non trivial, high performance, low resource usage, HTTP applications.
+    </p>
+    <p>
+      Want to know more?
+      See some example apps @ <a href="http://github.com/ratpack">github.com/ratpack</a> or checkout the <a href="/manual/current">Ratpack Manual</a>.
+    </p>
+    <p>
+      Have a question or problem?
+      Let us know about it via the <a href="http://forum.ratpack.io">forum</a>.
+    </p>
+    <p>
+      Want to contribute to Ratpack?
+      We are always eager for more contributions.
+      Browse the <a href="http://github.com/ratpack/ratpack/issues">issue tracker</a> and find something to do, or raise an issue with your contribution idea.
+    </p>
   </article>
 </section>
 <% render "footer.html" %>
