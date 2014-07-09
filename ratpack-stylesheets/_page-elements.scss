@@ -53,4 +53,6 @@ $footer-font-size: 14px !default;
 		@include link-colors($white, $yellow);
 		@include link-underline($white, $yellow);
 	}
+
+  margin-bottom: 0;
 }
