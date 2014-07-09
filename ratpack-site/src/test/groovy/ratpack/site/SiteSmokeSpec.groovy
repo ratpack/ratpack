@@ -32,7 +32,7 @@ class SiteSmokeSpec extends Specification {
 
     then:
     response.statusCode == 200
-    response.body.asString().contains('<title>Ratpack: A toolkit for JVM web applications</title>')
+    response.body.asString().contains('<title>Ratpack: Simple, lean & powerful HTTP apps</title>')
 
   }
 
@@ -42,7 +42,7 @@ class SiteSmokeSpec extends Specification {
 
     then:
     response.statusCode == 200
-    response.body.asString().contains('<title>Ratpack: A toolkit for JVM web applications</title>')
+    response.body.asString().contains('<title>Ratpack: Simple, lean & powerful HTTP apps</title>')
   }
 
   def cleanup() {
