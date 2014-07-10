@@ -16,6 +16,7 @@
 
 package ratpack.groovy.markuptemplates
 
+import groovy.text.markup.TemplateConfiguration
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 import static ratpack.groovy.Groovy.groovyMarkupTemplate
@@ -69,6 +70,26 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
 
     then:
     text == "<div>&lt;bar&gt;</div>"
+  }
+
+  def "auto-escape can be configured via templateconfiguration from guice"() {
+    given:
+    file "templates/foo.gtpl", "div(value)"
+
+    when:
+    bindings {
+      init { TemplateConfiguration templateConfiguration ->
+        templateConfiguration.setAutoEscape(false)
+      }
+    }
+    handlers {
+      get {
+        render groovyMarkupTemplate("foo.gtpl", value: "<bar>")
+      }
+    }
+
+    then:
+    text == "<div><bar></div>"
   }
 
   def "can include another template"() {

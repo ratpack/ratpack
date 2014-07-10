@@ -128,6 +128,7 @@ public class MarkupTemplatingModule extends AbstractModule {
   @Override
   protected void configure() {
     bind(MarkupTemplateRenderer.class).in(Singleton.class);
+    bind(TemplateConfiguration.class).toInstance(templateConfiguration);
   }
 
   @SuppressWarnings("UnusedDeclaration")
