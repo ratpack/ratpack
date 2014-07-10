@@ -52,7 +52,7 @@ public class DefaultRatpackModule extends AbstractModule {
   }
 
   @Provides
-  ExecControl execControlr(ExecController execController) {
+  ExecControl execControl(ExecController execController) {
     return execController.getControl();
   }
 
