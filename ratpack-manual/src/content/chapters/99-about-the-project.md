@@ -41,6 +41,7 @@ The following people have provided significant contributions.
 * [Cihat Keser](https://github.com/kramer)
 * [Cédric Champeau](https://github.com/melix)
 * [Kevin Greene](https://github.com/KevinGreene)
+* [Danny Hyun](https://github.com/danhyun)
 
 ### Past project members
 
