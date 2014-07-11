@@ -79,7 +79,7 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     when:
     bindings {
       init { TemplateConfiguration templateConfiguration ->
-        templateConfiguration.setAutoEscape(false)
+        templateConfiguration.autoEscape = false
       }
     }
     handlers {

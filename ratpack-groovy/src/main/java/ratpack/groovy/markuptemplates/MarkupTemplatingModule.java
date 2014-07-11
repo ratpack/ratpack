@@ -113,10 +113,6 @@ public class MarkupTemplatingModule extends AbstractModule {
     templateConfiguration.setAutoEscape(true);
   }
 
-  public TemplateConfiguration getTemplateConfiguration() {
-    return templateConfiguration;
-  }
-
   public String getTemplatesDirectory() {
     return templatesDirectory;
   }
