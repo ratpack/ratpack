@@ -92,6 +92,41 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     text == "<div><bar></div>"
   }
 
+  def "auto expanding empty elements is off by default"() {
+    given:
+    file "templates/foo.gtpl", "div()"
+
+    when:
+    handlers {
+      get {
+        render groovyMarkupTemplate("foo.gtpl")
+      }
+    }
+
+    then:
+    text == "<div/>"
+  }
+
+  def "empty elements can be configured to be auto expanded"() {
+    given:
+    file "templates/foo.gtpl", "div()"
+
+    when:
+    bindings {
+      init { TemplateConfiguration templateConfiguration ->
+        templateConfiguration.expandEmptyElements = true
+      }
+    }
+    handlers {
+      get {
+        render groovyMarkupTemplate("foo.gtpl")
+      }
+    }
+
+    then:
+    text == "<div></div>"
+  }
+
   def "can include another template"() {
     given:
     file "templates/foo.gtpl", "div { include template:'bar.gtpl' }"
@@ -242,7 +277,9 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
 
     when:
     bindings {
-      config(MarkupTemplatingModule).templateConfiguration.cacheTemplates = false
+      init { TemplateConfiguration templateConfiguration ->
+        templateConfiguration.cacheTemplates = false
+      }
     }
     handlers {
       get { render groovyMarkupTemplate("t.gtpl") }

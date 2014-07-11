@@ -105,13 +105,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class MarkupTemplatingModule extends AbstractModule {
 
-  private final TemplateConfiguration templateConfiguration;
   private String templatesDirectory = "templates";
-
-  public MarkupTemplatingModule() {
-    templateConfiguration = new TemplateConfiguration();
-    templateConfiguration.setAutoEscape(true);
-  }
 
   public String getTemplatesDirectory() {
     return templatesDirectory;
@@ -124,13 +118,20 @@ public class MarkupTemplatingModule extends AbstractModule {
   @Override
   protected void configure() {
     bind(MarkupTemplateRenderer.class).in(Singleton.class);
-    bind(TemplateConfiguration.class).toInstance(templateConfiguration);
+  }
+
+  @Provides
+  @Singleton
+  TemplateConfiguration provideTemplateConfiguration() {
+    TemplateConfiguration templateConfiguration = new TemplateConfiguration();
+    templateConfiguration.setAutoEscape(true);
+    return templateConfiguration;
   }
 
   @SuppressWarnings("UnusedDeclaration")
   @Provides
   @Singleton
-  MarkupTemplateEngine provideTemplateEngine(LaunchConfig launchConfig) {
+  MarkupTemplateEngine provideTemplateEngine(LaunchConfig launchConfig, TemplateConfiguration templateConfiguration) {
     if (launchConfig.isReloadable()) {
       templateConfiguration.setCacheTemplates(false);
     }
