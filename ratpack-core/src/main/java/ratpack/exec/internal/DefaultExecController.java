@@ -24,6 +24,8 @@ import io.netty.util.concurrent.DefaultThreadFactory;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ratpack.exec.*;
 import ratpack.exec.ExecutionException;
 import ratpack.func.Action;
@@ -35,8 +37,6 @@ import ratpack.util.ExceptionUtils;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class DefaultExecController implements ExecController {
 

@@ -20,10 +20,10 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.reflect.TypeToken;
 import io.netty.handler.codec.http.HttpResponseStatus;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ratpack.api.Nullable;
 import ratpack.error.ClientErrorHandler;
 import ratpack.error.ServerErrorHandler;
@@ -164,26 +164,6 @@ public class DefaultContext implements Context {
   @Override
   public <T> void stream(Publisher<T> publisher, Subscriber<T> subscriber) {
     requestConstants.applicationConstants.execControl.stream(publisher, subscriber);
-  }
-
-  @Override
-  public <T> void stream(Publisher<T> publisher, Subscriber<T> subscriber) {
-    requestConstants.applicationConstants.execControl.stream(publisher, subscriber);
-  }
-
-  @Override
-  public <T> void stream(Publisher<T> publisher, Subscriber<T> subscriber) {
-    requestConstants.applicationConstants.execControl.stream(publisher, subscriber);
-  }
-
-  @Override
-  public <T> void subscribe(Publisher<T> publisher, Subscriber<T> subscriber) {
-    requestConstants.applicationConstants.execControl.subscribe(publisher, subscriber);
-  }
-
-  @Override
-  public <T> void subscribe(Publisher<T> publisher, Subscriber<T> subscriber) {
-    requestConstants.applicationConstants.execControl.subscribe(publisher, subscriber);
   }
 
   @Override
