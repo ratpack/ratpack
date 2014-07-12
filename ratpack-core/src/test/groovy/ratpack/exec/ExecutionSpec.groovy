@@ -153,11 +153,12 @@ class ExecutionSpec extends Specification {
   def "subscriber callbacks are bound to execution"() {
     when:
     def streamEvents = []
-    def innerLatch = new CountDownLatch(3)
+    def innerLatch = new CountDownLatch(4)
 
     exec { e1 ->
       controller.execution.onComplete {
         streamEvents << 'execution-complete'
+        innerLatch.countDown()
       }
 
       e1.stream(new Publisher<String>() {
