@@ -42,7 +42,6 @@ import ratpack.launch.LaunchConfig;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 import java.net.URI;
-import java.net.URISyntaxException;
 
 public class DefaultHttpClient implements HttpClient {
 
@@ -53,13 +52,8 @@ public class DefaultHttpClient implements HttpClient {
   }
 
   @Override
-  public Promise<ReceivedResponse> get(String httpUrl) {
-    return get(httpUrl, Actions.noop());
-  }
-
-  @Override
-  public Promise<ReceivedResponse> get(String httpUrl, Action<? super RequestSpec> requestConfigurer) {
-    return request(httpUrl, requestConfigurer);
+  public Promise<ReceivedResponse> get(Action<? super RequestSpec> requestConfigurer) {
+    return request(requestConfigurer);
   }
 
   private static class Post implements Action<RequestSpec> {
@@ -69,35 +63,41 @@ public class DefaultHttpClient implements HttpClient {
     }
   }
 
-  public Promise<ReceivedResponse> post(String httpUrl, Action<? super RequestSpec> action) {
-    return request(httpUrl, Actions.join(new Post(), action));
+  public Promise<ReceivedResponse> post(Action<? super RequestSpec> action) {
+    return request(Actions.join(new Post(), action));
   }
 
   @Override
-  public Promise<ReceivedResponse> request(String httpUrl, final Action<? super RequestSpec> requestConfigurer) {
-    final URI uri;
+  public Promise<ReceivedResponse> request(final Action<? super RequestSpec> requestConfigurer) {
+
+    final ExecController execController = launchConfig.getExecController();
+    final Execution execution = execController.getExecution();
+    final EventLoopGroup eventLoopGroup = execController.getEventLoopGroup();
+    final ByteBufAllocator bufferAllocator = launchConfig.getBufferAllocator();
+
+    final MutableHeaders headers = new NettyHeadersBackedMutableHeaders(new DefaultHttpHeaders());
+    final RequestSpecBacking requestSpecBacking = new RequestSpecBacking(headers, bufferAllocator.buffer());
+
     try {
-      uri = new URI(httpUrl);
-    } catch (URISyntaxException e) {
-      throw new IllegalArgumentException(e);
+      requestConfigurer.execute(requestSpecBacking.asSpec());
+    } catch (Exception e) {
+      e.printStackTrace();
+      //TODO do something useful here
     }
+
+    final URI uri = requestSpecBacking.getUrl();
 
     String scheme = uri.getScheme();
     boolean useSsl = false;
     if (scheme.equals("https")) {
       useSsl = true;
     } else if (!scheme.equals("http")) {
-      throw new IllegalArgumentException(String.format("URL '%s' is not a http url", httpUrl));
+      throw new IllegalArgumentException(String.format("URL '%s' is not a http url", uri.toString()));
     }
     final boolean finalUseSsl = useSsl;
 
     final String host = uri.getHost();
     final int port = uri.getPort() < 0 ? (useSsl ? 443 : 80) : uri.getPort();
-
-    final ExecController execController = launchConfig.getExecController();
-    final Execution execution = execController.getExecution();
-    final EventLoopGroup eventLoopGroup = execController.getEventLoopGroup();
-    final ByteBufAllocator bufferAllocator = launchConfig.getBufferAllocator();
 
     return execController.getControl().promise(new Action<Fulfiller<ReceivedResponse>>() {
       @Override
@@ -148,21 +148,20 @@ public class DefaultHttpClient implements HttpClient {
             if (future.isSuccess()) {
 
               String fullPath = getFullPath(uri);
-              FullHttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, fullPath, bufferAllocator.buffer());
 
-              final MutableHeaders headers = new NettyHeadersBackedMutableHeaders(request.headers());
-
-              RequestSpecBacking requestSpecBacking = new RequestSpecBacking(headers, request.content());
-              requestConfigurer.execute(requestSpecBacking.asSpec());
+              FullHttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.valueOf(requestSpecBacking.getMethod()), fullPath, requestSpecBacking.getBody());
 
               headers.set(HttpHeaders.Names.HOST, host);
               headers.set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.CLOSE);
-
-              request.setMethod(HttpMethod.valueOf(requestSpecBacking.getMethod()));
-
               int contentLength = request.content().readableBytes();
               if (contentLength > 0) {
                 headers.set(HttpHeaders.Names.CONTENT_LENGTH, Integer.toString(contentLength, 10));
+              }
+
+              HttpHeaders requestHeaders = request.headers();
+
+              for (String name : headers.getNames()) {
+                requestHeaders.set(name, headers.get(name));
               }
 
               future.channel().writeAndFlush(request).addListener(new ChannelFutureListener() {

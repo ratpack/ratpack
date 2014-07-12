@@ -24,7 +24,7 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.MultimapBuilder;
 import com.google.common.net.UrlEscapers;
 import io.netty.handler.codec.http.QueryStringDecoder;
-import ratpack.http.HttpUriBuilder;
+import ratpack.http.HttpUrlSpec;
 import ratpack.util.internal.InternalRatpackError;
 
 import java.io.UnsupportedEncodingException;
@@ -33,7 +33,7 @@ import java.net.URISyntaxException;
 import java.net.URLDecoder;
 import java.util.*;
 
-public class DefaultHttpUriBuilder implements HttpUriBuilder {
+public class HttpUrlSpecBacking implements HttpUrlSpec {
 
   private static final CharMatcher HOST_NAME_ILLEGAL_CHARS = CharMatcher.inRange('a', 'z')
     .or(CharMatcher.inRange('A', 'Z'))
@@ -50,11 +50,87 @@ public class DefaultHttpUriBuilder implements HttpUriBuilder {
   private final List<String> pathSegments = new LinkedList<>();
   private final Multimap<String, String> params = MultimapBuilder.linkedHashKeys().linkedListValues().build();
 
-  public DefaultHttpUriBuilder() {
+  public HttpUrlSpecBacking() {
 
   }
 
-  public DefaultHttpUriBuilder(URI uri) {
+  public HttpUrlSpecBacking(URI uri) {
+    this.set(uri);
+  }
+
+  @Override
+  public HttpUrlSpec secure() {
+    this.protocol = "https";
+    return this;
+  }
+
+  @Override
+  public HttpUrlSpec host(String host) {
+    // http://en.wikipedia.org/wiki/Hostname#Restrictions%5Fon%5Fvalid%5Fhost%5Fnames
+    int indexIn = HOST_NAME_ILLEGAL_CHARS.indexIn(host);
+    if (indexIn >= 0) {
+      throw new IllegalArgumentException("character '" + host.charAt(indexIn) + "' of host name '" + host + "' is invalid (only [a-zA-Z0-9.-] are allowed in host names)");
+    }
+    this.host = host;
+    return this;
+  }
+
+  @Override
+  public HttpUrlSpec port(int port) {
+    if (port == 0 || port < -1) {
+      throw new IllegalArgumentException("port must be greater than 0 or exactly -1, is " + port);
+    }
+    this.port = port;
+    return this;
+  }
+
+  @Override
+  public HttpUrlSpec path(String path) {
+    Objects.requireNonNull(path, "path must not be null");
+    Collections.addAll(pathSegments, path.split("/"));
+    return this;
+  }
+
+  @Override
+  public HttpUrlSpec pathSegment(String pathSegment) {
+    Objects.requireNonNull(pathSegment, "pathSegment must not be null");
+    pathSegments.add(pathSegment);
+    return this;
+  }
+
+  @Override
+  public HttpUrlSpec params(String... params) {
+    int i = 0;
+    while (i < params.length) {
+      String key = params[i];
+      String value = "";
+      if (++i < params.length) {
+        value = params[i++];
+      }
+
+      this.params.put(key, value);
+    }
+
+    return this;
+  }
+
+  @Override
+  public HttpUrlSpec params(Map<String, String> params) {
+    for (Map.Entry<String, String> entry : params.entrySet()) {
+      this.params.put(entry.getKey(), entry.getValue());
+    }
+
+    return this;
+  }
+
+  @Override
+  public HttpUrlSpec params(Multimap<String, String> params) {
+    this.params.putAll(params);
+    return this;
+  }
+
+  @Override
+  public HttpUrlSpec set(URI uri) {
     this.protocol = uri.getScheme().toLowerCase();
     if (!protocol.equals("http") && !protocol.equals("https")) {
       throw new IllegalArgumentException("uri " + uri + " must be a http or https uri");
@@ -84,81 +160,10 @@ public class DefaultHttpUriBuilder implements HttpUriBuilder {
         }
       }
     }
-  }
-
-  @Override
-  public HttpUriBuilder secure() {
-    this.protocol = "https";
     return this;
   }
 
-  @Override
-  public HttpUriBuilder host(String host) {
-    // http://en.wikipedia.org/wiki/Hostname#Restrictions%5Fon%5Fvalid%5Fhost%5Fnames
-    int indexIn = HOST_NAME_ILLEGAL_CHARS.indexIn(host);
-    if (indexIn >= 0) {
-      throw new IllegalArgumentException("character '" + host.charAt(indexIn) + "' of host name '" + host + "' is invalid (only [a-zA-Z0-9.-] are allowed in host names)");
-    }
-    this.host = host;
-    return this;
-  }
-
-  @Override
-  public HttpUriBuilder port(int port) {
-    if (port == 0 || port < -1) {
-      throw new IllegalArgumentException("port must be greater than 0 or exactly -1, is " + port);
-    }
-    this.port = port;
-    return this;
-  }
-
-  @Override
-  public HttpUriBuilder path(String path) {
-    Objects.requireNonNull(path, "path must not be null");
-    Collections.addAll(pathSegments, path.split("/"));
-    return this;
-  }
-
-  @Override
-  public HttpUriBuilder pathSegment(String pathSegment) {
-    Objects.requireNonNull(pathSegment, "pathSegment must not be null");
-    pathSegments.add(pathSegment);
-    return this;
-  }
-
-  @Override
-  public HttpUriBuilder params(String... params) {
-    int i = 0;
-    while (i < params.length) {
-      String key = params[i];
-      String value = "";
-      if (++i < params.length) {
-        value = params[i++];
-      }
-
-      this.params.put(key, value);
-    }
-
-    return this;
-  }
-
-  @Override
-  public HttpUriBuilder params(Map<String, String> params) {
-    for (Map.Entry<String, String> entry : params.entrySet()) {
-      this.params.put(entry.getKey(), entry.getValue());
-    }
-
-    return this;
-  }
-
-  @Override
-  public HttpUriBuilder params(Multimap<String, String> params) {
-    this.params.putAll(params);
-    return this;
-  }
-
-  @Override
-  public URI build() {
+  public URI getURL() {
     String string = toString();
 
     try {

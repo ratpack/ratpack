@@ -20,22 +20,27 @@ import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.HttpHeaders;
 import ratpack.api.Nullable;
 import ratpack.func.Action;
+import ratpack.http.HttpUrlSpec;
 import ratpack.http.MutableHeaders;
 import ratpack.http.client.RequestSpec;
+import ratpack.http.internal.HttpUrlSpecBacking;
 import ratpack.util.internal.ByteBufWriteThroughOutputStream;
 
 import java.io.OutputStream;
+import java.net.URI;
 
 public class RequestSpecBacking {
 
   private final MutableHeaders headers;
   private final ByteBuf body;
+  private final HttpUrlSpecBacking httpUrlSpec;
 
   private String method = "GET";
 
   public RequestSpecBacking(MutableHeaders headers, ByteBuf body) {
     this.headers = headers;
     this.body = body;
+    this.httpUrlSpec = new HttpUrlSpecBacking();
   }
 
   public String getMethod() {
@@ -45,6 +50,10 @@ public class RequestSpecBacking {
   @Nullable
   public ByteBuf getBody() {
     return body;
+  }
+
+  public URI getUrl() {
+    return httpUrlSpec.getURL();
   }
 
   public RequestSpec asSpec() {
@@ -60,6 +69,17 @@ public class RequestSpecBacking {
     @Override
     public RequestSpec method(String method) {
       RequestSpecBacking.this.method = method.toUpperCase();
+      return this;
+    }
+
+    @Override
+    public HttpUrlSpec getUrl() {
+      return RequestSpecBacking.this.httpUrlSpec;
+    }
+
+    @Override
+    public RequestSpec url(Action<? super HttpUrlSpec> action) throws Exception {
+      action.execute(getUrl());
       return this;
     }
 

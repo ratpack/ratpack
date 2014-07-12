@@ -16,18 +16,26 @@
 
 package ratpack.http.client
 
+import ratpack.http.HttpUrlSpec
+
 class HttpClientSmokeSpec extends HttpClientSpec {
 
   def "can make simple get request"() {
     given:
     otherApp {
-      get("foo") { render "bar" }
+      get("foo") {
+        render "bar"
+      }
     }
 
     when:
     handlers {
       get { HttpClient httpClient ->
-        httpClient.get(otherAppUrl("foo")) then { ReceivedResponse response ->
+        httpClient.get({ RequestSpec request ->
+          request.url { HttpUrlSpec httpUrlSpec ->
+            httpUrlSpec.set(otherAppUrl("foo"))
+          }
+        }) then { ReceivedResponse response ->
           render response.body.text
         }
       }
@@ -48,9 +56,18 @@ class HttpClientSmokeSpec extends HttpClientSpec {
     when:
     handlers {
       get { HttpClient httpClient ->
-        httpClient.post(otherAppUrl("foo")) { RequestSpec request ->
+        def respProm = httpClient.post { RequestSpec request ->
+          request.url { HttpUrlSpec httpUrlSpec ->
+            httpUrlSpec.set(otherAppUrl("foo"))
+          }
           request.body.type("text/plain").stream { it << "bar" }
-        } then { ReceivedResponse response ->
+        }
+
+        respProm.onError({ Throwable t ->
+          t.printStackTrace()
+        })
+
+        respProm.then { ReceivedResponse response ->
           render response.body.text
         }
       }
@@ -71,8 +88,11 @@ class HttpClientSmokeSpec extends HttpClientSpec {
     when:
     handlers {
       get { HttpClient httpClient ->
-
-        httpClient.get(otherAppUrl()).then {
+        httpClient.get { RequestSpec request ->
+          request.url { HttpUrlSpec httpUrlSpec ->
+            httpUrlSpec.set(otherAppUrl())
+          }
+        } then {
           def buffer = it.body.buffer
           assert buffer.refCnt() == 2
           blocking { 2 } then {

@@ -40,8 +40,8 @@ public class BlockingHttpClient {
       .build();
   }
 
-  public ReceivedResponse request(String httpUrl, Action<? super RequestSpec> action) throws Throwable {
-    final RequestAction requestAction = new RequestAction(httpUrl, launchConfig, action);
+  public ReceivedResponse request(Action<? super RequestSpec> action) throws Throwable {
+    final RequestAction requestAction = new RequestAction(launchConfig, action);
 
     launchConfig.getExecController().start(new Action<Execution>() {
       @Override
@@ -67,15 +67,13 @@ public class BlockingHttpClient {
   }
 
   private static class RequestAction implements Action<Execution> {
-    private final String httpUrl;
     private final LaunchConfig launchConfig;
     private final Action<? super RequestSpec> action;
 
     private final CountDownLatch latch = new CountDownLatch(1);
     private Result<ReceivedResponse> result;
 
-    private RequestAction(String httpUrl, LaunchConfig launchConfig, Action<? super RequestSpec> action) {
-      this.httpUrl = httpUrl;
+    private RequestAction(LaunchConfig launchConfig, Action<? super RequestSpec> action) {
       this.launchConfig = launchConfig;
       this.action = action;
     }
@@ -87,7 +85,7 @@ public class BlockingHttpClient {
 
     @Override
     public void execute(Execution execution) throws Exception {
-      HttpClients.httpClient(launchConfig).request(httpUrl, action)
+      HttpClients.httpClient(launchConfig).request(action)
         .onError(new Action<Throwable>() {
           @Override
           public void execute(Throwable exception) throws Exception {

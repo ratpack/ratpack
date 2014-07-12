@@ -18,21 +18,21 @@ package ratpack.http.internal
 
 import com.google.common.collect.ImmutableMultimap
 import ratpack.groovy.internal.ClosureUtil
-import ratpack.http.HttpUriBuilder
+import ratpack.http.HttpUrlSpec
 import ratpack.test.internal.RatpackGroovyDslSpec
 import spock.lang.Unroll
 
-class DefaultHttpUriBuilderSpec extends RatpackGroovyDslSpec {
+class HttpUrlSpecBackingSpec extends RatpackGroovyDslSpec {
 
-  String build(@DelegatesTo(HttpUriBuilder) Closure<?> closure) {
-    def builder = new DefaultHttpUriBuilder()
+  String build(@DelegatesTo(HttpUrlSpec) Closure<?> closure) {
+    def builder = new HttpUrlSpecBacking()
     ClosureUtil.configureDelegateFirst(builder, closure)
-    builder.build().toString()
+    builder.getURL().toString()
   }
 
   String build(String string) {
-    def builder = new DefaultHttpUriBuilder(new URI(string))
-    builder.build().toString()
+    def builder = new HttpUrlSpecBacking(new URI(string))
+    builder.getURL().toString()
   }
 
   def "empty builder"() {

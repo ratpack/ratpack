@@ -21,24 +21,26 @@ import com.google.common.collect.Multimap;
 import java.net.URI;
 import java.util.Map;
 
-public interface HttpUriBuilder {
+public interface HttpUrlSpec {
 
-  HttpUriBuilder secure();
+  HttpUrlSpec secure();
 
-  HttpUriBuilder host(String host);
+  HttpUrlSpec host(String host);
 
-  HttpUriBuilder port(int port);
+  HttpUrlSpec port(int port);
 
-  HttpUriBuilder path(String path);
+  HttpUrlSpec path(String path);
 
-  HttpUriBuilder pathSegment(String pathComponent);
+  HttpUrlSpec pathSegment(String pathComponent);
 
-  HttpUriBuilder params(String... params);
+  HttpUrlSpec params(String... params);
 
-  HttpUriBuilder params(Map<String, String> params);
+  HttpUrlSpec params(Map<String, String> params);
 
-  HttpUriBuilder params(Multimap<String, String> params);
+  HttpUrlSpec params(Multimap<String, String> params);
 
-  URI build();
+  HttpUrlSpec set(URI uri);
+
+  URI getURL();
 
 }

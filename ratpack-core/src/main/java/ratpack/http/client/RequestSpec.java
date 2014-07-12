@@ -17,15 +17,28 @@
 package ratpack.http.client;
 
 import ratpack.func.Action;
+import ratpack.http.HttpUrlSpec;
 import ratpack.http.MutableHeaders;
 
 import java.io.OutputStream;
 
 public interface RequestSpec {
 
+  /**
+   * @return {@link ratpack.http.MutableHeaders} that can be used to configure the headers that will be used for the request.
+   */
   MutableHeaders getHeaders();
 
+  /**
+   * Set the HTTP verb to use.
+   * @param method which HTTP verb to use
+   * @return
+   */
   RequestSpec method(String method);
+
+  HttpUrlSpec getUrl();
+
+  RequestSpec url(Action<? super HttpUrlSpec> action) throws Exception;
 
   Body getBody();
 

@@ -19,14 +19,34 @@ package ratpack.http.client;
 import ratpack.exec.Promise;
 import ratpack.func.Action;
 
+/**
+ * An asynchronous HttpClient.
+ */
 public interface HttpClient {
 
-  Promise<ReceivedResponse> get(String httpUrl);
 
-  Promise<ReceivedResponse> get(String httpUrl, Action<? super RequestSpec> action);
+  /**
+   * An asynchronous method to do a GET HTTP request, the URL and all details of the request are configured by the Action acting on the RequestSpec, but the method will be defaulted to a GET.
+   *
+   * @param action An action that will act on the {@link ratpack.http.client.RequestSpec}
+   * @return A promise for a {@link ratpack.http.client.ReceivedResponse}
+   */
+  Promise<ReceivedResponse> get(Action<? super RequestSpec> action);
 
-  Promise<ReceivedResponse> post(String httpUrl, Action<? super RequestSpec> action);
+  /**
+   * An asynchronous method to do a POST HTTP request, the URL and all details of the request are configured by the Action acting on the RequestSpec, but the method will be defaulted to a POST.
+   *
+   * @param action An action that will act on the {@link ratpack.http.client.RequestSpec}
+   * @return A promise for a {@link ratpack.http.client.ReceivedResponse}
+   */
+  Promise<ReceivedResponse> post(Action<? super RequestSpec> action);
 
-  Promise<ReceivedResponse> request(String httpUrl, Action<? super RequestSpec> action);
+  /**
+   * An asynchronous method to do a HTTP request, the URL and all details of the request are configured by the Action acting on the RequestSpec.
+   *
+   * @param action An action that will act on the {@link ratpack.http.client.RequestSpec}
+   * @return A promise for a {@link ratpack.http.client.ReceivedResponse}
+   */
+  Promise<ReceivedResponse> request(Action<? super RequestSpec> action);
 
 }
