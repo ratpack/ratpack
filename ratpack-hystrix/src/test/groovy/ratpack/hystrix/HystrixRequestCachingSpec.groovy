@@ -21,9 +21,11 @@ import com.netflix.hystrix.HystrixCommand
 import com.netflix.hystrix.HystrixCommandGroupKey
 import com.netflix.hystrix.HystrixObservableCommand
 import ratpack.exec.internal.DefaultExecController
+import ratpack.http.HttpUrlSpec
 import ratpack.http.client.HttpClient
 import ratpack.http.client.HttpClientSpec
 import ratpack.http.client.ReceivedResponse
+import ratpack.http.client.RequestSpec
 import ratpack.rx.RxRatpack
 import spock.lang.Unroll
 
@@ -155,13 +157,17 @@ class HystrixRequestCachingSpec extends HttpClientSpec {
       }.toObservable()
     }
 
-    rx.Observable<ReceivedResponse> hystrixObservableHttpCommand(final String otherAppUrl) {
+    rx.Observable<ReceivedResponse> hystrixObservableHttpCommand(final URI otherAppUrl) {
       new HystrixObservableCommand<String>(HystrixCommandGroupKey.Factory.asKey("hystrix-observable-http-command")) {
 
         @Override
         protected rx.Observable<ReceivedResponse> run() {
           assert Thread.currentThread().name.startsWith("ratpack-compute-")
-          return RxRatpack.observe(httpClient.get(otherAppUrl))
+          return RxRatpack.observe(httpClient.get { RequestSpec requestSpec ->
+            requestSpec.url { HttpUrlSpec httpUrlSpec ->
+              httpUrlSpec.set(otherAppUrl)
+            }
+          })
         }
 
         @Override
