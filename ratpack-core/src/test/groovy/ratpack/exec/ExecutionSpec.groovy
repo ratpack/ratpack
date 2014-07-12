@@ -157,13 +157,13 @@ class ExecutionSpec extends Specification {
 
     exec { e1 ->
       controller.execution.onComplete {
-        streamEvents << "execution-complete"
+        streamEvents << 'execution-complete'
       }
 
       e1.stream(new Publisher<String>() {
         @Override
         void subscribe(Subscriber subscriber) {
-          streamEvents << "publisher-subscribe"
+          streamEvents << 'publisher-subscribe'
           final AtomicInteger i = new AtomicInteger()
 
           Subscription subscription = new Subscription() {
@@ -178,7 +178,7 @@ class ExecutionSpec extends Specification {
             @Override
             void request(int elements) {
               assert e1.controller.managedThread
-              streamEvents << "publisher-request"
+              streamEvents << 'publisher-request'
               if (capacity.getAndAdd(elements) == 0) {
                 // start sending again if it wasn't already running
                 send()
@@ -189,7 +189,7 @@ class ExecutionSpec extends Specification {
               Thread.start {
                 while (capacity.getAndDecrement() > 0) {
                   assert !e1.controller.managedThread
-                  streamEvents << "publisher-send"
+                  streamEvents << 'publisher-send'
                   subscriber.onNext('foo' + i.incrementAndGet())
                   Thread.sleep(500)
                 }
@@ -205,7 +205,7 @@ class ExecutionSpec extends Specification {
         @Override
         void onSubscribe(Subscription subscription) {
           assert e1.controller.managedThread
-          streamEvents << "subscriber-onSubscribe"
+          streamEvents << 'subscriber-onSubscribe'
           subscription.request(2)
         }
 
@@ -219,7 +219,7 @@ class ExecutionSpec extends Specification {
         @Override
         void onComplete() {
           assert e1.controller.managedThread
-          streamEvents << "subscriber-onComplete"
+          streamEvents << 'subscriber-onComplete'
           innerLatch.countDown()
         }
 
@@ -232,8 +232,8 @@ class ExecutionSpec extends Specification {
 
     then:
     innerLatch.await()
-    streamEvents == ["publisher-subscribe", "subscriber-onSubscribe", "publisher-request", "publisher-send", "subscriber-onNext:foo1",
-                     "publisher-send", "subscriber-onNext:foo2", "subscriber-onComplete", "execution-complete"]
+    streamEvents.toString() == ['publisher-subscribe', 'subscriber-onSubscribe', 'publisher-request', 'publisher-send', 'subscriber-onNext:foo1',
+                     'publisher-send', 'subscriber-onNext:foo2', 'subscriber-onComplete', 'execution-complete'].toString()
   }
 
 }
