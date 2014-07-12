@@ -30,7 +30,7 @@ class BlockingHttpClientSpec extends RatpackGroovyDslSpec {
     def client = new BlockingHttpClient()
 
     then:
-    client.request(applicationUnderTest.address.toString(), {}).body.text == "ok"
+    client.request({it.url.set(applicationUnderTest.address)}).body.text == "ok"
   }
 
 }

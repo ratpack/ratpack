@@ -45,7 +45,8 @@ class GithubRequester {
   }
 
   private void getPage(HttpClient httpClient, String url, Subscriber<ArrayNode> pagingSubscription) {
-    def promise = httpClient.get(url) { RequestSpec it ->
+    def promise = httpClient.get { RequestSpec it ->
+      it.url.set(new URI(url))
       it.headers.set("User-Agent", "http://www.ratpack.io")
     }
 
