@@ -212,7 +212,7 @@ class ExecutionSpec extends Specification {
         @Override
         void onNext(String element) {
           assert e1.controller.managedThread
-          streamEvents << "subscriber-onNext:$element"
+          streamEvents << "subscriber-onNext:$element".toString()
           innerLatch.countDown()
         }
 
