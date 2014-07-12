@@ -16,10 +16,10 @@
 
 package ratpack.site
 
+import groovy.util.logging.Slf4j
 import ratpack.site.crawl.Crawler
 import ratpack.site.crawl.PrettyPrintCollection
 import spock.lang.Specification
-import groovy.util.logging.Slf4j
 
 @Slf4j
 class LinkCrawlSpec extends Specification {
@@ -30,7 +30,7 @@ class LinkCrawlSpec extends Specification {
     aut.mockGithubData()
 
     def dontCrawl = ["/manual/current", "/manual/0.9.0"]
-    def allowBroken = ["http://www.astigmatic.com", "https://drone.io", "http://search.maven.org", "http://geekfairy.co.uk"]
+    def allowBroken = ["http://www.astigmatic.com", "https://drone.io", "http://search.maven.org", "http://geekfairy.co.uk", "http://lea.verou.me/"]
 
     def crawler = new Crawler(aut.address.toString()) {
       boolean shouldUseHeadRequest(Link url) {
