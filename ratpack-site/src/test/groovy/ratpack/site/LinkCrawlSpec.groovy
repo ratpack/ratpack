@@ -30,7 +30,7 @@ class LinkCrawlSpec extends Specification {
     aut.mockGithubData()
 
     def dontCrawl = ["/manual/current", "/manual/0.9.0"]
-    def allowBroken = ["http://www.astigmatic.com", "https://drone.io", "http://search.maven.org"]
+    def allowBroken = ["http://www.astigmatic.com", "https://drone.io", "http://search.maven.org", "http://geekfairy.co.uk"]
 
     def crawler = new Crawler(aut.address.toString()) {
       boolean shouldUseHeadRequest(Link url) {
