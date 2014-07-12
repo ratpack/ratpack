@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,12 @@
  * limitations under the License.
  */
 
-description = "The core HTTP and composition mechanisms of Ratpack"
+package ratpack.http;
 
-apply from: "$rootDir/gradle/javaModule.gradle"
+import io.netty.buffer.ByteBuf;
 
-ext.apiLinks = [
-    "http://netty.io/4.0/api",
-    "http://docs.oracle.com/javase/7/docs/api"
-]
+public interface StreamElement {
 
-dependencies {
-  compile "io.netty:netty-codec-http:$commonVersions.netty"
-  compile 'com.google.guava:guava:16.0'
-  compile commonDependencies.slf4j
-  compile 'org.reactivestreams:reactive-streams:0.4.0.M1'
+  ByteBuf getValue();
 
-  runtime 'org.javassist:javassist:3.18.1-GA'
 }

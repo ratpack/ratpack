@@ -20,6 +20,8 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.reflect.TypeToken;
 import io.netty.handler.codec.http.HttpResponseStatus;
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ratpack.api.Nullable;
@@ -157,6 +159,11 @@ public class DefaultContext implements Context {
   @Override
   public void fork(Action<? super Execution> action) {
     requestConstants.applicationConstants.execControl.fork(action);
+  }
+
+  @Override
+  public <T> void stream(Publisher<T> publisher, Subscriber<T> subscriber) {
+    requestConstants.applicationConstants.execControl.stream(publisher, subscriber);
   }
 
   @Override

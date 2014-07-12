@@ -22,9 +22,11 @@ import io.netty.handler.codec.http.Cookie;
 import io.netty.handler.codec.http.DefaultCookie;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.ServerCookieEncoder;
+import org.reactivestreams.Publisher;
 import ratpack.exec.ExecControl;
 import ratpack.file.internal.FileHttpTransmitter;
 import ratpack.func.Action;
+import ratpack.http.HttpResponseChunk;
 import ratpack.http.MutableHeaders;
 import ratpack.http.MutableStatus;
 import ratpack.http.Response;
@@ -47,6 +49,7 @@ public class DefaultResponse implements Response {
   private final MutableStatus status;
   private final MutableHeaders headers;
   private final FileHttpTransmitter fileHttpTransmitter;
+  private final ChunkedResponseTransmitter chunkedResponseTransmitter;
   private final Action<? super ByteBuf> committer;
   private final ByteBufAllocator byteBufAllocator;
 
@@ -54,9 +57,10 @@ public class DefaultResponse implements Response {
   private Set<Cookie> cookies;
 
 
-  public DefaultResponse(MutableStatus status, MutableHeaders headers, FileHttpTransmitter fileHttpTransmitter, ByteBufAllocator byteBufAllocator, Action<? super ByteBuf> committer) {
+  public DefaultResponse(MutableStatus status, MutableHeaders headers, FileHttpTransmitter fileHttpTransmitter, ChunkedResponseTransmitter chunkedResponseTransmitter, ByteBufAllocator byteBufAllocator, Action<? super ByteBuf> committer) {
     this.status = status;
     this.fileHttpTransmitter = fileHttpTransmitter;
+    this.chunkedResponseTransmitter = chunkedResponseTransmitter;
     this.byteBufAllocator = byteBufAllocator;
     this.headers = new MutableHeadersWrapper(headers);
     this.committer = committer;
@@ -210,6 +214,12 @@ public class DefaultResponse implements Response {
   public void send(String contentType, ByteBuf buffer) {
     contentType(contentType);
     send(buffer);
+  }
+
+  @Override
+  public void send(ExecControl execContext, Publisher<HttpResponseChunk> stream) {
+    setCookieHeader();
+    chunkedResponseTransmitter.transmit(execContext, stream);
   }
 
   public void send(ByteBuf buffer) {

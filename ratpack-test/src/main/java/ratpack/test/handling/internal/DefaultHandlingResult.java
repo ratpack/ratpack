@@ -34,6 +34,7 @@ import ratpack.handling.internal.DefaultContext;
 import ratpack.handling.internal.DefaultRequestOutcome;
 import ratpack.handling.internal.DelegatingHeaders;
 import ratpack.http.*;
+import ratpack.http.internal.DefaultChunkedResponseTransmitter;
 import ratpack.http.internal.DefaultResponse;
 import ratpack.http.internal.DefaultSentResponse;
 import ratpack.launch.LaunchConfig;
@@ -82,6 +83,8 @@ public class DefaultHandlingResult implements HandlingResult {
         latch.countDown();
       }
     };
+
+    final DefaultChunkedResponseTransmitter chunkedResponseTransmitter = new DefaultChunkedResponseTransmitter(null, null, null); //TODO: what test support is required here?
 
     final EventController<RequestOutcome> eventController = new DefaultEventController<>();
 
@@ -153,7 +156,7 @@ public class DefaultHandlingResult implements HandlingResult {
     launchConfig.getExecController().start(new Action<Execution>() {
       @Override
       public void execute(Execution execution) throws Exception {
-        Response response = new DefaultResponse(status, responseHeaders, fileHttpTransmitter, launchConfig.getBufferAllocator(), committer);
+        Response response = new DefaultResponse(status, responseHeaders, fileHttpTransmitter, chunkedResponseTransmitter, launchConfig.getBufferAllocator(), committer);
         DefaultContext.ApplicationConstants applicationConstants = new DefaultContext.ApplicationConstants(launchConfig, renderController);
         requestConstants = new DefaultContext.RequestConstants(
           applicationConstants, bindAddress, request, response, null, eventController.getRegistry(), execution

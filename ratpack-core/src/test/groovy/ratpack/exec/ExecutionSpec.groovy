@@ -16,12 +16,16 @@
 
 package ratpack.exec
 
+import org.reactivestreams.Publisher
+import org.reactivestreams.Subscriber
+import org.reactivestreams.Subscription
 import ratpack.func.Action
 import ratpack.launch.LaunchConfigBuilder
 import spock.lang.AutoCleanup
 import spock.lang.Specification
 
 import java.util.concurrent.CountDownLatch
+import java.util.concurrent.atomic.AtomicInteger
 
 class ExecutionSpec extends Specification {
 
@@ -144,6 +148,92 @@ class ExecutionSpec extends Specification {
     then:
     innerLatch.await()
     events == ["then"]
+  }
+
+  def "subscriber callbacks are bound to execution"() {
+    when:
+    def streamEvents = []
+    def innerLatch = new CountDownLatch(3)
+
+    exec { e1 ->
+      controller.execution.onComplete {
+        streamEvents << "execution-complete"
+      }
+
+      e1.stream(new Publisher<String>() {
+        @Override
+        void subscribe(Subscriber subscriber) {
+          streamEvents << "publisher-subscribe"
+          final AtomicInteger i = new AtomicInteger()
+
+          Subscription subscription = new Subscription() {
+            AtomicInteger capacity = new AtomicInteger()
+
+            @Override
+            void cancel() {
+              capacity.set(-1)
+              subscriber.onComplete()
+            }
+
+            @Override
+            void request(int elements) {
+              assert e1.controller.managedThread
+              streamEvents << "publisher-request"
+              if (capacity.getAndAdd(elements) == 0) {
+                // start sending again if it wasn't already running
+                send()
+              }
+            }
+
+            private void send() {
+              Thread.start {
+                while (capacity.getAndDecrement() > 0) {
+                  assert !e1.controller.managedThread
+                  streamEvents << "publisher-send"
+                  subscriber.onNext('foo' + i.incrementAndGet())
+                  Thread.sleep(500)
+                }
+
+                cancel()
+              }
+            }
+          }
+
+          subscriber.onSubscribe(subscription)
+        }
+      }, new Subscriber<String>() {
+        @Override
+        void onSubscribe(Subscription subscription) {
+          assert e1.controller.managedThread
+          streamEvents << "subscriber-onSubscribe"
+          subscription.request(2)
+        }
+
+        @Override
+        void onNext(String element) {
+          assert e1.controller.managedThread
+          streamEvents << "subscriber-onNext:$element"
+          innerLatch.countDown()
+        }
+
+        @Override
+        void onComplete() {
+          assert e1.controller.managedThread
+          streamEvents << "subscriber-onComplete"
+          innerLatch.countDown()
+        }
+
+        @Override
+        void onError(Throwable cause) {
+
+        }
+      })
+    }
+
+    then:
+    innerLatch.await()
+    streamEvents == ["publisher-subscribe", "subscriber-onSubscribe", "publisher-request", "publisher-send", "subscriber-onNext:foo1",
+                     "publisher-send", "subscriber-onNext:foo2", "subscriber-onComplete", "execution-complete"]
   }
 
 }
