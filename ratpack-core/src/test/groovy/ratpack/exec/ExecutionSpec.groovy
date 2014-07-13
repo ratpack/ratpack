@@ -125,6 +125,40 @@ class ExecutionSpec extends Specification {
     events == ["e1", "e2"]
   }
 
+  def "execution can queue promises"() {
+    def innerLatch = new CountDownLatch(1)
+
+    when:
+    exec { e1 ->
+      e1.setErrorHandler {
+        it.printStackTrace()
+      }
+      e1.promise { f ->
+        println "e1"
+        Thread.start {
+          sleep 500
+          f.success "1"
+        }
+      } then {
+        events << it
+      }
+      e1.promise { f ->
+        println "e2"
+
+        Thread.start {
+          f.success "2"
+        }
+      } then {
+        events << it
+        innerLatch.countDown()
+      }
+    }
+
+    then:
+    innerLatch.await()
+    events == ["1", "2"]
+  }
+
   def "promise is bound to subscribing execution"() {
     when:
     def innerLatch = new CountDownLatch(1)
@@ -233,8 +267,17 @@ class ExecutionSpec extends Specification {
 
     then:
     innerLatch.await()
-    streamEvents.toString() == ['publisher-subscribe', 'subscriber-onSubscribe', 'publisher-request', 'publisher-send', 'subscriber-onNext:foo1',
-                     'publisher-send', 'subscriber-onNext:foo2', 'subscriber-onComplete', 'execution-complete'].toString()
+    streamEvents.toString() == [
+      'publisher-subscribe',
+      'subscriber-onSubscribe',
+      'publisher-request',
+      'publisher-send',
+      'subscriber-onNext:foo1',
+      'publisher-send',
+      'subscriber-onNext:foo2',
+      'subscriber-onComplete',
+      'execution-complete'
+    ].toString()
   }
 
 }
