@@ -269,8 +269,8 @@ class ExecutionSpec extends Specification {
       'subscriber-onSubscribe',
       'publisher-request',
       'publisher-send',
-      'publisher-send',
       'subscriber-onNext:foo1',
+      'publisher-send',
       'subscriber-onNext:foo2',
       'subscriber-onComplete',
       'execution-complete'

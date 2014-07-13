@@ -191,9 +191,9 @@ public class DefaultExecController implements ExecController {
 
         @Override
         public void onSubscribe(final Subscription subscription) {
-          this.execution.continueVia(new Runnable() {
+          this.execution.streamExecution(new Action<ratpack.exec.Execution>() {
             @Override
-            public void run() {
+            public void execute(ratpack.exec.Execution execution) throws Exception {
               subscriber.onSubscribe(subscription);
             }
           });
@@ -201,7 +201,7 @@ public class DefaultExecController implements ExecController {
 
         @Override
         public void onNext(final T element) {
-          this.execution.continueExecutionAndWait(new Action<ratpack.exec.Execution>() {
+          this.execution.streamExecution(new Action<ratpack.exec.Execution>() {
             @Override
             public void execute(ratpack.exec.Execution execution) throws Exception {
               subscriber.onNext(element);
@@ -211,7 +211,7 @@ public class DefaultExecController implements ExecController {
 
         @Override
         public void onComplete() {
-          this.execution.joinExecutionEnd(new Action<ratpack.exec.Execution>() {
+          this.execution.completeStreamExecution(new Action<ratpack.exec.Execution>() {
             @Override
             public void execute(ratpack.exec.Execution execution) throws Exception {
               subscriber.onComplete();
@@ -221,7 +221,7 @@ public class DefaultExecController implements ExecController {
 
         @Override
         public void onError(final Throwable cause) {
-          this.execution.joinExecutionEnd(new Action<ratpack.exec.Execution>() {
+          this.execution.completeStreamExecution(new Action<ratpack.exec.Execution>() {
             @Override
             public void execute(ratpack.exec.Execution execution) throws Exception {
               subscriber.onError(cause);
@@ -245,6 +245,7 @@ public class DefaultExecController implements ExecController {
     };
 
     private final AtomicBoolean active = new AtomicBoolean();
+    private boolean streaming;
     private boolean waiting;
     private boolean done;
 
@@ -297,18 +298,6 @@ public class DefaultExecController implements ExecController {
       tryDrain();
     }
 
-    public void joinExecutionEnd(final Action<? super ratpack.exec.Execution> action) {
-      segments.addLast(new UserCodeSegment(action));
-      waiting = false;
-      tryDrain();
-    }
-
-    public void continueExecutionAndWait(final Action<? super ratpack.exec.Execution> action) {
-      segments.add(new UserCodeSegment(action));
-      waiting = true;
-      tryDrain();
-    }
-
     public void continueVia(final Runnable runnable) {
       segments.addLast(new Runnable() {
         @Override
@@ -317,6 +306,18 @@ public class DefaultExecController implements ExecController {
           runnable.run();
         }
       });
+    }
+
+    public void streamExecution(final Action<? super ratpack.exec.Execution> action) {
+      segments.add(new UserCodeSegment(action));
+      streaming = true;
+      tryDrain();
+    }
+
+    public void completeStreamExecution(final Action<? super ratpack.exec.Execution> action) {
+      segments.addLast(new UserCodeSegment(action));
+      streaming = false;
+      tryDrain();
     }
 
     private void tryDrain() {
@@ -352,7 +353,7 @@ public class DefaultExecController implements ExecController {
               break;
             } else {
               segment = segments.poll();
-              if (segment == null) { // not waiting and no more segments, we are done
+              if (segment == null && !streaming) { // not waiting, not streaming and no more segments, we are done
                 done = true;
                 runOnCompletes();
               }
