@@ -310,7 +310,7 @@ public class DefaultExecController implements ExecController {
     }
 
     public void continueVia(final Runnable runnable) {
-      segments.addFirst(new Runnable() {
+      segments.addLast(new Runnable() {
         @Override
         public void run() {
           waiting = true;
@@ -321,7 +321,7 @@ public class DefaultExecController implements ExecController {
 
     private void tryDrain() {
       assertNotDone();
-      if (!segments.isEmpty()) {
+      if (!waiting && !segments.isEmpty()) {
         if (active.compareAndSet(false, true)) {
           drain();
         }

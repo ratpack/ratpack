@@ -134,17 +134,14 @@ class ExecutionSpec extends Specification {
         it.printStackTrace()
       }
       e1.promise { f ->
-        println "e1"
         Thread.start {
-          sleep 500
+          sleep 100
           f.success "1"
         }
       } then {
         events << it
       }
       e1.promise { f ->
-        println "e2"
-
         Thread.start {
           f.success "2"
         }
@@ -272,8 +269,8 @@ class ExecutionSpec extends Specification {
       'subscriber-onSubscribe',
       'publisher-request',
       'publisher-send',
-      'subscriber-onNext:foo1',
       'publisher-send',
+      'subscriber-onNext:foo1',
       'subscriber-onNext:foo2',
       'subscriber-onComplete',
       'execution-complete'
