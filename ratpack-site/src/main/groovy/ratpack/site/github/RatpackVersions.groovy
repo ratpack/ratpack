@@ -31,12 +31,13 @@ class RatpackVersions {
   }
 
   @CompileDynamic
+  // Groovy compiler doesn't understand the type hint to forkOnNext GROOVY-6757
   rx.Observable<All> getAll() {
-    rx.Observable<VersionSet<rx.Observable<List<RatpackVersion>>>> released = rx.Observable.from(new VersionSet(true, gitHubData.releasedVersions))
-    rx.Observable<VersionSet<rx.Observable<List<RatpackVersion>>>> unreleased = rx.Observable.from(new VersionSet(false, gitHubData.unreleasedVersions))
-    rx.Observable<VersionSet<rx.Observable<List<RatpackVersion>>>> source = rx.Observable.concat(released, unreleased)
+    def released = rx.Observable.from(new VersionSet(true, gitHubData.releasedVersions))
+    def unreleased = rx.Observable.from(new VersionSet(false, gitHubData.unreleasedVersions))
+    def source = rx.Observable.concat(released, unreleased)
 
-    rx.Observable.Operator<VersionSet<rx.Observable<List<RatpackVersion>>>, VersionSet<rx.Observable<List<RatpackVersion>>>> forkOperation = RxRatpack.forkOnNext(execControl)
+    def forkOperation = RxRatpack.<VersionSet<rx.Observable<List<RatpackVersion>>>> forkOnNext(execControl)
     def processing = source.
       lift(forkOperation).
       flatMap { set ->
@@ -46,7 +47,7 @@ class RatpackVersions {
       }.
       serialize().
       toList().
-      map { List<VersionSet<List<RatpackVersion>>> it ->
+      map { it ->
         new All(it.find { it.released }.versions, it.find { !it.released }.versions)
       }
 
