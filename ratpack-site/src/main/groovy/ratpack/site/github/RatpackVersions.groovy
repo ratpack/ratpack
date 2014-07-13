@@ -1,6 +1,9 @@
 package ratpack.site.github
 
+import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
+import ratpack.exec.ExecControl
+import ratpack.rx.RxRatpack
 
 import javax.inject.Inject
 
@@ -9,16 +12,45 @@ import javax.inject.Inject
 class RatpackVersions {
 
   private final GitHubData gitHubData
+  private final ExecControl execControl
 
   @Inject
-  RatpackVersions(GitHubData gitHubData) {
+  RatpackVersions(GitHubData gitHubData, ExecControl execControl) {
+    this.execControl = execControl
     this.gitHubData = gitHubData
   }
 
-  rx.Observable<All> getAll() {
-    rx.Observable.zip(gitHubData.releasedVersions, gitHubData.unreleasedVersions) { released, unreleased ->
-      new All(released as List<RatpackVersion>, unreleased as List<RatpackVersion>)
+  static class VersionSet<T> {
+    boolean released
+    T versions
+
+    VersionSet(boolean released, T versions) {
+      this.released = released
+      this.versions = versions
     }
+  }
+
+  @CompileDynamic
+  rx.Observable<All> getAll() {
+    rx.Observable<VersionSet<rx.Observable<List<RatpackVersion>>>> released = rx.Observable.from(new VersionSet(true, gitHubData.releasedVersions))
+    rx.Observable<VersionSet<rx.Observable<List<RatpackVersion>>>> unreleased = rx.Observable.from(new VersionSet(false, gitHubData.unreleasedVersions))
+    rx.Observable<VersionSet<rx.Observable<List<RatpackVersion>>>> source = rx.Observable.concat(released, unreleased)
+
+    rx.Observable.Operator<VersionSet<rx.Observable<List<RatpackVersion>>>, VersionSet<rx.Observable<List<RatpackVersion>>>> forkOperation = RxRatpack.forkOnNext(execControl)
+    def processing = source.
+      lift(forkOperation).
+      flatMap { set ->
+        set.versions.map {
+          new VersionSet<List<RatpackVersion>>(set.released, it)
+        }
+      }.
+      serialize().
+      toList().
+      map { List<VersionSet<List<RatpackVersion>>> it ->
+        new All(it.find { it.released }.versions, it.find { !it.released }.versions)
+      }
+
+    RxRatpack.forkAndJoin(execControl, processing)
   }
 
   static class All {
