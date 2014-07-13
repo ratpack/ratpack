@@ -16,6 +16,7 @@
 
 package ratpack.site
 
+import ratpack.exec.ExecControl
 import ratpack.groovy.test.LocalScriptApplicationUnderTest
 import ratpack.site.github.GitHubData
 import ratpack.site.github.MockGithubData
@@ -50,7 +51,7 @@ class RatpackSiteUnderTest extends LocalScriptApplicationUnderTest {
       data.released.add(new RatpackVersion("0.9.6", 7, "foo", new Date(), true))
       data.unreleased.add(new RatpackVersion("0.9.7", 8, "foo", new Date(), false))
       add(GitHubData, data)
-      add(new RatpackVersions(data))
+      add(new RatpackVersions(data, get(ExecControl)))
     }
   }
 
