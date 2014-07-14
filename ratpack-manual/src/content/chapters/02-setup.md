@@ -44,7 +44,9 @@ This will use the latest available version of Ratpack.
 If a specific version is required…
 
 ```language-bash
-lazybones create ratpack 0.9.0 my-ratpack-app
+lazybones create ratpack x.x.x my-ratpack-app
 cd my-ratpack-app
 ./gradlew run
 ```
+
+Where `x.x.x` is a valid template version.  See the [Bintray template repository](https://bintray.com/ratpack/lazybones/ratpack-template/view) for all available template versions.
