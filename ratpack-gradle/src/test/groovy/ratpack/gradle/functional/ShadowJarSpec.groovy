@@ -19,9 +19,9 @@ package ratpack.gradle.functional
 import org.gradle.internal.jvm.Jvm
 import spock.util.concurrent.PollingConditions
 
-class FatJarSpec extends FunctionalSpec {
+class ShadowJarSpec extends FunctionalSpec {
 
-  def "can create and run fat jar"() {
+  def "can create and run shadow jar"() {
     given:
     file("src/ratpack/public/foo.txt") << "bar"
     file("src/ratpack/ratpack.properties") << ""
@@ -42,8 +42,8 @@ class FatJarSpec extends FunctionalSpec {
 
     """
     when:
-    run "fatJar"
-    def p = new ProcessBuilder().command(Jvm.current().javaExecutable.absolutePath, "-jar", fatJar.absolutePath).start()
+    run "shadowJar"
+    def p = new ProcessBuilder().command(Jvm.current().javaExecutable.absolutePath, "-jar", shadowJar.absolutePath).start()
     p.consumeProcessOutput(System.out as Appendable, System.err as Appendable)
 
     then:

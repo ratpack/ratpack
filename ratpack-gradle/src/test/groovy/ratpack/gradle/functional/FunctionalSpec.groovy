@@ -16,6 +16,7 @@
 
 package ratpack.gradle.functional
 
+import com.google.common.io.Files
 import org.gradle.GradleLauncher
 import org.gradle.StartParameter
 import org.gradle.api.Task
@@ -92,8 +93,14 @@ abstract class FunctionalSpec extends Specification {
   def setup() {
     file("settings.gradle") << "rootProject.name = 'test-app'"
     buildFile << """
+      buildscript {
+        repositories { jcenter() }
+        dependencies { classpath 'com.github.jengelman.gradle.plugins:shadow:1.0.2' }
+      }
+
       ext.RatpackGroovyPlugin = project.class.classLoader.loadClass('${RatpackGroovyPlugin.name}')
       apply plugin: RatpackGroovyPlugin
+      apply plugin: 'com.github.johnrengelman.shadow'
       archivesBaseName = "functional-test"
       version = "1.0"
       repositories {
@@ -118,8 +125,8 @@ abstract class FunctionalSpec extends Specification {
     f
   }
 
-  File getFatJar() {
-    def f = file("build/libs/functional-test-1.0-fat.jar")
+  File getShadowJar() {
+    def f = file("build/libs/functional-test-1.0-all.jar")
     assert f.exists()
     f
   }

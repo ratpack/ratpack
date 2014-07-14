@@ -22,6 +22,7 @@ buildscript {
   dependencies {
     classpath 'org.gradle.plugins:gradle-compass:1.0.9'
     classpath 'org.gebish:geb-gradle:0.9.2'
+    classpath 'com.github.jengelman.gradle.plugins:shadow:1.0.2'
   }
 }
 
@@ -37,6 +38,7 @@ apply plugin: 'coffeescript-base'
 apply plugin: 'compass'
 apply plugin: "ratpack-groovy"
 apply plugin: "geb-saucelabs"
+apply plugin: 'com.github.johnrengelman.shadow'
 
 repositories {
   maven { url "http://repo.springsource.org/repo" } // for springloaded
@@ -194,7 +196,7 @@ compileSass {
 
 clean.dependsOn cleanCompileSass
 run.dependsOn watchSass
-installApp.dependsOn compileSass
+[installApp, installShadowApp, runShadow].each { it.dependsOn compileSass }
 
 task createScriptsDir {
   doLast {
