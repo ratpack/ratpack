@@ -196,7 +196,6 @@ compileSass {
 
 clean.dependsOn cleanCompileSass
 run.dependsOn watchSass
-[installApp, installShadowApp, runShadow].each { it.dependsOn compileSass }
 
 task createScriptsDir {
   doLast {
