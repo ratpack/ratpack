@@ -227,6 +227,16 @@ public abstract class GroovyChainAction implements Action<Chain>, GroovyChain {
   }
 
   @Override
+  public GroovyChain host(String hostName, @DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler) {
+    return getChain().host(hostName, handler);
+  }
+
+  @Override
+  public GroovyChain host(String hostName, Handler handler) {
+    return getChain().host(hostName, handler);
+  }
+
+  @Override
   public GroovyChain patch(Handler handler) {
     return getChain().patch(handler);
   }
