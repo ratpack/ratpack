@@ -102,6 +102,44 @@ The `'application'` plugin requires the main class (i.e. entry point) of your ap
 This is preconfigured by the `'ratpack'` and `'ratpack-groovy'` plugins to be the [`RatpackMain`](api/ratpack/launch/RatpackMain.html) and [`GroovyRatpackMain`](api/ratpack/groovy/launch/GroovyRatpackMain.html) respectively.
 This can be changed if you wish to use a custom entry point (consult the `'application'` plugin documentation).
 
+
+## The 'shadow' plugin
+
+Both the `'ratpack'` and `'ratpack-groovy'` plugins ship with integration support for the 3rd party [`'shadow'` plugin](https://github.com/johnrengelman/shadow).
+This plugin provides the ability to create a self-contained "fat-jar" that includes your ratpack application and any compile and runtime dependencies.
+
+The `'ratpack'` and `'ratpack-groovy'` plugins react to the application of the `'shadow'` plugin and configure additional task dependencies.
+The `'ratpack'` and `'ratpack-groovy'` plugins do not apply the `'shadow'` plugin and, for compatibility reasons, do not ship with a version of the `'shadow'` as a dependency.
+
+To use the `'shadow'` integration, you will need to include the dependency in your project and apply the plugin.
+
+```language-groovy gradle
+buildscript {
+  repositories {
+    jcenter()
+  }
+  dependencies {
+    classpath "io.ratpack:ratpack-gradle:@ratpack-version@"
+    classpath 'com.github.jengelman.gradle.plugins:shadow:1.0.2'
+  }
+}
+
+apply plugin: "ratpack"
+apply plugin: 'com.github.johnrengelman.shadow'
+
+repositories {
+  jcenter()
+}
+```
+
+The latest version of the `'shadow'` plugin can be found on the project's [Github page]((https://github.com/johnrengelman/shadow)).
+
+You can now have the build generate the fat-jar, by running…
+
+```language-bash
+./gradlew shadowJar
+```
+
 ## The base dir
 
 The `src/ratpack` directory in the Gradle project effectively becomes the base dir of your Ratpack application.
@@ -195,6 +233,39 @@ repositories {
 }
 
 run {
+  systemProperty "ratpack.other.dbPassword", "secret"
+}
+```
+
+### Running with the 'shadow' plugin
+
+If applied to the project, the `'shadow'` plugin provides the `'runShadow'` task for starting the Ratpack application from the fat-jar.
+Like the `'run'` task, this is a task of the core Gradle `JavaExec` type.
+The `'shadow'` plugin configure this `'runShadow'` task to start the process using the `java -jar <path/to/shadow-jar.jar>` command.
+
+Class reloading is not supported through the `'runShadow'` task because the application is being run from the packaged jar file.
+
+Extra system properties or JVM options can be configured on this task…
+
+```language-groovy gradle
+buildscript {
+  repositories {
+    jcenter()
+  }
+  dependencies {
+    classpath "io.ratpack:ratpack-gradle:@ratpack-version@"
+    classpath "com.github.jengelman.gradle.plugins:shadow:1.0.2"
+  }
+}
+
+apply plugin: "ratpack"
+apply plugin: "com.github.johnrengelman.shadow"
+
+repositories {
+  jcenter()
+}
+
+runShadow {
   systemProperty "ratpack.other.dbPassword", "secret"
 }
 ```
