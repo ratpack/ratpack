@@ -45,7 +45,7 @@ The edit process is usually:
 
 1. run `./gradlew openManual` to build it and open it for the first time
 1. edit/add Javadoc or manual chapters
-1. run `/.gradlew packageManual` to rebuild the manual
+1. run `./gradlew packageManual` to rebuild the manual
 1. refresh your browser
 
 Note: instead of running `./gradlew packageManual`, you can abbreviate it to `./gradlew pM`.
