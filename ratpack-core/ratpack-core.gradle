@@ -20,12 +20,13 @@ apply from: "$rootDir/gradle/javaModule.gradle"
 
 ext.apiLinks = [
     "http://netty.io/4.0/api",
-    "http://docs.oracle.com/javase/7/docs/api"
+    "http://docs.oracle.com/javase/7/docs/api",
+    "http://docs.guava-libraries.googlecode.com/git-history/v${commonVersions.guava}/javadoc"
 ]
 
 dependencies {
   compile "io.netty:netty-codec-http:$commonVersions.netty"
-  compile 'com.google.guava:guava:16.0'
+  compile "com.google.guava:guava:$commonVersions.guava"
   compile commonDependencies.slf4j
   compile 'org.reactivestreams:reactive-streams:0.4.0.M1'
 
