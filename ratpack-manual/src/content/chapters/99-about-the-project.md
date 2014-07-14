@@ -43,6 +43,7 @@ The following people have provided significant contributions.
 * [Kevin Greene](https://github.com/KevinGreene)
 * [Danny Hyun](https://github.com/danhyun)
 * [David Tiselius](https://github.com/traneHead)
+* [John Engelman](https://github.com/johnrengelman)
 
 ### Past project members
 
