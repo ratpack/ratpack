@@ -24,7 +24,7 @@ class HostRoutingSpec extends RatpackGroovyDslSpec {
     given:
     handlers {
       host("foo.com") {
-        response.send("Host Handler")
+        handler { response.send("Host Handler") }
       }
       handler {
         response.send("Default Handler")

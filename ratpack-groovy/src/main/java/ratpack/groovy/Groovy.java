@@ -31,6 +31,7 @@ import ratpack.groovy.handling.internal.DefaultGroovyChain;
 import ratpack.groovy.handling.internal.DefaultGroovyContext;
 import ratpack.groovy.handling.internal.GroovyDslChainActionTransformer;
 import ratpack.groovy.internal.ClosureInvoker;
+import ratpack.groovy.internal.ClosureUtil;
 import ratpack.groovy.internal.RatpackScriptBacking;
 import ratpack.groovy.markup.Markup;
 import ratpack.groovy.markup.internal.DefaultMarkup;
@@ -162,6 +163,22 @@ public abstract class Groovy {
       new GroovyDslChainActionTransformer(launchConfig, registry),
       new ClosureInvoker<Object, GroovyChain>(closure).toAction(registry, Closure.DELEGATE_FIRST)
     );
+  }
+
+  /**
+   * Creates a chain action based on the given closure.
+   *
+   * @param closure The chain building closure.
+   * @return A chain action
+   * @throws Exception any exception thrown by the given closure
+   */
+  public static Action<Chain> chainAction(@DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) final Closure<?> closure) throws Exception {
+    return new Action<Chain>() {
+      @Override
+      public void execute(Chain chain) throws Exception {
+        ClosureUtil.configureDelegateFirst(new DefaultGroovyChain(chain), closure);
+      }
+    };
   }
 
   /**

@@ -191,8 +191,8 @@ public abstract class ChainAction implements Action<Chain>, Chain {
   }
 
   @Override
-  public Chain host(String hostName, Handler handler) {
-    return getChain().host(hostName, handler);
+  public Chain host(String hostName, Action<? super Chain> action) throws Exception {
+    return getChain().host(hostName, action);
   }
 
   @Override

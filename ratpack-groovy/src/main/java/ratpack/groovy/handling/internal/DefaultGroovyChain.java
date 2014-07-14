@@ -157,14 +157,14 @@ public class DefaultGroovyChain implements GroovyChain {
   }
 
   @Override
-  public GroovyChain host(String hostName, Handler handler) {
-    delegate.host(hostName, handler);
+  public GroovyChain host(String hostName, Action<? super Chain> action) throws Exception {
+    delegate.host(hostName, action);
     return this;
   }
 
   @Override
-  public GroovyChain host(String hostName, @DelegatesTo(value = Context.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler) {
-    return host(hostName, groovyHandler(handler));
+  public GroovyChain host(String hostName, Closure<?> handler) throws Exception {
+    return host(hostName, Groovy.chainAction(handler));
   }
 
   @Override

@@ -96,7 +96,7 @@ public class DefaultChain implements Chain {
     return handler(Handlers.header(headerName, headerValue, handler));
   }
 
-  public Chain host(String hostName, Handler handler) { return handler(Handlers.host(hostName, handler)); }
+  public Chain host(String hostName, Action<? super Chain> action) throws Exception { return handler(Handlers.host(hostName, chain(action))); }
 
   public Chain patch(String path, Handler handler) {
     return handler(Handlers.path(path, Handlers.chain(Handlers.patch(), handler)));
