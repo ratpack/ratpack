@@ -16,21 +16,30 @@
 
 package ratpack.gradle.functional
 
-import com.google.common.io.Files
-import org.gradle.GradleLauncher
+import org.gradle.BuildResult
 import org.gradle.StartParameter
 import org.gradle.api.Task
 import org.gradle.api.execution.TaskExecutionListener
 import org.gradle.api.tasks.TaskState
+import org.gradle.cli.CommandLineParser
+import org.gradle.initialization.DefaultCommandLineConverter
+import org.gradle.initialization.GradleLauncher
+import org.gradle.initialization.GradleLauncherFactory
+import org.gradle.internal.nativeplatform.services.NativeServices
+import org.gradle.internal.service.DefaultServiceRegistry
+import org.gradle.internal.service.ServiceRegistryBuilder
+import org.gradle.internal.service.scopes.GlobalScopeServices
+import org.gradle.logging.LoggingServiceRegistry
+import org.gradle.testfixtures.ProjectBuilder
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import ratpack.gradle.RatpackGroovyPlugin
+import spock.lang.AutoCleanup
 import spock.lang.Specification
-import org.gradle.BuildResult
-import org.gradle.testfixtures.ProjectBuilder
 
 abstract class FunctionalSpec extends Specification {
-  @Rule TemporaryFolder dir
+  @Rule
+  TemporaryFolder dir
 
   static class ExecutedTask {
     Task task
@@ -39,10 +48,21 @@ abstract class FunctionalSpec extends Specification {
 
   List<ExecutedTask> executedTasks = []
 
+  @AutoCleanup
+  DefaultServiceRegistry services = new ServiceRegistryBuilder()
+    .provider(new GlobalScopeServices(false))
+    .parent(LoggingServiceRegistry.newEmbeddableLogging())
+    .parent(NativeServices.instance)
+    .build()
+
   GradleLauncher launcher(String... args) {
-    StartParameter startParameter = GradleLauncher.createStartParameter(args)
+    def converter = new DefaultCommandLineConverter()
+    def commandLineParser = new CommandLineParser()
+    converter.configure(commandLineParser)
+    def commandLine = commandLineParser.parse(args)
+    StartParameter startParameter = converter.convert(commandLine, new StartParameter())
     startParameter.setProjectDir(dir.root)
-    GradleLauncher launcher = GradleLauncher.newInstance(startParameter)
+    GradleLauncher launcher = services.get(GradleLauncherFactory).newInstance(startParameter)
     executedTasks.clear()
     launcher.addListener(new TaskExecutionListener() {
       void beforeExecute(Task task) {
@@ -85,7 +105,7 @@ abstract class FunctionalSpec extends Specification {
     assert file.parentFile.mkdirs() || file.parentFile.exists()
     file
   }
-  
+
   ExecutedTask task(String name) {
     executedTasks.find { it.task.name == name }
   }

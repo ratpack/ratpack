@@ -111,6 +111,8 @@ subprojects {
     }
   }
 
+  apply from: "$rootDir/gradle/ratpackLocal.gradle"
+
   tasks.withType(Javadoc) {
     options.encoding = "utf-8"
     options.docEncoding = "utf-8"
