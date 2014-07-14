@@ -17,14 +17,12 @@
 apply plugin: "groovy"
 
 dependencies {
-  groovy commonDependencies.groovy
+  testCompile commonDependencies.groovy
   testCompile commonDependencies.spock
   testCompile project(":ratpack-test-internal")
 }
 
 configurations {
-  compile.extendsFrom -= groovy
-  testCompile.extendsFrom groovy
   configurations {
     all {
       incoming.afterResolve {

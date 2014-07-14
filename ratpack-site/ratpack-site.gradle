@@ -213,6 +213,6 @@ clean.dependsOn cleanGatherManuals
 idea {
   module {
     testSourceDirs += sourceSets.browserTest.allSource.srcDirs
-    scopes.TEST.plus += configurations.browserTestCompile
+    scopes.TEST.plus += [configurations.browserTestCompile]
   }
 }

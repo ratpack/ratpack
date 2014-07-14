@@ -34,10 +34,9 @@ class RatpackPlugin implements Plugin<Project> {
 
     def gradleVersions = project.gradle.gradleVersion.split('\\.').collect { it.isInteger() ? it.toInteger() : 0 }
     def major = gradleVersions[0]
-    def minor = gradleVersions[1]
 
-    if (major < 1 || (major == 1 && minor < 6)) {
-      throw new GradleException("Ratpack requires Gradle version 1.6 or later")
+    if (major < 2) {
+      throw new GradleException("Ratpack requires Gradle version 2.0 or later")
     }
 
     project.plugins.apply(JavaPlugin)
