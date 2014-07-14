@@ -33,11 +33,10 @@ public class InetSocketAddressBackedBindAddress implements BindAddress {
 
   public static String determineHost(InetSocketAddress socketAddress) {
     InetAddress address = socketAddress.getAddress();
-    String hostAddress = address.getHostAddress();
-    if (address.isAnyLocalAddress() || hostAddress.equals("127.0.0.1")) {
+    if (address.isLoopbackAddress() || address.isAnyLocalAddress()) {
       return "localhost";
     } else {
-      return hostAddress;
+      return address.getHostAddress();
     }
   }
 
