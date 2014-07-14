@@ -133,6 +133,7 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
 
   def "error handler receives promise error"() {
     when:
+    def otherError = new RuntimeException("other")
     handlers {
       get {
         observe(promise({
@@ -140,7 +141,7 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
         })) subscribe({
           render "success"
         }, {
-          throw error
+          throw otherError
         } as Action1)
       }
     }
@@ -148,7 +149,7 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
     CompositeException cause = thrownException.cause as CompositeException
 
     then:
-    cause.exceptions == [error, error]
+    cause.exceptions == [error, otherError]
   }
 
   def "subscription without error handler results in error forwarded to context error handler"() {
