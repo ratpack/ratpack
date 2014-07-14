@@ -42,6 +42,7 @@ The following people have provided significant contributions.
 * [Cédric Champeau](https://github.com/melix)
 * [Kevin Greene](https://github.com/KevinGreene)
 * [Danny Hyun](https://github.com/danhyun)
+* [David Tiselius](https://github.com/traneHead)
 
 ### Past project members
 
