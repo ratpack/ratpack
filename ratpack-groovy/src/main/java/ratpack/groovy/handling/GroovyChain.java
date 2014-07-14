@@ -187,6 +187,21 @@ public interface GroovyChain extends Chain {
   GroovyChain header(String headerName, String headerValue, @DelegatesTo(value = GroovyContext.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler);
 
   /**
+   * If the request has a {@code Host} header that matches the given host name exactly, handling will be delegated to the chain defined by the given closure.
+   *
+   * @param hostName the name of the HTTP Header to match on
+   * @param handler the handler to delegate to
+   * @return this {@code GroovyChain}
+   * @see #host(String, ratpack.func.Action)
+   */
+  GroovyChain host(String hostName, @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler) throws Exception;
+
+  /**
+   * {@inheritDoc}
+   */
+  GroovyChain host(String hostName, Action<? super Chain> action) throws Exception;
+
+  /**
    * {@inheritDoc}
    */
   @Override

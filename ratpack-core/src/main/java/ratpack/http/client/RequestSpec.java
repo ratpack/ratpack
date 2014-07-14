@@ -32,7 +32,7 @@ public interface RequestSpec {
   /**
    * Set the HTTP verb to use.
    * @param method which HTTP verb to use
-   * @return
+   * @return this
    */
   RequestSpec method(String method);
 

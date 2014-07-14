@@ -105,16 +105,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class MarkupTemplatingModule extends AbstractModule {
 
-  private final TemplateConfiguration templateConfiguration;
   private String templatesDirectory = "templates";
-
-  public MarkupTemplatingModule() {
-    templateConfiguration = new TemplateConfiguration();
-  }
-
-  public TemplateConfiguration getTemplateConfiguration() {
-    return templateConfiguration;
-  }
 
   public String getTemplatesDirectory() {
     return templatesDirectory;
@@ -129,13 +120,22 @@ public class MarkupTemplatingModule extends AbstractModule {
     bind(MarkupTemplateRenderer.class).in(Singleton.class);
   }
 
+  @Provides
+  @Singleton
+  TemplateConfiguration provideTemplateConfiguration() {
+    TemplateConfiguration templateConfiguration = new TemplateConfiguration();
+    templateConfiguration.setAutoEscape(true);
+    return templateConfiguration;
+  }
+
   @SuppressWarnings("UnusedDeclaration")
   @Provides
   @Singleton
-  MarkupTemplateEngine provideTemplateEngine(LaunchConfig launchConfig) {
+  MarkupTemplateEngine provideTemplateEngine(LaunchConfig launchConfig, TemplateConfiguration templateConfiguration) {
     if (launchConfig.isReloadable()) {
       templateConfiguration.setCacheTemplates(false);
     }
+
     ClassLoader parent = getClass().getClassLoader();
     try {
       parent = new URLClassLoader(new URL[]{launchConfig.getBaseDir().file(templatesDirectory).toFile().toURI().toURL()}, parent);

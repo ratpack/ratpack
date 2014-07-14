@@ -16,6 +16,7 @@
 
 package ratpack.groovy.markuptemplates
 
+import groovy.text.markup.TemplateConfiguration
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 import static ratpack.groovy.Groovy.groovyMarkupTemplate
@@ -54,6 +55,76 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
 
     then:
     text == "<div><p>bar</p></div>"
+  }
+
+  def "templates are auto-escaped by default"() {
+    given:
+    file "templates/foo.gtpl", "div(value)"
+
+    when:
+    handlers {
+      get {
+        render groovyMarkupTemplate("foo.gtpl", value: "<bar>")
+      }
+    }
+
+    then:
+    text == "<div>&lt;bar&gt;</div>"
+  }
+
+  def "auto-escape can be configured via templateconfiguration from guice"() {
+    given:
+    file "templates/foo.gtpl", "div(value)"
+
+    when:
+    bindings {
+      init { TemplateConfiguration templateConfiguration ->
+        templateConfiguration.autoEscape = false
+      }
+    }
+    handlers {
+      get {
+        render groovyMarkupTemplate("foo.gtpl", value: "<bar>")
+      }
+    }
+
+    then:
+    text == "<div><bar></div>"
+  }
+
+  def "auto expanding empty elements is off by default"() {
+    given:
+    file "templates/foo.gtpl", "div()"
+
+    when:
+    handlers {
+      get {
+        render groovyMarkupTemplate("foo.gtpl")
+      }
+    }
+
+    then:
+    text == "<div/>"
+  }
+
+  def "empty elements can be configured to be auto expanded"() {
+    given:
+    file "templates/foo.gtpl", "div()"
+
+    when:
+    bindings {
+      init { TemplateConfiguration templateConfiguration ->
+        templateConfiguration.expandEmptyElements = true
+      }
+    }
+    handlers {
+      get {
+        render groovyMarkupTemplate("foo.gtpl")
+      }
+    }
+
+    then:
+    text == "<div></div>"
   }
 
   def "can include another template"() {
@@ -206,7 +277,9 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
 
     when:
     bindings {
-      config(MarkupTemplatingModule).templateConfiguration.cacheTemplates = false
+      init { TemplateConfiguration templateConfiguration ->
+        templateConfiguration.cacheTemplates = false
+      }
     }
     handlers {
       get { render groovyMarkupTemplate("t.gtpl") }

@@ -196,6 +196,18 @@ public abstract class Handlers {
   }
 
   /**
+   * Creates a handler that delegates to the given handler if the {@code request} has a {@code HTTPHost} with the
+   * given name that matches the given value exactly.
+   *
+   * @param hostName the name of the HTTP Header to match on
+   * @param handler the handler to delegate to
+   * @return A handler
+   */
+  public static Handler host(String hostName, Handler handler) throws Exception {
+    return new HeaderHandler("Host", hostName, handler);
+  }
+
+  /**
    * A handler that simply delegates to the next handler.
    * <p>
    * Effectively a noop.

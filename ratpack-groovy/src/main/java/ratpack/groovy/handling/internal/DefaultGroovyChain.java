@@ -157,6 +157,17 @@ public class DefaultGroovyChain implements GroovyChain {
   }
 
   @Override
+  public GroovyChain host(String hostName, Action<? super Chain> action) throws Exception {
+    delegate.host(hostName, action);
+    return this;
+  }
+
+  @Override
+  public GroovyChain host(String hostName, Closure<?> handler) throws Exception {
+    return host(hostName, Groovy.chainAction(handler));
+  }
+
+  @Override
   public GroovyChain patch(String path, Closure<?> handler) {
     return patch(path, groovyHandler(handler));
   }

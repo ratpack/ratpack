@@ -119,7 +119,7 @@ public class LaunchConfigBuilder {
   /**
    * Sets the port to bind to.
    * <p>
-   * Default value is {@value LaunchConfig#DEFAULT_PORT}.
+   * Default value is {@code 5050}.
    *
    * @param port The port to bind to
    * @return this
@@ -204,9 +204,9 @@ public class LaunchConfigBuilder {
   }
 
   /**
-   * The max content length.
+   * The max number of bytes a request body can be.
    *
-   * Default value is {@value LaunchConfig#DEFAULT_MAX_CONTENT_LENGTH}
+   * Default value is {@code 1048576} (1 megabyte).
    *
    * @param maxContentLength The max content length to accept.
    * @return this

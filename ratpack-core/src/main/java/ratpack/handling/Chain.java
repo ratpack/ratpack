@@ -270,6 +270,28 @@ public interface Chain {
   Chain header(String headerName, String headerValue, Handler handler);
 
   /**
+   * Adds a handler to the chain that delegates to the given handler chain if the request has a {@code Host} header that matches the given value exactly.
+   *
+   * <pre tested="java-chain-dsl>
+   *  chain.
+   *    host("foo.com", new Action&lt;Chain&gt;() {
+   *      public void execute(Chain chain) {
+   *        chain.add(new Handler() {
+   *          public void handle(Context context) {
+   *            context.getResponse().send("Host Handler");
+   *          }
+   *        });
+   *      }
+   *    });
+   * </pre>
+   *
+   * @param hostName the name of the HTTP Header to match on
+   * @param action the handler chain to delegate to if the host matches
+   * @return this
+   */
+  Chain host(String hostName, Action<? super Chain> action) throws Exception;
+
+  /**
    * Adds a handler that delegates to the given handler if
    * the relative {@code path} matches the given {@code path} and the {@code request} {@code HTTPMethod}
    * is {@code PATCH}.
