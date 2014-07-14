@@ -97,13 +97,11 @@ class RatpackPlugin implements Plugin<Project> {
       }
     }
 
-    project.plugins.whenPluginAdded {
-      if (project.plugins.hasPlugin('com.github.johnrengelman.shadow')) {
-        def shadowJarTask = project.tasks.findByName('shadowJar')
-        shadowJarTask.with {
-          from run.workingDir
-          dependsOn prepareBaseDirTask
-        }
+    project.plugins.withId('com.github.johnrengelman.shadow') {
+      def shadowJarTask = project.tasks.findByName('shadowJar')
+      shadowJarTask.with {
+        from run.workingDir
+        dependsOn prepareBaseDirTask
       }
     }
 
