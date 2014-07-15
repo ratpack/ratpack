@@ -102,6 +102,7 @@ class RatpackPlugin implements Plugin<Project> {
         def shadowJarTask = project.tasks.findByName('shadowJar')
         shadowJarTask.with {
           from run.workingDir
+          dependsOn prepareBaseDirTask
         }
       }
     }
