@@ -102,7 +102,6 @@ class RatpackPlugin implements Plugin<Project> {
       shadowJarTask.with {
         dependsOn prepareBaseDirTask
         from run.workingDir
-        dependsOn prepareBaseDirTask
       }
     }
 
