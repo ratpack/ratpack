@@ -44,6 +44,7 @@ The following people have provided significant contributions.
 * [Danny Hyun](https://github.com/danhyun)
 * [David Tiselius](https://github.com/traneHead)
 * [John Engelman](https://github.com/johnrengelman)
+* [Andre Steingress](https://github.com/andresteingress)
 
 ### Past project members
 
