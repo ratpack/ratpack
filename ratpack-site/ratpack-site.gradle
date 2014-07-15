@@ -50,6 +50,7 @@ def manualVersions = ["0.9.0", "0.9.1", "0.9.2", "0.9.3", "0.9.4", "0.9.5", "0.9
 
 configurations {
   latestManual {}
+  newrelicAgent {}
   browserTestCompile.extendsFrom testCompile
   browserTestRuntime.extendsFrom testRuntime
 
@@ -73,6 +74,7 @@ dependencies {
   compile project(":ratpack-jackson")
   compile project(":ratpack-remote")
   compile project(":ratpack-rx")
+  compile project(":ratpack-newrelic")
   compile 'org.pegdown:pegdown:1.4.1'
   testCompile project(":ratpack-groovy-test")
   testCompile project(":ratpack-remote-test")
@@ -89,6 +91,8 @@ dependencies {
   manualVersions.each {
     delegate."manual-$it" "io.ratpack:ratpack-manual:$it@zip"
   }
+
+  newrelicAgent "com.newrelic.agent.java:newrelic-agent:3.5.0"
 }
 
 task gatherManuals(type: Sync) {
@@ -177,6 +181,13 @@ task compileCoffee(type: CoffeeScriptCompile) {
 
 prepareBaseDir {
   dependsOn gatherManuals, compileCoffee, compileSass
+}
+
+applicationDistribution.into("newrelic") {
+  from({ configurations.newrelicAgent }) {
+    rename { "agent.jar" }
+  }
+  from "src/newrelic"
 }
 
 compass {

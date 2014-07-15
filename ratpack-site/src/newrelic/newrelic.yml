@@ -1,0 +1,78 @@
+common: &default_settings
+
+  # The following are set via Heroku config vars
+  # license_key:
+  app_name: ratpack-site
+
+  agent_enabled: true
+  enable_auto_app_naming: false
+  enable_auto_transaction_naming: true
+  log_level: info
+  audit_mode: false
+  log_file_count: 1
+  log_limit_in_kbytes: 0
+  log_daily: false
+  log_file_name: newrelic_agent.log
+  #log_file_path:
+  ssl: true
+  max_stack_trace_lines: 30
+  capture_params: true
+  capture_messaging_params: true
+  #ignored_messaging_params: userid, authtoken
+  enable_custom_tracing: true
+
+  transaction_tracer:
+    enabled: true
+    transaction_threshold: apdex_f
+    record_sql: obfuscated
+    log_sql: false
+    stack_trace_threshold: 0.5
+    explain_enabled: true
+    explain_threshold: 0.5
+    top_n: 20
+
+  error_collector:
+    enabled: true
+    # ignore_errors: akka.actor.ActorKilledException
+    ignore_status_codes: 404
+
+  analytics_events:
+    enabled: true
+    max_samples_stored: 2000
+
+  cross_application_tracer:
+    enabled: false
+
+  thread_profiler:
+    enabled: true
+
+  browser_monitoring:
+    auto_instrument: false
+
+
+# Application Environments
+# ------------------------------------------
+# Environment specific settings are in this section.
+# You can use the environment to override the default settings.
+# For example, to change the app_name setting.
+# Use -Dnewrelic.environment=<environment> on the Java startup command line
+# to set the environment.
+# The default environment is production.
+
+# NOTE if your application has other named environments, you should
+# provide configuration settings for these environments here.
+
+development:
+  <<: *default_settings
+  app_name: My Application (Development)
+
+test:
+  <<: *default_settings
+  app_name: My Application (Test)
+
+production:
+  <<: *default_settings
+
+staging:
+  <<: *default_settings
+  app_name: My Application (Staging)

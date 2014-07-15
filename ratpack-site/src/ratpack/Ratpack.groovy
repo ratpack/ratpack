@@ -2,6 +2,7 @@ import ratpack.codahale.metrics.CodaHaleMetricsModule
 import ratpack.file.internal.DefaultFileSystemBinding
 import ratpack.groovy.templating.TemplatingModule
 import ratpack.jackson.JacksonModule
+import ratpack.newrelic.NewRelicModule
 import ratpack.remote.RemoteControlModule
 import ratpack.rx.RxRatpack
 import ratpack.site.SiteModule
@@ -19,7 +20,8 @@ ratpack {
       new JacksonModule(),
       new CodaHaleMetricsModule().metrics(),
       new SiteModule(launchConfig),
-      new RemoteControlModule()
+      new RemoteControlModule(),
+      new NewRelicModule()
 
     config(TemplatingModule).staticallyCompile = true
 
