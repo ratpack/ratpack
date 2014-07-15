@@ -38,7 +38,7 @@ def script = '''
   @Override
   String post() {
     String localRepo = System.getProperty("localRepo", "build/localrepo")
-    def localRepoPath = new File(localRepo).canonicalPath
+    def localRepoPath = new File(localRepo).canonicalPath?.replaceAll("\\\\", "/")
     """
 '''
 def projectDir = File.createTempDir()

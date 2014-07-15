@@ -151,6 +151,9 @@ subprojects {
         }
       }
       jvmArgs "-Xss320k"
+      if (System.properties['ratpack.testJvmArgs']) {
+        jvmArgs System.properties['ratpack.testJvmArgs']
+      }
     }
 
     sourceCompatibility = "1.7"
