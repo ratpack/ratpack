@@ -1,1 +1,1 @@
-web: env "RATPACK_SITE_OPTS=-Dratpack.publicAddress=http://www.ratpack.io -Dratpack.other.github.auth=$GITHUB_ACCESS_TOKEN -javaagent:../newrelic/agent.jar -Dnewrelic.config.file=../newrelic/newrelic.yml ratpack-site/build/install/ratpack-site/bin/ratpack-site"
+web: env "RATPACK_SITE_OPTS=-Dratpack.publicAddress=http://www.ratpack.io -Dratpack.other.github.auth=$GITHUB_ACCESS_TOKEN -javaagent:../newrelic/agent.jar -Dnewrelic.config.file=../newrelic/newrelic.yml" ratpack-site/build/install/ratpack-site/bin/ratpack-site
