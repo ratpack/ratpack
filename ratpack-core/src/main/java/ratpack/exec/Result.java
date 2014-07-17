@@ -19,7 +19,7 @@ package ratpack.exec;
 /**
  * The result of an asynchronous operation, which may be a failure.
  *
- * @param <T> The type of the successful result object.
+ * @param <T> The type of the successful result object
  */
 public class Result<T> {
 
@@ -29,8 +29,9 @@ public class Result<T> {
   /**
    * Creates a successful result object.
    *
-   * @param value The object representing the result of the operation.
-   * @param <T> The type of the result object.
+   * @param <T> The type of the result object
+   * @param value The object representing the result of the operation
+   * @return a success result
    */
   public static <T> Result<T> success(T value) {
     return new Result<>(value);
@@ -39,7 +40,9 @@ public class Result<T> {
   /**
    * Creates a failure result object.
    *
+   * @param <T> The type of the result object
    * @param failure An exception representing the failure
+   * @return a failure result
    */
   public static <T> Result<T> failure(Throwable failure) {
     return new Result<>(failure);
@@ -95,7 +98,7 @@ public class Result<T> {
    * Returns the value if this is a success result, or throws the exception if it's a failure.
    *
    * @return the value (if this is a success result)
-   * @throws Exception the failure (if this is a failure result)
+   * @throws Throwable the failure (if this is a failure result)
    */
   public T getValueOrThrow() throws Throwable {
     if (isFailure()) {
