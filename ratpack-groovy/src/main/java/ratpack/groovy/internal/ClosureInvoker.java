@@ -71,7 +71,7 @@ public class ClosureInvoker<T, D> {
   }
 
   private static List<TypeToken<?>> retrieveParameterTypes(Closure<?> closure) {
-    Class[] parameterTypes = closure.getParameterTypes();
+    Class<?>[] parameterTypes = closure.getParameterTypes();
     if (parameterTypes.length == 1 && parameterTypes[0].equals(Object.class)) {
       return Collections.emptyList();
     } else {
@@ -81,7 +81,7 @@ public class ClosureInvoker<T, D> {
         }
       }
 
-      return Lists.transform(ImmutableList.<Class<?>>copyOf(parameterTypes), new Function<Class<?>, TypeToken<?>>() {
+      return Lists.transform(ImmutableList.copyOf(parameterTypes), new Function<Class<?>, TypeToken<?>>() {
         @Override
         public TypeToken<?> apply(Class<?> input) {
           return TypeToken.of(input);
