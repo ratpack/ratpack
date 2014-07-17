@@ -297,7 +297,7 @@ class LaunchConfigsInternalSpec extends Specification {
 
   def "createFromProperties supports loading config from a relative path"() {
     given:
-    def configFile = temporaryFolder.newFile().toPath()
+    def configFile = File.createTempFile("config", ".properties", currentDir.parent.toFile()).toPath()
     configFile.withOutputStream { properties.store(it, null) }
 
     when:
@@ -308,6 +308,7 @@ class LaunchConfigsInternalSpec extends Specification {
     data.baseDir.normalize() == configFile.parent
     data.properties.getProperty(HANDLER_FACTORY)
     data.envVars == System.getenv()
+    configFile.toFile().delete()
   }
 
   def "createFromGlobalProperties without a specified prefix uses a prefix derived from the global properties to load properties"() {
