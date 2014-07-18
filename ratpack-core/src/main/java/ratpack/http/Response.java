@@ -219,4 +219,7 @@ public interface Response {
    */
   @NonBlocking
   void sendFile(ExecControl execContext, BasicFileAttributes attributes, Path file) throws Exception;
+
+  @NonBlocking
+  void sendServerSentEventStream(ExecControl execContext, Publisher<ServerSentEvent> stream);
 }
