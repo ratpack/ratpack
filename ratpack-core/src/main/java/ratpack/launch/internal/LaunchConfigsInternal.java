@@ -46,18 +46,18 @@ import static ratpack.util.internal.PropertiesUtil.extractProperties;
 public class LaunchConfigsInternal {
   private LaunchConfigsInternal() {}
 
-  public static LaunchConfigData createFromGlobalProperties(ClassLoader classLoader, Properties globalProperties, Properties defaultProperties) {
+  public static LaunchConfigData createFromGlobalProperties(String workingDir, ClassLoader classLoader, Properties globalProperties, Properties defaultProperties) {
     String propertyPrefix = globalProperties.getProperty(SYSPROP_PREFIX_PROPERTY, SYSPROP_PREFIX_DEFAULT);
-    return createFromGlobalProperties(classLoader, propertyPrefix, globalProperties, defaultProperties);
+    return createFromGlobalProperties(workingDir, classLoader, propertyPrefix, globalProperties, defaultProperties);
   }
 
-  public static LaunchConfigData createFromGlobalProperties(ClassLoader classLoader, String propertyPrefix, Properties globalProperties, Properties defaultProperties) {
+  public static LaunchConfigData createFromGlobalProperties(String workingDir, ClassLoader classLoader, String propertyPrefix, Properties globalProperties, Properties defaultProperties) {
     Properties deprefixed = new Properties();
     extractProperties(propertyPrefix, globalProperties, deprefixed);
-    return createFromProperties(classLoader, deprefixed, defaultProperties);
+    return createFromProperties(workingDir, classLoader, deprefixed, defaultProperties);
   }
 
-  public static LaunchConfigData createFromProperties(ClassLoader classLoader, Properties overrideProperties, Properties defaultProperties) {
+  public static LaunchConfigData createFromProperties(String workingDir, ClassLoader classLoader, Properties overrideProperties, Properties defaultProperties) {
     String configResourceValue = overrideProperties.getProperty(CONFIG_RESOURCE_PROPERTY, CONFIG_RESOURCE_DEFAULT);
     URL configResourceUrl = classLoader.getResource(configResourceValue);
 
@@ -67,7 +67,7 @@ public class LaunchConfigsInternal {
     if (configResourceUrl == null) {
       configPath = Paths.get(configResourceValue);
       if (!configPath.isAbsolute()) {
-        configPath = Paths.get(System.getProperty("user.dir"), configResourceValue);
+        configPath = Paths.get(workingDir, configResourceValue);
       }
 
       baseDir = configPath.getParent();

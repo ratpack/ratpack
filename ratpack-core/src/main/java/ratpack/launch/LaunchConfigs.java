@@ -63,7 +63,7 @@ public abstract class LaunchConfigs {
    * @return A launch config
    */
   public static LaunchConfig createFromGlobalProperties(ClassLoader classLoader, Properties globalProperties, Properties defaultProperties) {
-    return createLaunchConfig(LaunchConfigsInternal.createFromGlobalProperties(classLoader, globalProperties, defaultProperties));
+    return createLaunchConfig(LaunchConfigsInternal.createFromGlobalProperties(System.getProperty("user.dir"), classLoader, globalProperties, defaultProperties));
   }
 
   /**
@@ -78,7 +78,7 @@ public abstract class LaunchConfigs {
    * @return A launch config
    */
   public static LaunchConfig createFromGlobalProperties(ClassLoader classLoader, String propertyPrefix, Properties globalProperties, Properties defaultProperties) {
-    return createLaunchConfig(LaunchConfigsInternal.createFromGlobalProperties(classLoader, propertyPrefix, globalProperties, defaultProperties));
+    return createLaunchConfig(LaunchConfigsInternal.createFromGlobalProperties(System.getProperty("user.dir"), classLoader, propertyPrefix, globalProperties, defaultProperties));
   }
 
   /**
@@ -104,7 +104,7 @@ public abstract class LaunchConfigs {
    * @return A launch config
    */
   public static LaunchConfig createFromProperties(ClassLoader classLoader, Properties overrideProperties, Properties defaultProperties) {
-    return createLaunchConfig(LaunchConfigsInternal.createFromProperties(classLoader, overrideProperties, defaultProperties));
+    return createLaunchConfig(LaunchConfigsInternal.createFromProperties(System.getProperty("user.dir"), classLoader, overrideProperties, defaultProperties));
   }
 
   /**

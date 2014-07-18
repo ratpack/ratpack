@@ -271,7 +271,7 @@ class LaunchConfigsInternalSpec extends Specification {
 
   def "createFromProperties supports loading config from a resource"() {
     when:
-    def data = LaunchConfigsInternal.createFromProperties(classLoader, newProps([(CONFIG_RESOURCE_PROPERTY): "ratpack/launch/internal/config.properties"]), newProps([:]))
+    def data = LaunchConfigsInternal.createFromProperties(currentDir.toFile().canonicalPath, classLoader, newProps([(CONFIG_RESOURCE_PROPERTY): "ratpack/launch/internal/config.properties"]), newProps([:]))
 
     then:
     data.classLoader == classLoader
@@ -286,7 +286,7 @@ class LaunchConfigsInternalSpec extends Specification {
     configFile.withOutputStream { properties.store(it, null) }
 
     when:
-    def data = LaunchConfigsInternal.createFromProperties(classLoader, newProps([(CONFIG_RESOURCE_PROPERTY): configFile.toAbsolutePath().toString()]), newProps([:]))
+    def data = LaunchConfigsInternal.createFromProperties(currentDir.toFile().canonicalPath, classLoader, newProps([(CONFIG_RESOURCE_PROPERTY): configFile.toAbsolutePath().toString()]), newProps([:]))
 
     then:
     data.classLoader == classLoader
@@ -297,23 +297,24 @@ class LaunchConfigsInternalSpec extends Specification {
 
   def "createFromProperties supports loading config from a relative path"() {
     given:
-    def configFile = File.createTempFile("config", ".properties", currentDir.parent.toFile()).toPath()
+    def configFile = temporaryFolder.newFile().toPath()
     configFile.withOutputStream { properties.store(it, null) }
 
     when:
-    def data = LaunchConfigsInternal.createFromProperties(classLoader, newProps([(CONFIG_RESOURCE_PROPERTY): currentDir.relativize(configFile).toString()]), newProps([:]))
+    def data = LaunchConfigsInternal.createFromProperties(currentDir.toFile().canonicalPath, classLoader, newProps([(CONFIG_RESOURCE_PROPERTY): currentDir.relativize(configFile).toString()]), newProps([:]))
 
     then:
     data.classLoader == classLoader
     data.baseDir.normalize() == configFile.parent
     data.properties.getProperty(HANDLER_FACTORY)
     data.envVars == System.getenv()
-    configFile.toFile().delete()
   }
 
   def "createFromGlobalProperties without a specified prefix uses a prefix derived from the global properties to load properties"() {
     when:
-    def data = LaunchConfigsInternal.createFromGlobalProperties(classLoader, newProps(["ratpack.port": "3456"]), newProps([:]))
+    def currentDir = currentDir
+    def workingDir = currentDir.toFile().canonicalPath
+    def data = LaunchConfigsInternal.createFromGlobalProperties(workingDir, classLoader, newProps(["ratpack.port": "3456"]), newProps([:]))
 
     then:
     data.classLoader == classLoader
@@ -322,7 +323,7 @@ class LaunchConfigsInternalSpec extends Specification {
     data.envVars == System.getenv()
 
     when:
-    data = LaunchConfigsInternal.createFromGlobalProperties(classLoader, newProps([(SYSPROP_PREFIX_PROPERTY): "myapp.", "myapp.port": "3456"]), newProps([:]))
+    data = LaunchConfigsInternal.createFromGlobalProperties(workingDir, classLoader, newProps([(SYSPROP_PREFIX_PROPERTY): "myapp.", "myapp.port": "3456"]), newProps([:]))
 
     then:
     data.classLoader == classLoader
@@ -333,7 +334,9 @@ class LaunchConfigsInternalSpec extends Specification {
 
   def "createFromGlobalProperties with a specified prefix uses the prefix to load properties"() {
     when:
-    def data = LaunchConfigsInternal.createFromGlobalProperties(classLoader, "myapp.", newProps(["myapp.port": "3456"]), newProps([:]))
+    def currentDir = currentDir
+    def workingDir = currentDir.toFile().canonicalPath
+    def data = LaunchConfigsInternal.createFromGlobalProperties(workingDir, classLoader, "myapp.", newProps(["myapp.port": "3456"]), newProps([:]))
 
     then:
     data.classLoader == classLoader
@@ -368,8 +371,8 @@ class LaunchConfigsInternalSpec extends Specification {
     return properties
   }
 
-  private static Path getCurrentDir() {
-    return Paths.get(System.getProperty("user.dir"))
+  private Path getCurrentDir() {
+    return Paths.get(temporaryFolder.newFolder().toURI())
   }
 
 }
