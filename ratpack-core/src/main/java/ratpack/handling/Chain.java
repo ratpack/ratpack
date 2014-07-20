@@ -288,6 +288,7 @@ public interface Chain {
    * @param hostName the name of the HTTP Header to match on
    * @param action the handler chain to delegate to if the host matches
    * @return this
+   * @throws Exception any thrown by {@code action}
    */
   Chain host(String hostName, Action<? super Chain> action) throws Exception;
 
@@ -448,7 +449,7 @@ public interface Chain {
   Chain register(Registry registry);
 
   /**
-   * Builds a new registry via the given action, then registers it via {@link #register(Registry)}
+   * Builds a new registry via the given action, then registers it via {@link #register(Registry)}.
    *
    * @param action the definition of a registry
    * @return this
@@ -471,6 +472,7 @@ public interface Chain {
    * @param registry the registry to insert
    * @param action the definition of the handler chain
    * @return this
+   * @throws Exception any thrown by {@code action}
    */
   Chain register(Registry registry, Action<? super Chain> action) throws Exception;
 
@@ -480,6 +482,7 @@ public interface Chain {
    * @param registryAction the definition of the registry to insert
    * @param handler the handler to insert
    * @return this
+   * @throws Exception any thrown by {@code action}
    */
   Chain register(Action<? super RegistrySpec> registryAction, Handler handler) throws Exception;
 
@@ -489,6 +492,7 @@ public interface Chain {
    * @param registryAction the definition of the registry to insert]
    * @param action the definition of the handler chain
    * @return this
+   * @throws Exception any thrown by {@code action}
    */
   Chain register(Action<? super RegistrySpec> registryAction, Action<? super Chain> action) throws Exception;
 

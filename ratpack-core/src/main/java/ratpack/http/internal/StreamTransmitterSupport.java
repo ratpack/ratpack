@@ -65,8 +65,12 @@ abstract class StreamTransmitterSupport<T extends StreamElement> implements Stre
 
       @Override
       public void onSubscribe(Subscription subscription) {
-        this.subscription = subscription;
-        this.subscription.request(Integer.MAX_VALUE);
+        if (this.subscription == null) {
+          this.subscription = subscription;
+          this.subscription.request(Integer.MAX_VALUE);
+        } else {
+          this.subscription.cancel();
+        }
       }
 
       @Override

@@ -40,7 +40,8 @@ public abstract class Actions {
   }
 
   /**
-   * Returns a new action that executes the given actions in order
+   * Returns a new action that executes the given actions in order.
+   *
    * @param actions the actions to join into one action
    * @param <T> the type of object the action accepts
    * @return the newly created aggregate action

@@ -26,10 +26,7 @@ import org.reactivestreams.Publisher;
 import ratpack.exec.ExecControl;
 import ratpack.file.internal.FileHttpTransmitter;
 import ratpack.func.Action;
-import ratpack.http.HttpResponseChunk;
-import ratpack.http.MutableHeaders;
-import ratpack.http.MutableStatus;
-import ratpack.http.Response;
+import ratpack.http.*;
 import ratpack.util.ExceptionUtils;
 import ratpack.util.internal.IoUtils;
 
@@ -50,6 +47,7 @@ public class DefaultResponse implements Response {
   private final MutableHeaders headers;
   private final FileHttpTransmitter fileHttpTransmitter;
   private final ChunkedResponseTransmitter chunkedResponseTransmitter;
+  private final ServerSentEventTransmitter serverSentEventTransmitter;
   private final Action<? super ByteBuf> committer;
   private final ByteBufAllocator byteBufAllocator;
 
@@ -57,10 +55,11 @@ public class DefaultResponse implements Response {
   private Set<Cookie> cookies;
 
 
-  public DefaultResponse(MutableStatus status, MutableHeaders headers, FileHttpTransmitter fileHttpTransmitter, ChunkedResponseTransmitter chunkedResponseTransmitter, ByteBufAllocator byteBufAllocator, Action<? super ByteBuf> committer) {
+  public DefaultResponse(MutableStatus status, MutableHeaders headers, FileHttpTransmitter fileHttpTransmitter, ChunkedResponseTransmitter chunkedResponseTransmitter, ServerSentEventTransmitter serverSentEventTransmitter, ByteBufAllocator byteBufAllocator, Action<? super ByteBuf> committer) {
     this.status = status;
     this.fileHttpTransmitter = fileHttpTransmitter;
     this.chunkedResponseTransmitter = chunkedResponseTransmitter;
+    this.serverSentEventTransmitter = serverSentEventTransmitter;
     this.byteBufAllocator = byteBufAllocator;
     this.headers = new MutableHeadersWrapper(headers);
     this.committer = committer;
@@ -234,6 +233,12 @@ public class DefaultResponse implements Response {
   public void sendFile(ExecControl execContext, BasicFileAttributes attributes, Path file) throws Exception {
     setCookieHeader();
     fileHttpTransmitter.transmit(execContext, attributes, file);
+  }
+
+  @Override
+  public void sendServerSentEventStream(ExecControl execContext, Publisher<ServerSentEvent> stream) {
+    setCookieHeader();
+    serverSentEventTransmitter.transmit(execContext, stream);
   }
 
   public void sendFile(final ExecControl execContext, final Path file) throws Exception {

@@ -157,6 +157,12 @@ public abstract class ChainAction implements Action<Chain>, Chain {
     return getChain().get(handler);
   }
 
+  /**
+   * The current chain.
+   *
+   * @return the current chain
+   * @throws IllegalStateException if called outside of the {@link #execute()} method (i.e. there is no current chain)
+   */
   protected Chain getChain() throws IllegalStateException {
     if (chain == null) {
       throw new IllegalStateException("no chain set - Chain methods should only be called during execute()");

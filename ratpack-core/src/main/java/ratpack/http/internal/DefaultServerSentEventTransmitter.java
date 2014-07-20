@@ -17,39 +17,23 @@
 package ratpack.http.internal;
 
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpResponse;
-import ratpack.http.HttpResponseChunk;
-import ratpack.util.internal.IoUtils;
+import ratpack.http.ServerSentEvent;
 
-public class DefaultChunkedResponseTransmitter extends StreamTransmitterSupport<HttpResponseChunk> implements ChunkedResponseTransmitter {
+public class DefaultServerSentEventTransmitter extends StreamTransmitterSupport<ServerSentEvent> implements ServerSentEventTransmitter {
 
-  public DefaultChunkedResponseTransmitter(FullHttpRequest request, HttpHeaders httpHeaders, Channel channel) {
+  public DefaultServerSentEventTransmitter(FullHttpRequest request, HttpHeaders httpHeaders, Channel channel) {
     super(request, httpHeaders, channel);
   }
 
   @Override
   protected void setResponseHeaders(HttpResponse response) {
-    response.headers().set("Content-Length", 0);
-    response.headers().set("Transfer-Encoding", "chunked");
+    response.headers().set("Content-Type", "text/event-stream;charset=UTF-8");
+    response.headers().set("Cache-Control", "no-cache, no-store, max-age=0, must-revalidate");
+    response.headers().set("Pragma", "no-cache");
 
     super.setResponseHeaders(response);
-  }
-
-  @Override
-  protected void doOnComplete() {
-    ChannelFuture writeFuture = channel.writeAndFlush(IoUtils.utf8Buffer("0\r\n\r\n"));
-    writeFuture.addListener(new ChannelFutureListener() {
-      public void operationComplete(ChannelFuture future) throws Exception {
-        if (!future.isSuccess()) {
-          channel.close();
-        }
-      }
-    });
-
-    super.doOnComplete();
   }
 }
