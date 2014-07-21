@@ -13,7 +13,6 @@ out/
 db/
 starth2
 .gradletasknamecache
-gradle.properties
 .sass-cache/
 .jruby/
 ratpack-groovy/Expression$*.class
