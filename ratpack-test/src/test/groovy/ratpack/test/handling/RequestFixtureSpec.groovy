@@ -111,6 +111,27 @@ class RequestFixtureSpec extends Specification {
     headers.get("content-type") == "text/plain;charset=UTF-8"
   }
 
+  def "can test handler that sends file calls onClose"() {
+    given:
+    def foo
+
+    when:
+    handle {
+      onClose { foo = "foo" }
+      response.contentType("text/plain").sendFile(context, new File("foo").toPath())
+    }
+
+    then:
+    bodyText == null
+    bodyBytes == null
+    !calledNext
+    !sentResponse
+    exception == null
+    sentFile == new File("foo").toPath()
+    headers.get("content-type") == "text/plain;charset=UTF-8"
+    foo && foo == "foo"
+  }
+
   def "can register things"() {
     given:
     fixture.registry.add "foo"

@@ -50,9 +50,10 @@ public class DefaultFileHttpTransmitter implements FileHttpTransmitter {
   private final long compressionMinSize;
   private final ImmutableSet<String> compressionMimeTypeWhiteList;
   private final ImmutableSet<String> compressionMimeTypeBlackList;
+  private final Action<? super Action<? super ResponseTransmitter>> transmitterAction;
 
   public DefaultFileHttpTransmitter(FullHttpRequest request, HttpHeaders httpHeaders, Channel channel, MimeTypes mimeTypes, boolean compress, Long compressionMinSize,
-                                      ImmutableSet<String> compressionMimeTypeWhiteList, ImmutableSet<String> compressionMimeTypeBlackList, long startTime) {
+                                      ImmutableSet<String> compressionMimeTypeWhiteList, ImmutableSet<String> compressionMimeTypeBlackList, long startTime, Action<? super Action<? super ResponseTransmitter>> transmitterAction) {
     this.request = request;
     this.httpHeaders = httpHeaders;
     this.channel = channel;
@@ -61,6 +62,7 @@ public class DefaultFileHttpTransmitter implements FileHttpTransmitter {
     this.compressionMinSize = compressionMinSize;
     this.compressionMimeTypeWhiteList = compressionMimeTypeWhiteList;
     this.compressionMimeTypeBlackList = compressionMimeTypeBlackList != null ? compressionMimeTypeBlackList : defaultExcludedMimeTypes(mimeTypes);
+    this.transmitterAction = transmitterAction;
   }
 
   private static ImmutableSet<String> defaultExcludedMimeTypes(MimeTypes mimeTypes) {
@@ -91,13 +93,21 @@ public class DefaultFileHttpTransmitter implements FileHttpTransmitter {
   }
 
   @Override
-  public void transmit(ExecControl execContext, final BasicFileAttributes basicFileAttributes, final Path file) throws Exception {
+  public void transmit(final ExecControl execContext, final BasicFileAttributes basicFileAttributes, final Path file) throws Exception {
     final boolean compressThis = compress && basicFileAttributes.size() > compressionMinSize && isContentTypeCompressible();
 
     if (compress && !compressThis) {
       // Signal to the compressor not to compress this
       httpHeaders.set(HttpHeaderConstants.CONTENT_ENCODING, HttpHeaders.Values.IDENTITY);
     }
+
+    transmitterAction.execute(new Action<ResponseTransmitter>() {
+      @Override
+      public void execute(ResponseTransmitter responseTransmitter) throws Exception {
+        // prep work?
+//        responseTransmitter.transmit();
+      }
+    });
 
     if (file.getFileSystem().equals(FileSystems.getDefault()) && !compressThis) {
       execContext.blocking(new Callable<FileChannel>() {

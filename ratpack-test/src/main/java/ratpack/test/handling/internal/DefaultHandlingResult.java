@@ -74,18 +74,19 @@ public class DefaultHandlingResult implements HandlingResult {
 
     final CountDownLatch latch = new CountDownLatch(1);
 
-    final FileHttpTransmitter fileHttpTransmitter = new FileHttpTransmitter() {
-      @Override
-      public void transmit(ExecControl execContext, BasicFileAttributes basicFileAttributes, Path file) {
-        sentFile = file;
-        latch.countDown();
-      }
-    };
-
     final DefaultChunkedResponseTransmitter chunkedResponseTransmitter = new DefaultChunkedResponseTransmitter(null, null, null); //TODO: what test support is required here?
     final ServerSentEventTransmitter serverSentEventTransmitter = new DefaultServerSentEventTransmitter(null, null, null); //TODO: what test support is required here?
 
     final EventController<RequestOutcome> eventController = new DefaultEventController<>();
+
+    final FileHttpTransmitter fileHttpTransmitter = new FileHttpTransmitter() {
+      @Override
+      public void transmit(ExecControl execContext, BasicFileAttributes basicFileAttributes, Path file) {
+        sentFile = file;
+        eventController.fire(new DefaultRequestOutcome(request, new DefaultSentResponse(headers, status), System.currentTimeMillis()));
+        latch.countDown();
+      }
+    };
 
     final Action<ByteBuf> committer = new Action<ByteBuf>() {
       public void execute(ByteBuf byteBuf) throws Exception {

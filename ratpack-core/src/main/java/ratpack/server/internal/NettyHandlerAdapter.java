@@ -34,10 +34,7 @@ import ratpack.exec.Execution;
 import ratpack.file.FileRenderer;
 import ratpack.file.FileSystemBinding;
 import ratpack.file.MimeTypes;
-import ratpack.file.internal.ActivationBackedMimeTypes;
-import ratpack.file.internal.DefaultFileHttpTransmitter;
-import ratpack.file.internal.DefaultFileRenderer;
-import ratpack.file.internal.FileHttpTransmitter;
+import ratpack.file.internal.*;
 import ratpack.form.internal.FormParser;
 import ratpack.func.Action;
 import ratpack.handling.Handler;
@@ -153,8 +150,23 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
     final HttpHeaders httpHeaders = new DefaultHttpHeaders(false);
     final MutableHeaders responseHeaders = new NettyHeadersBackedMutableHeaders(httpHeaders);
     final MimeTypes mimeTypes = registry.get(MimeTypes.class);
+
+    final ResponseTransmitter responseTransmitter = new ResponseTransmitter() {
+      @Override
+      public void transmit(Status status, Headers responseHeaders, Object body) {
+        // transmission logic
+      }
+    };
+
+    final Action<? super Action<? super ResponseTransmitter>> wrapper = new Action<Action<? super ResponseTransmitter>>() {
+      @Override
+      public void execute(Action<? super ResponseTransmitter> action) throws Exception {
+        action.execute(responseTransmitter);
+      }
+    };
+
     FileHttpTransmitter fileHttpTransmitter = new DefaultFileHttpTransmitter(nettyRequest, httpHeaders, channel, mimeTypes,
-      compressResponses, compressionMinSize, compressionMimeTypeWhiteList, compressionMimeTypeBlackList, addResponseTimeHeader ? startTime : -1);
+      compressResponses, compressionMinSize, compressionMimeTypeWhiteList, compressionMimeTypeBlackList, addResponseTimeHeader ? startTime : -1, wrapper);
     ChunkedResponseTransmitter chunkedResponseTransmitter = new DefaultChunkedResponseTransmitter(nettyRequest, httpHeaders, channel);
     ServerSentEventTransmitter serverSentEventTransmitter = new DefaultServerSentEventTransmitter(nettyRequest, httpHeaders, channel);
 
