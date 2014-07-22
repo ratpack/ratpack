@@ -77,19 +77,6 @@ public class DefaultFileHttpTransmitter implements FileHttpTransmitter {
     );
   }
 
-  private static boolean isNotNullAndStartsWith(String value, String... prefixes) {
-    if (value == null) {
-      return false;
-    }
-    for (String prefix : prefixes) {
-      if (value.startsWith(prefix)) {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
   @Override
   public void transmit(ExecControl execContext, final BasicFileAttributes basicFileAttributes, final Path file) throws Exception {
     final boolean compressThis = compress && basicFileAttributes.size() > compressionMinSize && isContentTypeCompressible();
