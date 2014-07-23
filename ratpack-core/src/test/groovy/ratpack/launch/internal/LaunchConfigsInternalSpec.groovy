@@ -305,7 +305,7 @@ class LaunchConfigsInternalSpec extends Specification {
 
     then:
     data.classLoader == classLoader
-    data.baseDir.normalize() == configFile.parent
+    data.baseDir.normalize().toFile().canonicalPath == configFile.parent.toFile().canonicalPath
     data.properties.getProperty(HANDLER_FACTORY)
     data.envVars == System.getenv()
   }
@@ -318,7 +318,7 @@ class LaunchConfigsInternalSpec extends Specification {
 
     then:
     data.classLoader == classLoader
-    data.baseDir == currentDir
+    data.baseDir.toFile().canonicalPath == currentDir.toFile().canonicalPath
     data.properties.getProperty(PORT) == "3456"
     data.envVars == System.getenv()
 
@@ -327,7 +327,7 @@ class LaunchConfigsInternalSpec extends Specification {
 
     then:
     data.classLoader == classLoader
-    data.baseDir == currentDir
+    data.baseDir.toFile().canonicalPath == currentDir.toFile().canonicalPath
     data.properties.getProperty(PORT) == "3456"
     data.envVars == System.getenv()
   }
@@ -340,7 +340,7 @@ class LaunchConfigsInternalSpec extends Specification {
 
     then:
     data.classLoader == classLoader
-    data.baseDir == currentDir
+    data.baseDir.toFile().canonicalPath == currentDir.toFile().canonicalPath
     data.properties.getProperty(PORT) == "3456"
     data.envVars == System.getenv()
   }
