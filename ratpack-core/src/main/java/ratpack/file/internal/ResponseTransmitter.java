@@ -17,11 +17,11 @@
 package ratpack.file.internal;
 
 
+import io.netty.handler.codec.http.HttpResponseStatus;
 import ratpack.http.Headers;
-import ratpack.http.Status;
 
 public interface ResponseTransmitter {
 
-  void transmit(Status status, Headers responseHeaders, Object body);
+  void transmit(HttpResponseStatus status, Headers responseHeaders, Object body);
 
 }

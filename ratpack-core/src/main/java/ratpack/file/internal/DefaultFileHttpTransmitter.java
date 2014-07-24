@@ -25,8 +25,9 @@ import io.netty.handler.stream.ChunkedNioStream;
 import ratpack.exec.ExecControl;
 import ratpack.file.MimeTypes;
 import ratpack.func.Action;
-import ratpack.http.internal.CustomHttpResponse;
+import ratpack.http.MutableHeaders;
 import ratpack.http.internal.HttpHeaderConstants;
+import ratpack.http.internal.NettyHeadersBackedMutableHeaders;
 import ratpack.util.internal.NumberUtil;
 
 import java.io.FileInputStream;
@@ -101,14 +102,6 @@ public class DefaultFileHttpTransmitter implements FileHttpTransmitter {
       httpHeaders.set(HttpHeaderConstants.CONTENT_ENCODING, HttpHeaders.Values.IDENTITY);
     }
 
-    transmitterAction.execute(new Action<ResponseTransmitter>() {
-      @Override
-      public void execute(ResponseTransmitter responseTransmitter) throws Exception {
-        // prep work?
-//        responseTransmitter.transmit();
-      }
-    });
-
     if (file.getFileSystem().equals(FileSystems.getDefault()) && !compressThis) {
       execContext.blocking(new Callable<FileChannel>() {
         public FileChannel call() throws Exception {
@@ -133,48 +126,30 @@ public class DefaultFileHttpTransmitter implements FileHttpTransmitter {
     }
   }
 
-  private void transmit(BasicFileAttributes basicFileAttributes, final Object message) {
-    HttpResponse response = new CustomHttpResponse(HttpResponseStatus.OK, httpHeaders);
-    response.headers().set(HttpHeaderConstants.CONTENT_LENGTH, basicFileAttributes.size());
+  private void transmit(final BasicFileAttributes basicFileAttributes, final Object message) throws Exception {
 
-    if (isKeepAlive(request)) {
-      response.headers().set(HttpHeaderConstants.CONNECTION, HttpHeaderConstants.KEEP_ALIVE);
-    }
+    final HttpHeaders httpHeaders = new DefaultHttpHeaders(false);
+    final MutableHeaders responseHeaders = new NettyHeadersBackedMutableHeaders(httpHeaders);
 
-    request.content().release();
+    transmitterAction.execute(new Action<ResponseTransmitter>() {
+      @Override
+      public void execute(ResponseTransmitter responseTransmitter) {
+        responseHeaders.set(HttpHeaderConstants.CONTENT_LENGTH, basicFileAttributes.size());
 
-    HttpResponse minimalResponse = new DefaultHttpResponse(response.getProtocolVersion(), response.getStatus());
-    minimalResponse.headers().set(response.headers());
-    long stopTime = System.nanoTime();
-
-    if (startTime > 0) {
-      minimalResponse.headers().set("X-Response-Time", NumberUtil.toMillisDiffString(startTime, stopTime));
-    }
-
-    ChannelFuture writeFuture = channel.writeAndFlush(minimalResponse);
-
-    writeFuture.addListener(new ChannelFutureListener() {
-      public void operationComplete(ChannelFuture future) throws Exception {
-        if (!future.isSuccess()) {
-          channel.close();
+        if (isKeepAlive(request)) {
+          responseHeaders.set(HttpHeaderConstants.CONNECTION, HttpHeaderConstants.KEEP_ALIVE);
         }
+
+        request.content().release();
+
+        long stopTime = System.nanoTime();
+        if (startTime > 0) {
+          responseHeaders.set("X-Response-Time", NumberUtil.toMillisDiffString(startTime, stopTime));
+        }
+
+        responseTransmitter.transmit(HttpResponseStatus.OK, responseHeaders, message);
       }
     });
-
-    writeFuture = channel.write(message);
-
-    writeFuture.addListener(new ChannelFutureListener() {
-      public void operationComplete(ChannelFuture future) {
-        if (!future.isSuccess()) {
-          channel.close();
-        }
-      }
-    });
-
-    ChannelFuture lastContentFuture = channel.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
-    if (!isKeepAlive(response)) {
-      lastContentFuture.addListener(ChannelFutureListener.CLOSE);
-    }
   }
 
   private boolean isContentTypeCompressible() {

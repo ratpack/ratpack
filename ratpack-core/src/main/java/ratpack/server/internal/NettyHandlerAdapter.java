@@ -153,8 +153,33 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
 
     final ResponseTransmitter responseTransmitter = new ResponseTransmitter() {
       @Override
-      public void transmit(Status status, Headers responseHeaders, Object body) {
-        // transmission logic
+      public void transmit(HttpResponseStatus status, Headers responseHeaders, Object body) {
+        HttpResponse response = new CustomHttpResponse(status, httpHeaders);
+
+        ChannelFuture writeFuture = channel.writeAndFlush(response);
+
+        writeFuture.addListener(new ChannelFutureListener() {
+          public void operationComplete(ChannelFuture future) throws Exception {
+            if (!future.isSuccess()) {
+              channel.close();
+            }
+          }
+        });
+
+        writeFuture = channel.write(body);
+
+        writeFuture.addListener(new ChannelFutureListener() {
+          public void operationComplete(ChannelFuture future) throws Exception {
+            if (!future.isSuccess()) {
+              channel.close();
+            }
+          }
+        });
+
+        ChannelFuture lastContentFuture = channel.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
+        if (!isKeepAlive(response)) {
+          lastContentFuture.addListener(ChannelFutureListener.CLOSE);
+        }
       }
     };
 
@@ -165,7 +190,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
       }
     };
 
-    FileHttpTransmitter fileHttpTransmitter = new DefaultFileHttpTransmitter(nettyRequest, httpHeaders, channel, mimeTypes,
+    final FileHttpTransmitter fileHttpTransmitter = new DefaultFileHttpTransmitter(nettyRequest, httpHeaders, channel, mimeTypes,
       compressResponses, compressionMinSize, compressionMimeTypeWhiteList, compressionMimeTypeBlackList, addResponseTimeHeader ? startTime : -1, wrapper);
     ChunkedResponseTransmitter chunkedResponseTransmitter = new DefaultChunkedResponseTransmitter(nettyRequest, httpHeaders, channel);
     ServerSentEventTransmitter serverSentEventTransmitter = new DefaultServerSentEventTransmitter(nettyRequest, httpHeaders, channel);
@@ -178,37 +203,38 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
     final Response response = new DefaultResponse(responseStatus, responseHeaders, fileHttpTransmitter, chunkedResponseTransmitter, serverSentEventTransmitter, ctx.alloc(), new Action<ByteBuf>() {
       @Override
       public void execute(final ByteBuf byteBuf) throws Exception {
-        final HttpResponse nettyResponse = new CustomHttpResponse(responseStatus.getResponseStatus(), httpHeaders);
 
-        nettyRequest.content().release();
-        responseHeaders.set(HttpHeaderConstants.CONTENT_LENGTH, byteBuf.writerIndex());
-        boolean shouldClose = true;
-        if (channel.isOpen()) {
-          if (isKeepAlive(nettyRequest)) {
-            responseHeaders.set(HttpHeaderConstants.CONNECTION, HttpHeaderConstants.KEEP_ALIVE);
-            shouldClose = false;
-          }
+        wrapper.execute(new Action<ResponseTransmitter>() {
+          @Override
+          public void execute(ResponseTransmitter responseTransmitter) throws Exception {
+            nettyRequest.content().release();
+            responseHeaders.set(HttpHeaderConstants.CONTENT_LENGTH, byteBuf.writerIndex());
 
-          long stopTime = System.nanoTime();
-          if (addResponseTimeHeader) {
-            responseHeaders.set("X-Response-Time", NumberUtil.toMillisDiffString(startTime, stopTime));
-          }
+            boolean shouldClose = true;
+            if (channel.isOpen()) {
+              if (isKeepAlive(nettyRequest)) {
+                responseHeaders.set(HttpHeaderConstants.CONNECTION, HttpHeaderConstants.KEEP_ALIVE);
+                shouldClose = false;
+              }
 
-          channel.writeAndFlush(nettyResponse);
-          channel.write(new DefaultHttpContent(byteBuf));
-          ChannelFuture future = channel.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
+              long stopTime = System.nanoTime();
+              if (addResponseTimeHeader) {
+                responseHeaders.set("X-Response-Time", NumberUtil.toMillisDiffString(startTime, stopTime));
+              }
 
-          if (requestOutcomeEventController.isHasListeners()) {
-            Headers headers = new DelegatingHeaders(responseHeaders);
-            Status status = new DefaultStatus(responseStatus.getCode(), responseStatus.getMessage());
-            SentResponse sentResponse = new DefaultSentResponse(headers, status);
-            RequestOutcome requestOutcome = new DefaultRequestOutcome(request, sentResponse, System.currentTimeMillis());
-            requestOutcomeEventController.fire(requestOutcome);
+              responseTransmitter.transmit(responseStatus.getResponseStatus(), responseHeaders, new DefaultHttpContent(byteBuf));
+
+              if (requestOutcomeEventController.isHasListeners()) {
+                Headers headers = new DelegatingHeaders(responseHeaders);
+                Status status = new DefaultStatus(responseStatus.getCode(), responseStatus.getMessage());
+                SentResponse sentResponse = new DefaultSentResponse(headers, status);
+                RequestOutcome requestOutcome = new DefaultRequestOutcome(request, sentResponse, System.currentTimeMillis());
+                requestOutcomeEventController.fire(requestOutcome);
+              }
+            }
           }
-          if (shouldClose) {
-            future.addListener(ChannelFutureListener.CLOSE);
-          }
-        }
+        });
+
       }
     });
 
