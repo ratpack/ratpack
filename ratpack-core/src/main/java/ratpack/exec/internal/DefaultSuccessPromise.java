@@ -16,6 +16,9 @@
 
 package ratpack.exec.internal;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import ratpack.exec.ExecutionException;
 import ratpack.exec.Fulfiller;
 import ratpack.exec.OverlappingExecutionException;
 import ratpack.exec.SuccessPromise;
@@ -26,8 +29,6 @@ import ratpack.util.ExceptionUtils;
 import ratpack.util.internal.InternalRatpackError;
 
 import java.util.concurrent.atomic.AtomicBoolean;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
 
@@ -98,8 +99,10 @@ public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
           }
         }
       });
+    } catch (ExecutionException e) {
+      throw e;
     } catch (Exception e) {
-      throw new InternalRatpackError("failed to add promise resume action");
+      throw new InternalRatpackError("failed to add promise resume action", e);
     }
   }
 
