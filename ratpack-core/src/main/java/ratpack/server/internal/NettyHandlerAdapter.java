@@ -168,7 +168,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
           }
 
           long stopTime = System.nanoTime();
-          if (startTime > 0) {
+          if (addResponseTimeHeader && startTime > 0) {
             response.headers().set("X-Response-Time", NumberUtil.toMillisDiffString(startTime, stopTime));
           }
 

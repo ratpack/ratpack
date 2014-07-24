@@ -19,8 +19,13 @@ package ratpack.file.internal;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
-import io.netty.channel.*;
-import io.netty.handler.codec.http.*;
+import io.netty.channel.Channel;
+import io.netty.channel.DefaultFileRegion;
+import io.netty.channel.FileRegion;
+import io.netty.handler.codec.http.DefaultHttpHeaders;
+import io.netty.handler.codec.http.FullHttpRequest;
+import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.stream.ChunkedNioStream;
 import ratpack.exec.ExecControl;
 import ratpack.file.MimeTypes;
@@ -28,7 +33,6 @@ import ratpack.func.Action;
 import ratpack.http.MutableHeaders;
 import ratpack.http.internal.HttpHeaderConstants;
 import ratpack.http.internal.NettyHeadersBackedMutableHeaders;
-import ratpack.util.internal.NumberUtil;
 
 import java.io.FileInputStream;
 import java.nio.channels.FileChannel;
@@ -38,8 +42,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.concurrent.Callable;
-
-import static io.netty.handler.codec.http.HttpHeaders.isKeepAlive;
 
 public class DefaultFileHttpTransmitter implements FileHttpTransmitter {
 
