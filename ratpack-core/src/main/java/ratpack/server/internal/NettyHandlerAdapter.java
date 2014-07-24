@@ -161,11 +161,10 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
 
         response.headers().set(HttpHeaderConstants.CONTENT_LENGTH, contentLength);
 
-        boolean shouldClose = true;
+        boolean isKeepAlive = isKeepAlive(nettyRequest);
         if (channel.isOpen()) {
-          if (isKeepAlive(nettyRequest)) {
+          if (isKeepAlive) {
             response.headers().set(HttpHeaderConstants.CONNECTION, HttpHeaderConstants.KEEP_ALIVE);
-            shouldClose = false;
           }
 
           long stopTime = System.nanoTime();
@@ -202,7 +201,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
           }
 
           ChannelFuture lastContentFuture = channel.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
-          if (shouldClose || !isKeepAlive(response)) {
+          if (!isKeepAlive) {
             lastContentFuture.addListener(ChannelFutureListener.CLOSE);
           }
         }
