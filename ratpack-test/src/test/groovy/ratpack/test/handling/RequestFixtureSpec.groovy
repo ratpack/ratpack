@@ -113,11 +113,11 @@ class RequestFixtureSpec extends Specification {
 
   def "can test handler that sends file calls onClose"() {
     given:
-    def foo
+    def counter = 0
 
     when:
     handle {
-      onClose { foo = "foo" }
+      onClose { counter++ }
       response.contentType("text/plain").sendFile(context, new File("foo").toPath())
     }
 
@@ -129,7 +129,7 @@ class RequestFixtureSpec extends Specification {
     exception == null
     sentFile == new File("foo").toPath()
     headers.get("content-type") == "text/plain;charset=UTF-8"
-    foo && foo == "foo"
+    counter == 1
   }
 
   def "can register things"() {
