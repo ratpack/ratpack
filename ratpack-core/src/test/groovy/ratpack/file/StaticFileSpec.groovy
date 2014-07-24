@@ -82,6 +82,26 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
     getText("dir/") == "bar"
   }
 
+  def "static files call onClose"() {
+    file "public/index.html", "foo"
+
+    given:
+    def counter = 0
+
+    when:
+    handlers {
+      get {
+        onClose { counter++ }
+        render file("public/index.html")
+      }
+    }
+
+    then:
+    getText() == "foo"
+    counter == 1
+
+  }
+
   @Unroll
   "index files are always served from a path with a trailing slash"() {
     given:
