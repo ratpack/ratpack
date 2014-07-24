@@ -19,6 +19,9 @@ package ratpack.test;
 import ratpack.func.Action;
 import ratpack.handling.Chain;
 import ratpack.handling.Handler;
+import ratpack.launch.LaunchConfigBuilder;
+import ratpack.test.exec.ExecHarness;
+import ratpack.test.exec.internal.DefaultExecHarness;
 import ratpack.test.handling.HandlerTimeoutException;
 import ratpack.test.handling.HandlingResult;
 import ratpack.test.handling.RequestFixture;
@@ -144,6 +147,92 @@ public abstract class UnitTest {
    */
   public static RequestFixture requestFixture() {
     return new DefaultRequestFixture();
+  }
+
+  /**
+   * Creates a new execution harness, for unit testing code that produces a promise.
+   * <pre class="java">
+   * import ratpack.func.Action;
+   * import ratpack.func.Function;
+   * import ratpack.exec.ExecControl;
+   * import ratpack.exec.Execution;
+   * import ratpack.exec.Promise;
+   * import ratpack.exec.Fulfiller;
+   * import ratpack.test.UnitTest;
+   * import ratpack.test.exec.ExecHarness;
+   * import javax.inject.Inject;
+   *
+   * public class Example {
+   *
+   *   // An async callback based API
+   *   static class AsyncApi {
+   *
+   *     static interface Callback&lt;T&gt; {
+   *       void receive(T value);
+   *     }
+   *
+   *     public &lt;T&gt; void returnAsync(final T value, final Callback&lt;? super T&gt; callback) {
+   *       new Thread() {
+   *         public void run() {
+   *           callback.receive(value);
+   *         }
+   *       }.run();
+   *     }
+   *   }
+   *
+   *   // Our service class that wraps the raw async API
+   *   // In the real app this is created by the DI container (e.g. Guice)
+   *   static class AsyncService {
+   *     private final ExecControl execControl;
+   *     private final AsyncApi asyncApi = new AsyncApi();
+   *
+   *     {@literal @}Inject
+   *     public AsyncService(ExecControl execControl) {
+   *       this.execControl = execControl;
+   *     }
+   *
+   *     // Our method under test
+   *     public &lt;T&gt; Promise&lt;T&gt; promise(final T value) {
+   *       return execControl.promise(new Action&lt;Fulfiller&lt;T&gt;&gt;() {
+   *         public void execute(final Fulfiller&lt;T&gt; fulfiller) {
+   *           asyncApi.returnAsync(value, new AsyncApi.Callback&lt;T&gt;() {
+   *             public void receive(T returnedValue) {
+   *               fulfiller.success(returnedValue);
+   *             }
+   *           });
+   *         }
+   *       });
+   *     }
+   *   }
+   *
+   *
+   *   // Our test
+   *   public static void main(String[] args) throws Throwable {
+   *
+   *     // the harness must be close()'d when finished with to free resources
+   *     try(ExecHarness harness = UnitTest.execHarness()) {
+   *
+   *       // set up the code under test using the exec control from the harness
+   *       final AsyncService service = new AsyncService(harness.getControl());
+   *
+   *       // exercise the async code using the harness, blocking until the promised value is available
+   *       String value = harness.execute(new Function&lt;Execution, Promise&lt;String&gt;&gt;() {
+   *         public Promise&lt;String&gt; apply(Execution execution) {
+   *           // execute the code under test
+   *           return service.promise("foo");
+   *         }
+   *       });
+   *
+   *       assert value == "foo";
+   *     }
+   *   }
+   * }
+   * </pre>
+   *
+   * @return An exec harness
+   */
+  public static ExecHarness execHarness() {
+    return new DefaultExecHarness(LaunchConfigBuilder.noBaseDir().build().getExecController());
   }
 
   private static RequestFixture buildFixture(Action<? super RequestFixture> action) {

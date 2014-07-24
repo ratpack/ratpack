@@ -73,7 +73,7 @@ public class DefaultExecController implements ExecController {
   public Execution getExecution() throws ExecutionException {
     Execution execution = executionHolder.get();
     if (execution == null) {
-      throw new ExecutionException("No execution is bound to the current thread (are you calling this from a blocking operation or a manual created thread?)");
+      throw new ExecutionException("No execution is bound to the current thread (i.e. you are not on a Ratpack managed thread)");
     } else {
       return execution;
     }
