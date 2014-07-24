@@ -151,34 +151,60 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
     final MutableHeaders responseHeaders = new NettyHeadersBackedMutableHeaders(httpHeaders);
     final MimeTypes mimeTypes = registry.get(MimeTypes.class);
 
+    final DefaultEventController<RequestOutcome> requestOutcomeEventController = new DefaultEventController<>();
+
     final ResponseTransmitter responseTransmitter = new ResponseTransmitter() {
       @Override
-      public void transmit(HttpResponseStatus status, Headers responseHeaders, Object body) {
-        HttpResponse response = new CustomHttpResponse(status, httpHeaders);
+      public void transmit(HttpResponseStatus httpResponseStatus, Headers responseHeaders, Number contentLength, Object body) {
+        HttpResponse response = new CustomHttpResponse(httpResponseStatus, httpHeaders);
+        nettyRequest.content().release();
 
-        ChannelFuture writeFuture = channel.writeAndFlush(response);
+        response.headers().set(HttpHeaderConstants.CONTENT_LENGTH, contentLength);
 
-        writeFuture.addListener(new ChannelFutureListener() {
-          public void operationComplete(ChannelFuture future) throws Exception {
-            if (!future.isSuccess()) {
-              channel.close();
-            }
+        boolean shouldClose = true;
+        if (channel.isOpen()) {
+          if (isKeepAlive(nettyRequest)) {
+            response.headers().set(HttpHeaderConstants.CONNECTION, HttpHeaderConstants.KEEP_ALIVE);
+            shouldClose = false;
           }
-        });
 
-        writeFuture = channel.write(body);
-
-        writeFuture.addListener(new ChannelFutureListener() {
-          public void operationComplete(ChannelFuture future) throws Exception {
-            if (!future.isSuccess()) {
-              channel.close();
-            }
+          long stopTime = System.nanoTime();
+          if (startTime > 0) {
+            response.headers().set("X-Response-Time", NumberUtil.toMillisDiffString(startTime, stopTime));
           }
-        });
 
-        ChannelFuture lastContentFuture = channel.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
-        if (!isKeepAlive(response)) {
-          lastContentFuture.addListener(ChannelFutureListener.CLOSE);
+          ChannelFuture writeFuture = channel.writeAndFlush(response);
+
+          writeFuture.addListener(new ChannelFutureListener() {
+            public void operationComplete(ChannelFuture future) throws Exception {
+              if (!future.isSuccess()) {
+                channel.close();
+              }
+            }
+          });
+
+          writeFuture = channel.write(body);
+
+          writeFuture.addListener(new ChannelFutureListener() {
+            public void operationComplete(ChannelFuture future) throws Exception {
+              if (!future.isSuccess()) {
+                channel.close();
+              }
+            }
+          });
+
+          if (requestOutcomeEventController.isHasListeners()) {
+            Headers headers = new DelegatingHeaders(responseHeaders);
+            Status status = new DefaultStatus(responseStatus.getCode(), responseStatus.getMessage());
+            SentResponse sentResponse = new DefaultSentResponse(headers, status);
+            RequestOutcome requestOutcome = new DefaultRequestOutcome(request, sentResponse, System.currentTimeMillis());
+            requestOutcomeEventController.fire(requestOutcome);
+          }
+
+          ChannelFuture lastContentFuture = channel.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
+          if (shouldClose || !isKeepAlive(response)) {
+            lastContentFuture.addListener(ChannelFutureListener.CLOSE);
+          }
         }
       }
     };
@@ -195,43 +221,16 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
     ChunkedResponseTransmitter chunkedResponseTransmitter = new DefaultChunkedResponseTransmitter(nettyRequest, httpHeaders, channel);
     ServerSentEventTransmitter serverSentEventTransmitter = new DefaultServerSentEventTransmitter(nettyRequest, httpHeaders, channel);
 
-    final DefaultEventController<RequestOutcome> requestOutcomeEventController = new DefaultEventController<>();
-
     // We own the lifecycle
     nettyRequest.content().retain();
 
     final Response response = new DefaultResponse(responseStatus, responseHeaders, fileHttpTransmitter, chunkedResponseTransmitter, serverSentEventTransmitter, ctx.alloc(), new Action<ByteBuf>() {
       @Override
       public void execute(final ByteBuf byteBuf) throws Exception {
-
         wrapper.execute(new Action<ResponseTransmitter>() {
           @Override
           public void execute(ResponseTransmitter responseTransmitter) throws Exception {
-            nettyRequest.content().release();
-            responseHeaders.set(HttpHeaderConstants.CONTENT_LENGTH, byteBuf.writerIndex());
-
-            boolean shouldClose = true;
-            if (channel.isOpen()) {
-              if (isKeepAlive(nettyRequest)) {
-                responseHeaders.set(HttpHeaderConstants.CONNECTION, HttpHeaderConstants.KEEP_ALIVE);
-                shouldClose = false;
-              }
-
-              long stopTime = System.nanoTime();
-              if (addResponseTimeHeader) {
-                responseHeaders.set("X-Response-Time", NumberUtil.toMillisDiffString(startTime, stopTime));
-              }
-
-              responseTransmitter.transmit(responseStatus.getResponseStatus(), responseHeaders, new DefaultHttpContent(byteBuf));
-
-              if (requestOutcomeEventController.isHasListeners()) {
-                Headers headers = new DelegatingHeaders(responseHeaders);
-                Status status = new DefaultStatus(responseStatus.getCode(), responseStatus.getMessage());
-                SentResponse sentResponse = new DefaultSentResponse(headers, status);
-                RequestOutcome requestOutcome = new DefaultRequestOutcome(request, sentResponse, System.currentTimeMillis());
-                requestOutcomeEventController.fire(requestOutcome);
-              }
-            }
+            responseTransmitter.transmit(responseStatus.getResponseStatus(), responseHeaders, byteBuf.writerIndex(), new DefaultHttpContent(byteBuf));
           }
         });
 

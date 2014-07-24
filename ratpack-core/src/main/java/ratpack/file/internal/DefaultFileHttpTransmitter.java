@@ -127,27 +127,12 @@ public class DefaultFileHttpTransmitter implements FileHttpTransmitter {
   }
 
   private void transmit(final BasicFileAttributes basicFileAttributes, final Object message) throws Exception {
-
-    final HttpHeaders httpHeaders = new DefaultHttpHeaders(false);
-    final MutableHeaders responseHeaders = new NettyHeadersBackedMutableHeaders(httpHeaders);
-
     transmitterAction.execute(new Action<ResponseTransmitter>() {
       @Override
       public void execute(ResponseTransmitter responseTransmitter) {
-        responseHeaders.set(HttpHeaderConstants.CONTENT_LENGTH, basicFileAttributes.size());
-
-        if (isKeepAlive(request)) {
-          responseHeaders.set(HttpHeaderConstants.CONNECTION, HttpHeaderConstants.KEEP_ALIVE);
-        }
-
-        request.content().release();
-
-        long stopTime = System.nanoTime();
-        if (startTime > 0) {
-          responseHeaders.set("X-Response-Time", NumberUtil.toMillisDiffString(startTime, stopTime));
-        }
-
-        responseTransmitter.transmit(HttpResponseStatus.OK, responseHeaders, message);
+        HttpHeaders httpHeaders = new DefaultHttpHeaders(false);
+        MutableHeaders responseHeaders = new NettyHeadersBackedMutableHeaders(httpHeaders);
+        responseTransmitter.transmit(HttpResponseStatus.OK, responseHeaders, basicFileAttributes.size(), message);
       }
     });
   }
