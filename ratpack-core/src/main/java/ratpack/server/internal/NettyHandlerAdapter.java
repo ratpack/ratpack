@@ -155,7 +155,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
 
     final ResponseTransmitter responseTransmitter = new ResponseTransmitter() {
       @Override
-      public void transmit(HttpResponseStatus httpResponseStatus, Headers responseHeaders, Number contentLength, Object body) {
+      public void transmit(HttpResponseStatus httpResponseStatus, Headers responseHeaders, Long contentLength, Object body) {
         HttpResponse response = new CustomHttpResponse(httpResponseStatus, httpHeaders);
         nettyRequest.content().release();
 
@@ -229,7 +229,8 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
         wrapper.execute(new Action<ResponseTransmitter>() {
           @Override
           public void execute(ResponseTransmitter responseTransmitter) throws Exception {
-            responseTransmitter.transmit(responseStatus.getResponseStatus(), responseHeaders, byteBuf.writerIndex(), new DefaultHttpContent(byteBuf));
+            Long contentLength = (long) byteBuf.writerIndex();
+            responseTransmitter.transmit(responseStatus.getResponseStatus(), responseHeaders, contentLength, new DefaultHttpContent(byteBuf));
           }
         });
 

@@ -22,6 +22,6 @@ import ratpack.http.Headers;
 
 public interface ResponseTransmitter {
 
-  void transmit(HttpResponseStatus status, Headers responseHeaders, Number contentLength, Object body);
+  void transmit(HttpResponseStatus status, Headers responseHeaders, Long contentLength, Object body);
 
 }
