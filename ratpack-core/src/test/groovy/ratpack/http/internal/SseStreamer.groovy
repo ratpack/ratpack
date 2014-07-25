@@ -22,22 +22,22 @@ import org.reactivestreams.Subscription
 import ratpack.http.ServerSentEvent
 
 class SseStreamer implements Publisher<ServerSentEvent> {
-  boolean started
-
   @Override
   void subscribe(Subscriber<ServerSentEvent> subscriber) {
     Subscription subscription = new Subscription() {
+      boolean started
+
       @Override
-      void cancel() {}
+      void cancel() { }
 
       @Override
       void request(int elements) {
         if (!started) {
           started = true
           Thread.start {
-            [1, 2, 3].each {
+            (1..3).each {
               subscriber.onNext(new ServerSentEvent(it.toString(), "add", "Event $it".toString()))
-              Thread.sleep(500)
+              Thread.sleep(100)
             }
 
             subscriber.onComplete()

@@ -79,6 +79,7 @@ abstract class StreamTransmitterSupport<T extends StreamElement> implements Stre
         writeFuture.addListener(new ChannelFutureListener() {
           public void operationComplete(ChannelFuture future) throws Exception {
             if (!future.isSuccess()) {
+              subscription.cancel();
               channel.close();
             }
           }

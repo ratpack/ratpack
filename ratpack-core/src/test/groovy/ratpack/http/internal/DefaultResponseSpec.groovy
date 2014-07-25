@@ -259,36 +259,4 @@ class DefaultResponseSpec extends RatpackGroovyDslSpec {
     text == "abcd"
   }
 
-  def "can send chunked response"() {
-    when:
-    handlers {
-      handler {
-        response.send(context, new LargeContentPublisher())
-      }
-    }
-
-    then:
-    def response = get()
-    response.statusCode == OK.code()
-    response.header("Content-Length") == "0"
-    response.header("Transfer-Encoding") == "chunked"
-    response.body.asString() == "14\r\nThis is a really lon\r\n14\r\ng string that needs \r\n12\r\nto be sent chunked\r\n0\r\n\r\n"
-  }
-
-  def "can send SSE"() {
-    when:
-    handlers {
-      handler {
-        response.sendServerSentEventStream(context, new SseStreamer())
-      }
-    }
-
-    then:
-    def response = get()
-    response.statusCode == OK.code()
-    response.header("Content-Type") == "text/event-stream;charset=UTF-8"
-    response.header("Cache-Control") == "no-cache, no-store, max-age=0, must-revalidate"
-    response.header("Pragma") == "no-cache"
-    response.body.asString() == "event: add\ndata: Event 1\nid: 1\n\nevent: add\ndata: Event 2\nid: 2\n\nevent: add\ndata: Event 3\nid: 3\n\n"
-  }
 }
