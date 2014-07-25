@@ -192,6 +192,8 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
             }
           });
 
+          ChannelFuture lastContentFuture = channel.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
+
           if (requestOutcomeEventController.isHasListeners()) {
             Headers headers = new DelegatingHeaders(responseHeaders);
             Status status = new DefaultStatus(responseStatus.getCode(), responseStatus.getMessage());
@@ -200,7 +202,6 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
             requestOutcomeEventController.fire(requestOutcome);
           }
 
-          ChannelFuture lastContentFuture = channel.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
           if (!isKeepAlive) {
             lastContentFuture.addListener(ChannelFutureListener.CLOSE);
           }

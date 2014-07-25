@@ -21,6 +21,7 @@ import org.apache.commons.lang3.RandomStringUtils
 import ratpack.http.internal.HttpHeaderDateFormat
 import ratpack.test.internal.RatpackGroovyDslSpec
 import spock.lang.Unroll
+import spock.util.concurrent.PollingConditions
 
 import static io.netty.handler.codec.http.HttpHeaders.Names.*
 import static io.netty.handler.codec.http.HttpResponseStatus.*
@@ -83,9 +84,8 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
   }
 
   def "static files call onClose"() {
-    file "public/index.html", "foo"
-
     given:
+    file "public/index.html", "foo"
     def counter = 0
 
     when:
@@ -98,7 +98,9 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
 
     then:
     getText() == "foo"
-    counter == 1
+    new PollingConditions().within(3) {
+      counter == 1
+    }
 
   }
 
