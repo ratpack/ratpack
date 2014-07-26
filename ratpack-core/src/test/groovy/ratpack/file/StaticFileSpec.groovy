@@ -19,6 +19,7 @@ package ratpack.file
 import com.jayway.restassured.response.Response
 import org.apache.commons.lang3.RandomStringUtils
 import ratpack.http.internal.HttpHeaderDateFormat
+import ratpack.server.Stopper
 import ratpack.test.internal.RatpackGroovyDslSpec
 import spock.lang.Unroll
 import spock.util.concurrent.PollingConditions
@@ -100,6 +101,32 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
     getText() == "foo"
     new PollingConditions().within(3) {
       counter == 1
+    }
+
+  }
+
+  def "ensure that onClose is called after file is rendered"() {
+    given:
+    file "public/index.html", "foo"
+    file "public/bar.html", "bar"
+
+    when:
+    handlers {
+      assets("public")
+      get { Stopper stopper ->
+        onClose { stopper.stop() }
+        render file("public/index.html")
+      }
+    }
+
+    then:
+    new PollingConditions().within(3) {
+      try {
+        getText('bar.html') == "bar"
+        getText() == "foo"
+      } catch (ConnectException ignore) {
+        false
+      }
     }
 
   }
