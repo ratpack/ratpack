@@ -16,11 +16,9 @@
 
 package ratpack.handling
 
+import ratpack.error.ClientErrorHandler
 import ratpack.error.ServerErrorHandler
-import ratpack.groovy.templating.internal.Render
 import ratpack.render.Renderer
-import ratpack.render.RendererException
-import ratpack.render.internal.RenderController
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 import static ratpack.registry.Registries.just
@@ -122,7 +120,7 @@ class ErrorHandlingSpec extends RatpackGroovyDslSpec {
     response.statusCode == 500
   }
 
-  def "exceptions thrown by render in error handler are dealt with deterministically"() {
+  def "exceptions thrown by render in server error handler are dealt with deterministically"() {
     when:
     bindings {
       bind Renderer, new Renderer<Map>() {
@@ -146,6 +144,43 @@ class ErrorHandlingSpec extends RatpackGroovyDslSpec {
     handlers {
       get {
         throw new RuntimeException("in handler")
+      }
+    }
+
+    then:
+    text == ""
+    response.statusCode == 500
+  }
+
+  def "exceptions thrown by client error handler are dealt with deterministically from error prone server error handler"() {
+    when:
+    bindings {
+      bind ClientErrorHandler, new ClientErrorHandler() {
+        @Override
+        void error(Context context, int statusCode) throws Exception {
+          throw new RuntimeException("Error rendering client error")
+        }
+      }
+      bind Renderer, new Renderer<Map>() {
+        @Override
+        Class<Map> getType() { Map }
+
+        @Override
+        void render(Context context, Map object) throws Exception {
+          throw new RuntimeException("Error rendering map")
+        }
+      }
+      bind ServerErrorHandler, new ServerErrorHandler() {
+        @Override
+        void error(Context context, Exception exception) {
+          context.render([:])
+        }
+      }
+    }
+
+    handlers {
+      get {
+        clientError(400)
       }
     }
 
