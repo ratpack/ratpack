@@ -25,23 +25,19 @@ class SseStreamer implements Publisher<ServerSentEvent> {
   @Override
   void subscribe(Subscriber<ServerSentEvent> subscriber) {
     Subscription subscription = new Subscription() {
-      boolean started
 
       @Override
       void cancel() { }
 
       @Override
       void request(int elements) {
-        if (!started) {
-          started = true
-          Thread.start {
-            (1..3).each {
-              subscriber.onNext(new ServerSentEvent(it.toString(), "add", "Event $it".toString()))
-              Thread.sleep(100)
-            }
-
-            subscriber.onComplete()
+        Thread.start {
+          (1..3).each {
+            subscriber.onNext(new ServerSentEvent(it.toString(), "add", "Event $it".toString()))
+            Thread.sleep(100)
           }
+
+          subscriber.onComplete()
         }
       }
     }

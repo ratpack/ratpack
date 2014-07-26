@@ -54,7 +54,6 @@ class ResponseStreamingSpec extends RatpackGroovyDslSpec {
 
     expect:
     def response = get()
-    client.resetRequest()
     response.statusCode == OK.code()
     response.header("Content-Type") == "text/event-stream;charset=UTF-8"
     response.header("Cache-Control") == "no-cache, no-store, max-age=0, must-revalidate"
@@ -73,21 +72,17 @@ class ResponseStreamingSpec extends RatpackGroovyDslSpec {
           @Override
           void subscribe(Subscriber<ServerSentEvent> s) {
             s.onSubscribe(new Subscription() {
-              boolean started
 
               @Override
               void request(int n) {
-                if (!started) {
-                  started = true
-                  Thread.start {
-                    for (i in 0..100) {
-                      s.onNext(new ServerSentEvent(it.toString(), "add", "Event $it".toString()))
-                      onNextLatch.countDown()
-                      Thread.sleep(100)
-                    }
-
-                    s.onComplete()
+                Thread.start {
+                  (0..100).each {
+                    s.onNext(new ServerSentEvent(it.toString(), "add", "Event $it".toString()))
+                    onNextLatch.countDown()
+                    Thread.sleep(100)
                   }
+
+                  s.onComplete()
                 }
               }
 
@@ -102,9 +97,9 @@ class ResponseStreamingSpec extends RatpackGroovyDslSpec {
     }
 
     expect:
-    HttpURLConnection conn = (HttpURLConnection) getAddress().toURL().openConnection()
+    URLConnection conn = getAddress().toURL().openConnection()
     conn.connect()
-    InputStream is = conn.getInputStream()
+    InputStream is = conn.inputStream
     // wait for at least one event to be sent to the subscriber
     onNextLatch.await()
     is.close()

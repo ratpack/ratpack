@@ -84,7 +84,6 @@ abstract class StreamTransmitterSupport<T extends StreamElement> implements Stre
             }
           }
         });
-        this.subscription.request(1); //TODO: request Integer.MAX again when a threshold is reached
       }
 
       @Override

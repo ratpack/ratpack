@@ -22,8 +22,6 @@ import org.reactivestreams.Subscription
 import ratpack.http.HttpResponseChunk
 
 class LargeContentPublisher implements Publisher<HttpResponseChunk> {
-  boolean started
-
   @Override
   void subscribe(Subscriber<HttpResponseChunk> subscriber) {
     Subscription subscription = new Subscription() {
@@ -32,16 +30,13 @@ class LargeContentPublisher implements Publisher<HttpResponseChunk> {
 
       @Override
       void request(int elements) {
-        if (!started) {
-          started = true
-          Thread.start {
-            "This is a really long string that needs to be sent chunked".toList().collate(20).each {
-              subscriber.onNext(new HttpResponseChunk(it.join('')))
-              Thread.sleep(500)
-            }
-
-            subscriber.onComplete()
+        Thread.start {
+          "This is a really long string that needs to be sent chunked".toList().collate(20).each {
+            subscriber.onNext(new HttpResponseChunk(it.join('')))
+            Thread.sleep(500)
           }
+
+          subscriber.onComplete()
         }
       }
     }
