@@ -17,6 +17,10 @@
 package ratpack.handling
 
 import ratpack.error.ServerErrorHandler
+import ratpack.groovy.templating.internal.Render
+import ratpack.render.Renderer
+import ratpack.render.RendererException
+import ratpack.render.internal.RenderController
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 import static ratpack.registry.Registries.just
@@ -103,6 +107,38 @@ class ErrorHandlingSpec extends RatpackGroovyDslSpec {
         @Override
         void error(Context context, Exception exception) {
           throw new RuntimeException("in error handler")
+        }
+      }
+    }
+
+    handlers {
+      get {
+        throw new RuntimeException("in handler")
+      }
+    }
+
+    then:
+    text == ""
+    response.statusCode == 500
+  }
+
+  def "exceptions thrown by render in error handler are dealt with deterministically"() {
+    when:
+    bindings {
+      bind Renderer, new Renderer<Map>() {
+        @Override
+        Class<Map> getType() { Map }
+
+        @Override
+        void render(Context context, Map object) throws Exception {
+          throw new RuntimeException("Error rendering map")
+        }
+      }
+
+      bind ServerErrorHandler, new ServerErrorHandler() {
+        @Override
+        void error(Context context, Exception exception) {
+          context.render([:])
         }
       }
     }
