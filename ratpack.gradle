@@ -74,6 +74,8 @@ ext {
   isSnapshot = version.endsWith("SNAPSHOT")
   isTravis = System.getenv("TRAVIS") != null
   isDrone = System.getenv("DRONE") != null
+  isCodeship = System.getenv("CI") == "codeship"
+  isCloudCi = isTravis || isDrone || isCodeship
 
   publishedModules = [
     "ratpack-core", "ratpack-groovy", "ratpack-guice", "ratpack-session", "ratpack-test", "ratpack-groovy-test",

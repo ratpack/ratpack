@@ -52,5 +52,5 @@ javadoc {
 }
 
 test {
-  maxParallelForks isTravis || isDrone ? 1 : 2
+  maxParallelForks isCloudCi ? 1 : 2
 }
