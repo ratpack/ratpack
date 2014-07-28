@@ -18,11 +18,15 @@ package ratpack.file
 
 import com.jayway.restassured.response.Response
 import org.apache.commons.lang3.RandomStringUtils
+import org.apache.http.conn.HttpHostConnectException
 import ratpack.http.internal.HttpHeaderDateFormat
+import ratpack.launch.LaunchException
 import ratpack.server.Stopper
 import ratpack.test.internal.RatpackGroovyDslSpec
 import spock.lang.Unroll
 import spock.util.concurrent.PollingConditions
+
+import java.util.concurrent.RejectedExecutionException
 
 import static io.netty.handler.codec.http.HttpHeaders.Names.*
 import static io.netty.handler.codec.http.HttpResponseStatus.*
@@ -108,26 +112,27 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
   def "ensure that onClose is called after file is rendered"() {
     given:
     file "public/index.html", "foo"
-    file "public/bar.html", "bar"
 
     when:
     handlers {
-      assets("public")
-      get { Stopper stopper ->
+      handler { Stopper stopper ->
         onClose { stopper.stop() }
+        next()
+      }
+      assets("public")
+      get {
         render file("public/index.html")
       }
     }
 
     then:
-    new PollingConditions().within(3) {
-      try {
-        getText('bar.html') == "bar"
-        getText() == "foo"
-      } catch (ConnectException ignore) {
-        false
-      }
-    }
+    text == "foo"
+
+    when:
+    text
+
+    then:
+    thrown HttpHostConnectException
 
   }
 
