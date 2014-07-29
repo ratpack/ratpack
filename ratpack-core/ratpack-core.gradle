@@ -32,3 +32,7 @@ dependencies {
 
   runtime 'org.javassist:javassist:3.18.1-GA'
 }
+
+test {
+  maxParallelForks = 3
+}
