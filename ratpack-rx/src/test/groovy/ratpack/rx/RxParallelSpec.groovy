@@ -29,7 +29,7 @@ import static ratpack.rx.RxRatpack.observe
 class RxParallelSpec extends Specification {
 
   @AutoCleanup
-  def controller = new DefaultExecController(10) // 10 threads in event loop
+  def controller = new DefaultExecController(12)
   def control = controller.control
 
   def setup() {
