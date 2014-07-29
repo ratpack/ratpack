@@ -25,9 +25,7 @@ import ratpack.launch.LaunchConfigs
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import static ratpack.launch.LaunchConfigs.Property.HANDLER_FACTORY
-import static ratpack.launch.LaunchConfigs.Property.SSL_KEYSTORE_FILE
-import static ratpack.launch.LaunchConfigs.Property.SSL_KEYSTORE_PASSWORD
+import static ratpack.launch.LaunchConfigs.Property.*
 
 class KeystoreConfigurationSpec extends Specification {
 
@@ -55,6 +53,9 @@ class KeystoreConfigurationSpec extends Specification {
 
     then:
     launchConfig.getSSLContext() != null
+
+    cleanup:
+    launchConfig.execController.close()
 
     where:
     keystoreFileProperty          | description
