@@ -341,7 +341,14 @@ public class DefaultContext implements Context {
 
     Exception unpacked = unpackException(exception);
 
+    InternalServerExceptionWrapper handledException = getRequest().maybeGet(InternalServerExceptionWrapper.class);
+    Exception unwrappedException = handledException != null ? handledException.getException() : null;
     try {
+      if (unwrappedException != null) {
+        throw unwrappedException;
+      }
+      getRequest().register(InternalServerExceptionWrapper.class, new InternalServerExceptionWrapper(unpacked));
+
       serverErrorHandler.error(this, unpacked);
     } catch (Exception errorHandlerException) {
       LOGGER.error("Exception thrown by error handler "
