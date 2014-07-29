@@ -19,10 +19,10 @@ package ratpack.http.internal
 import com.google.common.collect.ImmutableMultimap
 import ratpack.groovy.internal.ClosureUtil
 import ratpack.http.HttpUrlSpec
-import ratpack.test.internal.RatpackGroovyDslSpec
+import spock.lang.Specification
 import spock.lang.Unroll
 
-class HttpUrlSpecBackingSpec extends RatpackGroovyDslSpec {
+class HttpUrlSpecBackingSpec extends Specification {
 
   String build(@DelegatesTo(HttpUrlSpec) Closure<?> closure) {
     def builder = new HttpUrlSpecBacking()
