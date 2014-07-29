@@ -351,13 +351,30 @@ public class DefaultContext implements Context {
 
       serverErrorHandler.error(this, unpacked);
     } catch (Exception errorHandlerException) {
-      LOGGER.error("Exception thrown by error handler "
+      StringBuilder sb = new StringBuilder();
+      String originalExceptionMessage = "Exception thrown by error handler "
         + serverErrorHandler.toString()
-        + " while handling exception\nOriginal exception: ", unpacked);
+        + " while handling exception\nOriginal exception: ";
+      LOGGER.error(originalExceptionMessage, unpacked);
+      sb.append(originalExceptionMessage).append("\n");
+      for (StackTraceElement element: unpacked.getStackTrace()) {
+        sb.append(element.toString()).append("\n");
+      }
+      sb.append("\n");
 
-      LOGGER.error("Error handler exception: ", errorHandlerException);
+      String handlerExceptionMessage = "Error handler exception: ";
+      LOGGER.error(handlerExceptionMessage, errorHandlerException);
+      sb.append(handlerExceptionMessage).append("\n");
+      for (StackTraceElement element: errorHandlerException.getStackTrace()) {
+        sb.append(element.toString()).append("\n");
+      }
 
-      requestConstants.response.status(500).send();
+      Response response = requestConstants.response.status(500);
+      if (getLaunchConfig().isReloadable()) {
+        response.send(sb.toString());
+      } else {
+        response.send();
+      }
     }
   }
 
