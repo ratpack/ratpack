@@ -39,7 +39,7 @@ class ResponseStreamingSpec extends RatpackGroovyDslSpec {
     expect:
     def response = get()
     response.statusCode == OK.code()
-    response.header("Content-Length") == "0"
+    !response.headers.hasHeaderWithName("Content-Length")
     response.header("Transfer-Encoding") == "chunked"
     response.body.asString() == "14\r\nThis is a really lon\r\n14\r\ng string that needs \r\n12\r\nto be sent chunked\r\n0\r\n\r\n"
   }

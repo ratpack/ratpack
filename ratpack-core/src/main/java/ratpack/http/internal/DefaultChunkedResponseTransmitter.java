@@ -33,7 +33,6 @@ public class DefaultChunkedResponseTransmitter extends StreamTransmitterSupport<
 
   @Override
   protected void setResponseHeaders(HttpResponse response) {
-    response.headers().set("Content-Length", 0);
     response.headers().set("Transfer-Encoding", "chunked");
 
     super.setResponseHeaders(response);
