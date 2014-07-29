@@ -109,6 +109,7 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
 
   }
 
+  @Unroll
   def "ensure that onClose is called after file is rendered"() {
     given:
     file "public/index.html", "foo"
@@ -126,13 +127,11 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    text == "foo"
+    getText(location) == "foo"
+    !server.running
 
-    when:
-    text
-
-    then:
-    thrown HttpHostConnectException
+    where:
+    location << ['', 'index.html']
 
   }
 
