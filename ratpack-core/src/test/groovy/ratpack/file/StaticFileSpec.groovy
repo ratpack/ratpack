@@ -128,7 +128,9 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
 
     then:
     getText(location) == "foo"
-    !server.running
+    new PollingConditions().within(1) {
+      !server.running
+    }
 
     where:
     location << ['', 'index.html']
