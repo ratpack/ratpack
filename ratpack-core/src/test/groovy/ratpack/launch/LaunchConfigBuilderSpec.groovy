@@ -32,11 +32,17 @@ class LaunchConfigBuilderSpec extends Specification {
   }
 
   def "no base dir"() {
+    given:
+    def launchConfig = LaunchConfigBuilder.noBaseDir().build(new TestHandlerFactory())
+
     when:
-    LaunchConfigBuilder.noBaseDir().build(new TestHandlerFactory()).baseDir
+    launchConfig.baseDir
 
     then:
     thrown(NoBaseDirException)
+
+    cleanup:
+    launchConfig.execController.close()
   }
 
 }
