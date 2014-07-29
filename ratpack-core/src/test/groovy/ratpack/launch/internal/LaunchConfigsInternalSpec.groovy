@@ -49,6 +49,8 @@ class LaunchConfigsInternalSpec extends Specification {
   def properties = new Properties()
   def env = [:] as Map<String, String>
 
+  List<LaunchConfig> launchConfigs = []
+
   static class TestHandlerFactory implements HandlerFactory {
     @Override
     Handler create(LaunchConfig launchConfig) {
@@ -362,7 +364,9 @@ class LaunchConfigsInternalSpec extends Specification {
   }
 
   private LaunchConfig createLaunchConfig(Properties p = properties, Map<String, String> e = env) {
-    return LaunchConfigsInternal.createLaunchConfig(new LaunchConfigData(classLoader, baseDir, p, e))
+    def launchConfig = LaunchConfigsInternal.createLaunchConfig(new LaunchConfigData(classLoader, baseDir, p, e))
+    launchConfigs << launchConfig
+    launchConfig
   }
 
   private static Properties newProps(Map<String, String> values) {
@@ -373,6 +377,10 @@ class LaunchConfigsInternalSpec extends Specification {
 
   private Path getCurrentDir() {
     return Paths.get(temporaryFolder.newFolder().toURI())
+  }
+
+  def cleanup() {
+    launchConfigs.each { it.execController.close() }
   }
 
 }
