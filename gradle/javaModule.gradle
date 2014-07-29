@@ -53,4 +53,9 @@ javadoc {
 
 test {
   maxParallelForks isCloudCi ? 1 : 2
+  if (isCloudCi) {
+    testLogging {
+      events "failed", "started"
+    }
+  }
 }
