@@ -10,7 +10,7 @@ notifications:
       yfqirzv07gUQ1erEInKwhGFKSEPfyHHSPZ2CjyTuYXnL2parNv0=
 install: true
 script: 
-- ./gradlew clean check jacocoReport coveralls
+- ./gradlew clean check jacocoReport coveralls --stacktrace
 env:
   global:
     - TERM=dumb
