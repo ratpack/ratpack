@@ -119,7 +119,6 @@ public class DefaultFileHttpTransmitter implements FileHttpTransmitter {
     transmitterAction.execute(new Action<ResponseTransmitter>() {
       @Override
       public void execute(ResponseTransmitter responseTransmitter) {
-        HttpHeaders httpHeaders = new DefaultHttpHeaders(false);
         MutableHeaders responseHeaders = new NettyHeadersBackedMutableHeaders(httpHeaders);
         responseTransmitter.transmit(HttpResponseStatus.OK, responseHeaders, basicFileAttributes.size(), message);
       }
