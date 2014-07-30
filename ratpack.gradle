@@ -288,7 +288,7 @@ task stage {
 }
 
 task jacocoReport(type: org.gradle.testing.jacoco.tasks.JacocoReport) {
-  mustRunAfter publishedModules.test
+  dependsOn publishedModules.test
   sourceDirectories = files(publishedModules.sourceSets.main.allSource.srcDirs)
   classDirectories = files(publishedModules.sourceSets.main.output)
   executionData = files(publishedModules.jacocoTestReport.executionData)
