@@ -216,8 +216,8 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
       }
     };
 
-    final FileHttpTransmitter fileHttpTransmitter = new DefaultFileHttpTransmitter(nettyRequest, httpHeaders, channel, mimeTypes,
-      compressResponses, compressionMinSize, compressionMimeTypeWhiteList, compressionMimeTypeBlackList, addResponseTimeHeader ? startTime : -1, wrapper);
+    final FileHttpTransmitter fileHttpTransmitter = new DefaultFileHttpTransmitter(httpHeaders, mimeTypes,
+      compressResponses, compressionMinSize, compressionMimeTypeWhiteList, compressionMimeTypeBlackList, wrapper);
     ChunkedResponseTransmitter chunkedResponseTransmitter = new DefaultChunkedResponseTransmitter(nettyRequest, httpHeaders, channel);
     ServerSentEventTransmitter serverSentEventTransmitter = new DefaultServerSentEventTransmitter(nettyRequest, httpHeaders, channel);
 

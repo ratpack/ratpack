@@ -19,10 +19,8 @@ package ratpack.file.internal;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
-import io.netty.channel.Channel;
 import io.netty.channel.DefaultFileRegion;
 import io.netty.channel.FileRegion;
-import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.stream.ChunkedNioStream;
@@ -44,23 +42,17 @@ import java.util.concurrent.Callable;
 
 public class DefaultFileHttpTransmitter implements FileHttpTransmitter {
 
-  private final FullHttpRequest request;
   private final HttpHeaders httpHeaders;
-  private final Channel channel;
   private final boolean compress;
-  private final long startTime;
   private final long compressionMinSize;
   private final ImmutableSet<String> compressionMimeTypeWhiteList;
   private final ImmutableSet<String> compressionMimeTypeBlackList;
   private final Action<? super Action<? super ResponseTransmitter>> transmitterAction;
 
-  public DefaultFileHttpTransmitter(FullHttpRequest request, HttpHeaders httpHeaders, Channel channel, MimeTypes mimeTypes, boolean compress, Long compressionMinSize,
-                                    ImmutableSet<String> compressionMimeTypeWhiteList, ImmutableSet<String> compressionMimeTypeBlackList, long startTime, Action<? super Action<? super ResponseTransmitter>> transmitterAction) {
-    this.request = request;
+  public DefaultFileHttpTransmitter(HttpHeaders httpHeaders, MimeTypes mimeTypes, boolean compress, Long compressionMinSize,
+                                    ImmutableSet<String> compressionMimeTypeWhiteList, ImmutableSet<String> compressionMimeTypeBlackList, Action<? super Action<? super ResponseTransmitter>> transmitterAction) {
     this.httpHeaders = httpHeaders;
-    this.channel = channel;
     this.compress = compress;
-    this.startTime = startTime;
     this.compressionMinSize = compressionMinSize;
     this.compressionMimeTypeWhiteList = compressionMimeTypeWhiteList;
     this.compressionMimeTypeBlackList = compressionMimeTypeBlackList != null ? compressionMimeTypeBlackList : defaultExcludedMimeTypes(mimeTypes);
