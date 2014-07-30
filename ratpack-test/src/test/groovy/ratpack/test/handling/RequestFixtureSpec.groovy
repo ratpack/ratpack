@@ -29,6 +29,7 @@ import ratpack.registry.Registries
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
+import spock.util.concurrent.BlockingVariable
 
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
@@ -109,6 +110,28 @@ class RequestFixtureSpec extends Specification {
     exception == null
     sentFile == new File("foo").toPath()
     headers.get("content-type") == "text/plain;charset=UTF-8"
+  }
+
+  def "can test handler that sends file calls onClose"() {
+    given:
+    def onCloseCalled = false
+    def onCloseCalledWrapper = new BlockingVariable<Boolean>(1)
+
+    when:
+    handle {
+      onClose { onCloseCalled = true; onCloseCalledWrapper.set(onCloseCalled) }
+      response.contentType("text/plain").sendFile(context, new File("foo").toPath())
+    }
+
+    then:
+    bodyText == null
+    bodyBytes == null
+    !calledNext
+    !sentResponse
+    exception == null
+    sentFile == new File("foo").toPath()
+    headers.get("content-type") == "text/plain;charset=UTF-8"
+    onCloseCalledWrapper.get()
   }
 
   def "can register things"() {

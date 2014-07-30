@@ -19,15 +19,20 @@ package ratpack.file.internal;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
-import io.netty.channel.*;
-import io.netty.handler.codec.http.*;
+import io.netty.channel.Channel;
+import io.netty.channel.DefaultFileRegion;
+import io.netty.channel.FileRegion;
+import io.netty.handler.codec.http.DefaultHttpHeaders;
+import io.netty.handler.codec.http.FullHttpRequest;
+import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.stream.ChunkedNioStream;
 import ratpack.exec.ExecControl;
 import ratpack.file.MimeTypes;
 import ratpack.func.Action;
-import ratpack.http.internal.CustomHttpResponse;
+import ratpack.http.MutableHeaders;
 import ratpack.http.internal.HttpHeaderConstants;
-import ratpack.util.internal.NumberUtil;
+import ratpack.http.internal.NettyHeadersBackedMutableHeaders;
 
 import java.io.FileInputStream;
 import java.nio.channels.FileChannel;
@@ -37,8 +42,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.concurrent.Callable;
-
-import static io.netty.handler.codec.http.HttpHeaders.isKeepAlive;
 
 public class DefaultFileHttpTransmitter implements FileHttpTransmitter {
 
@@ -50,9 +53,10 @@ public class DefaultFileHttpTransmitter implements FileHttpTransmitter {
   private final long compressionMinSize;
   private final ImmutableSet<String> compressionMimeTypeWhiteList;
   private final ImmutableSet<String> compressionMimeTypeBlackList;
+  private final Action<? super Action<? super ResponseTransmitter>> transmitterAction;
 
   public DefaultFileHttpTransmitter(FullHttpRequest request, HttpHeaders httpHeaders, Channel channel, MimeTypes mimeTypes, boolean compress, Long compressionMinSize,
-                                      ImmutableSet<String> compressionMimeTypeWhiteList, ImmutableSet<String> compressionMimeTypeBlackList, long startTime) {
+                                      ImmutableSet<String> compressionMimeTypeWhiteList, ImmutableSet<String> compressionMimeTypeBlackList, long startTime, Action<? super Action<? super ResponseTransmitter>> transmitterAction) {
     this.request = request;
     this.httpHeaders = httpHeaders;
     this.channel = channel;
@@ -61,6 +65,7 @@ public class DefaultFileHttpTransmitter implements FileHttpTransmitter {
     this.compressionMinSize = compressionMinSize;
     this.compressionMimeTypeWhiteList = compressionMimeTypeWhiteList;
     this.compressionMimeTypeBlackList = compressionMimeTypeBlackList != null ? compressionMimeTypeBlackList : defaultExcludedMimeTypes(mimeTypes);
+    this.transmitterAction = transmitterAction;
   }
 
   private static ImmutableSet<String> defaultExcludedMimeTypes(MimeTypes mimeTypes) {
@@ -110,48 +115,14 @@ public class DefaultFileHttpTransmitter implements FileHttpTransmitter {
     }
   }
 
-  private void transmit(BasicFileAttributes basicFileAttributes, final Object message) {
-    HttpResponse response = new CustomHttpResponse(HttpResponseStatus.OK, httpHeaders);
-    response.headers().set(HttpHeaderConstants.CONTENT_LENGTH, basicFileAttributes.size());
-
-    if (isKeepAlive(request)) {
-      response.headers().set(HttpHeaderConstants.CONNECTION, HttpHeaderConstants.KEEP_ALIVE);
-    }
-
-    request.content().release();
-
-    HttpResponse minimalResponse = new DefaultHttpResponse(response.getProtocolVersion(), response.getStatus());
-    minimalResponse.headers().set(response.headers());
-    long stopTime = System.nanoTime();
-
-    if (startTime > 0) {
-      minimalResponse.headers().set("X-Response-Time", NumberUtil.toMillisDiffString(startTime, stopTime));
-    }
-
-    ChannelFuture writeFuture = channel.writeAndFlush(minimalResponse);
-
-    writeFuture.addListener(new ChannelFutureListener() {
-      public void operationComplete(ChannelFuture future) throws Exception {
-        if (!future.isSuccess()) {
-          channel.close();
-        }
+  private void transmit(final BasicFileAttributes basicFileAttributes, final Object message) throws Exception {
+    transmitterAction.execute(new Action<ResponseTransmitter>() {
+      @Override
+      public void execute(ResponseTransmitter responseTransmitter) {
+        MutableHeaders responseHeaders = new NettyHeadersBackedMutableHeaders(httpHeaders);
+        responseTransmitter.transmit(HttpResponseStatus.OK, responseHeaders, basicFileAttributes.size(), message);
       }
     });
-
-    writeFuture = channel.write(message);
-
-    writeFuture.addListener(new ChannelFutureListener() {
-      public void operationComplete(ChannelFuture future) {
-        if (!future.isSuccess()) {
-          channel.close();
-        }
-      }
-    });
-
-    ChannelFuture lastContentFuture = channel.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
-    if (!isKeepAlive(response)) {
-      lastContentFuture.addListener(ChannelFutureListener.CLOSE);
-    }
   }
 
   private boolean isContentTypeCompressible() {

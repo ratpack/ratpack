@@ -19,8 +19,11 @@ package ratpack.file
 import com.jayway.restassured.response.Response
 import org.apache.commons.lang3.RandomStringUtils
 import ratpack.http.internal.HttpHeaderDateFormat
+import ratpack.server.Stopper
 import ratpack.test.internal.RatpackGroovyDslSpec
 import spock.lang.Unroll
+import spock.util.concurrent.BlockingVariable
+import spock.util.concurrent.PollingConditions
 
 import static io.netty.handler.codec.http.HttpHeaders.Names.*
 import static io.netty.handler.codec.http.HttpResponseStatus.*
@@ -80,6 +83,54 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
     getText() == "foo"
     getText("dir") == "bar"
     getText("dir/") == "bar"
+  }
+
+  def "static files call onClose"() {
+    given:
+    file "public/index.html", "foo"
+    def onCloseCalled = false
+    def onCloseCalledWrapper = new BlockingVariable<Boolean>(1)
+
+    when:
+    handlers {
+      get {
+        onClose { onCloseCalled = true; onCloseCalledWrapper.set(onCloseCalled) }
+        render file("public/index.html")
+      }
+    }
+
+    then:
+    getText() == "foo"
+    onCloseCalledWrapper.get()
+
+  }
+
+  @Unroll
+  def "ensure that onClose is called after file is rendered"() {
+    given:
+    file "public/index.html", "foo"
+
+    when:
+    handlers {
+      handler { Stopper stopper ->
+        onClose { stopper.stop() }
+        next()
+      }
+      assets("public")
+      get {
+        render file("public/index.html")
+      }
+    }
+
+    then:
+    getText(location) == "foo"
+    new PollingConditions().within(1) {
+      !server.running
+    }
+
+    where:
+    location << ['', 'index.html']
+
   }
 
   @Unroll
