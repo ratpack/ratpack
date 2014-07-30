@@ -88,6 +88,21 @@ ext {
     "ratpack-pac4j", "ratpack-hystrix"
   ].collect { project(it) }
 
+  targetSrcDirs = []
+  publishedModules.each { p ->
+    p.plugins.withType(JavaPlugin) {
+      targetSrcDirs += p.sourceSets.main.java.srcDirs
+    }
+    p.plugins.withType(GroovyPlugin) {
+      targetSrcDirs += p.sourceSets.main.groovy.srcDirs
+    }
+    p.plugins.withType(ScalaPlugin) {
+      targetSrcDirs += p.sourceSets.main.scala.srcDirs
+    }
+  }
+  coveralls.sourceDirs = targetSrcDirs
+  coveralls.jacocoReportPath = "build/reports/jacoco/jacocoRootReport/jacocoRootReport.xml"
+
   apiModules = publishedModules.findAll { !(it.name in ["ratpack-manual", "ratpack-gradle"]) }
 }
 
