@@ -342,39 +342,44 @@ public class DefaultContext implements Context {
     Exception unpacked = unpackException(exception);
 
     InternalServerExceptionWrapper handledException = getRequest().maybeGet(InternalServerExceptionWrapper.class);
-    Exception unwrappedException = handledException != null ? handledException.getException() : null;
-    try {
-      if (unwrappedException != null) {
-        throw unwrappedException;
-      }
+    Exception unwrappedException = handledException == null ? null : handledException.getException();
+    if (unwrappedException != null) {
+      handleErrorHandlerException(serverErrorHandler, unpacked, unwrappedException);
+    } else {
       getRequest().register(InternalServerExceptionWrapper.class, new InternalServerExceptionWrapper(unpacked));
 
-      serverErrorHandler.error(this, unpacked);
-    } catch (Exception errorHandlerException) {
-      StringBuilder sb = new StringBuilder();
-      String originalExceptionMessage = "Exception thrown by error handler "
-        + serverErrorHandler.toString()
-        + " while handling exception\nOriginal exception: ";
-      LOGGER.error(originalExceptionMessage, unpacked);
-      sb.append(originalExceptionMessage).append("\n");
-      for (StackTraceElement element: unpacked.getStackTrace()) {
-        sb.append(element.toString()).append("\n");
+      try {
+        serverErrorHandler.error(this, unpacked);
+      } catch (Exception errorHandlerException) {
+        handleErrorHandlerException(serverErrorHandler, unpacked, errorHandlerException);
       }
-      sb.append("\n");
+    }
+  }
 
-      String handlerExceptionMessage = "Error handler exception: ";
-      LOGGER.error(handlerExceptionMessage, errorHandlerException);
-      sb.append(handlerExceptionMessage).append("\n");
-      for (StackTraceElement element: errorHandlerException.getStackTrace()) {
-        sb.append(element.toString()).append("\n");
-      }
+  private void handleErrorHandlerException(ServerErrorHandler serverErrorHandler, Exception unpacked, Exception errorHandlerException) {
+    StringBuilder sb = new StringBuilder();
+    String originalExceptionMessage = "Exception thrown by error handler "
+      + serverErrorHandler.toString()
+      + " while handling exception\nOriginal exception: ";
+    LOGGER.error(originalExceptionMessage, unpacked);
+    sb.append(originalExceptionMessage).append("\n");
+    for (StackTraceElement element: unpacked.getStackTrace()) {
+      sb.append(element.toString()).append("\n");
+    }
+    sb.append("\n");
 
-      Response response = requestConstants.response.status(500);
-      if (getLaunchConfig().isReloadable()) {
-        response.send(sb.toString());
-      } else {
-        response.send();
-      }
+    String handlerExceptionMessage = "Error handler exception: ";
+    LOGGER.error(handlerExceptionMessage, errorHandlerException);
+    sb.append(handlerExceptionMessage).append("\n");
+    for (StackTraceElement element: errorHandlerException.getStackTrace()) {
+      sb.append(element.toString()).append("\n");
+    }
+
+    Response response = requestConstants.response.status(500);
+    if (getLaunchConfig().isReloadable()) {
+      response.send(sb.toString());
+    } else {
+      response.send();
     }
   }
 
