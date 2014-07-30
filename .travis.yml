@@ -3,8 +3,9 @@ jdk:
   - oraclejdk7
 install: true
 script:
-  - ./gradlew clean check -i
+  - ./gradlew clean check jacocoReport coveralls -i
 env:
   - TERM=dumb
 notifications:
   slack: ratpack:2VWrNcJOlRpAXbG3NAPXmCSv
+secure: "cOnbtHoiC1WcIlbL7r3YYQvbP0hladfcIryLQ0VxmDezVkdw/Yib3VhNzy5L\nQspHsSxqtsp8jeIqNKDHip41cJrDAAhxCVvGZzDEy4jChRffLUyZyUiK4xAX\nf7aERt4ypVLEXeaET6nYhUWH9KqGfh+NP3csG883QKTexmCQWdE="
