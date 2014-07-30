@@ -49,7 +49,7 @@ buildscript {
   }
 }
 
-apply plugin: "ratpack"
+apply plugin: "io.ratpack.ratpack-java"
 
 task stage {
   dependsOn installApp

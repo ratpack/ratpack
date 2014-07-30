@@ -20,7 +20,7 @@ buildscript {
   }
 }
 
-apply plugin: "ratpack"
+apply plugin: "io.ratpack.ratpack-java"
 
 repositories {
   jcenter()
@@ -39,17 +39,17 @@ buildscript {
   }
 }
 
-apply plugin: "ratpack-groovy"
+apply plugin: "io.ratpack.ratpack-groovy"
 
 repositories {
   jcenter()
 }
 ```
 
-The `'ratpack'` plugin applies the core Gradle [`'java'` plugin](http://www.gradle.org/docs/current/userguide/java_plugin.html).
-The `'ratpack-groovy'` plugin applies the core Gradle [`'groovy'` plugin](http://www.gradle.org/docs/current/userguide/groovy_plugin.html).
+The `'io.ratpack.ratpack-java'` plugin applies the core Gradle [`'java'` plugin](http://www.gradle.org/docs/current/userguide/java_plugin.html).
+The `'io.ratpack.ratpack-groovy'` plugin applies the core Gradle [`'groovy'` plugin](http://www.gradle.org/docs/current/userguide/groovy_plugin.html).
 This means that you can start adding code and dependencies to your app like a standard Gradle based project (e.g. putting source in `src/main/[groovy|java]`).
-Note that the `'ratpack-groovy'` plugin implicitly applies the `'ratpack'` plugin.
+Note that the `'io.ratpack.ratpack-groovy'` plugin implicitly applies the `'io.ratpack.ratpack-java'` plugin.
 
 ## Ratpack dependencies
 
@@ -65,7 +65,7 @@ buildscript {
   }
 }
 
-apply plugin: "ratpack-groovy"
+apply plugin: "io.ratpack.ratpack-groovy"
 
 repositories {
   jcenter()
@@ -79,12 +79,12 @@ dependencies {
 Using `ratpack.dependency("jackson")` is equivalent to `"io.ratpack:ratpack-jackson:«version of ratpack-gradle dependency»"`.
 This is the recommended way to add dependencies that are part of the core distribution.
 
-The `'ratpack'` plugin adds the following implicit dependencies:
+The `'io.ratpack.ratpack-java'` plugin adds the following implicit dependencies:
 
 * `ratpack-core` - _compile_
 * `ratpack-test` - _testCompile_
 
-The `'ratpack-groovy'` plugin adds the following implicit dependencies:
+The `'io.ratpack.ratpack-groovy'` plugin adds the following implicit dependencies:
 
 * `ratpack-groovy` - _compile_ (depends on `ratpack-core`)
 * `ratpack-groovy-test` - _testCompile_ (depends on `ratpack-test`)
@@ -94,22 +94,21 @@ All Ratpack jars are published to both [Bintray's JCenter](https://bintray.com/b
 
 ## The 'application' plugin
 
-Both the `'ratpack'` and `'ratpack-groovy'` plugins also apply the core Gradle [`'application'` plugin](http://www.gradle.org/docs/current/userguide/application_plugin.html).
+Both the `'ratpack-java'` and `'ratpack-groovy'` plugins also apply the core Gradle [`'application'` plugin](http://www.gradle.org/docs/current/userguide/application_plugin.html).
 This plugin provides the ability to create a standalone executable distribution of your software.
 This is the preferred deployment format for Ratpack applications.
 
 The `'application'` plugin requires the main class (i.e. entry point) of your application to be specified.
-This is preconfigured by the `'ratpack'` and `'ratpack-groovy'` plugins to be the [`RatpackMain`](api/ratpack/launch/RatpackMain.html) and [`GroovyRatpackMain`](api/ratpack/groovy/launch/GroovyRatpackMain.html) respectively.
+This is preconfigured by the `'ratpack-java'` and `'ratpack-groovy'` plugins to be the [`RatpackMain`](api/ratpack/launch/RatpackMain.html) and [`GroovyRatpackMain`](api/ratpack/groovy/launch/GroovyRatpackMain.html) respectively.
 This can be changed if you wish to use a custom entry point (consult the `'application'` plugin documentation).
-
 
 ## The 'shadow' plugin
 
-Both the `'ratpack'` and `'ratpack-groovy'` plugins ship with integration support for the 3rd party [`'shadow'` plugin](https://github.com/johnrengelman/shadow).
+Both the `'ratpack-java'` and `'ratpack-groovy'` plugins ship with integration support for the 3rd party [`'shadow'` plugin](https://github.com/johnrengelman/shadow).
 This plugin provides the ability to create a self-contained "fat-jar" that includes your ratpack application and any compile and runtime dependencies.
 
-The `'ratpack'` and `'ratpack-groovy'` plugins react to the application of the `'shadow'` plugin and configure additional task dependencies.
-The `'ratpack'` and `'ratpack-groovy'` plugins do not apply the `'shadow'` plugin and, for compatibility reasons, do not ship with a version of the `'shadow'` as a dependency.
+The plugins react to the application of the `'shadow'` plugin and configure additional task dependencies.
+They do not apply the `'shadow'` plugin and, for compatibility reasons, do not ship with a version of the `'shadow'` as a dependency.
 
 To use the `'shadow'` integration, you will need to include the dependency in your project and apply the plugin.
 
@@ -124,7 +123,7 @@ buildscript {
   }
 }
 
-apply plugin: "ratpack"
+apply plugin: "io.ratpack.ratpack-java"
 apply plugin: 'com.github.johnrengelman.shadow'
 
 repositories {
@@ -184,7 +183,7 @@ buildscript {
   }
 }
 
-apply plugin: "ratpack"
+apply plugin: "io.ratpack.ratpack-java"
 
 repositories {
   jcenter()
@@ -212,7 +211,7 @@ Making `'prepareBaseDir'` depend on your generation task ensures that it is invo
 
 The `'application'` plugin provides the `'run'` task for starting the Ratpack application.
 This is a task of the core Gradle [`JavaExec`](http://www.gradle.org/docs/current/dsl/org.gradle.api.tasks.JavaExec.html) type.
-The `'ratpack'` plugin configures this `'run'` task to start the process in `src/ratpack` and to launch with the system property `'ratpack.reloadable'` set to `true` (which enables development time code reloading).
+The `'ratpack-java'` plugin configures this `'run'` task to start the process in `src/ratpack` and to launch with the system property `'ratpack.reloadable'` set to `true` (which enables development time code reloading).
 
 If you wish to set extra system properties for development time execution, you can configure this task…
 
@@ -226,7 +225,7 @@ buildscript {
   }
 }
 
-apply plugin: "ratpack"
+apply plugin: "io.ratpack.ratpack-java"
 
 repositories {
   jcenter()
@@ -258,7 +257,7 @@ buildscript {
   }
 }
 
-apply plugin: "ratpack"
+apply plugin: "io.ratpack.ratpack-java"
 apply plugin: "com.github.johnrengelman.shadow"
 
 repositories {
@@ -286,7 +285,7 @@ buildscript {
   }
 }
 
-apply plugin: "ratpack"
+apply plugin: "io.ratpack.ratpack-java"
 
 repositories {
   jcenter()
@@ -321,7 +320,7 @@ The reloading of this file is handled at runtime in reloadable mode.
 
 ## IntelliJ IDEA support
 
-The `'ratpack'` Gradle plugin integrates with the [core `'idea'` Gradle plugin](http://www.gradle.org/docs/current/userguide/idea_plugin.html).
+The `'ratpack-java'` Gradle plugin integrates with the [core `'idea'` Gradle plugin](http://www.gradle.org/docs/current/userguide/idea_plugin.html).
 A [“Run Configuration”](https://www.jetbrains.com/idea/webhelp/run-debug-configuration.html) is automatically created, making it easy to start your application from within IDEA.
 The run configuration mimics the configuration of the `'run'` Gradle task, including integration with SpringLoaded.
 
@@ -337,7 +336,7 @@ buildscript {
   }
 }
 
-apply plugin: "ratpack"
+apply plugin: "io.ratpack.ratpack-java"
 apply plugin: "idea"
 
 repositories {

@@ -36,7 +36,7 @@ import static org.apache.commons.lang.SystemUtils.*
 
 apply plugin: 'coffeescript-base'
 apply plugin: 'compass'
-apply plugin: "ratpack-groovy"
+apply plugin: "io.ratpack.ratpack-groovy"
 apply plugin: "geb-saucelabs"
 apply plugin: 'com.github.johnrengelman.shadow'
 
