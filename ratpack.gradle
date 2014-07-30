@@ -22,6 +22,7 @@ buildscript {
   dependencies {
     classpath "org.gradle.api.plugins:gradle-clover-plugin:0.6.1"
     classpath "org.jfrog.buildinfo:build-info-extractor-gradle:2.2.3"
+    classpath "org.kt3k.gradle.plugin:coveralls-gradle-plugin:1.0.2"
   }
 }
 
@@ -35,6 +36,7 @@ if (!JavaVersion.current().java7Compatible) {
 }
 
 apply plugin: 'artifactory'
+apply plugin: 'com.github.kt3k.coveralls'
 
 artifactory {
   contextUrl = 'http://oss.jfrog.org'
@@ -51,6 +53,8 @@ allprojects {
   apply plugin: "base"
   apply plugin: "idea"
   apply plugin: "eclipse"
+  apply plugin: "java"
+  apply plugin: "jacoco"
   apply from: "$rootDir/gradle/dependencyRules.gradle"
 
   repositories {
@@ -83,6 +87,21 @@ ext {
     "ratpack-codahale-metrics", "ratpack-h2", "ratpack-thymeleaf", "ratpack-rx", "ratpack-hikari", "ratpack-newrelic",
     "ratpack-pac4j", "ratpack-hystrix"
   ].collect { project(it) }
+
+  targetSrcDirs = []
+  publishedModules.each { p ->
+    p.plugins.withType(JavaPlugin) {
+      targetSrcDirs += p.sourceSets.main.java.srcDirs
+    }
+    p.plugins.withType(GroovyPlugin) {
+      targetSrcDirs += p.sourceSets.main.groovy.srcDirs
+    }
+    p.plugins.withType(ScalaPlugin) {
+      targetSrcDirs += p.sourceSets.main.scala.srcDirs
+    }
+  }
+  coveralls.sourceDirs = targetSrcDirs
+  coveralls.jacocoReportPath = "build/reports/jacoco/jacocoRootReport/jacocoRootReport.xml"
 
   apiModules = publishedModules.findAll { !(it.name in ["ratpack-manual", "ratpack-gradle"]) }
 }
@@ -196,6 +215,17 @@ subprojects {
       }
     }
   }
+
+  jacocoTestReport {
+    additionalSourceDirs = files(sourceSets.main.allSource.srcDirs)
+    sourceDirectories = files(sourceSets.main.allSource.srcDirs)
+    classDirectories =  files(sourceSets.main.output)
+    reports {
+      html.enabled = true
+      xml.enabled = true
+      csv.enabled = false
+    }
+  }
 }
 
 // Have to evaluate the children before setting up the publishing stuff so the dependencies are defined.
@@ -262,4 +292,24 @@ task ciZip(type: Zip) {
 
 task stage {
   dependsOn "clean", ":ratpack-site:installApp"
+}
+
+task jacocoRootReport(type: org.gradle.testing.jacoco.tasks.JacocoReport) {
+  dependsOn = subprojects.test
+  sourceDirectories = files(subprojects.sourceSets.main.allSource.srcDirs)
+  classDirectories =  files(subprojects.sourceSets.main.output)
+  executionData = files(subprojects.jacocoTestReport.executionData)
+  reports {
+    html.enabled = true
+    xml.enabled = true
+    csv.enabled = false
+  }
+  onlyIf = {
+    true
+  }
+  doFirst {
+    executionData = files(executionData.findAll {
+        it.exists()
+    })
+  }
 }
