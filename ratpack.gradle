@@ -20,7 +20,6 @@ buildscript {
   }
 
   dependencies {
-    classpath "org.gradle.api.plugins:gradle-clover-plugin:0.6.1"
     classpath "org.jfrog.buildinfo:build-info-extractor-gradle:2.2.3"
 
     // Prevent coveralls from dragging in the whole android tooling stack
@@ -68,11 +67,6 @@ allprojects {
   repositories {
     jcenter()
     maven { url 'http://oss.jfrog.org/artifactory/repo' }
-  }
-
-  def noClover = ["ratpack-site", "ratpack-manual", "ratpack-lazybones"]
-  if (project.hasProperty("enableClover") && !noClover.contains(project.name)) {
-    project.apply from: rootProject.file("gradle/clover.gradle")
   }
 
   clean {
