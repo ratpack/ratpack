@@ -24,9 +24,11 @@ import ratpack.launch.LaunchException
 import ratpack.server.Stopper
 import ratpack.test.internal.RatpackGroovyDslSpec
 import spock.lang.Unroll
+import spock.util.concurrent.BlockingVariable
 import spock.util.concurrent.PollingConditions
 
 import java.util.concurrent.RejectedExecutionException
+import java.util.concurrent.TimeUnit
 
 import static io.netty.handler.codec.http.HttpHeaders.Names.*
 import static io.netty.handler.codec.http.HttpResponseStatus.*
@@ -92,20 +94,19 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
     given:
     file "public/index.html", "foo"
     def counter = 0
+    def counterResult = new BlockingVariable<Integer>(1)
 
     when:
     handlers {
       get {
-        onClose { counter++ }
+        onClose { counter++; counterResult.set(counter) }
         render file("public/index.html")
       }
     }
 
     then:
     getText() == "foo"
-    new PollingConditions().within(3) {
-      counter == 1
-    }
+    counterResult.get() == 1
 
   }
 
