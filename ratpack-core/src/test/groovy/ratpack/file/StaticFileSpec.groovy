@@ -18,17 +18,12 @@ package ratpack.file
 
 import com.jayway.restassured.response.Response
 import org.apache.commons.lang3.RandomStringUtils
-import org.apache.http.conn.HttpHostConnectException
 import ratpack.http.internal.HttpHeaderDateFormat
-import ratpack.launch.LaunchException
 import ratpack.server.Stopper
 import ratpack.test.internal.RatpackGroovyDslSpec
 import spock.lang.Unroll
 import spock.util.concurrent.BlockingVariable
 import spock.util.concurrent.PollingConditions
-
-import java.util.concurrent.RejectedExecutionException
-import java.util.concurrent.TimeUnit
 
 import static io.netty.handler.codec.http.HttpHeaders.Names.*
 import static io.netty.handler.codec.http.HttpResponseStatus.*
