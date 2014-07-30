@@ -341,16 +341,45 @@ public class DefaultContext implements Context {
 
     Exception unpacked = unpackException(exception);
 
-    try {
-      serverErrorHandler.error(this, unpacked);
-    } catch (Exception errorHandlerException) {
-      LOGGER.error("Exception thrown by error handler "
-        + serverErrorHandler.toString()
-        + " while handling exception\nOriginal exception: ", unpacked);
+    InternalServerExceptionWrapper handledException = getRequest().maybeGet(InternalServerExceptionWrapper.class);
+    Exception unwrappedException = handledException == null ? null : handledException.getException();
+    if (unwrappedException != null) {
+      handleErrorHandlerException(serverErrorHandler, unpacked, unwrappedException);
+    } else {
+      getRequest().register(InternalServerExceptionWrapper.class, new InternalServerExceptionWrapper(unpacked));
 
-      LOGGER.error("Error handler exception: ", errorHandlerException);
+      try {
+        serverErrorHandler.error(this, unpacked);
+      } catch (Exception errorHandlerException) {
+        handleErrorHandlerException(serverErrorHandler, unpacked, errorHandlerException);
+      }
+    }
+  }
 
-      requestConstants.response.status(500).send();
+  private void handleErrorHandlerException(ServerErrorHandler serverErrorHandler, Exception unpacked, Exception errorHandlerException) {
+    StringBuilder sb = new StringBuilder();
+    String originalExceptionMessage = "Exception thrown by error handler "
+      + serverErrorHandler.toString()
+      + " while handling exception\nOriginal exception: ";
+    LOGGER.error(originalExceptionMessage, unpacked);
+    sb.append(originalExceptionMessage).append("\n");
+    for (StackTraceElement element: unpacked.getStackTrace()) {
+      sb.append(element.toString()).append("\n");
+    }
+    sb.append("\n");
+
+    String handlerExceptionMessage = "Error handler exception: ";
+    LOGGER.error(handlerExceptionMessage, errorHandlerException);
+    sb.append(handlerExceptionMessage).append("\n");
+    for (StackTraceElement element: errorHandlerException.getStackTrace()) {
+      sb.append(element.toString()).append("\n");
+    }
+
+    Response response = requestConstants.response.status(500);
+    if (getLaunchConfig().isReloadable()) {
+      response.send(sb.toString());
+    } else {
+      response.send();
     }
   }
 
