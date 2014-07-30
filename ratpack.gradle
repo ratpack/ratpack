@@ -80,7 +80,7 @@ ext {
   isSnapshot = version.endsWith("SNAPSHOT")
   isTravis = System.getenv("TRAVIS") != null
   isDrone = System.getenv("DRONE") != null
-  isCodeship = System.getenv("CI") == "codeship"
+  isCodeship = System.getenv("CI_NAME") == "codeship"
   isCloudCi = isTravis || isDrone || isCodeship
 
   publishedModules = [
