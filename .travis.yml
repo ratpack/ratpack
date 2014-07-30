@@ -11,9 +11,10 @@ notifications:
 install: true
 script: 
 - ./gradlew clean check jacocoReport coveralls
-env: 
-- TERM=dumb
-- secure: |-
-    aQQaY71Oy1OcM3SqbAMcTQxrGoEjsXtz85345YtK0kEcgxHfnELOupU0ggeQ
-    l2H8It81ZDTFZvcSDlKrV86aBn6j9MUM5UFgKrSpc9pxemCHzPUhVxjTcfEj
-    OxSFBRnuIEpNdrqX1lcFBvqCl6vhAEeZZOCQHLwjJgJgKHOIfdE=
+env:
+  global:
+    - TERM=dumb
+    - secure: |-
+        aQQaY71Oy1OcM3SqbAMcTQxrGoEjsXtz85345YtK0kEcgxHfnELOupU0ggeQ
+        l2H8It81ZDTFZvcSDlKrV86aBn6j9MUM5UFgKrSpc9pxemCHzPUhVxjTcfEj
+        OxSFBRnuIEpNdrqX1lcFBvqCl6vhAEeZZOCQHLwjJgJgKHOIfdE=
