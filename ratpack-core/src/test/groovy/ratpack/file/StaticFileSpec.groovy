@@ -88,20 +88,20 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
   def "static files call onClose"() {
     given:
     file "public/index.html", "foo"
-    def counter = 0
-    def counterResult = new BlockingVariable<Integer>(1)
+    def onCloseCalled = false
+    def onCloseCalledWrapper = new BlockingVariable<Boolean>(1)
 
     when:
     handlers {
       get {
-        onClose { counter++; counterResult.set(counter) }
+        onClose { onCloseCalled = true; onCloseCalledWrapper.set(onCloseCalled) }
         render file("public/index.html")
       }
     }
 
     then:
     getText() == "foo"
-    counterResult.get() == 1
+    onCloseCalledWrapper.get()
 
   }
 
