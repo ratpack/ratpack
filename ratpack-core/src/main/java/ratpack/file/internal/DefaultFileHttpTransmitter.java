@@ -22,7 +22,6 @@ import com.google.common.collect.Iterables;
 import io.netty.channel.Channel;
 import io.netty.channel.DefaultFileRegion;
 import io.netty.channel.FileRegion;
-import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpResponseStatus;
@@ -56,7 +55,7 @@ public class DefaultFileHttpTransmitter implements FileHttpTransmitter {
   private final Action<? super Action<? super ResponseTransmitter>> transmitterAction;
 
   public DefaultFileHttpTransmitter(FullHttpRequest request, HttpHeaders httpHeaders, Channel channel, MimeTypes mimeTypes, boolean compress, Long compressionMinSize,
-                                      ImmutableSet<String> compressionMimeTypeWhiteList, ImmutableSet<String> compressionMimeTypeBlackList, long startTime, Action<? super Action<? super ResponseTransmitter>> transmitterAction) {
+                                    ImmutableSet<String> compressionMimeTypeWhiteList, ImmutableSet<String> compressionMimeTypeBlackList, long startTime, Action<? super Action<? super ResponseTransmitter>> transmitterAction) {
     this.request = request;
     this.httpHeaders = httpHeaders;
     this.channel = channel;
