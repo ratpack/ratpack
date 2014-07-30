@@ -300,6 +300,7 @@ task jacocoReport(type: org.gradle.testing.jacoco.tasks.JacocoReport) {
 }
 
 coveralls {
+  service = System.getenv().get("CI_NAME")
   sourceDirs = jacocoReport.sourceDirectories.files.toList()
   jacocoReportPath = jacocoReport.reports.xml.destination.absolutePath - rootDir.absolutePath
 }
