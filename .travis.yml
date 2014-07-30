@@ -1,11 +1,15 @@
+--- 
+env: 
+- TERM=dumb
+script: 
+- ./gradlew clean check jacocoReport coveralls -i
+notifications: 
+  slack: 
+  - secure: |-
+      RSER96DE8noNMICI29yPNsWp0OiHHRRm7M3YJJogVNX5b1EBT8BdBqp0jcQk
+      NAGZDKxNmgnmlQ6JtjiiqiP6u1wR0B3l393OOP36afIUO7Hh32rTM7KZs/My
+      yfqirzv07gUQ1erEInKwhGFKSEPfyHHSPZ2CjyTuYXnL2parNv0=
 language: java
-jdk:
-  - oraclejdk7
+jdk: 
+- oraclejdk7
 install: true
-script:
-  - ./gradlew clean check jacocoReport coveralls -i
-env:
-  - TERM=dumb
-notifications:
-  slack: ratpack:2VWrNcJOlRpAXbG3NAPXmCSv
-secure: "cOnbtHoiC1WcIlbL7r3YYQvbP0hladfcIryLQ0VxmDezVkdw/Yib3VhNzy5L\nQspHsSxqtsp8jeIqNKDHip41cJrDAAhxCVvGZzDEy4jChRffLUyZyUiK4xAX\nf7aERt4ypVLEXeaET6nYhUWH9KqGfh+NP3csG883QKTexmCQWdE="
