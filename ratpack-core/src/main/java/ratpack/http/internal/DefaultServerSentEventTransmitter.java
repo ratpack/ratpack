@@ -30,10 +30,13 @@ public class DefaultServerSentEventTransmitter extends StreamTransmitterSupport<
 
   @Override
   protected void setResponseHeaders(HttpResponse response) {
-    response.headers().set("Content-Type", "text/event-stream;charset=UTF-8");
-    response.headers().set("Cache-Control", "no-cache, no-store, max-age=0, must-revalidate");
-    response.headers().set("Pragma", "no-cache");
-
     super.setResponseHeaders(response);
+    response.headers().set(HttpHeaderConstants.CONTENT_TYPE, "text/event-stream;charset=UTF-8");
+    response.headers().set(HttpHeaderConstants.CACHE_CONTROL,
+      ratpack.http.internal.HttpHeaderConstants.NO_CACHE + ", "
+        + HttpHeaderConstants.NO_STORE + ", "
+        + HttpHeaderConstants.MAX_AGE + "=0, "
+        + HttpHeaderConstants.MUST_REVALIDATE);
+    response.headers().set(HttpHeaderConstants.PRAGMA, HttpHeaderConstants.NO_CACHE);
   }
 }

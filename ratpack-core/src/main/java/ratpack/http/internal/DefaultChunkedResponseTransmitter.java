@@ -17,13 +17,10 @@
 package ratpack.http.internal;
 
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpResponse;
 import ratpack.http.HttpResponseChunk;
-import ratpack.util.internal.IoUtils;
 
 public class DefaultChunkedResponseTransmitter extends StreamTransmitterSupport<HttpResponseChunk> implements ChunkedResponseTransmitter {
 
@@ -33,22 +30,8 @@ public class DefaultChunkedResponseTransmitter extends StreamTransmitterSupport<
 
   @Override
   protected void setResponseHeaders(HttpResponse response) {
-    response.headers().set("Transfer-Encoding", "chunked");
-
     super.setResponseHeaders(response);
+    response.headers().set(HttpHeaderConstants.TRANSFER_ENCODING, HttpHeaderConstants.CHUNKED);
   }
 
-  @Override
-  protected void doOnComplete() {
-    ChannelFuture writeFuture = channel.writeAndFlush(IoUtils.utf8Buffer("0\r\n\r\n"));
-    writeFuture.addListener(new ChannelFutureListener() {
-      public void operationComplete(ChannelFuture future) throws Exception {
-        if (!future.isSuccess()) {
-          channel.close();
-        }
-      }
-    });
-
-    super.doOnComplete();
-  }
 }

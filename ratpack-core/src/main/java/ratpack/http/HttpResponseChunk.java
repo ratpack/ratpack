@@ -16,19 +16,13 @@
 
 package ratpack.http;
 
-import io.netty.buffer.ByteBuf;
+import io.netty.handler.codec.http.DefaultHttpContent;
 import ratpack.util.internal.IoUtils;
 
-public class HttpResponseChunk implements StreamElement {
-
-  private final String chunk;
+public class HttpResponseChunk extends DefaultHttpContent {
 
   public HttpResponseChunk(String chunk) {
-    this.chunk = chunk;
+    super(IoUtils.utf8Buffer(chunk));
   }
 
-  @Override
-  public ByteBuf getValue() {
-    return IoUtils.utf8Buffer(Integer.toHexString(chunk.length()) + "\r\n" + chunk + "\r\n");
-  }
 }

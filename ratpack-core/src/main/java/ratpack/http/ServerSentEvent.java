@@ -16,14 +16,7 @@
 
 package ratpack.http;
 
-import io.netty.buffer.ByteBuf;
-import ratpack.util.internal.IoUtils;
-
-import java.util.regex.Pattern;
-
-public class ServerSentEvent implements StreamElement {
-
-  private static final Pattern PATTERN_NEW_LINE = Pattern.compile("\n");
+public class ServerSentEvent {
 
   private final String eventId;
   private final String eventType;
@@ -35,26 +28,15 @@ public class ServerSentEvent implements StreamElement {
     this.eventData = eventData;
   }
 
-  @Override
-  public ByteBuf getValue() {
-    StringBuilder eventBuilder = new StringBuilder();
+  public String getEventId() {
+    return eventId;
+  }
 
-    if (this.eventType != null) {
-      eventBuilder.append("event: ").append(this.eventType).append('\n');
-    }
+  public String getEventType() {
+    return eventType;
+  }
 
-    if (this.eventData != null) {
-      for (String dataLine : PATTERN_NEW_LINE.split(this.eventData)) {
-        eventBuilder.append("data: ").append(dataLine).append('\n');
-      }
-    }
-
-    if (this.eventId != null) {
-      eventBuilder.append("id: ").append(this.eventId).append('\n');
-    }
-
-    eventBuilder.append('\n');
-
-    return IoUtils.utf8Buffer(eventBuilder.toString());
+  public String getEventData() {
+    return eventData;
   }
 }

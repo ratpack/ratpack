@@ -37,11 +37,28 @@ class ResponseStreamingSpec extends RatpackGroovyDslSpec {
     }
 
     expect:
-    def response = get()
-    response.statusCode == OK.code()
-    !response.headers.hasHeaderWithName("Content-Length")
-    response.header("Transfer-Encoding") == "chunked"
-    response.body.asString() == "14\r\nThis is a really lon\r\n14\r\ng string that needs \r\n12\r\nto be sent chunked\r\n0\r\n\r\n"
+    def chunkedResponse = []
+    Socket socket = new Socket(getAddress().host, getAddress().port)
+    try {
+      new OutputStreamWriter(socket.outputStream, "UTF-8").with {
+        write("GET / HTTP/1.1\r\n")
+        write("\r\n")
+        flush()
+      }
+
+      InputStreamReader inputStreamReader = new InputStreamReader(socket.inputStream)
+      BufferedReader bufferedReader = new BufferedReader(inputStreamReader)
+
+      chunkedResponse << bufferedReader.readLine()
+      def chunk
+      while ((chunk = bufferedReader.readLine()) != null) {
+        chunkedResponse << chunk
+      }
+    } finally {
+      socket.close()
+    }
+
+    chunkedResponse == ['HTTP/1.1 200 OK', 'Connection: keep-alive', 'Transfer-Encoding: chunked', '', '14', 'This is a really lon', '14', 'g string that needs ', '12', 'to be sent chunked', '0', '']
   }
 
   def "can send server sent event"() {

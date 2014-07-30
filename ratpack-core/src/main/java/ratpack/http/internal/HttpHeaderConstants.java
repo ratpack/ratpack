@@ -29,5 +29,12 @@ public abstract class HttpHeaderConstants {
   public static final CharSequence CONNECTION = HttpHeaders.newEntity(HttpHeaders.Names.CONNECTION);
   public static final CharSequence KEEP_ALIVE = HttpHeaders.newEntity(HttpHeaders.Values.KEEP_ALIVE);
   public static final CharSequence CONTENT_ENCODING = HttpHeaders.newEntity(HttpHeaders.Names.CONTENT_ENCODING);
-
+  public static final CharSequence TRANSFER_ENCODING = HttpHeaders.newEntity(HttpHeaders.Names.TRANSFER_ENCODING);
+  public static final CharSequence CHUNKED = HttpHeaders.newEntity(HttpHeaders.Values.CHUNKED);
+  public static final CharSequence CACHE_CONTROL = HttpHeaders.newEntity(HttpHeaders.Names.CACHE_CONTROL);
+  public static final CharSequence PRAGMA = HttpHeaders.newEntity(HttpHeaders.Names.PRAGMA);
+  public static final CharSequence NO_CACHE = HttpHeaders.newEntity(HttpHeaders.Values.NO_CACHE);
+  public static final CharSequence NO_STORE = HttpHeaders.newEntity(HttpHeaders.Values.NO_STORE);
+  public static final CharSequence MUST_REVALIDATE = HttpHeaders.newEntity(HttpHeaders.Values.MUST_REVALIDATE);
+  public static final CharSequence MAX_AGE = HttpHeaders.newEntity(HttpHeaders.Values.MAX_AGE);
 }

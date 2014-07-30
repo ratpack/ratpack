@@ -24,12 +24,11 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import ratpack.exec.ExecControl;
-import ratpack.http.StreamElement;
 import ratpack.http.StreamTransmitter;
 
 import static io.netty.handler.codec.http.HttpHeaders.isKeepAlive;
 
-abstract class StreamTransmitterSupport<T extends StreamElement> implements StreamTransmitter<T> {
+public class StreamTransmitterSupport<T extends Object> implements StreamTransmitter<T> {
 
   private final FullHttpRequest request;
   private final HttpHeaders httpHeaders;
@@ -75,7 +74,7 @@ abstract class StreamTransmitterSupport<T extends StreamElement> implements Stre
 
       @Override
       public void onNext(T element) {
-        ChannelFuture writeFuture = channel.writeAndFlush(element.getValue());
+        ChannelFuture writeFuture = channel.writeAndFlush(element);
         writeFuture.addListener(new ChannelFutureListener() {
           public void operationComplete(ChannelFuture future) throws Exception {
             if (!future.isSuccess()) {
@@ -88,7 +87,6 @@ abstract class StreamTransmitterSupport<T extends StreamElement> implements Stre
 
       @Override
       public void onComplete() {
-        doOnComplete();
         ChannelFuture lastContentFuture = channel.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
         lastContentFuture.addListener(ChannelFutureListener.CLOSE);
       }
@@ -100,8 +98,6 @@ abstract class StreamTransmitterSupport<T extends StreamElement> implements Stre
       }
     });
   }
-
-  protected void doOnComplete() { }
 
   protected void setResponseHeaders(HttpResponse response) {
     if (isKeepAlive(request)) {

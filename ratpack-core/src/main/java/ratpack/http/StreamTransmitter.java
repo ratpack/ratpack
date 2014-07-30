@@ -20,7 +20,7 @@ import org.reactivestreams.Publisher;
 import ratpack.exec.ExecControl;
 
 
-public interface StreamTransmitter<T extends StreamElement> {
+public interface StreamTransmitter<T extends Object> {
 
   public void transmit(ExecControl execContext, Publisher<T> stream);
 

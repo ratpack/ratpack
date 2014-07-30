@@ -61,6 +61,7 @@ public class RatpackChannelInitializer extends ChannelInitializer<SocketChannel>
       pipeline.addLast("deflater", new SmartHttpContentCompressor());
     }
     pipeline.addLast("chunkedWriter", new ChunkedWriteHandler());
+    pipeline.addLast("sse-encoder", new ServerSentEventEncoder());
     pipeline.addLast("handler", nettyHandlerAdapter);
   }
 }
