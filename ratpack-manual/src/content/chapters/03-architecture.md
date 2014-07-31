@@ -61,7 +61,7 @@ However, add-on [integration with Google Guice](guice.html) facilitates a kind o
 Guice is a dependency injection container.
 Guice modules define objects to be part of the dependency injection container.
 Guice modules can act as plugins by providing implementations of key Ratpack interfaces, that are used by handlers.
-When using the Guice integration, all of the objects known to Guice (typically through Guice modules) are obtainable via “context registry”.
+When using the Guice integration, all of the objects known to Guice (typically through Guice modules) are obtainable via the “context registry”.
 That is, handlers can retrieve them by type.
 
 To see why this is useful, we will use the requirement of rendering an object as JSON to the response.
