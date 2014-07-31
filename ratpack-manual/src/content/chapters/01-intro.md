@@ -127,6 +127,13 @@ It is Servlet based, but encapsulates the Servlet API.
 Ratpack aims to scale to very large applications, both in terms of throughput and complexity.
 It achieves performance through its use of Netty (and non-blocking) and supports large applications through its coherent and non invasive API. 
 
+
+### Dropwizard
+
+[https://dropwizard.github.io/dropwizard](https://dropwizard.github.io/dropwizard)
+
+TBD.
+
 ## How to read the documentation
 
 The canonical reference documentation for Ratpack is the [Javadoc](api/).
