@@ -17,4 +17,3 @@ jdk:
 env: 
   global: 
   - TERM=dumb
-  - COVERALLS_REPO_TOKEN=50XCeJnZL9KMn7ea76nwbotoZ5mlevTxK
