@@ -49,7 +49,7 @@ Vert.x applications are a composed set of “verticles” communicating via an u
 Vert.x provides support for many different programming languages, even making it easy to compose an application out of verticles of different languages.
   
 Vert.x makes certain irreversible decisions about how applications should be written and architected.
-It provides horizontal scaling, a message bus, build and development support and more.
+It provides horizontal scaling, a message bus, development time support and more.
 In contrast Ratpack is not as prescriptive, giving you more freedom (and responsibility) to build your app from the ground up with the technologies you choose.
 
 Vert.x has a plugin system and a healthy ecosystem of plugins, generally collaborating around the message bus.
