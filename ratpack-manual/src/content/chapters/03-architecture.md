@@ -42,7 +42,7 @@ All request processing logic is simply the composition of handlers (see the [`Ha
 Importantly, the processing is not bound to a thread and can be completed asynchronously.
 The “handler” API supports this asynchronous composition.
 
-Requests operate on a “context”.
+Handlers operate on a “context”.
 A “context” represents the state of request processing at that particular point in the handler graph.
 One of its key functions is to act as a “registry”, that can be used to retrieve objects by type.
 This allows handlers to retrieve _strategy_ objects (typically just objects implementing key interfaces) from the “context” by public types.
