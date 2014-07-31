@@ -159,9 +159,6 @@ public interface Response {
   @NonBlocking
   void send(String contentType, ByteBuf buffer);
 
-  @NonBlocking
-  void send(ExecControl execContext, Publisher<HttpResponseChunk> stream);
-
   /**
    * Sets the response {@code Content-Type} header.
    *
@@ -221,5 +218,5 @@ public interface Response {
   void sendFile(ExecControl execContext, BasicFileAttributes attributes, Path file) throws Exception;
 
   @NonBlocking
-  void sendServerSentEventStream(ExecControl execContext, Publisher<ServerSentEvent> stream);
+  <T> void sendStream(ExecControl execContext, Publisher<T> stream);
 }

@@ -17,11 +17,19 @@
 package ratpack.http;
 
 import org.reactivestreams.Publisher;
-import ratpack.exec.ExecControl;
 
+public abstract class ServerSentEvents {
 
-public interface StreamTransmitter {
+  public static ServerSentEvents serverSentEvents(final Publisher<ServerSentEvent> publisher) {
+    return new ServerSentEvents() {
+      @Override
+      public Publisher<ServerSentEvent> getPublisher() {
+        return publisher;
+      }
+    };
+  }
 
-  public <T> void transmit(ExecControl execContext, Publisher<T> stream);
+  private ServerSentEvents() {}
 
+  public abstract Publisher<ServerSentEvent> getPublisher();
 }

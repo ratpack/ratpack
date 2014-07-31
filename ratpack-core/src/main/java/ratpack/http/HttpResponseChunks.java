@@ -17,11 +17,19 @@
 package ratpack.http;
 
 import org.reactivestreams.Publisher;
-import ratpack.exec.ExecControl;
 
+public abstract class HttpResponseChunks {
 
-public interface StreamTransmitter {
+  public static HttpResponseChunks httpResponseChunks(final Publisher<HttpResponseChunk> publisher) {
+    return new HttpResponseChunks() {
+      @Override
+      public Publisher<HttpResponseChunk> getPublisher() {
+        return publisher;
+      }
+    };
+  }
 
-  public <T> void transmit(ExecControl execContext, Publisher<T> stream);
+  private HttpResponseChunks() {}
 
+  public abstract Publisher<HttpResponseChunk> getPublisher();
 }

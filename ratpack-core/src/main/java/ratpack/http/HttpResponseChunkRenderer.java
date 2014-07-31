@@ -16,12 +16,7 @@
 
 package ratpack.http;
 
-import org.reactivestreams.Publisher;
-import ratpack.exec.ExecControl;
+import ratpack.render.Renderer;
 
-
-public interface StreamTransmitter {
-
-  public <T> void transmit(ExecControl execContext, Publisher<T> stream);
-
+public interface HttpResponseChunkRenderer extends Renderer<HttpResponseChunks> {
 }

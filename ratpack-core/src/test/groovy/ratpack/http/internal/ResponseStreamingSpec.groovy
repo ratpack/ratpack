@@ -25,6 +25,8 @@ import ratpack.test.internal.RatpackGroovyDslSpec
 import java.util.concurrent.CountDownLatch
 
 import static io.netty.handler.codec.http.HttpResponseStatus.OK
+import static ratpack.http.HttpResponseChunks.httpResponseChunks
+import static ratpack.http.ServerSentEvents.serverSentEvents
 
 class ResponseStreamingSpec extends RatpackGroovyDslSpec {
 
@@ -32,7 +34,7 @@ class ResponseStreamingSpec extends RatpackGroovyDslSpec {
     given:
     handlers {
       handler {
-        response.send(context, new LargeContentPublisher())
+        render httpResponseChunks(new LargeContentPublisher())
       }
     }
 
@@ -58,14 +60,14 @@ class ResponseStreamingSpec extends RatpackGroovyDslSpec {
       socket.close()
     }
 
-    chunkedResponse == ['HTTP/1.1 200 OK', 'Connection: keep-alive', 'Transfer-Encoding: chunked', '', '14', 'This is a really lon', '14', 'g string that needs ', '12', 'to be sent chunked', '0', '']
+    chunkedResponse == ['HTTP/1.1 200 OK', 'Transfer-Encoding: chunked', 'Connection: keep-alive', '', '14', 'This is a really lon', '14', 'g string that needs ', '12', 'to be sent chunked', '0', '']
   }
 
   def "can send server sent event"() {
     given:
     handlers {
       handler {
-        response.sendServerSentEventStream(context, new SseStreamer())
+        render serverSentEvents(new SseStreamer())
       }
     }
 
@@ -85,7 +87,7 @@ class ResponseStreamingSpec extends RatpackGroovyDslSpec {
     given:
     handlers {
       handler {
-        response.sendServerSentEventStream(context, new Publisher<ServerSentEvent>() {
+        render serverSentEvents(new Publisher<ServerSentEvent>() {
           @Override
           void subscribe(Subscriber<ServerSentEvent> s) {
             s.onSubscribe(new Subscription() {

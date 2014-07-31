@@ -34,7 +34,9 @@ import ratpack.handling.internal.DefaultContext;
 import ratpack.handling.internal.DefaultRequestOutcome;
 import ratpack.handling.internal.DelegatingHeaders;
 import ratpack.http.*;
-import ratpack.http.internal.*;
+import ratpack.http.internal.DefaultResponse;
+import ratpack.http.internal.DefaultSentResponse;
+import ratpack.http.internal.DefaultStreamTransmitter;
 import ratpack.launch.LaunchConfig;
 import ratpack.launch.LaunchConfigBuilder;
 import ratpack.registry.Registries;
@@ -74,8 +76,7 @@ public class DefaultHandlingResult implements HandlingResult {
 
     final CountDownLatch latch = new CountDownLatch(1);
 
-    final DefaultChunkedResponseTransmitter chunkedResponseTransmitter = new DefaultChunkedResponseTransmitter(null, null, null); //TODO: what test support is required here?
-    final ServerSentEventTransmitter serverSentEventTransmitter = new DefaultServerSentEventTransmitter(null, null, null); //TODO: what test support is required here?
+    final StreamTransmitter streamTransmitter = new DefaultStreamTransmitter(null, null, null); //TODO: what test support is required here?
 
     final EventController<RequestOutcome> eventController = new DefaultEventController<>();
 
@@ -156,7 +157,7 @@ public class DefaultHandlingResult implements HandlingResult {
     launchConfig.getExecController().start(new Action<Execution>() {
       @Override
       public void execute(Execution execution) throws Exception {
-        Response response = new DefaultResponse(status, responseHeaders, fileHttpTransmitter, chunkedResponseTransmitter, serverSentEventTransmitter, launchConfig.getBufferAllocator(), committer);
+        Response response = new DefaultResponse(status, responseHeaders, fileHttpTransmitter, streamTransmitter, launchConfig.getBufferAllocator(), committer);
         DefaultContext.ApplicationConstants applicationConstants = new DefaultContext.ApplicationConstants(launchConfig, renderController);
         requestConstants = new DefaultContext.RequestConstants(
           applicationConstants, bindAddress, request, response, null, eventController.getRegistry(), execution

@@ -28,23 +28,26 @@ import ratpack.http.StreamTransmitter;
 
 import static io.netty.handler.codec.http.HttpHeaders.isKeepAlive;
 
-public class StreamTransmitterSupport<T extends Object> implements StreamTransmitter<T> {
+public class DefaultStreamTransmitter implements StreamTransmitter {
 
   private final FullHttpRequest request;
   private final HttpHeaders httpHeaders;
   protected final Channel channel;
 
-  public StreamTransmitterSupport(FullHttpRequest request, HttpHeaders httpHeaders, Channel channel) {
+  public DefaultStreamTransmitter(FullHttpRequest request, HttpHeaders httpHeaders, Channel channel) {
     this.request = request;
     this.httpHeaders = httpHeaders;
     this.channel = channel;
   }
 
   @Override
-  public void transmit(ExecControl execContext, Publisher<T> stream) {
+  public <T> void transmit(ExecControl execContext, Publisher<T> stream) {
     final HttpResponse response = new CustomHttpResponse(HttpResponseStatus.OK, httpHeaders);
 
-    setResponseHeaders(response);
+    if (isKeepAlive(request)) {
+      response.headers().set(HttpHeaderConstants.CONNECTION, HttpHeaderConstants.KEEP_ALIVE);
+    }
+
     request.content().release();
 
     HttpResponse minimalResponse = new DefaultHttpResponse(response.getProtocolVersion(), response.getStatus());
@@ -97,12 +100,6 @@ public class StreamTransmitterSupport<T extends Object> implements StreamTransmi
         lastContentFuture.addListener(ChannelFutureListener.CLOSE);
       }
     });
-  }
-
-  protected void setResponseHeaders(HttpResponse response) {
-    if (isKeepAlive(request)) {
-      response.headers().set(HttpHeaderConstants.CONNECTION, HttpHeaderConstants.KEEP_ALIVE);
-    }
   }
 
 }

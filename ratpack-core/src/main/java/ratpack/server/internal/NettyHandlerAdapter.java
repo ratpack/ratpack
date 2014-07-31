@@ -102,6 +102,8 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
       .add(ServerErrorHandler.class, new DefaultServerErrorHandler())
       .add(LaunchConfig.class, launchConfig)
       .add(FileRenderer.class, new DefaultFileRenderer())
+      .add(ServerSentEventsRenderer.class, new DefaultServerSentEventsRenderer())
+      .add(HttpResponseChunkRenderer.class, new DefaultHttpResponseChunkRenderer())
       .add(CharSequenceRenderer.class, new DefaultCharSequenceRenderer())
       .add(FormParser.class, FormParser.multiPart())
       .add(FormParser.class, FormParser.urlEncoded())
@@ -218,13 +220,12 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
 
     final FileHttpTransmitter fileHttpTransmitter = new DefaultFileHttpTransmitter(httpHeaders, mimeTypes,
       compressResponses, compressionMinSize, compressionMimeTypeWhiteList, compressionMimeTypeBlackList, wrapper);
-    ChunkedResponseTransmitter chunkedResponseTransmitter = new DefaultChunkedResponseTransmitter(nettyRequest, httpHeaders, channel);
-    ServerSentEventTransmitter serverSentEventTransmitter = new DefaultServerSentEventTransmitter(nettyRequest, httpHeaders, channel);
+    StreamTransmitter streamTransmitter = new DefaultStreamTransmitter(nettyRequest, httpHeaders, channel);
 
     // We own the lifecycle
     nettyRequest.content().retain();
 
-    final Response response = new DefaultResponse(responseStatus, responseHeaders, fileHttpTransmitter, chunkedResponseTransmitter, serverSentEventTransmitter, ctx.alloc(), new Action<ByteBuf>() {
+    final Response response = new DefaultResponse(responseStatus, responseHeaders, fileHttpTransmitter, streamTransmitter, ctx.alloc(), new Action<ByteBuf>() {
       @Override
       public void execute(final ByteBuf byteBuf) throws Exception {
         wrapper.execute(new Action<ResponseTransmitter>() {

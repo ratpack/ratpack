@@ -26,7 +26,10 @@ import org.reactivestreams.Publisher;
 import ratpack.exec.ExecControl;
 import ratpack.file.internal.FileHttpTransmitter;
 import ratpack.func.Action;
-import ratpack.http.*;
+import ratpack.http.MutableHeaders;
+import ratpack.http.MutableStatus;
+import ratpack.http.Response;
+import ratpack.http.StreamTransmitter;
 import ratpack.util.ExceptionUtils;
 import ratpack.util.internal.IoUtils;
 
@@ -46,8 +49,7 @@ public class DefaultResponse implements Response {
   private final MutableStatus status;
   private final MutableHeaders headers;
   private final FileHttpTransmitter fileHttpTransmitter;
-  private final ChunkedResponseTransmitter chunkedResponseTransmitter;
-  private final ServerSentEventTransmitter serverSentEventTransmitter;
+  private final StreamTransmitter streamTransmitter;
   private final Action<? super ByteBuf> committer;
   private final ByteBufAllocator byteBufAllocator;
 
@@ -55,11 +57,10 @@ public class DefaultResponse implements Response {
   private Set<Cookie> cookies;
 
 
-  public DefaultResponse(MutableStatus status, MutableHeaders headers, FileHttpTransmitter fileHttpTransmitter, ChunkedResponseTransmitter chunkedResponseTransmitter, ServerSentEventTransmitter serverSentEventTransmitter, ByteBufAllocator byteBufAllocator, Action<? super ByteBuf> committer) {
+  public DefaultResponse(MutableStatus status, MutableHeaders headers, FileHttpTransmitter fileHttpTransmitter, StreamTransmitter streamTransmitter, ByteBufAllocator byteBufAllocator, Action<? super ByteBuf> committer) {
     this.status = status;
     this.fileHttpTransmitter = fileHttpTransmitter;
-    this.chunkedResponseTransmitter = chunkedResponseTransmitter;
-    this.serverSentEventTransmitter = serverSentEventTransmitter;
+    this.streamTransmitter = streamTransmitter;
     this.byteBufAllocator = byteBufAllocator;
     this.headers = new MutableHeadersWrapper(headers);
     this.committer = committer;
@@ -215,12 +216,6 @@ public class DefaultResponse implements Response {
     send(buffer);
   }
 
-  @Override
-  public void send(ExecControl execContext, Publisher<HttpResponseChunk> stream) {
-    setCookieHeader();
-    chunkedResponseTransmitter.transmit(execContext, stream);
-  }
-
   public void send(ByteBuf buffer) {
     if (!contentTypeSet) {
       contentType("application/octet-stream");
@@ -236,9 +231,9 @@ public class DefaultResponse implements Response {
   }
 
   @Override
-  public void sendServerSentEventStream(ExecControl execContext, Publisher<ServerSentEvent> stream) {
+  public <T> void sendStream(ExecControl execContext, Publisher<T> stream) {
     setCookieHeader();
-    serverSentEventTransmitter.transmit(execContext, stream);
+    streamTransmitter.transmit(execContext, stream);
   }
 
   public void sendFile(final ExecControl execContext, final Path file) throws Exception {

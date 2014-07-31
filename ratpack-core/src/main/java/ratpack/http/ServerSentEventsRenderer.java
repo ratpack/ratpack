@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package ratpack.http.internal;
+package ratpack.http;
 
-import ratpack.http.HttpResponseChunk;
-import ratpack.http.StreamTransmitter;
+import ratpack.render.Renderer;
 
-public interface ChunkedResponseTransmitter extends StreamTransmitter<HttpResponseChunk> {
+public interface ServerSentEventsRenderer extends Renderer<ServerSentEvents> {
 }

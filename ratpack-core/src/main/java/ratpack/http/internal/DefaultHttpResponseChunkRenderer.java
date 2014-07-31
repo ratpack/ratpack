@@ -16,8 +16,19 @@
 
 package ratpack.http.internal;
 
-import ratpack.http.ServerSentEvent;
-import ratpack.http.StreamTransmitter;
+import ratpack.handling.Context;
+import ratpack.http.HttpResponseChunkRenderer;
+import ratpack.http.HttpResponseChunks;
+import ratpack.http.Response;
+import ratpack.render.RendererSupport;
 
-public interface ServerSentEventTransmitter extends StreamTransmitter<ServerSentEvent> {
+public class DefaultHttpResponseChunkRenderer extends RendererSupport<HttpResponseChunks> implements HttpResponseChunkRenderer {
+
+  @Override
+  public void render(Context context, HttpResponseChunks object) throws Exception {
+    Response response = context.getResponse();
+    response.getHeaders().add(HttpHeaderConstants.TRANSFER_ENCODING, HttpHeaderConstants.CHUNKED);
+
+    response.sendStream(context, object.getPublisher());
+  }
 }
