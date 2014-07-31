@@ -43,7 +43,7 @@ Ratpack is similar to Vert.x in some respects:
 * Non blocking
 
 A key difference between Vert.x and Ratpack is that Vert.x is a container, where Ratpack is a set of libraries (Vert.x can be embedded, but is typically not).
-As such, it takes care concerns than Ratpack does not (i.e. does not attempt to).
+As such, it attempts to address a broader set of concerns than Ratpack.
 
 Vert.x applications are a composed set of “verticles” communicating via an unstructured JSON (in terms of schema) distributed bus.
 Vert.x provides support for many different programming languages, even making it easy to compose an application out of verticles of different languages.
