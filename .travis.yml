@@ -1,7 +1,4 @@
 --- 
-jdk: 
-- oraclejdk7
-language: java
 notifications: 
   slack: 
   - secure: |-
@@ -9,15 +6,15 @@ notifications:
       NAGZDKxNmgnmlQ6JtjiiqiP6u1wR0B3l393OOP36afIUO7Hh32rTM7KZs/My
       yfqirzv07gUQ1erEInKwhGFKSEPfyHHSPZ2CjyTuYXnL2parNv0=
 install: true
+language: java
 script: 
 - ./gradlew clean check jacocoReport coveralls --stacktrace
-env:
-  global:
-    - TERM=dumb
-    - secure: |-
-        aQQaY71Oy1OcM3SqbAMcTQxrGoEjsXtz85345YtK0kEcgxHfnELOupU0ggeQ
-        l2H8It81ZDTFZvcSDlKrV86aBn6j9MUM5UFgKrSpc9pxemCHzPUhVxjTcfEj
-        OxSFBRnuIEpNdrqX1lcFBvqCl6vhAEeZZOCQHLwjJgJgKHOIfdE=
-cache:
-  directories:
+cache: 
+  directories: 
   - $HOME/.gradle
+jdk: 
+- oraclejdk7
+env: 
+  global: 
+  - TERM=dumb
+  - COVERALLS_REPO_TOKEN=50XCeJnZL9KMn7ea76nwbotoZ5mlevTxK
