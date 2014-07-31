@@ -61,7 +61,7 @@ As such, it is (not significantly) more performant than Ratpack and more suitabl
 
 Ratpack is more focussed on HTTP applications than Vert.x.
 Ratpack provides more support for structuring, composing, evolving and testing request handling logic than Vert.x.
-A more apt comparison then Ratpack and Vert.x would be a HTTP oriented framework built on type of Vert.x, such as [Yoke](http://pmlopes.github.io/yoke).
+A more apt comparison then Ratpack and Vert.x would be a HTTP oriented framework built on top of Vert.x, such as [Yoke](http://pmlopes.github.io/yoke).
   
 Another key difference is that the Vert.x API is callback based.
 Ratpack use the concept of a “promise” instead (see the [“Async”](async.html) chapter for more info).
