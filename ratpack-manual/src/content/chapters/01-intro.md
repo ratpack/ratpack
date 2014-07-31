@@ -93,7 +93,7 @@ The use of RxJava is recommended for all non trivial Ratpack applications.
 [http://grails.org](http://grails.org)
 
 Grails is a full stack, fully featured, MVC based web development framework (in the tradition of Ruby on Rails).
-It provides many deeply integrated features such as multi store persistence (GORM), a view technology (GSP),
+It provides many deeply integrated features such as multi-store persistence (GORM), a view technology (GSP),
 a proprietary build system, testing support and has a vast ecosystem of plugins. 
  
 Grails does _much_ more than Ratpack does.
