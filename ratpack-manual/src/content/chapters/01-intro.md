@@ -10,7 +10,7 @@ Ratpack focuses on allowing HTTP applications to be efficient, modular, adaptive
 
 This section contrasts Ratpack with other similar types of technologies to help explain what Ratpack is and what it isn't.
 
-> If you disagree with description given of a particular technology/framework below, please [documentation on GitHub](https://github.com/ratpack/ratpack/blob/master/ratpack-manual/src/content/chapters/01-intro.md).
+> If you disagree with description given of a particular technology/framework below, please [edit this documentation on GitHub](https://github.com/ratpack/ratpack/blob/master/ratpack-manual/src/content/chapters/01-intro.md).
 > Moreover, if you think that another comparison is warranted please request it.
 
 ### Netty
