@@ -28,13 +28,14 @@ Write the content, but don't close the milestone yet.
 1. Build and upload the binaries: `./gradlew artifactoryPublish` - See below for credential requirements
 1. Promote the binaries from oss.jfrog.org to Bintray and Maven Central
     1. Go to https://oss.jfrog.org/webapp/builds/ratpack/?6
-    1. Find the build you just uploaded (you should be able to tell by the version number)
+    1. To log in use your Bintray username and Bintray API key
+    1. Find the build you just uploaded (you should be able to tell by the version number).  If you sort by "Time Built" desc it will be at the top of the list
     1. After clicking the build, the next page has an 'Upload to Bintray' icon, click it
         1. Details: repository = ratpack/maven, package name = ratpack, version = «release version»
         1. I often have to repeat this process a few times because it times out, until it finishes with success
     1. Confirm the publish in Bintray - The link to the bintray page is given on the success page of the previous step. Just in case it's:  https://bintray.com/ratpack/maven/ratpack/«version»/view/files/io/ratpack
     1. Publish to Maven central - click the 'Maven Central' tab on the Bintray package page
-        1. Enter your user/pass
+        1. Enter your user/pass - this is your oss.sonatype.org credentials
         1. Click “Close repository when done”
         1. Click “Sync”
 1. Publish Lazybones templates to Bintray: `./gradlew publishAllTemplates` - See below for credential requirements.  If you run this task more than once you may need to delete the published templates in Bintray first.
@@ -59,6 +60,7 @@ Write the content, but don't close the milestone yet.
     1. This is your Bintray account - use the Bintray UI to ask for write permissions to the io.ratpack group in oss.jfrog.org
 1. GPG credentials/config
     1. We use the Gradle Signing Plugin to sign the artifacts (we don't let Bintray do this) - See [the Gradle docs](http://www.gradle.org/docs/current/userguide/signing_plugin.html#N15692) for how to set this up
+    1. One gotcha is forgetting to distribute your public key.  See [here](http://blog.sonatype.com/2010/01/how-to-generate-pgp-signatures-with-maven/#.U9rkY2MSS6N) for more info.  If you don't do this you will get problems when syncing to Maven central.
 1. oss.sonatype.org credentials
     1. The sync from Bintray to Central requires an account with oss.sonatype.org
     1. See [the docs](https://docs.sonatype.org/display/Repository/Sonatype+OSS+Maven+Repository+Usage+Guide#SonatypeOSSMavenRepositoryUsageGuide-2.Signup) for creating an account here
