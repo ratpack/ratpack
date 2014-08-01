@@ -54,7 +54,10 @@ class ContentTypeHandlerSpec extends RatpackGroovyDslSpec {
 
     when:
     resetRequest()
-    requestSpec { it.formParams([foo: "bar"]) } //TODO Fix this isn't a supported method yet
+    requestSpec {
+      it.headers.add("Content-Type", APPLICATION_FORM)
+      it.body.stream({ it << [foo: "bar"].collect({ it }).join('&') })
+    }
 
     then:
     postText() == "ok"

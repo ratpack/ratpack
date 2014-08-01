@@ -68,16 +68,16 @@ class RendererBindingsSpec extends RatpackGroovyDslSpec {
 
     then:
     with(get("int")) {
-      body == "1"
-      header(CONTENT_TYPE) == "text/integer;charset=UTF-8"
+      body.text == "1"
+      headers.get(CONTENT_TYPE) == "text/integer;charset=UTF-8"
     }
     with(get("string")) {
-      body == "abc"
-      header(CONTENT_TYPE) == "text/string;charset=UTF-8"
+      body.text == "abc"
+      headers.get(CONTENT_TYPE) == "text/string;charset=UTF-8"
     }
     with(get("none")) {
       statusCode == 500
-      body.contains(NoSuchRendererException.name)
+      body.text.contains(NoSuchRendererException.name)
     }
   }
 

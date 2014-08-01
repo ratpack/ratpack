@@ -23,6 +23,7 @@ import ratpack.error.ServerErrorHandler
 import ratpack.test.embed.JarFileBaseDirBuilder
 import ratpack.test.internal.RatpackGroovyDslSpec
 
+import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_TYPE
 import static ratpack.groovy.Groovy.groovyMarkupTemplate
 
 class TemplateRenderingSpec extends RatpackGroovyDslSpec {
@@ -326,13 +327,13 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    get("t.gtpl").contentType == "text/html;charset=UTF-8"
-    get("t.xml").contentType == "application/xml"
-    get("dir/t.gtpl").contentType == "text/html;charset=UTF-8"
-    get("dir/t.xml").contentType == "application/xml"
+    get("t.gtpl").headers.get(CONTENT_TYPE) == "text/html;charset=UTF-8"
+    get("t.xml").headers.get(CONTENT_TYPE) == "application/xml"
+    get("dir/t.gtpl").headers.get(CONTENT_TYPE) == "text/html;charset=UTF-8"
+    get("dir/t.xml").headers.get(CONTENT_TYPE) == "application/xml"
 
-    get("t.xml?type=foo/bar").contentType == "foo/bar"
-    get("dir/t.xml?type=foo/bar").contentType == "foo/bar"
+    get("t.xml?type=foo/bar").headers.get(CONTENT_TYPE) == "foo/bar"
+    get("dir/t.xml?type=foo/bar").headers.get(CONTENT_TYPE) == "foo/bar"
   }
 
 }

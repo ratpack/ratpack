@@ -260,3 +260,4 @@ class DefaultResponseSpec extends RatpackGroovyDslSpec {
   }
 
 }
+

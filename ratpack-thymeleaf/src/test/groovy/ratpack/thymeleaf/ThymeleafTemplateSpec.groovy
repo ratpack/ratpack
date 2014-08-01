@@ -219,8 +219,8 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    get("simple?type=text/html").getHeader(CONTENT_TYPE) == "text/html;charset=UTF-8"
-    get("simple?type=text/xml").getHeader(CONTENT_TYPE) == "text/xml;charset=UTF-8"
+    get("simple?type=text/html").headers.get(CONTENT_TYPE) == "text/html;charset=UTF-8"
+    get("simple?type=text/xml").headers.get(CONTENT_TYPE) == "text/xml;charset=UTF-8"
   }
 
   @Unroll

@@ -18,6 +18,7 @@ package ratpack.file
 
 import org.apache.commons.lang3.RandomStringUtils
 import ratpack.func.Action
+import ratpack.http.HttpUrlSpec
 import ratpack.http.client.ReceivedResponse
 import ratpack.http.client.RequestSpec
 import ratpack.http.internal.HttpHeaderDateFormat
@@ -147,13 +148,31 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    with(get("dir$suffix")) {
+    //TODO the issue is we need to allow users to build their own urls if they want instead of doing it via the get()
+    requestSpec({ RequestSpec requestSpec ->
+      requestSpec.url({ HttpUrlSpec httpUrlSpec ->
+        if (key) {
+          def map = [:]
+          map[key] = value
+
+          httpUrlSpec.params(map)
+        }
+      })
+    })
+    def suffix = key ? "?${URLEncoder.encode(key)}=${URLEncoder.encode(value)}" : ""
+
+    with(get("dir")) {
       statusCode == 302
-      headers.get(LOCATION) == "http://${server.bindHost}:${server.bindPort}/dir/$suffix"
+      headers.get(LOCATION) == "http://${server.bindHost}:${server.bindPort}/dir/${suffix}"
     }
 
     where:
-    suffix << ["", "?a=b", "?a+b=1+2", "?a%20b=1%202"]
+    key     | value
+    null    | null
+    "a"     | "b"
+    "a+b"   | "1+2"
+    "a%20b" | "1%202"
+
   }
 
   def "can serve files with query strings"() {
@@ -166,7 +185,7 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    getText("?abc") == "foo"
+    getText("/?abc") == "foo"
     getText("index.html?abc") == "foo"
   }
 

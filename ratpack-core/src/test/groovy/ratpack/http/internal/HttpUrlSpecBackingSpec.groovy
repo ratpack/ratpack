@@ -124,6 +124,7 @@ class HttpUrlSpecBackingSpec extends Specification {
       "http://foo.bar/a?a",
       "http://foo.bar/a?a=b&a=c",
       "http://foo.bar/a?a%3F1=b%3F1&a%3F1=c",
+      "http://foo.bar/a/"
     ]
   }
 

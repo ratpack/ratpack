@@ -28,7 +28,7 @@ public abstract class TestHttpClients {
     return testHttpClient(applicationUnderTest, null);
   }
 
-  public static TestHttpClient testHttpClient(ApplicationUnderTest applicationUnderTest, @Nullable Action<RequestSpec> requestConfigurer) {
+  public static TestHttpClient testHttpClient(ApplicationUnderTest applicationUnderTest, @Nullable Action<? super RequestSpec> requestConfigurer) {
     return new DefaultTestHttpClient(applicationUnderTest, requestConfigurer);
   }
 

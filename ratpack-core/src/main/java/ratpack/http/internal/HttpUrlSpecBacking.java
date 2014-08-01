@@ -50,6 +50,7 @@ public class HttpUrlSpecBacking implements HttpUrlSpec {
   private int port = -1;
   private final List<String> pathSegments = new LinkedList<>();
   private final Multimap<String, String> params = MultimapBuilder.linkedHashKeys().linkedListValues().build();
+  private boolean hasTrailingSlash;
 
   public HttpUrlSpecBacking() {
 
@@ -159,6 +160,7 @@ public class HttpUrlSpecBacking implements HttpUrlSpec {
           throw new InternalRatpackError("UTF8 is not available", e);
         }
       }
+      hasTrailingSlash = rawPath.substring(rawPath.length() - 1, rawPath.length()).equals("/");
     }
 
     if (uri.getRawQuery() != null) {
@@ -228,6 +230,9 @@ public class HttpUrlSpecBacking implements HttpUrlSpec {
       uri.append(":").append(port);
     }
     appendPathString(uri);
+    if (hasTrailingSlash) {
+      uri.append("/");
+    }
     appendQueryString(uri);
 
     return uri.toString();

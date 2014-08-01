@@ -323,14 +323,14 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    get("t.html").header(CONTENT_TYPE) == "text/html;charset=UTF-8"
-    get("t.xml").header(CONTENT_TYPE) == "application/xml"
-    get("dir/t.html").header(CONTENT_TYPE) == "text/html;charset=UTF-8"
-    get("dir/t.xml").header(CONTENT_TYPE) == "application/xml"
-    get("dir/t").header(CONTENT_TYPE) == "application/octet-stream"
+    get("t.html").headers.get(CONTENT_TYPE) == "text/html;charset=UTF-8"
+    get("t.xml").headers.get(CONTENT_TYPE) == "application/xml"
+    get("dir/t.html").headers.get(CONTENT_TYPE) == "text/html;charset=UTF-8"
+    get("dir/t.xml").headers.get(CONTENT_TYPE) == "application/xml"
+    get("dir/t").headers.get(CONTENT_TYPE) == "application/octet-stream"
 
-    get("t.xml?type=foo/bar").header(CONTENT_TYPE) == "foo/bar"
-    get("dir/t.xml?type=foo/bar").header(CONTENT_TYPE) == "foo/bar"
+    get("t.xml?type=foo/bar").headers.get(CONTENT_TYPE) == "foo/bar"
+    get("dir/t.xml?type=foo/bar").headers.get(CONTENT_TYPE) == "foo/bar"
   }
 
   def "error in error template produces empty response and right error code"() {

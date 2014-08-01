@@ -40,6 +40,8 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 import java.net.URI;
 
+import static ratpack.util.ExceptionUtils.uncheck;
+
 public class DefaultHttpClient implements HttpClient {
 
   private final LaunchConfig launchConfig;
@@ -79,8 +81,7 @@ public class DefaultHttpClient implements HttpClient {
     try {
       requestConfigurer.execute(requestSpecBacking.asSpec());
     } catch (Exception e) {
-      e.printStackTrace();
-      //TODO do something useful here
+      throw uncheck(e);
     }
 
     final URI uri = requestSpecBacking.getUrl();
@@ -146,10 +147,10 @@ public class DefaultHttpClient implements HttpClient {
             if (future.isSuccess()) {
 
               String fullPath = getFullPath(uri);
-
               FullHttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.valueOf(requestSpecBacking.getMethod()), fullPath, requestSpecBacking.getBody());
-
-              headers.set(HttpHeaders.Names.HOST, host);
+              if (headers.get(HttpHeaders.Names.HOST) == null) {
+                headers.set(HttpHeaders.Names.HOST, host);
+              }
               headers.set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.CLOSE);
               int contentLength = request.content().readableBytes();
               if (contentLength > 0) {

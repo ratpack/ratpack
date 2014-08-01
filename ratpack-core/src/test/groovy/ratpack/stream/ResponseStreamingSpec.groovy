@@ -73,10 +73,10 @@ class ResponseStreamingSpec extends RatpackGroovyDslSpec {
     expect:
     def response = get()
     response.statusCode == OK.code()
-    response.header("Content-Type") == "text/event-stream;charset=UTF-8"
-    response.header("Cache-Control") == "no-cache, no-store, max-age=0, must-revalidate"
-    response.header("Pragma") == "no-cache"
-    response.body.asString() == "event: add\ndata: Event 1\nid: 1\n\nevent: add\ndata: Event 2\nid: 2\n\nevent: add\ndata: Event 3\nid: 3\n\n"
+    response.headers["Content-Type"] == "text/event-stream;charset=UTF-8"
+    response.headers["Cache-Control"] == "no-cache, no-store, max-age=0, must-revalidate"
+    response.headers["Pragma"] == "no-cache"
+    response.body.text == "event: add\ndata: Event 1\nid: 1\n\nevent: add\ndata: Event 2\nid: 2\n\nevent: add\ndata: Event 3\nid: 3\n\n"
   }
 
   def "can cancel a stream when a client drops connection"() {

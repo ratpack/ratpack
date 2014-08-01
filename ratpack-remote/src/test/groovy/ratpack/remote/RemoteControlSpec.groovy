@@ -22,6 +22,7 @@ import io.remotecontrol.groovy.client.RemoteControl
 import io.remotecontrol.transport.http.HttpTransport
 import ratpack.file.FileRenderer
 import ratpack.file.FileSystemBinding
+import ratpack.http.client.RequestSpec
 import ratpack.launch.LaunchConfig
 import ratpack.test.internal.RatpackGroovyDslSpec
 import spock.lang.Unroll
@@ -71,8 +72,10 @@ class RemoteControlSpec extends RatpackGroovyDslSpec {
     launchConfig { other(enabled) }
 
     when:
-    requestSpec.header(HttpHeaders.Names.CONTENT_TYPE, ContentType.COMMAND.value)
-    requestSpec.header(HttpHeaders.Names.ACCEPT, 'text/html')
+    requestSpec{ RequestSpec requestSpec ->
+      requestSpec.headers.set(HttpHeaders.Names.CONTENT_TYPE, ContentType.COMMAND.value)
+      requestSpec.headers.set(HttpHeaders.Names.ACCEPT, 'text/html')
+    }
 
     then:
     post(DEFAULT_REMOTE_CONTROL_PATH).statusCode == NOT_ACCEPTABLE.code()

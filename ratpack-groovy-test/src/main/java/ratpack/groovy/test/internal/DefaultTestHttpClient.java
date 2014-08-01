@@ -17,6 +17,8 @@
 package ratpack.groovy.test.internal;
 
 
+import io.netty.handler.codec.http.ClientCookieEncoder;
+import io.netty.handler.codec.http.CookieDecoder;
 import ratpack.api.Nullable;
 import ratpack.func.Actions;
 import ratpack.groovy.test.TestHttpClient;
@@ -25,9 +27,13 @@ import ratpack.http.client.RequestSpec;
 import ratpack.test.ApplicationUnderTest;
 import ratpack.func.Action;
 import ratpack.test.internal.BlockingHttpClient;
+import io.netty.handler.codec.http.Cookie;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 import static ratpack.util.ExceptionUtils.uncheck;
 
@@ -37,9 +43,10 @@ public class DefaultTestHttpClient implements TestHttpClient {
   private Action<? super RequestSpec> request = Actions.noop();
   private BlockingHttpClient client = new BlockingHttpClient();
   private ReceivedResponse response;
-  private Action<RequestSpec> requestConfigurer;
+  private Action<? super RequestSpec> requestConfigurer;
+  private List<Cookie> cookies;
 
-  public DefaultTestHttpClient(ApplicationUnderTest applicationUnderTest, @Nullable Action<RequestSpec> requestConfigurer) {
+  public DefaultTestHttpClient(ApplicationUnderTest applicationUnderTest, @Nullable Action<? super RequestSpec> requestConfigurer) {
     this.applicationUnderTest = applicationUnderTest;
     if (requestConfigurer != null) {
       this.requestConfigurer = requestConfigurer;
@@ -47,7 +54,9 @@ public class DefaultTestHttpClient implements TestHttpClient {
       this.requestConfigurer = Actions.noop();
     }
 
-    request = requestConfigurer;
+    cookies = new ArrayList<Cookie>();
+
+    request = this.requestConfigurer;
 
   }
 
@@ -66,6 +75,7 @@ public class DefaultTestHttpClient implements TestHttpClient {
   @Override
   public void resetRequest() {
     request = requestConfigurer;
+    cookies.clear();
   }
 
   @Override
@@ -210,10 +220,21 @@ public class DefaultTestHttpClient implements TestHttpClient {
   }
 
   private void preRequest() {
-    //TODO Consider Removal
   }
 
   private ReceivedResponse postRequest() {
+    List<String> cookieHeaders = response.getHeaders().getAll("Set-Cookie");
+    for (String cookieHeader : cookieHeaders) {
+      Set<Cookie> decodedCookies = CookieDecoder.decode(cookieHeader);
+      for (Cookie decodedCookie : decodedCookies) {
+        if (cookies.contains(decodedCookie)) {
+          cookies.remove(decodedCookie);
+        }
+        if (!decodedCookie.isDiscard()) {
+          cookies.add(decodedCookie);
+        }
+      }
+    }
 
     return response;
   }
@@ -224,36 +245,44 @@ public class DefaultTestHttpClient implements TestHttpClient {
 
 
     try {
-      receivedResponse = client.request(toAbsolute(path), Actions.join(request, new SetMethod(method)));
+      receivedResponse = client.request(Actions.join(request, new FinalRequestConfig(method, toAbsolute(path), cookies)));
     } catch (Throwable throwable) {
-      throwable.printStackTrace();
-
+      throw uncheck(throwable);
     }
 
     response = receivedResponse;
     return receivedResponse;
   }
 
-  private static class SetMethod implements Action<RequestSpec> {
-    private String method;
 
-    public SetMethod(String method) {
+  private static class FinalRequestConfig implements Action<RequestSpec> {
+    private String method;
+    private URI path;
+    List<Cookie> cookies;
+
+    public FinalRequestConfig(String method, URI path, List<Cookie> cookies) {
       this.method = method;
+      this.path = path;
+      this.cookies = cookies;
     }
 
     @Override
     public void execute(RequestSpec requestSpec) throws Exception {
       requestSpec.method(method);
+      requestSpec.getUrl().set(path);
+      requestSpec.getHeaders().add("Cookie", ClientCookieEncoder.encode(cookies));
+
     }
   }
 
-  private String toAbsolute(String path) {
+  private URI toAbsolute(String path) {
     try {
-      if (new URI(path).isAbsolute()) {
-        return path;
+      URI basePath = new URI(path);
+      if (basePath.isAbsolute()) {
+        return basePath;
       } else {
         URI address = applicationUnderTest.getAddress();
-        return address.toString() + path;
+        return new URI(address.toString() + path);
       }
     } catch (URISyntaxException e) {
       throw uncheck(e);

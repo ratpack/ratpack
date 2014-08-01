@@ -360,7 +360,7 @@ class SiteSpec {
 
     then:
       response.statusCode == 200
-      response.body.asString().contains('<title>Ratpack: A toolkit for JVM web applications</title>')
+      response.body.text.contains('<title>Ratpack: A toolkit for JVM web applications</title>')
   }
 }
 ```

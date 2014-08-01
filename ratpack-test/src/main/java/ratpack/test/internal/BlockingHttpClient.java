@@ -35,9 +35,11 @@ public class BlockingHttpClient implements AutoCloseable {
   private final LaunchConfig launchConfig;
 
   public BlockingHttpClient() {
+    //TODO allow this to be configured
     this.launchConfig = LaunchConfigBuilder
       .noBaseDir()
       .bufferAllocator(UnpooledByteBufAllocator.DEFAULT)
+      .maxContentLength(Integer.MAX_VALUE)
       .build();
   }
 

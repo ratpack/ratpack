@@ -18,6 +18,7 @@ package ratpack.jackson
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.google.common.reflect.TypeToken
+import ratpack.http.client.RequestSpec
 import ratpack.test.internal.RatpackGroovyDslSpec
 import spock.lang.Unroll
 
@@ -39,7 +40,10 @@ class JacksonParsingSpec extends RatpackGroovyDslSpec {
     }
 
     and:
-    requestSpec.contentType("application/json").body([value: 3])
+    requestSpec { RequestSpec requestSpec ->
+      requestSpec.body.stream({ it << /{"value": 3}/ })
+      requestSpec.body.type("application/json")
+    }
 
     then:
     postText() == "3"
@@ -64,7 +68,10 @@ class JacksonParsingSpec extends RatpackGroovyDslSpec {
     }
 
     and:
-    requestSpec.contentType("application/json").body([value: 1, foo: [value: 2]])
+    requestSpec { RequestSpec requestSpec ->
+      requestSpec.body.type("application/json")
+      requestSpec.body.stream({ it << /{"value": 1, "foo": {"value": 2}}/ })
+    }
 
     then:
     postText() == "1:2"
@@ -84,7 +91,10 @@ class JacksonParsingSpec extends RatpackGroovyDslSpec {
     }
 
     and:
-    requestSpec.contentType("application/json").body([1])
+    requestSpec { RequestSpec requestSpec ->
+      requestSpec.body.type("application/json")
+      requestSpec.body.stream({ it << /[1]/ })
+    }
 
     then:
     postText() == "[java.lang.Integer]"

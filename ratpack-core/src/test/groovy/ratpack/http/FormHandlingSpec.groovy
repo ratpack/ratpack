@@ -16,11 +16,19 @@
 
 package ratpack.http
 
+import io.netty.buffer.ByteBuf
+import io.netty.buffer.Unpooled
+import io.netty.handler.codec.http.DefaultFullHttpRequest
+import io.netty.handler.codec.http.HttpRequest
+import io.netty.handler.codec.http.HttpVersion
+import io.netty.handler.codec.http.multipart.HttpPostRequestEncoder
 import ratpack.error.ServerErrorHandler
 import ratpack.error.DebugErrorHandler
 import ratpack.form.Form
 import ratpack.http.client.RequestSpec
 import ratpack.test.internal.RatpackGroovyDslSpec
+import static ratpack.http.MediaType.APPLICATION_FORM
+
 
 class FormHandlingSpec extends RatpackGroovyDslSpec {
 
@@ -40,22 +48,23 @@ class FormHandlingSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    requestSpec { it.headers.add("Content-Type", "application/x-www-form-urlencoded") }
+    requestSpec { it.headers.add("Content-Type", APPLICATION_FORM) }
     postText() == "[:]"
     when:
     resetRequest()
     requestSpec { RequestSpec requestSpec ->
-      //TODO Easy way to add params
-      param "a", "b"
+      requestSpec.headers.add("Content-Type", APPLICATION_FORM)
+      requestSpec.body.stream({ it << [a: "b"].collect({ it }).join('&') })
     }
     then:
     postText() == "[a:[b]]"
     when:
     resetRequest()
-    requestSpec.with {
-      param "a", "b", "c"
-      param "d", "e"
-      param "abc", ""
+
+    requestSpec { RequestSpec requestSpec ->
+      def body = "a=b&a=c&d=e&abc="
+      requestSpec.headers.add("Content-Type", APPLICATION_FORM)
+      requestSpec.body.stream({ it << body })
     }
     then:
     postText() == "[a:[b, c], d:[e], abc:[]]"
@@ -71,9 +80,26 @@ class FormHandlingSpec extends RatpackGroovyDslSpec {
     }
 
     and:
-    requestSpec.multiPart("foo", "1", "text/plain")
-    requestSpec.multiPart("bar", "2", "text/plain")
-    requestSpec.multiPart("bar", "3", "text/plain")
+    requestSpec { RequestSpec requestSpec ->
+
+      HttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, io.netty.handler.codec.http.HttpMethod.POST, "/")
+      HttpPostRequestEncoder httpPostRequestEncoder = new HttpPostRequestEncoder(request, true)
+      httpPostRequestEncoder.addBodyAttribute("foo", "1")
+      httpPostRequestEncoder.addBodyAttribute("bar", "2")
+      httpPostRequestEncoder.addBodyAttribute("bar", "3")
+
+      request = httpPostRequestEncoder.finalizeRequest()
+
+      request.headers().each {
+        requestSpec.headers.set(it.key, it.value)
+      }
+
+      def chunks = []
+      while (!httpPostRequestEncoder.isEndOfInput()) {
+        chunks << httpPostRequestEncoder.readChunk(null).content()
+      }
+      requestSpec.body.buffer(Unpooled.wrappedBuffer(chunks as ByteBuf[]))
+    }
 
     then:
     postText() == "[foo:[1], bar:[2, 3]]"
@@ -92,7 +118,24 @@ class FormHandlingSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    requestSpec.multiPart("theFile", fooFile.toFile())
+    requestSpec { RequestSpec requestSpec ->
+      HttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, io.netty.handler.codec.http.HttpMethod.POST, "/")
+      HttpPostRequestEncoder httpPostRequestEncoder = new HttpPostRequestEncoder(request, true)
+      httpPostRequestEncoder.addBodyFileUpload("theFile", fooFile.toFile(), "text/plain", true)
+
+      request = httpPostRequestEncoder.finalizeRequest()
+
+      request.headers().each {
+        requestSpec.headers.set(it.key, it.value)
+      }
+
+      def chunks = []
+      while (!httpPostRequestEncoder.isEndOfInput()) {
+        chunks << httpPostRequestEncoder.readChunk(null).content()
+      }
+      requestSpec.body.buffer(Unpooled.wrappedBuffer(chunks as ByteBuf[]))
+    }
+
     postText() == "File content: bar"
   }
 
@@ -109,7 +152,23 @@ class FormHandlingSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    requestSpec.multiPart("theFile", fooFile.toFile(), "text/plain")
+    requestSpec { RequestSpec requestSpec ->
+      HttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, io.netty.handler.codec.http.HttpMethod.POST, "/")
+      HttpPostRequestEncoder httpPostRequestEncoder = new HttpPostRequestEncoder(request, true)
+      httpPostRequestEncoder.addBodyFileUpload("theFile", fooFile.toFile(), "text/plain", true)
+
+      request = httpPostRequestEncoder.finalizeRequest()
+
+      request.headers().each {
+        requestSpec.headers.set(it.key, it.value)
+      }
+
+      def chunks = []
+      while (!httpPostRequestEncoder.isEndOfInput()) {
+        chunks << httpPostRequestEncoder.readChunk(null).content()
+      }
+      requestSpec.body.buffer(Unpooled.wrappedBuffer(chunks as ByteBuf[]))
+    }
     postText() == "File type: text/plain;charset=UTF-8"
   }
 
@@ -126,7 +185,24 @@ class FormHandlingSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    requestSpec.multiPart("theFile", fooFile.toFile(), "text/plain;charset=US-ASCII")
+    requestSpec { RequestSpec requestSpec ->
+      HttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, io.netty.handler.codec.http.HttpMethod.POST, "/")
+      HttpPostRequestEncoder httpPostRequestEncoder = new HttpPostRequestEncoder(request, true)
+      httpPostRequestEncoder.addBodyFileUpload("theFile", fooFile.toFile(), "text/plain;charset=US-ASCII", false)
+
+      request = httpPostRequestEncoder.finalizeRequest()
+
+      request.headers().each {
+        requestSpec.headers.set(it.key, it.value)
+      }
+
+      def chunks = []
+      while (!httpPostRequestEncoder.isEndOfInput()) {
+        chunks << httpPostRequestEncoder.readChunk(null).content()
+      }
+      requestSpec.body.buffer(Unpooled.wrappedBuffer(chunks as ByteBuf[]))
+    }
+
     postText() == "File type: text/plain;charset=US-ASCII"
   }
 }

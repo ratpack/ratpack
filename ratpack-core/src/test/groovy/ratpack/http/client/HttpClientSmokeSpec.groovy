@@ -16,6 +16,7 @@
 
 package ratpack.http.client
 
+import org.apache.http.HttpHeaders
 import ratpack.http.HttpUrlSpec
 import ratpack.util.internal.IoUtils
 
@@ -220,6 +221,6 @@ class HttpClientSmokeSpec extends HttpClientSpec {
 
     then:
     text == "abc123"
-    response.contentType == "text/plain;charset=UTF-8"
+    response.headers.get(HttpHeaders.CONTENT_TYPE)  == "text/plain;charset=UTF-8"
   }
 }

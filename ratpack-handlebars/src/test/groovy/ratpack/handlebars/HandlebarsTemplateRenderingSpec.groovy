@@ -133,10 +133,10 @@ class HandlebarsTemplateRenderingSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    get("simple").header(CONTENT_TYPE) == "application/octet-stream"
-    get("simple.json").header(CONTENT_TYPE) == "application/json"
-    get("simple.html").header(CONTENT_TYPE) == "text/html;charset=UTF-8"
-    get("simple.html?type=application/octet-stream").header(CONTENT_TYPE) == "application/octet-stream"
+    get("simple").headers.get(CONTENT_TYPE) == "application/octet-stream"
+    get("simple.json").headers.get(CONTENT_TYPE) == "application/json"
+    get("simple.html").headers.get(CONTENT_TYPE) == "text/html;charset=UTF-8"
+    get("simple.html?type=application/octet-stream").headers.get(CONTENT_TYPE) == "application/octet-stream"
   }
 
   void "templates are reloadable when reloading is enabled"() {

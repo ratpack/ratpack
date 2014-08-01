@@ -48,6 +48,6 @@ class MarkupRenderingSpec extends RatpackGroovyAppSpec {
   </body>
 </html>"""
 
-    response.header(CONTENT_TYPE) == new DefaultMediaType("text/html", "UTF-8").toString()
+    response.headers.get(CONTENT_TYPE) == new DefaultMediaType("text/html", "UTF-8").toString()
   }
 }

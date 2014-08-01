@@ -16,13 +16,13 @@
 
 package ratpack.pac4j.openid
 
-import com.jayway.restassured.specification.RequestSpecification
 import org.junit.ClassRule
 import org.junit.rules.TemporaryFolder
 import org.pac4j.openid.credentials.OpenIdCredentials
 import org.pac4j.openid.profile.google.GoogleOpenIdProfile
 import ratpack.groovy.test.TestHttpClient
 import ratpack.groovy.test.TestHttpClients
+import ratpack.http.client.RequestSpec
 import ratpack.pac4j.InjectedPac4jModule
 import ratpack.pac4j.Pac4jModule
 import ratpack.test.ApplicationUnderTest
@@ -99,7 +99,7 @@ class OpenIdRpSpec extends Specification {
     def response = client.get("noauth")
 
     then: "the page is returned without any redirects, and without authentication"
-    response.body == "noauth:null:null"
+    response.body.text == "noauth:null:null"
 
     where:
     aut << [autConstructed, autInjected]
@@ -116,39 +116,51 @@ class OpenIdRpSpec extends Specification {
 
     then: "the request is redirected to the openid provider"
     response1.statusCode == FOUND.code()
-    response1.header(LOCATION).contains("/openid_provider")
+    response1.headers.get(LOCATION).contains("/openid_provider")
 
     when: "following the redirect"
-    def response2 = client.get(response1.header(LOCATION))
+    def response2 = client.get(response1.headers.get(LOCATION))
 
     then: "the response is redirected to the callback"
     response2.statusCode == FOUND.code()
-    response2.header(LOCATION).contains("/pac4j-callback")
+    response2.headers.get(LOCATION).contains("/pac4j-callback")
 
     when: "following the redirect"
-    def response3 = client.createRequest().cookies(response1.cookies).get(response2.header(LOCATION))
+    client.resetRequest()
+    client.requestSpec { RequestSpec requestSpec ->
+      requestSpec.headers.set("Cookie",response1.headers.getAll("Set-Cookie"))
+    }
+    def response3 = client.get(response2.headers.get(LOCATION))
 
     then: "the response is redirected to the original page"
     response3.statusCode == FOUND.code()
-    response3.header(LOCATION).contains("/auth")
+    response3.headers.get(LOCATION).contains("/auth")
 
     when: "following the redirect"
-    def response4 = client.createRequest().cookies(response1.cookies).get(response3.header(LOCATION))
+    client.resetRequest()
+    client.requestSpec { RequestSpec requestSpec ->
+      requestSpec.headers.set("Cookie",response1.headers.getAll("Set-Cookie"))
+    }
+    def response4 = client.get(response3.headers.get(LOCATION))
 
     then: "the original page is returned"
-    response4.asString() == "auth:${EMAIL}:${EMAIL}"
+    response4.body.text == "auth:${EMAIL}:${EMAIL}"
 
     when: "request a page that doesn't require authentication after authenticating"
-    def response5 = client.createRequest().cookies(response1.cookies).get("noauth")
+    client.resetRequest()
+    client.requestSpec { RequestSpec requestSpec ->
+      requestSpec.headers.set("Cookie",response1.headers.getAll("Set-Cookie"))
+    }
+    def response5 = client.get("noauth")
 
     then: "authentication information is still available"
-    response5.asString() == "noauth:${EMAIL}:${EMAIL}"
+    response5.body.text == "noauth:${EMAIL}:${EMAIL}"
 
     where:
     aut << [autConstructed, autInjected]
   }
 
   private static TestHttpClient newClient(ApplicationUnderTest aut) {
-    return TestHttpClients.testHttpClient(aut, { RequestSpecification request -> request.port(aut.address.port).redirects().follow(false) })
+    return TestHttpClients.testHttpClient(aut)
   }
 }

@@ -44,8 +44,9 @@ class ShutdownSpec extends RatpackGroovyDslSpec {
     get(serverAddress)
 
     then:
-    //TODO Not currently throwing exceptions from the defaulthttpclient just returnning null consider solutions
-    thrown ConnectException
+    def e = thrown RuntimeException
+    e.cause instanceof ConnectException
+
   }
 
 }

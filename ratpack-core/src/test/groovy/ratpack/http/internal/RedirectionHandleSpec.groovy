@@ -32,7 +32,7 @@ class RedirectionHandleSpec extends RatpackGroovyDslSpec {
 
     then:
     response.statusCode == 310
-    response.header('Location') == 'http://www.ratpack.io'
+    response.headers['Location'] == 'http://www.ratpack.io'
   }
 
   def "it checks that the desired status code is a 3XX one"() {
