@@ -25,6 +25,14 @@ import ratpack.util.internal.IoUtils;
 import java.util.List;
 import java.util.regex.Pattern;
 
+/**
+ * A Netty message encoder for {@link ratpack.http.ServerSentEvent}
+ * <p>
+ * Encodes a ServerSentEvent to {@link io.netty.handler.codec.http.HttpContent}.
+ *
+ * @see <a href="http://www.w3.org/TR/eventsource/#parsing-an-event-stream" target="_blank">W3C - Server-Sent Events</a>
+ * @see <a href="https://developer.mozilla.org/en-US/docs/Server-sent_events/Using_server-sent_events" target="_blank">MDN - Using server-sent events</a>
+ */
 public class ServerSentEventEncoder extends MessageToMessageEncoder<ServerSentEvent> {
   private static final Pattern PATTERN_NEW_LINE = Pattern.compile("\n");
   public static final String EVENT_TYPE_PREFIX = "event: ";

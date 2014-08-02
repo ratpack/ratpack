@@ -16,6 +16,9 @@
 
 package ratpack.http;
 
+/**
+ * Represents a Server Sent Event
+ */
 public class ServerSentEvent {
 
   private final String eventId;
@@ -23,6 +26,10 @@ public class ServerSentEvent {
   private final String eventData;
 
   public ServerSentEvent(String eventId, String eventType, String eventData) {
+    if (eventId == null && eventType == null && eventData == null) {
+      throw new IllegalArgumentException("You must supply at least one of evenId, eventType, eventData");
+    }
+
     this.eventId = eventId;
     this.eventType = eventType;
     this.eventData = eventData;
