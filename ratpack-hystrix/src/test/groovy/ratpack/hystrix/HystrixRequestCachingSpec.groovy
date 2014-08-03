@@ -29,7 +29,7 @@ import ratpack.http.client.HttpClientSpec
 import ratpack.http.client.ReceivedResponse
 import ratpack.http.client.RequestSpec
 import ratpack.rx.RxRatpack
-import rx.Subscriber
+import spock.lang.Ignore
 import spock.lang.Unroll
 
 @SuppressWarnings("GrMethodMayBeStatic")
@@ -43,7 +43,8 @@ class HystrixRequestCachingSpec extends HttpClientSpec {
     }
   }
 
-  def "can handle error from service"() {
+  @Ignore
+  def "can handle error from hystrix command"() {
     when:
     bindings {
       bind ServerErrorHandler, new ServerErrorHandler() {
@@ -59,16 +60,11 @@ class HystrixRequestCachingSpec extends HttpClientSpec {
         new HystrixObservableCommand<String>(HystrixCommandGroupKey.Factory.asKey("test-dummy-key")) {
           @Override
           protected rx.Observable<String> run() {
-            return rx.Observable.create(new rx.Observable.OnSubscribe<String>() {
-              @Override
-              void call(Subscriber subscriber) {
-                throw new Exception("Exception from observable")
-              }
-            })
+            throw new Exception("Exception from hystrix run command")
           }
         }.toObservable()
         .subscribe {
-          render "subscribe success"
+          render "Subscribe success - $it"
         }
       }
     }
