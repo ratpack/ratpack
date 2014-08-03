@@ -211,7 +211,7 @@ public class CodaHaleMetricsModule extends AbstractModule implements HandlerDeco
 
       if (reportMetricsToWebsocket) {
         bind(MetricsBroadcaster.class).in(Singleton.class);
-        bind(WebSocketReporter.class).asEagerSingleton();
+        bind(StreamReporter.class).asEagerSingleton();
       }
     }
 

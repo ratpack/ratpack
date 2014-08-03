@@ -20,6 +20,8 @@ import com.codahale.metrics.*;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.google.inject.Inject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ratpack.launch.LaunchConfig;
 
 import java.io.ByteArrayOutputStream;
@@ -28,8 +30,6 @@ import java.io.OutputStream;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.concurrent.TimeUnit;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * A {@link ScheduledReporter} that outputs measurements to a {@link MetricsBroadcaster} in JSON format.
@@ -37,9 +37,9 @@ import org.slf4j.LoggerFactory;
  * The reporting interval, in seconds, can be specified by setting a configuration property with the name <code>metrics.scheduledreporter.interval</code>.
  * If no interval is specified a default interval will be used which is defined by {@link #DEFAULT_INTERVAL}.
  */
-public class WebSocketReporter extends ScheduledReporter {
+public class StreamReporter extends ScheduledReporter {
 
-  private final static Logger LOGGER = LoggerFactory.getLogger(WebSocketReporter.class);
+  private final static Logger LOGGER = LoggerFactory.getLogger(StreamReporter.class);
   /**
    * The default reporting interval.
    */
@@ -49,18 +49,11 @@ public class WebSocketReporter extends ScheduledReporter {
   private final JsonFactory factory = new JsonFactory();
 
   @Inject
-  public WebSocketReporter(MetricRegistry registry, MetricsBroadcaster metricsBroadcaster, LaunchConfig launchConfig) {
+  public StreamReporter(MetricRegistry registry, MetricsBroadcaster metricsBroadcaster, LaunchConfig launchConfig) {
     super(registry, "websocket-reporter", MetricFilter.ALL, TimeUnit.SECONDS, TimeUnit.MILLISECONDS);
     this.metricsBroadcaster = metricsBroadcaster;
     String interval = launchConfig.getOther("metrics.scheduledreporter.interval", DEFAULT_INTERVAL);
     this.start(Long.valueOf(interval), TimeUnit.SECONDS);
-  }
-
-  @Override
-  public void report() {
-    if (metricsBroadcaster.hasListeners()) {
-      super.report();
-    }
   }
 
   @Override
