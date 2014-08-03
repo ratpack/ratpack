@@ -20,13 +20,16 @@ import com.google.inject.Inject
 import com.netflix.hystrix.HystrixCommand
 import com.netflix.hystrix.HystrixCommandGroupKey
 import com.netflix.hystrix.HystrixObservableCommand
+import ratpack.error.ServerErrorHandler
 import ratpack.exec.internal.DefaultExecController
+import ratpack.handling.Context
 import ratpack.http.HttpUrlSpec
 import ratpack.http.client.HttpClient
 import ratpack.http.client.HttpClientSpec
 import ratpack.http.client.ReceivedResponse
 import ratpack.http.client.RequestSpec
 import ratpack.rx.RxRatpack
+import rx.Subscriber
 import spock.lang.Unroll
 
 @SuppressWarnings("GrMethodMayBeStatic")
@@ -38,6 +41,40 @@ class HystrixRequestCachingSpec extends HttpClientSpec {
     bindings {
       bind(CommandFactory)
     }
+  }
+
+  def "can handle error from service"() {
+    when:
+    bindings {
+      bind ServerErrorHandler, new ServerErrorHandler() {
+        @Override
+        void error(Context context, Exception exception) throws Exception {
+          context.render "exception"
+        }
+      }
+    }
+
+    handlers {
+      get {
+        new HystrixObservableCommand<String>(HystrixCommandGroupKey.Factory.asKey("test-dummy-key")) {
+          @Override
+          protected rx.Observable<String> run() {
+            return rx.Observable.create(new rx.Observable.OnSubscribe<String>() {
+              @Override
+              void call(Subscriber subscriber) {
+                throw new Exception("Exception from observable")
+              }
+            })
+          }
+        }.toObservable()
+        .subscribe {
+          render "subscribe success"
+        }
+      }
+    }
+
+    then:
+    text == "exception"
   }
 
   @Unroll
