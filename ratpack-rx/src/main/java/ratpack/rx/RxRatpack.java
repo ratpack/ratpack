@@ -46,16 +46,19 @@ import static ratpack.util.ExceptionUtils.toException;
 public abstract class RxRatpack {
 
   private static boolean isDuringExecution() {
+    return getExecution() != null;
+  }
+
+  private static DefaultExecController.Execution getExecution() {
     Optional<ExecController> threadBoundController = DefaultExecController.getThreadBoundController();
     if (threadBoundController.isPresent()) {
       try {
-        threadBoundController.get().getExecution();
-        return true;
+        return (DefaultExecController.Execution) threadBoundController.get().getExecution();
       } catch (ExecutionException e) {
-        return false;
+        return null;
       }
     } else {
-      return false;
+      return null;
     }
   }
 
@@ -577,36 +580,42 @@ public abstract class RxRatpack {
 
     @Override
     public void onCompleted() {
-      subscriber.onCompleted();
+      try {
+        subscriber.onCompleted();
+      } catch (final OnErrorNotImplementedException onErrorNotImplementedException) {
+        getExecution().join(new Action<Execution>() {
+          @Override
+          public void execute(Execution execution) throws Exception {
+            throw ExceptionUtils.toException(onErrorNotImplementedException.getCause());
+          }
+        });
+      }
     }
 
     @Override
     public void onError(Throwable e) {
-      if (e instanceof ExecutionSegmentTerminationError) {
-        throw (ExecutionSegmentTerminationError) e;
-      }
-
       try {
-        try {
-          subscriber.onError(e);
-        } catch (OnErrorNotImplementedException onErrorNotImplementedException) {
-          throw onErrorNotImplementedException.getCause();
-        }
-      } catch (final Throwable throwable) {
-        throw new ExecutionSegmentTerminationError(throwable);
+        subscriber.onError(e);
+      } catch (final OnErrorNotImplementedException onErrorNotImplementedException) {
+        getExecution().join(new Action<Execution>() {
+          @Override
+          public void execute(Execution execution) throws Exception {
+            throw ExceptionUtils.toException(onErrorNotImplementedException.getCause());
+          }
+        });
       }
     }
 
-    @Override
     public void onNext(T t) {
       try {
-        try {
-          subscriber.onNext(t);
-        } catch (OnErrorNotImplementedException onErrorNotImplementedException) {
-          throw onErrorNotImplementedException.getCause();
-        }
-      } catch (Throwable throwable) {
-        throw new ExecutionSegmentTerminationError(throwable);
+        subscriber.onNext(t);
+      } catch (final OnErrorNotImplementedException onErrorNotImplementedException) {
+        getExecution().join(new Action<Execution>() {
+          @Override
+          public void execute(Execution execution) throws Exception {
+            throw ExceptionUtils.toException(onErrorNotImplementedException.getCause());
+          }
+        });
       }
     }
   }

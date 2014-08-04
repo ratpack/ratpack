@@ -29,7 +29,6 @@ import ratpack.http.client.HttpClientSpec
 import ratpack.http.client.ReceivedResponse
 import ratpack.http.client.RequestSpec
 import ratpack.rx.RxRatpack
-import spock.lang.Ignore
 import spock.lang.Unroll
 
 @SuppressWarnings("GrMethodMayBeStatic")
@@ -43,7 +42,6 @@ class HystrixRequestCachingSpec extends HttpClientSpec {
     }
   }
 
-  @Ignore
   def "can handle error from hystrix command"() {
     when:
     bindings {
@@ -63,7 +61,7 @@ class HystrixRequestCachingSpec extends HttpClientSpec {
             throw new Exception("Exception from hystrix run command")
           }
         }.toObservable()
-        .subscribe {
+          .subscribe {
           render "Subscribe success - $it"
         }
       }

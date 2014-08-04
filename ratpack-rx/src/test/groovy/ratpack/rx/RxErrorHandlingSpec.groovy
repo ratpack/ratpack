@@ -23,7 +23,9 @@ import ratpack.handling.Context
 import ratpack.handling.Handler
 import ratpack.test.internal.RatpackGroovyDslSpec
 import rx.Observable
+import rx.Subscriber
 import rx.exceptions.CompositeException
+import rx.exceptions.OnErrorNotImplementedException
 import rx.functions.Action0
 import rx.functions.Action1
 
@@ -310,6 +312,54 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
 
     then:
     errorHandler.errors == [error]
+  }
+
+  def "composed observable errors"() {
+    given:
+    def e = new Exception("!")
+
+    when:
+    handlers {
+      get {
+        Observable.just(1).
+          flatMap { Observable.error(e) }.
+          subscribe { render "onNext" }
+      }
+    }
+
+    then:
+    thrownException == e
+  }
+
+  def "exception thrown by oncomplete throwns"() {
+    given:
+    def e = new Exception("!")
+
+    when:
+    handlers {
+      get {
+        Observable.just(1).
+          subscribe(new Subscriber<Integer>() {
+            @Override
+            void onCompleted() {
+              throw e
+            }
+
+            @Override
+            void onError(Throwable t) {
+              throw new OnErrorNotImplementedException(t)
+            }
+
+            @Override
+            void onNext(Integer integer) {
+
+            }
+          })
+      }
+    }
+
+    then:
+    thrownException == e
   }
 
 }
