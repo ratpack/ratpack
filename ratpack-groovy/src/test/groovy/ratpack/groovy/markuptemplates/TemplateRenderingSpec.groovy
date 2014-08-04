@@ -16,7 +16,11 @@
 
 package ratpack.groovy.markuptemplates
 
+import com.google.inject.AbstractModule
 import groovy.text.markup.TemplateConfiguration
+import ratpack.error.DebugErrorHandler
+import ratpack.error.ServerErrorHandler
+import ratpack.test.embed.JarFileBaseDirBuilder
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 import static ratpack.groovy.Groovy.groovyMarkupTemplate
@@ -24,6 +28,13 @@ import static ratpack.groovy.Groovy.groovyMarkupTemplate
 class TemplateRenderingSpec extends RatpackGroovyDslSpec {
 
   def setup() {
+    modules << new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(ServerErrorHandler).to(DebugErrorHandler)
+      }
+    }
+
     modules << new MarkupTemplatingModule()
   }
 
@@ -272,6 +283,11 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
   }
 
   def "templates are reloadable if reloading is forced"() {
+    if (baseDir instanceof JarFileBaseDirBuilder) {
+      // https://jira.codehaus.org/browse/GROOVY-7002
+      return
+    }
+
     given:
     file "templates/t.gtpl", "yield 1"
 

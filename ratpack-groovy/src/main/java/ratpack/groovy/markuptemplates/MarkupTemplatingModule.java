@@ -15,20 +15,24 @@
  */
 package ratpack.groovy.markuptemplates;
 
+import com.google.common.base.Throwables;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import groovy.text.markup.MarkupTemplateEngine;
 import groovy.text.markup.TemplateConfiguration;
 import ratpack.groovy.markuptemplates.internal.MarkupTemplateRenderer;
 import ratpack.launch.LaunchConfig;
+import ratpack.util.ExceptionUtils;
 
 import javax.inject.Singleton;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLClassLoader;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.nio.file.Path;
+import java.util.concurrent.ExecutionException;
 
 /**
  * An extension module that provides support for the Groovy markup template engine.
@@ -137,12 +141,7 @@ public class MarkupTemplatingModule extends AbstractModule {
     }
 
     ClassLoader parent = getClass().getClassLoader();
-    try {
-      parent = new URLClassLoader(new URL[]{launchConfig.getBaseDir().file(templatesDirectory).toFile().toURI().toURL()}, parent);
-    } catch (MalformedURLException e) {
-      parent = getClass().getClassLoader();
-    }
-    return new MarkupTemplateEngine(parent, templateConfiguration, new CachingTemplateResolver());
+    return new MarkupTemplateEngine(parent, templateConfiguration, new CachingTemplateResolver(launchConfig.getBaseDir().file(templatesDirectory)));
   }
 
   /**
@@ -150,28 +149,32 @@ public class MarkupTemplatingModule extends AbstractModule {
    * been queried before. This improves performance if caching is enabled in the configuration.
    */
   private static class CachingTemplateResolver extends MarkupTemplateEngine.DefaultTemplateResolver {
-    private final Map<String, URL> cachedResources = new ConcurrentHashMap<>();
-    private boolean cache;
 
-    @Override
-    public void configure(ClassLoader templateClassLoader, TemplateConfiguration configuration) {
-      super.configure(templateClassLoader, configuration);
-      cache = configuration.isCacheTemplates();
+    private final LoadingCache<String, URL> urlCache = CacheBuilder.newBuilder().build(new CacheLoader<String, URL>() {
+      @Override
+      public URL load(String key) throws Exception {
+        return doLoad(key);
+      }
+    });
+
+    private URL doLoad(String key) throws MalformedURLException {
+      return templatesDir.resolve(key).toUri().toURL();
+    }
+
+    private final Path templatesDir;
+
+    public CachingTemplateResolver(Path templatesDir) {
+      this.templatesDir = templatesDir;
     }
 
     @Override
     public URL resolveTemplate(String templatePath) throws IOException {
-      if (cache) {
-        URL url = cachedResources.get(templatePath);
-        if (url!=null) {
-          return url;
-        }
+      try {
+        return urlCache.get(templatePath);
+      } catch (ExecutionException e) {
+        Throwables.propagateIfInstanceOf(e, IOException.class);
+        throw ExceptionUtils.uncheck(e);
       }
-      URL url = super.resolveTemplate(templatePath);
-      if (cache) {
-        cachedResources.put(templatePath, url);
-      }
-      return url;
     }
   }
 }

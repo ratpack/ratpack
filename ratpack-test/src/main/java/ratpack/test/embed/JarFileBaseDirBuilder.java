@@ -18,6 +18,8 @@ package ratpack.test.embed;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.URI;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
@@ -84,6 +86,30 @@ public class JarFileBaseDirBuilder extends PathBaseDirBuilder {
 
   public JarFileBaseDirBuilder(File jar) {
     super(getJarPath(jar));
+  }
+
+  @Override
+  public Path file(String path, String content) {
+    Path file = super.file(path, content);
+    FileSystem fileSystem = file.getFileSystem();
+
+    // We have to force the write to disk.
+    // ZipFileSystem doesn't respect the SYNC flag.
+    try {
+      call("beginWrite", fileSystem);
+      call("sync", fileSystem);
+      call("endWrite", fileSystem);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+
+    return file;
+  }
+
+  private void call(String methodName, FileSystem fileSystem) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+    Method method = fileSystem.getClass().getDeclaredMethod(methodName);
+    method.setAccessible(true);
+    method.invoke(fileSystem);
   }
 
   private static Path getJarPath(File jar) {
