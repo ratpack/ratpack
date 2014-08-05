@@ -29,9 +29,11 @@ ratpack {
 
     RxRatpack.initialize()
     init { TemplateConfiguration templateConfiguration ->
-      templateConfiguration.autoNewLine = true
-      templateConfiguration.useDoubleQuotes = true
-      templateConfiguration.autoIndent = true
+      templateConfiguration.with {
+        autoNewLine = true
+        useDoubleQuotes = true
+        autoIndent = true
+      }
     }
   }
 
