@@ -17,6 +17,7 @@
 package ratpack.http;
 
 import com.google.common.collect.Multimap;
+import ratpack.util.MultiValueMap;
 
 import java.net.URI;
 import java.util.Map;
@@ -38,6 +39,8 @@ public interface HttpUrlSpec {
   HttpUrlSpec params(Map<String, String> params);
 
   HttpUrlSpec params(Multimap<String, String> params);
+
+  HttpUrlSpec params(MultiValueMap<String, String> params);
 
   HttpUrlSpec set(URI uri);
 

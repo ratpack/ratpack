@@ -16,6 +16,7 @@
 
 package ratpack.http.internal;
 
+import com.google.common.collect.Multimap;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.handler.codec.http.Cookie;
@@ -26,11 +27,9 @@ import org.reactivestreams.Publisher;
 import ratpack.exec.ExecControl;
 import ratpack.file.internal.FileHttpTransmitter;
 import ratpack.func.Action;
-import ratpack.http.MutableHeaders;
-import ratpack.http.MutableStatus;
-import ratpack.http.Response;
-import ratpack.http.StreamTransmitter;
+import ratpack.http.*;
 import ratpack.util.ExceptionUtils;
+import ratpack.util.MultiValueMap;
 import ratpack.util.internal.IoUtils;
 
 import java.io.IOException;
@@ -75,50 +74,85 @@ public class DefaultResponse implements Response {
     }
 
     @Override
-    public void add(CharSequence name, Object value) {
+    public MutableHeaders add(CharSequence name, Object value) {
       if (!contentTypeSet && name.toString().equalsIgnoreCase(HttpHeaders.Names.CONTENT_TYPE)) {
         contentTypeSet = true;
       }
 
       wrapped.add(name, value);
+      return this;
     }
 
     @Override
-    public void set(CharSequence name, Object value) {
+    public MutableHeaders set(CharSequence name, Object value) {
       if (!contentTypeSet && name.toString().equalsIgnoreCase(HttpHeaders.Names.CONTENT_TYPE)) {
         contentTypeSet = true;
       }
 
       wrapped.set(name, value);
+      return this;
     }
 
     @Override
-    public void setDate(CharSequence name, Date value) {
+    public MutableHeaders setDate(CharSequence name, Date value) {
       wrapped.set(name, value);
+      return this;
     }
 
     @Override
-    public void set(CharSequence name, Iterable<?> values) {
+    public MutableHeaders set(CharSequence name, Iterable<?> values) {
       if (!contentTypeSet && name.toString().equalsIgnoreCase(HttpHeaders.Names.CONTENT_TYPE)) {
         contentTypeSet = true;
       }
 
       wrapped.set(name, values);
+      return this;
     }
 
     @Override
-    public void remove(String name) {
+    public MutableHeaders remove(String name) {
       if (name.equalsIgnoreCase(HttpHeaders.Names.CONTENT_TYPE)) {
         contentTypeSet = false;
       }
 
       wrapped.remove(name);
+      return this;
     }
 
     @Override
-    public void clear() {
+    public MutableHeaders clear() {
       contentTypeSet = false;
       wrapped.clear();
+      return this;
+    }
+
+    @Override
+    public MutableHeaders copy(Headers headers) {
+      for (String s : headers.getNames()) {
+        set(s, headers.getAll(s));
+      }
+      return this;
+    }
+
+    @Override
+    public MutableHeaders copy(MultiValueMap<String, String> headers) {
+      for (String s : headers.keySet()) {
+        set(s, headers.getAll(s));
+      }
+      return this;
+    }
+
+    @Override
+    public MutableHeaders copy(Multimap<String, String> headers) {
+      for (String s : headers.keySet()) {
+        set(s, headers.get(s));
+      }
+      return this;
+    }
+
+    @Override
+    public MultiValueMap<String, String> asMultiValueMap() {
+      return wrapped.asMultiValueMap();
     }
 
     @Override

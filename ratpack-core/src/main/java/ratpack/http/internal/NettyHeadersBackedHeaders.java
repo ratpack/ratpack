@@ -16,8 +16,11 @@
 
 package ratpack.http.internal;
 
+import com.google.common.collect.ImmutableMap;
 import io.netty.handler.codec.http.HttpHeaders;
 import ratpack.http.Headers;
+import ratpack.util.MultiValueMap;
+import ratpack.util.internal.ImmutableDelegatingMultiValueMap;
 
 import java.text.ParseException;
 import java.util.Date;
@@ -59,6 +62,15 @@ public class NettyHeadersBackedHeaders implements Headers {
 
   public Set<String> getNames() {
     return headers.names();
+  }
+
+  @Override
+  public MultiValueMap<String, String> asMultiValueMap() {
+    ImmutableMap.Builder<String, List<String>> builder = ImmutableMap.builder();
+    for (String s : headers.names()) {
+      builder.put(s, headers.getAll(s));
+    }
+    return new ImmutableDelegatingMultiValueMap<>(builder.build());
   }
 
 }

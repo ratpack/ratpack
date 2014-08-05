@@ -25,6 +25,7 @@ import com.google.common.collect.MultimapBuilder;
 import com.google.common.net.UrlEscapers;
 import io.netty.handler.codec.http.QueryStringDecoder;
 import ratpack.http.HttpUrlSpec;
+import ratpack.util.MultiValueMap;
 import ratpack.util.internal.InternalRatpackError;
 
 import java.io.UnsupportedEncodingException;
@@ -126,6 +127,14 @@ public class HttpUrlSpecBacking implements HttpUrlSpec {
   @Override
   public HttpUrlSpec params(Multimap<String, String> params) {
     this.params.putAll(params);
+    return this;
+  }
+
+  @Override
+  public HttpUrlSpec params(MultiValueMap<String, String> params) {
+    for (String s : params.keySet()) {
+      this.params.putAll(s, params.getAll(s));
+    }
     return this;
   }
 

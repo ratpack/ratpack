@@ -18,6 +18,7 @@ package ratpack.handling.internal;
 
 import ratpack.api.Nullable;
 import ratpack.http.Headers;
+import ratpack.util.MultiValueMap;
 
 import java.util.Date;
 import java.util.List;
@@ -56,5 +57,10 @@ public class DelegatingHeaders implements Headers {
   @Override
   public Set<String> getNames() {
     return headers.getNames();
+  }
+
+  @Override
+  public MultiValueMap<String, String> asMultiValueMap() {
+    return headers.asMultiValueMap();
   }
 }

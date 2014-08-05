@@ -67,6 +67,12 @@ public class RequestSpecBacking {
     }
 
     @Override
+    public RequestSpec headers(Action<? super MutableHeaders> action) throws Exception {
+      action.execute(getHeaders());
+      return this;
+    }
+
+    @Override
     public RequestSpec method(String method) {
       RequestSpecBacking.this.method = method.toUpperCase();
       return this;
@@ -96,6 +102,18 @@ public class RequestSpecBacking {
           action.execute(outputStream);
         }
 
+        return this;
+      }
+
+      @Override
+      public Body buffer(ByteBuf byteBuf) {
+        body.clear().writeBytes(byteBuf);
+        return this;
+      }
+
+      @Override
+      public Body bytes(byte[] bytes) {
+        body.clear().writeBytes(bytes);
         return this;
       }
     }

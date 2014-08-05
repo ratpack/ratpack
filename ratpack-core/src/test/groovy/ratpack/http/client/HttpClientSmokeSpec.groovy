@@ -17,6 +17,7 @@
 package ratpack.http.client
 
 import ratpack.http.HttpUrlSpec
+import ratpack.util.internal.IoUtils
 
 class HttpClientSmokeSpec extends HttpClientSpec {
 
@@ -103,6 +104,93 @@ class HttpClientSmokeSpec extends HttpClientSpec {
           execution.onComplete {
             assert buffer.refCnt() == 0
           }
+        }
+      }
+    }
+
+    then:
+    text == "bar"
+  }
+
+  def "can write body using buffer"() {
+    given:
+    otherApp {
+      post {
+        render request.body.text
+      }
+    }
+
+    when:
+    handlers {
+      get { HttpClient httpClient ->
+        httpClient.post {
+          it.
+            url {
+              it.set(otherAppUrl())
+            }.
+            body {
+              it.buffer(IoUtils.utf8Buffer("foo"))
+            }
+        } then {
+          render it.body.text
+        }
+      }
+    }
+
+    then:
+    text == "foo"
+  }
+
+  def "can write body using bytes"() {
+    given:
+    otherApp {
+      post {
+        render request.body.text
+      }
+    }
+
+    when:
+    handlers {
+      get { HttpClient httpClient ->
+        httpClient.post {
+          it.
+            url {
+              it.set(otherAppUrl())
+            }.
+            body {
+              it.bytes(IoUtils.utf8Bytes("foo"))
+            }
+        } then {
+          render it.body.text
+        }
+      }
+    }
+
+    then:
+    text == "foo"
+  }
+
+  def "can set headers"() {
+    given:
+    otherApp {
+      get {
+        render request.headers.foo
+      }
+    }
+
+    when:
+    handlers {
+      get { HttpClient httpClient ->
+        httpClient.get {
+          it.
+            url {
+              it.set(otherAppUrl())
+            }.
+            headers {
+              it.add("foo", "bar")
+            }
+        } then {
+          render it.body.text
         }
       }
     }

@@ -17,6 +17,7 @@
 package ratpack.http;
 
 import ratpack.api.Nullable;
+import ratpack.util.MultiValueMap;
 
 import java.util.Date;
 import java.util.List;
@@ -71,5 +72,7 @@ public interface Headers {
    * @return The names of all headers that were sent
    */
   Set<String> getNames();
+
+  MultiValueMap<String, String> asMultiValueMap();
 
 }

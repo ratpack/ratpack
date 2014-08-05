@@ -16,7 +16,9 @@
 
 package ratpack.util.internal;
 
+import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
 import ratpack.util.MultiValueMap;
 
@@ -82,6 +84,15 @@ public class ImmutableDelegatingMultiValueMap<K, V> implements MultiValueMap<K, 
 
   public void clear() {
     throw new UnsupportedOperationException("This implementation is immutable");
+  }
+
+  @Override
+  public ListMultimap<K, V> asMultimap() {
+    ImmutableListMultimap.Builder<K, V> builder = ImmutableListMultimap.builder();
+    for (Entry<? extends K, ? extends List<? extends V>> entry : delegate.entrySet()) {
+      builder.putAll(entry.getKey(), entry.getValue());
+    }
+    return builder.build();
   }
 
   @SuppressWarnings({"unchecked", "NullableProblems"})

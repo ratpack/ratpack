@@ -16,6 +16,7 @@
 
 package ratpack.form.internal;
 
+import com.google.common.collect.ListMultimap;
 import ratpack.api.Nullable;
 import ratpack.form.Form;
 import ratpack.form.UploadedFile;
@@ -127,5 +128,10 @@ public class DefaultForm implements Form {
   @Override
   public String toString() {
     return attributes.toString();
+  }
+
+  @Override
+  public ListMultimap<String, String> asMultimap() {
+    return attributes.asMultimap();
   }
 }

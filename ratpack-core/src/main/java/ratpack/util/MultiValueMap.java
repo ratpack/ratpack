@@ -16,6 +16,7 @@
 
 package ratpack.util;
 
+import com.google.common.collect.ListMultimap;
 import ratpack.api.Nullable;
 
 import java.util.List;
@@ -93,4 +94,7 @@ public interface MultiValueMap<K, V> extends Map<K, V> {
    * {@inheritDoc}
    */
   void clear();
+
+  ListMultimap<K, V> asMultimap();
+
 }

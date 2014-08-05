@@ -16,6 +16,7 @@
 
 package ratpack.http.client;
 
+import io.netty.buffer.ByteBuf;
 import ratpack.func.Action;
 import ratpack.http.HttpUrlSpec;
 import ratpack.http.MutableHeaders;
@@ -28,6 +29,8 @@ public interface RequestSpec {
    * @return {@link ratpack.http.MutableHeaders} that can be used to configure the headers that will be used for the request.
    */
   MutableHeaders getHeaders();
+
+  RequestSpec headers(Action<? super MutableHeaders> action) throws Exception;
 
   /**
    * Set the HTTP verb to use.
@@ -49,6 +52,10 @@ public interface RequestSpec {
     Body type(String contentType);
 
     Body stream(Action<? super OutputStream> action) throws Exception;
+
+    Body buffer(ByteBuf byteBuf);
+
+    Body bytes(byte[] bytes);
 
   }
 
