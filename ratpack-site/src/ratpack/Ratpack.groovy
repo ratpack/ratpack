@@ -1,5 +1,7 @@
+import groovy.text.markup.TemplateConfiguration
 import ratpack.codahale.metrics.CodaHaleMetricsModule
 import ratpack.file.internal.DefaultFileSystemBinding
+import ratpack.groovy.markuptemplates.MarkupTemplatingModule
 import ratpack.groovy.templating.TemplatingModule
 import ratpack.jackson.JacksonModule
 import ratpack.newrelic.NewRelicModule
@@ -10,8 +12,7 @@ import ratpack.site.github.GitHubApi
 import ratpack.site.github.GitHubData
 import ratpack.site.github.RatpackVersions
 
-import static ratpack.groovy.Groovy.groovyTemplate
-import static ratpack.groovy.Groovy.ratpack
+import static ratpack.groovy.Groovy.*
 import static ratpack.registry.Registries.just
 
 ratpack {
@@ -21,11 +22,19 @@ ratpack {
       new CodaHaleMetricsModule().metrics(),
       new SiteModule(launchConfig),
       new RemoteControlModule(),
-      new NewRelicModule()
+      new NewRelicModule(),
+      new MarkupTemplatingModule()
 
     config(TemplatingModule).staticallyCompile = true
 
     RxRatpack.initialize()
+    init { TemplateConfiguration templateConfiguration ->
+      templateConfiguration.with {
+        autoNewLine = true
+        useDoubleQuotes = true
+        autoIndent = true
+      }
+    }
   }
 
   handlers {
@@ -69,7 +78,7 @@ ratpack {
     }
 
     get {
-      render groovyTemplate("index.html")
+      render groovyMarkupTemplate("index.gtpl")
     }
 
     handler("reset") { GitHubApi gitHubApi ->
@@ -90,7 +99,7 @@ ratpack {
     prefix("versions") {
       get { RatpackVersions versions ->
         versions.all.subscribe { RatpackVersions.All all ->
-          render groovyTemplate("versions.html", versions: all)
+          render groovyMarkupTemplate("versions.gtpl", versions: all)
         }
       }
 
@@ -102,7 +111,7 @@ ratpack {
               clientError(404)
             } else {
               gitHubData.closed(version).subscribe {
-                render groovyTemplate("version.html", version: version, issues: it)
+                render groovyMarkupTemplate("version.gtpl", version: version, issues: it)
               }
             }
           }
