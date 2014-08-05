@@ -17,6 +17,7 @@
 package ratpack.remote.internal;
 
 import io.remotecontrol.CommandChain;
+import io.remotecontrol.groovy.ClosureCommand;
 import io.remotecontrol.groovy.ContentType;
 import io.remotecontrol.groovy.server.ContextFactory;
 import io.remotecontrol.server.Receiver;
@@ -76,7 +77,7 @@ public class RemoteControlHandler implements Handler {
 
       Receiver receiver = new RatpackReceiver(new ContextFactory() {
         @Override
-        public Object getContext(CommandChain chain) {
+        public Object getContext(CommandChain<ClosureCommand> chain) {
           return new DelegatingCommandDelegate(registryBuilder, commandRegistry) {
             @Override
             public void clearRegistry() {
