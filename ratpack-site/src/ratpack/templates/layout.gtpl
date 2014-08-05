@@ -8,13 +8,14 @@ html {
   head {
     meta(charset:'utf-8')
     title('Ratpack: Simple, lean & powerful HTTP apps')
-    meta(name: 'apple-mobile-web-app-title', content: 'Ratpack') {}
-    meta(name: 'description', content: 'Ratpack apps are lightweight, fast, composable with other tools and libraries, easy to test and enjoyable to develop.') {}
-    meta(name: 'viewport', content: 'width=device-width, initial-scale=1') {}
 
-    link(rel: 'author', href: '/assets/humans.txt') {}
-    link(rel: 'stylesheet', href: '/assets/lib/normalize/normalize.css') {}
-    link(rel: 'stylesheet', href: '/assets/styles/ratpack.css') {}
+    meta(name: 'apple-mobile-web-app-title', content: 'Ratpack')
+    meta(name: 'description', content: 'Ratpack apps are lightweight, fast, composable with other tools and libraries, easy to test and enjoyable to develop.')
+    meta(name: 'viewport', content: 'width=device-width, initial-scale=1')
+
+    link(rel: 'author', href: '/assets/humans.txt')
+    link(rel: 'stylesheet', href: '/assets/lib/normalize/normalize.css')
+    link(rel: 'stylesheet', href: '/assets/styles/ratpack.css')
 
     script(src: '/assets/lib/modernizr/modernizr.js') {}
     script(src: '/assets/lib/prism/prism.js') {}
