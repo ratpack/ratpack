@@ -16,11 +16,13 @@
 
 package ratpack.websocket;
 
+import org.reactivestreams.Publisher;
 import ratpack.func.Function;
 import ratpack.handling.Context;
 import ratpack.launch.LaunchConfig;
 import ratpack.websocket.internal.DefaultWebSocketConnector;
 import ratpack.websocket.internal.WebSocketEngine;
+import ratpack.websocket.internal.WebsocketBroadcastSubscriber;
 
 public abstract class WebSockets {
 
@@ -32,4 +34,14 @@ public abstract class WebSockets {
     WebSocketEngine.connect(context, "/", context.get(LaunchConfig.class).getMaxContentLength(), handler);
   }
 
+  public static void websocketBroadcast(final Context context, final Publisher<String> broadcaster) {
+    websocket(context, new AutoCloseWebSocketHandler<AutoCloseable>() {
+      @Override
+      public AutoCloseable onOpen(final WebSocket webSocket) throws Exception {
+        WebsocketBroadcastSubscriber subscriber = new WebsocketBroadcastSubscriber(webSocket);
+        context.stream(broadcaster, subscriber);
+        return subscriber;
+      }
+    });
+  }
 }

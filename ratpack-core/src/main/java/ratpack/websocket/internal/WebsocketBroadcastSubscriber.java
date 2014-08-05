@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ratpack.codahale.metrics.internal;
+package ratpack.websocket.internal;
 
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
