@@ -19,7 +19,7 @@ section(id: "main") {
       li { a(href: "/manual/$version.version/api/", 'API Reference') }
       li { a(href: "https://github.com/ratpack/ratpack/tree/${version.released ? "v$version.version" : "master"}", 'Source Code') }
     }
-    def issueSet = issues as ratpack.site.github.IssueSet
+    def issueSet = issues
     h3(id: "pull-requests", "Pull Requests (${issueSet.pullRequests.size()})")
     ul {
       issueSet.pullRequests.each { issue ->
