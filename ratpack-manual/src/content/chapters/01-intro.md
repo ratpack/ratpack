@@ -56,12 +56,12 @@ Vert.x has a plugin system and a healthy ecosystem of plugins, generally collabo
 The [“Architecture”](architecture.html) chapter of this manual discusses why Ratpack does not have a plugin mechanism, and why it doesn't need one.
 
 Vert.x supports many protocols like Netty.
-It's API is closer to Netty's, and completely encapsulates it.
+Its API is closer to Netty's, and completely encapsulates it.
 As such, it is (not significantly) more performant than Ratpack and more suitable for lower level networking.
 
 Ratpack is more focussed on HTTP applications than Vert.x.
 Ratpack provides more support for structuring, composing, evolving and testing request handling logic than Vert.x.
-A more apt comparison then Ratpack and Vert.x would be a HTTP oriented framework built on top of Vert.x, such as [Yoke](http://pmlopes.github.io/yoke).
+A more apt comparison than Ratpack and Vert.x would be a HTTP oriented framework built on top of Vert.x, such as [Yoke](http://pmlopes.github.io/yoke).
   
 Another key difference is that the Vert.x API is callback based.
 Ratpack use the concept of a “promise” instead (see the [“Async”](async.html) chapter for more info).
