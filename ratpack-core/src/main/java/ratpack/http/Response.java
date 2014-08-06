@@ -66,6 +66,14 @@ public interface Response {
   Response status(int code, String message);
 
   /**
+   * Sets the status line of the response.
+   *
+   * @param status The status of the response to use when it is sent.
+   * @return This
+   */
+  Response status(Status status);
+
+  /**
    * The response headers.
    *
    * @return The response headers.
@@ -206,7 +214,6 @@ public interface Response {
    */
   @NonBlocking
   void sendFile(ExecControl execContext, Path file) throws Exception;
-
   /**
    * Sends the response, using the given content type and the content of the given type as the response body.
    *
@@ -219,4 +226,5 @@ public interface Response {
 
   @NonBlocking
   <T> void sendStream(ExecControl execContext, Publisher<T> stream);
+
 }

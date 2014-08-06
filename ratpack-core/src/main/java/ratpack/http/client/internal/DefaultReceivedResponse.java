@@ -17,6 +17,7 @@
 package ratpack.http.client.internal;
 
 import ratpack.http.Headers;
+import ratpack.http.Response;
 import ratpack.http.Status;
 import ratpack.http.TypedData;
 import ratpack.http.client.ReceivedResponse;
@@ -53,4 +54,11 @@ class DefaultReceivedResponse implements ReceivedResponse {
   public TypedData getBody() {
     return typedData;
   }
+
+  @Override
+  public void send(Response response) {
+    response.getHeaders().copy(headers);
+    response.status(status).send(typedData.getBuffer().retain());
+  }
+
 }

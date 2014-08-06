@@ -17,6 +17,7 @@
 package ratpack.http.client;
 
 import ratpack.http.Headers;
+import ratpack.http.Response;
 import ratpack.http.Status;
 import ratpack.http.TypedData;
 
@@ -29,5 +30,7 @@ public interface ReceivedResponse {
   Headers getHeaders();
 
   TypedData getBody();
+
+  void send(Response response);
 
 }

@@ -199,4 +199,27 @@ class HttpClientSmokeSpec extends HttpClientSpec {
     text == "bar"
   }
 
+  def "can serve response body buffer"() {
+    given:
+    otherApp {
+      get {
+        render "abc123"
+      }
+    }
+
+    when:
+    handlers {
+      get { HttpClient httpClient ->
+        httpClient.get {
+          it.url.set(otherAppUrl())
+        } then {
+          it.send(response)
+        }
+      }
+    }
+
+    then:
+    text == "abc123"
+    response.contentType == "text/plain;charset=UTF-8"
+  }
 }

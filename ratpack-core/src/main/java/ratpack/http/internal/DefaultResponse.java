@@ -196,6 +196,11 @@ public class DefaultResponse implements Response {
   }
 
   @Override
+  public Response status(Status status) {
+    return status(status.getCode(), status.getMessage());
+  }
+
+  @Override
   public MutableHeaders getHeaders() {
     return headers;
   }
