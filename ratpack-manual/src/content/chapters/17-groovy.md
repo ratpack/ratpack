@@ -369,7 +369,7 @@ Spock feature specifications are defined as methods inside a  `spock.lang.Specif
 String literal instead of a method name. The specification above uses `"Check Site Index"` to test the outcome of a request to `index.html`.
 
 The feature specification uses the `when` and `then` blocks. The `when` block creates a so-called _stimulus_ and is a companion of the `then` block
-which describes the response to the stimulus. Notice how we can also leave out the `assert` statements in the `then` block. Speck will interpret
+which describes the response to the stimulus. Notice how we can also leave out the `assert` statements in the `then` block. Spock will interpret
 Boolean expressions there correctly. The `setup` block could have been used to configure local variables visible inside the feature method only.
 
 #### More on Spock

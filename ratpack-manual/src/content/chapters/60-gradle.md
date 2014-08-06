@@ -169,7 +169,7 @@ See [Groovy](groovy.html) for more information about the contents of this file.
 
 ### Generated files
 
-Your build may generate files to be served or otherwise used at runtime
+Your build may generate files to be served or otherwise used at runtime.
 The best approach is to have the tasks that generate these files generate into a subdirectory of `src/ratpack`.
 The Ratpack Gradle plugins add a special task named `'prepareBaseDir`' that you should make depend on your generation task.
 
