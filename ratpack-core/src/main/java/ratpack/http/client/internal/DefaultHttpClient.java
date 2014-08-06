@@ -117,7 +117,7 @@ public class DefaultHttpClient implements HttpClient {
               }
 
               p.addLast("codec", new HttpClientCodec());
-              p.addLast("aggregator", new HttpObjectAggregator(1048576));
+              p.addLast("aggregator", new HttpObjectAggregator(launchConfig.getMaxContentLength()));
               p.addLast("handler", new SimpleChannelInboundHandler<HttpObject>() {
                 @Override
                 public void channelRead0(ChannelHandlerContext ctx, HttpObject msg) throws Exception {
