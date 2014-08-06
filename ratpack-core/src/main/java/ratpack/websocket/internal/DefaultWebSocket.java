@@ -39,8 +39,13 @@ public class DefaultWebSocket implements WebSocket {
 
   @Override
   public void close() {
+    close(1000, null);
+  }
+
+  @Override
+  public void close(int statusCode, String reason) {
     open.set(false);
-    channel.writeAndFlush(new CloseWebSocketFrame());
+    channel.writeAndFlush(new CloseWebSocketFrame(statusCode, reason));
     channel.close().addListener(new ChannelFutureListener() {
       @Override
       public void operationComplete(ChannelFuture future) throws Exception {

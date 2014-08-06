@@ -57,7 +57,7 @@ public class WebsocketBroadcastSubscriber implements Subscriber<String>, AutoClo
   @Override
   public void onError(Throwable t) {
     if (!terminated) {
-      webSocket.close();
+      webSocket.close(1011, t.getMessage());
     }
   }
 

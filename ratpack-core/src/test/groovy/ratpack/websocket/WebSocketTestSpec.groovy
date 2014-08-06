@@ -16,13 +16,18 @@
 
 package ratpack.websocket
 
+import org.reactivestreams.Publisher
+import org.reactivestreams.Subscriber
+import org.reactivestreams.Subscription
 import ratpack.test.internal.RatpackGroovyDslSpec
 import spock.util.concurrent.BlockingVariable
 
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
 
 import static ratpack.websocket.WebSockets.websocket
+import static ratpack.websocket.WebSockets.websocketBroadcast
 
 class WebSocketTestSpec extends RatpackGroovyDslSpec {
 
@@ -107,4 +112,168 @@ class WebSocketTestSpec extends RatpackGroovyDslSpec {
 
   }
 
+  def "can broadcast over websockets and publishing stops after client closes"() {
+    when:
+    def streamCancelled = new CountDownLatch(1)
+
+    handlers {
+      get {
+        websocketBroadcast(context, new Publisher<String>() {
+          @Override
+          void subscribe(Subscriber<String> s) {
+            def cancelled
+            s.onSubscribe(new Subscription() {
+
+              @Override
+              void request(int n) {
+                Thread.start {
+                  (0..100).each {
+                    if (!cancelled) {
+                      s.onNext("foo-$it".toString())
+                    }
+                    Thread.sleep(100)
+                  }
+
+                  s.onComplete()
+                }
+              }
+
+              @Override
+              void cancel() {
+                cancelled = true
+                streamCancelled.countDown()
+              }
+            })
+          }
+        })
+      }
+    }
+
+    and:
+    server.start()
+    def client = openWsClient()
+
+    then:
+    client.connectBlocking()
+
+    and:
+    client.received.poll(5, TimeUnit.SECONDS) == "foo-0"
+    client.received.poll(5, TimeUnit.SECONDS) == "foo-1"
+    client.received.poll(5, TimeUnit.SECONDS) == "foo-2"
+
+    when:
+    client.closeBlocking()
+
+    then:
+    streamCancelled.await()
+    client.closeRemote == false
+
+    cleanup:
+    client?.closeBlocking()
+  }
+
+  def "can broadcast over websockets and stream completes"() {
+    when:
+    handlers {
+      get {
+        websocketBroadcast(context, new Publisher<String>() {
+          @Override
+          void subscribe(Subscriber<String> s) {
+            s.onSubscribe(new Subscription() {
+
+              @Override
+              void request(int n) {
+                Thread.start {
+                  (0..2).each {
+                    s.onNext("foo-$it".toString())
+                    Thread.sleep(100)
+                  }
+
+                  s.onComplete()
+                }
+              }
+
+              @Override
+              void cancel() { }
+            })
+          }
+        })
+      }
+    }
+
+    and:
+    server.start()
+    def client = openWsClient()
+
+    then:
+    client.connectBlocking()
+
+    and:
+    client.received.poll(5, TimeUnit.SECONDS) == "foo-0"
+    client.received.poll(5, TimeUnit.SECONDS) == "foo-1"
+    client.received.poll(5, TimeUnit.SECONDS) == "foo-2"
+
+    then:
+    client.waitForClose()
+
+    and:
+    client.closeRemote == true
+    client.closeCode == 1000
+
+    cleanup:
+    client?.closeBlocking()
+  }
+
+  def "websocket closes correctly when a streaming error occurs"() {
+    when:
+    handlers {
+      get {
+        websocketBroadcast(context, new Publisher<String>() {
+          @Override
+          void subscribe(Subscriber<String> s) {
+            s.onSubscribe(new Subscription() {
+
+              @Override
+              void request(int n) {
+                Thread.start {
+                  (0..2).each {
+                    s.onNext("foo-$it".toString())
+                    Thread.sleep(100)
+                  }
+
+                  s.onError(new Throwable("foo error"))
+                }
+              }
+
+              @Override
+              void cancel() { }
+            })
+          }
+        })
+      }
+    }
+
+    and:
+    server.start()
+    def client = openWsClient()
+
+    then:
+    client.connectBlocking()
+
+    and:
+    client.received.poll(5, TimeUnit.SECONDS) == "foo-0"
+    client.received.poll(5, TimeUnit.SECONDS) == "foo-1"
+    client.received.poll(5, TimeUnit.SECONDS) == "foo-2"
+
+    then:
+    client.waitForClose()
+
+    and:
+    client.closeRemote == true
+    client.closeCode == 1011
+    client.closeReason == "foo error"
+
+    cleanup:
+    client?.closeBlocking()
+  }
 }

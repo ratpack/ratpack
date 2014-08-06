@@ -23,6 +23,9 @@ public interface WebSocket {
   @NonBlocking
   void close();
 
+  @NonBlocking
+  void close(int statusCode, String reason);
+
   boolean isOpen();
 
   @NonBlocking
