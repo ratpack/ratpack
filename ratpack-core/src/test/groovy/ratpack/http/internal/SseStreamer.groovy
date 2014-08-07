@@ -34,7 +34,6 @@ class SseStreamer implements Publisher<ServerSentEvent> {
         Thread.start {
           (1..3).each {
             subscriber.onNext(new ServerSentEvent(it.toString(), "add", "Event $it".toString()))
-            Thread.sleep(100)
           }
 
           subscriber.onComplete()

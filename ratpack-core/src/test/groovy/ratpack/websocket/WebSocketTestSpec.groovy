@@ -131,7 +131,6 @@ class WebSocketTestSpec extends RatpackGroovyDslSpec {
                     if (!cancelled) {
                       s.onNext("foo-$it".toString())
                     }
-                    Thread.sleep(100)
                   }
 
                   s.onComplete()
@@ -186,7 +185,6 @@ class WebSocketTestSpec extends RatpackGroovyDslSpec {
                 Thread.start {
                   (0..2).each {
                     s.onNext("foo-$it".toString())
-                    Thread.sleep(100)
                   }
 
                   s.onComplete()
@@ -238,7 +236,6 @@ class WebSocketTestSpec extends RatpackGroovyDslSpec {
                 Thread.start {
                   (0..2).each {
                     s.onNext("foo-$it".toString())
-                    Thread.sleep(100)
                   }
 
                   s.onError(new Throwable("foo error"))

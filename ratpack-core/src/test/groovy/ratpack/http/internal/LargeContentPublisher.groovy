@@ -33,7 +33,6 @@ class LargeContentPublisher implements Publisher<HttpResponseChunk> {
         Thread.start {
           "This is a really long string that needs to be sent chunked".toList().collate(20).each {
             subscriber.onNext(new HttpResponseChunk(it.join('')))
-            Thread.sleep(500)
           }
 
           subscriber.onComplete()

@@ -90,15 +90,17 @@ class ResponseStreamingSpec extends RatpackGroovyDslSpec {
         render serverSentEvents(new Publisher<ServerSentEvent>() {
           @Override
           void subscribe(Subscriber<ServerSentEvent> s) {
+            def cancelled
             s.onSubscribe(new Subscription() {
 
               @Override
               void request(int n) {
                 Thread.start {
                   (0..100).each {
-                    s.onNext(new ServerSentEvent(it.toString(), "add", "Event $it".toString()))
-                    onNextLatch.countDown()
-                    Thread.sleep(100)
+                    if (!cancelled) {
+                      s.onNext(new ServerSentEvent(it.toString(), "add", "Event $it".toString()))
+                      onNextLatch.countDown()
+                    }
                   }
 
                   s.onComplete()
@@ -107,6 +109,7 @@ class ResponseStreamingSpec extends RatpackGroovyDslSpec {
 
               @Override
               void cancel() {
+                cancelled = true
                 cancelLatch.countDown()
               }
             })
