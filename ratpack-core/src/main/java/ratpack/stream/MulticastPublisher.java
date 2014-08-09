@@ -20,12 +20,16 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
-public class MulticastFirehosePublisher<T> implements Publisher<T> {
+/**
+ * A Reactive Streams compliant {@link org.reactivestreams.Publisher} for publishing to multiple {@link org.reactivestreams.Subscriber}.
+ * @param <T> the Type of element being published
+ */
+public class MulticastPublisher<T> implements Publisher<T> {
 
-  private final List<Subscriber<T>> subscribers = new ArrayList<>();
+  private final List<Subscriber<T>> subscribers = new CopyOnWriteArrayList<>();
 
   public void broadcast(T element) {
     for (Subscriber<T> subscriber : subscribers) {
@@ -39,7 +43,7 @@ public class MulticastFirehosePublisher<T> implements Publisher<T> {
       @Override
       public void request(int n) {
         if (n != Integer.MAX_VALUE) {
-          throw new IllegalArgumentException("Back pressure is not supported by this Publisher, only firehosing.  Request with Integer.MAX_VALUE only");
+          throw new IllegalArgumentException("Back pressure is not supported by this Publisher.  Request with Integer.MAX_VALUE only");
         }
         subscribers.add(s);
       }

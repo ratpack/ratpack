@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ratpack.http.internal;
+package ratpack.stream.internal;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -24,7 +24,8 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import ratpack.exec.ExecControl;
-import ratpack.http.StreamTransmitter;
+import ratpack.http.internal.CustomHttpResponse;
+import ratpack.http.internal.HttpHeaderConstants;
 
 import static io.netty.handler.codec.http.HttpHeaders.isKeepAlive;
 

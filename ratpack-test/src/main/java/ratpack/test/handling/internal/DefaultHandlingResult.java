@@ -1,4 +1,5 @@
 /*
+/*
  * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,13 +37,14 @@ import ratpack.handling.internal.DelegatingHeaders;
 import ratpack.http.*;
 import ratpack.http.internal.DefaultResponse;
 import ratpack.http.internal.DefaultSentResponse;
-import ratpack.http.internal.DefaultStreamTransmitter;
 import ratpack.launch.LaunchConfig;
 import ratpack.launch.LaunchConfigBuilder;
 import ratpack.registry.Registries;
 import ratpack.registry.Registry;
 import ratpack.render.internal.RenderController;
 import ratpack.server.BindAddress;
+import ratpack.stream.internal.DefaultStreamTransmitter;
+import ratpack.stream.internal.StreamTransmitter;
 import ratpack.test.handling.HandlerTimeoutException;
 import ratpack.test.handling.HandlingResult;
 

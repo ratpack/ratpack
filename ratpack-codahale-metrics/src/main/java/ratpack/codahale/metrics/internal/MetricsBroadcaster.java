@@ -16,11 +16,11 @@
 
 package ratpack.codahale.metrics.internal;
 
-import ratpack.stream.MulticastFirehosePublisher;
+import ratpack.stream.MulticastPublisher;
 
 /**
  * A message broadcaster for sending metrics to its subscribers.
  */
-public class MetricsBroadcaster extends MulticastFirehosePublisher<String> {
+public class MetricsBroadcaster extends MulticastPublisher<String> {
 
 }

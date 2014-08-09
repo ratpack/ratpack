@@ -61,6 +61,12 @@ import ratpack.render.internal.DefaultRenderController;
 import ratpack.server.BindAddress;
 import ratpack.server.PublicAddress;
 import ratpack.server.Stopper;
+import ratpack.stream.HttpResponseChunkRenderer;
+import ratpack.stream.ServerSentEventsRenderer;
+import ratpack.stream.internal.DefaultHttpResponseChunkRenderer;
+import ratpack.stream.internal.DefaultServerSentEventsRenderer;
+import ratpack.stream.internal.DefaultStreamTransmitter;
+import ratpack.stream.internal.StreamTransmitter;
 import ratpack.util.internal.NumberUtil;
 
 import java.io.IOException;

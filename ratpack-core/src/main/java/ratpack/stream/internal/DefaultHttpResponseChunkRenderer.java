@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-package ratpack.http.internal;
+package ratpack.stream.internal;
 
 import ratpack.handling.Context;
-import ratpack.http.HttpResponseChunkRenderer;
-import ratpack.http.HttpResponseChunks;
 import ratpack.http.Response;
+import ratpack.http.internal.HttpHeaderConstants;
 import ratpack.render.RendererSupport;
+import ratpack.stream.HttpResponseChunkRenderer;
+import ratpack.stream.HttpResponseChunks;
 
 public class DefaultHttpResponseChunkRenderer extends RendererSupport<HttpResponseChunks> implements HttpResponseChunkRenderer {
 

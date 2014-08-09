@@ -14,22 +14,20 @@
  * limitations under the License.
  */
 
-package ratpack.http;
+package ratpack.stream;
 
-import org.reactivestreams.Publisher;
+import io.netty.handler.codec.http.DefaultHttpContent;
+import ratpack.util.internal.IoUtils;
 
-public abstract class HttpResponseChunks {
+/**
+ * Represents a HTTP chunk which is used for HTTP chunked transfer-encoding.
+ *
+ * @see ratpack.stream.HttpResponseChunkRenderer
+ */
+public class HttpResponseChunk extends DefaultHttpContent {
 
-  public static HttpResponseChunks httpResponseChunks(final Publisher<HttpResponseChunk> publisher) {
-    return new HttpResponseChunks() {
-      @Override
-      public Publisher<HttpResponseChunk> getPublisher() {
-        return publisher;
-      }
-    };
+  public HttpResponseChunk(String chunk) {
+    super(IoUtils.utf8Buffer(chunk));
   }
 
-  private HttpResponseChunks() {}
-
-  public abstract Publisher<HttpResponseChunk> getPublisher();
 }

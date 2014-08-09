@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package ratpack.server.internal
+package ratpack.stream.internal
 
-import ratpack.http.ServerSentEvent
+import ratpack.stream.ServerSentEvent
 import ratpack.test.internal.RatpackGroovyDslSpec
 import ratpack.util.internal.IoUtils
 

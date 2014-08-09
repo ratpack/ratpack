@@ -14,9 +14,14 @@
  * limitations under the License.
  */
 
-package ratpack.http;
+package ratpack.stream.internal;
 
-import ratpack.render.Renderer;
+import org.reactivestreams.Publisher;
+import ratpack.exec.ExecControl;
 
-public interface ServerSentEventsRenderer extends Renderer<ServerSentEvents> {
+
+public interface StreamTransmitter {
+
+  public <T> void transmit(ExecControl execContext, Publisher<T> stream);
+
 }

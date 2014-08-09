@@ -28,6 +28,7 @@ import ratpack.exec.ExecControl;
 import ratpack.file.internal.FileHttpTransmitter;
 import ratpack.func.Action;
 import ratpack.http.*;
+import ratpack.stream.internal.StreamTransmitter;
 import ratpack.util.ExceptionUtils;
 import ratpack.util.MultiValueMap;
 import ratpack.util.internal.IoUtils;

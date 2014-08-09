@@ -27,6 +27,7 @@ import io.netty.handler.stream.ChunkedWriteHandler;
 import ratpack.handling.Handler;
 import ratpack.launch.LaunchConfig;
 import ratpack.server.Stopper;
+import ratpack.stream.internal.ServerSentEventEncoder;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;

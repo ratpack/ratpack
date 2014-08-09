@@ -14,25 +14,25 @@
  * limitations under the License.
  */
 
-package ratpack.http.internal
+package ratpack.stream
 
 import org.reactivestreams.Publisher
 import org.reactivestreams.Subscriber
 import org.reactivestreams.Subscription
-import ratpack.http.HttpResponseChunk
 
-class LargeContentPublisher implements Publisher<HttpResponseChunk> {
+class SseStreamer implements Publisher<ServerSentEvent> {
   @Override
-  void subscribe(Subscriber<HttpResponseChunk> subscriber) {
+  void subscribe(Subscriber<ServerSentEvent> subscriber) {
     Subscription subscription = new Subscription() {
+
       @Override
-      void cancel() {}
+      void cancel() { }
 
       @Override
       void request(int elements) {
         Thread.start {
-          "This is a really long string that needs to be sent chunked".toList().collate(20).each {
-            subscriber.onNext(new HttpResponseChunk(it.join('')))
+          (1..3).each {
+            subscriber.onNext(new ServerSentEvent(it.toString(), "add", "Event $it".toString()))
           }
 
           subscriber.onComplete()

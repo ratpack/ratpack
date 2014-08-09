@@ -14,19 +14,18 @@
  * limitations under the License.
  */
 
-package ratpack.http.internal
+package ratpack.stream
 
 import org.reactivestreams.Publisher
 import org.reactivestreams.Subscriber
 import org.reactivestreams.Subscription
-import ratpack.http.ServerSentEvent
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 import java.util.concurrent.CountDownLatch
 
 import static io.netty.handler.codec.http.HttpResponseStatus.OK
-import static ratpack.http.HttpResponseChunks.httpResponseChunks
-import static ratpack.http.ServerSentEvents.serverSentEvents
+import static ratpack.stream.HttpResponseChunks.httpResponseChunks
+import static ratpack.stream.ServerSentEvents.serverSentEvents
 
 class ResponseStreamingSpec extends RatpackGroovyDslSpec {
 

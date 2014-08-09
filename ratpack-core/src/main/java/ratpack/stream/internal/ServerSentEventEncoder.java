@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-package ratpack.server.internal;
+package ratpack.stream.internal;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageEncoder;
 import io.netty.handler.codec.http.DefaultHttpContent;
-import ratpack.http.ServerSentEvent;
+import ratpack.stream.ServerSentEvent;
 import ratpack.util.internal.IoUtils;
 
 import java.util.List;
 import java.util.regex.Pattern;
 
 /**
- * A Netty message encoder for {@link ratpack.http.ServerSentEvent}
+ * A Netty message encoder for {@link ratpack.stream.ServerSentEvent}
  * <p>
  * Encodes a ServerSentEvent to {@link io.netty.handler.codec.http.HttpContent}.
  *
