@@ -351,6 +351,20 @@ public abstract class RxRatpack {
   }
 
   /**
+   * Alternative method for forking the execution to process each observable element.
+   * <p>
+   * This method is alternative to {@link #forkOnNext(ratpack.exec.ExecControl)} and is functionally equivalent.
+   *
+   * @param execControl the execution control to use to fork executions
+   * @param observable the observable sequence to process each element of in a forked execution
+   * @param <T> the element type
+   * @return an observable
+   */
+  public static <T> Observable<T> forkOnNext(ExecControl execControl, Observable<T> observable) {
+    return observable.lift(RxRatpack.<T>forkOnNext(execControl));
+  }
+
+  /**
    * An operator to parallelize an observable stream by forking a new execution for each omitted item.
    * This allows downstream processing to occur in concurrent executions.
    * <p>
@@ -409,8 +423,8 @@ public abstract class RxRatpack {
    * }
    * </pre>
    *
-   * @param execControl The execution control to use to fork executions.
-   * @param <T> The type of item in the stream
+   * @param execControl the execution control to use to fork executions
+   * @param <T> the type of item in the stream
    * @return an observable operator
    */
   public static <T> Observable.Operator<T, T> forkOnNext(final ExecControl execControl) {

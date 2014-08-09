@@ -128,6 +128,23 @@ class RxParallelSpec extends Specification {
     received.sort() == [1, 2, 3, 4, 5]
   }
 
+  def "can use fork on next on observable"() {
+    given:
+    def sequence = rx.Observable.from("a", "b", "c", "d", "e")
+    def barrier = new CyclicBarrier(6)
+    def received = [].asSynchronized()
+
+    when:
+    forkOnNext(control, sequence).subscribe {
+      received << it.toUpperCase()
+      barrier.await()
+    }
+    barrier.await()
+
+    then:
+    received.sort() == ["A", "B", "C", "D", "E"]
+  }
+
   def "errors are collected when using fork on next"() {
     given:
     def sequence = rx.Observable.from(1, 2, 3, 4, 5)
