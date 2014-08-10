@@ -47,6 +47,7 @@ public class TemplateRenderingServerErrorHandler implements ServerErrorHandler {
       response.status(500);
     }
 
+    response.contentType("text/html");
     final ByteBuf byteBuf = byteBufAllocator.buffer();
     renderer.renderError(byteBuf, model).onError(new Action<Throwable>() {
       @Override
