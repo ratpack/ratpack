@@ -76,4 +76,14 @@ public abstract class Actions {
     };
   }
 
+
+  public static <T> Action<Action<? super T>> wrap(final T t) {
+    return new Action<Action<? super T>>() {
+      @Override
+      public void execute(Action<? super T> action) throws Exception {
+        action.execute(t);
+      }
+    };
+  }
+
 }

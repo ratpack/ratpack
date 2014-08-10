@@ -36,6 +36,7 @@ import ratpack.file.MimeTypes;
 import ratpack.file.internal.*;
 import ratpack.form.internal.FormParser;
 import ratpack.func.Action;
+import ratpack.func.Actions;
 import ratpack.handling.Handler;
 import ratpack.handling.Handlers;
 import ratpack.handling.Redirector;
@@ -44,9 +45,9 @@ import ratpack.handling.direct.DirectChannelAccess;
 import ratpack.handling.direct.internal.DefaultDirectChannelAccess;
 import ratpack.handling.internal.DefaultContext;
 import ratpack.handling.internal.DefaultRedirector;
-import ratpack.handling.internal.DefaultRequestOutcome;
-import ratpack.handling.internal.DelegatingHeaders;
-import ratpack.http.*;
+import ratpack.http.MutableHeaders;
+import ratpack.http.Request;
+import ratpack.http.Response;
 import ratpack.http.client.HttpClient;
 import ratpack.http.client.HttpClients;
 import ratpack.http.internal.*;
@@ -66,13 +67,10 @@ import ratpack.stream.internal.DefaultHttpResponseChunkRenderer;
 import ratpack.stream.internal.DefaultServerSentEventsRenderer;
 import ratpack.stream.internal.DefaultStreamTransmitter;
 import ratpack.stream.internal.StreamTransmitter;
-import ratpack.util.internal.NumberUtil;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.concurrent.ConcurrentHashMap;
-
-import static io.netty.handler.codec.http.HttpHeaders.isKeepAlive;
 
 @ChannelHandler.Sharable
 public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpRequest> {
@@ -147,100 +145,32 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
       return;
     }
 
-    final long startTime = System.nanoTime();
-
+    final long startTime = addResponseTimeHeader ? System.nanoTime() : 0;
     final Request request = new DefaultRequest(new NettyHeadersBackedHeaders(nettyRequest.headers()), nettyRequest.getMethod().name(), nettyRequest.getUri(), nettyRequest.content());
-
     final Channel channel = ctx.channel();
-
     final DefaultMutableStatus responseStatus = new DefaultMutableStatus();
-    final HttpHeaders httpHeaders = new DefaultHttpHeaders(false);
-    final MutableHeaders responseHeaders = new NettyHeadersBackedMutableHeaders(httpHeaders);
+    final HttpHeaders nettyHeaders = new DefaultHttpHeaders(false);
+    final MutableHeaders responseHeaders = new NettyHeadersBackedMutableHeaders(nettyHeaders);
     final MimeTypes mimeTypes = registry.get(MimeTypes.class);
 
     final DefaultEventController<RequestOutcome> requestOutcomeEventController = new DefaultEventController<>();
 
-    final ResponseTransmitter responseTransmitter = new ResponseTransmitter() {
-      @Override
-      public void transmit(HttpResponseStatus httpResponseStatus, Headers responseHeaders, long contentLength, Object body) {
-        HttpResponse response = new CustomHttpResponse(httpResponseStatus, httpHeaders);
-        nettyRequest.content().release();
+    final ResponseTransmitter responseTransmitter = new DefaultResponseTransmitter(channel, nettyRequest, request, nettyHeaders, responseStatus, requestOutcomeEventController, startTime);
+    final Action<Action<? super ResponseTransmitter>> responseTransmitterWrapper = Actions.wrap(responseTransmitter);
 
-        response.headers().set(HttpHeaderConstants.CONTENT_LENGTH, contentLength);
-
-        boolean isKeepAlive = isKeepAlive(nettyRequest);
-        if (channel.isOpen()) {
-          if (isKeepAlive) {
-            response.headers().set(HttpHeaderConstants.CONNECTION, HttpHeaderConstants.KEEP_ALIVE);
-          }
-
-          long stopTime = System.nanoTime();
-          if (addResponseTimeHeader && startTime > 0) {
-            response.headers().set("X-Response-Time", NumberUtil.toMillisDiffString(startTime, stopTime));
-          }
-
-          ChannelFuture writeFuture = channel.writeAndFlush(response);
-
-          writeFuture.addListener(new ChannelFutureListener() {
-            public void operationComplete(ChannelFuture future) throws Exception {
-              if (!future.isSuccess()) {
-                channel.close();
-              }
-            }
-          });
-
-          writeFuture = channel.write(body);
-
-          writeFuture.addListener(new ChannelFutureListener() {
-            public void operationComplete(ChannelFuture future) throws Exception {
-              if (!future.isSuccess()) {
-                channel.close();
-              }
-            }
-          });
-
-          ChannelFuture lastContentFuture = channel.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
-
-          if (requestOutcomeEventController.isHasListeners()) {
-            Headers headers = new DelegatingHeaders(responseHeaders);
-            Status status = new DefaultStatus(responseStatus.getCode(), responseStatus.getMessage());
-            SentResponse sentResponse = new DefaultSentResponse(headers, status);
-            RequestOutcome requestOutcome = new DefaultRequestOutcome(request, sentResponse, System.currentTimeMillis());
-            requestOutcomeEventController.fire(requestOutcome);
-          }
-
-          if (!isKeepAlive) {
-            lastContentFuture.addListener(ChannelFutureListener.CLOSE);
-          }
-        }
-      }
-    };
-
-    final Action<? super Action<? super ResponseTransmitter>> wrapper = new Action<Action<? super ResponseTransmitter>>() {
-      @Override
-      public void execute(Action<? super ResponseTransmitter> action) throws Exception {
-        action.execute(responseTransmitter);
-      }
-    };
-
-    final FileHttpTransmitter fileHttpTransmitter = new DefaultFileHttpTransmitter(httpHeaders, mimeTypes,
-      compressResponses, compressionMinSize, compressionMimeTypeWhiteList, compressionMimeTypeBlackList, wrapper);
-    StreamTransmitter streamTransmitter = new DefaultStreamTransmitter(nettyRequest, httpHeaders, channel);
-
-    // We own the lifecycle
-    nettyRequest.content().retain();
+    final FileHttpTransmitter fileHttpTransmitter = new DefaultFileHttpTransmitter(nettyHeaders, mimeTypes,
+      compressResponses, compressionMinSize, compressionMimeTypeWhiteList, compressionMimeTypeBlackList, responseTransmitterWrapper);
+    StreamTransmitter streamTransmitter = new DefaultStreamTransmitter(nettyRequest, nettyHeaders, channel);
 
     final Response response = new DefaultResponse(responseStatus, responseHeaders, fileHttpTransmitter, streamTransmitter, ctx.alloc(), new Action<ByteBuf>() {
       @Override
       public void execute(final ByteBuf byteBuf) throws Exception {
-        wrapper.execute(new Action<ResponseTransmitter>() {
+        responseTransmitterWrapper.execute(new Action<ResponseTransmitter>() {
           @Override
           public void execute(ResponseTransmitter responseTransmitter) throws Exception {
-            Long contentLength = (long) byteBuf.writerIndex();
-            responseTransmitter.transmit(responseStatus.getResponseStatus(), responseHeaders, contentLength, new DefaultHttpContent(byteBuf));
+            responseTransmitter.transmit(responseStatus.getResponseStatus(), responseHeaders, byteBuf.writerIndex(), new DefaultHttpContent(byteBuf));
           }
         });
-
       }
     });
 
@@ -292,6 +222,5 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
     // Close the connection as soon as the error message is sent.
     ctx.write(response).addListener(ChannelFutureListener.CLOSE);
   }
-
 
 }
