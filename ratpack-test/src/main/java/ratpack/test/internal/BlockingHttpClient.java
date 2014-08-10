@@ -43,17 +43,15 @@ public class BlockingHttpClient {
   public ReceivedResponse request(Action<? super RequestSpec> action) throws Throwable {
     final RequestAction requestAction = new RequestAction(launchConfig, action);
 
-    launchConfig.getExecController().start(new Action<Execution>() {
+    launchConfig.getExecController().getControl().fork(new Action<Execution>() {
       @Override
       public void execute(Execution execution) throws Exception {
-        execution.setErrorHandler(new Action<Throwable>() {
-          @Override
-          public void execute(Throwable throwable) throws Exception {
-            requestAction.setResult(Result.<ReceivedResponse>failure(throwable));
-
-          }
-        });
         requestAction.execute(execution);
+      }
+    }, new Action<Throwable>() {
+      @Override
+      public void execute(Throwable throwable) throws Exception {
+        requestAction.setResult(Result.<ReceivedResponse>failure(throwable));
       }
     });
 
@@ -86,12 +84,6 @@ public class BlockingHttpClient {
     @Override
     public void execute(Execution execution) throws Exception {
       HttpClients.httpClient(launchConfig).request(action)
-        .onError(new Action<Throwable>() {
-          @Override
-          public void execute(Throwable exception) throws Exception {
-            setResult(Result.<ReceivedResponse>failure(exception));
-          }
-        })
         .then(new Action<ReceivedResponse>() {
           @Override
           public void execute(ReceivedResponse response) throws Exception {

@@ -30,7 +30,6 @@ import ratpack.error.internal.DefaultClientErrorHandler;
 import ratpack.error.internal.DefaultServerErrorHandler;
 import ratpack.event.internal.DefaultEventController;
 import ratpack.exec.ExecController;
-import ratpack.exec.Execution;
 import ratpack.file.FileRenderer;
 import ratpack.file.FileSystemBinding;
 import ratpack.file.MimeTypes;
@@ -263,16 +262,11 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
 
     final DirectChannelAccess directChannelAccess = new DefaultDirectChannelAccess(channel, subscribeHandler);
 
-    execController.start(new Action<Execution>() {
-      @Override
-      public void execute(Execution execution) throws Exception {
-        DefaultContext.RequestConstants requestConstants = new DefaultContext.RequestConstants(
-          applicationConstants, bindAddress, request, response, directChannelAccess, requestOutcomeEventController.getRegistry(), execution
-        );
+    final DefaultContext.RequestConstants requestConstants = new DefaultContext.RequestConstants(
+      applicationConstants, bindAddress, request, response, directChannelAccess, requestOutcomeEventController.getRegistry()
+    );
 
-        new DefaultContext(requestConstants, registry, handlers, 0, return404).next();
-      }
-    });
+    DefaultContext.start(execController.getControl(), requestConstants, registry, handlers, return404);
   }
 
   @Override

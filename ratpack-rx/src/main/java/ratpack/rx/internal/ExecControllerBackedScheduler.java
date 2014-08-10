@@ -60,7 +60,7 @@ public class ExecControllerBackedScheduler extends Scheduler {
 
         @Override
         public void call() {
-          execController.start(new Action<Execution>() {
+          execController.getControl().fork(new Action<Execution>() {
             @Override
             public void execute(Execution execution) throws Exception {
               delegate.call();

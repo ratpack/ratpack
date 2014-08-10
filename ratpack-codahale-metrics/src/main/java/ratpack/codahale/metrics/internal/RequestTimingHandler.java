@@ -18,6 +18,7 @@ package ratpack.codahale.metrics.internal;
 
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;
+import ratpack.exec.Execution;
 import ratpack.func.Action;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
@@ -63,9 +64,9 @@ public class RequestTimingHandler implements Handler {
     final Request request = context.getRequest();
     BlockingExecTimingInterceptor blockingExecTimingInterceptor = new BlockingExecTimingInterceptor(metricRegistry, request);
 
-    context.addExecInterceptor(blockingExecTimingInterceptor, new Action<Context>() {
+    context.addInterceptor(blockingExecTimingInterceptor, new Action<Execution>() {
       @Override
-      public void execute(Context context) throws Exception {
+      public void execute(Execution execution) throws Exception {
         String tag = buildRequestTimerTag(request.getUri(), request.getMethod().getName());
         final Timer.Context timer = metricRegistry.timer(tag).time();
         context.onClose(new Action<RequestOutcome>() {

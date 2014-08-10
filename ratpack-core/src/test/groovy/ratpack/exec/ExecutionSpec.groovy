@@ -20,6 +20,7 @@ import org.reactivestreams.Publisher
 import org.reactivestreams.Subscriber
 import org.reactivestreams.Subscription
 import ratpack.func.Action
+import ratpack.func.Actions
 import ratpack.launch.LaunchConfigBuilder
 import spock.lang.AutoCleanup
 import spock.lang.Specification
@@ -31,31 +32,30 @@ class ExecutionSpec extends Specification {
 
   @AutoCleanup
   ExecController controller
-  def events = []
+  List<String> events = []
   def latch = new CountDownLatch(1)
 
   def setup() {
     controller = LaunchConfigBuilder.noBaseDir().build().execController
   }
 
-  def exec(Action<? super Execution> action) {
-    controller.start {
-      it.onComplete {
-        latch.countDown()
-      }
-
-      action.execute(it)
-    }
+  def exec(Action<? super ExecControl> action, Action<? super Throwable> onError = Actions.noop()) {
+    controller.control.fork({
+      action.execute(it.control)
+    }, onError, {
+      events << "complete"
+      latch.countDown()
+    })
     latch.await()
+  }
+
+  ExecControl getControl() {
+    controller.control
   }
 
   def "exception thrown after promise prevents promise from running"() {
     when:
-    exec { e ->
-      e.setErrorHandler {
-        events << "error"
-      }
-
+    exec({ e ->
       e.promise { f ->
         events << "action"
         e.fork {
@@ -66,63 +66,59 @@ class ExecutionSpec extends Specification {
       }
 
       throw new RuntimeException("!")
-    }
+    }, {
+      events << "error"
+    })
 
     then:
-    events == ["error"]
+    events == ["error", "complete"]
   }
 
   def "error handler can perform blocking ops"() {
     when:
-    exec { e ->
-      e.setErrorHandler {
-        e.blocking { 2 } then { events << "error" }
-      }
-
+    exec({ e ->
       throw new RuntimeException("!")
-    }
+    }, {
+      control.blocking { 2 } then { events << "error" }
+    })
 
     then:
-    events == ["error"]
+    events == ["error", "complete"]
   }
 
   def "error handler can perform blocking ops then blocking opts"() {
     when:
-    exec { e ->
-      e.setErrorHandler {
-        e.blocking {
+    exec({
+      throw new RuntimeException("!")
+    }, {
+      control.blocking {
+        2
+      } then {
+        control.blocking {
           2
         } then {
-          e.blocking {
-            2
-          } then {
-            events << "error"
-          }
+          events << "error"
         }
       }
-
-      throw new RuntimeException("!")
-    }
+    })
 
     then:
-    events == ["error"]
+    events == ["error", "complete"]
   }
 
   def "error handler can throw error"() {
     when:
-    exec { e ->
-      e.setErrorHandler {
-        events << "e$it.message".toString()
-        if (!("e2" in events)) {
-          throw new RuntimeException("2")
-        }
-      }
-
+    exec({ e ->
       throw new RuntimeException("1")
-    }
+    }, {
+      events << "e$it.message".toString()
+      if (!("e2" in events)) {
+        throw new RuntimeException("2")
+      }
+    })
 
     then:
-    events == ["e1", "e2"]
+    events == ["e1", "e2", "complete"]
   }
 
   def "execution can queue promises"() {
@@ -130,9 +126,6 @@ class ExecutionSpec extends Specification {
 
     when:
     exec { e1 ->
-      e1.setErrorHandler {
-        it.printStackTrace()
-      }
       e1.promise { f ->
         Thread.start {
           sleep 100
@@ -153,7 +146,7 @@ class ExecutionSpec extends Specification {
 
     then:
     innerLatch.await()
-    events == ["1", "2"]
+    events == ["1", "2", "complete"]
   }
 
   def "promise is bound to subscribing execution"() {
@@ -169,7 +162,7 @@ class ExecutionSpec extends Specification {
 
       e1.fork { e2 ->
         p.then {
-          assert e2.controller.execution == e2
+          assert e2.controller.control.execution == e2
           events << "then"
           innerLatch.countDown()
         }
@@ -178,24 +171,16 @@ class ExecutionSpec extends Specification {
 
     then:
     innerLatch.await()
-    events == ["then"]
+    events == ["complete", "then"]
   }
 
   def "subscriber callbacks are bound to execution"() {
     when:
-    def streamEvents = []
-    def innerLatch = new CountDownLatch(4)
-
     exec { e1 ->
-      controller.execution.onComplete {
-        streamEvents << 'execution-complete'
-        innerLatch.countDown()
-      }
-
       e1.stream(new Publisher<String>() {
         @Override
         void subscribe(Subscriber subscriber) {
-          streamEvents << 'publisher-subscribe'
+          events << 'publisher-subscribe'
           final AtomicInteger i = new AtomicInteger()
 
           Subscription subscription = new Subscription() {
@@ -210,7 +195,7 @@ class ExecutionSpec extends Specification {
             @Override
             void request(int elements) {
               assert e1.controller.managedThread
-              streamEvents << 'publisher-request'
+              events << 'publisher-request'
               if (capacity.getAndAdd(elements) == 0) {
                 // start sending again if it wasn't already running
                 send()
@@ -221,9 +206,9 @@ class ExecutionSpec extends Specification {
               Thread.start {
                 while (capacity.getAndDecrement() > 0) {
                   assert !e1.controller.managedThread
-                  streamEvents << 'publisher-send'
+                  events << 'publisher-send'
                   subscriber.onNext('foo' + i.incrementAndGet())
-                  Thread.sleep(500)
+                  Thread.sleep(50)
                 }
 
                 cancel()
@@ -237,22 +222,20 @@ class ExecutionSpec extends Specification {
         @Override
         void onSubscribe(Subscription subscription) {
           assert e1.controller.managedThread
-          streamEvents << 'subscriber-onSubscribe'
+          events << 'subscriber-onSubscribe'
           subscription.request(2)
         }
 
         @Override
         void onNext(String element) {
           assert e1.controller.managedThread
-          streamEvents << "subscriber-onNext:$element".toString()
-          innerLatch.countDown()
+          events << "subscriber-onNext:$element".toString()
         }
 
         @Override
         void onComplete() {
           assert e1.controller.managedThread
-          streamEvents << 'subscriber-onComplete'
-          innerLatch.countDown()
+          events << 'subscriber-onComplete'
         }
 
         @Override
@@ -263,8 +246,7 @@ class ExecutionSpec extends Specification {
     }
 
     then:
-    innerLatch.await()
-    streamEvents.toString() == [
+    events == [
       'publisher-subscribe',
       'subscriber-onSubscribe',
       'publisher-request',
@@ -273,8 +255,8 @@ class ExecutionSpec extends Specification {
       'publisher-send',
       'subscriber-onNext:foo2',
       'subscriber-onComplete',
-      'execution-complete'
-    ].toString()
+      "complete"
+    ]
   }
 
 }

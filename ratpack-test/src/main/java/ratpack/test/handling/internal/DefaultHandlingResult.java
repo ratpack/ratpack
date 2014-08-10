@@ -24,7 +24,6 @@ import ratpack.error.ServerErrorHandler;
 import ratpack.event.internal.DefaultEventController;
 import ratpack.event.internal.EventController;
 import ratpack.exec.ExecControl;
-import ratpack.exec.Execution;
 import ratpack.file.internal.FileHttpTransmitter;
 import ratpack.func.Action;
 import ratpack.handling.Context;
@@ -155,20 +154,14 @@ public class DefaultHandlingResult implements HandlingResult {
 
     final LaunchConfig launchConfig = launchConfigBuilder.build();
 
-    launchConfig.getExecController().start(new Action<Execution>() {
-      @Override
-      public void execute(Execution execution) throws Exception {
-        Response response = new DefaultResponse(status, responseHeaders, fileHttpTransmitter, streamTransmitter, launchConfig.getBufferAllocator(), committer);
-        DefaultContext.ApplicationConstants applicationConstants = new DefaultContext.ApplicationConstants(launchConfig, renderController);
-        requestConstants = new DefaultContext.RequestConstants(
-          applicationConstants, bindAddress, request, response, null, eventController.getRegistry(), execution
-        );
+    Response response = new DefaultResponse(status, responseHeaders, fileHttpTransmitter, streamTransmitter, launchConfig.getBufferAllocator(), committer);
+    DefaultContext.ApplicationConstants applicationConstants = new DefaultContext.ApplicationConstants(launchConfig, renderController);
+    requestConstants = new DefaultContext.RequestConstants(
+      applicationConstants, bindAddress, request, response, null, eventController.getRegistry()
+    );
 
-        Context context = new DefaultContext(requestConstants, effectiveRegistry, new Handler[]{handler}, 0, next);
-        context.next();
-      }
-    });
-
+    ExecControl execControl = launchConfig.getExecController().getControl();
+    DefaultContext.start(execControl, requestConstants, effectiveRegistry, new Handler[]{handler}, next);
 
     try {
       if (!latch.await(timeout, TimeUnit.SECONDS)) {

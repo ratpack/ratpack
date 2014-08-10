@@ -16,7 +16,6 @@
 
 package ratpack.exec;
 
-import ratpack.func.Action;
 import ratpack.registry.MutableRegistry;
 
 /**
@@ -40,10 +39,7 @@ import ratpack.registry.MutableRegistry;
  * <p>
  * <b>The execution object underpins an entire logical operation, even when that operation may be performed by multiple threads.</b>
  * <p>
- * The “execution” in Ratpack simulates aspects of the traditional execution context by allowing {@link #setErrorHandler(ratpack.func.Action) registration of an error handler} that is carried
- * across execution segments (and therefore threads), and {@link #onComplete(Runnable) completion notifications}.
- * <p>
- * Importantly, it also <em>serializes</em> execution segments by way of the {@link #promise(ratpack.func.Action)} method.
+ * Importantly, it also <em>serializes</em> execution segments by way of the {@link ratpack.exec.ExecControl#promise(ratpack.func.Action)} method.
  * These methods are fundamentally asynchronous in that they facilitate performing operations where the result will arrive later without waiting for the result,
  * but are synchronous in the operations the perform are serialized and not executed concurrently or in parallel.
  * <em>Crucially</em>, this means that state that is local to an execution does not need to be thread safe.
@@ -54,139 +50,7 @@ import ratpack.registry.MutableRegistry;
  * Moreover, it provides its own error handling and completion mechanisms.
  * </p>
  */
-public interface Execution extends MutableRegistry, ExecControl {
-
-  /**
-   * Registers an action to occur if an exception is raised during an execution segment that is uncaught, or when asynchronous operations with no defined error handler fail.
-   * <pre class="java">
-   * import ratpack.launch.LaunchConfigBuilder;
-   * import ratpack.exec.Execution;
-   * import ratpack.exec.ExecController;
-   * import ratpack.func.Action;
-   *
-   * import java.util.concurrent.Callable;
-   * import java.util.concurrent.BlockingQueue;
-   * import java.util.concurrent.LinkedBlockingQueue;
-   *
-   * public class Example {
-   *
-   *   public static void main(String[] args) throws InterruptedException {
-   *     final BlockingQueue&lt;String&gt; queue = new LinkedBlockingQueue&lt;&gt;();
-   *
-   *     ExecController controller = LaunchConfigBuilder.noBaseDir().build().getExecController();
-   *
-   *     controller.start(new Action&lt;Execution&gt;() {
-   *       public void execute(Execution execution) {
-   *         execution.setErrorHandler(new Action&lt;Throwable&gt;() {
-   *           public void execute(Throwable throwable) {
-   *             try {
-   *               queue.put("caught be execution error handler: " + throwable.getMessage());
-   *             } catch (Exception e) {
-   *               // Important to not let the error handler throw an exception that would cause the error handler to be invoked again,
-   *               // and throw another exception… resulting in a stack overflow.
-   *               e.printStackTrace();
-   *             }
-   *           }
-   *         });
-   *
-   *         execution
-   *           .blocking(new Callable&lt;String&gt;() {
-   *             public String call() {
-   *               return "foo";
-   *             }
-   *           })
-   *           .then(new Action&lt;String&gt;() {
-   *             public void execute(String value) {
-   *               throw new RuntimeException(value);
-   *             }
-   *           });
-   *       }
-   *     });
-   *
-   *     assert queue.take().equals("caught be execution error handler: foo");
-   *   }
-   * }
-   * </pre>
-   * <p>
-   * Before the error handler is invoked, all queued execution segments are discarded.
-   * <pre class="java">
-   * import ratpack.launch.LaunchConfigBuilder;
-   * import ratpack.exec.Execution;
-   * import ratpack.exec.ExecController;
-   * import ratpack.func.Action;
-   *
-   * import java.util.concurrent.Callable;
-   * import java.util.concurrent.BlockingQueue;
-   * import java.util.concurrent.LinkedBlockingQueue;
-   *
-   * public class Example {
-   *
-   *   public static void main(String[] args) throws InterruptedException {
-   *     final BlockingQueue&lt;String&gt; queue = new LinkedBlockingQueue&lt;&gt;();
-   *
-   *     ExecController controller = LaunchConfigBuilder.noBaseDir().build().getExecController();
-   *
-   *     controller.start(new Action&lt;Execution&gt;() {
-   *       public void execute(Execution execution) {
-   *         execution.setErrorHandler(new Action&lt;Throwable&gt;() {
-   *           public void execute(Throwable throwable) {
-   *             try {
-   *               queue.put("caught be execution error handler: " + throwable.getMessage());
-   *             } catch (Exception e) {
-   *               // Important to not let the error handler throw an exception that would cause the error handler to be invoked again,
-   *               // and throw another exception… resulting in a stack overflow.
-   *               e.printStackTrace();
-   *             }
-   *           }
-   *         });
-   *
-   *         // This blocking call will never be executed as the execution segment that queued it
-   *         // will throw an exception that is uncaught
-   *         execution
-   *           .blocking(new Callable&lt;String&gt;() {
-   *             public String call() {
-   *               return "foo";
-   *             }
-   *           })
-   *           .then(new Action&lt;String&gt;() {
-   *             public void execute(String value) {
-   *               throw new RuntimeException("will never be executed");
-   *             }
-   *           });
-   *
-   *         throw new RuntimeException("after blocking call");
-   *       }
-   *     });
-   *
-   *     assert queue.take().equals("caught be execution error handler: after blocking call");
-   *   }
-   * }
-   * </pre>
-   * <p>
-   * <b>Note:</b> it is generally not advisable to call this method for a request handling execution,
-   * as Ratpack installs an error handler for such executions that delegates to {@link ratpack.handling.Context#error(Exception)}.
-   * It is generally used for background and forked executions.
-   * </p>
-   *
-   * @param errorHandler the action that should be invoked when an exception is uncaught during an execution segment.
-   */
-  void setErrorHandler(Action<? super Throwable> errorHandler);
-
-  /**
-   * Adds an interceptor that wraps the rest of the current execution segment and all future segments of this execution.
-   * <p>
-   * The given action is executed immediately (i.e. as opposed to being queued to be executed as the next execution segment).
-   * Any code executed after a call to this method in the same execution segment <b>WILL NOT</b> be intercepted.
-   * Therefore, it is advisable to not execute any code after calling this method in a given execution segment.
-   * <p>
-   * See {@link ExecInterceptor} for example use of an interceptor.
-   *
-   * @param execInterceptor the execution interceptor to add
-   * @param continuation the rest of the code to be executed
-   * @throws Exception any thrown by {@code continuation}
-   * @see ExecInterceptor
-   */
-  void addInterceptor(ExecInterceptor execInterceptor, Action<? super Execution> continuation) throws Exception;
+public interface Execution extends MutableRegistry {
 
   /**
    * The execution controller that this execution is associated with.
@@ -195,19 +59,9 @@ public interface Execution extends MutableRegistry, ExecControl {
    */
   ExecController getController();
 
-  /**
-   * Registers code to be executed when the execution completes.
-   * <p>
-   * An execution completes when an execution segment completes (that did not queue an async operation via ({@link #promise(ratpack.func.Action)}) and there are no further segments.
-   * <p>
-   * Multiple callbacks can be registered with this method.
-   * They will be executed in registration order.
-   * <p>
-   * <b>Note:</b> for request handling, it is generally more useful to use {@link ratpack.handling.Context#onClose(ratpack.func.Action)} that this method for executing code
-   * at the end of the execution as it exposes the request outcome.
-   *
-   * @param runnable code to execute when this execution completes
-   */
-  void onComplete(Runnable runnable);
+  ExecControl getControl();
+
+  // TODO: this is not the right name.
+  void onCleanup(AutoCloseable autoCloseable);
 
 }

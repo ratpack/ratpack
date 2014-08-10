@@ -23,10 +23,7 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import ratpack.api.NonBlocking;
 import ratpack.api.Nullable;
-import ratpack.exec.ExecInterceptor;
-import ratpack.exec.Execution;
-import ratpack.exec.Fulfiller;
-import ratpack.exec.Promise;
+import ratpack.exec.*;
 import ratpack.func.Action;
 import ratpack.groovy.handling.GroovyByContentSpec;
 import ratpack.groovy.handling.GroovyByMethodSpec;
@@ -69,6 +66,11 @@ public class DefaultGroovyContext implements GroovyContext {
   }
 
   @Override
+  public ExecController getController() {
+    return delegate.getController();
+  }
+
+  @Override
   public Execution getExecution() {
     return delegate.getExecution();
   }
@@ -83,9 +85,20 @@ public class DefaultGroovyContext implements GroovyContext {
     return delegate.getDirectChannelAccess();
   }
 
+
   @Override
-  public void addExecInterceptor(ExecInterceptor execInterceptor, Action<? super Context> action) throws Exception {
-    delegate.addExecInterceptor(execInterceptor, action);
+  public void addInterceptor(ExecInterceptor execInterceptor, Action<? super Execution> continuation) throws Exception {
+    delegate.addInterceptor(execInterceptor, continuation);
+  }
+
+  @Override
+  public void fork(Action<? super Execution> action, Action<? super Throwable> onError) {
+    delegate.fork(action, onError);
+  }
+
+  @Override
+  public void fork(Action<? super Execution> action, Action<? super Throwable> onError, Action<? super Execution> onComplete) {
+    delegate.fork(action, onError, onComplete);
   }
 
   @Override

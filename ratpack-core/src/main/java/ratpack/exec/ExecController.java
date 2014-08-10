@@ -16,10 +16,9 @@
 
 package ratpack.exec;
 
+import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.ListeningScheduledExecutorService;
 import io.netty.channel.EventLoopGroup;
-import ratpack.api.NonBlocking;
-import ratpack.func.Action;
 
 /**
  * The exec controller manages the execution of operations.
@@ -27,38 +26,6 @@ import ratpack.func.Action;
  * The instance for an application can be obtained via the launch config's {@link ratpack.launch.LaunchConfig#getExecController()} method.
  */
 public interface ExecController extends AutoCloseable {
-
-  /**
-   * Initiates a new execution with the given action.
-   * <p>
-   * The action is guaranteed to be executed on a Ratpack event loop thread.
-   * Therefore, it may not be executed in the calling thread.
-   * <p>
-   * If the action raises an uncaught exception, it will be forwarded to the execution object's {@link Execution#setErrorHandler(ratpack.func.Action) error handler}.
-   * The default implementation just logs the error so it is usually a good idea to call the {@link Execution#setErrorHandler(ratpack.func.Action)} method
-   * with an error handler immediately in the action implementation.
-   * <p>
-   * See {@link ratpack.exec.Execution} for more information about what an execution is in Ratpack.
-   *
-   * @param action the initial execution segment of the new execution.
-   */
-  @NonBlocking
-  void start(Action<? super Execution> action);
-
-  /**
-   * Provides the current execution that is bound to the current thread.
-   * <p>
-   * If the current thread has no bound execution, this method will throw an {@link ExecutionException}.
-   * The most likely scenario for this to occur is when the current thread is not managed by Ratpack,
-   * which is indicated by the {@link #isManagedThread()} method.
-   * <p>
-   * There's generally no need to call this method in normal application programming.
-   * It is provided to aid integrating execution related tools (e.g. RxJava).
-   *
-   * @return the current context on the current thread
-   * @throws ExecutionException if this method is called from a thread that is not performing request processing
-   */
-  Execution getExecution() throws ExecutionException;
 
   /**
    * Indicates whether the current thread is managed by <b>this</b> execution controller.
@@ -93,6 +60,8 @@ public interface ExecController extends AutoCloseable {
    * @return the executor that performs computation
    */
   ListeningScheduledExecutorService getExecutor();
+
+  ListeningExecutorService getBlockingExecutor();
 
   /**
    * The event loop group used by Netty for this application.

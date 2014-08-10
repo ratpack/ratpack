@@ -62,9 +62,9 @@ public class DefaultRatpackModule extends AbstractModule {
   }
 
   @Provides
-  Execution execution(ExecController execController) {
+  Execution execution(ExecControl execControl) {
     try {
-      return execController.getExecution();
+      return execControl.getExecution();
     } catch (ExecutionException e) {
       throw new OutOfScopeException("Cannot provide an instance of " + Execution.class.getName() + " as none is bound to the current thread (are you outside of a managed thread?)");
     }

@@ -18,6 +18,7 @@ package ratpack.newrelic.internal;
 
 import com.newrelic.api.agent.Trace;
 import ratpack.exec.ExecInterceptor;
+import ratpack.exec.Execution;
 import ratpack.func.Action;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
@@ -32,11 +33,11 @@ public class NewRelicInterceptorBindingHandler implements Handler {
   }
 
   @Override
-  public void handle(Context context) throws Exception {
+  public void handle(final Context context) throws Exception {
     context.getRequest().register(NewRelicTransaction.class, new DefaultNewRelicTransaction(context));
-    context.addExecInterceptor(new NewRelicExecInterceptor(context), new Action<Context>() {
+    context.addInterceptor(new NewRelicExecInterceptor(context), new Action<Execution>() {
       @Override
-      public void execute(Context context) throws Exception {
+      public void execute(Execution execution) throws Exception {
         context.insert(delegate);
       }
     });

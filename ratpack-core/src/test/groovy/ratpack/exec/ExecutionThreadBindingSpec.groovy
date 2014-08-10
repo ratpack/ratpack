@@ -25,7 +25,7 @@ class ExecutionThreadBindingSpec extends RatpackGroovyDslSpec {
     handlers {
       get { ExecController execController ->
         promise { f ->
-          assert execController.execution
+          assert execController.control.execution
           Thread.start {
             assert !execController.managedThread
             f.success('foo')

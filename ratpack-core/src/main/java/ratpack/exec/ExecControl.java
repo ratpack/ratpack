@@ -95,6 +95,26 @@ import java.util.concurrent.Callable;
  */
 public interface ExecControl {
 
+  Execution getExecution();
+
+  ExecController getController();
+
+  /**
+   * Adds an interceptor that wraps the rest of the current execution segment and all future segments of this execution.
+   * <p>
+   * The given action is executed immediately (i.e. as opposed to being queued to be executed as the next execution segment).
+   * Any code executed after a call to this method in the same execution segment <b>WILL NOT</b> be intercepted.
+   * Therefore, it is advisable to not execute any code after calling this method in a given execution segment.
+   * <p>
+   * See {@link ExecInterceptor} for example use of an interceptor.
+   *
+   * @param execInterceptor the execution interceptor to add
+   * @param continuation the rest of the code to be executed
+   * @throws Exception any thrown by {@code continuation}
+   * @see ExecInterceptor
+   */
+  void addInterceptor(ExecInterceptor execInterceptor, Action<? super Execution> continuation) throws Exception;
+
   /**
    * Performs a blocking operation on a separate thread, returning a promise for its value.
    * <p>
@@ -124,9 +144,10 @@ public interface ExecControl {
    *
    *     final CountDownLatch latch = new CountDownLatch(1);
    *
-   *     controller.start(new Action&lt;Execution&gt;() {
+   *     controller.getControl().fork(new Action&lt;Execution&gt;() {
    *       public void execute(Execution execution) {
    *         execution
+   *           .getControl()
    *           .blocking(new Callable&lt;String&gt;() {
    *             public String call() {
    *               // perform a blocking op, e.g. a database call, filesystem read etc.
@@ -174,11 +195,14 @@ public interface ExecControl {
    * This is similar to using {@code new Thread().run()} except that the action will be executed
    * on a Ratpack managed thread, and will use Ratpack's execution semantics.
    * <p>
-   * This is functionally equivalent to {@link ExecController#start(ratpack.func.Action)}.
    *
    * @param action the initial execution segment
    */
   void fork(Action<? super Execution> action);
+
+  void fork(Action<? super Execution> action, Action<? super Throwable> onError);
+
+  void fork(Action<? super Execution> action, Action<? super Throwable> onError, Action<? super Execution> onComplete);
 
   /**
    * Process streams of data asynchronously with non-blocking back pressure.
@@ -192,4 +216,5 @@ public interface ExecControl {
    * @param <T> the type of streamed elements
    */
   <T> void stream(Publisher<T> publisher, Subscriber<T> subscriber);
+
 }

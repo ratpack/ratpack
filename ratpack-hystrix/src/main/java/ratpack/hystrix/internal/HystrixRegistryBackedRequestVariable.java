@@ -50,7 +50,7 @@ class HystrixRegistryBackedRequestVariable<T> implements HystrixRequestVariable<
   }
 
   private Execution getExecution() {
-    return DefaultExecController.getThreadBoundController().get().getExecution();
+    return DefaultExecController.getThreadBoundController().get().getControl().getExecution();
   }
 
   @Override

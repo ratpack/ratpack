@@ -42,7 +42,7 @@ class InjectableExecutionSpec extends RatpackGroovyDslSpec {
     handlers {
       handler new InjectionHandler() {
         void handle(Context context, InjectionScopeService service) {
-          assert service.execution.is(context.launchConfig.execController.execution)
+          assert service.execution.is(context.launchConfig.execController.control.execution)
           context.render "ok"
         }
       }

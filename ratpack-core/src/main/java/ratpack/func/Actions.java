@@ -16,10 +16,24 @@
 
 package ratpack.func;
 
+import ratpack.util.ExceptionUtils;
+
 /**
  * Factories for different {@link ratpack.func.Action} implementations.
  */
 public abstract class Actions {
+
+  private final static Action<Throwable> THROW_EXCEPTION = new Action<Throwable>() {
+    @Override
+    public void execute(Throwable throwable) throws Exception {
+      throw ExceptionUtils.toException(throwable);
+    }
+  };
+  private static final Action<Object> NOOP = new Action<Object>() {
+    @Override
+    public void execute(Object thing) throws Exception {
+    }
+  };
 
   private Actions() {
 
@@ -28,15 +42,19 @@ public abstract class Actions {
   /**
    * Returns an action that does precisely nothing.
    *
-   * @param <T> The type of parameter given to the action
    * @return an action that does precisely nothing
    */
-  public static <T> Action<T> noop() {
-    return new Action<T>() {
-      @Override
-      public void execute(T thing) throws Exception {
-      }
-    };
+  public static Action<Object> noop() {
+    return NOOP;
+  }
+
+  /**
+   * Returns an action that does precisely nothing.
+   *
+   * @return an action that does precisely nothing
+   */
+  public static Action<Throwable> throwException() {
+    return THROW_EXCEPTION;
   }
 
   /**

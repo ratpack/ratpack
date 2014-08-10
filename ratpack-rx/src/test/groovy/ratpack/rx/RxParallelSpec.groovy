@@ -42,7 +42,7 @@ class RxParallelSpec extends Specification {
     def received = [].asSynchronized()
 
     when:
-    controller.start {
+    controller.control.fork {
       rx.Observable.from((0..9).toList())
         .parallel { it.map { received << it; barrier.await(); it } }
         .subscribe()
@@ -59,8 +59,7 @@ class RxParallelSpec extends Specification {
     def received = [].asSynchronized()
 
     when:
-    controller.start {
-
+    controller.control.fork {
       rx.Observable.from((0..9).toList())
         .parallel { i ->
         i.flatMap { n ->
@@ -84,7 +83,7 @@ class RxParallelSpec extends Specification {
     List<Integer> nums = []
 
     when:
-    controller.start {
+    controller.control.fork({
 
       def o = rx.Observable.from(1, 2, 3, 4, 5)
         .parallel {
@@ -97,14 +96,14 @@ class RxParallelSpec extends Specification {
         }
       }
 
-      RxRatpack.forkAndJoin(it, o).toList().subscribe {
+      RxRatpack.forkAndJoin(it.control, o).toList().subscribe {
         nums = it
       }
+    }, {
 
-      it.onComplete {
-        latch.countDown()
-      }
-    }
+    }, {
+      latch.countDown()
+    })
 
     then:
     latch.await()

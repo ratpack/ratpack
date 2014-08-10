@@ -19,34 +19,27 @@ package ratpack.exec.internal;
 import ratpack.exec.Fulfiller;
 import ratpack.exec.Promise;
 import ratpack.exec.SuccessPromise;
-import ratpack.exec.internal.DefaultExecController.Execution;
 import ratpack.func.Action;
+import ratpack.func.Actions;
 import ratpack.func.Factory;
-
-import static ratpack.util.ExceptionUtils.toException;
 
 public class DefaultPromise<T> implements Promise<T> {
   private final Action<? super Fulfiller<T>> fulfillment;
-  private final Factory<Execution> execution;
+  private final Factory<ExecutionBacking> executionProvider;
 
-  public DefaultPromise(Factory<Execution> execution, Action<? super Fulfiller<T>> fulfillment) {
-    this.execution = execution;
+  public DefaultPromise(Factory<ExecutionBacking> executionProvider, Action<? super Fulfiller<T>> fulfillment) {
+    this.executionProvider = executionProvider;
     this.fulfillment = fulfillment;
   }
 
   @Override
   public SuccessPromise<T> onError(final Action<? super Throwable> errorHandler) {
-    return new DefaultSuccessPromise<>(execution, fulfillment, errorHandler);
+    return new DefaultSuccessPromise<>(executionProvider, fulfillment, errorHandler);
   }
 
   @Override
   public void then(Action<? super T> then) {
-    onError(new Action<Throwable>() {
-      @Override
-      public void execute(Throwable t) throws Exception {
-        throw toException(t);
-      }
-    }).then(then);
+    onError(Actions.throwException()).then(then);
   }
 
 }

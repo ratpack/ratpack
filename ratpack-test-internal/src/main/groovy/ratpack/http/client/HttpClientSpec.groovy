@@ -16,6 +16,8 @@
 
 package ratpack.http.client
 
+import ratpack.error.DebugErrorHandler
+import ratpack.error.ServerErrorHandler
 import ratpack.groovy.handling.GroovyChainAction
 import ratpack.groovy.test.embed.ClosureBackedEmbeddedApplication
 import ratpack.test.embed.EmbeddedApplication
@@ -24,10 +26,14 @@ import spock.lang.AutoCleanup
 
 abstract class HttpClientSpec extends RatpackGroovyDslSpec {
 
-  @AutoCleanup EmbeddedApplication otherApp
+  @AutoCleanup
+  EmbeddedApplication otherApp
 
   EmbeddedApplication otherApp(@DelegatesTo(value = GroovyChainAction, strategy = Closure.DELEGATE_FIRST) Closure<?> handlers) {
     otherApp = new ClosureBackedEmbeddedApplication(baseDir)
+    otherApp.bindings {
+      bind ServerErrorHandler, new DebugErrorHandler()
+    }
     otherApp.handlers(handlers)
     otherApp.server.start()
   }

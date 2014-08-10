@@ -101,7 +101,7 @@ class HttpClientSmokeSpec extends HttpClientSpec {
             render "bar"
           }
 
-          execution.onComplete {
+          execution.onCleanup {
             assert buffer.refCnt() == 0
           }
         }

@@ -24,10 +24,7 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.ssl.SslHandler;
-import ratpack.exec.ExecController;
-import ratpack.exec.Execution;
-import ratpack.exec.Fulfiller;
-import ratpack.exec.Promise;
+import ratpack.exec.*;
 import ratpack.func.Action;
 import ratpack.func.Actions;
 import ratpack.http.Headers;
@@ -71,7 +68,8 @@ public class DefaultHttpClient implements HttpClient {
   public Promise<ReceivedResponse> request(final Action<? super RequestSpec> requestConfigurer) {
 
     final ExecController execController = launchConfig.getExecController();
-    final Execution execution = execController.getExecution();
+    final ExecControl execControl = execController.getControl();
+    final Execution execution = execControl.getExecution();
     final EventLoopGroup eventLoopGroup = execController.getEventLoopGroup();
     final ByteBufAllocator bufferAllocator = launchConfig.getBufferAllocator();
 
@@ -184,9 +182,9 @@ public class DefaultHttpClient implements HttpClient {
   }
 
   private static ByteBuf initBufferReleaseOnExecutionClose(final ByteBuf responseBuffer, Execution execution) {
-    execution.onComplete(new Runnable() {
+    execution.onCleanup(new AutoCloseable() {
       @Override
-      public void run() {
+      public void close() {
         responseBuffer.release();
       }
     });

@@ -94,12 +94,11 @@ public class DefaultContext implements Context {
     private final DirectChannelAccess directChannelAccess;
     private final EventRegistry<RequestOutcome> onCloseRegistry;
 
-    public Execution execution;
     public Context context;
 
     public RequestConstants(
       ApplicationConstants applicationConstants, BindAddress bindAddress, Request request, Response response,
-      DirectChannelAccess directChannelAccess, EventRegistry<RequestOutcome> onCloseRegistry, Execution execution
+      DirectChannelAccess directChannelAccess, EventRegistry<RequestOutcome> onCloseRegistry
     ) {
       this.applicationConstants = applicationConstants;
       this.bindAddress = bindAddress;
@@ -107,14 +106,6 @@ public class DefaultContext implements Context {
       this.response = response;
       this.directChannelAccess = directChannelAccess;
       this.onCloseRegistry = onCloseRegistry;
-      this.execution = execution;
-
-      this.execution.setErrorHandler(new Action<Throwable>() {
-        @Override
-        public void execute(Throwable throwable) throws Exception {
-          context.error(ExceptionUtils.toException(throwable instanceof HandlerException ? throwable.getCause() : throwable));
-        }
-      });
     }
   }
 
@@ -125,6 +116,22 @@ public class DefaultContext implements Context {
   private final Handler[] nextHandlers;
   private final int nextIndex;
   private final Handler exhausted;
+
+  public static void start(ExecControl execControl, final RequestConstants requestConstants, Registry registry, Handler[] nextHandlers, Handler exhausted) {
+    final DefaultContext context = new DefaultContext(requestConstants, registry, nextHandlers, 0, exhausted);
+
+    execControl.fork(new Action<Execution>() {
+      @Override
+      public void execute(Execution execution) throws Exception {
+        context.next();
+      }
+    }, new Action<Throwable>() {
+      @Override
+      public void execute(Throwable throwable) throws Exception {
+        requestConstants.context.error(ExceptionUtils.toException(throwable instanceof HandlerException ? throwable.getCause() : throwable));
+      }
+    });
+  }
 
   public DefaultContext(RequestConstants requestConstants, Registry registry, Handler[] nextHandlers, int nextIndex, Handler exhausted) {
     this.requestConstants = requestConstants;
@@ -142,8 +149,13 @@ public class DefaultContext implements Context {
   }
 
   @Override
+  public ExecController getController() {
+    return requestConstants.applicationConstants.execControl.getController();
+  }
+
+  @Override
   public Execution getExecution() {
-    return requestConstants.execution;
+    return requestConstants.applicationConstants.execControl.getExecution();
   }
 
   @Override
@@ -159,6 +171,21 @@ public class DefaultContext implements Context {
   @Override
   public void fork(Action<? super Execution> action) {
     requestConstants.applicationConstants.execControl.fork(action);
+  }
+
+  @Override
+  public void fork(Action<? super Execution> action, Action<? super Throwable> onError) {
+    requestConstants.applicationConstants.execControl.fork(action, onError);
+  }
+
+  @Override
+  public void fork(Action<? super Execution> action, Action<? super Throwable> onError, Action<? super Execution> onComplete) {
+    requestConstants.applicationConstants.execControl.fork(action, onError, onComplete);
+  }
+
+  @Override
+  public void addInterceptor(ExecInterceptor execInterceptor, Action<? super Execution> continuation) throws Exception {
+    requestConstants.applicationConstants.execControl.addInterceptor(execInterceptor, continuation);
   }
 
   @Override
@@ -185,16 +212,6 @@ public class DefaultContext implements Context {
 
   public <O> Iterable<? extends O> getAll(Class<O> type) {
     return registry.getAll(type);
-  }
-
-  @Override
-  public void addExecInterceptor(final ExecInterceptor execInterceptor, final Action<? super Context> action) throws Exception {
-    requestConstants.execution.addInterceptor(execInterceptor, new Action<Execution>() {
-      @Override
-      public void execute(Execution execution) throws Exception {
-        action.execute(DefaultContext.this);
-      }
-    });
   }
 
   public <O> O maybeGet(Class<O> type) {
@@ -363,7 +380,7 @@ public class DefaultContext implements Context {
       + " while handling exception\nOriginal exception: ";
     LOGGER.error(originalExceptionMessage, unpacked);
     sb.append(originalExceptionMessage).append("\n");
-    for (StackTraceElement element: unpacked.getStackTrace()) {
+    for (StackTraceElement element : unpacked.getStackTrace()) {
       sb.append(element.toString()).append("\n");
     }
     sb.append("\n");
@@ -371,7 +388,7 @@ public class DefaultContext implements Context {
     String handlerExceptionMessage = "Error handler exception: ";
     LOGGER.error(handlerExceptionMessage, errorHandlerException);
     sb.append(handlerExceptionMessage).append("\n");
-    for (StackTraceElement element: errorHandlerException.getStackTrace()) {
+    for (StackTraceElement element : errorHandlerException.getStackTrace()) {
       sb.append(element.toString()).append("\n");
     }
 

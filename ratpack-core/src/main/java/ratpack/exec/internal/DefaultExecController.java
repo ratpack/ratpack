@@ -17,34 +17,21 @@
 package ratpack.exec.internal;
 
 import com.google.common.base.Optional;
-import com.google.common.util.concurrent.*;
+import com.google.common.util.concurrent.ListeningExecutorService;
+import com.google.common.util.concurrent.ListeningScheduledExecutorService;
+import com.google.common.util.concurrent.MoreExecutors;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.util.concurrent.DefaultThreadFactory;
-import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import ratpack.exec.*;
-import ratpack.exec.ExecutionException;
-import ratpack.func.Action;
-import ratpack.func.Factory;
-import ratpack.handling.internal.InterceptedOperation;
-import ratpack.registry.internal.SimpleMutableRegistry;
-import ratpack.util.ExceptionUtils;
+import ratpack.exec.ExecControl;
+import ratpack.exec.ExecController;
 
-import java.util.*;
-import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 public class DefaultExecController implements ExecController {
 
   private static final ThreadLocal<ExecController> THREAD_BINDING = new ThreadLocal<>();
-
-  private final static Logger LOGGER = LoggerFactory.getLogger(DefaultExecController.class);
-
-  private final ThreadLocal<Execution> executionHolder = new ThreadLocal<>();
 
   private final ListeningScheduledExecutorService computeExecutor;
   private final ListeningExecutorService blockingExecutor;
@@ -57,7 +44,7 @@ public class DefaultExecController implements ExecController {
     this.eventLoopGroup = new NioEventLoopGroup(numThreads, new ExecControllerBindingThreadFactory("ratpack-compute", Thread.MAX_PRIORITY));
     this.computeExecutor = MoreExecutors.listeningDecorator(eventLoopGroup);
     this.blockingExecutor = MoreExecutors.listeningDecorator(Executors.newCachedThreadPool(new ExecControllerBindingThreadFactory("ratpack-blocking", Thread.NORM_PRIORITY)));
-    this.control = new FactoryBackedExecControl();
+    this.control = new DefaultExecControl(this);
   }
 
   public static Optional<ExecController> getThreadBoundController() {
@@ -70,372 +57,18 @@ public class DefaultExecController implements ExecController {
   }
 
   @Override
-  public Execution getExecution() throws ExecutionException {
-    Execution execution = executionHolder.get();
-    if (execution == null) {
-      throw new ExecutionException("No execution is bound to the current thread (i.e. you are not on a Ratpack managed thread)");
-    } else {
-      return execution;
-    }
-  }
-
-  @Override
   public ListeningScheduledExecutorService getExecutor() {
     return computeExecutor;
   }
 
   @Override
-  public EventLoopGroup getEventLoopGroup() {
-    return eventLoopGroup;
+  public ListeningExecutorService getBlockingExecutor() {
+    return blockingExecutor;
   }
 
   @Override
-  public void start(final Action<? super ratpack.exec.Execution> action) {
-    if (!isManagedThread() || executionHolder.get() != null) {
-      computeExecutor.submit(new Runnable() {
-        @Override
-        public void run() {
-          start(action);
-        }
-      });
-    } else {
-      new Execution(action);
-    }
-  }
-
-  private class FactoryBackedExecControl implements ExecControl {
-
-    private final Factory<Execution> executionFactory = new Factory<Execution>() {
-      @Override
-      public Execution create() {
-        return getExecution();
-      }
-    };
-
-    @Override
-    public <T> Promise<T> blocking(final Callable<T> blockingOperation) {
-      return promise(new Action<Fulfiller<? super T>>() {
-        @Override
-        public void execute(final Fulfiller<? super T> fulfiller) throws Exception {
-          final Execution execution = getExecution();
-          ListenableFuture<T> future = blockingExecutor.submit(new BlockingOperation(execution));
-          Futures.addCallback(future, new ComputeResume(fulfiller), computeExecutor);
-        }
-
-        class BlockingOperation implements Callable<T> {
-          private final Execution execution;
-          private Exception exception;
-          private T result;
-
-          public BlockingOperation(Execution execution) {
-            this.execution = execution;
-          }
-
-          @Override
-          public T call() throws Exception {
-            execution.intercept(ExecInterceptor.ExecType.BLOCKING, execution.interceptors, new Action<Execution>() {
-              @Override
-              public void execute(Execution execution) throws Exception {
-                try {
-                  result = blockingOperation.call();
-                } catch (Exception e) {
-                  exception = e;
-                }
-              }
-            });
-
-            if (exception != null) {
-              throw exception;
-            } else {
-              return result;
-            }
-          }
-        }
-
-        class ComputeResume implements FutureCallback<T> {
-          private final Fulfiller<? super T> fulfiller;
-
-          public ComputeResume(Fulfiller<? super T> fulfiller) {
-            this.fulfiller = fulfiller;
-          }
-
-          @Override
-          public void onSuccess(final T result) {
-            fulfiller.success(result);
-          }
-
-          @SuppressWarnings("NullableProblems")
-          @Override
-          public void onFailure(final Throwable t) {
-            fulfiller.error(t);
-          }
-        }
-      });
-
-    }
-
-    @Override
-    public <T> Promise<T> promise(Action<? super Fulfiller<T>> action) {
-      return new DefaultPromise<>(executionFactory, action);
-    }
-
-    @Override
-    public void fork(Action<? super ratpack.exec.Execution> action) {
-      start(action);
-    }
-
-    @Override
-    public <T> void stream(Publisher<T> publisher, final Subscriber<T> subscriber) {
-      publisher.subscribe(new Subscriber<T>() {
-        final Execution execution = getExecution();
-
-        @Override
-        public void onSubscribe(final Subscription subscription) {
-          this.execution.streamExecution(new Action<ratpack.exec.Execution>() {
-            @Override
-            public void execute(ratpack.exec.Execution execution) throws Exception {
-              subscriber.onSubscribe(subscription);
-            }
-          });
-        }
-
-        @Override
-        public void onNext(final T element) {
-          this.execution.streamExecution(new Action<ratpack.exec.Execution>() {
-            @Override
-            public void execute(ratpack.exec.Execution execution) throws Exception {
-              subscriber.onNext(element);
-            }
-          });
-        }
-
-        @Override
-        public void onComplete() {
-          this.execution.completeStreamExecution(new Action<ratpack.exec.Execution>() {
-            @Override
-            public void execute(ratpack.exec.Execution execution) throws Exception {
-              subscriber.onComplete();
-            }
-          });
-        }
-
-        @Override
-        public void onError(final Throwable cause) {
-          this.execution.completeStreamExecution(new Action<ratpack.exec.Execution>() {
-            @Override
-            public void execute(ratpack.exec.Execution execution) throws Exception {
-              subscriber.onError(cause);
-            }
-          });
-        }
-      });
-    }
-  }
-
-  public class Execution extends SimpleMutableRegistry implements ratpack.exec.Execution {
-    private final List<ExecInterceptor> interceptors = new LinkedList<>();
-    private final Deque<Runnable> segments = new ConcurrentLinkedDeque<>();
-    private final Queue<Runnable> onCompletes = new ConcurrentLinkedQueue<>();
-
-    private Action<? super Throwable> errorHandler = new Action<Throwable>() {
-      @Override
-      public void execute(Throwable throwable) throws Exception {
-        throw ExceptionUtils.toException(throwable);
-      }
-    };
-
-    private final AtomicBoolean active = new AtomicBoolean();
-    private boolean streaming;
-    private boolean waiting;
-    private boolean done;
-
-    public Execution(Action<? super ratpack.exec.Execution> action) {
-      segments.addLast(new UserCodeSegment(action));
-      tryDrain();
-    }
-
-    @Override
-    public <T> Promise<T> blocking(final Callable<T> operation) {
-      return control.blocking(operation);
-    }
-
-
-    @Override
-    public <T> Promise<T> promise(final Action<? super Fulfiller<T>> action) {
-      return control.promise(action);
-    }
-
-    @Override
-    public void fork(Action<? super ratpack.exec.Execution> action) {
-      control.fork(action);
-    }
-
-    @Override
-    public <T> void stream(Publisher<T> publisher, Subscriber<T> subscriber) {
-      control.stream(publisher, subscriber);
-    }
-
-    @Override
-    public void setErrorHandler(Action<? super Throwable> errorHandler) {
-      this.errorHandler = errorHandler;
-    }
-
-    @Override
-    public void addInterceptor(ExecInterceptor execInterceptor, Action<? super ratpack.exec.Execution> continuation) throws Exception {
-      interceptors.add(execInterceptor);
-      intercept(ExecInterceptor.ExecType.COMPUTE, Collections.singletonList(execInterceptor), continuation);
-    }
-
-    @Override
-    public ExecController getController() {
-      return DefaultExecController.this;
-    }
-
-
-    public void join(final Action<? super ratpack.exec.Execution> action) {
-      segments.addFirst(new UserCodeSegment(action));
-      waiting = false;
-      tryDrain();
-    }
-
-    public void continueVia(final Runnable runnable) {
-      segments.addLast(new Runnable() {
-        @Override
-        public void run() {
-          waiting = true;
-          runnable.run();
-        }
-      });
-    }
-
-    public void streamExecution(final Action<? super ratpack.exec.Execution> action) {
-      segments.add(new UserCodeSegment(action));
-      streaming = true;
-      tryDrain();
-    }
-
-    public void completeStreamExecution(final Action<? super ratpack.exec.Execution> action) {
-      segments.addLast(new UserCodeSegment(action));
-      streaming = false;
-      tryDrain();
-    }
-
-    private void tryDrain() {
-      assertNotDone();
-      if (!waiting && !segments.isEmpty()) {
-        if (active.compareAndSet(false, true)) {
-          drain();
-        }
-      }
-    }
-
-    private void runOnCompletes() {
-      Runnable onComplete = onCompletes.poll();
-      while (onComplete != null) {
-        try {
-          onComplete.run();
-        } catch (Exception e) {
-          LOGGER.warn("", e);
-        } finally {
-          onComplete = onCompletes.poll();
-        }
-      }
-    }
-
-    private void drain() {
-      if (isManagedThread()) {
-        executionHolder.set(this);
-        try {
-          Runnable segment = segments.poll();
-          while (segment != null) {
-            segment.run();
-            if (waiting) { // the segment initiated an async op
-              break;
-            } else {
-              segment = segments.poll();
-              if (segment == null && !streaming) { // not waiting, not streaming and no more segments, we are done
-                done = true;
-                runOnCompletes();
-              }
-            }
-          }
-        } finally {
-          executionHolder.remove();
-          active.set(false);
-        }
-        if (waiting) {
-          tryDrain();
-        }
-      } else {
-        active.set(false);
-        eventLoopGroup.submit(new Runnable() {
-          @Override
-          public void run() {
-            tryDrain();
-          }
-        });
-      }
-    }
-
-    @Override
-    public void onComplete(Runnable runnable) {
-      assertNotDone();
-      onCompletes.add(runnable);
-    }
-
-    private void assertNotDone() {
-      if (done) {
-        throw new ExecutionException("execution is complete");
-      }
-    }
-
-    public void intercept(final ExecInterceptor.ExecType execType, final List<ExecInterceptor> interceptors, final Action<? super Execution> action) throws Exception {
-      new InterceptedOperation(execType, interceptors) {
-        @Override
-        protected void performOperation() throws Exception {
-          action.execute(Execution.this);
-        }
-      }.run();
-    }
-
-    /**
-     * An execution segment that executes “user code” (i.e. not execution management infrastructure)
-     */
-    private class UserCodeSegment implements Runnable {
-      private final Action<? super ratpack.exec.Execution> action;
-
-      public UserCodeSegment(Action<? super ratpack.exec.Execution> action) {
-        this.action = action;
-      }
-
-      @Override
-      public void run() {
-        try {
-          try {
-            intercept(ExecInterceptor.ExecType.COMPUTE, interceptors, action);
-          } catch (ExecutionSegmentTerminationError e) {
-            throw e.getCause();
-          }
-        } catch (final Throwable e) {
-          segments.clear();
-          segments.addFirst(new Runnable() {
-            @Override
-            public void run() {
-              try {
-                errorHandler.execute(e);
-              } catch (final Throwable e) {
-                segments.addFirst(new UserCodeSegment(new Action<ratpack.exec.Execution>() {
-                  @Override
-                  public void execute(ratpack.exec.Execution execution) throws Exception {
-                    throw e;
-                  }
-                }));
-              }
-            }
-          });
-        }
-      }
-    }
+  public EventLoopGroup getEventLoopGroup() {
+    return eventLoopGroup;
   }
 
   @Override

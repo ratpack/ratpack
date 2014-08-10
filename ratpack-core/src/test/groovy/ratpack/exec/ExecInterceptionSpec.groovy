@@ -46,8 +46,8 @@ class ExecInterceptionSpec extends RatpackGroovyDslSpec {
 
     handlers {
       handler {
-        addExecInterceptor(interceptor1) {
-          addExecInterceptor(interceptor2) {
+        addInterceptor(interceptor1) {
+          addInterceptor(interceptor2) {
             next()
           }
         }
@@ -76,6 +76,7 @@ class ExecInterceptionSpec extends RatpackGroovyDslSpec {
 
     @Override
     void intercept(ExecInterceptor.ExecType type, Runnable continuation) {
+      println "$type:$id"
       super.intercept(type, continuation)
       throw new RuntimeException("$type:$id")
     }
@@ -88,8 +89,8 @@ class ExecInterceptionSpec extends RatpackGroovyDslSpec {
 
     handlers {
       handler {
-        addExecInterceptor(interceptor1) {
-          addExecInterceptor(interceptor2) {
+        addInterceptor(interceptor1) {
+          addInterceptor(interceptor2) {
             next()
           }
         }

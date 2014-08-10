@@ -37,34 +37,23 @@ public class DefaultExecHarness implements ExecHarness {
     final AtomicReference<Result<T>> reference = new AtomicReference<>();
     final CountDownLatch latch = new CountDownLatch(1);
 
-    controller.start(new Action<Execution>() {
-
-      private void fail(Throwable throwable) {
+    final Action<Throwable> onError = new Action<Throwable>() {
+      @Override
+      public void execute(Throwable throwable) throws Exception {
         reference.set(Result.<T>failure(throwable));
         latch.countDown();
       }
+    };
 
+    controller.getControl().fork(new Action<Execution>() {
       @Override
       public void execute(Execution execution) throws Exception {
-        execution.setErrorHandler(new Action<Throwable>() {
-          @Override
-          public void execute(Throwable throwable) throws Exception {
-            fail(throwable);
-          }
-        });
-
         Promise<T> promise = func.apply(execution);
 
         if (promise == null) {
           succeed(null);
         } else {
           promise.
-            onError(new Action<Throwable>() {
-              @Override
-              public void execute(Throwable throwable) throws Exception {
-                fail(throwable);
-              }
-            }).
             then(new Action<T>() {
               @Override
               public void execute(T t) throws Exception {
@@ -78,7 +67,7 @@ public class DefaultExecHarness implements ExecHarness {
         reference.set(Result.success(t));
         latch.countDown();
       }
-    });
+    }, onError);
 
     latch.await();
     return reference.get().getValueOrThrow();

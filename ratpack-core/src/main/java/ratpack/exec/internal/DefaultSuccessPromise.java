@@ -22,7 +22,6 @@ import ratpack.exec.ExecutionException;
 import ratpack.exec.Fulfiller;
 import ratpack.exec.OverlappingExecutionException;
 import ratpack.exec.SuccessPromise;
-import ratpack.exec.internal.DefaultExecController.Execution;
 import ratpack.func.Action;
 import ratpack.func.Factory;
 import ratpack.util.ExceptionUtils;
@@ -32,13 +31,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
 
-  private final Factory<Execution> executionFactory;
+  private final Factory<ExecutionBacking> executionProvider;
   private final Action<? super Fulfiller<T>> action;
   private final Action<? super Throwable> errorHandler;
   private final static Logger LOGGER = LoggerFactory.getLogger(DefaultSuccessPromise.class);
 
-  public DefaultSuccessPromise(Factory<Execution> executionFactory, Action<? super Fulfiller<T>> action, Action<? super Throwable> errorHandler) {
-    this.executionFactory = executionFactory;
+  public DefaultSuccessPromise(Factory<ExecutionBacking> executionProvider, Action<? super Fulfiller<T>> action, Action<? super Throwable> errorHandler) {
+    this.executionProvider = executionProvider;
     this.action = action;
     this.errorHandler = errorHandler;
   }
@@ -46,8 +45,8 @@ public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
   @Override
   public void then(final Action<? super T> then) {
     try {
-      final Execution execution = executionFactory.create();
-      execution.continueVia(new Runnable() {
+      final ExecutionBacking executionBacking = executionProvider.create();
+      executionBacking.continueVia(new Runnable() {
 
         private final AtomicBoolean fulfilled = new AtomicBoolean();
 
@@ -62,7 +61,7 @@ public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
                   return;
                 }
 
-                execution.join(new Action<ratpack.exec.Execution>() {
+                executionBacking.join(new Action<ratpack.exec.Execution>() {
                   @Override
                   public void execute(ratpack.exec.Execution execution) throws Exception {
                     errorHandler.execute(throwable);
@@ -77,7 +76,7 @@ public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
                   return;
                 }
 
-                execution.join(new Action<ratpack.exec.Execution>() {
+                executionBacking.join(new Action<ratpack.exec.Execution>() {
                   @Override
                   public void execute(ratpack.exec.Execution execution) throws Exception {
                     then.execute(value);
@@ -89,7 +88,7 @@ public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
             if (!fulfilled.compareAndSet(false, true)) {
               LOGGER.error("", new OverlappingExecutionException("exception thrown after promise was fulfilled", e));
             } else {
-              execution.join(new Action<ratpack.exec.Execution>() {
+              executionBacking.join(new Action<ratpack.exec.Execution>() {
                 @Override
                 public void execute(ratpack.exec.Execution execution) throws Exception {
                   throw ExceptionUtils.toException(e);

@@ -529,38 +529,35 @@ public interface Context extends ExecControl, Registry {
    *         private final AtomicInteger counter = new AtomicInteger();
    *         private final AtomicReference&lt;Throwable&gt; error = new AtomicReference&lt;&gt;();
    *
+   *         private void completeJob(Fulfiller&lt;Integer&gt; fulfiller) {
+   *           if (counter.incrementAndGet() == numJobs) {
+   *             Throwable throwable = error.get();
+   *             if (throwable == null) {
+   *               fulfiller.success(numJobs);
+   *             } else {
+   *               fulfiller.error(throwable);
+   *             }
+   *           }
+   *         }
+   *
    *         public void execute(final Fulfiller&lt;Integer&gt; fulfiller) {
    *           for (int i = 0; i < numJobs; ++i) {
    *             final int iteration = i;
    *
    *             context.fork(new Action&lt;Execution&gt;() {
    *               public void execute(Execution execution) throws Exception {
-   *
-   *                 // Important to set a error handler that somehow signals completion so the request processing can continue
-   *                 // (the error handler is invoked if an exception is uncaught during the execution)
-   *                 execution.setErrorHandler(new Action&lt;Throwable&gt;() {
-   *                   public void execute(Throwable throwable) {
-   *                     error.compareAndSet(null, throwable); // just take the first error
-   *                     completeJob();
-   *                   }
-   *                 });
-   *
    *                 if (failOnIteration != null && failOnIteration.intValue() == iteration) {
    *                   throw new Exception("bang!");
    *                 } else {
-   *                   completeJob();
+   *                   completeJob(fulfiller);
    *                 }
    *               }
    *
-   *               private void completeJob() {
-   *                 if (counter.incrementAndGet() == numJobs) {
-   *                   Throwable throwable = error.get();
-   *                   if (throwable == null) {
-   *                     fulfiller.success(numJobs);
-   *                   } else {
-   *                     fulfiller.error(throwable);
-   *                   }
-   *                 }
+   *
+   *             }, new Action&lt;Throwable&gt;() {
+   *               public void execute(Throwable throwable) {
+*                    error.compareAndSet(null, throwable); // just take the first error
+   *                 completeJob(fulfiller);
    *               }
    *             });
    *           }
@@ -592,6 +589,18 @@ public interface Context extends ExecControl, Registry {
    */
   @Override
   void fork(Action<? super Execution> action);
+
+  @Override
+  ExecController getController();
+
+  @Override
+  void addInterceptor(ExecInterceptor execInterceptor, Action<? super Execution> continuation) throws Exception;
+
+  @Override
+  void fork(Action<? super Execution> action, Action<? super Throwable> onError);
+
+  @Override
+  void fork(Action<? super Execution> action, Action<? super Throwable> onError, Action<? super Execution> onComplete);
 
   <T> void stream(Publisher<T> publisher, Subscriber<T> subscriber);
 
@@ -898,8 +907,6 @@ public interface Context extends ExecControl, Registry {
    */
   @Override
   <O> Iterable<? extends O> getAll(TypeToken<O> type);
-
-  void addExecInterceptor(ExecInterceptor execInterceptor, Action<? super Context> action) throws Exception;
 
   /**
    * {@inheritDoc}

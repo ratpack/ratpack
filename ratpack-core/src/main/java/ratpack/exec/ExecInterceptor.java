@@ -31,7 +31,7 @@ package ratpack.exec;
  * import ratpack.handling.Chain;
  * import ratpack.handling.ChainAction;
  * import ratpack.http.Request;
- * import ratpack.exec.ExecInterceptor;
+ * import ratpack.exec.Execution;
  * import ratpack.exec.ExecInterceptor;
  * import ratpack.func.Action;
  * import ratpack.func.Actions;
@@ -96,9 +96,9 @@ package ratpack.exec;
  *     Action&lt;Chain&gt; handlers = new ChainAction() {
  *       protected void execute() {
  *         handler(new Handler() {
- *           public void handle(Context context) throws Exception {
- *             context.addExecInterceptor(new ProcessingTimingInterceptor(context.getRequest()), new Action&lt;Context&gt;() {
- *               public void execute(Context context) {
+ *           public void handle(final Context context) throws Exception {
+ *             context.addInterceptor(new ProcessingTimingInterceptor(context.getRequest()), new Action&lt;Execution&gt;() {
+ *               public void execute(Execution execution) {
  *                 context.next();
  *               }
  *             });
