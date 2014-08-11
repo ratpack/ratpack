@@ -24,15 +24,13 @@ import ratpack.event.internal.DefaultEventController;
 import ratpack.file.internal.ResponseTransmitter;
 import ratpack.handling.RequestOutcome;
 import ratpack.handling.internal.DefaultRequestOutcome;
-import ratpack.handling.internal.DelegatingHeaders;
-import ratpack.http.Headers;
 import ratpack.http.Request;
 import ratpack.http.SentResponse;
 import ratpack.http.Status;
 import ratpack.http.internal.CustomHttpResponse;
 import ratpack.http.internal.DefaultSentResponse;
-import ratpack.http.internal.DefaultStatus;
 import ratpack.http.internal.HttpHeaderConstants;
+import ratpack.http.internal.NettyHeadersBackedHeaders;
 import ratpack.util.internal.NumberUtil;
 
 import static io.netty.handler.codec.http.HttpHeaders.isKeepAlive;
@@ -57,24 +55,23 @@ class DefaultResponseTransmitter implements ResponseTransmitter {
   }
 
   @Override
-  public void transmit(HttpResponseStatus httpResponseStatus, Headers responseHeaders, long contentLength, Object body) {
-    HttpResponse response = new CustomHttpResponse(httpResponseStatus, this.responseHeaders);
+  public void transmit(Object body) {
+    HttpResponseStatus nettyStatus = new HttpResponseStatus(responseStatus.getCode(), responseStatus.getMessage());
+    HttpResponse nettyResponse = new CustomHttpResponse(nettyStatus, responseHeaders);
     nettyRequest.release();
-
-    response.headers().set(HttpHeaderConstants.CONTENT_LENGTH, contentLength);
 
     boolean isKeepAlive = isKeepAlive(nettyRequest);
     if (channel.isOpen()) {
       if (isKeepAlive) {
-        response.headers().set(HttpHeaderConstants.CONNECTION, HttpHeaderConstants.KEEP_ALIVE);
+        nettyResponse.headers().set(HttpHeaderConstants.CONNECTION, HttpHeaderConstants.KEEP_ALIVE);
       }
 
       long stopTime = System.nanoTime();
       if (startTime > 0) {
-        response.headers().set("X-Response-Time", NumberUtil.toMillisDiffString(startTime, stopTime));
+        nettyResponse.headers().set("X-Response-Time", NumberUtil.toMillisDiffString(startTime, stopTime));
       }
 
-      ChannelFuture writeFuture = channel.writeAndFlush(response);
+      ChannelFuture writeFuture = channel.writeAndFlush(nettyResponse);
 
       writeFuture.addListener(new ChannelFutureListener() {
         public void operationComplete(ChannelFuture future) throws Exception {
@@ -97,9 +94,7 @@ class DefaultResponseTransmitter implements ResponseTransmitter {
       ChannelFuture lastContentFuture = channel.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
 
       if (requestOutcomeEventController.isHasListeners()) {
-        Headers headers = new DelegatingHeaders(responseHeaders);
-        Status status = new DefaultStatus(responseStatus.getCode(), responseStatus.getMessage());
-        SentResponse sentResponse = new DefaultSentResponse(headers, status);
+        SentResponse sentResponse = new DefaultSentResponse(new NettyHeadersBackedHeaders(responseHeaders), responseStatus);
         RequestOutcome requestOutcome = new DefaultRequestOutcome(ratpackRequest, sentResponse, stopTime);
         requestOutcomeEventController.fire(requestOutcome);
       }

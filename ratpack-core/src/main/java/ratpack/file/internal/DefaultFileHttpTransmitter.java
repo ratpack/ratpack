@@ -22,14 +22,11 @@ import com.google.common.collect.Iterables;
 import io.netty.channel.DefaultFileRegion;
 import io.netty.channel.FileRegion;
 import io.netty.handler.codec.http.HttpHeaders;
-import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.stream.ChunkedNioStream;
 import ratpack.exec.ExecControl;
 import ratpack.file.MimeTypes;
 import ratpack.func.Action;
-import ratpack.http.MutableHeaders;
 import ratpack.http.internal.HttpHeaderConstants;
-import ratpack.http.internal.NettyHeadersBackedMutableHeaders;
 
 import java.io.FileInputStream;
 import java.nio.channels.FileChannel;
@@ -107,11 +104,11 @@ public class DefaultFileHttpTransmitter implements FileHttpTransmitter {
   }
 
   private void transmit(final BasicFileAttributes basicFileAttributes, final Object message) throws Exception {
+    httpHeaders.set(HttpHeaders.Names.CONTENT_LENGTH, basicFileAttributes.size());
     transmitterAction.execute(new Action<ResponseTransmitter>() {
       @Override
       public void execute(ResponseTransmitter responseTransmitter) {
-        MutableHeaders responseHeaders = new NettyHeadersBackedMutableHeaders(httpHeaders);
-        responseTransmitter.transmit(HttpResponseStatus.OK, responseHeaders, basicFileAttributes.size(), message);
+        responseTransmitter.transmit(message);
       }
     });
   }
