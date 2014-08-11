@@ -36,7 +36,7 @@ public class DefaultServerSentEventsRenderer extends RendererSupport<ServerSentE
         + HttpHeaderConstants.MUST_REVALIDATE
     );
     response.getHeaders().add(HttpHeaderConstants.PRAGMA, HttpHeaderConstants.NO_CACHE);
-
-    response.sendStream(context, object.getPublisher());
+    response.sendStream(context, new DefaultServerSentEventStreamEncoder(object.getPublisher()));
   }
+
 }

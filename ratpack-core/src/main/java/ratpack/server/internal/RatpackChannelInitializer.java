@@ -27,7 +27,6 @@ import io.netty.handler.stream.ChunkedWriteHandler;
 import ratpack.handling.Handler;
 import ratpack.launch.LaunchConfig;
 import ratpack.server.Stopper;
-import ratpack.stream.internal.ServerSentEventEncoder;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
@@ -62,7 +61,6 @@ public class RatpackChannelInitializer extends ChannelInitializer<SocketChannel>
       pipeline.addLast("deflater", new SmartHttpContentCompressor());
     }
     pipeline.addLast("chunkedWriter", new ChunkedWriteHandler());
-    pipeline.addLast("sse-encoder", new ServerSentEventEncoder());
     pipeline.addLast("handler", nettyHandlerAdapter);
   }
 }

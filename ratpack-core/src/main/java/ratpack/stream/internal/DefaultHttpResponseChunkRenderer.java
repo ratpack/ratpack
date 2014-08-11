@@ -29,7 +29,7 @@ public class DefaultHttpResponseChunkRenderer extends RendererSupport<HttpRespon
   public void render(Context context, HttpResponseChunks object) throws Exception {
     Response response = context.getResponse();
     response.getHeaders().add(HttpHeaderConstants.TRANSFER_ENCODING, HttpHeaderConstants.CHUNKED);
-
-    response.sendStream(context, object.getPublisher());
+    response.sendStream(context, new DefaultHttpResponseChunkStreamEncoder(object.getPublisher()));
   }
+
 }

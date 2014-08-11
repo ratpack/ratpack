@@ -16,12 +16,13 @@
 
 package ratpack.stream.internal;
 
+import io.netty.buffer.ByteBuf;
 import org.reactivestreams.Publisher;
 import ratpack.exec.ExecControl;
 
 
 public interface StreamTransmitter {
 
-  public <T> void transmit(ExecControl execContext, Publisher<T> stream);
+  public void transmit(ExecControl execContext, Publisher<ByteBuf> stream);
 
 }

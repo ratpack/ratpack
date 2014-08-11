@@ -16,22 +16,30 @@
 
 package ratpack.stream.internal
 
+import org.reactivestreams.Publisher
+import org.reactivestreams.Subscriber
 import ratpack.stream.ServerSentEvent
 import ratpack.test.internal.RatpackGroovyDslSpec
 import ratpack.util.internal.IoUtils
 
-class ServerSentEventEncoderSpec extends RatpackGroovyDslSpec {
+class ServerSentEventStreamEncoderSpec extends RatpackGroovyDslSpec {
 
-  def encoder = new ServerSentEventEncoder()
-  def outList = []
+  def publisher = Mock(Publisher)
+  def subscriber = Mock(Subscriber)
+  def encoder = new DefaultServerSentEventStreamEncoder(publisher)
+
+  def setup() {
+    encoder.subscribe(subscriber)
+  }
 
   def "can encode valid server sent events"() {
     when:
-    encoder.encode(null, sse, outList)
+    encoder.onNext(sse)
 
     then:
-    outList.size() == 1
-    IoUtils.utf8String(outList[0].content) == expectedEncoding
+    1 * subscriber.onNext({
+      IoUtils.utf8String(it) == expectedEncoding
+    })
 
     where:
     sse                                                 | expectedEncoding
@@ -47,7 +55,7 @@ class ServerSentEventEncoderSpec extends RatpackGroovyDslSpec {
 
   def "throws exception if server sent event has no fields set"() {
     when:
-    encoder.encode(null, new ServerSentEvent(null, null, null), outList)
+    encoder.onNext(new ServerSentEvent(null, null, null))
 
     then:
     def ex = thrown(IllegalArgumentException)

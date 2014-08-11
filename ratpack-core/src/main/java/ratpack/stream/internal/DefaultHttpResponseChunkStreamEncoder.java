@@ -14,23 +14,22 @@
  * limitations under the License.
  */
 
-package ratpack.stream;
+package ratpack.stream.internal;
 
-/**
- * Represents a HTTP chunk which is used for HTTP chunked transfer-encoding.
- *
- * @see ratpack.stream.HttpResponseChunkRenderer
- */
-public class HttpResponseChunk {
+import org.reactivestreams.Publisher;
+import ratpack.stream.HttpResponseChunk;
+import ratpack.util.internal.IoUtils;
 
-  private final String value;
+public class DefaultHttpResponseChunkStreamEncoder extends StreamProcessorSupport<HttpResponseChunk> implements HttpResponseChunkStreamEncoder {
 
-  public HttpResponseChunk(String value) {
-    this.value = value;
+  public DefaultHttpResponseChunkStreamEncoder(Publisher<HttpResponseChunk> sourcePublisher) {
+    super(sourcePublisher);
   }
 
-  public String getValue() {
-    return this.value;
+  @Override
+  public void onNext(HttpResponseChunk httpResponseChunk) {
+    this.targetSubscriber.onNext(
+      IoUtils.utf8Buffer(httpResponseChunk.getValue()));
   }
 
 }

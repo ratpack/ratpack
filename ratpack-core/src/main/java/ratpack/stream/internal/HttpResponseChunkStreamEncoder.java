@@ -14,23 +14,11 @@
  * limitations under the License.
  */
 
-package ratpack.stream;
+package ratpack.stream.internal;
 
-/**
- * Represents a HTTP chunk which is used for HTTP chunked transfer-encoding.
- *
- * @see ratpack.stream.HttpResponseChunkRenderer
- */
-public class HttpResponseChunk {
+import io.netty.buffer.ByteBuf;
+import org.reactivestreams.Processor;
+import ratpack.stream.HttpResponseChunk;
 
-  private final String value;
-
-  public HttpResponseChunk(String value) {
-    this.value = value;
-  }
-
-  public String getValue() {
-    return this.value;
-  }
-
+public interface HttpResponseChunkStreamEncoder extends Processor<HttpResponseChunk, ByteBuf> {
 }

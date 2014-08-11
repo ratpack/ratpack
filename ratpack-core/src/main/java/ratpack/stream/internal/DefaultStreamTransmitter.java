@@ -16,6 +16,7 @@
 
 package ratpack.stream.internal;
 
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
@@ -42,7 +43,7 @@ public class DefaultStreamTransmitter implements StreamTransmitter {
   }
 
   @Override
-  public <T> void transmit(ExecControl execContext, Publisher<T> stream) {
+  public void transmit(ExecControl execContext, Publisher<ByteBuf> stream) {
     final HttpResponse response = new CustomHttpResponse(HttpResponseStatus.OK, httpHeaders);
 
     if (isKeepAlive(request)) {
@@ -63,7 +64,7 @@ public class DefaultStreamTransmitter implements StreamTransmitter {
       }
     });
 
-    execContext.stream(stream, new Subscriber<T>() {
+    execContext.stream(stream, new Subscriber<ByteBuf>() {
       Subscription subscription;
 
       @Override
@@ -77,7 +78,7 @@ public class DefaultStreamTransmitter implements StreamTransmitter {
       }
 
       @Override
-      public void onNext(T element) {
+      public void onNext(ByteBuf element) {
         ChannelFuture writeFuture = channel.writeAndFlush(element);
         writeFuture.addListener(new ChannelFutureListener() {
           public void operationComplete(ChannelFuture future) throws Exception {
