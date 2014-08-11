@@ -30,6 +30,7 @@ import ratpack.error.internal.DefaultClientErrorHandler;
 import ratpack.error.internal.DefaultServerErrorHandler;
 import ratpack.event.internal.DefaultEventController;
 import ratpack.exec.ExecController;
+import ratpack.exec.Execution;
 import ratpack.file.FileRenderer;
 import ratpack.file.FileSystemBinding;
 import ratpack.file.MimeTypes;
@@ -71,10 +72,12 @@ import ratpack.stream.internal.StreamTransmitter;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @ChannelHandler.Sharable
 public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpRequest> {
-  private final static Logger LOGGER = LoggerFactory.getLogger(SimpleChannelInboundHandler.class);
+
+  private final static Logger LOGGER = LoggerFactory.getLogger(NettyHandlerAdapter.class);
 
   private final Handler[] handlers;
   private final Handler return404;
@@ -152,10 +155,10 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
     final HttpHeaders nettyHeaders = new DefaultHttpHeaders(false);
     final MutableHeaders responseHeaders = new NettyHeadersBackedMutableHeaders(nettyHeaders);
     final MimeTypes mimeTypes = registry.get(MimeTypes.class);
-
     final DefaultEventController<RequestOutcome> requestOutcomeEventController = new DefaultEventController<>();
+    final AtomicBoolean transmitted = new AtomicBoolean(false);
 
-    final ResponseTransmitter responseTransmitter = new DefaultResponseTransmitter(channel, nettyRequest, request, nettyHeaders, responseStatus, requestOutcomeEventController, startTime);
+    final ResponseTransmitter responseTransmitter = new DefaultResponseTransmitter(transmitted, channel, nettyRequest, request, nettyHeaders, responseStatus, requestOutcomeEventController, startTime);
     final Action<Action<? super ResponseTransmitter>> responseTransmitterWrapper = Actions.wrap(responseTransmitter);
 
     final FileHttpTransmitter fileHttpTransmitter = new DefaultFileHttpTransmitter(nettyHeaders, mimeTypes,
@@ -181,6 +184,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
     Action<Action<Object>> subscribeHandler = new Action<Action<Object>>() {
       @Override
       public void execute(Action<Object> thing) throws Exception {
+        transmitted.set(true);
         channelSubscriptions.put(channel, thing);
         channel.closeFuture().addListener(new ChannelFutureListener() {
           @Override
@@ -197,7 +201,15 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
       applicationConstants, bindAddress, request, response, directChannelAccess, requestOutcomeEventController.getRegistry()
     );
 
-    DefaultContext.start(execController.getControl(), requestConstants, registry, handlers, return404);
+    DefaultContext.start(execController.getControl(), requestConstants, registry, handlers, return404, new Action<Execution>() {
+      @Override
+      public void execute(Execution execution) throws Exception {
+        if (!transmitted.get()) {
+          LOGGER.warn("No response sent for {} request to {}", request.getMethod(), request.getUri());
+          response.status(500).send();
+        }
+      }
+    });
   }
 
   @Override

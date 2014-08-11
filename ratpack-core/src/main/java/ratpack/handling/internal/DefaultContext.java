@@ -117,7 +117,7 @@ public class DefaultContext implements Context {
   private final int nextIndex;
   private final Handler exhausted;
 
-  public static void start(ExecControl execControl, final RequestConstants requestConstants, Registry registry, Handler[] nextHandlers, Handler exhausted) {
+  public static void start(ExecControl execControl, final RequestConstants requestConstants, Registry registry, Handler[] nextHandlers, Handler exhausted, Action<? super Execution> onComplete) {
     final DefaultContext context = new DefaultContext(requestConstants, registry, nextHandlers, 0, exhausted);
 
     execControl.fork(new Action<Execution>() {
@@ -130,7 +130,7 @@ public class DefaultContext implements Context {
       public void execute(Throwable throwable) throws Exception {
         requestConstants.context.error(ExceptionUtils.toException(throwable instanceof HandlerException ? throwable.getCause() : throwable));
       }
-    });
+    }, onComplete);
   }
 
   public DefaultContext(RequestConstants requestConstants, Registry registry, Handler[] nextHandlers, int nextIndex, Handler exhausted) {

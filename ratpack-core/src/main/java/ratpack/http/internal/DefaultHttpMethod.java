@@ -66,4 +66,8 @@ public class DefaultHttpMethod implements HttpMethod {
     }
   }
 
+  @Override
+  public String toString() {
+    return name.toUpperCase();
+  }
 }

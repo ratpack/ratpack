@@ -26,6 +26,7 @@ import ratpack.event.internal.EventController;
 import ratpack.exec.ExecControl;
 import ratpack.file.internal.FileHttpTransmitter;
 import ratpack.func.Action;
+import ratpack.func.Actions;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.handling.RequestOutcome;
@@ -161,7 +162,7 @@ public class DefaultHandlingResult implements HandlingResult {
     );
 
     ExecControl execControl = launchConfig.getExecController().getControl();
-    DefaultContext.start(execControl, requestConstants, effectiveRegistry, new Handler[]{handler}, next);
+    DefaultContext.start(execControl, requestConstants, effectiveRegistry, new Handler[]{handler}, next, Actions.noop());
 
     try {
       if (!latch.await(timeout, TimeUnit.SECONDS)) {

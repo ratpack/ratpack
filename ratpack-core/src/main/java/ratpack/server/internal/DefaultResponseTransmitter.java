@@ -33,9 +33,12 @@ import ratpack.http.internal.HttpHeaderConstants;
 import ratpack.http.internal.NettyHeadersBackedHeaders;
 import ratpack.util.internal.NumberUtil;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import static io.netty.handler.codec.http.HttpHeaders.isKeepAlive;
 
 class DefaultResponseTransmitter implements ResponseTransmitter {
+  private final AtomicBoolean transmitted;
   private final Channel channel;
   private final FullHttpRequest nettyRequest;
   private final Request ratpackRequest;
@@ -44,7 +47,8 @@ class DefaultResponseTransmitter implements ResponseTransmitter {
   private final DefaultEventController<RequestOutcome> requestOutcomeEventController;
   private final long startTime;
 
-  public DefaultResponseTransmitter(Channel channel, FullHttpRequest nettyRequest, Request ratpackRequest, HttpHeaders responseHeaders, Status responseStatus, DefaultEventController<RequestOutcome> requestOutcomeEventController, long startTime) {
+  public DefaultResponseTransmitter(AtomicBoolean transmitted, Channel channel, FullHttpRequest nettyRequest, Request ratpackRequest, HttpHeaders responseHeaders, Status responseStatus, DefaultEventController<RequestOutcome> requestOutcomeEventController, long startTime) {
+    this.transmitted = transmitted;
     this.channel = channel;
     this.nettyRequest = nettyRequest.retain();
     this.ratpackRequest = ratpackRequest;
@@ -56,6 +60,7 @@ class DefaultResponseTransmitter implements ResponseTransmitter {
 
   @Override
   public void transmit(Object body) {
+    transmitted.set(true);
     HttpResponseStatus nettyStatus = new HttpResponseStatus(responseStatus.getCode(), responseStatus.getMessage());
     HttpResponse nettyResponse = new CustomHttpResponse(nettyStatus, responseHeaders);
     nettyRequest.release();
