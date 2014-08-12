@@ -46,13 +46,13 @@ class ErrorHandlingSpec extends RatpackGroovyDslSpec {
   def "can segment error handlers"() {
     given:
     def errorHandler1 = new ServerErrorHandler() {
-      void error(Context exchange, Exception exception) {
-        exchange.response.send("1: $exception.message")
+      void error(Context exchange, Throwable throwable) throws Throwable {
+        exchange.response.send("1: $throwable.message")
       }
     }
     def errorHandler2 = new ServerErrorHandler() {
-      void error(Context exchange, Exception exception) {
-        exchange.response.send("2: $exception.message")
+      void error(Context exchange, Throwable throwable) throws Throwable {
+        exchange.response.send("2: $throwable.message")
       }
     }
 
@@ -79,8 +79,8 @@ class ErrorHandlingSpec extends RatpackGroovyDslSpec {
   def "can use service handler"() {
     given:
     def errorHandler = new ServerErrorHandler() {
-      void error(Context exchange, Exception exception) {
-        exchange.response.send("Caught: $exception.message")
+      void error(Context exchange, Throwable throwable) throws Throwable {
+        exchange.response.send("Caught: $throwable.message")
       }
     }
 
@@ -103,7 +103,7 @@ class ErrorHandlingSpec extends RatpackGroovyDslSpec {
     bindings {
       bind ServerErrorHandler, new ServerErrorHandler() {
         @Override
-        void error(Context context, Exception exception) {
+        void error(Context context, Throwable throwable) throws Throwable {
           throw new RuntimeException("in error handler")
         }
       }
@@ -135,7 +135,7 @@ class ErrorHandlingSpec extends RatpackGroovyDslSpec {
 
       bind ServerErrorHandler, new ServerErrorHandler() {
         @Override
-        void error(Context context, Exception exception) {
+        void error(Context context, Throwable throwable) throws Throwable {
           context.render([:])
         }
       }
@@ -168,7 +168,7 @@ class ErrorHandlingSpec extends RatpackGroovyDslSpec {
 
       bind ServerErrorHandler, new ServerErrorHandler() {
         @Override
-        void error(Context context, Exception exception) {
+        void error(Context context, Throwable throwable) throws Throwable {
           context.render([:])
         }
       }
@@ -183,9 +183,9 @@ class ErrorHandlingSpec extends RatpackGroovyDslSpec {
     def responseText = text
     response.statusCode == 500
     responseText.length() > 0
-    responseText.contains("Exception thrown by error handler")
-    responseText.contains("Original exception:")
-    responseText.contains("Error handler exception:")
+    responseText.contains("Throwable thrown by error handler")
+    responseText.contains("Original throwable:")
+    responseText.contains("Error handler throwable:")
   }
 
   def "exceptions thrown by client error handler are dealt with deterministically from error prone server error handler"() {
@@ -208,7 +208,7 @@ class ErrorHandlingSpec extends RatpackGroovyDslSpec {
       }
       bind ServerErrorHandler, new ServerErrorHandler() {
         @Override
-        void error(Context context, Exception exception) {
+        void error(Context context, Throwable throwable) throws Throwable {
           context.render([:])
         }
       }

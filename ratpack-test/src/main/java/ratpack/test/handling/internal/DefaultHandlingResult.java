@@ -57,7 +57,7 @@ import static ratpack.util.ExceptionUtils.uncheck;
 public class DefaultHandlingResult implements HandlingResult {
 
   private DefaultContext.RequestConstants requestConstants;
-  private Exception exception;
+  private Throwable throwable;
   private Headers headers;
   private byte[] body = new byte[0];
   private Status status;
@@ -130,8 +130,8 @@ public class DefaultHandlingResult implements HandlingResult {
 
     ServerErrorHandler serverErrorHandler = new ServerErrorHandler() {
       @Override
-      public void error(Context context, Exception exception) throws Exception {
-        DefaultHandlingResult.this.exception = exception;
+      public void error(Context context, Throwable throwable) throws Throwable {
+        DefaultHandlingResult.this.throwable = throwable;
         latch.countDown();
       }
     };
@@ -204,8 +204,8 @@ public class DefaultHandlingResult implements HandlingResult {
   }
 
   @Override
-  public Exception getException() {
-    return exception;
+  public Throwable getThrowable() {
+    return throwable;
   }
 
   @Override

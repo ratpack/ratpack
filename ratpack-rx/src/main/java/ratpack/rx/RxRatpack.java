@@ -83,7 +83,7 @@ public abstract class RxRatpack {
    *           register(new RegistrySpecAction() { // register a custom error handler
    *             public void execute() {
    *               add(ServerErrorHandler.class, new ServerErrorHandler() {
-   *                 public void error(Context context, Exception exception) {
+   *                 public void error(Context context, Throwable throwable) {
    *                   context.render("caught by error handler!");
    *                 }
    *               });
@@ -119,7 +119,7 @@ public abstract class RxRatpack {
    * import static ratpack.groovy.test.TestHttpClients.testHttpClient
    *
    * class CustomErrorHandler implements ServerErrorHandler {
-   *   void error(Context context, Exception exception) {
+   *   void error(Context context, Throwable throwable) {
    *     context.render("caught by error handler!")
    *   }
    * }

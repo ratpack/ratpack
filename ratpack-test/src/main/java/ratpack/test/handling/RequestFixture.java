@@ -83,7 +83,7 @@ public interface RequestFixture {
    * <li>The sending of a response via one of the {@link ratpack.http.Response#send} methods</li>
    * <li>Rendering to the response via the {@link ratpack.handling.Context#render(Object)}</li>
    * <li>Raising of a client error via {@link ratpack.handling.Context#clientError(int)}</li>
-   * <li>Raising of a server error via {@link ratpack.handling.Context#error(Exception)}</li>
+   * <li>Raising of a server error via {@link ratpack.handling.Context#error(Throwable)}</li>
    * <li>Raising of a server error by the throwing of an exception</li>
    * <li>Delegating to the next handler by invoking one of the {@link ratpack.handling.Context#next} methods</li>
    * </ul>

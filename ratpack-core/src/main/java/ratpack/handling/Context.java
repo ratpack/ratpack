@@ -345,11 +345,11 @@ public interface Context extends ExecControl, Registry {
    * The default configuration of Ratpack includes a {@link ratpack.error.ServerErrorHandler} in all contexts.
    * A {@link NotInRegistryException} will only be thrown if a very custom service setup is being used.
    *
-   * @param exception The exception that occurred
+   * @param throwable The exception that occurred
    * @throws NotInRegistryException if no {@link ratpack.error.ServerErrorHandler} can be found in the service
    */
   @NonBlocking
-  void error(Exception exception);
+  void error(Throwable throwable);
 
   /**
    * Executes a blocking operation, returning a promise for its result.
@@ -428,7 +428,7 @@ public interface Context extends ExecControl, Registry {
    * Otherwise, the promise will go unfulfilled.
    * There is no time limit or timeout on fulfillment.
    * <p>
-   * The promise returned has a default error handling strategy of forwarding exceptions to {@link #error(Exception)} of this context.
+   * The promise returned has a default error handling strategy of forwarding exceptions to {@link #error(Throwable)} of this context.
    * To use a different error strategy, supply it to the {@link ratpack.exec.Promise#onError(Action)} method.
    * <p>
    * The promise will always be fulfilled on a thread managed by Ratpack.
@@ -580,7 +580,7 @@ public interface Context extends ExecControl, Registry {
    *       }
    *     });
    *
-   *     assert result.getException().getMessage().equals("bang!");
+   *     assert result.getThrowable().getMessage().equals("bang!");
    *   }
    * }
    * </pre>
@@ -622,9 +622,9 @@ public interface Context extends ExecControl, Registry {
    * The first {@link ratpack.render.Renderer}, that is able to render the given object will be delegated to.
    * If the given argument is {@code null}, this method will have the same effect as {@link #clientError(int) clientError(404)}.
    * <p>
-   * If no renderer can be found for the given type, a {@link NoSuchRendererException} will be given to {@link #error(Exception)}.
+   * If no renderer can be found for the given type, a {@link NoSuchRendererException} will be given to {@link #error(Throwable)}.
    * <p>
-   * If a renderer throws an exception during its execution it will be wrapped in a {@link ratpack.render.RendererException} and given to {@link #error(Exception)}.
+   * If a renderer throws an exception during its execution it will be wrapped in a {@link ratpack.render.RendererException} and given to {@link #error(Throwable)}.
    * <p>
    * Ratpack has built in support for rendering the following types:
    * <ul>

@@ -66,7 +66,7 @@ class RequestFixtureSpec extends Specification {
     bodyBytes == null
     calledNext
     !sentResponse
-    exception == null
+    throwable == null
     sentFile == null
   }
 
@@ -79,7 +79,7 @@ class RequestFixtureSpec extends Specification {
     bodyBytes == "foo".getBytes(CharsetUtil.UTF_8)
     !calledNext
     sentResponse
-    exception == null
+    throwable == null
     sentFile == null
     headers.get("content-type") == "text/plain;charset=UTF-8"
   }
@@ -93,7 +93,7 @@ class RequestFixtureSpec extends Specification {
     bodyBytes == "foo".getBytes(CharsetUtil.UTF_8)
     !calledNext
     sentResponse
-    exception == null
+    throwable == null
     headers.get("content-type") == "application/octet-stream"
     sentFile == null
   }
@@ -107,7 +107,7 @@ class RequestFixtureSpec extends Specification {
     bodyBytes == null
     !calledNext
     !sentResponse
-    exception == null
+    throwable == null
     sentFile == new File("foo").toPath()
     headers.get("content-type") == "text/plain;charset=UTF-8"
   }
@@ -128,7 +128,7 @@ class RequestFixtureSpec extends Specification {
     bodyBytes == null
     !calledNext
     !sentResponse
-    exception == null
+    throwable == null
     sentFile == new File("foo").toPath()
     headers.get("content-type") == "text/plain;charset=UTF-8"
     onCloseCalledWrapper.get()
@@ -271,8 +271,8 @@ class RequestFixtureSpec extends Specification {
     }
 
     then:
-    exception instanceof RuntimeException
-    exception.message == "!"
+    throwable instanceof RuntimeException
+    throwable.message == "!"
   }
 
   def "captures client errors"() {
@@ -360,8 +360,8 @@ class RequestFixtureSpec extends Specification {
     def thrown = new RuntimeException("!")
     def errorHandler = new ServerErrorHandler() {
       @Override
-      void error(Context context, Exception exception) throws Exception {
-        context.render(exception.message)
+      void error(Context context, Throwable throwable) throws Throwable {
+        context.render(throwable.message)
       }
     }
 

@@ -40,9 +40,9 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
     List<Exception> errors = []
 
     @Override
-    void error(Context context, Exception exception) throws Exception {
-      errors << exception
-      context.render("threw exception")
+    void error(Context context, Throwable throwable) throws Throwable {
+      errors << throwable
+      context.render("threw throwable")
     }
   }
 
@@ -57,7 +57,7 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
   }
 
   Exception getThrownException() {
-    assert text == "threw exception"
+    assert text == "threw throwable"
     errorHandler.errors.last()
   }
 
@@ -247,7 +247,7 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
       bindings {
         bind ServerErrorHandler, new ServerErrorHandler() {
           @Override
-          void error(Context context, Exception exception) throws Exception {
+          void error(Context context, Throwable throwable) throws Throwable {
             context.render "app1"
           }
         }
@@ -261,7 +261,7 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
       bindings {
         bind ServerErrorHandler, new ServerErrorHandler() {
           @Override
-          void error(Context context, Exception exception) throws Exception {
+          void error(Context context, Throwable throwable) throws Throwable {
             context.render "app2"
           }
         }
@@ -289,7 +289,7 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    result.exception == e
+    result.throwable == e
   }
 
   def "error handler is invoked even when error occurs on different thread"() {

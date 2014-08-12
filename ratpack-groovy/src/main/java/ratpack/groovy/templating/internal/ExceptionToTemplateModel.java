@@ -26,17 +26,17 @@ import java.util.Map;
 // TODO is there a better home for this?
 public class ExceptionToTemplateModel {
 
-  public static Map<String, ?> transform(Request request, Exception exception) {
-    StackTrace stackTrace = decodeStackTrace(exception);
+  public static Map<String, ?> transform(Request request, Throwable throwable) {
+    StackTrace stackTrace = decodeStackTrace(throwable);
     Map<String, Object> model = new LinkedHashMap<String, Object>();
-    model.put("title", exception.getClass().getName());
-    model.put("message", exception.getMessage());
+    model.put("title", throwable.getClass().getName());
+    model.put("message", throwable.getMessage());
     model.put("stacktrace", stackTrace.html);
 
     Map<String, Object> metadata = new LinkedHashMap<String, Object>();
     metadata.put("Request Method", request.getMethod().getName());
     metadata.put("Request URL", request.getUri());
-    metadata.put("Exception Type", exception.getClass().getName());
+    metadata.put("Exception Type", throwable.getClass().getName());
     metadata.put("Exception Location", stackTrace.rootCause.getFileName() + ", line " + stackTrace.rootCause.getLineNumber());
     model.put("metadata", metadata);
 
@@ -53,10 +53,10 @@ public class ExceptionToTemplateModel {
     }
   }
 
-  private static StackTrace decodeStackTrace(Exception exception) {
+  private static StackTrace decodeStackTrace(Throwable throwable) {
     StackTrace trace = new StackTrace(new StringBuilder(), null);
-    trace.html.append(exception.toString()).append("\n");
-    renderFrames(exception, trace);
+    trace.html.append(throwable.toString()).append("\n");
+    renderFrames(throwable, trace);
     return trace;
   }
 

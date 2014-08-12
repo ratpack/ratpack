@@ -44,7 +44,7 @@ public interface Renderer<T> {
    * <p>
    * Calling this method will finalize the processing, sending the response to the client.
    * <p>
-   * Any errors that occur during rendering will be sent to {@link Context#error(Exception)}.
+   * Any errors that occur during rendering will be sent to {@link Context#error(Throwable)}.
    *
    * @param context the context for the operation
    * @param object the object to render

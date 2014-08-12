@@ -138,7 +138,7 @@ public class ApiHandlers extends ChainAction {
 }
 
 public class ApiServerErrorHandler implements ServerErrorHandler {
-  public void error(Context context, Exception exception) {
+  public void error(Context context, Throwable throwable) {
     // return error data object
   }
 }
@@ -150,7 +150,7 @@ public class AppHandlers extends ChainAction {
 }
 
 public class AppServerErrorHandler implements ServerErrorHandler {
-  public void error(Context context, Exception exception) {
+  public void error(Context context, Throwable throwable) {
     // display pretty error page
   }
 }

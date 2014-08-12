@@ -121,12 +121,12 @@ public class Example {
 
   public static void main(String[] args) {
     HandlingResult result = UnitTest.handle(new ReactiveHandler(), Actions.noop());
-    assert result.getException().getMessage().equals("error!");
+    assert result.getThrowable().getMessage().equals("error!");
   }
 }
 ```
 
-In this case, the exception thrown during the blocking operation will be forwarded to the current [`ServerErrorHandler`](api/ratpack/error/ServerErrorHandler.html), which will probably render an error page to the response.
+In this case, the throwable thrown during the blocking operation will be forwarded to the current [`ServerErrorHandler`](api/ratpack/error/ServerErrorHandler.html), which will probably render an error page to the response.
 If the subscriber _does_ implement an error handling strategy, it will be used instead of the implicit error handler.
 
 The implicit error handling applies to _all_ observables that are created on Ratpack managed threads.
