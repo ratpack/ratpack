@@ -36,13 +36,13 @@ public class DebugErrorHandler implements ServerErrorHandler, ClientErrorHandler
   /**
    * {@link Exception#printStackTrace() Prints the stacktrace} of the given exception to the response with a 500 status.
    *
-   * @param context The context being processed
-   * @param exception The exception that occurred
+   *  @param context The context being processed
+   * @param throwable The exception that occurred
    */
   @Override
-  public void error(Context context, Exception exception) {
+  public void error(Context context, Throwable throwable) throws Throwable {
     Writer writer = new StringWriter();
-    exception.printStackTrace(new PrintWriter(writer));
+    throwable.printStackTrace(new PrintWriter(writer));
     String stackTrace = writer.toString();
     LOGGER.error(stackTrace);
     context.getResponse().status(500).send(stackTrace);

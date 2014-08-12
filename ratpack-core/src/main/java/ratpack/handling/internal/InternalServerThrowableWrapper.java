@@ -16,14 +16,14 @@
 
 package ratpack.handling.internal;
 
-public class InternalServerExceptionWrapper {
-  private final Exception exception;
+public class InternalServerThrowableWrapper {
+  private final Throwable throwable;
 
-  public InternalServerExceptionWrapper(Exception exception) {
-    this.exception = exception;
+  public InternalServerThrowableWrapper(Throwable throwable) {
+    this.throwable = throwable;
   }
 
-  public Exception getException() {
-    return exception;
+  public Throwable getThrowable() {
+    return throwable;
   }
 }

@@ -24,7 +24,7 @@ import ratpack.handling.Context;
  *
  * Typically retrieved from the exchange service.
  *
- * @see ratpack.handling.Context#error(Exception)
+ * @see ratpack.handling.Context#error(Throwable)
  */
 public interface ServerErrorHandler {
 
@@ -35,10 +35,10 @@ public interface ServerErrorHandler {
    * If exceptions are thrown, they will just be logged at a warning level and the response will be finalised with a 500 error code and empty body.
    *
    * @param context The context being processed
-   * @param exception The exception that occurred
-   * @throws Exception if something goes wrong handling the error
+   * @param throwable The throwable that occurred
+   * @throws Throwable if something goes wrong handling the error
    */
   @NonBlocking
-  void error(Context context, Exception exception) throws Exception;
+  void error(Context context, Throwable throwable) throws Throwable;
 
 }

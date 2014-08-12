@@ -39,8 +39,8 @@ public class TemplateRenderingServerErrorHandler implements ServerErrorHandler {
     this.renderer = renderer;
   }
 
-  public void error(final Context context, final Exception exception) throws Exception {
-    Map<String, ?> model = ExceptionToTemplateModel.transform(context.getRequest(), exception);
+  public void error(final Context context, final Throwable throwable) throws Throwable {
+    Map<String, ?> model = ExceptionToTemplateModel.transform(context.getRequest(), throwable);
 
     Response response = context.getResponse();
     if (response.getStatus().getCode() < 400) {

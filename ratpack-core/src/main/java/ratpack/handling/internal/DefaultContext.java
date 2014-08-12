@@ -353,42 +353,42 @@ public class DefaultContext implements Context {
     return requestConstants.bindAddress;
   }
 
-  public void error(Exception exception) {
+  public void error(Throwable throwable) {
     ServerErrorHandler serverErrorHandler = get(ServerErrorHandler.class);
 
-    Exception unpacked = unpackException(exception);
+    Throwable unpacked = unpackThrowable(throwable);
 
-    InternalServerExceptionWrapper handledException = getRequest().maybeGet(InternalServerExceptionWrapper.class);
-    Exception unwrappedException = handledException == null ? null : handledException.getException();
-    if (unwrappedException != null) {
-      handleErrorHandlerException(serverErrorHandler, unpacked, unwrappedException);
+    InternalServerThrowableWrapper handledThrowable = getRequest().maybeGet(InternalServerThrowableWrapper.class);
+    Throwable unwrappedThrowable = handledThrowable == null ? null : handledThrowable.getThrowable();
+    if (unwrappedThrowable != null) {
+      handleErrorHandlerThrowable(serverErrorHandler, unpacked, unwrappedThrowable);
     } else {
-      getRequest().register(InternalServerExceptionWrapper.class, new InternalServerExceptionWrapper(unpacked));
+      getRequest().register(InternalServerThrowableWrapper.class, new InternalServerThrowableWrapper(unpacked));
 
       try {
         serverErrorHandler.error(this, unpacked);
-      } catch (Exception errorHandlerException) {
-        handleErrorHandlerException(serverErrorHandler, unpacked, errorHandlerException);
+      } catch (Throwable errorHandlerThrowable) {
+        handleErrorHandlerThrowable(serverErrorHandler, unpacked, errorHandlerThrowable);
       }
     }
   }
 
-  private void handleErrorHandlerException(ServerErrorHandler serverErrorHandler, Exception unpacked, Exception errorHandlerException) {
+  private void handleErrorHandlerThrowable(ServerErrorHandler serverErrorHandler, Throwable unpacked, Throwable errorHandlerThrowable) {
     StringBuilder sb = new StringBuilder();
-    String originalExceptionMessage = "Exception thrown by error handler "
+    String originalThrowableMessage = "Throwable thrown by error handler "
       + serverErrorHandler.toString()
-      + " while handling exception\nOriginal exception: ";
-    LOGGER.error(originalExceptionMessage, unpacked);
-    sb.append(originalExceptionMessage).append("\n");
+      + " while handling throwable\nOriginal throwable: ";
+    LOGGER.error(originalThrowableMessage, unpacked);
+    sb.append(originalThrowableMessage).append("\n");
     for (StackTraceElement element : unpacked.getStackTrace()) {
       sb.append(element.toString()).append("\n");
     }
     sb.append("\n");
 
-    String handlerExceptionMessage = "Error handler exception: ";
-    LOGGER.error(handlerExceptionMessage, errorHandlerException);
-    sb.append(handlerExceptionMessage).append("\n");
-    for (StackTraceElement element : errorHandlerException.getStackTrace()) {
+    String handlerThrowableMessage = "Error handler throwable: ";
+    LOGGER.error(handlerThrowableMessage, errorHandlerThrowable);
+    sb.append(handlerThrowableMessage).append("\n");
+    for (StackTraceElement element : errorHandlerThrowable.getStackTrace()) {
       sb.append(element.toString()).append("\n");
     }
 
@@ -400,11 +400,11 @@ public class DefaultContext implements Context {
     }
   }
 
-  private Exception unpackException(Exception exception) {
-    if (exception instanceof UndeclaredThrowableException) {
-      return ExceptionUtils.toException(exception.getCause());
+  private Throwable unpackThrowable(Throwable throwable) {
+    if (throwable instanceof UndeclaredThrowableException) {
+      return ExceptionUtils.toException(throwable.getCause());
     } else {
-      return exception;
+      return throwable;
     }
   }
 

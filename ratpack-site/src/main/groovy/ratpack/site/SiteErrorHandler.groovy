@@ -38,11 +38,11 @@ class SiteErrorHandler implements ClientErrorHandler, ServerErrorHandler {
   }
 
   @Override
-  void error(Context context, Exception exception) throws Exception {
+  void error(Context context, Throwable throwable) throws Throwable {
     context.with {
       response.status(500)
-      message(context, exception.message ?: "<no message>")
-      blocking { log.error "", exception }.then {}
+      message(context, throwable.message ?: "<no message>")
+      blocking { log.error "", throwable }.then {}
     }
   }
 

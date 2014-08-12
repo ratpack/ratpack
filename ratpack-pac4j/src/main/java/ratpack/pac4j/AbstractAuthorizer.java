@@ -31,7 +31,7 @@ public abstract class AbstractAuthorizer implements Authorizer {
    *
    * @param context The context to handle
    * @param userProfile The authenticated user profile
-   * @throws Exception if anything goes wrong (exception will be implicitly passed to the context's {@link Context#error(Exception)} method)
+   * @throws Exception if anything goes wrong (exception will be implicitly passed to the context's {@link Context#error(Throwable)} method)
    */
   @Override
   public void handleAuthorization(Context context, UserProfile userProfile) throws Exception {

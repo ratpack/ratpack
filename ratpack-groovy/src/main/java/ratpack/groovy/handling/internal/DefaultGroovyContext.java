@@ -170,8 +170,8 @@ public class DefaultGroovyContext implements GroovyContext {
 
   @Override
   @NonBlocking
-  public void error(Exception exception) throws NotInRegistryException {
-    delegate.error(exception);
+  public void error(Throwable throwable) throws NotInRegistryException {
+    delegate.error(throwable);
   }
 
   @Override
