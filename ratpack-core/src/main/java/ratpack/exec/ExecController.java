@@ -54,7 +54,7 @@ public interface ExecController extends AutoCloseable {
    * <p>
    * This executor wraps Netty's event loop executor to provide callback features by way of Guava's executor extensions.
    * <p>
-   * It is generally preferable to use {@link #start(ratpack.func.Action)} to submit computation work rather than this method,
+   * It is generally preferable to use {@link ExecControl#fork(ratpack.func.Action)} to submit computation work rather than this method,
    * which properly initialises Ratpack's execution infrastructure.
    *
    * @return the executor that performs computation

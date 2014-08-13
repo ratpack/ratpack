@@ -64,7 +64,7 @@ import ratpack.func.Action;
  *
  * assert result.rendered(String.class).equals("foo");
  * </pre>
- * <h5>Thread safety</h5>
+ * <h3>Thread safety</h3>
  * <p>
  * Registry objects are assumed to be thread safe.
  * No external synchronization is performed around registry access.

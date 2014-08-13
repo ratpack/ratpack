@@ -33,9 +33,9 @@ import ratpack.render.Renderer;
  *
  * public class HttpChunkRenderingHandler implements Handler {
  *
- *   private Publisher<HttpResponseChunk> chunkStream;
+ *   private Publisher&lt;HttpResponseChunk&gt; chunkStream;
  *
- *   public HttpChunkRenderingHandler(Publisher<HttpResponseChunk> chunkStream) {
+ *   public HttpChunkRenderingHandler(Publisher&lt;HttpResponseChunk&gt; chunkStream) {
  *     this.chunkStream = chunkStream;
  *   }
  *

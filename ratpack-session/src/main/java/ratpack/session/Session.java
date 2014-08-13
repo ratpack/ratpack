@@ -35,9 +35,11 @@ public interface Session  {
   String getId();
 
   /**
-   * Initiates a new session, terminating the
+   * Initiates a new session, terminating the existing session, if any.
    *
    * Can only be called once per request, and not if getId() has already initiated a new session.
+   *
+   * @return The session id.
    */
   String regen();
 

@@ -74,7 +74,7 @@ import java.io.File;
  * <p>
  * This module supports both metric collection and health checks.
  * </p>
- * <h5>Metrics</h5>
+ * <h3>Metrics</h3>
  * <p>
  * By default {@link com.codahale.metrics.Timer} metrics are collected for all requests received.  The module adds a
  * {@link RequestTimingHandler} to the handler chain <b>before</b> any user handlers.  This means that response times do not take any
@@ -97,7 +97,7 @@ import java.io.File;
  *     add new CodaHaleMetricsModule().jmx()
  *   }
  *
- *   handlers { MetricRegistry metricRegistry ->
+ *   handlers { MetricRegistry metricRegistry -&gt;
  *     handler {
  *       metricRegistry.meter("my custom meter").mark()
  *       render ""
@@ -109,7 +109,7 @@ import java.io.File;
  * Custom metrics can also be added via the Metrics annotations ({@link Metered}, {@link Timed} and {@link com.codahale.metrics.annotation.Gauge})
  * to any Guice injected classes.
  * </p>
- * <h5>Health checks</h5>
+ * <h3>Health checks</h3>
  * <p>
  * Health checks verify that application components or responsibilities are performing as expected.
  * </p>
@@ -155,7 +155,7 @@ import java.io.File;
  *     get("health-check/:name", new HealthCheckHandler())
  *
  *     // Using a custom handler to run all health checks…
- *     get("healthChecks-custom") { HealthCheckRegistry healthCheckRegistry ->
+ *     get("healthChecks-custom") { HealthCheckRegistry healthCheckRegistry -&gt;
  *       render healthCheckRegistry.runHealthChecks().toString()
  *     }
  *   }

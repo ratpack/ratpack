@@ -50,6 +50,7 @@ public interface TemplateScript {
    * <p>
    * The template name is resolved into a template using the same renderer that initiated rendering of this template.
    *
+   * @param model The model to merge with the current template model
    * @param templateName The name of the template to render
    * @return The rendered template content
    * @throws Exception if an error occurs compiling/executing the template

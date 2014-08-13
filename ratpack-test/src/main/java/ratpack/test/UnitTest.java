@@ -39,7 +39,7 @@ public abstract class UnitTest {
 
   /**
    * Unit test a single {@link Handler}.
-   * <p>
+   *
    * <pre class="java">
    * import ratpack.handling.Handler;
    * import ratpack.handling.Context;
@@ -85,7 +85,7 @@ public abstract class UnitTest {
 
   /**
    * Unit test a {@link Handler} chain.
-   * <p>
+   *
    * <pre class="java">
    * import ratpack.handling.Context;
    * import ratpack.handling.Handler;

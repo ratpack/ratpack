@@ -29,15 +29,15 @@ import javax.inject.Singleton;
 
 /**
  * An extension module that provides an in memory map store for sessions, {@link SessionStore}.
- * <h5>Provides</h5>
+ * <h3>Provides</h3>
  * <ul>
  * <li>{@link SessionStorage} - using an in-memory (i.e. non persistent) cache</li>
  * </ul>
- * <h5>Prerequisites:</h5>
+ * <h3>Prerequisites:</h3>
  * <ul>
  * <li>{@link SessionManager} (can be provided by {@link ratpack.session.SessionModule})</li>
  * </ul>
- * <h5>Getting the session storage</h5>
+ * <h3>Getting the session storage</h3>
  * <p>
  * This module {@linkplain #decorate(com.google.inject.Injector, ratpack.handling.Handler) decorates the handler} to make
  * the {@link SessionStorage} available during request processing.
@@ -51,7 +51,6 @@ import javax.inject.Singleton;
  *   }
  * }
  * </pre>
- * </p>
  */
 public class MapSessionsModule extends AbstractModule implements HandlerDecoratingModule {
 

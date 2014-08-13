@@ -108,9 +108,9 @@ public abstract class LaunchConfigs {
   }
 
   /**
-   * Delegates to {@link #createWithBaseDir(ClassLoader, java.nio.file.Path, java.util.Properties)}, after merging the properties from {@code configFile} and {@code overrideProperties}. <p> If {@code
-   * configFile} exists and is not null, it is read as a properties file. It is then merged with {@code defaultProperties} & {@code overrideProperties}. The default properties are overridden by values
-   * in the properties file, while the override properties will override these properties.
+   * Delegates to {@link #createWithBaseDir(ClassLoader, java.nio.file.Path, java.util.Properties)}, after merging the properties from {@code configFile} and {@code overrideProperties}. <p> If{@code
+   * configFile} exists and is not null, it is read as a properties file. It is then merged with {@code defaultProperties} &amp; {@code overrideProperties}. The default properties are overridden by
+   * values in the properties file, while the override properties will override these properties.
    *
    * @param classLoader The classloader to use to find the properties file
    * @param baseDir The {@link LaunchConfig#getBaseDir()} of the eventual launch config

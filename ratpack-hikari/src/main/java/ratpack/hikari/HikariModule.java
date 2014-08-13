@@ -87,7 +87,7 @@ import java.util.Properties;
  *             new HikariModule("org.h2.jdbcx.JdbcDataSource", URL: "jdbc:h2:mem:dev", user: 'user', password: 'pass')
  *   }
  *
- *   handlers { Sql sql ->
+ *   handlers { Sql sql -&gt;
  *     get('schemas') {
  *       def schemas = sql.rows('show schemas')
  *       render schemas*.getAt(0).join(', ')

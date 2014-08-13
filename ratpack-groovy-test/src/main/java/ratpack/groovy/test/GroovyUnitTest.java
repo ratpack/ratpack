@@ -138,6 +138,7 @@ public abstract class GroovyUnitTest {
   /**
    * Create a Groovy request fixture, for unit testing a {@link Handler}, by wrapping the given {@link RequestFixture}.
    *
+   * @param requestFixture The request fixture to wrap
    * @return a Groovy request fixture
    */
   public static GroovyRequestFixture requestFixture(RequestFixture requestFixture) {

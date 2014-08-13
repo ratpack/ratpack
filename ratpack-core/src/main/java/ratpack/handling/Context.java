@@ -51,8 +51,8 @@ import java.util.concurrent.Callable;
  * <li>Access to <i>contextual objects</i> (see below)</li>
  * <li>Convenience for common handler operations</li>
  * </ul>
- * </p>
- * <h4>Contextual objects</h4>
+ *
+ * <h3>Contextual objects</h3>
  * <p>
  * A context is also a {@link Registry} of objects.
  * Arbitrary objects can be "pushed" into the context for use by <i>downstream</i> handlers.
@@ -62,7 +62,7 @@ import java.util.concurrent.Callable;
  * The error handling strategy for an application can be changed by pushing a new implementation of this interface into the context that is used downstream.
  * <p>
  * See {@link #insert(Handler...)} for more on how to do this.
- * <h5>Default contextual objects</h5>
+ * <h4>Default contextual objects</h4>
  * <p>There is also a set of default objects that are made available via the Ratpack infrastructure:
  * <ul>
  * <li>The effective {@link ratpack.launch.LaunchConfig}</li>
@@ -193,7 +193,7 @@ public interface Context extends ExecControl, Registry {
 
   /**
    * Respond to the request based on the request method.
-   * <p>
+   *
    * <pre class="java">
    * import ratpack.handling.Handler;
    * import ratpack.handling.Context;
@@ -247,7 +247,7 @@ public interface Context extends ExecControl, Registry {
    *
    * }
    * </pre>
-   * </p>
+   *
    * <p>
    * Only the last added handler for a method will be used.
    * Adding a subsequent handler for the same method will replace the previous.
@@ -266,12 +266,12 @@ public interface Context extends ExecControl, Registry {
   /**
    * Respond to the request based on the requested content type (i.e. the request Accept header).
    * <p>
-   * This is useful when a given handler can provide content of more than one type (i.e. <a href="http://en.wikipedia.org/wiki/Content_negotiation"></a>content negotiation</a>).
+   * This is useful when a given handler can provide content of more than one type (i.e. <a href="http://en.wikipedia.org/wiki/Content_negotiation">content negotiation</a>).
    * <p>
    * The handler to use will be selected based on parsing the "Accepts" header, respecting quality weighting and wildcard matching.
    * The order that types are specified is significant for wildcard matching.
    * The earliest registered type that matches the wildcard will be used.
-   * <p>
+   *
    * <pre class="java">
    * import ratpack.handling.Handler;
    * import ratpack.handling.Context;
@@ -297,7 +297,7 @@ public interface Context extends ExecControl, Registry {
    *           }).
    *           html(new Handler() {
    *             public void handle(Context context) {
-   *               context.render("<p>" + message + "</p>");
+   *               context.render("&lt;p&gt;" + message + "&lt;/p&gt;");
    *             }
    *           });
    *         }
@@ -321,7 +321,7 @@ public interface Context extends ExecControl, Registry {
    *         fixture.header("Accept", "text/plain; q=1.0, text/html; q=0.8, application/json; q=0.7");
    *       }
    *     });
-   *     assert result.rendered(String.class).equals("<p>hello!</p>");
+   *     assert result.rendered(String.class).equals("&lt;p&gt;hello!&lt;/p&gt;");
    *     assert result.getHeaders().get("content-type").equals("text/html;charset=UTF-8");
    *   }
    *
@@ -360,7 +360,7 @@ public interface Context extends ExecControl, Registry {
    * Therefore, if the returned promise is never subscribed to, the {@code operation} will never be initiated.
    * <p>
    * The promise returned by this method, has the same default error handling strategy as those returned by {@link ratpack.exec.ExecControl#promise(ratpack.func.Action)}.
-   * <p>
+   *
    * <pre class="tested">
    * import ratpack.handling.*;
    * import ratpack.func.Action;
@@ -386,7 +386,7 @@ public interface Context extends ExecControl, Registry {
    *   void handle(final Context context) {
    *     context.blocking {
    *       "hello world!"
-   *     } then { String result ->
+   *     } then { String result -&gt;
    *       context.render(result)
    *     }
    *   }
@@ -457,11 +457,11 @@ public interface Context extends ExecControl, Registry {
    *
    * class PromiseUsingGroovyHandler implements Handler {
    *   void handle(Context context) {
-   *     context.promise { Fulfiller&lt;String&gt; fulfiller ->
+   *     context.promise { Fulfiller&lt;String&gt; fulfiller -&gt;
    *       Thread.start {
    *         fulfiller.success("hello world!")
    *       }
-   *     } then { String string ->
+   *     } then { String string -&gt;
    *       context.render(string)
    *     }
    *   }
@@ -502,7 +502,6 @@ public interface Context extends ExecControl, Registry {
    * <p>
    * When using forking to process work in parallel, use {@link #promise(ratpack.func.Action)} to continue request handling when the parallel work is done.
    *
-   * <p>
    * <pre class="java">
    * import ratpack.handling.Handler;
    * import ratpack.handling.Context;
@@ -541,12 +540,12 @@ public interface Context extends ExecControl, Registry {
    *         }
    *
    *         public void execute(final Fulfiller&lt;Integer&gt; fulfiller) {
-   *           for (int i = 0; i < numJobs; ++i) {
+   *           for (int i = 0; i &lt; numJobs; ++i) {
    *             final int iteration = i;
    *
    *             context.fork(new Action&lt;Execution&gt;() {
    *               public void execute(Execution execution) throws Exception {
-   *                 if (failOnIteration != null && failOnIteration.intValue() == iteration) {
+   *                 if (failOnIteration != null &amp;&amp; failOnIteration.intValue() == iteration) {
    *                   throw new Exception("bang!");
    *                 } else {
    *                   completeJob(fulfiller);
@@ -756,7 +755,7 @@ public interface Context extends ExecControl, Registry {
    * Parses the request body into an object.
    * <p>
    * How to parse the request is determined by the given {@link Parse} object.
-   * <h5>Parser Resolution</h5>
+   * <h3>Parser Resolution</h3>
    * <p>
    * Parser resolution happens as follows:
    * <ol>
@@ -766,7 +765,7 @@ public interface Context extends ExecControl, Registry {
    * <li>If the parser returns {@code null} the next parser will be tried, if it returns a value it will be returned by this method;</li>
    * <li>If no compatible parser could be found, a {@link NoSuchParserException} will be thrown.</li>
    * </ol>
-   * <h5>Parser Compatibility</h5>
+   * <h3>Parser Compatibility</h3>
    * <p>
    * A parser is compatible if all of the following hold true:
    * <ul>
@@ -776,17 +775,19 @@ public interface Context extends ExecControl, Registry {
    * </ul>
    * <p>
    * If the request has no declared content type, {@code text/plain} will be assumed.
-   * <h5>Core Parsers</h5>
+   * <h3>Core Parsers</h3>
    * <p>
    * Ratpack core provides implicit {@link ratpack.parse.NoOptParserSupport no opt parsers} for the following types and content types:
    * <ul>
    * <li>{@link ratpack.form.Form}</li>
-   * <ul>
-   *   <li>multipart/form-data</li>
-   *   <li>application/x-www-form-urlencoded</li>
+   * <li>
+   *   <ul>
+   *     <li>multipart/form-data</li>
+   *     <li>application/x-www-form-urlencoded</li>
+   *   </ul>
+   * </li>
    * </ul>
-   * </ul>
-   * <h5>Example Usage</h5>
+   * <h3>Example Usage</h3>
    * <pre class="tested">
    * import ratpack.handling.Handler;
    * import ratpack.handling.Context;

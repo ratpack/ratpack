@@ -29,7 +29,7 @@ import javax.inject.Provider;
  * This type is used when bootstrapping a Guice based application to add {@link Module modules} and bindings.
  * <p>
  * It is recommended to become familiar with Guice bindings, scopes and other concerns before using Guice with Ratpack.
- * <p>
+ *
  * <pre class="tested">
  * import ratpack.guice.*;
  * import ratpack.func.Action;
@@ -58,8 +58,8 @@ import javax.inject.Provider;
  *   }
  * }
  * </pre>
- * <p>
- * <h4>Module order and overrides</h4>
+ *
+ * <h3>Module order and overrides</h3>
  * <p>
  * The order in which modules are added is significant.
  * Subsequent modules can <b>override</b> the bindings of previous modules.
@@ -68,7 +68,7 @@ import javax.inject.Provider;
  * <p>
  * Bindings added via the {@code bind()} and {@code provider()} methods always have the highest precedence, regardless of order.
  * That is, non module bindings can always override module bindings regardless of whether the module is added before or after the non module binding.
- * <h4>Adding handlers</h4>
+ * <h3>Adding handlers</h3>
  * <p>
  * Added modules can implement the {@link HandlerDecoratingModule} interface to facilitate adding handlers implicitly to the handler chain.
  *

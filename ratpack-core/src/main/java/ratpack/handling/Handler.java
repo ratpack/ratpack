@@ -40,7 +40,7 @@ import ratpack.api.NonBlocking;
  * Handlers can themselves insert other handlers into the pipeline, using the {@link Context#insert(Handler...)} family of methods.
  * <h3>Examples</h3>
  * While there is no strict taxonomy of handlers, the following are indicative examples of common functions.
- * <p>
+ *
  * <pre class="tested">
  * import ratpack.handling.*;
  *

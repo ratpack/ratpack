@@ -310,7 +310,7 @@ public abstract class RxRatpack {
    *     // do some blocking IO and return a List&lt;String&gt;
    *     // each item in the List is emitted to the next Observable, not the List
    *     ["a", "b", "c"]
-   *   }) map { String input ->
+   *   }) map { String input -&gt;
    *     input.toUpperCase()
    *   } subscribe {
    *     println it

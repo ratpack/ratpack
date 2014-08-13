@@ -49,7 +49,7 @@ import static ratpack.groovy.internal.ClosureUtil.configureDelegateFirst;
  * A highly configurable {@link ratpack.test.embed.EmbeddedApplication} implementation that allows the application to be defined in code at runtime.
  * <p>
  * This implementation is usually sufficient for testing Ratpack modules or extensions.
- * <p>
+ *
  * <pre class="tested">
  * import ratpack.test.embed.PathBaseDirBuilder
  * import ratpack.groovy.test.TestHttpClients

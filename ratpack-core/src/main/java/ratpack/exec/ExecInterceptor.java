@@ -22,7 +22,7 @@ package ratpack.exec;
  * The interception methods <i>wrap</i> the rest of the execution.
  * They receive a <i>continuation</i> (as a {@link Runnable}) that <b>must</b> be called in order for processing to proceed.
  * <p>
- * Request handling execution can be intercepted by the {@link ratpack.handling.Context#addExecInterceptor(ExecInterceptor, ratpack.func.Action)} method.
+ * Request handling execution can be intercepted by the {@link ratpack.handling.Context#addInterceptor(ExecInterceptor, ratpack.func.Action)} method.
  * <pre class="java">
  * import ratpack.launch.LaunchConfig;
  * import ratpack.launch.LaunchConfigBuilder;
@@ -64,7 +64,7 @@ package ratpack.exec;
  *       long startedAtTime = startedAt.get();
  *       startedAt.remove();
  *       AtomicLong counter = blocking ? totalBlocking : totalCompute;
- *       counter.addAndGet(startedAtTime > 0 ? System.currentTimeMillis() - startedAtTime : 0);
+ *       counter.addAndGet(startedAtTime &gt; 0 ? System.currentTimeMillis() - startedAtTime : 0);
  *     }
  *
  *     public long getBlockingTime() {
@@ -131,15 +131,15 @@ package ratpack.exec;
  *     assert result.rendered(String.class).equals("foo");
  *
  *     Timer timer = result.getRequestRegistry().get(Timer.class);
- *     assert timer.getBlockingTime() >= 100;
- *     assert timer.getComputeTime() >= 200;
+ *     assert timer.getBlockingTime() &gt;= 100;
+ *     assert timer.getComputeTime() &gt;= 200;
  *   }
  * }
  * </pre>
- * For other types of executions (e.g. background jobs), the interceptor can be registered via {@link Execution#addInterceptor(ExecInterceptor, ratpack.func.Action)}.
+ * For other types of executions (e.g. background jobs), the interceptor can be registered via {@link ratpack.handling.Context#addInterceptor(ExecInterceptor, ratpack.func.Action)}.
  *
  * @see Execution
- * @see Execution#addInterceptor(ExecInterceptor, ratpack.func.Action)
+ * @see ratpack.handling.Context#addInterceptor(ExecInterceptor, ratpack.func.Action)
  */
 public interface ExecInterceptor {
 

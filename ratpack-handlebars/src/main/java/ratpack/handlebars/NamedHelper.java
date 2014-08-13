@@ -21,7 +21,7 @@ import com.github.jknack.handlebars.Helper;
 /**
  * Instances of classes implementing this interface bound to the module registry will be automatically
  * registered as handlebars helpers.
- * <p/>
+ * <p>
  * Example usage: (Java DSL)
  * <pre class="tested">
  * import ratpack.handlebars.NamedHelper;

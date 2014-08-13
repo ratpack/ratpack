@@ -83,7 +83,7 @@ public interface GroovyContext extends Context {
    *       render "{\"msg\": \"$message\"}"
    *     }
    *     html {
-   *       render "<p>$message</p>"
+   *       render "&lt;p&gt;$message&lt;/p&gt;"
    *     }
    *   }
    * }
@@ -99,7 +99,7 @@ public interface GroovyContext extends Context {
    *   header("Accept", "text/plain; q=1.0, text/html; q=0.8, application/json; q=0.7");
    * }
    *
-   * assert result.rendered(CharSequence) == "<p>hello!</p>";
+   * assert result.rendered(CharSequence) == "&lt;p&gt;hello!&lt;/p&gt;";
    * assert result.headers.get("content-type") == "text/html;charset=UTF-8";
    * </pre>
    *

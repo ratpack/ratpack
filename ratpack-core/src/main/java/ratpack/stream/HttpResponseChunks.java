@@ -21,7 +21,7 @@ import org.reactivestreams.Publisher;
 /**
  * A factory for creating "wrapped" {@link ratpack.stream.HttpResponseChunk} publishers.
  * <p>
- * Wrapping the <code>Publisher<HttpResponseChunk></code> allows a {@link ratpack.render.Renderer} to be used
+ * Wrapping the <code>Publisher&lt;HttpResponseChunk&gt;</code> allows a {@link ratpack.render.Renderer} to be used
  * which we otherwise couldn't do as Renderers don't support matching based on generic types.
  * <p>
  * See {@link ratpack.stream.HttpResponseChunkRenderer} to see an example of this in action.

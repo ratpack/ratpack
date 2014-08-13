@@ -27,6 +27,7 @@ public interface BaseDirBuilder extends Closeable {
    * All parent directories will be created on demand.
    *
    * @param path The relative path to the path
+   * @return A path for the given path
    */
   Path file(String path);
 
@@ -37,6 +38,7 @@ public interface BaseDirBuilder extends Closeable {
    *
    * @param path The relative path to the file to create
    * @param content The content to write to the file
+   * @return A path for the created file
    */
   Path file(String path, String content);
 
@@ -46,6 +48,7 @@ public interface BaseDirBuilder extends Closeable {
    * All parent directories will be created on demand.
    *
    * @param path The relative path to the file to create
+   * @return A path for the created directory
    */
   Path dir(String path);
 

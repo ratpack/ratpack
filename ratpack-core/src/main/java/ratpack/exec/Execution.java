@@ -43,7 +43,7 @@ import ratpack.registry.MutableRegistry;
  * These methods are fundamentally asynchronous in that they facilitate performing operations where the result will arrive later without waiting for the result,
  * but are synchronous in the operations the perform are serialized and not executed concurrently or in parallel.
  * <em>Crucially</em>, this means that state that is local to an execution does not need to be thread safe.
- * <h4>Executions and request handling</h4>
+ * <h3>Executions and request handling</h3>
  * <p>
  * The execution object actually underpins the {@link ratpack.handling.Context} objects that are used when handling requests.
  * It is rarely used directly when request handling, except when concurrency or parallelism is required to process data via the {@link ratpack.handling.Context#fork(ratpack.func.Action)} method.

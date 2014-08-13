@@ -31,7 +31,7 @@ import ratpack.parse.Parse;
  * <p>
  * The {@link ratpack.jackson.JacksonModule} Guice module provides the infrastructure necessary to use these functions.
  * </p>
- * <h5>Rendering as JSON</h5>
+ * <h3>Rendering as JSON</h3>
  * <p>
  * The methods that return a {@link JsonRender} are to be used with the {@link ratpack.handling.Context#render(Object)} method for serializing
  * objects to the response as JSON.
@@ -56,7 +56,7 @@ import ratpack.parse.Parse;
  *   }
  * }
  * </pre>
- * <h5>Parsing JSON requests</h5>
+ * <h3>Parsing JSON requests</h3>
  * <p>
  * The methods that return a {@link JsonParseOpts} are to be used with the {@link ratpack.handling.Context#parse(ratpack.parse.Parse)} method for deserializing
  * request bodies containing JSON.

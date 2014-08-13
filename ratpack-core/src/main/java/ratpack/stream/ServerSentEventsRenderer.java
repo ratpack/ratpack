@@ -33,9 +33,9 @@ import ratpack.render.Renderer;
  *
  * public class ServerSentEventRenderingHandler implements Handler {
  *
- *   private Publisher<ServerSentEvent> chunkStream;
+ *   private Publisher&lt;ServerSentEvent&gt; chunkStream;
  *
- *   public ServerSentEventRenderingHandler(Publisher<ServerSentEvent> chunkStream) {
+ *   public ServerSentEventRenderingHandler(Publisher&lt;ServerSentEvent&gt; chunkStream) {
  *     this.chunkStream = chunkStream;
  *   }
  *

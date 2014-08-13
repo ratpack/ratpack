@@ -253,7 +253,7 @@ public interface Chain {
   /**
    * Adds a handler to the chain that delegates to the given handler if the request has a header with the given name and a its value matches the given value exactly.
    *
-   * <pre tested="java-chain-dsl>
+   * <pre class="java-chain-dsl">
    *  chain.
    *    header("foo", "bar", new Handler() {
    *      public void handle(Context context) {
@@ -272,11 +272,11 @@ public interface Chain {
   /**
    * Adds a handler to the chain that delegates to the given handler chain if the request has a {@code Host} header that matches the given value exactly.
    *
-   * <pre tested="java-chain-dsl>
+   * <pre class="java-chain-dsl">
    *  chain.
    *    host("foo.com", new Action&lt;Chain&gt;() {
-   *      public void execute(Chain chain) {
-   *        chain.add(new Handler() {
+   *      public void execute(Chain hostChain) {
+   *        hostChain.handler(new Handler() {
    *          public void handle(Context context) {
    *            context.getResponse().send("Host Handler");
    *          }

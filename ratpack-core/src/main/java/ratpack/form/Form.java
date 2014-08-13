@@ -29,7 +29,7 @@ import java.util.List;
  * <p>
  * All instances of this type are <b>immutable</b>.
  * Calling any mutative method of {@link ratpack.util.MultiValueMap} will result in an {@link UnsupportedOperationException}.
- * <h5>Example usage:</h5>
+ * <h3>Example usage:</h3>
  * <pre class="java">
  * import ratpack.handling.Handler;
  * import ratpack.handling.Context;

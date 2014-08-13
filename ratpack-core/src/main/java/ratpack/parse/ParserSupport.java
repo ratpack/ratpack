@@ -55,7 +55,7 @@ import static ratpack.util.internal.Types.findImplParameterTypeAtIndex;
  *   }
  *
  *   // A parser for this type
- *   public static class MaxLengthStringParser extends ParserSupport<StringParseOpts> {
+ *   public static class MaxLengthStringParser extends ParserSupport&lt;StringParseOpts&gt; {
  *     public MaxLengthStringParser() {
  *       super("text/plain");
  *     }
@@ -66,7 +66,7 @@ import static ratpack.util.internal.Types.findImplParameterTypeAtIndex;
  *       }
  *
  *       String rawString = requestBody.getText();
- *       if (rawString.length() < parse.getOpts().getMaxLength()) {
+ *       if (rawString.length() &lt; parse.getOpts().getMaxLength()) {
  *         return Types.cast(rawString);
  *       } else {
  *         return Types.cast(rawString.substring(0, parse.getOpts().getMaxLength()));

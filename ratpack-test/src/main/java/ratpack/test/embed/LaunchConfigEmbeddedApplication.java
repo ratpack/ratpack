@@ -22,7 +22,7 @@ import ratpack.server.RatpackServerBuilder;
 
 /**
  * A supporting implementation of {@link EmbeddedApplication} that starts a server based on a subclass provided {@link LaunchConfig}.
- * <p>
+ *
  * <pre class="tested">
  * import ratpack.handling.Context;
  * import ratpack.handling.Handler;

@@ -39,12 +39,11 @@ import static ratpack.handling.Handlers.chain;
  * These supporting objects can be managed by Guice and made available to handlers (either by dependency injection or registry lookup)
  * for increased reusability, modularity and testability.
  * <p>
- * <p>
  * The Guice integration is not part of the Ratpack core library, but is available as a separate add on.
  * That said, Ratpack is designed to support something like Guice as an integral piece via it's {@link Registry} abstraction.
  * Guice is the “official” solution.
  * </p>
- * <h4>Starting a Guice Ratpack app</h4>
+ * <h3>Starting a Guice Ratpack app</h3>
  * <p>
  * The user entry point for Ratpack applications is the {@link ratpack.launch.HandlerFactory} implementation
  * that is given to the {@link ratpack.launch.LaunchConfigBuilder#build(ratpack.launch.HandlerFactory)} method.
@@ -117,11 +116,11 @@ import static ratpack.handling.Handlers.chain;
  * // Building a launch config with our handler factory
  * LaunchConfig launchConfig = LaunchConfigBuilder.baseDir(new File("appRoot")).build(new MyHandlerFactory());
  * </pre>
- * <h4>Accessing Guice bound objects in Handlers</h4>
+ * <h3>Accessing Guice bound objects in Handlers</h3>
  * <p>
  * There are two ways to use Guice bound objects in your handler implementations.
  * </p>
- * <h5>Dependency Injected Handlers</h5>
+ * <h4>Dependency Injected Handlers</h4>
  * <p>
  * The {@code handler()} methods used to create a Guice backed application take an {@link Action} that operates on a {@link Chain} instance.
  * This chain instance given to this action provides a Guice backed {@link Registry} via its {@link Chain#getRegistry()} method.
@@ -135,7 +134,7 @@ import static ratpack.handling.Handlers.chain;
  * <p>
  * See the code above for an example of this.
  * </p>
- * <h5>Accessing dependencies via context registry lookup</h5>
+ * <h4>Accessing dependencies via context registry lookup</h4>
  * <p>
  * The {@link ratpack.handling.Context} object that is given to a handler's {@link Handler#handle(ratpack.handling.Context)}
  * method is also a registry implementation. In a Guice backed app, Guice bound objects can be retrieved via the {@link Registry#get(Class)} method of
@@ -144,14 +143,14 @@ import static ratpack.handling.Handlers.chain;
  * <p>
  * However, this will not create “just-in-time” bindings. Only objects that were explicitly bound can be retrieved this way.
  * </p>
- * <h4>Guice modules as Ratpack “plugins”.</h4>
+ * <h3>Guice modules as Ratpack “plugins”.</h3>
  * <p>
  * Add on Ratpack functionality is typically provided via Guice modules.
  * For example, the <a href="https://github.com/FasterXML/jackson-databind">Jackson</a> integration for JSON serialisation
  * is provided by the {@code ratpack-jackson} add-on which ships a Guice module.
  * To use its functionality simply register the module it provides with the {@link BindingsSpec} used to bootstrap the application.
  * </p>
- * <h4>Groovy Applications</h4>
+ * <h3>Groovy Applications</h3>
  * <p>
  * The Ratpack Groovy add-on provides application modes that automatically incorporate Guice (namely the “Ratpack Script” mode).
  * The module registration process is simpler and more convenient in this mode, and there are additional options for obtaining
@@ -261,6 +260,7 @@ public abstract class Guice {
    * <p>
    * The module given to the {@code transform()} method may be {@code null}.
    *
+   * @param launchConfig The launch config of the server
    * @return a transformer that can build an injector from a module
    */
   public static Function<Module, Injector> newInjectorFactory(final LaunchConfig launchConfig) {
@@ -278,6 +278,7 @@ public abstract class Guice {
    * <p>
    * The module given to the {@code transform()} method may be {@code null}.
    *
+   * @param parent The parent injector
    * @return a transformer that can build an injector from a module, as a child of the given parent.
    */
   public static Function<Module, Injector> childInjectorFactory(final Injector parent) {

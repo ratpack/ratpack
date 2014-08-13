@@ -32,6 +32,5 @@
  *     {@link ratpack.pac4j.Authorizer}.
  *   </li>
  * </ol>
- * </p>
  */
 package ratpack.pac4j;

@@ -296,6 +296,7 @@ public abstract class Groovy {
    *
    * @param closure the definition of handlers to add
    * @throws Exception any exception thrown by {@code closure}
+   * @return The created action
    */
   public static Action<Chain> chain(@DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) final Closure<?> closure) throws Exception {
     return new GroovyChainAction() {
