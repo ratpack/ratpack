@@ -30,6 +30,13 @@ public interface RequestSpec {
    */
   MutableHeaders getHeaders();
 
+  /**
+   * This method can be used to compose changes to the headers.
+   *
+   * @param action Provide an action that will act on MutableHeaders.
+   * @return The RequestSpec
+   * @throws Exception This can be thrown from the action supplied.
+   */
   RequestSpec headers(Action<? super MutableHeaders> action) throws Exception;
 
   /**
@@ -43,18 +50,51 @@ public interface RequestSpec {
 
   RequestSpec url(Action<? super HttpUrlSpec> action) throws Exception;
 
+  /**
+   *
+   * @return The {@link ratpack.http.client.RequestSpec.Body} of the request.
+   */
   Body getBody();
 
+  /**
+   *
+   * @param action Provide an action that will act on a Body
+   * @return The RequestSpec
+   * @throws Exception This can be thrown from the action supplied.
+   */
   RequestSpec body(Action<? super Body> action) throws Exception;
 
   interface Body {
-
+    /**
+     * Convenience method of setting the Content-Type header.
+     * @param contentType The value to set teh Content-Type header to.
+     * @return This Body
+     */
     Body type(String contentType);
 
+    /**
+     * One of the ways of providing body data. Should not be used in combination with the other methods, use of these methods negates the other uses.
+     *
+     * @param action Provide an action that will act on an OutputStream, this stream will be sent as the body.
+     * @return This Body
+     * @throws Exception Exception can be thrown from the action supplied.
+     */
     Body stream(Action<? super OutputStream> action) throws Exception;
 
+    /**
+     * One of the ways of providing body data. Should not be used in combination with the other methods, use of these methods negates the other uses.
+     *
+     * @param byteBuf Provide a ByteBuf that will be sent as the body of the request.
+     * @return This Body
+     */
     Body buffer(ByteBuf byteBuf);
 
+    /**
+     * One of the ways of providing body data. Should not be used in combination with the other methods, use of these methods negates the other uses.
+     *
+     * @param bytes Provide an array of bytes to be sent as the body of the request.
+     * @return This Body
+     */
     Body bytes(byte[] bytes);
 
   }
