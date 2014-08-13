@@ -15,6 +15,7 @@ The following people are currently actively contributing their time to Ratpack.
 * [Rus Hart](https://github.com/rhart)
 * [Danny Hyun](https://github.com/danhyun)
 * [Dan Woods](https://github.com/danveloper)
+* [Jeff Beck](https://github.com/beckje01)
 
 ### Contributors
 
@@ -23,7 +24,6 @@ The following people have provided significant contributions.
 * [Tim Berglund](https://github.com/tlberglund)
 * [Peter Ledbrook](https://github.com/pledbrook)
 * [Marco Vermeulen](https://github.com/marcoVermeulen)
-* [Jeff Beck](https://github.com/beckje01)
 * [Paul Fairless](https://github.com/paulfairless)
 * [Tomás Lin](https://github.com/tomaslin)
 * [Kevin Marquardsen](https://github.com/kmarquardsen)
