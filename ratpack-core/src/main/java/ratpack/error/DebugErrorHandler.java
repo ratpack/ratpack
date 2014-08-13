@@ -40,7 +40,7 @@ public class DebugErrorHandler implements ServerErrorHandler, ClientErrorHandler
    * @param throwable The exception that occurred
    */
   @Override
-  public void error(Context context, Throwable throwable) throws Throwable {
+  public void error(Context context, Throwable throwable) {
     Writer writer = new StringWriter();
     throwable.printStackTrace(new PrintWriter(writer));
     String stackTrace = writer.toString();
