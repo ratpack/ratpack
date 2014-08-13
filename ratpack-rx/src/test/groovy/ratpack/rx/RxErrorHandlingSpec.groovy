@@ -289,7 +289,7 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    result.throwable == e
+    result.exception == e
   }
 
   def "error handler is invoked even when error occurs on different thread"() {

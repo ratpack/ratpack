@@ -121,7 +121,7 @@ public class Example {
 
   public static void main(String[] args) {
     HandlingResult result = UnitTest.handle(new ReactiveHandler(), Actions.noop());
-    assert result.getThrowable().getMessage().equals("error!");
+    assert result.getException().getMessage().equals("error!");
   }
 }
 ```

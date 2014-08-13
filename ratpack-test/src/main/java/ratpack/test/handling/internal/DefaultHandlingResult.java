@@ -204,7 +204,7 @@ public class DefaultHandlingResult implements HandlingResult {
   }
 
   @Override
-  public Throwable getThrowable() {
+  public Throwable getException() {
     return throwable;
   }
 

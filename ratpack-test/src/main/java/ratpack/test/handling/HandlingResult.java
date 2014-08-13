@@ -76,7 +76,7 @@ public interface HandlingResult {
    * @return the “unhandled” throwable that occurred, or {@code null}
    */
   @Nullable
-  Throwable getThrowable();
+  Throwable getException();
 
   /**
    * The final response headers.

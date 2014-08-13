@@ -580,7 +580,7 @@ public interface Context extends ExecControl, Registry {
    *       }
    *     });
    *
-   *     assert result.getThrowable().getMessage().equals("bang!");
+   *     assert result.getException().getMessage().equals("bang!");
    *   }
    * }
    * </pre>

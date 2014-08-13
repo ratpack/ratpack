@@ -66,7 +66,7 @@ class RequestFixtureSpec extends Specification {
     bodyBytes == null
     calledNext
     !sentResponse
-    throwable == null
+    exception == null
     sentFile == null
   }
 
@@ -79,7 +79,7 @@ class RequestFixtureSpec extends Specification {
     bodyBytes == "foo".getBytes(CharsetUtil.UTF_8)
     !calledNext
     sentResponse
-    throwable == null
+    exception == null
     sentFile == null
     headers.get("content-type") == "text/plain;charset=UTF-8"
   }
@@ -93,7 +93,7 @@ class RequestFixtureSpec extends Specification {
     bodyBytes == "foo".getBytes(CharsetUtil.UTF_8)
     !calledNext
     sentResponse
-    throwable == null
+    exception == null
     headers.get("content-type") == "application/octet-stream"
     sentFile == null
   }
@@ -107,7 +107,7 @@ class RequestFixtureSpec extends Specification {
     bodyBytes == null
     !calledNext
     !sentResponse
-    throwable == null
+    exception == null
     sentFile == new File("foo").toPath()
     headers.get("content-type") == "text/plain;charset=UTF-8"
   }
@@ -128,7 +128,7 @@ class RequestFixtureSpec extends Specification {
     bodyBytes == null
     !calledNext
     !sentResponse
-    throwable == null
+    exception == null
     sentFile == new File("foo").toPath()
     headers.get("content-type") == "text/plain;charset=UTF-8"
     onCloseCalledWrapper.get()
@@ -271,8 +271,8 @@ class RequestFixtureSpec extends Specification {
     }
 
     then:
-    throwable instanceof RuntimeException
-    throwable.message == "!"
+    exception instanceof RuntimeException
+    exception.message == "!"
   }
 
   def "captures client errors"() {
