@@ -226,3 +226,9 @@ idea {
     scopes.TEST.plus += [configurations.browserTestCompile]
   }
 }
+
+test {
+  // Don't run site tests if we're on Java 8, since our manual links to the JavaDocs aren't currently Java 8-compatible
+  // TODO: remove this when we migrate to Java 8-only
+  onlyIf { !JavaVersion.current().java8Compatible }
+}
