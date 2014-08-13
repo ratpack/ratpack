@@ -20,7 +20,7 @@ apply from: "$rootDir/gradle/groovyModule.gradle"
 
 def restAssuredVersion = "1.8.1"
 ext.apiLinks = [
-  "http://rest-assured.googlecode.com/svn/tags/$restAssuredVersion/apidocs"
+  "http://rest-assured.googlecode.com/svn/tags/$restAssuredVersion/apidocs/"
 ]
 
 dependencies {

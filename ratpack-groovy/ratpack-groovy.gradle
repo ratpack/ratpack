@@ -19,7 +19,7 @@ description = "Ratpack integration for the Groovy programmming language - http:/
 apply from: "$rootDir/gradle/groovyModule.gradle"
 
 ext.apiLinks = [
-    "http://docs.groovy-lang.org/${commonVersions.groovy}/html/api"
+    "http://docs.groovy-lang.org/${commonVersions.groovy}/html/api/"
 ]
 
 dependencies {
