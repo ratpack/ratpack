@@ -72,6 +72,17 @@ allprojects {
   clean {
     delete fileTree(dir: projectDir, include: "**/Expression\$*.class")
   }
+
+  afterEvaluate {
+    if (isTravis) {
+      test {
+        if (maxParallelForks > 1) {
+          logger.info("Tests for {} are not run in parallel on Travis CI due to observed instability", project.name)
+          maxParallelForks = 1
+        }
+      }
+    }
+  }
 }
 
 apply from: "gradle/idea/idea.gradle"
