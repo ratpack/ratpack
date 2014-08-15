@@ -223,4 +223,54 @@ class HttpClientSmokeSpec extends HttpClientSpec {
     text == "abc123"
     response.headers.get(HttpHeaders.CONTENT_TYPE)  == "text/plain;charset=UTF-8"
   }
+
+  def "can send request body as text"() {
+    given:
+    otherApp {
+      post {
+        assert request.body.contentType.toString() == "text/plain;charset=UTF-8"
+        render request.body.text
+      }
+    }
+
+    when:
+    handlers {
+      get { HttpClient httpClient ->
+        httpClient.post {
+          it.url.set(otherAppUrl())
+          it.body.text("føø")
+        } then {
+          render it.body.text
+        }
+      }
+    }
+
+    then:
+    getText() == "føø"
+  }
+
+  def "can send request body as text of content type"() {
+    given:
+    otherApp {
+      post {
+        render request.body.contentType.toString()
+      }
+    }
+
+    when:
+    handlers {
+      get { HttpClient httpClient ->
+        httpClient.post {
+          it.url.set(otherAppUrl())
+          it.body.type("application/json").text("{'foo': 'bar'}")
+        } then {
+          render it.body.text
+        }
+      }
+    }
+
+    then:
+    getText() == "application/json"
+  }
+
 }

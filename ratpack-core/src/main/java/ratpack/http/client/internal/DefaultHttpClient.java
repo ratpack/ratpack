@@ -160,7 +160,7 @@ public class DefaultHttpClient implements HttpClient {
               HttpHeaders requestHeaders = request.headers();
 
               for (String name : headers.getNames()) {
-                requestHeaders.set(name, headers.get(name));
+                requestHeaders.set(name, headers.getAll(name));
               }
 
               future.channel().writeAndFlush(request).addListener(new ChannelFutureListener() {

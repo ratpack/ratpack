@@ -20,16 +20,19 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.util.CharsetUtil;
 import ratpack.api.Nullable;
 import ratpack.func.Action;
 import ratpack.http.HttpUrlSpec;
 import ratpack.http.MutableHeaders;
 import ratpack.http.client.RequestSpec;
+import ratpack.http.internal.HttpHeaderConstants;
 import ratpack.http.internal.HttpUrlSpecBacking;
 import ratpack.util.internal.ByteBufWriteThroughOutputStream;
 
 import java.io.OutputStream;
 import java.net.URI;
+import java.nio.charset.Charset;
 
 public class RequestSpecBacking {
 
@@ -136,6 +139,28 @@ public class RequestSpecBacking {
       public Body bytes(byte[] bytes) {
         setBodyByteBuf(Unpooled.wrappedBuffer(bytes));
         return this;
+      }
+
+      @Override
+      public Body text(CharSequence text) {
+        return text(text, CharsetUtil.UTF_8);
+      }
+
+      @Override
+      public Body text(CharSequence text, Charset charset) {
+        if (charset.equals(CharsetUtil.UTF_8)) {
+          maybeSetContentType(HttpHeaderConstants.UTF_8_TEXT);
+        } else {
+          maybeSetContentType("text/plain;charset=" + charset.name());
+        }
+        setBodyByteBuf(Unpooled.copiedBuffer(text, charset));
+        return this;
+      }
+
+      private void maybeSetContentType(CharSequence s) {
+        if (!headers.contains(HttpHeaderConstants.CONTENT_TYPE.toString())) {
+          headers.set(HttpHeaderConstants.CONTENT_TYPE, s);
+        }
       }
     }
 
