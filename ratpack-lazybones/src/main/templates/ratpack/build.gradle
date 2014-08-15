@@ -1,9 +1,10 @@
 buildscript {
   repositories {
+    mavenLocal()
     jcenter()
   }
   dependencies {
-    classpath "io.ratpack:ratpack-gradle:0.9.8-SNAPSHOT"
+    classpath "io.ratpack:ratpack-gradle:<<version>>"
   }
 }
 
@@ -12,6 +13,7 @@ apply plugin: "idea"
 apply plugin: "eclipse"
 
 repositories {
+  mavenLocal()
   jcenter()
   maven { url "http://repo.springsource.org/repo" } // for springloaded
 }

@@ -21,7 +21,6 @@ Write the content, but don't close the milestone yet.
 ## Go time…
 
 1. (a) Update `shared-resources/ratpack/ratpack-version.txt` (i.e. drop the -SNAPSHOT)
-1. (a) Update `ratpack-lazybones/templates/*/build.gradle` (i.e. drop the -SNAPSHOT)
 1. Ensure the the build is still passing (i.e. run `./gradlew clean build`) - really isn't needed, but doesn't hurt
 1. Commit with message “Version «number»”
 2. Tag commit with name “v«number»” (don't push yet)
@@ -38,12 +37,13 @@ Write the content, but don't close the milestone yet.
         1. Enter your user/pass - this is your oss.sonatype.org credentials
         1. Click “Close repository when done”
         1. Click “Sync”
-1. Publish Lazybones templates to Bintray: `./gradlew publishAllTemplates` - See below for credential requirements.  If you run this task more than once you may need to delete the published templates in Bintray first.
+1. Publish Lazybones templates to Bintray: `./gradlew publishAllTemplates` - See below for credential requirements.
+<p><strong>Do not run this task from a Windows machine as execute permissions are lost on the Gradle wrapper for Linux users.</strong>
+<p>If you run this task more than once you may need to delete the published templates in Bintray first. 
 
 ## Post
 
 1. (a) Update `shared-resources/ratpack/ratpack-version.txt` (i.e. increment the patch number and add -SNAPSHOT)
-1. (a) Update `ratpack-lazybones/templates/*/build.gradle` (i.e. increment the patch number and add -SNAPSHOT)
 1. Update the `manualVersions` list in `ratpack-site.gradle` so the new manual is included in the site
 1. Update the `RatpackSiteUnderTest` class to include the next development version, and mark the just released version as released
 1. Update the `ratpack-site/src/ratpack/templates/index.html` file to use the new version number for the Groovy example

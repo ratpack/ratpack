@@ -24,9 +24,15 @@ buildscript {
   }
 }
 
+dependencies {
+  compile "org.gradle:gradle-tooling-api:${gradle.gradleVersion}"
+}
+
+apply from: "$rootDir/gradle/javaModule.gradle"
 apply plugin: "lazybones-templates"
 
 tasks.matching { it.name.startsWith("publishTemplate") }.all {
+  dependsOn test
   it.doFirst {
     if (isSnapshot) {
       throw new GradleException("Cannot publish lazybones template with a snapshot version: $version")
@@ -34,14 +40,43 @@ tasks.matching { it.name.startsWith("publishTemplate") }.all {
   }
 }
 
-lazybones {
-  file("templates").listFiles().each { templateRootDirectory ->
-    def f = new File("$templateRootDirectory/VERSION")
+task compileTemplates << {
+  file("src/main/templates").eachDir { source ->
+    def destination = file("$buildDir/lazybones-templates/$source.name")
+
+    copy {
+      from source
+      into destination
+
+      filter {
+        String line ->
+          line.replaceAll('io.ratpack:ratpack-gradle:<<version>>',
+            "io.ratpack:ratpack-gradle:$version")
+      }
+    }
+
+    def f = new File("$destination/VERSION")
     f.write(version)
   }
+}
 
+test {
+  systemProperty "templatesBaseDir", file("$buildDir/lazybones-templates").absolutePath
+}
+
+lazybones {
+  def templates = []
+  file("src/main/templates").eachDir { sourceTemplate ->
+    templates = file("$buildDir/lazybones-templates/$sourceTemplate.name")
+  }
+
+  templateDirs = files(templates)
   repositoryUrl = "https://api.bintray.com/content/ratpack/lazybones"
   repositoryUsername = project.hasProperty('ratpackBintrayUser') ? ratpackBintrayUser : ""
   repositoryApiKey = project.hasProperty('ratpackBintrayApiKey') ? ratpackBintrayApiKey : ""
   publish = true
 }
+
+compileTemplates.mustRunAfter clean
+test.dependsOn compileTemplates
+test.dependsOn {apiModules*.install}
