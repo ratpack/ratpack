@@ -17,6 +17,8 @@
 package ratpack.http.client.internal;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
+import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.http.HttpHeaders;
 import ratpack.api.Nullable;
 import ratpack.func.Action;
@@ -32,15 +34,18 @@ import java.net.URI;
 public class RequestSpecBacking {
 
   private final MutableHeaders headers;
-  private final ByteBuf body;
+  private final ByteBufAllocator byteBufAllocator;
   private final HttpUrlSpecBacking httpUrlSpec;
+
+  private ByteBuf bodyByteBuf;
 
   private String method = "GET";
 
-  public RequestSpecBacking(MutableHeaders headers, ByteBuf body) {
+  public RequestSpecBacking(MutableHeaders headers, ByteBufAllocator byteBufAllocator) {
     this.headers = headers;
-    this.body = body;
+    this.byteBufAllocator = byteBufAllocator;
     this.httpUrlSpec = new HttpUrlSpecBacking();
+    this.bodyByteBuf = byteBufAllocator.buffer(0, 0);
   }
 
   public String getMethod() {
@@ -49,7 +54,7 @@ public class RequestSpecBacking {
 
   @Nullable
   public ByteBuf getBody() {
-    return body;
+    return bodyByteBuf;
   }
 
   public URI getUrl() {
@@ -61,6 +66,9 @@ public class RequestSpecBacking {
   }
 
   private class Spec implements RequestSpec {
+
+    private BodyImpl body = new BodyImpl();
+
     @Override
     public MutableHeaders getHeaders() {
       return headers;
@@ -89,6 +97,14 @@ public class RequestSpecBacking {
       return this;
     }
 
+    private void setBodyByteBuf(ByteBuf byteBuf) {
+      if (bodyByteBuf != null) {
+        bodyByteBuf.release();
+      }
+      bodyByteBuf = byteBuf;
+    }
+
+
     private class BodyImpl implements Body {
       @Override
       public Body type(String contentType) {
@@ -98,29 +114,34 @@ public class RequestSpecBacking {
 
       @Override
       public Body stream(Action<? super OutputStream> action) throws Exception {
-        try (OutputStream outputStream = new ByteBufWriteThroughOutputStream(body.clear())) {
+        ByteBuf byteBuf = byteBufAllocator.buffer();
+        try (OutputStream outputStream = new ByteBufWriteThroughOutputStream(byteBuf)) {
           action.execute(outputStream);
+        } catch (Throwable t) {
+          byteBuf.release();
+          throw t;
         }
 
+        setBodyByteBuf(byteBuf);
         return this;
       }
 
       @Override
       public Body buffer(ByteBuf byteBuf) {
-        body.clear().writeBytes(byteBuf);
+        setBodyByteBuf(byteBuf.retain());
         return this;
       }
 
       @Override
       public Body bytes(byte[] bytes) {
-        body.clear().writeBytes(bytes);
+        setBodyByteBuf(Unpooled.wrappedBuffer(bytes));
         return this;
       }
     }
 
     @Override
     public Body getBody() {
-      return new BodyImpl();
+      return body;
     }
 
     @Override

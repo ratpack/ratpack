@@ -76,7 +76,7 @@ public class DefaultHttpClient implements HttpClient {
     final ByteBufAllocator bufferAllocator = launchConfig.getBufferAllocator();
 
     final MutableHeaders headers = new NettyHeadersBackedMutableHeaders(new DefaultHttpHeaders());
-    final RequestSpecBacking requestSpecBacking = new RequestSpecBacking(headers, bufferAllocator.buffer());
+    final RequestSpecBacking requestSpecBacking = new RequestSpecBacking(headers, bufferAllocator);
 
     try {
       requestConfigurer.execute(requestSpecBacking.asSpec());
