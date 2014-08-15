@@ -75,6 +75,10 @@ public interface RequestSpec {
    * The methods of this type are not additive.
    * That is, successive calls to {@link #bytes(byte[])} and other methods will not add to the request body.
    * Rather, they will replace the content specified by previous method calls.
+   * <p>
+   * It is generally best to provide the body content in the format that you have it in.
+   * That is, if you already have the desired body content as a {@link String}, use the {@link #text(CharSequence)} method.
+   * If you already have the desired body content as a {@code byte[]}, use the {@link #bytes(byte[])} method.
    */
   interface Body {
 
@@ -102,23 +106,48 @@ public interface RequestSpec {
     Body stream(Action<? super OutputStream> action) throws Exception;
 
     /**
-     * Specifies the request body
+     * Specifies the request body as a byte buffer.
+     * <p>
+     * The given byte buffer will not be copied.
+     * That is, changes to the byte buffer made after calling this method will affect the body.
      *
-     * @param byteBuf Provide a ByteBuf that will be sent as the body of the request.
-     * @return This Body
+     * @param byteBuf the intended request body
+     * @return this
      */
     Body buffer(ByteBuf byteBuf);
 
     /**
-     * One of the ways of providing body data. Should not be used in combination with the other methods, use of these methods negates the other uses.
+     * Specifies the request body as a byte array.
+     * <p>
+     * The given byte array will not be copied.
+     * That is, changes to the byte array made after calling this method will affect the body.
      *
-     * @param bytes Provide an array of bytes to be sent as the body of the request.
-     * @return This Body
+     * @param bytes the intended request body
+     * @return this
      */
     Body bytes(byte[] bytes);
 
+    /**
+     * Specifies the request body as a UTF-8 char sequence.
+     * <p>
+     * This method is a shorthand for calling {@link #text(CharSequence, java.nio.charset.Charset)} with a UTF-8 charset.
+     *
+     * @param text the request body
+     * @return this
+     * @see #text(CharSequence, java.nio.charset.Charset)
+     */
     Body text(CharSequence text);
 
+    /**
+     * Specifies the request body as a char sequence of the given charset.
+     * <p>
+     * Unlike other methods of this interface, this method will set the request {@code "Content-Type"} header if it has not already been set.
+     * If it has not been set, it will be set to {@code "text/plain;charset=«charset»"}.
+     *
+     * @param text the request body
+     * @param charset the charset of the request body (used to convert the text to bytes)
+     * @return this
+     */
     Body text(CharSequence text, Charset charset);
 
   }
