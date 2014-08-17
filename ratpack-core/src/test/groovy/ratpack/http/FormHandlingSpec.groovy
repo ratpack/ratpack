@@ -25,8 +25,12 @@ import io.netty.handler.codec.http.multipart.HttpPostRequestEncoder
 import ratpack.error.ServerErrorHandler
 import ratpack.error.DebugErrorHandler
 import ratpack.form.Form
+import ratpack.handling.Context
+import ratpack.handling.Handler
 import ratpack.http.client.RequestSpec
 import ratpack.test.internal.RatpackGroovyDslSpec
+import spock.lang.Unroll
+
 import static ratpack.http.MediaType.APPLICATION_FORM
 
 
@@ -205,4 +209,56 @@ class FormHandlingSpec extends RatpackGroovyDslSpec {
 
     postText() == "File type: text/plain;charset=US-ASCII"
   }
+
+  @Unroll
+  def "Error for #message"() {
+    given:
+    handlers {
+      post(handler)
+    }
+
+    when:
+    requestSpec { RequestSpec requestSpec ->
+      requestSpec.headers.add("Content-Type", APPLICATION_FORM)
+      requestSpec.body.stream({ it << [a: "b"].collect({ it }).join('&') })
+    }
+    post()
+
+    then:
+    response.statusCode == 500
+
+    where:
+    [message, handler] << [["Put on Parsed Form",
+                            new Handler() {
+                              void handle(Context context) throws Exception {
+                                def form = context.parse Form
+                                form.put("bad", "idea")
+                                context.render "I changed things I shoudn't"
+                              }
+                            }],
+                           ["PutAll on Parsed Form", new Handler() {
+                             void handle(Context context) throws Exception {
+                               def form = context.parse Form
+                               form.putAll([bad:"idea"])
+                               context.render "I changed things I shoudn't"
+                             }
+                           }],
+                           ["Remove on Parsed Form", new Handler() {
+                             void handle(Context context) throws Exception {
+                               def form = context.parse Form
+                               form.remove("Bad")
+                               context.render "I changed things I shoudn't"
+                             }
+                           }],
+                           ["Clear on Parsed Form", new Handler() {
+                             void handle(Context context) throws Exception {
+                               def form = context.parse Form
+                               form.clear()
+                               context.render "I changed things I shoudn't"
+                             }
+                           }]]
+
+  }
+
+
 }
