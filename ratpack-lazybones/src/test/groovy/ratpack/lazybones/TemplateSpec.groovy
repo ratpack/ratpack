@@ -25,6 +25,7 @@ import ratpack.groovy.test.TestHttpClient
 import ratpack.groovy.test.TestHttpClients
 import ratpack.test.ApplicationUnderTest
 import spock.lang.AutoCleanup
+import spock.lang.Ignore
 import spock.lang.Specification
 
 import java.util.concurrent.CountDownLatch
@@ -40,6 +41,7 @@ class TemplateSpec extends Specification {
     }
   })
 
+  @Ignore
   def "can run template"() {
     given:
     def connection = GradleConnector.newConnector().forProjectDirectory(template).connect()
