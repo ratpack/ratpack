@@ -21,53 +21,89 @@ import groovy.lang.Script;
 import groovy.transform.CompileStatic;
 import groovy.transform.InheritConstructors;
 import org.codehaus.groovy.ast.AnnotationNode;
+import org.codehaus.groovy.ast.ClassHelper;
 import org.codehaus.groovy.ast.ClassNode;
+import org.codehaus.groovy.ast.expr.ConstantExpression;
 import org.codehaus.groovy.classgen.GeneratorContext;
-import org.codehaus.groovy.control.CompilePhase;
-import org.codehaus.groovy.control.CompilerConfiguration;
-import org.codehaus.groovy.control.SourceUnit;
+import org.codehaus.groovy.classgen.Verifier;
+import org.codehaus.groovy.control.*;
 import org.codehaus.groovy.control.customizers.CompilationCustomizer;
 import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 
+import java.nio.file.Path;
+import java.security.CodeSource;
+
 public class ScriptEngine<T extends Script> {
 
-  private final GroovyClassLoader classLoader;
+  private static final ClassNode LINE_NUMBER_CLASS_NODE = new ClassNode(LineNumber.class);
+
+  private final boolean staticCompile;
+  private final Class<T> scriptBaseClass;
+  private ClassLoader parentLoader;
 
   public ScriptEngine(ClassLoader parentLoader, boolean staticCompile, Class<T> scriptBaseClass) {
-    this.classLoader = createClassLoader(parentLoader, staticCompile, scriptBaseClass);
+    this.parentLoader = parentLoader;
+    this.staticCompile = staticCompile;
+    this.scriptBaseClass = scriptBaseClass;
   }
 
-  public T run(String scriptName, String scriptText, Object... scriptConstructionArgs) throws InstantiationException, IllegalAccessException {
-    T script = create(scriptName, scriptText, scriptConstructionArgs);
-    script.run();
-    return script;
-  }
-
-  public T create(String scriptName, String scriptText, Object... scriptConstructionArgs) throws IllegalAccessException, InstantiationException {
-    Class<T> scriptClass = compile(scriptName, scriptText);
+  public T create(String scriptName, Path scriptPath, String scriptText, Object... scriptConstructionArgs) throws IllegalAccessException, InstantiationException {
+    Class<T> scriptClass = compile(scriptName, scriptPath, scriptText);
     return DefaultGroovyMethods.newInstance(scriptClass, scriptConstructionArgs);
   }
 
   @SuppressWarnings("unchecked")
   public Class<T> compile(String scriptName, String scriptText) throws IllegalAccessException, InstantiationException {
-    return classLoader.parseClass(scriptText, scriptName);
+    return createClassLoader(null).parseClass(scriptText, scriptName);
   }
 
-  private GroovyClassLoader createClassLoader(ClassLoader parentLoader, final boolean staticCompile, Class<? extends Script> scriptBaseClass) {
+  @SuppressWarnings("unchecked")
+  public Class<T> compile(String scriptName, Path scriptPath, String scriptText) throws IllegalAccessException, InstantiationException {
+    return createClassLoader(scriptPath).parseClass(scriptText, scriptName);
+  }
+
+  private GroovyClassLoader createClassLoader(final Path scriptPath) {
     final CompilerConfiguration compilerConfiguration = new CompilerConfiguration();
     if (!scriptBaseClass.equals(Script.class)) {
       compilerConfiguration.setScriptBaseClass(scriptBaseClass.getName());
     }
     compilerConfiguration.addCompilationCustomizers(new CompilationCustomizer(CompilePhase.CONVERSION) {
       @Override
-      public void call(SourceUnit source, GeneratorContext context, ClassNode classNode) throws org.codehaus.groovy.control.CompilationFailedException {
+      public void call(SourceUnit source, GeneratorContext context, ClassNode classNode) throws CompilationFailedException {
         if (staticCompile) {
           classNode.addAnnotation(new AnnotationNode(new ClassNode(CompileStatic.class)));
         }
         classNode.addAnnotation(new AnnotationNode(new ClassNode(InheritConstructors.class)));
+        if (scriptPath != null) {
+          AnnotationNode scriptPathAnnotation = new AnnotationNode(new ClassNode(ScriptPath.class));
+          scriptPathAnnotation.addMember("value", new ConstantExpression(scriptPath.toUri().toString()));
+          classNode.addAnnotation(scriptPathAnnotation);
+        }
       }
     });
-    return new GroovyClassLoader(parentLoader, compilerConfiguration);
+
+    return new GroovyClassLoader(parentLoader, compilerConfiguration) {
+      @Override
+      protected CompilationUnit createCompilationUnit(CompilerConfiguration config, CodeSource source) {
+        return new CompilationUnit(config, source, this) {
+          {
+            verifier = new Verifier() {
+              @Override
+              public void visitClass(ClassNode node) {
+                if (node.implementsInterface(ClassHelper.GENERATED_CLOSURE_Type)) {
+                  AnnotationNode lineNumberAnnotation = new AnnotationNode(LINE_NUMBER_CLASS_NODE);
+                  lineNumberAnnotation.addMember("value", new ConstantExpression(node.getLineNumber(), true));
+                  node.addAnnotation(lineNumberAnnotation);
+                }
+
+                super.visitClass(node);
+              }
+            };
+          }
+        };
+      }
+    };
+
   }
 
 }

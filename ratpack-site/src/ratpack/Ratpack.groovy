@@ -12,7 +12,8 @@ import ratpack.site.github.GitHubApi
 import ratpack.site.github.GitHubData
 import ratpack.site.github.RatpackVersions
 
-import static ratpack.groovy.Groovy.*
+import static ratpack.groovy.Groovy.groovyMarkupTemplate
+import static ratpack.groovy.Groovy.ratpack
 import static ratpack.registry.Registries.just
 
 ratpack {
@@ -42,6 +43,9 @@ ratpack {
     def longCache = 60 * 60 * 24 * 365
     def shortCache = 60 * 10 // ten mins
 
+    get("dangle") {
+
+    }
     handler {
       if (request.headers.get("host").endsWith("ratpack-framework.org")) {
         redirect 301, "http://www.ratpack.io"

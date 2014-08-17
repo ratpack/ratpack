@@ -17,14 +17,20 @@
 package ratpack.groovy.handling.internal;
 
 import groovy.lang.Closure;
+import javassist.ClassPool;
+import javassist.CtClass;
+import javassist.CtMethod;
+import javassist.NotFoundException;
+import javassist.bytecode.ClassFile;
 import ratpack.groovy.Groovy;
 import ratpack.groovy.handling.GroovyContext;
 import ratpack.groovy.internal.ClosureInvoker;
+import ratpack.groovy.internal.ClosureUtil;
 import ratpack.handling.Context;
-import ratpack.handling.Handler;
+import ratpack.handling.internal.DescribingHandler;
 import ratpack.registry.Registries;
 
-public class ClosureBackedHandler implements Handler {
+public class ClosureBackedHandler implements DescribingHandler {
 
   private final ClosureInvoker<?, GroovyContext> invoker;
 
@@ -35,4 +41,40 @@ public class ClosureBackedHandler implements Handler {
   public void handle(Context context) {
     invoker.invoke(Registries.join(context.getRequest(), context), Groovy.context(context), Closure.DELEGATE_FIRST);
   }
+
+  @Override
+  public void describeTo(StringBuilder stringBuilder) {
+    ClosureUtil.SourceInfo sourceInfo = ClosureUtil.getSourceInfo(invoker.getClosure());
+    if (sourceInfo == null) {
+      ClassPool pool = ClassPool.getDefault();
+      try {
+        CtClass ctClass = pool.get(invoker.getClosure().getClass().getName());
+        CtMethod ctMethod = ctClass.getDeclaredMethod("doCall");
+        int lineNumber = ctMethod.getMethodInfo().getLineNumber(0);
+
+        ClassFile classFile = ctClass.getClassFile();
+        String sourceFile = classFile.getSourceFile();
+
+        if (lineNumber != -1 && sourceFile != null) {
+          stringBuilder
+            .append("closure at line ")
+            .append(lineNumber)
+            .append(" of ")
+            .append(sourceFile);
+        } else {
+          stringBuilder.append("closure ").append(invoker.getClosure().getClass().getName());
+        }
+      } catch (NotFoundException e) {
+        stringBuilder.append(invoker.getClosure().getClass().getName());
+      }
+    } else {
+      stringBuilder
+        .append("closure at line ")
+        .append(sourceInfo.getLineNumber())
+        .append(" of ")
+        .append(sourceInfo.getUri());
+    }
+  }
+
+
 }

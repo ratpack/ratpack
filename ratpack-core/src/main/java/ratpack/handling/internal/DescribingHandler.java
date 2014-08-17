@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,22 +16,10 @@
 
 package ratpack.handling.internal;
 
-import ratpack.func.Factory;
-import ratpack.handling.Context;
 import ratpack.handling.Handler;
 
-public class FactoryHandler implements Handler {
+public interface DescribingHandler extends Handler {
 
-  private final Factory<? extends Handler> factory;
-
-  public FactoryHandler(Factory<? extends Handler> factory) {
-    this.factory = factory;
-  }
-
-  @Override
-  public void handle(Context context) throws Exception {
-    Handler handler = factory.create();
-    context.insert(handler);
-  }
+  void describeTo(StringBuilder stringBuilder);
 
 }

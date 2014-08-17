@@ -19,6 +19,17 @@ package ratpack.groovy.internal;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import ratpack.func.Action;
+import ratpack.groovy.script.internal.LineNumber;
+import ratpack.groovy.script.internal.ScriptPath;
+
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.security.CodeSource;
+import java.security.ProtectionDomain;
 
 public abstract class ClosureUtil {
 
@@ -129,6 +140,93 @@ public abstract class ClosureUtil {
     @SuppressWarnings("UnusedDeclaration")
     protected T doCall() {
       return thing;
+    }
+  }
+
+  public static Path findScript(Closure<?> closure) {
+    Class<?> clazz = closure.getClass();
+    ProtectionDomain protectionDomain = clazz.getProtectionDomain();
+    CodeSource codeSource = protectionDomain.getCodeSource();
+    URL location = codeSource.getLocation();
+    URI uri;
+    try {
+      uri = location.toURI();
+    } catch (URISyntaxException e) {
+      return null;
+    }
+
+    Path path;
+    if (uri.toString().equals("file:/groovy/script")) {
+      path = findScriptByAnnotation(closure);
+    } else {
+      path = Paths.get(uri);
+    }
+
+    if (path != null && Files.exists(path)) {
+      return path;
+    } else {
+      return null;
+    }
+  }
+
+  private static Path findScriptByAnnotation(Closure<?> closure) {
+    Class<?> rootClass = getRootClass(closure);
+    ScriptPath annotation = rootClass.getAnnotation(ScriptPath.class);
+    if (annotation == null) {
+      return null;
+    } else {
+      String scriptPath = annotation.value();
+      URI uri;
+      try {
+        uri = new URI(scriptPath);
+      } catch (URISyntaxException e) {
+        return null;
+      }
+      return Paths.get(uri);
+    }
+  }
+
+  private static Class<?> getRootClass(Object object) {
+    Class<?> rootClass = object.getClass();
+    Class<?> enclosingClass = rootClass.getEnclosingClass();
+    while (enclosingClass != null) {
+      rootClass = enclosingClass;
+      enclosingClass = rootClass.getEnclosingClass();
+    }
+    return rootClass;
+  }
+
+  public static SourceInfo getSourceInfo(Closure<?> closure) {
+    Class<?> closureClass = closure.getClass();
+    LineNumber lineNumber = closureClass.getAnnotation(LineNumber.class);
+    if (lineNumber == null) {
+      return null;
+    }
+
+    Class<?> rootClass = getRootClass(closure);
+    ScriptPath scriptPath = rootClass.getAnnotation(ScriptPath.class);
+    if (scriptPath == null) {
+      return null;
+    }
+
+    return new SourceInfo(scriptPath.value(), lineNumber.value());
+  }
+
+  public static class SourceInfo {
+    private final String uri;
+    private final int lineNumber;
+
+    public SourceInfo(String uri, int lineNumber) {
+      this.uri = uri;
+      this.lineNumber = lineNumber;
+    }
+
+    public String getUri() {
+      return uri;
+    }
+
+    public int getLineNumber() {
+      return lineNumber;
     }
   }
 }

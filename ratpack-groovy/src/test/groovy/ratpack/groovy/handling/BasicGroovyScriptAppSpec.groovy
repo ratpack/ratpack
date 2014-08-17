@@ -66,4 +66,26 @@ class BasicGroovyScriptAppSpec extends RatpackGroovyScriptAppSpec {
     then:
     text == "foo"
   }
+
+  def "dangling handlers in scripts are reported"() {
+    given:
+    reloadable = true // so error message is written to response
+
+    when:
+    script """
+      ratpack {
+        handlers {
+          get {
+            // no response
+          }
+        }
+      }
+    """
+
+
+    then:
+    // line 6 because of prefix added by script() method
+    def string = "No response sent for GET request to / (last handler: closure at line 6 of ${ratpackFile.getCanonicalFile().toPath().toUri()})"
+    text == string
+  }
 }

@@ -32,14 +32,7 @@ import ratpack.server.RatpackServer;
 import ratpack.server.RatpackServerBuilder;
 
 import java.io.File;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.security.CodeSource;
-import java.security.ProtectionDomain;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -55,7 +48,7 @@ public class StandaloneScriptBacking implements Action<Closure<?>> {
   public void execute(final Closure<?> closure) throws Exception {
     GroovyVersionCheck.ensureRequiredVersionUsed(GroovySystem.getVersion());
 
-    Path scriptFile = findScript(closure);
+    Path scriptFile = ClosureUtil.findScript(closure);
 
     Properties defaultProperties = new Properties();
     Path baseDir;
@@ -113,17 +106,4 @@ public class StandaloneScriptBacking implements Action<Closure<?>> {
     return properties;
   }
 
-  private <T> Path findScript(Closure<T> closure) throws URISyntaxException {
-    Class<?> clazz = closure.getClass();
-    ProtectionDomain protectionDomain = clazz.getProtectionDomain();
-    CodeSource codeSource = protectionDomain.getCodeSource();
-    URL location = codeSource.getLocation();
-    URI uri = location.toURI();
-    Path path = Paths.get(uri);
-    if (Files.exists(path)) {
-      return path;
-    } else {
-      return null;
-    }
-  }
 }

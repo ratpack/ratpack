@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,24 +14,15 @@
  * limitations under the License.
  */
 
-package ratpack.handling.internal;
+package ratpack.groovy.script.internal;
 
-import ratpack.func.Factory;
-import ratpack.handling.Context;
-import ratpack.handling.Handler;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-public class FactoryHandler implements Handler {
-
-  private final Factory<? extends Handler> factory;
-
-  public FactoryHandler(Factory<? extends Handler> factory) {
-    this.factory = factory;
-  }
-
-  @Override
-  public void handle(Context context) throws Exception {
-    Handler handler = factory.create();
-    context.insert(handler);
-  }
-
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.TYPE)
+public @interface LineNumber {
+  int value();
 }

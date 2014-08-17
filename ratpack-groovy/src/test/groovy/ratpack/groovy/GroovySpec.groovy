@@ -16,7 +16,10 @@
 
 package ratpack.groovy
 
+import ratpack.error.DebugErrorHandler
+import ratpack.error.ServerErrorHandler
 import ratpack.func.Action
+import ratpack.groovy.handling.GroovyChainAction
 import ratpack.handling.Chain
 import ratpack.test.internal.RatpackGroovyDslSpec
 
@@ -49,6 +52,34 @@ class GroovySpec extends RatpackGroovyDslSpec {
 
     then:
     getText("foo") == "bar"
+  }
+
+  class MyHandlers extends GroovyChainAction  {
+    @Override
+    protected void execute() throws Exception {
+      get { // if this line moves, the test below will start failing
+        // no response
+      }
+    }
+  }
+
+  def "dangling closure handler is reported"() {
+    given:
+    launchConfig {
+      reloadable(true)
+    }
+
+    bindings {
+      bind ServerErrorHandler, new DebugErrorHandler()
+    }
+
+    when:
+    handlers {
+      handler chain(new MyHandlers())
+    }
+
+    then:
+    text == "No response sent for GET request to / (last handler: closure at line 60 of GroovySpec.groovy)"
   }
 
 }

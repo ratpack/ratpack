@@ -20,6 +20,12 @@ import ratpack.test.internal.RatpackGroovyDslSpec
 
 class NoResponseSentDetectionSpec extends RatpackGroovyDslSpec {
 
+  def setup() {
+    launchConfig {
+      reloadable(true)
+    }
+  }
+
   def "sends empty 500 when no response is sent"() {
     when:
     handlers {
@@ -29,7 +35,7 @@ class NoResponseSentDetectionSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    getText() == ""
+    getText() == "No response sent for GET request to / (last handler: closure at line 32 of NoResponseSentDetectionSpec.groovy)"
     response.statusCode == 500
   }
 
@@ -43,8 +49,57 @@ class NoResponseSentDetectionSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    getText() == ""
+    getText() == "No response sent for GET request to / (last handler: closure at line 47 of NoResponseSentDetectionSpec.groovy)"
     response.statusCode == 500
   }
 
+  static class MyHandler implements Handler {
+    @Override
+    void handle(Context context) throws Exception {
+
+    }
+  }
+
+  def "message contains custom class name"() {
+    when:
+    handlers {
+      handler new MyHandler()
+    }
+
+    then:
+    getText() == "No response sent for GET request to / (last handler: ratpack.handling.NoResponseSentDetectionSpec\$MyHandler)"
+    response.statusCode == 500
+  }
+
+  def "message contains custom inner class name"() {
+    when:
+    handlers {
+      handler new Handler() {
+        @Override
+        void handle(Context context) throws Exception {
+          def foo = "bar" // need some code to get line number
+        }
+      }
+    }
+
+    then:
+    getText() == "No response sent for GET request to / (last handler: anonymous class ratpack.handling.NoResponseSentDetectionSpec\$1 at approximately line 80 of NoResponseSentDetectionSpec.groovy)"
+    response.statusCode == 500
+  }
+
+  def "message contains custom inner class name when class is empty"() {
+    when:
+    handlers {
+      handler new Handler() {
+        @Override
+        void handle(Context context) throws Exception {
+          // can't detect line number when there is no code
+        }
+      }
+    }
+
+    then:
+    getText() == "No response sent for GET request to / (last handler: ratpack.handling.NoResponseSentDetectionSpec\$2)"
+    response.statusCode == 500
+  }
 }

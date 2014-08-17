@@ -19,13 +19,13 @@ package ratpack.groovy.internal;
 import groovy.lang.Closure;
 import groovy.lang.Script;
 import io.netty.buffer.ByteBuf;
+import ratpack.func.Action;
+import ratpack.func.Factory;
 import ratpack.func.Function;
 import ratpack.groovy.script.internal.ScriptEngine;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.reload.internal.ReloadableFileBackedFactory;
-import ratpack.func.Action;
-import ratpack.func.Factory;
 import ratpack.util.internal.IoUtils;
 
 import java.io.ByteArrayOutputStream;
@@ -51,7 +51,7 @@ public class ScriptBackedApp implements Handler {
           Runnable runScript = new Runnable() {
             public void run() {
               try {
-                scriptEngine.run(file.getFileName().toString(), string);
+                scriptEngine.create(file.getFileName().toString(), file, string).run();
               } catch (Exception e) {
                 throw uncheck(e);
               }

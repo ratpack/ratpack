@@ -95,6 +95,7 @@ public class DefaultContext implements Context {
     private final EventRegistry<RequestOutcome> onCloseRegistry;
 
     public Context context;
+    public Handler handler;
 
     public RequestConstants(
       ApplicationConstants applicationConstants, BindAddress bindAddress, Request request, Response response,
@@ -443,6 +444,7 @@ public class DefaultContext implements Context {
     }
 
     try {
+      requestConstants.handler = handler;
       handler.handle(context);
     } catch (Throwable e) {
       if (e instanceof HandlerException) {

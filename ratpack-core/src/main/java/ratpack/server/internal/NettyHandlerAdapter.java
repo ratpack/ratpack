@@ -46,6 +46,8 @@ import ratpack.handling.direct.DirectChannelAccess;
 import ratpack.handling.direct.internal.DefaultDirectChannelAccess;
 import ratpack.handling.internal.DefaultContext;
 import ratpack.handling.internal.DefaultRedirector;
+import ratpack.handling.internal.DescribingHandler;
+import ratpack.handling.internal.DescribingHandlers;
 import ratpack.http.MutableHeaders;
 import ratpack.http.Request;
 import ratpack.http.Response;
@@ -86,6 +88,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
 
   private final DefaultContext.ApplicationConstants applicationConstants;
   private final ExecController execController;
+  private final LaunchConfig launchConfig;
 
   private Registry registry;
 
@@ -98,6 +101,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
   public NettyHandlerAdapter(Stopper stopper, Handler handler, LaunchConfig launchConfig) {
     this.handlers = new Handler[]{handler};
     this.return404 = Handlers.notFound();
+    this.launchConfig = launchConfig;
     RegistryBuilder registryBuilder = Registries.registry()
       // If you update this list, update the class level javadoc on Context.
       .add(Stopper.class, stopper)
@@ -205,8 +209,32 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
       @Override
       public void execute(Execution execution) throws Exception {
         if (!transmitted.get()) {
-          LOGGER.warn("No response sent for {} request to {}", request.getMethod(), request.getUri());
-          response.status(500).send();
+          Handler lastHandler = requestConstants.handler;
+          StringBuilder description = new StringBuilder();
+          description
+            .append("No response sent for ")
+            .append(request.getMethod().getName())
+            .append(" request to ")
+            .append(request.getUri())
+            .append(" (last handler: ");
+
+          if (lastHandler instanceof DescribingHandler) {
+            ((DescribingHandler) lastHandler).describeTo(description);
+          } else {
+            DescribingHandlers.describeTo(lastHandler, description);
+          }
+
+          description.append(")");
+          String message = description.toString();
+          LOGGER.warn(message);
+
+          response.status(500);
+
+          if (launchConfig.isReloadable()) {
+            response.send(message);
+          } else {
+            response.send();
+          }
         }
       }
     });
