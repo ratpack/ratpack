@@ -36,9 +36,9 @@ public interface ServerErrorHandler {
    *
    * @param context The context being processed
    * @param throwable The throwable that occurred
-   * @throws Throwable if something goes wrong handling the error
+   * @throws Exception if something goes wrong handling the error
    */
   @NonBlocking
-  void error(Context context, Throwable throwable) throws Throwable;
+  void error(Context context, Throwable throwable) throws Exception;
 
 }

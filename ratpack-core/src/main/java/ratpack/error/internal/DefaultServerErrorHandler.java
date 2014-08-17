@@ -25,7 +25,7 @@ public class DefaultServerErrorHandler implements ServerErrorHandler {
 
   private final static Logger LOGGER = LoggerFactory.getLogger(DefaultServerErrorHandler.class);
 
-  public void error(Context context, Throwable throwable) throws Throwable {
+  public void error(Context context, Throwable throwable) throws Exception {
     LOGGER.error("UNHANDLED THROWABLE: " + context.getRequest().getUri(), throwable);
     context.getResponse().status(500).send();
   }

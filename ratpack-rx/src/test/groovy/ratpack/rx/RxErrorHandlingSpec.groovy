@@ -40,7 +40,7 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
     List<Exception> errors = []
 
     @Override
-    void error(Context context, Throwable throwable) throws Throwable {
+    void error(Context context, Throwable throwable) throws Exception {
       errors << throwable
       context.render("threw throwable")
     }
@@ -247,7 +247,7 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
       bindings {
         bind ServerErrorHandler, new ServerErrorHandler() {
           @Override
-          void error(Context context, Throwable throwable) throws Throwable {
+          void error(Context context, Throwable throwable) throws Exception {
             context.render "app1"
           }
         }
@@ -261,7 +261,7 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
       bindings {
         bind ServerErrorHandler, new ServerErrorHandler() {
           @Override
-          void error(Context context, Throwable throwable) throws Throwable {
+          void error(Context context, Throwable throwable) throws Exception {
             context.render "app2"
           }
         }

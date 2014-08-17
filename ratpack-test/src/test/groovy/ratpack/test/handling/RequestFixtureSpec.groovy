@@ -360,7 +360,7 @@ class RequestFixtureSpec extends Specification {
     def thrown = new RuntimeException("!")
     def errorHandler = new ServerErrorHandler() {
       @Override
-      void error(Context context, Throwable throwable) throws Throwable {
+      void error(Context context, Throwable throwable) throws Exception {
         context.render(throwable.message)
       }
     }

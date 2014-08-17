@@ -130,7 +130,7 @@ public class DefaultHandlingResult implements HandlingResult {
 
     ServerErrorHandler serverErrorHandler = new ServerErrorHandler() {
       @Override
-      public void error(Context context, Throwable throwable) throws Throwable {
+      public void error(Context context, Throwable throwable) throws Exception {
         DefaultHandlingResult.this.throwable = throwable;
         latch.countDown();
       }

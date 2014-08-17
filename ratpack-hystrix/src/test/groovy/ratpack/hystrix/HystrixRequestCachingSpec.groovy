@@ -47,7 +47,7 @@ class HystrixRequestCachingSpec extends HttpClientSpec {
     bindings {
       bind ServerErrorHandler, new ServerErrorHandler() {
         @Override
-        void error(Context context, Throwable throwable) throws Throwable {
+        void error(Context context, Throwable throwable) throws Exception {
           context.render "exception"
         }
       }
