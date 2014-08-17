@@ -221,7 +221,7 @@ class HttpClientSmokeSpec extends HttpClientSpec {
 
     then:
     text == "abc123"
-    response.headers.get(HttpHeaders.CONTENT_TYPE)  == "text/plain;charset=UTF-8"
+    response.headers.get(HttpHeaders.CONTENT_TYPE) == "text/plain;charset=UTF-8"
   }
 
   def "can send request body as text"() {
@@ -271,6 +271,25 @@ class HttpClientSmokeSpec extends HttpClientSpec {
 
     then:
     getText() == "application/json"
+  }
+
+  def "500 Error when RequestSpec throws an exception"() {
+    given:
+    handlers {
+      get { HttpClient httpClient ->
+        httpClient.get {
+          throw new Exception("Some failure in the RequestSpec")
+        } then {
+          render it.body.text
+        }
+      }
+    }
+
+    when:
+    get()
+
+    then:
+    response.statusCode == 500
   }
 
 }
