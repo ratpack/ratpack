@@ -36,7 +36,6 @@ class ReasonableErrorResponseSpec extends RatpackGroovyDslSpec {
     }
   }
 
-  @Ignore
   def "handler throws Error subclass during execution"() {
     given:
     def e = new Error("Error")
@@ -53,7 +52,6 @@ class ReasonableErrorResponseSpec extends RatpackGroovyDslSpec {
     response.statusCode == 500
   }
 
-  @Ignore
   def "promise is fulfilled with an Error subclass error"() {
     given:
     def e = new Error("Error")

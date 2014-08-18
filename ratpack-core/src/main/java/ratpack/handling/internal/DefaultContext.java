@@ -129,7 +129,7 @@ public class DefaultContext implements Context {
     }, new Action<Throwable>() {
       @Override
       public void execute(Throwable throwable) throws Exception {
-        requestConstants.context.error(ExceptionUtils.toException(throwable instanceof HandlerException ? throwable.getCause() : throwable));
+        requestConstants.context.error(throwable instanceof HandlerException ? throwable.getCause() : throwable);
       }
     }, onComplete);
   }

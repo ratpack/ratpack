@@ -38,7 +38,7 @@ import static ratpack.rx.RxRatpack.subscriber
 class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
 
   static class MessagePrintingErrorHandler implements ServerErrorHandler {
-    List<Exception> errors = []
+    List<Throwable> errors = []
 
     @Override
     void error(Context context, Throwable throwable) throws Exception {
@@ -57,7 +57,7 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
     }
   }
 
-  Exception getThrownException() {
+  Throwable getThrownException() {
     assert text == "threw throwable"
     errorHandler.errors.last()
   }
@@ -78,7 +78,6 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
     thrownException == error
   }
 
-  @Ignore
   def "observable sequence without error handler fulfills with Error subclass"() {
     when:
     def e = new Error("Error")
