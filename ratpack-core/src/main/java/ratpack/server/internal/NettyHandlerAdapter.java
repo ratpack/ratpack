@@ -230,7 +230,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
 
           response.status(500);
 
-          if (launchConfig.isReloadable()) {
+          if (launchConfig.isDevelopment()) {
             response.send(message);
           } else {
             response.send();

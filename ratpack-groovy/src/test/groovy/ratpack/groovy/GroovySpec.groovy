@@ -66,7 +66,7 @@ class GroovySpec extends RatpackGroovyDslSpec {
   def "dangling closure handler is reported"() {
     given:
     launchConfig {
-      reloadable(true)
+      development(true)
     }
 
     bindings {

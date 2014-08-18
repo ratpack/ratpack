@@ -172,7 +172,7 @@ public class HandlebarsModule extends AbstractModule {
   @SuppressWarnings("UnusedDeclaration")
   @Provides
   TemplateCache provideTemplateCache(LaunchConfig launchConfig) {
-    boolean reloadable = this.reloadable == null ? launchConfig.isReloadable() : this.reloadable;
+    boolean reloadable = this.reloadable == null ? launchConfig.isDevelopment() : this.reloadable;
     int cacheSize = this.cacheSize == null ? Integer.parseInt(launchConfig.getOther("handlebars.cacheSize", "100")) : this.cacheSize;
     return new RatpackTemplateCache(reloadable, CacheBuilder.newBuilder().maximumSize(cacheSize).<TemplateKey, com.github.jknack.handlebars.Template>build());
   }

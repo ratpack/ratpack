@@ -54,7 +54,7 @@ public class DefaultGuiceBackedHandlerFactory implements GuiceBackedHandlerFacto
   }
 
   public Handler create(final Action<? super BindingsSpec> modulesAction, final Function<? super Module, ? extends Injector> moduleTransformer, final Function<? super Injector, ? extends Handler> injectorTransformer) throws Exception {
-    if (launchConfig.isReloadable()) {
+    if (launchConfig.isDevelopment()) {
       File classFile = ClassUtil.getClassFile(modulesAction);
       if (classFile != null) {
         Factory<InjectorBindingHandler> factory = new ReloadableFileBackedFactory<>(classFile.toPath(), true, new ReloadableFileBackedFactory.Producer<InjectorBindingHandler>() {

@@ -87,7 +87,7 @@ ratpack {
 
     handler("reset") { GitHubApi gitHubApi ->
       byMethod {
-        if (launchConfig.reloadable) {
+        if (launchConfig.development) {
           get {
             gitHubApi.invalidateCache()
             render "ok"

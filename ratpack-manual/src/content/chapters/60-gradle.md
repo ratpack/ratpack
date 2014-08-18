@@ -211,7 +211,7 @@ Making `'prepareBaseDir'` depend on your generation task ensures that it is invo
 
 The `'application'` plugin provides the `'run'` task for starting the Ratpack application.
 This is a task of the core Gradle [`JavaExec`](http://www.gradle.org/docs/current/dsl/org.gradle.api.tasks.JavaExec.html) type.
-The `'ratpack-java'` plugin configures this `'run'` task to start the process in `src/ratpack` and to launch with the system property `'ratpack.reloadable'` set to `true` (which enables development time code reloading).
+The `'ratpack-java'` plugin configures this `'run'` task to start the process in `src/ratpack` and to launch with the system property `'ratpack.development'` set to `true` (which enables development time code reloading).
 
 If you wish to set extra system properties for development time execution, you can configure this task…
 

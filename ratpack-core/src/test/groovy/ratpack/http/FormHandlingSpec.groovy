@@ -220,7 +220,7 @@ class FormHandlingSpec extends RatpackGroovyDslSpec {
     when:
     requestSpec { RequestSpec requestSpec ->
       requestSpec.headers.add("Content-Type", APPLICATION_FORM)
-      requestSpec.body.stream({ it << [a: "b"].collect({ it }).join('&') })
+      requestSpec.body.text([a: "b"].collect({ it }).join('&'))
     }
     post()
 
@@ -239,7 +239,7 @@ class FormHandlingSpec extends RatpackGroovyDslSpec {
                            ["PutAll on Parsed Form", new Handler() {
                              void handle(Context context) throws Exception {
                                def form = context.parse Form
-                               form.putAll([bad:"idea"])
+                               form.putAll([bad: "idea"])
                                context.render "I changed things I shoudn't"
                              }
                            }],

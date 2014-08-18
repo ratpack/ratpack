@@ -66,7 +66,7 @@ public class RemoteControlModule extends AbstractModule implements HandlerDecora
   public Handler decorate(Injector injector, Handler handler) {
     LaunchConfig launchConfig = injector.getInstance(LaunchConfig.class);
     String endpointPath = path == null ? launchConfig.getOther("remoteControl.path", "remote-control") : path;
-    boolean enabled = Boolean.valueOf(launchConfig.getOther("remoteControl.enabled", "false")) || launchConfig.isReloadable();
+    boolean enabled = Boolean.valueOf(launchConfig.getOther("remoteControl.enabled", "false")) || launchConfig.isDevelopment();
 
     if (enabled) {
       return new RemoteControlHandler(endpointPath, Guice.justInTimeRegistry(injector), handler);

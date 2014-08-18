@@ -41,7 +41,7 @@ public class DefaultLaunchConfig implements LaunchConfig {
   private final HandlerFactory handlerFactory;
   private final int port;
   private final InetAddress address;
-  private final boolean reloadable;
+  private final boolean development;
   private final int threads;
   private final ExecController execController;
   private final ByteBufAllocator byteBufAllocator;
@@ -56,11 +56,11 @@ public class DefaultLaunchConfig implements LaunchConfig {
   private final ImmutableSet<String> compressionMimeTypeWhiteList;
   private final ImmutableSet<String> compressionMimeTypeBlackList;
 
-  public DefaultLaunchConfig(FileSystemBinding baseDir, int port, InetAddress address, boolean reloadable, int threads, ByteBufAllocator byteBufAllocator, URI publicAddress, ImmutableList<String> indexFiles, ImmutableMap<String, String> other, SSLContext sslContext, int maxContentLength, boolean timeResponses, boolean compressResponses, long compressionMinSize, ImmutableSet<String> compressionMimeTypeWhiteList, ImmutableSet<String> compressionMimeTypeBlackList, HandlerFactory handlerFactory) {
+  public DefaultLaunchConfig(FileSystemBinding baseDir, int port, InetAddress address, boolean development, int threads, ByteBufAllocator byteBufAllocator, URI publicAddress, ImmutableList<String> indexFiles, ImmutableMap<String, String> other, SSLContext sslContext, int maxContentLength, boolean timeResponses, boolean compressResponses, long compressionMinSize, ImmutableSet<String> compressionMimeTypeWhiteList, ImmutableSet<String> compressionMimeTypeBlackList, HandlerFactory handlerFactory) {
     this.baseDir = baseDir;
     this.port = port;
     this.address = address;
-    this.reloadable = reloadable;
+    this.development = development;
     this.threads = threads;
     this.timeResponses = timeResponses;
     this.compressResponses = compressResponses;
@@ -102,8 +102,8 @@ public class DefaultLaunchConfig implements LaunchConfig {
   }
 
   @Override
-  public boolean isReloadable() {
-    return reloadable;
+  public boolean isDevelopment() {
+    return development;
   }
 
   @Override

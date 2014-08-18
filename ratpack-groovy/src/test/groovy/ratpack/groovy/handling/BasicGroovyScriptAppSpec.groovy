@@ -26,7 +26,7 @@ import ratpack.test.internal.RatpackGroovyScriptAppSpec
 class BasicGroovyScriptAppSpec extends RatpackGroovyScriptAppSpec {
 
   boolean compileStatic = false
-  boolean reloadable = false
+  boolean development = false
 
   @Override
   EmbeddedApplication createApplication() {
@@ -41,7 +41,7 @@ class BasicGroovyScriptAppSpec extends RatpackGroovyScriptAppSpec {
   protected Properties getLaunchConfigProperties() {
     Properties properties = new Properties()
     properties.setProperty(LaunchConfigs.Property.HANDLER_FACTORY, GroovyScriptFileHandlerFactory.name)
-    properties.setProperty(LaunchConfigs.Property.RELOADABLE, reloadable.toString())
+    properties.setProperty(LaunchConfigs.Property.DEVELOPMENT, development.toString())
     properties.setProperty(LaunchConfigs.Property.PORT, "0")
     properties.setProperty("other." + GroovyScriptFileHandlerFactory.COMPILE_STATIC_PROPERTY_NAME, compileStatic.toString())
     properties.setProperty("other." + GroovyScriptFileHandlerFactory.SCRIPT_PROPERTY_NAME, ratpackFile.name)
@@ -69,7 +69,7 @@ class BasicGroovyScriptAppSpec extends RatpackGroovyScriptAppSpec {
 
   def "dangling handlers in scripts are reported"() {
     given:
-    reloadable = true // so error message is written to response
+    development = true // so error message is written to response
 
     when:
     script """

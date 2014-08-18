@@ -95,13 +95,15 @@ public interface LaunchConfig {
   public InetAddress getAddress();
 
   /**
-   * Whether or not the server is in "reloadable" (i.e. development) mode.
+   * Whether or not the server is in "development" mode.
    * <p>
-   * Different parts of the application may respond to this as they see fit.
+   * A flag for indicating to Ratpack internals that the app is under development; diagnostics and reloading are more important than performance and security.
+   * <p>
+   * In development mode Ratpack will leak internal information through diagnostics and stacktraces by sending them to the response.
    *
-   * @return {@code true} if the server is in "reloadable" mode
+   * @return {@code true} if the server is in "development" mode
    */
-  public boolean isReloadable();
+  public boolean isDevelopment();
 
   /**
    * The number of threads for handling application requests.

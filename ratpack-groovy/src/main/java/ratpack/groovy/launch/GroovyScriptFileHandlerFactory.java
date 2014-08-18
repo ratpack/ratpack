@@ -69,7 +69,7 @@ public class GroovyScriptFileHandlerFactory implements HandlerFactory {
     GuiceBackedHandlerFactory handlerFactory = new GroovyKitAppFactory(launchConfig);
     Function<Closure<?>, Handler> closureTransformer = new RatpackDslClosureToHandlerTransformer(launchConfig, handlerFactory, moduleTransformer);
 
-    return new ScriptBackedApp(script, compileStatic, launchConfig.isReloadable(), closureTransformer);
+    return new ScriptBackedApp(script, compileStatic, launchConfig.isDevelopment(), closureTransformer);
   }
 
 }

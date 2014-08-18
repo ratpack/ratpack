@@ -133,7 +133,7 @@ public class LaunchConfigsInternal {
       int port = props.asInt(PORT, defaultPort);
       InetAddress address = props.asInetAddress(ADDRESS);
       URI publicAddress = props.asURI(PUBLIC_ADDRESS);
-      boolean reloadable = props.asBoolean(RELOADABLE, false);
+      boolean development = props.asBoolean(DEVELOPMENT, false);
       int threads = props.asInt(THREADS, DEFAULT_THREADS);
       List<String> indexFiles = props.asList(INDEX_FILES);
       InputStream sslKeystore = props.asStream(SSL_KEYSTORE_FILE);
@@ -159,7 +159,7 @@ public class LaunchConfigsInternal {
         .port(port)
         .address(address)
         .publicAddress(publicAddress)
-        .reloadable(reloadable)
+        .development(development)
         .threads(threads)
         .maxContentLength(maxContentLength)
         .timeResponses(timeResponses)

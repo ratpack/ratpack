@@ -59,7 +59,7 @@ class RatpackPlugin implements Plugin<Project> {
       runTask.with {
         classpath ratpackApp.springloadedClasspath
         jvmArgs ratpackApp.springloadedJvmArgs
-        systemProperty "ratpack.reloadable", true
+        systemProperty "ratpack.development", true
       }
     }
 

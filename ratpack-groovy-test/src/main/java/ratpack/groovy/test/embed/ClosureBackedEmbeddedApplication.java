@@ -69,7 +69,7 @@ import static ratpack.groovy.internal.ClosureUtil.configureDelegateFirst;
  *   // Configure the launch config
  *   launchConfig {
  *     other "some.other.property": "value"
- *     reloadable true
+ *     development true
  *   }
  *
  *   // Configure the module registry

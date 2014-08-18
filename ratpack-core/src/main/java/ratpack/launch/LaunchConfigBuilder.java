@@ -64,7 +64,7 @@ public class LaunchConfigBuilder {
 
   private int port = LaunchConfig.DEFAULT_PORT;
   private InetAddress address;
-  private boolean reloadable;
+  private boolean development;
   private int threads = LaunchConfig.DEFAULT_THREADS;
   private URI publicAddress;
   private ImmutableList.Builder<String> indexFiles = ImmutableList.builder();
@@ -145,16 +145,16 @@ public class LaunchConfigBuilder {
   }
 
   /**
-   * Whether or not the application is "reloadable".
+   * Whether or not the application is "development".
    * <p>
    * Default value is {@code false}.
    *
-   * @param reloadable Whether or not the application is "reloadable".
+   * @param development Whether or not the application is "development".
    * @return this
-   * @see LaunchConfig#isReloadable()
+   * @see LaunchConfig#isDevelopment()
    */
-  public LaunchConfigBuilder reloadable(boolean reloadable) {
-    this.reloadable = reloadable;
+  public LaunchConfigBuilder development(boolean development) {
+    this.development = development;
     return this;
   }
 
@@ -395,7 +395,7 @@ public class LaunchConfigBuilder {
       baseDir,
       port,
       address,
-      reloadable,
+      development,
       threads,
       byteBufAllocator,
       publicAddress,

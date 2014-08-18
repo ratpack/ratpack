@@ -134,10 +134,10 @@ class LaunchConfigsInternalSpec extends Specification {
     createLaunchConfig(p(PUBLIC_ADDRESS, url)).publicAddress.toString() == url
   }
 
-  def "reloadable is respected"() {
+  def "development is respected"() {
     expect:
-    !createLaunchConfig().reloadable
-    createLaunchConfig(p(RELOADABLE, "true")).reloadable
+    !createLaunchConfig().development
+    createLaunchConfig(p(DEVELOPMENT, "true")).development
   }
 
   def "threads is respected"() {

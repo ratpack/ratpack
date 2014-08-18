@@ -120,7 +120,7 @@ class RemoteControlSpec extends RatpackGroovyDslSpec {
     given:
     launchConfig {
       other(enabled)
-      reloadable(true)
+      development(true)
     }
 
     expect:

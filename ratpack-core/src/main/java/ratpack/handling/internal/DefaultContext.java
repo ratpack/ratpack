@@ -394,7 +394,7 @@ public class DefaultContext implements Context {
     }
 
     Response response = requestConstants.response.status(500);
-    if (getLaunchConfig().isReloadable()) {
+    if (getLaunchConfig().isDevelopment()) {
       response.send(sb.toString());
     } else {
       response.send();
