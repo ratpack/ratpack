@@ -1,4 +1,4 @@
-layout 'layout.gtpl',
+layout 'layout.gtpl', true,
 bodyContents: contents {
 section(id: "main") {
   article(class: "content") {

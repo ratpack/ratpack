@@ -3,15 +3,19 @@ package ratpack.site
 import com.fasterxml.jackson.databind.ObjectReader
 import com.google.inject.AbstractModule
 import com.google.inject.Provides
+import com.google.inject.TypeLiteral
+import groovy.util.logging.Slf4j
 import ratpack.error.ClientErrorHandler
 import ratpack.error.ServerErrorHandler
+import ratpack.file.FileSystemChecksumServices
+import ratpack.groovy.markuptemplates.MarkupTemplate
 import ratpack.http.client.HttpClient
 import ratpack.launch.LaunchConfig
+import ratpack.render.Renderer
 import ratpack.site.github.ApiBackedGitHubData
 import ratpack.site.github.GitHubApi
 import ratpack.site.github.GitHubData
 import ratpack.site.github.RatpackVersions
-import groovy.util.logging.Slf4j
 
 @SuppressWarnings(["GrMethodMayBeStatic", "GroovyUnusedDeclaration"])
 class SiteModule extends AbstractModule {
@@ -39,7 +43,14 @@ class SiteModule extends AbstractModule {
       install(new ApiModule())
       bind(RatpackVersions)
       bind(GitHubData).to(ApiBackedGitHubData)
+      bind(new TypeLiteral<Renderer<MarkupTemplate>>() {}).to(TemplateDecoratingRenderer.class).in(com.google.inject.Singleton.class);
     }
+  }
+
+  @Provides
+  @com.google.inject.Singleton
+  AssetLinkService assetLinkService() {
+    new AssetLinkService(FileSystemChecksumServices.service(launchConfig))
   }
 
   @Slf4j

@@ -1,4 +1,4 @@
-layout 'layout.gtpl',
+layout 'layout.gtpl', true,
 nobanner: true,
 bodyContents: contents {
   p(class: "http-status-code", style: "display: none", statusCode)

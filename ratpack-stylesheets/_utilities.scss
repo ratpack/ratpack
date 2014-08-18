@@ -85,5 +85,5 @@
  * Workaround for https://github.com/chriseppstein/compass/issues/1092
  */
 @function simple-image-url($image-path) {
-  @return image-url($image-path, false, false);
+  @return generated-image-url($image-path, true);
 }

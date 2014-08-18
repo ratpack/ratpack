@@ -21,12 +21,12 @@ ratpack {
     add \
       new JacksonModule(),
       new CodaHaleMetricsModule().metrics(),
-      new SiteModule(launchConfig),
       new RemoteControlModule(),
       new NewRelicModule(),
-      new MarkupTemplatingModule()
+      new MarkupTemplatingModule(),
+      new SiteModule(launchConfig)
 
-    config(TemplatingModule).staticallyCompile = true
+      config(TemplatingModule).staticallyCompile = true
 
     RxRatpack.initialize()
     init { TemplateConfiguration templateConfiguration ->
@@ -61,7 +61,8 @@ ratpack {
 
     prefix("assets") {
       handler {
-        response.headers.add("Cache-Control", "max-age=$shortCache, public")
+        def cacheFor = request.query ? longCache : shortCache
+        response.headers.add("Cache-Control", "max-age=$cacheFor, public")
         next()
       }
       assets "assets"
@@ -71,7 +72,8 @@ ratpack {
     // https://github.com/robfletcher/gradle-compass/issues/12
     prefix("images") {
       handler {
-        response.headers.add("Cache-Control", "max-age=$shortCache, public")
+        def cacheFor = request.query ? longCache : shortCache
+        response.headers.add("Cache-Control", "max-age=$cacheFor, public")
         next()
       }
       assets "assets/images"

@@ -13,12 +13,12 @@ html {
     meta(name: 'description', content: 'Ratpack apps are lightweight, fast, composable with other tools and libraries, easy to test and enjoyable to develop.')
     meta(name: 'viewport', content: 'width=device-width, initial-scale=1')
 
-    link(rel: 'author', href: '/assets/humans.txt')
-    link(rel: 'stylesheet', href: '/assets/lib/normalize/normalize.css')
-    link(rel: 'stylesheet', href: '/assets/styles/ratpack.css')
+    link(rel: 'author', href: assets['/assets/humans.txt'])
+    link(rel: 'stylesheet', href: assets['assets/lib/normalize/normalize.css'])
+    link(rel: 'stylesheet', href: assets['assets/styles/ratpack.css'])
 
-    script(src: '/assets/lib/modernizr/modernizr.js') {}
-    script(src: '/assets/lib/prism/prism.js') {}
+    script(src: assets['assets/lib/modernizr/modernizr.js']) {}
+    script(src: assets['assets/lib/prism/prism.js']) {}
   }
   body {
 
@@ -75,7 +75,7 @@ html {
           section(class: 'credits') {
             credits.each { credit ->
               a(href: credit.href, rel: 'external') {
-                img(src: "/assets/images/${credit.img.src}", alt: credit.img.alt, width: credit.img.width, height: credit.img.height)
+                img(src: assets["assets/images/${credit.img.src}"], alt: credit.img.alt, width: credit.img.width, height: credit.img.height)
               }
             }
           }

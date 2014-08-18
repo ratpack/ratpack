@@ -21,10 +21,12 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
+import com.google.inject.TypeLiteral;
 import groovy.text.markup.MarkupTemplateEngine;
 import groovy.text.markup.TemplateConfiguration;
 import ratpack.groovy.markuptemplates.internal.MarkupTemplateRenderer;
 import ratpack.launch.LaunchConfig;
+import ratpack.render.Renderer;
 import ratpack.util.ExceptionUtils;
 
 import javax.inject.Singleton;
@@ -121,7 +123,7 @@ public class MarkupTemplatingModule extends AbstractModule {
 
   @Override
   protected void configure() {
-    bind(MarkupTemplateRenderer.class).in(Singleton.class);
+    bind(new TypeLiteral<Renderer<MarkupTemplate>>() {}).to(MarkupTemplateRenderer.class).in(Singleton.class);
   }
 
   @Provides

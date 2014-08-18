@@ -1,4 +1,4 @@
-layout 'layout.gtpl',
+layout 'layout.gtpl', true,
 bodyContents: contents {
 def version = model.version
 section(id: "main") {
