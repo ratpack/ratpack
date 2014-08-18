@@ -97,7 +97,7 @@ public class StandaloneScriptBacking implements Action<Closure<?>> {
     Properties properties = LaunchConfigs.getDefaultPrefixedProperties();
 
     properties.setProperty(LaunchConfigs.Property.HANDLER_FACTORY, GroovyScriptFileHandlerFactory.class.getName());
-    properties.setProperty(LaunchConfigs.Property.RELOADABLE, "true");
+    properties.setProperty(LaunchConfigs.Property.DEVELOPMENT, "true");
 
     if (scriptFile != null) {
       properties.setProperty("other." + GroovyScriptFileHandlerFactory.SCRIPT_PROPERTY_NAME, scriptFile.getFileName().toString());

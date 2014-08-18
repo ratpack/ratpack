@@ -69,7 +69,7 @@ public abstract class RatpackServerBuilder {
   private static Handler createHandler(final LaunchConfig launchConfig) {
     final HandlerFactory handlerFactory = launchConfig.getHandlerFactory();
 
-    if (launchConfig.isReloadable()) {
+    if (launchConfig.isDevelopment()) {
       File classFile = ClassUtil.getClassFile(handlerFactory);
       if (classFile != null) {
         Factory<Handler> factory = new ReloadableFileBackedFactory<>(classFile.toPath(), true, new ReloadableFileBackedFactory.Producer<Handler>() {

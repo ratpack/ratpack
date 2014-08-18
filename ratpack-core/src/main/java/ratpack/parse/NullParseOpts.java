@@ -26,4 +26,8 @@ public final class NullParseOpts {
   private NullParseOpts() {
   }
 
+  @Override
+  public String toString() {
+    return "[no options]";
+  }
 }

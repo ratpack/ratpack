@@ -23,7 +23,7 @@ class FailsToStartSpec extends FunctionalSpec {
   def "process does not hang if it fails to start"() {
     given:
     buildFile << """
-      configureRun.doLast { run.systemProperty "ratpack.reloadable", false }
+      configureRun.doLast { run.systemProperty "ratpack.development", false }
     """
 
     file("src/ratpack/ratpack.properties") << "handlerFactory=test.HandlerFactory"

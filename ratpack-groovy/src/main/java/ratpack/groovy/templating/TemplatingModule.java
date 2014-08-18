@@ -75,6 +75,6 @@ public class TemplatingModule extends AbstractModule {
 
   @Provides
   TemplatingConfig provideTemplatingConfig(LaunchConfig launchConfig) {
-    return new DefaultTemplatingConfig(templatesPath, cacheSize, reloadable || launchConfig.isReloadable(), staticallyCompile);
+    return new DefaultTemplatingConfig(templatesPath, cacheSize, reloadable || launchConfig.isDevelopment(), staticallyCompile);
   }
 }

@@ -31,7 +31,7 @@ class GroovyChainDslFixture extends GroovyScriptFixture {
     """
 import ratpack.launch.LaunchConfig
 
-ratpack.groovy.Groovy.chain([isReloadable: { false }] as LaunchConfig, null) {
+ratpack.groovy.Groovy.chain([isDevelopment: { false }] as LaunchConfig, null) {
 """
   }
 

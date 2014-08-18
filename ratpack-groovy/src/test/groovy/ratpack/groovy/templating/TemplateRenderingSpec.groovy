@@ -244,9 +244,9 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     get().statusCode == 404
   }
 
-  def "templates are reloadable in reload mode"() {
+  def "templates are reloadable in development mode"() {
     given:
-    launchConfig { reloadable(true) }
+    launchConfig { development(true) }
     file "templates/t", "1"
 
     when:
@@ -265,9 +265,9 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     text == "2"
   }
 
-  def "templates are not reloadable in reload false mode"() {
+  def "templates are not reloadable in development false mode"() {
     given:
-    launchConfig { reloadable(false) }
+    launchConfig { development(false) }
     file "templates/t", "1"
 
     when:

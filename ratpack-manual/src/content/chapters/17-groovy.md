@@ -185,7 +185,7 @@ This extends from [`RatpackMain`](launching.html#ratpackmain), but forces the [h
 
 ## ratpack.groovy script
 
-> TODO: introduce DSL used in this file, discuss reloading when in reloadable mode
+> TODO: introduce DSL used in this file, discuss reloading when in development mode
 
 ## handlers {} DSL
 

@@ -22,7 +22,7 @@ class NoResponseSentDetectionSpec extends RatpackGroovyDslSpec {
 
   def setup() {
     launchConfig {
-      reloadable(true)
+      development(true)
     }
   }
 

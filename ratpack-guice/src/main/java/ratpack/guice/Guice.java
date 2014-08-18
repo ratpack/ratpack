@@ -264,7 +264,7 @@ public abstract class Guice {
    * @return a transformer that can build an injector from a module
    */
   public static Function<Module, Injector> newInjectorFactory(final LaunchConfig launchConfig) {
-    final Stage stage = launchConfig.isReloadable() ? Stage.DEVELOPMENT : Stage.PRODUCTION;
+    final Stage stage = launchConfig.isDevelopment() ? Stage.DEVELOPMENT : Stage.PRODUCTION;
     return new Function<Module, Injector>() {
       @Override
       public Injector apply(Module from) {

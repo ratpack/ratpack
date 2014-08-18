@@ -79,7 +79,7 @@ version = "$params.version"
 
 configureRun.doLast {
   run {
-    systemProperty "ratpack.reloadable", "false"
+    systemProperty "ratpack.development", "false"
     systemProperty "ratpack.timeResponses", "true"
     systemProperty "endpoint", project.endpoint
   }

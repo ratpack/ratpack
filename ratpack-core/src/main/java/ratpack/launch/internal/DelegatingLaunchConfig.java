@@ -60,8 +60,8 @@ public class DelegatingLaunchConfig implements LaunchConfig {
   }
 
   @Override
-  public boolean isReloadable() {
-    return launchConfig.isReloadable();
+  public boolean isDevelopment() {
+    return launchConfig.isDevelopment();
   }
 
   @Override

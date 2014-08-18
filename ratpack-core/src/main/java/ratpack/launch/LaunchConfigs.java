@@ -203,11 +203,15 @@ public abstract class LaunchConfigs {
     public static final String ADDRESS = "address";
 
     /**
-     * Whether to reload the application if the script changes at runtime. Defaults to {@code false}. <p> <b>Value:</b> {@value} - (boolean)
+     * Whether to have the application in development mode.
+     * <p>
+     * If the script changes at runtime, there will be reloads. In this mode diagnostics and reloading are treated more important than performance and security.
+     * <p>
+     * Defaults to {@code false}. <p> <b>Value:</b> {@value} - (boolean)
      *
-     * @see LaunchConfig#isReloadable()
+     * @see LaunchConfig#isDevelopment()
      */
-    public static final String RELOADABLE = "reloadable";
+    public static final String DEVELOPMENT = "development";
 
     /**
      * The full qualified classname of the handler factory (required). <p> This class MUST implement {@link HandlerFactory} and have a public no-arg constructor. <p> <b>Value:</b> {@value} - (string)

@@ -136,7 +136,7 @@ public class MarkupTemplatingModule extends AbstractModule {
   @Provides
   @Singleton
   MarkupTemplateEngine provideTemplateEngine(LaunchConfig launchConfig, TemplateConfiguration templateConfiguration) {
-    if (launchConfig.isReloadable()) {
+    if (launchConfig.isDevelopment()) {
       templateConfiguration.setCacheTemplates(false);
     }
 

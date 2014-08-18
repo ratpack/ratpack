@@ -152,9 +152,9 @@ class ErrorHandlingSpec extends RatpackGroovyDslSpec {
     response.statusCode == 500
   }
 
-  def "exceptions thrown by render in server error handler while reloadable has response body"() {
+  def "exceptions thrown by render in server error handler while in development mode has response body"() {
     when:
-    launchConfig { reloadable(true) }
+    launchConfig { development(true) }
     bindings {
       bind Renderer, new Renderer<Map>() {
         @Override
