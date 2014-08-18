@@ -101,12 +101,12 @@ public class FileSystemChecksumServicePopulater {
           }
         });
       } catch (IOException ignore) {
-
+        // ignore
       } finally {
         try {
           queue.put(new Task(null));
         } catch (InterruptedException ignore) {
-
+          // ignore
         }
       }
     }
@@ -121,13 +121,13 @@ public class FileSystemChecksumServicePopulater {
           try {
             checksumService.checksum(entry.path);
           } catch (Exception ignore) {
-
+            // ignore
           }
           entry = queue.take();
         }
         queue.put(entry);
       } catch (InterruptedException ignore) {
-
+        // ignore
       } finally {
         latch.countDown();
       }
