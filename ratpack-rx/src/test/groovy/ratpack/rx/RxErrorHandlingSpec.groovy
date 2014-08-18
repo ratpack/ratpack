@@ -28,7 +28,6 @@ import rx.exceptions.CompositeException
 import rx.exceptions.OnErrorNotImplementedException
 import rx.functions.Action0
 import rx.functions.Action1
-import spock.lang.Ignore
 
 import static ratpack.groovy.test.TestHttpClients.testHttpClient
 import static ratpack.groovy.test.embed.EmbeddedApplications.embeddedApp
