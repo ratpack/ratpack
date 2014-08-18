@@ -28,6 +28,7 @@ import rx.exceptions.CompositeException
 import rx.exceptions.OnErrorNotImplementedException
 import rx.functions.Action0
 import rx.functions.Action1
+import spock.lang.Ignore
 
 import static ratpack.groovy.test.TestHttpClients.testHttpClient
 import static ratpack.groovy.test.embed.EmbeddedApplications.embeddedApp
@@ -75,6 +76,24 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
 
     then:
     thrownException == error
+  }
+
+  @Ignore
+  def "observable sequence without error handler fulfills with Error subclass"() {
+    when:
+    def e = new Error("Error")
+    handlers {
+      get {
+        observe(promise({
+          it.error(e)
+        })) subscribe {
+          render "got to end"
+        }
+      }
+    }
+
+    then:
+    thrownException == e
   }
 
   def "no error handler for successful promise that throws"() {

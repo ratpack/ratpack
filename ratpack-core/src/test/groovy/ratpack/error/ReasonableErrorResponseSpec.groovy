@@ -74,6 +74,27 @@ class ReasonableErrorResponseSpec extends RatpackGroovyDslSpec {
     response.statusCode == 500
   }
 
+  @Ignore
+  def "promise throws Error subclass error"() {
+    given:
+    def e = new Error("Error")
+
+    when:
+    handlers {
+      get {
+        promise {
+          throw e
+        } then {
+          response.send("This should never be reached")
+        }
+      }
+    }
+
+    then:
+    text == ""
+    response.statusCode == 500
+  }
+
   def "handler throws Error subclass from interceptor"() {
     given:
     def e = new Error("Error")
