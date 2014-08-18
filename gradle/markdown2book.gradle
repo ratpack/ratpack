@@ -19,18 +19,17 @@ buildscript {
   dependencies {
     classpath  \
          "commons-io:commons-io:1.4",
-        "org.pegdown:pegdown:1.2.1"
+        "org.pegdown:pegdown:1.4.2"
   }
 }
 
-import org.pegdown.PegDownProcessor
-import org.pegdown.Extensions
-
-import java.nio.charset.Charset
-import java.util.regex.Pattern
 
 import groovy.text.SimpleTemplateEngine
 import org.apache.commons.io.FileUtils
+import org.pegdown.PegDownProcessor
+
+import java.nio.charset.Charset
+import java.util.regex.Pattern
 
 class Generator {
 
