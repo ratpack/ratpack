@@ -16,7 +16,7 @@
 
 package ratpack.http.client
 
-import org.apache.http.HttpHeaders
+import io.netty.handler.codec.http.HttpHeaders
 import ratpack.http.HttpUrlSpec
 import ratpack.util.internal.IoUtils
 
@@ -221,7 +221,7 @@ class HttpClientSmokeSpec extends HttpClientSpec {
 
     then:
     text == "abc123"
-    response.headers.get(HttpHeaders.CONTENT_TYPE) == "text/plain;charset=UTF-8"
+    response.headers.get(HttpHeaders.Names.CONTENT_TYPE) == "text/plain;charset=UTF-8"
   }
 
   def "can send request body as text"() {

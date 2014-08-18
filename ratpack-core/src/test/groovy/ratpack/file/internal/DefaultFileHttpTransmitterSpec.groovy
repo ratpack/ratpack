@@ -16,19 +16,17 @@
 
 package ratpack.file.internal
 
-import com.jayway.restassured.internal.http.ContentEncoding
 import ratpack.http.client.RequestSpec
 import ratpack.test.internal.RatpackGroovyDslSpec
 import spock.lang.Unroll
 
-import static com.jayway.restassured.internal.http.ContentEncoding.ACCEPT_ENC_HDR
-import static com.jayway.restassured.internal.http.ContentEncoding.CONTENT_ENC_HDR
 
 class DefaultFileHttpTransmitterSpec extends RatpackGroovyDslSpec {
 
+  private static final String CONTENT_ENC_HDR = "Content-Encoding"
   private static final String CONTENT_LEN_HDR = "Content-Length"
   private static final String CONTENT_TYPE_HDR = "Content-Type"
-  private static final String TEST_ENCODING = ContentEncoding.Type.GZIP.toString()
+  private static final String TEST_ENCODING = "gzip"
   private static final String SMALL_CONTENT = "foo"
   private static final String MEDIUM_CONTENT = "1234567890" * 100
   private static final String LARGE_CONTENT = "1234567890" * 200
@@ -56,7 +54,7 @@ class DefaultFileHttpTransmitterSpec extends RatpackGroovyDslSpec {
 
   @Override
   void configureRequest(RequestSpec requestSpecification) {
-    requestSpecification.headers.add(ACCEPT_ENC_HDR, TEST_ENCODING)
+    requestSpecification.headers.add("Accept-Encoding", TEST_ENCODING)
   }
 
   @Unroll

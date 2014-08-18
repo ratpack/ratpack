@@ -31,6 +31,8 @@ dependencies {
   compile 'org.reactivestreams:reactive-streams:0.4.0.M1'
 
   compile 'org.javassist:javassist:3.18.1-GA'
+
+  testCompile 'org.apache.commons:commons-lang3:3.3.2'
 }
 
 test {
