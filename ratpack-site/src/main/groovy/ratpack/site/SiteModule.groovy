@@ -43,8 +43,9 @@ class SiteModule extends AbstractModule {
       install(new ApiModule())
       bind(RatpackVersions)
       bind(GitHubData).to(ApiBackedGitHubData)
-      bind(new TypeLiteral<Renderer<MarkupTemplate>>() {}).to(TemplateDecoratingRenderer.class).in(com.google.inject.Singleton.class);
     }
+
+    bind(new TypeLiteral<Renderer<MarkupTemplate>>() {}).to(TemplateDecoratingRenderer.class).in(com.google.inject.Singleton.class);
   }
 
   @Provides

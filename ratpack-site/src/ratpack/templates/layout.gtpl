@@ -13,7 +13,7 @@ html {
     meta(name: 'description', content: 'Ratpack apps are lightweight, fast, composable with other tools and libraries, easy to test and enjoyable to develop.')
     meta(name: 'viewport', content: 'width=device-width, initial-scale=1')
 
-    link(rel: 'author', href: assets['/assets/humans.txt'])
+    link(rel: 'author', href: '/assets/humans.txt')
     link(rel: 'stylesheet', href: assets['assets/lib/normalize/normalize.css'])
     link(rel: 'stylesheet', href: assets['assets/styles/ratpack.css'])
 
