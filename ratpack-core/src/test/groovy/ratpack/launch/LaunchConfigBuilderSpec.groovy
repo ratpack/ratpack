@@ -18,6 +18,7 @@ package ratpack.launch
 
 import ratpack.handling.Context
 import ratpack.handling.Handler
+import ratpack.server.RatpackServerBuilder
 import spock.lang.Specification
 
 class LaunchConfigBuilderSpec extends Specification {
@@ -43,6 +44,30 @@ class LaunchConfigBuilderSpec extends Specification {
 
     cleanup:
     launchConfig.execController.close()
+  }
+
+  def "error subclass thrown from HandlerFactory's create method"() {
+    given:
+    def e = new Error("e")
+    def config = LaunchConfigBuilder.noBaseDir().build(new HandlerFactory() {
+      Handler create(LaunchConfig launchConfig) throws Exception {
+        throw e
+      }
+    })
+    def server = RatpackServerBuilder.build(config)
+
+    when:
+    server.start()
+
+    then:
+    thrown(Error)
+    !server.running
+
+    cleanup:
+    if (server && server.running) {
+      server.stop()
+    }
+
   }
 
 }
