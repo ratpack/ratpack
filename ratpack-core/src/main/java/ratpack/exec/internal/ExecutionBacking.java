@@ -73,7 +73,7 @@ public class ExecutionBacking {
     return interceptors;
   }
 
-  public void join(final Action<? super ratpack.exec.Execution> action) {
+  public void join(final Action<? super Execution> action) {
     segments.addFirst(new UserCodeSegment(action));
     waiting = false;
     tryDrain();
@@ -89,13 +89,13 @@ public class ExecutionBacking {
     });
   }
 
-  public void streamExecution(final Action<? super ratpack.exec.Execution> action) {
+  public void streamExecution(final Action<? super Execution> action) {
     segments.add(new UserCodeSegment(action));
     streaming = true;
     tryDrain();
   }
 
-  public void completeStreamExecution(final Action<? super ratpack.exec.Execution> action) {
+  public void completeStreamExecution(final Action<? super Execution> action) {
     segments.addLast(new UserCodeSegment(action));
     streaming = false;
     tryDrain();
@@ -177,9 +177,9 @@ public class ExecutionBacking {
   }
 
   private class UserCodeSegment implements Runnable {
-    private final Action<? super ratpack.exec.Execution> action;
+    private final Action<? super Execution> action;
 
-    public UserCodeSegment(Action<? super ratpack.exec.Execution> action) {
+    public UserCodeSegment(Action<? super Execution> action) {
       this.action = action;
     }
 
@@ -195,9 +195,9 @@ public class ExecutionBacking {
             try {
               onError.execute(e);
             } catch (final Throwable e) {
-              segments.addFirst(new UserCodeSegment(new Action<ratpack.exec.Execution>() {
+              segments.addFirst(new UserCodeSegment(new Action<Execution>() {
                 @Override
-                public void execute(ratpack.exec.Execution execution) throws Exception {
+                public void execute(Execution execution) throws Exception {
                   throw e;
                 }
               }));
