@@ -88,4 +88,47 @@ class BasicGroovyScriptAppSpec extends RatpackGroovyScriptAppSpec {
     def string = "No response sent for GET request to / (last handler: closure at line 6 of ${ratpackFile.getCanonicalFile().toPath().toUri()})"
     text == string
   }
+
+  def "ratpack.groovy throws Error subclass as top level statement"() {
+    when:
+    script """
+      import static ratpack.groovy.Groovy.ratpack
+
+      throw new Error("Error")
+
+      ratpack {
+        handlers {
+          get {
+            render "ok"
+          }
+        }
+      }
+    """
+
+    then:
+    !application.server.running
+    !application.server.bindHost
+    application.server.bindPort < 0
+  }
+
+  def "ratpack.groovy throws Error subclass in handlers block"() {
+    when:
+    script """
+      import static ratpack.groovy.Groovy.ratpack
+
+      ratpack {
+        handlers {
+          throw new Error("Error")
+          get {
+            render "ok"
+          }
+        }
+      }
+    """
+
+    then:
+    !application.server.running
+    !application.server.bindHost
+    application.server.bindPort < 0
+  }
 }
