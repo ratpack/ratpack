@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import org.apache.tools.ant.filters.ReplaceTokens
+
 buildscript {
   repositories {
     maven { url "http://dl.bintray.com/pledbrook/plugins" }
@@ -26,13 +28,41 @@ buildscript {
 
 dependencies {
   compile "org.gradle:gradle-tooling-api:${gradle.gradleVersion}"
+
+  testCompile "commons-io:commons-io:2.4"
+  testCompile "org.apache.commons:commons-lang3:3.3.2"
 }
 
 apply from: "$rootDir/gradle/javaModule.gradle"
 apply plugin: "lazybones-templates"
 
-tasks.matching { it.name.startsWith("publishTemplate") }.all {
-  dependsOn test
+ext {
+  generatedTestResourcesDir = file("$buildDir/generated-test-resources")
+  compiledTemplateDir = file("$buildDir/lazybones-templates/ratpack")
+}
+
+task replaceTemplateTokens(type: Sync) {
+  def tokens = [version: version]
+  inputs.properties(tokens)
+
+  from file("src/templates/ratpack")
+  into compiledTemplateDir
+  filter(ReplaceTokens, tokens: tokens)
+}
+
+lazybones {
+  templateDirs = files(compiledTemplateDir)
+  repositoryUrl = "https://api.bintray.com/content/ratpack/lazybones"
+  repositoryUsername = project.hasProperty('ratpackBintrayUser') ? ratpackBintrayUser : ""
+  repositoryApiKey = project.hasProperty('ratpackBintrayApiKey') ? ratpackBintrayApiKey : ""
+  publish = true
+}
+//a nasty hack to keep gradle lazybones plugin happy, see https://github.com/pledbrook/lazybones/issues/126
+compiledTemplateDir.mkdirs()
+new File(compiledTemplateDir, 'VERSION').createNewFile()
+
+packageTemplateRatpack {
+  dependsOn test, replaceTemplateTokens
   it.doFirst {
     if (isSnapshot) {
       throw new GradleException("Cannot publish lazybones template with a snapshot version: $version")
@@ -40,43 +70,41 @@ tasks.matching { it.name.startsWith("publishTemplate") }.all {
   }
 }
 
-task compileTemplates << {
-  file("src/main/templates").eachDir { source ->
-    def destination = file("$buildDir/lazybones-templates/$source.name")
+class WriteTestConfig extends DefaultTask {
 
-    copy {
-      from source
-      into destination
+  @OutputFile
+  File getTestConfigPropertiesFile() {
+    new File(project.generatedTestResourcesDir, 'test-config.properties')
+  }
 
-      filter {
-        String line ->
-          line.replaceAll('io.ratpack:ratpack-gradle:<<version>>',
-            "io.ratpack:ratpack-gradle:$version")
-      }
-    }
+  @Input
+  Properties getTestConfigProperties() {
+    def testConfigProperties = new Properties()
+    testConfigProperties["template.path"] = project.compiledTemplateDir.absolutePath
+    testConfigProperties["localRepo.url"] = project.localRepoUrl.toString()
+    testConfigProperties
+  }
 
-    def f = new File("$destination/VERSION")
-    f.write(version)
+  @TaskAction
+  def generate() {
+    testConfigPropertiesFile.withOutputStream { testConfigProperties.store(it, null) }
   }
 }
+
+task writeTestConfig(type: WriteTestConfig)
+
+task prepareTestResources {
+  dependsOn { apiModules*.install }
+  dependsOn ":ratpack-gradle:install", replaceTemplateTokens, writeTestConfig
+}
+
+sourceSets.test.resources.srcDir generatedTestResourcesDir
+
+processTestResources.dependsOn writeTestConfig
+ideaModule.dependsOn prepareTestResources
 
 test {
-  systemProperty "templatesBaseDir", file("$buildDir/lazybones-templates").absolutePath
+  inputs.dir compiledTemplateDir
+
+  dependsOn prepareTestResources
 }
-
-lazybones {
-  def templates = []
-  file("src/main/templates").eachDir { sourceTemplate ->
-    templates = file("$buildDir/lazybones-templates/$sourceTemplate.name")
-  }
-
-  templateDirs = files(templates)
-  repositoryUrl = "https://api.bintray.com/content/ratpack/lazybones"
-  repositoryUsername = project.hasProperty('ratpackBintrayUser') ? ratpackBintrayUser : ""
-  repositoryApiKey = project.hasProperty('ratpackBintrayApiKey') ? ratpackBintrayApiKey : ""
-  publish = true
-}
-
-compileTemplates.mustRunAfter clean
-test.dependsOn compileTemplates
-test.dependsOn {apiModules*.install}

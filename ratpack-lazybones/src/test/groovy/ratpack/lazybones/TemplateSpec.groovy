@@ -16,85 +16,31 @@
 
 package ratpack.lazybones
 
-import org.gradle.api.GradleException
-import org.gradle.tooling.GradleConnectionException
-import org.gradle.tooling.GradleConnector
-import org.gradle.tooling.ProjectConnection
-import org.gradle.tooling.ResultHandler
+import org.junit.Rule
+import org.junit.rules.TemporaryFolder
 import ratpack.groovy.test.TestHttpClient
 import ratpack.groovy.test.TestHttpClients
-import ratpack.test.ApplicationUnderTest
+import ratpack.lazybones.fixture.LazybonesTemplateRatpackApp
+import ratpack.lazybones.fixture.TestConfig
 import spock.lang.AutoCleanup
-import spock.lang.Ignore
 import spock.lang.Specification
-
-import java.util.concurrent.CountDownLatch
 
 class TemplateSpec extends Specification {
 
+  TestConfig testConfig = new TestConfig()
+
+  @Rule
+  TemporaryFolder projectDirectoryProvider = new TemporaryFolder()
+
+  @AutoCleanup
+  LazybonesTemplateRatpackApp app = new LazybonesTemplateRatpackApp(projectDirectoryProvider, testConfig.templateDirectory, testConfig.localRepoUrl)
+
   @AutoCleanup
   @Delegate
-  TestHttpClient client = TestHttpClients.testHttpClient(new ApplicationUnderTest() {
-    @Override
-    URI getAddress() {
-      "http://localhost:5050".toURI()
-    }
-  })
+  TestHttpClient client = TestHttpClients.testHttpClient(app)
 
-  @Ignore
   def "can run template"() {
-    given:
-    def connection = GradleConnector.newConnector().forProjectDirectory(template).connect()
-
-    when:
-    startApp(connection)
-
-    then:
+    expect:
     text.contains("This is the main page for your Ratpack app")
-
-    where:
-    template << new File(System.getProperty("templatesBaseDir", "ratpack-lazybones/build/lazybones-templates")).absoluteFile.listFiles()
   }
-
-  private static void startApp(ProjectConnection connection) {
-    def buildOutput = new ByteArrayOutputStream()
-    def started = new CountDownLatch(1)
-    String outputString = ""
-    def buildException
-
-    connection.newBuild().forTasks("run").setStandardOutput(buildOutput).setStandardError(buildOutput).run(new ResultHandler<Void>() {
-      @Override
-      void onComplete(Void result) {
-        buildException = new GradleException("Build finished early: ${outputString}")
-        started.countDown()
-      }
-
-      @Override
-      void onFailure(GradleConnectionException failure) {
-        buildException = new GradleException("Build failed: ${outputString}", failure)
-        started.countDown()
-      }
-    })
-
-    def timeoutMins = 1
-    def retryMs = 500
-    def startAt = System.currentTimeMillis()
-    def stopAt = startAt + (timeoutMins * 60 * 1000)
-
-    while (started.count && System.currentTimeMillis() < stopAt) {
-      outputString = buildOutput.toString()
-      if (outputString.lastIndexOf("Ratpack started for http://localhost:") > -1) {
-        started.countDown()
-      }
-      if (outputString.contains("ratpack.launch.LaunchException")) {
-        throw new GradleException("App failed to launch: $outputString")
-      }
-      sleep retryMs
-    }
-
-    if (buildException) {
-      throw buildException
-    }
-  }
-
 }
