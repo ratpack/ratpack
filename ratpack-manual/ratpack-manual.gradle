@@ -28,7 +28,7 @@ buildscript {
     maven { url 'http://dl.bintray.com/robfletcher/gradle-plugins' }
   }
   dependencies {
-    classpath 'org.gradle.plugins:gradle-compass:1.0.9'
+    classpath 'org.gradle.plugins:gradle-compass:1.0.10'
     classpath "org.pegdown:pegdown:1.2.1"
   }
 }

@@ -20,7 +20,7 @@ buildscript {
     jcenter()
   }
   dependencies {
-    classpath 'org.gradle.plugins:gradle-compass:1.0.9'
+    classpath 'org.gradle.plugins:gradle-compass:1.0.10'
     classpath 'org.gebish:geb-gradle:0.9.2'
     classpath 'com.github.jengelman.gradle.plugins:shadow:1.0.2'
   }
