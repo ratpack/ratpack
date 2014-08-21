@@ -22,6 +22,7 @@ import org.gradle.api.Task
 import org.gradle.api.execution.TaskExecutionListener
 import org.gradle.api.tasks.TaskState
 import org.gradle.cli.CommandLineParser
+import org.gradle.initialization.BuildCancellationToken
 import org.gradle.initialization.DefaultCommandLineConverter
 import org.gradle.initialization.GradleLauncher
 import org.gradle.initialization.GradleLauncherFactory
@@ -62,7 +63,22 @@ abstract class FunctionalSpec extends Specification {
     def commandLine = commandLineParser.parse(args)
     StartParameter startParameter = converter.convert(commandLine, new StartParameter())
     startParameter.setProjectDir(dir.root)
-    GradleLauncher launcher = services.get(GradleLauncherFactory).newInstance(startParameter)
+    GradleLauncher launcher = services.get(GradleLauncherFactory).newInstance(startParameter, new BuildCancellationToken() {
+      @Override
+      boolean isCancellationRequested() {
+        false
+      }
+
+      @Override
+      boolean addCallback(Runnable runnable) {
+        false
+      }
+
+      @Override
+      void removeCallback(Runnable runnable) {
+
+      }
+    })
     executedTasks.clear()
     launcher.addListener(new TaskExecutionListener() {
       void beforeExecute(Task task) {
