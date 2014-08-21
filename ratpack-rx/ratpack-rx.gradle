@@ -19,7 +19,7 @@ description = "Integration with the RxJava library - https://github.com/Netflix/
 apply from: "$rootDir/gradle/javaModule.gradle"
 
 ext.apiLinks = [
-  "http://netflix.github.io/RxJava/javadoc/${commonVersions.rxjava.split("\\.", 3)[0..1].join(".")}/"
+  "http://reactivex.io/RxJava/javadoc/${commonVersions.rxjava.split("\\.", 3)[0..1].join(".")}/"
 ]
 
 dependencies {
