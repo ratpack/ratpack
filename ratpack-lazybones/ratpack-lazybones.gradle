@@ -107,4 +107,7 @@ test {
   inputs.dir compiledTemplateDir
 
   dependsOn prepareTestResources
+
+  // Don't run these tests for the joint Groovy build
+  onlyIf { !System.getenv("CI_GROOVY_VERSION") }
 }
