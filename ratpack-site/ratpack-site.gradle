@@ -203,6 +203,7 @@ compass {
   imagesDir = file('src/ratpack/assets/images')
   importPath = files('../ratpack-stylesheets')
   fontsDir = file('../ratpack-stylesheets/fonts')
+  relativeAssets = true
   quiet = true
 }
 
