@@ -37,6 +37,8 @@ public abstract class HttpHeaderConstants {
   public static final CharSequence NO_STORE = HttpHeaders.newEntity(HttpHeaders.Values.NO_STORE);
   public static final CharSequence MUST_REVALIDATE = HttpHeaders.newEntity(HttpHeaders.Values.MUST_REVALIDATE);
   public static final CharSequence MAX_AGE = HttpHeaders.newEntity(HttpHeaders.Values.MAX_AGE);
+  public static final CharSequence HOST = HttpHeaders.newEntity(HttpHeaders.Names.HOST);
+  public static final CharSequence COOKIE = HttpHeaders.newEntity(HttpHeaders.Names.COOKIE);
 
   public static final CharSequence UTF_8_TEXT = HttpHeaders.newEntity("text/plain;charset=UTF-8");
 

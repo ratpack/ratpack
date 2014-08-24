@@ -17,6 +17,7 @@
 package ratpack.groovy.test.internal;
 
 
+import com.google.common.net.HostAndPort;
 import io.netty.handler.codec.http.ClientCookieEncoder;
 import io.netty.handler.codec.http.CookieDecoder;
 import ratpack.api.Nullable;
@@ -24,6 +25,7 @@ import ratpack.func.Actions;
 import ratpack.groovy.test.TestHttpClient;
 import ratpack.http.client.ReceivedResponse;
 import ratpack.http.client.RequestSpec;
+import ratpack.http.internal.HttpHeaderConstants;
 import ratpack.test.ApplicationUnderTest;
 import ratpack.func.Action;
 import ratpack.test.internal.BlockingHttpClient;
@@ -270,8 +272,8 @@ public class DefaultTestHttpClient implements TestHttpClient {
     public void execute(RequestSpec requestSpec) throws Exception {
       requestSpec.method(method);
       requestSpec.getUrl().set(path);
-      requestSpec.getHeaders().add("Cookie", ClientCookieEncoder.encode(cookies));
-
+      requestSpec.getHeaders().add(HttpHeaderConstants.COOKIE, ClientCookieEncoder.encode(cookies));
+      requestSpec.getHeaders().add(HttpHeaderConstants.HOST, HostAndPort.fromParts(path.getHost(), path.getPort()).toString());
     }
   }
 
