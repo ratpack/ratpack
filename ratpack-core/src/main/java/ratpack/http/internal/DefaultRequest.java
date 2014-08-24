@@ -17,6 +17,7 @@
 package ratpack.http.internal;
 
 import com.google.common.base.Predicate;
+import com.google.common.base.Strings;
 import com.google.common.reflect.TypeToken;
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.Cookie;
@@ -36,6 +37,7 @@ import ratpack.registry.internal.SimpleMutableRegistry;
 import ratpack.util.MultiValueMap;
 import ratpack.util.internal.ImmutableDelegatingMultiValueMap;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -47,21 +49,22 @@ public class DefaultRequest implements Request {
 
   private final Headers headers;
   private final ByteBuf content;
-  private final String uri;
+  private final String rawUri;
 
   private TypedData body;
 
+  private String uri;
   private ImmutableDelegatingMultiValueMap<String, String> queryParams;
   private String query;
   private String path;
   private final HttpMethod method;
   private Set<Cookie> cookies;
 
-  public DefaultRequest(Headers headers, String methodName, String uri, ByteBuf content) {
+  public DefaultRequest(Headers headers, String methodName, String rawUri, ByteBuf content) {
     this.headers = headers;
     this.content = content;
     this.method = new DefaultHttpMethod(methodName);
-    this.uri = uri;
+    this.rawUri = rawUri;
   }
 
   public MultiValueMap<String, String> getQueryParams() {
@@ -76,7 +79,31 @@ public class DefaultRequest implements Request {
     return method;
   }
 
+  public String getRawUri() {
+    return rawUri;
+  }
+
   public String getUri() {
+    if (uri == null) {
+      if (rawUri.startsWith("/")) {
+        uri = rawUri;
+      } else {
+        URI parsed = URI.create(rawUri);
+        String path = parsed.getPath();
+        if (Strings.isNullOrEmpty(path)) {
+          path = "/";
+        }
+        StringBuilder sb = new StringBuilder();
+        sb.append(path);
+        if (parsed.getQuery() != null) {
+          sb.append("?").append(parsed.getQuery());
+        }
+        if (parsed.getFragment() != null) {
+          sb.append("#").append(parsed.getFragment());
+        }
+        uri = sb.toString();
+      }
+    }
     return uri;
   }
 

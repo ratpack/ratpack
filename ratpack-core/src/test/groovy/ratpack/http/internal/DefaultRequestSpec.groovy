@@ -33,6 +33,7 @@ class DefaultRequestSpec extends RatpackGroovyDslSpec {
     def request = new DefaultRequest(headers, "GET", inputUri, content)
 
     then:
+    request.rawUri == inputUri
     request.uri == expectedUri
     request.query == expectedQuery
     request.path == expectedPath
@@ -42,6 +43,11 @@ class DefaultRequestSpec extends RatpackGroovyDslSpec {
     "/user/12345"                                  | "/user/12345"                                  | ""                             | "user/12345"
     "/user?name=fred"                              | "/user?name=fred"                              | "name=fred"                    | "user"
     "/article/search?text=gradle&max=25&offset=50" | "/article/search?text=gradle&max=25&offset=50" | "text=gradle&max=25&offset=50" | "article/search"
+    "http://example.com" | "/" | "" | ""
+    "http://example.com?message=hello" | "/?message=hello" | "message=hello" | ""
+    "http://example.com:8080/?message=hello" | "/?message=hello" | "message=hello" | ""
+    "http://example.com:8080/user/12345" | "/user/12345" | "" | "user/12345"
+    "https://example.com:8443/user?name=fred" | "/user?name=fred" | "name=fred" | "user"
   }
 
 }

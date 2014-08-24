@@ -37,6 +37,15 @@ public interface Request extends MutableRegistry {
   HttpMethod getMethod();
 
   /**
+   * The raw URI of the request.
+   * <p>
+   * This value may be an absolute URI or an absolute path.
+   *
+   * @return The raw URI of the request.
+   */
+  String getRawUri();
+
+  /**
    * The complete URI of the request (path + query string).
    * <p>
    * This value is always absolute (i.e. begins with "{@code /}").
