@@ -41,39 +41,46 @@ class DefaultPublicAddressSpec extends Specification {
     publicAddress.getAddress(context).toString() == expected
 
     where:
-    publicURL                       | scheme  | requestUri                                    | headers                                                  | bindHost            | bindPort || expected
+    publicURL                       | scheme       | requestUri                                    | headers                                  | bindHost            | bindPort || expected
 
-    "http://conf.example.com"       | "http"  | "http://request.example.com/user/12345"       | [(HOST):"host.example.com"]                              | "localhost"         | 80       || "http://conf.example.com"
-    "https://conf.example.com"      | "http"  | "http://request.example.com/user/12345"       | [(HOST):"host.example.com"]                              | "localhost"         | 8080     || "https://conf.example.com"
-    "https://conf.example.com:8443" | "https" | "http://request.example.com/user/12345"       | [(HOST):"host.example.com"]                              | "localhost"         | 8443     || "https://conf.example.com:8443"
+    "http://conf.example.com"       | HTTP_SCHEME  | "http://request.example.com/user/12345"       | [(HOST):"host.example.com"]              | "localhost"         | 80       || "http://conf.example.com"
+    "https://conf.example.com"      | HTTP_SCHEME  | "http://request.example.com/user/12345"       | [(HOST):"host.example.com"]              | "localhost"         | 8080     || "https://conf.example.com"
+    "https://conf.example.com:8443" | HTTPS_SCHEME | "http://request.example.com/user/12345"       | [(HOST):"host.example.com"]              | "localhost"         | 8443     || "https://conf.example.com:8443"
 
-    null                            | "http"  | "http://request.example.com/user/12345"       | [(HOST):"host.example.com"]                              | "localhost"         | 80       || "http://request.example.com"
-    null                            | "http"  | "https://request.example.com/user/12345"      | [(HOST):"host.example.com"]                              | "localhost"         | 8080     || "https://request.example.com"
-    null                            | "https" | "https://request.example.com:8443/user/12345" | [(HOST):"host.example.com"]                              | "localhost"         | 8443     || "https://request.example.com:8443"
+    null                            | HTTP_SCHEME  | "http://request.example.com/user/12345"       | [(HOST):"host.example.com"]              | "localhost"         | 80       || "http://request.example.com"
+    null                            | HTTP_SCHEME  | "https://request.example.com/user/12345"      | [(HOST):"host.example.com"]              | "localhost"         | 8080     || "https://request.example.com"
+    null                            | HTTPS_SCHEME | "https://request.example.com:8443/user/12345" | [(HOST):"host.example.com"]              | "localhost"         | 8443     || "https://request.example.com:8443"
 
-    null                            | "http"  | "/user/12345"                                 | [(HOST):"host.example.com", (X_FORWARDED_PROTO):"https"] | "localhost"         | 8080     || "https://host.example.com"
-    null                            | "http"  | "/user/12345"                                 | [(HOST):"host.example.com", (X_FORWARDED_SSL):"on"]      | "localhost"         | 8080     || "https://host.example.com"
+    null                            | HTTP_SCHEME  | "http://request.example.com/user/12345"       | [(X_FORWARDED_HOST):"fhost.example.com",
+                                                                                                      (HOST):"host.example.com",
+                                                                                                      (X_FORWARDED_PROTO):"https"]            | "localhost"         | 8080     || "https://fhost.example.com"
+    null                            | HTTP_SCHEME  | "/user/12345"                                 | [(HOST):"host.example.com",
+                                                                                                      (X_FORWARDED_PROTO):"https"]            | "localhost"         | 8080     || "https://host.example.com"
+    null                            | HTTP_SCHEME  | "/user/12345"                                 | [(HOST):"host.example.com",
+                                                                                                      (X_FORWARDED_PROTO):"https"]            | "localhost"         | 8080     || "https://host.example.com"
+    null                            | HTTP_SCHEME  | "/user/12345"                                 | [(HOST):"host.example.com",
+                                                                                                      (X_FORWARDED_SSL):"on"]                 | "localhost"         | 8080     || "https://host.example.com"
 
-    null                            | "http"  | "/user/12345"                                 | [(HOST):"host.example.com"]                              | "localhost"         | 8080     || "http://host.example.com"
-    null                            | "https" | "/user/12345"                                 | [(HOST):"host.example.com"]                              | "localhost"         | 8443     || "https://host.example.com"
-    null                            | "http"  | "/user/12345"                                 | [(HOST):"host.example.com:8080"]                         | "localhost"         | 8080     || "http://host.example.com:8080"
-    null                            | "https" | "/user/12345"                                 | [(HOST):"host.example.com:8443"]                         | "localhost"         | 8443     || "https://host.example.com:8443"
+    null                            | HTTP_SCHEME  | "/user/12345"                                 | [(HOST):"host.example.com"]              | "localhost"         | 8080     || "http://host.example.com"
+    null                            | HTTPS_SCHEME | "/user/12345"                                 | [(HOST):"host.example.com"]              | "localhost"         | 8443     || "https://host.example.com"
+    null                            | HTTP_SCHEME  | "/user/12345"                                 | [(HOST):"host.example.com:8080"]         | "localhost"         | 8080     || "http://host.example.com:8080"
+    null                            | HTTPS_SCHEME | "/user/12345"                                 | [(HOST):"host.example.com:8443"]         | "localhost"         | 8443     || "https://host.example.com:8443"
 
-    null                            | "http"  | "/user/12345"                                 | [:]                                                      | "localhost"         | 80       || "http://localhost"
-    null                            | "http"  | "/user/12345"                                 | [:]                                                      | "localhost"         | 8080     || "http://localhost:8080"
-    null                            | "https" | "/user/12345"                                 | [:]                                                      | "localhost"         | 443      || "https://localhost"
-    null                            | "https" | "/user/12345"                                 | [:]                                                      | "localhost"         | 8443     || "https://localhost:8443"
-    null                            | "http"  | "/user/12345"                                 | [:]                                                      | "[0:0:0:0:0:0:0:1]" | 5050     || "http://[0:0:0:0:0:0:0:1]:5050"
+    null                            | HTTP_SCHEME  | "/user/12345"                                 | [:]                                      | "localhost"         | 80       || "http://localhost"
+    null                            | HTTP_SCHEME  | "/user/12345"                                 | [:]                                      | "localhost"         | 8080     || "http://localhost:8080"
+    null                            | HTTPS_SCHEME | "/user/12345"                                 | [:]                                      | "localhost"         | 443      || "https://localhost"
+    null                            | HTTPS_SCHEME | "/user/12345"                                 | [:]                                      | "localhost"         | 8443     || "https://localhost:8443"
+    null                            | HTTP_SCHEME  | "/user/12345"                                 | [:]                                      | "[0:0:0:0:0:0:0:1]" | 5050     || "http://[0:0:0:0:0:0:0:1]:5050"
   }
 
   @Unroll
   def "Absolute request URIs are supported: #uri -> #expectedUri"() {
     given:
     def bindAddress = mockBindAddress(8080, "bind.example.com")
-    def publicAddress = new DefaultPublicAddress(null, "http")
+    def publicAddress = new DefaultPublicAddress(null, HTTP_SCHEME)
 
     when: "The request URI is absolute"
-    def context = mockContext(mockRequest(uri, mockHostHeaders("host.example.com")), bindAddress)
+    def context = mockContext(mockRequest(uri, mockHeaders([(HOST):"host.example.com"])), bindAddress)
     def address = publicAddress.getAddress(context)
 
     then: "The host is part of the request URI and any Host header MUST be ignored"
@@ -93,7 +100,7 @@ class DefaultPublicAddressSpec extends Specification {
     def publicAddress = new DefaultPublicAddress(null, scheme)
 
     when: "The request URI is not absolute and the request includes a Host header"
-    def context = mockContext(mockRequest("/user/12345", mockHostHeaders(host)), bindAddress)
+    def context = mockContext(mockRequest("/user/12345", mockHeaders([(HOST):host])), bindAddress)
     def address = publicAddress.getAddress(context)
 
     then: "The host is determined by the Host header value"
@@ -101,14 +108,50 @@ class DefaultPublicAddressSpec extends Specification {
     address.toString() == expectedUri
 
     where:
-    scheme  | host                    || expectedUri
-    "http"  | "host.example.com"      || "http://host.example.com"
-    "https" | "host.example.com"      || "https://host.example.com"
-    "http"  | "host.example.com:8080" || "http://host.example.com:8080"
-    "https" | "host.example.com:8080" || "https://host.example.com:8080"
+    scheme       | host                    || expectedUri
+    HTTP_SCHEME  | "host.example.com"      || "http://host.example.com"
+    HTTPS_SCHEME | "host.example.com"      || "https://host.example.com"
+    HTTP_SCHEME  | "host.example.com:8080" || "http://host.example.com:8080"
+    HTTPS_SCHEME | "host.example.com:8080" || "https://host.example.com:8080"
   }
 
-  def "X-Forwarded-Proto headers are supported"() {
+  @Unroll
+  def "X-Forwarded-Host header is supported: #uri, #fhost, #host -> #expectedUri"() {
+    given:
+    def bindAddress = mockBindAddress(8080, "bind.example.com")
+    def publicAddress = new DefaultPublicAddress(null, HTTP_SCHEME)
+
+    when: "The request includes a X-Forwarded-Host header and no public URL is defined"
+    def context = mockContext(mockRequest("/user/12345", mockHeaders([(X_FORWARDED_HOST):fhost, (HOST):host])), bindAddress)
+    def address = publicAddress.getAddress(context)
+
+    then: "The forwarded host is used in place of the absolute request URI and Host header"
+    address.toString() == expectedUri
+
+    where:
+    uri                               | fhost                    | host                    || expectedUri
+    "http://request.example.com"      | "fhost.example.com"      | null                    || "http://fhost.example.com"
+    "http://request.example.com:8081" | "fhost.example.com:8082" | "host.example.com:8083" || "http://fhost.example.com:8082"
+  }
+
+  def "X-Forwarded-Host header supports proxy chains"() {
+    given:
+    def bindAddress = mockBindAddress(8080, "bind.example.com")
+    def publicAddress = new DefaultPublicAddress(null, HTTP_SCHEME)
+
+    when: "The request includes a X-Forwarded-Host header with multiple comma-separated entries"
+    def context = mockContext(mockRequest("/user/12345", mockHeaders([
+      (X_FORWARDED_HOST):"fhost1.example.com:8081, fhost2.example.com:8082",
+      (HOST):"host.example.com:8083"
+    ])), bindAddress)
+    def address = publicAddress.getAddress(context)
+
+    then: "The first entry is used"
+    address.toString() == "http://fhost1.example.com:8081"
+  }
+
+  @Unroll
+  def "X-Forwarded-Proto headers are supported: #uri, #host -> #expectedUri"() {
     given:
     def bindAddress = mockBindAddress(8081, "bind.example.com")
     def publicAddress = new DefaultPublicAddress(null, HTTP_SCHEME)
@@ -127,7 +170,8 @@ class DefaultPublicAddressSpec extends Specification {
     "/user/12345"                                | null                    || "https://bind.example.com:8081"
   }
 
-  def "X-Forwarded-Ssl headers are supported"() {
+  @Unroll
+  def "X-Forwarded-Ssl headers are supported: #uri, #host -> #expectedUri"() {
     given:
     def bindAddress = mockBindAddress(8081, "bind.example.com")
     def publicAddress = new DefaultPublicAddress(null, HTTP_SCHEME)
@@ -154,12 +198,6 @@ class DefaultPublicAddressSpec extends Specification {
       }
     }
     return new NettyHeadersBackedMutableHeaders(headers)
-  }
-
-  private Headers mockHostHeaders(String host) {
-    def headers = Mock(Headers)
-    headers.get(HOST.toString()) >> host
-    return headers
   }
 
   private Request mockRequest(String rawUri, Headers headers) {

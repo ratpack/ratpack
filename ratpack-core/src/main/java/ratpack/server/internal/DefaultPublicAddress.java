@@ -16,11 +16,12 @@
 
 package ratpack.server.internal;
 
+import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
+import com.google.common.collect.Iterables;
 import com.google.common.net.HostAndPort;
 import ratpack.handling.Context;
 import ratpack.http.Headers;
-import ratpack.http.internal.HttpHeaderConstants;
 import ratpack.server.BindAddress;
 import ratpack.server.PublicAddress;
 import ratpack.util.ExceptionUtils;
@@ -34,10 +35,11 @@ import static ratpack.util.internal.ProtocolUtil.HTTPS_SCHEME;
 
 /**
  * A best-effort attempt at providing meaningful default behaviors for determining the appropriate advertised address for a request.
- * This implementation supports a number of strategies, depending on what information is available:
+ * This implementation supports a number of strategies, depending on what information is available (listed in order of precedence):
  *
  * <ul>
  *   <li>Configured public address URI (optional)</li>
+ *   <li>X-Forwarded-Host header (if included in request)</li>
  *   <li>X-Forwarded-Proto or X-Forwarded-Ssl headers (if included in request)</li>
  *   <li>Absolute request URI (if included in request)</li>
  *   <li>Host header (if included in request)</li>
@@ -48,6 +50,8 @@ import static ratpack.util.internal.ProtocolUtil.HTTPS_SCHEME;
  * @see <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec5.html#sec5.2">Request: The Resource Identified by a Request</a>
  */
 public class DefaultPublicAddress implements PublicAddress {
+
+  private static final Splitter FORWARDED_HOST_SPLITTER = Splitter.on(',').trimResults().omitEmptyStrings();
 
   private final URI publicAddress;
   private final String scheme;
@@ -65,22 +69,29 @@ public class DefaultPublicAddress implements PublicAddress {
       String scheme;
       String host;
       int port;
-      URI absoluteRequestURI = getAbsoluteRequestUri(context);
-      if (absoluteRequestURI != null) {
-        scheme = determineScheme(context, absoluteRequestURI.getScheme());
-        host = absoluteRequestURI.getHost();
-        port = absoluteRequestURI.getPort();
-      } else {
+      HostAndPort forwardedHostData = getForwardedHostData(context);
+      if (forwardedHostData != null) {
         scheme = determineScheme(context, this.scheme);
-        HostAndPort hostData = getHostData(context);
-        if (hostData != null) {
-          host = hostData.getHostText();
-          port = hostData.getPortOrDefault(-1);
+        host = forwardedHostData.getHostText();
+        port = forwardedHostData.getPortOrDefault(-1);
+      } else {
+        URI absoluteRequestURI = getAbsoluteRequestUri(context);
+        if (absoluteRequestURI != null) {
+          scheme = determineScheme(context, absoluteRequestURI.getScheme());
+          host = absoluteRequestURI.getHost();
+          port = absoluteRequestURI.getPort();
         } else {
-          BindAddress bindAddress = context.getBindAddress();
-          int bindPort = bindAddress.getPort();
-          host = bindAddress.getHost();
-          port = ProtocolUtil.isDefaultPortForScheme(bindPort, scheme) ? -1 : bindPort;
+          scheme = determineScheme(context, this.scheme);
+          HostAndPort hostData = getHostData(context);
+          if (hostData != null) {
+            host = hostData.getHostText();
+            port = hostData.getPortOrDefault(-1);
+          } else {
+            BindAddress bindAddress = context.getBindAddress();
+            int bindPort = bindAddress.getPort();
+            host = bindAddress.getHost();
+            port = ProtocolUtil.isDefaultPortForScheme(bindPort, this.scheme) ? -1 : bindPort;
+          }
         }
       }
       try {
@@ -100,13 +111,17 @@ public class DefaultPublicAddress implements PublicAddress {
     return URI.create(rawUri);
   }
 
+  private HostAndPort getForwardedHostData(Context context) {
+    Headers headers = context.getRequest().getHeaders();
+    String forwardedHostHeader = Strings.emptyToNull(headers.get(X_FORWARDED_HOST.toString()));
+    String hostPortString = forwardedHostHeader != null ? Iterables.getFirst(FORWARDED_HOST_SPLITTER.split(forwardedHostHeader), null) : null;
+    return hostPortString != null ? HostAndPort.fromString(hostPortString) : null;
+  }
+
   private HostAndPort getHostData(Context context) {
-    HostAndPort hostData = null;
-    String hostHeader = Strings.nullToEmpty(context.getRequest().getHeaders().get(HttpHeaderConstants.HOST.toString()));
-    if (!hostHeader.isEmpty()) {
-      hostData = HostAndPort.fromString(hostHeader);
-    }
-    return hostData;
+    Headers headers = context.getRequest().getHeaders();
+    String hostPortString = Strings.emptyToNull(headers.get(HOST.toString()));
+    return hostPortString != null ? HostAndPort.fromString(hostPortString) : null;
   }
 
   private String determineScheme(Context context, String defaultScheme) {
