@@ -39,7 +39,10 @@ public abstract class HttpHeaderConstants {
   public static final CharSequence MAX_AGE = HttpHeaders.newEntity(HttpHeaders.Values.MAX_AGE);
   public static final CharSequence HOST = HttpHeaders.newEntity(HttpHeaders.Names.HOST);
   public static final CharSequence COOKIE = HttpHeaders.newEntity(HttpHeaders.Names.COOKIE);
+  public static final CharSequence X_FORWARDED_PROTO = HttpHeaders.newEntity("X-Forwarded-Proto");
+  public static final CharSequence X_FORWARDED_SSL = HttpHeaders.newEntity("X-Forwarded-Ssl");
 
   public static final CharSequence UTF_8_TEXT = HttpHeaders.newEntity("text/plain;charset=UTF-8");
+  public static final CharSequence ON = HttpHeaders.newEntity("on");
 
 }

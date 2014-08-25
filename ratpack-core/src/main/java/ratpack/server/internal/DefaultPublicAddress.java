@@ -19,23 +19,29 @@ package ratpack.server.internal;
 import com.google.common.base.Strings;
 import com.google.common.net.HostAndPort;
 import ratpack.handling.Context;
+import ratpack.http.Headers;
 import ratpack.http.internal.HttpHeaderConstants;
 import ratpack.server.BindAddress;
 import ratpack.server.PublicAddress;
 import ratpack.util.ExceptionUtils;
+import ratpack.util.internal.ProtocolUtil;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+
+import static ratpack.http.internal.HttpHeaderConstants.*;
+import static ratpack.util.internal.ProtocolUtil.HTTPS_SCHEME;
 
 /**
  * A best-effort attempt at providing meaningful default behaviors for determining the appropriate advertised address for a request.
  * This implementation supports a number of strategies, depending on what information is available:
  *
  * <ul>
- *   <li>An optional configured public address URI</li>
- *   <li>An absolute request URI</li>
- *   <li>A Host header included in the request</li>
- *   <li>The bind address of the service</li>
+ *   <li>Configured public address URI (optional)</li>
+ *   <li>X-Forwarded-Proto or X-Forwarded-Ssl headers (if included in request)</li>
+ *   <li>Absolute request URI (if included in request)</li>
+ *   <li>Host header (if included in request)</li>
+ *   <li>Service's bind address and scheme (http vs. https)</li>
  * </ul>
  *
  * @see <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.23">Header Field Definitions: Host</a>
@@ -56,23 +62,25 @@ public class DefaultPublicAddress implements PublicAddress {
     if (this.publicAddress != null) {
       currentUrl = this.publicAddress;
     } else {
-      String scheme = this.scheme;
+      String scheme;
       String host;
       int port;
       URI absoluteRequestURI = getAbsoluteRequestUri(context);
       if (absoluteRequestURI != null) {
-        scheme = absoluteRequestURI.getScheme();
+        scheme = determineScheme(context, absoluteRequestURI.getScheme());
         host = absoluteRequestURI.getHost();
         port = absoluteRequestURI.getPort();
       } else {
+        scheme = determineScheme(context, this.scheme);
         HostAndPort hostData = getHostData(context);
         if (hostData != null) {
           host = hostData.getHostText();
           port = hostData.getPortOrDefault(-1);
         } else {
           BindAddress bindAddress = context.getBindAddress();
+          int bindPort = bindAddress.getPort();
           host = bindAddress.getHost();
-          port = bindAddress.getPort();
+          port = ProtocolUtil.isDefaultPortForScheme(bindPort, scheme) ? -1 : bindPort;
         }
       }
       try {
@@ -101,4 +109,13 @@ public class DefaultPublicAddress implements PublicAddress {
     return hostData;
   }
 
+  private String determineScheme(Context context, String defaultScheme) {
+    Headers headers = context.getRequest().getHeaders();
+    String forwardedSsl = headers.get(X_FORWARDED_SSL.toString());
+    String forwardedProto = headers.get(X_FORWARDED_PROTO.toString());
+    if (ON.toString().equalsIgnoreCase(forwardedSsl)) {
+      return HTTPS_SCHEME;
+    }
+    return forwardedProto != null ? forwardedProto : defaultScheme;
+  }
 }

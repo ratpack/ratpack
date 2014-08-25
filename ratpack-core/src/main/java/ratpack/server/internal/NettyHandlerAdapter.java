@@ -76,6 +76,9 @@ import java.net.InetSocketAddress;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static ratpack.util.internal.ProtocolUtil.HTTPS_SCHEME;
+import static ratpack.util.internal.ProtocolUtil.HTTP_SCHEME;
+
 @ChannelHandler.Sharable
 public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpRequest> {
 
@@ -106,7 +109,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
       // If you update this list, update the class level javadoc on Context.
       .add(Stopper.class, stopper)
       .add(MimeTypes.class, new ActivationBackedMimeTypes())
-      .add(PublicAddress.class, new DefaultPublicAddress(launchConfig.getPublicAddress(), launchConfig.getSSLContext() == null ? "http" : "https"))
+      .add(PublicAddress.class, new DefaultPublicAddress(launchConfig.getPublicAddress(), launchConfig.getSSLContext() == null ? HTTP_SCHEME : HTTPS_SCHEME))
       .add(Redirector.class, new DefaultRedirector())
       .add(ClientErrorHandler.class, new DefaultClientErrorHandler())
       .add(ServerErrorHandler.class, new DefaultServerErrorHandler())
