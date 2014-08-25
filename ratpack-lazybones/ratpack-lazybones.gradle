@@ -22,7 +22,7 @@ buildscript {
   }
 
   dependencies {
-    classpath "uk.co.cacoethes:lazybones-gradle:1.0.4"
+    classpath "uk.co.cacoethes:lazybones-gradle:1.2.2"
   }
 }
 
@@ -34,7 +34,7 @@ dependencies {
 }
 
 apply from: "$rootDir/gradle/javaModule.gradle"
-apply plugin: "lazybones-templates"
+apply plugin: "uk.co.cacoethes.lazybones-templates"
 
 ext {
   generatedTestResourcesDir = file("$buildDir/generated-test-resources")
@@ -52,14 +52,16 @@ task replaceTemplateTokens(type: Sync) {
 
 lazybones {
   templateDirs = files(compiledTemplateDir)
+
+  template("ratpack") {
+    version = project.version
+  }
+
   repositoryUrl = "https://api.bintray.com/content/ratpack/lazybones"
   repositoryUsername = project.hasProperty('ratpackBintrayUser') ? ratpackBintrayUser : ""
   repositoryApiKey = project.hasProperty('ratpackBintrayApiKey') ? ratpackBintrayApiKey : ""
   publish = true
 }
-//a nasty hack to keep gradle lazybones plugin happy, see https://github.com/pledbrook/lazybones/issues/126
-compiledTemplateDir.mkdirs()
-new File(compiledTemplateDir, 'VERSION').createNewFile()
 
 packageTemplateRatpack {
   dependsOn test, replaceTemplateTokens
