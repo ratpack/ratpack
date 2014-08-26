@@ -18,7 +18,7 @@ import org.apache.tools.ant.filters.ReplaceTokens
 
 buildscript {
   repositories {
-    maven { url "http://dl.bintray.com/pledbrook/plugins" }
+    jcenter()
   }
 
   dependencies {
@@ -45,22 +45,28 @@ task replaceTemplateTokens(type: Sync) {
   def tokens = [version: version]
   inputs.properties(tokens)
 
-  from file("src/templates/ratpack")
+  from('src/templates/ratpack') {
+    include 'build.gradle'
+    filter(ReplaceTokens, tokens: tokens)
+  }
+  from('src/templates/ratpack') {
+    exclude 'build.gradle'
+  }
+
   into compiledTemplateDir
-  filter(ReplaceTokens, tokens: tokens)
 }
 
 lazybones {
   templateDirs = files(compiledTemplateDir)
-
-  template("ratpack") {
-    version = project.version
-  }
-
+  fileMode "755", "gradlew", "**/*.sh"
   repositoryUrl = "https://api.bintray.com/content/ratpack/lazybones"
   repositoryUsername = project.hasProperty('ratpackBintrayUser') ? ratpackBintrayUser : ""
   repositoryApiKey = project.hasProperty('ratpackBintrayApiKey') ? ratpackBintrayApiKey : ""
   publish = true
+
+  template("ratpack") {
+    version = project.version
+  }
 }
 
 packageTemplateRatpack {

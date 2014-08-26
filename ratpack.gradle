@@ -103,7 +103,7 @@ ext {
 
   apiModules = publishedModules.findAll { !(it.name in ["ratpack-manual", "ratpack-gradle"]) }
 
-  localRepoUrl = "file://${buildDir.absolutePath}/localrepo"
+  localRepoUrl = "${buildDir.toURI()}/localrepo"
 }
 
 apply from: "gradle/dependencies.gradle"
