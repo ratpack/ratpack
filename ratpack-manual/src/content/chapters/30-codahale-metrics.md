@@ -34,6 +34,10 @@ Ratpack enables you to capture your own application metrics in two ways:
 
 See [`CodaHaleMetricsModule.metrics()`](api/ratpack/codahale/metrics/CodaHaleMetricsModule.html#metrics\(\)) for more details.
 
+## Own registries
+
+Ratpack allows you to use your own registries, so you can report different metrics to different endpoints. You can inject the `SharedMetricRegistries` via Guice and use the `createOrGet()` method to use your own `MetricRegistry` instances.
+
 ## Reporting metrics
 
 Ratpack supports metric reporters for the following outputs:

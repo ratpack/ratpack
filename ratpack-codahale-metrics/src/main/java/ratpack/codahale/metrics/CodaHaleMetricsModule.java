@@ -16,10 +16,7 @@
 
 package ratpack.codahale.metrics;
 
-import com.codahale.metrics.ConsoleReporter;
-import com.codahale.metrics.CsvReporter;
-import com.codahale.metrics.JmxReporter;
-import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.*;
 import com.codahale.metrics.annotation.Metered;
 import com.codahale.metrics.annotation.Timed;
 import com.codahale.metrics.health.HealthCheckRegistry;
@@ -33,6 +30,7 @@ import com.google.inject.Singleton;
 import com.google.inject.matcher.Matchers;
 import com.google.inject.name.Names;
 import ratpack.codahale.metrics.internal.*;
+import ratpack.codahale.metrics.internal.SharedMetricRegistries;
 import ratpack.func.Action;
 import ratpack.guice.HandlerDecoratingModule;
 import ratpack.guice.internal.GuiceUtil;
@@ -167,6 +165,8 @@ import java.io.File;
  */
 public class CodaHaleMetricsModule extends AbstractModule implements HandlerDecoratingModule {
 
+  private static final String RATPACK_DEFAULT_REGISTRY_NAME = "RATPACK_DEFAULT";
+
   private boolean reportMetricsToJmx;
   private boolean reportMetricsToConsole;
   private File csvReportDirectory;
@@ -182,7 +182,9 @@ public class CodaHaleMetricsModule extends AbstractModule implements HandlerDeco
   @Override
   protected void configure() {
     if (isMetricsEnabled()) {
-      final MetricRegistry metricRegistry = new MetricRegistry();
+      SharedMetricRegistries registries = new SharedMetricRegistries();
+      bind(SharedMetricRegistries.class).toInstance(registries);
+      MetricRegistry metricRegistry = registries.getOrCreate(RATPACK_DEFAULT_REGISTRY_NAME);
       bind(MetricRegistry.class).toInstance(metricRegistry);
 
       MeteredMethodInterceptor meteredMethodInterceptor = new MeteredMethodInterceptor();

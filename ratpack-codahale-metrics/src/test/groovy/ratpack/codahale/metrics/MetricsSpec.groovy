@@ -24,6 +24,7 @@ import com.codahale.metrics.annotation.Timed
 import groovy.json.JsonSlurper
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
+import ratpack.codahale.metrics.internal.SharedMetricRegistries
 import ratpack.test.internal.RatpackGroovyDslSpec
 import ratpack.websocket.RecordingWebSocketClient
 import spock.util.concurrent.PollingConditions
@@ -435,5 +436,28 @@ class MetricsSpec extends RatpackGroovyDslSpec {
       blockingTimer = arguments[1]
     }
     blockingTimer.count == 2
+  }
+
+  def "can collect from different metrics registry"() {
+    SharedMetricRegistries registries
+
+    given:
+    bindings {
+      add new CodaHaleMetricsModule().metrics()
+    }
+
+    handlers { SharedMetricRegistries sharedMetricRegistries ->
+      registries = sharedMetricRegistries
+      handler("foo") {
+        sharedMetricRegistries.getOrCreate('foo').counter('foo').inc()
+        render ""
+      }
+    }
+
+    when:
+    2.times { get("foo") }
+
+    then:
+    assert registries.getOrCreate('foo').counter('foo').count == 2
   }
 }
