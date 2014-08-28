@@ -17,6 +17,7 @@
 package ratpack.test.http.internal;
 
 
+import com.google.common.collect.Lists;
 import com.google.common.net.HostAndPort;
 import io.netty.handler.codec.http.ClientCookieEncoder;
 import io.netty.handler.codec.http.Cookie;
@@ -32,7 +33,6 @@ import ratpack.test.internal.BlockingHttpClient;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -41,20 +41,16 @@ import static ratpack.util.ExceptionUtils.uncheck;
 public class DefaultTestHttpClient implements TestHttpClient {
 
   private final ApplicationUnderTest applicationUnderTest;
+  private final BlockingHttpClient client = new BlockingHttpClient();
+  private final Action<? super RequestSpec> defaultRequestConfig;
+  private final List<Cookie> cookies = Lists.newLinkedList();
+
   private Action<? super RequestSpec> request = Actions.noop();
-  private BlockingHttpClient client = new BlockingHttpClient();
   private ReceivedResponse response;
-  private Action<? super RequestSpec> requestConfigurer;
-  private List<Cookie> cookies;
 
-  public DefaultTestHttpClient(ApplicationUnderTest applicationUnderTest, Action<? super RequestSpec> requestConfigurer) {
+  public DefaultTestHttpClient(ApplicationUnderTest applicationUnderTest, Action<? super RequestSpec> defaultRequestConfig) {
     this.applicationUnderTest = applicationUnderTest;
-    this.requestConfigurer = requestConfigurer;
-
-    cookies = new ArrayList<Cookie>();
-
-    request = this.requestConfigurer;
-
+    this.defaultRequestConfig = defaultRequestConfig;
   }
 
   @Override
@@ -64,14 +60,12 @@ public class DefaultTestHttpClient implements TestHttpClient {
 
   @Override
   public void requestSpec(Action<? super RequestSpec> requestAction) {
-    if (requestAction != null) {
-      request = Actions.join(requestConfigurer, requestAction);
-    }
+    request = requestAction;
   }
 
   @Override
   public void resetRequest() {
-    request = requestConfigurer;
+    request = Actions.noop();
     cookies.clear();
   }
 
@@ -87,9 +81,7 @@ public class DefaultTestHttpClient implements TestHttpClient {
 
   @Override
   public ReceivedResponse head(String path) {
-    preRequest();
-    response = sendRequest("HEAD", path);
-    return postRequest();
+    return sendRequest("HEAD", path);
   }
 
   @Override
@@ -99,9 +91,7 @@ public class DefaultTestHttpClient implements TestHttpClient {
 
   @Override
   public ReceivedResponse options(String path) {
-    preRequest();
-    response = sendRequest("OPTIONS", path);
-    return postRequest();
+    return sendRequest("OPTIONS", path);
   }
 
   @Override
@@ -111,9 +101,7 @@ public class DefaultTestHttpClient implements TestHttpClient {
 
   @Override
   public ReceivedResponse get(String path) {
-    preRequest();
-    response = sendRequest("GET", path);
-    return postRequest();
+    return sendRequest("GET", path);
   }
 
   @Override
@@ -133,9 +121,7 @@ public class DefaultTestHttpClient implements TestHttpClient {
 
   @Override
   public ReceivedResponse post(String path) {
-    preRequest();
-    response = sendRequest("POST", path);
-    return postRequest();
+    return sendRequest("POST", path);
   }
 
   @Override
@@ -156,9 +142,7 @@ public class DefaultTestHttpClient implements TestHttpClient {
 
   @Override
   public ReceivedResponse put(String path) {
-    preRequest();
-    response = sendRequest("PUT", path);
-    return postRequest();
+    return sendRequest("PUT", path);
   }
 
   @Override
@@ -179,9 +163,7 @@ public class DefaultTestHttpClient implements TestHttpClient {
 
   @Override
   public ReceivedResponse patch(String path) {
-    preRequest();
-    response = sendRequest("PATCH", path);
-    return postRequest();
+    return sendRequest("PATCH", path);
   }
 
   @Override
@@ -201,9 +183,7 @@ public class DefaultTestHttpClient implements TestHttpClient {
 
   @Override
   public ReceivedResponse delete(String path) {
-    preRequest();
-    response = sendRequest("DELETE", path);
-    return postRequest();
+    return sendRequest("DELETE", path);
   }
 
   @Override
@@ -216,10 +196,16 @@ public class DefaultTestHttpClient implements TestHttpClient {
     return delete(path).getBody().getText();
   }
 
-  private void preRequest() {
-  }
+  private ReceivedResponse sendRequest(final String method, String path) {
+    try {
+      Action<RequestSpec> effectiveConfig = Actions.join(
+        defaultRequestConfig, request, new FinalRequestConfig(method, toAbsolute(path), cookies)
+      );
+      response = client.request(effectiveConfig);
+    } catch (Throwable throwable) {
+      throw uncheck(throwable);
+    }
 
-  private ReceivedResponse postRequest() {
     List<String> cookieHeaders = response.getHeaders().getAll("Set-Cookie");
     for (String cookieHeader : cookieHeaders) {
       Set<Cookie> decodedCookies = CookieDecoder.decode(cookieHeader);
@@ -236,26 +222,11 @@ public class DefaultTestHttpClient implements TestHttpClient {
     return response;
   }
 
-  private ReceivedResponse sendRequest(final String method, String path) {
-
-    ReceivedResponse receivedResponse = null;
-
-
-    try {
-      receivedResponse = client.request(Actions.join(request, new FinalRequestConfig(method, toAbsolute(path), cookies)));
-    } catch (Throwable throwable) {
-      throw uncheck(throwable);
-    }
-
-    response = receivedResponse;
-    return receivedResponse;
-  }
-
 
   private static class FinalRequestConfig implements Action<RequestSpec> {
-    private String method;
-    private URI path;
-    List<Cookie> cookies;
+    private final String method;
+    private final URI path;
+    private final List<Cookie> cookies;
 
     public FinalRequestConfig(String method, URI path, List<Cookie> cookies) {
       this.method = method;
