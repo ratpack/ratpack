@@ -28,15 +28,18 @@ import ratpack.exec.ExecControl;
 import ratpack.http.internal.CustomHttpResponse;
 import ratpack.http.internal.HttpHeaderConstants;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import static io.netty.handler.codec.http.HttpHeaders.isKeepAlive;
 
 public class DefaultStreamTransmitter implements StreamTransmitter {
-
+  private final AtomicBoolean transmitted;
   private final FullHttpRequest request;
   private final HttpHeaders httpHeaders;
   protected final Channel channel;
 
-  public DefaultStreamTransmitter(FullHttpRequest request, HttpHeaders httpHeaders, Channel channel) {
+  public DefaultStreamTransmitter(AtomicBoolean transmitted, FullHttpRequest request, HttpHeaders httpHeaders, Channel channel) {
+    this.transmitted = transmitted;
     this.request = request;
     this.httpHeaders = httpHeaders;
     this.channel = channel;
@@ -44,6 +47,7 @@ public class DefaultStreamTransmitter implements StreamTransmitter {
 
   @Override
   public void transmit(ExecControl execContext, Publisher<ByteBuf> stream) {
+    transmitted.set(true);
     final HttpResponse response = new CustomHttpResponse(HttpResponseStatus.OK, httpHeaders);
 
     if (isKeepAlive(request)) {
