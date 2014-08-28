@@ -25,15 +25,15 @@ This interface provides the address of the running application. Implementations 
 
 ### TestHttpClient
 
-Ratpack provides [TestHttpClient](api/ratpack/groovy/test/TestHttpClient.html) in `ratpack-test-groovy`, this is a client that makes it very simple to test status codes and responses.
+Ratpack provides [TestHttpClient](api/ratpack/test/http/TestHttpClient.html) in `ratpack-test-groovy`, this is a client that makes it very simple to test status codes and responses.
 
 Note below we use @Delegate so we just need to call `get()` in the when block instead of `client.get()`.
 
 ```language-groovy tested
 
 import ratpack.groovy.test.LocalScriptApplicationUnderTest
-import ratpack.groovy.test.TestHttpClient
-import ratpack.groovy.test.TestHttpClients
+import ratpack.test.http.TestHttpClient
+import ratpack.test.http.TestHttpClients
 import ratpack.test.ApplicationUnderTest
 
 class SiteSmokeSpec {
@@ -86,4 +86,4 @@ The [`ratpack.groovy.test.embed`](api/ratpack/groovy/test/embed/package-summary.
 This is the preferred implementation to use as it provides Guice support, flexibility and is easy to use.
 
 The [`EmbeddedApplication`](api/ratpack/test/embed/EmbeddedApplication.html) type extends the [`ApplicationUnderTest`](api/ratpack/test/ApplicationUnderTest.html) type.
-This makes them convenient to use with the [`TestHttpClient`](api/ratpack/groovy/test/TestHttpClients.html) mechanism provided by the `ratpack-groovy-test` library.
+This makes them convenient to use with the [`TestHttpClient`](api/ratpack/test/http/TestHttpClients.html) mechanism provided by the `ratpack-groovy-test` library.

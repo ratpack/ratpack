@@ -33,7 +33,7 @@ import ratpack.registry.RegistrySpec;
  * Implementations can naturally use the {@link GroovyChain} DSL in their implementation of {@link #execute()}.
  * <pre class="tested">
  * import ratpack.groovy.handling.GroovyChainAction
- * import static ratpack.groovy.test.TestHttpClients.testHttpClient
+ * import static ratpack.test.http.TestHttpClients.testHttpClient
  * import static ratpack.groovy.test.embed.EmbeddedApplications.embeddedApp
  *
  * def app = embeddedApp {

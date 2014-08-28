@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ratpack.groovy.test;
+package ratpack.test.http;
 
 import ratpack.func.Action;
 import ratpack.http.client.ReceivedResponse;

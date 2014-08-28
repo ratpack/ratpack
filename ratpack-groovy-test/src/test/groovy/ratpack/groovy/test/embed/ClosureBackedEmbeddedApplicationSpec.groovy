@@ -24,8 +24,8 @@ import ratpack.test.embed.PathBaseDirBuilder
 import spock.lang.AutoCleanup
 import spock.lang.Specification
 
-import static ratpack.groovy.test.TestHttpClients.testHttpClient
 import static ratpack.groovy.test.embed.EmbeddedApplications.embeddedApp
+import static ratpack.test.http.TestHttpClients.testHttpClient
 
 class ClosureBackedEmbeddedApplicationSpec extends Specification {
 

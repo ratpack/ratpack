@@ -29,10 +29,10 @@ import rx.exceptions.OnErrorNotImplementedException
 import rx.functions.Action0
 import rx.functions.Action1
 
-import static ratpack.groovy.test.TestHttpClients.testHttpClient
 import static ratpack.groovy.test.embed.EmbeddedApplications.embeddedApp
 import static ratpack.rx.RxRatpack.observe
 import static ratpack.rx.RxRatpack.subscriber
+import static ratpack.test.http.TestHttpClients.testHttpClient
 
 class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
 

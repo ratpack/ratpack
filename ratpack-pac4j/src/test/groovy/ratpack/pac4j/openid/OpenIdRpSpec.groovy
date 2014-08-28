@@ -20,14 +20,14 @@ import org.junit.ClassRule
 import org.junit.rules.TemporaryFolder
 import org.pac4j.openid.credentials.OpenIdCredentials
 import org.pac4j.openid.profile.google.GoogleOpenIdProfile
-import ratpack.groovy.test.TestHttpClient
-import ratpack.groovy.test.TestHttpClients
 import ratpack.http.client.RequestSpec
 import ratpack.pac4j.InjectedPac4jModule
 import ratpack.pac4j.Pac4jModule
 import ratpack.test.ApplicationUnderTest
 import ratpack.test.embed.BaseDirBuilder
 import ratpack.test.embed.PathBaseDirBuilder
+import ratpack.test.http.TestHttpClient
+import ratpack.test.http.TestHttpClients
 import spock.lang.AutoCleanup
 import spock.lang.Shared
 import spock.lang.Specification

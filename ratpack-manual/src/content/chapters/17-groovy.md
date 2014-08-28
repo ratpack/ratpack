@@ -345,8 +345,8 @@ Let's have a look at a Ratack unit test specification:
 
 ```language-groovy tested
 import ratpack.groovy.test.LocalScriptApplicationUnderTest
-import ratpack.groovy.test.TestHttpClient
-import ratpack.groovy.test.TestHttpClients
+import ratpack.test.http.TestHttpClient
+import ratpack.test.http.TestHttpClients
 import ratpack.test.ApplicationUnderTest
 
 class SiteSpec {

@@ -18,12 +18,12 @@ package ratpack.test.internal
 
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
-import ratpack.groovy.test.TestHttpClient
 import ratpack.http.client.RequestSpec
 import ratpack.test.embed.EmbeddedApplication
+import ratpack.test.http.TestHttpClient
 import spock.lang.Specification
 
-import static ratpack.groovy.test.TestHttpClients.testHttpClient
+import static ratpack.test.http.TestHttpClients.testHttpClient
 
 abstract class EmbeddedRatpackSpec extends Specification {
 

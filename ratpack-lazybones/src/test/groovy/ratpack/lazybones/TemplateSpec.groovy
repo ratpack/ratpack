@@ -18,10 +18,10 @@ package ratpack.lazybones
 
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
-import ratpack.groovy.test.TestHttpClient
-import ratpack.groovy.test.TestHttpClients
 import ratpack.lazybones.fixture.LazybonesTemplateRatpackApp
 import ratpack.lazybones.fixture.TestConfig
+import ratpack.test.http.TestHttpClient
+import ratpack.test.http.TestHttpClients
 import spock.lang.AutoCleanup
 import spock.lang.Specification
 

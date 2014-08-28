@@ -16,8 +16,8 @@
 
 package ratpack.site
 
-import ratpack.groovy.test.TestHttpClient
-import ratpack.groovy.test.TestHttpClients
+import ratpack.test.http.TestHttpClient
+import ratpack.test.http.TestHttpClients
 import spock.lang.Specification
 
 class SiteSmokeSpec extends Specification {

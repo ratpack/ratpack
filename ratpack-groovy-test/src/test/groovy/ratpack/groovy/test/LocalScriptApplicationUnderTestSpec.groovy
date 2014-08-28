@@ -18,6 +18,7 @@ package ratpack.groovy.test
 
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
+import ratpack.test.http.TestHttpClients
 import spock.lang.Specification
 
 class LocalScriptApplicationUnderTestSpec extends Specification {

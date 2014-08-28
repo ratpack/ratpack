@@ -116,7 +116,7 @@ public abstract class RxRatpack {
    * import rx.Observable
    *
    * import static ratpack.groovy.test.embed.EmbeddedApplications.embeddedApp
-   * import static ratpack.groovy.test.TestHttpClients.testHttpClient
+   * import static ratpack.test.http.TestHttpClients.testHttpClient
    *
    * class CustomErrorHandler implements ServerErrorHandler {
    *   void error(Context context, Throwable throwable) {

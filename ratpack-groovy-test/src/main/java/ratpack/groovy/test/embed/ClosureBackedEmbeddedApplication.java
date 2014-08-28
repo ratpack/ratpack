@@ -52,7 +52,7 @@ import static ratpack.groovy.internal.ClosureUtil.configureDelegateFirst;
  *
  * <pre class="tested">
  * import ratpack.test.embed.PathBaseDirBuilder
- * import ratpack.groovy.test.TestHttpClients
+ * import ratpack.test.http.TestHttpClients
  * import ratpack.session.SessionModule
  *
  * import java.nio.file.Files

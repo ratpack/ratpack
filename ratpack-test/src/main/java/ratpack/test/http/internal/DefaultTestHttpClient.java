@@ -14,22 +14,22 @@
  * limitations under the License.
  */
 
-package ratpack.groovy.test.internal;
+package ratpack.test.http.internal;
 
 
 import com.google.common.net.HostAndPort;
 import io.netty.handler.codec.http.ClientCookieEncoder;
+import io.netty.handler.codec.http.Cookie;
 import io.netty.handler.codec.http.CookieDecoder;
 import ratpack.api.Nullable;
+import ratpack.func.Action;
 import ratpack.func.Actions;
-import ratpack.groovy.test.TestHttpClient;
 import ratpack.http.client.ReceivedResponse;
 import ratpack.http.client.RequestSpec;
 import ratpack.http.internal.HttpHeaderConstants;
 import ratpack.test.ApplicationUnderTest;
-import ratpack.func.Action;
+import ratpack.test.http.TestHttpClient;
 import ratpack.test.internal.BlockingHttpClient;
-import io.netty.handler.codec.http.Cookie;
 
 import java.net.URI;
 import java.net.URISyntaxException;

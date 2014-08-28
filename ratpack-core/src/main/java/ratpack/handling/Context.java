@@ -394,7 +394,7 @@ public interface Context extends ExecControl, Registry {
    *
    * // Test (Groovy) &hellip;
    *
-   * import static ratpack.groovy.test.TestHttpClients.testHttpClient
+   * import static ratpack.test.http.TestHttpClients.testHttpClient
    * import static ratpack.groovy.test.embed.EmbeddedApplications.embeddedApp
    *
    * def app = embeddedApp {
@@ -469,7 +469,7 @@ public interface Context extends ExecControl, Registry {
    *
    * // Test (Groovy) &hellip;
    *
-   * import static ratpack.groovy.test.TestHttpClients.testHttpClient
+   * import static ratpack.test.http.TestHttpClients.testHttpClient
    * import static ratpack.groovy.test.embed.EmbeddedApplications.embeddedApp
    *
    * def app = embeddedApp {

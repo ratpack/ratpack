@@ -18,11 +18,11 @@ package ratpack.test
 
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
-import ratpack.groovy.test.TestHttpClients
 import ratpack.handling.Context
 import ratpack.handling.Handler
 import ratpack.launch.HandlerFactory
 import ratpack.launch.LaunchConfig
+import ratpack.test.http.TestHttpClients
 import spock.lang.Specification
 
 class RatpackMainApplicationUnderTestSpec extends Specification {

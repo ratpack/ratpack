@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package ratpack.groovy.test;
+package ratpack.test.http;
 
 import ratpack.api.Nullable;
-import ratpack.groovy.test.internal.DefaultTestHttpClient;
+import ratpack.func.Action;
 import ratpack.http.client.RequestSpec;
 import ratpack.test.ApplicationUnderTest;
-import ratpack.func.Action;
+import ratpack.test.http.internal.DefaultTestHttpClient;
 
 public abstract class TestHttpClients {
 

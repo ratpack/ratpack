@@ -67,7 +67,7 @@ import static ratpack.util.ExceptionUtils.uncheck;
  * // Test (Groovy) …
  *
  * import static ratpack.registry.Registries.just
- * import static ratpack.groovy.test.TestHttpClients.testHttpClient
+ * import static ratpack.test.http.TestHttpClients.testHttpClient
  * import static ratpack.groovy.test.embed.EmbeddedApplications.embeddedApp
  *
  * def app = embeddedApp {

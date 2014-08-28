@@ -48,7 +48,7 @@ import ratpack.registry.RegistrySpec;
  *
  * // Tests (Groovy) …
  *
- * import static ratpack.groovy.test.TestHttpClients.testHttpClient
+ * import static ratpack.test.http.TestHttpClients.testHttpClient
  * import static ratpack.groovy.test.embed.EmbeddedApplications.embeddedApp
  *
  * def app = embeddedApp {
