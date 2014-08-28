@@ -27,7 +27,6 @@ import ratpack.handling.Handler
 import ratpack.handling.RequestOutcome
 import ratpack.registry.Registries
 import spock.lang.Specification
-import spock.lang.Subject
 import spock.lang.Unroll
 import spock.util.concurrent.BlockingVariable
 
@@ -37,9 +36,8 @@ import java.util.concurrent.TimeUnit
 import static ratpack.groovy.Groovy.groovyHandler
 import static ratpack.handling.Handlers.chain
 
-class RequestFixtureSpec extends Specification {
+class HandlerUnitTestingSpec extends Specification {
 
-  @Subject
   GroovyRequestFixture fixture = GroovyUnitTest.requestFixture()
 
   @Delegate
@@ -259,7 +257,7 @@ class RequestFixtureSpec extends Specification {
     headers.get("X-Request-Content-Length") == "$responseBytes.length"
 
     where:
-    arguments | responseContentType | responseBytes
+    arguments                             | responseContentType        | responseBytes
     [[0, 1, 2, 4] as byte[], "image/png"] | "image/png"                | [0, 1, 2, 4] as byte[]
     ["foo", "text/plain"]                 | "text/plain;charset=UTF-8" | "foo".bytes
   }
