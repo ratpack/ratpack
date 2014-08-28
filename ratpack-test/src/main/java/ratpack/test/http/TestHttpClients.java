@@ -18,6 +18,7 @@ package ratpack.test.http;
 
 import ratpack.api.Nullable;
 import ratpack.func.Action;
+import ratpack.func.Actions;
 import ratpack.http.client.RequestSpec;
 import ratpack.test.ApplicationUnderTest;
 import ratpack.test.http.internal.DefaultTestHttpClient;
@@ -29,7 +30,7 @@ public abstract class TestHttpClients {
   }
 
   public static TestHttpClient testHttpClient(ApplicationUnderTest applicationUnderTest, @Nullable Action<? super RequestSpec> requestConfigurer) {
-    return new DefaultTestHttpClient(applicationUnderTest, requestConfigurer);
+    return new DefaultTestHttpClient(applicationUnderTest, Actions.noopIfNull(requestConfigurer));
   }
 
 }

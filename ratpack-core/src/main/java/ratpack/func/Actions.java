@@ -16,6 +16,7 @@
 
 package ratpack.func;
 
+import ratpack.api.Nullable;
 import ratpack.util.ExceptionUtils;
 
 /**
@@ -49,12 +50,18 @@ public abstract class Actions {
   }
 
   /**
-   * Returns an action that does precisely nothing.
+   * If the given action is {@code null}, returns {@link #noop()}, otherwise returns the given action.
    *
-   * @return an action that does precisely nothing
+   * @param action an action, maybe {@code null}.
+   * @param <T> the type of parameter received by the action
+   * @return the given {@code action} param if it is not {@code null}, else a {@link #noop()}.
    */
-  public static Action<Throwable> throwException() {
-    return THROW_EXCEPTION;
+  public static <T> Action<? super T> noopIfNull(@Nullable Action<T> action) {
+    if (action == null) {
+      return noop();
+    } else {
+      return action;
+    }
   }
 
   /**
@@ -74,6 +81,15 @@ public abstract class Actions {
         }
       }
     };
+  }
+
+  /**
+   * Returns an action that does precisely nothing.
+   *
+   * @return an action that does precisely nothing
+   */
+  public static Action<Throwable> throwException() {
+    return THROW_EXCEPTION;
   }
 
 

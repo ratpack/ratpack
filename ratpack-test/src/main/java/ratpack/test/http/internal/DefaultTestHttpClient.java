@@ -21,7 +21,6 @@ import com.google.common.net.HostAndPort;
 import io.netty.handler.codec.http.ClientCookieEncoder;
 import io.netty.handler.codec.http.Cookie;
 import io.netty.handler.codec.http.CookieDecoder;
-import ratpack.api.Nullable;
 import ratpack.func.Action;
 import ratpack.func.Actions;
 import ratpack.http.client.ReceivedResponse;
@@ -48,13 +47,9 @@ public class DefaultTestHttpClient implements TestHttpClient {
   private Action<? super RequestSpec> requestConfigurer;
   private List<Cookie> cookies;
 
-  public DefaultTestHttpClient(ApplicationUnderTest applicationUnderTest, @Nullable Action<? super RequestSpec> requestConfigurer) {
+  public DefaultTestHttpClient(ApplicationUnderTest applicationUnderTest, Action<? super RequestSpec> requestConfigurer) {
     this.applicationUnderTest = applicationUnderTest;
-    if (requestConfigurer != null) {
-      this.requestConfigurer = requestConfigurer;
-    } else {
-      this.requestConfigurer = Actions.noop();
-    }
+    this.requestConfigurer = requestConfigurer;
 
     cookies = new ArrayList<Cookie>();
 
