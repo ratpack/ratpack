@@ -105,29 +105,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
     this.handlers = new Handler[]{handler};
     this.return404 = Handlers.notFound();
     this.launchConfig = launchConfig;
-    RegistryBuilder registryBuilder = Registries.registry()
-      // If you update this list, update the class level javadoc on Context.
-      .add(Stopper.class, stopper)
-      .add(MimeTypes.class, new ActivationBackedMimeTypes())
-      .add(PublicAddress.class, new DefaultPublicAddress(launchConfig.getPublicAddress(), launchConfig.getSSLContext() == null ? HTTP_SCHEME : HTTPS_SCHEME))
-      .add(Redirector.class, new DefaultRedirector())
-      .add(ClientErrorHandler.class, new DefaultClientErrorHandler())
-      .add(ServerErrorHandler.class, new DefaultServerErrorHandler())
-      .add(LaunchConfig.class, launchConfig)
-      .add(FileRenderer.class, new DefaultFileRenderer())
-      .add(ServerSentEventsRenderer.class, new DefaultServerSentEventsRenderer())
-      .add(HttpResponseChunkRenderer.class, new DefaultHttpResponseChunkRenderer())
-      .add(CharSequenceRenderer.class, new DefaultCharSequenceRenderer())
-      .add(FormParser.class, FormParser.multiPart())
-      .add(FormParser.class, FormParser.urlEncoded())
-      .add(HttpClient.class, HttpClients.httpClient(launchConfig));
-
-    if (launchConfig.isHasBaseDir()) {
-      registryBuilder.add(FileSystemBinding.class, launchConfig.getBaseDir());
-    }
-
-    this.registry = registryBuilder.build();
-
+    this.registry = buildBaseRegistry(stopper, launchConfig);
     this.addResponseTimeHeader = launchConfig.isTimeResponses();
     this.compressResponses = launchConfig.isCompressResponses();
     this.compressionMinSize = launchConfig.getCompressionMinSize();
@@ -265,6 +243,30 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
 
     // Close the connection as soon as the error message is sent.
     ctx.write(response).addListener(ChannelFutureListener.CLOSE);
+  }
+
+  public static Registry buildBaseRegistry(Stopper stopper, LaunchConfig launchConfig) {
+    RegistryBuilder registryBuilder = Registries.registry()
+      .add(Stopper.class, stopper)
+      .add(MimeTypes.class, new ActivationBackedMimeTypes())
+      .add(PublicAddress.class, new DefaultPublicAddress(launchConfig.getPublicAddress(), launchConfig.getSSLContext() == null ? HTTP_SCHEME : HTTPS_SCHEME))
+      .add(Redirector.class, new DefaultRedirector())
+      .add(ClientErrorHandler.class, new DefaultClientErrorHandler())
+      .add(ServerErrorHandler.class, new DefaultServerErrorHandler())
+      .add(LaunchConfig.class, launchConfig)
+      .add(FileRenderer.class, new DefaultFileRenderer())
+      .add(ServerSentEventsRenderer.class, new DefaultServerSentEventsRenderer())
+      .add(HttpResponseChunkRenderer.class, new DefaultHttpResponseChunkRenderer())
+      .add(CharSequenceRenderer.class, new DefaultCharSequenceRenderer())
+      .add(FormParser.class, FormParser.multiPart())
+      .add(FormParser.class, FormParser.urlEncoded())
+      .add(HttpClient.class, HttpClients.httpClient(launchConfig));
+
+    if (launchConfig.isHasBaseDir()) {
+      registryBuilder.add(FileSystemBinding.class, launchConfig.getBaseDir());
+    }
+
+    return registryBuilder.build();
   }
 
 }

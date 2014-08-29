@@ -379,4 +379,16 @@ class HandlerUnitTestingSpec extends Specification {
     rendered(String) == "!"
   }
 
+  def "can redirect"() {
+    when:
+    handle {
+      redirect "/foo"
+    }
+
+    then:
+    result.sentResponse
+    result.status.code == 302
+    result.headers.location == "http://localhost:5050/foo"
+  }
+
 }

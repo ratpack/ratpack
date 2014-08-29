@@ -42,6 +42,8 @@ import ratpack.registry.Registries;
 import ratpack.registry.Registry;
 import ratpack.render.internal.RenderController;
 import ratpack.server.BindAddress;
+import ratpack.server.Stopper;
+import ratpack.server.internal.NettyHandlerAdapter;
 import ratpack.stream.internal.DefaultStreamTransmitter;
 import ratpack.stream.internal.StreamTransmitter;
 import ratpack.test.handling.HandlerTimeoutException;
@@ -137,7 +139,7 @@ public class DefaultHandlingResult implements HandlingResult {
     };
 
 
-    final Registry effectiveRegistry = Registries.join(
+    final Registry userRegistry = Registries.join(
       Registries.registry().
         add(ClientErrorHandler.class, clientErrorHandler).
         add(ServerErrorHandler.class, serverErrorHandler).
@@ -155,6 +157,15 @@ public class DefaultHandlingResult implements HandlingResult {
 
     final LaunchConfig launchConfig = launchConfigBuilder.build();
 
+    Stopper stopper = new Stopper() {
+      @Override
+      public void stop() {
+        throw new UnsupportedOperationException("stopping not supported while unit testing");
+      }
+    };
+
+    Registry baseRegistry = NettyHandlerAdapter.buildBaseRegistry(stopper, launchConfig);
+    Registry effectiveRegistry = Registries.join(baseRegistry, userRegistry);
     Response response = new DefaultResponse(status, responseHeaders, fileHttpTransmitter, streamTransmitter, launchConfig.getBufferAllocator(), committer);
     DefaultContext.ApplicationConstants applicationConstants = new DefaultContext.ApplicationConstants(launchConfig, renderController);
     requestConstants = new DefaultContext.RequestConstants(
