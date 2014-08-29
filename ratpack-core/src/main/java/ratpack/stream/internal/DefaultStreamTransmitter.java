@@ -17,95 +17,21 @@
 package ratpack.stream.internal;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
-import io.netty.handler.codec.http.*;
 import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
 import ratpack.exec.ExecControl;
-import ratpack.http.internal.CustomHttpResponse;
-import ratpack.http.internal.HttpHeaderConstants;
-
-import java.util.concurrent.atomic.AtomicBoolean;
-
-import static io.netty.handler.codec.http.HttpHeaders.isKeepAlive;
+import ratpack.file.internal.ResponseTransmitter;
 
 public class DefaultStreamTransmitter implements StreamTransmitter {
-  private final AtomicBoolean transmitted;
-  private final FullHttpRequest request;
-  private final HttpHeaders httpHeaders;
-  protected final Channel channel;
 
-  public DefaultStreamTransmitter(AtomicBoolean transmitted, FullHttpRequest request, HttpHeaders httpHeaders, Channel channel) {
-    this.transmitted = transmitted;
-    this.request = request;
-    this.httpHeaders = httpHeaders;
-    this.channel = channel;
+  private final ResponseTransmitter transmitter;
+
+  public DefaultStreamTransmitter(ResponseTransmitter transmitter) {
+    this.transmitter = transmitter;
   }
 
   @Override
-  public void transmit(ExecControl execContext, Publisher<ByteBuf> stream) {
-    transmitted.set(true);
-    final HttpResponse response = new CustomHttpResponse(HttpResponseStatus.OK, httpHeaders);
-
-    if (isKeepAlive(request)) {
-      response.headers().set(HttpHeaderConstants.CONNECTION, HttpHeaderConstants.KEEP_ALIVE);
-    }
-
-    request.content().release();
-
-    HttpResponse minimalResponse = new DefaultHttpResponse(response.getProtocolVersion(), response.getStatus());
-    minimalResponse.headers().set(response.headers());
-
-    ChannelFuture writeFuture = channel.writeAndFlush(minimalResponse);
-    writeFuture.addListener(new ChannelFutureListener() {
-      public void operationComplete(ChannelFuture future) throws Exception {
-        if (!future.isSuccess()) {
-          channel.close();
-        }
-      }
-    });
-
-    execContext.stream(stream, new Subscriber<ByteBuf>() {
-      Subscription subscription;
-
-      @Override
-      public void onSubscribe(Subscription subscription) {
-        if (this.subscription == null) {
-          this.subscription = subscription;
-          this.subscription.request(Integer.MAX_VALUE);
-        } else {
-          this.subscription.cancel();
-        }
-      }
-
-      @Override
-      public void onNext(ByteBuf element) {
-        ChannelFuture writeFuture = channel.writeAndFlush(element);
-        writeFuture.addListener(new ChannelFutureListener() {
-          public void operationComplete(ChannelFuture future) throws Exception {
-            if (!future.isSuccess()) {
-              subscription.cancel();
-              channel.close();
-            }
-          }
-        });
-      }
-
-      @Override
-      public void onComplete() {
-        ChannelFuture lastContentFuture = channel.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
-        lastContentFuture.addListener(ChannelFutureListener.CLOSE);
-      }
-
-      @Override
-      public void onError(Throwable cause) {
-        ChannelFuture lastContentFuture = channel.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
-        lastContentFuture.addListener(ChannelFutureListener.CLOSE);
-      }
-    });
+  public void transmit(final ExecControl execContext, final Publisher<ByteBuf> stream) {
+    execContext.stream(stream, transmitter.transmitter());
   }
 
 }

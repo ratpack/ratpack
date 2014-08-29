@@ -16,9 +16,12 @@
 
 package ratpack.file.internal;
 
+import org.reactivestreams.Subscriber;
 
 public interface ResponseTransmitter {
 
   void transmit(Object body);
+
+  Subscriber<Object> transmitter();
 
 }

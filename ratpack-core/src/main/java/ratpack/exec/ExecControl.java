@@ -215,6 +215,6 @@ public interface ExecControl {
    * @param subscriber a component that accepts a sequenced stream of elements provided by a Publisher
    * @param <T> the type of streamed elements
    */
-  <T> void stream(Publisher<T> publisher, Subscriber<T> subscriber);
+  <T> void stream(Publisher<T> publisher, Subscriber<? super T> subscriber);
 
 }

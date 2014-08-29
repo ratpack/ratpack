@@ -79,7 +79,7 @@ public class DefaultHandlingResult implements HandlingResult {
 
     final CountDownLatch latch = new CountDownLatch(1);
 
-    final StreamTransmitter streamTransmitter = new DefaultStreamTransmitter(null, null, null, null); //TODO: what test support is required here?
+    final StreamTransmitter streamTransmitter = new DefaultStreamTransmitter(null); //TODO: what test support is required here?
 
     final EventController<RequestOutcome> eventController = new DefaultEventController<>();
 

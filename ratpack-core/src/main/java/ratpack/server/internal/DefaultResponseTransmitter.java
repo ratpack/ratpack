@@ -20,6 +20,10 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.handler.codec.http.*;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ratpack.event.internal.DefaultEventController;
 import ratpack.file.internal.ResponseTransmitter;
 import ratpack.handling.RequestOutcome;
@@ -38,6 +42,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import static io.netty.handler.codec.http.HttpHeaders.isKeepAlive;
 
 class DefaultResponseTransmitter implements ResponseTransmitter {
+
+  private final static Logger LOGGER = LoggerFactory.getLogger(DefaultResponseTransmitter.class);
+
   private final AtomicBoolean transmitted;
   private final Channel channel;
   private final FullHttpRequest nettyRequest;
@@ -46,6 +53,9 @@ class DefaultResponseTransmitter implements ResponseTransmitter {
   private final Status responseStatus;
   private final DefaultEventController<RequestOutcome> requestOutcomeEventController;
   private final long startTime;
+  private final boolean isKeepAlive;
+
+  private long stopTime;
 
   public DefaultResponseTransmitter(AtomicBoolean transmitted, Channel channel, FullHttpRequest nettyRequest, Request ratpackRequest, HttpHeaders responseHeaders, Status responseStatus, DefaultEventController<RequestOutcome> requestOutcomeEventController, long startTime) {
     this.transmitted = transmitted;
@@ -56,57 +66,120 @@ class DefaultResponseTransmitter implements ResponseTransmitter {
     this.responseStatus = responseStatus;
     this.requestOutcomeEventController = requestOutcomeEventController;
     this.startTime = startTime;
+    this.isKeepAlive = isKeepAlive(nettyRequest);
   }
 
-  @Override
-  public void transmit(Object body) {
+  private ChannelFuture pre() {
     transmitted.set(true);
+
+    stopTime = System.nanoTime();
+
     HttpResponseStatus nettyStatus = new HttpResponseStatus(responseStatus.getCode(), responseStatus.getMessage());
     HttpResponse nettyResponse = new CustomHttpResponse(nettyStatus, responseHeaders);
     nettyRequest.release();
 
-    boolean isKeepAlive = isKeepAlive(nettyRequest);
+    if (isKeepAlive) {
+      nettyResponse.headers().set(HttpHeaderConstants.CONNECTION, HttpHeaderConstants.KEEP_ALIVE);
+    }
+
+    if (startTime > 0) {
+      nettyResponse.headers().set("X-Response-Time", NumberUtil.toMillisDiffString(startTime, stopTime));
+    }
+
     if (channel.isOpen()) {
-      if (isKeepAlive) {
-        nettyResponse.headers().set(HttpHeaderConstants.CONNECTION, HttpHeaderConstants.KEEP_ALIVE);
+      return channel.writeAndFlush(nettyResponse).addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
+    } else {
+      return null;
+    }
+  }
+
+  @Override
+  public void transmit(final Object body) {
+    ChannelFuture channelFuture = pre();
+    if (channelFuture == null) {
+      return;
+    }
+
+    channelFuture.addListener(new ChannelFutureListener() {
+      @Override
+      public void operationComplete(ChannelFuture future) throws Exception {
+        if (channel.isOpen()) {
+          channel.write(body);
+          post();
+        }
       }
+    });
+  }
 
-      long stopTime = System.nanoTime();
-      if (startTime > 0) {
-        nettyResponse.headers().set("X-Response-Time", NumberUtil.toMillisDiffString(startTime, stopTime));
-      }
+  @Override
+  public Subscriber<Object> transmitter() {
+    return new Subscriber<Object>() {
+      public Subscription subscription;
+      AtomicBoolean done = new AtomicBoolean();
 
-      ChannelFuture writeFuture = channel.writeAndFlush(nettyResponse);
+      @Override
+      public void onSubscribe(Subscription s) {
+        this.subscription = s;
 
-      writeFuture.addListener(new ChannelFutureListener() {
-        public void operationComplete(ChannelFuture future) throws Exception {
-          if (!future.isSuccess()) {
-            channel.close();
+        ChannelFuture channelFuture = pre();
+        if (channelFuture == null) {
+          s.cancel();
+          notifyListeners(channel.close());
+        } else {
+          if (!done.get()) {
+            s.request(1);
           }
         }
-      });
+      }
 
-      writeFuture = channel.write(body);
-
-      writeFuture.addListener(new ChannelFutureListener() {
-        public void operationComplete(ChannelFuture future) throws Exception {
-          if (!future.isSuccess()) {
-            channel.close();
+      @Override
+      public void onNext(Object o) {
+        channel.writeAndFlush(o).addListener(new ChannelFutureListener() {
+          @Override
+          public void operationComplete(ChannelFuture future) throws Exception {
+            if (future.isSuccess()) {
+              if (!done.get()) {
+                subscription.request(1);
+              }
+            } else {
+              subscription.cancel();
+              notifyListeners(channel.close());
+            }
           }
+        });
+      }
+
+      @Override
+      public void onError(Throwable t) {
+        LOGGER.debug("Exception thrown transmitting stream");
+        post();
+      }
+
+      @Override
+      public void onComplete() {
+        post();
+      }
+    };
+  }
+
+  private void post() {
+    ChannelFuture lastContentFuture = channel.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
+    if (!isKeepAlive) {
+      lastContentFuture.addListener(ChannelFutureListener.CLOSE);
+    }
+    notifyListeners(lastContentFuture);
+  }
+
+  private void notifyListeners(ChannelFuture future) {
+    if (requestOutcomeEventController.isHasListeners()) {
+      future.addListener(new ChannelFutureListener() {
+        @Override
+        public void operationComplete(ChannelFuture ignore) throws Exception {
+          SentResponse sentResponse = new DefaultSentResponse(new NettyHeadersBackedHeaders(responseHeaders), responseStatus);
+          RequestOutcome requestOutcome = new DefaultRequestOutcome(ratpackRequest, sentResponse, stopTime);
+          requestOutcomeEventController.fire(requestOutcome);
         }
       });
-
-      ChannelFuture lastContentFuture = channel.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
-
-      if (requestOutcomeEventController.isHasListeners()) {
-        SentResponse sentResponse = new DefaultSentResponse(new NettyHeadersBackedHeaders(responseHeaders), responseStatus);
-        RequestOutcome requestOutcome = new DefaultRequestOutcome(ratpackRequest, sentResponse, stopTime);
-        requestOutcomeEventController.fire(requestOutcome);
-      }
-
-      if (!isKeepAlive) {
-        lastContentFuture.addListener(ChannelFutureListener.CLOSE);
-      }
     }
   }
 }

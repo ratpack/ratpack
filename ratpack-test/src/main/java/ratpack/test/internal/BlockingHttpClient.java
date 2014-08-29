@@ -61,7 +61,7 @@ public class BlockingHttpClient implements AutoCloseable {
     try {
       // TODO - make this configurable
       // TODO - improve this exception (better type and add info about the request)
-      if (!requestAction.latch.await(5, TimeUnit.SECONDS)) {
+      if (!requestAction.latch.await(60, TimeUnit.SECONDS)) {
         throw new IllegalStateException("Timeout");
       }
     } catch (InterruptedException e) {

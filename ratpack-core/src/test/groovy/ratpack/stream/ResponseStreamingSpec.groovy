@@ -16,9 +16,6 @@
 
 package ratpack.stream
 
-import org.reactivestreams.Publisher
-import org.reactivestreams.Subscriber
-import org.reactivestreams.Subscription
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 import java.util.concurrent.CountDownLatch
@@ -26,6 +23,7 @@ import java.util.concurrent.CountDownLatch
 import static io.netty.handler.codec.http.HttpResponseStatus.OK
 import static ratpack.stream.HttpResponseChunks.httpResponseChunks
 import static ratpack.stream.ServerSentEvents.serverSentEvents
+import static ratpack.stream.Streams.*
 
 class ResponseStreamingSpec extends RatpackGroovyDslSpec {
 
@@ -33,7 +31,11 @@ class ResponseStreamingSpec extends RatpackGroovyDslSpec {
     given:
     handlers {
       handler {
-        render httpResponseChunks(new LargeContentPublisher())
+        render httpResponseChunks(
+          transform(
+            publisher("This is a really long string that needs to be sent chunked".toList().collate(20))
+          ) { new HttpResponseChunk(it.join("")) }
+        )
       }
     }
 
@@ -43,6 +45,7 @@ class ResponseStreamingSpec extends RatpackGroovyDslSpec {
     try {
       new OutputStreamWriter(socket.outputStream, "UTF-8").with {
         write("GET / HTTP/1.1\r\n")
+        write("Connection: close\r\n")
         write("\r\n")
         flush()
       }
@@ -59,14 +62,16 @@ class ResponseStreamingSpec extends RatpackGroovyDslSpec {
       socket.close()
     }
 
-    chunkedResponse == ['HTTP/1.1 200 OK', 'Transfer-Encoding: chunked', 'Connection: keep-alive', '', '14', 'This is a really lon', '14', 'g string that needs ', '12', 'to be sent chunked', '0', '']
+    chunkedResponse == ['HTTP/1.1 200 OK', 'Transfer-Encoding: chunked', '', '14', 'This is a really lon', '14', 'g string that needs ', '12', 'to be sent chunked', '0', '']
   }
 
   def "can send server sent event"() {
     given:
     handlers {
       handler {
-        render serverSentEvents(new SseStreamer())
+        render serverSentEvents(transform(publisher(1..3)) {
+          new ServerSentEvent(it.toString(), "add", "Event $it".toString())
+        })
       }
     }
 
@@ -81,39 +86,24 @@ class ResponseStreamingSpec extends RatpackGroovyDslSpec {
 
   def "can cancel a stream when a client drops connection"() {
     def cancelLatch = new CountDownLatch(1)
-    def onNextLatch = new CountDownLatch(1)
+    def sentLatch = new CountDownLatch(1)
 
     given:
     handlers {
       handler {
-        render serverSentEvents(new Publisher<ServerSentEvent>() {
-          @Override
-          void subscribe(Subscriber<ServerSentEvent> s) {
-            def cancelled
-            s.onSubscribe(new Subscription() {
-
-              @Override
-              void request(int n) {
-                Thread.start {
-                  (0..100).each {
-                    if (!cancelled) {
-                      s.onNext(new ServerSentEvent(it.toString(), "add", "Event $it".toString()))
-                      onNextLatch.countDown()
-                    }
-                  }
-
-                  s.onComplete()
-                }
-              }
-
-              @Override
-              void cancel() {
-                cancelled = true
-                cancelLatch.countDown()
-              }
-            })
+        render serverSentEvents(
+          onCancel(
+            wiretap(
+              transform(
+                publisher(1..1000), { new ServerSentEvent(it.toString(), "add", "Event $it".toString()) }
+              )
+            ) {
+              sentLatch.countDown()
+            }
+          ) {
+            cancelLatch.countDown()
           }
-        })
+        )
       }
     }
 
@@ -122,10 +112,10 @@ class ResponseStreamingSpec extends RatpackGroovyDslSpec {
     conn.connect()
     InputStream is = conn.inputStream
     // wait for at least one event to be sent to the subscriber
-    onNextLatch.await()
+    sentLatch.await()
     is.close()
 
-    // when the connection is closed Subsctiption#cancel should be called
+    // when the connection is closed cancel should be called
     cancelLatch.await()
   }
 }

@@ -190,7 +190,7 @@ public class DefaultContext implements Context {
   }
 
   @Override
-  public <T> void stream(Publisher<T> publisher, Subscriber<T> subscriber) {
+  public <T> void stream(Publisher<T> publisher, Subscriber<? super T> subscriber) {
     requestConstants.applicationConstants.execControl.stream(publisher, subscriber);
   }
 

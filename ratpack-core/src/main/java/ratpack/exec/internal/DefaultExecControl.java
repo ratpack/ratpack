@@ -160,15 +160,15 @@ public class DefaultExecControl implements ExecControl {
   }
 
   @Override
-  public <T> void stream(Publisher<T> publisher, final Subscriber<T> subscriber) {
+  public <T> void stream(Publisher<T> publisher, final Subscriber<? super T> subscriber) {
     final ExecutionBacking executionBacking = getBacking();
 
     publisher.subscribe(new Subscriber<T>() {
       @Override
       public void onSubscribe(final Subscription subscription) {
-        executionBacking.streamExecution(new Action<ratpack.exec.Execution>() {
+        executionBacking.streamExecution(new Action<Execution>() {
           @Override
-          public void execute(ratpack.exec.Execution execution) throws Exception {
+          public void execute(Execution execution) throws Exception {
             subscriber.onSubscribe(subscription);
           }
         });
@@ -176,9 +176,9 @@ public class DefaultExecControl implements ExecControl {
 
       @Override
       public void onNext(final T element) {
-        executionBacking.streamExecution(new Action<ratpack.exec.Execution>() {
+        executionBacking.streamExecution(new Action<Execution>() {
           @Override
-          public void execute(ratpack.exec.Execution execution) throws Exception {
+          public void execute(Execution execution) throws Exception {
             subscriber.onNext(element);
           }
         });
@@ -186,9 +186,9 @@ public class DefaultExecControl implements ExecControl {
 
       @Override
       public void onComplete() {
-        executionBacking.completeStreamExecution(new Action<ratpack.exec.Execution>() {
+        executionBacking.completeStreamExecution(new Action<Execution>() {
           @Override
-          public void execute(ratpack.exec.Execution execution) throws Exception {
+          public void execute(Execution execution) throws Exception {
             subscriber.onComplete();
           }
         });
@@ -196,9 +196,9 @@ public class DefaultExecControl implements ExecControl {
 
       @Override
       public void onError(final Throwable cause) {
-        executionBacking.completeStreamExecution(new Action<ratpack.exec.Execution>() {
+        executionBacking.completeStreamExecution(new Action<Execution>() {
           @Override
-          public void execute(ratpack.exec.Execution execution) throws Exception {
+          public void execute(Execution execution) throws Exception {
             subscriber.onError(cause);
           }
         });

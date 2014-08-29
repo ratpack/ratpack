@@ -601,7 +601,7 @@ public interface Context extends ExecControl, Registry {
   @Override
   void fork(Action<? super Execution> action, Action<? super Throwable> onError, Action<? super Execution> onComplete);
 
-  <T> void stream(Publisher<T> publisher, Subscriber<T> subscriber);
+  <T> void stream(Publisher<T> publisher, Subscriber<? super T> subscriber);
 
   /**
    * Forwards the error to the {@link ratpack.error.ClientErrorHandler} in this service.
