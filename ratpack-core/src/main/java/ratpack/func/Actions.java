@@ -92,8 +92,16 @@ public abstract class Actions {
     return THROW_EXCEPTION;
   }
 
-
-  public static <T> Action<Action<? super T>> wrap(final T t) {
+  /**
+   * Returns an action that acts on an action that acts on the given argument.
+   * <p>
+   * The returned action is effectively a callback for executing a callback for the given argument.
+   *
+   * @param t the argument to give to actions given to the returned action
+   * @param <T> the type of the argument
+   * @return an action that acts on an action that acts on the given argument
+   */
+  public static <T> Action<Action<? super T>> actionAction(final T t) {
     return new Action<Action<? super T>>() {
       @Override
       public void execute(Action<? super T> action) throws Exception {

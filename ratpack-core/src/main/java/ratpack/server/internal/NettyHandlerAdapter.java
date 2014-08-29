@@ -144,7 +144,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
     final AtomicBoolean transmitted = new AtomicBoolean(false);
 
     final ResponseTransmitter responseTransmitter = new DefaultResponseTransmitter(transmitted, channel, nettyRequest, request, nettyHeaders, responseStatus, requestOutcomeEventController, startTime);
-    final Action<Action<? super ResponseTransmitter>> responseTransmitterWrapper = Actions.wrap(responseTransmitter);
+    final Action<Action<? super ResponseTransmitter>> responseTransmitterWrapper = Actions.actionAction(responseTransmitter);
 
     final FileHttpTransmitter fileHttpTransmitter = new DefaultFileHttpTransmitter(nettyHeaders, mimeTypes,
       compressResponses, compressionMinSize, compressionMimeTypeWhiteList, compressionMimeTypeBlackList, responseTransmitterWrapper);
