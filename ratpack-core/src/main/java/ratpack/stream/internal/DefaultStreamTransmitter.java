@@ -30,7 +30,7 @@ public class DefaultStreamTransmitter implements StreamTransmitter {
   }
 
   @Override
-  public void transmit(final ExecControl execContext, final Publisher<ByteBuf> stream) {
+  public void transmit(final ExecControl execContext, final Publisher<? extends ByteBuf> stream) {
     execContext.stream(stream, transmitter.transmitter());
   }
 

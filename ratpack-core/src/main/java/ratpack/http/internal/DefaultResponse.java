@@ -271,7 +271,7 @@ public class DefaultResponse implements Response {
   }
 
   @Override
-  public void sendStream(ExecControl execContext, Publisher<ByteBuf> stream) {
+  public void sendStream(ExecControl execContext, Publisher<? extends ByteBuf> stream) {
     setCookieHeader();
     streamTransmitter.transmit(execContext, stream);
   }

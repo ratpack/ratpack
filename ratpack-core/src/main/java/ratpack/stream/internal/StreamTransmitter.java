@@ -23,6 +23,6 @@ import ratpack.exec.ExecControl;
 
 public interface StreamTransmitter {
 
-  public void transmit(ExecControl execContext, Publisher<ByteBuf> stream);
+  public void transmit(ExecControl execContext, Publisher<? extends ByteBuf> stream);
 
 }

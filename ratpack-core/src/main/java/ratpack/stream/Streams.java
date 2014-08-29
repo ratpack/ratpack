@@ -23,15 +23,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ratpack.func.Action;
 import ratpack.func.Function;
+import ratpack.stream.internal.BufferingPublisher;
+import ratpack.stream.internal.PeriodicPublisher;
 
 import java.util.Iterator;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Streams {
 
   private final static Logger LOGGER = LoggerFactory.getLogger(Streams.class);
 
-  public static <I, O> Publisher<O> transform(final Publisher<I> input, final Function<I, O> function) {
+  public static <I, O> Publisher<O> transform(final Publisher<I> input, final Function<? super I, ? extends O> function) {
     return new Publisher<O>() {
       @Override
       public void subscribe(final Subscriber<O> outSubscriber) {
@@ -78,6 +82,14 @@ public class Streams {
         });
       }
     };
+  }
+
+  public static <T> Publisher<T> buffer(final Publisher<T> publisher) {
+    return new BufferingPublisher<>(publisher);
+  }
+
+  public static <T> Publisher<T> periodically(ScheduledExecutorService executorService, final long delay, final TimeUnit timeUnit, final Function<Integer, T> producer) {
+    return buffer(new PeriodicPublisher<>(executorService, producer, delay, timeUnit));
   }
 
   public static <T> Publisher<T> wiretap(final Publisher<T> publisher, final Action<? super T> listener) {
@@ -205,6 +217,8 @@ public class Streams {
                 return;
               }
               subscriber.onNext(next);
+            } else {
+              break;
             }
           }
 
@@ -221,4 +235,5 @@ public class Streams {
 
     }
   }
+
 }

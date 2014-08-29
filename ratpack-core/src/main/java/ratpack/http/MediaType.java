@@ -31,6 +31,11 @@ public interface MediaType {
   /**
    * {@value}.
    */
+  String PLAIN_TEXT_UTF8 = "text/plain;charset=utf-8";
+
+  /**
+   * {@value}.
+   */
   String APPLICATION_JSON = "application/json";
 
   /**
@@ -46,7 +51,7 @@ public interface MediaType {
   /**
    * The type without parameters.
    * <p>
-   * Given a mime type of "application/json;charset=utf-8", returns "application/json".
+   * Given a mime type of "text/plain;charset=utf-8", returns "text/plain".
    * <p>
    * May be null to represent no content type.
    *

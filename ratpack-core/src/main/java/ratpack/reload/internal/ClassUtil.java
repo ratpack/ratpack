@@ -30,7 +30,7 @@ public class ClassUtil {
     CodeSource codeSource = clazz.getProtectionDomain().getCodeSource();
     if (codeSource != null) {
       URL location = codeSource.getLocation();
-      if (location.getProtocol().equals("file")) {
+      if (location != null && location.getProtocol().equals("file")) {
         File codeSourceFile = new File(location.getFile());
         File classFile = new File(codeSourceFile, clazz.getName().replace('.', File.separatorChar).concat(".class"));
         if (classFile.exists()) {

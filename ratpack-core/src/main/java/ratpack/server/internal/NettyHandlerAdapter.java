@@ -54,6 +54,8 @@ import ratpack.http.Response;
 import ratpack.http.client.HttpClient;
 import ratpack.http.client.HttpClients;
 import ratpack.http.internal.*;
+import ratpack.http.stream.HttpResponseChunksRenderer;
+import ratpack.http.stream.internal.DefaultHttpResponseChunksRenderer;
 import ratpack.launch.LaunchConfig;
 import ratpack.registry.Registries;
 import ratpack.registry.Registry;
@@ -64,9 +66,7 @@ import ratpack.render.internal.DefaultRenderController;
 import ratpack.server.BindAddress;
 import ratpack.server.PublicAddress;
 import ratpack.server.Stopper;
-import ratpack.stream.HttpResponseChunkRenderer;
 import ratpack.stream.ServerSentEventsRenderer;
-import ratpack.stream.internal.DefaultHttpResponseChunkRenderer;
 import ratpack.stream.internal.DefaultServerSentEventsRenderer;
 import ratpack.stream.internal.DefaultStreamTransmitter;
 import ratpack.stream.internal.StreamTransmitter;
@@ -256,7 +256,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
       .add(LaunchConfig.class, launchConfig)
       .add(FileRenderer.class, new DefaultFileRenderer())
       .add(ServerSentEventsRenderer.class, new DefaultServerSentEventsRenderer())
-      .add(HttpResponseChunkRenderer.class, new DefaultHttpResponseChunkRenderer())
+      .add(HttpResponseChunksRenderer.class, new DefaultHttpResponseChunksRenderer())
       .add(CharSequenceRenderer.class, new DefaultCharSequenceRenderer())
       .add(FormParser.class, FormParser.multiPart())
       .add(FormParser.class, FormParser.urlEncoded())

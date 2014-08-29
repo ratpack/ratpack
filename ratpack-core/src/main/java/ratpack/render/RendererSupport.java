@@ -88,6 +88,6 @@ public abstract class RendererSupport<T> implements Renderer<T> {
   /**
    * {@inheritDoc}
    */
-  abstract public void render(Context context, T object) throws Exception;
+  abstract public void render(Context context, T t) throws Exception;
 
 }

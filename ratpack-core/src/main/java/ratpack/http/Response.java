@@ -225,6 +225,6 @@ public interface Response {
   void sendFile(ExecControl execContext, BasicFileAttributes attributes, Path file) throws Exception;
 
   @NonBlocking
-  void sendStream(ExecControl execContext, Publisher<ByteBuf> stream);
+  void sendStream(ExecControl execContext, Publisher<? extends ByteBuf> stream);
 
 }

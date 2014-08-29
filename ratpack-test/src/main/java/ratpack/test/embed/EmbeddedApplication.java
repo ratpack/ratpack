@@ -19,8 +19,6 @@ package ratpack.test.embed;
 import ratpack.server.RatpackServer;
 import ratpack.test.ApplicationUnderTest;
 
-import java.io.Closeable;
-
 /**
  * An application created and used at runtime, useful for functionally testing subsets of functionality.
  * <p>
@@ -35,7 +33,7 @@ import java.io.Closeable;
  *
  * @see ratpack.test.embed.LaunchConfigEmbeddedApplication
  */
-public interface EmbeddedApplication extends ApplicationUnderTest, Closeable {
+public interface EmbeddedApplication extends ApplicationUnderTest, AutoCloseable {
 
   /**
    * The server for the application.
@@ -45,5 +43,8 @@ public interface EmbeddedApplication extends ApplicationUnderTest, Closeable {
    * @return The server for the application
    */
   RatpackServer getServer();
+
+  @Override
+  void close();
 
 }
