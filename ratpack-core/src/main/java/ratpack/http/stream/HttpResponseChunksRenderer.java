@@ -58,7 +58,7 @@ import ratpack.render.Renderer;
  *                   ScheduledExecutorService executor = context.getLaunchConfig().getExecController().getExecutor();
  *                   Publisher&lt;String&gt; strings = Streams.periodically(executor, 5, TimeUnit.MILLISECONDS, new Function&lt;Integer, String&gt;() {
  *                     public String apply(Integer i) {
- *                       if (i.intValue() < 5) {
+ *                       if (i.intValue() &lt; 5) {
  *                         return i.toString();
  *                       } else {
  *                         return null;
