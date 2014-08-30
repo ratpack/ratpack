@@ -17,6 +17,7 @@
 package ratpack.server.internal;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.reflect.TypeToken;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
@@ -51,16 +52,16 @@ import ratpack.handling.internal.DescribingHandlers;
 import ratpack.http.MutableHeaders;
 import ratpack.http.Request;
 import ratpack.http.Response;
+import ratpack.http.ResponseChunks;
 import ratpack.http.client.HttpClient;
 import ratpack.http.client.HttpClients;
 import ratpack.http.internal.*;
-import ratpack.http.stream.HttpResponseChunksRenderer;
-import ratpack.http.stream.internal.DefaultHttpResponseChunksRenderer;
 import ratpack.launch.LaunchConfig;
 import ratpack.registry.Registries;
 import ratpack.registry.Registry;
 import ratpack.registry.RegistryBuilder;
 import ratpack.render.CharSequenceRenderer;
+import ratpack.render.Renderer;
 import ratpack.render.internal.DefaultCharSequenceRenderer;
 import ratpack.render.internal.DefaultRenderController;
 import ratpack.server.BindAddress;
@@ -256,7 +257,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
       .add(LaunchConfig.class, launchConfig)
       .add(FileRenderer.class, new DefaultFileRenderer())
       .add(ServerSentEventsRenderer.class, new DefaultServerSentEventsRenderer())
-      .add(HttpResponseChunksRenderer.class, new DefaultHttpResponseChunksRenderer())
+      .add(new TypeToken<Renderer<ResponseChunks>>() {}, new DefaultHttpResponseChunksRenderer())
       .add(CharSequenceRenderer.class, new DefaultCharSequenceRenderer())
       .add(FormParser.class, FormParser.multiPart())
       .add(FormParser.class, FormParser.urlEncoded())

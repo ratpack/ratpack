@@ -26,6 +26,10 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+/**
+ * Note, this publisher does not respect back pressure.
+ * Must be used in conjunction with a throttling strategy.
+ */
 public class PeriodicPublisher<T> implements Publisher<T> {
   private final ScheduledExecutorService executorService;
   private final Function<Integer, T> producer;

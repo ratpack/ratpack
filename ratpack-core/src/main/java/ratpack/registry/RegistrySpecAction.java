@@ -16,13 +16,23 @@
 
 package ratpack.registry;
 
+import com.google.common.reflect.TypeToken;
 import ratpack.func.Action;
 import ratpack.func.Factory;
 
+/**
+ * A convenient action base class for a registry spec.
+ */
 public abstract class RegistrySpecAction implements Action<RegistrySpec>, RegistrySpec {
 
   private RegistrySpec registrySpec;
 
+  /**
+   * Returns the registry spec being delegated to.
+   *
+   * @return the registry spec being delegated to.
+   * @throws IllegalStateException if called outside of {@link #execute()}
+   */
   protected RegistrySpec getRegistrySpec() throws IllegalStateException {
     if (registrySpec == null) {
       throw new IllegalStateException("no registry spec set - RegistrySpec methods should only be called during execute()");
@@ -52,18 +62,43 @@ public abstract class RegistrySpecAction implements Action<RegistrySpec>, Regist
    */
   protected abstract void execute() throws Exception;
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public <O> RegistrySpec add(Class<? super O> type, O object) {
     return getRegistrySpec().add(type, object);
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public <O> RegistrySpec add(TypeToken<? super O> type, O object) {
+    return getRegistrySpec().add(type, object);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public RegistrySpec add(Object object) {
     return getRegistrySpec().add(object);
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public <O> RegistrySpec add(Class<O> type, Factory<? extends O> factory) {
+    return getRegistrySpec().add(type, factory);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public <O> RegistrySpec add(TypeToken<O> type, Factory<? extends O> factory) {
     return getRegistrySpec().add(type, factory);
   }
 

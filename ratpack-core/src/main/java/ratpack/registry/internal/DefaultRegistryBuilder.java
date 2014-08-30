@@ -36,7 +36,12 @@ public class DefaultRegistryBuilder implements RegistryBuilder {
 
   @Override
   public <O> RegistryBuilder add(Class<? super O> type, O object) {
-    builder.add(new DefaultRegistryEntry<>(TypeToken.of(type), object));
+    return add(TypeToken.of(type), object);
+  }
+
+  @Override
+  public <O> RegistryBuilder add(TypeToken<? super O> type, O object) {
+    builder.add(new DefaultRegistryEntry<>(type, object));
     ++size;
     return this;
   }
@@ -51,7 +56,12 @@ public class DefaultRegistryBuilder implements RegistryBuilder {
 
   @Override
   public <O> RegistryBuilder add(Class<O> type, Factory<? extends O> factory) {
-    builder.add(new LazyRegistryEntry<>(TypeToken.of(type), factory));
+    return add(TypeToken.of(type), factory);
+  }
+
+  @Override
+  public <O> RegistryBuilder add(TypeToken<O> type, Factory<? extends O> factory) {
+    builder.add(new LazyRegistryEntry<>(type, factory));
     ++size;
     return this;
   }

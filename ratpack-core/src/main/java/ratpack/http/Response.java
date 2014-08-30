@@ -206,7 +206,7 @@ public interface Response {
   /**
    * Sends the response, using the given content type and the content of the given type as the response body.
    * <p>
-   * Prefer {@link #sendFile(ratpack.exec.ExecControl, java.nio.file.attribute.BasicFileAttributes, java.nio.file.Path)} where
+   * Prefer {@link #sendFile(ExecControl, java.nio.file.attribute.BasicFileAttributes, java.nio.file.Path)} where
    * the file attributes have already been retrieved to avoid another IO operation.
    *
    * @param execContext the execution context to perform any blocking operations with
@@ -214,6 +214,7 @@ public interface Response {
    */
   @NonBlocking
   void sendFile(ExecControl execContext, Path file) throws Exception;
+
   /**
    * Sends the response, using the given content type and the content of the given type as the response body.
    *
@@ -224,7 +225,26 @@ public interface Response {
   @NonBlocking
   void sendFile(ExecControl execContext, BasicFileAttributes attributes, Path file) throws Exception;
 
+  /**
+   * Sends the response, streaming the bytes emitted by the given publisher.
+   * <p>
+   * This method does not perform chunked transfer encoding.
+   * It merely sends the raw bytes emitted by the publisher.
+   * As such, it is generally preferable to {@link ResponseChunks <i>render</i> chunks} than use this method directly.
+   * <p>
+   * The response headers will be sent as is, without the implicit addition of a {@code Content-Length} header like the other send methods.
+   * <p>
+   * Back pressure is applied to the given publisher based on the flow control of the network connection.
+   * That is, items are requested from the publisher as they are able to be sent by the underlying Netty layer.
+   * As such, the given publisher <b>MUST</b> respect back pressure.
+   * If this is not feasible, consider using {@link ratpack.stream.Streams#throttle(org.reactivestreams.Publisher)}.
+   * <p>
+   * The subscription to the publisher will occur via {@link ExecControl#stream(org.reactivestreams.Publisher, org.reactivestreams.Subscriber)}.
+   *
+   * @param execControl the execution control to subscribe to the publisher via
+   * @param stream a stream of byte bufs to be written to the response
+   */
   @NonBlocking
-  void sendStream(ExecControl execContext, Publisher<? extends ByteBuf> stream);
+  void sendStream(ExecControl execControl, Publisher<? extends ByteBuf> stream);
 
 }

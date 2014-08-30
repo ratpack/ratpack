@@ -16,6 +16,7 @@
 
 package ratpack.registry;
 
+import com.google.common.reflect.TypeToken;
 import ratpack.func.Factory;
 
 /**
@@ -52,6 +53,18 @@ public interface RegistryBuilder extends RegistrySpec {
    */
   @Override
   <O> RegistryBuilder add(Class<O> type, Factory<? extends O> factory);
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  <O> RegistryBuilder add(TypeToken<? super O> type, O object);
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  <O> RegistryBuilder add(TypeToken<O> type, Factory<? extends O> factory);
 
   /**
    * Builds the registry.

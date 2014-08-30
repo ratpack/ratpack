@@ -22,8 +22,8 @@ import ratpack.test.internal.RatpackGroovyDslSpec
 
 import java.nio.charset.Charset
 
-import static ratpack.http.stream.HttpResponseChunks.bufferChunks
-import static ratpack.http.stream.HttpResponseChunks.stringChunks
+import static ratpack.http.ResponseChunks.bufferChunks
+import static ratpack.http.ResponseChunks.stringChunks
 import static ratpack.stream.Streams.publisher
 
 class ChunkedResponseSpec extends RatpackGroovyDslSpec {

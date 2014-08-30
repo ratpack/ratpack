@@ -16,6 +16,7 @@
 
 package ratpack.registry;
 
+import com.google.common.reflect.TypeToken;
 import ratpack.func.Factory;
 
 /**
@@ -36,6 +37,16 @@ public interface RegistrySpec {
   <O> RegistrySpec add(Class<? super O> type, O object);
 
   /**
+   * Adds a registry entry that is available by the given type.
+   *
+   * @param type the public type of the registry entry
+   * @param object the actual registry entry
+   * @param <O> the public type of the registry entry
+   * @return this
+   */
+  <O> RegistrySpec add(TypeToken<? super O> type, O object);
+
+  /**
    * Adds a registry entry.
    *
    * @param object the object to add to the registry
@@ -54,5 +65,17 @@ public interface RegistrySpec {
    * @return this
    */
   <O> RegistrySpec add(Class<O> type, Factory<? extends O> factory);
+
+  /**
+   * Adds a lazily created entry to the registry.
+   * <p>
+   * The factory will be invoked exactly once, when a query is made to the registry of a compatible type of the given type.
+   *
+   * @param type the public type of the registry entry
+   * @param factory the factory for creating the object when needed
+   * @param <O> the public type of the registry entry
+   * @return this
+   */
+  <O> RegistrySpec add(TypeToken<O> type, Factory<? extends O> factory);
 
 }

@@ -35,7 +35,7 @@ class StreamsSpec extends Specification {
     def received = []
     boolean complete
     Subscription subscription
-    Streams.buffer(Streams.wiretap(Streams.publisher(1..10)) { sent << it }).subscribe(new Subscriber<Integer>() {
+    Streams.throttle(Streams.wiretap(Streams.publisher(1..10)) { sent << it }).subscribe(new Subscriber<Integer>() {
       @Override
       void onSubscribe(Subscription s) {
         subscription = s

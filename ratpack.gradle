@@ -159,7 +159,7 @@ subprojects {
     }
 
     tasks.withType(AbstractCompile) {
-      options.compilerArgs << "-Werror" << "-Xlint:all" << "-Xlint:-options"
+      options.compilerArgs << "-Werror" << "-Xlint:all" << "-Xlint:-options" << "-Xlint:-serial"
     }
 
     test {

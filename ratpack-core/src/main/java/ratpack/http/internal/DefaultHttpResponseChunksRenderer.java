@@ -14,25 +14,24 @@
  * limitations under the License.
  */
 
-package ratpack.http.stream.internal;
+package ratpack.http.internal;
 
 import io.netty.buffer.ByteBuf;
 import org.reactivestreams.Publisher;
 import ratpack.handling.Context;
 import ratpack.http.Response;
-import ratpack.http.internal.HttpHeaderConstants;
-import ratpack.http.stream.HttpResponseChunks;
-import ratpack.http.stream.HttpResponseChunksRenderer;
+import ratpack.http.ResponseChunks;
 import ratpack.render.RendererSupport;
 
-public class DefaultHttpResponseChunksRenderer extends RendererSupport<HttpResponseChunks> implements HttpResponseChunksRenderer {
+public class DefaultHttpResponseChunksRenderer extends RendererSupport<ResponseChunks> {
 
   @Override
-  public void render(Context context, HttpResponseChunks httpResponseChunks) throws Exception {
+  public void render(Context context, ResponseChunks chunks) throws Exception {
     Response response = context.getResponse();
     response.getHeaders().add(HttpHeaderConstants.TRANSFER_ENCODING, HttpHeaderConstants.CHUNKED);
-    response.getHeaders().set(HttpHeaderConstants.CONTENT_TYPE, httpResponseChunks.getContentType());
-    Publisher<? extends ByteBuf> publisher = httpResponseChunks.publisher(context.getLaunchConfig().getBufferAllocator());
+    response.getHeaders().set(HttpHeaderConstants.CONTENT_TYPE, chunks.getContentType());
+    Publisher<? extends ByteBuf> publisher = chunks.publisher(context.getLaunchConfig().getBufferAllocator());
     response.sendStream(context, publisher);
   }
+
 }
