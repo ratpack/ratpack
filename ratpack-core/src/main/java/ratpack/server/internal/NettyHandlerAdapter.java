@@ -67,8 +67,8 @@ import ratpack.render.internal.DefaultRenderController;
 import ratpack.server.BindAddress;
 import ratpack.server.PublicAddress;
 import ratpack.server.Stopper;
-import ratpack.stream.ServerSentEventsRenderer;
-import ratpack.stream.internal.DefaultServerSentEventsRenderer;
+import ratpack.sse.ServerSentEventsRenderer;
+import ratpack.sse.internal.DefaultServerSentEventsRenderer;
 import ratpack.stream.internal.DefaultStreamTransmitter;
 import ratpack.stream.internal.StreamTransmitter;
 

@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package ratpack.stream.internal;
+package ratpack.sse.internal;
 
 import io.netty.buffer.ByteBuf;
 import org.reactivestreams.Processor;
-import ratpack.stream.ServerSentEvent;
+import ratpack.sse.ServerSentEvent;
 
 public interface ServerSentEventStreamEncoder extends Processor<ServerSentEvent, ByteBuf> {
 }

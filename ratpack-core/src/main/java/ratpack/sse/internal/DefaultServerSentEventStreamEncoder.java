@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package ratpack.stream.internal;
+package ratpack.sse.internal;
 
 import org.reactivestreams.Publisher;
-import ratpack.stream.ServerSentEvent;
+import ratpack.sse.ServerSentEvent;
+import ratpack.stream.internal.StreamProcessorSupport;
 import ratpack.util.internal.IoUtils;
 
 import java.util.regex.Pattern;

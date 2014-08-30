@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ratpack.stream;
+package ratpack.sse;
 
 import ratpack.render.Renderer;
 
@@ -27,9 +27,9 @@ import ratpack.render.Renderer;
  * <pre class="tested">
  * import ratpack.handling.Handler;
  * import ratpack.handling.Context;
- * import ratpack.stream.ServerSentEvent;
+ * import ratpack.sse.ServerSentEvent;
  * import org.reactivestreams.Publisher;
- * import static ratpack.stream.ServerSentEvents.serverSentEvents
+ * import static ratpack.sse.ServerSentEvents.serverSentEvents
  *
  * public class ServerSentEventRenderingHandler implements Handler {
  *
@@ -45,7 +45,7 @@ import ratpack.render.Renderer;
  * }
  * </pre>
  *
- * @see ratpack.stream.ServerSentEvents
+ * @see ServerSentEvents
  * @see <a href="http://en.wikipedia.org/wiki/Server-sent_events" target="_blank">Wikipedia - Using server-sent events</a>
  * @see <a href="https://developer.mozilla.org/en-US/docs/Server-sent_events/Using_server-sent_events" target="_blank">MDN - Using server-sent events</a>
  */

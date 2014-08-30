@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package ratpack.stream.internal;
+package ratpack.sse.internal;
 
 import ratpack.handling.Context;
 import ratpack.http.Response;
 import ratpack.http.internal.HttpHeaderConstants;
 import ratpack.render.RendererSupport;
-import ratpack.stream.ServerSentEvents;
-import ratpack.stream.ServerSentEventsRenderer;
+import ratpack.sse.ServerSentEvents;
+import ratpack.sse.ServerSentEventsRenderer;
 
 public class DefaultServerSentEventsRenderer extends RendererSupport<ServerSentEvents> implements ServerSentEventsRenderer {
 

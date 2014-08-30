@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package ratpack.stream;
+package ratpack.sse;
 
 /**
  * Represents a Server Sent Event.
  *
- * @see ratpack.stream.ServerSentEventsRenderer
+ * @see ServerSentEventsRenderer
  */
 public class ServerSentEvent {
 

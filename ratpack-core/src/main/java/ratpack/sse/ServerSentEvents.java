@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-package ratpack.stream;
+package ratpack.sse;
 
 import org.reactivestreams.Publisher;
 
 /**
- * A factory for creating "wrapped" {@link ratpack.stream.ServerSentEvent} publishers.
+ * A factory for creating "wrapped" {@link ServerSentEvent} publishers.
  * <p>
  * Wrapping the <code>Publisher&lt;ServerSentEvent&gt;</code> allows a {@link ratpack.render.Renderer} to be used
  * which we otherwise couldn't do as Renderers don't support matching based on generic types.
  * <p>
- * See {@link ratpack.stream.ServerSentEventsRenderer} to see an example of this in action.
+ * See {@link ServerSentEventsRenderer} to see an example of this in action.
  */
 public abstract class ServerSentEvents {
 

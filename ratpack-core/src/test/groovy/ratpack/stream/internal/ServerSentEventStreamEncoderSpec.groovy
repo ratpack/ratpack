@@ -18,7 +18,8 @@ package ratpack.stream.internal
 
 import org.reactivestreams.Publisher
 import org.reactivestreams.Subscriber
-import ratpack.stream.ServerSentEvent
+import ratpack.sse.ServerSentEvent
+import ratpack.sse.internal.DefaultServerSentEventStreamEncoder
 import ratpack.test.internal.RatpackGroovyDslSpec
 import ratpack.util.internal.IoUtils
 
