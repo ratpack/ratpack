@@ -30,6 +30,7 @@ public abstract class Actions {
       throw ExceptionUtils.toException(throwable);
     }
   };
+
   private static final Action<Object> NOOP = new Action<Object>() {
     @Override
     public void execute(Object thing) throws Exception {
@@ -84,9 +85,9 @@ public abstract class Actions {
   }
 
   /**
-   * Returns an action that does precisely nothing.
+   * Returns an action that throws an exception.
    *
-   * @return an action that does precisely nothing
+   * @return an action that throws an exception
    */
   public static Action<Throwable> throwException() {
     return THROW_EXCEPTION;
