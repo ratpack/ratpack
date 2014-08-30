@@ -16,13 +16,15 @@
 
 package ratpack.test.embed;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ratpack.server.RatpackServer;
+import ratpack.test.http.TestHttpClient;
+import ratpack.test.http.TestHttpClients;
 
 import java.net.URI;
 
 import static ratpack.util.ExceptionUtils.uncheck;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * A support implementation that handles the file system and {@link ratpack.test.ApplicationUnderTest} requirements.
@@ -48,6 +50,14 @@ public abstract class EmbeddedApplicationSupport implements EmbeddedApplication 
     }
 
     return ratpackServer;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public TestHttpClient getHttpClient() {
+    return TestHttpClients.testHttpClient(this);
   }
 
   /**

@@ -35,7 +35,6 @@ class TemplateSpec extends Specification {
   @AutoCleanup
   LazybonesTemplateRatpackApp app = new LazybonesTemplateRatpackApp(projectDirectoryProvider, testConfig.templateDirectory, testConfig.localRepoUrl)
 
-  @AutoCleanup
   @Delegate
   TestHttpClient client = TestHttpClients.testHttpClient(app)
 

@@ -34,7 +34,6 @@ import ratpack.http.client.HttpClient;
 import ratpack.http.client.ReceivedResponse;
 import ratpack.http.client.RequestSpec;
 import ratpack.http.internal.*;
-import ratpack.launch.LaunchConfig;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
@@ -44,10 +43,14 @@ import static ratpack.util.ExceptionUtils.uncheck;
 
 public class DefaultHttpClient implements HttpClient {
 
-  private final LaunchConfig launchConfig;
+  private final ExecController execController;
+  private final ByteBufAllocator byteBufAllocator;
+  private final int maxContentLengthBytes;
 
-  public DefaultHttpClient(LaunchConfig launchConfig) {
-    this.launchConfig = launchConfig;
+  public DefaultHttpClient(ExecController execController, ByteBufAllocator byteBufAllocator, int maxContentLengthBytes) {
+    this.execController = execController;
+    this.byteBufAllocator = byteBufAllocator;
+    this.maxContentLengthBytes = maxContentLengthBytes;
   }
 
   @Override
@@ -69,14 +72,12 @@ public class DefaultHttpClient implements HttpClient {
   @Override
   public Promise<ReceivedResponse> request(final Action<? super RequestSpec> requestConfigurer) {
 
-    final ExecController execController = launchConfig.getExecController();
     final ExecControl execControl = execController.getControl();
     final Execution execution = execControl.getExecution();
     final EventLoopGroup eventLoopGroup = execController.getEventLoopGroup();
-    final ByteBufAllocator bufferAllocator = launchConfig.getBufferAllocator();
 
     final MutableHeaders headers = new NettyHeadersBackedMutableHeaders(new DefaultHttpHeaders());
-    final RequestSpecBacking requestSpecBacking = new RequestSpecBacking(headers, bufferAllocator);
+    final RequestSpecBacking requestSpecBacking = new RequestSpecBacking(headers, byteBufAllocator);
 
     try {
       requestConfigurer.execute(requestSpecBacking.asSpec());
@@ -116,7 +117,7 @@ public class DefaultHttpClient implements HttpClient {
               }
 
               p.addLast("codec", new HttpClientCodec());
-              p.addLast("aggregator", new HttpObjectAggregator(launchConfig.getMaxContentLength()));
+              p.addLast("aggregator", new HttpObjectAggregator(maxContentLengthBytes));
               p.addLast("handler", new SimpleChannelInboundHandler<HttpObject>() {
                 @Override
                 public void channelRead0(ChannelHandlerContext ctx, HttpObject msg) throws Exception {

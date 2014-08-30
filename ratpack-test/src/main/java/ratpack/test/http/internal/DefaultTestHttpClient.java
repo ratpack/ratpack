@@ -35,6 +35,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import static ratpack.util.ExceptionUtils.uncheck;
 
@@ -198,10 +199,8 @@ public class DefaultTestHttpClient implements TestHttpClient {
 
   private ReceivedResponse sendRequest(final String method, String path) {
     try {
-      Action<RequestSpec> effectiveConfig = Actions.join(
-        defaultRequestConfig, request, new FinalRequestConfig(method, toAbsolute(path), cookies)
-      );
-      response = client.request(effectiveConfig);
+      Action<RequestSpec> effectiveConfig = Actions.join(defaultRequestConfig, request, new FinalRequestConfig(method, toAbsolute(path), cookies));
+      response = client.request(1, TimeUnit.MINUTES, effectiveConfig);
     } catch (Throwable throwable) {
       throw uncheck(throwable);
     }
@@ -257,8 +256,4 @@ public class DefaultTestHttpClient implements TestHttpClient {
     }
   }
 
-  @Override
-  public void close() {
-    client.close();
-  }
 }

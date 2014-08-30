@@ -18,6 +18,7 @@ package ratpack.test.embed;
 
 import ratpack.server.RatpackServer;
 import ratpack.test.ApplicationUnderTest;
+import ratpack.test.http.TestHttpClient;
 
 /**
  * An application created and used at runtime, useful for functionally testing subsets of functionality.
@@ -43,6 +44,13 @@ public interface EmbeddedApplication extends ApplicationUnderTest, AutoCloseable
    * @return The server for the application
    */
   RatpackServer getServer();
+
+  /**
+   * Creates a new test HTTP client that tests this embedded application.
+   *
+   * @return a new test HTTP client that tests this embedded application
+   */
+  TestHttpClient getHttpClient();
 
   @Override
   void close();

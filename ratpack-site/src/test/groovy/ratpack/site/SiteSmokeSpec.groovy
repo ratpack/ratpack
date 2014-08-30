@@ -23,6 +23,7 @@ import spock.lang.Specification
 class SiteSmokeSpec extends Specification {
 
   def aut = new RatpackSiteUnderTest()
+
   @Delegate
   TestHttpClient client = TestHttpClients.testHttpClient(aut)
 
@@ -48,7 +49,6 @@ class SiteSmokeSpec extends Specification {
 
   def cleanup() {
     aut.stop()
-    client.close()
   }
 
 }

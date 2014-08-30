@@ -44,42 +44,41 @@ import ratpack.render.Renderer;
  *
  * public class Example {
  *
- *   static class HttpChunkRenderingHandler implements Handler {
- *     public void handle(Context context) {
- *       // simulate streaming by periodically publishing
- *       ScheduledExecutorService executor = context.getLaunchConfig().getExecController().getExecutor();
- *       Publisher&lt;String&gt; strings = Streams.periodically(executor, 5, TimeUnit.MILLISECONDS, new Function&lt;Integer, String&gt;() {
- *         public String apply(Integer i) {
- *           if (i.intValue() < 5) {
- *             return i.toString();
- *           } else {
- *             return null;
- *           }
- *         }
- *       });
- *
- *       context.render(stringChunks(strings));
- *     }
- *   }
- *
- *   public static void main(String[] args) {
- *     EmbeddedApplication application = new LaunchConfigEmbeddedApplication() {
+ *   private static EmbeddedApplication createApp() {
+ *     return new LaunchConfigEmbeddedApplication() {
  *       protected LaunchConfig createLaunchConfig() {
- *         return LaunchConfigBuilder.
- *           noBaseDir().
- *           port(0).
- *           build(new HandlerFactory() {
+ *         return LaunchConfigBuilder.noBaseDir().port(0).build(new HandlerFactory() {
  *             public Handler create(LaunchConfig launchConfig) {
- *               return new HttpChunkRenderingHandler();
+ *
+ *               // Example of streaming chunks
+ *
+ *               return new Handler() {
+ *                 public void handle(Context context) {
+ *                   // simulate streaming by periodically publishing
+ *                   ScheduledExecutorService executor = context.getLaunchConfig().getExecController().getExecutor();
+ *                   Publisher&lt;String&gt; strings = Streams.periodically(executor, 5, TimeUnit.MILLISECONDS, new Function&lt;Integer, String&gt;() {
+ *                     public String apply(Integer i) {
+ *                       if (i.intValue() < 5) {
+ *                         return i.toString();
+ *                       } else {
+ *                         return null;
+ *                       }
+ *                     }
+ *                   });
+ *
+ *                   context.render(stringChunks(strings));
+ *                 }
+ *               };
+ *
  *             }
  *           });
  *       }
  *     };
+ *   }
  *
- *     try(TestHttpClient client = TestHttpClients.testHttpClient(application)) {
- *       assert client.getText().equals("01234");
- *     } finally {
- *       application.close();
+ *   public static void main(String[] args) {
+ *     try(EmbeddedApplication app = createApp()) {
+ *       assert app.getHttpClient().getText().equals("01234");
  *     }
  *   }
  *

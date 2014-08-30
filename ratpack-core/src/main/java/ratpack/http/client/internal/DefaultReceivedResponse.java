@@ -23,7 +23,7 @@ import ratpack.http.TypedData;
 import ratpack.http.client.ReceivedResponse;
 import ratpack.http.internal.ByteBufBackedTypedData;
 
-class DefaultReceivedResponse implements ReceivedResponse {
+public class DefaultReceivedResponse implements ReceivedResponse {
 
   private final Status status;
   private final Headers headers;

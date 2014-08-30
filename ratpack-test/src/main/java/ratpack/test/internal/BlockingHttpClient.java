@@ -16,70 +16,65 @@
 
 package ratpack.test.internal;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.buffer.UnpooledByteBufAllocator;
+import ratpack.exec.ExecController;
 import ratpack.exec.Execution;
 import ratpack.exec.Result;
+import ratpack.exec.internal.DefaultExecController;
 import ratpack.func.Action;
+import ratpack.http.TypedData;
 import ratpack.http.client.HttpClients;
 import ratpack.http.client.ReceivedResponse;
 import ratpack.http.client.RequestSpec;
-import ratpack.launch.LaunchConfig;
-import ratpack.launch.LaunchConfigBuilder;
+import ratpack.http.client.internal.DefaultReceivedResponse;
+import ratpack.http.internal.ByteBufBackedTypedData;
 import ratpack.util.ExceptionUtils;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-public class BlockingHttpClient implements AutoCloseable {
+public class BlockingHttpClient {
 
-  private final LaunchConfig launchConfig;
+  public ReceivedResponse request(long timeout, TimeUnit timeUnit, Action<? super RequestSpec> action) throws Throwable {
+    try (ExecController execController = new DefaultExecController(2)) {
+      final RequestAction requestAction = new RequestAction(execController, action);
+      execController.getControl().fork(new Action<Execution>() {
+        @Override
+        public void execute(Execution execution) throws Exception {
+          requestAction.execute(execution);
+        }
+      }, new Action<Throwable>() {
+        @Override
+        public void execute(Throwable throwable) throws Exception {
+          requestAction.setResult(Result.<ReceivedResponse>failure(throwable));
+        }
+      });
 
-  public BlockingHttpClient() {
-    //TODO allow this to be configured
-    this.launchConfig = LaunchConfigBuilder
-      .noBaseDir()
-      .bufferAllocator(UnpooledByteBufAllocator.DEFAULT)
-      .maxContentLength(Integer.MAX_VALUE)
-      .build();
-  }
-
-  public ReceivedResponse request(Action<? super RequestSpec> action) throws Throwable {
-    final RequestAction requestAction = new RequestAction(launchConfig, action);
-
-    launchConfig.getExecController().getControl().fork(new Action<Execution>() {
-      @Override
-      public void execute(Execution execution) throws Exception {
-        requestAction.execute(execution);
+      try {
+        // TODO - make this configurable
+        // TODO - improve this exception (better type and add info about the request)
+        if (!requestAction.latch.await(timeout, timeUnit)) {
+          throw new IllegalStateException("Timeout");
+        }
+      } catch (InterruptedException e) {
+        throw ExceptionUtils.uncheck(e);
       }
-    }, new Action<Throwable>() {
-      @Override
-      public void execute(Throwable throwable) throws Exception {
-        requestAction.setResult(Result.<ReceivedResponse>failure(throwable));
-      }
-    });
 
-    try {
-      // TODO - make this configurable
-      // TODO - improve this exception (better type and add info about the request)
-      if (!requestAction.latch.await(60, TimeUnit.SECONDS)) {
-        throw new IllegalStateException("Timeout");
-      }
-    } catch (InterruptedException e) {
-      throw ExceptionUtils.uncheck(e);
+      return requestAction.result.getValueOrThrow();
     }
-
-    return requestAction.result.getValueOrThrow();
   }
 
   private static class RequestAction implements Action<Execution> {
-    private final LaunchConfig launchConfig;
+    private final ExecController execController;
     private final Action<? super RequestSpec> action;
 
     private final CountDownLatch latch = new CountDownLatch(1);
     private Result<ReceivedResponse> result;
 
-    private RequestAction(LaunchConfig launchConfig, Action<? super RequestSpec> action) {
-      this.launchConfig = launchConfig;
+    private RequestAction(ExecController execController, Action<? super RequestSpec> action) {
+      this.execController = execController;
       this.action = action;
     }
 
@@ -90,19 +85,22 @@ public class BlockingHttpClient implements AutoCloseable {
 
     @Override
     public void execute(Execution execution) throws Exception {
-      HttpClients.httpClient(launchConfig).request(action)
+      HttpClients.httpClient(execController, UnpooledByteBufAllocator.DEFAULT, Integer.MAX_VALUE).request(action)
         .then(new Action<ReceivedResponse>() {
           @Override
           public void execute(ReceivedResponse response) throws Exception {
-            response.getBody().getBuffer().retain();
-            setResult(Result.success(response));
+            TypedData responseBody = response.getBody();
+            ByteBuf responseBodyBuffer = responseBody.getBuffer();
+            responseBodyBuffer = Unpooled.unreleasableBuffer(responseBodyBuffer.retain());
+            ReceivedResponse copiedResponse = new DefaultReceivedResponse(
+              response.getStatus(),
+              response.getHeaders(),
+              new ByteBufBackedTypedData(responseBodyBuffer, responseBody.getContentType())
+            );
+            setResult(Result.success(copiedResponse));
           }
         });
     }
   }
 
-  @Override
-  public void close() {
-    launchConfig.getExecController().close();
-  }
 }

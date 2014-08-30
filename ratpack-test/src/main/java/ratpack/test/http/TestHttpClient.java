@@ -21,7 +21,7 @@ import ratpack.http.client.ReceivedResponse;
 import ratpack.http.client.RequestSpec;
 import ratpack.test.ApplicationUnderTest;
 
-public interface TestHttpClient extends AutoCloseable {
+public interface TestHttpClient {
 
   ApplicationUnderTest getApplicationUnderTest();
 
@@ -79,5 +79,4 @@ public interface TestHttpClient extends AutoCloseable {
 
   String deleteText(String path);
 
-  void close();
 }

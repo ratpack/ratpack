@@ -45,7 +45,6 @@ abstract class EmbeddedRatpackSpec extends Specification {
 
   def cleanup() {
     application.server.stop()
-    client.close()
   }
 
 }
