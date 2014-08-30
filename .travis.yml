@@ -13,7 +13,7 @@ cache:
   directories: 
   - $HOME/.gradle
 jdk: 
-- oraclejdk7
+- openjdk7
 - oraclejdk8
 env: 
   global: 
