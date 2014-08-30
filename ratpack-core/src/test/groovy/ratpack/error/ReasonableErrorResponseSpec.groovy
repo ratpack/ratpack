@@ -20,7 +20,6 @@ import ratpack.exec.ExecInterceptor
 import ratpack.func.Action
 import ratpack.handling.Context
 import ratpack.test.internal.RatpackGroovyDslSpec
-import spock.lang.Ignore
 
 class ReasonableErrorResponseSpec extends RatpackGroovyDslSpec {
 
@@ -72,7 +71,6 @@ class ReasonableErrorResponseSpec extends RatpackGroovyDslSpec {
     response.statusCode == 500
   }
 
-  @Ignore
   def "promise throws Error subclass error"() {
     given:
     def e = new Error("Error")

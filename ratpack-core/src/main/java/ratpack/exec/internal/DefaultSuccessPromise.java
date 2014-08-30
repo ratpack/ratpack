@@ -84,7 +84,7 @@ public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
                 });
               }
             });
-          } catch (final Exception e) {
+          } catch (final Throwable e) {
             if (!fulfilled.compareAndSet(false, true)) {
               LOGGER.error("", new OverlappingExecutionException("exception thrown after promise was fulfilled", e));
             } else {
