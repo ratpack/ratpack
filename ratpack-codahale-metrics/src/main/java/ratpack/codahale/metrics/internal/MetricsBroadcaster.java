@@ -16,8 +16,6 @@
 
 package ratpack.codahale.metrics.internal;
 
-import ratpack.stream.MulticastPublisher;
-
 /**
  * A message broadcaster for sending metrics to its subscribers.
  */
