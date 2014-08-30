@@ -16,8 +16,8 @@
 
 package ratpack.render;
 
+import com.google.common.reflect.TypeToken;
 import ratpack.handling.Context;
-import ratpack.util.internal.Types;
 
 /**
  * A {@link Renderer} super class that provides a {@link #getType()} implementation based on the generic type of the impl.
@@ -54,25 +54,16 @@ public abstract class RendererSupport<T> implements Renderer<T> {
 
   private final Class<T> type;
 
-  /**
-   * Constructor.
-   * <p>
-   * Determines the value for {@link #getType()} by reflecting for {@code T}
-   */
   protected RendererSupport() {
-    this(RendererSupport.class);
-  }
+    TypeToken<T> typeToken = new TypeToken<T>(getClass()) {
+    };
 
-  /**
-   * Constructor.
-   * <p>
-   * Only necessary for abstract implementations that propagate the generic type {@code T}.
-   * Almost all implementations should use the {@link #RendererSupport()}  default constructor}.
-   *
-   * @param type the most specialised parent type of {@code this} that does not have a concrete type for {@code T}
-   */
-  protected RendererSupport(Class<?> type) {
-    this.type = Types.findImplParameterTypeAtIndex(getClass(), type, 0);
+    if (typeToken.getType() instanceof Class) {
+      @SuppressWarnings("unchecked") Class<T> rawType = (Class<T>) typeToken.getRawType();
+      this.type = rawType;
+    } else {
+      throw new IllegalArgumentException("Type parameter T of RendererSupport must be a Class");
+    }
   }
 
   /**

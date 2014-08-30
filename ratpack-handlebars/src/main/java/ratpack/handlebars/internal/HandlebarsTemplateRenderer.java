@@ -25,7 +25,7 @@ import ratpack.render.RendererSupport;
 import javax.inject.Inject;
 import java.io.IOException;
 
-public class HandlebarsTemplateRenderer extends RendererSupport<Template<?>> {
+public class HandlebarsTemplateRenderer extends RendererSupport<Template> {
 
   private final Handlebars handlebars;
 
@@ -35,7 +35,7 @@ public class HandlebarsTemplateRenderer extends RendererSupport<Template<?>> {
   }
 
   @Override
-  public void render(Context context, Template<?> template) {
+  public void render(Context context, Template template) {
     String contentType = template.getContentType();
     contentType = contentType == null ? context.get(MimeTypes.class).getContentType(template.getName()) : contentType;
     try {

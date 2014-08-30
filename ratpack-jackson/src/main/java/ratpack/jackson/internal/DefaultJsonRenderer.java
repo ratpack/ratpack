@@ -28,7 +28,7 @@ import ratpack.render.RendererSupport;
 
 import javax.inject.Inject;
 
-public class DefaultJsonRenderer extends RendererSupport<JsonRender<?>> implements JsonRenderer {
+public class DefaultJsonRenderer extends RendererSupport<JsonRender> implements JsonRenderer {
 
   private final ObjectWriter defaultObjectWriter;
 
@@ -38,7 +38,7 @@ public class DefaultJsonRenderer extends RendererSupport<JsonRender<?>> implemen
   }
 
   @Override
-  public void render(final Context context, final JsonRender<?> object) throws Exception {
+  public void render(final Context context, final JsonRender object) throws Exception {
     context.byContent(new Action<ByContentSpec>() {
       @Override
       public void execute(ByContentSpec byContentSpec) throws Exception {

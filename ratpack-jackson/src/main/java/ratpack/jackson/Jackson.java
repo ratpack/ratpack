@@ -82,11 +82,10 @@ public abstract class Jackson {
    * Jackson rendering of the given object, using the default object writer.
    *
    * @param object The object to render as JSON.
-   * @param <T> The type of the object to render as JSON.
    * @return A JSON type wrapper for the given object.
    */
-  public static <T> JsonRender<T> json(T object) {
-    return new DefaultJsonRender<>(object, null);
+  public static JsonRender json(Object object) {
+    return new DefaultJsonRender(object, null);
   }
 
   /**
@@ -94,11 +93,10 @@ public abstract class Jackson {
    *
    * @param object The object to render as JSON.
    * @param objectWriter The writer to use to render the object as JSON. If null, the default object writer will be used by the renderer.
-   * @param <T> The type of the object to render as JSON.
    * @return A JSON type wrapper for the given object.
    */
-  public static <T> JsonRender<T> json(T object, @Nullable ObjectWriter objectWriter) {
-    return new DefaultJsonRender<>(object, objectWriter);
+  public static JsonRender json(Object object, @Nullable ObjectWriter objectWriter) {
+    return new DefaultJsonRender(object, objectWriter);
   }
 
   public static Parse<JsonNode, JsonParseOpts> jsonNode() {

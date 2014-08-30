@@ -29,13 +29,6 @@ import ratpack.render.RendererSupport;
 public abstract class GroovyRendererSupport<T> extends RendererSupport<T> {
 
   /**
-   * Constructor.
-   */
-  protected GroovyRendererSupport() {
-    super(GroovyRendererSupport.class);
-  }
-
-  /**
    * Delegates to {@link #render(GroovyContext, Object)}, wrapping the given {@code context} in a {@link GroovyContext}.
    *
    * @param context The context

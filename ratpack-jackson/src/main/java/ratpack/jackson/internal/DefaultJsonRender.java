@@ -20,17 +20,17 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 import ratpack.api.Nullable;
 import ratpack.jackson.JsonRender;
 
-public class DefaultJsonRender<T> implements JsonRender<T> {
+public class DefaultJsonRender implements JsonRender {
 
-  private final T object;
+  private final Object object;
   private final ObjectWriter objectWriter;
 
-  public DefaultJsonRender(T object, @Nullable ObjectWriter objectWriter) {
+  public DefaultJsonRender(Object object, @Nullable ObjectWriter objectWriter) {
     this.object = object;
     this.objectWriter = objectWriter;
   }
 
-  public T getObject() {
+  public Object getObject() {
     return object;
   }
 

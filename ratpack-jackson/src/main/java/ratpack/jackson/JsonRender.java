@@ -19,14 +19,14 @@ package ratpack.jackson;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import ratpack.api.Nullable;
 
-public interface JsonRender<T> {
+public interface JsonRender {
 
   /**
    * The underlying object to be rendered.
    *
    * @return The underlying object to be rendered.
    */
-  public T getObject();
+  public Object getObject();
 
   /**
    * The object writer to use to render the object as JSON.

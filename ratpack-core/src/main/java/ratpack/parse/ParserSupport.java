@@ -16,7 +16,7 @@
 
 package ratpack.parse;
 
-import static ratpack.util.internal.Types.findImplParameterTypeAtIndex;
+import com.google.common.reflect.TypeToken;
 
 /**
  * A convenience superclass for {@link Parser} implementations.
@@ -115,7 +115,16 @@ abstract public class ParserSupport<O> implements Parser<O> {
    */
   protected ParserSupport(String contentType) {
     this.contentType = contentType;
-    this.optsType = findImplParameterTypeAtIndex(getClass(), ParserSupport.class, 0);
+
+    TypeToken<O> typeToken = new TypeToken<O>(getClass()) {
+    };
+
+    if (typeToken.getType() instanceof Class) {
+      @SuppressWarnings("unchecked") Class<O> rawType = (Class<O>) typeToken.getRawType();
+      this.optsType = rawType;
+    } else {
+      throw new IllegalArgumentException("Type parameter O of ParserSupport must be a Class");
+    }
   }
 
   /**

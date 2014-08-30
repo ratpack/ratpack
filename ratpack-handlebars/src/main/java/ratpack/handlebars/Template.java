@@ -18,10 +18,10 @@ package ratpack.handlebars;
 
 import java.util.Map;
 
-public class Template<T> {
+public class Template {
 
   private final String name;
-  private final T model;
+  private final Object model;
 
   private final String contentType;
 
@@ -29,7 +29,7 @@ public class Template<T> {
     return name;
   }
 
-  public T getModel() {
+  public Object getModel() {
     return model;
   }
 
@@ -37,29 +37,29 @@ public class Template<T> {
     return contentType;
   }
 
-  private Template(String name, T model, String contentType) {
+  private Template(String name, Object model, String contentType) {
     this.name = name;
     this.model = model;
     this.contentType = contentType;
   }
 
-  public static Template<Object> handlebarsTemplate(String name) {
+  public static Template handlebarsTemplate(String name) {
     return handlebarsTemplate(name, null);
   }
 
-  public static Template<Map<String, ?>> handlebarsTemplate(Map<String, ?> model, String name) {
+  public static Template handlebarsTemplate(Map<String, ?> model, String name) {
     return handlebarsTemplate(model, name, null);
   }
 
-  public static Template<Map<String, ?>> handlebarsTemplate(Map<String, ?> model, String name, String contentType) {
-    return new Template<Map<String, ?>>(name, model, contentType);
+  public static Template handlebarsTemplate(Map<String, ?> model, String name, String contentType) {
+    return new Template(name, model, contentType);
   }
 
-  public static <T> Template<T> handlebarsTemplate(String name, T model) {
+  public static Template handlebarsTemplate(String name, Object model) {
     return handlebarsTemplate(name, model, null);
   }
 
-  public static <T> Template<T> handlebarsTemplate(String name, T model, String contentType) {
-    return new Template<>(name, model, contentType);
+  public static Template handlebarsTemplate(String name, Object model, String contentType) {
+    return new Template(name, model, contentType);
   }
 }

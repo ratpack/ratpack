@@ -21,6 +21,6 @@ import ratpack.render.Renderer;
 /**
  * Renders {@link JsonRender} objects.
  */
-public interface JsonRenderer extends Renderer<JsonRender<?>> {
+public interface JsonRenderer extends Renderer<JsonRender> {
 
 }
