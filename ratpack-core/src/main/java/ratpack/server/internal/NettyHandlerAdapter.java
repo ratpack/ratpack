@@ -17,7 +17,6 @@
 package ratpack.server.internal;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.common.reflect.TypeToken;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
@@ -52,7 +51,6 @@ import ratpack.handling.internal.DescribingHandlers;
 import ratpack.http.MutableHeaders;
 import ratpack.http.Request;
 import ratpack.http.Response;
-import ratpack.http.ResponseChunks;
 import ratpack.http.client.HttpClient;
 import ratpack.http.client.HttpClients;
 import ratpack.http.internal.*;
@@ -61,14 +59,12 @@ import ratpack.registry.Registries;
 import ratpack.registry.Registry;
 import ratpack.registry.RegistryBuilder;
 import ratpack.render.CharSequenceRenderer;
-import ratpack.render.Renderer;
 import ratpack.render.internal.DefaultCharSequenceRenderer;
 import ratpack.render.internal.DefaultRenderController;
 import ratpack.server.BindAddress;
 import ratpack.server.PublicAddress;
 import ratpack.server.Stopper;
-import ratpack.sse.ServerSentEventsRenderer;
-import ratpack.sse.internal.DefaultServerSentEventsRenderer;
+import ratpack.sse.internal.ServerSentEventsRenderer;
 import ratpack.stream.internal.DefaultStreamTransmitter;
 import ratpack.stream.internal.StreamTransmitter;
 
@@ -256,8 +252,8 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
       .add(ServerErrorHandler.class, new DefaultServerErrorHandler())
       .add(LaunchConfig.class, launchConfig)
       .add(FileRenderer.class, new DefaultFileRenderer())
-      .add(ServerSentEventsRenderer.class, new DefaultServerSentEventsRenderer())
-      .add(new TypeToken<Renderer<ResponseChunks>>() {}, new DefaultHttpResponseChunksRenderer())
+      .add(ServerSentEventsRenderer.TYPE, new ServerSentEventsRenderer(launchConfig.getBufferAllocator()))
+      .add(HttpResponseChunksRenderer.TYPE, new HttpResponseChunksRenderer())
       .add(CharSequenceRenderer.class, new DefaultCharSequenceRenderer())
       .add(FormParser.class, FormParser.multiPart())
       .add(FormParser.class, FormParser.urlEncoded())

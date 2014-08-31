@@ -19,7 +19,7 @@ package ratpack.sse;
 /**
  * Represents a Server Sent Event.
  *
- * @see ServerSentEventsRenderer
+ * @see ServerSentEvents
  */
 public class ServerSentEvent {
 

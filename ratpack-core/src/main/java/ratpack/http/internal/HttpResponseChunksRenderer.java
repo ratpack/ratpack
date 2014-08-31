@@ -16,14 +16,18 @@
 
 package ratpack.http.internal;
 
+import com.google.common.reflect.TypeToken;
 import io.netty.buffer.ByteBuf;
 import org.reactivestreams.Publisher;
 import ratpack.handling.Context;
 import ratpack.http.Response;
 import ratpack.http.ResponseChunks;
+import ratpack.render.Renderer;
 import ratpack.render.RendererSupport;
 
-public class DefaultHttpResponseChunksRenderer extends RendererSupport<ResponseChunks> {
+public class HttpResponseChunksRenderer extends RendererSupport<ResponseChunks> {
+
+  public static final TypeToken<Renderer<ResponseChunks>> TYPE = new TypeToken<Renderer<ResponseChunks>>() {};
 
   @Override
   public void render(Context context, ResponseChunks chunks) throws Exception {

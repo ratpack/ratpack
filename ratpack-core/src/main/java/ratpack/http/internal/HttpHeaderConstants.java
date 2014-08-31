@@ -35,8 +35,9 @@ public abstract class HttpHeaderConstants {
   public static final CharSequence PRAGMA = HttpHeaders.newEntity(HttpHeaders.Names.PRAGMA);
   public static final CharSequence NO_CACHE = HttpHeaders.newEntity(HttpHeaders.Values.NO_CACHE);
   public static final CharSequence NO_STORE = HttpHeaders.newEntity(HttpHeaders.Values.NO_STORE);
-  public static final CharSequence MUST_REVALIDATE = HttpHeaders.newEntity(HttpHeaders.Values.MUST_REVALIDATE);
   public static final CharSequence MAX_AGE = HttpHeaders.newEntity(HttpHeaders.Values.MAX_AGE);
+  public static final CharSequence MUST_REVALIDATE = HttpHeaders.newEntity(HttpHeaders.Values.MUST_REVALIDATE);
+  public static final CharSequence NO_CACHE_FULL = HttpHeaders.newEntity(NO_CACHE + ", " + NO_STORE + ", " + MAX_AGE + "=0, " + MUST_REVALIDATE);
   public static final CharSequence HOST = HttpHeaders.newEntity(HttpHeaders.Names.HOST);
   public static final CharSequence COOKIE = HttpHeaders.newEntity(HttpHeaders.Names.COOKIE);
   public static final CharSequence X_FORWARDED_HOST = HttpHeaders.newEntity("X-Forwarded-Host");

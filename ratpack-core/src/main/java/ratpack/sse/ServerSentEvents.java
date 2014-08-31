@@ -19,25 +19,49 @@ package ratpack.sse;
 import org.reactivestreams.Publisher;
 
 /**
- * A factory for creating "wrapped" {@link ServerSentEvent} publishers.
+ * A renderer for streaming Server Sent Events.
  * <p>
- * Wrapping the <code>Publisher&lt;ServerSentEvent&gt;</code> allows a {@link ratpack.render.Renderer} to be used
- * which we otherwise couldn't do as Renderers don't support matching based on generic types.
+ * An implementation of this is <b>always</b> provided by Ratpack core.
  * <p>
- * See {@link ServerSentEventsRenderer} to see an example of this in action.
+ * Example usage:
+ * <pre class="tested">
+ * import ratpack.handling.Handler;
+ * import ratpack.handling.Context;
+ * import ratpack.sse.ServerSentEvent;
+ * import org.reactivestreams.Publisher;
+ * import static ratpack.sse.ServerSentEvents.serverSentEvents
+ *
+ * public class ServerSentEventRenderingHandler implements Handler {
+ *
+ *   private Publisher&lt;ServerSentEvent&gt; chunkStream;
+ *
+ *   public ServerSentEventRenderingHandler(Publisher&lt;ServerSentEvent&gt; chunkStream) {
+ *     this.chunkStream = chunkStream;
+ *   }
+ *
+ *   public void handle(Context context) {
+ *     context.render(serverSentEvents(chunkStream));
+ *   }
+ * }
+ * </pre>
+ *
+ * @see ServerSentEvents
+ * @see <a href="http://en.wikipedia.org/wiki/Server-sent_events" target="_blank">Wikipedia - Using server-sent events</a>
+ * @see <a href="https://developer.mozilla.org/en-US/docs/Server-sent_events/Using_server-sent_events" target="_blank">MDN - Using server-sent events</a>
  */
-public abstract class ServerSentEvents {
+public class ServerSentEvents {
 
-  public static ServerSentEvents serverSentEvents(final Publisher<ServerSentEvent> publisher) {
-    return new ServerSentEvents() {
-      @Override
-      public Publisher<ServerSentEvent> getPublisher() {
-        return publisher;
-      }
-    };
+  public static ServerSentEvents serverSentEvents(final Publisher<? extends ServerSentEvent> publisher) {
+    return new ServerSentEvents(publisher);
   }
 
-  private ServerSentEvents() {}
+  private final Publisher<? extends ServerSentEvent> publisher;
 
-  public abstract Publisher<ServerSentEvent> getPublisher();
+  private ServerSentEvents(Publisher<? extends ServerSentEvent> publisher) {
+    this.publisher = publisher;
+  }
+
+  public Publisher<? extends ServerSentEvent> getPublisher() {
+    return publisher;
+  }
 }

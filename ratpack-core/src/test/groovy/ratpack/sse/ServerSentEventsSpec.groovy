@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package ratpack.stream
+package ratpack.sse
 
-import ratpack.sse.ServerSentEvent
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 import java.util.concurrent.CountDownLatch
@@ -25,7 +24,7 @@ import static io.netty.handler.codec.http.HttpResponseStatus.OK
 import static ratpack.sse.ServerSentEvents.serverSentEvents
 import static ratpack.stream.Streams.*
 
-class ResponseStreamingSpec extends RatpackGroovyDslSpec {
+class ServerSentEventsSpec extends RatpackGroovyDslSpec {
 
   def "can send server sent event"() {
     given:

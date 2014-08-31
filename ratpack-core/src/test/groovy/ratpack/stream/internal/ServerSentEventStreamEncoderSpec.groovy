@@ -16,50 +16,29 @@
 
 package ratpack.stream.internal
 
-import org.reactivestreams.Publisher
-import org.reactivestreams.Subscriber
+import io.netty.buffer.UnpooledByteBufAllocator
 import ratpack.sse.ServerSentEvent
-import ratpack.sse.internal.DefaultServerSentEventStreamEncoder
+import ratpack.sse.internal.ServerSentEventsRenderer
 import ratpack.test.internal.RatpackGroovyDslSpec
 import ratpack.util.internal.IoUtils
 
 class ServerSentEventStreamEncoderSpec extends RatpackGroovyDslSpec {
 
-  def publisher = Mock(Publisher)
-  def subscriber = Mock(Subscriber)
-  def encoder = new DefaultServerSentEventStreamEncoder(publisher)
-
-  def setup() {
-    encoder.subscribe(subscriber)
-  }
+  def encoder = new ServerSentEventsRenderer.Encoder(UnpooledByteBufAllocator.DEFAULT)
 
   def "can encode valid server sent events"() {
-    when:
-    encoder.onNext(sse)
-
-    then:
-    1 * subscriber.onNext({
-      IoUtils.utf8String(it) == expectedEncoding
-    })
+    expect:
+    IoUtils.utf8String(encoder.apply(sse)) == expectedEncoding
 
     where:
-    sse                                                 | expectedEncoding
-    new ServerSentEvent("fooId", "fooType", "fooData")  | "event: fooType\ndata: fooData\nid: fooId\n\n"
-    new ServerSentEvent(null, "fooType", "fooData")     | "event: fooType\ndata: fooData\n\n"
-    new ServerSentEvent(null, null, "fooData")          | "data: fooData\n\n"
-    new ServerSentEvent("fooId", null, "fooData")       | "data: fooData\nid: fooId\n\n"
-    new ServerSentEvent("fooId", null, null)            | "id: fooId\n\n"
-    new ServerSentEvent("fooId", "fooType", null)       | "event: fooType\nid: fooId\n\n"
-    new ServerSentEvent(null, "fooType", null)          | "event: fooType\n\n"
-
+    sse                                                | expectedEncoding
+    new ServerSentEvent("fooId", "fooType", "fooData") | "event: fooType\ndata: fooData\nid: fooId\n\n"
+    new ServerSentEvent(null, "fooType", "fooData")    | "event: fooType\ndata: fooData\n\n"
+    new ServerSentEvent(null, null, "fooData")         | "data: fooData\n\n"
+    new ServerSentEvent("fooId", null, "fooData")      | "data: fooData\nid: fooId\n\n"
+    new ServerSentEvent("fooId", null, null)           | "id: fooId\n\n"
+    new ServerSentEvent("fooId", "fooType", null)      | "event: fooType\nid: fooId\n\n"
+    new ServerSentEvent(null, "fooType", null)         | "event: fooType\n\n"
   }
 
-  def "throws exception if server sent event has no fields set"() {
-    when:
-    encoder.onNext(new ServerSentEvent(null, null, null))
-
-    then:
-    def ex = thrown(IllegalArgumentException)
-    ex.message == 'You must supply at least one of evenId, eventType, eventData'
-  }
 }
