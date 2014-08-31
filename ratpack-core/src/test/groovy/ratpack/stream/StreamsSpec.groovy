@@ -15,7 +15,6 @@
  */
 
 
-
 package ratpack.stream
 
 import org.reactivestreams.Subscriber
@@ -27,6 +26,8 @@ import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.ScheduledFuture
 import java.util.concurrent.TimeUnit
 
+import static ratpack.stream.Streams.*
+
 class StreamsSpec extends Specification {
 
   def "can buffer publisher"() {
@@ -35,7 +36,16 @@ class StreamsSpec extends Specification {
     def received = []
     boolean complete
     Subscription subscription
-    Streams.throttle(Streams.wiretap(Streams.publisher(1..10)) { sent << it }).subscribe(new Subscriber<Integer>() {
+
+    def stream = publish(1..10)
+    stream = wiretap(stream) {
+      if (it.data) {
+        sent << it.item
+      }
+    }
+    stream = throttle(stream)
+
+    stream.subscribe(new Subscriber<Integer>() {
       @Override
       void onSubscribe(Subscription s) {
         subscription = s
@@ -86,7 +96,7 @@ class StreamsSpec extends Specification {
     boolean complete
     Subscription subscription
 
-    Streams.periodically(executor, 5, TimeUnit.SECONDS) {
+    periodically(executor, 5, TimeUnit.SECONDS) {
       it < 5 ? it : null
     }.subscribe(new Subscriber<Integer>() {
       @Override

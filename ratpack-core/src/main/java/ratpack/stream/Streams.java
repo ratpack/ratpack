@@ -53,7 +53,7 @@ public class Streams {
    * @param <T> the type of item emitted
    * @return a publisher for the given iterable
    */
-  public static <T> Publisher<T> publisher(Iterable<T> iterable) {
+  public static <T> Publisher<T> publish(Iterable<T> iterable) {
     return new IterablePublisher<>(iterable);
   }
 
@@ -70,7 +70,7 @@ public class Streams {
    * @param <O> the type of output item
    * @return a publisher that applies the given transformation to each item from the input stream
    */
-  public static <I, O> Publisher<O> transform(final Publisher<I> input, final Function<? super I, ? extends O> function) {
+  public static <I, O> Publisher<O> transform(Publisher<I> input, Function<? super I, ? extends O> function) {
     return new TransformingPublisher<>(input, function);
   }
 
@@ -89,8 +89,31 @@ public class Streams {
    * @param <T> the type of item
    * @return a publisher that applies respects back pressure, effectively throttling the given publisher
    */
-  public static <T> Publisher<T> throttle(final Publisher<T> publisher) {
+  public static <T> Publisher<T> throttle(Publisher<T> publisher) {
     return new BufferingPublisher<>(publisher);
+  }
+
+  /**
+   * Allows requests from the subscriber of the return publisher to be withheld from the given publisher until an externally defined moment.
+   * <p>
+   * When the return publisher is subscribed to, the given publisher will be subscribed to.
+   * All requests made by the subscriber of the return publisher will not be forwarded to the subscription of the given publisher until the runnable given to the given action is run.
+   * Once the runnable is run, all requests are directly forwarded to the subscription of the given publisher.
+   * <p>
+   * The return publisher supports multi subscription, creating a new subscription to the given publisher each time.
+   * The given action will be invoke each time the return publisher is subscribed to with a distinct runnable for releasing the gate for that subscription.
+   * <p>
+   * The given action will be invoked immediately upon subscription of the return publisher.
+   * The runnable given to this action may be invoked any time (i.e. it does not need to be run during the action).
+   * If the action errors, the given publisher will not be subscribed to and the error will be sent to the return publisher subscriber.
+   *
+   * @param publisher the data source
+   * @param valveReceiver an action that receives a runnable “valve” that when run allows request to start flowing upstream
+   * @param <T> the type of item emitted
+   * @return a publisher that is logically equivalent to the given publisher as far as subscribers are concerned
+   */
+  public static <T> Publisher<T> gate(Publisher<T> publisher, Action<? super Runnable> valveReceiver) {
+    return new GatedPublisher<>(publisher, valveReceiver);
   }
 
   /**
@@ -115,42 +138,27 @@ public class Streams {
    * @param <T> the type of item
    * @return a publisher that applies respects back pressure, effectively throttling the given publisher
    */
-  public static <T> Publisher<T> periodically(ScheduledExecutorService executorService, final long delay, final TimeUnit timeUnit, final Function<Integer, T> producer) {
+  public static <T> Publisher<T> periodically(ScheduledExecutorService executorService, long delay, TimeUnit timeUnit, Function<Integer, T> producer) {
     return throttle(new PeriodicPublisher<>(executorService, producer, delay, timeUnit));
   }
 
   /**
-   * Allows listening to values being published without changing them.
+   * Allows listening to the events of the given publisher as they flow to subscribers.
    * <p>
-   * When the return publisher is subscribed to, the given publisher will be subscribed to and all requests for items will be forwarded unaltered.
-   * Each item emitted by the given publisher will be forwarded to the given listener, then sent downstream.
+   * When the return publisher is subscribed to, the given publisher will be subscribed to.
+   * All events (incl. data, error and completion) emitted by the given publisher will be forwarded to the given listener before being forward to the subscriber of the return publisher.
    * <p>
-   * If the listener errors, the upstream subscription will be cancelled and the error sent downstream.
+   * If the listener errors, the upstream subscription will be cancelled (if appropriate) and the error sent downstream.
+   * If the listener errors while listening to an error event, the listener error will be {@link Throwable#addSuppressed(Throwable) added as a surpressed exception}
+   * to the original exception which will then be sent downstream.
    *
    * @param publisher the data source
    * @param listener the listener for emitted items
    * @param <T> the type of item emitted
    * @return a publisher that is logically equivalent to the given publisher as far as subscribers are concerned
    */
-  public static <T> Publisher<T> wiretap(final Publisher<T> publisher, final Action<? super T> listener) {
+  public static <T> Publisher<T> wiretap(Publisher<T> publisher, Action<? super StreamEvent<? super T>> listener) {
     return new WiretapPublisher<>(publisher, listener);
-  }
-
-  /**
-   * Allows listening to subscription cancellation.
-   * <p>
-   * When the return publisher is subscribed to, the given publisher will be subscribed to and all requests for items will be forwarded unaltered.
-   * Each item emitted by the given publisher will be forwarded downstream unaltered.
-   * <p>
-   * If the downstream subscriber issues a cancel request, the given action will be invoked with {@code null} as the argument.
-   *
-   * @param publisher the data source
-   * @param listener the listener to notify if the subscription is cancelled
-   * @param <T> the type of item emitted
-   * @return a publisher that is logically equivalent to the given publisher as far as subscribers are concerned
-   */
-  public static <T> Publisher<T> onCancel(final Publisher<T> publisher, final Action<Void> listener) {
-    return new CancellationListeningPublisher<>(publisher, listener);
   }
 
 }

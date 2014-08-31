@@ -19,37 +19,70 @@ package ratpack.stream.internal;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import ratpack.api.Nullable;
 import ratpack.func.Action;
+import ratpack.stream.StreamEvent;
 
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class WiretapPublisher<T> implements Publisher<T> {
 
   private final Publisher<T> publisher;
-  private final Action<? super T> listener;
+  private final Action<? super StreamEvent<? super T>> listener;
+  private final AtomicInteger counter = new AtomicInteger();
 
-  public WiretapPublisher(Publisher<T> publisher, Action<? super T> listener) {
+  public WiretapPublisher(Publisher<T> publisher, Action<? super StreamEvent<? super T>> listener) {
     this.publisher = publisher;
     this.listener = listener;
   }
 
   @Override
   public void subscribe(final Subscriber<T> outSubscriber) {
+    final int subscriptionId = counter.getAndIncrement();
     publisher.subscribe(new Subscriber<T>() {
 
       private Subscription subscription;
       private final AtomicBoolean done = new AtomicBoolean();
 
       @Override
-      public void onSubscribe(Subscription subscription) {
+      public void onSubscribe(final Subscription subscription) {
         this.subscription = subscription;
-        outSubscriber.onSubscribe(this.subscription);
+        outSubscriber.onSubscribe(new Subscription() {
+          @Override
+          public void request(int n) {
+            try {
+              listener.execute(new RequestEvent<>(subscriptionId, n));
+            } catch (Throwable throwable) {
+              subscription.cancel();
+              onError(throwable);
+              return;
+            }
+            subscription.request(n);
+          }
+
+          @Override
+          public void cancel() {
+            try {
+              listener.execute(new CancelEvent<>(subscriptionId));
+            } catch (Throwable throwable) {
+              try {
+                subscription.cancel();
+              } catch (Throwable e) {
+                throwable.addSuppressed(e);
+              }
+              onError(throwable);
+              return;
+            }
+            subscription.cancel();
+          }
+        });
       }
 
       @Override
       public void onNext(T in) {
         try {
-          listener.execute(in);
+          listener.execute(new DataEvent<>(subscriptionId, in));
         } catch (Throwable throwable) {
           subscription.cancel();
           onError(throwable);
@@ -64,6 +97,13 @@ public class WiretapPublisher<T> implements Publisher<T> {
       @Override
       public void onError(Throwable t) {
         if (done.compareAndSet(false, true)) {
+          try {
+            listener.execute(new ErrorEvent<>(subscriptionId, t));
+          } catch (Throwable throwable) {
+            t.addSuppressed(throwable);
+            onError(t);
+            return;
+          }
           outSubscriber.onError(t);
         }
       }
@@ -71,9 +111,296 @@ public class WiretapPublisher<T> implements Publisher<T> {
       @Override
       public void onComplete() {
         if (done.compareAndSet(false, true)) {
+          try {
+            listener.execute(new CompletionEvent<>(subscriptionId));
+          } catch (Throwable throwable) {
+            outSubscriber.onError(throwable);
+            return;
+          }
           outSubscriber.onComplete();
         }
       }
     });
   }
+
+  private static class DataEvent<T> implements StreamEvent<T> {
+    private final int subscriptionId;
+    private final T data;
+
+    private DataEvent(int subscriptionId, T data) {
+      this.subscriptionId = subscriptionId;
+      this.data = data;
+    }
+
+    public int getSubscriptionId() {
+      return subscriptionId;
+    }
+
+    @Override
+    public boolean isComplete() {
+      return false;
+    }
+
+    @Override
+    public boolean isError() {
+      return false;
+    }
+
+    @Override
+    public boolean isData() {
+      return true;
+    }
+
+    @Nullable
+    @Override
+    public Throwable getError() {
+      return null;
+    }
+
+    @Nullable
+    @Override
+    public T getItem() {
+      return data;
+    }
+
+    @Override
+    public boolean isCancel() {
+      return false;
+    }
+
+    @Override
+    public boolean isRequest() {
+      return false;
+    }
+
+    @Override
+    public int getRequestAmount() {
+      return 0;
+    }
+  }
+
+  private static class CompletionEvent<T> implements StreamEvent<T> {
+
+    private final int subscriptionId;
+
+    private CompletionEvent(int subscriptionId) {
+      this.subscriptionId = subscriptionId;
+    }
+
+    public int getSubscriptionId() {
+      return subscriptionId;
+    }
+
+    @Override
+    public boolean isComplete() {
+      return true;
+    }
+
+    @Override
+    public boolean isError() {
+      return false;
+    }
+
+    @Override
+    public boolean isData() {
+      return false;
+    }
+
+    @Nullable
+    @Override
+    public Throwable getError() {
+      return null;
+    }
+
+    @Nullable
+    @Override
+    public T getItem() {
+      return null;
+    }
+
+    @Override
+    public boolean isCancel() {
+      return false;
+    }
+
+    @Override
+    public boolean isRequest() {
+      return false;
+    }
+
+    @Override
+    public int getRequestAmount() {
+      return 0;
+    }
+  }
+
+  private static class ErrorEvent<T> implements StreamEvent<T> {
+    private final int subscriptionId;
+    private final Throwable error;
+
+    private ErrorEvent(int subscriptionId, Throwable error) {
+      this.subscriptionId = subscriptionId;
+      this.error = error;
+    }
+
+    public int getSubscriptionId() {
+      return subscriptionId;
+    }
+
+    @Override
+    public boolean isComplete() {
+      return false;
+    }
+
+    @Override
+    public boolean isError() {
+      return true;
+    }
+
+    @Override
+    public boolean isData() {
+      return false;
+    }
+
+    @Nullable
+    @Override
+    public Throwable getError() {
+      return error;
+    }
+
+    @Nullable
+    @Override
+    public T getItem() {
+      return null;
+    }
+
+    @Override
+    public boolean isCancel() {
+      return false;
+    }
+
+    @Override
+    public boolean isRequest() {
+      return false;
+    }
+
+    @Override
+    public int getRequestAmount() {
+      return 0;
+    }
+  }
+
+  private static class CancelEvent<T> implements StreamEvent<T> {
+    private final int subscriptionId;
+
+    private CancelEvent(int subscriptionId) {
+      this.subscriptionId = subscriptionId;
+    }
+
+    @Override
+    public int getSubscriptionId() {
+      return subscriptionId;
+    }
+
+    @Override
+    public boolean isComplete() {
+      return false;
+    }
+
+    @Override
+    public boolean isError() {
+      return false;
+    }
+
+    @Override
+    public boolean isData() {
+      return false;
+    }
+
+    @Override
+    public boolean isCancel() {
+      return true;
+    }
+
+    @Override
+    public boolean isRequest() {
+      return false;
+    }
+
+    @Override
+    public int getRequestAmount() {
+      return 0;
+    }
+
+    @Nullable
+    @Override
+    public Throwable getError() {
+      return null;
+    }
+
+    @Nullable
+    @Override
+    public T getItem() {
+      return null;
+    }
+  }
+
+  private static class RequestEvent<T> implements StreamEvent<T> {
+
+    private final int requestAmount;
+    private final int subscriptionId;
+
+    private RequestEvent(int requestAmount, int subscriptionId) {
+      this.requestAmount = requestAmount;
+      this.subscriptionId = subscriptionId;
+    }
+
+    @Override
+    public int getSubscriptionId() {
+      return subscriptionId;
+    }
+
+    @Override
+    public boolean isComplete() {
+      return false;
+    }
+
+    @Override
+    public boolean isError() {
+      return false;
+    }
+
+    @Override
+    public boolean isData() {
+      return false;
+    }
+
+    @Override
+    public boolean isCancel() {
+      return false;
+    }
+
+    @Override
+    public boolean isRequest() {
+      return true;
+    }
+
+    @Override
+    public int getRequestAmount() {
+      return requestAmount;
+    }
+
+    @Nullable
+    @Override
+    public Throwable getError() {
+      return null;
+    }
+
+    @Nullable
+    @Override
+    public T getItem() {
+      return null;
+    }
+  }
+
 }

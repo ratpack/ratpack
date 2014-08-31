@@ -24,7 +24,7 @@ import java.nio.charset.Charset
 
 import static ratpack.http.ResponseChunks.bufferChunks
 import static ratpack.http.ResponseChunks.stringChunks
-import static ratpack.stream.Streams.publisher
+import static ratpack.stream.Streams.publish
 
 class ChunkedResponseSpec extends RatpackGroovyDslSpec {
 
@@ -33,7 +33,7 @@ class ChunkedResponseSpec extends RatpackGroovyDslSpec {
     handlers {
       handler {
         render stringChunks(
-          publisher(["abcü"] * 3)
+          publish(["abcü"] * 3)
         )
       }
     }
@@ -60,7 +60,7 @@ abcü
       handler {
         render bufferChunks(
           "text/plain;charset=UTF-8",
-          publisher((1..3).collect { Unpooled.copiedBuffer("abcü", CharsetUtil.UTF_8) })
+          publish((1..3).collect { Unpooled.copiedBuffer("abcü", CharsetUtil.UTF_8) })
         )
       }
     }

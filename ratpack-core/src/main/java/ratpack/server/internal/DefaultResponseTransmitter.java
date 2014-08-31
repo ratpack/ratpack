@@ -75,19 +75,19 @@ class DefaultResponseTransmitter implements ResponseTransmitter {
     stopTime = System.nanoTime();
 
     HttpResponseStatus nettyStatus = new HttpResponseStatus(responseStatus.getCode(), responseStatus.getMessage());
-    HttpResponse nettyResponse = new CustomHttpResponse(nettyStatus, responseHeaders);
+    HttpResponse headersResponse = new CustomHttpResponse(nettyStatus, responseHeaders);
     nettyRequest.release();
 
     if (isKeepAlive) {
-      nettyResponse.headers().set(HttpHeaderConstants.CONNECTION, HttpHeaderConstants.KEEP_ALIVE);
+      headersResponse.headers().set(HttpHeaderConstants.CONNECTION, HttpHeaderConstants.KEEP_ALIVE);
     }
 
     if (startTime > 0) {
-      nettyResponse.headers().set("X-Response-Time", NumberUtil.toMillisDiffString(startTime, stopTime));
+      headersResponse.headers().set("X-Response-Time", NumberUtil.toMillisDiffString(startTime, stopTime));
     }
 
     if (channel.isOpen()) {
-      return channel.writeAndFlush(nettyResponse).addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
+      return channel.writeAndFlush(headersResponse).addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
     } else {
       return null;
     }
@@ -117,6 +117,20 @@ class DefaultResponseTransmitter implements ResponseTransmitter {
       public Subscription subscription;
       AtomicBoolean done = new AtomicBoolean();
 
+      private final ChannelFutureListener sendNext = new ChannelFutureListener() {
+        @Override
+        public void operationComplete(ChannelFuture future) throws Exception {
+          if (!done.get()) {
+            if (future.isSuccess() && channel.isOpen()) {
+              subscription.request(1);
+            } else {
+              subscription.cancel();
+              notifyListeners(channel.close());
+            }
+          }
+        }
+      };
+
       @Override
       public void onSubscribe(Subscription s) {
         this.subscription = s;
@@ -126,27 +140,13 @@ class DefaultResponseTransmitter implements ResponseTransmitter {
           s.cancel();
           notifyListeners(channel.close());
         } else {
-          if (!done.get()) {
-            s.request(1);
-          }
+          channelFuture.addListener(sendNext);
         }
       }
 
       @Override
       public void onNext(Object o) {
-        channel.writeAndFlush(o).addListener(new ChannelFutureListener() {
-          @Override
-          public void operationComplete(ChannelFuture future) throws Exception {
-            if (future.isSuccess()) {
-              if (!done.get()) {
-                subscription.request(1);
-              }
-            } else {
-              subscription.cancel();
-              notifyListeners(channel.close());
-            }
-          }
-        });
+        channel.writeAndFlush(o).addListener(sendNext);
       }
 
       @Override
@@ -182,4 +182,5 @@ class DefaultResponseTransmitter implements ResponseTransmitter {
       });
     }
   }
+
 }
