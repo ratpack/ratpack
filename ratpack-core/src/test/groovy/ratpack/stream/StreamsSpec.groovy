@@ -96,9 +96,9 @@ class StreamsSpec extends Specification {
     boolean complete
     Subscription subscription
 
-    periodically(executor, 5, TimeUnit.SECONDS) {
-      it < 5 ? it : null
-    }.subscribe(new Subscriber<Integer>() {
+    def stream = periodically(executor, 5, TimeUnit.SECONDS) { it < 5 ? it : null }
+
+    stream.subscribe(new Subscriber<Integer>() {
       @Override
       void onSubscribe(Subscription s) {
         subscription = s
