@@ -33,7 +33,6 @@ import java.util.Set;
  * <p>
  * The headers and status are configured, before committing the response with one of the {@link #send} methods.
  */
-@SuppressWarnings("UnusedDeclaration")
 public interface Response {
 
   /**
