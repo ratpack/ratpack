@@ -1,0 +1,9 @@
+install:
+  - cinst java.jdk
+
+shallow_clone: true
+
+build_script:
+  - gradlew clean check jacocoReport coveralls --stacktrace
+
+test: off
