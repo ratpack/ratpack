@@ -102,7 +102,6 @@ import org.reactivestreams.Publisher;
  * }
  * </pre>
  *
- * @see ServerSentEvents
  * @see <a href="http://en.wikipedia.org/wiki/Server-sent_events" target="_blank">Wikipedia - Using server-sent events</a>
  * @see <a href="https://developer.mozilla.org/en-US/docs/Server-sent_events/Using_server-sent_events" target="_blank">MDN - Using server-sent events</a>
  */

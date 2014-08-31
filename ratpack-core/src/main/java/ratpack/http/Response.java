@@ -238,6 +238,20 @@ public interface Response {
    * As such, the given publisher <b>MUST</b> respect back pressure.
    * If this is not feasible, consider using {@link ratpack.stream.Streams#throttle(org.reactivestreams.Publisher)}.
    * <p>
+   * The back pressure applied will be irregular, based on factors including:
+   * <ul>
+   * <li>Socket send/receive buffers</li>
+   * <li>Client consumption rates</li>
+   * <li>Size of the emitted byte buffers</li>
+   * </ul>
+   * <p>
+   * Data requested of the publisher is not always written immediately to the client.
+   * Netty maintains its own buffer that is fed by the given publisher.
+   * This means that data is more likely ready to send as soon as the client receives it.
+   * <p>
+   * If your data source produces small amount of data that is expensive to produce (i.e. there is a significant latency between a data request and the production of data)
+   * you may want to consider an intermediate buffer to maximize throughput to the client.
+   * <p>
    * The subscription to the publisher will occur via {@link ExecControl#stream(org.reactivestreams.Publisher, org.reactivestreams.Subscriber)}.
    *
    * @param execControl the execution control to subscribe to the publisher via
