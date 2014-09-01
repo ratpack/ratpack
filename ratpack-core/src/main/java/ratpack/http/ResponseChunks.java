@@ -33,7 +33,6 @@ import java.nio.charset.Charset;
  * A {@link ratpack.handling.Context#render(Object) renderable} object for streaming data with HTTP chunked transfer-encoding.
  * <p>
  * A {@link ratpack.render.Renderer renderer} for this type is implicitly provided by Ratpack core.
- * </p>
  * <p>
  * Example usage:
  * <pre class="java">
@@ -96,7 +95,6 @@ import java.nio.charset.Charset;
  *
  * }
  * </pre>
- * </p>
  *
  * @see Response#sendStream(ratpack.exec.ExecControl, org.reactivestreams.Publisher)
  * @see <a href="http://en.wikipedia.org/wiki/Chunked_transfer_encoding" target="_blank">Wikipedia - Chunked transfer encoding</a>
