@@ -19,7 +19,6 @@ package ratpack.http
 import io.netty.buffer.Unpooled
 import io.netty.util.CharsetUtil
 import ratpack.test.internal.RatpackGroovyDslSpec
-import spock.lang.Ignore
 
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.LinkedBlockingQueue
@@ -28,7 +27,6 @@ import static ratpack.stream.Streams.*
 
 class ResponseStreamingSpec extends RatpackGroovyDslSpec {
 
-  @Ignore // unstable due to different buffer sizes on different platforms
   def "can stream response with back pressure"() {
     given:
     def sent = new LinkedBlockingQueue()

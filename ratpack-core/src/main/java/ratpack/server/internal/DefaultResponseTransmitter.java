@@ -44,6 +44,12 @@ import static io.netty.handler.codec.http.HttpHeaders.isKeepAlive;
 class DefaultResponseTransmitter implements ResponseTransmitter {
 
   private final static Logger LOGGER = LoggerFactory.getLogger(DefaultResponseTransmitter.class);
+  private static final Runnable NOOP_RUNNABLE = new Runnable() {
+    @Override
+    public void run() {
+
+    }
+  };
 
   private final AtomicBoolean transmitted;
   private final Channel channel;
@@ -56,6 +62,8 @@ class DefaultResponseTransmitter implements ResponseTransmitter {
   private final boolean isKeepAlive;
 
   private long stopTime;
+
+  private Runnable onWritabilityChanged = NOOP_RUNNABLE;
 
   public DefaultResponseTransmitter(AtomicBoolean transmitted, Channel channel, FullHttpRequest nettyRequest, Request ratpackRequest, HttpHeaders responseHeaders, Status responseStatus, DefaultEventController<RequestOutcome> requestOutcomeEventController, long startTime) {
     this.transmitted = transmitted;
@@ -114,60 +122,87 @@ class DefaultResponseTransmitter implements ResponseTransmitter {
   @Override
   public Subscriber<Object> transmitter() {
     return new Subscriber<Object>() {
-      public Subscription subscription;
-      AtomicBoolean done = new AtomicBoolean();
+      private Subscription subscription;
+      private final AtomicBoolean done = new AtomicBoolean();
 
-      private final ChannelFutureListener sendNext = new ChannelFutureListener() {
+      private final ChannelFutureListener cancelOnFailure = new ChannelFutureListener() {
         @Override
         public void operationComplete(ChannelFuture future) throws Exception {
           if (!done.get()) {
-            if (future.isSuccess() && channel.isOpen()) {
-              subscription.request(1);
-            } else {
-              subscription.cancel();
-              notifyListeners(channel.close());
+            if (!future.isSuccess()) {
+              cancel();
             }
           }
         }
       };
 
+      private void cancel() {
+        if (done.compareAndSet(false, true)) {
+          subscription.cancel();
+          post();
+        }
+      }
+
       @Override
       public void onSubscribe(Subscription s) {
         this.subscription = s;
+
+        onWritabilityChanged = new Runnable() {
+          @Override
+          public void run() {
+            if (channel.isWritable() && !done.get()) {
+              subscription.request(1);
+            }
+          }
+        };
 
         ChannelFuture channelFuture = pre();
         if (channelFuture == null) {
           s.cancel();
           notifyListeners(channel.close());
         } else {
-          channelFuture.addListener(sendNext);
+          channelFuture.addListener(cancelOnFailure);
+          if (channel.isWritable()) {
+            subscription.request(1);
+          }
         }
       }
 
       @Override
       public void onNext(Object o) {
-        channel.writeAndFlush(o).addListener(sendNext);
+        if (channel.isOpen()) {
+          channel.writeAndFlush(o).addListener(cancelOnFailure);
+          if (channel.isWritable()) {
+            subscription.request(1);
+          }
+        }
       }
 
       @Override
       public void onError(Throwable t) {
-        LOGGER.debug("Exception thrown transmitting stream");
-        post();
+        LOGGER.debug("Exception thrown transmitting stream", t);
+        cancel();
       }
 
       @Override
       public void onComplete() {
-        post();
+        if (done.compareAndSet(false, true)) {
+          post();
+        }
       }
     };
   }
 
   private void post() {
-    ChannelFuture lastContentFuture = channel.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
-    if (!isKeepAlive) {
-      lastContentFuture.addListener(ChannelFutureListener.CLOSE);
+    if (channel.isOpen()) {
+      ChannelFuture lastContentFuture = channel.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
+      if (!isKeepAlive) {
+        lastContentFuture.addListener(ChannelFutureListener.CLOSE);
+      }
+      notifyListeners(lastContentFuture);
+    } else {
+      notifyListeners(channel.newSucceededFuture());
     }
-    notifyListeners(lastContentFuture);
   }
 
   private void notifyListeners(ChannelFuture future) {
@@ -183,4 +218,7 @@ class DefaultResponseTransmitter implements ResponseTransmitter {
     }
   }
 
+  public void writabilityChanged() {
+    onWritabilityChanged.run();
+  }
 }

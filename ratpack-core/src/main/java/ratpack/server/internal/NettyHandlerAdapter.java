@@ -21,6 +21,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
+import io.netty.util.AttributeKey;
 import io.netty.util.CharsetUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -78,6 +79,8 @@ import static ratpack.util.internal.ProtocolUtil.HTTP_SCHEME;
 
 @ChannelHandler.Sharable
 public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpRequest> {
+
+  private static final AttributeKey<DefaultResponseTransmitter> RESPONSE_TRANSMITTER_ATTRIBUTE_KEY = AttributeKey.valueOf(DefaultResponseTransmitter.class.getName());
 
   private final static Logger LOGGER = LoggerFactory.getLogger(NettyHandlerAdapter.class);
 
@@ -140,8 +143,8 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
     final DefaultEventController<RequestOutcome> requestOutcomeEventController = new DefaultEventController<>();
     final AtomicBoolean transmitted = new AtomicBoolean(false);
 
-    final ResponseTransmitter responseTransmitter = new DefaultResponseTransmitter(transmitted, channel, nettyRequest, request, nettyHeaders, responseStatus, requestOutcomeEventController, startTime);
-    final Action<Action<? super ResponseTransmitter>> responseTransmitterWrapper = Actions.actionAction(responseTransmitter);
+    final DefaultResponseTransmitter responseTransmitter = new DefaultResponseTransmitter(transmitted, channel, nettyRequest, request, nettyHeaders, responseStatus, requestOutcomeEventController, startTime);
+    final Action<Action<? super ResponseTransmitter>> responseTransmitterWrapper = Actions.<ResponseTransmitter>actionAction(responseTransmitter);
 
     final FileHttpTransmitter fileHttpTransmitter = new DefaultFileHttpTransmitter(nettyHeaders, mimeTypes,
       compressResponses, compressionMinSize, compressionMimeTypeWhiteList, compressionMimeTypeBlackList, responseTransmitterWrapper);
@@ -159,6 +162,8 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
         });
       }
     });
+
+    ctx.attr(RESPONSE_TRANSMITTER_ATTRIBUTE_KEY).set(responseTransmitter);
 
     InetSocketAddress socketAddress = (InetSocketAddress) channel.localAddress();
     final BindAddress bindAddress = new InetSocketAddressBackedBindAddress(socketAddress);
@@ -226,6 +231,11 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
         sendError(ctx, HttpResponseStatus.INTERNAL_SERVER_ERROR);
       }
     }
+  }
+
+  @Override
+  public void channelWritabilityChanged(ChannelHandlerContext ctx) throws Exception {
+    ctx.attr(RESPONSE_TRANSMITTER_ATTRIBUTE_KEY).get().writabilityChanged();
   }
 
   private boolean isIgnorableException(Throwable throwable) {
