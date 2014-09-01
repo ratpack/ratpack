@@ -46,7 +46,6 @@ Write the content, but don't close the milestone yet.
 1. (a) Update `shared-resources/ratpack/ratpack-version.txt` (i.e. increment the patch number and add -SNAPSHOT)
 1. Update the `manualVersions` list in `ratpack-site.gradle` so the new manual is included in the site
 1. Update the `RatpackSiteUnderTest` class to include the next development version, and mark the just released version as released
-1. Update the `ratpack-site/src/ratpack/templates/index.html` file to use the new version number for the Groovy example
 1. Commit with message 'Begin version «version»', and push (make sure you push the tag)
 1. Run `./gradlew clean artifactoryPublish` (to push the new snapshot snapshot, so it can be resolved)
 1. Close the Milestone on GitHub
