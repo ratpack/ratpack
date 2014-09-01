@@ -52,8 +52,10 @@ class ResponseStreamingSpec extends RatpackGroovyDslSpec {
     }
 
     Socket socket = new Socket()
-    socket.receiveBufferSize = 1024 * 1024
-    bytes = new byte[socket.receiveBufferSize]
+    socket.receiveBufferSize = socket.sendBufferSize
+    assert socket.receiveBufferSize == socket.sendBufferSize
+
+    bytes = new byte[socket.receiveBufferSize * 2]
     def bufferLength = bytes.length
 
     socket.connect(new InetSocketAddress(address.host, address.port))
@@ -79,6 +81,7 @@ class ResponseStreamingSpec extends RatpackGroovyDslSpec {
     then:
     sent.take() == 1 // first sent directly out and buffered at client
     sent.take() == 2 // second requested by netty and queue there
+    sent.empty
 
     read(is, bufferLength) // consume first from client buffer, transmitting second, creates request for third
 
