@@ -16,9 +16,6 @@
 
 package ratpack.websocket
 
-import org.reactivestreams.Publisher
-import org.reactivestreams.Subscriber
-import org.reactivestreams.Subscription
 import ratpack.test.internal.RatpackGroovyDslSpec
 import spock.util.concurrent.BlockingVariable
 
@@ -26,6 +23,7 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
 
+import static ratpack.stream.Streams.*
 import static ratpack.websocket.WebSockets.websocket
 import static ratpack.websocket.WebSockets.websocketBroadcast
 
@@ -118,33 +116,14 @@ class WebSocketTestSpec extends RatpackGroovyDslSpec {
 
     handlers {
       get {
-        websocketBroadcast(context, new Publisher<String>() {
-          @Override
-          void subscribe(Subscriber<String> s) {
-            def cancelled
-            s.onSubscribe(new Subscription() {
-
-              @Override
-              void request(int n) {
-                Thread.start {
-                  (0..100).each {
-                    if (!cancelled) {
-                      s.onNext("foo-$it".toString())
-                    }
-                  }
-
-                  s.onComplete()
-                }
-              }
-
-              @Override
-              void cancel() {
-                cancelled = true
-                streamCancelled.countDown()
-              }
-            })
+        def stream = publish(0..100)
+        stream = map(stream) { "foo-$it".toString() }
+        stream = wiretap(stream) {
+          if (it.cancel) {
+            streamCancelled.countDown()
           }
-        })
+        }
+        websocketBroadcast(context, stream)
       }
     }
 
@@ -175,27 +154,9 @@ class WebSocketTestSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       get {
-        websocketBroadcast(context, new Publisher<String>() {
-          @Override
-          void subscribe(Subscriber<String> s) {
-            s.onSubscribe(new Subscription() {
-
-              @Override
-              void request(int n) {
-                Thread.start {
-                  (0..2).each {
-                    s.onNext("foo-$it".toString())
-                  }
-
-                  s.onComplete()
-                }
-              }
-
-              @Override
-              void cancel() { }
-            })
-          }
-        })
+        def stream = publish(0..2)
+        stream = map(stream) { "foo-$it".toString() }
+        websocketBroadcast(context, stream)
       }
     }
 
@@ -226,27 +187,15 @@ class WebSocketTestSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       get {
-        websocketBroadcast(context, new Publisher<String>() {
-          @Override
-          void subscribe(Subscriber<String> s) {
-            s.onSubscribe(new Subscription() {
-
-              @Override
-              void request(int n) {
-                Thread.start {
-                  (0..2).each {
-                    s.onNext("foo-$it".toString())
-                  }
-
-                  s.onError(new Throwable("foo error"))
-                }
-              }
-
-              @Override
-              void cancel() { }
-            })
+        def stream = publish(0..4)
+        stream = map(stream) {
+          if (it < 3) {
+            "foo-$it".toString()
+          } else {
+            throw new Exception("foo error")
           }
-        })
+        }
+        websocketBroadcast(context, stream)
       }
     }
 
