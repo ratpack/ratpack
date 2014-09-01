@@ -109,7 +109,6 @@ task prepareTestResources {
 sourceSets.test.resources.srcDir generatedTestResourcesDir
 
 processTestResources.dependsOn writeTestConfig
-ideaModule.dependsOn prepareTestResources
 
 test {
   inputs.dir compiledTemplateDir
