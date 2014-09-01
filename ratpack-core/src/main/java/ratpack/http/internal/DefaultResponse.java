@@ -265,7 +265,7 @@ public class DefaultResponse implements Response {
   }
 
   @Override
-  public void sendFile(ExecControl execContext, BasicFileAttributes attributes, Path file) throws Exception {
+  public void sendFile(ExecControl execContext, BasicFileAttributes attributes, Path file) {
     setCookieHeader();
     fileHttpTransmitter.transmit(execContext, attributes, file);
   }
@@ -276,12 +276,17 @@ public class DefaultResponse implements Response {
     streamTransmitter.transmit(execControl, stream);
   }
 
-  public void sendFile(final ExecControl execContext, final Path file) throws Exception {
-    readAttributes(execContext, file, new Action<BasicFileAttributes>() {
-      public void execute(BasicFileAttributes fileAttributes) throws Exception {
-        sendFile(execContext, fileAttributes, file);
-      }
-    });
+  public void sendFile(final ExecControl execContext, final Path file) {
+    try {
+      readAttributes(execContext, file, new Action<BasicFileAttributes>() {
+        public void execute(BasicFileAttributes fileAttributes) throws Exception {
+          sendFile(execContext, fileAttributes, file);
+        }
+      });
+    } catch (Exception e) {
+      // Shouldn't happen
+      throw ExceptionUtils.uncheck(e);
+    }
   }
 
   public Set<Cookie> getCookies() {

@@ -71,7 +71,7 @@ public class DefaultFileHttpTransmitter implements FileHttpTransmitter {
   }
 
   @Override
-  public void transmit(ExecControl execContext, final BasicFileAttributes basicFileAttributes, final Path file) throws Exception {
+  public void transmit(ExecControl execContext, final BasicFileAttributes basicFileAttributes, final Path file) {
     final boolean compressThis = compress && basicFileAttributes.size() > compressionMinSize && isContentTypeCompressible();
 
     if (compress && !compressThis) {

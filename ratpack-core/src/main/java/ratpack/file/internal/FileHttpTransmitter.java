@@ -23,6 +23,6 @@ import java.nio.file.attribute.BasicFileAttributes;
 
 public interface FileHttpTransmitter {
 
-  void transmit(ExecControl execContext, BasicFileAttributes basicFileAttributes, Path file) throws Exception;
+  void transmit(ExecControl execContext, BasicFileAttributes basicFileAttributes, Path file);
 
 }

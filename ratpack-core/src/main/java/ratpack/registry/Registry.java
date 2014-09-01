@@ -161,6 +161,7 @@ public interface Registry {
    * @param action an action to call with each matching object
    * @param <T> the type of object to search for
    * @return true if the predicate ever returned true
+   * @throws Exception any thrown by {@code action}
    */
   <T> boolean each(TypeToken<T> type, Predicate<? super T> predicate, Action<? super T> action) throws Exception;
 

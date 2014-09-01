@@ -212,7 +212,7 @@ public interface Response {
    * @param file The file whose contents are to be used as the response body
    */
   @NonBlocking
-  void sendFile(ExecControl execContext, Path file) throws Exception;
+  void sendFile(ExecControl execContext, Path file);
 
   /**
    * Sends the response, using the given content type and the content of the given type as the response body.
@@ -222,7 +222,7 @@ public interface Response {
    * @param file The file whose contents are to be used as the response body
    */
   @NonBlocking
-  void sendFile(ExecControl execContext, BasicFileAttributes attributes, Path file) throws Exception;
+  void sendFile(ExecControl execContext, BasicFileAttributes attributes, Path file);
 
   /**
    * Sends the response, streaming the bytes emitted by the given publisher.
@@ -251,6 +251,7 @@ public interface Response {
    * <p>
    * If your data source produces small amount of data that is expensive to produce (i.e. there is a significant latency between a data request and the production of data)
    * you may want to consider an intermediate buffer to maximize throughput to the client.
+   * However, this is rarely necessary.
    * <p>
    * The subscription to the publisher will occur via {@link ExecControl#stream(org.reactivestreams.Publisher, org.reactivestreams.Subscriber)}.
    *

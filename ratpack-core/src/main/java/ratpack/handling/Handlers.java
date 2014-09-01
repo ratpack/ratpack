@@ -203,7 +203,7 @@ public abstract class Handlers {
    * @param handler the handler to delegate to
    * @return A handler
    */
-  public static Handler host(String hostName, Handler handler) throws Exception {
+  public static Handler host(String hostName, Handler handler) {
     return new HeaderHandler("Host", hostName, handler);
   }
 
