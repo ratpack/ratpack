@@ -45,6 +45,7 @@ The following people have provided significant contributions.
 * [David Tiselius](https://github.com/traneHead)
 * [John Engelman](https://github.com/johnrengelman)
 * [Andre Steingress](https://github.com/andresteingress)
+* [Gareth Davis](https://github.com/tempredirect)
 
 ### Past project members
 
