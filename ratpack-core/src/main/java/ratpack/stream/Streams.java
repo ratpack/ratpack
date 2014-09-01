@@ -70,7 +70,7 @@ public class Streams {
    * @param <O> the type of output item
    * @return a publisher that applies the given transformation to each item from the input stream
    */
-  public static <I, O> Publisher<O> transform(Publisher<I> input, Function<? super I, ? extends O> function) {
+  public static <I, O> Publisher<O> map(Publisher<I> input, Function<? super I, ? extends O> function) {
     return new TransformingPublisher<>(input, function);
   }
 

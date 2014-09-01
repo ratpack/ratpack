@@ -47,7 +47,7 @@ class ResponseStreamingSpec extends RatpackGroovyDslSpec {
             complete.countDown()
           }
         }
-        stream = transform(stream) { Unpooled.wrappedBuffer(bytes) }
+        stream = map(stream) { Unpooled.wrappedBuffer(bytes) }
         stream = gate(stream) { valve = it }
         response.sendStream(it, stream)
       }

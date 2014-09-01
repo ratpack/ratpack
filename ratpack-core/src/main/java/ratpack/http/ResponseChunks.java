@@ -140,7 +140,7 @@ public class ResponseChunks {
     return new ResponseChunks(contentType, new Function<ByteBufAllocator, Publisher<? extends ByteBuf>>() {
       @Override
       public Publisher<? extends ByteBuf> apply(final ByteBufAllocator byteBufAllocator) throws Exception {
-        return Streams.transform(publisher, new Function<CharSequence, ByteBuf>() {
+        return Streams.map(publisher, new Function<CharSequence, ByteBuf>() {
           @Override
           public ByteBuf apply(CharSequence charSequence) throws Exception {
             // We are counting on Netty releasing these buffers when it sends them out.
