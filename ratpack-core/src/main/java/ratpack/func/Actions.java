@@ -85,9 +85,9 @@ public abstract class Actions {
   }
 
   /**
-   * Returns an action that throws an exception.
+   * Returns an action that receives a throwable and immediately throws it.
    *
-   * @return an action that throws an exception
+   * @return an action that receives a throwable and immediately throws it
    */
   public static Action<Throwable> throwException() {
     return THROW_EXCEPTION;
