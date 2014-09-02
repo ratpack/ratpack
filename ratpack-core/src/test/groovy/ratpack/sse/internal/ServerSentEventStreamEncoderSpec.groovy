@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package ratpack.stream.internal
+package ratpack.sse.internal
 
 import io.netty.buffer.UnpooledByteBufAllocator
 import ratpack.sse.ServerSentEvent
-import ratpack.sse.internal.ServerSentEventsRenderer
 import ratpack.test.internal.RatpackGroovyDslSpec
 import ratpack.util.internal.IoUtils
 
@@ -31,14 +30,14 @@ class ServerSentEventStreamEncoderSpec extends RatpackGroovyDslSpec {
     IoUtils.utf8String(encoder.apply(sse)) == expectedEncoding
 
     where:
-    sse                                                | expectedEncoding
-    new ServerSentEvent("fooId", "fooType", "fooData") | "event: fooType\ndata: fooData\nid: fooId\n\n"
-    new ServerSentEvent(null, "fooType", "fooData")    | "event: fooType\ndata: fooData\n\n"
-    new ServerSentEvent(null, null, "fooData")         | "data: fooData\n\n"
-    new ServerSentEvent("fooId", null, "fooData")      | "data: fooData\nid: fooId\n\n"
-    new ServerSentEvent("fooId", null, null)           | "id: fooId\n\n"
-    new ServerSentEvent("fooId", "fooType", null)      | "event: fooType\nid: fooId\n\n"
-    new ServerSentEvent(null, "fooType", null)         | "event: fooType\n\n"
+    sse                                                                           | expectedEncoding
+    ServerSentEvent.builder().id("fooId").type("fooType").data("fooData").build() | "event: fooType\ndata: fooData\nid: fooId\n\n"
+    ServerSentEvent.builder().type("fooType").data("fooData").build()             | "event: fooType\ndata: fooData\n\n"
+    ServerSentEvent.builder().data("fooData").build()                             | "data: fooData\n\n"
+    ServerSentEvent.builder().id("fooId").data("fooData").build()                 | "data: fooData\nid: fooId\n\n"
+    ServerSentEvent.builder().id("fooId").build()                                 | "id: fooId\n\n"
+    ServerSentEvent.builder().id("fooId").type("fooType").build()                 | "event: fooType\nid: fooId\n\n"
+    ServerSentEvent.builder().type("fooType").build()                             | "event: fooType\n\n"
   }
 
 }

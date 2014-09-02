@@ -66,7 +66,7 @@ import org.reactivestreams.Publisher;
  *                   Publisher&lt;ServerSentEvent&gt; eventStream = Streams.periodically(executor, 5, TimeUnit.MILLISECONDS, new Function&lt;Integer, ServerSentEvent&gt;() {
  *                     public ServerSentEvent apply(Integer i) {
  *                       if (i.intValue() &lt; 5) {
- *                         return new ServerSentEvent(i.toString(), "counter", "event " + i);
+ *                         return ServerSentEvent.builder().id(i.toString()).type("counter").data("event " + i).build();
  *                       } else {
  *                         return null;
  *                       }

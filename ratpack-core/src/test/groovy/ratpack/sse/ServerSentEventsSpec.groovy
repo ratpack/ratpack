@@ -31,7 +31,7 @@ class ServerSentEventsSpec extends RatpackGroovyDslSpec {
     handlers {
       handler {
         render serverSentEvents(map(publish(1..3)) {
-          new ServerSentEvent(it.toString(), "add", "Event $it".toString())
+          ServerSentEvent.builder().id(it.toString()).type("add").data("Event $it".toString()).build()
         })
       }
     }
@@ -53,7 +53,7 @@ class ServerSentEventsSpec extends RatpackGroovyDslSpec {
     handlers {
       handler {
         def stream = publish(1..1000)
-        stream = map(stream, { new ServerSentEvent(it.toString(), "add", "Event $it".toString()) })
+        stream = map(stream, { ServerSentEvent.builder().id(it.toString()).type("add").data("Event $it".toString()).build() })
         stream = wiretap(stream) {
           if (it.data) {
             sentLatch.countDown()

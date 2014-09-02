@@ -23,11 +23,71 @@ package ratpack.sse;
  */
 public class ServerSentEvent {
 
+  /**
+   * Returns a new {@link Builder} for {@link ratpack.sse.ServerSentEvent}.
+   *
+   * @return a {@link Builder} instance for a {@link ratpack.sse.ServerSentEvent}
+   */
+  public static Builder builder() {
+    return new Builder();
+  }
+
+  /**
+   * A builder for {@link ratpack.sse.ServerSentEvent} instances.
+   */
+  public static class Builder {
+    private String eventId;
+    private String eventType;
+    private String eventData;
+
+    /**
+     * Specify the event id for the server sent event.
+     *
+     * @param id the event id
+     * @return this {@link ratpack.sse.ServerSentEvent.Builder}
+     */
+    public Builder id(String id) {
+      this.eventId = id;
+      return this;
+    }
+
+    /**
+     * Specify the event type for the server sent event.
+     *
+     * @param type the event type
+     * @return this {@link ratpack.sse.ServerSentEvent.Builder}
+     */
+    public Builder type(String type) {
+      this.eventType = type;
+      return this;
+    }
+
+    /**
+     * Specify the event data for the server sent event.
+     *
+     * @param data the event data
+     * @return this {@link ratpack.sse.ServerSentEvent.Builder}
+     */
+    public Builder data(String data) {
+      this.eventData = data;
+      return this;
+    }
+
+    /**
+     * Builds a {@link ratpack.sse.ServerSentEvent} with the given properties.
+     *
+     * @return a {@link ratpack.sse.ServerSentEvent}
+     */
+    public ServerSentEvent build() {
+      return new ServerSentEvent(eventId, eventType, eventData);
+    }
+  }
+
   private final String eventId;
   private final String eventType;
   private final String eventData;
 
-  public ServerSentEvent(String eventId, String eventType, String eventData) {
+  private ServerSentEvent(String eventId, String eventType, String eventData) {
     if (eventId == null && eventType == null && eventData == null) {
       throw new IllegalArgumentException("You must supply at least one of evenId, eventType, eventData");
     }
