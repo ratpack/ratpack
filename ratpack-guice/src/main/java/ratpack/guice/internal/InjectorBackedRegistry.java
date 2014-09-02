@@ -34,6 +34,7 @@ import ratpack.registry.PredicateCacheability;
 import ratpack.registry.Registry;
 
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
@@ -131,14 +132,18 @@ public class InjectorBackedRegistry implements Registry {
     if (providers.isEmpty()) {
       return Collections.emptyList();
     } else {
-      return Iterables.transform(providers, new Function<Provider<?>, O>() {
-        @Override
-        public O apply(Provider<?> input) {
-          @SuppressWarnings("unchecked") O cast = (O) input.get();
-          return cast;
-        }
-      });
+      return transformToInstances(providers);
     }
+  }
+
+  private <O> Iterable<O> transformToInstances(Iterable<Provider<?>> providers) {
+    return Iterables.transform(providers, new Function<Provider<?>, O>() {
+      @Override
+      public O apply(Provider<?> input) {
+        @SuppressWarnings("unchecked") O cast = (O) input.get();
+        return cast;
+      }
+    });
   }
 
   private <T> List<Provider<?>> getAll(TypeToken<T> type, Predicate<? super T> predicate) {
@@ -152,29 +157,18 @@ public class InjectorBackedRegistry implements Registry {
   @Nullable
   @Override
   public <T> T first(TypeToken<T> type, Predicate<? super T> predicate) {
-    if (PredicateCacheability.isCacheable(predicate)) {
-      List<Provider<?>> all = getAll(type, predicate);
-      if (all.isEmpty()) {
-        return null;
-      } else {
-        @SuppressWarnings("unchecked") T cast = (T) all.get(0).get();
-        return cast;
-      }
+    Iterator<? extends T> matching = all(type, predicate).iterator();
+    if (!matching.hasNext()) {
+      return null;
     } else {
-      T object = maybeGet(type);
-      if (object != null && predicate.apply(object)) {
-        return object;
-      } else {
-        return null;
-      }
+      return matching.next();
     }
   }
 
   @Override
   public <T> Iterable<? extends T> all(TypeToken<T> type, Predicate<? super T> predicate) {
     if (PredicateCacheability.isCacheable(predicate)) {
-      @SuppressWarnings("unchecked") List<? extends T> cast = (List<? extends T>) getAll(type, predicate);
-      return cast;
+      return transformToInstances(getAll(type, predicate));
     } else {
       return Iterables.filter(getAll(type), predicate);
     }
