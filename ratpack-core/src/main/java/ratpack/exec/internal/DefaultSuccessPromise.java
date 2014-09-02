@@ -57,7 +57,7 @@ public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
               @Override
               public void error(final Throwable throwable) {
                 if (!fulfilled.compareAndSet(false, true)) {
-                  LOGGER.error("", new OverlappingExecutionException("promise already fulfilled"));
+                  LOGGER.error("", new OverlappingExecutionException("promise already fulfilled", throwable));
                   return;
                 }
 
