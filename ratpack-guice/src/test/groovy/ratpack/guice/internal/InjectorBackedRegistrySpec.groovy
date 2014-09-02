@@ -16,6 +16,8 @@
 
 package ratpack.guice.internal
 
+import com.google.common.base.Predicates
+import com.google.common.reflect.TypeToken
 import com.google.inject.Binder
 import com.google.inject.Guice
 import com.google.inject.Injector
@@ -87,6 +89,34 @@ class InjectorBackedRegistrySpec extends Specification {
 
     then:
     1 * injector.getAllBindings() >> realInjector.getAllBindings()
+  }
+
+  def "search with multiple items"() {
+    given:
+    TypeToken charseq = TypeToken.of(CharSequence)
+    TypeToken number = TypeToken.of(Number)
+    def a = "A"
+    def b = "B"
+    def c = 42
+    def d = 16
+    realInjector {
+      bind(String).toInstance(a)
+      bind(CharSequence).toInstance(b)
+      bind(Number).toInstance(c)
+      bind(Integer).toInstance(d)
+    }
+    injector.getAllBindings() >> realInjector.getAllBindings()
+
+    expect:
+    registry.first(charseq, Predicates.alwaysTrue()) == a
+    registry.first(charseq, { CharSequence s -> s.startsWith('B') }) == b
+    registry.first(number, Predicates.alwaysTrue()) == c
+    registry.first(number, { Number n -> n < 20 }) == d
+
+    registry.all(charseq, Predicates.alwaysTrue()) as List == [a, b]
+    registry.all(charseq, { s -> s.startsWith('B') }) as List == [b]
+    registry.all(number, { n -> n < 50 })  as List == [c, d]
+    registry.all(number, Predicates.alwaysFalse()) as List == []
   }
 
 }
