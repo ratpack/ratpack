@@ -17,9 +17,11 @@
 package ratpack.registry;
 
 import com.google.common.base.Predicate;
+import com.google.common.base.Predicates;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.reflect.TypeToken;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 
@@ -30,14 +32,22 @@ import static ratpack.util.ExceptionUtils.toException;
 import static ratpack.util.ExceptionUtils.uncheck;
 
 public abstract class PredicateCacheability {
-
-
-  private static final LoadingCache<Class<?>, Boolean> CACHEABLE_PREDICATE_CACHE = CacheBuilder.newBuilder().build(new CacheLoader<Class<?>, Boolean>() {
+  @SuppressWarnings("rawtypes")
+  private static final ImmutableSet<Class<? extends Predicate>> SPECIAL_PREDICATE_CLASSES = ImmutableSet.of(Predicates.alwaysTrue().getClass(), Predicates.alwaysFalse().getClass(), Predicates.notNull().getClass(), Predicates.isNull().getClass());
+  @SuppressWarnings("rawtypes")
+  private static final LoadingCache<Class<? extends Predicate>, Boolean> CACHEABLE_PREDICATE_CACHE = CacheBuilder.newBuilder().build(new CacheLoader<Class<? extends Predicate>, Boolean>() {
     @Override
-    public Boolean load(@SuppressWarnings("NullableProblems") Class<?> key) throws Exception {
-      Method equals = key.getDeclaredMethod("equals", Object.class);
-      Class<?> declaringClass = equals.getDeclaringClass();
-      return !declaringClass.equals(Object.class);
+    public Boolean load(@SuppressWarnings("NullableProblems") Class<? extends Predicate> key) throws Exception {
+      try {
+        if(SPECIAL_PREDICATE_CLASSES.contains(key)) {
+          return true;
+        }
+        Method equals = key.getDeclaredMethod("equals", Object.class);
+        Class<?> declaringClass = equals.getDeclaringClass();
+        return !declaringClass.equals(Object.class);
+      } catch (NoSuchMethodException e) {
+        return false;
+      }
     }
   });
 
