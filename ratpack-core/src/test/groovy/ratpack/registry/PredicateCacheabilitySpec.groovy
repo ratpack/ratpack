@@ -57,12 +57,12 @@ class PredicateCacheabilitySpec extends Specification {
     !isCacheable(pred)
   }
 
-  def "closure predicates are cacheable"() {
+  def "closure predicates are not cacheable"() {
     given:
     def pred = { String s -> false } as Predicate<String>
 
     expect:
-    isCacheable(pred)
+    !isCacheable(pred)
   }
 
   static class NonCacheablePredicate implements Predicate<Number> {

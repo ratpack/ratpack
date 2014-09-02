@@ -26,6 +26,7 @@ import com.google.common.reflect.TypeToken;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.util.concurrent.ExecutionException;
 
 import static ratpack.util.ExceptionUtils.toException;
@@ -41,7 +42,7 @@ public abstract class PredicateCacheability {
       try {
         Method equals = key.getDeclaredMethod("equals", Object.class);
         Class<?> declaringClass = equals.getDeclaringClass();
-        return !declaringClass.equals(Object.class);
+        return !Proxy.isProxyClass(declaringClass) && !declaringClass.equals(Object.class);
       } catch (NoSuchMethodException e) {
         return false;
       }
