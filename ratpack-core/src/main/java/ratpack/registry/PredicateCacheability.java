@@ -32,16 +32,13 @@ import static ratpack.util.ExceptionUtils.toException;
 import static ratpack.util.ExceptionUtils.uncheck;
 
 public abstract class PredicateCacheability {
-  @SuppressWarnings("rawtypes")
-  private static final ImmutableSet<Class<? extends Predicate>> SPECIAL_PREDICATE_CLASSES = ImmutableSet.of(Predicates.alwaysTrue().getClass(), Predicates.alwaysFalse().getClass(), Predicates.notNull().getClass(), Predicates.isNull().getClass());
-  @SuppressWarnings("rawtypes")
-  private static final LoadingCache<Class<? extends Predicate>, Boolean> CACHEABLE_PREDICATE_CACHE = CacheBuilder.newBuilder().build(new CacheLoader<Class<? extends Predicate>, Boolean>() {
+
+  private static final ImmutableSet<Class<?>> IMPLICITLY_CACHEABLE = ImmutableSet.<Class<?>>of(Predicates.alwaysTrue().getClass(), Predicates.alwaysFalse().getClass(), Predicates.notNull().getClass(), Predicates.isNull().getClass());
+
+  private static final LoadingCache<Class<?>, Boolean> CACHEABLE_PREDICATE_CACHE = CacheBuilder.newBuilder().build(new CacheLoader<Class<?>, Boolean>() {
     @Override
-    public Boolean load(@SuppressWarnings("NullableProblems") Class<? extends Predicate> key) throws Exception {
+    public Boolean load(@SuppressWarnings("NullableProblems") Class<?> key) throws Exception {
       try {
-        if(SPECIAL_PREDICATE_CLASSES.contains(key)) {
-          return true;
-        }
         Method equals = key.getDeclaredMethod("equals", Object.class);
         Class<?> declaringClass = equals.getDeclaringClass();
         return !declaringClass.equals(Object.class);
@@ -55,8 +52,13 @@ public abstract class PredicateCacheability {
   }
 
   public static boolean isCacheable(Predicate<?> predicate) {
+    Class<?> clazz = predicate.getClass();
+    if (IMPLICITLY_CACHEABLE.contains(clazz)) {
+      return true;
+    }
+
     try {
-      return CACHEABLE_PREDICATE_CACHE.get(predicate.getClass());
+      return CACHEABLE_PREDICATE_CACHE.get(clazz);
     } catch (ExecutionException | UncheckedExecutionException e) {
       throw uncheck(toException(e.getCause()));
     }

@@ -17,56 +17,71 @@
 package ratpack.registry
 
 import com.google.common.base.Predicate
-import com.google.common.base.Predicates
 import groovy.transform.EqualsAndHashCode
 import spock.lang.Specification
 
+import static com.google.common.base.Predicates.*
+import static ratpack.registry.PredicateCacheability.isCacheable
+
 class PredicateCacheabilitySpec extends Specification {
-  def "isCacheable should work with Predicates.alwaysTrue/False methods"() {
+
+  def "guava constant predicates are cacheable"() {
     expect:
-      PredicateCacheability.isCacheable(Predicates.alwaysTrue()) == true
-      PredicateCacheability.isCacheable(Predicates.alwaysFalse()) == true
+    isCacheable(alwaysTrue())
+    isCacheable(alwaysFalse())
+    isCacheable(notNull())
+    isCacheable(isNull())
   }
 
-  def "Predicate classes without an equals method aren't cacheable"() {
+  def "composite predicates are cacheable"() {
     expect:
-      PredicateCacheability.isCacheable(new NonCacheablePredicate()) == false
+    isCacheable(and(alwaysTrue(), alwaysTrue()))
+    isCacheable(or(alwaysTrue(), alwaysTrue()))
   }
 
-  def "Predicate classes with an equals method should be cacheable"() {
+  def "predicate classes without an equals method aren't cacheable"() {
     expect:
-    PredicateCacheability.isCacheable(new CacheablePredicate()) == true
+    !isCacheable(new NonCacheablePredicate())
   }
 
-  def "Predicates in enum inner class should not throw exception"() {
+  def "predicate classes with an equals method should be cacheable"() {
+    expect:
+    isCacheable(new CacheablePredicate())
+  }
+
+  def "predicates in enum inner class should not throw exception"() {
     given:
-      def pred = EnumPredicates.ObjectPredicate.ALWAYS_TRUE.withNarrowedType()
+    def pred = EnumPredicates.ObjectPredicate.ALWAYS_TRUE.withNarrowedType()
+
     expect:
-      PredicateCacheability.isCacheable(pred) == false
+    !isCacheable(pred)
   }
 
   def "closure predicates are cacheable"() {
-     given:
-      def pred = {String s -> false} as Predicate<String>
-     expect:
-      PredicateCacheability.isCacheable(pred) == true
+    given:
+    def pred = { String s -> false } as Predicate<String>
+
+    expect:
+    isCacheable(pred)
   }
+
+  static class NonCacheablePredicate implements Predicate<Number> {
+    @Override
+    boolean apply(Number input) {
+      return false
+    }
+  }
+
+  @EqualsAndHashCode
+  static class CacheablePredicate implements Predicate<Number> {
+    @Override
+    boolean apply(Number input) {
+      return false
+    }
+  }
+
 }
 
-class NonCacheablePredicate implements Predicate<Number> {
-  @Override
-  boolean apply(Number input) {
-    return false
-  }
-}
-
-@EqualsAndHashCode
-class CacheablePredicate implements Predicate<Number> {
-  @Override
-  boolean apply(Number input) {
-    return false
-  }
-}
 
 
 
