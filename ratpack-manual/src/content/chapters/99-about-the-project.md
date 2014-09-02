@@ -46,6 +46,7 @@ The following people have provided significant contributions.
 * [John Engelman](https://github.com/johnrengelman)
 * [Andre Steingress](https://github.com/andresteingress)
 * [Gareth Davis](https://github.com/tempredirect)
+* [Lari Hotari](https://github.com/lhotari)
 
 ### Past project members
 
