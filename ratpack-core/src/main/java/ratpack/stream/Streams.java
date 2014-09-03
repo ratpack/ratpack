@@ -77,7 +77,7 @@ public class Streams {
   /**
    * Returns a publisher that allows the given publisher to emit as fast as it can, while applying flow control downstream.
    * <p>
-   * When the return publisher is subscribed to, a subscription will be made to the given publisher with a request for {@link Integer#MAX_VALUE} items.
+   * When the return publisher is subscribed to, a subscription will be made to the given publisher with a request for {@link Long#MAX_VALUE} items.
    * This effectively allows the given publisher to emit each item as soon as it can.
    * The return publisher will manage the back pressure by holding excess items from the given publisher in memory until the downstream subscriber is ready for them.
    * <p>

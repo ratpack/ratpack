@@ -31,13 +31,13 @@ public class IterablePublisher<T> implements Publisher<T> {
   }
 
   @Override
-  public void subscribe(final Subscriber<T> subscriber) {
+  public void subscribe(final Subscriber<? super T> subscriber) {
     subscriber.onSubscribe(new Subscription() {
 
       Iterator<T> iterator = iterable.iterator();
 
       @Override
-      public void request(int n) {
+      public void request(long n) {
         for (int i = 0; i < n; ++i) {
           if (iterator.hasNext()) {
             T next;

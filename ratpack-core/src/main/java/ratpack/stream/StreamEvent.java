@@ -91,7 +91,7 @@ public interface StreamEvent<T> {
    *
    * @return the request amount if this event represents a request, else {@code 0}
    */
-  int getRequestAmount();
+  long getRequestAmount();
 
   /**
    * The error, if this event represents an error.

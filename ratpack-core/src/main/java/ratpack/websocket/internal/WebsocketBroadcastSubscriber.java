@@ -41,7 +41,7 @@ public class WebsocketBroadcastSubscriber implements Subscriber<String>, AutoClo
   public void onSubscribe(Subscription s) {
     if (this.subscription == null) {
       this.subscription = s;
-      this.subscription.request(Integer.MAX_VALUE);
+      this.subscription.request(Long.MAX_VALUE);
     } else {
       this.subscription.cancel();
     }

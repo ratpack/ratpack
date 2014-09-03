@@ -34,7 +34,7 @@ public class TransformingPublisher<O, I> implements Publisher<O> {
   }
 
   @Override
-  public void subscribe(final Subscriber<O> outSubscriber) {
+  public void subscribe(final Subscriber<? super O> outSubscriber) {
     input.subscribe(new Subscriber<I>() {
 
       private Subscription subscription;

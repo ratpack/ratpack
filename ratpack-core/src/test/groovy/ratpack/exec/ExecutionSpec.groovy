@@ -26,7 +26,7 @@ import spock.lang.AutoCleanup
 import spock.lang.Specification
 
 import java.util.concurrent.CountDownLatch
-import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicLong
 
 import static ratpack.func.Actions.throwException
 
@@ -183,10 +183,10 @@ class ExecutionSpec extends Specification {
         @Override
         void subscribe(Subscriber subscriber) {
           events << 'publisher-subscribe'
-          final AtomicInteger i = new AtomicInteger()
+          final AtomicLong i = new AtomicLong()
 
           Subscription subscription = new Subscription() {
-            AtomicInteger capacity = new AtomicInteger()
+            AtomicLong capacity = new AtomicLong()
 
             @Override
             void cancel() {
@@ -195,7 +195,7 @@ class ExecutionSpec extends Specification {
             }
 
             @Override
-            void request(int elements) {
+            void request(long elements) {
               assert e1.controller.managedThread
               events << 'publisher-request'
               if (capacity.getAndAdd(elements) == 0) {

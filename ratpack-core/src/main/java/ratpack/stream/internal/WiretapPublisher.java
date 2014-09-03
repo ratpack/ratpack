@@ -38,7 +38,7 @@ public class WiretapPublisher<T> implements Publisher<T> {
   }
 
   @Override
-  public void subscribe(final Subscriber<T> outSubscriber) {
+  public void subscribe(final Subscriber<? super T> outSubscriber) {
     final int subscriptionId = counter.getAndIncrement();
     publisher.subscribe(new Subscriber<T>() {
 
@@ -50,7 +50,7 @@ public class WiretapPublisher<T> implements Publisher<T> {
         this.subscription = subscription;
         outSubscriber.onSubscribe(new Subscription() {
           @Override
-          public void request(int n) {
+          public void request(long n) {
             try {
               listener.execute(new RequestEvent<>(subscriptionId, n));
             } catch (Throwable throwable) {
@@ -174,7 +174,7 @@ public class WiretapPublisher<T> implements Publisher<T> {
     }
 
     @Override
-    public int getRequestAmount() {
+    public long getRequestAmount() {
       return 0;
     }
   }
@@ -229,7 +229,7 @@ public class WiretapPublisher<T> implements Publisher<T> {
     }
 
     @Override
-    public int getRequestAmount() {
+    public long getRequestAmount() {
       return 0;
     }
   }
@@ -285,7 +285,7 @@ public class WiretapPublisher<T> implements Publisher<T> {
     }
 
     @Override
-    public int getRequestAmount() {
+    public long getRequestAmount() {
       return 0;
     }
   }
@@ -328,7 +328,7 @@ public class WiretapPublisher<T> implements Publisher<T> {
     }
 
     @Override
-    public int getRequestAmount() {
+    public long getRequestAmount() {
       return 0;
     }
 
@@ -347,10 +347,10 @@ public class WiretapPublisher<T> implements Publisher<T> {
 
   private static class RequestEvent<T> implements StreamEvent<T> {
 
-    private final int requestAmount;
+    private final long requestAmount;
     private final int subscriptionId;
 
-    private RequestEvent(int requestAmount, int subscriptionId) {
+    private RequestEvent(int subscriptionId, long requestAmount) {
       this.requestAmount = requestAmount;
       this.subscriptionId = subscriptionId;
     }
@@ -386,7 +386,7 @@ public class WiretapPublisher<T> implements Publisher<T> {
     }
 
     @Override
-    public int getRequestAmount() {
+    public long getRequestAmount() {
       return requestAmount;
     }
 

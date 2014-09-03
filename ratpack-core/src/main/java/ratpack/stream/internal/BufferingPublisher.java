@@ -22,11 +22,11 @@ import org.reactivestreams.Subscription;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class BufferingPublisher<T> implements Publisher<T> {
 
-  private final AtomicInteger wanted = new AtomicInteger();
+  private final AtomicLong wanted = new AtomicLong();
   private final ConcurrentLinkedQueue<T> buffer = new ConcurrentLinkedQueue<>();
   private final AtomicBoolean finished = new AtomicBoolean();
   private final AtomicBoolean draining = new AtomicBoolean();
@@ -38,14 +38,14 @@ public class BufferingPublisher<T> implements Publisher<T> {
   }
 
   @Override
-  public void subscribe(final Subscriber<T> subscriber) {
+  public void subscribe(final Subscriber<? super T> subscriber) {
     publisher.subscribe(new Subscriber<T>() {
       public Subscription subscription;
 
       private void tryDrain() {
         if (draining.compareAndSet(false, true)) {
           try {
-            int i = wanted.get();
+            long i = wanted.get();
             while (i > 0) {
               T item = buffer.poll();
               if (item == null) {
@@ -72,11 +72,11 @@ public class BufferingPublisher<T> implements Publisher<T> {
       @Override
       public void onSubscribe(final Subscription subscription) {
         this.subscription = subscription;
-        subscription.request(Integer.MAX_VALUE);
+        subscription.request(Long.MAX_VALUE);
 
         subscriber.onSubscribe(new Subscription() {
           @Override
-          public void request(int n) {
+          public void request(long n) {
             wanted.addAndGet(n);
             tryDrain();
           }

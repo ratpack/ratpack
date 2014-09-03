@@ -44,7 +44,7 @@ public class PeriodicPublisher<T> implements Publisher<T> {
   }
 
   @Override
-  public void subscribe(final Subscriber<T> s) {
+  public void subscribe(final Subscriber<? super T> s) {
     s.onSubscribe(new Subscription() {
       private final AtomicInteger counter = new AtomicInteger(0);
       private final ScheduledFuture<?> future = executorService.scheduleWithFixedDelay(new Runnable() {
@@ -71,7 +71,7 @@ public class PeriodicPublisher<T> implements Publisher<T> {
       }, 0, delay, timeUnit);
 
       @Override
-      public void request(int n) {
+      public void request(long n) {
 
       }
 

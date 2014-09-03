@@ -28,7 +28,7 @@ dependencies {
   compile "io.netty:netty-codec-http:$commonVersions.netty"
   compile "com.google.guava:guava:$commonVersions.guava"
   compile commonDependencies.slf4j
-  compile 'org.reactivestreams:reactive-streams:0.4.0.M1'
+  compile 'org.reactivestreams:reactive-streams:0.4.0.M2'
 
   compile 'org.javassist:javassist:3.18.1-GA'
 

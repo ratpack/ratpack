@@ -22,7 +22,7 @@ import org.reactivestreams.Subscription;
 import ratpack.func.Action;
 
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class GatedPublisher<T> implements Publisher<T> {
 
@@ -35,8 +35,8 @@ public class GatedPublisher<T> implements Publisher<T> {
   }
 
   @Override
-  public void subscribe(final Subscriber<T> downstream) {
-    final GatedSubscriber<T> gatedSubscriber = new GatedSubscriber<>(downstream);
+  public void subscribe(final Subscriber<? super T> downstream) {
+    final GatedSubscriber<? super T> gatedSubscriber = new GatedSubscriber<>(downstream);
     try {
       releaseReceiver.execute(new Runnable() {
         @Override
@@ -47,7 +47,7 @@ public class GatedPublisher<T> implements Publisher<T> {
     } catch (final Throwable e) {
       downstream.onSubscribe(new Subscription() {
         @Override
-        public void request(int n) {
+        public void request(long n) {
           downstream.onError(e);
         }
 
@@ -68,7 +68,7 @@ public class GatedPublisher<T> implements Publisher<T> {
     private final AtomicBoolean open = new AtomicBoolean();
     private final AtomicBoolean done = new AtomicBoolean();
     private final AtomicBoolean draining = new AtomicBoolean();
-    private final AtomicInteger waiting = new AtomicInteger();
+    private final AtomicLong waiting = new AtomicLong();
 
     public GatedSubscriber(Subscriber<T> downstream) {
       this.downstream = downstream;
@@ -83,7 +83,7 @@ public class GatedPublisher<T> implements Publisher<T> {
       if (draining.compareAndSet(false, true)) {
         try {
           if (open.get()) {
-            int requested = waiting.getAndSet(0);
+            long requested = waiting.getAndSet(0);
             upstreamSubscription.request(requested);
           }
         } finally {
@@ -119,7 +119,7 @@ public class GatedPublisher<T> implements Publisher<T> {
 
     private class DownstreamSubscription implements Subscription {
       @Override
-      public void request(int n) {
+      public void request(long n) {
         if (open.get() && !done.get()) {
           upstreamSubscription.request(n);
         } else {

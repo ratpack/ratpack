@@ -25,25 +25,26 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * A Reactive Streams compliant {@link org.reactivestreams.Publisher} for publishing to multiple {@link org.reactivestreams.Subscriber}.
+ *
  * @param <T> the Type of element being published
  */
 public class MulticastPublisher<T> implements Publisher<T> {
 
-  private final List<Subscriber<T>> subscribers = new CopyOnWriteArrayList<>();
+  private final List<Subscriber<? super T>> subscribers = new CopyOnWriteArrayList<>();
 
   public void broadcast(T element) {
-    for (Subscriber<T> subscriber : subscribers) {
+    for (Subscriber<? super T> subscriber : subscribers) {
       subscriber.onNext(element);
     }
   }
 
   @Override
-  public void subscribe(final Subscriber<T> s) {
+  public void subscribe(final Subscriber<? super T> s) {
     s.onSubscribe(new Subscription() {
       @Override
-      public void request(int n) {
-        if (n != Integer.MAX_VALUE) {
-          throw new IllegalArgumentException("Back pressure is not supported by this Publisher.  Request with Integer.MAX_VALUE only");
+      public void request(long n) {
+        if (n != Long.MAX_VALUE) {
+          throw new IllegalArgumentException("Back pressure is not supported by this Publisher.  Request with Long.MAX_VALUE only");
         }
         subscribers.add(s);
       }
