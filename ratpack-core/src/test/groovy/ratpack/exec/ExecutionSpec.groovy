@@ -306,7 +306,7 @@ class ExecutionSpec extends Specification {
 
     when:
     exec { e ->
-      e.promise { it.error(ex) }.map {}.flatMap() { e.blocking { "foo" } }.onError {
+      e.promise { it.error(ex) }.map {}.flatMap { e.blocking { "foo" } }.onError {
         events << it
       }.then {
         throw new IllegalStateException("cant get here")
