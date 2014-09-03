@@ -23,7 +23,8 @@ ext {
     groovy: "2.3.6",
     pac4j: "1.5.1",
     rxjava: "0.19.6",
-    hystrix: "1.4.0-RC4"
+    hystrix: "1.4.0-RC4",
+    camel: "2.13.2"
   ]
 
   if (System.getenv('CI_GROOVY_VERSION')) {
