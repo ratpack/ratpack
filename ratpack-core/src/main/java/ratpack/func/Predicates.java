@@ -14,21 +14,24 @@
  * limitations under the License.
  */
 
-package ratpack.exec;
+package ratpack.func;
 
-import ratpack.func.Action;
-import ratpack.func.Function;
-import ratpack.func.NoArgAction;
-import ratpack.func.Predicate;
+public abstract class Predicates {
 
-public interface PromiseOperations<T> {
+  private Predicates() {
+  }
 
-  <O> Promise<O> map(Function<? super T, ? extends O> function);
+  private static final Predicate<Object> IS_NULL = new IsNull();
 
-  <O> Promise<O> flatMap(Function<? super T, ? extends Promise<O>> function);
+  private static class IsNull implements Predicate<Object> {
+    @Override
+    public boolean apply(Object o) throws Exception {
+      return o == null;
+    }
+  }
 
-  Promise<T> route(Predicate<? super T> predicate, Action<? super T> action);
-
-  Promise<T> onNull(NoArgAction action);
+  public static Predicate<Object> isNull() {
+    return IS_NULL;
+  }
 
 }

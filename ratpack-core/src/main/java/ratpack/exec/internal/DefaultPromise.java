@@ -19,10 +19,9 @@ package ratpack.exec.internal;
 import ratpack.exec.Fulfiller;
 import ratpack.exec.Promise;
 import ratpack.exec.SuccessPromise;
-import ratpack.func.Action;
-import ratpack.func.Actions;
-import ratpack.func.Factory;
-import ratpack.func.Function;
+import ratpack.func.*;
+
+import static ratpack.func.Actions.throwException;
 
 public class DefaultPromise<T> implements Promise<T> {
   private final Action<? super Fulfiller<T>> fulfillment;
@@ -44,7 +43,7 @@ public class DefaultPromise<T> implements Promise<T> {
   }
 
   private SuccessPromise<T> propagatingSuccessPromise() {
-    return onError(Actions.throwException());
+    return onError(throwException());
   }
 
   @Override
@@ -55,6 +54,16 @@ public class DefaultPromise<T> implements Promise<T> {
   @Override
   public <O> Promise<O> flatMap(Function<? super T, ? extends Promise<O>> function) {
     return propagatingSuccessPromise().flatMap(function);
+  }
+
+  @Override
+  public Promise<T> route(Predicate<? super T> predicate, Action<? super T> action) {
+    return propagatingSuccessPromise().route(predicate, action);
+  }
+
+  @Override
+  public Promise<T> onNull(NoArgAction action) {
+    return propagatingSuccessPromise().onNull(action);
   }
 
 }

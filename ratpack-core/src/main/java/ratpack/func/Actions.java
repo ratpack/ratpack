@@ -94,6 +94,20 @@ public abstract class Actions {
   }
 
   /**
+   * Returns an action that immediately throws the given exception.
+   *
+   * @return an action that immediately throws the given exception.
+   */
+  public static <T> Action<T> throwException(final Throwable throwable) {
+    return new Action<T>() {
+      @Override
+      public void execute(T t) throws Exception {
+        throw ExceptionUtils.toException(throwable);
+      }
+    };
+  }
+
+  /**
    * Returns an action that acts on an action that acts on the given argument.
    * <p>
    * The returned action is effectively a callback for executing a callback for the given argument.
@@ -107,6 +121,15 @@ public abstract class Actions {
       @Override
       public void execute(Action<? super T> action) throws Exception {
         action.execute(t);
+      }
+    };
+  }
+
+  public static <T> Action<T> ignoreArg(final NoArgAction noArgAction) {
+    return new Action<T>() {
+      @Override
+      public void execute(T t) throws Exception {
+        noArgAction.execute();
       }
     };
   }

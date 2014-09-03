@@ -14,21 +14,10 @@
  * limitations under the License.
  */
 
-package ratpack.exec;
+package ratpack.func;
 
-import ratpack.func.Action;
-import ratpack.func.Function;
-import ratpack.func.NoArgAction;
-import ratpack.func.Predicate;
+public interface Predicate<T> {
 
-public interface PromiseOperations<T> {
-
-  <O> Promise<O> map(Function<? super T, ? extends O> function);
-
-  <O> Promise<O> flatMap(Function<? super T, ? extends Promise<O>> function);
-
-  Promise<T> route(Predicate<? super T> predicate, Action<? super T> action);
-
-  Promise<T> onNull(NoArgAction action);
+  boolean apply(T t) throws Exception;
 
 }

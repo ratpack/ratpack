@@ -28,6 +28,8 @@ import spock.lang.Specification
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.atomic.AtomicInteger
 
+import static ratpack.func.Actions.throwException
+
 class ExecutionSpec extends Specification {
 
   @AutoCleanup
@@ -350,4 +352,47 @@ class ExecutionSpec extends Specification {
     then:
     events == ["!-changed", "complete"]
   }
+
+  def "can route mapped promised value"() {
+    when:
+    exec {
+      it.blocking { "foo" }
+        .route({ it == "bar" }, { events << "received bar" })
+        .map { it.toUpperCase() }
+        .route({ it == "FOO" }, { events << it })
+        .then(throwException(new RuntimeException("!")))
+    }
+
+    then:
+    events == ["FOO", "complete"]
+  }
+
+  def "can exceptions thrown when routed propagate"() {
+    when:
+    def ex = new Exception("!")
+    exec { e ->
+      e.blocking { "foo" }
+        .route({ it == "foo" }, { throw ex })
+        .onError { events << it }
+        .then(throwException(new RuntimeException("then-at-end")))
+    }
+
+    then:
+    events == [ex, "complete"]
+  }
+
+  def "can terminate null"() {
+    when:
+    exec { e ->
+      e.blocking { (String) null }
+        .onNull { events << "null" }
+        .map { it.toUpperCase() }
+        .route({ it == "foo" }, { throw ex })
+        .then(throwException(new RuntimeException("then-at-end")))
+    }
+
+    then:
+    events == ["null", "complete"]
+  }
+
 }

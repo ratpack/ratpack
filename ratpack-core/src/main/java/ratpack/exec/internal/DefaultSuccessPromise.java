@@ -19,13 +19,14 @@ package ratpack.exec.internal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ratpack.exec.*;
-import ratpack.func.Action;
-import ratpack.func.Factory;
-import ratpack.func.Function;
-import ratpack.util.ExceptionUtils;
+import ratpack.func.*;
 import ratpack.util.internal.InternalRatpackError;
 
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import static ratpack.func.Actions.ignoreArg;
+import static ratpack.func.Actions.throwException;
+import static ratpack.func.Predicates.isNull;
 
 public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
 
@@ -92,11 +93,11 @@ public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
           });
         }
       });
-    } catch (final Throwable e) {
+    } catch (final Throwable throwable) {
       if (!fulfilled.compareAndSet(false, true)) {
-        LOGGER.error("", new OverlappingExecutionException("exception thrown after promise was fulfilled", e));
+        LOGGER.error("", new OverlappingExecutionException("exception thrown after promise was fulfilled", throwable));
       } else {
-        executionBacking.join(new ThrowAction(e));
+        executionBacking.join(throwException(throwable));
       }
     }
   }
@@ -106,7 +107,7 @@ public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
     return new DefaultPromise<>(executionProvider, new Action<Fulfiller<O>>() {
       @Override
       public void execute(final Fulfiller<O> downstream) throws Exception {
-        DefaultSuccessPromise.this.doThen(new Transform<O>(downstream, function) {
+        DefaultSuccessPromise.this.doThen(new Transform<O, O>(downstream, function) {
           @Override
           protected void onSuccess(O transformed) {
             downstream.success(transformed);
@@ -121,7 +122,7 @@ public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
     return new DefaultPromise<>(executionProvider, new Action<Fulfiller<O>>() {
       @Override
       public void execute(final Fulfiller<O> downstream) throws Exception {
-        DefaultSuccessPromise.this.doThen(new Transform<Promise<O>>(downstream, function) {
+        DefaultSuccessPromise.this.doThen(new Transform<Promise<O>, O>(downstream, function) {
           @Override
           protected void onSuccess(Promise<O> transformed) {
             transformed.onError(new Action<Throwable>() {
@@ -141,26 +142,47 @@ public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
     });
   }
 
-  private static class ThrowAction implements Action<Execution> {
-    private final Throwable e;
+  @Override
+  public Promise<T> route(final Predicate<? super T> predicate, final Action<? super T> action) {
+    return new DefaultPromise<>(executionProvider, new Action<Fulfiller<T>>() {
+      @Override
+      public void execute(final Fulfiller<T> downstream) throws Exception {
+        DefaultSuccessPromise.this.doThen(new Step<T>(downstream) {
+          @Override
+          public void success(T value) {
+            boolean apply;
+            try {
+              apply = predicate.apply(value);
+            } catch (Throwable e) {
+              error(e);
+              return;
+            }
 
-    public ThrowAction(Throwable e) {
-      this.e = e;
-    }
-
-    @Override
-    public void execute(Execution execution) throws Exception {
-      throw ExceptionUtils.toException(e);
-    }
+            if (apply) {
+              try {
+                action.execute(value);
+              } catch (Throwable e) {
+                error(e);
+              }
+            } else {
+              downstream.success(value);
+            }
+          }
+        });
+      }
+    });
   }
 
-  private abstract class Transform<O> implements Fulfiller<T> {
-    private final Fulfiller<?> downstream;
-    private final Function<? super T, ? extends O> function;
+  @Override
+  public Promise<T> onNull(final NoArgAction onNull) {
+    return route(isNull(), ignoreArg(onNull));
+  }
 
-    public Transform(Fulfiller<?> downstream, Function<? super T, ? extends O> function) {
+  private abstract class Step<O> implements Fulfiller<T> {
+    protected final Fulfiller<O> downstream;
+
+    public Step(Fulfiller<O> downstream) {
       this.downstream = downstream;
-      this.function = function;
     }
 
     @Override
@@ -171,10 +193,19 @@ public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
         downstream.error(e);
       }
     }
+  }
+
+  private abstract class Transform<I, O> extends Step<O> {
+    private final Function<? super T, ? extends I> function;
+
+    public Transform(Fulfiller<O> downstream, Function<? super T, ? extends I> function) {
+      super(downstream);
+      this.function = function;
+    }
 
     @Override
     public void success(T value) {
-      O transformed;
+      I transformed;
       try {
         transformed = function.apply(value);
       } catch (Throwable e) {
@@ -185,7 +216,7 @@ public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
       onSuccess(transformed);
     }
 
-    protected abstract void onSuccess(O transformed);
+    protected abstract void onSuccess(I transformed);
   }
 
   private class UserActionFulfiller implements Fulfiller<T> {
@@ -201,8 +232,8 @@ public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
     public void error(final Throwable throwable) {
       try {
         errorHandler.execute(throwable);
-      } catch (Exception e) {
-        executionBacking.join(new ThrowAction(e));
+      } catch (Throwable errorHandlerThrown) {
+        executionBacking.join(throwException(errorHandlerThrown));
       }
     }
 
@@ -210,8 +241,8 @@ public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
     public void success(final T value) {
       try {
         then.execute(value);
-      } catch (Exception e) {
-        executionBacking.join(new ThrowAction(e));
+      } catch (Throwable throwable) {
+        executionBacking.join(throwException(throwable));
       }
     }
   }
