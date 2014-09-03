@@ -32,7 +32,7 @@ import ratpack.func.Action;
  *
  * @param <T> the type of the outcome object
  */
-public interface SuccessPromise<T> {
+public interface SuccessPromise<T> extends PromiseOperations<T> {
 
   /**
    * Specifies what should be done with the promised object when it is ready.

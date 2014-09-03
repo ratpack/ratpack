@@ -18,12 +18,10 @@ package ratpack.exec.internal;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ratpack.exec.ExecutionException;
-import ratpack.exec.Fulfiller;
-import ratpack.exec.OverlappingExecutionException;
-import ratpack.exec.SuccessPromise;
+import ratpack.exec.*;
 import ratpack.func.Action;
 import ratpack.func.Factory;
+import ratpack.func.Function;
 import ratpack.util.ExceptionUtils;
 import ratpack.util.internal.InternalRatpackError;
 
@@ -44,58 +42,11 @@ public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
 
   @Override
   public void then(final Action<? super T> then) {
+    final ExecutionBacking executionBacking = executionProvider.create();
     try {
-      final ExecutionBacking executionBacking = executionProvider.create();
       executionBacking.continueVia(new Runnable() {
-
-        private final AtomicBoolean fulfilled = new AtomicBoolean();
-
-        @Override
         public void run() {
-          try {
-            action.execute(new Fulfiller<T>() {
-              @Override
-              public void error(final Throwable throwable) {
-                if (!fulfilled.compareAndSet(false, true)) {
-                  LOGGER.error("", new OverlappingExecutionException("promise already fulfilled", throwable));
-                  return;
-                }
-
-                executionBacking.join(new Action<ratpack.exec.Execution>() {
-                  @Override
-                  public void execute(ratpack.exec.Execution execution) throws Exception {
-                    errorHandler.execute(throwable);
-                  }
-                });
-              }
-
-              @Override
-              public void success(final T value) {
-                if (!fulfilled.compareAndSet(false, true)) {
-                  LOGGER.error("", new OverlappingExecutionException("promise already fulfilled"));
-                  return;
-                }
-
-                executionBacking.join(new Action<ratpack.exec.Execution>() {
-                  @Override
-                  public void execute(ratpack.exec.Execution execution) throws Exception {
-                    then.execute(value);
-                  }
-                });
-              }
-            });
-          } catch (final Throwable e) {
-            if (!fulfilled.compareAndSet(false, true)) {
-              LOGGER.error("", new OverlappingExecutionException("exception thrown after promise was fulfilled", e));
-            } else {
-              executionBacking.join(new Action<ratpack.exec.Execution>() {
-                @Override
-                public void execute(ratpack.exec.Execution execution) throws Exception {
-                  throw ExceptionUtils.toException(e);
-                }
-              });
-            }
-          }
+          doThen(new UserActionFulfiller(executionBacking, then));
         }
       });
     } catch (ExecutionException e) {
@@ -105,4 +56,163 @@ public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
     }
   }
 
+  private void doThen(final Fulfiller<? super T> outer) {
+    final ExecutionBacking executionBacking = executionProvider.create();
+    final AtomicBoolean fulfilled = new AtomicBoolean();
+    try {
+      action.execute(new Fulfiller<T>() {
+        @Override
+        public void error(final Throwable throwable) {
+          if (!fulfilled.compareAndSet(false, true)) {
+            LOGGER.error("", new OverlappingExecutionException("promise already fulfilled", throwable));
+            return;
+          }
+
+          executionBacking.join(new Action<Execution>() {
+            @Override
+            public void execute(Execution execution) throws Exception {
+              outer.error(throwable);
+            }
+          });
+        }
+
+        @Override
+        public void success(final T value) {
+          if (!fulfilled.compareAndSet(false, true)) {
+            LOGGER.error("", new OverlappingExecutionException("promise already fulfilled"));
+            return;
+          }
+
+          executionBacking.join(new Action<Execution>() {
+            @Override
+            public void execute(Execution execution) throws Exception {
+              outer.success(value);
+
+            }
+          });
+        }
+      });
+    } catch (final Throwable e) {
+      if (!fulfilled.compareAndSet(false, true)) {
+        LOGGER.error("", new OverlappingExecutionException("exception thrown after promise was fulfilled", e));
+      } else {
+        executionBacking.join(new ThrowAction(e));
+      }
+    }
+  }
+
+  @Override
+  public <O> DefaultPromise<O> map(final Function<? super T, ? extends O> function) {
+    return new DefaultPromise<>(executionProvider, new Action<Fulfiller<O>>() {
+      @Override
+      public void execute(final Fulfiller<O> downstream) throws Exception {
+        DefaultSuccessPromise.this.doThen(new Transform<O>(downstream, function) {
+          @Override
+          protected void onSuccess(O transformed) {
+            downstream.success(transformed);
+          }
+        });
+      }
+    });
+  }
+
+  @Override
+  public <O> Promise<O> flatMap(final Function<? super T, ? extends Promise<O>> function) {
+    return new DefaultPromise<>(executionProvider, new Action<Fulfiller<O>>() {
+      @Override
+      public void execute(final Fulfiller<O> downstream) throws Exception {
+        DefaultSuccessPromise.this.doThen(new Transform<Promise<O>>(downstream, function) {
+          @Override
+          protected void onSuccess(Promise<O> transformed) {
+            transformed.onError(new Action<Throwable>() {
+              @Override
+              public void execute(Throwable throwable) throws Exception {
+                downstream.error(throwable);
+              }
+            }).then(new Action<O>() {
+              @Override
+              public void execute(O o) throws Exception {
+                downstream.success(o);
+              }
+            });
+          }
+        });
+      }
+    });
+  }
+
+  private static class ThrowAction implements Action<Execution> {
+    private final Throwable e;
+
+    public ThrowAction(Throwable e) {
+      this.e = e;
+    }
+
+    @Override
+    public void execute(Execution execution) throws Exception {
+      throw ExceptionUtils.toException(e);
+    }
+  }
+
+  private abstract class Transform<O> implements Fulfiller<T> {
+    private final Fulfiller<?> downstream;
+    private final Function<? super T, ? extends O> function;
+
+    public Transform(Fulfiller<?> downstream, Function<? super T, ? extends O> function) {
+      this.downstream = downstream;
+      this.function = function;
+    }
+
+    @Override
+    public void error(Throwable throwable) {
+      try {
+        errorHandler.execute(throwable);
+      } catch (Throwable e) {
+        downstream.error(e);
+      }
+    }
+
+    @Override
+    public void success(T value) {
+      O transformed;
+      try {
+        transformed = function.apply(value);
+      } catch (Throwable e) {
+        downstream.error(e);
+        return;
+      }
+
+      onSuccess(transformed);
+    }
+
+    protected abstract void onSuccess(O transformed);
+  }
+
+  private class UserActionFulfiller implements Fulfiller<T> {
+    private final ExecutionBacking executionBacking;
+    private final Action<? super T> then;
+
+    public UserActionFulfiller(ExecutionBacking executionBacking, Action<? super T> then) {
+      this.executionBacking = executionBacking;
+      this.then = then;
+    }
+
+    @Override
+    public void error(final Throwable throwable) {
+      try {
+        errorHandler.execute(throwable);
+      } catch (Exception e) {
+        executionBacking.join(new ThrowAction(e));
+      }
+    }
+
+    @Override
+    public void success(final T value) {
+      try {
+        then.execute(value);
+      } catch (Exception e) {
+        executionBacking.join(new ThrowAction(e));
+      }
+    }
+  }
 }

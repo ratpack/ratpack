@@ -22,6 +22,7 @@ import ratpack.exec.SuccessPromise;
 import ratpack.func.Action;
 import ratpack.func.Actions;
 import ratpack.func.Factory;
+import ratpack.func.Function;
 
 public class DefaultPromise<T> implements Promise<T> {
   private final Action<? super Fulfiller<T>> fulfillment;
@@ -39,7 +40,21 @@ public class DefaultPromise<T> implements Promise<T> {
 
   @Override
   public void then(Action<? super T> then) {
-    onError(Actions.throwException()).then(then);
+    propagatingSuccessPromise().then(then);
+  }
+
+  private SuccessPromise<T> propagatingSuccessPromise() {
+    return onError(Actions.throwException());
+  }
+
+  @Override
+  public <O> Promise<O> map(Function<? super T, ? extends O> function) {
+    return propagatingSuccessPromise().map(function);
+  }
+
+  @Override
+  public <O> Promise<O> flatMap(Function<? super T, ? extends Promise<O>> function) {
+    return propagatingSuccessPromise().flatMap(function);
   }
 
 }

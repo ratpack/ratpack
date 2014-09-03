@@ -259,4 +259,95 @@ class ExecutionSpec extends Specification {
     ]
   }
 
+  def "can map promise"() {
+    when:
+    exec {
+      it.promise { it.success("foo") }.map { it + "-bar" }.map { it.toUpperCase() }.then {
+        events << it
+      }
+    }
+
+    then:
+    events == ["FOO-BAR", "complete"]
+  }
+
+  def "can flat map promise"() {
+    when:
+    exec({ e ->
+      e.blocking { "foo" }.flatMap { s -> e.blocking { s + "-bar" } }.map { it.toUpperCase() }.then {
+        events << it
+      }
+    })
+
+    then:
+    events == ["FOO-BAR", "complete"]
+  }
+
+  def "errors are propagated down map chain"() {
+    given:
+    def ex = new RuntimeException("!")
+
+    when:
+    exec { e ->
+      e.promise { it.error(ex) }.map {}.map {}.onError {
+        events << it
+      }.then {
+        throw new IllegalStateException("cant get here")
+      }
+    }
+
+    then:
+    events == [ex, "complete"]
+  }
+
+  def "errors are propagated down flatmap chain"() {
+    given:
+    def ex = new RuntimeException("!")
+
+    when:
+    exec { e ->
+      e.promise { it.error(ex) }.map {}.flatMap() { e.blocking { "foo" } }.onError {
+        events << it
+      }.then {
+        throw new IllegalStateException("cant get here")
+      }
+    }
+
+    then:
+    events == [ex, "complete"]
+  }
+
+  def "errors handler can terminate exception"() {
+    given:
+    def ex = new RuntimeException("!")
+
+    when:
+    exec { e ->
+      e.promise { it.error(ex) }.map {}.onError { events << it }.map {}.onError {
+        events << "shouldn't get this"
+      }.then {
+        throw new IllegalStateException("cant get here")
+      }
+    }
+
+    then:
+    events == [ex, "complete"]
+  }
+
+  def "errors handler can transform exception"() {
+    given:
+    def ex = new RuntimeException("!")
+
+    when:
+    exec { e ->
+      e.promise { it.error(ex) }.map {}.onError { throw new RuntimeException(it.message + "-changed") }.map {}.onError {
+        events << it.message
+      }.then {
+        throw new IllegalStateException("cant get here")
+      }
+    }
+
+    then:
+    events == ["!-changed", "complete"]
+  }
 }
