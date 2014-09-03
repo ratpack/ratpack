@@ -20,5 +20,5 @@ apply from: "$rootDir/gradle/javaModule.gradle"
 
 dependencies {
   compile project(":ratpack-guice")
-  compile "org.projectreactor:reactor-core:1.0.0.RELEASE"
+  compile "org.projectreactor:reactor-core:1.1.4.RELEASE"
 }
