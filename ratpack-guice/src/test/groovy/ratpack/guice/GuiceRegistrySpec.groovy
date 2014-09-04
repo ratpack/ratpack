@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-package ratpack.guice.internal
-
+package ratpack.guice
 import com.google.common.base.Predicates
 import com.google.common.reflect.TypeToken
 import com.google.inject.Binder
@@ -26,11 +25,11 @@ import ratpack.groovy.internal.ClosureUtil
 import ratpack.registry.Registry
 import spock.lang.Specification
 
-class InjectorBackedRegistrySpec extends Specification {
+class GuiceRegistrySpec extends Specification {
 
   Injector injector = Mock(Injector)
   @Delegate
-  Registry registry = new InjectorBackedRegistry(injector)
+  Registry registry = ratpack.guice.Guice.registry(injector)
 
   // Used to back the impl of injector modk methods
   Injector realInjector
@@ -118,5 +117,4 @@ class InjectorBackedRegistrySpec extends Specification {
     registry.all(number, { n -> n < 50 })  as List == [c, d]
     registry.all(number, Predicates.alwaysFalse()) as List == []
   }
-
 }

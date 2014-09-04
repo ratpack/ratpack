@@ -16,18 +16,24 @@
 
 package ratpack.guice;
 
+import com.google.common.base.Supplier;
+import com.google.common.collect.FluentIterable;
+import com.google.common.reflect.TypeToken;
 import com.google.inject.Injector;
 import com.google.inject.Module;
+import com.google.inject.Provider;
 import com.google.inject.Stage;
+import ratpack.func.Action;
 import ratpack.func.Function;
 import ratpack.guice.internal.DefaultGuiceBackedHandlerFactory;
-import ratpack.guice.internal.InjectorBackedRegistry;
+import ratpack.guice.internal.GuiceUtil;
 import ratpack.guice.internal.JustInTimeInjectorRegistry;
 import ratpack.handling.Chain;
 import ratpack.handling.Handler;
 import ratpack.launch.LaunchConfig;
+import ratpack.registry.Registries;
 import ratpack.registry.Registry;
-import ratpack.func.Action;
+import ratpack.registry.RegistryBacking;
 
 import static com.google.inject.Guice.createInjector;
 import static ratpack.handling.Handlers.chain;
@@ -252,7 +258,26 @@ public abstract class Guice {
    * @return A registry that wraps the injector
    */
   public static Registry registry(Injector injector) {
-    return new InjectorBackedRegistry(injector);
+    return Registries.registry(registryBacking(injector));
+  }
+
+  public static RegistryBacking registryBacking(final Injector injector) {
+    return new RegistryBacking() {
+      @Override
+      public <T> Iterable<Supplier<? extends T>> provide(TypeToken<T> type) {
+        return FluentIterable.from(GuiceUtil.allProvidersOfType(injector, type)).transform(new com.google.common.base.Function<Provider<? extends T>, Supplier<? extends T>>() {
+          @Override
+          public Supplier<? extends T> apply(final Provider<? extends T> provider) {
+            return new Supplier<T>() {
+              @Override
+              public T get() {
+                return provider.get();
+              }
+            };
+          }
+        });
+      }
+    };
   }
 
   /**

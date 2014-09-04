@@ -16,10 +16,18 @@
 
 package ratpack.spring;
 
+import com.google.common.base.Function;
+import com.google.common.base.Supplier;
+import com.google.common.collect.FluentIterable;
+import com.google.common.reflect.TypeToken;
+import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.boot.builder.SpringApplicationBuilder;
+import ratpack.registry.Registries;
 import ratpack.registry.Registry;
-import ratpack.spring.internal.SpringBackedRegistry;
+import ratpack.registry.RegistryBacking;
+
+import java.util.Arrays;
 
 /**
  * Static utility methods for using Spring in Ratpack applications.
@@ -37,8 +45,25 @@ public abstract class Spring {
    * @param beanFactory
    * @return
    */
-  public static Registry registry(ListableBeanFactory beanFactory) {
-    return new SpringBackedRegistry(beanFactory);
+  public static Registry registry(final ListableBeanFactory beanFactory) {
+    return Registries.registry(new RegistryBacking() {
+      @Override
+      public <T> Iterable<Supplier<? extends T>> provide(TypeToken<T> type) {
+        return FluentIterable.from(Arrays.asList(BeanFactoryUtils.beanNamesForTypeIncludingAncestors(beanFactory,
+          type.getRawType()))).transform(new Function<String, Supplier<? extends T>>() {
+            @Override
+            public Supplier<? extends T> apply(final String beanName) {
+              return new Supplier<T>() {
+                @Override
+                public T get() {
+                  @SuppressWarnings("unchecked") T bean = (T) beanFactory.getBean(beanName);
+                  return bean;
+                }
+              };
+            }
+          });
+      }
+    });
   }
 
   /**
