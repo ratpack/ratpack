@@ -38,7 +38,8 @@ include \
     "ratpack-hikari",
     "ratpack-newrelic",
     "ratpack-pac4j",
-    "ratpack-hystrix"
+    "ratpack-hystrix",
+    "ratpack-spring-boot"
 
 include "perf"
 
