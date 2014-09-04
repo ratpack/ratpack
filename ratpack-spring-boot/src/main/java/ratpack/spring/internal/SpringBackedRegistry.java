@@ -35,7 +35,6 @@ import ratpack.registry.NotInRegistryException;
 import ratpack.registry.PredicateCacheability;
 import ratpack.registry.Registry;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
