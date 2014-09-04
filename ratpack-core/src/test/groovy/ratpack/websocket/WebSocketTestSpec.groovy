@@ -17,6 +17,7 @@
 package ratpack.websocket
 
 import ratpack.test.internal.RatpackGroovyDslSpec
+import spock.lang.Ignore
 import spock.util.concurrent.BlockingVariable
 
 import java.util.concurrent.CountDownLatch
@@ -27,6 +28,7 @@ import static ratpack.stream.Streams.*
 import static ratpack.websocket.WebSockets.websocket
 import static ratpack.websocket.WebSockets.websocketBroadcast
 
+@Ignore // unstable
 class WebSocketTestSpec extends RatpackGroovyDslSpec {
 
   def "can send and receive websockets"() {
