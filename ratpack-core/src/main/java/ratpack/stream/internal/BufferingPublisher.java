@@ -28,7 +28,8 @@ public class BufferingPublisher<T> implements Publisher<T> {
 
   private final AtomicLong wanted = new AtomicLong();
   private final ConcurrentLinkedQueue<T> buffer = new ConcurrentLinkedQueue<>();
-  private final AtomicBoolean finished = new AtomicBoolean();
+  private final AtomicBoolean upstreamPublisherFinished = new AtomicBoolean();
+  private final AtomicBoolean subscriberFinished = new AtomicBoolean();
   private final AtomicBoolean draining = new AtomicBoolean();
 
   private final Publisher<T> publisher;
@@ -43,13 +44,14 @@ public class BufferingPublisher<T> implements Publisher<T> {
       public Subscription subscription;
 
       private void tryDrain() {
-        if (draining.compareAndSet(false, true)) {
+        if (!subscriberFinished.get() && draining.compareAndSet(false, true)) {
           try {
             long i = wanted.get();
             while (i > 0) {
               T item = buffer.poll();
               if (item == null) {
-                if (finished.get()) {
+                if (upstreamPublisherFinished.get()) {
+                  subscriberFinished.compareAndSet(false, true);
                   subscriber.onComplete();
                   return;
                 } else {
@@ -77,13 +79,16 @@ public class BufferingPublisher<T> implements Publisher<T> {
         subscriber.onSubscribe(new Subscription() {
           @Override
           public void request(long n) {
+            if (n <= 0) {
+              throw new IllegalArgumentException("3.9 While the Subscription is not cancelled, Subscription.request(long n) MUST throw a java.lang.IllegalArgumentException if the argument is <= 0.");
+            }
             wanted.addAndGet(n);
             tryDrain();
           }
 
           @Override
           public void cancel() {
-            finished.compareAndSet(false, true);
+            subscriberFinished.compareAndSet(false, true);
             subscription.cancel();
           }
         });
@@ -98,13 +103,13 @@ public class BufferingPublisher<T> implements Publisher<T> {
       @Override
       public void onError(Throwable t) {
         buffer.clear();
-        finished.compareAndSet(false, true);
+        upstreamPublisherFinished.compareAndSet(false, true);
         subscriber.onError(t);
       }
 
       @Override
       public void onComplete() {
-        finished.compareAndSet(false, true);
+        upstreamPublisherFinished.compareAndSet(false, true);
         tryDrain();
       }
     });
