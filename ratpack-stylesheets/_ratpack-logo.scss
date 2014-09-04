@@ -94,6 +94,7 @@ $martini-image: 'martini.png';
 		}
 		@include text-shadow(0 1px 0 darken($black, 15), 0 -1px 0 darken(contrast-color($black), 40));
 		padding: 0.2em 0.4em;
+    text-align: center;
 	}
 
 	@include rem(font-size, 1rem);
