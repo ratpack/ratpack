@@ -23,6 +23,7 @@ import com.google.common.base.Suppliers;
 import com.google.common.collect.FluentIterable;
 import com.google.common.reflect.TypeToken;
 import ratpack.func.Pair;
+import ratpack.registry.RegistryBacking;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -30,28 +31,29 @@ import java.util.List;
 /**
  * Subclass of CachingSupplierRegistry for testing CachingSupplierRegistry
  */
-public class CachingSupplierRegistryTestImpl extends CachingSupplierRegistry {
+public class CachingBackedRegistryTestImpl extends CachingBackedRegistry {
   final List<Pair<TypeToken<?>, ? extends Supplier<?>>> supplierEntries;
 
-  public CachingSupplierRegistryTestImpl() {
+  public CachingBackedRegistryTestImpl() {
     this(new LinkedList<Pair<TypeToken<?>, ? extends Supplier<?>>>());
   }
 
-  public CachingSupplierRegistryTestImpl(final List<Pair<TypeToken<?>, ? extends Supplier<?>>> supplierEntries) {
-    super(new Function<TypeToken<?>, List<? extends Supplier<?>>>() {
+  public CachingBackedRegistryTestImpl(final List<Pair<TypeToken<?>, ? extends Supplier<?>>> supplierEntries) {
+    super(new RegistryBacking() {
       @Override
-      public List<? extends Supplier<?>> apply(final TypeToken<?> typeToken) {
+      public <T> Iterable<Supplier<? extends T>> provide(final TypeToken<T> typeToken) {
         return FluentIterable.from(supplierEntries).filter(new Predicate<Pair<TypeToken<?>, ? extends Supplier<?>>>() {
           @Override
           public boolean apply(Pair<TypeToken<?>, ? extends Supplier<?>> entry) {
             return typeToken.isAssignableFrom(entry.getLeft());
           }
-        }).transform(new Function<Pair<TypeToken<?>, ? extends Supplier<?>>, Supplier<?>>() {
+        }).transform(new Function<Pair<TypeToken<?>, ? extends Supplier<?>>, Supplier<? extends T>>() {
           @Override
-          public Supplier<?> apply(Pair<TypeToken<?>, ? extends Supplier<?>> input) {
-            return input.getRight();
+          @SuppressWarnings("unchecked")
+          public Supplier<? extends T> apply(Pair<TypeToken<?>, ? extends Supplier<?>> input) {
+            return (Supplier<? extends T>) input.getRight();
           }
-        }).toList();
+        });
       }
     });
     this.supplierEntries = supplierEntries;

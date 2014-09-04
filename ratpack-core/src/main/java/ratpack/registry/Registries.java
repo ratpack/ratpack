@@ -18,6 +18,7 @@ package ratpack.registry;
 
 import ratpack.func.Action;
 import ratpack.func.Factory;
+import ratpack.registry.internal.CachingBackedRegistry;
 import ratpack.registry.internal.DefaultRegistryBuilder;
 import ratpack.registry.internal.HierarchicalRegistry;
 
@@ -145,4 +146,14 @@ public abstract class Registries {
     return builder.build();
   }
 
+  /**
+   * Creates a new registry instance that is backed by a RegistryBacking implementation.
+   * The registry instance caches lookups.
+   *
+   * @param registryBacking the implementation that returns instances for the registry
+   * @return a new registry
+   */
+  public static Registry registry(final RegistryBacking registryBacking) {
+    return new CachingBackedRegistry(registryBacking);
+  }
 }

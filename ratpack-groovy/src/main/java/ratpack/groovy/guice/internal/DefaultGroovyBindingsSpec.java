@@ -23,8 +23,9 @@ import ratpack.func.Action;
 import ratpack.groovy.guice.GroovyBindingsSpec;
 import ratpack.groovy.internal.ClosureInvoker;
 import ratpack.guice.BindingsSpec;
-import ratpack.guice.internal.InjectorBackedRegistry;
+import ratpack.guice.Guice;
 import ratpack.launch.LaunchConfig;
+import ratpack.registry.Registry;
 
 import javax.inject.Provider;
 
@@ -45,7 +46,7 @@ public class DefaultGroovyBindingsSpec implements GroovyBindingsSpec {
     init(new Action<Injector>() {
       @Override
       public void execute(Injector injector) throws Exception {
-        InjectorBackedRegistry injectorBackedRegistry = new InjectorBackedRegistry(injector);
+        Registry injectorBackedRegistry = Guice.registry(injector);
         N delegate = clazz.equals(Void.class) ? null : injector.getInstance(clazz);
         new ClosureInvoker<T, N>(closure).invoke(injectorBackedRegistry, delegate, resolveStrategy);
       }

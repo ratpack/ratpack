@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-package ratpack.spring.internal
+package ratpack.registry.internal
+
 import com.google.common.base.Predicates
+import com.google.common.base.Supplier
 import com.google.common.reflect.TypeToken
-import org.springframework.context.support.StaticApplicationContext
 import ratpack.func.Action
 import ratpack.registry.NotInRegistryException
+import ratpack.registry.RegistryBacking
 import spock.lang.Specification
 
-class SpringBackedRegistrySpec extends Specification {
-  def appContext = new StaticApplicationContext()
-  def r = new SpringBackedRegistry(appContext)
-  def beanFactory = appContext.getBeanFactory()
+class CachingBackedRegistrySpec extends Specification {
+  def r = new CachingBackedRegistryTestImpl()
 
   def "empty registry"() {
     expect:
@@ -40,7 +40,7 @@ class SpringBackedRegistrySpec extends Specification {
 
   def "get and getAll should support implemented interfaces besides actual class"() {
     when:
-    beanFactory.registerSingleton("foo", "foo")
+    r.register("foo")
 
     then:
     r.get(String) == "foo"
@@ -49,10 +49,12 @@ class SpringBackedRegistrySpec extends Specification {
     r.getAll(CharSequence).toList() == ["foo"]
   }
 
-  def "search empty registry with always false predicate"() {
+  def "search empty registry"() {
     expect:
+    r.first(TypeToken.of(Object), Predicates.alwaysTrue()) == null
     r.first(TypeToken.of(Object), Predicates.alwaysFalse()) == null
-    r.all(TypeToken.of(Object), Predicates.alwaysFalse()) as List == []
+    r.all(TypeToken.of(Object), Predicates.alwaysTrue()).toList() == []
+    r.all(TypeToken.of(Object), Predicates.alwaysFalse()).toList() == []
   }
 
   def "search with one item"() {
@@ -61,7 +63,7 @@ class SpringBackedRegistrySpec extends Specification {
     TypeToken other = TypeToken.of(Number)
     def value = "Something"
 
-    beanFactory.registerSingleton("value", value)
+    r.register(value)
 
     expect:
     r.first(type, Predicates.alwaysTrue()) == value
@@ -83,10 +85,10 @@ class SpringBackedRegistrySpec extends Specification {
     def b = "B"
     def c = 42
     def d = 16
-    beanFactory.registerSingleton("a", a)
-    beanFactory.registerSingleton("b", b)
-    beanFactory.registerSingleton("c", c)
-    beanFactory.registerSingleton("d", d)
+    r.register(a)
+    r.register(b)
+    r.register(c)
+    r.register(d)
 
     expect:
     r.first(string, Predicates.alwaysTrue()) == a
@@ -106,7 +108,7 @@ class SpringBackedRegistrySpec extends Specification {
     def sameType = TypeToken.of(String)
     def differentType = TypeToken.of(Number)
     def value = "Something"
-    beanFactory.registerSingleton("value", value)
+    r.register(value)
 
     when:
     r.each(sameType, Predicates.alwaysTrue(), action)
@@ -133,7 +135,7 @@ class SpringBackedRegistrySpec extends Specification {
     def sameType = TypeToken.of(String)
     def differentType = TypeToken.of(Number)
     def value = "Something"
-    beanFactory.registerSingleton("value", value)
+    r.register(value)
     expect:
     r.first(sameType, Predicates.alwaysTrue()) == value
     r.first(sameType, Predicates.alwaysFalse()) == null
@@ -146,7 +148,7 @@ class SpringBackedRegistrySpec extends Specification {
     def sameType = TypeToken.of(String)
     def differentType = TypeToken.of(Number)
     def value = "Something"
-    beanFactory.registerSingleton("value", value)
+    r.register(value)
     expect:
     r.all(sameType, Predicates.alwaysTrue()).toList() == [value]
     r.all(sameType, Predicates.alwaysFalse()).toList() == []
@@ -154,15 +156,50 @@ class SpringBackedRegistrySpec extends Specification {
     r.all(differentType, Predicates.alwaysFalse()).toList() == []
   }
 
-  def "equals and hashCode should be implemented"() {
+  def "lookups are cached when all or first method is used"() {
     given:
-    def otherRegistry = new SpringBackedRegistry(appContext)
-    expect:
-    otherRegistry.equals(r)
-    r.equals(otherRegistry)
-    r.equals(null) == false
-    r.equals(new Object()) == false
-    r.equals(r)
-    otherRegistry.hashCode() == r.hashCode()
+    TypeToken string = TypeToken.of(String)
+    def a = "A"
+    def b = "B"
+    RegistryBacking supplierFunc = Mock()
+    def registry = new CachingBackedRegistry(supplierFunc)
+    when:
+    def result = registry.all(string, Predicates.alwaysTrue()) as List
+    def result2 = registry.all(string, Predicates.alwaysTrue()) as List
+    def sresult = registry.first(string, Predicates.alwaysTrue())
+    def sresult2 = registry.first(string, Predicates.alwaysTrue())
+    then:
+    1 * supplierFunc.provide(string) >> { TypeToken<?> input ->
+      [{-> a} as Supplier, {-> b} as Supplier]
+    }
+    0 * supplierFunc._
+    result == [a, b]
+    result2 == [a, b]
+    sresult == a
+    sresult2 == a
+  }
+
+  def "lookups are cached when getAll or get method is used"() {
+    given:
+    TypeToken string = TypeToken.of(String)
+    def a = "A"
+    def b = "B"
+    RegistryBacking supplierFunc = Mock()
+    def registry = new CachingBackedRegistry(supplierFunc)
+    when:
+    def result = registry.getAll(string) as List
+    def result2 = registry.getAll(string) as List
+    def sresult = registry.get(string)
+    def sresult2 = registry.get(string)
+
+    then:
+    1 * supplierFunc.provide(string) >> { TypeToken<?> input ->
+      [{-> a} as Supplier, {-> b} as Supplier]
+    }
+    0 * supplierFunc._
+    result == [a, b]
+    result2 == [a, b]
+    sresult == a
+    sresult2 == a
   }
 }

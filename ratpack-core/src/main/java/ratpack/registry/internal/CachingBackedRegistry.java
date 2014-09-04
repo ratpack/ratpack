@@ -33,53 +33,49 @@ import ratpack.func.Action;
 import ratpack.registry.NotInRegistryException;
 import ratpack.registry.PredicateCacheability;
 import ratpack.registry.Registry;
+import ratpack.registry.RegistryBacking;
 
-import java.util.Collections;
 import java.util.Iterator;
-import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 import static ratpack.util.ExceptionUtils.toException;
 import static ratpack.util.ExceptionUtils.uncheck;
 
 /**
- *  Registry implementation which is backed by a Function that provides a list of Suppliers for a given TypeToken
+ *  Registry implementation which is backed by a RegistryBacking implementation that provides a list of Suppliers for a given TypeToken
  *
  *  This implementation caches lookups by type and by the combination of type and predicate (when the predicate is cacheable)
+ *
+ *  @see RegistryBacking
  */
-public class CachingSupplierRegistry implements Registry {
-  private final Function<TypeToken<?>, List<? extends Supplier<?>>> suppliersForTypeFunction;
+public class CachingBackedRegistry implements Registry {
+  private final RegistryBacking registryBacking;
 
-  public CachingSupplierRegistry(Function<TypeToken<?>, List<? extends Supplier<?>>> suppliersForTypeFunction) {
-    this.suppliersForTypeFunction = suppliersForTypeFunction;
+  public CachingBackedRegistry(RegistryBacking registryBacking) {
+    this.registryBacking = registryBacking;
   }
 
-  private final LoadingCache<TypeToken<?>, List<? extends Supplier<?>>> supplierCache = CacheBuilder.newBuilder().build(new CacheLoader<TypeToken<?>, List<? extends Supplier<?>>>() {
+  private final LoadingCache<TypeToken<?>, Iterable<? extends Supplier<?>>> supplierCache = CacheBuilder.newBuilder().build(new CacheLoader<TypeToken<?>, Iterable<? extends Supplier<?>>>() {
     @Override
-    public List<? extends Supplier<?>> load(@SuppressWarnings("NullableProblems") TypeToken<?> key) throws Exception {
-      return Objects.firstNonNull(suppliersForTypeFunction.apply(key), ImmutableList.<Supplier<?>>of());
+    public Iterable<? extends Supplier<?>> load(@SuppressWarnings("NullableProblems") TypeToken<?> key) throws Exception {
+      return Objects.firstNonNull(registryBacking.provide(key), ImmutableList.<Supplier<?>>of());
     }
   });
 
-  private final LoadingCache<PredicateCacheability.CacheKey<?>, List<? extends Supplier<?>>> predicateCache = CacheBuilder.newBuilder().build(new CacheLoader<PredicateCacheability.CacheKey<?>, List<? extends Supplier<?>>>() {
+  private final LoadingCache<PredicateCacheability.CacheKey<?>, Iterable<? extends Supplier<?>>> predicateCache = CacheBuilder.newBuilder().build(new CacheLoader<PredicateCacheability.CacheKey<?>, Iterable<? extends Supplier<?>>>() {
     @Override
-    public List<? extends Supplier<?>> load(@SuppressWarnings("NullableProblems") PredicateCacheability.CacheKey<?> key) throws Exception {
+    public Iterable<? extends Supplier<?>> load(@SuppressWarnings("NullableProblems") PredicateCacheability.CacheKey<?> key) throws Exception {
       return get(key);
     }
 
-    private <T> List<? extends Supplier<?>> get(final PredicateCacheability.CacheKey<T> key) throws ExecutionException {
-      List<? extends Supplier<?>> suppliers = getSuppliers(key.type);
-      if (suppliers == null || suppliers.isEmpty()) {
-        return ImmutableList.of();
-      } else {
-        return FluentIterable.from(suppliers).filter(new Predicate<Supplier<?>>() {
-          @Override
-          public boolean apply(Supplier<?> input) {
-            @SuppressWarnings("unchecked") T instance = (T) input.get();
-            return key.predicate.apply(instance);
-          }
-        }).toList();
-      }
+    private <T> Iterable<? extends Supplier<T>> get(final PredicateCacheability.CacheKey<T> key) throws ExecutionException {
+      Iterable<? extends Supplier<T>> suppliers = getSuppliers(key.type);
+      return FluentIterable.from(suppliers).filter(new Predicate<Supplier<T>>() {
+        @Override
+        public boolean apply(Supplier<T> input) {
+          return key.predicate.apply(input.get());
+        }
+      }).toList();
     }
   });
 
@@ -103,12 +99,11 @@ public class CachingSupplierRegistry implements Registry {
   }
 
   public <T> T maybeGet(TypeToken<T> type) {
-    List<? extends Supplier<?>> suppliers = getSuppliers(type);
-    if (suppliers.isEmpty()) {
+    Iterator<? extends Supplier<T>> suppliers = getSuppliers(type).iterator();
+    if (!suppliers.hasNext()) {
       return null;
     } else {
-      @SuppressWarnings("unchecked") T cast = (T) suppliers.get(0).get();
-      return cast;
+      return suppliers.next().get();
     }
   }
 
@@ -119,35 +114,31 @@ public class CachingSupplierRegistry implements Registry {
 
   @Override
   public <O> Iterable<? extends O> getAll(TypeToken<O> type) {
-    final List<? extends Supplier<?>> suppliers = getSuppliers(type);
-    if (suppliers.isEmpty()) {
-      return Collections.emptyList();
-    } else {
-      return transformToInstances(suppliers);
-    }
+    return transformToInstances(getSuppliers(type));
   }
 
-  protected <O> Iterable<O> transformToInstances(Iterable<? extends Supplier<?>> suppliers) {
-    return Iterables.transform(suppliers, new Function<Supplier<?>, O>() {
+  protected <O> Iterable<O> transformToInstances(Iterable<? extends Supplier<O>> suppliers) {
+    return Iterables.transform(suppliers, new Function<Supplier<O>, O>() {
       @Override
-      public O apply(Supplier<?> input) {
-        @SuppressWarnings("unchecked") O cast = (O) input.get();
-        return cast;
+      public O apply(Supplier<O> input) {
+        return input.get();
       }
     });
   }
 
-  protected <T> List<? extends Supplier<?>> getSuppliers(TypeToken<T> type) {
+  protected <T> Iterable<? extends Supplier<T>> getSuppliers(TypeToken<T> type) {
     try {
-      return supplierCache.get(type);
+      @SuppressWarnings("unchecked") Iterable<? extends Supplier<T>> suppliers = (Iterable<? extends Supplier<T>>) supplierCache.get(type);
+      return Objects.firstNonNull(suppliers, ImmutableList.<Supplier<T>>of());
     } catch (ExecutionException | UncheckedExecutionException e) {
       throw uncheck(toException(e.getCause()));
     }
   }
 
-  protected <T> List<? extends Supplier<?>> getSuppliers(TypeToken<T> type, Predicate<? super T> predicate) {
+  protected <T> Iterable<? extends Supplier<T>> getSuppliers(TypeToken<T> type, Predicate<? super T> predicate) {
     try {
-      return predicateCache.get(new PredicateCacheability.CacheKey<>(type, predicate));
+      @SuppressWarnings("unchecked") Iterable<? extends Supplier<T>> suppliers = (Iterable<? extends Supplier<T>>) predicateCache.get(new PredicateCacheability.CacheKey<>(type, predicate));
+      return Objects.firstNonNull(suppliers, ImmutableList.<Supplier<T>>of());
     } catch (ExecutionException | UncheckedExecutionException e) {
       throw uncheck(toException(e.getCause()));
     }
@@ -185,23 +176,15 @@ public class CachingSupplierRegistry implements Registry {
       return any;
     } else {
       boolean foundMatch = false;
-      List<? extends Supplier<?>> suppliers = getSuppliers(type);
-      for (Supplier<?> supplier : suppliers) {
-        @SuppressWarnings("unchecked") T cast = (T) supplier.get();
-        if (predicate.apply(cast)) {
-          action.execute(cast);
+      Iterable<? extends Supplier<T>> suppliers = getSuppliers(type);
+      for (Supplier<T> supplier : suppliers) {
+        T instance = supplier.get();
+        if (predicate.apply(instance)) {
+          action.execute(instance);
           foundMatch = true;
         }
       }
       return foundMatch;
     }
-  }
-
-  /**
-   * Invalidates the cached suppliers (supplierCache) and the cached filtered supplier results (predicateCache)
-   */
-  public void invalidateAll() {
-    supplierCache.invalidateAll();
-    predicateCache.invalidateAll();
   }
 }

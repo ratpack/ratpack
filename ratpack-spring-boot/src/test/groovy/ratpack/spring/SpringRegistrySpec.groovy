@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-package ratpack.registry.internal
-
-import com.google.common.base.Function
+package ratpack.spring
 import com.google.common.base.Predicates
-import com.google.common.base.Supplier
 import com.google.common.reflect.TypeToken
+import org.springframework.context.support.StaticApplicationContext
 import ratpack.func.Action
 import ratpack.registry.NotInRegistryException
 import spock.lang.Specification
 
-class CachingSupplierRegistrySpec extends Specification {
-  def r = new CachingSupplierRegistryTestImpl()
+class SpringRegistrySpec extends Specification {
+  def appContext = new StaticApplicationContext()
+  def r = Spring.registry(appContext)
+  def beanFactory = appContext.getBeanFactory()
 
   def "empty registry"() {
     expect:
@@ -40,7 +40,7 @@ class CachingSupplierRegistrySpec extends Specification {
 
   def "get and getAll should support implemented interfaces besides actual class"() {
     when:
-    r.register("foo")
+    beanFactory.registerSingleton("foo", "foo")
 
     then:
     r.get(String) == "foo"
@@ -49,12 +49,10 @@ class CachingSupplierRegistrySpec extends Specification {
     r.getAll(CharSequence).toList() == ["foo"]
   }
 
-  def "search empty registry"() {
+  def "search empty registry with always false predicate"() {
     expect:
-    r.first(TypeToken.of(Object), Predicates.alwaysTrue()) == null
     r.first(TypeToken.of(Object), Predicates.alwaysFalse()) == null
-    r.all(TypeToken.of(Object), Predicates.alwaysTrue()).toList() == []
-    r.all(TypeToken.of(Object), Predicates.alwaysFalse()).toList() == []
+    r.all(TypeToken.of(Object), Predicates.alwaysFalse()) as List == []
   }
 
   def "search with one item"() {
@@ -63,7 +61,7 @@ class CachingSupplierRegistrySpec extends Specification {
     TypeToken other = TypeToken.of(Number)
     def value = "Something"
 
-    r.register(value)
+    beanFactory.registerSingleton("value", value)
 
     expect:
     r.first(type, Predicates.alwaysTrue()) == value
@@ -85,10 +83,10 @@ class CachingSupplierRegistrySpec extends Specification {
     def b = "B"
     def c = 42
     def d = 16
-    r.register(a)
-    r.register(b)
-    r.register(c)
-    r.register(d)
+    beanFactory.registerSingleton("a", a)
+    beanFactory.registerSingleton("b", b)
+    beanFactory.registerSingleton("c", c)
+    beanFactory.registerSingleton("d", d)
 
     expect:
     r.first(string, Predicates.alwaysTrue()) == a
@@ -108,7 +106,7 @@ class CachingSupplierRegistrySpec extends Specification {
     def sameType = TypeToken.of(String)
     def differentType = TypeToken.of(Number)
     def value = "Something"
-    r.register(value)
+    beanFactory.registerSingleton("value", value)
 
     when:
     r.each(sameType, Predicates.alwaysTrue(), action)
@@ -135,7 +133,7 @@ class CachingSupplierRegistrySpec extends Specification {
     def sameType = TypeToken.of(String)
     def differentType = TypeToken.of(Number)
     def value = "Something"
-    r.register(value)
+    beanFactory.registerSingleton("value", value)
     expect:
     r.first(sameType, Predicates.alwaysTrue()) == value
     r.first(sameType, Predicates.alwaysFalse()) == null
@@ -148,88 +146,11 @@ class CachingSupplierRegistrySpec extends Specification {
     def sameType = TypeToken.of(String)
     def differentType = TypeToken.of(Number)
     def value = "Something"
-    r.register(value)
+    beanFactory.registerSingleton("value", value)
     expect:
     r.all(sameType, Predicates.alwaysTrue()).toList() == [value]
     r.all(sameType, Predicates.alwaysFalse()).toList() == []
     r.all(differentType, Predicates.alwaysTrue()).toList() == []
     r.all(differentType, Predicates.alwaysFalse()).toList() == []
-  }
-
-  def "lookups are cached when all or first method is used and it's possible to invalidate the cache"() {
-    given:
-    TypeToken string = TypeToken.of(String)
-    def a = "A"
-    def b = "B"
-    def c = "C"
-    def d = "D"
-    Function<TypeToken<?>, List<? extends Supplier<?>>> supplierFunc = Mock()
-    def registry = new CachingSupplierRegistry(supplierFunc)
-    when:
-    def result = registry.all(string, Predicates.alwaysTrue()) as List
-    def result2 = registry.all(string, Predicates.alwaysTrue()) as List
-    def sresult = registry.first(string, Predicates.alwaysTrue())
-    def sresult2 = registry.first(string, Predicates.alwaysTrue())
-    then:
-    1 * supplierFunc.apply(string) >> { TypeToken<?> input ->
-      [{-> a} as Supplier, {-> b} as Supplier]
-    }
-    0 * supplierFunc._
-    result == [a, b]
-    result2 == [a, b]
-    sresult == a
-    sresult2 == a
-
-    when: "cache is invalidated"
-    registry.invalidateAll()
-    def sresult3 = registry.first(string, Predicates.alwaysTrue())
-    def result3 = registry.all(string, Predicates.alwaysTrue()) as List
-
-    then: "lookup is made again"
-    1 * supplierFunc.apply(string) >> { TypeToken<?> input ->
-      [{-> c} as Supplier, {-> d} as Supplier]
-    }
-    0 * supplierFunc._
-    sresult3 == c
-    result3 == [c, d]
-  }
-
-  def "lookups are cached when getAll or get method is used and it's possible to invalidate the cache"() {
-    given:
-    TypeToken string = TypeToken.of(String)
-    def a = "A"
-    def b = "B"
-    def c = "C"
-    def d = "D"
-    Function<TypeToken<?>, List<? extends Supplier<?>>> supplierFunc = Mock()
-    def registry = new CachingSupplierRegistry(supplierFunc)
-    when:
-    def result = registry.getAll(string) as List
-    def result2 = registry.getAll(string) as List
-    def sresult = registry.get(string)
-    def sresult2 = registry.get(string)
-
-    then:
-    1 * supplierFunc.apply(string) >> { TypeToken<?> input ->
-      [{-> a} as Supplier, {-> b} as Supplier]
-    }
-    0 * supplierFunc._
-    result == [a, b]
-    result2 == [a, b]
-    sresult == a
-    sresult2 == a
-
-    when: "cache is invalidated"
-    registry.invalidateAll()
-    def sresult3 = registry.get(string)
-    def result3 = registry.getAll(string) as List
-
-    then: "lookup is made again"
-    1 * supplierFunc.apply(string) >> { TypeToken<?> input ->
-      [{-> c} as Supplier, {-> d} as Supplier]
-    }
-    0 * supplierFunc._
-    sresult3 == c
-    result3 == [c, d]
   }
 }
