@@ -1,7 +1,7 @@
 layout 'layout.gtpl', true,
 bodyContents: contents {
 a(href: "http://www.reactivemanifesto.org") {
-  img style: "border: 0; position: fixed; right: 0; top:0; z-index: 9000", src: "//d379ifj7s9wntv.cloudfront.net/reactivemanifesto/images/ribbons/we-are-reactive-white-right.png"
+  img style: "border: 0; position: absolute; right: 0; top:0; z-index: 9000; width: 110px; height: 110px", src: "//d379ifj7s9wntv.cloudfront.net/reactivemanifesto/images/ribbons/we-are-reactive-white-right.png"
 }
 section(id: "promo") {
   div(class:"content") {
