@@ -197,4 +197,11 @@ public class CachingSupplierRegistry implements Registry {
     }
   }
 
+  /**
+   * Invalidates the cached suppliers (supplierCache) and the cached filtered supplier results (predicateCache)
+   */
+  public void invalidateAll() {
+    supplierCache.invalidateAll();
+    predicateCache.invalidateAll();
+  }
 }

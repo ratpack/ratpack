@@ -16,7 +16,9 @@
 
 package ratpack.registry.internal
 
+import com.google.common.base.Function
 import com.google.common.base.Predicates
+import com.google.common.base.Supplier
 import com.google.common.reflect.TypeToken
 import ratpack.func.Action
 import ratpack.registry.NotInRegistryException
@@ -152,5 +154,82 @@ class CachingSupplierRegistrySpec extends Specification {
     r.all(sameType, Predicates.alwaysFalse()).toList() == []
     r.all(differentType, Predicates.alwaysTrue()).toList() == []
     r.all(differentType, Predicates.alwaysFalse()).toList() == []
+  }
+
+  def "lookups are cached when all or first method is used and it's possible to invalidate the cache"() {
+    given:
+    TypeToken string = TypeToken.of(String)
+    def a = "A"
+    def b = "B"
+    def c = "C"
+    def d = "D"
+    Function<TypeToken<?>, List<? extends Supplier<?>>> supplierFunc = Mock()
+    def registry = new CachingSupplierRegistry(supplierFunc)
+    when:
+    def result = registry.all(string, Predicates.alwaysTrue()) as List
+    def result2 = registry.all(string, Predicates.alwaysTrue()) as List
+    def sresult = registry.first(string, Predicates.alwaysTrue())
+    def sresult2 = registry.first(string, Predicates.alwaysTrue())
+    then:
+    1 * supplierFunc.apply(string) >> { TypeToken<?> input ->
+      [{-> a} as Supplier, {-> b} as Supplier]
+    }
+    0 * supplierFunc._
+    result == [a, b]
+    result2 == [a, b]
+    sresult == a
+    sresult2 == a
+
+    when: "cache is invalidated"
+    registry.invalidateAll()
+    def sresult3 = registry.first(string, Predicates.alwaysTrue())
+    def result3 = registry.all(string, Predicates.alwaysTrue()) as List
+
+    then: "lookup is made again"
+    1 * supplierFunc.apply(string) >> { TypeToken<?> input ->
+      [{-> c} as Supplier, {-> d} as Supplier]
+    }
+    0 * supplierFunc._
+    sresult3 == c
+    result3 == [c, d]
+  }
+
+  def "lookups are cached when getAll or get method is used and it's possible to invalidate the cache"() {
+    given:
+    TypeToken string = TypeToken.of(String)
+    def a = "A"
+    def b = "B"
+    def c = "C"
+    def d = "D"
+    Function<TypeToken<?>, List<? extends Supplier<?>>> supplierFunc = Mock()
+    def registry = new CachingSupplierRegistry(supplierFunc)
+    when:
+    def result = registry.getAll(string) as List
+    def result2 = registry.getAll(string) as List
+    def sresult = registry.get(string)
+    def sresult2 = registry.get(string)
+
+    then:
+    1 * supplierFunc.apply(string) >> { TypeToken<?> input ->
+      [{-> a} as Supplier, {-> b} as Supplier]
+    }
+    0 * supplierFunc._
+    result == [a, b]
+    result2 == [a, b]
+    sresult == a
+    sresult2 == a
+
+    when: "cache is invalidated"
+    registry.invalidateAll()
+    def sresult3 = registry.get(string)
+    def result3 = registry.getAll(string) as List
+
+    then: "lookup is made again"
+    1 * supplierFunc.apply(string) >> { TypeToken<?> input ->
+      [{-> c} as Supplier, {-> d} as Supplier]
+    }
+    0 * supplierFunc._
+    sresult3 == c
+    result3 == [c, d]
   }
 }
