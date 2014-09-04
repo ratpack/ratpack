@@ -86,15 +86,16 @@ package ratpack.func;
  *               }
  *             });
  *           }
- *         }).then(new Action&lt;Pair&lt;Integer, Pair&lt;String, Integer&gt;&gt;&gt;() {
- *         public void execute(Pair&lt;Integer, Pair&lt;String, Integer&gt;&gt; pair) throws Exception {
- *           int id = pair.left;
- *           int age = pair.right.right;
- *           String name = pair.right.left;
+ *         })
+ *         .then(new Action&lt;Pair&lt;Integer, Pair&lt;String, Integer&gt;&gt;&gt;() {
+ *           public void execute(Pair&lt;Integer, Pair&lt;String, Integer&gt;&gt; pair) throws Exception {
+ *             int id = pair.left;
+ *             int age = pair.right.right;
+ *             String name = pair.right.left;
  * 
- *           context.render(name + " [" + id + "] - age: " + age);
- *         }
- *       });
+ *             context.render(name + " [" + id + "] - age: " + age);
+ *           }
+ *         });
  *     }
  *   }
  * 
