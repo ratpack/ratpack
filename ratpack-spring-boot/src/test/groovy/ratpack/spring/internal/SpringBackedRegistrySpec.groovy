@@ -15,7 +15,6 @@
  */
 
 package ratpack.spring.internal
-
 import com.google.common.base.Predicates
 import com.google.common.reflect.TypeToken
 import org.springframework.context.support.StaticApplicationContext
@@ -153,5 +152,17 @@ class SpringBackedRegistrySpec extends Specification {
     r.all(sameType, Predicates.alwaysFalse()).toList() == []
     r.all(differentType, Predicates.alwaysTrue()).toList() == []
     r.all(differentType, Predicates.alwaysFalse()).toList() == []
+  }
+
+  def "equals and hashCode should be implemented"() {
+    given:
+    def otherRegistry = new SpringBackedRegistry(appContext)
+    expect:
+    otherRegistry.equals(r)
+    r.equals(otherRegistry)
+    r.equals(null) == false
+    r.equals(new Object()) == false
+    r.equals(r)
+    otherRegistry.hashCode() == r.hashCode()
   }
 }
