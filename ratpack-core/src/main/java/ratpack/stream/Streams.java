@@ -58,6 +58,17 @@ public class Streams {
   }
 
   /**
+   * Creates a new publisher, backed by the given data producing function.
+   *
+   * @param producer the data source
+   * @param <T> the type of item emitted
+   * @return a publisher backed by the given producer
+   */
+  public static <T> Publisher<T> yield(Function<? super YieldRequest, T> producer) {
+    return new YieldingPublisher<>(producer);
+  }
+
+  /**
    * Returns a publisher that publishes items from the given input publisher after transforming each item via the given function.
    * <p>
    * The returned publisher does not perform any flow control on the data stream.

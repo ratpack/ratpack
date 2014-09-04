@@ -142,4 +142,31 @@ class StreamsSpec extends Specification {
     1 * future.cancel(_)
   }
 
+  def "yielding publisher"() {
+    when:
+    def p = yield { it.requestNum < 4 ? it.requestNum.toString() + "-" + it.subscriberNum.toString() : null }
+    def s1 = CollectingSubscriber.subscribe(p)
+    def s2 = CollectingSubscriber.subscribe(p)
+
+    then:
+    s1.received.isEmpty()
+    s2.received.isEmpty()
+
+    when:
+    s1.subscription.request(1)
+    s2.subscription.request(1)
+
+    then:
+    s1.received == ["0-0"]
+    s2.received == ["0-1"]
+
+    when:
+    s1.subscription.request(3)
+    s2.subscription.request(3)
+
+    then:
+    s1.received == ["0-0", "1-0", "2-0", "3-0"]
+    s2.received == ["0-1", "1-1", "2-1", "3-1"]
+  }
+
 }

@@ -67,4 +67,15 @@ public abstract class ExceptionUtils {
     }
   }
 
+  /**
+   * Throws the given throwable if it is an {@link Error}, otherwise does nothing.
+   *
+   * @param throwable the throwable to throw if it is an {@link Error}
+   */
+  public static void throwIfError(Throwable throwable) {
+    if (throwable instanceof Error) {
+      throw (Error) throwable;
+    }
+  }
+
 }
