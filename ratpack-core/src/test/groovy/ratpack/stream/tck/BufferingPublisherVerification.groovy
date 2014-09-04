@@ -46,7 +46,7 @@ class BufferingPublisherVerification extends PublisherVerification<Integer> {
     throttle(new Publisher<Integer>() {
       @Override
       void subscribe(Subscriber<? super Integer> s) {
-        s.onError(new RuntimeException("Can't subscribe subcriber: " + s + ", because of reasons."));
+        s.onError(new RuntimeException("Can't subscribe subcriber: " + s + ", because of reasons."))
       }
     })
   }
