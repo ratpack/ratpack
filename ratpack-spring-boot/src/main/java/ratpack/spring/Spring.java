@@ -46,24 +46,7 @@ public abstract class Spring {
    * @return
    */
   public static Registry registry(final ListableBeanFactory beanFactory) {
-    return Registries.registry(new RegistryBacking() {
-      @Override
-      public <T> Iterable<Supplier<? extends T>> provide(TypeToken<T> type) {
-        return FluentIterable.from(Arrays.asList(BeanFactoryUtils.beanNamesForTypeIncludingAncestors(beanFactory,
-          type.getRawType()))).transform(new Function<String, Supplier<? extends T>>() {
-            @Override
-            public Supplier<? extends T> apply(final String beanName) {
-              return new Supplier<T>() {
-                @Override
-                public T get() {
-                  @SuppressWarnings("unchecked") T bean = (T) beanFactory.getBean(beanName);
-                  return bean;
-                }
-              };
-            }
-          });
-      }
-    });
+    return Registries.registry(new SpringRegistryBacking(beanFactory));
   }
 
   /**
@@ -88,5 +71,49 @@ public abstract class Spring {
    */
   public static Registry run(SpringApplicationBuilder springApplicationBuilder, String... args) {
     return registry(springApplicationBuilder.run(args));
+  }
+
+  private static class SpringRegistryBacking implements RegistryBacking {
+    private final ListableBeanFactory beanFactory;
+
+    public SpringRegistryBacking(ListableBeanFactory beanFactory) {
+      this.beanFactory = beanFactory;
+    }
+
+    @Override
+    public <T> Iterable<Supplier<? extends T>> provide(TypeToken<T> type) {
+      return FluentIterable.from(Arrays.asList(BeanFactoryUtils.beanNamesForTypeIncludingAncestors(beanFactory,
+        type.getRawType()))).transform(new Function<String, Supplier<? extends T>>() {
+          @Override
+          public Supplier<? extends T> apply(final String beanName) {
+            return new Supplier<T>() {
+              @Override
+              public T get() {
+                @SuppressWarnings("unchecked") T bean = (T) beanFactory.getBean(beanName);
+                return bean;
+              }
+            };
+          }
+        });
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
+
+      SpringRegistryBacking that = (SpringRegistryBacking) o;
+
+      return beanFactory.equals(that.beanFactory);
+    }
+
+    @Override
+    public int hashCode() {
+      return beanFactory.hashCode();
+    }
   }
 }

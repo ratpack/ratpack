@@ -187,4 +187,23 @@ public class CachingBackedRegistry implements Registry {
       return foundMatch;
     }
   }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    CachingBackedRegistry that = (CachingBackedRegistry) o;
+
+    return registryBacking.equals(that.registryBacking);
+  }
+
+  @Override
+  public int hashCode() {
+    return registryBacking.hashCode();
+  }
 }
