@@ -43,9 +43,6 @@ public class MulticastPublisher<T> implements Publisher<T> {
     s.onSubscribe(new Subscription() {
       @Override
       public void request(long n) {
-        if (n != Long.MAX_VALUE) {
-          throw new IllegalArgumentException("Back pressure is not supported by this Publisher.  Request with Long.MAX_VALUE only");
-        }
         subscribers.add(s);
       }
 
