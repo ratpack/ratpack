@@ -32,8 +32,8 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 import static org.mockito.Matchers.any
 import static org.mockito.Mockito.*
+import static ratpack.stream.Streams.constant
 import static ratpack.stream.Streams.publish
-import static ratpack.stream.testutil.InfinitePublisher.infinitePublish
 
 class DefaultResponseTransmitterBlackboxVerification extends SubscriberBlackboxVerification<Integer> {
 
@@ -68,7 +68,7 @@ class DefaultResponseTransmitterBlackboxVerification extends SubscriberBlackboxV
   @Override
   Publisher<Integer> createHelperPublisher(long elements) {
     if (elements == Long.MAX_VALUE) {
-      infinitePublish()
+      constant(1)
     } else if (elements > 0) {
       publish(0..<elements)
     } else {

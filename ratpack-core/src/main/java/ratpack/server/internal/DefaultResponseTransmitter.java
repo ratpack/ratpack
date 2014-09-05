@@ -41,7 +41,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import static io.netty.handler.codec.http.HttpHeaders.isKeepAlive;
 
-class DefaultResponseTransmitter implements ResponseTransmitter {
+public class DefaultResponseTransmitter implements ResponseTransmitter {
 
   private final static Logger LOGGER = LoggerFactory.getLogger(DefaultResponseTransmitter.class);
   private static final Runnable NOOP_RUNNABLE = new Runnable() {

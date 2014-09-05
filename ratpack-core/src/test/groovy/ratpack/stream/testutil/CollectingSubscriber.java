@@ -16,21 +16,21 @@
 
 package ratpack.stream.testutil;
 
+import com.beust.jcommander.internal.Lists;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
-import java.util.LinkedList;
 import java.util.List;
 
 public class CollectingSubscriber<T> implements Subscriber<T> {
-  public final List<T> received = new LinkedList<T>();
+  public final List<T> received = Lists.newLinkedList();
   public Subscription subscription;
   public Throwable error;
   public boolean complete;
 
   public static <T> CollectingSubscriber<T> subscribe(Publisher<T> publisher) {
-    CollectingSubscriber<T> subscriber = new CollectingSubscriber<T>();
+    CollectingSubscriber<T> subscriber = new CollectingSubscriber<>();
     publisher.subscribe(subscriber);
     return subscriber;
   }
@@ -54,4 +54,5 @@ public class CollectingSubscriber<T> implements Subscriber<T> {
   public void onComplete() {
     complete = true;
   }
+
 }

@@ -15,7 +15,6 @@
  */
 
 
-
 package ratpack.stream.tck
 
 import org.reactivestreams.Publisher
@@ -26,9 +25,7 @@ import ratpack.websocket.WebSocket
 import ratpack.websocket.internal.WebsocketBroadcastSubscriber
 
 import static org.mockito.Mockito.mock
-import static ratpack.stream.Streams.map
-import static ratpack.stream.Streams.publish
-import static ratpack.stream.testutil.InfinitePublisher.infinitePublish
+import static ratpack.stream.Streams.*
 
 class WebsocketBroadcastSubscriberBlackboxVerification extends SubscriberBlackboxVerification<String> {
 
@@ -41,14 +38,13 @@ class WebsocketBroadcastSubscriberBlackboxVerification extends SubscriberBlackbo
   @Override
   Subscriber<String> createSubscriber() {
     WebSocket ws = mock(WebSocket)
-
     new WebsocketBroadcastSubscriber(ws)
   }
 
   @Override
   Publisher<Integer> createHelperPublisher(long elements) {
     if (elements == Long.MAX_VALUE) {
-      map(infinitePublish()) { it.toString() }
+      constant("foo")
     } else if (elements > 0) {
       map(publish(0..<elements)) { it.toString() }
     } else {

@@ -69,6 +69,24 @@ public class Streams {
   }
 
   /**
+   * Creates a new publisher, that indefinitely streams the given object to all subscribers.
+   * <p>
+   * This is rarely useful for anything other than testing.
+   *
+   * @param item the item to indefinitely stream
+   * @param <T> the type of item emitted
+   * @return a publisher that indefinitely streams the given item
+   */
+  public static <T> Publisher<T> constant(final T item) {
+    return yield(new Function<YieldRequest, T>() {
+      @Override
+      public T apply(YieldRequest yieldRequest) throws Exception {
+        return item;
+      }
+    });
+  }
+
+  /**
    * Returns a publisher that publishes items from the given input publisher after transforming each item via the given function.
    * <p>
    * The returned publisher does not perform any flow control on the data stream.
