@@ -28,7 +28,7 @@ import ratpack.websocket.internal.WebsocketBroadcastSubscriber
 import static org.mockito.Mockito.mock
 import static ratpack.stream.Streams.map
 import static ratpack.stream.Streams.publish
-import static ratpack.stream.tck.InfinitePublisher.infinitePublish
+import static ratpack.stream.testutil.InfinitePublisher.infinitePublish
 
 class WebsocketBroadcastSubscriberBlackboxVerification extends SubscriberBlackboxVerification<String> {
 

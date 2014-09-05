@@ -33,7 +33,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import static org.mockito.Matchers.any
 import static org.mockito.Mockito.*
 import static ratpack.stream.Streams.publish
-import static ratpack.stream.tck.InfinitePublisher.infinitePublish
+import static ratpack.stream.testutil.InfinitePublisher.infinitePublish
 
 class DefaultResponseTransmitterBlackboxVerification extends SubscriberBlackboxVerification<Integer> {
 

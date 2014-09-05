@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ratpack.stream.tck
+package ratpack.stream.testutil
 
 import org.reactivestreams.Publisher
 import org.reactivestreams.Subscriber

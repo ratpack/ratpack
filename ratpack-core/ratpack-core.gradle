@@ -44,3 +44,25 @@ dependencies {
 test {
   maxParallelForks = 3
 }
+
+// Reactive Streams TCK uses TestNG, and Gradle can't run TestNG and JUnit in the same run.
+task streamTckTest(type: Test) {
+  tasks.check.dependsOn it
+
+  useTestNG()
+  scanForTestClasses = false
+  include "**/stream/tck/*"
+
+  classpath = sourceSets.test.runtimeClasspath
+  testClassesDir = sourceSets.test.output.classesDir
+  testSrcDirs = sourceSets.test.allSource.srcDirs.toList()
+
+  binResultsDir = file("$buildDir/$name-results/binary")
+  reports {
+    html.destination = file("$buildDir/reports/$name")
+    junitXml.destination = binResultsDir.parentFile
+  }
+
+  // Not passing the tck yet
+  ignoreFailures = true
+}
