@@ -38,6 +38,7 @@ dependencies {
 
   testCompile 'org.apache.commons:commons-lang3:3.3.2'
   testCompile 'org.reactivestreams:reactive-streams-tck:0.4.0.M2-20140904-173944-SNAPSHOT'
+  testCompile 'org.mockito:mockito-core:1.9.5'
 }
 
 test {

@@ -145,6 +145,11 @@ class DefaultResponseTransmitter implements ResponseTransmitter {
 
       @Override
       public void onSubscribe(Subscription s) {
+        if (this.subscription != null) {
+          s.cancel();
+          return;
+        }
+
         this.subscription = s;
 
         onWritabilityChanged = new Runnable() {
@@ -181,7 +186,9 @@ class DefaultResponseTransmitter implements ResponseTransmitter {
       @Override
       public void onError(Throwable t) {
         LOGGER.debug("Exception thrown transmitting stream", t);
-        cancel();
+        if (done.compareAndSet(false, true)) {
+          post();
+        }
       }
 
       @Override
