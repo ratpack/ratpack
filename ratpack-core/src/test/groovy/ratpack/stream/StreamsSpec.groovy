@@ -80,6 +80,16 @@ class StreamsSpec extends Specification {
     complete
   }
 
+  def "can firehose with buffering publisher"() {
+    when:
+    def p = publish(1..100)
+    def s = CollectingSubscriber.subscribe(p)
+    s.subscription.request(Long.MAX_VALUE)
+
+    then:
+    s.received == (1..100).toList()
+  }
+
 
   def "can periodically produce"() {
     given:
@@ -123,11 +133,13 @@ class StreamsSpec extends Specification {
 
     then:
     !future.isCancelled()
+    runnable == null
+    subscription.request(1)
     runnable.run()
     runnable.run()
     runnable.run()
-    queue.isEmpty()
-    subscription.request(2)
+    queue.toList() == [0]
+    subscription.request(1)
     queue.toList() == [0, 1]
     subscription.request(2)
     queue.toList() == [0, 1, 2]

@@ -17,7 +17,6 @@
 package ratpack.stream.tck
 
 import org.reactivestreams.Publisher
-import org.reactivestreams.Subscriber
 import org.reactivestreams.tck.PublisherVerification
 import org.reactivestreams.tck.TestEnvironment
 
@@ -40,11 +39,6 @@ class BufferingPublisherVerification extends PublisherVerification<Integer> {
 
   @Override
   Publisher<Integer> createErrorStatePublisher() {
-    throttle(new Publisher<Integer>() {
-      @Override
-      void subscribe(Subscriber<? super Integer> s) {
-        s.onError(new RuntimeException("Can't subscribe subcriber: " + s + ", because of reasons."))
-      }
-    })
+    null // because subscription always succeeds. Nothing is attempted until a request is received.
   }
 }
