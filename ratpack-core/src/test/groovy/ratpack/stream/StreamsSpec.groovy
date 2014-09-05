@@ -68,9 +68,10 @@ class StreamsSpec extends Specification {
     })
 
     expect:
-    sent.size() == 10
+    sent.size() == 0
     received.isEmpty()
     subscription.request(2)
+    sent.size() == 10
     received.size() == 2
     subscription.request(2)
     received.size() == 4

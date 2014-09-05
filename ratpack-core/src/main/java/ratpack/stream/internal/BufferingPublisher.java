@@ -42,6 +42,7 @@ public class BufferingPublisher<T> implements Publisher<T> {
   public void subscribe(final Subscriber<? super T> subscriber) {
     publisher.subscribe(new Subscriber<T>() {
       public Subscription subscription;
+      public AtomicBoolean requestedUpstream = new AtomicBoolean();
 
       private void tryDrain() {
         if (!subscriberFinished.get() && draining.compareAndSet(false, true)) {
@@ -74,14 +75,17 @@ public class BufferingPublisher<T> implements Publisher<T> {
       @Override
       public void onSubscribe(final Subscription subscription) {
         this.subscription = subscription;
-        subscription.request(Long.MAX_VALUE);
-
         subscriber.onSubscribe(new Subscription() {
           @Override
           public void request(long n) {
-            if (n <= 0) {
+            if (n < 1) {
               throw new IllegalArgumentException("3.9 While the Subscription is not cancelled, Subscription.request(long n) MUST throw a java.lang.IllegalArgumentException if the argument is <= 0.");
             }
+
+            if (requestedUpstream.compareAndSet(false, true)) {
+              subscription.request(Long.MAX_VALUE);
+            }
+
             wanted.addAndGet(n);
             tryDrain();
           }
