@@ -35,10 +35,7 @@ class BufferingPublisherVerification extends PublisherVerification<Integer> {
 
   @Override
   Publisher<Integer> createPublisher(long elements) {
-    def list = []
-    0.step(elements , 1) {list << it}
-
-    throttle(publish(list))
+    throttle(publish(0..<elements))
   }
 
   @Override
