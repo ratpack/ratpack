@@ -35,6 +35,7 @@ import ratpack.http.internal.CustomHttpResponse;
 import ratpack.http.internal.DefaultSentResponse;
 import ratpack.http.internal.HttpHeaderConstants;
 import ratpack.http.internal.NettyHeadersBackedHeaders;
+import ratpack.util.internal.InternalRatpackError;
 import ratpack.util.internal.NumberUtil;
 
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -78,25 +79,28 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
   }
 
   private ChannelFuture pre() {
-    transmitted.set(true);
+    if (transmitted.compareAndSet(false, true)) {
+      stopTime = System.nanoTime();
 
-    stopTime = System.nanoTime();
+      HttpResponseStatus nettyStatus = new HttpResponseStatus(responseStatus.getCode(), responseStatus.getMessage());
+      HttpResponse headersResponse = new CustomHttpResponse(nettyStatus, responseHeaders);
+      nettyRequest.release();
 
-    HttpResponseStatus nettyStatus = new HttpResponseStatus(responseStatus.getCode(), responseStatus.getMessage());
-    HttpResponse headersResponse = new CustomHttpResponse(nettyStatus, responseHeaders);
-    nettyRequest.release();
+      if (isKeepAlive) {
+        headersResponse.headers().set(HttpHeaderConstants.CONNECTION, HttpHeaderConstants.KEEP_ALIVE);
+      }
 
-    if (isKeepAlive) {
-      headersResponse.headers().set(HttpHeaderConstants.CONNECTION, HttpHeaderConstants.KEEP_ALIVE);
-    }
+      if (startTime > 0) {
+        headersResponse.headers().set("X-Response-Time", NumberUtil.toMillisDiffString(startTime, stopTime));
+      }
 
-    if (startTime > 0) {
-      headersResponse.headers().set("X-Response-Time", NumberUtil.toMillisDiffString(startTime, stopTime));
-    }
-
-    if (channel.isOpen()) {
-      return channel.writeAndFlush(headersResponse).addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
+      if (channel.isOpen()) {
+        return channel.writeAndFlush(headersResponse).addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
+      } else {
+        return null;
+      }
     } else {
+      LOGGER.warn("attempt at double transmission for: " + ratpackRequest.getRawUri(), new InternalRatpackError(""));
       return null;
     }
   }
