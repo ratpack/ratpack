@@ -16,7 +16,6 @@
 
 package ratpack.gradle
 
-import com.google.common.base.StandardSystemProperty
 import org.gradle.api.Project
 import org.gradle.api.file.FileCollection
 
@@ -53,7 +52,7 @@ class SpringloadedUtil {
   private Map<String, String> getSpringLoadedConfig() {
     [
       caching: "true",
-      cacheDir: new File(project.buildDir, "springloaded-cache/${StandardSystemProperty.JAVA_VERSION.value()}")
+      cacheDir: new File(project.buildDir, "springloaded-cache/${System.getProperty("java.version")}")
     ]
   }
 
