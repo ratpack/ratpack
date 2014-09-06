@@ -62,7 +62,4 @@ task streamTckTest(type: Test) {
     html.destination = file("$buildDir/reports/$name")
     junitXml.destination = binResultsDir.parentFile
   }
-
-  // Not passing the tck yet
-  ignoreFailures = true
 }

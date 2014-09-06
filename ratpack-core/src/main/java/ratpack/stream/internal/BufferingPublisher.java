@@ -35,10 +35,12 @@ public class BufferingPublisher<T> implements Publisher<T> {
 
   @Override
   public void subscribe(final Subscriber<? super T> subscriber) {
-    subscriber.onSubscribe(new DownstreamSubscription(subscriber));
+    DownstreamSubscription subscription = new DownstreamSubscription(subscriber);
+    subscriber.onSubscribe(subscription);
+    subscription.open();
   }
 
-  private class DownstreamSubscription implements Subscription {
+  private class DownstreamSubscription extends SubscriptionSupport {
 
     // if null, using passthru
     private BufferingSubscriber bufferingSubscriber;
@@ -55,11 +57,7 @@ public class BufferingPublisher<T> implements Publisher<T> {
       this.downstreamSubscriber = downstreamSubscriber;
     }
 
-    public void request(long n) {
-      if (n < 1) {
-        throw new IllegalArgumentException("3.9 While the Subscription is not cancelled, Subscription.request(long n) MUST throw a java.lang.IllegalArgumentException if the argument is <= 0.");
-      }
-
+    protected void doRequest(long n) {
       if (requestedUpstream.compareAndSet(false, true)) {
         if (n == Long.MAX_VALUE) {
           publisher.subscribe(new PassThruSubscriber());
