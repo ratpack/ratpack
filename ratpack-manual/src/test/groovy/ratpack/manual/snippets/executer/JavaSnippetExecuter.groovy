@@ -65,13 +65,17 @@ public class JavaSnippetExecuter implements SnippetExecuter {
     }
 
     def exampleClass = classLoader.loadClass("Example")
+    def previousContextClassLoader = Thread.currentThread().getContextClassLoader()
     try {
+      Thread.currentThread().setContextClassLoader(classLoader)
       def mainMethod = exampleClass.getMethod("main", Class.forName("[Ljava.lang.String;"))
       mainMethod.invoke(null, [[] as String[]] as Object[])
     } catch (NoSuchMethodException ignore) {
       // Class has no test method
     } catch (InvocationTargetException e) {
      throw e.cause
+    } finally {
+      Thread.currentThread().setContextClassLoader(previousContextClassLoader)
     }
   }
 
