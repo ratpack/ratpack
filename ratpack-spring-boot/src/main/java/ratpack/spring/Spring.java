@@ -32,6 +32,73 @@ import java.util.Arrays;
 /**
  * Static utility methods for using Spring in Ratpack applications.
  *
+ * Java example:
+ * <pre class="java">
+ * {@code
+ * import org.springframework.boot.SpringApplication;
+ * import org.springframework.context.annotation.Bean;
+ * import org.springframework.context.annotation.Configuration;
+ * import ratpack.func.Action;
+ * import ratpack.handling.Chain;
+ * import ratpack.handling.Context;
+ * import ratpack.handling.Handler;
+ * import ratpack.handling.Handlers;
+ * import ratpack.launch.HandlerFactory;
+ * import ratpack.launch.LaunchConfig;
+ * import ratpack.launch.LaunchConfigBuilder;
+ * import ratpack.spring.Spring;
+ * import ratpack.test.embed.EmbeddedApplication;
+ * import ratpack.test.embed.LaunchConfigEmbeddedApplication;
+ *
+ * public class Example {
+ *
+ *   private static EmbeddedApplication createApp() {
+ *     return new LaunchConfigEmbeddedApplication() {
+ *       protected LaunchConfig createLaunchConfig() {
+ *         return LaunchConfigBuilder.noBaseDir().port(0).build(new HandlerFactory() {
+ *           public Handler create(LaunchConfig launchConfig) throws Exception {
+ *             // Example of using Spring Boot in Ratpack
+ *             return Handlers.chain(launchConfig, new Action<Chain>() {
+ *               public void execute(Chain chain) {
+ *                 chain.register(Spring.run(ExampleSpringBootApp.class));
+ *
+ *                 chain.handler(new Handler() {
+ *                   public void handle(Context context) {
+ *                     String helloBean = context.get(String.class);
+ *                     context.render(helloBean);
+ *                   }
+ *                 });
+ *               }
+ *             });
+ *           }
+ *         });
+ *       }
+ *     };
+ *   }
+ *
+ *   public static void main(String[] args) {
+ *     try (EmbeddedApplication app = createApp()) {
+ *       assert app.getHttpClient().getText().equals("hello");
+ *     }
+ *   }
+ *
+ *   {@literal @}Configuration
+ *   public static class ExampleSpringBootApp {
+ *     {@literal @}Bean
+ *     String hello() {
+ *       return "hello";
+ *     }
+ *
+ *     public static void main(String[] args) {
+ *       SpringApplication.run(ExampleSpringBootApp.class, args);
+ *     }
+ *   }
+ * }
+ * }
+ * </pre>
+ *
+ *
+ *
  */
 public abstract class Spring {
   /**
@@ -43,7 +110,7 @@ public abstract class Spring {
    * the Spring ListableBeanFactory API.
    *
    * @param beanFactory
-   * @return
+   * @return Registry instance that looks up dependencies in the Spring Boot Application's context
    */
   public static Registry registry(final ListableBeanFactory beanFactory) {
     return Registries.registry(new RegistryBacking() {
