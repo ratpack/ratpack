@@ -42,17 +42,17 @@ import java.util.Arrays;
  * import static ratpack.groovy.Groovy.ratpack
  *
  * ratpack {
- * 	handlers {
- * 	  register Spring.run(SampleSpringBootApp)
+ *   handlers {
+ *     register Spring.run(SampleSpringBootApp)
  *
- * 	  get("foo") { String msg ->
- * 	    render msg
- * 	  }
+ *     handler("foo") { String msg ->
+ *       render msg
+ *     }
  *
- * 	  get("bar") { CharSequence msg ->
- * 	    render msg
- * 	  }
- * 	}
+ *     handler("bar") { CharSequence msg ->
+ *       render msg
+ *     }
+ *   }
  * }
  *
  * {@literal @}Configuration
