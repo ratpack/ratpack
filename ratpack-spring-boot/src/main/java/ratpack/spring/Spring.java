@@ -32,6 +32,43 @@ import java.util.Arrays;
 /**
  * Static utility methods for using Spring in Ratpack applications.
  *
+ * Ratpack Groovy DSL example:
+ * <pre class="groovy-ratpack-dsl">
+ * {@code
+ * import org.springframework.boot.SpringApplication
+ * import org.springframework.context.annotation.Bean
+ * import org.springframework.context.annotation.Configuration
+ * import ratpack.spring.Spring
+ * import static ratpack.groovy.Groovy.ratpack
+ *
+ * ratpack {
+ * 	handlers {
+ * 	  register Spring.run(SampleSpringBootApp)
+ *
+ * 	  get("foo") { String msg ->
+ * 	    render msg
+ * 	  }
+ *
+ * 	  get("bar") { CharSequence msg ->
+ * 	    render msg
+ * 	  }
+ * 	}
+ * }
+ *
+ * {@literal @}Configuration
+ * class SampleSpringBootApp {
+ *   {@literal @}Bean
+ *   String hello() {
+ *     "hello"
+ *   }
+ *
+ *   static void main(String[] args) {
+ *     SpringApplication.run(SampleSpringBootApp, args)
+ *   }
+ * }
+ * }
+ * </pre>
+ *
  * Java example:
  * <pre class="java">
  * {@code
