@@ -16,6 +16,7 @@
 
 package ratpack.groovy.internal;
 
+import com.google.common.base.StandardSystemProperty;
 import groovy.lang.Closure;
 import groovy.lang.GroovySystem;
 import ratpack.api.Nullable;
@@ -54,7 +55,7 @@ public class StandaloneScriptBacking implements Action<Closure<?>> {
     Path baseDir;
 
     if (scriptFile == null) {
-      baseDir = new File(System.getProperty("user.dir")).toPath();
+      baseDir = new File(StandardSystemProperty.USER_DIR.value()).toPath();
     } else {
       baseDir = scriptFile.getParent();
     }

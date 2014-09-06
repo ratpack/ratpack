@@ -16,6 +16,7 @@
 
 package ratpack.manual
 
+import com.google.common.base.StandardSystemProperty
 import ratpack.manual.snippets.CodeSnippetTestCase
 import ratpack.manual.snippets.CodeSnippetTests
 import ratpack.manual.snippets.extractor.JavadocSnippetExtractor
@@ -33,7 +34,7 @@ class JavadocCodeSnippetTests extends CodeSnippetTestCase {
 
   @Override
   protected void addTests(CodeSnippetTests tests) {
-    File cwd = new File(System.getProperty("user.dir"))
+    File cwd = new File(StandardSystemProperty.USER_DIR.value())
     File root
     if (new File(cwd, "ratpack-manual.gradle").exists()) {
       root = cwd.parentFile

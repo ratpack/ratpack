@@ -16,6 +16,7 @@
 
 package ratpack.launch;
 
+import com.google.common.base.StandardSystemProperty;
 import ratpack.api.Nullable;
 import ratpack.launch.internal.LaunchConfigsInternal;
 
@@ -63,7 +64,7 @@ public abstract class LaunchConfigs {
    * @return A launch config
    */
   public static LaunchConfig createFromGlobalProperties(ClassLoader classLoader, Properties globalProperties, Properties defaultProperties) {
-    return createLaunchConfig(LaunchConfigsInternal.createFromGlobalProperties(System.getProperty("user.dir"), classLoader, globalProperties, defaultProperties));
+    return createLaunchConfig(LaunchConfigsInternal.createFromGlobalProperties(StandardSystemProperty.USER_DIR.value(), classLoader, globalProperties, defaultProperties));
   }
 
   /**
@@ -78,7 +79,7 @@ public abstract class LaunchConfigs {
    * @return A launch config
    */
   public static LaunchConfig createFromGlobalProperties(ClassLoader classLoader, String propertyPrefix, Properties globalProperties, Properties defaultProperties) {
-    return createLaunchConfig(LaunchConfigsInternal.createFromGlobalProperties(System.getProperty("user.dir"), classLoader, propertyPrefix, globalProperties, defaultProperties));
+    return createLaunchConfig(LaunchConfigsInternal.createFromGlobalProperties(StandardSystemProperty.USER_DIR.value(), classLoader, propertyPrefix, globalProperties, defaultProperties));
   }
 
   /**
@@ -104,7 +105,7 @@ public abstract class LaunchConfigs {
    * @return A launch config
    */
   public static LaunchConfig createFromProperties(ClassLoader classLoader, Properties overrideProperties, Properties defaultProperties) {
-    return createLaunchConfig(LaunchConfigsInternal.createFromProperties(System.getProperty("user.dir"), classLoader, overrideProperties, defaultProperties));
+    return createLaunchConfig(LaunchConfigsInternal.createFromProperties(StandardSystemProperty.USER_DIR.value(), classLoader, overrideProperties, defaultProperties));
   }
 
   /**

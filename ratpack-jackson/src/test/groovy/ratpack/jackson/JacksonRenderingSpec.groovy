@@ -16,6 +16,7 @@
 
 package ratpack.jackson
 
+import com.google.common.base.StandardSystemProperty
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 import static Jackson.json
@@ -56,7 +57,7 @@ class JacksonRenderingSpec extends RatpackGroovyDslSpec {
   }
 
   def "can pretty print"() {
-    def lf = System.getProperty("line.separator")
+    def lf = StandardSystemProperty.LINE_SEPARATOR.value()
     def indent = "  "
     def prettyString = '{' + lf +
       indent + '"username" : "foo",' + lf +

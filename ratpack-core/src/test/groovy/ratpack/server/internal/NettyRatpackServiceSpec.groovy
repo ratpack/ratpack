@@ -16,6 +16,7 @@
 
 package ratpack.server.internal
 
+import com.google.common.base.StandardSystemProperty
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import ratpack.launch.HandlerFactory
@@ -29,7 +30,7 @@ class NettyRatpackServiceSpec extends Specification {
 
   @Rule TemporaryFolder temporaryFolder
 
-  @IgnoreIf({ System.getProperty("os.name").startsWith("Windows") }) // Windows allows multiple binds (implicit SO_REUSEPORT)
+  @IgnoreIf({ StandardSystemProperty.OS_NAME.value().startsWith("Windows") }) // Windows allows multiple binds (implicit SO_REUSEPORT)
   def "throws exception if can't bind to port"() {
     given:
     def config1 = LaunchConfigBuilder.baseDir(temporaryFolder.root).port(0).build({} as HandlerFactory)

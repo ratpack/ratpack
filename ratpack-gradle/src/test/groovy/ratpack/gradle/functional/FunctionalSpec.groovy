@@ -16,6 +16,7 @@
 
 package ratpack.gradle.functional
 
+import com.google.common.base.StandardSystemProperty
 import org.gradle.BuildResult
 import org.gradle.StartParameter
 import org.gradle.api.Task
@@ -169,6 +170,6 @@ abstract class FunctionalSpec extends Specification {
 
   File getLocalRepo() {
     def rootRelative = new File("build/localrepo")
-    rootRelative.directory ? rootRelative : new File(new File(System.getProperty("user.dir")).parentFile, "build/localrepo")
+    rootRelative.directory ? rootRelative : new File(new File(StandardSystemProperty.USER_DIR.value()).parentFile, "build/localrepo")
   }
 }

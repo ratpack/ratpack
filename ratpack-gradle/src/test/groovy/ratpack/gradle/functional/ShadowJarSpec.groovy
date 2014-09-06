@@ -16,6 +16,7 @@
 
 package ratpack.gradle.functional
 
+import com.google.common.base.StandardSystemProperty
 import org.gradle.internal.jvm.Jvm
 import spock.util.concurrent.PollingConditions
 
@@ -69,7 +70,7 @@ class ShadowJarSpec extends FunctionalSpec {
   }
 
   String osSpecificCommand() {
-    if (System.getProperty("os.name").startsWith("Windows")) {
+    if (StandardSystemProperty.OS_NAME.value().startsWith("Windows")) {
       // Windows doesn't take the working directory into account when searching for the command so a relative path won't work.
       return file("build/install/test-app/bin/test-app.bat").absolutePath
     } else {
