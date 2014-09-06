@@ -61,6 +61,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
+import static com.google.common.base.Throwables.getStackTraceAsString;
 import static io.netty.handler.codec.http.HttpHeaders.Names.IF_MODIFIED_SINCE;
 import static io.netty.handler.codec.http.HttpResponseStatus.NOT_MODIFIED;
 
@@ -356,46 +357,32 @@ public class DefaultContext implements Context {
 
   public void error(Throwable throwable) {
     ServerErrorHandler serverErrorHandler = get(ServerErrorHandler.class);
+    throwable = unpackThrowable(throwable);
 
-    Throwable unpacked = unpackThrowable(throwable);
-
-    InternalServerThrowableWrapper handledThrowable = getRequest().maybeGet(InternalServerThrowableWrapper.class);
-    Throwable unwrappedThrowable = handledThrowable == null ? null : handledThrowable.getThrowable();
-    if (unwrappedThrowable != null) {
-      handleErrorHandlerThrowable(serverErrorHandler, unpacked, unwrappedThrowable);
-    } else {
-      getRequest().register(InternalServerThrowableWrapper.class, new InternalServerThrowableWrapper(unpacked));
+    ThrowableHolder throwableHolder = getRequest().maybeGet(ThrowableHolder.class);
+    if (throwableHolder == null) {
+      getRequest().register(ThrowableHolder.class, new ThrowableHolder(throwable));
 
       try {
-        serverErrorHandler.error(this, unpacked);
+        serverErrorHandler.error(this, throwable);
       } catch (Throwable errorHandlerThrowable) {
-        handleErrorHandlerThrowable(serverErrorHandler, unpacked, errorHandlerThrowable);
+        onErrorHandlerError(serverErrorHandler, throwable, errorHandlerThrowable);
       }
+    } else {
+      onErrorHandlerError(serverErrorHandler, throwableHolder.getThrowable(), throwable);
     }
   }
 
-  private void handleErrorHandlerThrowable(ServerErrorHandler serverErrorHandler, Throwable unpacked, Throwable errorHandlerThrowable) {
-    StringBuilder sb = new StringBuilder();
-    String originalThrowableMessage = "Throwable thrown by error handler "
-      + serverErrorHandler.toString()
-      + " while handling throwable\nOriginal throwable: ";
-    LOGGER.error(originalThrowableMessage, unpacked);
-    sb.append(originalThrowableMessage).append("\n");
-    for (StackTraceElement element : unpacked.getStackTrace()) {
-      sb.append(element.toString()).append("\n");
-    }
-    sb.append("\n");
+  private void onErrorHandlerError(ServerErrorHandler serverErrorHandler, Throwable original, Throwable errorHandlerThrowable) {
+    String msg = "Throwable thrown by error handler " + serverErrorHandler + " while handling throwable\n"
+      + "Original throwable: " + getStackTraceAsString(original) + "\n"
+      + "Error handler throwable: " + getStackTraceAsString(errorHandlerThrowable);
 
-    String handlerThrowableMessage = "Error handler throwable: ";
-    LOGGER.error(handlerThrowableMessage, errorHandlerThrowable);
-    sb.append(handlerThrowableMessage).append("\n");
-    for (StackTraceElement element : errorHandlerThrowable.getStackTrace()) {
-      sb.append(element.toString()).append("\n");
-    }
+    LOGGER.error(msg);
 
     Response response = requestConstants.response.status(500);
     if (getLaunchConfig().isDevelopment()) {
-      response.send(sb.toString());
+      response.send(msg);
     } else {
       response.send();
     }
@@ -403,7 +390,7 @@ public class DefaultContext implements Context {
 
   private Throwable unpackThrowable(Throwable throwable) {
     if (throwable instanceof UndeclaredThrowableException) {
-      return ExceptionUtils.toException(throwable.getCause());
+      return throwable.getCause();
     } else {
       return throwable;
     }
@@ -538,5 +525,19 @@ public class DefaultContext implements Context {
       result = 31 * result + parse.hashCode();
       return result;
     }
+  }
+
+  private static class ThrowableHolder {
+
+    private final Throwable throwable;
+
+    public ThrowableHolder(Throwable throwable) {
+      this.throwable = throwable;
+    }
+
+    public Throwable getThrowable() {
+      return throwable;
+    }
+
   }
 }
