@@ -19,27 +19,32 @@ package ratpack.stream.tck
 import org.reactivestreams.Publisher
 import org.reactivestreams.tck.PublisherVerification
 import org.reactivestreams.tck.TestEnvironment
+import ratpack.stream.Streams
 
-import static ratpack.stream.Streams.publish
-import static ratpack.stream.Streams.throttle
+import java.util.concurrent.Executors
+import java.util.concurrent.ScheduledExecutorService
+import java.util.concurrent.TimeUnit
 
-class BufferingPublisherVerification extends PublisherVerification<Integer> {
+class PeriodicPublisherVerification extends PublisherVerification<Integer> {
 
   public static final long DEFAULT_TIMEOUT_MILLIS = 300L
   public static final long PUBLISHER_REFERENCE_CLEANUP_TIMEOUT_MILLIS = 1000L
 
-  public BufferingPublisherVerification() {
+  PeriodicPublisherVerification() {
     super(new TestEnvironment(DEFAULT_TIMEOUT_MILLIS), PUBLISHER_REFERENCE_CLEANUP_TIMEOUT_MILLIS)
   }
 
+  ScheduledExecutorService scheduled = Executors.newSingleThreadScheduledExecutor()
+
   @Override
   Publisher<Integer> createPublisher(long elements) {
-    throttle(publish(0..<elements))
+    Streams.periodically(scheduled, 1, TimeUnit.MICROSECONDS) {
+      it < elements ? it : null
+    }
   }
 
   @Override
   Publisher<Integer> createErrorStatePublisher() {
-    null // because subscription always succeeds. Nothing is attempted until a request is received.
+    null
   }
-
 }

@@ -18,7 +18,6 @@ package ratpack.stream.internal;
 
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
 
 import java.util.Iterator;
 
@@ -32,37 +31,40 @@ public class IterablePublisher<T> implements Publisher<T> {
 
   @Override
   public void subscribe(final Subscriber<? super T> subscriber) {
-    subscriber.onSubscribe(new Subscription() {
+    final Iterator<T> iterator = iterable.iterator();
+    new Subscription(subscriber, iterator);
+  }
 
-      Iterator<T> iterator = iterable.iterator();
+  private class Subscription extends SubscriptionSupport<T> {
+    private final Iterator<T> iterator;
 
-      @Override
-      public void request(long n) {
-        for (int i = 0; i < n; ++i) {
-          if (iterator.hasNext()) {
-            T next;
-            try {
-              next = iterator.next();
-            } catch (Exception e) {
-              subscriber.onError(e);
-              return;
-            }
-            subscriber.onNext(next);
-          } else {
-            break;
+    public Subscription(Subscriber<? super T> subscriber, Iterator<T> iterator) {
+      super(subscriber);
+      this.iterator = iterator;
+      start();
+    }
+
+    @Override
+    protected void doRequest(long n) {
+      for (int i = 0; i < n; ++i) {
+        if (iterator.hasNext()) {
+          T next;
+          try {
+            next = iterator.next();
+          } catch (Exception e) {
+            onError(e);
+            return;
           }
-        }
-
-        if (!iterator.hasNext()) {
-          subscriber.onComplete();
+          onNext(next);
+        } else {
+          break;
         }
       }
 
-      @Override
-      public void cancel() {
-
+      if (!iterator.hasNext()) {
+        onComplete();
       }
-    });
+    }
 
   }
 }

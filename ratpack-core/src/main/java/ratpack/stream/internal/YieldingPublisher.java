@@ -18,11 +18,9 @@ package ratpack.stream.internal;
 
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
 import ratpack.func.Function;
 import ratpack.stream.YieldRequest;
 
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -37,71 +35,49 @@ public class YieldingPublisher<T> implements Publisher<T> {
 
   @Override
   public void subscribe(final Subscriber<? super T> subscriber) {
-    subscriber.onSubscribe(new Subscription() {
-      private final long subscriptionNum = subscriptionCounter.getAndIncrement();
-      private final AtomicInteger requestCounter = new AtomicInteger();
-      private final AtomicLong waiting = new AtomicLong();
-      private final AtomicBoolean done = new AtomicBoolean();
-      private final AtomicBoolean draining = new AtomicBoolean();
+    new Subscription(subscriber);
+  }
 
-      @Override
-      public void request(long n) {
-        waiting.addAndGet(n);
-        drain();
-      }
+  private class Subscription extends SubscriptionSupport<T> {
 
-      @Override
-      public void cancel() {
-        done.set(true);
-      }
+    private final long subscriptionNum = subscriptionCounter.getAndIncrement();
+    private final AtomicInteger requestCounter = new AtomicInteger();
 
-      private void drain() {
-        if (draining.compareAndSet(false, true)) {
-          try {
-            long waitingAmount = waiting.get();
-            while (waitingAmount > 0) {
-              T produced;
+    public Subscription(Subscriber<? super T> subscriber) {
+      super(subscriber);
+      start();
+    }
 
-              try {
-                produced = producer.apply(new DefaultYieldRequest(subscriptionNum, requestCounter.getAndIncrement()));
-              } catch (Throwable e) {
-                fireError(e);
-                return;
-              }
+    @Override
+    protected void doRequest(long n) {
+      long i = 0;
 
-              if (produced == null) { // end of stream
-                done.set(true);
-                try {
-                  subscriber.onComplete();
-                } catch (Throwable e) {
-                  e.printStackTrace();
-                }
-              }
+      while (i++ < n) {
+        if (isStopped()) {
+          return;
+        }
 
-              try {
-                subscriber.onNext(produced);
-              } catch (Throwable e) {
-                fireError(e);
-                return;
-              }
+        T produced;
+        try {
+          produced = producer.apply(new DefaultYieldRequest(subscriptionNum, requestCounter.getAndIncrement()));
+        } catch (Throwable e) {
+          onError(e);
+          return;
+        }
 
-              waitingAmount = waiting.decrementAndGet();
-            }
-          } finally {
-            draining.set(false);
-          }
+        if (produced == null) { // end of stream
+          onComplete();
+          return;
+        } else {
+          onNext(produced);
         }
       }
-
-      private void fireError(Throwable e) {
-        done.set(true);
-        subscriber.onError(e);
-      }
-    });
+    }
   }
 
   private static class DefaultYieldRequest implements YieldRequest {
     private final long requestNum;
+
     private final long subscriptionNum;
 
     public DefaultYieldRequest(long subscriptionNum, long requestNum) {
@@ -119,6 +95,7 @@ public class YieldingPublisher<T> implements Publisher<T> {
       return requestNum;
     }
   }
+
 }
 
 
