@@ -47,13 +47,13 @@ public class DefaultPromise<T> implements Promise<T> {
   }
 
   @Override
-  public <O> Promise<O> map(Function<? super T, ? extends O> function) {
-    return propagatingSuccessPromise().map(function);
+  public <O> Promise<O> map(Function<? super T, ? extends O> transformer) {
+    return propagatingSuccessPromise().map(transformer);
   }
 
   @Override
-  public <O> Promise<O> flatMap(Function<? super T, ? extends Promise<O>> function) {
-    return propagatingSuccessPromise().flatMap(function);
+  public <O> Promise<O> flatMap(Function<? super T, ? extends Promise<O>> transformer) {
+    return propagatingSuccessPromise().flatMap(transformer);
   }
 
   @Override

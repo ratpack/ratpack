@@ -103,11 +103,11 @@ public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
   }
 
   @Override
-  public <O> DefaultPromise<O> map(final Function<? super T, ? extends O> function) {
+  public <O> DefaultPromise<O> map(final Function<? super T, ? extends O> transformer) {
     return new DefaultPromise<>(executionProvider, new Action<Fulfiller<O>>() {
       @Override
       public void execute(final Fulfiller<O> downstream) throws Exception {
-        DefaultSuccessPromise.this.doThen(new Transform<O, O>(downstream, function) {
+        DefaultSuccessPromise.this.doThen(new Transform<O, O>(downstream, transformer) {
           @Override
           protected void onSuccess(O transformed) {
             downstream.success(transformed);
@@ -118,11 +118,11 @@ public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
   }
 
   @Override
-  public <O> Promise<O> flatMap(final Function<? super T, ? extends Promise<O>> function) {
+  public <O> Promise<O> flatMap(final Function<? super T, ? extends Promise<O>> transformer) {
     return new DefaultPromise<>(executionProvider, new Action<Fulfiller<O>>() {
       @Override
       public void execute(final Fulfiller<O> downstream) throws Exception {
-        DefaultSuccessPromise.this.doThen(new Transform<Promise<O>, O>(downstream, function) {
+        DefaultSuccessPromise.this.doThen(new Transform<Promise<O>, O>(downstream, transformer) {
           @Override
           protected void onSuccess(Promise<O> transformed) {
             transformed.onError(new Action<Throwable>() {

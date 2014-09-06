@@ -16,6 +16,8 @@
 
 package ratpack.exec;
 
+import ratpack.util.ExceptionUtils;
+
 /**
  * The result of an asynchronous operation, which may be a failure.
  *
@@ -98,11 +100,11 @@ public class Result<T> {
    * Returns the value if this is a success result, or throws the exception if it's a failure.
    *
    * @return the value (if this is a success result)
-   * @throws Throwable the failure (if this is a failure result)
+   * @throws Exception the failure (if this is a failure result)
    */
-  public T getValueOrThrow() throws Throwable {
+  public T getValueOrThrow() throws Exception {
     if (isFailure()) {
-      throw failure;
+      throw ExceptionUtils.toException(failure);
     } else {
       return value;
     }

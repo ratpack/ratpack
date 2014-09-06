@@ -16,8 +16,18 @@
 
 package ratpack.func;
 
+/**
+ * An action that takes no arguments.
+ * <p>
+ * Used instead of {@link Runnable} to allow the throwing of checked exceptions.
+ */
 public interface NoArgAction {
 
-  public void execute();
+  /**
+   * Execute the action.
+   *
+   * @throws Exception any
+   */
+  public void execute() throws Exception;
 
 }

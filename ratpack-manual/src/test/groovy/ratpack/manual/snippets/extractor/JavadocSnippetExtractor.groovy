@@ -90,6 +90,9 @@ class JavadocSnippetExtractor {
 
   private static String extractSnippetFromTag(String tag) {
     String tagInner = tag.substring(tag.indexOf(">") + 1, tag.lastIndexOf("<"))
+    if (tagInner.startsWith("{@code")) {
+      tagInner = (tagInner - "{@code")[0..-2]
+    }
     String html = tagInner.replaceAll("(?m)^\\s*\\*", "")
     String deliteral = html.replaceAll("\\{@literal (.+?)}", '$1')
     def snippet = StringEscapeUtils.unescapeHtml4(deliteral)
