@@ -72,11 +72,17 @@ public class GroovySnippetExecuter implements SnippetExecuter {
       }
     }
 
-    fixture.setup();
+    ClassLoader previousContextClassLoader = Thread.currentThread().getContextClassLoader();
     try {
-      script.run();
+      Thread.currentThread().setContextClassLoader(groovyShell.getClassLoader());
+      fixture.setup();
+      try {
+        script.run();
+      } finally {
+        fixture.cleanup();
+      }
     } finally {
-      fixture.cleanup();
+      Thread.currentThread().setContextClassLoader(previousContextClassLoader);
     }
   }
 
