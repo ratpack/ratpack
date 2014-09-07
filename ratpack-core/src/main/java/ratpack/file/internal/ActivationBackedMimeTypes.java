@@ -17,6 +17,7 @@
 package ratpack.file.internal;
 
 import com.google.common.base.Function;
+import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
@@ -31,34 +32,19 @@ import java.util.Set;
 
 public class ActivationBackedMimeTypes implements MimeTypes {
 
-  private final MimetypesFileTypeMap mimeTypesMap;
-  private final Set<String> knownMimeTypes;
-
-  public ActivationBackedMimeTypes() {
-    this.mimeTypesMap = new MimetypesFileTypeMap();
-    this.knownMimeTypes = extractKnownMimeTypes();
-  }
+  private static final MimetypesFileTypeMap MIME_TYPES_MAP = new MimetypesFileTypeMap();
 
   @Override
   public String getContentType(String name) {
-    return mimeTypesMap.getContentType(name);
+    return MIME_TYPES_MAP.getContentType(name);
   }
 
-  @Override
-  public Set<String> getKnownMimeTypes() {
-    return knownMimeTypes;
-  }
-
-  /**
-   * MimetypesFileTypeMap doesn't provide any public way to access the list of mime types.  This attempts to do so via reflection, falling back to an empty set if it fails.  All Sun internal classes
-   * that are used are accessed solely through reflection to avoid incompatibilities with non-Oracle JVMs.
-   */
-  private Set<String> extractKnownMimeTypes() {
+  private static Set<String> extractKnownMimeTypes() {
     try {
       Function<Object, String> getMimeTypeFunction = new GetMimeTypeFunction();
       Field typeHashField = makeFieldAccessible(Class.forName("com.sun.activation.registries.MimeTypeFile"), "type_hash");
       Field mimeTypeFilesField = makeFieldAccessible(MimetypesFileTypeMap.class, "DB");
-      Object mimeTypeFiles = mimeTypeFilesField.get(mimeTypesMap);
+      Object mimeTypeFiles = mimeTypeFilesField.get(MIME_TYPES_MAP);
       Set<String> mimeTypes = Sets.newHashSet();
       for (int i = 0; i < Array.getLength(mimeTypeFiles); i++) {
         Object mimeTypeFile = Array.get(mimeTypeFiles, i);
@@ -90,9 +76,24 @@ public class ActivationBackedMimeTypes implements MimeTypes {
     public String apply(Object entry) {
       try {
         return (String) getMIMEType.invoke(entry);
-      } catch(ReflectiveOperationException ex) {
+      } catch (ReflectiveOperationException ex) {
         throw new NullPointerException("Could not get mime type: " + ex.getMessage());
       }
     }
   }
+
+  public static ImmutableSet<String> getDefaultExcludedMimeTypes() {
+    Set<String> knownMimeTypes = extractKnownMimeTypes();
+
+    Set<String> compressedArchiveTypes = ImmutableSet.of("application/compress", "application/zip", "application/gzip");
+    Iterable<String> knownExceptNonXmlImagesAudioAndVideo = Iterables.filter(knownMimeTypes, new Predicate<String>() {
+      @Override
+      public boolean apply(String type) {
+        return (type.startsWith("image/") || type.startsWith("audio/") || type.startsWith("video/")) && !type.endsWith("+xml");
+      }
+    });
+
+    return ImmutableSet.<String>builder().addAll(compressedArchiveTypes).addAll(knownExceptNonXmlImagesAudioAndVideo).build();
+  }
+
 }

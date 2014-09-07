@@ -110,9 +110,13 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
     this.compressResponses = launchConfig.isCompressResponses();
     this.compressionMinSize = launchConfig.getCompressionMinSize();
     this.compressionMimeTypeWhiteList = launchConfig.getCompressionMimeTypeWhiteList();
-    this.compressionMimeTypeBlackList = launchConfig.getCompressionMimeTypeBlackList();
+    this.compressionMimeTypeBlackList = defaultCompressionBlacklist(launchConfig.getCompressionMimeTypeBlackList());
     this.applicationConstants = new DefaultContext.ApplicationConstants(launchConfig, new DefaultRenderController());
     this.execController = launchConfig.getExecController();
+  }
+
+  private static ImmutableSet<String> defaultCompressionBlacklist(ImmutableSet<String> blacklist) {
+    return blacklist.isEmpty() ? ActivationBackedMimeTypes.getDefaultExcludedMimeTypes() : blacklist;
   }
 
   @Override
@@ -139,14 +143,13 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
     final DefaultMutableStatus responseStatus = new DefaultMutableStatus();
     final HttpHeaders nettyHeaders = new DefaultHttpHeaders(false);
     final MutableHeaders responseHeaders = new NettyHeadersBackedMutableHeaders(nettyHeaders);
-    final MimeTypes mimeTypes = registry.get(MimeTypes.class);
     final DefaultEventController<RequestOutcome> requestOutcomeEventController = new DefaultEventController<>();
     final AtomicBoolean transmitted = new AtomicBoolean(false);
 
     final DefaultResponseTransmitter responseTransmitter = new DefaultResponseTransmitter(transmitted, channel, nettyRequest, request, nettyHeaders, responseStatus, requestOutcomeEventController, startTime);
     final Action<Action<? super ResponseTransmitter>> responseTransmitterWrapper = Actions.<ResponseTransmitter>actionAction(responseTransmitter);
 
-    final FileHttpTransmitter fileHttpTransmitter = new DefaultFileHttpTransmitter(nettyHeaders, mimeTypes,
+    final FileHttpTransmitter fileHttpTransmitter = new DefaultFileHttpTransmitter(nettyHeaders,
       compressResponses, compressionMinSize, compressionMimeTypeWhiteList, compressionMimeTypeBlackList, responseTransmitterWrapper);
     StreamTransmitter streamTransmitter = new DefaultStreamTransmitter(responseTransmitter);
 

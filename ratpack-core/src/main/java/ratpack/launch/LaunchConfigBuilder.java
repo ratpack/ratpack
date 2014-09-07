@@ -75,8 +75,8 @@ public class LaunchConfigBuilder {
   private boolean timeResponses;
   private boolean compressResponses;
   private long compressionMinSize = LaunchConfig.DEFAULT_COMPRESSION_MIN_SIZE;
-  private ImmutableSet.Builder<String> compressionMimeTypeWhiteList;
-  private ImmutableSet.Builder<String> compressionMimeTypeBlackList;
+  private final ImmutableSet.Builder<String> compressionMimeTypeWhiteList = ImmutableSet.builder();
+  private final ImmutableSet.Builder<String> compressionMimeTypeBlackList = ImmutableSet.builder();
 
   private LaunchConfigBuilder() {
   }
@@ -265,9 +265,6 @@ public class LaunchConfigBuilder {
    * @see LaunchConfig#getCompressionMimeTypeWhiteList()
    */
   public LaunchConfigBuilder compressionWhiteListMimeTypes(String... mimeTypes) {
-    if (this.compressionMimeTypeWhiteList == null) {
-      this.compressionMimeTypeWhiteList = ImmutableSet.builder();
-    }
     this.compressionMimeTypeWhiteList.add(mimeTypes);
     return this;
   }
@@ -280,9 +277,6 @@ public class LaunchConfigBuilder {
    * @see LaunchConfig#getCompressionMimeTypeWhiteList()
    */
   public LaunchConfigBuilder compressionWhiteListMimeTypes(List<String> mimeTypes) {
-    if (this.compressionMimeTypeWhiteList == null) {
-      this.compressionMimeTypeWhiteList = ImmutableSet.builder();
-    }
     this.compressionMimeTypeWhiteList.addAll(mimeTypes);
     return this;
   }
@@ -295,9 +289,6 @@ public class LaunchConfigBuilder {
    * @see LaunchConfig#getCompressionMimeTypeBlackList()
    */
   public LaunchConfigBuilder compressionBlackListMimeTypes(String... mimeTypes) {
-    if (this.compressionMimeTypeBlackList == null) {
-      this.compressionMimeTypeBlackList = ImmutableSet.builder();
-    }
     this.compressionMimeTypeBlackList.add(mimeTypes);
     return this;
   }
@@ -310,9 +301,6 @@ public class LaunchConfigBuilder {
    * @see LaunchConfig#getCompressionMimeTypeBlackList()
    */
   public LaunchConfigBuilder compressionBlackListMimeTypes(List<String> mimeTypes) {
-    if (this.compressionMimeTypeBlackList == null) {
-      this.compressionMimeTypeBlackList = ImmutableSet.builder();
-    }
     this.compressionMimeTypeBlackList.addAll(mimeTypes);
     return this;
   }
@@ -406,8 +394,8 @@ public class LaunchConfigBuilder {
       timeResponses,
       compressResponses,
       compressionMinSize,
-      compressionMimeTypeWhiteList != null ? compressionMimeTypeWhiteList.build() : null,
-      compressionMimeTypeBlackList != null ? compressionMimeTypeBlackList.build() : null,
+      compressionMimeTypeWhiteList.build(),
+      compressionMimeTypeBlackList.build(),
       handlerFactory
     );
   }

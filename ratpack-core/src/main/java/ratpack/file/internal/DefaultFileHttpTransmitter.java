@@ -24,7 +24,6 @@ import io.netty.channel.FileRegion;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.stream.ChunkedNioStream;
 import ratpack.exec.ExecControl;
-import ratpack.file.MimeTypes;
 import ratpack.func.Action;
 import ratpack.http.internal.HttpHeaderConstants;
 
@@ -46,28 +45,14 @@ public class DefaultFileHttpTransmitter implements FileHttpTransmitter {
   private final ImmutableSet<String> compressionMimeTypeBlackList;
   private final Action<? super Action<? super ResponseTransmitter>> transmitterAction;
 
-  public DefaultFileHttpTransmitter(HttpHeaders httpHeaders, MimeTypes mimeTypes, boolean compress, Long compressionMinSize,
+  public DefaultFileHttpTransmitter(HttpHeaders httpHeaders, boolean compress, Long compressionMinSize,
                                     ImmutableSet<String> compressionMimeTypeWhiteList, ImmutableSet<String> compressionMimeTypeBlackList, Action<? super Action<? super ResponseTransmitter>> transmitterAction) {
     this.httpHeaders = httpHeaders;
     this.compress = compress;
     this.compressionMinSize = compressionMinSize;
     this.compressionMimeTypeWhiteList = compressionMimeTypeWhiteList;
-    this.compressionMimeTypeBlackList = compressionMimeTypeBlackList != null ? compressionMimeTypeBlackList : defaultExcludedMimeTypes(mimeTypes);
+    this.compressionMimeTypeBlackList = compressionMimeTypeBlackList;
     this.transmitterAction = transmitterAction;
-  }
-
-  private static ImmutableSet<String> defaultExcludedMimeTypes(MimeTypes mimeTypes) {
-    return ImmutableSet.copyOf(
-      Iterables.concat(
-        Iterables.filter(mimeTypes.getKnownMimeTypes(), new Predicate<String>() {
-          @Override
-          public boolean apply(String type) {
-            return (type.startsWith("image/") || type.startsWith("audio/") || type.startsWith("video/")) && !type.endsWith("+xml");
-          }
-        }),
-        ImmutableSet.of("application/compress", "application/zip", "application/gzip")
-      )
-    );
   }
 
   @Override
@@ -115,9 +100,12 @@ public class DefaultFileHttpTransmitter implements FileHttpTransmitter {
 
   private boolean isContentTypeCompressible() {
     final String contentType = httpHeaders.get(HttpHeaderConstants.CONTENT_TYPE);
+    if (contentType == null) {
+      return false;
+    }
+
     Predicate<String> contentTypeMatch = new PrefixMatchPredicate(contentType);
-    return (compressionMimeTypeWhiteList == null || (contentType != null && Iterables.any(compressionMimeTypeWhiteList, contentTypeMatch)))
-      && (contentType == null || !Iterables.any(compressionMimeTypeBlackList, contentTypeMatch));
+    return Iterables.any(compressionMimeTypeWhiteList, contentTypeMatch) || !Iterables.any(compressionMimeTypeBlackList, contentTypeMatch);
   }
 
   private static class PrefixMatchPredicate implements Predicate<String> {
