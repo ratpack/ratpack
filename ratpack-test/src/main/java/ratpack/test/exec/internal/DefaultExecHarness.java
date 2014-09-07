@@ -33,7 +33,7 @@ public class DefaultExecHarness implements ExecHarness {
   }
 
   @Override
-  public <T> T execute(final Function<Execution, Promise<T>> func) throws Throwable {
+  public <T> T execute(final Function<Execution, Promise<T>> func) throws Exception {
     final AtomicReference<Result<T>> reference = new AtomicReference<>();
     final CountDownLatch latch = new CountDownLatch(1);
 

@@ -153,4 +153,16 @@ class SpringRegistrySpec extends Specification {
     r.all(differentType, Predicates.alwaysTrue()).toList() == []
     r.all(differentType, Predicates.alwaysFalse()).toList() == []
   }
+
+  def "equals and hashCode should be implemented"() {
+    given:
+    def otherRegistry = Spring.registry(appContext)
+    expect:
+    otherRegistry.equals(r)
+    r.equals(otherRegistry)
+    r.equals(null) == false
+    r.equals(new Object()) == false
+    r.equals(r)
+    otherRegistry.hashCode() == r.hashCode()
+  }
 }

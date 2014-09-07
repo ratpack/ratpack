@@ -19,18 +19,18 @@ package ratpack.func;
 /**
  * A single argument function.
  *
- * @param <INPUT> the type of the input
- * @param <OUTPUT> the type of the output
+ * @param <I> the type of the input
+ * @param <O> the type of the output
  */
-public interface Function<INPUT, OUTPUT> {
+public interface Function<I, O> {
 
   /**
    * The function implementation.
    *
-   * @param input the input to the function
+   * @param i the input to the function
    * @return the output of the function
    * @throws Exception any
    */
-  OUTPUT apply(INPUT input) throws Exception;
+  O apply(I i) throws Exception;
 
 }

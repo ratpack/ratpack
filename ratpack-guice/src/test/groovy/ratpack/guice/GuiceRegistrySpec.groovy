@@ -117,4 +117,16 @@ class GuiceRegistrySpec extends Specification {
     registry.all(number, { n -> n < 50 })  as List == [c, d]
     registry.all(number, Predicates.alwaysFalse()) as List == []
   }
+
+  def "equals and hashCode should be implemented"() {
+    given:
+    def otherRegistry = ratpack.guice.Guice.registry(injector)
+    expect:
+    otherRegistry.equals(registry)
+    registry.equals(otherRegistry)
+    registry.equals(null) == false
+    registry.equals(new Object()) == false
+    registry.equals(registry)
+    otherRegistry.hashCode() == registry.hashCode()
+  }
 }

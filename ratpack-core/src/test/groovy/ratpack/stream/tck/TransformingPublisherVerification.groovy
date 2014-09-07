@@ -14,32 +14,30 @@
  * limitations under the License.
  */
 
+
 package ratpack.stream.tck
 
 import org.reactivestreams.Publisher
 import org.reactivestreams.tck.PublisherVerification
 import org.reactivestreams.tck.TestEnvironment
+import ratpack.stream.Streams
 
-import static ratpack.stream.Streams.publish
-import static ratpack.stream.Streams.throttle
-
-class BufferingPublisherVerification extends PublisherVerification<Integer> {
+class TransformingPublisherVerification extends PublisherVerification<String> {
 
   public static final long DEFAULT_TIMEOUT_MILLIS = 300L
   public static final long PUBLISHER_REFERENCE_CLEANUP_TIMEOUT_MILLIS = 1000L
 
-  public BufferingPublisherVerification() {
+  TransformingPublisherVerification() {
     super(new TestEnvironment(DEFAULT_TIMEOUT_MILLIS), PUBLISHER_REFERENCE_CLEANUP_TIMEOUT_MILLIS)
   }
 
   @Override
   Publisher<Integer> createPublisher(long elements) {
-    throttle(publish(0..<elements))
+    Streams.map(Streams.publish(1..elements)) { it.toString() }
   }
 
   @Override
   Publisher<Integer> createErrorStatePublisher() {
-    null // because subscription always succeeds. Nothing is attempted until a request is received.
+    null
   }
-
 }

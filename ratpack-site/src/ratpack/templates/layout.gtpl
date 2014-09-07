@@ -93,5 +93,7 @@ html {
   ga('send', 'pageview');
 '''
     }
+
+    link(rel: 'stylesheet', href: assets['assets/styles/fonts.css'])
   }
 }

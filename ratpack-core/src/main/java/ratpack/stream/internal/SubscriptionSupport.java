@@ -16,15 +16,34 @@
 
 package ratpack.stream.internal;
 
+import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 
-abstract class SubscriptionSupport implements Subscription {
+abstract class SubscriptionSupport<T> implements Subscription {
 
-  private final AtomicBoolean open = new AtomicBoolean();
-  private final AtomicLong waiting = new AtomicLong();
+  private final Subscriber<? super T> subscriber;
+
+  private final AtomicBoolean started = new AtomicBoolean();
+  private final AtomicBoolean stopped = new AtomicBoolean();
+
+  private final AtomicLong waitingRequests = new AtomicLong();
+  private final AtomicBoolean drainingRequests = new AtomicBoolean();
+
+  private final AtomicBoolean complete = new AtomicBoolean();
+  private final AtomicReference<Throwable> error = new AtomicReference<>();
+
+  private final AtomicBoolean inOnMethod = new AtomicBoolean();
+  private final ConcurrentLinkedQueue<T> onNextQueue = new ConcurrentLinkedQueue<>();
+
+  protected SubscriptionSupport(Subscriber<? super T> subscriber) {
+    this.subscriber = subscriber;
+    subscriber.onSubscribe(this);
+  }
 
   @Override
   public final void request(long n) {
@@ -32,24 +51,98 @@ abstract class SubscriptionSupport implements Subscription {
       throw new IllegalArgumentException("3.9 While the Subscription is not cancelled, Subscription.request(long n) MUST throw a java.lang.IllegalArgumentException if the argument is <= 0.");
     }
 
-    if (!open.get()) {
-      waiting.addAndGet(n);
-    } else {
-      // Doesn't matter if this gets fired before the waiting demand is signalled in open()
-      // as the value is just cumulative
-      doRequest(n);
+    if (!stopped.get()) {
+      waitingRequests.addAndGet(n);
+      if (started.get()) {
+        drainRequests();
+      }
     }
   }
 
-  protected void open() {
-    if (open.compareAndSet(false, true)) {
-      long waitingAmount = waiting.getAndSet(0);
-      if (waitingAmount > 0) {
-        doRequest(waitingAmount);
+  protected boolean isStopped() {
+    return stopped.get();
+  }
+
+  private void drainRequests() {
+    if (drainingRequests.compareAndSet(false, true)) {
+      try {
+        long n = waitingRequests.getAndSet(0);
+        if (n > 0) {
+          doRequest(n);
+        }
+      } finally {
+        drainingRequests.set(false);
+      }
+      if (waitingRequests.get() > 0) {
+        drainRequests();
       }
     }
   }
 
   protected abstract void doRequest(long n);
+
+  @Override
+  public final void cancel() {
+    stopped.set(true);
+    doCancel();
+  }
+
+  protected void doCancel() {
+    // do nothing
+  };
+
+  protected void start() {
+    if (started.compareAndSet(false, true)) {
+      drainRequests();
+    }
+  }
+
+  @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
+  private void nextEvent() {
+    if (inOnMethod.compareAndSet(false, true)) {
+      try {
+        T next = onNextQueue.poll();
+        while (next != null) {
+          subscriber.onNext(next);
+          next = onNextQueue.poll();
+        }
+        if (complete.get()) {
+          subscriber.onComplete();
+          return;
+        }
+        Throwable error = this.error.get();
+        if (error != null) {
+          subscriber.onError(error);
+          return;
+        }
+      } finally {
+        inOnMethod.set(false);
+      }
+      if (!onNextQueue.isEmpty() || complete.get() || error.get() != null) {
+        nextEvent();
+      }
+    }
+  }
+
+  public void onNext(T t) {
+    if (!stopped.get()) {
+      onNextQueue.add(t);
+      nextEvent();
+    }
+  }
+
+  public void onError(Throwable t) {
+    if (stopped.compareAndSet(false, true)) {
+      error.set(t);
+      nextEvent();
+    }
+  }
+
+  public void onComplete() {
+    if (stopped.compareAndSet(false, true)) {
+      complete.set(true);
+      nextEvent();
+    }
+  }
 
 }

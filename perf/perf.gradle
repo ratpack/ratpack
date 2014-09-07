@@ -64,7 +64,7 @@ buildscript {
   }
 }
 
-apply plugin: "ratpack-groovy"
+apply plugin: "io.ratpack.ratpack-groovy"
 
 repositories {
   maven { url "${rootDir.toURI()}build/localrepo" }

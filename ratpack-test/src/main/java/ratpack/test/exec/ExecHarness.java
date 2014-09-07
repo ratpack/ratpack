@@ -42,9 +42,9 @@ public interface ExecHarness extends AutoCloseable {
    * @param func a function that exercises some code that returns a promise
    * @param <T> the type of promised value
    * @return the promised value
-   * @throws Throwable any thrown by the function, or the promise failure exception
+   * @throws Exception any thrown by the function, or the promise failure exception
    */
-  public <T> T execute(Function<Execution, Promise<T>> func) throws Throwable;
+  public <T> T execute(Function<Execution, Promise<T>> func) throws Exception;
 
   /**
    * The execution control for the harness.

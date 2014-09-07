@@ -21,25 +21,23 @@ import org.reactivestreams.tck.PublisherVerification
 import org.reactivestreams.tck.TestEnvironment
 
 import static ratpack.stream.Streams.publish
-import static ratpack.stream.Streams.throttle
 
-class BufferingPublisherVerification extends PublisherVerification<Integer> {
+class IterablePublisherVerification extends PublisherVerification<Long> {
 
   public static final long DEFAULT_TIMEOUT_MILLIS = 300L
   public static final long PUBLISHER_REFERENCE_CLEANUP_TIMEOUT_MILLIS = 1000L
 
-  public BufferingPublisherVerification() {
+  IterablePublisherVerification() {
     super(new TestEnvironment(DEFAULT_TIMEOUT_MILLIS), PUBLISHER_REFERENCE_CLEANUP_TIMEOUT_MILLIS)
   }
 
   @Override
-  Publisher<Integer> createPublisher(long elements) {
-    throttle(publish(0..<elements))
+  Publisher<Long> createPublisher(long elements) {
+    publish(0l..<elements)
   }
 
   @Override
   Publisher<Integer> createErrorStatePublisher() {
     null // because subscription always succeeds. Nothing is attempted until a request is received.
   }
-
 }

@@ -21,11 +21,122 @@ import ratpack.func.Function;
 import ratpack.func.NoArgAction;
 import ratpack.func.Predicate;
 
+/**
+ * Operations that can be performed on promises to define an asynchronous data flow.
+ * <p>
+ * These methods are available on {@link Promise} and {@link SuccessPromise}, but are defined on this separate interface for clarity.
+ *
+ * @param <T> the type of promised value
+ */
 public interface PromiseOperations<T> {
 
-  <O> Promise<O> map(Function<? super T, ? extends O> function);
+  // TODO define the semantics of user functions throwing
 
-  <O> Promise<O> flatMap(Function<? super T, ? extends Promise<O>> function);
+  /**
+   * Transforms the promised value by applying the given function to it.
+   * <pre class="java">{@code
+   * import ratpack.exec.Execution;
+   * import ratpack.exec.Promise;
+   * import ratpack.func.Function;
+   * import ratpack.test.UnitTest;
+   * import ratpack.test.exec.ExecHarness;
+   *
+   * import java.util.concurrent.Callable;
+   *
+   * public class Example {
+   *
+   *   public static void main(String[] args) throws Exception {
+   *     try (ExecHarness harness = UnitTest.execHarness()) {
+   *       String value = harness.execute(new Function<Execution, Promise<String>>() {
+   *         public Promise<String> apply(Execution execution) throws Exception {
+   *           return execution.getControl()
+   *             .blocking(new Callable<String>() {
+   *               public String call() throws Exception {
+   *                 return "foo";
+   *               }
+   *             })
+   *             .map(new Function<String, String>() {
+   *               public String apply(String s) throws Exception {
+   *                 return s.toUpperCase();
+   *               }
+   *             })
+   *             .map(new Function<String, String>() {
+   *               public String apply(String s) throws Exception {
+   *                 return s + "-BAR";
+   *               }
+   *             });
+   *         }
+   *       });
+   *
+   *       assert value.equals("FOO-BAR");
+   *     }
+   *   }
+   *
+   * }
+   * }</pre>
+   *
+   * @param transformer the transformation to apply to the promised value
+   * @param <O> the type of the transformed object
+   * @return a promise for the transformed value
+   */
+  <O> Promise<O> map(Function<? super T, ? extends O> transformer);
+
+  /**
+   * Transforms the promised value by applying the given function to it that returns a promise for the transformed value.
+   * <p>
+   * This is useful when the transformation involves an asynchronous operation.
+   * <pre class="java">{@code
+   * import ratpack.exec.ExecControl;
+   * import ratpack.exec.Execution;
+   * import ratpack.exec.Promise;
+   * import ratpack.func.Function;
+   * import ratpack.test.UnitTest;
+   * import ratpack.test.exec.ExecHarness;
+   *
+   * import java.util.concurrent.Callable;
+   *
+   * public class Example {
+   *
+   *   public static void main(String[] args) throws Exception {
+   *     try (ExecHarness harness = UnitTest.execHarness()) {
+   *       String value = harness.execute(new Function<Execution, Promise<String>>() {
+   *         public Promise<String> apply(Execution execution) throws Exception {
+   *           final ExecControl control = execution.getControl();
+   *           return control
+   *             .blocking(new Callable<String>() {
+   *               public String call() throws Exception {
+   *                 return "foo";
+   *               }
+   *             })
+   *             .flatMap(new Function<String, Promise<String>>() {
+   *               public Promise<String> apply(final String s) throws Exception {
+   *                 return control.blocking(new Callable<String>() {
+   *                   public String call() throws Exception {
+   *                     return s.toUpperCase();
+   *                   }
+   *                 });
+   *               }
+   *             })
+   *             .map(new Function<String, String>() {
+   *               public String apply(String s) throws Exception {
+   *                 return s + "-BAR";
+   *               }
+   *             });
+   *         }
+   *       });
+   *
+   *       assert value.equals("FOO-BAR");
+   *     }
+   *   }
+   *
+   * }
+   * }</pre>
+   *
+   * @param transformer the transformation to apply to the promised value
+   * @param <O> the type of the transformed object
+   * @return a promise for the transformed value
+   */
+  <O> Promise<O> flatMap(Function<? super T, ? extends Promise<O>> transformer);
 
   Promise<T> route(Predicate<? super T> predicate, Action<? super T> action);
 

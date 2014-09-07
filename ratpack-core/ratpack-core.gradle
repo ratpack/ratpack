@@ -62,4 +62,6 @@ task streamTckTest(type: Test) {
     html.destination = file("$buildDir/reports/$name")
     junitXml.destination = binResultsDir.parentFile
   }
+
+  maxParallelForks = 4
 }

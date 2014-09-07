@@ -42,6 +42,7 @@ dependencies {
   }
   testRuntime("org.gradle:gradle-tooling-api:${gradle.gradleVersion}") // used by gradle snippet fixture
   testRuntime "org.apache.ant:ant-nodeps:1.8.1"
+  testRuntime project(":ratpack-spring-boot")
 }
 
 def projectDependencies = configurations.testCompile.dependencies.withType(ProjectDependency)

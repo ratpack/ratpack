@@ -45,6 +45,7 @@ class DefaultFileHttpTransmitterSpec extends RatpackGroovyDslSpec {
     file "public/large.jpg", LARGE_CONTENT
     file "public/large.png", LARGE_CONTENT
     file "public/large.svg", LARGE_CONTENT
+    file "public/large.mp3", LARGE_CONTENT
     file "public/large", LARGE_CONTENT
 
     handlers {
@@ -127,11 +128,29 @@ class DefaultFileHttpTransmitterSpec extends RatpackGroovyDslSpec {
   }
 
   @Unroll
+  def "images, videos, audio, archives are not compressed by default"() {
+    when:
+    launchConfig {
+      compressResponses(true)
+    }
+
+    then:
+    get(path).headers.get(CONTENT_ENC_HDR) == enc
+
+    where:
+    path        | enc
+    "large.txt" | TEST_ENCODING
+    "large.png" | null
+    "large.jpg" | null
+    "large.mp3" | null
+  }
+
+  @Unroll
   def "compression white list can be configured"() {
     when:
     launchConfig {
       compressResponses(true)
-      compressionWhiteListMimeTypes("text/html", "text/css")
+      compressionWhiteListMimeTypes("image/png")
     }
 
     then:
@@ -139,12 +158,12 @@ class DefaultFileHttpTransmitterSpec extends RatpackGroovyDslSpec {
 
     where:
     path         | enc
-    "large.txt"  | null
+    "large.txt"  | TEST_ENCODING
     "large.css"  | TEST_ENCODING
     "large.html" | TEST_ENCODING
-    "large.json" | null
-    "large.png"  | null
-    "large"      | null
+    "large.json" | TEST_ENCODING
+    "large.png"  | TEST_ENCODING
+    "large"      | TEST_ENCODING
   }
 
   @Unroll

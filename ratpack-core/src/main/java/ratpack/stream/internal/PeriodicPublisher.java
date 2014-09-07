@@ -36,7 +36,7 @@ public class PeriodicPublisher<T> implements Publisher<T> {
   private final long delay;
   private final TimeUnit timeUnit;
 
-  public  PeriodicPublisher(ScheduledExecutorService executorService, Function<Integer, T> producer, long delay, TimeUnit timeUnit) {
+  public PeriodicPublisher(ScheduledExecutorService executorService, Function<Integer, T> producer, long delay, TimeUnit timeUnit) {
     this.executorService = executorService;
     this.producer = producer;
     this.delay = delay;

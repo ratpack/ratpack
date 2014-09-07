@@ -18,7 +18,6 @@ package ratpack.stream.internal;
 
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -35,26 +34,25 @@ public class BufferingPublisher<T> implements Publisher<T> {
 
   @Override
   public void subscribe(final Subscriber<? super T> subscriber) {
-    DownstreamSubscription subscription = new DownstreamSubscription(subscriber);
-    subscriber.onSubscribe(subscription);
-    subscription.open();
+    new Subscription(subscriber);
   }
 
-  private class DownstreamSubscription extends SubscriptionSupport {
+  private class Subscription extends SubscriptionSupport<T> {
 
     // if null, using passthru
     private BufferingSubscriber bufferingSubscriber;
 
-    private final AtomicBoolean upstreamFinished = new AtomicBoolean();
-    private final AtomicBoolean downstreamFinished = new AtomicBoolean();
-    private final Subscriber<? super T> downstreamSubscriber;
+    private final AtomicBoolean upstreamFinished;
 
-    private final AtomicReference<Subscription> upstreamSubscription = new AtomicReference<>();
-    private final AtomicBoolean requestedUpstream = new AtomicBoolean();
+    private final AtomicReference<org.reactivestreams.Subscription> upstreamSubscription;
+    private final AtomicBoolean requestedUpstream;
 
-
-    public DownstreamSubscription(Subscriber<? super T> downstreamSubscriber) {
-      this.downstreamSubscriber = downstreamSubscriber;
+    public Subscription(Subscriber<? super T> subscriber) {
+      super(subscriber);
+      upstreamFinished = new AtomicBoolean();
+      upstreamSubscription = new AtomicReference<>();
+      requestedUpstream = new AtomicBoolean();
+      start();
     }
 
     protected void doRequest(long n) {
@@ -80,44 +78,42 @@ public class BufferingPublisher<T> implements Publisher<T> {
     }
 
     @Override
-    public void cancel() {
-      if (downstreamFinished.compareAndSet(false, true)) {
-        Subscription subscription = upstreamSubscription.get();
-        if (subscription != null) {
-          subscription.cancel();
-        }
+    protected void doCancel() {
+      org.reactivestreams.Subscription subscription = upstreamSubscription.get();
+      if (subscription != null) {
+        subscription.cancel();
       }
     }
 
-    private class PassThruSubscriber implements Subscriber<T> {
+    class PassThruSubscriber implements Subscriber<T> {
       @Override
-      public void onSubscribe(Subscription s) {
+      public void onSubscribe(org.reactivestreams.Subscription s) {
         upstreamSubscription.set(s);
       }
 
       @Override
       public void onNext(T t) {
-        downstreamSubscriber.onNext(t);
+        Subscription.this.onNext(t);
       }
 
       @Override
       public void onError(Throwable t) {
-        downstreamSubscriber.onError(t);
+        Subscription.this.onError(t);
       }
 
       @Override
       public void onComplete() {
-        downstreamSubscriber.onComplete();
+        Subscription.this.onComplete();
       }
     }
 
-    private class BufferingSubscriber implements Subscriber<T> {
+    class BufferingSubscriber implements Subscriber<T> {
       private final AtomicLong wanted = new AtomicLong();
       private final ConcurrentLinkedQueue<T> buffer = new ConcurrentLinkedQueue<>();
       private final AtomicBoolean draining = new AtomicBoolean();
 
       @Override
-      public void onSubscribe(Subscription s) {
+      public void onSubscribe(org.reactivestreams.Subscription s) {
         upstreamSubscription.set(s);
       }
 
@@ -131,7 +127,7 @@ public class BufferingPublisher<T> implements Publisher<T> {
       public void onError(Throwable t) {
         buffer.clear();
         upstreamFinished.set(true);
-        downstreamSubscriber.onError(t);
+        Subscription.this.onError(t);
       }
 
       @Override
@@ -141,21 +137,20 @@ public class BufferingPublisher<T> implements Publisher<T> {
       }
 
       public void tryDrain() {
-        if (!downstreamFinished.get() && draining.compareAndSet(false, true)) {
+        if (draining.compareAndSet(false, true)) {
           try {
             long i = wanted.get();
             while (i > 0) {
               T item = buffer.poll();
               if (item == null) {
                 if (upstreamFinished.get()) {
-                  downstreamFinished.set(true);
-                  downstreamSubscriber.onComplete();
+                  Subscription.this.onComplete();
                   return;
                 } else {
                   break;
                 }
               } else {
-                downstreamSubscriber.onNext(item);
+                Subscription.this.onNext(item);
                 i = wanted.decrementAndGet();
               }
             }
@@ -170,6 +165,5 @@ public class BufferingPublisher<T> implements Publisher<T> {
 
     }
   }
-
 }
 

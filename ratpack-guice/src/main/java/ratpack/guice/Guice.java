@@ -262,22 +262,7 @@ public abstract class Guice {
   }
 
   public static RegistryBacking registryBacking(final Injector injector) {
-    return new RegistryBacking() {
-      @Override
-      public <T> Iterable<Supplier<? extends T>> provide(TypeToken<T> type) {
-        return FluentIterable.from(GuiceUtil.allProvidersOfType(injector, type)).transform(new com.google.common.base.Function<Provider<? extends T>, Supplier<? extends T>>() {
-          @Override
-          public Supplier<? extends T> apply(final Provider<? extends T> provider) {
-            return new Supplier<T>() {
-              @Override
-              public T get() {
-                return provider.get();
-              }
-            };
-          }
-        });
-      }
-    };
+    return new InjectorRegistryBacking(injector);
   }
 
   /**
@@ -326,6 +311,48 @@ public abstract class Guice {
 
     public Handler apply(Injector injector) throws Exception {
       return chain(launchConfig, justInTimeRegistry(injector), action);
+    }
+  }
+
+  private static class InjectorRegistryBacking implements RegistryBacking {
+    private final Injector injector;
+
+    public InjectorRegistryBacking(Injector injector) {
+      this.injector = injector;
+    }
+
+    @Override
+    public <T> Iterable<Supplier<? extends T>> provide(TypeToken<T> type) {
+      return FluentIterable.from(GuiceUtil.allProvidersOfType(injector, type)).transform(new com.google.common.base.Function<Provider<? extends T>, Supplier<? extends T>>() {
+        @Override
+        public Supplier<? extends T> apply(final Provider<? extends T> provider) {
+          return new Supplier<T>() {
+            @Override
+            public T get() {
+              return provider.get();
+            }
+          };
+        }
+      });
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
+
+      InjectorRegistryBacking that = (InjectorRegistryBacking) o;
+
+      return injector.equals(that.injector);
+    }
+
+    @Override
+    public int hashCode() {
+      return injector.hashCode();
     }
   }
 }
