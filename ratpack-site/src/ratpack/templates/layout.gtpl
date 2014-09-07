@@ -16,7 +16,6 @@ html {
     link(rel: 'author', href: '/assets/humans.txt')
     link(rel: 'stylesheet', href: assets['assets/lib/normalize/normalize.css'])
     link(rel: 'stylesheet', href: assets['assets/styles/ratpack.css'])
-    link(rel: 'stylesheet', href: assets['assets/styles/fonts.css'])
 
     script(src: assets['assets/lib/modernizr/modernizr.js']) {}
     script(src: assets['assets/lib/prism/prism.js']) {}
@@ -94,5 +93,7 @@ html {
   ga('send', 'pageview');
 '''
     }
+
+    link(rel: 'stylesheet', href: assets['assets/styles/fonts.css'])
   }
 }
