@@ -40,7 +40,8 @@ public class JavaSnippetExecuter implements SnippetExecuter {
       }
     }
 
-    def source = new StringJavaSource("Example", snippet.completeSnippet)
+    def className = detectClassName(snippet.completeSnippet)
+    def source = new StringJavaSource(className, snippet.completeSnippet)
 
     def task = compiler.getTask(null, fileManager, diagnostics, ["-Xlint:deprecation", "-Xlint:unchecked"], null, Arrays.asList(source))
     def result = task.call()
@@ -64,7 +65,7 @@ public class JavaSnippetExecuter implements SnippetExecuter {
       classLoader.defineClass(javaClass.name - "/", javaClass.bytes)
     }
 
-    def exampleClass = classLoader.loadClass("Example")
+    def exampleClass = classLoader.loadClass(className)
     try {
       def mainMethod = exampleClass.getMethod("main", Class.forName("[Ljava.lang.String;"))
       mainMethod.invoke(null, [[] as String[]] as Object[])
@@ -73,6 +74,11 @@ public class JavaSnippetExecuter implements SnippetExecuter {
     } catch (InvocationTargetException e) {
      throw e.cause
     }
+  }
+
+  private static String detectClassName(String snippet) {
+    def match = snippet =~ /public class (\w+)/
+    return match ? match.group(1) : "Example"
   }
 
   static class StringJavaSource extends SimpleJavaFileObject {

@@ -13,7 +13,129 @@ With Ratpack on the classpath, you can use the API described in the next chapter
 
 ## Using the Gradle plugin(s)
 
-TODO
+First, [install Gradle](http://www.gradle.org/docs/current/userguide/installation.html) if you haven't already.
+On Mac OS X, if you have [Homebrew](http://brew.sh/) installed, you can simply run `brew install gradle`.
+
+### Using the Gradle Java plugin
+Create a `build.gradle` file with the following contents:
+
+```language-groovy gradle
+buildscript {
+  repositories {
+    jcenter()
+  }
+  dependencies {
+    classpath "io.ratpack:ratpack-gradle:@ratpack-version@"
+  }
+}
+
+apply plugin: "io.ratpack.ratpack-java"
+apply plugin: "idea"
+
+repositories {
+  jcenter()
+}
+
+dependencies {
+  runtime "org.slf4j:slf4j-simple:@slf4j-version@"
+}
+```
+
+Create directories `src/ratpack` and `src/main/java`.
+
+If desired, run `gradle idea` to generate project files for IntelliJ and open the project.
+
+Create a `src/ratpack/ratpack.properties` file with the following contents:
+
+```
+handlerFactory=AppHandlerFactory
+```
+
+Create a `src/main/java/AppHandlerFactory.java` with the following contents:
+
+```language-java
+import ratpack.handling.Context;
+import ratpack.handling.Handler;
+import ratpack.launch.HandlerFactory;
+import ratpack.launch.LaunchConfig;
+
+import static ratpack.handling.Handlers.*;
+
+public class AppHandlerFactory implements HandlerFactory {
+  @Override
+  public Handler create(LaunchConfig launchConfig) throws Exception {
+    return chain(
+      path("foo", new Handler() {
+          @Override
+          public void handle(Context context) {
+              context.render("from the foo handler");
+          }
+      }),
+      path("bar", new Handler() {
+        @Override
+        public void handle(Context context) throws Exception {
+          context.render("from the bar handler");
+        }
+      })
+    );
+  }
+}
+```
+
+Run the project by running `gradle run`, or create a distribution archive by running `gradle distZip`.
+
+For further information on using Ratpack with Gradle, please the [Gradle chapter](gradle.html).
+
+### Using the Gradle Groovy plugin
+
+Create a `build.gradle` file with the following contents:
+
+```language-groovy gradle
+buildscript {
+  repositories {
+    jcenter()
+  }
+  dependencies {
+    classpath "io.ratpack:ratpack-gradle:@ratpack-version@"
+  }
+}
+
+apply plugin: "io.ratpack.ratpack-groovy"
+apply plugin: "idea"
+
+repositories {
+  jcenter()
+}
+
+dependencies {
+  runtime "org.slf4j:slf4j-simple:@slf4j-version@"
+}
+```
+
+Create directories `src/ratpack` and `src/main/groovy`.
+
+If desired, run `gradle idea` to generate project files for IntelliJ and open the project.
+
+Create a `src/ratpack/ratpack.groovy` file with the following contents:
+
+```language-groovy
+import static ratpack.groovy.Groovy.ratpack
+
+ratpack {
+    handlers {
+        get("foo") {
+            render "from the foo handler"
+        }
+        get("bar") {
+            render "from the bar handler"
+        }
+    }
+}
+```
+
+Run the project by running `gradle run`, or create a distribution archive by running `gradle distZip`.
+
+For further information on using Ratpack with Gradle and Groovy, please the [Gradle](gradle.html) and [Groovy](groovy.html) chapters.
 
 ## Using Lazybones project templates
 
