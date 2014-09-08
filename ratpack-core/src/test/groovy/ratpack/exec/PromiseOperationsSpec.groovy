@@ -129,6 +129,24 @@ class PromiseOperationsSpec extends Specification {
     events == [ex, "complete"]
   }
 
+  def "errors handler after exception receive it "() {
+    given:
+    def ex = new RuntimeException("!")
+
+    when:
+    exec { e ->
+      e.blocking { "foo" }
+        .map { it }
+        .onError { events << "shouldn't get this" }
+        .map { throw ex }
+        .onError { events << ex }
+        .then { throw new IllegalStateException("cant get here") }
+    }
+
+    then:
+    events == [ex, "complete"]
+  }
+
   def "errors handler can transform exception"() {
     given:
     def ex = new RuntimeException("!")
