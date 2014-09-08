@@ -22,6 +22,7 @@ import ratpack.exec.*;
 import ratpack.func.*;
 import ratpack.util.internal.InternalRatpackError;
 
+import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static ratpack.func.Actions.ignoreArg;
@@ -193,6 +194,21 @@ public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
         downstream.error(e);
       }
     }
+  }
+
+  @Override
+  public <O> Promise<O> blockingMap(final Function<? super T, ? extends O> transformer) {
+    return flatMap(new Function<T, Promise<O>>() {
+      @Override
+      public Promise<O> apply(final T t) throws Exception {
+        return executionProvider.create().getExecution().getControl().blocking(new Callable<O>() {
+          @Override
+          public O call() throws Exception {
+            return transformer.apply(t);
+          }
+        });
+      }
+    });
   }
 
   private abstract class Transform<I, O> extends Step<O> {

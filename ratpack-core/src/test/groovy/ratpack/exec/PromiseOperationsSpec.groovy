@@ -189,4 +189,17 @@ class PromiseOperationsSpec extends Specification {
     events == ["null", "complete"]
   }
 
+  def "can perform blocking map"() {
+    when:
+    exec { e ->
+      e.blocking { "foo" }
+        .blockingMap { it + "-bar" }
+        .map { it.toUpperCase() }
+        .then { events << it }
+    }
+
+    then:
+    events == ["FOO-BAR", "complete"]
+  }
+
 }

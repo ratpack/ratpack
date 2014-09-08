@@ -82,6 +82,17 @@ public interface PromiseOperations<T> {
   <O> Promise<O> map(Function<? super T, ? extends O> transformer);
 
   /**
+   * Like {@link #map(Function)}, but performs the transformation on a blocking thread.
+   * <p>
+   * This is simply a more convenient form of using {@link ExecControl#blocking(java.util.concurrent.Callable)} and {@link #flatMap(Function)}.
+   *
+   * @param transformer the transformation to apply to the promised value, on a blocking thread
+   * @param <O> the type of the transformed object
+   * @return a promise for the transformed value
+   */
+  <O> Promise<O> blockingMap(Function<? super T, ? extends O> transformer);
+
+  /**
    * Transforms the promised value by applying the given function to it that returns a promise for the transformed value.
    * <p>
    * This is useful when the transformation involves an asynchronous operation.
@@ -131,9 +142,13 @@ public interface PromiseOperations<T> {
    *
    * }
    * }</pre>
+   * <p>
+   * In the above example, {@code flatMap()} is being used because the transformation requires a blocking operation (it doesn't really in this case, but that's what the example is showing).
+   * In this case, it would be more convenient to use {@link #blockingMap(Function)}.
    *
    * @param transformer the transformation to apply to the promised value
    * @param <O> the type of the transformed object
+   * @see #blockingMap(Function)
    * @return a promise for the transformed value
    */
   <O> Promise<O> flatMap(Function<? super T, ? extends Promise<O>> transformer);
@@ -141,5 +156,4 @@ public interface PromiseOperations<T> {
   Promise<T> route(Predicate<? super T> predicate, Action<? super T> action);
 
   Promise<T> onNull(NoArgAction action);
-
 }
