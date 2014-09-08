@@ -190,4 +190,21 @@ public class Streams {
     return new WiretapPublisher<>(publisher, listener);
   }
 
+  /**
+   * Returns a publisher that will stream events emitted from the given publisher to all of it's subscribers.
+   * <p>
+   * The return publisher allows the given publisher to emit as fast as it can, while applying flow control downstream to multiple subscribers.
+   * Each subscriber can signal it's own demand.
+   * <p>
+   * If a subscriber is not the first to subscribe to the return publisher then it will not receive any events that have been emitted before it
+   * subscribed.
+   *
+   * @param publisher a data source
+   * @param <T> the type of item
+   * @return a publisher that respects back pressure for each of it's Subscribers.
+   */
+  public static <T> Publisher<T> multicast(Publisher<T> publisher) {
+    return new MulticastPublisher<>(publisher);
+  }
+
 }

@@ -183,4 +183,142 @@ class StreamsSpec extends Specification {
     s2.received == ["0-1", "1-1", "2-1", "3-1"]
   }
 
+  def "can multicast throttled"() {
+    given:
+    Runnable runnable = null
+    def future = Mock(ScheduledFuture)
+    def executor = Mock(ScheduledExecutorService) {
+      scheduleWithFixedDelay(_, 0, 5, TimeUnit.SECONDS) >> {
+        runnable = it[0]
+        future
+      }
+    }
+
+    def sent = []
+    def fooReceived = []
+    def barReceived = []
+    boolean fooComplete
+    boolean barComplete
+    Subscription fooSubscription
+    Subscription barSubscription
+
+    def stream = periodically(executor, 5, TimeUnit.SECONDS) { it < 10 ? it : null }
+    stream = wiretap(stream) {
+      if (it.data) {
+        sent << it.item
+      }
+    }
+    stream = multicast(stream)
+
+    when:
+    stream.subscribe(new Subscriber<Integer>() {
+      @Override
+      void onSubscribe(Subscription s) {
+        fooSubscription = s
+      }
+
+      @Override
+      void onNext(Integer integer) {
+        fooReceived << integer
+      }
+
+      @Override
+      void onError(Throwable t) {
+        fooReceived << t
+      }
+
+      @Override
+      void onComplete() {
+        fooComplete = true
+      }
+    })
+
+    stream.subscribe(new Subscriber<Integer>() {
+      @Override
+      void onSubscribe(Subscription s) {
+        barSubscription = s
+      }
+
+      @Override
+      void onNext(Integer integer) {
+        barReceived << integer
+      }
+
+      @Override
+      void onError(Throwable t) {
+        barReceived << t
+      }
+
+      @Override
+      void onComplete() {
+        barComplete = true
+      }
+    })
+
+    then:
+    !future.isCancelled()
+    runnable == null
+    sent.size() == 0
+    fooReceived.isEmpty()
+    barReceived.isEmpty()
+
+    when:
+    fooSubscription.request(1)
+
+    then:
+    fooReceived.size() == 0
+
+    when:
+    runnable.run()
+    runnable.run()
+    runnable.run()
+
+    then:
+    sent.size() == 3
+    fooReceived.size() == 1
+
+    when:
+    barSubscription.request(2)
+
+    then:
+    barReceived.size() == 0 //bar has missed the first 3 because they happened before it started requesting
+
+    when:
+    runnable.run()
+    runnable.run()
+    runnable.run()
+
+    then:
+    sent.size() == 6
+    barReceived.size() == 2
+    fooReceived.size() == 1
+
+    when:
+    runnable.run()
+    runnable.run()
+    runnable.run()
+    runnable.run()
+    runnable.run()
+
+    then:
+    sent.size() == 10
+    barReceived.size() == 2
+    fooReceived.size() == 1
+
+    when:
+    fooSubscription.request(10)
+
+    then:
+    fooReceived.size() == 10
+    fooComplete
+    barReceived.size() == 2
+
+    when:
+    barSubscription.request(10)
+
+    then:
+    barReceived.size() == 7
+    barComplete
+  }
+
 }
