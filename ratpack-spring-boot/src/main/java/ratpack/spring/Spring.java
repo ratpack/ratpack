@@ -83,6 +83,7 @@ import java.util.Arrays;
  * import ratpack.launch.HandlerFactory;
  * import ratpack.launch.LaunchConfig;
  * import ratpack.launch.LaunchConfigBuilder;
+ * import ratpack.registry.Registry;
  * import ratpack.spring.Spring;
  * import ratpack.test.embed.EmbeddedApplication;
  * import ratpack.test.embed.LaunchConfigEmbeddedApplication;
@@ -95,9 +96,10 @@ import java.util.Arrays;
  *         return LaunchConfigBuilder.noBaseDir().port(0).build(new HandlerFactory() {
  *           public Handler create(LaunchConfig launchConfig) throws Exception {
  *             // Example of using Spring Boot in Ratpack
+ *             final Registry springBackedRegistry = Spring.run(ExampleSpringBootApp.class);
  *             return Handlers.chain(launchConfig, new Action<Chain>() {
  *               public void execute(Chain chain) {
- *                 chain.register(Spring.run(ExampleSpringBootApp.class));
+ *                 chain.register(springBackedRegistry);
  *
  *                 chain.handler(new Handler() {
  *                   public void handle(Context context) {
