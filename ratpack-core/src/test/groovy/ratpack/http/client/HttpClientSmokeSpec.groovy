@@ -67,9 +67,7 @@ class HttpClientSmokeSpec extends HttpClientSpec {
 
         respProm.onError({ Throwable t ->
           t.printStackTrace()
-        })
-
-        respProm.then { ReceivedResponse response ->
+        }).then { ReceivedResponse response ->
           render response.body.text
         }
       }
