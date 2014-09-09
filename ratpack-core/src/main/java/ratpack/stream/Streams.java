@@ -191,13 +191,14 @@ public class Streams {
   }
 
   /**
-   * Returns a publisher that will stream events emitted from the given publisher to all of it's subscribers.
+   * Returns a publisher that will stream events emitted from the given publisher to all of its subscribers.
    * <p>
    * The return publisher allows the given publisher to emit as fast as it can, while applying flow control downstream to multiple subscribers.
-   * Each subscriber can signal it's own demand.
+   * Each subscriber can signal its own demand.  If the given publisher emits far faster than the downstream subscribers request, the intermediate
+   * queue of each subscriber will grow large and consume substantial memory. However, given this publisher is likely to be used with a periodic
+   * publisher or a regular indefinite stream it is unlikely to be a problem.
    * <p>
-   * If a subscriber is not the first to subscribe to the return publisher then it will not receive any events that have been emitted before it
-   * subscribed.
+   * When a subscriber subscribes to the return publisher then it will not receive any events that have been emitted before it subscribed.
    *
    * @param publisher a data source
    * @param <T> the type of item

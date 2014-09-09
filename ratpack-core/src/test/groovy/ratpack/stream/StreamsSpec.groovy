@@ -321,4 +321,45 @@ class StreamsSpec extends Specification {
     barComplete
   }
 
+  def "can reject further multicast subscriptions when the upstream publisher has completed"() {
+    given:
+    def error
+    def stream = multicast(publish([1]))
+    stream.subscribe(new Subscriber() {
+      @Override
+      void onSubscribe(Subscription s) {
+        s.request(1)
+      }
+
+      @Override
+      void onNext(Object o) { }
+
+      @Override
+      void onError(Throwable t) { }
+
+      @Override
+      void onComplete() { }
+    })
+
+    when:
+    stream.subscribe(new Subscriber() {
+      @Override
+      void onSubscribe(Subscription s) { }
+
+      @Override
+      void onNext(Object o) { }
+
+      @Override
+      void onError(Throwable t) {
+        error = t
+      }
+
+      @Override
+      void onComplete() { }
+    })
+
+    then:
+    error instanceof IllegalStateException
+    error.message == 'The upstream publisher has completed, either successfully or with error.  No further subscriptions will be accepted'
+  }
 }

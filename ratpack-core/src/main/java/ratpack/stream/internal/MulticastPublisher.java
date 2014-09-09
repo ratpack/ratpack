@@ -20,42 +20,49 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
-import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static ratpack.stream.Streams.throttle;
 
 public class MulticastPublisher<T> implements Publisher<T> {
 
-  private final List<Subscriber<? super T>> throttledSubscribers = new CopyOnWriteArrayList<>();
+  private final ConcurrentLinkedDeque<Subscriber<? super T>> throttledSubscribers = new ConcurrentLinkedDeque<>();
   private final Publisher<T> upstreamPublisher;
   private final AtomicBoolean requestedUpstream;
+  private final AtomicBoolean upstreamFinished;
 
   public MulticastPublisher(Publisher<T> publisher) {
     this.upstreamPublisher = publisher;
     this.requestedUpstream = new AtomicBoolean();
+    this.upstreamFinished = new AtomicBoolean();
   }
 
   @Override
   public void subscribe(final Subscriber<? super T> downStreamSubscriber) {
-    throttle(new Publisher<T>() {
-      @Override
-      public void subscribe(final Subscriber<? super T> s) {
-        s.onSubscribe(new Subscription() {
-          @Override
-          public void request(long n) {
-            throttledSubscribers.add(s);
-            tryUpstreamSubscribe();
-          }
+    if (upstreamFinished.get()) {
+      downStreamSubscriber.onError(new IllegalStateException("The upstream publisher has completed, either successfully or with error.  No further subscriptions will be accepted"));
+    } else {
+      throttle(new Publisher<T>() {
+        @Override
+        public void subscribe(final Subscriber<? super T> s) {
+          s.onSubscribe(new Subscription() {
+            @Override
+            public void request(long n) {
+              throttledSubscribers.add(s);
+              tryUpstreamSubscribe();
+            }
 
-          @Override
-          public void cancel() {
-            throttledSubscribers.remove(s);
-          }
-        });
-      }
-    }).subscribe(downStreamSubscriber);
+            @Override
+            public void cancel() {
+              // throttle will deal with cancelling this subscription if the downstream subscriber cancels or throws an exception.
+              // The downstream subscriber will be "unsubscribed" from this publisher.
+              throttledSubscribers.remove(s);
+            }
+          });
+        }
+      }).subscribe(downStreamSubscriber);
+    }
   }
 
   private void tryUpstreamSubscribe() {
@@ -78,6 +85,7 @@ public class MulticastPublisher<T> implements Publisher<T> {
 
         @Override
         public void onError(Throwable t) {
+          upstreamFinished.set(true);
           for (Subscriber<? super T> subscriber : throttledSubscribers) {
             subscriber.onError(t);
           }
@@ -85,6 +93,7 @@ public class MulticastPublisher<T> implements Publisher<T> {
 
         @Override
         public void onComplete() {
+          upstreamFinished.set(true);
           for (Subscriber<? super T> subscriber : throttledSubscribers) {
             subscriber.onComplete();
           }
