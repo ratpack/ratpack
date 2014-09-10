@@ -23,6 +23,7 @@ import ratpack.exec.ExecController;
 import ratpack.exec.Execution;
 import ratpack.exec.Result;
 import ratpack.exec.internal.DefaultExecController;
+import ratpack.exec.internal.DefaultResult;
 import ratpack.func.Action;
 import ratpack.http.TypedData;
 import ratpack.http.client.HttpClients;
@@ -48,7 +49,7 @@ public class BlockingHttpClient {
       }, new Action<Throwable>() {
         @Override
         public void execute(Throwable throwable) throws Exception {
-          requestAction.setResult(Result.<ReceivedResponse>failure(throwable));
+          requestAction.setResult(DefaultResult.<ReceivedResponse>failure(throwable));
         }
       });
 
@@ -97,7 +98,7 @@ public class BlockingHttpClient {
               response.getHeaders(),
               new ByteBufBackedTypedData(responseBodyBuffer, responseBody.getContentType())
             );
-            setResult(Result.success(copiedResponse));
+            setResult(DefaultResult.success(copiedResponse));
           }
         });
     }

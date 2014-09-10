@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,85 +16,40 @@
 
 package ratpack.exec;
 
-import ratpack.util.ExceptionUtils;
-
 /**
  * The result of an asynchronous operation, which may be a failure.
  *
  * @param <T> The type of the successful result object
  */
-public class Result<T> {
-
-  private final Throwable failure;
-  private final T value;
-
-  /**
-   * Creates a successful result object.
-   *
-   * @param <T> The type of the result object
-   * @param value The object representing the result of the operation
-   * @return a success result
-   */
-  public static <T> Result<T> success(T value) {
-    return new Result<>(value);
-  }
-
-  /**
-   * Creates a failure result object.
-   *
-   * @param <T> The type of the result object
-   * @param failure An exception representing the failure
-   * @return a failure result
-   */
-  public static <T> Result<T> failure(Throwable failure) {
-    return new Result<>(failure);
-  }
-
-  private Result(Throwable failure) {
-    this.failure = failure;
-    this.value = null;
-  }
-
-  private Result(T value) {
-    this.value = value;
-    this.failure = null;
-  }
+public interface Result<T> {
 
   /**
    * The failure exception.
    *
    * @return The failure exception, or null if the result was not failure.
    */
-  public Throwable getFailure() {
-    return failure;
-  }
+  Throwable getFailure();
 
   /**
    * The result value.
    *
    * @return The result value, or null if the result was not success.
    */
-  public T getValue() {
-    return value;
-  }
+  T getValue();
 
   /**
    * True if this was a success result.
    *
    * @return whether the result is success.
    */
-  public boolean isSuccess() {
-    return failure == null;
-  }
+  boolean isSuccess();
 
   /**
    * True if this was a failure result.
    *
    * @return whether the result is failure.
    */
-  public boolean isFailure() {
-    return failure != null;
-  }
+  boolean isFailure();
 
   /**
    * Returns the value if this is a success result, or throws the exception if it's a failure.
@@ -102,12 +57,6 @@ public class Result<T> {
    * @return the value (if this is a success result)
    * @throws Exception the failure (if this is a failure result)
    */
-  public T getValueOrThrow() throws Exception {
-    if (isFailure()) {
-      throw ExceptionUtils.toException(failure);
-    } else {
-      return value;
-    }
-  }
+  T getValueOrThrow() throws Exception;
 
 }

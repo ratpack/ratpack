@@ -17,6 +17,7 @@
 package ratpack.test.exec.internal;
 
 import ratpack.exec.*;
+import ratpack.exec.internal.DefaultResult;
 import ratpack.func.Action;
 import ratpack.func.Function;
 import ratpack.test.exec.ExecHarness;
@@ -40,7 +41,7 @@ public class DefaultExecHarness implements ExecHarness {
     final Action<Throwable> onError = new Action<Throwable>() {
       @Override
       public void execute(Throwable throwable) throws Exception {
-        reference.set(Result.<T>failure(throwable));
+        reference.set(DefaultResult.<T>failure(throwable));
         latch.countDown();
       }
     };
@@ -64,7 +65,7 @@ public class DefaultExecHarness implements ExecHarness {
       }
 
       private void succeed(T t) {
-        reference.set(Result.success(t));
+        reference.set(DefaultResult.success(t));
         latch.countDown();
       }
     }, onError);
