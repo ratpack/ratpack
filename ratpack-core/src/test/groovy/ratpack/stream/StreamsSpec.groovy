@@ -44,7 +44,7 @@ class StreamsSpec extends Specification {
         sent << it.item
       }
     }
-    stream = throttle(stream)
+    stream = buffer(stream)
 
     stream.subscribe(new Subscriber<Integer>() {
       @Override
@@ -183,7 +183,7 @@ class StreamsSpec extends Specification {
     s2.received == ["0-1", "1-1", "2-1", "3-1"]
   }
 
-  def "can multicast throttled"() {
+  def "can multicast with back pressure"() {
     given:
     Runnable runnable = null
     def future = Mock(ScheduledFuture)

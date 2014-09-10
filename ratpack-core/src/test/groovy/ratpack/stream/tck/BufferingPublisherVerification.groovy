@@ -20,8 +20,8 @@ import org.reactivestreams.Publisher
 import org.reactivestreams.tck.PublisherVerification
 import org.reactivestreams.tck.TestEnvironment
 
+import static ratpack.stream.Streams.buffer
 import static ratpack.stream.Streams.publish
-import static ratpack.stream.Streams.throttle
 
 class BufferingPublisherVerification extends PublisherVerification<Integer> {
 
@@ -34,7 +34,7 @@ class BufferingPublisherVerification extends PublisherVerification<Integer> {
 
   @Override
   Publisher<Integer> createPublisher(long elements) {
-    throttle(publish(0..<elements))
+    buffer(publish(0..<elements))
   }
 
   @Override

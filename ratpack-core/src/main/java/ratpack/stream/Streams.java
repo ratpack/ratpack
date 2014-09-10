@@ -118,7 +118,7 @@ public class Streams {
    * @param <T> the type of item
    * @return a publisher that applies respects back pressure, effectively throttling the given publisher
    */
-  public static <T> Publisher<T> throttle(Publisher<T> publisher) {
+  public static <T> Publisher<T> buffer(Publisher<T> publisher) {
     return new BufferingPublisher<>(publisher);
   }
 
@@ -158,7 +158,7 @@ public class Streams {
    * <p>
    * If the function throws an exception, the error will be sent to the subscribers and no more invocations of the function will occur.
    * <p>
-   * The returned publisher is implicitly throttled to respect back pressure via {@link #throttle(org.reactivestreams.Publisher)}.
+   * The returned publisher is implicitly buffered to respect back pressure via {@link #buffer(org.reactivestreams.Publisher)}.
    *
    * @param executorService the executor service that will periodically execute the function
    * @param delay the delay value
@@ -168,7 +168,7 @@ public class Streams {
    * @return a publisher that applies respects back pressure, effectively throttling the given publisher
    */
   public static <T> Publisher<T> periodically(ScheduledExecutorService executorService, long delay, TimeUnit timeUnit, Function<Integer, T> producer) {
-    return throttle(new PeriodicPublisher<>(executorService, producer, delay, timeUnit));
+    return buffer(new PeriodicPublisher<>(executorService, producer, delay, timeUnit));
   }
 
   /**

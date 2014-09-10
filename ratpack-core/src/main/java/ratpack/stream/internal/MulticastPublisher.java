@@ -23,11 +23,11 @@ import org.reactivestreams.Subscription;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static ratpack.stream.Streams.throttle;
+import static ratpack.stream.Streams.buffer;
 
 public class MulticastPublisher<T> implements Publisher<T> {
 
-  private final ConcurrentLinkedDeque<Subscriber<? super T>> throttledSubscribers = new ConcurrentLinkedDeque<>();
+  private final ConcurrentLinkedDeque<Subscriber<? super T>> bufferedSubscribers = new ConcurrentLinkedDeque<>();
   private final Publisher<T> upstreamPublisher;
   private final AtomicBoolean requestedUpstream;
   private final AtomicBoolean upstreamFinished;
@@ -43,21 +43,21 @@ public class MulticastPublisher<T> implements Publisher<T> {
     if (upstreamFinished.get()) {
       downStreamSubscriber.onError(new IllegalStateException("The upstream publisher has completed, either successfully or with error.  No further subscriptions will be accepted"));
     } else {
-      throttle(new Publisher<T>() {
+      buffer(new Publisher<T>() {
         @Override
         public void subscribe(final Subscriber<? super T> s) {
           s.onSubscribe(new Subscription() {
             @Override
             public void request(long n) {
-              throttledSubscribers.add(s);
+              bufferedSubscribers.add(s);
               tryUpstreamSubscribe();
             }
 
             @Override
             public void cancel() {
-              // throttle will deal with cancelling this subscription if the downstream subscriber cancels or throws an exception.
+              // buffer will deal with cancelling this subscription if the downstream subscriber cancels or throws an exception.
               // The downstream subscriber will be "unsubscribed" from this publisher.
-              throttledSubscribers.remove(s);
+              bufferedSubscribers.remove(s);
             }
           });
         }
@@ -78,7 +78,7 @@ public class MulticastPublisher<T> implements Publisher<T> {
 
         @Override
         public void onNext(T t) {
-          for (Subscriber<? super T> subscriber : throttledSubscribers) {
+          for (Subscriber<? super T> subscriber : bufferedSubscribers) {
             subscriber.onNext(t);
           }
         }
@@ -86,7 +86,7 @@ public class MulticastPublisher<T> implements Publisher<T> {
         @Override
         public void onError(Throwable t) {
           upstreamFinished.set(true);
-          for (Subscriber<? super T> subscriber : throttledSubscribers) {
+          for (Subscriber<? super T> subscriber : bufferedSubscribers) {
             subscriber.onError(t);
           }
         }
@@ -94,7 +94,7 @@ public class MulticastPublisher<T> implements Publisher<T> {
         @Override
         public void onComplete() {
           upstreamFinished.set(true);
-          for (Subscriber<? super T> subscriber : throttledSubscribers) {
+          for (Subscriber<? super T> subscriber : bufferedSubscribers) {
             subscriber.onComplete();
           }
         }
