@@ -24,7 +24,7 @@ import ratpack.func.Action;
  * A promise allows what is to be done with the value to be specified without having the value available.
  * They are a common alternative to callbacks in asynchronous programming.
  *
- * <h3>One-shot</h3>
+ * <h4>One-shot</h4>
  * <p>
  * Promise instances cannot be reused.
  * Furthermore, only one method can be called on any promise instance.
@@ -32,7 +32,11 @@ import ratpack.func.Action;
  * Methods returning a promise (or success promise) return a new promise instance, which can also only be used once.
  * Once any method has been called on a given promise object, calling any other method will throw an exception.
  *
- * @param <T> The type of promised value
+ * <h4>Testing</h4>
+ * <p>
+ * To test code that uses promises, see the {@code ratpack.test.exec.ExecHarness} class.
+ *
+ * @param <T> the type of promised value
  */
 public interface Promise<T> extends SuccessPromise<T> {
 
