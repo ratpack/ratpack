@@ -19,9 +19,20 @@ package ratpack.exec;
 import ratpack.func.Action;
 
 /**
- * A promise of an outcome that may be a successful result or an error exception.
+ * A promise for a value that will be available later.
+ * <p>
+ * A promise allows what is to be done with the value to be specified without having the value available.
+ * They are a common alternative to callbacks in asynchronous programming.
  *
- * @param <T> The type of result object that the operation produces
+ * <h3>One-shot</h3>
+ * <p>
+ * Promise instances cannot be reused.
+ * Furthermore, only one method can be called on any promise instance.
+ * <p>
+ * Methods returning a promise (or success promise) return a new promise instance, which can also only be used once.
+ * Once any method has been called on a given promise object, calling any other method will throw an exception.
+ *
+ * @param <T> The type of promised value
  */
 public interface Promise<T> extends SuccessPromise<T> {
 

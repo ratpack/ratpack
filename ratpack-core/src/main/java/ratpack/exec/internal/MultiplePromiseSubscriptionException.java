@@ -14,27 +14,12 @@
  * limitations under the License.
  */
 
-package ratpack.exec;
+package ratpack.exec.internal;
 
-import ratpack.api.NonBlocking;
-import ratpack.func.Action;
+public class MultiplePromiseSubscriptionException extends IllegalStateException {
 
-/**
- * A promise of a successful outcome.
- * <p>
- * See {@link Promise}.
- *
- * @param <T> the type of the outcome object
- * @see Promise
- */
-public interface SuccessPromise<T> extends PromiseOperations<T> {
-
-  /**
-   * Specifies what should be done with the promised object when it becomes available.
-   *
-   * @param then the receiver of the promised value
-   */
-  @NonBlocking
-  void then(Action<? super T> then);
+  public MultiplePromiseSubscriptionException() {
+    super("this promise has already been subscribed - its methods can only be called once");
+  }
 
 }

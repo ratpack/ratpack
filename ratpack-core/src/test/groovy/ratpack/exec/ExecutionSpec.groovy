@@ -19,11 +19,13 @@ package ratpack.exec
 import org.reactivestreams.Publisher
 import org.reactivestreams.Subscriber
 import org.reactivestreams.Subscription
+import ratpack.exec.internal.MultiplePromiseSubscriptionException
 import ratpack.func.Action
 import ratpack.func.Actions
 import ratpack.launch.LaunchConfigBuilder
 import spock.lang.AutoCleanup
 import spock.lang.Specification
+import spock.lang.Unroll
 
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.atomic.AtomicLong
@@ -32,7 +34,7 @@ class ExecutionSpec extends Specification {
 
   @AutoCleanup
   ExecController controller
-  List<String> events = []
+  List<Object> events = []
   def latch = new CountDownLatch(1)
 
   def setup() {
@@ -79,7 +81,12 @@ class ExecutionSpec extends Specification {
     exec({ e ->
       throw new RuntimeException("!")
     }, {
-      control.blocking { 2 } then { events << "error" }
+      try {
+        control.blocking { 2 } then { events << "error" }
+
+      } catch (e) {
+        e.printStackTrace()
+      }
     })
 
     then:
@@ -259,5 +266,57 @@ class ExecutionSpec extends Specification {
     ]
   }
 
+  @Unroll
+  def "cannot subscribe to promise more than once"() {
+    when:
+    exec({
+      def p = it.blocking { 2 }
+      code(p)
+      code(p)
+    }) {
+      events << it
+    }
+
+    then:
+    events.size() == 2
+    events.first() instanceof MultiplePromiseSubscriptionException
+
+    where:
+    code << [
+      { it.then { throw new UnsupportedOperationException() } },
+      { it.onError { throw new UnsupportedOperationException() } },
+      { it.map { throw new UnsupportedOperationException() } },
+      { it.blockingMap { throw new UnsupportedOperationException() } },
+      { it.onNull { throw new UnsupportedOperationException() } },
+      { it.flatMap { throw new UnsupportedOperationException() } },
+      { it.route({ throw new UnsupportedOperationException() }) { } },
+    ]
+  }
+
+  @Unroll
+  def "cannot subscribe to success promise more than once"() {
+    when:
+    exec({
+      def p = it.blocking { 2 }.onError { throw new UnsupportedOperationException() }
+      code(p)
+      code(p)
+    }) {
+      events << it
+    }
+
+    then:
+    events.size() == 2
+    events.first() instanceof MultiplePromiseSubscriptionException
+
+    where:
+    code << [
+      { it.then { throw new UnsupportedOperationException() } },
+      { it.map { throw new UnsupportedOperationException() } },
+      { it.blockingMap { throw new UnsupportedOperationException() } },
+      { it.onNull { throw new UnsupportedOperationException() } },
+      { it.flatMap { throw new UnsupportedOperationException() } },
+      { it.route({ throw new UnsupportedOperationException() }) { } },
+    ]
+  }
 
 }

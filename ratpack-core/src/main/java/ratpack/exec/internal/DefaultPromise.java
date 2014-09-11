@@ -21,11 +21,14 @@ import ratpack.exec.Promise;
 import ratpack.exec.SuccessPromise;
 import ratpack.func.*;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import static ratpack.func.Actions.throwException;
 
 public class DefaultPromise<T> implements Promise<T> {
   private final Action<? super Fulfiller<T>> fulfillment;
   private final Factory<ExecutionBacking> executionProvider;
+  private final AtomicBoolean fired = new AtomicBoolean();
 
   public DefaultPromise(Factory<ExecutionBacking> executionProvider, Action<? super Fulfiller<T>> fulfillment) {
     this.executionProvider = executionProvider;
@@ -34,7 +37,11 @@ public class DefaultPromise<T> implements Promise<T> {
 
   @Override
   public SuccessPromise<T> onError(final Action<? super Throwable> errorHandler) {
-    return new DefaultSuccessPromise<>(executionProvider, fulfillment, errorHandler);
+    if (fired.compareAndSet(false, true)) {
+      return new DefaultSuccessPromise<>(executionProvider, fulfillment, errorHandler);
+    } else {
+      throw new MultiplePromiseSubscriptionException();
+    }
   }
 
   @Override
