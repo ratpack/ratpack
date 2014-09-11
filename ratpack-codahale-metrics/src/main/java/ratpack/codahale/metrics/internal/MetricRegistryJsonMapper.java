@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,10 +19,9 @@ package ratpack.codahale.metrics.internal;
 import com.codahale.metrics.*;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
-import com.google.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ratpack.launch.LaunchConfig;
+import ratpack.func.Function;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -31,58 +30,38 @@ import java.util.Map;
 import java.util.SortedMap;
 import java.util.concurrent.TimeUnit;
 
-/**
- * A {@link ScheduledReporter} that outputs measurements to a {@link MetricsBroadcaster} in JSON format.
- * <p>
- * The reporting interval, in seconds, can be specified by setting a configuration property with the name <code>metrics.scheduledreporter.interval</code>.
- * If no interval is specified a default interval will be used which is defined by {@link #DEFAULT_INTERVAL}.
- */
-public class StreamReporter extends ScheduledReporter {
-
-  private final static Logger LOGGER = LoggerFactory.getLogger(StreamReporter.class);
-  /**
-   * The default reporting interval.
-   */
-  private final static String DEFAULT_INTERVAL = "30";
-  private final MetricsBroadcaster metricsBroadcaster;
-  private final Clock clock = Clock.defaultClock();
+public class MetricRegistryJsonMapper implements Function<MetricRegistry, String> {
+  private final static Logger LOGGER = LoggerFactory.getLogger(MetricRegistryJsonMapper.class);
+  private final static TimeUnit DEFAULT_RATE_UNIT = TimeUnit.SECONDS;
+  private final static TimeUnit DEFAULT_DURATION_UNIT = TimeUnit.MILLISECONDS;
   private final JsonFactory factory = new JsonFactory();
+  private final Clock clock = Clock.defaultClock();
+  private final double durationFactor;
+  private final double rateFactor;
 
-  @Inject
-  public StreamReporter(MetricRegistry registry, MetricsBroadcaster metricsBroadcaster, LaunchConfig launchConfig) {
-    super(registry, "websocket-reporter", MetricFilter.ALL, TimeUnit.SECONDS, TimeUnit.MILLISECONDS);
-    this.metricsBroadcaster = metricsBroadcaster;
-    String interval = launchConfig.getOther("metrics.scheduledreporter.interval", DEFAULT_INTERVAL);
-    this.start(Long.valueOf(interval), TimeUnit.SECONDS);
+  public MetricRegistryJsonMapper() {
+    this.durationFactor = 1.0 / DEFAULT_DURATION_UNIT.toNanos(1);
+    this.rateFactor = DEFAULT_RATE_UNIT.toSeconds(1);
   }
 
   @Override
-  @SuppressWarnings("rawtypes")
-  public void report(SortedMap<String, Gauge> gauges,
-                              SortedMap<String, Counter> counters,
-                              SortedMap<String, Histogram> histograms,
-                              SortedMap<String, Meter> meters,
-                              SortedMap<String, Timer> timers) {
-    try {
-      OutputStream out = new ByteArrayOutputStream();
-      JsonGenerator json = factory.createGenerator(out);
+  public String apply(MetricRegistry metricRegistry) throws Exception {
+    OutputStream out = new ByteArrayOutputStream();
+    JsonGenerator json = factory.createGenerator(out);
 
-      json.writeStartObject();
-      json.writeNumberField("timestamp", clock.getTime());
-      writeTimers(json, timers);
-      writeGauges(json, gauges);
-      writeMeters(json, meters);
-      writeCounters(json, counters);
-      writeHistograms(json, histograms);
-      json.writeEndObject();
+    json.writeStartObject();
+    json.writeNumberField("timestamp", clock.getTime());
+    writeTimers(json, metricRegistry.getTimers());
+    writeGauges(json, metricRegistry.getGauges());
+    writeMeters(json, metricRegistry.getMeters());
+    writeCounters(json, metricRegistry.getCounters());
+    writeHistograms(json, metricRegistry.getHistograms());
+    json.writeEndObject();
 
-      json.flush();
-      json.close();
+    json.flush();
+    json.close();
 
-      metricsBroadcaster.broadcast(out.toString());
-    } catch (IOException e) {
-      LOGGER.warn("Exception encountered while reporting metrics: " + e.getLocalizedMessage());
-    }
+    return out.toString();
   }
 
   private void writeHistograms(JsonGenerator json, SortedMap<String, Histogram> histograms) throws IOException {
@@ -188,6 +167,14 @@ public class StreamReporter extends ScheduledReporter {
 
     }
     json.writeEndArray();
+  }
+
+  private double convertDuration(double duration) {
+    return duration * durationFactor;
+  }
+
+  private double convertRate(double rate) {
+    return rate * rateFactor;
   }
 
 }

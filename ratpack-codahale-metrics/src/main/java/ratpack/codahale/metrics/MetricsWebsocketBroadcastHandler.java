@@ -16,10 +16,12 @@
 
 package ratpack.codahale.metrics;
 
+import ratpack.codahale.metrics.internal.MetricRegistryJsonMapper;
 import ratpack.codahale.metrics.internal.MetricsBroadcaster;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 
+import static ratpack.stream.Streams.map;
 import static ratpack.websocket.WebSockets.websocketBroadcast;
 
 /**
@@ -38,8 +40,14 @@ public class MetricsWebsocketBroadcastHandler implements Handler {
   @Override
   public void handle(final Context context) throws Exception {
     final MetricsBroadcaster broadcaster = context.get(MetricsBroadcaster.class);
-    websocketBroadcast(context, broadcaster);
+    final MetricRegistryJsonMapper mapper = context.get(MetricRegistryJsonMapper.class);
+
+    websocketBroadcast(
+      context,
+      map(broadcaster, mapper)
+    );
   }
+
 
 }
 

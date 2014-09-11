@@ -18,6 +18,7 @@ package ratpack.codahale.metrics
 
 import com.codahale.metrics.MetricRegistry
 import com.codahale.metrics.MetricRegistryListener
+import com.codahale.metrics.SharedMetricRegistries
 import com.codahale.metrics.annotation.Gauge
 import com.codahale.metrics.annotation.Metered
 import com.codahale.metrics.annotation.Timed
@@ -37,6 +38,10 @@ class MetricsSpec extends RatpackGroovyDslSpec {
 
   @Rule
   TemporaryFolder reportDirectory
+
+  def setup() {
+    SharedMetricRegistries.clear()
+  }
 
   def "can register metrics module"() {
     when:
@@ -375,28 +380,57 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     client.connectBlocking()
 
     then:
-    def response = new JsonSlurper().parseText(client.received.poll(2, TimeUnit.SECONDS))
-    response.timers.size() == 2
-    response.timers[0].name == "[admin][metrics-report]~GET~Request"
-    response.timers[0].count == 0
-    response.timers[1].name == "[root]~GET~Request"
-    response.timers[1].count == 2
+    new JsonSlurper().parseText(client.received.poll(2, TimeUnit.SECONDS)).with {
+      timers.size() == 2
+      timers[0].name == "[admin][metrics-report]~GET~Request"
+      timers[0].count == 0
+      timers[1].name == "[root]~GET~Request"
+      timers[1].count == 2
 
-    response.gauges.size() == 1
-    response.gauges[0].name == "fooGauge"
-    response.gauges[0].value == 2
+      gauges.size() == 1
+      gauges[0].name == "fooGauge"
+      gauges[0].value == 2
 
-    response.meters.size() == 1
-    response.meters[0].name == "fooMeter"
-    response.meters[0].count == 2
+      meters.size() == 1
+      meters[0].name == "fooMeter"
+      meters[0].count == 2
 
-    response.counters.size() == 1
-    response.counters[0].name == "fooCounter"
-    response.counters[0].count == 2
+      counters.size() == 1
+      counters[0].name == "fooCounter"
+      counters[0].count == 2
 
-    response.histograms.size() == 1
-    response.histograms[0].name == "fooHistogram"
-    response.histograms[0].count == 2
+      histograms.size() == 1
+      histograms[0].name == "fooHistogram"
+      histograms[0].count == 2
+    }
+
+    when:
+    2.times { getText() }
+
+    then:
+    new JsonSlurper().parseText(client.received.poll(2, TimeUnit.SECONDS)).with {
+      timers.size() == 2
+      timers[0].name == "[admin][metrics-report]~GET~Request"
+      timers[0].count == 0
+      timers[1].name == "[root]~GET~Request"
+      timers[1].count == 4
+
+      gauges.size() == 1
+      gauges[0].name == "fooGauge"
+      gauges[0].value == 2
+
+      meters.size() == 1
+      meters[0].name == "fooMeter"
+      meters[0].count == 4
+
+      counters.size() == 1
+      counters[0].name == "fooCounter"
+      counters[0].count == 4
+
+      histograms.size() == 1
+      histograms[0].name == "fooHistogram"
+      histograms[0].count == 4
+    }
 
     cleanup:
     client?.closeBlocking()

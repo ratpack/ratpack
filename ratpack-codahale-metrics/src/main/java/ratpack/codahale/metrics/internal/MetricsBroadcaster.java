@@ -16,9 +16,17 @@
 
 package ratpack.codahale.metrics.internal;
 
+import com.codahale.metrics.MetricRegistry;
+import com.google.inject.Inject;
+
 /**
  * A message broadcaster for sending metrics to its subscribers.
  */
-public class MetricsBroadcaster extends MulticastPublisher<String> {
+public class MetricsBroadcaster extends ratpack.stream.internal.MulticastPublisher<MetricRegistry> {
+
+  @Inject
+  public MetricsBroadcaster(MetricRegistryPeriodicPublisher publisher) {
+    super(publisher);
+  }
 
 }

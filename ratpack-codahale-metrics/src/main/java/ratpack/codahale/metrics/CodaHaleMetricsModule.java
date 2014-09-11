@@ -16,10 +16,7 @@
 
 package ratpack.codahale.metrics;
 
-import com.codahale.metrics.ConsoleReporter;
-import com.codahale.metrics.CsvReporter;
-import com.codahale.metrics.JmxReporter;
-import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.*;
 import com.codahale.metrics.annotation.Metered;
 import com.codahale.metrics.annotation.Timed;
 import com.codahale.metrics.health.HealthCheckRegistry;
@@ -182,7 +179,7 @@ public class CodaHaleMetricsModule extends AbstractModule implements HandlerDeco
   @Override
   protected void configure() {
     if (isMetricsEnabled()) {
-      final MetricRegistry metricRegistry = new MetricRegistry();
+      final MetricRegistry metricRegistry = SharedMetricRegistries.getOrCreate("ratpack-metrics");
       bind(MetricRegistry.class).toInstance(metricRegistry);
 
       MeteredMethodInterceptor meteredMethodInterceptor = new MeteredMethodInterceptor();
@@ -210,8 +207,9 @@ public class CodaHaleMetricsModule extends AbstractModule implements HandlerDeco
       }
 
       if (reportMetricsToWebsocket) {
+        bind(MetricRegistryPeriodicPublisher.class).in(Singleton.class);
         bind(MetricsBroadcaster.class).in(Singleton.class);
-        bind(StreamReporter.class).asEagerSingleton();
+        bind(MetricRegistryJsonMapper.class).in(Singleton.class);
       }
     }
 
