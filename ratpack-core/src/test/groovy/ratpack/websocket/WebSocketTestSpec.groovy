@@ -229,10 +229,13 @@ class WebSocketTestSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       get {
+        def executor = context.controller.executor
         websocketBroadcast(context, new Publisher<String>() {
           @Override
           void subscribe(Subscriber<? super String> s) {
-            def publisher = publish(["foo"])
+            def publisher = periodically(executor, 1, TimeUnit.SECONDS) {
+              it < 1 ? "foo" : null
+            }
             Thread.start { publisher.subscribe(s) }
           }
         })
