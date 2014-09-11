@@ -64,19 +64,19 @@ class ExecHarnessSpec extends Specification {
 
   def "can test async service"() {
     when:
-    def value = harness.execute {
+    def result = harness.execute {
       service.promise("foo")
     }
 
     then:
-    value == "foo"
+    result.value == "foo"
   }
 
   def "exception thrown by execution is rethrown"() {
     when:
     harness.execute {
       throw new RuntimeException("!!!")
-    }
+    }.valueOrThrow
 
     then:
     def e = thrown(RuntimeException)
@@ -90,7 +90,7 @@ class ExecHarnessSpec extends Specification {
     when:
     harness.execute {
       1
-    }
+    }.valueOrThrow
 
     then:
     thrown ClassCastException
@@ -110,7 +110,7 @@ class ExecHarnessSpec extends Specification {
     when:
     harness.execute {
       service.fail()
-    }
+    }.valueOrThrow
 
     then:
     def e = thrown RuntimeException
@@ -123,6 +123,13 @@ class ExecHarnessSpec extends Specification {
 
     then:
     thrown ExecutionException
+  }
+
+  def "detects early complete"() {
+    expect:
+    harness.execute { service.promise("foo").route({ it == "foo" }) {} }.complete
+    !harness.execute { service.promise("foo").route({ it == "bar" }) {} }.complete
+    harness.execute { service.fail().onError {}.map {} }.complete
   }
 
 }

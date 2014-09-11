@@ -40,6 +40,7 @@ public interface PromiseOperations<T> {
    * import ratpack.func.Function;
    * import ratpack.test.UnitTest;
    * import ratpack.test.exec.ExecHarness;
+   * import ratpack.test.exec.ExecResult;
    *
    * import java.util.concurrent.Callable;
    *
@@ -47,7 +48,7 @@ public interface PromiseOperations<T> {
    *
    *   public static void main(String[] args) throws Exception {
    *     try (ExecHarness harness = UnitTest.execHarness()) {
-   *       String value = harness.execute(new Function<Execution, Promise<String>>() {
+   *       ExecResult<String> result = harness.execute(new Function<Execution, Promise<String>>() {
    *         public Promise<String> apply(Execution execution) throws Exception {
    *           return execution.getControl()
    *             .blocking(new Callable<String>() {
@@ -68,7 +69,7 @@ public interface PromiseOperations<T> {
    *         }
    *       });
    *
-   *       assert value.equals("FOO-BAR");
+   *       assert result.getValue().equals("FOO-BAR");
    *     }
    *   }
    *
@@ -103,6 +104,7 @@ public interface PromiseOperations<T> {
    * import ratpack.func.Function;
    * import ratpack.test.UnitTest;
    * import ratpack.test.exec.ExecHarness;
+   * import ratpack.test.exec.ExecResult;
    *
    * import java.util.concurrent.Callable;
    *
@@ -110,7 +112,7 @@ public interface PromiseOperations<T> {
    *
    *   public static void main(String[] args) throws Exception {
    *     try (ExecHarness harness = UnitTest.execHarness()) {
-   *       String value = harness.execute(new Function<Execution, Promise<String>>() {
+   *       ExecResult<String> result = harness.execute(new Function<Execution, Promise<String>>() {
    *         public Promise<String> apply(Execution execution) throws Exception {
    *           final ExecControl control = execution.getControl();
    *           return control
@@ -136,7 +138,7 @@ public interface PromiseOperations<T> {
    *         }
    *       });
    *
-   *       assert value.equals("FOO-BAR");
+   *       assert result.getValue().equals("FOO-BAR");
    *     }
    *   }
    *

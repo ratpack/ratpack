@@ -160,6 +160,7 @@ public abstract class UnitTest {
    * import ratpack.exec.Fulfiller;
    * import ratpack.test.UnitTest;
    * import ratpack.test.exec.ExecHarness;
+   * import ratpack.test.exec.ExecResult;
    * import javax.inject.Inject;
    *
    * public class Example {
@@ -216,14 +217,14 @@ public abstract class UnitTest {
    *       final AsyncService service = new AsyncService(harness.getControl());
    *
    *       // exercise the async code using the harness, blocking until the promised value is available
-   *       String value = harness.execute(new Function&lt;Execution, Promise&lt;String&gt;&gt;() {
+   *       ExecResult<String> result = harness.execute(new Function&lt;Execution, Promise&lt;String&gt;&gt;() {
    *         public Promise&lt;String&gt; apply(Execution execution) {
    *           // execute the code under test
    *           return service.promise("foo");
    *         }
    *       });
    *
-   *       assert value == "foo";
+   *       assert result.getValue() == "foo";
    *     }
    *   }
    * }
