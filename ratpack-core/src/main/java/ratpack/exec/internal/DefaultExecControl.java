@@ -160,46 +160,57 @@ public class DefaultExecControl implements ExecControl {
   }
 
   @Override
-  public <T> void stream(Publisher<T> publisher, final Subscriber<? super T> subscriber) {
+  public <T> void stream(final Publisher<T> publisher, final Subscriber<? super T> subscriber) {
     final ExecutionBacking executionBacking = getBacking();
 
-    publisher.subscribe(new Subscriber<T>() {
+    promise(new Action<Fulfiller<Subscription>>() {
       @Override
-      public void onSubscribe(final Subscription subscription) {
+      public void execute(final Fulfiller<Subscription> fulfiller) throws Exception {
+        publisher.subscribe(new Subscriber<T>() {
+          @Override
+          public void onSubscribe(final Subscription subscription) {
+            fulfiller.success(subscription);
+          }
+
+          @Override
+          public void onNext(final T element) {
+            executionBacking.streamExecution(new Action<Execution>() {
+              @Override
+              public void execute(Execution execution) throws Exception {
+                subscriber.onNext(element);
+              }
+            });
+          }
+
+          @Override
+          public void onComplete() {
+            executionBacking.completeStreamExecution(new Action<Execution>() {
+              @Override
+              public void execute(Execution execution) throws Exception {
+                subscriber.onComplete();
+              }
+            });
+          }
+
+          @Override
+          public void onError(final Throwable cause) {
+            executionBacking.completeStreamExecution(new Action<Execution>() {
+              @Override
+              public void execute(Execution execution) throws Exception {
+                subscriber.onError(cause);
+              }
+            });
+          }
+        });
+
+      }
+    }).then(new Action<Subscription>() {
+      @Override
+      public void execute(final Subscription subscription) throws Exception {
         executionBacking.streamExecution(new Action<Execution>() {
           @Override
           public void execute(Execution execution) throws Exception {
             subscriber.onSubscribe(subscription);
-          }
-        });
-      }
-
-      @Override
-      public void onNext(final T element) {
-        executionBacking.streamExecution(new Action<Execution>() {
-          @Override
-          public void execute(Execution execution) throws Exception {
-            subscriber.onNext(element);
-          }
-        });
-      }
-
-      @Override
-      public void onComplete() {
-        executionBacking.completeStreamExecution(new Action<Execution>() {
-          @Override
-          public void execute(Execution execution) throws Exception {
-            subscriber.onComplete();
-          }
-        });
-      }
-
-      @Override
-      public void onError(final Throwable cause) {
-        executionBacking.completeStreamExecution(new Action<Execution>() {
-          @Override
-          public void execute(Execution execution) throws Exception {
-            subscriber.onError(cause);
           }
         });
       }

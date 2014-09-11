@@ -16,8 +16,9 @@
 
 package ratpack.websocket
 
+import org.reactivestreams.Publisher
+import org.reactivestreams.Subscriber
 import ratpack.test.internal.RatpackGroovyDslSpec
-import spock.lang.Ignore
 import spock.util.concurrent.BlockingVariable
 
 import java.util.concurrent.CountDownLatch
@@ -28,7 +29,6 @@ import static ratpack.stream.Streams.*
 import static ratpack.websocket.WebSockets.websocket
 import static ratpack.websocket.WebSockets.websocketBroadcast
 
-@Ignore // unstable
 class WebSocketTestSpec extends RatpackGroovyDslSpec {
 
   def "can send and receive websockets"() {
@@ -224,4 +224,33 @@ class WebSocketTestSpec extends RatpackGroovyDslSpec {
     cleanup:
     client?.closeBlocking()
   }
+
+  def "broadcast publisher does not need to synchronously subscribe"() {
+    when:
+    handlers {
+      get {
+        websocketBroadcast(context, new Publisher<String>() {
+          @Override
+          void subscribe(Subscriber<? super String> s) {
+            def publisher = publish(["foo"])
+            Thread.start { publisher.subscribe(s) }
+          }
+        })
+      }
+    }
+
+    and:
+    server.start()
+    def client = openWsClient()
+
+    then:
+    client.connectBlocking()
+
+    and:
+    client.received.poll(5, TimeUnit.SECONDS) == "foo"
+
+    cleanup:
+    client?.closeBlocking()
+  }
+
 }
