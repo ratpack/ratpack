@@ -22,9 +22,8 @@ import ratpack.test.internal.RatpackGroovyDslSpec
 import spock.lang.Unroll
 
 import static Template.thymeleafTemplate
-import static io.netty.handler.codec.http.HttpResponseStatus.INTERNAL_SERVER_ERROR
 import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_TYPE
-
+import static io.netty.handler.codec.http.HttpResponseStatus.INTERNAL_SERVER_ERROR
 
 class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
 
@@ -219,8 +218,8 @@ class ThymeleafTemplateSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    get("simple?type=text/html").headers.get(CONTENT_TYPE) == "text/html;charset=UTF-8"
-    get("simple?type=text/xml").headers.get(CONTENT_TYPE) == "text/xml;charset=UTF-8"
+    get("simple?type=text/html").headers.get(CONTENT_TYPE) == "text/html"
+    get("simple?type=text/xml").headers.get(CONTENT_TYPE) == "text/xml"
   }
 
   @Unroll

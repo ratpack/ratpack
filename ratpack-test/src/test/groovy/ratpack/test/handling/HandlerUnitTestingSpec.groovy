@@ -107,7 +107,7 @@ class HandlerUnitTestingSpec extends Specification {
     !sentResponse
     exception == null
     sentFile == new File("foo").toPath()
-    headers.get("content-type") == "text/plain;charset=UTF-8"
+    headers.get("content-type") == "text/plain"
   }
 
   def "can test handler that sends file calls onClose"() {
@@ -128,7 +128,7 @@ class HandlerUnitTestingSpec extends Specification {
     !sentResponse
     exception == null
     sentFile == new File("foo").toPath()
-    headers.get("content-type") == "text/plain;charset=UTF-8"
+    headers.get("content-type") == "text/plain"
     onCloseCalledWrapper.get()
   }
 
@@ -259,7 +259,7 @@ class HandlerUnitTestingSpec extends Specification {
     where:
     arguments                             | responseContentType        | responseBytes
     [[0, 1, 2, 4] as byte[], "image/png"] | "image/png"                | [0, 1, 2, 4] as byte[]
-    ["foo", "text/plain"]                 | "text/plain;charset=UTF-8" | "foo".bytes
+    ["foo", "text/plain"]                 | "text/plain" | "foo".bytes
   }
 
   def "captures errors"() {
