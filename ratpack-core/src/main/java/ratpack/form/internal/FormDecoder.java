@@ -24,6 +24,7 @@ import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
 import io.netty.handler.codec.http.multipart.InterfaceHttpData;
 import ratpack.form.Form;
 import ratpack.form.UploadedFile;
+import ratpack.func.Action;
 import ratpack.handling.Context;
 import ratpack.handling.RequestOutcome;
 import ratpack.http.MediaType;
@@ -31,7 +32,6 @@ import ratpack.http.Request;
 import ratpack.http.TypedData;
 import ratpack.http.internal.ByteBufBackedTypedData;
 import ratpack.http.internal.DefaultMediaType;
-import ratpack.func.Action;
 import ratpack.util.internal.ImmutableDelegatingMultiValueMap;
 
 import java.io.IOException;
@@ -100,9 +100,9 @@ public abstract class FormDecoder {
             } else {
               Charset charset = nettyFileUpload.getCharset();
               if (charset == null) {
-                contentType = DefaultMediaType.utf8(rawContentType);
+                contentType = DefaultMediaType.get(rawContentType);
               } else {
-                contentType = DefaultMediaType.utf8(rawContentType + ";charset=" + charset);
+                contentType = DefaultMediaType.get(rawContentType + ";charset=" + charset);
               }
             }
 

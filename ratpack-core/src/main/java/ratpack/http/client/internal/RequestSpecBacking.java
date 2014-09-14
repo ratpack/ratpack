@@ -149,7 +149,7 @@ public class RequestSpecBacking {
       @Override
       public Body text(CharSequence text, Charset charset) {
         if (charset.equals(CharsetUtil.UTF_8)) {
-          maybeSetContentType(HttpHeaderConstants.UTF_8_TEXT);
+          maybeSetContentType(HttpHeaderConstants.PLAIN_TEXT_UTF8);
         } else {
           maybeSetContentType("text/plain;charset=" + charset.name());
         }

@@ -92,10 +92,10 @@ class DefaultFileHttpTransmitterSpec extends RatpackGroovyDslSpec {
     //These fail currently because our client doesn't get the response chunked like rest assured so all lengths are set
     where:
     path         | type                       | length    | enc
-    "small.txt"  | "text/plain;charset=UTF-8" | SMALL_LEN | null
-    "large.txt"  | "text/plain;charset=UTF-8" | "53"      | TEST_ENCODING
-    "large.css"  | "text/css;charset=UTF-8"   | "53"      | TEST_ENCODING
-    "large.html" | "text/html;charset=UTF-8"  | "53"      | TEST_ENCODING
+    "small.txt"  | "text/plain"               | SMALL_LEN | null
+    "large.txt"  | "text/plain"               | "53"      | TEST_ENCODING
+    "large.css"  | "text/css"                 | "53"      | TEST_ENCODING
+    "large.html" | "text/html"                | "53"      | TEST_ENCODING
     "large.json" | "application/json"         | "53"      | TEST_ENCODING
     "large.xml"  | "application/xml"          | "53"      | TEST_ENCODING
     "large.gif"  | "image/gif"                | LARGE_LEN | null

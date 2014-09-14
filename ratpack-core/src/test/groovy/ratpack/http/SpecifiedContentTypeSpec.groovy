@@ -40,7 +40,7 @@ class SpecifiedContentTypeSpec extends RatpackGroovyDslSpec {
     with(response) {
       statusCode == OK.code()
       body.text == content
-      headers.get("Content-Type") == "$mimeType;charset=UTF-8"
+      headers.get("Content-Type") == mimeType
     }
 
     where:

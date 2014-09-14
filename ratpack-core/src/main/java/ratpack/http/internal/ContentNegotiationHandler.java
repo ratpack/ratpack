@@ -27,9 +27,9 @@ import java.util.Map;
 
 public class ContentNegotiationHandler implements Handler {
 
-  private final Map<String, Handler> handlers;
+  private final Map<? extends CharSequence, Handler> handlers;
 
-  public ContentNegotiationHandler(Map<String, Handler> handlers) {
+  public ContentNegotiationHandler(Map<? extends CharSequence, Handler> handlers) {
     this.handlers = handlers;
   }
 
@@ -40,17 +40,17 @@ public class ContentNegotiationHandler implements Handler {
       return;
     }
 
-    List<String> types = new ArrayList<>(handlers.keySet());
-    String first = types.get(0);
+    List<? extends CharSequence> types = new ArrayList<>(handlers.keySet());
+    CharSequence first = types.get(0);
     Collections.reverse(types);
-    String winner = first;
+    CharSequence winner = first;
 
     String acceptHeader = context.getRequest().getHeaders().get(HttpHeaders.Names.ACCEPT);
     if (acceptHeader != null && !acceptHeader.isEmpty()) {
       winner = MimeParse.bestMatch(types, acceptHeader);
     }
 
-    if (winner == null || winner.isEmpty()) {
+    if (winner == null || winner.toString().isEmpty()) {
       context.clientError(406);
     } else {
       context.getResponse().contentType(winner);

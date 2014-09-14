@@ -33,7 +33,6 @@ import static ratpack.util.ExceptionUtils.uncheck;
 public class DefaultMediaType implements MediaType {
 
   public static final String DEFAULT_CHARSET = "ISO-8859-1";
-  public static final String UTF8 = "UTF-8";
   public static final String CHARSET_KEY = "charset";
 
   private final String type;
@@ -42,29 +41,21 @@ public class DefaultMediaType implements MediaType {
 
   private static final int CACHE_SIZE = 200;
 
-  private static final Cache<String, MediaType> ISO_CACHE = CacheBuilder.newBuilder().maximumSize(CACHE_SIZE).build();
-  private static final Cache<String, MediaType> UTF8_CACHE = CacheBuilder.newBuilder().maximumSize(CACHE_SIZE).build();
+  private static final Cache<String, MediaType> CACHE = CacheBuilder.newBuilder().maximumSize(CACHE_SIZE).build();
 
   public static MediaType get(final String contentType) {
-    return fromCache(ISO_CACHE, contentType, DEFAULT_CHARSET);
-  }
-
-  public static MediaType utf8(final String contentType) {
-    return fromCache(UTF8_CACHE, contentType, UTF8);
-  }
-
-  private static MediaType fromCache(final Cache<String, MediaType> cache, String contentType, final String defaultCharset) {
-    if (contentType == null) {
-      contentType = "";
+    String contentType1 = contentType;
+    if (contentType1 == null) {
+      contentType1 = "";
     } else {
-      contentType = contentType.trim();
+      contentType1 = contentType1.trim();
     }
 
-    final String finalContentType = contentType;
+    final String finalContentType = contentType1;
     try {
-      return cache.get(contentType, new Callable<MediaType>() {
+      return CACHE.get(contentType1, new Callable<MediaType>() {
         public MediaType call() throws Exception {
-          return new DefaultMediaType(finalContentType, defaultCharset);
+          return new DefaultMediaType(finalContentType, DEFAULT_CHARSET);
         }
       });
     } catch (ExecutionException | UncheckedExecutionException e) {

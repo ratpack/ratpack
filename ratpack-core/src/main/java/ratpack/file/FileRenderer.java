@@ -43,7 +43,7 @@ import java.nio.file.Path;
  * <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html">HTTP Caching</a> by way of the {@code If-Modified-Since} header,
  * based on timestamps reported by the filesystem.
  * <p>
- * If the {@link ratpack.http.Response#contentType(String)} has not been set prior to calling this method,
+ * If the {@link ratpack.http.Response#contentType(CharSequence)} has not been set prior to calling this method,
  * it will be guessed by retrieving the {@link MimeTypes} from the context and using it to calculate the type
  * based on the name of the file.
  */

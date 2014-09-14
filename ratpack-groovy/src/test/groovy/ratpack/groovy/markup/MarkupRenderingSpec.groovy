@@ -16,12 +16,11 @@
 
 package ratpack.groovy.markup
 
-import ratpack.http.internal.DefaultMediaType
+import ratpack.http.internal.HttpHeaderConstants
 import ratpack.test.internal.RatpackGroovyAppSpec
 
+import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_TYPE
 import static ratpack.groovy.Groovy.htmlBuilder
-import static io.netty.handler.codec.http.HttpHeaders.Names.*
-
 
 class MarkupRenderingSpec extends RatpackGroovyAppSpec {
 
@@ -48,6 +47,6 @@ class MarkupRenderingSpec extends RatpackGroovyAppSpec {
   </body>
 </html>"""
 
-    response.headers.get(CONTENT_TYPE) == new DefaultMediaType("text/html", "UTF-8").toString()
+    response.headers.get(CONTENT_TYPE) == HttpHeaderConstants.HTML_UTF_8.toString()
   }
 }

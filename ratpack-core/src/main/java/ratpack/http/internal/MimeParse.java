@@ -39,8 +39,8 @@ public final class MimeParse {
     }
   }
 
-  protected static ParseResults parseMimeType(String mimeType) {
-    String[] parts = mimeType.split(";");
+  protected static ParseResults parseMimeType(CharSequence mimeType) {
+    String[] parts = mimeType.toString().split(";");
     ParseResults results = new ParseResults();
     results.params = new HashMap<>();
 
@@ -64,7 +64,7 @@ public final class MimeParse {
     return results;
   }
 
-  protected static ParseResults parseMediaRange(String range) {
+  protected static ParseResults parseMediaRange(CharSequence range) {
     ParseResults results = parseMimeType(range);
     String q = results.params.get("q");
     float f = toFloat(q, 1);
@@ -103,7 +103,7 @@ public final class MimeParse {
     }
   }
 
-  protected static FitnessAndQuality fitnessAndQualityParsed(String mimeType,
+  protected static FitnessAndQuality fitnessAndQualityParsed(CharSequence mimeType,
                                                              Collection<ParseResults> parsedRanges) {
     int bestFitness = -1;
     float bestFitQ = 0;
@@ -134,17 +134,16 @@ public final class MimeParse {
     return new FitnessAndQuality(bestFitness, bestFitQ);
   }
 
-  public static String bestMatch(Iterable<String> supported, String header) {
+  public static String bestMatch(Iterable<? extends CharSequence> supported, String header) {
     List<ParseResults> parseResults = new LinkedList<>();
     List<FitnessAndQuality> weightedMatches = new LinkedList<>();
     for (String r : header.split(",")) {
       parseResults.add(parseMediaRange(r));
     }
 
-    for (String s : supported) {
-      FitnessAndQuality fitnessAndQuality = fitnessAndQualityParsed(s,
-        parseResults);
-      fitnessAndQuality.mimeType = s;
+    for (CharSequence s : supported) {
+      FitnessAndQuality fitnessAndQuality = fitnessAndQualityParsed(s, parseResults);
+      fitnessAndQuality.mimeType = s.toString();
       weightedMatches.add(fitnessAndQuality);
     }
     Collections.sort(weightedMatches);

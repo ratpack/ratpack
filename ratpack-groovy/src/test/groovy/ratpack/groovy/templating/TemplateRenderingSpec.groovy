@@ -323,9 +323,9 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    get("t.html").headers.get(CONTENT_TYPE) == "text/html;charset=UTF-8"
+    get("t.html").headers.get(CONTENT_TYPE) == "text/html"
     get("t.xml").headers.get(CONTENT_TYPE) == "application/xml"
-    get("dir/t.html").headers.get(CONTENT_TYPE) == "text/html;charset=UTF-8"
+    get("dir/t.html").headers.get(CONTENT_TYPE) == "text/html"
     get("dir/t.xml").headers.get(CONTENT_TYPE) == "application/xml"
     get("dir/t").headers.get(CONTENT_TYPE) == "application/octet-stream"
 

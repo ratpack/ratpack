@@ -45,7 +45,7 @@ class DefaultResponseSpec extends RatpackGroovyDslSpec {
     with(response) {
       statusCode == OK.code()
       body.text.equals(BODY)
-      headers.get(CONTENT_TYPE) == "text/plain;charset=UTF-8"
+      headers.get(CONTENT_TYPE) == "text/plain"
       headers.get(CONTENT_LENGTH).toInteger() == BODY.length()
     }
   }
@@ -66,7 +66,7 @@ class DefaultResponseSpec extends RatpackGroovyDslSpec {
     with(response) {
       statusCode == OK.code()
       body.text.equals(BODY)
-      headers.get(CONTENT_TYPE) == "text/plain;charset=UTF-8"
+      headers.get(CONTENT_TYPE) == "text/plain"
       headers.get(CONTENT_LENGTH).toInteger() == BODY.length()
     }
   }
@@ -130,7 +130,7 @@ class DefaultResponseSpec extends RatpackGroovyDslSpec {
     with(response) {
       statusCode == OK.code()
       body.text.equals(BODY)
-      headers.get(CONTENT_TYPE) == "text/plain;charset=UTF-8"
+      headers.get(CONTENT_TYPE) == "text/plain"
       headers.get(CONTENT_LENGTH).toInteger() == BODY.length()
     }
   }
@@ -154,7 +154,7 @@ class DefaultResponseSpec extends RatpackGroovyDslSpec {
     with(response) {
       statusCode == OK.code()
       body.text.equals(BODY)
-      headers.get(CONTENT_TYPE) == "text/plain;charset=UTF-8"
+      headers.get(CONTENT_TYPE) == "text/plain"
       headers.get(CONTENT_LENGTH).toInteger() == BODY.length()
     }
   }

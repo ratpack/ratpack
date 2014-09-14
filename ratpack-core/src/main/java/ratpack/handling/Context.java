@@ -322,7 +322,7 @@ public interface Context extends ExecControl, Registry {
    *       }
    *     });
    *     assert result.rendered(String.class).equals("&lt;p&gt;hello!&lt;/p&gt;");
-   *     assert result.getHeaders().get("content-type").equals("text/html;charset=UTF-8");
+   *     assert result.getHeaders().get("content-type").equals("text/html");
    *   }
    *
    * }

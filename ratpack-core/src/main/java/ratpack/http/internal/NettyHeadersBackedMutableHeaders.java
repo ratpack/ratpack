@@ -16,11 +16,9 @@
 
 package ratpack.http.internal;
 
-import com.google.common.collect.Multimap;
 import io.netty.handler.codec.http.HttpHeaders;
 import ratpack.http.Headers;
 import ratpack.http.MutableHeaders;
-import ratpack.util.MultiValueMap;
 
 import java.util.Date;
 
@@ -51,7 +49,7 @@ public class NettyHeadersBackedMutableHeaders extends NettyHeadersBackedHeaders 
     return this;
   }
 
-  public MutableHeaders remove(String name) {
+  public MutableHeaders remove(CharSequence name) {
     headers.remove(name);
     return this;
   }
@@ -63,25 +61,8 @@ public class NettyHeadersBackedMutableHeaders extends NettyHeadersBackedHeaders 
 
   @Override
   public MutableHeaders copy(Headers headers) {
-    for (String s : headers.getNames()) {
-      set(s, headers.getAll(s));
-    }
-    return this;
-  }
+    this.headers.add(headers.getNettyHeaders());
 
-  @Override
-  public MutableHeaders copy(MultiValueMap<String, String> headers) {
-    for (String s : headers.keySet()) {
-      set(s, headers.getAll(s));
-    }
-    return this;
-  }
-
-  @Override
-  public MutableHeaders copy(Multimap<String, String> headers) {
-    for (String s : headers.keySet()) {
-      set(s, headers.get(s));
-    }
     return this;
   }
 

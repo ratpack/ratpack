@@ -110,7 +110,7 @@ public class ResponseChunks {
    * @return a renderable object
    */
   public static ResponseChunks stringChunks(final Publisher<? extends CharSequence> publisher) {
-    return stringChunks(HttpHeaderConstants.UTF_8_TEXT, CharsetUtil.UTF_8, publisher);
+    return stringChunks(HttpHeaderConstants.PLAIN_TEXT_UTF8, CharsetUtil.UTF_8, publisher);
   }
 
   /**

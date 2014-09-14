@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableMap;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import groovy.xml.MarkupBuilder;
+import io.netty.util.CharsetUtil;
 import ratpack.api.Nullable;
 import ratpack.func.Action;
 import ratpack.groovy.guice.GroovyBindingsSpec;
@@ -42,11 +43,11 @@ import ratpack.handling.Chain;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.handling.internal.ChainBuilders;
-import ratpack.http.MediaType;
-import ratpack.http.internal.DefaultMediaType;
+import ratpack.http.internal.HttpHeaderConstants;
 import ratpack.launch.LaunchConfig;
 import ratpack.registry.Registry;
 
+import java.nio.charset.Charset;
 import java.util.Map;
 
 import static ratpack.util.ExceptionUtils.uncheck;
@@ -308,13 +309,13 @@ public abstract class Groovy {
   }
 
   /**
-   * Shorthand for {@link #markupBuilder(String, String, groovy.lang.Closure)} with a content type of {@code "text/html"} and {@code "UTF-8"} encoding.
+   * Shorthand for {@link #markupBuilder(CharSequence, Charset, Closure)} with a content type of {@code "text/html"} and {@code "UTF-8"} encoding.
    *
    * @param closure The html definition
    * @return A renderable object (i.e. to be used with the {@link ratpack.handling.Context#render(Object)} method
    */
   public static Markup htmlBuilder(@DelegatesTo(value = MarkupBuilder.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) {
-    return markupBuilder(MediaType.TEXT_HTML, DefaultMediaType.UTF8, closure);
+    return markupBuilder(HttpHeaderConstants.HTML_UTF_8, CharsetUtil.UTF_8, closure);
   }
 
   /**
@@ -335,7 +336,11 @@ public abstract class Groovy {
    * @param closure The definition of the markup
    * @return A renderable object (i.e. to be used with the {@link ratpack.handling.Context#render(Object)} method
    */
-  public static Markup markupBuilder(String contentType, String encoding, @DelegatesTo(value = MarkupBuilder.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) {
+  public static Markup markupBuilder(CharSequence contentType, CharSequence encoding, @DelegatesTo(value = MarkupBuilder.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) {
+    return new DefaultMarkup(contentType, Charset.forName(encoding.toString()), closure);
+  }
+
+  public static Markup markupBuilder(CharSequence contentType, Charset encoding, @DelegatesTo(value = MarkupBuilder.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) {
     return new DefaultMarkup(contentType, encoding, closure);
   }
 

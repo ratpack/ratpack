@@ -20,6 +20,7 @@ import io.netty.handler.codec.http.HttpHeaders;
 
 public abstract class HttpHeaderConstants {
 
+
   private HttpHeaderConstants() {
   }
 
@@ -40,11 +41,17 @@ public abstract class HttpHeaderConstants {
   public static final CharSequence NO_CACHE_FULL = HttpHeaders.newEntity(NO_CACHE + ", " + NO_STORE + ", " + MAX_AGE + "=0, " + MUST_REVALIDATE);
   public static final CharSequence HOST = HttpHeaders.newEntity(HttpHeaders.Names.HOST);
   public static final CharSequence COOKIE = HttpHeaders.newEntity(HttpHeaders.Names.COOKIE);
+  public static final CharSequence SET_COOKIE = HttpHeaders.newEntity(HttpHeaders.Names.SET_COOKIE);
   public static final CharSequence X_FORWARDED_HOST = HttpHeaders.newEntity("X-Forwarded-Host");
   public static final CharSequence X_FORWARDED_PROTO = HttpHeaders.newEntity("X-Forwarded-Proto");
   public static final CharSequence X_FORWARDED_SSL = HttpHeaders.newEntity("X-Forwarded-Ssl");
 
-  public static final CharSequence UTF_8_TEXT = HttpHeaders.newEntity("text/plain;charset=UTF-8");
+
+  public static final CharSequence PLAIN_TEXT_UTF8 = HttpHeaders.newEntity("text/plain;charset=UTF-8");
+  public static final CharSequence OCTET_STREAM = HttpHeaders.newEntity("application/octet-stream");
+  public static final CharSequence JSON = HttpHeaders.newEntity("application/json");
+  public static final CharSequence HTML_UTF_8 = HttpHeaders.newEntity("text/html;charset=UTF-8");
+  public static final CharSequence XML_UTF_8 = HttpHeaders.newEntity("application/xml;charset=UTF-8");
   public static final CharSequence ON = HttpHeaders.newEntity("on");
 
 }

@@ -16,9 +16,6 @@
 
 package ratpack.http;
 
-import com.google.common.collect.Multimap;
-import ratpack.util.MultiValueMap;
-
 import java.util.Date;
 
 /**
@@ -74,7 +71,7 @@ public interface MutableHeaders extends Headers {
    * @param name The name of the header to remove.
    * @return this
    */
-  MutableHeaders remove(String name);
+  MutableHeaders remove(CharSequence name);
 
   /**
    * Removes all headers from this message.
@@ -84,9 +81,5 @@ public interface MutableHeaders extends Headers {
   MutableHeaders clear();
 
   MutableHeaders copy(Headers headers);
-
-  MutableHeaders copy(MultiValueMap<String, String> headers);
-
-  MutableHeaders copy(Multimap<String, String> headers);
 
 }

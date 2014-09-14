@@ -17,8 +17,8 @@
 package ratpack.guice
 
 import com.google.inject.AbstractModule
-import ratpack.error.ServerErrorHandler
 import ratpack.error.DebugErrorHandler
+import ratpack.error.ServerErrorHandler
 import ratpack.handling.Context
 import ratpack.render.NoSuchRendererException
 import ratpack.render.RendererSupport
@@ -69,11 +69,11 @@ class RendererBindingsSpec extends RatpackGroovyDslSpec {
     then:
     with(get("int")) {
       body.text == "1"
-      headers.get(CONTENT_TYPE) == "text/integer;charset=UTF-8"
+      headers.get(CONTENT_TYPE) == "text/integer"
     }
     with(get("string")) {
       body.text == "abc"
-      headers.get(CONTENT_TYPE) == "text/string;charset=UTF-8"
+      headers.get(CONTENT_TYPE) == "text/string"
     }
     with(get("none")) {
       statusCode == 500

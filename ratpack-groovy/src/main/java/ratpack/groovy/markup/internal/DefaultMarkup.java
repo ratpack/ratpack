@@ -19,25 +19,27 @@ package ratpack.groovy.markup.internal;
 import groovy.lang.Closure;
 import ratpack.groovy.markup.Markup;
 
+import java.nio.charset.Charset;
+
 public class DefaultMarkup implements Markup {
 
-  private final String contentType;
-  private final String encoding;
+  private final CharSequence contentType;
+  private final Charset encoding;
   private final Closure<?> definition;
 
-  public DefaultMarkup(String contentType, String encoding, Closure<?> definition) {
+  public DefaultMarkup(CharSequence contentType, Charset encoding, Closure<?> definition) {
     this.contentType = contentType;
     this.encoding = encoding;
     this.definition = definition;
   }
 
   @Override
-  public String getContentType() {
+  public CharSequence getContentType() {
     return contentType;
   }
 
   @Override
-  public String getEncoding() {
+  public Charset getEncoding() {
     return encoding;
   }
 

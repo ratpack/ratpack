@@ -43,7 +43,7 @@ class ContentNegotiationSpec extends RatpackGroovyDslSpec {
     requestSpec { RequestSpec requestSpec -> requestSpec.headers.add("Accept", "application/json;q=0.5,text/html;q=1") }
     then:
     text == "html"
-    response.headers.get("Content-Type") == "text/html;charset=UTF-8"
+    response.headers.get("Content-Type") == "text/html"
     response.statusCode == 200
 
     when:

@@ -16,6 +16,7 @@
 
 package ratpack.handling.internal;
 
+import io.netty.handler.codec.http.HttpHeaders;
 import ratpack.api.Nullable;
 import ratpack.http.Headers;
 import ratpack.util.MultiValueMap;
@@ -32,10 +33,22 @@ public class DelegatingHeaders implements Headers {
     this.headers = headers;
   }
 
+  @Nullable
+  @Override
+  public String get(CharSequence name) {
+    return headers.get(name);
+  }
+
   @Override
   @Nullable
   public String get(String name) {
     return headers.get(name);
+  }
+
+  @Override
+  @Nullable
+  public Date getDate(CharSequence name) {
+    return headers.getDate(name);
   }
 
   @Override
@@ -45,8 +58,18 @@ public class DelegatingHeaders implements Headers {
   }
 
   @Override
+  public List<String> getAll(CharSequence name) {
+    return headers.getAll(name);
+  }
+
+  @Override
   public List<String> getAll(String name) {
     return headers.getAll(name);
+  }
+
+  @Override
+  public boolean contains(CharSequence name) {
+    return headers.contains(name);
   }
 
   @Override
@@ -62,5 +85,10 @@ public class DelegatingHeaders implements Headers {
   @Override
   public MultiValueMap<String, String> asMultiValueMap() {
     return headers.asMultiValueMap();
+  }
+
+  @Override
+  public HttpHeaders getNettyHeaders() {
+    return headers.getNettyHeaders();
   }
 }

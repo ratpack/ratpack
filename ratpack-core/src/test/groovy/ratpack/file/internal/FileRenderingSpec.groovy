@@ -51,7 +51,7 @@ class FileRenderingSpec extends RatpackGroovyDslSpec {
     with(response) {
       statusCode == OK.code()
       body.text.contains(FILE_CONTENTS)
-      headers.get(CONTENT_TYPE) == "text/plain;charset=UTF-8"
+      headers.get(CONTENT_TYPE) == "text/plain"
       headers.get(CONTENT_LENGTH).toInteger() == FILE_CONTENTS.length()
     }
   }

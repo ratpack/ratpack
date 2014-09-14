@@ -103,12 +103,11 @@ public interface Response {
    * header will be "{@code application/json;charset=utf8}".
    * <p>
    * The value given for content type will override any previously set value for this header.
-   *
-   * @param contentType The value of the content type header
+   *  @param contentType The value of the content type header
    * @param body The string to render as the body of the response
    */
   @NonBlocking
-  void send(String contentType, String body);
+  void send(CharSequence contentType, String body);
 
   /**
    * Sends the response, using "{@code application/octet-stream}" as the content type (if a content type hasn't
@@ -121,12 +120,11 @@ public interface Response {
 
   /**
    * Sends the response, using the given content type and byte array as the response body.
-   *
-   * @param contentType The value of the {@code Content-Type} header
+   *  @param contentType The value of the {@code Content-Type} header
    * @param bytes The response body
    */
   @NonBlocking
-  void send(String contentType, byte[] bytes);
+  void send(CharSequence contentType, byte[] bytes);
 
   /**
    * Sends the response, using "{@code application/octet-stream}" as the content type (if a content type hasn't
@@ -146,7 +144,7 @@ public interface Response {
    * @throws IOException if the input stream cannot be consumed
    */
   @NonBlocking
-  void send(String contentType, InputStream inputStream) throws IOException;
+  void send(CharSequence contentType, InputStream inputStream) throws IOException;
 
   /**
    * Sends the response, using "{@code application/octet-stream}" as the content type (if a content type hasn't
@@ -159,12 +157,11 @@ public interface Response {
 
   /**
    * Sends the response, using the given content type and bytes as the response body.
-   *
-   * @param contentType The value of the {@code Content-Type} header
+   *  @param contentType The value of the {@code Content-Type} header
    * @param buffer The response body
    */
   @NonBlocking
-  void send(String contentType, ByteBuf buffer);
+  void send(CharSequence contentType, ByteBuf buffer);
 
   /**
    * Sets the response {@code Content-Type} header.
@@ -172,7 +169,15 @@ public interface Response {
    * @param contentType The value of the {@code Content-Type} header
    * @return This
    */
-  Response contentType(String contentType);
+  Response contentType(CharSequence contentType);
+
+  /**
+   * Sets the response {@code Content-Type} header, if it has not already been set.
+   *
+   * @param contentType The value of the {@code Content-Type} header
+   * @return This
+   */
+  Response contentTypeIfNotSet(CharSequence contentType);
 
   /**
    * The cookies that are to be part of the response.

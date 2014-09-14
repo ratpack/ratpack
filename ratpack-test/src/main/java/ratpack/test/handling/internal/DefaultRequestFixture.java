@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableMap;
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.util.CharsetUtil;
 import ratpack.func.Action;
 import ratpack.handling.Chain;
 import ratpack.handling.Context;
@@ -28,7 +29,6 @@ import ratpack.handling.Handlers;
 import ratpack.http.MutableHeaders;
 import ratpack.http.MutableStatus;
 import ratpack.http.Request;
-import ratpack.http.internal.DefaultMediaType;
 import ratpack.http.internal.DefaultMutableStatus;
 import ratpack.http.internal.DefaultRequest;
 import ratpack.http.internal.NettyHeadersBackedMutableHeaders;
@@ -57,7 +57,7 @@ public class DefaultRequestFixture implements RequestFixture {
 
   private final ByteBuf requestBody = unreleasableBuffer(buffer());
   private final MutableHeaders requestHeaders = new NettyHeadersBackedMutableHeaders(new DefaultHttpHeaders());
-  private final MutableHeaders responseHeaders = new NettyHeadersBackedMutableHeaders(new DefaultHttpHeaders());
+  private final NettyHeadersBackedMutableHeaders responseHeaders = new NettyHeadersBackedMutableHeaders(new DefaultHttpHeaders());
 
   private final MutableStatus status = new DefaultMutableStatus();
 
@@ -80,7 +80,7 @@ public class DefaultRequestFixture implements RequestFixture {
 
   @Override
   public RequestFixture body(String text, String contentType) {
-    return body(text.getBytes(), DefaultMediaType.utf8(contentType).toString());
+    return body(text.getBytes(CharsetUtil.UTF_8), contentType);
   }
 
   @Override

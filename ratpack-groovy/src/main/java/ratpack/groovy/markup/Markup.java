@@ -18,6 +18,8 @@ package ratpack.groovy.markup;
 
 import groovy.lang.Closure;
 
+import java.nio.charset.Charset;
+
 /**
  * Render type for markup to be built using Groovy's {@link groovy.xml.MarkupBuilder}.
  *
@@ -30,14 +32,14 @@ public interface Markup {
    *
    * @return The content type of the markup.
    */
-  String getContentType();
+  CharSequence getContentType();
 
   /**
    * The character encoding of the markup.
    *
    * @return The character encoding of the markup.
    */
-  String getEncoding();
+  Charset getEncoding();
 
   /**
    * The closure that defines the markup.
