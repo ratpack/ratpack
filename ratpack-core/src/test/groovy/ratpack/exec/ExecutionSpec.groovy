@@ -160,18 +160,20 @@ class ExecutionSpec extends Specification {
     when:
     def innerLatch = new CountDownLatch(1)
 
-    exec { e1 ->
-      def p = e1.promise { f ->
-        e1.fork {
+    exec { control ->
+      def p = control.promise { f ->
+        control.fork {
           f.success(2)
         }
       }
 
-      e1.fork { e2 ->
-        p.then {
-          assert e2.controller.control.execution == e2
-          events << "then"
-          innerLatch.countDown()
+      control.execution.onCleanup {
+        control.fork { e2 ->
+          p.then {
+            assert control.execution == e2
+            events << "then"
+            innerLatch.countDown()
+          }
         }
       }
     }
