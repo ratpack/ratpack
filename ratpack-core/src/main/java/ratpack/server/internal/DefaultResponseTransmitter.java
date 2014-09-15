@@ -119,7 +119,8 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
 
   @Override
   public void transmit(final HttpResponseStatus responseStatus, final ByteBuf body) {
-    transmit(responseStatus, (Object) body);
+    responseHeaders.set(HttpHeaderConstants.CONTENT_LENGTH, body.readableBytes());
+    transmit(responseStatus, new DefaultHttpContent(body));
   }
 
   private void transmit(final HttpResponseStatus responseStatus, final Object body) {

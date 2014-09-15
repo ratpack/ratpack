@@ -322,7 +322,6 @@ public class DefaultResponse implements Response {
 
   private void commit(ByteBuf byteBuf) {
     setCookieHeader();
-    headers.set(HttpHeaderConstants.CONTENT_LENGTH, byteBuf.readableBytes());
     responseTransmitter.transmit(status, byteBuf);
   }
 }
