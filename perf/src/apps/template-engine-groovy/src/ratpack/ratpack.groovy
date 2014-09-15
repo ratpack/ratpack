@@ -1,18 +1,10 @@
+import ratpack.groovy.markuptemplates.MarkupTemplatingModule
 import ratpack.groovy.templating.TemplatingModule
 import ratpack.handlebars.HandlebarsModule
 import ratpack.perf.incl.*
 import ratpack.thymeleaf.ThymeleafModule
 
-import static ratpack.groovy.Groovy.groovyTemplate
-
-<% if (patch >= 7) { %>
-import ratpack.groovy.markuptemplates.MarkupTemplatingModule
-<% } %>
-import static ratpack.groovy.Groovy.ratpack
-
-<% if (patch >= 7) { %>
-import static ratpack.groovy.Groovy.groovyMarkupTemplate
-<% } %>
+import static ratpack.groovy.Groovy.*
 import static ratpack.handlebars.Template.handlebarsTemplate
 import static ratpack.thymeleaf.Template.thymeleafTemplate
 
@@ -21,9 +13,7 @@ ratpack {
     config(TemplatingModule).staticallyCompile = true
     add new HandlebarsModule()
     add new ThymeleafModule()
-    <% if (patch >= 7) { %>
-      add new MarkupTemplatingModule()
-    <% } %>
+    add new MarkupTemplatingModule()
   }
 
   handlers {
@@ -51,11 +41,7 @@ ratpack {
 
     if (endpoint == "groovy-markup") {
       handler("groovy-markup") {
-        <% if (patch >= 7) { %>
-          render groovyMarkupTemplate('index.gtpl', message: "Hello World!")
-        <% } else { %>
-          render "ok"
-        <% } %>
+        render groovyMarkupTemplate('index.gtpl', message: "Hello World!")
       }
     }
   }
