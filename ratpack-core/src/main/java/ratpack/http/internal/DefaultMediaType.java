@@ -32,7 +32,6 @@ import static ratpack.util.ExceptionUtils.uncheck;
 
 public class DefaultMediaType implements MediaType {
 
-  public static final String DEFAULT_CHARSET = "ISO-8859-1";
   public static final String CHARSET_KEY = "charset";
 
   private final String type;
@@ -55,7 +54,7 @@ public class DefaultMediaType implements MediaType {
     try {
       return CACHE.get(contentType1, new Callable<MediaType>() {
         public MediaType call() throws Exception {
-          return new DefaultMediaType(finalContentType, DEFAULT_CHARSET);
+          return new DefaultMediaType(finalContentType);
         }
       });
     } catch (ExecutionException | UncheckedExecutionException e) {
@@ -63,10 +62,8 @@ public class DefaultMediaType implements MediaType {
     }
   }
 
-  public DefaultMediaType(String value, String defaultCharset) {
+  public DefaultMediaType(String value) {
     ImmutableMap.Builder<String, String> paramsBuilder = ImmutableMap.builder();
-    boolean setCharset = false;
-
     if (value == null) {
       type = null;
     } else {
@@ -85,10 +82,6 @@ public class DefaultMediaType implements MediaType {
               String[] valueSplit = part.split("=", 2);
               keyPart = valueSplit[0].toLowerCase();
               valuePart = valueSplit[1];
-
-              if (keyPart.equals(CHARSET_KEY)) {
-                setCharset = true;
-              }
             } else {
               keyPart = part.toLowerCase();
               valuePart = "";
@@ -97,10 +90,6 @@ public class DefaultMediaType implements MediaType {
           }
         }
       }
-    }
-
-    if (!setCharset && isText() && !defaultCharset.equals(DEFAULT_CHARSET)) {
-      paramsBuilder.put(CHARSET_KEY, defaultCharset);
     }
 
     params = paramsBuilder.build();
@@ -116,7 +105,11 @@ public class DefaultMediaType implements MediaType {
   }
 
   public String getCharset() {
-    return params.containsKey(CHARSET_KEY) ? params.get(CHARSET_KEY) : DEFAULT_CHARSET;
+    return params.get(CHARSET_KEY);
+  }
+
+  public String getCharset(String defaultCharset) {
+    return params.containsKey(CHARSET_KEY) ? params.get(CHARSET_KEY) : defaultCharset;
   }
 
   public boolean isText() {

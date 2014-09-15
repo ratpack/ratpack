@@ -24,6 +24,7 @@ import ratpack.http.TypedData;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.Charset;
 
 public class DefaultUploadedFile implements UploadedFile {
 
@@ -53,6 +54,11 @@ public class DefaultUploadedFile implements UploadedFile {
   @Override
   public String getText() {
     return typedData.getText();
+  }
+
+  @Override
+  public String getText(Charset charset) {
+    return typedData.getText(charset);
   }
 
   @Override

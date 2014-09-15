@@ -53,10 +53,15 @@ public class ByteBufBackedTypedData implements TypedData {
 
   @Override
   public String getText() {
+    return getText(CharsetUtil.UTF_8);
+  }
+
+  @Override
+  public String getText(Charset charset) {
     if (mediaType == null) {
-      return byteBuf.toString(CharsetUtil.UTF_8);
+      return byteBuf.toString(charset);
     } else {
-      return byteBuf.toString(Charset.forName(mediaType.getCharset()));
+      return byteBuf.toString(Charset.forName(mediaType.getCharset(charset.name())));
     }
   }
 

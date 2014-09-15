@@ -73,13 +73,19 @@ public interface MediaType {
   Map<String, String> getParams();
 
   /**
-   * The value of the "charset" parameter, or the HTTP default of {@code "ISO-8859-1"}.
-   * <p>
-   * This method always returns a value, even if the actual type is a binary type.
+   * The value of the "charset" parameter.
    *
-   * @return The value of the charset parameter, or the HTTP default of {@code "ISO-8859-1"}.
+   * @return the value of the charset parameter, or {@code null} if the no charset parameter was specified
    */
+  @Nullable
   String getCharset();
+
+  /**
+   * The value of the "charset" parameter, or the given default value of no charset was specified.
+   *
+   * @return the value of the charset parameter, or the given default
+   */
+  String getCharset(String defaultValue);
 
   /**
    * True if this type starts with "{@code text/}".
