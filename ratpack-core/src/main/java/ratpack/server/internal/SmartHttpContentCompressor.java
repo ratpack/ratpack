@@ -18,9 +18,9 @@ package ratpack.server.internal;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.HttpContentCompressor;
-import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpObject;
 import io.netty.handler.codec.http.HttpResponse;
+import ratpack.http.internal.HttpHeaderConstants;
 
 import java.util.List;
 
@@ -41,10 +41,10 @@ public class SmartHttpContentCompressor extends HttpContentCompressor {
       // by default compression is on (passThrough bypasses compression)
       passThrough = false;
       // If an "Content-Encoding: Identity" header was set, we do not compress
-      if (res.headers().contains(HttpHeaders.Names.CONTENT_ENCODING, HttpHeaders.Values.IDENTITY, false)) {
+      if (res.headers().contains(HttpHeaderConstants.CONTENT_ENCODING, HttpHeaderConstants.IDENTITY, false)) {
         passThrough = true;
         // Remove header as one SHOULD NOT send Identity as content encoding.
-        res.headers().remove(HttpHeaders.Names.CONTENT_ENCODING);
+        res.headers().remove(HttpHeaderConstants.CONTENT_ENCODING);
       }
     }
     super.encode(ctx, msg, out);

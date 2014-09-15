@@ -98,7 +98,7 @@ class HandlerUnitTestingSpec extends Specification {
 
   def "can test handler that sends file"() {
     when:
-    handle { response.contentType("text/plain").sendFile context, new File("foo").toPath() }
+    handle { response.contentType("text/plain").sendFile new File("foo").toPath() }
 
     then:
     bodyText == null
@@ -118,7 +118,7 @@ class HandlerUnitTestingSpec extends Specification {
     when:
     handle {
       onClose { onCloseCalled = true; onCloseCalledWrapper.set(onCloseCalled) }
-      response.contentType("text/plain").sendFile(context, new File("foo").toPath())
+      response.contentType("text/plain").sendFile(new File("foo").toPath())
     }
 
     then:

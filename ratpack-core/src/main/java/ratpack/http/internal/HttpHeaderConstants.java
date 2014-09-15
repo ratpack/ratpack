@@ -20,16 +20,17 @@ import io.netty.handler.codec.http.HttpHeaders;
 
 public abstract class HttpHeaderConstants {
 
-
   private HttpHeaderConstants() {
   }
 
   public static final CharSequence CONTENT_LENGTH = HttpHeaders.newEntity(HttpHeaders.Names.CONTENT_LENGTH);
   public static final CharSequence CONTENT_TYPE = HttpHeaders.newEntity(HttpHeaders.Names.CONTENT_TYPE);
+  public static final CharSequence ACCEPT = HttpHeaders.newEntity(HttpHeaders.Names.ACCEPT);
   public static final CharSequence LAST_MODIFIED = HttpHeaders.newEntity(HttpHeaders.Names.LAST_MODIFIED);
   public static final CharSequence CONNECTION = HttpHeaders.newEntity(HttpHeaders.Names.CONNECTION);
   public static final CharSequence KEEP_ALIVE = HttpHeaders.newEntity(HttpHeaders.Values.KEEP_ALIVE);
   public static final CharSequence CONTENT_ENCODING = HttpHeaders.newEntity(HttpHeaders.Names.CONTENT_ENCODING);
+  public static final CharSequence IDENTITY = HttpHeaders.newEntity(HttpHeaders.Values.IDENTITY);
   public static final CharSequence TRANSFER_ENCODING = HttpHeaders.newEntity(HttpHeaders.Names.TRANSFER_ENCODING);
   public static final CharSequence CHUNKED = HttpHeaders.newEntity(HttpHeaders.Values.CHUNKED);
   public static final CharSequence CACHE_CONTROL = HttpHeaders.newEntity(HttpHeaders.Names.CACHE_CONTROL);
@@ -42,16 +43,17 @@ public abstract class HttpHeaderConstants {
   public static final CharSequence HOST = HttpHeaders.newEntity(HttpHeaders.Names.HOST);
   public static final CharSequence COOKIE = HttpHeaders.newEntity(HttpHeaders.Names.COOKIE);
   public static final CharSequence SET_COOKIE = HttpHeaders.newEntity(HttpHeaders.Names.SET_COOKIE);
+  public static final CharSequence ALLOW = HttpHeaders.newEntity(HttpHeaders.Names.ALLOW);
+  public static final CharSequence LOCATION = HttpHeaders.newEntity(HttpHeaders.Names.LOCATION);
+
   public static final CharSequence X_FORWARDED_HOST = HttpHeaders.newEntity("X-Forwarded-Host");
   public static final CharSequence X_FORWARDED_PROTO = HttpHeaders.newEntity("X-Forwarded-Proto");
   public static final CharSequence X_FORWARDED_SSL = HttpHeaders.newEntity("X-Forwarded-Ssl");
-
 
   public static final CharSequence PLAIN_TEXT_UTF8 = HttpHeaders.newEntity("text/plain;charset=UTF-8");
   public static final CharSequence OCTET_STREAM = HttpHeaders.newEntity("application/octet-stream");
   public static final CharSequence JSON = HttpHeaders.newEntity("application/json");
   public static final CharSequence HTML_UTF_8 = HttpHeaders.newEntity("text/html;charset=UTF-8");
-  public static final CharSequence XML_UTF_8 = HttpHeaders.newEntity("application/xml;charset=UTF-8");
   public static final CharSequence ON = HttpHeaders.newEntity("on");
 
 }

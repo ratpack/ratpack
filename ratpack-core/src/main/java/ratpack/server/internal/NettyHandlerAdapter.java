@@ -16,8 +16,9 @@
 
 package ratpack.server.internal;
 
+import com.google.common.base.Predicate;
+import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableSet;
-import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
@@ -30,15 +31,18 @@ import ratpack.error.ServerErrorHandler;
 import ratpack.error.internal.DefaultClientErrorHandler;
 import ratpack.error.internal.DefaultServerErrorHandler;
 import ratpack.event.internal.DefaultEventController;
+import ratpack.exec.ExecControl;
 import ratpack.exec.ExecController;
 import ratpack.exec.Execution;
 import ratpack.file.FileRenderer;
 import ratpack.file.FileSystemBinding;
 import ratpack.file.MimeTypes;
-import ratpack.file.internal.*;
+import ratpack.file.internal.ActivationBackedMimeTypes;
+import ratpack.file.internal.DefaultFileRenderer;
+import ratpack.file.internal.ShouldCompressPredicate;
 import ratpack.form.internal.FormParser;
 import ratpack.func.Action;
-import ratpack.func.Actions;
+import ratpack.func.Pair;
 import ratpack.handling.Handler;
 import ratpack.handling.Handlers;
 import ratpack.handling.Redirector;
@@ -66,8 +70,6 @@ import ratpack.server.BindAddress;
 import ratpack.server.PublicAddress;
 import ratpack.server.Stopper;
 import ratpack.sse.internal.ServerSentEventsRenderer;
-import ratpack.stream.internal.DefaultStreamTransmitter;
-import ratpack.stream.internal.StreamTransmitter;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -92,14 +94,12 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
   private final DefaultContext.ApplicationConstants applicationConstants;
   private final ExecController execController;
   private final LaunchConfig launchConfig;
+  private final Predicate<Pair<Long, String>> shouldCompress;
 
   private Registry registry;
 
   private final boolean addResponseTimeHeader;
-  private final boolean compressResponses;
-  private final long compressionMinSize;
-  private final ImmutableSet<String> compressionMimeTypeWhiteList;
-  private final ImmutableSet<String> compressionMimeTypeBlackList;
+  private final ExecControl execControl;
 
   public NettyHandlerAdapter(Stopper stopper, Handler handler, LaunchConfig launchConfig) {
     this.handlers = new Handler[]{handler};
@@ -107,16 +107,20 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
     this.launchConfig = launchConfig;
     this.registry = buildBaseRegistry(stopper, launchConfig);
     this.addResponseTimeHeader = launchConfig.isTimeResponses();
-    this.compressResponses = launchConfig.isCompressResponses();
-    this.compressionMinSize = launchConfig.getCompressionMinSize();
-    this.compressionMimeTypeWhiteList = launchConfig.getCompressionMimeTypeWhiteList();
-    this.compressionMimeTypeBlackList = defaultCompressionBlacklist(launchConfig.getCompressionMimeTypeBlackList());
     this.applicationConstants = new DefaultContext.ApplicationConstants(launchConfig, new DefaultRenderController());
     this.execController = launchConfig.getExecController();
-  }
+    this.execControl = execController.getControl();
 
-  private static ImmutableSet<String> defaultCompressionBlacklist(ImmutableSet<String> blacklist) {
-    return blacklist.isEmpty() ? ActivationBackedMimeTypes.getDefaultExcludedMimeTypes() : blacklist;
+    if (launchConfig.isCompressResponses()) {
+      ImmutableSet<String> blacklist = launchConfig.getCompressionMimeTypeBlackList();
+      this.shouldCompress = new ShouldCompressPredicate(
+        launchConfig.getCompressionMinSize(),
+        launchConfig.getCompressionMimeTypeWhiteList(),
+        blacklist.isEmpty() ? ActivationBackedMimeTypes.getDefaultExcludedMimeTypes() : blacklist
+      );
+    } else {
+      this.shouldCompress = Predicates.alwaysFalse();
+    }
   }
 
   @Override
@@ -140,32 +144,14 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
     final long startTime = addResponseTimeHeader ? System.nanoTime() : 0;
     final Request request = new DefaultRequest(new NettyHeadersBackedHeaders(nettyRequest.headers()), nettyRequest.getMethod().name(), nettyRequest.getUri(), nettyRequest.content());
     final Channel channel = ctx.channel();
-    final DefaultMutableStatus responseStatus = new DefaultMutableStatus();
     final HttpHeaders nettyHeaders = new DefaultHttpHeaders(false);
     final MutableHeaders responseHeaders = new NettyHeadersBackedMutableHeaders(nettyHeaders);
     final DefaultEventController<RequestOutcome> requestOutcomeEventController = new DefaultEventController<>();
     final AtomicBoolean transmitted = new AtomicBoolean(false);
 
-    final DefaultResponseTransmitter responseTransmitter = new DefaultResponseTransmitter(transmitted, channel, nettyRequest, request, nettyHeaders, responseStatus, requestOutcomeEventController, startTime);
-    final Action<Action<? super ResponseTransmitter>> responseTransmitterWrapper = Actions.<ResponseTransmitter>actionAction(responseTransmitter);
+    final DefaultResponseTransmitter responseTransmitter = new DefaultResponseTransmitter(transmitted, execControl, channel, nettyRequest, request, nettyHeaders, requestOutcomeEventController, launchConfig.isCompressResponses(), shouldCompress, startTime);
 
-    final FileHttpTransmitter fileHttpTransmitter = new DefaultFileHttpTransmitter(nettyHeaders,
-      compressResponses, compressionMinSize, compressionMimeTypeWhiteList, compressionMimeTypeBlackList, responseTransmitterWrapper);
-    StreamTransmitter streamTransmitter = new DefaultStreamTransmitter(responseTransmitter);
-
-    final Response response = new DefaultResponse(responseStatus, responseHeaders, fileHttpTransmitter, streamTransmitter, ctx.alloc(), new Action<ByteBuf>() {
-      @Override
-      public void execute(final ByteBuf byteBuf) throws Exception {
-        responseTransmitterWrapper.execute(new Action<ResponseTransmitter>() {
-          @Override
-          public void execute(ResponseTransmitter responseTransmitter) throws Exception {
-            nettyHeaders.set(HttpHeaders.Names.CONTENT_LENGTH, byteBuf.writerIndex());
-            responseTransmitter.transmit(new DefaultHttpContent(byteBuf));
-          }
-        });
-      }
-    });
-
+    final Response response = new DefaultResponse(execControl, responseHeaders, ctx.alloc(), responseTransmitter);
     ctx.attr(RESPONSE_TRANSMITTER_ATTRIBUTE_KEY).set(responseTransmitter);
 
     InetSocketAddress socketAddress = (InetSocketAddress) channel.localAddress();
@@ -249,7 +235,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
   private static void sendError(ChannelHandlerContext ctx, HttpResponseStatus status) {
     FullHttpResponse response = new DefaultFullHttpResponse(
       HttpVersion.HTTP_1_1, status, Unpooled.copiedBuffer("Failure: " + status.toString() + "\r\n", CharsetUtil.UTF_8));
-    response.headers().set(HttpHeaderConstants.CONTENT_TYPE, "text/plain; charset=UTF-8");
+    response.headers().set(HttpHeaderConstants.CONTENT_TYPE, HttpHeaderConstants.PLAIN_TEXT_UTF8);
 
     // Close the connection as soon as the error message is sent.
     ctx.write(response).addListener(ChannelFutureListener.CLOSE);

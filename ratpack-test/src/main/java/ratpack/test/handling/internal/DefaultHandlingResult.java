@@ -17,15 +17,16 @@
 package ratpack.test.handling.internal;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.util.CharsetUtil;
+import org.reactivestreams.Subscriber;
 import ratpack.api.Nullable;
 import ratpack.error.ClientErrorHandler;
 import ratpack.error.ServerErrorHandler;
 import ratpack.event.internal.DefaultEventController;
 import ratpack.event.internal.EventController;
 import ratpack.exec.ExecControl;
-import ratpack.file.internal.FileHttpTransmitter;
-import ratpack.func.Action;
+import ratpack.file.internal.ResponseTransmitter;
 import ratpack.func.Actions;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
@@ -36,6 +37,7 @@ import ratpack.handling.internal.DelegatingHeaders;
 import ratpack.http.*;
 import ratpack.http.internal.DefaultResponse;
 import ratpack.http.internal.DefaultSentResponse;
+import ratpack.http.internal.DefaultStatus;
 import ratpack.launch.LaunchConfig;
 import ratpack.launch.LaunchConfigBuilder;
 import ratpack.registry.Registries;
@@ -44,8 +46,6 @@ import ratpack.render.internal.RenderController;
 import ratpack.server.BindAddress;
 import ratpack.server.Stopper;
 import ratpack.server.internal.NettyHandlerAdapter;
-import ratpack.stream.internal.DefaultStreamTransmitter;
-import ratpack.stream.internal.StreamTransmitter;
 import ratpack.test.handling.HandlerTimeoutException;
 import ratpack.test.handling.HandlingResult;
 
@@ -62,46 +62,23 @@ public class DefaultHandlingResult implements HandlingResult {
   private Throwable throwable;
   private Headers headers;
   private byte[] body = new byte[0];
-  private Status status;
+  private Status status = null;
   private boolean calledNext;
   private boolean sentResponse;
   private Path sentFile;
   private Object rendered;
   private Integer clientError;
 
-  public DefaultHandlingResult(final Request request, final MutableStatus status, final MutableHeaders responseHeaders, Registry registry, final int timeout, LaunchConfigBuilder launchConfigBuilder, final Handler handler) {
+  public DefaultHandlingResult(final Request request, final MutableHeaders responseHeaders, Registry registry, final int timeout, LaunchConfigBuilder launchConfigBuilder, final Handler handler) {
 
     // There are definitely concurrency bugs in here around timing out
     // ideally we should prevent the stat from changing after a timeout occurs
 
     this.headers = new DelegatingHeaders(responseHeaders);
-    this.status = status;
 
     final CountDownLatch latch = new CountDownLatch(1);
 
-    final StreamTransmitter streamTransmitter = new DefaultStreamTransmitter(null); //TODO: what test support is required here?
-
     final EventController<RequestOutcome> eventController = new DefaultEventController<>();
-
-    final FileHttpTransmitter fileHttpTransmitter = new FileHttpTransmitter() {
-      @Override
-      public void transmit(ExecControl execContext, BasicFileAttributes basicFileAttributes, Path file) {
-        sentFile = file;
-        eventController.fire(new DefaultRequestOutcome(request, new DefaultSentResponse(headers, status), System.currentTimeMillis()));
-        latch.countDown();
-      }
-    };
-
-    final Action<ByteBuf> committer = new Action<ByteBuf>() {
-      public void execute(ByteBuf byteBuf) throws Exception {
-        sentResponse = true;
-        body = new byte[byteBuf.readableBytes()];
-        byteBuf.readBytes(body);
-        byteBuf.release();
-        eventController.fire(new DefaultRequestOutcome(request, new DefaultSentResponse(headers, status), System.currentTimeMillis()));
-        latch.countDown();
-      }
-    };
 
     final Handler next = new Handler() {
       public void handle(Context context) {
@@ -164,15 +141,39 @@ public class DefaultHandlingResult implements HandlingResult {
       }
     };
 
+    ResponseTransmitter responseTransmitter = new ResponseTransmitter() {
+      @Override
+      public void transmit(HttpResponseStatus status, ByteBuf byteBuf) {
+        sentResponse = true;
+        body = new byte[byteBuf.readableBytes()];
+        byteBuf.readBytes(body);
+        byteBuf.release();
+        eventController.fire(new DefaultRequestOutcome(request, new DefaultSentResponse(headers, new DefaultStatus(status)), System.currentTimeMillis()));
+        latch.countDown();
+      }
+
+      @Override
+      public void transmit(HttpResponseStatus responseStatus, BasicFileAttributes basicFileAttributes, Path file) {
+        sentFile = file;
+        eventController.fire(new DefaultRequestOutcome(request, new DefaultSentResponse(headers, status), System.currentTimeMillis()));
+        latch.countDown();
+      }
+
+      @Override
+      public Subscriber<Object> transmitter(HttpResponseStatus status) {
+        throw new UnsupportedOperationException("streaming not supported while unit testing");
+      }
+    };
+
+    ExecControl execControl = launchConfig.getExecController().getControl();
     Registry baseRegistry = NettyHandlerAdapter.buildBaseRegistry(stopper, launchConfig);
     Registry effectiveRegistry = Registries.join(baseRegistry, userRegistry);
-    Response response = new DefaultResponse(status, responseHeaders, fileHttpTransmitter, streamTransmitter, launchConfig.getBufferAllocator(), committer);
+    Response response = new DefaultResponse(execControl, responseHeaders, launchConfig.getBufferAllocator(), responseTransmitter);
     DefaultContext.ApplicationConstants applicationConstants = new DefaultContext.ApplicationConstants(launchConfig, renderController);
     requestConstants = new DefaultContext.RequestConstants(
       applicationConstants, bindAddress, request, response, null, eventController.getRegistry()
     );
 
-    ExecControl execControl = launchConfig.getExecController().getControl();
     DefaultContext.start(execControl, requestConstants, effectiveRegistry, new Handler[]{handler}, next, Actions.noop());
 
     try {
@@ -182,6 +183,7 @@ public class DefaultHandlingResult implements HandlingResult {
     } catch (InterruptedException e) {
       throw uncheck(e); // what to do here?
     } finally {
+      status = response.getStatus();
       launchConfig.getExecController().close();
     }
   }

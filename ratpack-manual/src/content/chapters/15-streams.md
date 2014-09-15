@@ -25,7 +25,7 @@ Back pressure allows the data producer to match its rate of production with what
    
 For more info on the importance of back pressure, please see the documentation from the [Reactive Streams](http://www.reactive-streams.org) project.
  
-Streaming a response always occurs via the [`Response.sendStream()`](api/ratpack/http/Response.html#sendStream\(ratpack.exec.ExecControl,%20org.reactivestreams.Publisher\)) method.
+Streaming a response always occurs via the [`Response.sendStream()`](api/ratpack/http/Response.html#sendStream\(org.reactivestreams.Publisher\)) method.
 See the documentation for this method for more precise semantics of what back pressure means when streaming data.
  
 ## Chunked transfer encoding

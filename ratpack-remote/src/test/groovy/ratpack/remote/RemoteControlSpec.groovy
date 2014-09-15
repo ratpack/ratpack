@@ -16,13 +16,13 @@
 
 package ratpack.remote
 
-import io.netty.handler.codec.http.HttpHeaders
 import io.remotecontrol.groovy.ContentType
 import io.remotecontrol.groovy.client.RemoteControl
 import io.remotecontrol.transport.http.HttpTransport
 import ratpack.file.FileRenderer
 import ratpack.file.FileSystemBinding
 import ratpack.http.client.RequestSpec
+import ratpack.http.internal.HttpHeaderConstants
 import ratpack.launch.LaunchConfig
 import ratpack.test.internal.RatpackGroovyDslSpec
 import spock.lang.Unroll
@@ -72,9 +72,9 @@ class RemoteControlSpec extends RatpackGroovyDslSpec {
     launchConfig { other(enabled) }
 
     when:
-    requestSpec{ RequestSpec requestSpec ->
-      requestSpec.headers.set(HttpHeaders.Names.CONTENT_TYPE, ContentType.COMMAND.value)
-      requestSpec.headers.set(HttpHeaders.Names.ACCEPT, 'text/html')
+    requestSpec { RequestSpec requestSpec ->
+      requestSpec.headers.set(HttpHeaderConstants.CONTENT_TYPE, ContentType.COMMAND.value)
+      requestSpec.headers.set(HttpHeaderConstants.ACCEPT, 'text/html')
     }
 
     then:
@@ -97,10 +97,10 @@ class RemoteControlSpec extends RatpackGroovyDslSpec {
     remoteControl { 1 + 2 } == 3
 
     where:
-    scenario | path | modulePath | otherConfig
-    'default path'       | DEFAULT_REMOTE_CONTROL_PATH | null     | [:]
-    'path set in module' | 'custom'                    | 'custom' | [:]
-    'path set in config' | 'fromConfig'                | null     | ['remoteControl.path': 'fromConfig']
+    scenario             | path                        | modulePath | otherConfig
+    'default path'       | DEFAULT_REMOTE_CONTROL_PATH | null       | [:]
+    'path set in module' | 'custom'                    | 'custom'   | [:]
+    'path set in config' | 'fromConfig'                | null       | ['remoteControl.path': 'fromConfig']
   }
 
   void 'registry is available in command context'() {

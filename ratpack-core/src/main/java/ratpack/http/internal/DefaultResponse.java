@@ -20,17 +20,16 @@ import com.google.common.collect.Sets;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.Unpooled;
-import io.netty.handler.codec.http.Cookie;
-import io.netty.handler.codec.http.DefaultCookie;
-import io.netty.handler.codec.http.HttpHeaders;
-import io.netty.handler.codec.http.ServerCookieEncoder;
+import io.netty.handler.codec.http.*;
 import org.reactivestreams.Publisher;
 import ratpack.api.Nullable;
 import ratpack.exec.ExecControl;
-import ratpack.file.internal.FileHttpTransmitter;
+import ratpack.file.internal.ResponseTransmitter;
 import ratpack.func.Action;
-import ratpack.http.*;
-import ratpack.stream.internal.StreamTransmitter;
+import ratpack.http.Headers;
+import ratpack.http.MutableHeaders;
+import ratpack.http.Response;
+import ratpack.http.Status;
 import ratpack.util.ExceptionUtils;
 import ratpack.util.MultiValueMap;
 import ratpack.util.internal.IoUtils;
@@ -48,23 +47,20 @@ import static ratpack.http.internal.HttpHeaderConstants.CONTENT_TYPE;
 
 public class DefaultResponse implements Response {
 
-  private final MutableStatus status;
+  private HttpResponseStatus status = HttpResponseStatus.OK;
   private final MutableHeaders headers;
-  private final FileHttpTransmitter fileHttpTransmitter;
-  private final StreamTransmitter streamTransmitter;
-  private final Action<? super ByteBuf> committer;
+  private final ExecControl execControl;
   private final ByteBufAllocator byteBufAllocator;
+  private final ResponseTransmitter responseTransmitter;
 
   private boolean contentTypeSet;
   private Set<Cookie> cookies;
 
-  public DefaultResponse(MutableStatus status, MutableHeaders headers, FileHttpTransmitter fileHttpTransmitter, StreamTransmitter streamTransmitter, ByteBufAllocator byteBufAllocator, Action<? super ByteBuf> committer) {
-    this.status = status;
-    this.fileHttpTransmitter = fileHttpTransmitter;
-    this.streamTransmitter = streamTransmitter;
+  public DefaultResponse(ExecControl execControl, MutableHeaders headers, ByteBufAllocator byteBufAllocator, ResponseTransmitter responseTransmitter) {
+    this.execControl = execControl;
     this.byteBufAllocator = byteBufAllocator;
+    this.responseTransmitter = responseTransmitter;
     this.headers = new MutableHeadersWrapper(headers);
-    this.committer = committer;
   }
 
   class MutableHeadersWrapper implements MutableHeaders {
@@ -197,23 +193,18 @@ public class DefaultResponse implements Response {
     }
   }
 
-  public MutableStatus getStatus() {
-    return status;
+  public Status getStatus() {
+    return new DefaultStatus(status);
   }
 
   public Response status(int code) {
-    status.set(code);
-    return this;
-  }
-
-  public Response status(int code, String message) {
-    status.set(code, message);
+    status = HttpResponseStatus.valueOf(code);
     return this;
   }
 
   @Override
   public Response status(Status status) {
-    return status(status.getCode(), status.getMessage());
+    return status(status.getCode());
   }
 
   @Override
@@ -278,22 +269,22 @@ public class DefaultResponse implements Response {
   }
 
   @Override
-  public void sendFile(ExecControl execContext, BasicFileAttributes attributes, Path file) {
+  public void sendFile(BasicFileAttributes attributes, Path file) {
     setCookieHeader();
-    fileHttpTransmitter.transmit(execContext, attributes, file);
+    responseTransmitter.transmit(status, attributes, file);
   }
 
   @Override
-  public void sendStream(ExecControl execControl, Publisher<? extends ByteBuf> stream) {
+  public void sendStream(Publisher<? extends ByteBuf> stream) {
     setCookieHeader();
-    streamTransmitter.transmit(execControl, stream);
+    execControl.stream(stream, responseTransmitter.transmitter(status));
   }
 
-  public void sendFile(final ExecControl execContext, final Path file) {
+  public void sendFile(final Path file) {
     try {
-      readAttributes(execContext, file, new Action<BasicFileAttributes>() {
+      readAttributes(execControl, file, new Action<BasicFileAttributes>() {
         public void execute(BasicFileAttributes fileAttributes) throws Exception {
-          sendFile(execContext, fileAttributes, file);
+          sendFile(fileAttributes, file);
         }
       });
     } catch (Exception e) {
@@ -331,10 +322,7 @@ public class DefaultResponse implements Response {
 
   private void commit(ByteBuf byteBuf) {
     setCookieHeader();
-    try {
-      committer.execute(byteBuf);
-    } catch (Exception e) {
-      throw ExceptionUtils.uncheck(e);
-    }
+    headers.set(HttpHeaderConstants.CONTENT_LENGTH, byteBuf.readableBytes());
+    responseTransmitter.transmit(status, byteBuf);
   }
 }

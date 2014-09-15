@@ -16,10 +16,10 @@
 
 package ratpack.handling.internal;
 
-import io.netty.handler.codec.http.HttpHeaders;
 import ratpack.handling.Context;
-import ratpack.http.Request;
 import ratpack.handling.Redirector;
+import ratpack.http.Request;
+import ratpack.http.internal.HttpHeaderConstants;
 import ratpack.server.PublicAddress;
 
 import java.net.URI;
@@ -32,7 +32,7 @@ public class DefaultRedirector implements Redirector {
   public void redirect(Context context, String location, int code) {
     context.getResponse().status(code);
     String normalizedLocation = generateRedirectLocation(context, context.getRequest(), location);
-    context.getResponse().getHeaders().set(HttpHeaders.Names.LOCATION, normalizedLocation);
+    context.getResponse().getHeaders().set(HttpHeaderConstants.LOCATION, normalizedLocation);
     context.getResponse().send();
   }
 

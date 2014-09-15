@@ -61,7 +61,7 @@ public class ServerSentEventsRenderer extends RendererSupport<ServerSentEvents> 
     response.getHeaders().add(HttpHeaderConstants.CONTENT_TYPE, TEXT_EVENT_STREAM_CHARSET_UTF_8);
     response.getHeaders().add(HttpHeaderConstants.CACHE_CONTROL, HttpHeaderConstants.NO_CACHE_FULL);
     response.getHeaders().add(HttpHeaderConstants.PRAGMA, HttpHeaderConstants.NO_CACHE);
-    response.sendStream(context, Streams.map(object.getPublisher(), encoder));
+    response.sendStream(Streams.map(object.getPublisher(), encoder));
   }
 
   public static class Encoder implements Function<ServerSentEvent, ByteBuf> {

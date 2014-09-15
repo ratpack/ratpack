@@ -16,26 +16,25 @@
 
 package ratpack.http.internal;
 
+import io.netty.handler.codec.http.HttpResponseStatus;
 import ratpack.http.Status;
 
 public class DefaultStatus implements Status {
 
-  private final int code;
-  private final String message;
+  private final HttpResponseStatus status;
 
-  public DefaultStatus(int code, String message) {
-    this.code = code;
-    this.message = message;
+  public DefaultStatus(HttpResponseStatus status) {
+    this.status = status;
   }
 
   @Override
   public int getCode() {
-    return code;
+    return status.code();
   }
 
   @Override
   public String getMessage() {
-    return message;
+    return status.reasonPhrase();
   }
 
 }

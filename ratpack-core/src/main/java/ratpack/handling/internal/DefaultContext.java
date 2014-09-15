@@ -341,7 +341,7 @@ public class DefaultContext implements Context {
       long ifModifiedSinceSecs = time / 1000;
 
       if (lastModifiedSecs == ifModifiedSinceSecs) {
-        requestConstants.response.status(NOT_MODIFIED.code(), NOT_MODIFIED.reasonPhrase()).send();
+        requestConstants.response.status(NOT_MODIFIED.code()).send();
         return;
       }
     }

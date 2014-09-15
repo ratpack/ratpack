@@ -96,7 +96,7 @@ import java.nio.charset.Charset;
  * }
  * </pre>
  *
- * @see Response#sendStream(ratpack.exec.ExecControl, org.reactivestreams.Publisher)
+ * @see Response#sendStream(org.reactivestreams.Publisher)
  * @see <a href="http://en.wikipedia.org/wiki/Chunked_transfer_encoding" target="_blank">Wikipedia - Chunked transfer encoding</a>
  */
 public class ResponseChunks {

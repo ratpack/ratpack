@@ -41,7 +41,7 @@ public class MethodHandler implements Handler {
       context.next();
     } else if (requestMethod.isOptions()) {
       Response response = context.getResponse();
-      response.getHeaders().add("Allow", method);
+      response.getHeaders().add(HttpHeaderConstants.ALLOW, method);
       response.status(200).send();
     } else {
       context.clientError(405);

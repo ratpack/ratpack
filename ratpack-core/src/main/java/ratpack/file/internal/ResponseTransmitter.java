@@ -16,12 +16,19 @@
 
 package ratpack.file.internal;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.handler.codec.http.HttpResponseStatus;
 import org.reactivestreams.Subscriber;
+
+import java.nio.file.Path;
+import java.nio.file.attribute.BasicFileAttributes;
 
 public interface ResponseTransmitter {
 
-  void transmit(Object body);
+  void transmit(HttpResponseStatus status, ByteBuf body);
 
-  Subscriber<Object> transmitter();
+  void transmit(HttpResponseStatus responseStatus, BasicFileAttributes basicFileAttributes, Path file);
+
+  Subscriber<Object> transmitter(HttpResponseStatus status);
 
 }

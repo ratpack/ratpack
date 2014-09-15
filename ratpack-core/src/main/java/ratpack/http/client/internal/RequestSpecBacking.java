@@ -19,7 +19,6 @@ package ratpack.http.client.internal;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.Unpooled;
-import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.util.CharsetUtil;
 import ratpack.api.Nullable;
 import ratpack.func.Action;
@@ -111,7 +110,7 @@ public class RequestSpecBacking {
     private class BodyImpl implements Body {
       @Override
       public Body type(String contentType) {
-        getHeaders().set(HttpHeaders.Names.CONTENT_TYPE, contentType);
+        getHeaders().set(HttpHeaderConstants.CONTENT_TYPE, contentType);
         return this;
       }
 

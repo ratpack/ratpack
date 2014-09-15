@@ -144,6 +144,9 @@ abstract class FunctionalSpec extends Specification {
         maven { url "${localRepo.toURI()}" }
         jcenter()
       }
+      dependencies {
+        compile 'org.slf4j:slf4j-simple:1.7.7'
+      }
     """
   }
 

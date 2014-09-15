@@ -212,21 +212,19 @@ public interface LaunchConfig {
   /**
    * The response mime types which should be compressed.
    * <p>
-   * If {@code null}, defaults to all mime types not on the black list.
+   * If empty, defaults to all mime types not on the black list.
    *
    * @return the response mime types which should be compressed.
    */
-  @Nullable
   public ImmutableSet<String> getCompressionMimeTypeWhiteList();
 
   /**
    * The response mime types which should not be compressed.
    * <p>
-   * If {@code null}, uses a default that excludes many commonly used compressed types.
+   * If empty, uses a default that excludes many commonly used compressed types.
    *
    * @return the response mime types which should not be compressed.
    */
-  @Nullable
   public ImmutableSet<String> getCompressionMimeTypeBlackList();
 
   /**

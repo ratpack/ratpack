@@ -27,9 +27,7 @@ import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.handling.Handlers;
 import ratpack.http.MutableHeaders;
-import ratpack.http.MutableStatus;
 import ratpack.http.Request;
-import ratpack.http.internal.DefaultMutableStatus;
 import ratpack.http.internal.DefaultRequest;
 import ratpack.http.internal.NettyHeadersBackedMutableHeaders;
 import ratpack.launch.LaunchConfigBuilder;
@@ -58,8 +56,6 @@ public class DefaultRequestFixture implements RequestFixture {
   private final ByteBuf requestBody = unreleasableBuffer(buffer());
   private final MutableHeaders requestHeaders = new NettyHeadersBackedMutableHeaders(new DefaultHttpHeaders());
   private final NettyHeadersBackedMutableHeaders responseHeaders = new NettyHeadersBackedMutableHeaders(new DefaultHttpHeaders());
-
-  private final MutableStatus status = new DefaultMutableStatus();
 
   private String method = "GET";
   private String uri = "/";
@@ -103,7 +99,6 @@ public class DefaultRequestFixture implements RequestFixture {
 
     return new DefaultHandlingResult(
       request,
-      status,
       responseHeaders,
       registry,
       timeout,

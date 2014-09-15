@@ -128,7 +128,7 @@ public class DefaultHttpClient implements HttpClient {
                     ByteBuf responseBuffer = initBufferReleaseOnExecutionClose(response.content(), execution);
                     final ByteBufBackedTypedData typedData = new ByteBufBackedTypedData(responseBuffer, DefaultMediaType.get(contentType));
 
-                    final Status status = new DefaultStatus(response.getStatus().code(), response.getStatus().reasonPhrase());
+                    final Status status = new DefaultStatus(response.getStatus());
                     fulfiller.success(new DefaultReceivedResponse(status, headers, typedData));
                   }
                 }
@@ -149,13 +149,13 @@ public class DefaultHttpClient implements HttpClient {
 
               String fullPath = getFullPath(uri);
               FullHttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.valueOf(requestSpecBacking.getMethod()), fullPath, requestSpecBacking.getBody());
-              if (headers.get(HttpHeaders.Names.HOST) == null) {
-                headers.set(HttpHeaders.Names.HOST, host);
+              if (headers.get(HttpHeaderConstants.HOST) == null) {
+                headers.set(HttpHeaderConstants.HOST, host);
               }
-              headers.set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.CLOSE);
+              headers.set(HttpHeaderConstants.CONNECTION, HttpHeaders.Values.CLOSE);
               int contentLength = request.content().readableBytes();
               if (contentLength > 0) {
-                headers.set(HttpHeaders.Names.CONTENT_LENGTH, Integer.toString(contentLength, 10));
+                headers.set(HttpHeaderConstants.CONTENT_LENGTH, Integer.toString(contentLength, 10));
               }
 
               HttpHeaders requestHeaders = request.headers();

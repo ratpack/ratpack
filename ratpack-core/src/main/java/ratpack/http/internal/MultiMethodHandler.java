@@ -39,7 +39,7 @@ public class MultiMethodHandler implements Handler {
     HttpMethod method = context.getRequest().getMethod();
     if (method.isOptions()) {
       String methods = Joiner.on(",").join(handlers.keySet());
-      context.getResponse().getHeaders().add("Allow", methods);
+      context.getResponse().getHeaders().add(HttpHeaderConstants.ALLOW, methods);
       context.getResponse().status(200).send();
     } else {
       for (Map.Entry<String, Handler> entry : handlers.entrySet()) {

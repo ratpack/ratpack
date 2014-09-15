@@ -19,13 +19,13 @@ package ratpack.stream.tck
 import io.netty.channel.Channel
 import io.netty.channel.ChannelFuture
 import io.netty.handler.codec.http.FullHttpRequest
+import io.netty.handler.codec.http.HttpResponseStatus
 import org.reactivestreams.Publisher
 import org.reactivestreams.Subscriber
 import org.reactivestreams.tck.SubscriberBlackboxVerification
 import org.reactivestreams.tck.TestEnvironment
 import ratpack.event.internal.DefaultEventController
 import ratpack.handling.RequestOutcome
-import ratpack.http.internal.DefaultStatus
 import ratpack.server.internal.DefaultResponseTransmitter
 
 import java.util.concurrent.atomic.AtomicBoolean
@@ -61,8 +61,8 @@ class DefaultResponseTransmitterBlackboxVerification extends SubscriberBlackboxV
     when(eventController.hasListeners).thenReturn(false)
 
     new DefaultResponseTransmitter(
-      new AtomicBoolean(), channel, nettyRequest, null, null, new DefaultStatus(200, "OK"), eventController, 0
-    ).transmitter()
+      new AtomicBoolean(), null, channel, nettyRequest, null, null, eventController, false, null, 0
+    ).transmitter(HttpResponseStatus.OK)
   }
 
   @Override

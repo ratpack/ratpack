@@ -20,7 +20,6 @@ import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.Cookie;
 import org.reactivestreams.Publisher;
 import ratpack.api.NonBlocking;
-import ratpack.exec.ExecControl;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -43,7 +42,7 @@ public interface Response {
    * @return The status that will be part of the response when sent
    * @see #status
    */
-  MutableStatus getStatus();
+  Status getStatus();
 
   /**
    * Sets the status line of the response.
@@ -54,15 +53,6 @@ public interface Response {
    * @return This
    */
   Response status(int code);
-
-  /**
-   * Sets the status line of the response.
-   *
-   * @param code The status code of the response to use when it is sent.
-   * @param message The status message of the response to use when it is sent.
-   * @return This
-   */
-  Response status(int code, String message);
 
   /**
    * Sets the status line of the response.
@@ -210,24 +200,21 @@ public interface Response {
   /**
    * Sends the response, using the given content type and the content of the given type as the response body.
    * <p>
-   * Prefer {@link #sendFile(ExecControl, java.nio.file.attribute.BasicFileAttributes, java.nio.file.Path)} where
+   * Prefer {@link #sendFile(java.nio.file.attribute.BasicFileAttributes, java.nio.file.Path)} where
    * the file attributes have already been retrieved to avoid another IO operation.
    *
-   * @param execContext the execution context to perform any blocking operations with
    * @param file The file whose contents are to be used as the response body
    */
   @NonBlocking
-  void sendFile(ExecControl execContext, Path file);
+  void sendFile(Path file);
 
   /**
    * Sends the response, using the given content type and the content of the given type as the response body.
-   *
-   * @param execContext the execution context to perform any blocking operations with
    * @param attributes The attributes of the file, used for the headers
    * @param file The file whose contents are to be used as the response body
    */
   @NonBlocking
-  void sendFile(ExecControl execContext, BasicFileAttributes attributes, Path file);
+  void sendFile(BasicFileAttributes attributes, Path file);
 
   /**
    * Sends the response, streaming the bytes emitted by the given publisher.
@@ -258,12 +245,11 @@ public interface Response {
    * you may want to consider an intermediate buffer to maximize throughput to the client.
    * However, this is rarely necessary.
    * <p>
-   * The subscription to the publisher will occur via {@link ExecControl#stream(org.reactivestreams.Publisher, org.reactivestreams.Subscriber)}.
+   * The subscription to the publisher will occur via {@link ratpack.exec.ExecControl#stream(org.reactivestreams.Publisher, org.reactivestreams.Subscriber)}.
    *
-   * @param execControl the execution control to subscribe to the publisher via
    * @param stream a stream of byte bufs to be written to the response
    */
   @NonBlocking
-  void sendStream(ExecControl execControl, Publisher<? extends ByteBuf> stream);
+  void sendStream(Publisher<? extends ByteBuf> stream);
 
 }

@@ -63,7 +63,7 @@ public class DefaultFileRenderer extends RendererSupport<Path> implements FileRe
         final String ifNoneMatch = context.getRequest().getHeaders().get(HttpHeaders.Names.IF_NONE_MATCH);
         Response response = context.getResponse();
         if (ifNoneMatch != null && ifNoneMatch.trim().equals("*")) {
-          response.status(NOT_MODIFIED.code(), NOT_MODIFIED.reasonPhrase()).send();
+          response.status(NOT_MODIFIED.code()).send();
           return;
         }
 
@@ -73,7 +73,7 @@ public class DefaultFileRenderer extends RendererSupport<Path> implements FileRe
         }
 
         try {
-          response.sendFile(context, attributes, file);
+          response.sendFile(attributes, file);
         } catch (Exception e) {
           throw ExceptionUtils.uncheck(e);
         }

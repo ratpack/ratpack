@@ -133,7 +133,7 @@ public class RatpackWebContext implements WebContext {
   }
 
   public void sendResponse(RequiresHttpAction action) {
-    context.getResponse().status(action.getCode(), action.getMessage());
+    context.getResponse().status(action.getCode());
     sendResponse();
   }
 

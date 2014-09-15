@@ -35,7 +35,7 @@ public class HttpResponseChunksRenderer extends RendererSupport<ResponseChunks> 
     response.getHeaders().add(HttpHeaderConstants.TRANSFER_ENCODING, HttpHeaderConstants.CHUNKED);
     response.getHeaders().set(HttpHeaderConstants.CONTENT_TYPE, chunks.getContentType());
     Publisher<? extends ByteBuf> publisher = chunks.publisher(context.getLaunchConfig().getBufferAllocator());
-    response.sendStream(context, publisher);
+    response.sendStream(publisher);
   }
 
 }
