@@ -62,7 +62,7 @@ public class DefaultHandlingResult implements HandlingResult {
   private Throwable throwable;
   private Headers headers;
   private byte[] body = new byte[0];
-  private Status status = null;
+  private Status status;
   private boolean calledNext;
   private boolean sentResponse;
   private Path sentFile;
