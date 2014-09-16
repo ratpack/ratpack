@@ -362,4 +362,90 @@ class StreamsSpec extends Specification {
     error instanceof IllegalStateException
     error.message == 'The upstream publisher has completed, either successfully or with error.  No further subscriptions will be accepted'
   }
+
+  def "can fan out with back pressure"() {
+    given:
+    Runnable runnable = null
+    def future = Mock(ScheduledFuture)
+    def executor = Mock(ScheduledExecutorService) {
+      scheduleWithFixedDelay(_, 0, 5, TimeUnit.SECONDS) >> {
+        runnable = it[0]
+        future
+      }
+    }
+
+    def queue = new LinkedBlockingDeque()
+    boolean complete
+    Subscription subscription
+
+    def stream = periodically(executor, 5, TimeUnit.SECONDS) { it < 3 ? [0, 1, 2, 3] : null }
+    stream = fanOut(stream)
+
+    stream.subscribe(new Subscriber<Integer>() {
+      @Override
+      void onSubscribe(Subscription s) {
+        subscription = s
+      }
+
+      @Override
+      void onNext(Integer integer) {
+        queue.put(integer)
+      }
+
+      @Override
+      void onError(Throwable t) {
+        queue.put(t)
+      }
+
+      @Override
+      void onComplete() {
+        complete = true
+      }
+    })
+
+    when:
+    subscription.request(1)
+
+    then:
+    queue.toList() == []
+
+    when:
+    runnable.run()
+
+    then:
+    queue.toList() == [0]
+
+    when:
+    subscription.request(1)
+
+    then:
+    queue.toList() == [0, 1]
+
+    when:
+    subscription.request(2)
+
+    then:
+    queue.toList() == [0, 1, 2, 3]
+
+    when:
+    runnable.run()
+    runnable.run()
+    runnable.run()
+
+    then:
+    queue.toList() == [0, 1, 2, 3]
+
+    when:
+    subscription.request(3)
+
+    then:
+    queue.toList() == [0, 1, 2, 3, 0, 1, 2]
+
+    when:
+    subscription.request(10)
+
+    then:
+    queue.toList() == [0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3]
+    complete
+  }
 }

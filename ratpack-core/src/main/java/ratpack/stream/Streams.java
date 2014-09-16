@@ -208,4 +208,20 @@ public class Streams {
     return new MulticastPublisher<>(publisher);
   }
 
+  /**
+   * Returns a publisher that publishes each element from Iterables that are produced from the given input publisher.
+   * <p>
+   * For each item the return publisher receives from the given input publisher, the return publisher will iterate over its elements and publish a
+   * new item for each element to its downstream subscriber e.g. if the return publisher receives an iterable with 10 elements then the downstream
+   * subscriber will receive 10 calls to its onNext method.
+   * <p>
+   * The returned publisher is implicitly buffered to respect back pressure via {@link #buffer(org.reactivestreams.Publisher)}.
+   *
+   * @param publisher the data source
+   * @param <T> the type of item emitted
+   * @return a publisher that splits iterable items into new items per iterable element
+   */
+  public static <T> Publisher<T> fanOut(Publisher<Iterable<T>> publisher) {
+    return buffer(new FanOutPublisher<>(publisher));
+  }
 }
