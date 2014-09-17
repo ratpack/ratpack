@@ -21,6 +21,7 @@ import ratpack.func.Action;
 import ratpack.func.Function;
 import ratpack.stream.internal.*;
 
+import java.util.Collection;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -209,19 +210,19 @@ public class Streams {
   }
 
   /**
-   * Returns a publisher that publishes each element from Iterables that are produced from the given input publisher.
+   * Returns a publisher that publishes each element from Collections that are produced from the given input publisher.
    * <p>
    * For each item the return publisher receives from the given input publisher, the return publisher will iterate over its elements and publish a
-   * new item for each element to its downstream subscriber e.g. if the return publisher receives an iterable with 10 elements then the downstream
+   * new item for each element to its downstream subscriber e.g. if the return publisher receives a Collection with 10 elements then the downstream
    * subscriber will receive 10 calls to its onNext method.
    * <p>
    * The returned publisher is implicitly buffered to respect back pressure via {@link #buffer(org.reactivestreams.Publisher)}.
    *
    * @param publisher the data source
    * @param <T> the type of item emitted
-   * @return a publisher that splits iterable items into new items per iterable element
+   * @return a publisher that splits collection items into new items per collection element
    */
-  public static <T> Publisher<T> fanOut(Publisher<Iterable<T>> publisher) {
+  public static <T> Publisher<T> fanOut(Publisher<Collection<T>> publisher) {
     return buffer(new FanOutPublisher<>(publisher));
   }
 }

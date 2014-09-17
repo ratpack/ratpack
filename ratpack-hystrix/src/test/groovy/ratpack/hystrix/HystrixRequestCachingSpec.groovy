@@ -36,15 +36,12 @@ class HystrixRequestCachingSpec extends HttpClientSpec {
 
   def setup() {
     RxRatpack.initialize()
-    HystrixRatpack.initialize()
-    bindings {
-      bind(CommandFactory)
-    }
   }
 
   def "can handle error from hystrix command"() {
     when:
     bindings {
+      add new HystrixModule()
       bind ServerErrorHandler, new ServerErrorHandler() {
         @Override
         void error(Context context, Throwable throwable) throws Exception {
@@ -79,6 +76,11 @@ class HystrixRequestCachingSpec extends HttpClientSpec {
     }
 
     and:
+    bindings {
+      add new HystrixModule()
+      bind(CommandFactory)
+    }
+
     handlers { CommandFactory factory ->
       handler("blocking") {
         def firstCall = factory.hystrixCommand("1").queue()

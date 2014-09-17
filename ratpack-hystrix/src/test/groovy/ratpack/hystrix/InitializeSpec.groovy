@@ -30,7 +30,7 @@ class InitializeSpec extends RatpackGroovyDslSpec {
     HystrixPlugins.getInstance().registerConcurrencyStrategy(mockConcurrencyStrategy)
 
     when:
-    HystrixRatpack.initialize()
+    new HystrixModule().configure()
 
     then:
     IllegalStateException e = thrown()

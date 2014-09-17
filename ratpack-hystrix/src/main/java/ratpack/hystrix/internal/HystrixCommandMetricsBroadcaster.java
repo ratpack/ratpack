@@ -14,19 +14,21 @@
  * limitations under the License.
  */
 
-description = "Integration with the Hystrix library - https://github.com/Netflix/Hystrix"
+package ratpack.hystrix.internal;
 
-apply from: "$rootDir/gradle/javaModule.gradle"
+import com.google.inject.Inject;
+import com.netflix.hystrix.HystrixCommandMetrics;
 
-ext.apiLinks = [
-  "http://netflix.github.io/Hystrix/javadoc/"
-]
+import java.util.Collection;
 
-dependencies {
-  compile project(":ratpack-core")
-  compile project(":ratpack-guice")
-  compile "com.netflix.hystrix:hystrix-core:$commonVersions.hystrix"
-  compile commonDependencies.jackson
+/**
+ * A message broadcaster for sending Hystrix command metrics to its subscribers.
+ */
+public class HystrixCommandMetricsBroadcaster extends ratpack.stream.internal.MulticastPublisher<Collection<HystrixCommandMetrics>> {
 
-  testCompile project(":ratpack-rx")
+  @Inject
+  public HystrixCommandMetricsBroadcaster(HystrixCommandMetricsPeriodicPublisher publisher) {
+    super(publisher);
+  }
+
 }

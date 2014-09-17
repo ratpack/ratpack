@@ -20,13 +20,14 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
+import java.util.Collection;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class FanOutPublisher<T> implements Publisher<T> {
 
-  private final Publisher<Iterable<T>> upstreamIterablePublisher;
+  private final Publisher<Collection<T>> upstreamIterablePublisher;
 
-  public FanOutPublisher(Publisher<Iterable<T>> publisher) {
+  public FanOutPublisher(Publisher<Collection<T>> publisher) {
     this.upstreamIterablePublisher = publisher;
   }
 
