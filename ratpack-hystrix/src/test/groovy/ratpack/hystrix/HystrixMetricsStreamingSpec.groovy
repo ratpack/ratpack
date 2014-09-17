@@ -18,6 +18,7 @@ package ratpack.hystrix
 
 import com.netflix.hystrix.HystrixCommand
 import com.netflix.hystrix.HystrixCommandGroupKey
+import com.netflix.hystrix.HystrixCommandMetrics
 import groovy.json.JsonSlurper
 import io.netty.util.CharsetUtil
 import ratpack.rx.RxRatpack
@@ -29,6 +30,7 @@ class HystrixMetricsStreamingSpec extends RatpackGroovyDslSpec {
 
   def setup() {
     RxRatpack.initialize()
+    HystrixCommandMetrics.reset()
   }
 
   static class FooCommand extends HystrixCommand<String> {
