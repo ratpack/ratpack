@@ -219,4 +219,7 @@ public interface PromiseOperations<T> {
   Promise<T> route(Predicate<? super T> predicate, Action<? super T> action);
 
   Promise<T> onNull(NoArgAction action);
+
+  Promise<T> cache();
+
 }

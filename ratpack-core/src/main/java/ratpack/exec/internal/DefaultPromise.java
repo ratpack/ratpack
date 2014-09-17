@@ -78,4 +78,8 @@ public class DefaultPromise<T> implements Promise<T> {
     return propagatingSuccessPromise().onNull(action);
   }
 
+  @Override
+  public Promise<T> cache() {
+    return propagatingSuccessPromise().cache();
+  }
 }

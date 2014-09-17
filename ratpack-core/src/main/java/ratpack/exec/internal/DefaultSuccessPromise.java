@@ -229,6 +229,15 @@ public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
     });
   }
 
+  @Override
+  public Promise<T> cache() {
+    if (fired.compareAndSet(false, true)) {
+      return new CachingPromise<>(action, executionProvider, errorHandler);
+    } else {
+      throw new MultiplePromiseSubscriptionException();
+    }
+  }
+
   private abstract class Transform<I, O> extends Step<O> {
     private final Function<? super T, ? extends I> function;
 
