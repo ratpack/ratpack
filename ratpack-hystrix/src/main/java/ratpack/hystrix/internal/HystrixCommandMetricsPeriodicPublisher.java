@@ -30,7 +30,7 @@ public class HystrixCommandMetricsPeriodicPublisher extends PeriodicPublisher<Co
   /**
    * The default reporting interval.
    */
-  private final static String DEFAULT_INTERVAL = "30";
+  private final static String DEFAULT_INTERVAL = "2";
 
   @Inject
   public HystrixCommandMetricsPeriodicPublisher(LaunchConfig launchConfig) {
