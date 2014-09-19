@@ -17,16 +17,16 @@
 package ratpack.hystrix;
 
 import org.reactivestreams.Publisher;
-import ratpack.func.Function;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.hystrix.internal.HystrixCommandMetricsBroadcaster;
 import ratpack.hystrix.internal.HystrixCommandMetricsJsonMapper;
+import ratpack.hystrix.internal.HystrixThreadPoolMetricsBroadcaster;
+import ratpack.hystrix.internal.HystrixThreadPoolMetricsJsonMapper;
 import ratpack.sse.ServerSentEvent;
 
 import static ratpack.sse.ServerSentEvents.serverSentEvents;
-import static ratpack.stream.Streams.fanOut;
-import static ratpack.stream.Streams.map;
+import static ratpack.stream.Streams.*;
 
 /**
  * A Handler that streams Hystrix metrics in text/event-stream format.
@@ -51,19 +51,18 @@ public class HystrixMetricsEventStreamHandler implements Handler {
 
   @Override
   public void handle(Context context) throws Exception {
-    final HystrixCommandMetricsBroadcaster broadcaster = context.get(HystrixCommandMetricsBroadcaster.class);
-    final HystrixCommandMetricsJsonMapper mapper = context.get(HystrixCommandMetricsJsonMapper.class);
+    final HystrixCommandMetricsBroadcaster commandMetricsBroadcasterbroadcaster = context.get(HystrixCommandMetricsBroadcaster.class);
+    final HystrixCommandMetricsJsonMapper commandMetricsMapper = context.get(HystrixCommandMetricsJsonMapper.class);
+    final HystrixThreadPoolMetricsBroadcaster threadPoolMetricsBroadcaster = context.get(HystrixThreadPoolMetricsBroadcaster.class);
+    final HystrixThreadPoolMetricsJsonMapper threadPoolMetricsMapper = context.get(HystrixThreadPoolMetricsJsonMapper.class);
 
-    Publisher<String> metricsStream = map(fanOut(broadcaster), mapper);
+    Publisher<String> commandStream = map(fanOut(commandMetricsBroadcasterbroadcaster), commandMetricsMapper);
+    Publisher<String> threadPoolStream = map(fanOut(threadPoolMetricsBroadcaster), threadPoolMetricsMapper);
+    @SuppressWarnings("unchecked") Publisher<String> metricsStream = merge(commandStream, threadPoolStream);
 
     context.render(serverSentEvents(
       map(metricsStream,
-        new Function<String, ServerSentEvent>() {
-          @Override
-          public ServerSentEvent apply(String metrics) throws Exception {
-            return ServerSentEvent.builder().data(metrics).build();
-          }
-        }
+        metrics -> ServerSentEvent.builder().data(metrics).build()
       )
     ));
   }

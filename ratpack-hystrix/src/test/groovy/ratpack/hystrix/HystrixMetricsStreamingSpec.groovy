@@ -63,16 +63,21 @@ class HystrixMetricsStreamingSpec extends RatpackGroovyDslSpec {
     2.times { getText("run-command") }
 
     expect:
-    def sseEvent = rawSseResponse("/hystrix/sse")
-    def metrics = new JsonSlurper().parseText(sseEvent.substring(5))
-    metrics.type == "HystrixCommand"
-    metrics.group == "foo-commands"
-    metrics.name == "FooCommand"
-    metrics.rollingCountSuccess == 2
+    def sseEvents = streamEvents("/hystrix/sse", 2)
+
+    def threadPoolMetrics = new JsonSlurper().parseText(sseEvents[0])
+    threadPoolMetrics.type == "HystrixThreadPool"
+    threadPoolMetrics.name == "foo-commands"
+
+    def commandMetrics = new JsonSlurper().parseText(sseEvents[1])
+    commandMetrics.type == "HystrixCommand"
+    commandMetrics.group == "foo-commands"
+    commandMetrics.name == "FooCommand"
+    commandMetrics.rollingCountSuccess == 2
   }
 
-  String rawSseResponse(String path, int numberOfEvents = 1, Charset charset = CharsetUtil.UTF_8) {
-    StringBuilder builder = new StringBuilder()
+  List<String> streamEvents(String path, int numberOfEvents = 1, Charset charset = CharsetUtil.UTF_8) {
+    def events = []
     Socket socket = new Socket(getAddress().host, getAddress().port)
     try {
       new OutputStreamWriter(socket.outputStream, "UTF-8").with {
@@ -89,12 +94,12 @@ class HystrixMetricsStreamingSpec extends RatpackGroovyDslSpec {
       while ((chunk = bufferedReader.readLine()) != null) {
         if (chunk.startsWith("data:")) {
           eventsReceived++
-          builder.append(chunk).append("\n")
+          events << chunk.substring(5)
           if (eventsReceived == numberOfEvents) { break }
         }
       }
 
-      builder.toString()
+      events
     } finally {
       socket.close()
     }

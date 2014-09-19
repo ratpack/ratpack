@@ -20,10 +20,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Singleton;
 import com.netflix.hystrix.strategy.HystrixPlugins;
 import com.netflix.hystrix.strategy.concurrency.HystrixConcurrencyStrategy;
-import ratpack.hystrix.internal.HystrixCommandMetricsBroadcaster;
-import ratpack.hystrix.internal.HystrixCommandMetricsJsonMapper;
-import ratpack.hystrix.internal.HystrixCommandMetricsPeriodicPublisher;
-import ratpack.hystrix.internal.HystrixRegistryBackedConcurrencyStrategy;
+import ratpack.hystrix.internal.*;
 
 /**
  * An extension module that provides support for <a href="https://github.com/Netflix/Hystrix/wiki">Hystrix</a>.
@@ -75,6 +72,10 @@ public class HystrixModule extends AbstractModule {
       bind(HystrixCommandMetricsPeriodicPublisher.class).in(Singleton.class);
       bind(HystrixCommandMetricsBroadcaster.class).in(Singleton.class);
       bind(HystrixCommandMetricsJsonMapper.class).in(Singleton.class);
+
+      bind(HystrixThreadPoolMetricsPeriodicPublisher.class).in(Singleton.class);
+      bind(HystrixThreadPoolMetricsBroadcaster.class).in(Singleton.class);
+      bind(HystrixThreadPoolMetricsJsonMapper.class).in(Singleton.class);
     }
   }
 

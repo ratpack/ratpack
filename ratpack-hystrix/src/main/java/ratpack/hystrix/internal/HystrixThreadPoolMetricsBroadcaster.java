@@ -17,28 +17,18 @@
 package ratpack.hystrix.internal;
 
 import com.google.inject.Inject;
-import com.netflix.hystrix.HystrixCommandMetrics;
-import ratpack.launch.LaunchConfig;
-import ratpack.stream.internal.PeriodicPublisher;
+import com.netflix.hystrix.HystrixThreadPoolMetrics;
 
 import java.util.Collection;
-import java.util.concurrent.TimeUnit;
 
-public class HystrixCommandMetricsPeriodicPublisher extends PeriodicPublisher<Collection<HystrixCommandMetrics>> {
-
-  /**
-   * The default reporting interval.
-   */
-  private final static String DEFAULT_INTERVAL = "2";
+/**
+ * A message broadcaster for sending Hystrix thread pool metrics to its subscribers.
+ */
+public class HystrixThreadPoolMetricsBroadcaster extends ratpack.stream.internal.MulticastPublisher<Collection<HystrixThreadPoolMetrics>> {
 
   @Inject
-  public HystrixCommandMetricsPeriodicPublisher(LaunchConfig launchConfig) {
-    super(
-      launchConfig.getExecController().getExecutor(),
-      integer -> HystrixCommandMetrics.getInstances(),
-      new Long(launchConfig.getOther("hystrix.stream.interval", DEFAULT_INTERVAL)),
-      TimeUnit.SECONDS
-    );
+  public HystrixThreadPoolMetricsBroadcaster(HystrixThreadPoolMetricsPeriodicPublisher publisher) {
+    super(publisher);
   }
 
 }
