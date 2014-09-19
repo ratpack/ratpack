@@ -119,4 +119,5 @@ test {
       events "failed", "started"
     }
   }
+  maxHeapSize "256m"
 }
