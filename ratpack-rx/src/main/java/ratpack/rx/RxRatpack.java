@@ -109,7 +109,7 @@ public abstract class RxRatpack {
    * </pre>
    * <p>
    * For a Groovy DSL application, it can be registered during the module bindings.
-   * <pre class="tested">
+   * <pre>
    * import ratpack.handling.Context
    * import ratpack.error.ServerErrorHandler
    * import ratpack.rx.RxRatpack
