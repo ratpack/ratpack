@@ -54,7 +54,7 @@ public class Example {
     }
   }
 
-  public static void main(String[] args) {
+  public static void main(String[] args) throws Exception {
     HandlingResult result = UnitTest.handle(new ReactiveHandler(), Actions.noop());
     assert result.rendered(String.class).equals("HELLO WORLD");
   }
@@ -119,7 +119,7 @@ public class Example {
     }
   }
 
-  public static void main(String[] args) {
+  public static void main(String[] args) throws Exception {
     HandlingResult result = UnitTest.handle(new ReactiveHandler(), Actions.noop());
     assert result.getException().getMessage().equals("error!");
   }

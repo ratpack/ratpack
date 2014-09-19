@@ -82,7 +82,7 @@ import java.lang.reflect.Type;
  * LaunchConfig launchConfig = LaunchConfigBuilder.baseDir(new File("appRoot"))
  *   .build(new HandlerFactory() {
  *     public Handler create(LaunchConfig launchConfig) throws Exception {
- *       return Guice.handler(launchConfig, new Bindings(), new ChainAction() {
+ *       return Guice.chain(launchConfig, new Bindings(), new ChainAction() {
  *         protected void execute() {
  *           handler(new MyHandler());
  *         }

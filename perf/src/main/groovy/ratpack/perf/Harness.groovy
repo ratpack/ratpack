@@ -68,7 +68,7 @@ class Harness {
 
     LinkedList<String> apps = appsBaseDir.listFiles().findAll { File it -> it.directory && (!it.name.startsWith(".")) }.collect { File it -> it.name } as LinkedList<String>
 
-    def concurrency = Math.ceil(Runtime.runtime.availableProcessors() / 2).toInteger()
+    def concurrency = Math.ceil(Runtime.runtime.availableProcessors() * 2).toInteger()
     log.debug "Request concurrency: $concurrency"
     def executor = Executors.newFixedThreadPool(concurrency)
     def requester = new Requester("http://localhost:5050")

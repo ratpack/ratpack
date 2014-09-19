@@ -102,7 +102,7 @@ public class Example {
   }
 
   // Unit test
-  public static void main(String[] args) {
+  public static void main(String[] args) throws Exception {
     HandlingResult result = UnitTest.handle(new DeletingHandler(), new RequestFixtureAction() {
       protected void execute() {
         pathBinding(Collections.singletonMap("days", "10"));

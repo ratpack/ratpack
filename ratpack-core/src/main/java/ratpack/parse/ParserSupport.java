@@ -82,7 +82,7 @@ import com.google.common.reflect.TypeToken;
  *   }
  *
  *   // unit test
- *   public static void main(String[] args) {
+ *   public static void main(String[] args) throws Exception {
  *     HandlingResult result = UnitTest.handle(new ToUpperCaseHandler(), new Action&lt;RequestFixture&gt;() {
  *       public void execute(RequestFixture fixture) throws Exception {
  *         fixture

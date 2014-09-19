@@ -25,10 +25,7 @@ import ratpack.registry.RegistrySpec;
 /**
  * A chain can be used to build a linked series of handlers.
  * <p>
- * The {@code GroovyChain} type does not represent the handlers "in action".
- * That is, it is the construction of a handler chain.
- * <p>
- * A chain can be constructed using the {@link Handlers#chain(LaunchConfig, ratpack.func.Action)} like methods.
+ * A handler chain can be constructed using the {@link Handlers#chain(LaunchConfig, ratpack.func.Action)} like methods.
  * For example, from a {@link ratpack.launch.HandlerFactory} implementation…
  * <pre class="tested">
  * import ratpack.launch.HandlerFactory;
@@ -46,7 +43,7 @@ import ratpack.registry.RegistrySpec;
  *       public void execute(Chain chain) {
  *         chain
  *           .assets("public")
- *           .prefix("api", chain.chain(new Action&lt;Chain&gt;() {
+ *           .prefix("api", new Action&lt;Chain&gt;() {
  *             public void execute(Chain api) {
  *               api
  *                 .get("people", new PeopleHandler())
@@ -56,7 +53,7 @@ import ratpack.registry.RegistrySpec;
  *                   }
  *                 });
  *             }
- *           }));
+ *           });
  *       }
  *     });
  *   }
@@ -140,15 +137,6 @@ public interface Chain {
   Chain delete(Handler handler);
 
   /**
-   * Adds a handler to this chain that changes the {@link ratpack.file.FileSystemBinding} for the given handler.
-   *
-   * @param path the relative path to the new file system binding point
-   * @param handler the handler
-   * @return this}
-   */
-  Chain fileSystem(String path, Handler handler);
-
-  /**
    * Adds a handler to this chain that changes the {@link ratpack.file.FileSystemBinding} for the given handler chain.
    *
    * @param path the relative path to the new file system binding point
@@ -220,7 +208,7 @@ public interface Chain {
    * matches the given {@code path} exactly.
    * <p>
    * Nesting {@code path} handlers will not work due to the exact matching, use a combination of {@code path}
-   * and {@code prefix} instead.  See {@link Chain#prefix(String, Handler)} for details.
+   * and {@code prefix} instead.  See {@link Chain#prefix(String, ratpack.func.Action)} for details.
    * <pre>
    *   // this will not work
    *   path("person/:id") {
@@ -353,19 +341,6 @@ public interface Chain {
   Chain post(Handler handler);
 
   /**
-   * Adds a handler that delegates to the given handler if the relative path starts with the given {@code prefix}.
-   * <p>
-   * All path based handlers become relative to the given {@code prefix}.
-   * <p>
-   * See {@link ratpack.handling.Handlers#prefix(String, Handler)} for format details on the {@code prefix} string.
-   *
-   * @param prefix the relative path to match on
-   * @param handler the handler to delegate to if the prefix matches
-   * @return this
-   */
-  Chain prefix(String prefix, Handler handler);
-
-  /**
    * Adds a handler that delegates to the given handlers if the
    * relative path starts with the given {@code prefix}.
    * <p>
@@ -458,15 +433,6 @@ public interface Chain {
   Chain register(Action<? super RegistrySpec> action) throws Exception;
 
   /**
-   * Adds a handler that inserts the given handler with the given registry via {@link Context#insert(ratpack.registry.Registry, Handler...)}.
-   *
-   * @param registry the registry to insert
-   * @param handler the handler to insert
-   * @return this
-   */
-  Chain register(Registry registry, Handler handler);
-
-  /**
    * Adds a handler that inserts the given handler chain with the given registry via {@link Context#insert(ratpack.registry.Registry, Handler...)}.
    *
    * @param registry the registry to insert
@@ -475,16 +441,6 @@ public interface Chain {
    * @throws Exception any thrown by {@code action}
    */
   Chain register(Registry registry, Action<? super Chain> action) throws Exception;
-
-  /**
-   * Adds a handler that inserts the given handler with the a registry built by the given action via {@link Context#insert(ratpack.registry.Registry, Handler...)}.
-   *
-   * @param registryAction the definition of the registry to insert
-   * @param handler the handler to insert
-   * @return this
-   * @throws Exception any thrown by {@code action}
-   */
-  Chain register(Action<? super RegistrySpec> registryAction, Handler handler) throws Exception;
 
   /**
    * Adds a handler that inserts the given handler chain with a registry built by the given action via {@link Context#insert(ratpack.registry.Registry, Handler...)}.

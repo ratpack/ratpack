@@ -79,24 +79,18 @@ public interface GroovyChain extends Chain {
    * {@inheritDoc}
    */
   @Override
-  GroovyChain fileSystem(String path, Handler handler);
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
   GroovyChain fileSystem(String path, Action<? super Chain> action) throws Exception;
 
   /**
    * Creates a {@code List} of {@code Handler} from the given {@code Closure} and adds a {@code Handler} to this {@code GroovyChain} that
    * changes the {@link ratpack.file.FileSystemBinding} for the {@code Handler} list.
    * <p>
-   * See {@link GroovyChain#fileSystem(String, Handler)} for more details.
+   * See {@link GroovyChain#fileSystem(String, ratpack.func.Action)} for more details.
    *
    * @param path the relative {@code path} to the new file system binding point
    * @param handlers the definition of the handler chain
    * @return this {@code GroovyChain}
-   * @throws Exception any exception thrown by the given closure
+   * @throws Exception any thrown by {@code closure}
    */
   GroovyChain fileSystem(String path, @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handlers) throws Exception;
 
@@ -192,6 +186,7 @@ public interface GroovyChain extends Chain {
    * @param hostName the name of the HTTP Header to match on
    * @param handler the handler to delegate to
    * @return this {@code GroovyChain}
+   * @throws Exception any thrown by {@code closure}
    * @see #host(String, ratpack.func.Action)
    */
   GroovyChain host(String hostName, @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler) throws Exception;
@@ -275,12 +270,6 @@ public interface GroovyChain extends Chain {
    * {@inheritDoc}
    */
   @Override
-  GroovyChain prefix(String prefix, Handler handler);
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
   GroovyChain prefix(String prefix, Action<? super Chain> action) throws Exception;
 
   /**
@@ -288,7 +277,7 @@ public interface GroovyChain extends Chain {
    * this {@code GroovyChain} that delegates to the {@code Handler} list if the relative path starts with the given
    * {@code prefix}.
    * <p>
-   * See {@link Chain#prefix(String, ratpack.handling.Handler)} for more details.
+   * See {@link Chain#prefix(String, ratpack.func.Action)} for more details.
    *
    * @param prefix the relative path to match on
    * @param chain the definition of the chain to delegate to
@@ -336,19 +325,7 @@ public interface GroovyChain extends Chain {
    * {@inheritDoc}
    */
   @Override
-  GroovyChain register(Registry registry, Handler handler);
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
   GroovyChain register(Registry registry, Action<? super Chain> action) throws Exception;
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  GroovyChain register(Action<? super RegistrySpec> registryAction, Handler handler) throws Exception;
 
   GroovyChain register(Action<? super RegistrySpec> registryAction, @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler) throws Exception;
 

@@ -27,8 +27,6 @@ import ratpack.test.handling.HandlingResult;
 import ratpack.test.handling.RequestFixture;
 import ratpack.test.handling.internal.DefaultRequestFixture;
 
-import static ratpack.util.ExceptionUtils.uncheck;
-
 /**
  * Static methods for the unit testing of handlers.
  */
@@ -58,7 +56,7 @@ public abstract class UnitTest {
    *     }
    *   }
    *
-   *   public static void main(String[] args) {
+   *   public static void main(String[] args) throws Exception {
    *     HandlingResult result = UnitTest.handle(new MyHandler(), new RequestFixtureAction() {
    *       public void execute() {
    *         header("input-value", "foo");
@@ -76,11 +74,15 @@ public abstract class UnitTest {
    * @param action The configuration of the context for the handler
    * @return A result object indicating what happened
    * @throws HandlerTimeoutException if the handler takes more than {@link ratpack.test.handling.RequestFixture#timeout(int)} seconds to send a response or call {@code next()} on the context
+   * @throws Exception any thrown by {@code action}
    * @see #handle(Action, Action)
    * @see ratpack.test.handling.RequestFixtureAction
    */
-  public static HandlingResult handle(Handler handler, Action<? super RequestFixture> action) throws HandlerTimeoutException {
-    return buildFixture(action).handle(handler);
+  @SuppressWarnings("overloads")
+  public static HandlingResult handle(Handler handler, Action<? super RequestFixture> action) throws Exception {
+    RequestFixture requestFixture = requestFixture();
+    action.execute(requestFixture);
+    return requestFixture.handle(handler);
   }
 
   /**
@@ -113,7 +115,7 @@ public abstract class UnitTest {
    *     }
    *   }
    *
-   *   public static void main(String[] args) {
+   *   public static void main(String[] args) throws Exception {
    *     HandlingResult result = UnitTest.handle(new MyHandlers(), new RequestFixtureAction() {
    *       public void execute() {
    *         header("input-value", "foo");
@@ -131,18 +133,22 @@ public abstract class UnitTest {
    * @param requestFixtureAction the configuration of the request fixture
    * @return a result object indicating what happened
    * @throws HandlerTimeoutException if the handler takes more than {@link ratpack.test.handling.RequestFixture#timeout(int)} seconds to send a response or call {@code next()} on the context
+   * @throws Exception any thrown by {@code chainAction} or {@code requestFixtureAction}
    * @see #handle(Handler, Action)
    * @see ratpack.test.handling.RequestFixtureAction
    */
-  public static HandlingResult handle(Action<? super Chain> chainAction, Action<? super RequestFixture> requestFixtureAction) throws HandlerTimeoutException {
-    return buildFixture(requestFixtureAction).handle(chainAction);
+  @SuppressWarnings("overloads")
+  public static HandlingResult handle(Action<? super Chain> chainAction, Action<? super RequestFixture> requestFixtureAction) throws Exception {
+    RequestFixture requestFixture = requestFixture();
+    requestFixtureAction.execute(requestFixture);
+    return requestFixture.handle(chainAction);
   }
 
   /**
    * Create a request fixture, for unit testing of {@link Handler handlers}.
    *
-   * @see #handle(Handler, Action)
-   * @see #handle(Action, Action)
+   * @see #handle(ratpack.handling.Handler, ratpack.func.Action)
+   * @see #handle(ratpack.func.Action, ratpack.func.Action)
    * @return a request fixture
    */
   public static RequestFixture requestFixture() {
@@ -217,7 +223,7 @@ public abstract class UnitTest {
    *       final AsyncService service = new AsyncService(harness.getControl());
    *
    *       // exercise the async code using the harness, blocking until the promised value is available
-   *       ExecResult<String> result = harness.execute(new Function&lt;Execution, Promise&lt;String&gt;&gt;() {
+   *       ExecResult&lt;String&gt; result = harness.execute(new Function&lt;Execution, Promise&lt;String&gt;&gt;() {
    *         public Promise&lt;String&gt; apply(Execution execution) {
    *           // execute the code under test
    *           return service.promise("foo");
@@ -234,16 +240,6 @@ public abstract class UnitTest {
    */
   public static ExecHarness execHarness() {
     return new DefaultExecHarness(LaunchConfigBuilder.noBaseDir().build().getExecController());
-  }
-
-  private static RequestFixture buildFixture(Action<? super RequestFixture> action) {
-    RequestFixture fixture = requestFixture();
-    try {
-      action.execute(fixture);
-    } catch (Exception e) {
-      throw uncheck(e);
-    }
-    return fixture;
   }
 
 }

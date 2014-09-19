@@ -63,7 +63,7 @@ import ratpack.http.TypedData;
  *   }
  *
  *   // unit test
- *   public static void main(String[] args) {
+ *   public static void main(String[] args) throws Exception {
  *     HandlingResult result = UnitTest.handle(new ExampleHandler(), new Action&lt;RequestFixture&gt;() {
  *       public void execute(RequestFixture fixture) throws Exception {
  *         fixture

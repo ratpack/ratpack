@@ -153,7 +153,7 @@ public abstract class Registries {
    * @param registryBacking the implementation that returns instances for the registry
    * @return a new registry
    */
-  public static Registry registry(final RegistryBacking registryBacking) {
+  public static Registry backedRegistry(final RegistryBacking registryBacking) {
     return new CachingBackedRegistry(registryBacking);
   }
 }

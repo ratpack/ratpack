@@ -38,8 +38,8 @@ if (jvmEncoding != "UTF-8") {
   throw new IllegalStateException("Build environment must be UTF-8 (it is: $jvmEncoding) - add '-Dfile.encoding=UTF-8' to the GRADLE_OPTS environment variable ")
 }
 
-if (!JavaVersion.current().java7Compatible) {
-  throw new IllegalStateException("Must be built with Java 7 or higher")
+if (!JavaVersion.current().java8Compatible) {
+  throw new IllegalStateException("Must be built with Java 8 or higher")
 }
 
 apply plugin: 'artifactory'
@@ -148,71 +148,6 @@ subprojects {
   if (rootProject.hasProperty("ciBuild")) {
     plugins.withType(ReportingBasePlugin) {
       reporting.baseDir = rootProject.file("build/reports/$name")
-    }
-  }
-
-  plugins.withType(JavaPlugin) {
-    sourceSets.main {
-      resources {
-        srcDir rootProject.file("shared-resources")
-      }
-    }
-
-    tasks.withType(AbstractCompile) {
-      options.compilerArgs << "-Werror" << "-Xlint:all" << "-Xlint:-options" << "-Xlint:-serial"
-    }
-
-    test {
-      testLogging {
-        exceptionFormat "full"
-        showStackTraces true
-        showCauses true
-        quiet {
-          events "failed"
-        }
-      }
-      jvmArgs "-Xss320k"
-    }
-
-    sourceCompatibility = "1.7"
-    targetCompatibility = "1.7"
-
-    task sourceJar(type: Jar) {
-      description "An archive of the source code for Maven Central"
-      classifier "sources"
-      from sourceSets.main.allSource
-    }
-
-    task javadocJar(type: Jar) {
-      description "An archive of the JavaDocs for Maven Central"
-      classifier "javadoc"
-      from javadoc
-    }
-
-    artifacts {
-      archives javadocJar, sourceJar
-    }
-
-    signing {
-      if (!isSnapshot) {
-        sign configurations.archives
-      }
-    }
-
-    install {
-      repositories {
-        mavenDeployer {
-          repository(url: localRepoUrl)
-        }
-      }
-    }
-
-    install.repositories["mavenInstaller"].beforeDeployment { deployment ->
-      if (!isSnapshot) {
-        artifacts {
-          signatures signing.signPom(deployment)
-        }
-      }
     }
   }
 

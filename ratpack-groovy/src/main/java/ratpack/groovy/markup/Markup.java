@@ -23,7 +23,7 @@ import java.nio.charset.Charset;
 /**
  * Render type for markup to be built using Groovy's {@link groovy.xml.MarkupBuilder}.
  *
- * @see ratpack.groovy.Groovy#markupBuilder(String, String, groovy.lang.Closure)
+ * @see ratpack.groovy.Groovy#markupBuilder(CharSequence, CharSequence, groovy.lang.Closure)
  */
 public interface Markup {
 

@@ -72,7 +72,7 @@ import java.util.concurrent.Callable;
  *     }
  *   }
  *
- *   public static void main(String[] args) {
+ *   public static void main(String[] args) throws Exception {
  *     HandlingResult result = UnitTest.handle(
  *       new ChainAction() {
  *         protected void execute() {

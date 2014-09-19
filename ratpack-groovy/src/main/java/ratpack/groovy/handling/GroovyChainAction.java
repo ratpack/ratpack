@@ -144,11 +144,6 @@ public abstract class GroovyChainAction implements Action<Chain>, GroovyChain {
   abstract protected void execute() throws Exception;
 
   @Override
-  public GroovyChain fileSystem(String path, Handler handler) {
-    return getChain().fileSystem(path, handler);
-  }
-
-  @Override
   public GroovyChain fileSystem(String path, Action<? super Chain> action) throws Exception {
     return getChain().fileSystem(path, action);
   }
@@ -277,11 +272,6 @@ public abstract class GroovyChainAction implements Action<Chain>, GroovyChain {
   }
 
   @Override
-  public GroovyChain prefix(String prefix, Handler handler) {
-    return getChain().prefix(prefix, handler);
-  }
-
-  @Override
   public GroovyChain prefix(String prefix, Action<? super Chain> action) throws Exception {
     return getChain().prefix(prefix, action);
   }
@@ -322,18 +312,8 @@ public abstract class GroovyChainAction implements Action<Chain>, GroovyChain {
   }
 
   @Override
-  public GroovyChain register(Registry registry, Handler handler) {
-    return getChain().register(registry, handler);
-  }
-
-  @Override
   public GroovyChain register(Registry registry, Action<? super Chain> action) throws Exception {
     return getChain().register(registry, action);
-  }
-
-  @Override
-  public GroovyChain register(Action<? super RegistrySpec> registryAction, Handler handler) throws Exception {
-    return getChain().register(registryAction, handler);
   }
 
   @Override

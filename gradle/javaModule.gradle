@@ -15,11 +15,76 @@
  */
 
 apply plugin: "groovy"
+//apply from: "$rootDir/gradle/checkstyle.gradle" // doesn't work with Java 8.
+apply from: "$rootDir/gradle/codenarc.gradle"
+
+sourceSets.main {
+  resources {
+    srcDir rootProject.file("shared-resources")
+  }
+}
 
 dependencies {
   testCompile commonDependencies.groovy
   testCompile commonDependencies.spock
   testCompile project(":ratpack-test-internal")
+}
+
+sourceCompatibility = "1.8"
+targetCompatibility = "1.8"
+
+tasks.withType(AbstractCompile) {
+  options.compilerArgs << "-Werror" << "-Xlint:all" << "-Xlint:-options" << "-Xlint:-serial"
+}
+
+test {
+  testLogging {
+    exceptionFormat "full"
+    showStackTraces true
+    showCauses true
+    quiet {
+      events "failed"
+    }
+  }
+  jvmArgs "-Xss320k"
+}
+
+task sourceJar(type: Jar) {
+  description "An archive of the source code for Maven Central"
+  classifier "sources"
+  from sourceSets.main.allSource
+}
+
+task javadocJar(type: Jar) {
+  description "An archive of the JavaDocs for Maven Central"
+  classifier "javadoc"
+  from javadoc
+}
+
+artifacts {
+  archives javadocJar, sourceJar
+}
+
+signing {
+  if (!isSnapshot) {
+    sign configurations.archives
+  }
+}
+
+install {
+  repositories {
+    mavenDeployer {
+      repository(url: localRepoUrl)
+    }
+  }
+}
+
+install.repositories["mavenInstaller"].beforeDeployment { deployment ->
+  if (!isSnapshot) {
+    artifacts {
+      signatures signing.signPom(deployment)
+    }
+  }
 }
 
 configurations {
@@ -39,9 +104,6 @@ configurations {
     }
   }
 }
-
-apply from: "$rootDir/gradle/checkstyle.gradle"
-apply from: "$rootDir/gradle/codenarc.gradle"
 
 javadoc {
   doFirst {

@@ -72,9 +72,9 @@ class ShadowJarSpec extends FunctionalSpec {
   String osSpecificCommand() {
     if (StandardSystemProperty.OS_NAME.value().startsWith("Windows")) {
       // Windows doesn't take the working directory into account when searching for the command so a relative path won't work.
-      return file("build/install/test-app/bin/test-app.bat").absolutePath
+      file("build/install/test-app/bin/test-app.bat").absolutePath
     } else {
-      return "bin/test-app"
+      "bin/test-app"
     }
   }
 }

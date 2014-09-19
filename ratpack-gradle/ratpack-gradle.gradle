@@ -16,14 +16,14 @@
 
 description = "Build time Ratpack support with the Gradle build tool - http://gradle.org"
 
-apply plugin: 'groovy'
+apply from: "$rootDir/gradle/javaModule.gradle"
 
 dependencies {
   compile localGroovy()
   compile gradleApi()
 
   testCompile 'org.spockframework:spock-core:0.7-groovy-2.0', {
-    exclude module: "groovy-all"
+    exclude module: "groovy-all", group: "org.codehaus.groovy"
   }
 }
 

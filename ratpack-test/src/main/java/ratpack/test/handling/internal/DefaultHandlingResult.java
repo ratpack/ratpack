@@ -39,7 +39,6 @@ import ratpack.http.internal.DefaultResponse;
 import ratpack.http.internal.DefaultSentResponse;
 import ratpack.http.internal.DefaultStatus;
 import ratpack.launch.LaunchConfig;
-import ratpack.launch.LaunchConfigBuilder;
 import ratpack.registry.Registries;
 import ratpack.registry.Registry;
 import ratpack.render.internal.RenderController;
@@ -69,7 +68,7 @@ public class DefaultHandlingResult implements HandlingResult {
   private Object rendered;
   private Integer clientError;
 
-  public DefaultHandlingResult(final Request request, final MutableHeaders responseHeaders, Registry registry, final int timeout, LaunchConfigBuilder launchConfigBuilder, final Handler handler) {
+  public DefaultHandlingResult(final Request request, final MutableHeaders responseHeaders, Registry registry, final int timeout, LaunchConfig launchConfig, final Handler handler) {
 
     // There are definitely concurrency bugs in here around timing out
     // ideally we should prevent the stat from changing after a timeout occurs
@@ -131,8 +130,6 @@ public class DefaultHandlingResult implements HandlingResult {
         latch.countDown();
       }
     };
-
-    final LaunchConfig launchConfig = launchConfigBuilder.build();
 
     Stopper stopper = new Stopper() {
       @Override

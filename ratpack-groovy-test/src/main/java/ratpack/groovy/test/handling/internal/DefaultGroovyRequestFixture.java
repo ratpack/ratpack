@@ -28,7 +28,6 @@ import ratpack.registry.RegistryBuilder;
 import ratpack.registry.RegistrySpec;
 import ratpack.test.handling.HandlingResult;
 import ratpack.test.handling.RequestFixture;
-import ratpack.test.handling.HandlerTimeoutException;
 
 import java.nio.file.Path;
 import java.util.Map;
@@ -48,12 +47,12 @@ public class DefaultGroovyRequestFixture implements GroovyRequestFixture {
   }
 
   @Override
-  public HandlingResult handle(Handler handler) throws HandlerTimeoutException {
+  public HandlingResult handle(Handler handler) {
     return delegate.handle(handler);
   }
 
   @Override
-  public HandlingResult handle(Action<? super Chain> chainAction) throws HandlerTimeoutException {
+  public HandlingResult handle(Action<? super Chain> chainAction) throws Exception {
     return delegate.handle(chainAction);
   }
 

@@ -59,10 +59,6 @@ public class DefaultChain implements Chain {
     return delete("", handler);
   }
 
-  public Chain fileSystem(String path, Handler handler) {
-    return handler(Handlers.fileSystem(getLaunchConfig(), path, handler));
-  }
-
   public Chain fileSystem(String path, Action<? super Chain> action) throws Exception {
     return handler(Handlers.fileSystem(getLaunchConfig(), path, chain(action)));
   }
@@ -96,7 +92,9 @@ public class DefaultChain implements Chain {
     return handler(Handlers.header(headerName, headerValue, handler));
   }
 
-  public Chain host(String hostName, Action<? super Chain> action) throws Exception { return handler(Handlers.host(hostName, chain(action))); }
+  public Chain host(String hostName, Action<? super Chain> action) throws Exception {
+    return handler(Handlers.host(hostName, chain(action)));
+  }
 
   public Chain patch(String path, Handler handler) {
     return handler(Handlers.path(path, Handlers.chain(Handlers.patch(), handler)));
@@ -114,12 +112,8 @@ public class DefaultChain implements Chain {
     return post("", handler);
   }
 
-  public Chain prefix(String prefix, Handler handler) {
-    return handler(Handlers.prefix(prefix, handler));
-  }
-
   public Chain prefix(String prefix, Action<? super Chain> action) throws Exception {
-    return prefix(prefix, chain(action));
+    return handler(Handlers.prefix(prefix, chain(action)));
   }
 
   public Chain put(String path, Handler handler) {
@@ -140,22 +134,13 @@ public class DefaultChain implements Chain {
     return handler(Handlers.register(Registries.registry(action)));
   }
 
-  public Chain register(Registry registry, Handler handler) {
-    return handler(Handlers.register(registry, handler));
-  }
-
   public Chain register(Action<? super RegistrySpec> registryAction, Action<? super Chain> chainAction) throws Exception {
     return register(Registries.registry(registryAction), chainAction);
   }
 
   @Override
   public Chain register(Registry registry, Action<? super Chain> action) throws Exception {
-    return register(registry, chain(action));
-  }
-
-  @Override
-  public Chain register(Action<? super RegistrySpec> registryAction, Handler handler) throws Exception {
-    return register(Registries.registry(registryAction), handler);
+    return handler(Handlers.register(registry, chain(action)));
   }
 
   @Override
@@ -164,6 +149,8 @@ public class DefaultChain implements Chain {
   }
 
   @Override
-  public Chain redirect(int code, String location) { return handler(Handlers.redirect(code, location)); }
+  public Chain redirect(int code, String location) {
+    return handler(Handlers.redirect(code, location));
+  }
 
 }

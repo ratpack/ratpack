@@ -24,17 +24,11 @@ import ratpack.util.ExceptionUtils;
  */
 public abstract class Actions {
 
-  private final static Action<Throwable> THROW_EXCEPTION = new Action<Throwable>() {
-    @Override
-    public void execute(Throwable throwable) throws Exception {
-      throw ExceptionUtils.toException(throwable);
-    }
+  private final static Action<Throwable> THROW_EXCEPTION = throwable -> {
+    throw ExceptionUtils.toException(throwable);
   };
 
-  private static final Action<Object> NOOP = new Action<Object>() {
-    @Override
-    public void execute(Object thing) throws Exception {
-    }
+  private static final Action<Object> NOOP = thing -> {
   };
 
   private Actions() {
@@ -95,43 +89,21 @@ public abstract class Actions {
 
   /**
    * Returns an action that immediately throws the given exception.
+   * <p>
+   * The exception is thrown via {@link ExceptionUtils#toException(Throwable)}
    *
+   * @param <T> the argument type (anything, as the argument is ignored)
+   * @param throwable the throwable to immediately throw when the returned action is executed
    * @return an action that immediately throws the given exception.
    */
   public static <T> Action<T> throwException(final Throwable throwable) {
-    return new Action<T>() {
-      @Override
-      public void execute(T t) throws Exception {
-        throw ExceptionUtils.toException(throwable);
-      }
-    };
-  }
-
-  /**
-   * Returns an action that acts on an action that acts on the given argument.
-   * <p>
-   * The returned action is effectively a callback for executing a callback for the given argument.
-   *
-   * @param t the argument to give to actions given to the returned action
-   * @param <T> the type of the argument
-   * @return an action that acts on an action that acts on the given argument
-   */
-  public static <T> Action<Action<? super T>> actionAction(final T t) {
-    return new Action<Action<? super T>>() {
-      @Override
-      public void execute(Action<? super T> action) throws Exception {
-        action.execute(t);
-      }
+    return t -> {
+      throw ExceptionUtils.toException(throwable);
     };
   }
 
   public static <T> Action<T> ignoreArg(final NoArgAction noArgAction) {
-    return new Action<T>() {
-      @Override
-      public void execute(T t) throws Exception {
-        noArgAction.execute();
-      }
-    };
+    return t -> noArgAction.execute();
   }
 
 }

@@ -64,7 +64,7 @@ import java.util.Properties;
  * LaunchConfig launchConfig = LaunchConfigBuilder.baseDir(new File("appRoot"))
  *   .build(new HandlerFactory() {
  *     public Handler create(LaunchConfig launchConfig) {
- *       return Guice.handler(launchConfig, new ModuleBootstrap(), new Action&lt;Chain&gt;() {
+ *       return Guice.chain(launchConfig, new ModuleBootstrap(), new Action&lt;Chain&gt;() {
  *         public void execute(Chain chain) {
  *           //...
  *         }

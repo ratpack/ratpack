@@ -69,14 +69,13 @@ public abstract class GroovyUnitTest {
    * @param closure the configuration of the request fixture
    * @return The result of the invocation
    * @throws HandlerTimeoutException if the handler takes more than {@link RequestFixture#timeout(int)} seconds to send a response or call {@code next()} on the context
+   * @throws Exception any thrown by {@code closure}
    */
-  public static HandlingResult handle(Handler handler, @DelegatesTo(GroovyRequestFixture.class) final Closure<?> closure) throws HandlerTimeoutException {
-    return UnitTest.handle(handler, new Action<RequestFixture>() {
-      @Override
-      public void execute(RequestFixture builder) throws Exception {
-        GroovyRequestFixture groovyBuilder = new DefaultGroovyRequestFixture(builder);
-        ClosureUtil.configureDelegateFirst(groovyBuilder, closure);
-      }
+  @SuppressWarnings("overloads")
+  public static HandlingResult handle(Handler handler, @DelegatesTo(GroovyRequestFixture.class) final Closure<?> closure) throws Exception {
+    return UnitTest.handle(handler, builder -> {
+      GroovyRequestFixture groovyBuilder = new DefaultGroovyRequestFixture(builder);
+      ClosureUtil.configureDelegateFirst(groovyBuilder, closure);
     });
   }
 
@@ -115,14 +114,13 @@ public abstract class GroovyUnitTest {
    * @param closure the configuration of the request fixture
    * @return The result of the invocation
    * @throws HandlerTimeoutException if the handler takes more than {@link RequestFixture#timeout(int)} seconds to send a response or call {@code next()} on the context
+   * @throws Exception any thrown by {@code closure}
    */
-  public static HandlingResult handle(Action<? super Chain> handlers, @DelegatesTo(GroovyRequestFixture.class) final Closure<?> closure) throws HandlerTimeoutException {
-    return UnitTest.handle(handlers, new Action<RequestFixture>() {
-      @Override
-      public void execute(RequestFixture builder) throws Exception {
-        GroovyRequestFixture groovyBuilder = new DefaultGroovyRequestFixture(builder);
-        ClosureUtil.configureDelegateFirst(groovyBuilder, closure);
-      }
+  @SuppressWarnings("overloads")
+  public static HandlingResult handle(Action<? super Chain> handlers, @DelegatesTo(GroovyRequestFixture.class) final Closure<?> closure) throws Exception {
+    return UnitTest.handle(handlers, builder -> {
+      GroovyRequestFixture groovyBuilder = new DefaultGroovyRequestFixture(builder);
+      ClosureUtil.configureDelegateFirst(groovyBuilder, closure);
     });
   }
 

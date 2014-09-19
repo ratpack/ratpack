@@ -72,7 +72,7 @@ import javax.inject.Provider;
  * <p>
  * Added modules can implement the {@link HandlerDecoratingModule} interface to facilitate adding handlers implicitly to the handler chain.
  *
- * @see Guice#handler(ratpack.launch.LaunchConfig, ratpack.func.Action, ratpack.func.Action)
+ * @see Guice#chain(ratpack.launch.LaunchConfig, ratpack.func.Action, ratpack.func.Action)
  * @see HandlerDecoratingModule
  */
 public interface BindingsSpec {

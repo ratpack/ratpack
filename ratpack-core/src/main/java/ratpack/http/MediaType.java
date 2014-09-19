@@ -83,6 +83,7 @@ public interface MediaType {
   /**
    * The value of the "charset" parameter, or the given default value of no charset was specified.
    *
+   * @param defaultValue the value if this type has no charset
    * @return the value of the charset parameter, or the given default
    */
   String getCharset(String defaultValue);

@@ -152,7 +152,7 @@ public abstract class Spring {
    * @return Registry instance that looks up dependencies in the Spring Boot Application's context
    */
   public static Registry registry(final ListableBeanFactory beanFactory) {
-    return Registries.registry(new SpringRegistryBacking(beanFactory));
+    return Registries.backedRegistry(new SpringRegistryBacking(beanFactory));
   }
 
   /**

@@ -23,13 +23,13 @@ import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.util.CharsetUtil;
 import ratpack.func.Action;
 import ratpack.handling.Chain;
-import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.handling.Handlers;
 import ratpack.http.MutableHeaders;
 import ratpack.http.Request;
 import ratpack.http.internal.DefaultRequest;
 import ratpack.http.internal.NettyHeadersBackedMutableHeaders;
+import ratpack.launch.LaunchConfig;
 import ratpack.launch.LaunchConfigBuilder;
 import ratpack.path.PathBinding;
 import ratpack.path.internal.DefaultPathBinding;
@@ -84,37 +84,30 @@ public class DefaultRequestFixture implements RequestFixture {
     return registryBuilder;
   }
 
-  /**
-   * Invokes a handler in a controlled way, allowing it to be tested.
-   *
-   * @param handler The handler to invoke
-   * @return A result object indicating what happened
-   * @throws ratpack.test.handling.HandlerTimeoutException if the handler takes more than {@link #timeout(int)} seconds to send a response or call {@code next()} on the context
-   */
   @Override
   public HandlingResult handle(Handler handler) throws HandlerTimeoutException {
-    Request request = new DefaultRequest(requestHeaders, method, uri, requestBody);
+    return invoke(handler, launchConfigBuilder.build(), registryBuilder.build());
+  }
 
+  @Override
+  public HandlingResult handle(Action<? super Chain> chainAction) throws Exception {
+    LaunchConfig launchConfig = launchConfigBuilder.build();
     Registry registry = registryBuilder.build();
+    Handler handler = Handlers.chain(launchConfig, registry, chainAction);
+    return invoke(handler, launchConfig, registry);
+  }
+
+  private HandlingResult invoke(Handler handler, LaunchConfig launchConfig, Registry registry) throws HandlerTimeoutException {
+    Request request = new DefaultRequest(requestHeaders, method, uri, requestBody);
 
     return new DefaultHandlingResult(
       request,
       responseHeaders,
       registry,
       timeout,
-      launchConfigBuilder,
+      launchConfig,
       handler
     );
-  }
-
-  @Override
-  public HandlingResult handle(final Action<? super Chain> chainAction) throws HandlerTimeoutException {
-    return handle(new Handler() {
-      @Override
-      public void handle(Context context) throws Exception {
-        Handlers.chain(context.getLaunchConfig(), chainAction).handle(context);
-      }
-    });
   }
 
   @Override

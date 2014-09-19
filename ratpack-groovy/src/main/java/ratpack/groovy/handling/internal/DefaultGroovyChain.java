@@ -74,12 +74,6 @@ public class DefaultGroovyChain implements GroovyChain {
   }
 
   @Override
-  public GroovyChain fileSystem(String path, Handler handler) {
-    delegate.fileSystem(path, handler);
-    return this;
-  }
-
-  @Override
   public GroovyChain fileSystem(String path, Action<? super Chain> action) throws Exception {
     delegate.fileSystem(path, action);
     return this;
@@ -87,7 +81,7 @@ public class DefaultGroovyChain implements GroovyChain {
 
   @Override
   public GroovyChain fileSystem(String path, Closure<?> handlers) throws Exception {
-    return fileSystem(path, toHandler(handlers));
+    return fileSystem(path, toChainAction(handlers));
   }
 
   @Override
@@ -212,12 +206,6 @@ public class DefaultGroovyChain implements GroovyChain {
   }
 
   @Override
-  public GroovyChain prefix(String prefix, Handler handler) {
-    delegate.prefix(prefix, handler);
-    return this;
-  }
-
-  @Override
   public GroovyChain prefix(String prefix, Action<? super Chain> action) throws Exception {
     delegate.prefix(prefix, action);
     return this;
@@ -225,7 +213,7 @@ public class DefaultGroovyChain implements GroovyChain {
 
   @Override
   public GroovyChain prefix(String prefix, Closure<?> chain) throws Exception {
-    return prefix(prefix, toHandler(chain));
+    return prefix(prefix, toChainAction(chain));
   }
 
   @Override
@@ -263,20 +251,8 @@ public class DefaultGroovyChain implements GroovyChain {
   }
 
   @Override
-  public GroovyChain register(Registry registry, Handler handler) {
-    delegate.register(registry, handler);
-    return this;
-  }
-
-  @Override
   public GroovyChain register(Registry registry, Action<? super Chain> action) throws Exception {
     delegate.register(registry, action);
-    return this;
-  }
-
-  @Override
-  public GroovyChain register(Action<? super RegistrySpec> registryAction, Handler handler) throws Exception {
-    delegate.register(registryAction, handler);
     return this;
   }
 
@@ -288,7 +264,7 @@ public class DefaultGroovyChain implements GroovyChain {
 
   @Override
   public GroovyChain register(Registry registry, @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handlers) throws Exception {
-    return register(registry, toHandler(handlers));
+    return register(registry, toChainAction(handlers));
   }
 
   @Override
@@ -298,11 +274,11 @@ public class DefaultGroovyChain implements GroovyChain {
 
   @Override
   public GroovyChain register(Action<? super RegistrySpec> registryAction, @DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> handler) throws Exception {
-    return register(registryAction, toHandler(handler));
+    return register(registryAction, toChainAction(handler));
   }
 
-  private Handler toHandler(Closure<?> handlers) throws Exception {
-    return Groovy.chain(getLaunchConfig(), getRegistry(), handlers);
+  private Action<Chain> toChainAction(Closure<?> handlers) throws Exception {
+    return Groovy.chainAction(handlers);
   }
 
   @Override

@@ -70,7 +70,7 @@ public abstract class RequestFixtureAction implements Action<RequestFixture>, Re
    * {@inheritDoc}
    */
   @Override
-  public HandlingResult handle(Action<? super Chain> chainAction) throws HandlerTimeoutException {
+  public HandlingResult handle(Action<? super Chain> chainAction) throws Exception {
     return getRequestFixture().handle(chainAction);
   }
 

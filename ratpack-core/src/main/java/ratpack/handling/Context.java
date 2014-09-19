@@ -227,7 +227,7 @@ public interface Context extends ExecControl, Registry {
    *     }
    *   }
    *
-   *   public static void main(String[] args) {
+   *   public static void main(String[] args) throws Exception {
    *     Handler handler = new MultiMethodHandler();
    *
    *     HandlingResult result = UnitTest.handle(handler, new Action&lt;RequestFixture&gt;() {
@@ -305,7 +305,7 @@ public interface Context extends ExecControl, Registry {
    *     }
    *   }
    *
-   *   public static void main(String[] args) {
+   *   public static void main(String[] args) throws Exception {
    *     Handler handler = new ContentNegotiatingHandler();
    *
    *     HandlingResult result = UnitTest.handle(handler, new Action&lt;RequestFixture&gt;() {
@@ -569,7 +569,7 @@ public interface Context extends ExecControl, Registry {
    *     }
    *   }
    *
-   *   public static void main(String[] args) {
+   *   public static void main(String[] args) throws Exception {
    *     HandlingResult result = UnitTest.handle(new ForkingHandler(), Actions.noop());
    *     assert result.rendered(String.class).equals("3");
    *

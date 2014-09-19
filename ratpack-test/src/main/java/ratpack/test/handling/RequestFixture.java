@@ -31,7 +31,7 @@ import java.util.Map;
  * A request fixture emulates a request, <b>and</b> the effective state of the request handling in the handler pipeline.
  * <p>
  * A request fixture can be obtained by the {@link ratpack.test.UnitTest#requestFixture()} method.
- * However it is often more convenient to use the alternative {@link ratpack.test.UnitTest#handle} methods.
+ * However it is often more convenient to use the alternative {@link ratpack.test.UnitTest#handle(ratpack.handling.Handler, ratpack.func.Action)} method.
  * <p>
  * See {@link ratpack.test.UnitTest} for usage examples.
  *
@@ -99,6 +99,7 @@ public interface RequestFixture {
    * @return the effective result of the handling
    * @throws HandlerTimeoutException if the handler does not produce a result in the time limit defined by this fixture
    */
+  @SuppressWarnings("overloads")
   HandlingResult handle(Handler handler) throws HandlerTimeoutException;
 
   /**
@@ -107,8 +108,10 @@ public interface RequestFixture {
    * @param chainAction the handler chain to test
    * @return the effective result of the handling
    * @throws HandlerTimeoutException if the handler does not produce a result in the time limit defined by this fixture
+   * @throws Exception any thrown by {@code chainAction}
    */
-  HandlingResult handle(Action<? super Chain> chainAction) throws HandlerTimeoutException;
+  @SuppressWarnings("overloads")
+  HandlingResult handle(Action<? super Chain> chainAction) throws Exception;
 
   /**
    * Set a request header value.
@@ -169,6 +172,8 @@ public interface RequestFixture {
    * <p>
    * By default, there are no path tokens and no path binding.
    *
+   * @param boundTo the part of the request path that the binding bound to
+   * @param pastBinding the part of the request path past {@code boundTo}
    * @param pathTokens the path tokens and binding to make available to the handler(s) under test
    * @return this
    */
