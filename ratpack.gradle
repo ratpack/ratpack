@@ -92,7 +92,8 @@ ext {
   isTravis = System.getenv("TRAVIS") != null
   isDrone = System.getenv("DRONE") != null
   isCodeship = System.getenv("CI_NAME") == "codeship"
-  isCloudCi = isTravis || isDrone || isCodeship
+  isSnapCi = System.getenv("SNAP_CI") != null
+  isCloudCi = isTravis || isDrone || isCodeship || isSnapCi
 
   publishedModules = [
     "ratpack-core", "ratpack-groovy", "ratpack-guice", "ratpack-session", "ratpack-test", "ratpack-groovy-test",
