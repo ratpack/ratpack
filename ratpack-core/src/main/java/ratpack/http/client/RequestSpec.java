@@ -27,6 +27,13 @@ import java.nio.charset.Charset;
 public interface RequestSpec {
 
   /**
+   *
+   * @param maxRedirects Sets the maximum number of redirects to follow
+   * @return  The RequestSpec
+   */
+  RequestSpec redirects(int maxRedirects);
+
+  /**
    * @return {@link ratpack.http.MutableHeaders} that can be used to configure the headers that will be used for the request.
    */
   MutableHeaders getHeaders();

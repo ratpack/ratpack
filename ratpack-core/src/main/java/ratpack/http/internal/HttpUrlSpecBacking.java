@@ -140,6 +140,7 @@ public class HttpUrlSpecBacking implements HttpUrlSpec {
 
   @Override
   public HttpUrlSpec set(URI uri) {
+    this.pathSegments.clear(); //TODO Review I think this is correct or mabye add a reset / clear
     this.protocol = uri.getScheme().toLowerCase();
     if (!protocol.equals("http") && !protocol.equals("https")) {
       throw new IllegalArgumentException("uri " + uri + " must be a http or https uri");

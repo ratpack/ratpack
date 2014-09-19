@@ -85,7 +85,7 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
 
     then:
     getText() == "foo"
-    get("dir").statusCode == 302
+    getText("dir") == "bar"
     getText("dir/") == "bar"
   }
 
@@ -150,6 +150,7 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
     then:
     //TODO the issue is we need to allow users to build their own urls if they want instead of doing it via the get()
     requestSpec({ RequestSpec requestSpec ->
+      requestSpec.redirects 0
       requestSpec.url({ HttpUrlSpec httpUrlSpec ->
         if (key) {
           def map = [:]

@@ -47,6 +47,97 @@ class HttpClientSmokeSpec extends HttpClientSpec {
     text == "bar"
   }
 
+  def "can follow simple redirect get request"() {
+    given:
+    otherApp {
+      get("foo2") {
+        redirect(302, otherAppUrl("foo").toString())
+      }
+
+      get("foo") {
+        render "bar"
+      }
+    }
+
+    when:
+    handlers {
+      get { HttpClient httpClient ->
+        httpClient.get({ RequestSpec request ->
+          request.url { HttpUrlSpec httpUrlSpec ->
+            httpUrlSpec.set(otherAppUrl("foo2"))
+          }
+        }) then { ReceivedResponse response ->
+          render response.body.text
+        }
+      }
+    }
+
+    then:
+    text == "bar"
+  }
+
+
+  def "Do not follow simple redirect if redirects set to 0"() {
+    given:
+    otherApp {
+      get("foo2") {
+        redirect(302, otherAppUrl("foo").toString())
+      }
+
+      get("foo") {
+        render "bar"
+      }
+    }
+
+    when:
+    handlers {
+      get { HttpClient httpClient ->
+        httpClient.get({ RequestSpec request ->
+          request.redirects(0)
+          request.url { HttpUrlSpec httpUrlSpec ->
+            httpUrlSpec.set(otherAppUrl("foo2"))
+          }
+        }) then { ReceivedResponse response ->
+          render response.body.text
+        }
+      }
+    }
+
+    then:
+    text == ""
+  }
+
+  def "Stop redirects in loop"() {
+    given:
+    otherApp {
+      get("foo2") {
+        redirect(302, otherAppUrl("foo").toString())
+      }
+
+      get("foo") {
+        redirect(302, otherAppUrl("foo2").toString())
+      }
+    }
+
+    when:
+    handlers {
+      get { HttpClient httpClient ->
+        httpClient.get({ RequestSpec request ->
+          request.url { HttpUrlSpec httpUrlSpec ->
+            httpUrlSpec.set(otherAppUrl("foo2"))
+          }
+        }) then { ReceivedResponse response ->
+          render "Status: "+response.statusCode
+        }
+      }
+    }
+
+    then:
+    text == "Status: 302"
+  }
+
+
+
   def "can make post request"() {
     given:
     otherApp {

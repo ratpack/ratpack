@@ -15,9 +15,15 @@
  */
 package ratpack.handling
 
+import ratpack.http.client.RequestSpec
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 class RedirectHandlingSpec extends RatpackGroovyDslSpec {
+
+  @Override
+  void configureRequest(RequestSpec requestSpec){
+    requestSpec.redirects 0
+  }
 
   def "Absolute Path Redirect"() {
     when:

@@ -16,10 +16,16 @@
 
 package ratpack.http.internal
 
+import ratpack.http.client.RequestSpec
 import ratpack.launch.LaunchException
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 class RedirectionHandleSpec extends RatpackGroovyDslSpec {
+
+  @Override
+  void configureRequest(RequestSpec requestSpecification) {
+    requestSpecification.redirects(0)
+  }
 
   def "ok for valid"() {
     given:

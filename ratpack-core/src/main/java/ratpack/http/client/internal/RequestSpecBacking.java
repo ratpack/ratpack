@@ -16,6 +16,7 @@
 
 package ratpack.http.client.internal;
 
+import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.Unpooled;
@@ -42,6 +43,7 @@ public class RequestSpecBacking {
   private ByteBuf bodyByteBuf;
 
   private String method = "GET";
+  private int maxRedirects = 10;
 
   public RequestSpecBacking(MutableHeaders headers, ByteBufAllocator byteBufAllocator) {
     this.headers = headers;
@@ -52,6 +54,10 @@ public class RequestSpecBacking {
 
   public String getMethod() {
     return method;
+  }
+
+  public int getMaxRedirects() {
+    return maxRedirects;
   }
 
   @Nullable
@@ -70,6 +76,13 @@ public class RequestSpecBacking {
   private class Spec implements RequestSpec {
 
     private BodyImpl body = new BodyImpl();
+
+    @Override
+    public RequestSpec redirects(int maxRedirects) {
+      Preconditions.checkArgument(maxRedirects >= 0);
+      RequestSpecBacking.this.maxRedirects = maxRedirects;
+      return this;
+    }
 
     @Override
     public MutableHeaders getHeaders() {

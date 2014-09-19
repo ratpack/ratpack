@@ -109,6 +109,9 @@ class OpenIdRpSpec extends Specification {
   def "test successful auth"(RatpackOpenIdTestApplication aut) {
     setup:
     def client = newClient(aut)
+    client.requestSpec({RequestSpec requestSpec->
+      requestSpec.redirects(0)
+    })
     provider.addResult(true, EMAIL)
 
     when: "request a page that requires authentication"
@@ -129,6 +132,7 @@ class OpenIdRpSpec extends Specification {
     client.resetRequest()
     client.requestSpec { RequestSpec requestSpec ->
       requestSpec.headers.set("Cookie",response1.headers.getAll("Set-Cookie"))
+      requestSpec.redirects(0)
     }
     def response3 = client.get(response2.headers.get(LOCATION))
 
