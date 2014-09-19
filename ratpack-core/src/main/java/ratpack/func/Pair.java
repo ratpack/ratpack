@@ -21,100 +21,72 @@ package ratpack.func;
  * <p>
  * This can sometimes be useful when collecting facts about something as part of a data stream without using mutable data structures.
  * <pre class="java">
+ * import ratpack.func.Pair;
  * import ratpack.exec.ExecControl;
  * import ratpack.exec.Promise;
- * import ratpack.func.Action;
- * import ratpack.func.Function;
- * import ratpack.func.Pair;
  * import ratpack.handling.Context;
  * import ratpack.handling.Handler;
- * import ratpack.launch.HandlerFactory;
  * import ratpack.launch.LaunchConfig;
  * import ratpack.launch.LaunchConfigBuilder;
  * import ratpack.test.embed.EmbeddedApplication;
  * import ratpack.test.embed.LaunchConfigEmbeddedApplication;
- * 
- * import java.util.concurrent.Callable;
- * 
+ *
  * public class Example {
- * 
+ *
  *   public static class PersonService {
  *     private final ExecControl exec;
- * 
+ *
  *     public PersonService(ExecControl exec) {
  *       this.exec = exec;
  *     }
- * 
- *     public Promise&lt;Integer&gt; getAge(int personId) {
- *       return exec.blocking(new Callable&lt;Integer&gt;() {
- *         public Integer call() throws Exception {
- *           return 21;
- *         }
- *       });
+ *
+ *     public Promise<Integer> getAge(int personId) {
+ *       return exec.blocking(() -> 21);
  *     }
- * 
- *     public Promise&lt;String&gt; getName(int personId) {
- *       return exec.blocking(new Callable&lt;String&gt;() {
- *         public String call() throws Exception {
- *           return "John Doe";
- *         }
- *       });
+ *
+ *     public Promise<String> getName(int personId) {
+ *       return exec.blocking(() -> "John Doe");
  *     }
  *   }
- * 
+ *
  *   private static class ExampleHandler implements Handler {
  *     private final PersonService personService;
- * 
+ *
  *     private ExampleHandler(PersonService personService) {
  *       this.personService = personService;
  *     }
- * 
+ *
  *     public void handle(final Context context) {
  *       final int personId = 1;
  *       personService
  *         .getAge(personId)
- *         .map(new Function&lt;Integer, Pair&lt;Integer, Integer&gt;&gt;() {
- *           public Pair&lt;Integer, Integer&gt; apply(Integer age) throws Exception {
- *             return Pair.of(personId, age);
- *           }
- *         })
- *         .flatMap(new Function&lt;Pair&lt;Integer, Integer&gt;, Promise&lt;Pair&lt;Integer, Pair&lt;String, Integer&gt;&gt;&gt;&gt;() {
- *           public Promise&lt;Pair&lt;Integer, Pair&lt;String, Integer&gt;&gt;&gt; apply(final Pair&lt;Integer, Integer&gt; pair) throws Exception {
- *             return personService.getName(personId).map(new Function&lt;String, Pair&lt;Integer, Pair&lt;String, Integer&gt;&gt;&gt;() {
- *               public Pair&lt;Integer, Pair&lt;String, Integer&gt;&gt; apply(String s) throws Exception {
- *                 return pair.nestRight(s);
- *               }
- *             });
- *           }
- *         })
- *         .then(new Action&lt;Pair&lt;Integer, Pair&lt;String, Integer&gt;&gt;&gt;() {
- *           public void execute(Pair&lt;Integer, Pair&lt;String, Integer&gt;&gt; pair) throws Exception {
- *             int id = pair.left;
- *             int age = pair.right.right;
- *             String name = pair.right.left;
- * 
- *             context.render(name + " [" + id + "] - age: " + age);
- *           }
+ *         .map(age -> Pair.of(personId, age))
+ *         .flatMap(pair -> personService.getName(personId).map(pair::nestRight))
+ *         .then(pair -> {
+ *           int id = pair.left;
+ *           int age = pair.right.right;
+ *           String name = pair.right.left;
+ *
+ *           context.render(name + " [" + id + "] - age: " + age);
  *         });
  *     }
  *   }
- * 
+ *
  *   private static EmbeddedApplication createApp() {
  *     return new LaunchConfigEmbeddedApplication() {
  *       protected LaunchConfig createLaunchConfig() {
- *         return LaunchConfigBuilder.noBaseDir().port(0).build(new HandlerFactory() {
- *           public Handler create(LaunchConfig launchConfig) {
- *             ExecControl execControl = launchConfig.getExecController().getControl();
- *             return new ExampleHandler(new PersonService(execControl));
- *           }
+ *         return LaunchConfigBuilder.noBaseDir().port(0).build(launchConfig -> {
+ *           ExecControl execControl = launchConfig.getExecController().getControl();
+ *           return new ExampleHandler(new PersonService(execControl));
  *         });
  *       }
  *     };
  *   }
- * 
+ *
  *   public static void main(String[] args) {
  *     try (EmbeddedApplication app = createApp()) {
- *       assert app.getHttpClient().getText().equals("John Doe [1] - age: 21");
+ *       String text = app.getHttpClient().getText();
+ *       assert text.equals("John Doe [1] - age: 21");
  *     }
  *   }
  * }
@@ -281,12 +253,7 @@ public final class Pair<L, R> {
    * @return a function that when applied to a pair returns the left item
    */
   public static <L, P extends Pair<L, ?>> Function<P, L> unpackLeft() {
-    return new Function<P, L>() {
-      @Override
-      public L apply(P pair) throws Exception {
-        return pair.left;
-      }
-    };
+    return pair -> pair.left;
   }
 
   /**
@@ -297,12 +264,7 @@ public final class Pair<L, R> {
    * @return a function that when applied to a pair returns the right item
    */
   public static <R, P extends Pair<?, R>> Function<P, R> unpackRight() {
-    return new Function<P, R>() {
-      @Override
-      public R apply(P pair) throws Exception {
-        return pair.right;
-      }
-    };
+    return pair -> pair.right;
   }
 
   /**
