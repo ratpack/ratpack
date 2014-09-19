@@ -448,4 +448,97 @@ class StreamsSpec extends Specification {
     queue.toList() == [0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3]
     complete
   }
+
+  def "can merge publishers into a single stream"() {
+    given:
+    Runnable runnable1 = null
+    Runnable runnable2 = null
+
+    def future = Mock(ScheduledFuture)
+    def executor1 = Mock(ScheduledExecutorService) {
+      scheduleWithFixedDelay(_, 0, 5, TimeUnit.SECONDS) >> {
+        runnable1 = it[0]
+        future
+      }
+    }
+    def executor2 = Mock(ScheduledExecutorService) {
+      scheduleWithFixedDelay(_, 0, 5, TimeUnit.SECONDS) >> {
+        runnable2 = it[0]
+        future
+      }
+    }
+
+    def queue = new LinkedBlockingDeque()
+    boolean complete = false
+    Subscription subscription
+
+    def stream1 = periodically(executor1, 5, TimeUnit.SECONDS) { it < 3 ? it + 1 : null }
+    def stream2 = periodically(executor2, 5, TimeUnit.SECONDS) { it < 3 ? it + 11 : null }
+    def stream = merge(stream1, stream2)
+
+    stream.subscribe(new Subscriber<Integer>() {
+      @Override
+      void onSubscribe(Subscription s) {
+        subscription = s
+      }
+
+      @Override
+      void onNext(Integer integer) {
+        queue.put(integer)
+      }
+
+      @Override
+      void onError(Throwable t) {
+        queue.put(t)
+      }
+
+      @Override
+      void onComplete() {
+        complete = true
+      }
+    })
+
+    when:
+    subscription.request(1)
+
+    then:
+    queue.toList() == []
+
+    when:
+    runnable1.run()
+
+    then:
+    queue.toList() == [1]
+
+    when:
+    subscription.request(2)
+
+    then:
+    queue.toList() == [1]
+
+    when:
+    runnable2.run()
+    runnable2.run()
+    runnable1.run()
+    runnable1.run()
+    runnable1.run()
+
+    then:
+    queue.toList() == [1, 11, 12]
+
+    when:
+    subscription.request(10)
+
+    then:
+    queue.toList() == [1, 11, 12, 2, 3]
+    complete == false
+
+    when:
+    runnable2.run()
+    runnable2.run()
+
+    then:
+    queue.toList() == [1, 11, 12, 2, 3, 13]
+    complete == true
+  }
 }
