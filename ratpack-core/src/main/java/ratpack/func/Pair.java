@@ -20,7 +20,7 @@ package ratpack.func;
  * A generic pair implementation that can be used to cumulatively aggregate a data structure during a promise pipeline.
  * <p>
  * This can sometimes be useful when collecting facts about something as part of a data stream without using mutable data structures.
- * <pre class="java">
+ * <pre class="java">{@code
  * import ratpack.func.Pair;
  * import ratpack.exec.ExecControl;
  * import ratpack.exec.Promise;
@@ -90,7 +90,7 @@ package ratpack.func;
  *     }
  *   }
  * }
- * </pre>
+ * }</pre>
  * <p>
  * While the example above looks positively terrifying when using Java 7, it is much more reasonable when using Java 8 with lambda expressions and type inference.
  * It is also much more reasonable when written in idiomatic Groovy with its type inference.
