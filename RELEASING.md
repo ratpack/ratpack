@@ -51,9 +51,9 @@ Write the content, but don't close the milestone yet.
 1. Close the Milestone on GitHub
 1. Copy the release announcement to the GitHub tag description on the [GitHub releases page](https://github.com/ratpack/ratpack/releases) and publish the release
 1. Get a tweet out about the release
-1. For all example projects ([example-ratpack-gradle-java-app](https://github.com/ratpack/example-ratpack-gradle-java-app)):
-    1. Merge `latest` branch into `master` to pick up any fixes for breaking changes in the released version
+1. For all example projects ([example-ratpack-gradle-java-app](https://github.com/ratpack/example-ratpack-gradle-java-app), [example-ratpack-gradle-groovy-app](https://github.com/ratpack/example-ratpack-gradle-groovy-app), [example-books](https://github.com/ratpack/example-books)):
     1. Update `master` branch to use the latest released version
+    1. Merge `latest` branch into `master` to pick up any fixes for breaking changes in the released version
 
 ## Credentials needed
 
