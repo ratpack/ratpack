@@ -94,7 +94,7 @@ class LazybonesTemplateRatpackApp implements ApplicationUnderTest {
 
   private void installApp() {
     DefaultGradleConnector connector = GradleConnector.newConnector() as DefaultGradleConnector
-    connector.daemonMaxIdleTime(1, TimeUnit.SECONDS)
+    connector.embedded(true)
     connector.forProjectDirectory(projectDirectory).connect().newBuild().forTasks("installApp").run()
   }
 

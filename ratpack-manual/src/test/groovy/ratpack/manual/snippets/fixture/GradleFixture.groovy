@@ -57,7 +57,7 @@ try {
     connector.useInstallation(new File(gradleHome))
   }
 
-  connector.daemonMaxIdleTime(1, java.util.concurrent.TimeUnit.SECONDS)
+  connector.embedded(true)
   def connection = connector.connect()
   try {
     connection.getModel(GradleProject)
