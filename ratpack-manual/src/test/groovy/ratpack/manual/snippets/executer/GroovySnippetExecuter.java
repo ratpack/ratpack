@@ -16,6 +16,7 @@
 
 package ratpack.manual.snippets.executer;
 
+import groovy.lang.Binding;
 import groovy.lang.GroovyShell;
 import groovy.lang.Script;
 import groovy.transform.CompileStatic;
@@ -29,14 +30,15 @@ import org.codehaus.groovy.control.messages.SyntaxErrorMessage;
 import ratpack.manual.snippets.TestCodeSnippet;
 import ratpack.manual.snippets.fixture.SnippetFixture;
 
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.Arrays;
 import java.util.List;
 
 public class GroovySnippetExecuter implements SnippetExecuter {
 
-  private final GroovyShell groovyShell;
-
-  public GroovySnippetExecuter() {
+  @Override
+  public void execute(TestCodeSnippet snippet) {
     CompilerConfiguration config = new CompilerConfiguration();
     config.addCompilationCustomizers(new CompilationCustomizer(CompilePhase.CONVERSION) {
       @Override
@@ -45,11 +47,8 @@ public class GroovySnippetExecuter implements SnippetExecuter {
       }
     });
 
-    groovyShell = new GroovyShell(config);
-  }
-
-  @Override
-  public void execute(TestCodeSnippet snippet) {
+    ClassLoader classLoader = new URLClassLoader(new URL[]{}, getClass().getClassLoader());
+    GroovyShell groovyShell = new GroovyShell(classLoader, new Binding(), config);
     List<String> importsAndSnippet = extractImports(snippet.getSnippet());
 
     String imports = importsAndSnippet.get(0);
