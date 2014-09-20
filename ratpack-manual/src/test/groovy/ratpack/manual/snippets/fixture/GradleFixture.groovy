@@ -45,7 +45,7 @@ def projectDir = File.createTempDir()
 def buildFile = new File(projectDir, "build.gradle")
 try {
   buildFile.text = 'buildscript { repositories { maven { url "file://${localRepoPath}" } } }\\n' + script
-  def connector = GradleConnector.newConnector().forProjectDirectory(projectDir)
+  def connector = (org.gradle.tooling.internal.consumer.DefaultGradleConnector) GradleConnector.newConnector().forProjectDirectory(projectDir)
 
   def gradleUserHome = System.getProperty("gradleUserHome")
   if (gradleUserHome) {
@@ -57,6 +57,7 @@ try {
     connector.useInstallation(new File(gradleHome))
   }
 
+  connector.daemonMaxIdleTime(1, java.util.concurrent.TimeUnit.SECONDS)
   def connection = connector.connect()
   try {
     connection.getModel(GradleProject)
