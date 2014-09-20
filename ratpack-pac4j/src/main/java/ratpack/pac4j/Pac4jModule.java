@@ -75,6 +75,8 @@ import ratpack.pac4j.internal.AbstractPac4jModule;
  *       });
  *     }
  *   });
+ *
+ * launchConfig.execController.close()
  * </pre>
  *
  * Example usage: (Groovy DSL)

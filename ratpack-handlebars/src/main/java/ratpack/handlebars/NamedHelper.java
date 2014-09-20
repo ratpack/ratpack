@@ -57,6 +57,8 @@ import com.github.jknack.handlebars.Helper;
  *       });
  *     }
  *   });
+ *
+ * launchConfig.execController.close()
  * </pre>
  *
  * Example usage: (Groovy DSL)

@@ -89,6 +89,8 @@ import java.lang.reflect.Type;
  *       });
  *     }
  *   });
+ *
+ * launchConfig.execController.close()
  * </pre>
  *
  * Example usage: (Groovy DSL)

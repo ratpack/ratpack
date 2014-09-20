@@ -71,6 +71,8 @@ import java.util.Properties;
  *       });
  *     }
  *   });
+ *
+ * launchConfig.execController.close()
  * </pre>
  * <p>
  * Example usage: (Groovy DSL)

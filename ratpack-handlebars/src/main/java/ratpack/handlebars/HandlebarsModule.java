@@ -88,6 +88,8 @@ import ratpack.launch.LaunchConfig;
  *       });
  *     }
  *   });
+ *
+ * launchConfig.execController.close()
  * </pre>
  * <p>
  * Example usage: (Groovy DSL)

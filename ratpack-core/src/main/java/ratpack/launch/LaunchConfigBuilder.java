@@ -53,6 +53,8 @@ import java.util.Map;
  *     }
  *   }
  * );
+ *
+ * launchConfig.execController.close();
  * </pre>
  *
  * @see #baseDir(java.io.File)

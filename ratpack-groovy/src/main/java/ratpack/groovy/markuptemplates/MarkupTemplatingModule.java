@@ -87,6 +87,8 @@ import java.util.concurrent.ExecutionException;
  *     });
  *   }
  * });
+ *
+ * launchConfig.execController.close()
  * </pre>
  *
  * Example usage: (Groovy DSL)

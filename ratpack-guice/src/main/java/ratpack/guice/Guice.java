@@ -121,6 +121,8 @@ import static com.google.inject.Guice.createInjector;
  *
  * // Building a launch config with our handler factory
  * LaunchConfig launchConfig = LaunchConfigBuilder.baseDir(new File("appRoot")).build(new MyHandlerFactory());
+ *
+ * launchConfig.execController.close()
  * </pre>
  * <h3>Accessing Guice bound objects in Handlers</h3>
  * <p>

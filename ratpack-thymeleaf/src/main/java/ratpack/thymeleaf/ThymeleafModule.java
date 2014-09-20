@@ -84,6 +84,8 @@ import java.util.Set;
  *     });
  *   }
  * });
+ *
+ * launchConfig.execController.close()
  * </pre>
  *
  * Example usage: (Groovy DSL)
