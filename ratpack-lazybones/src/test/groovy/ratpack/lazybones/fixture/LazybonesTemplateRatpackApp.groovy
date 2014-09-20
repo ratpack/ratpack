@@ -19,6 +19,7 @@ package ratpack.lazybones.fixture
 import org.apache.commons.io.FileUtils
 import org.apache.commons.lang3.SystemUtils
 import org.gradle.tooling.GradleConnector
+import org.gradle.tooling.internal.consumer.DefaultGradleConnector
 import org.junit.rules.TemporaryFolder
 import ratpack.test.ApplicationUnderTest
 
@@ -92,7 +93,9 @@ class LazybonesTemplateRatpackApp implements ApplicationUnderTest {
   }
 
   private void installApp() {
-    GradleConnector.newConnector().forProjectDirectory(projectDirectory).connect().newBuild().forTasks("installApp").run()
+    DefaultGradleConnector connector = GradleConnector.newConnector() as DefaultGradleConnector
+    connector.daemonMaxIdleTime(1, TimeUnit.SECONDS)
+    connector.forProjectDirectory(projectDirectory).connect().newBuild().forTasks("installApp").run()
   }
 
   ApplicationInstance ensureLaunched() {
