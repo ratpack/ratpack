@@ -100,14 +100,18 @@ public class DefaultRequestFixture implements RequestFixture {
   private HandlingResult invoke(Handler handler, LaunchConfig launchConfig, Registry registry) throws HandlerTimeoutException {
     Request request = new DefaultRequest(requestHeaders, method, uri, requestBody);
 
-    return new DefaultHandlingResult(
-      request,
-      responseHeaders,
-      registry,
-      timeout,
-      launchConfig,
-      handler
-    );
+    try {
+      return new DefaultHandlingResult(
+        request,
+        responseHeaders,
+        registry,
+        timeout,
+        launchConfig,
+        handler
+      );
+    } finally {
+      launchConfig.getExecController().close();
+    }
   }
 
   @Override

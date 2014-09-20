@@ -181,7 +181,6 @@ public class DefaultHandlingResult implements HandlingResult {
       throw uncheck(e); // what to do here?
     } finally {
       status = response.getStatus();
-      launchConfig.getExecController().close();
     }
   }
 
