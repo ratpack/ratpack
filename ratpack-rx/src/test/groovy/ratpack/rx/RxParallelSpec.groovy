@@ -16,9 +16,9 @@
 
 package ratpack.rx
 
-import jdk.nashorn.internal.ir.annotations.Ignore
 import ratpack.exec.internal.DefaultExecController
 import spock.lang.AutoCleanup
+import spock.lang.Ignore
 import spock.lang.Specification
 
 import java.util.concurrent.CountDownLatch
