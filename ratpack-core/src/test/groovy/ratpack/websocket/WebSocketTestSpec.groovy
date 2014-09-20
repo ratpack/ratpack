@@ -165,11 +165,9 @@ class WebSocketTestSpec extends RatpackGroovyDslSpec {
     and:
     server.start()
     def client = openWsClient()
-
-    then:
     client.connectBlocking()
 
-    and:
+    then:
     client.received.poll(5, TimeUnit.SECONDS) == "foo-0"
     client.received.poll(5, TimeUnit.SECONDS) == "foo-1"
     client.received.poll(5, TimeUnit.SECONDS) == "foo-2"
@@ -204,11 +202,9 @@ class WebSocketTestSpec extends RatpackGroovyDslSpec {
     and:
     server.start()
     def client = openWsClient()
-
-    then:
     client.connectBlocking()
 
-    and:
+    then:
     client.received.poll(5, TimeUnit.SECONDS) == "foo-0"
     client.received.poll(5, TimeUnit.SECONDS) == "foo-1"
     client.received.poll(5, TimeUnit.SECONDS) == "foo-2"
