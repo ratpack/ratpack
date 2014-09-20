@@ -30,3 +30,7 @@ dependencies {
 
   testCompile project(":ratpack-rx")
 }
+
+test {
+  forkEvery 1
+}
