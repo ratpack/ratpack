@@ -71,7 +71,7 @@ class RecordingWebSocketClient extends WebSocketClient {
   boolean connectBlocking() throws InterruptedException {
     def result = super.connectBlocking()
     if (!result) {
-      throw new RuntimeException("websocket open failed: $serverHandshake.httpStatus $serverHandshake.httpStatusMessage")
+      throw new RuntimeException("websocket open failed: $serverHandshake.httpStatus $serverHandshake.httpStatusMessage ${connection.readyState}")
     }
     return result
   }
