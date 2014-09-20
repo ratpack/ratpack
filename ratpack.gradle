@@ -166,6 +166,7 @@ subprojects {
 
 // Have to evaluate the children before setting up the publishing stuff so the dependencies are defined.
 evaluationDependsOnChildren()
+
 subprojects {
   configurations.signatures.artifacts.all {
     extension = toSignArtifact.extension + "." + extension
@@ -246,4 +247,9 @@ coveralls {
   service = System.getenv().get("CI_NAME")
   sourceDirs = jacocoReport.sourceDirectories.files.toList()
   jacocoReportPath = jacocoReport.reports.xml.destination.absolutePath - rootDir.absolutePath
+}
+
+task testReport(type: TestReport) {
+  destinationDir file("$buildDir/tests")
+  reportOn subprojects.collect { it.tasks.test }
 }
