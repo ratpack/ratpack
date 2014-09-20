@@ -383,7 +383,7 @@ public abstract class RxRatpack {
    *     RxRatpack.initialize();
    *
    *     final CyclicBarrier barrier = new CyclicBarrier(5);
-   *     final ExecController execController = LaunchConfigBuilder.noBaseDir().build().getExecController();
+   *     final ExecController execController = LaunchConfigBuilder.noBaseDir().threads(6).build().getExecController();
    *
    *     Observable&lt;Integer&gt; source = Observable.from(1, 2, 3, 4, 5);
    *     List&lt;Integer&gt; doubledAndSorted = source
