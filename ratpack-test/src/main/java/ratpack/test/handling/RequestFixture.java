@@ -99,7 +99,6 @@ public interface RequestFixture {
    * @return the effective result of the handling
    * @throws HandlerTimeoutException if the handler does not produce a result in the time limit defined by this fixture
    */
-  @SuppressWarnings("overloads")
   HandlingResult handle(Handler handler) throws HandlerTimeoutException;
 
   /**
@@ -110,8 +109,7 @@ public interface RequestFixture {
    * @throws HandlerTimeoutException if the handler does not produce a result in the time limit defined by this fixture
    * @throws Exception any thrown by {@code chainAction}
    */
-  @SuppressWarnings("overloads")
-  HandlingResult handle(Action<? super Chain> chainAction) throws Exception;
+  HandlingResult handleChain(Action<? super Chain> chainAction) throws Exception;
 
   /**
    * Set a request header value.

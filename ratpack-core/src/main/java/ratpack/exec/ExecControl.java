@@ -25,15 +25,9 @@ import java.util.concurrent.Callable;
 /**
  * Provides methods for controlling execution(i.e. blocking, forking and calling async API), independent of the current execution.
  *
- * <pre class="java">
+ * <pre class="java">{@code
  * import ratpack.exec.ExecControl;
  * import ratpack.exec.Promise;
- * import ratpack.exec.Fulfillment;
- * import ratpack.handling.Handler;
- * import ratpack.handling.Context;
- * import ratpack.handling.ChainAction;
- * import ratpack.func.Action;
- * import ratpack.func.Actions;
  *
  * import ratpack.test.UnitTest;
  * import ratpack.test.handling.HandlingResult;
@@ -47,49 +41,22 @@ import java.util.concurrent.Callable;
  *       this.control = control;
  *     }
  *
- *     public Promise&lt;String&gt; toUpper(final String lower) {
- *       return control.promise(new Fulfillment&lt;String&gt;() {
- *         protected void execute() {
- *           success(lower.toUpperCase());
- *         }
- *       });
- *     }
- *   }
- *
- *   public static class ServiceUsingHandler implements Handler {
- *     private final AsyncUpperCaseService service;
- *
- *     public ServiceUsingHandler(AsyncUpperCaseService service) {
- *       this.service = service;
- *     }
- *
- *     public void handle(final Context context) {
- *       service.toUpper("foo").then(new Action&lt;String&gt;() {
- *         public void execute(String string) {
- *           context.render(string);
- *         }
- *       });
+ *     public Promise<String> toUpper(final String lower) {
+ *       return control.promise(f -> f.success(lower.toUpperCase()));
  *     }
  *   }
  *
  *   public static void main(String[] args) throws Exception {
- *     HandlingResult result = UnitTest.handle(
- *       new ChainAction() {
- *         protected void execute() {
- *           ExecControl control = getLaunchConfig().getExecController().getControl();
- *           AsyncUpperCaseService service = new AsyncUpperCaseService(control);
- *           Handler handler = new ServiceUsingHandler(service);
- *
- *           get(handler);
- *         }
- *       },
- *       Actions.noop()
- *     );
+ *     HandlingResult result = UnitTest.requestFixture().handleChain(chain -> {
+ *       ExecControl control = chain.getLaunchConfig().getExecController().getControl();
+ *       AsyncUpperCaseService service = new AsyncUpperCaseService(control);
+ *       chain.get(ctx -> service.toUpper("foo").then(ctx::render));
+ *     });
  *
  *     assert result.rendered(String.class).equals("FOO");
  *   }
  * }
- * </pre>
+ * }</pre>
  * <p>
  * <b>Note:</b> when using the Guice integration, the exec control is made available for injection.
  */

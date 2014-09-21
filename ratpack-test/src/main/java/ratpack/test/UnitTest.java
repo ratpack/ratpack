@@ -141,7 +141,7 @@ public abstract class UnitTest {
   public static HandlingResult handle(Action<? super Chain> chainAction, Action<? super RequestFixture> requestFixtureAction) throws Exception {
     RequestFixture requestFixture = requestFixture();
     requestFixtureAction.execute(requestFixture);
-    return requestFixture.handle(chainAction);
+    return requestFixture.handleChain(chainAction);
   }
 
   /**

@@ -52,8 +52,8 @@ public class DefaultGroovyRequestFixture implements GroovyRequestFixture {
   }
 
   @Override
-  public HandlingResult handle(Action<? super Chain> chainAction) throws Exception {
-    return delegate.handle(chainAction);
+  public HandlingResult handleChain(Action<? super Chain> chainAction) throws Exception {
+    return delegate.handleChain(chainAction);
   }
 
   @Override

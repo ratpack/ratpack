@@ -90,7 +90,7 @@ public class DefaultRequestFixture implements RequestFixture {
   }
 
   @Override
-  public HandlingResult handle(Action<? super Chain> chainAction) throws Exception {
+  public HandlingResult handleChain(Action<? super Chain> chainAction) throws Exception {
     LaunchConfig launchConfig = launchConfigBuilder.build();
     Registry registry = registryBuilder.build();
     Handler handler = Handlers.chain(launchConfig, registry, chainAction);
