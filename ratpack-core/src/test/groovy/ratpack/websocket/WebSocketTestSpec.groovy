@@ -118,8 +118,9 @@ class WebSocketTestSpec extends RatpackGroovyDslSpec {
 
     handlers {
       get {
-        def stream = publish(0..100)
-        stream = map(stream) { "foo-$it".toString() }
+        def stream = periodically(launchConfig.execController.executor, 100, TimeUnit.MICROSECONDS) {
+          "1"
+        }
         stream = wiretap(stream) {
           if (it.cancel) {
             streamCancelled.countDown()
@@ -135,18 +136,14 @@ class WebSocketTestSpec extends RatpackGroovyDslSpec {
 
     then:
     client.connectBlocking()
-
-    and:
-    client.received.poll(5, TimeUnit.SECONDS) == "foo-0"
-    client.received.poll(5, TimeUnit.SECONDS) == "foo-1"
-    client.received.poll(5, TimeUnit.SECONDS) == "foo-2"
+    client.received.poll(5, TimeUnit.SECONDS) == "1"
 
     when:
     client.closeBlocking()
 
     then:
     streamCancelled.await()
-    client.closeRemote == false
+    !client.closeRemote
 
     cleanup:
     client?.closeBlocking()
