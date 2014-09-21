@@ -106,4 +106,27 @@ public abstract class Actions {
     return t -> noArgAction.execute();
   }
 
+  /**
+   * Executes the action with the given argument, then returns the argument.
+   * <pre class="java">{@code
+   * import ratpack.func.Actions;
+   * import java.util.ArrayList;
+   *
+   * public class Example {
+   *   public static void main(String... args) throws Exception {
+   *     assert Actions.with(new ArrayList<>(), list -> list.add("foo")).get(0).equals("foo");
+   *   }
+   * }
+   * }</pre>
+   * @param t the argument to execute the given action with
+   * @param action the action to execute with the given argument
+   * @param <T> the type of the argument
+   * @return the given argument (i.e. {@code t})
+   * @throws Exception any thrown by {@code action}
+   */
+  public static <T> T with(T t, Action<? super T> action) throws Exception {
+    action.execute(t);
+    return t;
+  }
+
 }
