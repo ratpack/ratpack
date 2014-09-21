@@ -24,7 +24,6 @@ import ratpack.http.MediaType;
 
 import java.util.Collections;
 import java.util.Map;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 
 import static ratpack.util.ExceptionUtils.toException;
@@ -52,11 +51,7 @@ public class DefaultMediaType implements MediaType {
 
     final String finalContentType = contentType1;
     try {
-      return CACHE.get(contentType1, new Callable<MediaType>() {
-        public MediaType call() throws Exception {
-          return new DefaultMediaType(finalContentType);
-        }
-      });
+      return CACHE.get(contentType1, () -> new DefaultMediaType(finalContentType));
     } catch (ExecutionException | UncheckedExecutionException e) {
       throw uncheck(toException(e.getCause()));
     }

@@ -34,12 +34,7 @@ public class DefaultExecControl implements ExecControl {
 
   private final ExecController execController;
   private final ThreadLocal<ExecutionBacking> threadBinding = new ThreadLocal<>();
-  private final Factory<ExecutionBacking> executionBackingFactory = new Factory<ExecutionBacking>() {
-    @Override
-    public ExecutionBacking create() {
-      return getBacking();
-    }
-  };
+  private final Factory<ExecutionBacking> executionBackingFactory = this::getBacking;
 
   public DefaultExecControl(ExecController execController) {
     this.execController = execController;
@@ -75,56 +70,9 @@ public class DefaultExecControl implements ExecControl {
   public <T> Promise<T> blocking(final Callable<T> blockingOperation) {
     final ExecutionBacking backing = getBacking();
     final ExecController controller = backing.getController();
-    return promise(new Action<Fulfiller<? super T>>() {
-      @Override
-      public void execute(final Fulfiller<? super T> fulfiller) throws Exception {
-        ListenableFuture<T> future = controller.getBlockingExecutor().submit(new BlockingOperation());
-        Futures.addCallback(future, new ComputeResume(fulfiller), controller.getExecutor());
-      }
-
-      class BlockingOperation implements Callable<T> {
-        private Exception exception;
-        private T result;
-
-        @Override
-        public T call() throws Exception {
-          backing.intercept(ExecInterceptor.ExecType.BLOCKING, backing.getInterceptors(), new Action<Execution>() {
-            @Override
-            public void execute(Execution execution) throws Exception {
-              try {
-                result = blockingOperation.call();
-              } catch (Exception e) {
-                exception = e;
-              }
-            }
-          });
-
-          if (exception != null) {
-            throw exception;
-          } else {
-            return result;
-          }
-        }
-      }
-
-      class ComputeResume implements FutureCallback<T> {
-        private final Fulfiller<? super T> fulfiller;
-
-        public ComputeResume(Fulfiller<? super T> fulfiller) {
-          this.fulfiller = fulfiller;
-        }
-
-        @Override
-        public void onSuccess(final T result) {
-          fulfiller.success(result);
-        }
-
-        @SuppressWarnings("NullableProblems")
-        @Override
-        public void onFailure(final Throwable t) {
-          fulfiller.error(t);
-        }
-      }
+    return promise(fulfiller -> {
+      ListenableFuture<T> future = controller.getBlockingExecutor().submit(new BlockingOperation<>(backing, blockingOperation));
+      Futures.addCallback(future, new ComputeResume<>(fulfiller), controller.getExecutor());
     });
 
   }
@@ -150,12 +98,7 @@ public class DefaultExecControl implements ExecControl {
     if (execController.isManagedThread() && threadBinding.get() == null) {
       new ExecutionBacking(execController, threadBinding, action, onError, onComplete);
     } else {
-      execController.getExecutor().submit(new Runnable() {
-        @Override
-        public void run() {
-          new ExecutionBacking(execController, threadBinding, action, onError, onComplete);
-        }
-      });
+      execController.getExecutor().submit(() -> new ExecutionBacking(execController, threadBinding, action, onError, onComplete));
     }
   }
 
@@ -163,58 +106,75 @@ public class DefaultExecControl implements ExecControl {
   public <T> void stream(final Publisher<T> publisher, final Subscriber<? super T> subscriber) {
     final ExecutionBacking executionBacking = getBacking();
 
-    promise(new Action<Fulfiller<Subscription>>() {
+    promise((Fulfillment<Subscription>) fulfiller -> publisher.subscribe(new Subscriber<T>() {
       @Override
-      public void execute(final Fulfiller<Subscription> fulfiller) throws Exception {
-        publisher.subscribe(new Subscriber<T>() {
-          @Override
-          public void onSubscribe(final Subscription subscription) {
-            fulfiller.success(subscription);
-          }
-
-          @Override
-          public void onNext(final T element) {
-            executionBacking.streamExecution(new Action<Execution>() {
-              @Override
-              public void execute(Execution execution) throws Exception {
-                subscriber.onNext(element);
-              }
-            });
-          }
-
-          @Override
-          public void onComplete() {
-            executionBacking.completeStreamExecution(new Action<Execution>() {
-              @Override
-              public void execute(Execution execution) throws Exception {
-                subscriber.onComplete();
-              }
-            });
-          }
-
-          @Override
-          public void onError(final Throwable cause) {
-            executionBacking.completeStreamExecution(new Action<Execution>() {
-              @Override
-              public void execute(Execution execution) throws Exception {
-                subscriber.onError(cause);
-              }
-            });
-          }
-        });
-
+      public void onSubscribe(final Subscription subscription) {
+        fulfiller.success(subscription);
       }
-    }).then(new Action<Subscription>() {
+
       @Override
-      public void execute(final Subscription subscription) throws Exception {
-        executionBacking.streamExecution(new Action<Execution>() {
-          @Override
-          public void execute(Execution execution) throws Exception {
-            subscriber.onSubscribe(subscription);
-          }
-        });
+      public void onNext(final T element) {
+        executionBacking.streamExecution(execution -> subscriber.onNext(element));
       }
-    });
+
+      @Override
+      public void onComplete() {
+        executionBacking.completeStreamExecution(execution -> subscriber.onComplete());
+      }
+
+      @Override
+      public void onError(final Throwable cause) {
+        executionBacking.completeStreamExecution(execution -> subscriber.onError(cause));
+      }
+    })).then(subscription -> executionBacking.streamExecution(execution -> subscriber.onSubscribe(subscription)));
   }
 
+  private static class ComputeResume<T> implements FutureCallback<T> {
+    private final Fulfiller<? super T> fulfiller;
+
+    public ComputeResume(Fulfiller<? super T> fulfiller) {
+      this.fulfiller = fulfiller;
+    }
+
+    @Override
+    public void onSuccess(final T result) {
+      fulfiller.success(result);
+    }
+
+    @SuppressWarnings("NullableProblems")
+    @Override
+    public void onFailure(final Throwable t) {
+      fulfiller.error(t);
+    }
+  }
+
+  class BlockingOperation<T> implements Callable<T> {
+    final private ExecutionBacking backing;
+    final private Callable<T> blockingOperation;
+
+    private T result;
+    private Exception exception;
+
+    BlockingOperation(ExecutionBacking backing, Callable<T> blockingOperation) {
+      this.backing = backing;
+      this.blockingOperation = blockingOperation;
+    }
+
+    @Override
+    public T call() throws Exception {
+      backing.intercept(ExecInterceptor.ExecType.BLOCKING, backing.getInterceptors(), execution -> {
+        try {
+          result = blockingOperation.call();
+        } catch (Exception e) {
+          exception = e;
+        }
+      });
+
+      if (exception != null) {
+        throw exception;
+      } else {
+        return result;
+      }
+    }
+  }
 }

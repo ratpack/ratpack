@@ -16,7 +16,6 @@
 
 package ratpack.handling.internal;
 
-import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import javassist.ClassPool;
@@ -28,7 +27,6 @@ import ratpack.handling.Handler;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.LinkedList;
 
 public class DescribingHandlers {
@@ -42,20 +40,10 @@ public class DescribingHandlers {
       try {
         ctClass = pool.get(clazz.getName());
         CtBehavior[] behaviors = ctClass.getDeclaredBehaviors();
-        Iterable<CtBehavior> withLineNumberIterable = Iterables.filter(Arrays.asList(behaviors), new Predicate<CtBehavior>() {
-          @Override
-          public boolean apply(CtBehavior input) {
-            return input.getMethodInfo().getLineNumber(0) > 0;
-          }
-        });
+        Iterable<CtBehavior> withLineNumberIterable = Iterables.filter(Arrays.asList(behaviors), input -> input.getMethodInfo().getLineNumber(0) > 0);
 
         LinkedList<CtBehavior> withLineNumber = Lists.newLinkedList(withLineNumberIterable);
-        Collections.sort(withLineNumber, new Comparator<CtBehavior>() {
-          @Override
-          public int compare(CtBehavior o1, CtBehavior o2) {
-            return Integer.valueOf(o1.getMethodInfo().getLineNumber(0)).compareTo(o2.getMethodInfo().getLineNumber(0));
-          }
-        });
+        Collections.sort(withLineNumber, (o1, o2) -> Integer.valueOf(o1.getMethodInfo().getLineNumber(0)).compareTo(o2.getMethodInfo().getLineNumber(0)));
 
         if (!withLineNumber.isEmpty()) {
           CtBehavior method = withLineNumber.get(0);

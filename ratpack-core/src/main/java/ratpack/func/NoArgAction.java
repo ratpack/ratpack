@@ -21,6 +21,7 @@ package ratpack.func;
  * <p>
  * Used instead of {@link Runnable} to allow the throwing of checked exceptions.
  */
+@FunctionalInterface
 public interface NoArgAction {
 
   /**

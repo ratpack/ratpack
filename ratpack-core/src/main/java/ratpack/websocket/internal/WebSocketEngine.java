@@ -28,7 +28,6 @@ import ratpack.handling.Context;
 import ratpack.handling.direct.DirectChannelAccess;
 import ratpack.http.Request;
 import ratpack.server.PublicAddress;
-import ratpack.func.Action;
 import ratpack.websocket.WebSocket;
 import ratpack.websocket.WebSocketHandler;
 
@@ -91,43 +90,32 @@ public class WebSocketEngine {
     public void operationComplete(ChannelFuture future) throws Exception {
       if (future.isSuccess()) {
         final AtomicBoolean open = new AtomicBoolean(true);
-        final WebSocket webSocket = new DefaultWebSocket(context.getDirectChannelAccess().getChannel(), open, new Runnable() {
-          @Override
-          public void run() {
-            try {
-              handler.onClose(new DefaultWebSocketClose<>(false, openResult));
-            } catch (Exception e) {
-              throw uncheck(e);
-            }
+        final WebSocket webSocket = new DefaultWebSocket(context.getDirectChannelAccess().getChannel(), open, () -> {
+          try {
+            handler.onClose(new DefaultWebSocketClose<>(false, openResult));
+          } catch (Exception e) {
+            throw uncheck(e);
           }
         });
 
-        context.getDirectChannelAccess().takeOwnership(new Action<Object>() {
-          @Override
-          public void execute(Object msg) throws Exception {
-            openLatch.await();
-            Channel channel = context.getDirectChannelAccess().getChannel();
-            if (channel.isOpen()) {
-              if (msg instanceof WebSocketFrame) {
-                WebSocketFrame frame = (WebSocketFrame) msg;
-                if (frame instanceof CloseWebSocketFrame) {
-                  open.set(false);
-                  handshaker.close(channel, (CloseWebSocketFrame) frame.retain()).addListener(new ChannelFutureListener() {
-                    @Override
-                    public void operationComplete(ChannelFuture future) throws Exception {
-                      handler.onClose(new DefaultWebSocketClose<>(true, openResult));
-                    }
-                  });
-                  return;
-                }
-                if (frame instanceof PingWebSocketFrame) {
-                  channel.write(new PongWebSocketFrame(frame.content().retain()));
-                  return;
-                }
-                if (frame instanceof TextWebSocketFrame) {
-                  TextWebSocketFrame textWebSocketFrame = (TextWebSocketFrame) frame;
-                  handler.onMessage(new DefaultWebSocketMessage<>(webSocket, textWebSocketFrame.text(), openResult));
-                }
+        context.getDirectChannelAccess().takeOwnership(msg -> {
+          openLatch.await();
+          Channel channel = context.getDirectChannelAccess().getChannel();
+          if (channel.isOpen()) {
+            if (msg instanceof WebSocketFrame) {
+              WebSocketFrame frame = (WebSocketFrame) msg;
+              if (frame instanceof CloseWebSocketFrame) {
+                open.set(false);
+                handshaker.close(channel, (CloseWebSocketFrame) frame.retain()).addListener(future1 -> handler.onClose(new DefaultWebSocketClose<>(true, openResult)));
+                return;
+              }
+              if (frame instanceof PingWebSocketFrame) {
+                channel.write(new PongWebSocketFrame(frame.content().retain()));
+                return;
+              }
+              if (frame instanceof TextWebSocketFrame) {
+                TextWebSocketFrame textWebSocketFrame = (TextWebSocketFrame) frame;
+                handler.onMessage(new DefaultWebSocketMessage<>(webSocket, textWebSocketFrame.text(), openResult));
               }
             }
           }

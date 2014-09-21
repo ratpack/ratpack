@@ -22,6 +22,7 @@ package ratpack.func;
  * @param <I> the type of the input
  * @param <O> the type of the output
  */
+@FunctionalInterface
 public interface Function<I, O> {
 
   /**

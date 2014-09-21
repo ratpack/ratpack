@@ -30,10 +30,10 @@ public final class MimeParse {
 
     @Override
     public String toString() {
-      StringBuffer s = new StringBuffer("('" + type + "', '" + subType
+      StringBuilder s = new StringBuilder("('" + type + "', '" + subType
         + "', {");
       for (String k : params.keySet()) {
-        s.append("'" + k + "':'" + params.get(k) + "',");
+        s.append("'").append(k).append("':'").append(params.get(k)).append("',");
       }
       return s.append("})").toString();
     }

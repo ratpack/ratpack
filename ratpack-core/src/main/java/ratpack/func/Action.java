@@ -21,6 +21,7 @@ package ratpack.func;
  *
  * @param <T> The type of thing.
  */
+@FunctionalInterface
 public interface Action<T> {
 
   /**

@@ -17,7 +17,6 @@
 package ratpack.file.internal;
 
 import com.google.common.base.Function;
-import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
@@ -86,14 +85,14 @@ public class ActivationBackedMimeTypes implements MimeTypes {
     Set<String> knownMimeTypes = extractKnownMimeTypes();
 
     Set<String> compressedArchiveTypes = ImmutableSet.of("application/compress", "application/zip", "application/gzip");
-    Iterable<String> knownExceptNonXmlImagesAudioAndVideo = Iterables.filter(knownMimeTypes, new Predicate<String>() {
-      @Override
-      public boolean apply(String type) {
-        return (type.startsWith("image/") || type.startsWith("audio/") || type.startsWith("video/")) && !type.endsWith("+xml");
-      }
-    });
+    Iterable<String> knownExceptNonXmlImagesAudioAndVideo = Iterables.filter(knownMimeTypes,
+      type -> (type.startsWith("image/") || type.startsWith("audio/") || type.startsWith("video/")) && !type.endsWith("+xml")
+    );
 
-    return ImmutableSet.<String>builder().addAll(compressedArchiveTypes).addAll(knownExceptNonXmlImagesAudioAndVideo).build();
+    return ImmutableSet.<String>builder()
+      .addAll(compressedArchiveTypes)
+      .addAll(knownExceptNonXmlImagesAudioAndVideo)
+      .build();
   }
 
 }

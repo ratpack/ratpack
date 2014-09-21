@@ -21,14 +21,7 @@ public abstract class Predicates {
   private Predicates() {
   }
 
-  private static final Predicate<Object> IS_NULL = new IsNull();
-
-  private static class IsNull implements Predicate<Object> {
-    @Override
-    public boolean apply(Object o) throws Exception {
-      return o == null;
-    }
-  }
+  private static final Predicate<Object> IS_NULL = o -> o == null;
 
   public static Predicate<Object> isNull() {
     return IS_NULL;

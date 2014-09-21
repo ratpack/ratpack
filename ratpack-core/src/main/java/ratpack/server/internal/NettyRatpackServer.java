@@ -24,6 +24,8 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.util.ResourceLeakDetector;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ratpack.file.BaseDirRequiredException;
 import ratpack.func.Function;
 import ratpack.launch.LaunchConfig;
@@ -35,8 +37,6 @@ import java.net.InetSocketAddress;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import static ratpack.util.ExceptionUtils.uncheck;
 
@@ -70,14 +70,11 @@ public class NettyRatpackServer implements RatpackServer {
       if (isRunning()) {
         return;
       }
-      Stopper stopper = new Stopper() {
-        @Override
-        public void stop() {
-          try {
-            NettyRatpackServer.this.stop();
-          } catch (Exception e) {
-            throw uncheck(e);
-          }
+      Stopper stopper = () -> {
+        try {
+          NettyRatpackServer.this.stop();
+        } catch (Exception e) {
+          throw uncheck(e);
         }
       };
 

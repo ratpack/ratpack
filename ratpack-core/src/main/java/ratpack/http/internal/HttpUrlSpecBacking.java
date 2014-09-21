@@ -17,7 +17,6 @@
 package ratpack.http.internal;
 
 import com.google.common.base.CharMatcher;
-import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Multimap;
@@ -187,12 +186,7 @@ public class HttpUrlSpecBacking implements HttpUrlSpec {
   private void appendPathString(StringBuilder stringBuilder) {
     if (!pathSegments.isEmpty()) {
       stringBuilder.append("/");
-      PATH_JOINER.appendTo(stringBuilder, Iterables.transform(pathSegments, new Function<String, String>() {
-        @Override
-        public String apply(String input) {
-          return UrlEscapers.urlPathSegmentEscaper().escape(input);
-        }
-      }));
+      PATH_JOINER.appendTo(stringBuilder, Iterables.transform(pathSegments, input -> UrlEscapers.urlPathSegmentEscaper().escape(input)));
     }
   }
 

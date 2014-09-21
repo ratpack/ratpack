@@ -16,7 +16,6 @@
 
 package ratpack.registry.internal;
 
-import com.google.common.base.Function;
 import com.google.common.base.Objects;
 import com.google.common.base.Predicate;
 import com.google.common.base.Supplier;
@@ -118,12 +117,7 @@ public class CachingBackedRegistry implements Registry {
   }
 
   protected <O> Iterable<O> transformToInstances(Iterable<? extends Supplier<O>> suppliers) {
-    return Iterables.transform(suppliers, new Function<Supplier<O>, O>() {
-      @Override
-      public O apply(Supplier<O> input) {
-        return input.get();
-      }
-    });
+    return Iterables.transform(suppliers, Supplier<O>::get);
   }
 
   protected <T> Iterable<? extends Supplier<T>> getSuppliers(TypeToken<T> type) {

@@ -17,7 +17,6 @@
 package ratpack.file.internal;
 
 import com.google.common.collect.ImmutableList;
-import ratpack.func.Action;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.http.Request;
@@ -26,7 +25,6 @@ import ratpack.path.PathBinding;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
-import java.nio.file.attribute.BasicFileAttributes;
 
 import static ratpack.file.internal.DefaultFileRenderer.readAttributes;
 import static ratpack.file.internal.DefaultFileRenderer.sendFile;
@@ -65,17 +63,15 @@ public class AssetHandler implements Handler {
   }
 
   private void servePath(final Context context, final Path file) throws Exception {
-    readAttributes(context, file, new Action<BasicFileAttributes>() {
-      public void execute(BasicFileAttributes attributes) throws Exception {
-        if (attributes == null) {
-          context.next();
-        } else if (attributes.isRegularFile()) {
-          sendFile(context, file, attributes);
-        } else if (attributes.isDirectory()) {
-          maybeSendFile(context, file, 0);
-        } else {
-          context.next();
-        }
+    readAttributes(context, file, attributes -> {
+      if (attributes == null) {
+        context.next();
+      } else if (attributes.isRegularFile()) {
+        sendFile(context, file, attributes);
+      } else if (attributes.isDirectory()) {
+        maybeSendFile(context, file, 0);
+      } else {
+        context.next();
       }
     });
   }
@@ -86,18 +82,16 @@ public class AssetHandler implements Handler {
     } else {
       String name = indexFiles.get(i);
       final Path indexFile = file.resolve(name);
-      readAttributes(context, indexFile, new Action<BasicFileAttributes>() {
-        public void execute(BasicFileAttributes attributes) throws Exception {
-          if (attributes != null && attributes.isRegularFile()) {
-            String path = context.getRequest().getPath();
-            if (path.endsWith("/") || path.isEmpty()) {
-              sendFile(context, indexFile, attributes);
-            } else {
-              context.redirect(currentUriWithTrailingSlash(context));
-            }
+      readAttributes(context, indexFile, attributes -> {
+        if (attributes != null && attributes.isRegularFile()) {
+          String path = context.getRequest().getPath();
+          if (path.endsWith("/") || path.isEmpty()) {
+            sendFile(context, indexFile, attributes);
           } else {
-            maybeSendFile(context, file, i + 1);
+            context.redirect(currentUriWithTrailingSlash(context));
           }
+        } else {
+          maybeSendFile(context, file, i + 1);
         }
       });
     }

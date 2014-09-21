@@ -31,6 +31,8 @@ import java.util.List;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static ratpack.func.Actions.throwException;
+
 public class ExecutionBacking {
 
   private final static Logger LOGGER = LoggerFactory.getLogger(ExecutionBacking.class);
@@ -152,12 +154,7 @@ public class ExecutionBacking {
       }
     } else {
       active.set(false);
-      controller.getEventLoopGroup().submit(new Runnable() {
-        @Override
-        public void run() {
-          tryDrain();
-        }
-      });
+      controller.getEventLoopGroup().submit(this::tryDrain);
     }
   }
 
@@ -189,19 +186,11 @@ public class ExecutionBacking {
         intercept(ExecInterceptor.ExecType.COMPUTE, interceptors, action);
       } catch (final Throwable e) {
         segments.clear();
-        segments.addFirst(new Runnable() {
-          @Override
-          public void run() {
-            try {
-              onError.execute(e);
-            } catch (final Throwable e) {
-              segments.addFirst(new UserCodeSegment(new Action<Execution>() {
-                @Override
-                public void execute(Execution execution) throws Exception {
-                  throw e;
-                }
-              }));
-            }
+        segments.addFirst(() -> {
+          try {
+            onError.execute(e);
+          } catch (final Throwable errorHandlerException) {
+            segments.addFirst(new UserCodeSegment(throwException(errorHandlerException)));
           }
         });
       }

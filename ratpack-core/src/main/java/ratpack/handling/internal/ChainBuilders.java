@@ -16,7 +16,6 @@
 
 package ratpack.handling.internal;
 
-import io.netty.buffer.ByteBuf;
 import ratpack.func.Action;
 import ratpack.func.Function;
 import ratpack.handling.Handler;
@@ -25,7 +24,6 @@ import ratpack.reload.internal.ClassUtil;
 import ratpack.reload.internal.ReloadableFileBackedFactory;
 
 import java.io.File;
-import java.nio.file.Path;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -35,12 +33,7 @@ public class ChainBuilders {
     if (reloadable) {
       File classFile = ClassUtil.getClassFile(chainBuilderAction);
       if (classFile != null) {
-        ReloadableFileBackedFactory<Handler> factory = new ReloadableFileBackedFactory<>(classFile.toPath(), true, new ReloadableFileBackedFactory.Producer<Handler>() {
-          @Override
-          public Handler produce(Path file, ByteBuf bytes) throws Exception {
-            return create(toChainBuilder, chainBuilderAction);
-          }
-        });
+        ReloadableFileBackedFactory<Handler> factory = new ReloadableFileBackedFactory<>(classFile.toPath(), true, (file, bytes) -> create(toChainBuilder, chainBuilderAction));
         return new FactoryHandler(factory);
       }
     }

@@ -20,7 +20,6 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
-import java.util.Collections;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -36,7 +35,10 @@ public class MergingPublisher<T> implements Publisher<T> {
       throw new IllegalArgumentException("At least 2 publishers must be supplied to merge");
     }
 
-    Collections.addAll(upstreamPublishers, publishers);
+    //noinspection ManualArrayToCollectionCopy
+    for (Publisher<? extends T> publisher : publishers) {
+      upstreamPublishers.add(publisher);
+    }
   }
 
   @Override
@@ -62,11 +64,9 @@ public class MergingPublisher<T> implements Publisher<T> {
         @Override
         public void onError(Throwable t) {
           if (finished.compareAndSet(false, true)) {
-            for (Subscription upstreamPublisherSubscription : upstreamPublisherSubscriptions) {
-              if (upstreamPublisherSubscription != subscription) {
-                upstreamPublisherSubscription.cancel();
-              }
-            }
+            upstreamPublisherSubscriptions.stream()
+              .filter(upstreamPublisherSubscription -> upstreamPublisherSubscription != subscription)
+              .forEach(Subscription::cancel);
             upstreamPublisherSubscriptions.clear();
             upstreamPublishers.clear();
             downstreamSubscriber.onError(t);

@@ -33,7 +33,6 @@ import ratpack.error.internal.DefaultServerErrorHandler;
 import ratpack.event.internal.DefaultEventController;
 import ratpack.exec.ExecControl;
 import ratpack.exec.ExecController;
-import ratpack.exec.Execution;
 import ratpack.file.FileRenderer;
 import ratpack.file.FileSystemBinding;
 import ratpack.file.MimeTypes;
@@ -157,18 +156,10 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
     InetSocketAddress socketAddress = (InetSocketAddress) channel.localAddress();
     final BindAddress bindAddress = new InetSocketAddressBackedBindAddress(socketAddress);
 
-    Action<Action<Object>> subscribeHandler = new Action<Action<Object>>() {
-      @Override
-      public void execute(Action<Object> thing) throws Exception {
-        transmitted.set(true);
-        channelSubscriptions.put(channel, thing);
-        channel.closeFuture().addListener(new ChannelFutureListener() {
-          @Override
-          public void operationComplete(ChannelFuture future) throws Exception {
-            channelSubscriptions.remove(channel);
-          }
-        });
-      }
+    Action<Action<Object>> subscribeHandler = thing -> {
+      transmitted.set(true);
+      channelSubscriptions.put(channel, thing);
+      channel.closeFuture().addListener(future -> channelSubscriptions.remove(channel));
     };
 
     final DirectChannelAccess directChannelAccess = new DefaultDirectChannelAccess(channel, subscribeHandler);
@@ -177,36 +168,33 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
       applicationConstants, bindAddress, request, response, directChannelAccess, requestOutcomeEventController.getRegistry()
     );
 
-    DefaultContext.start(execController.getControl(), requestConstants, registry, handlers, return404, new Action<Execution>() {
-      @Override
-      public void execute(Execution execution) throws Exception {
-        if (!transmitted.get()) {
-          Handler lastHandler = requestConstants.handler;
-          StringBuilder description = new StringBuilder();
-          description
-            .append("No response sent for ")
-            .append(request.getMethod().getName())
-            .append(" request to ")
-            .append(request.getUri())
-            .append(" (last handler: ");
+    DefaultContext.start(execController.getControl(), requestConstants, registry, handlers, return404, execution -> {
+      if (!transmitted.get()) {
+        Handler lastHandler = requestConstants.handler;
+        StringBuilder description = new StringBuilder();
+        description
+          .append("No response sent for ")
+          .append(request.getMethod().getName())
+          .append(" request to ")
+          .append(request.getUri())
+          .append(" (last handler: ");
 
-          if (lastHandler instanceof DescribingHandler) {
-            ((DescribingHandler) lastHandler).describeTo(description);
-          } else {
-            DescribingHandlers.describeTo(lastHandler, description);
-          }
+        if (lastHandler instanceof DescribingHandler) {
+          ((DescribingHandler) lastHandler).describeTo(description);
+        } else {
+          DescribingHandlers.describeTo(lastHandler, description);
+        }
 
-          description.append(")");
-          String message = description.toString();
-          LOGGER.warn(message);
+        description.append(")");
+        String message = description.toString();
+        LOGGER.warn(message);
 
-          response.status(500);
+        response.status(500);
 
-          if (launchConfig.isDevelopment()) {
-            response.send(message);
-          } else {
-            response.send();
-          }
+        if (launchConfig.isDevelopment()) {
+          response.send(message);
+        } else {
+          response.send();
         }
       }
     });

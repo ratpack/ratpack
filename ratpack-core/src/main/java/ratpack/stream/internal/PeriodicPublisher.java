@@ -47,27 +47,23 @@ public class PeriodicPublisher<T> implements Publisher<T> {
   public void subscribe(final Subscriber<? super T> s) {
     s.onSubscribe(new Subscription() {
       private final AtomicInteger counter = new AtomicInteger(0);
-      private final ScheduledFuture<?> future = executorService.scheduleWithFixedDelay(new Runnable() {
-        @Override
-        public void run() {
-          int i = counter.getAndIncrement();
-          T value;
-          try {
-            value = producer.apply(i);
-          } catch (Exception e) {
-            future.cancel(false);
-            s.onError(e);
-            return;
-          }
-
-          if (value == null) {
-            s.onComplete();
-            future.cancel(false);
-          } else {
-            s.onNext(value);
-          }
+      private final ScheduledFuture<?> future = executorService.scheduleWithFixedDelay(() -> {
+        int i = counter.getAndIncrement();
+        T value;
+        try {
+          value = producer.apply(i);
+        } catch (Exception e) {
+          cancel();
+          s.onError(e);
+          return;
         }
 
+        if (value == null) {
+          s.onComplete();
+          cancel();
+        } else {
+          s.onNext(value);
+        }
       }, 0, delay, timeUnit);
 
       @Override
@@ -79,6 +75,7 @@ public class PeriodicPublisher<T> implements Publisher<T> {
       public void cancel() {
         future.cancel(false);
       }
+
     });
   }
 }

@@ -38,12 +38,7 @@ public class GatedPublisher<T> implements Publisher<T> {
   public void subscribe(final Subscriber<? super T> downstream) {
     final GatedSubscriber<? super T> gatedSubscriber = new GatedSubscriber<>(downstream);
     try {
-      releaseReceiver.execute(new Runnable() {
-        @Override
-        public void run() {
-          gatedSubscriber.open();
-        }
-      });
+      releaseReceiver.execute((Runnable) gatedSubscriber::open);
     } catch (final Throwable e) {
       downstream.onSubscribe(new Subscription() {
         @Override

@@ -122,17 +122,7 @@ public class DefaultContext implements Context {
   public static void start(ExecControl execControl, final RequestConstants requestConstants, Registry registry, Handler[] nextHandlers, Handler exhausted, Action<? super Execution> onComplete) {
     final DefaultContext context = new DefaultContext(requestConstants, registry, nextHandlers, 0, exhausted);
 
-    execControl.fork(new Action<Execution>() {
-      @Override
-      public void execute(Execution execution) throws Exception {
-        context.next();
-      }
-    }, new Action<Throwable>() {
-      @Override
-      public void execute(Throwable throwable) throws Exception {
-        requestConstants.context.error(throwable instanceof HandlerException ? throwable.getCause() : throwable);
-      }
-    }, onComplete);
+    execControl.fork(execution -> context.next(), throwable -> requestConstants.context.error(throwable instanceof HandlerException ? throwable.getCause() : throwable), onComplete);
   }
 
   public DefaultContext(RequestConstants requestConstants, Registry registry, Handler[] nextHandlers, int nextIndex, Handler exhausted) {

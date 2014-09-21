@@ -22,7 +22,6 @@ import ratpack.exec.*;
 import ratpack.func.*;
 import ratpack.util.internal.InternalRatpackError;
 
-import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static ratpack.func.Actions.ignoreArg;
@@ -49,11 +48,7 @@ public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
     if (fired.compareAndSet(false, true)) {
       final ExecutionBacking executionBacking = executionProvider.create();
       try {
-        executionBacking.continueVia(new Runnable() {
-          public void run() {
-            doThen(new UserActionFulfiller(executionBacking, then));
-          }
-        });
+        executionBacking.continueVia(() -> doThen(new UserActionFulfiller(executionBacking, then)));
       } catch (ExecutionException e) {
         throw e;
       } catch (Exception e) {
@@ -76,12 +71,7 @@ public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
             return;
           }
 
-          executionBacking.join(new Action<Execution>() {
-            @Override
-            public void execute(Execution execution) throws Exception {
-              outer.error(throwable);
-            }
-          });
+          executionBacking.join(execution -> outer.error(throwable));
         }
 
         @Override
@@ -91,13 +81,7 @@ public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
             return;
           }
 
-          executionBacking.join(new Action<Execution>() {
-            @Override
-            public void execute(Execution execution) throws Exception {
-              outer.success(value);
-
-            }
-          });
+          executionBacking.join(execution -> outer.success(value));
         }
       });
     } catch (final Throwable throwable) {
@@ -112,17 +96,12 @@ public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
   @Override
   public <O> DefaultPromise<O> map(final Function<? super T, ? extends O> transformer) {
     if (fired.compareAndSet(false, true)) {
-      return new DefaultPromise<>(executionProvider, new Action<Fulfiller<O>>() {
+      return new DefaultPromise<>(executionProvider, downstream -> DefaultSuccessPromise.this.doThen(new Transform<O, O>(downstream, transformer) {
         @Override
-        public void execute(final Fulfiller<O> downstream) throws Exception {
-          DefaultSuccessPromise.this.doThen(new Transform<O, O>(downstream, transformer) {
-            @Override
-            protected void onSuccess(O transformed) {
-              downstream.success(transformed);
-            }
-          });
+        protected void onSuccess(O transformed) {
+          downstream.success(transformed);
         }
-      });
+      }));
     } else {
       throw new MultiplePromiseSubscriptionException();
     }
@@ -131,27 +110,12 @@ public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
   @Override
   public <O> Promise<O> flatMap(final Function<? super T, ? extends Promise<O>> transformer) {
     if (fired.compareAndSet(false, true)) {
-      return new DefaultPromise<>(executionProvider, new Action<Fulfiller<O>>() {
+      return new DefaultPromise<>(executionProvider, downstream -> DefaultSuccessPromise.this.doThen(new Transform<Promise<O>, O>(downstream, transformer) {
         @Override
-        public void execute(final Fulfiller<O> downstream) throws Exception {
-          DefaultSuccessPromise.this.doThen(new Transform<Promise<O>, O>(downstream, transformer) {
-            @Override
-            protected void onSuccess(Promise<O> transformed) {
-              transformed.onError(new Action<Throwable>() {
-                @Override
-                public void execute(Throwable throwable) throws Exception {
-                  downstream.error(throwable);
-                }
-              }).then(new Action<O>() {
-                @Override
-                public void execute(O o) throws Exception {
-                  downstream.success(o);
-                }
-              });
-            }
-          });
+        protected void onSuccess(Promise<O> transformed) {
+          transformed.onError(downstream::error).then(downstream::success);
         }
-      });
+      }));
     } else {
       throw new MultiplePromiseSubscriptionException();
     }
@@ -219,12 +183,7 @@ public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
     return flatMap(new Function<T, Promise<O>>() {
       @Override
       public Promise<O> apply(final T t) throws Exception {
-        return executionProvider.create().getExecution().getControl().blocking(new Callable<O>() {
-          @Override
-          public O call() throws Exception {
-            return transformer.apply(t);
-          }
-        });
+        return executionProvider.create().getExecution().getControl().blocking(() -> transformer.apply(t));
       }
     });
   }

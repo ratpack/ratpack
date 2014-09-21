@@ -25,7 +25,6 @@ import org.reactivestreams.Publisher;
 import ratpack.api.Nullable;
 import ratpack.exec.ExecControl;
 import ratpack.file.internal.ResponseTransmitter;
-import ratpack.func.Action;
 import ratpack.http.Headers;
 import ratpack.http.MutableHeaders;
 import ratpack.http.Response;
@@ -282,11 +281,7 @@ public class DefaultResponse implements Response {
 
   public void sendFile(final Path file) {
     try {
-      readAttributes(execControl, file, new Action<BasicFileAttributes>() {
-        public void execute(BasicFileAttributes fileAttributes) throws Exception {
-          sendFile(fileAttributes, file);
-        }
-      });
+      readAttributes(execControl, file, fileAttributes -> sendFile(fileAttributes, file));
     } catch (Exception e) {
       // Shouldn't happen
       throw ExceptionUtils.uncheck(e);

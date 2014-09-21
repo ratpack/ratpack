@@ -16,12 +16,12 @@
 
 package ratpack.handling.internal;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ratpack.exec.ExecInterceptor;
 import ratpack.util.ExceptionUtils;
 
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public abstract class InterceptedOperation {
   private final static Logger LOGGER = LoggerFactory.getLogger(InterceptedOperation.class);
@@ -53,15 +53,12 @@ public abstract class InterceptedOperation {
     if (i < interceptors.size()) {
       int iAtStart = i;
       ExecInterceptor interceptor = interceptors.get(i);
-      Runnable continuation = new Runnable() {
-        @Override
-        public void run() {
-          try {
-            ++i;
-            nextInterceptor();
-          } catch (Exception ignore) {
-            // do nothing
-          }
+      Runnable continuation = () -> {
+        try {
+          ++i;
+          nextInterceptor();
+        } catch (Exception ignore) {
+          // do nothing
         }
       };
       try {

@@ -61,7 +61,7 @@ public class ReloadableFileBackedFactory<T> implements Factory<T> {
   }
 
   public ReloadableFileBackedFactory(Path file, boolean reloadable, Producer<T> producer) {
-    this(file, reloadable, producer, new NullReleaser<T>());
+    this(file, reloadable, producer, new NullReleaser<>());
   }
 
   public ReloadableFileBackedFactory(Path file, boolean reloadable, Producer<T> producer, Releaser<T> releaser) {

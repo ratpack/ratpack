@@ -29,7 +29,6 @@ import ratpack.event.internal.DefaultEventController;
 import ratpack.exec.ExecControl;
 import ratpack.file.internal.ChunkedInputAdapter;
 import ratpack.file.internal.ResponseTransmitter;
-import ratpack.func.Action;
 import ratpack.func.Pair;
 import ratpack.handling.RequestOutcome;
 import ratpack.handling.internal.DefaultRequestOutcome;
@@ -40,13 +39,10 @@ import ratpack.util.internal.InternalRatpackError;
 import ratpack.util.internal.NumberUtil;
 
 import java.io.FileInputStream;
-import java.nio.channels.FileChannel;
-import java.nio.channels.ReadableByteChannel;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static io.netty.handler.codec.http.HttpHeaders.isKeepAlive;
@@ -54,11 +50,8 @@ import static io.netty.handler.codec.http.HttpHeaders.isKeepAlive;
 public class DefaultResponseTransmitter implements ResponseTransmitter {
 
   private final static Logger LOGGER = LoggerFactory.getLogger(DefaultResponseTransmitter.class);
-  private static final Runnable NOOP_RUNNABLE = new Runnable() {
-    @Override
-    public void run() {
+  private static final Runnable NOOP_RUNNABLE = () -> {
 
-    }
   };
 
   private final AtomicBoolean transmitted;
@@ -129,13 +122,10 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
       return;
     }
 
-    channelFuture.addListener(new ChannelFutureListener() {
-      @Override
-      public void operationComplete(ChannelFuture future) throws Exception {
-        if (channel.isOpen()) {
-          channel.write(body);
-          post(responseStatus);
-        }
+    channelFuture.addListener(future -> {
+      if (channel.isOpen()) {
+        channel.write(body);
+        post(responseStatus);
       }
     });
   }
@@ -155,26 +145,12 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
     responseHeaders.set(HttpHeaderConstants.CONTENT_LENGTH, size);
 
     if (!compressThis && file.getFileSystem().equals(FileSystems.getDefault())) {
-      execControl.blocking(new Callable<FileChannel>() {
-        public FileChannel call() throws Exception {
-          return new FileInputStream(file.toFile()).getChannel();
-        }
-      }).then(new Action<FileChannel>() {
-        public void execute(FileChannel fileChannel) throws Exception {
-          FileRegion defaultFileRegion = new DefaultFileRegion(fileChannel, 0, size);
-          transmit(responseStatus, defaultFileRegion);
-        }
+      execControl.blocking(() -> new FileInputStream(file.toFile()).getChannel()).then(fileChannel -> {
+        FileRegion defaultFileRegion = new DefaultFileRegion(fileChannel, 0, size);
+        transmit(responseStatus, defaultFileRegion);
       });
     } else {
-      execControl.blocking(new Callable<ReadableByteChannel>() {
-        public ReadableByteChannel call() throws Exception {
-          return Files.newByteChannel(file);
-        }
-      }).then(new Action<ReadableByteChannel>() {
-        public void execute(ReadableByteChannel fileChannel) throws Exception {
-          transmit(responseStatus, new ChunkedInputAdapter(new ChunkedNioStream(fileChannel)));
-        }
-      });
+      execControl.blocking(() -> Files.newByteChannel(file)).then(fileChannel -> transmit(responseStatus, new ChunkedInputAdapter(new ChunkedNioStream(fileChannel))));
     }
   }
 
@@ -184,13 +160,10 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
       private Subscription subscription;
       private final AtomicBoolean done = new AtomicBoolean();
 
-      private final ChannelFutureListener cancelOnFailure = new ChannelFutureListener() {
-        @Override
-        public void operationComplete(ChannelFuture future) throws Exception {
-          if (!done.get()) {
-            if (!future.isSuccess()) {
-              cancel();
-            }
+      private final ChannelFutureListener cancelOnFailure = future -> {
+        if (!done.get()) {
+          if (!future.isSuccess()) {
+            cancel();
           }
         }
       };
@@ -211,12 +184,9 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
 
         this.subscription = s;
 
-        onWritabilityChanged = new Runnable() {
-          @Override
-          public void run() {
-            if (channel.isWritable() && !done.get()) {
-              subscription.request(1);
-            }
+        onWritabilityChanged = () -> {
+          if (channel.isWritable() && !done.get()) {
+            subscription.request(1);
           }
         };
 
@@ -273,13 +243,10 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
 
   private void notifyListeners(final HttpResponseStatus responseStatus, ChannelFuture future) {
     if (requestOutcomeEventController.isHasListeners()) {
-      future.addListener(new ChannelFutureListener() {
-        @Override
-        public void operationComplete(ChannelFuture ignore) throws Exception {
-          SentResponse sentResponse = new DefaultSentResponse(new NettyHeadersBackedHeaders(responseHeaders), new DefaultStatus(responseStatus));
-          RequestOutcome requestOutcome = new DefaultRequestOutcome(ratpackRequest, sentResponse, stopTime);
-          requestOutcomeEventController.fire(requestOutcome);
-        }
+      future.addListener(ignore -> {
+        SentResponse sentResponse = new DefaultSentResponse(new NettyHeadersBackedHeaders(responseHeaders), new DefaultStatus(responseStatus));
+        RequestOutcome requestOutcome = new DefaultRequestOutcome(ratpackRequest, sentResponse, stopTime);
+        requestOutcomeEventController.fire(requestOutcome);
       });
     }
   }

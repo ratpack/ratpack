@@ -83,15 +83,11 @@ public class DefaultExecController implements ExecController {
 
     @Override
     public Thread newThread(final Runnable r) {
-      return super.newThread(new Runnable() {
-        @Override
-        public void run() {
-          THREAD_BINDING.set(DefaultExecController.this);
-          r.run();
-        }
+      return super.newThread(() -> {
+        THREAD_BINDING.set(DefaultExecController.this);
+        r.run();
       });
     }
-
   }
 
   @Override

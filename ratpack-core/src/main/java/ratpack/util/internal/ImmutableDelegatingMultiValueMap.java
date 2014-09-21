@@ -23,6 +23,7 @@ import com.google.common.collect.Lists;
 import ratpack.util.MultiValueMap;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class ImmutableDelegatingMultiValueMap<K, V> implements MultiValueMap<K, V> {
 
@@ -102,19 +103,15 @@ public class ImmutableDelegatingMultiValueMap<K, V> implements MultiValueMap<K, 
 
   @SuppressWarnings("NullableProblems")
   public Collection<V> values() {
-    return Lists.newArrayList(Iterables.<V>concat(delegate.values()));
+    return Lists.newArrayList(Iterables.concat(delegate.values()));
   }
 
   @SuppressWarnings("NullableProblems")
   public Set<Entry<K, V>> entrySet() {
-    Set<Entry<K, V>> result = new HashSet<>();
-    for (Entry<? extends K, ? extends List<? extends V>> entry : delegate.entrySet()) {
-      if (entry.getValue().size() > 0) {
-        result.add(new AbstractMap.SimpleImmutableEntry<>(entry.getKey(), entry.getValue().get(0)));
-      }
-    }
-
-    return result;
+    return delegate.entrySet().stream()
+      .filter(entry -> entry.getValue().size() > 0)
+      .map(entry -> new AbstractMap.SimpleImmutableEntry<>(entry.getKey(), entry.getValue().get(0)))
+      .collect(Collectors.toSet());
   }
 
   @Override

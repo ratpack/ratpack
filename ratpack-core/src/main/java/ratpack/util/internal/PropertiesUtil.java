@@ -22,11 +22,9 @@ import java.util.Properties;
 
 public class PropertiesUtil {
   public static void extractProperties(String propertyPrefix, Properties properties, Map<? super String, ? super String> destination) {
-    for (String propertyName : properties.stringPropertyNames()) {
-      if (propertyName.startsWith(propertyPrefix)) {
-        destination.put(propertyName.substring(propertyPrefix.length()), properties.getProperty(propertyName));
-      }
-    }
+    properties.stringPropertyNames().stream()
+      .filter(propertyName -> propertyName.startsWith(propertyPrefix))
+      .forEach(propertyName -> destination.put(propertyName.substring(propertyPrefix.length()), properties.getProperty(propertyName)));
   }
 
   public static boolean flatEquals(Properties a, Properties b) {

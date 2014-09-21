@@ -43,25 +43,20 @@ public class MulticastPublisher<T> implements Publisher<T> {
     if (upstreamFinished.get()) {
       downStreamSubscriber.onError(new IllegalStateException("The upstream publisher has completed, either successfully or with error.  No further subscriptions will be accepted"));
     } else {
-      buffer(new Publisher<T>() {
+      buffer((Publisher<T>) s -> s.onSubscribe(new Subscription() {
         @Override
-        public void subscribe(final Subscriber<? super T> s) {
-          s.onSubscribe(new Subscription() {
-            @Override
-            public void request(long n) {
-              bufferedSubscribers.add(s);
-              tryUpstreamSubscribe();
-            }
-
-            @Override
-            public void cancel() {
-              // buffer will deal with cancelling this subscription if the downstream subscriber cancels or throws an exception.
-              // The downstream subscriber will be "unsubscribed" from this publisher.
-              bufferedSubscribers.remove(s);
-            }
-          });
+        public void request(long n) {
+          bufferedSubscribers.add(s);
+          tryUpstreamSubscribe();
         }
-      }).subscribe(downStreamSubscriber);
+
+        @Override
+        public void cancel() {
+          // buffer will deal with cancelling this subscription if the downstream subscriber cancels or throws an exception.
+          // The downstream subscriber will be "unsubscribed" from this publisher.
+          bufferedSubscribers.remove(s);
+        }
+      })).subscribe(downStreamSubscriber);
     }
   }
 

@@ -30,7 +30,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Date;
-import java.util.concurrent.Callable;
 
 import static io.netty.handler.codec.http.HttpResponseStatus.NOT_MODIFIED;
 
@@ -38,14 +37,11 @@ public class DefaultFileRenderer extends RendererSupport<Path> implements FileRe
 
   @Override
   public void render(final Context context, final Path targetFile) throws Exception {
-    readAttributes(context, targetFile, new Action<BasicFileAttributes>() {
-      @Override
-      public void execute(BasicFileAttributes attributes) throws Exception {
-        if (attributes == null || !attributes.isRegularFile()) {
-          context.clientError(404);
-        } else {
-          sendFile(context, targetFile, attributes);
-        }
+    readAttributes(context, targetFile, attributes -> {
+      if (attributes == null || !attributes.isRegularFile()) {
+        context.clientError(404);
+      } else {
+        sendFile(context, targetFile, attributes);
       }
     });
   }
@@ -82,13 +78,11 @@ public class DefaultFileRenderer extends RendererSupport<Path> implements FileRe
   }
 
   public static void readAttributes(ExecControl execContext, final Path file, Action<? super BasicFileAttributes> then) throws Exception {
-    execContext.blocking(new Callable<BasicFileAttributes>() {
-      public BasicFileAttributes call() throws Exception {
-        if (Files.exists(file)) {
-          return Files.readAttributes(file, BasicFileAttributes.class);
-        } else {
-          return null;
-        }
+    execContext.blocking(() -> {
+      if (Files.exists(file)) {
+        return Files.readAttributes(file, BasicFileAttributes.class);
+      } else {
+        return null;
       }
     }).then(then);
   }

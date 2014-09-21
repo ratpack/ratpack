@@ -79,12 +79,7 @@ public class Streams {
    * @return a publisher that indefinitely streams the given item
    */
   public static <T> Publisher<T> constant(final T item) {
-    return yield(new Function<YieldRequest, T>() {
-      @Override
-      public T apply(YieldRequest yieldRequest) throws Exception {
-        return item;
-      }
-    });
+    return yield(yieldRequest -> item);
   }
 
   /**

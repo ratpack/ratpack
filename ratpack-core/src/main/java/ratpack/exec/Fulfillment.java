@@ -19,57 +19,12 @@ package ratpack.exec;
 import ratpack.func.Action;
 
 /**
- * Convenience base for {@code Action<Fulfiller<T>>} implementations.
+ * Convenience type for {@code Action<Fulfiller<T>>} implementations.
  *
  * @param <T> the type of promised value.
  * @see ExecControl#promise(Action)
  * @see Fulfiller
  */
-public abstract class Fulfillment<T> implements Fulfiller<T>, Action<Fulfiller<T>> {
-
-  private Fulfiller<T> fulfiller;
-
-  /**
-   * Fulfill with an error result.
-   *
-   * @param throwable the error result
-   */
-  @Override
-  public void error(Throwable throwable) {
-    fulfiller.error(throwable);
-  }
-
-  /**
-   * Fulfill with a success result.
-   *
-   * @param value the value
-   */
-  @Override
-  public void success(T value) {
-    fulfiller.success(value);
-  }
-
-  /**
-   * Delegates to {@link #execute()}, using the given {@code fulfiller} for delegation.
-   *
-   * @param fulfiller the promise fulfiller
-   * @throws Exception Any thrown by {@link #execute()}
-   */
-  @Override
-  public final void execute(Fulfiller<T> fulfiller) throws Exception {
-    this.fulfiller = fulfiller;
-    try {
-      execute();
-    } finally {
-      this.fulfiller = null;
-    }
-  }
-
-  /**
-   * Implementations can naturally use the {@link Fulfiller} methods for the duration of this method.
-   *
-   * @throws Exception any exception thrown while fulfilling
-   */
-  protected abstract void execute() throws Exception;
+public interface Fulfillment<T> extends Action<Fulfiller<T>> {
 
 }

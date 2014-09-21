@@ -89,7 +89,7 @@ abstract class SubscriptionSupport<T> implements Subscription {
 
   protected void doCancel() {
     // do nothing
-  };
+  }
 
   protected void start() {
     if (started.compareAndSet(false, true)) {

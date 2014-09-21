@@ -23,6 +23,7 @@ package ratpack.func;
  *
  * @param <T> The type of object that this factory creates.
  */
+@FunctionalInterface
 public interface Factory<T> {
 
   /**
