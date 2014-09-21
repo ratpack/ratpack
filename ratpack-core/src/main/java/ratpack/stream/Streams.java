@@ -249,7 +249,7 @@ public class Streams {
    * @return a publisher that emits a single stream of elements from multiple publishers
    */
   @SuppressWarnings({"unchecked", "varargs"})
-  public static <T> Publisher<T> merge(Publisher<T>... publishers) {
+  public static <T> Publisher<T> merge(Publisher<? extends T>... publishers) {
     return buffer(new MergingPublisher<>(publishers));
   }
 }

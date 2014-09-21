@@ -20,31 +20,30 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
+import java.util.Collections;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class MergingPublisher<T> implements Publisher<T> {
 
-  private final ConcurrentLinkedDeque<Publisher<T>> upstreamPublishers = new ConcurrentLinkedDeque<>();
+  private final ConcurrentLinkedDeque<Publisher<? extends T>> upstreamPublishers = new ConcurrentLinkedDeque<>();
   private final ConcurrentLinkedDeque<Subscription> upstreamPublisherSubscriptions = new ConcurrentLinkedDeque<>();
   private Subscriber<? super T> downstreamSubscriber;
 
   @SafeVarargs
-  public MergingPublisher(Publisher<T>... publishers) {
+  public MergingPublisher(Publisher<? extends T>... publishers) {
     if (publishers.length < 2) {
       throw new IllegalArgumentException("At least 2 publishers must be supplied to merge");
     }
 
-    for (Publisher<T> publisher: publishers) {
-      upstreamPublishers.add(publisher);
-    }
+    Collections.addAll(upstreamPublishers, publishers);
   }
 
   @Override
   public void subscribe(final Subscriber<? super T> subscriber) {
     this.downstreamSubscriber = subscriber;
 
-    for (final Publisher<T> upstreamPublisher: upstreamPublishers) {
+    for (final Publisher<? extends T> upstreamPublisher : upstreamPublishers) {
       upstreamPublisher.subscribe(new Subscriber<T>() {
         final AtomicBoolean finished = new AtomicBoolean();
         Subscription subscription;
