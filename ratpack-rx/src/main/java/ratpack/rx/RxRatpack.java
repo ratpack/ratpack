@@ -30,7 +30,6 @@ import rx.Subscriber;
 import rx.exceptions.OnErrorNotImplementedException;
 import rx.functions.Action2;
 import rx.internal.operators.OperatorSingle;
-import rx.plugins.RxJavaDefaultSchedulers;
 import rx.plugins.RxJavaObservableExecutionHook;
 import rx.plugins.RxJavaPlugins;
 
@@ -152,6 +151,7 @@ public abstract class RxRatpack {
    * }
    * </pre>
    */
+  @SuppressWarnings("deprecation")
   public static void initialize() {
     RxJavaPlugins plugins = RxJavaPlugins.getInstance();
 
@@ -165,8 +165,8 @@ public abstract class RxRatpack {
       }
     }
 
-    System.setProperty("rxjava.plugin." + RxJavaDefaultSchedulers.class.getSimpleName() + ".implementation", DefaultSchedulers.class.getName());
-    RxJavaDefaultSchedulers existingSchedulers = plugins.getDefaultSchedulers();
+    System.setProperty("rxjava.plugin." + rx.plugins.RxJavaDefaultSchedulers.class.getSimpleName() + ".implementation", DefaultSchedulers.class.getName());
+    rx.plugins.RxJavaDefaultSchedulers existingSchedulers = plugins.getDefaultSchedulers();
     if (!(existingSchedulers instanceof DefaultSchedulers)) {
       throw new IllegalStateException("Cannot install RxJava integration because another set of default schedulers (" + existingSchedulers.getClass() + ") is already installed");
     }
@@ -385,7 +385,8 @@ public abstract class RxRatpack {
    *     final CyclicBarrier barrier = new CyclicBarrier(5);
    *     final ExecController execController = LaunchConfigBuilder.noBaseDir().threads(6).build().getExecController();
    *
-   *     Observable&lt;Integer&gt; source = Observable.from(1, 2, 3, 4, 5);
+   *     Integer[] myArray = {1, 2, 3, 4, 5};
+   *     Observable&lt;Integer&gt; source = Observable.from(myArray);
    *     List&lt;Integer&gt; doubledAndSorted = source
    *       .lift(RxRatpack.&lt;Integer&gt;forkOnNext(execController.getControl()))
    *       .map(new Func1&lt;Integer, Integer&gt;() {

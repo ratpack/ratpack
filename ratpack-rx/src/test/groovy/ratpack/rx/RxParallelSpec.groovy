@@ -23,6 +23,7 @@ import spock.lang.Specification
 
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.CyclicBarrier
+import java.util.concurrent.TimeUnit
 
 import static ratpack.rx.RxRatpack.forkOnNext
 import static ratpack.rx.RxRatpack.observe
@@ -39,18 +40,19 @@ class RxParallelSpec extends Specification {
 
   def "can use scheduler to observe in parallel"() {
     given:
-    def barrier = new CyclicBarrier(11)
+    def latch = new CountDownLatch(10)
     def received = [].asSynchronized()
 
     when:
     controller.control.fork {
       rx.Observable.from((0..9).toList())
-        .parallel { it.map { received << it; barrier.await(); it } }
+        .parallel { it.map { received << it; latch.countDown() it } }
         .subscribe()
     }
-    barrier.await()
+    latch.await(2, TimeUnit.SECONDS)
 
     then:
+    latch.count == 0
     received.sort() == (0..9).toList()
   }
 
