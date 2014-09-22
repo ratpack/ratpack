@@ -352,18 +352,23 @@ table tr td dl, table tr td dl dt, table tr td dl dd {
 /*
 Table styles
 */
-.memberSummary, .memberSummary, .typeSummary, .useSummary, .constantsSummary, .deprecatedSummary {
+.overviewSummary, 
+.memberSummary, 
+.typeSummary, 
+.useSummary, 
+.constantsSummary, 
+.deprecatedSummary {
   border-bottom: 1px solid #9eadc0;
   margin: 0 0 12px 0px;
   width: 100%;
 }
 
-.memberSummary, .memberSummary {
-  padding: 0px;
-}
-
-.memberSummary caption, .memberSummary caption, .typeSummary caption,
-.useSummary caption, .constantsSummary caption, .deprecatedSummary caption {
+.overviewSummary caption, 
+.memberSummary caption, 
+.typeSummary caption,
+.useSummary caption, 
+.constantsSummary caption, 
+.deprecatedSummary caption {
   position: relative;
   text-align: left;
   background-repeat: no-repeat;
@@ -375,89 +380,74 @@ Table styles
   margin: 0px;
 }
 
-.typeSummary caption span, .useSummary caption span, .constantsSummary caption span, .deprecatedSummary caption span {
+.overviewSummary caption span,
+.memberSummary caption span,
+.typeSummary caption span, 
+.useSummary caption span, 
+.constantsSummary caption span, 
+.deprecatedSummary caption span {
   white-space: nowrap;
   padding-top: 8px;
   padding-bottom: 4px;
   padding-left: 8px;
   display: inline-block;
   float: left;
-}
-
-.memberSummary caption span span {
-  padding-bottom: 4px;
-}
-
-.memberSummary caption span.activeTableTab span {
-  white-space: nowrap;
-  padding-top: 8px;
-  padding-left: 8px;
-  display: inline-block;
-  float: left;
-}
-
-.memberSummary caption span.activeTableTab > span {
   @include background-image(linear-gradient(lighten($yellow, 10), darken($yellow, 10)));
   color: white;
   text-shadow: 0 1px 1px rgba(90, 42, 107, 0.3);
 }
 
-.memberSummary caption span.activeTableTab > span:first-child {
-  border-left: 1px solid #9eadc0;
-  border-top: 1px solid #9eadc0;
-  border-top-left-radius: 6px;
+.overviewSummary caption > span:first-child,
+.memberSummary caption > span:first-child,
+.memberSummary caption .activeTableTab > span:first-child,
+.memberSummary caption .activeTableTab  > span:first-child,
+.typeSummary caption > span:first-child, 
+.useSummary caption > span:first-child, 
+.constantsSummary caption > span:first-child, 
+.deprecatedSummary caption > span:first-child {
+    border-left: 1px solid #9eadc0;
+    border-top: 1px solid #9eadc0;
+    border-top-left-radius: 6px;
 }
 
-.memberSummary caption span.activeTableTab > span.tabEnd {
+.overviewSummary .tabEnd, 
+.memberSummary .tabEnd, 
+.typeSummary .tabEnd,
+.useSummary .tabEnd, 
+.constantsSummary .tabEnd, 
+.deprecatedSummary .tabEnd {
+  width: 10px;
+  background-repeat: no-repeat;
+  background-position: top right;
+  position: relative;
+  float: left;
   border-right: 1px solid #9eadc0;
   border-top: 1px solid #9eadc0;
   border-top-right-radius: 6px;
-}
-
-.memberSummary caption span.tableTab span {
-  white-space: nowrap;
-  padding-top: 8px;
-  padding-left: 8px;
-  display: inline-block;
-  float: left;
-}
+}   
 
 .memberSummary caption span.tableTab, .memberSummary caption span.activeTableTab {
   padding-top: 0px;
   padding-left: 0px;
+  padding-bottom: 0px;
   float: none;
   display: inline-block;
+  background: none;
+  border: none;    
 }
 
-.memberSummary .tabEnd, .memberSummary .tabEnd, .typeSummary .tabEnd,
-.useSummary .tabEnd, .constantsSummary .tabEnd, .deprecatedSummary .tabEnd {
-  width: 10px;
-  background-repeat: no-repeat;
-  background-position: top right;
-  position: relative;
-  float: left;
+.memberSummary caption span.tableTab span {
+    background: none;
+    border: none;
+    text-shadow: none;
 }
 
-.memberSummary .activeTableTab .tabEnd {
-  width: 10px;
-  margin-right: 5px;
-  background-repeat: no-repeat;
-  background-position: top right;
-  position: relative;
-  float: left;
-}
-
-.memberSummary .tableTab .tabEnd {
-  width: 10px;
-  margin-right: 5px;
-  background-repeat: no-repeat;
-  background-position: top right;
-  position: relative;
-  float: left;
-}
-
-.memberSummary td, .memberSummary td, .typeSummary td,
-.useSummary td, .constantsSummary td, .deprecatedSummary td {
+.overviewSummary td, 
+.memberSummary td, 
+.typeSummary td,
+.useSummary td, 
+.constantsSummary td, 
+.deprecatedSummary td {
   text-align: left;
   padding: 3px 3px 3px 7px;
 }
