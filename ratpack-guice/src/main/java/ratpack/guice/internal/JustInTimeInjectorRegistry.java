@@ -33,10 +33,6 @@ public class JustInTimeInjectorRegistry extends CachingBackedRegistry {
     this.injector = injector;
   }
 
-  public <T> T maybeGet(Class<T> type) {
-    return maybeGet(TypeToken.of(type));
-  }
-
   public <T> T maybeGet(TypeToken<T> type) {
     @SuppressWarnings("unchecked") TypeLiteral<T> typeLiteral = (TypeLiteral<T>) TypeLiteral.get(type.getType());
     try {

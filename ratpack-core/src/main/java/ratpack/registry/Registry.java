@@ -82,7 +82,9 @@ public interface Registry {
    * @return An object of the specified type
    * @throws NotInRegistryException If no object of this type can be returned
    */
-  <O> O get(Class<O> type) throws NotInRegistryException;
+  default <O> O get(Class<O> type) throws NotInRegistryException {
+    return get(TypeToken.of(type));
+  }
 
   /**
    * Provides an object of the specified type, or throws an exception if no object of that type is available.
@@ -92,7 +94,14 @@ public interface Registry {
    * @return An object of the specified type
    * @throws NotInRegistryException If no object of this type can be returned
    */
-  <O> O get(TypeToken<O> type) throws NotInRegistryException;
+  default <O> O get(TypeToken<O> type) throws NotInRegistryException {
+    O object = maybeGet(type);
+    if (object == null) {
+      throw new NotInRegistryException(type);
+    } else {
+      return object;
+    }
+  }
 
   /**
    * Does the same thing as {@link #get(Class)}, except returns null instead of throwing an exception.
@@ -102,7 +111,9 @@ public interface Registry {
    * @return An object of the specified type, or null if no object of this type is available.
    */
   @Nullable
-  <O> O maybeGet(Class<O> type);
+  default <O> O maybeGet(Class<O> type) {
+    return maybeGet(TypeToken.of(type));
+  }
 
   /**
    * Does the same thing as {@link #get(Class)}, except returns null instead of throwing an exception.
@@ -121,7 +132,9 @@ public interface Registry {
    * @param <O> the type of objects to search for
    * @return All objects of the given type
    */
-  <O> Iterable<? extends O> getAll(Class<O> type);
+  default <O> Iterable<? extends O> getAll(Class<O> type) {
+    return getAll(TypeToken.of(type));
+  }
 
   /**
    * Returns all of the objects whose declared type is assignment compatible with the given type.

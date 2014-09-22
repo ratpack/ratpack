@@ -68,27 +68,6 @@ public class SimpleMutableRegistry implements MutableRegistry {
   }
 
   @Override
-  public <T> T get(Class<T> type) throws NotInRegistryException {
-    return registry.get(type);
-  }
-
-  @Nullable
-  @Override
-  public <T> T maybeGet(Class<T> type) {
-    return registry.maybeGet(type);
-  }
-
-  @Override
-  public <T> Iterable<? extends T> getAll(Class<T> type) {
-    return registry.getAll(type);
-  }
-
-  @Override
-  public <T> T get(TypeToken<T> type) throws NotInRegistryException {
-    return registry.get(type);
-  }
-
-  @Override
   @Nullable
   public <T> T maybeGet(TypeToken<T> type) {
     return registry.maybeGet(type);

@@ -217,27 +217,6 @@ public class DefaultRequest implements Request {
   }
 
   @Override
-  public <O> O get(Class<O> type) throws NotInRegistryException {
-    return registry.get(type);
-  }
-
-  @Override
-  @Nullable
-  public <O> O maybeGet(Class<O> type) {
-    return registry.maybeGet(type);
-  }
-
-  @Override
-  public <O> Iterable<? extends O> getAll(Class<O> type) {
-    return registry.getAll(type);
-  }
-
-  @Override
-  public <O> O get(TypeToken<O> type) throws NotInRegistryException {
-    return registry.get(type);
-  }
-
-  @Override
   @Nullable
   public <O> O maybeGet(TypeToken<O> type) {
     return registry.maybeGet(type);

@@ -21,7 +21,6 @@ import com.google.common.reflect.TypeToken;
 import ratpack.api.Nullable;
 import ratpack.func.Action;
 import ratpack.func.Factory;
-import ratpack.registry.NotInRegistryException;
 import ratpack.registry.Registry;
 import ratpack.registry.RegistrySpec;
 import ratpack.remote.CommandDelegate;
@@ -56,24 +55,6 @@ public abstract class DelegatingCommandDelegate implements CommandDelegate {
 
   public RegistrySpec add(Object object) {
     return spec.add(object);
-  }
-
-  public <O> O get(Class<O> type) throws NotInRegistryException {
-    return registry.get(type);
-  }
-
-  public <O> Iterable<? extends O> getAll(Class<O> type) {
-    return registry.getAll(type);
-  }
-
-  @Nullable
-  public <O> O maybeGet(Class<O> type) {
-    return registry.maybeGet(type);
-  }
-
-  @Override
-  public <O> O get(TypeToken<O> type) throws NotInRegistryException {
-    return registry.get(type);
   }
 
   @Override

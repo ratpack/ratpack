@@ -26,7 +26,6 @@ import com.google.common.reflect.TypeToken;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import ratpack.api.Nullable;
 import ratpack.func.Action;
-import ratpack.registry.NotInRegistryException;
 import ratpack.registry.PredicateCacheability;
 import ratpack.registry.Registry;
 
@@ -69,26 +68,6 @@ public class CachingRegistry implements Registry {
   }
 
   @Override
-  public <O> O get(Class<O> type) throws NotInRegistryException {
-    return get(TypeToken.of(type));
-  }
-
-  @Override
-  public <O> O get(TypeToken<O> type) throws NotInRegistryException {
-    O o = maybeGet(type);
-    if (o == null) {
-      throw new NotInRegistryException(type);
-    } else {
-      return o;
-    }
-  }
-
-  @Override
-  public <O> O maybeGet(Class<O> type) {
-    return maybeGet(TypeToken.of(type));
-  }
-
-  @Override
   public <O> O maybeGet(TypeToken<O> type) {
     try {
       @SuppressWarnings("unchecked") O o = (O) cache.get(type).orNull();
@@ -96,11 +75,6 @@ public class CachingRegistry implements Registry {
     } catch (ExecutionException | UncheckedExecutionException e) {
       throw uncheck(toException(e.getCause()));
     }
-  }
-
-  @Override
-  public <O> List<O> getAll(Class<O> type) {
-    return getAll(TypeToken.of(type));
   }
 
   @Override

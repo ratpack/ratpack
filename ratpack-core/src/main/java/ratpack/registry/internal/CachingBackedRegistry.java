@@ -29,7 +29,6 @@ import com.google.common.reflect.TypeToken;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import ratpack.api.Nullable;
 import ratpack.func.Action;
-import ratpack.registry.NotInRegistryException;
 import ratpack.registry.PredicateCacheability;
 import ratpack.registry.Registry;
 import ratpack.registry.RegistryBacking;
@@ -71,25 +70,6 @@ public class CachingBackedRegistry implements Registry {
     }
   });
 
-  @Override
-  public <O> O get(Class<O> type) throws NotInRegistryException {
-    return get(TypeToken.of(type));
-  }
-
-  @Override
-  public <O> O get(TypeToken<O> type) throws NotInRegistryException {
-    O object = maybeGet(type);
-    if (object == null) {
-      throw new NotInRegistryException(type);
-    } else {
-      return object;
-    }
-  }
-
-  public <T> T maybeGet(Class<T> type) {
-    return maybeGet(TypeToken.of(type));
-  }
-
   public <T> T maybeGet(TypeToken<T> type) {
     Iterator<? extends Supplier<T>> suppliers = getSuppliers(type).iterator();
     if (!suppliers.hasNext()) {
@@ -100,17 +80,13 @@ public class CachingBackedRegistry implements Registry {
   }
 
   @Override
-  public <O> Iterable<? extends O> getAll(Class<O> type) {
-    return getAll(TypeToken.of(type));
-  }
-
-  @Override
   public <O> Iterable<? extends O> getAll(TypeToken<O> type) {
     return transformToInstances(getSuppliers(type));
   }
 
   protected <O> Iterable<O> transformToInstances(Iterable<? extends Supplier<O>> suppliers) {
-    return Iterables.transform(suppliers, Supplier::get);
+    //noinspection RedundantTypeArguments
+    return Iterables.transform(suppliers, Supplier<O>::get);
   }
 
   protected <T> Iterable<? extends Supplier<T>> getSuppliers(TypeToken<T> type) {

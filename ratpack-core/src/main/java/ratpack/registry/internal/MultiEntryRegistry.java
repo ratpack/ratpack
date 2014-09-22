@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.reflect.TypeToken;
 import ratpack.api.Nullable;
 import ratpack.func.Action;
-import ratpack.registry.NotInRegistryException;
 import ratpack.registry.Registry;
 
 import java.util.Iterator;
@@ -40,25 +39,6 @@ public class MultiEntryRegistry implements Registry {
     return "Registry{" + entries + '}';
   }
 
-  @Override
-  public <O> O get(Class<O> type) throws NotInRegistryException {
-    return get(TypeToken.of(type));
-  }
-
-  @Override
-  public <O> O get(TypeToken<O> type) throws NotInRegistryException {
-    O object = maybeGet(type);
-    if (object == null) {
-      throw new NotInRegistryException(type);
-    } else {
-      return object;
-    }
-  }
-
-  public <O> O maybeGet(Class<O> type) {
-    return maybeGet(TypeToken.of(type));
-  }
-
   public <O> O maybeGet(TypeToken<O> type) {
     for (RegistryEntry<?> entry : entries) {
       if (type.isAssignableFrom(entry.getType())) {
@@ -70,49 +50,40 @@ public class MultiEntryRegistry implements Registry {
     return null;
   }
 
-  public <O> Iterable<? extends O> getAll(Class<O> type) {
-    return getAll(TypeToken.of(type));
-  }
-
   public <O> Iterable<? extends O> getAll(final TypeToken<O> type) {
-    return new Iterable<O>() {
+    return () -> new Iterator<O>() {
+
+      final Iterator<? extends RegistryEntry<?>> delegate = entries.iterator();
+      O next;
+
       @Override
-      public Iterator<O> iterator() {
-        return new Iterator<O>() {
+      public boolean hasNext() {
+        if (next != null) {
+          return true;
+        }
 
-          final Iterator<? extends RegistryEntry<?>> delegate = entries.iterator();
-          O next;
-
-          @Override
-          public boolean hasNext() {
-            if (next != null) {
-              return true;
-            }
-
-            while (delegate.hasNext()) {
-              RegistryEntry<?> entry = delegate.next();
-              if (type.isAssignableFrom(entry.getType())) {
-                @SuppressWarnings("unchecked") O cast = (O) entry.get();
-                next = cast;
-                return true;
-              }
-            }
-
-            return false;
+        while (delegate.hasNext()) {
+          RegistryEntry<?> entry = delegate.next();
+          if (type.isAssignableFrom(entry.getType())) {
+            @SuppressWarnings("unchecked") O cast = (O) entry.get();
+            next = cast;
+            return true;
           }
+        }
 
-          @Override
-          public O next() {
-            O nextCopy = next;
-            next = null;
-            return nextCopy;
-          }
+        return false;
+      }
 
-          @Override
-          public void remove() {
-            throw new UnsupportedOperationException();
-          }
-        };
+      @Override
+      public O next() {
+        O nextCopy = next;
+        next = null;
+        return nextCopy;
+      }
+
+      @Override
+      public void remove() {
+        throw new UnsupportedOperationException();
       }
     };
   }

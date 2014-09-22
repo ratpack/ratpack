@@ -288,7 +288,6 @@ public class DefaultGroovyContext implements GroovyContext {
     return delegate.getAll(type);
   }
 
-  @Override
   public <O> O get(TypeToken<O> type) throws NotInRegistryException {
     return delegate.get(type);
   }

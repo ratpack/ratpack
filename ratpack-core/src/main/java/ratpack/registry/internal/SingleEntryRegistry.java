@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.reflect.TypeToken;
 import ratpack.api.Nullable;
 import ratpack.func.Action;
-import ratpack.registry.NotInRegistryException;
 import ratpack.registry.Registry;
 
 import java.util.Collections;
@@ -34,28 +33,6 @@ public class SingleEntryRegistry implements Registry {
     this.entry = entry;
   }
 
-  @Override
-  public <O> O get(Class<O> type) throws NotInRegistryException {
-    return get(TypeToken.of(type));
-  }
-
-  @Override
-  public <O> O get(TypeToken<O> type) throws NotInRegistryException {
-    O value = maybeGet(type);
-    if (value == null) {
-      throw new NotInRegistryException(type);
-    } else {
-      return value;
-    }
-  }
-
-
-  @Nullable
-  @Override
-  public <O> O maybeGet(Class<O> type) {
-    return maybeGet(TypeToken.of(type));
-  }
-
   @Nullable
   @Override
   public <O> O maybeGet(TypeToken<O> type) {
@@ -65,11 +42,6 @@ public class SingleEntryRegistry implements Registry {
     } else {
       return null;
     }
-  }
-
-  @Override
-  public <O> Iterable<? extends O> getAll(Class<O> type) {
-    return getAll(TypeToken.of(type));
   }
 
   @Override
