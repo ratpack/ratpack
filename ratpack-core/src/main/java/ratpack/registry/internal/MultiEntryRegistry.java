@@ -51,39 +51,45 @@ public class MultiEntryRegistry implements Registry {
   }
 
   public <O> Iterable<? extends O> getAll(final TypeToken<O> type) {
-    return () -> new Iterator<O>() {
-
-      final Iterator<? extends RegistryEntry<?>> delegate = entries.iterator();
-      O next;
-
+    //noinspection Convert2Lambda
+    return new Iterable<O>() {
       @Override
-      public boolean hasNext() {
-        if (next != null) {
-          return true;
-        }
+      public Iterator<O> iterator() {
+        return new Iterator<O>() {
 
-        while (delegate.hasNext()) {
-          RegistryEntry<?> entry = delegate.next();
-          if (type.isAssignableFrom(entry.getType())) {
-            @SuppressWarnings("unchecked") O cast = (O) entry.get();
-            next = cast;
-            return true;
+          final Iterator<? extends RegistryEntry<?>> delegate = entries.iterator();
+          O next;
+
+          @Override
+          public boolean hasNext() {
+            if (next != null) {
+              return true;
+            }
+
+            while (delegate.hasNext()) {
+              RegistryEntry<?> entry = delegate.next();
+              if (type.isAssignableFrom(entry.getType())) {
+                @SuppressWarnings("unchecked") O cast = (O) entry.get();
+                next = cast;
+                return true;
+              }
+            }
+
+            return false;
           }
-        }
 
-        return false;
-      }
+          @Override
+          public O next() {
+            O nextCopy = next;
+            next = null;
+            return nextCopy;
+          }
 
-      @Override
-      public O next() {
-        O nextCopy = next;
-        next = null;
-        return nextCopy;
-      }
-
-      @Override
-      public void remove() {
-        throw new UnsupportedOperationException();
+          @Override
+          public void remove() {
+            throw new UnsupportedOperationException();
+          }
+        };
       }
     };
   }

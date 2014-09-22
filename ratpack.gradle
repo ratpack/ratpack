@@ -69,8 +69,8 @@ allprojects {
     maven { url 'http://oss.jfrog.org/artifactory/repo' }
   }
 
-  clean {
-    delete fileTree(dir: projectDir, include: "**/Expression\$*.class")
+  jacoco {
+    toolVersion = "0.7.2.201409121644"
   }
 
   afterEvaluate {

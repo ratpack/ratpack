@@ -32,7 +32,9 @@ class ContextSpec extends Specification {
   void checkMethods(Class<?>[] interfaces) {
     interfaces.each {
       it.declaredMethods.each {
-        Context.getDeclaredMethod(it.name, it.parameterTypes)
+        if (it.name != '$jacocoInit') {
+          Context.getDeclaredMethod(it.name, it.parameterTypes)
+        }
       }
       checkMethods(it.interfaces)
     }

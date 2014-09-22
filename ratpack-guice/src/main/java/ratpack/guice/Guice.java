@@ -182,6 +182,7 @@ public abstract class Guice {
    * @param launchConfig The launch config of the server
    * @param moduleConfigurer The configurer of the {@link BindingsSpec} to back the created handler
    * @param chainConfigurer The configurer that builds the handler chain
+   * @throws Exception any thrown by {@code moduleConfigurer} or {@code chainConfigurer}
    * @return A handler that makes all Guice bound objects available to the handlers added to the {@link Chain} given to {@code chainConfigurer}.
    */
   public static Handler chain(LaunchConfig launchConfig, Action<? super BindingsSpec> moduleConfigurer, final Action<? super Chain> chainConfigurer) throws Exception {

@@ -21,7 +21,7 @@ import spock.lang.Specification
 
 class SimpleMutableRegistrySpec extends Specification {
 
-  def r = new SimpleMutableRegistry<Object>()
+  def r = new SimpleMutableRegistry()
 
   def "empty mutable registry"() {
     expect:
