@@ -19,8 +19,13 @@ package ratpack.func;
 import ratpack.api.Nullable;
 import ratpack.util.ExceptionUtils;
 
+import java.util.function.Consumer;
+
 /**
  * A generic type for an object that does some work with a thing.
+ * <p>
+ * This type serves the same purpose as the JDK's {@link java.util.function.Consumer}, but allows throwing checked exceptions.
+ * It contains methods for bridging to and from the JDK type.
  *
  * @param <T> The type of thing.
  */
@@ -131,5 +136,33 @@ public interface Action<T> {
    * @throws Exception if anything goes wrong
    */
   void execute(T t) throws Exception;
+
+  /**
+   * Creates a JDK {@link Consumer} from this action.
+   * <p>
+   * Any exceptions thrown by {@code this} action will be unchecked via {@link ExceptionUtils#uncheck(Throwable)} and rethrown.
+   *
+   * @return this function as a JDK style consumer.
+   */
+  default Consumer<T> toConsumer() {
+    return t -> {
+      try {
+        execute(t);
+      } catch (Exception e) {
+        throw ExceptionUtils.uncheck(e);
+      }
+    };
+  }
+
+  /**
+   * Creates an action from a JDK consumer.
+   *
+   * @param consumer the JDK consumer
+   * @param <T> the type of object this action accepts
+   * @return the given consumer as an action
+   */
+  static <T> Action<T> from(Consumer<T> consumer) {
+    return consumer::accept;
+  }
 
 }
