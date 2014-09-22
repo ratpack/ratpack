@@ -24,7 +24,6 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import ratpack.exec.*;
 import ratpack.func.Action;
-import ratpack.func.Actions;
 import ratpack.func.Factory;
 
 import java.util.Collections;
@@ -85,12 +84,12 @@ public class DefaultExecControl implements ExecControl {
 
   @Override
   public void fork(Action<? super Execution> action) {
-    fork(action, Actions.throwException(), Actions.noop());
+    fork(action, Action.throwException(), Action.noop());
   }
 
   @Override
   public void fork(Action<? super Execution> action, Action<? super Throwable> onError) {
-    fork(action, onError, Actions.noop());
+    fork(action, onError, Action.noop());
   }
 
   @Override

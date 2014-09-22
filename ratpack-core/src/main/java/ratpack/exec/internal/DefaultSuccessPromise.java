@@ -24,9 +24,8 @@ import ratpack.util.internal.InternalRatpackError;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static ratpack.func.Actions.ignoreArg;
-import static ratpack.func.Actions.throwException;
-import static ratpack.func.Predicates.isNull;
+import static ratpack.func.Action.ignoreArg;
+import static ratpack.func.Predicate.isNull;
 
 public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
 
@@ -88,7 +87,7 @@ public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
       if (!fulfilled.compareAndSet(false, true)) {
         LOGGER.error("", new OverlappingExecutionException("exception thrown after promise was fulfilled", throwable));
       } else {
-        executionBacking.join(throwException(throwable));
+        executionBacking.join(Action.throwException(throwable));
       }
     }
   }
@@ -235,7 +234,7 @@ public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
       try {
         errorHandler.execute(throwable);
       } catch (Throwable errorHandlerThrown) {
-        executionBacking.join(throwException(errorHandlerThrown));
+        executionBacking.join(Action.throwException(errorHandlerThrown));
       }
     }
 
@@ -244,7 +243,7 @@ public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
       try {
         then.execute(value);
       } catch (Throwable throwable) {
-        executionBacking.join(throwException(throwable));
+        executionBacking.join(Action.throwException(throwable));
       }
     }
   }

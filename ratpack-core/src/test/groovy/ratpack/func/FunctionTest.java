@@ -16,15 +16,24 @@
 
 package ratpack.func;
 
-public abstract class Predicates {
+import org.junit.Test;
 
-  private Predicates() {
+import static org.junit.Assert.assertEquals;
+
+public class FunctionTest {
+
+  @Test
+  public void testAndThen() throws Exception {
+    Function<String, String> f = String::toUpperCase;
+    f = f.andThen(in -> in + "-BAR");
+    assertEquals("FOO-BAR", f.apply("foo"));
   }
 
-  private static final Predicate<Object> IS_NULL = o -> o == null;
-
-  public static Predicate<Object> isNull() {
-    return IS_NULL;
+  @Test
+  public void testCompose() throws Exception {
+    Function<String, String> f = String::toUpperCase;
+    f = f.compose(in -> in + "-bar");
+    assertEquals("FOO-BAR", f.apply("foo"));
   }
 
 }

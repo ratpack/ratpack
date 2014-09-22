@@ -21,7 +21,6 @@ import org.reactivestreams.Subscriber
 import org.reactivestreams.Subscription
 import ratpack.exec.internal.MultiplePromiseSubscriptionException
 import ratpack.func.Action
-import ratpack.func.Actions
 import ratpack.launch.LaunchConfigBuilder
 import spock.lang.AutoCleanup
 import spock.lang.Specification
@@ -41,7 +40,7 @@ class ExecutionSpec extends Specification {
     controller = LaunchConfigBuilder.noBaseDir().build().execController
   }
 
-  def exec(Action<? super ExecControl> action, Action<? super Throwable> onError = Actions.noop()) {
+  def exec(Action<? super ExecControl> action, Action<? super Throwable> onError = Action.noop()) {
     controller.control.fork({
       action.execute(it.control)
     }, onError, {

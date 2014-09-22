@@ -19,7 +19,7 @@ package ratpack.stream.tck
 import org.reactivestreams.Publisher
 import org.reactivestreams.tck.PublisherVerification
 import org.reactivestreams.tck.TestEnvironment
-import ratpack.func.Actions
+import ratpack.func.Action
 import ratpack.stream.Streams
 
 class WiretapPublisherVerification extends PublisherVerification<Integer> {
@@ -33,7 +33,7 @@ class WiretapPublisherVerification extends PublisherVerification<Integer> {
 
   @Override
   Publisher<Integer> createPublisher(long elements) {
-    Streams.wiretap(Streams.publish(1..elements), Actions.noop())
+    Streams.wiretap(Streams.publish(1..elements), Action.noop())
   }
 
   @Override

@@ -26,7 +26,6 @@ import io.netty.handler.codec.http.*;
 import io.netty.handler.ssl.SslHandler;
 import ratpack.exec.*;
 import ratpack.func.Action;
-import ratpack.func.Actions;
 import ratpack.http.Headers;
 import ratpack.http.MutableHeaders;
 import ratpack.http.Status;
@@ -66,7 +65,7 @@ public class DefaultHttpClient implements HttpClient {
   }
 
   public Promise<ReceivedResponse> post(Action<? super RequestSpec> action) {
-    return request(Actions.join(new Post(), action));
+    return request(Action.join(new Post(), action));
   }
 
   @Override

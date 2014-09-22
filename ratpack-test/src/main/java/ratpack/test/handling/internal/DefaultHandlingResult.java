@@ -27,7 +27,7 @@ import ratpack.event.internal.DefaultEventController;
 import ratpack.event.internal.EventController;
 import ratpack.exec.ExecControl;
 import ratpack.file.internal.ResponseTransmitter;
-import ratpack.func.Actions;
+import ratpack.func.Action;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.handling.RequestOutcome;
@@ -171,7 +171,7 @@ public class DefaultHandlingResult implements HandlingResult {
       applicationConstants, bindAddress, request, response, null, eventController.getRegistry()
     );
 
-    DefaultContext.start(execControl, requestConstants, effectiveRegistry, new Handler[]{handler}, next, Actions.noop());
+    DefaultContext.start(execControl, requestConstants, effectiveRegistry, new Handler[]{handler}, next, Action.noop());
 
     try {
       if (!latch.await(timeout, TimeUnit.SECONDS)) {

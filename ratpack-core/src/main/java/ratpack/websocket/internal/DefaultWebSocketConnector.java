@@ -17,7 +17,6 @@
 package ratpack.websocket.internal;
 
 import ratpack.func.Action;
-import ratpack.func.Actions;
 import ratpack.func.Function;
 import ratpack.handling.Context;
 import ratpack.launch.LaunchConfig;
@@ -29,8 +28,8 @@ public class DefaultWebSocketConnector<T> implements WebSocketConnector<T> {
   private final Function<WebSocket, T> open;
 
   private class Spec implements WebSocketSpec<T> {
-    private Action<? super WebSocketMessage<T>> messageHandler = Actions.noop();
-    private Action<? super WebSocketClose<T>> closeHandler = Actions.noop();
+    private Action<? super WebSocketMessage<T>> messageHandler = Action.noop();
+    private Action<? super WebSocketClose<T>> closeHandler = Action.noop();
 
     private String path = "/";
     private int maxLength;

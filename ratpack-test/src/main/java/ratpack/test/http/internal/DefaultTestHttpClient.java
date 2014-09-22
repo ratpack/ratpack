@@ -23,7 +23,6 @@ import io.netty.handler.codec.http.ClientCookieEncoder;
 import io.netty.handler.codec.http.Cookie;
 import io.netty.handler.codec.http.CookieDecoder;
 import ratpack.func.Action;
-import ratpack.func.Actions;
 import ratpack.http.client.ReceivedResponse;
 import ratpack.http.client.RequestSpec;
 import ratpack.http.internal.HttpHeaderConstants;
@@ -46,7 +45,7 @@ public class DefaultTestHttpClient implements TestHttpClient {
   private final Action<? super RequestSpec> defaultRequestConfig;
   private final List<Cookie> cookies = Lists.newLinkedList();
 
-  private Action<? super RequestSpec> request = Actions.noop();
+  private Action<? super RequestSpec> request = Action.noop();
   private ReceivedResponse response;
 
   public DefaultTestHttpClient(ApplicationUnderTest applicationUnderTest, Action<? super RequestSpec> defaultRequestConfig) {
@@ -66,7 +65,7 @@ public class DefaultTestHttpClient implements TestHttpClient {
 
   @Override
   public void resetRequest() {
-    request = Actions.noop();
+    request = Action.noop();
     cookies.clear();
   }
 
@@ -199,7 +198,7 @@ public class DefaultTestHttpClient implements TestHttpClient {
 
   private ReceivedResponse sendRequest(final String method, String path) {
     try {
-      Action<RequestSpec> effectiveConfig = Actions.join(defaultRequestConfig, request, new FinalRequestConfig(method, toAbsolute(path), cookies));
+      Action<RequestSpec> effectiveConfig = Action.join(defaultRequestConfig, request, new FinalRequestConfig(method, toAbsolute(path), cookies));
       response = client.request(1, TimeUnit.MINUTES, effectiveConfig);
     } catch (Throwable throwable) {
       throw uncheck(throwable);

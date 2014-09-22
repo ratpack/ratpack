@@ -17,14 +17,13 @@
 package ratpack.exec
 
 import ratpack.func.Action
-import ratpack.func.Actions
 import ratpack.launch.LaunchConfigBuilder
 import spock.lang.AutoCleanup
 import spock.lang.Specification
 
 import java.util.concurrent.CountDownLatch
 
-import static ratpack.func.Actions.throwException
+import static ratpack.func.Action.throwException
 
 class PromiseOperationsSpec extends Specification {
 
@@ -37,7 +36,7 @@ class PromiseOperationsSpec extends Specification {
     controller = LaunchConfigBuilder.noBaseDir().build().execController
   }
 
-  def exec(Action<? super ExecControl> action, Action<? super Throwable> onError = Actions.noop()) {
+  def exec(Action<? super ExecControl> action, Action<? super Throwable> onError = Action.noop()) {
     controller.control.fork({
       action.execute(it.control)
     }, onError, {

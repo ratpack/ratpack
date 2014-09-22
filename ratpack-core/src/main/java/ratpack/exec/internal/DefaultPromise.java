@@ -23,8 +23,6 @@ import ratpack.func.*;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static ratpack.func.Actions.throwException;
-
 public class DefaultPromise<T> implements Promise<T> {
   private final Action<? super Fulfiller<T>> fulfillment;
   private final Factory<ExecutionBacking> executionProvider;
@@ -50,7 +48,7 @@ public class DefaultPromise<T> implements Promise<T> {
   }
 
   private SuccessPromise<T> propagatingSuccessPromise() {
-    return onError(throwException());
+    return onError(Action.throwException());
   }
 
   @Override

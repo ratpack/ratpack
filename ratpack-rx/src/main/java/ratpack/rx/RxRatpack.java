@@ -20,7 +20,6 @@ import com.google.common.base.Optional;
 import ratpack.exec.*;
 import ratpack.exec.internal.DefaultExecController;
 import ratpack.func.Action;
-import ratpack.func.Actions;
 import ratpack.rx.internal.DefaultSchedulers;
 import ratpack.rx.internal.ExecControllerBackedScheduler;
 import ratpack.util.ExceptionUtils;
@@ -583,7 +582,7 @@ public abstract class RxRatpack {
           public void execute(Fulfiller<Object> fulfiller) throws Exception {
             fulfiller.error(onErrorNotImplementedException.getCause());
           }
-        }).then(Actions.noop());
+        }).then(Action.noop());
       }
     }
 
@@ -597,7 +596,7 @@ public abstract class RxRatpack {
           public void execute(Fulfiller<Object> fulfiller) throws Exception {
             fulfiller.error(onErrorNotImplementedException.getCause());
           }
-        }).then(Actions.noop());
+        }).then(Action.noop());
       }
     }
 
@@ -610,7 +609,7 @@ public abstract class RxRatpack {
           public void execute(Fulfiller<Object> fulfiller) throws Exception {
             fulfiller.error(onErrorNotImplementedException.getCause());
           }
-        }).then(Actions.noop());
+        }).then(Action.noop());
       }
     }
   }

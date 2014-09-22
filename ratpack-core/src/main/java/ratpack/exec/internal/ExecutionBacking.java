@@ -31,8 +31,6 @@ import java.util.List;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static ratpack.func.Actions.throwException;
-
 public class ExecutionBacking {
 
   private final static Logger LOGGER = LoggerFactory.getLogger(ExecutionBacking.class);
@@ -190,7 +188,7 @@ public class ExecutionBacking {
           try {
             onError.execute(e);
           } catch (final Throwable errorHandlerException) {
-            segments.addFirst(new UserCodeSegment(throwException(errorHandlerException)));
+            segments.addFirst(new UserCodeSegment(Action.throwException(errorHandlerException)));
           }
         });
       }
