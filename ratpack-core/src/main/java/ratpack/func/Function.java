@@ -23,8 +23,8 @@ import java.util.Objects;
 /**
  * A single argument function.
  * <p>
- * This type serves the same purpose as {@link java.util.function.Function}, but allows throwing checked exceptions.
- * It contains methods for bridging to/from this type.
+ * This type serves the same purpose as the JDK's {@link java.util.function.Function}, but allows throwing checked exceptions.
+ * It contains methods for bridging to and from the JDK type.
  *
  * @param <I> the type of the input
  * @param <O> the type of the output
@@ -43,7 +43,7 @@ public interface Function<I, O> {
 
   /**
    * Joins {@code this} function with the given function.
-   * <p>
+   *
    * <pre class="java">{@code
    * import ratpack.func.Function;
    *
@@ -72,7 +72,7 @@ public interface Function<I, O> {
 
   /**
    * Joins the given function with {@code this} function.
-   * <p>
+   *
    * <pre class="java">{@code
    * import ratpack.func.Function;
    *

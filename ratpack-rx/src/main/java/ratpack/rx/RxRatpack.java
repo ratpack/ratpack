@@ -156,8 +156,6 @@ public abstract class RxRatpack {
    * Converts a Ratpack promise into an Rx observable.
    * <p>
    * For example, this can be used to observe blocking operations.
-   * <p>
-   * In Java&hellip;
    * <pre class="java">{@code
    * import ratpack.exec.Promise;
    * import ratpack.test.handling.HandlingResult;
@@ -190,7 +188,7 @@ public abstract class RxRatpack {
    * <p>
    * The promised iterable will be emitted to the observer one element at a time.
    * For example, this can be used to observe background operations that produce some kind of iterable&hellip;
-   * <p>
+   *
    * <pre class="java">{@code
    * import ratpack.exec.Promise;
    * import ratpack.test.handling.HandlingResult;
