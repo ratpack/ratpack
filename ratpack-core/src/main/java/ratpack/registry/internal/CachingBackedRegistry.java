@@ -40,13 +40,6 @@ import java.util.concurrent.ExecutionException;
 import static ratpack.util.ExceptionUtils.toException;
 import static ratpack.util.ExceptionUtils.uncheck;
 
-/**
- *  Registry implementation which is backed by a RegistryBacking implementation that provides a list of Suppliers for a given TypeToken
- *
- *  This implementation caches lookups by type and by the combination of type and predicate (when the predicate is cacheable)
- *
- *  @see RegistryBacking
- */
 public class CachingBackedRegistry implements Registry {
   private final RegistryBacking registryBacking;
 
@@ -117,7 +110,7 @@ public class CachingBackedRegistry implements Registry {
   }
 
   protected <O> Iterable<O> transformToInstances(Iterable<? extends Supplier<O>> suppliers) {
-    return Iterables.transform(suppliers, Supplier<O>::get);
+    return Iterables.transform(suppliers, Supplier::get);
   }
 
   protected <T> Iterable<? extends Supplier<T>> getSuppliers(TypeToken<T> type) {
