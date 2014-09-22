@@ -17,7 +17,10 @@
 package ratpack.rx;
 
 import com.google.common.base.Optional;
-import ratpack.exec.*;
+import ratpack.exec.ExecControl;
+import ratpack.exec.ExecController;
+import ratpack.exec.Fulfiller;
+import ratpack.exec.Promise;
 import ratpack.exec.internal.DefaultExecController;
 import ratpack.func.Action;
 import ratpack.rx.internal.DefaultSchedulers;
@@ -56,99 +59,31 @@ public abstract class RxRatpack {
    * It only needs to be called once per JVM, regardless of how many Ratpack applications are running within the JVM.
    * <p>
    * For a Java application, a convenient place to call this is in the handler factory implementation.
-   * <pre class="java">
-   * import ratpack.launch.HandlerFactory;
-   * import ratpack.launch.LaunchConfig;
-   * import ratpack.handling.Handler;
-   * import ratpack.handling.Handlers;
-   * import ratpack.handling.Context;
-   * import ratpack.handling.ChainAction;
+   * <pre class="java">{@code
    * import ratpack.error.ServerErrorHandler;
-   * import ratpack.registry.RegistrySpecAction;
    * import ratpack.rx.RxRatpack;
+   * import ratpack.test.UnitTest;
+   * import ratpack.test.handling.HandlingResult;
    * import rx.Observable;
-   * import rx.functions.Action1;
    *
    * public class Example {
-   *   public static class MyHandlerFactory implements HandlerFactory {
-   *     public Handler create(LaunchConfig launchConfig) throws Exception {
+   *   public static void main(String... args) throws Exception {
+   *     RxRatpack.initialize(); // must be called once per JVM
    *
-   *       // Enable Rx integration
-   *       RxRatpack.initialize();
+   *     HandlingResult result = UnitTest.requestFixture().handleChain(chain -> {
+   *       chain.register(registry ->
+   *         registry.add(ServerErrorHandler.class, (context, throwable) ->
+   *           context.render("caught by error handler: " + throwable.getMessage())
+   *         )
+   *       );
    *
-   *       return Handlers.chain(launchConfig, new ChainAction() {
-   *         public void execute() throws Exception {
-   *           register(new RegistrySpecAction() { // register a custom error handler
-   *             public void execute() {
-   *               add(ServerErrorHandler.class, new ServerErrorHandler() {
-   *                 public void error(Context context, Throwable throwable) {
-   *                   context.render("caught by error handler!");
-   *                 }
-   *               });
-   *             }
-   *           });
+   *       chain.get(ctx -> Observable.<String>error(new Exception("!")).subscribe((s) -> {}));
+   *     });
    *
-   *           get(new Handler() {
-   *             public void handle(Context context) {
-   *               // An observable sequence with no defined error handler
-   *               // The error will be propagated to context error handler implicitly
-   *               Observable.&lt;String&gt;error(new Exception("!")).subscribe(new Action1&lt;String&gt;() {
-   *                 public void call(String str) {
-   *                   // will never be called
-   *                 }
-   *               });
-   *             }
-   *           });
-   *         }
-   *       });
-   *     }
+   *     assert result.rendered(String.class).equals("caught by error handler: !");
    *   }
    * }
-   * </pre>
-   * <p>
-   * For a Groovy DSL application, it can be registered during the module bindings.
-   * <pre>
-   * import ratpack.handling.Context
-   * import ratpack.error.ServerErrorHandler
-   * import ratpack.rx.RxRatpack
-   * import rx.Observable
-   *
-   * import static ratpack.groovy.test.embed.EmbeddedApplications.embeddedApp
-   * import static ratpack.test.http.TestHttpClients.testHttpClient
-   *
-   * class CustomErrorHandler implements ServerErrorHandler {
-   *   void error(Context context, Throwable throwable) {
-   *     context.render("caught by error handler!")
-   *   }
-   * }
-   *
-   * def app = embeddedApp {
-   *   bindings {
-   *     // Enable Rx integration
-   *     RxRatpack.initialize()
-   *
-   *     bind ServerErrorHandler, CustomErrorHandler
-   *   }
-   *
-   *   handlers {
-   *     get {
-   *       // An observable sequence with no defined error handler
-   *       // The error will be propagated to context error handler implicitly
-   *       Observable.error(new Exception("!")).subscribe {
-   *         // will never happen
-   *       }
-   *     }
-   *   }
-   * }
-   *
-   * def client = testHttpClient(app)
-   *
-   * try {
-   *   client.getText() == "caught by error handler!"
-   * } finally {
-   *   app.close()
-   * }
-   * </pre>
+   * }</pre>
    */
   @SuppressWarnings("deprecation")
   public static void initialize() {
@@ -195,34 +130,24 @@ public abstract class RxRatpack {
    * @return an observable stream equivalent to the given source
    */
   public static <T> Observable<T> forkAndJoin(final ExecControl execControl, final Observable<T> source) {
-    Promise<List<T>> promise = execControl.promise(new Action<Fulfiller<List<T>>>() {
-      @Override
-      public void execute(final Fulfiller<List<T>> fulfiller) throws Exception {
-        execControl.fork(new Action<Execution>() {
-          @Override
-          public void execute(Execution execution) throws Exception {
-            source
-              .toList()
-              .subscribe(new Subscriber<List<T>>() {
-                @Override
-                public void onCompleted() {
+    Promise<List<T>> promise = execControl.promise(fulfiller -> execControl.fork(execution -> source
+      .toList()
+      .subscribe(new Subscriber<List<T>>() {
+        @Override
+        public void onCompleted() {
 
-                }
+        }
 
-                @Override
-                public void onError(Throwable e) {
-                  fulfiller.error(e);
-                }
+        @Override
+        public void onError(Throwable e) {
+          fulfiller.error(e);
+        }
 
-                @Override
-                public void onNext(List<T> ts) {
-                  fulfiller.success(ts);
-                }
-              });
-          }
-        });
-      }
-    });
+        @Override
+        public void onNext(List<T> ts) {
+          fulfiller.success(ts);
+        }
+      })));
 
     return observeEach(promise);
   }
@@ -233,93 +158,63 @@ public abstract class RxRatpack {
    * For example, this can be used to observe blocking operations.
    * <p>
    * In Java&hellip;
-   * <pre class="tested">
-   * import ratpack.handling.Handler;
-   * import ratpack.handling.Context;
+   * <pre class="java">{@code
    * import ratpack.exec.Promise;
-   * import java.util.concurrent.Callable;
-   * import rx.functions.Func1;
-   * import rx.functions.Action1;
+   * import ratpack.test.handling.HandlingResult;
    *
    * import static ratpack.rx.RxRatpack.observe;
+   * import static ratpack.test.UnitTest.requestFixture;
    *
-   * public class ReactiveHandler implements Handler {
-   *   public void handle(Context context) {
-   *     Promise&lt;String&gt; promise = context.blocking(new Callable&lt;String&gt;() {
-   *       public String call() {
-   *         // do some blocking IO here
-   *         return "hello world";
-   *       }
+   * public class Example {
+   *   public static void main(String... args) throws Exception {
+   *     HandlingResult result = requestFixture().handle(context -> {
+   *       Promise<String> promise = context.blocking(() -> "hello world");
+   *       observe(promise).map(String::toUpperCase).subscribe(context::render);
    *     });
    *
-   *     observe(promise).map(new Func1&lt;String, String&gt;() {
-   *       public String call(String input) {
-   *         return input.toUpperCase();
-   *       }
-   *     }).subscribe(new Action1&lt;String&gt;() {
-   *       public void call(String str) {
-   *         context.render(str); // renders: HELLO WORLD
-   *       }
-   *     });
+   *     assert result.rendered(String.class).equals("HELLO WORLD");
    *   }
    * }
-   * </pre>
-   * <p>
-   * A similar example in the Groovy DSL would look like:
-   * </p>
-   * <pre class="groovy-chain-dsl">
-   * import static ratpack.rx.RxRatpack.observe
-   *
-   * handler {
-   *   observe(blocking {
-   *     // do some blocking IO
-   *     "hello world"
-   *   }) map {
-   *     it.toUpperCase()
-   *   } subscribe {
-   *     render it // renders: HELLO WORLD
-   *   }
-   * }
-   * </pre>
+   * }</pre>
    *
    * @param promise the promise
    * @param <T> the type of value promised
    * @return an observable for the promised value
    */
   public static <T> Observable<T> observe(Promise<T> promise) {
-    return Observable.create(new PromiseSubscribe<>(promise, new Action2<T, Subscriber<? super T>>() {
-      @Override
-      public void call(T thing, Subscriber<? super T> subscriber) {
-        subscriber.onNext(thing);
-      }
-    }));
+    return Observable.create(new PromiseSubscribe<>(promise, (thing, subscriber) -> subscriber.onNext(thing)));
   }
 
   /**
    * Converts a Ratpack promise of an iterable value into an Rx observable for each element of the promised iterable.
    * <p>
    * The promised iterable will be emitted to the observer one element at a time.
-   * <p>
    * For example, this can be used to observe background operations that produce some kind of iterable&hellip;
-   * <pre class="groovy-chain-dsl">
-   * import static ratpack.rx.RxRatpack.observeEach
+   * <p>
+   * <pre class="java">{@code
+   * import ratpack.exec.Promise;
+   * import ratpack.test.handling.HandlingResult;
    *
-   * handler {
-   *   observeEach(blocking {
-   *     // do some blocking IO and return a List&lt;String&gt;
-   *     // each item in the List is emitted to the next Observable, not the List
-   *     ["a", "b", "c"]
-   *   }) map { String input -&gt;
-   *     input.toUpperCase()
-   *   } subscribe {
-   *     println it
+   * import java.util.Arrays;
+   * import java.util.List;
+   *
+   * import static ratpack.rx.RxRatpack.observeEach;
+   * import static ratpack.test.UnitTest.requestFixture;
+   *
+   * public class Example {
+   *   public static void main(String... args) throws Exception {
+   *     HandlingResult result = requestFixture().handle(context -> {
+   *       Promise<List<String>> promise = context.blocking(() -> Arrays.asList("hello", "world"));
+   *       observeEach(promise)
+   *         .map(String::toUpperCase)
+   *         .toList()
+   *         .subscribe(strings -> context.render(String.join(" ", strings)));
+   *     });
+   *
+   *     assert result.rendered(String.class).equals("HELLO WORLD");
    *   }
    * }
-   * </pre>
-   * The output would be:
-   * <br>A
-   * <br>B
-   * <br>C
+   * }</pre>
    *
    * @param promise the promise
    * @param <T> the element type of the promised iterable
@@ -328,12 +223,9 @@ public abstract class RxRatpack {
    * @see #observe(ratpack.exec.Promise)
    */
   public static <T, I extends Iterable<T>> Observable<T> observeEach(Promise<I> promise) {
-    return Observable.create(new PromiseSubscribe<>(promise, new Action2<I, Subscriber<? super T>>() {
-      @Override
-      public void call(I things, Subscriber<? super T> subscriber) {
-        for (T thing : things) {
-          subscriber.onNext(thing);
-        }
+    return Observable.create(new PromiseSubscribe<>(promise, (things, subscriber) -> {
+      for (T thing : things) {
+        subscriber.onNext(thing);
       }
     }));
   }
@@ -417,69 +309,45 @@ public abstract class RxRatpack {
    * @return an observable operator
    */
   public static <T> Observable.Operator<T, T> forkOnNext(final ExecControl execControl) {
-    return new Observable.Operator<T, T>() {
+    return downstream -> new Subscriber<T>(downstream) {
+
+      private final AtomicInteger wip = new AtomicInteger(1);
+
+      private volatile Runnable onDone;
 
       @Override
-      public Subscriber<? super T> call(final Subscriber<? super T> downstream) {
-        return new Subscriber<T>(downstream) {
+      public void onCompleted() {
+        onDone = downstream::onCompleted;
+        maybeDone();
+      }
 
-          private final AtomicInteger wip = new AtomicInteger(1);
+      @Override
+      public void onError(final Throwable e) {
+        onDone = () -> downstream.onError(e);
+        maybeDone();
+      }
 
-          private volatile Runnable onDone;
+      private void maybeDone() {
+        if (wip.decrementAndGet() == 0) {
+          onDone.run();
+        }
+      }
 
-          @Override
-          public void onCompleted() {
-            onDone = new Runnable() {
-              @Override
-              public void run() {
-                downstream.onCompleted();
-              }
-            };
+      @Override
+      public void onNext(final T t) {
+        // Avoid the overhead of creating executions if downstream is no longer interested
+        if (isUnsubscribed()) {
+          return;
+        }
+
+        wip.incrementAndGet();
+        execControl.fork(execution -> {
+          try {
+            downstream.onNext(t);
+          } finally {
             maybeDone();
           }
-
-          @Override
-          public void onError(final Throwable e) {
-            onDone = new Runnable() {
-              @Override
-              public void run() {
-                downstream.onError(e);
-              }
-            };
-            maybeDone();
-          }
-
-          private void maybeDone() {
-            if (wip.decrementAndGet() == 0) {
-              onDone.run();
-            }
-          }
-
-          @Override
-          public void onNext(final T t) {
-            // Avoid the overhead of creating executions if downstream is no longer interested
-            if (isUnsubscribed()) {
-              return;
-            }
-
-            wip.incrementAndGet();
-            execControl.fork(new Action<Execution>() {
-              @Override
-              public void execute(Execution execution) throws Exception {
-                try {
-                  downstream.onNext(t);
-                } finally {
-                  maybeDone();
-                }
-              }
-            }, new Action<Throwable>() {
-              @Override
-              public void execute(Throwable throwable) throws Exception {
-                onError(throwable);
-              }
-            });
-          }
-        };
+        }, this::onError);
       }
     };
   }
@@ -517,25 +385,19 @@ public abstract class RxRatpack {
     public void call(final Subscriber<? super S> subscriber) {
       try {
         promise
-          .onError(new Action<Throwable>() {
-            @Override
-            public void execute(Throwable throwable) throws Exception {
-              try {
-                subscriber.onError(throwable);
-              } catch (OnErrorNotImplementedException e) {
-                throw toException(e.getCause());
-              }
+          .onError(throwable -> {
+            try {
+              subscriber.onError(throwable);
+            } catch (OnErrorNotImplementedException e) {
+              throw toException(e.getCause());
             }
           })
-          .then(new Action<T>() {
-            @Override
-            public void execute(T thing) throws Exception {
-              try {
-                emitter.call(thing, subscriber);
-                subscriber.onCompleted();
-              } catch (OnErrorNotImplementedException e) {
-                throw toException(e.getCause());
-              }
+          .then(thing -> {
+            try {
+              emitter.call(thing, subscriber);
+              subscriber.onCompleted();
+            } catch (OnErrorNotImplementedException e) {
+              throw toException(e.getCause());
             }
           });
       } catch (Exception e) {
@@ -576,13 +438,8 @@ public abstract class RxRatpack {
     public void onCompleted() {
       try {
         subscriber.onCompleted();
-      } catch (final OnErrorNotImplementedException onErrorNotImplementedException) {
-        execControl.promise(new Action<Fulfiller<Object>>() {
-          @Override
-          public void execute(Fulfiller<Object> fulfiller) throws Exception {
-            fulfiller.error(onErrorNotImplementedException.getCause());
-          }
-        }).then(Action.noop());
+      } catch (final OnErrorNotImplementedException e) {
+        execControl.promise(f -> f.error(e.getCause())).then(Action.noop());
       }
     }
 
@@ -590,26 +447,16 @@ public abstract class RxRatpack {
     public void onError(Throwable e) {
       try {
         subscriber.onError(e);
-      } catch (final OnErrorNotImplementedException onErrorNotImplementedException) {
-        execControl.promise(new Action<Fulfiller<Object>>() {
-          @Override
-          public void execute(Fulfiller<Object> fulfiller) throws Exception {
-            fulfiller.error(onErrorNotImplementedException.getCause());
-          }
-        }).then(Action.noop());
+      } catch (final OnErrorNotImplementedException e2) {
+        execControl.promise(f -> f.error(e2.getCause())).then(Action.noop());
       }
     }
 
     public void onNext(T t) {
       try {
         subscriber.onNext(t);
-      } catch (final OnErrorNotImplementedException onErrorNotImplementedException) {
-        execControl.promise(new Action<Fulfiller<Object>>() {
-          @Override
-          public void execute(Fulfiller<Object> fulfiller) throws Exception {
-            fulfiller.error(onErrorNotImplementedException.getCause());
-          }
-        }).then(Action.noop());
+      } catch (final OnErrorNotImplementedException e) {
+        execControl.promise(fulfiller -> fulfiller.error(e.getCause())).then(Action.noop());
       }
     }
   }
