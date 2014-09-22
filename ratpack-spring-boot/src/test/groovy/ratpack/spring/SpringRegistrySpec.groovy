@@ -24,7 +24,7 @@ import spock.lang.Specification
 
 class SpringRegistrySpec extends Specification {
   def appContext = new StaticApplicationContext()
-  def r = Spring.registry(appContext)
+  def r = Spring.spring(appContext)
   def beanFactory = appContext.getBeanFactory()
 
   def "empty registry"() {
@@ -156,7 +156,7 @@ class SpringRegistrySpec extends Specification {
 
   def "equals and hashCode should be implemented"() {
     given:
-    def otherRegistry = Spring.registry(appContext)
+    def otherRegistry = Spring.spring(appContext)
     expect:
     otherRegistry.equals(r)
     r.equals(otherRegistry)

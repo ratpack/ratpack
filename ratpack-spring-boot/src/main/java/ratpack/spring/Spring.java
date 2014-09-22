@@ -38,12 +38,12 @@ import java.util.Arrays;
  * import org.springframework.boot.SpringApplication
  * import org.springframework.context.annotation.Bean
  * import org.springframework.context.annotation.Configuration
- * import ratpack.spring.Spring
+ * import static ratpack.spring.Spring.*
  * import static ratpack.groovy.Groovy.ratpack
  *
  * ratpack {
  *   handlers {
- *     register Spring.run(SampleSpringBootApp)
+ *     register spring(SampleSpringBootApp)
  *
  *     handler("foo") { String msg ->
  *       render msg
@@ -84,7 +84,7 @@ import java.util.Arrays;
  * import ratpack.launch.LaunchConfig;
  * import ratpack.launch.LaunchConfigBuilder;
  * import ratpack.registry.Registry;
- * import ratpack.spring.Spring;
+ * import static ratpack.spring.Spring.*;
  * import ratpack.test.embed.EmbeddedApplication;
  * import ratpack.test.embed.LaunchConfigEmbeddedApplication;
  *
@@ -96,7 +96,7 @@ import java.util.Arrays;
  *         return LaunchConfigBuilder.noBaseDir().port(0).build(new HandlerFactory() {
  *           public Handler create(LaunchConfig launchConfig) throws Exception {
  *             // Example of using Spring Boot in Ratpack
- *             final Registry springBackedRegistry = Spring.run(ExampleSpringBootApp.class);
+ *             final Registry springBackedRegistry = spring(ExampleSpringBootApp.class);
  *             return Handlers.chain(launchConfig, new Action<Chain>() {
  *               public void execute(Chain chain) {
  *                 chain.register(springBackedRegistry);
@@ -151,7 +151,7 @@ public abstract class Spring {
    * @param beanFactory
    * @return Registry instance that looks up dependencies in the Spring Boot Application's context
    */
-  public static Registry registry(final ListableBeanFactory beanFactory) {
+  public static Registry spring(final ListableBeanFactory beanFactory) {
     return Registries.backedRegistry(new SpringRegistryBacking(beanFactory));
   }
 
@@ -162,10 +162,10 @@ public abstract class Spring {
    * @param args arguments to pass to application
    * @return Ratpack Registry instance that looks up dependencies in the Spring Boot Application's context
    */
-  public static Registry run(Class<?> springApplicationClass, String... args) {
+  public static Registry spring(Class<?> springApplicationClass, String... args) {
     SpringApplicationBuilder springApplicationBuilder = new SpringApplicationBuilder(springApplicationClass);
     springApplicationBuilder.main(springApplicationClass);
-    return run(springApplicationBuilder, args);
+    return spring(springApplicationBuilder, args);
   }
 
   /**
@@ -175,8 +175,8 @@ public abstract class Spring {
    * @param args arguments to pass to application
    * @return Ratpack Registry instance that looks up dependencies in the Spring Boot Application's context
    */
-  public static Registry run(SpringApplicationBuilder springApplicationBuilder, String... args) {
-    return registry(springApplicationBuilder.run(args));
+  public static Registry spring(SpringApplicationBuilder springApplicationBuilder, String... args) {
+    return spring(springApplicationBuilder.run(args));
   }
 
   private static class SpringRegistryBacking implements RegistryBacking {
