@@ -104,12 +104,12 @@ public interface Action<T> {
   /**
    * Executes the action with the given argument, then returns the argument.
    * <pre class="java">{@code
-   * import ratpack.func.Actions;
+   * import ratpack.func.Action;
    * import java.util.ArrayList;
    *
    * public class Example {
    *   public static void main(String... args) throws Exception {
-   *     assert Actions.with(new ArrayList<>(), list -> list.add("foo")).get(0).equals("foo");
+   *     assert Action.with(new ArrayList<>(), list -> list.add("foo")).get(0).equals("foo");
    *   }
    * }
    * }</pre>

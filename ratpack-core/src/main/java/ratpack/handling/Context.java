@@ -506,7 +506,6 @@ public interface Context extends ExecControl, Registry {
    * import ratpack.handling.Handler;
    * import ratpack.handling.Context;
    * import ratpack.func.Action;
-   * import ratpack.func.Actions;
    * import ratpack.exec.Execution;
    * import ratpack.exec.Fulfiller;
    *
@@ -570,7 +569,7 @@ public interface Context extends ExecControl, Registry {
    *   }
    *
    *   public static void main(String[] args) throws Exception {
-   *     HandlingResult result = UnitTest.handle(new ForkingHandler(), Actions.noop());
+   *     HandlingResult result = UnitTest.handle(new ForkingHandler(), Action.noop());
    *     assert result.rendered(String.class).equals("3");
    *
    *     result = UnitTest.handle(new ForkingHandler(), new Action&lt;RequestFixture&gt;() {

@@ -57,7 +57,7 @@ import ratpack.func.Action;
  *
  * import static ratpack.test.UnitTest.handle;
  * import static ratpack.handling.Handlers.chain;
- * import static ratpack.func.Actions.noop;
+ * import static ratpack.func.Action.noop;
  *
  * Handler chain = chain(new UpstreamHandler(), new DownstreamHandler());
  * HandlingResult result = handle(chain, noop());

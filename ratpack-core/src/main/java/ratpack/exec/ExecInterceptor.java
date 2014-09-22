@@ -34,7 +34,6 @@ package ratpack.exec;
  * import ratpack.exec.Execution;
  * import ratpack.exec.ExecInterceptor;
  * import ratpack.func.Action;
- * import ratpack.func.Actions;
  *
  * import ratpack.test.UnitTest;
  * import ratpack.test.handling.HandlingResult;
@@ -126,7 +125,7 @@ package ratpack.exec;
  *       }
  *     };
  *
- *     HandlingResult result = UnitTest.handle(handlers, Actions.noop());
+ *     HandlingResult result = UnitTest.handle(handlers, Action.noop());
  *
  *     assert result.rendered(String.class).equals("foo");
  *
