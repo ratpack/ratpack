@@ -426,7 +426,10 @@ Table styles
   border-top-right-radius: 6px;
 }   
 
-.memberSummary caption span.tableTab, .memberSummary caption span.activeTableTab {
+.memberSummary caption span.tableTab,
+.overviewSummary caption span.tableTab,
+.memberSummary caption span.activeTableTab,
+.overviewSummary caption span.activeTableTab {
   padding-top: 0px;
   padding-left: 0px;
   padding-bottom: 0px;
