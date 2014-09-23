@@ -1,4 +1,3 @@
-/*
  * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -37,16 +36,26 @@ tasks.withType(AbstractCompile) {
   options.compilerArgs << "-Werror" << "-Xlint:all" << "-Xlint:-options" << "-Xlint:-serial"
 }
 
-test {
+tasks.withType(Test) {
   testLogging {
     exceptionFormat "full"
     showStackTraces true
     showCauses true
-    quiet {
+    if (isCloudCi) {
+      events "failed", "started"
+    } else {
       events "failed"
     }
   }
+
   jvmArgs "-Xss320k"
+  maxHeapSize "256m"
+
+  if (isCloudCi) {
+    doFirst {
+      maxParallelForks 1
+    }
+  }
 }
 
 task sourceJar(type: Jar) {
@@ -111,13 +120,4 @@ javadoc {
       options.links(* project.apiLinks)
     }
   }
-}
-
-test {
-  if (isCloudCi) {
-    testLogging {
-      events "failed", "started"
-    }
-  }
-  maxHeapSize "256m"
 }
