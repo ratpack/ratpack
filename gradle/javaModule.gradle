@@ -54,7 +54,7 @@ tasks.withType(Test) {
 
   if (isCloudCi) {
     doFirst {
-      maxParallelForks 1
+      maxParallelForks isAppveyor ? 2 : 1
     }
   }
 }
