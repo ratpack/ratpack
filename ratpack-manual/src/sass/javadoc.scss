@@ -399,6 +399,8 @@ Table styles
 
 .overviewSummary caption > span:first-child,
 .memberSummary caption > span:first-child,
+.overviewSummary caption .activeTableTab > span:first-child,
+.overviewSummary caption .activeTableTab  > span:first-child,
 .memberSummary caption .activeTableTab > span:first-child,
 .memberSummary caption .activeTableTab  > span:first-child,
 .typeSummary caption > span:first-child, 
@@ -427,8 +429,8 @@ Table styles
 }   
 
 .memberSummary caption span.tableTab,
-.overviewSummary caption span.tableTab,
 .memberSummary caption span.activeTableTab,
+.overviewSummary caption span.tableTab,
 .overviewSummary caption span.activeTableTab {
   padding-top: 0px;
   padding-left: 0px;
@@ -439,7 +441,8 @@ Table styles
   border: none;    
 }
 
-.memberSummary caption span.tableTab span {
+.memberSummary caption span.tableTab span,
+.overviewSummary caption span.tableTab span {
     background: none;
     border: none;
     text-shadow: none;
