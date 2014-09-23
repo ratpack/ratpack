@@ -22,10 +22,10 @@ import ratpack.exec.*;
 import ratpack.func.*;
 import ratpack.util.internal.InternalRatpackError;
 
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static ratpack.func.Action.ignoreArg;
-import static ratpack.func.Predicate.isNull;
 
 public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
 
@@ -157,7 +157,7 @@ public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
 
   @Override
   public Promise<T> onNull(final NoArgAction onNull) {
-    return route(isNull(), ignoreArg(onNull));
+    return route(Objects::isNull, ignoreArg(onNull));
   }
 
   private abstract class Step<O> implements Fulfiller<T> {

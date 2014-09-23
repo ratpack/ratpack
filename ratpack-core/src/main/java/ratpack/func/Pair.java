@@ -26,10 +26,8 @@ package ratpack.func;
  * import ratpack.exec.Promise;
  * import ratpack.handling.Context;
  * import ratpack.handling.Handler;
- * import ratpack.launch.LaunchConfig;
- * import ratpack.launch.LaunchConfigBuilder;
  * import ratpack.test.embed.EmbeddedApplication;
- * import ratpack.test.embed.LaunchConfigEmbeddedApplication;
+ * import ratpack.test.embed.EmbeddedApplicationBuilder;
  *
  * public class Example {
  *
@@ -73,14 +71,11 @@ package ratpack.func;
  *   }
  *
  *   private static EmbeddedApplication createApp() {
- *     return new LaunchConfigEmbeddedApplication() {
- *       protected LaunchConfig createLaunchConfig() {
- *         return LaunchConfigBuilder.noBaseDir().port(0).build(launchConfig -> {
- *           ExecControl execControl = launchConfig.getExecController().getControl();
- *           return new ExampleHandler(new PersonService(execControl));
- *         });
- *       }
- *     };
+ *     return EmbeddedApplicationBuilder.builder().build(chain -> {
+ *       ExecControl execControl = chain.getLaunchConfig().getExecController().getControl();
+ *       PersonService service = new PersonService(execControl);
+ *       chain.handler(new ExampleHandler(service));
+ *     });
  *   }
  *
  *   public static void main(String[] args) {
