@@ -4,7 +4,9 @@ environment:
 shallow_clone: true
 
 build_script:
-  - gradlew clean check jacocoReport coveralls --stacktrace
+  - gradlew clean classes --stacktrace
+cache:
+  - C:\Users\appveyor\.gradle
 
 test: off
 
