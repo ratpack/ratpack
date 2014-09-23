@@ -44,29 +44,29 @@ class InstallAppSpec extends FunctionalSpec {
     run "installApp"
 
     def process = new ProcessBuilder().directory(file("build/install/test-app")).command(osSpecificCommand()).start()
-    process.consumeProcessOutput(System.out, System.err)
+    def port = scrapePort(process)
 
     then:
     new PollingConditions().within(10) {
       try {
-        urlText("") == "foo"
+        urlText(port) == "foo"
       } catch (ConnectException ignore) {
         false
       }
     }
 
     cleanup:
-    url("stop")
+    url(port, "stop")
     process?.destroy()
     process?.waitFor()
   }
 
-  HttpURLConnection url(String path = "") {
-    new URL("http://localhost:5050/$path").openConnection() as HttpURLConnection
+  HttpURLConnection url(int port, String path = "") {
+    new URL("http://localhost:$port/$path").openConnection() as HttpURLConnection
   }
 
-  String urlText(String path = "") {
-    new URL("http://localhost:5050/$path").text
+  String urlText(int port, String path = "") {
+    new URL("http://localhost:$port/$path").text
   }
 
   String osSpecificCommand() {

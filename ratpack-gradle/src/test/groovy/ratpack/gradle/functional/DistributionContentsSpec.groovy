@@ -20,14 +20,14 @@ class DistributionContentsSpec extends FunctionalSpec {
 
   def "distribution contains src/ratpack"() {
     given:
-    file("src/ratpack/ratpack.properties") << "foo"
+    file("src/ratpack/ratpack.properties") << "foo\n"
 
     when:
     run "distZip"
 
     then:
     unzip(distZip, file("unpacked"))
-    file("unpacked/test-app-1.0/app/ratpack.properties").text == "foo"
+    file("unpacked/test-app-1.0/app/ratpack.properties").text.contains("foo")
   }
 
 }

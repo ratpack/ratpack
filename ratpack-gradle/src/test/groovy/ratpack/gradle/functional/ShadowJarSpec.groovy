@@ -45,13 +45,13 @@ class ShadowJarSpec extends FunctionalSpec {
     when:
     run "shadowJar"
     def p = new ProcessBuilder().command(Jvm.current().javaExecutable.absolutePath, "-jar", shadowJar.absolutePath).start()
-    p.consumeProcessOutput(System.out as Appendable, System.err as Appendable)
+    def port = scrapePort(p)
 
     then:
     new PollingConditions().within(10) {
       try {
-        urlText("foo.txt") == "bar"
-        urlText() == "stopping"
+        urlText(port, "foo.txt") == "bar"
+        urlText(port) == "stopping"
       } catch (ConnectException ignore) {
         false
       }
@@ -61,12 +61,12 @@ class ShadowJarSpec extends FunctionalSpec {
     p?.destroy()
   }
 
-  HttpURLConnection url(String path = "") {
-    new URL("http://localhost:5050/$path").openConnection() as HttpURLConnection
+  HttpURLConnection url(int port, String path = "") {
+    new URL("http://localhost:$port/$path").openConnection() as HttpURLConnection
   }
 
-  String urlText(String path = "") {
-    new URL("http://localhost:5050/$path").text
+  String urlText(int port, String path = "") {
+    new URL("http://localhost:$port/$path").text
   }
 
   String osSpecificCommand() {

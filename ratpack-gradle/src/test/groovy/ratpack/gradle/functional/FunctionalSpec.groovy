@@ -39,6 +39,9 @@ import ratpack.gradle.RatpackGroovyPlugin
 import spock.lang.AutoCleanup
 import spock.lang.Specification
 
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
+
 abstract class FunctionalSpec extends Specification {
   @Rule
   TemporaryFolder dir
@@ -148,6 +151,8 @@ abstract class FunctionalSpec extends Specification {
         compile 'org.slf4j:slf4j-simple:1.7.7'
       }
     """
+
+    file("src/ratpack/ratpack.properties") << "port=0\n"
   }
 
   def unzip(File source, File destination) {
@@ -175,4 +180,28 @@ abstract class FunctionalSpec extends Specification {
     def rootRelative = new File("build/localrepo")
     rootRelative.directory ? rootRelative : new File(new File(StandardSystemProperty.USER_DIR.value()).parentFile, "build/localrepo")
   }
+
+  int scrapePort(Process process) {
+    int port = -1
+
+    def latch = new CountDownLatch(1)
+    Thread.start {
+      process.errorStream.eachLine { String line ->
+        if (latch.count) {
+          if (line.contains("Ratpack started for http://localhost:")) {
+            def matcher = (line =~ "http://localhost:(\\d+)")
+            port = matcher[0][1].toString().toInteger()
+            latch.countDown()
+          }
+        }
+      }
+    }
+
+    if (!latch.await(15, TimeUnit.SECONDS)) {
+      throw new RuntimeException("Timeout waiting for application to start")
+    }
+
+    port
+  }
 }
+
