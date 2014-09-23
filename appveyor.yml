@@ -4,7 +4,7 @@ environment:
 shallow_clone: true
 
 build_script:
-  - gradlew clean classes --stacktrace
+  - gradlew clean test -x ratpack-site:test --stacktrace
 cache:
   - C:\Users\appveyor\.gradle
 
