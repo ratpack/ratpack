@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import groovy.json.JsonBuilder
+
 buildscript {
   repositories {
     jcenter()
@@ -253,4 +255,42 @@ coveralls {
 task testReport(type: TestReport) {
   destinationDir file("$buildDir/tests")
   reportOn subprojects.collect { it.tasks.test }
+}
+
+if (isSnapCi) {
+  gradle.addListener(new BuildAdapter() {
+    public void buildFinished(BuildResult result) {
+      def repository = "ratpack"
+
+      def slackToken = System.getenv("SLACK_TOKEN")
+      def pipelineNumber = System.getenv("SNAP_PIPELINE_COUNTER")
+      def pullRequestNumber = System.getenv("SNAP_PULL_REQUEST_NUMBER")
+      def stage = System.getenv("SNAP_STAGE_NAME")
+      def branch = System.getenv("SNAP_BRANCH")
+      def commitHashShort = System.getenv("SNAP_COMMIT_SHORT")
+      def commitHash = System.getenv("SNAP_COMMIT")
+
+      def hookUrl = "https://ratpack.slack.com/services/hooks/incoming-webhook?token=${slackToken}"
+
+      def linkBranchPart = pullRequestNumber ? "pull/$pullRequestNumber" : "branch/${branch}"
+      def snapLink = "https://snap-ci.com/ratpack/ratpack/${linkBranchPart}/logs/defaultPipeline/${pipelineNumber}/${stage}"
+
+      def pullRequestLink = "https://github.com/ratpack/$repository/pull/$pullRequestNumber"
+      def commitLink = "https://github.com/ratpack/$repository/commit/$commitHash"
+      def branchDescriptor = pullRequestNumber ? "<$pullRequestLink|pull request #$pullRequestNumber>" : "$branch (<$commitLink|${commitHashShort}>)"
+
+
+      def message = [
+        channel: "#ci",
+        color : result.failure ? "danger" : "good",
+        fields: [
+          [title: ""]
+        ],
+        text  : "${result.failure ? "Failure" : "Success"} for <${snapLink}|Pipeline #${pipelineNumber}, stage ${stage}> of ratpack/$repository @ $branchDescriptor"
+      ]
+      def payload = "payload=${new JsonBuilder(message)}"
+      def arguments = ["curl", "-X", "POST", "--data-urlencode", payload, hookUrl]*.toString()
+      new ProcessBuilder(arguments).start().waitFor()
+    }
+  })
 }
