@@ -14,7 +14,7 @@ dependencies:
   cache_directories:
     - "~/.gradle"
   override:
-    - ./gradlew build -m
+    - ./gradlew allDependencies
 
 test:
   override:
