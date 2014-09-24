@@ -138,6 +138,7 @@ test {
 }
 
 task checkApi(type: Checkstyle) {
+  enabled = false
   group "manual"
   description "Tests that the public API is sufficiently documented"
 
