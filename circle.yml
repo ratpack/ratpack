@@ -5,7 +5,7 @@ general:
 
 machine:
   java:
-    version: openjdk8
+    version: oraclejdk8
   environment:
     TERM: dumb
     GRADLE_OPTS: -Xmx256m -Xms256m -Xss320k -XX:+UseCompressedOops -Dfile.encoding=UTF-8
