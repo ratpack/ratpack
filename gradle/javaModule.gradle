@@ -122,3 +122,8 @@ javadoc {
     }
   }
 }
+
+task codeQuality {
+  dependsOn tasks.withType(CodeNarc), tasks.withType(Checkstyle)
+
+}

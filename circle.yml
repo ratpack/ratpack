@@ -1,0 +1,24 @@
+general:
+  branches:
+    only:
+      - master
+
+machine:
+  java:
+    version: openjdk8
+  environment:
+    TERM: dumb
+    GRADLE_OPTS: -Xmx256m -Xms256m -Xss320k -XX:+UseCompressedOops -Dfile.encoding=UTF-8
+
+dependencies:
+  cache_directories:
+    - "~/.gradle"
+  override:
+    - ./gradlew dependencies
+
+test:
+  override:
+    - ./gradlew
+    - case $CIRCLE_NODE_INDEX in 0) ./gradlew ratpack-core:test ;; 1) npm test ;; esac:
+        parallel: true
+
