@@ -257,6 +257,10 @@ task testReport(type: TestReport) {
   reportOn subprojects.collect { it.tasks.test }
 }
 
+task allDependencies {
+  dependsOn getTasksByName("dependencies", true)
+}
+
 task notifySlack {
   doLast {
     SlackNotifier.notify(true)
