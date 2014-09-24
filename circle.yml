@@ -18,7 +18,7 @@ dependencies:
 
 test:
   override:
-    - ./gradlew
-    - case $CIRCLE_NODE_INDEX in 0) ./gradlew ratpack-core:test ;; 1) npm test ;; esac:
-        parallel: true
+    - ./gradlew codeQuality
+    - case $CIRCLE_NODE_INDEX in 0) ./gradlew ratpack-core:test ;; 1) ./gradlew ratpack-site:test ;; 2) ./gradlew check -x ratpack-core:test -x ratpack-site:test esac:
+      parallel: true
 
