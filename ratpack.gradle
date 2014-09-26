@@ -86,6 +86,7 @@ ext {
   isSnapCi = System.getenv("SNAP_CI") != null
   isAppveyor = System.getenv("APPVEYOR") != null
   isCloudCi = isTravis || isDrone || isCodeship || isSnapCi || isAppveyor
+  isHeroku = System.getenv("HEROKU") != null
 
   publishedModules = [
     "ratpack-core", "ratpack-groovy", "ratpack-guice", "ratpack-session", "ratpack-test", "ratpack-groovy-test",
