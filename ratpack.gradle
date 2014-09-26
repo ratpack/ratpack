@@ -74,17 +74,6 @@ allprojects {
   jacoco {
     toolVersion = "0.7.2.201409121644"
   }
-
-  afterEvaluate {
-    if (isTravis) {
-      test {
-        if (maxParallelForks > 1) {
-          logger.info("Tests for {} are not run in parallel on Travis CI due to observed instability", project.name)
-          maxParallelForks = 1
-        }
-      }
-    }
-  }
 }
 
 apply from: "gradle/idea/idea.gradle"
@@ -158,7 +147,7 @@ subprojects {
   jacocoTestReport {
     additionalSourceDirs = files(sourceSets.main.allSource.srcDirs)
     sourceDirectories = files(sourceSets.main.allSource.srcDirs)
-    classDirectories =  files(sourceSets.main.output)
+    classDirectories = files(sourceSets.main.output)
     reports {
       html.enabled = true
       xml.enabled = true
@@ -218,6 +207,26 @@ subprojects {
             name "Team Ratpack"
           }
         }
+      }
+    }
+  }
+
+  tasks.withType(Test) {
+    testLogging {
+      exceptionFormat "full"
+      if (isCloudCi) {
+        events "failed", "started"
+      } else {
+        events "failed"
+      }
+    }
+
+    jvmArgs "-Xss320k"
+    maxHeapSize "256m"
+
+    if (isCloudCi) {
+      doFirst {
+        maxParallelForks 1
       }
     }
   }
@@ -306,11 +315,11 @@ class SlackNotifier {
 
     def message = [
       channel: "#ci",
-      color : buildSuccessful ? "good" : "danger",
-      fields: [
+      color  : buildSuccessful ? "good" : "danger",
+      fields : [
         [title: ""]
       ],
-      text  : "${buildSuccessful ? "Success" : "Failure"} for <${snapLink}|Pipeline #${pipelineNumber}, stage ${stage}> of ratpack/$repository @ $branchDescriptor"
+      text   : "${buildSuccessful ? "Success" : "Failure"} for <${snapLink}|Pipeline #${pipelineNumber}, stage ${stage}> of ratpack/$repository @ $branchDescriptor"
     ]
     def payload = "payload=${new JsonBuilder(message)}"
     def arguments = ["curl", "-X", "POST", "--data-urlencode", payload, hookUrl]*.toString()

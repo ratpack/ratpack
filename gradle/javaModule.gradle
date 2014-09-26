@@ -37,28 +37,6 @@ tasks.withType(AbstractCompile) {
   options.compilerArgs << "-Werror" << "-Xlint:all" << "-Xlint:-options" << "-Xlint:-serial"
 }
 
-tasks.withType(Test) {
-  testLogging {
-    exceptionFormat "full"
-    showStackTraces true
-    showCauses true
-    if (isCloudCi) {
-      events "failed", "started"
-    } else {
-      events "failed"
-    }
-  }
-
-  jvmArgs "-Xss320k"
-  maxHeapSize "256m"
-
-  if (isCloudCi) {
-    doFirst {
-      maxParallelForks isAppveyor ? 2 : 1
-    }
-  }
-}
-
 task sourceJar(type: Jar) {
   description "An archive of the source code for Maven Central"
   classifier "sources"
