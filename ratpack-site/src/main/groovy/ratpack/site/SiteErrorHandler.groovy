@@ -41,12 +41,12 @@ class SiteErrorHandler implements ClientErrorHandler, ServerErrorHandler {
   void error(Context context, Throwable throwable) throws Exception {
     context.with {
       response.status(500)
+      log.error "", throwable
       message(context, throwable.message ?: "<no message>")
-      blocking { log.error "", throwable }.then {}
     }
   }
 
-  void message(Context context, CharSequence message) {
+  static void message(Context context, CharSequence message) {
     context.render(groovyMarkupTemplate("error.gtpl", message: message.toString(), statusCode: context.response.status.code))
   }
 
