@@ -180,7 +180,7 @@ type checker, but also for documentation purposes.
 ## GroovyRatpackMain
 
 The `ratpack-groovy` library provides the [`GroovyRatpackMain`](api/ratpack/groovy/launch/GroovyRatpackMain.html) application entry point that bootstraps the Groovy support.
-This extends from [`RatpackMain`](launching.html#ratpackmain), but forces the [handler factory](api/ratpack/launch/LaunchConfig.html\#getHandlerFactory\(\)) to be an instance of
+This extends from [`RatpackMain`](launching.html#ratpackmain), but forces the [handler factory](api/ratpack/launch/LaunchConfig.html\#getHandlerFactory--) to be an instance of
 [GroovyScriptFileHandlerFactory](api/ratpack/groovy/launch/GroovyScriptFileHandlerFactory.html).
 
 ## ratpack.groovy script

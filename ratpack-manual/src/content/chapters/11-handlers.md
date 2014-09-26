@@ -72,8 +72,8 @@ public class Router implements Handler {
 }
 ```
 
-The key to delegation is the [`context.insert()`](api/ratpack/handling/Context.html#insert\(ratpack.handling.Handler...\)) method that passes control to one or more linked handlers.
-The [`context.next()`](api/ratpack/handling/Context.html#next\(\)) method passes control to the next linked handler.
+The key to delegation is the [`context.insert()`](api/ratpack/handling/Context.html#insert-ratpack.handling.Handler...-) method that passes control to one or more linked handlers.
+The [`context.next()`](api/ratpack/handling/Context.html#next--) method passes control to the next linked handler.
 
 Consider the following…
 
@@ -195,7 +195,7 @@ Read on.
 Ratpack provides a suite of routing type handlers out of the box that make it easy to compose dispatch logic.
 These are available via the static methods of the [`Handlers`](api/ratpack/handling/Handlers.html) class.
 
-For example, the [`path(String, Handler)`](api/ratpack/handling/Handlers.html#path\(java.lang.String,%20ratpack.handling.Handler\)) method can be used for path based routing.
+For example, the [`path(String, Handler)`](api/ratpack/handling/Handlers.html#path-java.lang.String-ratpack.handling.Handler-) method can be used for path based routing.
 
 ```language-groovy tested
 import ratpack.handling.Handler;
@@ -228,7 +228,7 @@ For this “application”:
 3. anything else would produce a HTTP 404
 
 This is easier than doing it all yourself, but we can do better.
-We can use the [`chain()`](api/ratpack/handling/Handlers.html#chain\(ratpack.launch.LaunchConfig,%20ratpack.func.Action\)) method and the [`Chain`](api/ratpack/handling/Chain.html) DSL.
+We can use the [`chain()`](api/ratpack/handling/Handlers.html#chain-ratpack.launch.LaunchConfig-ratpack.func.Action-) method and the [`Chain`](api/ratpack/handling/Chain.html) DSL.
 
 ```language-groovy tested
 import ratpack.handling.Handler;

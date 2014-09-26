@@ -5,7 +5,7 @@ This chapter introduces how to launch a Ratpack application, and the associated 
 ## Launch configuration
 
 To launch a Ratpack application, you must create a [`LaunchConfig`](api/ratpack/launch/LaunchConfig.html).
-This can then be used with the [`RatpackServerBuilder`](api/ratpack/server/RatpackServerBuilder.html#build\(ratpack.launch.LaunchConfig\)) method to create a [`RatpackServer`](api/ratpack/server/RatpackServer.html) that can then be started.
+This can then be used with the [`RatpackServerBuilder`](api/ratpack/server/RatpackServerBuilder.html#build-ratpack.launch.LaunchConfig-) method to create a [`RatpackServer`](api/ratpack/server/RatpackServer.html) that can then be started.
 
 Note that one of the `LaunchConfig` object's responsibilities is to provide a [`HandlerFactory`](api/ratpack/launch/HandlerFactory.html) implementation.
 This factory is responsible for creating the handler that is effectively the Ratpack application.

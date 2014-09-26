@@ -8,12 +8,12 @@ The `ratpack-rx` module as of @ratpack-version@ is built against (and depends on
 
 ## Initialization
 
-The [`RxRatpack.initialize()`](api/ratpack/rx/RxRatpack.html#initialize\(\)) must be called to fully enable the integration.
+The [`RxRatpack.initialize()`](api/ratpack/rx/RxRatpack.html#initialize--) must be called to fully enable the integration.
 This method only needs to be called once for the JVM's lifetime.
 
 ## Observing Ratpack
 
-The integration is based on the [`RxRatpack.observe()`](api/ratpack/rx/RxRatpack.html#observe\(ratpack.exec.Promise\)) and [`RxRatpack.observeEach()`](api/ratpack/rx/RxRatpack.html#observeEach\(ratpack.exec.Promise\)) static methods.
+The integration is based on the [`RxRatpack.observe()`](api/ratpack/rx/RxRatpack.html#observe-ratpack.exec.Promise-) and [`RxRatpack.observeEach()`](api/ratpack/rx/RxRatpack.html#observeEach-ratpack.exec.Promise-) static methods.
 These methods adapt Ratpack's promise type into an observable, which can then be used with all of the observable operators that RxJava offers.
 
 For example, blocking operations can be easily observed.

@@ -162,11 +162,11 @@ handlers {
 The `Callable` submitted as the blocking operation is executed asynchronously (i.e. the `blocking()` method returns instantly), in a separate thread pool.
 The result that it returns will processed back on a request processing (i.e. compute) thread.
 
-See the [Context#blocking(Callable)](api/ratpack/handling/Context.html#blocking\(java.util.concurrent.Callable\)) method for more details.
+See the [Context#blocking(Callable)](api/ratpack/handling/Context.html#blocking-java.util.concurrent.Callable-) method for more details.
 
 ## Performing async operations
 
-The [Context#promise(Action<Fulfiller\<T>>)](api/ratpack/handling/Context.html#promise\(ratpack.func.Action\)) for integrating with async APIs.
+The [Context#promise(Action<Fulfiller\<T>>)](api/ratpack/handling/Context.html#promise-ratpack.func.Action-) for integrating with async APIs.
 It is essentially a mechanism for adapting 3rd party APIs to Ratpack's promise type.
 
 ```language-groovy groovy-handlers

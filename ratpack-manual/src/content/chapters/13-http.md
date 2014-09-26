@@ -4,13 +4,13 @@ This chapter introduces how to deal with basic HTTP concerns such as parsing req
 
 ## Request & Response
 
-The context object that a handler operates on provides the ([`getRequest()`](api/ratpack/handling/Context.html#getRequest\(\))
-& [`getResponse()`](api/ratpack/handling/Context.html#getResponse\(\)) methods for accessing the [`Request`](api/ratpack/http/Request.html) and [`Response`](api/ratpack/http/Response.html) respectively.
+The context object that a handler operates on provides the ([`getRequest()`](api/ratpack/handling/Context.html#getRequest--)
+& [`getResponse()`](api/ratpack/handling/Context.html#getResponse--) methods for accessing the [`Request`](api/ratpack/http/Request.html) and [`Response`](api/ratpack/http/Response.html) respectively.
 These objects provide more or less what you would expect. 
 
 For example, they both provide a `getHeaders()` method that returns an model of the HTTP headers sent with the request and a model of the HTTP headers that are to be sent with the response.
-The [`Request`](api/ratpack/http/Request.html) exposes other metadata attributes such as the [HTTP method](api/ratpack/http/Request.html#getMethod\(\)),
-the [URI](api/ratpack/http/Request.html#getUri\(\)) and a key/value model of the [query string parameters](api/ratpack/http/Request.html#getQueryParams\(\)) among other things.
+The [`Request`](api/ratpack/http/Request.html) exposes other metadata attributes such as the [HTTP method](api/ratpack/http/Request.html#getMethod--),
+the [URI](api/ratpack/http/Request.html#getUri--) and a key/value model of the [query string parameters](api/ratpack/http/Request.html#getQueryParams--) among other things.
 
 ## Reading the request
 
