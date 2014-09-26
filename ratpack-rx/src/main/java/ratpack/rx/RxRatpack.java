@@ -16,12 +16,10 @@
 
 package ratpack.rx;
 
-import com.google.common.base.Optional;
 import ratpack.exec.ExecControl;
 import ratpack.exec.ExecController;
 import ratpack.exec.Fulfiller;
 import ratpack.exec.Promise;
-import ratpack.exec.internal.DefaultExecController;
 import ratpack.func.Action;
 import ratpack.rx.internal.DefaultSchedulers;
 import ratpack.rx.internal.ExecControllerBackedScheduler;
@@ -48,8 +46,7 @@ import static ratpack.util.ExceptionUtils.toException;
 public abstract class RxRatpack {
 
   private static ExecControl getExecControl() {
-    Optional<ExecController> threadBoundController = DefaultExecController.getThreadBoundController();
-    return threadBoundController.isPresent() ? threadBoundController.get().getControl() : null;
+    return ExecController.current().map(ExecController::getControl).orElse(null);
   }
 
   /**

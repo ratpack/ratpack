@@ -21,7 +21,7 @@ import com.netflix.hystrix.HystrixCommand
 import com.netflix.hystrix.HystrixCommandGroupKey
 import com.netflix.hystrix.HystrixObservableCommand
 import ratpack.error.ServerErrorHandler
-import ratpack.exec.internal.DefaultExecController
+import ratpack.exec.ExecController
 import ratpack.handling.Context
 import ratpack.http.HttpUrlSpec
 import ratpack.http.client.HttpClient
@@ -177,7 +177,7 @@ class HystrixRequestCachingSpec extends HttpClientSpec {
         @Override
         protected rx.Observable<String> run() {
           assert Thread.currentThread().name.startsWith("ratpack-compute-")
-          return RxRatpack.observe(DefaultExecController.threadBoundController.get().control.blocking {
+          return RxRatpack.observe(ExecController.current().get().control.blocking {
             assert Thread.currentThread().name.startsWith("ratpack-blocking-")
             return requestNumber
           })

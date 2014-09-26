@@ -16,7 +16,6 @@
 
 package ratpack.exec.internal;
 
-import com.google.common.base.Optional;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.ListeningScheduledExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
@@ -31,8 +30,6 @@ import java.util.concurrent.TimeUnit;
 
 public class DefaultExecController implements ExecController {
 
-  private static final ThreadLocal<ExecController> THREAD_BINDING = new ThreadLocal<>();
-
   private final ListeningScheduledExecutorService computeExecutor;
   private final ListeningExecutorService blockingExecutor;
   private final EventLoopGroup eventLoopGroup;
@@ -45,10 +42,6 @@ public class DefaultExecController implements ExecController {
     this.computeExecutor = MoreExecutors.listeningDecorator(eventLoopGroup);
     this.blockingExecutor = MoreExecutors.listeningDecorator(Executors.newCachedThreadPool(new ExecControllerBindingThreadFactory("ratpack-blocking", Thread.NORM_PRIORITY)));
     this.control = new DefaultExecControl(this);
-  }
-
-  public static Optional<ExecController> getThreadBoundController() {
-    return Optional.fromNullable(THREAD_BINDING.get());
   }
 
   public void close() {
@@ -84,7 +77,7 @@ public class DefaultExecController implements ExecController {
     @Override
     public Thread newThread(final Runnable r) {
       return super.newThread(() -> {
-        THREAD_BINDING.set(DefaultExecController.this);
+        ExecControllerThreadBinding.set(DefaultExecController.this);
         r.run();
       });
     }
@@ -92,8 +85,7 @@ public class DefaultExecController implements ExecController {
 
   @Override
   public boolean isManagedThread() {
-    Optional<ExecController> threadBoundController = getThreadBoundController();
-    return threadBoundController.isPresent() && threadBoundController.get() == this;
+    return ExecControllerThreadBinding.get().map(c -> c == this).orElse(false);
   }
 
   @Override

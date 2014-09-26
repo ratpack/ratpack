@@ -24,7 +24,6 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import ratpack.exec.*;
 import ratpack.func.Action;
-import ratpack.func.Factory;
 
 import java.util.Collections;
 import java.util.concurrent.Callable;
@@ -33,7 +32,6 @@ public class DefaultExecControl implements ExecControl {
 
   private final ExecController execController;
   private final ThreadLocal<ExecutionBacking> threadBinding = new ThreadLocal<>();
-  private final Factory<ExecutionBacking> executionBackingFactory = this::getBacking;
 
   public DefaultExecControl(ExecController execController) {
     this.execController = execController;
@@ -73,13 +71,11 @@ public class DefaultExecControl implements ExecControl {
       ListenableFuture<T> future = controller.getBlockingExecutor().submit(new BlockingOperation<>(backing, blockingOperation));
       Futures.addCallback(future, new ComputeResume<>(fulfiller), controller.getExecutor());
     });
-
   }
-
 
   @Override
   public <T> Promise<T> promise(Action<? super Fulfiller<T>> action) {
-    return new DefaultPromise<>(executionBackingFactory, action);
+    return new DefaultPromise<>(this::getBacking, action);
   }
 
   @Override

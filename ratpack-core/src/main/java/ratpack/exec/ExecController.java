@@ -19,6 +19,9 @@ package ratpack.exec;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.ListeningScheduledExecutorService;
 import io.netty.channel.EventLoopGroup;
+import ratpack.exec.internal.ExecControllerThreadBinding;
+
+import java.util.Optional;
 
 /**
  * The exec controller manages the execution of operations.
@@ -26,6 +29,17 @@ import io.netty.channel.EventLoopGroup;
  * The instance for an application can be obtained via the launch config's {@link ratpack.launch.LaunchConfig#getExecController()} method.
  */
 public interface ExecController extends AutoCloseable {
+
+  /**
+   * Returns the execution controller bound to the current thread.
+   * <p>
+   * If called on a non Ratpack compute thread, the returned optional will be empty.
+   *
+   * @return the execution controller for the current thread
+   */
+  static Optional<ExecController> current() {
+    return ExecControllerThreadBinding.get();
+  }
 
   /**
    * Indicates whether the current thread is managed by <b>this</b> execution controller.

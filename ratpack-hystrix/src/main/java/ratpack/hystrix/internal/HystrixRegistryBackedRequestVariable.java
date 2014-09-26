@@ -18,8 +18,11 @@ package ratpack.hystrix.internal;
 
 import com.netflix.hystrix.strategy.concurrency.HystrixRequestVariable;
 import com.netflix.hystrix.strategy.concurrency.HystrixRequestVariableLifecycle;
+import ratpack.exec.ExecController;
 import ratpack.exec.Execution;
-import ratpack.exec.internal.DefaultExecController;
+import ratpack.exec.UnmanagedThreadException;
+
+import java.util.Optional;
 
 class HystrixRegistryBackedRequestVariable<T> implements HystrixRequestVariable<T> {
 
@@ -32,25 +35,28 @@ class HystrixRegistryBackedRequestVariable<T> implements HystrixRequestVariable<
   @Override
   @SuppressWarnings("unchecked")
   public T get() {
-    Execution execution = getExecution();
-    HystrixCommandCache commandCache = execution.maybeGet(HystrixCommandCache.class);
+    return getExecution()
+      .map(e -> {
+        HystrixCommandCache commandCache = e.maybeGet(HystrixCommandCache.class);
 
-    if (commandCache == null) {
-      commandCache = new HystrixCommandCache();
-      execution.register(commandCache);
-    }
+        if (commandCache == null) {
+          commandCache = new HystrixCommandCache();
+          e.register(commandCache);
+        }
 
-    Object command = commandCache.get(this);
-    if (command == null) {
-      command = rv.initialValue();
-      commandCache.putIfAbsent(this, command);
-    }
+        Object command = commandCache.get(this);
+        if (command == null) {
+          command = rv.initialValue();
+          commandCache.putIfAbsent(this, command);
+        }
 
-    return (T) command;
+        return (T) command;
+      })
+      .orElseThrow(UnmanagedThreadException::new);
   }
 
-  private Execution getExecution() {
-    return DefaultExecController.getThreadBoundController().get().getControl().getExecution();
+  private Optional<Execution> getExecution() {
+    return ExecController.current().map(c -> c.getControl().getExecution());
   }
 
   @Override
