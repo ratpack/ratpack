@@ -17,7 +17,6 @@
 package ratpack.server;
 
 import com.google.common.base.Throwables;
-import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;
 import ratpack.file.BaseDirRequiredException;
@@ -34,7 +33,6 @@ import ratpack.server.internal.NettyRatpackServer;
 import ratpack.server.internal.RatpackChannelInitializer;
 
 import java.io.File;
-import java.nio.file.Path;
 
 /**
  * Builds a {@link RatpackServer}.
@@ -58,12 +56,7 @@ public abstract class RatpackServerBuilder {
   }
 
   private static Function<Stopper, ChannelInitializer<SocketChannel>> buildChannelInitializer(final LaunchConfig launchConfig) {
-    return new Function<Stopper, ChannelInitializer<SocketChannel>>() {
-      @Override
-      public ChannelInitializer<SocketChannel> apply(Stopper stopper) {
-        return new RatpackChannelInitializer(launchConfig, createHandler(launchConfig), stopper);
-      }
-    };
+    return stopper -> new RatpackChannelInitializer(launchConfig, createHandler(launchConfig), stopper);
   }
 
   private static Handler createHandler(final LaunchConfig launchConfig) {
@@ -72,12 +65,7 @@ public abstract class RatpackServerBuilder {
     if (launchConfig.isDevelopment()) {
       File classFile = ClassUtil.getClassFile(handlerFactory);
       if (classFile != null) {
-        Factory<Handler> factory = new ReloadableFileBackedFactory<>(classFile.toPath(), true, new ReloadableFileBackedFactory.Producer<Handler>() {
-          @Override
-          public Handler produce(Path file, ByteBuf bytes) {
-            return createHandler(launchConfig, handlerFactory);
-          }
-        });
+        Factory<Handler> factory = new ReloadableFileBackedFactory<>(classFile.toPath(), true, (file, bytes) -> createHandler(launchConfig, handlerFactory));
         return new FactoryHandler(factory);
       }
     }
