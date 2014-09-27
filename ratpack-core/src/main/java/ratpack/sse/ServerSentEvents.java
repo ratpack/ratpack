@@ -24,83 +24,44 @@ import org.reactivestreams.Publisher;
  * A {@link ratpack.render.Renderer renderer} for this type is implicitly provided by Ratpack core.
  * <p>
  * Example usage:
- * <pre class="java">
+ * <pre class="java">{@code
  * import ratpack.handling.Handler;
- * import ratpack.handling.Context;
- * import ratpack.func.Function;
- * import ratpack.stream.Streams;
- * import ratpack.launch.HandlerFactory;
- * import ratpack.launch.LaunchConfig;
- * import ratpack.launch.LaunchConfigBuilder;
  * import ratpack.http.client.ReceivedResponse;
  * import ratpack.sse.ServerSentEvent;
  * import ratpack.test.embed.EmbeddedApplication;
- * import ratpack.test.embed.LaunchConfigEmbeddedApplication;
- * import ratpack.test.http.TestHttpClient;
- * import ratpack.test.http.TestHttpClients;
  *
+ * import java.util.Arrays;
+ * import java.util.stream.Collectors;
+ *
+ * import static java.util.concurrent.TimeUnit.MILLISECONDS;
  * import static ratpack.sse.ServerSentEvents.serverSentEvents;
- *
- * import java.util.List;
- * import java.util.concurrent.TimeUnit;
- * import java.util.concurrent.ScheduledExecutorService;
- * import org.reactivestreams.Publisher;
- *
- * import com.google.common.collect.Lists;
- * import com.google.common.base.Joiner;
+ * import static ratpack.stream.Streams.periodically;
  *
  * public class Example {
  *
- *   private static EmbeddedApplication createApp() {
- *     return new LaunchConfigEmbeddedApplication() {
- *       protected LaunchConfig createLaunchConfig() {
- *         return LaunchConfigBuilder.noBaseDir().port(0).build(new HandlerFactory() {
- *             public Handler create(LaunchConfig launchConfig) {
+ *   public static void main(String[] args) throws Exception {
+ *     Handler handler = context ->
+ *       context.render(serverSentEvents(periodically(context.getLaunchConfig(), 5, MILLISECONDS, i ->
+ *           i < 5
+ *             ? ServerSentEvent.builder().id(i.toString()).type("counter").data("event " + i).build()
+ *             : null
+ *       )));
  *
- *               // Example of streaming chunks
+ *     String expectedOutput = Arrays.asList(0, 1, 2, 3, 4)
+ *       .stream()
+ *       .map(i -> "event: counter\ndata: event " + i + "\nid: " + i + "\n")
+ *       .collect(Collectors.joining("\n"))
+ *       + "\n";
  *
- *               return new Handler() {
- *                 public void handle(Context context) {
- *                   // simulate streaming by periodically publishing
- *                   ScheduledExecutorService executor = context.getLaunchConfig().getExecController().getExecutor();
- *                   Publisher&lt;ServerSentEvent&gt; eventStream = Streams.periodically(executor, 5, TimeUnit.MILLISECONDS, new Function&lt;Integer, ServerSentEvent&gt;() {
- *                     public ServerSentEvent apply(Integer i) {
- *                       if (i.intValue() &lt; 5) {
- *                         return ServerSentEvent.builder().id(i.toString()).type("counter").data("event " + i).build();
- *                       } else {
- *                         return null;
- *                       }
- *                     }
- *                   });
- *
- *                   context.render(serverSentEvents(eventStream));
- *                 }
- *               };
- *
- *             }
- *           });
- *       }
- *     };
- *   }
- *
- *   public static void main(String[] args) {
- *     try(EmbeddedApplication app = createApp()) {
- *       ReceivedResponse response = app.getHttpClient().get();
+ *     EmbeddedApplication.fromHandler(handler).test(httpClient -> {
+ *       ReceivedResponse response = httpClient.get();
  *       assert response.getHeaders().get("Content-Type").equals("text/event-stream;charset=UTF-8");
- *
- *       List&lt;String&gt; outputEvents = Lists.transform(Lists.newArrayList(0, 1, 2, 3, 4), new com.google.common.base.Function&lt;Integer, String&gt;() {
- *         public String apply(Integer i) {
- *           return "event: counter\ndata: event " + i + "\nid: " + i + "\n";
- *         }
- *       });
- *
- *       String expectedOutput = Joiner.on("\n").join(outputEvents) + "\n";
  *       assert response.getBody().getText().equals(expectedOutput);
- *     }
+ *     });
  *   }
  *
  * }
- * </pre>
+ * }</pre>
  *
  * @see <a href="http://en.wikipedia.org/wiki/Server-sent_events" target="_blank">Wikipedia - Using server-sent events</a>
  * @see <a href="https://developer.mozilla.org/en-US/docs/Server-sent_events/Using_server-sent_events" target="_blank">MDN - Using server-sent events</a>
