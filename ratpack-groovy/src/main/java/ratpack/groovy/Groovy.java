@@ -25,7 +25,6 @@ import ratpack.api.Nullable;
 import ratpack.func.Action;
 import ratpack.groovy.guice.GroovyBindingsSpec;
 import ratpack.groovy.handling.GroovyChain;
-import ratpack.groovy.handling.GroovyChainAction;
 import ratpack.groovy.handling.GroovyContext;
 import ratpack.groovy.handling.internal.ClosureBackedHandler;
 import ratpack.groovy.handling.internal.DefaultGroovyChain;
@@ -300,12 +299,7 @@ public abstract class Groovy {
    * @return The created action
    */
   public static Action<Chain> chain(@DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) final Closure<?> closure) throws Exception {
-    return new GroovyChainAction() {
-      @Override
-      protected void execute() throws Exception {
-        Groovy.chain(getChain(), closure);
-      }
-    };
+    return (c) -> Groovy.chain(c, closure);
   }
 
   /**

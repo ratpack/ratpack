@@ -20,7 +20,6 @@ import groovy.transform.TupleConstructor
 import ratpack.error.DebugErrorHandler
 import ratpack.error.ServerErrorHandler
 import ratpack.registry.NotInRegistryException
-import ratpack.registry.RegistrySpecAction
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 import static ratpack.registry.Registries.just
@@ -84,21 +83,4 @@ class RegistryInsertionHandlerSpec extends RatpackGroovyDslSpec {
     text == "foo"
   }
 
-  def "can use RegistrySpecAction"() {
-    when:
-    handlers {
-      register new RegistrySpecAction() {
-        @Override
-        protected void execute() throws Exception {
-          add Thing, new ThingImpl("foo")
-        }
-      }
-      handler {
-        render get(Thing).value
-      }
-    }
-
-    then:
-    text == "foo"
-  }
 }

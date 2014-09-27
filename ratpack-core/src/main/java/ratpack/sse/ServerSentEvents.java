@@ -25,7 +25,6 @@ import org.reactivestreams.Publisher;
  * <p>
  * Example usage:
  * <pre class="java">{@code
- * import ratpack.handling.Handler;
  * import ratpack.http.client.ReceivedResponse;
  * import ratpack.sse.ServerSentEvent;
  * import ratpack.test.embed.EmbeddedApplication;
@@ -38,28 +37,26 @@ import org.reactivestreams.Publisher;
  * import static ratpack.stream.Streams.periodically;
  *
  * public class Example {
- *
  *   public static void main(String[] args) throws Exception {
- *     Handler handler = context ->
+ *     EmbeddedApplication.fromHandler(context ->
  *       context.render(serverSentEvents(periodically(context.getLaunchConfig(), 5, MILLISECONDS, i ->
  *           i < 5
  *             ? ServerSentEvent.builder().id(i.toString()).type("counter").data("event " + i).build()
  *             : null
  *       )));
+ *     ).test(httpClient -> {
+ *       ReceivedResponse response = httpClient.get();
+ *       assert response.getHeaders().get("Content-Type").equals("text/event-stream;charset=UTF-8");
  *
- *     String expectedOutput = Arrays.asList(0, 1, 2, 3, 4)
+ *        String expectedOutput = Arrays.asList(0, 1, 2, 3, 4)
  *       .stream()
  *       .map(i -> "event: counter\ndata: event " + i + "\nid: " + i + "\n")
  *       .collect(Collectors.joining("\n"))
  *       + "\n";
  *
- *     EmbeddedApplication.fromHandler(handler).test(httpClient -> {
- *       ReceivedResponse response = httpClient.get();
- *       assert response.getHeaders().get("Content-Type").equals("text/event-stream;charset=UTF-8");
  *       assert response.getBody().getText().equals(expectedOutput);
  *     });
  *   }
- *
  * }
  * }</pre>
  *

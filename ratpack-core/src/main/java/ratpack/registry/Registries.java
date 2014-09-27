@@ -139,7 +139,6 @@ public abstract class Registries {
    * @param action the action that defines the registry
    * @return a registry created by the given action
    * @throws Exception any thrown by the action
-   * @see RegistrySpecAction
    */
   public static Registry registry(Action<? super RegistrySpec> action) throws Exception {
     RegistryBuilder builder = Registries.registry();

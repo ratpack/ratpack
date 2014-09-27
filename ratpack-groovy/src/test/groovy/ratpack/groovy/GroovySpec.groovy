@@ -19,7 +19,6 @@ package ratpack.groovy
 import ratpack.error.DebugErrorHandler
 import ratpack.error.ServerErrorHandler
 import ratpack.func.Action
-import ratpack.groovy.handling.GroovyChainAction
 import ratpack.handling.Chain
 import ratpack.test.internal.RatpackGroovyDslSpec
 
@@ -54,11 +53,13 @@ class GroovySpec extends RatpackGroovyDslSpec {
     getText("foo") == "bar"
   }
 
-  class MyHandlers extends GroovyChainAction  {
+  class MyHandlers implements Action<Chain> {
     @Override
-    protected void execute() throws Exception {
-      get { // if this line moves, the test below will start failing
-        // no response
+    void execute(Chain chain) throws Exception {
+      Groovy.chain(chain) {
+        get { // if this line moves, the test below will start failing
+          // no response
+        }
       }
     }
   }
