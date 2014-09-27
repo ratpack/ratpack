@@ -92,7 +92,7 @@ public interface EmbeddedApplication extends ApplicationUnderTest, AutoCloseable
    * Provides the given consumer with a {@link #getHttpClient() test http client} for this application, then closes this application.
    * <p>
    * The application will be closed regardless of whether the given consumer throws an exception.
-   * <pre class="java">
+   * <pre class="java">{@code
    *
    * import ratpack.test.embed.EmbeddedApplication;
    *
@@ -104,7 +104,7 @@ public interface EmbeddedApplication extends ApplicationUnderTest, AutoCloseable
    *       });
    *   }
    * }
-   * </pre>
+   * }</pre>
    *
    * @param consumer a consumer that tests this embedded application
    */
