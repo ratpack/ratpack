@@ -16,17 +16,18 @@
 
 package ratpack.http;
 
+import com.google.common.reflect.TypeToken;
 import io.netty.handler.codec.http.Cookie;
 import ratpack.api.Nullable;
 import ratpack.registry.MutableRegistry;
 import ratpack.util.MultiValueMap;
 
 import java.util.Set;
+import java.util.function.Supplier;
 
 /**
  * A request to be handled.
  */
-@SuppressWarnings("UnusedDeclaration")
 public interface Request extends MutableRegistry {
 
   /**
@@ -112,4 +113,46 @@ public interface Request extends MutableRegistry {
    * @return The request headers.
    */
   Headers getHeaders();
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  default <O> Request add(Class<? super O> type, O object) {
+    MutableRegistry.super.add(type, object);
+    return this;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  default <O> Request add(TypeToken<? super O> type, O object) {
+    MutableRegistry.super.add(type, object);
+    return this;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  default Request add(Object object) {
+    MutableRegistry.super.add(object);
+    return this;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  default <O> Request addLazy(Class<O> type, Supplier<? extends O> supplier) {
+    MutableRegistry.super.addLazy(type, supplier);
+    return this;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  <O> Request addLazy(TypeToken<O> type, Supplier<? extends O> supplier);
 }

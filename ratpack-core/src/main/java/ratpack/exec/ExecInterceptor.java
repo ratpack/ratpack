@@ -80,7 +80,7 @@ package ratpack.exec;
  *
  *     public ProcessingTimingInterceptor(Request request) {
  *       this.request = request;
- *       request.register(new Timer());
+ *       request.add(new Timer());
  *     }
  *
  *     public void intercept(ExecInterceptor.ExecType type, Runnable continuation) {

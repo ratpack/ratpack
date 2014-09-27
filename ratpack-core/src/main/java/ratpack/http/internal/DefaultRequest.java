@@ -26,7 +26,6 @@ import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.QueryStringDecoder;
 import ratpack.api.Nullable;
 import ratpack.func.Action;
-import ratpack.func.Factory;
 import ratpack.http.Headers;
 import ratpack.http.HttpMethod;
 import ratpack.http.Request;
@@ -42,6 +41,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Supplier;
 
 public class DefaultRequest implements Request {
 
@@ -197,22 +197,19 @@ public class DefaultRequest implements Request {
   }
 
   @Override
-  public <O> void register(Class<O> type, O object) {
-    registry.register(type, object);
+  public <O> Request addLazy(TypeToken<O> type, Supplier<? extends O> supplier) {
+    registry.addLazy(type, supplier);
+    return this;
   }
 
   @Override
-  public void register(Object object) {
-    registry.register(object);
+  public <O> Request add(TypeToken<? super O> type, O object) {
+    registry.add(type, object);
+    return this;
   }
 
   @Override
-  public <O> void registerLazy(Class<O> type, Factory<? extends O> factory) {
-    registry.registerLazy(type, factory);
-  }
-
-  @Override
-  public <O> void remove(Class<O> type) throws NotInRegistryException {
+  public <T> void remove(TypeToken<T> type) throws NotInRegistryException {
     registry.remove(type);
   }
 

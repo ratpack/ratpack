@@ -20,16 +20,20 @@ import ratpack.exec.Fulfiller;
 import ratpack.exec.Promise;
 import ratpack.exec.Result;
 import ratpack.exec.SuccessPromise;
-import ratpack.func.*;
+import ratpack.func.Action;
+import ratpack.func.Function;
+import ratpack.func.NoArgAction;
+import ratpack.func.Predicate;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Supplier;
 
 public class CachingPromise<T> implements Promise<T> {
 
   private final Action<? super Fulfiller<T>> action;
-  private final Factory<ExecutionBacking> executionProvider;
+  private final Supplier<ExecutionBacking> executionSupplier;
   private final Action<? super Throwable> errorHandler;
 
   private final AtomicBoolean fired = new AtomicBoolean();
@@ -38,15 +42,15 @@ public class CachingPromise<T> implements Promise<T> {
   private final AtomicBoolean draining = new AtomicBoolean();
   private final AtomicReference<Result<T>> result = new AtomicReference<>();
 
-  public CachingPromise(Action<? super Fulfiller<T>> action, Factory<ExecutionBacking> executionProvider, Action<? super Throwable> errorHandler) {
+  public CachingPromise(Action<? super Fulfiller<T>> action, Supplier<ExecutionBacking> executionSupplier, Action<? super Throwable> errorHandler) {
     this.action = action;
-    this.executionProvider = executionProvider;
+    this.executionSupplier = executionSupplier;
     this.errorHandler = errorHandler;
   }
 
   @Override
   public SuccessPromise<T> onError(Action<? super Throwable> errorHandler) {
-    return new DefaultSuccessPromise<>(executionProvider, new Fulfillment(), errorHandler);
+    return new DefaultSuccessPromise<>(executionSupplier, new Fulfillment(), errorHandler);
   }
 
   @Override
@@ -74,7 +78,7 @@ public class CachingPromise<T> implements Promise<T> {
   }
 
   private DefaultSuccessPromise<T> newPromise() {
-    return new DefaultSuccessPromise<>(executionProvider, new Fulfillment(), errorHandler);
+    return new DefaultSuccessPromise<>(executionSupplier, new Fulfillment(), errorHandler);
   }
 
   @Override

@@ -17,7 +17,6 @@
 package ratpack.pac4j.internal;
 
 import org.pac4j.core.profile.UserProfile;
-
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.session.store.SessionStorage;
@@ -39,8 +38,7 @@ public class Pac4jProfileHandler implements Handler {
   }
 
   protected void registerUserProfile(final Context context, UserProfile userProfile) {
-    context.getRequest().register(userProfile);
-    context.getRequest().register(UserProfile.class, userProfile);
+    context.getRequest().add(userProfile).add(UserProfile.class, userProfile);
   }
 
   protected void removeUserProfile(final Context context) {

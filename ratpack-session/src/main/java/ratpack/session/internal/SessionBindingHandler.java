@@ -16,7 +16,6 @@
 
 package ratpack.session.internal;
 
-import ratpack.func.Factory;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.session.Session;
@@ -31,12 +30,10 @@ public class SessionBindingHandler implements Handler {
   }
 
   public void handle(final Context context) {
-    context.getRequest().registerLazy(Session.class, new Factory<Session>() {
-      public Session create() {
-        SessionManager sessionManager = context.get(SessionManager.class);
-        final RequestSessionManager requestSessionManager = new RequestSessionManager(context, sessionManager);
-        return requestSessionManager.getSession();
-      }
+    context.getRequest().addLazy(Session.class, () -> {
+      SessionManager sessionManager = context.get(SessionManager.class);
+      final RequestSessionManager requestSessionManager = new RequestSessionManager(context, sessionManager);
+      return requestSessionManager.getSession();
     });
 
     context.insert(handler);

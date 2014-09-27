@@ -104,4 +104,9 @@ public class SingleEntryRegistry implements Registry {
   public int hashCode() {
     return entry.hashCode();
   }
+
+  @Override
+  public String toString() {
+    return "SingleEntryRegistry{" + entry + '}';
+  }
 }

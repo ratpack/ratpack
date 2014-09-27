@@ -16,6 +16,8 @@
 
 package ratpack.util;
 
+import ratpack.func.Factory;
+
 /**
  * Utility methods for dealing with exceptions.
  */
@@ -75,6 +77,23 @@ public abstract class ExceptionUtils {
   public static void throwIfError(Throwable throwable) {
     if (throwable instanceof Error) {
       throw (Error) throwable;
+    }
+  }
+
+  /**
+   * Executes the given factory, returning its result and unchecking any exceptions it throws.
+   * <p>
+   * If the factory throws an exception, it will be thrown via {@link #uncheck(Throwable)}.
+   *
+   * @param factory a value producer
+   * @param <T> the type of value produced
+   * @return the value produced by the given factory
+   */
+  public static <T> T uncheck(Factory<T> factory) {
+    try {
+      return factory.create();
+    } catch (Exception e) {
+      throw uncheck(e);
     }
   }
 

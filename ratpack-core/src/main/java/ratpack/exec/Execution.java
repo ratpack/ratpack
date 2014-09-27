@@ -16,7 +16,10 @@
 
 package ratpack.exec;
 
+import com.google.common.reflect.TypeToken;
 import ratpack.registry.MutableRegistry;
+
+import java.util.function.Supplier;
 
 /**
  * A <em>logical</em> stream of execution, which is potentially serialized over many threads.
@@ -64,4 +67,45 @@ public interface Execution extends MutableRegistry {
   // TODO: this is not the right name.
   void onCleanup(AutoCloseable autoCloseable);
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  default <O> Execution add(Class<? super O> type, O object) {
+    MutableRegistry.super.add(type, object);
+    return this;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  default <O> Execution add(TypeToken<? super O> type, O object) {
+    MutableRegistry.super.add(type, object);
+    return this;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  default Execution add(Object object) {
+    MutableRegistry.super.add(object);
+    return this;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  default <O> Execution addLazy(Class<O> type, Supplier<? extends O> supplier) {
+    MutableRegistry.super.addLazy(type, supplier);
+    return this;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  <O> Execution addLazy(TypeToken<O> type, Supplier<? extends O> supplier);
 }

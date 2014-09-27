@@ -132,4 +132,8 @@ public class CachingRegistry implements Registry {
     return any;
   }
 
+  @Override
+  public String toString() {
+    return "CachingRegistry{delegate=" + delegate + '}';
+  }
 }

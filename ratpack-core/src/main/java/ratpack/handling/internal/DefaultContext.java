@@ -198,18 +198,6 @@ public class DefaultContext implements Context {
     return requestConstants.response;
   }
 
-  public <O> O get(Class<O> type) throws NotInRegistryException {
-    return registry.get(type);
-  }
-
-  public <O> Iterable<? extends O> getAll(Class<O> type) {
-    return registry.getAll(type);
-  }
-
-  public <O> O maybeGet(Class<O> type) {
-    return registry.maybeGet(type);
-  }
-
   public void next() {
     doNext(this, registry, nextIndex, nextHandlers, exhausted);
   }
@@ -351,7 +339,7 @@ public class DefaultContext implements Context {
 
     ThrowableHolder throwableHolder = getRequest().maybeGet(ThrowableHolder.class);
     if (throwableHolder == null) {
-      getRequest().register(ThrowableHolder.class, new ThrowableHolder(throwable));
+      getRequest().add(ThrowableHolder.class, new ThrowableHolder(throwable));
 
       try {
         serverErrorHandler.error(this, throwable);

@@ -16,7 +16,6 @@
 
 package ratpack.session.store.internal;
 
-import ratpack.func.Factory;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.session.Session;
@@ -32,13 +31,11 @@ public class SessionStorageBindingHandler implements Handler {
   }
 
   public void handle(final Context context) {
-    context.getRequest().registerLazy(SessionStorage.class, new Factory<SessionStorage>() {
-      public SessionStorage create() {
-        Session session = context.getRequest().get(Session.class);
-        String id = session.getId();
-        SessionStore sessionStore = context.get(SessionStore.class);
-        return sessionStore.get(id);
-      }
+    context.getRequest().addLazy(SessionStorage.class, () -> {
+      Session session = context.getRequest().get(Session.class);
+      String id = session.getId();
+      SessionStore sessionStore = context.get(SessionStore.class);
+      return sessionStore.get(id);
     });
 
     context.insert(handler);

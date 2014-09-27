@@ -16,12 +16,10 @@
 
 package ratpack.handling;
 
-import com.google.common.base.Predicate;
 import com.google.common.reflect.TypeToken;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import ratpack.api.NonBlocking;
-import ratpack.api.Nullable;
 import ratpack.exec.*;
 import ratpack.func.Action;
 import ratpack.handling.direct.DirectChannelAccess;
@@ -554,7 +552,7 @@ public interface Context extends ExecControl, Registry {
    *
    *             }, new Action&lt;Throwable&gt;() {
    *               public void execute(Throwable throwable) {
-*                    error.compareAndSet(null, throwable); // just take the first error
+   *                    error.compareAndSet(null, throwable); // just take the first error
    *                 completeJob(fulfiller);
    *               }
    *             });
@@ -870,60 +868,4 @@ public interface Context extends ExecControl, Registry {
    */
   Path file(String path) throws NotInRegistryException;
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  <O> O get(Class<O> type) throws NotInRegistryException;
-
-  /**
-   * {@inheritDoc}
-   */
-  @Nullable
-  @Override
-  <O> O maybeGet(Class<O> type);
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  <O> Iterable<? extends O> getAll(Class<O> type);
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  <O> O get(TypeToken<O> type) throws NotInRegistryException;
-
-  /**
-   * {@inheritDoc}
-   */
-  @Nullable
-  @Override
-  <O> O maybeGet(TypeToken<O> type);
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  <O> Iterable<? extends O> getAll(TypeToken<O> type);
-
-  /**
-   * {@inheritDoc}
-   */
-  @Nullable
-  @Override
-  <T> T first(TypeToken<T> type, Predicate<? super T> predicate);
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  <T> Iterable<? extends T> all(TypeToken<T> type, Predicate<? super T> predicate);
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  <T> boolean each(TypeToken<T> type, Predicate<? super T> predicate, Action<? super T> action) throws Exception;
 }

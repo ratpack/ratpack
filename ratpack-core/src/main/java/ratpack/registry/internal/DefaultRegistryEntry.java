@@ -37,4 +37,9 @@ public class DefaultRegistryEntry<T> implements RegistryEntry<T> {
   public T get() {
     return object;
   }
+
+  @Override
+  public String toString() {
+    return "RegistryEntry{type=" + type.toString() + ", value=" + object + '}';
+  }
 }

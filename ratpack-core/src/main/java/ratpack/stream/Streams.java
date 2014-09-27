@@ -19,6 +19,7 @@ package ratpack.stream;
 import org.reactivestreams.Publisher;
 import ratpack.func.Action;
 import ratpack.func.Function;
+import ratpack.launch.LaunchConfig;
 import ratpack.stream.internal.*;
 
 import java.util.Collection;
@@ -165,6 +166,10 @@ public class Streams {
    */
   public static <T> Publisher<T> periodically(ScheduledExecutorService executorService, long delay, TimeUnit timeUnit, Function<Integer, T> producer) {
     return buffer(new PeriodicPublisher<>(executorService, producer, delay, timeUnit));
+  }
+
+  public static <T> Publisher<T> periodically(LaunchConfig launchConfig, long delay, TimeUnit timeUnit, Function<Integer, T> producer) {
+    return buffer(new PeriodicPublisher<>(launchConfig.getExecController().getExecutor(), producer, delay, timeUnit));
   }
 
   /**

@@ -16,12 +16,14 @@
 
 package ratpack.exec.internal;
 
+import com.google.common.reflect.TypeToken;
 import ratpack.exec.ExecControl;
 import ratpack.exec.ExecController;
 import ratpack.exec.Execution;
 import ratpack.registry.internal.SimpleMutableRegistry;
 
 import java.util.List;
+import java.util.function.Supplier;
 
 public class DefaultExecution extends SimpleMutableRegistry implements Execution {
 
@@ -48,4 +50,15 @@ public class DefaultExecution extends SimpleMutableRegistry implements Execution
     closeables.add(autoCloseable);
   }
 
+  @Override
+  public <O> Execution addLazy(TypeToken<O> type, Supplier<? extends O> supplier) {
+    super.addLazy(type, supplier);
+    return this;
+  }
+
+  @Override
+  public <O> Execution add(TypeToken<? super O> type, O object) {
+    super.add(type, object);
+    return this;
+  }
 }

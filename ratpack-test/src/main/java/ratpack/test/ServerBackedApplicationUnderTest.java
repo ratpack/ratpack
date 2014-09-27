@@ -16,8 +16,8 @@
 
 package ratpack.test;
 
-import ratpack.server.RatpackServer;
 import ratpack.func.Factory;
+import ratpack.server.RatpackServer;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -38,8 +38,8 @@ public class ServerBackedApplicationUnderTest implements ApplicationUnderTest, C
   @Override
   public URI getAddress() {
     if (server == null) {
-      server = serverFactory.create();
       try {
+        server = serverFactory.create();
         server.start();
       } catch (Exception e) {
         throw uncheck(e);

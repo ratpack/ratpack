@@ -95,4 +95,9 @@ public class HierarchicalRegistry implements Registry {
     result = 31 * result + child.hashCode();
     return result;
   }
+
+  @Override
+  public String toString() {
+    return "HierarchicalRegistry{parent=" + parent + ", child=" + child + '}';
+  }
 }

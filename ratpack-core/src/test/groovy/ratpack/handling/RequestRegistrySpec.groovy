@@ -24,7 +24,7 @@ class RequestRegistrySpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       handler {
-        request.register("foo")
+        request.add("foo")
         next()
       }
       handler {

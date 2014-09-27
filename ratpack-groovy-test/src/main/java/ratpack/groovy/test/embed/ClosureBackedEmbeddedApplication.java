@@ -21,7 +21,6 @@ import com.google.inject.Module;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import ratpack.func.Action;
-import ratpack.func.Factory;
 import ratpack.func.Function;
 import ratpack.groovy.Groovy;
 import ratpack.groovy.guice.GroovyBindingsSpec;
@@ -33,7 +32,6 @@ import ratpack.guice.Guice;
 import ratpack.guice.GuiceBackedHandlerFactory;
 import ratpack.guice.internal.DefaultGuiceBackedHandlerFactory;
 import ratpack.handling.Handler;
-import ratpack.launch.HandlerFactory;
 import ratpack.launch.LaunchConfig;
 import ratpack.launch.LaunchConfigBuilder;
 import ratpack.test.embed.BaseDirBuilder;
@@ -42,6 +40,7 @@ import ratpack.test.embed.LaunchConfigEmbeddedApplication;
 import java.nio.file.Path;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.function.Supplier;
 
 import static ratpack.groovy.internal.ClosureUtil.configureDelegateFirst;
 
@@ -107,7 +106,7 @@ public class ClosureBackedEmbeddedApplication extends LaunchConfigEmbeddedApplic
 
   private final List<Module> modules = new LinkedList<>();
 
-  private Factory<Path> baseDirFactory;
+  private Supplier<Path> baseDirSupplier;
 
   /**
    * Constructor.
@@ -120,10 +119,10 @@ public class ClosureBackedEmbeddedApplication extends LaunchConfigEmbeddedApplic
    * <p>
    * Useful for deferring the base dir determination
    *
-   * @param baseDirFactory The factory for the base dir
+   * @param baseDirSupplier The factory for the base dir
    */
-  public ClosureBackedEmbeddedApplication(Factory<Path> baseDirFactory) {
-    this.baseDirFactory = baseDirFactory;
+  public ClosureBackedEmbeddedApplication(Supplier<Path> baseDirSupplier) {
+    this.baseDirSupplier = baseDirSupplier;
   }
 
   /**
@@ -132,12 +131,7 @@ public class ClosureBackedEmbeddedApplication extends LaunchConfigEmbeddedApplic
    * @param baseDirBuilder the builder whose {@link BaseDirBuilder#build()} method will be called to provide the base dir for this app
    */
   public ClosureBackedEmbeddedApplication(final BaseDirBuilder baseDirBuilder) {
-    this(new Factory<Path>() {
-      @Override
-      public Path create() {
-        return baseDirBuilder.build();
-      }
-    });
+    this(baseDirBuilder::build);
   }
 
   /**
@@ -166,8 +160,8 @@ public class ClosureBackedEmbeddedApplication extends LaunchConfigEmbeddedApplic
   @Override
   protected LaunchConfig createLaunchConfig() {
     LaunchConfigBuilder launchConfigBuilder;
-    if (this.baseDirFactory != null) {
-      Path baseDirPath = baseDirFactory.create();
+    if (this.baseDirSupplier != null) {
+      Path baseDirPath = baseDirSupplier.get();
 
       launchConfigBuilder = LaunchConfigBuilder
         .baseDir(baseDirPath)
@@ -182,14 +176,12 @@ public class ClosureBackedEmbeddedApplication extends LaunchConfigEmbeddedApplic
 
     final Action<? super BindingsSpec> bindingsAction = createBindingsAction();
 
-    return launchConfigBuilder.build(new HandlerFactory() {
-      public Handler create(LaunchConfig launchConfig) throws Exception {
-        GuiceBackedHandlerFactory handlerFactory = createHandlerFactory(launchConfig);
-        Function<? super Module, ? extends Injector> injectorFactory = createInjectorFactory(launchConfig);
-        Function<? super Injector, ? extends Handler> handlerTransformer = createHandlerTransformer(launchConfig);
+    return launchConfigBuilder.build(launchConfig -> {
+      GuiceBackedHandlerFactory handlerFactory = createHandlerFactory(launchConfig);
+      Function<? super Module, ? extends Injector> injectorFactory = createInjectorFactory(launchConfig);
+      Function<? super Injector, ? extends Handler> handlerTransformer = createHandlerTransformer(launchConfig);
 
-        return handlerFactory.create(bindingsAction, injectorFactory, handlerTransformer);
-      }
+      return handlerFactory.create(bindingsAction, injectorFactory, handlerTransformer);
     });
   }
 
@@ -268,12 +260,9 @@ public class ClosureBackedEmbeddedApplication extends LaunchConfigEmbeddedApplic
    * @return The module registry configuration action
    */
   protected Action<? super BindingsSpec> createBindingsAction() {
-    return new Action<BindingsSpec>() {
-      @Override
-      public void execute(BindingsSpec bindingsSpec) throws Exception {
-        bindingsSpec.add(modules);
-        configureDelegateFirst(new DefaultGroovyBindingsSpec(bindingsSpec), bindingsClosure);
-      }
+    return bindingsSpec -> {
+      bindingsSpec.add(modules);
+      configureDelegateFirst(new DefaultGroovyBindingsSpec(bindingsSpec), bindingsClosure);
     };
   }
 
@@ -287,11 +276,6 @@ public class ClosureBackedEmbeddedApplication extends LaunchConfigEmbeddedApplic
    * @return A transformer that creates the application handler, given an injector
    */
   protected Function<? super Injector, ? extends Handler> createHandlerTransformer(final LaunchConfig launchConfig) {
-    return new Function<Injector, Handler>() {
-      @Override
-      public Handler apply(Injector injector) throws Exception {
-        return Groovy.chain(launchConfig, Guice.registry(injector), handlersClosure);
-      }
-    };
+    return injector -> Groovy.chain(launchConfig, Guice.registry(injector), handlersClosure);
   }
 }

@@ -17,7 +17,8 @@
 package ratpack.registry;
 
 import com.google.common.reflect.TypeToken;
-import ratpack.func.Factory;
+
+import java.util.function.Supplier;
 
 /**
  * An additive specification of a registry.
@@ -34,7 +35,9 @@ public interface RegistrySpec {
    * @param <O> the public type of the registry entry
    * @return this
    */
-  <O> RegistrySpec add(Class<? super O> type, O object);
+  default <O> RegistrySpec add(Class<? super O> type, O object) {
+    return add(TypeToken.of(type), object);
+  }
 
   /**
    * Adds a registry entry that is available by the given type.
@@ -44,7 +47,9 @@ public interface RegistrySpec {
    * @param <O> the public type of the registry entry
    * @return this
    */
-  <O> RegistrySpec add(TypeToken<? super O> type, O object);
+  default <O> RegistrySpec add(TypeToken<? super O> type, O object) {
+    return addLazy(type, () -> object);
+  }
 
   /**
    * Adds a registry entry.
@@ -52,30 +57,36 @@ public interface RegistrySpec {
    * @param object the object to add to the registry
    * @return this
    */
-  RegistrySpec add(Object object);
+  default RegistrySpec add(Object object) {
+    @SuppressWarnings("unchecked")
+    TypeToken<? super Object> type = (TypeToken<? super Object>) TypeToken.of(object.getClass());
+    return add(type, object);
+  }
 
   /**
    * Adds a lazily created entry to the registry.
    * <p>
-   * The factory will be invoked exactly once, when a query is made to the registry of a compatible type of the given type.
+   * The supplier will be invoked exactly once, when a query is made to the registry of a compatible type of the given type.
    *
    * @param type the public type of the registry entry
-   * @param factory the factory for creating the object when needed
+   * @param supplier the supplier for creating the object when needed
    * @param <O> the public type of the registry entry
    * @return this
    */
-  <O> RegistrySpec add(Class<O> type, Factory<? extends O> factory);
+  default <O> RegistrySpec addLazy(Class<O> type, Supplier<? extends O> supplier) {
+    return addLazy(TypeToken.of(type), supplier);
+  }
 
   /**
    * Adds a lazily created entry to the registry.
    * <p>
-   * The factory will be invoked exactly once, when a query is made to the registry of a compatible type of the given type.
+   * The supplier will be invoked exactly once, when a query is made to the registry of a compatible type of the given type.
    *
    * @param type the public type of the registry entry
-   * @param factory the factory for creating the object when needed
+   * @param supplier the supplier for creating the object when needed
    * @param <O> the public type of the registry entry
    * @return this
    */
-  <O> RegistrySpec add(TypeToken<O> type, Factory<? extends O> factory);
+  <O> RegistrySpec addLazy(TypeToken<O> type, Supplier<? extends O> supplier);
 
 }

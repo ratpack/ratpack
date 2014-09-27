@@ -19,11 +19,15 @@ package ratpack.exec.internal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ratpack.exec.*;
-import ratpack.func.*;
+import ratpack.func.Action;
+import ratpack.func.Function;
+import ratpack.func.NoArgAction;
+import ratpack.func.Predicate;
 import ratpack.util.internal.InternalRatpackError;
 
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Supplier;
 
 import static ratpack.func.Action.ignoreArg;
 
@@ -31,13 +35,13 @@ public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
 
   private final static Logger LOGGER = LoggerFactory.getLogger(DefaultSuccessPromise.class);
 
-  private final Factory<ExecutionBacking> executionProvider;
+  private final Supplier<ExecutionBacking> executionSupplier;
   private final Action<? super Fulfiller<T>> action;
   private final Action<? super Throwable> errorHandler;
   private final AtomicBoolean fired = new AtomicBoolean();
 
-  public DefaultSuccessPromise(Factory<ExecutionBacking> executionProvider, Action<? super Fulfiller<T>> action, Action<? super Throwable> errorHandler) {
-    this.executionProvider = executionProvider;
+  public DefaultSuccessPromise(Supplier<ExecutionBacking> executionSupplier, Action<? super Fulfiller<T>> action, Action<? super Throwable> errorHandler) {
+    this.executionSupplier = executionSupplier;
     this.action = action;
     this.errorHandler = errorHandler;
   }
@@ -45,7 +49,7 @@ public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
   @Override
   public void then(final Action<? super T> then) {
     if (fired.compareAndSet(false, true)) {
-      final ExecutionBacking executionBacking = executionProvider.create();
+      final ExecutionBacking executionBacking = executionSupplier.get();
       try {
         executionBacking.continueVia(() -> doThen(new UserActionFulfiller(executionBacking, then)));
       } catch (ExecutionException e) {
@@ -59,7 +63,7 @@ public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
   }
 
   private void doThen(final Fulfiller<? super T> outer) {
-    final ExecutionBacking executionBacking = executionProvider.create();
+    final ExecutionBacking executionBacking = executionSupplier.get();
     final AtomicBoolean fulfilled = new AtomicBoolean();
     try {
       action.execute(new Fulfiller<T>() {
@@ -95,7 +99,7 @@ public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
   @Override
   public <O> DefaultPromise<O> map(final Function<? super T, ? extends O> transformer) {
     if (fired.compareAndSet(false, true)) {
-      return new DefaultPromise<>(executionProvider, downstream -> DefaultSuccessPromise.this.doThen(new Transform<O, O>(downstream, transformer) {
+      return new DefaultPromise<>(executionSupplier, downstream -> DefaultSuccessPromise.this.doThen(new Transform<O, O>(downstream, transformer) {
         @Override
         protected void onSuccess(O transformed) {
           downstream.success(transformed);
@@ -109,7 +113,7 @@ public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
   @Override
   public <O> Promise<O> flatMap(final Function<? super T, ? extends Promise<O>> transformer) {
     if (fired.compareAndSet(false, true)) {
-      return new DefaultPromise<>(executionProvider, downstream -> DefaultSuccessPromise.this.doThen(new Transform<Promise<O>, O>(downstream, transformer) {
+      return new DefaultPromise<>(executionSupplier, downstream -> DefaultSuccessPromise.this.doThen(new Transform<Promise<O>, O>(downstream, transformer) {
         @Override
         protected void onSuccess(Promise<O> transformed) {
           transformed.onError(downstream::error).then(downstream::success);
@@ -123,7 +127,7 @@ public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
   @Override
   public Promise<T> route(final Predicate<? super T> predicate, final Action<? super T> action) {
     if (fired.compareAndSet(false, true)) {
-      return new DefaultPromise<>(executionProvider, new Action<Fulfiller<T>>() {
+      return new DefaultPromise<>(executionSupplier, new Action<Fulfiller<T>>() {
         @Override
         public void execute(final Fulfiller<T> downstream) throws Exception {
           DefaultSuccessPromise.this.doThen(new Step<T>(downstream) {
@@ -182,7 +186,7 @@ public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
     return flatMap(new Function<T, Promise<O>>() {
       @Override
       public Promise<O> apply(final T t) throws Exception {
-        return executionProvider.create().getExecution().getControl().blocking(() -> transformer.apply(t));
+        return executionSupplier.get().getExecution().getControl().blocking(() -> transformer.apply(t));
       }
     });
   }
@@ -190,7 +194,7 @@ public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
   @Override
   public Promise<T> cache() {
     if (fired.compareAndSet(false, true)) {
-      return new CachingPromise<>(action, executionProvider, errorHandler);
+      return new CachingPromise<>(action, executionSupplier, errorHandler);
     } else {
       throw new MultiplePromiseSubscriptionException();
     }

@@ -333,7 +333,7 @@ class HandlerUnitTestingSpec extends Specification {
 
         } then {
           context.insert(Registries.just("bar"), groovyHandler {
-            context.request.register(Number, 4)
+            context.request.add(Number, 4)
             function(context)
           })
         }

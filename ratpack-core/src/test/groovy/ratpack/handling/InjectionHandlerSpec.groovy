@@ -120,7 +120,7 @@ class InjectionHandlerSpec extends RatpackGroovyDslSpec {
     }
     handlers {
       handler {
-        request.register("foo")
+        request.add("foo")
         next()
       }
       handler new InjectedPrimitivesHandler()
@@ -138,7 +138,7 @@ class InjectionHandlerSpec extends RatpackGroovyDslSpec {
     }
     handlers {
       handler {
-        request.register("foo")
+        request.add("foo")
         next()
       }
       handler new InjectedPrimitivesHandler()

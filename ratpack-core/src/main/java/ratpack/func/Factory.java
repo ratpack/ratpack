@@ -31,6 +31,6 @@ public interface Factory<T> {
    *
    * @return A newly created object.
    */
-  T create();
+  T create() throws Exception;
 
 }

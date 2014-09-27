@@ -20,10 +20,11 @@ import com.google.common.base.Predicate;
 import com.google.common.reflect.TypeToken;
 import ratpack.api.Nullable;
 import ratpack.func.Action;
-import ratpack.func.Factory;
 import ratpack.registry.Registry;
 import ratpack.registry.RegistrySpec;
 import ratpack.remote.CommandDelegate;
+
+import java.util.function.Supplier;
 
 public abstract class DelegatingCommandDelegate implements CommandDelegate {
 
@@ -35,26 +36,14 @@ public abstract class DelegatingCommandDelegate implements CommandDelegate {
     this.registry = registry;
   }
 
-  public <O> RegistrySpec add(Class<? super O> type, O object) {
-    return spec.add(type, object);
-  }
-
   @Override
   public <O> RegistrySpec add(TypeToken<? super O> type, O object) {
     return spec.add(type, object);
   }
 
-  public <O> RegistrySpec add(Class<O> type, Factory<? extends O> factory) {
-    return spec.add(type, factory);
-  }
-
   @Override
-  public <O> RegistrySpec add(TypeToken<O> type, Factory<? extends O> factory) {
-    return spec.add(type, factory);
-  }
-
-  public RegistrySpec add(Object object) {
-    return spec.add(object);
+  public <O> RegistrySpec addLazy(TypeToken<O> type, Supplier<? extends O> supplier) {
+    return spec.addLazy(type, supplier);
   }
 
   @Override

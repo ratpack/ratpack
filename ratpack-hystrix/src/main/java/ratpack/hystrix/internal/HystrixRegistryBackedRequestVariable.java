@@ -41,7 +41,7 @@ class HystrixRegistryBackedRequestVariable<T> implements HystrixRequestVariable<
 
         if (commandCache == null) {
           commandCache = new HystrixCommandCache();
-          e.register(commandCache);
+          e.add(commandCache);
         }
 
         Object command = commandCache.get(this);

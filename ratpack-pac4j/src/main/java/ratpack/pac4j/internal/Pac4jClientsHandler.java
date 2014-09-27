@@ -43,7 +43,7 @@ public class Pac4jClientsHandler implements Handler {
   @Override
   public void handle(Context context) throws Exception {
     String callbackUrl = context.get(PublicAddress.class).getAddress(context).toString() + "/" + callbackPath;
-    context.getRequest().register(new Clients(callbackUrl, clients));
+    context.getRequest().add(new Clients(callbackUrl, clients));
     context.next();
   }
 }

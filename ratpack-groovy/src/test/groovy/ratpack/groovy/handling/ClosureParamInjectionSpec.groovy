@@ -44,7 +44,7 @@ class ClosureParamInjectionSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       handler {
-        request.register(new Thing())
+        request.add(new Thing())
         next()
       }
       get { Thing thing ->
@@ -65,7 +65,7 @@ class ClosureParamInjectionSpec extends RatpackGroovyDslSpec {
 
     handlers {
       handler {
-        request.register("foo")
+        request.add("foo")
         next()
       }
       get { Thing thing, String string ->

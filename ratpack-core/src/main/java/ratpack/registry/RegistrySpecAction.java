@@ -18,7 +18,8 @@ package ratpack.registry;
 
 import com.google.common.reflect.TypeToken;
 import ratpack.func.Action;
-import ratpack.func.Factory;
+
+import java.util.function.Supplier;
 
 /**
  * A convenient action base class for a registry spec.
@@ -66,14 +67,6 @@ public abstract class RegistrySpecAction implements Action<RegistrySpec>, Regist
    * {@inheritDoc}
    */
   @Override
-  public <O> RegistrySpec add(Class<? super O> type, O object) {
-    return getRegistrySpec().add(type, object);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
   public <O> RegistrySpec add(TypeToken<? super O> type, O object) {
     return getRegistrySpec().add(type, object);
   }
@@ -86,20 +79,13 @@ public abstract class RegistrySpecAction implements Action<RegistrySpec>, Regist
     return getRegistrySpec().add(object);
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public <O> RegistrySpec add(Class<O> type, Factory<? extends O> factory) {
-    return getRegistrySpec().add(type, factory);
-  }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public <O> RegistrySpec add(TypeToken<O> type, Factory<? extends O> factory) {
-    return getRegistrySpec().add(type, factory);
+  public <O> RegistrySpec addLazy(TypeToken<O> type, Supplier<? extends O> factory) {
+    return getRegistrySpec().addLazy(type, factory);
   }
 
 }

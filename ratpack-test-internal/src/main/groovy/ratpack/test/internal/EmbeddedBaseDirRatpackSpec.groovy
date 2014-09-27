@@ -22,6 +22,7 @@ import ratpack.test.embed.PathBaseDirBuilder
 import spock.lang.AutoCleanup
 
 import java.nio.file.Path
+import java.util.function.Supplier
 
 abstract class EmbeddedBaseDirRatpackSpec extends EmbeddedRatpackSpec {
 
@@ -37,13 +38,8 @@ abstract class EmbeddedBaseDirRatpackSpec extends EmbeddedRatpackSpec {
     new PathBaseDirBuilder(temporaryFolder.newFolder("app"))
   }
 
-  protected ratpack.func.Factory<Path> getBaseDirFactory() {
-    new ratpack.func.Factory() {
-      @Override
-      Object create() {
-        getBaseDir().build()
-      }
-    }
+  protected Supplier<Path> getBaseDirFactory() {
+    return { getBaseDir().build() } as Supplier
   }
 
   void useJarBaseDir() {

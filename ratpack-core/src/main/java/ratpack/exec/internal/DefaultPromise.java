@@ -19,16 +19,20 @@ package ratpack.exec.internal;
 import ratpack.exec.Fulfiller;
 import ratpack.exec.Promise;
 import ratpack.exec.SuccessPromise;
-import ratpack.func.*;
+import ratpack.func.Action;
+import ratpack.func.Function;
+import ratpack.func.NoArgAction;
+import ratpack.func.Predicate;
 
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Supplier;
 
 public class DefaultPromise<T> implements Promise<T> {
   private final Action<? super Fulfiller<T>> fulfillment;
-  private final Factory<ExecutionBacking> executionProvider;
+  private final Supplier<ExecutionBacking> executionProvider;
   private final AtomicBoolean fired = new AtomicBoolean();
 
-  public DefaultPromise(Factory<ExecutionBacking> executionProvider, Action<? super Fulfiller<T>> fulfillment) {
+  public DefaultPromise(Supplier<ExecutionBacking> executionProvider, Action<? super Fulfiller<T>> fulfillment) {
     this.executionProvider = executionProvider;
     this.fulfillment = fulfillment;
   }

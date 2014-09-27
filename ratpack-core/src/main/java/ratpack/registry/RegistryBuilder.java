@@ -17,7 +17,8 @@
 package ratpack.registry;
 
 import com.google.common.reflect.TypeToken;
-import ratpack.func.Factory;
+
+import java.util.function.Supplier;
 
 /**
  * A builder of {@link Registry registries}.
@@ -40,31 +41,40 @@ public interface RegistryBuilder extends RegistrySpec {
    * {@inheritDoc}
    */
   @Override
-  <O> RegistryBuilder add(Class<? super O> type, O object);
+  default RegistryBuilder add(Object object) {
+    RegistrySpec.super.add(object);
+    return this;
+  }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  RegistryBuilder add(Object object);
+  default <O> RegistryBuilder add(Class<? super O> type, O object) {
+    return add(TypeToken.of(type), object);
+  }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  <O> RegistryBuilder add(Class<O> type, Factory<? extends O> factory);
+  default <O> RegistryBuilder add(TypeToken<? super O> type, O object) {
+    return addLazy(type, () -> object);
+  }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  <O> RegistryBuilder add(TypeToken<? super O> type, O object);
+  default <O> RegistryBuilder addLazy(Class<O> type, Supplier<? extends O> supplier) {
+    return addLazy(TypeToken.of(type), supplier);
+  }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  <O> RegistryBuilder add(TypeToken<O> type, Factory<? extends O> factory);
+  <O> RegistryBuilder addLazy(TypeToken<O> type, Supplier<? extends O> supplier);
 
   /**
    * Builds the registry.
@@ -82,6 +92,8 @@ public interface RegistryBuilder extends RegistrySpec {
    * @return a newly created registry
    * @see Registries#join(Registry, Registry)
    */
-  Registry build(Registry parent);
+  default Registry build(Registry parent) {
+    return Registries.join(parent, build());
+  }
 
 }

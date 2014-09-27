@@ -17,10 +17,11 @@
 package ratpack.registry;
 
 import ratpack.func.Action;
-import ratpack.func.Factory;
 import ratpack.registry.internal.CachingBackedRegistry;
 import ratpack.registry.internal.DefaultRegistryBuilder;
 import ratpack.registry.internal.HierarchicalRegistry;
+
+import java.util.function.Supplier;
 
 /**
  * Static methods for creating and building {@link ratpack.registry.Registry registries}.
@@ -86,16 +87,16 @@ public abstract class Registries {
   }
 
   /**
-   * Creates a single lazily created entry registry, using {@link RegistryBuilder#add(Class, Factory)}.
+   * Creates a single lazily created entry registry, using {@link RegistryBuilder#addLazy(Class, Supplier)}.
    *
    * @param publicType the public type of the entry
-   * @param factory the factory for the object
+   * @param supplier the supplier for the object
    * @param <T> the public type of the entry
    * @return a new single entry registry
-   * @see RegistryBuilder#add(Class, Factory)
+   * @see RegistryBuilder#addLazy(Class, Supplier)
    */
-  public static <T> Registry just(Class<T> publicType, Factory<? extends T> factory) {
-    return registry().add(publicType, factory).build();
+  public static <T> Registry just(Class<T> publicType, Supplier<? extends T> supplier) {
+    return registry().addLazy(publicType, supplier).build();
   }
 
   /**

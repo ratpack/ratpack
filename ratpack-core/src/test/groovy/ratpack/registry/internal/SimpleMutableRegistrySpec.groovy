@@ -37,7 +37,7 @@ class SimpleMutableRegistrySpec extends Specification {
 
   def "add to registry"() {
     when:
-    r.register("foo")
+    r.add("foo")
 
     then:
     r.get(String) == "foo"
@@ -59,8 +59,8 @@ class SimpleMutableRegistrySpec extends Specification {
 
   def "ordering"() {
     when:
-    r.register("foo")
-    r.register("bar")
+    r.add("foo")
+    r.add("bar")
 
     then:
     r.get(String) == "foo"
@@ -83,7 +83,7 @@ class SimpleMutableRegistrySpec extends Specification {
   def "laziness"() {
     given:
     def called = false
-    r.registerLazy(Integer) { called = true; 2 }
+    r.addLazy(Integer) { called = true; 2 }
 
     when:
     r.maybeGet(String) == null
