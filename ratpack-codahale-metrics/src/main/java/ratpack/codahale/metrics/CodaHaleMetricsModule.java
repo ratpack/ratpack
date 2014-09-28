@@ -164,6 +164,7 @@ import java.io.File;
  */
 public class CodaHaleMetricsModule extends AbstractModule implements HandlerDecoratingModule {
 
+  public static final String RATPACK_METRIC_REGISTRY = "ratpack-metrics";
   private boolean reportMetricsToJmx;
   private boolean reportMetricsToConsole;
   private File csvReportDirectory;
@@ -179,7 +180,8 @@ public class CodaHaleMetricsModule extends AbstractModule implements HandlerDeco
   @Override
   protected void configure() {
     if (isMetricsEnabled()) {
-      final MetricRegistry metricRegistry = SharedMetricRegistries.getOrCreate("ratpack-metrics");
+      SharedMetricRegistries.remove(RATPACK_METRIC_REGISTRY);
+      final MetricRegistry metricRegistry = SharedMetricRegistries.getOrCreate(RATPACK_METRIC_REGISTRY);
       bind(MetricRegistry.class).toInstance(metricRegistry);
 
       MeteredMethodInterceptor meteredMethodInterceptor = new MeteredMethodInterceptor();
