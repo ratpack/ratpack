@@ -19,6 +19,7 @@ package ratpack.rx
 import ratpack.error.ServerErrorHandler
 import ratpack.exec.ExecController
 import ratpack.groovy.test.GroovyUnitTest
+import ratpack.groovy.test.embed.GroovyEmbeddedApp
 import ratpack.handling.Context
 import ratpack.handling.Handler
 import ratpack.test.internal.RatpackGroovyDslSpec
@@ -29,10 +30,8 @@ import rx.exceptions.OnErrorNotImplementedException
 import rx.functions.Action0
 import rx.functions.Action1
 
-import static ratpack.groovy.test.embed.EmbeddedApplications.embeddedApp
 import static ratpack.rx.RxRatpack.observe
 import static ratpack.rx.RxRatpack.subscriber
-import static ratpack.test.http.TestHttpClients.testHttpClient
 
 class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
 
@@ -260,7 +259,7 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
 
   def "can use two different rx ratpack apps in same jvm"() {
     when:
-    def app1 = embeddedApp {
+    def app1 = GroovyEmbeddedApp.build {
       bindings {
         bind ServerErrorHandler, new ServerErrorHandler() {
           @Override
@@ -273,8 +272,7 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
         get { Observable.error(new Exception("1")).subscribe() }
       }
     }
-    def client1 = testHttpClient(app1)
-    def app2 = embeddedApp {
+    def app2 = GroovyEmbeddedApp.build {
       bindings {
         bind ServerErrorHandler, new ServerErrorHandler() {
           @Override
@@ -287,13 +285,10 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
         get { Observable.error(new Exception("2")).subscribe() }
       }
     }
-    def client2 = testHttpClient(app2)
-
-    app2.server.start()
 
     then:
-    client1.text == "app1"
-    client2.text == "app2"
+    app1.httpClient.text == "app1"
+    app2.httpClient.text == "app2"
   }
 
   def "can use rx in a unit test"() {

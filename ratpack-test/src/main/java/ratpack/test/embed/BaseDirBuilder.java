@@ -16,10 +16,38 @@
 
 package ratpack.test.embed;
 
+import com.google.common.io.Files;
+import ratpack.test.embed.internal.JarFileBaseDirBuilder;
+import ratpack.test.embed.internal.PathBaseDirBuilder;
+import ratpack.util.ExceptionUtils;
+
 import java.io.Closeable;
+import java.io.File;
 import java.nio.file.Path;
+import java.util.function.Consumer;
 
 public interface BaseDirBuilder extends Closeable {
+
+  public static BaseDirBuilder tmpDir() {
+    return dir(Files.createTempDir());
+  }
+
+  public static BaseDirBuilder dir(File dir) {
+    return new PathBaseDirBuilder(dir);
+  }
+
+  public static BaseDirBuilder tmpJar() {
+    return jar(ExceptionUtils.uncheck(() -> File.createTempFile("ratpack", ".jar")));
+  }
+
+  public static BaseDirBuilder jar(File jarFile) {
+    return new JarFileBaseDirBuilder(jarFile);
+  }
+
+  default Path build(Consumer<? super BaseDirBuilder> consumer) {
+    consumer.accept(this);
+    return build();
+  }
 
   /**
    * Returns a path for the given path within the base dir.

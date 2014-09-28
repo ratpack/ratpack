@@ -174,7 +174,7 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
 
     when:
     bindings {
-      config(TemplatingModule).staticallyCompile = true
+      config(TemplatingModule) { it.staticallyCompile = true }
     }
 
     handlers {
@@ -193,7 +193,7 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
 
     when:
     bindings {
-      config(TemplatingModule).staticallyCompile = true
+      config(TemplatingModule) { it.staticallyCompile = true }
     }
 
     handlers {
@@ -212,7 +212,7 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
 
     when:
     bindings {
-      config(TemplatingModule).staticallyCompile = true
+      config(TemplatingModule) { it.staticallyCompile = true }
     }
 
     handlers {
@@ -291,7 +291,7 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
 
     when:
     bindings {
-      config(TemplatingModule).reloadable = true
+      config(TemplatingModule) { it.reloadable = true }
     }
     handlers {
       get { render groovyTemplate("t") }

@@ -16,35 +16,53 @@
 
 package ratpack.test.internal
 
+import com.google.inject.Injector
+import com.google.inject.Module
 import ratpack.groovy.guice.GroovyBindingsSpec
 import ratpack.groovy.handling.GroovyChain
-import ratpack.groovy.test.embed.ClosureBackedEmbeddedApplication
+import ratpack.groovy.internal.ClosureUtil
+import ratpack.groovy.test.embed.GroovyEmbeddedApp
 import ratpack.launch.LaunchConfigBuilder
+import ratpack.test.embed.EmbeddedApp
 
 abstract class RatpackGroovyDslSpec extends EmbeddedBaseDirRatpackSpec {
 
+  protected final List<Module> modules = []
+  protected Closure<?> _handlers = ClosureUtil.noop()
+  protected Closure<?> _bindings = ClosureUtil.noop()
+  protected Closure<?> _launchConfig = ClosureUtil.noop()
+  protected Injector parentInjector
+
   @Delegate
-  ClosureBackedEmbeddedApplication application
+  final EmbeddedApp application = createApplication()
 
-  @Override
-  def setup() {
-    application = createApplication()
-  }
-
-  protected ClosureBackedEmbeddedApplication createApplication() {
-    new ClosureBackedEmbeddedApplication(baseDirFactory)
+  protected EmbeddedApp createApplication() {
+    GroovyEmbeddedApp.build {
+      if (this.baseDir) {
+        baseDir(this.baseDir)
+      }
+      handlers(this._handlers)
+      bindings {
+        add(modules)
+        it.with(this._bindings)
+      }
+      launchConfig(this._launchConfig)
+      if (this.parentInjector) {
+        parentInjector(this.parentInjector)
+      }
+    }
   }
 
   void handlers(@DelegatesTo(value = GroovyChain, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer) {
-    application.handlers(configurer)
+    _handlers = configurer
   }
 
   void bindings(@DelegatesTo(value = GroovyBindingsSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer) {
-    application.bindings(configurer)
+    _bindings = configurer
   }
 
   void launchConfig(@DelegatesTo(value = LaunchConfigBuilder, strategy = Closure.DELEGATE_FIRST) Closure<?> configurer) {
-    application.launchConfig(configurer)
+    _launchConfig = configurer
   }
 
 }

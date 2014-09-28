@@ -21,7 +21,6 @@ import com.google.inject.ConfigurationException;
 import com.google.inject.Injector;
 import com.google.inject.Key;
 import com.google.inject.TypeLiteral;
-import ratpack.guice.Guice;
 import ratpack.registry.internal.CachingBackedRegistry;
 
 public class JustInTimeInjectorRegistry extends CachingBackedRegistry {
@@ -29,7 +28,7 @@ public class JustInTimeInjectorRegistry extends CachingBackedRegistry {
   private final Injector injector;
 
   public JustInTimeInjectorRegistry(Injector injector) {
-    super(Guice.registryBacking(injector));
+    super(new InjectorRegistryBacking(injector));
     this.injector = injector;
   }
 

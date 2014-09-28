@@ -119,47 +119,22 @@ public interface Context extends ExecControl, Registry {
    * <p>
    * The given registry is appended to the existing.
    * This means that it can shadow objects previously available.
-   * <pre class="tested">
-   * import ratpack.handling.Handler;
-   * import ratpack.handling.Handlers;
-   * import ratpack.handling.Chain;
-   * import ratpack.handling.ChainAction;
-   * import ratpack.handling.Context;
-   * import ratpack.launch.HandlerFactory;
-   * import ratpack.launch.LaunchConfig;
-   * import ratpack.launch.LaunchConfigBuilder;
-   * import ratpack.func.Factory;
+   * <pre class="java">{@code
+   * import ratpack.registry.Registries;
+   * import ratpack.test.embed.EmbeddedApp;
    *
-   * import static ratpack.registry.Registries.just;
+   * public class Example {
    *
-   * public interface SomeThing {}
-   * public class SomeThingImpl implements SomeThing {}
-   *
-   * public class UpstreamHandler implements Handler {
-   *   public void handle(Context context) {
-   *     context.next(just(SomeThing.class, new SomeThingImpl()));
-   *   }
-   * }
-   *
-   * public class DownstreamHandler implements Handler {
-   *   public void handle(Context context) {
-   *     SomeThing someThing = context.get(SomeThing.class); // instance provided upstream
-   *     assert someThing instanceof SomeThingImpl;
-   *     // …
-   *   }
-   * }
-   *
-   * LaunchConfigBuilder.baseDir(new File("base")).build(new HandlerFactory() {
-   *   public Handler create(LaunchConfig launchConfig) {
-   *     return Handlers.chain(launchConfig, new ChainAction() {
-   *       protected void execute() {
-   *         handler(new UpstreamHandler());
-   *         handler(new DownstreamHandler());
-   *       }
+   *   public static void main(String... args) {
+   *     EmbeddedApp.fromChain(chain -> chain
+   *         .handler(ctx -> ctx.next(Registries.just("foo")))
+   *         .handler(ctx -> ctx.render(ctx.get(String.class)))
+   *     ).test(httpClient -> {
+   *       assert httpClient.getText().equals("foo");
    *     });
    *   }
-   * });
-   * </pre>
+   * }
+   * }</pre>
    *
    * @param registry The registry to make available for subsequent handlers.
    */
@@ -359,56 +334,22 @@ public interface Context extends ExecControl, Registry {
    * <p>
    * The promise returned by this method, has the same default error handling strategy as those returned by {@link ratpack.exec.ExecControl#promise(ratpack.func.Action)}.
    *
-   * <pre class="tested">
-   * import ratpack.handling.*;
-   * import ratpack.func.Action;
-
-   * import java.util.concurrent.Callable;
+   * <pre class="java">{@code
+   * import ratpack.test.embed.EmbeddedApp;
    *
-   * public class BlockingJavaHandler implements Handler {
-   *   void handle(final Context context) {
-   *     context.blocking(new Callable&lt;String&gt;() {
-   *        public String call() {
-   *          // perform some kind of blocking IO in here, such as accessing a database
-   *          return "hello world!";
-   *        }
-   *     }).then(new Action&lt;String&gt;() {
-   *       public void execute(String result) {
-   *         context.render(result);
-   *       }
+   * public class Example {
+   *   public static void main(String... args) {
+   *     EmbeddedApp.fromHandler(ctx ->
+   *         ctx.blocking(() ->
+   *             // ok to perform blocking operations in here
+   *             "hello world"
+   *         ).then(ctx::render)
+   *     ).test(httpClient -> {
+   *       assert httpClient.getText().equals("hello world");
    *     });
    *   }
    * }
-   *
-   * public class BlockingGroovyHandler implements Handler {
-   *   void handle(final Context context) {
-   *     context.blocking {
-   *       "hello world!"
-   *     } then { String result -&gt;
-   *       context.render(result)
-   *     }
-   *   }
-   * }
-   *
-   * // Test (Groovy) &hellip;
-   *
-   * import static ratpack.test.http.TestHttpClients.testHttpClient
-   * import static ratpack.groovy.test.embed.EmbeddedApplications.embeddedApp
-   *
-   * def app = embeddedApp {
-   *   handlers {
-   *     get("java", new BlockingJavaHandler())
-   *     get("groovy", new BlockingGroovyHandler())
-   *   }
-   * }
-   *
-   * def client = testHttpClient(app)
-   *
-   * assert client.getText("java") == "hello world!"
-   * assert client.getText("groovy") == "hello world!"
-   *
-   * app.close()
-   * </pre>
+   * }</pre>
    *
    * @param blockingOperation The operation to perform
    * @param <T> The type of result object that the operation produces
@@ -430,60 +371,21 @@ public interface Context extends ExecControl, Registry {
    * To use a different error strategy, supply it to the {@link ratpack.exec.Promise#onError(Action)} method.
    * <p>
    * The promise will always be fulfilled on a thread managed by Ratpack.
-   * <pre class="tested">
-   * import ratpack.handling.*;
-   * import ratpack.exec.Fulfiller;
-   * import ratpack.func.Action;
+   * <pre class="java">{@code
+   * import ratpack.test.embed.EmbeddedApp;
    *
-   * public class PromiseUsingJavaHandler implements Handler {
-   *   public void handle(final Context context) {
-   *     context.promise(new Action&lt;Fulfiller&lt;String&gt;&gt;() {
-   *       public void execute(final Fulfiller&lt;String&gt; fulfiller) {
-   *         new Thread(new Runnable() {
-   *           public void run() {
-   *             fulfiller.success("hello world!");
-   *           }
-   *         }).start();
-   *       }
-   *     }).then(new Action&lt;String&gt;() {
-   *       public void execute(String string) {
-   *         context.render(string);
-   *       }
+   * public class Example {
+   *   public static void main(String... args) {
+   *     EmbeddedApp.fromHandler(ctx ->
+   *         ctx.promise((f) ->
+   *             new Thread(() -> f.success("hello world")).start()
+   *         ).then(ctx::render)
+   *     ).test(httpClient -> {
+   *       assert httpClient.getText().equals("hello world");
    *     });
    *   }
    * }
-   *
-   * class PromiseUsingGroovyHandler implements Handler {
-   *   void handle(Context context) {
-   *     context.promise { Fulfiller&lt;String&gt; fulfiller -&gt;
-   *       Thread.start {
-   *         fulfiller.success("hello world!")
-   *       }
-   *     } then { String string -&gt;
-   *       context.render(string)
-   *     }
-   *   }
-   * }
-   *
-   * // Test (Groovy) &hellip;
-   *
-   * import static ratpack.test.http.TestHttpClients.testHttpClient
-   * import static ratpack.groovy.test.embed.EmbeddedApplications.embeddedApp
-   *
-   * def app = embeddedApp {
-   *   handlers {
-   *     get("java", new PromiseUsingJavaHandler())
-   *     get("groovy", new PromiseUsingGroovyHandler())
-   *   }
-   * }
-   *
-   * def client = testHttpClient(app)
-   *
-   * assert client.getText("java") == "hello world!"
-   * assert client.getText("groovy") == "hello world!"
-   *
-   * app.close()
-   * </pre>
+   * }</pre>
    * @param <T> the type of value promised
    */
   @Override

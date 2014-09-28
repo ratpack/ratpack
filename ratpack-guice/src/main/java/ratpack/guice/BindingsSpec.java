@@ -16,12 +16,14 @@
 
 package ratpack.guice;
 
+import com.google.inject.Binder;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import ratpack.func.Action;
 import ratpack.launch.LaunchConfig;
 
 import javax.inject.Provider;
+import java.util.function.Consumer;
 
 /**
  * A buildable specification of Guice bindings.
@@ -54,7 +56,7 @@ import javax.inject.Provider;
  *   public void execute(BindingsSpec bindings) {
  *     // MyModule has been added by some other action that executed against this registry…
  *
- *     bindings.config(MyModule.class).serviceValue = "foo";
+ *     bindings.config(MyModule.class) { it.serviceValue = "foo" };
  *   }
  * }
  * </pre>
@@ -72,7 +74,7 @@ import javax.inject.Provider;
  * <p>
  * Added modules can implement the {@link HandlerDecoratingModule} interface to facilitate adding handlers implicitly to the handler chain.
  *
- * @see Guice#chain(ratpack.launch.LaunchConfig, ratpack.func.Action, ratpack.func.Action)
+ * @see Guice#builder(ratpack.launch.LaunchConfig)
  * @see HandlerDecoratingModule
  */
 public interface BindingsSpec {
@@ -88,15 +90,17 @@ public interface BindingsSpec {
    * Adds the bindings from the given modules.
    *
    * @param modules modules whose bindings should be added
+   * @return this
    */
-  void add(Module... modules);
+  BindingsSpec add(Module... modules);
 
   /**
    * Adds the bindings from the given modules.
    *
    * @param modules modules whose bindings should be added
+   * @return this
    */
-  void add(Iterable<? extends Module> modules);
+  BindingsSpec add(Iterable<? extends Module> modules);
 
   /**
    * Retrieves the module that has been added with the given type for configuration.
@@ -104,18 +108,28 @@ public interface BindingsSpec {
    * This can be used to configure modules that have already been added by some other mechanism.
    *
    * @param moduleClass the type of the module to retrieve
+   * @param configurer the configurer of the module
    * @param <T> the type of the module to retrieve
-   * @return the added module of the given type
+   * @return this
    * @throws NoSuchModuleException if no module has been added with the given type
    */
-  <T extends Module> T config(Class<T> moduleClass) throws NoSuchModuleException;
+  <T extends Module> BindingsSpec config(Class<T> moduleClass, Consumer<? super T> configurer) throws NoSuchModuleException;
+
+  /**
+   * Adds bindings by directly configuring a {@link Binder}.
+   *
+   * @param action the binder configuration
+   * @return this
+   */
+  BindingsSpec bindings(Action<? super Binder> action);
 
   /**
    * Add a binding for the given type.
    *
    * @param type the type to add a binding for
+   * @return this
    */
-  void bind(Class<?> type);
+  BindingsSpec bind(Class<?> type);
 
   /**
    * Add a binding for the given public type, to the given implementation type.
@@ -123,8 +137,9 @@ public interface BindingsSpec {
    * @param publicType the public type of the binding
    * @param implType the class implementing the public type
    * @param <T> the public type of the binding
+   * @return this
    */
-  <T> void bind(Class<T> publicType, Class<? extends T> implType);
+  <T> BindingsSpec bind(Class<T> publicType, Class<? extends T> implType);
 
   /**
    * Add a binding for the given public type, to the given implementing instance.
@@ -132,16 +147,18 @@ public interface BindingsSpec {
    * @param publicType the public type of the binding
    * @param instance the instance that implements the public type
    * @param <T> the public type of the binding
+   * @return this
    */
-  <T> void bind(Class<? super T> publicType, T instance);
+  <T> BindingsSpec bind(Class<? super T> publicType, T instance);
 
   /**
    * Add a binding for the given object to its concrete type.
    *
    * @param instance the instance to bind
    * @param <T> the type of the binding
+   * @return this
    */
-  <T> void bind(T instance);
+  <T> BindingsSpec bind(T instance);
 
   /**
    * Add a binding for the given public type, to the given provider type.
@@ -149,8 +166,9 @@ public interface BindingsSpec {
    * @param publicType the public type of the object
    * @param providerType the type of the provider for the object
    * @param <T> The public type of the object
+   * @return this
    */
-  <T> void provider(Class<T> publicType, Class<? extends Provider<? extends T>> providerType);
+  <T> BindingsSpec provider(Class<T> publicType, Class<? extends Provider<? extends T>> providerType);
 
   /**
    * Registers an action to operate on the injector when it has been finalized.
@@ -158,8 +176,9 @@ public interface BindingsSpec {
    * This can be used to do post processing of registered objects or application initialisation.
    *
    * @param action the action to execute against the constructed injector
+   * @return this
    */
-  void init(Action<Injector> action);
+  BindingsSpec init(Action<Injector> action);
 
   /**
    * Registers a runnable to instantiated via dependency injection when the injector is created from this module registry.
@@ -167,7 +186,8 @@ public interface BindingsSpec {
    * This facilitates writing a {@link Runnable} implementation that uses constructor injection to get hold of what it needs to for the initialization.
    *
    * @param clazz the class of the runnable to execute as an init action
+   * @return this
    */
-  void init(Class<? extends Runnable> clazz);
+  BindingsSpec init(Class<? extends Runnable> clazz);
 
 }

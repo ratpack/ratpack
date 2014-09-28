@@ -72,7 +72,6 @@ import ratpack.func.Action;
 
 import ratpack.test.UnitTest;
 import ratpack.test.handling.HandlingResult;
-import ratpack.test.handling.RequestFixtureAction;
 
 import java.util.concurrent.Callable;
 import java.util.Collections;
@@ -89,72 +88,24 @@ public class Example {
   public static class DeletingHandler extends InjectionHandler {
     void handle(final Context context, final Datastore datastore) {
       final int days = context.getPathTokens().asInt("days");
-      context.blocking(new Callable<Integer>() {
-        public Integer call() throws IOException {
-          return datastore.deleteOlderThan(days);
-        }
-      }).then(new Action<Integer>() {
-        public void execute(Integer result) {
-          context.render(result + " records deleted");
-        }
-      });
+      context
+        .blocking(() -> datastore.deleteOlderThan(days))
+        .then(i -> context.render(i + " records deleted"));
     }
   }
 
   // Unit test
-  public static void main(String[] args) throws Exception {
-    HandlingResult result = UnitTest.handle(new DeletingHandler(), new RequestFixtureAction() {
-      protected void execute() {
-        pathBinding(Collections.singletonMap("days", "10"));
-        getRegistry().add(Datastore.class, new Datastore() {
-          public int deleteOlderThan(int days) throws IOException {
-            return days;
-          }
-        });
-      }
-    });
+  public static void main(String... args) throws Exception {
+    HandlingResult result = UnitTest.handle(new DeletingHandler(), fixture -> fixture
+      .pathBinding(Collections.singletonMap("days", "10"))
+      .registry(r -> r.add(Datastore.class, new Datastore() {
+        public int deleteOlderThan(int days) throws IOException {
+          return days;
+        }
+      }))
+    );
 
     assert result.rendered(String.class).equals("10 records deleted");
-  }
-}
-```
-
-The use of anonymous inner classes adds some syntax weight here.
-However, this API is very Java 8 [lambda syntax](http://docs.oracle.com/javase/tutorial/java/javaOO/lambdaexpressions.html) friendly.
-
-In Groovy, it's much nicer…
-
-```language-groovy groovy-handlers
-import ratpack.groovy.handling.GroovyHandler
-import ratpack.groovy.handling.GroovyContext
-import ratpack.func.Action
-import java.util.concurrent.Callable
-
-public interface Datastore {
-  int deleteOlderThan(int days) throws IOException
-}
-
-class DeletingHandler extends GroovyHandler {
-  void handle(GroovyContext context) {
-    int days = context.pathTokens.asInt("days")
-    def datastore = context.get(Datastore)
-
-    context.blocking {
-      datastore.deleteOlderThan(days)
-    } then {
-      context.render("$it records deleted")
-    }
-  }
-}
-
-// Or when using the handlers dsl
-handlers {
-  get("deleteOlderThan/:days") { Datastore datastore ->
-    blocking {
-      datastore.deleteOlderThan(pathTokens.asInt("days"))
-    } then {
-      context.render("$it records deleted")
-    }
   }
 }
 ```
@@ -169,51 +120,18 @@ See the [Context#blocking(Callable)](api/ratpack/handling/Context.html#blocking-
 The [Context#promise(Action<Fulfiller\<T>>)](api/ratpack/handling/Context.html#promise-ratpack.func.Action-) for integrating with async APIs.
 It is essentially a mechanism for adapting 3rd party APIs to Ratpack's promise type.
 
-```language-groovy groovy-handlers
-import ratpack.handling.*;
-import ratpack.exec.Fulfiller;
-import ratpack.func.Action;
+```language-java
+import ratpack.test.embed.EmbeddedApp;
 
-public class PromiseUsingJavaHandler implements Handler {
-  public void handle(final Context context) {
-    context.promise(new Action<Fulfiller<String>>() {
-      public void execute(final Fulfiller<String> fulfiller) {
-        new Thread(new Runnable() {
-          public void run() {
-            fulfiller.success("hello world!");
-          }
-        }).start();
-      }
-    }).then(new Action<String>() {
-      public void execute(String string) {
-        context.render(string);
-      }
+public class Example {
+  public static void main(String... args) {
+    EmbeddedApp.fromHandler(ctx ->
+        ctx.promise((f) ->
+            new Thread(() -> f.success("hello world")).start()
+        ).then(ctx::render)
+    ).test(httpClient -> {
+      assert httpClient.getText().equals("hello world");
     });
-  }
-}
-
-class PromiseUsingGroovyHandler implements Handler {
-  void handle(Context context) {
-    context.promise { Fulfiller<String> fulfiller ->
-      Thread.start {
-        fulfiller.success("hello world!")
-      }
-    } then { String string ->
-      context.render(string)
-    }
-  }
-}
-
-// Or when using the handlers dsl
-handlers {
-  get {
-    promise { Fulfiller<String> fulfiller ->
-      Thread.start {
-        fulfiller.success("hello world!")
-      }
-    } then {
-      render(it)
-    }
   }
 }
 ```

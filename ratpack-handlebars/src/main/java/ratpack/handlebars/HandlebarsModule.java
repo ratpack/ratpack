@@ -26,7 +26,6 @@ import com.google.inject.Injector;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import ratpack.file.FileSystemBinding;
-import ratpack.func.Action;
 import ratpack.guice.internal.GuiceUtil;
 import ratpack.handlebars.internal.FileSystemBindingTemplateLoader;
 import ratpack.handlebars.internal.HandlebarsTemplateRenderer;
@@ -56,64 +55,41 @@ import ratpack.launch.LaunchConfig;
  * </p>
  * <p>Custom handlebars helpers can be registered by binding instances of {@link ratpack.handlebars.NamedHelper}.</p>
  * <p>
- * Example usage: (Java DSL)
- * </p>
- * <pre class="tested">
- * import ratpack.handling.*;
- * import ratpack.guice.*;
- * import ratpack.func.Action;
- * import ratpack.launch.*;
+ * <pre class="java">{@code
+ * import ratpack.guice.Guice;
  * import ratpack.handlebars.HandlebarsModule;
+ * import ratpack.test.embed.BaseDirBuilder;
+ * import ratpack.test.embed.EmbeddedApp;
+ *
+ * import java.nio.file.Path;
+ *
  * import static ratpack.handlebars.Template.handlebarsTemplate;
  *
- * class MyHandler implements Handler {
- *   void handle(final Context context) {
- *     context.render(handlebarsTemplate("my/template/path", key: "it works!"));
+ * public class Example {
+ *
+ *   public static void main(String... args) {
+ *     Path baseDir = BaseDirBuilder.tmpDir().build(builder ->
+ *         builder.file("handlebars/myTemplate.html.hbs", "Hello {{name}}!")
+ *     );
+ *     EmbeddedApp.fromHandlerFactory(baseDir, launchConfig ->
+ *         Guice.builder(launchConfig)
+ *           .bindings(b -> b.add(new HandlebarsModule()))
+ *           .build(chain -> chain
+ *               .get(ctx -> ctx.render(handlebarsTemplate("myTemplate.html", m -> m.put("name", "Ratpack"))))
+ *           )
+ *     ).test(httpClient -> {
+ *       assert httpClient.getText().equals("Hello Ratpack!");
+ *     });
  *   }
  * }
- *
- * class ModuleBootstrap implements Action&lt;BindingsSpec&gt; {
- *   public void execute(BindingsSpec bindings) {
- *     bindings.add(new HandlebarsModule());
- *   }
- * }
- *
- * LaunchConfig launchConfig = LaunchConfigBuilder.baseDir(new File("appRoot"))
- *   .build(new HandlerFactory() {
- *     public Handler create(LaunchConfig launchConfig) {
- *       return Guice.chain(launchConfig, new ModuleBootstrap(), new Action&lt;Chain&gt;() {
- *         public void execute(Chain chain) {
- *           chain.handler(chain.getRegistry().get(MyHandler.class));
- *         }
- *       });
- *     }
- *   });
- *
- * launchConfig.execController.close()
- * </pre>
- * <p>
- * Example usage: (Groovy DSL)
- * </p>
- * <pre class="groovy-ratpack-dsl">
- * import ratpack.handlebars.HandlebarsModule
- * import static ratpack.handlebars.Template.handlebarsTemplate
- * import static ratpack.groovy.Groovy.ratpack
- *
- * ratpack {
- *   bindings {
- *     add new HandlebarsModule()
- *   }
- *   handlers {
- *     get {
- *       render handlebarsTemplate('my/template/path', key: 'it works!')
- *     }
- *   }
- * }
- * </pre>
+ * }</pre>
  *
  * @see <a href="http://jknack.github.io/handlebars.java/" target="_blank">Handlebars.java</a>
  */
 public class HandlebarsModule extends AbstractModule {
+
+  private static final TypeToken<NamedHelper<?>> NAMED_HELPER_TYPE = new TypeToken<NamedHelper<?>>() {
+  };
 
   private String templatesPath;
 
@@ -186,16 +162,7 @@ public class HandlebarsModule extends AbstractModule {
 
     final Handlebars handlebars = new Handlebars().with(templateLoader);
     handlebars.with(templateCache);
-
-    TypeToken<NamedHelper<?>> type = new TypeToken<NamedHelper<?>>() {
-      private static final long serialVersionUID = 0;
-    };
-
-    GuiceUtil.eachOfType(injector, type, new Action<NamedHelper<?>>() {
-      public void execute(NamedHelper<?> helper) {
-        handlebars.registerHelper(helper.getName(), helper);
-      }
-    });
+    GuiceUtil.eachOfType(injector, NAMED_HELPER_TYPE, helper -> handlebars.registerHelper(helper.getName(), helper));
 
     return handlebars;
   }

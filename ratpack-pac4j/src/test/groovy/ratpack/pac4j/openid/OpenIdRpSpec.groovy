@@ -16,18 +16,19 @@
 
 package ratpack.pac4j.openid
 
+import com.google.inject.Module
 import org.junit.ClassRule
 import org.junit.rules.TemporaryFolder
+import org.pac4j.core.profile.UserProfile
 import org.pac4j.openid.credentials.OpenIdCredentials
 import org.pac4j.openid.profile.google.GoogleOpenIdProfile
-import ratpack.http.client.RequestSpec
+import ratpack.groovy.test.embed.GroovyEmbeddedApp
 import ratpack.pac4j.InjectedPac4jModule
 import ratpack.pac4j.Pac4jModule
-import ratpack.test.ApplicationUnderTest
+import ratpack.session.SessionModule
+import ratpack.session.store.MapSessionsModule
 import ratpack.test.embed.BaseDirBuilder
-import ratpack.test.embed.PathBaseDirBuilder
-import ratpack.test.http.TestHttpClient
-import ratpack.test.http.TestHttpClients
+import ratpack.test.embed.EmbeddedApp
 import spock.lang.AutoCleanup
 import spock.lang.Shared
 import spock.lang.Specification
@@ -51,10 +52,12 @@ class OpenIdRpSpec extends Specification {
   BaseDirBuilder baseDir
 
   @Shared
-  RatpackOpenIdTestApplication autConstructed
+  @AutoCleanup
+  EmbeddedApp autConstructed
 
   @Shared
-  RatpackOpenIdTestApplication autInjected
+  @AutoCleanup
+  EmbeddedApp autInjected
 
   @Shared
   @AutoCleanup
@@ -69,31 +72,43 @@ class OpenIdRpSpec extends Specification {
     }
   }
 
-  def setupSpec() {
-    def providerPort = allocatePort()
-    provider = new EmbeddedProvider()
-    provider.open(providerPort)
-    baseDir = new PathBaseDirBuilder(temporaryFolder.newFolder("app"))
-    autConstructed = new RatpackOpenIdTestApplication(allocatePort(), baseDir, new Pac4jModule<>(new OpenIdTestClient(providerPort), new AuthPathAuthorizer()))
-    autInjected = new RatpackOpenIdTestApplication(allocatePort(), baseDir, new InjectedPac4jModule<>(OpenIdCredentials, GoogleOpenIdProfile), new OpenIdTestModule(providerPort))
-  }
+  def testApp(Module... additionalModules) {
+    GroovyEmbeddedApp.build {
+      baseDir(baseDir)
 
-  def cleanupSpec() {
-    for (aut in [autConstructed, autInjected]) {
-      if (aut) {
-        aut.close()
+      bindings {
+        add(new SessionModule(), new MapSessionsModule(10, 5))
+        add(additionalModules)
+      }
+
+      handlers {
+        get("noauth") {
+          def typedUserProfile = request.maybeGet(GoogleOpenIdProfile)
+          def genericUserProfile = request.maybeGet(UserProfile)
+          response.send "noauth:${typedUserProfile?.email}:${genericUserProfile?.attributes?.email}"
+        }
+        get("auth") {
+          def typedUserProfile = request.maybeGet(GoogleOpenIdProfile)
+          def genericUserProfile = request.maybeGet(UserProfile)
+          response.send "auth:${typedUserProfile.email}:${genericUserProfile?.attributes?.email}"
+        }
       }
     }
   }
 
-  def cleanup() {
-    provider.clear()
+  def setupSpec() {
+    def providerPort = allocatePort()
+    provider = new EmbeddedProvider()
+    provider.open(providerPort)
+    baseDir = BaseDirBuilder.tmpDir()
+    autConstructed = testApp(new Pac4jModule<>(new OpenIdTestClient(providerPort), new AuthPathAuthorizer()))
+    autInjected = testApp(new InjectedPac4jModule<>(OpenIdCredentials, GoogleOpenIdProfile), new OpenIdTestModule(providerPort))
   }
 
   @Unroll
-  def "test noauth"(RatpackOpenIdTestApplication aut) {
+  def "test noauth"(EmbeddedApp aut) {
     setup:
-    def client = newClient(aut)
+    def client = aut.httpClient
 
     when: "request a page that doesn't require authentication"
     def response = client.get("noauth")
@@ -106,12 +121,10 @@ class OpenIdRpSpec extends Specification {
   }
 
   @Unroll
-  def "test successful auth"(RatpackOpenIdTestApplication aut) {
+  def "test successful auth"(EmbeddedApp aut) {
     setup:
-    def client = newClient(aut)
-    client.requestSpec({RequestSpec requestSpec->
-      requestSpec.redirects(0)
-    })
+    def client = aut.httpClient
+    client.requestSpec { it.redirects(0) }
     provider.addResult(true, EMAIL)
 
     when: "request a page that requires authentication"
@@ -130,9 +143,9 @@ class OpenIdRpSpec extends Specification {
 
     when: "following the redirect"
     client.resetRequest()
-    client.requestSpec { RequestSpec requestSpec ->
-      requestSpec.headers.set("Cookie",response1.headers.getAll("Set-Cookie"))
-      requestSpec.redirects(0)
+    client.requestSpec {
+      it.headers.set("Cookie", response1.headers.getAll("Set-Cookie"))
+      it.redirects(0)
     }
     def response3 = client.get(response2.headers.get(LOCATION))
 
@@ -142,8 +155,8 @@ class OpenIdRpSpec extends Specification {
 
     when: "following the redirect"
     client.resetRequest()
-    client.requestSpec { RequestSpec requestSpec ->
-      requestSpec.headers.set("Cookie",response1.headers.getAll("Set-Cookie"))
+    client.requestSpec {
+      it.headers.set("Cookie", response1.headers.getAll("Set-Cookie"))
     }
     def response4 = client.get(response3.headers.get(LOCATION))
 
@@ -152,8 +165,8 @@ class OpenIdRpSpec extends Specification {
 
     when: "request a page that doesn't require authentication after authenticating"
     client.resetRequest()
-    client.requestSpec { RequestSpec requestSpec ->
-      requestSpec.headers.set("Cookie",response1.headers.getAll("Set-Cookie"))
+    client.requestSpec {
+      it.headers.set("Cookie", response1.headers.getAll("Set-Cookie"))
     }
     def response5 = client.get("noauth")
 
@@ -164,7 +177,4 @@ class OpenIdRpSpec extends Specification {
     aut << [autConstructed, autInjected]
   }
 
-  private static TestHttpClient newClient(ApplicationUnderTest aut) {
-    return TestHttpClients.testHttpClient(aut)
-  }
 }

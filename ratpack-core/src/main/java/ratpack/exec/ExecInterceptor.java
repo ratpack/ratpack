@@ -23,23 +23,15 @@ package ratpack.exec;
  * They receive a <i>continuation</i> (as a {@link Runnable}) that <b>must</b> be called in order for processing to proceed.
  * <p>
  * Request handling execution can be intercepted by the {@link ratpack.handling.Context#addInterceptor(ExecInterceptor, ratpack.func.Action)} method.
- * <pre class="java">
- * import ratpack.launch.LaunchConfig;
- * import ratpack.launch.LaunchConfigBuilder;
- * import ratpack.handling.Context;
- * import ratpack.handling.Handler;
- * import ratpack.handling.Chain;
- * import ratpack.handling.ChainAction;
- * import ratpack.http.Request;
- * import ratpack.exec.Execution;
+ * <pre class="java">{@code
  * import ratpack.exec.ExecInterceptor;
- * import ratpack.func.Action;
- *
+ * import ratpack.http.Request;
  * import ratpack.test.UnitTest;
  * import ratpack.test.handling.HandlingResult;
  *
- * import java.util.concurrent.Callable;
  * import java.util.concurrent.atomic.AtomicLong;
+ *
+ * import static java.lang.Thread.sleep;
  *
  * public class Example {
  *
@@ -48,11 +40,7 @@ package ratpack.exec;
  *     private final AtomicLong totalBlocking = new AtomicLong();
  *     private boolean blocking;
  *
- *     private final ThreadLocal&lt;Long&gt; startedAt = new ThreadLocal&lt;Long&gt;() {
- *       protected Long initialValue() {
- *         return 0l;
- *       }
- *     };
+ *     private final ThreadLocal<Long> startedAt = ThreadLocal.withInitial(() -> 0l);
  *
  *     public void start(boolean blocking) {
  *       this.blocking = blocking;
@@ -63,7 +51,7 @@ package ratpack.exec;
  *       long startedAtTime = startedAt.get();
  *       startedAt.remove();
  *       AtomicLong counter = blocking ? totalBlocking : totalCompute;
- *       counter.addAndGet(startedAtTime &gt; 0 ? System.currentTimeMillis() - startedAtTime : 0);
+ *       counter.addAndGet(startedAtTime > 0 ? System.currentTimeMillis() - startedAtTime : 0);
  *     }
  *
  *     public long getBlockingTime() {
@@ -92,50 +80,31 @@ package ratpack.exec;
  *   }
  *
  *   public static void main(String[] args) throws Exception {
- *     Action&lt;Chain&gt; handlers = new ChainAction() {
- *       protected void execute() {
- *         handler(new Handler() {
- *           public void handle(final Context context) throws Exception {
- *             context.addInterceptor(new ProcessingTimingInterceptor(context.getRequest()), new Action&lt;Execution&gt;() {
- *               public void execute(Execution execution) {
- *                 context.next();
- *               }
- *             });
- *           }
- *         });
- *
- *         handler(new Handler() {
- *           public void handle(final Context context) throws Exception {
- *             Thread.currentThread().sleep(100);
- *             context
- *               .blocking(new Callable&lt;String&gt;() {
- *                 public String call() throws Exception {
- *                   Thread.currentThread().sleep(100);
- *                   return "foo";
- *                 }
- *               })
- *               .then(new Action&lt;String&gt;() {
- *                 public void execute(String string)  throws Exception {
- *                   Thread.currentThread().sleep(100);
- *                   context.render(string);
- *                 }
- *               });
- *           }
- *         });
- *       }
- *     };
- *
- *     HandlingResult result = UnitTest.handle(handlers, Action.noop());
+ *     HandlingResult result = UnitTest.requestFixture().handleChain(chain -> chain
+ *         .handler(context ->
+ *             context.addInterceptor(new ProcessingTimingInterceptor(context.getRequest()), execution -> context.next())
+ *         )
+ *         .handler(context -> {
+ *           sleep(100);
+ *           context.blocking(() -> {
+ *             sleep(100);
+ *             return "foo";
+ *           }).then(string -> {
+ *             sleep(100);
+ *             context.render(string);
+ *           });
+ *         })
+ *     );
  *
  *     assert result.rendered(String.class).equals("foo");
  *
  *     Timer timer = result.getRequestRegistry().get(Timer.class);
- *     assert timer.getBlockingTime() &gt;= 100;
- *     assert timer.getComputeTime() &gt;= 200;
+ *     assert timer.getBlockingTime() >= 100;
+ *     assert timer.getComputeTime() >= 200;
  *   }
  * }
- * </pre>
- * For other types of executions (e.g. background jobs), the interceptor can be registered via {@link ratpack.handling.Context#addInterceptor(ExecInterceptor, ratpack.func.Action)}.
+ * }</pre>
+ * For other types of executions (e.g. background jobs), the interceptor can be registered via {@link ratpack.exec.ExecControl#addInterceptor(ExecInterceptor, ratpack.func.Action)}.
  *
  * @see Execution
  * @see ratpack.handling.Context#addInterceptor(ExecInterceptor, ratpack.func.Action)

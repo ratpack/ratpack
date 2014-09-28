@@ -26,7 +26,7 @@ ratpack {
       new MarkupTemplatingModule(),
       new SiteModule(launchConfig)
 
-      config(TemplatingModule).staticallyCompile = true
+    config(TemplatingModule) { it.staticallyCompile = true }
 
     RxRatpack.initialize()
     init { TemplateConfiguration templateConfiguration ->

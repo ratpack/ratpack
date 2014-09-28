@@ -23,8 +23,8 @@ import ratpack.hystrix.internal.HystrixCommandMetricsBroadcaster;
 import ratpack.hystrix.internal.HystrixCommandMetricsJsonMapper;
 import ratpack.hystrix.internal.HystrixThreadPoolMetricsBroadcaster;
 import ratpack.hystrix.internal.HystrixThreadPoolMetricsJsonMapper;
-import ratpack.sse.ServerSentEvent;
 
+import static ratpack.sse.ServerSentEvent.serverSentEvent;
 import static ratpack.sse.ServerSentEvents.serverSentEvents;
 import static ratpack.stream.Streams.*;
 
@@ -61,9 +61,7 @@ public class HystrixMetricsEventStreamHandler implements Handler {
     @SuppressWarnings("unchecked") Publisher<String> metricsStream = merge(commandStream, threadPoolStream);
 
     context.render(serverSentEvents(
-      map(metricsStream,
-        metrics -> ServerSentEvent.builder().data(metrics).build()
-      )
+      map(metricsStream, metrics -> serverSentEvent(s -> s.data(metrics)))
     ));
   }
 

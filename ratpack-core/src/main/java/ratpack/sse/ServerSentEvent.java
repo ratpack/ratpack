@@ -16,6 +16,8 @@
 
 package ratpack.sse;
 
+import java.util.function.Consumer;
+
 /**
  * Represents a Server Sent Event.
  *
@@ -24,78 +26,73 @@ package ratpack.sse;
 public class ServerSentEvent {
 
   /**
-   * Returns a new {@link Builder} for {@link ratpack.sse.ServerSentEvent}.
+   * Returns a new event, built by the given spec consumer.
    *
-   * @return a {@link Builder} instance for a {@link ratpack.sse.ServerSentEvent}
+   * @return a new event
    */
-  public static Builder builder() {
-    return new Builder();
+  public static ServerSentEvent serverSentEvent(Consumer<? super Spec> consumer) {
+    ServerSentEvent event = new ServerSentEvent();
+    consumer.accept(new Spec() {
+      @Override
+      public Spec id(String id) {
+        event.eventId = id;
+        return this;
+      }
+
+      @Override
+      public Spec event(String eventType) {
+        event.eventType = eventType;
+        return this;
+      }
+
+      @Override
+      public Spec data(String data) {
+        event.eventData = data;
+        return this;
+      }
+    });
+
+    if (event.eventId == null && event.eventType == null && event.eventData == null) {
+      throw new IllegalArgumentException("You must supply at least one of data, event, id");
+    }
+
+    return event;
   }
 
   /**
    * A builder for {@link ratpack.sse.ServerSentEvent} instances.
    */
-  public static class Builder {
-    private String eventId;
-    private String eventType;
-    private String eventData;
+  public static interface Spec {
 
     /**
      * Specify the event id for the server sent event.
      *
      * @param id the event id
-     * @return this {@link ratpack.sse.ServerSentEvent.Builder}
+     * @return this
      */
-    public Builder id(String id) {
-      this.eventId = id;
-      return this;
-    }
+    Spec id(String id);
 
     /**
      * Specify the event type for the server sent event.
      *
-     * @param type the event type
-     * @return this {@link ratpack.sse.ServerSentEvent.Builder}
+     * @param event the event type
+     * @return this
      */
-    public Builder type(String type) {
-      this.eventType = type;
-      return this;
-    }
+    Spec event(String event);
 
     /**
      * Specify the event data for the server sent event.
      *
      * @param data the event data
-     * @return this {@link ratpack.sse.ServerSentEvent.Builder}
+     * @return this
      */
-    public Builder data(String data) {
-      this.eventData = data;
-      return this;
-    }
+    Spec data(String data);
 
-    /**
-     * Builds a {@link ratpack.sse.ServerSentEvent} with the given properties.
-     *
-     * @return a {@link ratpack.sse.ServerSentEvent}
-     */
-    public ServerSentEvent build() {
-      return new ServerSentEvent(eventId, eventType, eventData);
-    }
   }
 
-  private final String eventId;
-  private final String eventType;
-  private final String eventData;
-
-  private ServerSentEvent(String eventId, String eventType, String eventData) {
-    if (eventId == null && eventType == null && eventData == null) {
-      throw new IllegalArgumentException("You must supply at least one of evenId, eventType, eventData");
-    }
-
-    this.eventId = eventId;
-    this.eventType = eventType;
-    this.eventData = eventData;
-  }
+  private String eventId;
+  private String eventType;
+  private String eventData;
 
   public String getEventId() {
     return eventId;

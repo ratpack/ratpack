@@ -40,7 +40,7 @@ import java.util.concurrent.ExecutionException;
  * An extension module that provides support for the Groovy markup template engine.
  * <p>
  * To use it one has to register the module and then render {@link MarkupTemplate} instances.
- * Instances of {@code ratpack.groovy.markuptemplates.MarkupTemplate} can be created using one of the
+ * Instances of {@link MarkupTemplate} can be created using one of the
  * {@link ratpack.groovy.Groovy#groovyMarkupTemplate(java.util.Map, String, String)}
  * static methods.
  * </p>
@@ -54,60 +54,34 @@ import java.util.concurrent.ExecutionException;
  * <p>
  * Response content type can be manually specified, i.e. {@code groovyMarkupTemplate("template.gtpl", model, "text/html")} if
  * not specified will default to {@code text/html}.
- * </p>
- *
- * Example usage: (Java DSL)
- * <pre class="tested">
- * import ratpack.handling.*;
- * import ratpack.guice.*;
- * import ratpack.func.Action;
- * import ratpack.launch.*;
+ * <pre class="java">{@code
  * import ratpack.groovy.markuptemplates.MarkupTemplatingModule;
+ * import ratpack.guice.Guice;
+ * import ratpack.test.embed.BaseDirBuilder;
+ * import ratpack.test.embed.EmbeddedApp;
+ *
+ * import java.nio.file.Path;
+ *
  * import static ratpack.groovy.Groovy.groovyMarkupTemplate;
  *
- * class MyHandler implements Handler {
- *   void handle(final Context context) {
- *     context.render(groovyMarkupTemplate("my/template/path.gtpl", key: "it works!"));
- *   }
- * }
+ * public class Example {
  *
- * class Bindings implements Action&lt;BindingsSpec&gt; {
- *   public void execute(BindingsSpec bindings) {
- *     bindings.add(new MarkupTemplatingModule());
- *   }
- * }
- *
- * LaunchConfig launchConfig = LaunchConfigBuilder.baseDir(new File("appRoot"))
- *     .build(new HandlerFactory() {
- *   public Handler create(LaunchConfig launchConfig) {
- *     return Guice.chain(launchConfig, new Bindings(), new ChainAction() {
- *       protected void execute() {
- *         handler(chain.getRegistry().get(MyHandler.class));
- *       }
+ *   public static void main(String... args) {
+ *     Path baseDir = BaseDirBuilder.tmpDir().build(builder ->
+ *         builder.file("templates/myTemplate.gtpl", "html { body { p(value) } }")
+ *     );
+ *     EmbeddedApp.fromHandlerFactory(baseDir, launchConfig ->
+ *         Guice.builder(launchConfig)
+ *           .bindings(b -> b.add(new MarkupTemplatingModule()))
+ *           .build(chain -> chain
+ *               .get(ctx -> ctx.render(groovyMarkupTemplate("myTemplate.gtpl", m -> m.put("value", "hello!"))))
+ *           )
+ *     ).test(httpClient -> {
+ *       assert httpClient.get().getBody().getText().equals("<html><body><p>hello!</p></body></html>");
  *     });
  *   }
- * });
- *
- * launchConfig.execController.close()
- * </pre>
- *
- * Example usage: (Groovy DSL)
- * <pre class="groovy-ratpack-dsl">
- * import ratpack.groovy.markuptemplates.MarkupTemplatingModule
- * import static ratpack.groovy.Groovy.groovyMarkupTemplate
- * import static ratpack.groovy.Groovy.ratpack
- *
- * ratpack {
- *   bindings {
- *     add new MarkupTemplatingModule()
- *   }
- *   handlers {
- *     get {
- *       render groovyMarkupTemplate('my/template/path.gtpl', key: 'it works!')
- *     }
- *   }
  * }
- * </pre>
+ * }</pre>
  *
  * @see <a href="http://beta.groovy-lang.org/docs/latest/html/documentation/markup-template-engine.html" target="_blank">Groovy Markup Template Engine</a>
  */
@@ -125,7 +99,8 @@ public class MarkupTemplatingModule extends AbstractModule {
 
   @Override
   protected void configure() {
-    bind(new TypeLiteral<Renderer<MarkupTemplate>>() {}).to(MarkupTemplateRenderer.class).in(Singleton.class);
+    bind(new TypeLiteral<Renderer<MarkupTemplate>>() {
+    }).to(MarkupTemplateRenderer.class).in(Singleton.class);
   }
 
   @Provides

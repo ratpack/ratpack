@@ -16,6 +16,7 @@
 
 package ratpack.groovy.guice.internal;
 
+import com.google.inject.Binder;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import groovy.lang.Closure;
@@ -24,87 +25,103 @@ import ratpack.groovy.guice.GroovyBindingsSpec;
 import ratpack.groovy.internal.ClosureInvoker;
 import ratpack.guice.BindingsSpec;
 import ratpack.guice.Guice;
+import ratpack.guice.NoSuchModuleException;
 import ratpack.launch.LaunchConfig;
 import ratpack.registry.Registry;
 
 import javax.inject.Provider;
+import java.util.function.Consumer;
 
 public class DefaultGroovyBindingsSpec implements GroovyBindingsSpec {
 
-  private final BindingsSpec bindingsSpec;
+  private final BindingsSpec delegate;
 
-  public DefaultGroovyBindingsSpec(BindingsSpec bindingsSpec) {
-    this.bindingsSpec = bindingsSpec;
+  public DefaultGroovyBindingsSpec(BindingsSpec delegate) {
+    this.delegate = delegate;
   }
 
   @Override
-  public void init(final Closure<?> closure) {
+  public GroovyBindingsSpec init(final Closure<?> closure) {
     doInit(closure, Void.class, Closure.OWNER_ONLY);
+    return this;
   }
 
   private <T, N> void doInit(final Closure<T> closure, final Class<N> clazz, final int resolveStrategy) {
-    init(new Action<Injector>() {
-      @Override
-      public void execute(Injector injector) throws Exception {
-        Registry injectorBackedRegistry = Guice.registry(injector);
-        N delegate = clazz.equals(Void.class) ? null : injector.getInstance(clazz);
-        new ClosureInvoker<T, N>(closure).invoke(injectorBackedRegistry, delegate, resolveStrategy);
-      }
+    init(injector -> {
+      Registry injectorBackedRegistry = Guice.registry(injector);
+      N delegate = clazz.equals(Void.class) ? null : injector.getInstance(clazz);
+      new ClosureInvoker<T, N>(closure).invoke(injectorBackedRegistry, delegate, resolveStrategy);
     });
   }
 
   @Override
   public LaunchConfig getLaunchConfig() {
-    return bindingsSpec.getLaunchConfig();
+    return delegate.getLaunchConfig();
   }
 
   @Override
-  public void bind(Class<?> type) {
-    bindingsSpec.bind(type);
+  public GroovyBindingsSpec bind(Class<?> type) {
+    delegate.bind(type);
+    return this;
   }
 
   @Override
-  public <T> void bind(Class<T> publicType, Class<? extends T> implType) {
-    bindingsSpec.bind(publicType, implType);
+  public <T> GroovyBindingsSpec bind(Class<T> publicType, Class<? extends T> implType) {
+    delegate.bind(publicType, implType);
+    return this;
   }
 
   @Override
-  public <T> void bind(Class<? super T> publicType, T instance) {
-    bindingsSpec.bind(publicType, instance);
+  public <T> GroovyBindingsSpec bind(Class<? super T> publicType, T instance) {
+    delegate.bind(publicType, instance);
+    return this;
   }
 
   @Override
-  public <T> void bind(T instance) {
-    bindingsSpec.bind(instance);
+  public <T> GroovyBindingsSpec bind(T instance) {
+    delegate.bind(instance);
+    return this;
   }
 
   @Override
-  public <T> void provider(Class<T> publicType, Class<? extends Provider<? extends T>> providerType) {
-    bindingsSpec.provider(publicType, providerType);
+  public <T> GroovyBindingsSpec provider(Class<T> publicType, Class<? extends Provider<? extends T>> providerType) {
+    delegate.provider(publicType, providerType);
+    return this;
   }
 
   @Override
-  public void init(Action<Injector> action) {
-    bindingsSpec.init(action);
+  public GroovyBindingsSpec init(Action<Injector> action) {
+    delegate.init(action);
+    return this;
   }
 
   @Override
-  public void init(Class<? extends Runnable> clazz) {
-    bindingsSpec.init(clazz);
+  public GroovyBindingsSpec init(Class<? extends Runnable> clazz) {
+    delegate.init(clazz);
+    return this;
   }
 
   @Override
-  public <T extends Module> T config(Class<T> moduleClass) {
-    return bindingsSpec.config(moduleClass);
+  public <T extends Module> GroovyBindingsSpec config(Class<T> moduleClass, Consumer<? super T> configurer) throws NoSuchModuleException {
+    delegate.config(moduleClass, configurer);
+    return this;
   }
 
   @Override
-  public void add(Module... modules) {
-    bindingsSpec.add(modules);
+  public GroovyBindingsSpec bindings(Action<? super Binder> action) {
+    delegate.bindings(action);
+    return this;
   }
 
   @Override
-  public void add(Iterable<? extends Module> modules) {
-    bindingsSpec.add(modules);
+  public GroovyBindingsSpec add(Module... modules) {
+    delegate.add(modules);
+    return this;
+  }
+
+  @Override
+  public GroovyBindingsSpec add(Iterable<? extends Module> modules) {
+    delegate.add(modules);
+    return this;
   }
 }

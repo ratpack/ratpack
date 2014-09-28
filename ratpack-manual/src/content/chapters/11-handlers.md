@@ -230,44 +230,30 @@ For this “application”:
 This is easier than doing it all yourself, but we can do better.
 We can use the [`chain()`](api/ratpack/handling/Handlers.html#chain-ratpack.launch.LaunchConfig-ratpack.func.Action-) method and the [`Chain`](api/ratpack/handling/Chain.html) DSL.
 
-```language-groovy tested
+```language-java
 import ratpack.handling.Handler;
-import ratpack.handling.Context;
-import ratpack.handling.ChainAction;
-import ratpack.func.Action;
-import ratpack.launch.LaunchConfig;
 import ratpack.launch.HandlerFactory;
+import ratpack.launch.LaunchConfig;
 
 import static ratpack.handling.Handlers.chain;
 
 public class Application implements HandlerFactory {
-  public Handler create(LaunchConfig launchConfig) {
-    return chain(launchConfig, new ChainAction() {
-      protected void execute() {
-        prefix("api", new ChainAction() {
-          protected void execute() {
-            delete("someResource", new Handler() {
-              public void handle(Context context) {
-                // delete the resource
-              }
-            });
-          }
-        });
+  public Handler create(LaunchConfig launchConfig) throws Exception {
+    return chain(launchConfig, (chain) -> chain
+        .prefix("api", (api) -> api
+          .delete("someResource", context -> {
+            // delete the resource
+          }))
 
-        assets("public");
+        .assets("public")
 
-        get("foo/bar", new Handler() {
-          public void handle(Context context) {
-            // do stuff
-          }
-        });
-      }
-    });
+        .get("foo/bar", ctx -> {
+          // do stuff
+        })
+    );
   }
 }
 ```
-
-(note: the use of inner classes adds a lot of syntactic bloat here, things are more concise with Java 8 lambdas)
 
 The chain DSL is built on the existing delegation methods that have been presented so far.
 It is merely syntactic sugar.

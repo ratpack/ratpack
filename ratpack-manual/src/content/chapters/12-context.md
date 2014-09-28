@@ -21,56 +21,70 @@ This is the mechanism for inter-handler collaboration in Ratpack.
 
 Consider the following example:
 
-```language-groovy tested
-import ratpack.handling.Handler;
-import ratpack.handling.Context;
-import ratpack.handling.ChainAction;
-import ratpack.launch.HandlerFactory;
-import ratpack.launch.LaunchConfig;
+```language-java
+import ratpack.test.embed.EmbeddedApp;
 
-import static ratpack.registry.Registries.just
-import static ratpack.handling.Handlers.chain;
+import static ratpack.registry.Registries.just;
 
-// The api of some business object
-interface Person {}
+public class Example {
 
-// Implementation
-public class PersonImpl implements Person {
-  private final String id;
-  public PersonImpl(String id) {
-    this.id = id;
-  };
-}
+  public static interface Person {
+    String getId();
 
-public class Application implements HandlerFactory {
-  public Handler create(LaunchConfig launchConfig) {
-    return chain(launchConfig, new ChainAction() {
-      protected void execute() {
-        prefix("person/:id", new ChainAction() {
-          protected void execute() {
-            handler(new Handler() {
-              public void handle(Context context) {
-                String id = context.getPathTokens().get("id"); // (1)
-                Person person = new PersonImpl(id);
-                context.next(just(Person.class, person)); // (2)
-              }
-            });
-            get("status", new Handler() {
-              public void handle(Context context) {
-                Person person = context.get(Person.class); // (3)
-                // show the person's status
-              }
-            });
-            get("age", new Handler() {
-              public void handle(Context context) {
-                Person person = context.get(Person.class); // (4)
-                // show the person's age
-              }
-            });
-          }
-        });
-      }
-    });
+    String getStatus();
+
+    String getAge();
+  }
+
+  public static class PersonImpl implements Person {
+    private final String id;
+    private final String status;
+    private final String age;
+
+    public PersonImpl(String id, String status, String age) {
+      this.id = id;
+      this.status = status;
+      this.age = age;
+    }
+
+    @Override
+    public String getId() {
+      return id;
+    }
+
+    @Override
+    public String getStatus() {
+      return status;
+    }
+
+    @Override
+    public String getAge() {
+      return age;
+    }
+  }
+
+  public static void main(String... args) {
+    EmbeddedApp
+      .fromChain(chain -> chain
+          .prefix("person/:id", (personChain) -> personChain
+            .handler(context -> {
+              String id = context.getPathTokens().get("id"); // (1)
+              Person person = new PersonImpl(id, "example-status", "example-age");
+              context.next(just(Person.class, person)); // (2)
+            })
+            .get("status", context -> {
+              Person person = context.get(Person.class); // (3)
+              context.render("person " + person.getId() + " status: " + person.getStatus());
+            })
+            .get("age", context -> {
+              Person person = context.get(Person.class); // (4)
+              context.render("person " + person.getId() + " age: " + person.getAge());
+            }))
+      )
+      .test(httpClient -> {
+        assert httpClient.get("person/10/status").getBody().getText().equals("person 10 status: example-status");
+        assert httpClient.get("person/6/age").getBody().getText().equals("person 6 age: example-age");
+      });
   }
 }
 ```
@@ -120,53 +134,35 @@ nested insertions.
 
 A typical use for this is using different error handling strategies for different parts of your application.
 
-```language-groovy tested
-import ratpack.handling.Handler;
-import ratpack.handling.Context;
-import ratpack.handling.ChainAction;
-import ratpack.launch.HandlerFactory;
-import ratpack.launch.LaunchConfig;
+```language-java
 import ratpack.error.ServerErrorHandler;
+import ratpack.test.embed.EmbeddedApp;
 
-import static ratpack.handling.Handlers.chain;
-import static ratpack.registry.Registries.just;
+public class Example {
 
-public class ApiHandlers extends ChainAction {
-  protected void execute() {
-    // add api handlers
-  }
-}
-
-public class ApiServerErrorHandler implements ServerErrorHandler {
-  public void error(Context context, Throwable throwable) {
-    // return error data object
-  }
-}
-
-public class AppHandlers extends ChainAction {
-  protected void execute() {
-    // add normal app handlers
-  }
-}
-
-public class AppServerErrorHandler implements ServerErrorHandler {
-  public void error(Context context, Throwable throwable) {
-    // display pretty error page
-  }
-}
-
-public class Application implements HandlerFactory {
-  public Handler create(final LaunchConfig launchConfig) {
-    return chain(launchConfig, new ChainAction() {
-      protected void execute() {
-        prefix("api", new ChainAction() {
-          protected void execute() {
-            register(just(ServerErrorHandler.class, new ApiServerErrorHandler()), new ApiHandlers());
-          }
-        });
-        register(just(ServerErrorHandler.class, new AppServerErrorHandler()), new AppHandlers());
-      }
+  public static void main(String... args) {
+    EmbeddedApp.fromChain(chain -> chain
+        .prefix("api", api -> api
+            .register(r -> r.add(ServerErrorHandler.class, (context, throwable) ->
+                  context.render("api error: " + throwable.getMessage())
+              )
+            )
+            .handler(context -> {
+              throw new Exception("in api - " + context.getRequest().getPath());
+            })
+        )
+        .register(r -> r.add(ServerErrorHandler.class, (context, throwable) ->
+              context.render("app error: " + throwable.getMessage())
+          )
+        )
+        .handler(context -> {
+          throw new Exception("in app - " + context.getRequest().getPath());
+        })
+    ).test(httpClient -> {
+      assert httpClient.get("api/foo").getBody().getText().equals("api error: in api - api/foo");
+      assert httpClient.get("bar").getBody().getText().equals("app error: in app - bar");
     });
   }
+
 }
 ```

@@ -21,8 +21,8 @@ import ratpack.groovy.handling.GroovyChain
 import ratpack.groovy.internal.RatpackScriptBacking
 import ratpack.groovy.templating.EphemeralPortScriptBacking
 import ratpack.server.RatpackServer
-import ratpack.test.embed.EmbeddedApplication
-import ratpack.test.embed.EmbeddedApplicationSupport
+import ratpack.test.embed.EmbeddedApp
+import ratpack.test.embed.internal.EmbeddedAppSupport
 import ratpack.test.internal.RatpackGroovyScriptAppSpec
 
 class StandaloneScriptSpec extends RatpackGroovyScriptAppSpec {
@@ -33,8 +33,8 @@ class StandaloneScriptSpec extends RatpackGroovyScriptAppSpec {
   }
 
   @Override
-  EmbeddedApplication createApplication() {
-    new EmbeddedApplicationSupport() {
+  EmbeddedApp createApplication() {
+    new EmbeddedAppSupport() {
       @Override
       protected RatpackServer createServer() {
         new ScriptBackedServer({

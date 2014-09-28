@@ -51,4 +51,9 @@ public class HandlebarsTemplateRenderer extends RendererSupport<Template> {
 
     context.getResponse().send(contentType, renderedTemplate);
   }
+
+  @Override
+  public String toString() {
+    return "HandlebarsTemplateRenderer";
+  }
 }

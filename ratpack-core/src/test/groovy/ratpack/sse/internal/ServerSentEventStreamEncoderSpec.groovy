@@ -17,9 +17,10 @@
 package ratpack.sse.internal
 
 import io.netty.buffer.UnpooledByteBufAllocator
-import ratpack.sse.ServerSentEvent
 import ratpack.test.internal.RatpackGroovyDslSpec
 import ratpack.util.internal.IoUtils
+
+import static ratpack.sse.ServerSentEvent.serverSentEvent
 
 class ServerSentEventStreamEncoderSpec extends RatpackGroovyDslSpec {
 
@@ -30,14 +31,14 @@ class ServerSentEventStreamEncoderSpec extends RatpackGroovyDslSpec {
     IoUtils.utf8String(encoder.apply(sse)) == expectedEncoding
 
     where:
-    sse                                                                           | expectedEncoding
-    ServerSentEvent.builder().id("fooId").type("fooType").data("fooData").build() | "event: fooType\ndata: fooData\nid: fooId\n\n"
-    ServerSentEvent.builder().type("fooType").data("fooData").build()             | "event: fooType\ndata: fooData\n\n"
-    ServerSentEvent.builder().data("fooData").build()                             | "data: fooData\n\n"
-    ServerSentEvent.builder().id("fooId").data("fooData").build()                 | "data: fooData\nid: fooId\n\n"
-    ServerSentEvent.builder().id("fooId").build()                                 | "id: fooId\n\n"
-    ServerSentEvent.builder().id("fooId").type("fooType").build()                 | "event: fooType\nid: fooId\n\n"
-    ServerSentEvent.builder().type("fooType").build()                             | "event: fooType\n\n"
+    sse                                                                 | expectedEncoding
+    serverSentEvent { it.id("fooId").event("fooType").data("fooData") } | "event: fooType\ndata: fooData\nid: fooId\n\n"
+    serverSentEvent { it.event("fooType").data("fooData") }             | "event: fooType\ndata: fooData\n\n"
+    serverSentEvent { it.data("fooData") }                              | "data: fooData\n\n"
+    serverSentEvent { it.id("fooId").data("fooData") }                  | "data: fooData\nid: fooId\n\n"
+    serverSentEvent { it.id("fooId") }                                  | "id: fooId\n\n"
+    serverSentEvent { it.id("fooId").event("fooType") }                 | "event: fooType\nid: fooId\n\n"
+    serverSentEvent { it.event("fooType") }                             | "event: fooType\n\n"
   }
 
 }

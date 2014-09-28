@@ -14,28 +14,20 @@
  * limitations under the License.
  */
 
-package ratpack.test.internal
+package ratpack.test.embed.internal;
 
-import ratpack.groovy.Groovy
-import ratpack.test.embed.EmbeddedApp
+import ratpack.launch.LaunchConfig;
+import ratpack.server.RatpackServer;
+import ratpack.server.RatpackServerBuilder;
 
-abstract class RatpackGroovyScriptAppSpec extends EmbeddedRatpackSpec {
+public abstract class LaunchConfigEmbeddedApp extends EmbeddedAppSupport {
 
-  @Delegate
-  EmbeddedApp application
-
-  def setup() {
-    application = createApplication()
+  @Override
+  protected RatpackServer createServer() {
+    LaunchConfig launchConfig = createLaunchConfig();
+    return RatpackServerBuilder.build(launchConfig);
   }
 
-  abstract EmbeddedApp createApplication()
-
-  File getRatpackFile() {
-    temporaryFolder.newFile("ratpack.groovy")
-  }
-
-  void script(String text) {
-    ratpackFile.text = "import static ${Groovy.name}.ratpack\n\n$text"
-  }
+  abstract protected LaunchConfig createLaunchConfig();
 
 }

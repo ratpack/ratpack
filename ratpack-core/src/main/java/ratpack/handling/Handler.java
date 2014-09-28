@@ -114,6 +114,7 @@ import ratpack.api.NonBlocking;
  * @see Chain
  * @see ratpack.registry.Registry
  */
+@FunctionalInterface
 public interface Handler {
 
   /**

@@ -32,7 +32,7 @@ class EmbeddedProvider implements Closeable {
   private PatchedSampleServer sampleServer
 
   void addResult(Boolean authenticatedAndApproved, String email) {
-    results << [authenticatedAndApproved:authenticatedAndApproved, email:email]
+    results << [authenticatedAndApproved: authenticatedAndApproved, email: email]
   }
 
   void open(int port) {
@@ -91,6 +91,7 @@ class EmbeddedProvider implements Closeable {
   @Override
   void close() {
     server.stop()
+    clear()
   }
 
   void clear() {

@@ -16,13 +16,15 @@
 
 package ratpack.handlebars;
 
+import com.google.common.collect.ImmutableMap;
+
 import java.util.Map;
+import java.util.function.Consumer;
 
 public class Template {
 
   private final String name;
   private final Object model;
-
   private final String contentType;
 
   public String getName() {
@@ -44,15 +46,29 @@ public class Template {
   }
 
   public static Template handlebarsTemplate(String name) {
-    return handlebarsTemplate(name, null);
+    return handlebarsTemplate(name, (String) null);
   }
 
   public static Template handlebarsTemplate(Map<String, ?> model, String name) {
     return handlebarsTemplate(model, name, null);
   }
 
+  public static Template handlebarsTemplate(String name, Consumer<? super ImmutableMap.Builder<String, Object>> modelBuilder) {
+    return handlebarsTemplate(name, null, modelBuilder);
+  }
+
   public static Template handlebarsTemplate(Map<String, ?> model, String name, String contentType) {
     return new Template(name, model, contentType);
+  }
+
+  public static Template handlebarsTemplate(String name, String contentType, Consumer<? super ImmutableMap.Builder<String, Object>> modelBuilder) {
+    if (modelBuilder == null) {
+      return handlebarsTemplate(name, null, contentType);
+    } else {
+      ImmutableMap.Builder<String, Object> builder = ImmutableMap.builder();
+      modelBuilder.accept(builder);
+      return handlebarsTemplate(builder.build(), name, contentType);
+    }
   }
 
   public static Template handlebarsTemplate(String name, Object model) {
@@ -61,5 +77,10 @@ public class Template {
 
   public static Template handlebarsTemplate(String name, Object model, String contentType) {
     return new Template(name, model, contentType);
+  }
+
+  @Override
+  public String toString() {
+    return "Template{name='" + name + '\'' + ", model=" + model + ", contentType='" + contentType + '\'' + '}';
   }
 }

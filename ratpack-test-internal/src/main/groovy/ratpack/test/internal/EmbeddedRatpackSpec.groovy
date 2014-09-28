@@ -19,7 +19,7 @@ package ratpack.test.internal
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import ratpack.http.client.RequestSpec
-import ratpack.test.embed.EmbeddedApplication
+import ratpack.test.embed.EmbeddedApp
 import ratpack.test.http.TestHttpClient
 import spock.lang.Specification
 
@@ -33,7 +33,7 @@ abstract class EmbeddedRatpackSpec extends Specification {
   @Delegate
   TestHttpClient client
 
-  abstract EmbeddedApplication getApplication()
+  abstract EmbeddedApp getApplication()
 
   void configureRequest(RequestSpec requestSpecification) {
     // do nothing

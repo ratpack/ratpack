@@ -25,34 +25,39 @@ import org.reactivestreams.Publisher;
  * <p>
  * Example usage:
  * <pre class="java">{@code
+ * import org.reactivestreams.Publisher;
  * import ratpack.http.client.ReceivedResponse;
  * import ratpack.sse.ServerSentEvent;
- * import ratpack.test.embed.EmbeddedApplication;
+ * import ratpack.test.embed.EmbeddedApp;
  *
  * import java.util.Arrays;
- * import java.util.stream.Collectors;
  *
  * import static java.util.concurrent.TimeUnit.MILLISECONDS;
+ * import static java.util.stream.Collectors.joining;
+ * import static ratpack.sse.ServerSentEvent.serverSentEvent;
  * import static ratpack.sse.ServerSentEvents.serverSentEvents;
  * import static ratpack.stream.Streams.periodically;
  *
  * public class Example {
  *   public static void main(String[] args) throws Exception {
- *     EmbeddedApplication.fromHandler(context ->
- *       context.render(serverSentEvents(periodically(context.getLaunchConfig(), 5, MILLISECONDS, i ->
- *           i < 5
- *             ? ServerSentEvent.builder().id(i.toString()).type("counter").data("event " + i).build()
+ *     EmbeddedApp.fromHandler(context -> {
+ *         Publisher<ServerSentEvent> stream = periodically(context.getLaunchConfig(), 5, MILLISECONDS,
+ *           i -> i < 5
+ *             ? serverSentEvent(s -> s.id(i.toString()).event("counter").data("event " + i))
  *             : null
- *       )));
+ *         );
+ *
+ *         context.render(serverSentEvents(stream));
+ *       }
  *     ).test(httpClient -> {
  *       ReceivedResponse response = httpClient.get();
  *       assert response.getHeaders().get("Content-Type").equals("text/event-stream;charset=UTF-8");
  *
- *        String expectedOutput = Arrays.asList(0, 1, 2, 3, 4)
- *       .stream()
- *       .map(i -> "event: counter\ndata: event " + i + "\nid: " + i + "\n")
- *       .collect(Collectors.joining("\n"))
- *       + "\n";
+ *       String expectedOutput = Arrays.asList(0, 1, 2, 3, 4)
+ *         .stream()
+ *         .map(i -> "event: counter\ndata: event " + i + "\nid: " + i + "\n")
+ *         .collect(joining("\n"))
+ *         + "\n";
  *
  *       assert response.getBody().getText().equals(expectedOutput);
  *     });

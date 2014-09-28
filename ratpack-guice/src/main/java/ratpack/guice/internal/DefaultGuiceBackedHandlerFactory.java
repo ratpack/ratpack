@@ -17,33 +17,29 @@
 package ratpack.guice.internal;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import com.google.inject.Binder;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.util.Modules;
-import io.netty.buffer.ByteBuf;
 import ratpack.func.Action;
 import ratpack.func.Factory;
 import ratpack.func.Function;
 import ratpack.guice.BindingsSpec;
+import ratpack.guice.Guice;
 import ratpack.guice.GuiceBackedHandlerFactory;
 import ratpack.guice.HandlerDecoratingModule;
 import ratpack.handling.Handler;
 import ratpack.handling.Handlers;
 import ratpack.handling.internal.FactoryHandler;
 import ratpack.launch.LaunchConfig;
+import ratpack.registry.Registry;
 import ratpack.reload.internal.ClassUtil;
 import ratpack.reload.internal.ReloadableFileBackedFactory;
 
-import javax.inject.Provider;
 import java.io.File;
-import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
-
-import static ratpack.util.ExceptionUtils.uncheck;
 
 public class DefaultGuiceBackedHandlerFactory implements GuiceBackedHandlerFactory {
 
@@ -57,12 +53,7 @@ public class DefaultGuiceBackedHandlerFactory implements GuiceBackedHandlerFacto
     if (launchConfig.isDevelopment()) {
       File classFile = ClassUtil.getClassFile(modulesAction);
       if (classFile != null) {
-        Factory<InjectorBindingHandler> factory = new ReloadableFileBackedFactory<>(classFile.toPath(), true, new ReloadableFileBackedFactory.Producer<InjectorBindingHandler>() {
-          @Override
-          public InjectorBindingHandler produce(Path file, ByteBuf bytes) throws Exception {
-            return doCreate(modulesAction, moduleTransformer, injectorTransformer);
-          }
-        });
+        Factory<Handler> factory = new ReloadableFileBackedFactory<>(classFile.toPath(), true, (file, bytes) -> doCreate(modulesAction, moduleTransformer, injectorTransformer));
 
         return new FactoryHandler(factory);
       }
@@ -71,178 +62,49 @@ public class DefaultGuiceBackedHandlerFactory implements GuiceBackedHandlerFacto
     return doCreate(modulesAction, moduleTransformer, injectorTransformer);
   }
 
-  private InjectorBindingHandler doCreate(Action<? super BindingsSpec> modulesAction, Function<? super Module, ? extends Injector> moduleTransformer, Function<? super Injector, ? extends Handler> injectorTransformer) throws Exception {
-    DefaultBindingsSpec moduleRegistry = new DefaultBindingsSpec(launchConfig);
+  private Handler doCreate(Action<? super BindingsSpec> modulesAction, Function<? super Module, ? extends Injector> moduleTransformer, Function<? super Injector, ? extends Handler> injectorTransformer) throws Exception {
+
+    List<Action<? super Binder>> binderActions = Lists.newLinkedList();
+    List<Action<? super Injector>> injectorActions = Lists.newLinkedList();
+    List<Module> modules = Lists.newLinkedList();
+
+    BindingsSpec moduleRegistry = new DefaultBindingsSpec(launchConfig, binderActions, injectorActions, modules);
 
     registerDefaultModules(moduleRegistry);
-    try {
-      modulesAction.execute(moduleRegistry);
-    } catch (Exception e) {
-      throw uncheck(e);
-    }
+    modulesAction.toConsumer().accept(moduleRegistry);
 
-    Module masterModule = null;
-    List<? extends Module> modules = moduleRegistry.getModules();
-    for (Module module : modules) {
-      if (masterModule == null) {
-        masterModule = module;
-      } else {
-        masterModule = Modules.override(masterModule).with(module);
+    Module overrideModule = binder -> {
+      for (Action<? super Binder> binderAction : binderActions) {
+        binderAction.toConsumer().accept(binder);
       }
-    }
+    };
 
+    List<Module> effectiveModules = ImmutableList.<Module>builder()
+      .addAll(modules)
+      .add(overrideModule)
+      .build();
+
+    Module masterModule = effectiveModules.stream().reduce((acc, next) -> Modules.override(acc).with(next)).get();
     Injector injector = moduleTransformer.apply(masterModule);
 
-    List<Action<Injector>> init = moduleRegistry.init;
-    for (Action<Injector> initAction : init) {
+    for (Action<? super Injector> initAction : injectorActions) {
       initAction.execute(injector);
     }
 
-    Handler decorated = injectorTransformer.apply(injector);
-
-    List<Module> modulesReversed = new ArrayList<>(modules);
-    Collections.reverse(modulesReversed);
-
-    for (Module module : modulesReversed) {
+    Handler handler = injectorTransformer.apply(injector);
+    Collections.reverse(modules);
+    for (Module module : modules) {
       if (module instanceof HandlerDecoratingModule) {
-        decorated = ((HandlerDecoratingModule) module).decorate(injector, decorated);
+        handler = ((HandlerDecoratingModule) module).decorate(injector, handler);
       }
     }
 
-    decorated = Handlers.chain(decorateHandler(decorated), Handlers.notFound());
-
-    return new InjectorBindingHandler(injector, decorated);
-  }
-
-  protected Handler decorateHandler(Handler handler) {
-    return handler;
+    Registry registry = Guice.registry(injector);
+    return Handlers.chain(ctx -> ctx.next(registry), handler);
   }
 
   protected void registerDefaultModules(BindingsSpec bindingsSpec) {
     bindingsSpec.add(new DefaultRatpackModule(launchConfig));
   }
 
-  private static class DefaultBindingsSpec implements BindingsSpec {
-
-    private final List<Module> modules = new LinkedList<>();
-    private final LaunchConfig launchConfig;
-
-    private final LinkedList<Action<Binder>> actions = new LinkedList<>();
-    private final LinkedList<Action<Injector>> init = new LinkedList<>();
-
-    public DefaultBindingsSpec(LaunchConfig launchConfig) {
-      this.launchConfig = launchConfig;
-    }
-
-    public LaunchConfig getLaunchConfig() {
-      return launchConfig;
-    }
-
-    @Override
-    public void bind(final Class<?> type) {
-      actions.add(new Action<Binder>() {
-        public void execute(Binder binder) throws Exception {
-          binder.bind(type);
-        }
-      });
-    }
-
-    @Override
-    public <T> void bind(final Class<T> publicType, final Class<? extends T> implType) {
-      actions.add(new Action<Binder>() {
-        public void execute(Binder binder) throws Exception {
-          binder.bind(publicType).to(implType);
-        }
-      });
-    }
-
-    @Override
-    public <T> void bind(final Class<? super T> publicType, final T instance) {
-      actions.add(new Action<Binder>() {
-        public void execute(Binder binder) throws Exception {
-          binder.bind(publicType).toInstance(instance);
-        }
-      });
-    }
-
-    @Override
-    public <T> void bind(final T instance) {
-      @SuppressWarnings("unchecked") final
-      Class<T> type = (Class<T>) instance.getClass();
-      actions.add(new Action<Binder>() {
-        public void execute(Binder binder) throws Exception {
-          binder.bind(type).toInstance(instance);
-        }
-      });
-    }
-
-    @Override
-    public <T> void provider(final Class<T> publicType, final Class<? extends Provider<? extends T>> providerType) {
-      actions.add(new Action<Binder>() {
-        public void execute(Binder binder) throws Exception {
-          binder.bind(publicType).toProvider(providerType);
-        }
-      });
-    }
-
-    @Override
-    public void add(Module... modules) {
-      Collections.addAll(this.modules, modules);
-    }
-
-    @Override
-    public void add(Iterable<? extends Module> modules) {
-      for (Module module : modules) {
-        this.modules.add(module);
-      }
-    }
-
-    @Override
-    public <T extends Module> T config(Class<T> moduleClass) {
-      for (Module module : modules) {
-        if (moduleClass.isInstance(module)) {
-          return moduleClass.cast(module);
-        }
-      }
-
-      return null;
-    }
-
-    private List<Module> getModules() {
-      return ImmutableList.<Module>builder()
-        .addAll(modules)
-        .add(createOverrideModule())
-        .build();
-    }
-
-    private Module createOverrideModule() {
-      return new Module() {
-        public void configure(Binder binder) {
-          for (Action<Binder> binderAction : actions) {
-            try {
-              binderAction.execute(binder);
-            } catch (Exception e) {
-              throw uncheck(e);
-            }
-          }
-        }
-      };
-    }
-
-    @Override
-    public void init(Action<Injector> action) {
-      init.add(action);
-    }
-
-    @Override
-    public void init(final Class<? extends Runnable> clazz) {
-      init.add(new Action<Injector>() {
-        @Override
-        public void execute(Injector injector) throws Exception {
-          injector.getInstance(clazz).run();
-        }
-      });
-    }
-
-  }
 }

@@ -372,7 +372,6 @@ class MetricsSpec extends RatpackGroovyDslSpec {
     }
 
     and:
-    server.start()
     2.times { getText() }
 
     when:

@@ -20,7 +20,7 @@ import com.google.inject.AbstractModule
 import groovy.text.markup.TemplateConfiguration
 import ratpack.error.DebugErrorHandler
 import ratpack.error.ServerErrorHandler
-import ratpack.test.embed.JarFileBaseDirBuilder
+import ratpack.test.embed.internal.JarFileBaseDirBuilder
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_TYPE

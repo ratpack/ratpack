@@ -19,54 +19,52 @@ package ratpack.handlebars;
 import com.github.jknack.handlebars.Helper;
 
 /**
- * Instances of classes implementing this interface bound to the module registry will be automatically
- * registered as handlebars helpers.
- * <p>
- * Example usage: (Java DSL)
- * <pre class="tested">
- * import ratpack.handlebars.NamedHelper;
+ * Implementations of this interface bound with Guice will be automatically registered as handlebars helpers.
+ *
+ * <pre class="java">{@code
  * import com.github.jknack.handlebars.Options;
- * import ratpack.handling.*;
- * import ratpack.guice.*;
- * import ratpack.func.Action;
- * import ratpack.launch.*;
+ * import ratpack.guice.Guice;
+ * import ratpack.handlebars.HandlebarsModule;
+ * import ratpack.handlebars.NamedHelper;
+ * import ratpack.test.embed.BaseDirBuilder;
+ * import ratpack.test.embed.EmbeddedApp;
  *
- * public class MultiplyHelper implements NamedHelper&lt;String&gt; {
+ * import java.io.IOException;
+ * import java.nio.file.Path;
  *
- *   public String getName() {
- *     return "hello";
- *   }
+ * import static ratpack.handlebars.Template.handlebarsTemplate;
  *
- *   CharSequence apply(String context, Options options) throws IOException {
- *     return String.format("Hello %s", context)
- *   }
- * }
+ * public class Example {
  *
- * class ModuleBootstrap implements Action&lt;BindingsSpec&gt; {
- *   public void execute(BindingsSpec bindings) {
- *     bindings.bind(MultiplyHelper.class)
- *   }
- * }
- *
- * LaunchConfig launchConfig = LaunchConfigBuilder.baseDir(new File("appRoot"))
- *   .build(new HandlerFactory() {
- *     public Handler create(LaunchConfig launchConfig) {
- *       return Guice.chain(launchConfig, new ModuleBootstrap(), new Action&lt;Chain&gt;() {
- *         public void execute(Chain chain) {
- *         }
- *       });
+ *   public static class HelloHelper implements NamedHelper<String> {
+ *     public String getName() {
+ *       return "hello";
  *     }
- *   });
  *
- * launchConfig.execController.close()
- * </pre>
+ *     public CharSequence apply(String context, Options options) throws IOException {
+ *       return "Hello " + context.toUpperCase() + "!";
+ *     }
+ *   }
  *
- * Example usage: (Groovy DSL)
- * <pre>
- * bindings {
- *   bind MultiplyHelper
+ *   public static void main(String... args) {
+ *     Path baseDir = BaseDirBuilder.tmpDir().build(builder ->
+ *         builder.file("handlebars/myTemplate.html.hbs", "{{hello \"ratpack\"}}")
+ *     );
+ *     EmbeddedApp.fromHandlerFactory(baseDir, launchConfig ->
+ *         Guice.builder(launchConfig)
+ *           .bindings(b -> b
+ *               .add(new HandlebarsModule())
+ *               .bind(HelloHelper.class)
+ *           )
+ *           .build(chain -> chain
+ *               .get(ctx -> ctx.render(handlebarsTemplate("myTemplate.html")))
+ *           )
+ *     ).test(httpClient -> {
+ *       assert httpClient.getText().equals("Hello RATPACK!");
+ *     });
+ *   }
  * }
- * </pre>
+ * }</pre>
  */
 public interface NamedHelper<T> extends Helper<T> {
   public String getName();

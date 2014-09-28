@@ -141,6 +141,11 @@ public abstract class ClosureUtil {
     protected T doCall() {
       return thing;
     }
+
+    @SuppressWarnings("UnusedDeclaration")
+    protected T doCall(Object it) {
+      return thing;
+    }
   }
 
   public static Path findScript(Closure<?> closure) {

@@ -16,7 +16,7 @@
 
 package ratpack.handling;
 
-import ratpack.api.Nullable;
+import com.google.common.reflect.TypeToken;
 import ratpack.func.Action;
 import ratpack.launch.LaunchConfig;
 import ratpack.registry.Registry;
@@ -185,15 +185,39 @@ public interface Chain {
   LaunchConfig getLaunchConfig();
 
   /**
-   * The registry that backs this.
+   * The registry that backs this chain.
    * <p>
-   * The registry that is available is dependent on how the {@code GroovyChain} was constructed.
+   * What the registry is depends on how the chain was created.
+   * The {@link Handlers#chain(LaunchConfig, Registry, Action)} allows the registry to be specified.
+   * For a Guice based application, the registry is backed by Guice.
    *
-   * @see Handlers#chain(LaunchConfig, Registry, ratpack.func.Action)
-   * @return The registry that backs this, or {@code null} if this has no registry.
+   * @see Handlers#chain(LaunchConfig, Registry, Action)
+   * @return The registry that backs this
+   * @throws IllegalStateException if there is no backing registry for this chain
    */
-  @Nullable
-  Registry getRegistry();
+  Registry getRegistry() throws IllegalStateException;
+
+  /**
+   * Retrieves an object of the given type from {@link #getRegistry() the registry}.
+   *
+   * @param type the type of object to retrieve
+   * @param <T> the type of object to retrieve
+   * @return an instance of the given type, retrieved from the registry that backs this chain
+   */
+  default <T> T get(Class<T> type) {
+    return getRegistry().get(type);
+  }
+
+  /**
+   * Retrieves an object of the given type from {@link #getRegistry() the registry}.
+   *
+   * @param type the type of object to retrieve
+   * @param <T> the type of object to retrieve
+   * @return an instance of the given type, retrieved from the registry that backs this chain
+   */
+  default <T> T get(TypeToken<T> type) {
+    return getRegistry().get(type);
+  }
 
   /**
    * Adds the given handler to this.

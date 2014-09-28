@@ -18,13 +18,8 @@ package ratpack.guice
 
 import com.google.inject.AbstractModule
 import com.google.inject.CreationException
-import com.google.inject.Injector
-import com.google.inject.Module
-import ratpack.groovy.test.embed.ClosureBackedEmbeddedApplication
-import ratpack.launch.LaunchConfig
 import ratpack.launch.LaunchException
 import ratpack.test.internal.RatpackGroovyDslSpec
-import ratpack.func.Function
 
 import static com.google.inject.Guice.createInjector
 
@@ -38,21 +33,13 @@ class GuiceParentInjectorSpec extends RatpackGroovyDslSpec {
     String name
   }
 
-  @Override
-  ClosureBackedEmbeddedApplication createApplication() {
-    return new ClosureBackedEmbeddedApplication({ baseDir.build() }) {
+  def setup() {
+    parentInjector = createInjector(new AbstractModule() {
       @Override
-      protected Function<? super Module, ? extends Injector> createInjectorFactory(LaunchConfig launchConfig) {
-        Injector parentInjector = createInjector(new AbstractModule() {
-          @Override
-          protected void configure() {
-            bind(ServiceOne).toInstance(new ServiceOne(name: "parent"))
-          }
-        })
-
-        Guice.childInjectorFactory(parentInjector)
+      protected void configure() {
+        bind(ServiceOne).toInstance(new ServiceOne(name: "parent"))
       }
-    }
+    })
   }
 
   def "objects from parent are available"() {

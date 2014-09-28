@@ -19,13 +19,13 @@ package ratpack.groovy
 import ratpack.groovy.internal.RatpackScriptBacking
 import ratpack.groovy.templating.EphemeralPortScriptBacking
 import ratpack.server.RatpackServer
-import ratpack.test.embed.EmbeddedApplication
-import ratpack.test.embed.EmbeddedApplicationSupport
+import ratpack.test.embed.EmbeddedApp
+import ratpack.test.embed.internal.EmbeddedAppSupport
 import ratpack.test.internal.EmbeddedRatpackSpec
 
 class RuntimeScriptEnvSpec extends EmbeddedRatpackSpec {
 
-  EmbeddedApplication application
+  EmbeddedApp application
 
   String script
 
@@ -34,7 +34,7 @@ class RuntimeScriptEnvSpec extends EmbeddedRatpackSpec {
   }
 
   def setup() {
-    application = new EmbeddedApplicationSupport() {
+    application = new EmbeddedAppSupport() {
       @Override
       RatpackServer createServer() {
         new ScriptBackedServer({

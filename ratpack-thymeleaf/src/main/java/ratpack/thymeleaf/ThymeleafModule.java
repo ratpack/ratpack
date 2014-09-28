@@ -41,122 +41,44 @@ import java.util.Set;
  * Instances of {@code Template} can be created using one of the
  * {@link ratpack.thymeleaf.Template#thymeleafTemplate(java.util.Map, String, String)}
  * static methods.
- * </p>
  * <p>
  * By default templates are looked up in the {@code thymeleaf} directory of the application root with a {@code .html} suffix.
  * So {@code thymeleafTemplate("my/template/path")} maps to {@code thymeleaf/my/template/path.html} in the application root directory.
  * This can be configured using {@link #setTemplatesPrefix(String)} and {@link #setTemplatesSuffix(String)} as well as
  * {@code other.thymeleaf.templatesPrefix} and {@code other.thymeleaf.templatesSuffix} configuration properties.
- * </p>
  * <p>
  * Response content type can be manually specified, i.e. {@code thymeleafTemplate("template", model, "text/html")} if
  * not specified will default to {@code text/html}.
- * </p>
- *
- * Example usage: (Java DSL)
- * <pre class="tested">
- * import ratpack.handling.*;
- * import ratpack.guice.*;
- * import ratpack.func.Action;
- * import ratpack.launch.*;
+ * <pre class="java">{@code
+ * import ratpack.guice.Guice;
+ * import ratpack.test.embed.BaseDirBuilder;
+ * import ratpack.test.embed.EmbeddedApp;
  * import ratpack.thymeleaf.ThymeleafModule;
+ *
+ * import java.nio.file.Path;
+ *
  * import static ratpack.thymeleaf.Template.thymeleafTemplate;
  *
- * class MyHandler implements Handler {
- *   void handle(final Context context) {
- *     context.render(thymeleafTemplate("my/template/path", key: "it works!"));
- *   }
- * }
+ * public class Example {
  *
- * class Bindings implements Action&lt;BindingsSpec&gt; {
- *   public void execute(BindingsSpec bindings) {
- *     bindings.add(new ThymeleafModule());
- *   }
- * }
- *
- * LaunchConfig launchConfig = LaunchConfigBuilder.baseDir(new File("appRoot"))
- *     .build(new HandlerFactory() {
- *   public Handler create(LaunchConfig launchConfig) {
- *     return Guice.chain(launchConfig, new Bindings(), new ChainAction() {
- *       protected void execute() {
- *         handler(chain.getRegistry().get(MyHandler.class));
- *       }
+ *   public static void main(String... args) {
+ *     Path baseDir = BaseDirBuilder.tmpDir().build(builder ->
+ *         builder.file("thymeleaf/myTemplate.html", "<span th:text=\"${key}\"/>")
+ *     );
+ *     EmbeddedApp.fromHandlerFactory(baseDir, launchConfig ->
+ *         Guice.builder(launchConfig)
+ *           .bindings(b -> b.add(new ThymeleafModule()))
+ *           .build(chain -> chain
+ *               .get(ctx -> ctx.render(thymeleafTemplate("myTemplate", m -> m.put("key", "Hello Ratpack!"))))
+ *           )
+ *     ).test(httpClient -> {
+ *       assert httpClient.getText().equals("<span>Hello Ratpack!</span>");
  *     });
  *   }
- * });
- *
- * launchConfig.execController.close()
- * </pre>
- *
- * Example usage: (Groovy DSL)
- * <pre class="groovy-ratpack-dsl">
- * import ratpack.thymeleaf.ThymeleafModule
- * import static ratpack.thymeleaf.Template.thymeleafTemplate
- * import static ratpack.groovy.Groovy.ratpack
- *
- * ratpack {
- *   bindings {
- *     add new ThymeleafModule()
- *   }
- *   handlers {
- *     get {
- *       render thymeleafTemplate('my/template/path', key: 'it works!')
- *     }
- *   }
  * }
- * </pre>
- *
+ * }</pre>
  * <p>
  * To register dialects, use Guice Multibindings to bind an implementation of {@code IDialect} in a module.
- * </p>
- *
- * Example usage: (Groovy DSL)
- * <pre class="groovy-ratpack-dsl">
- * import com.google.inject.AbstractModule
- * import com.google.inject.multibindings.Multibinder
- * import org.thymeleaf.Arguments
- * import org.thymeleaf.dialect.AbstractDialect
- * import org.thymeleaf.dialect.IDialect
- * import org.thymeleaf.dom.Element
- * import org.thymeleaf.processor.IProcessor
- * import org.thymeleaf.processor.attr.AbstractTextChildModifierAttrProcessor
- * import ratpack.thymeleaf.ThymeleafModule
- * import static ratpack.groovy.Groovy.ratpack
- * import static ratpack.thymeleaf.Template.thymeleafTemplate
- *
- * class SayToAttrProcessor extends AbstractTextChildModifierAttrProcessor {
- *   int precedence = 10000
- *   SayToAttrProcessor() {
- *     super('sayto')
- *   }
- *   protected String getText(Arguments arguments, Element element, String attributeName) {
- *     return "Hello, ${element.getAttributeValue(attributeName)}!"
- *   }
- * }
- *
- * class HelloDialect extends AbstractDialect {
- *   String prefix = 'hello'
- *   Set&lt;IProcessor&gt; processors = [new SayToAttrProcessor()] as Set
- * }
- *
- * class HelloDialectModule extends AbstractModule {
- *   protected void configure() {
- *     Multibinder.newSetBinder(binder(), IDialect).addBinding().to(HelloDialect)
- *   }
- * }
- *
- * ratpack {
- *   bindings {
- *     add new ThymeleafModule(),
- *         new HelloDialectModule()
- *   }
- *   handlers {
- *     get {
- *       render thymeleafTemplate('my/template/path', key: 'it works!')
- *     }
- *   }
- * }
- * </pre>
  *
  * @see <a href="http://www.thymeleaf.org/" target="_blank">Thymeleaf</a>
  * @see <a href="https://code.google.com/p/google-guice/wiki/Multibindings" target="_blank">Guice Multibindings</a>

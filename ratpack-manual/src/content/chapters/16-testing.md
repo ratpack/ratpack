@@ -76,14 +76,12 @@ An example of a Geb based test is available [here](https://github.com/ratpack/ra
 
 ### Application subsets, modules and extensions
 
-The [`ratpack.test.embed`](api/ratpack/test/embed/package-summary.html) package (provided by the `ratpack-test` library) provides the [`EmbeddedApplication`](api/ratpack/test/embed/EmbeddedApplication.html) interface and implementations.
+The [`ratpack.test.embed`](api/ratpack/test/embed/package-summary.html) package (provided by the `ratpack-test` library) provides the [`EmbeddedApp`](api/ratpack/test/embed/EmbeddedApp.html) type.
 These can be used to functionally test features in isolation, by creating small Ratpack apps within test cases and is actually the basis for how Ratpack itself is tested.
 This approach is most commonly used for functionally testing reusable Ratpack components (e.g. [Guice modules](guice.html)) but can also be used for functionally testing a subset of an application.
 
-The [`LaunchConfigEmbeddedApplication`](api/ratpack/test/embed/LaunchConfigEmbeddedApplication.html) is a convenient abstract super class,
-where implementors only need to provide a [`LaunchConfig`](api/ratpack/launch/LaunchConfig.html) to define the application to test.
-The [`ratpack.groovy.test.embed`](api/ratpack/groovy/test/embed/package-summary.html) package (provided by the `ratpack-groovy-test` library) provides the [`ClosureBackedEmbeddedApplication`](api/ratpack/groovy/test/embed/ClosureBackedEmbeddedApplication.html) implementation that uses user supplied closures as the basis of the application to test.
+The [`ratpack.groovy.test.embed`](api/ratpack/groovy/test/embed/package-summary.html) package (provided by the `ratpack-groovy-test` library) provides the [`GroovyEmbeddedApp`](api/ratpack/groovy/test/embed/GroovyEmbeddedApp.html) Groovy specialization.
 This is the preferred implementation to use as it provides Guice support, flexibility and is easy to use.
 
-The [`EmbeddedApplication`](api/ratpack/test/embed/EmbeddedApplication.html) type extends the [`ApplicationUnderTest`](api/ratpack/test/ApplicationUnderTest.html) type.
+The [`EmbeddedApp`](api/ratpack/test/embed/EmbeddedApp.html) type extends the [`ApplicationUnderTest`](api/ratpack/test/ApplicationUnderTest.html) type.
 This makes them convenient to use with the [`TestHttpClient`](api/ratpack/test/http/TestHttpClients.html) mechanism provided by the `ratpack-groovy-test` library.

@@ -29,29 +29,21 @@ import ratpack.spring.internal.SpringRegistryBacking;
  * import org.springframework.boot.SpringApplication;
  * import org.springframework.context.annotation.Bean;
  * import org.springframework.context.annotation.Configuration;
- * import ratpack.registry.Registry;
- * import ratpack.test.embed.EmbeddedApplication;
- * import ratpack.test.embed.EmbeddedApplicationBuilder;
+ * import ratpack.test.embed.EmbeddedApp;
  *
  * import static ratpack.spring.Spring.spring;
  *
  * public class Example {
- *
- *   private static EmbeddedApplication createApp() {
- *     final Registry springBackedRegistry = spring(ExampleSpringBootApp.class);
- *
- *     return EmbeddedApplicationBuilder.builder().build(chain -&gt; chain
- *       .register(springBackedRegistry)
+ *   public static void main(String[] args) {
+ *     EmbeddedApp.fromChain(chain -&gt; chain
+ *       .register(spring(ExampleSpringBootApp.class))
  *       .handler(context -&gt; {
  *         String helloBean = context.get(String.class);
  *         context.render(helloBean);
- *       }));
- *   }
- *
- *   public static void main(String[] args) {
- *     try (EmbeddedApplication app = createApp()) {
- *       assert app.getHttpClient().getText().equals("hello");
- *     }
+ *       })
+ *     ).test(httpClient -&gt; {
+ *       assert httpClient.getText().equals("hello");
+ *     });
  *   }
  *
  *   {@literal @}Configuration
@@ -61,11 +53,10 @@ import ratpack.spring.internal.SpringRegistryBacking;
  *       return "hello";
  *     }
  *
- *     public static void main(String[] args) {
+ *     public static void main(String... args) {
  *       SpringApplication.run(ExampleSpringBootApp.class, args);
  *     }
  *   }
- *
  * }
  * </pre>
  */

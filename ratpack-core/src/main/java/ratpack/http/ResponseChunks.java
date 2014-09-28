@@ -35,66 +35,29 @@ import java.nio.charset.Charset;
  * A {@link ratpack.render.Renderer renderer} for this type is implicitly provided by Ratpack core.
  * <p>
  * Example usage:
- * <pre class="java">
- * import ratpack.handling.Handler;
- * import ratpack.handling.Context;
- * import ratpack.func.Function;
+ * <pre class="java">{@code
+ * import org.reactivestreams.Publisher;
  * import ratpack.stream.Streams;
- * import ratpack.launch.HandlerFactory;
- * import ratpack.launch.LaunchConfig;
- * import ratpack.launch.LaunchConfigBuilder;
- * import ratpack.test.embed.EmbeddedApplication;
- * import ratpack.test.embed.LaunchConfigEmbeddedApplication;
- * import ratpack.test.http.TestHttpClient;
- * import ratpack.test.http.TestHttpClients;
- * import static ratpack.http.ResponseChunks.stringChunks;
+ * import ratpack.test.embed.EmbeddedApp;
  *
  * import java.util.concurrent.TimeUnit;
- * import java.util.concurrent.ScheduledExecutorService;
- * import org.reactivestreams.Publisher;
+ *
+ * import static ratpack.http.ResponseChunks.stringChunks;
  *
  * public class Example {
- *
- *   private static EmbeddedApplication createApp() {
- *     return new LaunchConfigEmbeddedApplication() {
- *       protected LaunchConfig createLaunchConfig() {
- *         return LaunchConfigBuilder.noBaseDir().port(0).build(new HandlerFactory() {
- *             public Handler create(LaunchConfig launchConfig) {
- *
- *               // Example of streaming chunks
- *
- *               return new Handler() {
- *                 public void handle(Context context) {
- *                   // simulate streaming by periodically publishing
- *                   ScheduledExecutorService executor = context.getLaunchConfig().getExecController().getExecutor();
- *                   Publisher&lt;String&gt; strings = Streams.periodically(executor, 5, TimeUnit.MILLISECONDS, new Function&lt;Integer, String&gt;() {
- *                     public String apply(Integer i) {
- *                       if (i.intValue() &lt; 5) {
- *                         return i.toString();
- *                       } else {
- *                         return null;
- *                       }
- *                     }
- *                   });
- *
- *                   context.render(stringChunks(strings));
- *                 }
- *               };
- *
- *             }
- *           });
- *       }
- *     };
- *   }
- *
  *   public static void main(String[] args) {
- *     try(EmbeddedApplication app = createApp()) {
- *       assert app.getHttpClient().getText().equals("01234");
- *     }
- *   }
+ *     EmbeddedApp.fromHandler(ctx -> {
+ *       Publisher<String> strings = Streams.periodically(ctx.getLaunchConfig(), 5, TimeUnit.MILLISECONDS,
+ *         i -> i < 5 ? i.toString() : null
+ *       );
  *
+ *       ctx.render(stringChunks(strings));
+ *     }).test(httpClient -> {
+ *       assert httpClient.getText().equals("01234");
+ *     });
+ *   }
  * }
- * </pre>
+ * }</pre>
  *
  * @see Response#sendStream(org.reactivestreams.Publisher)
  * @see <a href="http://en.wikipedia.org/wiki/Chunked_transfer_encoding" target="_blank">Wikipedia - Chunked transfer encoding</a>

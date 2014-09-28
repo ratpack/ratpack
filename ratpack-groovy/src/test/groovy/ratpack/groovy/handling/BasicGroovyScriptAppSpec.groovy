@@ -19,8 +19,8 @@ package ratpack.groovy.handling
 import ratpack.groovy.launch.GroovyScriptFileHandlerFactory
 import ratpack.launch.LaunchConfig
 import ratpack.launch.LaunchConfigs
-import ratpack.test.embed.EmbeddedApplication
-import ratpack.test.embed.LaunchConfigEmbeddedApplication
+import ratpack.test.embed.EmbeddedApp
+import ratpack.test.embed.internal.LaunchConfigEmbeddedApp
 import ratpack.test.internal.RatpackGroovyScriptAppSpec
 
 class BasicGroovyScriptAppSpec extends RatpackGroovyScriptAppSpec {
@@ -29,8 +29,8 @@ class BasicGroovyScriptAppSpec extends RatpackGroovyScriptAppSpec {
   boolean development = false
 
   @Override
-  EmbeddedApplication createApplication() {
-    new LaunchConfigEmbeddedApplication() {
+  EmbeddedApp createApplication() {
+    new LaunchConfigEmbeddedApp() {
       @Override
       protected LaunchConfig createLaunchConfig() {
         LaunchConfigs.createWithBaseDir(getClass().classLoader, getRatpackFile().parentFile.toPath(), getLaunchConfigProperties())

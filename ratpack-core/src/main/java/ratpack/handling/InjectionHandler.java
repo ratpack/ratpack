@@ -40,52 +40,48 @@ import static ratpack.util.ExceptionUtils.uncheck;
  * That is, if the context provides a value for the requested type it will be used regardless of whether the request also provides this type.
  * <p>
  * The following two handlers are functionally equivalent:
- * <pre class="tested">
- * import ratpack.handling.*;
+ * <pre class="java">{@code
+ * import ratpack.handling.Context;
+ * import ratpack.handling.Handler;
+ * import ratpack.handling.InjectionHandler;
+ * import ratpack.test.embed.EmbeddedApp;
  *
- * // Some thing that handlers use…
- * public class Thing {
- *   public final name;
- *   public Thing(String name) {
- *     this.name = name;
- *   }
- * }
+ * public class Example {
  *
- * public class VerboseHandler implements Handler {
- *   public void handle(Context context) {
- *     Thing thing = context.get(Thing.class);
- *     context.render(thing.name);
- *   }
- * }
+ *   static class Thing {
+ *     public final String name;
  *
- * public class SuccinctHandler extends InjectionHandler {
- *   public void handle(Context context, Thing thing) {
- *     context.render(thing.name);
- *   }
- * }
- *
- * // Test (Groovy) …
- *
- * import static ratpack.registry.Registries.just
- * import static ratpack.test.http.TestHttpClients.testHttpClient
- * import static ratpack.groovy.test.embed.EmbeddedApplications.embeddedApp
- *
- * def app = embeddedApp {
- *   handlers {
- *     register(just(new Thing("foo"))) {
- *       get("verbose", new VerboseHandler())
- *       get("succinct", new SuccinctHandler())
+ *     public Thing(String name) {
+ *       this.name = name;
  *     }
  *   }
+ *
+ *   static class VerboseHandler implements Handler {
+ *     public void handle(Context context) {
+ *       Thing thing = context.get(Thing.class);
+ *       context.render(thing.name);
+ *     }
+ *   }
+ *
+ *   static class SuccinctHandler extends InjectionHandler {
+ *     public void handle(Context context, Thing thing) {
+ *       context.render(thing.name);
+ *     }
+ *   }
+ *
+ *   public static void main(String... args) {
+ *     EmbeddedApp.fromChain(chain -> chain
+ *         .register(r -> r.add(new Thing("foo")))
+ *         .get("verbose", new VerboseHandler())
+ *         .get("succinct", new SuccinctHandler())
+ *     ).test(httpClient -> {
+ *       assert httpClient.getText("verbose").equals("foo");
+ *       assert httpClient.getText("succinct").equals("foo");
+ *     });
+ *   }
+ *
  * }
- *
- * def client = testHttpClient(app)
- *
- * assert client.getText("verbose") == "foo"
- * assert client.getText("succinct") == "foo"
- *
- * app.close()
- * </pre>
+ * }</pre>
  * <p>
  * If the parameters cannot be satisfied, a {@link ratpack.registry.NotInRegistryException} will be thrown.
  * <p>

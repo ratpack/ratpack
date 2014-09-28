@@ -16,6 +16,7 @@
 
 package ratpack.hikari;
 
+import com.google.common.collect.Maps;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
@@ -24,7 +25,6 @@ import com.zaxxer.hikari.HikariDataSource;
 import ratpack.launch.LaunchConfig;
 
 import javax.sql.DataSource;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
@@ -43,61 +43,63 @@ import java.util.Properties;
  * {@code other.hikari.minimumIdle} and {@code other.hikari.maximumPoolSize}. All configuration properties prefixed with {@code other.hikari.dataSourceProperties} will
  * be used as data source properties - e.g. {@code other.hikari.URL} will be used to set {@code URL} property on the data source.
  * </p>
- * <p>
- * Example usage: (Java DSL)
- * </p>
- * <pre class="tested">
- * import ratpack.handling.*;
- * import ratpack.guice.*;
- * import ratpack.func.Action;
- * import ratpack.launch.*;
- * import ratpack.hikari.HikariModule;
+ * <pre class="java">{@code
  * import com.google.common.collect.ImmutableMap;
+ * import ratpack.guice.Guice;
+ * import ratpack.hikari.HikariModule;
+ * import ratpack.test.embed.EmbeddedApp;
  *
- * class ModuleBootstrap implements Action&lt;BindingsSpec&gt; {
- *   public void execute(BindingsSpec bindings) {
- *     Map dataSourceProperties = ImmutableMap.of("URL", "jdbc:h2:mem:dev");
- *     bindings.add(new HikariModule(dataSourceProperties, "org.h2.jdbcx.JdbcDataSource"));
+ * import javax.sql.DataSource;
+ * import java.sql.Connection;
+ * import java.sql.PreparedStatement;
+ * import java.sql.ResultSet;
+ *
+ * public class Example {
+ *   public static void main(String... args) {
+ *     EmbeddedApp.fromHandlerFactory(launchConfig ->
+ *         Guice.builder(launchConfig)
+ *           .bindings(b ->
+ *               // Use H2 in memory database
+ *               b.add(new HikariModule(ImmutableMap.of("URL", "jdbc:h2:mem:dev"), "org.h2.jdbcx.JdbcDataSource"))
+ *           )
+ *           .build(chain -> {
+ *             DataSource dataSource = chain.get(DataSource.class);
+ *             try (Connection connection = dataSource.getConnection()) {
+ *               connection.createStatement().executeUpdate("create table if not exists val(ID INT PRIMARY KEY, val VARCHAR(255));");
+ *             }
+ *
+ *             chain
+ *               .post("set/:val", ctx ->
+ *                   ctx.blocking(() -> {
+ *                     try (Connection connection = dataSource.getConnection()) {
+ *                       PreparedStatement statement = connection.prepareStatement("merge into val (id, val) key(id) values (?, ?)");
+ *                       statement.setInt(1, 1);
+ *                       statement.setString(2, ctx.getPathTokens().get("val"));
+ *                       return statement.executeUpdate();
+ *                     }
+ *                   }).then(result ->
+ *                       ctx.render(result.toString())
+ *                   )
+ *               )
+ *               .get("get", ctx ->
+ *                   ctx.blocking(() -> {
+ *                     try (Connection connection = dataSource.getConnection()) {
+ *                       PreparedStatement statement = connection.prepareStatement("select val from val where id = ?");
+ *                       statement.setInt(1, 1);
+ *                       ResultSet resultSet = statement.executeQuery();
+ *                       resultSet.next();
+ *                       return resultSet.getString(1);
+ *                     }
+ *                   }).then(ctx::render)
+ *               );
+ *           })
+ *     ).test(httpClient -> {
+ *       httpClient.post("set/foo");
+ *       assert httpClient.getText("get").equals("foo");
+ *     });
  *   }
  * }
- *
- * LaunchConfig launchConfig = LaunchConfigBuilder.baseDir(new File("appRoot"))
- *   .build(new HandlerFactory() {
- *     public Handler create(LaunchConfig launchConfig) {
- *       return Guice.chain(launchConfig, new ModuleBootstrap(), new Action&lt;Chain&gt;() {
- *         public void execute(Chain chain) {
- *           //...
- *         }
- *       });
- *     }
- *   });
- *
- * launchConfig.execController.close()
- * </pre>
- * <p>
- * Example usage: (Groovy DSL)
- * </p>
- * <pre class="groovy-ratpack-dsl">
- * import ratpack.hikari.HikariModule
- * import groovy.sql.Sql
- * import ratpack.groovy.sql.SqlModule
- * import static ratpack.groovy.Groovy.ratpack
- *
- * ratpack {
- *   bindings {
- *     add new SqlModule(),
- *             new HikariModule("org.h2.jdbcx.JdbcDataSource", URL: "jdbc:h2:mem:dev", user: 'user', password: 'pass')
- *   }
- *
- *   handlers { Sql sql -&gt;
- *     get('schemas') {
- *       def schemas = sql.rows('show schemas')
- *       render schemas*.getAt(0).join(', ')
- *     }
- *   }
- * }
- *
- * </pre>
+ * }</pre>
  *
  * @see <a href="http://brettwooldridge.github.io/HikariCP/" target="_blank">HikariCP</a>
  */
@@ -112,7 +114,7 @@ public class HikariModule extends AbstractModule {
   private Map<String, String> dataSourceProperties;
 
   public HikariModule() {
-    this(new HashMap<String, String>(), null);
+    this(Maps.newHashMap(), null);
   }
 
   public HikariModule(Map<String, String> dataSourceProperties, String dataSourceClassName) {
@@ -120,7 +122,7 @@ public class HikariModule extends AbstractModule {
   }
 
   public HikariModule(Map<String, String> dataSourceProperties, String dataSourceClassName, Integer minimumIdleSize, Integer maximumPoolSize) {
-    this.dataSourceProperties =dataSourceProperties;
+    this.dataSourceProperties = dataSourceProperties;
     this.dataSourceClassName = dataSourceClassName;
     this.minimumIdleSize = minimumIdleSize;
     this.maximumPoolSize = maximumPoolSize;

@@ -19,27 +19,25 @@ package ratpack.http.client
 import ratpack.error.DebugErrorHandler
 import ratpack.error.ServerErrorHandler
 import ratpack.groovy.handling.GroovyChain
-import ratpack.groovy.test.embed.ClosureBackedEmbeddedApplication
-import ratpack.test.embed.EmbeddedApplication
+import ratpack.groovy.test.embed.GroovyEmbeddedApp
+import ratpack.test.embed.EmbeddedApp
 import ratpack.test.internal.RatpackGroovyDslSpec
 import spock.lang.AutoCleanup
 
 abstract class HttpClientSpec extends RatpackGroovyDslSpec {
 
   @AutoCleanup
-  EmbeddedApplication otherApp
+  EmbeddedApp otherApp
 
-  EmbeddedApplication otherApp(@DelegatesTo(value = GroovyChain, strategy = Closure.DELEGATE_FIRST) Closure<?> handlers) {
-    otherApp = new ClosureBackedEmbeddedApplication(baseDir)
-    otherApp.bindings {
-      bind ServerErrorHandler, new DebugErrorHandler()
+  EmbeddedApp otherApp(@DelegatesTo(value = GroovyChain, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) {
+    otherApp = GroovyEmbeddedApp.build {
+      bindings { bind ServerErrorHandler, new DebugErrorHandler() }
+      handlers(closure)
     }
-    otherApp.handlers(handlers)
-    otherApp.server.start()
   }
 
   URI otherAppUrl(String path = "") {
-    new URI("http://$otherApp.server.bindHost:$otherApp.server.bindPort/$path")
+    new URI("$otherApp.address$path")
   }
 
 }

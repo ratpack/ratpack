@@ -21,6 +21,7 @@ import ratpack.test.internal.RatpackGroovyDslSpec
 import java.util.concurrent.CountDownLatch
 
 import static io.netty.handler.codec.http.HttpResponseStatus.OK
+import static ratpack.sse.ServerSentEvent.serverSentEvent
 import static ratpack.sse.ServerSentEvents.serverSentEvents
 import static ratpack.stream.Streams.*
 
@@ -30,8 +31,8 @@ class ServerSentEventsSpec extends RatpackGroovyDslSpec {
     given:
     handlers {
       handler {
-        render serverSentEvents(map(publish(1..3)) {
-          ServerSentEvent.builder().id(it.toString()).type("add").data("Event $it".toString()).build()
+        render serverSentEvents(map(publish(1..3)) { i ->
+          serverSentEvent { it.id(i.toString()).event("add").data("Event $i".toString()) }
         })
       }
     }
@@ -53,7 +54,7 @@ class ServerSentEventsSpec extends RatpackGroovyDslSpec {
     handlers {
       handler {
         def stream = publish(1..1000)
-        stream = map(stream, { ServerSentEvent.builder().id(it.toString()).type("add").data("Event $it".toString()).build() })
+        stream = map(stream, { serverSentEvent { it.id(it.toString()).event("add").data("Event $it".toString()) } })
         stream = wiretap(stream) {
           if (it.data) {
             sentLatch.countDown()

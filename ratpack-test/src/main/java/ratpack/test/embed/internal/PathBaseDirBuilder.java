@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-package ratpack.test.embed;
+package ratpack.test.embed.internal;
+
+import ratpack.test.embed.BaseDirBuilder;
 
 import java.io.File;
 import java.io.IOException;
@@ -23,42 +25,23 @@ import java.nio.file.attribute.FileTime;
 
 import static ratpack.util.ExceptionUtils.uncheck;
 
-/**
- * A {@link BaseDirBuilder} that is based on an initial {@link Path}.
- */
 public class PathBaseDirBuilder implements BaseDirBuilder {
 
   private final Path baseDir;
 
-  /**
-   * Constructor.
-   *
-   * @param baseDir used to call {@link #PathBaseDirBuilder(java.nio.file.Path) this(baseDir.toPath())}
-   */
   public PathBaseDirBuilder(File baseDir) {
     this(baseDir.toPath());
   }
 
-  /**
-   * Constructor.
-   *
-   * @param baseDir The base dir for this builder (will be returned by {@link #build()}
-   */
   public PathBaseDirBuilder(Path baseDir) {
     this.baseDir = baseDir;
   }
 
-  /**
-   * {@inheritDoc}
-   */
   @Override
   public Path file(String path) {
     return toUsablePath(path);
   }
 
-  /**
-   * {@inheritDoc}
-   */
   @Override
   public Path file(String path, String content) {
     Path file = file(path);
@@ -72,9 +55,6 @@ public class PathBaseDirBuilder implements BaseDirBuilder {
     return file;
   }
 
-  /**
-   * {@inheritDoc}
-   */
   @Override
   public Path dir(String path) {
     Path file = toUsablePath(path);
@@ -86,11 +66,6 @@ public class PathBaseDirBuilder implements BaseDirBuilder {
     return file;
   }
 
-  /**
-   * If the path backing this build is not from the default file system, its file system will be {@linkplain java.nio.file.FileSystem#close() closed}.
-   *
-   * @throws IOException If the build could not be closed cleanly
-   */
   @Override
   public void close() throws IOException {
     FileSystem fileSystem = baseDir.getFileSystem();
@@ -99,9 +74,6 @@ public class PathBaseDirBuilder implements BaseDirBuilder {
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
   @Override
   public Path build() {
     return baseDir;

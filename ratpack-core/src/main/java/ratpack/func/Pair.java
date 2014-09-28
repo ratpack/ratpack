@@ -22,73 +22,33 @@ package ratpack.func;
  * This can sometimes be useful when collecting facts about something as part of a data stream without using mutable data structures.
  * <pre class="java">{@code
  * import ratpack.func.Pair;
- * import ratpack.exec.ExecControl;
- * import ratpack.exec.Promise;
- * import ratpack.handling.Context;
- * import ratpack.handling.Handler;
- * import ratpack.test.embed.EmbeddedApplication;
- * import ratpack.test.embed.EmbeddedApplicationBuilder;
+ * import ratpack.test.embed.EmbeddedApp;
  *
  * public class Example {
  *
- *   public static class PersonService {
- *     private final ExecControl exec;
- *
- *     public PersonService(ExecControl exec) {
- *       this.exec = exec;
- *     }
- *
- *     public Promise<Integer> getAge(int personId) {
- *       return exec.blocking(() -> 21);
- *     }
- *
- *     public Promise<String> getName(int personId) {
- *       return exec.blocking(() -> "John Doe");
- *     }
- *   }
- *
- *   private static class ExampleHandler implements Handler {
- *     private final PersonService personService;
- *
- *     private ExampleHandler(PersonService personService) {
- *       this.personService = personService;
- *     }
- *
- *     public void handle(final Context context) {
- *       final int personId = 1;
- *       personService
- *         .getAge(personId)
- *         .map(age -> Pair.of(personId, age))
- *         .flatMap(pair -> personService.getName(personId).map(pair::nestRight))
- *         .then(pair -> {
- *           int id = pair.left;
- *           int age = pair.right.right;
- *           String name = pair.right.left;
- *
- *           context.render(name + " [" + id + "] - age: " + age);
- *         });
- *     }
- *   }
- *
- *   private static EmbeddedApplication createApp() {
- *     return EmbeddedApplicationBuilder.builder().build(chain -> {
- *       ExecControl execControl = chain.getLaunchConfig().getExecController().getControl();
- *       PersonService service = new PersonService(execControl);
- *       chain.handler(new ExampleHandler(service));
- *     });
- *   }
- *
  *   public static void main(String[] args) {
- *     try (EmbeddedApplication app = createApp()) {
- *       String text = app.getHttpClient().getText();
- *       assert text.equals("John Doe [1] - age: 21");
- *     }
+ *     EmbeddedApp.fromHandler(ctx -> {
+ *       int id = 1;
+ *       int age = 21;
+ *       String name = "John";
+ *
+ *       ctx
+ *         .blocking(() -> id)
+ *         .map(idValue -> Pair.of(idValue, age))
+ *         .flatMap(pair -> ctx.blocking(() -> name).map(pair::nestRight))
+ *         .then(pair -> {
+ *           int receivedId = pair.left;
+ *           int receivedAge = pair.right.right;
+ *           String receivedName = pair.right.left;
+ *           ctx.render(receivedName + " [" + receivedId + "] - age: " + receivedAge);
+ *         });
+ *     }).test(httpClient -> {
+ *       assert httpClient.getText().equals("John [1] - age: 21");
+ *     });
  *   }
  * }
  * }</pre>
  * <p>
- * While the example above looks positively terrifying when using Java 7, it is much more reasonable when using Java 8 with lambda expressions and type inference.
- * It is also much more reasonable when written in idiomatic Groovy with its type inference.
  *
  * @param <L> the left data type
  * @param <R> the right data type

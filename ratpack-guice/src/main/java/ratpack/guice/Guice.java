@@ -16,17 +16,13 @@
 
 package ratpack.guice;
 
-import com.google.common.base.Supplier;
-import com.google.common.collect.FluentIterable;
-import com.google.common.reflect.TypeToken;
 import com.google.inject.Injector;
 import com.google.inject.Module;
-import com.google.inject.Provider;
 import com.google.inject.Stage;
 import ratpack.func.Action;
 import ratpack.func.Function;
 import ratpack.guice.internal.DefaultGuiceBackedHandlerFactory;
-import ratpack.guice.internal.GuiceUtil;
+import ratpack.guice.internal.InjectorRegistryBacking;
 import ratpack.guice.internal.JustInTimeInjectorRegistry;
 import ratpack.handling.Chain;
 import ratpack.handling.Handler;
@@ -34,7 +30,6 @@ import ratpack.handling.Handlers;
 import ratpack.launch.LaunchConfig;
 import ratpack.registry.Registries;
 import ratpack.registry.Registry;
-import ratpack.registry.RegistryBacking;
 
 import static com.google.inject.Guice.createInjector;
 
@@ -57,73 +52,80 @@ import static com.google.inject.Guice.createInjector;
  * <p>
  * Below is a complete example for bootstrapping a Guice based Ratpack application.
  * </p>
- * <pre class="tested">
- * import ratpack.handling.*;
- * import ratpack.registry.*;
- * import ratpack.guice.*;
- * import ratpack.launch.*;
- * import ratpack.func.*;
- * import com.google.inject.*;
- * import javax.inject.*;
+ * <pre class="java">{@code
+ * import com.google.inject.AbstractModule;
+ * import ratpack.guice.Guice;
+ * import ratpack.handling.Context;
+ * import ratpack.handling.Handler;
+ * import ratpack.test.embed.EmbeddedApp;
  *
- * // Some service to be dependency injected
- * class SomeService {}
+ * import javax.inject.Inject;
+ * import javax.inject.Singleton;
  *
- * // A Guice module that provides the service
- * class ServiceModule extends AbstractModule {
- *   protected void configure() {
- *     bind(SomeService.class);
+ * public class Example {
+ *
+ *   static class SomeService {
+ *     private final String value;
+ *
+ *     SomeService(String value) {
+ *       this.value = value;
+ *     }
+ *
+ *     public String getValue() {
+ *       return value;
+ *     }
  *   }
+ *
+ *   static class SomeOtherService {
+ *     private final String value;
+ *
+ *     SomeOtherService(String value) {
+ *       this.value = value;
+ *     }
+ *
+ *     public String getValue() {
+ *       return value;
+ *     }
+ *   }
+ *
+ *   static class ServiceModule extends AbstractModule {
+ *     protected void configure() {
+ *       bind(SomeService.class).toInstance(new SomeService("foo"));
+ *       bind(SomeOtherService.class).toInstance(new SomeOtherService("bar"));
+ *     }
+ *   }
+ *
+ *   {@literal @}Singleton
+ *   static class InjectedHandler implements Handler {
+ *     private final SomeService service;
+ *
+ *     {@literal @}Inject
+ *     public InjectedHandler(SomeService service) {
+ *       this.service = service;
+ *     }
+ *
+ *     public void handle(Context ctx) {
+ *       ctx.render(service.getValue() + "-" + ctx.get(SomeOtherService.class).getValue());
+ *     }
+ *   }
+ *
+ *   public static void main(String... args) {
+ *     EmbeddedApp.fromHandlerFactory(launchConfig ->
+ *         Guice.builder(launchConfig)
+ *           .bindings(b -> b.add(new ServiceModule()))
+ *           .build(chain -> {
+ *             // The registry in a Guice backed chain can be used to retrieve objects that were bound,
+ *             // or to create objects that are bound “just-in-time”.
+ *             Handler injectedHandler = chain.get(InjectedHandler.class);
+ *             chain.get("some/path", injectedHandler);
+ *           })
+ *     ).test(httpClient -> {
+ *       assert httpClient.get("some/path").getBody().getText().equals("foo-bar");
+ *     });
+ *   }
+ *
  * }
- *
- * // An action that registers the module with the registry, making it part of the application
- * class Bindings implements Action&lt;BindingsSpec&gt; {
- *   public void execute(BindingsSpec bindings) {
- *     bindings.add(new ServiceModule());
- *   }
- * }
- *
- * // A handler implementation that is dependency injected
- * {@literal @}Singleton
- * class InjectedHandler implements Handler {
- *   private final SomeService service;
- *
- *   {@literal @}Inject
- *   public InjectedHandler(SomeService service) {
- *     this.service = service;
- *   }
- *
- *   public void handle(Context exchange) {
- *     // …
- *   }
- * }
- *
- * // A chain configurer that adds a dependency injected handler to the chain
- * class HandlersBootstrap implements Action&lt;Chain&gt; {
- *   public void execute(Chain chain) {
- *
- *     // The registry in a Guice backed chain can be used to retrieve objects that were bound,
- *     // or to create objects that are bound “just-in-time”.
- *     Registry&lt;Object&gt; registry = chain.getRegistry();
- *     Handler injectedHandler = registry.get(InjectedHandler.class);
- *
- *     // Add the handler into the chain
- *     chain.get("some/path", injectedHandler);
- *   }
- * }
- *
- * // A HandlerFactory implementation used to bootstrap the application
- * class MyHandlerFactory implements HandlerFactory {
- *   public Handler create(LaunchConfig launchConfig) {
- *     return Guice.chain(launchConfig, new Bindings(), new HandlersBootstrap());
- *   }
- * }
- *
- * // Building a launch config with our handler factory
- * LaunchConfig launchConfig = LaunchConfigBuilder.baseDir(new File("appRoot")).build(new MyHandlerFactory());
- *
- * launchConfig.execController.close()
- * </pre>
+ * }</pre>
  * <h3>Accessing Guice bound objects in Handlers</h3>
  * <p>
  * There are two ways to use Guice bound objects in your handler implementations.
@@ -173,73 +175,39 @@ public abstract class Guice {
   private Guice() {
   }
 
-  /**
-   * Creates a handler that can be used as the entry point for a Guice backed Ratpack app.
-   * <p>
-   * Modules are processed eagerly. Before this method returns, the modules will be used to create a single {@link com.google.inject.Injector} instance.
-   * This injector is available to the given handler via service lookup.
-   *
-   * @param launchConfig The launch config of the server
-   * @param moduleConfigurer The configurer of the {@link BindingsSpec} to back the created handler
-   * @param chainConfigurer The configurer that builds the handler chain
-   * @throws Exception any thrown by {@code moduleConfigurer} or {@code chainConfigurer}
-   * @return A handler that makes all Guice bound objects available to the handlers added to the {@link Chain} given to {@code chainConfigurer}.
-   */
-  public static Handler chain(LaunchConfig launchConfig, Action<? super BindingsSpec> moduleConfigurer, final Action<? super Chain> chainConfigurer) throws Exception {
-    return new DefaultGuiceBackedHandlerFactory(launchConfig).create(moduleConfigurer, newInjectorFactory(launchConfig), new InjectorHandlerTransformer(launchConfig, chainConfigurer));
+  public interface Builder {
+    Builder parent(Injector injector);
+
+    Builder bindings(Action<? super BindingsSpec> action);
+
+    Handler build(Action<? super Chain> action) throws Exception;
   }
 
-  /**
-   * Creates a handler that can be used as the entry point for a Guice backed Ratpack app.
-   * <p>
-   * This is a lower level version of {@link #chain(ratpack.launch.LaunchConfig, ratpack.func.Action, ratpack.func.Action)}
-   * that supports a custom final {@link Handler} creation strategy.
-   *
-   * @param launchConfig The launch config of the server
-   * @param moduleConfigurer The configurer of the {@link BindingsSpec} to back the created handler
-   * @param injectorTransformer Takes the final {@link Injector} instance that was created from the modules and returns the {@link Handler} to use
-   * @throws Exception any thrown by {@code moduleConfigurer} or {@code injectorTransformer}
-   * @return A handler that makes all Guice bound objects available to the handlers added to the {@link Chain} given to {@code chainConfigurer}.
-   */
-  public static Handler handler(LaunchConfig launchConfig, Action<? super BindingsSpec> moduleConfigurer, Function<? super Injector, ? extends Handler> injectorTransformer) throws Exception {
-    return new DefaultGuiceBackedHandlerFactory(launchConfig).create(moduleConfigurer, newInjectorFactory(launchConfig), injectorTransformer);
-  }
+  public static Builder builder(LaunchConfig launchConfig) {
+    return new Builder() {
+      private Injector parent;
+      private Action<? super BindingsSpec> bindings = Action.noop();
 
-  /**
-   * Creates a handler that can be used as the entry point for a Guice backed Ratpack app.
-   * <p>
-   * Similar to {@link #chain(ratpack.launch.LaunchConfig, ratpack.func.Action, ratpack.func.Action)},
-   * but provides the opportunity to use a <i>parent</i> injector when creating the injector to use for the application.
-   * See Guice documentation for the semantics of parent/child injectors.
-   * <p>
-   * Typically only required when making a Ratpack application a component of a larger application.
-   *
-   * @param launchConfig The launch config of the server
-   * @param parentInjector The injector to use as a parent of the injector to be created
-   * @param moduleConfigurer The configurer of the {@link BindingsSpec} to back the created handler
-   * @param chainConfigurer The configurer that builds the handler chain
-   * @throws Exception any thrown by {@code moduleConfigurer} or {@code chainConfigurer}
-   * @return A handler that makes all Guice bound objects available to the handlers added to the {@link Chain} given to {@code chainConfigurer}.
-   */
-  public static Handler chain(LaunchConfig launchConfig, Injector parentInjector, Action<? super BindingsSpec> moduleConfigurer, final Action<? super Chain> chainConfigurer) throws Exception {
-    return new DefaultGuiceBackedHandlerFactory(launchConfig).create(moduleConfigurer, childInjectorFactory(parentInjector), new InjectorHandlerTransformer(launchConfig, chainConfigurer));
-  }
+      @Override
+      public Builder parent(Injector injector) {
+        parent = injector;
+        return this;
+      }
 
-  /**
-   * Creates a handler that can be used as the entry point for a Guice backed Ratpack app.
-   * <p>
-   * This is a lower level version of {@link #chain(ratpack.launch.LaunchConfig, com.google.inject.Injector, ratpack.func.Action, ratpack.func.Action)}
-   * that supports a custom final {@link Handler} creation strategy.
-   *
-   * @param launchConfig The launch config of the server
-   * @param parentInjector The injector to use as a parent of the injector to be created
-   * @param moduleConfigurer The configurer of the {@link BindingsSpec} to back the created handler
-   * @param injectorTransformer Takes the final {@link Injector} instance that was created from the modules and returns the {@link Handler} to use
-   * @throws Exception any thrown by {@code moduleConfigurer} or {@code injectorTransformer}
-   * @return A handler that makes all Guice bound objects available to the handlers added to the {@link Chain} given to {@code chainConfigurer}.
-   */
-  public static Handler handler(LaunchConfig launchConfig, Injector parentInjector, Action<? super BindingsSpec> moduleConfigurer, Function<? super Injector, ? extends Handler> injectorTransformer) throws Exception {
-    return new DefaultGuiceBackedHandlerFactory(launchConfig).create(moduleConfigurer, childInjectorFactory(parentInjector), injectorTransformer);
+      @Override
+      public Builder bindings(Action<? super BindingsSpec> action) {
+        bindings = action;
+        return this;
+      }
+
+      @Override
+      public Handler build(Action<? super Chain> action) throws Exception {
+        Function<Module, Injector> moduleTransformer = parent == null ? newInjectorFactory(launchConfig) : childInjectorFactory(parent);
+        return new DefaultGuiceBackedHandlerFactory(launchConfig).create(bindings, moduleTransformer,
+          injector -> Handlers.chain(launchConfig, justInTimeRegistry(injector), action)
+        );
+      }
+    };
   }
 
   /**
@@ -264,11 +232,7 @@ public abstract class Guice {
    * @return A registry that wraps the injector
    */
   public static Registry registry(Injector injector) {
-    return Registries.backedRegistry(registryBacking(injector));
-  }
-
-  public static RegistryBacking registryBacking(final Injector injector) {
-    return new InjectorRegistryBacking(injector);
+    return Registries.backedRegistry(new InjectorRegistryBacking(injector));
   }
 
   /**
@@ -281,12 +245,7 @@ public abstract class Guice {
    */
   public static Function<Module, Injector> newInjectorFactory(final LaunchConfig launchConfig) {
     final Stage stage = launchConfig.isDevelopment() ? Stage.DEVELOPMENT : Stage.PRODUCTION;
-    return new Function<Module, Injector>() {
-      @Override
-      public Injector apply(Module from) {
-        return from == null ? createInjector(stage) : createInjector(stage, from);
-      }
-    };
+    return from -> from == null ? createInjector(stage) : createInjector(stage, from);
   }
 
   /**
@@ -298,67 +257,7 @@ public abstract class Guice {
    * @return a transformer that can build an injector from a module, as a child of the given parent.
    */
   public static Function<Module, Injector> childInjectorFactory(final Injector parent) {
-    return new Function<Module, Injector>() {
-      @Override
-      public Injector apply(Module from) {
-        return from == null ? parent.createChildInjector() : parent.createChildInjector(from);
-      }
-    };
+    return from -> from == null ? parent.createChildInjector() : parent.createChildInjector(from);
   }
 
-  private static class InjectorHandlerTransformer implements Function<Injector, Handler> {
-    private final LaunchConfig launchConfig;
-    private final Action<? super Chain> action;
-
-    public InjectorHandlerTransformer(LaunchConfig launchConfig, Action<? super Chain> action) {
-      this.launchConfig = launchConfig;
-      this.action = action;
-    }
-
-    public Handler apply(Injector injector) throws Exception {
-      return Handlers.chain(launchConfig, justInTimeRegistry(injector), action);
-    }
-  }
-
-  private static class InjectorRegistryBacking implements RegistryBacking {
-    private final Injector injector;
-
-    public InjectorRegistryBacking(Injector injector) {
-      this.injector = injector;
-    }
-
-    @Override
-    public <T> Iterable<Supplier<? extends T>> provide(TypeToken<T> type) {
-      return FluentIterable.from(GuiceUtil.allProvidersOfType(injector, type)).transform(new com.google.common.base.Function<Provider<? extends T>, Supplier<? extends T>>() {
-        @Override
-        public Supplier<? extends T> apply(final Provider<? extends T> provider) {
-          return new Supplier<T>() {
-            @Override
-            public T get() {
-              return provider.get();
-            }
-          };
-        }
-      });
-    }
-
-    @Override
-    public boolean equals(Object o) {
-      if (this == o) {
-        return true;
-      }
-      if (o == null || getClass() != o.getClass()) {
-        return false;
-      }
-
-      InjectorRegistryBacking that = (InjectorRegistryBacking) o;
-
-      return injector.equals(that.injector);
-    }
-
-    @Override
-    public int hashCode() {
-      return injector.hashCode();
-    }
-  }
 }

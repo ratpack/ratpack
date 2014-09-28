@@ -16,16 +16,20 @@
 
 package ratpack.groovy.markup
 
+import ratpack.groovy.markup.internal.DefaultMarkupRenderer
 import ratpack.http.internal.HttpHeaderConstants
-import ratpack.test.internal.RatpackGroovyAppSpec
+import ratpack.test.internal.RatpackGroovyDslSpec
 
 import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_TYPE
 import static ratpack.groovy.Groovy.htmlBuilder
 
-class MarkupRenderingSpec extends RatpackGroovyAppSpec {
+class MarkupRenderingSpec extends RatpackGroovyDslSpec {
 
   def "can render html markup"() {
     when:
+    bindings {
+      bind(MarkupRenderer, DefaultMarkupRenderer)
+    }
     handlers {
       get {
         render htmlBuilder {

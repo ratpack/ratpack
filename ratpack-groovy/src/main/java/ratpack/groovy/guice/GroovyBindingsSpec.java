@@ -16,9 +16,17 @@
 
 package ratpack.groovy.guice;
 
+import com.google.inject.Binder;
+import com.google.inject.Injector;
+import com.google.inject.Module;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
+import ratpack.func.Action;
 import ratpack.guice.BindingsSpec;
+import ratpack.guice.NoSuchModuleException;
+
+import javax.inject.Provider;
+import java.util.function.Consumer;
 
 /**
  * Groovy specific extensions to {@link ratpack.guice.BindingsSpec}.
@@ -33,6 +41,72 @@ public interface GroovyBindingsSpec extends BindingsSpec {
    *
    * @param closure The initializer
    */
-  void init(@DelegatesTo(value = Void.class, strategy = Closure.OWNER_ONLY) Closure<?> closure);
+  GroovyBindingsSpec init(@DelegatesTo(value = Void.class, strategy = Closure.OWNER_ONLY) Closure<?> closure);
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  GroovyBindingsSpec add(Module... modules);
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  GroovyBindingsSpec add(Iterable<? extends Module> modules);
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  <T extends Module> GroovyBindingsSpec config(Class<T> moduleClass, Consumer<? super T> configurer) throws NoSuchModuleException;
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  GroovyBindingsSpec bindings(Action<? super Binder> action);
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  GroovyBindingsSpec bind(Class<?> type);
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  <T> GroovyBindingsSpec bind(Class<T> publicType, Class<? extends T> implType);
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  <T> GroovyBindingsSpec bind(Class<? super T> publicType, T instance);
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  <T> GroovyBindingsSpec bind(T instance);
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  <T> GroovyBindingsSpec provider(Class<T> publicType, Class<? extends Provider<? extends T>> providerType);
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  GroovyBindingsSpec init(Action<Injector> action);
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  GroovyBindingsSpec init(Class<? extends Runnable> clazz);
 
 }

@@ -17,6 +17,6 @@
 /**
  * Support for creating Groovy based embedded applications.
  *
- * @see ratpack.groovy.test.embed.ClosureBackedEmbeddedApplication
+ * @see ratpack.groovy.test.embed.GroovyEmbeddedApp
  */
 package ratpack.groovy.test.embed;

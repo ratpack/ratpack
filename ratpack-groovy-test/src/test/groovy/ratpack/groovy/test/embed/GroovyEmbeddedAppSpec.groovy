@@ -14,24 +14,38 @@
  * limitations under the License.
  */
 
-package ratpack.guice;
+package ratpack.groovy.test.embed
 
-import com.google.inject.Module;
+import ratpack.file.BaseDirRequiredException
+import spock.lang.Specification
 
-/**
- * Thrown by {@link ratpack.guice.BindingsSpec#config(Class, java.util.function.Consumer)} when attempt to retrieve a module that doesn't exist.
- */
-public class NoSuchModuleException extends RuntimeException {
+class GroovyEmbeddedAppSpec extends Specification {
 
-  private static final long serialVersionUID = 0;
+  def "embedded app without base dir"() {
+    expect:
+    GroovyEmbeddedApp.build {
+      handlers {
+        handler {
+          render "foo"
+        }
+      }
+    } test {
+      assert it.text == "foo"
+    }
+  }
 
-  /**
-   * Constructor.
-   *
-   * @param moduleType the module type that doesn't exist
-   */
-  public NoSuchModuleException(Class<? extends Module> moduleType) {
-    super(String.format("No module with type %s has been added", moduleType.getName()));
+  def "asset serving embedded app without base dir"() {
+    when:
+    GroovyEmbeddedApp.build {
+      handlers {
+        assets "public"
+      }
+    } test {
+      assert it.text == "foo"
+    }
+
+    then:
+    thrown(BaseDirRequiredException)
   }
 
 }

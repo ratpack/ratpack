@@ -16,17 +16,23 @@
 
 package ratpack.test.embed;
 
+import org.slf4j.LoggerFactory;
 import ratpack.func.Action;
 import ratpack.func.Function;
 import ratpack.handling.Chain;
 import ratpack.handling.Handler;
 import ratpack.handling.Handlers;
+import ratpack.launch.HandlerFactory;
 import ratpack.launch.LaunchConfig;
 import ratpack.launch.LaunchConfigBuilder;
 import ratpack.server.RatpackServer;
 import ratpack.test.ApplicationUnderTest;
+import ratpack.test.embed.internal.LaunchConfigEmbeddedApp;
 import ratpack.test.http.TestHttpClient;
+import ratpack.test.http.TestHttpClients;
 
+import java.net.URI;
+import java.nio.file.Path;
 import java.util.function.Consumer;
 
 import static ratpack.util.ExceptionUtils.uncheck;
@@ -43,9 +49,9 @@ import static ratpack.util.ExceptionUtils.uncheck;
  * Implementations must ensure that the application is up and receiving request when returning from {@link #getAddress()}.
  * Be sure to {@link #close()} the application after use to free resources.
  *
- * @see ratpack.test.embed.LaunchConfigEmbeddedApplication
+ * @see ratpack.test.embed.internal.LaunchConfigEmbeddedApp
  */
-public interface EmbeddedApplication extends ApplicationUnderTest, AutoCloseable {
+public interface EmbeddedApp extends ApplicationUnderTest, AutoCloseable {
 
   /**
    * Creates an embedded application by building a {@link LaunchConfig}.
@@ -55,13 +61,54 @@ public interface EmbeddedApplication extends ApplicationUnderTest, AutoCloseable
    * @param function a function that builds a launch config from a launch config builder
    * @return a newly created embedded application
    */
-  static EmbeddedApplication fromLaunchConfigBuilder(Function<? super LaunchConfigBuilder, ? extends LaunchConfig> function) {
-    return new LaunchConfigEmbeddedApplication() {
+  static EmbeddedApp fromLaunchConfigBuilder(Function<? super LaunchConfigBuilder, ? extends LaunchConfig> function) {
+    return new LaunchConfigEmbeddedApp() {
       @Override
       protected LaunchConfig createLaunchConfig() {
-        return uncheck(() -> function.apply(LaunchConfigBuilder.noBaseDir().port(0)));
+        return uncheck(() -> function.apply(LaunchConfigBuilder.noBaseDir().development(true).port(0)));
       }
     };
+  }
+
+  /**
+   * Creates an embedded application by building a {@link LaunchConfig} with the given base dir.
+   * <p>
+   * The given {@link LaunchConfigBuilder} will be configured to use an ephemeral port.
+   *
+   * @param function a function that builds a launch config from a launch config builder
+   * @return a newly created embedded application
+   */
+  static EmbeddedApp fromLaunchConfigBuilder(Path baseDir, Function<? super LaunchConfigBuilder, ? extends LaunchConfig> function) {
+    return new LaunchConfigEmbeddedApp() {
+      @Override
+      protected LaunchConfig createLaunchConfig() {
+        return uncheck(() -> function.apply(LaunchConfigBuilder.baseDir(baseDir).development(true).port(0)));
+      }
+    };
+  }
+
+  /**
+   * Creates an embedded application with a default launch config (no base dir, ephemeral port) and the given handler.
+   * <p>
+   * If you need to tweak the launch config, use {@link #fromLaunchConfigBuilder(Path, Function)}.
+   *
+   * @param handlerFactory a handler factory
+   * @return a newly created embedded application
+   */
+  static EmbeddedApp fromHandlerFactory(HandlerFactory handlerFactory) {
+    return fromLaunchConfigBuilder(lcb -> lcb.build(handlerFactory::create));
+  }
+
+  /**
+   * Creates an embedded application with a default launch config (ephemeral port) and the given handler.
+   * <p>
+   * If you need to tweak the launch config, use {@link #fromLaunchConfigBuilder(Path, Function)}.
+   *
+   * @param handlerFactory a handler factory
+   * @return a newly created embedded application
+   */
+  static EmbeddedApp fromHandlerFactory(Path baseDir, HandlerFactory handlerFactory) {
+    return fromLaunchConfigBuilder(baseDir, lcb -> lcb.build(handlerFactory::create));
   }
 
   /**
@@ -72,8 +119,20 @@ public interface EmbeddedApplication extends ApplicationUnderTest, AutoCloseable
    * @param handler the application handler
    * @return a newly created embedded application
    */
-  static EmbeddedApplication fromHandler(Handler handler) {
+  static EmbeddedApp fromHandler(Handler handler) {
     return fromLaunchConfigBuilder(lcb -> lcb.build(lc -> handler));
+  }
+
+  /**
+   * Creates an embedded application with a default launch config (ephemeral port) and the given handler.
+   * <p>
+   * If you need to tweak the launch config, use {@link #fromLaunchConfigBuilder(Path, Function)}.
+   *
+   * @param handler the application handler
+   * @return a newly created embedded application
+   */
+  static EmbeddedApp fromHandler(Path baseDir, Handler handler) {
+    return fromLaunchConfigBuilder(baseDir, lcb -> lcb.build(lc -> handler));
   }
 
   /**
@@ -84,7 +143,7 @@ public interface EmbeddedApplication extends ApplicationUnderTest, AutoCloseable
    * @param action the handler chain definition
    * @return a newly created embedded application
    */
-  static EmbeddedApplication fromChain(Action<? super Chain> action) {
+  static EmbeddedApp fromChain(Action<? super Chain> action) {
     return fromLaunchConfigBuilder(lcb -> lcb.build(lc -> Handlers.chain(lc, action)));
   }
 
@@ -94,12 +153,12 @@ public interface EmbeddedApplication extends ApplicationUnderTest, AutoCloseable
    * The application will be closed regardless of whether the given consumer throws an exception.
    * <pre class="java">{@code
    *
-   * import ratpack.test.embed.EmbeddedApplication;
+   * import ratpack.test.embed.EmbeddedApp;
    *
    * public class Example {
    *   public static void main(String... args) {
-   *     EmbeddedApplication.fromHandler(ctx -&gt; ctx.render("ok"))
-   *       .test(httpClient -&gt; {
+   *     EmbeddedApp.fromHandler(ctx -> ctx.render("ok"))
+   *       .test(httpClient -> {
    *         assert httpClient.get().getBody().getText().equals("ok");
    *       });
    *   }
@@ -130,9 +189,38 @@ public interface EmbeddedApplication extends ApplicationUnderTest, AutoCloseable
    *
    * @return a new test HTTP client that tests this embedded application
    */
-  TestHttpClient getHttpClient();
+  default TestHttpClient getHttpClient() {
+    return TestHttpClients.testHttpClient(this);
+  }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
-  void close();
+  default public URI getAddress() {
+    RatpackServer server = getServer();
+    try {
+      if (!server.isRunning()) {
+        server.start();
+      }
+      return new URI(server.getScheme(), null, server.getBindHost(), server.getBindPort(), "/", null, null);
+    } catch (Exception e) {
+      throw uncheck(e);
+    }
+  }
+
+  /**
+   * Stops the server returned by {@link #getServer()}.
+   * <p>
+   * Exceptions thrown by calling {@link RatpackServer#stop()} are suppressed and written to {@link System#err System.err}.
+   */
+  @Override
+  default public void close() {
+    try {
+      getServer().stop();
+    } catch (Exception e) {
+      LoggerFactory.getLogger(this.getClass()).error("", e);
+    }
+  }
 
 }

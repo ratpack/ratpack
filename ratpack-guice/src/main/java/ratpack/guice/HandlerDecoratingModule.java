@@ -76,7 +76,7 @@ import ratpack.handling.Handler;
 * }
 * </pre>
 *
-* @see ratpack.guice.Guice#chain(ratpack.launch.LaunchConfig, ratpack.func.Action, ratpack.func.Action)
+* @see ratpack.guice.Guice#builder(ratpack.launch.LaunchConfig)
 */
 public interface HandlerDecoratingModule extends Module {
 

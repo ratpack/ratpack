@@ -198,7 +198,7 @@ public abstract class Groovy {
    * @return a template
    */
   public static MarkupTemplate groovyMarkupTemplate(String id) {
-    return groovyMarkupTemplate(id, null);
+    return groovyMarkupTemplate(id, (String) null);
   }
 
   /**
@@ -243,6 +243,30 @@ public abstract class Groovy {
    */
   public static MarkupTemplate groovyMarkupTemplate(Map<String, ?> model, String id) {
     return groovyMarkupTemplate(model, id, null);
+  }
+
+  /**
+   * Creates a {@link ratpack.handling.Context#render(Object) renderable} Groovy based markup template, using the default content type.
+   *
+   * @param id the id/name of the template
+   * @param modelBuilder an action the builds a model map
+   * @return a template
+   */
+  public static MarkupTemplate groovyMarkupTemplate(String id, Action<? super ImmutableMap.Builder<String, Object>> modelBuilder) throws Exception {
+    return groovyMarkupTemplate(id, null, modelBuilder);
+  }
+
+  /**
+   * Creates a {@link ratpack.handling.Context#render(Object) renderable} Groovy based markup template.
+   *
+   * @param id the id/name of the template
+   * @param type The content type of template
+   * @param modelBuilder an action the builds a model map
+   * @return a template
+   */
+  public static MarkupTemplate groovyMarkupTemplate(String id, String type, Action<? super ImmutableMap.Builder<String, Object>> modelBuilder) throws Exception {
+    ImmutableMap<String, Object> model = Action.with(ImmutableMap.<String, Object>builder(), Action.noopIfNull(modelBuilder)).build();
+    return groovyMarkupTemplate(model, id, type);
   }
 
   /**

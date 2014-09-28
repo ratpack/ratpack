@@ -14,23 +14,24 @@
  * limitations under the License.
  */
 
-package ratpack.test.internal
+package ratpack.test.embed.internal;
 
-import ratpack.groovy.server.internal.GroovyKitAppFactory
-import ratpack.groovy.test.embed.ClosureBackedEmbeddedApplication
-import ratpack.guice.GuiceBackedHandlerFactory
-import ratpack.launch.LaunchConfig
+import ratpack.server.RatpackServer;
+import ratpack.test.embed.EmbeddedApp;
 
-abstract class RatpackGroovyAppSpec extends RatpackGroovyDslSpec {
+public abstract class EmbeddedAppSupport implements EmbeddedApp {
+
+  private RatpackServer ratpackServer;
 
   @Override
-  protected ClosureBackedEmbeddedApplication createApplication() {
-    new ClosureBackedEmbeddedApplication(baseDirFactory) {
-      @Override
-      protected GuiceBackedHandlerFactory createHandlerFactory(LaunchConfig launchConfig) {
-        return new GroovyKitAppFactory(launchConfig)
-      }
+  public RatpackServer getServer() {
+    if (ratpackServer == null) {
+      ratpackServer = createServer();
     }
+
+    return ratpackServer;
   }
+
+  abstract protected RatpackServer createServer();
 
 }

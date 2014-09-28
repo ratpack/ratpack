@@ -16,9 +16,12 @@
 
 package ratpack.thymeleaf;
 
+import com.google.common.collect.ImmutableMap;
 import org.thymeleaf.context.Context;
 
+import java.util.Collections;
 import java.util.Map;
+import java.util.function.Consumer;
 
 public class Template {
 
@@ -45,11 +48,21 @@ public class Template {
   }
 
   public static Template thymeleafTemplate(String name) {
-    return thymeleafTemplate(null, name);
+    return thymeleafTemplate(Collections.emptyMap(), name);
+  }
+
+  public static Template thymeleafTemplate(String name, Consumer<? super ImmutableMap.Builder<String, Object>> modelBuilder) {
+    return thymeleafTemplate(name, null, modelBuilder);
   }
 
   public static Template thymeleafTemplate(Map<String, ?> model, String name) {
     return thymeleafTemplate(model, name, null);
+  }
+
+  public static Template thymeleafTemplate(String name, String contentType, Consumer<? super ImmutableMap.Builder<String, Object>> modelBuilder) {
+    ImmutableMap.Builder<String, Object> builder = ImmutableMap.builder();
+    modelBuilder.accept(builder);
+    return thymeleafTemplate(builder.build(), name, contentType);
   }
 
   public static Template thymeleafTemplate(Map<String, ?> model, String name, String contentType) {

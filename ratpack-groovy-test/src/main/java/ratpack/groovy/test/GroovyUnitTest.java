@@ -84,31 +84,29 @@ public abstract class GroovyUnitTest {
    * Unit test a chain of {@link Handler handlers}.
    * <p>
    * Example:
-   * <pre class="tested">
-   * import ratpack.groovy.handling.GroovyChainAction
+   * <pre class="tested">{@code
    * import ratpack.groovy.test.GroovyUnitTest
+   * import ratpack.groovy.Groovy
    *
-   * class MyHandlers extends GroovyChainAction {
-   *   protected void execute() {
-   *     handler {
-   *       def outputHeaderValue = request.headers.get("input-value") + ":bar"
-   *       response.headers.set("output-value", outputHeaderValue)
-   *       next()
-   *     }
-   *     handler {
-   *       render "received: " + request.path
-   *     }
+   * def handlers = Groovy.chain {
+   *   handler {
+   *     def outputHeaderValue = request.headers.get("input-value") + ":bar"
+   *     response.headers.set("output-value", outputHeaderValue)
+   *     next()
+   *   }
+   *   handler {
+   *     render "received: " + request.path
    *   }
    * }
    *
-   * def result = GroovyUnitTest.handle(new MyHandlers()) {
+   * def result = GroovyUnitTest.handle(handlers) {
    *   header "input-value", "foo"
    *   uri "some/path"
    * }
    *
    * assert result.rendered(String) == "received: some/path"
    * assert result.headers.get("output-value") == "foo:bar"
-   * </pre>
+   * }</pre>
    *
    * @param handlers the handlers to test
    * @param closure the configuration of the request fixture

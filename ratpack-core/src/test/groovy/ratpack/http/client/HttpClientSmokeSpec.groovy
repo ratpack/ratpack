@@ -153,7 +153,7 @@ class HttpClientSmokeSpec extends HttpClientSpec {
           request.url { HttpUrlSpec httpUrlSpec ->
             httpUrlSpec.set(otherAppUrl("foo"))
           }
-          request.body.type("text/plain").stream { it << "bar" }
+          request.body.type("text/plain").text("bar")
         }
 
         respProm.onError({ Throwable t ->
