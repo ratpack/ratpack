@@ -98,8 +98,8 @@ public interface EmbeddedApplication extends ApplicationUnderTest, AutoCloseable
    *
    * public class Example {
    *   public static void main(String... args) {
-   *     EmbeddedApplication.fromHandler(ctx -> ctx.render("ok"))
-   *       .test(httpClient -> {
+   *     EmbeddedApplication.fromHandler(ctx -&gt; ctx.render("ok"))
+   *       .test(httpClient -&gt; {
    *         assert httpClient.get().getBody().getText().equals("ok");
    *       });
    *   }
