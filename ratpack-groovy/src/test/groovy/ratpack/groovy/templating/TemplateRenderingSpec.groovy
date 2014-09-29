@@ -16,7 +16,9 @@
 
 package ratpack.groovy.templating
 
+import ratpack.error.ServerErrorHandler
 import ratpack.test.internal.RatpackGroovyDslSpec
+import ratpack.test.internal.SimpleErrorHandler
 import spock.lang.Unroll
 
 import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_TYPE
@@ -99,6 +101,9 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     file "templates/innerInner.html", "\${throw new Exception(model.value.toString())}"
 
     when:
+    bindings {
+      bind ServerErrorHandler, SimpleErrorHandler
+    }
     handlers {
       get {
         render groovyTemplate("outer.html", value: "outer")
@@ -175,6 +180,7 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     when:
     bindings {
       config(TemplatingModule) { it.staticallyCompile = true }
+      bind ServerErrorHandler, SimpleErrorHandler
     }
 
     handlers {
@@ -229,19 +235,6 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
 
     then:
     text.contains "value: [1, 2]" // thank you erasure
-  }
-
-  def "client errors are rendered with the template renderer"() {
-    when:
-    handlers {
-      handler {
-        clientError(404)
-      }
-    }
-
-    then:
-    text.contains "<title>Not Found</title>"
-    get().statusCode == 404
   }
 
   def "templates are reloadable in development mode"() {
@@ -331,27 +324,6 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
 
     get("t.xml?type=foo/bar").headers.get(CONTENT_TYPE) == "foo/bar"
     get("dir/t.xml?type=foo/bar").headers.get(CONTENT_TYPE) == "foo/bar"
-  }
-
-  def "error in error template produces empty response and right error code"() {
-    given:
-    file "templates/error.html", "a a a \${-==}" // invalid syntax
-
-    when:
-    handlers {
-      get("server") {
-        throw new Exception("!")
-      }
-      get("client") {
-        clientError 400
-      }
-    }
-
-    then:
-    getText("server") == ""
-    response.statusCode == 500
-    getText("client") == ""
-    response.statusCode == 500
   }
 
   def "can escape in template"() {

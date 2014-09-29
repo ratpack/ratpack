@@ -18,18 +18,14 @@ package ratpack.error
 
 import ratpack.test.internal.RatpackGroovyDslSpec
 
-class DebugErrorHandlerSpec extends RatpackGroovyDslSpec {
+class DevelopmentErrorHandlerSpec extends RatpackGroovyDslSpec {
 
   def "debug error handler prints info"() {
     given:
     def e = new RuntimeException("!")
 
     when:
-    bindings {
-      bind ServerErrorHandler, new DebugErrorHandler()
-      bind ClientErrorHandler, new DebugErrorHandler()
-    }
-
+    launchConfig { development(true) }
     handlers {
       get("client") { clientError(404) }
       get("server") { error(e) }
@@ -38,17 +34,12 @@ class DebugErrorHandlerSpec extends RatpackGroovyDslSpec {
     then:
     with(get("client")) {
       statusCode == 404
-      body.text == "Client error 404"
-    }
-
-    def str = new StringWriter().with {
-      e.printStackTrace(new PrintWriter(it))
-      it.toString()
+      body.text.startsWith("<!DOCTYPE html>")
     }
 
     with(get("server")) {
       statusCode == 500
-      body.text == str
+      body.text.startsWith("<!DOCTYPE html>")
     }
   }
 }

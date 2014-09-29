@@ -19,12 +19,11 @@ package ratpack.groovy.templating.internal;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.inject.Singleton;
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufAllocator;
 import ratpack.exec.ExecControl;
 import ratpack.exec.Promise;
 import ratpack.file.FileSystemBinding;
-import ratpack.func.Function;
 import ratpack.groovy.script.internal.ScriptEngine;
 import ratpack.groovy.templating.TemplatingConfig;
 import ratpack.launch.LaunchConfig;
@@ -35,24 +34,21 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
 
+@Singleton
 public class GroovyTemplateRenderingEngine {
-
-  private static final String ERROR_TEMPLATE = "error.html";
 
   private final LoadingCache<TemplateSource, CompiledTemplate> compiledTemplateCache;
   private final TemplateCompiler templateCompiler;
   private final boolean reloadable;
   private final FileSystemBinding templateDir;
-  private final ByteBufAllocator byteBufAllocator;
   private final ExecControl execControl;
 
   @Inject
   public GroovyTemplateRenderingEngine(LaunchConfig launchConfig, TemplatingConfig templatingConfig, ExecControl execControl) {
     this.execControl = execControl;
-    this.byteBufAllocator = launchConfig.getBufferAllocator();
 
     ScriptEngine<DefaultTemplateScript> scriptEngine = new ScriptEngine<>(getClass().getClassLoader(), templatingConfig.isStaticallyCompile(), DefaultTemplateScript.class);
-    templateCompiler = new TemplateCompiler(scriptEngine, byteBufAllocator);
+    templateCompiler = new TemplateCompiler(scriptEngine, launchConfig.getBufferAllocator());
     //noinspection NullableProblems
     this.compiledTemplateCache = CacheBuilder.newBuilder().maximumSize(templatingConfig.getCacheSize()).build(new CacheLoader<TemplateSource, CompiledTemplate>() {
       @Override
@@ -79,26 +75,13 @@ public class GroovyTemplateRenderingEngine {
     return render(byteBuf, toTemplateSource(templateId, templateFile), model);
   }
 
-  private PathTemplateSource toTemplateSource(String templateId, Path templateFile) throws IOException {
+  private TemplateSource toTemplateSource(String templateId, Path templateFile) throws IOException {
     String id = templateId + (reloadable ? Files.getLastModifiedTime(templateFile) : "0");
-    return new PathTemplateSource(id, templateFile, templateId);
-  }
-
-  public Promise<ByteBuf> renderError(ByteBuf byteBuf, Map<String, ?> model) throws Exception {
-    final Path errorTemplate = getTemplateFile(ERROR_TEMPLATE);
-    if (Files.exists(errorTemplate)) {
-      return render(byteBuf, toTemplateSource(ERROR_TEMPLATE, errorTemplate), model);
-    } else {
-      return render(byteBuf, new ResourceTemplateSource(ERROR_TEMPLATE, byteBufAllocator), model);
-    }
+    return new TemplateSource(id, templateFile, templateId);
   }
 
   private Promise<ByteBuf> render(ByteBuf byteBuf, final TemplateSource templateSource, Map<String, ?> model) throws Exception {
-    return Render.render(execControl, byteBuf, compiledTemplateCache, templateSource, model, new Function<String, TemplateSource>() {
-      public TemplateSource apply(String templateName) throws IOException {
-        return toTemplateSource(templateName, getTemplateFile(templateName));
-      }
-    });
+    return Render.render(execControl, byteBuf, compiledTemplateCache, templateSource, model, templateName -> toTemplateSource(templateName, getTemplateFile(templateName)));
   }
 
   private Path getTemplateFile(String templateName) {

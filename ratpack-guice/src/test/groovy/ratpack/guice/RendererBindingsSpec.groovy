@@ -17,8 +17,8 @@
 package ratpack.guice
 
 import com.google.inject.AbstractModule
-import ratpack.error.DebugErrorHandler
 import ratpack.error.ServerErrorHandler
+import ratpack.error.internal.DefaultDevelopmentErrorHandler
 import ratpack.handling.Context
 import ratpack.render.NoSuchRendererException
 import ratpack.render.RendererSupport
@@ -49,7 +49,7 @@ class RendererBindingsSpec extends RatpackGroovyDslSpec {
         protected void configure() {
           bind(IntRenderer)
           bind(StringRenderer)
-          bind(ServerErrorHandler).to(DebugErrorHandler)
+          bind(ServerErrorHandler).to(DefaultDevelopmentErrorHandler)
         }
       }
     }

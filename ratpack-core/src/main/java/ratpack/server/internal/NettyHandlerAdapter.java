@@ -28,8 +28,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ratpack.error.ClientErrorHandler;
 import ratpack.error.ServerErrorHandler;
-import ratpack.error.internal.DefaultClientErrorHandler;
-import ratpack.error.internal.DefaultServerErrorHandler;
+import ratpack.error.internal.DefaultDevelopmentErrorHandler;
+import ratpack.error.internal.DefaultProductionErrorHandler;
+import ratpack.error.internal.ErrorHandler;
 import ratpack.event.internal.DefaultEventController;
 import ratpack.exec.ExecControl;
 import ratpack.exec.ExecController;
@@ -230,13 +231,15 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
   }
 
   public static Registry buildBaseRegistry(Stopper stopper, LaunchConfig launchConfig) {
+    ErrorHandler errorHandler = launchConfig.isDevelopment() ? new DefaultDevelopmentErrorHandler() : new DefaultProductionErrorHandler();
+
     RegistryBuilder registryBuilder = Registries.registry()
       .add(Stopper.class, stopper)
       .add(MimeTypes.class, new ActivationBackedMimeTypes())
       .add(PublicAddress.class, new DefaultPublicAddress(launchConfig.getPublicAddress(), launchConfig.getSSLContext() == null ? HTTP_SCHEME : HTTPS_SCHEME))
       .add(Redirector.class, new DefaultRedirector())
-      .add(ClientErrorHandler.class, new DefaultClientErrorHandler())
-      .add(ServerErrorHandler.class, new DefaultServerErrorHandler())
+      .add(ClientErrorHandler.class, errorHandler)
+      .add(ServerErrorHandler.class, errorHandler)
       .add(LaunchConfig.class, launchConfig)
       .add(FileRenderer.class, new DefaultFileRenderer())
       .add(ServerSentEventsRenderer.TYPE, new ServerSentEventsRenderer(launchConfig.getBufferAllocator()))

@@ -17,11 +17,10 @@
 package ratpack.groovy.handling
 
 import ratpack.error.ServerErrorHandler
-import ratpack.error.internal.DefaultServerErrorHandler
+import ratpack.error.internal.DefaultProductionErrorHandler
 import ratpack.file.FileSystemBinding
 import ratpack.file.internal.DefaultFileSystemBinding
 import ratpack.test.internal.RatpackGroovyDslSpec
-import static ratpack.groovy.internal.ClosureUtil.with
 
 class BasicGroovyDslSpec extends RatpackGroovyDslSpec {
 
@@ -124,7 +123,7 @@ class BasicGroovyDslSpec extends RatpackGroovyDslSpec {
 
     then:
     getText("p1") == DefaultFileSystemBinding.name
-    getText("p2") == DefaultServerErrorHandler.name
+    getText("p2") == DefaultProductionErrorHandler.name
   }
 
   def "can nest"() {

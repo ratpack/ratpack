@@ -16,8 +16,8 @@
 
 package ratpack.exec
 
-import ratpack.error.DebugErrorHandler
 import ratpack.error.ServerErrorHandler
+import ratpack.error.internal.DefaultDevelopmentErrorHandler
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 class ExecInterceptionSpec extends RatpackGroovyDslSpec {
@@ -115,7 +115,7 @@ class ExecInterceptionSpec extends RatpackGroovyDslSpec {
     given:
     bindings {
       bind new RecordingInterceptor("id") // just need any interceptor
-      bind ServerErrorHandler, new DebugErrorHandler()
+      bind ServerErrorHandler, new DefaultDevelopmentErrorHandler()
     }
 
     when:

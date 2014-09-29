@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,13 +17,7 @@
 package ratpack.error.internal;
 
 import ratpack.error.ClientErrorHandler;
-import ratpack.handling.Context;
+import ratpack.error.ServerErrorHandler;
 
-public class DefaultClientErrorHandler implements ClientErrorHandler {
-
-  public void error(Context context, int statusCode) {
-    // TODO is it worth validating th status code?
-    context.getResponse().status(statusCode).send();
-  }
-
+public interface ErrorHandler extends ClientErrorHandler, ServerErrorHandler {
 }

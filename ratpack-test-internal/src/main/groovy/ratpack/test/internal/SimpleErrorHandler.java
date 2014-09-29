@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,16 @@
  * limitations under the License.
  */
 
-package ratpack.error.internal;
+package ratpack.test.internal;
 
 import ratpack.error.ServerErrorHandler;
 import ratpack.handling.Context;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-public class DefaultServerErrorHandler implements ServerErrorHandler {
+public class SimpleErrorHandler implements ServerErrorHandler {
 
-  private final static Logger LOGGER = LoggerFactory.getLogger(DefaultServerErrorHandler.class);
-
+  @Override
   public void error(Context context, Throwable throwable) throws Exception {
-    LOGGER.error("UNHANDLED THROWABLE: " + context.getRequest().getUri(), throwable);
-    context.getResponse().status(500).send();
+    context.getResponse().status(500).send(throwable.toString());
   }
 
 }

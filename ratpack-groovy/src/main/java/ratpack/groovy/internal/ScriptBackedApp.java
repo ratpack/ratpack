@@ -28,9 +28,6 @@ import ratpack.handling.Handler;
 import ratpack.reload.internal.ReloadableFileBackedFactory;
 import ratpack.util.internal.IoUtils;
 
-import java.io.ByteArrayOutputStream;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
 import java.nio.file.Path;
 
 import static ratpack.util.ExceptionUtils.uncheck;
@@ -80,17 +77,7 @@ public class ScriptBackedApp implements Handler {
   }
 
   public void handle(Context context) throws Exception {
-    Handler handler;
-    try {
-      handler = reloadHandler.create();
-    } catch (Exception e) {
-      ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-      PrintWriter printWriter = new PrintWriter(new OutputStreamWriter(outputStream, "UTF-8"));
-      e.printStackTrace(printWriter);
-      printWriter.flush();
-      context.getResponse().send("text/plain", outputStream.toByteArray());
-      return;
-    }
+    Handler handler = reloadHandler.create();
     if (handler == null) {
       context.getResponse().send("script file does not exist:" + script.toAbsolutePath());
     } else {

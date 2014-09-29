@@ -23,7 +23,7 @@ import io.netty.handler.codec.http.HttpRequest
 import io.netty.handler.codec.http.HttpVersion
 import io.netty.handler.codec.http.multipart.HttpPostRequestEncoder
 import ratpack.error.ServerErrorHandler
-import ratpack.error.DebugErrorHandler
+import ratpack.error.internal.DefaultDevelopmentErrorHandler
 import ratpack.form.Form
 import ratpack.handling.Context
 import ratpack.handling.Handler
@@ -38,7 +38,7 @@ class FormHandlingSpec extends RatpackGroovyDslSpec {
 
   def setup() {
     bindings {
-      bind ServerErrorHandler, new DebugErrorHandler()
+      bind ServerErrorHandler, new DefaultDevelopmentErrorHandler()
     }
   }
 

@@ -16,9 +16,9 @@
 
 package ratpack.rx
 
-import ratpack.error.DebugErrorHandler
 import ratpack.error.ServerErrorHandler
 import ratpack.test.internal.RatpackGroovyDslSpec
+import ratpack.test.internal.SimpleErrorHandler
 import rx.functions.Action0
 
 import static ratpack.rx.RxRatpack.observe
@@ -53,7 +53,7 @@ class RxBlockingSpec extends RatpackGroovyDslSpec {
   def "blocking errors are sent to the context renderer"() {
     when:
     bindings {
-      bind ServerErrorHandler, new DebugErrorHandler()
+      bind ServerErrorHandler, SimpleErrorHandler
     }
     handlers {
       get(":value") {

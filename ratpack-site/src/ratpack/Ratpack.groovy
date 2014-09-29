@@ -18,8 +18,8 @@ import static ratpack.registry.Registries.just
 
 ratpack {
   bindings {
-    add \
-      new JacksonModule(),
+    add  \
+       new JacksonModule(),
       new CodaHaleMetricsModule().metrics(),
       new RemoteControlModule(),
       new NewRelicModule(),

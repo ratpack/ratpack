@@ -17,10 +17,10 @@
 package ratpack.handling
 
 import groovy.transform.TupleConstructor
-import ratpack.error.DebugErrorHandler
 import ratpack.error.ServerErrorHandler
 import ratpack.registry.NotInRegistryException
 import ratpack.test.internal.RatpackGroovyDslSpec
+import ratpack.test.internal.SimpleErrorHandler
 
 import static ratpack.registry.Registries.just
 
@@ -28,7 +28,7 @@ class RegistryInsertionHandlerSpec extends RatpackGroovyDslSpec {
 
   def setup() {
     bindings {
-      bind ServerErrorHandler, new DebugErrorHandler()
+      bind ServerErrorHandler, new SimpleErrorHandler()
     }
   }
 

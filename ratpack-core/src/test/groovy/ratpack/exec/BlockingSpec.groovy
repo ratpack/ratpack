@@ -17,9 +17,9 @@
 package ratpack.exec
 
 import ratpack.error.ServerErrorHandler
-import ratpack.error.DebugErrorHandler
 import ratpack.http.client.RequestSpec
 import ratpack.test.internal.RatpackGroovyDslSpec
+import ratpack.test.internal.SimpleErrorHandler
 
 class BlockingSpec extends RatpackGroovyDslSpec {
 
@@ -49,7 +49,7 @@ class BlockingSpec extends RatpackGroovyDslSpec {
   def "by default errors during blocking operations are forwarded to server error handler"() {
     when:
     bindings {
-      bind ServerErrorHandler, DebugErrorHandler
+      bind ServerErrorHandler, SimpleErrorHandler
     }
     handlers {
       get {
@@ -90,7 +90,7 @@ class BlockingSpec extends RatpackGroovyDslSpec {
   def "errors in custom error handlers are forwarded to the server error handler"() {
     when:
     bindings {
-      bind ServerErrorHandler, DebugErrorHandler
+      bind ServerErrorHandler, SimpleErrorHandler
     }
     handlers {
       get {
@@ -112,7 +112,7 @@ class BlockingSpec extends RatpackGroovyDslSpec {
   def "errors in success handlers are forwarded to the server error handler"() {
     when:
     bindings {
-      bind ServerErrorHandler, DebugErrorHandler
+      bind ServerErrorHandler, SimpleErrorHandler
     }
     handlers {
       get {
@@ -134,7 +134,7 @@ class BlockingSpec extends RatpackGroovyDslSpec {
   def "closure arg type mismatch errors on success handler are handled well"() {
     when:
     bindings {
-      bind ServerErrorHandler, DebugErrorHandler
+      bind ServerErrorHandler, SimpleErrorHandler
     }
     handlers {
       get {
@@ -155,7 +155,7 @@ class BlockingSpec extends RatpackGroovyDslSpec {
   def "closure arg type mismatch errors on error handler are handled well"() {
     when:
     bindings {
-      bind ServerErrorHandler, DebugErrorHandler
+      bind ServerErrorHandler, SimpleErrorHandler
     }
     handlers {
       get {

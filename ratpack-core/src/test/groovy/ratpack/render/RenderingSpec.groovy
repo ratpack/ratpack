@@ -16,8 +16,8 @@
 
 package ratpack.render
 
-import ratpack.error.DebugErrorHandler
 import ratpack.error.ServerErrorHandler
+import ratpack.error.internal.DefaultDevelopmentErrorHandler
 import ratpack.handling.Context
 import ratpack.registry.Registries
 import ratpack.test.internal.RatpackGroovyDslSpec
@@ -55,7 +55,7 @@ class RenderingSpec extends RatpackGroovyDslSpec {
   def "can use available renderers"() {
     when:
     bindings {
-      bind ServerErrorHandler, new DebugErrorHandler()
+      bind ServerErrorHandler, new DefaultDevelopmentErrorHandler()
     }
     handlers {
       register(Registries.just(new ThingRenderer())) {

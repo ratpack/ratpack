@@ -18,9 +18,9 @@ package ratpack.handling
 
 import com.google.inject.AbstractModule
 import com.google.inject.TypeLiteral
-import ratpack.error.DebugErrorHandler
 import ratpack.error.ServerErrorHandler
-import ratpack.error.internal.DefaultServerErrorHandler
+import ratpack.error.internal.DefaultDevelopmentErrorHandler
+import ratpack.error.internal.DefaultProductionErrorHandler
 import ratpack.file.FileSystemBinding
 import ratpack.file.internal.DefaultFileSystemBinding
 import ratpack.test.internal.RatpackGroovyDslSpec
@@ -92,7 +92,7 @@ class InjectionHandlerSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    text == DefaultServerErrorHandler.name
+    text == DefaultProductionErrorHandler.name
   }
 
   static class InjectedBadHandler extends InjectionHandler {
@@ -104,7 +104,7 @@ class InjectionHandlerSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       register {
-        add ServerErrorHandler, new DebugErrorHandler()
+        add ServerErrorHandler, new DefaultDevelopmentErrorHandler()
       }
       handler new InjectedBadHandler()
     }

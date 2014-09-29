@@ -5,8 +5,6 @@ import com.google.inject.AbstractModule
 import com.google.inject.Provides
 import com.google.inject.TypeLiteral
 import groovy.util.logging.Slf4j
-import ratpack.error.ClientErrorHandler
-import ratpack.error.ServerErrorHandler
 import ratpack.file.FileSystemChecksumServices
 import ratpack.groovy.markuptemplates.MarkupTemplate
 import ratpack.http.client.HttpClient
@@ -35,8 +33,8 @@ class SiteModule extends AbstractModule {
 
   @Override
   protected void configure() {
-    bind(ClientErrorHandler).toInstance(new SiteErrorHandler())
-    bind(ServerErrorHandler).toInstance(new SiteErrorHandler())
+//    bind(ClientErrorHandler).toInstance(new SiteErrorHandler())
+//    bind(ServerErrorHandler).toInstance(new SiteErrorHandler())
 
     boolean enableGithub = launchConfig.getOther(GITHUB_ENABLE, "true").toBoolean()
     if (enableGithub) {

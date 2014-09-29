@@ -18,8 +18,8 @@ package ratpack.groovy.markuptemplates
 
 import com.google.inject.AbstractModule
 import groovy.text.markup.TemplateConfiguration
-import ratpack.error.DebugErrorHandler
 import ratpack.error.ServerErrorHandler
+import ratpack.error.internal.DefaultDevelopmentErrorHandler
 import ratpack.test.embed.internal.JarFileBaseDirBuilder
 import ratpack.test.internal.RatpackGroovyDslSpec
 
@@ -32,7 +32,7 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     modules << new AbstractModule() {
       @Override
       protected void configure() {
-        bind(ServerErrorHandler).to(DebugErrorHandler)
+        bind(ServerErrorHandler).to(DefaultDevelopmentErrorHandler)
       }
     }
 

@@ -18,12 +18,9 @@ package ratpack.groovy.templating;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
-import ratpack.error.ClientErrorHandler;
-import ratpack.error.ServerErrorHandler;
-import ratpack.groovy.templating.internal.*;
+import ratpack.groovy.templating.internal.DefaultTemplatingConfig;
+import ratpack.groovy.templating.internal.TemplateRenderer;
 import ratpack.launch.LaunchConfig;
-
-import javax.inject.Singleton;
 
 @SuppressWarnings("UnusedDeclaration")
 public class TemplatingModule extends AbstractModule {
@@ -67,9 +64,6 @@ public class TemplatingModule extends AbstractModule {
 
   @Override
   protected void configure() {
-    bind(GroovyTemplateRenderingEngine.class).in(Singleton.class);
-    bind(ClientErrorHandler.class).to(TemplateRenderingClientErrorHandler.class).in(Singleton.class);
-    bind(ServerErrorHandler.class).to(TemplateRenderingServerErrorHandler.class).in(Singleton.class);
     bind(TemplateRenderer.class);
   }
 

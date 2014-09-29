@@ -16,8 +16,8 @@
 
 package ratpack.http.client
 
-import ratpack.error.DebugErrorHandler
 import ratpack.error.ServerErrorHandler
+import ratpack.error.internal.DefaultDevelopmentErrorHandler
 import ratpack.groovy.handling.GroovyChain
 import ratpack.groovy.test.embed.GroovyEmbeddedApp
 import ratpack.test.embed.EmbeddedApp
@@ -31,7 +31,7 @@ abstract class HttpClientSpec extends RatpackGroovyDslSpec {
 
   EmbeddedApp otherApp(@DelegatesTo(value = GroovyChain, strategy = Closure.DELEGATE_FIRST) Closure<?> closure) {
     otherApp = GroovyEmbeddedApp.build {
-      bindings { bind ServerErrorHandler, new DebugErrorHandler() }
+      bindings { bind ServerErrorHandler, new DefaultDevelopmentErrorHandler() }
       handlers(closure)
     }
   }
