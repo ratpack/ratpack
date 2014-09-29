@@ -20,12 +20,12 @@ package ratpack.guice.internal;
 import com.google.inject.Binder;
 import com.google.inject.Injector;
 import com.google.inject.Module;
+import com.google.inject.Provider;
 import ratpack.func.Action;
 import ratpack.guice.BindingsSpec;
 import ratpack.guice.NoSuchModuleException;
 import ratpack.launch.LaunchConfig;
 
-import javax.inject.Provider;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
@@ -76,6 +76,11 @@ class DefaultBindingsSpec implements BindingsSpec {
   }
 
   @Override
+  public <T> BindingsSpec provider(Class<T> publicType, Provider<? extends T> provider) {
+    return bindings(b -> b.bind(publicType).toProvider(provider));
+  }
+
+  @Override
   public BindingsSpec add(Module... modules) {
     Collections.addAll(this.modules, modules);
     return this;
@@ -91,13 +96,7 @@ class DefaultBindingsSpec implements BindingsSpec {
 
   @Override
   public <T extends Module> BindingsSpec config(Class<T> moduleClass, Consumer<? super T> configurer) throws NoSuchModuleException {
-    for (Module module : modules) {
-      if (moduleClass.isInstance(module)) {
-        T cast = moduleClass.cast(module);
-        configurer.accept(cast);
-      }
-    }
-
+    modules.stream().filter(moduleClass::isInstance).map(moduleClass::cast).forEach(configurer);
     return this;
   }
 
@@ -108,7 +107,7 @@ class DefaultBindingsSpec implements BindingsSpec {
   }
 
   @Override
-  public BindingsSpec init(Action<Injector> action) {
+  public BindingsSpec init(Action<? super Injector> action) {
     injectorActions.add(action);
     return this;
   }

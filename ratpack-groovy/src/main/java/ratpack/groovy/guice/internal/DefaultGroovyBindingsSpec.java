@@ -19,6 +19,7 @@ package ratpack.groovy.guice.internal;
 import com.google.inject.Binder;
 import com.google.inject.Injector;
 import com.google.inject.Module;
+import com.google.inject.Provider;
 import groovy.lang.Closure;
 import ratpack.func.Action;
 import ratpack.groovy.guice.GroovyBindingsSpec;
@@ -29,7 +30,6 @@ import ratpack.guice.NoSuchModuleException;
 import ratpack.launch.LaunchConfig;
 import ratpack.registry.Registry;
 
-import javax.inject.Provider;
 import java.util.function.Consumer;
 
 public class DefaultGroovyBindingsSpec implements GroovyBindingsSpec {
@@ -90,7 +90,13 @@ public class DefaultGroovyBindingsSpec implements GroovyBindingsSpec {
   }
 
   @Override
-  public GroovyBindingsSpec init(Action<Injector> action) {
+  public <T> GroovyBindingsSpec provider(Class<T> publicType, Provider<? extends T> provider) {
+    delegate.provider(publicType, provider);
+    return this;
+  }
+
+  @Override
+  public GroovyBindingsSpec init(Action<? super Injector> action) {
     delegate.init(action);
     return this;
   }

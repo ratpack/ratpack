@@ -19,13 +19,13 @@ package ratpack.groovy.guice;
 import com.google.inject.Binder;
 import com.google.inject.Injector;
 import com.google.inject.Module;
+import com.google.inject.Provider;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import ratpack.func.Action;
 import ratpack.guice.BindingsSpec;
 import ratpack.guice.NoSuchModuleException;
 
-import javax.inject.Provider;
 import java.util.function.Consumer;
 
 /**
@@ -101,7 +101,14 @@ public interface GroovyBindingsSpec extends BindingsSpec {
    * {@inheritDoc}
    */
   @Override
-  GroovyBindingsSpec init(Action<Injector> action);
+  <T> GroovyBindingsSpec provider(Class<T> publicType, Provider<? extends T> provider);
+
+  /**
+   * {@inheritDoc}
+   * @param action
+   */
+  @Override
+  GroovyBindingsSpec init(Action<? super Injector> action);
 
   /**
    * {@inheritDoc}

@@ -19,10 +19,10 @@ package ratpack.guice;
 import com.google.inject.Binder;
 import com.google.inject.Injector;
 import com.google.inject.Module;
+import com.google.inject.Provider;
 import ratpack.func.Action;
 import ratpack.launch.LaunchConfig;
 
-import javax.inject.Provider;
 import java.util.function.Consumer;
 
 /**
@@ -171,6 +171,16 @@ public interface BindingsSpec {
   <T> BindingsSpec provider(Class<T> publicType, Class<? extends Provider<? extends T>> providerType);
 
   /**
+   * Add a binding for the given public type, to the given provider.
+   *
+   * @param publicType the public type of the object
+   * @param provider the provider for the object
+   * @param <T> The public type of the object
+   * @return this
+   */
+  <T> BindingsSpec provider(Class<T> publicType, Provider<? extends T> provider);
+
+  /**
    * Registers an action to operate on the injector when it has been finalized.
    * <p>
    * This can be used to do post processing of registered objects or application initialisation.
@@ -178,7 +188,7 @@ public interface BindingsSpec {
    * @param action the action to execute against the constructed injector
    * @return this
    */
-  BindingsSpec init(Action<Injector> action);
+  BindingsSpec init(Action<? super Injector> action);
 
   /**
    * Registers a runnable to instantiated via dependency injection when the injector is created from this module registry.
