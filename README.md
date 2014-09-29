@@ -1,4 +1,4 @@
-[![Codeship Status for ratpack/ratpack](https://www.codeship.io/projects/ec47dd80-f2b8-0131-9544-4a285323a758/status)](https://www.codeship.io/projects/27726)
+[![Build Status](https://snap-ci.com/ratpack/ratpack/branch/master/build_image)](https://snap-ci.com/ratpack/ratpack/branch/master)
 [![Coverage Status](https://img.shields.io/coveralls/ratpack/ratpack.svg)](https://coveralls.io/r/ratpack/ratpack)
 
 # What is Ratpack?
