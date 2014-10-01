@@ -41,15 +41,17 @@ section(id: "main") {
   article(class: "content") {
     p {
       yield 'The core of Ratpack is made up of only '
+      strong("Java 8")
+      yield ', '
       a(href: "http://netty.io", 'Netty')
       yield ', '
       a(href: "https://code.google.com/p/guava-libraries/", "Google Guava")
       yield ' and '
       a(href:"https://github.com/reactive-streams/reactive-streams", "Reactive Streams")
-      yield '. Currently, the APIs are based on Java 7 but will soon fully embrace Java 8.'
+      yield '.'
     }
     p {
-      yield 'You can write Ratpack applications in Java or any alternative JVM language that plays well with Java. Specific support for the '
+      yield 'You can write Ratpack applications in Java 8 or any alternative JVM language that plays well with Java. Specific support for the '
       a(href: "http://www.groovy-lang.org", 'Groovy')
       yield ' language is provided, utilizing the latest static compilation and typing features.'
     }
