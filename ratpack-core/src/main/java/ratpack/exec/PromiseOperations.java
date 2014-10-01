@@ -35,44 +35,23 @@ public interface PromiseOperations<T> {
   /**
    * Transforms the promised value by applying the given function to it.
    * <pre class="java">{@code
-   * import ratpack.exec.Execution;
-   * import ratpack.exec.Promise;
-   * import ratpack.func.Function;
    * import ratpack.test.UnitTest;
    * import ratpack.test.exec.ExecHarness;
    * import ratpack.test.exec.ExecResult;
    *
-   * import java.util.concurrent.Callable;
-   *
    * public class Example {
-   *
-   *   public static void main(String[] args) throws Exception {
+   *   public static void main(String... args) throws Exception {
    *     try (ExecHarness harness = UnitTest.execHarness()) {
-   *       ExecResult<String> result = harness.execute(new Function<Execution, Promise<String>>() {
-   *         public Promise<String> apply(Execution execution) throws Exception {
-   *           return execution.getControl()
-   *             .blocking(new Callable<String>() {
-   *               public String call() throws Exception {
-   *                 return "foo";
-   *               }
-   *             })
-   *             .map(new Function<String, String>() {
-   *               public String apply(String s) throws Exception {
-   *                 return s.toUpperCase();
-   *               }
-   *             })
-   *             .map(new Function<String, String>() {
-   *               public String apply(String s) throws Exception {
-   *                 return s + "-BAR";
-   *               }
-   *             });
-   *         }
-   *       });
+   *       ExecResult<String> result = harness.execute(e ->
+   *         e.getControl()
+   *           .blocking(() -> "foo")
+   *           .map(String::toUpperCase)
+   *           .map(s -> s + "-BAR")
+   *       );
    *
    *       assert result.getValue().equals("FOO-BAR");
    *     }
    *   }
-   *
    * }
    * }</pre>
    *
@@ -98,50 +77,23 @@ public interface PromiseOperations<T> {
    * <p>
    * This is useful when the transformation involves an asynchronous operation.
    * <pre class="java">{@code
-   * import ratpack.exec.ExecControl;
-   * import ratpack.exec.Execution;
-   * import ratpack.exec.Promise;
-   * import ratpack.func.Function;
    * import ratpack.test.UnitTest;
    * import ratpack.test.exec.ExecHarness;
    * import ratpack.test.exec.ExecResult;
    *
-   * import java.util.concurrent.Callable;
-   *
    * public class Example {
-   *
    *   public static void main(String[] args) throws Exception {
    *     try (ExecHarness harness = UnitTest.execHarness()) {
-   *       ExecResult<String> result = harness.execute(new Function<Execution, Promise<String>>() {
-   *         public Promise<String> apply(Execution execution) throws Exception {
-   *           final ExecControl control = execution.getControl();
-   *           return control
-   *             .blocking(new Callable<String>() {
-   *               public String call() throws Exception {
-   *                 return "foo";
-   *               }
-   *             })
-   *             .flatMap(new Function<String, Promise<String>>() {
-   *               public Promise<String> apply(final String s) throws Exception {
-   *                 return control.blocking(new Callable<String>() {
-   *                   public String call() throws Exception {
-   *                     return s.toUpperCase();
-   *                   }
-   *                 });
-   *               }
-   *             })
-   *             .map(new Function<String, String>() {
-   *               public String apply(String s) throws Exception {
-   *                 return s + "-BAR";
-   *               }
-   *             });
-   *         }
-   *       });
+   *       ExecResult<String> result = harness.execute(e ->
+   *         e.getControl()
+   *           .blocking(() -> "foo")
+   *           .flatMap(s -> e.getControl().blocking(() -> s.toUpperCase()))
+   *           .map(s -> s + "-BAR")
+   *       );
    *
    *       assert result.getValue().equals("FOO-BAR");
    *     }
    *   }
-   *
    * }
    * }</pre>
    * <p>
