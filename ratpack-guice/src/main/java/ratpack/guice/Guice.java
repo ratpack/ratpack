@@ -248,15 +248,7 @@ public abstract class Guice {
     return from -> from == null ? createInjector(stage) : createInjector(stage, from);
   }
 
-  /**
-   * Creates a transformer that can build an injector from a module, as a child of the given parent.
-   * <p>
-   * The module given to the {@code transform()} method may be {@code null}.
-   *
-   * @param parent The parent injector
-   * @return a transformer that can build an injector from a module, as a child of the given parent.
-   */
-  public static Function<Module, Injector> childInjectorFactory(final Injector parent) {
+  private static Function<Module, Injector> childInjectorFactory(final Injector parent) {
     return from -> from == null ? parent.createChildInjector() : parent.createChildInjector(from);
   }
 
