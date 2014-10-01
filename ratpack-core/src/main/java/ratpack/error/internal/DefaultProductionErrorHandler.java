@@ -28,14 +28,23 @@ public class DefaultProductionErrorHandler implements ErrorHandler {
 
   @Override
   public void error(Context context, int statusCode) throws Exception {
-    LOGGER.warn("Default production error handler used to render client error, please add a " + ClientErrorHandler.class.getName() + " instance to your application.");
+    if (LOGGER.isWarnEnabled()) {
+      LOGGER.warn(getMsg(ClientErrorHandler.class, "client error", context));
+    }
     context.getResponse().status(statusCode).send();
   }
 
   @Override
   public void error(Context context, Throwable throwable) throws Exception {
-    LOGGER.warn("Default production error handler used to render server error, please add a " + ServerErrorHandler.class.getName() + " instance to your application.", throwable);
+    if (LOGGER.isWarnEnabled()) {
+      LOGGER.warn(getMsg(ServerErrorHandler.class, "server error", context) + "\n", throwable);
+    }
     context.getResponse().status(500).send();
+  }
+
+  private String getMsg(Class<?> handlerClass, String type, Context context) {
+    return "Default production error handler used to render " + type + ", please add a " + handlerClass.getName() + " instance to your application "
+      + "(method: " + context.getRequest().getMethod() + ", uri: " + context.getRequest().getRawUri() + ")";
   }
 
 }
