@@ -21,6 +21,7 @@ import com.netflix.hystrix.HystrixCommandGroupKey
 import com.netflix.hystrix.HystrixCommandMetrics
 import com.netflix.hystrix.HystrixThreadPoolMetrics
 import groovy.json.JsonSlurper
+import groovy.transform.CompileStatic
 import io.netty.util.CharsetUtil
 import ratpack.rx.RxRatpack
 import ratpack.test.internal.RatpackGroovyDslSpec
@@ -35,6 +36,7 @@ class HystrixMetricsStreamingSpec extends RatpackGroovyDslSpec {
     HystrixThreadPoolMetrics.metrics.clear()
   }
 
+  @CompileStatic
   static class FooCommand extends HystrixCommand<String> {
 
     protected FooCommand() {
