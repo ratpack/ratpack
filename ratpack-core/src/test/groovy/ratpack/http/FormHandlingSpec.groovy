@@ -38,7 +38,7 @@ class FormHandlingSpec extends RatpackGroovyDslSpec {
 
   def setup() {
     bindings {
-      bind ServerErrorHandler, new DefaultDevelopmentErrorHandler()
+      bindInstance ServerErrorHandler, new DefaultDevelopmentErrorHandler()
     }
   }
 

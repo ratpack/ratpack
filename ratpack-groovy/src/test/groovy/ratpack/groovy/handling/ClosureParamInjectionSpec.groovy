@@ -27,7 +27,7 @@ class ClosureParamInjectionSpec extends RatpackGroovyDslSpec {
     file "templates/foo.html", "bar"
 
     bindings {
-      bind new Thing()
+      bindInstance new Thing()
     }
 
     handlers { Thing thing ->
@@ -59,8 +59,8 @@ class ClosureParamInjectionSpec extends RatpackGroovyDslSpec {
   def "context scope shadows request scope for handlers"() {
     when:
     bindings {
-      bind "bar"
-      bind new Thing()
+      bindInstance "bar"
+      bindInstance new Thing()
     }
 
     handlers {

@@ -72,20 +72,20 @@ public class DefaultGroovyBindingsSpec implements GroovyBindingsSpec {
   }
 
   @Override
-  public <T> GroovyBindingsSpec bind(Class<? super T> publicType, T instance) {
-    delegate.bind(publicType, instance);
+  public <T> GroovyBindingsSpec bindInstance(Class<? super T> publicType, T instance) {
+    delegate.bindInstance(publicType, instance);
     return this;
   }
 
   @Override
-  public <T> GroovyBindingsSpec bind(T instance) {
-    delegate.bind(instance);
+  public <T> GroovyBindingsSpec bindInstance(T instance) {
+    delegate.bindInstance(instance);
     return this;
   }
 
   @Override
-  public <T> GroovyBindingsSpec provider(Class<T> publicType, Class<? extends Provider<? extends T>> providerType) {
-    delegate.provider(publicType, providerType);
+  public <T> GroovyBindingsSpec providerType(Class<T> publicType, Class<? extends Provider<? extends T>> providerType) {
+    delegate.providerType(publicType, providerType);
     return this;
   }
 
@@ -114,8 +114,8 @@ public class DefaultGroovyBindingsSpec implements GroovyBindingsSpec {
   }
 
   @Override
-  public GroovyBindingsSpec bindings(Action<? super Binder> action) {
-    delegate.bindings(action);
+  public GroovyBindingsSpec binder(Action<? super Binder> action) {
+    delegate.binder(action);
     return this;
   }
 

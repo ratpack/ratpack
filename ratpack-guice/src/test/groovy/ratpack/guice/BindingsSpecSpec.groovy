@@ -49,7 +49,7 @@ class BindingsSpecSpec extends RatpackGroovyDslSpec {
       // direct bindings always override module bindings
       bind SomeType
       bind Type1, Type1Impl2
-      provider Type2, Type2Provider
+      providerType Type2, Type2Provider
 
       // regardless of module registration order
       add new AbstractModule() {

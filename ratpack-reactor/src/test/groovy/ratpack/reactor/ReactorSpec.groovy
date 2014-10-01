@@ -29,8 +29,8 @@ class ReactorSpec extends RatpackGroovyDslSpec {
     when:
     bindings {
       def env = new Environment()
-      bind env
-      bind Reactor, env.rootReactor
+      bindInstance env
+      bindInstance Reactor, env.rootReactor
     }
 
     handlers {

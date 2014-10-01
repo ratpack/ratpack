@@ -29,7 +29,7 @@ class SessionSpec extends RatpackGroovyDslSpec {
     modules << new SessionModule()
     modules << new MapSessionsModule(10, 5)
     bindings {
-      bind ServerErrorHandler, new DefaultDevelopmentErrorHandler()
+      bindInstance ServerErrorHandler, new DefaultDevelopmentErrorHandler()
     }
   }
 

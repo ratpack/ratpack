@@ -114,8 +114,8 @@ class ExecInterceptionSpec extends RatpackGroovyDslSpec {
   def "intercepted handlers can throw exceptions"() {
     given:
     bindings {
-      bind new RecordingInterceptor("id") // just need any interceptor
-      bind ServerErrorHandler, new DefaultDevelopmentErrorHandler()
+      bindInstance new RecordingInterceptor("id") // just need any interceptor
+      bindInstance ServerErrorHandler, new DefaultDevelopmentErrorHandler()
     }
 
     when:

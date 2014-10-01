@@ -50,34 +50,34 @@ class DefaultBindingsSpec implements BindingsSpec {
 
   @Override
   public BindingsSpec bind(final Class<?> type) {
-    return bindings(binder -> binder.bind(type));
+    return binder(binder -> binder.bind(type));
   }
 
   @Override
   public <T> BindingsSpec bind(final Class<T> publicType, final Class<? extends T> implType) {
-    return bindings(binder -> binder.bind(publicType).to(implType));
+    return binder(binder -> binder.bind(publicType).to(implType));
   }
 
   @Override
-  public <T> BindingsSpec bind(final Class<? super T> publicType, final T instance) {
-    return bindings(binder -> binder.bind(publicType).toInstance(instance));
+  public <T> BindingsSpec bindInstance(final Class<? super T> publicType, final T instance) {
+    return binder(binder -> binder.bind(publicType).toInstance(instance));
   }
 
   @Override
-  public <T> BindingsSpec bind(final T instance) {
+  public <T> BindingsSpec bindInstance(final T instance) {
     @SuppressWarnings("unchecked") final
     Class<T> type = (Class<T>) instance.getClass();
-    return bindings(binder -> binder.bind(type).toInstance(instance));
+    return binder(binder -> binder.bind(type).toInstance(instance));
   }
 
   @Override
-  public <T> BindingsSpec provider(final Class<T> publicType, final Class<? extends Provider<? extends T>> providerType) {
-    return bindings(binder -> binder.bind(publicType).toProvider(providerType));
+  public <T> BindingsSpec providerType(final Class<T> publicType, final Class<? extends Provider<? extends T>> providerType) {
+    return binder(binder -> binder.bind(publicType).toProvider(providerType));
   }
 
   @Override
   public <T> BindingsSpec provider(Class<T> publicType, Provider<? extends T> provider) {
-    return bindings(b -> b.bind(publicType).toProvider(provider));
+    return binder(b -> b.bind(publicType).toProvider(provider));
   }
 
   @Override
@@ -101,7 +101,7 @@ class DefaultBindingsSpec implements BindingsSpec {
   }
 
   @Override
-  public BindingsSpec bindings(Action<? super Binder> action) {
+  public BindingsSpec binder(Action<? super Binder> action) {
     binderActions.add(action);
     return this;
   }

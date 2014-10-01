@@ -45,7 +45,7 @@ class GuiceParentInjectorSpec extends RatpackGroovyDslSpec {
   def "objects from parent are available"() {
     when:
     bindings {
-      bind ServiceTwo, new ServiceTwo(name: "child")
+      bindInstance ServiceTwo, new ServiceTwo(name: "child")
     }
     handlers {
       get { ServiceOne one, ServiceTwo two ->
@@ -60,7 +60,7 @@ class GuiceParentInjectorSpec extends RatpackGroovyDslSpec {
   def "fails to override parent binding"() {
     when:
     bindings {
-      bind ServiceOne, new ServiceOne(name: "child")
+      bindInstance ServiceOne, new ServiceOne(name: "child")
     }
     handlers {
       get { ServiceOne one ->

@@ -55,7 +55,7 @@ class RenderingSpec extends RatpackGroovyDslSpec {
   def "can use available renderers"() {
     when:
     bindings {
-      bind ServerErrorHandler, new DefaultDevelopmentErrorHandler()
+      bindInstance ServerErrorHandler, new DefaultDevelopmentErrorHandler()
     }
     handlers {
       register(Registries.just(new ThingRenderer())) {

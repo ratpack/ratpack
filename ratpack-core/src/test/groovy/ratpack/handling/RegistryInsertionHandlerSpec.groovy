@@ -28,7 +28,7 @@ class RegistryInsertionHandlerSpec extends RatpackGroovyDslSpec {
 
   def setup() {
     bindings {
-      bind ServerErrorHandler, new SimpleErrorHandler()
+      bindInstance ServerErrorHandler, new SimpleErrorHandler()
     }
   }
 

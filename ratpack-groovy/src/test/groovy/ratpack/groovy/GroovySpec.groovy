@@ -71,7 +71,7 @@ class GroovySpec extends RatpackGroovyDslSpec {
     }
 
     bindings {
-      bind ServerErrorHandler, new DefaultDevelopmentErrorHandler()
+      bindInstance ServerErrorHandler, new DefaultDevelopmentErrorHandler()
     }
 
     when:

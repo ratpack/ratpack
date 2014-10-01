@@ -51,7 +51,7 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
   def setup() {
     RxRatpack.initialize()
     bindings {
-      bind ServerErrorHandler, errorHandler
+      bindInstance ServerErrorHandler, errorHandler
     }
   }
 
@@ -261,7 +261,7 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
     when:
     def app1 = GroovyEmbeddedApp.build {
       bindings {
-        bind ServerErrorHandler, new ServerErrorHandler() {
+        bindInstance ServerErrorHandler, new ServerErrorHandler() {
           @Override
           void error(Context context, Throwable throwable) throws Exception {
             context.render "app1"
@@ -274,7 +274,7 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
     }
     def app2 = GroovyEmbeddedApp.build {
       bindings {
-        bind ServerErrorHandler, new ServerErrorHandler() {
+        bindInstance ServerErrorHandler, new ServerErrorHandler() {
           @Override
           void error(Context context, Throwable throwable) throws Exception {
             context.render "app2"

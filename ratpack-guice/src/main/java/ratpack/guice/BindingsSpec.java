@@ -121,7 +121,7 @@ public interface BindingsSpec {
    * @param action the binder configuration
    * @return this
    */
-  BindingsSpec bindings(Action<? super Binder> action);
+  BindingsSpec binder(Action<? super Binder> action);
 
   /**
    * Add a binding for the given type.
@@ -149,7 +149,7 @@ public interface BindingsSpec {
    * @param <T> the public type of the binding
    * @return this
    */
-  <T> BindingsSpec bind(Class<? super T> publicType, T instance);
+  <T> BindingsSpec bindInstance(Class<? super T> publicType, T instance);
 
   /**
    * Add a binding for the given object to its concrete type.
@@ -158,17 +158,7 @@ public interface BindingsSpec {
    * @param <T> the type of the binding
    * @return this
    */
-  <T> BindingsSpec bind(T instance);
-
-  /**
-   * Add a binding for the given public type, to the given provider type.
-   *
-   * @param publicType the public type of the object
-   * @param providerType the type of the provider for the object
-   * @param <T> The public type of the object
-   * @return this
-   */
-  <T> BindingsSpec provider(Class<T> publicType, Class<? extends Provider<? extends T>> providerType);
+  <T> BindingsSpec bindInstance(T instance);
 
   /**
    * Add a binding for the given public type, to the given provider.
@@ -179,6 +169,16 @@ public interface BindingsSpec {
    * @return this
    */
   <T> BindingsSpec provider(Class<T> publicType, Provider<? extends T> provider);
+
+  /**
+   * Add a binding for the given public type, to the given provider type.
+   *
+   * @param publicType the public type of the object
+   * @param providerType the type of the provider for the object
+   * @param <T> The public type of the object
+   * @return this
+   */
+  <T> BindingsSpec providerType(Class<T> publicType, Class<? extends Provider<? extends T>> providerType);
 
   /**
    * Registers an action to operate on the injector when it has been finalized.

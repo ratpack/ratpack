@@ -65,7 +65,7 @@ public interface GroovyBindingsSpec extends BindingsSpec {
    * {@inheritDoc}
    */
   @Override
-  GroovyBindingsSpec bindings(Action<? super Binder> action);
+  GroovyBindingsSpec binder(Action<? super Binder> action);
 
   /**
    * {@inheritDoc}
@@ -83,19 +83,19 @@ public interface GroovyBindingsSpec extends BindingsSpec {
    * {@inheritDoc}
    */
   @Override
-  <T> GroovyBindingsSpec bind(Class<? super T> publicType, T instance);
+  <T> GroovyBindingsSpec bindInstance(Class<? super T> publicType, T instance);
 
   /**
    * {@inheritDoc}
    */
   @Override
-  <T> GroovyBindingsSpec bind(T instance);
+  <T> GroovyBindingsSpec bindInstance(T instance);
 
   /**
    * {@inheritDoc}
    */
   @Override
-  <T> GroovyBindingsSpec provider(Class<T> publicType, Class<? extends Provider<? extends T>> providerType);
+  <T> GroovyBindingsSpec providerType(Class<T> publicType, Class<? extends Provider<? extends T>> providerType);
 
   /**
    * {@inheritDoc}
