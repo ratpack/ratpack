@@ -23,30 +23,43 @@ import ratpack.handling.Context;
  * A {@link Renderer} super class that provides a {@link #getType()} implementation based on the generic type of the impl.
  * <p>
  * Implementations need only to declare the type they render as the value for type variable {@code T} and implement {@link #render(ratpack.handling.Context, Object)}.
- * <pre class="tested">
+ * <pre class="java">{@code
  * import ratpack.handling.Context;
  * import ratpack.render.RendererSupport;
+ * import ratpack.test.embed.EmbeddedApp;
  *
- * // A type of thing to be rendered
- * public class Thing {
- *   private final String name;
+ * public class Example {
  *
- *   public Thing(String name) {
- *     this.name = name;
+ *   // A type of thing to be rendered
+ *   static class Thing {
+ *     private final String name;
+ *
+ *     public Thing(String name) {
+ *       this.name = name;
+ *     }
+ *
+ *     public String getName() {
+ *       return this.name;
+ *     }
  *   }
  *
- *   public String getName() {
- *     return this.name;
+ *   // Renderer implementation
+ *   public static class ThingRenderer extends RendererSupport<Thing> {
+ *     public void render(Context context, Thing thing) {
+ *       context.render("Thing: " + thing.getName());
+ *     }
+ *   }
+ *
+ *   public static void main(String... args) {
+ *     EmbeddedApp.fromChain(c -> c
+ *       .register(r -> r.add(new ThingRenderer()))
+ *       .handler(ctx -> ctx.render(new Thing("foo")))
+ *     ).test(httpClient -> {
+ *       assert httpClient.getText().equals("Thing: foo");
+ *     });
  *   }
  * }
- *
- * // Renderer implementation
- * public class ThingRenderer extends RendererSupport&lt;Thing&gt; {
- *   public void render(Context context, Thing thing) {
- *     context.render("Thing: " + thing.getName());
- *   }
- * }
- * </pre>
+ * }</pre>
  *
  * @param <T> The type of object this renderer renders
  */
