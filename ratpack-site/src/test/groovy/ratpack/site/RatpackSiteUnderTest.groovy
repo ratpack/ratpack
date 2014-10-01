@@ -51,7 +51,8 @@ class RatpackSiteUnderTest extends LocalScriptApplicationUnderTest {
       data.released.add(new RatpackVersion("0.9.6", 7, "foo", new Date(), true))
       data.released.add(new RatpackVersion("0.9.7", 8, "foo", new Date(), true))
       data.released.add(new RatpackVersion("0.9.8", 9, "foo", new Date(), true))
-      data.unreleased.add(new RatpackVersion("0.9.9", 10, "foo", new Date(), false))
+      data.released.add(new RatpackVersion("0.9.9", 10, "foo", new Date(), true))
+      data.unreleased.add(new RatpackVersion("0.9.10", 11, "foo", new Date(), false))
       add(GitHubData, data)
       add(new RatpackVersions(data, get(ExecControl)))
     }
