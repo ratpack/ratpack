@@ -272,7 +272,7 @@ runShadow {
 ## Class reloading via SpringLoaded
 
 With a little extra configuration, you can enable reloading of changed classes at development time without restarting the server.
-This is achieved by leveraging [SpringLoaded, by Pivotal Labs](https://github.com/spring-projects/spring-loaded).
+This is achieved by leveraging [SpringLoaded, by Pivotal](https://github.com/spring-projects/spring-loaded).
 To use SpringLoaded in your Ratpack project, you need to add a dependency on the SpringLoaded agent.
 
 ```language-groovy gradle
@@ -289,11 +289,11 @@ apply plugin: "io.ratpack.ratpack-java"
 
 repositories {
   jcenter()
-  maven { url "http://repo.springsource.org/repo" } // for springloaded
+  maven { url "https://repo.spring.io/repo" } // for springloaded
 }
 
 dependencies {
-  springloaded "org.springsource.loaded:springloaded:1.1.5.RELEASE"
+  springloaded "org.springframework:springloaded:1.2.1.RELEASE"
 }
 ```
 
