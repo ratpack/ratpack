@@ -41,7 +41,7 @@ apply plugin: "geb-saucelabs"
 apply plugin: 'com.github.johnrengelman.shadow'
 
 repositories {
-  maven { url "http://repo.springsource.org/repo" } // for springloaded
+  maven { url "https://repo.spring.io/repo" } // for springloaded
   maven { url "http://repo.gradle.org/gradle/javascript-public/" } // for coffeescript plugin
   maven { url "http://repository-saucelabs.forge.cloudbees.com/release" }
 }
@@ -79,7 +79,7 @@ sourceSets {
 }
 
 dependencies {
-  springloaded "org.springframework:springloaded:1.2.0.RELEASE"
+  springloaded "org.springframework:springloaded:1.2.1.RELEASE"
   compile project(":ratpack-groovy")
   compile project(":ratpack-codahale-metrics")
   compile project(":ratpack-jackson")
