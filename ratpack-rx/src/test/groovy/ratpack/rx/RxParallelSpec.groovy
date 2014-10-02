@@ -44,9 +44,9 @@ class RxParallelSpec extends Specification {
     def received = [].asSynchronized()
 
     when:
-    controller.control.fork {
+    controller.control.exec().start {
       rx.Observable.from((0..9).toList())
-        .parallel { it.map { received << it; latch.countDown() it } }
+        .parallel { it.map { received << it; latch.countDown() } }
         .subscribe()
     }
     latch.await(2, TimeUnit.SECONDS)
@@ -56,7 +56,8 @@ class RxParallelSpec extends Specification {
     received.sort() == (0..9).toList()
   }
 
-  @Ignore // unstable
+  @Ignore
+  // unstable
   def "when using scheduler can use ratpack async api"() {
     given:
     def barrier = new CyclicBarrier(11)
@@ -87,8 +88,9 @@ class RxParallelSpec extends Specification {
     List<Integer> nums = []
 
     when:
-    controller.control.fork({
-
+    controller.control.exec()
+      .onComplete { latch.countDown() }
+      .start {
       def o = rx.Observable.from(1, 2, 3, 4, 5)
         .parallel {
         it.flatMap { n ->
@@ -103,11 +105,7 @@ class RxParallelSpec extends Specification {
       RxRatpack.forkAndJoin(it.control, o).toList().subscribe {
         nums = it
       }
-    }, {
-
-    }, {
-      latch.countDown()
-    })
+    }
 
     then:
     latch.await()
