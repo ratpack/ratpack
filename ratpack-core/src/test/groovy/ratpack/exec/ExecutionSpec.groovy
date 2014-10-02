@@ -41,12 +41,12 @@ class ExecutionSpec extends Specification {
   }
 
   def exec(Action<? super ExecControl> action, Action<? super Throwable> onError = Action.noop()) {
-    controller.control.fork({
-      action.execute(it.control)
-    }, onError, {
+    controller.control.exec().onError(onError).onComplete {
       events << "complete"
       latch.countDown()
-    })
+    } start {
+      action.execute(it.control)
+    }
     latch.await()
   }
 
@@ -59,7 +59,7 @@ class ExecutionSpec extends Specification {
     exec({ e ->
       e.promise { f ->
         events << "action"
-        e.fork {
+        e.exec().start {
           f.success(1)
         }
       } then {
@@ -161,13 +161,13 @@ class ExecutionSpec extends Specification {
 
     exec { control ->
       def p = control.promise { f ->
-        control.fork {
+        control.exec().start {
           f.success(2)
         }
       }
 
       control.execution.onCleanup {
-        control.fork { e2 ->
+        control.exec().start { e2 ->
           p.then {
             assert control.execution == e2
             events << "then"
@@ -290,7 +290,7 @@ class ExecutionSpec extends Specification {
       { it.blockingMap { throw new UnsupportedOperationException() } },
       { it.onNull { throw new UnsupportedOperationException() } },
       { it.flatMap { throw new UnsupportedOperationException() } },
-      { it.route({ throw new UnsupportedOperationException() }) { } },
+      { it.route({ throw new UnsupportedOperationException() }) {} },
     ]
   }
 
@@ -316,7 +316,7 @@ class ExecutionSpec extends Specification {
       { it.blockingMap { throw new UnsupportedOperationException() } },
       { it.onNull { throw new UnsupportedOperationException() } },
       { it.flatMap { throw new UnsupportedOperationException() } },
-      { it.route({ throw new UnsupportedOperationException() }) { } },
+      { it.route({ throw new UnsupportedOperationException() }) {} },
     ]
   }
 

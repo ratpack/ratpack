@@ -83,17 +83,4 @@ public interface RegistryBuilder extends RegistrySpec {
    */
   Registry build();
 
-  /**
-   * Builds a registry containing the entries specified by this builder and the given “parent” registry.
-   * <p>
-   * This method uses {@link Registries#join(Registry, Registry)}, with this registry as the child argument.
-   *
-   * @param parent the parent of the registry to create
-   * @return a newly created registry
-   * @see Registries#join(Registry, Registry)
-   */
-  default Registry build(Registry parent) {
-    return Registries.join(parent, build());
-  }
-
 }

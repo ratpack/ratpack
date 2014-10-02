@@ -48,7 +48,6 @@ import ratpack.path.PathBinding;
 import ratpack.path.PathTokens;
 import ratpack.path.internal.DefaultPathTokens;
 import ratpack.registry.NotInRegistryException;
-import ratpack.registry.Registries;
 import ratpack.registry.Registry;
 import ratpack.render.NoSuchRendererException;
 import ratpack.render.internal.RenderController;
@@ -145,11 +144,10 @@ public class DefaultContext implements Context {
     DefaultContext context = new DefaultContext(requestConstants);
     requestConstants.context = context;
 
-    execControl.fork(
-      execution -> context.next(),
-      throwable -> requestConstants.context.error(throwable instanceof HandlerException ? throwable.getCause() : throwable),
-      onComplete
-    );
+    execControl.exec()
+      .onError(throwable -> requestConstants.context.error(throwable instanceof HandlerException ? throwable.getCause() : throwable))
+      .onComplete(onComplete)
+      .start(e -> context.next());
   }
 
   public DefaultContext(RequestConstants requestConstants) {
@@ -190,18 +188,8 @@ public class DefaultContext implements Context {
   }
 
   @Override
-  public void fork(Action<? super Execution> action) {
-    requestConstants.applicationConstants.execControl.fork(action);
-  }
-
-  @Override
-  public void fork(Action<? super Execution> action, Action<? super Throwable> onError) {
-    requestConstants.applicationConstants.execControl.fork(action, onError);
-  }
-
-  @Override
-  public void fork(Action<? super Execution> action, Action<? super Throwable> onError, Action<? super Execution> onComplete) {
-    requestConstants.applicationConstants.execControl.fork(action, onError, onComplete);
+  public ExecStarter exec() {
+    return requestConstants.applicationConstants.execControl.exec();
   }
 
   @Override
@@ -261,8 +249,7 @@ public class DefaultContext implements Context {
 
   @Override
   public void next(Registry registry) {
-    Registry joinedRegistry = Registries.join(getRegistry(), registry);
-    setRegistry(joinedRegistry);
+    setRegistry(getRegistry().join(registry));
     next();
   }
 
@@ -280,8 +267,7 @@ public class DefaultContext implements Context {
       throw new IllegalArgumentException("handlers is zero length");
     }
 
-    final Registry joinedRegistry = Registries.join(getRegistry(), registry);
-    requestConstants.indexes.add(new ChainIndex(handlers, joinedRegistry, false));
+    requestConstants.indexes.add(new ChainIndex(handlers, getRegistry().join(registry), false));
     next();
   }
 

@@ -20,6 +20,7 @@ import com.google.common.base.Predicate;
 import com.google.common.reflect.TypeToken;
 import ratpack.api.Nullable;
 import ratpack.func.Action;
+import ratpack.registry.internal.HierarchicalRegistry;
 
 /**
  * An object registry.
@@ -178,4 +179,56 @@ public interface Registry {
    */
   <T> boolean each(TypeToken<T> type, Predicate<? super T> predicate, Action<? super T> action) throws Exception;
 
+  /**
+   * Creates a new registry by joining {@code this} registry with the given registry
+   * <p>
+   * The returned registry is effectively the union of the two registries, with the {@code child} registry taking precedence.
+   * This means that child entries are effectively “returned first”.
+   * <pre class="java">
+   * import ratpack.registry.Registry;
+   *
+   * import static ratpack.registry.Registries.registry;
+   *
+   * import java.util.List;
+   * import com.google.common.collect.Lists;
+   *
+   * public class Example {
+   *
+   *   public static interface Thing {
+   *     String getName();
+   *   }
+   *
+   *   public static class ThingImpl implements Thing {
+   *     private final String name;
+   *
+   *     public ThingImpl(String name) {
+   *       this.name = name;
+   *     }
+   *
+   *     public String getName() {
+   *       return name;
+   *     }
+   *   }
+   *
+   *   public static void main(String[] args) {
+   *     Registry child = registry().add(Thing.class, new ThingImpl("child-1")).add(Thing.class, new ThingImpl("child-2")).build();
+   *     Registry parent = registry().add(Thing.class, new ThingImpl("parent-1")).add(Thing.class, new ThingImpl("parent-2")).build();
+   *     Registry joined = parent.join(child);
+   *
+   *     assert joined.get(Thing.class).getName() == "child-1";
+   *     List&lt;Thing&gt; all = Lists.newArrayList(joined.getAll(Thing.class));
+   *     assert all.get(0).getName() == "child-1";
+   *     assert all.get(1).getName() == "child-2";
+   *     assert all.get(2).getName() == "parent-1";
+   *     assert all.get(3).getName() == "parent-2";
+   *   }
+   * }
+   * </pre>
+   *
+   * @param child the child registry
+   * @return a registry which is the combination of the {@code this} and the given child
+   */
+  default Registry join(Registry child) {
+    return new HierarchicalRegistry(this, child);
+  }
 }

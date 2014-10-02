@@ -33,7 +33,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ExecutionBacking {
 
-  private final static Logger LOGGER = LoggerFactory.getLogger(ExecutionBacking.class);
+  final static Logger LOGGER = LoggerFactory.getLogger(Execution.class);
 
   private final List<ExecInterceptor> interceptors = new LinkedList<>();
   private final List<AutoCloseable> closeables = new LinkedList<>();

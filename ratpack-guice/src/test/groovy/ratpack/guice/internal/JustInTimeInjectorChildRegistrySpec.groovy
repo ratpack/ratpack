@@ -32,7 +32,7 @@ class JustInTimeInjectorChildRegistrySpec extends Specification {
     def launchConfig = Mock(LaunchConfig)
     def parent = Registries.just(LaunchConfig, launchConfig)
     def injector = Guice.createInjector()
-    def registry = Registries.join(parent, justInTimeRegistry(injector))
+    def registry = parent.join(justInTimeRegistry(injector))
 
     then:
     registry.get(Thing) instanceof Thing

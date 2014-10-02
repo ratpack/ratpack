@@ -16,19 +16,29 @@
 
 package ratpack.exec.internal;
 
+import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import org.slf4j.Logger;
 import ratpack.exec.*;
 import ratpack.func.Action;
+import ratpack.registry.RegistrySpec;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.Callable;
 
+import static ratpack.func.Action.noop;
+
 public class DefaultExecControl implements ExecControl {
+
+  private static final Logger LOGGER = ExecutionBacking.LOGGER;
+  private static final Action<Throwable> LOG_UNCAUGHT = t -> LOGGER.error("Uncaught execution exception", t);
+  private static final int MAX_ERRORS_THRESHOLD = 5;
 
   private final ExecController execController;
   private final ThreadLocal<ExecutionBacking> threadBinding = new ThreadLocal<>();
@@ -74,27 +84,54 @@ public class DefaultExecControl implements ExecControl {
   }
 
   @Override
+  public ExecStarter exec() {
+    return new ExecStarter() {
+      private Action<? super Throwable> onError = LOG_UNCAUGHT;
+      private Action<? super Execution> onComplete = noop();
+      private Action<? super RegistrySpec> registry;
+
+      @Override
+      public ExecStarter onError(Action<? super Throwable> onError) {
+        List<Throwable> seen = Lists.newLinkedList();
+        this.onError = t -> {
+          if (seen.size() < MAX_ERRORS_THRESHOLD) {
+            seen.add(t);
+            onError.execute(t);
+          } else {
+            seen.forEach(t::addSuppressed);
+            LOGGER.error("Error handler " + onError + "reached maximum error threshold (might be caught in an error loop)", t);
+          }
+        };
+        return this;
+      }
+
+      @Override
+      public ExecStarter onComplete(Action<? super Execution> onComplete) {
+        this.onComplete = onComplete;
+        return this;
+      }
+
+      @Override
+      public ExecStarter register(Action<? super RegistrySpec> registry) {
+        this.registry = registry;
+        return this;
+      }
+
+      @Override
+      public void start(Action<? super Execution> action) {
+        Action<? super Execution> effectiveAction = registry == null ? action : Action.join(registry, action);
+        if (execController.isManagedThread() && threadBinding.get() == null) {
+          new ExecutionBacking(execController, threadBinding, effectiveAction, onError, onComplete);
+        } else {
+          execController.getExecutor().submit(() -> new ExecutionBacking(execController, threadBinding, effectiveAction, onError, onComplete));
+        }
+      }
+    };
+  }
+
+  @Override
   public <T> Promise<T> promise(Action<? super Fulfiller<T>> action) {
     return new DefaultPromise<>(this::getBacking, action);
-  }
-
-  @Override
-  public void fork(Action<? super Execution> action) {
-    fork(action, Action.throwException(), Action.noop());
-  }
-
-  @Override
-  public void fork(Action<? super Execution> action, Action<? super Throwable> onError) {
-    fork(action, onError, Action.noop());
-  }
-
-  @Override
-  public void fork(final Action<? super Execution> action, final Action<? super Throwable> onError, final Action<? super Execution> onComplete) {
-    if (execController.isManagedThread() && threadBinding.get() == null) {
-      new ExecutionBacking(execController, threadBinding, action, onError, onComplete);
-    } else {
-      execController.getExecutor().submit(() -> new ExecutionBacking(execController, threadBinding, action, onError, onComplete));
-    }
   }
 
   @Override

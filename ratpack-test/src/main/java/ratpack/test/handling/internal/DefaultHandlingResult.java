@@ -110,7 +110,8 @@ public class DefaultHandlingResult implements HandlingResult {
     final Registry userRegistry = Registries.registry().
       add(ClientErrorHandler.class, clientErrorHandler).
       add(ServerErrorHandler.class, serverErrorHandler).
-      build(registry);
+      build()
+      .join(registry);
 
     final RenderController renderController = (object, context) -> {
       rendered = object;
@@ -147,7 +148,7 @@ public class DefaultHandlingResult implements HandlingResult {
 
     ExecControl execControl = launchConfig.getExecController().getControl();
     Registry baseRegistry = NettyHandlerAdapter.buildBaseRegistry(stopper, launchConfig);
-    Registry effectiveRegistry = Registries.join(baseRegistry, userRegistry);
+    Registry effectiveRegistry = baseRegistry.join(userRegistry);
     Response response = new DefaultResponse(execControl, responseHeaders, launchConfig.getBufferAllocator(), responseTransmitter);
     DefaultContext.ApplicationConstants applicationConstants = new DefaultContext.ApplicationConstants(launchConfig, renderController, next);
     requestConstants = new DefaultContext.RequestConstants(
