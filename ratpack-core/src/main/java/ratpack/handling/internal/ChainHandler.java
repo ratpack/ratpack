@@ -45,4 +45,7 @@ public class ChainHandler implements Handler {
     context.insert(handlers);
   }
 
+  public Handler[] getHandlers() {
+    return handlers;
+  }
 }

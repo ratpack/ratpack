@@ -57,9 +57,7 @@ import ratpack.util.ExceptionUtils;
 
 import java.lang.reflect.UndeclaredThrowableException;
 import java.nio.file.Path;
-import java.util.Date;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.Callable;
 
 import static com.google.common.base.Throwables.getStackTraceAsString;
@@ -69,7 +67,6 @@ import static io.netty.handler.codec.http.HttpResponseStatus.NOT_MODIFIED;
 public class DefaultContext implements Context {
 
   private static final TypeToken<Parser<?>> PARSER_TYPE_TOKEN = new TypeToken<Parser<?>>() {
-    private static final long serialVersionUID = 0;
   };
 
   private final static Logger LOGGER = LoggerFactory.getLogger(DefaultContext.class);
@@ -98,6 +95,8 @@ public class DefaultContext implements Context {
     private final DirectChannelAccess directChannelAccess;
     private final EventRegistry<RequestOutcome> onCloseRegistry;
 
+    private final Stack<ChainIndex> indexes = new Stack<>();
+
     public Context context;
     public Handler handler;
 
@@ -112,34 +111,57 @@ public class DefaultContext implements Context {
       this.directChannelAccess = directChannelAccess;
       this.onCloseRegistry = onCloseRegistry;
     }
+
+  }
+
+  private static class ChainIndex implements Iterator<Handler> {
+    final Handler[] handlers;
+    Registry registry;
+    final boolean first;
+    int i;
+
+    private ChainIndex(Handler[] handlers, Registry registry, boolean first) {
+      this.handlers = handlers;
+      this.registry = registry;
+      this.first = first;
+    }
+
+    public Handler next() {
+      return handlers[i++];
+    }
+
+    @Override
+    public boolean hasNext() {
+      return i < handlers.length;
+    }
   }
 
   private final RequestConstants requestConstants;
 
-  private final Registry registry;
-
-  private final Handler[] nextHandlers;
-  private final int nextIndex;
-  private final Handler exhausted;
-
   public static void start(ExecControl execControl, final RequestConstants requestConstants, Registry registry, Handler[] handlers, Action<? super Execution> onComplete) {
-    final DefaultContext context = new DefaultContext(requestConstants, registry, handlers, 1, null);
+    ChainIndex index = new ChainIndex(handlers, registry, true);
+    requestConstants.indexes.push(index);
+
+    DefaultContext context = new DefaultContext(requestConstants);
+    requestConstants.context = context;
 
     execControl.fork(
-      execution -> handlers[0].handle(context),
+      execution -> context.next(),
       throwable -> requestConstants.context.error(throwable instanceof HandlerException ? throwable.getCause() : throwable),
       onComplete
     );
   }
 
-  public DefaultContext(RequestConstants requestConstants, Registry registry, Handler[] nextHandlers, int nextIndex, Handler exhausted) {
+  public DefaultContext(RequestConstants requestConstants) {
     this.requestConstants = requestConstants;
-    this.registry = registry;
-    this.nextHandlers = nextHandlers;
-    this.nextIndex = nextIndex;
-    this.exhausted = exhausted;
+  }
 
-    this.requestConstants.context = this;
+  private Registry getRegistry() {
+    return requestConstants.indexes.peek().registry;
+  }
+
+  private void setRegistry(Registry registry) {
+    requestConstants.indexes.peek().registry = registry;
   }
 
   @Override
@@ -206,13 +228,42 @@ public class DefaultContext implements Context {
   }
 
   public void next() {
-    doNext(this, registry, nextIndex, nextHandlers, exhausted);
+    Handler handler = null;
+
+    ChainIndex index = requestConstants.indexes.peek();
+    while (handler == null) {
+      if (index.hasNext()) {
+        handler = index.next();
+        if (handler.getClass().equals(ChainHandler.class)) {
+          requestConstants.indexes.add(new ChainIndex(((ChainHandler) handler).getHandlers(), getRegistry(), false));
+          index = requestConstants.indexes.peek();
+          handler = null;
+        }
+      } else if (index.first) {
+        handler = requestConstants.applicationConstants.end;
+      } else {
+        requestConstants.indexes.pop();
+        index = requestConstants.indexes.peek();
+      }
+    }
+
+    try {
+      requestConstants.handler = handler;
+      handler.handle(this);
+    } catch (Throwable e) {
+      if (e instanceof HandlerException) {
+        throw (HandlerException) e;
+      } else {
+        throw new HandlerException(e);
+      }
+    }
   }
 
   @Override
   public void next(Registry registry) {
-    Registry joinedRegistry = Registries.join(DefaultContext.this.registry, registry);
-    doNext(DefaultContext.this, joinedRegistry, nextIndex, nextHandlers, exhausted);
+    Registry joinedRegistry = Registries.join(getRegistry(), registry);
+    setRegistry(joinedRegistry);
+    next();
   }
 
   public void insert(Handler... handlers) {
@@ -220,7 +271,8 @@ public class DefaultContext implements Context {
       throw new IllegalArgumentException("handlers is zero length");
     }
 
-    doNext(this, registry, 0, handlers, new RejoinHandler());
+    requestConstants.indexes.add(new ChainIndex(handlers, getRegistry(), false));
+    next();
   }
 
   public void insert(final Registry registry, final Handler... handlers) {
@@ -228,8 +280,9 @@ public class DefaultContext implements Context {
       throw new IllegalArgumentException("handlers is zero length");
     }
 
-    final Registry joinedRegistry = Registries.join(DefaultContext.this.registry, registry);
-    doNext(DefaultContext.this, joinedRegistry, 0, handlers, new RejoinHandler());
+    final Registry joinedRegistry = Registries.join(getRegistry(), registry);
+    requestConstants.indexes.add(new ChainIndex(handlers, joinedRegistry, false));
+    next();
   }
 
   public PathTokens getPathTokens() {
@@ -266,7 +319,7 @@ public class DefaultContext implements Context {
       requestContentType = "text/plain";
     }
 
-    Parser<?> parser = registry.first(PARSER_TYPE_TOKEN, new ParserForParsePredicate(parse, requestContentType));
+    Parser<?> parser = getRegistry().first(PARSER_TYPE_TOKEN, new ParserForParsePredicate(parse, requestContentType));
     if (parser != null) {
       @SuppressWarnings("unchecked") Parser<O> castParser = (Parser<O>) parser;
       try {
@@ -312,7 +365,7 @@ public class DefaultContext implements Context {
   }
 
   public void redirect(int code, String location) {
-    Redirector redirector = registry.get(Redirector.class);
+    Redirector redirector = getRegistry().get(Redirector.class);
     redirector.redirect(this, location, code);
   }
 
@@ -403,75 +456,36 @@ public class DefaultContext implements Context {
     new ContentNegotiationHandler(handlers).handle(this);
   }
 
-  protected void doNext(Context parentContext, final Registry registry, final int nextIndex, final Handler[] nextHandlers, Handler exhausted) {
-    Context context;
-    Handler handler;
-
-    if (nextIndex == nextHandlers.length) {
-      if (exhausted == null) {
-        context = createContext(registry, nextHandlers, nextIndex + 1, null);
-        handler = requestConstants.applicationConstants.end;
-      } else {
-        context = parentContext;
-        handler = exhausted;
-      }
-    } else {
-      handler = nextHandlers[nextIndex];
-      context = createContext(registry, nextHandlers, nextIndex + 1, exhausted);
-    }
-
-    try {
-      requestConstants.handler = handler;
-      handler.handle(context);
-    } catch (Throwable e) {
-      if (e instanceof HandlerException) {
-        throw (HandlerException) e;
-      } else {
-        throw new HandlerException(e);
-      }
-    }
-  }
-
   @Override
   public <O> O get(TypeToken<O> type) throws NotInRegistryException {
-    return registry.get(type);
+    return getRegistry().get(type);
   }
 
   @Override
   @Nullable
   public <O> O maybeGet(TypeToken<O> type) {
-    return registry.maybeGet(type);
+    return getRegistry().maybeGet(type);
   }
 
   @Override
   public <O> Iterable<? extends O> getAll(TypeToken<O> type) {
-    return registry.getAll(type);
+    return getRegistry().getAll(type);
   }
 
   @Nullable
   @Override
   public <T> T first(TypeToken<T> type, Predicate<? super T> predicate) {
-    return registry.first(type, predicate);
+    return getRegistry().first(type, predicate);
   }
 
   @Override
   public <T> Iterable<? extends T> all(TypeToken<T> type, Predicate<? super T> predicate) {
-    return registry.all(type, predicate);
+    return getRegistry().all(type, predicate);
   }
 
   @Override
   public <T> boolean each(TypeToken<T> type, Predicate<? super T> predicate, Action<? super T> action) throws Exception {
-    return registry.each(type, predicate, action);
-  }
-
-  private DefaultContext createContext(Registry registry, Handler[] nextHandlers, int nextIndex, Handler exhausted) {
-    return new DefaultContext(requestConstants, registry, nextHandlers, nextIndex, exhausted);
-  }
-
-  private class RejoinHandler implements Handler {
-    public void handle(Context context) throws Exception {
-      doNext(context, registry, nextIndex, nextHandlers, exhausted);
-    }
+    return getRegistry().each(type, predicate, action);
   }
 
 }
