@@ -222,7 +222,7 @@ subprojects {
       }
     }
 
-    jvmArgs "-Xss320k"
+    jvmArgs "-Xss320k", "-noverify"
     maxHeapSize "256m"
 
     if (isCloudCi) {
