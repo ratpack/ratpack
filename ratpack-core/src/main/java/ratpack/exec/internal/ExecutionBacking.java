@@ -58,7 +58,7 @@ public class ExecutionBacking {
     this.execution = new DefaultExecution(controller, closeables);
 
     segments.addLast(new UserCodeSegment(action));
-    tryDrain();
+    drain();
   }
 
   public Execution getExecution() {
@@ -76,7 +76,7 @@ public class ExecutionBacking {
   public void join(final Action<? super Execution> action) {
     segments.addFirst(new UserCodeSegment(action));
     waiting = false;
-    tryDrain();
+    drain();
   }
 
   public void continueVia(final Runnable runnable) {
@@ -92,20 +92,45 @@ public class ExecutionBacking {
   public void streamExecution(final Action<? super Execution> action) {
     segments.add(new UserCodeSegment(action));
     streaming = true;
-    tryDrain();
+    drain();
   }
 
   public void completeStreamExecution(final Action<? super Execution> action) {
     segments.addLast(new UserCodeSegment(action));
     streaming = false;
-    tryDrain();
+    drain();
   }
 
-  private void tryDrain() {
+  private void drain() {
     assertNotDone();
     if (!waiting && !segments.isEmpty()) {
       if (active.compareAndSet(false, true)) {
-        drain();
+        if (controller.isManagedThread()) {
+          threadBinding.set(this);
+          try {
+            Runnable segment = segments.poll();
+            while (segment != null) {
+              segment.run();
+              if (waiting) { // the segment initiated an async op
+                break;
+              } else {
+                segment = segments.poll();
+                if (segment == null && !streaming) { // not waiting, not streaming and no more segments, we are done
+                  done();
+                }
+              }
+            }
+          } finally {
+            threadBinding.remove();
+            active.set(false);
+          }
+          if (waiting) {
+            drain();
+          }
+        } else {
+          active.set(false);
+          controller.getEventLoopGroup().submit(this::drain);
+        }
       }
     }
   }
@@ -124,35 +149,6 @@ public class ExecutionBacking {
       } catch (Exception e) {
         LOGGER.warn(String.format("exception raised by closeable %s", closeable), e);
       }
-    }
-  }
-
-  private void drain() {
-    if (controller.isManagedThread()) {
-      threadBinding.set(this);
-      try {
-        Runnable segment = segments.poll();
-        while (segment != null) {
-          segment.run();
-          if (waiting) { // the segment initiated an async op
-            break;
-          } else {
-            segment = segments.poll();
-            if (segment == null && !streaming) { // not waiting, not streaming and no more segments, we are done
-              done();
-            }
-          }
-        }
-      } finally {
-        threadBinding.remove();
-        active.set(false);
-      }
-      if (waiting) {
-        tryDrain();
-      }
-    } else {
-      active.set(false);
-      controller.getEventLoopGroup().submit(this::tryDrain);
     }
   }
 
