@@ -107,9 +107,11 @@ public class HikariModule extends AbstractModule {
 
   private final static String DEFAULT_MIN_IDLE_SIZE = "10";
   private final static String DEFAULT_MAX_POOL_SIZE = "60";
+  private final static String DEFAULT_CONNECTION_TIMEOUT = "30000";
 
   private Integer minimumIdleSize;
   private Integer maximumPoolSize;
+  private Long connectionTimeout;
   private String dataSourceClassName;
   private Map<String, String> dataSourceProperties;
 
@@ -118,14 +120,15 @@ public class HikariModule extends AbstractModule {
   }
 
   public HikariModule(Map<String, String> dataSourceProperties, String dataSourceClassName) {
-    this(dataSourceProperties, dataSourceClassName, null, null);
+    this(dataSourceProperties, dataSourceClassName, null, null, null);
   }
 
-  public HikariModule(Map<String, String> dataSourceProperties, String dataSourceClassName, Integer minimumIdleSize, Integer maximumPoolSize) {
+  public HikariModule(Map<String, String> dataSourceProperties, String dataSourceClassName, Integer minimumIdleSize, Integer maximumPoolSize, Long connectionTimeout) {
     this.dataSourceProperties = dataSourceProperties;
     this.dataSourceClassName = dataSourceClassName;
     this.minimumIdleSize = minimumIdleSize;
     this.maximumPoolSize = maximumPoolSize;
+    this.connectionTimeout = connectionTimeout;
   }
 
   @Override
@@ -137,6 +140,7 @@ public class HikariModule extends AbstractModule {
   public HikariConfig hikariConfig(LaunchConfig launchConfig) {
     int maxSize = maximumPoolSize == null ? Integer.parseInt(launchConfig.getOther("hikari.maximumPoolSize", DEFAULT_MAX_POOL_SIZE)) : maximumPoolSize;
     int minSize = minimumIdleSize == null ? Integer.parseInt(launchConfig.getOther("hikari.minimumIdle", DEFAULT_MIN_IDLE_SIZE)) : minimumIdleSize;
+    long connTimeout = connectionTimeout == null ? Long.parseLong(launchConfig.getOther("hikari.connectionTimeout", DEFAULT_CONNECTION_TIMEOUT)) : connectionTimeout;
     String className = dataSourceClassName == null ? launchConfig.getOther("hikari.dataSourceClassName", null) : dataSourceClassName;
 
     Properties properties = new Properties();
@@ -148,6 +152,7 @@ public class HikariModule extends AbstractModule {
     config.setMinimumIdle(minSize);
     config.setDataSourceClassName(className);
     config.setDataSourceProperties(properties);
+    config.setConnectionTimeout(connTimeout);
     return config;
   }
 
