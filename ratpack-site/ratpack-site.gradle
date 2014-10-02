@@ -109,7 +109,7 @@ dependencies {
     delegate."manual-$it" "io.ratpack:ratpack-manual:$it@zip"
   }
 
-  newrelicAgent "com.newrelic.agent.java:newrelic-agent:3.5.0"
+  newrelicAgent "com.newrelic.agent.java:newrelic-agent:3.11.0"
 }
 
 task gatherManuals(type: Sync) {

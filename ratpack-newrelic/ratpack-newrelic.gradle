@@ -20,5 +20,5 @@ apply from: "$rootDir/gradle/javaModule.gradle"
 
 dependencies {
   compile project(":ratpack-guice")
-  compile "com.newrelic.agent.java:newrelic-api:3.5.0"
+  compile "com.newrelic.agent.java:newrelic-api:3.11.0"
 }
