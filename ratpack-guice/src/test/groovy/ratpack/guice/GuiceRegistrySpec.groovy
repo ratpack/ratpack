@@ -15,12 +15,13 @@
  */
 
 package ratpack.guice
+
 import com.google.common.base.Predicates
 import com.google.common.reflect.TypeToken
 import com.google.inject.Binder
-import com.google.inject.Guice
 import com.google.inject.Injector
 import com.google.inject.Module
+import com.google.inject.Provider
 import ratpack.groovy.internal.ClosureUtil
 import ratpack.registry.Registry
 import spock.lang.Specification
@@ -35,7 +36,7 @@ class GuiceRegistrySpec extends Specification {
   Injector realInjector
 
   void realInjector(@DelegatesTo(Binder) Closure<?> closure) {
-    realInjector = Guice.createInjector(new Module() {
+    realInjector = com.google.inject.Guice.createInjector(new Module() {
       @Override
       void configure(Binder binder) {
         ClosureUtil.configureDelegateFirst(binder, closure)
@@ -61,9 +62,12 @@ class GuiceRegistrySpec extends Specification {
     given:
     def i = 0
     realInjector {
-      bind(String).toProvider {
-        "foo${i++}"
-      }
+      bind(String).toProvider(new Provider<String>() {
+        @Override
+        String get() {
+          "foo${i++}"
+        }
+      })
     }
 
     when:
@@ -114,7 +118,7 @@ class GuiceRegistrySpec extends Specification {
 
     registry.all(charseq, Predicates.alwaysTrue()) as List == [a, b]
     registry.all(charseq, { s -> s.startsWith('B') }) as List == [b]
-    registry.all(number, { n -> n < 50 })  as List == [c, d]
+    registry.all(number, { n -> n < 50 }) as List == [c, d]
     registry.all(number, Predicates.alwaysFalse()) as List == []
   }
 

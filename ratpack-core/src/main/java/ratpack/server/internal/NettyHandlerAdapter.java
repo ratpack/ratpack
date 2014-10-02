@@ -49,10 +49,7 @@ import ratpack.handling.Redirector;
 import ratpack.handling.RequestOutcome;
 import ratpack.handling.direct.DirectChannelAccess;
 import ratpack.handling.direct.internal.DefaultDirectChannelAccess;
-import ratpack.handling.internal.DefaultContext;
-import ratpack.handling.internal.DefaultRedirector;
-import ratpack.handling.internal.DescribingHandler;
-import ratpack.handling.internal.DescribingHandlers;
+import ratpack.handling.internal.*;
 import ratpack.http.MutableHeaders;
 import ratpack.http.Request;
 import ratpack.http.Response;
@@ -87,7 +84,6 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
   private final static Logger LOGGER = LoggerFactory.getLogger(NettyHandlerAdapter.class);
 
   private final Handler[] handlers;
-  private final Handler return404;
 
   private final ConcurrentHashMap<Channel, Action<Object>> channelSubscriptions = new ConcurrentHashMap<>(0);
 
@@ -102,12 +98,11 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
   private final ExecControl execControl;
 
   public NettyHandlerAdapter(Stopper stopper, Handler handler, LaunchConfig launchConfig) {
-    this.handlers = new Handler[]{handler};
-    this.return404 = Handlers.notFound();
+    this.handlers = ChainHandler.unpack(handler);
     this.launchConfig = launchConfig;
     this.registry = buildBaseRegistry(stopper, launchConfig);
     this.addResponseTimeHeader = launchConfig.isTimeResponses();
-    this.applicationConstants = new DefaultContext.ApplicationConstants(launchConfig, new DefaultRenderController());
+    this.applicationConstants = new DefaultContext.ApplicationConstants(launchConfig, new DefaultRenderController(), Handlers.notFound());
     this.execController = launchConfig.getExecController();
     this.execControl = execController.getControl();
 
@@ -124,15 +119,15 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
   }
 
   @Override
-  public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+  public void channelRead(ChannelHandlerContext channelHandlerContext, Object msg) throws Exception {
     if (!(msg instanceof FullHttpRequest)) {
-      Action<Object> subscriber = channelSubscriptions.get(ctx.channel());
+      Action<Object> subscriber = channelSubscriptions.get(channelHandlerContext.channel());
       if (subscriber != null) {
         subscriber.execute(msg);
         return;
       }
     }
-    super.channelRead(ctx, msg);
+    super.channelRead(channelHandlerContext, msg);
   }
 
   public void channelRead0(final ChannelHandlerContext ctx, final FullHttpRequest nettyRequest) throws Exception {
@@ -169,7 +164,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
       applicationConstants, bindAddress, request, response, directChannelAccess, requestOutcomeEventController.getRegistry()
     );
 
-    DefaultContext.start(execController.getControl(), requestConstants, registry, handlers, return404, execution -> {
+    DefaultContext.start(execController.getControl(), requestConstants, registry, handlers, execution -> {
       if (!transmitted.get()) {
         Handler lastHandler = requestConstants.handler;
         StringBuilder description = new StringBuilder();

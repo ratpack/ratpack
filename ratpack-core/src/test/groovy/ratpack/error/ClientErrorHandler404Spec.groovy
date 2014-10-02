@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,24 +14,21 @@
  * limitations under the License.
  */
 
-package ratpack.handling.internal;
+package ratpack.error
 
-import ratpack.func.Factory;
-import ratpack.handling.Context;
-import ratpack.handling.Handler;
+import ratpack.test.internal.RatpackGroovyDslSpec
 
-public class FactoryHandler implements Handler {
+class ClientErrorHandler404Spec extends RatpackGroovyDslSpec {
 
-  private final Factory<? extends Handler> factory;
+  def "client error handler registered at top level is used for 404"() {
+    def clientErrorHandler = { ctx, code -> ctx.render("here!") } as ClientErrorHandler
 
-  public FactoryHandler(Factory<? extends Handler> factory) {
-    this.factory = factory;
+    when:
+    handlers {
+      register { add(ClientErrorHandler, clientErrorHandler) }
+    }
+
+    then:
+    getText() == "here!"
   }
-
-  @Override
-  public void handle(Context context) throws Exception {
-    Handler handler = factory.create();
-    handler.handle(context);
-  }
-
 }

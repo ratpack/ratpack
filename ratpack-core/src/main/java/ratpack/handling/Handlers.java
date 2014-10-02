@@ -106,7 +106,7 @@ public abstract class Handlers {
    */
   public static Handler chain(List<? extends Handler> handlers) {
     if (handlers.size() == 0) {
-      return next();
+      return ctx -> ctx.next();
     } else if (handlers.size() == 1) {
       return handlers.get(0);
     } else {
@@ -122,7 +122,7 @@ public abstract class Handlers {
    */
   public static Handler chain(Handler... handlers) {
     if (handlers.length == 0) {
-      return next();
+      return ctx -> ctx.next();
     } else if (handlers.length == 1) {
       return handlers[0];
     } else {

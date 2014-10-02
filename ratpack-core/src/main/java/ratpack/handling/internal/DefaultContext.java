@@ -77,11 +77,13 @@ public class DefaultContext implements Context {
     private final RenderController renderController;
     private final LaunchConfig launchConfig;
     private final ExecControl execControl;
+    private final Handler end;
 
-    public ApplicationConstants(LaunchConfig launchConfig, RenderController renderController) {
+    public ApplicationConstants(LaunchConfig launchConfig, RenderController renderController, Handler end) {
       this.renderController = renderController;
       this.launchConfig = launchConfig;
       this.execControl = launchConfig.getExecController().getControl();
+      this.end = end;
     }
   }
 
@@ -119,10 +121,14 @@ public class DefaultContext implements Context {
   private final int nextIndex;
   private final Handler exhausted;
 
-  public static void start(ExecControl execControl, final RequestConstants requestConstants, Registry registry, Handler[] nextHandlers, Handler exhausted, Action<? super Execution> onComplete) {
-    final DefaultContext context = new DefaultContext(requestConstants, registry, nextHandlers, 0, exhausted);
+  public static void start(ExecControl execControl, final RequestConstants requestConstants, Registry registry, Handler[] handlers, Action<? super Execution> onComplete) {
+    final DefaultContext context = new DefaultContext(requestConstants, registry, handlers, 1, null);
 
-    execControl.fork(execution -> context.next(), throwable -> requestConstants.context.error(throwable instanceof HandlerException ? throwable.getCause() : throwable), onComplete);
+    execControl.fork(
+      execution -> handlers[0].handle(context),
+      throwable -> requestConstants.context.error(throwable instanceof HandlerException ? throwable.getCause() : throwable),
+      onComplete
+    );
   }
 
   public DefaultContext(RequestConstants requestConstants, Registry registry, Handler[] nextHandlers, int nextIndex, Handler exhausted) {
@@ -205,7 +211,7 @@ public class DefaultContext implements Context {
   @Override
   public void next(Registry registry) {
     Registry joinedRegistry = Registries.join(DefaultContext.this.registry, registry);
-    doNext(DefaultContext.this, joinedRegistry, nextIndex, nextHandlers, new RejoinHandler());
+    doNext(DefaultContext.this, joinedRegistry, nextIndex, nextHandlers, exhausted);
   }
 
   public void insert(Handler... handlers) {
@@ -400,9 +406,14 @@ public class DefaultContext implements Context {
     Context context;
     Handler handler;
 
-    if (nextIndex >= nextHandlers.length) {
-      context = parentContext;
-      handler = exhausted;
+    if (nextIndex == nextHandlers.length) {
+      if (exhausted == null) {
+        context = createContext(registry, nextHandlers, nextIndex + 1, exhausted);
+        handler = requestConstants.applicationConstants.end;
+      } else {
+        context = parentContext;
+        handler = exhausted;
+      }
     } else {
       handler = nextHandlers[nextIndex];
       context = createContext(registry, nextHandlers, nextIndex + 1, exhausted);
@@ -466,7 +477,7 @@ public class DefaultContext implements Context {
 
   private class RejoinHandler implements Handler {
     public void handle(Context context) throws Exception {
-      doNext(DefaultContext.this, registry, nextIndex, nextHandlers, exhausted);
+      doNext(context, registry, nextIndex, nextHandlers, exhausted);
     }
   }
 

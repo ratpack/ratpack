@@ -31,6 +31,7 @@ import ratpack.func.Action;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.handling.RequestOutcome;
+import ratpack.handling.internal.ChainHandler;
 import ratpack.handling.internal.DefaultContext;
 import ratpack.handling.internal.DefaultRequestOutcome;
 import ratpack.handling.internal.DelegatingHeaders;
@@ -166,12 +167,12 @@ public class DefaultHandlingResult implements HandlingResult {
     Registry baseRegistry = NettyHandlerAdapter.buildBaseRegistry(stopper, launchConfig);
     Registry effectiveRegistry = Registries.join(baseRegistry, userRegistry);
     Response response = new DefaultResponse(execControl, responseHeaders, launchConfig.getBufferAllocator(), responseTransmitter);
-    DefaultContext.ApplicationConstants applicationConstants = new DefaultContext.ApplicationConstants(launchConfig, renderController);
+    DefaultContext.ApplicationConstants applicationConstants = new DefaultContext.ApplicationConstants(launchConfig, renderController, next);
     requestConstants = new DefaultContext.RequestConstants(
       applicationConstants, bindAddress, request, response, null, eventController.getRegistry()
     );
 
-    DefaultContext.start(execControl, requestConstants, effectiveRegistry, new Handler[]{handler}, next, Action.noop());
+    DefaultContext.start(execControl, requestConstants, effectiveRegistry, ChainHandler.unpack(handler), Action.noop());
 
     try {
       if (!latch.await(timeout, TimeUnit.SECONDS)) {
