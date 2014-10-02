@@ -36,12 +36,19 @@ import java.util.Properties;
  * </p>
  * <p>
  * Different constructor variants allow you to configure {@code dataSourceClassName} (note that HikariCP uses {@code javax.sql.DataSource} instances
- * instead of {@code java.sql.Driver} used by other connection pools), {@code minimumIdle} and {@code maximumPoolSize} as well as {@code dataSourceProperties}.
+ * instead of {@code java.sql.Driver} used by other connection pools), {@code minimumIdle}, {@code maximumPoolSize}
+ * and {@code connectionTimeout} as well as {@code dataSourceProperties}.
  * </p>
  * <p>
- * If you wish to configure the module using configuration properties you should use the following property names: {@code other.hikari.dataSourceClassName},
- * {@code other.hikari.minimumIdle} and {@code other.hikari.maximumPoolSize}. All configuration properties prefixed with {@code other.hikari.dataSourceProperties} will
- * be used as data source properties - e.g. {@code other.hikari.URL} will be used to set {@code URL} property on the data source.
+ * If you wish to configure the module using configuration properties you should use the following property names:
+ * <ul>
+ *   <li>{@code other.hikari.dataSourceClassName}</li>
+ *   <li>{@code other.hikari.minimumIdle}</li>
+ *   <li>{@code other.hikari.maximumPoolSize}</li>
+ *   <li>{@code other.hikari.connectionTimeout}</li>
+ * </ul>
+ * All configuration properties prefixed with {@code other.hikari.dataSourceProperties} will
+ * be used as data source properties - e.g. {@code other.hikari.dataSourceProperties.URL} will be used to set {@code URL} property on the data source.
  * </p>
  * <pre class="java">{@code
  * import com.google.common.collect.ImmutableMap;
