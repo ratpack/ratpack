@@ -43,6 +43,7 @@ import ratpack.parse.NoSuchParserException;
 import ratpack.parse.Parse;
 import ratpack.parse.Parser;
 import ratpack.parse.ParserException;
+import ratpack.parse.internal.ParserForParsePredicate;
 import ratpack.path.PathBinding;
 import ratpack.path.PathTokens;
 import ratpack.path.internal.DefaultPathTokens;
@@ -478,41 +479,6 @@ public class DefaultContext implements Context {
   private class RejoinHandler implements Handler {
     public void handle(Context context) throws Exception {
       doNext(context, registry, nextIndex, nextHandlers, exhausted);
-    }
-  }
-
-  private static class ParserForParsePredicate implements Predicate<Parser<?>> {
-    private final Parse<?, ?> parse;
-    private final String contentType;
-
-    private ParserForParsePredicate(Parse<?, ?> parse, String contentType) {
-      this.parse = parse;
-      this.contentType = contentType;
-    }
-
-    @Override
-    public boolean apply(Parser<?> parser) {
-      return contentType.equalsIgnoreCase(parser.getContentType()) && parser.getOptsType().isInstance(parse.getOpts());
-    }
-
-    @Override
-    public boolean equals(Object o) {
-      if (this == o) {
-        return true;
-      }
-      if (o == null || getClass() != o.getClass()) {
-        return false;
-      }
-
-      ParserForParsePredicate that = (ParserForParsePredicate) o;
-      return contentType.equalsIgnoreCase(that.contentType) && parse.equals(that.parse);
-    }
-
-    @Override
-    public int hashCode() {
-      int result = contentType.hashCode();
-      result = 31 * result + parse.hashCode();
-      return result;
     }
   }
 
