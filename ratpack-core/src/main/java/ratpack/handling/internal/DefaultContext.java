@@ -409,7 +409,7 @@ public class DefaultContext implements Context {
 
     if (nextIndex == nextHandlers.length) {
       if (exhausted == null) {
-        context = createContext(registry, nextHandlers, nextIndex + 1, exhausted);
+        context = createContext(registry, nextHandlers, nextIndex + 1, null);
         handler = requestConstants.applicationConstants.end;
       } else {
         context = parentContext;
@@ -429,14 +429,6 @@ public class DefaultContext implements Context {
       } else {
         throw new HandlerException(e);
       }
-    }
-  }
-
-  private static class HandlerException extends Error {
-    private static final long serialVersionUID = 0;
-
-    private HandlerException(Throwable cause) {
-      super(cause);
     }
   }
 
@@ -482,17 +474,4 @@ public class DefaultContext implements Context {
     }
   }
 
-  private static class ThrowableHolder {
-
-    private final Throwable throwable;
-
-    public ThrowableHolder(Throwable throwable) {
-      this.throwable = throwable;
-    }
-
-    public Throwable getThrowable() {
-      return throwable;
-    }
-
-  }
 }
