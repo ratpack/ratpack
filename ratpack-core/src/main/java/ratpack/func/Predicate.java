@@ -23,7 +23,8 @@ import ratpack.util.ExceptionUtils;
  * <p>
  * This type serves the same purpose as the JDK's {@link java.util.function.Predicate}, but allows throwing checked exceptions.
  * It contains methods for bridging to and from the JDK type.
- * @param <T>
+ *
+ * @param <T> the type of object “tested” by the predicate
  */
 @FunctionalInterface
 public interface Predicate<T> {
