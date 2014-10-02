@@ -9,45 +9,21 @@ import ratpack.perf.incl.*;
 public class HandlerFactory implements ratpack.launch.HandlerFactory {
 
   public Handler create(LaunchConfig launchConfig) throws Exception {
-    return Handlers.chain(launchConfig, new ChainAction() {
-      <% if (patch < 4) { %>
-      public void execute(Chain chain) {
-        chain.
-      <% } else { %>
-      protected void execute() {
-         Chain chain = getChain();
-         chain.
-      <% } %>
-        handler("stop", new StopHandler()).
+    return Handlers.chain(launchConfig, chain -> {
+        chain
+          .handler("stop", new StopHandler())
+          .handler("render", ctx -> ctx.render("ok"))
+          .handler("direct", ctx -> ctx.getResponse().send("ok"));
 
-        handler("render", new Handler() {
-          public void handle(Context context) {
-            context.render("ok");
-          }
-        }).
-
-        handler("direct", new Handler() {
-          public void handle(Context context) {
-            context.getResponse().send("ok");
-          }
-        });
-
-        for (int i = 0; i < 100; ++ i) {
-          chain.handler("handler" + i, new Handler() {
-            public void handle(Context context) {
-              throw new RuntimeException("unexpected");
-            }
+        for (int i = 0; i < 100; ++i) {
+          chain.handler("handler" + i, ctx -> {
+            throw new RuntimeException("unexpected");
           });
         }
 
-        chain.handler("manyHandlers", new Handler() {
-          public void handle(Context context) {
-            context.getResponse().send();
-          }
-        });
-
+        chain.handler("manyHandlers", ctx -> ctx.getResponse().send());
       }
-    });
+    );
   }
 
 }
