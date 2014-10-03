@@ -36,12 +36,19 @@ import java.util.Properties;
  * </p>
  * <p>
  * Different constructor variants allow you to configure {@code dataSourceClassName} (note that HikariCP uses {@code javax.sql.DataSource} instances
- * instead of {@code java.sql.Driver} used by other connection pools), {@code minimumIdle} and {@code maximumPoolSize} as well as {@code dataSourceProperties}.
+ * instead of {@code java.sql.Driver} used by other connection pools), {@code minimumIdle}, {@code maximumPoolSize}
+ * and {@code connectionTimeout} as well as {@code dataSourceProperties}.
  * </p>
  * <p>
- * If you wish to configure the module using configuration properties you should use the following property names: {@code other.hikari.dataSourceClassName},
- * {@code other.hikari.minimumIdle} and {@code other.hikari.maximumPoolSize}. All configuration properties prefixed with {@code other.hikari.dataSourceProperties} will
- * be used as data source properties - e.g. {@code other.hikari.URL} will be used to set {@code URL} property on the data source.
+ * If you wish to configure the module using configuration properties you should use the following property names:
+ * <ul>
+ *   <li>{@code other.hikari.dataSourceClassName}</li>
+ *   <li>{@code other.hikari.minimumIdle}</li>
+ *   <li>{@code other.hikari.maximumPoolSize}</li>
+ *   <li>{@code other.hikari.connectionTimeout}</li>
+ * </ul>
+ * All configuration properties prefixed with {@code other.hikari.dataSourceProperties} will
+ * be used as data source properties - e.g. {@code other.hikari.dataSourceProperties.URL} will be used to set {@code URL} property on the data source.
  * </p>
  * <pre class="java">{@code
  * import com.google.common.collect.ImmutableMap;
@@ -107,9 +114,11 @@ public class HikariModule extends AbstractModule {
 
   private final static String DEFAULT_MIN_IDLE_SIZE = "10";
   private final static String DEFAULT_MAX_POOL_SIZE = "60";
+  private final static String DEFAULT_CONNECTION_TIMEOUT = "30000";
 
   private Integer minimumIdleSize;
   private Integer maximumPoolSize;
+  private Long connectionTimeout;
   private String dataSourceClassName;
   private Map<String, String> dataSourceProperties;
 
@@ -118,14 +127,15 @@ public class HikariModule extends AbstractModule {
   }
 
   public HikariModule(Map<String, String> dataSourceProperties, String dataSourceClassName) {
-    this(dataSourceProperties, dataSourceClassName, null, null);
+    this(dataSourceProperties, dataSourceClassName, null, null, null);
   }
 
-  public HikariModule(Map<String, String> dataSourceProperties, String dataSourceClassName, Integer minimumIdleSize, Integer maximumPoolSize) {
+  public HikariModule(Map<String, String> dataSourceProperties, String dataSourceClassName, Integer minimumIdleSize, Integer maximumPoolSize, Long connectionTimeout) {
     this.dataSourceProperties = dataSourceProperties;
     this.dataSourceClassName = dataSourceClassName;
     this.minimumIdleSize = minimumIdleSize;
     this.maximumPoolSize = maximumPoolSize;
+    this.connectionTimeout = connectionTimeout;
   }
 
   @Override
@@ -137,6 +147,7 @@ public class HikariModule extends AbstractModule {
   public HikariConfig hikariConfig(LaunchConfig launchConfig) {
     int maxSize = maximumPoolSize == null ? Integer.parseInt(launchConfig.getOther("hikari.maximumPoolSize", DEFAULT_MAX_POOL_SIZE)) : maximumPoolSize;
     int minSize = minimumIdleSize == null ? Integer.parseInt(launchConfig.getOther("hikari.minimumIdle", DEFAULT_MIN_IDLE_SIZE)) : minimumIdleSize;
+    long connTimeout = connectionTimeout == null ? Long.parseLong(launchConfig.getOther("hikari.connectionTimeout", DEFAULT_CONNECTION_TIMEOUT)) : connectionTimeout;
     String className = dataSourceClassName == null ? launchConfig.getOther("hikari.dataSourceClassName", null) : dataSourceClassName;
 
     Properties properties = new Properties();
@@ -148,6 +159,7 @@ public class HikariModule extends AbstractModule {
     config.setMinimumIdle(minSize);
     config.setDataSourceClassName(className);
     config.setDataSourceProperties(properties);
+    config.setConnectionTimeout(connTimeout);
     return config;
   }
 
