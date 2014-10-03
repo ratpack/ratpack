@@ -104,7 +104,7 @@ public abstract class RxRatpack {
   }
 
   /**
-   * A scheduler that uses the application event loop and initialises each job as an {@link ratpack.exec.Execution} (via {@link ratpack.exec.ExecControl#fork(ratpack.func.Action)}).
+   * A scheduler that uses the application event loop and initialises each job as an {@link ratpack.exec.Execution} (via {@link ratpack.exec.ExecControl#exec()}).
    *
    * @param execController the execution controller to back the scheduler
    * @return a scheduler
@@ -127,7 +127,7 @@ public abstract class RxRatpack {
    * @return an observable stream equivalent to the given source
    */
   public static <T> Observable<T> forkAndJoin(final ExecControl execControl, final Observable<T> source) {
-    Promise<List<T>> promise = execControl.promise(fulfiller -> execControl.fork(execution -> source
+    Promise<List<T>> promise = execControl.promise(fulfiller -> execControl.exec().start(execution -> source
       .toList()
       .subscribe(new Subscriber<List<T>>() {
         @Override
@@ -336,13 +336,15 @@ public abstract class RxRatpack {
         }
 
         wip.incrementAndGet();
-        execControl.fork(execution -> {
-          try {
-            downstream.onNext(t);
-          } finally {
-            maybeDone();
-          }
-        }, this::onError);
+        execControl.exec()
+          .onError(this::onError)
+          .start(execution -> {
+            try {
+              downstream.onNext(t);
+            } finally {
+              maybeDone();
+            }
+          });
       }
     };
   }

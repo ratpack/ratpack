@@ -41,17 +41,10 @@ public class BlockingHttpClient {
   public ReceivedResponse request(long timeout, TimeUnit timeUnit, Action<? super RequestSpec> action) throws Throwable {
     try (ExecController execController = new DefaultExecController(2)) {
       final RequestAction requestAction = new RequestAction(execController, action);
-      execController.getControl().fork(new Action<Execution>() {
-        @Override
-        public void execute(Execution execution) throws Exception {
-          requestAction.execute(execution);
-        }
-      }, new Action<Throwable>() {
-        @Override
-        public void execute(Throwable throwable) throws Exception {
-          requestAction.setResult(DefaultResult.<ReceivedResponse>failure(throwable));
-        }
-      });
+
+      execController.getControl().exec()
+        .onError(throwable -> requestAction.setResult(DefaultResult.<ReceivedResponse>failure(throwable)))
+        .start(requestAction::execute);
 
       try {
         // TODO - make this configurable
@@ -87,19 +80,16 @@ public class BlockingHttpClient {
     @Override
     public void execute(Execution execution) throws Exception {
       HttpClients.httpClient(execController, UnpooledByteBufAllocator.DEFAULT, Integer.MAX_VALUE).request(action)
-        .then(new Action<ReceivedResponse>() {
-          @Override
-          public void execute(ReceivedResponse response) throws Exception {
-            TypedData responseBody = response.getBody();
-            ByteBuf responseBodyBuffer = responseBody.getBuffer();
-            responseBodyBuffer = Unpooled.unreleasableBuffer(responseBodyBuffer.retain());
-            ReceivedResponse copiedResponse = new DefaultReceivedResponse(
-              response.getStatus(),
-              response.getHeaders(),
-              new ByteBufBackedTypedData(responseBodyBuffer, responseBody.getContentType())
-            );
-            setResult(DefaultResult.success(copiedResponse));
-          }
+        .then(response -> {
+          TypedData responseBody = response.getBody();
+          ByteBuf responseBodyBuffer = responseBody.getBuffer();
+          responseBodyBuffer = Unpooled.unreleasableBuffer(responseBodyBuffer.retain());
+          ReceivedResponse copiedResponse = new DefaultReceivedResponse(
+            response.getStatus(),
+            response.getHeaders(),
+            new ByteBufBackedTypedData(responseBodyBuffer, responseBody.getContentType())
+          );
+          setResult(DefaultResult.success(copiedResponse));
         });
     }
   }

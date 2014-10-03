@@ -28,7 +28,6 @@ import ratpack.groovy.internal.ClosureInvoker;
 import ratpack.groovy.internal.ClosureUtil;
 import ratpack.handling.Context;
 import ratpack.handling.internal.DescribingHandler;
-import ratpack.registry.Registries;
 
 public class ClosureBackedHandler implements DescribingHandler {
 
@@ -39,7 +38,7 @@ public class ClosureBackedHandler implements DescribingHandler {
   }
 
   public void handle(Context context) {
-    invoker.invoke(Registries.join(context.getRequest(), context), Groovy.context(context), Closure.DELEGATE_FIRST);
+    invoker.invoke(context.getRequest().join(context), Groovy.context(context), Closure.DELEGATE_FIRST);
   }
 
   @Override

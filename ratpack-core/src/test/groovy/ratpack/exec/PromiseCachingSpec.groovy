@@ -24,8 +24,6 @@ import spock.lang.Specification
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.CountDownLatch
 
-import static ratpack.func.Action.throwException
-
 class PromiseCachingSpec extends Specification {
 
   @AutoCleanup
@@ -38,12 +36,10 @@ class PromiseCachingSpec extends Specification {
   }
 
   def exec(Action<? super ExecControl> action, Action<? super Throwable> onError = Action.noop()) {
-    controller.control.fork({
-      action.execute(it.control)
-    }, onError, {
-      events << "complete"
-      latch.countDown()
-    })
+    controller.control.exec()
+      .onError(onError)
+      .onComplete({ events << "complete"; latch.countDown() })
+      .start { action.execute(it.control) }
     latch.await()
   }
 
@@ -70,7 +66,10 @@ class PromiseCachingSpec extends Specification {
     exec { e ->
       def cached = e.blocking { "foo" }.cache()
       cached.then { events << it }
-      e.fork({ forkedExecution ->
+      e.exec().onComplete {
+        innerEvents << "complete"
+        innerLatch.countDown()
+      } start { forkedExecution ->
         cached.map { it + "-bar" }
           .then {
           assert e.execution.is(forkedExecution)
@@ -82,10 +81,7 @@ class PromiseCachingSpec extends Specification {
           assert e.execution.is(forkedExecution)
           innerEvents << "next"
         }
-      }, throwException(), {
-        innerEvents << "complete"
-        innerLatch.countDown()
-      })
+      }
     }
 
     then:
@@ -126,9 +122,7 @@ class PromiseCachingSpec extends Specification {
     exec { e ->
       def cached = e.blocking { "foo" }.cache()
       num.times {
-        e.fork({ cached.then { events << it } }, throwException(), {
-          latch.countDown()
-        })
+        e.exec().onComplete({ latch.countDown() }).start({ cached.then { events << it } })
       }
     }
 

@@ -402,7 +402,7 @@ public interface Context extends ExecControl, Registry {
    * <p>
    * When using forking to process work in parallel, use {@link #promise(ratpack.func.Action)} to continue request handling when the parallel work is done.
    *
-   * <pre class="java">
+   * <pre class="java">{@code
    * import ratpack.handling.Handler;
    * import ratpack.handling.Context;
    * import ratpack.func.Action;
@@ -423,11 +423,11 @@ public interface Context extends ExecControl, Registry {
    *       final int numJobs = 3;
    *       final Integer failOnIteration = context.getPathTokens().asInt("failOn");
    *
-   *       context.promise(new Action&lt;Fulfiller&lt;Integer&gt;&gt;() {
+   *       context.promise(new Action<Fulfiller<Integer>>() {
    *         private final AtomicInteger counter = new AtomicInteger();
-   *         private final AtomicReference&lt;Throwable&gt; error = new AtomicReference&lt;&gt;();
+   *         private final AtomicReference<Throwable> error = new AtomicReference<>();
    *
-   *         private void completeJob(Fulfiller&lt;Integer&gt; fulfiller) {
+   *         private void completeJob(Fulfiller<Integer> fulfiller) {
    *           if (counter.incrementAndGet() == numJobs) {
    *             Throwable throwable = error.get();
    *             if (throwable == null) {
@@ -438,33 +438,26 @@ public interface Context extends ExecControl, Registry {
    *           }
    *         }
    *
-   *         public void execute(final Fulfiller&lt;Integer&gt; fulfiller) {
-   *           for (int i = 0; i &lt; numJobs; ++i) {
+   *         public void execute(final Fulfiller<Integer> fulfiller) {
+   *           for (int i = 0; i < numJobs; ++i) {
    *             final int iteration = i;
    *
-   *             context.fork(new Action&lt;Execution&gt;() {
-   *               public void execute(Execution execution) throws Exception {
-   *                 if (failOnIteration != null &amp;&amp; failOnIteration.intValue() == iteration) {
+   *             context.exec()
+   *               .onError(throwable -> {
+   *                 error.compareAndSet(null, throwable); // just take the first error
+   *                 completeJob(fulfiller);
+   *               })
+   *               .start(execution -> {
+   *                 if (failOnIteration != null && failOnIteration.intValue() == iteration) {
    *                   throw new Exception("bang!");
    *                 } else {
    *                   completeJob(fulfiller);
    *                 }
-   *               }
-   *
-   *
-   *             }, new Action&lt;Throwable&gt;() {
-   *               public void execute(Throwable throwable) {
-   *                    error.compareAndSet(null, throwable); // just take the first error
-   *                 completeJob(fulfiller);
-   *               }
-   *             });
+   *               });
    *           }
    *         }
-   *       }).then(new Action&lt;Integer&gt;() {
-   *         public void execute(Integer integer) {
-   *           context.render(integer.toString());
-   *         }
-   *       });
+   *       })
+   *       .then(i -> context.render(i.toString()));
    *     }
    *   }
    *
@@ -472,7 +465,7 @@ public interface Context extends ExecControl, Registry {
    *     HandlingResult result = UnitTest.handle(new ForkingHandler(), Action.noop());
    *     assert result.rendered(String.class).equals("3");
    *
-   *     result = UnitTest.handle(new ForkingHandler(), new Action&lt;RequestFixture&gt;() {
+   *     result = UnitTest.handle(new ForkingHandler(), new Action<RequestFixture>() {
    *       public void execute(RequestFixture fixture) {
    *         fixture.pathBinding(Collections.singletonMap("failOn", "2"));
    *       }
@@ -481,24 +474,18 @@ public interface Context extends ExecControl, Registry {
    *     assert result.getException().getMessage().equals("bang!");
    *   }
    * }
-   * </pre>
+   * }</pre>
    *
-   * @param action the initial execution segment
+   * @return an execution starter
    */
   @Override
-  void fork(Action<? super Execution> action);
+  ExecStarter exec();
 
   @Override
   ExecController getController();
 
   @Override
   void addInterceptor(ExecInterceptor execInterceptor, Action<? super Execution> continuation) throws Exception;
-
-  @Override
-  void fork(Action<? super Execution> action, Action<? super Throwable> onError);
-
-  @Override
-  void fork(Action<? super Execution> action, Action<? super Throwable> onError, Action<? super Execution> onComplete);
 
   <T> void stream(Publisher<T> publisher, Subscriber<? super T> subscriber);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,24 +14,24 @@
  * limitations under the License.
  */
 
-package ratpack.registry
+package ratpack.exec;
 
-import spock.lang.Specification
+import ratpack.func.Action;
+import ratpack.registry.RegistrySpec;
 
-import static ratpack.registry.Registries.just
+/**
+ * Effectively a builder for a new {@link Execution}.
+ *
+ * @see ExecControl#exec()
+ */
+public interface ExecStarter {
 
-class RegistryBuilderSpec extends Specification {
+  ExecStarter onError(Action<? super Throwable> onError);
 
-  def "can retrieve successfully"() {
-    given:
-    def c = just(String, "foo")
-    def p = just(Integer, 2)
-    def n = p.join(c)
+  ExecStarter onComplete(Action<? super Execution> onComplete);
 
-    expect:
-    n.get(String) == "foo"
-    n.get(Number) == 2 // delegating to parent
-    n.getAll(Object).toList() == ["foo", 2]
-  }
+  ExecStarter register(Action<? super RegistrySpec> registry);
+
+  void start(Action<? super Execution> onError);
 
 }

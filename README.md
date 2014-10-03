@@ -6,7 +6,7 @@
 Ratpack is a simple, capable, toolkit for creating high performance web applications.
 
 Ratpack is built on Java and the Netty event-driven networking engine. 
-The API is optimized for Groovy and Java 8, though Java 7 can also be used.
+The API is optimized for Groovy and Java 8.
 
 Optional Google Guice integration provides a foundation for scaling your application in size in a managed way.
 

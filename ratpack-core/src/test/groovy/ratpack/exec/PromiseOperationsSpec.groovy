@@ -37,12 +37,16 @@ class PromiseOperationsSpec extends Specification {
   }
 
   def exec(Action<? super ExecControl> action, Action<? super Throwable> onError = Action.noop()) {
-    controller.control.fork({
-      action.execute(it.control)
-    }, onError, {
+    controller.control
+      .exec()
+      .onError(onError)
+      .onComplete {
       events << "complete"
       latch.countDown()
-    })
+    }.start {
+      action.execute(it.control)
+    }
+
     latch.await()
   }
 

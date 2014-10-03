@@ -92,16 +92,6 @@ public class DefaultGroovyContext implements GroovyContext {
   }
 
   @Override
-  public void fork(Action<? super Execution> action, Action<? super Throwable> onError) {
-    delegate.fork(action, onError);
-  }
-
-  @Override
-  public void fork(Action<? super Execution> action, Action<? super Throwable> onError, Action<? super Execution> onComplete) {
-    delegate.fork(action, onError, onComplete);
-  }
-
-  @Override
   public void byMethod(Closure<?> closure) throws Exception {
     Map<String, Handler> handlers = new LinkedHashMap<>(2);
     ByMethodSpec delegate = new DefaultByMethodSpec(handlers);
@@ -212,8 +202,8 @@ public class DefaultGroovyContext implements GroovyContext {
   }
 
   @Override
-  public void fork(Action<? super Execution> action) {
-    delegate.fork(action);
+  public ExecStarter exec() {
+    return delegate.exec();
   }
 
   @Override
