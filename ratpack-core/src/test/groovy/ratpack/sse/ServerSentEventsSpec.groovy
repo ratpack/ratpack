@@ -16,9 +16,11 @@
 
 package ratpack.sse
 
+import ratpack.http.client.RequestSpec
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 import java.util.concurrent.CountDownLatch
+import java.util.zip.GZIPInputStream
 
 import static io.netty.handler.codec.http.HttpResponseStatus.OK
 import static ratpack.sse.ServerSentEvent.serverSentEvent
@@ -26,6 +28,11 @@ import static ratpack.sse.ServerSentEvents.serverSentEvents
 import static ratpack.stream.Streams.*
 
 class ServerSentEventsSpec extends RatpackGroovyDslSpec {
+
+  @Override
+  void configureRequest(RequestSpec requestSpecification) {
+    requestSpecification.headers.add("Accept-Encoding", "gzip")
+  }
 
   def "can send server sent event"() {
     given:
@@ -43,7 +50,7 @@ class ServerSentEventsSpec extends RatpackGroovyDslSpec {
     response.headers["Content-Type"] == "text/event-stream;charset=UTF-8"
     response.headers["Cache-Control"] == "no-cache, no-store, max-age=0, must-revalidate"
     response.headers["Pragma"] == "no-cache"
-    response.body.text == "event: add\ndata: Event 1\nid: 1\n\nevent: add\ndata: Event 2\nid: 2\n\nevent: add\ndata: Event 3\nid: 3\n\n"
+    response.headers["Content-Encoding"] == null
   }
 
   def "can cancel a stream when a client drops connection"() {
@@ -77,5 +84,30 @@ class ServerSentEventsSpec extends RatpackGroovyDslSpec {
 
     // when the connection is closed cancel should be called
     cancelLatch.await()
+  }
+
+  def "can send compressed server sent event"() {
+    given:
+    launchConfig {
+      compressResponses(true)
+    }
+    handlers {
+      handler {
+        render serverSentEvents(map(publish(1..3)) { i ->
+          serverSentEvent { it.id(i.toString()).event("add").data("Event $i".toString()) }
+        })
+      }
+    }
+
+    expect:
+    def response = get()
+    response.statusCode == OK.code()
+    response.headers["Content-Type"] == "text/event-stream;charset=UTF-8"
+    response.headers["Cache-Control"] == "no-cache, no-store, max-age=0, must-revalidate"
+    response.headers["Pragma"] == "no-cache"
+    response.headers["Content-Encoding"] == "gzip"
+
+    new GZIPInputStream(response.body.inputStream).bytes ==
+      "event: add\ndata: Event 1\nid: 1\n\nevent: add\ndata: Event 2\nid: 2\n\nevent: add\ndata: Event 3\nid: 3\n\n".bytes
   }
 }

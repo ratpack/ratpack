@@ -29,6 +29,6 @@ public interface ResponseTransmitter {
 
   void transmit(HttpResponseStatus responseStatus, BasicFileAttributes basicFileAttributes, Path file);
 
-  Subscriber<Object> transmitter(HttpResponseStatus status);
+  Subscriber<ByteBuf> transmitter(HttpResponseStatus status);
 
 }

@@ -141,7 +141,7 @@ public class DefaultHandlingResult implements HandlingResult {
       }
 
       @Override
-      public Subscriber<Object> transmitter(HttpResponseStatus status) {
+      public Subscriber<ByteBuf> transmitter(HttpResponseStatus status) {
         throw new UnsupportedOperationException("streaming not supported while unit testing");
       }
     };

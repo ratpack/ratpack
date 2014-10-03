@@ -16,6 +16,7 @@
 
 package ratpack.stream.tck
 
+import io.netty.buffer.ByteBuf
 import io.netty.channel.Channel
 import io.netty.channel.ChannelFuture
 import io.netty.handler.codec.http.FullHttpRequest
@@ -25,15 +26,16 @@ import org.reactivestreams.Subscriber
 import org.reactivestreams.tck.SubscriberBlackboxVerification
 import org.reactivestreams.tck.TestEnvironment
 import ratpack.event.internal.DefaultEventController
+import ratpack.func.Function
 import ratpack.handling.RequestOutcome
 import ratpack.server.internal.DefaultResponseTransmitter
+import ratpack.util.internal.IoUtils
 
 import java.util.concurrent.atomic.AtomicBoolean
 
 import static org.mockito.Matchers.any
 import static org.mockito.Mockito.*
-import static ratpack.stream.Streams.constant
-import static ratpack.stream.Streams.publish
+import static ratpack.stream.Streams.*
 
 class DefaultResponseTransmitterBlackboxVerification extends SubscriberBlackboxVerification<Integer> {
 
@@ -66,13 +68,21 @@ class DefaultResponseTransmitterBlackboxVerification extends SubscriberBlackboxV
   }
 
   @Override
-  Publisher<Integer> createHelperPublisher(long elements) {
+  Publisher<ByteBuf> createHelperPublisher(long elements) {
     if (elements == Long.MAX_VALUE) {
-      constant(1)
+      map(constant(1), integerToByteBuf)
     } else if (elements > 0) {
-      publish(0..<elements)
+      map(publish(0..<elements), integerToByteBuf)
     } else {
       publish([])
     }
   }
+
+  def integerToByteBuf = new Function<Integer, ByteBuf>() {
+    @Override
+    ByteBuf apply(Integer i) throws Exception {
+      IoUtils.byteBuf(i.byteValue())
+    }
+  }
+
 }
