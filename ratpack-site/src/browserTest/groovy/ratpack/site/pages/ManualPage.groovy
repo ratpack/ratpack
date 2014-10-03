@@ -19,7 +19,7 @@ package ratpack.site.pages
 import geb.Page
 
 
-class ManualToCPage extends Page {
+class ManualPage extends Page {
 
   static at = { title.startsWith("Ratpack - Table of Contents") }
 }
