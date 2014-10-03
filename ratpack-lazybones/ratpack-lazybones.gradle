@@ -15,6 +15,7 @@
  */
 
 import org.apache.tools.ant.filters.ReplaceTokens
+import ratpack.gradle.WriteTestConfig
 
 buildscript {
   repositories {
@@ -31,6 +32,7 @@ dependencies {
 
   testCompile "commons-io:commons-io:2.4"
   testCompile "org.apache.commons:commons-lang3:3.3.2"
+  testCompile project(":ratpack-test-internal")
 }
 
 apply from: "$rootDir/gradle/javaModule.gradle"
@@ -78,28 +80,13 @@ packageTemplateRatpack {
   }
 }
 
-class WriteTestConfig extends DefaultTask {
-
-  @OutputFile
-  File getTestConfigPropertiesFile() {
-    new File(project.generatedTestResourcesDir, 'test-config.properties')
-  }
-
-  @Input
-  Properties getTestConfigProperties() {
-    def testConfigProperties = new Properties()
-    testConfigProperties["template.path"] = project.compiledTemplateDir.absolutePath
-    testConfigProperties["localRepo.url"] = project.localRepoUrl.toString()
-    testConfigProperties
-  }
-
-  @TaskAction
-  def generate() {
-    testConfigPropertiesFile.withOutputStream { testConfigProperties.store(it, null) }
-  }
+task writeTestConfig(type: WriteTestConfig) {
+  generatedTestResourcesDir = project.generatedTestResourcesDir
+  testProperties.putAll(
+    "template.path": project.compiledTemplateDir.absolutePath,
+    "localRepo.url": project.localRepoUrl.toString()
+  )
 }
-
-task writeTestConfig(type: WriteTestConfig)
 
 task prepareTestResources {
   dependsOn { apiModules*.install }

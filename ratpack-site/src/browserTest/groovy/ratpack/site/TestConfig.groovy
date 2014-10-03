@@ -1,5 +1,6 @@
+package ratpack.site
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +15,8 @@
  * limitations under the License.
  */
 
-apply plugin: 'groovy'
-apply plugin: 'idea'
+class TestConfig extends ratpack.config.TestConfig {
 
-repositories {
-  jcenter()
-}
+  final String generatingTaskName = "writeBrowserTestConfig"
 
-dependencies {
-  compile localGroovy()
-  compile gradleApi()
-}
-
-sourceSets {
-  main {
-    groovy.srcDirs = ["src/main/groovy", "../ratpack-gradle/src/main/groovy"]
-    resources.srcDirs = ["../ratpack-gradle/src/main/resources", "../shared-resources"]
-  }
 }

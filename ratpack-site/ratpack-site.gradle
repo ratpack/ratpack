@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import ratpack.gradle.WriteTestConfig
+
 buildscript {
   repositories {
     maven { url "http://dl.bintray.com/robfletcher/gradle-plugins" }
@@ -65,6 +67,10 @@ configurations {
   }
 }
 
+ext {
+  generatedBrowserTestResourcesDir = file("$buildDir/generated-browser-test-resources")
+}
+
 sourceSets {
   browserTest {
     resources.srcDir(file('src/ratpack'))
@@ -98,6 +104,7 @@ dependencies {
   browserTestCompile "org.seleniumhq.selenium:selenium-chrome-driver:2.43.1", {
     exclude module: 'guava'
   }
+  browserTestCompile project(":ratpack-test-internal")
 
   manualVersions.each {
     delegate."manual-$it" "io.ratpack:ratpack-manual:$it@zip"
@@ -160,19 +167,24 @@ task unzipChromeDriver(type: Copy) {
   into new File(buildDir, "webdriver/driver")
 }
 
-task configureBrowserTest {
+task configureWriteBrowserTestConfig {
   dependsOn unzipChromeDriver
   doLast {
     if (!isSnapCi) {
-      browserTest.jvmArgs "-Dwebdriver.chrome.driver=${fileTree(unzipChromeDriver.outputs.files.singleFile).singleFile}"
+      writeBrowserTestConfig.testProperties.putAll(
+        "chromedriver.path": fileTree(unzipChromeDriver.outputs.files.singleFile).singleFile.absolutePath
+      )
     }
   }
 }
 
+task writeBrowserTestConfig(type: WriteTestConfig) {
+  dependsOn configureWriteBrowserTestConfig
+
+  generatedTestResourcesDir = generatedBrowserTestResourcesDir
+}
+
 task browserTest(type: Test) {
-  if (!isSnapCi) {
-    dependsOn configureBrowserTest
-  }
   testClassesDir = sourceSets.browserTest.output.classesDir
   classpath = sourceSets.browserTest.runtimeClasspath
 }
@@ -180,6 +192,12 @@ task browserTest(type: Test) {
 if (isSnapCi || !isCloudCi) {
   check.dependsOn browserTest
 }
+
+sourceSets.browserTest.resources.srcDir generatedBrowserTestResourcesDir
+
+processBrowserTestResources.dependsOn writeBrowserTestConfig
+
+ideaModule.dependsOn processBrowserTestResources
 
 task compileCoffee(type: CoffeeScriptCompile) {
   source fileTree('src/main/static/scripts')

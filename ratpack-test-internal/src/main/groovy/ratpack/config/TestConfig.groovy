@@ -14,17 +14,21 @@
  * limitations under the License.
  */
 
-package ratpack.lazybones.fixture
+package ratpack.config
 
-class TestConfig extends ratpack.config.TestConfig {
+abstract class TestConfig {
 
-  final String generatingTaskName = 'writeTestConfig'
+  Properties testConfigProperties
 
-  File getTemplateDirectory() {
-    new File(testConfigProperties["template.path"])
+  TestConfig() {
+    def testConfigResourcePath = "/test-config.properties"
+    def testConfigResourceStream = getClass().getResourceAsStream(testConfigResourcePath)
+    if (!testConfigResourceStream) {
+      throw new RuntimeException("Test config properties resource file not found at $testConfigResourcePath. Run '$generatingTaskName' task to generate it.")
+    }
+    testConfigProperties = new Properties()
+    testConfigProperties.load(testConfigResourceStream)
   }
 
-  String getLocalRepoUrl() {
-    testConfigProperties["localRepo.url"]
-  }
+  abstract String getGeneratingTaskName()
 }

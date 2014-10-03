@@ -1,3 +1,10 @@
+package ratpack.gradle
+
+import org.gradle.api.DefaultTask
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.OutputFile
+import org.gradle.api.tasks.TaskAction
+
 /*
  * Copyright 2014 the original author or authors.
  *
@@ -14,17 +21,20 @@
  * limitations under the License.
  */
 
-package ratpack.lazybones.fixture
+class WriteTestConfig extends DefaultTask {
 
-class TestConfig extends ratpack.config.TestConfig {
+  File generatedTestResourcesDir
 
-  final String generatingTaskName = 'writeTestConfig'
+  @Input
+  Properties testProperties = new Properties()
 
-  File getTemplateDirectory() {
-    new File(testConfigProperties["template.path"])
+  @OutputFile
+  File getTestConfigPropertiesFile() {
+    new File(generatedTestResourcesDir, 'test-config.properties')
   }
 
-  String getLocalRepoUrl() {
-    testConfigProperties["localRepo.url"]
+  @TaskAction
+  def generate() {
+    testConfigPropertiesFile.withOutputStream { testProperties.store(it, null) }
   }
 }
