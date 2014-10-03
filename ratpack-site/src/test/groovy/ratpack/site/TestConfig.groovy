@@ -1,4 +1,3 @@
-package ratpack.site
 /*
  * Copyright 2014 the original author or authors.
  *
@@ -15,8 +14,19 @@ package ratpack.site
  * limitations under the License.
  */
 
+package ratpack.site
+
 class TestConfig extends ratpack.config.TestConfig {
 
-  final String generatingTaskName = "writeBrowserTestConfig"
+  List<String> getManualVersions() {
+    testConfigProperties.getProperty('manualVersions').tokenize(",")
+  }
 
+  String getCurrentVersion() {
+    testConfigProperties.getProperty("currentVersion")
+  }
+
+  String getChromeDriverPath() {
+    testConfigProperties.getProperty("chromedriver.path")
+  }
 }

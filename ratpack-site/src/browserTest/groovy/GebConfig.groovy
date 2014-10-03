@@ -11,9 +11,9 @@ if (!BuildAdapterFactory.getBuildAdapter(this.class.classLoader).reportsDir) {
 }
 
 driver = {
-  def chromedriverPath = new TestConfig().testConfigProperties.getProperty("chromedriver.path")
-  if (chromedriverPath) {
-    System.setProperty("webdriver.chrome.driver", chromedriverPath)
+  def chromeDriverPath = new TestConfig().chromeDriverPath
+  if (chromeDriverPath) {
+    System.setProperty("webdriver.chrome.driver", chromeDriverPath)
   }
 
   def driverInstance = new ChromeDriver()

@@ -16,7 +16,7 @@
 
 package ratpack.config
 
-abstract class TestConfig {
+class TestConfig {
 
   Properties testConfigProperties
 
@@ -24,11 +24,9 @@ abstract class TestConfig {
     def testConfigResourcePath = "/test-config.properties"
     def testConfigResourceStream = getClass().getResourceAsStream(testConfigResourcePath)
     if (!testConfigResourceStream) {
-      throw new RuntimeException("Test config properties resource file not found at $testConfigResourcePath. Run '$generatingTaskName' task to generate it.")
+      throw new RuntimeException("Test config properties resource file not found at $testConfigResourcePath. Run 'writeTestConfig' task to generate it.")
     }
     testConfigProperties = new Properties()
     testConfigProperties.load(testConfigResourceStream)
   }
-
-  abstract String getGeneratingTaskName()
 }

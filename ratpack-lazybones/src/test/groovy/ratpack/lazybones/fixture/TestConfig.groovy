@@ -18,8 +18,6 @@ package ratpack.lazybones.fixture
 
 class TestConfig extends ratpack.config.TestConfig {
 
-  final String generatingTaskName = 'writeTestConfig'
-
   File getTemplateDirectory() {
     new File(testConfigProperties["template.path"])
   }
