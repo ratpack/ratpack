@@ -16,6 +16,12 @@
 
 package ratpack.http
 
+import com.google.inject.AbstractModule
+import com.google.inject.Injector
+import ratpack.func.Action
+import ratpack.guice.HandlerDecoratingModule
+import ratpack.handling.Context
+import ratpack.handling.Handler
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 class CookiesSpec extends RatpackGroovyDslSpec {
@@ -59,4 +65,61 @@ class CookiesSpec extends RatpackGroovyDslSpec {
     getText("get/a") == "null"
   }
 
+  def "can finalize cookies before sending"() {
+    given:
+    bindings {
+      add(new CookieModule())
+    }
+    handlers {
+      get("get/:name") {
+        response.send request.oneCookie(pathTokens.name) ?: "null"
+      }
+
+      get("set/:name/:value") {
+        response.cookie(pathTokens.name, pathTokens.value)
+        response.send()
+      }
+    }
+
+    when:
+    getText("set/a/1")
+
+    then:
+    getText("get/a") == "1"
+    getText("get/id") == "id"
+
+  }
+
+  class CookieModule extends AbstractModule implements HandlerDecoratingModule {
+
+    @Override
+    protected void configure() {
+
+    }
+
+    @Override
+    Handler decorate(Injector injector, Handler handler) {
+      return new CookieHandler(handler)
+    }
+  }
+
+  class CookieHandler implements Handler {
+
+    private final Handler handler
+
+    CookieHandler(Handler handler) {
+      this.handler = handler
+    }
+
+    @Override
+    void handle(Context context) throws Exception {
+      context.getResponse().beforeSend(new Action<ResponseMetaData>() {
+        @Override
+        void execute(ResponseMetaData responseMetaData) throws Exception {
+          responseMetaData.cookie('id', 'id')
+        }
+      })
+      handler.handle(context)
+    }
+  }
 }
