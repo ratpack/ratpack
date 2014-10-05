@@ -14,22 +14,21 @@
  * limitations under the License.
  */
 
-package ratpack.exec;
+package ratpack.configuration;
+
+import ratpack.launch.LaunchConfig;
 
 /**
- * Thrown when an execution sequence is invalid.
+ * A factory for LaunchConfig instances based on a configuration.
  */
-public class ExecutionException extends RuntimeException {
-
-  private static final long serialVersionUID = 0;
-
+public interface LaunchConfigFactory {
   /**
-   * Constructor.
+   * Builds a LaunchConfig based on the provided configuration data.
    *
-   * @param message the exception message
+   * @param configurationSource the configuration source
+   * @param configuration the configuration
+   * @return the built LaunchConfig
+   * @throws ConfigurationException if there is an error building the LaunchConfig
    */
-  public ExecutionException(String message) {
-    super(message);
-  }
-
+  LaunchConfig build(ConfigurationSource configurationSource, Configuration configuration) throws ConfigurationException;
 }

@@ -14,22 +14,18 @@
  * limitations under the License.
  */
 
-package ratpack.exec;
+package ratpack.configuration;
 
 /**
- * Thrown when an execution sequence is invalid.
+ * Interface for configuration provider discovery.
  */
-public class ExecutionException extends RuntimeException {
-
-  private static final long serialVersionUID = 0;
-
+public interface ConfigurationFactoryFactory {
   /**
-   * Constructor.
+   * Builds a configuration factory based on a configuration source.
    *
-   * @param message the exception message
+   * @param configurationSource the configuration source
+   * @return the built configuration factory
+   * @throws ConfigurationException if there's an error building the configuration factory
    */
-  public ExecutionException(String message) {
-    super(message);
-  }
-
+  ConfigurationFactory build(ConfigurationSource configurationSource) throws ConfigurationException;
 }

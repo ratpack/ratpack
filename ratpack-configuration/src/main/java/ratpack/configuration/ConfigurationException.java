@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-package ratpack.exec;
+package ratpack.configuration;
 
 /**
- * Thrown when an execution sequence is invalid.
+ * Thrown when the configuration cannot be loaded.
  */
-public class ExecutionException extends RuntimeException {
-
+public class ConfigurationException extends RuntimeException {
   private static final long serialVersionUID = 0;
 
   /**
@@ -28,8 +27,17 @@ public class ExecutionException extends RuntimeException {
    *
    * @param message the exception message
    */
-  public ExecutionException(String message) {
+  public ConfigurationException(String message) {
     super(message);
   }
 
+  /**
+   * Constructor.
+   *
+   * @param message the exception message
+   * @param  cause the exception cause
+   */
+  public ConfigurationException(String message, Throwable cause) {
+    super(message, cause);
+  }
 }

@@ -14,22 +14,11 @@
  * limitations under the License.
  */
 
-package ratpack.exec;
+description = "Base support for application-defined configuration"
 
-/**
- * Thrown when an execution sequence is invalid.
- */
-public class ExecutionException extends RuntimeException {
+apply from: "$rootDir/gradle/javaModule.gradle"
 
-  private static final long serialVersionUID = 0;
-
-  /**
-   * Constructor.
-   *
-   * @param message the exception message
-   */
-  public ExecutionException(String message) {
-    super(message);
-  }
-
+dependencies {
+  compile project(":ratpack-core")
+  compile "javax.validation:validation-api:1.1.0.Final"
 }
