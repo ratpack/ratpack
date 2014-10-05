@@ -28,11 +28,12 @@ import ratpack.func.Predicate;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class CachingPromise<T> implements Promise<T> {
 
-  private final Action<? super Fulfiller<T>> action;
+  private final Consumer<? super Fulfiller<T>> fulfillment;
   private final Supplier<ExecutionBacking> executionSupplier;
   private final Action<? super Throwable> errorHandler;
 
@@ -42,8 +43,8 @@ public class CachingPromise<T> implements Promise<T> {
   private final AtomicBoolean draining = new AtomicBoolean();
   private final AtomicReference<Result<T>> result = new AtomicReference<>();
 
-  public CachingPromise(Action<? super Fulfiller<T>> action, Supplier<ExecutionBacking> executionSupplier, Action<? super Throwable> errorHandler) {
-    this.action = action;
+  public CachingPromise(Consumer<? super Fulfiller<T>> fulfillment, Supplier<ExecutionBacking> executionSupplier, Action<? super Throwable> errorHandler) {
+    this.fulfillment = fulfillment;
     this.executionSupplier = executionSupplier;
     this.errorHandler = errorHandler;
   }
@@ -111,28 +112,24 @@ public class CachingPromise<T> implements Promise<T> {
     return this;
   }
 
-  private class Fulfillment implements Action<Fulfiller<T>> {
-    @Override
-    public void execute(Fulfiller<T> fulfiller) throws Exception {
-      if (fired.compareAndSet(false, true)) {
-        try {
-          action.execute(new Fulfiller<T>() {
-            @Override
-            public void error(Throwable throwable) {
-              result.set(DefaultResult.<T>failure(throwable));
-              tryDrain();
-            }
+  private class Fulfillment implements Consumer<Fulfiller<T>> {
 
-            @Override
-            public void success(T value) {
-              result.set(DefaultResult.success(value));
-              tryDrain();
-            }
-          });
-        } catch (Throwable throwable) {
-          result.set(DefaultResult.<T>failure(throwable));
-          tryDrain();
-        }
+    @Override
+    public void accept(Fulfiller<T> fulfiller) {
+      if (fired.compareAndSet(false, true)) {
+        fulfillment.accept(new Fulfiller<T>() {
+          @Override
+          public void error(Throwable throwable) {
+            result.set(DefaultResult.<T>failure(throwable));
+            tryDrain();
+          }
+
+          @Override
+          public void success(T value) {
+            result.set(DefaultResult.success(value));
+            tryDrain();
+          }
+        });
       }
 
       Result<T> resultValue = result.get();

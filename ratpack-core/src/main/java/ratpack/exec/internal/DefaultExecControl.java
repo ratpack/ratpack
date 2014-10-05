@@ -31,6 +31,7 @@ import ratpack.registry.RegistrySpec;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.function.Consumer;
 
 import static ratpack.func.Action.noop;
 
@@ -71,16 +72,6 @@ public class DefaultExecControl implements ExecControl {
     ExecutionBacking backing = getBacking();
     backing.getInterceptors().add(execInterceptor);
     backing.intercept(ExecInterceptor.ExecType.COMPUTE, Collections.singletonList(execInterceptor), continuation);
-  }
-
-  @Override
-  public <T> Promise<T> blocking(final Callable<T> blockingOperation) {
-    final ExecutionBacking backing = getBacking();
-    final ExecController controller = backing.getController();
-    return promise(fulfiller -> {
-      ListenableFuture<T> future = controller.getBlockingExecutor().submit(new BlockingOperation<>(backing, blockingOperation));
-      Futures.addCallback(future, new ComputeResume<>(fulfiller), controller.getExecutor());
-    });
   }
 
   @Override
@@ -131,6 +122,20 @@ public class DefaultExecControl implements ExecControl {
 
   @Override
   public <T> Promise<T> promise(Action<? super Fulfiller<T>> action) {
+    return directPromise(SafeFulfiller.wrapping(action));
+  }
+
+  @Override
+  public <T> Promise<T> blocking(final Callable<T> blockingOperation) {
+    final ExecutionBacking backing = getBacking();
+    final ExecController controller = backing.getController();
+    return directPromise(fulfiller -> {
+      ListenableFuture<T> future = controller.getBlockingExecutor().submit(new BlockingOperation<>(backing, blockingOperation));
+      Futures.addCallback(future, new ComputeResume<>(fulfiller), controller.getExecutor());
+    });
+  }
+
+  private <T> Promise<T> directPromise(Consumer<? super Fulfiller<T>> action) {
     return new DefaultPromise<>(this::getBacking, action);
   }
 
@@ -138,7 +143,7 @@ public class DefaultExecControl implements ExecControl {
   public <T> void stream(final Publisher<T> publisher, final Subscriber<? super T> subscriber) {
     final ExecutionBacking executionBacking = getBacking();
 
-    promise((Fulfillment<Subscription>) fulfiller -> publisher.subscribe(new Subscriber<T>() {
+    directPromise((Consumer<Fulfiller<Subscription>>) fulfiller -> publisher.subscribe(new Subscriber<T>() {
       @Override
       public void onSubscribe(final Subscription subscription) {
         fulfiller.success(subscription);

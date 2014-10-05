@@ -16,9 +16,10 @@
 
 package ratpack.exec.internal;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import ratpack.exec.*;
+import ratpack.exec.ExecutionException;
+import ratpack.exec.Fulfiller;
+import ratpack.exec.Promise;
+import ratpack.exec.SuccessPromise;
 import ratpack.func.Action;
 import ratpack.func.Function;
 import ratpack.func.NoArgAction;
@@ -27,22 +28,21 @@ import ratpack.util.internal.InternalRatpackError;
 
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import static ratpack.func.Action.ignoreArg;
 
 public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
 
-  private final static Logger LOGGER = LoggerFactory.getLogger(DefaultSuccessPromise.class);
-
   private final Supplier<ExecutionBacking> executionSupplier;
-  private final Action<? super Fulfiller<T>> action;
+  private final Consumer<? super Fulfiller<T>> fulfillment;
   private final Action<? super Throwable> errorHandler;
   private final AtomicBoolean fired = new AtomicBoolean();
 
-  public DefaultSuccessPromise(Supplier<ExecutionBacking> executionSupplier, Action<? super Fulfiller<T>> action, Action<? super Throwable> errorHandler) {
+  public DefaultSuccessPromise(Supplier<ExecutionBacking> executionSupplier, Consumer<? super Fulfiller<T>> fulfillment, Action<? super Throwable> errorHandler) {
     this.executionSupplier = executionSupplier;
-    this.action = action;
+    this.fulfillment = fulfillment;
     this.errorHandler = errorHandler;
   }
 
@@ -64,36 +64,17 @@ public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
 
   private void doThen(final Fulfiller<? super T> outer) {
     final ExecutionBacking executionBacking = executionSupplier.get();
-    final AtomicBoolean fulfilled = new AtomicBoolean();
-    try {
-      action.execute(new Fulfiller<T>() {
-        @Override
-        public void error(final Throwable throwable) {
-          if (!fulfilled.compareAndSet(false, true)) {
-            LOGGER.error("", new OverlappingExecutionException("promise already fulfilled", throwable));
-            return;
-          }
-
-          executionBacking.join(execution -> outer.error(throwable));
-        }
-
-        @Override
-        public void success(final T value) {
-          if (!fulfilled.compareAndSet(false, true)) {
-            LOGGER.error("", new OverlappingExecutionException("promise already fulfilled"));
-            return;
-          }
-
-          executionBacking.join(execution -> outer.success(value));
-        }
-      });
-    } catch (final Throwable throwable) {
-      if (!fulfilled.compareAndSet(false, true)) {
-        LOGGER.error("", new OverlappingExecutionException("exception thrown after promise was fulfilled", throwable));
-      } else {
-        executionBacking.join(Action.throwException(throwable));
+    fulfillment.accept(new Fulfiller<T>() {
+      @Override
+      public void error(final Throwable throwable) {
+        executionBacking.join(execution -> outer.error(throwable));
       }
-    }
+
+      @Override
+      public void success(final T value) {
+        executionBacking.join(execution -> outer.success(value));
+      }
+    });
   }
 
   @Override
@@ -125,35 +106,30 @@ public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
   }
 
   @Override
-  public Promise<T> route(final Predicate<? super T> predicate, final Action<? super T> action) {
+  public Promise<T> route(final Predicate<? super T> predicate, final Action<? super T> fulfillment) {
     if (fired.compareAndSet(false, true)) {
-      return new DefaultPromise<>(executionSupplier, new Action<Fulfiller<T>>() {
+      return new DefaultPromise<>(executionSupplier, downstream -> DefaultSuccessPromise.this.doThen(new Step<T>(downstream) {
         @Override
-        public void execute(final Fulfiller<T> downstream) throws Exception {
-          DefaultSuccessPromise.this.doThen(new Step<T>(downstream) {
-            @Override
-            public void success(T value) {
-              boolean apply;
-              try {
-                apply = predicate.apply(value);
-              } catch (Throwable e) {
-                error(e);
-                return;
-              }
+        public void success(T value) {
+          boolean apply;
+          try {
+            apply = predicate.apply(value);
+          } catch (Throwable e) {
+            error(e);
+            return;
+          }
 
-              if (apply) {
-                try {
-                  action.execute(value);
-                } catch (Throwable e) {
-                  error(e);
-                }
-              } else {
-                downstream.success(value);
-              }
+          if (apply) {
+            try {
+              fulfillment.execute(value);
+            } catch (Throwable e) {
+              error(e);
             }
-          });
+          } else {
+            downstream.success(value);
+          }
         }
-      });
+      }));
     } else {
       throw new MultiplePromiseSubscriptionException();
     }
@@ -194,7 +170,7 @@ public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
   @Override
   public Promise<T> cache() {
     if (fired.compareAndSet(false, true)) {
-      return new CachingPromise<>(action, executionSupplier, errorHandler);
+      return new CachingPromise<>(fulfillment, executionSupplier, errorHandler);
     } else {
       throw new MultiplePromiseSubscriptionException();
     }
