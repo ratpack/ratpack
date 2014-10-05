@@ -27,6 +27,7 @@ import ratpack.file.FileSystemBinding;
 import ratpack.launch.HandlerFactory;
 import ratpack.launch.LaunchConfig;
 import ratpack.launch.NoBaseDirException;
+import ratpack.registry.Registry;
 
 import javax.net.ssl.SSLContext;
 import java.net.InetAddress;
@@ -55,8 +56,9 @@ public class DefaultLaunchConfig implements LaunchConfig {
   private final long compressionMinSize;
   private final ImmutableSet<String> compressionMimeTypeWhiteList;
   private final ImmutableSet<String> compressionMimeTypeBlackList;
+  private final Registry defaultRegistry;
 
-  public DefaultLaunchConfig(FileSystemBinding baseDir, int port, InetAddress address, boolean development, int threads, ByteBufAllocator byteBufAllocator, URI publicAddress, ImmutableList<String> indexFiles, ImmutableMap<String, String> other, SSLContext sslContext, int maxContentLength, boolean timeResponses, boolean compressResponses, long compressionMinSize, ImmutableSet<String> compressionMimeTypeWhiteList, ImmutableSet<String> compressionMimeTypeBlackList, HandlerFactory handlerFactory) {
+  public DefaultLaunchConfig(FileSystemBinding baseDir, int port, InetAddress address, boolean development, int threads, ByteBufAllocator byteBufAllocator, URI publicAddress, ImmutableList<String> indexFiles, ImmutableMap<String, String> other, SSLContext sslContext, int maxContentLength, boolean timeResponses, boolean compressResponses, long compressionMinSize, ImmutableSet<String> compressionMimeTypeWhiteList, ImmutableSet<String> compressionMimeTypeBlackList, HandlerFactory handlerFactory, Registry defaultRegistry) {
     this.baseDir = baseDir;
     this.port = port;
     this.address = address;
@@ -75,6 +77,7 @@ public class DefaultLaunchConfig implements LaunchConfig {
     this.sslContext = sslContext;
     this.maxContentLength = maxContentLength;
     this.execController = new DefaultExecController(this.threads);
+    this.defaultRegistry = defaultRegistry;
   }
 
   @Override
@@ -189,5 +192,10 @@ public class DefaultLaunchConfig implements LaunchConfig {
   @Override
   public boolean isHasBaseDir() {
     return baseDir != null;
+  }
+
+  @Override
+  public Registry getDefaultRegistry() {
+    return defaultRegistry;
   }
 }

@@ -25,6 +25,8 @@ import ratpack.api.Nullable;
 import ratpack.file.FileSystemBinding;
 import ratpack.file.internal.DefaultFileSystemBinding;
 import ratpack.launch.internal.DefaultLaunchConfig;
+import ratpack.registry.Registries;
+import ratpack.registry.Registry;
 
 import javax.net.ssl.SSLContext;
 import java.io.File;
@@ -79,6 +81,7 @@ public class LaunchConfigBuilder {
   private long compressionMinSize = LaunchConfig.DEFAULT_COMPRESSION_MIN_SIZE;
   private final ImmutableSet.Builder<String> compressionMimeTypeWhiteList = ImmutableSet.builder();
   private final ImmutableSet.Builder<String> compressionMimeTypeBlackList = ImmutableSet.builder();
+  private Registry defaultRegistry = Registries.empty();
 
   private LaunchConfigBuilder() {
   }
@@ -372,6 +375,17 @@ public class LaunchConfigBuilder {
   }
 
   /**
+   * The default registry for the built launch config.
+   *
+   * @param defaultRegistry the default registry
+   * @return this
+   */
+  public LaunchConfigBuilder defaultRegistry(Registry defaultRegistry) {
+    this.defaultRegistry = defaultRegistry;
+    return this;
+  }
+
+  /**
    * Builds the launch config, based on the current state and the handler factory.
    * <p>
    * Supplying {@code null} for the {@code handlerFactory} will result in a launch config that can't be used to start a server.
@@ -398,7 +412,8 @@ public class LaunchConfigBuilder {
       compressionMinSize,
       compressionMimeTypeWhiteList.build(),
       compressionMimeTypeBlackList.build(),
-      handlerFactory
+      handlerFactory,
+      defaultRegistry
     );
   }
 

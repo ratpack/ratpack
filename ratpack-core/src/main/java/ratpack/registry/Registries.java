@@ -19,6 +19,7 @@ package ratpack.registry;
 import ratpack.func.Action;
 import ratpack.registry.internal.CachingBackedRegistry;
 import ratpack.registry.internal.DefaultRegistryBuilder;
+import ratpack.registry.internal.EmptyRegistry;
 
 import java.util.function.Supplier;
 
@@ -75,6 +76,15 @@ public abstract class Registries {
    */
   public static RegistryBuilder registry() {
     return new DefaultRegistryBuilder();
+  }
+
+  /**
+   * Returns an empty registry.
+   *
+   * @return an empty registry
+   */
+  public static Registry empty() {
+    return new EmptyRegistry();
   }
 
   /**

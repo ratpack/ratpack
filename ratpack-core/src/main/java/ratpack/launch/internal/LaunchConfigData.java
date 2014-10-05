@@ -15,7 +15,10 @@
  */
 package ratpack.launch.internal;
 
+import ratpack.registry.Registries;
+import ratpack.registry.Registry;
 import ratpack.util.internal.PropertiesUtil;
+import ratpack.util.internal.TypeCoercingProperties;
 
 import java.nio.file.Path;
 import java.util.Map;
@@ -25,12 +28,18 @@ import java.util.Properties;
 public class LaunchConfigData {
   private final ClassLoader classLoader;
   private final Path baseDir;
+  private final Registry defaultRegistry;
   private final Properties properties;
   private final Map<String, String> envVars;
 
   public LaunchConfigData(ClassLoader classLoader, Path baseDir, Properties properties, Map<String, String> envVars) {
+    this(classLoader, baseDir, properties, envVars, Registries.empty());
+  }
+
+  public LaunchConfigData(ClassLoader classLoader, Path baseDir, Properties properties, Map<String, String> envVars, Registry defaultRegistry) {
     this.classLoader = classLoader;
     this.baseDir = baseDir;
+    this.defaultRegistry = defaultRegistry;
     this.properties = properties;
     this.envVars = envVars;
   }
@@ -43,12 +52,20 @@ public class LaunchConfigData {
     return baseDir;
   }
 
+  public Registry getDefaultRegistry() {
+    return defaultRegistry;
+  }
+
   public Properties getProperties() {
     return properties;
   }
 
   public Map<String, String> getEnvVars() {
     return envVars;
+  }
+
+  public TypeCoercingProperties getTypeCoercingProperties() {
+    return new TypeCoercingProperties(properties, classLoader);
   }
 
   @Override
@@ -63,11 +80,12 @@ public class LaunchConfigData {
     return Objects.equals(this.baseDir, that.baseDir)
       && Objects.equals(this.classLoader, that.classLoader)
       && Objects.equals(this.envVars, that.envVars)
+      && Objects.equals(this.defaultRegistry, that.defaultRegistry)
       && PropertiesUtil.flatEquals(this.properties, that.properties);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(baseDir, classLoader, envVars, properties);
+    return Objects.hash(baseDir, classLoader, envVars, defaultRegistry, properties);
   }
 }
