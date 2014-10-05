@@ -49,6 +49,8 @@ class HystrixMetricsStreamingSpec extends RatpackGroovyDslSpec {
 
   def "can stream metrics over sse"() {
     given:
+    def commandMetricsReceived = 0
+    def threadpoolMetricsReceived = 0
     def eventCount = 2
     bindings {
       add new HystrixModule().sse()
@@ -68,16 +70,20 @@ class HystrixMetricsStreamingSpec extends RatpackGroovyDslSpec {
     expect:
     def sseEvents = streamEvents("/hystrix/sse", eventCount)
     sseEvents.size() == eventCount
+    sseEvents.each {
+      def metric = new JsonSlurper().parseText(it)
+      if (metric.type == "HystrixThreadPool") {
+        threadpoolMetricsReceived++
+        metric.name == "foo-commands"
+      } else if (metric.type == "HystrixCommand") {
+        commandMetricsReceived++
+        metric.group == "foo-commands"
+        metric.name == "FooCommand"
+        metric.rollingCountSuccess == 2
+      }
+    }
 
-    def threadPoolMetrics = new JsonSlurper().parseText(sseEvents[0])
-    threadPoolMetrics.type == "HystrixThreadPool"
-    threadPoolMetrics.name == "foo-commands"
-
-    def commandMetrics = new JsonSlurper().parseText(sseEvents[1])
-    commandMetrics.type == "HystrixCommand"
-    commandMetrics.group == "foo-commands"
-    commandMetrics.name == "FooCommand"
-    commandMetrics.rollingCountSuccess == 2
+    threadpoolMetricsReceived == 1 && commandMetricsReceived == 1
   }
 
   List<String> streamEvents(String path, int numberOfEvents = 1, Charset charset = CharsetUtil.UTF_8) {
