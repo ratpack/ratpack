@@ -40,7 +40,7 @@ public class FileSystemBindingTemplateLoader extends AbstractTemplateLoader {
     if (path == null || !Files.exists(path)) {
       throw new IOException("No template at " + resolved + " for binding " + fileSystemBinding);
     } else {
-      return new PathTemplateSource(path);
+      return new PathTemplateSource(path, fileSystemBinding.getFile());
     }
   }
 
