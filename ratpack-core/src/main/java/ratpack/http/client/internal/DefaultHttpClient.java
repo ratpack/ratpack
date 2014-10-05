@@ -138,12 +138,9 @@ public class DefaultHttpClient implements HttpClient {
       }
       finalUseSsl = useSsl;
 
-
       host = uri.getHost();
       port = uri.getPort() < 0 ? (useSsl ? 443 : 80) : uri.getPort();
-
     }
-
 
     public void execute(final Fulfiller<ReceivedResponse> fulfiller) throws Exception {
       final Bootstrap b = new Bootstrap();
