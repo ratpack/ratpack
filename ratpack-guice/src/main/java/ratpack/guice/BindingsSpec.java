@@ -94,6 +94,11 @@ public interface BindingsSpec {
    */
   BindingsSpec add(Module... modules);
 
+  @SuppressWarnings("unchecked")
+  BindingsSpec add(Class<? extends Module>... modules);
+
+  <C, T extends ConfigurableModule<C>> BindingsSpec add(Class<T> moduleClass, Action<? super C> configuration);
+
   /**
    * Adds the bindings from the given modules.
    *

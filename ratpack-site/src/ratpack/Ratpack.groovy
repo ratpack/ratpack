@@ -18,22 +18,20 @@ import static ratpack.registry.Registries.just
 
 ratpack {
   bindings {
-    add  \
-       new JacksonModule(),
-      new CodaHaleMetricsModule().metrics(),
-      new RemoteControlModule(),
-      new NewRelicModule(),
-      new MarkupTemplatingModule(),
-      new SiteModule(launchConfig)
-
+    add JacksonModule, RemoteControlModule, NewRelicModule
+    add new CodaHaleMetricsModule().metrics(), new SiteModule(launchConfig)
+    add MarkupTemplatingModule, {
+      it.with {
+        autoNewLine = true
+        useDoubleQuotes = true
+        autoIndent = true
+      }
+    }
     config(TemplatingModule) { it.staticallyCompile = true }
 
     RxRatpack.initialize()
     init { TemplateConfiguration templateConfiguration ->
       templateConfiguration.with {
-        autoNewLine = true
-        useDoubleQuotes = true
-        autoIndent = true
       }
     }
   }

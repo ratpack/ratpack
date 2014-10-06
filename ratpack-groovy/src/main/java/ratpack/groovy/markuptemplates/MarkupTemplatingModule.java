@@ -15,26 +15,18 @@
  */
 package ratpack.groovy.markuptemplates;
 
-import com.google.common.base.Throwables;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
-import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.TypeLiteral;
 import groovy.text.markup.MarkupTemplateEngine;
 import groovy.text.markup.TemplateConfiguration;
+import ratpack.groovy.markuptemplates.internal.CachingTemplateResolver;
 import ratpack.groovy.markuptemplates.internal.MarkupTemplateRenderer;
+import ratpack.guice.ConfigurableModule;
 import ratpack.launch.LaunchConfig;
 import ratpack.render.Renderer;
-import ratpack.util.ExceptionUtils;
 
 import javax.inject.Singleton;
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.nio.file.Path;
-import java.util.concurrent.ExecutionException;
 
 /**
  * An extension module that provides support for the Groovy markup template engine.
@@ -72,7 +64,7 @@ import java.util.concurrent.ExecutionException;
  *     );
  *     EmbeddedApp.fromHandlerFactory(baseDir, launchConfig ->
  *         Guice.builder(launchConfig)
- *           .bindings(b -> b.add(new MarkupTemplatingModule()))
+ *           .bindings(b -> b.add(MarkupTemplatingModule.class))
  *           .build(chain -> chain
  *               .get(ctx -> ctx.render(groovyMarkupTemplate("myTemplate.gtpl", m -> m.put("value", "hello!"))))
  *           )
@@ -85,17 +77,7 @@ import java.util.concurrent.ExecutionException;
  *
  * @see <a href="http://beta.groovy-lang.org/docs/latest/html/documentation/markup-template-engine.html" target="_blank">Groovy Markup Template Engine</a>
  */
-public class MarkupTemplatingModule extends AbstractModule {
-
-  private String templatesDirectory = "templates";
-
-  public String getTemplatesDirectory() {
-    return templatesDirectory;
-  }
-
-  public void setTemplatesDirectory(String templatesDirectory) {
-    this.templatesDirectory = templatesDirectory;
-  }
+public class MarkupTemplatingModule extends ConfigurableModule<MarkupTemplatingModule.Config> {
 
   @Override
   protected void configure() {
@@ -103,57 +85,37 @@ public class MarkupTemplatingModule extends AbstractModule {
     }).to(MarkupTemplateRenderer.class).in(Singleton.class);
   }
 
-  @Provides
-  @Singleton
-  TemplateConfiguration provideTemplateConfiguration() {
-    TemplateConfiguration templateConfiguration = new TemplateConfiguration();
-    templateConfiguration.setAutoEscape(true);
-    return templateConfiguration;
+  @Override
+  protected void defaultConfig(LaunchConfig launchConfig, Config config) {
+    config.setAutoEscape(true);
+    config.setCacheTemplates(!launchConfig.isDevelopment());
   }
 
   @SuppressWarnings("UnusedDeclaration")
   @Provides
   @Singleton
-  MarkupTemplateEngine provideTemplateEngine(LaunchConfig launchConfig, TemplateConfiguration templateConfiguration) {
-    if (launchConfig.isDevelopment()) {
-      templateConfiguration.setCacheTemplates(false);
-    }
-
+  MarkupTemplateEngine provideTemplateEngine(LaunchConfig launchConfig, Config config) {
     ClassLoader parent = getClass().getClassLoader();
-    return new MarkupTemplateEngine(parent, templateConfiguration, new CachingTemplateResolver(launchConfig.getBaseDir().file(templatesDirectory)));
+    TemplateConfiguration effectiveConfiguration = new TemplateConfiguration(config);
+    effectiveConfiguration.setCacheTemplates(config.isCacheTemplates()); // not copied by constructor
+    Path templatesDir = launchConfig.getBaseDir().file(config.getTemplatesDirectory());
+    return new MarkupTemplateEngine(parent, effectiveConfiguration, new CachingTemplateResolver(templatesDir));
   }
 
-  /**
-   * A template resolver which avoids calling {@link ClassLoader#getResource(String)} if a template path already has
-   * been queried before. This improves performance if caching is enabled in the configuration.
-   */
-  private static class CachingTemplateResolver extends MarkupTemplateEngine.DefaultTemplateResolver {
+  public static class Config extends TemplateConfiguration {
 
-    private final LoadingCache<String, URL> urlCache = CacheBuilder.newBuilder().build(new CacheLoader<String, URL>() {
-      @Override
-      public URL load(String key) throws Exception {
-        return doLoad(key);
-      }
-    });
+    private String templatesDirectory = "templates";
 
-    private URL doLoad(String key) throws MalformedURLException {
-      return templatesDir.resolve(key).toUri().toURL();
+    public String getTemplatesDirectory() {
+      return templatesDirectory;
     }
 
-    private final Path templatesDir;
-
-    public CachingTemplateResolver(Path templatesDir) {
-      this.templatesDir = templatesDir;
+    public void setTemplatesDirectory(String templatesDirectory) {
+      this.templatesDirectory = templatesDirectory;
     }
 
-    @Override
-    public URL resolveTemplate(String templatePath) throws IOException {
-      try {
-        return urlCache.get(templatePath);
-      } catch (ExecutionException e) {
-        Throwables.propagateIfInstanceOf(e, IOException.class);
-        throw ExceptionUtils.uncheck(e);
-      }
+    public Config() {
     }
+
   }
 }

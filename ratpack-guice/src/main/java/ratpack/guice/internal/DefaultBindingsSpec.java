@@ -23,6 +23,7 @@ import com.google.inject.Module;
 import com.google.inject.Provider;
 import ratpack.func.Action;
 import ratpack.guice.BindingsSpec;
+import ratpack.guice.ConfigurableModule;
 import ratpack.guice.NoSuchModuleException;
 import ratpack.launch.LaunchConfig;
 
@@ -83,6 +84,31 @@ class DefaultBindingsSpec implements BindingsSpec {
   @Override
   public BindingsSpec add(Module... modules) {
     Collections.addAll(this.modules, modules);
+    return this;
+  }
+
+  @SuppressWarnings("unchecked")
+  @Override
+  public BindingsSpec add(Class<? extends Module>... modules) {
+    for (Class<? extends Module> module : modules) {
+      this.modules.add(createModule(module));
+    }
+    return this;
+  }
+
+  private <T extends Module> T createModule(Class<T> clazz) {
+    try {
+      return clazz.newInstance();
+    } catch (ReflectiveOperationException e) {
+      throw new IllegalStateException("Module " + clazz.getName() + " is not reflectively instantiable", e);
+    }
+  }
+
+  @Override
+  public <C, T extends ConfigurableModule<C>> BindingsSpec add(Class<T> moduleClass, Action<? super C> configuration) {
+    T t = createModule(moduleClass);
+    t.configure(configuration);
+    this.modules.add(t);
     return this;
   }
 
