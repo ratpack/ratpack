@@ -53,8 +53,8 @@ public class DefaultHttpClient implements HttpClient {
   }
 
   @Override
-  public Promise<ReceivedResponse> get(Action<? super RequestSpec> requestConfigurer) {
-    return request(requestConfigurer);
+  public Promise<ReceivedResponse> get(URI uri, Action<? super RequestSpec> requestConfigurer) {
+    return request(uri, requestConfigurer);
   }
 
   private static class Post implements Action<RequestSpec> {
@@ -64,18 +64,18 @@ public class DefaultHttpClient implements HttpClient {
     }
   }
 
-  public Promise<ReceivedResponse> post(Action<? super RequestSpec> action) {
-    return request(Action.join(new Post(), action));
+  public Promise<ReceivedResponse> post(URI uri, Action<? super RequestSpec> action) {
+    return request(uri, Action.join(new Post(), action));
   }
 
   @Override
-  public Promise<ReceivedResponse> request(final Action<? super RequestSpec> requestConfigurer) {
+  public Promise<ReceivedResponse> request(URI uri, final Action<? super RequestSpec> requestConfigurer) {
     final ExecControl execControl = execController.getControl();
     final Execution execution = execControl.getExecution();
     final EventLoopGroup eventLoopGroup = execController.getEventLoopGroup();
 
     try {
-      RequestAction requestAction = new RequestAction(requestConfigurer, execution, eventLoopGroup, byteBufAllocator, maxContentLengthBytes);
+      RequestAction requestAction = new RequestAction(requestConfigurer, uri, execution, eventLoopGroup, byteBufAllocator, maxContentLengthBytes);
       return execController.getControl().promise(requestAction);
     } catch (Exception e) {
       throw uncheck(e);
@@ -84,7 +84,7 @@ public class DefaultHttpClient implements HttpClient {
 
   private static ByteBuf initBufferReleaseOnExecutionClose(final ByteBuf responseBuffer, Execution execution) {
     execution.onCleanup(responseBuffer::release);
-    return responseBuffer.retain();
+    return responseBuffer;
   }
 
   private static String getFullPath(URI uri) {
@@ -111,15 +111,16 @@ public class DefaultHttpClient implements HttpClient {
     private final ByteBufAllocator byteBufAllocator;
     private final int maxContentLengthBytes;
 
-    public RequestAction(Action<? super RequestSpec> requestConfigurer, Execution execution, EventLoopGroup eventLoopGroup, ByteBufAllocator byteBufAllocator, int maxContentLengthBytes) {
+    public RequestAction(Action<? super RequestSpec> requestConfigurer, URI uri, Execution execution, EventLoopGroup eventLoopGroup, ByteBufAllocator byteBufAllocator, int maxContentLengthBytes) {
       this.execution = execution;
       this.eventLoopGroup = eventLoopGroup;
       this.requestConfigurer = requestConfigurer;
       this.byteBufAllocator = byteBufAllocator;
       this.maxContentLengthBytes = maxContentLengthBytes;
+      this.uri = uri;
 
       headers = new NettyHeadersBackedMutableHeaders(new DefaultHttpHeaders());
-      requestSpecBacking = new RequestSpecBacking(headers, byteBufAllocator);
+      requestSpecBacking = new RequestSpecBacking(headers, uri, byteBufAllocator);
 
       try {
         requestConfigurer.execute(requestSpecBacking.asSpec());
@@ -127,19 +128,17 @@ public class DefaultHttpClient implements HttpClient {
         throw uncheck(e);
       }
 
-      uri = requestSpecBacking.getUrl();
-
-      String scheme = uri.getScheme();
+      String scheme = this.uri.getScheme();
       boolean useSsl = false;
       if (scheme.equals("https")) {
         useSsl = true;
       } else if (!scheme.equals("http")) {
-        throw new IllegalArgumentException(String.format("URL '%s' is not a http url", uri.toString()));
+        throw new IllegalArgumentException(String.format("URL '%s' is not a http url", this.uri.toString()));
       }
       finalUseSsl = useSsl;
 
-      host = uri.getHost();
-      port = uri.getPort() < 0 ? (useSsl ? 443 : 80) : uri.getPort();
+      host = this.uri.getHost();
+      port = this.uri.getPort() < 0 ? (useSsl ? 443 : 80) : this.uri.getPort();
     }
 
     public void execute(final Fulfiller<ReceivedResponse> fulfiller) throws Exception {
@@ -159,7 +158,7 @@ public class DefaultHttpClient implements HttpClient {
 
             p.addLast("codec", new HttpClientCodec());
             p.addLast("aggregator", new HttpObjectAggregator(maxContentLengthBytes));
-            p.addLast("handler", new SimpleChannelInboundHandler<HttpObject>() {
+            p.addLast("handler", new SimpleChannelInboundHandler<HttpObject>(false) {
               @Override
               public void channelRead0(ChannelHandlerContext ctx, HttpObject msg) throws Exception {
                 if (msg instanceof FullHttpResponse) {
@@ -182,8 +181,8 @@ public class DefaultHttpClient implements HttpClient {
 
                   //Check for redirect and location header if it is follow redirect if we have request forwarding left
                   if (isRedirect(status) && maxRedirects > 0 && locationUrl != null) {
-                    Action<? super RequestSpec> redirectRequestConfg = Action.join(requestConfigurer, new RedirectConfigurer(locationUrl, maxRedirects - 1));
-                    RequestAction requestAction = new RequestAction(redirectRequestConfg, execution, eventLoopGroup, byteBufAllocator, maxContentLengthBytes);
+                    Action<? super RequestSpec> redirectRequestConfg = Action.join(requestConfigurer, s -> s.redirects(maxRedirects - 1));
+                    RequestAction requestAction = new RequestAction(redirectRequestConfg, locationUrl, execution, eventLoopGroup, byteBufAllocator, maxContentLengthBytes);
                     requestAction.execute(fulfiller);
                   } else {
                     //Just fulfill what ever we currently have
@@ -236,27 +235,9 @@ public class DefaultHttpClient implements HttpClient {
       });
     }
 
-
     private static boolean isRedirect(Status status) {
       int code = status.getCode();
       return code >= 300 && code < 400;
-    }
-  }
-
-  private static class RedirectConfigurer implements Action<RequestSpec> {
-
-    private URI url;
-    private int maxRedirect;
-
-    RedirectConfigurer(URI url, int maxRedirect) {
-      this.url = url;
-      this.maxRedirect = maxRedirect;
-    }
-
-    @Override
-    public void execute(RequestSpec requestSpec) throws Exception {
-      requestSpec.url(httpUrlSpec -> httpUrlSpec.set(url));
-      requestSpec.redirects(maxRedirect);
     }
   }
 

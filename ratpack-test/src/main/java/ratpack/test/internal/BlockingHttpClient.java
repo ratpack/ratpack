@@ -32,14 +32,15 @@ import ratpack.http.client.internal.DefaultReceivedResponse;
 import ratpack.http.internal.ByteBufBackedTypedData;
 import ratpack.util.ExceptionUtils;
 
+import java.net.URI;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 public class BlockingHttpClient {
 
-  public ReceivedResponse request(long timeout, TimeUnit timeUnit, Action<? super RequestSpec> action) throws Throwable {
+  public ReceivedResponse request(URI uri, long timeout, TimeUnit timeUnit, Action<? super RequestSpec> action) throws Throwable {
     try (ExecController execController = new DefaultExecController(2)) {
-      final RequestAction requestAction = new RequestAction(execController, action);
+      final RequestAction requestAction = new RequestAction(uri, execController, action);
 
       execController.getControl().exec()
         .onError(throwable -> requestAction.setResult(Result.<ReceivedResponse>failure(throwable)))
@@ -60,13 +61,15 @@ public class BlockingHttpClient {
   }
 
   private static class RequestAction implements Action<Execution> {
+    private final URI uri;
     private final ExecController execController;
     private final Action<? super RequestSpec> action;
 
     private final CountDownLatch latch = new CountDownLatch(1);
     private Result<ReceivedResponse> result;
 
-    private RequestAction(ExecController execController, Action<? super RequestSpec> action) {
+    private RequestAction(URI uri, ExecController execController, Action<? super RequestSpec> action) {
+      this.uri = uri;
       this.execController = execController;
       this.action = action;
     }
@@ -78,7 +81,7 @@ public class BlockingHttpClient {
 
     @Override
     public void execute(Execution execution) throws Exception {
-      HttpClients.httpClient(execController, UnpooledByteBufAllocator.DEFAULT, Integer.MAX_VALUE).request(action)
+      HttpClients.httpClient(execController, UnpooledByteBufAllocator.DEFAULT, Integer.MAX_VALUE).request(uri, action)
         .then(response -> {
           TypedData responseBody = response.getBody();
           ByteBuf responseBodyBuffer = responseBody.getBuffer();

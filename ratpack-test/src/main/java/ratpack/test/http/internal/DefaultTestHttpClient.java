@@ -17,12 +17,14 @@
 package ratpack.test.http.internal;
 
 
+import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.net.HostAndPort;
 import io.netty.handler.codec.http.ClientCookieEncoder;
 import io.netty.handler.codec.http.Cookie;
 import io.netty.handler.codec.http.CookieDecoder;
 import ratpack.func.Action;
+import ratpack.http.HttpUrlBuilder;
 import ratpack.http.client.ReceivedResponse;
 import ratpack.http.client.RequestSpec;
 import ratpack.http.internal.HttpHeaderConstants;
@@ -46,6 +48,8 @@ public class DefaultTestHttpClient implements TestHttpClient {
   private final List<Cookie> cookies = Lists.newLinkedList();
 
   private Action<? super RequestSpec> request = Action.noop();
+  private Action<? super ImmutableMultimap.Builder<String, Object>> params = Action.noop();
+
   private ReceivedResponse response;
 
   public DefaultTestHttpClient(ApplicationUnderTest applicationUnderTest, Action<? super RequestSpec> defaultRequestConfig) {
@@ -61,6 +65,11 @@ public class DefaultTestHttpClient implements TestHttpClient {
   @Override
   public void requestSpec(Action<? super RequestSpec> requestAction) {
     request = requestAction;
+  }
+
+  @Override
+  public void params(Action<? super ImmutableMultimap.Builder<String, Object>> params) {
+    this.params = params;
   }
 
   @Override
@@ -198,8 +207,13 @@ public class DefaultTestHttpClient implements TestHttpClient {
 
   private ReceivedResponse sendRequest(final String method, String path) {
     try {
-      Action<RequestSpec> effectiveConfig = Action.join(defaultRequestConfig, request, new FinalRequestConfig(method, toAbsolute(path), cookies));
-      response = client.request(1, TimeUnit.MINUTES, effectiveConfig);
+      URI uri = builder(path).params(params).build();
+
+      response = client.request(uri, 1, TimeUnit.MINUTES, Action.join(defaultRequestConfig, request, requestSpec -> {
+        requestSpec.method(method);
+        requestSpec.getHeaders().add(HttpHeaderConstants.COOKIE, ClientCookieEncoder.encode(cookies));
+        requestSpec.getHeaders().add(HttpHeaderConstants.HOST, HostAndPort.fromParts(uri.getHost(), uri.getPort()).toString());
+      }));
     } catch (Throwable throwable) {
       throw uncheck(throwable);
     }
@@ -220,35 +234,13 @@ public class DefaultTestHttpClient implements TestHttpClient {
     return response;
   }
 
-
-  private static class FinalRequestConfig implements Action<RequestSpec> {
-    private final String method;
-    private final URI path;
-    private final List<Cookie> cookies;
-
-    public FinalRequestConfig(String method, URI path, List<Cookie> cookies) {
-      this.method = method;
-      this.path = path;
-      this.cookies = cookies;
-    }
-
-    @Override
-    public void execute(RequestSpec requestSpec) throws Exception {
-      requestSpec.method(method);
-      requestSpec.getUrl().set(path);
-      requestSpec.getHeaders().add(HttpHeaderConstants.COOKIE, ClientCookieEncoder.encode(cookies));
-      requestSpec.getHeaders().add(HttpHeaderConstants.HOST, HostAndPort.fromParts(path.getHost(), path.getPort()).toString());
-    }
-  }
-
-  private URI toAbsolute(String path) {
+  private HttpUrlBuilder builder(String path) {
     try {
       URI basePath = new URI(path);
       if (basePath.isAbsolute()) {
-        return basePath;
+        return HttpUrlBuilder.base(basePath);
       } else {
-        URI address = applicationUnderTest.getAddress();
-        return new URI(address.toString() + path);
+        return HttpUrlBuilder.base(new URI(applicationUnderTest.getAddress().toString() + path));
       }
     } catch (URISyntaxException e) {
       throw uncheck(e);

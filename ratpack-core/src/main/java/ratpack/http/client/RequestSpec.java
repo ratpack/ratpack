@@ -18,10 +18,10 @@ package ratpack.http.client;
 
 import io.netty.buffer.ByteBuf;
 import ratpack.func.Action;
-import ratpack.http.HttpUrlSpec;
 import ratpack.http.MutableHeaders;
 
 import java.io.OutputStream;
+import java.net.URI;
 import java.nio.charset.Charset;
 
 public interface RequestSpec {
@@ -54,9 +54,7 @@ public interface RequestSpec {
    */
   RequestSpec method(String method);
 
-  HttpUrlSpec getUrl();
-
-  RequestSpec url(Action<? super HttpUrlSpec> action) throws Exception;
+  URI getUrl();
 
   /**
    * The body of the request, used for specifying the body content.
