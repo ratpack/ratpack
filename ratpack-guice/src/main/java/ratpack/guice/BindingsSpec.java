@@ -92,15 +92,12 @@ public interface BindingsSpec {
    * @param modules modules whose bindings should be added
    * @return this
    */
-  BindingsSpec add(Module... modules);
+  BindingsSpec add(Module modules);
 
-  /**
-   * Adds the bindings from the given modules.
-   *
-   * @param modules modules whose bindings should be added
-   * @return this
-   */
-  BindingsSpec add(Iterable<? extends Module> modules);
+  @SuppressWarnings("unchecked")
+  BindingsSpec add(Class<? extends Module> moduleClass);
+
+  <C, T extends ConfigurableModule<C>> BindingsSpec add(Class<T> moduleClass, Action<? super C> configuration);
 
   /**
    * Retrieves the module that has been added with the given type for configuration.

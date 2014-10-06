@@ -23,6 +23,7 @@ import ratpack.exec.ExecController;
 import ratpack.file.FileSystemBinding;
 import ratpack.launch.HandlerFactory;
 import ratpack.launch.LaunchConfig;
+import ratpack.registry.Registry;
 
 import javax.net.ssl.SSLContext;
 import java.net.InetAddress;
@@ -142,4 +143,8 @@ public class DelegatingLaunchConfig implements LaunchConfig {
     return launchConfig.isHasBaseDir();
   }
 
+  @Override
+  public Registry getDefaultRegistry() {
+    return launchConfig.getDefaultRegistry();
+  }
 }

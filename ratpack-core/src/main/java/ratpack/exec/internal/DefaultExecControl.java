@@ -17,9 +17,6 @@
 package ratpack.exec.internal;
 
 import com.google.common.collect.Lists;
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -31,6 +28,8 @@ import ratpack.registry.RegistrySpec;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 
 import static ratpack.func.Action.noop;
 
@@ -71,16 +70,6 @@ public class DefaultExecControl implements ExecControl {
     ExecutionBacking backing = getBacking();
     backing.getInterceptors().add(execInterceptor);
     backing.intercept(ExecInterceptor.ExecType.COMPUTE, Collections.singletonList(execInterceptor), continuation);
-  }
-
-  @Override
-  public <T> Promise<T> blocking(final Callable<T> blockingOperation) {
-    final ExecutionBacking backing = getBacking();
-    final ExecController controller = backing.getController();
-    return promise(fulfiller -> {
-      ListenableFuture<T> future = controller.getBlockingExecutor().submit(new BlockingOperation<>(backing, blockingOperation));
-      Futures.addCallback(future, new ComputeResume<>(fulfiller), controller.getExecutor());
-    });
   }
 
   @Override
@@ -131,6 +120,30 @@ public class DefaultExecControl implements ExecControl {
 
   @Override
   public <T> Promise<T> promise(Action<? super Fulfiller<T>> action) {
+    return directPromise(SafeFulfiller.wrapping(action));
+  }
+
+  @Override
+  public <T> Promise<T> blocking(final Callable<T> blockingOperation) {
+    final ExecutionBacking backing = getBacking();
+    final ExecController controller = backing.getController();
+    return directPromise(f ->
+        CompletableFuture.supplyAsync(() -> {
+            List<Result<T>> holder = Lists.newArrayListWithCapacity(1);
+            try {
+              backing.intercept(ExecInterceptor.ExecType.BLOCKING, backing.getInterceptors(), execution ->
+                  holder.add(0, Result.success(blockingOperation.call()))
+              );
+              return holder.get(0);
+            } catch (Exception e) {
+              return Result.<T>failure(e);
+            }
+          }, controller.getBlockingExecutor()
+        ).thenAccept(f::accept)
+    );
+  }
+
+  private <T> Promise<T> directPromise(Consumer<? super Fulfiller<T>> action) {
     return new DefaultPromise<>(this::getBacking, action);
   }
 
@@ -138,7 +151,7 @@ public class DefaultExecControl implements ExecControl {
   public <T> void stream(final Publisher<T> publisher, final Subscriber<? super T> subscriber) {
     final ExecutionBacking executionBacking = getBacking();
 
-    promise((Fulfillment<Subscription>) fulfiller -> publisher.subscribe(new Subscriber<T>() {
+    directPromise((Consumer<Fulfiller<Subscription>>) fulfiller -> publisher.subscribe(new Subscriber<T>() {
       @Override
       public void onSubscribe(final Subscription subscription) {
         fulfiller.success(subscription);
@@ -161,52 +174,4 @@ public class DefaultExecControl implements ExecControl {
     })).then(subscription -> executionBacking.streamExecution(execution -> subscriber.onSubscribe(subscription)));
   }
 
-  private static class ComputeResume<T> implements FutureCallback<T> {
-    private final Fulfiller<? super T> fulfiller;
-
-    public ComputeResume(Fulfiller<? super T> fulfiller) {
-      this.fulfiller = fulfiller;
-    }
-
-    @Override
-    public void onSuccess(final T result) {
-      fulfiller.success(result);
-    }
-
-    @SuppressWarnings("NullableProblems")
-    @Override
-    public void onFailure(final Throwable t) {
-      fulfiller.error(t);
-    }
-  }
-
-  class BlockingOperation<T> implements Callable<T> {
-    final private ExecutionBacking backing;
-    final private Callable<T> blockingOperation;
-
-    private T result;
-    private Exception exception;
-
-    BlockingOperation(ExecutionBacking backing, Callable<T> blockingOperation) {
-      this.backing = backing;
-      this.blockingOperation = blockingOperation;
-    }
-
-    @Override
-    public T call() throws Exception {
-      backing.intercept(ExecInterceptor.ExecType.BLOCKING, backing.getInterceptors(), execution -> {
-        try {
-          result = blockingOperation.call();
-        } catch (Exception e) {
-          exception = e;
-        }
-      });
-
-      if (exception != null) {
-        throw exception;
-      } else {
-        return result;
-      }
-    }
-  }
 }

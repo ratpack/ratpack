@@ -16,6 +16,7 @@
 
 package ratpack.util;
 
+import ratpack.api.UncheckedException;
 import ratpack.func.Factory;
 
 /**
@@ -30,7 +31,7 @@ public abstract class ExceptionUtils {
    * <p>
    * If {@code throwable} is a {@link RuntimeException}, it will be returned unchanged.
    * <p>
-   * If {@code throwable} is not a {@link RuntimeException}, a newly created {@link RuntimeException} will be returned with the original throwable as the cause and with no message.
+   * If {@code throwable} is not a {@link RuntimeException}, a newly created {@link UncheckedException} will be returned with the original throwable as the cause and with no message.
    *
    * @param throwable the throwable to ensure is a runtime exception
    * @return a runtime throwable
@@ -42,7 +43,7 @@ public abstract class ExceptionUtils {
     if (throwable instanceof RuntimeException) {
       return (RuntimeException) throwable;
     } else {
-      return new RuntimeException(throwable);
+      return new UncheckedException(throwable);
     }
   }
 
@@ -53,7 +54,7 @@ public abstract class ExceptionUtils {
    * <p>
    * If {@code throwable} is an {@link Exception}, it will be returned unchanged.
    * <p>
-   * If {@code throwable} is not an {@link Exception}, a newly created {@link Exception} will be returned with the original throwable as the cause and with no message.
+   * If {@code throwable} is not an {@link Exception}, a newly created {@link UncheckedException} will be returned with the original throwable as the cause and with no message.
    *
    * @param throwable the throwable to ensure is an exception
    * @return a runtime throwable
@@ -65,7 +66,7 @@ public abstract class ExceptionUtils {
     if (throwable instanceof Exception) {
       return (Exception) throwable;
     } else {
-      return new Exception(throwable);
+      return new UncheckedException(throwable);
     }
   }
 

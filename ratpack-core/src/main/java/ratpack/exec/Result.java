@@ -16,12 +16,37 @@
 
 package ratpack.exec;
 
+import ratpack.exec.internal.DefaultResult;
+import ratpack.util.ExceptionUtils;
+
 /**
  * The result of an asynchronous operation, which may be a failure.
  *
  * @param <T> The type of the successful result object
  */
 public interface Result<T> {
+
+  /**
+   * Creates a new successful result.
+   *
+   * @param value the result value
+   * @param <T> the type of the result
+   * @return the success result
+   */
+  static <T> Result<T> success(T value) {
+    return new DefaultResult<>(value);
+  }
+
+  /**
+   * Creates a new failure result.
+   *
+   * @param failure the failure
+   * @param <T> the type of the result
+   * @return the failure result
+   */
+  static <T> Result<T> failure(Throwable failure) {
+    return new DefaultResult<>(failure);
+  }
 
   /**
    * The failure exception.
@@ -57,6 +82,12 @@ public interface Result<T> {
    * @return the value (if this is a success result)
    * @throws Exception the failure (if this is a failure result)
    */
-  T getValueOrThrow() throws Exception;
+  default T getValueOrThrow() throws Exception {
+    if (isFailure()) {
+      throw ExceptionUtils.toException(getFailure());
+    } else {
+      return getValue();
+    }
+  }
 
 }

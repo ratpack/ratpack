@@ -16,9 +16,6 @@
 
 package ratpack.http
 
-import com.google.common.collect.Multimap
-import com.google.common.collect.MultimapBuilder
-import ratpack.http.client.RequestSpec
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 class RequestMethodsSpec extends RatpackGroovyDslSpec {
@@ -34,31 +31,21 @@ class RequestMethodsSpec extends RatpackGroovyDslSpec {
     then:
     getText() == "[:]"
     resetRequest()
+
     then:
-    requestSpec({ RequestSpec requestSpec ->
-      requestSpec.url({ HttpUrlSpec httpUrlSpec ->
-        httpUrlSpec.params([a: "b"])
-      })
-    })
+    params { it.put("a", "b") }
     getText("/") == "[a:[b]]"
     resetRequest()
+
     then:
-    requestSpec { RequestSpec requestSpec ->
-      requestSpec.url({ HttpUrlSpec httpUrlSpec ->
-        Multimap<String, String> multimap = MultimapBuilder.linkedHashKeys().linkedListValues().build()
-        multimap.putAll("a", ["b", "c"])
-        httpUrlSpec.params(multimap)
-        httpUrlSpec.params("d", "e")
-      })
+    params {
+      it.putAll("a", ["b", "c"]).put("d", "e")
     }
     getText("/") == "[a:[b, c], d:[e]]"
     resetRequest()
+
     then:
-    requestSpec { RequestSpec requestSpec ->
-      requestSpec.url({ HttpUrlSpec httpUrlSpec ->
-        httpUrlSpec.params([abc: ""])
-      })
-    }
+    params { it.put("abc", "") }
     getText("/") == "[abc:[]]"
     resetRequest()
   }

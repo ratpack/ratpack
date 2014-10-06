@@ -27,9 +27,11 @@ import java.nio.file.Path;
 public class PathTemplateSource implements TemplateSource {
 
   private final Path path;
+  private final Path bindingPath;
 
-  public PathTemplateSource(Path path) {
+  public PathTemplateSource(Path path, Path bindingPath) {
     this.path = path;
+    this.bindingPath = bindingPath;
   }
 
   @Override
@@ -44,7 +46,7 @@ public class PathTemplateSource implements TemplateSource {
 
   @Override
   public String filename() {
-    return path.getFileName().toString();
+    return bindingPath.relativize(path).toString();
   }
 
   @Override

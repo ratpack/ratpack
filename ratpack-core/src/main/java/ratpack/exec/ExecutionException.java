@@ -24,7 +24,7 @@ public class ExecutionException extends RuntimeException {
   private static final long serialVersionUID = 0;
 
   /**
-   * Consructor.
+   * Constructor.
    *
    * @param message the exception message
    */

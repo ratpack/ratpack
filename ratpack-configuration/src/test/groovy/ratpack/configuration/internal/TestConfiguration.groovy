@@ -14,36 +14,10 @@
  * limitations under the License.
  */
 
-package ratpack.http;
+package ratpack.configuration.internal
 
-import com.google.common.collect.Multimap;
-import ratpack.util.MultiValueMap;
+import ratpack.configuration.Configuration
 
-import java.net.URI;
-import java.util.Map;
-
-public interface HttpUrlSpec {
-
-  HttpUrlSpec secure();
-
-  HttpUrlSpec host(String host);
-
-  HttpUrlSpec port(int port);
-
-  HttpUrlSpec path(String path);
-
-  HttpUrlSpec pathSegment(String pathComponent);
-
-  HttpUrlSpec params(String... params);
-
-  HttpUrlSpec params(Map<String, String> params);
-
-  HttpUrlSpec params(Multimap<String, String> params);
-
-  HttpUrlSpec params(MultiValueMap<String, String> params);
-
-  HttpUrlSpec set(URI uri);
-
-  URI getURL();
-
+class TestConfiguration extends Configuration{
+  String customField
 }

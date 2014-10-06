@@ -25,6 +25,10 @@ import ratpack.handling.Handler
 import ratpack.launch.HandlerFactory
 import ratpack.launch.LaunchConfig
 import ratpack.launch.LaunchException
+import ratpack.registry.Registries
+import ratpack.registry.internal.EmptyRegistry
+import ratpack.server.PublicAddress
+import ratpack.server.internal.DefaultPublicAddress
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -48,6 +52,7 @@ class LaunchConfigsInternalSpec extends Specification {
   def classLoader = this.class.classLoader
   def properties = new Properties()
   def env = [:] as Map<String, String>
+  def emptyRegistry = Registries.empty()
 
   List<LaunchConfig> launchConfigs = []
 
@@ -226,7 +231,7 @@ class LaunchConfigsInternalSpec extends Specification {
 
   def "createWithBaseDir with envVars specified creates data based on arguments"() {
     when:
-    def data = LaunchConfigsInternal.createWithBaseDir(classLoader, baseDir, properties, env)
+    def data = LaunchConfigsInternal.createWithBaseDir(classLoader, baseDir, properties, env, emptyRegistry)
 
     then:
     data.classLoader == classLoader
@@ -237,7 +242,7 @@ class LaunchConfigsInternalSpec extends Specification {
 
   def "createWithBaseDir without envVars specified creates data based on arguments plus system environment"() {
     when:
-    def data = LaunchConfigsInternal.createWithBaseDir(classLoader, baseDir, properties)
+    def data = LaunchConfigsInternal.createWithBaseDir(classLoader, baseDir, properties, emptyRegistry)
 
     then:
     data.classLoader == classLoader
@@ -260,20 +265,20 @@ class LaunchConfigsInternalSpec extends Specification {
 
     def expectedNoFileData = new LaunchConfigData(classLoader, baseDir, newProps(
       [(PORT): "5678", (THREADS): "5", (PUBLIC_ADDRESS): "http://app.example.com", (ADDRESS): "10.11.12.13"]
-    ), System.getenv())
+    ), System.getenv(), emptyRegistry)
     def expectedFileData = new LaunchConfigData(classLoader, baseDir, newProps(
       [(PORT): "5678", (THREADS): "5", (PUBLIC_ADDRESS): "http://app.example.com", (ADDRESS): "10.11.12.14", (INDEX_FILES): "index.html"]
-    ), System.getenv())
+    ), System.getenv(), emptyRegistry)
 
     expect:
-    LaunchConfigsInternal.createFromFile(classLoader, baseDir, null, overrideProps, defaultProps) == expectedNoFileData
-    LaunchConfigsInternal.createFromFile(classLoader, baseDir, nonExistingPath, overrideProps, defaultProps) == expectedNoFileData
-    LaunchConfigsInternal.createFromFile(classLoader, baseDir, existingPath, overrideProps, defaultProps) == expectedFileData
+    LaunchConfigsInternal.createFromFile(classLoader, baseDir, null, overrideProps, defaultProps, emptyRegistry) == expectedNoFileData
+    LaunchConfigsInternal.createFromFile(classLoader, baseDir, nonExistingPath, overrideProps, defaultProps, emptyRegistry) == expectedNoFileData
+    LaunchConfigsInternal.createFromFile(classLoader, baseDir, existingPath, overrideProps, defaultProps, emptyRegistry) == expectedFileData
   }
 
   def "createFromProperties supports loading config from a resource"() {
     when:
-    def data = LaunchConfigsInternal.createFromProperties(currentDir.toFile().canonicalPath, classLoader, newProps([(CONFIG_RESOURCE_PROPERTY): "ratpack/launch/internal/config.properties"]), newProps([:]))
+    def data = LaunchConfigsInternal.createFromProperties(currentDir.toFile().canonicalPath, classLoader, newProps([(CONFIG_RESOURCE_PROPERTY): "ratpack/launch/internal/config.properties"]), newProps([:]), emptyRegistry)
 
     then:
     data.classLoader == classLoader
@@ -288,7 +293,7 @@ class LaunchConfigsInternalSpec extends Specification {
     configFile.withOutputStream { properties.store(it, null) }
 
     when:
-    def data = LaunchConfigsInternal.createFromProperties(currentDir.toFile().canonicalPath, classLoader, newProps([(CONFIG_RESOURCE_PROPERTY): configFile.toAbsolutePath().toString()]), newProps([:]))
+    def data = LaunchConfigsInternal.createFromProperties(currentDir.toFile().canonicalPath, classLoader, newProps([(CONFIG_RESOURCE_PROPERTY): configFile.toAbsolutePath().toString()]), newProps([:]), emptyRegistry)
 
     then:
     data.classLoader == classLoader
@@ -303,7 +308,7 @@ class LaunchConfigsInternalSpec extends Specification {
     configFile.withOutputStream { properties.store(it, null) }
 
     when:
-    def data = LaunchConfigsInternal.createFromProperties(currentDir.toFile().canonicalPath, classLoader, newProps([(CONFIG_RESOURCE_PROPERTY): currentDir.relativize(configFile).toString()]), newProps([:]))
+    def data = LaunchConfigsInternal.createFromProperties(currentDir.toFile().canonicalPath, classLoader, newProps([(CONFIG_RESOURCE_PROPERTY): currentDir.relativize(configFile).toString()]), newProps([:]), emptyRegistry)
 
     then:
     data.classLoader == classLoader
@@ -316,7 +321,7 @@ class LaunchConfigsInternalSpec extends Specification {
     when:
     def currentDir = currentDir
     def workingDir = currentDir.toFile().canonicalPath
-    def data = LaunchConfigsInternal.createFromGlobalProperties(workingDir, classLoader, newProps(["ratpack.port": "3456"]), newProps([:]))
+    def data = LaunchConfigsInternal.createFromGlobalProperties(workingDir, classLoader, newProps(["ratpack.port": "3456"]), newProps([:]), emptyRegistry)
 
     then:
     data.classLoader == classLoader
@@ -325,7 +330,7 @@ class LaunchConfigsInternalSpec extends Specification {
     data.envVars == System.getenv()
 
     when:
-    data = LaunchConfigsInternal.createFromGlobalProperties(workingDir, classLoader, newProps([(SYSPROP_PREFIX_PROPERTY): "myapp.", "myapp.port": "3456"]), newProps([:]))
+    data = LaunchConfigsInternal.createFromGlobalProperties(workingDir, classLoader, newProps([(SYSPROP_PREFIX_PROPERTY): "myapp.", "myapp.port": "3456"]), newProps([:]), emptyRegistry)
 
     then:
     data.classLoader == classLoader
@@ -338,13 +343,29 @@ class LaunchConfigsInternalSpec extends Specification {
     when:
     def currentDir = currentDir
     def workingDir = currentDir.toFile().canonicalPath
-    def data = LaunchConfigsInternal.createFromGlobalProperties(workingDir, classLoader, "myapp.", newProps(["myapp.port": "3456"]), newProps([:]))
+    def data = LaunchConfigsInternal.createFromGlobalProperties(workingDir, classLoader, "myapp.", newProps(["myapp.port": "3456"]), newProps([:]), emptyRegistry)
 
     then:
     data.classLoader == classLoader
     data.baseDir.toFile().canonicalPath == currentDir.toFile().canonicalPath
     data.properties.getProperty(PORT) == "3456"
     data.envVars == System.getenv()
+  }
+
+  def "default registry is empty unless specified"() {
+    expect:
+    createLaunchConfig().defaultRegistry instanceof EmptyRegistry
+  }
+
+  def "default registry is respected"() {
+    def workingDir = currentDir.toFile().canonicalPath
+    def registry = Registries.just(PublicAddress, new DefaultPublicAddress(URI.create("http://example.com"), "http"))
+
+    when:
+    def data = LaunchConfigsInternal.createFromGlobalProperties(workingDir, classLoader, newProps([:]), newProps([:]), registry)
+
+    then:
+    data.defaultRegistry == registry
   }
 
   private Properties p(String key, String value) {

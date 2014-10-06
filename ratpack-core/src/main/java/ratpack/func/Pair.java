@@ -89,6 +89,24 @@ public final class Pair<L, R> {
   }
 
   /**
+   * The left item of the pair.
+   *
+   * @return the left item of the pair
+   */
+  public L left() {
+    return left;
+  }
+
+  /**
+   * The right item of the pair.
+   *
+   * @return the right item of the pair
+   */
+  public R right() {
+    return right;
+  }
+
+  /**
    * Creates a new pair.
    * 
    * @param left the left item

@@ -24,6 +24,7 @@ import ratpack.launch.LaunchConfig;
 import ratpack.launch.LaunchConfigBuilder;
 import ratpack.launch.LaunchConfigs.*;
 import ratpack.launch.LaunchException;
+import ratpack.registry.Registry;
 import ratpack.ssl.SSLContexts;
 import ratpack.util.internal.PropertiesUtil;
 import ratpack.util.internal.TypeCoercingProperties;
@@ -46,18 +47,18 @@ import static ratpack.util.internal.PropertiesUtil.extractProperties;
 public class LaunchConfigsInternal {
   private LaunchConfigsInternal() {}
 
-  public static LaunchConfigData createFromGlobalProperties(String workingDir, ClassLoader classLoader, Properties globalProperties, Properties defaultProperties) {
+  public static LaunchConfigData createFromGlobalProperties(String workingDir, ClassLoader classLoader, Properties globalProperties, Properties defaultProperties, Registry defaultRegistry) {
     String propertyPrefix = globalProperties.getProperty(SYSPROP_PREFIX_PROPERTY, SYSPROP_PREFIX_DEFAULT);
-    return createFromGlobalProperties(workingDir, classLoader, propertyPrefix, globalProperties, defaultProperties);
+    return createFromGlobalProperties(workingDir, classLoader, propertyPrefix, globalProperties, defaultProperties, defaultRegistry);
   }
 
-  public static LaunchConfigData createFromGlobalProperties(String workingDir, ClassLoader classLoader, String propertyPrefix, Properties globalProperties, Properties defaultProperties) {
+  public static LaunchConfigData createFromGlobalProperties(String workingDir, ClassLoader classLoader, String propertyPrefix, Properties globalProperties, Properties defaultProperties, Registry defaultRegistry) {
     Properties deprefixed = new Properties();
     extractProperties(propertyPrefix, globalProperties, deprefixed);
-    return createFromProperties(workingDir, classLoader, deprefixed, defaultProperties);
+    return createFromProperties(workingDir, classLoader, deprefixed, defaultProperties, defaultRegistry);
   }
 
-  public static LaunchConfigData createFromProperties(String workingDir, ClassLoader classLoader, Properties overrideProperties, Properties defaultProperties) {
+  public static LaunchConfigData createFromProperties(String workingDir, ClassLoader classLoader, Properties overrideProperties, Properties defaultProperties, Registry defaultRegistry) {
     String configResourceValue = overrideProperties.getProperty(CONFIG_RESOURCE_PROPERTY, CONFIG_RESOURCE_DEFAULT);
     URL configResourceUrl = classLoader.getResource(configResourceValue);
 
@@ -83,10 +84,10 @@ public class LaunchConfigsInternal {
       }
     }
 
-    return createFromFile(classLoader, baseDir, configPath, overrideProperties, defaultProperties);
+    return createFromFile(classLoader, baseDir, configPath, overrideProperties, defaultProperties, defaultRegistry);
   }
 
-  public static LaunchConfigData createFromFile(ClassLoader classLoader, Path baseDir, @Nullable Path configFile, Properties overrideProperties, Properties defaultProperties) {
+  public static LaunchConfigData createFromFile(ClassLoader classLoader, Path baseDir, @Nullable Path configFile, Properties overrideProperties, Properties defaultProperties, Registry defaultRegistry) {
     Properties fileProperties = new Properties(defaultProperties);
     if (configFile != null && Files.exists(configFile)) {
       try (InputStream inputStream = Files.newInputStream(configFile)) {
@@ -98,15 +99,15 @@ public class LaunchConfigsInternal {
 
     fileProperties.putAll(overrideProperties);
 
-    return createWithBaseDir(classLoader, baseDir, fileProperties);
+    return createWithBaseDir(classLoader, baseDir, fileProperties, defaultRegistry);
   }
 
-  public static LaunchConfigData createWithBaseDir(ClassLoader classLoader, Path baseDir, Properties properties) {
-    return createWithBaseDir(classLoader, baseDir, properties, System.getenv());
+  public static LaunchConfigData createWithBaseDir(ClassLoader classLoader, Path baseDir, Properties properties, Registry defaultRegistry) {
+    return createWithBaseDir(classLoader, baseDir, properties, System.getenv(), defaultRegistry);
   }
 
-  public static LaunchConfigData createWithBaseDir(ClassLoader classLoader, Path baseDir, Properties properties, Map<String, String> envVars) {
-    return new LaunchConfigData(classLoader, baseDir, properties, envVars);
+  public static LaunchConfigData createWithBaseDir(ClassLoader classLoader, Path baseDir, Properties properties, Map<String, String> envVars, Registry defaultRegistry) {
+    return new LaunchConfigData(classLoader, baseDir, properties, envVars, defaultRegistry);
   }
 
   public static LaunchConfig createLaunchConfig(LaunchConfigData data) {
@@ -167,7 +168,8 @@ public class LaunchConfigsInternal {
         .compressionMinSize(compressionMinSize)
         .compressionWhiteListMimeTypes(compressionMimeTypeWhiteList)
         .compressionBlackListMimeTypes(compressionMimeTypeBlackList)
-        .indexFiles(indexFiles);
+        .indexFiles(indexFiles)
+        .defaultRegistry(data.getDefaultRegistry());
 
       if (sslKeystore != null) {
         try (InputStream stream = sslKeystore) {

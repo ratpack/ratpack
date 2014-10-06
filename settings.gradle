@@ -39,7 +39,8 @@ include \
     "ratpack-newrelic",
     "ratpack-pac4j",
     "ratpack-hystrix",
-    "ratpack-spring-boot"
+    "ratpack-spring-boot",
+    "ratpack-configuration"
 
 include "perf"
 

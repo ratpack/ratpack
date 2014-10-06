@@ -16,10 +16,6 @@
 
 package ratpack.groovy.markuptemplates
 
-import com.google.inject.AbstractModule
-import groovy.text.markup.TemplateConfiguration
-import ratpack.error.ServerErrorHandler
-import ratpack.error.internal.DefaultDevelopmentErrorHandler
 import ratpack.test.embed.internal.JarFileBaseDirBuilder
 import ratpack.test.internal.RatpackGroovyDslSpec
 
@@ -28,20 +24,12 @@ import static ratpack.groovy.Groovy.groovyMarkupTemplate
 
 class TemplateRenderingSpec extends RatpackGroovyDslSpec {
 
-  def setup() {
-    modules << new AbstractModule() {
-      @Override
-      protected void configure() {
-        bind(ServerErrorHandler).to(DefaultDevelopmentErrorHandler)
-      }
-    }
-
-    modules << new MarkupTemplatingModule()
-  }
-
   def "can render template"() {
     given:
     file "templates/foo.gtpl", "yield 'a '; yield value; yield ' b '; 3.times {  yield ' a ' }"
+    bindings {
+      add(MarkupTemplatingModule)
+    }
 
     when:
     handlers {
@@ -57,6 +45,9 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
   def "can render template with builder syntax"() {
     given:
     file "templates/foo.gtpl", "div { p(value) }"
+    bindings {
+      add(MarkupTemplatingModule)
+    }
 
     when:
     handlers {
@@ -72,6 +63,9 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
   def "templates are auto-escaped by default"() {
     given:
     file "templates/foo.gtpl", "div(value)"
+    bindings {
+      add(MarkupTemplatingModule)
+    }
 
     when:
     handlers {
@@ -87,13 +81,11 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
   def "auto-escape can be configured via templateconfiguration from guice"() {
     given:
     file "templates/foo.gtpl", "div(value)"
+    bindings {
+      add(MarkupTemplatingModule) { it.autoEscape = false }
+    }
 
     when:
-    bindings {
-      init { TemplateConfiguration templateConfiguration ->
-        templateConfiguration.autoEscape = false
-      }
-    }
     handlers {
       get {
         render groovyMarkupTemplate("foo.gtpl", value: "<bar>")
@@ -107,6 +99,9 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
   def "auto expanding empty elements is off by default"() {
     given:
     file "templates/foo.gtpl", "div()"
+    bindings {
+      add(MarkupTemplatingModule)
+    }
 
     when:
     handlers {
@@ -122,13 +117,10 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
   def "empty elements can be configured to be auto expanded"() {
     given:
     file "templates/foo.gtpl", "div()"
-
-    when:
     bindings {
-      init { TemplateConfiguration templateConfiguration ->
-        templateConfiguration.expandEmptyElements = true
-      }
+      add(MarkupTemplatingModule) { it.expandEmptyElements = true }
     }
+    when:
     handlers {
       get {
         render groovyMarkupTemplate("foo.gtpl")
@@ -143,6 +135,9 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     given:
     file "templates/foo.gtpl", "div { include template:'bar.gtpl' }"
     file "templates/bar.gtpl", "p(value)"
+    bindings {
+      add(MarkupTemplatingModule)
+    }
 
     when:
     handlers {
@@ -159,6 +154,9 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     given:
     file "templates/outer.gtpl", 'yield "outer: $value, "; layout "inner.gtpl", value: "inner"'
     file "templates/inner.gtpl", 'yield "inner: $value"'
+    bindings {
+      add(MarkupTemplatingModule)
+    }
 
     when:
     handlers {
@@ -176,6 +174,9 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     file "templates/head.gtpl", "yield 'head'"
     file "templates/middle.gtpl", 'include template:"head.gtpl"; yield "-middle-"; include template:"footer.gtpl"'
     file "templates/footer.gtpl", "yield 'footer'"
+    bindings {
+      add(MarkupTemplatingModule)
+    }
 
     when:
     handlers {
@@ -191,6 +192,9 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     file "templates/outer.gtpl", 'yield "outer: $value, "; layout "inner.gtpl", value: "inner"'
     file "templates/inner.gtpl", 'yield "inner: $value, "; layout "innerInner.gtpl", value: 1; yield ", "; layout "innerInner.gtpl", value: 2; yield ", "; layout "innerInner.gtpl", value: 1'
     file "templates/innerInner.gtpl", 'yield "innerInner: $value"'
+    bindings {
+      add(MarkupTemplatingModule)
+    }
 
     when:
     handlers {
@@ -209,6 +213,9 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     file "templates/outer.gtpl", 'yield "outer: $a$b, "; layout (*:model, b: "B", "inner.gtpl")'
     file "templates/inner.gtpl", 'yield "inner: $a$b, "; layout (*:model, a: "A", "innerInner.gtpl")'
     file "templates/innerInner.gtpl", 'yield "innerInner: $a$b"'
+    bindings {
+      add(MarkupTemplatingModule)
+    }
 
     when:
     handlers {
@@ -230,6 +237,9 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
         pageTitle: "My Page",
         pageBody: contents { include template: "body.gtpl" }
     '''
+    bindings {
+      add(MarkupTemplatingModule)
+    }
 
     when:
     handlers {
@@ -246,6 +256,9 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     given:
     launchConfig { development(true) }
     file "templates/t.gtpl", "yield 1"
+    bindings {
+      add(MarkupTemplatingModule)
+    }
 
     when:
     handlers {
@@ -267,6 +280,9 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
     given:
     launchConfig { development(false) }
     file "templates/t.gtpl", "yield 1"
+    bindings {
+      add(MarkupTemplatingModule)
+    }
 
     when:
     handlers {
@@ -291,12 +307,13 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
 
     given:
     file "templates/t.gtpl", "yield 1"
+    bindings {
+      add(MarkupTemplatingModule)
+    }
 
     when:
     bindings {
-      init { TemplateConfiguration templateConfiguration ->
-        templateConfiguration.cacheTemplates = false
-      }
+      add(MarkupTemplatingModule) { it.cacheTemplates = false }
     }
     handlers {
       get { render groovyMarkupTemplate("t.gtpl") }
@@ -315,6 +332,9 @@ class TemplateRenderingSpec extends RatpackGroovyDslSpec {
 
   def "content type by template extension"() {
     when:
+    bindings {
+      add(MarkupTemplatingModule)
+    }
     file "templates/t.gtpl", "1"
     file "templates/t.xml", "1"
     file "templates/dir/t.gtpl", "1"

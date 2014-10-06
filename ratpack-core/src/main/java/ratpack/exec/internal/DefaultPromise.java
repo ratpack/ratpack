@@ -25,14 +25,15 @@ import ratpack.func.NoArgAction;
 import ratpack.func.Predicate;
 
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class DefaultPromise<T> implements Promise<T> {
-  private final Action<? super Fulfiller<T>> fulfillment;
+  private final Consumer<? super Fulfiller<T>> fulfillment;
   private final Supplier<ExecutionBacking> executionProvider;
   private final AtomicBoolean fired = new AtomicBoolean();
 
-  public DefaultPromise(Supplier<ExecutionBacking> executionProvider, Action<? super Fulfiller<T>> fulfillment) {
+  public DefaultPromise(Supplier<ExecutionBacking> executionProvider, Consumer<? super Fulfiller<T>> fulfillment) {
     this.executionProvider = executionProvider;
     this.fulfillment = fulfillment;
   }

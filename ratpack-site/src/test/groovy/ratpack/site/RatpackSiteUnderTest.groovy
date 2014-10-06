@@ -40,19 +40,14 @@ class RatpackSiteUnderTest extends LocalScriptApplicationUnderTest {
     remote.exec {
       def data = new MockGithubData()
 
-      // This is a temporary measure, as we are hard coding the type of the github data at the time of writing this test.
-      // We need to sync up some kind of strategy with what manuals have actually been put in place by the build.
-      data.released.add(new RatpackVersion("0.9.0", 1, "foo", new Date(), true))
-      data.released.add(new RatpackVersion("0.9.1", 2, "foo", new Date(), true))
-      data.released.add(new RatpackVersion("0.9.2", 3, "foo", new Date(), true))
-      data.released.add(new RatpackVersion("0.9.3", 4, "foo", new Date(), true))
-      data.released.add(new RatpackVersion("0.9.4", 5, "foo", new Date(), true))
-      data.released.add(new RatpackVersion("0.9.5", 6, "foo", new Date(), true))
-      data.released.add(new RatpackVersion("0.9.6", 7, "foo", new Date(), true))
-      data.released.add(new RatpackVersion("0.9.7", 8, "foo", new Date(), true))
-      data.released.add(new RatpackVersion("0.9.8", 9, "foo", new Date(), true))
-      data.released.add(new RatpackVersion("0.9.9", 10, "foo", new Date(), true))
-      data.unreleased.add(new RatpackVersion("0.9.10", 11, "foo", new Date(), false))
+      def config = new TestConfig()
+
+      config.manualVersions.eachWithIndex{ version, index ->
+        data.released.add(new RatpackVersion(version, index + 1, "foo", new Date(), true))
+      }
+
+      data.unreleased.add(new RatpackVersion(config.currentVersion - "-SNAPSHOT" , config.manualVersions.size() + 1, "foo", new Date(), false))
+
       add(GitHubData, data)
       add(new RatpackVersions(data, get(ExecControl)))
     }

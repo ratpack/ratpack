@@ -16,11 +16,7 @@
 
 package ratpack.test.exec.internal;
 
-import ratpack.exec.ExecControl;
-import ratpack.exec.ExecController;
-import ratpack.exec.Execution;
-import ratpack.exec.Promise;
-import ratpack.exec.internal.DefaultResult;
+import ratpack.exec.*;
 import ratpack.func.Action;
 import ratpack.func.Function;
 import ratpack.test.exec.ExecHarness;
@@ -44,7 +40,7 @@ public class DefaultExecHarness implements ExecHarness {
 
     controller.getControl().exec()
       .onError(throwable -> {
-        reference.set(new ResultBackedExecResult<>(DefaultResult.<T>failure(throwable)));
+        reference.set(new ResultBackedExecResult<>(Result.<T>failure(throwable)));
         latch.countDown();
       })
       .start(new Action<Execution>() {
@@ -66,7 +62,7 @@ public class DefaultExecHarness implements ExecHarness {
         }
 
         private void succeed(T t) {
-          reference.set(t == null ? null : new ResultBackedExecResult<>(DefaultResult.success(t)));
+          reference.set(t == null ? null : new ResultBackedExecResult<>(Result.success(t)));
           latch.countDown();
         }
       });

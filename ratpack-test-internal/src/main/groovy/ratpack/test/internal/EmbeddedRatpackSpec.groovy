@@ -40,7 +40,9 @@ abstract class EmbeddedRatpackSpec extends Specification {
   }
 
   def setup() {
-    client = testHttpClient({ application.address }) { configureRequest(it) }
+    client = testHttpClient({ application.address }) {
+      configureRequest(it)
+    }
   }
 
   def cleanup() {

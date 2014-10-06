@@ -21,6 +21,8 @@ import io.netty.buffer.ByteBufAllocator;
 import ratpack.api.Nullable;
 import ratpack.exec.ExecController;
 import ratpack.file.FileSystemBinding;
+import ratpack.registry.Registries;
+import ratpack.registry.Registry;
 
 import javax.net.ssl.SSLContext;
 import java.net.InetAddress;
@@ -233,5 +235,14 @@ public interface LaunchConfig {
    * @return whether or not the base dir of the application has been set.
    */
   public boolean isHasBaseDir();
+
+  /**
+   * A registry that will be used as the default for all handlers constructed for this config.
+   *
+   * @return the default registry
+   */
+  default public Registry getDefaultRegistry() {
+    return Registries.empty();
+  }
 
 }

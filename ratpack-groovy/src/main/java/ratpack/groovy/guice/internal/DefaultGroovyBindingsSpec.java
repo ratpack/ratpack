@@ -25,6 +25,7 @@ import ratpack.func.Action;
 import ratpack.groovy.guice.GroovyBindingsSpec;
 import ratpack.groovy.internal.ClosureInvoker;
 import ratpack.guice.BindingsSpec;
+import ratpack.guice.ConfigurableModule;
 import ratpack.guice.Guice;
 import ratpack.guice.NoSuchModuleException;
 import ratpack.launch.LaunchConfig;
@@ -120,14 +121,21 @@ public class DefaultGroovyBindingsSpec implements GroovyBindingsSpec {
   }
 
   @Override
-  public GroovyBindingsSpec add(Module... modules) {
-    delegate.add(modules);
+  public GroovyBindingsSpec add(Module module) {
+    delegate.add(module);
+    return this;
+  }
+
+  @SuppressWarnings("unchecked")
+  @Override
+  public GroovyBindingsSpec add(Class<? extends Module> module) {
+    delegate.add(module);
     return this;
   }
 
   @Override
-  public GroovyBindingsSpec add(Iterable<? extends Module> modules) {
-    delegate.add(modules);
+  public <C, T extends ConfigurableModule<C>> GroovyBindingsSpec add(Class<T> moduleClass, Action<? super C> configuration) {
+    delegate.add(moduleClass, configuration);
     return this;
   }
 }

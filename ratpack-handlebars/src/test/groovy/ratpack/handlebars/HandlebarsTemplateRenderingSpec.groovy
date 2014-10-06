@@ -188,6 +188,29 @@ class HandlebarsTemplateRenderingSpec extends RatpackGroovyDslSpec {
     then:
     text == 'A'
   }
+
+  void "template cache allows templates with the same filename with different paths"() {
+    given:
+    file 'handlebars/foo/simple.hbs', 'A'
+    file 'handlebars/bar/simple.hbs', 'B'
+
+    when:
+    bindings {
+      add new HandlebarsModule(reloadable: false, cacheSize: 20)
+    }
+    handlers {
+      get('foo') {
+        render handlebarsTemplate('foo/simple')
+      }
+      get('bar') {
+        render handlebarsTemplate('bar/simple')
+      }
+    }
+
+    then:
+    get('foo').body.text == 'A'
+    get('bar').body.text == 'B'
+  }
 }
 
 class TestHelper implements NamedHelper {

@@ -19,14 +19,12 @@ package ratpack.groovy.templating.internal;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.google.inject.Singleton;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
 import ratpack.exec.ExecControl;
 import ratpack.exec.Promise;
 import ratpack.file.FileSystemBinding;
 import ratpack.groovy.script.internal.ScriptEngine;
-import ratpack.groovy.templating.TemplatingConfig;
-import ratpack.launch.LaunchConfig;
 
 import javax.inject.Inject;
 import java.io.IOException;
@@ -34,7 +32,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
 
-@Singleton
 public class GroovyTemplateRenderingEngine {
 
   private final LoadingCache<TemplateSource, CompiledTemplate> compiledTemplateCache;
@@ -44,13 +41,16 @@ public class GroovyTemplateRenderingEngine {
   private final ExecControl execControl;
 
   @Inject
-  public GroovyTemplateRenderingEngine(LaunchConfig launchConfig, TemplatingConfig templatingConfig, ExecControl execControl) {
+  public GroovyTemplateRenderingEngine(ExecControl execControl, ByteBufAllocator byteBufAllocator, FileSystemBinding templateDir, boolean reloadable, boolean staticCompile) {
     this.execControl = execControl;
+    this.reloadable = reloadable;
+    this.templateDir = templateDir;
 
-    ScriptEngine<DefaultTemplateScript> scriptEngine = new ScriptEngine<>(getClass().getClassLoader(), templatingConfig.isStaticallyCompile(), DefaultTemplateScript.class);
-    templateCompiler = new TemplateCompiler(scriptEngine, launchConfig.getBufferAllocator());
+    ScriptEngine<DefaultTemplateScript> scriptEngine = new ScriptEngine<>(getClass().getClassLoader(), staticCompile, DefaultTemplateScript.class);
+    this.templateCompiler = new TemplateCompiler(scriptEngine, byteBufAllocator);
+
     //noinspection NullableProblems
-    this.compiledTemplateCache = CacheBuilder.newBuilder().maximumSize(templatingConfig.getCacheSize()).build(new CacheLoader<TemplateSource, CompiledTemplate>() {
+    this.compiledTemplateCache = CacheBuilder.newBuilder().build(new CacheLoader<TemplateSource, CompiledTemplate>() {
       @Override
       public CompiledTemplate load(TemplateSource templateSource) throws Exception {
         ByteBuf content = templateSource.getContent();
@@ -61,13 +61,6 @@ public class GroovyTemplateRenderingEngine {
         }
       }
     });
-
-    reloadable = templatingConfig.isReloadable();
-    String templatesPath = templatingConfig.getTemplatesPath();
-    templateDir = launchConfig.getBaseDir().binding(templatesPath);
-    if (templateDir == null) {
-      throw new IllegalStateException("templatesPath '" + templatesPath + "' is outside the file system binding");
-    }
   }
 
   public Promise<ByteBuf> renderTemplate(ByteBuf byteBuf, final String templateId, final Map<String, ?> model) throws Exception {

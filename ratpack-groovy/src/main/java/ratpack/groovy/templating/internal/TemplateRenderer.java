@@ -19,7 +19,6 @@ package ratpack.groovy.templating.internal;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import ratpack.file.MimeTypes;
-import ratpack.func.Action;
 import ratpack.groovy.templating.Template;
 import ratpack.handling.Context;
 import ratpack.render.RendererSupport;
@@ -41,21 +40,15 @@ public class TemplateRenderer extends RendererSupport<Template> {
 
   public void render(final Context context, final Template template) throws Exception {
     final ByteBuf buffer = byteBufAllocator.buffer();
-    engine.renderTemplate(buffer, template.getId(), template.getModel()).onError(new Action<Throwable>() {
-      @Override
-      public void execute(Throwable thing) throws Exception {
-        buffer.release();
-        throw toException(thing);
+    engine.renderTemplate(buffer, template.getId(), template.getModel()).onError(thing -> {
+      buffer.release();
+      throw toException(thing);
+    }).then(byteBuf -> {
+      String type = template.getType();
+      if (type == null) {
+        type = context.get(MimeTypes.class).getContentType(template.getId());
       }
-    }).then(new Action<ByteBuf>() {
-      @Override
-      public void execute(ByteBuf byteBuf) throws Exception {
-        String type = template.getType();
-        if (type == null) {
-          type = context.get(MimeTypes.class).getContentType(template.getId());
-        }
-        context.getResponse().contentType(type).send(byteBuf);
-      }
+      context.getResponse().contentType(type).send(byteBuf);
     });
   }
 }

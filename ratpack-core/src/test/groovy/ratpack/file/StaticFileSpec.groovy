@@ -16,9 +16,9 @@
 
 package ratpack.file
 
+import com.google.common.net.UrlEscapers
 import org.apache.commons.lang3.RandomStringUtils
 import ratpack.func.Action
-import ratpack.http.HttpUrlSpec
 import ratpack.http.client.ReceivedResponse
 import ratpack.http.client.RequestSpec
 import ratpack.http.internal.HttpHeaderDateFormat
@@ -149,18 +149,13 @@ class StaticFileSpec extends RatpackGroovyDslSpec {
 
     then:
     //TODO the issue is we need to allow users to build their own urls if they want instead of doing it via the get()
-    requestSpec({ RequestSpec requestSpec ->
-      requestSpec.redirects 0
-      requestSpec.url({ HttpUrlSpec httpUrlSpec ->
-        if (key) {
-          def map = [:]
-          map[key] = value
+    requestSpec { it.redirects 0 }
 
-          httpUrlSpec.params(map)
-        }
-      })
-    })
-    def suffix = key ? "?${URLEncoder.encode(key)}=${URLEncoder.encode(value)}" : ""
+    if (key) {
+      params { it.put(key, value) }
+    }
+
+    def suffix = key ? "?${UrlEscapers.urlFormParameterEscaper().escape(key)}=${UrlEscapers.urlFormParameterEscaper().escape(value)}" : ""
 
     with(get("dir")) {
       statusCode == 302

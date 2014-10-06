@@ -251,7 +251,9 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
       registryBuilder.add(FileSystemBinding.class, launchConfig.getBaseDir());
     }
 
-    return registryBuilder.build();
+    Registry foundationRegistry = registryBuilder.build();
+    Registry defaultRegistry = launchConfig.getDefaultRegistry();
+    return defaultRegistry != null ? foundationRegistry.join(defaultRegistry) : foundationRegistry;
   }
 
 }
