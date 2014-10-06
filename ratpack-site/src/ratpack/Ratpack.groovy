@@ -29,7 +29,7 @@ ratpack {
       }
     }
     add new SiteModule(launchConfig)
-    config(TemplatingModule) { it.staticallyCompile = true }
+    add(TemplatingModule) { it.staticallyCompile = true }
 
     RxRatpack.initialize()
   }
