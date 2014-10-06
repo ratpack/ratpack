@@ -16,12 +16,12 @@
 
 package ratpack.exec;
 
-import com.google.common.util.concurrent.ListeningExecutorService;
-import com.google.common.util.concurrent.ListeningScheduledExecutorService;
 import io.netty.channel.EventLoopGroup;
 import ratpack.exec.internal.ExecControllerThreadBinding;
 
 import java.util.Optional;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ScheduledExecutorService;
 
 /**
  * The exec controller manages the execution of operations.
@@ -73,9 +73,9 @@ public interface ExecController extends AutoCloseable {
    *
    * @return the executor that performs computation
    */
-  ListeningScheduledExecutorService getExecutor();
+  ScheduledExecutorService getExecutor();
 
-  ListeningExecutorService getBlockingExecutor();
+  ExecutorService getBlockingExecutor();
 
   /**
    * The event loop group used by Netty for this application.

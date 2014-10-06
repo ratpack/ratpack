@@ -120,13 +120,13 @@ public class CachingPromise<T> implements Promise<T> {
         fulfillment.accept(new Fulfiller<T>() {
           @Override
           public void error(Throwable throwable) {
-            result.set(DefaultResult.<T>failure(throwable));
+            result.set(Result.<T>failure(throwable));
             tryDrain();
           }
 
           @Override
           public void success(T value) {
-            result.set(DefaultResult.success(value));
+            result.set(Result.success(value));
             tryDrain();
           }
         });

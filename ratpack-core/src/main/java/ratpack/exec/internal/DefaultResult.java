@@ -17,27 +17,18 @@
 package ratpack.exec.internal;
 
 import ratpack.exec.Result;
-import ratpack.util.ExceptionUtils;
 
 public class DefaultResult<T> implements Result<T> {
 
   private final Throwable failure;
   private final T value;
 
-  public static <T> Result<T> success(T value) {
-    return new DefaultResult<>(value);
-  }
-
-  public static <T> Result<T> failure(Throwable failure) {
-    return new DefaultResult<>(failure);
-  }
-
-  private DefaultResult(Throwable failure) {
+  public DefaultResult(Throwable failure) {
     this.failure = failure;
     this.value = null;
   }
 
-  private DefaultResult(T value) {
+  public DefaultResult(T value) {
     this.value = value;
     this.failure = null;
   }
@@ -60,15 +51,6 @@ public class DefaultResult<T> implements Result<T> {
   @Override
   public boolean isFailure() {
     return failure != null;
-  }
-
-  @Override
-  public T getValueOrThrow() throws Exception {
-    if (isFailure()) {
-      throw ExceptionUtils.toException(failure);
-    } else {
-      return value;
-    }
   }
 
 }

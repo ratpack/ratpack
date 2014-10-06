@@ -18,6 +18,8 @@ package ratpack.exec;
 
 import ratpack.api.NonBlocking;
 
+import java.util.concurrent.CompletableFuture;
+
 /**
  * A fulfiller of an asynchronous promise.
  * <p>
@@ -89,5 +91,35 @@ public interface Fulfiller<T> {
    */
   @NonBlocking
   void success(T value);
+
+  /**
+   * Fulfills via the given result.
+   *
+   * @param result the result to use to fulfill.
+   */
+  default void accept(Result<? extends T> result) {
+    if (result.isSuccess()) {
+      success(result.getValue());
+    } else {
+      error(result.getFailure());
+    }
+  }
+
+  /**
+   * Fulfills via the given completable future.
+   *
+   * @param future the future to use to fulfill
+   */
+  default void accept(CompletableFuture<? extends T> future) {
+    future.handle((value, failure) -> {
+      if (failure == null) {
+        success(value);
+      } else {
+        error(failure);
+      }
+
+      return null;
+    });
+  }
 
 }

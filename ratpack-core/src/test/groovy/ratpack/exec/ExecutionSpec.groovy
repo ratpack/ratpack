@@ -26,6 +26,7 @@ import spock.lang.AutoCleanup
 import spock.lang.Specification
 import spock.lang.Unroll
 
+import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.atomic.AtomicLong
 
@@ -40,7 +41,11 @@ class ExecutionSpec extends Specification {
     controller = LaunchConfigBuilder.noBaseDir().build().execController
   }
 
-  def exec(Action<? super ExecControl> action, Action<? super Throwable> onError = Action.noop()) {
+  def exec(Action<? super ExecControl> action) {
+    exec(action, Action.noop())
+  }
+
+  def exec(Action<? super ExecControl> action, Action<? super Throwable> onError) {
     controller.control.exec().onError(onError).onComplete {
       events << "complete"
       latch.countDown()
@@ -320,4 +325,17 @@ class ExecutionSpec extends Specification {
     ]
   }
 
+  def "can complete future"() {
+    when:
+    exec({ ExecControl c ->
+      c.promise { Fulfiller<String> f ->
+        f.accept(CompletableFuture.supplyAsync({ "foo" }, c.controller.executor))
+      } then {
+        events << it
+      }
+    })
+
+    then:
+    events == ["foo", "complete"]
+  }
 }
