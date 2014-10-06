@@ -22,7 +22,7 @@ import ratpack.configuration.ConfigurationException;
 import ratpack.configuration.ConfigurationFactory;
 import ratpack.configuration.ConfigurationFactoryFactory;
 import ratpack.configuration.ConfigurationSource;
-import ratpack.launch.RatpackMain;
+import ratpack.launch.LaunchConfigs;
 import ratpack.launch.internal.LaunchConfigData;
 import ratpack.launch.internal.LaunchConfigsInternal;
 import ratpack.util.internal.TypeCoercingProperties;
@@ -30,18 +30,23 @@ import ratpack.util.internal.TypeCoercingProperties;
 import java.util.Properties;
 import java.util.ServiceLoader;
 
+import static ratpack.launch.LaunchConfigs.Property.CONFIGURATION_FACTORY;
+
 /**
  * A default configuration factory factory.
  * It attempts to locate the desired configuration factory by way of a {@link java.util.ServiceLoader}, falling back to a default.
- * If that doesn't produce the desired result, configuration property {@value #CONFIGURATION_FACTORY} can be used to specify the desired configuration factory.
+ * If that doesn't produce the desired result, configuration property {@value LaunchConfigs.Property#CONFIGURATION_FACTORY} can be used to specify the desired configuration factory.
  */
 public class DefaultConfigurationFactoryFactory implements ConfigurationFactoryFactory {
-  public static final String CONFIGURATION_FACTORY = "configurationFactory";
+  private final ClassLoader classLoader;
+
+  public DefaultConfigurationFactoryFactory(ClassLoader classLoader) {
+    this.classLoader = classLoader;
+  }
 
   @Override
   public ConfigurationFactory build(ConfigurationSource configurationSource) throws ConfigurationException {
     String workingDir = StandardSystemProperty.USER_DIR.value();
-    ClassLoader classLoader = RatpackMain.class.getClassLoader();
     Properties globalProperties = configurationSource.getOverrideProperties();
     Properties defaultProperties = configurationSource.getDefaultProperties();
     LaunchConfigData launchConfigData = LaunchConfigsInternal.createFromGlobalProperties(workingDir, classLoader, globalProperties, defaultProperties, null);
@@ -54,7 +59,7 @@ public class DefaultConfigurationFactoryFactory implements ConfigurationFactoryF
     } catch (ReflectiveOperationException ex) {
       throw new ConfigurationException("Could not instantiate specified configuration factory class " + props.asString(CONFIGURATION_FACTORY, null), ex);
     }
-    ServiceLoader<ConfigurationFactory> serviceLoader = ServiceLoader.load(ConfigurationFactory.class);
+    ServiceLoader<ConfigurationFactory> serviceLoader = ServiceLoader.load(ConfigurationFactory.class, classLoader);
     try {
       return Iterables.getOnlyElement(serviceLoader, new DefaultConfigurationFactory());
     } catch (IllegalArgumentException ex) {

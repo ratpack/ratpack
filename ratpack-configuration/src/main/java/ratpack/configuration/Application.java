@@ -51,8 +51,9 @@ public abstract class Application<T extends Configuration> {
       Properties overrideProperties = System.getProperties();
       Properties defaultProperties = new Properties();
       addImpliedDefaults(defaultProperties);
+      ClassLoader classLoader = getClass().getClassLoader();
       ConfigurationSource configurationSource = new DefaultConfigurationSource(overrideProperties, defaultProperties);
-      ConfigurationFactoryFactory configurationFactoryFactory = new DefaultConfigurationFactoryFactory();
+      ConfigurationFactoryFactory configurationFactoryFactory = new DefaultConfigurationFactoryFactory(classLoader);
       try {
         ConfigurationFactory configurationFactory = configurationFactoryFactory.build(configurationSource);
         T configuration = configurationFactory.build(getConfigurationClass(), configurationSource);

@@ -19,7 +19,7 @@ package ratpack.configuration;
 /**
  * Interface for configuration providers.
  * You can add a custom configuration provider by registering it via the {@link java.util.ServiceLoader} mechanism,
- * or by specifying the property {@value ratpack.configuration.internal.DefaultConfigurationFactoryFactory#CONFIGURATION_FACTORY} in your {@code ratpack.properties}.
+ * or by specifying the property {@value ratpack.launch.LaunchConfigs.Property#CONFIGURATION_FACTORY} in your {@code ratpack.properties}.
  */
 public interface ConfigurationFactory {
   /**
