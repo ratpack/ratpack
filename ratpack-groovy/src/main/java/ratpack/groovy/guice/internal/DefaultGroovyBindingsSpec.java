@@ -121,26 +121,20 @@ public class DefaultGroovyBindingsSpec implements GroovyBindingsSpec {
   }
 
   @Override
-  public GroovyBindingsSpec add(Module... modules) {
-    delegate.add(modules);
-    return this;
-  }
-
-  @Override
-  public GroovyBindingsSpec add(Iterable<? extends Module> modules) {
-    delegate.add(modules);
+  public GroovyBindingsSpec add(Module module) {
+    delegate.add(module);
     return this;
   }
 
   @SuppressWarnings("unchecked")
   @Override
-  public BindingsSpec add(Class<? extends Module>... modules) {
-    delegate.add(modules);
+  public GroovyBindingsSpec add(Class<? extends Module> module) {
+    delegate.add(module);
     return this;
   }
 
   @Override
-  public <C, T extends ConfigurableModule<C>> BindingsSpec add(Class<T> moduleClass, Action<? super C> configuration) {
+  public <C, T extends ConfigurableModule<C>> GroovyBindingsSpec add(Class<T> moduleClass, Action<? super C> configuration) {
     delegate.add(moduleClass, configuration);
     return this;
   }

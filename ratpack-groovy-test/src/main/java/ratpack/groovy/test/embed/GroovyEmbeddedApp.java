@@ -17,7 +17,6 @@
 package ratpack.groovy.test.embed;
 
 import com.google.inject.Injector;
-import com.google.inject.Module;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import ratpack.func.Action;
@@ -35,8 +34,6 @@ import ratpack.test.embed.EmbeddedApp;
 import ratpack.test.embed.internal.LaunchConfigEmbeddedApp;
 
 import java.nio.file.Path;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.function.Supplier;
 
 import static ratpack.groovy.internal.ClosureUtil.configureDelegateFirst;
@@ -156,10 +153,7 @@ public interface GroovyEmbeddedApp extends EmbeddedApp {
 
         configureDelegateFirst(launchConfigBuilder.port(0), spec.launchConfig);
 
-        final Action<? super BindingsSpec> bindingsAction = bindingsSpec -> {
-          bindingsSpec.add(spec.modules);
-          configureDelegateFirst(new DefaultGroovyBindingsSpec(bindingsSpec), spec.bindings);
-        };
+        final Action<? super BindingsSpec> bindingsAction = bindingsSpec -> configureDelegateFirst(new DefaultGroovyBindingsSpec(bindingsSpec), spec.bindings);
 
         return launchConfigBuilder.build(launchConfig -> {
 
@@ -175,7 +169,6 @@ public interface GroovyEmbeddedApp extends EmbeddedApp {
   }
 
   static class SpecWrapper {
-    private final List<Module> modules = new LinkedList<>();
     private Closure<?> handlers = ClosureUtil.noop();
     private Closure<?> bindings = ClosureUtil.noop();
     private Closure<?> launchConfig = ClosureUtil.noop();

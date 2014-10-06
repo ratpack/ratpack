@@ -27,7 +27,6 @@ import ratpack.guice.ConfigurableModule;
 import ratpack.guice.NoSuchModuleException;
 import ratpack.launch.LaunchConfig;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -82,18 +81,13 @@ class DefaultBindingsSpec implements BindingsSpec {
   }
 
   @Override
-  public BindingsSpec add(Module... modules) {
-    Collections.addAll(this.modules, modules);
+  public BindingsSpec add(Module module) {
+    this.modules.add(module);
     return this;
   }
 
-  @SuppressWarnings("unchecked")
-  @Override
-  public BindingsSpec add(Class<? extends Module>... modules) {
-    for (Class<? extends Module> module : modules) {
-      this.modules.add(createModule(module));
-    }
-    return this;
+  public BindingsSpec add(Class<? extends Module> moduleClass) {
+    return add(createModule(moduleClass));
   }
 
   private <T extends Module> T createModule(Class<T> clazz) {
@@ -109,14 +103,6 @@ class DefaultBindingsSpec implements BindingsSpec {
     T t = createModule(moduleClass);
     t.configure(configuration);
     this.modules.add(t);
-    return this;
-  }
-
-  @Override
-  public BindingsSpec add(Iterable<? extends Module> modules) {
-    for (Module module : modules) {
-      this.modules.add(module);
-    }
     return this;
   }
 
