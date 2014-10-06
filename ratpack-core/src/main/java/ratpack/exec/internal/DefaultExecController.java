@@ -16,22 +16,20 @@
 
 package ratpack.exec.internal;
 
-import com.google.common.util.concurrent.ListeningExecutorService;
-import com.google.common.util.concurrent.ListeningScheduledExecutorService;
-import com.google.common.util.concurrent.MoreExecutors;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import ratpack.exec.ExecControl;
 import ratpack.exec.ExecController;
 
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 public class DefaultExecController implements ExecController {
 
-  private final ListeningScheduledExecutorService computeExecutor;
-  private final ListeningExecutorService blockingExecutor;
+  private final ExecutorService blockingExecutor;
   private final EventLoopGroup eventLoopGroup;
   private final ExecControl control;
   private final int numThreads;
@@ -39,8 +37,7 @@ public class DefaultExecController implements ExecController {
   public DefaultExecController(int numThreads) {
     this.numThreads = numThreads;
     this.eventLoopGroup = new NioEventLoopGroup(numThreads, new ExecControllerBindingThreadFactory("ratpack-compute", Thread.MAX_PRIORITY));
-    this.computeExecutor = MoreExecutors.listeningDecorator(eventLoopGroup);
-    this.blockingExecutor = MoreExecutors.listeningDecorator(Executors.newCachedThreadPool(new ExecControllerBindingThreadFactory("ratpack-blocking", Thread.NORM_PRIORITY)));
+    this.blockingExecutor = Executors.newCachedThreadPool(new ExecControllerBindingThreadFactory("ratpack-blocking", Thread.NORM_PRIORITY));
     this.control = new DefaultExecControl(this);
   }
 
@@ -50,12 +47,12 @@ public class DefaultExecController implements ExecController {
   }
 
   @Override
-  public ListeningScheduledExecutorService getExecutor() {
-    return computeExecutor;
+  public ScheduledExecutorService getExecutor() {
+    return eventLoopGroup;
   }
 
   @Override
-  public ListeningExecutorService getBlockingExecutor() {
+  public ExecutorService getBlockingExecutor() {
     return blockingExecutor;
   }
 

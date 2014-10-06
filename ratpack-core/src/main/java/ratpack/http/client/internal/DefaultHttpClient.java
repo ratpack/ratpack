@@ -27,7 +27,6 @@ import io.netty.handler.ssl.SslHandler;
 import ratpack.exec.*;
 import ratpack.func.Action;
 import ratpack.http.Headers;
-import ratpack.http.HttpUrlSpec;
 import ratpack.http.MutableHeaders;
 import ratpack.http.Status;
 import ratpack.http.client.HttpClient;
@@ -84,12 +83,7 @@ public class DefaultHttpClient implements HttpClient {
   }
 
   private static ByteBuf initBufferReleaseOnExecutionClose(final ByteBuf responseBuffer, Execution execution) {
-    execution.onCleanup(new AutoCloseable() {
-      @Override
-      public void close() {
-        responseBuffer.release();
-      }
-    });
+    execution.onCleanup(responseBuffer::release);
     return responseBuffer.retain();
   }
 
@@ -144,12 +138,9 @@ public class DefaultHttpClient implements HttpClient {
       }
       finalUseSsl = useSsl;
 
-
       host = uri.getHost();
       port = uri.getPort() < 0 ? (useSsl ? 443 : 80) : uri.getPort();
-
     }
-
 
     public void execute(final Fulfiller<ReceivedResponse> fulfiller) throws Exception {
       final Bootstrap b = new Bootstrap();
@@ -191,9 +182,9 @@ public class DefaultHttpClient implements HttpClient {
 
                   //Check for redirect and location header if it is follow redirect if we have request forwarding left
                   if (isRedirect(status) && maxRedirects > 0 && locationUrl != null) {
-                      Action<? super RequestSpec> redirectRequestConfg = Action.join(requestConfigurer, new RedirectConfigurer(locationUrl, maxRedirects - 1));
-                      RequestAction requestAction = new RequestAction(redirectRequestConfg, execution, eventLoopGroup, byteBufAllocator, maxContentLengthBytes);
-                      requestAction.execute(fulfiller);
+                    Action<? super RequestSpec> redirectRequestConfg = Action.join(requestConfigurer, new RedirectConfigurer(locationUrl, maxRedirects - 1));
+                    RequestAction requestAction = new RequestAction(redirectRequestConfg, execution, eventLoopGroup, byteBufAllocator, maxContentLengthBytes);
+                    requestAction.execute(fulfiller);
                   } else {
                     //Just fulfill what ever we currently have
                     fulfiller.success(new DefaultReceivedResponse(status, headers, typedData));
@@ -210,41 +201,37 @@ public class DefaultHttpClient implements HttpClient {
           }
         });
 
-      b.connect(host, port).addListener(new ChannelFutureListener() {
-        @Override
-        public void operationComplete(ChannelFuture future) throws Exception {
-          if (future.isSuccess()) {
+      ChannelFuture connectFuture = b.connect(host, port);
+      connectFuture.addListener(f1 -> {
+        if (connectFuture.isSuccess()) {
 
-            String fullPath = getFullPath(uri);
-            FullHttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.valueOf(requestSpecBacking.getMethod()), fullPath, requestSpecBacking.getBody());
-            if (headers.get(HttpHeaderConstants.HOST) == null) {
-              headers.set(HttpHeaderConstants.HOST, host);
-            }
-            headers.set(HttpHeaderConstants.CONNECTION, HttpHeaders.Values.CLOSE);
-            int contentLength = request.content().readableBytes();
-            if (contentLength > 0) {
-              headers.set(HttpHeaderConstants.CONTENT_LENGTH, Integer.toString(contentLength, 10));
-            }
-
-            HttpHeaders requestHeaders = request.headers();
-
-            for (String name : headers.getNames()) {
-              requestHeaders.set(name, headers.getAll(name));
-            }
-
-            future.channel().writeAndFlush(request).addListener(new ChannelFutureListener() {
-              @Override
-              public void operationComplete(ChannelFuture future) throws Exception {
-                if (!future.isSuccess()) {
-                  future.channel().close();
-                  fulfiller.error(future.cause());
-                }
-              }
-            });
-          } else {
-            future.channel().close();
-            fulfiller.error(future.cause());
+          String fullPath = getFullPath(uri);
+          FullHttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.valueOf(requestSpecBacking.getMethod()), fullPath, requestSpecBacking.getBody());
+          if (headers.get(HttpHeaderConstants.HOST) == null) {
+            headers.set(HttpHeaderConstants.HOST, host);
           }
+          headers.set(HttpHeaderConstants.CONNECTION, HttpHeaders.Values.CLOSE);
+          int contentLength = request.content().readableBytes();
+          if (contentLength > 0) {
+            headers.set(HttpHeaderConstants.CONTENT_LENGTH, Integer.toString(contentLength, 10));
+          }
+
+          HttpHeaders requestHeaders = request.headers();
+
+          for (String name : headers.getNames()) {
+            requestHeaders.set(name, headers.getAll(name));
+          }
+
+          ChannelFuture writeFuture = connectFuture.channel().writeAndFlush(request);
+          writeFuture.addListener(f2 -> {
+            if (!writeFuture.isSuccess()) {
+              writeFuture.channel().close();
+              fulfiller.error(writeFuture.cause());
+            }
+          });
+        } else {
+          connectFuture.channel().close();
+          fulfiller.error(connectFuture.cause());
         }
       });
     }
@@ -268,13 +255,7 @@ public class DefaultHttpClient implements HttpClient {
 
     @Override
     public void execute(RequestSpec requestSpec) throws Exception {
-      requestSpec.url(new Action<HttpUrlSpec>() {
-        @Override
-        public void execute(HttpUrlSpec httpUrlSpec) throws Exception {
-          httpUrlSpec.set(url);
-        }
-      });
-
+      requestSpec.url(httpUrlSpec -> httpUrlSpec.set(url));
       requestSpec.redirects(maxRedirect);
     }
   }
