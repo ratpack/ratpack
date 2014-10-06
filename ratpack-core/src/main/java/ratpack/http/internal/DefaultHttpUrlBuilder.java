@@ -129,7 +129,11 @@ public class DefaultHttpUrlBuilder implements HttpUrlBuilder {
   @Override
   public HttpUrlBuilder segment(String pathSegment, Object... args) {
     Objects.requireNonNull(pathSegment, "pathSegment must not be null");
-    pathSegments.add(String.format(pathSegment, args));
+    if (args.length == 0) {
+      pathSegments.add(pathSegment);
+    } else {
+      pathSegments.add(String.format(pathSegment, args));
+    }
     return this;
   }
 

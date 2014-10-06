@@ -80,6 +80,9 @@ class HttpUrlBuilderSpec extends Specification {
     build { segment("f o/b r") } == "http://localhost/f%20o%2Fb%20r"
     build { segment("f o/b r").path("b z") } == "http://localhost/f%20o%2Fb%20r/b%20z"
     build { segment("%s", "a/b") } == "http://localhost/a%2Fb"
+    build { segment("% a") } == "http://localhost/%25%20a"
+    build { segment("%% a %s", "b") } == "http://localhost/%25%20a%20b"
+    build { segment("%% a %s", "%") } == "http://localhost/%25%20a%20%25"
   }
 
   def "params from string"() {
