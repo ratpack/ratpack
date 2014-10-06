@@ -75,7 +75,7 @@ public class DefaultHttpUrlBuilder implements HttpUrlBuilder {
         try {
           // have to encode + to stop URLDecoder from treating it as a space (it's only synonymous with %20 in query strings)
           String s = part.replaceAll("\\+", "%2B");
-          pathSegment(URLDecoder.decode(s, "UTF8"));
+          segment(URLDecoder.decode(s, "UTF8"));
         } catch (UnsupportedEncodingException e) {
           throw new InternalRatpackError("UTF8 is not available", e);
         }
@@ -127,9 +127,9 @@ public class DefaultHttpUrlBuilder implements HttpUrlBuilder {
   }
 
   @Override
-  public HttpUrlBuilder pathSegment(String pathSegment) {
+  public HttpUrlBuilder segment(String pathSegment, Object... args) {
     Objects.requireNonNull(pathSegment, "pathSegment must not be null");
-    pathSegments.add(pathSegment);
+    pathSegments.add(String.format(pathSegment, args));
     return this;
   }
 

@@ -54,7 +54,7 @@ public interface HttpUrlBuilder {
 
   HttpUrlBuilder path(String path);
 
-  HttpUrlBuilder pathSegment(String pathComponent);
+  HttpUrlBuilder segment(String pathSegment, Object... args);
 
   HttpUrlBuilder params(String... params);
 

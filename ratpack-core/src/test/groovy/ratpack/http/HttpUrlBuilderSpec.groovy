@@ -14,25 +14,23 @@
  * limitations under the License.
  */
 
-package ratpack.http.internal
+package ratpack.http
 
 import com.google.common.collect.ImmutableMultimap
 import ratpack.groovy.internal.ClosureUtil
-import ratpack.http.HttpUrlBuilder
 import spock.lang.Specification
 import spock.lang.Unroll
 
-class HttpUrlSpecBackingSpec extends Specification {
+class HttpUrlBuilderSpec extends Specification {
 
   String build(@DelegatesTo(HttpUrlBuilder) Closure<?> closure) {
-    def builder = new DefaultHttpUrlBuilder()
+    def builder = HttpUrlBuilder.http()
     ClosureUtil.configureDelegateFirst(builder, closure)
     builder.build().toString()
   }
 
   String build(String string) {
-    def builder = new DefaultHttpUrlBuilder(new URI(string))
-    builder.build().toString()
+    HttpUrlBuilder.base(new URI(string)).build().toString()
   }
 
   def "empty builder"() {
@@ -79,8 +77,9 @@ class HttpUrlSpecBackingSpec extends Specification {
 
   def "path segments"() {
     expect:
-    build { pathSegment("f o/b r") } == "http://localhost/f%20o%2Fb%20r"
-    build { pathSegment("f o/b r").path("b z") } == "http://localhost/f%20o%2Fb%20r/b%20z"
+    build { segment("f o/b r") } == "http://localhost/f%20o%2Fb%20r"
+    build { segment("f o/b r").path("b z") } == "http://localhost/f%20o%2Fb%20r/b%20z"
+    build { segment("%s", "a/b") } == "http://localhost/a%2Fb"
   }
 
   def "params from string"() {
