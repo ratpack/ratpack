@@ -130,6 +130,19 @@ public interface Action<T> {
   }
 
   /**
+   * Like {@link #with(Object, Action)}, but unchecks any exceptions thrown by the action via {@link ExceptionUtils#uncheck(Throwable)}.
+   *
+   * @param t the argument to execute the given action with
+   * @param action the action to execute with the given argument
+   * @param <T> the type of the argument
+   * @return the given argument (i.e. {@code t})
+   */
+  static <T> T uncheckedWith(T t, Action<? super T> action) {
+    action.toConsumer().accept(t);
+    return t;
+  }
+
+  /**
    * Executes the action against the given thing.
    *
    * @param t the thing to execute the action against
