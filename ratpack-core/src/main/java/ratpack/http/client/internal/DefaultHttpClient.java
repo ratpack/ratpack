@@ -24,6 +24,7 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.ssl.SslHandler;
+import io.netty.handler.timeout.ReadTimeoutHandler;
 import ratpack.exec.*;
 import ratpack.func.Action;
 import ratpack.http.Headers;
@@ -37,6 +38,8 @@ import ratpack.http.internal.*;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 import java.net.URI;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static ratpack.util.ExceptionUtils.uncheck;
 
@@ -110,6 +113,8 @@ public class DefaultHttpClient implements HttpClient {
     final URI uri;
     private final ByteBufAllocator byteBufAllocator;
     private final int maxContentLengthBytes;
+    private final RequestParams requestParams;
+    private final AtomicBoolean fired = new AtomicBoolean();
 
     public RequestAction(Action<? super RequestSpec> requestConfigurer, URI uri, Execution execution, EventLoopGroup eventLoopGroup, ByteBufAllocator byteBufAllocator, int maxContentLengthBytes) {
       this.execution = execution;
@@ -118,9 +123,10 @@ public class DefaultHttpClient implements HttpClient {
       this.byteBufAllocator = byteBufAllocator;
       this.maxContentLengthBytes = maxContentLengthBytes;
       this.uri = uri;
+      this.requestParams = new RequestParams();
 
       headers = new NettyHeadersBackedMutableHeaders(new DefaultHttpHeaders());
-      requestSpecBacking = new RequestSpecBacking(headers, uri, byteBufAllocator);
+      requestSpecBacking = new RequestSpecBacking(headers, uri, byteBufAllocator, requestParams);
 
       try {
         requestConfigurer.execute(requestSpecBacking.asSpec());
@@ -158,6 +164,7 @@ public class DefaultHttpClient implements HttpClient {
 
             p.addLast("codec", new HttpClientCodec());
             p.addLast("aggregator", new HttpObjectAggregator(maxContentLengthBytes));
+            p.addLast("readTimeout", new ReadTimeoutHandler(requestParams.readTimeoutNanos, TimeUnit.NANOSECONDS));
             p.addLast("handler", new SimpleChannelInboundHandler<HttpObject>(false) {
               @Override
               public void channelRead0(ChannelHandlerContext ctx, HttpObject msg) throws Exception {
@@ -169,7 +176,6 @@ public class DefaultHttpClient implements HttpClient {
                   final ByteBufBackedTypedData typedData = new ByteBufBackedTypedData(responseBuffer, DefaultMediaType.get(contentType));
 
                   final Status status = new DefaultStatus(response.getStatus());
-
 
                   int maxRedirects = requestSpecBacking.getMaxRedirects();
                   String locationValue = headers.get("Location");
@@ -186,7 +192,7 @@ public class DefaultHttpClient implements HttpClient {
                     requestAction.execute(fulfiller);
                   } else {
                     //Just fulfill what ever we currently have
-                    fulfiller.success(new DefaultReceivedResponse(status, headers, typedData));
+                    success(fulfiller, new DefaultReceivedResponse(status, headers, typedData));
                   }
                 }
               }
@@ -194,7 +200,7 @@ public class DefaultHttpClient implements HttpClient {
               @Override
               public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
                 ctx.close();
-                fulfiller.error(cause);
+                error(fulfiller, cause);
               }
             });
           }
@@ -225,14 +231,26 @@ public class DefaultHttpClient implements HttpClient {
           writeFuture.addListener(f2 -> {
             if (!writeFuture.isSuccess()) {
               writeFuture.channel().close();
-              fulfiller.error(writeFuture.cause());
+              error(fulfiller, writeFuture.cause());
             }
           });
         } else {
           connectFuture.channel().close();
-          fulfiller.error(connectFuture.cause());
+          error(fulfiller, connectFuture.cause());
         }
       });
+    }
+
+    private <T> void success(Fulfiller<? super T> fulfiller, T value) {
+      if (fired.compareAndSet(false, true)) {
+        fulfiller.success(value);
+      }
+    }
+
+    private void error(Fulfiller<?> fulfiller, Throwable error) {
+      if (fired.compareAndSet(false, true)) {
+        fulfiller.error(error);
+      }
     }
 
     private static boolean isRedirect(Status status) {

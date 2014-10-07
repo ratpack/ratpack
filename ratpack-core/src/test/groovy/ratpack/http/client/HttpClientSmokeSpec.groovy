@@ -17,7 +17,14 @@
 package ratpack.http.client
 
 import io.netty.handler.codec.http.HttpHeaders
+import io.netty.handler.timeout.ReadTimeoutException
+import ratpack.sse.ServerSentEvent
+import ratpack.stream.Streams
 import ratpack.util.internal.IoUtils
+
+import java.util.concurrent.TimeUnit
+
+import static ratpack.sse.ServerSentEvents.serverSentEvents
 
 class HttpClientSmokeSpec extends HttpClientSpec {
 
@@ -343,6 +350,38 @@ class HttpClientSmokeSpec extends HttpClientSpec {
 
     then:
     response.statusCode == 500
+  }
+
+  def "can set read timeout"() {
+    when:
+    otherApp {
+      get {
+        def stream = Streams.periodically(launchConfig, 5, TimeUnit.SECONDS) {
+          it < 5 ? "a" : null
+        }
+
+        stream = Streams.map(stream) {
+          ServerSentEvent.serverSentEvent { it.id("a") }
+        }
+
+        render(serverSentEvents(stream))
+      }
+    }
+
+    handlers {
+      get { HttpClient httpClient ->
+        httpClient.get(otherAppUrl()) {
+          it.readTimeoutSeconds(1)
+        } onError {
+          render it.class.name
+        } then {
+          render "success"
+        }
+      }
+    }
+
+    then:
+    text == ReadTimeoutException.name
   }
 
 }
