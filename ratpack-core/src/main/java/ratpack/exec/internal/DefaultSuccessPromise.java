@@ -16,10 +16,7 @@
 
 package ratpack.exec.internal;
 
-import ratpack.exec.ExecutionException;
-import ratpack.exec.Fulfiller;
-import ratpack.exec.Promise;
-import ratpack.exec.SuccessPromise;
+import ratpack.exec.*;
 import ratpack.func.Action;
 import ratpack.func.Function;
 import ratpack.func.NoArgAction;
@@ -36,11 +33,11 @@ import static ratpack.func.Action.ignoreArg;
 public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
 
   private final Supplier<ExecutionBacking> executionSupplier;
-  private final Consumer<? super Fulfiller<T>> fulfillment;
+  private final Consumer<? super Fulfiller<? super T>> fulfillment;
   private final Action<? super Throwable> errorHandler;
   private final AtomicBoolean fired = new AtomicBoolean();
 
-  public DefaultSuccessPromise(Supplier<ExecutionBacking> executionSupplier, Consumer<? super Fulfiller<T>> fulfillment, Action<? super Throwable> errorHandler) {
+  public DefaultSuccessPromise(Supplier<ExecutionBacking> executionSupplier, Consumer<? super Fulfiller<? super T>> fulfillment, Action<? super Throwable> errorHandler) {
     this.executionSupplier = executionSupplier;
     this.fulfillment = fulfillment;
     this.errorHandler = errorHandler;
@@ -51,7 +48,7 @@ public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
     if (fired.compareAndSet(false, true)) {
       final ExecutionBacking executionBacking = executionSupplier.get();
       try {
-        executionBacking.continueVia(() -> doThen(new UserActionFulfiller(executionBacking, then)));
+        doThen(new UserActionFulfiller(executionBacking, then));
       } catch (ExecutionException e) {
         throw e;
       } catch (Exception e) {
@@ -62,19 +59,8 @@ public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
     }
   }
 
-  private void doThen(final Fulfiller<? super T> outer) {
-    final ExecutionBacking executionBacking = executionSupplier.get();
-    fulfillment.accept(new Fulfiller<T>() {
-      @Override
-      public void error(final Throwable throwable) {
-        executionBacking.join(execution -> outer.error(throwable));
-      }
-
-      @Override
-      public void success(final T value) {
-        executionBacking.join(execution -> outer.success(value));
-      }
-    });
+  private void doThen(final Fulfiller<? super T> fulfiller) {
+    fulfillment.accept(fulfiller);
   }
 
   @Override
@@ -108,7 +94,7 @@ public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
   @Override
   public Promise<T> route(final Predicate<? super T> predicate, final Action<? super T> fulfillment) {
     if (fired.compareAndSet(false, true)) {
-      return new DefaultPromise<>(executionSupplier, downstream -> DefaultSuccessPromise.this.doThen(new Step<T>(downstream) {
+      return new DefaultPromise<>(executionSupplier, downstream -> doThen(new Step<T>(downstream) {
         @Override
         public void success(T value) {
           boolean apply;
@@ -141,9 +127,9 @@ public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
   }
 
   private abstract class Step<O> implements Fulfiller<T> {
-    protected final Fulfiller<O> downstream;
+    protected final Fulfiller<? super O> downstream;
 
-    public Step(Fulfiller<O> downstream) {
+    public Step(Fulfiller<? super O> downstream) {
       this.downstream = downstream;
     }
 
@@ -176,10 +162,83 @@ public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
     }
   }
 
+  @Override
+  public Promise<T> onYield(Runnable onYield) {
+    if (fired.compareAndSet(false, true)) {
+      return new DefaultPromise<>(executionSupplier, downstream -> {
+        try {
+          onYield.run();
+        } catch (Throwable e) {
+          downstream.error(e);
+          return;
+        }
+        fulfillment.accept(downstream);
+      });
+    } else {
+      throw new MultiplePromiseSubscriptionException();
+    }
+  }
+
+  @Override
+  public Promise<T> defer(Action<? super Runnable> releaser) {
+    if (fired.compareAndSet(false, true)) {
+      return new DefaultPromise<>(executionSupplier, downstream -> {
+        ExecutionBacking executionBacking = executionSupplier.get();
+        executionBacking.continueVia(() -> {
+          try {
+            releaser.execute((Runnable) () ->
+                executionBacking.join(e ->
+                    fulfillment.accept(downstream)
+                )
+            );
+          } catch (Throwable t) {
+            downstream.error(t);
+          }
+        });
+      });
+    } else {
+      throw new MultiplePromiseSubscriptionException();
+    }
+  }
+
+  @Override
+  public Promise<T> wiretap(Action<? super Result<T>> listener) {
+    if (fired.compareAndSet(false, true)) {
+      return new DefaultPromise<>(executionSupplier, downstream -> doThen(new Step<T>(downstream) {
+        @Override
+        public void success(T value) {
+          try {
+            listener.execute(Result.success(value));
+          } catch (Throwable t) {
+            error(t);
+            return;
+          }
+
+          downstream.success(value);
+        }
+
+        @Override
+        public void error(Throwable throwable) {
+          try {
+            listener.execute(Result.<T>failure(throwable));
+          } catch (Throwable t) {
+            t.addSuppressed(throwable);
+            super.error(t);
+            return;
+          }
+
+          super.error(throwable);
+        }
+      }));
+    } else {
+      throw new MultiplePromiseSubscriptionException();
+    }
+  }
+
   private abstract class Transform<I, O> extends Step<O> {
     private final Function<? super T, ? extends I> function;
 
-    public Transform(Fulfiller<O> downstream, Function<? super T, ? extends I> function) {
+    public Transform(Fulfiller<? super O> downstream, Function<? super T, ? extends I> function) {
       super(downstream);
       this.function = function;
     }

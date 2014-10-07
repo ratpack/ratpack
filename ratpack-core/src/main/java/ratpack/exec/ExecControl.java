@@ -110,7 +110,6 @@ public interface ExecControl {
    * The result of the asynchronous call is then given to the {@link Fulfiller} that the action is given.
    *
    * @param action an action that invokes an asynchronous API, forwarding the result to the given fulfiller.
-   * @param <T> the type of value
    * @return a promise for the asynchronously created value
    * @see Fulfiller
    * @see Fulfillment

@@ -35,6 +35,10 @@ public interface HttpClient {
    */
   Promise<ReceivedResponse> get(URI uri, Action<? super RequestSpec> action);
 
+  default Promise<ReceivedResponse> get(URI uri) {
+    return get(uri, Action.noop());
+  }
+
   /**
    * An asynchronous method to do a POST HTTP request, the URL and all details of the request are configured by the Action acting on the RequestSpec, but the method will be defaulted to a POST.
    *
@@ -52,6 +56,5 @@ public interface HttpClient {
    * @return A promise for a {@link ratpack.http.client.ReceivedResponse}
    */
   Promise<ReceivedResponse> request(URI uri, Action<? super RequestSpec> action);
-
 
 }

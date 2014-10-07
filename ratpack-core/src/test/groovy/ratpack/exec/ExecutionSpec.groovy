@@ -338,4 +338,20 @@ class ExecutionSpec extends Specification {
     then:
     events == ["foo", "complete"]
   }
+
+  def "nested promises cause error"() {
+    when:
+    exec({ e ->
+      e.promise { f1 ->
+        e.promise { f -> f.success("foo") }.asResult { r -> f1.accept(r) }
+      } then {
+        events << it
+      }
+    }, {
+      events << it.class
+    })
+
+    then:
+    events == [ExecutionException, "complete"]
+  }
 }

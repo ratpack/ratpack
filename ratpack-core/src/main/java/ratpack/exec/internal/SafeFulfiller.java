@@ -24,30 +24,36 @@ import ratpack.func.Action;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 public class SafeFulfiller<T> implements Fulfiller<T> {
 
   private final static Logger LOGGER = LoggerFactory.getLogger(SafeFulfiller.class);
 
-  private final Fulfiller<T> delegate;
+  private final Fulfiller<? super T> delegate;
   private final AtomicBoolean fulfilled = new AtomicBoolean();
+  private final ExecutionBacking executionBacking;
 
-  public SafeFulfiller(Fulfiller<T> delegate) {
+  public SafeFulfiller(ExecutionBacking executionBacking, Fulfiller<? super T> delegate) {
+    this.executionBacking = executionBacking;
     this.delegate = delegate;
   }
 
-  public static <T> Consumer<? super Fulfiller<T>> wrapping(Action<? super Fulfiller<T>> action) {
+  public static <T> Consumer<? super Fulfiller<? super T>> wrapping(Supplier<? extends ExecutionBacking> backingSupplier, Action<? super Fulfiller<T>> action) {
     return f -> {
-      SafeFulfiller<T> safe = new SafeFulfiller<>(f);
-      try {
-        action.execute(safe);
-      } catch (Throwable throwable) {
-        if (!safe.fulfilled.compareAndSet(false, true)) {
-          LOGGER.error("", new OverlappingExecutionException("exception thrown after promise was fulfilled", throwable));
-        } else {
-          f.error(throwable);
+      ExecutionBacking backing = backingSupplier.get();
+      SafeFulfiller<T> safe = new SafeFulfiller<>(backing, f);
+      backing.continueVia(() -> {
+        try {
+          action.execute(safe);
+        } catch (Throwable throwable) {
+          if (!safe.fulfilled.compareAndSet(false, true)) {
+            LOGGER.error("", new OverlappingExecutionException("exception thrown after promise was fulfilled", throwable));
+          } else {
+            f.error(throwable);
+          }
         }
-      }
+      });
     };
   }
 
@@ -58,7 +64,7 @@ public class SafeFulfiller<T> implements Fulfiller<T> {
       return;
     }
 
-    delegate.error(throwable);
+    executionBacking.join(e -> delegate.error(throwable));
   }
 
   @Override
@@ -68,6 +74,6 @@ public class SafeFulfiller<T> implements Fulfiller<T> {
       return;
     }
 
-    delegate.success(value);
+    executionBacking.join(e -> delegate.success(value));
   }
 }

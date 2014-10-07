@@ -21,24 +21,11 @@ import ratpack.exec.Fulfiller;
 import ratpack.exec.Promise;
 import ratpack.func.Action;
 import reactor.core.composable.Deferred;
-import reactor.function.Consumer;
 
 public abstract class RatpackReactor {
 
-  public static <T> reactor.core.composable.Promise<T> consume(final Fulfiller<T> fulfiller, reactor.core.composable.Promise<T> reactorPromise) {
-    return reactorPromise
-      .onSuccess(new Consumer<T>() {
-        @Override
-        public void accept(T t) {
-          fulfiller.success(t);
-        }
-      })
-      .onError(new Consumer<Throwable>() {
-        @Override
-        public void accept(Throwable throwable) {
-          fulfiller.error(throwable);
-        }
-      });
+  public static <T> reactor.core.composable.Promise<T> consume(final Fulfiller<? super T> fulfiller, reactor.core.composable.Promise<T> reactorPromise) {
+    return reactorPromise.onSuccess(fulfiller::success).onError(fulfiller::error);
   }
 
   public static <T> Promise<T> consume(ExecControl execControl, final Deferred<T, ? extends reactor.core.composable.Promise<T>> deferred) {
@@ -46,9 +33,9 @@ public abstract class RatpackReactor {
   }
 
   public static <T> Promise<T> consume(ExecControl execControl, final reactor.core.composable.Promise<T> reactorPromise) {
-    return execControl.promise(new Action<Fulfiller<T>>() {
+    return execControl.promise(new Action<Fulfiller<? super T>>() {
       @Override
-      public void execute(Fulfiller<T> fulfiller) throws Exception {
+      public void execute(Fulfiller<? super T> fulfiller) throws Exception {
         consume(fulfiller, reactorPromise);
       }
     });

@@ -33,17 +33,17 @@ import java.util.function.Supplier;
 
 public class CachingPromise<T> implements Promise<T> {
 
-  private final Consumer<? super Fulfiller<T>> fulfillment;
+  private final Consumer<? super Fulfiller<? super T>> fulfillment;
   private final Supplier<ExecutionBacking> executionSupplier;
   private final Action<? super Throwable> errorHandler;
 
   private final AtomicBoolean fired = new AtomicBoolean();
 
-  private final ConcurrentLinkedQueue<Fulfiller<T>> waiting = new ConcurrentLinkedQueue<>();
+  private final ConcurrentLinkedQueue<Fulfiller<? super T>> waiting = new ConcurrentLinkedQueue<>();
   private final AtomicBoolean draining = new AtomicBoolean();
   private final AtomicReference<Result<T>> result = new AtomicReference<>();
 
-  public CachingPromise(Consumer<? super Fulfiller<T>> fulfillment, Supplier<ExecutionBacking> executionSupplier, Action<? super Throwable> errorHandler) {
+  public CachingPromise(Consumer<? super Fulfiller<? super T>> fulfillment, Supplier<ExecutionBacking> executionSupplier, Action<? super Throwable> errorHandler) {
     this.fulfillment = fulfillment;
     this.executionSupplier = executionSupplier;
     this.errorHandler = errorHandler;
@@ -64,7 +64,7 @@ public class CachingPromise<T> implements Promise<T> {
       try {
         Result<T> result = this.result.get();
 
-        Fulfiller<T> poll = waiting.poll();
+        Fulfiller<? super T> poll = waiting.poll();
         while (poll != null) {
           fulfill(result, poll);
           poll = waiting.poll();
@@ -108,14 +108,29 @@ public class CachingPromise<T> implements Promise<T> {
   }
 
   @Override
+  public Promise<T> defer(Action<? super Runnable> releaser) {
+    return newPromise().defer(releaser);
+  }
+
+  @Override
+  public Promise<T> onYield(Runnable onYield) {
+    return newPromise().onYield(onYield);
+  }
+
+  @Override
+  public Promise<T> wiretap(Action<? super Result<T>> listener) {
+    return newPromise().wiretap(listener);
+  }
+
+  @Override
   public Promise<T> cache() {
     return this;
   }
 
-  private class Fulfillment implements Consumer<Fulfiller<T>> {
+  private class Fulfillment implements Consumer<Fulfiller<? super T>> {
 
     @Override
-    public void accept(Fulfiller<T> fulfiller) {
+    public void accept(Fulfiller<? super T> fulfiller) {
       if (fired.compareAndSet(false, true)) {
         fulfillment.accept(new Fulfiller<T>() {
           @Override

@@ -76,7 +76,7 @@ public class DefaultLaunchConfig implements LaunchConfig {
     this.handlerFactory = handlerFactory;
     this.sslContext = sslContext;
     this.maxContentLength = maxContentLength;
-    this.execController = new DefaultExecController(this.threads);
+    this.execController = new DefaultExecController(this.threads, development || Boolean.getBoolean("ratpack.execution.debug"));
     this.defaultRegistry = defaultRegistry;
   }
 
