@@ -97,7 +97,7 @@ public class DefaultHttpClient implements HttpClient {
     return sb.toString();
   }
 
-  private static class RequestAction implements Action<Fulfiller<ReceivedResponse>> {
+  private static class RequestAction implements Action<Fulfiller<? super ReceivedResponse>> {
 
     final Execution execution;
     final EventLoopGroup eventLoopGroup;
@@ -141,7 +141,7 @@ public class DefaultHttpClient implements HttpClient {
       port = this.uri.getPort() < 0 ? (useSsl ? 443 : 80) : this.uri.getPort();
     }
 
-    public void execute(final Fulfiller<ReceivedResponse> fulfiller) throws Exception {
+    public void execute(final Fulfiller<? super ReceivedResponse> fulfiller) throws Exception {
       final Bootstrap b = new Bootstrap();
       b.group(eventLoopGroup)
         .channel(NioSocketChannel.class)

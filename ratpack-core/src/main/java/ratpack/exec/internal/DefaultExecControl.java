@@ -143,7 +143,7 @@ public class DefaultExecControl implements ExecControl {
     );
   }
 
-  private <T> Promise<T> directPromise(Consumer<? super Fulfiller<T>> action) {
+  private <T> Promise<T> directPromise(Consumer<? super Fulfiller<? super T>> action) {
     return new DefaultPromise<>(this::getBacking, action);
   }
 
@@ -151,7 +151,7 @@ public class DefaultExecControl implements ExecControl {
   public <T> void stream(final Publisher<T> publisher, final Subscriber<? super T> subscriber) {
     final ExecutionBacking executionBacking = getBacking();
 
-    directPromise((Consumer<Fulfiller<Subscription>>) fulfiller -> publisher.subscribe(new Subscriber<T>() {
+    directPromise((Consumer<Fulfiller<? super Subscription>>) fulfiller -> publisher.subscribe(new Subscriber<T>() {
       @Override
       public void onSubscribe(final Subscription subscription) {
         fulfiller.success(subscription);

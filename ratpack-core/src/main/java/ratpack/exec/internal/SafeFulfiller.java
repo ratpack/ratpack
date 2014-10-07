@@ -29,14 +29,14 @@ public class SafeFulfiller<T> implements Fulfiller<T> {
 
   private final static Logger LOGGER = LoggerFactory.getLogger(SafeFulfiller.class);
 
-  private final Fulfiller<T> delegate;
+  private final Fulfiller<? super T> delegate;
   private final AtomicBoolean fulfilled = new AtomicBoolean();
 
-  public SafeFulfiller(Fulfiller<T> delegate) {
+  public SafeFulfiller(Fulfiller<? super T> delegate) {
     this.delegate = delegate;
   }
 
-  public static <T> Consumer<? super Fulfiller<T>> wrapping(Action<? super Fulfiller<T>> action) {
+  public static <T> Consumer<? super Fulfiller<? super T>> wrapping(Action<? super Fulfiller<T>> action) {
     return f -> {
       SafeFulfiller<T> safe = new SafeFulfiller<>(f);
       try {

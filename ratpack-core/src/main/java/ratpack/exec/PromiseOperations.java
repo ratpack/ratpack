@@ -113,4 +113,8 @@ public interface PromiseOperations<T> {
 
   Promise<T> cache();
 
+  Promise<T> defer(Action<? super Runnable> releaser);
+
+  Promise<T> wiretap(Action<? super Result<T>> listener);
+
 }

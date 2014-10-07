@@ -80,6 +80,9 @@ public class ExecutionBacking {
   }
 
   public void continueVia(final Runnable runnable) {
+    if (waiting) {
+      throw new ExecutionException("Asynchronous actions cannot be initiated while initiating an async action, use a forked execution or promise operations.");
+    }
     segments.addLast(new Runnable() {
       @Override
       public void run() {

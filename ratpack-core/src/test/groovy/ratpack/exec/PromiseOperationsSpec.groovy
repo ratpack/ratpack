@@ -223,4 +223,20 @@ class PromiseOperationsSpec extends Specification {
     events == ["FOO-BAR", "complete"]
   }
 
+  def "can use other promise with flatMap"() {
+    when:
+    exec { e ->
+      e.blocking {
+        "foo"
+      } flatMap {
+        e.promise { f -> Thread.start { f.success("foo") } }
+      } then {
+        events << it
+      }
+    }
+
+    then:
+    events == ["foo", "complete"]
+  }
+
 }

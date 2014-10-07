@@ -25,6 +25,6 @@ import ratpack.func.Action;
  * @see ExecControl#promise(Action)
  * @see Fulfiller
  */
-public interface Fulfillment<T> extends Action<Fulfiller<T>> {
+public interface Fulfillment<T> extends Action<Fulfiller<? super T>> {
 
 }
