@@ -16,7 +16,9 @@
 
 package ratpack.exec.internal;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import io.netty.util.internal.ConcurrentSet;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -27,6 +29,8 @@ import ratpack.registry.RegistrySpec;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
@@ -40,10 +44,13 @@ public class DefaultExecControl implements ExecControl {
   private static final int MAX_ERRORS_THRESHOLD = 5;
 
   private final ExecController execController;
+  private final boolean debug;
   private final ThreadLocal<ExecutionBacking> threadBinding = new ThreadLocal<>();
+  private final Set<ExecutionBacking> executions = new ConcurrentSet<>();
 
-  public DefaultExecControl(ExecController execController) {
+  public DefaultExecControl(ExecController execController, boolean debug) {
     this.execController = execController;
+    this.debug = debug;
   }
 
   private ExecutionBacking getBacking() {
@@ -108,11 +115,13 @@ public class DefaultExecControl implements ExecControl {
 
       @Override
       public void start(Action<? super Execution> action) {
+        Optional<StackTraceElement[]> startStack = debug ? Optional.of(Thread.currentThread().getStackTrace()) : Optional.empty();
+
         Action<? super Execution> effectiveAction = registry == null ? action : Action.join(registry, action);
         if (execController.isManagedThread() && threadBinding.get() == null) {
-          new ExecutionBacking(execController, threadBinding, effectiveAction, onError, onComplete);
+          new ExecutionBacking(execController, executions, startStack, threadBinding, effectiveAction, onError, onComplete);
         } else {
-          execController.getExecutor().submit(() -> new ExecutionBacking(execController, threadBinding, effectiveAction, onError, onComplete));
+          execController.getExecutor().submit(() -> new ExecutionBacking(execController, executions, startStack, threadBinding, effectiveAction, onError, onComplete));
         }
       }
     };
@@ -182,6 +191,12 @@ public class DefaultExecControl implements ExecControl {
             )
         )
     );
+  }
+
+  public List<? extends ExecutionSnapshot> getExecutionSnapshots() {
+    ImmutableList.Builder<ExecutionSnapshot> builder = ImmutableList.builder();
+    executions.forEach(e -> builder.add(e.getSnapshot()));
+    return builder.build();
   }
 
 }
