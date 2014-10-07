@@ -33,11 +33,21 @@ class ThrottleSpec extends Specification {
 
   PollingConditions polling = new PollingConditions(timeout: 100)
 
+  def "can use throttle"() {
+    def t = new Throttle(1)
+    def v = execHarness.execute {
+      t.throttle(execHarness.control.promise { it.success("foo") })
+    }
+
+    expect:
+    v.value == "foo"
+  }
+
   def "can throttle operations"() {
     def q = new LinkedBlockingQueue<Fulfiller<Integer>>()
 
     def throttleSize = 5
-    def jobs = 10
+    def jobs = 100
     def t = new Throttle(throttleSize)
     def e = new ConcurrentLinkedQueue<Result<Integer>>()
     def latch = new CountDownLatch(jobs)
@@ -45,8 +55,10 @@ class ThrottleSpec extends Specification {
     when:
     jobs.times {
       execHarness.control.exec().onComplete { latch.countDown() }.start {
+        def exec = it
         def p = it.control.promise { q << it }
         t.throttle(p).asResult {
+          assert execHarness.control.execution.is(exec)
           e << it
         }
       }
@@ -59,7 +71,7 @@ class ThrottleSpec extends Specification {
       t.waiting == jobs - t.size
     }
 
-    q.take().success(1)
+    execHarness.control.exec().start { q.take().success(1) }
 
     polling.eventually {
       q.size() == t.size
@@ -67,17 +79,24 @@ class ThrottleSpec extends Specification {
       t.waiting == jobs - t.size - 1
     }
 
-    (jobs - 2).times {
-      q.take().success(1)
+    execHarness.control.exec().start { e2 ->
+      def n = jobs - 2 - throttleSize
+      n.times {
+        e2.control.blocking { q.take() } then {
+          it.success(1)
+        }
+      }
     }
 
     polling.eventually {
-      q.size() == 1
-      t.active == 1
-      t.waiting == 0
+      q.size() == t.size
+      t.active == t.size
+      t.waiting == 1
     }
 
-    q.take().success(1)
+    (throttleSize + 1).times {
+      q.take().success(1)
+    }
 
     polling.eventually {
       q.size() == 0

@@ -115,6 +115,8 @@ public interface PromiseOperations<T> {
 
   Promise<T> defer(Action<? super Runnable> releaser);
 
+  Promise<T> onYield(Runnable onYield);
+
   Promise<T> wiretap(Action<? super Result<T>> listener);
 
 }

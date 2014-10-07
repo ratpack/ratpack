@@ -48,7 +48,7 @@ public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
     if (fired.compareAndSet(false, true)) {
       final ExecutionBacking executionBacking = executionSupplier.get();
       try {
-        executionBacking.continueVia(() -> doThen(new UserActionFulfiller(executionBacking, then)));
+        doThen(new UserActionFulfiller(executionBacking, then));
       } catch (ExecutionException e) {
         throw e;
       } catch (Exception e) {
@@ -59,19 +59,8 @@ public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
     }
   }
 
-  private void doThen(final Fulfiller<? super T> outer) {
-    final ExecutionBacking executionBacking = executionSupplier.get();
-    fulfillment.accept(new Fulfiller<T>() {
-      @Override
-      public void error(final Throwable throwable) {
-        executionBacking.join(execution -> outer.error(throwable));
-      }
-
-      @Override
-      public void success(final T value) {
-        executionBacking.join(execution -> outer.success(value));
-      }
-    });
+  private void doThen(final Fulfiller<? super T> fulfiller) {
+    fulfillment.accept(fulfiller);
   }
 
   @Override
@@ -174,14 +163,38 @@ public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
   }
 
   @Override
-  public Promise<T> defer(Action<? super Runnable> releaser) {
+  public Promise<T> onYield(Runnable onYield) {
     if (fired.compareAndSet(false, true)) {
       return new DefaultPromise<>(executionSupplier, downstream -> {
         try {
-          releaser.execute((Runnable) () -> fulfillment.accept(downstream));
-        } catch (Throwable t) {
-          downstream.error(t);
+          onYield.run();
+        } catch (Throwable e) {
+          downstream.error(e);
+          return;
         }
+        fulfillment.accept(downstream);
+      });
+    } else {
+      throw new MultiplePromiseSubscriptionException();
+    }
+  }
+
+  @Override
+  public Promise<T> defer(Action<? super Runnable> releaser) {
+    if (fired.compareAndSet(false, true)) {
+      return new DefaultPromise<>(executionSupplier, downstream -> {
+        ExecutionBacking executionBacking = executionSupplier.get();
+        executionBacking.continueVia(() -> {
+          try {
+            releaser.execute((Runnable) () ->
+                executionBacking.join(e ->
+                    fulfillment.accept(downstream)
+                )
+            );
+          } catch (Throwable t) {
+            downstream.error(t);
+          }
+        });
       });
     } else {
       throw new MultiplePromiseSubscriptionException();

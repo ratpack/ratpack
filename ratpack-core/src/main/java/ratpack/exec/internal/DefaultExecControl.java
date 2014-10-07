@@ -120,7 +120,7 @@ public class DefaultExecControl implements ExecControl {
 
   @Override
   public <T> Promise<T> promise(Action<? super Fulfiller<T>> action) {
-    return directPromise(SafeFulfiller.wrapping(action));
+    return directPromise(SafeFulfiller.wrapping(this::getBacking, action));
   }
 
   @Override
@@ -128,7 +128,7 @@ public class DefaultExecControl implements ExecControl {
     final ExecutionBacking backing = getBacking();
     final ExecController controller = backing.getController();
     return directPromise(f ->
-        CompletableFuture.supplyAsync(() -> {
+        backing.continueVia(() -> CompletableFuture.supplyAsync(() -> {
             List<Result<T>> holder = Lists.newArrayListWithCapacity(1);
             try {
               backing.intercept(ExecInterceptor.ExecType.BLOCKING, backing.getInterceptors(), execution ->
@@ -139,7 +139,7 @@ public class DefaultExecControl implements ExecControl {
               return Result.<T>failure(e);
             }
           }, controller.getBlockingExecutor()
-        ).thenAccept(f::accept)
+        ).thenAccept(v -> backing.join(e -> f.accept(v))))
     );
   }
 
@@ -151,27 +151,37 @@ public class DefaultExecControl implements ExecControl {
   public <T> void stream(final Publisher<T> publisher, final Subscriber<? super T> subscriber) {
     final ExecutionBacking executionBacking = getBacking();
 
-    directPromise((Consumer<Fulfiller<? super Subscription>>) fulfiller -> publisher.subscribe(new Subscriber<T>() {
-      @Override
-      public void onSubscribe(final Subscription subscription) {
-        fulfiller.success(subscription);
-      }
+    directPromise((Consumer<Fulfiller<? super Subscription>>) fulfiller ->
+        executionBacking.continueVia(() ->
+            publisher.subscribe(new Subscriber<T>() {
+              @Override
+              public void onSubscribe(final Subscription subscription) {
+                fulfiller.success(subscription);
+              }
 
-      @Override
-      public void onNext(final T element) {
-        executionBacking.streamExecution(execution -> subscriber.onNext(element));
-      }
+              @Override
+              public void onNext(final T element) {
+                executionBacking.streamExecution(execution -> subscriber.onNext(element));
+              }
 
-      @Override
-      public void onComplete() {
-        executionBacking.completeStreamExecution(execution -> subscriber.onComplete());
-      }
+              @Override
+              public void onComplete() {
+                executionBacking.completeStreamExecution(execution -> subscriber.onComplete());
+              }
 
-      @Override
-      public void onError(final Throwable cause) {
-        executionBacking.completeStreamExecution(execution -> subscriber.onError(cause));
-      }
-    })).then(subscription -> executionBacking.streamExecution(execution -> subscriber.onSubscribe(subscription)));
+              @Override
+              public void onError(final Throwable cause) {
+                executionBacking.completeStreamExecution(execution -> subscriber.onError(cause));
+              }
+            })
+        )
+    ).then(subscription ->
+        executionBacking.join(e ->
+            executionBacking.streamExecution(execution ->
+                subscriber.onSubscribe(subscription)
+            )
+        )
+    );
   }
 
 }

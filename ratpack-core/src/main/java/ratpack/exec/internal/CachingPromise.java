@@ -113,6 +113,11 @@ public class CachingPromise<T> implements Promise<T> {
   }
 
   @Override
+  public Promise<T> onYield(Runnable onYield) {
+    return newPromise().onYield(onYield);
+  }
+
+  @Override
   public Promise<T> wiretap(Action<? super Result<T>> listener) {
     return newPromise().wiretap(listener);
   }

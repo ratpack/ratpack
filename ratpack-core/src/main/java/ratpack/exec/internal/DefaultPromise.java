@@ -93,6 +93,11 @@ public class DefaultPromise<T> implements Promise<T> {
   }
 
   @Override
+  public Promise<T> onYield(Runnable onYield) {
+    return propagatingSuccessPromise().onYield(onYield);
+  }
+
+  @Override
   public Promise<T> wiretap(Action<? super Result<T>> listener) {
     return propagatingSuccessPromise().wiretap(listener);
   }

@@ -108,7 +108,7 @@ public class ExecutionBacking {
     assertNotDone();
     if (!waiting && !segments.isEmpty()) {
       if (active.compareAndSet(false, true)) {
-        if (controller.isManagedThread()) {
+        if (threadBinding.get() == null && controller.isManagedThread()) {
           threadBinding.set(this);
           try {
             Runnable segment = segments.poll();
