@@ -61,7 +61,7 @@ class HandlersSpec extends RatpackGroovyDslSpec {
     handlers {
       get { ExecController execController ->
         promise { f ->
-          execController.control.fork {
+          execController.control.exec().start {
             f.success("ok")
           }
         } then {

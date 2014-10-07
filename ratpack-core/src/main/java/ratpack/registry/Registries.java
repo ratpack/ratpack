@@ -19,7 +19,7 @@ package ratpack.registry;
 import ratpack.func.Action;
 import ratpack.registry.internal.CachingBackedRegistry;
 import ratpack.registry.internal.DefaultRegistryBuilder;
-import ratpack.registry.internal.HierarchicalRegistry;
+import ratpack.registry.internal.EmptyRegistry;
 
 import java.util.function.Supplier;
 
@@ -29,61 +29,6 @@ import java.util.function.Supplier;
 public abstract class Registries {
 
   private Registries() {
-  }
-
-  /**
-   * Joins the given registries into a new registry.
-   * <p>
-   * The returned registry is effectively the union of the two registries, with the {@code child} taking precedence.
-   * This means that child entries are effectively “returned first”.
-   * <pre class="java">
-   * import ratpack.registry.Registry;
-   *
-   * import static ratpack.registry.Registries.registry;
-   * import static ratpack.registry.Registries.join;
-   *
-   * import java.util.List;
-   * import com.google.common.collect.Lists;
-   *
-   * public class Example {
-   *
-   *   public static interface Thing {
-   *     String getName();
-   *   }
-   *
-   *   public static class ThingImpl implements Thing {
-   *     private final String name;
-   *
-   *     public ThingImpl(String name) {
-   *       this.name = name;
-   *     }
-   *
-   *     public String getName() {
-   *       return name;
-   *     }
-   *   }
-   *
-   *   public static void main(String[] args) {
-   *     Registry child = registry().add(Thing.class, new ThingImpl("child-1")).add(Thing.class, new ThingImpl("child-2")).build();
-   *     Registry parent = registry().add(Thing.class, new ThingImpl("parent-1")).add(Thing.class, new ThingImpl("parent-2")).build();
-   *     Registry joined = join(parent, child);
-   *
-   *     assert joined.get(Thing.class).getName() == "child-1";
-   *     List&lt;Thing&gt; all = Lists.newArrayList(joined.getAll(Thing.class));
-   *     assert all.get(0).getName() == "child-1";
-   *     assert all.get(1).getName() == "child-2";
-   *     assert all.get(2).getName() == "parent-1";
-   *     assert all.get(3).getName() == "parent-2";
-   *   }
-   * }
-   * </pre>
-   *
-   * @param parent the parent registry
-   * @param child the child registry
-   * @return a registry which is the combination of the parent and child
-   */
-  public static Registry join(Registry parent, Registry child) {
-    return new HierarchicalRegistry(parent, child);
   }
 
   /**
@@ -131,6 +76,15 @@ public abstract class Registries {
    */
   public static RegistryBuilder registry() {
     return new DefaultRegistryBuilder();
+  }
+
+  /**
+   * Returns an empty registry.
+   *
+   * @return an empty registry
+   */
+  public static Registry empty() {
+    return new EmptyRegistry();
   }
 
   /**

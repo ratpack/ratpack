@@ -98,6 +98,8 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
   private final ExecControl execControl;
 
   public NettyHandlerAdapter(Stopper stopper, Handler handler, LaunchConfig launchConfig) {
+    super(false);
+
     this.handlers = ChainHandler.unpack(handler);
     this.launchConfig = launchConfig;
     this.registry = buildBaseRegistry(stopper, launchConfig);
@@ -133,6 +135,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
   public void channelRead0(final ChannelHandlerContext ctx, final FullHttpRequest nettyRequest) throws Exception {
     if (!nettyRequest.getDecoderResult().isSuccess()) {
       sendError(ctx, HttpResponseStatus.BAD_REQUEST);
+      nettyRequest.release();
       return;
     }
 
@@ -248,7 +251,9 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
       registryBuilder.add(FileSystemBinding.class, launchConfig.getBaseDir());
     }
 
-    return registryBuilder.build();
+    Registry foundationRegistry = registryBuilder.build();
+    Registry defaultRegistry = launchConfig.getDefaultRegistry();
+    return defaultRegistry != null ? foundationRegistry.join(defaultRegistry) : foundationRegistry;
   }
 
 }

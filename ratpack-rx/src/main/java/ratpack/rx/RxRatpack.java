@@ -32,6 +32,7 @@ import rx.functions.Action2;
 import rx.internal.operators.OperatorSingle;
 import rx.plugins.RxJavaObservableExecutionHook;
 import rx.plugins.RxJavaPlugins;
+import rx.plugins.RxJavaSchedulersHook;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -96,15 +97,15 @@ public abstract class RxRatpack {
       }
     }
 
-    System.setProperty("rxjava.plugin." + rx.plugins.RxJavaDefaultSchedulers.class.getSimpleName() + ".implementation", DefaultSchedulers.class.getName());
-    rx.plugins.RxJavaDefaultSchedulers existingSchedulers = plugins.getDefaultSchedulers();
+    System.setProperty("rxjava.plugin." + RxJavaSchedulersHook.class.getSimpleName() + ".implementation", DefaultSchedulers.class.getName());
+    rx.plugins.RxJavaSchedulersHook existingSchedulers = plugins.getSchedulersHook();
     if (!(existingSchedulers instanceof DefaultSchedulers)) {
       throw new IllegalStateException("Cannot install RxJava integration because another set of default schedulers (" + existingSchedulers.getClass() + ") is already installed");
     }
   }
 
   /**
-   * A scheduler that uses the application event loop and initialises each job as an {@link ratpack.exec.Execution} (via {@link ratpack.exec.ExecControl#fork(ratpack.func.Action)}).
+   * A scheduler that uses the application event loop and initialises each job as an {@link ratpack.exec.Execution} (via {@link ratpack.exec.ExecControl#exec()}).
    *
    * @param execController the execution controller to back the scheduler
    * @return a scheduler
@@ -127,7 +128,7 @@ public abstract class RxRatpack {
    * @return an observable stream equivalent to the given source
    */
   public static <T> Observable<T> forkAndJoin(final ExecControl execControl, final Observable<T> source) {
-    Promise<List<T>> promise = execControl.promise(fulfiller -> execControl.fork(execution -> source
+    Promise<List<T>> promise = execControl.promise(fulfiller -> execControl.exec().start(execution -> source
       .toList()
       .subscribe(new Subscriber<List<T>>() {
         @Override
@@ -228,7 +229,7 @@ public abstract class RxRatpack {
   /**
    * Alternative method for forking the execution to process each observable element.
    * <p>
-   * This method is alternative to {@link #forkOnNext(ratpack.exec.ExecControl)} and is functionally equivalent.
+   * This method is alternative to {@link #forkOnNext(ExecControl)} and is functionally equivalent.
    *
    * @param execControl the execution control to use to fork executions
    * @param observable the observable sequence to process each element of in a forked execution
@@ -243,12 +244,12 @@ public abstract class RxRatpack {
    * An operator to parallelize an observable stream by forking a new execution for each omitted item.
    * This allows downstream processing to occur in concurrent executions.
    * <p>
-   * To be used with the {@link rx.Observable#lift(rx.Observable.Operator)} method.
+   * To be used with the {@link Observable#lift(Observable.Operator)} method.
    * <p>
    * The {@code onCompleted()} or {@code onError()} downstream methods are guaranteed to be called <strong>after</strong> the last item has been given to the downstream {@code onNext()} method.
    * That is, the last invocation of the downstream {@code onNext()} will have returned before {@code onCompleted()} or {@code onError()} are invoked.
    * <p>
-   * This is generally a more performant alternative to using {@link rx.Observable#parallel} due to Ratpack's {@link ratpack.exec.Execution} semantics and use of Netty's event loop to schedule work.
+   * This is generally a more performant alternative to using plain Rx parallelization due to Ratpack's {@link ratpack.exec.Execution} semantics and use of Netty's event loop to schedule work.
    * <pre class="java">
    * import ratpack.rx.RxRatpack;
    * import ratpack.exec.ExecController;
@@ -336,13 +337,15 @@ public abstract class RxRatpack {
         }
 
         wip.incrementAndGet();
-        execControl.fork(execution -> {
-          try {
-            downstream.onNext(t);
-          } finally {
-            maybeDone();
-          }
-        }, this::onError);
+        execControl.exec()
+          .onError(this::onError)
+          .start(execution -> {
+            try {
+              downstream.onNext(t);
+            } finally {
+              maybeDone();
+            }
+          });
       }
     };
   }

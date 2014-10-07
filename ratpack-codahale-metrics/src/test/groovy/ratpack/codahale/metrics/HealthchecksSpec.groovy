@@ -136,7 +136,8 @@ class HealthchecksSpec extends RatpackGroovyDslSpec {
   def "can use healthcheck endpoint with custom renderer"() {
     when:
     bindings {
-      add new CodaHaleMetricsModule().healthChecks(), new JacksonModule().noPrettyPrint()
+      add new CodaHaleMetricsModule().healthChecks()
+      add new JacksonModule().noPrettyPrint()
       bind MyHealthCheck
       bind FooHealthCheck
       bind HealthCheckJsonRenderer

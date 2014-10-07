@@ -16,25 +16,41 @@
 
 package ratpack.exec.internal;
 
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
+import io.netty.util.internal.ConcurrentSet;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import org.slf4j.Logger;
 import ratpack.exec.*;
 import ratpack.func.Action;
+import ratpack.registry.RegistrySpec;
 
 import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
+
+import static ratpack.func.Action.noop;
 
 public class DefaultExecControl implements ExecControl {
 
-  private final ExecController execController;
-  private final ThreadLocal<ExecutionBacking> threadBinding = new ThreadLocal<>();
+  private static final Logger LOGGER = ExecutionBacking.LOGGER;
+  private static final Action<Throwable> LOG_UNCAUGHT = t -> LOGGER.error("Uncaught execution exception", t);
+  private static final int MAX_ERRORS_THRESHOLD = 5;
 
-  public DefaultExecControl(ExecController execController) {
+  private final ExecController execController;
+  private final boolean debug;
+  private final ThreadLocal<ExecutionBacking> threadBinding = new ThreadLocal<>();
+  private final Set<ExecutionBacking> executions = new ConcurrentSet<>();
+
+  public DefaultExecControl(ExecController execController, boolean debug) {
     this.execController = execController;
+    this.debug = debug;
   }
 
   private ExecutionBacking getBacking() {
@@ -64,112 +80,123 @@ public class DefaultExecControl implements ExecControl {
   }
 
   @Override
-  public <T> Promise<T> blocking(final Callable<T> blockingOperation) {
-    final ExecutionBacking backing = getBacking();
-    final ExecController controller = backing.getController();
-    return promise(fulfiller -> {
-      ListenableFuture<T> future = controller.getBlockingExecutor().submit(new BlockingOperation<>(backing, blockingOperation));
-      Futures.addCallback(future, new ComputeResume<>(fulfiller), controller.getExecutor());
-    });
+  public ExecStarter exec() {
+    return new ExecStarter() {
+      private Action<? super Throwable> onError = LOG_UNCAUGHT;
+      private Action<? super Execution> onComplete = noop();
+      private Action<? super RegistrySpec> registry;
+
+      @Override
+      public ExecStarter onError(Action<? super Throwable> onError) {
+        List<Throwable> seen = Lists.newLinkedList();
+        this.onError = t -> {
+          if (seen.size() < MAX_ERRORS_THRESHOLD) {
+            seen.add(t);
+            onError.execute(t);
+          } else {
+            seen.forEach(t::addSuppressed);
+            LOGGER.error("Error handler " + onError + "reached maximum error threshold (might be caught in an error loop)", t);
+          }
+        };
+        return this;
+      }
+
+      @Override
+      public ExecStarter onComplete(Action<? super Execution> onComplete) {
+        this.onComplete = onComplete;
+        return this;
+      }
+
+      @Override
+      public ExecStarter register(Action<? super RegistrySpec> registry) {
+        this.registry = registry;
+        return this;
+      }
+
+      @Override
+      public void start(Action<? super Execution> action) {
+        Optional<StackTraceElement[]> startStack = debug ? Optional.of(Thread.currentThread().getStackTrace()) : Optional.empty();
+
+        Action<? super Execution> effectiveAction = registry == null ? action : Action.join(registry, action);
+        if (execController.isManagedThread() && threadBinding.get() == null) {
+          new ExecutionBacking(execController, executions, startStack, threadBinding, effectiveAction, onError, onComplete);
+        } else {
+          execController.getExecutor().submit(() -> new ExecutionBacking(execController, executions, startStack, threadBinding, effectiveAction, onError, onComplete));
+        }
+      }
+    };
   }
 
   @Override
   public <T> Promise<T> promise(Action<? super Fulfiller<T>> action) {
+    return directPromise(SafeFulfiller.wrapping(this::getBacking, action));
+  }
+
+  @Override
+  public <T> Promise<T> blocking(final Callable<T> blockingOperation) {
+    final ExecutionBacking backing = getBacking();
+    final ExecController controller = backing.getController();
+    return directPromise(f ->
+        backing.continueVia(() -> CompletableFuture.supplyAsync(() -> {
+            List<Result<T>> holder = Lists.newArrayListWithCapacity(1);
+            try {
+              backing.intercept(ExecInterceptor.ExecType.BLOCKING, backing.getInterceptors(), execution ->
+                  holder.add(0, Result.success(blockingOperation.call()))
+              );
+              return holder.get(0);
+            } catch (Exception e) {
+              return Result.<T>failure(e);
+            }
+          }, controller.getBlockingExecutor()
+        ).thenAccept(v -> backing.join(e -> f.accept(v))))
+    );
+  }
+
+  private <T> Promise<T> directPromise(Consumer<? super Fulfiller<? super T>> action) {
     return new DefaultPromise<>(this::getBacking, action);
-  }
-
-  @Override
-  public void fork(Action<? super Execution> action) {
-    fork(action, Action.throwException(), Action.noop());
-  }
-
-  @Override
-  public void fork(Action<? super Execution> action, Action<? super Throwable> onError) {
-    fork(action, onError, Action.noop());
-  }
-
-  @Override
-  public void fork(final Action<? super Execution> action, final Action<? super Throwable> onError, final Action<? super Execution> onComplete) {
-    if (execController.isManagedThread() && threadBinding.get() == null) {
-      new ExecutionBacking(execController, threadBinding, action, onError, onComplete);
-    } else {
-      execController.getExecutor().submit(() -> new ExecutionBacking(execController, threadBinding, action, onError, onComplete));
-    }
   }
 
   @Override
   public <T> void stream(final Publisher<T> publisher, final Subscriber<? super T> subscriber) {
     final ExecutionBacking executionBacking = getBacking();
 
-    promise((Fulfillment<Subscription>) fulfiller -> publisher.subscribe(new Subscriber<T>() {
-      @Override
-      public void onSubscribe(final Subscription subscription) {
-        fulfiller.success(subscription);
-      }
+    directPromise((Consumer<Fulfiller<? super Subscription>>) fulfiller ->
+        executionBacking.continueVia(() ->
+            publisher.subscribe(new Subscriber<T>() {
+              @Override
+              public void onSubscribe(final Subscription subscription) {
+                fulfiller.success(subscription);
+              }
 
-      @Override
-      public void onNext(final T element) {
-        executionBacking.streamExecution(execution -> subscriber.onNext(element));
-      }
+              @Override
+              public void onNext(final T element) {
+                executionBacking.streamExecution(execution -> subscriber.onNext(element));
+              }
 
-      @Override
-      public void onComplete() {
-        executionBacking.completeStreamExecution(execution -> subscriber.onComplete());
-      }
+              @Override
+              public void onComplete() {
+                executionBacking.completeStreamExecution(execution -> subscriber.onComplete());
+              }
 
-      @Override
-      public void onError(final Throwable cause) {
-        executionBacking.completeStreamExecution(execution -> subscriber.onError(cause));
-      }
-    })).then(subscription -> executionBacking.streamExecution(execution -> subscriber.onSubscribe(subscription)));
+              @Override
+              public void onError(final Throwable cause) {
+                executionBacking.completeStreamExecution(execution -> subscriber.onError(cause));
+              }
+            })
+        )
+    ).then(subscription ->
+        executionBacking.join(e ->
+            executionBacking.streamExecution(execution ->
+                subscriber.onSubscribe(subscription)
+            )
+        )
+    );
   }
 
-  private static class ComputeResume<T> implements FutureCallback<T> {
-    private final Fulfiller<? super T> fulfiller;
-
-    public ComputeResume(Fulfiller<? super T> fulfiller) {
-      this.fulfiller = fulfiller;
-    }
-
-    @Override
-    public void onSuccess(final T result) {
-      fulfiller.success(result);
-    }
-
-    @SuppressWarnings("NullableProblems")
-    @Override
-    public void onFailure(final Throwable t) {
-      fulfiller.error(t);
-    }
+  public List<? extends ExecutionSnapshot> getExecutionSnapshots() {
+    ImmutableList.Builder<ExecutionSnapshot> builder = ImmutableList.builder();
+    executions.forEach(e -> builder.add(e.getSnapshot()));
+    return builder.build();
   }
 
-  class BlockingOperation<T> implements Callable<T> {
-    final private ExecutionBacking backing;
-    final private Callable<T> blockingOperation;
-
-    private T result;
-    private Exception exception;
-
-    BlockingOperation(ExecutionBacking backing, Callable<T> blockingOperation) {
-      this.backing = backing;
-      this.blockingOperation = blockingOperation;
-    }
-
-    @Override
-    public T call() throws Exception {
-      backing.intercept(ExecInterceptor.ExecType.BLOCKING, backing.getInterceptors(), execution -> {
-        try {
-          result = blockingOperation.call();
-        } catch (Exception e) {
-          exception = e;
-        }
-      });
-
-      if (exception != null) {
-        throw exception;
-      } else {
-        return result;
-      }
-    }
-  }
 }

@@ -95,45 +95,6 @@ public interface ExecControl {
    * <p>
    * This method is just a specialization of {@link #promise}, and shares all of the same semantics with regard to
    * execution binding and execution-on-promise-subscription.
-   * <pre class="java">
-   * import ratpack.launch.LaunchConfigBuilder;
-   * import ratpack.func.Action;
-   * import ratpack.exec.Execution;
-   * import ratpack.exec.ExecController;
-   *
-   * import java.util.concurrent.Callable;
-   * import java.util.concurrent.CountDownLatch;
-   *
-   * public class Example {
-   *
-   *   public static void main(String[] args) throws InterruptedException {
-   *     ExecController controller = LaunchConfigBuilder.noBaseDir().build().getExecController();
-   *
-   *     final CountDownLatch latch = new CountDownLatch(1);
-   *
-   *     controller.getControl().fork(new Action&lt;Execution&gt;() {
-   *       public void execute(Execution execution) {
-   *         execution
-   *           .getControl()
-   *           .blocking(new Callable&lt;String&gt;() {
-   *             public String call() {
-   *               // perform a blocking op, e.g. a database call, filesystem read etc.
-   *               return "foo";
-   *             }
-   *           })
-   *           .then(new Action&lt;String&gt;() {
-   *             public void execute(String string) {
-   *               // do something with the value that was obtained from a blocking operation
-   *               latch.countDown();
-   *             }
-   *           });
-   *       }
-   *     });
-   *
-   *     latch.await();
-   *   }
-   * }
-   * </pre>
    *
    * @param blockingOperation the operation that blocks
    * @param <T> the type of value created by the operation
@@ -149,7 +110,6 @@ public interface ExecControl {
    * The result of the asynchronous call is then given to the {@link Fulfiller} that the action is given.
    *
    * @param action an action that invokes an asynchronous API, forwarding the result to the given fulfiller.
-   * @param <T> the type of value
    * @return a promise for the asynchronously created value
    * @see Fulfiller
    * @see Fulfillment
@@ -157,19 +117,11 @@ public interface ExecControl {
   <T> Promise<T> promise(Action<? super Fulfiller<T>> action);
 
   /**
-   * Forks a new execution on a separate thread.
-   * <p>
-   * This is similar to using {@code new Thread().run()} except that the action will be executed
-   * on a Ratpack managed thread, and will use Ratpack's execution semantics.
-   * <p>
+   * Creates a new execution stater that can be used to initiate a new execution.
    *
-   * @param action the initial execution segment
+   * @return an execution start that can be used to configure and
    */
-  void fork(Action<? super Execution> action);
-
-  void fork(Action<? super Execution> action, Action<? super Throwable> onError);
-
-  void fork(Action<? super Execution> action, Action<? super Throwable> onError, Action<? super Execution> onComplete);
+  ExecStarter exec();
 
   /**
    * Process streams of data asynchronously with non-blocking back pressure.

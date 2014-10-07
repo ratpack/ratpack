@@ -16,12 +16,13 @@
 
 package ratpack.exec;
 
-import com.google.common.util.concurrent.ListeningExecutorService;
-import com.google.common.util.concurrent.ListeningScheduledExecutorService;
 import io.netty.channel.EventLoopGroup;
 import ratpack.exec.internal.ExecControllerThreadBinding;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ScheduledExecutorService;
 
 /**
  * The exec controller manages the execution of operations.
@@ -68,14 +69,14 @@ public interface ExecController extends AutoCloseable {
    * <p>
    * This executor wraps Netty's event loop executor to provide callback features by way of Guava's executor extensions.
    * <p>
-   * It is generally preferable to use {@link ExecControl#fork(ratpack.func.Action)} to submit computation work rather than this method,
+   * It is generally preferable to use {@link ratpack.exec.ExecControl#exec()} to submit computation work rather than this method,
    * which properly initialises Ratpack's execution infrastructure.
    *
    * @return the executor that performs computation
    */
-  ListeningScheduledExecutorService getExecutor();
+  ScheduledExecutorService getExecutor();
 
-  ListeningExecutorService getBlockingExecutor();
+  ExecutorService getBlockingExecutor();
 
   /**
    * The event loop group used by Netty for this application.
@@ -94,6 +95,8 @@ public interface ExecController extends AutoCloseable {
    * @return the number of threads that will be used for computation
    */
   int getNumThreads();
+
+  List<? extends ExecutionSnapshot> getExecutionSnapshots();
 
   /**
    * Shuts down this controller, terminating the event loop and blocking threads.

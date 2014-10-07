@@ -10,7 +10,9 @@ import static ratpack.thymeleaf.Template.thymeleafTemplate
 
 ratpack {
   bindings {
-    config(TemplatingModule).staticallyCompile = true
+    def t = new TemplatingModule()
+    t.staticallyCompile = true
+    add t
     add new HandlebarsModule()
     add new ThymeleafModule()
     add new MarkupTemplatingModule()

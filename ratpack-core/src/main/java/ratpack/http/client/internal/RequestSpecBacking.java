@@ -23,11 +23,9 @@ import io.netty.buffer.Unpooled;
 import io.netty.util.CharsetUtil;
 import ratpack.api.Nullable;
 import ratpack.func.Action;
-import ratpack.http.HttpUrlSpec;
 import ratpack.http.MutableHeaders;
 import ratpack.http.client.RequestSpec;
 import ratpack.http.internal.HttpHeaderConstants;
-import ratpack.http.internal.HttpUrlSpecBacking;
 import ratpack.util.internal.ByteBufWriteThroughOutputStream;
 
 import java.io.OutputStream;
@@ -37,18 +35,18 @@ import java.nio.charset.Charset;
 public class RequestSpecBacking {
 
   private final MutableHeaders headers;
+  private final URI uri;
   private final ByteBufAllocator byteBufAllocator;
-  private final HttpUrlSpecBacking httpUrlSpec;
 
   private ByteBuf bodyByteBuf;
 
   private String method = "GET";
   private int maxRedirects = 10;
 
-  public RequestSpecBacking(MutableHeaders headers, ByteBufAllocator byteBufAllocator) {
+  public RequestSpecBacking(MutableHeaders headers, URI uri, ByteBufAllocator byteBufAllocator) {
     this.headers = headers;
+    this.uri = uri;
     this.byteBufAllocator = byteBufAllocator;
-    this.httpUrlSpec = new HttpUrlSpecBacking();
     this.bodyByteBuf = byteBufAllocator.buffer(0, 0);
   }
 
@@ -63,10 +61,6 @@ public class RequestSpecBacking {
   @Nullable
   public ByteBuf getBody() {
     return bodyByteBuf;
-  }
-
-  public URI getUrl() {
-    return httpUrlSpec.getURL();
   }
 
   public RequestSpec asSpec() {
@@ -102,14 +96,8 @@ public class RequestSpecBacking {
     }
 
     @Override
-    public HttpUrlSpec getUrl() {
-      return RequestSpecBacking.this.httpUrlSpec;
-    }
-
-    @Override
-    public RequestSpec url(Action<? super HttpUrlSpec> action) throws Exception {
-      action.execute(getUrl());
-      return this;
+    public URI getUrl() {
+      return uri;
     }
 
     private void setBodyByteBuf(ByteBuf byteBuf) {

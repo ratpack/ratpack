@@ -23,7 +23,6 @@ import com.github.jknack.handlebars.io.TemplateSource;
 import com.google.common.cache.Cache;
 
 import java.io.IOException;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 
 public class RatpackTemplateCache implements TemplateCache {
@@ -50,12 +49,7 @@ public class RatpackTemplateCache implements TemplateCache {
   public Template get(final TemplateSource source, final Parser parser) throws IOException {
     try {
       TemplateKey key = new TemplateKey(source, reloadable);
-      return cache.get(key, new Callable<Template>() {
-        @Override
-        public Template call() throws Exception {
-          return parser.parse(source);
-        }
-      });
+      return cache.get(key, () -> parser.parse(source));
     } catch (ExecutionException e) {
       throw new IOException("Can't parse " + source, e);
     }

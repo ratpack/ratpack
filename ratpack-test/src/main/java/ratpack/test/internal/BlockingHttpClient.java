@@ -23,7 +23,6 @@ import ratpack.exec.ExecController;
 import ratpack.exec.Execution;
 import ratpack.exec.Result;
 import ratpack.exec.internal.DefaultExecController;
-import ratpack.exec.internal.DefaultResult;
 import ratpack.func.Action;
 import ratpack.http.TypedData;
 import ratpack.http.client.HttpClients;
@@ -33,25 +32,19 @@ import ratpack.http.client.internal.DefaultReceivedResponse;
 import ratpack.http.internal.ByteBufBackedTypedData;
 import ratpack.util.ExceptionUtils;
 
+import java.net.URI;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 public class BlockingHttpClient {
 
-  public ReceivedResponse request(long timeout, TimeUnit timeUnit, Action<? super RequestSpec> action) throws Throwable {
+  public ReceivedResponse request(URI uri, long timeout, TimeUnit timeUnit, Action<? super RequestSpec> action) throws Throwable {
     try (ExecController execController = new DefaultExecController(2)) {
-      final RequestAction requestAction = new RequestAction(execController, action);
-      execController.getControl().fork(new Action<Execution>() {
-        @Override
-        public void execute(Execution execution) throws Exception {
-          requestAction.execute(execution);
-        }
-      }, new Action<Throwable>() {
-        @Override
-        public void execute(Throwable throwable) throws Exception {
-          requestAction.setResult(DefaultResult.<ReceivedResponse>failure(throwable));
-        }
-      });
+      final RequestAction requestAction = new RequestAction(uri, execController, action);
+
+      execController.getControl().exec()
+        .onError(throwable -> requestAction.setResult(Result.<ReceivedResponse>failure(throwable)))
+        .start(requestAction::execute);
 
       try {
         // TODO - make this configurable
@@ -68,13 +61,15 @@ public class BlockingHttpClient {
   }
 
   private static class RequestAction implements Action<Execution> {
+    private final URI uri;
     private final ExecController execController;
     private final Action<? super RequestSpec> action;
 
     private final CountDownLatch latch = new CountDownLatch(1);
     private Result<ReceivedResponse> result;
 
-    private RequestAction(ExecController execController, Action<? super RequestSpec> action) {
+    private RequestAction(URI uri, ExecController execController, Action<? super RequestSpec> action) {
+      this.uri = uri;
       this.execController = execController;
       this.action = action;
     }
@@ -86,20 +81,17 @@ public class BlockingHttpClient {
 
     @Override
     public void execute(Execution execution) throws Exception {
-      HttpClients.httpClient(execController, UnpooledByteBufAllocator.DEFAULT, Integer.MAX_VALUE).request(action)
-        .then(new Action<ReceivedResponse>() {
-          @Override
-          public void execute(ReceivedResponse response) throws Exception {
-            TypedData responseBody = response.getBody();
-            ByteBuf responseBodyBuffer = responseBody.getBuffer();
-            responseBodyBuffer = Unpooled.unreleasableBuffer(responseBodyBuffer.retain());
-            ReceivedResponse copiedResponse = new DefaultReceivedResponse(
-              response.getStatus(),
-              response.getHeaders(),
-              new ByteBufBackedTypedData(responseBodyBuffer, responseBody.getContentType())
-            );
-            setResult(DefaultResult.success(copiedResponse));
-          }
+      HttpClients.httpClient(execController, UnpooledByteBufAllocator.DEFAULT, Integer.MAX_VALUE).request(uri, action)
+        .then(response -> {
+          TypedData responseBody = response.getBody();
+          ByteBuf responseBodyBuffer = responseBody.getBuffer();
+          responseBodyBuffer = Unpooled.unreleasableBuffer(responseBodyBuffer.retain());
+          ReceivedResponse copiedResponse = new DefaultReceivedResponse(
+            response.getStatus(),
+            response.getHeaders(),
+            new ByteBufBackedTypedData(responseBodyBuffer, responseBody.getContentType())
+          );
+          setResult(Result.success(copiedResponse));
         });
     }
   }

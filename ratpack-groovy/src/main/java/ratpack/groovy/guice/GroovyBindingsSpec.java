@@ -24,6 +24,7 @@ import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import ratpack.func.Action;
 import ratpack.guice.BindingsSpec;
+import ratpack.guice.ConfigurableModule;
 import ratpack.guice.NoSuchModuleException;
 
 import java.util.function.Consumer;
@@ -47,13 +48,19 @@ public interface GroovyBindingsSpec extends BindingsSpec {
    * {@inheritDoc}
    */
   @Override
-  GroovyBindingsSpec add(Module... modules);
+  GroovyBindingsSpec add(Module module);
 
   /**
    * {@inheritDoc}
    */
   @Override
-  GroovyBindingsSpec add(Iterable<? extends Module> modules);
+  GroovyBindingsSpec add(Class<? extends Module> moduleClass);
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  <C, T extends ConfigurableModule<C>> GroovyBindingsSpec add(Class<T> moduleClass, Action<? super C> configuration);
 
   /**
    * {@inheritDoc}

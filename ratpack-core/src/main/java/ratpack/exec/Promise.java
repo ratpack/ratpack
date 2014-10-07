@@ -54,4 +54,8 @@ public interface Promise<T> extends SuccessPromise<T> {
   @Override
   void then(Action<? super T> then);
 
+  default void asResult(Action<? super Result<T>> resultHandler) {
+    onError(t -> resultHandler.execute(Result.<T>failure(t))).then(v -> resultHandler.execute(Result.success(v)));
+  }
+
 }

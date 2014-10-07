@@ -16,49 +16,110 @@
 
 package ratpack.exec.internal;
 
+import com.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ratpack.exec.ExecController;
-import ratpack.exec.ExecInterceptor;
-import ratpack.exec.Execution;
-import ratpack.exec.ExecutionException;
+import ratpack.exec.*;
 import ratpack.func.Action;
 import ratpack.handling.internal.InterceptedOperation;
 
-import java.util.Deque;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class ExecutionBacking {
 
-  private final static Logger LOGGER = LoggerFactory.getLogger(ExecutionBacking.class);
+  final static Logger LOGGER = LoggerFactory.getLogger(Execution.class);
 
   private final List<ExecInterceptor> interceptors = new LinkedList<>();
   private final List<AutoCloseable> closeables = new LinkedList<>();
   private final Deque<Runnable> segments = new ConcurrentLinkedDeque<>();
   private final ExecController controller;
+  private final Set<ExecutionBacking> executions;
   private final Action<? super Throwable> onError;
   private final Action<? super Execution> onComplete;
   private final ThreadLocal<ExecutionBacking> threadBinding;
+  private final Queue<String> checkpoints = new ConcurrentLinkedQueue<>();
 
   private final AtomicBoolean active = new AtomicBoolean();
   private boolean streaming;
   private boolean waiting;
   private boolean done;
+  private final long startedAt = System.currentTimeMillis();
 
   private final Execution execution;
 
-  public ExecutionBacking(ExecController controller, ThreadLocal<ExecutionBacking> threadBinding, Action<? super Execution> action, Action<? super Throwable> onError, Action<? super Execution> onComplete) {
+  private Optional<StackTraceElement[]> startTrace = Optional.empty();
+  private AtomicReference<StackTraceElement[]> lastSegmentTrace = new AtomicReference<>();
+
+  public ExecutionBacking(ExecController controller, Set<ExecutionBacking> executions, Optional<StackTraceElement[]> startTrace, ThreadLocal<ExecutionBacking> threadBinding, Action<? super Execution> action, Action<? super Throwable> onError, Action<? super Execution> onComplete) {
     this.controller = controller;
+    this.executions = executions;
     this.onError = onError;
     this.onComplete = onComplete;
     this.threadBinding = threadBinding;
-    this.execution = new DefaultExecution(controller, closeables);
+    this.execution = new DefaultExecution(controller, closeables, checkpoints);
+    this.startTrace = startTrace;
+
+    if (startTrace.isPresent()) {
+      interceptors.add((execType, continuation) -> {
+        lastSegmentTrace.set(Thread.currentThread().getStackTrace());
+        continuation.run();
+      });
+    }
 
     segments.addLast(new UserCodeSegment(action));
-    tryDrain();
+    executions.add(this);
+    drain();
+  }
+
+  private class Snapshot implements ExecutionSnapshot {
+
+    private final boolean waiting;
+    private final List<String> checkpoints;
+    private final Optional<StackTraceElement[]> lastSegmentTrace;
+
+    private Snapshot() {
+      this.waiting = ExecutionBacking.this.waiting;
+      this.checkpoints = Lists.newArrayList(ExecutionBacking.this.checkpoints);
+      this.lastSegmentTrace = Optional.ofNullable(ExecutionBacking.this.lastSegmentTrace.get());
+    }
+
+    @Override
+    public String getId() {
+      return Integer.toString(System.identityHashCode(ExecutionBacking.this));
+    }
+
+    @Override
+    public boolean getWaiting() {
+      return waiting;
+    }
+
+    @Override
+    public List<String> getCheckpoints() {
+      return checkpoints;
+    }
+
+    @Override
+    public Long getStartedAt() {
+      return startedAt;
+    }
+
+    @Override
+    public Optional<StackTraceElement[]> getStartedTrace() {
+      return startTrace;
+    }
+
+    @Override
+    public Optional<StackTraceElement[]> getLastSegmentTrace() {
+      return lastSegmentTrace;
+    }
+  }
+
+  public ExecutionSnapshot getSnapshot() {
+    return new Snapshot();
   }
 
   public Execution getExecution() {
@@ -76,10 +137,13 @@ public class ExecutionBacking {
   public void join(final Action<? super Execution> action) {
     segments.addFirst(new UserCodeSegment(action));
     waiting = false;
-    tryDrain();
+    drain();
   }
 
   public void continueVia(final Runnable runnable) {
+    if (waiting) {
+      throw new ExecutionException("Asynchronous actions cannot be initiated while initiating an async action, use a forked execution or promise operations.");
+    }
     segments.addLast(new Runnable() {
       @Override
       public void run() {
@@ -92,20 +156,45 @@ public class ExecutionBacking {
   public void streamExecution(final Action<? super Execution> action) {
     segments.add(new UserCodeSegment(action));
     streaming = true;
-    tryDrain();
+    drain();
   }
 
   public void completeStreamExecution(final Action<? super Execution> action) {
     segments.addLast(new UserCodeSegment(action));
     streaming = false;
-    tryDrain();
+    drain();
   }
 
-  private void tryDrain() {
+  private void drain() {
     assertNotDone();
     if (!waiting && !segments.isEmpty()) {
       if (active.compareAndSet(false, true)) {
-        drain();
+        if (threadBinding.get() == null && controller.isManagedThread()) {
+          threadBinding.set(this);
+          try {
+            Runnable segment = segments.poll();
+            while (segment != null) {
+              segment.run();
+              if (waiting) { // the segment initiated an async op
+                break;
+              } else {
+                segment = segments.poll();
+                if (segment == null && !streaming) { // not waiting, not streaming and no more segments, we are done
+                  done();
+                }
+              }
+            }
+          } finally {
+            threadBinding.remove();
+            active.set(false);
+          }
+          if (waiting) {
+            drain();
+          }
+        } else {
+          active.set(false);
+          controller.getEventLoopGroup().submit(this::drain);
+        }
       }
     }
   }
@@ -114,46 +203,19 @@ public class ExecutionBacking {
     done = true;
     try {
       onComplete.execute(getExecution());
-    } catch (Exception e) {
+    } catch (Throwable e) {
       LOGGER.warn("exception raised during onComplete action", e);
     }
 
     for (AutoCloseable closeable : closeables) {
       try {
         closeable.close();
-      } catch (Exception e) {
+      } catch (Throwable e) {
         LOGGER.warn(String.format("exception raised by closeable %s", closeable), e);
       }
     }
-  }
 
-  private void drain() {
-    if (controller.isManagedThread()) {
-      threadBinding.set(this);
-      try {
-        Runnable segment = segments.poll();
-        while (segment != null) {
-          segment.run();
-          if (waiting) { // the segment initiated an async op
-            break;
-          } else {
-            segment = segments.poll();
-            if (segment == null && !streaming) { // not waiting, not streaming and no more segments, we are done
-              done();
-            }
-          }
-        }
-      } finally {
-        threadBinding.remove();
-        active.set(false);
-      }
-      if (waiting) {
-        tryDrain();
-      }
-    } else {
-      active.set(false);
-      controller.getEventLoopGroup().submit(this::tryDrain);
-    }
+    executions.remove(this);
   }
 
   private void assertNotDone() {

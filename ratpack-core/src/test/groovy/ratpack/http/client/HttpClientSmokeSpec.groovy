@@ -17,7 +17,6 @@
 package ratpack.http.client
 
 import io.netty.handler.codec.http.HttpHeaders
-import ratpack.http.HttpUrlSpec
 import ratpack.util.internal.IoUtils
 
 class HttpClientSmokeSpec extends HttpClientSpec {
@@ -33,11 +32,8 @@ class HttpClientSmokeSpec extends HttpClientSpec {
     when:
     handlers {
       get { HttpClient httpClient ->
-        httpClient.get({ RequestSpec request ->
-          request.url { HttpUrlSpec httpUrlSpec ->
-            httpUrlSpec.set(otherAppUrl("foo"))
-          }
-        }) then { ReceivedResponse response ->
+        httpClient.get(otherAppUrl("foo")) {
+        } then { ReceivedResponse response ->
           render response.body.text
         }
       }
@@ -62,11 +58,8 @@ class HttpClientSmokeSpec extends HttpClientSpec {
     when:
     handlers {
       get { HttpClient httpClient ->
-        httpClient.get({ RequestSpec request ->
-          request.url { HttpUrlSpec httpUrlSpec ->
-            httpUrlSpec.set(otherAppUrl("foo2"))
-          }
-        }) then { ReceivedResponse response ->
+        httpClient.get(otherAppUrl("foo2")) {
+        } then { ReceivedResponse response ->
           render response.body.text
         }
       }
@@ -92,12 +85,9 @@ class HttpClientSmokeSpec extends HttpClientSpec {
     when:
     handlers {
       get { HttpClient httpClient ->
-        httpClient.get({ RequestSpec request ->
-          request.redirects(0)
-          request.url { HttpUrlSpec httpUrlSpec ->
-            httpUrlSpec.set(otherAppUrl("foo2"))
-          }
-        }) then { ReceivedResponse response ->
+        httpClient.get(otherAppUrl("foo2")) {
+          it.redirects(0)
+        } then { ReceivedResponse response ->
           render response.body.text
         }
       }
@@ -122,12 +112,9 @@ class HttpClientSmokeSpec extends HttpClientSpec {
     when:
     handlers {
       get { HttpClient httpClient ->
-        httpClient.get({ RequestSpec request ->
-          request.url { HttpUrlSpec httpUrlSpec ->
-            httpUrlSpec.set(otherAppUrl("foo2"))
-          }
-        }) then { ReceivedResponse response ->
-          render "Status: "+response.statusCode
+        httpClient.get(otherAppUrl("foo2")) {
+        } then { ReceivedResponse response ->
+          render "Status: " + response.statusCode
         }
       }
     }
@@ -135,7 +122,6 @@ class HttpClientSmokeSpec extends HttpClientSpec {
     then:
     text == "Status: 302"
   }
-
 
 
   def "can make post request"() {
@@ -149,16 +135,12 @@ class HttpClientSmokeSpec extends HttpClientSpec {
     when:
     handlers {
       get { HttpClient httpClient ->
-        def respProm = httpClient.post { RequestSpec request ->
-          request.url { HttpUrlSpec httpUrlSpec ->
-            httpUrlSpec.set(otherAppUrl("foo"))
-          }
-          request.body.type("text/plain").text("bar")
+        def respProm = httpClient.post(otherAppUrl("foo")) {
+          it.body.type("text/plain").text("bar")
         }
-
-        respProm.onError({ Throwable t ->
+        respProm.onError { t ->
           t.printStackTrace()
-        }).then { ReceivedResponse response ->
+        } then { ReceivedResponse response ->
           render response.body.text
         }
       }
@@ -179,13 +161,10 @@ class HttpClientSmokeSpec extends HttpClientSpec {
     when:
     handlers {
       get { HttpClient httpClient ->
-        httpClient.get { RequestSpec request ->
-          request.url { HttpUrlSpec httpUrlSpec ->
-            httpUrlSpec.set(otherAppUrl())
-          }
+        httpClient.get(otherAppUrl()) {
         } then {
           def buffer = it.body.buffer
-          assert buffer.refCnt() == 2
+          assert buffer.refCnt() == 1
           blocking { 2 } then {
             assert buffer.refCnt() == 1
             render "bar"
@@ -213,14 +192,10 @@ class HttpClientSmokeSpec extends HttpClientSpec {
     when:
     handlers {
       get { HttpClient httpClient ->
-        httpClient.post {
-          it.
-            url {
-              it.set(otherAppUrl())
-            }.
-            body {
-              it.buffer(IoUtils.utf8Buffer("foo"))
-            }
+        httpClient.post(otherAppUrl()) {
+          it.body {
+            it.buffer(IoUtils.utf8Buffer("foo"))
+          }
         } then {
           render it.body.text
         }
@@ -242,14 +217,10 @@ class HttpClientSmokeSpec extends HttpClientSpec {
     when:
     handlers {
       get { HttpClient httpClient ->
-        httpClient.post {
-          it.
-            url {
-              it.set(otherAppUrl())
-            }.
-            body {
-              it.bytes(IoUtils.utf8Bytes("foo"))
-            }
+        httpClient.post(otherAppUrl()) {
+          it.body {
+            it.bytes(IoUtils.utf8Bytes("foo"))
+          }
         } then {
           render it.body.text
         }
@@ -271,14 +242,10 @@ class HttpClientSmokeSpec extends HttpClientSpec {
     when:
     handlers {
       get { HttpClient httpClient ->
-        httpClient.get {
-          it.
-            url {
-              it.set(otherAppUrl())
-            }.
-            headers {
-              it.add("foo", "bar")
-            }
+        httpClient.get(otherAppUrl()) {
+          it.headers {
+            it.add("foo", "bar")
+          }
         } then {
           render it.body.text
         }
@@ -300,8 +267,7 @@ class HttpClientSmokeSpec extends HttpClientSpec {
     when:
     handlers {
       get { HttpClient httpClient ->
-        httpClient.get {
-          it.url.set(otherAppUrl())
+        httpClient.get(otherAppUrl()) {
         } then {
           it.send(response)
         }
@@ -325,8 +291,7 @@ class HttpClientSmokeSpec extends HttpClientSpec {
     when:
     handlers {
       get { HttpClient httpClient ->
-        httpClient.post {
-          it.url.set(otherAppUrl())
+        httpClient.post(otherAppUrl()) {
           it.body.text("føø")
         } then {
           render it.body.text
@@ -349,8 +314,7 @@ class HttpClientSmokeSpec extends HttpClientSpec {
     when:
     handlers {
       get { HttpClient httpClient ->
-        httpClient.post {
-          it.url.set(otherAppUrl())
+        httpClient.post(otherAppUrl()) {
           it.body.type("application/json").text("{'foo': 'bar'}")
         } then {
           render it.body.text
@@ -366,7 +330,7 @@ class HttpClientSmokeSpec extends HttpClientSpec {
     given:
     handlers {
       get { HttpClient httpClient ->
-        httpClient.get {
+        httpClient.get(otherAppUrl()) {
           throw new Exception("Some failure in the RequestSpec")
         } then {
           render it.body.text

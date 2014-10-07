@@ -17,8 +17,6 @@
 package ratpack.rx.internal;
 
 import ratpack.exec.ExecController;
-import ratpack.exec.Execution;
-import ratpack.func.Action;
 import rx.Scheduler;
 import rx.Subscription;
 import rx.functions.Action0;
@@ -60,12 +58,7 @@ public class ExecControllerBackedScheduler extends Scheduler {
 
         @Override
         public void call() {
-          execController.getControl().fork(new Action<Execution>() {
-            @Override
-            public void execute(Execution execution) throws Exception {
-              delegate.call();
-            }
-          });
+          execController.getControl().exec().start(execution -> delegate.call());
         }
       }
 

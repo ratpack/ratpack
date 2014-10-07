@@ -58,12 +58,20 @@ public abstract class ErrorPageRenderer {
 
   protected void stack(BodyWriter w, String heading, Throwable throwable) {
     if (heading != null) {
-      w.print("<h2>").escape(heading).println("</h2>");
+      w.println("<div id=\"stack-header\">")
+        .println("<div class=\"wrapper\">")
+        .print("<h3>").escape(heading).print("</h3>")
+        .println("</div>")
+        .println("</div>");
     }
+    w.println("<div class=\"wrapper\">")
+      .println("<div class=\"stack\">");
     w.print("<pre><code>");
     throwable(w, throwable, false);
 
-    w.println("</pre></code>");
+    w.println("</pre></code>")
+      .println("</div>")
+      .println("</div>");
   }
 
   protected void throwable(BodyWriter w, Throwable throwable, boolean isCause) {
@@ -115,11 +123,17 @@ public abstract class ErrorPageRenderer {
 
   protected void messages(BodyWriter writer, String heading, Runnable block) {
     writer
+      .println("<div class=\"wrapper\">")
       .println("<div id=\"messages\">")
-      .print("<h1>").escape(heading).println("</h1>");
+      .println("<section>")
+      .print("<h2>").escape(heading).println("</h2>");
 
     block.run();
-    writer.println("</div>");
+    writer
+      .println("<p><em>Note: This page will only be visible during development.</em></p>")
+      .println("</section>")
+      .println("</div>")
+      .println("</div>");
   }
 
   protected void meta(BodyWriter w, Consumer<ImmutableMap.Builder<String, Object>> meta) {
@@ -148,11 +162,22 @@ public abstract class ErrorPageRenderer {
       .println(STYLE)
       .println("    </style>")
       .println("</head>")
-      .println("<body>");
+      .println("<body>")
+      .println("  <header>")
+      .println("    <div class=\"logo\">")
+      .println("      <div class=\"martini\">")
+      .println("        <h1>Ratpack</h1>")
+      .println("      </div>")
+      .println("      <p>Development error page</p>")
+      .println("    </div>")
+      .println("  </header>");
 
     body.accept(writer);
 
     writer
+      .println("<footer>")
+      .println("  <a href=\"http://www.ratpack.io\">Ratpack.io</a>")
+      .println("</footer>")
       .println("</body>")
       .println("</html>");
 

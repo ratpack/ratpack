@@ -141,33 +141,24 @@ public abstract class UnitTest {
 
   /**
    * Creates a new execution harness, for unit testing code that produces a promise.
-   * <pre class="java">
-   * import ratpack.func.Action;
-   * import ratpack.func.Function;
+   * <pre class="java">{@code
    * import ratpack.exec.ExecControl;
-   * import ratpack.exec.Execution;
    * import ratpack.exec.Promise;
-   * import ratpack.exec.Fulfiller;
    * import ratpack.test.UnitTest;
    * import ratpack.test.exec.ExecHarness;
    * import ratpack.test.exec.ExecResult;
-   * import javax.inject.Inject;
    *
    * public class Example {
    *
    *   // An async callback based API
    *   static class AsyncApi {
    *
-   *     static interface Callback&lt;T&gt; {
+   *     static interface Callback<T> {
    *       void receive(T value);
    *     }
    *
-   *     public &lt;T&gt; void returnAsync(final T value, final Callback&lt;? super T&gt; callback) {
-   *       new Thread() {
-   *         public void run() {
-   *           callback.receive(value);
-   *         }
-   *       }.run();
+   *     public <T> void returnAsync(T value, Callback<? super T> callback) {
+   *       new Thread(() -> callback.receive(value)).run();
    *     }
    *   }
    *
@@ -177,48 +168,31 @@ public abstract class UnitTest {
    *     private final ExecControl execControl;
    *     private final AsyncApi asyncApi = new AsyncApi();
    *
-   *     {@literal @}Inject
    *     public AsyncService(ExecControl execControl) {
    *       this.execControl = execControl;
    *     }
    *
    *     // Our method under test
-   *     public &lt;T&gt; Promise&lt;T&gt; promise(final T value) {
-   *       return execControl.promise(new Action&lt;Fulfiller&lt;T&gt;&gt;() {
-   *         public void execute(final Fulfiller&lt;T&gt; fulfiller) {
-   *           asyncApi.returnAsync(value, new AsyncApi.Callback&lt;T&gt;() {
-   *             public void receive(T returnedValue) {
-   *               fulfiller.success(returnedValue);
-   *             }
-   *           });
-   *         }
-   *       });
+   *     public <T> Promise<T> promise(final T value) {
+   *       return execControl.promise(fulfiller -> asyncApi.returnAsync(value, fulfiller::success));
    *     }
    *   }
    *
-   *
-   *   // Our test
    *   public static void main(String[] args) throws Throwable {
-   *
    *     // the harness must be close()'d when finished with to free resources
-   *     try(ExecHarness harness = UnitTest.execHarness()) {
+   *     try (ExecHarness harness = UnitTest.execHarness()) {
    *
    *       // set up the code under test using the exec control from the harness
    *       final AsyncService service = new AsyncService(harness.getControl());
    *
    *       // exercise the async code using the harness, blocking until the promised value is available
-   *       ExecResult&lt;String&gt; result = harness.execute(new Function&lt;Execution, Promise&lt;String&gt;&gt;() {
-   *         public Promise&lt;String&gt; apply(Execution execution) {
-   *           // execute the code under test
-   *           return service.promise("foo");
-   *         }
-   *       });
+   *       ExecResult<String> result = harness.execute(execution -> service.promise("foo"));
    *
-   *       assert result.getValue() == "foo";
+   *       assert result.getValue().equals("foo");
    *     }
    *   }
    * }
-   * </pre>
+   * }</pre>
    *
    * @return An exec harness
    */

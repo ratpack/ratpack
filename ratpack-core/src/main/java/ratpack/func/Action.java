@@ -33,6 +33,14 @@ import java.util.function.Consumer;
 public interface Action<T> {
 
   /**
+   * Executes the action against the given thing.
+   *
+   * @param t the thing to execute the action against
+   * @throws Exception if anything goes wrong
+   */
+  void execute(T t) throws Exception;
+
+  /**
    * Returns an action that does precisely nothing.
    *
    * @return an action that does precisely nothing
@@ -125,17 +133,61 @@ public interface Action<T> {
    * @throws Exception any thrown by {@code action}
    */
   static <T> T with(T t, Action<? super T> action) throws Exception {
-    action.execute(t);
-    return t;
+    return action.with(t);
   }
 
   /**
-   * Executes the action against the given thing.
+   * Executes with the given argument, then returns the argument.
+   * <pre class="java">{@code
+   * import ratpack.func.Action;
+   * import java.util.List;
+   * import java.util.ArrayList;
    *
-   * @param t the thing to execute the action against
-   * @throws Exception if anything goes wrong
+   * public class Example {
+   *   public static void main(String... args) throws Exception {
+   *     assert run(list -> list.add("foo")).get(0).equals("foo");
+   *   }
+   *
+   *   private static List<String> run(Action<? super List<String>> action) throws Exception {
+   *     return action.with(new ArrayList<>());
+   *   }
+   * }
+   * }</pre>
+   * @param o the argument to execute the given action with
+   * @param <O> the type of the argument
+   * @return the given argument (i.e. {@code o})
+   * @throws Exception any thrown by {@link #execute(Object)}
    */
-  void execute(T t) throws Exception;
+  default <O extends T> O with(O o) throws Exception {
+    execute(o);
+    return o;
+  }
+
+  /**
+   * Like {@link #with(Object, Action)}, but unchecks any exceptions thrown by the action via {@link ExceptionUtils#uncheck(Throwable)}.
+   *
+   * @param t the argument to execute the given action with
+   * @param action the action to execute with the given argument
+   * @param <T> the type of the argument
+   * @return the given argument (i.e. {@code t})
+   */
+  static <T> T uncheckedWith(T t, Action<? super T> action) {
+    return action.uncheckedWith(t);
+  }
+
+  /**
+   * Like {@link #with(Object)}, but unchecks any exceptions thrown by the action via {@link ExceptionUtils#uncheck(Throwable)}.
+   *
+   * @param o the argument to execute  with
+   * @param <O> the type of the argument
+   * @return the given argument (i.e. {@code o})
+   */
+  default <O extends T> O uncheckedWith(O o) {
+    return ExceptionUtils.uncheck(() -> {
+      execute(o);
+      return o;
+    });
+  }
 
   /**
    * Creates a JDK {@link Consumer} from this action.

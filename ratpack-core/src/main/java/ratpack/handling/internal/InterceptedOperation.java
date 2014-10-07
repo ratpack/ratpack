@@ -44,7 +44,7 @@ public abstract class InterceptedOperation {
     } else {
       nextInterceptor();
       if (thrown != null) {
-        throw ExceptionUtils.uncheck(thrown);
+        throw ExceptionUtils.toException(thrown);
       }
     }
   }

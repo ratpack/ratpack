@@ -26,6 +26,7 @@ import spock.lang.AutoCleanup
 import spock.lang.Specification
 import spock.lang.Unroll
 
+import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.atomic.AtomicLong
 
@@ -40,13 +41,17 @@ class ExecutionSpec extends Specification {
     controller = LaunchConfigBuilder.noBaseDir().build().execController
   }
 
-  def exec(Action<? super ExecControl> action, Action<? super Throwable> onError = Action.noop()) {
-    controller.control.fork({
-      action.execute(it.control)
-    }, onError, {
+  def exec(Action<? super ExecControl> action) {
+    exec(action, Action.noop())
+  }
+
+  def exec(Action<? super ExecControl> action, Action<? super Throwable> onError) {
+    controller.control.exec().onError(onError).onComplete {
       events << "complete"
       latch.countDown()
-    })
+    } start {
+      action.execute(it.control)
+    }
     latch.await()
   }
 
@@ -59,7 +64,7 @@ class ExecutionSpec extends Specification {
     exec({ e ->
       e.promise { f ->
         events << "action"
-        e.fork {
+        e.exec().start {
           f.success(1)
         }
       } then {
@@ -161,13 +166,13 @@ class ExecutionSpec extends Specification {
 
     exec { control ->
       def p = control.promise { f ->
-        control.fork {
+        control.exec().start {
           f.success(2)
         }
       }
 
       control.execution.onCleanup {
-        control.fork { e2 ->
+        control.exec().start { e2 ->
           p.then {
             assert control.execution == e2
             events << "then"
@@ -290,7 +295,7 @@ class ExecutionSpec extends Specification {
       { it.blockingMap { throw new UnsupportedOperationException() } },
       { it.onNull { throw new UnsupportedOperationException() } },
       { it.flatMap { throw new UnsupportedOperationException() } },
-      { it.route({ throw new UnsupportedOperationException() }) { } },
+      { it.route({ throw new UnsupportedOperationException() }) {} },
     ]
   }
 
@@ -316,8 +321,37 @@ class ExecutionSpec extends Specification {
       { it.blockingMap { throw new UnsupportedOperationException() } },
       { it.onNull { throw new UnsupportedOperationException() } },
       { it.flatMap { throw new UnsupportedOperationException() } },
-      { it.route({ throw new UnsupportedOperationException() }) { } },
+      { it.route({ throw new UnsupportedOperationException() }) {} },
     ]
   }
 
+  def "can complete future"() {
+    when:
+    exec({ ExecControl c ->
+      c.promise { Fulfiller<String> f ->
+        f.accept(CompletableFuture.supplyAsync({ "foo" }, c.controller.executor))
+      } then {
+        events << it
+      }
+    })
+
+    then:
+    events == ["foo", "complete"]
+  }
+
+  def "nested promises cause error"() {
+    when:
+    exec({ e ->
+      e.promise { f1 ->
+        e.promise { f -> f.success("foo") }.asResult { r -> f1.accept(r) }
+      } then {
+        events << it
+      }
+    }, {
+      events << it.class
+    })
+
+    then:
+    events == [ExecutionException, "complete"]
+  }
 }

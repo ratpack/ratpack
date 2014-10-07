@@ -16,6 +16,7 @@
 
 package ratpack.test.http;
 
+import com.google.common.collect.ImmutableMultimap;
 import ratpack.func.Action;
 import ratpack.http.client.ReceivedResponse;
 import ratpack.http.client.RequestSpec;
@@ -26,6 +27,8 @@ public interface TestHttpClient {
   ApplicationUnderTest getApplicationUnderTest();
 
   void requestSpec(Action<? super RequestSpec> requestAction);
+
+  void params(Action<? super ImmutableMultimap.Builder<String, Object>> params);
 
   void resetRequest();
 

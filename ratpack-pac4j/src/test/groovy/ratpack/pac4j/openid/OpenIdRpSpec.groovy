@@ -77,8 +77,9 @@ class OpenIdRpSpec extends Specification {
       baseDir(baseDir)
 
       bindings {
-        add(new SessionModule(), new MapSessionsModule(10, 5))
-        add(additionalModules)
+        add SessionModule
+        add new MapSessionsModule(10, 5)
+        additionalModules.each { add(it) }
       }
 
       handlers {

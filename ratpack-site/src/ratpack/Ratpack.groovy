@@ -1,4 +1,3 @@
-import groovy.text.markup.TemplateConfiguration
 import ratpack.codahale.metrics.CodaHaleMetricsModule
 import ratpack.file.internal.DefaultFileSystemBinding
 import ratpack.groovy.markuptemplates.MarkupTemplatingModule
@@ -18,28 +17,24 @@ import static ratpack.registry.Registries.just
 
 ratpack {
   bindings {
-    add  \
-       new JacksonModule(),
-      new CodaHaleMetricsModule().metrics(),
-      new RemoteControlModule(),
-      new NewRelicModule(),
-      new MarkupTemplatingModule(),
-      new SiteModule(launchConfig)
-
-    config(TemplatingModule) { it.staticallyCompile = true }
-
-    RxRatpack.initialize()
-    init { TemplateConfiguration templateConfiguration ->
-      templateConfiguration.with {
+    add JacksonModule
+    add RemoteControlModule
+    add NewRelicModule
+    add new CodaHaleMetricsModule().metrics()
+    add MarkupTemplatingModule, {
+      it.with {
         autoNewLine = true
         useDoubleQuotes = true
         autoIndent = true
       }
     }
+    add new SiteModule(launchConfig)
+    add(TemplatingModule) { it.staticallyCompile = true }
+
+    RxRatpack.initialize()
   }
 
   handlers {
-
     def longCache = 60 * 60 * 24 * 365
     def shortCache = 60 * 10 // ten mins
 

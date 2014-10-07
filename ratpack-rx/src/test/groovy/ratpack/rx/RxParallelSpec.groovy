@@ -38,15 +38,16 @@ class RxParallelSpec extends Specification {
     RxRatpack.initialize()
   }
 
+  @Ignore("Waiting for release of RxJavaParallel")
   def "can use scheduler to observe in parallel"() {
     given:
     def latch = new CountDownLatch(10)
     def received = [].asSynchronized()
 
     when:
-    controller.control.fork {
+    controller.control.exec().start {
       rx.Observable.from((0..9).toList())
-        .parallel { it.map { received << it; latch.countDown() it } }
+        .parallel { it.map { received << it; latch.countDown() } }
         .subscribe()
     }
     latch.await(2, TimeUnit.SECONDS)
@@ -56,7 +57,7 @@ class RxParallelSpec extends Specification {
     received.sort() == (0..9).toList()
   }
 
-  @Ignore // unstable
+  @Ignore("Waiting for release of RxJavaParallel")
   def "when using scheduler can use ratpack async api"() {
     given:
     def barrier = new CyclicBarrier(11)
@@ -82,13 +83,15 @@ class RxParallelSpec extends Specification {
     received.sort() == (0..9).toList()
   }
 
+  @Ignore("Waiting for release of RxJavaParallel")
   def "can use fork then join to perform parallel tasks"() {
     def latch = new CountDownLatch(1)
     List<Integer> nums = []
 
     when:
-    controller.control.fork({
-
+    controller.control.exec()
+      .onComplete { latch.countDown() }
+      .start {
       def o = rx.Observable.from(1, 2, 3, 4, 5)
         .parallel {
         it.flatMap { n ->
@@ -103,11 +106,7 @@ class RxParallelSpec extends Specification {
       RxRatpack.forkAndJoin(it.control, o).toList().subscribe {
         nums = it
       }
-    }, {
-
-    }, {
-      latch.countDown()
-    })
+    }
 
     then:
     latch.await()

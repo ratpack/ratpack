@@ -47,6 +47,8 @@ The following people have provided significant contributions.
 * [Andre Steingress](https://github.com/andresteingress)
 * [Gareth Davis](https://github.com/tempredirect)
 * [Lari Hotari](https://github.com/lhotari)
+* [Massimo Lusetti](https://github.com/mlusetti)
+* [Rob Zienert](https://github.com/robzienert)
 
 ### Past project members
 

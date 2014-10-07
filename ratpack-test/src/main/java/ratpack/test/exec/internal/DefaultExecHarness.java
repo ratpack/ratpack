@@ -16,11 +16,7 @@
 
 package ratpack.test.exec.internal;
 
-import ratpack.exec.ExecControl;
-import ratpack.exec.ExecController;
-import ratpack.exec.Execution;
-import ratpack.exec.Promise;
-import ratpack.exec.internal.DefaultResult;
+import ratpack.exec.*;
 import ratpack.func.Action;
 import ratpack.func.Function;
 import ratpack.test.exec.ExecHarness;
@@ -42,47 +38,34 @@ public class DefaultExecHarness implements ExecHarness {
     final AtomicReference<ExecResult<T>> reference = new AtomicReference<>();
     final CountDownLatch latch = new CountDownLatch(1);
 
-    final Action<Throwable> onError = new Action<Throwable>() {
-      @Override
-      public void execute(Throwable throwable) throws Exception {
-        reference.set(new ResultBackedExecResult<>(DefaultResult.<T>failure(throwable)));
+    controller.getControl().exec()
+      .onError(throwable -> {
+        reference.set(new ResultBackedExecResult<>(Result.<T>failure(throwable)));
         latch.countDown();
-      }
-    };
-
-    controller.getControl().fork(new Action<Execution>() {
-      @Override
-      public void execute(Execution execution) throws Exception {
-        execution.onCleanup(new AutoCloseable() {
-          @Override
-          public void close() {
+      })
+      .start(new Action<Execution>() {
+        @Override
+        public void execute(Execution execution) throws Exception {
+          execution.onCleanup(() -> {
             if (latch.getCount() > 0) {
-              reference.set(new CompleteExecResult<T>());
+              reference.set(new CompleteExecResult<>());
               latch.countDown();
             }
+          });
+          Promise<T> promise = func.apply(execution);
+
+          if (promise == null) {
+            succeed(null);
+          } else {
+            promise.then(this::succeed);
           }
-        });
-        Promise<T> promise = func.apply(execution);
-
-        if (promise == null) {
-          succeed(null);
-        } else {
-          promise.
-            then(new Action<T>() {
-              @Override
-              public void execute(T t) throws Exception {
-                succeed(t);
-              }
-            });
         }
-      }
 
-      private void succeed(T t) {
-        reference.set(t == null ? null : new ResultBackedExecResult<>(DefaultResult.success(t)));
-        latch.countDown();
-      }
-    }, onError);
-
+        private void succeed(T t) {
+          reference.set(t == null ? null : new ResultBackedExecResult<>(Result.success(t)));
+          latch.countDown();
+        }
+      });
     latch.await();
     return reference.get();
   }

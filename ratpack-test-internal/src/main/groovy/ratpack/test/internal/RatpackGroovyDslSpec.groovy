@@ -43,7 +43,7 @@ abstract class RatpackGroovyDslSpec extends EmbeddedBaseDirRatpackSpec {
       }
       handlers(this._handlers)
       bindings {
-        add(modules)
+        modules.each { add(it) }
         it.with(this._bindings)
       }
       launchConfig(this._launchConfig)

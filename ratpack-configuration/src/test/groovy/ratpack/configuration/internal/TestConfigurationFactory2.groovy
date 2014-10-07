@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,15 @@
  * limitations under the License.
  */
 
-package ratpack.site.pages
+package ratpack.configuration.internal
 
-import geb.Page
+import ratpack.configuration.Configuration
+import ratpack.configuration.ConfigurationFactory
+import ratpack.configuration.ConfigurationSource
 
-
-class ManualToCPage extends Page {
-
-  static at = { title.startsWith("Ratpack - Table of Contents") }
+class TestConfigurationFactory2 implements ConfigurationFactory {
+  @Override
+  def <T extends Configuration> T build(Class<T> configurationClass, ConfigurationSource configurationSource) {
+    return null
+  }
 }

@@ -19,6 +19,8 @@ package ratpack.launch;
 import com.google.common.base.StandardSystemProperty;
 import ratpack.api.Nullable;
 import ratpack.launch.internal.LaunchConfigsInternal;
+import ratpack.registry.Registries;
+import ratpack.registry.Registry;
 
 import java.nio.file.Path;
 import java.util.Map;
@@ -64,7 +66,22 @@ public abstract class LaunchConfigs {
    * @return A launch config
    */
   public static LaunchConfig createFromGlobalProperties(ClassLoader classLoader, Properties globalProperties, Properties defaultProperties) {
-    return createLaunchConfig(LaunchConfigsInternal.createFromGlobalProperties(StandardSystemProperty.USER_DIR.value(), classLoader, globalProperties, defaultProperties));
+    return createLaunchConfig(LaunchConfigsInternal.createFromGlobalProperties(StandardSystemProperty.USER_DIR.value(), classLoader, globalProperties, defaultProperties, Registries.empty()));
+  }
+
+  /**
+   * Delegates to {@link #createFromGlobalProperties(ClassLoader, String, java.util.Properties, java.util.Properties)}, extracting the “propertyPrefix” from the “globalProperties”. <p> Determines the
+   * “propertyPrefix” value and delegates to {@link #createFromGlobalProperties(ClassLoader, String, java.util.Properties, java.util.Properties)}. The value is determined by: {@code
+   * globalProperties.getProperty(SYSPROP_PREFIX_PROPERTY, SYSPROP_PREFIX_DEFAULT)}
+   *
+   * @param classLoader The classloader to use to find the properties file.
+   * @param globalProperties The environmental (override) properties
+   * @param defaultProperties The default properties to use when a property is omitted
+   * @param defaultRegistry The default registry to use
+   * @return A launch config
+   */
+  public static LaunchConfig createFromGlobalProperties(ClassLoader classLoader, Properties globalProperties, Properties defaultProperties, Registry defaultRegistry) {
+    return createLaunchConfig(LaunchConfigsInternal.createFromGlobalProperties(StandardSystemProperty.USER_DIR.value(), classLoader, globalProperties, defaultProperties, defaultRegistry));
   }
 
   /**
@@ -79,7 +96,7 @@ public abstract class LaunchConfigs {
    * @return A launch config
    */
   public static LaunchConfig createFromGlobalProperties(ClassLoader classLoader, String propertyPrefix, Properties globalProperties, Properties defaultProperties) {
-    return createLaunchConfig(LaunchConfigsInternal.createFromGlobalProperties(StandardSystemProperty.USER_DIR.value(), classLoader, propertyPrefix, globalProperties, defaultProperties));
+    return createLaunchConfig(LaunchConfigsInternal.createFromGlobalProperties(StandardSystemProperty.USER_DIR.value(), classLoader, propertyPrefix, globalProperties, defaultProperties, Registries.empty()));
   }
 
   /**
@@ -105,7 +122,7 @@ public abstract class LaunchConfigs {
    * @return A launch config
    */
   public static LaunchConfig createFromProperties(ClassLoader classLoader, Properties overrideProperties, Properties defaultProperties) {
-    return createLaunchConfig(LaunchConfigsInternal.createFromProperties(StandardSystemProperty.USER_DIR.value(), classLoader, overrideProperties, defaultProperties));
+    return createLaunchConfig(LaunchConfigsInternal.createFromProperties(StandardSystemProperty.USER_DIR.value(), classLoader, overrideProperties, defaultProperties, Registries.empty()));
   }
 
   /**
@@ -121,7 +138,7 @@ public abstract class LaunchConfigs {
    * @return a launch config
    */
   public static LaunchConfig createFromFile(ClassLoader classLoader, Path baseDir, @Nullable Path configFile, Properties overrideProperties, Properties defaultProperties) {
-    return createLaunchConfig(LaunchConfigsInternal.createFromFile(classLoader, baseDir, configFile, overrideProperties, defaultProperties));
+    return createLaunchConfig(LaunchConfigsInternal.createFromFile(classLoader, baseDir, configFile, overrideProperties, defaultProperties, Registries.empty()));
   }
 
   /**
@@ -133,7 +150,7 @@ public abstract class LaunchConfigs {
    * @return A launch config
    */
   public static LaunchConfig createWithBaseDir(ClassLoader classLoader, Path baseDir, Properties properties) {
-    return createLaunchConfig(LaunchConfigsInternal.createWithBaseDir(classLoader, baseDir, properties));
+    return createLaunchConfig(LaunchConfigsInternal.createWithBaseDir(classLoader, baseDir, properties, Registries.empty()));
   }
 
   /**
@@ -148,7 +165,7 @@ public abstract class LaunchConfigs {
    * @return A launch config
    */
   public static LaunchConfig createWithBaseDir(ClassLoader classLoader, Path baseDir, Properties properties, Map<String, String> envVars) {
-    return createLaunchConfig(LaunchConfigsInternal.createWithBaseDir(classLoader, baseDir, properties, envVars));
+    return createLaunchConfig(LaunchConfigsInternal.createWithBaseDir(classLoader, baseDir, properties, envVars, Registries.empty()));
   }
 
   /**
@@ -220,6 +237,13 @@ public abstract class LaunchConfigs {
      * @see LaunchConfig#getHandlerFactory()
      */
     public static final String HANDLER_FACTORY = "handlerFactory";
+
+    /**
+     * The full qualified classname of the configuration factory (optional). <p> This class MUST implement {@code ratpack.configuration.ConfigurationFactory} and have a public no-arg constructor. </p> <b>Value:</b> {@value} - (string)
+     *
+     * This property is used by the {@code ratpack-configuration} module.
+     */
+    public static final String CONFIGURATION_FACTORY = "configurationFactory";
 
     /**
      * The number of worker threads to use. Defaults to 0. <p> <b>Value:</b> {@value} - (int)

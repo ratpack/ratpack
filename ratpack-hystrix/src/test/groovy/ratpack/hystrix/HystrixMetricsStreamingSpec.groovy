@@ -21,7 +21,6 @@ import com.netflix.hystrix.HystrixCommandGroupKey
 import com.netflix.hystrix.HystrixCommandMetrics
 import com.netflix.hystrix.HystrixThreadPoolMetrics
 import groovy.json.JsonSlurper
-import groovy.transform.CompileStatic
 import io.netty.util.CharsetUtil
 import ratpack.rx.RxRatpack
 import ratpack.test.internal.RatpackGroovyDslSpec
@@ -36,7 +35,6 @@ class HystrixMetricsStreamingSpec extends RatpackGroovyDslSpec {
     HystrixThreadPoolMetrics.metrics.clear()
   }
 
-  @CompileStatic
   static class FooCommand extends HystrixCommand<String> {
 
     protected FooCommand() {
@@ -51,6 +49,9 @@ class HystrixMetricsStreamingSpec extends RatpackGroovyDslSpec {
 
   def "can stream metrics over sse"() {
     given:
+    def commandMetricsReceived = 0
+    def threadpoolMetricsReceived = 0
+    def eventCount = 2
     bindings {
       add new HystrixModule().sse()
     }
@@ -64,25 +65,32 @@ class HystrixMetricsStreamingSpec extends RatpackGroovyDslSpec {
     }
 
     and:
-    2.times { getText("run-command") }
+    eventCount.times { getText("run-command") }
 
     expect:
-    def sseEvents = streamEvents("/hystrix/sse", 2)
+    def sseEvents = streamEvents("/hystrix/sse", eventCount)
+    sseEvents.size() == eventCount
+    sseEvents.each {
+      def metric = new JsonSlurper().parseText(it)
+      if (metric.type == "HystrixThreadPool") {
+        threadpoolMetricsReceived++
+        metric.name == "foo-commands"
+      } else if (metric.type == "HystrixCommand") {
+        commandMetricsReceived++
+        metric.group == "foo-commands"
+        metric.name == "FooCommand"
+        metric.rollingCountSuccess == 2
+      }
+    }
 
-    def threadPoolMetrics = new JsonSlurper().parseText(sseEvents[0])
-    threadPoolMetrics.type == "HystrixThreadPool"
-    threadPoolMetrics.name == "foo-commands"
-
-    def commandMetrics = new JsonSlurper().parseText(sseEvents[1])
-    commandMetrics.type == "HystrixCommand"
-    commandMetrics.group == "foo-commands"
-    commandMetrics.name == "FooCommand"
-    commandMetrics.rollingCountSuccess == 2
+    threadpoolMetricsReceived == 1 && commandMetricsReceived == 1
   }
 
   List<String> streamEvents(String path, int numberOfEvents = 1, Charset charset = CharsetUtil.UTF_8) {
     def events = []
     Socket socket = new Socket(getAddress().host, getAddress().port)
+    socket.setSoTimeout(500)
+
     try {
       new OutputStreamWriter(socket.outputStream, "UTF-8").with {
         write("GET $path HTTP/1.1\r\n")

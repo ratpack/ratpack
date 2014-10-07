@@ -155,8 +155,8 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
   }
 
   @Override
-  public Subscriber<Object> transmitter(final HttpResponseStatus responseStatus) {
-    return new Subscriber<Object>() {
+  public Subscriber<ByteBuf> transmitter(final HttpResponseStatus responseStatus) {
+    return new Subscriber<ByteBuf>() {
       private Subscription subscription;
       private final AtomicBoolean done = new AtomicBoolean();
 
@@ -203,9 +203,9 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
       }
 
       @Override
-      public void onNext(Object o) {
+      public void onNext(ByteBuf o) {
         if (channel.isOpen()) {
-          channel.writeAndFlush(o).addListener(cancelOnFailure);
+          channel.writeAndFlush(new DefaultHttpContent(o)).addListener(cancelOnFailure);
           if (channel.isWritable()) {
             subscription.request(1);
           }

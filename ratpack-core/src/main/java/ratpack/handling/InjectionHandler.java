@@ -18,7 +18,6 @@ package ratpack.handling;
 
 import com.google.common.reflect.TypeToken;
 import ratpack.handling.internal.Extractions;
-import ratpack.registry.Registries;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -147,7 +146,7 @@ public abstract class InjectionHandler implements Handler {
   public final void handle(Context context) {
     Object[] args = new Object[types.size() + 1];
     args[0] = context;
-    Extractions.extract(types, Registries.join(context.getRequest(), context), args, 1);
+    Extractions.extract(types, context.getRequest().join(context), args, 1);
     try {
       handleMethod.invoke(this, args);
     } catch (IllegalAccessException e) {

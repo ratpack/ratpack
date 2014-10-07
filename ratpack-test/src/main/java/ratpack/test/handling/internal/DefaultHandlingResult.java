@@ -80,11 +80,9 @@ public class DefaultHandlingResult implements HandlingResult {
 
     final EventController<RequestOutcome> eventController = new DefaultEventController<>();
 
-    final Handler next = new Handler() {
-      public void handle(Context context) {
-        calledNext = true;
-        latch.countDown();
-      }
+    final Handler next = context -> {
+      calledNext = true;
+      latch.countDown();
     };
 
     final BindAddress bindAddress = new BindAddress() {
@@ -99,44 +97,29 @@ public class DefaultHandlingResult implements HandlingResult {
       }
     };
 
-    ClientErrorHandler clientErrorHandler = new ClientErrorHandler() {
-      @Override
-      public void error(Context context, int statusCode) throws Exception {
-        DefaultHandlingResult.this.clientError = statusCode;
-        latch.countDown();
-      }
+    ClientErrorHandler clientErrorHandler = (context, statusCode) -> {
+      DefaultHandlingResult.this.clientError = statusCode;
+      latch.countDown();
     };
 
-    ServerErrorHandler serverErrorHandler = new ServerErrorHandler() {
-      @Override
-      public void error(Context context, Throwable throwable) throws Exception {
-        DefaultHandlingResult.this.throwable = throwable;
-        latch.countDown();
-      }
+    ServerErrorHandler serverErrorHandler = (context, throwable1) -> {
+      DefaultHandlingResult.this.throwable = throwable1;
+      latch.countDown();
     };
 
+    final Registry userRegistry = Registries.registry().
+      add(ClientErrorHandler.class, clientErrorHandler).
+      add(ServerErrorHandler.class, serverErrorHandler).
+      build()
+      .join(registry);
 
-    final Registry userRegistry = Registries.join(
-      Registries.registry().
-        add(ClientErrorHandler.class, clientErrorHandler).
-        add(ServerErrorHandler.class, serverErrorHandler).
-        build(),
-      registry
-    );
-
-    final RenderController renderController = new RenderController() {
-      @Override
-      public void render(Object object, Context context) {
-        rendered = object;
-        latch.countDown();
-      }
+    final RenderController renderController = (object, context) -> {
+      rendered = object;
+      latch.countDown();
     };
 
-    Stopper stopper = new Stopper() {
-      @Override
-      public void stop() {
-        throw new UnsupportedOperationException("stopping not supported while unit testing");
-      }
+    Stopper stopper = () -> {
+      throw new UnsupportedOperationException("stopping not supported while unit testing");
     };
 
     ResponseTransmitter responseTransmitter = new ResponseTransmitter() {
@@ -158,14 +141,14 @@ public class DefaultHandlingResult implements HandlingResult {
       }
 
       @Override
-      public Subscriber<Object> transmitter(HttpResponseStatus status) {
+      public Subscriber<ByteBuf> transmitter(HttpResponseStatus status) {
         throw new UnsupportedOperationException("streaming not supported while unit testing");
       }
     };
 
     ExecControl execControl = launchConfig.getExecController().getControl();
     Registry baseRegistry = NettyHandlerAdapter.buildBaseRegistry(stopper, launchConfig);
-    Registry effectiveRegistry = Registries.join(baseRegistry, userRegistry);
+    Registry effectiveRegistry = baseRegistry.join(userRegistry);
     Response response = new DefaultResponse(execControl, responseHeaders, launchConfig.getBufferAllocator(), responseTransmitter);
     DefaultContext.ApplicationConstants applicationConstants = new DefaultContext.ApplicationConstants(launchConfig, renderController, next);
     requestConstants = new DefaultContext.RequestConstants(

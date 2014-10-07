@@ -18,7 +18,6 @@ package ratpack.registry
 
 import spock.lang.Specification
 
-import static ratpack.registry.Registries.join
 import static ratpack.registry.Registries.just
 
 class RegistryBuilderSpec extends Specification {
@@ -27,7 +26,7 @@ class RegistryBuilderSpec extends Specification {
     given:
     def c = just(String, "foo")
     def p = just(Integer, 2)
-    def n = join(p, c)
+    def n = p.join(c)
 
     expect:
     n.get(String) == "foo"

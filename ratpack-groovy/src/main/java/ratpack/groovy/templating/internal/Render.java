@@ -20,9 +20,7 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import io.netty.buffer.ByteBuf;
 import ratpack.exec.ExecControl;
-import ratpack.exec.Fulfiller;
 import ratpack.exec.Promise;
-import ratpack.func.Action;
 import ratpack.func.Function;
 
 import java.util.HashMap;
@@ -51,18 +49,16 @@ public class Render {
   }
 
   private Promise<ByteBuf> invoke() {
-    return execControl.promise(new Action<Fulfiller<ByteBuf>>() {
-      @Override
-      public void execute(Fulfiller<ByteBuf> fulfiller) throws Exception {
+    return execControl.promise(f -> {
         try {
           CompiledTemplate fromCache = getFromCache(compiledTemplateCache, templateSource);
           Render.this.execute(fromCache, model, byteBuf);
-          fulfiller.success(byteBuf);
+          f.success(byteBuf);
         } catch (Throwable e) {
-          fulfiller.error(e);
+          f.error(e);
         }
       }
-    });
+    );
   }
 
   private CompiledTemplate getFromCache(LoadingCache<TemplateSource, CompiledTemplate> compiledTemplateCache, TemplateSource templateSource) {
@@ -80,12 +76,10 @@ public class Render {
   }
 
   private void execute(CompiledTemplate compiledTemplate, final Map<String, ?> model, final ByteBuf parts) throws Exception {
-    compiledTemplate.execute(model, parts, new NestedRenderer() {
-      public void render(String templatePath, Map<String, ?> nestedModel) throws Exception {
-        Map<String, Object> modelCopy = new HashMap<>(model);
-        modelCopy.putAll(nestedModel);
-        executeNested(templatePath, modelCopy, parts);
-      }
+    compiledTemplate.execute(model, parts, (templatePath, nestedModel) -> {
+      Map<String, Object> modelCopy = new HashMap<>(model);
+      modelCopy.putAll(nestedModel);
+      executeNested(templatePath, modelCopy, parts);
     });
   }
 
