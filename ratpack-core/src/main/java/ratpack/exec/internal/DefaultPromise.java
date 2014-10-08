@@ -16,10 +16,7 @@
 
 package ratpack.exec.internal;
 
-import ratpack.exec.Fulfiller;
-import ratpack.exec.Promise;
-import ratpack.exec.Result;
-import ratpack.exec.SuccessPromise;
+import ratpack.exec.*;
 import ratpack.func.Action;
 import ratpack.func.Function;
 import ratpack.func.NoArgAction;
@@ -100,5 +97,10 @@ public class DefaultPromise<T> implements Promise<T> {
   @Override
   public Promise<T> wiretap(Action<? super Result<T>> listener) {
     return propagatingSuccessPromise().wiretap(listener);
+  }
+
+  @Override
+  public Promise<T> throttled(Throttle throttle) {
+    return propagatingSuccessPromise().throttled(throttle);
   }
 }

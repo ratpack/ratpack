@@ -16,66 +16,58 @@
 
 package ratpack.exec;
 
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.atomic.AtomicInteger;
+import ratpack.exec.internal.DefaultThrottle;
 
-public class Throttle {
+/**
+ * Limits the concurrency of operations, typically access to an external resource.
+ * <p>
+ * A given throttle limits the amount of concurrently executing promise, effectively limiting concurrency.
+ * <p>
+ * The queueing employed by the throttle is generally fair (i.e. oldest promises execute first), but this is not completely guaranteed.
+ *
+ * @see PromiseOperations#throttled(Throttle)
+ */
+public interface Throttle {
 
-  private final int size;
-
-  private final Queue<Runnable> queue = new ConcurrentLinkedQueue<>();
-  private final AtomicInteger active = new AtomicInteger();
-  private final AtomicInteger waiting = new AtomicInteger();
-
-  public Throttle(int size) {
-    if (size < 1) {
-      throw new IllegalArgumentException("throttle size must be greater than 1");
-    }
-    this.size = size;
+  /**
+   * Create a new throttle of the given size.
+   *
+   * @param size the desired size
+   * @return a new throttle of the given size
+   */
+  static Throttle ofSize(int size) {
+    return new DefaultThrottle(size);
   }
 
-  public <T> Promise<T> throttle(Promise<T> promise) {
-    return promise.defer(r -> {
-      waiting.incrementAndGet();
-      queue.add(r);
-      drain();
-    }).wiretap(r -> {
-      active.decrementAndGet();
-      drain();
-    });
-  }
+  /**
+   * Throttles the given promise.
+   *
+   * @param promise the promise to throttle
+   * @param <T> the type of promised value
+   * @return the throttled promise
+   */
+  <T> Promise<T> throttle(Promise<T> promise);
 
-  public int getSize() {
-    return size;
-  }
+  /**
+   * The size of this throttle.
+   * <p>
+   * The throttle guarantees that no more than this number of promises that were throttled via {@link #throttle(Promise)} will execute at the same time.
+   *
+   * @return the throttle size
+   */
+  int getSize();
 
-  public int getActive() {
-    return active.get();
-  }
+  /**
+   * How many throttled promises are currently executing.
+   *
+   * @return how many throttled promises are currently executing
+   */
+  int getActive();
 
-  public int getWaiting() {
-    return waiting.get();
-  }
-
-  private void drain() {
-    if (!queue.isEmpty()) {
-      int i = active.getAndIncrement();
-      if (i < size) {
-        Runnable job = queue.poll();
-        if (job == null) {
-          active.decrementAndGet();
-        } else {
-          waiting.decrementAndGet();
-          job.run();
-        }
-      } else {
-        i = active.decrementAndGet();
-        if (i < size) {
-          drain();
-        }
-      }
-    }
-  }
-
+  /**
+   * The number of throttled promises that are waiting to execute (that is, the queue size).
+   *
+   * @return the number of promises waiting to execute
+   */
+  int getWaiting();
 }

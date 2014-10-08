@@ -119,4 +119,6 @@ public interface PromiseOperations<T> {
 
   Promise<T> wiretap(Action<? super Result<T>> listener);
 
+  Promise<T> throttled(Throttle throttle);
+
 }
