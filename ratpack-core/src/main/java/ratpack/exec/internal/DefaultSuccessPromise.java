@@ -143,6 +143,28 @@ public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
     }
   }
 
+  private class PassThru implements Fulfiller<T> {
+    protected final Fulfiller<? super T> downstream;
+
+    public PassThru(Fulfiller<? super T> downstream) {
+      this.downstream = downstream;
+    }
+
+    @Override
+    public void error(Throwable throwable) {
+      try {
+        errorHandler.execute(throwable);
+      } catch (Throwable e) {
+        downstream.error(e);
+      }
+    }
+
+    @Override
+    public void success(T value) {
+      downstream.success(value);
+    }
+  }
+
   @Override
   public <O> Promise<O> blockingMap(final Function<? super T, ? extends O> transformer) {
     return flatMap(new Function<T, Promise<O>>() {
@@ -233,6 +255,11 @@ public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
     } else {
       throw new MultiplePromiseSubscriptionException();
     }
+  }
+
+  @Override
+  public Promise<T> throttled(Throttle throttle) {
+    return throttle.throttle(new DefaultPromise<>(executionSupplier, downstream -> doThen(new PassThru(downstream))));
   }
 
   private abstract class Transform<I, O> extends Step<O> {

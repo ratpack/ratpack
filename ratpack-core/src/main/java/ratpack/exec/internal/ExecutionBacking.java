@@ -44,8 +44,8 @@ public class ExecutionBacking {
   private final Queue<String> checkpoints = new ConcurrentLinkedQueue<>();
 
   private final AtomicBoolean active = new AtomicBoolean();
-  private boolean streaming;
-  private boolean waiting;
+  private final AtomicBoolean streaming = new AtomicBoolean();
+  private final AtomicBoolean waiting = new AtomicBoolean();
   private boolean done;
   private final long startedAt = System.currentTimeMillis();
 
@@ -82,7 +82,7 @@ public class ExecutionBacking {
     private final Optional<StackTraceElement[]> lastSegmentTrace;
 
     private Snapshot() {
-      this.waiting = ExecutionBacking.this.waiting;
+      this.waiting = ExecutionBacking.this.waiting.get();
       this.checkpoints = Lists.newArrayList(ExecutionBacking.this.checkpoints);
       this.lastSegmentTrace = Optional.ofNullable(ExecutionBacking.this.lastSegmentTrace.get());
     }
@@ -136,38 +136,35 @@ public class ExecutionBacking {
 
   public void join(final Action<? super Execution> action) {
     segments.addFirst(new UserCodeSegment(action));
-    waiting = false;
+    waiting.set(false);
     drain();
   }
 
   public void continueVia(final Runnable runnable) {
-    if (waiting) {
+    if (waiting.get()) {
       throw new ExecutionException("Asynchronous actions cannot be initiated while initiating an async action, use a forked execution or promise operations.");
     }
-    segments.addLast(new Runnable() {
-      @Override
-      public void run() {
-        waiting = true;
-        runnable.run();
-      }
+    segments.addLast(() -> {
+      waiting.set(true);
+      runnable.run();
     });
   }
 
   public void streamExecution(final Action<? super Execution> action) {
     segments.add(new UserCodeSegment(action));
-    streaming = true;
+    streaming.set(true);
     drain();
   }
 
   public void completeStreamExecution(final Action<? super Execution> action) {
     segments.addLast(new UserCodeSegment(action));
-    streaming = false;
+    streaming.set(false);
     drain();
   }
 
   private void drain() {
-    assertNotDone();
-    if (!waiting && !segments.isEmpty()) {
+    if (!waiting.get() && !segments.isEmpty()) {
+      assertNotDone();
       if (active.compareAndSet(false, true)) {
         if (threadBinding.get() == null && controller.isManagedThread()) {
           threadBinding.set(this);
@@ -175,12 +172,13 @@ public class ExecutionBacking {
             Runnable segment = segments.poll();
             while (segment != null) {
               segment.run();
-              if (waiting) { // the segment initiated an async op
+              if (waiting.get()) { // the segment initiated an async op
                 break;
               } else {
                 segment = segments.poll();
-                if (segment == null && !streaming) { // not waiting, not streaming and no more segments, we are done
+                if (segment == null && !streaming.get()) { // not waiting, not streaming and no more segments, we are done
                   done();
+                  return;
                 }
               }
             }
@@ -188,9 +186,7 @@ public class ExecutionBacking {
             threadBinding.remove();
             active.set(false);
           }
-          if (waiting) {
-            drain();
-          }
+          drain();
         } else {
           active.set(false);
           controller.getEventLoopGroup().submit(this::drain);
