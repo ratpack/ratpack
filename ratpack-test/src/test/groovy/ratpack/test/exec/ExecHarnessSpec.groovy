@@ -20,18 +20,17 @@ import ratpack.exec.ExecControl
 import ratpack.exec.ExecutionException
 import ratpack.exec.Promise
 import ratpack.func.Action
-import ratpack.test.UnitTest
 import spock.lang.AutoCleanup
 import spock.lang.Specification
 
 class ExecHarnessSpec extends Specification {
 
   @AutoCleanup
-  def harness = UnitTest.execHarness()
+  def harness = ExecHarness.harness()
   private AsyncService service = new AsyncService(harness.control, new AsyncApi())
 
   static class AsyncApi {
-    public <T> void  returnAsync(T thing, Action<? super T> callback) {
+    public <T> void returnAsync(T thing, Action<? super T> callback) {
       Thread.start {
         callback.execute(thing)
       }
