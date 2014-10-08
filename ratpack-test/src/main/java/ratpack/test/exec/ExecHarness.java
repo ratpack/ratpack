@@ -20,6 +20,7 @@ import ratpack.exec.ExecControl;
 import ratpack.exec.Execution;
 import ratpack.exec.Promise;
 import ratpack.func.Function;
+import ratpack.test.UnitTest;
 
 /**
  * A utility for testing asynchronous support/service code.
@@ -45,6 +46,20 @@ public interface ExecHarness extends AutoCloseable {
    * @throws Exception any thrown by the function, or the promise failure exception
    */
   public <T> ExecResult<T> execute(Function<Execution, Promise<T>> func) throws Exception;
+
+  /**
+   * Creates an exec harness, {@link #execute(ratpack.func.Function) executes} the given function with it before closing it, then returning execution result.
+   *
+   * @param func a function that exercises some code that returns a promise
+   * @param <T> the type of promised value
+   * @return the result of the execution
+   * @throws Exception any thrown by the function, or the promise failure exception
+   */
+  static public <T> ExecResult<T> yield(Function<Execution, Promise<T>> func) throws Exception {
+    try (ExecHarness harness = UnitTest.execHarness()) {
+      return harness.execute(func);
+    }
+  }
 
   /**
    * The execution control for the harness.

@@ -119,6 +119,66 @@ public interface PromiseOperations<T> {
 
   Promise<T> wiretap(Action<? super Result<T>> listener);
 
+  /**
+   * Throttles {@code this} promise, using the given {@link Throttle throttle}.
+   * <p>
+   * Throttling can be used to limit concurrency.
+   * Typically to limit concurrent use of an external resource, such as a HTTP API.
+   * <p>
+   * Note that the {@link Throttle} instance given defines the actual throttling semantics.
+   * <p>
+   * <pre class="java">{@code
+   * import ratpack.exec.ExecControl;
+   * import ratpack.exec.Throttle;
+   * import ratpack.test.exec.ExecHarness;
+   * import ratpack.test.exec.ExecResult;
+   *
+   * import java.util.concurrent.atomic.AtomicInteger;
+   *
+   * public class Example {
+   *
+   *   public static void main(String... args) throws Exception {
+   *     int numJobs = 1000;
+   *     int maxAtOnce = 10;
+   *
+   *     ExecResult<Integer> result = ExecHarness.yield(e -> {
+   *       ExecControl control = e.getControl();
+   *
+   *       AtomicInteger maxConcurrent = new AtomicInteger();
+   *       AtomicInteger active = new AtomicInteger();
+   *       AtomicInteger done = new AtomicInteger();
+   *
+   *       Throttle throttle = Throttle.ofSize(maxAtOnce);
+   *
+   *       // Launch numJobs forked executions, and return the maximum number that were executing at any given time
+   *       return control.promise(f -> {
+   *         for (int i = 0; i < numJobs; i++) {
+   *           control.exec().start(e2 ->
+   *             control
+   *               .<Integer>promise(f2 -> {
+   *                 int activeNow = active.incrementAndGet();
+   *                 int maxConcurrentVal = maxConcurrent.updateAndGet(m -> Math.max(m, activeNow));
+   *                 active.decrementAndGet();
+   *                 f2.success(maxConcurrentVal);
+   *               })
+   *               .throttled(throttle) // limit concurrency
+   *               .then(max -> {
+   *                 if (done.incrementAndGet() == numJobs) {
+   *                   f.success(max);
+   *                 }
+   *               }));
+   *         }
+   *       });
+   *     });
+   *
+   *     assert result.getValue() <= maxAtOnce;
+   *   }
+   * }
+   * }</pre>
+   *
+   * @param throttle the particular throttle to use to throttle the operation
+   * @return the throttled promise
+   */
   Promise<T> throttled(Throttle throttle);
 
 }
