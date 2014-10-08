@@ -46,11 +46,8 @@ public class DefaultConfigurationFactoryFactory implements ConfigurationFactoryF
 
   @Override
   public ConfigurationFactory build(ConfigurationSource configurationSource) throws ConfigurationException {
-    String workingDir = StandardSystemProperty.USER_DIR.value();
-    Properties globalProperties = configurationSource.getOverrideProperties();
-    Properties defaultProperties = configurationSource.getDefaultProperties();
-    LaunchConfigData launchConfigData = LaunchConfigsInternal.createFromGlobalProperties(workingDir, classLoader, globalProperties, defaultProperties, null);
-    TypeCoercingProperties props = launchConfigData.getTypeCoercingProperties();
+    TypeCoercingProperties props = LaunchConfigsInternal.consolidatePropertiesFromGlobalProperties(
+      StandardSystemProperty.USER_DIR.value(), classLoader, configurationSource.getOverrideProperties(), configurationSource.getDefaultProperties());
     try {
       Class<ConfigurationFactory> configurationFactoryClass = props.asClass(CONFIGURATION_FACTORY, ConfigurationFactory.class);
       if (configurationFactoryClass != null) {

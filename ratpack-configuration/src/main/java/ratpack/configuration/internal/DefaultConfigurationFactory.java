@@ -65,7 +65,7 @@ public class DefaultConfigurationFactory implements ConfigurationFactory {
   private void populateLaunchConfigFactory(LaunchConfigData data, DefaultLaunchConfigFactory launchConfigFactory) {
     Properties properties = data.getProperties();
     Map<String, String> envVars = data.getEnvVars();
-    TypeCoercingProperties props = new TypeCoercingProperties(properties, data.getClassLoader());
+    TypeCoercingProperties props = data.getTypeCoercingProperties();
     Class<HandlerFactory> handlerFactoryClass;
     try {
       handlerFactoryClass = props.asClass(HANDLER_FACTORY, HandlerFactory.class);

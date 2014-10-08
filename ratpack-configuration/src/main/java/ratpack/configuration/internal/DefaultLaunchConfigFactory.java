@@ -19,6 +19,7 @@ package ratpack.configuration.internal;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.google.common.base.StandardSystemProperty;
+import com.google.common.base.Verify;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import ratpack.configuration.Configuration;
@@ -84,6 +85,7 @@ public class DefaultLaunchConfigFactory implements LaunchConfigFactory {
   public LaunchConfig build(ConfigurationSource configurationSource, Configuration configuration) {
     Registry defaultRegistry = Registries.registry().add(Configuration.class, configuration).add(configuration).build();
     HandlerFactory handlerFactory;
+    Verify.verifyNotNull(handlerFactoryClass);
     try {
       handlerFactory = handlerFactoryClass.newInstance();
     } catch (Exception e) {

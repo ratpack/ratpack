@@ -17,28 +17,26 @@
 package ratpack.configuration.internal
 
 import ratpack.configuration.Configuration
-import ratpack.configuration.LaunchConfigFactory
 import ratpack.launch.LaunchConfig
-import ratpack.launch.LaunchConfigs
 import spock.lang.Specification
 import spock.lang.Subject
 
 class DefaultLaunchConfigFactorySpec extends Specification {
   @Subject
-  LaunchConfigFactory launchConfigFactory = new DefaultLaunchConfigFactory(getClass().classLoader)
+  DefaultLaunchConfigFactory launchConfigFactory = new DefaultLaunchConfigFactory()
 
-  void "builds based on properties"() {
+  void "builds based on configuration"() {
     when:
-    def props = new Properties()
-    props.setProperty("${LaunchConfigs.SYSPROP_PREFIX_DEFAULT}${LaunchConfigs.Property.HANDLER_FACTORY}", TestHandlerFactory.name)
+    def defaultProperties = new Properties()
+    def configSource = new DefaultConfigurationSource(getClass().classLoader, new Properties(), defaultProperties)
+    def config = new Configuration()
+    launchConfigFactory.handlerFactoryClass = TestHandlerFactory
     if (port) {
-      props.setProperty("${LaunchConfigs.SYSPROP_PREFIX_DEFAULT}${LaunchConfigs.Property.PORT}", port)
+      launchConfigFactory.port = port
     }
     if (threads) {
-      props.setProperty("${LaunchConfigs.SYSPROP_PREFIX_DEFAULT}${LaunchConfigs.Property.THREADS}", threads)
+      launchConfigFactory.threads = threads
     }
-    def configSource = new DefaultConfigurationSource(props, new Properties())
-    def config = new Configuration()
     def launchConfig = launchConfigFactory.build(configSource, config)
 
     then:
@@ -48,6 +46,6 @@ class DefaultLaunchConfigFactorySpec extends Specification {
     where:
     port   | threads | expectedPort              | expectedThreads
     null   | null    | LaunchConfig.DEFAULT_PORT | LaunchConfig.DEFAULT_THREADS
-    "1234" | "42"    | 1234                      | 42
+    1234   | 42      | 1234                      | 42
   }
 }

@@ -18,6 +18,7 @@ package ratpack.configuration.internal
 
 import ratpack.configuration.Configuration
 import ratpack.configuration.ConfigurationFactory
+import ratpack.launch.LaunchConfigs
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -27,7 +28,9 @@ class DefaultConfigurationFactorySpec extends Specification {
 
   void "instantiates the specified class"() {
     when:
-    def configSource = new DefaultConfigurationSource(new Properties(), new Properties())
+    def defaultProperties = new Properties()
+    defaultProperties.setProperty(LaunchConfigs.Property.HANDLER_FACTORY, TestHandlerFactory.name)
+    def configSource = new DefaultConfigurationSource(getClass().classLoader, new Properties(), defaultProperties)
     def config = configurationFactory.build(clazz, configSource)
 
     then:

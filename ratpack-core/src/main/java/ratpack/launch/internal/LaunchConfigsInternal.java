@@ -48,6 +48,22 @@ import static ratpack.util.internal.PropertiesUtil.extractProperties;
 public class LaunchConfigsInternal {
   private LaunchConfigsInternal() {}
 
+  public static TypeCoercingProperties consolidatePropertiesFromGlobalProperties(String workingDir, ClassLoader classLoader, Properties globalProperties, Properties defaultProperties) {
+    Properties overrideProperties = deprefixGlobalProperties(globalProperties);
+    String configResourceValue = overrideProperties.getProperty(CONFIG_RESOURCE_PROPERTY, CONFIG_RESOURCE_DEFAULT);
+    URL configResourceUrl = classLoader.getResource(configResourceValue);
+    Path configPath = determineConfigPath(workingDir, configResourceValue, configResourceUrl);
+    Properties fileProperties = consolidateProperties(configPath, overrideProperties, defaultProperties);
+    return new TypeCoercingProperties(fileProperties, classLoader);
+  }
+
+  public static Properties deprefixGlobalProperties(Properties globalProperties) {
+    String propertyPrefix = globalProperties.getProperty(SYSPROP_PREFIX_PROPERTY, SYSPROP_PREFIX_DEFAULT);
+    Properties deprefixed = new Properties();
+    extractProperties(propertyPrefix, globalProperties, deprefixed);
+    return deprefixed;
+  }
+
   public static LaunchConfigData createFromGlobalProperties(String workingDir, ClassLoader classLoader, Properties globalProperties, Properties defaultProperties, Registry defaultRegistry) {
     String propertyPrefix = globalProperties.getProperty(SYSPROP_PREFIX_PROPERTY, SYSPROP_PREFIX_DEFAULT);
     return createFromGlobalProperties(workingDir, classLoader, propertyPrefix, globalProperties, defaultProperties, defaultRegistry);
@@ -91,7 +107,7 @@ public class LaunchConfigsInternal {
     return createFromFile(classLoader, baseDir, configPath, overrideProperties, defaultProperties, defaultRegistry);
   }
 
-  public static LaunchConfigData createFromFile(ClassLoader classLoader, Path baseDir, @Nullable Path configFile, Properties overrideProperties, Properties defaultProperties, Registry defaultRegistry) {
+  public static Properties consolidateProperties(Path configFile, Properties overrideProperties, Properties defaultProperties) {
     Properties fileProperties = new Properties(defaultProperties);
     if (configFile != null && Files.exists(configFile)) {
       try (InputStream inputStream = Files.newInputStream(configFile)) {
@@ -100,9 +116,12 @@ public class LaunchConfigsInternal {
         throw new LaunchException("Could not read config file '" + configFile + "'", e);
       }
     }
-
     fileProperties.putAll(overrideProperties);
+    return fileProperties;
+  }
 
+  public static LaunchConfigData createFromFile(ClassLoader classLoader, Path baseDir, @Nullable Path configFile, Properties overrideProperties, Properties defaultProperties, Registry defaultRegistry) {
+    Properties fileProperties = consolidateProperties(configFile, overrideProperties, defaultProperties);
     return createWithBaseDir(classLoader, baseDir, fileProperties, defaultRegistry);
   }
 
