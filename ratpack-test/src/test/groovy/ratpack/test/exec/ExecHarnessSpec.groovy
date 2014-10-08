@@ -64,7 +64,7 @@ class ExecHarnessSpec extends Specification {
 
   def "can test async service"() {
     when:
-    def result = harness.execute {
+    def result = harness.yield {
       service.promise("foo")
     }
 
@@ -74,7 +74,7 @@ class ExecHarnessSpec extends Specification {
 
   def "exception thrown by execution is rethrown"() {
     when:
-    harness.execute {
+    harness.yield {
       throw new RuntimeException("!!!")
     }.valueOrThrow
 
@@ -88,7 +88,7 @@ class ExecHarnessSpec extends Specification {
     This is only a problem when using dynamic Groovy, as a static compiler wouldn't let you write this
      */
     when:
-    harness.execute {
+    harness.yield {
       1
     }.valueOrThrow
 
@@ -98,7 +98,7 @@ class ExecHarnessSpec extends Specification {
 
   def "null promise returns null value"() {
     when:
-    def value = harness.execute {
+    def value = harness.yield {
       null
     }
 
@@ -108,7 +108,7 @@ class ExecHarnessSpec extends Specification {
 
   def "failed promise causes exception to be thrown"() {
     when:
-    harness.execute {
+    harness.yield {
       service.fail()
     }.valueOrThrow
 
@@ -127,9 +127,9 @@ class ExecHarnessSpec extends Specification {
 
   def "detects early complete"() {
     expect:
-    harness.execute { service.promise("foo").route({ it == "foo" }) {} }.complete
-    !harness.execute { service.promise("foo").route({ it == "bar" }) {} }.complete
-    harness.execute { service.fail().onError {}.map {} }.complete
+    harness.yield { service.promise("foo").route({ it == "foo" }) {} }.complete
+    !harness.yield { service.promise("foo").route({ it == "bar" }) {} }.complete
+    harness.yield { service.fail().onError {}.map {} }.complete
   }
 
 }

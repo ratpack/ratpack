@@ -19,7 +19,6 @@ package ratpack.exec
 import org.reactivestreams.Publisher
 import org.reactivestreams.Subscriber
 import org.reactivestreams.Subscription
-import ratpack.exec.internal.MultiplePromiseSubscriptionException
 import ratpack.func.Action
 import ratpack.launch.LaunchConfigBuilder
 import spock.lang.AutoCleanup

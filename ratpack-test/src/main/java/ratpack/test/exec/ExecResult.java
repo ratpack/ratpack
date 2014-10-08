@@ -19,7 +19,7 @@ package ratpack.test.exec;
 import ratpack.exec.Result;
 
 /**
- * The result of an {@link ExecHarness#execute(ratpack.func.Function)} operation.
+ * The result of an {@link ExecHarness#yield(ratpack.func.Function)} operation.
  *
  * @param <T> the type of promised value
  */

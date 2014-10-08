@@ -19,9 +19,6 @@ package ratpack.test;
 import ratpack.func.Action;
 import ratpack.handling.Chain;
 import ratpack.handling.Handler;
-import ratpack.launch.LaunchConfigBuilder;
-import ratpack.test.exec.ExecHarness;
-import ratpack.test.exec.internal.DefaultExecHarness;
 import ratpack.test.handling.HandlerTimeoutException;
 import ratpack.test.handling.HandlingResult;
 import ratpack.test.handling.RequestFixture;
@@ -137,67 +134,6 @@ public abstract class UnitTest {
    */
   public static RequestFixture requestFixture() {
     return new DefaultRequestFixture();
-  }
-
-  /**
-   * Creates a new execution harness, for unit testing code that produces a promise.
-   * <pre class="java">{@code
-   * import ratpack.exec.ExecControl;
-   * import ratpack.exec.Promise;
-   * import ratpack.test.UnitTest;
-   * import ratpack.test.exec.ExecHarness;
-   * import ratpack.test.exec.ExecResult;
-   *
-   * public class Example {
-   *
-   *   // An async callback based API
-   *   static class AsyncApi {
-   *
-   *     static interface Callback<T> {
-   *       void receive(T value);
-   *     }
-   *
-   *     public <T> void returnAsync(T value, Callback<? super T> callback) {
-   *       new Thread(() -> callback.receive(value)).run();
-   *     }
-   *   }
-   *
-   *   // Our service class that wraps the raw async API
-   *   // In the real app this is created by the DI container (e.g. Guice)
-   *   static class AsyncService {
-   *     private final ExecControl execControl;
-   *     private final AsyncApi asyncApi = new AsyncApi();
-   *
-   *     public AsyncService(ExecControl execControl) {
-   *       this.execControl = execControl;
-   *     }
-   *
-   *     // Our method under test
-   *     public <T> Promise<T> promise(final T value) {
-   *       return execControl.promise(fulfiller -> asyncApi.returnAsync(value, fulfiller::success));
-   *     }
-   *   }
-   *
-   *   public static void main(String[] args) throws Throwable {
-   *     // the harness must be close()'d when finished with to free resources
-   *     try (ExecHarness harness = UnitTest.execHarness()) {
-   *
-   *       // set up the code under test using the exec control from the harness
-   *       final AsyncService service = new AsyncService(harness.getControl());
-   *
-   *       // exercise the async code using the harness, blocking until the promised value is available
-   *       ExecResult<String> result = harness.execute(execution -> service.promise("foo"));
-   *
-   *       assert result.getValue().equals("foo");
-   *     }
-   *   }
-   * }
-   * }</pre>
-   *
-   * @return An exec harness
-   */
-  public static ExecHarness execHarness() {
-    return new DefaultExecHarness(LaunchConfigBuilder.noBaseDir().build().getExecController());
   }
 
 }

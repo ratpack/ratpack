@@ -36,6 +36,10 @@ public class DefaultExecController implements ExecController {
   private final DefaultExecControl control;
   private final int numThreads;
 
+  public DefaultExecController() {
+    this(Runtime.getRuntime().availableProcessors() * 2);
+  }
+
   public DefaultExecController(int numThreads) {
     this(numThreads, false);
   }

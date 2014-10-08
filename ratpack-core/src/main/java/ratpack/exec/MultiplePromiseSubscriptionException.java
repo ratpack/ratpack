@@ -14,10 +14,21 @@
  * limitations under the License.
  */
 
-package ratpack.exec.internal;
+package ratpack.exec;
 
+/**
+ * Thrown when a single use promise is subscribed to more than once.
+ * <p>
+ * Promises are generally single use.
+ * An exception to this general rule are the promises returned by the {@link PromiseOperations#cache()} method.
+ * <p>
+ * There is no reason for applications to throw this exception or try and catch it.
+ */
 public class MultiplePromiseSubscriptionException extends IllegalStateException {
 
+  /**
+   * Constructor.
+   */
   public MultiplePromiseSubscriptionException() {
     super("this promise has already been subscribed - its methods can only be called once");
   }
