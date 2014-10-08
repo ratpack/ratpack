@@ -20,6 +20,7 @@ import ratpack.func.Action
 import ratpack.launch.LaunchConfigBuilder
 import spock.lang.AutoCleanup
 import spock.lang.Specification
+import spock.util.concurrent.BlockingVariable
 
 import java.util.concurrent.CountDownLatch
 
@@ -221,6 +222,61 @@ class PromiseOperationsSpec extends Specification {
 
     then:
     events == ["FOO-BAR", "complete"]
+  }
+
+  def "can use other promise with flatMap"() {
+    when:
+    exec { e ->
+      e.blocking {
+        "foo"
+      } flatMap {
+        e.promise { f -> Thread.start { f.success("foo") } }
+      } then {
+        events << it
+      }
+    }
+
+    then:
+    events == ["foo", "complete"]
+  }
+
+  def "can defer promise"() {
+    when:
+    def runner = new BlockingVariable<Runnable>()
+    controller.control.exec().onComplete { latch.countDown() }.start {
+      it.control.promise { f -> Thread.start { f.success("foo") } }.defer({ runner.set(it) }).then {
+        events << it
+      }
+    }
+
+    then:
+    events == []
+
+    when:
+    runner.get().run()
+
+    then:
+    latch.await()
+    events == ["foo"]
+  }
+
+  def "can be notified on promise starting"() {
+    when:
+    exec { e ->
+      e.blocking {
+        events << "blocking"
+        "foo"
+      } onYield {
+        events << "yield"
+      } wiretap {
+        events << "wiretap"
+      } then {
+        events << it
+      }
+    }
+
+    then:
+    events == ["yield", "blocking", "wiretap", "foo", "complete"]
   }
 
 }

@@ -38,6 +38,7 @@ class RxParallelSpec extends Specification {
     RxRatpack.initialize()
   }
 
+  @Ignore("Waiting for release of RxJavaParallel")
   def "can use scheduler to observe in parallel"() {
     given:
     def latch = new CountDownLatch(10)
@@ -56,8 +57,7 @@ class RxParallelSpec extends Specification {
     received.sort() == (0..9).toList()
   }
 
-  @Ignore
-  // unstable
+  @Ignore("Waiting for release of RxJavaParallel")
   def "when using scheduler can use ratpack async api"() {
     given:
     def barrier = new CyclicBarrier(11)
@@ -83,6 +83,7 @@ class RxParallelSpec extends Specification {
     received.sort() == (0..9).toList()
   }
 
+  @Ignore("Waiting for release of RxJavaParallel")
   def "can use fork then join to perform parallel tasks"() {
     def latch = new CountDownLatch(1)
     List<Integer> nums = []

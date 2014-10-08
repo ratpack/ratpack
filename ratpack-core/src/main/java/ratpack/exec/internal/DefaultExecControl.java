@@ -16,7 +16,9 @@
 
 package ratpack.exec.internal;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import io.netty.util.internal.ConcurrentSet;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -27,6 +29,8 @@ import ratpack.registry.RegistrySpec;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
@@ -40,10 +44,13 @@ public class DefaultExecControl implements ExecControl {
   private static final int MAX_ERRORS_THRESHOLD = 5;
 
   private final ExecController execController;
+  private final boolean debug;
   private final ThreadLocal<ExecutionBacking> threadBinding = new ThreadLocal<>();
+  private final Set<ExecutionBacking> executions = new ConcurrentSet<>();
 
-  public DefaultExecControl(ExecController execController) {
+  public DefaultExecControl(ExecController execController, boolean debug) {
     this.execController = execController;
+    this.debug = debug;
   }
 
   private ExecutionBacking getBacking() {
@@ -108,11 +115,13 @@ public class DefaultExecControl implements ExecControl {
 
       @Override
       public void start(Action<? super Execution> action) {
+        Optional<StackTraceElement[]> startStack = debug ? Optional.of(Thread.currentThread().getStackTrace()) : Optional.empty();
+
         Action<? super Execution> effectiveAction = registry == null ? action : Action.join(registry, action);
         if (execController.isManagedThread() && threadBinding.get() == null) {
-          new ExecutionBacking(execController, threadBinding, effectiveAction, onError, onComplete);
+          new ExecutionBacking(execController, executions, startStack, threadBinding, effectiveAction, onError, onComplete);
         } else {
-          execController.getExecutor().submit(() -> new ExecutionBacking(execController, threadBinding, effectiveAction, onError, onComplete));
+          execController.getExecutor().submit(() -> new ExecutionBacking(execController, executions, startStack, threadBinding, effectiveAction, onError, onComplete));
         }
       }
     };
@@ -120,7 +129,7 @@ public class DefaultExecControl implements ExecControl {
 
   @Override
   public <T> Promise<T> promise(Action<? super Fulfiller<T>> action) {
-    return directPromise(SafeFulfiller.wrapping(action));
+    return directPromise(SafeFulfiller.wrapping(this::getBacking, action));
   }
 
   @Override
@@ -128,7 +137,7 @@ public class DefaultExecControl implements ExecControl {
     final ExecutionBacking backing = getBacking();
     final ExecController controller = backing.getController();
     return directPromise(f ->
-        CompletableFuture.supplyAsync(() -> {
+        backing.continueVia(() -> CompletableFuture.supplyAsync(() -> {
             List<Result<T>> holder = Lists.newArrayListWithCapacity(1);
             try {
               backing.intercept(ExecInterceptor.ExecType.BLOCKING, backing.getInterceptors(), execution ->
@@ -139,11 +148,11 @@ public class DefaultExecControl implements ExecControl {
               return Result.<T>failure(e);
             }
           }, controller.getBlockingExecutor()
-        ).thenAccept(f::accept)
+        ).thenAccept(v -> backing.join(e -> f.accept(v))))
     );
   }
 
-  private <T> Promise<T> directPromise(Consumer<? super Fulfiller<T>> action) {
+  private <T> Promise<T> directPromise(Consumer<? super Fulfiller<? super T>> action) {
     return new DefaultPromise<>(this::getBacking, action);
   }
 
@@ -151,27 +160,43 @@ public class DefaultExecControl implements ExecControl {
   public <T> void stream(final Publisher<T> publisher, final Subscriber<? super T> subscriber) {
     final ExecutionBacking executionBacking = getBacking();
 
-    directPromise((Consumer<Fulfiller<Subscription>>) fulfiller -> publisher.subscribe(new Subscriber<T>() {
-      @Override
-      public void onSubscribe(final Subscription subscription) {
-        fulfiller.success(subscription);
-      }
+    directPromise((Consumer<Fulfiller<? super Subscription>>) fulfiller ->
+        executionBacking.continueVia(() ->
+            publisher.subscribe(new Subscriber<T>() {
+              @Override
+              public void onSubscribe(final Subscription subscription) {
+                fulfiller.success(subscription);
+              }
 
-      @Override
-      public void onNext(final T element) {
-        executionBacking.streamExecution(execution -> subscriber.onNext(element));
-      }
+              @Override
+              public void onNext(final T element) {
+                executionBacking.streamExecution(execution -> subscriber.onNext(element));
+              }
 
-      @Override
-      public void onComplete() {
-        executionBacking.completeStreamExecution(execution -> subscriber.onComplete());
-      }
+              @Override
+              public void onComplete() {
+                executionBacking.completeStreamExecution(execution -> subscriber.onComplete());
+              }
 
-      @Override
-      public void onError(final Throwable cause) {
-        executionBacking.completeStreamExecution(execution -> subscriber.onError(cause));
-      }
-    })).then(subscription -> executionBacking.streamExecution(execution -> subscriber.onSubscribe(subscription)));
+              @Override
+              public void onError(final Throwable cause) {
+                executionBacking.completeStreamExecution(execution -> subscriber.onError(cause));
+              }
+            })
+        )
+    ).then(subscription ->
+        executionBacking.join(e ->
+            executionBacking.streamExecution(execution ->
+                subscriber.onSubscribe(subscription)
+            )
+        )
+    );
+  }
+
+  public List<? extends ExecutionSnapshot> getExecutionSnapshots() {
+    ImmutableList.Builder<ExecutionSnapshot> builder = ImmutableList.builder();
+    executions.forEach(e -> builder.add(e.getSnapshot()));
+    return builder.build();
   }
 
 }

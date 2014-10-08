@@ -21,7 +21,9 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import ratpack.exec.ExecControl;
 import ratpack.exec.ExecController;
+import ratpack.exec.ExecutionSnapshot;
 
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -31,14 +33,18 @@ public class DefaultExecController implements ExecController {
 
   private final ExecutorService blockingExecutor;
   private final EventLoopGroup eventLoopGroup;
-  private final ExecControl control;
+  private final DefaultExecControl control;
   private final int numThreads;
 
   public DefaultExecController(int numThreads) {
+    this(numThreads, false);
+  }
+
+  public DefaultExecController(int numThreads, boolean debug) {
     this.numThreads = numThreads;
     this.eventLoopGroup = new NioEventLoopGroup(numThreads, new ExecControllerBindingThreadFactory("ratpack-compute", Thread.MAX_PRIORITY));
     this.blockingExecutor = Executors.newCachedThreadPool(new ExecControllerBindingThreadFactory("ratpack-blocking", Thread.NORM_PRIORITY));
-    this.control = new DefaultExecControl(this);
+    this.control = new DefaultExecControl(this, debug);
   }
 
   public void close() {
@@ -88,6 +94,11 @@ public class DefaultExecController implements ExecController {
   @Override
   public int getNumThreads() {
     return numThreads;
+  }
+
+  @Override
+  public List<? extends ExecutionSnapshot> getExecutionSnapshots() {
+    return control.getExecutionSnapshots();
   }
 
 }

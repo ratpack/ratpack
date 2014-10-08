@@ -25,6 +25,7 @@ import ratpack.func.Function;
 import ratpack.func.NoArgAction;
 import ratpack.func.Predicate;
 
+import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -33,20 +34,29 @@ import java.util.function.Supplier;
 
 public class CachingPromise<T> implements Promise<T> {
 
-  private final Consumer<? super Fulfiller<T>> fulfillment;
+  private final Consumer<? super Fulfiller<? super T>> fulfillment;
   private final Supplier<ExecutionBacking> executionSupplier;
   private final Action<? super Throwable> errorHandler;
 
   private final AtomicBoolean fired = new AtomicBoolean();
 
-  private final ConcurrentLinkedQueue<Fulfiller<T>> waiting = new ConcurrentLinkedQueue<>();
+  private final Queue<Job> waiting = new ConcurrentLinkedQueue<>();
   private final AtomicBoolean draining = new AtomicBoolean();
   private final AtomicReference<Result<T>> result = new AtomicReference<>();
 
-  public CachingPromise(Consumer<? super Fulfiller<T>> fulfillment, Supplier<ExecutionBacking> executionSupplier, Action<? super Throwable> errorHandler) {
+  public CachingPromise(Consumer<? super Fulfiller<? super T>> fulfillment, Supplier<ExecutionBacking> executionSupplier, Action<? super Throwable> errorHandler) {
     this.fulfillment = fulfillment;
     this.executionSupplier = executionSupplier;
     this.errorHandler = errorHandler;
+  }
+
+  private class Job {
+    final Fulfiller<? super T> fulfiller;
+    final ExecutionBacking executionBacking = executionSupplier.get();
+
+    private Job(Fulfiller<? super T> fulfiller) {
+      this.fulfiller = fulfiller;
+    }
   }
 
   @Override
@@ -57,25 +67,6 @@ public class CachingPromise<T> implements Promise<T> {
   @Override
   public void then(Action<? super T> then) {
     newPromise().then(then);
-  }
-
-  private void tryDrain() {
-    if (draining.compareAndSet(false, true)) {
-      try {
-        Result<T> result = this.result.get();
-
-        Fulfiller<T> poll = waiting.poll();
-        while (poll != null) {
-          fulfill(result, poll);
-          poll = waiting.poll();
-        }
-      } finally {
-        draining.set(false);
-      }
-    }
-    if (!waiting.isEmpty()) {
-      tryDrain();
-    }
   }
 
   private DefaultSuccessPromise<T> newPromise() {
@@ -108,47 +99,75 @@ public class CachingPromise<T> implements Promise<T> {
   }
 
   @Override
+  public Promise<T> defer(Action<? super Runnable> releaser) {
+    return newPromise().defer(releaser);
+  }
+
+  @Override
+  public Promise<T> onYield(Runnable onYield) {
+    return newPromise().onYield(onYield);
+  }
+
+  @Override
+  public Promise<T> wiretap(Action<? super Result<T>> listener) {
+    return newPromise().wiretap(listener);
+  }
+
+  @Override
   public Promise<T> cache() {
     return this;
   }
 
-  private class Fulfillment implements Consumer<Fulfiller<T>> {
+  private void tryDrain() {
+    if (draining.compareAndSet(false, true)) {
+      try {
+        Result<T> result = this.result.get();
+
+        Job job = waiting.poll();
+        while (job != null) {
+          Job finalJob = job;
+          job.executionBacking.join(e -> finalJob.fulfiller.accept(result));
+          job = waiting.poll();
+        }
+      } finally {
+        draining.set(false);
+      }
+    }
+    if (!draining.get() && !waiting.isEmpty()) {
+      tryDrain();
+    }
+  }
+
+  private class Fulfillment implements Consumer<Fulfiller<? super T>> {
 
     @Override
-    public void accept(Fulfiller<T> fulfiller) {
+    public void accept(Fulfiller<? super T> fulfiller) {
       if (fired.compareAndSet(false, true)) {
         fulfillment.accept(new Fulfiller<T>() {
           @Override
           public void error(Throwable throwable) {
             result.set(Result.<T>failure(throwable));
-            tryDrain();
+            fulfiller.error(throwable);
+            executionSupplier.get().getController().getExecutor().execute(CachingPromise.this::tryDrain);
           }
 
           @Override
           public void success(T value) {
             result.set(Result.success(value));
+            fulfiller.success(value);
+            executionSupplier.get().getController().getExecutor().execute(CachingPromise.this::tryDrain);
+          }
+        });
+      } else {
+        Job job = new Job(fulfiller);
+        job.executionBacking.continueVia(() -> {
+          waiting.add(job);
+          if (result.get() != null) {
             tryDrain();
           }
         });
       }
-
-      Result<T> resultValue = result.get();
-      if (resultValue == null) {
-        waiting.add(fulfiller);
-        if (result.get() != null) {
-          tryDrain();
-        }
-      } else {
-        fulfill(resultValue, fulfiller);
-      }
     }
   }
 
-  void fulfill(Result<T> result, Fulfiller<? super T> fulfiller) {
-    if (result.isFailure()) {
-      fulfiller.error(result.getFailure());
-    } else {
-      fulfiller.success(result.getValue());
-    }
-  }
 }

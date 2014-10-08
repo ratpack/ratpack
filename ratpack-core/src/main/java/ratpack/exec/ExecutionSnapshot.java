@@ -16,15 +16,21 @@
 
 package ratpack.exec;
 
-import ratpack.func.Action;
+import java.util.List;
+import java.util.Optional;
 
-/**
- * Convenience type for {@code Action<Fulfiller<T>>} implementations.
- *
- * @param <T> the type of promised value.
- * @see ExecControl#promise(Action)
- * @see Fulfiller
- */
-public interface Fulfillment<T> extends Action<Fulfiller<? super T>> {
+public interface ExecutionSnapshot {
+
+  String getId();
+
+  boolean getWaiting();
+
+  List<String> getCheckpoints();
+
+  Long getStartedAt();
+
+  Optional<StackTraceElement[]> getStartedTrace();
+
+  Optional<StackTraceElement[]> getLastSegmentTrace();
 
 }

@@ -18,6 +18,7 @@ package ratpack.exec.internal;
 
 import ratpack.exec.Fulfiller;
 import ratpack.exec.Promise;
+import ratpack.exec.Result;
 import ratpack.exec.SuccessPromise;
 import ratpack.func.Action;
 import ratpack.func.Function;
@@ -29,11 +30,11 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class DefaultPromise<T> implements Promise<T> {
-  private final Consumer<? super Fulfiller<T>> fulfillment;
+  private final Consumer<? super Fulfiller<? super T>> fulfillment;
   private final Supplier<ExecutionBacking> executionProvider;
   private final AtomicBoolean fired = new AtomicBoolean();
 
-  public DefaultPromise(Supplier<ExecutionBacking> executionProvider, Consumer<? super Fulfiller<T>> fulfillment) {
+  public DefaultPromise(Supplier<ExecutionBacking> executionProvider, Consumer<? super Fulfiller<? super T>> fulfillment) {
     this.executionProvider = executionProvider;
     this.fulfillment = fulfillment;
   }
@@ -84,5 +85,20 @@ public class DefaultPromise<T> implements Promise<T> {
   @Override
   public Promise<T> cache() {
     return propagatingSuccessPromise().cache();
+  }
+
+  @Override
+  public Promise<T> defer(Action<? super Runnable> releaser) {
+    return propagatingSuccessPromise().defer(releaser);
+  }
+
+  @Override
+  public Promise<T> onYield(Runnable onYield) {
+    return propagatingSuccessPromise().onYield(onYield);
+  }
+
+  @Override
+  public Promise<T> wiretap(Action<? super Result<T>> listener) {
+    return propagatingSuccessPromise().wiretap(listener);
   }
 }

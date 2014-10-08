@@ -386,7 +386,7 @@ public interface Context extends ExecControl, Registry {
    *   }
    * }
    * }</pre>
-   * @param <T> the type of value promised
+   * @param action
    */
   @Override
   <T> Promise<T> promise(Action<? super Fulfiller<T>> action);
@@ -400,7 +400,7 @@ public interface Context extends ExecControl, Registry {
    * Forked executions MUST NOT write to the response or participate in the handler pipeline at all.
    * That is, they should not call methods like {@link #next()} or {@link #insert(Handler...)}.
    * <p>
-   * When using forking to process work in parallel, use {@link #promise(ratpack.func.Action)} to continue request handling when the parallel work is done.
+   * When using forking to process work in parallel, use {@link ExecControl#promise(ratpack.func.Action)} to continue request handling when the parallel work is done.
    *
    * <pre class="java">{@code
    * import ratpack.handling.Handler;
