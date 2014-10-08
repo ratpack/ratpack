@@ -54,7 +54,6 @@ import ratpack.launch.LaunchConfig;
  * would be {@code text/html} by default.
  * </p>
  * <p>Custom handlebars helpers can be registered by binding instances of {@link ratpack.handlebars.NamedHelper}.</p>
- * <p>
  * <pre class="java">{@code
  * import ratpack.guice.Guice;
  * import ratpack.handlebars.HandlebarsModule;

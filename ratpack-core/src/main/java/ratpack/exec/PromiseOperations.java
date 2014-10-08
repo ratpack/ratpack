@@ -126,7 +126,6 @@ public interface PromiseOperations<T> {
    * Typically to limit concurrent use of an external resource, such as a HTTP API.
    * <p>
    * Note that the {@link Throttle} instance given defines the actual throttling semantics.
-   * <p>
    * <pre class="java">{@code
    * import ratpack.exec.ExecControl;
    * import ratpack.exec.Throttle;

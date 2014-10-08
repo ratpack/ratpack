@@ -41,6 +41,7 @@ public interface GroovyBindingsSpec extends BindingsSpec {
    * That is, parameters must be typed and implementations of such types must be provided by the modules.
    *
    * @param closure The initializer
+   * @return {@code this}
    */
   GroovyBindingsSpec init(@DelegatesTo(value = Void.class, strategy = Closure.OWNER_ONLY) Closure<?> closure);
 
@@ -112,7 +113,6 @@ public interface GroovyBindingsSpec extends BindingsSpec {
 
   /**
    * {@inheritDoc}
-   * @param action
    */
   @Override
   GroovyBindingsSpec init(Action<? super Injector> action);

@@ -94,6 +94,7 @@ public interface GroovyEmbeddedApp extends EmbeddedApp {
      * Calling this method after the application has started has no effect.
      *
      * @param closure The definition of the application handlers
+     * @return {@code this}
      */
     Spec handlers(@DelegatesTo(value = GroovyChain.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure);
 
@@ -106,6 +107,7 @@ public interface GroovyEmbeddedApp extends EmbeddedApp {
      * Calling this method after the application has started has no effect.
      *
      * @param closure The definition of the application handlers
+     * @return {@code this}
      */
     Spec bindings(@DelegatesTo(value = GroovyBindingsSpec.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure);
 
@@ -118,6 +120,7 @@ public interface GroovyEmbeddedApp extends EmbeddedApp {
      * Calling this method after the application has started has no effect.
      *
      * @param closure The definition of the application handlers
+     * @return {@code this}
      */
     Spec launchConfig(@DelegatesTo(value = LaunchConfigBuilder.class, strategy = Closure.DELEGATE_FIRST) Closure<?> closure);
 

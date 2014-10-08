@@ -28,6 +28,7 @@ public class ServerSentEvent {
   /**
    * Returns a new event, built by the given spec consumer.
    *
+   * @param consumer the event definition
    * @return a new event
    */
   public static ServerSentEvent serverSentEvent(Consumer<? super Spec> consumer) {
