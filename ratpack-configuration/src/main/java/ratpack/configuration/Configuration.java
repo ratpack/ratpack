@@ -16,6 +16,7 @@
 
 package ratpack.configuration;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import ratpack.configuration.internal.DefaultLaunchConfigFactory;
 import ratpack.launch.LaunchConfig;
 
@@ -28,12 +29,14 @@ import javax.validation.constraints.NotNull;
 public class Configuration {
   @Valid
   @NotNull
-  private LaunchConfigFactory launchConfigFactory = new DefaultLaunchConfigFactory(LaunchConfig.class.getClassLoader());
+  private LaunchConfigFactory launchConfigFactory = new DefaultLaunchConfigFactory();
 
+  @JsonProperty("launchConfig")
   public LaunchConfigFactory getLaunchConfigFactory() {
     return launchConfigFactory;
   }
 
+  @JsonProperty("launchConfig")
   public void setLaunchConfigFactory(LaunchConfigFactory launchConfigFactory) {
     this.launchConfigFactory = launchConfigFactory;
   }

@@ -16,12 +16,15 @@
 
 package ratpack.configuration;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import ratpack.configuration.internal.DefaultLaunchConfigFactory;
 import ratpack.launch.LaunchConfig;
 
 /**
  * A factory for LaunchConfig instances based on a configuration.
  */
-public interface LaunchConfigFactory {
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type", defaultImpl = DefaultLaunchConfigFactory.class)
+public interface LaunchConfigFactory extends Discoverable {
   /**
    * Builds a LaunchConfig based on the provided configuration data.
    *

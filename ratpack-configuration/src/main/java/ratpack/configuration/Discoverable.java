@@ -14,28 +14,10 @@
  * limitations under the License.
  */
 
-description = "Base support for application-defined configuration"
+package ratpack.configuration;
 
-apply from: "$rootDir/gradle/javaModule.gradle"
-
-configurations {
-  provided
-}
-
-sourceSets {
-  main {
-    compileClasspath += configurations.provided
-  }
-}
-
-idea {
-  module {
-    scopes.PROVIDED.plus += [ configurations.provided ]
-  }
-}
-
-dependencies {
-  compile project(":ratpack-core")
-  compile "javax.validation:validation-api:1.1.0.Final"
-  provided "com.fasterxml.jackson.core:jackson-annotations:${commonVersions.jackson}"
+/**
+ * A tag interface which allows Ratpack to load Jackson subtypes at runtime, which enables polymorphic configurations.
+ */
+public interface Discoverable {
 }

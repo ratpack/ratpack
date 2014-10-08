@@ -25,6 +25,11 @@ import java.util.Properties;
  */
 public interface ConfigurationSource {
   /**
+   * A class loader that can be used to load configuration-related data.
+   */
+  ClassLoader getClassLoader();
+
+  /**
    * A source of configuration data, often from a file.  May be empty.
    * It's up to the {@link ratpack.configuration.ConfigurationFactory} to determine how to interpret this data.
    *

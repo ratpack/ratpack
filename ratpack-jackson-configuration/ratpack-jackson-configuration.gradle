@@ -14,28 +14,13 @@
  * limitations under the License.
  */
 
-description = "Base support for application-defined configuration"
+description = "Support for YAML-based configuration using the Jackson marshalling library - http://jackson.codehaus.org/"
 
 apply from: "$rootDir/gradle/javaModule.gradle"
 
-configurations {
-  provided
-}
-
-sourceSets {
-  main {
-    compileClasspath += configurations.provided
-  }
-}
-
-idea {
-  module {
-    scopes.PROVIDED.plus += [ configurations.provided ]
-  }
-}
-
 dependencies {
-  compile project(":ratpack-core")
-  compile "javax.validation:validation-api:1.1.0.Final"
-  provided "com.fasterxml.jackson.core:jackson-annotations:${commonVersions.jackson}"
+  compile project(":ratpack-configuration")
+  compile project(":ratpack-jackson")
+  compile "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:${commonVersions.jackson}"
+  compile "com.fasterxml.jackson.datatype:jackson-datatype-guava:${commonVersions.jackson}"
 }

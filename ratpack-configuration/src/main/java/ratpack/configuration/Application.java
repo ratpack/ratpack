@@ -51,9 +51,8 @@ public abstract class Application<T extends Configuration> {
       Properties overrideProperties = System.getProperties();
       Properties defaultProperties = new Properties();
       addImpliedDefaults(defaultProperties);
-      ClassLoader classLoader = getClass().getClassLoader();
-      ConfigurationSource configurationSource = new DefaultConfigurationSource(overrideProperties, defaultProperties);
-      ConfigurationFactoryFactory configurationFactoryFactory = new DefaultConfigurationFactoryFactory(classLoader);
+      ConfigurationSource configurationSource = createConfigurationSource(overrideProperties, defaultProperties);
+      ConfigurationFactoryFactory configurationFactoryFactory = new DefaultConfigurationFactoryFactory(getClassLoader());
       try {
         ConfigurationFactory configurationFactory = configurationFactoryFactory.build(configurationSource);
         T configuration = configurationFactory.build(getConfigurationClass(), configurationSource);
@@ -89,4 +88,24 @@ public abstract class Application<T extends Configuration> {
    * @param properties The properties to add the defaults to
    */
   protected void addImpliedDefaults(Properties properties) { }
+
+  /**
+   * Builds the configuration source for the application.
+   *
+   * @param overrideProperties the override properties
+   * @param defaultProperties the default properties
+   * @return a new configuration source
+   */
+  protected ConfigurationSource createConfigurationSource(Properties overrideProperties, Properties defaultProperties) {
+    return new DefaultConfigurationSource(getClassLoader(), overrideProperties, defaultProperties);
+  }
+
+  /**
+   * Returns the classloader to use for configuration.
+   *
+   * @return the classloader to use for configuration
+   */
+  protected ClassLoader getClassLoader() {
+    return getClass().getClassLoader();
+  }
 }
