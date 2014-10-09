@@ -21,8 +21,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import ratpack.handling.Context;
 import ratpack.render.RendererSupport;
 
-import javax.inject.Inject;
-
 
 public class HealthCheckResultRenderer extends RendererSupport<HealthCheck.Result> {
 
