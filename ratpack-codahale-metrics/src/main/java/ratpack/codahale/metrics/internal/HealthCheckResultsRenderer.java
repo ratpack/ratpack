@@ -16,6 +16,7 @@
 
 package ratpack.codahale.metrics.internal;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import ratpack.codahale.metrics.HealthCheckResults;
 import ratpack.handling.Context;
 import ratpack.render.RendererSupport;
@@ -24,7 +25,7 @@ public class HealthCheckResultsRenderer extends RendererSupport<HealthCheckResul
 
   @Override
   public void render(Context context, HealthCheckResults object) throws Exception {
-    context.render(object.getResults().toString());
-
+    ObjectMapper mapper = new ObjectMapper();
+    context.render(mapper.writeValueAsString(object));
   }
 }
