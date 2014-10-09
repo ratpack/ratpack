@@ -99,8 +99,6 @@ class HealthchecksSpec extends RatpackGroovyDslSpec {
     }
 
     then:
-    //getText("admin/health-check") == "{foo=Result{isHealthy=true}, resource=Result{isHealthy=false, message=bad!}}"
-    //getText("admin/health-check/foo") == "Result{isHealthy=true}"
     getText("admin/health-check") == '{"results":{"foo":{"healthy":true,"message":null,"error":null},"resource":{"healthy":false,"message":"bad!","error":null}}}'
     getText("admin/health-check/foo") == '{"healthy":true,"message":null,"error":null}'
   }
