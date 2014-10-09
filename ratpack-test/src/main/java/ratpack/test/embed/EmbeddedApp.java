@@ -75,6 +75,7 @@ public interface EmbeddedApp extends ApplicationUnderTest, AutoCloseable {
    * <p>
    * The given {@link LaunchConfigBuilder} will be configured to use an ephemeral port.
    *
+   * @param baseDir the base dir for the embedded app
    * @param function a function that builds a launch config from a launch config builder
    * @return a newly created embedded application
    */
@@ -104,6 +105,7 @@ public interface EmbeddedApp extends ApplicationUnderTest, AutoCloseable {
    * <p>
    * If you need to tweak the launch config, use {@link #fromLaunchConfigBuilder(Path, Function)}.
    *
+   * @param baseDir the base dir for the embedded app
    * @param handlerFactory a handler factory
    * @return a newly created embedded application
    */
@@ -128,6 +130,7 @@ public interface EmbeddedApp extends ApplicationUnderTest, AutoCloseable {
    * <p>
    * If you need to tweak the launch config, use {@link #fromLaunchConfigBuilder(Path, Function)}.
    *
+   * @param baseDir the base dir for the embedded app
    * @param handler the application handler
    * @return a newly created embedded application
    */

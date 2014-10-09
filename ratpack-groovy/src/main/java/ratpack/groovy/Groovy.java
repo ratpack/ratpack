@@ -251,6 +251,7 @@ public abstract class Groovy {
    * @param id the id/name of the template
    * @param modelBuilder an action the builds a model map
    * @return a template
+   * @throws Exception any thrown by {@code modelBuilder}
    */
   public static MarkupTemplate groovyMarkupTemplate(String id, Action<? super ImmutableMap.Builder<String, Object>> modelBuilder) throws Exception {
     return groovyMarkupTemplate(id, null, modelBuilder);
@@ -263,6 +264,7 @@ public abstract class Groovy {
    * @param type The content type of template
    * @param modelBuilder an action the builds a model map
    * @return a template
+   * @throws Exception any thrown by {@code modelBuilder}
    */
   public static MarkupTemplate groovyMarkupTemplate(String id, String type, Action<? super ImmutableMap.Builder<String, Object>> modelBuilder) throws Exception {
     ImmutableMap<String, Object> model = Action.with(ImmutableMap.<String, Object>builder(), Action.noopIfNull(modelBuilder)).build();

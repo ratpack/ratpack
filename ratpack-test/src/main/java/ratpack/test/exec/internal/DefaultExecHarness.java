@@ -21,6 +21,7 @@ import ratpack.func.Action;
 import ratpack.func.Function;
 import ratpack.test.exec.ExecHarness;
 import ratpack.test.exec.ExecResult;
+import ratpack.util.ExceptionUtils;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
@@ -34,7 +35,7 @@ public class DefaultExecHarness implements ExecHarness {
   }
 
   @Override
-  public <T> ExecResult<T> execute(final Function<Execution, Promise<T>> func) throws Exception {
+  public <T> ExecResult<T> yield(final Function<ExecControl, Promise<T>> func) throws Exception {
     final AtomicReference<ExecResult<T>> reference = new AtomicReference<>();
     final CountDownLatch latch = new CountDownLatch(1);
 
@@ -52,7 +53,7 @@ public class DefaultExecHarness implements ExecHarness {
               latch.countDown();
             }
           });
-          Promise<T> promise = func.apply(execution);
+          Promise<T> promise = func.apply(execution.getControl());
 
           if (promise == null) {
             succeed(null);
@@ -68,6 +69,28 @@ public class DefaultExecHarness implements ExecHarness {
       });
     latch.await();
     return reference.get();
+  }
+
+  @Override
+  public void run(Action<? super ExecControl> action) throws Exception {
+    final AtomicReference<Throwable> thrown = new AtomicReference<>();
+    final CountDownLatch latch = new CountDownLatch(1);
+
+    controller.getControl().exec()
+      .onError(thrown::set)
+      .onComplete(e ->
+          latch.countDown()
+      )
+      .start(e ->
+          action.execute(e.getControl())
+      );
+
+    latch.await();
+
+    Throwable throwable = thrown.get();
+    if (throwable != null) {
+      throw ExceptionUtils.toException(throwable);
+    }
   }
 
   @Override

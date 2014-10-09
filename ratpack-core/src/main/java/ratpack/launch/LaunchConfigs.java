@@ -246,6 +246,20 @@ public abstract class LaunchConfigs {
     public static final String CONFIGURATION_FACTORY = "configurationFactory";
 
     /**
+     * The full qualified classname of the configuration class (optional). <p> This class MUST extend {@code ratpack.configuration.Configuration} and have a public no-arg constructor. </p> <b>Value:</b> {@value} - (string)
+     *
+     * This property is used by the {@code ratpack-configuration} module.
+     */
+    public static final String CONFIGURATION_CLASS = "configurationClass";
+
+    /**
+     * The path to the desired configuration file. <p> This class MUST implement <b>Value:</b> {@value} - (string)
+     *
+     * This property is used by the {@code ratpack-configuration} module.
+     */
+    public static final String CONFIGURATION_FILE = "configurationFile";
+
+    /**
      * The number of worker threads to use. Defaults to 0. <p> <b>Value:</b> {@value} - (int)
      *
      * @see LaunchConfig#getThreads()

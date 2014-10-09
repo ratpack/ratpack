@@ -16,7 +16,6 @@
 
 package ratpack.exec
 
-import ratpack.test.UnitTest
 import ratpack.test.exec.ExecHarness
 import spock.lang.AutoCleanup
 import spock.lang.Specification
@@ -29,14 +28,14 @@ import java.util.concurrent.LinkedBlockingQueue
 class ThrottleSpec extends Specification {
 
   @AutoCleanup
-  ExecHarness execHarness = UnitTest.execHarness()
+  ExecHarness execHarness = ExecHarness.harness()
 
-  PollingConditions polling = new PollingConditions(timeout: 100)
+  PollingConditions polling = new PollingConditions(timeout: 5)
 
   def "can use throttle"() {
-    def t = new Throttle(1)
-    def v = execHarness.execute {
-      t.throttle(execHarness.control.promise { it.success("foo") })
+    def t = Throttle.ofSize(1)
+    def v = execHarness.yield {
+      execHarness.control.promise { it.success("foo") }.throttled(t)
     }
 
     expect:
@@ -47,17 +46,16 @@ class ThrottleSpec extends Specification {
     def q = new LinkedBlockingQueue<Fulfiller<Integer>>()
 
     def throttleSize = 5
-    def jobs = 100
-    def t = new Throttle(throttleSize)
+    def jobs = 1000
+    def t = Throttle.ofSize(throttleSize)
     def e = new ConcurrentLinkedQueue<Result<Integer>>()
     def latch = new CountDownLatch(jobs)
 
     when:
     jobs.times {
-      execHarness.control.exec().onComplete { latch.countDown() }.start {
+      execHarness.exec().onComplete { latch.countDown() }.start {
         def exec = it
-        def p = it.control.promise { q << it }
-        t.throttle(p).asResult {
+        it.control.promise { q << it }.throttled(t).asResult {
           assert execHarness.control.execution.is(exec)
           e << it
         }
@@ -71,7 +69,7 @@ class ThrottleSpec extends Specification {
       t.waiting == jobs - t.size
     }
 
-    execHarness.control.exec().start { q.take().success(1) }
+    execHarness.exec().start { it.control.blocking { q.take().success(1) } then {} }
 
     polling.eventually {
       q.size() == t.size
@@ -79,7 +77,7 @@ class ThrottleSpec extends Specification {
       t.waiting == jobs - t.size - 1
     }
 
-    execHarness.control.exec().start { e2 ->
+    execHarness.exec().start { e2 ->
       def n = jobs - 2 - throttleSize
       n.times {
         e2.control.blocking { q.take() } then {

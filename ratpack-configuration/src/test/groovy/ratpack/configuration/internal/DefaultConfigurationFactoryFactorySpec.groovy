@@ -86,10 +86,10 @@ class DefaultConfigurationFactoryFactorySpec extends Specification {
     implClass << [TestConfigurationFactory1, TestConfigurationFactory2]
   }
 
-  private static ConfigurationSource createConfigurationSource(Map<String, String> propertyMap = [:]) {
+  private ConfigurationSource createConfigurationSource(Map<String, String> propertyMap = [:]) {
     def props = new Properties()
     props.putAll(propertyMap)
-    return new DefaultConfigurationSource(props, new Properties())
+    return new DefaultConfigurationSource(classLoader, props, new Properties())
   }
 
   private void configureServices(Class... classes) {

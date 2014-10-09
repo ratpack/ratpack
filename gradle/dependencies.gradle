@@ -18,12 +18,13 @@ ext {
   commonVersions = [
     remote: "0.6-SNAPSHOT",
     slf4j: "1.7.5",
-    netty: "4.0.20.Final",
+    netty: "4.0.23.Final",
     guava: "17.0",
     groovy: "2.3.6",
     pac4j: "1.5.1",
     rxjava: "1.0.0-rc.4",
-    hystrix: "1.4.0-RC5"
+    hystrix: "1.4.0-RC5",
+    jackson: "2.3.1"
   ]
 
   if (System.getenv('CI_GROOVY_VERSION')) {
@@ -56,7 +57,7 @@ ext {
     groovy: "org.codehaus.groovy:groovy-all:${commonVersions.groovy}",
     remote: "io.remotecontrol:remote-core:${commonVersions.remote}",
     "remote-http": "io.remotecontrol:remote-transport-http:${commonVersions.remote}",
-    jackson: "com.fasterxml.jackson.core:jackson-databind:2.3.1",
+    jackson: "com.fasterxml.jackson.core:jackson-databind:${commonVersions.jackson}",
     slf4j: "org.slf4j:slf4j-api:${commonVersions.slf4j}",
     h2: "com.h2database:h2:1.3.174"
   ]

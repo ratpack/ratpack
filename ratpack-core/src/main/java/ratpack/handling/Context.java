@@ -386,7 +386,8 @@ public interface Context extends ExecControl, Registry {
    *   }
    * }
    * }</pre>
-   * @param action
+   *
+   * @param action the initiation of the asynchronous action
    */
   @Override
   <T> Promise<T> promise(Action<? super Fulfiller<T>> action);

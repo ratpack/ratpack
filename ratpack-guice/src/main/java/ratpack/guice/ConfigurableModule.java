@@ -33,7 +33,6 @@ import java.lang.reflect.Constructor;
  * <p>
  * A configurable module provides a single, mutable, “config object” (type parameter {@code C}).
  * The {@link ratpack.guice.BindingsSpec#add(Class, Action)} method can be used to add the module and configure it at the same time.
- * <p>
  * <pre class="java">
  * import com.google.inject.Provides;
  * import ratpack.guice.ConfigurableModule;
@@ -122,9 +121,8 @@ import java.lang.reflect.Constructor;
  *   }
  * }
  * </pre>
- * <p>
  *
- * @param <T>
+ * @param <T> the type of the config object
  */
 public abstract class ConfigurableModule<T> extends AbstractModule {
 

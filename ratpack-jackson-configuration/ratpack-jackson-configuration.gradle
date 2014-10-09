@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package ratpack.exec.internal;
+description = "Support for YAML-based configuration using the Jackson marshalling library - http://jackson.codehaus.org/"
 
-public class MultiplePromiseSubscriptionException extends IllegalStateException {
+apply from: "$rootDir/gradle/javaModule.gradle"
 
-  public MultiplePromiseSubscriptionException() {
-    super("this promise has already been subscribed - its methods can only be called once");
-  }
-
+dependencies {
+  compile project(":ratpack-configuration")
+  compile project(":ratpack-jackson")
+  compile "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:${commonVersions.jackson}"
+  compile "com.fasterxml.jackson.datatype:jackson-datatype-guava:${commonVersions.jackson}"
 }

@@ -31,22 +31,25 @@ import ratpack.util.internal.ByteBufWriteThroughOutputStream;
 import java.io.OutputStream;
 import java.net.URI;
 import java.nio.charset.Charset;
+import java.util.concurrent.TimeUnit;
 
 public class RequestSpecBacking {
 
   private final MutableHeaders headers;
   private final URI uri;
   private final ByteBufAllocator byteBufAllocator;
+  private final RequestParams requestParams;
 
   private ByteBuf bodyByteBuf;
 
   private String method = "GET";
   private int maxRedirects = 10;
 
-  public RequestSpecBacking(MutableHeaders headers, URI uri, ByteBufAllocator byteBufAllocator) {
+  public RequestSpecBacking(MutableHeaders headers, URI uri, ByteBufAllocator byteBufAllocator, RequestParams requestParams) {
     this.headers = headers;
     this.uri = uri;
     this.byteBufAllocator = byteBufAllocator;
+    this.requestParams = requestParams;
     this.bodyByteBuf = byteBufAllocator.buffer(0, 0);
   }
 
@@ -98,6 +101,12 @@ public class RequestSpecBacking {
     @Override
     public URI getUrl() {
       return uri;
+    }
+
+    @Override
+    public RequestSpec readTimeout(int amount, TimeUnit timeUnit) {
+      requestParams.readTimeoutNanos = timeUnit.toNanos(amount);
+      return this;
     }
 
     private void setBodyByteBuf(ByteBuf byteBuf) {

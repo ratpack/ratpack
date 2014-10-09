@@ -23,13 +23,14 @@ import ratpack.http.MutableHeaders;
 import java.io.OutputStream;
 import java.net.URI;
 import java.nio.charset.Charset;
+import java.util.concurrent.TimeUnit;
 
 public interface RequestSpec {
 
   /**
    *
    * @param maxRedirects Sets the maximum number of redirects to follow
-   * @return  The RequestSpec
+   * @return The RequestSpec
    */
   RequestSpec redirects(int maxRedirects);
 
@@ -55,6 +56,12 @@ public interface RequestSpec {
   RequestSpec method(String method);
 
   URI getUrl();
+
+  default RequestSpec readTimeoutSeconds(int seconds) {
+    return readTimeout(seconds, TimeUnit.SECONDS);
+  }
+
+  RequestSpec readTimeout(int amount, TimeUnit timeUnit);
 
   /**
    * The body of the request, used for specifying the body content.

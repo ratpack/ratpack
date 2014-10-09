@@ -18,7 +18,24 @@ description = "Base support for application-defined configuration"
 
 apply from: "$rootDir/gradle/javaModule.gradle"
 
+configurations {
+  provided
+}
+
+sourceSets {
+  main {
+    compileClasspath += configurations.provided
+  }
+}
+
+idea {
+  module {
+    scopes.PROVIDED.plus += [ configurations.provided ]
+  }
+}
+
 dependencies {
   compile project(":ratpack-core")
   compile "javax.validation:validation-api:1.1.0.Final"
+  provided "com.fasterxml.jackson.core:jackson-annotations:${commonVersions.jackson}"
 }

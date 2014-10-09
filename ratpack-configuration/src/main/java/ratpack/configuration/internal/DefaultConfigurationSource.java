@@ -26,26 +26,33 @@ import java.net.URL;
 import java.util.Properties;
 
 public class DefaultConfigurationSource implements ConfigurationSource {
+  private final ClassLoader classLoader;
   private final Properties overrideProperties;
   private final Properties defaultProperties;
   private final ByteSource byteSource;
 
-  public DefaultConfigurationSource(ByteSource byteSource, Properties overrideProperties, Properties defaultProperties) {
+  public DefaultConfigurationSource(ClassLoader classLoader, ByteSource byteSource, Properties overrideProperties, Properties defaultProperties) {
+    this.classLoader = classLoader;
     this.byteSource = byteSource;
     this.overrideProperties = overrideProperties;
     this.defaultProperties = defaultProperties;
   }
 
-  public DefaultConfigurationSource(Properties overrideProperties, Properties defaultProperties) {
-    this(ByteSource.empty(), overrideProperties, defaultProperties);
+  public DefaultConfigurationSource(ClassLoader classLoader, Properties overrideProperties, Properties defaultProperties) {
+    this(classLoader, ByteSource.empty(), overrideProperties, defaultProperties);
   }
 
-  public DefaultConfigurationSource(File file, Properties overrideProperties, Properties defaultProperties) {
-    this(Files.asByteSource(file), overrideProperties, defaultProperties);
+  public DefaultConfigurationSource(ClassLoader classLoader, File file, Properties overrideProperties, Properties defaultProperties) {
+    this(classLoader, Files.asByteSource(file), overrideProperties, defaultProperties);
   }
 
-  public DefaultConfigurationSource(URL url, Properties overrideProperties, Properties defaultProperties) {
-    this(Resources.asByteSource(url), overrideProperties, defaultProperties);
+  public DefaultConfigurationSource(ClassLoader classLoader, URL url, Properties overrideProperties, Properties defaultProperties) {
+    this(classLoader, Resources.asByteSource(url), overrideProperties, defaultProperties);
+  }
+
+  @Override
+  public ClassLoader getClassLoader() {
+    return classLoader;
   }
 
   @Override

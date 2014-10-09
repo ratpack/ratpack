@@ -18,28 +18,15 @@ package ratpack.configuration;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ratpack.configuration.internal.DefaultConfigurationFactoryFactory;
-import ratpack.configuration.internal.DefaultConfigurationSource;
-import ratpack.configuration.util.internal.Generics;
 import ratpack.launch.LaunchConfig;
 import ratpack.launch.LaunchException;
-import ratpack.server.RatpackServer;
 import ratpack.server.RatpackServerBuilder;
 
-import java.util.Properties;
-
 /**
- * An application entry point for starting a Ratpack application.
- * <p>
- * To create a new application, extend this class, specifying your {@link Configuration} subclass and adding a {@code main} method
- * that calls {@link #startOrExit()}
+ * An application entry point for starting a Configuration-based Ratpack application.
  */
-public abstract class Application<T extends Configuration> {
+public class Application {
   private final static Logger LOGGER = LoggerFactory.getLogger(Application.class);
-
-  protected final Class<T> getConfigurationClass() {
-      return Generics.getTypeParameter(getClass(), Configuration.class);
-  }
 
   /**
    * Starts the server.
@@ -48,25 +35,14 @@ public abstract class Application<T extends Configuration> {
    */
   public void start() throws Exception {
     try {
-      Properties overrideProperties = System.getProperties();
-      Properties defaultProperties = new Properties();
-      addImpliedDefaults(defaultProperties);
-      ClassLoader classLoader = getClass().getClassLoader();
-      ConfigurationSource configurationSource = new DefaultConfigurationSource(overrideProperties, defaultProperties);
-      ConfigurationFactoryFactory configurationFactoryFactory = new DefaultConfigurationFactoryFactory(classLoader);
-      try {
-        ConfigurationFactory configurationFactory = configurationFactoryFactory.build(configurationSource);
-        T configuration = configurationFactory.build(getConfigurationClass(), configurationSource);
-        LaunchConfig launchConfig = configuration.getLaunchConfigFactory().build(configurationSource, configuration);
-        RatpackServer server = RatpackServerBuilder.build(launchConfig);
-        server.start();
-      } catch (ConfigurationException ex) {
-        throw new LaunchException("Failed to launch application", ex);
-      }
-    } catch (Exception e) {
-      LOGGER.error("", e);
-      System.exit(1);
+      RatpackServerBuilder.build(buildLaunchConfig()).start();
+    } catch (ConfigurationException ex) {
+      throw new LaunchException("Failed to launch application", ex);
     }
+  }
+
+  protected LaunchConfig buildLaunchConfig() {
+    return new ConfigurationLaunchConfigBuilder().build();
   }
 
   /**
@@ -81,12 +57,7 @@ public abstract class Application<T extends Configuration> {
     }
   }
 
-  /**
-   * Subclass hook for adding default property values.
-   * <p>
-   * This implementation does not add any.
-   *
-   * @param properties The properties to add the defaults to
-   */
-  protected void addImpliedDefaults(Properties properties) { }
+  public static void main(String... args) {
+    new Application().startOrExit();
+  }
 }
