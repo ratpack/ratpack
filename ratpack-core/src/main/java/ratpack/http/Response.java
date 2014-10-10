@@ -20,6 +20,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.Cookie;
 import org.reactivestreams.Publisher;
 import ratpack.api.NonBlocking;
+import ratpack.func.Action;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -32,42 +33,13 @@ import java.util.Set;
  * <p>
  * The headers and status are configured, before committing the response with one of the {@link #send} methods.
  */
-public interface Response {
+public interface Response extends ResponseMetaData {
 
-  /**
-   * The status that will be part of the response when sent.
-   * <p>
-   * By default, this will return a {@code "200 OK"} response.
-   *
-   * @return The status that will be part of the response when sent
-   * @see #status
-   */
-  Status getStatus();
-
-  /**
-   * Sets the status line of the response.
-   * <p>
-   * The message used will be the standard for the code.
-   *
-   * @param code The status code of the response to use when it is sent.
-   * @return This
-   */
+  @Override
   Response status(int code);
 
-  /**
-   * Sets the status line of the response.
-   *
-   * @param status The status of the response to use when it is sent.
-   * @return This
-   */
+  @Override
   Response status(Status status);
-
-  /**
-   * The response headers.
-   *
-   * @return The response headers.
-   */
-  MutableHeaders getHeaders();
 
   /**
    * Sends the response back to the client, with no body.
@@ -153,49 +125,11 @@ public interface Response {
   @NonBlocking
   void send(CharSequence contentType, ByteBuf buffer);
 
-  /**
-   * Sets the response {@code Content-Type} header.
-   *
-   * @param contentType The value of the {@code Content-Type} header
-   * @return This
-   */
+  @Override
   Response contentType(CharSequence contentType);
 
-  /**
-   * Sets the response {@code Content-Type} header, if it has not already been set.
-   *
-   * @param contentType The value of the {@code Content-Type} header
-   * @return This
-   */
+  @Override
   Response contentTypeIfNotSet(CharSequence contentType);
-
-  /**
-   * The cookies that are to be part of the response.
-   * <p>
-   * The cookies are mutable.
-   *
-   * @return The cookies that are to be part of the response.
-   */
-  Set<Cookie> getCookies();
-
-  /**
-   * Creates a new cookie with the given name and value.
-   * <p>
-   * The cookie will have no expiry. Use the returned cookie object to fine tune the cookie.
-   *
-   * @param name The name of the cookie
-   * @param value The value of the cookie
-   * @return The cookie that will be sent
-   */
-  Cookie cookie(String name, String value);
-
-  /**
-   * Adds a cookie to the response with a 0 max-age, forcing the client to expire it.
-   *
-   * @param name The name of the cookie to expire.
-   * @return The created cookie
-   */
-  Cookie expireCookie(String name);
 
   /**
    * Sends the response, using the given content type and the content of the given type as the response body.
@@ -251,5 +185,13 @@ public interface Response {
    */
   @NonBlocking
   void sendStream(Publisher<? extends ByteBuf> stream);
+
+  /**
+   * Register an action to execute upon the response immediately before sending it to the client.
+   *
+   * @param responseFinalizer The action to execute on this response.
+   * @return This
+   */
+  Response beforeSend(Action<? super ResponseMetaData> responseFinalizer);
 
 }

@@ -16,6 +16,7 @@
 
 package ratpack.http.internal
 
+import ratpack.http.ResponseMetaData
 import ratpack.test.internal.RatpackGroovyDslSpec
 import ratpack.util.internal.IoUtils
 
@@ -24,6 +25,7 @@ import java.nio.file.attribute.BasicFileAttributes
 
 import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_LENGTH
 import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_TYPE
+import static io.netty.handler.codec.http.HttpResponseStatus.ACCEPTED
 import static io.netty.handler.codec.http.HttpResponseStatus.OK
 
 class DefaultResponseSpec extends RatpackGroovyDslSpec {
@@ -257,6 +259,30 @@ class DefaultResponseSpec extends RatpackGroovyDslSpec {
 
     then:
     text == "abcd"
+  }
+
+  def "can finalize response before sending"() {
+    given:
+    handlers {
+      get {
+        response.beforeSend { ResponseMetaData responseMetaData ->
+          responseMetaData.status(ACCEPTED.code())
+        }
+        response.send()
+      }
+    }
+
+    when:
+    get()
+
+    then:
+    with(response) {
+      statusCode == ACCEPTED.code()
+      body.text.empty
+      !headers.get(CONTENT_TYPE)
+      headers.get(CONTENT_LENGTH).toInteger() == 0
+    }
+
   }
 
 }
