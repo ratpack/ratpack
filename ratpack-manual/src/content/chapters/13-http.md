@@ -59,6 +59,8 @@ TODO introduce renderers
 
 TODO introduce sendFile methods (pointing to use of `render(file(«path»)))` instead.
 
+TODO introduce beforeSend method and the ResponseMetaData interface.
+
 ## Cookies
 
 TODO introduce getCookies() on request and response 

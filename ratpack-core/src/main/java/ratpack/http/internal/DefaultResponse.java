@@ -16,6 +16,7 @@
 
 package ratpack.http.internal;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
@@ -25,10 +26,8 @@ import org.reactivestreams.Publisher;
 import ratpack.api.Nullable;
 import ratpack.exec.ExecControl;
 import ratpack.file.internal.ResponseTransmitter;
-import ratpack.http.Headers;
-import ratpack.http.MutableHeaders;
-import ratpack.http.Response;
-import ratpack.http.Status;
+import ratpack.func.Action;
+import ratpack.http.*;
 import ratpack.util.ExceptionUtils;
 import ratpack.util.MultiValueMap;
 import ratpack.util.internal.IoUtils;
@@ -54,12 +53,14 @@ public class DefaultResponse implements Response {
 
   private boolean contentTypeSet;
   private Set<Cookie> cookies;
+  private List<Action<? super ResponseMetaData>> responseFinalizers;
 
   public DefaultResponse(ExecControl execControl, MutableHeaders headers, ByteBufAllocator byteBufAllocator, ResponseTransmitter responseTransmitter) {
     this.execControl = execControl;
     this.byteBufAllocator = byteBufAllocator;
     this.responseTransmitter = responseTransmitter;
     this.headers = new MutableHeadersWrapper(headers);
+    responseFinalizers = Lists.newArrayList();
   }
 
   class MutableHeadersWrapper implements MutableHeaders {
@@ -269,14 +270,22 @@ public class DefaultResponse implements Response {
 
   @Override
   public void sendFile(BasicFileAttributes attributes, Path file) {
+    finalizeResponse();
     setCookieHeader();
     responseTransmitter.transmit(status, attributes, file);
   }
 
   @Override
   public void sendStream(Publisher<? extends ByteBuf> stream) {
+    finalizeResponse();
     setCookieHeader();
     execControl.stream(stream, responseTransmitter.transmitter(status));
+  }
+
+  @Override
+  public Response beforeSend(Action<? super ResponseMetaData> responseFinalizer) {
+    responseFinalizers.add(responseFinalizer);
+    return this;
   }
 
   public void sendFile(final Path file) {
@@ -316,7 +325,18 @@ public class DefaultResponse implements Response {
   }
 
   private void commit(ByteBuf byteBuf) {
+    finalizeResponse();
     setCookieHeader();
     responseTransmitter.transmit(status, byteBuf);
+  }
+
+  private void finalizeResponse() {
+    for (Action<? super ResponseMetaData> responseFinalizer : responseFinalizers) {
+      try {
+        responseFinalizer.execute(this);
+      } catch (Exception e) {
+        throw ExceptionUtils.uncheck(e);
+      }
+    }
   }
 }

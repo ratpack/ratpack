@@ -10,9 +10,14 @@ import static ratpack.thymeleaf.Template.thymeleafTemplate
 
 ratpack {
   bindings {
-    def t = new TemplatingModule()
-    t.staticallyCompile = true
-    add t
+    <% if (patch < 10) { %>
+      def t = new TemplatingModule()
+      t.staticallyCompile = true
+      add t
+    <% } else { %>
+      add(TemplatingModule) { TemplatingModule.Config config -> config.staticallyCompile = true }
+    <% } %>
+
     add new HandlebarsModule()
     add new ThymeleafModule()
     add new MarkupTemplatingModule()
