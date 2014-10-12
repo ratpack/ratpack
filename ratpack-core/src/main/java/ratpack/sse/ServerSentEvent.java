@@ -31,23 +31,40 @@ public class ServerSentEvent {
    * @param consumer the event definition
    * @return a new event
    */
-  public static ServerSentEvent serverSentEvent(Consumer<? super Spec> consumer) {
+  public static ServerSentEvent serverSentEvent(Consumer<? super Spec<?>> consumer) {
+    return serverSentEvent(null, consumer);
+  }
+
+  /**
+   * Returns a new event, built by the given spec consumer with a supporting object for construction.
+   *
+   * @param item the supporting object
+   * @param consumer the event definition
+   * @param <T> the type of supporting object
+   * @return a new event
+   */
+  public static <T> ServerSentEvent serverSentEvent(T item, Consumer<? super Spec<T>> consumer) {
     ServerSentEvent event = new ServerSentEvent();
-    consumer.accept(new Spec() {
+    consumer.accept(new Spec<T>() {
       @Override
-      public Spec id(String id) {
+      public T getItem() {
+        return item;
+      }
+
+      @Override
+      public Spec<T> id(String id) {
         event.eventId = id;
         return this;
       }
 
       @Override
-      public Spec event(String eventType) {
+      public Spec<T> event(String eventType) {
         event.eventType = eventType;
         return this;
       }
 
       @Override
-      public Spec data(String data) {
+      public Spec<T> data(String data) {
         event.eventData = data;
         return this;
       }
@@ -63,7 +80,14 @@ public class ServerSentEvent {
   /**
    * A builder for {@link ratpack.sse.ServerSentEvent} instances.
    */
-  public static interface Spec {
+  public static interface Spec<T> {
+
+    /**
+     * An object which can support the construction of the server sent event.
+     *
+     * @return a supporting object
+     */
+    T getItem();
 
     /**
      * Specify the event id for the server sent event.
@@ -71,7 +95,7 @@ public class ServerSentEvent {
      * @param id the event id
      * @return this
      */
-    Spec id(String id);
+    Spec<T> id(String id);
 
     /**
      * Specify the event type for the server sent event.
@@ -79,7 +103,7 @@ public class ServerSentEvent {
      * @param event the event type
      * @return this
      */
-    Spec event(String event);
+    Spec<T> event(String event);
 
     /**
      * Specify the event data for the server sent event.
@@ -87,7 +111,7 @@ public class ServerSentEvent {
      * @param data the event data
      * @return this
      */
-    Spec data(String data);
+    Spec<T> data(String data);
 
   }
 

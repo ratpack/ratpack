@@ -17,6 +17,10 @@
 package ratpack.sse;
 
 import org.reactivestreams.Publisher;
+import ratpack.func.Action;
+import ratpack.stream.Streams;
+
+import java.util.function.Consumer;
 
 /**
  * A {@link ratpack.handling.Context#render(Object) renderable} object for streaming server side events.
@@ -72,6 +76,23 @@ public class ServerSentEvents {
 
   public static ServerSentEvents serverSentEvents(final Publisher<? extends ServerSentEvent> publisher) {
     return new ServerSentEvents(publisher);
+  }
+
+  public static <T> ServerSentEvents serverSentEvents(final Publisher<T> publisher, Action<ServerSentEvent.Spec<T>> action) {
+    return new ServerSentEvents(Streams.map(publisher, t -> {
+      Consumer<? super ServerSentEvent.Spec<T>> builder = new Consumer<ServerSentEvent.Spec<T>>() {
+        @Override
+        public void accept(ServerSentEvent.Spec<T> spec) {
+          try {
+            action.execute(spec);
+          } catch (Exception e) {
+            throw new RuntimeException("Error building server sent event", e);
+          }
+        }
+      };
+
+      return ServerSentEvent.serverSentEvent(t, builder);
+    }));
   }
 
   private final Publisher<? extends ServerSentEvent> publisher;
