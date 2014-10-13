@@ -18,7 +18,6 @@ package ratpack.http.client
 
 import io.netty.handler.codec.http.HttpHeaders
 import io.netty.handler.timeout.ReadTimeoutException
-import ratpack.sse.ServerSentEvent
 import ratpack.stream.Streams
 import ratpack.util.internal.IoUtils
 
@@ -360,11 +359,9 @@ class HttpClientSmokeSpec extends HttpClientSpec {
           it < 5 ? "a" : null
         }
 
-        stream = Streams.map(stream) {
-          ServerSentEvent.serverSentEvent { it.id("a") }
+        render serverSentEvents(stream) {
+          it.id("a")
         }
-
-        render(serverSentEvents(stream))
       }
     }
 
