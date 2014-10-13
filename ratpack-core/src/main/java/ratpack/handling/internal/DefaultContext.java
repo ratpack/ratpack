@@ -18,6 +18,7 @@ package ratpack.handling.internal;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import com.google.common.reflect.TypeToken;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import org.reactivestreams.Publisher;
@@ -94,7 +95,7 @@ public class DefaultContext implements Context {
     private final DirectChannelAccess directChannelAccess;
     private final EventRegistry<RequestOutcome> onCloseRegistry;
 
-    private final Stack<ChainIndex> indexes = new Stack<>();
+    private final Deque<ChainIndex> indexes = Lists.newLinkedList();
 
     public Context context;
     public Handler handler;
