@@ -65,7 +65,7 @@ Write the content, but don't close the milestone yet.
     1. One gotcha is forgetting to distribute your public key.  See [here](http://blog.sonatype.com/2010/01/how-to-generate-pgp-signatures-with-maven/#.U9rkY2MSS6N) for more info.  If you don't do this you will get problems when syncing to Maven central.
 1. oss.sonatype.org credentials
     1. The sync from Bintray to Central requires an account with oss.sonatype.org
-    1. See [the docs](https://docs.sonatype.org/display/Repository/Sonatype+OSS+Maven+Repository+Usage+Guide#SonatypeOSSMavenRepositoryUsageGuide-2.Signup) for creating an account here
+    1. Create an account [for oss.sonatype.org](https://issues.sonatype.org/secure/Signup!default.jspa)
     1. Add a comment to [this JIRA ticket](https://issues.sonatype.org/browse/OSSRH-8283) with your new account, asking for permission to publish to `io.ratpack`.
 1. Bintray credentials/config
     1. Lazybones templates are published to Bintray using your Bintray account.  You need to be a member of the Ratpack organization with permission to publish to the Lazybones repo.
