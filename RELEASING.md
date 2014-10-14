@@ -23,7 +23,7 @@ Write the content, but don't close the milestone yet.
 1. (a) Update `shared-resources/ratpack/ratpack-version.txt` (i.e. drop the -SNAPSHOT)
 1. Ensure the the build is still passing (i.e. run `./gradlew clean build`) - really isn't needed, but doesn't hurt
 1. Commit with message “Version «number»”
-2. Tag commit with name “v«number»” (don't push yet)
+1. Tag commit with name “v«number»” (don't push yet)
 1. Build and upload the binaries: `./gradlew artifactoryPublish` - See below for credential requirements
 1. Promote the binaries from oss.jfrog.org to Bintray and Maven Central
     1. Go to https://oss.jfrog.org/webapp/builds/ratpack/?6
@@ -38,7 +38,6 @@ Write the content, but don't close the milestone yet.
         1. Click “Close repository when done”
         1. Click “Sync”
 1. Publish Lazybones templates to Bintray: `./gradlew publishAllTemplates` - See below for credential requirements.
-<p><strong>Do not run this task from a Windows machine as execute permissions are lost on the Gradle wrapper for Linux users.</strong>
 <p>If you run this task more than once you may need to delete the published templates in Bintray first. 
 
 ## Post
