@@ -18,6 +18,7 @@ package ratpack.handling.internal;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import com.google.common.reflect.TypeToken;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import org.reactivestreams.Publisher;
@@ -94,7 +95,7 @@ public class DefaultContext implements Context {
     private final DirectChannelAccess directChannelAccess;
     private final EventRegistry<RequestOutcome> onCloseRegistry;
 
-    private final Stack<ChainIndex> indexes = new Stack<>();
+    private final Deque<ChainIndex> indexes = Lists.newLinkedList();
 
     public Context context;
     public Handler handler;
@@ -223,7 +224,7 @@ public class DefaultContext implements Context {
       if (index.hasNext()) {
         handler = index.next();
         if (handler.getClass().equals(ChainHandler.class)) {
-          requestConstants.indexes.add(new ChainIndex(((ChainHandler) handler).getHandlers(), getRegistry(), false));
+          requestConstants.indexes.push(new ChainIndex(((ChainHandler) handler).getHandlers(), getRegistry(), false));
           index = requestConstants.indexes.peek();
           handler = null;
         }
@@ -258,7 +259,7 @@ public class DefaultContext implements Context {
       throw new IllegalArgumentException("handlers is zero length");
     }
 
-    requestConstants.indexes.add(new ChainIndex(handlers, getRegistry(), false));
+    requestConstants.indexes.push(new ChainIndex(handlers, getRegistry(), false));
     next();
   }
 
@@ -267,7 +268,7 @@ public class DefaultContext implements Context {
       throw new IllegalArgumentException("handlers is zero length");
     }
 
-    requestConstants.indexes.add(new ChainIndex(handlers, getRegistry().join(registry), false));
+    requestConstants.indexes.push(new ChainIndex(handlers, getRegistry().join(registry), false));
     next();
   }
 
