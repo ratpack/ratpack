@@ -224,7 +224,7 @@ public class DefaultContext implements Context {
       if (index.hasNext()) {
         handler = index.next();
         if (handler.getClass().equals(ChainHandler.class)) {
-          requestConstants.indexes.add(new ChainIndex(((ChainHandler) handler).getHandlers(), getRegistry(), false));
+          requestConstants.indexes.push(new ChainIndex(((ChainHandler) handler).getHandlers(), getRegistry(), false));
           index = requestConstants.indexes.peek();
           handler = null;
         }
@@ -259,7 +259,7 @@ public class DefaultContext implements Context {
       throw new IllegalArgumentException("handlers is zero length");
     }
 
-    requestConstants.indexes.add(new ChainIndex(handlers, getRegistry(), false));
+    requestConstants.indexes.push(new ChainIndex(handlers, getRegistry(), false));
     next();
   }
 
@@ -268,7 +268,7 @@ public class DefaultContext implements Context {
       throw new IllegalArgumentException("handlers is zero length");
     }
 
-    requestConstants.indexes.add(new ChainIndex(handlers, getRegistry().join(registry), false));
+    requestConstants.indexes.push(new ChainIndex(handlers, getRegistry().join(registry), false));
     next();
   }
 
