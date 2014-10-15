@@ -17,7 +17,6 @@
 package ratpack.http;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.handler.codec.http.Cookie;
 import org.reactivestreams.Publisher;
 import ratpack.api.NonBlocking;
 import ratpack.func.Action;
@@ -26,7 +25,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.Set;
 
 /**
  * A response to a request.
@@ -175,11 +173,9 @@ public interface Response extends ResponseMetaData {
    * Netty maintains its own buffer that is fed by the given publisher.
    * This means that data is more likely ready to send as soon as the client receives it.
    * <p>
-   * If your data source produces small amount of data that is expensive to produce (i.e. there is a significant latency between a data request and the production of data)
+   * If your data source produces a small amount of data that is expensive to produce (i.e. there is a significant latency between a data request and the production of data)
    * you may want to consider an intermediate buffer to maximize throughput to the client.
    * However, this is rarely necessary.
-   * <p>
-   * The subscription to the publisher will occur via {@link ratpack.exec.ExecControl#stream(org.reactivestreams.Publisher, org.reactivestreams.Subscriber)}.
    *
    * @param stream a stream of byte bufs to be written to the response
    */

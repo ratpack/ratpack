@@ -16,7 +16,6 @@
 
 package ratpack.exec;
 
-import java.util.List;
 import java.util.Optional;
 
 public interface ExecutionSnapshot {
@@ -25,12 +24,8 @@ public interface ExecutionSnapshot {
 
   boolean getWaiting();
 
-  List<String> getCheckpoints();
-
   Long getStartedAt();
 
   Optional<StackTraceElement[]> getStartedTrace();
-
-  Optional<StackTraceElement[]> getLastSegmentTrace();
 
 }

@@ -17,7 +17,6 @@
 package ratpack.exec;
 
 import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
 import ratpack.func.Action;
 
 import java.util.concurrent.Callable;
@@ -132,9 +131,9 @@ public interface ExecControl {
    *
    * @param publisher the provider of a potentially unbounded number of sequenced elements, publishing them according to the demand
    * received from its Subscriber(s)
-   * @param subscriber a component that accepts a sequenced stream of elements provided by a Publisher
+   * @return effectively the given publisher, emitting each “event” as an execution segment of the current execution
    * @param <T> the type of streamed elements
    */
-  <T> void stream(Publisher<T> publisher, Subscriber<? super T> subscriber);
+  <T> Publisher<T> stream(Publisher<T> publisher);
 
 }

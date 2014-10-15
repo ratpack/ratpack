@@ -177,6 +177,14 @@ public class WiretapPublisher<T> implements Publisher<T> {
     public long getRequestAmount() {
       return 0;
     }
+
+    @Override
+    public String toString() {
+      return "StreamEvent[DataEvent{" +
+        "subscriptionId=" + subscriptionId +
+        ", data=" + data +
+        "}]";
+    }
   }
 
   private static class CompletionEvent<T> implements StreamEvent<T> {
@@ -231,6 +239,13 @@ public class WiretapPublisher<T> implements Publisher<T> {
     @Override
     public long getRequestAmount() {
       return 0;
+    }
+
+    @Override
+    public String toString() {
+      return "StreamEvent[CompletionEvent{" +
+        "subscriptionId=" + subscriptionId +
+        "}]";
     }
   }
 
@@ -288,6 +303,14 @@ public class WiretapPublisher<T> implements Publisher<T> {
     public long getRequestAmount() {
       return 0;
     }
+
+    @Override
+    public String toString() {
+      return "StreamEvent[ErrorEvent{" +
+        "subscriptionId=" + subscriptionId +
+        ", error=" + error +
+        "}]";
+    }
   }
 
   private static class CancelEvent<T> implements StreamEvent<T> {
@@ -342,6 +365,13 @@ public class WiretapPublisher<T> implements Publisher<T> {
     @Override
     public T getItem() {
       return null;
+    }
+
+    @Override
+    public String toString() {
+      return "StreamEvent[CancelEvent{" +
+        "subscriptionId=" + subscriptionId +
+        "}]";
     }
   }
 
@@ -400,6 +430,14 @@ public class WiretapPublisher<T> implements Publisher<T> {
     @Override
     public T getItem() {
       return null;
+    }
+
+    @Override
+    public String toString() {
+      return "StreamEvent[RequestEvent{" +
+        "requestAmount=" + requestAmount +
+        ", subscriptionId=" + subscriptionId +
+        "}]";
     }
   }
 

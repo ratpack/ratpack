@@ -18,7 +18,6 @@ package ratpack.handling;
 
 import com.google.common.reflect.TypeToken;
 import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
 import ratpack.api.NonBlocking;
 import ratpack.exec.*;
 import ratpack.func.Action;
@@ -488,7 +487,7 @@ public interface Context extends ExecControl, Registry {
   @Override
   void addInterceptor(ExecInterceptor execInterceptor, Action<? super Execution> continuation) throws Exception;
 
-  <T> void stream(Publisher<T> publisher, Subscriber<? super T> subscriber);
+  <T> Publisher<T> stream(Publisher<T> publisher);
 
   /**
    * Forwards the error to the {@link ratpack.error.ClientErrorHandler} in this service.

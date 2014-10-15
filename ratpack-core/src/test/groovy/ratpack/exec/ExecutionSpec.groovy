@@ -105,7 +105,7 @@ class ExecutionSpec extends Specification {
         2
       } then {
         control.blocking {
-          2
+          5
         } then {
           events << "error"
         }
@@ -230,7 +230,7 @@ class ExecutionSpec extends Specification {
 
           subscriber.onSubscribe(subscription)
         }
-      }, new Subscriber<String>() {
+      }).subscribe(new Subscriber<String>() {
         @Override
         void onSubscribe(Subscription subscription) {
           assert e1.controller.managedThread
@@ -338,7 +338,7 @@ class ExecutionSpec extends Specification {
     events == ["foo", "complete"]
   }
 
-  def "nested promises cause error"() {
+  def "can nest promises"() {
     when:
     exec({ e ->
       e.promise { f1 ->
@@ -351,6 +351,6 @@ class ExecutionSpec extends Specification {
     })
 
     then:
-    events == [ExecutionException, "complete"]
+    events == ["foo", "complete"]
   }
 }

@@ -39,7 +39,7 @@ public abstract class WebSockets {
       @Override
       public AutoCloseable onOpen(final WebSocket webSocket) throws Exception {
         WebsocketBroadcastSubscriber subscriber = new WebsocketBroadcastSubscriber(webSocket);
-        context.stream(broadcaster, subscriber);
+        context.stream(broadcaster).subscribe(subscriber);
         return subscriber;
       }
     });

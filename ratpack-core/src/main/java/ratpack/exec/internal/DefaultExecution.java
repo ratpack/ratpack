@@ -22,7 +22,6 @@ import ratpack.exec.ExecController;
 import ratpack.exec.Execution;
 import ratpack.registry.internal.SimpleMutableRegistry;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.function.Supplier;
 
@@ -30,12 +29,10 @@ public class DefaultExecution extends SimpleMutableRegistry implements Execution
 
   private final ExecController controller;
   private final List<AutoCloseable> closeables;
-  private final Collection<String> checkpoints;
 
-  public DefaultExecution(ExecController controller, List<AutoCloseable> closeables, Collection<String> checkpoints) {
+  public DefaultExecution(ExecController controller, List<AutoCloseable> closeables) {
     this.controller = controller;
     this.closeables = closeables;
-    this.checkpoints = checkpoints;
   }
 
   @Override
@@ -51,11 +48,6 @@ public class DefaultExecution extends SimpleMutableRegistry implements Execution
   @Override
   public void onCleanup(AutoCloseable autoCloseable) {
     closeables.add(autoCloseable);
-  }
-
-  @Override
-  public void checkpoint(String checkpointId) {
-    checkpoints.add(checkpointId);
   }
 
   @Override

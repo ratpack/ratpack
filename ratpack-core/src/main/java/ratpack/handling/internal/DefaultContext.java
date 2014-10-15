@@ -22,7 +22,6 @@ import com.google.common.collect.Lists;
 import com.google.common.reflect.TypeToken;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ratpack.api.Nullable;
@@ -199,8 +198,8 @@ public class DefaultContext implements Context {
   }
 
   @Override
-  public <T> void stream(Publisher<T> publisher, Subscriber<? super T> subscriber) {
-    requestConstants.applicationConstants.execControl.stream(publisher, subscriber);
+  public <T> Publisher<T> stream(Publisher<T> publisher) {
+    return requestConstants.applicationConstants.execControl.stream(publisher);
   }
 
   @Override

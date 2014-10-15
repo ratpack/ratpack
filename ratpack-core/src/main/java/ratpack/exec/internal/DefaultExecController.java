@@ -41,14 +41,10 @@ public class DefaultExecController implements ExecController {
   }
 
   public DefaultExecController(int numThreads) {
-    this(numThreads, false);
-  }
-
-  public DefaultExecController(int numThreads, boolean debug) {
     this.numThreads = numThreads;
     this.eventLoopGroup = new NioEventLoopGroup(numThreads, new ExecControllerBindingThreadFactory("ratpack-compute", Thread.MAX_PRIORITY));
     this.blockingExecutor = Executors.newCachedThreadPool(new ExecControllerBindingThreadFactory("ratpack-blocking", Thread.NORM_PRIORITY));
-    this.control = new DefaultExecControl(this, debug);
+    this.control = new DefaultExecControl(this);
   }
 
   public void close() {

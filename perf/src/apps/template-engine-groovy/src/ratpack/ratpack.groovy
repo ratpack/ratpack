@@ -14,7 +14,6 @@ ratpack {
       def t = new TemplatingModule()
       t.staticallyCompile = true
       add t
-    <% } else { %>
       add(TemplatingModule) { TemplatingModule.Config config -> config.staticallyCompile = true }
     <% } %>
 

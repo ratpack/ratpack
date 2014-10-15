@@ -16,13 +16,14 @@
 
 package ratpack.test.exec;
 
-import ratpack.exec.ExecControl;
-import ratpack.exec.ExecStarter;
-import ratpack.exec.Promise;
+import org.reactivestreams.Publisher;
+import ratpack.exec.*;
 import ratpack.exec.internal.DefaultExecController;
 import ratpack.func.Action;
 import ratpack.func.Function;
 import ratpack.test.exec.internal.DefaultExecHarness;
+
+import java.util.concurrent.Callable;
 
 /**
  * A utility for testing asynchronous support/service code.
@@ -30,7 +31,7 @@ import ratpack.test.exec.internal.DefaultExecHarness;
  * An execution harness is backed by a thread pool.
  * It is important to call {@link #close()} when the object is no longer needed to shutdown this thread pool.
  */
-public interface ExecHarness extends AutoCloseable {
+public interface ExecHarness extends ExecControl, AutoCloseable {
 
   /**
    * Creates a new execution harness.
@@ -146,4 +147,33 @@ public interface ExecHarness extends AutoCloseable {
   @Override
   void close();
 
+  @Override
+  default Execution getExecution() {
+    return getControl().getExecution();
+  }
+
+  @Override
+  default ExecController getController() {
+    return getControl().getController();
+  }
+
+  @Override
+  default void addInterceptor(ExecInterceptor execInterceptor, Action<? super Execution> continuation) throws Exception {
+    getControl().addInterceptor(execInterceptor, continuation);
+  }
+
+  @Override
+  default <T> Promise<T> blocking(Callable<T> blockingOperation) {
+    return getControl().blocking(blockingOperation);
+  }
+
+  @Override
+  default <T> Promise<T> promise(Action<? super Fulfiller<T>> action) {
+    return getControl().promise(action);
+  }
+
+  @Override
+  default <T> Publisher<T> stream(Publisher<T> publisher) {
+    return getControl().stream(publisher);
+  }
 }

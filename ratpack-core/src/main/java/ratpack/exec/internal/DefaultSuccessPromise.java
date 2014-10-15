@@ -29,6 +29,7 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import static ratpack.func.Action.ignoreArg;
+import static ratpack.func.Action.throwException;
 
 public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
 
@@ -206,10 +207,10 @@ public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
     if (fired.compareAndSet(false, true)) {
       return new DefaultPromise<>(executionSupplier, downstream -> {
         ExecutionBacking executionBacking = executionSupplier.get();
-        executionBacking.continueVia(() -> {
+        executionBacking.streamSubscribe((streamHandle) -> {
           try {
             releaser.execute((Runnable) () ->
-                executionBacking.join(e ->
+                streamHandle.complete(e ->
                     fulfillment.accept(downstream)
                 )
             );
@@ -300,7 +301,7 @@ public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
       try {
         errorHandler.execute(throwable);
       } catch (Throwable errorHandlerThrown) {
-        executionBacking.join(Action.throwException(errorHandlerThrown));
+        executionBacking.streamSubscribe(h -> h.complete(throwException(errorHandlerThrown)));
       }
     }
 
@@ -309,7 +310,7 @@ public class DefaultSuccessPromise<T> implements SuccessPromise<T> {
       try {
         then.execute(value);
       } catch (Throwable throwable) {
-        executionBacking.join(Action.throwException(throwable));
+        executionBacking.streamSubscribe(h -> h.complete(throwException(throwable)));
       }
     }
   }

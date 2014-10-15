@@ -44,13 +44,11 @@ public class DefaultExecControl implements ExecControl {
   private static final int MAX_ERRORS_THRESHOLD = 5;
 
   private final ExecController execController;
-  private final boolean debug;
   private final ThreadLocal<ExecutionBacking> threadBinding = new ThreadLocal<>();
   private final Set<ExecutionBacking> executions = new ConcurrentSet<>();
 
-  public DefaultExecControl(ExecController execController, boolean debug) {
+  public DefaultExecControl(ExecController execController) {
     this.execController = execController;
-    this.debug = debug;
   }
 
   private ExecutionBacking getBacking() {
@@ -115,13 +113,13 @@ public class DefaultExecControl implements ExecControl {
 
       @Override
       public void start(Action<? super Execution> action) {
-        Optional<StackTraceElement[]> startStack = debug ? Optional.of(Thread.currentThread().getStackTrace()) : Optional.empty();
+        Optional<StackTraceElement[]> startTrace = ExecutionBacking.TRACE ? Optional.of(Thread.currentThread().getStackTrace()) : Optional.empty();
 
         Action<? super Execution> effectiveAction = registry == null ? action : Action.join(registry, action);
         if (execController.isManagedThread() && threadBinding.get() == null) {
-          new ExecutionBacking(execController, executions, startStack, threadBinding, effectiveAction, onError, onComplete);
+          new ExecutionBacking(execController, executions, startTrace, threadBinding, effectiveAction, onError, onComplete);
         } else {
-          execController.getExecutor().submit(() -> new ExecutionBacking(execController, executions, startStack, threadBinding, effectiveAction, onError, onComplete));
+          execController.getExecutor().submit(() -> new ExecutionBacking(execController, executions, startTrace, threadBinding, effectiveAction, onError, onComplete));
         }
       }
     };
@@ -137,7 +135,7 @@ public class DefaultExecControl implements ExecControl {
     final ExecutionBacking backing = getBacking();
     final ExecController controller = backing.getController();
     return directPromise(f ->
-        backing.continueVia(() -> CompletableFuture.supplyAsync(() -> {
+        backing.streamSubscribe((streamHandle) -> CompletableFuture.supplyAsync(() -> {
             List<Result<T>> holder = Lists.newArrayListWithCapacity(1);
             try {
               backing.intercept(ExecInterceptor.ExecType.BLOCKING, backing.getInterceptors(), execution ->
@@ -148,7 +146,7 @@ public class DefaultExecControl implements ExecControl {
               return Result.<T>failure(e);
             }
           }, controller.getBlockingExecutor()
-        ).thenAccept(v -> backing.join(e -> f.accept(v))))
+        ).thenAccept(v -> streamHandle.complete(e -> f.accept(v))))
     );
   }
 
@@ -156,41 +154,33 @@ public class DefaultExecControl implements ExecControl {
     return new DefaultPromise<>(this::getBacking, action);
   }
 
-  @Override
-  public <T> void stream(final Publisher<T> publisher, final Subscriber<? super T> subscriber) {
-    final ExecutionBacking executionBacking = getBacking();
+  public <T> Publisher<T> stream(Publisher<T> publisher) {
+    return subscriber -> {
+      final ExecutionBacking executionBacking = getBacking();
+      executionBacking.streamSubscribe((handle) ->
+          publisher.subscribe(new Subscriber<T>() {
+            @Override
+            public void onSubscribe(final Subscription subscription) {
+              handle.event((e) -> subscriber.onSubscribe(subscription));
+            }
 
-    directPromise((Consumer<Fulfiller<? super Subscription>>) fulfiller ->
-        executionBacking.continueVia(() ->
-            publisher.subscribe(new Subscriber<T>() {
-              @Override
-              public void onSubscribe(final Subscription subscription) {
-                fulfiller.success(subscription);
-              }
+            @Override
+            public void onNext(final T element) {
+              handle.event(execution -> subscriber.onNext(element));
+            }
 
-              @Override
-              public void onNext(final T element) {
-                executionBacking.streamExecution(execution -> subscriber.onNext(element));
-              }
+            @Override
+            public void onComplete() {
+              handle.complete(execution -> subscriber.onComplete());
+            }
 
-              @Override
-              public void onComplete() {
-                executionBacking.completeStreamExecution(execution -> subscriber.onComplete());
-              }
-
-              @Override
-              public void onError(final Throwable cause) {
-                executionBacking.completeStreamExecution(execution -> subscriber.onError(cause));
-              }
-            })
-        )
-    ).then(subscription ->
-        executionBacking.join(e ->
-            executionBacking.streamExecution(execution ->
-                subscriber.onSubscribe(subscription)
-            )
-        )
-    );
+            @Override
+            public void onError(final Throwable cause) {
+              handle.complete(execution -> subscriber.onError(cause));
+            }
+          })
+      );
+    };
   }
 
   public List<? extends ExecutionSnapshot> getExecutionSnapshots() {
