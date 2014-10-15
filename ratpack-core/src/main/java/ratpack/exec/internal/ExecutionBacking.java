@@ -21,7 +21,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ratpack.exec.*;
 import ratpack.func.Action;
-import ratpack.handling.internal.InterceptedOperation;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedDeque;

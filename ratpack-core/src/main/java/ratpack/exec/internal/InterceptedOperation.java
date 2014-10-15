@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package ratpack.handling.internal;
+package ratpack.exec.internal;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
