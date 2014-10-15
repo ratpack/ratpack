@@ -172,6 +172,9 @@ public class DefaultHandlingResult implements HandlingResult {
 
   @Override
   public byte[] getBodyBytes() {
+    if (throwable != null) {
+      throw new UnexpectedHandlerException(throwable);
+    }
     if (sentResponse) {
       return body;
     } else {
@@ -181,6 +184,9 @@ public class DefaultHandlingResult implements HandlingResult {
 
   @Override
   public String getBodyText() {
+    if (throwable != null) {
+      throw new UnexpectedHandlerException(throwable);
+    }
     if (sentResponse) {
       return new String(body, CharsetUtil.UTF_8);
     } else {
@@ -238,6 +244,9 @@ public class DefaultHandlingResult implements HandlingResult {
 
   @Override
   public boolean isCalledNext() {
+    if (throwable != null) {
+      throw new UnexpectedHandlerException(throwable);
+    }
     return calledNext;
   }
 
@@ -248,6 +257,9 @@ public class DefaultHandlingResult implements HandlingResult {
 
   @Override
   public <T> T rendered(Class<T> type) {
+    if (throwable != null) {
+      throw new UnexpectedHandlerException(throwable);
+    }
     if (rendered == null) {
       return null;
     }

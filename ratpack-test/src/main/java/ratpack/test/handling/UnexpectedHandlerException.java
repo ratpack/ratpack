@@ -18,6 +18,7 @@ package ratpack.test.handling;
 
 /**
  * Exception throw when a handler throws an exception that is different from the expected type in HandlingResult.exception(class)
+ * or when an exception was thrown when trying to access the results of a completed handler.
  */
 public class UnexpectedHandlerException extends RuntimeException {
 

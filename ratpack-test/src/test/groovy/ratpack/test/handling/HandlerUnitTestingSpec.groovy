@@ -284,6 +284,18 @@ class HandlerUnitTestingSpec extends Specification {
     e.message == "!"
   }
 
+  def "throws error if accessing results when exception thrown"() {
+    when:
+    handle {
+      error(new RuntimeException("!"))
+    }
+    bodyText
+
+    then:
+    UnexpectedHandlerException e = thrown(UnexpectedHandlerException)
+    assert e.cause.message == '!'
+  }
+
   def "captures client errors"() {
     when:
     handle {
