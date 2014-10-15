@@ -233,8 +233,7 @@ public class ExecutionBacking {
   }
 
   private boolean hasExecutableSegments() {
-    boolean has = currentEvent() != null;
-    return has;
+    return currentEvent() != null;
   }
 
   private void done() {
