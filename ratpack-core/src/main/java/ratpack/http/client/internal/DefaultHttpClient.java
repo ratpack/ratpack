@@ -67,6 +67,7 @@ public class DefaultHttpClient implements HttpClient {
     }
   }
 
+  @Override
   public Promise<ReceivedResponse> post(URI uri, Action<? super RequestSpec> action) {
     return request(uri, Action.join(new Post(), action));
   }
