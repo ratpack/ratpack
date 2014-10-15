@@ -64,7 +64,6 @@ class HandlerUnitTestingSpec extends Specification {
     bodyBytes == null
     calledNext
     !sentResponse
-    exception == null
     sentFile == null
   }
 
@@ -77,7 +76,6 @@ class HandlerUnitTestingSpec extends Specification {
     bodyBytes == "foo".getBytes(CharsetUtil.UTF_8)
     !calledNext
     sentResponse
-    exception == null
     sentFile == null
     headers.get("content-type") == "text/plain;charset=UTF-8"
   }
@@ -91,7 +89,6 @@ class HandlerUnitTestingSpec extends Specification {
     bodyBytes == "foo".getBytes(CharsetUtil.UTF_8)
     !calledNext
     sentResponse
-    exception == null
     headers.get("content-type") == "application/octet-stream"
     sentFile == null
   }
@@ -105,7 +102,6 @@ class HandlerUnitTestingSpec extends Specification {
     bodyBytes == null
     !calledNext
     !sentResponse
-    exception == null
     sentFile == new File("foo").toPath()
     headers.get("content-type") == "text/plain"
   }
@@ -126,7 +122,6 @@ class HandlerUnitTestingSpec extends Specification {
     bodyBytes == null
     !calledNext
     !sentResponse
-    exception == null
     sentFile == new File("foo").toPath()
     headers.get("content-type") == "text/plain"
     onCloseCalledWrapper.get()
@@ -163,6 +158,17 @@ class HandlerUnitTestingSpec extends Specification {
 
     then:
     thrown HandlerTimeoutException
+  }
+
+  def "will throw if no exception thrown"() {
+    when:
+    handle {
+      next()
+    }
+    exception
+
+    then:
+    thrown(HandlerExceptionNotThrownException)
   }
 
   def "can set uri"() {

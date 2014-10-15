@@ -46,6 +46,7 @@ import ratpack.render.internal.RenderController;
 import ratpack.server.BindAddress;
 import ratpack.server.Stopper;
 import ratpack.server.internal.NettyHandlerAdapter;
+import ratpack.test.handling.HandlerExceptionNotThrownException;
 import ratpack.test.handling.HandlerTimeoutException;
 import ratpack.test.handling.HandlingResult;
 
@@ -198,7 +199,11 @@ public class DefaultHandlingResult implements HandlingResult {
 
   @Override
   public Throwable getException() {
-    return throwable;
+    if (throwable == null) {
+      throw new HandlerExceptionNotThrownException();
+    } else {
+      return throwable;
+    }
   }
 
   @Override
