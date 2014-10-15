@@ -187,9 +187,14 @@ public class DefaultHttpClient implements HttpClient {
                   }
 
                   //Check for redirect and location header if it is follow redirect if we have request forwarding left
-                  if (isRedirect(status) && maxRedirects > 0 && locationUrl != null) {
-                    Action<? super RequestSpec> redirectRequestConfg = Action.join(requestConfigurer, s -> s.redirects(maxRedirects - 1));
-                    RequestAction requestAction = new RequestAction(redirectRequestConfg, locationUrl, execution, eventLoopGroup, byteBufAllocator, maxContentLengthBytes);
+                  if (shouldRedirect(status) && maxRedirects > 0 && locationUrl != null) {
+                    Action<? super RequestSpec> redirectRequestConfig = Action.join(requestConfigurer, s -> {
+                      if (status.getCode() == 301 || status.getCode() == 302) {
+                        s.method("GET");
+                      }
+                      s.redirects(maxRedirects - 1);
+                    });
+                    RequestAction requestAction = new RequestAction(redirectRequestConfig, locationUrl, execution, eventLoopGroup, byteBufAllocator, maxContentLengthBytes);
                     requestAction.execute(fulfiller);
                   } else {
                     //Just fulfill what ever we currently have
@@ -254,9 +259,9 @@ public class DefaultHttpClient implements HttpClient {
       }
     }
 
-    private static boolean isRedirect(Status status) {
+    private static boolean shouldRedirect(Status status) {
       int code = status.getCode();
-      return code >= 300 && code < 400;
+      return code == 301 || code == 302 || code == 303 || code == 307;
     }
   }
 
