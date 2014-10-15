@@ -74,10 +74,12 @@ public interface HandlingResult {
    * this will always raise a new {@link ratpack.test.handling.HandlerExceptionNotThrownException}
    * In such a case, this result effectively indicates what the custom error handler did as its implementation.
    *
+   * @param type The expected type of the exception captured.
+   * @param <T> The expected type of the exception captured.
    * @return the “unhandled” throwable that occurred, or raise {@link ratpack.test.handling.HandlerExceptionNotThrownException}
    */
   @Nullable
-  Throwable getException();
+  <T extends Throwable> T exception(Class<T> type);
 
   /**
    * The final response headers.

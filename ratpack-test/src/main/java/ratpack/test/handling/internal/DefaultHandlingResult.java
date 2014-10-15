@@ -49,6 +49,7 @@ import ratpack.server.internal.NettyHandlerAdapter;
 import ratpack.test.handling.HandlerExceptionNotThrownException;
 import ratpack.test.handling.HandlerTimeoutException;
 import ratpack.test.handling.HandlingResult;
+import ratpack.test.handling.UnexpectedHandlerException;
 
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -198,11 +199,15 @@ public class DefaultHandlingResult implements HandlingResult {
   }
 
   @Override
-  public Throwable getException() {
+  public <T extends Throwable> T exception(Class<T> clazz) {
     if (throwable == null) {
       throw new HandlerExceptionNotThrownException();
     } else {
-      return throwable;
+      if (clazz.isAssignableFrom(throwable.getClass())) {
+        return clazz.cast(throwable);
+      } else {
+        throw new UnexpectedHandlerException(throwable);
+      }
     }
   }
 

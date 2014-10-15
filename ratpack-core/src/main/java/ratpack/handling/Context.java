@@ -471,7 +471,7 @@ public interface Context extends ExecControl, Registry {
    *       }
    *     });
    *
-   *     assert result.getException().getMessage().equals("bang!");
+   *     assert result.exception(Exception.class).getMessage().equals("bang!");
    *   }
    * }
    * }</pre>

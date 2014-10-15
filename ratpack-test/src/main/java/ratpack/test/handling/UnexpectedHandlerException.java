@@ -17,12 +17,11 @@
 package ratpack.test.handling;
 
 /**
- * Exception thrown when the HandlingResult.exception(type) is called but no exception was thrown.
+ * Exception throw when a handler throws an exception that is different from the expected type in HandlingResult.exception(class)
  */
-public class HandlerExceptionNotThrownException extends RuntimeException {
+public class UnexpectedHandlerException extends RuntimeException {
 
-  public HandlerExceptionNotThrownException() {
-    super("No exception thrown for HandlingResult.exception(Class<T>)");
+  public UnexpectedHandlerException(Throwable t) {
+    super(t);
   }
-
 }

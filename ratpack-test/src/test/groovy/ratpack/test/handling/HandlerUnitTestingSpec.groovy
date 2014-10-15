@@ -43,6 +43,11 @@ class HandlerUnitTestingSpec extends Specification {
   @Delegate
   HandlingResult result
 
+  // Declare this method due to https://jira.codehaus.org/browse/GROOVY-7118
+  public <T extends Throwable> T exception(Class<T> clazz) {
+    result.exception(clazz)
+  }
+
   void handle(@DelegatesTo(Context) Closure handler) {
     result = fixture.handle(groovyHandler(handler))
   }
@@ -165,7 +170,7 @@ class HandlerUnitTestingSpec extends Specification {
     handle {
       next()
     }
-    exception
+    exception(Exception)
 
     then:
     thrown(HandlerExceptionNotThrownException)
@@ -275,8 +280,8 @@ class HandlerUnitTestingSpec extends Specification {
     }
 
     then:
-    exception instanceof RuntimeException
-    exception.message == "!"
+    RuntimeException e = exception(RuntimeException)
+    e.message == "!"
   }
 
   def "captures client errors"() {
