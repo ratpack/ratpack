@@ -20,7 +20,6 @@ import com.google.common.base.Predicate;
 import com.google.common.reflect.TypeToken;
 import groovy.lang.Closure;
 import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
 import ratpack.api.NonBlocking;
 import ratpack.api.Nullable;
 import ratpack.exec.*;
@@ -207,8 +206,8 @@ public class DefaultGroovyContext implements GroovyContext {
   }
 
   @Override
-  public <T> void stream(Publisher<T> publisher, Subscriber<? super T> subscriber) {
-    delegate.stream(publisher, subscriber);
+  public <T> Publisher<T> stream(Publisher<T> publisher) {
+    return delegate.stream(publisher);
   }
 
   @Override

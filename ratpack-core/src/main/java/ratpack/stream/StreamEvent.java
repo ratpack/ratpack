@@ -49,8 +49,8 @@ public interface StreamEvent<T> {
   /**
    * Whether or not this event represents an error.
    * <p>
-   * If this method returns {@code true}, {@link #getError()} will return the corresponding exception.
-   * If this method returns {@code false}, {@link #getError()} will return {@code null}.
+   * If this method returns {@code true}, {@link #getThrowable()} will return the corresponding exception.
+   * If this method returns {@code false}, {@link #getThrowable()} will return {@code null}.
    *
    * @return whether or not this event represents an error
    */
@@ -102,7 +102,7 @@ public interface StreamEvent<T> {
    * @return the error if this event represents an error, else {@code null}
    */
   @Nullable
-  Throwable getError();
+  Throwable getThrowable();
 
   /**
    * The data, if this event represents an emission of data.

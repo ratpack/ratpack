@@ -43,6 +43,11 @@ class HandlerUnitTestingSpec extends Specification {
   @Delegate
   HandlingResult result
 
+  // Declare this method due to https://jira.codehaus.org/browse/GROOVY-7118
+  public <T extends Throwable> T exception(Class<T> clazz) {
+    result.exception(clazz)
+  }
+
   void handle(@DelegatesTo(Context) Closure handler) {
     result = fixture.handle(groovyHandler(handler))
   }
@@ -64,7 +69,6 @@ class HandlerUnitTestingSpec extends Specification {
     bodyBytes == null
     calledNext
     !sentResponse
-    exception == null
     sentFile == null
   }
 
@@ -77,7 +81,6 @@ class HandlerUnitTestingSpec extends Specification {
     bodyBytes == "foo".getBytes(CharsetUtil.UTF_8)
     !calledNext
     sentResponse
-    exception == null
     sentFile == null
     headers.get("content-type") == "text/plain;charset=UTF-8"
   }
@@ -91,7 +94,6 @@ class HandlerUnitTestingSpec extends Specification {
     bodyBytes == "foo".getBytes(CharsetUtil.UTF_8)
     !calledNext
     sentResponse
-    exception == null
     headers.get("content-type") == "application/octet-stream"
     sentFile == null
   }
@@ -105,7 +107,6 @@ class HandlerUnitTestingSpec extends Specification {
     bodyBytes == null
     !calledNext
     !sentResponse
-    exception == null
     sentFile == new File("foo").toPath()
     headers.get("content-type") == "text/plain"
   }
@@ -126,7 +127,6 @@ class HandlerUnitTestingSpec extends Specification {
     bodyBytes == null
     !calledNext
     !sentResponse
-    exception == null
     sentFile == new File("foo").toPath()
     headers.get("content-type") == "text/plain"
     onCloseCalledWrapper.get()
@@ -163,6 +163,17 @@ class HandlerUnitTestingSpec extends Specification {
 
     then:
     thrown HandlerTimeoutException
+  }
+
+  def "will throw if no exception thrown"() {
+    when:
+    handle {
+      next()
+    }
+    exception(Exception)
+
+    then:
+    thrown(HandlerExceptionNotThrownException)
   }
 
   def "can set uri"() {
@@ -269,8 +280,20 @@ class HandlerUnitTestingSpec extends Specification {
     }
 
     then:
-    exception instanceof RuntimeException
-    exception.message == "!"
+    RuntimeException e = exception(RuntimeException)
+    e.message == "!"
+  }
+
+  def "throws error if accessing results when exception thrown"() {
+    when:
+    handle {
+      error(new RuntimeException("!"))
+    }
+    bodyText
+
+    then:
+    UnexpectedHandlerException e = thrown(UnexpectedHandlerException)
+    assert e.cause.message == '!'
   }
 
   def "captures client errors"() {

@@ -30,14 +30,14 @@ class RedirectionHandleSpec extends RatpackGroovyDslSpec {
   def "ok for valid"() {
     given:
     handlers {
-      redirect(310, 'http://www.ratpack.io')
+      redirect(301, 'http://www.ratpack.io')
     }
 
     when:
     get()
 
     then:
-    response.statusCode == 310
+    response.statusCode == 301
     response.headers['Location'] == 'http://www.ratpack.io'
   }
 

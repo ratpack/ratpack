@@ -49,10 +49,11 @@ public class CachingPromise<T> implements Promise<T> {
 
   private class Job {
     final Fulfiller<? super T> fulfiller;
-    final ExecutionBacking executionBacking = executionSupplier.get();
+    final ExecutionBacking.StreamHandle streamHandle;
 
-    private Job(Fulfiller<? super T> fulfiller) {
+    private Job(Fulfiller<? super T> fulfiller, ExecutionBacking.StreamHandle streamHandle) {
       this.fulfiller = fulfiller;
+      this.streamHandle = streamHandle;
     }
   }
 
@@ -128,7 +129,7 @@ public class CachingPromise<T> implements Promise<T> {
         Job job = waiting.poll();
         while (job != null) {
           Job finalJob = job;
-          job.executionBacking.join(e -> finalJob.fulfiller.accept(result));
+          job.streamHandle.complete(e -> finalJob.fulfiller.accept(result));
           job = waiting.poll();
         }
       } finally {
@@ -161,9 +162,8 @@ public class CachingPromise<T> implements Promise<T> {
           }
         });
       } else {
-        Job job = new Job(fulfiller);
-        job.executionBacking.continueVia(() -> {
-          waiting.add(job);
+        executionSupplier.get().streamSubscribe((streamHandle) -> {
+          waiting.add(new Job(fulfiller, streamHandle));
           if (result.get() != null) {
             tryDrain();
           }

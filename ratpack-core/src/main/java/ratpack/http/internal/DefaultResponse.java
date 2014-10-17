@@ -279,7 +279,7 @@ public class DefaultResponse implements Response {
   public void sendStream(Publisher<? extends ByteBuf> stream) {
     finalizeResponse();
     setCookieHeader();
-    execControl.stream(stream, responseTransmitter.transmitter(status));
+    stream.subscribe(responseTransmitter.transmitter(status));
   }
 
   @Override

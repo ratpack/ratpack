@@ -17,6 +17,7 @@
 package ratpack.stream;
 
 import org.reactivestreams.Publisher;
+import ratpack.exec.Promise;
 import ratpack.func.Action;
 import ratpack.func.Function;
 import ratpack.launch.LaunchConfig;
@@ -97,7 +98,24 @@ public class Streams {
    * @return a publisher that applies the given transformation to each item from the input stream
    */
   public static <I, O> Publisher<O> map(Publisher<I> input, Function<? super I, ? extends O> function) {
-    return new TransformingPublisher<>(input, function);
+    return new MapPublisher<>(input, function);
+  }
+
+  /**
+   * Returns a publisher that publishes items from the given input publisher after transforming each item via the given, promise returning, function.
+   * <p>
+   * The returned publisher does not perform any flow control on the data stream.
+   * <p>
+   * If the given transformation errors, or if the returned promise fails, the exception will be forwarded to the subscriber and the subscription to the input stream will be cancelled.
+   *
+   * @param input the stream of input data
+   * @param function the transformation
+   * @param <I> the type of input item
+   * @param <O> the type of output item
+   * @return a publisher that applies the given transformation to each item from the input stream
+   */
+  public static <I, O> Publisher<O> flatMap(Publisher<I> input, Function<? super I, ? extends Promise<? extends O>> function) {
+    return new FlatMapPublisher<>(input, function);
   }
 
   /**

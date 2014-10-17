@@ -32,18 +32,19 @@ public class SafeFulfiller<T> implements Fulfiller<T> {
 
   private final Fulfiller<? super T> delegate;
   private final AtomicBoolean fulfilled = new AtomicBoolean();
-  private final ExecutionBacking executionBacking;
+  private final ExecutionBacking.StreamHandle streamHandle;
 
-  public SafeFulfiller(ExecutionBacking executionBacking, Fulfiller<? super T> delegate) {
-    this.executionBacking = executionBacking;
+  public SafeFulfiller(ExecutionBacking.StreamHandle streamHandle, Fulfiller<? super T> delegate) {
+    this.streamHandle = streamHandle;
     this.delegate = delegate;
   }
 
   public static <T> Consumer<? super Fulfiller<? super T>> wrapping(Supplier<? extends ExecutionBacking> backingSupplier, Action<? super Fulfiller<T>> action) {
     return f -> {
       ExecutionBacking backing = backingSupplier.get();
-      SafeFulfiller<T> safe = new SafeFulfiller<>(backing, f);
-      backing.continueVia(() -> {
+      backing.streamSubscribe((streamHandle) -> {
+        SafeFulfiller<T> safe = new SafeFulfiller<>(streamHandle, f);
+
         try {
           action.execute(safe);
         } catch (Throwable throwable) {
@@ -64,7 +65,7 @@ public class SafeFulfiller<T> implements Fulfiller<T> {
       return;
     }
 
-    executionBacking.join(e -> delegate.error(throwable));
+    streamHandle.complete(e -> delegate.error(throwable));
   }
 
   @Override
@@ -74,6 +75,6 @@ public class SafeFulfiller<T> implements Fulfiller<T> {
       return;
     }
 
-    executionBacking.join(e -> delegate.success(value));
+    streamHandle.complete(e -> delegate.success(value));
   }
 }

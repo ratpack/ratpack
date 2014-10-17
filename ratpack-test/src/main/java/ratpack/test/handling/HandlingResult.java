@@ -68,15 +68,18 @@ public interface HandlingResult {
   /**
    * The throwable thrown or given to {@link ratpack.handling.Context#error(Throwable)}, unless a custom error handler is in use.
    * <p>
-   * If no throwable was “raised”, will be {@code null}.
+   * If no throwable was “raised”, a new {@link ratpack.test.handling.HandlerExceptionNotThrownException} is raised.
    * <p>
-   * If a custom error handler is used (either by specification in the request fixture or insertion by an upstream handler), this will always be {@code null}.
+   * If a custom error handler is used (either by specification in the request fixture or insertion by an upstream handler),
+   * this will always raise a new {@link ratpack.test.handling.HandlerExceptionNotThrownException}
    * In such a case, this result effectively indicates what the custom error handler did as its implementation.
    *
-   * @return the “unhandled” throwable that occurred, or {@code null}
+   * @param type The expected type of the exception captured.
+   * @param <T> The expected type of the exception captured.
+   * @return the “unhandled” throwable that occurred, or raise {@link ratpack.test.handling.HandlerExceptionNotThrownException}
    */
   @Nullable
-  Throwable getException();
+  <T extends Throwable> T exception(Class<T> type);
 
   /**
    * The final response headers.

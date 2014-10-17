@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,15 @@
  * limitations under the License.
  */
 
-package ratpack.exec;
+package ratpack.test.handling;
 
-import java.util.Optional;
+/**
+ * Exception throw when a handler throws an exception that is different from the expected type in HandlingResult.exception(class)
+ * or when an exception was thrown when trying to access the results of a completed handler.
+ */
+public class UnexpectedHandlerException extends RuntimeException {
 
-public interface ExecutionSnapshot {
-
-  String getId();
-
-  boolean getWaiting();
-
-  Long getStartedAt();
-
-  Optional<StackTraceElement[]> getStartedTrace();
-
+  public UnexpectedHandlerException(Throwable t) {
+    super(t);
+  }
 }

@@ -46,8 +46,10 @@ import ratpack.render.internal.RenderController;
 import ratpack.server.BindAddress;
 import ratpack.server.Stopper;
 import ratpack.server.internal.NettyHandlerAdapter;
+import ratpack.test.handling.HandlerExceptionNotThrownException;
 import ratpack.test.handling.HandlerTimeoutException;
 import ratpack.test.handling.HandlingResult;
+import ratpack.test.handling.UnexpectedHandlerException;
 
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -170,6 +172,9 @@ public class DefaultHandlingResult implements HandlingResult {
 
   @Override
   public byte[] getBodyBytes() {
+    if (throwable != null) {
+      throw new UnexpectedHandlerException(throwable);
+    }
     if (sentResponse) {
       return body;
     } else {
@@ -179,6 +184,9 @@ public class DefaultHandlingResult implements HandlingResult {
 
   @Override
   public String getBodyText() {
+    if (throwable != null) {
+      throw new UnexpectedHandlerException(throwable);
+    }
     if (sentResponse) {
       return new String(body, CharsetUtil.UTF_8);
     } else {
@@ -197,8 +205,16 @@ public class DefaultHandlingResult implements HandlingResult {
   }
 
   @Override
-  public Throwable getException() {
-    return throwable;
+  public <T extends Throwable> T exception(Class<T> clazz) {
+    if (throwable == null) {
+      throw new HandlerExceptionNotThrownException();
+    } else {
+      if (clazz.isAssignableFrom(throwable.getClass())) {
+        return clazz.cast(throwable);
+      } else {
+        throw new UnexpectedHandlerException(throwable);
+      }
+    }
   }
 
   @Override
@@ -228,6 +244,9 @@ public class DefaultHandlingResult implements HandlingResult {
 
   @Override
   public boolean isCalledNext() {
+    if (throwable != null) {
+      throw new UnexpectedHandlerException(throwable);
+    }
     return calledNext;
   }
 
@@ -238,6 +257,9 @@ public class DefaultHandlingResult implements HandlingResult {
 
   @Override
   public <T> T rendered(Class<T> type) {
+    if (throwable != null) {
+      throw new UnexpectedHandlerException(throwable);
+    }
     if (rendered == null) {
       return null;
     }

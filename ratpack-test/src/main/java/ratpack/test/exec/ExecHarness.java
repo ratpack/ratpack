@@ -16,24 +16,32 @@
 
 package ratpack.test.exec;
 
-import ratpack.exec.ExecControl;
-import ratpack.exec.ExecStarter;
-import ratpack.exec.Promise;
+import org.reactivestreams.Publisher;
+import ratpack.exec.*;
 import ratpack.exec.internal.DefaultExecController;
 import ratpack.func.Action;
 import ratpack.func.Function;
 import ratpack.test.exec.internal.DefaultExecHarness;
+
+import java.util.concurrent.Callable;
 
 /**
  * A utility for testing asynchronous support/service code.
  * <p>
  * An execution harness is backed by a thread pool.
  * It is important to call {@link #close()} when the object is no longer needed to shutdown this thread pool.
+ * Alternatively, if you are performing a single operation you can use one of the {@code *single} static methods.
+ *
+ * @see #yield(Function)
+ * @see #yieldSingle(Function)
+ * @see #run(Action)
+ * @see #runSingle(Action)
  */
-public interface ExecHarness extends AutoCloseable {
+public interface ExecHarness extends ExecControl, AutoCloseable {
 
   /**
    * Creates a new execution harness.
+   *
    * <pre class="java">{@code
    * import ratpack.exec.ExecControl;
    * import ratpack.exec.Promise;
@@ -119,8 +127,28 @@ public interface ExecHarness extends AutoCloseable {
     }
   }
 
+  /**
+   * Initiates an execution and blocks until it completes.
+   *
+   * If an uncaught exception is thrown during the execution, it will be thrown by this method.
+   * <p>
+   * This method is useful for testing an execution that has some detectable side effect, as this method does not return the “result” of the execution.
+   *
+   * @param action the start of the execution
+   * @throws Exception any thrown during the execution that is not explicitly caught
+   * @see #runSingle(Action)
+   * @see #yield(Function)
+   */
   public void run(Action<? super ExecControl> action) throws Exception;
 
+  /**
+   * Convenient form of {@link #run(Action)} that creates and closes a harness for the run.
+   *
+   * @param action the start of the execution
+   * @throws Exception any thrown during the execution that is not explicitly caught
+   * @see #run(Action)
+   * @see #yield(Function)
+   */
   static public void runSingle(Action<? super ExecControl> action) throws Exception {
     try (ExecHarness harness = harness()) {
       harness.run(action);
@@ -130,20 +158,71 @@ public interface ExecHarness extends AutoCloseable {
   /**
    * The execution control for the harness.
    * <p>
-   * This is typically given to the code under test to perform the async ops.
+   * Note that the execution harness implements {@link ExecControl} itself, simply delegating calls this the return of this method.
    *
-   * @return an execution control.
+   * @return an execution control
    */
   public ExecControl getControl();
-
-  default ExecStarter exec() {
-    return getControl().exec();
-  }
 
   /**
    * Shuts down the thread pool backing this harness.
    */
   @Override
   void close();
+
+  /**
+   * {@inheritDoc}
+   */
+  default ExecStarter exec() {
+    return getControl().exec();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  default Execution getExecution() {
+    return getControl().getExecution();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  default ExecController getController() {
+    return getControl().getController();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  default void addInterceptor(ExecInterceptor execInterceptor, Action<? super Execution> continuation) throws Exception {
+    getControl().addInterceptor(execInterceptor, continuation);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  default <T> Promise<T> blocking(Callable<T> blockingOperation) {
+    return getControl().blocking(blockingOperation);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  default <T> Promise<T> promise(Action<? super Fulfiller<T>> action) {
+    return getControl().promise(action);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  default <T> Publisher<T> stream(Publisher<T> publisher) {
+    return getControl().stream(publisher);
+  }
 
 }

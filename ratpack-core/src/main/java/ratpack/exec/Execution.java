@@ -67,8 +67,6 @@ public interface Execution extends MutableRegistry {
   // TODO: this is not the right name.
   void onCleanup(AutoCloseable autoCloseable);
 
-  void checkpoint(String checkpointId);
-
   /**
    * {@inheritDoc}
    */

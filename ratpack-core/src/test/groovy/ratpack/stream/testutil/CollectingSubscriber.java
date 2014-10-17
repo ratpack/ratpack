@@ -20,14 +20,29 @@ import com.beust.jcommander.internal.Lists;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import ratpack.exec.Result;
 
 import java.util.List;
+import java.util.function.Consumer;
 
 public class CollectingSubscriber<T> implements Subscriber<T> {
   public final List<T> received = Lists.newLinkedList();
   public Subscription subscription;
   public Throwable error;
   public boolean complete;
+  public final Consumer<? super Result<List<T>>> consumer;
+  private final Consumer<? super Subscription> subscriptionConsumer;
+
+  public CollectingSubscriber() {
+    this(r -> {
+    }, s -> {
+    });
+  }
+
+  public CollectingSubscriber(Consumer<? super Result<List<T>>> resultConsumer, Consumer<? super Subscription> subscriptionConsumer) {
+    this.consumer = resultConsumer;
+    this.subscriptionConsumer = subscriptionConsumer;
+  }
 
   public static <T> CollectingSubscriber<T> subscribe(Publisher<T> publisher) {
     CollectingSubscriber<T> subscriber = new CollectingSubscriber<>();
@@ -38,6 +53,7 @@ public class CollectingSubscriber<T> implements Subscriber<T> {
   @Override
   public void onSubscribe(Subscription s) {
     subscription = s;
+    subscriptionConsumer.accept(s);
   }
 
   @Override
@@ -48,11 +64,14 @@ public class CollectingSubscriber<T> implements Subscriber<T> {
   @Override
   public void onError(Throwable t) {
     error = t;
+    consumer.accept(Result.<List<T>>failure(t));
   }
 
   @Override
   public void onComplete() {
     complete = true;
+    consumer.accept(Result.success(received));
+
   }
 
 }

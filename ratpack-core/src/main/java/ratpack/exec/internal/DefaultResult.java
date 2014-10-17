@@ -34,7 +34,7 @@ public class DefaultResult<T> implements Result<T> {
   }
 
   @Override
-  public Throwable getFailure() {
+  public Throwable getThrowable() {
     return failure;
   }
 

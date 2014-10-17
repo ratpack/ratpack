@@ -214,7 +214,7 @@ public class DefaultResponseTransmitter implements ResponseTransmitter {
 
       @Override
       public void onError(Throwable t) {
-        LOGGER.debug("Exception thrown transmitting stream", t);
+        LOGGER.warn("Exception thrown transmitting stream", t);
         if (done.compareAndSet(false, true)) {
           post(responseStatus);
         }

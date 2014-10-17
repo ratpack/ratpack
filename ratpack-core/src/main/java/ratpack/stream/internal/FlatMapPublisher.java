@@ -19,16 +19,17 @@ package ratpack.stream.internal;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import ratpack.exec.Promise;
 import ratpack.func.Function;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class TransformingPublisher<O, I> implements Publisher<O> {
+public class FlatMapPublisher<O, I> implements Publisher<O> {
 
   private final Publisher<I> input;
-  private final Function<? super I, ? extends O> function;
+  private final Function<? super I, ? extends Promise<? extends O>> function;
 
-  public TransformingPublisher(Publisher<I> input, Function<? super I, ? extends O> function) {
+  public FlatMapPublisher(Publisher<I> input, Function<? super I, ? extends Promise<? extends O>> function) {
     this.input = input;
     this.function = function;
   }
@@ -48,7 +49,7 @@ public class TransformingPublisher<O, I> implements Publisher<O> {
 
       @Override
       public void onNext(I in) {
-        O out;
+        Promise<? extends O> out;
         try {
           out = function.apply(in);
         } catch (Throwable throwable) {
@@ -57,9 +58,14 @@ public class TransformingPublisher<O, I> implements Publisher<O> {
           return;
         }
 
-        if (!done.get()) {
-          outSubscriber.onNext(out);
-        }
+        out.onError(e -> {
+          subscription.cancel();
+          onError(e);
+        }).then(v -> {
+          if (!done.get()) {
+            outSubscriber.onNext(v);
+          }
+        });
       }
 
       @Override

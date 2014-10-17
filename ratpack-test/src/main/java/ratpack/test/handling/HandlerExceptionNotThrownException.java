@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,15 @@
  * limitations under the License.
  */
 
-package ratpack.exec;
+package ratpack.test.handling;
 
-import java.util.Optional;
+/**
+ * Exception thrown when the HandlingResult.exception(type) is called but no exception was thrown.
+ */
+public class HandlerExceptionNotThrownException extends RuntimeException {
 
-public interface ExecutionSnapshot {
-
-  String getId();
-
-  boolean getWaiting();
-
-  Long getStartedAt();
-
-  Optional<StackTraceElement[]> getStartedTrace();
+  public HandlerExceptionNotThrownException() {
+    super("No exception thrown for HandlingResult.exception(Class<T>)");
+  }
 
 }

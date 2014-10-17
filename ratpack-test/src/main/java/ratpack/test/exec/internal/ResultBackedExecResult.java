@@ -33,8 +33,8 @@ public class ResultBackedExecResult<T> implements ExecResult<T> {
   }
 
   @Override
-  public Throwable getFailure() {
-    return result.getFailure();
+  public Throwable getThrowable() {
+    return result.getThrowable();
   }
 
   @Override
