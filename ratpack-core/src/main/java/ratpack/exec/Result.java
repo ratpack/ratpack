@@ -53,7 +53,7 @@ public interface Result<T> {
    *
    * @return The failure exception, or null if the result was not failure.
    */
-  Throwable getFailure();
+  Throwable getThrowable();
 
   /**
    * The result value.
@@ -84,7 +84,7 @@ public interface Result<T> {
    */
   default T getValueOrThrow() throws Exception {
     if (isFailure()) {
-      throw ExceptionUtils.toException(getFailure());
+      throw ExceptionUtils.toException(getThrowable());
     } else {
       return getValue();
     }

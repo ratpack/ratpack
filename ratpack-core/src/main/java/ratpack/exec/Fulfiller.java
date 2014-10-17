@@ -101,7 +101,7 @@ public interface Fulfiller<T> {
     if (result.isSuccess()) {
       success(result.getValue());
     } else {
-      error(result.getFailure());
+      error(result.getThrowable());
     }
   }
 

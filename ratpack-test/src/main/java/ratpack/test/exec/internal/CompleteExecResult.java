@@ -26,7 +26,7 @@ public class CompleteExecResult<T> implements ExecResult<T> {
   }
 
   @Override
-  public Throwable getFailure() {
+  public Throwable getThrowable() {
     return null;
   }
 
