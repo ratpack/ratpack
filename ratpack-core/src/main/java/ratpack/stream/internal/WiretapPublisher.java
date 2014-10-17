@@ -153,7 +153,7 @@ public class WiretapPublisher<T> implements Publisher<T> {
 
     @Nullable
     @Override
-    public Throwable getError() {
+    public Throwable getThrowable() {
       return null;
     }
 
@@ -216,7 +216,7 @@ public class WiretapPublisher<T> implements Publisher<T> {
 
     @Nullable
     @Override
-    public Throwable getError() {
+    public Throwable getThrowable() {
       return null;
     }
 
@@ -279,7 +279,7 @@ public class WiretapPublisher<T> implements Publisher<T> {
 
     @Nullable
     @Override
-    public Throwable getError() {
+    public Throwable getThrowable() {
       return error;
     }
 
@@ -357,7 +357,7 @@ public class WiretapPublisher<T> implements Publisher<T> {
 
     @Nullable
     @Override
-    public Throwable getError() {
+    public Throwable getThrowable() {
       return null;
     }
 
@@ -422,7 +422,7 @@ public class WiretapPublisher<T> implements Publisher<T> {
 
     @Nullable
     @Override
-    public Throwable getError() {
+    public Throwable getThrowable() {
       return null;
     }
 
