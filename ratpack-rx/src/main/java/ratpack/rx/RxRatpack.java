@@ -43,6 +43,11 @@ import static ratpack.util.ExceptionUtils.toException;
  * Provides integration with <a href="https://github.com/Netflix/RxJava">RxJava</a>.
  * <p>
  * <b>IMPORTANT:</b> the {@link #initialize()} method must be called to fully enable integration.
+ * <p>
+ * Ratpack supports testing RX {@link Observable} by first converting it to a Ratpack {@link ratpack.exec.Promise}.
+ * Use the {@link ratpack.rx.RxRatpack#promise(rx.Observable)} method to convert the observable to a promise.
+ * See the documentation for {@link ratpack.rx.RxRatpack#promise(rx.Observable)} for an example of testing observables.
+ * </p>
  */
 public abstract class RxRatpack {
 
@@ -179,6 +184,54 @@ public abstract class RxRatpack {
    */
   public static <T> Observable<T> observe(Promise<T> promise) {
     return Observable.create(new PromiseSubscribe<>(promise, (thing, subscriber) -> subscriber.onNext(thing)));
+  }
+
+  /**
+   * Converts a Rx {@link Observable} into a Ratpack {@link Promise}.
+   * <p>
+   * For example, this can be used unit test Rx observables.
+   * <pre class="java">{@code
+   * import ratpack.test.exec.ExecHarness;
+   * import ratpack.test.exec.ExecResult;
+   * import rx.Observable;
+   *
+   * import java.util.List;
+   *
+   * import static ratpack.rx.RxRatpack.promise;
+   *
+   * public class Example {
+   *
+   *   // Our service class that returns an observable
+   *   // In the real app this is created by the DI container (e.g. Guice)
+   *   static class AsyncService {
+   *
+   *     // Our method under test
+   *     public <T> Observable<T> observe(final T value) {
+   *       return Observable.just(value);
+   *     }
+   *   }
+   *
+   *   public static void main(String[] args) throws Throwable {
+   *
+   *     // set up the code under test that returns observables
+   *     final AsyncService service = new AsyncService();
+   *
+   *     // exercise the async code using the harness, blocking until the promised value is available
+   *     ExecResult<List<String>> result = ExecHarness.yieldSingle(execution -> promise(service.observe("foo")));
+   *
+   *     List<String> results = result.getValue();
+   *     assert results.size() == 1;
+   *     assert results.get(0).equals("foo");
+   *   }
+   * }
+   * }</pre>
+   *
+   * @param observable The observable
+   * @param <T> The type of the value observed
+   * @return a promise that returns all values from the observable
+   */
+  public static <T> Promise<List<T>> promise(Observable<T> observable) {
+    return getExecControl().promise(f -> observable.toList().subscribe(f::success, f::error));
   }
 
   /**
