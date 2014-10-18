@@ -54,7 +54,7 @@ public class DefaultExecControl implements ExecControl {
   private ExecutionBacking getBacking() {
     ExecutionBacking executionBacking = threadBinding.get();
     if (executionBacking == null) {
-      throw new ExecutionException("Current thread has no bound execution");
+      throw new ExecutionException("Current thread (" + Thread.currentThread().getName() + ") has no bound execution.");
     } else {
       return executionBacking;
     }

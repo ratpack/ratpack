@@ -95,7 +95,7 @@ public interface ExecHarness extends ExecControl, AutoCloseable {
    * }</pre>
    *
    * When using Ratpack's RxJava integration, ExecHarness can be used to test {@code rx.Observable} instances by first converting them to a promise.
-   * See the {@code ratpack.rx.RxRatpack.promise(Observable)} documentation for an example of testing observables.
+   * See the {@code ratpack.rx.RxRatpack.asPromise(Observable)} documentation for an example of testing observables.
    *
    * @return a new execution harness
    */

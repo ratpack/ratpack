@@ -53,4 +53,8 @@ public class DefaultResult<T> implements Result<T> {
     return failure != null;
   }
 
+  @Override
+  public String toString() {
+    return "Result{failure=" + failure + ", value=" + value + '}';
+  }
 }

@@ -44,16 +44,15 @@ import static ratpack.util.ExceptionUtils.toException;
  * <p>
  * <b>IMPORTANT:</b> the {@link #initialize()} method must be called to fully enable integration.
  * <p>
- * Ratpack supports testing RX {@link Observable} by first converting it to a Ratpack {@link ratpack.exec.Promise}.
- * Use the {@link ratpack.rx.RxRatpack#promise(rx.Observable)} method to convert the observable to a promise.
- * See the documentation for {@link ratpack.rx.RxRatpack#promise(rx.Observable)} for an example of testing observables.
- * </p>
+ * The methods of this class provide bi-directional conversion between Ratpack's {@link Promise} and RxJava's {@link Observable}.
+ * This allows Ratpack promise based API to be integrated into an RxJava based app and vice versa.
+ * <p>
+ * When using observables for asynchronous actions, it is generally required to wrap promises created by an {@link ExecControl} in order to integrate with Ratpack's execution model.
+ * This typically means using {@link ExecControl#promise(Action)} or {@link ExecControl#blocking(java.util.concurrent.Callable)} to initiate the operation and then wrapping with {@link #observe(Promise)} or similar.
+ * <p>
+ * To test observable based services that use Ratpack's execution semantics, use the {@code ExecHarness} and convert the observable back to a promise with {@link #asPromise(Observable)}.
  */
 public abstract class RxRatpack {
-
-  private static ExecControl getExecControl() {
-    return ExecController.current().map(ExecController::getControl).orElse(null);
-  }
 
   /**
    * Registers an {@link RxJavaObservableExecutionHook} with RxJava that provides a default error handling strategy of forwarding exceptions to the execution error handler.
@@ -197,15 +196,14 @@ public abstract class RxRatpack {
    *
    * import java.util.List;
    *
-   * import static ratpack.rx.RxRatpack.promise;
+   * import static ratpack.rx.RxRatpack.asPromise;
    *
    * public class Example {
    *
-   *   // Our service class that returns an observable
-   *   // In the real app this is created by the DI container (e.g. Guice)
    *   static class AsyncService {
-   *
    *     // Our method under test
+   *     // Typically this would be returning an Observable of an asynchronously produced value (using RxRatpack.observe()),
+   *     // but for this example we are just faking it with a simple literal observable
    *     public <T> Observable<T> observe(final T value) {
    *       return Observable.just(value);
    *     }
@@ -217,7 +215,7 @@ public abstract class RxRatpack {
    *     final AsyncService service = new AsyncService();
    *
    *     // exercise the async code using the harness, blocking until the promised value is available
-   *     ExecResult<List<String>> result = ExecHarness.yieldSingle(execution -> promise(service.observe("foo")));
+   *     ExecResult<List<String>> result = ExecHarness.yieldSingle(execution -> asPromise(service.observe("foo")));
    *
    *     List<String> results = result.getValue();
    *     assert results.size() == 1;
@@ -226,12 +224,40 @@ public abstract class RxRatpack {
    * }
    * }</pre>
    *
-   * @param observable The observable
-   * @param <T> The type of the value observed
+   * @param observable the observable
+   * @param <T> the type of the value observed
    * @return a promise that returns all values from the observable
+   * @see #asPromiseSingle(Observable)
    */
-  public static <T> Promise<List<T>> promise(Observable<T> observable) {
-    return getExecControl().promise(f -> observable.toList().subscribe(f::success, f::error));
+  public static <T> Promise<List<T>> asPromise(Observable<T> observable) {
+    return ExecController.require().getControl().promise(f -> observable.toList().subscribe(f::success, f::error));
+  }
+
+  /**
+   * Convenience for converting an {@link Observable} to a {@link Promise} when it is known that the observable sequence is of zero or one elements.
+   * <p>
+   * Has the same behavior as {@link #asPromise(Observable)}, except that the list representation of the sequence is “unpacked”.
+   * <p>
+   * If the observable sequence produces no elements, the promised value will be {@code null}.
+   * If the observable sequence produces one element, the promised value will be that element.
+   * If the observable sequence produces more than one element, the promised will fail with an {@link IllegalAccessException}.
+   *
+   * @param observable the observable
+   * @param <T> the type of the value observed
+   * @return a promise that returns the sole value from the observable
+   * @see #asPromise(Observable)
+   */
+  public static <T> Promise<T> asPromiseSingle(Observable<T> observable) {
+    return asPromise(observable).map(l -> {
+      int size = l.size();
+      if (size == 0) {
+        return null;
+      } else if (size == 1) {
+        return l.get(0);
+      } else {
+        throw new IllegalArgumentException("Observable sequence returned more than one element");
+      }
+    });
   }
 
   /**
@@ -461,18 +487,14 @@ public abstract class RxRatpack {
   private static class ExecutionHook extends RxJavaObservableExecutionHook {
 
     @Override
-    public <T> Observable.OnSubscribe<T> onSubscribeStart(Observable<? extends T> observableInstance, final Observable.OnSubscribe<T> onSubscribe) {
-      final ExecControl execControl = getExecControl();
-      if (execControl != null) {
-        return new Observable.OnSubscribe<T>() {
-          @Override
-          public void call(final Subscriber<? super T> subscriber) {
-            onSubscribe.call(new ExecutionBackedSubscriber<>(execControl, subscriber));
-          }
-        };
-      } else {
-        return onSubscribe;
-      }
+    public <T> Observable.OnSubscribe<T> onSubscribeStart(Observable<? extends T> observableInstance, Observable.OnSubscribe<T> onSubscribe) {
+      return ExecController.current()
+        .map(e -> executionBackedOnSubscribe(onSubscribe, e))
+        .orElse(onSubscribe);
+    }
+
+    private <T> Observable.OnSubscribe<T> executionBackedOnSubscribe(final Observable.OnSubscribe<T> onSubscribe, final ExecController e) {
+      return (subscriber) -> onSubscribe.call(new ExecutionBackedSubscriber<>(e.getControl(), subscriber));
     }
   }
 
@@ -511,7 +533,6 @@ public abstract class RxRatpack {
       }
     }
   }
-
 
 }
 

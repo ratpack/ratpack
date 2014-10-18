@@ -175,7 +175,7 @@ class HystrixRequestCachingSpec extends HttpClientSpec {
         @Override
         protected rx.Observable<String> run() {
           assert Thread.currentThread().name.startsWith("ratpack-compute-")
-          return RxRatpack.observe(ExecController.current().get().control.blocking {
+          return RxRatpack.observe(ExecController.require().control.blocking {
             assert Thread.currentThread().name.startsWith("ratpack-blocking-")
             return requestNumber
           })

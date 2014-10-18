@@ -50,4 +50,8 @@ public class CompleteExecResult<T> implements ExecResult<T> {
     return null;
   }
 
+  @Override
+  public String toString() {
+    return "ExecResult{complete=true}";
+  }
 }
