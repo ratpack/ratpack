@@ -31,7 +31,6 @@ import rx.functions.Action0
 import rx.functions.Action1
 
 import static ratpack.rx.RxRatpack.observe
-import static ratpack.rx.RxRatpack.subscriber
 
 class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
 
@@ -310,7 +309,22 @@ class RxErrorHandlingSpec extends RatpackGroovyDslSpec {
       get { ExecController execController ->
         promise { f ->
           execController.executor.execute {
-            Observable.error(error).subscribe(subscriber(f))
+            Observable.error(error).subscribe(new Subscriber() {
+              @Override
+              void onCompleted() {
+
+              }
+
+              @Override
+              void onError(Throwable e) {
+                f.error(e)
+              }
+
+              @Override
+              void onNext(Object o) {
+
+              }
+            })
           }
         } then {
           render "unexpected"

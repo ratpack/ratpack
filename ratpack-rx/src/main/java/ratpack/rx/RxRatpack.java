@@ -18,7 +18,6 @@ package ratpack.rx;
 
 import ratpack.exec.ExecControl;
 import ratpack.exec.ExecController;
-import ratpack.exec.Fulfiller;
 import ratpack.exec.Promise;
 import ratpack.func.Action;
 import ratpack.rx.internal.DefaultSchedulers;
@@ -29,7 +28,6 @@ import rx.Scheduler;
 import rx.Subscriber;
 import rx.exceptions.OnErrorNotImplementedException;
 import rx.functions.Action2;
-import rx.internal.operators.OperatorSingle;
 import rx.plugins.RxJavaObservableExecutionHook;
 import rx.plugins.RxJavaPlugins;
 import rx.plugins.RxJavaSchedulersHook;
@@ -427,25 +425,6 @@ public abstract class RxRatpack {
           });
       }
     };
-  }
-
-  public static <T> Subscriber<? super T> subscriber(final Fulfiller<T> fulfiller) {
-    return new OperatorSingle<T>().call(new Subscriber<T>() {
-      @Override
-      public void onCompleted() {
-
-      }
-
-      @Override
-      public void onError(Throwable e) {
-        fulfiller.error(e);
-      }
-
-      @Override
-      public void onNext(T t) {
-        fulfiller.success(t);
-      }
-    });
   }
 
   private static class PromiseSubscribe<T, S> implements Observable.OnSubscribe<S> {
