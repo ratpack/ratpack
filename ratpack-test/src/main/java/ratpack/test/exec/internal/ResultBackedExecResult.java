@@ -57,4 +57,8 @@ public class ResultBackedExecResult<T> implements ExecResult<T> {
     return result.getValueOrThrow();
   }
 
+  @Override
+  public String toString() {
+    return "ExecResult{complete=false, failure=" + getThrowable() + ", value=" + getValue() + '}';
+  }
 }

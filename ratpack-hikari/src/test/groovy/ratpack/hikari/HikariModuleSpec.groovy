@@ -19,24 +19,21 @@ package ratpack.hikari
 import groovy.sql.Sql
 import ratpack.groovy.sql.SqlModule
 import ratpack.test.internal.RatpackGroovyDslSpec
-import spock.lang.Unroll
 
 public class HikariModuleSpec extends RatpackGroovyDslSpec {
 
-  @Unroll
-  def "can use db when module #scenario"() {
+  def "can use db"() {
     when:
     bindings {
       add SqlModule
-      add new HikariModule(*moduleConstructorArgs)
+      add HikariModule, {
+        it.addDataSourceProperty("URL", "jdbc:h2:mem:dev;INIT=CREATE SCHEMA IF NOT EXISTS DEV")
+        it.dataSourceClassName = "org.h2.jdbcx.JdbcDataSource"
+      }
 
       init { Sql sql ->
         sql.execute("create table if not exists val(ID INT PRIMARY KEY, val VARCHAR(255));")
       }
-    }
-
-    launchConfig {
-      other(otherSystemProperties)
     }
 
     handlers { Sql sql ->
@@ -60,11 +57,5 @@ public class HikariModuleSpec extends RatpackGroovyDslSpec {
     post('set/0/foo')
     getText('get/0') == "foo"
     getText('schema') == 'DEV'
-
-    where:
-    scenario                                       | moduleConstructorArgs                                                                           | otherSystemProperties
-    'is configured using constructor args'         | [[URL: "jdbc:h2:mem:dev;INIT=CREATE SCHEMA IF NOT EXISTS DEV"], "org.h2.jdbcx.JdbcDataSource"]  | [:]
-    'is configured using system properties'        | []                                                                                              | ["hikari.dataSourceClassName": "org.h2.jdbcx.JdbcDataSource", "hikari.dataSourceProperties.URL": "jdbc:h2:mem:dev;INIT=CREATE SCHEMA IF NOT EXISTS DEV"]
-    'config is overridden using system properties' | [[URL: "jdbc:h2:mem:dev;INIT=CREATE SCHEMA IF NOT EXISTS TEST"], "org.h2.jdbcx.JdbcDataSource"] | ["hikari.dataSourceProperties.URL": "jdbc:h2:mem:dev;INIT=CREATE SCHEMA IF NOT EXISTS DEV"]
   }
 }

@@ -160,9 +160,10 @@ nav.all-toc > ul > li:first-child > {
     @include divider;
   }
 
-  em, :not(pre) > code {
-    @include hyphenation;
-  }
+// Broken in Sass 3.4.6 - https://github.com/sass/sass/issues/1476
+//  em, :not(pre) > code {
+//    @include hyphenation;
+//  }
 
   blockquote {
     background-color: lightgrey;
