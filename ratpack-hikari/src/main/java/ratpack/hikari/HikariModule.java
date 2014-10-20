@@ -16,35 +16,21 @@
 
 package ratpack.hikari;
 
-import com.google.common.collect.Maps;
-import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
-import ratpack.launch.LaunchConfig;
+import ratpack.guice.ConfigurableModule;
 
 import javax.sql.DataSource;
-import java.util.Map;
-import java.util.Properties;
 
 /**
- * An extension module that provides support for HikariCP JDBC connection pool.
+ * An extension module that provides a {@link DataSource} from a HikariCP JDBC connection pool.
  * <p>
- * This module provides a {@code DataSource} instance that is configured based on module's constructor arguments,
- * configuration properties or both.
- * </p>
- * <p>
- * Different constructor variants allow you to configure {@code dataSourceClassName} (note that HikariCP uses {@code javax.sql.DataSource} instances
- * instead of {@code java.sql.Driver} used by other connection pools), {@code minimumIdle} and {@code maximumPoolSize} as well as {@code dataSourceProperties}.
- * </p>
- * <p>
- * If you wish to configure the module using configuration properties you should use the following property names: {@code other.hikari.dataSourceClassName},
- * {@code other.hikari.minimumIdle} and {@code other.hikari.maximumPoolSize}. All configuration properties prefixed with {@code other.hikari.dataSourceProperties} will
- * be used as data source properties - e.g. {@code other.hikari.URL} will be used to set {@code URL} property on the data source.
- * </p>
+ * This is a {@link ConfigurableModule}, exposing the {@link HikariConfig} type as the configuration.
+ * All aspects of the connection pool can be configured through this object.
+ * See {@link ConfigurableModule} for usage patterns.
  * <pre class="java">{@code
- * import com.google.common.collect.ImmutableMap;
  * import ratpack.guice.Guice;
  * import ratpack.hikari.HikariModule;
  * import ratpack.test.embed.EmbeddedApp;
@@ -59,8 +45,10 @@ import java.util.Properties;
  *     EmbeddedApp.fromHandlerFactory(launchConfig ->
  *         Guice.builder(launchConfig)
  *           .bindings(b ->
- *               // Use H2 in memory database
- *               b.add(new HikariModule(ImmutableMap.of("URL", "jdbc:h2:mem:dev"), "org.h2.jdbcx.JdbcDataSource"))
+ *               b.add(HikariModule.class, hikariConfig -> {
+ *                 hikariConfig.setDataSourceClassName("org.h2.jdbcx.JdbcDataSource");
+ *                 hikariConfig.addDataSourceProperty("URL", "jdbc:h2:mem:dev"); // Use H2 in memory database
+ *               })
  *           )
  *           .build(chain -> {
  *             DataSource dataSource = chain.get(DataSource.class);
@@ -102,53 +90,14 @@ import java.util.Properties;
  * }</pre>
  *
  * @see <a href="http://brettwooldridge.github.io/HikariCP/" target="_blank">HikariCP</a>
+ * @see HikariConfig
+ * @see ConfigurableModule
  */
-public class HikariModule extends AbstractModule {
-
-  private final static String DEFAULT_MIN_IDLE_SIZE = "10";
-  private final static String DEFAULT_MAX_POOL_SIZE = "60";
-
-  private Integer minimumIdleSize;
-  private Integer maximumPoolSize;
-  private String dataSourceClassName;
-  private Map<String, String> dataSourceProperties;
-
-  public HikariModule() {
-    this(Maps.newHashMap(), null);
-  }
-
-  public HikariModule(Map<String, String> dataSourceProperties, String dataSourceClassName) {
-    this(dataSourceProperties, dataSourceClassName, null, null);
-  }
-
-  public HikariModule(Map<String, String> dataSourceProperties, String dataSourceClassName, Integer minimumIdleSize, Integer maximumPoolSize) {
-    this.dataSourceProperties = dataSourceProperties;
-    this.dataSourceClassName = dataSourceClassName;
-    this.minimumIdleSize = minimumIdleSize;
-    this.maximumPoolSize = maximumPoolSize;
-  }
+public class HikariModule extends ConfigurableModule<HikariConfig> {
 
   @Override
   protected void configure() {
-  }
 
-  @Provides
-  @Singleton
-  public HikariConfig hikariConfig(LaunchConfig launchConfig) {
-    int maxSize = maximumPoolSize == null ? Integer.parseInt(launchConfig.getOther("hikari.maximumPoolSize", DEFAULT_MAX_POOL_SIZE)) : maximumPoolSize;
-    int minSize = minimumIdleSize == null ? Integer.parseInt(launchConfig.getOther("hikari.minimumIdle", DEFAULT_MIN_IDLE_SIZE)) : minimumIdleSize;
-    String className = dataSourceClassName == null ? launchConfig.getOther("hikari.dataSourceClassName", null) : dataSourceClassName;
-
-    Properties properties = new Properties();
-    properties.putAll(dataSourceProperties);
-    properties.putAll(launchConfig.getOtherPrefixedWith("hikari.dataSourceProperties."));
-
-    HikariConfig config = new HikariConfig();
-    config.setMaximumPoolSize(maxSize);
-    config.setMinimumIdle(minSize);
-    config.setDataSourceClassName(className);
-    config.setDataSourceProperties(properties);
-    return config;
   }
 
   @Provides
@@ -156,4 +105,5 @@ public class HikariModule extends AbstractModule {
   public DataSource dataSource(HikariConfig config) {
     return new HikariDataSource(config);
   }
+
 }
