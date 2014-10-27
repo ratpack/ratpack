@@ -29,7 +29,7 @@ import ratpack.render.RendererSupport;
 public class HealthCheckResultRenderer extends RendererSupport<HealthCheck.Result> {
 
   @Override
-  public void render(final Context context, final HealthCheck.Result object) throws Exception {
+  public void render(Context context, HealthCheck.Result object) throws Exception {
     context.byContent((new Action<ByContentSpec>() {
       @Override
       public void execute(ByContentSpec byContentSpec) throws Exception {
