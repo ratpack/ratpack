@@ -27,13 +27,13 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.reflect.TypeToken;
 import com.google.common.util.concurrent.UncheckedExecutionException;
-import ratpack.api.Nullable;
 import ratpack.func.Action;
 import ratpack.registry.PredicateCacheability;
 import ratpack.registry.Registry;
 import ratpack.registry.RegistryBacking;
 
 import java.util.Iterator;
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
 import static ratpack.util.ExceptionUtils.toException;
@@ -70,12 +70,12 @@ public class CachingBackedRegistry implements Registry {
     }
   });
 
-  public <T> T maybeGet(TypeToken<T> type) {
+  public <T> Optional<T> maybeGet(TypeToken<T> type) {
     Iterator<? extends Supplier<T>> suppliers = getSuppliers(type).iterator();
     if (!suppliers.hasNext()) {
-      return null;
+      return Optional.empty();
     } else {
-      return suppliers.next().get();
+      return Optional.of(suppliers.next().get());
     }
   }
 
@@ -107,14 +107,13 @@ public class CachingBackedRegistry implements Registry {
     }
   }
 
-  @Nullable
   @Override
-  public <T> T first(TypeToken<T> type, Predicate<? super T> predicate) {
+  public <T> Optional<T> first(TypeToken<T> type, Predicate<? super T> predicate) {
     Iterator<? extends T> matching = all(type, predicate).iterator();
     if (!matching.hasNext()) {
-      return null;
+      return Optional.empty();
     } else {
-      return matching.next();
+      return Optional.of(matching.next());
     }
   }
 

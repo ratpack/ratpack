@@ -16,7 +16,6 @@
 
 package ratpack.registry.internal;
 
-import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -24,12 +23,12 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Lists;
 import com.google.common.reflect.TypeToken;
 import com.google.common.util.concurrent.UncheckedExecutionException;
-import ratpack.api.Nullable;
 import ratpack.func.Action;
 import ratpack.registry.PredicateCacheability;
 import ratpack.registry.Registry;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
 import static ratpack.util.ExceptionUtils.toException;
@@ -41,8 +40,7 @@ public class CachingRegistry implements Registry {
 
   private final LoadingCache<TypeToken<?>, ? extends Optional<?>> cache = CacheBuilder.newBuilder().build(new CacheLoader<TypeToken<?>, Optional<?>>() {
     public Optional<?> load(@SuppressWarnings("NullableProblems") TypeToken<?> key) throws Exception {
-      Object nullableReference = delegate.maybeGet(key);
-      return Optional.fromNullable(nullableReference);
+      return delegate.maybeGet(key);
     }
   });
 
@@ -68,9 +66,9 @@ public class CachingRegistry implements Registry {
   }
 
   @Override
-  public <O> O maybeGet(TypeToken<O> type) {
+  public <O> Optional<O> maybeGet(TypeToken<O> type) {
     try {
-      @SuppressWarnings("unchecked") O o = (O) cache.get(type).orNull();
+      @SuppressWarnings("unchecked") Optional<O> o = (Optional<O>) cache.get(type);
       return o;
     } catch (ExecutionException | UncheckedExecutionException e) {
       throw uncheck(toException(e.getCause()));
@@ -96,15 +94,14 @@ public class CachingRegistry implements Registry {
     }
   }
 
-  @Nullable
   @Override
-  public <T> T first(TypeToken<T> type, Predicate<? super T> predicate) {
+  public <T> Optional<T> first(TypeToken<T> type, Predicate<? super T> predicate) {
     if (PredicateCacheability.isCacheable(predicate)) {
       List<T> objects = getFromPredicateCache(type, predicate);
       if (objects.isEmpty()) {
-        return null;
+        return Optional.empty();
       } else {
-        return objects.get(0);
+        return Optional.of(objects.get(0));
       }
     } else {
       return delegate.first(type, predicate);

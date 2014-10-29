@@ -23,6 +23,8 @@ import com.google.inject.Key;
 import com.google.inject.TypeLiteral;
 import ratpack.registry.internal.CachingBackedRegistry;
 
+import java.util.Optional;
+
 public class JustInTimeInjectorRegistry extends CachingBackedRegistry {
 
   private final Injector injector;
@@ -32,12 +34,12 @@ public class JustInTimeInjectorRegistry extends CachingBackedRegistry {
     this.injector = injector;
   }
 
-  public <T> T maybeGet(TypeToken<T> type) {
+  public <T> Optional<T> maybeGet(TypeToken<T> type) {
     @SuppressWarnings("unchecked") TypeLiteral<T> typeLiteral = (TypeLiteral<T>) TypeLiteral.get(type.getType());
     try {
-      return injector.getInstance(Key.get(typeLiteral));
+      return Optional.of(injector.getInstance(Key.get(typeLiteral)));
     } catch (ConfigurationException e) {
-      return null;
+      return Optional.empty();
     }
   }
 

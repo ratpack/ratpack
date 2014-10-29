@@ -29,7 +29,7 @@ class CachingBackedRegistrySpec extends Specification {
 
   def "empty registry"() {
     expect:
-    r.maybeGet(String) == null
+    !r.maybeGet(String).present
 
     when:
     r.get(String)
@@ -51,8 +51,8 @@ class CachingBackedRegistrySpec extends Specification {
 
   def "search empty registry"() {
     expect:
-    r.first(TypeToken.of(Object), Predicates.alwaysTrue()) == null
-    r.first(TypeToken.of(Object), Predicates.alwaysFalse()) == null
+    !r.first(TypeToken.of(Object), Predicates.alwaysTrue()).present
+    !r.first(TypeToken.of(Object), Predicates.alwaysFalse()).present
     r.all(TypeToken.of(Object), Predicates.alwaysTrue()).toList() == []
     r.all(TypeToken.of(Object), Predicates.alwaysFalse()).toList() == []
   }
@@ -66,10 +66,10 @@ class CachingBackedRegistrySpec extends Specification {
     r.register(value)
 
     expect:
-    r.first(type, Predicates.alwaysTrue()) == value
-    r.first(type, Predicates.alwaysFalse()) == null
-    r.first(other, Predicates.alwaysTrue()) == null
-    r.first(other, Predicates.alwaysFalse()) == null
+    r.first(type, Predicates.alwaysTrue()).get() == value
+    !r.first(type, Predicates.alwaysFalse()).present
+    !r.first(other, Predicates.alwaysTrue()).present
+    !r.first(other, Predicates.alwaysFalse()).present
 
     r.all(type, Predicates.alwaysTrue()) as List == [value]
     r.all(type, Predicates.alwaysFalse()) as List == []
@@ -91,10 +91,10 @@ class CachingBackedRegistrySpec extends Specification {
     r.register(d)
 
     expect:
-    r.first(string, Predicates.alwaysTrue()) == a
-    r.first(string, { s -> s.startsWith('B') }) == b
-    r.first(number, Predicates.alwaysTrue()) == c
-    r.first(number, { n -> n < 20 }) == d
+    r.first(string, Predicates.alwaysTrue()).get() == a
+    r.first(string, { s -> s.startsWith('B') }).get() == b
+    r.first(number, Predicates.alwaysTrue()).get() == c
+    r.first(number, { n -> n < 20 }).get() == d
 
     r.all(string, Predicates.alwaysTrue()) as List == [a, b]
     r.all(string, { s -> s.startsWith('B') }) as List == [b]
@@ -137,10 +137,10 @@ class CachingBackedRegistrySpec extends Specification {
     def value = "Something"
     r.register(value)
     expect:
-    r.first(sameType, Predicates.alwaysTrue()) == value
-    r.first(sameType, Predicates.alwaysFalse()) == null
-    r.first(differentType, Predicates.alwaysTrue()) == null
-    r.first(differentType, Predicates.alwaysFalse()) == null
+    r.first(sameType, Predicates.alwaysTrue()).get() == value
+    !r.first(sameType, Predicates.alwaysFalse()).present
+    !r.first(differentType, Predicates.alwaysTrue()).present
+    !r.first(differentType, Predicates.alwaysFalse()).present
   }
 
   def "find all"() {
@@ -175,8 +175,8 @@ class CachingBackedRegistrySpec extends Specification {
     0 * supplierFunc._
     result == [a, b]
     result2 == [a, b]
-    sresult == a
-    sresult2 == a
+    sresult.get() == a
+    sresult2.get() == a
   }
 
   def "lookups are cached when getAll or get method is used"() {

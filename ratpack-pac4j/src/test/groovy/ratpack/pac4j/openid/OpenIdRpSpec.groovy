@@ -84,13 +84,13 @@ class OpenIdRpSpec extends Specification {
 
       handlers {
         get("noauth") {
-          def typedUserProfile = request.maybeGet(GoogleOpenIdProfile)
-          def genericUserProfile = request.maybeGet(UserProfile)
+          def typedUserProfile = request.maybeGet(GoogleOpenIdProfile).orElse(null)
+          def genericUserProfile = request.maybeGet(UserProfile).orElse(null)
           response.send "noauth:${typedUserProfile?.email}:${genericUserProfile?.attributes?.email}"
         }
         get("auth") {
-          def typedUserProfile = request.maybeGet(GoogleOpenIdProfile)
-          def genericUserProfile = request.maybeGet(UserProfile)
+          def typedUserProfile = request.maybeGet(GoogleOpenIdProfile).orElse(null)
+          def genericUserProfile = request.maybeGet(UserProfile).orElse(null)
           response.send "auth:${typedUserProfile.email}:${genericUserProfile?.attributes?.email}"
         }
       }

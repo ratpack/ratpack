@@ -23,6 +23,8 @@ import ratpack.api.Nullable;
 import ratpack.func.Action;
 import ratpack.registry.Registry;
 
+import java.util.Optional;
+
 public class HierarchicalRegistry implements Registry {
 
   private final Registry parent;
@@ -33,11 +35,10 @@ public class HierarchicalRegistry implements Registry {
     this.child = child;
   }
 
-  @Nullable
   @Override
-  public <O> O maybeGet(TypeToken<O> type) {
-    O object = child.maybeGet(type);
-    if (object == null) {
+  public <O> Optional<O> maybeGet(TypeToken<O> type) {
+    Optional<O> object = child.maybeGet(type);
+    if (!object.isPresent()) {
       object = parent.maybeGet(type);
     }
 
@@ -53,9 +54,9 @@ public class HierarchicalRegistry implements Registry {
 
   @Nullable
   @Override
-  public <T> T first(TypeToken<T> type, Predicate<? super T> predicate) {
-    T first = child.first(type, predicate);
-    if (first == null) {
+  public <T> Optional<T> first(TypeToken<T> type, Predicate<? super T> predicate) {
+    Optional<T> first = child.first(type, predicate);
+    if (!first.isPresent()) {
       first = parent.first(type, predicate);
     }
     return first;
