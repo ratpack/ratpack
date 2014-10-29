@@ -15,6 +15,7 @@
  */
 
 package ratpack.spring
+
 import com.google.common.base.Predicates
 import com.google.common.reflect.TypeToken
 import org.springframework.context.support.StaticApplicationContext
@@ -29,7 +30,7 @@ class SpringRegistrySpec extends Specification {
 
   def "empty registry"() {
     expect:
-    r.maybeGet(String) == null
+    !r.maybeGet(String).present
 
     when:
     r.get(String)
@@ -51,7 +52,7 @@ class SpringRegistrySpec extends Specification {
 
   def "search empty registry with always false predicate"() {
     expect:
-    r.first(TypeToken.of(Object), Predicates.alwaysFalse()) == null
+    !r.first(TypeToken.of(Object), Predicates.alwaysFalse()).isPresent()
     r.all(TypeToken.of(Object), Predicates.alwaysFalse()) as List == []
   }
 
@@ -64,10 +65,10 @@ class SpringRegistrySpec extends Specification {
     beanFactory.registerSingleton("value", value)
 
     expect:
-    r.first(type, Predicates.alwaysTrue()) == value
-    r.first(type, Predicates.alwaysFalse()) == null
-    r.first(other, Predicates.alwaysTrue()) == null
-    r.first(other, Predicates.alwaysFalse()) == null
+    r.first(type, Predicates.alwaysTrue()).get() == value
+    !r.first(type, Predicates.alwaysFalse()).present
+    !r.first(other, Predicates.alwaysTrue()).present
+    !r.first(other, Predicates.alwaysFalse()).present
 
     r.all(type, Predicates.alwaysTrue()) as List == [value]
     r.all(type, Predicates.alwaysFalse()) as List == []
@@ -89,14 +90,14 @@ class SpringRegistrySpec extends Specification {
     beanFactory.registerSingleton("d", d)
 
     expect:
-    r.first(string, Predicates.alwaysTrue()) == a
-    r.first(string, { s -> s.startsWith('B') }) == b
-    r.first(number, Predicates.alwaysTrue()) == c
-    r.first(number, { n -> n < 20 }) == d
+    r.first(string, Predicates.alwaysTrue()).get() == a
+    r.first(string, { s -> s.startsWith('B') }).get() == b
+    r.first(number, Predicates.alwaysTrue()).get() == c
+    r.first(number, { n -> n < 20 }).get() == d
 
     r.all(string, Predicates.alwaysTrue()) as List == [a, b]
     r.all(string, { s -> s.startsWith('B') }) as List == [b]
-    r.all(number, { n -> n < 50 })  as List == [c, d]
+    r.all(number, { n -> n < 50 }) as List == [c, d]
     r.all(number, Predicates.alwaysFalse()) as List == []
   }
 
@@ -135,10 +136,10 @@ class SpringRegistrySpec extends Specification {
     def value = "Something"
     beanFactory.registerSingleton("value", value)
     expect:
-    r.first(sameType, Predicates.alwaysTrue()) == value
-    r.first(sameType, Predicates.alwaysFalse()) == null
-    r.first(differentType, Predicates.alwaysTrue()) == null
-    r.first(differentType, Predicates.alwaysFalse()) == null
+    r.first(sameType, Predicates.alwaysTrue()).get() == value
+    !r.first(sameType, Predicates.alwaysFalse()).present
+    !r.first(differentType, Predicates.alwaysTrue()).present
+    !r.first(differentType, Predicates.alwaysFalse()).present
   }
 
   def "find all"() {

@@ -27,8 +27,8 @@ class MultiEntryRegistrySpec extends Specification {
     def r = new MultiEntryRegistry(ImmutableList.of())
 
     expect:
-    r.first(TypeToken.of(Object), Predicates.alwaysTrue()) == null
-    r.first(TypeToken.of(Object), Predicates.alwaysFalse()) == null
+    !r.first(TypeToken.of(Object), Predicates.alwaysTrue()).present
+    !r.first(TypeToken.of(Object), Predicates.alwaysFalse()).present
     r.all(TypeToken.of(Object), Predicates.alwaysTrue()) == []
     r.all(TypeToken.of(Object), Predicates.alwaysFalse()) == []
   }
@@ -42,10 +42,10 @@ class MultiEntryRegistrySpec extends Specification {
     def r = new MultiEntryRegistry(ImmutableList.of(new DefaultRegistryEntry(type, value)))
 
     expect:
-    r.first(type, Predicates.alwaysTrue()) == value
-    r.first(type, Predicates.alwaysFalse()) == null
-    r.first(other, Predicates.alwaysTrue()) == null
-    r.first(other, Predicates.alwaysFalse()) == null
+    r.first(type, Predicates.alwaysTrue()).get() == value
+    !r.first(type, Predicates.alwaysFalse()).present
+    !r.first(other, Predicates.alwaysTrue()).present
+    !r.first(other, Predicates.alwaysFalse()).present
 
     r.all(type, Predicates.alwaysTrue()) == [value]
     r.all(type, Predicates.alwaysFalse()) == []
@@ -65,10 +65,10 @@ class MultiEntryRegistrySpec extends Specification {
       new DefaultRegistryEntry(number, c), new DefaultRegistryEntry(number, d)))
 
     expect:
-    r.first(string, Predicates.alwaysTrue()) == a
-    r.first(string, { s -> s.startsWith('B') }) == b
-    r.first(number, Predicates.alwaysTrue()) == c
-    r.first(number, { n -> n < 20 }) == d
+    r.first(string, Predicates.alwaysTrue()).get() == a
+    r.first(string, { s -> s.startsWith('B') }).get() == b
+    r.first(number, Predicates.alwaysTrue()).get() == c
+    r.first(number, { n -> n < 20 }).get() == d
 
     r.all(string, Predicates.alwaysTrue()) == [a, b]
     r.all(string, { s -> s.startsWith('B') }) == [b]

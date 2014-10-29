@@ -33,12 +33,13 @@ class HystrixRegistryBackedRequestVariable<T> implements HystrixRequestVariable<
   @SuppressWarnings("unchecked")
   public T get() {
     Execution execution = getExecution();
-    HystrixCommandCache commandCache = execution.maybeGet(HystrixCommandCache.class);
 
-    if (commandCache == null) {
-      commandCache = new HystrixCommandCache();
-      execution.add(commandCache);
-    }
+    HystrixCommandCache commandCache = execution.maybeGet(HystrixCommandCache.class)
+      .orElseGet(() -> {
+        HystrixCommandCache cache = new HystrixCommandCache();
+        execution.add(cache);
+        return cache;
+      });
 
     Object command = commandCache.get(this);
     if (command == null) {

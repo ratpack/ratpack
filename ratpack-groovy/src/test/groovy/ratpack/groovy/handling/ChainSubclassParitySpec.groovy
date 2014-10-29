@@ -16,12 +16,13 @@
 
 package ratpack.groovy.handling
 
+import ratpack.handling.Chain
 import ratpack.handling.Handler
 import spock.lang.Specification
 
 class ChainSubclassParitySpec extends Specification {
 
-  def javaType = ratpack.handling.Chain
+  def javaType = Chain
   def groovyType = GroovyChain
 
   def "groovy chain subclass overrides universally overrides return type"() {

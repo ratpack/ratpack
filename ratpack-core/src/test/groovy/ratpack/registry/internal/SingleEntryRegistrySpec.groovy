@@ -34,10 +34,10 @@ class SingleEntryRegistrySpec extends Specification {
 
   def "find first"() {
     expect:
-    r.first(sameType, Predicates.alwaysTrue()) == value
-    r.first(sameType, Predicates.alwaysFalse()) == null
-    r.first(differentType, Predicates.alwaysTrue()) == null
-    r.first(differentType, Predicates.alwaysFalse()) == null
+    r.first(sameType, Predicates.alwaysTrue()).get() == value
+    !r.first(sameType, Predicates.alwaysFalse()).present
+    !r.first(differentType, Predicates.alwaysTrue()).present
+    !r.first(differentType, Predicates.alwaysFalse()).present
   }
 
   def "find all"() {

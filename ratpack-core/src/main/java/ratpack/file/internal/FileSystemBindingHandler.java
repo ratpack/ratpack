@@ -40,7 +40,7 @@ public class FileSystemBindingHandler implements Handler {
   }
 
   public void handle(Context context) {
-    FileSystemBinding parentBinding = context.maybeGet(FileSystemBinding.class);
+    FileSystemBinding parentBinding = context.get(FileSystemBinding.class);
     FileSystemBinding binding = parentBinding.binding(path);
     if (binding == null) {
       context.clientError(404);

@@ -83,6 +83,33 @@ import static ratpack.util.ExceptionUtils.uncheck;
  * }</pre>
  * <p>
  * If the parameters cannot be satisfied, a {@link ratpack.registry.NotInRegistryException} will be thrown.
+ * The {@link java.util.Optional} type can be used to inject registry entries that may not exist.
+ * <pre class="java">{@code
+ * import ratpack.handling.Context;
+ * import ratpack.handling.InjectionHandler;
+ * import ratpack.test.embed.EmbeddedApp;
+ *
+ * import java.util.Optional;
+ *
+ * public class Example {
+ *
+ *   static class OptionalInjectingHandler extends InjectionHandler {
+ *     public void handle(Context context, Optional<String> string, Optional<Integer> integer) {
+ *       context.render(string.orElse("missing") + ":" + integer.orElse(0));
+ *     }
+ *   }
+ *
+ *   public static void main(String... args) {
+ *     EmbeddedApp.fromChain(chain -> chain
+ *         .register(r -> r.add("foo")) // no Integer in registry
+ *         .get(new OptionalInjectingHandler())
+ *     ).test(httpClient -> {
+ *       assert httpClient.getText().equals("foo:0");
+ *     });
+ *   }
+ *
+ * }
+ * }</pre>
  * <p>
  * If there is no suitable {@code handle(Context, ...)} method, a {@link NoSuitableHandleMethodException} will be thrown at construction time.
  */

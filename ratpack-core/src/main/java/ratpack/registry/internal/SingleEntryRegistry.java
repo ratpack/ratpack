@@ -19,11 +19,11 @@ package ratpack.registry.internal;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.reflect.TypeToken;
-import ratpack.api.Nullable;
 import ratpack.func.Action;
 import ratpack.registry.Registry;
 
 import java.util.Collections;
+import java.util.Optional;
 
 public class SingleEntryRegistry implements Registry {
 
@@ -33,55 +33,38 @@ public class SingleEntryRegistry implements Registry {
     this.entry = entry;
   }
 
-  @Nullable
   @Override
-  public <O> O maybeGet(TypeToken<O> type) {
+  public <O> Optional<O> maybeGet(TypeToken<O> type) {
     if (type.isAssignableFrom(entry.getType())) {
       @SuppressWarnings("unchecked") O cast = (O) entry.get();
-      return cast;
+      return Optional.of(cast);
     } else {
-      return null;
+      return Optional.empty();
     }
   }
 
   @Override
   public <O> Iterable<? extends O> getAll(TypeToken<O> type) {
-    O value = maybeGet(type);
-    if (value == null) {
-      return Collections.emptyList();
-    } else {
-      return Collections.singleton(value);
-    }
+    return maybeGet(type).map(Collections::<O>singleton).orElse(Collections.emptySet());
   }
 
-  @Nullable
   @Override
-  public <T> T first(TypeToken<T> type, Predicate<? super T> predicate) {
-    T value = maybeGet(type);
-    if (value != null && predicate.apply(value)) {
-      return value;
-    } else {
-      return null;
-    }
+  public <T> Optional<T> first(TypeToken<T> type, Predicate<? super T> predicate) {
+    return maybeGet(type).filter(predicate::apply);
   }
 
   @Override
   public <T> Iterable<? extends T> all(TypeToken<T> type, Predicate<? super T> predicate) {
-    T value = first(type, predicate);
-    if (value != null) {
-      return ImmutableList.of(value);
-    } else {
-      return ImmutableList.of();
-    }
+    return first(type, predicate).map(ImmutableList::of).orElse(ImmutableList.of());
   }
 
   @Override
   public <T> boolean each(TypeToken<T> type, Predicate<? super T> predicate, Action<? super T> action) throws Exception {
-    T first = first(type, predicate);
-    if (first == null) {
+    Optional<T> first = first(type, predicate);
+    if (!first.isPresent()) {
       return false;
     } else {
-      action.execute(first);
+      action.execute(first.get());
       return true;
     }
   }

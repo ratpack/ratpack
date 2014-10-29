@@ -28,6 +28,7 @@ import ratpack.registry.RegistrySpec;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Supplier;
 
 public class SimpleMutableRegistry implements MutableRegistry {
@@ -59,7 +60,7 @@ public class SimpleMutableRegistry implements MutableRegistry {
 
   @Override
   @Nullable
-  public <T> T maybeGet(TypeToken<T> type) {
+  public <T> Optional<T> maybeGet(TypeToken<T> type) {
     return registry.maybeGet(type);
   }
 
@@ -70,7 +71,7 @@ public class SimpleMutableRegistry implements MutableRegistry {
 
   @Nullable
   @Override
-  public <T> T first(TypeToken<T> type, Predicate<? super T> predicate) {
+  public <T> Optional<T> first(TypeToken<T> type, Predicate<? super T> predicate) {
     return registry.first(type, predicate);
   }
 

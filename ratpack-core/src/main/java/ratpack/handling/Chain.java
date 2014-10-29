@@ -16,7 +16,6 @@
 
 package ratpack.handling;
 
-import com.google.common.reflect.TypeToken;
 import ratpack.func.Action;
 import ratpack.launch.LaunchConfig;
 import ratpack.registry.Registry;
@@ -107,6 +106,10 @@ public interface Chain {
    */
   Handler chain(Action<? super Chain> action) throws Exception;
 
+  default Handler chain(Class<? extends Action<? super Chain>> action) throws Exception {
+    return chain(getRegistry().get(action));
+  }
+
   /**
    * Adds a handler that delegates to the given handler if
    * the relative {@code path} matches the given {@code path} and the {@code request} {@code HTTPMethod}
@@ -123,6 +126,10 @@ public interface Chain {
    */
   Chain delete(String path, Handler handler);
 
+  default Chain delete(String path, Class<? extends Handler> handler) {
+    return delete(path, getRegistry().get(handler));
+  }
+
   /**
    * Adds a handler that delegates to the given handler if
    * the {@code request} {@code HTTPMethod} is {@code DELETE} and the {@code path} is at the current root.
@@ -136,6 +143,10 @@ public interface Chain {
    */
   Chain delete(Handler handler);
 
+  default Chain delete(Class<? extends Handler> handler) {
+    return delete(getRegistry().get(handler));
+  }
+
   /**
    * Adds a handler to this chain that changes the {@link ratpack.file.FileSystemBinding} for the given handler chain.
    *
@@ -145,6 +156,10 @@ public interface Chain {
    * @throws Exception any thrown by {@code action}
    */
   Chain fileSystem(String path, Action<? super Chain> action) throws Exception;
+
+  default Chain fileSystem(String path, Class<? extends Action<? super Chain>> action) throws Exception {
+    return fileSystem(path, getRegistry().get(action));
+  }
 
   /**
    * Adds a handler that delegates to the given handler
@@ -163,6 +178,10 @@ public interface Chain {
    */
   Chain get(String path, Handler handler);
 
+  default Chain get(String path, Class<? extends Handler> handler) {
+    return get(path, getRegistry().get(handler));
+  }
+
   /**
    * Adds a handler that delegates to the given handler
    * if the {@code request} {@code HTTPMethod} is {@code GET} and the {@code path} is at the
@@ -176,6 +195,10 @@ public interface Chain {
    * @see Chain#delete(Handler)
    */
   Chain get(Handler handler);
+
+  default Chain get(Class<? extends Handler> handler) {
+    return get(getRegistry().get(handler));
+  }
 
   /**
    * The launch config of the application that this chain is being created for.
@@ -198,34 +221,16 @@ public interface Chain {
   Registry getRegistry() throws IllegalStateException;
 
   /**
-   * Retrieves an object of the given type from {@link #getRegistry() the registry}.
-   *
-   * @param type the type of object to retrieve
-   * @param <T> the type of object to retrieve
-   * @return an instance of the given type, retrieved from the registry that backs this chain
-   */
-  default <T> T get(Class<T> type) {
-    return getRegistry().get(type);
-  }
-
-  /**
-   * Retrieves an object of the given type from {@link #getRegistry() the registry}.
-   *
-   * @param type the type of object to retrieve
-   * @param <T> the type of object to retrieve
-   * @return an instance of the given type, retrieved from the registry that backs this chain
-   */
-  default <T> T get(TypeToken<T> type) {
-    return getRegistry().get(type);
-  }
-
-  /**
    * Adds the given handler to this.
    *
    * @param handler the handler to add
    * @return this
    */
   Chain handler(Handler handler);
+
+  default Chain handler(Class<? extends Handler> handler) {
+    return handler(getRegistry().get(handler));
+  }
 
   /**
    * Adds a handler that delegates to the given handler if the relative {@code path}
@@ -262,6 +267,10 @@ public interface Chain {
    */
   Chain handler(String path, Handler handler);
 
+  default Chain handler(String path, Class<? extends Handler> handler) {
+    return handler(path, getRegistry().get(handler));
+  }
+
   /**
    * Adds a handler to the chain that delegates to the given handler if the request has a header with the given name and a its value matches the given value exactly.
    *
@@ -280,6 +289,10 @@ public interface Chain {
    * @return this
    */
   Chain header(String headerName, String headerValue, Handler handler);
+
+  default Chain header(String headerName, String headerValue, Class<? extends Handler> handler) {
+    return header(headerName, headerValue, getRegistry().get(handler));
+  }
 
   /**
    * Adds a handler to the chain that delegates to the given handler chain if the request has a {@code Host} header that matches the given value exactly.
@@ -304,6 +317,25 @@ public interface Chain {
    */
   Chain host(String hostName, Action<? super Chain> action) throws Exception;
 
+  default Chain host(String hostName, Class<? extends Action<? super Chain>> action) throws Exception {
+    return host(hostName, getRegistry().get(action));
+  }
+
+  /**
+   * Inserts the given nested handler chain.
+   * <p>
+   * Shorter form of {@link #handler(Handler)} handler}({@link #chain(ratpack.func.Action) chain}({@code action}).
+   *
+   * @param action the handler chain to insert
+   * @return this
+   * @throws Exception any thrown by {@code action}
+   */
+  Chain insert(Action<? super Chain> action) throws Exception;
+
+  default Chain insert(Class<? extends Action<? super Chain>> action) throws Exception {
+    return insert(getRegistry().get(action));
+  }
+
   /**
    * Adds a handler that delegates to the given handler if
    * the relative {@code path} matches the given {@code path} and the {@code request} {@code HTTPMethod}
@@ -320,6 +352,10 @@ public interface Chain {
    */
   Chain patch(String path, Handler handler);
 
+  default Chain patch(String path, Class<? extends Handler> handler) {
+    return patch(path, getRegistry().get(handler));
+  }
+
   /**
    * Adds a handler that delegates to the given handler if
    * the {@code request} {@code HTTPMethod} is {@code PATCH} and the {@code path} is at the current root.
@@ -332,6 +368,10 @@ public interface Chain {
    * @see Chain#delete(Handler)
    */
   Chain patch(Handler handler);
+
+  default Chain patch(Class<? extends Handler> handler) {
+    return patch(getRegistry().get(handler));
+  }
 
   /**
    * Adds a handler that delegates to the given handler if
@@ -350,6 +390,10 @@ public interface Chain {
    */
   Chain post(String path, Handler handler);
 
+  default Chain post(String path, Class<? extends Handler> handler) {
+    return post(path, getRegistry().get(handler));
+  }
+
   /**
    * Adds a handler that delegates to the given handler if
    * the {@code request} {@code HTTPMethod} is {@code POST} and the {@code path} is at the current root.
@@ -363,6 +407,10 @@ public interface Chain {
    * @see Chain#delete(Handler)
    */
   Chain post(Handler handler);
+
+  default Chain post(Class<? extends Handler> handler) {
+    return post(getRegistry().get(handler));
+  }
 
   /**
    * Adds a handler that delegates to the given handlers if the
@@ -408,6 +456,10 @@ public interface Chain {
    */
   Chain prefix(String prefix, Action<? super Chain> action) throws Exception;
 
+  default Chain prefix(String prefix, Class<? extends Action<? super Chain>> action) throws Exception {
+    return prefix(prefix, getRegistry().get(action));
+  }
+
   /**
    * Adds a handler that delegates to the given handler if
    * the relative {@code path} matches the given {@code path} and the {@code request} {@code HTTPMethod}
@@ -424,6 +476,10 @@ public interface Chain {
    */
   Chain put(String path, Handler handler);
 
+  default Chain put(String path, Class<? extends Handler> handler) {
+    return put(path, getRegistry().get(handler));
+  }
+
   /**
    * Adds a handler that delegates to the given handler if
    * the {@code request} {@code HTTPMethod} is {@code PUT} and the {@code path} is at the current root.
@@ -436,6 +492,22 @@ public interface Chain {
    * @see Chain#delete(Handler)
    */
   Chain put(Handler handler);
+
+  default Chain put(Class<? extends Handler> handler) {
+    return put(getRegistry().get(handler));
+  }
+
+  /**
+   * Sends an HTTP redirect to the specified location.
+   * <p>
+   * The handler to add is created via {@link Handlers#redirect(int, String)}.
+   *
+   * @param code the 3XX HTTP status code.
+   * @param location the URL to set in the Location response header
+   * @return this
+   * @see Handlers#redirect(int, String)
+   */
+  Chain redirect(int code, String location);
 
   /**
    * Makes the contents of the given registry available for downstream handlers of the same nesting level.
@@ -466,6 +538,10 @@ public interface Chain {
    */
   Chain register(Registry registry, Action<? super Chain> action) throws Exception;
 
+  default Chain register(Registry registry, Class<? extends Action<? super Chain>> action) throws Exception {
+    return register(registry, getRegistry().get(action));
+  }
+
   /**
    * Adds a handler that inserts the given handler chain with a registry built by the given action via {@link Context#insert(ratpack.registry.Registry, Handler...)}.
    *
@@ -476,27 +552,8 @@ public interface Chain {
    */
   Chain register(Action<? super RegistrySpec> registryAction, Action<? super Chain> action) throws Exception;
 
-  /**
-   * Inserts the given nested handler chain.
-   * <p>
-   * Shorter form of {@link #handler(Handler)} handler}({@link #chain(ratpack.func.Action) chain}({@code action}).
-   *
-   * @param action the handler chain to insert
-   * @return this
-   * @throws Exception any thrown by {@code action}
-   */
-  Chain insert(Action<? super Chain> action) throws Exception;
-
-  /**
-   * Sends an HTTP redirect to the specified location.
-   * <p>
-   * The handler to add is created via {@link Handlers#redirect(int, String)}.
-   *
-   * @param code the 3XX HTTP status code.
-   * @param location the URL to set in the Location response header
-   * @return this
-   * @see Handlers#redirect(int, String)
-   */
-  Chain redirect(int code, String location);
+  default Chain register(Action<? super RegistrySpec> registryAction, Class<? extends Action<? super Chain>> action) throws Exception {
+    return register(registryAction, getRegistry().get(action));
+  }
 
 }

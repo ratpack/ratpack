@@ -111,10 +111,10 @@ class GuiceRegistrySpec extends Specification {
     injector.getAllBindings() >> realInjector.getAllBindings()
 
     expect:
-    registry.first(charseq, Predicates.alwaysTrue()) == a
-    registry.first(charseq, { CharSequence s -> s.startsWith('B') }) == b
-    registry.first(number, Predicates.alwaysTrue()) == c
-    registry.first(number, { Number n -> n < 20 }) == d
+    registry.first(charseq, Predicates.alwaysTrue()).get() == a
+    registry.first(charseq, { CharSequence s -> s.startsWith('B') }).get() == b
+    registry.first(number, Predicates.alwaysTrue()).get() == c
+    registry.first(number, { Number n -> n < 20 }).get() == d
 
     registry.all(charseq, Predicates.alwaysTrue()) as List == [a, b]
     registry.all(charseq, { s -> s.startsWith('B') }) as List == [b]

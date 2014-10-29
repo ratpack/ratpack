@@ -26,4 +26,8 @@ public class DefaultPathTokens extends DefaultTypeCoercingMap<String> implements
     super(delegate);
   }
 
+  public static PathTokens empty() {
+    return new DefaultPathTokens(ImmutableMap.of());
+  }
+
 }
