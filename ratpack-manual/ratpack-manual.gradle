@@ -20,20 +20,22 @@ apply from: "$rootDir/gradle/javaModule.gradle"
 configurations.runtime.artifacts.clear()
 configurations.archives.artifacts.clear()
 
-apply plugin: 'compass'
+apply plugin: "com.github.robfletcher.compass"
 
 buildscript {
   repositories {
     jcenter()
-    maven { url 'http://dl.bintray.com/robfletcher/gradle-plugins' }
   }
   dependencies {
-    classpath 'org.gradle.plugins:gradle-compass:1.0.10'
+    classpath "com.github.jruby-gradle:jruby-gradle-plugin:0.1.3"
+    classpath "com.github.robfletcher:compass-gradle-plugin:2.0.1"
     classpath "org.pegdown:pegdown:1.2.1"
   }
 }
 
 dependencies {
+  compass commonDependencies.compass
+
   testCompile apiModules
   testCompile("org.pac4j:pac4j-openid:${commonVersions.pac4j}") { // used by ratpack-pac4j's code snippets
     exclude group: "org.slf4j", module: "slf4j-api"
@@ -89,7 +91,7 @@ task configureApi << {
 // Note: does not build viewable docs.
 // Docs must be viewed within the manual for styling to work
 task api(type: Javadoc) {
-  dependsOn configureApi, compileSass
+  dependsOn configureApi, compassCompile
   group "manual"
   description "Generates the Javadoc for the entire public API"
 
@@ -217,22 +219,24 @@ task compileManual {
   }
 }
 
+jruby {
+  gemInstallDir = file("$project.rootProject.buildDir/build/gems")
+}
+
 compass {
-  gemPath = new File(gradle.gradleUserHomeDir, ".jruby")
   sassDir = file("src/sass")
   cssDir = file("$buildDir/assets/css")
   imagesDir = file("$buildDir/assets/images")
   importPath = files('../ratpack-stylesheets')
   fontsDir = file('../ratpack-stylesheets/fonts')
   relativeAssets = true
-  encoding = 'UTF-8'
   quiet = true
 }
 
 task stylizeManual(type: Sync) {
   into "$buildDir/stylized-manual"
   from compileManual
-  from compileSass
+  from compassCompile
 }
 
 file("src/assets").eachDir { File dir ->
@@ -241,7 +245,7 @@ file("src/assets").eachDir { File dir ->
     into "$buildDir/assets/$dir.name"
   }
 
-  compileSass.dependsOn task
+  compassCompile.dependsOn task
 
   stylizeManual {
     into dir.name, {
