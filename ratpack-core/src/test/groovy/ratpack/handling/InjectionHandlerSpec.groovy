@@ -84,6 +84,21 @@ class InjectionHandlerSpec extends RatpackGroovyDslSpec {
     }
   }
 
+  static class InjectedOptionalHandler1 extends InjectionHandler {
+    @SuppressWarnings(["GrMethodMayBeStatic", "GroovyUnusedDeclaration"])
+    protected handle(Context context, Optional<FileSystemBinding> fileSystemBinding) {
+      assert fileSystemBinding.get().is(context.get(FileSystemBinding))
+      context.render("ok")
+    }
+  }
+
+  static class InjectedOptionalHandler2 extends InjectionHandler {
+    @SuppressWarnings(["GrMethodMayBeStatic", "GroovyUnusedDeclaration"])
+    protected handle(Context context, Optional<Exception> exceptionOptional) {
+      assert !exceptionOptional.isPresent()
+      context.render("ok")
+    }
+  }
 
   def "can inject more than one"() {
     when:
@@ -93,6 +108,26 @@ class InjectionHandlerSpec extends RatpackGroovyDslSpec {
 
     then:
     text == DefaultProductionErrorHandler.name
+  }
+
+  def "can inject optional"() {
+    when:
+    handlers {
+      handler new InjectedOptionalHandler1()
+    }
+
+    then:
+    text == "ok"
+  }
+
+  def "can inject missing"() {
+    when:
+    handlers {
+      handler new InjectedOptionalHandler2()
+    }
+
+    then:
+    text == "ok"
   }
 
   static class InjectedBadHandler extends InjectionHandler {
