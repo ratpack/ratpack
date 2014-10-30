@@ -482,6 +482,7 @@ public abstract class RxRatpack {
     private final ExecControl execControl;
 
     public ExecutionBackedSubscriber(ExecControl execControl, Subscriber<? super T> subscriber) {
+      super(subscriber);
       this.execControl = execControl;
       this.subscriber = subscriber;
     }
