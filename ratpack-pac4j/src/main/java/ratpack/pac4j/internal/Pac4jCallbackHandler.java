@@ -42,15 +42,11 @@ public class Pac4jCallbackHandler implements Handler {
 
   @Override
   public void handle(final Context context) {
-    final Request request = context.getRequest();
-    final SessionStorage sessionStorage = request.get(SessionStorage.class);
-    final Clients clients = request.get(Clients.class);
     final RatpackWebContext webContext = new RatpackWebContext(context);
     context.blocking(new Callable<UserProfile>() {
       @Override
       public UserProfile call() throws Exception {
-        @SuppressWarnings("unchecked")
-        Client<Credentials, UserProfile> client = clients.findClient(webContext);
+        Client<Credentials, UserProfile> client = getClient(context, webContext);
         Credentials credentials = client.getCredentials(webContext);
         return client.getUserProfile(credentials, webContext);
       }
@@ -60,25 +56,43 @@ public class Pac4jCallbackHandler implements Handler {
         if (ex instanceof RequiresHttpAction) {
           webContext.sendResponse((RequiresHttpAction) ex);
         } else {
-          throw new TechnicalException("Failed to get user profile", ex);
+          handleError(context, ex);
         }
       }
     }).then(new Action<UserProfile>() {
       @Override
       public void execute(UserProfile profile) throws Exception {
-        saveUserProfileInSession(sessionStorage, profile);
-        context.redirect(getSavedUri(sessionStorage));
+        handleUserProfile(context, profile);
       }
     });
   }
 
-  private static void saveUserProfileInSession(SessionStorage sessionStorage, UserProfile profile) {
+  protected void handleError(Context context, Throwable ex) {
+    throw new TechnicalException("Failed to get user profile", ex);
+  }
+
+  protected Client<Credentials, UserProfile> getClient(Context context, RatpackWebContext webContext) {
+    Request request = context.getRequest();
+    Clients clients = request.get(Clients.class);
+    @SuppressWarnings("unchecked")
+    Client<Credentials, UserProfile> client = clients.findClient(webContext);
+    return client;
+  }
+
+  protected void handleUserProfile(Context context, UserProfile profile) {
+    Request request = context.getRequest();
+    SessionStorage sessionStorage = request.get(SessionStorage.class);
+    saveUserProfileInSession(sessionStorage, profile);
+    context.redirect(getSavedUri(sessionStorage));
+  }
+
+  protected static void saveUserProfileInSession(SessionStorage sessionStorage, UserProfile profile) {
     if (profile != null) {
       sessionStorage.put(USER_PROFILE, profile);
     }
   }
 
-  private static String getSavedUri(SessionStorage sessionStorage) {
+  protected static String getSavedUri(SessionStorage sessionStorage) {
     String originalUri = (String) sessionStorage.remove(SAVED_URI);
     if (originalUri == null) {
       originalUri = DEFAULT_REDIRECT_URI;
