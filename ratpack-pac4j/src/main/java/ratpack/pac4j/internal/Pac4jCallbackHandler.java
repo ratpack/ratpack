@@ -18,6 +18,7 @@ package ratpack.pac4j.internal;
 
 import org.pac4j.core.client.Client;
 import org.pac4j.core.client.Clients;
+import org.pac4j.core.context.WebContext;
 import org.pac4j.core.credentials.Credentials;
 import org.pac4j.core.exception.RequiresHttpAction;
 import org.pac4j.core.exception.TechnicalException;
@@ -30,6 +31,8 @@ import ratpack.http.Request;
 import ratpack.session.store.SessionStorage;
 
 import java.util.concurrent.Callable;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 
 import static ratpack.pac4j.internal.SessionConstants.SAVED_URI;
 import static ratpack.pac4j.internal.SessionConstants.USER_PROFILE;
@@ -40,17 +43,29 @@ import static ratpack.pac4j.internal.SessionConstants.USER_PROFILE;
 public class Pac4jCallbackHandler implements Handler {
   private static final String DEFAULT_REDIRECT_URI = "/";
 
+  private final BiFunction<Context,RatpackWebContext,Client<Credentials, UserProfile>> findClientFunction;
+  private final BiConsumer<Context,UserProfile> handleProfileFunction;
+  private final BiConsumer<Context,Throwable> handleErrorFunction;
+
+  @SuppressWarnings("unused")
+  public Pac4jCallbackHandler() {
+    this(null, null, null);
+  }
+
+  public Pac4jCallbackHandler(BiFunction<Context, RatpackWebContext, Client<Credentials, UserProfile>> findClientFunction, BiConsumer<Context, UserProfile> handleProfileFunction, BiConsumer<Context, Throwable> handleErrorFunction) {
+    this.findClientFunction = findClientFunction != null ? findClientFunction : Pac4jCallbackHandler::defaultFindClient;
+    this.handleProfileFunction = handleProfileFunction != null ? handleProfileFunction : Pac4jCallbackHandler::defaultHandleProfile;
+    this.handleErrorFunction = handleErrorFunction != null ? handleErrorFunction : Pac4jCallbackHandler::defaultHandleError;
+  }
+
   @Override
   public void handle(final Context context) {
-    final Request request = context.getRequest();
-    final SessionStorage sessionStorage = request.get(SessionStorage.class);
-    final Clients clients = request.get(Clients.class);
     final RatpackWebContext webContext = new RatpackWebContext(context);
     context.blocking(new Callable<UserProfile>() {
       @Override
       public UserProfile call() throws Exception {
         @SuppressWarnings("unchecked")
-        Client<Credentials, UserProfile> client = clients.findClient(webContext);
+        Client<Credentials, UserProfile> client = findClientFunction.apply(context, webContext);
         Credentials credentials = client.getCredentials(webContext);
         return client.getUserProfile(credentials, webContext);
       }
@@ -60,16 +75,34 @@ public class Pac4jCallbackHandler implements Handler {
         if (ex instanceof RequiresHttpAction) {
           webContext.sendResponse((RequiresHttpAction) ex);
         } else {
-          throw new TechnicalException("Failed to get user profile", ex);
+          handleErrorFunction.accept(context, ex);
         }
       }
     }).then(new Action<UserProfile>() {
       @Override
       public void execute(UserProfile profile) throws Exception {
-        saveUserProfileInSession(sessionStorage, profile);
-        context.redirect(getSavedUri(sessionStorage));
+        handleProfileFunction.accept(context, profile);
       }
     });
+  }
+
+  private static Client<Credentials, UserProfile> defaultFindClient(Context context, WebContext webContext) {
+    Request request = context.getRequest();
+    Clients clients = request.get(Clients.class);
+    @SuppressWarnings("unchecked")
+    Client<Credentials, UserProfile> client = clients.findClient(webContext);
+    return client;
+  }
+
+  private static void defaultHandleProfile(Context context, UserProfile profile) {
+    Request request = context.getRequest();
+    SessionStorage sessionStorage = request.get(SessionStorage.class);
+    saveUserProfileInSession(sessionStorage, profile);
+    context.redirect(getSavedUri(sessionStorage));
+  }
+
+  private static void defaultHandleError(Context context, Throwable ex) {
+    throw new TechnicalException("Failed to get user profile", ex);
   }
 
   private static void saveUserProfileInSession(SessionStorage sessionStorage, UserProfile profile) {

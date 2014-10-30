@@ -28,6 +28,7 @@ import ratpack.handling.Handler;
 import ratpack.handling.Handlers;
 import ratpack.launch.LaunchConfig;
 import ratpack.pac4j.Authorizer;
+import ratpack.pac4j.Pac4jCallbackHandlerBuilder;
 
 /**
  * Base class for pac4j integration modules.
@@ -88,7 +89,7 @@ public abstract class AbstractPac4jModule<C extends Credentials, U extends UserP
     final Client<C, U> client = getClient(injector);
     final Authorizer authorizer = getAuthorizer(injector);
     final Pac4jClientsHandler clientsHandler = new Pac4jClientsHandler(callbackPath, client);
-    final Pac4jCallbackHandler callbackHandler = new Pac4jCallbackHandler();
+    final Pac4jCallbackHandler callbackHandler = new Pac4jCallbackHandlerBuilder().build();
     final Pac4jAuthenticationHandler authenticationHandler = new Pac4jAuthenticationHandler(client.getName(), authorizer);
     return Handlers.chain(clientsHandler, Handlers.path(callbackPath, callbackHandler), authenticationHandler, handler);
   }
