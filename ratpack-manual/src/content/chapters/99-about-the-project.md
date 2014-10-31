@@ -49,6 +49,7 @@ The following people have provided significant contributions.
 * [Lari Hotari](https://github.com/lhotari)
 * [Massimo Lusetti](https://github.com/mlusetti)
 * [Rob Zienert](https://github.com/robzienert)
+* [Tom Duncan](https://github.com/tomdcc)
 
 ### Past project members
 
