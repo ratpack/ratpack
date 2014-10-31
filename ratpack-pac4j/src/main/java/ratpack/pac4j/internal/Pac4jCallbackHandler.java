@@ -23,14 +23,11 @@ import org.pac4j.core.credentials.Credentials;
 import org.pac4j.core.exception.RequiresHttpAction;
 import org.pac4j.core.exception.TechnicalException;
 import org.pac4j.core.profile.UserProfile;
-
-import ratpack.func.Action;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
 import ratpack.http.Request;
 import ratpack.session.store.SessionStorage;
 
-import java.util.concurrent.Callable;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 
@@ -43,9 +40,9 @@ import static ratpack.pac4j.internal.SessionConstants.USER_PROFILE;
 public class Pac4jCallbackHandler implements Handler {
   private static final String DEFAULT_REDIRECT_URI = "/";
 
-  private final BiFunction<Context,RatpackWebContext,Client<Credentials, UserProfile>> findClientFunction;
-  private final BiConsumer<Context,UserProfile> handleProfileFunction;
-  private final BiConsumer<Context,Throwable> handleErrorFunction;
+  private final BiFunction<Context, RatpackWebContext, Client<Credentials, UserProfile>> findClientFunction;
+  private final BiConsumer<Context, UserProfile> handleProfileFunction;
+  private final BiConsumer<Context, Throwable> handleErrorFunction;
 
   @SuppressWarnings("unused")
   public Pac4jCallbackHandler() {
@@ -61,29 +58,18 @@ public class Pac4jCallbackHandler implements Handler {
   @Override
   public void handle(final Context context) {
     final RatpackWebContext webContext = new RatpackWebContext(context);
-    context.blocking(new Callable<UserProfile>() {
-      @Override
-      public UserProfile call() throws Exception {
-        @SuppressWarnings("unchecked")
-        Client<Credentials, UserProfile> client = findClientFunction.apply(context, webContext);
-        Credentials credentials = client.getCredentials(webContext);
-        return client.getUserProfile(credentials, webContext);
+    context.blocking(() -> {
+      @SuppressWarnings("unchecked")
+      Client<Credentials, UserProfile> client = findClientFunction.apply(context, webContext);
+      Credentials credentials = client.getCredentials(webContext);
+      return client.getUserProfile(credentials, webContext);
+    }).onError(ex -> {
+      if (ex instanceof RequiresHttpAction) {
+        webContext.sendResponse((RequiresHttpAction) ex);
+      } else {
+        handleErrorFunction.accept(context, ex);
       }
-    }).onError(new Action<Throwable>() {
-      @Override
-      public void execute(Throwable ex) throws Exception {
-        if (ex instanceof RequiresHttpAction) {
-          webContext.sendResponse((RequiresHttpAction) ex);
-        } else {
-          handleErrorFunction.accept(context, ex);
-        }
-      }
-    }).then(new Action<UserProfile>() {
-      @Override
-      public void execute(UserProfile profile) throws Exception {
-        handleProfileFunction.accept(context, profile);
-      }
-    });
+    }).then(profile -> handleProfileFunction.accept(context, profile));
   }
 
   private static Client<Credentials, UserProfile> defaultFindClient(Context context, WebContext webContext) {
