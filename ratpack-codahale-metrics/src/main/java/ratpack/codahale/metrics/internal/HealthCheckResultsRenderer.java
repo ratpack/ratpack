@@ -45,6 +45,10 @@ public class HealthCheckResultsRenderer extends RendererSupport<HealthCheckResul
               return;
             }
 
+            context.getResponse().getHeaders()
+              .add("Cache-Control", "no-cache, no-store, must-revalidate")
+              .add("Pragma", "no-cache")
+              .add("Expires", 0);
             context.getResponse().send(bytes);
           }
         });
