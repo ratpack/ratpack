@@ -17,86 +17,84 @@
 package ratpack.pac4j;
 
 import org.pac4j.core.client.Client;
+import org.pac4j.core.client.Clients;
+import org.pac4j.core.context.WebContext;
 import org.pac4j.core.credentials.Credentials;
+import org.pac4j.core.exception.TechnicalException;
 import org.pac4j.core.profile.UserProfile;
 import ratpack.handling.Context;
+import ratpack.handling.Handler;
+import ratpack.http.Request;
 import ratpack.pac4j.internal.Pac4jCallbackHandler;
-import ratpack.pac4j.internal.RatpackWebContext;
+import ratpack.session.store.SessionStorage;
+import ratpack.util.Types;
 
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 
-/**
- * Builder for Pac4J callback handler.
- */
+import static ratpack.pac4j.internal.SessionConstants.SAVED_URI;
+import static ratpack.pac4j.internal.SessionConstants.USER_PROFILE;
+
 public class Pac4jCallbackHandlerBuilder {
 
-  private BiFunction<Context, RatpackWebContext, Client<Credentials, UserProfile>> findClientFunction;
-  private BiConsumer<Context, UserProfile> handleProfileFunction;
-  private BiConsumer<Context, Throwable> handleErrorFunction;
+  /*
+    TODO
 
-  public Pac4jCallbackHandler build() {
-    return new Pac4jCallbackHandler(findClientFunction, handleProfileFunction, handleErrorFunction);
+    1. Class level javadoc showing why you might use this and how you would insert the generated handler into the app
+    2. Method level javadoc for each of the methods explaining what the extension point allows, and what the default behaviour is
+    3. Class level javadoc explaining the high level flow of the handler, pointing at the methods that allow those to be overridden
+
+    MAYBE
+
+    1. Reconsider the name
+    2. Should this be parameterised for the Credentials and UserProfile types?
+
+   */
+  private static final String DEFAULT_REDIRECT_URI = "/";
+
+  public Handler build() {
+    return new Pac4jCallbackHandler(lookupClient, onSuccess, onError);
   }
 
-  /**
-   * Add function for looking up client given the context.
-   *
-   * <p>e.g.</p>
-   * <pre>
-   * <code>
-   * builder.findClient(((context, ratpackContext) -&gt; context.getRequest().get(Clients.class).findClient(context.getPathTokens().get("clientName"))
-   * </code>
-   * </pre>
-   *
-   * @param findClientFunction the lookup function
-   * @return the builder
-   */
   @SuppressWarnings("unused")
-  public Pac4jCallbackHandlerBuilder findClient(BiFunction<Context, RatpackWebContext, Client<Credentials, UserProfile>> findClientFunction) {
-    this.findClientFunction = findClientFunction;
+  public Pac4jCallbackHandlerBuilder lookupClient(BiFunction<? super Context, ? super WebContext, ? extends Client<Credentials, UserProfile>> lookupClient) {
+    this.lookupClient = lookupClient;
     return this;
   }
 
-  /**
-   * Add handler for dealing with the newly-looked-up profile
-   *
-   * <p>e.g.</p>
-   * <pre>
-   * <code>
-   * builder.handleProfile(((context, profile) -&gt; context.next(Registries.just(profile))));
-   * </code>
-   * </pre>
-   *
-   * @param handleProfileFunction the handler function
-   * @return the builder
-   */
+  private BiFunction<? super Context, ? super WebContext, ? extends Client<Credentials, UserProfile>> lookupClient = (context, webContext) -> {
+    Request request = context.getRequest();
+    Clients clients = request.get(Clients.class);
+    return Types.cast(clients.findClient(webContext));
+  };
+
   @SuppressWarnings("unused")
-  public Pac4jCallbackHandlerBuilder handleProfile(BiConsumer<Context, UserProfile> handleProfileFunction) {
-    this.handleProfileFunction = handleProfileFunction;
+  public Pac4jCallbackHandlerBuilder onSuccess(BiConsumer<? super Context, ? super UserProfile> onSuccess) {
+    this.onSuccess = onSuccess;
     return this;
   }
 
-  /**
-   * Add handler for dealing with errors
-   *
-   * <p>e.g.</p>
-   * <pre>
-   * <code>
-   * this.handleError((context, ex) -&gt; {
-   *     LOGGER.error("Error logging in", ex);
-   *     context.redirect("/some/url");
-   * });
-   * </code>
-   * </pre>
-   *
-   * @param handleErrorFunction the handler function
-   * @return the builder
-   */
+  private BiConsumer<? super Context, ? super UserProfile> onSuccess = (context, profile) -> {
+    Request request = context.getRequest();
+    SessionStorage sessionStorage = request.get(SessionStorage.class);
+    if (profile != null) {
+      sessionStorage.put(USER_PROFILE, profile);
+    }
+    String originalUri = (String) sessionStorage.remove(SAVED_URI);
+    if (originalUri == null) {
+      originalUri = DEFAULT_REDIRECT_URI;
+    }
+    context.redirect(originalUri);
+  };
+
   @SuppressWarnings("unused")
-  public Pac4jCallbackHandlerBuilder handleError(BiConsumer<Context, Throwable> handleErrorFunction) {
-    this.handleErrorFunction = handleErrorFunction;
+  public Pac4jCallbackHandlerBuilder onError(BiConsumer<? super Context, ? super Throwable> onError) {
+    this.onError = onError;
     return this;
   }
+
+  private BiConsumer<? super Context, ? super Throwable> onError = (ctx, ex) -> {
+    throw new TechnicalException("Failed to get user profile", ex);
+  };
 
 }

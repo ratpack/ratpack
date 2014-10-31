@@ -18,11 +18,9 @@ package ratpack.pac4j.internal;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Injector;
-
 import org.pac4j.core.client.Client;
 import org.pac4j.core.credentials.Credentials;
 import org.pac4j.core.profile.UserProfile;
-
 import ratpack.guice.HandlerDecoratingModule;
 import ratpack.handling.Handler;
 import ratpack.handling.Handlers;
@@ -89,7 +87,7 @@ public abstract class AbstractPac4jModule<C extends Credentials, U extends UserP
     final Client<C, U> client = getClient(injector);
     final Authorizer authorizer = getAuthorizer(injector);
     final Pac4jClientsHandler clientsHandler = new Pac4jClientsHandler(callbackPath, client);
-    final Pac4jCallbackHandler callbackHandler = new Pac4jCallbackHandlerBuilder().build();
+    final Handler callbackHandler = new Pac4jCallbackHandlerBuilder().build();
     final Pac4jAuthenticationHandler authenticationHandler = new Pac4jAuthenticationHandler(client.getName(), authorizer);
     return Handlers.chain(clientsHandler, Handlers.path(callbackPath, callbackHandler), authenticationHandler, handler);
   }
