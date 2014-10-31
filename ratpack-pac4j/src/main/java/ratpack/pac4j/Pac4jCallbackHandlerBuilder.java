@@ -30,9 +30,10 @@ import java.util.function.BiFunction;
  * Builder for Pac4J callback handler.
  */
 public class Pac4jCallbackHandlerBuilder {
-  private BiFunction<Context,RatpackWebContext,Client<Credentials, UserProfile>> findClientFunction;
-  private BiConsumer<Context,UserProfile> handleProfileFunction;
-  private BiConsumer<Context,Throwable> handleErrorFunction;
+
+  private BiFunction<Context, RatpackWebContext, Client<Credentials, UserProfile>> findClientFunction;
+  private BiConsumer<Context, UserProfile> handleProfileFunction;
+  private BiConsumer<Context, Throwable> handleErrorFunction;
 
   public Pac4jCallbackHandler build() {
     return new Pac4jCallbackHandler(findClientFunction, handleProfileFunction, handleErrorFunction);
@@ -52,7 +53,7 @@ public class Pac4jCallbackHandlerBuilder {
    * @return the builder
    */
   @SuppressWarnings("unused")
-  public Pac4jCallbackHandlerBuilder findClient(BiFunction<Context,RatpackWebContext,Client<Credentials, UserProfile>> findClientFunction) {
+  public Pac4jCallbackHandlerBuilder findClient(BiFunction<Context, RatpackWebContext, Client<Credentials, UserProfile>> findClientFunction) {
     this.findClientFunction = findClientFunction;
     return this;
   }
@@ -71,7 +72,7 @@ public class Pac4jCallbackHandlerBuilder {
    * @return the builder
    */
   @SuppressWarnings("unused")
-  public Pac4jCallbackHandlerBuilder handleProfile(BiConsumer<Context,UserProfile> handleProfileFunction) {
+  public Pac4jCallbackHandlerBuilder handleProfile(BiConsumer<Context, UserProfile> handleProfileFunction) {
     this.handleProfileFunction = handleProfileFunction;
     return this;
   }
@@ -93,7 +94,7 @@ public class Pac4jCallbackHandlerBuilder {
    * @return the builder
    */
   @SuppressWarnings("unused")
-  public Pac4jCallbackHandlerBuilder handleError(BiConsumer<Context,Throwable> handleErrorFunction) {
+  public Pac4jCallbackHandlerBuilder handleError(BiConsumer<Context, Throwable> handleErrorFunction) {
     this.handleErrorFunction = handleErrorFunction;
     return this;
   }
