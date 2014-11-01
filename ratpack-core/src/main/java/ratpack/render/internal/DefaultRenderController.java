@@ -36,15 +36,13 @@ public class DefaultRenderController implements RenderController {
       return;
     }
 
-    Renderer<?> renderer = context.first(RENDERER_TYPE_TOKEN, new RendererForTypePredicate(toRender.getClass()));
-    if (renderer == null) {
-      throw new NoSuchRendererException(toRender);
-    } else {
-      try {
-        doRender(toRender, renderer, context);
-      } catch (Exception e) {
-        throw new RendererException(renderer, toRender, e);
-      }
+    Renderer<?> renderer = context.first(RENDERER_TYPE_TOKEN, new RendererForTypePredicate(toRender.getClass()))
+      .orElseThrow(() -> new NoSuchRendererException(toRender));
+
+    try {
+      doRender(toRender, renderer, context);
+    } catch (Exception e) {
+      throw new RendererException(renderer, toRender, e);
     }
   }
 

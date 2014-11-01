@@ -18,9 +18,10 @@ package ratpack.registry;
 
 import com.google.common.base.Predicate;
 import com.google.common.reflect.TypeToken;
-import ratpack.api.Nullable;
 import ratpack.func.Action;
 import ratpack.registry.internal.HierarchicalRegistry;
+
+import java.util.Optional;
 
 /**
  * An object registry.
@@ -96,12 +97,7 @@ public interface Registry {
    * @throws NotInRegistryException If no object of this type can be returned
    */
   default <O> O get(TypeToken<O> type) throws NotInRegistryException {
-    O object = maybeGet(type);
-    if (object == null) {
-      throw new NotInRegistryException(type);
-    } else {
-      return object;
-    }
+    return maybeGet(type).orElseThrow(() -> new NotInRegistryException(type));
   }
 
   /**
@@ -111,8 +107,7 @@ public interface Registry {
    * @param <O> The type of the object to provide
    * @return An object of the specified type, or null if no object of this type is available.
    */
-  @Nullable
-  default <O> O maybeGet(Class<O> type) {
+  default <O> Optional<O> maybeGet(Class<O> type) {
     return maybeGet(TypeToken.of(type));
   }
 
@@ -121,10 +116,9 @@ public interface Registry {
    *
    * @param type The type of the object to provide
    * @param <O> The type of the object to provide
-   * @return An object of the specified type, or null if no object of this type is available.
+   * @return An optional of an object of the specified type
    */
-  @Nullable
-  <O> O maybeGet(TypeToken<O> type);
+  <O> Optional<O> maybeGet(TypeToken<O> type);
 
   /**
    * Returns all of the objects whose declared type is assignment compatible with the given type.
@@ -152,10 +146,9 @@ public interface Registry {
    * @param type the type of object to search for
    * @param predicate a predicate to check objects against
    * @param <T> the type of the object to search for
-   * @return An object of the specified type that satisfied the specified predicate, or null if no such object is available.
+   * @return An optional of the object of the specified type that satisfied the specified predicate
    */
-  @Nullable
-  <T> T first(TypeToken<T> type, Predicate<? super T> predicate);
+  <T> Optional<T> first(TypeToken<T> type, Predicate<? super T> predicate);
 
   /**
    * Returns all of the objects whose declared type is assignment compatible with the given type and who satisfy the given predicate.

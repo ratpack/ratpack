@@ -49,6 +49,7 @@ import java.nio.file.Path;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.Callable;
 
 public class DefaultGroovyContext implements GroovyContext {
@@ -267,8 +268,7 @@ public class DefaultGroovyContext implements GroovyContext {
   }
 
   @Override
-  @Nullable
-  public <O> O maybeGet(Class<O> type) {
+  public <O> Optional<O> maybeGet(Class<O> type) {
     return delegate.maybeGet(type);
   }
 
@@ -283,7 +283,7 @@ public class DefaultGroovyContext implements GroovyContext {
 
   @Override
   @Nullable
-  public <O> O maybeGet(TypeToken<O> type) {
+  public <O> Optional<O> maybeGet(TypeToken<O> type) {
     return delegate.maybeGet(type);
   }
 
@@ -292,9 +292,8 @@ public class DefaultGroovyContext implements GroovyContext {
     return delegate.getAll(type);
   }
 
-  @Nullable
   @Override
-  public <T> T first(TypeToken<T> type, Predicate<? super T> predicate) {
+  public <T> Optional<T> first(TypeToken<T> type, Predicate<? super T> predicate) {
     return delegate.first(type, predicate);
   }
 

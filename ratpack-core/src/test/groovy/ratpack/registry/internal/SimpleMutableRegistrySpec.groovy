@@ -25,7 +25,7 @@ class SimpleMutableRegistrySpec extends Specification {
 
   def "empty mutable registry"() {
     expect:
-    r.maybeGet(String) == null
+    !r.maybeGet(String).isPresent()
     r.remove(String)
 
     when:

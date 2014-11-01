@@ -18,17 +18,17 @@ package ratpack.registry.internal;
 
 import com.google.common.base.Predicate;
 import com.google.common.reflect.TypeToken;
-import ratpack.api.Nullable;
 import ratpack.func.Action;
 import ratpack.registry.Registry;
 
 import java.util.Collections;
+import java.util.Optional;
 
 public final class EmptyRegistry implements Registry {
-  @Nullable
+
   @Override
-  public <O> O maybeGet(TypeToken<O> type) {
-    return null;
+  public <O> Optional<O> maybeGet(TypeToken<O> type) {
+    return Optional.empty();
   }
 
   @Override
@@ -36,10 +36,9 @@ public final class EmptyRegistry implements Registry {
     return Collections.emptyList();
   }
 
-  @Nullable
   @Override
-  public <T> T first(TypeToken<T> type, Predicate<? super T> predicate) {
-    return null;
+  public <T> Optional<T> first(TypeToken<T> type, Predicate<? super T> predicate) {
+    return Optional.empty();
   }
 
   @Override

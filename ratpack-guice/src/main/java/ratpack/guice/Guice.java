@@ -116,8 +116,7 @@ import static com.google.inject.Guice.createInjector;
  *           .build(chain -> {
  *             // The registry in a Guice backed chain can be used to retrieve objects that were bound,
  *             // or to create objects that are bound “just-in-time”.
- *             Handler injectedHandler = chain.get(InjectedHandler.class);
- *             chain.get("some/path", injectedHandler);
+ *             chain.get("some/path", InjectedHandler.class);
  *           })
  *     ).test(httpClient -> {
  *       assert httpClient.get("some/path").getBody().getText().equals("foo-bar");

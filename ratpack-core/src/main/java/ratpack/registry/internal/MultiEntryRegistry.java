@@ -25,6 +25,7 @@ import ratpack.registry.Registry;
 
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 
 public class MultiEntryRegistry implements Registry {
 
@@ -39,15 +40,15 @@ public class MultiEntryRegistry implements Registry {
     return "Registry{" + entries + '}';
   }
 
-  public <O> O maybeGet(TypeToken<O> type) {
+  public <O> Optional<O> maybeGet(TypeToken<O> type) {
     for (RegistryEntry<?> entry : entries) {
       if (type.isAssignableFrom(entry.getType())) {
         @SuppressWarnings("unchecked") O cast = (O) entry.get();
-        return cast;
+        return Optional.of(cast);
       }
     }
 
-    return null;
+    return Optional.empty();
   }
 
   public <O> Iterable<? extends O> getAll(final TypeToken<O> type) {
@@ -96,16 +97,16 @@ public class MultiEntryRegistry implements Registry {
 
   @Nullable
   @Override
-  public <O> O first(TypeToken<O> type, Predicate<? super O> predicate) {
+  public <O> Optional<O> first(TypeToken<O> type, Predicate<? super O> predicate) {
     for (RegistryEntry<?> entry : entries) {
       if (type.isAssignableFrom(entry.getType())) {
         @SuppressWarnings("unchecked") O cast = (O) entry.get();
         if (predicate.apply(cast)) {
-          return cast;
+          return Optional.of(cast);
         }
       }
     }
-    return null;
+    return Optional.empty();
   }
 
   @Override

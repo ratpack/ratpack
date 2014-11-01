@@ -33,7 +33,7 @@ public class PathHandler implements Handler {
   }
 
   public void handle(Context context) {
-    PathBinding childBinding = binding.bind(context.getRequest().getPath(), context.maybeGet(PathBinding.class));
+    PathBinding childBinding = binding.bind(context.getRequest().getPath(), context.maybeGet(PathBinding.class).orElse(null));
     if (childBinding != null) {
       context.insert(Registries.just(PathBinding.class, childBinding), handler);
     } else {

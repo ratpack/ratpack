@@ -51,7 +51,7 @@ import javax.sql.DataSource;
  *               })
  *           )
  *           .build(chain -> {
- *             DataSource dataSource = chain.get(DataSource.class);
+ *             DataSource dataSource = chain.getRegistry().get(DataSource.class);
  *             try (Connection connection = dataSource.getConnection()) {
  *               connection.createStatement().executeUpdate("create table if not exists val(ID INT PRIMARY KEY, val VARCHAR(255));");
  *             }

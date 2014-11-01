@@ -18,12 +18,12 @@ package ratpack.remote.internal;
 
 import com.google.common.base.Predicate;
 import com.google.common.reflect.TypeToken;
-import ratpack.api.Nullable;
 import ratpack.func.Action;
 import ratpack.registry.Registry;
 import ratpack.registry.RegistrySpec;
 import ratpack.remote.CommandDelegate;
 
+import java.util.Optional;
 import java.util.function.Supplier;
 
 public abstract class DelegatingCommandDelegate implements CommandDelegate {
@@ -47,8 +47,7 @@ public abstract class DelegatingCommandDelegate implements CommandDelegate {
   }
 
   @Override
-  @Nullable
-  public <O> O maybeGet(TypeToken<O> type) {
+  public <O> Optional<O> maybeGet(TypeToken<O> type) {
     return registry.maybeGet(type);
   }
 
@@ -57,9 +56,8 @@ public abstract class DelegatingCommandDelegate implements CommandDelegate {
     return registry.getAll(type);
   }
 
-  @Nullable
   @Override
-  public <T> T first(TypeToken<T> type, Predicate<? super T> predicate) {
+  public <T> Optional<T> first(TypeToken<T> type, Predicate<? super T> predicate) {
     return registry.first(type, predicate);
   }
 

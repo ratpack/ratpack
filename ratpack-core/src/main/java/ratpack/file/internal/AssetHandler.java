@@ -41,11 +41,9 @@ public class AssetHandler implements Handler {
   public void handle(Context context) throws Exception {
     Request request = context.getRequest();
 
-    String path = request.getPath();
-    PathBinding pathBinding = context.maybeGet(PathBinding.class);
-    if (pathBinding != null) {
-      path = pathBinding.getPastBinding();
-    }
+    String path = context.maybeGet(PathBinding.class)
+      .map(PathBinding::getPastBinding)
+      .orElse(request.getPath());
 
     // Decode the path.
     try {

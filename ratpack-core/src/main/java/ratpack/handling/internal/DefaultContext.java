@@ -17,14 +17,12 @@
 package ratpack.handling.internal;
 
 import com.google.common.base.Predicate;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.reflect.TypeToken;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import org.reactivestreams.Publisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ratpack.api.Nullable;
 import ratpack.error.ClientErrorHandler;
 import ratpack.error.ServerErrorHandler;
 import ratpack.event.internal.EventRegistry;
@@ -272,12 +270,9 @@ public class DefaultContext implements Context {
   }
 
   public PathTokens getPathTokens() {
-    PathBinding pathBinding = maybeGet(PathBinding.class);
-    if (pathBinding == null) {
-      return new DefaultPathTokens(ImmutableMap.<String, String>of());
-    } else {
-      return pathBinding.getTokens();
-    }
+    return maybeGet(PathBinding.class)
+      .map(PathBinding::getTokens)
+      .orElseGet(DefaultPathTokens::empty);
   }
 
   public PathTokens getAllPathTokens() {
@@ -305,17 +300,17 @@ public class DefaultContext implements Context {
       requestContentType = "text/plain";
     }
 
-    Parser<?> parser = getRegistry().first(PARSER_TYPE_TOKEN, new ParserForParsePredicate(parse, requestContentType));
-    if (parser != null) {
-      @SuppressWarnings("unchecked") Parser<O> castParser = (Parser<O>) parser;
-      try {
-        return castParser.parse(this, getRequest().getBody(), parse);
-      } catch (Exception e) {
-        throw new ParserException(parser, e);
-      }
-    } else {
-      throw new NoSuchParserException(parse.getType(), parse.getOpts(), requestContentType);
-    }
+    final String finalRequestContentType = requestContentType;
+    return getRegistry().first(PARSER_TYPE_TOKEN, new ParserForParsePredicate(parse, requestContentType))
+      .map(parser -> {
+        @SuppressWarnings("unchecked") Parser<O> castParser = (Parser<O>) parser;
+        try {
+          return castParser.parse(this, getRequest().getBody(), parse);
+        } catch (Exception e) {
+          throw new ParserException(parser, e);
+        }
+      })
+      .orElseThrow(() -> new NoSuchParserException(parse.getType(), parse.getOpts(), finalRequestContentType));
   }
 
   @Override
@@ -383,7 +378,7 @@ public class DefaultContext implements Context {
     ServerErrorHandler serverErrorHandler = get(ServerErrorHandler.class);
     throwable = unpackThrowable(throwable);
 
-    ThrowableHolder throwableHolder = getRequest().maybeGet(ThrowableHolder.class);
+    ThrowableHolder throwableHolder = getRequest().maybeGet(ThrowableHolder.class).orElse(null);
     if (throwableHolder == null) {
       getRequest().add(ThrowableHolder.class, new ThrowableHolder(throwable));
 
@@ -448,8 +443,7 @@ public class DefaultContext implements Context {
   }
 
   @Override
-  @Nullable
-  public <O> O maybeGet(TypeToken<O> type) {
+  public <O> Optional<O> maybeGet(TypeToken<O> type) {
     return getRegistry().maybeGet(type);
   }
 
@@ -458,9 +452,8 @@ public class DefaultContext implements Context {
     return getRegistry().getAll(type);
   }
 
-  @Nullable
   @Override
-  public <T> T first(TypeToken<T> type, Predicate<? super T> predicate) {
+  public <T> Optional<T> first(TypeToken<T> type, Predicate<? super T> predicate) {
     return getRegistry().first(type, predicate);
   }
 

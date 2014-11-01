@@ -24,7 +24,6 @@ import io.netty.handler.codec.http.Cookie;
 import io.netty.handler.codec.http.CookieDecoder;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.QueryStringDecoder;
-import ratpack.api.Nullable;
 import ratpack.func.Action;
 import ratpack.http.Headers;
 import ratpack.http.HttpMethod;
@@ -37,10 +36,7 @@ import ratpack.util.MultiValueMap;
 import ratpack.util.internal.ImmutableDelegatingMultiValueMap;
 
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Supplier;
 
 public class DefaultRequest implements Request {
@@ -214,8 +210,7 @@ public class DefaultRequest implements Request {
   }
 
   @Override
-  @Nullable
-  public <O> O maybeGet(TypeToken<O> type) {
+  public <O> Optional<O> maybeGet(TypeToken<O> type) {
     return registry.maybeGet(type);
   }
 
@@ -224,9 +219,8 @@ public class DefaultRequest implements Request {
     return registry.getAll(type);
   }
 
-  @Nullable
   @Override
-  public <T> T first(TypeToken<T> type, Predicate<? super T> predicate) {
+  public <T> Optional<T> first(TypeToken<T> type, Predicate<? super T> predicate) {
     return registry.first(type, predicate);
   }
 

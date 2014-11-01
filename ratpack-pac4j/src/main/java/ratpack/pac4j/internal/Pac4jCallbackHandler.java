@@ -17,72 +17,46 @@
 package ratpack.pac4j.internal;
 
 import org.pac4j.core.client.Client;
-import org.pac4j.core.client.Clients;
+import org.pac4j.core.context.WebContext;
 import org.pac4j.core.credentials.Credentials;
 import org.pac4j.core.exception.RequiresHttpAction;
-import org.pac4j.core.exception.TechnicalException;
 import org.pac4j.core.profile.UserProfile;
-
-import ratpack.func.Action;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
-import ratpack.http.Request;
-import ratpack.session.store.SessionStorage;
 
-import java.util.concurrent.Callable;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 
-import static ratpack.pac4j.internal.SessionConstants.SAVED_URI;
-import static ratpack.pac4j.internal.SessionConstants.USER_PROFILE;
-
-/**
- * Handles callback requests from identity providers.
- */
 public class Pac4jCallbackHandler implements Handler {
-  private static final String DEFAULT_REDIRECT_URI = "/";
+
+  private final BiFunction<? super Context, ? super WebContext, ? extends Client<Credentials, UserProfile>> lookupClient;
+  private final BiConsumer<? super Context, ? super UserProfile> onSuccess;
+  private final BiConsumer<? super Context, ? super Throwable> onError;
+
+  public Pac4jCallbackHandler(
+    BiFunction<? super Context, ? super WebContext, ? extends Client<Credentials, UserProfile>> lookupClient,
+    BiConsumer<? super Context, ? super UserProfile> onSuccess,
+    BiConsumer<? super Context, ? super Throwable> onError
+  ) {
+    this.lookupClient = lookupClient;
+    this.onSuccess = onSuccess;
+    this.onError = onError;
+  }
 
   @Override
-  public void handle(final Context context) {
-    final Request request = context.getRequest();
-    final SessionStorage sessionStorage = request.get(SessionStorage.class);
-    final Clients clients = request.get(Clients.class);
-    final RatpackWebContext webContext = new RatpackWebContext(context);
-    context.blocking(new Callable<UserProfile>() {
-      @Override
-      public UserProfile call() throws Exception {
-        @SuppressWarnings("unchecked")
-        Client<Credentials, UserProfile> client = clients.findClient(webContext);
-        Credentials credentials = client.getCredentials(webContext);
-        return client.getUserProfile(credentials, webContext);
+  public void handle(Context context) {
+    RatpackWebContext webContext = new RatpackWebContext(context);
+    context.blocking(() -> {
+      Client<Credentials, UserProfile> client = lookupClient.apply(context, webContext);
+      Credentials credentials = client.getCredentials(webContext);
+      return client.getUserProfile(credentials, webContext);
+    }).onError(e -> {
+      if (e instanceof RequiresHttpAction) {
+        webContext.sendResponse((RequiresHttpAction) e);
+      } else {
+        onError.accept(context, e);
       }
-    }).onError(new Action<Throwable>() {
-      @Override
-      public void execute(Throwable ex) throws Exception {
-        if (ex instanceof RequiresHttpAction) {
-          webContext.sendResponse((RequiresHttpAction) ex);
-        } else {
-          throw new TechnicalException("Failed to get user profile", ex);
-        }
-      }
-    }).then(new Action<UserProfile>() {
-      @Override
-      public void execute(UserProfile profile) throws Exception {
-        saveUserProfileInSession(sessionStorage, profile);
-        context.redirect(getSavedUri(sessionStorage));
-      }
-    });
+    }).then(profile -> onSuccess.accept(context, profile));
   }
 
-  private static void saveUserProfileInSession(SessionStorage sessionStorage, UserProfile profile) {
-    if (profile != null) {
-      sessionStorage.put(USER_PROFILE, profile);
-    }
-  }
-
-  private static String getSavedUri(SessionStorage sessionStorage) {
-    String originalUri = (String) sessionStorage.remove(SAVED_URI);
-    if (originalUri == null) {
-      originalUri = DEFAULT_REDIRECT_URI;
-    }
-    return originalUri;
-  }
 }
