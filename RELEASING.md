@@ -29,9 +29,7 @@ Write the content, but don't close the milestone yet.
     1. Go to https://oss.jfrog.org/webapp/builds/ratpack/?6
     1. To log in use your Bintray username and Bintray API key
     1. Find the build you just uploaded (you should be able to tell by the version number).  If you sort by "Time Built" desc it will be at the top of the list
-    1. After clicking the build, the next page has an 'Upload to Bintray' icon, click it
-        1. Details: repository = ratpack/maven, package name = ratpack, version = «release version»
-        1. I often have to repeat this process a few times because it times out, until it finishes with success
+    1. Take the buildNumber and run `./gradlew bintrayPublish -PbuildNumber=«buildNumber» -i`
     1. Confirm the publish in Bintray - The link to the bintray page is given on the success page of the previous step. Just in case it's:  https://bintray.com/ratpack/maven/ratpack/«version»/view/files/io/ratpack
     1. Publish to Maven central - click the 'Maven Central' tab on the Bintray package page
         1. Enter your user/pass - this is your oss.sonatype.org credentials
