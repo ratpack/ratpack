@@ -45,7 +45,7 @@ public abstract class ErrorPageRenderer {
 
       InputStreamReader reader = new InputStreamReader(resourceAsStream, CharsetUtil.UTF_8);
       try {
-        STYLE = HTML_ESCAPER.escape(CharStreams.toString(reader));
+        STYLE = CharStreams.toString(reader);
       } catch (IOException e) {
         throw new IllegalStateException("Could not read style stream", e);
       }
