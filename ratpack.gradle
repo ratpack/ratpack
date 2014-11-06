@@ -65,7 +65,7 @@ task bintrayPublish << {
     throw new GradleException("Must provide buildNumber of a release binary from oss.jfrog.org")
   }
 
-  def baseUrl = 'http://oss.jfrog.org/api/plugins/build/promote/releaseToBintray/ratpack/'
+  def baseUrl = 'https://oss.jfrog.org/api/plugins/build/promote/releaseToBintray/ratpack/'
   def params = '?params=org=ratpack|repo=maven|package=ratpack'
   def curlUrl = [baseUrl, project.buildNumber, params].join('')
   def curl = ['curl', '-X', 'POST', '-u',
