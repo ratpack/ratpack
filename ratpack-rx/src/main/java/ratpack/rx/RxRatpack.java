@@ -228,7 +228,7 @@ public abstract class RxRatpack {
    * @see #asPromiseSingle(Observable)
    */
   public static <T> Promise<List<T>> asPromise(Observable<T> observable) {
-    return ExecController.require().getControl().promise(f -> observable.toList().subscribe(f::success, f::error));
+    return ExecControl.current().promise(f -> observable.toList().subscribe(f::success, f::error));
   }
 
   /**
@@ -246,16 +246,7 @@ public abstract class RxRatpack {
    * @see #asPromise(Observable)
    */
   public static <T> Promise<T> asPromiseSingle(Observable<T> observable) {
-    return asPromise(observable).map(l -> {
-      int size = l.size();
-      if (size == 0) {
-        return null;
-      } else if (size == 1) {
-        return l.get(0);
-      } else {
-        throw new IllegalArgumentException("Observable sequence returned more than one element");
-      }
-    });
+    return ExecControl.current().promise(f -> observable.single().subscribe(f::success, f::error));
   }
 
   /**
