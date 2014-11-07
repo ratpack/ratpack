@@ -15,14 +15,12 @@
  */
 
 
-
 package ratpack.stream.tck
 
 import org.reactivestreams.Publisher
 import org.reactivestreams.tck.PublisherVerification
 import org.reactivestreams.tck.TestEnvironment
 
-import static ratpack.stream.Streams.multicast
 import static ratpack.stream.Streams.publish
 
 class MulticastPublisherVerification extends PublisherVerification<Integer> {
@@ -36,7 +34,7 @@ class MulticastPublisherVerification extends PublisherVerification<Integer> {
 
   @Override
   Publisher<Integer> createPublisher(long elements) {
-    multicast(publish(0..<elements))
+    publish(0..<elements).multicast()
   }
 
   @Override

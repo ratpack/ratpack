@@ -26,6 +26,8 @@ import org.slf4j.Logger;
 import ratpack.exec.*;
 import ratpack.func.Action;
 import ratpack.registry.RegistrySpec;
+import ratpack.stream.Streams;
+import ratpack.stream.TransformablePublisher;
 
 import java.util.Collections;
 import java.util.List;
@@ -154,8 +156,8 @@ public class DefaultExecControl implements ExecControl {
     return new DefaultPromise<>(this::getBacking, action);
   }
 
-  public <T> Publisher<T> stream(Publisher<T> publisher) {
-    return subscriber -> {
+  public <T> TransformablePublisher<T> stream(Publisher<T> publisher) {
+    return Streams.transformable(subscriber -> {
       final ExecutionBacking executionBacking = getBacking();
       executionBacking.streamSubscribe((handle) ->
           publisher.subscribe(new Subscriber<T>() {
@@ -180,7 +182,7 @@ public class DefaultExecControl implements ExecControl {
             }
           })
       );
-    };
+    });
   }
 
   public List<? extends ExecutionSnapshot> getExecutionSnapshots() {

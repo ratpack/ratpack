@@ -50,6 +50,7 @@ import ratpack.registry.Registry;
 import ratpack.render.NoSuchRendererException;
 import ratpack.render.internal.RenderController;
 import ratpack.server.BindAddress;
+import ratpack.stream.TransformablePublisher;
 import ratpack.util.ExceptionUtils;
 
 import java.lang.reflect.UndeclaredThrowableException;
@@ -196,7 +197,7 @@ public class DefaultContext implements Context {
   }
 
   @Override
-  public <T> Publisher<T> stream(Publisher<T> publisher) {
+  public <T> TransformablePublisher<T> stream(Publisher<T> publisher) {
     return requestConstants.applicationConstants.execControl.stream(publisher);
   }
 

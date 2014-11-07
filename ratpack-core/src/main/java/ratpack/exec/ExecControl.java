@@ -18,6 +18,7 @@ package ratpack.exec;
 
 import org.reactivestreams.Publisher;
 import ratpack.func.Action;
+import ratpack.stream.TransformablePublisher;
 
 import java.util.concurrent.Callable;
 
@@ -134,6 +135,6 @@ public interface ExecControl {
    * @return effectively the given publisher, emitting each “event” as an execution segment of the current execution
    * @param <T> the type of streamed elements
    */
-  <T> Publisher<T> stream(Publisher<T> publisher);
+  <T> TransformablePublisher<T> stream(Publisher<T> publisher);
 
 }

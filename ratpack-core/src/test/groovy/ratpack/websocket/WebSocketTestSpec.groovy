@@ -25,7 +25,8 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
 
-import static ratpack.stream.Streams.*
+import static ratpack.stream.Streams.periodically
+import static ratpack.stream.Streams.publish
 import static ratpack.websocket.WebSockets.websocket
 import static ratpack.websocket.WebSockets.websocketBroadcast
 
@@ -120,8 +121,7 @@ class WebSocketTestSpec extends RatpackGroovyDslSpec {
       get {
         def stream = periodically(launchConfig.execController.executor, 100, TimeUnit.MICROSECONDS) {
           "1"
-        }
-        stream = wiretap(stream) {
+        }.wiretap {
           if (it.cancel) {
             streamCancelled.countDown()
           }
@@ -153,8 +153,7 @@ class WebSocketTestSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       get {
-        def stream = publish(0..2)
-        stream = map(stream) { "foo-$it".toString() }
+        def stream = publish(0..2).map { "foo-$it".toString() }
         websocketBroadcast(context, stream)
       }
     }
@@ -184,8 +183,7 @@ class WebSocketTestSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       get {
-        def stream = publish(0..4)
-        stream = map(stream) {
+        def stream = publish(0..4).map {
           if (it < 3) {
             "foo-$it".toString()
           } else {

@@ -33,6 +33,7 @@ import ratpack.registry.NotInRegistryException;
 import ratpack.registry.Registry;
 import ratpack.render.NoSuchRendererException;
 import ratpack.server.BindAddress;
+import ratpack.stream.TransformablePublisher;
 
 import java.nio.file.Path;
 import java.util.Date;
@@ -487,7 +488,7 @@ public interface Context extends ExecControl, Registry {
   @Override
   void addInterceptor(ExecInterceptor execInterceptor, Action<? super Execution> continuation) throws Exception;
 
-  <T> Publisher<T> stream(Publisher<T> publisher);
+  <T> TransformablePublisher<T> stream(Publisher<T> publisher);
 
   /**
    * Forwards the error to the {@link ratpack.error.ClientErrorHandler} in this service.

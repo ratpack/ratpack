@@ -45,13 +45,10 @@ class FlatMapPublisherVerification extends PublisherVerification<Integer> {
             it.requestNum < elements ? elements : null
           }
 
-          stream = execHarness.stream(stream)
-
-          stream = Streams.flatMap(stream) { n ->
+          execHarness.stream(stream).flatMap { n ->
             execHarness.blocking { n * 2 }
-          }
-
-          stream.subscribe(s)
+          }.subscribe(s)
+          stream
         }
       }
     }

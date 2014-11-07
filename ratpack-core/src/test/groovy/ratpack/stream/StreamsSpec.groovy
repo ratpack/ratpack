@@ -38,13 +38,11 @@ class StreamsSpec extends Specification {
     boolean complete
     Subscription subscription
 
-    def stream = publish(1..10)
-    stream = wiretap(stream) {
+    def stream = publish(1..10).wiretap {
       if (it.data) {
         sent << it.item
       }
-    }
-    stream = buffer(stream)
+    }.buffer()
 
     stream.subscribe(new Subscriber<Integer>() {
       @Override
@@ -202,13 +200,11 @@ class StreamsSpec extends Specification {
     Subscription fooSubscription
     Subscription barSubscription
 
-    def stream = periodically(executor, 5, TimeUnit.SECONDS) { it < 10 ? it : null }
-    stream = wiretap(stream) {
+    def stream = periodically(executor, 5, TimeUnit.SECONDS) { it < 10 ? it : null }.wiretap {
       if (it.data) {
         sent << it.item
       }
-    }
-    stream = multicast(stream)
+    }.multicast()
 
     when:
     stream.subscribe(new Subscriber<Integer>() {
@@ -324,7 +320,7 @@ class StreamsSpec extends Specification {
   def "can reject further multicast subscriptions when the upstream publisher has completed"() {
     given:
     def error
-    def stream = multicast(publish([1]))
+    def stream = publish([1]).multicast()
     stream.subscribe(new Subscriber() {
       @Override
       void onSubscribe(Subscription s) {
@@ -332,22 +328,22 @@ class StreamsSpec extends Specification {
       }
 
       @Override
-      void onNext(Object o) { }
+      void onNext(Object o) {}
 
       @Override
-      void onError(Throwable t) { }
+      void onError(Throwable t) {}
 
       @Override
-      void onComplete() { }
+      void onComplete() {}
     })
 
     when:
     stream.subscribe(new Subscriber() {
       @Override
-      void onSubscribe(Subscription s) { }
+      void onSubscribe(Subscription s) {}
 
       @Override
-      void onNext(Object o) { }
+      void onNext(Object o) {}
 
       @Override
       void onError(Throwable t) {
@@ -355,7 +351,7 @@ class StreamsSpec extends Specification {
       }
 
       @Override
-      void onComplete() { }
+      void onComplete() {}
     })
 
     then:

@@ -25,7 +25,8 @@ import ratpack.websocket.WebSocket
 import ratpack.websocket.internal.WebsocketBroadcastSubscriber
 
 import static org.mockito.Mockito.mock
-import static ratpack.stream.Streams.*
+import static ratpack.stream.Streams.constant
+import static ratpack.stream.Streams.publish
 
 class WebsocketBroadcastSubscriberBlackboxVerification extends SubscriberBlackboxVerification<String> {
 
@@ -46,7 +47,7 @@ class WebsocketBroadcastSubscriberBlackboxVerification extends SubscriberBlackbo
     if (elements == Long.MAX_VALUE) {
       constant("foo")
     } else if (elements > 0) {
-      map(publish(0..<elements)) { it.toString() }
+      publish(0..<elements).map { it.toString() }
     } else {
       publish([])
     }
