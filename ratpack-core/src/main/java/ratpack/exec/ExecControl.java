@@ -62,6 +62,13 @@ import java.util.concurrent.Callable;
  */
 public interface ExecControl {
 
+  /**
+   * Provides the execution control bound to the current thread.
+   * <p>
+   * This method will fail when called outside of a Ratpack compute thread as it relies on {@link ExecController#require()}.
+   *
+   * @return the execution control bound to the current thread
+   */
   static ExecControl current() {
     return ExecController.require().getControl();
   }
