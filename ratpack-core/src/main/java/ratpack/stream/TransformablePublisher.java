@@ -17,6 +17,7 @@
 package ratpack.stream;
 
 import org.reactivestreams.Publisher;
+import ratpack.exec.ExecControl;
 import ratpack.exec.Promise;
 import ratpack.func.Action;
 import ratpack.func.Function;
@@ -88,6 +89,25 @@ public interface TransformablePublisher<T> extends Publisher<T> {
    */
   default TransformablePublisher<T> multicast() {
     return Streams.multicast(this);
+  }
+
+  /**
+   * See {@link ratpack.stream.Streams#toPromise(Publisher)}.
+   *
+   * @return a promise for this publisher's single item
+   */
+  default Promise<T> toPromise() {
+    return Streams.toPromise(this);
+  }
+
+  /**
+   * See {@link ratpack.stream.Streams#toPromise(ExecControl, Publisher)}.
+   *
+   * @param execControl the exec control to create the promise from
+   * @return a promise for this publisher's single item
+   */
+  default Promise<T> toPromise(ExecControl execControl) {
+    return Streams.toPromise(execControl, this);
   }
 
   /**

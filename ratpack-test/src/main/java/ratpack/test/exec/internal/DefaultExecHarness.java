@@ -63,7 +63,7 @@ public class DefaultExecHarness implements ExecHarness {
         }
 
         private void succeed(T t) {
-          reference.set(t == null ? null : new ResultBackedExecResult<>(Result.success(t)));
+          reference.set(new ResultBackedExecResult<>(Result.success(t)));
           latch.countDown();
         }
       });

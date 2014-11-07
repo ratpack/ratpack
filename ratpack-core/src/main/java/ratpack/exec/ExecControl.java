@@ -62,6 +62,10 @@ import java.util.concurrent.Callable;
  */
 public interface ExecControl {
 
+  static ExecControl current() {
+    return ExecController.require().getControl();
+  }
+
   Execution getExecution();
 
   ExecController getController();

@@ -28,6 +28,7 @@ import java.util.concurrent.ScheduledFuture
 import java.util.concurrent.TimeUnit
 
 import static ratpack.stream.Streams.*
+import static ratpack.test.exec.ExecHarness.yieldSingle
 
 class StreamsSpec extends Specification {
 
@@ -536,5 +537,12 @@ class StreamsSpec extends Specification {
     then:
     queue.toList() == [1, 11, 12, 2, 3, 13]
     complete == true
+  }
+
+  def "can convert stream to promise"() {
+    expect:
+    yieldSingle { publish([1]).toPromise() }.value == 1
+    yieldSingle { publish(1..10).toPromise() }.throwable instanceof IllegalStateException
+    yieldSingle { publish([]).toPromise() }.value == null
   }
 }

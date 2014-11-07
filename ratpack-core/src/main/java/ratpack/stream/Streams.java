@@ -17,6 +17,7 @@
 package ratpack.stream;
 
 import org.reactivestreams.Publisher;
+import ratpack.exec.ExecControl;
 import ratpack.exec.Promise;
 import ratpack.func.Action;
 import ratpack.func.Function;
@@ -289,4 +290,40 @@ public class Streams {
   public static <T> TransformablePublisher<T> merge(Publisher<? extends T>... publishers) {
     return buffer(new MergingPublisher<>(publishers));
   }
+
+  /**
+   * Calls {@link #toPromise(ExecControl, Publisher)} with {@link ExecControl#current()} and the given publisher.
+   *
+   * @param publisher the publiser the convert to a promise
+   * @param <T> the type of promised value
+   * @return a promise for the publisher's single item
+   */
+  public static <T> Promise<T> toPromise(Publisher<T> publisher) {
+    return toPromise(ExecControl.current(), publisher);
+  }
+
+  /**
+   * Creates a promise for the given publisher's single item.
+   * <p>
+   * The given publisher is expected to produce zero or one items.
+   * If it produces zero, the promised value will be {@code null}.
+   * The it produces exactly one item, the promised value will be that item.
+   * <p>
+   * If the stream produces more than one item, the promise will fail with an {@link IllegalStateException}.
+   * As soon as a second item is received, the subscription to the given publisher will be cancelled.
+   * <p>
+   * The single item is not provided to the promise subscriber until the stream completes, to ensure that it is indeed a one element stream.
+   * If the stream errors before sending a second item, the promise will fail with that error.
+   * If it fails after sending a second item, that error will be ignored.
+   *
+   * @param execControl the exec control to create the promise from
+   * @param publisher the publisher to extract the promised item from
+   * @param <T> the type of promised value
+   * @return a promise for the publisher's single item
+   * @see #toPromise(Publisher)
+   */
+  public static <T> Promise<T> toPromise(ExecControl execControl, Publisher<T> publisher) {
+    return execControl.promise(f -> publisher.subscribe(SingleElementSubscriber.to(f::accept)));
+  }
+
 }
