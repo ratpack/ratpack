@@ -52,6 +52,7 @@ import ratpack.render.internal.RenderController;
 import ratpack.server.BindAddress;
 import ratpack.stream.TransformablePublisher;
 import ratpack.util.ExceptionUtils;
+import ratpack.util.Types;
 
 import java.lang.reflect.UndeclaredThrowableException;
 import java.nio.file.Path;
@@ -303,8 +304,8 @@ public class DefaultContext implements Context {
 
     final String finalRequestContentType = requestContentType;
     return getRegistry().first(PARSER_TYPE_TOKEN, new ParserForParsePredicate(parse, requestContentType))
-      .map(parser -> {
-        @SuppressWarnings("unchecked") Parser<O> castParser = (Parser<O>) parser;
+      .<T>map(parser -> {
+        Parser<O> castParser = Types.cast(parser);
         try {
           return castParser.parse(this, getRequest().getBody(), parse);
         } catch (Exception e) {
