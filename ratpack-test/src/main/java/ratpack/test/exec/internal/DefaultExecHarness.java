@@ -56,15 +56,14 @@ public class DefaultExecHarness implements ExecHarness {
           Promise<T> promise = func.apply(execution.getControl());
 
           if (promise == null) {
-            succeed(null);
+            reference.set(null);
+            latch.countDown();
           } else {
-            promise.then(this::succeed);
+            promise.then(t -> {
+              reference.set(new ResultBackedExecResult<>(Result.success(t)));
+              latch.countDown();
+            });
           }
-        }
-
-        private void succeed(T t) {
-          reference.set(t == null ? null : new ResultBackedExecResult<>(Result.success(t)));
-          latch.countDown();
         }
       });
     latch.await();

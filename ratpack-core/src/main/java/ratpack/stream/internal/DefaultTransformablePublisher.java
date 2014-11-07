@@ -14,12 +14,23 @@
  * limitations under the License.
  */
 
-package ratpack.pac4j.internal;
+package ratpack.stream.internal;
 
-/**
- * Constants for session variables used by the pac4j integration.
- */
-public final class SessionConstants {
-  public static final String USER_PROFILE = "ratpack.pac4j-user-profile";
-  public static final String SAVED_URI = "ratpack.pac4j-saved-uri";
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import ratpack.stream.TransformablePublisher;
+
+public class DefaultTransformablePublisher<T> implements TransformablePublisher<T> {
+
+  private final Publisher<T> delegate;
+
+  public DefaultTransformablePublisher(Publisher<T> delegate) {
+    this.delegate = delegate;
+  }
+
+  @Override
+  public void subscribe(Subscriber<? super T> s) {
+    delegate.subscribe(s);
+  }
+
 }

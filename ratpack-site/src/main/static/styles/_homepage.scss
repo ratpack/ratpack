@@ -142,6 +142,12 @@
   }
 }
 
+blockquote {
+  background-color: lightgrey;
+  padding: 0.1em 1em;
+  border-radius: 4px;
+}
+
 // this makes the social buttons overlap on top of the promo box
 @media (max-width: $tablet-portrait - 1px) {
   $overlap: image-height('twitter-badge.png') / 2;

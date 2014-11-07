@@ -17,11 +17,12 @@
 package ratpack.exec
 
 import ratpack.http.ResponseChunks
-import ratpack.stream.Streams
 import ratpack.stream.testutil.CollectingSubscriber
 import ratpack.test.internal.RatpackGroovyDslSpec
 
 import java.util.concurrent.TimeUnit
+
+import static ratpack.stream.Streams.periodically
 
 class StreamExecutionSpec extends RatpackGroovyDslSpec {
 
@@ -30,13 +31,16 @@ class StreamExecutionSpec extends RatpackGroovyDslSpec {
     launchConfig { development(true) }
     handlers {
       get {
-        def s = stream(Streams.periodically(launchConfig, 100, TimeUnit.MILLISECONDS) { it < 10 ? it : null })
-        s = Streams.flatMap(s) { n ->
+        def s = stream(periodically(launchConfig, 100, TimeUnit.MILLISECONDS) { it < 10 ? it : null })
+          .flatMap { n ->
           promise { f ->
             launchConfig.execController.executor.schedule({ f.success(n) } as Runnable, 10, TimeUnit.MILLISECONDS)
           }
         }
-        s = Streams.map(s) { it.toString() }
+        .map {
+          it.toString()
+        }
+
         render(ResponseChunks.stringChunks(s))
       }
     }
@@ -50,20 +54,19 @@ class StreamExecutionSpec extends RatpackGroovyDslSpec {
     launchConfig { development(true) }
     handlers {
       get {
-        def s = stream(Streams.periodically(launchConfig, 100, TimeUnit.MILLISECONDS) { it < 10 ? it : null })
-        s = Streams.flatMap(s) { n ->
+        def s = stream(periodically(launchConfig, 100, TimeUnit.MILLISECONDS) { it < 10 ? it : null })
+          .flatMap { n ->
           promise { f ->
             def c = new CollectingSubscriber({
               f.success(it.value.get(0))
             }, { it.request(10) })
 
-            stream(Streams.periodically(launchConfig, 100, TimeUnit.MILLISECONDS) {
+            stream(periodically(launchConfig, 100, TimeUnit.MILLISECONDS) {
               it < 1 ? n : null
             }).subscribe(c)
           }
-        }
+        }.map { it.toString() }
 
-        s = Streams.map(s) { it.toString() }
         render(ResponseChunks.stringChunks(s))
       }
     }

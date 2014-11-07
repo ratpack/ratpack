@@ -39,7 +39,7 @@ apply plugin: "io.ratpack.ratpack-groovy"
 apply plugin: 'com.github.johnrengelman.shadow'
 
 repositories {
-  maven { url "https://repo.spring.io/repo" } // for springloaded
+  maven { url "https://oss.jfrog.org/repo" }
   maven { url "http://repo.gradle.org/gradle/javascript-public/" } // for coffeescript plugin
 }
 
@@ -48,7 +48,7 @@ ext {
     "0.9.0", "0.9.1", "0.9.2",
     "0.9.3", "0.9.4", "0.9.5",
     "0.9.6", "0.9.7", "0.9.8",
-    "0.9.9"
+    "0.9.9", "0.9.10"
   ]
 }
 

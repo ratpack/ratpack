@@ -25,7 +25,8 @@ import ratpack.hystrix.internal.HystrixThreadPoolMetricsBroadcaster;
 import ratpack.hystrix.internal.HystrixThreadPoolMetricsJsonMapper;
 
 import static ratpack.sse.ServerSentEvents.serverSentEvents;
-import static ratpack.stream.Streams.*;
+import static ratpack.stream.Streams.fanOut;
+import static ratpack.stream.Streams.merge;
 
 /**
  * A Handler that streams Hystrix metrics in text/event-stream format.
@@ -50,14 +51,15 @@ public class HystrixMetricsEventStreamHandler implements Handler {
 
   @Override
   public void handle(Context context) throws Exception {
-    final HystrixCommandMetricsBroadcaster commandMetricsBroadcasterbroadcaster = context.get(HystrixCommandMetricsBroadcaster.class);
-    final HystrixCommandMetricsJsonMapper commandMetricsMapper = context.get(HystrixCommandMetricsJsonMapper.class);
-    final HystrixThreadPoolMetricsBroadcaster threadPoolMetricsBroadcaster = context.get(HystrixThreadPoolMetricsBroadcaster.class);
-    final HystrixThreadPoolMetricsJsonMapper threadPoolMetricsMapper = context.get(HystrixThreadPoolMetricsJsonMapper.class);
+    HystrixCommandMetricsBroadcaster commandMetricsBroadcasterbroadcaster = context.get(HystrixCommandMetricsBroadcaster.class);
+    HystrixCommandMetricsJsonMapper commandMetricsMapper = context.get(HystrixCommandMetricsJsonMapper.class);
+    HystrixThreadPoolMetricsBroadcaster threadPoolMetricsBroadcaster = context.get(HystrixThreadPoolMetricsBroadcaster.class);
+    HystrixThreadPoolMetricsJsonMapper threadPoolMetricsMapper = context.get(HystrixThreadPoolMetricsJsonMapper.class);
 
-    Publisher<String> commandStream = map(fanOut(commandMetricsBroadcasterbroadcaster), commandMetricsMapper);
-    Publisher<String> threadPoolStream = map(fanOut(threadPoolMetricsBroadcaster), threadPoolMetricsMapper);
-    @SuppressWarnings("unchecked") Publisher<String> metricsStream = merge(commandStream, threadPoolStream);
+    Publisher<String> metricsStream = merge(
+      fanOut(commandMetricsBroadcasterbroadcaster).map(commandMetricsMapper),
+      fanOut(threadPoolMetricsBroadcaster).map(threadPoolMetricsMapper)
+    );
 
     context.render(serverSentEvents(metricsStream, spec -> spec.data(spec.getItem())));
   }

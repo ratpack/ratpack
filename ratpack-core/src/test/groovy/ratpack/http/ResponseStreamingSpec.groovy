@@ -24,11 +24,12 @@ import spock.lang.Ignore
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.LinkedBlockingQueue
 
-import static ratpack.stream.Streams.*
+import static ratpack.stream.Streams.publish
 
 class ResponseStreamingSpec extends RatpackGroovyDslSpec {
 
-  @Ignore // unstable due to different buffer sizes on different platforms
+  @Ignore
+  // unstable due to different buffer sizes on different platforms
   def "can stream response with back pressure"() {
     given:
     def sent = new LinkedBlockingQueue()
@@ -39,16 +40,18 @@ class ResponseStreamingSpec extends RatpackGroovyDslSpec {
     when:
     handlers {
       get {
-        def stream = publish([1, 2, 3, 4, 5])
-        stream = wiretap(stream) {
+        def stream = publish([1, 2, 3, 4, 5]).wiretap {
           if (it.data) {
             sent.put(it.item)
           } else if (it.complete) {
             complete.countDown()
           }
+        }.map {
+          Unpooled.wrappedBuffer(bytes)
+        }.gate {
+          valve = it
         }
-        stream = map(stream) { Unpooled.wrappedBuffer(bytes) }
-        stream = gate(stream) { valve = it }
+
         response.sendStream(stream)
       }
     }

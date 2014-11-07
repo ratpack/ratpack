@@ -18,6 +18,7 @@ package ratpack.exec;
 
 import org.reactivestreams.Publisher;
 import ratpack.func.Action;
+import ratpack.stream.TransformablePublisher;
 
 import java.util.concurrent.Callable;
 
@@ -60,6 +61,17 @@ import java.util.concurrent.Callable;
  * <b>Note:</b> when using the Guice integration, the exec control is made available for injection.
  */
 public interface ExecControl {
+
+  /**
+   * Provides the execution control bound to the current thread.
+   * <p>
+   * This method will fail when called outside of a Ratpack compute thread as it relies on {@link ExecController#require()}.
+   *
+   * @return the execution control bound to the current thread
+   */
+  static ExecControl current() {
+    return ExecController.require().getControl();
+  }
 
   Execution getExecution();
 
@@ -134,6 +146,6 @@ public interface ExecControl {
    * @return effectively the given publisher, emitting each “event” as an execution segment of the current execution
    * @param <T> the type of streamed elements
    */
-  <T> Publisher<T> stream(Publisher<T> publisher);
+  <T> TransformablePublisher<T> stream(Publisher<T> publisher);
 
 }

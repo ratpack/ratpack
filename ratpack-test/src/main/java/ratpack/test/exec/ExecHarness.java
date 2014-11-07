@@ -21,6 +21,7 @@ import ratpack.exec.*;
 import ratpack.exec.internal.DefaultExecController;
 import ratpack.func.Action;
 import ratpack.func.Function;
+import ratpack.stream.TransformablePublisher;
 import ratpack.test.exec.internal.DefaultExecHarness;
 
 import java.util.concurrent.Callable;
@@ -224,7 +225,7 @@ public interface ExecHarness extends ExecControl, AutoCloseable {
    * {@inheritDoc}
    */
   @Override
-  default <T> Publisher<T> stream(Publisher<T> publisher) {
+  default <T> TransformablePublisher<T> stream(Publisher<T> publisher) {
     return getControl().stream(publisher);
   }
 

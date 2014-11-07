@@ -44,6 +44,7 @@ import ratpack.path.PathTokens;
 import ratpack.registry.NotInRegistryException;
 import ratpack.registry.Registry;
 import ratpack.server.BindAddress;
+import ratpack.stream.TransformablePublisher;
 
 import java.nio.file.Path;
 import java.util.Date;
@@ -207,7 +208,7 @@ public class DefaultGroovyContext implements GroovyContext {
   }
 
   @Override
-  public <T> Publisher<T> stream(Publisher<T> publisher) {
+  public <T> TransformablePublisher<T> stream(Publisher<T> publisher) {
     return delegate.stream(publisher);
   }
 
