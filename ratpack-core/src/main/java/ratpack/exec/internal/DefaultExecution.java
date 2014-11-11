@@ -17,6 +17,7 @@
 package ratpack.exec.internal;
 
 import com.google.common.reflect.TypeToken;
+import io.netty.channel.EventLoop;
 import ratpack.exec.ExecControl;
 import ratpack.exec.ExecController;
 import ratpack.exec.Execution;
@@ -27,10 +28,12 @@ import java.util.function.Supplier;
 
 public class DefaultExecution extends SimpleMutableRegistry implements Execution {
 
+  private final EventLoop eventLoop;
   private final ExecController controller;
   private final List<AutoCloseable> closeables;
 
-  public DefaultExecution(ExecController controller, List<AutoCloseable> closeables) {
+  public DefaultExecution(EventLoop eventLoop, ExecController controller, List<AutoCloseable> closeables) {
+    this.eventLoop = eventLoop;
     this.controller = controller;
     this.closeables = closeables;
   }
@@ -43,6 +46,11 @@ public class DefaultExecution extends SimpleMutableRegistry implements Execution
   @Override
   public ExecControl getControl() {
     return controller.getControl();
+  }
+
+  @Override
+  public EventLoop getEventLoop() {
+    return eventLoop;
   }
 
   @Override

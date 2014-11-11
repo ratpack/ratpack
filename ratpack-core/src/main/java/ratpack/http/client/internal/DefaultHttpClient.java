@@ -76,7 +76,7 @@ public class DefaultHttpClient implements HttpClient {
   public Promise<ReceivedResponse> request(URI uri, final Action<? super RequestSpec> requestConfigurer) {
     final ExecControl execControl = execController.getControl();
     final Execution execution = execControl.getExecution();
-    final EventLoopGroup eventLoopGroup = execController.getEventLoopGroup();
+    final EventLoopGroup eventLoopGroup = execution.getEventLoop();
 
     try {
       RequestAction requestAction = new RequestAction(requestConfigurer, uri, execution, eventLoopGroup, byteBufAllocator, maxContentLengthBytes);

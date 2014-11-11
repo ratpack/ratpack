@@ -26,6 +26,7 @@ import ratpack.error.ServerErrorHandler;
 import ratpack.event.internal.DefaultEventController;
 import ratpack.event.internal.EventController;
 import ratpack.exec.ExecControl;
+import ratpack.exec.ExecController;
 import ratpack.file.internal.ResponseTransmitter;
 import ratpack.func.Action;
 import ratpack.handling.Context;
@@ -148,7 +149,8 @@ public class DefaultHandlingResult implements HandlingResult {
       }
     };
 
-    ExecControl execControl = launchConfig.getExecController().getControl();
+    ExecController execController = launchConfig.getExecController();
+    ExecControl execControl = execController.getControl();
     Registry baseRegistry = NettyHandlerAdapter.buildBaseRegistry(stopper, launchConfig);
     Registry effectiveRegistry = baseRegistry.join(userRegistry);
     Response response = new DefaultResponse(execControl, responseHeaders, launchConfig.getBufferAllocator(), responseTransmitter);
@@ -157,7 +159,7 @@ public class DefaultHandlingResult implements HandlingResult {
       applicationConstants, bindAddress, request, response, null, eventController.getRegistry()
     );
 
-    DefaultContext.start(execControl, requestConstants, effectiveRegistry, ChainHandler.unpack(handler), Action.noop());
+    DefaultContext.start(execController.getEventLoopGroup().next(), execControl, requestConstants, effectiveRegistry, ChainHandler.unpack(handler), Action.noop());
 
     try {
       if (!latch.await(timeout, TimeUnit.SECONDS)) {

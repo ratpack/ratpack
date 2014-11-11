@@ -17,6 +17,7 @@
 package ratpack.exec;
 
 import com.google.common.reflect.TypeToken;
+import io.netty.channel.EventLoop;
 import ratpack.registry.MutableRegistry;
 
 import java.util.function.Supplier;
@@ -63,6 +64,8 @@ public interface Execution extends MutableRegistry {
   ExecController getController();
 
   ExecControl getControl();
+
+  EventLoop getEventLoop();
 
   // TODO: this is not the right name.
   void onCleanup(AutoCloseable autoCloseable);

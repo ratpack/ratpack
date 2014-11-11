@@ -18,6 +18,7 @@ package ratpack.exec.internal;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import io.netty.channel.EventLoop;
 import io.netty.util.internal.ConcurrentSet;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
@@ -85,6 +86,13 @@ public class DefaultExecControl implements ExecControl {
       private Action<? super Throwable> onError = LOG_UNCAUGHT;
       private Action<? super Execution> onComplete = noop();
       private Action<? super RegistrySpec> registry;
+      private EventLoop eventLoop = execController.getEventLoopGroup().next();
+
+      @Override
+      public ExecStarter eventLoop(EventLoop eventLoop) {
+        this.eventLoop = eventLoop;
+        return this;
+      }
 
       @Override
       public ExecStarter onError(Action<? super Throwable> onError) {
@@ -118,10 +126,10 @@ public class DefaultExecControl implements ExecControl {
         Optional<StackTraceElement[]> startTrace = ExecutionBacking.TRACE ? Optional.of(Thread.currentThread().getStackTrace()) : Optional.empty();
 
         Action<? super Execution> effectiveAction = registry == null ? action : Action.join(registry, action);
-        if (execController.isManagedThread() && threadBinding.get() == null) {
-          new ExecutionBacking(execController, executions, startTrace, threadBinding, effectiveAction, onError, onComplete);
+        if (eventLoop.inEventLoop() && threadBinding.get() == null) {
+          new ExecutionBacking(execController, executions, eventLoop, startTrace, threadBinding, effectiveAction, onError, onComplete);
         } else {
-          execController.getExecutor().submit(() -> new ExecutionBacking(execController, executions, startTrace, threadBinding, effectiveAction, onError, onComplete));
+          eventLoop.submit(() -> new ExecutionBacking(execController, executions, eventLoop, startTrace, threadBinding, effectiveAction, onError, onComplete));
         }
       }
     };
@@ -135,7 +143,6 @@ public class DefaultExecControl implements ExecControl {
   @Override
   public <T> Promise<T> blocking(final Callable<T> blockingOperation) {
     final ExecutionBacking backing = getBacking();
-    final ExecController controller = backing.getController();
     return directPromise(f ->
         backing.streamSubscribe((streamHandle) -> CompletableFuture.supplyAsync(() -> {
             List<Result<T>> holder = Lists.newArrayListWithCapacity(1);
@@ -147,7 +154,7 @@ public class DefaultExecControl implements ExecControl {
             } catch (Exception e) {
               return Result.<T>failure(e);
             }
-          }, controller.getBlockingExecutor()
+          }, execController.getBlockingExecutor()
         ).thenAccept(v -> streamHandle.complete(e -> f.accept(v))))
     );
   }

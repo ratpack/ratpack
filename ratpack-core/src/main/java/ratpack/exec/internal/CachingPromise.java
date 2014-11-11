@@ -151,14 +151,14 @@ public class CachingPromise<T> implements Promise<T> {
           public void error(Throwable throwable) {
             result.set(Result.<T>failure(throwable));
             fulfiller.error(throwable);
-            executionSupplier.get().getController().getExecutor().execute(CachingPromise.this::tryDrain);
+            executionSupplier.get().getEventLoop().execute(CachingPromise.this::tryDrain);
           }
 
           @Override
           public void success(T value) {
             result.set(Result.success(value));
             fulfiller.success(value);
-            executionSupplier.get().getController().getExecutor().execute(CachingPromise.this::tryDrain);
+            executionSupplier.get().getEventLoop().execute(CachingPromise.this::tryDrain);
           }
         });
       } else {

@@ -17,6 +17,7 @@
 package ratpack.exec.internal;
 
 import com.google.common.collect.Lists;
+import io.netty.channel.EventLoop;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ratpack.exec.*;
@@ -25,7 +26,6 @@ import ratpack.func.Action;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
@@ -59,14 +59,12 @@ public class ExecutionBacking {
   private final Deque<Stream> streams = new ConcurrentLinkedDeque<>();
   private final Deque<Stream> suspendedStreams = new ConcurrentLinkedDeque<>();
 
-  private final ExecController controller;
+  private final EventLoop eventLoop;
   private final Action<? super Throwable> onError;
   private final Action<? super Execution> onComplete;
 
   private final ThreadLocal<ExecutionBacking> threadBinding;
   private final Set<ExecutionBacking> executions;
-
-  private final AtomicBoolean active = new AtomicBoolean();
 
   private final AtomicInteger streaming = new AtomicInteger();
   private volatile boolean done;
@@ -75,13 +73,13 @@ public class ExecutionBacking {
 
   private Optional<StackTraceElement[]> startTrace = Optional.empty();
 
-  public ExecutionBacking(ExecController controller, Set<ExecutionBacking> executions, Optional<StackTraceElement[]> startTrace, ThreadLocal<ExecutionBacking> threadBinding, Action<? super Execution> action, Action<? super Throwable> onError, Action<? super Execution> onComplete) {
-    this.controller = controller;
+  public ExecutionBacking(ExecController controller, Set<ExecutionBacking> executions, EventLoop eventLoop, Optional<StackTraceElement[]> startTrace, ThreadLocal<ExecutionBacking> threadBinding, Action<? super Execution> action, Action<? super Throwable> onError, Action<? super Execution> onComplete) {
     this.executions = executions;
+    this.eventLoop = eventLoop;
     this.onError = onError;
     this.onComplete = onComplete;
     this.threadBinding = threadBinding;
-    this.execution = new DefaultExecution(controller, closeables);
+    this.execution = new DefaultExecution(eventLoop, controller, closeables);
     this.startTrace = startTrace;
 
     executions.add(this);
@@ -129,8 +127,8 @@ public class ExecutionBacking {
     return execution;
   }
 
-  public ExecController getController() {
-    return controller;
+  public EventLoop getEventLoop() {
+    return eventLoop;
   }
 
   public List<ExecInterceptor> getInterceptors() {
@@ -185,50 +183,48 @@ public class ExecutionBacking {
   }
 
   private void drain() {
-    if (active.compareAndSet(false, true)) {
-      if (threadBinding.get() == null && controller.isManagedThread()) {
-        try {
-          threadBinding.set(this);
-          assertNotDone();
-          if (hasExecutableSegments()) {
-            while (true) {
-              ExecutionSegment segment = nextSegment();
-              if (segment == null) {
-                Stream stream = currentStream();
-                stream.events.remove(); // event is done
+    if (this.equals(threadBinding.get())) {
+      return;
+    }
 
-                if (stream.events.isEmpty()) {
-                  if (suspendedStreams.isEmpty()) {
-                    done();
-                    return;
-                  } else {
-                    if (streaming.get() < suspendedStreams.size()) {
-                      streams.remove();
-                      streams.addFirst(suspendedStreams.removeLast());
-                    } else {
-                      break;
-                    }
-                  }
-                }
+    if (eventLoop.inEventLoop() && threadBinding.get() == null) {
+      if (!hasExecutableSegments()) {
+        return;
+      }
+      try {
+        threadBinding.set(this);
+        assertNotDone();
+        while (true) {
+          ExecutionSegment segment = nextSegment();
+          if (segment == null) {
+            Stream stream = currentStream();
+            stream.events.remove(); // event is done
+
+            if (stream.events.isEmpty()) {
+              if (suspendedStreams.isEmpty()) {
+                done();
+                return;
               } else {
-                Event event = currentEvent();
-                event.segments.poll();
-                segment.run();
+                if (streaming.get() < suspendedStreams.size()) {
+                  streams.remove();
+                  streams.addFirst(suspendedStreams.removeLast());
+                } else {
+                  break;
+                }
               }
             }
-          }
-        } finally {
-          threadBinding.remove();
-          active.set(false);
-        }
 
-        if (hasExecutableSegments()) {
-          drain();
+          } else {
+            Event event = currentEvent();
+            event.segments.poll();
+            segment.run();
+          }
         }
-      } else {
-        active.set(false);
-        controller.getEventLoopGroup().submit(this::drain);
+      } finally {
+        threadBinding.remove();
       }
+    } else {
+      eventLoop.execute(this::drain);
     }
   }
 

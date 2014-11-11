@@ -19,6 +19,7 @@ package ratpack.handling.internal;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Lists;
 import com.google.common.reflect.TypeToken;
+import io.netty.channel.EventLoop;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import org.reactivestreams.Publisher;
 import org.slf4j.Logger;
@@ -137,7 +138,7 @@ public class DefaultContext implements Context {
 
   private final RequestConstants requestConstants;
 
-  public static void start(ExecControl execControl, final RequestConstants requestConstants, Registry registry, Handler[] handlers, Action<? super Execution> onComplete) {
+  public static void start(EventLoop eventLoop, ExecControl execControl, final RequestConstants requestConstants, Registry registry, Handler[] handlers, Action<? super Execution> onComplete) {
     ChainIndex index = new ChainIndex(handlers, registry, true);
     requestConstants.indexes.push(index);
 
@@ -147,6 +148,7 @@ public class DefaultContext implements Context {
     execControl.exec()
       .onError(throwable -> requestConstants.context.error(throwable instanceof HandlerException ? throwable.getCause() : throwable))
       .onComplete(onComplete)
+      .eventLoop(eventLoop)
       .start(e -> context.next());
   }
 
