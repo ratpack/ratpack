@@ -50,6 +50,7 @@ The following people have provided significant contributions.
 * [Massimo Lusetti](https://github.com/mlusetti)
 * [Rob Zienert](https://github.com/robzienert)
 * [Tom Duncan](https://github.com/tomdcc)
+* [Wilson MacGyver](https://github.com/wmacgyver)
 
 ### Past project members
 
