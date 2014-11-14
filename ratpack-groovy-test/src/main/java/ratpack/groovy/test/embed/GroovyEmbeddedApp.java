@@ -175,7 +175,7 @@ public interface GroovyEmbeddedApp extends EmbeddedApp {
     private Closure<?> handlers = ClosureUtil.noop();
     private Closure<?> bindings = ClosureUtil.noop();
     private Closure<?> launchConfig = ClosureUtil.noop();
-    private Injector parentInjector = null;
+    private Injector parentInjector;
     private Supplier<? extends Path> baseDirSupplier;
 
     Spec getSpec() {

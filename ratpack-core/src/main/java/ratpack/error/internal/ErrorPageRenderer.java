@@ -34,10 +34,10 @@ public abstract class ErrorPageRenderer {
 
   private static final Escaper HTML_ESCAPER = HtmlEscapers.htmlEscaper();
 
-  private static String STYLE;
+  private String style;
 
   public ErrorPageRenderer() {
-    if (STYLE == null) {
+    if (style == null) {
       InputStream resourceAsStream = ErrorPageRenderer.class.getResourceAsStream("error-template-style.css");
       if (resourceAsStream == null) {
         throw new IllegalStateException("Couldn't find style resource");
@@ -45,7 +45,7 @@ public abstract class ErrorPageRenderer {
 
       InputStreamReader reader = new InputStreamReader(resourceAsStream, CharsetUtil.UTF_8);
       try {
-        STYLE = CharStreams.toString(reader);
+        style = CharStreams.toString(reader);
       } catch (IOException e) {
         throw new IllegalStateException("Could not read style stream", e);
       }
@@ -159,7 +159,7 @@ public abstract class ErrorPageRenderer {
       .println("<head>")
       .print("  <title>").escape(pageTitle).println("</title>")
       .println("    <style type=\"text/css\">")
-      .println(STYLE)
+      .println(style)
       .println("    </style>")
       .println("</head>")
       .println("<body>")

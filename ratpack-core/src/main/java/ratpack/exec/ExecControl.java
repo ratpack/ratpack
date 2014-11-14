@@ -16,7 +16,6 @@
 
 package ratpack.exec;
 
-import io.netty.channel.EventLoop;
 import org.reactivestreams.Publisher;
 import ratpack.func.Action;
 import ratpack.stream.TransformablePublisher;

@@ -15,7 +15,7 @@
  */
 
 apply plugin: "groovy"
-//apply from: "$rootDir/gradle/checkstyle.gradle" // doesn't work with Java 8.
+apply from: "$rootDir/gradle/checkstyle.gradle"
 apply from: "$rootDir/gradle/codenarc.gradle"
 
 sourceSets.main {

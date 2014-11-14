@@ -45,7 +45,8 @@ public class SingleEntryRegistry implements Registry {
 
   @Override
   public <O> Iterable<? extends O> getAll(TypeToken<O> type) {
-    return maybeGet(type).map(Collections::<O>singleton).orElse(Collections.emptySet());
+    //noinspection Convert2MethodRef
+    return maybeGet(type).map((o) -> Collections.singleton(o)).orElse(Collections.emptySet());
   }
 
   @Override

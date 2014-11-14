@@ -180,11 +180,7 @@ public class WiretapPublisher<T> implements Publisher<T> {
 
     @Override
     public String toString() {
-      return "StreamEvent[DataEvent{" +
-        "subscriptionId=" + subscriptionId +
-        ", data=" + data +
-        "}]";
-    }
+      return "StreamEvent[DataEvent{subscriptionId=" + subscriptionId + ", data=" + data + "}]"; }
   }
 
   private static class CompletionEvent<T> implements StreamEvent<T> {
@@ -243,10 +239,7 @@ public class WiretapPublisher<T> implements Publisher<T> {
 
     @Override
     public String toString() {
-      return "StreamEvent[CompletionEvent{" +
-        "subscriptionId=" + subscriptionId +
-        "}]";
-    }
+      return "StreamEvent[CompletionEvent{subscriptionId=" + subscriptionId + "}]"; }
   }
 
   private static class ErrorEvent<T> implements StreamEvent<T> {
@@ -306,11 +299,7 @@ public class WiretapPublisher<T> implements Publisher<T> {
 
     @Override
     public String toString() {
-      return "StreamEvent[ErrorEvent{" +
-        "subscriptionId=" + subscriptionId +
-        ", error=" + error +
-        "}]";
-    }
+      return "StreamEvent[ErrorEvent{subscriptionId=" + subscriptionId + ", error=" + error + "}]"; }
   }
 
   private static class CancelEvent<T> implements StreamEvent<T> {
@@ -369,10 +358,7 @@ public class WiretapPublisher<T> implements Publisher<T> {
 
     @Override
     public String toString() {
-      return "StreamEvent[CancelEvent{" +
-        "subscriptionId=" + subscriptionId +
-        "}]";
-    }
+      return "StreamEvent[CancelEvent{subscriptionId=" + subscriptionId + "}]"; }
   }
 
   private static class RequestEvent<T> implements StreamEvent<T> {
@@ -434,10 +420,7 @@ public class WiretapPublisher<T> implements Publisher<T> {
 
     @Override
     public String toString() {
-      return "StreamEvent[RequestEvent{" +
-        "requestAmount=" + requestAmount +
-        ", subscriptionId=" + subscriptionId +
-        "}]";
+      return "StreamEvent[RequestEvent{requestAmount=" + requestAmount + ", subscriptionId=" + subscriptionId + "}]";
     }
   }
 

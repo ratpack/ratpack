@@ -85,8 +85,8 @@ public class CachingBackedRegistry implements Registry {
   }
 
   protected <O> Iterable<O> transformToInstances(Iterable<? extends Supplier<O>> suppliers) {
-    //noinspection RedundantTypeArguments
-    return Iterables.transform(suppliers, Supplier<O>::get);
+    //noinspection Convert2MethodRef
+    return Iterables.transform(suppliers, (s) -> s.get());
   }
 
   protected <T> Iterable<? extends Supplier<T>> getSuppliers(TypeToken<T> type) {

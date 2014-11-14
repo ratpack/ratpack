@@ -25,7 +25,6 @@ import ratpack.groovy.test.handling.internal.DefaultGroovyRequestFixture;
 import ratpack.handling.Chain;
 import ratpack.handling.Handler;
 import ratpack.test.UnitTest;
-import ratpack.test.handling.HandlerTimeoutException;
 import ratpack.test.handling.HandlingResult;
 import ratpack.test.handling.RequestFixture;
 
@@ -68,7 +67,7 @@ public abstract class GroovyUnitTest {
    * @param handler the handler to test
    * @param closure the configuration of the request fixture
    * @return The result of the invocation
-   * @throws HandlerTimeoutException if the handler takes more than {@link RequestFixture#timeout(int)} seconds to send a response or call {@code next()} on the context
+   * @throws ratpack.test.handling.HandlerTimeoutException if the handler takes more than {@link RequestFixture#timeout(int)} seconds to send a response or call {@code next()} on the context
    * @throws Exception any thrown by {@code closure}
    */
   @SuppressWarnings("overloads")
@@ -111,7 +110,7 @@ public abstract class GroovyUnitTest {
    * @param handlers the handlers to test
    * @param closure the configuration of the request fixture
    * @return The result of the invocation
-   * @throws HandlerTimeoutException if the handler takes more than {@link RequestFixture#timeout(int)} seconds to send a response or call {@code next()} on the context
+   * @throws ratpack.test.handling.HandlerTimeoutException if the handler takes more than {@link RequestFixture#timeout(int)} seconds to send a response or call {@code next()} on the context
    * @throws Exception any thrown by {@code closure}
    */
   @SuppressWarnings("overloads")
