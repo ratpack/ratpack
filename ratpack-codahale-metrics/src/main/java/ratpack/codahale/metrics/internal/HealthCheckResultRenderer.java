@@ -19,40 +19,28 @@ package ratpack.codahale.metrics.internal;
 import com.codahale.metrics.health.HealthCheck;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import ratpack.func.Action;
-import ratpack.handling.ByContentSpec;
 import ratpack.handling.Context;
-import ratpack.handling.Handler;
 import ratpack.render.RendererSupport;
-
 
 public class HealthCheckResultRenderer extends RendererSupport<HealthCheck.Result> {
 
   @Override
   public void render(Context context, HealthCheck.Result object) throws Exception {
-    context.byContent((new Action<ByContentSpec>() {
-      @Override
-      public void execute(ByContentSpec byContentSpec) throws Exception {
-        byContentSpec.json(new Handler() {
-          @Override
-          public void handle(Context context) throws Exception {
-            ObjectMapper mapper = new ObjectMapper();
+    context.byContent(spec -> spec.json(c -> {
+      ObjectMapper mapper = new ObjectMapper();
 
-            byte[] bytes;
-            try {
-              bytes = mapper.writeValueAsBytes(object);
-            } catch (JsonProcessingException e) {
-              context.error(e);
-              return;
-            }
-            context.getResponse().getHeaders()
-              .add("Cache-Control", "no-cache, no-store, must-revalidate")
-              .add("Pragma", "no-cache")
-              .add("Expires", 0);
-            context.getResponse().send(bytes);
-          }
-        });
+      byte[] bytes;
+      try {
+        bytes = mapper.writeValueAsBytes(object);
+      } catch (JsonProcessingException e) {
+        c.error(e);
+        return;
       }
+      c.getResponse().getHeaders()
+        .add("Cache-Control", "no-cache, no-store, must-revalidate")
+        .add("Pragma", "no-cache")
+        .add("Expires", 0);
+      c.getResponse().send(bytes);
     }));
   }
 }
