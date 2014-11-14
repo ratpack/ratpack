@@ -112,7 +112,7 @@ task api(type: Javadoc) {
   configure(options) {
     splitIndex true
     use = true
-    links "http://docs.oracle.com/javase/7/docs/api/"
+    links "http://docs.oracle.com/javase/8/docs/api/"
     windowTitle "Ratpack API ($project.version)"
     docTitle "Ratpack API ($project.version)"
   }
