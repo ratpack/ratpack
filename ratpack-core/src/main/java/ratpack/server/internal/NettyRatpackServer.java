@@ -97,7 +97,7 @@ public class NettyRatpackServer implements RatpackServer {
       boundAddress = (InetSocketAddress) channel.localAddress();
 
       if (logger.isInfoEnabled()) {
-        logger.info(String.format("Ratpack started for http://%s:%s", getBindHost(), getBindPort()));
+        logger.info(String.format("Ratpack started for %s://%s:%s", getScheme(), getBindHost(), getBindPort()));
       }
       running.set(true);
     } catch (Exception e) {
