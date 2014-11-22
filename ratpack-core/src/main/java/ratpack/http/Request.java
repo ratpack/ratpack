@@ -16,6 +16,7 @@
 
 package ratpack.http;
 
+import com.google.common.net.HostAndPort;
 import com.google.common.reflect.TypeToken;
 import io.netty.handler.codec.http.Cookie;
 import ratpack.api.Nullable;
@@ -113,6 +114,21 @@ public interface Request extends MutableRegistry {
    * @return The request headers.
    */
   Headers getHeaders();
+
+  /**
+   * The host and port information of the client that sent the request.
+   *
+   *
+   * @return the remote host and port
+   */
+  HostAndPort getRemoteAddress();
+
+  /**
+   * The host and port information of the server that received the request.
+   *
+   * @return the local host and port
+   */
+  HostAndPort getLocalAddress();
 
   /**
    * {@inheritDoc}

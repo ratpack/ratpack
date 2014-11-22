@@ -16,18 +16,19 @@
 
 package ratpack.server
 
+import ratpack.server.internal.HostUtil
 import ratpack.test.internal.RatpackGroovyDslSpec
 
-class BindAddressInContextSpec extends RatpackGroovyDslSpec {
+class LocalAddressInRequestSpec extends RatpackGroovyDslSpec {
 
-  def "bind address is available via context"() {
+  def "local address is available via request"() {
     when:
     handlers {
       get("port") {
-        response.send bindAddress.port.toString()
+        response.send request.localAddress.port.toString()
       }
       get("host") {
-        response.send bindAddress.host
+        response.send HostUtil.determineHost(request.localAddress)
       }
     }
 

@@ -97,6 +97,7 @@ public interface HttpUrlBuilder {
   /**
    * Sets the host to the given value.
    *
+   * @param host The host.
    * @return this
    */
   HttpUrlBuilder host(String host);
@@ -106,6 +107,7 @@ public interface HttpUrlBuilder {
    * <p>
    * Any value less than 1 will throw an {@link IllegalAccessException}.
    *
+   * @param port The port number.
    * @return this
    */
   HttpUrlBuilder port(int port);
@@ -119,6 +121,7 @@ public interface HttpUrlBuilder {
    * <p>
    * If the value to append should be exactly one path segment (i.e. {@code "/"} should be encoded), use {@link #segment(String, Object...)}.
    *
+   * @param path The path to append.
    * @return this
    */
   HttpUrlBuilder path(String path);

@@ -44,7 +44,6 @@ import ratpack.launch.LaunchConfig;
 import ratpack.registry.Registries;
 import ratpack.registry.Registry;
 import ratpack.render.internal.RenderController;
-import ratpack.server.BindAddress;
 import ratpack.server.Stopper;
 import ratpack.server.internal.NettyHandlerAdapter;
 import ratpack.test.handling.HandlerExceptionNotThrownException;
@@ -86,18 +85,6 @@ public class DefaultHandlingResult implements HandlingResult {
     final Handler next = context -> {
       calledNext = true;
       latch.countDown();
-    };
-
-    final BindAddress bindAddress = new BindAddress() {
-      @Override
-      public String getHost() {
-        return "localhost";
-      }
-
-      @Override
-      public int getPort() {
-        return 5050;
-      }
     };
 
     ClientErrorHandler clientErrorHandler = (context, statusCode) -> {
@@ -156,7 +143,7 @@ public class DefaultHandlingResult implements HandlingResult {
     Response response = new DefaultResponse(execControl, responseHeaders, launchConfig.getBufferAllocator(), responseTransmitter);
     DefaultContext.ApplicationConstants applicationConstants = new DefaultContext.ApplicationConstants(launchConfig, renderController, next);
     requestConstants = new DefaultContext.RequestConstants(
-      applicationConstants, bindAddress, request, response, null, eventController.getRegistry()
+      applicationConstants, request, response, null, eventController.getRegistry()
     );
 
     DefaultContext.start(execController.getEventLoopGroup().next(), execControl, requestConstants, effectiveRegistry, ChainHandler.unpack(handler), Action.noop());

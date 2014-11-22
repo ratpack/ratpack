@@ -32,7 +32,6 @@ import ratpack.path.PathTokens;
 import ratpack.registry.NotInRegistryException;
 import ratpack.registry.Registry;
 import ratpack.render.NoSuchRendererException;
-import ratpack.server.BindAddress;
 import ratpack.stream.TransformablePublisher;
 
 import java.nio.file.Path;
@@ -69,7 +68,6 @@ import java.util.concurrent.Callable;
  * <li>A {@link ratpack.error.ServerErrorHandler}</li>
  * <li>A {@link ratpack.error.ClientErrorHandler}</li>
  * <li>A {@link ratpack.file.FileRenderer}</li>
- * <li>A {@link ratpack.server.BindAddress}</li>
  * <li>A {@link ratpack.server.PublicAddress}</li>
  * <li>A {@link Redirector}</li>
  * </ul>
@@ -709,13 +707,6 @@ public interface Context extends ExecControl, Registry {
    * @return Direct access to the underlying channel.
    */
   DirectChannelAccess getDirectChannelAccess();
-
-  /**
-   * The address that this request was received on.
-   *
-   * @return The address that this request was received on.
-   */
-  BindAddress getBindAddress();
 
   /**
    * The contextual path tokens of the current {@link ratpack.path.PathBinding}.

@@ -50,7 +50,6 @@ import ratpack.registry.NotInRegistryException;
 import ratpack.registry.Registry;
 import ratpack.render.NoSuchRendererException;
 import ratpack.render.internal.RenderController;
-import ratpack.server.BindAddress;
 import ratpack.stream.TransformablePublisher;
 import ratpack.util.ExceptionUtils;
 import ratpack.util.Types;
@@ -88,7 +87,6 @@ public class DefaultContext implements Context {
   public static class RequestConstants {
     private final ApplicationConstants applicationConstants;
 
-    private final BindAddress bindAddress;
     private final Request request;
     private final Response response;
 
@@ -101,11 +99,10 @@ public class DefaultContext implements Context {
     public Handler handler;
 
     public RequestConstants(
-      ApplicationConstants applicationConstants, BindAddress bindAddress, Request request, Response response,
+      ApplicationConstants applicationConstants, Request request, Response response,
       DirectChannelAccess directChannelAccess, EventRegistry<RequestOutcome> onCloseRegistry
     ) {
       this.applicationConstants = applicationConstants;
-      this.bindAddress = bindAddress;
       this.request = request;
       this.response = response;
       this.directChannelAccess = directChannelAccess;
@@ -371,11 +368,6 @@ public class DefaultContext implements Context {
 
     requestConstants.response.getHeaders().setDate(HttpHeaderConstants.LAST_MODIFIED, date);
     runnable.run();
-  }
-
-  @Override
-  public BindAddress getBindAddress() {
-    return requestConstants.bindAddress;
   }
 
   public void error(Throwable throwable) {

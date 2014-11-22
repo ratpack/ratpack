@@ -22,13 +22,11 @@ import com.google.common.collect.Iterables;
 import com.google.common.net.HostAndPort;
 import ratpack.handling.Context;
 import ratpack.http.Headers;
-import ratpack.server.BindAddress;
 import ratpack.server.PublicAddress;
 import ratpack.util.ExceptionUtils;
 import ratpack.util.internal.ProtocolUtil;
 
-import java.net.URI;
-import java.net.URISyntaxException;
+import java.net.*;
 
 import static ratpack.http.internal.HttpHeaderConstants.*;
 import static ratpack.util.internal.ProtocolUtil.HTTPS_SCHEME;
@@ -87,10 +85,9 @@ public class DefaultPublicAddress implements PublicAddress {
             host = hostData.getHostText();
             port = hostData.getPortOrDefault(-1);
           } else {
-            BindAddress bindAddress = context.getBindAddress();
-            int bindPort = bindAddress.getPort();
-            host = bindAddress.getHost();
-            port = ProtocolUtil.isDefaultPortForScheme(bindPort, this.scheme) ? -1 : bindPort;
+            HostAndPort localAddress = context.getRequest().getLocalAddress();
+            host = localAddress.getHostText();
+            port = ProtocolUtil.isDefaultPortForScheme(localAddress.getPort(), this.scheme) ? -1 : localAddress.getPort();
           }
         }
       }

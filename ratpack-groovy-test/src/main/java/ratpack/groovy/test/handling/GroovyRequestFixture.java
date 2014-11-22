@@ -16,6 +16,7 @@
 
 package ratpack.groovy.test.handling;
 
+import com.google.common.net.HostAndPort;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import ratpack.func.Action;
@@ -66,4 +67,10 @@ public interface GroovyRequestFixture extends RequestFixture {
 
   @Override
   GroovyRequestFixture launchConfig(Action<? super LaunchConfigBuilder> action) throws Exception;
+
+  @Override
+  GroovyRequestFixture setRemoteAddress(HostAndPort remote);
+
+  @Override
+  GroovyRequestFixture setLocalAddress(HostAndPort local);
 }

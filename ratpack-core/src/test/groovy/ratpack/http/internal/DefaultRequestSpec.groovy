@@ -31,13 +31,17 @@ class DefaultRequestSpec extends RatpackGroovyDslSpec {
     def content = Unpooled.buffer()
 
     when:
-    def request = new DefaultRequest(headers, HttpMethod.GET, inputUri, content)
+    def request = new DefaultRequest(headers, HttpMethod.GET, inputUri, new InetSocketAddress('localhost', 45678), new InetSocketAddress('localhost', 5050), content)
 
     then:
     request.rawUri == inputUri
     request.uri == expectedUri
     request.query == expectedQuery
     request.path == expectedPath
+    request.remoteAddress.hostText == 'localhost'
+    request.remoteAddress.port == 45678
+    request.localAddress.hostText == 'localhost'
+    request.localAddress.port == 5050
 
     where:
     inputUri                                       | expectedUri                                    | expectedQuery                  | expectedPath

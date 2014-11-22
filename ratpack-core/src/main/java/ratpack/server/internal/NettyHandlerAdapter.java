@@ -63,7 +63,6 @@ import ratpack.registry.RegistryBuilder;
 import ratpack.render.CharSequenceRenderer;
 import ratpack.render.internal.DefaultCharSequenceRenderer;
 import ratpack.render.internal.DefaultRenderController;
-import ratpack.server.BindAddress;
 import ratpack.server.PublicAddress;
 import ratpack.server.Stopper;
 import ratpack.sse.internal.ServerSentEventsRenderer;
@@ -140,8 +139,13 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
     }
 
     final long startTime = addResponseTimeHeader ? System.nanoTime() : 0;
-    final Request request = new DefaultRequest(new NettyHeadersBackedHeaders(nettyRequest.headers()), nettyRequest.getMethod(), nettyRequest.getUri(), nettyRequest.content());
+
     final Channel channel = ctx.channel();
+    InetSocketAddress remoteAddress = (InetSocketAddress) channel.remoteAddress();
+    InetSocketAddress socketAddress = (InetSocketAddress) channel.localAddress();
+
+
+    final Request request = new DefaultRequest(new NettyHeadersBackedHeaders(nettyRequest.headers()), nettyRequest.getMethod(), nettyRequest.getUri(), remoteAddress, socketAddress, nettyRequest.content());
     final HttpHeaders nettyHeaders = new DefaultHttpHeaders(false);
     final MutableHeaders responseHeaders = new NettyHeadersBackedMutableHeaders(nettyHeaders);
     final DefaultEventController<RequestOutcome> requestOutcomeEventController = new DefaultEventController<>();
@@ -152,9 +156,6 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
     final Response response = new DefaultResponse(execControl, responseHeaders, ctx.alloc(), responseTransmitter);
     ctx.attr(RESPONSE_TRANSMITTER_ATTRIBUTE_KEY).set(responseTransmitter);
 
-    InetSocketAddress socketAddress = (InetSocketAddress) channel.localAddress();
-    final BindAddress bindAddress = new InetSocketAddressBackedBindAddress(socketAddress);
-
     Action<Action<Object>> subscribeHandler = thing -> {
       transmitted.set(true);
       channelSubscriptions.put(channel, thing);
@@ -164,7 +165,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
     final DirectChannelAccess directChannelAccess = new DefaultDirectChannelAccess(channel, subscribeHandler);
 
     final DefaultContext.RequestConstants requestConstants = new DefaultContext.RequestConstants(
-      applicationConstants, bindAddress, request, response, directChannelAccess, requestOutcomeEventController.getRegistry()
+      applicationConstants, request, response, directChannelAccess, requestOutcomeEventController.getRegistry()
     );
 
     DefaultContext.start(channel.eventLoop(), execController.getControl(), requestConstants, registry, handlers, execution -> {
