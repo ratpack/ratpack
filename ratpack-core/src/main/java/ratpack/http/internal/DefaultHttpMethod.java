@@ -35,7 +35,7 @@ public class DefaultHttpMethod implements HttpMethod {
     .put(io.netty.handler.codec.http.HttpMethod.CONNECT, new DefaultHttpMethod(io.netty.handler.codec.http.HttpMethod.CONNECT))
     .build();
 
-  public DefaultHttpMethod(io.netty.handler.codec.http.HttpMethod nettyMethod) {
+  private DefaultHttpMethod(io.netty.handler.codec.http.HttpMethod nettyMethod) {
     this.nettyMethod = nettyMethod;
   }
 
