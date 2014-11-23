@@ -209,7 +209,7 @@ public class DefaultTestHttpClient implements TestHttpClient {
     try {
       URI uri = builder(path).params(params).build();
 
-      response = client.request(uri, 1, TimeUnit.MINUTES, Action.join(defaultRequestConfig, request, requestSpec -> {
+      response = client.request(uri, 60, TimeUnit.MINUTES, Action.join(defaultRequestConfig, request, requestSpec -> {
         requestSpec.method(method);
         requestSpec.getHeaders().add(HttpHeaderConstants.COOKIE, ClientCookieEncoder.encode(cookies));
         requestSpec.getHeaders().add(HttpHeaderConstants.HOST, HostAndPort.fromParts(uri.getHost(), uri.getPort()).toString());
