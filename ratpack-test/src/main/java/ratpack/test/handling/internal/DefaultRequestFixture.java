@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableMap;
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpMethod;
 import io.netty.util.CharsetUtil;
 import ratpack.func.Action;
 import ratpack.handling.Chain;
@@ -98,7 +99,7 @@ public class DefaultRequestFixture implements RequestFixture {
   }
 
   private HandlingResult invoke(Handler handler, LaunchConfig launchConfig, Registry registry) throws HandlerTimeoutException {
-    Request request = new DefaultRequest(requestHeaders, method, uri, requestBody);
+    Request request = new DefaultRequest(requestHeaders, HttpMethod.valueOf(method.toUpperCase()), uri, requestBody);
 
     try {
       return new DefaultHandlingResult(

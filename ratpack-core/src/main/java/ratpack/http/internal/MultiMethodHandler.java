@@ -28,6 +28,8 @@ import static io.netty.handler.codec.http.HttpResponseStatus.METHOD_NOT_ALLOWED;
 
 public class MultiMethodHandler implements Handler {
 
+  private static final Handler NO_METHOD_HANDLER = Handlers.clientError(METHOD_NOT_ALLOWED.code());
+
   private final Map<String, Handler> handlers;
 
   public MultiMethodHandler(Map<String, Handler> handlers) {
@@ -50,7 +52,8 @@ public class MultiMethodHandler implements Handler {
         }
       }
 
-      Handlers.clientError(METHOD_NOT_ALLOWED.code()).handle(context);
+      NO_METHOD_HANDLER.handle(context);
     }
   }
+
 }

@@ -17,6 +17,7 @@
 package ratpack.http.internal
 
 import io.netty.buffer.Unpooled
+import io.netty.handler.codec.http.HttpMethod
 import ratpack.http.Headers
 import ratpack.test.internal.RatpackGroovyDslSpec
 import spock.lang.Unroll
@@ -30,7 +31,7 @@ class DefaultRequestSpec extends RatpackGroovyDslSpec {
     def content = Unpooled.buffer()
 
     when:
-    def request = new DefaultRequest(headers, "GET", inputUri, content)
+    def request = new DefaultRequest(headers, HttpMethod.GET, inputUri, content)
 
     then:
     request.rawUri == inputUri

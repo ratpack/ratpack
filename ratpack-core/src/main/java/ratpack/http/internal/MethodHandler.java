@@ -16,14 +16,14 @@
 
 package ratpack.http.internal;
 
+import io.netty.handler.codec.http.HttpMethod;
 import ratpack.handling.Context;
 import ratpack.handling.Handler;
-import ratpack.http.HttpMethod;
 import ratpack.http.Response;
 
 public class MethodHandler implements Handler {
 
-  private final String method;
+  private final ratpack.http.HttpMethod method;
 
   public static final Handler GET = new MethodHandler("GET");
   public static final Handler POST = new MethodHandler("POST");
@@ -31,13 +31,13 @@ public class MethodHandler implements Handler {
   public static final Handler PATCH = new MethodHandler("PATCH");
   public static final Handler DELETE = new MethodHandler("DELETE");
 
-  public MethodHandler(String method) {
-    this.method = method.toUpperCase();
+  private MethodHandler(String method) {
+    this.method = DefaultHttpMethod.valueOf(HttpMethod.valueOf(method));
   }
 
   public void handle(Context context) {
-    HttpMethod requestMethod = context.getRequest().getMethod();
-    if (requestMethod.name(method)) {
+    ratpack.http.HttpMethod requestMethod = context.getRequest().getMethod();
+    if (requestMethod == method || requestMethod.name(method.getName())) {
       context.next();
     } else if (requestMethod.isOptions()) {
       Response response = context.getResponse();

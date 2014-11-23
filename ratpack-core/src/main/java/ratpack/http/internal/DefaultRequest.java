@@ -56,10 +56,10 @@ public class DefaultRequest implements Request {
   private final HttpMethod method;
   private Set<Cookie> cookies;
 
-  public DefaultRequest(Headers headers, String methodName, String rawUri, ByteBuf content) {
+  public DefaultRequest(Headers headers, io.netty.handler.codec.http.HttpMethod method, String rawUri, ByteBuf content) {
     this.headers = headers;
     this.content = content;
-    this.method = new DefaultHttpMethod(methodName);
+    this.method = DefaultHttpMethod.valueOf(method);
     this.rawUri = rawUri;
   }
 

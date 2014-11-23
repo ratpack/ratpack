@@ -140,7 +140,7 @@ public class NettyHandlerAdapter extends SimpleChannelInboundHandler<FullHttpReq
     }
 
     final long startTime = addResponseTimeHeader ? System.nanoTime() : 0;
-    final Request request = new DefaultRequest(new NettyHeadersBackedHeaders(nettyRequest.headers()), nettyRequest.getMethod().name(), nettyRequest.getUri(), nettyRequest.content());
+    final Request request = new DefaultRequest(new NettyHeadersBackedHeaders(nettyRequest.headers()), nettyRequest.getMethod(), nettyRequest.getUri(), nettyRequest.content());
     final Channel channel = ctx.channel();
     final HttpHeaders nettyHeaders = new DefaultHttpHeaders(false);
     final MutableHeaders responseHeaders = new NettyHeadersBackedMutableHeaders(nettyHeaders);
