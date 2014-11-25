@@ -223,18 +223,22 @@ public interface RequestFixture {
 
   /**
    * Set the remote address from which the request is made.
-   *
-   * @param remote The remote host and port address.
+   * <p>
+   * Effectively the return value of {@link ratpack.http.Request#getRemoteAddress()}.
+
+   * @param remote the remote host and port address
    * @return this
    */
-  RequestFixture setRemoteAddress(HostAndPort remote);
+  RequestFixture remoteAddress(HostAndPort remote);
 
   /**
    * Set the local address to which this request is made.
+   * <p>
+   * Effectively the return value of {@link ratpack.http.Request#getLocalAddress()}.
    *
-   * @param local The local host and port address.
+   * @param local the local host and port address
    * @return this
    */
-  RequestFixture setLocalAddress(HostAndPort local);
+  RequestFixture localAddress(HostAndPort local);
 
 }

@@ -135,14 +135,14 @@ public class DefaultGroovyRequestFixture implements GroovyRequestFixture {
   }
 
   @Override
-  public GroovyRequestFixture setRemoteAddress(HostAndPort remote) {
-    delegate.setRemoteAddress(remote);
+  public GroovyRequestFixture remoteAddress(HostAndPort remote) {
+    delegate.remoteAddress(remote);
     return this;
   }
 
   @Override
-  public GroovyRequestFixture setLocalAddress(HostAndPort local) {
-    delegate.setLocalAddress(local);
+  public GroovyRequestFixture localAddress(HostAndPort local) {
+    delegate.localAddress(local);
     return this;
   }
 }

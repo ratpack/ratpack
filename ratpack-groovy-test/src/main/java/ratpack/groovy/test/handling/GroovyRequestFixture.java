@@ -69,8 +69,8 @@ public interface GroovyRequestFixture extends RequestFixture {
   GroovyRequestFixture launchConfig(Action<? super LaunchConfigBuilder> action) throws Exception;
 
   @Override
-  GroovyRequestFixture setRemoteAddress(HostAndPort remote);
+  GroovyRequestFixture remoteAddress(HostAndPort remote);
 
   @Override
-  GroovyRequestFixture setLocalAddress(HostAndPort local);
+  GroovyRequestFixture localAddress(HostAndPort local);
 }

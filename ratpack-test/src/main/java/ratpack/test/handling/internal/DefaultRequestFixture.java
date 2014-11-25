@@ -196,13 +196,13 @@ public class DefaultRequestFixture implements RequestFixture {
   }
 
   @Override
-  public RequestFixture setRemoteAddress(HostAndPort remote) {
+  public RequestFixture remoteAddress(HostAndPort remote) {
     remoteHostAndPort = remote;
     return this;
   }
 
   @Override
-  public RequestFixture setLocalAddress(HostAndPort local) {
+  public RequestFixture localAddress(HostAndPort local) {
     localHostAndPort = local;
     return this;
   }

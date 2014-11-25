@@ -418,7 +418,7 @@ class HandlerUnitTestingSpec extends Specification {
   @Unroll
   def "can get remote host and port"() {
     given:
-    fixture.setRemoteAddress(HostAndPort.fromParts(host, port))
+    fixture.remoteAddress(HostAndPort.fromParts(host, port))
 
     when:
     handle {
